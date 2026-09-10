@@ -336,7 +336,24 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 | Focused final-mode contract | 22 tests, 0 failures |
 | Combined security projection | 42 tests, 0 failures |
 | Full repository suite | 1,648 tests, 0 failures, 1 excluded |
-| Result | CR-05 FILLED after scalar-decoding iteration 5; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
+| Result | Reference and control scalars closed; iteration 6 below extends the same fail-closed grammar to every Plan-66 coverage leaf |
+
+## Validation Audit 2026-09-10 (post-Plan-66 CR-05 iteration 6)
+
+| Metric | Result |
+|---|---|
+| Re-review gap | Coverage leaf values other than `ref` retained broader scalar acceptance, allowing parser-differential aliases before the map-based semantic checks |
+| Coverage ID grammar | IDs must match `D[1-9][0-9]*`; zero, zero padding, null spellings, tilde, quoted/single-quoted, tagged, anchored, flow, and block aliases fail before IDs are collected or mapped |
+| Description grammar | Descriptions use the same JSON-compatible non-empty, non-whitespace double-quoted grammar as references; empty, null-like, unquoted, malformed-escape, tag/anchor, flow, and block forms fail |
+| Requirement binding | The parsed canonical plan binds coverage requirements exactly: Plans 64-65 require bare `GREEN-12`, while Plan 66 requires bare `GREEN-04`; aliases and near-miss identifiers fail |
+| Remaining leaf schema | `kind` remains a finite bare enum, `ref` remains a strict quoted string, verification `status` remains the bare pass/fail/pending enum, and `human_judgment` remains bare true/false |
+| Duplicate/null identity fixtures | Structurally complete D1 and D2 records exercise semantic duplicates in both orders; each ID also exercises null-like, quoted, tagged, anchored, flow, block, zero, and zero-padded forms before maps |
+| Cross-record alias matrix | Representative aliases for description, requirement, kind, status, and human judgment are tested against first and last matches, spanning both D1/D2 and multiple verification items; the existing ref matrix covers first and last references |
+| Compatibility control | Exact real summaries 63-66 retain canonical IDs/descriptions/requirements/items and pass; audited-final 01-61, terminal 62, post-terminal 63-65, and repair-summary 66 roles remain unchanged |
+| Focused final-mode contract | 24 tests, 0 failures |
+| Combined security projection | 44 tests, 0 failures |
+| Full repository suite | 1,650 tests, 0 failures, 1 excluded |
+| Result | CR-05 FILLED after complete coverage-leaf iteration 6; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
 
 ## Validation Sign-Off
 
