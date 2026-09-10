@@ -75,6 +75,20 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     ["command_receipts"]
   ]
 
+  @tag :classic_adapter
+  test "classic protection adapter preserves absent present and observation errors" do
+    with_fake_gh(fn env ->
+      assert {"absent\n", 0} = run_classic_adapter(env, "404")
+      assert {"present\n", 0} = run_classic_adapter(env, "success")
+
+      for failure <- ~w(403 429 500 502 503 transport malformed unknown) do
+        {output, status} = run_classic_adapter(env, failure)
+        refute status == 0, "#{failure} unexpectedly produced a protection state: #{output}"
+        refute output in ["absent\n", "present\n"]
+      end
+    end)
+  end
+
   test "canonical inventory is schema-valid, live-equal, Markdown-joined, and mutation-free" do
     assert {output, 0} = run(@inventory)
     assert output =~ "exactly 3 decision targets"
@@ -506,7 +520,9 @@ defmodule Threadline.Phase198RefDispositionContractTest do
         fn receipt -> Map.put(receipt, "argv", Enum.join(receipt["argv"], " ")) end,
         fn receipt -> Map.put(receipt, "argv", receipt["argv"] ++ ["refs/tags/extra"]) end,
         fn receipt -> Map.put(receipt, "argv", List.insert_at(receipt["argv"], 1, "--force")) end,
-        fn receipt -> Map.put(receipt, "argv", List.replace_at(receipt["argv"], -1, "refs/tags/*")) end,
+        fn receipt ->
+          Map.put(receipt, "argv", List.replace_at(receipt["argv"], -1, "refs/tags/*"))
+        end,
         fn receipt -> Map.put(receipt, "started_at", receipt["completed_at"]) end,
         fn receipt -> Map.put(receipt, "completed_at", "2026-09-09T21:59:59Z") end,
         fn receipt -> Map.put(receipt, "exit_status", 1) end,
@@ -655,6 +671,42 @@ defmodule Threadline.Phase198RefDispositionContractTest do
       @script,
       ["inventory", "--inventory", path, "--decision", @decision],
       env: [{"PHASE198_REF_DISPOSITION_LIVE_FIXTURE", @inventory}],
+      stderr_to_stdout: true
+    )
+  end
+
+  defp with_fake_gh(fun) do
+    dir = Path.join(System.tmp_dir!(), "phase198-fake-gh-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(dir)
+    gh = Path.join(dir, "gh")
+
+    File.write!(gh, """
+    #!/bin/sh
+    case "${PHASE198_FAKE_CLASSIC_MODE:-unknown}" in
+      success) printf '%s\\n' '{}' ; exit 0 ;;
+      403|404|429|500|502|503) printf 'HTTP/2 %s fixture\\n' "$PHASE198_FAKE_CLASSIC_MODE" >&2; exit 1 ;;
+      transport) printf 'transport failure\\n' >&2; exit 1 ;;
+      malformed) printf 'HTTP status unavailable\\n' >&2; exit 1 ;;
+      *) printf 'unknown adapter state\\n' >&2; exit 1 ;;
+    esac
+    """)
+
+    File.chmod!(gh, 0o755)
+
+    try do
+      fun.([
+        {"PATH", dir <> ":" <> System.fetch_env!("PATH")},
+        {"PHASE198_REF_DISPOSITION_LIVE_ATTEMPTS", "1"},
+        {"PHASE198_REF_DISPOSITION_LIVE_DEADLINE_SECONDS", "5"}
+      ])
+    after
+      File.rm_rf!(dir)
+    end
+  end
+
+  defp run_classic_adapter(base_env, mode) do
+    System.cmd(@script, ["fixture-classic-adapter", "szTheory/threadline"],
+      env: [{"PHASE198_FAKE_CLASSIC_MODE", mode} | base_env],
       stderr_to_stdout: true
     )
   end
@@ -1041,10 +1093,12 @@ defmodule Threadline.Phase198RefDispositionContractTest do
              sha,
              "-m",
              "Archive #{subject["id"]}"
-           ], %{"exists" => false}, %{"exists" => true, "tag" => tag, "sha" => sha, "annotated" => true}}
+           ], %{"exists" => false},
+           %{"exists" => true, "tag" => tag, "sha" => sha, "annotated" => true}}
 
         "remote-single-tag" ->
           ref = "refs/tags/#{tag}"
+
           {["git", "push", "origin", "#{ref}:#{ref}"], %{"exists" => false},
            %{"exists" => true, "ref" => ref, "sha" => sha}}
 
