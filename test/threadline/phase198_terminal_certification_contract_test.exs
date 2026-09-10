@@ -78,10 +78,41 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
       {:command_order_mismatch, fn value -> Map.update!(value, "commands", &Enum.reverse/1) end},
       {:nonzero_exit, &put_in(&1, ["commands", Access.at(0), "exit_status"], 1)},
       {:failed_result, &put_in(&1, ["commands", Access.at(0), "result"], "fail")},
+      {:extra_command, fn value -> Map.update!(value, "commands", &(&1 ++ [List.last(&1)])) end},
+      {:missing_blocking_finding,
+       &update_in(&1["open_findings"], fn findings ->
+         Map.delete(findings, "T-198-55-02")
+       end)},
+      {:extra_finding,
+       &put_in(&1, ["open_findings", "T-198-extra"], %{
+         "severity" => "low",
+         "blocking" => false,
+         "status" => "open",
+         "accepted" => false,
+         "receipt_evidence_reconstructed" => false
+       })},
+      {:closed_blocking_finding,
+       &put_in(&1, ["open_findings", "T-198-55-02", "status"], "closed")},
+      {:accepted_blocking_finding,
+       &put_in(&1, ["open_findings", "T-198-55-02", "accepted"], true)},
+      {:reclassified_blocking_severity,
+       &put_in(&1, ["open_findings", "T-198-55-02", "severity"], "medium")},
+      {:reclassified_blocking_flag,
+       &put_in(&1, ["open_findings", "T-198-55-02", "blocking"], false)},
       {:closed_historical_finding,
        &put_in(&1, ["open_findings", "T-198-55-03", "status"], "closed")},
       {:accepted_historical_finding,
        &put_in(&1, ["open_findings", "T-198-55-03", "accepted"], true)},
+      {:reclassified_historical_severity,
+       &put_in(&1, ["open_findings", "T-198-55-03", "severity"], "low")},
+      {:reclassified_historical_blocking,
+       &put_in(&1, ["open_findings", "T-198-55-03", "blocking"], true)},
+      {:reconstructed_historical_receipt,
+       &put_in(
+         &1,
+         ["open_findings", "T-198-55-03", "receipt_evidence_reconstructed"],
+         true
+       )},
       {:promoted_green_07, &put_in(&1, ["requirements", "GREEN-07"], "Complete")}
     ]
 
@@ -104,19 +135,51 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
 
   @tag :immutable_source_identity
   test "every sealed source is an immutable blob at the unique certified head" do
-    record = load_record!(@record_path)
-    head = record["certified_head"]
+    with_git_source_fixture(fn fixture ->
+      assert :ok =
+               valid_sources(
+                 %{fixture.path => fixture.source},
+                 fixture.head,
+                 fixture.root,
+                 [fixture.path]
+               )
 
-    assert is_binary(head)
+      File.write!(Path.join(fixture.root, fixture.path), "post-hook replacement\n")
 
-    for {path, source} <- record["sources"] do
-      assert source["path"] == path
-      assert source["commit"] == head
-      assert source["blob"] =~ ~r/^[0-9a-f]{40}$/
-      assert source["sha256"] =~ ~r/^[0-9a-f]{64}$/
-    end
+      assert :ok =
+               valid_sources(
+                 %{fixture.path => fixture.source},
+                 fixture.head,
+                 fixture.root,
+                 [fixture.path]
+               )
 
-    assert :ok = validate_record(record)
+      mutations = [
+        {:same_blob_older_ancestor, Map.put(fixture.source, "commit", fixture.older)},
+        {:commit, Map.put(fixture.source, "commit", String.duplicate("0", 40))},
+        {:blob, Map.put(fixture.source, "blob", String.duplicate("0", 40))},
+        {:path, Map.put(fixture.source, "path", "other.txt")},
+        {:digest, Map.put(fixture.source, "sha256", String.duplicate("0", 64))},
+        {:missing_object, Map.put(fixture.source, "blob", String.duplicate("f", 40))},
+        {:non_blob, Map.put(fixture.source, "blob", fixture.tree)},
+        {:coordinated_substitution,
+         fixture.source
+         |> Map.put("commit", fixture.older)
+         |> Map.put("blob", fixture.source["blob"])
+         |> Map.put("sha256", fixture.source["sha256"])}
+      ]
+
+      for {reason, source} <- mutations do
+        assert {:error, :source_identity} =
+                 valid_sources(
+                   %{fixture.path => source},
+                   fixture.head,
+                   fixture.root,
+                   [fixture.path]
+                 ),
+               "#{reason} mutation unexpectedly validated"
+      end
+    end)
   end
 
   test "terminal record requires the exact two unresolved findings" do
@@ -177,7 +240,7 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
   defp validate_record(record) do
     with :ok <- exact_schema(record),
          :ok <- valid_head(record["certified_head"]),
-         :ok <- valid_sources(record["sources"]),
+         :ok <- valid_sources(record["sources"], record["certified_head"]),
          :ok <- valid_commands(record["commands"], record["stage"]),
          :ok <- valid_open_state(record),
          :ok <- canonical_state_unchanged() do
@@ -202,10 +265,10 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
       record["purpose"] != "phase-198-terminal-certification" ->
         {:error, :purpose}
 
-      record["audited_summaries"] != Enum.map(1..59, &pad_number/1) ->
+      record["audited_summaries"] != Enum.map(1..60, &pad_number/1) ->
         {:error, :summary_set}
 
-      record["certification_summary"] != %{"number" => "60", "recursive" => false} ->
+      record["certification_summary"] != %{"number" => "61", "recursive" => false} ->
         {:error, :certification_exception}
 
       record["canonical_hooks"] != "not_run_executor_owned_by_orchestrator" ->
@@ -238,18 +301,47 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
 
   defp valid_head(_head), do: {:error, :certified_head}
 
-  defp valid_sources(sources) when is_map(sources) do
-    if Map.keys(sources) |> Enum.sort() == Enum.sort(@source_paths) and
-         Enum.all?(@source_paths, fn relative ->
-           sources[relative] == sha256(Path.join(@root, relative))
-         end) do
-      :ok
+  defp valid_sources(sources, head, root \\ @root, source_paths \\ @source_paths)
+
+  defp valid_sources(sources, head, root, source_paths)
+       when is_map(sources) and is_binary(head) do
+    valid? =
+      Map.keys(sources) |> Enum.sort() == Enum.sort(source_paths) and
+        Enum.all?(source_paths, fn relative ->
+          source = sources[relative]
+
+          is_map(source) and
+            Map.keys(source) |> Enum.sort() == Enum.sort(~w(path commit blob sha256)) and
+            source["path"] == relative and source["commit"] == head and
+            valid_blob_source?(root, head, source)
+        end)
+
+    if valid?, do: :ok, else: {:error, :source_identity}
+  end
+
+  defp valid_sources(_sources, _head, _root, _source_paths), do: {:error, :source_identity}
+
+  defp valid_blob_source?(root, head, source) do
+    path = source["path"]
+
+    with true <- safe_relative_path?(path),
+         {resolved, 0} <- git(root, ["rev-parse", "#{head}:#{path}"]),
+         blob <- String.trim(resolved),
+         true <- blob == source["blob"],
+         {"blob\n", 0} <- git(root, ["cat-file", "-t", blob]),
+         {bytes, 0} <- git(root, ["show", "#{head}:#{path}"]) do
+      binary_digest(bytes) == source["sha256"]
     else
-      {:error, :source_digest}
+      _ -> false
     end
   end
 
-  defp valid_sources(_sources), do: {:error, :source_digest}
+  defp safe_relative_path?(path) when is_binary(path) do
+    path != "" and Path.type(path) != :absolute and
+      not Enum.member?(Path.split(path), "..")
+  end
+
+  defp safe_relative_path?(_path), do: false
 
   defp valid_commands(commands, stage) when is_list(commands) do
     command_texts = Enum.map(commands, & &1["command"])
@@ -297,25 +389,48 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
   defp valid_commands(_commands, _stage), do: {:error, :commands}
 
   defp valid_open_state(record) do
-    finding = get_in(record, ["open_findings", "T-198-55-03"]) || %{}
+    findings = record["open_findings"] || %{}
+    blocking = findings["T-198-55-02"] || %{}
+    historical = findings["T-198-55-03"] || %{}
 
     cond do
-      finding["classification"] != "irrecoverable_below_threshold" ->
+      Map.keys(findings) |> Enum.sort() != ~w(T-198-55-02 T-198-55-03) ->
+        {:error, :finding_set}
+
+      blocking != %{
+        "severity" => "high",
+        "blocking" => true,
+        "status" => "open",
+        "accepted" => false,
+        "receipt_evidence_reconstructed" => false
+      } ->
+        {:error, :blocking_finding}
+
+      Map.keys(historical) |> Enum.sort() !=
+          Enum.sort(
+            ~w(severity classification status blocking accepted receipt_evidence_reconstructed missing_receipt_fields)
+          ) ->
+        {:error, :historical_finding_schema}
+
+      historical["severity"] != "medium" ->
+        {:error, :severity}
+
+      historical["classification"] != "irrecoverable_below_threshold" ->
         {:error, :classification}
 
-      finding["status"] != "open" ->
+      historical["status"] != "open" ->
         {:error, :finding_status}
 
-      finding["blocking"] != false ->
+      historical["blocking"] != false ->
         {:error, :finding_blocking}
 
-      finding["accepted"] != false ->
+      historical["accepted"] != false ->
         {:error, :finding_acceptance}
 
-      finding["receipt_evidence_reconstructed"] != false ->
+      historical["receipt_evidence_reconstructed"] != false ->
         {:error, :receipt_reconstruction}
 
-      finding["missing_receipt_fields"] != @missing_receipt_fields ->
+      historical["missing_receipt_fields"] != @missing_receipt_fields ->
         {:error, :receipt_fields}
 
       get_in(record, ["requirements", "GREEN-07"]) != "accepted-Pending" ->
@@ -381,9 +496,73 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     DateTime.compare(left_time, right_time)
   end
 
-  defp sha256(path) do
-    path |> File.read!() |> then(&:crypto.hash(:sha256, &1)) |> Base.encode16(case: :lower)
+  defp with_git_source_fixture(fun) do
+    root = Path.join(System.tmp_dir!(), "phase198-source-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(root)
+
+    try do
+      assert {_, 0} = git(root, ["init", "--quiet"])
+      File.write!(Path.join(root, "sealed.txt"), "sealed bytes\n")
+      assert {_, 0} = git(root, ["add", "sealed.txt"])
+
+      assert {_, 0} =
+               git(root, [
+                 "-c",
+                 "user.name=Phase 198 Fixture",
+                 "-c",
+                 "user.email=phase198@example.invalid",
+                 "commit",
+                 "--quiet",
+                 "-m",
+                 "older"
+               ])
+
+      {older, 0} = git(root, ["rev-parse", "HEAD"])
+      older = String.trim(older)
+      File.write!(Path.join(root, "other.txt"), "advance head\n")
+      assert {_, 0} = git(root, ["add", "other.txt"])
+
+      assert {_, 0} =
+               git(root, [
+                 "-c",
+                 "user.name=Phase 198 Fixture",
+                 "-c",
+                 "user.email=phase198@example.invalid",
+                 "commit",
+                 "--quiet",
+                 "-m",
+                 "certified head"
+               ])
+
+      {head, 0} = git(root, ["rev-parse", "HEAD"])
+      {tree, 0} = git(root, ["rev-parse", "HEAD^{tree}"])
+      head = String.trim(head)
+      path = "sealed.txt"
+      {blob, 0} = git(root, ["rev-parse", "#{head}:#{path}"])
+      {bytes, 0} = git(root, ["show", "#{head}:#{path}"])
+
+      fun.(%{
+        root: root,
+        path: path,
+        older: older,
+        head: head,
+        tree: String.trim(tree),
+        source: %{
+          "path" => path,
+          "commit" => head,
+          "blob" => String.trim(blob),
+          "sha256" => binary_digest(bytes)
+        }
+      })
+    after
+      File.rm_rf!(root)
+    end
   end
+
+  defp git(root, args), do: System.cmd("git", args, cd: root, stderr_to_stdout: true)
+
+  defp binary_digest(bytes),
+    do: bytes |> then(&:crypto.hash(:sha256, &1)) |> Base.encode16(case: :lower)
 
   defp pad_number(number), do: number |> Integer.to_string() |> String.pad_leading(2, "0")
 end
