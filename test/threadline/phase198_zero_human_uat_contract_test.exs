@@ -443,7 +443,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
       File.write!(path, fixture)
 
       assert_raise ExUnit.AssertionError,
-                   ~r/unsupported top-level frontmatter syntax.*#{field}/,
+                   ~r/reserved frontmatter alias #{field}/,
                    fn -> validate_summary_set!(root, :normal) end
     end
 
@@ -472,10 +472,59 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
         ] do
       File.write!(path, fixture)
 
-      assert_raise ExUnit.AssertionError, ~r/unsupported top-level frontmatter syntax/, fn ->
+      assert_raise ExUnit.AssertionError, ~r/reserved frontmatter alias phase/, fn ->
         validate_summary_set!(root, :normal)
       end
     end
+  end
+
+  test "reserved root fields cannot hide behind indentation or YAML alias syntax" do
+    root = complete_phase_fixture!()
+    on_exit(fn -> File.rm_rf!(root) end)
+    write_repair_summary!(root)
+    path = Path.join(root, "198-66-SUMMARY.md")
+    original = File.read!(path)
+
+    fields = [
+      {"phase", "phase: 198-green-bringup", "199"},
+      {"plan", "plan: 66", "65"},
+      {"status", "status: complete", "halted"},
+      {"coverage", "coverage: []", "[]"}
+    ]
+
+    aliases = [
+      fn field, value -> "#{field}: #{value}" end,
+      fn field, value -> ~s("#{field}": #{value}) end,
+      fn field, value -> ~s('#{field}': #{value}) end,
+      fn field, value -> "#{field} : #{value}" end,
+      fn field, value -> "!!str #{field}: #{value}" end,
+      fn field, value -> "&identity #{field}: #{value}" end,
+      fn field, value -> "? #{field}\n: #{value}" end,
+      fn field, value -> "{#{field}: #{value}}" end,
+      fn field, value -> ~s(!!str "#{field}": #{value}) end,
+      fn field, value -> ~s(&identity '#{field}': #{value}) end,
+      fn field, value -> ~s(? "#{field}"\n: #{value}) end,
+      fn field, value -> ~s({"#{field}": #{value}}) end
+    ]
+
+    for {field, canonical, value} <- fields,
+        alias_builder <- aliases,
+        indentation <- [" ", "  ", "    ", "        ", "\t"] do
+      alias_syntax = indent_each_line(alias_builder.(field, value), indentation)
+
+      for fixture <- [
+            String.replace(original, canonical, alias_syntax <> "\n" <> canonical, global: false),
+            String.replace(original, canonical, canonical <> "\n" <> alias_syntax, global: false)
+          ] do
+        assert_raise ExUnit.AssertionError,
+                     ~r/(?:reserved frontmatter alias #{field}|unsupported indented frontmatter syntax)/,
+                     fn ->
+                       frontmatter(fixture)
+                     end
+      end
+    end
+
+    assert validate_summary_set!(root, :final) == :ok
   end
 
   test "Plan 66 rejects repeated coverage IDs in both orders before entry validation" do
@@ -872,23 +921,111 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   defp constrained_frontmatter_keys!(yaml) do
     yaml
     |> String.split(~r/\r?\n/)
-    |> Enum.reduce([], fn line, keys ->
+    |> Enum.reduce({[], :root}, fn line, {keys, context} ->
       cond do
         line == "" or String.match?(line, ~r/^\s*#/) ->
-          keys
-
-        String.match?(line, ~r/^ /) ->
-          keys
+          {keys, context}
 
         match = Regex.run(~r/^([A-Za-z_][A-Za-z0-9_-]*):(?:[ \t]|$)/, line) ->
           [_, key] = match
-          [key | keys]
+          {[key | keys], if(key == "coverage", do: :coverage, else: :root)}
+
+        String.match?(line, ~r/^[ \t]/) ->
+          case reserved_frontmatter_alias(line) do
+            "status" ->
+              if context == :verification_item and is_structurally_valid_coverage_status(line) do
+                {keys, context}
+              else
+                flunk("reserved frontmatter alias status: #{line}")
+              end
+
+            nil ->
+              if unsupported_indented_frontmatter_syntax?(line) do
+                flunk("unsupported indented frontmatter syntax: #{line}")
+              else
+                {keys, next_frontmatter_context(line, context)}
+              end
+
+            key ->
+              flunk("reserved frontmatter alias #{key}: #{line}")
+          end
 
         true ->
-          flunk("unsupported top-level frontmatter syntax: #{line}")
+          case reserved_frontmatter_alias(line) do
+            nil -> flunk("unsupported top-level frontmatter syntax: #{line}")
+            key -> flunk("reserved frontmatter alias #{key}: #{line}")
+          end
       end
     end)
+    |> elem(0)
     |> Enum.reverse()
+  end
+
+  defp next_frontmatter_context(line, context) do
+    cond do
+      context in [:coverage, :coverage_entry, :verification, :verification_item] and
+          String.match?(line, ~r/^  - id:\s*[^\s]+/) ->
+        :coverage_entry
+
+      context in [:coverage_entry, :verification, :verification_item] and
+          String.match?(line, ~r/^    verification:(?:[ \t]|$)/) ->
+        :verification
+
+      context in [:verification, :verification_item] and
+          String.match?(line, ~r/^      - kind:(?:[ \t]|$)/) ->
+        :verification_item
+
+      true ->
+        context
+    end
+  end
+
+  defp is_structurally_valid_coverage_status(line) do
+    String.match?(line, ~r/^        status:\s*[^\s]+\s*$/)
+  end
+
+  defp reserved_frontmatter_alias(line) do
+    stripped = String.trim_leading(line)
+    fields = "phase|plan|status|coverage"
+
+    patterns = [
+      ~r/^(#{fields})\s*:/,
+      ~r/^"(#{fields})"\s*:/,
+      ~r/^'(#{fields})'\s*:/,
+      ~r/^!![^\s]+\s+(#{fields})\s*:/,
+      ~r/^&[^\s]+\s+(#{fields})\s*:/,
+      ~r/^\?\s*["']?(#{fields})["']?\s*$/,
+      ~r/^\{\s*["']?(#{fields})["']?\s*:/
+    ]
+
+    Enum.find_value(patterns, fn pattern ->
+      case Regex.run(pattern, stripped, capture: :all_but_first) do
+        [field] -> field
+        _ -> nil
+      end
+    end)
+  end
+
+  defp unsupported_indented_frontmatter_syntax?(line) do
+    stripped = String.trim_leading(line)
+
+    String.starts_with?(line, "\t") or
+      Enum.any?(
+        [
+          ~r/^"[^"]+"\s*:/,
+          ~r/^'[^']+'\s*:/,
+          ~r/^!![^\s]+\s+(?:"[^"]+"|'[^']+'|[A-Za-z_][A-Za-z0-9_-]*)\s*:/,
+          ~r/^&[^\s]+\s+(?:"[^"]+"|'[^']+'|[A-Za-z_][A-Za-z0-9_-]*)\s*:/,
+          ~r/^\?\s*(?:"[^"]+"|'[^']+'|[A-Za-z_][A-Za-z0-9_-]*)\s*$/,
+          ~r/^\{\s*(?:"[^"]+"|'[^']+'|[A-Za-z_][A-Za-z0-9_-]*)\s*:/,
+          ~r/^<<\s*:/
+        ],
+        &String.match?(stripped, &1)
+      )
+  end
+
+  defp indent_each_line(value, indentation) do
+    indentation <> String.replace(value, "\n", "\n" <> indentation)
   end
 
   defp coverage_entries(body) do
