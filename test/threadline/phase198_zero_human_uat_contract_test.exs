@@ -393,6 +393,60 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
   end
 
+  test "Plan 66 rejects contradictory duplicate frontmatter fields before trusting values" do
+    root = complete_phase_fixture!()
+    on_exit(fn -> File.rm_rf!(root) end)
+    write_repair_summary!(root)
+    path = Path.join(root, "198-66-SUMMARY.md")
+    original = File.read!(path)
+
+    duplicate_fields = [
+      {"phase", "phase: 198-green-bringup", "phase: 199"},
+      {"plan", "plan: 66", "plan: 65"},
+      {"status", "status: complete", "status: halted"},
+      {"coverage", "coverage: []", "coverage:\n  malformed"}
+    ]
+
+    for {field, canonical, conflicting} <- duplicate_fields,
+        fixture <- [
+          String.replace(original, canonical, conflicting <> "\n" <> canonical, global: false),
+          String.replace(original, canonical, canonical <> "\n" <> conflicting, global: false)
+        ] do
+      File.write!(path, fixture)
+
+      assert_raise ExUnit.AssertionError, ~r/duplicate frontmatter field #{field}/, fn ->
+        validate_summary_set!(root, :normal)
+      end
+    end
+  end
+
+  test "Plan 66 rejects repeated coverage IDs in both orders before entry validation" do
+    root = complete_phase_fixture!()
+    on_exit(fn -> File.rm_rf!(root) end)
+
+    passing =
+      "  - id: D1\n    human_judgment: false\n    verification:\n      - kind: integration\n        ref: \"fixture\"\n        status: pass"
+
+    conflicting =
+      "  - id: D1\n    human_judgment: true\n    verification:\n      - kind: integration\n        status: fail"
+
+    for coverage <- [passing <> "\n" <> conflicting, conflicting <> "\n" <> passing] do
+      write_repair_summary!(root, "\n" <> coverage)
+
+      assert_raise ExUnit.AssertionError, ~r/duplicate coverage id D1/, fn ->
+        validate_summary_set!(root, :normal)
+      end
+    end
+
+    assert @final_state_numbers ==
+             Enum.map(1..47, &(Integer.to_string(&1) |> String.pad_leading(2, "0"))) ++
+               Enum.map(48..61, &Integer.to_string/1)
+
+    assert @terminal_certification_number == "62"
+    assert @post_terminal_numbers == ~w(63 64 65)
+    assert @policy_repair_number == "66"
+  end
+
   defp discover_numbers(dir) do
     dir
     |> Path.join("198-*-SUMMARY.md")
@@ -572,10 +626,10 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     File.write!(Path.join(dir, "198-#{number}-SUMMARY.md"), summary_body(coverage))
   end
 
-  defp write_repair_summary!(dir) do
+  defp write_repair_summary!(dir, coverage \\ "[]") do
     File.write!(
       Path.join(dir, "198-#{@policy_repair_number}-SUMMARY.md"),
-      "---\nphase: 198-green-bringup\nplan: 66\ncoverage: []\nstatus: complete\n---\n# Fixture\n"
+      "---\nphase: 198-green-bringup\nplan: 66\ncoverage: #{coverage}\nstatus: complete\n---\n# Fixture\n"
     )
   end
 
@@ -743,9 +797,19 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   end
 
   defp frontmatter(body) do
-    case String.split(body, "---", parts: 3) do
-      [_, yaml, _] -> yaml
-      _ -> flunk("summary has no YAML frontmatter")
+    case Regex.run(~r/\A---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|\z)/, body, capture: :all_but_first) do
+      [yaml] ->
+        keys =
+          Regex.scan(~r/^([A-Za-z_][A-Za-z0-9_-]*):(?:[ \t]|$)/m, yaml, capture: :all_but_first)
+          |> List.flatten()
+
+        case duplicate_key(keys) do
+          nil -> yaml
+          key -> flunk("duplicate frontmatter field #{key}")
+        end
+
+      _ ->
+        flunk("summary has no strictly delimited YAML frontmatter")
     end
   end
 
@@ -764,10 +828,20 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
 
         assert String.match?(block, ~r/^  - id:/m), "malformed coverage block"
 
-        Regex.scan(~r/^  - id:\s*([^\s]+)\n((?:(?!^  - id:)[\s\S])*)/m, block,
-          capture: :all_but_first
-        )
-        |> Map.new(fn [id, entry] -> {id, normalize_entry("  - id: #{id}\n" <> entry)} end)
+        matches =
+          Regex.scan(~r/^  - id:\s*([^\s]+)\n((?:(?!^  - id:)[\s\S])*)/m, block,
+            capture: :all_but_first
+          )
+
+        case matches |> Enum.map(&hd/1) |> duplicate_key() do
+          nil ->
+            Map.new(matches, fn [id, entry] ->
+              {id, normalize_entry("  - id: #{id}\n" <> entry)}
+            end)
+
+          id ->
+            flunk("duplicate coverage id #{id}")
+        end
 
       _ ->
         flunk("malformed coverage block")
