@@ -351,7 +351,7 @@ Plans:
 
 **Wave 8** *(blocking-human; blocked on Plans 56-58)*
 
-- [ ] 198-59-PLAN.md — Record, validate, and commit a verbatim attributable maintainer attestation or cannot-attest outcome while keeping summary coverage mechanical-only (wave 8)
+- [x] 198-59-PLAN.md — Record, validate, and commit a verbatim attributable maintainer attestation or cannot-attest outcome while keeping summary coverage mechanical-only (wave 8)
 
 **Wave 9** *(terminal certification after the Plan-59 summary exists)*
 
