@@ -116,11 +116,97 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     end
   end
 
+  test "retrospective command fields fail before a signed Plan-59 attestation" do
+    ledger = load_ledger!()
+
+    for {field, value} <- [
+          {"argv", ["git", "push", "origin", "unknown"]},
+          {"refspec", "unknown:unknown"},
+          {"force", false},
+          {"timestamp", "2026-09-09T22:40:00Z"},
+          {"before", %{"ref" => "unknown"}},
+          {"after", %{"ref" => nil}}
+        ] do
+      malformed = update_row(ledger, "P-198-55-01", &Map.put(&1, field, value))
+      assert {:error, :fabricated_historical_receipt} = validate_resolution(malformed)
+    end
+  end
+
+  test "source, digest, tier, result, and threat-map mutations fail closed" do
+    ledger = load_ledger!()
+
+    mutations = [
+      &update_row(&1, "P-198-53-01", fn row -> Map.put(row, "statement", row["statement"] <> " altered") end),
+      &put_in(&1, ["immutable_sources", "round11_json", "sha256"], String.duplicate("0", 64)),
+      &update_row(&1, "P-198-53-02", fn row -> Map.put(row, "tier", "judgment") end),
+      &update_row(&1, "P-198-55-02", fn row ->
+        update_in(row["evidence"], fn [first | rest] -> [Map.put(first, "result", "unknown") | rest] end)
+      end),
+      &update_row(&1, "P-198-55-03", fn row -> Map.put(row, "threat_ids", []) end)
+    ]
+
+    for mutate <- mutations do
+      assert {:error, _reason} = ledger |> mutate.() |> validate_resolution()
+    end
+  end
+
+  test "judgment transitions require exact signed attestation semantics" do
+    ledger = load_ledger!()
+
+    incomplete =
+      update_row(ledger, "P-198-55-01", fn row ->
+        row
+        |> Map.put("status", "resolved")
+        |> Map.put("resolution", %{"outcome" => "attested", "verbatim" => "yes"})
+      end)
+
+    assert {:error, :invalid_attestation} = validate_resolution(incomplete)
+
+    cannot_attest_closed =
+      update_row(ledger, "P-198-55-01", fn row ->
+        row
+        |> Map.put("status", "resolved")
+        |> Map.put("resolution", valid_attestation("cannot-attest"))
+      end)
+
+    assert {:error, :cannot_attest_must_remain_open} = validate_resolution(cannot_attest_closed)
+
+    attested =
+      update_row(ledger, "P-198-55-01", fn row ->
+        row
+        |> Map.put("status", "resolved")
+        |> Map.put("resolution", valid_attestation("attested"))
+      end)
+
+    assert :ok = validate_resolution(attested)
+    assert get_in(attested, ["findings", "T-198-55-03", "status"]) == "open"
+    assert get_in(attested, ["findings", "T-198-55-03", "accepted"]) == false
+  end
+
   defp load_ledger! do
     assert File.exists?(@ledger_path),
            "round-12 prohibition ledger is absent; implement it only after observing this RED"
 
     @ledger_path |> File.read!() |> Jason.decode!()
+  end
+
+  # Task 2 deliberately begins with this permissive implementation so the
+  # anti-fabrication fixtures prove RED before the strict validator is added.
+  defp validate_resolution(_ledger), do: :ok
+
+  defp update_row(ledger, id, fun) do
+    update_in(ledger["prohibitions"], fn rows ->
+      Enum.map(rows, fn row -> if row["id"] == id, do: fun.(row), else: row end)
+    end)
+  end
+
+  defp valid_attestation(outcome) do
+    %{
+      "outcome" => outcome,
+      "verbatim" => outcome,
+      "recorded_at" => "2026-09-10T02:00:00Z",
+      "signer" => "maintainer"
+    }
   end
 
   defp forbidden_receipt_claim?(value) when is_map(value) do
