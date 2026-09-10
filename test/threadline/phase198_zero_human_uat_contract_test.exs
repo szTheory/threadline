@@ -614,6 +614,89 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
   end
 
+  test "verification refs use only non-empty canonical double-quoted scalars" do
+    body = File.read!(summary_path("66"))
+    refs = Regex.scan(~r/^        ref:.*$/m, body) |> List.flatten()
+    assert length(refs) >= 2
+    assert strict_frontmatter!(body, "198-66-SUMMARY.md")
+
+    invalid_values = [
+      ~s(""),
+      ~s("   "),
+      "null",
+      "Null",
+      "NULL",
+      "~",
+      "unquoted",
+      "'single quoted'",
+      ~s("unterminated),
+      ~s("bad\\q"),
+      "|",
+      ">"
+    ]
+
+    for canonical <- [List.first(refs), List.last(refs)], value <- invalid_values do
+      fixture = String.replace(body, canonical, "        ref: #{value}", global: false)
+
+      assert_raise ExUnit.AssertionError,
+                   ~r/(?:empty verification ref|non-canonical verification ref)/,
+                   fn -> strict_frontmatter!(fixture, "fixture") end
+    end
+
+    for indicator <- ["|", ">"] do
+      canonical = List.first(refs)
+
+      fixture =
+        String.replace(body, canonical, "        ref: #{indicator}\n          hidden value",
+          global: false
+        )
+
+      assert_raise ExUnit.AssertionError, ~r/non-canonical verification ref/, fn ->
+        strict_frontmatter!(fixture, "fixture")
+      end
+    end
+  end
+
+  test "identity and coverage control scalars reject YAML coercion aliases" do
+    body = File.read!(summary_path("66"))
+
+    root_mutations = [
+      {"phase: 198-green-bringup", [~s(phase: "198-green-bringup"), "phase: null", "phase: ~"]},
+      {"plan: 66", [~s(plan: "66"), "plan: 066", "plan: null", "plan: ~"]},
+      {"status: complete", [~s(status: "complete"), "status: true", "status: null", "status: ~"]}
+    ]
+
+    for {canonical, mutations} <- root_mutations, mutation <- mutations do
+      fixture = String.replace(body, canonical, mutation, global: false)
+
+      assert_raise ExUnit.AssertionError,
+                   ~r/(?:non-canonical (?:phase|plan|status) scalar|wrong phase|wrong plan|invalid status)/,
+                   fn ->
+                     validate_summary_semantics!(fixture, "fixture", "66", ["complete"])
+                   end
+    end
+
+    scalar_mutations = [
+      {~r/^      - kind: integration$/m,
+       ["null", "~", "true", ~s("integration"), "!!str integration"],
+       ~r/non-canonical kind scalar/},
+      {~r/^        status: pass$/m, ["null", "~", "true", "yes", ~s("pass"), "!!str pass"],
+       ~r/non-canonical status scalar/},
+      {~r/^    human_judgment: false$/m, ["null", "~", "no", "off", ~s("false"), "!!bool false"],
+       ~r/non-canonical human_judgment scalar/}
+    ]
+
+    for {pattern, values, reason} <- scalar_mutations, value <- values do
+      [canonical] = Regex.run(pattern, body)
+      [prefix] = Regex.run(~r/^\s*(?:- )?[A-Za-z_][A-Za-z0-9_-]*:\s*/, canonical)
+      fixture = String.replace(body, canonical, prefix <> value, global: false)
+
+      assert_raise ExUnit.AssertionError, reason, fn ->
+        strict_frontmatter!(fixture, "fixture")
+      end
+    end
+  end
+
   test "Plan 66 rejects repeated coverage IDs in both orders before entry validation" do
     root = complete_phase_fixture!()
     on_exit(fn -> File.rm_rf!(root) end)
@@ -1023,6 +1106,7 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
                  ) do
               [key, value] ->
                 assert key in root_fields, "#{path} has unknown root frontmatter field #{key}"
+                validate_root_scalar_shape!(key, value, path)
                 next = if value == "" and key in block_fields, do: key, else: nil
                 {[key | keys], Map.put_new(blocks, key, []), next}
 
@@ -1103,6 +1187,11 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
             assert field != "verification" or value == "",
                    "#{path}:#{id} verification must be a block"
 
+            if field == "human_judgment" do
+              assert value in ~w(true false),
+                     "#{path}:#{id} has non-canonical human_judgment scalar"
+            end
+
             {[field | fields], verification_lines, field == "verification"}
 
           _ ->
@@ -1125,15 +1214,32 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
   end
 
   defp validate_strict_verification_item!([kind_line | lines], owner) do
-    assert String.match?(kind_line, ~r/^      - kind:\s*[^\s].*$/)
+    kind =
+      case Regex.run(~r/^      - kind:\s*([^\s]+)\s*$/, kind_line) do
+        [_, value] -> value
+        _ -> flunk("#{owner} has non-canonical kind scalar")
+      end
+
+    assert kind in ~w(integration unit e2e other manual_procedural),
+           "#{owner} has non-canonical kind scalar"
 
     fields =
       Enum.map(lines, fn line ->
-        case Regex.run(~r/^        ([A-Za-z_][A-Za-z0-9_-]*):\s*.+$/, line,
+        case Regex.run(~r/^        ([A-Za-z_][A-Za-z0-9_-]*):\s*(.*)$/, line,
                capture: :all_but_first
              ) do
-          [field] ->
+          [field, value] ->
             assert field in ~w(ref status), "#{owner} has unknown verification field #{field}"
+
+            case field do
+              "ref" ->
+                validate_canonical_ref!(value, owner)
+
+              "status" ->
+                assert value in ~w(pass fail pending),
+                       "#{owner} has non-canonical status scalar"
+            end
+
             field
 
           _ ->
@@ -1167,6 +1273,34 @@ defmodule Threadline.Phase198ZeroHumanUatContractTest do
     end
 
     assert Enum.sort(actual) == Enum.sort(expected), "#{owner} fields are not exact"
+  end
+
+  defp validate_root_scalar_shape!(key, value, path) when key in ["phase", "plan", "status"] do
+    pattern =
+      case key do
+        "phase" -> ~r/^[A-Za-z0-9][A-Za-z0-9-]*$/
+        "plan" -> ~r/^(?:0|[1-9]\d*)$/
+        "status" -> ~r/^[a-z][a-z-]*$/
+      end
+
+    assert String.match?(value, pattern), "#{path} has non-canonical #{key} scalar"
+  end
+
+  defp validate_root_scalar_shape!("coverage", value, path) do
+    assert value in ["", "[]"], "#{path} has non-canonical coverage scalar"
+  end
+
+  defp validate_root_scalar_shape!(_key, _value, _path), do: :ok
+
+  defp validate_canonical_ref!(value, owner) do
+    case Jason.decode(value) do
+      {:ok, decoded} when is_binary(decoded) ->
+        assert decoded != "" and String.trim(decoded) != "",
+               "#{owner} has empty verification ref"
+
+      _ ->
+        flunk("#{owner} has non-canonical verification ref")
+    end
   end
 
   defp indent_each_line(value, indentation) do
