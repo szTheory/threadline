@@ -410,6 +410,47 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     end)
   end
 
+  test "fixture mutation receipts reject force batching ambiguity and unverifiable outcomes" do
+    with_round11_lifecycle(fn fixture ->
+      target = "ci/198-gap-closure"
+      valid = fixture.post[target]
+
+      mutations = [
+        fn receipt -> Map.put(receipt, "force", true) end,
+        fn receipt -> Map.put(receipt, "argv", Enum.join(receipt["argv"], " ")) end,
+        fn receipt -> Map.put(receipt, "argv", receipt["argv"] ++ ["refs/tags/extra"]) end,
+        fn receipt -> Map.put(receipt, "argv", List.insert_at(receipt["argv"], 1, "--force")) end,
+        fn receipt -> Map.put(receipt, "argv", List.replace_at(receipt["argv"], -1, "refs/tags/*")) end,
+        fn receipt -> Map.put(receipt, "started_at", receipt["completed_at"]) end,
+        fn receipt -> Map.put(receipt, "completed_at", "2026-09-09T21:59:59Z") end,
+        fn receipt -> Map.put(receipt, "exit_status", 1) end,
+        fn receipt -> Map.put(receipt, "before", receipt["after"]) end,
+        fn receipt -> Map.delete(receipt, "argv") end
+      ]
+
+      for {mutation, index} <- Enum.with_index(mutations) do
+        malformed =
+          mutate_json_file(valid, fn doc ->
+            update_in(doc["command_receipts"], fn [first | rest] ->
+              [mutation.(first) | rest]
+            end)
+          end)
+
+        assert_failed(
+          run_stage("post-target", malformed, fixture.decided_md, fixture.live_post[target], [
+            "--target",
+            target,
+            "--register",
+            fixture.register
+          ])
+        )
+
+        File.rm(malformed)
+        assert index >= 0
+      end
+    end)
+  end
+
   for path <- @required_paths do
     label = Enum.map_join(path, ".", &to_string/1)
 
@@ -838,34 +879,96 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     preservation =
       Enum.flat_map(subjects, fn subject ->
         for type <- ["local-annotated-tag", "remote-single-tag", "archive-register-row"] do
-          %{
-            "type" => type,
-            "subject_id" => subject["id"],
-            "target" => subject["branch"],
-            "tag" => subject["archive_tag"],
-            "sha" => subject["sha"]
-          }
+          strict_preservation_receipt(type, subject)
         end
       end)
 
     target = hd(subjects)["branch"]
 
-    retirement =
-      if pr, do: [%{"type" => "pr-close", "target" => target, "pr" => pr["number"]}], else: []
+    retirement = if pr, do: [strict_pr_receipt(target, pr)], else: []
 
     retirement =
       if Enum.any?(subjects, &(&1["side"] == "origin")),
-        do: retirement ++ [%{"type" => "remote-ref-delete", "target" => target}],
+        do: retirement ++ [strict_ref_delete_receipt("remote-ref-delete", target, subjects)],
         else: retirement
 
     retirement =
       if Enum.any?(subjects, &(&1["side"] == "local")),
-        do: retirement ++ [%{"type" => "local-ref-delete", "target" => target}],
+        do: retirement ++ [strict_ref_delete_receipt("local-ref-delete", target, subjects)],
         else: retirement
 
     (preservation ++ retirement)
     |> Enum.with_index(1)
     |> Enum.map(fn {receipt, seq} -> Map.put(receipt, "seq", seq) end)
+  end
+
+  defp strict_preservation_receipt(type, subject) do
+    tag = subject["archive_tag"]
+    sha = subject["sha"]
+
+    {argv, before_state, after_state} =
+      case type do
+        "local-annotated-tag" ->
+          {[
+             "git",
+             "tag",
+             "-a",
+             tag,
+             sha,
+             "-m",
+             "Archive #{subject["id"]}"
+           ], %{"exists" => false}, %{"exists" => true, "tag" => tag, "sha" => sha, "annotated" => true}}
+
+        "remote-single-tag" ->
+          ref = "refs/tags/#{tag}"
+          {["git", "push", "origin", "#{ref}:#{ref}"], %{"exists" => false},
+           %{"exists" => true, "ref" => ref, "sha" => sha}}
+
+        "archive-register-row" ->
+          {["archive-register", "append", subject["id"]], %{"joined" => false},
+           %{"joined" => true, "subject_id" => subject["id"], "tag" => tag, "sha" => sha}}
+      end
+
+    receipt_base(type, subject["branch"], argv, before_state, after_state)
+    |> Map.merge(%{"subject_id" => subject["id"], "tag" => tag, "sha" => sha})
+  end
+
+  defp strict_pr_receipt(target, pr) do
+    receipt_base(
+      "pr-close",
+      target,
+      ["gh", "pr", "close", Integer.to_string(pr["number"]), "--repo", "szTheory/threadline"],
+      %{"number" => pr["number"], "state" => "OPEN"},
+      %{"number" => pr["number"], "state" => "CLOSED"}
+    )
+    |> Map.put("pr", pr["number"])
+  end
+
+  defp strict_ref_delete_receipt(type, target, subjects) do
+    side = if type == "remote-ref-delete", do: "origin", else: "local"
+    sha = subjects |> Enum.find(&(&1["side"] == side)) |> Map.fetch!("sha")
+    ref = "refs/heads/#{target}"
+
+    argv =
+      if type == "remote-ref-delete",
+        do: ["git", "push", "origin", ":#{ref}"],
+        else: ["git", "branch", "-d", target]
+
+    receipt_base(type, target, argv, %{"ref" => ref, "sha" => sha}, %{"ref" => ref, "sha" => nil})
+  end
+
+  defp receipt_base(type, target, argv, before_state, after_state) do
+    %{
+      "type" => type,
+      "target" => target,
+      "argv" => argv,
+      "force" => false,
+      "started_at" => "2026-09-09T22:40:00Z",
+      "completed_at" => "2026-09-09T22:40:01Z",
+      "exit_status" => 0,
+      "before" => before_state,
+      "after" => after_state
+    }
   end
 
   defp retire_from_live(live, target, subjects, pr) do
