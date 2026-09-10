@@ -168,8 +168,16 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
   end
 
   defp valid_head(head) when is_binary(head) do
-    with {_, 0} <- System.cmd("git", ["cat-file", "-e", "#{head}^{commit}"], cd: @root),
-         {_, 0} <- System.cmd("git", ["merge-base", "--is-ancestor", head, "HEAD"], cd: @root) do
+    with {_, 0} <-
+           System.cmd("git", ["cat-file", "-e", "#{head}^{commit}"],
+             cd: @root,
+             stderr_to_stdout: true
+           ),
+         {_, 0} <-
+           System.cmd("git", ["merge-base", "--is-ancestor", head, "HEAD"],
+             cd: @root,
+             stderr_to_stdout: true
+           ) do
       :ok
     else
       _ -> {:error, :certified_head}
