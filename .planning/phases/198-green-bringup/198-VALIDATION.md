@@ -305,7 +305,23 @@ do not, and cannot, turn branch or local-only evidence into proof that live
 | Focused final-mode contract | 18 tests, 0 failures |
 | Combined security projection | 38 tests, 0 failures |
 | Full repository suite | 1,644 tests, 0 failures, 1 excluded |
-| Result | CR-05 FILLED after three adversarial iterations; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
+| Result | Indented reserved aliases rejected; iteration 4 below replaces the remaining permissive arbitrary-indentation behavior with a context-scoped allowlist |
+
+## Validation Audit 2026-09-10 (post-Plan-66 CR-05 iteration 4)
+
+| Metric | Result |
+|---|---|
+| Re-review gap | Arbitrary indented mappings without reserved names could still be ignored at root, and coverage entry/item field cardinality was not enforced independently of semantic regexes |
+| Root context boundary | Indented content is rejected when no block is active. Only blank-valued recognized roots (`requires`, `provides`, `actuals`, `tech-stack`, `key-files`, `key-decisions`, `patterns-established`, `coverage`) open blocks; inline/scalar roots do not |
+| Block shape allowlist | Each recognized metadata block has explicit permitted indentation and line shapes. Tabs and unknown shapes fail before scalar or coverage parsing |
+| Coverage entry schema | Every entry requires exactly one `id`, `description`, `requirement`, `verification`, and `human_judgment`; repeated IDs, duplicate fields, missing fields, and unknown fields fail before semantic trust |
+| Verification item schema | Every item requires exactly one `kind`, `ref`, and `status`; duplicate or unknown item fields fail before status/ref evaluation |
+| New adversarial fixtures | Arbitrary `shadow` mappings at 1, 2, 4, and 8 spaces plus tabs fail malicious-first and malicious-last outside a block; duplicate `description`, `requirement`, `verification`, `human_judgment`, `ref`, and `status` plus unknown entry/item fields fail specifically |
+| Compatibility control | All 66 real summaries pass the paths on which they are validated; audited-final 01-61, terminal 62, content-bound 63-65, and repair-summary 66 roles remain exact |
+| Focused final-mode contract | 20 tests, 0 failures |
+| Combined security projection | 40 tests, 0 failures |
+| Full repository suite | 1,646 tests, 0 failures, 1 excluded |
+| Result | CR-05 FILLED after context-scoped iteration 4; GREEN-07 remains the sole PARTIAL/accepted-Pending requirement |
 
 ## Validation Sign-Off
 
