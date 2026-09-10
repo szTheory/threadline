@@ -89,7 +89,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
   5. Paid critic scoring cannot be triggered from any workflow — the input and the billing code path are absent, not defaulted off — and exactly one Hex publish path exists, the one gated by CI-green and release-shape verification. (GREEN-09, GREEN-10)
   6. Flake Detection distinguishes "suite is broken" from "suite is flaky" by name, is time-bounded, and surfaces failures to a deduplicated tracking issue; `git worktree list` shows one entry, no stale local branches remain, and any unmerged branch is landed or preserved under an archive tag with a recorded recommendation — never silently discarded. (GREEN-11, GREEN-12)
 
-**Plans**: 60 plans — 55 executed, 5 additive round-12 gap plans ready
+**Plans**: 61 plans — 60 executed, 1 additive round-13 gap plan ready
 
 Plans:
 **Wave 1**
@@ -366,6 +366,19 @@ Plans:
 - Plan 60 starts only after Plan 59's summary exists and executes exact audited 01-59 discovery, focused contracts, and full `mix test`. After Plan 60's standard summary exists, the execute-phase orchestrator runs `$gsd-secure-phase 198` and Phase-198 verification as ordered post-plan hooks. Canonical reports determine the verdict; no plan executor claims or manually forces them green.
 - GREEN-07 remains accepted-Pending. No round-12 plan merges, pushes main, changes CI membership, rulesets, protection, required contexts, PRs, tags, or branch state.
 
+#### Gap-closure round 13 — immutable terminal identity and explicit classic-protection state (plan 198-61)
+
+**Wave 10** *(blocked on completed Plan 198-60 and the authoritative Round-12 reports)*
+
+- [ ] 198-61-PLAN.md — **Tracer:** bind terminal sources to immutable commit/blob identities, make classic protection absent/present/error explicit through the production adapter, then reseal exact summaries 01-60 and the focused/full lanes with Plan 61 as the sole non-recursive exception (wave 10)
+
+**Round-13 notes:**
+
+- This round closes exactly the two fixable Round-12 regressions: mutable post-hook report bytes invalidating a pre-audit seal, and HTTP 404 classic-protection absence being decoded as presence.
+- The certificate resolves sealed bytes from recorded Git objects, so the ordered canonical security and phase-verification hooks may truthfully update current reports without creating another digest regression; mutations of the sealed historical identity still fail closed.
+- The real production final ref-disposition command and `bin/verify-branch-protection` are read-only gates. No branch, PR, tag, ruleset, protection, workflow, or other external mutation is authorized.
+- T-198-55-02 remains blocking because `cannot-attest` supplied no historical command-method proof. T-198-55-03 remains open below threshold. Neither risk is accepted, and GREEN-07 remains accepted-Pending.
+
 **Round-6 notes:**
 
 - **Two gaps only.** Round 5 verification returned `gaps_found` with exactly two: CR-01 (an actionable defect — fixed in 198-38) and GREEN-07 / SC3 (structurally blocked under D-39 — given a recorded terminal disposition in 198-39, not a fix).
@@ -569,7 +582,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 198. Green Bringup | v1.41 | 55/60 | In progress | Round-12 gap plans 198-56 through 198-60 are planned to restore GREEN-04, harden live authority/receipt controls, resolve five prohibition tiers honestly, terminally certify exact summaries and tests, and hand off ordered canonical security/phase re-audits while GREEN-07 remains Pending. |
+| 198. Green Bringup | v1.41 | 60/61 | In progress | Round-13 Plan 198-61 is planned to repair immutable terminal source identity and classic-protection 404 decoding, reseal exact summaries/tests, then hand off ordered canonical security/phase re-audits while T-198-55-02 remains blocking, T-198-55-03 remains open below threshold, and GREEN-07 remains Pending. |
 | 199. Decouple | v1.41 | 0/TBD | Not started | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |

@@ -5,15 +5,15 @@ milestone_name: Green, Clean, and Honest
 current_phase: 198
 current_phase_name: Green Bringup
 status: planned
-stopped_at: Completed 198-60-PLAN.md
-last_updated: "2026-09-10T03:07:30.882Z"
+stopped_at: Planned 198-61-PLAN.md
+last_updated: "2026-09-10T03:58:08.138Z"
 last_activity: 2026-09-10
-last_activity_desc: Planned Phase 198 round-12 gap closure for GREEN-04 summary regression, validator security controls, typed prohibition evidence, and canonical re-audits
+last_activity_desc: Planned Phase 198 round-13 gap closure for immutable terminal source identity, explicit classic-protection state, and terminal reseal
 state_head: 07c61cf0e1773cfa3fcc659ca4bfa02686a4702d
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 60
+  total_plans: 61
   completed_plans: 60
   percent: 0
 ---
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 (Green Bringup) — PLANNED
-Plan: 60 of 60
-Status: Round-12 gap plans 198-56 through 198-60 ready for execution; GREEN-07 remains accepted-Pending
+Plan: 61 of 61
+Status: Round-13 gap plan 198-61 ready for execution; T-198-55-02 remains blocking, T-198-55-03 remains open below threshold, and GREEN-07 remains accepted-Pending
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
