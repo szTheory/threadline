@@ -186,7 +186,7 @@ defmodule Threadline.Phase198RefDispositionContractTest do
 
   test "production lifecycle stages reject fixture adapters and disabled live observation" do
     with_round11_lifecycle(fn fixture ->
-      target = hd(fixture.targets)
+      target = "ci/198-gap-closure"
 
       invocations = [
         {"decision", fixture.decided, fixture.live_initial, []},
@@ -346,6 +346,77 @@ defmodule Threadline.Phase198RefDispositionContractTest do
 
         assert_failed(run_stage("controls", fixture.decided, fixture.decided_md, live))
         File.rm(live)
+      end
+    end)
+  end
+
+  test "fixture authority compares every identity and protected-control field used by production" do
+    with_round11_lifecycle(fn fixture ->
+      target = "ci/198-gap-closure"
+
+      paths = [
+        ["target_universe", "remote", 0, "sha"],
+        ["pull_requests", target, "state"],
+        ["pull_requests", target, "head"],
+        ["pull_requests", target, "base"],
+        ["pull_requests", target, "head_sha"],
+        ["stable_controls", "origin_main_sha"],
+        ["stable_controls", "pr34", "head_sha"],
+        ["stable_controls", "required_contexts"],
+        ["stable_controls", "ruleset_protection_digest"],
+        ["stable_controls", "classic_protection"],
+        ["stable_controls", "worktrees"]
+      ]
+
+      for path <- paths do
+        live =
+          mutate_json_file(fixture.live_initial, fn doc ->
+            current = get_in_path(doc, path)
+
+            replacement =
+              cond do
+                is_list(current) -> []
+                is_boolean(current) -> not current
+                current == "absent" -> "present"
+                true -> String.duplicate("0", 40)
+              end
+
+            put_path(doc, path, replacement)
+          end)
+
+        assert_failed(
+          run_stage("authority", fixture.decided, fixture.decided_md, live, [
+            "--target",
+            target
+          ])
+        )
+
+        File.rm(live)
+      end
+    end)
+  end
+
+  test "controls post-target and final independently reject protected-control drift" do
+    with_round11_lifecycle(fn fixture ->
+      target = hd(fixture.targets)
+
+      for {stage, inventory, live, extra} <- [
+            {"controls", fixture.decided, fixture.live_initial, []},
+            {"post-target", fixture.post[target], fixture.live_post[target],
+             ["--target", target, "--register", fixture.register]},
+            {"final", fixture.final, fixture.live_final, ["--register", fixture.register]}
+          ] do
+        drifted =
+          mutate_json_file(live, fn doc ->
+            put_path(
+              doc,
+              ["stable_controls", "required_contexts_digest"],
+              String.duplicate("0", 64)
+            )
+          end)
+
+        assert_failed(run_stage(stage, inventory, fixture.decided_md, drifted, extra))
+        File.rm(drifted)
       end
     end)
   end
