@@ -135,6 +135,33 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     assert output =~ "not retrospective argv proof"
   end
 
+  @tag :receipt_identity
+  test "a byte-identical production copy cannot select legacy receipt compatibility" do
+    dir = Path.join(System.tmp_dir!(), "phase198-round11-copy-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(dir)
+
+    inventory = Path.join(dir, "198-round11-ref-disposition.json")
+    decision = Path.join(dir, "198-round11-ref-disposition.md")
+    File.cp!(Path.join(@root, ".planning/audits/198-round11-ref-disposition.json"), inventory)
+    File.cp!(Path.join(@root, ".planning/audits/198-round11-ref-disposition.md"), decision)
+
+    try do
+      {output, status} =
+        run_production_stage(
+          "final",
+          inventory,
+          decision,
+          ["--register", Path.join(@root, ".planning/ARCHIVE-REGISTER.md")],
+          []
+        )
+
+      refute status == 0
+      assert output =~ "command receipt shape or sequence ordering is invalid"
+    after
+      File.rm_rf!(dir)
+    end
+  end
+
   test "round 11 rejects a missing, substituted, or collapsed divergent side" do
     with_round11_tracer(fn inventory, decision, live ->
       tracer_mutate(inventory, decision, live, fn doc ->
