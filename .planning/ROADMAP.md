@@ -347,7 +347,7 @@ Plans:
 
 **Wave 7** *(blocked on the hardened validator)*
 
-- [ ] 198-58-PLAN.md — Create an immutable round-12 five-prohibition ledger: four test-tier resolutions and one honest pending historical-method judgment, with anti-fabrication checks (wave 7)
+- [x] 198-58-PLAN.md — Create an immutable round-12 five-prohibition ledger: four test-tier resolutions and one honest pending historical-method judgment, with anti-fabrication checks (wave 7)
 
 **Wave 8** *(blocking-human; blocked on Plans 56-58)*
 
