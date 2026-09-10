@@ -169,7 +169,8 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
       assert {:error, _reason} = disposition |> Map.put(key, value) |> validate_disposition()
     end
 
-    for key <- ~w(evidence_source argv command refspec force mitigation attestation before after closed evidenced status verdict) do
+    for key <-
+          ~w(evidence_source argv command refspec force mitigation attestation before after closed evidenced status verdict) do
       assert {:error, _reason} = disposition |> Map.put(key, true) |> validate_disposition()
     end
   end
@@ -373,6 +374,43 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
            "round-14 security disposition is absent; create it only after observing this RED"
 
     @disposition_path |> File.read!() |> Jason.decode!()
+  end
+
+  defp validate_disposition(disposition) when is_map(disposition) do
+    decided_at = disposition["decided_at"]
+
+    cond do
+      not rfc3339_seconds_utc?(decided_at) ->
+        {:error, :invalid_decided_at}
+
+      disposition != canonical_disposition(decided_at) ->
+        {:error, :invalid_disposition_contract}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_disposition(_disposition), do: {:error, :invalid_disposition_contract}
+
+  defp canonical_disposition(decided_at) do
+    %{
+      "schema_version" => "threadline.phase198.security-disposition.v1",
+      "phase" => "198",
+      "threat_id" => "T-198-55-02",
+      "decision" => "accept-risk",
+      "verbatim" => @risk_acceptance_verbatim,
+      "decided_by" => "YOUR_NAME",
+      "decided_at" => decided_at,
+      "historical_evidence_reconstructed" => false,
+      "rationale" => @risk_acceptance_rationale,
+      "accepted_scope" => @accepted_scope,
+      "excluded_threats" => ["T-198-55-03", "T-198-62-SC"],
+      "green_07" => %{
+        "status" => "accepted-Pending",
+        "changed" => false
+      }
+    }
   end
 
   defp rfc3339_seconds_utc?(value) when is_binary(value) do
