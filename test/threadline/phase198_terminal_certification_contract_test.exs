@@ -19,7 +19,6 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
   @expected_commands [
     "PHASE198_SUMMARY_SET=final mix test test/threadline/phase198_zero_human_uat_contract_test.exs",
     "mix test test/threadline/phase198_ref_disposition_contract_test.exs test/threadline/phase198_prohibition_resolution_contract_test.exs test/threadline/phase198_zero_human_uat_contract_test.exs",
-    "mix test",
     "mix test test/threadline/phase198_terminal_certification_contract_test.exs test/threadline/phase198_ref_disposition_contract_test.exs test/threadline/phase198_prohibition_resolution_contract_test.exs test/threadline/phase198_zero_human_uat_contract_test.exs",
     "mix test"
   ]
@@ -90,6 +89,17 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     end
   end
 
+  test "final certification rejects any missing command receipt" do
+    record = load_record!(@record_path)
+
+    if record["stage"] == "final" do
+      assert {:error, :commands} =
+               record
+               |> Map.update!("commands", &Enum.drop(&1, -1))
+               |> validate_record()
+    end
+  end
+
   test "source manifest fixes audited summaries at 01 through 59 with Plan 60 non-recursive" do
     manifest =
       @root
@@ -116,7 +126,7 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     with :ok <- exact_schema(record),
          :ok <- valid_head(record["certified_head"]),
          :ok <- valid_sources(record["sources"]),
-         :ok <- valid_commands(record["commands"]),
+         :ok <- valid_commands(record["commands"], record["stage"]),
          :ok <- valid_open_state(record),
          :ok <- canonical_state_unchanged() do
       :ok
@@ -125,7 +135,7 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
 
   defp exact_schema(record) do
     expected =
-      ~w(schema_version purpose certified_head generated_at audited_summaries certification_summary sources commands open_findings requirements canonical_hooks)
+      ~w(schema_version stage purpose certified_head generated_at audited_summaries certification_summary sources commands open_findings requirements canonical_hooks)
 
     cond do
       Map.keys(record) |> Enum.sort() != Enum.sort(expected) ->
@@ -133,6 +143,9 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
 
       record["schema_version"] != 1 ->
         {:error, :schema_version}
+
+      record["stage"] not in ["bootstrap", "final"] ->
+        {:error, :stage}
 
       record["purpose"] != "phase-198-terminal-certification" ->
         {:error, :purpose}
@@ -178,8 +191,15 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
 
   defp valid_sources(_sources), do: {:error, :source_digest}
 
-  defp valid_commands(commands) when is_list(commands) do
+  defp valid_commands(commands, stage) when is_list(commands) do
     command_texts = Enum.map(commands, & &1["command"])
+
+    expected =
+      case stage do
+        "bootstrap" -> Enum.take(@expected_commands, 2)
+        "final" -> @expected_commands
+        _ -> []
+      end
 
     rows_valid? =
       Enum.all?(commands, fn row ->
@@ -197,10 +217,10 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
       end)
 
     cond do
-      command_texts != @expected_commands ->
+      command_texts != expected ->
         {:error, :commands}
 
-      Enum.map(commands, & &1["sequence"]) != Enum.to_list(1..length(@expected_commands)) ->
+      Enum.map(commands, & &1["sequence"]) != Enum.to_list(1..length(commands)) ->
         {:error, :command_sequence}
 
       not rows_valid? ->
@@ -214,7 +234,7 @@ defmodule Threadline.Phase198TerminalCertificationContractTest do
     end
   end
 
-  defp valid_commands(_commands), do: {:error, :commands}
+  defp valid_commands(_commands, _stage), do: {:error, :commands}
 
   defp valid_open_state(record) do
     finding = get_in(record, ["open_findings", "T-198-55-03"]) || %{}
