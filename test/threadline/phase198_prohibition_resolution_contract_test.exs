@@ -12,6 +12,7 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
                               @root,
                               ".planning/audits/198-round15-security-disposition.json"
                             )
+  @security_path Path.join(@root, ".planning/phases/198-green-bringup/198-SECURITY.md")
   @plan63_summary_path Path.join(
                          @root,
                          ".planning/phases/198-green-bringup/198-63-SUMMARY.md"
@@ -317,6 +318,42 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     end
 
     assert :ok = validate_round15_history_and_time!()
+  end
+
+  test "canonical security accepts only the exact round-15 risk while exclusions remain open" do
+    security = File.read!(@security_path)
+
+    assert :ok = validate_round15_security_projection(security)
+
+    mutations = [
+      String.replace(security, "status: passed", "status: blocked", global: false),
+      String.replace(security, "threats_open: 0", "threats_open: 1", global: false),
+      String.replace(security, "| AR-198-16 | T-198-55-02 |", "| AR-198-16 | T-198-55-03 |",
+        global: false
+      ),
+      String.replace(
+        security,
+        "| szTheory (exact authorization",
+        "| maintainer (exact authorization",
+        global: false
+      ),
+      String.replace(
+        security,
+        "| AR-198-16 | T-198-55-02 |",
+        "| AR-198-17 | T-198-62-SC | broadened | szTheory | 2026-09-10 |\n| AR-198-16 | T-198-55-02 |",
+        global: false
+      ),
+      String.replace(
+        security,
+        "| T-198-55-03 | medium |",
+        "| T-198-55-03 | closed |",
+        global: false
+      )
+    ]
+
+    for mutated <- mutations do
+      assert {:error, _} = validate_round15_security_projection(mutated)
+    end
   end
 
   test "round-14 disposition persists the exact narrow T-198-55-02 acceptance" do
@@ -879,6 +916,42 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
       :ok
     else
       _ -> {:error, :invalid_git_history_or_time_bounds}
+    end
+  end
+
+  defp validate_round15_security_projection(security) when is_binary(security) do
+    with [_, frontmatter] <- Regex.run(~r/\A---\n(.*?)\n---\n/s, security),
+         true <- Regex.match?(~r/^status: passed$/m, frontmatter),
+         true <- Regex.match?(~r/^threats_open: 0$/m, frontmatter),
+         true <- Regex.match?(~r/^threats_total: 316$/m, frontmatter),
+         true <- Regex.match?(~r/^threats_closed: 314$/m, frontmatter),
+         true <- Regex.match?(~r/^threats_open_total: 2$/m, frontmatter),
+         {:ok, open_section} <- markdown_section(security, "Threat Register — Non-Blocking Open"),
+         true <- String.contains?(open_section, "| T-198-55-03 | medium |"),
+         true <- String.contains?(open_section, "| T-198-62-SC | low |"),
+         {:ok, accepted_section} <- markdown_section(security, "Accepted Risks Log"),
+         [[accepted_row]] <-
+           Regex.scan(~r/^\| AR-198-16 \| T-198-55-02 \|.*$/m, accepted_section),
+         true <-
+           String.contains?(
+             accepted_row,
+             "| szTheory (exact authorization at commit `#{@authorization_commit}`) | 2026-09-10 |"
+           ),
+         false <- String.contains?(accepted_section, "| T-198-55-03 |"),
+         false <- String.contains?(accepted_section, "| T-198-62-SC |") do
+      :ok
+    else
+      _ -> {:error, :invalid_round15_security_projection}
+    end
+  end
+
+  defp validate_round15_security_projection(_security),
+    do: {:error, :invalid_round15_security_projection}
+
+  defp markdown_section(markdown, heading) do
+    case Regex.run(~r/^## #{Regex.escape(heading)}\n(.*?)(?=^## |\z)/ms, markdown) do
+      [_, section] -> {:ok, section}
+      _ -> {:error, :missing_section}
     end
   end
 
