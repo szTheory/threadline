@@ -355,7 +355,7 @@ Plans:
 
 **Wave 9** *(terminal certification after the Plan-59 summary exists)*
 
-- [ ] 198-60-PLAN.md — Execute real-tree exact audited-summary certification, focused/full lanes, and truthful open-finding handoff before orchestrator-owned canonical re-audits (wave 9)
+- [x] 198-60-PLAN.md — Execute real-tree exact audited-summary certification, focused/full lanes, and truthful open-finding handoff before orchestrator-owned canonical re-audits (wave 9)
 
 **Round-12 notes:**
 
