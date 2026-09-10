@@ -7,6 +7,7 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     "round11_json" => Path.join(@root, ".planning/audits/198-round11-ref-disposition.json"),
     "round11_markdown" => Path.join(@root, ".planning/audits/198-round11-ref-disposition.md")
   }
+  @cannot_attest_verbatim "cannot-attest by szTheory"
 
   @prohibitions [
     {"P-198-53-01", "198-53-PLAN.md",
@@ -66,17 +67,25 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     end
   end
 
-  test "historical command-method prohibition remains pending judgment without fabricated receipts" do
+  test "historical command-method prohibition records exact cannot-attest response and remains open" do
     ledger = load_ledger!()
     row = Enum.find(ledger["prohibitions"], &(&1["id"] == "P-198-55-01"))
 
     assert row["tier"] == "judgment"
     assert row["status"] == "pending"
-    assert row["resolution"] == nil
+
+    assert row["resolution"] == %{
+             "outcome" => "cannot-attest",
+             "verbatim" => @cannot_attest_verbatim,
+             "recorded_at" => "2026-09-10T02:37:41Z",
+             "signer" => "szTheory"
+           }
+
     assert row["evidence"] == []
     assert row["risk_accepted"] == false
     assert row["historical_limitation"] =~ "cannot establish which command operands were typed"
     refute forbidden_receipt_claim?(row)
+    assert :ok = validate_resolution(ledger)
   end
 
   test "round-11 sources are digest-pinned and the receipt gap stays open below threshold" do
@@ -310,12 +319,23 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
   defp validate_judgment(_row), do: {:error, :invalid_attestation}
 
   defp exact_attestation?(resolution, expected_outcome) when is_map(resolution) do
+    signer = resolution["signer"]
+
+    expected_verbatim =
+      case expected_outcome do
+        "cannot-attest" ->
+          "cannot-attest by #{signer}"
+
+        "attested" ->
+          "attest by #{signer}: I confirm every successful Plan 55 mutation targeted one exact object/ref/PR without force and used none of the prohibited wildcard, mirror, all-tags, rebase, squash, branch-switch, merge, ruleset, or protection operations"
+      end
+
     Map.keys(resolution) |> Enum.sort() ==
       Enum.sort(["outcome", "verbatim", "recorded_at", "signer"]) and
-      resolution["outcome"] == expected_outcome and
-      Enum.all?(["verbatim", "recorded_at", "signer"], fn field ->
-        is_binary(resolution[field]) and String.trim(resolution[field]) != ""
-      end)
+      resolution["outcome"] == expected_outcome and is_binary(signer) and
+      String.trim(signer) == signer and signer != "" and
+      not String.contains?(signer, [":", "\n", "\r"]) and
+      resolution["verbatim"] == expected_verbatim and rfc3339_utc?(resolution["recorded_at"])
   end
 
   defp exact_attestation?(_resolution, _expected_outcome), do: false
@@ -327,13 +347,31 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
   end
 
   defp valid_attestation(outcome) do
+    signer = "maintainer"
+
+    verbatim =
+      case outcome do
+        "cannot-attest" ->
+          "cannot-attest by #{signer}"
+
+        "attested" ->
+          "attest by #{signer}: I confirm every successful Plan 55 mutation targeted one exact object/ref/PR without force and used none of the prohibited wildcard, mirror, all-tags, rebase, squash, branch-switch, merge, ruleset, or protection operations"
+      end
+
     %{
       "outcome" => outcome,
-      "verbatim" => outcome,
+      "verbatim" => verbatim,
       "recorded_at" => "2026-09-10T02:00:00Z",
-      "signer" => "maintainer"
+      "signer" => signer
     }
   end
+
+  defp rfc3339_utc?(recorded_at) when is_binary(recorded_at) do
+    String.ends_with?(recorded_at, "Z") and
+      match?({:ok, _datetime, 0}, DateTime.from_iso8601(recorded_at))
+  end
+
+  defp rfc3339_utc?(_recorded_at), do: false
 
   defp forbidden_receipt_claim?(value) when is_map(value) do
     forbidden = ~w(argv refspec force started_at completed_at timestamp exit_status before after)

@@ -66,7 +66,12 @@
       "statement": "Do not use wildcard, mirror, all-tags, force, rebase, squash, branch-switch, merge, ruleset, or protection mutations.",
       "tier": "judgment",
       "status": "pending",
-      "resolution": null,
+      "resolution": {
+        "outcome": "cannot-attest",
+        "verbatim": "cannot-attest by szTheory",
+        "recorded_at": "2026-09-10T02:37:41Z",
+        "signer": "szTheory"
+      },
       "risk_accepted": false,
       "evidence": [],
       "historical_limitation": "Final refs, abstract round-11 receipts, and Plan-55 summary prose cannot establish which command operands were typed. No retrospective command representation is asserted.",
