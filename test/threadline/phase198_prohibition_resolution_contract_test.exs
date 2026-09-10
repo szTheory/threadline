@@ -1,5 +1,5 @@
 defmodule Threadline.Phase198ProhibitionResolutionContractTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   @root Path.expand("../..", __DIR__)
   @ledger_path Path.join(@root, ".planning/audits/198-round12-prohibition-resolution.json")
@@ -25,6 +25,58 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
   }
   @cannot_attest_verbatim "cannot-attest by szTheory"
   @round15_verbatim "accept-risk by szTheory: I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained."
+  @round15_rationale "I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained."
+  @round15_scope "The residual uncertainty for T-198-55-02 caused solely by the unavailable exact historical argv and non-force method evidence for completed Plan 198-55 mutations."
+  @plan65_origin_commit "bbdcebf2e9266115326df0b852345fd1fcf170bb"
+  @plan65_origin_time "2026-09-10T21:22:56Z"
+  @authorization_commit "5f77f321bc90c0add078ea083c06d5add575ae25"
+  @authorization_blob "4173c528fd26c46b7217650fafa6e851334f367c"
+  @authorization_sha256 "183c98eb9b0529867ac6231e870aacaea93397f4488dd28cfe93aa32a97686d6"
+  @authorization_time "2026-09-10T21:28:42Z"
+  @supersedes [
+    %{
+      "kind" => "plan63-plan",
+      "path" => ".planning/phases/198-green-bringup/198-63-PLAN.md",
+      "commit" => "a7f24af6ed19bfecd4942c624ef777b104974805",
+      "blob" => "acc7506bb2e993c0935de6e7318b8443fd674acb",
+      "sha256" => "49280cb866ad36975bad5259731d38a1aad169df533fd6999e9d31ef8e246d18"
+    },
+    %{
+      "kind" => "plan63-decline",
+      "path" => ".planning/phases/198-green-bringup/198-63-SUMMARY.md",
+      "commit" => "59d3c6985ef08b34f519b5d7587a60fc0ee76158",
+      "blob" => "0c529f821e4880296bdabad4ab691fa6b1cc1eda",
+      "sha256" => "12fc1b775f7822b74bbc5d8648e15eb37ae5387dff726dded9ca6bc7e2e2c23c"
+    },
+    %{
+      "kind" => "plan64-plan",
+      "path" => ".planning/phases/198-green-bringup/198-64-PLAN.md",
+      "commit" => "16afcfa17d873c9017e6b13197d909026174a00d",
+      "blob" => "b720f6630fb97658d1e8cb46760c35535f94a893",
+      "sha256" => "c2e43295b36d2a34391768bd42fe74fbc1f1d95d71ebb9a7a7fd521a35a8e2aa"
+    },
+    %{
+      "kind" => "plan64-invalid-disposition",
+      "path" => ".planning/audits/198-round14-security-disposition.json",
+      "commit" => "1760066a529e3028d9515cdf5a37ed43bbc07403",
+      "blob" => "51fb65b2d2caaf34123b4b4090369129aed1ede6",
+      "sha256" => "6b48fd906c38a20e08e29c072a33e576d567ce61a55b853f10e3f9d4259898a9"
+    },
+    %{
+      "kind" => "plan64-summary",
+      "path" => ".planning/phases/198-green-bringup/198-64-SUMMARY.md",
+      "commit" => "6f8d13c7f8d4f59782a9f6879b4ccc00dc21cc6c",
+      "blob" => "3ffb89060ff753bd5555d80cb08143a92b22e2fc",
+      "sha256" => "76e9ed1735d3885114c7de09cdb721bac2ce34a5f9cc7d3696eb46d2ef0fe4da"
+    },
+    %{
+      "kind" => "plan64-security-rejection",
+      "path" => ".planning/phases/198-green-bringup/198-SECURITY.md",
+      "commit" => "a25f90ad7a41097e638f495ee73aa904d4e50001",
+      "blob" => "e5e89fedb1f948fa59b5eb5c05c5c795489d26e2",
+      "sha256" => "3e82abcfa4a5363c4fecd903c0b924db66ff11407a798c0e1c7615f48569fcb8"
+    }
+  ]
 
   @prohibitions [
     {"P-198-53-01", "198-53-PLAN.md",
@@ -50,6 +102,31 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     assert disposition["schema_version"] == "threadline.phase198.security-disposition.v2"
     assert disposition["verbatim"] == @round15_verbatim
     assert disposition["decided_by"] == "szTheory"
+    assert disposition == canonical_round15_disposition()
+    assert :ok = validate_round15_disposition(disposition)
+
+    assert first_commit_containing(@round15_authorization_path, @round15_verbatim <> "\n") ==
+             @authorization_commit
+
+    assert git_blob_pin(
+             @authorization_commit,
+             ".planning/audits/198-round15-security-authorization.txt"
+           ) ==
+             {:ok, @authorization_blob, @authorization_sha256}
+
+    assert commit_time(@plan65_origin_commit) == @plan65_origin_time
+    assert commit_time(@authorization_commit) == @authorization_time
+    assert ancestor?(@plan65_origin_commit, @authorization_commit)
+  end
+
+  test "round-15 superseded history is ordered and resolves from immutable Git objects" do
+    disposition = load_round15_disposition!()
+    assert disposition["supersedes"] == @supersedes
+
+    for pin <- @supersedes do
+      assert git_blob_pin(pin["commit"], pin["path"]) ==
+               {:ok, pin["blob"], pin["sha256"]}
+    end
   end
 
   test "round-14 disposition persists the exact narrow T-198-55-02 acceptance" do
@@ -382,6 +459,152 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     assert :ok = validate_resolution(attested)
     assert get_in(attested, ["findings", "T-198-55-03", "status"]) == "open"
     assert get_in(attested, ["findings", "T-198-55-03", "accepted"]) == false
+  end
+
+  defp load_round15_disposition! do
+    assert File.exists?(@round15_disposition_path),
+           "round-15 disposition is absent; create it only after observing RED"
+
+    assert {:ok, disposition} =
+             @round15_disposition_path
+             |> File.read!()
+             |> decode_unique_ordered_json()
+
+    disposition
+  end
+
+  defp decode_unique_ordered_json(raw) when is_binary(raw) do
+    with {:ok, ordered} <- Jason.decode(raw, objects: :ordered_objects),
+         :ok <- reject_duplicate_members(ordered) do
+      {:ok, ordered_to_plain(ordered)}
+    end
+  end
+
+  defp reject_duplicate_members(%Jason.OrderedObject{values: members}) do
+    keys = Enum.map(members, &elem(&1, 0))
+
+    case duplicate_key(keys) do
+      nil -> Enum.reduce_while(members, :ok, &reject_member_duplicates/2)
+      key -> {:error, {:duplicate_member, key}}
+    end
+  end
+
+  defp reject_duplicate_members(values) when is_list(values) do
+    Enum.reduce_while(values, :ok, fn value, :ok ->
+      case reject_duplicate_members(value) do
+        :ok -> {:cont, :ok}
+        error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp reject_duplicate_members(_scalar), do: :ok
+
+  defp reject_member_duplicates({_key, value}, :ok) do
+    case reject_duplicate_members(value) do
+      :ok -> {:cont, :ok}
+      error -> {:halt, error}
+    end
+  end
+
+  defp duplicate_key(keys) do
+    keys
+    |> Enum.reduce_while(MapSet.new(), fn key, seen ->
+      if MapSet.member?(seen, key),
+        do: {:halt, key},
+        else: {:cont, MapSet.put(seen, key)}
+    end)
+    |> case do
+      %MapSet{} -> nil
+      key -> key
+    end
+  end
+
+  defp ordered_to_plain(%Jason.OrderedObject{values: members}) do
+    Map.new(members, fn {key, value} -> {key, ordered_to_plain(value)} end)
+  end
+
+  defp ordered_to_plain(values) when is_list(values), do: Enum.map(values, &ordered_to_plain/1)
+  defp ordered_to_plain(scalar), do: scalar
+
+  defp validate_round15_disposition(disposition) when is_map(disposition) do
+    if disposition == canonical_round15_disposition(), do: :ok, else: {:error, :invalid_contract}
+  end
+
+  defp validate_round15_disposition(_), do: {:error, :invalid_contract}
+
+  defp canonical_round15_disposition do
+    %{
+      "schema_version" => "threadline.phase198.security-disposition.v2",
+      "phase" => "198",
+      "threat_id" => "T-198-55-02",
+      "decision" => "accept-risk",
+      "verbatim" => @round15_verbatim,
+      "decided_by" => "szTheory",
+      "decided_at" => @authorization_time,
+      "decided_at_basis" => "authorization-commit-committer-time",
+      "historical_evidence_reconstructed" => false,
+      "rationale" => @round15_rationale,
+      "accepted_scope" => @round15_scope,
+      "excluded_threats" => ["T-198-55-03", "T-198-62-SC"],
+      "green_07" => %{"status" => "accepted-Pending", "changed" => false},
+      "authorization_source" => %{
+        "path" => ".planning/audits/198-round15-security-authorization.txt",
+        "commit" => @authorization_commit,
+        "blob" => @authorization_blob,
+        "sha256" => @authorization_sha256
+      },
+      "decision_time_bounds" => %{
+        "plan_origin_commit" => @plan65_origin_commit,
+        "plan_origin_committed_at" => @plan65_origin_time,
+        "authorization_commit" => @authorization_commit,
+        "authorization_committed_at" => @authorization_time
+      },
+      "supersedes" => @supersedes
+    }
+  end
+
+  defp first_commit_containing(path, expected_bytes) do
+    relative = Path.relative_to(path, @root)
+
+    git!(~w(log --all --reverse --format=%H -- #{relative}))
+    |> String.split("\n", trim: true)
+    |> Enum.find(fn commit ->
+      git!(~w(show #{commit}:#{relative}), trim: false) == expected_bytes
+    end)
+  end
+
+  defp git_blob_pin(commit, path) do
+    object = "#{commit}:#{path}"
+
+    with "blob" <- git!(~w(cat-file -t #{object})),
+         blob <- git!(~w(rev-parse #{object})),
+         bytes <- git!(~w(cat-file blob #{object}), trim: false) do
+      {:ok, blob, :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)}
+    else
+      _ -> {:error, :not_blob}
+    end
+  end
+
+  defp commit_time(commit) do
+    commit
+    |> then(&git!(["show", "-s", "--format=%ct", &1]))
+    |> String.to_integer()
+    |> DateTime.from_unix!()
+    |> DateTime.to_iso8601()
+  end
+
+  defp ancestor?(ancestor, descendant) do
+    case System.cmd("git", ["merge-base", "--is-ancestor", ancestor, descendant], cd: @root) do
+      {_output, 0} -> true
+      {_output, _status} -> false
+    end
+  end
+
+  defp git!(args, opts \\ []) do
+    trim? = Keyword.get(opts, :trim, true)
+    {output, 0} = System.cmd("git", args, cd: @root)
+    if trim?, do: String.trim(output), else: output
   end
 
   defp load_ledger! do

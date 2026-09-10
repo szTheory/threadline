@@ -1,0 +1,35 @@
+{
+  "schema_version": "threadline.phase198.security-disposition.v2",
+  "phase": "198",
+  "threat_id": "T-198-55-02",
+  "decision": "accept-risk",
+  "verbatim": "accept-risk by szTheory: I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained.",
+  "decided_by": "szTheory",
+  "decided_at": "2026-09-10T21:28:42Z",
+  "decided_at_basis": "authorization-commit-committer-time",
+  "historical_evidence_reconstructed": false,
+  "rationale": "I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained.",
+  "accepted_scope": "The residual uncertainty for T-198-55-02 caused solely by the unavailable exact historical argv and non-force method evidence for completed Plan 198-55 mutations.",
+  "excluded_threats": ["T-198-55-03", "T-198-62-SC"],
+  "green_07": {"status": "accepted-Pending", "changed": false},
+  "authorization_source": {
+    "path": ".planning/audits/198-round15-security-authorization.txt",
+    "commit": "5f77f321bc90c0add078ea083c06d5add575ae25",
+    "blob": "4173c528fd26c46b7217650fafa6e851334f367c",
+    "sha256": "183c98eb9b0529867ac6231e870aacaea93397f4488dd28cfe93aa32a97686d6"
+  },
+  "decision_time_bounds": {
+    "plan_origin_commit": "bbdcebf2e9266115326df0b852345fd1fcf170bb",
+    "plan_origin_committed_at": "2026-09-10T21:22:56Z",
+    "authorization_commit": "5f77f321bc90c0add078ea083c06d5add575ae25",
+    "authorization_committed_at": "2026-09-10T21:28:42Z"
+  },
+  "supersedes": [
+    {"kind": "plan63-plan", "path": ".planning/phases/198-green-bringup/198-63-PLAN.md", "commit": "a7f24af6ed19bfecd4942c624ef777b104974805", "blob": "acc7506bb2e993c0935de6e7318b8443fd674acb", "sha256": "49280cb866ad36975bad5259731d38a1aad169df533fd6999e9d31ef8e246d18"},
+    {"kind": "plan63-decline", "path": ".planning/phases/198-green-bringup/198-63-SUMMARY.md", "commit": "59d3c6985ef08b34f519b5d7587a60fc0ee76158", "blob": "0c529f821e4880296bdabad4ab691fa6b1cc1eda", "sha256": "12fc1b775f7822b74bbc5d8648e15eb37ae5387dff726dded9ca6bc7e2e2c23c"},
+    {"kind": "plan64-plan", "path": ".planning/phases/198-green-bringup/198-64-PLAN.md", "commit": "16afcfa17d873c9017e6b13197d909026174a00d", "blob": "b720f6630fb97658d1e8cb46760c35535f94a893", "sha256": "c2e43295b36d2a34391768bd42fe74fbc1f1d95d71ebb9a7a7fd521a35a8e2aa"},
+    {"kind": "plan64-invalid-disposition", "path": ".planning/audits/198-round14-security-disposition.json", "commit": "1760066a529e3028d9515cdf5a37ed43bbc07403", "blob": "51fb65b2d2caaf34123b4b4090369129aed1ede6", "sha256": "6b48fd906c38a20e08e29c072a33e576d567ce61a55b853f10e3f9d4259898a9"},
+    {"kind": "plan64-summary", "path": ".planning/phases/198-green-bringup/198-64-SUMMARY.md", "commit": "6f8d13c7f8d4f59782a9f6879b4ccc00dc21cc6c", "blob": "3ffb89060ff753bd5555d80cb08143a92b22e2fc", "sha256": "76e9ed1735d3885114c7de09cdb721bac2ce34a5f9cc7d3696eb46d2ef0fe4da"},
+    {"kind": "plan64-security-rejection", "path": ".planning/phases/198-green-bringup/198-SECURITY.md", "commit": "a25f90ad7a41097e638f495ee73aa904d4e50001", "blob": "e5e89fedb1f948fa59b5eb5c05c5c795489d26e2", "sha256": "3e82abcfa4a5363c4fecd903c0b924db66ff11407a798c0e1c7615f48569fcb8"}
+  ]
+}
