@@ -1,6 +1,6 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-10T22:56:17Z
+reviewed: 2026-09-10T23:03:18Z
 depth: standard
 files_reviewed: 109
 files_reviewed_list:
@@ -528,6 +528,51 @@ while an empty decoded reference passes.
 - Direct scalar probe: the strict item regex accepts `ref: ""`, the coverage
   predicate reports a present reference and all-pass status, while Psych decodes
   the reference to `""`.
+- The exact audited-final 01-61, terminal 62, content-bound 63-65, and repair 66
+  roles remain unchanged.
+
+### CR-05 Iteration-5 Re-review: REMAINS OPEN
+
+**Reviewed:** 2026-09-10T23:03:18Z
+**Repair commit:** `ca51ef69`
+**Validation update:** `89dc9070`
+
+Iteration 5 closes the verification-reference finding. Each `ref` is now decoded
+with Jason, must be a JSON-compatible double-quoted string, and must remain
+nonempty after trimming. Empty, whitespace-only, YAML null/tilde, unquoted,
+single-quoted, malformed-escape, and block scalar forms fail. Root
+phase/plan/status, verification kind/status, and `human_judgment` also use
+canonical scalar allowlists, and the prior root-alias, structural, duplicate,
+and multi-entry protections remain intact.
+
+One remaining coverage-identity scalar is still interpreted from source text
+rather than decoded value. `validate_strict_coverage_entry!/2` captures `id`
+with the broad `[^\s]+` pattern at lines 1174-1176 and returns that literal for
+duplicate detection. Thus `id: null`
+becomes the contract ID string `"null"`, passes exact-field validation and all
+non-human/pass/reference predicates, while Psych decodes the same YAML ID to
+`nil`. Likewise, two entries using `id: null` and `id: ~` are textually distinct
+to `duplicate_key/1` but semantically share a null YAML identity. Quoted and
+tagged ID aliases create the same parser-differential class.
+
+CR-05 remains a **BLOCKER**, now narrowed to coverage ID decoding. Define a
+canonical ID grammar (for the current artifacts, an identifier such as
+`[A-Za-z][A-Za-z0-9_-]*` is sufficient), reject YAML reserved/null/boolean and
+quoted/tagged/anchored forms, and perform duplicate detection on the validated
+canonical identity. Add single-entry null/tilde/quoted/tagged ID mutations and
+a two-entry `null` versus `~` collision fixture. Apply decoded/canonical scalar
+checks to `requirement` as well if it participates in requirement attribution.
+`198-VALIDATION.md`'s iteration-5 `CR-05 FILLED` conclusion is not supported
+while a null coverage identity passes.
+
+**Fresh iteration-5 verification:**
+
+- Final-mode focused summary contract: 22 tests, 0 failures.
+- Combined summary plus Plan-65 security-disposition contracts: 42 tests, 0 failures.
+- Broader targeted set including the Phase-198 Nyquist contract: 49 tests,
+  0 failures.
+- Direct ID probe: the contract captures `id: null` as `"null"` and accepts its
+  non-human, referenced, all-pass entry; Psych resolves the same ID to `nil`.
 - The exact audited-final 01-61, terminal 62, content-bound 63-65, and repair 66
   roles remain unchanged.
 
