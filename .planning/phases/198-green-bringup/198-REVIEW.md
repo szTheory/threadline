@@ -1,6 +1,6 @@
 ---
 phase: 198-green-bringup
-reviewed: 2026-09-10T22:45:14Z
+reviewed: 2026-09-10T22:56:17Z
 depth: standard
 files_reviewed: 109
 files_reviewed_list:
@@ -482,6 +482,54 @@ indented non-reserved root mapping. `198-VALIDATION.md`'s iteration-3
 - Canonical nested verification `status` remains allowed only after the
   `verification_item` transition and is still checked for all-pass values, but
   that control does not repair the two gaps above.
+
+### CR-05 Iteration-4 Re-review: REMAINS OPEN
+
+**Reviewed:** 2026-09-10T22:56:17Z
+**Repair commit:** `4010c3ef`
+**Validation update:** `4f42541b`
+
+Iteration 4 closes the prior structural findings. Indented content is rejected
+without an active recognized block; scalar/inline roots do not open blocks;
+metadata block indentation and shapes are allowlisted; coverage entries require
+exactly one `id`, `description`, `requirement`, `verification`, and
+`human_judgment`; verification items require exactly one `kind`, `ref`, and
+`status`; and missing, extra, duplicate, alias, and cross-state forms fail before
+map construction or semantic evaluation. Multi-entry coverage, repeated IDs,
+and a detached verification `status` are also structurally bounded.
+
+One scalar parser differential still violates the normative nonempty-reference
+rule. `validate_strict_verification_item!/2` at lines 1127-1144 checks only that
+the `ref` field exists and has at least one source character after the colon.
+`coverage_errors/2` subsequently treats any captured source text as a reference.
+Consequently `ref: ""` passes both the exact-field grammar and the
+`refs != []` semantic predicate. An independent YAML parse resolves that value
+to the empty string. The same class includes YAML null spellings such as
+`ref: null` or `ref: ~`: source text is present, but no nonempty reference value
+exists. This bypass stays entirely inside the newly accepted verification-item
+grammar and directly contradicts Plan 66's requirement for a nonempty passing
+reference.
+
+CR-05 remains a **BLOCKER**, now narrowed to scalar decoding. Constrain `ref` to
+one canonical scalar representation, decode it, and require a nonempty string
+after decoding (and preferably after trimming). Apply the same decoded-value
+discipline to other semantically trusted scalars rather than equating source
+characters with YAML values. Add `ref: ""`, `ref: ''`, `ref: null`, `ref: ~`,
+and alias-to-empty fixtures that must fail before the reference is trusted.
+`198-VALIDATION.md`'s iteration-4 `CR-05 FILLED` conclusion is not supported
+while an empty decoded reference passes.
+
+**Fresh iteration-4 verification:**
+
+- Final-mode focused summary contract: 20 tests, 0 failures.
+- Combined summary plus Plan-65 security-disposition contracts: 40 tests, 0 failures.
+- Broader targeted set including the Phase-198 Nyquist contract: 47 tests,
+  0 failures.
+- Direct scalar probe: the strict item regex accepts `ref: ""`, the coverage
+  predicate reports a present reference and all-pass status, while Psych decodes
+  the reference to `""`.
+- The exact audited-final 01-61, terminal 62, content-bound 63-65, and repair 66
+  roles remain unchanged.
 
 ### Boundary Checks That Passed
 
