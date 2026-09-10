@@ -65,6 +65,128 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     refute contains_forbidden_disposition_key?(disposition)
   end
 
+  test "round-14 disposition schema fails closed for missing, extra, and mistyped fields" do
+    disposition = load_disposition!()
+    assert :ok = validate_disposition(disposition)
+
+    for key <- Map.keys(disposition) do
+      assert {:error, _reason} = disposition |> Map.delete(key) |> validate_disposition()
+    end
+
+    assert {:error, _reason} =
+             disposition |> Map.put("unknown", true) |> validate_disposition()
+
+    wrong_types = %{
+      "schema_version" => 1,
+      "phase" => 198,
+      "threat_id" => ["T-198-55-02"],
+      "decision" => true,
+      "verbatim" => nil,
+      "decided_by" => %{},
+      "decided_at" => 0,
+      "historical_evidence_reconstructed" => "false",
+      "rationale" => [],
+      "accepted_scope" => %{},
+      "excluded_threats" => "T-198-55-03,T-198-62-SC",
+      "green_07" => []
+    }
+
+    for {key, value} <- wrong_types do
+      assert {:error, _reason} = disposition |> Map.put(key, value) |> validate_disposition()
+    end
+
+    for key <- Map.keys(disposition["green_07"]) do
+      malformed = update_in(disposition["green_07"], &Map.delete(&1, key))
+      assert {:error, _reason} = validate_disposition(malformed)
+    end
+
+    for green_07 <- [
+          %{"status" => "accepted-Pending", "changed" => false, "unknown" => true},
+          %{"status" => :pending, "changed" => false},
+          %{"status" => "Complete", "changed" => false},
+          %{"status" => "accepted-Pending", "changed" => "false"},
+          %{"status" => "accepted-Pending", "changed" => true}
+        ] do
+      assert {:error, _reason} =
+               disposition |> Map.put("green_07", green_07) |> validate_disposition()
+    end
+  end
+
+  test "round-14 disposition rejects timestamp and exclusion mutations" do
+    disposition = load_disposition!()
+
+    for invalid <- [
+          0,
+          "not-a-time",
+          "2026-09-10T20:59:16+00:00",
+          "2026-09-10T20:59:16.1Z",
+          "2026-02-30T20:59:16Z",
+          "2026-09-10T24:00:00Z"
+        ] do
+      assert {:error, _reason} =
+               disposition |> Map.put("decided_at", invalid) |> validate_disposition()
+    end
+
+    assert :ok =
+             disposition
+             |> Map.put("decided_at", "2026-09-10T20:59:16Z")
+             |> validate_disposition()
+
+    for invalid <- [
+          "T-198-55-03,T-198-62-SC",
+          [],
+          ["T-198-55-03"],
+          ["T-198-55-03", "T-198-62-SC", "T-198-64-01"],
+          ["T-198-62-SC", "T-198-55-03"],
+          ["T-198-55-03", "T-198-55-03"],
+          ["T-198-55-03", "T-198-55-02"]
+        ] do
+      assert {:error, _reason} =
+               disposition |> Map.put("excluded_threats", invalid) |> validate_disposition()
+    end
+  end
+
+  test "round-14 disposition rejects attribution, scope, evidence, and verdict fabrication" do
+    disposition = load_disposition!()
+
+    altered_values = [
+      {"schema_version", "threadline.phase198.security-disposition.v2"},
+      {"phase", "all"},
+      {"threat_id", "T-198-55-03"},
+      {"decision", "mitigated"},
+      {"verbatim", String.replace(@risk_acceptance_verbatim, "198-55’s", "198-55's")},
+      {"verbatim", String.replace(@risk_acceptance_verbatim, "accept-risk", "ACCEPT-RISK")},
+      {"verbatim", " " <> @risk_acceptance_verbatim},
+      {"decided_by", "maintainer"},
+      {"historical_evidence_reconstructed", true},
+      {"rationale", ""},
+      {"rationale", @risk_acceptance_rationale <> " All Phase-198 risk is accepted."},
+      {"accepted_scope", "All Phase-198 historical uncertainty."},
+      {"accepted_scope", @accepted_scope <> " T-198-55-03 is also accepted."}
+    ]
+
+    for {key, value} <- altered_values do
+      assert {:error, _reason} = disposition |> Map.put(key, value) |> validate_disposition()
+    end
+
+    for key <- ~w(evidence_source argv command refspec force mitigation attestation before after closed evidenced status verdict) do
+      assert {:error, _reason} = disposition |> Map.put(key, true) |> validate_disposition()
+    end
+  end
+
+  test "round-14 acceptance supersedes only the preserved Plan-63 decline" do
+    summary = File.read!(@plan63_summary_path)
+    disposition = load_disposition!()
+
+    assert summary =~ "status: halted"
+    assert summary =~ "coverage: []"
+    assert summary =~ "> do-not-accept by SIGNER"
+    assert disposition["verbatim"] == @risk_acceptance_verbatim
+    assert disposition["threat_id"] == "T-198-55-02"
+    assert disposition["excluded_threats"] == ["T-198-55-03", "T-198-62-SC"]
+    assert disposition["green_07"] == %{"status" => "accepted-Pending", "changed" => false}
+  end
+
   test "ledger copies exactly five source prohibitions with stable identities" do
     ledger = load_ledger!()
 
