@@ -129,6 +129,196 @@ defmodule Threadline.Phase198ProhibitionResolutionContractTest do
     end
   end
 
+  test "round-15 rejects named duplicate members recursively in both member orders" do
+    raw = File.read!(@round15_disposition_path)
+
+    for {key, fixture} <- duplicate_member_fixtures(raw) do
+      assert {:error, {:duplicate_member, ^key}} = decode_unique_ordered_json(fixture)
+    end
+  end
+
+  test "round-15 rejects malformed bytes and every exact-schema boundary mutation" do
+    disposition = load_round15_disposition!()
+
+    assert {:error, _} = decode_unique_ordered_json(<<255, 254, 253>>)
+    assert {:error, _} = decode_unique_ordered_json(~s({"decision":))
+
+    for key <- Map.keys(disposition) do
+      assert {:error, _} = disposition |> Map.delete(key) |> validate_round15_disposition()
+    end
+
+    assert {:error, _} = Map.put(disposition, "unknown", true) |> validate_round15_disposition()
+
+    wrong_types = %{
+      "schema_version" => 2,
+      "phase" => 198,
+      "threat_id" => [],
+      "decision" => true,
+      "verbatim" => nil,
+      "decided_by" => %{},
+      "decided_at" => 0,
+      "decided_at_basis" => [],
+      "historical_evidence_reconstructed" => "false",
+      "rationale" => [],
+      "accepted_scope" => %{},
+      "excluded_threats" => "T-198-55-03",
+      "green_07" => [],
+      "authorization_source" => [],
+      "decision_time_bounds" => [],
+      "supersedes" => %{}
+    }
+
+    for {key, value} <- wrong_types do
+      assert {:error, _} = disposition |> Map.put(key, value) |> validate_round15_disposition()
+    end
+
+    for nested <- ["green_07", "authorization_source", "decision_time_bounds"] do
+      for key <- Map.keys(disposition[nested]) do
+        mutated = Map.update!(disposition, nested, &Map.delete(&1, key))
+        assert {:error, _} = validate_round15_disposition(mutated)
+      end
+
+      mutated = Map.update!(disposition, nested, &Map.put(&1, "unknown", true))
+      assert {:error, _} = validate_round15_disposition(mutated)
+    end
+
+    for {index, pin} <- Enum.with_index(disposition["supersedes"]) do
+      for key <- Map.keys(pin) do
+        mutated =
+          update_in(
+            disposition["supersedes"],
+            &List.update_at(&1, index, fn row -> Map.delete(row, key) end)
+          )
+
+        assert {:error, _} = validate_round15_disposition(mutated)
+      end
+
+      mutated =
+        update_in(
+          disposition["supersedes"],
+          &List.update_at(&1, index, fn row -> Map.put(row, "unknown", true) end)
+        )
+
+      assert {:error, _} = validate_round15_disposition(mutated)
+    end
+  end
+
+  test "round-15 rejects attribution, scope, time, history, evidence, and verdict mutations" do
+    disposition = load_round15_disposition!()
+
+    root_mutations = [
+      {"verbatim", String.replace(@round15_verbatim, "198-55’s", "198-55's")},
+      {"verbatim", String.replace(@round15_verbatim, "accept-risk", "ACCEPT-RISK")},
+      {"verbatim", " " <> @round15_verbatim},
+      {"decided_by", "YOUR_NAME"},
+      {"decided_by", "maintainer"},
+      {"historical_evidence_reconstructed", true},
+      {"rationale", ""},
+      {"rationale", @round15_rationale <> " All Phase-198 risk is accepted."},
+      {"accepted_scope", "All Phase-198 historical uncertainty."},
+      {"accepted_scope", @round15_scope <> " T-198-55-03 is also accepted."},
+      {"decided_at", "2026-09-10T21:28:41Z"},
+      {"decided_at", "2026-09-10T21:28:42+00:00"},
+      {"decided_at", "2026-09-10T21:28:42.0Z"},
+      {"decided_at", "2026-02-30T21:28:42Z"}
+    ]
+
+    for {key, value} <- root_mutations do
+      assert {:error, _} = disposition |> Map.put(key, value) |> validate_round15_disposition()
+    end
+
+    for exclusions <- [
+          [],
+          ["T-198-55-03"],
+          ["T-198-62-SC", "T-198-55-03"],
+          ["T-198-55-03", "T-198-55-03"],
+          ["T-198-55-03", "T-198-62-SC", "T-198-55-02"]
+        ] do
+      assert {:error, _} =
+               disposition
+               |> Map.put("excluded_threats", exclusions)
+               |> validate_round15_disposition()
+    end
+
+    for forbidden <-
+          ~w(evidence_source argv command refspec force mitigation attestation before after closed evidenced status verdict) do
+      assert {:error, _} =
+               disposition |> Map.put(forbidden, true) |> validate_round15_disposition()
+    end
+
+    for green <- [
+          %{"status" => "Complete", "changed" => false},
+          %{"status" => "accepted-Pending", "changed" => true},
+          %{"status" => "accepted-Pending", "changed" => false, "accepted" => true}
+        ] do
+      assert {:error, _} =
+               disposition |> Map.put("green_07", green) |> validate_round15_disposition()
+    end
+
+    reversed_bounds =
+      put_in(
+        disposition,
+        ["decision_time_bounds", "plan_origin_committed_at"],
+        "2026-09-10T21:29:00Z"
+      )
+
+    assert {:error, _} = validate_round15_disposition(reversed_bounds)
+  end
+
+  test "round-15 history pins reject identity, order, omission, addition, and worktree substitution" do
+    disposition = load_round15_disposition!()
+
+    for {index, pin} <- Enum.with_index(@supersedes), field <- ~w(kind path commit blob sha256) do
+      replacement =
+        if field == "sha256", do: String.duplicate("0", 64), else: pin[field] <> "-changed"
+
+      mutated =
+        update_in(
+          disposition["supersedes"],
+          &List.update_at(&1, index, fn row -> Map.put(row, field, replacement) end)
+        )
+
+      assert {:error, _} = validate_round15_disposition(mutated)
+    end
+
+    assert {:error, _} =
+             disposition
+             |> put_in(["supersedes"], Enum.reverse(@supersedes))
+             |> validate_round15_disposition()
+
+    assert {:error, _} =
+             disposition
+             |> put_in(["supersedes"], tl(@supersedes))
+             |> validate_round15_disposition()
+
+    assert {:error, _} =
+             disposition
+             |> put_in(["supersedes"], @supersedes ++ [hd(@supersedes)])
+             |> validate_round15_disposition()
+
+    for {index, pin} <- Enum.with_index(@supersedes) do
+      worktree_sha =
+        Path.join(@root, pin["path"])
+        |> File.read!()
+        |> Kernel.<>("worktree-substitution")
+        |> then(&:crypto.hash(:sha256, &1))
+        |> Base.encode16(case: :lower)
+
+      substituted =
+        update_in(disposition["supersedes"], fn rows ->
+          List.update_at(
+            rows,
+            index,
+            &Map.merge(&1, %{"commit" => git!(~w(rev-parse HEAD)), "sha256" => worktree_sha})
+          )
+        end)
+
+      assert {:error, _} = validate_round15_disposition(substituted)
+    end
+
+    assert :ok = validate_round15_history_and_time!()
+  end
+
   test "round-14 disposition persists the exact narrow T-198-55-02 acceptance" do
     disposition = load_disposition!()
 
