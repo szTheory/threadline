@@ -2,13 +2,13 @@
 phase: "198"
 slug: "green-bringup"
 status: blocked
-threats_open: 1
+threats_open: 2
 asvs_level: 1
 block_on: high
 register_authored_at_plan_time: true
-threats_total: 273
-threats_closed: 271
-threats_open_total: 2
+threats_total: 297
+threats_closed: 294
+threats_open_total: 3
 created: "2026-09-08"
 updated: "2026-09-10"
 ---
@@ -17,9 +17,9 @@ updated: "2026-09-10"
 
 > ASVS L1 verification of the plan-authored STRIDE register through Plan 55.
 > The 2026-09-10 round-12 re-audit verifies the hardened ref-disposition
-> controls and closes nine of eleven prior findings. One blocking historical
-> command-method claim and one non-blocking historical receipt gap remain open;
-> neither is accepted risk. The audit itself was read-only.
+> controls and closes nine of eleven prior findings. Two blocking findings and
+> one non-blocking historical receipt gap remain open; none is accepted risk.
+> The audit itself was read-only.
 
 ## Trust Boundaries
 
@@ -36,6 +36,7 @@ updated: "2026-09-10"
 | Threat ID | Severity | Expected mitigation | Audit result |
 |-----------|----------|---------------------|--------------|
 | T-198-55-02 | high | Auditable proof that completed Plan-55 mutations used exact one-object, non-force argv and no prohibited bulk/history/protection methods | The hardened schema protects future operations, but historical argv was not captured; `cannot-attest by szTheory` explicitly leaves the mapped prohibition pending and is not risk acceptance. |
+| T-198-57-04 | high | Strict argv, force, timestamp, exit, and before/after validation for every future production receipt | Plan-61's legacy compatibility path selects weak validation for every non-fixture schema-v2 input instead of only the immutable completed round-11 artifact. |
 
 ## Threat Register — Non-Blocking Open
 
@@ -93,7 +94,7 @@ These 25 entries were reviewed individually and corrected in their canonical `19
 
 ## Closed Register
 
-Of 273 registered threats, 271 are closed. This compact index preserves the
+Of 297 registered threats, 294 are closed. This compact index preserves the
 plan-level mapping; the source threat definitions remain canonical in each
 `198-NN-PLAN.md`.
 
@@ -110,8 +111,9 @@ plan-level mapping; the source threat definitions remain canonical in each
 | 41–42 | 10 | Immutable subject/run ledger; atomic lifecycle proof; double ruleset digest; deterministic exact-main-SHA run selection; sealed Round-7 evidence. |
 | 43–47 | 26 | Safe issue upsert and release gates; exact-main observer boundaries; row-history synchronization; zero-human evaluator integrity; read-only Plan-47 reconciliation; all former open findings closed by Plans 48–51. |
 | 48–55 | 32 | Repository-owned coverage, full-history checkout, same-origin preflight, strict policy observer, red-control evidence, preservation joins, and hardened fail-closed namespace/receipt checks; two historical findings remain open above. |
+| 56–61 | 23 | Exact summary discovery, live/fixture separation, typed prohibition evidence, non-attestation integrity, terminal certification, and explicit classic-protection states; T-198-57-04 remains open above. |
 
-Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 32 = 271`.
+Closed count check: `24 + 23 + 23 + 28 + 27 + 30 + 19 + 29 + 10 + 26 + 32 + 23 = 294`.
 
 ## Unregistered Review Flags
 
@@ -149,14 +151,15 @@ No unregistered open flags remain.
 | 2026-09-09 | 239 | 231 | 8 | 5 | post-Plan-47 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 273 | 262 | 11 | 9 | post-Plan-55 gsd-security-auditor / Codex orchestrator |
 | 2026-09-10 | 273 | 271 | 2 | 1 | post-Plan-60 gsd-security-auditor / Codex orchestrator |
+| 2026-09-10 | 297 | 294 | 3 | 2 | post-Plan-61 gsd-security-auditor / Codex orchestrator |
 
 ## Sign-Off
 
 - [x] All registered threats have a plan-authored disposition.
 - [x] Accepted risks are maintainer-approved and documented.
 - [ ] `threats_open: 0` confirmed.
-- [x] `status: blocked` set in frontmatter while one high-severity threat remains open.
+- [x] `status: blocked` set in frontmatter while two high-severity threats remain open.
 
 **Approval:** blocked 2026-09-10 — one high-severity historical command-method
-claim and one medium historical receipt gap remain open. No new risk acceptance
-was inferred.
+claim, one high-severity production receipt-boundary gap, and one medium
+historical receipt gap remain open. No new risk acceptance was inferred.
