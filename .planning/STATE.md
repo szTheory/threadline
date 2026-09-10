@@ -6,15 +6,15 @@ current_phase: 198
 current_phase_name: Green Bringup
 status: executing
 stopped_at: Completed 198-64-PLAN.md
-last_updated: "2026-09-10T21:26:18.263Z"
+last_updated: "2026-09-10T22:07:26.189Z"
 last_activity: 2026-09-10
-last_activity_desc: Planned Phase 198 round-14 gap closure for canonical-only legacy receipt compatibility and terminal reseal
-state_head: 990fa4c11295d45123f67a62a0ea7c9f39e77f31
+last_activity_desc: Phase 198 execution resumed (wave continue)
+state_head: 9714637bcdc6a9b4b7da93b78e74afa696f47ca2
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 65
-  completed_plans: 64
+  total_plans: 66
+  completed_plans: 65
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 198 (Green Bringup) — READY TO EXECUTE
-Plan: 2 of 64
+Plan: 1 of 65
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -43,7 +43,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-10 — Phase 198 execution started
+Last activity: 2026-09-10 — Phase 198 execution resumed (wave continue)
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
