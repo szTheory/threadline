@@ -383,7 +383,7 @@ Plans:
 
 **Wave 11** *(blocked on completed Plan 198-61 and the authoritative post-Plan-61 security report)*
 
-- [ ] 198-62-PLAN.md — **Tracer:** bind weak legacy receipt validation to the exact immutable completed Round-11 JSON/Markdown identity, require strict receipts everywhere else, and reseal exact summaries 01-61 with Plan 62 as the sole non-recursive exception (wave 11)
+- [x] 198-62-PLAN.md — **Tracer:** bind weak legacy receipt validation to the exact immutable completed Round-11 JSON/Markdown identity, require strict receipts everywhere else, and reseal exact summaries 01-61 with Plan 62 as the sole non-recursive exception (wave 11)
 
 **Round-14 notes:**
 
