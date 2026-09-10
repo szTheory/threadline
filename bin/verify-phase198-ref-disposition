@@ -44,6 +44,7 @@ require_production_live() {
   local deadline="${PHASE198_REF_DISPOSITION_LIVE_DEADLINE_SECONDS:-30}"
   [[ "$deadline" =~ ^[0-9]+$ ]] || observation_failure deadline 0 0 false invalid-deadline
   (( deadline > 0 && deadline <= 120 )) || observation_failure deadline 0 "$((deadline * 1000))" true deadline-exhausted
+  LIVE_STAGE_STARTED_MS=$(now_ms)
 }
 
 bounded_capture() {
@@ -56,7 +57,7 @@ bounded_capture() {
     observation_failure "$operation" 0 "$((deadline * 1000))" false budget-exceeds-cap
 
   local started current elapsed remaining output status attempt
-  started=$(now_ms)
+  started="${LIVE_STAGE_STARTED_MS:-$(now_ms)}"
   for ((attempt=1; attempt<=attempts; attempt++)); do
     current=$(now_ms); elapsed=$((current - started)); remaining=$((deadline * 1000 - elapsed))
     (( remaining > 0 )) || observation_failure "$operation" "$elapsed" "$((deadline * 1000))" true deadline-exhausted
@@ -80,11 +81,24 @@ observe() {
     remote-namespace) [[ $# -eq 0 ]] || die "invalid remote-namespace observation"; bounded_capture remote-namespace git ls-remote --heads origin 'refs/heads/ci/198-*' ;;
     pr) [[ $# -eq 1 && "$1" =~ ^[0-9]+$ ]] || die "invalid PR observation"; bounded_capture "pr-$1" gh pr view "$1" --json number,state,isDraft,mergeStateStatus,headRefName,baseRefName,headRefOid ;;
     rules) [[ $# -eq 1 && "$1" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "invalid rules observation"; bounded_capture rules gh api "repos/$1/rules/branches/main" ;;
-    classic) [[ $# -eq 1 && "$1" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "invalid classic observation"; bounded_capture classic gh api --include --silent "repos/$1/branches/main/protection" ;;
+    classic)
+      [[ $# -eq 1 && "$1" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "invalid classic observation"
+      bounded_capture classic sh -c '
+        output=$(gh api --include --silent "$1" 2>&1); status=$?
+        if [ "$status" -eq 0 ] || printf "%s" "$output" | grep -Eq "^HTTP/[0-9.]+ 404 "; then
+          printf "%s" "$output"; exit 0
+        fi
+        printf "%s" "$output" >&2; exit "$status"
+      ' phase198-classic "repos/$1/branches/main/protection"
+      ;;
     worktrees) [[ $# -eq 0 ]] || die "invalid worktree observation"; bounded_capture worktrees git worktree list --porcelain ;;
     local-tag-type) [[ $# -eq 1 && "$1" =~ ^archive/ci/198-[A-Za-z0-9._/-]+$ ]] || die "invalid tag observation"; bounded_capture local-tag-type git cat-file -t "refs/tags/$1" ;;
     local-tag-peel) [[ $# -eq 1 && "$1" =~ ^archive/ci/198-[A-Za-z0-9._/-]+$ ]] || die "invalid tag observation"; bounded_capture local-tag-peel git rev-parse "refs/tags/$1^{}" ;;
     remote-tag) [[ $# -eq 1 && "$1" =~ ^archive/ci/198-[A-Za-z0-9._/-]+$ ]] || die "invalid tag observation"; bounded_capture remote-tag git ls-remote origin "refs/tags/$1" "refs/tags/$1^{}" ;;
+    merge-base) [[ $# -eq 2 && "$1" =~ ^[0-9a-f]{40}$ && ( "$2" == main || "$2" =~ ^[0-9a-f]{40}$ ) ]] || die "invalid merge-base observation"; bounded_capture merge-base git merge-base "$1" "$2" ;;
+    ancestry-counts) [[ $# -eq 2 && "$1" =~ ^[0-9a-f]{40}$ && ( "$2" == main || "$2" =~ ^[0-9a-f]{40}$ ) ]] || die "invalid ancestry observation"; bounded_capture ancestry-counts git rev-list --left-right --count "$1...$2" ;;
+    unique-count) [[ $# -eq 2 && "$1" =~ ^[0-9a-f]{40}$ && ( "$2" == main || "$2" =~ ^[0-9a-f]{40}$ ) ]] || die "invalid unique-count observation"; bounded_capture unique-count git rev-list --count "$1" --not "$2" ;;
+    diff-numstat) [[ $# -eq 2 && "$1" =~ ^[0-9a-f]{40}$ && ( "$2" == main || "$2" =~ ^[0-9a-f]{40}$ ) ]] || die "invalid diff observation"; bounded_capture diff-numstat git diff --numstat "$2...$1" ;;
     *) die "unapproved live observation: $operation" ;;
   esac
 }
@@ -217,12 +231,12 @@ live_compare_v2() {
   local id branch sha mb_head mb_main counts_head counts_main baseline_head pr_json
   baseline_head=$(jq -r .task_baseline.active_head_sha "$inventory")
   while IFS=$'\t' read -r id branch sha mb_head mb_main counts_head counts_main; do
-    [[ "$(git merge-base "$sha" "$baseline_head")" == "$mb_head" ]] || die "$id baseline-HEAD merge base drifted"
-    [[ "$(git merge-base "$sha" main)" == "$mb_main" ]] || die "$id local-main merge base drifted"
-    [[ "$(git rev-list --left-right --count "$sha"..."$baseline_head" | tr $'\t' '|')" == "$counts_head" ]] || die "$id baseline-HEAD ancestry counts drifted"
-    [[ "$(git rev-list --left-right --count "$sha"...main | tr $'\t' '|')" == "$counts_main" ]] || die "$id local-main ancestry counts drifted"
-    [[ "$(git rev-list --count "$sha" --not "$baseline_head")" -eq "$(jq -r --arg id "$id" '.preservation_subjects[]|select(.id==$id)|.evidence.unique_vs_head|length' "$inventory")" ]] || die "$id unique-commit evidence drifted"
-    [[ "$(git diff --numstat "$baseline_head"..."$sha" | wc -l | tr -d ' ')" -eq "$(jq -r --arg id "$id" '.preservation_subjects[]|select(.id==$id)|.evidence.diffstat_vs_head|length' "$inventory")" ]] || die "$id numstat evidence drifted"
+    [[ "$(observe merge-base "$sha" "$baseline_head")" == "$mb_head" ]] || die "$id baseline-HEAD merge base drifted"
+    [[ "$(observe merge-base "$sha" main)" == "$mb_main" ]] || die "$id local-main merge base drifted"
+    [[ "$(observe ancestry-counts "$sha" "$baseline_head" | tr $'\t' '|')" == "$counts_head" ]] || die "$id baseline-HEAD ancestry counts drifted"
+    [[ "$(observe ancestry-counts "$sha" main | tr $'\t' '|')" == "$counts_main" ]] || die "$id local-main ancestry counts drifted"
+    [[ "$(observe unique-count "$sha" "$baseline_head")" -eq "$(jq -r --arg id "$id" '.preservation_subjects[]|select(.id==$id)|.evidence.unique_vs_head|length' "$inventory")" ]] || die "$id unique-commit evidence drifted"
+    [[ "$(observe diff-numstat "$sha" "$baseline_head" | awk 'NF{n++} END{print n+0}')" -eq "$(jq -r --arg id "$id" '.preservation_subjects[]|select(.id==$id)|.evidence.diffstat_vs_head|length' "$inventory")" ]] || die "$id numstat evidence drifted"
   done < <(jq -r '.preservation_subjects[] | [.id,.branch,.sha,.evidence.merge_base_head,.evidence.merge_base_main,((.evidence.vs_head.ahead|tostring)+"|"+(.evidence.vs_head.behind|tostring)),((.evidence.vs_main.ahead|tostring)+"|"+(.evidence.vs_main.behind|tostring))] | @tsv' "$inventory")
 
   while IFS=$'\t' read -r branch number state draft merge head base head_sha; do
@@ -313,15 +327,65 @@ validate_fixture_controls_v2() {
 
 validate_receipt_shape_v2() {
   jq -e '
+    def exact($ks): (keys | sort) == ($ks | sort);
+    def ts: type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$");
+    def safe_argv:
+      (.argv|type)=="array" and (.argv|length)>0 and all(.argv[]; type=="string" and length>0)
+      and all(.argv[]; test("[*?[]")|not)
+      and all(.argv[]; IN("--force","-f","--mirror","--all","--tags","-D")|not);
+    def base:
+      (.seq|type)=="number" and .seq>=1 and (.target|type)=="string"
+      and .force==false and (.started_at|ts) and (.completed_at|ts)
+      and ((.started_at|fromdateiso8601) < (.completed_at|fromdateiso8601))
+      and .exit_status==0 and (.before|type)=="object" and (.after|type)=="object"
+      and safe_argv;
     (.command_receipts|type)=="array"
     and ([.command_receipts[].seq] == (if (.command_receipts|length)==0 then [] else [range(1;(.command_receipts|length)+1)] end))
-    and all(.command_receipts[];
-      (.type|IN("local-annotated-tag","remote-single-tag","archive-register-row","pr-close","remote-ref-delete","local-ref-delete"))
-      and (.target|type)=="string"
-      and (if (.type|IN("local-annotated-tag","remote-single-tag","archive-register-row"))
-           then ((.subject_id|type)=="string" and (.tag|type)=="string" and (.sha|type)=="string")
-           elif .type=="pr-close" then (.pr|type)=="number"
-           else true end))
+    and (. as $root | all(.command_receipts[]; . as $r | base and
+      if .type=="local-annotated-tag" then
+        exact(["seq","type","subject_id","target","tag","sha","argv","force","started_at","completed_at","exit_status","before","after"])
+        and (($root.preservation_subjects[]|select(.id==$r.subject_id)) as $s |
+          $r.target==$s.branch and $r.tag==$s.archive_tag and $r.sha==$s.sha
+          and $r.argv==["git","tag","-a",$s.archive_tag,$s.sha,"-m",("Archive "+$s.id)]
+          and $r.before=={"exists":false}
+          and $r.after=={"exists":true,"tag":$s.archive_tag,"sha":$s.sha,"annotated":true})
+      elif .type=="remote-single-tag" then
+        exact(["seq","type","subject_id","target","tag","sha","argv","force","started_at","completed_at","exit_status","before","after"])
+        and (($root.preservation_subjects[]|select(.id==$r.subject_id)) as $s |
+          ("refs/tags/"+$s.archive_tag) as $ref |
+          $r.target==$s.branch and $r.tag==$s.archive_tag and $r.sha==$s.sha
+          and $r.argv==["git","push","origin",($ref+":"+$ref)]
+          and $r.before=={"exists":false}
+          and $r.after=={"exists":true,"ref":$ref,"sha":$s.sha})
+      elif .type=="archive-register-row" then
+        exact(["seq","type","subject_id","target","tag","sha","argv","force","started_at","completed_at","exit_status","before","after"])
+        and (($root.preservation_subjects[]|select(.id==$r.subject_id)) as $s |
+          $r.target==$s.branch and $r.tag==$s.archive_tag and $r.sha==$s.sha
+          and $r.argv==["archive-register","append",$s.id]
+          and $r.before=={"joined":false}
+          and $r.after=={"joined":true,"subject_id":$s.id,"tag":$s.archive_tag,"sha":$s.sha})
+      elif .type=="pr-close" then
+        exact(["seq","type","target","pr","argv","force","started_at","completed_at","exit_status","before","after"])
+        and (([ $root.preservation_subjects[]|select(.branch==$r.target and .pull_request!=null)|.pull_request ]|unique_by(.number)) as $prs |
+          ($prs|length)==1 and $r.pr==$prs[0].number
+          and $r.argv==["gh","pr","close",($r.pr|tostring),"--repo",$root.repository]
+          and $r.before=={"number":$r.pr,"state":"OPEN"}
+          and $r.after=={"number":$r.pr,"state":"CLOSED"})
+      elif .type=="remote-ref-delete" then
+        exact(["seq","type","target","argv","force","started_at","completed_at","exit_status","before","after"])
+        and (([ $root.preservation_subjects[]|select(.branch==$r.target and .side=="origin") ]) as $subjects |
+          ($subjects|length)==1 and ($subjects[0] as $s |
+            ("refs/heads/"+$r.target) as $ref |
+            $r.argv==["git","push","origin",(":"+$ref)]
+            and $r.before=={"ref":$ref,"sha":$s.sha} and $r.after=={"ref":$ref,"sha":null}))
+      elif .type=="local-ref-delete" then
+        exact(["seq","type","target","argv","force","started_at","completed_at","exit_status","before","after"])
+        and (([ $root.preservation_subjects[]|select(.branch==$r.target and .side=="local") ]) as $subjects |
+          ($subjects|length)==1 and ($subjects[0] as $s |
+            ("refs/heads/"+$r.target) as $ref |
+            $r.argv==["git","branch","-d",$r.target]
+            and $r.before=={"ref":$ref,"sha":$s.sha} and $r.after=={"ref":$ref,"sha":null}))
+      else false end))
   ' "$inventory" >/dev/null || die "command receipt shape or sequence ordering is invalid"
 }
 
@@ -637,7 +701,11 @@ if [[ "$schema_version" == 2 ]]; then
   case "$stage" in
     inventory)
       validate_inventory_v2
-      echo "Phase 198 ref-disposition round 11 inventory OK: complete live namespace joined to distinct side/SHA preservation subjects; no mutation authority or receipt."
+      if [[ "$fixture_mode" == true ]]; then
+        echo "Phase 198 ref-disposition round 11 fixture inventory OK: complete synthetic namespace joined; no mutation authority or receipt."
+      else
+        echo "Phase 198 ref-disposition round 11 historical inventory OK: immutable schema and joins validated; legacy receipts are readable history, not retrospective argv proof."
+      fi
       ;;
     decision)
       validate_decision_v2

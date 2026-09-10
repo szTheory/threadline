@@ -95,6 +95,21 @@ defmodule Threadline.Phase198RefDispositionContractTest do
     end)
   end
 
+  test "completed round 11 remains readable only as immutable legacy receipt evidence" do
+    inventory = Path.join(@root, ".planning/audits/198-round11-ref-disposition.json")
+    decision = Path.join(@root, ".planning/audits/198-round11-ref-disposition.md")
+
+    assert {output, 0} =
+             System.cmd(
+               @script,
+               ["inventory", "--inventory", inventory, "--decision", decision],
+               stderr_to_stdout: true
+             )
+
+    assert output =~ "historical inventory OK"
+    assert output =~ "not retrospective argv proof"
+  end
+
   test "round 11 rejects a missing, substituted, or collapsed divergent side" do
     with_round11_tracer(fn inventory, decision, live ->
       tracer_mutate(inventory, decision, live, fn doc ->
@@ -447,6 +462,44 @@ defmodule Threadline.Phase198RefDispositionContractTest do
 
         File.rm(malformed)
         assert index >= 0
+      end
+    end)
+  end
+
+  test "each destructive receipt names exactly one literal authorized object" do
+    with_round11_lifecycle(fn fixture ->
+      target = "ci/198-gap-closure"
+
+      cases = [
+        {"local-annotated-tag", fn argv -> argv ++ [String.duplicate("a", 40)] end},
+        {"remote-single-tag", fn argv -> argv ++ ["refs/tags/extra:refs/tags/extra"] end},
+        {"pr-close", fn argv -> List.insert_at(argv, 4, "30") end},
+        {"remote-ref-delete", fn argv -> List.replace_at(argv, -1, ":refs/heads/ci/198-*") end},
+        {"local-ref-delete", fn argv -> List.replace_at(argv, 2, "-D") end}
+      ]
+
+      for {type, mutate_argv} <- cases do
+        malformed =
+          mutate_json_file(fixture.post[target], fn doc ->
+            update_in(doc["command_receipts"], fn receipts ->
+              Enum.map(receipts, fn receipt ->
+                if receipt["type"] == type,
+                  do: Map.update!(receipt, "argv", mutate_argv),
+                  else: receipt
+              end)
+            end)
+          end)
+
+        assert_failed(
+          run_stage("post-target", malformed, fixture.decided_md, fixture.live_post[target], [
+            "--target",
+            target,
+            "--register",
+            fixture.register
+          ])
+        )
+
+        File.rm(malformed)
       end
     end)
   end
