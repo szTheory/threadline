@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 30
+open_count: 31
 waived_count: 0
 fixed_count: 1
-total_count: 31
-last_updated: 2026-09-11T05:08:59.148Z
+total_count: 32
+last_updated: 2026-09-11T05:11:30.303Z
 ---
 
 # Broken Windows Ledger
@@ -46,6 +46,7 @@ last_updated: 2026-09-11T05:08:59.148Z
 | 29 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-09 roadmap.update-plan-progress could not write the Phase 199 plan checklist/progress row; executor reconciled both to 5/14 In Progress from live PLAN/SUMMARY counts | open |  | 2026-09-11T04:56:33.631Z |  |
 | 30 | 199 | deviation | test/threadline/clean_checkout_contract_test.exs |  | Plan 199-10 replaced unsupported mix test -x verification syntax with --max-failures 1 on the installed Mix version | open |  | 2026-09-11T05:08:59.068Z |  |
 | 31 | 199 | deviation | bench/audit_capture_bench.exs |  | Plan 199-10 formatted newly-owned benchmark entrypoints when child-aware formatter coverage exposed drift | open |  | 2026-09-11T05:08:59.148Z |  |
+| 32 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-10 roadmap.update-plan-progress could not write the legacy Phase 199 plan checklist/progress row; executor reconciled both to 6/14 In Progress from live PLAN/SUMMARY counts | open |  | 2026-09-11T05:11:30.303Z |  |
 
 ````json
 [
@@ -424,6 +425,19 @@ last_updated: 2026-09-11T05:08:59.148Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T05:08:59.148Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 32,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Plan 199-10 roadmap.update-plan-progress could not write the legacy Phase 199 plan checklist/progress row; executor reconciled both to 6/14 In Progress from live PLAN/SUMMARY counts",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T05:11:30.303Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }

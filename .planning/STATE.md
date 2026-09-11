@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 199
 current_phase_name: Decouple
 status: executing
-stopped_at: Completed 199-09-PLAN.md
-last_updated: "2026-09-11T04:56:33.436Z"
+stopped_at: Completed 199-10-PLAN.md
+last_updated: "2026-09-11T05:11:13.140Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 199 execution started
-state_head: 9302bfc62d7d28cf6d7ad4f584d6db157861c340
+state_head: 2227d1b9996b9c8f3486f95fb2d7271c0abf1bbd
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 80
-  completed_plans: 71
+  completed_plans: 72
   percent: 14
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 199 (Decouple) — EXECUTING
-Plan: 6 of 14
+Plan: 7 of 14
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -114,6 +114,7 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 | Phase 199 P04 | 10 min | 2 tasks | 4 files |
 | Phase 199 P07 | 6 min | 2 tasks | 1 files |
 | Phase 199 P09 | 7 min | 2 tasks | 8 files |
+| Phase 199 P10 | 7min | 2 tasks | 9 files |
 
 ## Deferred Items
 
@@ -552,6 +553,9 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 - [Phase 199]: Generated critic-score bytes remain invisible to integrity manifests until explicitly promoted into the Git index.
 - [Phase 199]: Active citation detection is derived from executable/current-document classes; a historical live-input citation is allowed only when the same artifact has an exact Phase 199 supersession marker.
 - [Phase 199]: Git history plus full recovery commits replaces archive copies or tombstones for all four removed artifacts.
+- [Phase 199]: [199-10] PLT policy ignores only .plt and .plt.hash files beneath the anchored .dialyzer producer root.
+- [Phase 199]: [199-10] Root formatter delegates bench and examples/threadline_phoenix while child configs retain imports and nested migration ownership.
+- [Phase 199]: [199-10] Newly owned benchmark entrypoints are formatted in the same change that adds them to the required formatter surface.
 
 ### Blockers
 
@@ -559,8 +563,8 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T04:56:12.084Z
-**Stopped at:** Completed 199-09-PLAN.md
+**Last session:** 2026-09-11T05:11:13.012Z
+**Stopped at:** Completed 199-10-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
