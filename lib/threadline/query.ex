@@ -50,7 +50,7 @@ defmodule Threadline.Query do
 
     @type cursor :: %{captured_at: DateTime.t(), id: Ecto.UUID.t()}
     @type t :: %__MODULE__{
-            entries: [AuditChange.t()],
+            entries: [%AuditChange{}],
             next_cursor: cursor() | nil
           }
   end
@@ -61,7 +61,7 @@ defmodule Threadline.Query do
   The helper fixes `table_name` and primary-key containment internally so callers
   do not need to construct low-level row predicates.
   """
-  @spec row_history(module(), term(), keyword(), keyword()) :: [AuditChange.t()]
+  @spec row_history(module(), term(), keyword(), keyword()) :: [%AuditChange{}]
   def row_history(schema_module, id, filters \\ [], opts \\ [])
       when is_list(filters) and is_list(opts) do
     validate_row_history_filters!(filters)
@@ -102,7 +102,7 @@ defmodule Threadline.Query do
   end
 
   @doc false
-  @spec preload_investigation_context([AuditChange.t()], module(), keyword()) :: [AuditChange.t()]
+  @spec preload_investigation_context([%AuditChange{}], module(), keyword()) :: [%AuditChange{}]
   def preload_investigation_context(changes, repo, opts \\ [])
       when is_list(changes) and is_atom(repo) and is_list(opts) do
     repo.preload(changes, [transaction: :action], storage_opts([], opts))
@@ -113,7 +113,7 @@ defmodule Threadline.Query do
 
   Raises `ArgumentError` when `transaction_id` is not a valid UUID.
   """
-  @spec audit_transaction(term(), keyword()) :: AuditTransaction.t() | nil
+  @spec audit_transaction(term(), keyword()) :: %AuditTransaction{} | nil
   def audit_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)
@@ -648,7 +648,7 @@ defmodule Threadline.Query do
   Raises `ArgumentError` with message containing `invalid audit transaction id`
   when `transaction_id` fails UUID cast (before hitting Postgrex).
   """
-  @spec audit_changes_for_transaction(term(), keyword()) :: [AuditChange.t()]
+  @spec audit_changes_for_transaction(term(), keyword()) :: [%AuditChange{}]
   def audit_changes_for_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)
