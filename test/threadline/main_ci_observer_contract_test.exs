@@ -55,7 +55,10 @@ defmodule Threadline.MainCiObserverContractTest do
     ]
 
     result = System.cmd(@script, args, env: env, stderr_to_stdout: true)
-    calls = argv_path |> File.read!() |> :binary.split(<<0>>, [:global, :trim_all]) |> split_calls()
+
+    calls =
+      argv_path |> File.read!() |> :binary.split(<<0>>, [:global, :trim_all]) |> split_calls()
+
     {result, calls}
   end
 
@@ -95,6 +98,7 @@ defmodule Threadline.MainCiObserverContractTest do
     jobs = ~s({"jobs":[{"name":"CI required","conclusion":"success"}]})
     assert {{out, 0}, [_, ["run", "view", "3", "--json", "jobs"]]} = run(runs, jobs)
     assert %{"state" => "success", "ci_required_count" => 1} = Jason.decode!(out)
+
     assert {{out, 0}, [_, ["run", "view", "3", "--json", "jobs"]]} =
              run(runs, ~s({"jobs":[]}))
 

@@ -39,7 +39,9 @@ defmodule Threadline.E2ePreflightContractTest do
     for location <- invalid do
       result = run_preflight("http://example.test", 302, [{"Location", location}], "")
       assert result.status != 0, "expected #{inspect(location)} to fail"
-      refute result.playwright_started, "Playwright sentinel ran for rejected #{inspect(location)}"
+
+      refute result.playwright_started,
+             "Playwright sentinel ran for rejected #{inspect(location)}"
     end
   end
 
@@ -49,10 +51,15 @@ defmodule Threadline.E2ePreflightContractTest do
     refute missing.playwright_started
 
     multiple =
-      run_preflight("http://example.test", 302, [
-        {"Location", "/users/log_in"},
-        {"Location", "http://foreign.test/users/log_in"}
-      ], "")
+      run_preflight(
+        "http://example.test",
+        302,
+        [
+          {"Location", "/users/log_in"},
+          {"Location", "http://foreign.test/users/log_in"}
+        ],
+        ""
+      )
 
     assert multiple.status != 0
     refute multiple.playwright_started
@@ -63,7 +70,9 @@ defmodule Threadline.E2ePreflightContractTest do
   end
 
   test "2xx requires both operator shell markers" do
-    passing = run_preflight("http://example.test", 200, [], ~s(<main class="threadline-ui" id="tl-main">))
+    passing =
+      run_preflight("http://example.test", 200, [], ~s(<main class="threadline-ui" id="tl-main">))
+
     assert passing.status == 0
     assert passing.playwright_started
 
@@ -80,7 +89,9 @@ defmodule Threadline.E2ePreflightContractTest do
   end
 
   defp run_preflight(base, status, headers, body) do
-    fixture_dir = Path.join(System.tmp_dir!(), "threadline-preflight-#{System.unique_integer([:positive])}")
+    fixture_dir =
+      Path.join(System.tmp_dir!(), "threadline-preflight-#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(fixture_dir)
     curl = Path.join(fixture_dir, "curl-fixture")
     sentinel = Path.join(fixture_dir, "playwright-sentinel")
