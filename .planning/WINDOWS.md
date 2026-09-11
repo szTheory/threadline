@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 28
+open_count: 30
 waived_count: 0
 fixed_count: 1
-total_count: 29
-last_updated: 2026-09-11T04:56:33.631Z
+total_count: 31
+last_updated: 2026-09-11T05:08:59.148Z
 ---
 
 # Broken Windows Ledger
@@ -44,6 +44,8 @@ last_updated: 2026-09-11T04:56:33.631Z
 | 27 | 199 | deviation | .planning/ROADMAP.md |  | roadmap.update-plan-progress could not write the legacy Phase 199 0/TBD row; executor reconciled the checklist and progress row to 4/14 In Progress from live PLAN/SUMMARY counts | open |  | 2026-09-11T04:42:10.923Z |  |
 | 28 | 199 | deviation | test/threadline/removed_artifact_contract_test.exs |  | Plan 199-09 verify used unsupported mix test -x flag; execution used the same focused file list without -x for valid RED/GREEN and final verification | open |  | 2026-09-11T04:53:19.815Z |  |
 | 29 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-09 roadmap.update-plan-progress could not write the Phase 199 plan checklist/progress row; executor reconciled both to 5/14 In Progress from live PLAN/SUMMARY counts | open |  | 2026-09-11T04:56:33.631Z |  |
+| 30 | 199 | deviation | test/threadline/clean_checkout_contract_test.exs |  | Plan 199-10 replaced unsupported mix test -x verification syntax with --max-failures 1 on the installed Mix version | open |  | 2026-09-11T05:08:59.068Z |  |
+| 31 | 199 | deviation | bench/audit_capture_bench.exs |  | Plan 199-10 formatted newly-owned benchmark entrypoints when child-aware formatter coverage exposed drift | open |  | 2026-09-11T05:08:59.148Z |  |
 
 ````json
 [
@@ -396,6 +398,32 @@ last_updated: 2026-09-11T04:56:33.631Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T04:56:33.631Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 30,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "test/threadline/clean_checkout_contract_test.exs",
+    "line": null,
+    "description": "Plan 199-10 replaced unsupported mix test -x verification syntax with --max-failures 1 on the installed Mix version",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T05:08:59.068Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 31,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "bench/audit_capture_bench.exs",
+    "line": null,
+    "description": "Plan 199-10 formatted newly-owned benchmark entrypoints when child-aware formatter coverage exposed drift",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T05:08:59.148Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }
