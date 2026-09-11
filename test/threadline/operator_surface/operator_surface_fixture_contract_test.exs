@@ -2,6 +2,9 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  @repository_root Path.expand("../../..", __DIR__)
+  @live_corpus_root "test/fixtures/operator_surface"
+
   setup do
     repo =
       Path.join(
@@ -55,6 +58,18 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
 
     refute Enum.any?(manifest, &(&1.path == "critic-scores/local-generated.json"))
     assert manifest == tracked_manifest(repo, "operator-surface")
+  end
+
+  test "live repository corpus matches its tracked manifest and validates non-vacuously" do
+    manifest = evidence_manifest(@repository_root, @live_corpus_root)
+
+    assert manifest != [],
+           "#{Path.join(@repository_root, @live_corpus_root)} must contain tracked evidence"
+
+    assert File.read!(Path.join(@repository_root, @live_corpus_root <> "/manifest.sha256")) ==
+             encode_manifest(manifest)
+
+    assert validate_corpus(@repository_root, @live_corpus_root) == :ok
   end
 
   test "tracked byte changes alter the manifest", %{repo: repo} do
@@ -250,6 +265,16 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
 
       %{path: relative_path, sha256: sha256(bytes)}
     end)
+  end
+
+  defp evidence_manifest(repo, corpus_root) do
+    repo
+    |> tracked_manifest(corpus_root)
+    |> Enum.reject(&(&1.path in ["README.md", "manifest.sha256"]))
+  end
+
+  defp encode_manifest(manifest) do
+    Enum.map_join(manifest, "", &"#{&1.sha256}  #{&1.path}\n")
   end
 
   defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
