@@ -64,6 +64,38 @@ defmodule Threadline.PlanningIndependenceContractTest do
     end)
   end
 
+  test "clone failure preserves caller planning names and removes only the registered clone" do
+    verifier = Path.join(@root, "bin/verify-planning-independent")
+
+    with_verifier_fixture("clone-failure", fn temp_root, fake_bin, _invocation_log ->
+      caller = Path.join(temp_root, "caller")
+      caller_planning = Path.join(caller, ".planning")
+      caller_quarantine = Path.join(caller, ".planning.threadline-quarantine")
+      planning_sentinel = Path.join(caller_planning, "sentinel.bin")
+      quarantine_sentinel = Path.join(caller_quarantine, "sentinel.bin")
+      planning_bytes = <<0, 17, 34, 255>>
+      quarantine_bytes = <<255, 68, 51, 0>>
+
+      File.mkdir_p!(caller_planning)
+      File.mkdir_p!(caller_quarantine)
+      File.write!(planning_sentinel, planning_bytes)
+      File.write!(quarantine_sentinel, quarantine_bytes)
+
+      assert {output, 76} =
+               System.cmd(verifier, [],
+                 cd: caller,
+                 env: [{"TMPDIR", temp_root}, {"PATH", path_with(fake_bin)}],
+                 stderr_to_stdout: true
+               )
+
+      assert output =~ "fake git: clone failed before entering checkout"
+      refute output =~ "could not restore planning"
+      assert File.read!(planning_sentinel) == planning_bytes
+      assert File.read!(quarantine_sentinel) == quarantine_bytes
+      assert Path.wildcard(Path.join(temp_root, "threadline-planning-independent-*")) == []
+    end)
+  end
+
   test "restoration failure retains the clone and reports its quarantine" do
     verifier = Path.join(@root, "bin/verify-planning-independent")
 
@@ -180,6 +212,21 @@ defmodule Threadline.PlanningIndependenceContractTest do
     """)
 
     File.chmod!(fake_npm, 0o755)
+
+    fake_git = Path.join(fake_bin, "git")
+    real_git = System.find_executable("git") || flunk("git executable is required")
+
+    File.write!(fake_git, """
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ #{shell_quote(mode)} = 'clone-failure' ] && [ "${1:-}" = 'clone' ]; then
+      printf 'fake git: clone failed before entering checkout\n' >&2
+      exit 76
+    fi
+    exec #{shell_quote(real_git)} "$@"
+    """)
+
+    File.chmod!(fake_git, 0o755)
 
     try do
       fun.(temp_root, fake_bin, invocation_log)

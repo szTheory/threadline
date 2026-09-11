@@ -21,6 +21,9 @@ TRUSTED_PARENT="$(realpath -- "$TRUSTED_PARENT")"
 CLONE_CHILD="$TRUSTED_PARENT/checkout"
 PLANNING_NAME='.planning'
 QUARANTINE_NAME='.planning.threadline-quarantine'
+PLANNING_PATH="$CLONE_CHILD/$PLANNING_NAME"
+QUARANTINE_PATH="$CLONE_CHILD/$QUARANTINE_NAME"
+QUARANTINE_OWNED=0
 AGGREGATE_STARTED=0
 AGGREGATE_PASSED=0
 
@@ -29,6 +32,7 @@ safe_temp_tree_register "$TRUSTED_PARENT" "$CLONE_CHILD"
 
 cleanup() {
   local original_status=$? restore_status=0 cleanup_status=0
+  local physical_cwd='' restore_root='' restore_planning='' restore_quarantine=''
   trap - EXIT
   set +e
 
@@ -36,18 +40,29 @@ cleanup() {
     printf 'AGGREGATE_RESULT=FAIL status=%s\n' "$original_status"
   fi
 
-  # The shell stays inside the clone while the aggregate runs. Relative names
-  # therefore restore into the registered clone inode even if its pathname was
-  # swapped concurrently; the shared primitive then rejects that swap before
-  # exercising the only recursive removal authority.
-  if [ -e "$QUARANTINE_NAME" ] || [ -L "$QUARANTINE_NAME" ]; then
-    if [ -e "$PLANNING_NAME" ] || [ -L "$PLANNING_NAME" ]; then
-      fail "could not restore planning: $PLANNING_NAME already exists; retained clone and quarantine at $PWD/$QUARANTINE_NAME"
+  # Only this process may claim ownership of the quarantine. Use absolute clone
+  # paths while the registered pathname is intact. If that pathname was swapped,
+  # the shell still resides in the original clone inode, so relative paths keep
+  # restoration there; the shared primitive then rejects the swap before
+  # recursive removal.
+  if [ "$QUARANTINE_OWNED" -eq 1 ]; then
+    if [ -d "$CLONE_CHILD" ] && [ ! -L "$CLONE_CHILD" ] &&
+      physical_cwd="$(pwd -P)" && [ "$physical_cwd" = "$CLONE_CHILD" ]; then
+      restore_root="$CLONE_CHILD"
+    else
+      restore_root='.'
+    fi
+    restore_planning="$restore_root/$PLANNING_NAME"
+    restore_quarantine="$restore_root/$QUARANTINE_NAME"
+
+    if [ -e "$restore_planning" ] || [ -L "$restore_planning" ]; then
+      fail "could not restore planning: $restore_planning already exists; retained clone and quarantine at $restore_quarantine"
       restore_status=1
-    elif mv -- "$QUARANTINE_NAME" "$PLANNING_NAME"; then
+    elif mv -- "$restore_quarantine" "$restore_planning"; then
+      QUARANTINE_OWNED=0
       printf 'PLANNING_RESTORED\n'
     else
-      fail "could not restore planning; retained clone and quarantine at $PWD/$QUARANTINE_NAME"
+      fail "could not restore planning; retained clone and quarantine at $restore_quarantine"
       restore_status=1
     fi
   fi
@@ -86,11 +101,12 @@ CLONE_SHA="$(git -C "$CLONE_CHILD" rev-parse HEAD)"
 printf 'CERTIFIED_SHA=%s\n' "$SOURCE_SHA"
 
 cd "$CLONE_CHILD"
-[ -d "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
-  fail "committed planning directory is missing or unsafe: $CLONE_CHILD/$PLANNING_NAME"
-[ ! -e "$QUARANTINE_NAME" ] && [ ! -L "$QUARANTINE_NAME" ] ||
-  fail "planning quarantine already exists: $CLONE_CHILD/$QUARANTINE_NAME"
-mv -- "$PLANNING_NAME" "$QUARANTINE_NAME"
+[ -d "$PLANNING_PATH" ] && [ ! -L "$PLANNING_PATH" ] ||
+  fail "committed planning directory is missing or unsafe: $PLANNING_PATH"
+[ ! -e "$QUARANTINE_PATH" ] && [ ! -L "$QUARANTINE_PATH" ] ||
+  fail "planning quarantine already exists: $QUARANTINE_PATH"
+mv -- "$PLANNING_PATH" "$QUARANTINE_PATH"
+QUARANTINE_OWNED=1
 [ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
   fail 'planning remained visible after quarantine'
 printf 'PLANNING_STATUS=ABSENT\n'
