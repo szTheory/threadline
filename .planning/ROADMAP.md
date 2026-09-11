@@ -513,7 +513,7 @@ Plans:
 
 - [x] 199-16-PLAN.md — Query, continuity, actor-page, and local-storage remediation
 - [x] 199-17-PLAN.md — Export, Sigra, and investigation remediation
-- [ ] 199-18-PLAN.md — Operator authentication, plug, presentation, and redaction remediation
+- [x] 199-18-PLAN.md — Operator authentication, plug, presentation, and redaction remediation
 - [ ] 199-19-PLAN.md — Operator LiveView timer and result-contract remediation
 
 **Wave 6** *(blocked on all four Wave 5 slices)*
@@ -683,7 +683,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
-| 199. Decouple | v1.41 | 16/21 | In Progress | |
+| 199. Decouple | v1.41 | 17/21 | In Progress | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
 | 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |

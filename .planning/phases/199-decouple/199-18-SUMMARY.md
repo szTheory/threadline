@@ -36,6 +36,8 @@ key-files:
     - lib/threadline/plug.ex
     - lib/threadline/policy/redaction_presenter.ex
     - test/threadline/plug_test.exs
+    - .planning/STATE.md
+    - .planning/ROADMAP.md
 
 key-decisions:
   - "Keep Plug remote-address formatting tuple-only because Plug.Conn.remote_ip is an IPv4 or IPv6 tuple; replace the impossible nil test with IPv6 coverage."
@@ -171,9 +173,18 @@ Each TDD task was committed as an atomic RED/GREEN pair:
 - **Verification:** Both evidence records returned `RED_EVIDENCE_OK` with reason `target_test_failed`.
 - **Committed in:** No persistent source change required.
 
+**3. [Rule 3 - Blocking Issue] Reconciled Phase 199 roadmap progress after the SDK found no writable phase entry**
+
+- **Found during:** Post-summary planning-state synchronization
+- **Issue:** `roadmap.update-plan-progress 199` returned `missing_phase_details` although the Phase 199 checklist and progress row exist.
+- **Fix:** Marked only Plan 199-18 complete, reconciled the phase row to 17 completed summaries across 21 plans, and kept all remaining plan rows unchecked.
+- **Files modified:** `.planning/ROADMAP.md`, `.planning/STATE.md`
+- **Verification:** Plan 199-18 is checked, the phase row reads `17/21 | In Progress`, and Current Position names Plan 19 of 21.
+- **Committed in:** Final planning-state commit.
+
 ---
 
-**Total deviations:** 2 auto-fixed blocking issues.
+**Total deviations:** 3 auto-fixed blocking issues.
 **Impact on plan:** The adjustments made the retained Plug.Conn contract truthful and the TDD evidence machine-checkable without expanding warning-origin authority or changing product semantics.
 
 ## Issues Encountered
