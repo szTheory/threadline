@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 26
+open_count: 28
 waived_count: 0
 fixed_count: 1
-total_count: 27
-last_updated: 2026-09-11T04:42:10.923Z
+total_count: 29
+last_updated: 2026-09-11T04:56:33.631Z
 ---
 
 # Broken Windows Ledger
@@ -42,6 +42,8 @@ last_updated: 2026-09-11T04:42:10.923Z
 | 25 | 198 | deviation | .planning/STATE.md |  | Canonical state.advance-plan incremented stale prose position to 2 of 65; reconciled prose to structured 66 of 66 progress | open |  | 2026-09-10T22:19:12.757Z |  |
 | 26 | 199 | deviation | test/threadline/operator_surface/operator_surface_fixture_contract_test.exs |  | Plan verify used unsupported mix test -x flag; execution used --max-failures 1 for RED and the unmodified targeted command for final GREEN verification | open |  | 2026-09-11T04:40:32.551Z |  |
 | 27 | 199 | deviation | .planning/ROADMAP.md |  | roadmap.update-plan-progress could not write the legacy Phase 199 0/TBD row; executor reconciled the checklist and progress row to 4/14 In Progress from live PLAN/SUMMARY counts | open |  | 2026-09-11T04:42:10.923Z |  |
+| 28 | 199 | deviation | test/threadline/removed_artifact_contract_test.exs |  | Plan 199-09 verify used unsupported mix test -x flag; execution used the same focused file list without -x for valid RED/GREEN and final verification | open |  | 2026-09-11T04:53:19.815Z |  |
+| 29 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-09 roadmap.update-plan-progress could not write the Phase 199 plan checklist/progress row; executor reconciled both to 5/14 In Progress from live PLAN/SUMMARY counts | open |  | 2026-09-11T04:56:33.631Z |  |
 
 ````json
 [
@@ -368,6 +370,32 @@ last_updated: 2026-09-11T04:42:10.923Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T04:42:10.923Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 28,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "test/threadline/removed_artifact_contract_test.exs",
+    "line": null,
+    "description": "Plan 199-09 verify used unsupported mix test -x flag; execution used the same focused file list without -x for valid RED/GREEN and final verification",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T04:53:19.815Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 29,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Plan 199-09 roadmap.update-plan-progress could not write the Phase 199 plan checklist/progress row; executor reconciled both to 5/14 In Progress from live PLAN/SUMMARY counts",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T04:56:33.631Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }

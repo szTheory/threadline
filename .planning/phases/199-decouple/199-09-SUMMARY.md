@@ -140,10 +140,18 @@ Each task was committed atomically:
 - **Verification:** `gsd-tools check tdd-red-evidence` returned `RED_EVIDENCE_OK`; the final focused run passed 25/25.
 - **Committed in:** `5a2ffb11`, `827722a0`, and `3253a402` as the task work guarded by those runs.
 
+**2. [Rule 3 - Blocking] Reconciled Phase 199 roadmap progress after the canonical handler declined the legacy layout**
+
+- **Found during:** Sequential state synchronization after the SUMMARY commit.
+- **Issue:** `roadmap.update-plan-progress 199` found the 14 plans and five summaries but returned `missing_phase_details`, leaving the visible Plan 09 checklist and `4/14` progress row stale.
+- **Fix:** Marked only `199-09-PLAN.md` complete and advanced the existing Phase 199 row to `5/14 In Progress`, matching the handler's live counts.
+- **Files modified:** `.planning/ROADMAP.md`; the deviation is also registered in `.planning/WINDOWS.md`.
+- **Verification:** The Phase 199 checklist has five completed entries, its progress row reads `5/14`, and the remaining nine plans remain unchecked.
+
 ---
 
-**Total deviations:** 1 auto-fixed (1 blocking command issue).
-**Impact on plan:** The equivalent supported command exercises the exact planned files without weakening discovery or assertions.
+**Total deviations:** 2 auto-fixed (2 blocking tooling/layout issues).
+**Impact on plan:** The supported test command exercises the exact planned files without weakening discovery or assertions; the roadmap reconciliation changes metadata only and matches the live five-summary count.
 
 ## TDD Gate Compliance
 
