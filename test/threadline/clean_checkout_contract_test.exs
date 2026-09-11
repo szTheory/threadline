@@ -74,8 +74,9 @@ defmodule Threadline.CleanCheckoutContractTest do
       with_temp_parent(fn parent ->
         caller_sentinel = Path.join(@root, ".safe-temp-tree-caller-sentinel")
         outside = unique_temp_path("threadline-safe-outside")
-        outside_sentinel = Path.join(outside, "sentinel")
         File.mkdir!(outside)
+        outside = canonical_path(outside)
+        outside_sentinel = Path.join(outside, "sentinel")
         File.write!(outside_sentinel, "outside survives")
         File.write!(caller_sentinel, "caller survives")
 
@@ -126,9 +127,12 @@ defmodule Threadline.CleanCheckoutContractTest do
     end
 
     test "rejects every registered linked worktree root without mutating or unregistering it" do
-      with_temp_parent(fn parent ->
-        linked = Path.join(parent, "registered-worktree")
+      raw_parent = unique_temp_path("threadline-safe-parent")
+      File.mkdir!(raw_parent)
+      parent = canonical_path(raw_parent)
+      linked = Path.join(parent, "registered-worktree")
 
+      try do
         assert {_output, 0} =
                  System.cmd("git", ["worktree", "add", "--detach", linked, "HEAD"],
                    cd: @root,
@@ -138,13 +142,6 @@ defmodule Threadline.CleanCheckoutContractTest do
         sentinel = Path.join(linked, "sentinel.bin")
         sentinel_bytes = <<0, 1, 2, 253, 254, 255>>
         File.write!(sentinel, sentinel_bytes)
-
-        on_exit(fn ->
-          System.cmd("git", ["worktree", "remove", "--force", linked],
-            cd: @root,
-            stderr_to_stdout: true
-          )
-        end)
 
         assert {output, status} = run_cleanup(parent, linked)
         assert status != 0
@@ -158,7 +155,14 @@ defmodule Threadline.CleanCheckoutContractTest do
           )
 
         assert worktrees =~ "worktree #{linked}"
-      end)
+      after
+        System.cmd("git", ["worktree", "remove", "--force", linked],
+          cd: @root,
+          stderr_to_stdout: true
+        )
+
+        File.rm_rf!(parent)
+      end
     end
   end
 
@@ -175,8 +179,9 @@ defmodule Threadline.CleanCheckoutContractTest do
   end
 
   defp with_temp_parent(fun) do
-    parent = unique_temp_path("threadline-safe-parent")
-    File.mkdir!(parent)
+    raw_parent = unique_temp_path("threadline-safe-parent")
+    File.mkdir!(raw_parent)
+    parent = canonical_path(raw_parent)
 
     try do
       fun.(parent)
@@ -187,6 +192,11 @@ defmodule Threadline.CleanCheckoutContractTest do
 
   defp unique_temp_path(prefix) do
     Path.join(System.tmp_dir!(), "#{prefix}-#{System.unique_integer([:positive, :monotonic])}")
+  end
+
+  defp canonical_path(path) do
+    {canonical, 0} = System.cmd("realpath", [path])
+    String.trim(canonical)
   end
 
   defp shell_quote(value), do: "'#{String.replace(value, "'", "'\\''")}'"
