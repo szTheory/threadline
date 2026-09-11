@@ -20,6 +20,8 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
         ~s({"mechanical_floors":{},"required_scorecards":["page.timeline.happy__dark-1280"]}\n),
       "golden/golden-set.json" =>
         ~s({"version":"1","items":[{"cell_id":"page.timeline.happy__dark-1280"}]}\n),
+      "golden/synthetic-set.json" =>
+        ~s({"version":"1","items":[{"cell_id":"page.timeline.happy__dark-1280"}]}\n),
       "refute/refute-set.json" =>
         ~s({"version":"1","items":[{"twin_id":"refute.timeline","polished_cell_id":"page.timeline.happy__dark-1280","flawed_cell_id":"page.timeline.happy__dark-1280"}]}\n),
       "scorecards/page.timeline.happy__dark-1280.aria.yml" => "role: main\n",
@@ -142,10 +144,11 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
       with :ok <- require_corpus_entries(manifest_paths, root),
            {:ok, ledger} <- decode_json(root, "design-system-ledger.json"),
            {:ok, golden} <- decode_json(root, "golden/golden-set.json"),
+           {:ok, synthetic} <- decode_json(root, "golden/synthetic-set.json"),
            {:ok, refute} <- decode_json(root, "refute/refute-set.json"),
            {:ok, scorecards} <- decode_scorecards(root, manifest_paths),
            :ok <- validate_aria_pairs(manifest_paths),
-           :ok <- validate_references(ledger, golden, refute, scorecards) do
+           :ok <- validate_references(ledger, golden, synthetic, refute, scorecards) do
         :ok
       end
     else
@@ -158,6 +161,7 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
       "critic-scores/.gitkeep",
       "design-system-ledger.json",
       "golden/golden-set.json",
+      "golden/synthetic-set.json",
       "refute/refute-set.json"
     ]
 
@@ -214,10 +218,10 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     end)
   end
 
-  defp validate_references(ledger, golden, refute, scorecards) do
-    with {:ok, references} <- corpus_references(ledger, golden, refute) do
+  defp validate_references(ledger, golden, synthetic, refute, scorecards) do
+    with {:ok, references} <- corpus_references(ledger, golden, synthetic, refute) do
       case Enum.find(references, fn {_source, cell_id} ->
-             not Map.has_key?(scorecards, cell_id)
+             not scorecard_reference?(scorecards, cell_id)
            end) do
         nil -> :ok
         {source, cell_id} -> {:error, {:broken_reference, %{source: source, cell_id: cell_id}}}
@@ -225,18 +229,29 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     end
   end
 
-  defp corpus_references(ledger, golden, refute) do
-    with required when is_list(required) <- ledger["required_scorecards"],
-         golden_items when is_list(golden_items) and golden_items != [] <- golden["items"],
+  defp corpus_references(ledger, golden, synthetic, refute) do
+    required = ledger_references(ledger)
+
+    with required when is_list(required) and required != [] <- required,
+         golden_items when is_list(golden_items) <- golden["items"],
+         synthetic_items when is_list(synthetic_items) and synthetic_items != [] <-
+           synthetic["items"],
          refute_items when is_list(refute_items) and refute_items != [] <- refute["items"] do
       references =
         Enum.map(required, &{"design-system-ledger.json", &1}) ++
           Enum.map(golden_items, &{"golden/golden-set.json", &1["cell_id"]}) ++
+          Enum.map(synthetic_items, &{"golden/synthetic-set.json", &1["cell_id"]}) ++
           Enum.flat_map(refute_items, fn item ->
-            [
-              {"refute/refute-set.json", item["polished_cell_id"]},
-              {"refute/refute-set.json", item["flawed_cell_id"]}
-            ]
+            case item["class"] do
+              "veto_ordering" ->
+                [{"refute/refute-set.json", item["polished_cell_id"]}]
+
+              _other ->
+                [
+                  {"refute/refute-set.json", item["polished_cell_id"]},
+                  {"refute/refute-set.json", item["flawed_cell_id"]}
+                ]
+            end
           end)
 
       if Enum.all?(references, fn {_source, cell_id} -> is_binary(cell_id) and cell_id != "" end) do
@@ -247,6 +262,21 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     else
       _invalid -> {:error, {:malformed_structure, "corpus roots"}}
     end
+  end
+
+  defp ledger_references(%{"required_scorecards" => required}) when is_list(required),
+    do: required
+
+  defp ledger_references(%{"mechanical_floors" => floors}) when is_map(floors),
+    do: Map.keys(floors)
+
+  defp ledger_references(_ledger), do: :invalid
+
+  defp scorecard_reference?(scorecards, cell_id) do
+    Map.has_key?(scorecards, cell_id) or
+      Enum.any?(scorecards, fn {candidate, _path} ->
+        String.starts_with?(candidate, cell_id <> "__")
+      end)
   end
 
   defp tracked_manifest(repo, corpus_root) do

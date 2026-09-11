@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Critic.Measure do
 
       mix critic.measure
       mix critic.measure --source synthetic
-      mix critic.measure --fixture-root .planning --output-root .planning/critic-scores
+      mix critic.measure --fixture-root test/fixtures/operator_surface --output-root test/fixtures/operator_surface/critic-scores
 
   It computes per-lens trust via `Threadline.CriticTrust.Measure` and surgically
   replaces only `critic_trust` and `critic_trust_provenance` through
@@ -26,8 +26,8 @@ defmodule Mix.Tasks.Critic.Measure do
 
   alias Threadline.CriticTrust.{LedgerSplice, Measure}
 
-  @default_fixture_root ".planning"
-  @default_output_root ".planning/critic-scores"
+  @default_fixture_root "test/fixtures/operator_surface"
+  @default_output_root "test/fixtures/operator_surface/critic-scores"
   @rubrics_dir "examples/threadline_phoenix/e2e/critic/rubrics"
 
   @impl Mix.Task

@@ -133,7 +133,7 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     source = File.read!(@stress_session_path)
 
     assert source =~ "__DIR__"
-    assert source =~ "../../../../.planning/design-system-ledger.json"
+    assert source =~ "../../../../test/fixtures/operator_surface/design-system-ledger.json"
     assert source =~ ~s|"threadline_stress_ledger_entries"|
     assert source =~ "Repository-only: true"
     assert source =~ "Recovery:"
@@ -248,7 +248,7 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
       assert source =~ contract, "missing small Patterns branch contract #{contract}"
     end
 
-    refute source =~ ".planning/design-system-ledger.json"
+    refute source =~ "test/fixtures/operator_surface/design-system-ledger.json"
     refute source =~ "page.home"
     refute source =~ "page.timeline"
     refute source =~ "footgun."

@@ -77,10 +77,10 @@ export function resolveOperatorSurfacePaths(
   overrides: OperatorSurfaceRootOverrides = {},
 ): Readonly<OperatorSurfacePaths> {
   const fixtureRoot = canonicalizeExistingParent(
-    overrides.fixtureRoot ?? resolve(repositoryRoot, ".planning"),
+    overrides.fixtureRoot ?? resolve(repositoryRoot, "test/fixtures/operator_surface"),
   );
   const generatedRoot = canonicalizeExistingParent(
-    overrides.outputRoot ?? resolve(repositoryRoot, ".planning/critic-scores"),
+    overrides.outputRoot ?? resolve(repositoryRoot, "test/fixtures/operator_surface/critic-scores"),
   );
   const generatedParent = dirname(generatedRoot);
 

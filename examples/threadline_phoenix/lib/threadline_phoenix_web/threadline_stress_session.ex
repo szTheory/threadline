@@ -2,7 +2,7 @@ defmodule ThreadlinePhoenixWeb.ThreadlineStressSession do
   @moduledoc false
 
   @ledger_path Path.expand(
-                 "../../../../.planning/design-system-ledger.json",
+                 "../../../../test/fixtures/operator_surface/design-system-ledger.json",
                  __DIR__
                )
   @recovery_command "mix test examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs"

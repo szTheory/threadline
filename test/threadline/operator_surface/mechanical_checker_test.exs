@@ -325,7 +325,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
            "the two blues must bucket into one accent hue, keeping the page at 3 distinct hues"
   end
 
-  test "run/1 against the committed .planning/scorecards is clean ({:ok, []})" do
+  test "run/1 against the committed test/fixtures/operator_surface/scorecards is clean ({:ok, []})" do
     # At phase end this proves the real evidence passes. Locally the directory is
     # empty/absent (capture is CI-run), so this is a vacuously-clean "nothing to
     # check" result — the teeth above prove the checker still blocks real violations.
@@ -537,7 +537,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
   # ---------------------------------------------------------------------------
   # Recurring integration gate: run/1 over the REAL committed Tier A evidence.
   # The blocks above prove the checker's teeth on synthetic fixtures; this block
-  # asserts the committed .planning/scorecards/*.json are actually clean, so a
+  # asserts the committed test/fixtures/operator_surface/scorecards/*.json are actually clean, so a
   # real MODE-A/B regression (or stale mechanical_floors) blocks CI. On a fresh
   # clone with no committed capture the dir is empty and run/1 is vacuously
   # {:ok, []} — still a valid pass.

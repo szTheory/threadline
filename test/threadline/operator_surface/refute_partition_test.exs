@@ -4,7 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Partition-rule guard for the Phase 195 refute-test battery (CRITIC-02, D-03).
 
     Proves that:
-      1. The refute manifest (.planning/refute/refute-set.json) is well-formed and lists
+      1. The refute manifest (test/fixtures/operator_surface/refute/refute-set.json) is well-formed and lists
          all required twin fields.
       2. Every gestalt twin has committed scorecards for both poles.
       3. Every gestalt twin's FLAWED scorecard PASSES all mechanical gates (MODE A + MODE B),

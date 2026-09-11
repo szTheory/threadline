@@ -1,7 +1,7 @@
 defmodule Threadline.CriticTrust.Measure do
   @moduledoc """
   Pure engine that turns an **oracle set** + the critic's scores into the per-lens
-  `critic_trust` block written to `.planning/design-system-ledger.json`.
+  `critic_trust` block written to `test/fixtures/operator_surface/design-system-ledger.json`.
 
   The oracle is label-source-agnostic (this engine only needs items carrying an
   `r1.verdict`): either the maintainer's human `golden-set.json`, or — under D-12 —

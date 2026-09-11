@@ -1,7 +1,7 @@
 defmodule Threadline.Test.OperatorSurfaceFixtures do
   @moduledoc false
 
-  @root Path.expand("../../.planning", __DIR__)
+  @root Path.expand("../fixtures/operator_surface", __DIR__)
   @recovery_command "mix test test/threadline/operator_surface/stress_ledger_test.exs"
 
   def root!, do: required_directory!(@root, "operator-surface fixture corpus")

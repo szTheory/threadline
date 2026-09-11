@@ -401,7 +401,7 @@ jobs:
 
   # Deterministic mechanical gate over the committed Tier A evidence. Fast on
   # every PR — no browser — and blocks a change if the committed
-  # .planning/scorecards/*.json breach any MODE-A (WCAG / token conformance) or
+  # test/fixtures/operator_surface/scorecards/*.json breach any MODE-A (WCAG / token conformance) or
   # MODE-B (ratchet-floor) rule. The alias runs mechanical_checker_test.exs,
   # whose real-evidence gate starts the application (and therefore the repo)
   # to call MechanicalChecker.run/1 over the committed scorecards — it DOES
@@ -522,8 +522,8 @@ jobs:
 
       - name: Assert complete evidence bundle (non-empty, every aria.yml has a matching scorecard)
         run: |
-          json=$(find .planning/scorecards -maxdepth 1 -name '*.json' | wc -l | tr -d ' ')
-          aria=$(find .planning/scorecards -maxdepth 1 -name '*.aria.yml' | wc -l | tr -d ' ')
+          json=$(find test/fixtures/operator_surface/scorecards -maxdepth 1 -name '*.json' | wc -l | tr -d ' ')
+          aria=$(find test/fixtures/operator_surface/scorecards -maxdepth 1 -name '*.aria.yml' | wc -l | tr -d ' ')
           echo "scorecards: ${json} json, ${aria} aria.yml"
           # Non-vacuity floor: a zero count means the capture produced nothing,
           # which a broken glob or an aborted run would also produce.
@@ -538,9 +538,9 @@ jobs:
           # Completeness: this is what "complete bundle" actually means, and it
           # stays true at any bundle size (unlike a pinned absolute count).
           missing=""
-          for f in .planning/scorecards/*.aria.yml; do
+          for f in test/fixtures/operator_surface/scorecards/*.aria.yml; do
             stem=$(basename "$f" .aria.yml)
-            if [ ! -f ".planning/scorecards/${stem}.json" ]; then
+            if [ ! -f "test/fixtures/operator_surface/scorecards/${stem}.json" ]; then
               missing="${missing} ${stem}"
             fi
           done
@@ -551,11 +551,11 @@ jobs:
 
       - name: Assert byte-stable regeneration (no drift from committed evidence)
         run: |
-          if [ -n "$(git status --porcelain .planning/scorecards/)" ]; then
+          if [ -n "$(git status --porcelain test/fixtures/operator_surface/scorecards/)" ]; then
             echo "::error::Tier A capture is not byte-stable, or committed evidence is stale."
             echo "Regenerate locally with 'mix verify.capture' and commit the result."
-            git status --porcelain .planning/scorecards/
-            git diff -- .planning/scorecards/ | head -200
+            git status --porcelain test/fixtures/operator_surface/scorecards/
+            git diff -- test/fixtures/operator_surface/scorecards/ | head -200
             exit 1
           fi
           echo "Regeneration is byte-identical to the committed evidence."

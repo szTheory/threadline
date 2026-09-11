@@ -347,7 +347,7 @@ async function runScore(argv: string[]): Promise<void> {
       console.log(`\nThe oracle set is required for --golden/--synthetic trust scoping.`);
       console.log(`  synthetic: run \`mix critic.synth\` (D-12 graded twin oracle)`);
       console.log(`  human:     run \`npm run critic:label -- --bootstrap\``);
-      console.log(`See .planning/golden/${args.synthetic ? "synthetic" : "golden"}-set.json.`);
+      console.log(`See test/fixtures/operator_surface/golden/${args.synthetic ? "synthetic" : "golden"}-set.json.`);
       process.exit(0);
     }
   }
@@ -385,7 +385,7 @@ async function runScore(argv: string[]): Promise<void> {
       console.error(
         `\n[critic score] REFUSED — a stamped before pole already exists for:\n` +
           guard.blocked
-            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in .planning/critic-scores/)`)
+            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in test/fixtures/operator_surface/critic-scores/)`)
             .join("\n") +
           `\n\nOverwriting it would fake the gate's before/after evidence (T-197-02).\n` +
           `\`npm run critic:gate -- --page ${page} --lens <lens>\` is the ONLY post-edit scoring command.\n` +

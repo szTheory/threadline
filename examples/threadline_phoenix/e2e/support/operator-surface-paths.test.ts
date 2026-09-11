@@ -56,7 +56,7 @@ test("resolves repository evidence identically from root, nested cwd, and a work
 
     assert.deepEqual(fromNested, fromRoot);
     assert.equal(fromRoot.repositoryRoot, expectedRepositoryRoot);
-    assert.equal(fromRoot.scorecardsDir, resolve(expectedRepositoryRoot, ".planning/scorecards"));
+    assert.equal(fromRoot.scorecardsDir, resolve(expectedRepositoryRoot, "test/fixtures/operator_surface/scorecards"));
   } finally {
     process.chdir(originalCwd);
   }
@@ -69,7 +69,7 @@ test("resolves repository evidence identically from root, nested cwd, and a work
 
   try {
     await mkdir(dirname(copiedModule), { recursive: true });
-    await mkdir(resolve(worktreeRoot, ".planning/critic-scores"), { recursive: true });
+    await mkdir(resolve(worktreeRoot, "test/fixtures/operator_surface/critic-scores"), { recursive: true });
     await copyFile(resolve(here, "operator-surface-paths.ts"), copiedModule);
     const worktreeAdapter = await loadAdapter(pathToFileURL(copiedModule));
     assert.equal(
@@ -83,7 +83,7 @@ test("resolves repository evidence identically from root, nested cwd, and a work
     assert.equal(worktreePaths.repositoryRoot, canonicalWorktreeRoot);
     assert.equal(
       worktreePaths.scorecardsDir,
-      resolve(canonicalWorktreeRoot, ".planning/scorecards"),
+      resolve(canonicalWorktreeRoot, "test/fixtures/operator_surface/scorecards"),
     );
   } finally {
     await rm(worktreeRoot, { recursive: true, force: true });

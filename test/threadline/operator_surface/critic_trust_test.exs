@@ -4,11 +4,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import ExUnit.CaptureIO
 
-    @ledger_path ".planning/design-system-ledger.json"
-    @golden_set_path ".planning/golden/golden-set.json"
-    @synthetic_set_path ".planning/golden/synthetic-set.json"
-    @scorecards_dir ".planning/scorecards"
-    @critic_scores_dir ".planning/critic-scores"
+    @ledger_path "test/fixtures/operator_surface/design-system-ledger.json"
+    @golden_set_path "test/fixtures/operator_surface/golden/golden-set.json"
+    @synthetic_set_path "test/fixtures/operator_surface/golden/synthetic-set.json"
+    @scorecards_dir "test/fixtures/operator_surface/scorecards"
+    @critic_scores_dir "test/fixtures/operator_surface/critic-scores"
     @critique_path "CRITIQUE.md"
     @rubrics_dir "examples/threadline_phoenix/e2e/critic/rubrics"
 
@@ -643,7 +643,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "every golden-set item resolves cell_id to an existing scorecard and has consistent r1/r2 evidence" do
       # Vacuously passes while items: [] (empty skeleton).
       # When items are populated (Plan 06+), this gate enforces:
-      # - cell_id → .planning/scorecards/<cell_id>.json exists
+      # - cell_id → test/fixtures/operator_surface/scorecards/<cell_id>.json exists
       # - r1.evidence and r2.evidence are non-empty strings
       # - r1.verdict == r2.verdict (reconciled before golden promotion)
       items = golden_set()["items"]
@@ -725,18 +725,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     # ── Separation of concerns: critic-scores vs scorecards ──────────────────────
 
-    test "no scorecard file in .planning/scorecards/ references .planning/critic-scores" do
+    test "no scorecard file in test/fixtures/operator_surface/scorecards/ references test/fixtures/operator_surface/critic-scores" do
       # Assert the critic never writes output under the committed scorecard tree.
-      # The critic writes under .planning/critic-scores/ (gitignored); the capture
-      # pipeline writes under .planning/scorecards/ (committed).
+      # The critic writes under test/fixtures/operator_surface/critic-scores/ (gitignored); the capture
+      # pipeline writes under test/fixtures/operator_surface/scorecards/ (committed).
       if File.dir?(@scorecards_dir) do
         scorecard_files = Path.wildcard(Path.join(@scorecards_dir, "*.json"))
 
         for path <- scorecard_files do
           content = File.read!(path)
 
-          refute String.contains?(content, ".planning/critic-scores"),
-                 "#{path} references .planning/critic-scores/ — scorecards and critic output must remain separate"
+          refute String.contains?(content, "test/fixtures/operator_surface/critic-scores"),
+                 "#{path} references test/fixtures/operator_surface/critic-scores/ — scorecards and critic output must remain separate"
         end
       end
     end

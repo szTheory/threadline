@@ -201,7 +201,7 @@ npm run critic:label -- --round r1 --web
 npm run critic:label -- --round r1
 
 # Commit r1 BEFORE running r2 (enforces a time gap for honest blind test-retest)
-git add .planning/golden/rounds/r1.json
+git add test/fixtures/operator_surface/golden/rounds/r1.json
 git commit -m "chore: golden set round 1 labels"
 
 # Label round 2 (reshuffled, re-tokenized — never sees r1 content; add --web for the page)
@@ -248,9 +248,9 @@ npm run critic:score -- --golden              # bills the API for the golden cel
 cd ../../.. && mix critic.measure
 ```
 
-`npm run critic:score -- --golden` writes the per-dimension scores under `.planning/critic-scores/`.
+`npm run critic:score -- --golden` writes the per-dimension scores under `test/fixtures/operator_surface/critic-scores/`.
 `mix critic.measure` then computes per-lens Krippendorff's α, raw agreement, and n against the
-golden labels and writes the `critic_trust` block in `.planning/design-system-ledger.json`.
+golden labels and writes the `critic_trust` block in `test/fixtures/operator_surface/design-system-ledger.json`.
 It is local-only (not in `ci.all`) and never git-commits — you review the diff and commit.
 
 A lens is set `validated: true` only if α ≥ 0.67 AND n ≥ 20 AND raw_agreement ≥ 80% at the
@@ -280,11 +280,11 @@ mix ci.all
 ### Step 6 — Commit as one reviewed commit
 
 ```bash
-git add .planning/golden/golden-set.json
-git add .planning/golden/rounds/r2.json
-git add .planning/critic-scores/
+git add test/fixtures/operator_surface/golden/golden-set.json
+git add test/fixtures/operator_surface/golden/rounds/r2.json
+git add test/fixtures/operator_surface/critic-scores/
 git add .planning/CRITIQUE.md
-git add .planning/design-system-ledger.json  # critic_trust block updated
+git add test/fixtures/operator_surface/design-system-ledger.json  # critic_trust block updated
 git commit -m "chore: golden oracle scored + critic_trust measured (CRITIC-01)"
 ```
 
@@ -362,7 +362,7 @@ cd ../../.. && mix verify.mechanical
 ```bash
 # 5. Ratify + commit the evidence trail: append the human sign-off to
 #    ratchet.signoffs in the append-only ledger, then commit the reviewed diff.
-git add .planning/design-system-ledger.json   # ratchet.signoffs + any twin bump
+git add test/fixtures/operator_surface/design-system-ledger.json   # ratchet.signoffs + any twin bump
 git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regressions"
 ```
 
@@ -471,7 +471,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
-| `verify-mechanical` | `mix verify.mechanical`; deterministic MODE-A / MODE-B gate over the committed `.planning/scorecards/*.json` |
+| `verify-mechanical` | `mix verify.mechanical`; deterministic MODE-A / MODE-B gate over the committed `test/fixtures/operator_surface/scorecards/*.json` |
 | `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |

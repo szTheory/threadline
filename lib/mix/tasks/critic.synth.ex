@@ -2,7 +2,7 @@ defmodule Mix.Tasks.Critic.Synth do
   @shortdoc "Generates the synthetic golden set from the graded twin ladder (D-12)"
 
   @moduledoc """
-  Writes `.planning/golden/synthetic-set.json` — the **synthetic twin oracle** (Phase
+  Writes `test/fixtures/operator_surface/golden/synthetic-set.json` — the **synthetic twin oracle** (Phase
   195 D-12). Each graded-ladder story (lens × scenario × severity rung) becomes a
   `golden-set.json`-shaped item whose verdict is the rung's *constructed* label
   (r4→good, r3→borderline, r2→bad, r1→broken). Because the labels are definitional
@@ -29,7 +29,7 @@ defmodule Mix.Tasks.Critic.Synth do
 
   alias Threadline.OperatorSurface.StressFixtures
 
-  @default_fixture_root ".planning"
+  @default_fixture_root "test/fixtures/operator_surface"
   @theme "dark"
   @breakpoint 1280
   @set_version "195.12.0"
