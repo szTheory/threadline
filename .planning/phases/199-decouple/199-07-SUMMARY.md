@@ -109,9 +109,18 @@ No refactor commit was needed; the GREEN implementations were already narrow tes
 - **Verification:** Four tests ran and passed with zero failures; both RED records passed `gsd-tools check tdd-red-evidence`.
 - **Committed in:** No source change required; recorded in `.planning/WINDOWS.md` entry 26.
 
+**2. [Rule 3 - Blocking] Reconciled the legacy Phase 199 roadmap row after the SDK declined it**
+
+- **Found during:** Sequential state closeout
+- **Issue:** `roadmap.update-plan-progress 199` reported `missing_phase_details` because the progress row still used the legacy `0/TBD` shape, despite the phase detail containing a 14-plan checklist.
+- **Fix:** Derived live counts from the 14 plan files and four summary files, checked 199-07 in the phase checklist, and set the progress row to `4/14 | In Progress`.
+- **Files modified:** `.planning/ROADMAP.md`
+- **Verification:** Phase detail lists 14 plans with exactly four checked; progress row reports `4/14`.
+- **Committed in:** Planning-state closeout commit; recorded in `.planning/WINDOWS.md` entry 27.
+
 ---
 
-**Total deviations:** 1 auto-fixed (1 blocking command correction).
+**Total deviations:** 2 auto-fixed (2 blocking workflow corrections).
 **Impact on plan:** Verification retained the intended targeted and fail-fast semantics; product scope and fixture contract were unchanged.
 
 ## Issues Encountered

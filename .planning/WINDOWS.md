@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 25
+open_count: 26
 waived_count: 0
 fixed_count: 1
-total_count: 26
-last_updated: 2026-09-11T04:40:32.551Z
+total_count: 27
+last_updated: 2026-09-11T04:42:10.923Z
 ---
 
 # Broken Windows Ledger
@@ -41,6 +41,7 @@ last_updated: 2026-09-11T04:40:32.551Z
 | 24 | 198 | deviation | .planning/STATE.md |  | state.advance-plan parsed legacy body position and required reconciliation to Plan 53 of 55 | open |  | 2026-09-09T22:11:55.348Z |  |
 | 25 | 198 | deviation | .planning/STATE.md |  | Canonical state.advance-plan incremented stale prose position to 2 of 65; reconciled prose to structured 66 of 66 progress | open |  | 2026-09-10T22:19:12.757Z |  |
 | 26 | 199 | deviation | test/threadline/operator_surface/operator_surface_fixture_contract_test.exs |  | Plan verify used unsupported mix test -x flag; execution used --max-failures 1 for RED and the unmodified targeted command for final GREEN verification | open |  | 2026-09-11T04:40:32.551Z |  |
+| 27 | 199 | deviation | .planning/ROADMAP.md |  | roadmap.update-plan-progress could not write the legacy Phase 199 0/TBD row; executor reconciled the checklist and progress row to 4/14 In Progress from live PLAN/SUMMARY counts | open |  | 2026-09-11T04:42:10.923Z |  |
 
 ````json
 [
@@ -354,6 +355,19 @@ last_updated: 2026-09-11T04:40:32.551Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T04:40:32.551Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 27,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "roadmap.update-plan-progress could not write the legacy Phase 199 0/TBD row; executor reconciled the checklist and progress row to 4/14 In Progress from live PLAN/SUMMARY counts",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T04:42:10.923Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }
