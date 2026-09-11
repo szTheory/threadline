@@ -560,22 +560,16 @@ The disabled assertion is quoted verbatim: `# assert String.contains?(readme, "s
 | A5 | The initial Dialyzer warning count, strict-ignore ceiling, cold/hit duration, memory, and timeout are unknown until execution. | Summary / open questions | The Dialyzer plan must contain a measurement/triage checkpoint and cannot pre-fill values. |
 | A6 | A short fixture README and the suggested helper filenames are preferable. | Project structure | Naming may change without affecting locked architecture. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What is the exact first full-build Dialyzer warning set?**
-   - What we know: the dependency and required warning flags are decided; Dialyxir has not been added to `mix.lock`. [VERIFIED: no `dialyxir` entry in `mix.lock`, 2026-09-10]
-   - What's unclear: warning count, which are narrow fixes, and which genuinely require Phase 203.
-   - Recommendation: make baseline capture the first task of the Dialyzer plan and seal the raw output before triage. [ASSUMED]
+1. **RESOLVED — What is the exact first full-build Dialyzer warning set?**
+   - Plan-backed answer: Plan 199-13 captures the first full-build output before any source edit, records every warning in `199-DIALYZER-TRIAGE.md`, applies narrow correctness fixes, and permits only exact Phase-203-bound suppressions. The warning count is execution-derived and is never guessed or replaced by a broad snapshot.
 
-2. **What ceiling and timeout should be committed?**
-   - What we know: both must derive from approved ignores and measured CI cost, respectively. [VERIFIED: D-27, D-30]
-   - What's unclear: their numeric values.
-   - Recommendation: commit neither as an estimate; the ceiling follows triage, and the timeout follows the cold CI run with explicit headroom. [ASSUMED]
+2. **RESOLVED — What ceiling and timeout should be committed?**
+   - Plan-backed answer: Plan 199-13 sets the ceiling to the execution-derived count of individually approved strict entries after triage. Plan 199-14 sets the CI timeout from the authenticated cold-run measurement with documented headroom. Both numbers are evidence-derived during execution and the ceiling is tighten-only thereafter.
 
-3. **How will the real cache-miss/cache-hit run be triggered?**
-   - What we know: agent-session push restrictions have historically required a maintainer action, and D-30 requires the current CI image. [VERIFIED: Phase-198 planning history; D-30]
-   - What's unclear: whether the Phase-199 executor can push the measurement branch in its runtime.
-   - Recommendation: planner includes a `checkpoint:human-action` fallback for push/rerun, with exact run IDs and immutable measured commit SHA captured before the documentation follow-up. [ASSUMED]
+3. **RESOLVED — How will the real cache-miss/cache-hit run be triggered?**
+   - Plan-backed answer: Plan 199-14 first uses the authenticated GitHub CLI to push the committed topology and trigger a cache-miss run, then reruns the identical commit for the exact-key hit. If authentication or push authority is unavailable, execution creates a blocking human-action checkpoint with the exact branch/workflow commands; after the maintainer action, the executor retrieves both run IDs and records immutable URLs, SHA, hashes, timings, and peak RSS before documentation can pass.
 
 ## Environment Availability
 

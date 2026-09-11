@@ -480,7 +480,37 @@ Plans:
   3. A fresh clone plus `mix deps.get` leaves `git status` clean — generated artifacts, crash dumps, build tarballs, and the 596 MB of e2e artifacts are all ignored — and `mix format --check-formatted` covers `bench/`, `scripts/`, and the example app, not only `lib/`, `test/`, and `config/`. (DECOUPLE-05, DECOUPLE-06)
   4. `mix dialyzer` runs inside `ci.all` with all optional dependencies in the PLT, its cold-build cost is measured rather than estimated and documented in CONTRIBUTING, and its ignore file holds only specific, individually-commented entries under a committed ceiling that can only be lowered. (DECOUPLE-07, DECOUPLE-08)
 
-**Plans**: TBD (est. 4 — fixture relocation · dead-artifact removal and root-script cleanup · ignore/format hygiene · dialyxir adoption and finding triage)
+**Plans**: 14 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 199-01-PLAN.md — Explicit fail-closed mechanical checker
+- [ ] 199-03-PLAN.md — Deterministic, contained, atomic Mix evidence tooling
+- [ ] 199-04-PLAN.md — Shared ESM path and safe-write adapter
+- [ ] 199-07-PLAN.md — Tracked-only fixture manifest contract
+- [ ] 199-09-PLAN.md — Surgical dead-artifact cleanup and citation repair
+- [ ] 199-10-PLAN.md — Exact ignore policy and formatter topology
+- [ ] 199-12-PLAN.md — Planning-receipt retirement with live invariant preservation
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 199-02-PLAN.md — Elixir test and stress-session evidence adapters
+- [ ] 199-05-PLAN.md — Critic reader/writer adapter adoption
+- [ ] 199-06-PLAN.md — Playwright capture adapter adoption
+- [ ] 199-11-PLAN.md — Hardened cleanup and committed clean-clone proof
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 199-08-PLAN.md — Atomic 427-entry corpus migration and authority flip
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 199-13-PLAN.md — Full-app Dialyzer triage and strict ignore ratchet
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 199-14-PLAN.md — CI wiring, maintainer-dispatched authenticated measurement, and no-planning certification
 
 **Notes carried from the approved plan:**
 

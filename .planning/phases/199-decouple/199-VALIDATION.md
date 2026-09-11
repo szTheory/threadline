@@ -1,85 +1,83 @@
 ---
-phase: "199"
-slug: "decouple"
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
-created: "2026-09-10"
+phase: 199
+slug: decouple
+status: planned
+wave_0_complete: true
+nyquist_compliant: true
+created: 2026-09-10
+updated: 2026-09-10
 ---
 
 # Phase 199 — Validation Strategy
 
-> Per-phase validation contract for feedback sampling during execution.
+Every implementation task has an automated command. `wave_0_complete: true` means all required contract scaffolds are explicitly assigned to early tasks (199-01, 199-04, 199-07, 199-09, 199-10, 199-11, 199-12, 199-13); it does not claim implementation has run. `nyquist_compliant: true` describes plan coverage only.
 
----
+## Validation Architecture
 
-## Test Infrastructure
+| Layer | Purpose | Primary command |
+|---|---|---|
+| Fast contract | Fixture ownership and tracked-only digest | `mix test test/threadline/operator_surface/operator_surface_fixture_contract_test.exs -x` |
+| Edge adapters | Elixir and TypeScript explicit-input paths | Focused ExUnit suites and `npm --prefix examples/threadline_phoenix/e2e run test:paths` |
+| Repository hygiene | Exact deletion, ignore, formatter, and planning scans | Focused contract suites plus `mix format --check-formatted` |
+| Static analysis | Full-app warnings and strict ignore ratchet | `mix dialyzer`; `mix dialyzer --no-check --list-unused-filters` |
+| Integration | Clean committed clone and planning-absent aggregate | `bin/verify-clean-checkout`; `bin/verify-planning-independent` |
 
-| Property | Value |
-|----------|-------|
-| **Framework** | ExUnit on the pinned current Elixir/OTP lane; Playwright for e2e capture/path behavior |
-| **Config file** | `test/test_helper.exs`; `examples/threadline_phoenix/e2e/playwright.config.ts` |
-| **Quick run command** | `mix test test/threadline/operator_surface/operator_surface_fixture_contract_test.exs -x` |
-| **Full suite command** | `mix ci.all` |
-| **Estimated runtime** | Quick contracts under 60 seconds; full local/CI gate under the Phase 198 20-minute budget after a warm PLT; cold Dialyzer time must be measured |
+## Task-to-Command Matrix
 
----
+| Plan.Task | Wave | Automated command | Frequency |
+|---|---:|---|---|
+| 199-01.1 | 1 | `mix test test/threadline/operator_surface/mechanical_checker_test.exs -x` | each commit |
+| 199-01.2 | 1 | `mix test test/threadline/operator_surface/mechanical_checker_test.exs -x && mix verify.format` | plan exit |
+| 199-02.1 | 2 | `mix test test/threadline/operator_surface/stress_router_test.exs examples/threadline_phoenix/test/threadline_phoenix_web/storybook_stories_test.exs -x` | each commit |
+| 199-02.2 | 2 | `mix test test/threadline/operator_surface/mechanical_checker_test.exs test/threadline/operator_surface/refute_partition_test.exs test/threadline/operator_surface/stress_ledger_test.exs test/threadline/operator_surface/stress_router_test.exs -x` | plan exit |
+| 199-03.1 | 1 | `mix test test/threadline/operator_surface/critic_trust_test.exs -x` | each commit |
+| 199-03.2 | 1 | `mix test test/threadline/operator_surface/critic_trust_test.exs -x && mix verify.format` | plan exit |
+| 199-04.1 | 1 | `npm --prefix examples/threadline_phoenix/e2e run test:paths` | each commit |
+| 199-04.2 | 1 | `npm --prefix examples/threadline_phoenix/e2e run test:paths` | plan exit |
+| 199-05.1 | 2 | `npm --prefix examples/threadline_phoenix/e2e run test:paths && npm --prefix examples/threadline_phoenix/e2e run critic:check` | each commit |
+| 199-05.2 | 2 | `npm --prefix examples/threadline_phoenix/e2e run test:paths && npm --prefix examples/threadline_phoenix/e2e run critic:check` | plan exit |
+| 199-06.1 | 2 | `npm --prefix examples/threadline_phoenix/e2e run test:paths && npm --prefix examples/threadline_phoenix/e2e run typecheck` | each commit |
+| 199-06.2 | 2 | `npm --prefix examples/threadline_phoenix/e2e run typecheck && npm --prefix examples/threadline_phoenix/e2e run test:paths` | plan exit |
+| 199-07.1 | 1 | `mix test test/threadline/operator_surface/operator_surface_fixture_contract_test.exs -x` | each commit |
+| 199-07.2 | 1 | `mix test test/threadline/operator_surface/operator_surface_fixture_contract_test.exs -x` | plan exit |
+| 199-08.1 | 3 | `mix test test/threadline/operator_surface/operator_surface_fixture_contract_test.exs test/threadline/operator_surface/mechanical_checker_test.exs test/threadline/operator_surface/critic_trust_test.exs test/threadline/operator_surface/refute_partition_test.exs test/threadline/operator_surface/stress_ledger_test.exs test/threadline/operator_surface/stress_router_test.exs -x && npm --prefix examples/threadline_phoenix/e2e run test:paths` | each commit |
+| 199-08.2 | 3 | `mix test test/threadline/operator_surface/operator_surface_fixture_contract_test.exs test/threadline/release_artifact_contract_test.exs -x && mix hex.build` | plan exit |
+| 199-09.1 | 1 | `mix test test/threadline/removed_artifact_contract_test.exs test/threadline/readme_doc_contract_test.exs -x` | each commit |
+| 199-09.2 | 1 | `mix test test/threadline/removed_artifact_contract_test.exs test/threadline/readme_doc_contract_test.exs -x && mix verify.format` | plan exit, including explicit double-run status/diff snapshot assertion |
+| 199-10.1 | 1 | `mix test test/threadline/clean_checkout_contract_test.exs -x` | each commit |
+| 199-10.2 | 1 | `mix test test/threadline/formatter_topology_contract_test.exs -x && mix format --check-formatted` | plan exit |
+| 199-11.1 | 2 | `mix test test/threadline/clean_checkout_contract_test.exs -x` | each commit |
+| 199-11.2 | 2 | `mix test test/threadline/clean_checkout_contract_test.exs -x && bin/verify-clean-checkout` | plan exit |
+| 199-12.1 | 1 | `mix test test/threadline/row_history_focus_evidence_contract_test.exs test/threadline/operator_surface/style_contract_test.exs test/threadline/planning_dependency_contract_test.exs -x` | each commit |
+| 199-12.2 | 1 | `mix test test/threadline/planning_dependency_contract_test.exs test/threadline/zero_skips_contract_test.exs -x && mix verify.test` | plan exit |
+| 199-13.1 | 4 | `mix dialyzer` | after triage/fix iteration and plan exit |
+| 199-13.2 | 4 | `mix test test/threadline/dialyzer_ignore_contract_test.exs -x && mix dialyzer --no-check --list-unused-filters` | each ratchet change |
+| 199-14.1 | 5 | `mix test test/threadline/ci_topology_contract_test.exs test/threadline/ci_coverage_doc_contract_test.exs test/threadline/dialyzer_ignore_contract_test.exs -x && mix dialyzer --no-check` (also proves cold-build/analysis GNU-time marker topology) | each commit |
+| 199-14.2 | 5 | Human checkpoint: push prepared commit/branch and supply/record cold + identical-commit hit CI run URLs/IDs | once, after Task 1 commit |
+| 199-14.3 | 5 | `mix test test/threadline/ci_topology_contract_test.exs test/threadline/ci_coverage_doc_contract_test.exs -x` | once, after authenticated read-only miss/hit retrieval |
+| 199-14.4 | 5 | `mix test test/threadline/planning_independence_contract_test.exs test/threadline/planning_dependency_contract_test.exs -x && bin/verify-planning-independent` | phase exit |
 
-## Sampling Rate
+## External Checkpoint Topology
 
-- **After every task commit:** Run the focused contract file changed plus `mix verify.format`.
-- **After every plan wave:** Run `mix verify.test` and every gate introduced or changed in that wave; after Dialyxir lands also run `mix dialyzer --list-unused-filters`.
-- **Before `$gsd-verify-work`:** A disposable committed-tree clone must pass `mix deps.get --check-locked`, exact clean-status checks, `mix ci.all` with `.planning/` renamed away, and unpacked-Hex negative assertions.
-- **Max feedback latency:** 60 seconds for focused contracts; 20 minutes for the warm full gate. The cold PLT build is measured separately and sets its own CI timeout.
+| Plan.Task | Type | Ordering | Required evidence | Failing direction |
+|---|---|---|---|---|
+| Human handoff | `checkpoint:human-action` | After committed CI wiring; before evidence retrieval | Maintainer pushes the prepared branch/commit, dispatches the identical commit once, and supplies or records both CI run URLs/IDs | Halt if remote SHA differs, either ID is absent, either run targets another commit, or any secret is requested |
+| Agent retrieval | `auto` | Resumes only after the human handoff | Authenticated read-only inspection proves cold miss then exact-key hit and records provenance/cost | Fail on unauthenticated/unlinked evidence, mismatched SHA/key predicate, placeholder/estimate, or timeout-formula drift |
 
----
+## Wave Gates
 
-## Per-Task Verification Map
+| After wave | Required evidence |
+|---:|---|
+| 1 | Synthetic fixture/deletion/planning scanners have teeth; Mix/ESM edges, ignore policy, formatter topology, and live-source preservation pass. |
+| 2 | Elixir stress/test adapters, all TS consumers, and committed-HEAD clean-clone proof pass without same-wave file overlap. |
+| 3 | The 427-entry move is recognized as byte-identical renames; ignored scores do not alter the manifest; actual Hex artifact excludes repository evidence. |
+| 4 | Full Dialyzer and strict ignore/unused-filter contracts pass with execution-derived triage and ceiling. |
+| 5 | The maintainer checkpoint publishes/dispatches the prepared commit; authenticated read-only miss/hit evidence is then recorded, and the complete committed aggregate passes with planning physically absent. |
 
-| Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 199-01-01 | 01 | 1 | DECOUPLE-01, DECOUPLE-02 | T-199-01, T-199-02 | Required evidence cannot resolve outside its root or pass when absent | contract/integration | `mix test test/threadline/operator_surface/operator_surface_fixture_contract_test.exs -x` | ❌ W0 | ⬜ pending |
-| 199-01-02 | 01 | 1 | DECOUPLE-01, DECOUPLE-02 | T-199-03 | Fixture bytes and cross-dataset joins survive the move; fixtures stay out of Hex | contract/package | `mix test test/threadline/operator_surface/mechanical_checker_test.exs test/threadline/operator_surface/critic_trust_test.exs -x` | ✅ extend | ⬜ pending |
-| 199-02-01 | 02 | 2 | DECOUPLE-03, DECOUPLE-04 | T-199-04 | Deletion preserves durable evidence and leaves no live missing-path citation | contract/doc | `mix test test/threadline/removed_artifact_contract_test.exs test/threadline/readme_doc_contract_test.exs -x` | ❌ W0 / ✅ extend | ⬜ pending |
-| 199-03-01 | 03 | 2 | DECOUPLE-05, DECOUPLE-06 | T-199-05 | Shared ignores cannot hide reviewed evidence; child formatter ownership does not overlap | contract/CLI | `mix format --check-formatted` | ✅ framework / ❌ topology contract | ⬜ pending |
-| 199-03-02 | 03 | 2 | DECOUPLE-05 | T-199-06 | A dependency fetch leaves an exact clean disposable clone | integration | `mix deps.get --check-locked` followed by exact `git status --porcelain=v1 --untracked-files=all` assertion | ❌ W0 proof harness | ⬜ pending |
-| 199-04-01 | 04 | 3 | DECOUPLE-07, DECOUPLE-08 | T-199-07, T-199-08 | Strict ignores cannot broaden or accumulate silently; incomplete PLTs remain visible | contract/static analysis | `mix test test/threadline/dialyzer_ignore_contract_test.exs -x && mix dialyzer --list-unused-filters` | ❌ W0 | ⬜ pending |
-| 199-05-01 | 05 | 4 | DECOUPLE-01, DECOUPLE-05, DECOUPLE-07 | T-199-09 | Aggregate CI blocks on Dialyzer and records valid cold/warm evidence | CI/E2E | `mix ci.all` in a disposable clone with `.planning/` renamed away | ❌ final proof | ⬜ pending |
+## Final Sign-off
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-
----
-
-## Wave 0 Requirements
-
-- [ ] `test/threadline/operator_surface/operator_surface_fixture_contract_test.exs` — fixture presence, parseability, non-vacuity, cross-dataset joins, byte identity, immutable/generated separation, containment, and zero executable `.planning` dataset literals.
-- [ ] Extend `test/threadline/operator_surface/mechanical_checker_test.exs` — remove the absent-directory success contract and require explicit floors/scorecard input for repository gates.
-- [ ] `test/threadline/dialyzer_ignore_contract_test.exs` — strict tuple/comment shape, duplicate/broad-filter rejection, tighten-only ceiling, unused filters, and positive controls.
-- [ ] `test/threadline/removed_artifact_contract_test.exs` — tracked root-script absence and no active citation to removed paths.
-- [ ] Formatter-topology contract — root subdirectories plus child-specific inputs with no overlap.
-- [ ] Disposable-clone proof harness — clean dependency fetch and `.planning`-absent `mix ci.all` without making CI depend on planning artifacts.
-
-Wave 0 tests may be red only inside an explicitly staged TDD plan. The atomic fixture move must not leave the branch with half-migrated readers.
-
----
-
-## Manual-Only Verifications
-
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Authoritative cold-PLT and cache-hit measurements on the pinned current CI image | DECOUPLE-07 | Local Elixir/OTP does not exactly match the required current CI toolchain; timing must come from the real runner | Run the new CI job once with no matching PLT cache and once with a cache hit; record SHA, image, exact toolchain, hashes, wall time, peak memory, and job URLs in `CONTRIBUTING.md` |
-
-All other phase behaviors have automated verification.
-
----
-
-## Validation Sign-Off
-
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Focused feedback latency < 60 seconds and warm full-gate latency < 20 minutes
-- [ ] `nyquist_compliant: true` set in frontmatter after validation
-
-**Approval:** pending
+- [ ] All eight DECOUPLE requirements have a passing automated proof.
+- [ ] Every required dataset/test runs non-vacuously and every safety contract retains a positive control.
+- [ ] `mix verify.format`, `mix verify.test`, `mix dialyzer --no-check --list-unused-filters`, `bin/verify-clean-checkout`, and `bin/verify-planning-independent` pass.
+- [ ] Authenticated cold/hit measurements and execution-derived timeout are present in `CONTRIBUTING.md`.
+- [ ] No skipped/tagged/broad-allowlisted test or planning-backed runtime path exists.
