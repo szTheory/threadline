@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 39
+open_count: 40
 waived_count: 0
 fixed_count: 1
-total_count: 40
-last_updated: 2026-09-11T15:27:47.126Z
+total_count: 41
+last_updated: 2026-09-11T15:30:08.403Z
 ---
 
 # Broken Windows Ledger
@@ -55,6 +55,7 @@ last_updated: 2026-09-11T15:27:47.126Z
 | 38 | 199 | deviation | test/threadline/operator_surface/operator_surface_fixture_contract_test.exs |  | Adapted the live corpus validator to mechanical_floors, synthetic-set non-vacuity, suffixed scorecards, and veto-ordering semantics. | open |  | 2026-09-11T15:27:46.846Z |  |
 | 39 | 199 | deviation | .planning/phases/199-decouple/199-08-PLAN.md |  | Replaced unsupported mix test -x verification flag with --max-failures 1. | open |  | 2026-09-11T15:27:46.980Z |  |
 | 40 | 199 | deviation | .planning/refute/transcripts/refute.veto-ordering.off-token-accent.json |  | Restored pre-existing untracked scorecard and refute outputs moved physically by directory git mv to their original planning paths. | open |  | 2026-09-11T15:27:47.126Z |  |
+| 41 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-08 roadmap.update-plan-progress returned missing_phase_details; executor reconciled the checklist and summary-backed progress row to 12/14. | open |  | 2026-09-11T15:30:08.403Z |  |
 
 ````json
 [
@@ -550,6 +551,19 @@ last_updated: 2026-09-11T15:27:47.126Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T15:27:47.126Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 41,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Plan 199-08 roadmap.update-plan-progress returned missing_phase_details; executor reconciled the checklist and summary-backed progress row to 12/14.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T15:30:08.403Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }

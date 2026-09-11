@@ -182,9 +182,18 @@ No refactor commit was needed; both GREEN implementations remained narrow and co
 - **Verification:** Destination status contains no unexpected untracked evidence, and the original untracked paths remain present.
 - **Committed in:** No commit; preservation correction only.
 
+**5. [Rule 3 - Blocking] Reconciled the legacy Phase 199 roadmap layout**
+
+- **Found during:** Sequential state closeout
+- **Issue:** `roadmap.update-plan-progress 199` reported `missing_phase_details` even though the phase has a 14-plan checklist and progress row.
+- **Fix:** Checked only 199-08 and advanced the summary-backed progress count from 11/14 to 12/14, leaving Plans 13 and 14 open.
+- **Files modified:** `.planning/ROADMAP.md`
+- **Verification:** Twelve Phase 199 summaries exist, the checklist has twelve checked plans, and the progress row reports `12/14 | In Progress`.
+- **Committed in:** Planning-state closeout commit.
+
 ---
 
-**Total deviations:** 4 auto-fixed (2 blocking execution corrections, 2 correctness fixes).
+**Total deviations:** 5 auto-fixed (3 blocking workflow corrections, 2 correctness fixes).
 **Impact on plan:** All fixes preserved the declared five-move topology, byte identity, non-vacuous validation, and user-owned runtime artifacts without expanding product scope.
 
 ## Issues Encountered

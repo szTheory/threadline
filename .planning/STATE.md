@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 199
 current_phase_name: Decouple
 status: executing
-stopped_at: Completed 199-11-PLAN.md
-last_updated: "2026-09-11T15:04:33.153Z"
+stopped_at: Completed 199-08-PLAN.md
+last_updated: "2026-09-11T15:29:38.168Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 199 execution started
-state_head: fe404a496fff9740190c386dedbc462690553d5c
+state_head: 95d91d1c0ca775148a4ca31f4d1e93b37619cae6
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 80
-  completed_plans: 77
+  completed_plans: 78
   percent: 14
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 199 (Decouple) — EXECUTING
-Plan: 12 of 14
+Plan: 13 of 14
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -120,6 +120,7 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 | Phase 199 P05 | 14 min | 2 tasks | 17 files |
 | Phase 199 P06 | 6 min | 2 tasks | 6 files |
 | Phase 199 P11 | 11min | 2 tasks | 4 files |
+| Phase 199 P08 | 20 min | 2 tasks | 446 files |
 
 ## Deferred Items
 
@@ -575,6 +576,9 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 - [Phase 199]: Reviewed stress snapshots remain under tests while optional generated stress packets are confined to e2e/artifacts.
 - [Phase 199]: [199-11] Cleanup snapshots canonical parent/child lstat identities and rejects every live Git worktree root before removal.
 - [Phase 199]: [199-11] Clean-checkout verification detaches a no-local clone at exact committed HEAD and keeps index/untracked state out of the proof.
+- [Phase 199]: The immutable evidence root is test/fixtures/operator_surface; generated critic output remains ignored and outside manifest authority.
+- [Phase 199]: Live evidence joins use mechanical-floor base IDs with explicit variant matching and the documented veto-ordering exception.
+- [Phase 199]: Hex privacy is proven from the unpacked artifact file list rather than inferred solely from configuration.
 
 ### Blockers
 
@@ -582,8 +586,8 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T15:04:32.649Z
-**Stopped at:** Completed 199-11-PLAN.md
+**Last session:** 2026-09-11T15:29:37.901Z
+**Stopped at:** Completed 199-08-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

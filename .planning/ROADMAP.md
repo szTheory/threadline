@@ -502,7 +502,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 199-08-PLAN.md — Atomic 427-entry corpus migration and authority flip
+- [x] 199-08-PLAN.md — Atomic 427-entry corpus migration and authority flip
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -667,7 +667,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
-| 199. Decouple | v1.41 | 11/14 | In Progress | |
+| 199. Decouple | v1.41 | 12/14 | In Progress | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
 | 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |
