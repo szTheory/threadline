@@ -108,29 +108,57 @@ safe_temp_tree_register() {
 }
 
 _safe_temp_tree_reject_worktree_root() {
-  local target="$1" repo_root record registered canonical_registered
+  local target="$1" repo_root registry_file record registered canonical_registered
+  local found_worktree=0 parse_status=0
 
   repo_root="$(_safe_temp_tree_repo_root)" || {
     _safe_temp_tree_error 'repository root is unavailable for worktree safety check'
     return 1
   }
 
+  registry_file="$(mktemp "${TMPDIR:-/tmp}/threadline-worktree-registry.XXXXXX")" || {
+    _safe_temp_tree_error 'cannot create temporary Git worktree registry'
+    return 1
+  }
+
+  if ! git -C "$repo_root" worktree list --porcelain -z >"$registry_file"; then
+    command rm -f -- "$registry_file"
+    _safe_temp_tree_error 'cannot enumerate Git worktrees'
+    return 1
+  fi
+
   while IFS= read -r -d '' record; do
     case "$record" in
       worktree\ *)
+        found_worktree=1
         registered="${record#worktree }"
+        if [ -z "$registered" ]; then
+          _safe_temp_tree_error 'Git worktree registry contains an empty path'
+          parse_status=1
+          break
+        fi
         [ -e "$registered" ] || continue
         canonical_registered="$(_safe_temp_tree_realpath "$registered")" || {
           _safe_temp_tree_error "registered Git worktree cannot be canonicalized: $registered"
-          return 1
+          parse_status=1
+          break
         }
         if [ "$target" = "$canonical_registered" ]; then
           _safe_temp_tree_error "refusing registered Git worktree root: $target"
-          return 1
+          parse_status=1
+          break
         fi
         ;;
     esac
-  done < <(git -C "$repo_root" worktree list --porcelain -z)
+  done <"$registry_file"
+
+  command rm -f -- "$registry_file"
+
+  [ "$parse_status" -eq 0 ] || return 1
+  [ "$found_worktree" -eq 1 ] || {
+    _safe_temp_tree_error 'Git worktree registry contains no worktree records'
+    return 1
+  }
 }
 
 safe_temp_tree_cleanup() {

@@ -164,6 +164,41 @@ defmodule Threadline.CleanCheckoutContractTest do
         File.rm_rf!(parent)
       end
     end
+
+    test "retains the registered child when Git worktree enumeration fails" do
+      with_temp_parent(fn parent ->
+        child = Path.join(parent, "enumeration-failure")
+        File.mkdir!(child)
+        sentinel = Path.join(child, "sentinel.bin")
+        sentinel_bytes = <<91, 0, 92, 255>>
+        File.write!(sentinel, sentinel_bytes)
+
+        fake_bin = Path.join(parent, "fake-bin")
+        File.mkdir!(fake_bin)
+        fake_git = Path.join(fake_bin, "git")
+        real_git = System.find_executable("git")
+
+        File.write!(fake_git, """
+        #!/usr/bin/env bash
+        if [[ " $* " == *" worktree list "* ]]; then
+          exit 86
+        fi
+        exec #{shell_quote(real_git)} "$@"
+        """)
+
+        File.chmod!(fake_git, 0o755)
+
+        assert {output, status} =
+                 run_cleanup(parent, child, "", [
+                   {"PATH", fake_bin <> ":" <> System.get_env("PATH")}
+                 ])
+
+        assert status != 0
+        assert output =~ "cannot enumerate Git worktrees"
+        assert File.read!(sentinel) == sentinel_bytes
+        assert File.dir?(child)
+      end)
+    end
   end
 
   describe "committed checkout verifier" do
@@ -227,7 +262,7 @@ defmodule Threadline.CleanCheckoutContractTest do
     end
   end
 
-  defp run_cleanup(parent, child, mutation \\ "") do
+  defp run_cleanup(parent, child, mutation \\ "", env \\ []) do
     script = """
     set -u
     source #{shell_quote(Path.join(@root, "bin/safe-temp-tree"))}
@@ -236,7 +271,7 @@ defmodule Threadline.CleanCheckoutContractTest do
     safe_temp_tree_cleanup #{shell_quote(parent)} #{shell_quote(child)}
     """
 
-    System.cmd("bash", ["-c", script], cd: @root, stderr_to_stdout: true)
+    System.cmd("bash", ["-c", script], cd: @root, env: env, stderr_to_stdout: true)
   end
 
   defp with_temp_parent(fun) do
