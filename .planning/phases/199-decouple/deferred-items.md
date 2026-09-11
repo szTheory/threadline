@@ -31,3 +31,11 @@
 - **Evidence:** `roadmap.update-plan-progress 199` returned `missing_phase_details` even though the Phase 199 checklist and progress row exist.
 - **Scope:** Planning-state handler compatibility only; production implementation is unaffected.
 - **Disposition:** Reconciled the single Plan 199-05 checklist row and Phase 199 progress count from the nine summary-backed plans; all unfinished rows remain unchecked.
+
+## 199-11: Pre-existing locked dependency advisories
+
+- **Status:** open
+- **Discovered during:** Plan 199-11 committed-checkout dependency verification
+- **Evidence:** `mix deps.get --check-locked` completed successfully but reported current security advisories for locked versions of `decimal`, `hackney`, `phoenix`, `phoenix_live_view`, `plug`, and `postgrex`.
+- **Scope:** Plan 199-11 proves committed checkout cleanliness and does not own dependency selection or lockfile changes; neither `mix.exs` nor `mix.lock` changed.
+- **Disposition:** Defer remediation to a dependency-security upgrade plan that can assess compatibility and update the lockfile with focused regression coverage.
