@@ -21,6 +21,8 @@ TRUSTED_PARENT="$(realpath -- "$TRUSTED_PARENT")"
 CLONE_CHILD="$TRUSTED_PARENT/checkout"
 PLANNING_NAME='.planning'
 QUARANTINE_NAME='.planning.threadline-quarantine'
+AGGREGATE_STARTED=0
+AGGREGATE_PASSED=0
 
 mkdir "$CLONE_CHILD"
 safe_temp_tree_register "$TRUSTED_PARENT" "$CLONE_CHILD"
@@ -29,6 +31,10 @@ cleanup() {
   local original_status=$? restore_status=0 cleanup_status=0
   trap - EXIT
   set +e
+
+  if [ "$AGGREGATE_STARTED" -eq 1 ] && [ "$AGGREGATE_PASSED" -ne 1 ]; then
+    printf 'AGGREGATE_RESULT=FAIL status=%s\n' "$original_status"
+  fi
 
   # The shell stays inside the clone while the aggregate runs. Relative names
   # therefore restore into the registered clone inode even if its pathname was
@@ -101,7 +107,9 @@ MIX_ENV=dev mix dialyzer --plt
 [ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
   fail 'analyzer setup made planning visible'
 
+AGGREGATE_STARTED=1
 mix ci.all
 [ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
   fail 'aggregate made planning visible'
+AGGREGATE_PASSED=1
 printf 'AGGREGATE_RESULT=PASS\n'
