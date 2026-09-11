@@ -127,7 +127,16 @@ _safe_temp_tree_reject_worktree_root() {
     return 1
   fi
 
-  while IFS= read -r -d '' record; do
+  while :; do
+    record=''
+    if ! IFS= read -r -d '' record; then
+      if [ -n "$record" ]; then
+        _safe_temp_tree_error 'truncated Git worktree registry'
+        parse_status=1
+      fi
+      break
+    fi
+
     case "$record" in
       worktree\ *)
         found_worktree=1

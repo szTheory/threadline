@@ -210,6 +210,44 @@ defmodule Threadline.CleanCheckoutContractTest do
         assert File.dir?(child)
       end)
     end
+
+    test "rejects a successful but truncated Git worktree registry" do
+      with_temp_parent(fn parent ->
+        child = Path.join(parent, "truncated-registry")
+        File.mkdir!(child)
+        sentinel = Path.join(child, "sentinel.bin")
+        sentinel_bytes = <<93, 0, 94, 255>>
+        File.write!(sentinel, sentinel_bytes)
+
+        fake_bin = Path.join(parent, "fake-bin")
+        File.mkdir!(fake_bin)
+        fake_git = Path.join(fake_bin, "git")
+        real_git = System.find_executable("git")
+
+        File.write!(fake_git, """
+        #!/usr/bin/env bash
+        if [[ " $* " == *" worktree list "* ]]; then
+          printf 'worktree %s\\0HEAD valid\\0\\0worktree %s' #{shell_quote(@root)} #{shell_quote(child)}
+          exit 0
+        fi
+        exec #{shell_quote(real_git)} "$@"
+        """)
+
+        File.chmod!(fake_git, 0o755)
+
+        assert {output, status} =
+                 run_cleanup(parent, child, "", [
+                   {"PATH", fake_bin <> ":" <> System.get_env("PATH")},
+                   {"TMPDIR", parent}
+                 ])
+
+        assert status != 0
+        assert output =~ "truncated Git worktree registry"
+        assert File.read!(sentinel) == sentinel_bytes
+        assert File.dir?(child)
+        assert Path.wildcard(Path.join(parent, "threadline-worktree-registry.*")) == []
+      end)
+    end
   end
 
   describe "committed checkout verifier" do
