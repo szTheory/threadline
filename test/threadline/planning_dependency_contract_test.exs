@@ -98,6 +98,22 @@ defmodule Threadline.PlanningDependencyContractTest do
            ]
   end
 
+  test "reports planning-backed existence checks as live dependencies" do
+    sources = %{
+      "test/threadline/example_contract_test.exs" =>
+        ~S|def evidence?, do: File.exists?(".planning/phases/199-decouple/evidence.json")|
+    }
+
+    assert Contract.scan_sources(sources) == [
+             %{
+               file: "test/threadline/example_contract_test.exs",
+               line: 1,
+               operation: "File.exists?",
+               path: ".planning/phases/199-decouple/evidence.json"
+             }
+           ]
+  end
+
   test "accepts planning paths used only as diagnostic text" do
     sources = %{
       "test/threadline/diagnostic_test.exs" =>
