@@ -54,7 +54,23 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     assert manifest == tracked_manifest(repo, "operator-surface")
   end
 
-  defp tracked_manifest(_repo, _corpus_root), do: []
+  defp tracked_manifest(repo, corpus_root) do
+    {output, 0} =
+      System.cmd("git", ["ls-files", "-z", "--", corpus_root],
+        cd: repo,
+        stderr_to_stdout: true
+      )
+
+    output
+    |> :binary.split(<<0>>, [:global, :trim])
+    |> Enum.sort()
+    |> Enum.map(fn tracked_path ->
+      relative_path = Path.relative_to(tracked_path, corpus_root)
+      bytes = File.read!(Path.join(repo, tracked_path))
+
+      %{path: relative_path, sha256: sha256(bytes)}
+    end)
+  end
 
   defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
 
