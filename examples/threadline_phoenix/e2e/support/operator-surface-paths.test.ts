@@ -1,5 +1,15 @@
 import assert from "node:assert/strict";
-import { copyFile, mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  realpath,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
@@ -137,5 +147,126 @@ test("required JSON failures name the dataset, resolved path, repository scope, 
     );
   } finally {
     await rm(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
+test("rejects traversal, absolute escape, prefix confusion, and symlink escape", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+  assert.equal(typeof adapter.resolveContainedPath, "function");
+
+  const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-paths-containment-"));
+  const root = resolve(sandbox, "evidence");
+  const prefixSibling = resolve(sandbox, "evidence-escape");
+  const outside = resolve(sandbox, "outside");
+
+  try {
+    await mkdir(resolve(root, "nested"), { recursive: true });
+    await mkdir(prefixSibling);
+    await mkdir(outside);
+    await symlink(outside, resolve(root, "linked-outside"));
+
+    assert.equal(
+      adapter.resolveContainedPath(root, "nested/valid.json"),
+      resolve(root, "nested/valid.json"),
+    );
+    assert.throws(() => adapter.resolveContainedPath(root, "../escape.json"), /outside/i);
+    assert.throws(
+      () => adapter.resolveContainedPath(root, resolve(outside, "absolute.json")),
+      /outside/i,
+    );
+    assert.throws(
+      () => adapter.resolveContainedPath(root, resolve(prefixSibling, "confused.json")),
+      /outside/i,
+    );
+    assert.throws(
+      () => adapter.resolveContainedPath(root, "linked-outside/symlink.json"),
+      /symlink/i,
+    );
+  } finally {
+    await rm(sandbox, { recursive: true, force: true });
+  }
+});
+
+test("rejects immutable and generated root aliasing while allowing a separated output", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+  assert.equal(typeof adapter.assertSeparatedOutputRoot, "function");
+
+  const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-paths-separation-"));
+  const immutableRoot = resolve(sandbox, "scorecards");
+  const nestedOutput = resolve(immutableRoot, "generated");
+  const broadOutput = sandbox;
+  const separatedOutput = resolve(sandbox, "critic-scores");
+
+  try {
+    await mkdir(nestedOutput, { recursive: true });
+    await mkdir(separatedOutput);
+
+    assert.throws(
+      () => adapter.assertSeparatedOutputRoot(immutableRoot, [immutableRoot]),
+      /overlap/i,
+    );
+    assert.throws(
+      () => adapter.assertSeparatedOutputRoot(nestedOutput, [immutableRoot]),
+      /overlap/i,
+    );
+    assert.throws(
+      () => adapter.assertSeparatedOutputRoot(broadOutput, [immutableRoot]),
+      /overlap/i,
+    );
+    assert.equal(
+      adapter.assertSeparatedOutputRoot(separatedOutput, [immutableRoot]),
+      await realpath(separatedOutput),
+    );
+  } finally {
+    await rm(sandbox, { recursive: true, force: true });
+  }
+});
+
+test("atomic replacement writes complete bytes through a sibling temporary file", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+  assert.equal(typeof adapter.atomicWriteFile, "function");
+
+  const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-paths-atomic-"));
+  const target = resolve(sandbox, "evidence.json");
+
+  try {
+    await writeFile(target, "original\n", "utf8");
+    adapter.atomicWriteFile(target, "replacement\n");
+
+    assert.equal(await readFile(target, "utf8"), "replacement\n");
+    assert.deepEqual(await readdir(sandbox), ["evidence.json"]);
+  } finally {
+    await rm(sandbox, { recursive: true, force: true });
+  }
+});
+
+test("atomic replacement preserves the target and removes its temporary file on failure", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+  assert.equal(typeof adapter.atomicWriteFile, "function");
+
+  const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-paths-atomic-failure-"));
+  const target = resolve(sandbox, "evidence.json");
+
+  try {
+    await writeFile(target, "original\n", "utf8");
+
+    assert.throws(
+      () =>
+        adapter.atomicWriteFile(target, "partial\n", {
+          beforeRename: () => {
+            throw new Error("forced rename failure");
+          },
+        }),
+      /forced rename failure/,
+    );
+
+    assert.equal(await readFile(target, "utf8"), "original\n");
+    assert.deepEqual(await readdir(sandbox), ["evidence.json"]);
+  } finally {
+    await rm(sandbox, { recursive: true, force: true });
   }
 });
