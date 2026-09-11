@@ -133,8 +133,6 @@ defmodule Threadline.OperatorSurface.Presentation do
 
   # Keep the trailing `max` characters (filename / last-segment tail).
   defp truncate_tail(value, max) do
-    value = to_string(value || "")
-
     if String.length(value) <= max do
       value
     else
@@ -144,8 +142,6 @@ defmodule Threadline.OperatorSurface.Presentation do
 
   # Truncate the localpart but keep the full domain verbatim.
   defp truncate_email(value, max) do
-    value = to_string(value || "")
-
     case String.split(value, "@", parts: 2) do
       [local, domain] ->
         if String.length(value) <= max do
@@ -163,8 +159,6 @@ defmodule Threadline.OperatorSurface.Presentation do
 
   # Keep scheme+host head and the last path segment tail.
   defp truncate_url(value) do
-    value = to_string(value || "")
-
     case URI.parse(value) do
       %URI{scheme: scheme, host: host} when is_binary(scheme) and is_binary(host) ->
         head = "#{scheme}://#{host}"
