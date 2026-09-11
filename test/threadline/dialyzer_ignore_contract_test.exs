@@ -55,8 +55,11 @@ defmodule Threadline.DialyzerIgnoreContractTest do
         |> String.split("\n", trim: true)
         |> Enum.map(fn line ->
           case Regex.run(~r/^- `([^`]+)`$/, line) do
-            [_, path] -> path
-            _ -> flunk("sealed warning-origin entry is not an exact source path: #{inspect(line)}")
+            [_, path] ->
+              path
+
+            _ ->
+              flunk("sealed warning-origin entry is not an exact source path: #{inspect(line)}")
           end
         end)
 
