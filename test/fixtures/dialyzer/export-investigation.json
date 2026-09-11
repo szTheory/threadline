@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "slice": "export-investigation",
+  "sealed_run": {
+    "output_sha256": "12c1164ae38a943a738b339d2758e866c51b284444480585e80d5d591169c3e6",
+    "warning_count": 40
+  },
+  "authorized_origins": [
+    "lib/threadline/export.ex",
+    "lib/threadline/export/orchestrator.ex"
+  ],
+  "warnings": [
+    {
+      "id": "W06",
+      "class": "warn_contract_extra_return",
+      "origin": {
+        "path": "lib/threadline/export.ex",
+        "line": 220
+      },
+      "raw_line": "{:warn_contract_extra_return, {~c\"lib/threadline/export.ex\", 220}, {:extra_range, [Threadline.Export, :csv_header, 1, ~c\"binary()\", ~c\"[any()] | \\#{'__struct__':='Elixir.Stream', 'done':='nil', 'funs':=nonempty_maybe_improper_list(), _=>_}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Normalize NimbleCSV header output to a concrete iodata list before returning it through the public iodata contract."
+    },
+    {
+      "id": "W07",
+      "class": "warn_contract_extra_return",
+      "origin": {
+        "path": "lib/threadline/export.ex",
+        "line": 256
+      },
+      "raw_line": "{:warn_contract_extra_return, {~c\"lib/threadline/export.ex\", 256}, {:extra_range, [Threadline.Export, :format_changes_iodata, 3, ~c\"binary()\", ~c\"[any()] | \\#{'__struct__':='Elixir.Stream', 'done':='nil', 'funs':=nonempty_maybe_improper_list(), _=>_}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Normalize NimbleCSV row output to a concrete iodata list at the internal serialization boundary."
+    },
+    {
+      "id": "W08",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/export/orchestrator.ex",
+        "line": 57
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/export/orchestrator.ex\", 57}, {:unmatched_return, [~c\"'nil' | 'ok' | {'error',atom()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Inspect temporary-file removal explicitly after the export transaction without replacing the primary result."
+    },
+    {
+      "id": "W09",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/export/orchestrator.ex",
+        "line": 70
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/export/orchestrator.ex\", 70}, {:unmatched_return, [~c\"'nil' | 'ok' | {'error',atom()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Inspect rescue-path temporary-file removal explicitly while preserving the original export exception as the job failure."
+    },
+    {
+      "id": "W10",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/export/orchestrator.ex",
+        "line": 47
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/export/orchestrator.ex\", {47, 22}}, {:unmatched_return, [~c\"'ok' | {'error',atom()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Match File.close/1 explicitly before handing the completed temporary export to storage."
+    }
+  ],
+  "post_analysis": {
+    "command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
+    "authorized_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
