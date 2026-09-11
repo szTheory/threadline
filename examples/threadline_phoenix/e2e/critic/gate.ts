@@ -42,10 +42,14 @@
 import { execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
-import { committedCellIds } from "./bundle.js";
 import { scoreCellLens, LENS_DIMENSIONS } from "./refute.js";
 import type { LensName } from "./schema.js";
-import { currentOperatorSurfacePaths, readRequiredJson } from "../support/operator-surface-paths.js";
+import {
+  currentOperatorSurfacePaths,
+  readRequiredJson,
+  routeScorecardCellIds,
+  routeScorecardPath,
+} from "../support/operator-surface-paths.js";
 
 const paths = () => currentOperatorSurfacePaths();
 
@@ -183,11 +187,8 @@ export function guardBeforePole(
 
 /** The dark-theme blast-radius cells for a page currently on disk (gitignored route.* cells). */
 function pageDarkCells(page: string): string[] {
-  const { scorecardsDir } = paths();
-  if (!existsSync(scorecardsDir)) return [];
-  return readdirSync(scorecardsDir)
-    .filter((f) => f.startsWith(`${page}`) && f.includes("__dark-") && f.endsWith(".json"))
-    .map((f) => f.replace(/\.json$/, ""))
+  return routeScorecardCellIds()
+    .filter((cellId) => cellId.startsWith(`${page}__`) && cellId.includes("__dark-"))
     .sort();
 }
 
@@ -213,7 +214,6 @@ interface BlastRadius {
  * diff surface (the route.* cells the recapture WOULD touch); with no edit applied → 0 changed.
  */
 function blastRadius(page: string, dryRun: boolean): BlastRadius {
-  const { scorecardsDir } = paths();
   const inScope = pageDarkCells(page);
 
   if (dryRun) {
@@ -231,7 +231,7 @@ function blastRadius(page: string, dryRun: boolean): BlastRadius {
   // out of the blast radius (unchanged = not affected), which drops scroll_cost jitter (R2).
   const before = new Map<string, string>();
   for (const cell of inScope) {
-    before.set(cell, readFileSync(resolve(scorecardsDir, `${cell}.json`), "utf8"));
+    before.set(cell, readFileSync(routeScorecardPath(cell), "utf8"));
   }
 
   try {
@@ -248,11 +248,9 @@ function blastRadius(page: string, dryRun: boolean): BlastRadius {
   const afterCells = pageDarkCells(page);
   const changed = afterCells.filter((cell) => {
     const priorBytes = before.get(cell);
-    const nowBytes = existsSync(resolve(scorecardsDir, `${cell}.json`))
-      ? readFileSync(resolve(scorecardsDir, `${cell}.json`), "utf8")
-      : null;
+    const nowBytes = readFileSync(routeScorecardPath(cell), "utf8");
     // A brand-new cell (no prior) or a byte-changed cell is in the blast radius.
-    return priorBytes === undefined || (nowBytes !== null && nowBytes !== priorBytes);
+    return priorBytes === undefined || nowBytes !== priorBytes;
   });
 
   return {
@@ -419,7 +417,7 @@ async function rankReeval(
 
   const deltas: CellLensDelta[] = [];
   for (const cell of cells) {
-    if (!committedCellIds().includes(cell)) {
+    if (!routeScorecardCellIds().includes(cell)) {
       return {
         ...base,
         void: true,
@@ -736,6 +734,13 @@ export async function runGate(argv: string[]): Promise<void> {
   console.log(`\n  [1/7] Blast radius: ${blast.changed.length} changed of ${blast.scanned} scanned`);
   console.log(`        In-scope cells: ${blast.inScope.join(", ") || "(none on disk)"}`);
   console.log(`        ${blast.note}`);
+  if (blast.inScope.length === 0) {
+    console.error(
+      `\n[critic gate] No route scorecards match the explicit page scope ${JSON.stringify(args.page)}. ` +
+        `Run \`npm run capture:pages\` before gating.`,
+    );
+    process.exit(1);
+  }
 
   // Step 2 — deterministic mechanical floor on the committed page.* twin
   const floor = mechanicalFloor(args.page, args.dryRun);

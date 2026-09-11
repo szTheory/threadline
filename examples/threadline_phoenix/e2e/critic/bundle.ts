@@ -27,8 +27,10 @@ import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import {
   currentOperatorSurfacePaths,
+  readRouteScorecard,
   readRequiredJson,
   resolveContainedPath,
+  routeScorecardCellIds,
 } from "../support/operator-surface-paths.js";
 
 // Target long-edge for downsampled screenshots (D-11 / D-04: ~1600 tokens per image).
@@ -73,6 +75,12 @@ export interface ScorecardJson {
   };
 }
 
+export type ScorecardLane = "committed" | "route";
+
+function inferredScorecardLane(cellId: string): ScorecardLane {
+  return cellId.startsWith("route.") ? "route" : "committed";
+}
+
 /**
  * Returns the list of all committed cell IDs (from the scorecards directory).
  * Used to validate cell_id before path construction (T-195-17).
@@ -101,15 +109,37 @@ export function committedCellIds(): string[] {
  * Validate that a cell_id is a committed scorecard cell.
  * Throws if the cell is not in the ledger (T-195-17 path traversal guard).
  */
-export function validateCellId(cellId: string): void {
-  const { scorecardsDir } = currentOperatorSurfacePaths();
-  const allowed = committedCellIds();
+export function validateCellId(
+  cellId: string,
+  lane: ScorecardLane = inferredScorecardLane(cellId),
+): void {
+  const { routeScorecardsDir, scorecardsDir } = currentOperatorSurfacePaths();
+  const root = lane === "route" ? routeScorecardsDir : scorecardsDir;
+  const allowed = lane === "route" ? routeScorecardCellIds() : committedCellIds();
   if (!allowed.includes(cellId)) {
     throw new Error(
-      `Unknown cell_id: ${JSON.stringify(cellId)} — not found in ${scorecardsDir}. ` +
+      `Unknown cell_id: ${JSON.stringify(cellId)} — not found in ${root}. ` +
         `Refusing to construct filesystem path from untrusted input.`,
     );
   }
+}
+
+/** Read a route scorecard from generated evidence, or any other cell from immutable evidence. */
+export function readScorecard(
+  cellId: string,
+  lane: ScorecardLane = inferredScorecardLane(cellId),
+): ScorecardJson {
+  if (lane === "route") return readRouteScorecard<ScorecardJson>(cellId);
+
+  validateCellId(cellId, lane);
+
+  const { scorecardsDir } = currentOperatorSurfacePaths();
+  const scorecardPath = resolveContainedPath(scorecardsDir, `${cellId}.json`);
+  return readRequiredJson<ScorecardJson>(scorecardPath, {
+    dataset: `committed critic scorecard ${cellId}`,
+    repositoryOnly: true,
+    recoveryCommand: "npm run capture:tier-a",
+  });
 }
 
 /**
@@ -231,17 +261,12 @@ function buildMechanicalLines(scorecard: ScorecardJson): string[] {
  * @param cellId - The capture cell ID (e.g. "page.actor.happy__dark-1280")
  * @returns ScorecardBundle ready for prompt.ts
  */
-export async function loadBundle(cellId: string): Promise<ScorecardBundle> {
-  // Security guard: validate before any path construction (T-195-17)
-  validateCellId(cellId);
-
-  const { repositoryRoot, scorecardsDir } = currentOperatorSurfacePaths();
-  const scorecardPath = resolveContainedPath(scorecardsDir, `${cellId}.json`);
-  const scorecard = readRequiredJson<ScorecardJson>(scorecardPath, {
-    dataset: `critic scorecard ${cellId}`,
-    repositoryOnly: true,
-    recoveryCommand: "npm run capture:tier-a",
-  });
+export async function loadBundle(
+  cellId: string,
+  lane: ScorecardLane = inferredScorecardLane(cellId),
+): Promise<ScorecardBundle> {
+  const { repositoryRoot } = currentOperatorSurfacePaths();
+  const scorecard = readScorecard(cellId, lane);
 
   // Screenshot: path in scorecard is a relative repo path
   const screenshotPath = resolveContainedPath(repositoryRoot, scorecard.artifacts.screenshot);

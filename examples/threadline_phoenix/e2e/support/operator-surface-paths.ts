@@ -6,6 +6,7 @@ import {
   lstatSync,
   openSync,
   readFileSync,
+  readdirSync,
   realpathSync,
   renameSync,
   unlinkSync,
@@ -272,6 +273,43 @@ export function configureOperatorSurfacePaths(
 
 export function currentOperatorSurfacePaths(): Readonly<OperatorSurfacePaths> {
   return activeOperatorSurfacePaths;
+}
+
+/**
+ * Enumerate live route scorecards from the adapter-owned generated root.
+ * Committed/golden/synthetic readers intentionally do not use this lane.
+ */
+export function routeScorecardCellIds(): string[] {
+  const { generatedRoot, routeScorecardsDir } = currentOperatorSurfacePaths();
+  if (!existsSync(routeScorecardsDir)) return [];
+
+  const containedRoot = resolveContainedPath(generatedRoot, routeScorecardsDir);
+  return readdirSync(containedRoot)
+    .filter((filename) => filename.startsWith("route.") && filename.endsWith(".json"))
+    .map((filename) => filename.replace(/\.json$/, ""))
+    .sort();
+}
+
+/** Resolve one live route scorecard only after exact adapter-owned enumeration. */
+export function routeScorecardPath(cellId: string): string {
+  const { routeScorecardsDir } = currentOperatorSurfacePaths();
+  if (!routeScorecardCellIds().includes(cellId)) {
+    throw new Error(
+      `Unknown route cell_id: ${JSON.stringify(cellId)} — not found in ${routeScorecardsDir}. ` +
+        `Refusing to construct a generated evidence path from untrusted input.`,
+    );
+  }
+
+  return resolveContainedPath(routeScorecardsDir, `${cellId}.json`);
+}
+
+/** Read one live route scorecard only after exact adapter-owned enumeration. */
+export function readRouteScorecard<T = unknown>(cellId: string): T {
+  return readRequiredJson<T>(routeScorecardPath(cellId), {
+    dataset: `generated route scorecard ${cellId}`,
+    repositoryOnly: false,
+    recoveryCommand: "npm run capture:pages",
+  });
 }
 
 export function reviewDiffCommand(targetPath: string): string {

@@ -26,7 +26,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient, runNSamples } from "./client.js";
-import { loadBundle, committedCellIds } from "./bundle.js";
+import {
+  loadBundle,
+  committedCellIds,
+  readScorecard,
+  type ScorecardLane,
+} from "./bundle.js";
 import { buildPrompt } from "./prompt.js";
 import { writeCriticScore } from "./scorecard.js";
 import { lookupCache, writeCache, sha8OfFile } from "./cache.js";
@@ -38,6 +43,7 @@ import {
   parseOperatorSurfaceRootFlags,
   readRequiredJson,
   resolveOperatorSurfacePaths,
+  routeScorecardCellIds,
 } from "../support/operator-surface-paths.js";
 
 let operatorPaths = resolveOperatorSurfacePaths();
@@ -256,11 +262,9 @@ function getRubricHash(rubricVersion: string): string {
  * when the scorecard/screenshot is unreadable — the cache is then bypassed (treated as a
  * miss) and the scoring attempt surfaces the real error via loadBundle.
  */
-function screenshotSha8(cellId: string): string | null {
+function screenshotSha8(cellId: string, lane: ScorecardLane): string | null {
   try {
-    const scorecard = JSON.parse(
-      readFileSync(resolve(operatorPaths.scorecardsDir, `${cellId}.json`), "utf8"),
-    ) as { artifacts: { screenshot: string } };
+    const scorecard = readScorecard(cellId, lane);
     return sha8OfFile(resolve(operatorPaths.repositoryRoot, scorecard.artifacts.screenshot));
   } catch {
     return null;
@@ -272,6 +276,7 @@ function screenshotSha8(cellId: string): string | null {
  */
 function dryRun(args: ScoreArgs): void {
   const cellIds = getScopedCellIds(args);
+  rejectEmptyExplicitScope(args, cellIds);
   const lenses = args.lens ? [args.lens] : ALL_LENSES;
   let totalDimensions = 0;
   for (const lens of lenses) {
@@ -298,12 +303,19 @@ function dryRun(args: ScoreArgs): void {
  * Determine the set of cell IDs to score based on the score args.
  */
 function getScopedCellIds(args: ScoreArgs): string[] {
-  const committed = new Set(committedCellIds());
-  // --golden restricts the base set to labeled golden cells; otherwise all committed cells.
-  const base = args.golden ? goldenScope().cellIds : committedCellIds();
+  const oracleRun = args.golden || args.synthetic || args.refuteOnly;
+  const routeRun = !oracleRun && args.page?.startsWith("route.") === true;
+  const committed = args.golden ? new Set(committedCellIds()) : null;
+  // Oracle and committed-evidence runs stay immutable. Explicit route runs use
+  // only the adapter-owned generated route lane written by capture:pages.
+  const base = args.golden
+    ? goldenScope().cellIds
+    : routeRun
+      ? routeScorecardCellIds()
+      : committedCellIds();
   return base.filter((cellId) => {
     // T-195-17: a golden cell must resolve to a committed scorecard (no path traversal)
-    if (args.golden && !committed.has(cellId)) return false;
+    if (args.golden && !committed?.has(cellId)) return false;
     // Theme filter
     if (!cellId.includes(`__${args.theme}-`)) return false;
     // Breakpoint filter (e.g. --breakpoint 1280 → only the __<theme>-1280 cell)
@@ -317,6 +329,16 @@ function getScopedCellIds(args: ScoreArgs): string[] {
     if (!args.refuteOnly && !args.synthetic && cellId.startsWith("refute.")) return false;
     return true;
   });
+}
+
+function rejectEmptyExplicitScope(args: ScoreArgs, cellIds: readonly string[]): void {
+  if (cellIds.length > 0 || (!args.page && !args.breakpoint && !args.refuteOnly)) return;
+
+  console.error(
+    `[critic score] No cells match the explicit scope ` +
+      `(page=${args.page ?? "all"}, theme=${args.theme}, breakpoint=${args.breakpoint ?? "all"}).`,
+  );
+  process.exit(1);
 }
 
 /**
@@ -354,7 +376,8 @@ async function runScore(argv: string[]): Promise<void> {
 
   const cellIds = getScopedCellIds(args);
   if (cellIds.length === 0) {
-    console.log(`[critic score] No cells match the scope (page=${args.page ?? "all"}, theme=${args.theme}).`);
+    rejectEmptyExplicitScope(args, cellIds);
+    console.log(`[critic score] No cells match the scope (theme=${args.theme}).`);
     process.exit(0);
   }
 
@@ -403,10 +426,12 @@ async function runScore(argv: string[]): Promise<void> {
   let scored = 0;
   let skipped = 0;
   let errored = 0;
+  const immutableRun = args.golden || args.synthetic || args.refuteOnly;
 
   for (const cellId of cellIds) {
+    const lane: ScorecardLane = immutableRun || !cellId.startsWith("route.") ? "committed" : "route";
     // sha8 of the cell's current screenshot (197-01): null → cache bypassed (miss).
-    const screenshotHash = screenshotSha8(cellId);
+    const screenshotHash = screenshotSha8(cellId, lane);
     const cellLenses = goldenLensMap
       ? lenses.filter((l) => goldenLensMap.get(cellId)?.has(l))
       : lenses;
@@ -438,7 +463,7 @@ async function runScore(argv: string[]): Promise<void> {
           }
 
           try {
-            const bundle = await loadBundle(cellId);
+            const bundle = await loadBundle(cellId, lane);
             const strata = buildPrompt(lens, dimension, persona, bundle);
             const result = await runNSamples(client, strata, lens);
 

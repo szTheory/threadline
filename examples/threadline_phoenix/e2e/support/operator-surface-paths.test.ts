@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import {
   copyFile,
   mkdir,
@@ -272,6 +273,108 @@ test("nondeterministic producers stay inside one generated boundary", async () =
   assert.doesNotMatch(pageCapture, /const scorecardsDir = paths\.scorecardsDir/);
   assert.match(refute, /refuteTranscriptsDir/);
   assert.doesNotMatch(refute, /refuteDir, "transcripts"/);
+});
+
+test("route scoring and gate discover generated scorecards and reject an empty explicit scope", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+  const outputRoot = await mkdtemp(resolve(tmpdir(), "threadline-route-reader-"));
+  const routeScorecardsDir = resolve(outputRoot, "route-scorecards");
+  const runPath = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/run.ts");
+  const e2eRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e");
+  const cellId = "route.coverage__dark-1280";
+
+  const runCritic = (args: string[]) =>
+    spawnSync("tsx", [runPath, ...args, "--output-root", outputRoot], {
+      cwd: e2eRoot,
+      encoding: "utf8",
+      env: { ...process.env, NO_COLOR: "1" },
+    });
+
+  try {
+    await mkdir(routeScorecardsDir, { recursive: true });
+    await writeFile(resolve(routeScorecardsDir, `${cellId}.json`), "{}\n", "utf8");
+    adapter.configureOperatorSurfacePaths({ outputRoot });
+    assert.deepEqual(adapter.routeScorecardCellIds(), [cellId]);
+    assert.deepEqual(adapter.readRouteScorecard(cellId), {});
+
+    const score = runCritic([
+      "score",
+      "--dry-run",
+      "--page",
+      "route.coverage",
+      "--theme",
+      "dark",
+      "--breakpoint",
+      "1280",
+    ]);
+    assert.equal(score.error, undefined, String(score.error));
+    assert.equal(score.status, 0, score.stderr);
+    assert.match(score.stdout, /Cells in scope:\s+1/);
+
+    const gate = runCritic([
+      "gate",
+      "--dry-run",
+      "--page",
+      "route.coverage",
+      "--lens",
+      "density",
+    ]);
+    assert.equal(gate.error, undefined, String(gate.error));
+    assert.equal(gate.status, 0, gate.stderr);
+    assert.match(gate.stdout, /0 changed of 1 scanned/);
+    assert.match(gate.stdout, new RegExp(cellId));
+
+    const empty = runCritic([
+      "score",
+      "--dry-run",
+      "--page",
+      "route.missing",
+      "--theme",
+      "dark",
+      "--breakpoint",
+      "1280",
+    ]);
+    assert.equal(empty.error, undefined, String(empty.error));
+    assert.notEqual(empty.status, 0, "an explicitly requested empty route scope must fail closed");
+    assert.match(`${empty.stdout}\n${empty.stderr}`, /No cells match the explicit scope/);
+
+    const synthetic = runCritic([
+      "score",
+      "--dry-run",
+      "--synthetic",
+      "--page",
+      "route.coverage",
+      "--theme",
+      "dark",
+      "--breakpoint",
+      "1280",
+    ]);
+    assert.notEqual(
+      synthetic.status,
+      0,
+      "synthetic/oracle scope must not consume generated route evidence",
+    );
+    assert.match(`${synthetic.stdout}\n${synthetic.stderr}`, /No cells match the explicit scope/);
+
+    const emptyGate = runCritic([
+      "gate",
+      "--dry-run",
+      "--page",
+      "route.missing",
+      "--lens",
+      "density",
+    ]);
+    assert.equal(emptyGate.error, undefined, String(emptyGate.error));
+    assert.notEqual(emptyGate.status, 0, "an empty explicit gate scope must fail closed");
+    assert.match(`${emptyGate.stdout}\n${emptyGate.stderr}`, /No route scorecards match/);
+  } finally {
+    adapter.configureOperatorSurfacePaths({
+      fixtureRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.fixtureRoot,
+      outputRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.generatedRoot,
+    });
+    await rm(outputRoot, { recursive: true, force: true });
+  }
 });
 
 test("rejects traversal, absolute escape, prefix confusion, and symlink escape", async () => {

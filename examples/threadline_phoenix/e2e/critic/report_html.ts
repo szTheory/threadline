@@ -23,6 +23,7 @@ import {
   repoRoot,
   type LensResult,
 } from "./report.js";
+import { readScorecard } from "./bundle.js";
 import { scoreToBand, type LensName } from "./schema.js";
 import {
   atomicWriteFile,
@@ -32,7 +33,6 @@ import {
 } from "../support/operator-surface-paths.js";
 
 const outPath = DEFAULT_OPERATOR_SURFACE_PATHS.criticReportHtmlPath;
-const scorecardsDir = DEFAULT_OPERATOR_SURFACE_PATHS.scorecardsDir;
 const ledgerPath = DEFAULT_OPERATOR_SURFACE_PATHS.ledgerPath;
 
 // Band → colour (never colour-only; always paired with the band word — D-08).
@@ -96,15 +96,14 @@ function worstFinding(cellDir: string, lens: LensName): Finding | null {
   return worst;
 }
 
-// The committed scorecard's screenshot → base64 data URI (single portable file).
+// The cell's trusted scorecard lane (generated route or immutable committed) → screenshot URI.
 function screenshotDataUri(cellId: string): string | null {
-  const sc = resolve(scorecardsDir, `${cellId}.json`);
-  if (!existsSync(sc)) return null;
-  const rel = (readRequiredJson<{ artifacts?: { screenshot?: string } }>(sc, {
-    dataset: `critic scorecard ${cellId}`,
-    repositoryOnly: true,
-    recoveryCommand: "npm run capture:tier-a",
-  }).artifacts ?? {}).screenshot;
+  let rel: string | undefined;
+  try {
+    rel = readScorecard(cellId).artifacts?.screenshot;
+  } catch {
+    return null;
+  }
   if (!rel) return null;
   const abs = resolveContainedPath(repoRoot, rel);
   if (!existsSync(abs)) return null;
