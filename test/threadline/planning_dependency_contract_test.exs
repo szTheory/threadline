@@ -3,7 +3,7 @@ defmodule Threadline.PlanningDependencyContract do
 
   @scanner_path "test/threadline/planning_dependency_contract_test.exs"
   @planning_path ~r/\.planning\/(?:audits|phases|milestones)(?:\/[^\s"')\]}]+)?|\.planning\/(?:ARCHIVE-REGISTER|REQUIREMENTS|ROADMAP|STATE)\.md/
-  @file_io ~r/File\.(read!?|stream!?|open!?|stat!?)\s*\(\s*([^,\)]+)/
+  @file_io ~r/File\.(read!?|stream!?|open!?|stat!?|exists\?|dir\?|regular\?|ls!?)\s*\(\s*([^,\)]+)/
   @module_attribute ~r/^\s*@([a-zA-Z0-9_]+)\s+(.+)$/m
 
   def scan_sources(sources) when is_map(sources) do
