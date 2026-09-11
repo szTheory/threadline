@@ -13,9 +13,12 @@
     "critic:score": "tsx critic/run.ts score",
     "critic:gate": "tsx critic/run.ts gate",
     "critic:validate": "tsx critic/run.ts validate",
+    "critic:check": "tsx critic/run.ts validate",
     "critic:label": "tsx critic/run.ts label",
     "critic:rubric": "tsx critic/run.ts rubric",
-    "critic:report:html": "tsx critic/run.ts report --html"
+    "critic:report:html": "tsx critic/run.ts report --html",
+    "test:paths": "tsx --test support/operator-surface-paths.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
