@@ -11,7 +11,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, resolve } from "node:path";
+import { dirname, relative, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -263,7 +263,10 @@ test("rejects immutable and generated root aliasing while allowing a separated o
 });
 
 test("critic score and cache writers use contained atomic targets", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
   const scorecardModule = await import("../critic/scorecard.js");
+  const cacheModule = await import("../critic/cache.js");
   const scorecardSource = await readFile(
     resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/scorecard.ts"),
     "utf8",
@@ -286,6 +289,128 @@ test("critic score and cache writers use contained atomic targets", async () => 
     assert.match(source, /atomicWriteFile/, `${filename} must replace atomically`);
     assert.doesNotMatch(source, /writeFileSync/, `${filename} must not write destinations directly`);
   }
+
+  const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-critic-writers-"));
+  const fixtureRoot = resolve(sandbox, "fixtures");
+  const outputRoot = resolve(sandbox, "critic-scores");
+  const outside = resolve(sandbox, "outside");
+  await mkdir(fixtureRoot, { recursive: true });
+  await mkdir(outputRoot);
+  await mkdir(outside);
+
+  const params = {
+    cellId: "page.actor.happy__dark-1280",
+    lens: "density" as const,
+    dimension: "signal_to_chrome",
+    modelId: "test-model",
+    rubricVersion: "density@1.0.0+00000000",
+    n: 3,
+    scoresRaw: [70, 72, 74],
+    score: 72,
+    band: "strong",
+    bandMode: "median",
+    iqr: 2,
+    range: 4,
+    stable: true,
+    pass: true,
+    evidence: { kind: "region" as const, locator: "main", observation: "clear" },
+    rationale: "test",
+  };
+  const cachedVerdict = {
+    cell_id: params.cellId,
+    dimension: params.dimension,
+    rubric_hash: "00000000",
+    model_id: params.modelId,
+    screenshot_hash: "deadbeef",
+    result: {
+      evidence: params.evidence,
+      pass: true,
+      band: "strong" as const,
+      score: 72,
+      lens: "density" as const,
+      rationale: "test",
+    },
+    n: 3,
+    scores_raw: [70, 72, 74],
+    score: 72,
+    band: "strong",
+    band_mode: "median",
+    iqr: 2,
+    range: 4,
+    stable: true,
+    cached_at: "2026-09-11T00:00:00Z",
+  };
+
+  try {
+    adapter.configureOperatorSurfacePaths({ fixtureRoot, outputRoot });
+    await symlink(outside, resolve(outputRoot, "linked"));
+    assert.throws(
+      () => scorecardModule.criticScorePath("linked", "density", params.dimension),
+      /symlink/i,
+    );
+
+    scorecardModule.writeCriticScore(params);
+    const scorePath = scorecardModule.criticScorePath(
+      params.cellId,
+      params.lens,
+      params.dimension,
+    );
+    const originalScore = await readFile(scorePath, "utf8");
+    assert.throws(
+      () => scorecardModule.writeCriticScore(
+        { ...params, rationale: "must not land" },
+        { beforeRename: () => { throw new Error("forced score failure"); } },
+      ),
+      /forced score failure/,
+    );
+    assert.equal(await readFile(scorePath, "utf8"), originalScore);
+    assert.deepEqual(
+      (await readdir(dirname(scorePath))).filter((name) => name.includes(".tmp")),
+      [],
+    );
+
+    cacheModule.writeCache(cachedVerdict);
+    const cacheFiles = await readdir(adapter.currentOperatorSurfacePaths().verdictCacheDir);
+    assert.equal(cacheFiles.length, 1);
+    const cachePath = resolve(adapter.currentOperatorSurfacePaths().verdictCacheDir, cacheFiles[0]);
+    const originalCache = await readFile(cachePath, "utf8");
+    assert.throws(
+      () => cacheModule.writeCache(
+        { ...cachedVerdict, score: 73 },
+        { beforeRename: () => { throw new Error("forced cache failure"); } },
+      ),
+      /forced cache failure/,
+    );
+    assert.equal(await readFile(cachePath, "utf8"), originalCache);
+    assert.deepEqual(
+      (await readdir(adapter.currentOperatorSurfacePaths().verdictCacheDir)).filter((name) => name.includes(".tmp")),
+      [],
+    );
+    assert.throws(
+      () => cacheModule.writeCache({ ...cachedVerdict, cell_id: "../escape" }),
+      /outside|traversal/i,
+    );
+
+    assert.throws(
+      () => adapter.reviewDiffCommand(resolve(fixtureRoot, "golden/golden-set.json")),
+      /outside/i,
+    );
+  } finally {
+    adapter.configureOperatorSurfacePaths({
+      fixtureRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.fixtureRoot,
+      outputRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.generatedRoot,
+    });
+    await rm(sandbox, { recursive: true, force: true });
+  }
+
+  const canonicalTarget = resolve(
+    adapter.DEFAULT_OPERATOR_SURFACE_PATHS.goldenDir,
+    "golden-set.json",
+  );
+  assert.equal(
+    adapter.reviewDiffCommand(canonicalTarget),
+    `git -C ${JSON.stringify(expectedRepositoryRoot)} diff -- ${JSON.stringify(relative(expectedRepositoryRoot, canonicalTarget))}`,
+  );
 });
 
 test("atomic replacement writes complete bytes through a sibling temporary file", async () => {

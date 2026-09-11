@@ -88,7 +88,10 @@ export function resolveOperatorSurfacePaths(
   const scorecardsDir = resolve(fixtureRoot, "scorecards");
   const goldenDir = resolve(fixtureRoot, "golden");
   const refuteDir = resolve(fixtureRoot, "refute");
-  assertSeparatedOutputRoot(generatedRoot, [ledgerPath, scorecardsDir, goldenDir, refuteDir]);
+  const verdictCacheDir = resolve(generatedParent, "critic-verdict-cache");
+  const immutableRoots = [ledgerPath, scorecardsDir, goldenDir, refuteDir];
+  assertSeparatedOutputRoot(generatedRoot, immutableRoots);
+  assertSeparatedOutputRoot(verdictCacheDir, immutableRoots);
 
   return Object.freeze({
     repositoryRoot,
@@ -102,7 +105,7 @@ export function resolveOperatorSurfacePaths(
     refuteDir,
     generatedRoot,
     criticScoresDir: generatedRoot,
-    verdictCacheDir: resolve(generatedParent, "critic-verdict-cache"),
+    verdictCacheDir,
     critiqueReportPath: resolve(generatedParent, "CRITIQUE.md"),
     criticReportHtmlPath: resolve(generatedParent, "critic-report.html"),
     criticFloorsPath: resolve(generatedParent, "critic-floors.json"),
@@ -263,6 +266,12 @@ export function configureOperatorSurfacePaths(
 
 export function currentOperatorSurfacePaths(): Readonly<OperatorSurfacePaths> {
   return activeOperatorSurfacePaths;
+}
+
+export function reviewDiffCommand(targetPath: string): string {
+  const { repositoryRoot } = currentOperatorSurfacePaths();
+  const containedTarget = resolveContainedPath(repositoryRoot, targetPath);
+  return `git -C ${JSON.stringify(repositoryRoot)} diff -- ${JSON.stringify(relative(repositoryRoot, containedTarget))}`;
 }
 export const IMMUTABLE_EVIDENCE_ROOTS = Object.freeze([
   DEFAULT_OPERATOR_SURFACE_PATHS.ledgerPath,

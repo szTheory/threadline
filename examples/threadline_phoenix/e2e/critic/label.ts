@@ -42,6 +42,7 @@ import {
   atomicWriteFile,
   DEFAULT_OPERATOR_SURFACE_PATHS,
   readRequiredJson,
+  reviewDiffCommand,
   resolveContainedPath,
 } from "../support/operator-surface-paths.js";
 
@@ -895,6 +896,7 @@ async function runReconcile(): Promise<void> {
   console.log(
     `\n[critic label] golden-set.json written: ${agreements.length} items.`,
   );
+  console.log(`  Review: ${reviewDiffCommand(goldenSetPath)}`);
 
   // Per-lens count summary
   const lensCount: Partial<Record<LensName, number>> = {};

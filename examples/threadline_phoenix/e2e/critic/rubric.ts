@@ -30,6 +30,7 @@ import {
   atomicWriteFile,
   DEFAULT_OPERATOR_SURFACE_PATHS,
   readRequiredJson,
+  reviewDiffCommand,
 } from "../support/operator-surface-paths.js";
 
 const rubricDir = DEFAULT_OPERATOR_SURFACE_PATHS.criticRubricsDir;
@@ -437,6 +438,7 @@ function bumpRubric(
   atomicWriteFile(rubricPath, finalContent);
 
   console.log(`\n  Written: ${rubricPath}`);
+  console.log(`  Review: ${reviewDiffCommand(rubricPath)}`);
   console.log(`  Commit: git add ${rubricPath} && git commit -m 'chore: bump rubric ${newVersionStr}'`);
   console.log(
     `  Verify: npm run critic:rubric -- lint   (should show ${lens} as ok)`,
