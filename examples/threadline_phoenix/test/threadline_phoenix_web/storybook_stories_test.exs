@@ -4,6 +4,7 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
 
   @storybook_root "storybook"
   @backend_path "lib/threadline_phoenix_web/storybook.ex"
+  @stress_session_path "lib/threadline_phoenix_web/threadline_stress_session.ex"
   @wrapper_glob "lib/threadline_phoenix_web/storybook/**/*.{ex,exs}"
 
   @categories [
@@ -123,6 +124,21 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     for theme <- ~w(dark light system) do
       assert source =~ theme, "expected #{theme} theme support in Storybook wrapper"
     end
+  end
+
+  test "stress session adapter source-anchors and fails closed while decoding the ledger" do
+    assert File.exists?(@stress_session_path),
+           "expected example-owned stress session adapter at #{@stress_session_path}"
+
+    source = File.read!(@stress_session_path)
+
+    assert source =~ "__DIR__"
+    assert source =~ "../../../../.planning/design-system-ledger.json"
+    assert source =~ ~s|"threadline_stress_ledger_entries"|
+    assert source =~ "Repository-only: true"
+    assert source =~ "Recovery:"
+    refute source =~ "File.cwd!"
+    refute source =~ "rescue"
   end
 
   test "story taxonomy includes the required categories and small Patterns branch" do

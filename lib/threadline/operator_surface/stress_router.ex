@@ -8,7 +8,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {ledger_session, clean_opts} =
         opts
         |> Keyword.delete(:stress_env)
-        |> Keyword.pop(:ledger_session, %{})
+        |> Keyword.pop(:ledger_session, quote(do: %{}))
 
       caller_file = __CALLER__.file
       caller_line = __CALLER__.line

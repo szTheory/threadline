@@ -21,11 +21,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @theme_allowlist StressFixtures.theme_modes()
     @viewport_allowlist StressFixtures.viewports() |> Enum.map(&Integer.to_string/1)
 
-    def mount(
-          _params,
-          %{"threadline_stress_ledger_entries" => ledger_entries},
-          socket
-        ) do
+    def mount(_params, session, socket) do
+      ledger_entries = validate_ledger_entries!(session)
+
       {:ok,
        socket
        |> assign(:base_path, "/audit")
@@ -42,6 +40,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:selected_viewport, "1024")
        |> assign(:filter_category, nil)
        |> assign(:filter_status, nil)}
+    end
+
+    defp validate_ledger_entries!(%{"threadline_stress_ledger_entries" => entries})
+         when is_list(entries) and entries != [] do
+      if Enum.all?(entries, &is_map/1) do
+        entries
+      else
+        invalid_ledger_session!()
+      end
+    end
+
+    defp validate_ledger_entries!(_session), do: invalid_ledger_session!()
+
+    defp invalid_ledger_session! do
+      raise ArgumentError, """
+      Threadline stress session ledger entries must be a non-empty list of maps.
+      Recovery: mix test test/threadline/operator_surface/stress_router_test.exs
+      """
     end
 
     def handle_params(params, uri, socket) do
