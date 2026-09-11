@@ -18,6 +18,20 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const expectedRepositoryRoot = resolve(here, "../../../..");
 
+const criticReaders = [
+  "bundle.ts",
+  "gate.ts",
+  "label.ts",
+  "label_web.ts",
+  "panel.ts",
+  "prompt.ts",
+  "refute.ts",
+  "report.ts",
+  "report_html.ts",
+  "rubric.ts",
+  "schema.ts",
+] as const;
+
 async function loadAdapter(moduleUrl = new URL("./operator-surface-paths.js", import.meta.url)) {
   try {
     return await import(moduleUrl.href);
@@ -148,6 +162,29 @@ test("required JSON failures name the dataset, resolved path, repository scope, 
   } finally {
     await rm(fixtureRoot, { recursive: true, force: true });
   }
+});
+
+test("critic readers share the adapter without independent planning or cwd roots", async () => {
+  const criticRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic");
+  const offenders: string[] = [];
+
+  for (const filename of criticReaders) {
+    const source = await readFile(resolve(criticRoot, filename), "utf8");
+    if (source.includes(".planning")) offenders.push(`${filename}: planning literal`);
+    if (source.includes("process.cwd(")) offenders.push(`${filename}: process.cwd root`);
+
+    if (filename !== "schema.ts" && !source.includes("operator-surface-paths.js")) {
+      offenders.push(`${filename}: shared adapter import missing`);
+    }
+  }
+
+  const shellSource = await readFile(
+    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic-before-pole.sh"),
+    "utf8",
+  );
+  assert.match(shellSource, /critic\/run\.ts paths/);
+  assert.doesNotMatch(shellSource, /\.planning|CACHE_DIR=/);
+  assert.deepEqual(offenders, []);
 });
 
 test("rejects traversal, absolute escape, prefix confusion, and symlink escape", async () => {
