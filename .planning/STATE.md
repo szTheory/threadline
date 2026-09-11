@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 199
-current_phase_name: Decouple
+current_phase_name: decouple
 status: executing
 stopped_at: Halted 199-13 at 22-file Dialyzer scope gate
-last_updated: "2026-09-11T15:42:56.149Z"
+last_updated: "2026-09-11T17:43:11.280Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 199 execution started
-state_head: f22d2ad352e167d34f7a604079cde239838021b7
+state_head: 9b0f452575b5e7d33202a7e32377a28802d2cc99
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 80
+  total_plans: 87
   completed_plans: 79
   percent: 14
 ---
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 199 (Decouple) — EXECUTING
+Phase: 199 (decouple) — READY TO EXECUTE
 Plan: 13 of 14
 Status: Blocked — Plan 199-13 requires re-planning after its 22-file Dialyzer scope gate halted execution
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
