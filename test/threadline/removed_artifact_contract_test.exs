@@ -12,7 +12,6 @@ defmodule Threadline.RemovedArtifactContract do
   @standard_root_executables MapSet.new([".credo.exs", ".formatter.exs", "mix.exs"])
   @executable_extensions MapSet.new([".ex", ".exs", ".js", ".rb", ".sh", ".ts", ".yaml", ".yml"])
   @scanner_path "test/threadline/removed_artifact_contract_test.exs"
-  @historical_live_input ".planning/phases/198-green-bringup/198-41-PLAN.md"
 
   def removed_paths, do: @removed_paths
 
@@ -69,11 +68,7 @@ defmodule Threadline.RemovedArtifactContract do
   defp document_consumer?(file) do
     file in [
       "README.md",
-      "CONTRIBUTING.md",
-      ".planning/ARCHIVE-REGISTER.md",
-      ".planning/REQUIREMENTS.md",
-      ".planning/ROADMAP.md",
-      @historical_live_input
+      "CONTRIBUTING.md"
     ] or (String.starts_with?(file, "guides/") and Path.extname(file) == ".md")
   end
 
