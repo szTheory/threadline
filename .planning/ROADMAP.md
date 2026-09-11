@@ -522,7 +522,7 @@ Plans:
 
 **Wave 7** *(blocked on Plan 199-20 plus completed CI prerequisites)*
 
-- [ ] 199-14-PLAN.md — CI wiring plus maintainer-dispatched authenticated cold/hit measurement
+- [x] 199-14-PLAN.md — CI wiring plus maintainer-dispatched authenticated cold/hit measurement
 
 **Wave 8** *(blocked on completed Plan 199-14 measurement)*
 
@@ -683,7 +683,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
-| 199. Decouple | v1.41 | 19/21 | In Progress | |
+| 199. Decouple | v1.41 | 20/21 | In Progress | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
 | 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |

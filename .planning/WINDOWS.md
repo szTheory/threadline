@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 48
+open_count: 51
 waived_count: 0
 fixed_count: 1
-total_count: 49
-last_updated: 2026-09-11T19:27:17.503Z
+total_count: 52
+last_updated: 2026-09-11T20:30:32.770Z
 ---
 
 # Broken Windows Ledger
@@ -64,6 +64,9 @@ last_updated: 2026-09-11T19:27:17.503Z
 | 47 | 199 | deviation | .planning/phases/199-decouple/199-17-SUMMARY.md |  | Temporary named Node tests were required to make source-verifier RED evidence machine-classifiable. | open |  | 2026-09-11T18:46:58.670Z |  |
 | 48 | 199 | deviation | .planning/ROADMAP.md |  | Roadmap progress required manual reconciliation after the SDK returned missing_phase_details. | open |  | 2026-09-11T18:46:58.760Z |  |
 | 49 | 199 | deviation | .planning/ROADMAP.md |  | Reconciled Phase 199 Plan 19 roadmap progress manually after roadmap.update-plan-progress returned missing_phase_details | open |  | 2026-09-11T19:27:17.503Z |  |
+| 50 | 199 | deviation | .github/workflows/ci.yml |  | Temporary exact measurement-branch push trigger added for the cold run and removed after evidence collection | open |  | 2026-09-11T20:29:40.961Z |  |
+| 51 | 199 | deviation | test/threadline/ci_topology_contract_test.exs |  | Tracer workflow-header matcher corrected to follow the established two-line roster contract | open |  | 2026-09-11T20:29:41.049Z |  |
+| 52 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-14 roadmap progress and next-plan position reconciled manually after roadmap.update-plan-progress returned missing_phase_details | open |  | 2026-09-11T20:30:32.770Z |  |
 
 ````json
 [
@@ -676,6 +679,45 @@ last_updated: 2026-09-11T19:27:17.503Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T19:27:17.503Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 50,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".github/workflows/ci.yml",
+    "line": null,
+    "description": "Temporary exact measurement-branch push trigger added for the cold run and removed after evidence collection",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T20:29:40.961Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 51,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "test/threadline/ci_topology_contract_test.exs",
+    "line": null,
+    "description": "Tracer workflow-header matcher corrected to follow the established two-line roster contract",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T20:29:41.049Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 52,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Plan 199-14 roadmap progress and next-plan position reconciled manually after roadmap.update-plan-progress returned missing_phase_details",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T20:30:32.770Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }
