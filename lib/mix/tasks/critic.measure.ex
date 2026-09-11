@@ -47,8 +47,9 @@ defmodule Mix.Tasks.Critic.Measure do
 
     with {:ok, trust_text} <- LedgerSplice.replace(ledger_text, block),
          {:ok, final_text} <- LedgerSplice.replace_provenance(trust_text, provenance) do
-      File.write!(paths.ledger, final_text)
+      atomic_replace!(paths.ledger, final_text)
       print_summary(block, source)
+      Mix.shell().info("git diff -- #{paths.ledger}")
     else
       {:error, reason} ->
         task_error!(
@@ -293,6 +294,53 @@ defmodule Mix.Tasks.Critic.Measure do
         score["lens"] in Measure.lenses()
 
     if not valid, do: task_error!("critic score is invalid", path, "mix verify.ui_critique")
+  end
+
+  defp atomic_replace!(target, contents) do
+    temp = "#{target}.tmp-#{System.unique_integer([:positive, :monotonic])}"
+
+    case File.open(temp, [:write, :binary, :exclusive]) do
+      {:ok, io_device} ->
+        result =
+          try do
+            with :ok <- IO.binwrite(io_device, contents),
+                 :ok <- :file.sync(io_device),
+                 :ok <- File.close(io_device),
+                 :ok <- atomic_write_hook(),
+                 :ok <- File.rename(temp, target) do
+              :ok
+            end
+          after
+            _ = File.close(io_device)
+            _ = File.rm(temp)
+          end
+
+        case result do
+          :ok ->
+            :ok
+
+          {:error, reason} ->
+            task_error!(
+              "atomic ledger replacement failed (#{inspect(reason)})",
+              target,
+              restore_command(target)
+            )
+        end
+
+      {:error, reason} ->
+        task_error!(
+          "could not create exclusive sibling temp (#{inspect(reason)})",
+          target,
+          restore_command(target)
+        )
+    end
+  end
+
+  defp atomic_write_hook do
+    case Process.get({__MODULE__, :atomic_write_hook}) do
+      hook when is_function(hook, 0) -> hook.()
+      _other -> :ok
+    end
   end
 
   defp restore_command(path), do: "git restore -- #{Path.relative_to(path, project_root!())}"
