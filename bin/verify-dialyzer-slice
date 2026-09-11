@@ -284,11 +284,21 @@ defmodule Threadline.DialyzerSliceVerifier do
   end
 
   defp reject_surviving_fixed(records, live) do
-    case Enum.find(records, fn record ->
-           record.disposition == "fixed" and Enum.any?(live, &same_signature?(&1, record))
-         end) do
-      nil -> :ok
-      record -> {:error, "fixed warning #{record.id} still survives at #{record.path}:#{record.line}"}
+    survivors =
+      Enum.filter(records, fn record ->
+        record.disposition == "fixed" and Enum.any?(live, &same_signature?(&1, record))
+      end)
+
+    case survivors do
+      [] ->
+        :ok
+
+      [record] ->
+        {:error, "fixed warning #{record.id} still survives at #{record.path}:#{record.line}"}
+
+      records ->
+        details = Enum.map_join(records, ", ", &"#{&1.id} at #{&1.path}:#{&1.line}")
+        {:error, "fixed warnings still survive: #{details}"}
     end
   end
 

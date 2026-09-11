@@ -10,7 +10,7 @@ defmodule Threadline.DialyzerSliceContractTest do
     {output, status} = System.cmd(@script, ["--fixture", @fixture], stderr_to_stdout: true)
 
     assert status == 0, output
-    assert output =~ "verified slice critic-tooling: 1/40 sealed warnings"
+    assert output =~ "verified slice critic-tooling: 3/40 sealed warnings"
     assert output =~ "0 live warnings"
   end
 
@@ -20,14 +20,14 @@ defmodule Threadline.DialyzerSliceContractTest do
       |> Kernel.<>("\n")
 
     assert {output, 0} = run_fixture(with_post_hash(committed_fixture(), raw), raw)
-    assert output =~ "1/40 sealed warnings"
-    assert output =~ "1 authorized origins"
+    assert output =~ "3/40 sealed warnings"
+    assert output =~ "3 authorized origins"
     assert output =~ "0 live warnings"
   end
 
   test "duplicate warning IDs are rejected" do
     fixture = committed_fixture()
-    warning = hd(fixture["warnings"])
+    warning = warning!(fixture, "W05")
 
     assert {output, 1} = run_fixture(%{fixture | "warnings" => [warning, warning]}, "")
     assert output =~ "warning IDs must be unique"
@@ -37,8 +37,8 @@ defmodule Threadline.DialyzerSliceContractTest do
     fixture = committed_fixture()
 
     warning =
-      fixture["warnings"]
-      |> hd()
+      fixture
+      |> warning!("W05")
       |> put_in(["origin", "path"], "lib/threadline/query.ex")
 
     assert {output, 1} = run_fixture(%{fixture | "warnings" => [warning]}, "")
@@ -47,7 +47,7 @@ defmodule Threadline.DialyzerSliceContractTest do
 
   test "a surviving fixed warning is rejected" do
     fixture = committed_fixture()
-    warning = hd(fixture["warnings"])
+    warning = warning!(fixture, "W05")
     raw = warning["raw_line"] <> "\n"
 
     assert {output, 1} = run_fixture(with_post_hash(fixture, raw), raw)
@@ -67,7 +67,7 @@ defmodule Threadline.DialyzerSliceContractTest do
 
   test "irreducible residue requires an exact tuple, rationale, and removal trigger" do
     fixture = committed_fixture()
-    warning = hd(fixture["warnings"])
+    warning = warning!(fixture, "W05")
 
     complete =
       warning
@@ -96,8 +96,8 @@ defmodule Threadline.DialyzerSliceContractTest do
     fixture = committed_fixture()
 
     warning =
-      fixture["warnings"]
-      |> hd()
+      fixture
+      |> warning!("W05")
       |> Map.put("class", "warn_matching")
 
     assert {output, 1} = run_fixture(%{fixture | "warnings" => [warning]}, "")
@@ -119,6 +119,8 @@ defmodule Threadline.DialyzerSliceContractTest do
     |> File.read!()
     |> Jason.decode!()
   end
+
+  defp warning!(fixture, id), do: Enum.find(fixture["warnings"], &(&1["id"] == id))
 
   defp run_fixture(fixture, raw) do
     root = Path.dirname(Mix.Project.project_file())
