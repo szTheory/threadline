@@ -17,6 +17,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def coverage_authorize(_), do: true
   end
 
+  defmodule Threadline.OperatorSurface.StressRouterTest.LedgerSession do
+    def session(_conn) do
+      Application.fetch_env!(:threadline, :stress_router_ledger_session)
+    end
+  end
+
   defmodule Threadline.OperatorSurface.StressRouterTest.Router do
     use Phoenix.Router
     import Phoenix.LiveView.Router
@@ -36,6 +42,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress("/__stress",
+        ledger_session: {Threadline.OperatorSurface.StressRouterTest.LedgerSession, :session, []},
         authorize_fn: &Threadline.OperatorSurface.StressRouterTest.Auth.authorize/1,
         coverage_authorize_fn:
           &Threadline.OperatorSurface.StressRouterTest.Auth.coverage_authorize/1,
@@ -80,6 +87,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress("/__stress",
+        ledger_session: {Threadline.OperatorSurface.StressRouterTest.LedgerSession, :session, []},
         authorize_fn: &Threadline.OperatorSurface.StressRouterTest.Auth.authorize/1,
         coverage_authorize_fn:
           &Threadline.OperatorSurface.StressRouterTest.Auth.coverage_authorize/1,
@@ -143,6 +151,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     setup do
       Application.put_env(:threadline, :stress_router_authorized, true)
+      Application.put_env(:threadline, :stress_router_ledger_session, ledger_session())
       {:ok, conn: build_conn()}
     end
 
@@ -341,6 +350,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="stress-screenshot-status"|
     end
 
+    test "stress route renders the decoded ledger supplied by its live session", %{conn: conn} do
+      entry =
+        ledger_entries()
+        |> Enum.find(&(&1["story_id"] == "page.home.happy"))
+        |> Map.put("current_score", 912)
+
+      Application.put_env(:threadline, :stress_router_ledger_session, %{
+        "threadline_stress_ledger_entries" => [entry]
+      })
+
+      {:ok, _view, html} = live(conn, "/audit/__stress?story=page.home.happy")
+
+      assert html =~ ~s|data-testid="stress-ledger-score">912|
+    end
+
     test "selected theme query drives the stress root theme instead of mount default",
          %{conn: conn} do
       {:ok, _view, html} = live(conn, "/audit/__stress?theme=light")
@@ -484,6 +508,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Map.fetch!("entries")
     end
 
+    defp ledger_session do
+      %{"threadline_stress_ledger_entries" => ledger_entries()}
+    end
+
     defp fixture_backed_entry?(entry) do
       entry["story_id"] != "" or entry["fixture_key"] != "" or entry["stress_path"] != ""
     end
@@ -551,6 +579,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     setup do
       Application.put_env(:threadline, :stress_router_authorized, true)
+
+      Application.put_env(:threadline, :stress_router_ledger_session, %{
+        "threadline_stress_ledger_entries" =>
+          ".planning/design-system-ledger.json"
+          |> File.read!()
+          |> Jason.decode!()
+          |> Map.fetch!("entries")
+      })
+
       {:ok, conn: build_conn()}
     end
 
