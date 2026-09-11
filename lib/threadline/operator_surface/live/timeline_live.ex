@@ -1289,13 +1289,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp future_window_empty?(filters, 0, socket) do
       if future_leaning_window?(filters) do
-        filters
-        |> Keyword.drop([:from, :to])
-        |> Export.count_matching(count_opts(socket, 1))
-        |> case do
-          {:ok, %{count: count}} -> count > 0
-          _ -> false
-        end
+        {:ok, %{count: count}} =
+          filters
+          |> Keyword.drop([:from, :to])
+          |> Export.count_matching(count_opts(socket, 1))
+
+        count > 0
       else
         false
       end
