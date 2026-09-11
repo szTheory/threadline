@@ -128,9 +128,28 @@ test.describe("operator evidence and exports mobile UAT", () => {
     await expect(page.getByText("Latest projection").first()).toBeVisible();
 
     const firstEvidenceCard = page.locator(".tl-record-card").first();
-    const verdict = await box(firstEvidenceCard.locator(".tl-chip").first());
-    const ref = await box(firstEvidenceCard.locator(".tl-secondary-ref").first());
-    expect(verdict.y).toBeLessThanOrEqual(ref.y);
+    const verdictLocator = firstEvidenceCard.locator(".tl-chip").first();
+    const refLocator = firstEvidenceCard.locator(".tl-secondary-ref").first();
+    await expect(verdictLocator).toBeVisible();
+    await expect(refLocator).toBeVisible();
+
+    // Sample both positions in one animation frame. Measuring each locator through
+    // separate visibility assertions can observe two different page-scroll states
+    // while the full browser lane is still settling, producing a false inversion.
+    const positions = await firstEvidenceCard.evaluate((card) => {
+      const verdict = card.querySelector<HTMLElement>(".tl-chip");
+      const ref = card.querySelector<HTMLElement>(".tl-secondary-ref");
+
+      if (!verdict || !ref) {
+        throw new Error("evidence card is missing its verdict or subject reference");
+      }
+
+      return {
+        verdictY: verdict.getBoundingClientRect().y,
+        refY: ref.getBoundingClientRect().y,
+      };
+    });
+    expect(positions.verdictY).toBeLessThanOrEqual(positions.refY);
 
     const history = await box(firstEvidenceCard.getByRole("link", { name: "Open proof history" }));
     const firstSupport = firstEvidenceCard.getByRole("link").nth(1);
