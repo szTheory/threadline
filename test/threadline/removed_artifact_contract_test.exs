@@ -60,6 +60,7 @@ defmodule Threadline.RemovedArtifactContract do
   end
 
   defp executable_consumer?(@scanner_path), do: false
+  defp executable_consumer?(".planning/" <> _historical_path), do: false
 
   defp executable_consumer?(file) do
     MapSet.member?(@executable_extensions, Path.extname(file))
@@ -165,6 +166,14 @@ defmodule Threadline.RemovedArtifactContractTest do
              },
              %{file: "patch_release.rb", kind: :root_one_off_executable, line: 1, target: nil}
            ]
+  end
+
+  test "repository file sets never treat planning history as an executable consumer" do
+    planning_script =
+      ".planning/milestones/v1.39-phases/192-ci-cd-measurement-and-efficiency-hardening/scripts/aggregate-ci-baseline.sh"
+
+    assert %{executables: [], documents: []} =
+             Scanner.repository_file_sets([planning_script])
   end
 
   test "live repository has no removed targets, root one-offs, or active citations" do

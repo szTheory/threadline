@@ -31,7 +31,10 @@ defmodule Threadline.PlanningIndependenceContractTest do
       assert output =~ "PLANNING_RESTORED"
       assert output =~ "SAFE_TEMP_TREE_REMOVED"
       assert File.read!(sentinel) == sentinel_bytes
-      assert File.read!(invocation_log) == "deps.get --check-locked\nci.all\n"
+
+      assert File.read!(invocation_log) ==
+               "deps.get --check-locked\nnpm ci\ndialyzer --plt\nci.all\n"
+
       assert Path.wildcard(Path.join(temp_root, "threadline-planning-independent-*")) == []
 
       {status_after, 0} = checkout_status()
@@ -62,6 +65,16 @@ defmodule Threadline.PlanningIndependenceContractTest do
     """)
 
     File.chmod!(fake_mix, 0o755)
+
+    fake_npm = Path.join(fake_bin, "npm")
+
+    File.write!(fake_npm, """
+    #!/usr/bin/env bash
+    set -euo pipefail
+    printf 'npm %s\\n' "$*" >>#{shell_quote(invocation_log)}
+    """)
+
+    File.chmod!(fake_npm, 0o755)
 
     try do
       fun.(temp_root, fake_bin, invocation_log)

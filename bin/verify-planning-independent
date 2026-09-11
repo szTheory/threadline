@@ -93,6 +93,14 @@ mix deps.get --check-locked
 [ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
   fail 'dependency setup made planning visible'
 
+(cd examples/threadline_phoenix/e2e && npm ci)
+[ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
+  fail 'browser dependency setup made planning visible'
+
+MIX_ENV=test mix dialyzer --plt
+[ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
+  fail 'analyzer setup made planning visible'
+
 mix ci.all
 [ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
   fail 'aggregate made planning visible'
