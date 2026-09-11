@@ -389,7 +389,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         socket.assigns[:threadline_export_status_poll_ms] ||
           Application.get_env(:threadline, :export_status_poll_ms, 5_000)
 
-      Process.send_after(self(), :refresh, interval)
+      _timer_ref = Process.send_after(self(), :refresh, interval)
+      :ok
     end
 
     defp resolve_repo(socket) do
