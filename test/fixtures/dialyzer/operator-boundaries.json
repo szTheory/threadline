@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "slice": "operator-boundaries",
+  "sealed_run": {
+    "output_sha256": "12c1164ae38a943a738b339d2758e866c51b284444480585e80d5d591169c3e6",
+    "warning_count": 40
+  },
+  "authorized_origins": [
+    "lib/threadline/operator_surface/auth.ex",
+    "lib/threadline/plug.ex"
+  ],
+  "warnings": [
+    {
+      "id": "W21",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/operator_surface/auth.ex",
+        "line": 139
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/operator_surface/auth.ex\", {139, 10}}, {:pattern_match_cov, [~c\"pattern <_socket@1, __scope@1>\", ~c\"<map(),map()>\"]}}",
+      "disposition": "fixed",
+      "evidence": "Remove the unreachable non-map assign_fallback_actor/2 clause while preserving the map-shaped scope fallback contract."
+    },
+    {
+      "id": "W30",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/plug.ex",
+        "line": 108
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/plug.ex\", {108, 8}}, {:pattern_match, [~c\"pattern 'nil'\", ~c\"{byte(),byte(),byte(),byte()} | {char(),char(),char(),char(),char(),char(),char(),char()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Remove the unreachable nil remote_ip clause because Plug.Conn exposes IPv4 or IPv6 address tuples."
+    },
+    {
+      "id": "W31",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/plug.ex",
+        "line": 114
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/plug.ex\", {114, 8}}, {:pattern_match_cov, [~c\"variable _ip@1\", ~c\"{byte(),byte(),byte(),byte()} | {char(),char(),char(),char(),char(),char(),char(),char()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Keep only tuple-shaped remote address formatting, which covers Plug.Conn IPv4 and IPv6 values."
+    }
+  ],
+  "post_analysis": {
+    "command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
+    "authorized_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
