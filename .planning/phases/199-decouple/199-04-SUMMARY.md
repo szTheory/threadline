@@ -126,10 +126,19 @@ Each task followed RED→GREEN TDD cycles:
 - **Verification:** Root and nested-CWD path suites each pass 7 tests with zero failures.
 - **Committed in:** `a1b26b3f`, `43e50093`
 
+**2. [Rule 3 - Blocking] Applied the roadmap handler's narrow fallback**
+
+- **Found during:** Post-summary planning-state synchronization
+- **Issue:** `roadmap.update-plan-progress 199` returned `missing_phase_details` although the Phase 199 plan checklist exists.
+- **Fix:** Marked only the completed `199-04-PLAN.md` checklist row as complete; the phase remains in progress.
+- **Files modified:** `.planning/ROADMAP.md`
+- **Verification:** The Plan 04 row is checked while all unfinished Phase 199 rows remain unchecked.
+- **Committed in:** Final planning-state commit
+
 ---
 
-**Total deviations:** 1 auto-fixed bug.
-**Impact on plan:** The correction makes the portability test reflect the intended canonical-path security contract; scope and production behavior remain unchanged.
+**Total deviations:** 2 auto-fixed (1 bug, 1 blocking workflow correction).
+**Impact on plan:** The corrections make the portability test reflect the intended canonical-path security contract and keep roadmap state accurate; scope and production behavior remain unchanged.
 
 ## Issues Encountered
 
