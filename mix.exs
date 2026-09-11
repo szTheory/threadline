@@ -47,7 +47,26 @@ defmodule Threadline.MixProject do
       description: "Audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL",
       source_url: @source_url,
       docs: docs(),
-      dialyzer: [plt_add_apps: [:mix]]
+      dialyzer: [
+        plt_local_path: ".dialyzer",
+        plt_core_path: ".dialyzer",
+        plt_add_apps: [
+          :mix,
+          :ex_unit,
+          :phoenix,
+          :phoenix_live_view,
+          :phoenix_html,
+          :phoenix_pubsub,
+          :oban,
+          :ex_aws,
+          :ex_aws_s3,
+          :hackney,
+          :sweet_xml
+        ],
+        flags: [:unmatched_returns, :extra_return],
+        ignore_warnings: ".dialyzer_ignore.exs",
+        list_unused_filters: true
+      ]
     ]
   end
 
@@ -78,6 +97,7 @@ defmodule Threadline.MixProject do
       {:ex_aws_s3, "~> 2.4", optional: true},
       {:hackney, "~> 1.18", optional: true},
       {:sweet_xml, "~> 0.7", optional: true},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:lazy_html, "~> 0.1.0", only: :test}
