@@ -498,7 +498,7 @@ Plans:
 - [x] 199-02-PLAN.md — Elixir test and stress-session evidence adapters
 - [x] 199-05-PLAN.md — Critic reader/writer adapter adoption
 - [x] 199-06-PLAN.md — Playwright capture adapter adoption
-- [ ] 199-11-PLAN.md — Hardened cleanup and committed clean-clone proof
+- [x] 199-11-PLAN.md — Hardened cleanup and committed clean-clone proof
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -667,7 +667,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
-| 199. Decouple | v1.41 | 10/14 | In Progress | |
+| 199. Decouple | v1.41 | 11/14 | In Progress | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
 | 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |

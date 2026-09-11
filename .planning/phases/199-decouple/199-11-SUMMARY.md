@@ -134,9 +134,17 @@ status: complete
 - **Files modified:** `test/threadline/clean_checkout_contract_test.exs`.
 - **Commit:** `6f35208b`.
 
+**3. [Rule 3 - Blocking] Reconciled Phase 199 roadmap progress after the canonical handler declined the legacy layout**
+
+- **Found during:** Sequential state synchronization after the SUMMARY commit.
+- **Issue:** `roadmap.update-plan-progress 199` counted 14 plans and 11 summaries but returned `missing_phase_details`, leaving Plan 11 unchecked and the progress row at `10/14`.
+- **Fix:** Checked only `199-11-PLAN.md` and advanced the Phase 199 progress row to `11/14 In Progress`, matching the handler's live counts while leaving the remaining three plans unchecked.
+- **Files modified:** `.planning/ROADMAP.md`.
+- **Verification:** The Plan 11 checklist entry is checked, the progress row reads `11/14`, and Plans 08, 13, and 14 remain unchecked.
+
 ---
 
-**Total deviations:** 2 auto-fixed (1 tooling blocker, 1 cleanup-test correctness issue).
+**Total deviations:** 3 auto-fixed (2 tooling/layout blockers, 1 cleanup-test correctness issue).
 **Impact on plan:** Both changes preserve the specified security boundary and make the adversarial proof valid on the active platform.
 
 ## TDD Gate Compliance
