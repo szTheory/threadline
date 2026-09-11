@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 40
+open_count: 43
 waived_count: 0
 fixed_count: 1
-total_count: 41
-last_updated: 2026-09-11T15:30:08.403Z
+total_count: 44
+last_updated: 2026-09-11T15:43:16.489Z
 ---
 
 # Broken Windows Ledger
@@ -56,6 +56,9 @@ last_updated: 2026-09-11T15:30:08.403Z
 | 39 | 199 | deviation | .planning/phases/199-decouple/199-08-PLAN.md |  | Replaced unsupported mix test -x verification flag with --max-failures 1. | open |  | 2026-09-11T15:27:46.980Z |  |
 | 40 | 199 | deviation | .planning/refute/transcripts/refute.veto-ordering.off-token-accent.json |  | Restored pre-existing untracked scorecard and refute outputs moved physically by directory git mv to their original planning paths. | open |  | 2026-09-11T15:27:47.126Z |  |
 | 41 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-08 roadmap.update-plan-progress returned missing_phase_details; executor reconciled the checklist and summary-backed progress row to 12/14. | open |  | 2026-09-11T15:30:08.403Z |  |
+| 42 | 199 | unmet-truth | test/threadline/dialyzer_ignore_contract_test.exs | 32 | Full-build Dialyzer remains red because the sealed 22-file warning-origin set exceeds Plan 199-13's 14-file authority | open |  | 2026-09-11T15:42:53.646Z |  |
+| 43 | 199 | unrun-verify | .planning/phases/199-decouple/199-13-PLAN.md |  | Task 2 unused-filter verification was not run because Task 1 tripped the mandatory re-planning gate | open |  | 2026-09-11T15:42:53.810Z |  |
+| 44 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-13 roadmap.update-plan-progress returned missing_phase_details; executor marked the plan halted and Plan 199-14 blocked without increasing the 12/14 complete count. | open |  | 2026-09-11T15:43:16.489Z |  |
 
 ````json
 [
@@ -564,6 +567,45 @@ last_updated: 2026-09-11T15:30:08.403Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T15:30:08.403Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 42,
+    "kind": "unmet-truth",
+    "phase": "199",
+    "file": "test/threadline/dialyzer_ignore_contract_test.exs",
+    "line": 32,
+    "description": "Full-build Dialyzer remains red because the sealed 22-file warning-origin set exceeds Plan 199-13's 14-file authority",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T15:42:53.646Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 43,
+    "kind": "unrun-verify",
+    "phase": "199",
+    "file": ".planning/phases/199-decouple/199-13-PLAN.md",
+    "line": null,
+    "description": "Task 2 unused-filter verification was not run because Task 1 tripped the mandatory re-planning gate",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T15:42:53.810Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 44,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Plan 199-13 roadmap.update-plan-progress returned missing_phase_details; executor marked the plan halted and Plan 199-14 blocked without increasing the 12/14 complete count.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T15:43:16.489Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }

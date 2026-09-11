@@ -506,11 +506,11 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 199-13-PLAN.md — Full-app Dialyzer triage and strict ignore ratchet
+- [ ] 199-13-PLAN.md — Full-app Dialyzer triage and strict ignore ratchet — **HALTED:** sealed first run found 22 warning-origin files against the 14-file maximum; re-plan/re-slice required
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 199-14-PLAN.md — CI wiring, maintainer-dispatched authenticated measurement, and no-planning certification
+- [ ] 199-14-PLAN.md — CI wiring, maintainer-dispatched authenticated measurement, and no-planning certification — **BLOCKED** on halted Plan 199-13
 
 **Notes carried from the approved plan:**
 
@@ -667,7 +667,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
-| 199. Decouple | v1.41 | 12/14 | In Progress | |
+| 199. Decouple | v1.41 | 12/14 | Blocked | |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
 | 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |
