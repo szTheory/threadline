@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { copyFile, mkdir, mkdtemp, realpath, rm } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
@@ -62,5 +62,79 @@ test("resolves repository evidence identically from root, nested cwd, and a work
     );
   } finally {
     await rm(worktreeRoot, { recursive: true, force: true });
+  }
+});
+
+test("explicit fixture and output flags override deterministic defaults without environment lookup", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+
+  const fixtureRoot = await mkdtemp(resolve(tmpdir(), "threadline-paths-fixtures-"));
+  const outputRoot = await mkdtemp(resolve(tmpdir(), "threadline-paths-output-"));
+  const previousEnvironmentValue = process.env.THREADLINE_FIXTURE_ROOT;
+  process.env.THREADLINE_FIXTURE_ROOT = resolve(tmpdir(), "must-not-be-used");
+
+  try {
+    const parsed = adapter.parseOperatorSurfaceRootFlags([
+      "--fixture-root",
+      fixtureRoot,
+      "--output-root",
+      outputRoot,
+      "--dry-run",
+    ]);
+    const paths = adapter.resolveOperatorSurfacePaths(parsed.overrides);
+
+    assert.deepEqual(parsed.rest, ["--dry-run"]);
+    assert.equal(paths.fixtureRoot, await realpath(fixtureRoot));
+    assert.equal(paths.goldenDir, resolve(await realpath(fixtureRoot), "golden"));
+    assert.equal(paths.generatedRoot, await realpath(outputRoot));
+    assert.equal(paths.criticScoresDir, await realpath(outputRoot));
+  } finally {
+    if (previousEnvironmentValue === undefined) delete process.env.THREADLINE_FIXTURE_ROOT;
+    else process.env.THREADLINE_FIXTURE_ROOT = previousEnvironmentValue;
+    await rm(fixtureRoot, { recursive: true, force: true });
+    await rm(outputRoot, { recursive: true, force: true });
+  }
+});
+
+test("required JSON failures name the dataset, resolved path, repository scope, and recovery command", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+  assert.equal(typeof adapter.readRequiredJson, "function");
+
+  const fixtureRoot = await mkdtemp(resolve(tmpdir(), "threadline-paths-json-"));
+  const missingPath = resolve(fixtureRoot, "missing.json");
+  const malformedPath = resolve(fixtureRoot, "malformed.json");
+  const recoveryCommand = "npm run critic:check";
+
+  try {
+    await assert.rejects(
+      () => adapter.readRequiredJson(missingPath, {
+        dataset: "golden set",
+        repositoryOnly: true,
+        recoveryCommand,
+      }),
+      (error: Error) =>
+        error.message.includes("golden set") &&
+        error.message.includes(missingPath) &&
+        error.message.includes("repository-only: true") &&
+        error.message.includes(recoveryCommand),
+    );
+
+    await writeFile(malformedPath, "{not-json}\n", "utf8");
+    await assert.rejects(
+      () => adapter.readRequiredJson(malformedPath, {
+        dataset: "synthetic set",
+        repositoryOnly: true,
+        recoveryCommand,
+      }),
+      (error: Error) =>
+        error.message.includes("synthetic set") &&
+        error.message.includes(malformedPath) &&
+        error.message.includes("repository-only: true") &&
+        error.message.includes(recoveryCommand),
+    );
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
   }
 });
