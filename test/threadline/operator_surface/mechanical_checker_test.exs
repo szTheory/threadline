@@ -184,6 +184,39 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     assert details.reason != ""
   end
 
+  test "run/1 rejects malformed nested evidence instead of grading it as clean" do
+    mutations = [
+      {"tokens.--tl-color-bg", &put_in(&1, ["tokens", "--tl-color-bg"], "not-a-color")},
+      {"color_pairs[0].color", &put_in(&1, ["color_pairs", Access.at(0), "color"], "nope")},
+      {"color_pairs[0].background_color",
+       &put_in(&1, ["color_pairs", Access.at(0), "background_color"], "transparentish")},
+      {"color_pairs[0].font_size",
+       &put_in(&1, ["color_pairs", Access.at(0), "font_size"], "large")},
+      {"element_styles[0].border_radius",
+       &put_in(&1, ["element_styles", Access.at(0), "border_radius"], "round")},
+      {"element_styles[0].box_shadow",
+       &put_in(&1, ["element_styles", Access.at(0), "box_shadow"], "mystery")},
+      {"element_styles[0].transition_duration",
+       &put_in(&1, ["element_styles", Access.at(0), "transition_duration"], "fast")},
+      {"element_styles[0].padding_top",
+       &put_in(&1, ["element_styles", Access.at(0), "padding_top"], "roomy")},
+      {"applied_colors[0]", &put_in(&1, ["applied_colors", Access.at(0)], "invalid")},
+      {"mode_b.type_size_count", &put_in(&1, ["mode_b", "type_size_count"], nil)},
+      {"mode_b.scroll_cost", &put_in(&1, ["mode_b", "scroll_cost"], "1.4")}
+    ]
+
+    for {field, mutate} <- mutations do
+      dir = write_fixtures([mutate.(passing_scorecard())])
+
+      assert {:error, {:malformed_scorecard, details}} =
+               MechanicalChecker.run(scorecard_dir: dir, mechanical_floors: %{}),
+             "#{field} must fail closed"
+
+      assert details.reason =~ field,
+             "malformed field diagnostic must name #{field}, got: #{inspect(details.reason)}"
+    end
+  end
+
   test "an off-scale border-radius yields a MODE-A radius violation carrying a nearest-token :fix" do
     card = passing_scorecard()
     off = put_in(card, ["element_styles"], [element_style(%{"border_radius" => "10px"})])
