@@ -1,6 +1,11 @@
 import { expect, Page, test } from "@playwright/test";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdirSync } from "node:fs";
+import {
+  atomicWriteFile,
+  currentOperatorSurfacePaths,
+  readRequiredJson,
+  resolveContainedPath,
+} from "../support/operator-surface-paths.js";
 
 // Graded-ladder capture lane (Phase 195 D-12 — the synthetic twin oracle).
 //
@@ -10,8 +15,8 @@ import { resolve } from "node:path";
 // shape the critic reads (committed scorecard + gitignored PNG), so `critic:score`
 // / `mix critic.measure --source synthetic` can score real graded UI.
 //
-// The cell list is the single source of truth: `.planning/golden/synthetic-set.json`
-// (written by `mix critic.synth`). Each cell_id is `<story-id>__dark-1280`.
+// The shared immutable synthetic set (written by `mix critic.synth`) is the
+// single source of truth. Each cell_id is `<story-id>__dark-1280`.
 //
 // Determinism: dark/1280 per cell, deviceScaleFactor:1 (project), reducedMotion
 // "reduce" (global), fonts.ready before observing, dynamic masks. Run twice → identical.
@@ -19,13 +24,10 @@ import { resolve } from "node:path";
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 
-const repoRoot = resolve(process.cwd(), "../../..");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
-const syntheticSetPath = resolve(repoRoot, ".planning/golden/synthetic-set.json");
-const artifactsRoot = resolve(
-  repoRoot,
-  "examples/threadline_phoenix/e2e/artifacts/graded",
-);
+const paths = currentOperatorSurfacePaths();
+const scorecardsDir = paths.scorecardsDir;
+const syntheticSetPath = resolveContainedPath(paths.goldenDir, "synthetic-set.json");
+const artifactsRoot = resolveContainedPath(paths.e2eRoot, "artifacts/graded");
 
 // Pinned for cross-machine byte-stability — never `new Date()` / installed version.
 const PLAYWRIGHT_VERSION = "1.61.1";
@@ -46,14 +48,13 @@ function storyIdFor(cellId: string): string {
 }
 
 function gradedCells(): { cellId: string; storyId: string; lens: string }[] {
-  if (!existsSync(syntheticSetPath)) {
-    throw new Error(
-      `missing ${syntheticSetPath} — run \`mix critic.synth\` before capturing`,
-    );
-  }
-  const set = JSON.parse(readFileSync(syntheticSetPath, "utf8")) as {
+  const set = readRequiredJson<{
     items: { cell_id: string; lens: string }[];
-  };
+  }>(syntheticSetPath, {
+    dataset: "synthetic graded-capture set",
+    repositoryOnly: true,
+    recoveryCommand: "mix critic.synth",
+  });
   return set.items
     .map((it) => ({ cellId: it.cell_id, storyId: storyIdFor(it.cell_id), lens: it.lens }))
     .sort((a, b) => a.cellId.localeCompare(b.cellId));
@@ -69,7 +70,7 @@ function dynamicMasks(page: Page) {
 
 function writeJson(path: string, value: unknown) {
   // Two-space indent + trailing newline: byte-stable `git diff` on regeneration.
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  atomicWriteFile(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 async function login(page: Page) {
@@ -255,25 +256,27 @@ async function captureCell(page: Page, cellId: string, storyId: string, lens: st
     (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready,
   );
 
-  const artifactDir = resolve(artifactsRoot, cellId);
+  const artifactDir = resolveContainedPath(artifactsRoot, cellId);
   mkdirSync(artifactDir, { recursive: true });
 
   await matrix.screenshot({
-    path: resolve(artifactDir, "screenshot.png"),
+    path: resolveContainedPath(artifactDir, "screenshot.png"),
     scale: "css",
     mask: dynamicMasks(page),
   });
-  writeFileSync(resolve(artifactDir, "dom.html"), await matrix.innerHTML(), "utf8");
+  atomicWriteFile(
+    resolveContainedPath(artifactDir, "dom.html"),
+    await matrix.innerHTML(),
+  );
   let rawA11y: unknown = null;
   try {
     rawA11y = await page.accessibility.snapshot();
   } catch {
     rawA11y = null;
   }
-  writeFileSync(
-    resolve(artifactDir, "a11y.json"),
+  atomicWriteFile(
+    resolveContainedPath(artifactDir, "a11y.json"),
     `${JSON.stringify(rawA11y, null, 2)}\n`,
-    "utf8",
   );
 
   const tokens = await resolvedTokens(page);
@@ -308,7 +311,7 @@ async function captureCell(page: Page, cellId: string, storyId: string, lens: st
       aria: null,
     },
   };
-  writeJson(resolve(scorecardsDir, `${cellId}.json`), scorecard);
+  writeJson(resolveContainedPath(scorecardsDir, `${cellId}.json`), scorecard);
 }
 
 test.describe("operator graded-ladder deterministic capture", () => {
