@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+die() { printf 'upsert-ci-issue: %s\n' "$*" >&2; exit 1; }
+GH_BIN=${GH_BIN:-gh}
+marker="" title="" body_file="" label="" label_description="CI automation finding" label_color="B60205"
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --marker) marker=${2-}; shift 2 ;;
+    --title) title=${2-}; shift 2 ;;
+    --body-file) body_file=${2-}; shift 2 ;;
+    --label) label=${2-}; shift 2 ;;
+    --label-description) label_description=${2-}; shift 2 ;;
+    --label-color) label_color=${2-}; shift 2 ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+[ -n "$marker" ] || die "--marker is required"
+[ -n "$title" ] || die "--title is required"
+[ -n "$label" ] || die "--label is required"
+[ -f "$body_file" ] || die "--body-file must name a readable file"
+command -v "$GH_BIN" >/dev/null 2>&1 || die "GH_BIN not found: $GH_BIN"
+"$GH_BIN" label create "$label" --description "$label_description" --color "$label_color" 2>/dev/null || true
+issues=$("$GH_BIN" issue list --state open --label "$label" --search "$marker in:title" --json number,title)
+matches=$(printf '%s' "$issues" | jq -c --arg marker "$marker" '[.[] | select((.title | type) == "string" and (.title | startswith($marker)))]') || die "issue list returned malformed JSON"
+count=$(printf '%s' "$matches" | jq 'length')
+case "$count" in
+  0) url=$("$GH_BIN" issue create --title "$title" --label "$label" --body-file "$body_file"); printf 'action=create\nissue_number=%s\n' "${url##*/}" ;;
+  1) number=$(printf '%s' "$matches" | jq -r '.[0].number'); printf '%s' "$number" | grep -Eq '^[0-9]+$' || die "matched issue has invalid number"; "$GH_BIN" issue comment "$number" --body-file "$body_file" >/dev/null; printf 'action=update\nissue_number=%s\n' "$number" ;;
+  *) die "ambiguous marker matched $count open issues" ;;
+esac

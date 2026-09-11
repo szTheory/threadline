@@ -17,7 +17,7 @@
  *   --brief               Collapse the per-item lens guidance to a one-line legend
  *
  * Blind enforcement (D-09):
- *   r1 writes to .planning/golden/rounds/r1.json (tokens generated per session)
+ *   r1 writes to golden/rounds/r1.json (tokens generated per session)
  *   --round r2 NEVER reads or displays r1.json content
  *   --round r2 refuses to run until r1.json is committed to git
  *   --reconcile is the ONLY writer of golden-set.json
@@ -33,27 +33,30 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
-  writeFileSync,
 } from "node:fs";
 import { createInterface } from "node:readline";
 import { execSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { relative, resolve } from "node:path";
 import type { LensName } from "./schema.js";
-
-const here = dirname(fileURLToPath(import.meta.url));
-// critic/ → e2e/ → threadline_phoenix/ → examples/ → repo root
-const repoRoot = resolve(here, "../../../..");
+import {
+  atomicWriteFile,
+  DEFAULT_OPERATOR_SURFACE_PATHS,
+  readRequiredJson,
+  reviewDiffCommand,
+  resolveContainedPath,
+} from "../support/operator-surface-paths.js";
 
 // ── Path constants ────────────────────────────────────────────────────────────
-const goldenDir = resolve(repoRoot, ".planning/golden");
+const repoRoot = DEFAULT_OPERATOR_SURFACE_PATHS.repositoryRoot;
+const goldenDir = DEFAULT_OPERATOR_SURFACE_PATHS.goldenDir;
 const roundsDir = resolve(goldenDir, "rounds");
 const queuePath = resolve(goldenDir, "queue.json");
 const goldenSetPath = resolve(goldenDir, "golden-set.json");
 const r1Path = resolve(roundsDir, "r1.json");
 const r2Path = resolve(roundsDir, "r2.json");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
-const rubricDir = resolve(here, "rubrics");
+const scorecardsDir = DEFAULT_OPERATOR_SURFACE_PATHS.scorecardsDir;
+const rubricDir = DEFAULT_OPERATOR_SURFACE_PATHS.criticRubricsDir;
+const repoRelative = (path: string) => relative(repoRoot, path);
 
 const ALL_LENSES: LensName[] = [
   "hierarchy",
@@ -212,11 +215,15 @@ interface GoldenSetFile {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function writeJson(path: string, value: unknown): void {
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  atomicWriteFile(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 function readJson<T>(path: string): T {
-  return JSON.parse(readFileSync(path, "utf8")) as T;
+  return readRequiredJson<T>(path, {
+    dataset: "critic labeling evidence",
+    repositoryOnly: true,
+    recoveryCommand: "npm run critic:label -- --bootstrap",
+  });
 }
 
 function ensureDirs(): void {
@@ -230,23 +237,31 @@ function generateToken(index: number, round: "r1" | "r2"): string {
   return `${prefix}${String(index + 1).padStart(3, "0")}`;
 }
 
-/** Return committed scorecard cell IDs from .planning/scorecards/. */
+/** Return committed scorecard cell IDs from the adapter-owned scorecard root. */
 function committedCellIds(): string[] {
-  if (!existsSync(scorecardsDir)) return [];
-  return readdirSync(scorecardsDir)
+  if (!existsSync(scorecardsDir)) {
+    throw new Error(
+      `Committed critic scorecards are unavailable.\nResolved path: ${scorecardsDir}\n` +
+        `repository-only: true\nRecovery: npm run capture:tier-a`,
+    );
+  }
+  const cellIds = readdirSync(scorecardsDir)
     .filter((f) => f.endsWith(".json"))
     .map((f) => f.replace(/\.json$/, ""));
+  if (cellIds.length === 0) {
+    throw new Error(
+      `Committed critic scorecards are empty.\nResolved path: ${scorecardsDir}\n` +
+        `repository-only: true\nRecovery: npm run capture:tier-a`,
+    );
+  }
+  return cellIds;
 }
 
 /** Read held_out_ids from golden-set.json. */
 function heldOutIds(): string[] {
   if (!existsSync(goldenSetPath)) return [];
-  try {
-    const gs = readJson<GoldenSetFile>(goldenSetPath);
-    return gs.held_out_ids ?? [];
-  } catch {
-    return [];
-  }
+  const gs = readJson<GoldenSetFile>(goldenSetPath);
+  return gs.held_out_ids ?? [];
 }
 
 /** Parse pole cell IDs from a rubric file's ## Anchors section. */
@@ -295,7 +310,7 @@ function getScreenshotPath(cellId: string): string | null {
   if (!existsSync(scorecardPath)) return null;
   try {
     const sc = readJson<{ artifacts: { screenshot: string } }>(scorecardPath);
-    return resolve(repoRoot, sc.artifacts.screenshot);
+    return resolveContainedPath(repoRoot, sc.artifacts.screenshot);
   } catch {
     return null;
   }
@@ -480,7 +495,7 @@ function runBootstrap(opts: { lens?: LensName; page?: string }): void {
     "  1. Run: npm run critic:label -- --round r1   (label round 1)",
   );
   console.log(
-    "  2. Commit r1.json: git add .planning/golden/rounds/r1.json && git commit -m 'chore: golden set r1 labels'",
+    `  2. Commit r1.json: git add ${repoRelative(r1Path)} && git commit -m 'chore: golden set r1 labels'`,
   );
   console.log(
     "  3. Run: npm run critic:label -- --round r2   (label round 2, blind)",
@@ -499,7 +514,7 @@ function runBootstrap(opts: { lens?: LensName; page?: string }): void {
 function isR1Committed(): boolean {
   try {
     const result = execSync(
-      `git -C ${JSON.stringify(repoRoot)} status --porcelain .planning/golden/rounds/r1.json`,
+      `git -C ${JSON.stringify(repoRoot)} status --porcelain ${JSON.stringify(repoRelative(r1Path))}`,
       { encoding: "utf8", stdio: "pipe" },
     );
     // If r1.json is tracked with no untracked/modified status, it's committed
@@ -518,7 +533,7 @@ async function runRound(
   if (round === "r2") {
     if (!existsSync(r1Path)) {
       console.error(
-        "\n[critic label] ERROR: .planning/golden/rounds/r1.json does not exist.",
+        `\n[critic label] ERROR: ${r1Path} does not exist.`,
       );
       console.error(
         "  Run --round r1 first, then commit r1.json before running r2.",
@@ -530,7 +545,7 @@ async function runRound(
         "\n[critic label] ERROR: r1.json exists but is not committed to git.",
       );
       console.error(
-        "  Commit r1.json first: git add .planning/golden/rounds/r1.json && git commit",
+        `  Commit r1.json first: git add ${repoRelative(r1Path)} && git commit`,
       );
       console.error(
         "  This enforces a time gap between r1 and r2 for honest blind test-retest.",
@@ -724,7 +739,7 @@ async function runRound(
       "\nNext: commit r1.json, then run r2:",
     );
     console.log(
-      "  git add .planning/golden/rounds/r1.json && git commit -m 'chore: golden set r1 labels'",
+      `  git add ${repoRelative(r1Path)} && git commit -m 'chore: golden set r1 labels'`,
     );
     console.log("  npm run critic:label -- --round r2");
   } else {
@@ -881,6 +896,7 @@ async function runReconcile(): Promise<void> {
   console.log(
     `\n[critic label] golden-set.json written: ${agreements.length} items.`,
   );
+  console.log(`  Review: ${reviewDiffCommand(goldenSetPath)}`);
 
   // Per-lens count summary
   const lensCount: Partial<Record<LensName, number>> = {};
@@ -965,7 +981,7 @@ function runAdd(cellId: string, lens: LensName | undefined): void {
   const allCells = committedCellIds();
   if (!allCells.includes(cellId)) {
     console.error(
-      `\n[critic label] ERROR: ${cellId} not found in .planning/scorecards/.`,
+      `\n[critic label] ERROR: ${cellId} not found in ${scorecardsDir}.`,
     );
     console.error("  Only committed Tier-A scorecard cells can be enqueued.");
     process.exit(1);
@@ -1083,7 +1099,7 @@ function printEmptyState(): void {
   console.log("");
   console.log("  Step 2: Label round 1 (keystroke-driven, ~20 min for the poles):");
   console.log("          npm run critic:label -- --round r1");
-  console.log("          git add .planning/golden/rounds/r1.json && git commit");
+  console.log(`          git add ${repoRelative(r1Path)} && git commit`);
   console.log("");
   console.log("  Step 3: Label round 2 (blind — different tokens, reshuffled order):");
   console.log("          npm run critic:label -- --round r2");

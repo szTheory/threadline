@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+E2E="$ROOT/examples/threadline_phoenix/e2e"
+TMP=$(mktemp -d "$E2E/.threadline-fail-fast.XXXXXX")
+trap 'rm -rf "$TMP"' EXIT INT TERM HUP
+
+cat > "$TMP/playwright.config.ts" <<EOF
+import { defineConfig, devices } from "@playwright/test";
+import base from "$E2E/playwright.config.ts";
+if (base.maxFailures !== 5) throw new Error("production CI maxFailures must be 5");
+if (base.use?.trace !== "retain-on-failure") throw new Error("production trace policy must retain failures");
+export default defineConfig({
+  testDir: "$TMP/tests", timeout: 15_000, workers: 1, retries: 0,
+  maxFailures: base.maxFailures, outputDir: "$TMP/results",
+  use: { ...base.use, baseURL: undefined },
+  projects: [{ name: "smoke", use: { ...devices["Desktop Chrome"] } }],
+  reporter: [["json", { outputFile: "$TMP/report.json" }]],
+});
+EOF
+mkdir -p "$TMP/tests"
+cat > "$TMP/tests/fail-fast.spec.ts" <<'EOF'
+import { test, expect } from "@playwright/test";
+for (let i = 1; i <= 7; i++) {
+  test(`deterministic failure ${i}`, async ({ page }) => {
+    await page.setContent(`<main data-case="${i}">fail-fast smoke</main>`);
+    await expect(page.locator("main")).toHaveAttribute("data-case", "never");
+  });
+}
+EOF
+
+set +e
+(cd "$E2E" && CI=1 npx playwright test --config "$TMP/playwright.config.ts")
+status=$?
+set -e
+[ "$status" -ne 0 ] || { echo "fail-fast smoke unexpectedly passed" >&2; exit 1; }
+failed=$(jq '[.. | objects | select(.status? == "unexpected")] | length' "$TMP/report.json")
+skipped=$(jq '[.. | objects | select(.status? == "skipped")] | length' "$TMP/report.json")
+traces=$(find "$TMP/results" -name trace.zip -type f | wc -l | tr -d ' ')
+[ "$failed" -eq 5 ] || { echo "expected 5 failed tests, got $failed" >&2; exit 1; }
+[ "$skipped" -ge 2 ] || { echo "expected at least 2 skipped/interrupted tests, got $skipped" >&2; exit 1; }
+[ "$traces" -ge 5 ] || { echo "expected at least 5 traces, got $traces" >&2; exit 1; }
+printf 'failures=%s skipped=%s traces=%s\n' "$failed" "$skipped" "$traces"

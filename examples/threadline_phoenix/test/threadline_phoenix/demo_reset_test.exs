@@ -10,6 +10,36 @@ defmodule ThreadlinePhoenix.DemoResetTest do
 
   @app_dir Path.expand("../..", __DIR__)
 
+  # Cold `MIX_ENV=prod mix compile` (~30s measured on this machine, 2026-08-30)
+  # is paid once here, in `setup_all`, rather than inside the per-test 60s
+  # ExUnit timeout budget. ExUnit's `:timeout` does not apply to `setup_all`,
+  # so the compile is visible as its own named failure if it breaks, instead
+  # of silently eating into (or blowing) the test at line 56. The warm
+  # guard-only `mix demo.reset` run measured ~0.75s, comfortably inside the
+  # 60s default, so no `@tag timeout:` is added below — a tag that is not
+  # needed is itself a small mask.
+  setup_all do
+    {output, exit_code} =
+      System.cmd(
+        "mix",
+        ["compile"],
+        cd: @app_dir,
+        env: [{"MIX_ENV", "prod"}],
+        stderr_to_stdout: true
+      )
+
+    unless exit_code == 0 do
+      flunk("""
+      MIX_ENV=prod mix compile failed in setup_all — this is a prod build defect,
+      not a test-harness defect. Output:
+
+      #{output}
+      """)
+    end
+
+    :ok
+  end
+
   test "run/0 truncates demo tables then reseeds manifest organizations" do
     Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
       _org = organization_fixture(%{slug: "ephemeral-fixture-org"})

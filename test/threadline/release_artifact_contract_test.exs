@@ -1,6 +1,6 @@
 defmodule Threadline.ReleaseArtifactContractTest do
   @moduledoc false
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   defp project_config, do: Threadline.MixProject.project()
 
@@ -34,6 +34,15 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "README.md" in extras
     assert "CONTRIBUTING.md" in extras
     assert "CHANGELOG.md" in extras
+  end
+
+  test "built Hex archive excludes repository evidence" do
+    entries = built_archive_entries()
+
+    assert "lib/threadline.ex" in entries
+    assert "mix.exs" in entries
+    refute Enum.any?(entries, &String.starts_with?(&1, "test/fixtures/"))
+    refute Enum.any?(entries, &String.starts_with?(&1, ".planning/"))
   end
 
   test "ExDoc extras keep integrations ahead of the verb routing lanes" do
@@ -98,5 +107,34 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert String.contains?(doc, ".github/workflows/release.yml")
     assert String.contains?(doc, "workflow_dispatch")
     assert String.contains?(doc, "v0.6.0")
+  end
+
+  defp built_archive_entries do
+    unpack_root =
+      Path.join(
+        System.tmp_dir!(),
+        "threadline-hex-contract-#{System.unique_integer([:positive])}"
+      )
+
+    on_exit(fn -> File.rm_rf!(unpack_root) end)
+
+    case System.cmd(
+           System.find_executable("mix"),
+           ["hex.build", "--unpack", "--output", unpack_root],
+           cd: File.cwd!(),
+           env: [{"MIX_ENV", "dev"}],
+           stderr_to_stdout: true
+         ) do
+      {_output, 0} ->
+        unpack_root
+        |> Path.join("**/*")
+        |> Path.wildcard(match_dot: true)
+        |> Enum.filter(&File.regular?/1)
+        |> Enum.map(&Path.relative_to(&1, unpack_root))
+        |> Enum.sort()
+
+      {output, status} ->
+        flunk("mix hex.build --unpack failed (#{status}):\n#{output}")
+    end
   end
 end

@@ -254,8 +254,16 @@ jobs:
               });
 
               const runs = data.workflow_runs
-                .filter((run) => run.head_sha === sha)
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                .filter(
+                  (run) =>
+                    run.head_sha === sha &&
+                    run.event === 'push' &&
+                    run.head_branch === 'main'
+                )
+                .sort((a, b) => {
+                  const createdDelta = new Date(b.created_at) - new Date(a.created_at);
+                  return createdDelta || b.id - a.id;
+                });
 
               if (runs.length === 0) {
                 core.info(`No ci.yml run yet for ${sha} (${attempt}/${maxAttempts}).`);
@@ -263,20 +271,26 @@ jobs:
                 continue;
               }
 
-              lastRunUrl = runs[0].html_url;
+              const authoritativeRun = runs[0];
+              lastRunUrl = authoritativeRun.html_url;
 
-              if (runs.some((run) => run.status !== 'completed')) {
+              if (authoritativeRun.status !== 'completed') {
                 await sleep(waitMs);
                 continue;
               }
 
-              const successRun = runs.find((run) => run.conclusion === 'success');
-              if (successRun) {
-                core.info(`ci.yml succeeded on release SHA ${sha}: ${successRun.html_url}`);
+              if (authoritativeRun.conclusion === 'success') {
+                core.info(
+                  `Authoritative ci.yml run succeeded on release SHA ${sha}: ${authoritativeRun.html_url}`
+                );
                 return;
               }
 
-              await sleep(waitMs);
+              core.setFailed(
+                `Authoritative ci.yml run for release SHA ${sha} concluded ` +
+                  `${authoritativeRun.conclusion}: ${authoritativeRun.html_url}`
+              );
+              return;
             }
 
             core.setFailed(

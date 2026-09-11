@@ -50,7 +50,7 @@
    you intentionally want to delete Compose volumes. For the full local Docker
    mental model, read [`guides/local-docker-dx.md`](guides/local-docker-dx.md).
 
-4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, compile strict, tests, Threadline trigger coverage, doc contract tests) runs in the **test** environment and picks up `config/test.exs`.
+4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, strict compiles, tests, Threadline trigger coverage, doc contract tests, and Dialyzer) runs in the **test** environment and picks up `config/test.exs`.
 
    ```bash
    MIX_ENV=test mix ci.all
@@ -201,7 +201,7 @@ npm run critic:label -- --round r1 --web
 npm run critic:label -- --round r1
 
 # Commit r1 BEFORE running r2 (enforces a time gap for honest blind test-retest)
-git add .planning/golden/rounds/r1.json
+git add test/fixtures/operator_surface/golden/rounds/r1.json
 git commit -m "chore: golden set round 1 labels"
 
 # Label round 2 (reshuffled, re-tokenized — never sees r1 content; add --web for the page)
@@ -248,9 +248,9 @@ npm run critic:score -- --golden              # bills the API for the golden cel
 cd ../../.. && mix critic.measure
 ```
 
-`npm run critic:score -- --golden` writes the per-dimension scores under `.planning/critic-scores/`.
+`npm run critic:score -- --golden` writes the per-dimension scores under `test/fixtures/operator_surface/critic-scores/`.
 `mix critic.measure` then computes per-lens Krippendorff's α, raw agreement, and n against the
-golden labels and writes the `critic_trust` block in `.planning/design-system-ledger.json`.
+golden labels and writes the `critic_trust` block in `test/fixtures/operator_surface/design-system-ledger.json`.
 It is local-only (not in `ci.all`) and never git-commits — you review the diff and commit.
 
 A lens is set `validated: true` only if α ≥ 0.67 AND n ≥ 20 AND raw_agreement ≥ 80% at the
@@ -280,11 +280,11 @@ mix ci.all
 ### Step 6 — Commit as one reviewed commit
 
 ```bash
-git add .planning/golden/golden-set.json
-git add .planning/golden/rounds/r2.json
-git add .planning/critic-scores/
+git add test/fixtures/operator_surface/golden/golden-set.json
+git add test/fixtures/operator_surface/golden/rounds/r2.json
+git add test/fixtures/operator_surface/critic-scores/
 git add .planning/CRITIQUE.md
-git add .planning/design-system-ledger.json  # critic_trust block updated
+git add test/fixtures/operator_surface/design-system-ledger.json  # critic_trust block updated
 git commit -m "chore: golden oracle scored + critic_trust measured (CRITIC-01)"
 ```
 
@@ -362,7 +362,7 @@ cd ../../.. && mix verify.mechanical
 ```bash
 # 5. Ratify + commit the evidence trail: append the human sign-off to
 #    ratchet.signoffs in the append-only ledger, then commit the reviewed diff.
-git add .planning/design-system-ledger.json   # ratchet.signoffs + any twin bump
+git add test/fixtures/operator_surface/design-system-ledger.json   # ratchet.signoffs + any twin bump
 git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regressions"
 ```
 
@@ -427,6 +427,38 @@ This table is not documentation-on-trust:
 the actual `--project` flags in the workflows and fails if a project a workflow
 really runs is missing from this table.
 
+### `ci-required` needs: roster
+
+This is what the single required check `CI required` actually proves: every
+pull request merged to `main` proves each of the following jobs succeeded.
+`test/threadline/ci_topology_contract_test.exs` derives this list from
+`.github/workflows/ci.yml`'s `ci-required` job itself and fails in either
+drift direction — a job the aggregate requires but this list omits, or a job
+this list claims but the aggregate no longer requires (the silent-narrowing
+case, per D-42) — so a future edit to `needs:` cannot shrink this guarantee
+without also failing a test.
+
+- `verify-format`
+- `verify-credo`
+- `verify-dialyzer`
+- `verify-compile-no-optional`
+- `verify-test`
+- `verify-hex-evaluator`
+- `verify-example-browser`
+- `verify-mechanical`
+- `verify-capture`
+- `verify-pgbouncer-topology`
+- `verify-docs`
+- `verify-hex-package`
+- `verify-release-shape`
+
+No `allowed-skips` or `allowed-failures` entry is documented here today,
+because `.github/workflows/ci.yml`'s `alls-green` step carries neither — every
+job above runs unconditionally. If either is ever introduced, it must be
+recorded here as `allowed-skips decision: D-NN` or `allowed-failures decision:
+D-NN`, citing the decision that authorized it; the roster contract test fails
+otherwise.
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):
@@ -435,16 +467,50 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 |---------|---------|
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
+| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on Elixir 1.17.3 / OTP 27.0 with the exact PLT cache lifecycle below |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
+| `verify-mechanical` | `mix verify.mechanical`; deterministic MODE-A / MODE-B gate over the committed `test/fixtures/operator_surface/scorecards/*.json` |
+| `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 
-Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below. Legacy tag-only fallback: [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml).
+### Dialyzer PLT cache and measurement contract
+
+`mix verify.dialyzer` is part of `mix ci.all`, and the unconditional
+`verify-dialyzer` job runs the same `mix dialyzer --no-check` analyzer command
+on the exact current lane: Ubuntu 24.04, Elixir 1.17.3, and OTP 27.0. The
+independent no-optional-dependencies compile lane never runs Dialyzer; analysis
+always uses the full optional build and the strict warning/ignore configuration
+from `mix.exs`.
+
+The PLT cache lives at `.dialyzer` and is keyed by the runner image, exact OTP
+and Elixir versions, and both `mix.lock` and `mix.exs` hashes. A restore prefix
+may reuse only a PLT from the same runner/OTP/Elixir boundary. On a miss, CI
+fetches dependencies and compiles outside the timers, measures `mix dialyzer
+--plt`, saves the successfully built PLT, and only then measures `mix dialyzer
+--no-check`. On an exact-key hit, CI skips PLT construction and reports no
+synthetic PLT-build values.
+
+The stable log fields are:
+
+- `THREADLINE_DIALYZER_PLT_CACHE`: exactly `miss` or `hit`.
+- `THREADLINE_DIALYZER_PLT_WALL_SECONDS`: numeric PLT-build wall time, miss only.
+- `THREADLINE_DIALYZER_PLT_MAX_RSS_KB`: integer PLT-build peak RSS, miss only.
+- `THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS`: numeric analysis wall time on every run.
+- `THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB`: integer analysis peak RSS on every run.
+
+GNU `time -v` parsing fails closed if any required measurement is absent or
+non-numeric. Durable cost claims require authenticated immutable run URLs, the
+exact commit and dependency/config hashes, and separate cold and exact-key-hit
+runs for that same commit; estimates and unlinked log excerpts are not valid
+evidence.
+
+Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
 For running the test job locally with [nektos/act](https://github.com/nektos/act), see `scripts/ci/README.md`.
 
@@ -546,8 +612,6 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 | `release_version` | Must match `@version` in `mix.exs` at that ref |
 | `dry_run` | `mix hex.publish --dry-run --yes` only |
 | `skip_distribution_sync` | Publish without opening the doc sync PR |
-
-**Legacy fallback:** pushing tag **`v*.*.*`** still triggers [`.github/workflows/hex-publish.yml`](.github/workflows/hex-publish.yml) (no CI gate, no doc sync).
 
 **Local manual runbook (optional):** `mix hex.publish --dry-run` / `mix hex.publish` with `mix hex.user auth` instead of CI.
 

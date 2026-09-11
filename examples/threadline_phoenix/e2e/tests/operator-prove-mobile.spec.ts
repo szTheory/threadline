@@ -57,7 +57,10 @@ test.describe("operator evidence and exports mobile UAT", () => {
     await expect(page.getByText(/Queued|Processing/).first()).toBeVisible();
     await expect(page.getByText("Export failed.").first()).toBeVisible();
     await expect(page.getByRole("link", { name: "Reopen source search" }).first()).toBeVisible();
-    await expect(page.getByText(/Expired|File unavailable/).first()).toBeVisible();
+    // Anchored to the canonical rendered literal (export_status_live.ex:489,
+    // "Export expired") — plan 198-25 fixed the "Expired" -> "Export expired"
+    // product copy, which this partial-capital-E regex no longer matched.
+    await expect(page.getByText(/Export expired|File unavailable/).first()).toBeVisible();
 
     const secondaryRefs = page.locator(".tl-secondary-ref");
     await expect(secondaryRefs.first()).toBeVisible();

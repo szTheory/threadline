@@ -12,18 +12,18 @@
  * stale verdict can never masquerade as a fresh score after the pixels changed.
  * Old-format (4-part) entries simply MISS under the 5-part key; no migration.
  *
- * Cache location: .planning/critic-verdict-cache/ (gitignored)
+ * Cache location: the adapter-owned generated verdict-cache directory (gitignored)
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import type { CriticDimensionResult } from "./schema.js";
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-const verdictCacheDir = resolve(repoRoot, ".planning/critic-verdict-cache");
+import {
+  atomicWriteFile,
+  currentOperatorSurfacePaths,
+  resolveContainedPath,
+  type AtomicWriteOptions,
+} from "../support/operator-surface-paths.js";
 
 export interface CachedVerdict {
   cell_id: string;
@@ -43,8 +43,8 @@ export interface CachedVerdict {
   cached_at: string;
 }
 
-function writeJson(path: string, value: unknown): void {
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+function writeJson(path: string, value: unknown, options: AtomicWriteOptions): void {
+  atomicWriteFile(path, `${JSON.stringify(value, null, 2)}\n`, options);
 }
 
 /**
@@ -62,13 +62,11 @@ function cacheKey(
   modelId: string,
   screenshotHash: string,
 ): string {
-  // Sanitize key components to prevent path traversal
-  const safe = (s: string) => s.replace(/[^a-zA-Z0-9._-]/g, "_");
-  return `${safe(cellId)}__${safe(dimension)}__${safe(rubricHash)}__${safe(modelId)}__${safe(screenshotHash)}`;
+  return `${cellId}__${dimension}__${rubricHash}__${modelId}__${screenshotHash}`;
 }
 
 function cachePath(key: string): string {
-  return resolve(verdictCacheDir, `${key}.json`);
+  return resolveContainedPath(currentOperatorSurfacePaths().verdictCacheDir, `${key}.json`);
 }
 
 /**
@@ -83,6 +81,7 @@ export function lookupCache(
   modelId: string,
   screenshotHash: string,
 ): CachedVerdict | null {
+  if (!existsSync(currentOperatorSurfacePaths().verdictCacheDir)) return null;
   const key = cacheKey(cellId, dimension, rubricHash, modelId, screenshotHash);
   const path = cachePath(key);
   if (!existsSync(path)) return null;
@@ -96,7 +95,11 @@ export function lookupCache(
 /**
  * Write a verdict to the cache.
  */
-export function writeCache(verdict: CachedVerdict): void {
+export function writeCache(
+  verdict: CachedVerdict,
+  options: AtomicWriteOptions = {},
+): void {
+  const { verdictCacheDir } = currentOperatorSurfacePaths();
   if (!existsSync(verdictCacheDir)) {
     mkdirSync(verdictCacheDir, { recursive: true });
   }
@@ -107,5 +110,5 @@ export function writeCache(verdict: CachedVerdict): void {
     verdict.model_id,
     verdict.screenshot_hash,
   );
-  writeJson(cachePath(key), verdict);
+  writeJson(cachePath(key), verdict, options);
 }

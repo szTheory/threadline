@@ -28,6 +28,7 @@ defmodule Bench.Helper do
     sha = String.trim(sha)
 
     preset = System.get_env("BENCH_PRESET") || "cold_single_table"
+
     %{rows: [[postgres_version]]} =
       Ecto.Adapters.SQL.query!(Threadline.Test.Repo, "SHOW server_version", [])
 
@@ -55,7 +56,16 @@ end
 defmodule Bench.Explain do
   def capture(query, file_path) do
     # Use Ecto to bypass ORM abstraction and grab direct plan
-    %{rows: [[json]]} = Ecto.Adapters.SQL.query!(Threadline.Test.Repo, "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " <> query, [])
-    File.write!(Path.expand(Path.join("baselines", file_path), __DIR__), Jason.encode!(json, pretty: true))
+    %{rows: [[json]]} =
+      Ecto.Adapters.SQL.query!(
+        Threadline.Test.Repo,
+        "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) " <> query,
+        []
+      )
+
+    File.write!(
+      Path.expand(Path.join("baselines", file_path), __DIR__),
+      Jason.encode!(json, pretty: true)
+    )
   end
 end

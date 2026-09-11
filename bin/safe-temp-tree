@@ -1,0 +1,213 @@
+#!/usr/bin/env bash
+
+# Source-only guard for deleting one explicitly registered temporary child.
+# The caller owns creation of the trusted parent and literal child. Registration
+# snapshots their canonical paths and lstat identities; cleanup revalidates all
+# of them immediately before the only recursive removal in this file.
+
+_safe_temp_tree_error() {
+  printf 'safe-temp-tree: %s\n' "$*" >&2
+  return 1
+}
+
+_safe_temp_tree_realpath() {
+  command realpath -- "$1" 2>/dev/null
+}
+
+_safe_temp_tree_identity() {
+  if stat -f '%d:%i' -- "$1" >/dev/null 2>&1; then
+    stat -f '%d:%i' -- "$1"
+  else
+    stat -c '%d:%i' -- "$1"
+  fi
+}
+
+_safe_temp_tree_repo_root() {
+  local source_path source_dir
+  source_path="${BASH_SOURCE[0]}"
+  source_dir="$(cd "$(dirname "$source_path")" && pwd -P)" || return 1
+  git -C "$source_dir/.." rev-parse --show-toplevel 2>/dev/null
+}
+
+_safe_temp_tree_is_direct_child() {
+  local parent="$1" child="$2"
+  [ "$(dirname "$child")" = "$parent" ] && [ "$child" != "$parent" ]
+}
+
+safe_temp_tree_register() {
+  local parent="${1-}" child="${2-}"
+  local canonical_parent canonical_child parent_identity child_identity
+
+  [ -n "$parent" ] || {
+    _safe_temp_tree_error 'trusted parent is empty'
+    return 1
+  }
+  [ -n "$child" ] || {
+    _safe_temp_tree_error 'literal child is empty'
+    return 1
+  }
+  [[ "$parent" = /* ]] || {
+    _safe_temp_tree_error 'trusted parent must be absolute'
+    return 1
+  }
+  [[ "$child" = /* ]] || {
+    _safe_temp_tree_error 'literal child must be absolute'
+    return 1
+  }
+  [ "$parent" != / ] || {
+    _safe_temp_tree_error 'trusted parent may not be root'
+    return 1
+  }
+  [ "$child" != / ] || {
+    _safe_temp_tree_error 'literal child may not be root'
+    return 1
+  }
+  [ ! -L "$parent" ] && [ -d "$parent" ] || {
+    _safe_temp_tree_error 'trusted parent must be an existing non-symlink directory'
+    return 1
+  }
+  [ ! -L "$child" ] && [ -d "$child" ] || {
+    _safe_temp_tree_error 'literal child must be an existing non-symlink directory'
+    return 1
+  }
+
+  canonical_parent="$(_safe_temp_tree_realpath "$parent")" || {
+    _safe_temp_tree_error 'trusted parent cannot be canonicalized'
+    return 1
+  }
+  canonical_child="$(_safe_temp_tree_realpath "$child")" || {
+    _safe_temp_tree_error 'literal child cannot be canonicalized'
+    return 1
+  }
+  [ "$canonical_parent" = "$parent" ] || {
+    _safe_temp_tree_error 'trusted parent is not its canonical absolute path'
+    return 1
+  }
+  [ "$canonical_child" = "$child" ] || {
+    _safe_temp_tree_error 'literal child is not its canonical absolute path'
+    return 1
+  }
+  _safe_temp_tree_is_direct_child "$canonical_parent" "$canonical_child" || {
+    _safe_temp_tree_error 'literal child must be exactly one descendant below trusted parent'
+    return 1
+  }
+
+  parent_identity="$(_safe_temp_tree_identity "$parent")" || {
+    _safe_temp_tree_error 'trusted parent identity is unavailable'
+    return 1
+  }
+  child_identity="$(_safe_temp_tree_identity "$child")" || {
+    _safe_temp_tree_error 'literal child identity is unavailable'
+    return 1
+  }
+
+  SAFE_TEMP_TREE_PARENT="$canonical_parent"
+  SAFE_TEMP_TREE_CHILD="$canonical_child"
+  SAFE_TEMP_TREE_PARENT_IDENTITY="$parent_identity"
+  SAFE_TEMP_TREE_CHILD_IDENTITY="$child_identity"
+}
+
+_safe_temp_tree_reject_worktree_root() {
+  local target="$1" repo_root record registered canonical_registered
+
+  repo_root="$(_safe_temp_tree_repo_root)" || {
+    _safe_temp_tree_error 'repository root is unavailable for worktree safety check'
+    return 1
+  }
+
+  while IFS= read -r -d '' record; do
+    case "$record" in
+      worktree\ *)
+        registered="${record#worktree }"
+        [ -e "$registered" ] || continue
+        canonical_registered="$(_safe_temp_tree_realpath "$registered")" || {
+          _safe_temp_tree_error "registered Git worktree cannot be canonicalized: $registered"
+          return 1
+        }
+        if [ "$target" = "$canonical_registered" ]; then
+          _safe_temp_tree_error "refusing registered Git worktree root: $target"
+          return 1
+        fi
+        ;;
+    esac
+  done < <(git -C "$repo_root" worktree list --porcelain -z)
+}
+
+safe_temp_tree_cleanup() {
+  local parent="${1-}" child="${2-}"
+  local canonical_parent canonical_child parent_identity child_identity
+
+  [ -n "$parent" ] && [ -n "$child" ] || {
+    _safe_temp_tree_error 'cleanup requires explicit non-empty parent and child paths'
+    return 1
+  }
+  [[ "$parent" = /* ]] && [[ "$child" = /* ]] || {
+    _safe_temp_tree_error 'cleanup paths must be absolute'
+    return 1
+  }
+  [ "${SAFE_TEMP_TREE_PARENT-}" = "$parent" ] && [ "${SAFE_TEMP_TREE_CHILD-}" = "$child" ] || {
+    _safe_temp_tree_error 'cleanup paths do not match the registered temp tree'
+    return 1
+  }
+  [ "$parent" != / ] && [ "$child" != / ] && [ "$child" != "$parent" ] || {
+    _safe_temp_tree_error 'cleanup target may not be root or the trusted parent'
+    return 1
+  }
+  [ ! -L "$parent" ] && [ -d "$parent" ] || {
+    _safe_temp_tree_error 'trusted parent was replaced or is a symlink'
+    return 1
+  }
+  [ ! -L "$child" ] && [ -d "$child" ] || {
+    _safe_temp_tree_error 'literal child was replaced, removed, or is a symlink'
+    return 1
+  }
+
+  canonical_parent="$(_safe_temp_tree_realpath "$parent")" || {
+    _safe_temp_tree_error 'trusted parent cannot be re-canonicalized'
+    return 1
+  }
+  canonical_child="$(_safe_temp_tree_realpath "$child")" || {
+    _safe_temp_tree_error 'literal child cannot be re-canonicalized'
+    return 1
+  }
+  [ "$canonical_parent" = "$parent" ] && [ "$canonical_child" = "$child" ] || {
+    _safe_temp_tree_error 'cleanup paths changed canonical identity'
+    return 1
+  }
+  _safe_temp_tree_is_direct_child "$canonical_parent" "$canonical_child" || {
+    _safe_temp_tree_error 'cleanup target escaped its trusted parent'
+    return 1
+  }
+
+  parent_identity="$(_safe_temp_tree_identity "$parent")" || return 1
+  child_identity="$(_safe_temp_tree_identity "$child")" || return 1
+  [ "$parent_identity" = "${SAFE_TEMP_TREE_PARENT_IDENTITY-}" ] || {
+    _safe_temp_tree_error 'trusted parent lstat identity changed after registration'
+    return 1
+  }
+  [ "$child_identity" = "${SAFE_TEMP_TREE_CHILD_IDENTITY-}" ] || {
+    _safe_temp_tree_error 'literal child lstat identity changed after registration'
+    return 1
+  }
+
+  _safe_temp_tree_reject_worktree_root "$canonical_child" || return 1
+
+  # Every predicate above is repeated as close as practical to this sole removal.
+  [ ! -L "$child" ] && [ "$(_safe_temp_tree_realpath "$child")" = "$canonical_child" ] || {
+    _safe_temp_tree_error 'literal child changed during final cleanup validation'
+    return 1
+  }
+  [ "$(_safe_temp_tree_identity "$child")" = "$child_identity" ] || {
+    _safe_temp_tree_error 'literal child identity changed during final cleanup validation'
+    return 1
+  }
+
+  rm -rf -- "$canonical_child" || {
+    _safe_temp_tree_error "could not remove registered child: $canonical_child"
+    return 1
+  }
+  printf 'SAFE_TEMP_TREE_REMOVED %s\n' "$canonical_child"
+
+  unset SAFE_TEMP_TREE_PARENT SAFE_TEMP_TREE_CHILD
+  unset SAFE_TEMP_TREE_PARENT_IDENTITY SAFE_TEMP_TREE_CHILD_IDENTITY
+}

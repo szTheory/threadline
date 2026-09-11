@@ -1,21 +1,21 @@
 ---
-gsd_state_version: 1.0
+gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 198
-current_phase_name: Green Bringup
+current_phase: 199
+current_phase_name: decouple
 status: executing
-stopped_at: Completed 198-06-PLAN.md
-last_updated: "2026-08-28T02:00:19.590Z"
-last_activity: 2026-08-28
-last_activity_desc: "198-06 complete: hazard workflows deleted, single gated publish path, branches archived"
-state_head: d1b3bc81fc077d80d95884f8517e01c086d8ef59
+stopped_at: Completed 199-20-PLAN.md
+last_updated: "2026-09-11T19:50:11.691Z"
+last_activity: 2026-09-10
+last_activity_desc: Phase 199 execution started
+state_head: fd439e3b256351eea9a6a12d99242aea387862da
 progress:
   total_phases: 7
-  completed_phases: 0
-  total_plans: 7
-  completed_plans: 6
-  percent: 0
+  completed_phases: 1
+  total_plans: 87
+  completed_plans: 85
+  percent: 14
 ---
 
 # Project State: Threadline
@@ -25,14 +25,29 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198
+**Current focus:** Phase 199 — Decouple
 
 ## Current Position
 
-Phase: 198 — Green Bringup — EXECUTING
-Plan: 7 of 7 (6 of 7 complete)
-Status: Ready to execute 198-07 (the push plan)
-Last activity: 2026-08-28 — 198-06 complete: both hazard workflows deleted, one gated publish path, archive tags created, single worktree
+Phase: 199 (decouple) — READY TO EXECUTE
+Plan: 14 of 21
+Status: Executing — Plan 199-20 completed the exact source-owned ratchet and local strict-analyzer proof; Plan 199-14 remains in Wave 7 before final certification in Plan 199-21
+Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
+
+- **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
+- **Verification** (`198-VERIFICATION.md`, round 6): **gaps_found**. Integrity **PASS** on six independently re-derived vectors (CR-01 fix traced by direct code read; GREEN-07 disposition propagation confirmed append-only; D-42 diff empty over `1bda5d1c..HEAD`; `ci-required` `needs:` still names both red lanes; the sealed prediction at `23c16267` byte-identical before/after the push; run `33344382035` re-queried via `gh run view`). Round 5's two gaps are both CLOSED. Remaining: GREEN-07/SC3 is still literally unmet in CI (`CI required` = `failure`) — now a terminal maintainer-accepted gap rather than an open one; and GREEN-08's second clause (PR #26 mergeable) stays BLOCKED downstream of it.
+- **Score discrepancy, unreconciled and deliberately not silently fixed:** `198-VERIFICATION.md` frontmatter records `requirements_complete: 10`, counting GREEN-08 as not fully met because its PR-#26-mergeable clause is BLOCKED. `REQUIREMENTS.md` records GREEN-08 as `Complete` with a BLOCKED note, giving 11/12. Round 5 also said 11/12. Two artifacts therefore give two different answers to how many requirements are Complete. This is a maintainer call (the same class of disposition decision 198-39 established must not be executor-selected) and is left OPEN.
+
+Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, preserved):
+
+- **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
+- **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
+
+Last activity: 2026-09-10 — Phase 199 execution started
+
+Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
+
+Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final plan of Phase 198): pre-push prediction committed (`23c16267`), maintainer pushed `ci/198-round6` and opened draft PR #33 by hand, CI run `33344382035` measured to completion (attempt 1, `failure`, 10m36s). GREEN-04 re-proved Complete strictly from this run; GREEN-07 re-measured unchanged (still Pending, `198-39-DECISION.md` option-a disposition undisturbed); GREEN-01/02/03/05/06/09/10/11/12 carried forward with no new work. D-42 invariants empty over the round-6-specific commit range. All 40 phase-198 plans now executed.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -55,7 +70,7 @@ Last activity: 2026-08-28 — 198-06 complete: both hazard workflows deleted, on
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
+Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Performance Metrics
 
@@ -73,6 +88,46 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 198 P06 | 4h 15m | 4 tasks | 7 files |
+| Phase 198 P07 | 1h 20m | 3 tasks | 4 files |
+| Phase 198 P38 | 45min | 3 tasks | 5 files |
+| Phase 198 P41 | 7min | 2 tasks | 2 files |
+| Phase 198 P42 | 6min | 2 tasks | 5 files |
+| Phase 198 P47 | 9 min | 2 tasks | 3 files |
+| Phase 198 P48 | 18 min | 3 tasks | 8 files |
+| Phase 198 P49 | 15 min | 2 tasks | 5 files |
+| Phase 198 P50 | 15 min | 2 tasks | 4 files |
+| Phase 198 P51 | 30 min | 2 tasks | 5 files |
+| Phase 198 P53 | 24 min | 2 tasks | 4 files |
+| Phase 198 P54 | 3 min | 1 tasks | 3 files |
+| Phase 198 P55 | 27 min | 2 tasks | 5 files |
+| Phase 198 P56 | 4 min | 2 tasks | 2 files |
+| Phase 198 P57 | 18 min | 2 tasks | 3 files |
+| Phase 198 P58 | 9 min | 2 tasks | 4 files |
+| Phase 198 P59 | 6 min | 2 tasks | 4 files |
+| Phase 198 P60 | 18 min | 2 tasks | 3 files |
+| Phase 198 P61 | 24 min | 3 tasks | 7 files |
+| Phase 198 P62 | 33 min | 3 tasks | 7 files |
+| Phase 198 P64 | 3 min | 2 tasks | 3 files |
+| Phase 198 P66 | 9 min | 2 tasks | 3 files |
+| Phase 199 P01 | 11 min | 2 tasks | 2 files |
+| Phase 199 P03 | 16 min | 2 tasks | 3 files |
+| Phase 199 P04 | 10 min | 2 tasks | 4 files |
+| Phase 199 P07 | 6 min | 2 tasks | 1 files |
+| Phase 199 P09 | 7 min | 2 tasks | 8 files |
+| Phase 199 P10 | 7min | 2 tasks | 9 files |
+| Phase 199 P12 | 3h 32min | 2 tasks | 18 files |
+| Phase 199 P02 | 2h52m | 2 tasks | 10 files |
+| Phase 199 P05 | 14 min | 2 tasks | 17 files |
+| Phase 199 P06 | 6 min | 2 tasks | 6 files |
+| Phase 199 P11 | 11min | 2 tasks | 4 files |
+| Phase 199 P08 | 20 min | 2 tasks | 446 files |
+| Phase 199 P13 | 8 min | 0 tasks | 5 files |
+| Phase 199 P15 | 16 min | 2 tasks | 6 files |
+| Phase 199 P16 | 13 min | 2 tasks | 6 files |
+| Phase 199 P17 | 15 min | 2 tasks | 6 files |
+| Phase 199 P18 | 6 min | 2 tasks | 6 files |
+| Phase 199 P19 | 15 min | 3 tasks | 6 files |
+| Phase 199 P20 | 17 min | 2 tasks | 2 files |
 
 ## Deferred Items
 
@@ -454,15 +509,110 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 190]: Non-public row-history links require exact schema-qualified schemas keys such as support.tickets; public rows keep bare-table shorthand.
 - [191-03]: ADOPT-01 install/version reconciliation — seven install pins flipped to three-segment ~> 0.9.0 (co-committed with four guard tests, no CI/release reddening); evaluating-threadline.md false 0.6.0 SSOT corrected to 0.9.0 + release-please marker/extra-files wiring (historical lines preserved); version_truth_doc_contract_test derives Families A/B/C from mix.exs @version and is registered in verify.doc_contract. Pre-existing v1_23_charter failure left deferred (charter truth out of this plan's task scope).
 - [Phase ?]: [195-01]: verify.ui_critique is local-only (excluded from ci.all, exits 0 when ANTHROPIC_API_KEY absent, RUNNER-04). verify.critic_trust is pure-Elixir in ci.all before verify.mechanical. All 6 critic lenses seed validated:false. critic-scores/ tree is gitignored; .planning/golden/ is committed oracle.
+- [Phase 198]: [198-38]: Repo.checkout/2 chosen over pg_advisory_xact_lock/Repo.transaction/2 to pin the demo lock critical section — the guarded body issues many independent per-seed Repo.transaction/1 calls by design and an outer transaction would collapse them.
+- [Phase 198]: [198-38]: promote — Demo.Seed no longer maintains its own copy of the lock guard trio; Demo.Seed.run/0 delegates to Reset.with_demo_lock/1, eliminating the two-copies drift that produced CR-01.
+- [Phase 198]: [198-39]: option-a — maintainer accepted GREEN-07/roadmap SC3 as permanently Pending for v1.41 at a blocking checkpoint:decision; verify-capture and verify-example-browser stay red by construction under D-39 for the whole milestone; no gate narrowed, no baseline regenerated. See 198-39-DECISION.md.
+- [Phase 198]: The successful PR run supersedes Round 6's red-lane cause but does not close GREEN-07's separate origin/main exact-ancestry clause. — The run is pinned to an immutable branch subject while final local HEAD includes later mandatory GSD commits.
+- [Phase 198]: No remote or ruleset mutation is attempted because mandatory evidence and summary commits postdate any finite in-plan push. — A pre-closeout ref update cannot contain commits that do not yet exist.
+- [Phase 198]: GREEN-07 remains Pending because exact ancestry fails first and the canonical exact-SHA main run also concludes failure.
+- [Phase 198]: GREEN-08 is re-proved from two identical complete editable-field ruleset digests plus active enforcement, no bypass actors, and one byte-exact required context.
+- [Phase 198]: No remote or ruleset mutation is authorized; any future mutation requires a fresh blocking-human maintainer checkpoint.
+- [Phase 198]: GREEN-07 remains Pending on exact ancestry and exact-main CI; PR #34 is branch-only evidence. — Preserve the requirement own predicate and the maintainer selected option-a disposition.
+- [Phase 198]: GREEN-08 remains Complete for the exact required-context contract while roadmap criterion 4 remains partial. — Ruleset 21702804 is correct, but PR #26 remains BLOCKED downstream of GREEN-07.
+- [Phase 198]: Phase 198 freezes its exact evidence compatibility contract while Phase 199 retains the generalized classifier. — Keeps gap closure repository-portable without absorbing the next phase scope.
+- [Phase 198]: Operator login redirects must match BASE_URL scheme, host, effective port, and exact path. — A login-looking cross-origin Location is not proof that the local operator mount exists.
+- [Phase 198]: Evidence subjects, not copied narrative prose, are the primary keys for policy joins.
+- [Phase 198]: The GitHub boundary accepts only list-main-runs and view-run-jobs symbolic operations and constructs every argv token internally.
+- [Phase 198]: [198-50] Treat the opt-in obscurer as proof of current assertion sensitivity, not proof of the historical failure's cause.
+- [Phase 198]: [198-50] Keep the red-control environment read inside the single named scenario and reject unknown non-empty values explicitly.
+- [Phase 198]: [198-50] Persist synthetic DOM identifiers and geometry only; exclude field values, cookies, headers, credentials, and environment data.
+- [Phase 198]: Plan 198-51: maintainer selected abort verbatim; no branch, PR, tag, main, ruleset, or protection mutation authority was granted.
+- [Phase 198]: Plan 198-52 must not execute: six remote ci/198-* refs exist while its decision authority covers only three and its final predicate requires the complete namespace empty.
+- [Phase 198]: A preservation subject is keyed by side plus full SHA, so same-name local and origin refs never collapse. — Distinct handles require collision-free archive and restore paths.
+- [Phase 198]: Plan 52 remains preserved but superseded; round-11 production evidence grants no mutation authority. — Fresh exact-subject authority is deferred to Plan 54.
+- [Phase 198]: The maintainer selected retire verbatim for the exact nine round-11 side/SHA subjects bound to inventory digest 88888854b44111835d753261eb15332a7c98fae7922d65d0d46e6fc5423a4655.
+- [Phase 198]: Plan 54 grants authority only to Plan 55's preservation-first sequence; Plan 54 performed no external mutation.
+- [Phase 198]: Every round-11 side/SHA preservation subject has a verified local annotated tag, matching origin peeled object, and D-31 register join before its mutable handle was retired.
+- [Phase 198]: GREEN-12 is Complete from empty live ci/198-* namespaces; GREEN-07 remains Pending and protected controls remain unchanged.
+- [Phase 198]: Phase 198's audited summary set ends at Plan 59; Plan 60 is the sole non-recursive terminal certification exception.
+- [Phase 198]: Normal summary validation accepts the exact present 48-59 subset; explicit final mode requires every audited summary 01-59.
+- [Phase 198]: Production ref-disposition authority stages reject fixture adapters and use bounded fresh observations; synthetic lifecycle proof is fixture-* only.
+- [Phase 198]: Completed round-11 receipts remain immutable historical evidence and are not retroactively upgraded into argv or timestamp proof.
+- [Phase 198]: Plan 198-58: four mechanically knowable prohibitions close only from named passing tests; the historical command-method prohibition remains pending judgment.
+- [Phase 198]: Plan 198-58: T-198-55-03 remains irrecoverable, below threshold, open, and not accepted.
+- [Phase 198]: The recorded cannot-attest outcome leaves P-198-55-01 pending and is neither new mutation authority nor risk acceptance.
+- [Phase 198]: T-198-55-03 remains open below threshold because no missing per-operation receipt fields were supplied.
+- [Phase 198]: Phase 198 terminal certification audits summaries 01-59 while Plan 60 remains the sole tested non-recursive summary exception.
+- [Phase 198]: Terminal evidence preserves T-198-55-03 open below threshold and GREEN-07 accepted-Pending; canonical re-audits remain orchestrator-owned.
+- [Phase 198]: Every Phase-198 terminal source is authorized only by exact certified_head equality plus certified_head:path blob identity and digest.
+- [Phase 198]: Classic protection communicates only absent or present; all other HTTP, transport, malformed, or unknown states fail closed.
+- [Phase 198]: T-198-55-02 and T-198-55-03 remain open and not accepted; GREEN-07 remains accepted-Pending.
+- [Phase 198]: [198-62] Legacy receipt compatibility requires exact canonical Round-11 paths, blobs, byte digests, completed state, and 41-row joins; every failed predicate selects strict validation.
+- [Phase 198]: [198-62] Plan 62 is the sole mechanically validated non-recursive summary exception after auditing summaries 01-61 exactly once.
+- [Phase 198]: [198-62] T-198-55-02 and T-198-55-03 remain open and not accepted; T-198-57-04 is absent from terminal open findings; GREEN-07 remains accepted-Pending.
+- [Phase 198]: The maintainer accepted only T-198-55-02's residual historical argv/non-force proof uncertainty with literal signer YOUR_NAME; no evidence or mitigation is claimed.
+- [Phase 198]: Plan 63's decline remains immutable history, while canonical security retains sole authority to change the threat verdict before phase verification runs.
+- [Phase 198]: Summaries 01-61 remain the immutable audited-final set; Plan 62 remains the sole terminal-certification exception.
+- [Phase 198]: Summaries 63-65 require exact content-bound manifest records; Plan 66 is an explicit non-terminal final-mode repair summary.
+- [Phase 198]: Plan 66 restores only current-tree GREEN-04 determinism; GREEN-07 remains accepted-Pending and security dispositions remain unchanged.
+- [Phase 199]: [199-01] MechanicalChecker owns evaluation only; repository fixture discovery remains at test and tooling edges.
+- [Phase 199]: [199-01] Invalid corpora return distinct tagged errors with expanded paths, repository-only=false, and one recovery call.
+- [Phase 199]: Private Mix-task overrides resolve within the loaded repository and generated critic scores remain separate from immutable evidence roots. — Keeps repository discovery at the maintainer edge and prevents path traversal, symlink, prefix, and root-alias writes.
+- [Phase 199]: Canonical critic fixture replacement uses exclusive sibling temps with sync, close-before-rename, and unconditional cleanup. — Preserves original bytes on failure while making successful regeneration atomic and review-explicit.
+- [Phase 199]: The ESM adapter owns frozen deterministic roots; callers may override fixture and output roots only through explicit CLI flags. — Keeps repository discovery at the TypeScript execution edge and avoids ambient environment service location.
+- [Phase 199]: Containment rejects traversal and every symlink component, canonicalizes the nearest existing parent, and compares with path.relative. — Prevents traversal, prefix-confusion, and alias escapes for both existing and prospective targets.
+- [Phase 199]: Canonical TypeScript replacement uses an exclusive sibling temp, file sync, close-before-rename, and unconditional cleanup. — Preserves original bytes and prevents temp leakage on forced failure.
+- [Phase 199]: Manifest membership comes only from git ls-files; filesystem presence alone never grants evidence authority.
+- [Phase 199]: Generated critic-score bytes remain invisible to integrity manifests until explicitly promoted into the Git index.
+- [Phase 199]: Active citation detection is derived from executable/current-document classes; a historical live-input citation is allowed only when the same artifact has an exact Phase 199 supersession marker.
+- [Phase 199]: Git history plus full recovery commits replaces archive copies or tombstones for all four removed artifacts.
+- [Phase 199]: [199-10] PLT policy ignores only .plt and .plt.hash files beneath the anchored .dialyzer producer root.
+- [Phase 199]: [199-10] Root formatter delegates bench and examples/threadline_phoenix while child configs retain imports and nested migration ownership.
+- [Phase 199]: [199-10] Newly owned benchmark entrypoints are formatted in the same change that adds them to the required formatter surface.
+- [Phase 199]: [199-12] Derive planning-history scan inputs from tracked ExUnit, Mix-task, mix.exs, and workflow sources; exclude only the scanner's own synthetic-control file.
+- [Phase 199]: [199-12] Keep D-01 operator evidence corpus migration separately owned by Plans 199-02 through 199-08 while blocking executable planning-receipt reads now.
+- [Phase 199]: [199-12] Retain live CI recorder, workflow, and artifact invariants while retiring completed planning-prose receipt assertions.
+- [Phase 199]: [199-02] StressLive accepts only non-empty decoded ledger-entry maps under exact session key threadline_stress_ledger_entries.
+- [Phase 199]: [199-02] ExUnit corpus paths descend from one test-support root that Plan 199-08 can flip atomically.
+- [Phase 199]: [199-02] Refute partition checks pass explicit empty mechanical floors because they exercise absolute ceilings only.
+- [Phase 199]: Plan 199-05: Every critic consumer resolves immutable and generated evidence through the shared TypeScript adapter; explicit root flags activate centrally.
+- [Phase 199]: Plan 199-05: Routine critic:check is deterministic and no-paid while explicit scoring commands retain paid critic behavior.
+- [Phase 199]: Plan 199-05: Generated score and cache identifiers are rejected rather than sanitized, preventing traversal and collision aliases.
+- [Phase 199]: Capture consumers derive immutable corpus and e2e artifact locations from the shared TypeScript adapter, containing every dynamic output segment.
+- [Phase 199]: Playwright owns contained screenshot writes; direct text, JSON, and ARIA evidence replacement uses the shared atomic writer.
+- [Phase 199]: Reviewed stress snapshots remain under tests while optional generated stress packets are confined to e2e/artifacts.
+- [Phase 199]: [199-11] Cleanup snapshots canonical parent/child lstat identities and rejects every live Git worktree root before removal.
+- [Phase 199]: [199-11] Clean-checkout verification detaches a no-local clone at exact committed HEAD and keeps index/untracked state out of the proof.
+- [Phase 199]: The immutable evidence root is test/fixtures/operator_surface; generated critic output remains ignored and outside manifest authority.
+- [Phase 199]: Live evidence joins use mechanical-floor base IDs with explicit variant matching and the documented veto-ordering exception.
+- [Phase 199]: Hex privacy is proven from the unpacked artifact file list rather than inferred solely from configuration.
+- [Phase 199]: Plan 199-13 halted on the measured 22-file Dialyzer warning-origin set; the 14-file cap was not reinterpreted or weakened.
+- [Phase 199]: No Dialyzer suppression or ignore ceiling is approved until the sealed warning set is re-sliced and individually dispositioned.
+- [Phase 199]: Plan 199-15: Hash only normalized raw warnings inside each fixture's authorized origins so disjoint later remediation does not invalidate completed slices.
+- [Phase 199]: Plan 199-15: Require exact warning-origin coverage and reject malformed, duplicate, unauthorized, unrecorded, or stale residue evidence.
+- [Phase 199]: Plan 199-15: Describe unconditional Mix.raise/1 helpers with truthful private no_return() specs without changing runtime behavior.
+- [Phase 199]: Use concrete AuditChange and AuditTransaction struct types where remote schema modules do not export t/0 types.
+- [Phase 199]: Thread the validated continuity schema forward and match :code.priv_dir/1's charlist/error-tuple results explicitly.
+- [Phase 199]: Normalize CSV and NDJSON rows to binary chunks so serialization contracts remain concrete without widening public APIs to streams.
+- [Phase 199]: Log export close and removal failures without replacing the established primary result.
+- [Phase 199]: Use concrete source-tree structs where provider modules do not export t/0.
+- [Phase 199]: Keep Plug remote-address formatting tuple-only and cover both IPv4 and IPv6.
+- [Phase 199]: Require every redaction parser reason to have an explicit operator-facing presentation clause.
+- [Phase 199]: Use normalized binary inputs directly in private path, email, and URL presentation helpers.
+- [Phase 199]: Consume LiveView timer results explicitly while preserving intervals, message names, and scheduling count.
+- [Phase 199]: Match Timeline export counts and transaction value tokens only across result shapes guaranteed by their callees.
+- [Phase 199]: Keep .dialyzer_ignore.exs empty and the committed ceiling at zero because every sealed warning is fixed.
+- [Phase 199]: Use only the five source fixtures as historical authority; the executable contract reads no planning artifact.
+- [Phase 199]: Treat unsealed warnings, origin drift, broad suppressions, and unused filters as fail-closed conditions.
 
 ### Blockers
 
-- None.
+- `origin/main` is 202 commits behind local `HEAD` (measured 2026-08-30T22:50:23Z, up from round 5's 186 — the growth is plans 198-38/198-39 landing on `main` after PR #32 was opened, not a correction). This is NOT an independent blocker: it is owned by GREEN-07's accepted-Pending disposition (option-a, `198-39-DECISION.md`) — no push closes it while `CI required` stays red under branch protection requiring that single context, and no push is authorized until plan 198-40's own blocking checkpoint. PR #26 (release-please) and PR #32 (`ci/198-round5`, draft, DO NOT MERGE) both remain `mergeStateStatus: BLOCKED` for the same reason.
 
 ## Session Continuity
 
-**Last session:** 2026-08-28T02:00:19.571Z
-**Stopped at:** Completed 198-06-PLAN.md
+**Last session:** 2026-09-11T19:50:11.518Z
+**Stopped at:** Completed 199-20-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

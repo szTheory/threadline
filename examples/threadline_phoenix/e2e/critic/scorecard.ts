@@ -1,9 +1,9 @@
 /**
- * scorecard.ts — Writes per-dimension critic scores to .planning/critic-scores/.
+ * scorecard.ts — Writes per-dimension critic scores to the generated score root.
  *
- * Output tree: .planning/critic-scores/<cell_id>/<lens>/<dimension>.json
+ * Output tree: <cell_id>/<lens>/<dimension>.json
  *
- * INVARIANT: NEVER writes under .planning/scorecards/ — that tree is the deterministic
+ * INVARIANT: NEVER writes under committed scorecards — that tree is the deterministic
  * committed bundle gated by verify.mechanical in ci.all. LLM output goes ONLY under
  * critic-scores/. This is enforced by the guard in critic_trust_test.exs.
  *
@@ -13,18 +13,14 @@
  * Unstable cells set score and current to null (NEVER 0) — D-04 / Pitfall 5.
  */
 
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, mkdirSync } from "node:fs";
 import type { CriticDimensionResult, LensName } from "./schema.js";
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-
-// The ONLY permitted write root — guard: never under .planning/scorecards/
-const CRITIC_SCORES_ROOT = resolve(repoRoot, ".planning/critic-scores");
-// Prohibited root — never write here (asserted by critic_trust_test.exs)
-const FORBIDDEN_ROOT = resolve(repoRoot, ".planning/scorecards");
+import {
+  atomicWriteFile,
+  currentOperatorSurfacePaths,
+  resolveContainedPath,
+  type AtomicWriteOptions,
+} from "../support/operator-surface-paths.js";
 
 export interface ScorecardWriteParams {
   cellId: string;
@@ -65,33 +61,31 @@ export interface ScorecardOutput {
   scored_at: string;
 }
 
-function writeJson(path: string, value: unknown): void {
+function writeJson(path: string, value: unknown, options: AtomicWriteOptions): void {
   // Two-space indent + trailing newline: byte-stable convention (matches project scorecards)
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  atomicWriteFile(path, `${JSON.stringify(value, null, 2)}\n`, options);
 }
 
 /**
  * Write a stamped critic-score file for one (cell, lens, dimension).
  *
- * T-195-16 guard: throws if any constructed path resolves under FORBIDDEN_ROOT
- * (.planning/scorecards/). This is an in-process check; the ExUnit guard in
- * critic_trust_test.exs provides the CI-level assertion.
+ * T-195-16 guard: shared canonical containment keeps every constructed path under
+ * the generated root. The ExUnit guard supplies the independent CI assertion.
  */
-export function writeCriticScore(params: ScorecardWriteParams): void {
-  // Guard (T-195-16): verify output path is inside critic-scores/, NOT scorecards/
-  const outputDir = resolve(CRITIC_SCORES_ROOT, params.cellId, params.lens);
-
-  if (outputDir.startsWith(FORBIDDEN_ROOT)) {
-    throw new Error(
-      `[scorecard] FATAL: attempted write under .planning/scorecards/ (T-195-16 guard).\n` +
-        `Constructed path: ${outputDir}\n` +
-        `Critic output must go under .planning/critic-scores/ ONLY.`,
-    );
-  }
+export function writeCriticScore(
+  params: ScorecardWriteParams,
+  options: AtomicWriteOptions = {},
+): void {
+  const { criticScoresDir } = currentOperatorSurfacePaths();
+  if (!existsSync(criticScoresDir)) mkdirSync(criticScoresDir, { recursive: true });
+  const outputDir = resolveContainedPath(
+    criticScoresDir,
+    `${params.cellId}/${params.lens}`,
+  );
 
   mkdirSync(outputDir, { recursive: true });
 
-  const outputPath = resolve(outputDir, `${params.dimension}.json`);
+  const outputPath = resolveContainedPath(outputDir, `${params.dimension}.json`);
 
   const output: ScorecardOutput = {
     cell_id: params.cellId,
@@ -114,7 +108,7 @@ export function writeCriticScore(params: ScorecardWriteParams): void {
     scored_at: new Date().toISOString(),
   };
 
-  writeJson(outputPath, output);
+  writeJson(outputPath, output, options);
 }
 
 /**
@@ -126,7 +120,10 @@ export function criticScorePath(
   lens: LensName,
   dimension: string,
 ): string {
-  return resolve(CRITIC_SCORES_ROOT, cellId, lens, `${dimension}.json`);
+  return resolveContainedPath(
+    currentOperatorSurfacePaths().criticScoresDir,
+    `${cellId}/${lens}/${dimension}.json`,
+  );
 }
 
 /**
@@ -137,5 +134,6 @@ export function criticScoreExists(
   lens: LensName,
   dimension: string,
 ): boolean {
+  if (!existsSync(currentOperatorSurfacePaths().criticScoresDir)) return false;
   return existsSync(criticScorePath(cellId, lens, dimension));
 }

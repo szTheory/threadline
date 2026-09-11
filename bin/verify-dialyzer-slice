@@ -1,0 +1,404 @@
+#!/usr/bin/env elixir
+
+defmodule Threadline.DialyzerSliceVerifier do
+  @moduledoc false
+
+  @root Path.expand("..", __DIR__)
+  @schema_version 1
+  @dialyzer_command "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status"
+  @dialyzer_args ["dialyzer", "--no-check", "--format", "raw", "--ignore-exit-status"]
+  @sha256 ~r/\A[0-9a-f]{64}\z/
+  @warning_line ~r/^\{:(warn_[a-z_]+), \{~c"([^"]+)", (?:\{(\d+),\s*(\d+)\}|(\d+))\}, (.+)\}$/
+
+  def main(argv) do
+    with {:ok, options} <- parse_options(argv),
+         {:ok, fixture} <- load_fixture(options.fixture),
+         {:ok, contract} <- validate_fixture(fixture),
+         {:ok, raw_output} <- raw_output(options),
+         {:ok, live_warnings} <- parse_raw_output(raw_output),
+         :ok <- verify_live_warnings(contract, live_warnings) do
+      live_count = Enum.count(live_warnings, &(&1.path in contract.authorized_origins))
+
+      IO.puts(
+        "verified slice #{contract.slice}: #{length(contract.warnings)}/#{contract.sealed_count} " <>
+          "sealed warnings; #{length(contract.authorized_origins)} authorized origins; " <>
+          "#{live_count} live warnings"
+      )
+    else
+      {:error, message} ->
+        IO.puts(:stderr, "dialyzer slice verification failed: #{message}")
+        System.halt(1)
+    end
+  end
+
+  defp parse_options(argv) do
+    case OptionParser.parse(argv, strict: [fixture: :string, raw_output: :string]) do
+      {options, [], []} ->
+        case Keyword.fetch(options, :fixture) do
+          {:ok, fixture} ->
+            {:ok, %{fixture: fixture, raw_output: Keyword.get(options, :raw_output)}}
+
+          :error ->
+            {:error, "usage: bin/verify-dialyzer-slice --fixture PATH [--raw-output PATH]"}
+        end
+
+      {_options, _arguments, invalid} ->
+        {:error, "invalid arguments: #{inspect(invalid)}"}
+    end
+  end
+
+  defp load_fixture(path) do
+    with {:ok, fixture_path} <- contained_path(path, "fixture"),
+         {:ok, bytes} <- File.read(fixture_path),
+         {:ok, fixture} <- decode_json(bytes) do
+      {:ok, fixture}
+    else
+      {:error, reason} when is_atom(reason) -> {:error, "cannot read fixture: #{:file.format_error(reason)}"}
+      {:error, message} -> {:error, message}
+    end
+  end
+
+  defp decode_json(bytes) do
+    {:ok, :json.decode(bytes)}
+  rescue
+    error -> {:error, "fixture is not valid JSON: #{Exception.message(error)}"}
+  end
+
+  defp validate_fixture(fixture) when is_map(fixture) do
+    with :ok <- require_equal(fixture["schema_version"], @schema_version, "schema_version must be 1"),
+         :ok <- require_nonempty(fixture["slice"], "slice"),
+         {:ok, sealed_count} <- validate_sealed_run(fixture["sealed_run"]),
+         {:ok, authorized} <- validate_authorized_origins(fixture["authorized_origins"]),
+         {:ok, warnings} <- validate_warnings(fixture["warnings"], authorized),
+         :ok <- validate_origin_coverage(warnings, authorized),
+         {:ok, post_hash} <- validate_post_analysis(fixture["post_analysis"]) do
+      {:ok,
+       %{
+         slice: fixture["slice"],
+         sealed_count: sealed_count,
+         authorized_origins: authorized,
+         warnings: warnings,
+         post_hash: post_hash
+       }}
+    end
+  end
+
+  defp validate_fixture(_), do: {:error, "fixture root must be a JSON object"}
+
+  defp validate_sealed_run(%{"output_sha256" => hash, "warning_count" => count})
+       when is_binary(hash) and is_integer(count) and count > 0 do
+    if Regex.match?(@sha256, hash),
+      do: {:ok, count},
+      else: {:error, "sealed_run.output_sha256 must be a lowercase SHA-256"}
+  end
+
+  defp validate_sealed_run(_),
+    do: {:error, "sealed_run requires output_sha256 and a positive warning_count"}
+
+  defp validate_authorized_origins(origins) when is_list(origins) and origins != [] do
+    with {:ok, normalized} <- normalize_all_origins(origins),
+         :ok <- require_unique(normalized, "authorized_origins") do
+      {:ok, normalized}
+    end
+  end
+
+  defp validate_authorized_origins(_),
+    do: {:error, "authorized_origins must be a non-empty list"}
+
+  defp normalize_all_origins(origins) do
+    Enum.reduce_while(origins, {:ok, []}, fn origin, {:ok, acc} ->
+      case normalize_origin(origin) do
+        {:ok, normalized} -> {:cont, {:ok, [normalized | acc]}}
+        {:error, message} -> {:halt, {:error, message}}
+      end
+    end)
+    |> case do
+      {:ok, normalized} -> {:ok, Enum.reverse(normalized)}
+      error -> error
+    end
+  end
+
+  defp validate_warnings(warnings, authorized) when is_list(warnings) and warnings != [] do
+    with :ok <- require_unique(Enum.map(warnings, &is_map(&1) && &1["id"]), "warning IDs") do
+      Enum.reduce_while(warnings, {:ok, []}, fn warning, {:ok, acc} ->
+        case validate_warning(warning, authorized) do
+          {:ok, validated} -> {:cont, {:ok, [validated | acc]}}
+          {:error, message} -> {:halt, {:error, message}}
+        end
+      end)
+      |> case do
+        {:ok, validated} -> {:ok, Enum.reverse(validated)}
+        error -> error
+      end
+    end
+  end
+
+  defp validate_warnings(_, _), do: {:error, "warnings must be a non-empty list"}
+
+  defp validate_warning(
+         %{
+           "id" => id,
+           "class" => class,
+           "origin" => %{"path" => path, "line" => line},
+           "raw_line" => raw_line,
+           "disposition" => disposition,
+           "evidence" => evidence
+         } = warning,
+         authorized
+       ) do
+    with :ok <- require_nonempty(id, "warning id"),
+         :ok <- require_nonempty(class, "warning #{id} class"),
+         :ok <- require_nonempty(raw_line, "warning #{id} raw_line"),
+         :ok <- require_nonempty(evidence, "warning #{id} evidence"),
+         :ok <- require_positive_integer(line, "warning #{id} origin.line"),
+         {:ok, normalized_path} <- normalize_origin(path),
+         :ok <- require_member(normalized_path, authorized, "warning #{id} origin is outside authorized_origins"),
+         {:ok, parsed} <- parse_warning_line(raw_line),
+         :ok <- verify_original_warning(id, class, normalized_path, line, parsed),
+         :ok <- validate_disposition(id, disposition, warning, normalized_path, raw_line) do
+      {:ok,
+       %{
+         id: id,
+         class: class,
+         path: normalized_path,
+         line: line,
+         raw_line: raw_line,
+         disposition: disposition
+       }}
+    end
+  end
+
+  defp validate_warning(_, _),
+    do: {:error, "each warning requires id, class, origin, raw_line, disposition, and evidence"}
+
+  defp validate_disposition(_id, "fixed", _warning, _path, _raw_line), do: :ok
+
+  defp validate_disposition(id, "irreducible", warning, path, raw_line) do
+    with %{"file" => tuple_path, "warning_description" => description} <- warning["ignore_tuple"],
+         :ok <- require_equal(tuple_path, path, "warning #{id} ignore_tuple.file must equal its origin"),
+         :ok <- require_equal(description, raw_line, "warning #{id} ignore_tuple must preserve the exact raw line"),
+         :ok <- require_nonempty(warning["rationale"], "warning #{id} rationale"),
+         :ok <- require_nonempty(warning["removal_trigger"], "warning #{id} removal_trigger") do
+      :ok
+    else
+      nil -> {:error, "warning #{id} irreducible residue requires an exact ignore_tuple"}
+      {:error, message} -> {:error, message}
+      _ -> {:error, "warning #{id} irreducible residue requires an exact ignore_tuple"}
+    end
+  end
+
+  defp validate_disposition(id, disposition, _warning, _path, _raw_line),
+    do: {:error, "warning #{id} has unsupported disposition #{inspect(disposition)}"}
+
+  defp verify_original_warning(id, class, path, line, parsed) do
+    if parsed.class == class and parsed.path == path and parsed.line == line do
+      :ok
+    else
+      {:error, "warning #{id} raw_line does not match its declared class and origin"}
+    end
+  end
+
+  defp validate_origin_coverage(warnings, authorized) do
+    warning_origins = warnings |> Enum.map(& &1.path) |> Enum.uniq() |> Enum.sort()
+
+    if warning_origins == Enum.sort(authorized),
+      do: :ok,
+      else: {:error, "authorized_origins must exactly equal the warning origin set"}
+  end
+
+  defp validate_post_analysis(%{
+         "command" => @dialyzer_command,
+         "authorized_output_sha256" => hash
+       })
+       when is_binary(hash) do
+    if Regex.match?(@sha256, hash),
+      do: {:ok, hash},
+      else: {:error, "post_analysis.authorized_output_sha256 must be a lowercase SHA-256"}
+  end
+
+  defp validate_post_analysis(_),
+    do: {:error, "post_analysis must preserve the repository raw command and authorized output hash"}
+
+  defp raw_output(%{raw_output: path}) when is_binary(path), do: File.read(path)
+
+  defp raw_output(%{raw_output: nil}) do
+    case System.cmd("mix", @dialyzer_args,
+           cd: @root,
+           env: [{"MIX_ENV", "dev"}],
+           stderr_to_stdout: true
+         ) do
+      {output, 0} -> {:ok, output}
+      {output, status} -> {:error, "raw Dialyzer command exited #{status}: #{String.trim(output)}"}
+    end
+  end
+
+  defp parse_raw_output(output) do
+    lines =
+      output
+      |> String.split("\n")
+      |> Enum.filter(&String.starts_with?(&1, "{:warn_"))
+
+    Enum.reduce_while(lines, {:ok, []}, fn line, {:ok, acc} ->
+      case parse_warning_line(line) do
+        {:ok, warning} -> {:cont, {:ok, [warning | acc]}}
+        {:error, message} -> {:halt, {:error, message}}
+      end
+    end)
+    |> case do
+      {:ok, warnings} -> {:ok, Enum.reverse(warnings)}
+      error -> error
+    end
+  end
+
+  defp parse_warning_line(line) do
+    case Regex.run(@warning_line, line) do
+      [_, class, path, tuple_line, column, single_line, detail] ->
+        line_number = String.to_integer(if(tuple_line == "", do: single_line, else: tuple_line))
+
+        with {:ok, normalized_path} <- normalize_origin(path) do
+          {:ok,
+           %{
+             class: class,
+             path: normalized_path,
+             line: line_number,
+             column: if(column == "", do: nil, else: String.to_integer(column)),
+             detail: detail,
+             raw_line: line
+           }}
+        end
+
+      _ ->
+        {:error, "cannot attribute raw warning line: #{line}"}
+    end
+  end
+
+  defp verify_live_warnings(contract, warnings) do
+    live = Enum.filter(warnings, &(&1.path in contract.authorized_origins))
+
+    with :ok <- reject_surviving_fixed(contract.warnings, live),
+         :ok <- reject_unrecorded(contract.warnings, live),
+         :ok <- require_irreducible_residue(contract.warnings, live),
+         :ok <- verify_post_hash(contract.post_hash, live) do
+      :ok
+    end
+  end
+
+  defp reject_surviving_fixed(records, live) do
+    survivors =
+      Enum.filter(records, fn record ->
+        record.disposition == "fixed" and Enum.any?(live, &same_signature?(&1, record))
+      end)
+
+    case survivors do
+      [] ->
+        :ok
+
+      [record] ->
+        {:error, "fixed warning #{record.id} still survives at #{record.path}:#{record.line}"}
+
+      records ->
+        details = Enum.map_join(records, ", ", &"#{&1.id} at #{&1.path}:#{&1.line}")
+        {:error, "fixed warnings still survive: #{details}"}
+    end
+  end
+
+  defp reject_unrecorded(records, live) do
+    case Enum.find(live, fn warning ->
+           not Enum.any?(records, fn record ->
+             same_signature?(warning, record) and
+               (record.disposition == "fixed" or warning.raw_line == record.raw_line)
+           end)
+         end) do
+      nil -> :ok
+      warning -> {:error, "unrecorded live warning at #{warning.path}:#{warning.line} (#{warning.class})"}
+    end
+  end
+
+  defp require_irreducible_residue(records, live) do
+    case Enum.find(records, fn record ->
+           record.disposition == "irreducible" and
+             not Enum.any?(live, &(&1.raw_line == record.raw_line))
+         end) do
+      nil -> :ok
+      record -> {:error, "irreducible warning #{record.id} is absent; remove its residue metadata"}
+    end
+  end
+
+  defp verify_post_hash(expected, live) do
+    actual = authorized_output_hash(live)
+
+    if actual == expected,
+      do: :ok,
+      else: {:error, "post-analysis hash mismatch: expected #{expected}, got #{actual}"}
+  end
+
+  defp authorized_output_hash(warnings) do
+    warnings
+    |> Enum.map(& &1.raw_line)
+    |> Enum.sort()
+    |> Enum.join("\n")
+    |> then(fn
+      "" -> ""
+      joined -> joined <> "\n"
+    end)
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
+  end
+
+  defp same_signature?(warning, record),
+    do: warning.class == record.class and warning.path == record.path and warning.line == record.line
+
+  defp normalize_origin(path) when is_binary(path) and path != "" do
+    portable = String.replace(path, "\\", "/")
+
+    if Path.type(portable) != :relative do
+      {:error, "origin must be project-relative: #{inspect(path)}"}
+    else
+      expanded = Path.expand(portable, @root)
+      relative = Path.relative_to(expanded, @root)
+
+      if relative == ".." or String.starts_with?(relative, "../") do
+        {:error, "origin escapes the project root: #{inspect(path)}"}
+      else
+        {:ok, relative}
+      end
+    end
+  end
+
+  defp normalize_origin(path), do: {:error, "origin must be a non-empty project-relative path: #{inspect(path)}"}
+
+  defp contained_path(path, label) when is_binary(path) do
+    expanded = Path.expand(path, @root)
+    relative = Path.relative_to(expanded, @root)
+
+    if relative == ".." or String.starts_with?(relative, "../"),
+      do: {:error, "#{label} path escapes the project root"},
+      else: {:ok, expanded}
+  end
+
+  defp contained_path(_, label), do: {:error, "#{label} path must be a string"}
+
+  defp require_nonempty(value, label) when is_binary(value) do
+    if String.trim(value) == "", do: {:error, "#{label} must be a non-empty string"}, else: :ok
+  end
+
+  defp require_nonempty(_, label), do: {:error, "#{label} must be a non-empty string"}
+
+  defp require_positive_integer(value, _label) when is_integer(value) and value > 0, do: :ok
+  defp require_positive_integer(_, label), do: {:error, "#{label} must be a positive integer"}
+
+  defp require_equal(value, value, _message), do: :ok
+  defp require_equal(_, _, message), do: {:error, message}
+
+  defp require_member(value, values, message) do
+    if value in values, do: :ok, else: {:error, message}
+  end
+
+  defp require_unique(values, label) do
+    if Enum.all?(values, &is_binary/1) and length(values) == length(Enum.uniq(values)),
+      do: :ok,
+      else: {:error, "#{label} must be unique non-empty strings"}
+  end
+end
+
+Threadline.DialyzerSliceVerifier.main(System.argv())

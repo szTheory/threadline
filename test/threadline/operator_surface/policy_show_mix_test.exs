@@ -11,6 +11,17 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
   @all_tables [@drift_table, @introspect_table, @match_table]
 
   setup_all do
+    # Several tests here set `storage_schema` to "audit" and then install trigger SQL that
+    # references it. This file uses DataCase, not StorageSchemaCase, so nothing here
+    # creates that schema — it only existed when a StorageSchemaCase test happened to run
+    # first against the same database. That made the file order-dependent, and the
+    # dependency is invisible locally: the suite uses no SQL sandbox, so once any run
+    # creates `audit` it persists in the developer's database forever. Only a fresh CI
+    # database with an unlucky seed exposes it, which is exactly how it surfaced —
+    # `Run test suite (min)` failing with 102 cascading
+    # `ERROR 3F000 (invalid_schema_name) schema "audit" does not exist`.
+    Threadline.StorageSchemaCase.prepare_storage_schema!("audit", Repo)
+
     Enum.each(@all_tables, fn table ->
       Repo.query!("DROP TABLE IF EXISTS #{table}")
 

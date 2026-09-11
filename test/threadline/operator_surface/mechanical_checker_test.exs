@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
   use ExUnit.Case, async: true
 
   alias Threadline.OperatorSurface.MechanicalChecker
+  alias Threadline.Test.OperatorSurfaceFixtures
 
   # House style mirrors brandbook_token_parity_test.exs + stress_ledger_test.exs:
   # File.read! at the top of each meta-test, one concern per block, custom failure
@@ -10,7 +11,8 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
   # no DB / browser / network). This file is `mix verify.mechanical`.
 
   @checker_path "lib/threadline/operator_surface/mechanical_checker.ex"
-  @scorecards_dir ".planning/scorecards"
+  @scorecards_dir OperatorSurfaceFixtures.scorecards!()
+  @ledger_path OperatorSurfaceFixtures.ledger!()
 
   # ---------------------------------------------------------------------------
   # Meta-test: MODE-A LOCKED constants are pinned verbatim in the source. This is
@@ -114,12 +116,72 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
            "a fully token-conformant, high-contrast, within-ceiling scorecard must produce no violations"
   end
 
-  test "run/1 over an empty/absent scorecards directory returns {:ok, []} (nothing to check)" do
-    empty = Path.join(System.tmp_dir!(), "mech_empty_#{System.unique_integer([:positive])}")
-    File.mkdir_p!(empty)
+  test "run/1 returns an actionable tagged error when scorecard_dir is missing" do
+    assert {:error, {:missing_input, details}} =
+             MechanicalChecker.run(mechanical_floors: %{})
 
-    assert MechanicalChecker.run(scorecard_dir: empty, mechanical_floors: %{}) == {:ok, []}
-    assert MechanicalChecker.run(scorecard_dir: Path.join(empty, "does-not-exist")) == {:ok, []}
+    assert details.dataset == "mechanical scorecard corpus"
+    assert details.option == :scorecard_dir
+    assert details.path == nil
+    assert details.repository_only == false
+    assert String.contains?(details.recovery, "scorecard_dir:")
+  end
+
+  test "run/1 returns an actionable tagged error when mechanical_floors is missing" do
+    dir = write_fixtures([passing_scorecard()])
+
+    assert {:error, {:missing_input, details}} = MechanicalChecker.run(scorecard_dir: dir)
+
+    assert details.dataset == "mechanical floor map"
+    assert details.option == :mechanical_floors
+    assert details.path == nil
+    assert details.repository_only == false
+    assert String.contains?(details.recovery, "mechanical_floors:")
+  end
+
+  test "run/1 rejects an absent scorecard corpus with its expanded path" do
+    missing = unique_tmp_path("mech_missing")
+
+    assert {:error, {:missing_corpus, details}} =
+             MechanicalChecker.run(scorecard_dir: missing, mechanical_floors: %{})
+
+    assert_corpus_error(details, Path.expand(missing))
+    assert details.reason == :enoent
+  end
+
+  test "run/1 rejects an unreadable scorecard corpus distinctly" do
+    not_a_directory = unique_tmp_path("mech_not_a_directory")
+    File.write!(not_a_directory, "not a directory")
+    on_exit_rm(not_a_directory)
+
+    assert {:error, {:unreadable_corpus, details}} =
+             MechanicalChecker.run(scorecard_dir: not_a_directory, mechanical_floors: %{})
+
+    assert_corpus_error(details, Path.expand(not_a_directory))
+    assert details.reason == :enotdir
+  end
+
+  test "run/1 rejects an empty scorecard corpus instead of passing vacuously" do
+    empty = unique_tmp_path("mech_empty")
+    File.mkdir_p!(empty)
+    on_exit_rm(empty)
+
+    assert {:error, {:empty_corpus, details}} =
+             MechanicalChecker.run(scorecard_dir: empty, mechanical_floors: %{})
+
+    assert_corpus_error(details, Path.expand(empty))
+    assert details.reason == :no_eligible_scorecards
+  end
+
+  test "run/1 rejects malformed scorecard JSON with the offending file path" do
+    {dir, path} = write_raw_fixture("{not-json")
+
+    assert {:error, {:malformed_scorecard, details}} =
+             MechanicalChecker.run(scorecard_dir: dir, mechanical_floors: %{})
+
+    assert_corpus_error(details, Path.expand(path))
+    assert is_binary(details.reason)
+    assert details.reason != ""
   end
 
   test "an off-scale border-radius yields a MODE-A radius violation carrying a nearest-token :fix" do
@@ -263,11 +325,153 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
            "the two blues must bucket into one accent hue, keeping the page at 3 distinct hues"
   end
 
-  test "run/1 against the committed .planning/scorecards is clean ({:ok, []})" do
+  test "run/1 against the committed test/fixtures/operator_surface/scorecards is clean ({:ok, []})" do
     # At phase end this proves the real evidence passes. Locally the directory is
     # empty/absent (capture is CI-run), so this is a vacuously-clean "nothing to
     # check" result — the teeth above prove the checker still blocks real violations.
-    assert {:ok, []} = MechanicalChecker.run(scorecard_dir: @scorecards_dir)
+    assert {:ok, []} =
+             MechanicalChecker.run(
+               scorecard_dir: @scorecards_dir,
+               mechanical_floors: committed_floors()
+             )
+  end
+
+  # ---------------------------------------------------------------------------
+  # scroll_cost capture-scope guards (phase-199).
+  #
+  # Background: `scroll_cost` spent four phases reading
+  # `document.documentElement.scrollHeight` on /audit/__stress, where ~98.5% of the
+  # document is the harness's own sidebar listing every registered stress story. The
+  # metric therefore tracked the story catalog rather than the captured page, drifted
+  # on every new story, and reddened `verify-capture`'s byte-stability step. See
+  # .planning/audits/198-tier-a-byte-stability.md.
+  #
+  # Two things let that persist unnoticed for so long, and each gets a guard here:
+  # the committed floors were never checked against the committed evidence, and
+  # nothing asserted the measured values were even plausible.
+  # ---------------------------------------------------------------------------
+
+  # `refute.*.graded.*` cells are produced by operator-graded-capture.spec.ts, which
+  # carries the identical document-scoped read and is deliberately NOT regenerated by
+  # this authorization: their `scroll_cost` is rendered verbatim into the LLM critic's
+  # prompt (e2e/critic/bundle.ts), so recapturing them can move per-lens agreement and
+  # force critic-trust re-validation. They legitimately still hold document-scoped
+  # values and are excluded here rather than silently normalised.
+  defp product_scoped_scorecards do
+    @scorecards_dir
+    |> Path.join("*.json")
+    |> Path.wildcard()
+    |> Enum.reject(&String.contains?(Path.basename(&1), ".graded."))
+    |> Enum.map(&{Path.basename(&1), &1 |> File.read!() |> Jason.decode!()})
+  end
+
+  test "committed scroll_cost values are product-scoped, not document-scoped" do
+    # A correctly-scoped cell measures the preview panel against a 900px viewport and
+    # lands well under 1.0. A document-scoped regression reads the whole stress-lab
+    # page and lands near 40 — two orders of magnitude away, so this threshold needs no
+    # precision to be decisive.
+    offenders =
+      for {name, sc} <- product_scoped_scorecards(),
+          cost = get_in(sc, ["mode_b", "scroll_cost"]),
+          is_number(cost) and cost >= 5.0,
+          do: {name, cost}
+
+    assert offenders == [],
+           """
+           These scorecards carry a scroll_cost >= 5.0, which means the capture is
+           measuring the /audit/__stress harness document again instead of the product
+           surface under test:
+
+           #{Enum.map_join(offenders, "\n", fn {n, c} -> "  #{n}: #{c}" end)}
+
+           Fix the capture scope in operator-tier-a-capture.spec.ts — `rawInputs` must read
+           `main.scrollHeight` (the [data-testid="stress-preview"] element every sibling
+           field is already scoped to), never `document.documentElement.scrollHeight`.
+           Do not raise this threshold: the failure it catches is a ~70x error.
+           """
+  end
+
+  test "committed mechanical_floors agree with the committed evidence they were seeded from" do
+    # measure_mode_b/1 is documented as the single source of truth for MODE-B: the
+    # checker ratchets against it and the floor seeder writes it. Nothing enforced that
+    # until now, which is exactly how 120 floors sat frozen three capture generations
+    # behind the evidence while the gate reported green.
+    floors =
+      @ledger_path
+      |> File.read!()
+      |> Jason.decode!()
+      |> Map.fetch!("mechanical_floors")
+
+    drifted =
+      for {_name, sc} <- product_scoped_scorecards(),
+          ledger_id = sc["ledger_id"],
+          recorded =
+            get_in(floors, [ledger_id, "scroll_cost", "#{sc["theme"]}_#{sc["breakpoint"]}"]),
+          not is_nil(recorded),
+          measured = MechanicalChecker.measure_mode_b(sc)["scroll_cost"],
+          measured != recorded,
+          do: {sc["cell_id"], recorded, measured}
+
+    assert drifted == [],
+           """
+           Recorded scroll_cost floors disagree with the committed scorecards they are
+           supposed to have been seeded from:
+
+           #{Enum.map_join(drifted, "\n", fn {cell, r, m} -> "  #{cell}: floor #{r}, evidence #{m}" end)}
+
+           Re-seed from the evidence rather than editing either side by hand. A floor that
+           drifts above its evidence makes the ratchet vacuous — it can no longer fail —
+           which is worse than a red gate because it still reports green.
+           """
+  end
+
+  test "the scroll_cost ratchet still has teeth against the committed evidence" do
+    # Positive control. The two tests above assert a clean state; a clean state is also
+    # what a broken checker reports. This proves the gate can still fail, using the real
+    # committed floors rather than a synthetic fixture.
+    case product_scoped_scorecards() do
+      [] ->
+        # Fresh clone with no captured evidence — the synthetic teeth above still apply.
+        :ok
+
+      [{_name, sample} | _] ->
+        floors =
+          @ledger_path
+          |> File.read!()
+          |> Jason.decode!()
+          |> Map.fetch!("mechanical_floors")
+
+        worsened = update_in(sample, ["mode_b", "scroll_cost"], &(&1 + 0.01))
+        dir = write_fixtures([worsened])
+
+        assert {:error, violations} =
+                 MechanicalChecker.run(scorecard_dir: dir, mechanical_floors: floors),
+               "a scroll_cost worse than its recorded floor must fail the ratchet"
+
+        assert Enum.any?(violations, &(&1.metric == "scroll_cost" and &1.mode == "B")),
+               "expected a MODE-B scroll_cost ratchet violation, got: #{inspect(violations)}"
+    end
+  end
+
+  test "the Tier A capture spec reads the product surface, not the document" do
+    # Source pin, matching this file's existing idiom of locking LOCKED constants
+    # against their source. Scoped to the Tier A spec only: the page/graded/storybook
+    # capture specs legitimately still contain the document-scoped read pending their
+    # own authorization, so a repo-wide assertion here would be wrong.
+    spec =
+      File.read!("examples/threadline_phoenix/e2e/tests/operator-tier-a-capture.spec.ts")
+
+    assert String.contains?(spec, "main.scrollHeight"),
+           "operator-tier-a-capture.spec.ts must scope scrollCost to the stress-preview element"
+
+    refute String.contains?(spec, "document.documentElement.scrollHeight"),
+           """
+           operator-tier-a-capture.spec.ts reads document.documentElement.scrollHeight again.
+
+           On /audit/__stress that is ~98.5% harness sidebar, so every committed cell's
+           scroll_cost would once more grow with the story catalog and re-red the
+           byte-stability gate on the next unrelated story registration.
+           """
   end
 
   # ---------------------------------------------------------------------------
@@ -333,7 +537,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
   # ---------------------------------------------------------------------------
   # Recurring integration gate: run/1 over the REAL committed Tier A evidence.
   # The blocks above prove the checker's teeth on synthetic fixtures; this block
-  # asserts the committed .planning/scorecards/*.json are actually clean, so a
+  # asserts the committed test/fixtures/operator_surface/scorecards/*.json are actually clean, so a
   # real MODE-A/B regression (or stale mechanical_floors) blocks CI. On a fresh
   # clone with no committed capture the dir is empty and run/1 is vacuously
   # {:ok, []} — still a valid pass.
@@ -342,15 +546,42 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
   test "run/1 is clean over the committed Tier A scorecards (real-evidence gate)" do
     committed = Path.wildcard(Path.join(@scorecards_dir, "*.json"))
 
-    assert {:ok, []} == MechanicalChecker.run(),
+    assert {:ok, []} ==
+             MechanicalChecker.run(
+               scorecard_dir: @scorecards_dir,
+               mechanical_floors: committed_floors()
+             ),
            "MechanicalChecker.run/1 must be clean over the #{length(committed)} committed " <>
              "Tier A scorecards (0 = fresh clone, vacuously clean). Regenerate with " <>
              "`mix verify.capture` or fix the offending token/style source — never loosen " <>
              "the checker's LOCKED constants."
   end
 
+  defp committed_floors do
+    @ledger_path
+    |> File.read!()
+    |> Jason.decode!()
+    |> Map.fetch!("mechanical_floors")
+  end
+
+  defp assert_corpus_error(details, expected_path) do
+    assert details.dataset == "mechanical scorecard corpus"
+    assert details.path == expected_path
+    assert details.repository_only == false
+    assert String.contains?(details.recovery, "scorecard_dir:")
+  end
+
+  defp write_raw_fixture(body) do
+    dir = unique_tmp_path("mech_malformed")
+    File.mkdir_p!(dir)
+    path = Path.join(dir, "malformed.json")
+    File.write!(path, body)
+    on_exit_rm(dir)
+    {dir, path}
+  end
+
   defp write_fixtures(scorecards) do
-    dir = Path.join(System.tmp_dir!(), "mech_fixtures_#{System.unique_integer([:positive])}")
+    dir = unique_tmp_path("mech_fixtures")
     File.mkdir_p!(dir)
 
     for card <- scorecards do
@@ -360,6 +591,10 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
 
     on_exit_rm(dir)
     dir
+  end
+
+  defp unique_tmp_path(prefix) do
+    Path.join(System.tmp_dir!(), "#{prefix}_#{System.unique_integer([:positive])}")
   end
 
   defp on_exit_rm(dir) do

@@ -142,6 +142,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
+    import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
 
@@ -168,9 +169,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange)
-      Threadline.Test.Repo.delete_all(AuditTransaction)
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction)
+      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
+      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
+      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -332,7 +333,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
-      Threadline.Test.Repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(
+        AuditTransaction.changeset(Map.merge(defaults, attrs)),
+        repo_opts()
+      )
     end
 
     defp insert_change(transaction, attrs) do
@@ -348,7 +352,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
     end
   end
 
@@ -356,6 +360,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
+    import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
 
@@ -375,9 +380,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange)
-      Threadline.Test.Repo.delete_all(AuditTransaction)
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction)
+      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
+      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
+      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -416,7 +421,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
-      Threadline.Test.Repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(
+        AuditTransaction.changeset(Map.merge(defaults, attrs)),
+        repo_opts()
+      )
     end
 
     defp insert_change(transaction, attrs) do
@@ -432,7 +440,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
     end
   end
 end

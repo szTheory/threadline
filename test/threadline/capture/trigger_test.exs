@@ -31,7 +31,7 @@ defmodule Threadline.Capture.TriggerTest do
   test "INSERT produces an AuditChange row with op=insert and correct data_after" do
     Repo.query!("INSERT INTO test_audit_target (name, value) VALUES ('alice', 1)")
 
-    changes = Repo.all(AuditChange)
+    changes = Repo.all(AuditChange, repo_opts())
     assert length(changes) == 1
 
     change = hd(changes)
@@ -42,7 +42,7 @@ defmodule Threadline.Capture.TriggerTest do
     assert change.table_pk["id"] != nil
 
     # An AuditTransaction row must exist
-    txns = Repo.all(AuditTransaction)
+    txns = Repo.all(AuditTransaction, repo_opts())
     assert length(txns) == 1
   end
 
@@ -51,12 +51,12 @@ defmodule Threadline.Capture.TriggerTest do
       Repo.query!("INSERT INTO test_audit_target (name, value) VALUES ('bob', 10) RETURNING id")
 
     # Clean insert change before testing update
-    Repo.delete_all(AuditChange)
-    Repo.delete_all(AuditTransaction)
+    Repo.delete_all(AuditChange, repo_opts())
+    Repo.delete_all(AuditTransaction, repo_opts())
 
     Repo.query!("UPDATE test_audit_target SET value = 20 WHERE id = $1", [row_id])
 
-    changes = Repo.all(AuditChange)
+    changes = Repo.all(AuditChange, repo_opts())
     assert length(changes) == 1
 
     change = hd(changes)
@@ -72,12 +72,12 @@ defmodule Threadline.Capture.TriggerTest do
         "INSERT INTO test_audit_target (name, value) VALUES ('charlie', 99) RETURNING id"
       )
 
-    Repo.delete_all(AuditChange)
-    Repo.delete_all(AuditTransaction)
+    Repo.delete_all(AuditChange, repo_opts())
+    Repo.delete_all(AuditTransaction, repo_opts())
 
     Repo.query!("DELETE FROM test_audit_target WHERE id = $1", [row_id])
 
-    changes = Repo.all(AuditChange)
+    changes = Repo.all(AuditChange, repo_opts())
     assert length(changes) == 1
 
     change = hd(changes)
@@ -92,26 +92,26 @@ defmodule Threadline.Capture.TriggerTest do
       Repo.query!("INSERT INTO test_audit_target (name) VALUES ('second')")
     end)
 
-    changes = Repo.all(AuditChange)
+    changes = Repo.all(AuditChange, repo_opts())
     assert length(changes) == 2
 
     [tx_id1, tx_id2] = Enum.map(changes, & &1.transaction_id)
     assert tx_id1 == tx_id2, "Both AuditChange rows must share the same AuditTransaction"
 
-    txns = Repo.all(AuditTransaction)
+    txns = Repo.all(AuditTransaction, repo_opts())
     assert length(txns) == 1
   end
 
   test "audit trigger is not installed on audit_transactions (no recursive loop)" do
     # Inserting into audit_transactions should not create audit_changes rows
-    initial_count = Repo.aggregate(AuditChange, :count)
+    initial_count = Repo.aggregate(AuditChange, :count, repo_opts())
 
     Repo.query!("""
     INSERT INTO threadline.audit_transactions (id, txid, occurred_at)
     VALUES (gen_random_uuid(), txid_current() + 9999999, now())
     """)
 
-    final_count = Repo.aggregate(AuditChange, :count)
+    final_count = Repo.aggregate(AuditChange, :count, repo_opts())
 
     assert final_count == initial_count,
            "No audit_changes row should be created from audit_transactions insert"

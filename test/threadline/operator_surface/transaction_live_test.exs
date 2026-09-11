@@ -135,6 +135,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
+    import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
 
@@ -152,9 +153,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange)
-      Threadline.Test.Repo.delete_all(AuditTransaction)
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction)
+      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
+      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
+      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -190,7 +191,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Threadline.Capture.AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       # For now just checking if the header renders, we can test more specifically when we add actor/action data.
@@ -212,7 +214,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Threadline.Capture.AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -235,7 +238,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Threadline.Capture.AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       _change =
@@ -250,7 +254,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             changed_fields: ["email"],
             changed_from: %{"email" => "old@example.com"},
             captured_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       assert {:ok, lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -272,7 +277,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       repo.insert!(
@@ -286,7 +292,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           changed_fields: ["id", "email"],
           changed_from: %{"email" => "old@example.com"},
           captured_at: DateTime.utc_now()
-        })
+        }),
+        repo_opts()
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -306,7 +313,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: captured_at
-          })
+          }),
+          repo_opts()
         )
 
       repo.insert!(
@@ -324,7 +332,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           changed_fields: nil,
           changed_from: nil,
           captured_at: captured_at
-        })
+        }),
+        repo_opts()
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -345,7 +354,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: captured_at
-          })
+          }),
+          repo_opts()
         )
 
       repo.insert!(
@@ -368,7 +378,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             "updated_at" => "2026-06-03T12:30:00Z"
           },
           captured_at: captured_at
-        })
+        }),
+        repo_opts()
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -393,7 +404,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       repo.insert!(
@@ -407,7 +419,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           changed_fields: nil,
           changed_from: nil,
           captured_at: DateTime.utc_now()
-        })
+        }),
+        repo_opts()
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -432,7 +445,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             status: :ok,
             correlation_id: correlation_id,
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       txn =
@@ -441,7 +455,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now(),
             action_id: action.id
-          })
+          }),
+          repo_opts()
         )
 
       repo.insert!(
@@ -455,7 +470,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           changed_fields: ["email"],
           changed_from: %{"email" => "old@example.com"},
           captured_at: DateTime.utc_now()
-        })
+        }),
+        repo_opts()
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -496,7 +512,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             status: :ok,
             correlation_id: correlation_id,
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       txn =
@@ -505,7 +522,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now(),
             action_id: action.id
-          })
+          }),
+          repo_opts()
         )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -541,7 +559,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
-          })
+          }),
+          repo_opts()
         )
 
       repo.insert!(
@@ -555,7 +574,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           changed_fields: ["token"],
           changed_from: %{"token" => long_before},
           captured_at: DateTime.utc_now()
-        })
+        }),
+        repo_opts()
       )
 
       assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -589,7 +609,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             Threadline.Capture.AuditTransaction.changeset(%{
               txid: :rand.uniform(1_000_000_000),
               occurred_at: DateTime.utc_now()
-            })
+            }),
+            repo_opts()
           )
 
         {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
@@ -604,6 +625,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
+    import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
 
@@ -612,7 +634,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
-      Threadline.Test.Repo.insert!(AuditTransaction.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(
+        AuditTransaction.changeset(Map.merge(defaults, attrs)),
+        repo_opts()
+      )
     end
 
     defp insert_change(transaction, attrs) do
@@ -628,7 +653,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)))
+      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
     end
 
     setup_all do
@@ -645,9 +670,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange)
-      Threadline.Test.Repo.delete_all(AuditTransaction)
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction)
+      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
+      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
+      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 

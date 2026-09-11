@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
   alias Threadline.Governance.EvidenceRecord
 
   setup do
-    Repo.delete_all(EvidenceRecord)
+    Repo.delete_all(EvidenceRecord, repo_opts())
     Mix.Task.reenable("threadline.evidence.show")
     :ok
   end
@@ -24,7 +24,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
 
     %EvidenceRecord{}
     |> EvidenceRecord.changeset(Map.merge(defaults, Map.new(attrs)))
-    |> Repo.insert!()
+    |> Repo.insert!(repo_opts())
   end
 
   test "threadline.evidence.show prints overview-first human output by default" do

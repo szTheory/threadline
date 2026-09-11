@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "slice": "export-investigation",
+  "sealed_run": {
+    "output_sha256": "12c1164ae38a943a738b339d2758e866c51b284444480585e80d5d591169c3e6",
+    "warning_count": 40
+  },
+  "authorized_origins": [
+    "lib/threadline/export.ex",
+    "lib/threadline/export/orchestrator.ex",
+    "lib/threadline/integrations/sigra.ex",
+    "lib/threadline/investigation/incident_bundle.ex",
+    "lib/threadline/investigation/linked_change.ex"
+  ],
+  "warnings": [
+    {
+      "id": "W06",
+      "class": "warn_contract_extra_return",
+      "origin": {
+        "path": "lib/threadline/export.ex",
+        "line": 220
+      },
+      "raw_line": "{:warn_contract_extra_return, {~c\"lib/threadline/export.ex\", 220}, {:extra_range, [Threadline.Export, :csv_header, 1, ~c\"binary()\", ~c\"[any()] | \\#{'__struct__':='Elixir.Stream', 'done':='nil', 'funs':=nonempty_maybe_improper_list(), _=>_}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Normalize NimbleCSV header output to a concrete iodata list before returning it through the public iodata contract."
+    },
+    {
+      "id": "W07",
+      "class": "warn_contract_extra_return",
+      "origin": {
+        "path": "lib/threadline/export.ex",
+        "line": 256
+      },
+      "raw_line": "{:warn_contract_extra_return, {~c\"lib/threadline/export.ex\", 256}, {:extra_range, [Threadline.Export, :format_changes_iodata, 3, ~c\"binary()\", ~c\"[any()] | \\#{'__struct__':='Elixir.Stream', 'done':='nil', 'funs':=nonempty_maybe_improper_list(), _=>_}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Normalize NimbleCSV row output to a concrete iodata list at the internal serialization boundary."
+    },
+    {
+      "id": "W08",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/export/orchestrator.ex",
+        "line": 57
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/export/orchestrator.ex\", 57}, {:unmatched_return, [~c\"'nil' | 'ok' | {'error',atom()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Inspect temporary-file removal explicitly after the export transaction without replacing the primary result."
+    },
+    {
+      "id": "W09",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/export/orchestrator.ex",
+        "line": 70
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/export/orchestrator.ex\", 70}, {:unmatched_return, [~c\"'nil' | 'ok' | {'error',atom()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Inspect rescue-path temporary-file removal explicitly while preserving the original export exception as the job failure."
+    },
+    {
+      "id": "W10",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/export/orchestrator.ex",
+        "line": 47
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/export/orchestrator.ex\", {47, 22}}, {:unmatched_return, [~c\"'ok' | {'error',atom()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Match File.close/1 explicitly before handing the completed temporary export to storage."
+    },
+    {
+      "id": "W11",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/integrations/sigra.ex",
+        "line": 18
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/integrations/sigra.ex\", {18, 55}}, {:unknown_type, {Threadline.Semantics.ActorRef, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Use the concrete ActorRef struct shape in the public adapter return contract because ActorRef does not export t/0."
+    },
+    {
+      "id": "W12",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/integrations/sigra.ex",
+        "line": 58
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/integrations/sigra.ex\", {58, 49}}, {:unknown_type, {Threadline.Semantics.ActorRef, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Describe the actor callback with the concrete ActorRef struct shape rather than a nonexistent remote type."
+    },
+    {
+      "id": "W13",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/integrations/sigra.ex",
+        "line": 193
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/integrations/sigra.ex\", {193, 8}}, {:pattern_match_cov, [~c\"variable _\", ~c\"map()\"]}}",
+      "disposition": "fixed",
+      "evidence": "Remove the unreachable scalar_id fallback after confirming every caller passes a map under an existing guard."
+    },
+    {
+      "id": "W14",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/investigation/incident_bundle.ex",
+        "line": 30
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/investigation/incident_bundle.ex\", {30, 40}}, {:unknown_type, {Threadline.Capture.AuditTransaction, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Type the incident transaction field as the concrete AuditTransaction struct supplied by the query layer."
+    },
+    {
+      "id": "W15",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/investigation/incident_bundle.ex",
+        "line": 31
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/investigation/incident_bundle.ex\", {31, 30}}, {:unknown_type, {Threadline.Semantics.AuditAction, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Type the optional incident action as the concrete AuditAction struct because the Ecto schema exports no t/0."
+    },
+    {
+      "id": "W16",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/investigation/linked_change.ex",
+        "line": 13
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/investigation/linked_change.ex\", {13, 36}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Type linked audit changes as the concrete AuditChange struct returned by investigation queries."
+    },
+    {
+      "id": "W17",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/investigation/linked_change.ex",
+        "line": 14
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/investigation/linked_change.ex\", {14, 40}}, {:unknown_type, {Threadline.Capture.AuditTransaction, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Type linked change transactions as concrete AuditTransaction structs."
+    },
+    {
+      "id": "W18",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/investigation/linked_change.ex",
+        "line": 15
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/investigation/linked_change.ex\", {15, 30}}, {:unknown_type, {Threadline.Semantics.AuditAction, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Type linked change actions as optional concrete AuditAction structs."
+    },
+    {
+      "id": "W19",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/investigation/linked_change.ex",
+        "line": 31
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/investigation/linked_change.ex\", {31, 40}}, {:unknown_type, {Threadline.Capture.AuditTransaction, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Type the optional linked transaction field as a concrete AuditTransaction struct."
+    },
+    {
+      "id": "W20",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/investigation/linked_change.ex",
+        "line": 32
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/investigation/linked_change.ex\", {32, 30}}, {:unknown_type, {Threadline.Semantics.AuditAction, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Type the optional linked transaction action as a concrete AuditAction struct."
+    }
+  ],
+  "post_analysis": {
+    "command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
+    "authorized_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

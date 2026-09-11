@@ -1,0 +1,515 @@
+{
+  "schema_version": 2,
+  "round": 11,
+  "observed_at": "2026-09-09T22:05:00Z",
+  "repository": "szTheory/threadline",
+  "provenance": {
+    "active_branch": "phase-199/scroll-cost-cause-fix",
+    "active_head_sha": "19e5920b2785b40bca26c238032eeb7874144b69",
+    "upstream": "origin/phase-199/scroll-cost-cause-fix",
+    "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f",
+    "authority": false
+  },
+  "task_baseline": {
+    "active_branch": "phase-199/scroll-cost-cause-fix",
+    "active_head_sha": "19e5920b2785b40bca26c238032eeb7874144b69",
+    "upstream": "origin/phase-199/scroll-cost-cause-fix",
+    "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f"
+  },
+  "target_universe": {
+    "local": [
+      {"branch": "ci/198-gap-closure", "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece"},
+      {"branch": "ci/198-round5", "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"},
+      {"branch": "ci/198-round6", "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"}
+    ],
+    "remote": [
+      {"branch": "ci/198-05-verify", "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc"},
+      {"branch": "ci/198-gap-closure", "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"},
+      {"branch": "ci/198-round3", "sha": "80bf701e7486962e538d16f213874cbba8f24115"},
+      {"branch": "ci/198-round4", "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"},
+      {"branch": "ci/198-round5", "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"},
+      {"branch": "ci/198-round6", "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"}
+    ]
+  },
+  "stable_controls": {
+    "origin_main_sha": "a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2",
+    "pr34": {"number": 34, "state": "OPEN", "is_draft": true, "merge_state": "CLEAN", "head": "phase-199/scroll-cost-cause-fix", "base": "main", "head_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f"},
+    "ruleset_protection_digest": "1040e93d8ae5e79672757f6acbfaeae1e7cb27c6db2d01cb7483c081fd94dcc4",
+    "classic_protection": "absent",
+    "required_contexts": ["CI required"],
+    "required_contexts_digest": "f02c07a558af08ef0d048996463adb29c61dcffd28c940b6562356f2293efcc3",
+    "worktrees": [{"path": "/Users/jon/projects/threadline", "branch": "refs/heads/phase-199/scroll-cost-cause-fix"}],
+    "worktree_list_digest": "5253096fa066c0e3507f2a91e5a76ef2217191b63d76c90d6344ca2300ac5c1a"
+  },
+  "preservation_subjects": [
+    {
+      "id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "branch": "ci/198-gap-closure",
+      "side": "local",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "evidence": {"sha": "ffcff0d1613381950cfb6baad93e90aee19dcece", "merge_base_head": "ffcff0d1613381950cfb6baad93e90aee19dcece", "merge_base_main": "ffcff0d1613381950cfb6baad93e90aee19dcece", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 270}, "vs_main": {"ahead": 0, "behind": 169}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 29, "state": "OPEN", "is_draft": false, "merge_state": "BLOCKED", "head": "ci/198-gap-closure", "base": "main", "head_sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"},
+      "recommendation": {"action": "retire", "rationale": "The local tip is a current-HEAD and local-main ancestor with no unique commit or diffstat; it remains an independent object because the origin tip differs."},
+      "archive_tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
+      "restore_command": "git branch ci/198-gap-closure ffcff0d1613381950cfb6baad93e90aee19dcece"
+    },
+    {
+      "id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "branch": "ci/198-gap-closure",
+      "side": "origin",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "evidence": {"sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "merge_base_head": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "merge_base_main": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 250}, "vs_main": {"ahead": 0, "behind": 149}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 29, "state": "OPEN", "is_draft": false, "merge_state": "BLOCKED", "head": "ci/198-gap-closure", "base": "main", "head_sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"},
+      "recommendation": {"action": "retire", "rationale": "The origin tip is a current-HEAD and local-main ancestor with no unique commit or diffstat; it remains an independent object because the local tip differs."},
+      "archive_tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
+      "restore_command": "git branch ci/198-gap-closure f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "id": "origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "branch": "ci/198-05-verify", "side": "origin", "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "evidence": {"sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc", "merge_base_head": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc", "merge_base_main": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 332}, "vs_main": {"ahead": 0, "behind": 231}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": null,
+      "recommendation": {"action": "retire", "rationale": "The remote-only tip is an ancestor of current HEAD and local main with no unique commit or diffstat; no pull request is associated."},
+      "archive_tag": "archive/ci/198-05-verify/origin-d941ae1050c6", "restore_command": "git branch ci/198-05-verify d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc"
+    },
+    {
+      "id": "origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115",
+      "branch": "ci/198-round3", "side": "origin", "sha": "80bf701e7486962e538d16f213874cbba8f24115",
+      "evidence": {"sha": "80bf701e7486962e538d16f213874cbba8f24115", "merge_base_head": "80bf701e7486962e538d16f213874cbba8f24115", "merge_base_main": "80bf701e7486962e538d16f213874cbba8f24115", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 225}, "vs_main": {"ahead": 0, "behind": 124}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 30, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round3", "base": "main", "head_sha": "80bf701e7486962e538d16f213874cbba8f24115"},
+      "recommendation": {"action": "retire", "rationale": "The remote-only round-3 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round3/origin-80bf701e7486", "restore_command": "git branch ci/198-round3 80bf701e7486962e538d16f213874cbba8f24115"
+    },
+    {
+      "id": "origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "branch": "ci/198-round4", "side": "origin", "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "evidence": {"sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6", "merge_base_head": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6", "merge_base_main": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 176}, "vs_main": {"ahead": 0, "behind": 75}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 31, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round4", "base": "main", "head_sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"},
+      "recommendation": {"action": "retire", "rationale": "The remote-only round-4 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round4/origin-f433ef3ea6fd", "restore_command": "git branch ci/198-round4 f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"
+    },
+    {
+      "id": "local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "branch": "ci/198-round5", "side": "local", "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "evidence": {"sha": "14f923a71c0901cd5f95fc3a72e0971b05861543", "merge_base_head": "14f923a71c0901cd5f95fc3a72e0971b05861543", "merge_base_main": "14f923a71c0901cd5f95fc3a72e0971b05861543", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 127}, "vs_main": {"ahead": 0, "behind": 26}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 32, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round5", "base": "main", "head_sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"},
+      "recommendation": {"action": "retire", "rationale": "The local round-5 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round5/local-14f923a71c09", "restore_command": "git branch ci/198-round5 14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "id": "origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "branch": "ci/198-round5", "side": "origin", "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "evidence": {"sha": "14f923a71c0901cd5f95fc3a72e0971b05861543", "merge_base_head": "14f923a71c0901cd5f95fc3a72e0971b05861543", "merge_base_main": "14f923a71c0901cd5f95fc3a72e0971b05861543", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 127}, "vs_main": {"ahead": 0, "behind": 26}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 32, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round5", "base": "main", "head_sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"},
+      "recommendation": {"action": "retire", "rationale": "The origin round-5 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round5/origin-14f923a71c09", "restore_command": "git branch ci/198-round5 14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "id": "local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "branch": "ci/198-round6", "side": "local", "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "evidence": {"sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "merge_base_head": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "merge_base_main": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 108}, "vs_main": {"ahead": 0, "behind": 7}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 33, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round6", "base": "main", "head_sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"},
+      "recommendation": {"action": "retire", "rationale": "The local round-6 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round6/local-23c16267d11a", "restore_command": "git branch ci/198-round6 23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    },
+    {
+      "id": "origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "branch": "ci/198-round6", "side": "origin", "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "evidence": {"sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "merge_base_head": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "merge_base_main": "23c16267d11a63858aad23eab63c9fbfc385ef4b", "ancestor_of_head": true, "ancestor_of_main": true, "vs_head": {"ahead": 0, "behind": 108}, "vs_main": {"ahead": 0, "behind": 7}, "unique_vs_head": [], "unique_vs_main": [], "diffstat_vs_head": [], "diffstat_vs_main": []},
+      "pull_request": {"number": 33, "state": "OPEN", "is_draft": true, "merge_state": "BLOCKED", "head": "ci/198-round6", "base": "main", "head_sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"},
+      "recommendation": {"action": "retire", "rationale": "The origin round-6 tip is fully ancestral with no unique commit or diffstat."},
+      "archive_tag": "archive/ci/198-round6/origin-23c16267d11a", "restore_command": "git branch ci/198-round6 23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    }
+  ],
+  "decision": {
+    "option": "retire",
+    "verbatim": "retire",
+    "recorded_at": "2026-09-09T22:26:50Z",
+    "inventory_sha256": "88888854b44111835d753261eb15332a7c98fae7922d65d0d46e6fc5423a4655",
+    "subjects": [
+      {
+        "id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+        "branch": "ci/198-gap-closure",
+        "side": "local",
+        "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece",
+        "archive_tag": "archive/ci/198-gap-closure/local-ffcff0d16133"
+      },
+      {
+        "id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+        "branch": "ci/198-gap-closure",
+        "side": "origin",
+        "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+        "archive_tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c"
+      },
+      {
+        "id": "origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+        "branch": "ci/198-05-verify",
+        "side": "origin",
+        "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+        "archive_tag": "archive/ci/198-05-verify/origin-d941ae1050c6"
+      },
+      {
+        "id": "origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115",
+        "branch": "ci/198-round3",
+        "side": "origin",
+        "sha": "80bf701e7486962e538d16f213874cbba8f24115",
+        "archive_tag": "archive/ci/198-round3/origin-80bf701e7486"
+      },
+      {
+        "id": "origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+        "branch": "ci/198-round4",
+        "side": "origin",
+        "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+        "archive_tag": "archive/ci/198-round4/origin-f433ef3ea6fd"
+      },
+      {
+        "id": "local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+        "branch": "ci/198-round5",
+        "side": "local",
+        "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+        "archive_tag": "archive/ci/198-round5/local-14f923a71c09"
+      },
+      {
+        "id": "origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+        "branch": "ci/198-round5",
+        "side": "origin",
+        "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543",
+        "archive_tag": "archive/ci/198-round5/origin-14f923a71c09"
+      },
+      {
+        "id": "local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+        "branch": "ci/198-round6",
+        "side": "local",
+        "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+        "archive_tag": "archive/ci/198-round6/local-23c16267d11a"
+      },
+      {
+        "id": "origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+        "branch": "ci/198-round6",
+        "side": "origin",
+        "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b",
+        "archive_tag": "archive/ci/198-round6/origin-23c16267d11a"
+      }
+    ]
+  },
+  "execution": {
+    "status": "complete",
+    "started_at": "2026-09-09T22:35:59Z",
+    "task1_baseline": {
+      "active_branch": "phase-199/scroll-cost-cause-fix",
+      "active_head_sha": "29004314d96358cf87de0a6ed095ad6312b89d37",
+      "upstream": "origin/phase-199/scroll-cost-cause-fix",
+      "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f"
+    },
+    "task2_baseline": {
+      "active_branch": "phase-199/scroll-cost-cause-fix",
+      "active_head_sha": "ce5bd1ffeaa1d5af7c98df4c6847c49642a3a9c6",
+      "upstream": "origin/phase-199/scroll-cost-cause-fix",
+      "upstream_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f"
+    },
+    "completed_targets": ["ci/198-gap-closure", "ci/198-05-verify", "ci/198-round3", "ci/198-round4", "ci/198-round5", "ci/198-round6"],
+    "completed_at": "2026-09-09T23:01:06Z",
+    "final_live_state": {
+      "local_ci_198_refs": [],
+      "remote_ci_198_refs": [],
+      "closed_pull_requests": [29, 30, 31, 32, 33],
+      "verified_archive_subjects": 9,
+      "worktree_count": 1,
+      "green07_status": "Pending",
+      "stable_controls_unchanged": true
+    }
+  },
+  "command_receipts": [
+    {
+      "seq": 1,
+      "type": "local-annotated-tag",
+      "subject_id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece"
+    },
+    {
+      "seq": 2,
+      "type": "remote-single-tag",
+      "subject_id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece"
+    },
+    {
+      "seq": 3,
+      "type": "archive-register-row",
+      "subject_id": "local:ci/198-gap-closure@ffcff0d1613381950cfb6baad93e90aee19dcece",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/local-ffcff0d16133",
+      "sha": "ffcff0d1613381950cfb6baad93e90aee19dcece"
+    },
+    {
+      "seq": 4,
+      "type": "local-annotated-tag",
+      "subject_id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "seq": 5,
+      "type": "remote-single-tag",
+      "subject_id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "seq": 6,
+      "type": "archive-register-row",
+      "subject_id": "origin:ci/198-gap-closure@f748e43d7e4c1e63a0142569a55f57c7187e5cb1",
+      "target": "ci/198-gap-closure",
+      "tag": "archive/ci/198-gap-closure/origin-f748e43d7e4c",
+      "sha": "f748e43d7e4c1e63a0142569a55f57c7187e5cb1"
+    },
+    {
+      "seq": 7,
+      "type": "pr-close",
+      "target": "ci/198-gap-closure",
+      "pr": 29
+    },
+    {
+      "seq": 8,
+      "type": "remote-ref-delete",
+      "target": "ci/198-gap-closure"
+    },
+    {
+      "seq": 9,
+      "type": "local-ref-delete",
+      "target": "ci/198-gap-closure"
+    },
+    {
+      "seq": 10,
+      "type": "local-annotated-tag",
+      "subject_id": "origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "target": "ci/198-05-verify",
+      "tag": "archive/ci/198-05-verify/origin-d941ae1050c6",
+      "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc"
+    },
+    {
+      "seq": 11,
+      "type": "remote-single-tag",
+      "subject_id": "origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "target": "ci/198-05-verify",
+      "tag": "archive/ci/198-05-verify/origin-d941ae1050c6",
+      "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc"
+    },
+    {
+      "seq": 12,
+      "type": "archive-register-row",
+      "subject_id": "origin:ci/198-05-verify@d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc",
+      "target": "ci/198-05-verify",
+      "tag": "archive/ci/198-05-verify/origin-d941ae1050c6",
+      "sha": "d941ae1050c639121bdb5c1cc6fd8ea13e6cfafc"
+    },
+    {
+      "seq": 13,
+      "type": "remote-ref-delete",
+      "target": "ci/198-05-verify"
+    },
+    {
+      "seq": 14,
+      "type": "local-annotated-tag",
+      "subject_id": "origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115",
+      "target": "ci/198-round3",
+      "tag": "archive/ci/198-round3/origin-80bf701e7486",
+      "sha": "80bf701e7486962e538d16f213874cbba8f24115"
+    },
+    {
+      "seq": 15,
+      "type": "remote-single-tag",
+      "subject_id": "origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115",
+      "target": "ci/198-round3",
+      "tag": "archive/ci/198-round3/origin-80bf701e7486",
+      "sha": "80bf701e7486962e538d16f213874cbba8f24115"
+    },
+    {
+      "seq": 16,
+      "type": "archive-register-row",
+      "subject_id": "origin:ci/198-round3@80bf701e7486962e538d16f213874cbba8f24115",
+      "target": "ci/198-round3",
+      "tag": "archive/ci/198-round3/origin-80bf701e7486",
+      "sha": "80bf701e7486962e538d16f213874cbba8f24115"
+    },
+    {
+      "seq": 17,
+      "type": "pr-close",
+      "target": "ci/198-round3",
+      "pr": 30
+    },
+    {
+      "seq": 18,
+      "type": "remote-ref-delete",
+      "target": "ci/198-round3"
+    },
+    {
+      "seq": 19,
+      "type": "local-annotated-tag",
+      "subject_id": "origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "target": "ci/198-round4",
+      "tag": "archive/ci/198-round4/origin-f433ef3ea6fd",
+      "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"
+    },
+    {
+      "seq": 20,
+      "type": "remote-single-tag",
+      "subject_id": "origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "target": "ci/198-round4",
+      "tag": "archive/ci/198-round4/origin-f433ef3ea6fd",
+      "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"
+    },
+    {
+      "seq": 21,
+      "type": "archive-register-row",
+      "subject_id": "origin:ci/198-round4@f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+      "target": "ci/198-round4",
+      "tag": "archive/ci/198-round4/origin-f433ef3ea6fd",
+      "sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6"
+    },
+    {
+      "seq": 22,
+      "type": "pr-close",
+      "target": "ci/198-round4",
+      "pr": 31
+    },
+    {
+      "seq": 23,
+      "type": "remote-ref-delete",
+      "target": "ci/198-round4"
+    },
+    {
+      "seq": 24,
+      "type": "local-annotated-tag",
+      "subject_id": "local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "target": "ci/198-round5",
+      "tag": "archive/ci/198-round5/local-14f923a71c09",
+      "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "seq": 25,
+      "type": "remote-single-tag",
+      "subject_id": "local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "target": "ci/198-round5",
+      "tag": "archive/ci/198-round5/local-14f923a71c09",
+      "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "seq": 26,
+      "type": "archive-register-row",
+      "subject_id": "local:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "target": "ci/198-round5",
+      "tag": "archive/ci/198-round5/local-14f923a71c09",
+      "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "seq": 27,
+      "type": "local-annotated-tag",
+      "subject_id": "origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "target": "ci/198-round5",
+      "tag": "archive/ci/198-round5/origin-14f923a71c09",
+      "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "seq": 28,
+      "type": "remote-single-tag",
+      "subject_id": "origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "target": "ci/198-round5",
+      "tag": "archive/ci/198-round5/origin-14f923a71c09",
+      "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "seq": 29,
+      "type": "archive-register-row",
+      "subject_id": "origin:ci/198-round5@14f923a71c0901cd5f95fc3a72e0971b05861543",
+      "target": "ci/198-round5",
+      "tag": "archive/ci/198-round5/origin-14f923a71c09",
+      "sha": "14f923a71c0901cd5f95fc3a72e0971b05861543"
+    },
+    {
+      "seq": 30,
+      "type": "pr-close",
+      "target": "ci/198-round5",
+      "pr": 32
+    },
+    {
+      "seq": 31,
+      "type": "remote-ref-delete",
+      "target": "ci/198-round5"
+    },
+    {
+      "seq": 32,
+      "type": "local-ref-delete",
+      "target": "ci/198-round5"
+    },
+    {
+      "seq": 33,
+      "type": "local-annotated-tag",
+      "subject_id": "local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "target": "ci/198-round6",
+      "tag": "archive/ci/198-round6/local-23c16267d11a",
+      "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    },
+    {
+      "seq": 34,
+      "type": "remote-single-tag",
+      "subject_id": "local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "target": "ci/198-round6",
+      "tag": "archive/ci/198-round6/local-23c16267d11a",
+      "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    },
+    {
+      "seq": 35,
+      "type": "archive-register-row",
+      "subject_id": "local:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "target": "ci/198-round6",
+      "tag": "archive/ci/198-round6/local-23c16267d11a",
+      "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    },
+    {
+      "seq": 36,
+      "type": "local-annotated-tag",
+      "subject_id": "origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "target": "ci/198-round6",
+      "tag": "archive/ci/198-round6/origin-23c16267d11a",
+      "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    },
+    {
+      "seq": 37,
+      "type": "remote-single-tag",
+      "subject_id": "origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "target": "ci/198-round6",
+      "tag": "archive/ci/198-round6/origin-23c16267d11a",
+      "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    },
+    {
+      "seq": 38,
+      "type": "archive-register-row",
+      "subject_id": "origin:ci/198-round6@23c16267d11a63858aad23eab63c9fbfc385ef4b",
+      "target": "ci/198-round6",
+      "tag": "archive/ci/198-round6/origin-23c16267d11a",
+      "sha": "23c16267d11a63858aad23eab63c9fbfc385ef4b"
+    },
+    {
+      "seq": 39,
+      "type": "pr-close",
+      "target": "ci/198-round6",
+      "pr": 33
+    },
+    {
+      "seq": 40,
+      "type": "remote-ref-delete",
+      "target": "ci/198-round6"
+    },
+    {
+      "seq": 41,
+      "type": "local-ref-delete",
+      "target": "ci/198-round6"
+    }
+  ]
+}

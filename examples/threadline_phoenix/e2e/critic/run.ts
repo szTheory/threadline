@@ -24,8 +24,7 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { createClient, runNSamples } from "./client.js";
 import { loadBundle, committedCellIds } from "./bundle.js";
 import { buildPrompt } from "./prompt.js";
@@ -34,12 +33,35 @@ import { lookupCache, writeCache, sha8OfFile } from "./cache.js";
 import { guardBeforePole } from "./gate.js";
 import { MODEL_ID, SCHEMA_VERSION, type LensName } from "./schema.js";
 import { generateReport } from "./report.js";
+import {
+  configureOperatorSurfacePaths,
+  parseOperatorSurfaceRootFlags,
+  readRequiredJson,
+  resolveOperatorSurfacePaths,
+} from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-const goldenSetPath = resolve(repoRoot, ".planning/golden/golden-set.json");
-const syntheticSetPath = resolve(repoRoot, ".planning/golden/synthetic-set.json");
-const rubricDir = resolve(here, "rubrics");
+let operatorPaths = resolveOperatorSurfacePaths();
+let goldenSetPath = resolve(operatorPaths.goldenDir, "golden-set.json");
+let syntheticSetPath = resolve(operatorPaths.goldenDir, "synthetic-set.json");
+let rubricDir = operatorPaths.criticRubricsDir;
+
+function printResolvedPath(argv: string[]): void {
+  const rootFlags = parseOperatorSurfaceRootFlags(argv);
+  const resolvedPaths = configureOperatorSurfacePaths(rootFlags.overrides);
+  const key = rootFlags.rest[0];
+  const selected = {
+    "repository-root": resolvedPaths.repositoryRoot,
+    "e2e-root": resolvedPaths.e2eRoot,
+    "verdict-cache": resolvedPaths.verdictCacheDir,
+  }[key ?? ""];
+
+  if (!selected) {
+    throw new Error(
+      `Unknown path key ${JSON.stringify(key)}. Expected repository-root, e2e-root, or verdict-cache.`,
+    );
+  }
+  console.log(selected);
+}
 
 // Pinned constants
 export { MODEL_ID, SCHEMA_VERSION };
@@ -178,11 +200,11 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
  * Returns the parsed object or null if empty.
  */
 function loadGoldenSet(): { items: unknown[] } | null {
-  if (!existsSync(activeSetPath)) return null;
-  const gs = JSON.parse(readFileSync(activeSetPath, "utf8")) as {
-    items: unknown[];
-  };
-  return gs;
+  return readRequiredJson<{ items: unknown[] }>(activeSetPath, {
+    dataset: activeSetPath === syntheticSetPath ? "synthetic set" : "golden set",
+    repositoryOnly: true,
+    recoveryCommand: "npm run critic:check",
+  });
 }
 
 /**
@@ -237,9 +259,9 @@ function getRubricHash(rubricVersion: string): string {
 function screenshotSha8(cellId: string): string | null {
   try {
     const scorecard = JSON.parse(
-      readFileSync(resolve(repoRoot, ".planning/scorecards", `${cellId}.json`), "utf8"),
+      readFileSync(resolve(operatorPaths.scorecardsDir, `${cellId}.json`), "utf8"),
     ) as { artifacts: { screenshot: string } };
-    return sha8OfFile(resolve(repoRoot, scorecard.artifacts.screenshot));
+    return sha8OfFile(resolve(operatorPaths.repositoryRoot, scorecard.artifacts.screenshot));
   } catch {
     return null;
   }
@@ -301,7 +323,13 @@ function getScopedCellIds(args: ScoreArgs): string[] {
  * Run the score subcommand — fully wired: bundle → prompt → client → cache → scorecard.
  */
 async function runScore(argv: string[]): Promise<void> {
-  const args = parseScoreArgs(argv);
+  const rootFlags = parseOperatorSurfaceRootFlags(argv);
+  operatorPaths = resolveOperatorSurfacePaths(rootFlags.overrides);
+  goldenSetPath = resolve(operatorPaths.goldenDir, "golden-set.json");
+  syntheticSetPath = resolve(operatorPaths.goldenDir, "synthetic-set.json");
+  rubricDir = operatorPaths.criticRubricsDir;
+
+  const args = parseScoreArgs([...rootFlags.rest]);
   activeSetPath = args.synthetic ? syntheticSetPath : goldenSetPath;
 
   if (args.dryRun) {
@@ -319,7 +347,7 @@ async function runScore(argv: string[]): Promise<void> {
       console.log(`\nThe oracle set is required for --golden/--synthetic trust scoping.`);
       console.log(`  synthetic: run \`mix critic.synth\` (D-12 graded twin oracle)`);
       console.log(`  human:     run \`npm run critic:label -- --bootstrap\``);
-      console.log(`See .planning/golden/${args.synthetic ? "synthetic" : "golden"}-set.json.`);
+      console.log(`See test/fixtures/operator_surface/golden/${args.synthetic ? "synthetic" : "golden"}-set.json.`);
       process.exit(0);
     }
   }
@@ -357,7 +385,7 @@ async function runScore(argv: string[]): Promise<void> {
       console.error(
         `\n[critic score] REFUSED — a stamped before pole already exists for:\n` +
           guard.blocked
-            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in .planning/critic-scores/)`)
+            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in test/fixtures/operator_surface/critic-scores/)`)
             .join("\n") +
           `\n\nOverwriting it would fake the gate's before/after evidence (T-197-02).\n` +
           `\`npm run critic:gate -- --page ${page} --lens <lens>\` is the ONLY post-edit scoring command.\n` +
@@ -442,7 +470,7 @@ async function runScore(argv: string[]): Promise<void> {
               model_id: MODEL_ID,
               screenshot_hash:
                 screenshotHash ??
-                sha8OfFile(resolve(repoRoot, bundle.scorecard.artifacts.screenshot)),
+                sha8OfFile(resolve(operatorPaths.repositoryRoot, bundle.scorecard.artifacts.screenshot)),
               result: {
                 ...result.evidence,
                 score: result.score ?? 0,
@@ -499,6 +527,10 @@ async function runScore(argv: string[]): Promise<void> {
 const [subcommand, ...rest] = process.argv.slice(2);
 
 switch (subcommand) {
+  case "paths":
+    printResolvedPath(rest);
+    break;
+
   case "score":
     await runScore(rest);
     break;

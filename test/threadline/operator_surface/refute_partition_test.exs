@@ -4,7 +4,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Partition-rule guard for the Phase 195 refute-test battery (CRITIC-02, D-03).
 
     Proves that:
-      1. The refute manifest (.planning/refute/refute-set.json) is well-formed and lists
+      1. The refute manifest (test/fixtures/operator_surface/refute/refute-set.json) is well-formed and lists
          all required twin fields.
       2. Every gestalt twin has committed scorecards for both poles.
       3. Every gestalt twin's FLAWED scorecard PASSES all mechanical gates (MODE A + MODE B),
@@ -19,10 +19,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: true
 
     alias Threadline.OperatorSurface.MechanicalChecker
+    alias Threadline.Test.OperatorSurfaceFixtures
 
-    @refute_manifest ".planning/refute/refute-set.json"
-    @scorecard_dir ".planning/scorecards"
-    @golden_set ".planning/golden/golden-set.json"
+    @refute_manifest Path.join(OperatorSurfaceFixtures.refute!(), "refute-set.json")
+    @scorecard_dir OperatorSurfaceFixtures.scorecards!()
+    @golden_set Path.join(OperatorSurfaceFixtures.golden!(), "golden-set.json")
 
     @required_item_keys ~w(
       class
@@ -111,7 +112,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end)
         end
 
-        case MechanicalChecker.run(scorecard_dir: tmp_dir) do
+        case MechanicalChecker.run(scorecard_dir: tmp_dir, mechanical_floors: %{}) do
           {:ok, []} ->
             :ok
 

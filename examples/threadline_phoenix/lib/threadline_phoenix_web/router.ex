@@ -225,6 +225,7 @@ defmodule ThreadlinePhoenixWeb.Router do
 
       threadline_operator_surface_stress("/__stress",
         stress_env: if(Mix.env() == :prod, do: :omit, else: Mix.env()),
+        ledger_session: {ThreadlinePhoenixWeb.ThreadlineStressSession, :session, []},
         authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
         coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
         scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,
@@ -261,6 +262,7 @@ defmodule ThreadlinePhoenixWeb.Router do
       # Internal dev/test stress route. Keep it outside the public mount snippet.
       threadline_operator_surface_stress("/__stress",
         stress_env: if(Mix.env() == :prod, do: :omit, else: Mix.env()),
+        ledger_session: {ThreadlinePhoenixWeb.ThreadlineStressSession, :session, []},
         authorize_fn: &ThreadlinePhoenixWeb.Router.my_authorize_fn/1,
         coverage_authorize_fn: &ThreadlinePhoenixWeb.Router.my_coverage_authorize_fn/1,
         scope_query_fn: &ThreadlinePhoenixWeb.Router.scope_operator_query/3,

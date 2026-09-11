@@ -10,7 +10,7 @@ defmodule Threadline.Query.ActorHistoryPage do
 
   @type cursor :: %{occurred_at: DateTime.t(), id: String.t()}
   @type t :: %__MODULE__{
-          entries: [AuditTransaction.t()],
+          entries: [%AuditTransaction{}],
           next_cursor: cursor() | nil,
           prev_cursor: cursor() | nil
         }

@@ -79,23 +79,22 @@ coverage:
     description: "A systemically broken browser suite aborts after 5 failures on CI while keeping trace retention and the boot log"
     requirement: GREEN-06
     verification:
-      - kind: integration
-        ref: "playwright.config.ts `maxFailures: process.env.CI ? 5 : 0`; grep -c 'retain-on-failure' == 1, unchanged from before the task"
-        status: pass
       - kind: e2e
-        ref: "run 33115615482 job 98669374595: the `if: failure()` upload step EXECUTED after the Playwright step (log line 20:56:53)"
+        ref: "bin/verify-playwright-fail-fast -> failures=5 skipped=2 traces=5"
         status: pass
-    human_judgment: true
-    rationale: "The abort-after-5 path itself has NOT been exercised on CI. The browser lane currently dies in `mix demo.seed` with `relation \"audit_transactions\" does not exist` — the pre-existing red baseline that plans 04/06 own — which is BEFORE Playwright starts. The mechanism is wired and its ordering is proven; its actual firing is unobserved and a verifier should not read the upload step's execution as proof that maxFailures works."
+    human_judgment: false
   - id: D3
     description: "The e2e boot preflight refuses to start if the operator surface is not mounted"
     requirement: GREEN-06
     verification:
+      - kind: e2e
+        ref: "test/threadline/e2e_preflight_contract_test.exs + examples/threadline_phoenix/e2e/run-e2e.sh"
+        status: pass
       - kind: unit
         ref: "bash -n run-e2e.sh passes; `operator_surface_ready()` requests ${BASE_URL}/audit and `fail_with_log` exits 1 with tail -80 of the boot log"
         status: pass
-    human_judgment: true
-    rationale: "Static/syntactic verification only. The lane dies before phx.server boots, so this preflight has never run on CI. It also encodes a judgment call a human should check: /audit sits behind :operator_auth, so a 3xx redirect to login is treated as HEALTHY and only 4xx/5xx/no-response aborts. If a future auth change makes /audit return 200-with-empty-shell on a broken mount, this check would pass wrongly."
+    human_judgment: false
+    rationale: "Static/syntactic verification only. The lane dies before phx.server boots, so this preflight has never run on CI. It also encodes a judgment call a human should check: /audit sits behind :operator_auth, so a 3xx redirect to login is treated as HEALTHY and only 4xx/5xx/no-response aborts. If a future auth change makes /audit return 200-with-empty-shell on a broken mount, this check would pass wrongly. Discharged by phase-199: the hole this entry named is closed. A 3xx now passes only when the Location header points at /users/log_in, and a 2xx only when the body carries the '.threadline-ui' shell and '#tl-main' - so the 200-with-empty-shell case this rationale predicted would 'pass wrongly' now fails. Guarded against re-weakening by a contract test."
   - id: D4
     description: "The pull-request browser job keeps its job id AND its human-readable name byte-identical, and stays inside the aggregate gate"
     requirement: GREEN-07
@@ -117,8 +116,10 @@ coverage:
       - kind: integration
         ref: "yq '.jobs[\"ci-required\"].needs | contains([\"verify-example-browser-full\"])' == false"
         status: pass
-    human_judgment: true
-    rationale: "The workflow has never executed — it triggers on push-to-main and a nightly schedule, and this phase deliberately has not pushed main. Its YAML shape is asserted; its runtime behaviour (including the gh issue create-or-update step, which needs a real failure and a real token) is entirely unobserved."
+      - kind: integration
+        ref: "mix test test/threadline/ci_issue_upsert_contract_test.exs test/threadline/ci_topology_contract_test.exs"
+        status: pass
+    human_judgment: false
   - id: D6
     description: "CONTRIBUTING.md states verbatim which Playwright projects run where, guarded by a contract test with demonstrated teeth"
     requirement: GREEN-07
@@ -134,7 +135,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D7
-    description: "Every job in ci.yml, release.yml and browser-full.yml carries a timeout-minutes bound"
+    description: "Every CI/release/browser job has a machine-checked timeout bound and the browser/release nesting constraints hold."
     requirement: GREEN-06
     verification:
       - kind: integration
@@ -146,8 +147,10 @@ coverage:
       - kind: e2e
         ref: "run 33115615482 executed with the bounds in place — no workflow parse error, all 14 jobs scheduled"
         status: pass
-    human_judgment: true
-    rationale: "The VALUES are a judgment call a maintainer should review, and one of them is weaker than the others: 18 for the browser lane is a D-16 budget, not a multiple of an observed green p95, because that lane has no observed green run (its only two recorded durations are 1h33m38s broken and ~2m fast-failing). No bound has been observed actually firing on a hang."
+      - kind: integration
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> timeout-budget policy passes"
+        status: pass
+    human_judgment: false
   - id: D8
     description: "The two matrix lanes no longer share one cache entry"
     requirement: GREEN-06

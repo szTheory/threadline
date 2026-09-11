@@ -486,9 +486,6 @@ defmodule Threadline.Policy.RedactionPresenter do
   defp warning_for_reason(:ambiguous_changed_from_mask),
     do: "Deployed trigger SQL contained ambiguous changed_from masking."
 
-  defp warning_for_reason(_),
-    do: "Could not inspect deployed Threadline trigger SQL."
-
   defp hint_for(:config_matches_deployed), do: @match_hint
   defp hint_for(:drift_detected), do: @drift_hint
 

@@ -3,7 +3,7 @@
  *
  * Invoked by `run.ts validate` or `npm run critic:validate`.
  *
- * For each twin in .planning/refute/refute-set.json:
+ * For each twin in the adapter-owned refute-set manifest:
  *
  *   class=gestalt:
  *     Score polished + flawed cells as two independent blind single-cell scores
@@ -31,15 +31,14 @@
  * sign/attribution/margin on synthetic extremes and must NOT ratchet.
  *
  * Transcripts: committed last-known result per fixture written to
- *   .planning/refute/transcripts/<twin_id>.json
+ *   refute/transcripts/<twin_id>.json
  *   These provide the deterministic residue asserted in Plan 03.
  *
  * CRITIC-02 / D-03 / D-11 / RUNNER-03
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { ScorecardJson } from "./bundle.js";
 import { loadBundle, committedCellIds } from "./bundle.js";
 import { createClient, runNSamples } from "./client.js";
@@ -53,15 +52,18 @@ import {
   type PanelCellResult,
 } from "./panel.js";
 import { MODEL_ID, type LensName } from "./schema.js";
+import {
+  DEFAULT_OPERATOR_SURFACE_PATHS,
+  atomicWriteFile,
+  readRequiredJson,
+} from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-const refuteSetPath = resolve(repoRoot, ".planning/refute/refute-set.json");
-const transcriptDir = resolve(repoRoot, ".planning/refute/transcripts");
+const refuteSetPath = resolve(DEFAULT_OPERATOR_SURFACE_PATHS.refuteDir, "refute-set.json");
+const transcriptDir = resolve(DEFAULT_OPERATOR_SURFACE_PATHS.refuteDir, "transcripts");
 
 // ─── Refute Set Types ─────────────────────────────────────────────────────────
 
-/** One twin from .planning/refute/refute-set.json. */
+/** One twin from the adapter-owned refute-set manifest. */
 interface RefuteItem {
   /** Unique twin identifier (e.g. "refute.rhythm.doubled-padding"). */
   twin_id: string;
@@ -151,8 +153,8 @@ function writeTranscript(twinId: string, transcript: RefuteTranscript): void {
   }
   const safeId = twinId.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = resolve(transcriptDir, `${safeId}.json`);
-  writeFileSync(path, `${JSON.stringify(transcript, null, 2)}\n`, "utf8");
-  console.log(`  → transcript: .planning/refute/transcripts/${safeId}.json`);
+  atomicWriteFile(path, `${JSON.stringify(transcript, null, 2)}\n`);
+  console.log(`  → transcript: ${resolve(transcriptDir, `${safeId}.json`)}`);
 }
 
 /**
@@ -160,13 +162,18 @@ function writeTranscript(twinId: string, transcript: RefuteTranscript): void {
  * Throws a descriptive error if the file is missing or malformed.
  */
 function loadRefuteSet(): RefuteSet {
-  if (!existsSync(refuteSetPath)) {
+  const value = readRequiredJson<RefuteSet>(refuteSetPath, {
+    dataset: "critic refute set",
+    repositoryOnly: true,
+    recoveryCommand: "npm run critic:check",
+  });
+  if (!Array.isArray(value.items) || value.items.length === 0) {
     throw new Error(
-      `[critic validate] Refute-set manifest not found: ${refuteSetPath}\n` +
-        `This file is committed in Plan 03. Ensure it exists before running validate.`,
+      `critic refute set is empty.\nResolved path: ${refuteSetPath}\n` +
+        `repository-only: true\nRecovery: npm run critic:check`,
     );
   }
-  return JSON.parse(readFileSync(refuteSetPath, "utf8")) as RefuteSet;
+  return value;
 }
 
 /**
@@ -612,7 +619,7 @@ export async function runValidate(argv: string[]): Promise<void> {
       const costLabel = item.class === "veto_ordering" ? "$0 (mechanical)" : "~$0.45/run (LLM)";
       console.log(`  [${item.class}] ${item.twin_id} → ${item.target_lens} (${costLabel})`);
     }
-    console.log(`\nTranscripts will be written to: .planning/refute/transcripts/`);
+    console.log(`\nTranscripts will be written to: ${transcriptDir}`);
     console.log(`\nRun without --dry-run to execute the refute battery.`);
     console.log(`(ANTHROPIC_API_KEY required for gestalt twins; veto-ordering runs offline.)`);
     process.exit(0);
@@ -621,7 +628,7 @@ export async function runValidate(argv: string[]): Promise<void> {
   // ── Execute refute battery ────────────────────────────────────────────────
   console.log(`\n[critic validate] Running refute battery: ${refuteSet.version}`);
   console.log(`  ${items.length} twins (${gestaltCount} gestalt, ${vetoCount} veto-ordering)`);
-  console.log(`  Transcripts: .planning/refute/transcripts/\n`);
+  console.log(`  Transcripts: ${transcriptDir}\n`);
 
   const results: Array<{ twin_id: string; pass: boolean }> = [];
 

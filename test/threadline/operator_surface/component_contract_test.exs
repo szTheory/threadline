@@ -400,7 +400,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       assert src =~ ~s(<select id={@id} name={@name}),
              "select remains native HTML, not a custom combobox"
 
-      assert src =~ ~s(<input\n      type={@type}),
+      assert src =~ ~r/<input\n\s+type=\{@type\}/,
              "search/date/number controls remain native inputs"
 
       assert src =~ "NO ARIA role=\"table\"/\"row\"/\"cell\"",

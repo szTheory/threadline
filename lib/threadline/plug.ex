@@ -105,13 +105,9 @@ defmodule Threadline.Plug do
     end
   end
 
-  defp format_ip(nil), do: nil
-
   defp format_ip(ip) when is_tuple(ip) do
     ip |> :inet.ntoa() |> to_string()
   end
-
-  defp format_ip(ip) when is_binary(ip), do: ip
 
   defp apply_context_overrides(context, _conn, nil), do: context
 

@@ -3,6 +3,8 @@ defmodule Threadline.Export.Orchestrator do
   Executes asynchronous export jobs safely by streaming directly to disk.
   """
 
+  require Logger
+
   alias Threadline.Export
   alias Threadline.Governance.ExportJob
   alias Threadline.OperatorSurface.Exports.FilterParams
@@ -33,18 +35,24 @@ defmodule Threadline.Export.Orchestrator do
             repo.transaction(
               fn ->
                 file = File.open!(temp_path, [:write, :utf8])
-                IO.binwrite(file, Export.csv_header())
 
-                filters = prepare_filters(job.query_params, repo)
+                try do
+                  IO.binwrite(file, Export.csv_header())
 
-                Export.stream_export_rows(filters, repo: repo, storage_schema: storage_schema)
-                |> Stream.chunk_every(1000)
-                |> Enum.each(fn chunk ->
-                  iodata = Export.format_changes_iodata(chunk, :csv)
-                  IO.binwrite(file, iodata)
-                end)
+                  filters = prepare_filters(job.query_params, repo)
 
-                File.close(file)
+                  Export.stream_export_rows(filters,
+                    repo: repo,
+                    storage_schema: storage_schema
+                  )
+                  |> Stream.chunk_every(1000)
+                  |> Enum.each(fn chunk ->
+                    iodata = Export.format_changes_iodata(chunk, :csv)
+                    IO.binwrite(file, iodata)
+                  end)
+                after
+                  close_temp_file(file, temp_path)
+                end
 
                 case storage.put(temp_path) do
                   {:ok, file_path} -> file_path
@@ -54,7 +62,7 @@ defmodule Threadline.Export.Orchestrator do
               timeout: :infinity
             )
 
-          if File.exists?(temp_path), do: File.rm(temp_path)
+          remove_temp_file(temp_path)
 
           case res do
             {:ok, file_path} ->
@@ -67,7 +75,7 @@ defmodule Threadline.Export.Orchestrator do
           end
         rescue
           e ->
-            if File.exists?(temp_path), do: File.rm(temp_path)
+            remove_temp_file(temp_path)
             mark_failed(repo, job, Exception.message(e), storage_opts)
             {:error, e}
         end
@@ -109,6 +117,31 @@ defmodule Threadline.Export.Orchestrator do
       expires_at: terminal_expiry()
     })
     |> repo.update!(storage_opts)
+  end
+
+  defp close_temp_file(file, temp_path) do
+    case File.close(file) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("failed to close export temp file #{temp_path}: #{inspect(reason)}")
+        :ok
+    end
+  end
+
+  defp remove_temp_file(temp_path) do
+    case File.rm(temp_path) do
+      :ok ->
+        :ok
+
+      {:error, :enoent} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("failed to remove export temp file #{temp_path}: #{inspect(reason)}")
+        :ok
+    end
   end
 
   defp prepare_filters(query_params, repo) do

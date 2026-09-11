@@ -1,6 +1,10 @@
 import { expect, Page, test } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdirSync } from "node:fs";
+import {
+  atomicWriteFile,
+  currentOperatorSurfacePaths,
+  resolveContainedPath,
+} from "../support/operator-surface-paths.js";
 
 // Real operator-route capture lane (Phase 196) — the critic's REALISTIC-PAGE source.
 //
@@ -21,12 +25,9 @@ import { resolve } from "node:path";
 // (global), fonts.ready before observing styles, dynamic <time>/[data-dynamic]
 // masks so live timestamps/ids don't perturb the pixels.
 
-const repoRoot = resolve(process.cwd(), "../../..");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
-const artifactsRoot = resolve(
-  repoRoot,
-  "examples/threadline_phoenix/e2e/artifacts/routes",
-);
+const paths = currentOperatorSurfacePaths();
+const scorecardsDir = paths.scorecardsDir;
+const artifactsRoot = resolveContainedPath(paths.e2eRoot, "artifacts/routes");
 
 // Pinned for cross-machine byte-stability — never `new Date()` / installed version.
 const PLAYWRIGHT_VERSION = "1.61.1";
@@ -102,7 +103,7 @@ function cellId(ledgerId: string, theme: string, breakpoint: number): string {
 }
 
 function scorecardPath(id: string): string {
-  return resolve(scorecardsDir, `${id}.json`);
+  return resolveContainedPath(scorecardsDir, `${id}.json`);
 }
 
 function dynamicMasks(page: Page) {
@@ -111,7 +112,7 @@ function dynamicMasks(page: Page) {
 
 function writeJson(path: string, value: unknown) {
   // Two-space indent + trailing newline: byte-stable `git diff` on regeneration.
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  atomicWriteFile(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 async function login(page: Page) {
@@ -310,12 +311,12 @@ async function captureCell(
   const id = cellId(ledgerId, theme, breakpoint);
   await page.evaluate(() => (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready);
 
-  const artifactDir = resolve(artifactsRoot, id);
+  const artifactDir = resolveContainedPath(artifactsRoot, id);
   mkdirSync(artifactDir, { recursive: true });
 
   // Clip to #tl-main — the assembled page content, excluding the nav sidebar.
   await content.screenshot({
-    path: resolve(artifactDir, "screenshot.png"),
+    path: resolveContainedPath(artifactDir, "screenshot.png"),
     scale: "css",
     mask: dynamicMasks(page),
     // Playwright's default mask color is #FF00FF, which the LLM critic scores as
@@ -323,17 +324,19 @@ async function captureCell(
     // Mask with the dark surface token instead so masked regions stay non-salient.
     maskColor: "#0B1020",
   });
-  writeFileSync(resolve(artifactDir, "dom.html"), await content.innerHTML(), "utf8");
+  atomicWriteFile(
+    resolveContainedPath(artifactDir, "dom.html"),
+    await content.innerHTML(),
+  );
   let rawA11y: unknown = null;
   try {
     rawA11y = await page.accessibility.snapshot();
   } catch {
     rawA11y = null;
   }
-  writeFileSync(
-    resolve(artifactDir, "a11y.json"),
+  atomicWriteFile(
+    resolveContainedPath(artifactDir, "a11y.json"),
     `${JSON.stringify(rawA11y, null, 2)}\n`,
-    "utf8",
   );
 
   const tokens = await resolvedTokens(page);

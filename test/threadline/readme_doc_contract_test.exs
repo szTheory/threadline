@@ -117,7 +117,11 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/operator-surface.md")
     assert String.contains?(readme, "current support claims, stay with")
-    # assert String.contains?(readme, "stays in-tree for now")
+
+    assert contains_normalized?(
+             readme,
+             "The Threadline UI currently ships as an optional in-tree dependency"
+           )
 
     assert contains_normalized?(
              readme,
@@ -125,6 +129,21 @@ defmodule Threadline.ReadmeDocContractTest do
            )
 
     refute String.contains?(readme, "http://localhost:4000/audit")
+  end
+
+  test "README operator support wording contract rejects a temporary mutation" do
+    readme = File.read!("README.md")
+
+    assert operator_support_wording?(readme)
+
+    mutated =
+      String.replace(
+        readme,
+        "current support claims, stay with",
+        "current support claims, infer from"
+      )
+
+    refute operator_support_wording?(mutated)
   end
 
   test "README links production checklist guide" do
@@ -303,6 +322,11 @@ defmodule Threadline.ReadmeDocContractTest do
 
   defp contains_normalized?(doc, snippet) do
     String.contains?(normalize(doc), normalize(snippet))
+  end
+
+  defp operator_support_wording?(doc) do
+    String.contains?(doc, "current support claims, stay with") and
+      contains_normalized?(doc, "rather than inferring broader compatibility from the README")
   end
 
   defp normalize(value) do

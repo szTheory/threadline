@@ -133,8 +133,6 @@ defmodule Threadline.OperatorSurface.Presentation do
 
   # Keep the trailing `max` characters (filename / last-segment tail).
   defp truncate_tail(value, max) do
-    value = to_string(value || "")
-
     if String.length(value) <= max do
       value
     else
@@ -144,8 +142,6 @@ defmodule Threadline.OperatorSurface.Presentation do
 
   # Truncate the localpart but keep the full domain verbatim.
   defp truncate_email(value, max) do
-    value = to_string(value || "")
-
     case String.split(value, "@", parts: 2) do
       [local, domain] ->
         if String.length(value) <= max do
@@ -163,8 +159,6 @@ defmodule Threadline.OperatorSurface.Presentation do
 
   # Keep scheme+host head and the last path segment tail.
   defp truncate_url(value) do
-    value = to_string(value || "")
-
     case URI.parse(value) do
       %URI{scheme: scheme, host: host} when is_binary(scheme) and is_binary(host) ->
         head = "#{scheme}://#{host}"
@@ -323,6 +317,20 @@ defmodule Threadline.OperatorSurface.Presentation do
   @spec export_downloadable?(map(), keyword()) :: boolean()
   def export_downloadable?(job, opts \\ []), do: export_readiness(job, opts) == :ready
 
+  @doc """
+  Adopter-facing **action**-shaped copy for an export job's next step
+  ("Download export", "Preparing download", "Reopen source search", "Export
+  expired", "File unavailable").
+
+  This is deliberately distinct from `export_status_label/2`, which renders
+  **status**-shaped copy ("Queued", "Processing", "Failed", ...) for a
+  `role="status"` element. Having no in-tree caller is intended, not dead
+  code: this is public library surface reserved for an adopter surface that
+  wants action-shaped copy (e.g. a bulk-action toolbar or a notification)
+  rather than a status label. It is not removed on that basis alone, since
+  `Presentation` is public surface in a published Hex package and removal
+  would be a semver-visible breaking change (198-34 decision, option B).
+  """
   @spec export_action_label(map(), keyword()) :: String.t()
   def export_action_label(job, opts \\ []) when is_map(job) do
     status = job |> Map.get(:status, Map.get(job, "status")) |> normalize_status()
@@ -342,6 +350,31 @@ defmodule Threadline.OperatorSurface.Presentation do
         if status == "completed" and expired?(expires_at, opts),
           do: "Export expired",
           else: "File unavailable"
+    end
+  end
+
+  @doc """
+  Canonical **status**-shaped copy for an export job, rendered into the
+  `role="status"` hint span on the export status LiveView. `:now`-aware
+  (accepts a `:now` option, defaulting to `DateTime.utc_now/0`, so the expiry
+  boundary is testable at a frozen clock) and routed through
+  `normalize_status/1` so an atom status and its string equivalent cannot
+  diverge. A `nil` or unrecognised status, or a `nil`/absent `expires_at`,
+  resolves to a named fallback label rather than raising or rendering an
+  empty string.
+  """
+  @spec export_status_label(map(), keyword()) :: String.t()
+  def export_status_label(job, opts \\ []) when is_map(job) do
+    status = job |> Map.get(:status, Map.get(job, "status")) |> normalize_status()
+    expires_at = Map.get(job, :expires_at, Map.get(job, "expires_at"))
+
+    cond do
+      status in ~w(pending queued) -> "Queued"
+      status in ~w(running processing) -> "Processing"
+      status in ~w(failed error) -> "Failed"
+      status == "completed" and expired?(expires_at, opts) -> "Export expired"
+      status == "completed" -> "File unavailable"
+      true -> status_label(status)
     end
   end
 

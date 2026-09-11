@@ -305,7 +305,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                               Download export
                             </.link>
                           <% else %>
-                            <span class="tl-hint" role="status"><%= export_job_status_label(job) %></span>
+                            <span class="tl-hint" role="status"><%= Presentation.export_status_label(job) %></span>
                           <% end %>
                         </div>
                       </div>
@@ -389,7 +389,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         socket.assigns[:threadline_export_status_poll_ms] ||
           Application.get_env(:threadline, :export_status_poll_ms, 5_000)
 
-      Process.send_after(self(), :refresh, interval)
+      _timer_ref = Process.send_after(self(), :refresh, interval)
+      :ok
     end
 
     defp resolve_repo(socket) do
@@ -470,25 +471,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               "Queue an export from Timeline, then return here to download the completed packet.",
             status: "No export jobs"
           }
-      end
-    end
-
-    defp export_job_status_label(job) do
-      status = job |> Map.get(:status, Map.get(job, "status")) |> to_string()
-
-      expired? =
-        case Map.get(job, :expires_at, Map.get(job, "expires_at")) do
-          %DateTime{} = expires_at -> DateTime.compare(expires_at, DateTime.utc_now()) != :gt
-          _ -> false
-        end
-
-      cond do
-        status in ~w(pending queued) -> "Queued"
-        status in ~w(running processing) -> "Processing"
-        status in ~w(failed error) -> "Failed"
-        status == "completed" and expired? -> "Expired"
-        status == "completed" -> "File unavailable"
-        true -> Presentation.status_label(status)
       end
     end
 

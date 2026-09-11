@@ -2,92 +2,120 @@ defmodule Mix.Tasks.Critic.Measure do
   @shortdoc "Measures per-lens critic↔human trust and writes the critic_trust block (local-only; never auto-commits)"
 
   @moduledoc """
-  Computes the per-lens `critic_trust` block from the maintainer's golden set +
-  the critic's scores and writes it into `.planning/design-system-ledger.json`.
+  Computes the per-lens `critic_trust` block from the maintainer's golden set and
+  critic scores, then writes it into the repository's design-system ledger.
 
-  This is the measurement/writer half of CRITIC-03. It reads:
-
-    * the **oracle set** — `.planning/golden/golden-set.json` (reconciled human labels)
-      by default, or `.planning/golden/synthetic-set.json` under `--source synthetic`
-      (the D-12 graded twin oracle: constructed severity labels, zero human labeling)
-    * `.planning/critic-scores/<cell>/<lens>/<dim>.json` — the critic's scores
-    * `examples/threadline_phoenix/e2e/critic/rubrics/<lens>.md` — for the
-      versioned rubric hash stamped into `golden_rubric_version`
-
-  computes per-lens Krippendorff's α + raw agreement + n + bootstrap CI via
-  `Threadline.CriticTrust.Measure`, and splices the result over only the
-  `critic_trust` object via `Threadline.CriticTrust.LedgerSplice` (all other
-  ledger bytes preserved). A lens is promoted to `validated: true` only when
-  `alpha >= 0.67 ∧ n >= 20 ∧ raw_agreement >= 0.80 ∧ model_id == "claude-opus-4-8"`
-  and every contributing score used the current rubric version.
+  The task is a repository-only edge. Its private `--fixture-root` and
+  `--output-root` overrides resolve from `Mix.Project.project_file/0`, never the
+  caller's current directory or ambient environment. The fixture root owns the
+  ledger and golden oracles; the output root owns generated critic scores.
 
   ## Usage
 
-      mix critic.measure                     # human golden-set oracle
-      mix critic.measure --source synthetic  # D-12 graded twin oracle (labeling-free)
+      mix critic.measure
+      mix critic.measure --source synthetic
+      mix critic.measure --fixture-root test/fixtures/operator_surface --output-root test/fixtures/operator_surface/critic-scores
 
-  Also writes the sibling `critic_trust_provenance` block (`oracle`, `set_version`,
-  `generated_from`) so every promotion honestly records which oracle produced it.
-
-  Local-only and **excluded from `ci.all`** (it mutates a committed file). It
-  **never** runs git — the maintainer reviews the diff and commits the golden set,
-  critic-scores, CRITIQUE.md, and the updated ledger as one reviewed commit
-  (T-195-24: rescoring is never auto-green). The `mix verify.critic_trust` gate in
-  `ci.all` then re-asserts whatever was recorded.
-
-  Running with an empty golden set reproduces the vacuous block (all lenses
-  `validated: false`, `n: 0`) — a byte-identical no-op.
+  It computes per-lens trust via `Threadline.CriticTrust.Measure` and surgically
+  replaces only `critic_trust` and `critic_trust_provenance` through
+  `Threadline.CriticTrust.LedgerSplice`. The maintainer reviews the resulting
+  ledger diff; this task never runs git or commits.
   """
 
   use Mix.Task
 
   alias Threadline.CriticTrust.{LedgerSplice, Measure}
 
-  @ledger ".planning/design-system-ledger.json"
-  @golden ".planning/golden/golden-set.json"
-  @synthetic ".planning/golden/synthetic-set.json"
-  @critic_scores ".planning/critic-scores"
+  @default_fixture_root "test/fixtures/operator_surface"
+  @default_output_root "test/fixtures/operator_surface/critic-scores"
   @rubrics_dir "examples/threadline_phoenix/e2e/critic/rubrics"
 
   @impl Mix.Task
   def run(argv) do
     {:ok, _} = Application.ensure_all_started(:crypto)
 
-    source = parse_source(argv)
-    golden = read_golden(source)
-    scores = read_scores()
-    rubric_versions = read_rubric_versions()
+    {source, paths} = parse_options!(argv)
+    golden = read_golden!(source, paths)
+    scores = read_scores!(paths)
+    rubric_versions = read_rubric_versions!(paths)
+
+    ledger_text =
+      read_json_text!(paths.ledger, "design-system ledger", restore_command(paths.ledger))
 
     block = Measure.build_block(golden, scores, rubric_versions)
     provenance = provenance_for(source, golden)
 
-    ledger_text = File.read!(@ledger)
-
-    with {:ok, t1} <- LedgerSplice.replace(ledger_text, block),
-         {:ok, t2} <- LedgerSplice.replace_provenance(t1, provenance) do
-      File.write!(@ledger, t2)
+    with {:ok, trust_text} <- LedgerSplice.replace(ledger_text, block),
+         {:ok, final_text} <- LedgerSplice.replace_provenance(trust_text, provenance) do
+      atomic_replace!(paths.ledger, final_text)
       print_summary(block, source)
+      Mix.shell().info("git diff -- #{paths.ledger}")
     else
       {:error, reason} ->
-        Mix.raise("critic.measure: could not splice ledger block (#{inspect(reason)})")
+        task_error!(
+          "could not splice ledger block (#{inspect(reason)})",
+          paths.ledger,
+          restore_command(paths.ledger)
+        )
     end
   end
 
-  # ── Source + provenance (D-12) ───────────────────────────────────────────────
+  # ── Source + provenance ────────────────────────────────────────────────────
 
-  # `--source synthetic` reads the graded-twin oracle; default reads the human golden set.
-  defp parse_source(argv) do
-    case OptionParser.parse(argv, strict: [source: :string]) do
-      {[source: "synthetic"], _, _} -> :synthetic
-      {[source: "human"], _, _} -> :human
-      {[], _, _} -> :human
-      {opts, _, _} -> Mix.raise("critic.measure: unknown --source #{inspect(opts)}")
+  defp parse_options!(argv) do
+    project_root = project_root!()
+
+    case OptionParser.parse(argv,
+           strict: [source: :string, fixture_root: :string, output_root: :string]
+         ) do
+      {opts, [], []} ->
+        source = source!(Keyword.get(opts, :source, "human"), project_root)
+
+        fixture_root =
+          resolve_repository_root!(
+            Keyword.get(opts, :fixture_root, @default_fixture_root),
+            project_root,
+            "fixture root"
+          )
+
+        output_root =
+          resolve_repository_root!(
+            Keyword.get(opts, :output_root, @default_output_root),
+            project_root,
+            "critic-score output root"
+          )
+
+        require_directory!(fixture_root, "fixture root", restore_command(fixture_root))
+        require_directory!(output_root, "critic-score output root", "mix verify.ui_critique")
+        validate_root_separation!(fixture_root, output_root)
+
+        {source,
+         %{
+           project_root: project_root,
+           fixture_root: fixture_root,
+           output_root: output_root,
+           ledger: Path.join(fixture_root, "design-system-ledger.json"),
+           golden: Path.join(fixture_root, "golden/golden-set.json"),
+           synthetic: Path.join(fixture_root, "golden/synthetic-set.json"),
+           rubrics: Path.join(project_root, @rubrics_dir)
+         }}
+
+      {_opts, args, invalid} ->
+        task_error!(
+          "command arguments are invalid: #{inspect(args ++ invalid)}",
+          project_root,
+          "mix help critic.measure"
+        )
     end
   end
 
-  # The sibling critic_trust_provenance block. `oracle` is only stamped when the set
-  # actually carries items (an empty run stays a null/no-op) so the honest-label guard
-  # never sees an unlabeled promotion.
+  defp source!("human", _path), do: :human
+  defp source!("synthetic", _path), do: :synthetic
+
+  defp source!(source, path) do
+    task_error!("unknown --source #{inspect(source)}", path, "mix help critic.measure")
+  end
+
   defp provenance_for(source, golden) do
     has_items = length(Map.get(golden, "items", []) || []) > 0
 
@@ -110,26 +138,25 @@ defmodule Mix.Tasks.Critic.Measure do
     }
   end
 
-  # ── Readers ──────────────────────────────────────────────────────────────────
+  # ── Readers ────────────────────────────────────────────────────────────────
 
-  defp read_golden(source) do
-    path = if source == :synthetic, do: @synthetic, else: @golden
+  defp read_golden!(source, paths) do
+    path = if source == :synthetic, do: paths.synthetic, else: paths.golden
+    recovery = if source == :synthetic, do: "mix critic.synth", else: restore_command(path)
 
-    if File.exists?(path) do
-      path |> File.read!() |> Jason.decode!()
-    else
-      %{"items" => []}
-    end
+    path
+    |> read_json_object!("golden oracle", recovery)
+    |> validate_golden!(path, recovery)
   end
 
-  # Group critic-score files by {cell_id, lens} → [%{band:, stable:, model_id:, rubric_version:}].
-  defp read_scores do
-    Path.wildcard(Path.join(@critic_scores, "*/*/*.json"))
+  defp read_scores!(paths) do
+    Path.wildcard(Path.join(paths.output_root, "*/*/*.json"))
     |> Enum.reduce(%{}, fn path, acc ->
-      score = path |> File.read!() |> Jason.decode!()
+      score = read_json_object!(path, "critic score", "mix verify.ui_critique")
+      validate_score!(score, path)
       key = {score["cell_id"], score["lens"]}
 
-      dim = %{
+      dimension = %{
         band: score["band"],
         score: score["score"],
         stable: score["stable"] == true,
@@ -137,64 +164,244 @@ defmodule Mix.Tasks.Critic.Measure do
         rubric_version: score["rubric_version"]
       }
 
-      Map.update(acc, key, [dim], &[dim | &1])
+      Map.update(acc, key, [dimension], &[dimension | &1])
     end)
   end
 
-  # For each lens: the header-declared "<lens>@<semver>+<sha8>", read straight from the
-  # rubric's `<!-- lens: X | version: V | sha8: S -->` comment — the SAME source the
-  # scorer (run.ts getRubricVersion) stamps into each score's rubric_version. Reading
-  # (not recomputing) keeps score-time and measure-time versions identical, so `fresh`
-  # holds while a rubric is unchanged. The dedicated rubric-hash guard (in
-  # critic_trust_test) separately asserts the header sha8 tracks the file bytes once a
-  # rubric is stamped (placeholder "00000000" = uninitialized). nil when absent/malformed.
-  defp read_rubric_versions do
+  defp read_rubric_versions!(paths) do
+    require_directory!(paths.rubrics, "critic rubric root", restore_command(paths.rubrics))
+
     Map.new(Measure.lenses(), fn lens ->
-      path = Path.join(@rubrics_dir, "#{lens}.md")
+      path = Path.join(paths.rubrics, "#{lens}.md")
+      content = read_text!(path, "critic rubric", restore_command(path))
 
       version =
-        if File.exists?(path) do
-          content = File.read!(path)
-
-          case Regex.run(
-                 ~r/<!--\s*lens:\s*\S+\s*\|\s*version:\s*(\S+)\s*\|\s*sha8:\s*(\S+)\s*-->/,
-                 content
-               ) do
-            [_, semver, sha8] -> "#{lens}@#{semver}+#{sha8}"
-            _ -> nil
-          end
+        case Regex.run(
+               ~r/<!--\s*lens:\s*\S+\s*\|\s*version:\s*(\S+)\s*\|\s*sha8:\s*(\S+)\s*-->/,
+               content
+             ) do
+          [_, semver, sha8] -> "#{lens}@#{semver}+#{sha8}"
+          _ -> task_error!("critic rubric is invalid", path, restore_command(path))
         end
 
       {lens, version}
     end)
   end
 
-  # ── Output ───────────────────────────────────────────────────────────────────
+  # ── Repository-only path and decode boundary ──────────────────────────────
+
+  defp project_root! do
+    case Mix.Project.project_file() do
+      nil ->
+        task_error!("no Mix project file is loaded", File.cwd!(), "mix help critic.measure")
+
+      project_file ->
+        project_file
+        |> Path.expand()
+        |> Path.dirname()
+    end
+  end
+
+  defp resolve_repository_root!(path, project_root, dataset) when is_binary(path) do
+    expanded = Path.expand(path, project_root)
+    relative = Path.relative_to(expanded, project_root)
+
+    case Path.safe_relative_to(relative, project_root) do
+      {:ok, safe_relative} ->
+        Path.join(project_root, safe_relative)
+
+      :error ->
+        task_error!(
+          "#{dataset} escapes or aliases the repository",
+          expanded,
+          "mix help critic.measure"
+        )
+    end
+  end
+
+  defp validate_root_separation!(fixture_root, output_root) do
+    immutable = [
+      Path.join(fixture_root, "scorecards"),
+      Path.join(fixture_root, "golden"),
+      Path.join(fixture_root, "refute"),
+      Path.join(fixture_root, "design-system-ledger.json")
+    ]
+
+    if output_root == fixture_root or Enum.any?(immutable, &within?(output_root, &1)) do
+      task_error!(
+        "critic-score output root aliases immutable evidence",
+        output_root,
+        "mix help critic.measure"
+      )
+    end
+  end
+
+  defp within?(candidate, parent) do
+    case Path.relative_to(candidate, parent) do
+      "." -> true
+      ".." -> false
+      "../" <> _ -> false
+      relative -> Path.type(relative) == :relative
+    end
+  end
+
+  defp require_directory!(path, dataset, recovery) do
+    if not File.dir?(path), do: task_error!("#{dataset} is unavailable", path, recovery)
+  end
+
+  defp read_json_object!(path, dataset, recovery) do
+    case path |> read_text!(dataset, recovery) |> Jason.decode() do
+      {:ok, decoded} when is_map(decoded) ->
+        decoded
+
+      {:ok, _other} ->
+        task_error!("#{dataset} is invalid (expected a JSON object)", path, recovery)
+
+      {:error, error} ->
+        task_error!("#{dataset} is invalid (#{Exception.message(error)})", path, recovery)
+    end
+  end
+
+  defp read_json_text!(path, dataset, recovery) do
+    text = read_text!(path, dataset, recovery)
+
+    case Jason.decode(text) do
+      {:ok, decoded} when is_map(decoded) ->
+        text
+
+      {:ok, _other} ->
+        task_error!("#{dataset} is invalid (expected a JSON object)", path, recovery)
+
+      {:error, error} ->
+        task_error!("#{dataset} is invalid (#{Exception.message(error)})", path, recovery)
+    end
+  end
+
+  defp read_text!(path, dataset, recovery) do
+    case File.read(path) do
+      {:ok, text} ->
+        text
+
+      {:error, reason} ->
+        task_error!(
+          "#{dataset} is unavailable (#{:file.format_error(reason)})",
+          path,
+          recovery
+        )
+    end
+  end
+
+  defp validate_score!(score, path) do
+    valid =
+      is_binary(score["cell_id"]) and score["cell_id"] != "" and
+        score["lens"] in Measure.lenses() and
+        score["band"] in ~w(fail weak ok strong exemplary) and
+        is_number(score["score"]) and is_boolean(score["stable"]) and
+        is_binary(score["model_id"]) and is_binary(score["rubric_version"])
+
+    if not valid, do: task_error!("critic score is invalid", path, "mix verify.ui_critique")
+  end
+
+  defp validate_golden!(golden, path, recovery) do
+    items = Map.get(golden, "items")
+
+    valid =
+      is_list(items) and
+        Enum.all?(items, fn item ->
+          is_map(item) and is_binary(item["cell_id"]) and
+            item["lens"] in Measure.lenses() and is_binary(item["kind"]) and
+            is_map(item["r1"]) and item["r1"]["verdict"] in ~w(broken bad borderline good)
+        end)
+
+    if valid do
+      golden
+    else
+      task_error!("golden oracle schema is invalid", path, recovery)
+    end
+  end
+
+  defp atomic_replace!(target, contents) do
+    temp = "#{target}.tmp-#{System.unique_integer([:positive, :monotonic])}"
+
+    case File.open(temp, [:write, :binary, :exclusive]) do
+      {:ok, io_device} ->
+        result =
+          try do
+            with :ok <- IO.binwrite(io_device, contents),
+                 :ok <- :file.sync(io_device),
+                 :ok <- File.close(io_device),
+                 :ok <- atomic_write_hook(),
+                 :ok <- File.rename(temp, target) do
+              :ok
+            end
+          after
+            _ = File.close(io_device)
+            _ = File.rm(temp)
+          end
+
+        case result do
+          :ok ->
+            :ok
+
+          {:error, reason} ->
+            task_error!(
+              "atomic ledger replacement failed (#{inspect(reason)})",
+              target,
+              restore_command(target)
+            )
+        end
+
+      {:error, reason} ->
+        task_error!(
+          "could not create exclusive sibling temp (#{inspect(reason)})",
+          target,
+          restore_command(target)
+        )
+    end
+  end
+
+  defp atomic_write_hook do
+    case Process.get({__MODULE__, :atomic_write_hook}) do
+      hook when is_function(hook, 0) -> hook.()
+      _other -> :ok
+    end
+  end
+
+  defp restore_command(path), do: "git restore -- #{Path.relative_to(path, project_root!())}"
+
+  @spec task_error!(String.t(), Path.t(), String.t()) :: no_return()
+  defp task_error!(message, path, recovery) do
+    Mix.raise(
+      "critic.measure: #{message}\n" <>
+        "resolved path: #{Path.expand(path)}\n" <>
+        "repository-only: true\n" <>
+        "next: #{recovery}"
+    )
+  end
+
+  # ── Output ─────────────────────────────────────────────────────────────────
 
   defp print_summary(block, source) do
-    Mix.shell().info(
-      "\ncritic_trust measured (design-system-ledger.json updated) — oracle: #{source}:\n"
-    )
-
+    Mix.shell().info("\ncritic_trust measured — oracle: #{source}:\n")
     Mix.shell().info("  lens             n   spearman   auc    (alpha)  validated")
     Mix.shell().info("  ---------------  --  --------  -----  -------  ---------")
 
     for lens <- Measure.lenses() do
-      d = Map.fetch!(block, lens)
+      data = Map.fetch!(block, lens)
 
       Mix.shell().info(
         "  " <>
           String.pad_trailing(lens, 15) <>
           "  " <>
-          String.pad_leading(to_string(d["n"]), 2) <>
+          String.pad_leading(to_string(data["n"]), 2) <>
           "  " <>
-          String.pad_leading(fmt(d["spearman"]), 8) <>
+          String.pad_leading(fmt(data["spearman"]), 8) <>
           "  " <>
-          String.pad_leading(fmt(d["auc"]), 5) <>
+          String.pad_leading(fmt(data["auc"]), 5) <>
           "  " <>
-          String.pad_leading(fmt(d["alpha"]), 7) <>
+          String.pad_leading(fmt(data["alpha"]), 7) <>
           "  " <>
-          if(d["validated"], do: "  ✓ validated", else: "    provisional")
+          if(data["validated"], do: "  ✓ validated", else: "    provisional")
       )
     end
 
@@ -205,6 +412,6 @@ defmodule Mix.Tasks.Critic.Measure do
   end
 
   defp fmt(nil), do: "—"
-  defp fmt(x) when is_float(x), do: :erlang.float_to_binary(x, decimals: 3)
-  defp fmt(x), do: to_string(x)
+  defp fmt(value) when is_float(value), do: :erlang.float_to_binary(value, decimals: 3)
+  defp fmt(value), do: to_string(value)
 end

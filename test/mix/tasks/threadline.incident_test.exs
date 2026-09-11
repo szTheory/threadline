@@ -14,7 +14,8 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
           txid: System.unique_integer([:positive]),
           occurred_at: DateTime.utc_now(),
           actor_ref: %{"type" => "user", "id" => "u1"}
-        })
+        }),
+        repo_opts()
       )
 
     change =
@@ -27,7 +28,8 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
           data_after: %{"id" => "1", "name" => "test"},
           captured_at: DateTime.utc_now(),
           transaction_id: txn.id
-        })
+        }),
+        repo_opts()
       )
 
     {:ok, %{txn: txn, change: change}}

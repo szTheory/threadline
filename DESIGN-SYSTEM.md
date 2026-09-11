@@ -1,6 +1,6 @@
 # Threadline Operator Surface Design System
 
-This inventory is projected from `.planning/design-system-ledger.json`. Update the JSON ledger first, then keep this table projection fresh.
+This inventory is projected from `test/fixtures/operator_surface/design-system-ledger.json`. Update the JSON ledger first, then keep this table projection fresh.
 
 ## Ratchet Rule
 
@@ -187,7 +187,7 @@ diffable evidence — never a live browser at assert time.
 
 **Tier A — deterministic (CI-gated, all 120 cells).** The `operator-tier-a-capture`
 Playwright lane drives `/audit/__stress` and emits, per cell, a committed RAW-inputs
-scorecard (`.planning/scorecards/<cell-id>.json`) plus, for the deep band, a
+scorecard (`test/fixtures/operator_surface/scorecards/<cell-id>.json`) plus, for the deep band, a
 committed `#tl-main` ARIA snapshot (`.aria.yml`); binaries (PNG/DOM/raw a11y) stay
 gitignored under `examples/threadline_phoenix/e2e/artifacts/tier-a/`. Cell-id =
 `{ledger_id}__{theme}-{breakpoint}`. Regenerate with `mix verify.capture`

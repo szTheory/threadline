@@ -11,6 +11,7 @@ defmodule Threadline.MixProject do
       preferred_envs: [
         "ci.all": :test,
         "verify.doc_contract": :test,
+        "verify.dialyzer": :dev,
         "verify.release": :dev,
         "verify.test": :test,
         # `test.reset` runs `ecto.drop -r Threadline.Test.Repo`, and that repo only
@@ -47,7 +48,26 @@ defmodule Threadline.MixProject do
       description: "Audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL",
       source_url: @source_url,
       docs: docs(),
-      dialyzer: [plt_add_apps: [:mix]]
+      dialyzer: [
+        plt_local_path: ".dialyzer",
+        plt_core_path: ".dialyzer",
+        plt_add_apps: [
+          :mix,
+          :ex_unit,
+          :phoenix,
+          :phoenix_live_view,
+          :phoenix_html,
+          :phoenix_pubsub,
+          :oban,
+          :ex_aws,
+          :ex_aws_s3,
+          :hackney,
+          :sweet_xml
+        ],
+        flags: [:unmatched_returns, :extra_return],
+        ignore_warnings: ".dialyzer_ignore.exs",
+        list_unused_filters: true
+      ]
     ]
   end
 
@@ -78,6 +98,7 @@ defmodule Threadline.MixProject do
       {:ex_aws_s3, "~> 2.4", optional: true},
       {:hackney, "~> 1.18", optional: true},
       {:sweet_xml, "~> 0.7", optional: true},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:lazy_html, "~> 0.1.0", only: :test}
@@ -88,6 +109,7 @@ defmodule Threadline.MixProject do
     [
       "verify.format": ["format --check-formatted"],
       "verify.credo": ["credo --strict"],
+      "verify.dialyzer": ["dialyzer --no-check"],
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": [
@@ -144,6 +166,9 @@ defmodule Threadline.MixProject do
         "verify.threadline",
         "verify.example",
         "verify.doc_contract",
+        # Strict full-build Dialyzer gate. The dedicated CI job runs the same command
+        # on the exact current toolchain and owns the PLT cache lifecycle.
+        "verify.dialyzer",
         # Deterministic critic trust gate (reads committed ledger + golden JSON, no browser, no LLM).
         # Runs BEFORE verify.mechanical so a ratchet tamper or lens-trust gap fails fast.
         "verify.critic_trust",

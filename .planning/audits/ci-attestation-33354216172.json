@@ -1,0 +1,124 @@
+{
+  "schema": "threadline.ci-attestation/1",
+  "recorded_by": "bin/record-ci-attestation",
+  "note": "Verbatim snapshot of what GitHub Actions reported for this run. Conclusions are recorded as-is; every non-success value (failure, cancelled, skipped, neutral) is preserved rather than normalised.",
+  "run": {
+    "id": 33354216172,
+    "url": "https://github.com/szTheory/threadline/actions/runs/33354216172",
+    "workflow": "CI",
+    "title": "DO NOT MERGE — Phase 199 CI measurement: scroll_cost cause fix + Tier C structural assertions",
+    "branch": "phase-199/scroll-cost-cause-fix",
+    "head_sha": "46213f9bc0ecbff356058d317c882d5a643ae86f",
+    "event": "pull_request",
+    "attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "started_at": "2026-08-31T03:33:30Z",
+    "completed_at": "2026-08-31T03:43:52Z"
+  },
+  "totals": {
+    "jobs": 14,
+    "success": 14,
+    "not_success": 0
+  },
+  "jobs": [
+    {
+      "name": "Build ExDoc (dev)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:34:55Z"
+    },
+    {
+      "name": "CI required",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:43:48Z",
+      "completed_at": "2026-08-31T03:43:51Z"
+    },
+    {
+      "name": "Check formatting",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:33Z",
+      "completed_at": "2026-08-31T03:33:47Z"
+    },
+    {
+      "name": "Compile without optional deps",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:34:39Z"
+    },
+    {
+      "name": "Example app browser E2E (Playwright)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:33Z",
+      "completed_at": "2026-08-31T03:43:46Z"
+    },
+    {
+      "name": "Hex evaluator smoke (threadline from hex.pm)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:33Z",
+      "completed_at": "2026-08-31T03:34:29Z"
+    },
+    {
+      "name": "Hex package tarball",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:33Z",
+      "completed_at": "2026-08-31T03:33:47Z"
+    },
+    {
+      "name": "Mechanical checker (committed scorecards)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:35:06Z"
+    },
+    {
+      "name": "PgBouncer transaction topology",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:35:35Z"
+    },
+    {
+      "name": "Release metadata (version / changelog)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:33:39Z"
+    },
+    {
+      "name": "Run Credo (strict)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:34:52Z"
+    },
+    {
+      "name": "Run test suite (current)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:41:19Z"
+    },
+    {
+      "name": "Run test suite (min)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:38:00Z"
+    },
+    {
+      "name": "Tier A capture lane (byte-stable evidence)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-31T03:33:34Z",
+      "completed_at": "2026-08-31T03:42:11Z"
+    }
+  ]
+}

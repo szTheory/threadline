@@ -273,7 +273,12 @@ async function expectBoxWithinViewport(
   );
 }
 
-async function expectOperatorChrome(page: Page) {
+async function expectOperatorChrome(
+  page: Page,
+  options?: { exerciseMobileNav?: boolean },
+) {
+  const exerciseMobileNav = options?.exerciseMobileNav ?? true;
+
   await expect(page.locator("#tl-main")).toHaveCount(1);
   await expectLiveViewConnected(page);
   await expect(page.getByTestId("operator-header")).toBeVisible();
@@ -284,7 +289,9 @@ async function expectOperatorChrome(page: Page) {
 
   const nav = shell.locator(".tl-shell-nav__panel");
   if (viewportWidth < 768) {
-    await openOperatorNavIfNeeded(shell);
+    if (exerciseMobileNav) {
+      await openOperatorNavIfNeeded(shell);
+    }
   } else if (!(await nav.isVisible())) {
     const toggle = shell.locator(".tl-shell-nav__toggle");
     if (await toggle.isVisible()) {
@@ -295,18 +302,18 @@ async function expectOperatorChrome(page: Page) {
   const navVisible = await nav.isVisible();
 
   for (const destination of destinations) {
-    if (viewportWidth < 768 && !(await nav.isVisible())) {
+    if (viewportWidth < 768 && exerciseMobileNav && !(await nav.isVisible())) {
       await openOperatorNavIfNeeded(shell);
     }
 
     const link = nav.getByTestId(destination.testId);
-    if (navVisible || viewportWidth < 768) {
+    if (navVisible || (viewportWidth < 768 && exerciseMobileNav)) {
       await expectReachable(link, { scroll: false });
     }
     await expect(link).toHaveAttribute("href", destination.path);
   }
 
-  if (viewportWidth < 768) {
+  if (viewportWidth < 768 && exerciseMobileNav) {
     await closeOperatorNavIfNeeded(shell);
   }
 }
@@ -583,7 +590,22 @@ for (const viewport of viewports) {
       for (const route of routes) {
         await test.step(`${viewport.name}: ${route.name}`, async () => {
           await page.goto(route.path);
-          await expectOperatorChrome(page);
+          // Established cause (198-round5-playwright.md): the row-history
+          // route (row_history_live.ex) renders its drawer open unconditionally
+          // on load, and that drawer's `phx-click-away`
+          // (row_history_component.ex, bound to `#{id}-content`) dismisses on
+          // ANY click outside its own content — including a click on the
+          // unrelated mobile shell-nav toggle this helper exercises below 768px
+          // — by patching to `@close_path` ("/audit/timeline"). Exercising the
+          // toggle here would navigate the drawer away before assertRowHistory
+          // ever runs. Skip only the toggle interaction for this one route;
+          // every other static chrome assertion (main region, LiveView
+          // connected, header, shell visibility, nav href contract) still
+          // runs, and mobile-nav-toggle reachability at phone width is still
+          // exercised by every other route in this same matrix.
+          await expectOperatorChrome(page, {
+            exerciseMobileNav: route.name !== "row history",
+          });
           await route.assertRoute(page, viewport.width);
           await expectNoHorizontalOverflow(page);
         });

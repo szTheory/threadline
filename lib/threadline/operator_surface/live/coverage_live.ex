@@ -101,7 +101,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           # Cancel pending timer (Pitfall 6 — manual refresh races a tick).
           # Process.cancel_timer/1 is idempotent on already-fired timers (returns false).
           if ref = socket.assigns[:threadline_timer_ref] do
-            Process.cancel_timer(ref)
+            _cancel_result = Process.cancel_timer(ref)
+            :ok
           end
 
           schema = socket.assigns[:schema_param] || "public"
