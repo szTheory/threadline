@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 45
+open_count: 47
 waived_count: 0
 fixed_count: 1
-total_count: 46
-last_updated: 2026-09-11T18:06:20.458Z
+total_count: 48
+last_updated: 2026-09-11T18:46:58.760Z
 ---
 
 # Broken Windows Ledger
@@ -61,6 +61,8 @@ last_updated: 2026-09-11T18:06:20.458Z
 | 44 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-13 roadmap.update-plan-progress returned missing_phase_details; executor marked the plan halted and Plan 199-14 blocked without increasing the 12/14 complete count. | open |  | 2026-09-11T15:43:16.489Z |  |
 | 45 | 199 | deviation | .planning/ROADMAP.md | 510 | roadmap.update-plan-progress could not update Phase 199; Plan 199-15 checklist row was marked manually. | open |  | 2026-09-11T18:05:30.592Z |  |
 | 46 | 199 | deviation | .planning/STATE.md |  | state.advance-plan used stale pre-replan 14-plan position; executor reconciled Current Position to runnable Plan 16 of 21 after Plan 199-15 completion. | open |  | 2026-09-11T18:06:20.458Z |  |
+| 47 | 199 | deviation | .planning/phases/199-decouple/199-17-SUMMARY.md |  | Temporary named Node tests were required to make source-verifier RED evidence machine-classifiable. | open |  | 2026-09-11T18:46:58.670Z |  |
+| 48 | 199 | deviation | .planning/ROADMAP.md |  | Roadmap progress required manual reconciliation after the SDK returned missing_phase_details. | open |  | 2026-09-11T18:46:58.760Z |  |
 
 ````json
 [
@@ -634,6 +636,32 @@ last_updated: 2026-09-11T18:06:20.458Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T18:06:20.458Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 47,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/phases/199-decouple/199-17-SUMMARY.md",
+    "line": null,
+    "description": "Temporary named Node tests were required to make source-verifier RED evidence machine-classifiable.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T18:46:58.670Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 48,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Roadmap progress required manual reconciliation after the SDK returned missing_phase_details.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T18:46:58.760Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }
