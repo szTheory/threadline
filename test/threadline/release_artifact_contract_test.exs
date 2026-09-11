@@ -1,6 +1,6 @@
 defmodule Threadline.ReleaseArtifactContractTest do
   @moduledoc false
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   defp project_config, do: Threadline.MixProject.project()
 
@@ -34,6 +34,15 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "README.md" in extras
     assert "CONTRIBUTING.md" in extras
     assert "CHANGELOG.md" in extras
+  end
+
+  test "built Hex archive excludes repository evidence" do
+    entries = built_archive_entries()
+
+    assert "lib/threadline.ex" in entries
+    assert "mix.exs" in entries
+    refute Enum.any?(entries, &String.starts_with?(&1, "test/fixtures/"))
+    refute Enum.any?(entries, &String.starts_with?(&1, ".planning/"))
   end
 
   test "ExDoc extras keep integrations ahead of the verb routing lanes" do
@@ -99,4 +108,6 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert String.contains?(doc, "workflow_dispatch")
     assert String.contains?(doc, "v0.6.0")
   end
+
+  defp built_archive_entries, do: []
 end
