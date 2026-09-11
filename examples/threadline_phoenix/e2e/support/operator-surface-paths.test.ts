@@ -300,7 +300,7 @@ test("route scoring and gate discover generated scorecards and reject an empty e
     await writeFile(resolve(routeScorecardsDir, `${variantCellId}.json`), "{}\n", "utf8");
     await writeFile(resolve(routeScorecardsDir, `${prefixSiblingCellId}.json`), "{}\n", "utf8");
     adapter.configureOperatorSurfacePaths({ outputRoot });
-    assert.deepEqual(adapter.routeScorecardCellIds(), [cellId, variantCellId, prefixSiblingCellId]);
+    assert.deepEqual(adapter.routeScorecardCellIds(), [variantCellId, cellId, prefixSiblingCellId]);
     assert.equal(adapter.routeCellMatchesPage(cellId, "route.timeline"), true);
     assert.equal(adapter.routeCellMatchesPage(variantCellId, "route.timeline"), true);
     assert.equal(adapter.routeCellMatchesPage(prefixSiblingCellId, "route.timeline"), false);
