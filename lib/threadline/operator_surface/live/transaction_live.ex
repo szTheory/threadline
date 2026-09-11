@@ -376,8 +376,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp diff_full(_), do: nil
-
     defp timeline_correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
       "#{base_path}/timeline?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
     end
