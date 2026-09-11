@@ -23,6 +23,6 @@
   ],
   "post_analysis": {
     "command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
-    "authorized_output_sha256": "d216cdbd67a500c7cec6f4e8b12dc6faeaf83d0910bcdb306f1ef51445c0ee39"
+    "authorized_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   }
 }

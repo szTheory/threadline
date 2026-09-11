@@ -91,7 +91,7 @@ defmodule Threadline.CriticTrust.Measure do
   Returns `%{lens => %{"alpha" => ..., ...8 fields...}}`.
   """
   def build_block(golden, scores, rubric_versions, seed \\ @default_seed) do
-    :rand.seed(:exsss, {seed, 0, 0})
+    _ = :rand.seed(:exsss, {seed, 0, 0})
     items = Map.get(golden, "items", []) || []
 
     Map.new(@lenses, fn lens ->
