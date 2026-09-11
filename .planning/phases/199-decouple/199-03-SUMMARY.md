@@ -129,10 +129,19 @@ Each task followed a RED→GREEN TDD cycle, with one correctness hardening commi
 - **Verification:** Focused suite passes 28 tests; malformed structural JSON raises the repository-only task error before ledger mutation.
 - **Committed in:** `2ca1f6e3`
 
+**3. [Rule 3 - Blocking] Applied the roadmap handler's narrow fallback**
+
+- **Found during:** Post-summary planning-state synchronization
+- **Issue:** `roadmap.update-plan-progress 199` returned `missing_phase_details` although the Phase 199 checklist exists.
+- **Fix:** Marked only the completed `199-03-PLAN.md` checklist row as complete; the phase remains in progress.
+- **Files modified:** `.planning/ROADMAP.md`
+- **Verification:** The Plan 03 row is checked while all other unfinished Phase 199 plan rows remain unchecked.
+- **Committed in:** Final planning-state commit
+
 ---
 
-**Total deviations:** 2 auto-fixed (1 blocking verification correction, 1 missing critical validation).
-**Impact on plan:** Both changes enforce the plan's intended verification and filesystem trust boundary without adding public API or expanding scope.
+**Total deviations:** 3 auto-fixed (2 blocking workflow corrections, 1 missing critical validation).
+**Impact on plan:** The changes enforce the intended verification/filesystem trust boundary and accurate progress tracking without adding public API or expanding product scope.
 
 ## Issues Encountered
 
