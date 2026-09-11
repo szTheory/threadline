@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 199
 current_phase_name: decouple
 status: executing
-stopped_at: Completed 199-18-PLAN.md
-last_updated: "2026-09-11T19:03:35.393Z"
+stopped_at: Completed 199-19-PLAN.md
+last_updated: "2026-09-11T19:25:08.348Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 199 execution started
-state_head: af2016911d19d3934311839d0f90e4771828a0ae
+state_head: 672e9c71d7034e506d6de8dd0b9f772432d51b98
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 87
-  completed_plans: 83
+  completed_plans: 84
   percent: 14
 ---
 
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 199 (decouple) — READY TO EXECUTE
-Plan: 19 of 21
-Status: Executing — Plans 199-16 through 199-18 completed their bounded remediation slices; Plan 199-19 remains in Wave 5
+Plan: 20 of 21
+Status: Executing — Plans 199-16 through 199-19 completed their bounded remediation slices; Plan 199-20 remains in Wave 6
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -126,6 +126,7 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 | Phase 199 P16 | 13 min | 2 tasks | 6 files |
 | Phase 199 P17 | 15 min | 2 tasks | 6 files |
 | Phase 199 P18 | 6 min | 2 tasks | 6 files |
+| Phase 199 P19 | 15 min | 3 tasks | 6 files |
 
 ## Deferred Items
 
@@ -597,6 +598,8 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 - [Phase 199]: Keep Plug remote-address formatting tuple-only and cover both IPv4 and IPv6.
 - [Phase 199]: Require every redaction parser reason to have an explicit operator-facing presentation clause.
 - [Phase 199]: Use normalized binary inputs directly in private path, email, and URL presentation helpers.
+- [Phase 199]: Consume LiveView timer results explicitly while preserving intervals, message names, and scheduling count.
+- [Phase 199]: Match Timeline export counts and transaction value tokens only across result shapes guaranteed by their callees.
 
 ### Blockers
 
@@ -604,8 +607,8 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T19:03:35.232Z
-**Stopped at:** Completed 199-18-PLAN.md
+**Last session:** 2026-09-11T19:25:08.207Z
+**Stopped at:** Completed 199-19-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
