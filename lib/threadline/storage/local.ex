@@ -65,7 +65,12 @@ defmodule Threadline.Storage.Local do
   end
 
   defp local_path(file_id) do
-    priv_dir = :code.priv_dir(:threadline) || "priv"
+    priv_dir =
+      case :code.priv_dir(:threadline) do
+        path when is_list(path) -> path
+        {:error, :bad_name} -> "priv"
+      end
+
     Path.join([to_string(priv_dir), "threadline_exports", file_id])
   end
 end
