@@ -510,6 +510,33 @@ exact commit and dependency/config hashes, and separate cold and exact-key-hit
 runs for that same commit; estimates and unlinked log excerpts are not valid
 evidence.
 
+#### Authenticated cold/hit evidence (2026-09-11)
+
+Both jobs below are attempt 1 for commit
+`a4f21e7e89ed4f958bc4ff0bb48c796225496bdd`. They ran on GitHub-hosted
+`ubuntu-24.04` image version `20260907.300.1` (Ubuntu 24.04.5 LTS; runner
+2.337.0), with the workflow pins resolving to Erlang/OTP 27.0.1 and Elixir
+1.17.3 compiled for OTP 27. Their identical primary PLT cache key recorded
+`hashFiles('mix.lock') = f8275246d287e483bdc4bea1cc53781d9076e21403d44c887c3adfedaabbb53a`
+and
+`hashFiles('mix.exs') = 1025d27a2bd55968da5682d1654a62eff358df117b8d8a52e6c8ed034c0b7861`.
+
+| Evidence | Cold cache miss | Exact-key cache hit |
+|---|---|---|
+| Workflow run | [`34642915672`](https://github.com/szTheory/threadline/actions/runs/34642915672), event `push` | [`34643744220`](https://github.com/szTheory/threadline/actions/runs/34643744220), event `workflow_dispatch` |
+| Dialyzer job | [`103406722917`](https://github.com/szTheory/threadline/actions/runs/34642915672/job/103406722917), success | [`103410179816`](https://github.com/szTheory/threadline/actions/runs/34643744220/job/103410179816), success |
+| PLT cache proof | `THREADLINE_DIALYZER_PLT_CACHE=miss`; exact key not found, then saved before analysis | Exact primary key restored; `THREADLINE_DIALYZER_PLT_CACHE=hit`; PLT build step skipped |
+| PLT build | `THREADLINE_DIALYZER_PLT_WALL_SECONDS=152.82`; `THREADLINE_DIALYZER_PLT_MAX_RSS_KB=2282540` | Not emitted, as required on a hit |
+| Analysis | `THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=9.82`; `THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1023056` | `THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=9.42`; `THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1009288` |
+| Whole job elapsed | 252 seconds (20:11:54Z–20:16:06Z) | 123 seconds (20:23:39Z–20:25:42Z) |
+
+The `verify-dialyzer` timeout is derived from the measured cold whole-job
+elapsed time, not just the analyzer subprocesses: `ceil(252 seconds × 2.0 / 60)
+= 9 minutes`. The 2.0 factor gives 100% headroom for dependency, runner, and
+PLT-build variance while keeping a bounded failure time. The exact-key hit
+saved 143.4 seconds of analyzer work (`162.64 - 9.42`) and 129 seconds of
+whole-job elapsed time (`252 - 123`) on this evidence pair.
+
 Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
 For running the test job locally with [nektos/act](https://github.com/nektos/act), see `scripts/ci/README.md`.

@@ -31,9 +31,7 @@ name: CI
 
 on:
   push:
-    # Plan 199-14's exact prepared branch must produce the authenticated cold
-    # measurement before Task 3 removes this temporary measurement trigger.
-    branches: [main, "phase-199/scroll-cost-cause-fix"]
+    branches: [main]
   pull_request:
     branches: [main]
   # Allow the Release workflow's "Bootstrap CI on Release PR" job to dispatch CI
@@ -134,6 +132,9 @@ jobs:
   verify-dialyzer:
     name: Dialyzer (current toolchain)
     runs-on: ubuntu-24.04
+    # Plan 199-14 measured the cold job at 252 seconds. A 2x headroom factor,
+    # rounded up to the next whole minute, gives ceil(252 * 2 / 60) = 9.
+    timeout-minutes: 9
     env:
       MIX_ENV: dev
     steps:

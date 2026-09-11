@@ -134,6 +134,7 @@ defmodule Threadline.CiTopologyContractTest do
          "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check",
          "mix dialyzer --no-check"
        )},
+      {"measured timeout", String.replace(yaml, "timeout-minutes: 9", "timeout-minutes: 8")},
       {"fail-on-unparseable guard",
        String.replace(yaml, "Unable to parse GNU time output", "Timing unavailable")},
       {"build-before-save ordering",
@@ -181,6 +182,12 @@ defmodule Threadline.CiTopologyContractTest do
 
     refute dialyzer_topology_errors(mix_exs, hit_with_fabricated_plt, contributing) == [],
            "the exact-key hit path must never fabricate a PLT-build measurement"
+
+    evidence_without_cold_run =
+      String.replace(contributing, "34642915672", "unlinked-cold-run")
+
+    refute dialyzer_topology_errors(mix_exs, yaml, evidence_without_cold_run) == [],
+           "authenticated cold-run provenance must be part of the documentation contract"
   end
 
   test "verify-test job runs the phoenix-surface and sigra-reference proof path" do
@@ -351,14 +358,18 @@ defmodule Threadline.CiTopologyContractTest do
        "ci.all must contain verify.dialyzer exactly once"},
       {Regex.match?(~r/^# Job id contract[^\n]*\n#[^\n]*verify-dialyzer/m, yaml),
        "workflow header roster must contain verify-dialyzer"},
-      {String.contains?(yaml, ~s(branches: [main, "phase-199/scroll-cost-cause-fix"])),
-       "the exact prepared branch must trigger the cold measurement run"},
+      {String.contains?(yaml, "branches: [main]") and
+         not String.contains?(yaml, "phase-199/scroll-cost-cause-fix"),
+       "the temporary measurement-branch trigger must be removed after collection"},
       {job != "", "verify-dialyzer job must exist"},
       {String.contains?(job, "runs-on: ubuntu-24.04"),
        "verify-dialyzer must run on ubuntu-24.04"},
       {String.contains?(job, ~s(elixir-version: "1.17.3")),
        "verify-dialyzer must pin Elixir 1.17.3"},
       {String.contains?(job, ~s(otp-version: "27.0")), "verify-dialyzer must pin OTP 27.0"},
+      {String.contains?(job, "timeout-minutes: 9") and
+         String.contains?(job, "ceil(252 * 2 / 60) = 9"),
+       "Dialyzer timeout must retain the documented cold-run derivation"},
       {String.contains?(job, "uses: actions/cache/restore@v4"),
        "Dialyzer PLT restore must be a separate cache action"},
       {String.contains?(job, "id: dialyzer-plt-restore"),
@@ -418,7 +429,26 @@ defmodule Threadline.CiTopologyContractTest do
            "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB"
          ],
          &String.contains?(contributing, &1)
-       ), "CONTRIBUTING must document the stable measurement field contract"}
+       ), "CONTRIBUTING must document the stable measurement field contract"},
+      {Enum.all?(
+         [
+           "34642915672",
+           "34643744220",
+           "a4f21e7e89ed4f958bc4ff0bb48c796225496bdd",
+           "20260907.300.1",
+           "f8275246d287e483bdc4bea1cc53781d9076e21403d44c887c3adfedaabbb53a",
+           "1025d27a2bd55968da5682d1654a62eff358df117b8d8a52e6c8ed034c0b7861",
+           "THREADLINE_DIALYZER_PLT_WALL_SECONDS=152.82",
+           "THREADLINE_DIALYZER_PLT_MAX_RSS_KB=2282540",
+           "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=9.82",
+           "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1023056",
+           "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=9.42",
+           "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1009288",
+           "ceil(252 seconds × 2.0 / 60)",
+           "= 9 minutes"
+         ],
+         &String.contains?(contributing, &1)
+       ), "CONTRIBUTING must link the immutable miss/hit evidence and timeout formula"}
     ]
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
