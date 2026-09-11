@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
   use ExUnit.Case, async: true
 
   alias Threadline.OperatorSurface.MechanicalChecker
+  alias Threadline.Test.OperatorSurfaceFixtures
 
   # House style mirrors brandbook_token_parity_test.exs + stress_ledger_test.exs:
   # File.read! at the top of each meta-test, one concern per block, custom failure
@@ -10,8 +11,8 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
   # no DB / browser / network). This file is `mix verify.mechanical`.
 
   @checker_path "lib/threadline/operator_surface/mechanical_checker.ex"
-  @scorecards_dir ".planning/scorecards"
-  @ledger_path ".planning/design-system-ledger.json"
+  @scorecards_dir OperatorSurfaceFixtures.scorecards!()
+  @ledger_path OperatorSurfaceFixtures.ledger!()
 
   # ---------------------------------------------------------------------------
   # Meta-test: MODE-A LOCKED constants are pinned verbatim in the source. This is

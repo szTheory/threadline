@@ -19,10 +19,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: true
 
     alias Threadline.OperatorSurface.MechanicalChecker
+    alias Threadline.Test.OperatorSurfaceFixtures
 
-    @refute_manifest ".planning/refute/refute-set.json"
-    @scorecard_dir ".planning/scorecards"
-    @golden_set ".planning/golden/golden-set.json"
+    @refute_manifest Path.join(OperatorSurfaceFixtures.refute!(), "refute-set.json")
+    @scorecard_dir OperatorSurfaceFixtures.scorecards!()
+    @golden_set Path.join(OperatorSurfaceFixtures.golden!(), "golden-set.json")
 
     @required_item_keys ~w(
       class
@@ -111,7 +112,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end)
         end
 
-        case MechanicalChecker.run(scorecard_dir: tmp_dir) do
+        case MechanicalChecker.run(scorecard_dir: tmp_dir, mechanical_floors: %{}) do
           {:ok, []} ->
             :ok
 

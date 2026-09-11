@@ -3,10 +3,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: true
 
     alias Threadline.OperatorSurface.StressFixtures
+    alias Threadline.Test.OperatorSurfaceFixtures
 
-    @ledger_path ".planning/design-system-ledger.json"
+    @ledger_path OperatorSurfaceFixtures.ledger!()
     @design_system_path "DESIGN-SYSTEM.md"
-    @synthetic_set_path ".planning/golden/synthetic-set.json"
+    @synthetic_set_path Path.join(OperatorSurfaceFixtures.golden!(), "synthetic-set.json")
 
     @top_level_keys ~w(
       critic_panel
