@@ -4,8 +4,34 @@ defmodule Threadline.DialyzerIgnoreContractTest do
   @root Path.expand("../..", __DIR__)
   @mix_path Path.join(@root, "mix.exs")
   @triage_path Path.join(@root, ".planning/phases/199-decouple/199-DIALYZER-TRIAGE.md")
+  @fixture_paths ~w(
+    critic-tooling.json
+    query-storage.json
+    export-investigation.json
+    operator-boundaries.json
+    operator-liveviews.json
+  )
+  |> Enum.map(&Path.join([@root, "test/fixtures/dialyzer", &1]))
   @required_plt_apps ~w(mix ex_unit phoenix phoenix_live_view phoenix_html phoenix_pubsub oban ex_aws ex_aws_s3 hackney sweet_xml)a
   @warning_origin_cap 14
+
+  test "five source fixtures form the exact 40-warning and 22-origin partition" do
+    fixtures = Enum.map(@fixture_paths, &(&1 |> File.read!() |> Jason.decode!()))
+    warning_ids = for fixture <- fixtures, warning <- fixture["warnings"], do: warning["id"]
+    origins = Enum.flat_map(fixtures, & &1["authorized_origins"])
+
+    assert Enum.sort(warning_ids) == Enum.map(1..40, &"W#{String.pad_leading("#{&1}", 2, "0")}")
+    assert length(warning_ids) == length(Enum.uniq(warning_ids))
+    assert length(origins) == 22
+    assert length(origins) == length(Enum.uniq(origins))
+
+    refute File.read!(__ENV__.file) =~ ".planning"
+  end
+
+  test "ignore ratchet rejects broad filters before the ceiling check" do
+    assert {:error, message} = validate_warning_origins(["lib/**/*.ex"])
+    assert message =~ "exact"
+  end
 
   test "full optional-app Dialyzer configuration and sealed first analysis are present" do
     mix_source = File.read!(@mix_path)
