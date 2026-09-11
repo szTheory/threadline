@@ -165,10 +165,11 @@ test("rejects traversal, absolute escape, prefix confusion, and symlink escape",
     await mkdir(prefixSibling);
     await mkdir(outside);
     await symlink(outside, resolve(root, "linked-outside"));
+    const canonicalRoot = await realpath(root);
 
     assert.equal(
       adapter.resolveContainedPath(root, "nested/valid.json"),
-      resolve(root, "nested/valid.json"),
+      resolve(canonicalRoot, "nested/valid.json"),
     );
     assert.throws(() => adapter.resolveContainedPath(root, "../escape.json"), /outside/i);
     assert.throws(
