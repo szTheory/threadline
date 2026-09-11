@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, ci-required
+# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, ci-required
 #
 # `ci-required` (name: "CI required") is the SINGLE required status check on
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
@@ -31,7 +31,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # Plan 199-14's exact prepared branch must produce the authenticated cold
+    # measurement before Task 3 removes this temporary measurement trigger.
+    branches: [main, "phase-199/scroll-cost-cause-fix"]
   pull_request:
     branches: [main]
   # Allow the Release workflow's "Bootstrap CI on Release PR" job to dispatch CI
@@ -128,6 +130,124 @@ jobs:
 
       - name: Run Credo
         run: mix verify.credo
+
+  verify-dialyzer:
+    name: Dialyzer (current toolchain)
+    runs-on: ubuntu-24.04
+    env:
+      MIX_ENV: dev
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+
+      - name: Restore Dialyzer PLT
+        id: dialyzer-plt-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: .dialyzer
+          key: ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-${{ hashFiles('mix.lock') }}-${{ hashFiles('mix.exs') }}
+          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-
+
+      # Dependency work is deliberately outside both GNU time measurements.
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile full optional build
+        run: mix compile --warnings-as-errors
+
+      - name: Build and measure Dialyzer PLT on cache miss
+        if: steps.dialyzer-plt-restore.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          time_file="${RUNNER_TEMP}/dialyzer-plt-time.txt"
+          dialyzer_status=0
+          /usr/bin/time -v -o "$time_file" mix dialyzer --plt || dialyzer_status=$?
+
+          wall_count=$(grep -c 'Elapsed (wall clock) time' "$time_file" || true)
+          rss_count=$(grep -c 'Maximum resident set size (kbytes)' "$time_file" || true)
+          wall_raw=$(sed -n 's/^[[:space:]]*Elapsed (wall clock) time (h:mm:ss or m:ss):[[:space:]]*//p' "$time_file")
+          max_rss_kb=$(sed -n 's/^[[:space:]]*Maximum resident set size (kbytes):[[:space:]]*//p' "$time_file")
+          wall_seconds=$(awk -F: '
+            NF == 2 { printf "%.2f", ($1 * 60) + $2; found = 1 }
+            NF == 3 { printf "%.2f", ($1 * 3600) + ($2 * 60) + $3; found = 1 }
+            END { if (!found) exit 1 }
+          ' <<< "$wall_raw") || {
+            echo "::error::Unable to parse GNU time output for Dialyzer PLT wall time"
+            cat "$time_file"
+            exit 1
+          }
+
+          if [[ "$wall_count" -ne 1 || "$rss_count" -ne 1 ]] ||
+             ! [[ "$wall_seconds" =~ ^[0-9]+([.][0-9]+)?$ ]] ||
+             ! [[ "$max_rss_kb" =~ ^[0-9]+$ ]]; then
+            echo "::error::Unable to parse GNU time output for Dialyzer PLT measurements"
+            cat "$time_file"
+            exit 1
+          fi
+
+          echo "THREADLINE_DIALYZER_PLT_CACHE=miss"
+          echo "THREADLINE_DIALYZER_PLT_WALL_SECONDS=${wall_seconds}"
+          echo "THREADLINE_DIALYZER_PLT_MAX_RSS_KB=${max_rss_kb}"
+          exit "$dialyzer_status"
+
+      # Save a successfully built/updated PLT before analysis so an analyzer
+      # warning cannot discard the expensive, valid cache artifact.
+      - name: Save Dialyzer PLT
+        if: steps.dialyzer-plt-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .dialyzer
+          key: ${{ steps.dialyzer-plt-restore.outputs.cache-primary-key }}
+
+      - name: Report exact PLT cache hit
+        if: steps.dialyzer-plt-restore.outputs.cache-hit == 'true'
+        run: echo "THREADLINE_DIALYZER_PLT_CACHE=hit"
+
+      - name: Analyze and measure with Dialyzer
+        shell: bash
+        run: |
+          set -euo pipefail
+          time_file="${RUNNER_TEMP}/dialyzer-analysis-time.txt"
+          dialyzer_status=0
+          /usr/bin/time -v -o "$time_file" mix dialyzer --no-check || dialyzer_status=$?
+
+          wall_count=$(grep -c 'Elapsed (wall clock) time' "$time_file" || true)
+          rss_count=$(grep -c 'Maximum resident set size (kbytes)' "$time_file" || true)
+          wall_raw=$(sed -n 's/^[[:space:]]*Elapsed (wall clock) time (h:mm:ss or m:ss):[[:space:]]*//p' "$time_file")
+          max_rss_kb=$(sed -n 's/^[[:space:]]*Maximum resident set size (kbytes):[[:space:]]*//p' "$time_file")
+          wall_seconds=$(awk -F: '
+            NF == 2 { printf "%.2f", ($1 * 60) + $2; found = 1 }
+            NF == 3 { printf "%.2f", ($1 * 3600) + ($2 * 60) + $3; found = 1 }
+            END { if (!found) exit 1 }
+          ' <<< "$wall_raw") || {
+            echo "::error::Unable to parse GNU time output for Dialyzer analysis wall time"
+            cat "$time_file"
+            exit 1
+          }
+
+          if [[ "$wall_count" -ne 1 || "$rss_count" -ne 1 ]] ||
+             ! [[ "$wall_seconds" =~ ^[0-9]+([.][0-9]+)?$ ]] ||
+             ! [[ "$max_rss_kb" =~ ^[0-9]+$ ]]; then
+            echo "::error::Unable to parse GNU time output for Dialyzer analysis measurements"
+            cat "$time_file"
+            exit 1
+          fi
+
+          echo "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=${wall_seconds}"
+          echo "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=${max_rss_kb}"
+          exit "$dialyzer_status"
 
   verify-compile-no-optional:
     name: Compile without optional deps
@@ -739,7 +859,7 @@ jobs:
         run: bin/verify-release-shape
 
   # The single required status check on `main` (D-08). Collapses every job above
-  # into one pass/fail signal so branch protection names one context, not twelve,
+  # into one pass/fail signal so branch protection names one context, not thirteen,
   # and so no required-check name carries a matrix axis that could rot.
   #
   # `if: always()` is load-bearing (D-09): a job that `needs:` a FAILED job is
@@ -756,6 +876,7 @@ jobs:
     needs:
       - verify-format
       - verify-credo
+      - verify-dialyzer
       - verify-compile-no-optional
       - verify-test
       - verify-hex-evaluator
@@ -778,5 +899,5 @@ jobs:
           # Extension point: the first `needs:` job that becomes conditionally
           # skipped (a job-level `if:`) must be listed here via `allowed-skips`,
           # or this gate will correctly fail on its skip. Deliberately absent
-          # today — all twelve jobs above run unconditionally, so neither
+          # today — all thirteen jobs above run unconditionally, so neither
           # `allowed-skips` nor `allowed-failures` applies yet.

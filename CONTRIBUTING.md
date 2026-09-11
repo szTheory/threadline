@@ -50,7 +50,7 @@
    you intentionally want to delete Compose volumes. For the full local Docker
    mental model, read [`guides/local-docker-dx.md`](guides/local-docker-dx.md).
 
-4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, compile strict, tests, Threadline trigger coverage, doc contract tests) runs in the **test** environment and picks up `config/test.exs`.
+4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, strict compiles, tests, Threadline trigger coverage, doc contract tests, and Dialyzer) runs in the **test** environment and picks up `config/test.exs`.
 
    ```bash
    MIX_ENV=test mix ci.all
@@ -440,6 +440,7 @@ without also failing a test.
 
 - `verify-format`
 - `verify-credo`
+- `verify-dialyzer`
 - `verify-compile-no-optional`
 - `verify-test`
 - `verify-hex-evaluator`
@@ -466,6 +467,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 |---------|---------|
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
+| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on Elixir 1.17.3 / OTP 27.0 with the exact PLT cache lifecycle below |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
@@ -476,6 +478,37 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
+
+### Dialyzer PLT cache and measurement contract
+
+`mix verify.dialyzer` is part of `mix ci.all`, and the unconditional
+`verify-dialyzer` job runs the same `mix dialyzer --no-check` analyzer command
+on the exact current lane: Ubuntu 24.04, Elixir 1.17.3, and OTP 27.0. The
+independent no-optional-dependencies compile lane never runs Dialyzer; analysis
+always uses the full optional build and the strict warning/ignore configuration
+from `mix.exs`.
+
+The PLT cache lives at `.dialyzer` and is keyed by the runner image, exact OTP
+and Elixir versions, and both `mix.lock` and `mix.exs` hashes. A restore prefix
+may reuse only a PLT from the same runner/OTP/Elixir boundary. On a miss, CI
+fetches dependencies and compiles outside the timers, measures `mix dialyzer
+--plt`, saves the successfully built PLT, and only then measures `mix dialyzer
+--no-check`. On an exact-key hit, CI skips PLT construction and reports no
+synthetic PLT-build values.
+
+The stable log fields are:
+
+- `THREADLINE_DIALYZER_PLT_CACHE`: exactly `miss` or `hit`.
+- `THREADLINE_DIALYZER_PLT_WALL_SECONDS`: numeric PLT-build wall time, miss only.
+- `THREADLINE_DIALYZER_PLT_MAX_RSS_KB`: integer PLT-build peak RSS, miss only.
+- `THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS`: numeric analysis wall time on every run.
+- `THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB`: integer analysis peak RSS on every run.
+
+GNU `time -v` parsing fails closed if any required measurement is absent or
+non-numeric. Durable cost claims require authenticated immutable run URLs, the
+exact commit and dependency/config hashes, and separate cold and exact-key-hit
+runs for that same commit; estimates and unlinked log excerpts are not valid
+evidence.
 
 Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
