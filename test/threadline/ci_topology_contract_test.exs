@@ -114,6 +114,75 @@ defmodule Threadline.CiTopologyContractTest do
            "a mutable release ref can retarget the only branch-protection decision"
   end
 
+  test "Dialyzer is one blocking local and current-lane CI path with an exact measured PLT cache" do
+    mix_exs = read_rel!(["mix.exs"])
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+    contributing = read_rel!(["CONTRIBUTING.md"])
+
+    assert dialyzer_topology_errors(mix_exs, yaml, contributing) == []
+
+    mutation_controls = [
+      {"PLT timing command",
+       String.replace(
+         yaml,
+         "/usr/bin/time -v -o \"$time_file\" mix dialyzer --plt",
+         "mix dialyzer --plt"
+       )},
+      {"analysis timing command",
+       String.replace(
+         yaml,
+         "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check",
+         "mix dialyzer --no-check"
+       )},
+      {"fail-on-unparseable guard",
+       String.replace(yaml, "Unable to parse GNU time output", "Timing unavailable")},
+      {"build-before-save ordering",
+       String.replace(yaml, "- name: Save Dialyzer PLT", "- name: Save analyzer cache")},
+      {"same-toolchain restore boundary",
+       String.replace(
+         yaml,
+         "ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-",
+         "ubuntu-24.04-dialyzer-plt-"
+       )},
+      {"no analyzer in no-optional lane",
+       String.replace(
+         yaml,
+         "run: mix verify.compile_no_optional",
+         "run: |\n          mix verify.compile_no_optional\n          mix dialyzer --no-check"
+       )}
+    ]
+
+    for {control, mutated_yaml} <- mutation_controls do
+      refute dialyzer_topology_errors(mix_exs, mutated_yaml, contributing) == [],
+             "#{control} mutation must make the Dialyzer topology contract fail"
+    end
+
+    for marker <- [
+          "THREADLINE_DIALYZER_PLT_CACHE=",
+          "THREADLINE_DIALYZER_PLT_WALL_SECONDS=",
+          "THREADLINE_DIALYZER_PLT_MAX_RSS_KB=",
+          "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=",
+          "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB="
+        ] do
+      mutated_yaml = String.replace(yaml, marker, "THREADLINE_BROKEN_MARKER=")
+
+      refute dialyzer_topology_errors(mix_exs, mutated_yaml, contributing) == [],
+             "removing stable marker #{marker} must make the topology contract fail"
+    end
+
+    hit_step = workflow_step(yaml, "Report exact PLT cache hit")
+
+    hit_with_fabricated_plt =
+      String.replace(
+        yaml,
+        hit_step,
+        hit_step <> "          echo \"THREADLINE_DIALYZER_PLT_WALL_SECONDS=0\"\n"
+      )
+
+    refute dialyzer_topology_errors(mix_exs, hit_with_fabricated_plt, contributing) == [],
+           "the exact-key hit path must never fabricate a PLT-build measurement"
+  end
+
   test "verify-test job runs the phoenix-surface and sigra-reference proof path" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
@@ -258,6 +327,146 @@ defmodule Threadline.CiTopologyContractTest do
       nil ->
         []
     end
+  end
+
+  defp dialyzer_topology_errors(mix_exs, yaml, contributing) do
+    job = workflow_job(yaml, "verify-dialyzer")
+    no_optional_job = workflow_job(yaml, "verify-compile-no-optional")
+    hit_step = workflow_step(yaml, "Report exact PLT cache hit")
+
+    order = [
+      position(job, "mix deps.get"),
+      position(job, "mix compile --warnings-as-errors"),
+      position(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --plt"),
+      position(job, "THREADLINE_DIALYZER_PLT_WALL_SECONDS="),
+      position(job, "- name: Save Dialyzer PLT"),
+      position(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check"),
+      position(job, "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=")
+    ]
+
+    [
+      {mix_exs =~ ~s("verify.dialyzer": ["dialyzer --no-check"]),
+       "verify.dialyzer must be the stable local no-check command"},
+      {ci_all_entries(mix_exs) |> Enum.count(&(&1 == "verify.dialyzer")) == 1,
+       "ci.all must contain verify.dialyzer exactly once"},
+      {Regex.match?(~r/^# Job id contract.*verify-dialyzer/m, yaml),
+       "workflow header roster must contain verify-dialyzer"},
+      {job != "", "verify-dialyzer job must exist"},
+      {String.contains?(job, "runs-on: ubuntu-24.04"),
+       "verify-dialyzer must run on ubuntu-24.04"},
+      {String.contains?(job, ~s(elixir-version: "1.17.3")),
+       "verify-dialyzer must pin Elixir 1.17.3"},
+      {String.contains?(job, ~s(otp-version: "27.0")), "verify-dialyzer must pin OTP 27.0"},
+      {String.contains?(job, "uses: actions/cache/restore@v4"),
+       "Dialyzer PLT restore must be a separate cache action"},
+      {String.contains?(job, "id: dialyzer-plt-restore"),
+       "PLT restore must expose a stable cache-hit id"},
+      {String.contains?(job, "path: .dialyzer"), "PLT cache must use .dialyzer"},
+      {String.contains?(job, "ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-"),
+       "PLT cache and restore must retain exact runner/OTP/Elixir identity"},
+      {String.contains?(job, "${{ hashFiles('mix.lock') }}") and
+         String.contains?(job, "${{ hashFiles('mix.exs') }}"),
+       "PLT key must include both mix.lock and mix.exs hashes"},
+      {String.contains?(job, "uses: actions/cache/save@v4"),
+       "Dialyzer PLT save must be a separate cache action"},
+      {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-primary-key"),
+       "PLT save must reuse the restore action's exact primary key"},
+      {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-hit != 'true'"),
+       "PLT build/save must be conditional on an exact-key miss"},
+      {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-hit == 'true'"),
+       "the exact-key hit path must be explicit"},
+      {String.contains?(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --plt"),
+       "PLT build must be timed independently"},
+      {String.contains?(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check"),
+       "analysis must be timed independently"},
+      {String.contains?(job, "Unable to parse GNU time output"),
+       "GNU time parsing must fail closed"},
+      {String.contains?(job, "[[ \"$wall_seconds\" =~ ^[0-9]+([.][0-9]+)?$ ]]") and
+         String.contains?(job, "[[ \"$max_rss_kb\" =~ ^[0-9]+$ ]]"),
+       "measurement values must be normalized numeric fields"},
+      {Enum.all?(
+         [
+           "THREADLINE_DIALYZER_PLT_CACHE=miss",
+           "THREADLINE_DIALYZER_PLT_CACHE=hit",
+           "THREADLINE_DIALYZER_PLT_WALL_SECONDS=",
+           "THREADLINE_DIALYZER_PLT_MAX_RSS_KB=",
+           "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=",
+           "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB="
+         ],
+         &String.contains?(job, &1)
+       ), "all stable cache and measurement markers must be emitted"},
+      {ordered_positions?(order),
+       "dependency fetch/compile, PLT timing, save, and analysis timing must stay ordered"},
+      {not String.contains?(hit_step, "THREADLINE_DIALYZER_PLT_WALL_SECONDS=") and
+         not String.contains?(hit_step, "THREADLINE_DIALYZER_PLT_MAX_RSS_KB="),
+       "exact-key hits must not synthesize PLT-build measurements"},
+      {not String.contains?(no_optional_job, "dialyzer"),
+       "the no-optional lane must not run Dialyzer"},
+      {ci_required_needs_from(yaml) |> Enum.count(&(&1 == "verify-dialyzer")) == 1,
+       "ci-required must block on verify-dialyzer exactly once"},
+      {String.contains?(contributing, "- `verify-dialyzer`") and
+         String.contains?(contributing, "| `verify-dialyzer` | `mix verify.dialyzer`"),
+       "CONTRIBUTING must document the aggregate edge and stable job key"},
+      {Enum.all?(
+         [
+           "THREADLINE_DIALYZER_PLT_CACHE",
+           "THREADLINE_DIALYZER_PLT_WALL_SECONDS",
+           "THREADLINE_DIALYZER_PLT_MAX_RSS_KB",
+           "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS",
+           "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB"
+         ],
+         &String.contains?(contributing, &1)
+       ), "CONTRIBUTING must document the stable measurement field contract"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp ci_all_entries(mix_exs) do
+    case Regex.run(~r/"ci\.all":\s*\[\s*\n((?:.*\n)*?)\s*\]/, mix_exs) do
+      [_, block] -> Regex.scan(~r/"([a-z0-9._-]+)"/, block) |> Enum.map(&List.last/1)
+      nil -> []
+    end
+  end
+
+  defp ci_required_needs_from(yaml) do
+    case Regex.run(~r/  ci-required:\n[\s\S]*?    needs:\n((?:      - .+\n)+)/, yaml) do
+      [_, items] ->
+        items
+        |> String.split("\n", trim: true)
+        |> Enum.map(&(&1 |> String.trim() |> String.trim_leading("- ")))
+
+      nil ->
+        []
+    end
+  end
+
+  defp workflow_job(yaml, id) do
+    case Regex.run(~r/^  #{Regex.escape(id)}:\n([\s\S]*?)(?=^  [a-z][a-z0-9-]+:\n|\z)/m, yaml) do
+      [full, _body] -> full
+      nil -> ""
+    end
+  end
+
+  defp workflow_step(yaml, name) do
+    case Regex.run(
+           ~r/^      - name: #{Regex.escape(name)}\n([\s\S]*?)(?=^      - (?:name:|uses:)|^  [a-z][a-z0-9-]+:\n|\z)/m,
+           yaml
+         ) do
+      [full, _body] -> full
+      nil -> ""
+    end
+  end
+
+  defp position(source, needle) do
+    case :binary.match(source, needle) do
+      {position, _length} -> position
+      :nomatch -> nil
+    end
+  end
+
+  defp ordered_positions?(positions) do
+    Enum.all?(positions, &is_integer/1) and positions == Enum.sort(positions)
   end
 
   defp strip_comment_lines(block) do
