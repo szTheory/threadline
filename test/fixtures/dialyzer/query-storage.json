@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "slice": "query-storage",
+  "sealed_run": {
+    "output_sha256": "12c1164ae38a943a738b339d2758e866c51b284444480585e80d5d591169c3e6",
+    "warning_count": 40
+  },
+  "authorized_origins": [
+    "lib/threadline/change_diff.ex",
+    "lib/threadline/query.ex",
+    "lib/threadline/query/actor_history_page.ex"
+  ],
+  "warnings": [
+    {
+      "id": "W03",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/change_diff.ex",
+        "line": 84
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/change_diff.ex\", {84, 38}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Use the concrete %AuditChange{} struct accepted by from_audit_change/2 instead of a remote type the Ecto schema does not export."
+    },
+    {
+      "id": "W33",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/query.ex",
+        "line": 53
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/query.ex\", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Describe timeline page entries with the concrete %AuditChange{} struct returned by the query."
+    },
+    {
+      "id": "W34",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/query.ex",
+        "line": 64
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/query.ex\", {64, 76}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Describe row_history/4 results with the concrete %AuditChange{} struct returned by Ecto."
+    },
+    {
+      "id": "W35",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/query.ex",
+        "line": 105
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/query.ex\", {105, 51}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Describe preload input with the concrete %AuditChange{} struct supplied by query callers."
+    },
+    {
+      "id": "W36",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/query.ex",
+        "line": 105
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/query.ex\", {105, 94}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Describe preload output with the concrete %AuditChange{} struct returned after association loading."
+    },
+    {
+      "id": "W37",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/query.ex",
+        "line": 116
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/query.ex\", {116, 65}}, {:unknown_type, {Threadline.Capture.AuditTransaction, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Describe audit_transaction/2 with the concrete %AuditTransaction{} struct returned by Ecto."
+    },
+    {
+      "id": "W38",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/query.ex",
+        "line": 651
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/query.ex\", {651, 73}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Describe transaction-scoped change results with the concrete %AuditChange{} struct returned by Ecto."
+    },
+    {
+      "id": "W39",
+      "class": "warn_unknown",
+      "origin": {
+        "path": "lib/threadline/query/actor_history_page.ex",
+        "line": 13
+      },
+      "raw_line": "{:warn_unknown, {~c\"lib/threadline/query/actor_history_page.ex\", {13, 37}}, {:unknown_type, {Threadline.Capture.AuditTransaction, :t, 0}}}",
+      "disposition": "fixed",
+      "evidence": "Describe actor-history entries with the concrete %AuditTransaction{} struct returned by the query."
+    }
+  ],
+  "post_analysis": {
+    "command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
+    "authorized_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
