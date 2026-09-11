@@ -154,10 +154,18 @@ status: complete
 - **Verification:** A full `mix format --check-formatted` from `bench/` passes.
 - **Commit:** `a66f1e65`.
 
+**3. [Rule 3 - Blocking] Reconciled Phase 199 roadmap progress after the canonical handler declined the legacy layout**
+
+- **Found during:** Sequential state synchronization after the SUMMARY commit.
+- **Issue:** `roadmap.update-plan-progress 199` found 14 plans and six summaries but returned `missing_phase_details`, leaving the Plan 10 checklist and `5/14` progress row stale.
+- **Fix:** Marked only `199-10-PLAN.md` complete and advanced the Phase 199 progress row to `6/14 In Progress`, matching the handler's live counts.
+- **Files modified:** `.planning/ROADMAP.md`; the deviation is also registered in `.planning/WINDOWS.md`.
+- **Verification:** The Plan 10 checklist is checked, the progress row reads `6/14`, and the remaining eight plans stay unchecked.
+
 ---
 
-**Total deviations:** 2 auto-fixed (1 blocking command incompatibility, 1 required newly-owned formatting repair).
-**Impact on plan:** Both changes strengthen the intended checks without broadening ignore scope or changing benchmark behavior.
+**Total deviations:** 3 auto-fixed (2 blocking tooling/layout issues, 1 required newly-owned formatting repair).
+**Impact on plan:** The execution deviations strengthen the intended checks and reconcile metadata without broadening ignore scope or changing benchmark behavior.
 
 ## TDD Gate Compliance
 
