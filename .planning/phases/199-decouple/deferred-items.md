@@ -23,3 +23,11 @@
 - **Evidence:** `examples/threadline_phoenix/e2e/critic/label.ts:708` assigns `pair_with_token: null` with a TODO to wire pair tokens when pair mode is implemented; blame traces it to commit `a248073a9`, before this plan.
 - **Scope:** Plan 199-05 owns filesystem authority and atomic writes, not golden-oracle pair-mode behavior.
 - **Disposition:** Deferred to a future critic-labeling behavior plan; it does not block DECOUPLE-01 or the adapter-backed reader/writer goal.
+
+## 199-05: Roadmap SDK legacy-layout fallback
+
+- **Status:** resolved
+- **Discovered during:** Plan 199-05 sequential state synchronization
+- **Evidence:** `roadmap.update-plan-progress 199` returned `missing_phase_details` even though the Phase 199 checklist and progress row exist.
+- **Scope:** Planning-state handler compatibility only; production implementation is unaffected.
+- **Disposition:** Reconciled the single Plan 199-05 checklist row and Phase 199 progress count from the nine summary-backed plans; all unfinished rows remain unchecked.

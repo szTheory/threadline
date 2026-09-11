@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 199
 current_phase_name: Decouple
 status: executing
-stopped_at: Completed 199-02-PLAN.md
-last_updated: "2026-09-11T14:19:11.906Z"
+stopped_at: Completed 199-05-PLAN.md
+last_updated: "2026-09-11T14:38:30.885Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 199 execution started
-state_head: ac1b789ed7af5ad935c15013bc0378e5d51ab146
+state_head: 3ab92a74f3ac2911edeaf56a2a33c19727a008cb
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 80
-  completed_plans: 74
+  completed_plans: 75
   percent: 14
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 199 (Decouple) — EXECUTING
-Plan: 9 of 14
+Plan: 10 of 14
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -117,6 +117,7 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 | Phase 199 P10 | 7min | 2 tasks | 9 files |
 | Phase 199 P12 | 3h 32min | 2 tasks | 18 files |
 | Phase 199 P02 | 2h52m | 2 tasks | 10 files |
+| Phase 199 P05 | 14 min | 2 tasks | 17 files |
 
 ## Deferred Items
 
@@ -564,6 +565,9 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 - [Phase 199]: [199-02] StressLive accepts only non-empty decoded ledger-entry maps under exact session key threadline_stress_ledger_entries.
 - [Phase 199]: [199-02] ExUnit corpus paths descend from one test-support root that Plan 199-08 can flip atomically.
 - [Phase 199]: [199-02] Refute partition checks pass explicit empty mechanical floors because they exercise absolute ceilings only.
+- [Phase 199]: Plan 199-05: Every critic consumer resolves immutable and generated evidence through the shared TypeScript adapter; explicit root flags activate centrally.
+- [Phase 199]: Plan 199-05: Routine critic:check is deterministic and no-paid while explicit scoring commands retain paid critic behavior.
+- [Phase 199]: Plan 199-05: Generated score and cache identifiers are rejected rather than sanitized, preventing traversal and collision aliases.
 
 ### Blockers
 
@@ -571,8 +575,8 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T14:19:11.605Z
-**Stopped at:** Completed 199-02-PLAN.md
+**Last session:** 2026-09-11T14:38:30.559Z
+**Stopped at:** Completed 199-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
