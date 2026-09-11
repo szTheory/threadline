@@ -10,8 +10,19 @@ defmodule Threadline.RemovedArtifactContract do
 
   @root_one_off ~r/^(?:fix|update|patch|migrate)[_-].*\.(?:exs|rb)$/
   @standard_root_executables MapSet.new([".credo.exs", ".formatter.exs", "mix.exs"])
+  @executable_extensions MapSet.new([".ex", ".exs", ".js", ".rb", ".sh", ".ts", ".yaml", ".yml"])
+  @scanner_path "test/threadline/removed_artifact_contract_test.exs"
+  @historical_live_input ".planning/phases/198-green-bringup/198-41-PLAN.md"
 
   def removed_paths, do: @removed_paths
+
+  def repository_file_sets(tracked) when is_list(tracked) do
+    %{
+      tracked: tracked,
+      executables: Enum.filter(tracked, &executable_consumer?/1),
+      documents: Enum.filter(tracked, &document_consumer?/1)
+    }
+  end
 
   def scan(file_sets, read_file) when is_map(file_sets) and is_function(read_file, 1) do
     tracked = MapSet.new(Map.fetch!(file_sets, :tracked))
@@ -47,6 +58,23 @@ defmodule Threadline.RemovedArtifactContract do
     Path.dirname(file) == "." and
       not MapSet.member?(@standard_root_executables, file) and
       Regex.match?(@root_one_off, Path.basename(file))
+  end
+
+  defp executable_consumer?(@scanner_path), do: false
+
+  defp executable_consumer?(file) do
+    MapSet.member?(@executable_extensions, Path.extname(file))
+  end
+
+  defp document_consumer?(file) do
+    file in [
+      "README.md",
+      "CONTRIBUTING.md",
+      ".planning/ARCHIVE-REGISTER.md",
+      ".planning/REQUIREMENTS.md",
+      ".planning/ROADMAP.md",
+      @historical_live_input
+    ] or (String.starts_with?(file, "guides/") and Path.extname(file) == ".md")
   end
 
   defp citation_violations(file, content) do
@@ -142,5 +170,17 @@ defmodule Threadline.RemovedArtifactContractTest do
              },
              %{file: "patch_release.rb", kind: :root_one_off_executable, line: 1, target: nil}
            ]
+  end
+
+  test "live repository has no removed targets, root one-offs, or active citations" do
+    root = Path.expand("../..", __DIR__)
+    {tracked_output, 0} = System.cmd("git", ["ls-files", "-z"], cd: root)
+
+    tracked = :binary.split(tracked_output, <<0>>, [:global, :trim_all])
+    file_sets = Scanner.repository_file_sets(tracked)
+
+    assert Scanner.scan(file_sets, fn relative ->
+             relative |> then(&Path.join(root, &1)) |> File.read!()
+           end) == []
   end
 end
