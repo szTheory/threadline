@@ -29,10 +29,11 @@
 
 import {
   existsSync,
+  mkdirSync,
   readdirSync,
   statSync,
 } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { scoreToBand, type LensName } from "./schema.js";
 import {
   atomicWriteFile,
@@ -388,6 +389,7 @@ ${tableRows.join("\n")}${emptyNote}
 No production data. Opt-in via \`ANTHROPIC_API_KEY\`. See CONTRIBUTING.md "Local-only critic" section.*
 `;
 
+  mkdirSync(dirname(critiqueOutputPath), { recursive: true });
   atomicWriteFile(critiqueOutputPath, content);
   return cells.length;
 }

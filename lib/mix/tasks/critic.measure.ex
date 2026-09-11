@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Critic.Measure do
 
       mix critic.measure
       mix critic.measure --source synthetic
-      mix critic.measure --fixture-root test/fixtures/operator_surface --output-root test/fixtures/operator_surface/critic-scores
+      mix critic.measure --fixture-root test/fixtures/operator_surface --output-root test/generated/operator_surface/critic-scores
 
   It computes per-lens trust via `Threadline.CriticTrust.Measure` and surgically
   replaces only `critic_trust` and `critic_trust_provenance` through
@@ -27,7 +27,7 @@ defmodule Mix.Tasks.Critic.Measure do
   alias Threadline.CriticTrust.{LedgerSplice, Measure}
 
   @default_fixture_root "test/fixtures/operator_surface"
-  @default_output_root "test/fixtures/operator_surface/critic-scores"
+  @default_output_root "test/generated/operator_surface/critic-scores"
   @rubrics_dir "examples/threadline_phoenix/e2e/critic/rubrics"
 
   @impl Mix.Task
@@ -406,8 +406,8 @@ defmodule Mix.Tasks.Critic.Measure do
     end
 
     Mix.shell().info(
-      "\nReview the diff and commit the golden set, critic-scores, CRITIQUE.md, and " <>
-        "design-system-ledger.json as one reviewed commit. This task never commits (T-195-24)."
+      "\nReview and commit only the golden set and design-system-ledger.json. " <>
+        "Generated critic scores and reports remain local and ignored. This task never commits (T-195-24)."
     )
   end
 

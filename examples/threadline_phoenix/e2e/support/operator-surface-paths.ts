@@ -28,8 +28,10 @@ export interface OperatorSurfacePaths {
   readonly goldenDir: string;
   readonly refuteDir: string;
   readonly generatedRoot: string;
+  readonly routeScorecardsDir: string;
   readonly criticScoresDir: string;
   readonly verdictCacheDir: string;
+  readonly refuteTranscriptsDir: string;
   readonly critiqueReportPath: string;
   readonly criticReportHtmlPath: string;
   readonly criticFloorsPath: string;
@@ -80,18 +82,20 @@ export function resolveOperatorSurfacePaths(
     overrides.fixtureRoot ?? resolve(repositoryRoot, "test/fixtures/operator_surface"),
   );
   const generatedRoot = canonicalizeExistingParent(
-    overrides.outputRoot ?? resolve(repositoryRoot, "test/fixtures/operator_surface/critic-scores"),
+    overrides.outputRoot ?? resolve(repositoryRoot, "test/generated/operator_surface"),
   );
-  const generatedParent = dirname(generatedRoot);
 
   const ledgerPath = resolve(fixtureRoot, "design-system-ledger.json");
   const scorecardsDir = resolve(fixtureRoot, "scorecards");
   const goldenDir = resolve(fixtureRoot, "golden");
   const refuteDir = resolve(fixtureRoot, "refute");
-  const verdictCacheDir = resolve(generatedParent, "critic-verdict-cache");
+  const routeScorecardsDir = resolve(generatedRoot, "route-scorecards");
+  const criticScoresDir = resolve(generatedRoot, "critic-scores");
+  const verdictCacheDir = resolve(generatedRoot, "critic-verdict-cache");
+  const refuteTranscriptsDir = resolve(generatedRoot, "refute-transcripts");
+  const reportsDir = resolve(generatedRoot, "reports");
   const immutableRoots = [ledgerPath, scorecardsDir, goldenDir, refuteDir];
   assertSeparatedOutputRoot(generatedRoot, immutableRoots);
-  assertSeparatedOutputRoot(verdictCacheDir, immutableRoots);
 
   return Object.freeze({
     repositoryRoot,
@@ -104,11 +108,13 @@ export function resolveOperatorSurfacePaths(
     goldenDir,
     refuteDir,
     generatedRoot,
-    criticScoresDir: generatedRoot,
+    routeScorecardsDir,
+    criticScoresDir,
     verdictCacheDir,
-    critiqueReportPath: resolve(generatedParent, "CRITIQUE.md"),
-    criticReportHtmlPath: resolve(generatedParent, "critic-report.html"),
-    criticFloorsPath: resolve(generatedParent, "critic-floors.json"),
+    refuteTranscriptsDir,
+    critiqueReportPath: resolve(reportsDir, "CRITIQUE.md"),
+    criticReportHtmlPath: resolve(reportsDir, "critic-report.html"),
+    criticFloorsPath: resolve(reportsDir, "critic-floors.json"),
   });
 }
 
@@ -139,12 +145,12 @@ export function parseOperatorSurfaceRootFlags(argv: readonly string[]): Readonly
 }
 
 export function resolveContainedPath(root: string, candidate: string): string {
-  const canonicalRoot = realpathSync(resolve(root));
   const traversalSegments = candidate.split(/[\\/]+/);
   if (traversalSegments.includes("..")) {
     throw new Error(`Path is outside the permitted root (traversal): ${candidate}`);
   }
 
+  const canonicalRoot = realpathSync(resolve(root));
   const absoluteCandidate = isAbsolute(candidate)
     ? resolve(candidate)
     : resolve(canonicalRoot, candidate);

@@ -12,8 +12,8 @@
  * Deterministic: cells sorted by id, so re-running with unchanged scores is a clean diff.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import {
   ALL_LENSES,
   computeRollup,
@@ -235,6 +235,7 @@ ${cards || `<div class="muted">No real-UI cells scored yet. Run: npm run critic:
 </main>
 </body></html>`;
 
+  mkdirSync(dirname(outPath), { recursive: true });
   atomicWriteFile(outPath, html);
   console.log(`[critic report --html] wrote ${cells.length} cells → ${outPath}`);
   return cells.length;

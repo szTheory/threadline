@@ -78,7 +78,12 @@ generated_paths=(
   'examples/threadline_phoenix/e2e/playwright-report/index.html'
   'examples/threadline_phoenix/e2e/blob-report/report.zip'
   'examples/threadline_phoenix/e2e/artifacts/capture/screenshot.png'
-  'test/fixtures/operator_surface/critic-scores/local-run.json'
+  'test/generated/operator_surface/route-scorecards/route.timeline.json'
+  'test/generated/operator_surface/critic-scores/local-run.json'
+  'test/generated/operator_surface/critic-verdict-cache/local-run.json'
+  'test/generated/operator_surface/reports/CRITIQUE.md'
+  'test/generated/operator_surface/reports/critic-report.html'
+  'test/generated/operator_surface/refute-transcripts/local-run.json'
 )
 
 for relative_path in "${generated_paths[@]}"; do

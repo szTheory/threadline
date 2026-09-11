@@ -1,5 +1,5 @@
 import { expect, Page, test } from "@playwright/test";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import {
   atomicWriteFile,
   currentOperatorSurfacePaths,
@@ -26,7 +26,7 @@ import {
 // masks so live timestamps/ids don't perturb the pixels.
 
 const paths = currentOperatorSurfacePaths();
-const scorecardsDir = paths.scorecardsDir;
+const routeScorecardsDir = paths.routeScorecardsDir;
 const artifactsRoot = resolveContainedPath(paths.e2eRoot, "artifacts/routes");
 
 // Pinned for cross-machine byte-stability — never `new Date()` / installed version.
@@ -103,7 +103,8 @@ function cellId(ledgerId: string, theme: string, breakpoint: number): string {
 }
 
 function scorecardPath(id: string): string {
-  return resolveContainedPath(scorecardsDir, `${id}.json`);
+  if (!existsSync(routeScorecardsDir)) mkdirSync(routeScorecardsDir, { recursive: true });
+  return resolveContainedPath(routeScorecardsDir, `${id}.json`);
 }
 
 function dynamicMasks(page: Page) {

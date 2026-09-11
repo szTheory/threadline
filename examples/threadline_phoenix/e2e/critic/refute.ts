@@ -31,7 +31,7 @@
  * sign/attribution/margin on synthetic extremes and must NOT ratchet.
  *
  * Transcripts: committed last-known result per fixture written to
- *   refute/transcripts/<twin_id>.json
+ *   test/generated/operator_surface/refute-transcripts/<twin_id>.json
  *   These provide the deterministic residue asserted in Plan 03.
  *
  * CRITIC-02 / D-03 / D-11 / RUNNER-03
@@ -59,7 +59,7 @@ import {
 } from "../support/operator-surface-paths.js";
 
 const refuteSetPath = resolve(DEFAULT_OPERATOR_SURFACE_PATHS.refuteDir, "refute-set.json");
-const transcriptDir = resolve(DEFAULT_OPERATOR_SURFACE_PATHS.refuteDir, "transcripts");
+const transcriptDir = DEFAULT_OPERATOR_SURFACE_PATHS.refuteTranscriptsDir;
 
 // ─── Refute Set Types ─────────────────────────────────────────────────────────
 

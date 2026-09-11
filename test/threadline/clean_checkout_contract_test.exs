@@ -14,8 +14,18 @@ defmodule Threadline.CleanCheckoutContractTest do
     {"examples/threadline_phoenix/e2e/blob-report/report.zip", "blob-report/"},
     {"examples/threadline_phoenix/e2e/artifacts/capture/screenshot.png",
      "/examples/threadline_phoenix/e2e/artifacts/"},
-    {"test/fixtures/operator_surface/critic-scores/local-run.json",
-     "/test/fixtures/operator_surface/critic-scores/*"}
+    {"test/generated/operator_surface/route-scorecards/route.timeline.json",
+     "/test/generated/operator_surface/route-scorecards/"},
+    {"test/generated/operator_surface/critic-scores/local-run.json",
+     "/test/generated/operator_surface/critic-scores/"},
+    {"test/generated/operator_surface/critic-verdict-cache/local-run.json",
+     "/test/generated/operator_surface/critic-verdict-cache/"},
+    {"test/generated/operator_surface/reports/CRITIQUE.md",
+     "/test/generated/operator_surface/reports/"},
+    {"test/generated/operator_surface/reports/critic-report.html",
+     "/test/generated/operator_surface/reports/"},
+    {"test/generated/operator_surface/refute-transcripts/local-run.json",
+     "/test/generated/operator_surface/refute-transcripts/"}
   ]
 
   @trackable_paths [
@@ -26,6 +36,7 @@ defmodule Threadline.CleanCheckoutContractTest do
     "examples/threadline_phoenix/e2e/artifacts-reviewed/screenshot.png",
     "examples/threadline_phoenix/e2e/tests/operator.spec.ts-snapshots/screenshot.png",
     "test/fixtures/operator_surface/critic-scores/.gitkeep",
+    "test/fixtures/operator_surface/critic-scores/local-run.json",
     "test/fixtures/operator_surface/critic-scores-reviewed/local-run.json",
     "test/fixtures/operator_surface/scorecards/page.timeline.json",
     "test/fixtures/operator_surface/golden/golden-set.json",

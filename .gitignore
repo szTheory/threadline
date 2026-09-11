@@ -55,16 +55,13 @@ tmp/
 /examples/threadline_phoenix/e2e/blob-report/
 # Playwright capture output is generated; reviewed tests/**-snapshots/ stay trackable.
 /examples/threadline_phoenix/e2e/artifacts/
-# Live-data-derived route scorecards are generated and must not feed the committed gate.
-/.planning/scorecards/route.*.json
-
-# Critic runner: nondeterministic LLM verdict cache (gitignored; regenerate with mix verify.ui_critique).
-# The oracle (.planning/golden/) and committed skeleton manifests are NOT gitignored.
-/examples/threadline_phoenix/e2e/critic-verdict-cache/
-/.planning/critic-verdict-cache/
-# Nondeterministic LLM critic-score outputs — regenerable; keep the skeleton tracked.
-/test/fixtures/operator_surface/critic-scores/*
-!/test/fixtures/operator_surface/critic-scores/.gitkeep
+# Nondeterministic operator-surface output. Canonical fixtures under
+# /test/fixtures/operator_surface/ remain trackable and manifest-owned.
+/test/generated/operator_surface/route-scorecards/
+/test/generated/operator_surface/critic-scores/
+/test/generated/operator_surface/critic-verdict-cache/
+/test/generated/operator_surface/reports/
+/test/generated/operator_surface/refute-transcripts/
 
 # Local agent/session config
 /.claude/
@@ -75,4 +72,3 @@ tmp/
 
 #secrets
 .env
-/.planning/critic-report.html

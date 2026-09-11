@@ -8,8 +8,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @golden_set_path "test/fixtures/operator_surface/golden/golden-set.json"
     @synthetic_set_path "test/fixtures/operator_surface/golden/synthetic-set.json"
     @scorecards_dir "test/fixtures/operator_surface/scorecards"
-    @critic_scores_dir "test/fixtures/operator_surface/critic-scores"
-    @critique_path "CRITIQUE.md"
+    @critic_scores_dir "test/generated/operator_surface/critic-scores"
+    @critique_path "test/generated/operator_surface/reports/CRITIQUE.md"
     @rubrics_dir "examples/threadline_phoenix/e2e/critic/rubrics"
 
     @critic_lenses ~w(
@@ -725,9 +725,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     # ── Separation of concerns: critic-scores vs scorecards ──────────────────────
 
-    test "no scorecard file in test/fixtures/operator_surface/scorecards/ references test/fixtures/operator_surface/critic-scores" do
+    test "no committed scorecard references generated critic scores" do
       # Assert the critic never writes output under the committed scorecard tree.
-      # The critic writes under test/fixtures/operator_surface/critic-scores/ (gitignored); the capture
+      # The critic writes under test/generated/operator_surface/critic-scores/ (gitignored); the capture
       # pipeline writes under test/fixtures/operator_surface/scorecards/ (committed).
       if File.dir?(@scorecards_dir) do
         scorecard_files = Path.wildcard(Path.join(@scorecards_dir, "*.json"))
@@ -735,8 +735,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         for path <- scorecard_files do
           content = File.read!(path)
 
-          refute String.contains?(content, "test/fixtures/operator_surface/critic-scores"),
-                 "#{path} references test/fixtures/operator_surface/critic-scores/ — scorecards and critic output must remain separate"
+          refute String.contains?(content, "test/generated/operator_surface/critic-scores"),
+                 "#{path} references generated critic scores — scorecards and critic output must remain separate"
         end
       end
     end

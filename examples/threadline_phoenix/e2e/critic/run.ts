@@ -385,7 +385,7 @@ async function runScore(argv: string[]): Promise<void> {
       console.error(
         `\n[critic score] REFUSED — a stamped before pole already exists for:\n` +
           guard.blocked
-            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in test/fixtures/operator_surface/critic-scores/)`)
+            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in test/generated/operator_surface/critic-scores/)`)
             .join("\n") +
           `\n\nOverwriting it would fake the gate's before/after evidence (T-197-02).\n` +
           `\`npm run critic:gate -- --page ${page} --lens <lens>\` is the ONLY post-edit scoring command.\n` +

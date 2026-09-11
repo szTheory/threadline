@@ -248,7 +248,10 @@ npm run critic:score -- --golden              # bills the API for the golden cel
 cd ../../.. && mix critic.measure
 ```
 
-`npm run critic:score -- --golden` writes the per-dimension scores under `test/fixtures/operator_surface/critic-scores/`.
+`npm run critic:score -- --golden` writes nondeterministic per-dimension scores under
+`test/generated/operator_surface/critic-scores/`. All local capture and critic output
+lives below the ignored `test/generated/operator_surface/` boundary; immutable inputs
+remain under `test/fixtures/operator_surface/`.
 `mix critic.measure` then computes per-lens Krippendorff's α, raw agreement, and n against the
 golden labels and writes the `critic_trust` block in `test/fixtures/operator_surface/design-system-ledger.json`.
 It is local-only (not in `ci.all`) and never git-commits — you review the diff and commit.
@@ -264,7 +267,7 @@ persists pair margins — it never gates promotion.)
 cd examples/threadline_phoenix/e2e && node --import tsx critic/run.ts report
 ```
 
-Verify `.planning/CRITIQUE.md` is fresh — it should show scored cells with Betterer flags
+Verify `test/generated/operator_surface/reports/CRITIQUE.md` is fresh — it should show scored cells with Betterer flags
 (▲ new for first scores, ▲/▽ gain/regression on subsequent runs).
 
 ### Step 5 — Confirm CI stays honest
@@ -282,8 +285,6 @@ mix ci.all
 ```bash
 git add test/fixtures/operator_surface/golden/golden-set.json
 git add test/fixtures/operator_surface/golden/rounds/r2.json
-git add test/fixtures/operator_surface/critic-scores/
-git add .planning/CRITIQUE.md
 git add test/fixtures/operator_surface/design-system-ledger.json  # critic_trust block updated
 git commit -m "chore: golden oracle scored + critic_trust measured (CRITIC-01)"
 ```
@@ -378,8 +379,9 @@ git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regress
 - **The gate is relative, not absolute** — accept iff the targeted lens improves AND no
   blocking lens regresses below its floor AND the mechanical floor still passes; compare
   rank/Δ direction, never absolute thresholds.
-- **`route.*` cells and `.planning/CRITIQUE.md` stay uncommitted** (gitignored, regenerated
-  per run). Only the reviewed ledger sign-off + any twin bump is committed.
+- **`route.*` cells and critic reports stay uncommitted** under
+  `test/generated/operator_surface/` (gitignored and regenerated per run). Only the
+  reviewed ledger sign-off + any twin bump is committed.
 
 ## CI Coverage
 

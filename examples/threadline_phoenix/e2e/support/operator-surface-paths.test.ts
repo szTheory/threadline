@@ -69,7 +69,7 @@ test("resolves repository evidence identically from root, nested cwd, and a work
 
   try {
     await mkdir(dirname(copiedModule), { recursive: true });
-    await mkdir(resolve(worktreeRoot, "test/fixtures/operator_surface/critic-scores"), { recursive: true });
+    await mkdir(resolve(worktreeRoot, "test/fixtures/operator_surface"), { recursive: true });
     await copyFile(resolve(here, "operator-surface-paths.ts"), copiedModule);
     const worktreeAdapter = await loadAdapter(pathToFileURL(copiedModule));
     assert.equal(
@@ -84,6 +84,10 @@ test("resolves repository evidence identically from root, nested cwd, and a work
     assert.equal(
       worktreePaths.scorecardsDir,
       resolve(canonicalWorktreeRoot, "test/fixtures/operator_surface/scorecards"),
+    );
+    assert.equal(
+      worktreePaths.generatedRoot,
+      resolve(canonicalWorktreeRoot, "test/generated/operator_surface"),
     );
   } finally {
     await rm(worktreeRoot, { recursive: true, force: true });
@@ -113,7 +117,7 @@ test("explicit fixture and output flags override deterministic defaults without 
     assert.equal(paths.fixtureRoot, await realpath(fixtureRoot));
     assert.equal(paths.goldenDir, resolve(await realpath(fixtureRoot), "golden"));
     assert.equal(paths.generatedRoot, await realpath(outputRoot));
-    assert.equal(paths.criticScoresDir, await realpath(outputRoot));
+    assert.equal(paths.criticScoresDir, resolve(await realpath(outputRoot), "critic-scores"));
   } finally {
     if (previousEnvironmentValue === undefined) delete process.env.THREADLINE_FIXTURE_ROOT;
     else process.env.THREADLINE_FIXTURE_ROOT = previousEnvironmentValue;
@@ -241,6 +245,35 @@ test("every remaining capture consumer shares contained paths and immutable snap
   assert.match(stressSource, /tests\/operator-stress\.spec\.ts-snapshots/);
 });
 
+test("nondeterministic producers stay inside one generated boundary", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+
+  const paths = adapter.DEFAULT_OPERATOR_SURFACE_PATHS;
+  const generatedRoot = resolve(expectedRepositoryRoot, "test/generated/operator_surface");
+  assert.equal(paths.generatedRoot, generatedRoot);
+  assert.equal(paths.routeScorecardsDir, resolve(generatedRoot, "route-scorecards"));
+  assert.equal(paths.criticScoresDir, resolve(generatedRoot, "critic-scores"));
+  assert.equal(paths.verdictCacheDir, resolve(generatedRoot, "critic-verdict-cache"));
+  assert.equal(paths.refuteTranscriptsDir, resolve(generatedRoot, "refute-transcripts"));
+  assert.equal(paths.critiqueReportPath, resolve(generatedRoot, "reports/CRITIQUE.md"));
+  assert.equal(paths.criticReportHtmlPath, resolve(generatedRoot, "reports/critic-report.html"));
+
+  const pageCapture = await readFile(
+    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts"),
+    "utf8",
+  );
+  const refute = await readFile(
+    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/refute.ts"),
+    "utf8",
+  );
+
+  assert.match(pageCapture, /paths\.routeScorecardsDir/);
+  assert.doesNotMatch(pageCapture, /const scorecardsDir = paths\.scorecardsDir/);
+  assert.match(refute, /refuteTranscriptsDir/);
+  assert.doesNotMatch(refute, /refuteDir, "transcripts"/);
+});
+
 test("rejects traversal, absolute escape, prefix confusion, and symlink escape", async () => {
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
@@ -346,7 +379,7 @@ test("critic score and cache writers use contained atomic targets", async () => 
 
   const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-critic-writers-"));
   const fixtureRoot = resolve(sandbox, "fixtures");
-  const outputRoot = resolve(sandbox, "critic-scores");
+  const outputRoot = resolve(sandbox, "generated");
   const outside = resolve(sandbox, "outside");
   await mkdir(fixtureRoot, { recursive: true });
   await mkdir(outputRoot);
@@ -397,7 +430,8 @@ test("critic score and cache writers use contained atomic targets", async () => 
 
   try {
     adapter.configureOperatorSurfacePaths({ fixtureRoot, outputRoot });
-    await symlink(outside, resolve(outputRoot, "linked"));
+    await mkdir(adapter.currentOperatorSurfacePaths().criticScoresDir, { recursive: true });
+    await symlink(outside, resolve(adapter.currentOperatorSurfacePaths().criticScoresDir, "linked"));
     assert.throws(
       () => scorecardModule.criticScorePath("linked", "density", params.dimension),
       /symlink/i,
