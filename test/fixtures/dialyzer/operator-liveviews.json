@@ -9,7 +9,8 @@
     "lib/threadline/operator_surface/live/coverage_live.ex",
     "lib/threadline/operator_surface/live/export_status_live.ex",
     "lib/threadline/operator_surface/live/retention_history_live.ex",
-    "lib/threadline/operator_surface/live/timeline_live.ex"
+    "lib/threadline/operator_surface/live/timeline_live.ex",
+    "lib/threadline/operator_surface/live/transaction_live.ex"
   ],
   "warnings": [
     {
@@ -55,6 +56,17 @@
       "raw_line": "{:warn_matching, {~c\"lib/threadline/operator_surface/live/timeline_live.ex\", {1297, 11}}, {:pattern_match_cov, [~c\"variable _\", ~c\"{'ok',\\#{'count':=non_neg_integer()}}\"]}}",
       "disposition": "fixed",
       "evidence": "Remove the unreachable fallback after Export.count_matching/2's success-only contract while preserving the returned count comparison."
+    },
+    {
+      "id": "W26",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+        "line": 379
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/operator_surface/live/transaction_live.ex\", {379, 10}}, {:pattern_match_cov, [~c\"variable _\", ~c\"\\#{'modifier':=<<_:64,_:_*8>>, 'text':=binary(), 'title'=>binary()}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Remove diff_full/1's unreachable catchall after retaining both map shapes returned by Presentation.value_token/1."
     }
   ],
   "post_analysis": {
