@@ -97,7 +97,7 @@ mix deps.get --check-locked
 [ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
   fail 'browser dependency setup made planning visible'
 
-MIX_ENV=test mix dialyzer --plt
+MIX_ENV=dev mix dialyzer --plt
 [ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
   fail 'analyzer setup made planning visible'
 

@@ -354,8 +354,9 @@ defmodule Threadline.CiTopologyContractTest do
     [
       {mix_exs =~ ~s("verify.dialyzer": ["dialyzer --no-check"]),
        "verify.dialyzer must be the stable local no-check command"},
-      {ci_all_entries(mix_exs) |> Enum.count(&(&1 == "verify.dialyzer")) == 1,
-       "ci.all must contain verify.dialyzer exactly once"},
+      {ci_all_entries(mix_exs)
+       |> Enum.count(&(&1 == "cmd env MIX_ENV=dev mix verify.dialyzer")) == 1,
+       "ci.all must invoke verify.dialyzer exactly once in the CI job's dev environment"},
       {Regex.match?(~r/^# Job id contract[^\n]*\n#[^\n]*verify-dialyzer/m, yaml),
        "workflow header roster must contain verify-dialyzer"},
       {String.contains?(yaml, "branches: [main]") and
@@ -456,7 +457,7 @@ defmodule Threadline.CiTopologyContractTest do
 
   defp ci_all_entries(mix_exs) do
     case Regex.run(~r/"ci\.all":\s*\[\s*\n((?:.*\n)*?)\s*\]/, mix_exs) do
-      [_, block] -> Regex.scan(~r/"([a-z0-9._-]+)"/, block) |> Enum.map(&List.last/1)
+      [_, block] -> Regex.scan(~r/"([^"]+)"/, block) |> Enum.map(&List.last/1)
       nil -> []
     end
   end

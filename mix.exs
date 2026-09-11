@@ -168,7 +168,11 @@ defmodule Threadline.MixProject do
         "verify.doc_contract",
         # Strict full-build Dialyzer gate. The dedicated CI job runs the same command
         # on the exact current toolchain and owns the PLT cache lifecycle.
-        "verify.dialyzer",
+        # `ci.all` itself runs in :test so the test database and support modules are
+        # available to the surrounding gates. Dialyzer is intentionally a dev-only
+        # analysis, matching the dedicated CI job and preventing test/support from
+        # silently expanding the warning surface in a fresh checkout.
+        "cmd env MIX_ENV=dev mix verify.dialyzer",
         # Deterministic critic trust gate (reads committed ledger + golden JSON, no browser, no LLM).
         # Runs BEFORE verify.mechanical so a ratchet tamper or lens-trust gap fails fast.
         "verify.critic_trust",
