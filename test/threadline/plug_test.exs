@@ -147,9 +147,9 @@ defmodule Threadline.PlugTest do
     assert conn.assigns[:audit_context].remote_ip == "127.0.0.1"
   end
 
-  test "nil remote_ip is handled gracefully" do
-    conn = %{conn(:get, "/") | remote_ip: nil} |> call()
-    assert conn.assigns[:audit_context].remote_ip == nil
+  test "remote_ip from an IPv6 tuple is formatted as a colon-separated string" do
+    conn = %{conn(:get, "/") | remote_ip: {8193, 3512, 0, 0, 0, 0, 0, 1}} |> call()
+    assert conn.assigns[:audit_context].remote_ip == "2001:db8::1"
   end
 
   test "CTX-01: AuditContext is stored in conn.assigns[:audit_context]" do

@@ -136,8 +136,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp assign_fallback_actor(socket, _scope), do: socket
-
     defp scope_actor_ref(scope) when is_map(scope) do
       Map.get(scope, :actor_ref) || legacy_user_id_to_actor(Map.get(scope, :user_id))
     end
