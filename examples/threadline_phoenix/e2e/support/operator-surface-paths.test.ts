@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { copyFile, mkdir, mkdtemp, rm } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
@@ -54,8 +54,12 @@ test("resolves repository evidence identically from root, nested cwd, and a work
     );
 
     const worktreePaths = worktreeAdapter.resolveOperatorSurfacePaths();
-    assert.equal(worktreePaths.repositoryRoot, worktreeRoot);
-    assert.equal(worktreePaths.scorecardsDir, resolve(worktreeRoot, ".planning/scorecards"));
+    const canonicalWorktreeRoot = await realpath(worktreeRoot);
+    assert.equal(worktreePaths.repositoryRoot, canonicalWorktreeRoot);
+    assert.equal(
+      worktreePaths.scorecardsDir,
+      resolve(canonicalWorktreeRoot, ".planning/scorecards"),
+    );
   } finally {
     await rm(worktreeRoot, { recursive: true, force: true });
   }
