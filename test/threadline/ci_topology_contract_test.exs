@@ -86,11 +86,18 @@ defmodule Threadline.CiTopologyContractTest do
     {pos_verify_example, _} = :binary.match(ci_block, "\"verify.example\"")
     {pos_verify_doc_contract, _} = :binary.match(ci_block, "\"verify.doc_contract\"")
 
+    {pos_verify_browser, _} =
+      :binary.match(
+        ci_block,
+        "cmd env CI=true mix verify.example_browser --project=desktop-chromium --project=mobile-chromium"
+      )
+
     assert pos_compile_strict < pos_compile_no_optional
     assert pos_compile_no_optional < pos_verify_test
     assert pos_verify_test < pos_verify_threadline
     assert pos_verify_threadline < pos_verify_example
     assert pos_verify_example < pos_verify_doc_contract
+    assert pos_verify_doc_contract < pos_verify_browser
   end
 
   test "ci workflow exposes the documented support-lane job ids" do

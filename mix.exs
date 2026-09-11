@@ -179,9 +179,10 @@ defmodule Threadline.MixProject do
         # Deterministic mechanical gate (reads committed scorecard JSON, no browser).
         # Runs BEFORE the browser lane so a token/contrast/ratchet violation fails fast.
         "verify.mechanical",
-        # Browser e2e last (slowest; needs Node + Playwright) so `mix ci.all`
-        # locally runs the same gate CI does, including the operator surface.
-        "verify.example_browser"
+        # Browser e2e last (slowest; needs Node + Playwright). Reproduce the
+        # committed CI lane exactly: only its two voting projects run and CI's
+        # explicitly platform-local screenshot guards remain outside the gate.
+        "cmd env CI=true mix verify.example_browser --project=desktop-chromium --project=mobile-chromium"
       ]
     ]
   end
