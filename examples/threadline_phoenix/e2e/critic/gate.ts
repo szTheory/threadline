@@ -47,6 +47,7 @@ import type { LensName } from "./schema.js";
 import {
   currentOperatorSurfacePaths,
   readRequiredJson,
+  routeCellMatchesPage,
   routeScorecardCellIds,
   routeScorecardPath,
 } from "../support/operator-surface-paths.js";
@@ -188,7 +189,7 @@ export function guardBeforePole(
 /** The dark-theme blast-radius cells for a page currently on disk (gitignored route.* cells). */
 function pageDarkCells(page: string): string[] {
   return routeScorecardCellIds()
-    .filter((cellId) => cellId.startsWith(`${page}__`) && cellId.includes("__dark-"))
+    .filter((cellId) => routeCellMatchesPage(cellId, page) && cellId.includes("__dark-"))
     .sort();
 }
 

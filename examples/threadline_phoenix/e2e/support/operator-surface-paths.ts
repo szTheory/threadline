@@ -290,6 +290,15 @@ export function routeScorecardCellIds(): string[] {
     .sort();
 }
 
+/** Match one route page and its dot-qualified variants without prefix confusion. */
+export function routeCellMatchesPage(cellId: string, page: string): boolean {
+  const cellDelimiter = cellId.indexOf("__");
+  if (cellDelimiter < 1) return false;
+
+  const ledgerId = cellId.slice(0, cellDelimiter);
+  return ledgerId === page || ledgerId.startsWith(`${page}.`);
+}
+
 /** Resolve one live route scorecard only after exact adapter-owned enumeration. */
 export function routeScorecardPath(cellId: string): string {
   const { routeScorecardsDir } = currentOperatorSurfacePaths();

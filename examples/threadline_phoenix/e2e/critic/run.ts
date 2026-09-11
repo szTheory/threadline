@@ -43,6 +43,7 @@ import {
   parseOperatorSurfaceRootFlags,
   readRequiredJson,
   resolveOperatorSurfacePaths,
+  routeCellMatchesPage,
   routeScorecardCellIds,
 } from "../support/operator-surface-paths.js";
 
@@ -321,7 +322,14 @@ function getScopedCellIds(args: ScoreArgs): string[] {
     // Breakpoint filter (e.g. --breakpoint 1280 → only the __<theme>-1280 cell)
     if (args.breakpoint && !cellId.endsWith(`-${args.breakpoint}`)) return false;
     // Page filter
-    if (args.page && !cellId.startsWith(args.page + "__")) return false;
+    if (
+      args.page &&
+      !(routeRun
+        ? routeCellMatchesPage(cellId, args.page)
+        : cellId.startsWith(args.page + "__"))
+    ) {
+      return false;
+    }
     // Refute-only filter
     if (args.refuteOnly && !cellId.startsWith("refute.")) return false;
     // Normal run excludes refute cells (scored via --refute-only / --synthetic);

@@ -282,7 +282,9 @@ test("route scoring and gate discover generated scorecards and reject an empty e
   const routeScorecardsDir = resolve(outputRoot, "route-scorecards");
   const runPath = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/run.ts");
   const e2eRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e");
-  const cellId = "route.coverage__dark-1280";
+  const cellId = "route.timeline__dark-1280";
+  const variantCellId = "route.timeline.degraded__dark-1280";
+  const prefixSiblingCellId = "route.timelineish__dark-1280";
 
   const runCritic = (args: string[]) =>
     spawnSync("tsx", [runPath, ...args, "--output-root", outputRoot], {
@@ -294,15 +296,20 @@ test("route scoring and gate discover generated scorecards and reject an empty e
   try {
     await mkdir(routeScorecardsDir, { recursive: true });
     await writeFile(resolve(routeScorecardsDir, `${cellId}.json`), "{}\n", "utf8");
+    await writeFile(resolve(routeScorecardsDir, `${variantCellId}.json`), "{}\n", "utf8");
+    await writeFile(resolve(routeScorecardsDir, `${prefixSiblingCellId}.json`), "{}\n", "utf8");
     adapter.configureOperatorSurfacePaths({ outputRoot });
-    assert.deepEqual(adapter.routeScorecardCellIds(), [cellId]);
+    assert.deepEqual(adapter.routeScorecardCellIds(), [cellId, variantCellId, prefixSiblingCellId]);
+    assert.equal(adapter.routeCellMatchesPage(cellId, "route.timeline"), true);
+    assert.equal(adapter.routeCellMatchesPage(variantCellId, "route.timeline"), true);
+    assert.equal(adapter.routeCellMatchesPage(prefixSiblingCellId, "route.timeline"), false);
     assert.deepEqual(adapter.readRouteScorecard(cellId), {});
 
     const score = runCritic([
       "score",
       "--dry-run",
       "--page",
-      "route.coverage",
+      "route.timeline",
       "--theme",
       "dark",
       "--breakpoint",
@@ -310,20 +317,22 @@ test("route scoring and gate discover generated scorecards and reject an empty e
     ]);
     assert.equal(score.error, undefined, String(score.error));
     assert.equal(score.status, 0, score.stderr);
-    assert.match(score.stdout, /Cells in scope:\s+1/);
+    assert.match(score.stdout, /Cells in scope:\s+2/);
 
     const gate = runCritic([
       "gate",
       "--dry-run",
       "--page",
-      "route.coverage",
+      "route.timeline",
       "--lens",
       "density",
     ]);
     assert.equal(gate.error, undefined, String(gate.error));
     assert.equal(gate.status, 0, gate.stderr);
-    assert.match(gate.stdout, /0 changed of 1 scanned/);
+    assert.match(gate.stdout, /0 changed of 2 scanned/);
     assert.match(gate.stdout, new RegExp(cellId));
+    assert.match(gate.stdout, new RegExp(variantCellId));
+    assert.doesNotMatch(gate.stdout, new RegExp(prefixSiblingCellId));
 
     const empty = runCritic([
       "score",
@@ -344,7 +353,7 @@ test("route scoring and gate discover generated scorecards and reject an empty e
       "--dry-run",
       "--synthetic",
       "--page",
-      "route.coverage",
+      "route.timeline",
       "--theme",
       "dark",
       "--breakpoint",
