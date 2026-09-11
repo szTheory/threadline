@@ -262,6 +262,32 @@ test("rejects immutable and generated root aliasing while allowing a separated o
   }
 });
 
+test("critic score and cache writers use contained atomic targets", async () => {
+  const scorecardModule = await import("../critic/scorecard.js");
+  const scorecardSource = await readFile(
+    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/scorecard.ts"),
+    "utf8",
+  );
+  const cacheSource = await readFile(
+    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic/cache.ts"),
+    "utf8",
+  );
+
+  assert.throws(
+    () => scorecardModule.criticScorePath("../escape", "density", "signal_to_chrome"),
+    /outside|traversal/i,
+  );
+  for (const [filename, source] of [
+    ["scorecard.ts", scorecardSource],
+    ["cache.ts", cacheSource],
+  ] as const) {
+    assert.match(source, /operator-surface-paths\.js/, `${filename} must import the adapter`);
+    assert.match(source, /resolveContainedPath/, `${filename} must contain its target`);
+    assert.match(source, /atomicWriteFile/, `${filename} must replace atomically`);
+    assert.doesNotMatch(source, /writeFileSync/, `${filename} must not write destinations directly`);
+  }
+});
+
 test("atomic replacement writes complete bytes through a sibling temporary file", async () => {
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
