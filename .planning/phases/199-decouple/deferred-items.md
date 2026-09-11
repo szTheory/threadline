@@ -39,3 +39,11 @@
 - **Evidence:** `mix deps.get --check-locked` completed successfully but reported current security advisories for locked versions of `decimal`, `hackney`, `phoenix`, `phoenix_live_view`, `plug`, and `postgrex`.
 - **Scope:** Plan 199-11 proves committed checkout cleanliness and does not own dependency selection or lockfile changes; neither `mix.exs` nor `mix.lock` changed.
 - **Disposition:** Defer remediation to a dependency-security upgrade plan that can assess compatibility and update the lockfile with focused regression coverage.
+
+## 199-16: Pre-existing full-suite Dialyzer contract drift
+
+- **Status:** open
+- **Discovered during:** Plan 199-16 overall verification
+- **Evidence:** `mix test` ran 1,519 tests and reported two failures: `Threadline.PlanningDependencyContractTest` rejects the existing planning-history read in `test/threadline/dialyzer_ignore_contract_test.exs`, and `Threadline.DialyzerIgnoreContractTest` still caps warning origins at 14 while the sealed analysis contains 22.
+- **Scope:** Plan 199-16 owns only the five query/storage warning origins and their source-backed fixture; neither failing contract test is an authorized Plan 199-16 file.
+- **Disposition:** Deferred to the plan that owns the repository-wide Dialyzer contract migration. All Plan 199-16 focused suites and the exact 10-warning source verifier pass.
