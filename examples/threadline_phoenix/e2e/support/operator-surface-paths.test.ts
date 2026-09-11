@@ -187,6 +187,31 @@ test("critic readers share the adapter without independent planning or cwd roots
   assert.deepEqual(offenders, []);
 });
 
+test("graded capture uses contained generated targets without redirecting snapshots", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+
+  const source = await readFile(
+    resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/tests/operator-graded-capture.spec.ts"),
+    "utf8",
+  );
+
+  assert.match(source, /operator-surface-paths\.js/);
+  assert.match(source, /resolveContainedPath/);
+  assert.match(source, /atomicWriteFile/);
+  assert.doesNotMatch(source, /process\.cwd\(|\.planning\//);
+  assert.doesNotMatch(source, /writeFileSync/);
+  assert.doesNotMatch(source, /toHaveScreenshot\(/);
+
+  assert.throws(
+    () => adapter.resolveContainedPath(
+      adapter.DEFAULT_OPERATOR_SURFACE_PATHS.e2eRoot,
+      "artifacts/graded/../../../../hostile-output",
+    ),
+    /outside|traversal/i,
+  );
+});
+
 test("rejects traversal, absolute escape, prefix confusion, and symlink escape", async () => {
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
