@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "slice": "operator-liveviews",
+  "sealed_run": {
+    "output_sha256": "12c1164ae38a943a738b339d2758e866c51b284444480585e80d5d591169c3e6",
+    "warning_count": 40
+  },
+  "authorized_origins": [
+    "lib/threadline/operator_surface/live/coverage_live.ex",
+    "lib/threadline/operator_surface/live/export_status_live.ex"
+  ],
+  "warnings": [
+    {
+      "id": "W22",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/operator_surface/live/coverage_live.ex",
+        "line": 103
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/operator_surface/live/coverage_live.ex\", 103}, {:unmatched_return, [~c\"'false' | 'nil' | non_neg_integer()\"]}}",
+      "disposition": "fixed",
+      "evidence": "Explicitly discard Process.cancel_timer/1's boolean-or-time result while preserving the existing cancellation side effect."
+    },
+    {
+      "id": "W23",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/operator_surface/live/export_status_live.ex",
+        "line": 27
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/operator_surface/live/export_status_live.ex\", 27}, {:unmatched_return, [~c\"'nil' | reference()\"]}}",
+      "disposition": "fixed",
+      "evidence": "Explicitly discard the refresh timer reference while preserving the existing one-timer-per-mount-or-refresh cadence."
+    }
+  ],
+  "post_analysis": {
+    "command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
+    "authorized_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
