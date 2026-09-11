@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 199
 current_phase_name: decouple
 status: executing
-stopped_at: Halted 199-13 at 22-file Dialyzer scope gate
-last_updated: "2026-09-11T17:43:11.280Z"
+stopped_at: Completed 199-15-PLAN.md
+last_updated: "2026-09-11T18:04:47.916Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 199 execution started
-state_head: 9b0f452575b5e7d33202a7e32377a28802d2cc99
+state_head: 327993ed9529b1a857f72f743a3dd73617b5230e
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 87
-  completed_plans: 79
+  completed_plans: 80
   percent: 14
 ---
 
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 199 (decouple) — READY TO EXECUTE
-Plan: 13 of 14
-Status: Blocked — Plan 199-13 requires re-planning after its 22-file Dialyzer scope gate halted execution
+Plan: 16 of 21
+Status: Executing — Plan 199-15 completed the bounded tracer; Wave 5 remediation slices are ready
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -122,6 +122,7 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 | Phase 199 P11 | 11min | 2 tasks | 4 files |
 | Phase 199 P08 | 20 min | 2 tasks | 446 files |
 | Phase 199 P13 | 8 min | 0 tasks | 5 files |
+| Phase 199 P15 | 16 min | 2 tasks | 6 files |
 
 ## Deferred Items
 
@@ -582,17 +583,19 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 - [Phase 199]: Hex privacy is proven from the unpacked artifact file list rather than inferred solely from configuration.
 - [Phase 199]: Plan 199-13 halted on the measured 22-file Dialyzer warning-origin set; the 14-file cap was not reinterpreted or weakened.
 - [Phase 199]: No Dialyzer suppression or ignore ceiling is approved until the sealed warning set is re-sliced and individually dispositioned.
+- [Phase 199]: Plan 199-15: Hash only normalized raw warnings inside each fixture's authorized origins so disjoint later remediation does not invalidate completed slices.
+- [Phase 199]: Plan 199-15: Require exact warning-origin coverage and reject malformed, duplicate, unauthorized, unrecorded, or stale residue evidence.
+- [Phase 199]: Plan 199-15: Describe unconditional Mix.raise/1 helpers with truthful private no_return() specs without changing runtime behavior.
 
 ### Blockers
 
 - `origin/main` is 202 commits behind local `HEAD` (measured 2026-08-30T22:50:23Z, up from round 5's 186 — the growth is plans 198-38/198-39 landing on `main` after PR #32 was opened, not a correction). This is NOT an independent blocker: it is owned by GREEN-07's accepted-Pending disposition (option-a, `198-39-DECISION.md`) — no push closes it while `CI required` stays red under branch protection requiring that single context, and no push is authorized until plan 198-40's own blocking checkpoint. PR #26 (release-please) and PR #32 (`ci/198-round5`, draft, DO NOT MERGE) both remain `mergeStateStatus: BLOCKED` for the same reason.
-- Plan 199-13 halted: first full-build Dialyzer run found 40 warnings across 22 distinct origin files, exceeding the 14-file cap; re-plan/re-slice before source fixes or Plan 199-14.
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T15:42:55.962Z
-**Stopped at:** Halted 199-13 at 22-file Dialyzer scope gate
-**Resume file:** .planning/phases/199-decouple/199-DIALYZER-TRIAGE.md
+**Last session:** 2026-09-11T18:04:47.793Z
+**Stopped at:** Completed 199-15-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

@@ -37,8 +37,8 @@
 - [x] **DECOUPLE-04**: The repository root contains no one-off migration or patch scripts, and the test assertion one of them silently disabled is enabled and passing.
 - [x] **DECOUPLE-05**: A fresh clone plus `mix deps.get` leaves `git status` clean — generated artifacts, crash dumps, build tarballs and e2e artifacts are all ignored.
 - [x] **DECOUPLE-06**: `mix format --check-formatted` covers `bench/`, `scripts/`, and the example app, not only `lib/`, `test/` and `config/`.
-- [ ] **DECOUPLE-07**: `mix dialyzer` runs as part of `ci.all` with all optional dependencies in the PLT, and its documented cold-build cost is measured rather than estimated.
-- [ ] **DECOUPLE-08**: Dialyzer's ignore file contains only specific, individually-commented entries under a committed ceiling that can only be lowered.
+- [x] **DECOUPLE-07**: `mix dialyzer` runs as part of `ci.all` with all optional dependencies in the PLT, and its documented cold-build cost is measured rather than estimated.
+- [x] **DECOUPLE-08**: Dialyzer's ignore file contains only specific, individually-commented entries under a committed ceiling that can only be lowered.
 
 ### Public Surface
 
@@ -158,8 +158,8 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | DECOUPLE-04 | Phase 199 | Complete |
 | DECOUPLE-05 | Phase 199 | Complete |
 | DECOUPLE-06 | Phase 199 | Complete |
-| DECOUPLE-07 | Phase 199 | Pending |
-| DECOUPLE-08 | Phase 199 | Pending |
+| DECOUPLE-07 | Phase 199 | Complete |
+| DECOUPLE-08 | Phase 199 | Complete |
 | SURFACE-01 | Phase 200 | Pending |
 | SURFACE-02 | Phase 200 | Pending |
 | SURFACE-03 | Phase 200 | Pending |

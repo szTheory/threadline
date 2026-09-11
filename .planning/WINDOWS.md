@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 43
+open_count: 45
 waived_count: 0
 fixed_count: 1
-total_count: 44
-last_updated: 2026-09-11T15:43:16.489Z
+total_count: 46
+last_updated: 2026-09-11T18:06:20.458Z
 ---
 
 # Broken Windows Ledger
@@ -59,6 +59,8 @@ last_updated: 2026-09-11T15:43:16.489Z
 | 42 | 199 | unmet-truth | test/threadline/dialyzer_ignore_contract_test.exs | 32 | Full-build Dialyzer remains red because the sealed 22-file warning-origin set exceeds Plan 199-13's 14-file authority | open |  | 2026-09-11T15:42:53.646Z |  |
 | 43 | 199 | unrun-verify | .planning/phases/199-decouple/199-13-PLAN.md |  | Task 2 unused-filter verification was not run because Task 1 tripped the mandatory re-planning gate | open |  | 2026-09-11T15:42:53.810Z |  |
 | 44 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-13 roadmap.update-plan-progress returned missing_phase_details; executor marked the plan halted and Plan 199-14 blocked without increasing the 12/14 complete count. | open |  | 2026-09-11T15:43:16.489Z |  |
+| 45 | 199 | deviation | .planning/ROADMAP.md | 510 | roadmap.update-plan-progress could not update Phase 199; Plan 199-15 checklist row was marked manually. | open |  | 2026-09-11T18:05:30.592Z |  |
+| 46 | 199 | deviation | .planning/STATE.md |  | state.advance-plan used stale pre-replan 14-plan position; executor reconciled Current Position to runnable Plan 16 of 21 after Plan 199-15 completion. | open |  | 2026-09-11T18:06:20.458Z |  |
 
 ````json
 [
@@ -606,6 +608,32 @@ last_updated: 2026-09-11T15:43:16.489Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T15:43:16.489Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 45,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": 510,
+    "description": "roadmap.update-plan-progress could not update Phase 199; Plan 199-15 checklist row was marked manually.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T18:05:30.592Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 46,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/STATE.md",
+    "line": null,
+    "description": "state.advance-plan used stale pre-replan 14-plan position; executor reconciled Current Position to runnable Plan 16 of 21 after Plan 199-15 completion.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T18:06:20.458Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }

@@ -150,7 +150,30 @@ Each TDD task was committed as an atomic RED/GREEN pair:
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 3 - Blocking Issue] Marked the Plan 199-15 roadmap row after the SDK could not locate Phase 199's checklist**
+
+- **Found during:** Post-summary planning-state synchronization
+- **Issue:** `roadmap.update-plan-progress 199` returned `missing_phase_details` even though the Phase 199 checklist and Plan 199-15 row exist.
+- **Fix:** Marked only the completed `199-15-PLAN.md` checklist row and reconciled the phase progress row to 13 completed summaries across 21 plans; all unfinished plans remain in progress.
+- **Files modified:** `.planning/ROADMAP.md`
+- **Verification:** The Plan 199-15 row is checked, the phase row reads `13/21 | In Progress`, and Plans 199-14 and 199-16 through 199-21 remain unchecked.
+- **Committed in:** Final planning-state commit
+
+**2. [Rule 3 - Blocking Issue] Reconciled stale pre-replan STATE position after the canonical advance command**
+
+- **Found during:** Post-summary planning-state synchronization
+- **Issue:** `state.advance-plan` advanced the stale pre-replan position from Plan 13 to `14 of 14`, although the live phase has 21 plans, Plan 14 depends on Plan 20, and completed Plan 15 unblocks Wave 5.
+- **Fix:** Preserved the SDK-updated metrics, decisions, and session fields while reconciling Current Position to `16 of 21`, the next runnable remediation slice, and removing the superseded re-planning blocker.
+- **Files modified:** `.planning/STATE.md`
+- **Verification:** The current position names Plan 16 of 21, status is executing, and the completed Plan 199-15 session marker remains intact.
+- **Committed in:** Final planning-state commit
+
+---
+
+**Total deviations:** 2 auto-fixed (2 blocking workflow corrections).
+**Impact on plan:** Execution scope and product behavior are unchanged; the correction keeps roadmap state aligned with the committed summary.
 
 ## Issues Encountered
 
