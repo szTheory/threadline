@@ -7,8 +7,10 @@
   },
   "authorized_origins": [
     "lib/threadline/change_diff.ex",
+    "lib/threadline/continuity.ex",
     "lib/threadline/query.ex",
-    "lib/threadline/query/actor_history_page.ex"
+    "lib/threadline/query/actor_history_page.ex",
+    "lib/threadline/storage/local.ex"
   ],
   "warnings": [
     {
@@ -21,6 +23,17 @@
       "raw_line": "{:warn_unknown, {~c\"lib/threadline/change_diff.ex\", {84, 38}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}",
       "disposition": "fixed",
       "evidence": "Use the concrete %AuditChange{} struct accepted by from_audit_change/2 instead of a remote type the Ecto schema does not export."
+    },
+    {
+      "id": "W04",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/continuity.ex",
+        "line": 70
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/continuity.ex\", {70, 5}}, {:unmatched_return, [~c\"binary()\"]}}",
+      "disposition": "fixed",
+      "evidence": "Carry the schema returned by validation into the table lookup and coverage query instead of discarding the checked value."
     },
     {
       "id": "W33",
@@ -98,6 +111,17 @@
       "raw_line": "{:warn_unknown, {~c\"lib/threadline/query/actor_history_page.ex\", {13, 37}}, {:unknown_type, {Threadline.Capture.AuditTransaction, :t, 0}}}",
       "disposition": "fixed",
       "evidence": "Describe actor-history entries with the concrete %AuditTransaction{} struct returned by the query."
+    },
+    {
+      "id": "W40",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/storage/local.ex",
+        "line": 68
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/storage/local.ex\", 68}, {:guard_fail, [~c\"_@1::string() | {'error','bad_name'}\", ~c\"=:=\", ~c\"'nil'\"]}}",
+      "disposition": "fixed",
+      "evidence": "Match :code.priv_dir/1's charlist success and {:error, :bad_name} result explicitly, using priv only for the error tuple."
     }
   ],
   "post_analysis": {
