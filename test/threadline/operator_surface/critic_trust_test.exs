@@ -1,6 +1,6 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.CriticTrustTest do
-    use ExUnit.Case, async: true
+    use ExUnit.Case, async: false
 
     @ledger_path ".planning/design-system-ledger.json"
     @golden_set_path ".planning/golden/golden-set.json"
@@ -739,6 +739,114 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    # ── Maintainer Mix-task path boundary (Phase 199 D-03..D-12) ───────────────
+
+    @tag phase199_task1: true
+    test "critic.measure anchors roots to the loaded project and honors explicit overrides" do
+      preserve_repository_ledger(fn ->
+        %{base: base, fixture_root: fixture_root, output_root: output_root} =
+          measurement_roots!("anchored")
+
+        nested = Path.join(base, "nested/workdir")
+        File.mkdir_p!(nested)
+        ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+        original = File.read!(ledger_path)
+
+        File.cd!(nested, fn ->
+          Mix.Tasks.Critic.Measure.run([
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root()),
+            "--output-root",
+            Path.relative_to(output_root, project_root())
+          ])
+        end)
+
+        refute File.read!(ledger_path) == original
+      end)
+    end
+
+    @tag phase199_task1: true
+    test "critic.measure rejects traversal, absolute escape, prefix confusion, and symlink roots" do
+      preserve_repository_ledger(fn ->
+        %{base: base, fixture_root: fixture_root, output_root: output_root} =
+          measurement_roots!("escape-controls")
+
+        outside =
+          Path.join(
+            System.tmp_dir!(),
+            "threadline-critic-outside-#{System.unique_integer([:positive])}"
+          )
+
+        File.mkdir_p!(outside)
+
+        link = Path.join(base, "outside-link")
+        File.ln_s!(outside, link)
+
+        controls = [
+          {"traversal", "../threadline-outside"},
+          {"absolute escape", outside},
+          {"prefix confusion", project_root() <> "-evil"},
+          {"symlink escape", Path.relative_to(link, project_root())}
+        ]
+
+        for {label, invalid_root} <- controls do
+          error =
+            assert_raise Mix.Error, fn ->
+              Mix.Tasks.Critic.Measure.run([
+                "--fixture-root",
+                invalid_root,
+                "--output-root",
+                Path.relative_to(output_root, project_root())
+              ])
+            end
+
+          assert error.message =~ "repository-only: true",
+                 "#{label} omitted repository-only context"
+
+          assert error.message =~ "resolved path:", "#{label} omitted the resolved path"
+          assert error.message =~ "next:", "#{label} omitted the recovery command"
+        end
+
+        alias_error =
+          assert_raise Mix.Error, fn ->
+            Mix.Tasks.Critic.Measure.run([
+              "--fixture-root",
+              Path.relative_to(fixture_root, project_root()),
+              "--output-root",
+              Path.relative_to(Path.join(fixture_root, "golden"), project_root())
+            ])
+          end
+
+        assert alias_error.message =~ "immutable evidence"
+      end)
+    end
+
+    @tag phase199_task1: true
+    test "critic.measure rejects malformed required input before changing the ledger" do
+      preserve_repository_ledger(fn ->
+        %{fixture_root: fixture_root, output_root: output_root} = measurement_roots!("malformed")
+        ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+        original = File.read!(ledger_path)
+        File.write!(Path.join(fixture_root, "golden/golden-set.json"), "not-json")
+
+        error =
+          assert_raise Mix.Error, fn ->
+            Mix.Tasks.Critic.Measure.run([
+              "--fixture-root",
+              Path.relative_to(fixture_root, project_root()),
+              "--output-root",
+              Path.relative_to(output_root, project_root())
+            ])
+          end
+
+        assert error.message =~ "golden oracle is invalid"
+        assert error.message =~ Path.join(fixture_root, "golden/golden-set.json")
+        assert error.message =~ "repository-only: true"
+        assert error.message =~ "next:"
+        assert File.read!(ledger_path) == original
+      end)
+    end
+
     # ── CRITIQUE.md guards ────────────────────────────────────────────────────────
 
     test "CRITIQUE.md does not contain forbidden external tool names" do
@@ -778,6 +886,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # ── Helpers ──────────────────────────────────────────────────────────────────
+
+    defp measurement_roots!(name) do
+      base =
+        Path.join([
+          project_root(),
+          "_build",
+          "critic-trust-path-tests",
+          "#{name}-#{System.unique_integer([:positive])}"
+        ])
+
+      fixture_root = Path.join(base, "fixtures")
+      output_root = Path.join(base, "critic-scores")
+      File.mkdir_p!(Path.join(fixture_root, "golden"))
+      File.mkdir_p!(output_root)
+
+      File.cp!(@ledger_path, Path.join(fixture_root, "design-system-ledger.json"))
+      File.cp!(@golden_set_path, Path.join(fixture_root, "golden/golden-set.json"))
+      File.cp!(@synthetic_set_path, Path.join(fixture_root, "golden/synthetic-set.json"))
+
+      %{base: base, fixture_root: fixture_root, output_root: output_root}
+    end
+
+    defp project_root do
+      Mix.Project.project_file()
+      |> Path.expand()
+      |> Path.dirname()
+    end
+
+    defp preserve_repository_ledger(fun) do
+      original = File.read!(@ledger_path)
+
+      try do
+        fun.()
+      after
+        if File.read!(@ledger_path) != original do
+          File.write!(@ledger_path, original)
+        end
+      end
+    end
 
     defp ledger, do: @ledger_path |> File.read!() |> Jason.decode!()
     defp golden_set, do: @golden_set_path |> File.read!() |> Jason.decode!()
