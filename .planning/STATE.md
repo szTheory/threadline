@@ -1,20 +1,20 @@
 ---
-gsd_state_version: 1.0
+gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 199
-current_phase_name: decouple
+current_phase_name: Decouple
 status: executing
-stopped_at: Phase 199 context gathered
-last_updated: "2026-09-11T03:03:06.955Z"
+stopped_at: Completed 199-01-PLAN.md
+last_updated: "2026-09-11T03:23:21.642Z"
 last_activity: 2026-09-10
-last_activity_desc: Phase 198 complete, transitioned to Phase 199
-state_head: aaa1538a6e31195e3cb9923b6a97b2ef65ccd4a6
+last_activity_desc: Phase 199 execution started
+state_head: 813afdd21e06fc6c6310fa130e5cfce1647a927e
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 80
-  completed_plans: 66
+  completed_plans: 67
   percent: 14
 ---
 
@@ -25,12 +25,12 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 198 — Green Bringup
+**Current focus:** Phase 199 — Decouple
 
 ## Current Position
 
-Phase: 199 (decouple) — READY TO EXECUTE
-Plan: Not started
+Phase: 199 (Decouple) — EXECUTING
+Plan: 2 of 14
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -43,7 +43,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-10 — Phase 198 complete, transitioned to Phase 199
+Last activity: 2026-09-10 — Phase 199 execution started
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -70,7 +70,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
+Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Performance Metrics
 
@@ -109,6 +109,7 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 | Phase 198 P62 | 33 min | 3 tasks | 7 files |
 | Phase 198 P64 | 3 min | 2 tasks | 3 files |
 | Phase 198 P66 | 9 min | 2 tasks | 3 files |
+| Phase 199 P01 | 11 min | 2 tasks | 2 files |
 
 ## Deferred Items
 
@@ -536,6 +537,8 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 - [Phase 198]: Summaries 01-61 remain the immutable audited-final set; Plan 62 remains the sole terminal-certification exception.
 - [Phase 198]: Summaries 63-65 require exact content-bound manifest records; Plan 66 is an explicit non-terminal final-mode repair summary.
 - [Phase 198]: Plan 66 restores only current-tree GREEN-04 determinism; GREEN-07 remains accepted-Pending and security dispositions remain unchanged.
+- [Phase 199]: [199-01] MechanicalChecker owns evaluation only; repository fixture discovery remains at test and tooling edges.
+- [Phase 199]: [199-01] Invalid corpora return distinct tagged errors with expanded paths, repository-only=false, and one recovery call.
 
 ### Blockers
 
@@ -543,9 +546,9 @@ Progress: [░░░░░░░░░░] 0% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T01:20:27.914Z
-**Stopped at:** Phase 199 context gathered
-**Resume file:** .planning/phases/199-decouple/199-CONTEXT.md
+**Last session:** 2026-09-11T03:23:21.474Z
+**Stopped at:** Completed 199-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

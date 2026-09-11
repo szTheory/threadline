@@ -115,10 +115,19 @@ Each task followed a RED→GREEN TDD cycle:
 - **Verification:** `mix test test/threadline/operator_surface/mechanical_checker_test.exs --max-failures 1` completed with 27 tests and 0 failures.
 - **Committed in:** No source change required
 
+**2. [Rule 3 - Blocking] Applied the roadmap handler's narrow fallback**
+
+- **Found during:** Post-summary planning-state synchronization
+- **Issue:** `roadmap.update-plan-progress 199` returned `missing_phase_details` even though the Phase 199 detail section and plan checklist are present.
+- **Fix:** Marked only the completed `199-01-PLAN.md` checklist row as complete; the phase remains in progress with 13 plans outstanding.
+- **Files modified:** `.planning/ROADMAP.md`
+- **Verification:** Phase 199 now shows exactly one completed plan row and the other 13 remain unchecked.
+- **Committed in:** Final planning-state commit
+
 ---
 
-**Total deviations:** 1 auto-fixed (1 blocking verification-command correction).
-**Impact on plan:** No product or test scope changed; the corrected command exercises the exact planned suite.
+**Total deviations:** 2 auto-fixed (2 blocking workflow corrections).
+**Impact on plan:** No product or test scope changed; both corrections preserve the intended verification and progress semantics.
 
 ## Issues Encountered
 
