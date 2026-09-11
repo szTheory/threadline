@@ -1,7 +1,53 @@
 defmodule Threadline.PlanningDependencyContract do
   @moduledoc false
 
-  def scan_sources(_sources), do: []
+  @planning_path ~r/\.planning(?:\/[^\s"')\]}]+)?/
+  @file_io ~r/File\.(read!?|stream!?|open!?|stat!?)\s*\(\s*([^,\)]+)/
+  @module_attribute ~r/@([a-zA-Z0-9_]+)\s+["']([^"']+)["']/
+
+  def scan_sources(sources) when is_map(sources) do
+    sources
+    |> Enum.sort_by(&elem(&1, 0))
+    |> Enum.flat_map(fn {file, source} -> source_violations(file, source) end)
+  end
+
+  defp source_violations(file, source) do
+    attributes =
+      Regex.scan(@module_attribute, source)
+      |> Map.new(fn [_, name, value] -> {name, value} end)
+
+    Regex.scan(@file_io, source, return: :index)
+    |> Enum.flat_map(fn [{offset, _length}, {operation_offset, operation_length}, argument] ->
+      operation = "File." <> binary_part(source, operation_offset, operation_length)
+      argument_text = capture_text(source, argument)
+
+      case planning_path(argument_text, attributes) do
+        nil -> []
+        path -> [violation(file, source, offset, operation, path)]
+      end
+    end)
+  end
+
+  defp planning_path(argument, attributes) do
+    cond do
+      match = Regex.run(@planning_path, argument) -> hd(match)
+      match = Regex.run(~r/@([a-zA-Z0-9_]+)/, argument) -> Map.get(attributes, Enum.at(match, 1))
+      true -> nil
+    end
+  end
+
+  defp capture_text(source, {offset, length}), do: binary_part(source, offset, length)
+
+  defp violation(file, source, offset, operation, path) do
+    %{
+      file: file,
+      line: source |> binary_part(0, offset) |> count_lines(),
+      operation: operation,
+      path: path
+    }
+  end
+
+  defp count_lines(prefix), do: length(:binary.matches(prefix, "\n")) + 1
 end
 
 defmodule Threadline.PlanningDependencyContractTest do
