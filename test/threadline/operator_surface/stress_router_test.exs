@@ -365,6 +365,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="stress-ledger-score">912|
     end
 
+    test "stress route rejects malformed injected ledger data with recovery guidance", %{
+      conn: conn
+    } do
+      Application.put_env(:threadline, :stress_router_ledger_session, %{
+        "threadline_stress_ledger_entries" => %{}
+      })
+
+      assert_raise ArgumentError,
+                   ~r/Threadline stress session ledger entries must be a non-empty list.*Recovery: mix test test\/threadline\/operator_surface\/stress_router_test.exs/s,
+                   fn -> live(conn, "/audit/__stress") end
+    end
+
     test "selected theme query drives the stress root theme instead of mount default",
          %{conn: conn} do
       {:ok, _view, html} = live(conn, "/audit/__stress?theme=light")
