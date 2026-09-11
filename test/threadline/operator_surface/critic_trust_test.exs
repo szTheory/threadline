@@ -846,6 +846,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert error.message =~ "repository-only: true"
         assert error.message =~ "next:"
         assert File.read!(ledger_path) == original
+
+        File.write!(Path.join(fixture_root, "golden/golden-set.json"), ~s({"items":"not-a-list"}))
+
+        schema_error =
+          assert_raise Mix.Error, fn ->
+            Mix.Tasks.Critic.Measure.run([
+              "--fixture-root",
+              Path.relative_to(fixture_root, project_root()),
+              "--output-root",
+              Path.relative_to(output_root, project_root())
+            ])
+          end
+
+        assert schema_error.message =~ "golden oracle schema is invalid"
+        assert File.read!(ledger_path) == original
       end)
     end
 

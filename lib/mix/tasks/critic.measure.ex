@@ -143,7 +143,10 @@ defmodule Mix.Tasks.Critic.Measure do
   defp read_golden!(source, paths) do
     path = if source == :synthetic, do: paths.synthetic, else: paths.golden
     recovery = if source == :synthetic, do: "mix critic.synth", else: restore_command(path)
-    read_json_object!(path, "golden oracle", recovery)
+
+    path
+    |> read_json_object!("golden oracle", recovery)
+    |> validate_golden!(path, recovery)
   end
 
   defp read_scores!(paths) do
@@ -291,9 +294,30 @@ defmodule Mix.Tasks.Critic.Measure do
   defp validate_score!(score, path) do
     valid =
       is_binary(score["cell_id"]) and score["cell_id"] != "" and
-        score["lens"] in Measure.lenses()
+        score["lens"] in Measure.lenses() and
+        score["band"] in ~w(fail weak ok strong exemplary) and
+        is_number(score["score"]) and is_boolean(score["stable"]) and
+        is_binary(score["model_id"]) and is_binary(score["rubric_version"])
 
     if not valid, do: task_error!("critic score is invalid", path, "mix verify.ui_critique")
+  end
+
+  defp validate_golden!(golden, path, recovery) do
+    items = Map.get(golden, "items")
+
+    valid =
+      is_list(items) and
+        Enum.all?(items, fn item ->
+          is_map(item) and is_binary(item["cell_id"]) and
+            item["lens"] in Measure.lenses() and is_binary(item["kind"]) and
+            is_map(item["r1"]) and item["r1"]["verdict"] in ~w(broken bad borderline good)
+        end)
+
+    if valid do
+      golden
+    else
+      task_error!("golden oracle schema is invalid", path, recovery)
+    end
   end
 
   defp atomic_replace!(target, contents) do
