@@ -487,7 +487,7 @@ Plans:
 
 - [x] 199-01-PLAN.md — Explicit fail-closed mechanical checker
 - [x] 199-03-PLAN.md — Deterministic, contained, atomic Mix evidence tooling
-- [ ] 199-04-PLAN.md — Shared ESM path and safe-write adapter
+- [x] 199-04-PLAN.md — Shared ESM path and safe-write adapter
 - [ ] 199-07-PLAN.md — Tracked-only fixture manifest contract
 - [ ] 199-09-PLAN.md — Surgical dead-artifact cleanup and citation repair
 - [ ] 199-10-PLAN.md — Exact ignore policy and formatter topology

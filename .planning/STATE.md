@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 199
 current_phase_name: Decouple
 status: executing
-stopped_at: Completed 199-03-PLAN.md
-last_updated: "2026-09-11T03:45:08.235Z"
+stopped_at: Completed 199-04-PLAN.md
+last_updated: "2026-09-11T04:31:13.502Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 199 execution started
-state_head: d1086f19be4b47757a9d5ba9e024e35a7e410621
+state_head: 2ec378b66272658a9cd1baf5a26b7874d90e79e8
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 80
-  completed_plans: 68
+  completed_plans: 69
   percent: 14
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 199 (Decouple) — EXECUTING
-Plan: 3 of 14
+Plan: 4 of 14
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -111,6 +111,7 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 | Phase 198 P66 | 9 min | 2 tasks | 3 files |
 | Phase 199 P01 | 11 min | 2 tasks | 2 files |
 | Phase 199 P03 | 16 min | 2 tasks | 3 files |
+| Phase 199 P04 | 10 min | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -542,6 +543,9 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 - [Phase 199]: [199-01] Invalid corpora return distinct tagged errors with expanded paths, repository-only=false, and one recovery call.
 - [Phase 199]: Private Mix-task overrides resolve within the loaded repository and generated critic scores remain separate from immutable evidence roots. — Keeps repository discovery at the maintainer edge and prevents path traversal, symlink, prefix, and root-alias writes.
 - [Phase 199]: Canonical critic fixture replacement uses exclusive sibling temps with sync, close-before-rename, and unconditional cleanup. — Preserves original bytes on failure while making successful regeneration atomic and review-explicit.
+- [Phase 199]: The ESM adapter owns frozen deterministic roots; callers may override fixture and output roots only through explicit CLI flags. — Keeps repository discovery at the TypeScript execution edge and avoids ambient environment service location.
+- [Phase 199]: Containment rejects traversal and every symlink component, canonicalizes the nearest existing parent, and compares with path.relative. — Prevents traversal, prefix-confusion, and alias escapes for both existing and prospective targets.
+- [Phase 199]: Canonical TypeScript replacement uses an exclusive sibling temp, file sync, close-before-rename, and unconditional cleanup. — Preserves original bytes and prevents temp leakage on forced failure.
 
 ### Blockers
 
@@ -549,8 +553,8 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T03:45:08.109Z
-**Stopped at:** Completed 199-03-PLAN.md
+**Last session:** 2026-09-11T04:31:13.360Z
+**Stopped at:** Completed 199-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
