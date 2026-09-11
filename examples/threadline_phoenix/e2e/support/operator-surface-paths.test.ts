@@ -45,6 +45,7 @@ test("resolves repository evidence identically from root, nested cwd, and a work
 
   try {
     await mkdir(dirname(copiedModule), { recursive: true });
+    await mkdir(resolve(worktreeRoot, ".planning/critic-scores"), { recursive: true });
     await copyFile(resolve(here, "operator-surface-paths.ts"), copiedModule);
     const worktreeAdapter = await loadAdapter(pathToFileURL(copiedModule));
     assert.equal(
@@ -108,7 +109,7 @@ test("required JSON failures name the dataset, resolved path, repository scope, 
   const recoveryCommand = "npm run critic:check";
 
   try {
-    await assert.rejects(
+    assert.throws(
       () => adapter.readRequiredJson(missingPath, {
         dataset: "golden set",
         repositoryOnly: true,
@@ -122,7 +123,7 @@ test("required JSON failures name the dataset, resolved path, repository scope, 
     );
 
     await writeFile(malformedPath, "{not-json}\n", "utf8");
-    await assert.rejects(
+    assert.throws(
       () => adapter.readRequiredJson(malformedPath, {
         dataset: "synthetic set",
         repositoryOnly: true,
