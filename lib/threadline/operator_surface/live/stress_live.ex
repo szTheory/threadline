@@ -16,20 +16,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Phoenix.LiveView.JS
     alias Threadline.OperatorSurface.StressFixtures
 
-    @ledger_path ".planning/design-system-ledger.json"
     @category_allowlist StressFixtures.categories()
     @status_allowlist ~w(baseline current reserved)
     @theme_allowlist StressFixtures.theme_modes()
     @viewport_allowlist StressFixtures.viewports() |> Enum.map(&Integer.to_string/1)
 
-    def mount(_params, _session, socket) do
+    def mount(
+          _params,
+          %{"threadline_stress_ledger_entries" => ledger_entries},
+          socket
+        ) do
       {:ok,
        socket
        |> assign(:base_path, "/audit")
        |> assign(:stress_path, "/audit/__stress")
        |> assign(:status_allowlist, @status_allowlist)
        |> assign(:ledger_error, nil)
-       |> assign(:ledger_entries, [])
+       |> assign(:ledger_entries, ledger_entries)
        |> assign(:stories, [])
        |> assign(:categories, [])
        |> assign(:selected_story, nil)
@@ -42,7 +45,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_params(params, uri, socket) do
-      {ledger_entries, ledger_error} = load_ledger_entries()
+      ledger_entries = socket.assigns.ledger_entries
       # Ledger-backed product stories PLUS the graded-ladder oracle fixtures (D-12).
       # The latter are dev/test-only validation cells with no ledger entry — surfaced
       # here purely so the graded capture lane can render + screenshot them.
@@ -72,7 +75,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:base_path, base_path(uri))
        |> assign(:stress_path, stress_path(uri))
        |> assign(:status_allowlist, @status_allowlist)
-       |> assign(:ledger_error, ledger_error)
+       |> assign(:ledger_error, nil)
        |> assign(:ledger_entries, ledger_entries)
        |> assign(:stories, visible_stories)
        |> assign(:categories, categories)
@@ -624,30 +627,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
       </Threadline.OperatorSurface.UI.shell>
       """
-    end
-
-    defp load_ledger_entries do
-      case ledger_path() do
-        nil ->
-          {[], "missing ledger"}
-
-        path ->
-          try do
-            entries = path |> File.read!() |> Jason.decode!() |> Map.fetch!("entries")
-            {entries, nil}
-          rescue
-            _ -> {[], "invalid ledger"}
-          end
-      end
-    end
-
-    defp ledger_path do
-      [
-        @ledger_path,
-        Path.join(["..", "..", @ledger_path])
-      ]
-      |> Enum.map(&Path.expand/1)
-      |> Enum.find(&File.exists?/1)
     end
 
     defp ledger_stories(entries) do

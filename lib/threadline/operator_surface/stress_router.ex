@@ -4,7 +4,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defmacro threadline_operator_surface_stress(path, opts \\ []) do
       stress_env = stress_env_value(Keyword.get(opts, :stress_env, Mix.env()), __CALLER__)
-      clean_opts = Keyword.delete(opts, :stress_env)
+
+      {ledger_session, clean_opts} =
+        opts
+        |> Keyword.delete(:stress_env)
+        |> Keyword.pop(:ledger_session, %{})
+
       caller_file = __CALLER__.file
       caller_line = __CALLER__.line
 
@@ -25,6 +30,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             import Phoenix.LiveView.Router, only: [live_session: 3, live: 3]
 
             live_session :threadline_stress,
+              session: unquote(ledger_session),
               on_mount: [
                 {Threadline.OperatorSurface.Auth, unquote(clean_opts)},
                 {Threadline.OperatorSurface.Coverage.OnMount, unquote(clean_opts)}
