@@ -2,6 +2,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.CriticTrustTest do
     use ExUnit.Case, async: false
 
+    import ExUnit.CaptureIO
+
     @ledger_path ".planning/design-system-ledger.json"
     @golden_set_path ".planning/golden/golden-set.json"
     @synthetic_set_path ".planning/golden/synthetic-set.json"
@@ -847,6 +849,91 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
     end
 
+    # ── Canonical atomic writers (Phase 199 D-04) ─────────────────────────────
+
+    @tag phase199_task2: true
+    test "critic.measure atomically replaces the ledger and prints the exact review command" do
+      %{fixture_root: fixture_root, output_root: output_root} =
+        measurement_roots!("atomic-measure")
+
+      ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+      original = File.read!(ledger_path)
+
+      output =
+        capture_io(fn ->
+          Mix.Tasks.Critic.Measure.run([
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root()),
+            "--output-root",
+            Path.relative_to(output_root, project_root())
+          ])
+        end)
+
+      refute File.read!(ledger_path) == original
+      assert output =~ "git diff -- #{ledger_path}"
+      assert Path.wildcard(ledger_path <> ".tmp-*") == []
+    end
+
+    @tag phase199_task2: true
+    test "critic.synth atomically replaces its oracle and prints the exact review command" do
+      fixture_root = synth_root!("atomic-synth")
+      target = Path.join(fixture_root, "golden/synthetic-set.json")
+      File.write!(target, "original bytes\n")
+
+      output =
+        capture_io(fn ->
+          Mix.Tasks.Critic.Synth.run([
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root())
+          ])
+        end)
+
+      refute File.read!(target) == "original bytes\n"
+      assert output =~ "git diff -- #{target}"
+      assert Path.wildcard(target <> ".tmp-*") == []
+    end
+
+    @tag phase199_task2: true
+    test "atomic writer interruption preserves both originals and cleans sibling temps" do
+      %{fixture_root: fixture_root, output_root: output_root} =
+        measurement_roots!("interrupted-measure")
+
+      ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+      ledger_original = File.read!(ledger_path)
+
+      Process.put({Mix.Tasks.Critic.Measure, :atomic_write_hook}, fn -> {:error, :interrupted} end)
+
+      assert_raise Mix.Error, fn ->
+        Mix.Tasks.Critic.Measure.run([
+          "--fixture-root",
+          Path.relative_to(fixture_root, project_root()),
+          "--output-root",
+          Path.relative_to(output_root, project_root())
+        ])
+      end
+
+      assert File.read!(ledger_path) == ledger_original
+      assert Path.wildcard(ledger_path <> ".tmp-*") == []
+
+      synth_root = synth_root!("interrupted-synth")
+      synth_target = Path.join(synth_root, "golden/synthetic-set.json")
+      File.write!(synth_target, "original synth bytes\n")
+      Process.put({Mix.Tasks.Critic.Synth, :atomic_write_hook}, fn -> {:error, :interrupted} end)
+
+      assert_raise Mix.Error, fn ->
+        Mix.Tasks.Critic.Synth.run([
+          "--fixture-root",
+          Path.relative_to(synth_root, project_root())
+        ])
+      end
+
+      assert File.read!(synth_target) == "original synth bytes\n"
+      assert Path.wildcard(synth_target <> ".tmp-*") == []
+    after
+      Process.delete({Mix.Tasks.Critic.Measure, :atomic_write_hook})
+      Process.delete({Mix.Tasks.Critic.Synth, :atomic_write_hook})
+    end
+
     # ── CRITIQUE.md guards ────────────────────────────────────────────────────────
 
     test "CRITIQUE.md does not contain forbidden external tool names" do
@@ -906,6 +993,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       File.cp!(@synthetic_set_path, Path.join(fixture_root, "golden/synthetic-set.json"))
 
       %{base: base, fixture_root: fixture_root, output_root: output_root}
+    end
+
+    defp synth_root!(name) do
+      root =
+        Path.join([
+          project_root(),
+          "_build",
+          "critic-trust-path-tests",
+          "#{name}-#{System.unique_integer([:positive])}",
+          "fixtures"
+        ])
+
+      File.mkdir_p!(Path.join(root, "golden"))
+      root
     end
 
     defp project_root do
