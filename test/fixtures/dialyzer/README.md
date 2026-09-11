@@ -34,3 +34,9 @@ If a warning is proven irreducible, its fixture record must first change to `irr
 
 4. Run `mix test test/threadline/dialyzer_ignore_contract_test.exs` to prove the global 40-warning/22-origin partition and the exact ignore contract.
 5. Run the strict analyzer with `mix dialyzer --list-unused-filters`. Any new warning or unused filter blocks the change.
+
+## Full analyzer handoff
+
+The complete local gate uses Dialyxir only in the development and test environments with `runtime: false`. Its PLT additions are Mix and ExUnit plus all nine optional applications: Phoenix, Phoenix LiveView, Phoenix HTML, Phoenix PubSub, Oban, ExAws, ExAws S3, Hackney, and SweetXml. The `unknown`, `unmatched_returns`, and `extra_return` warning classes stay enabled.
+
+A successful local run proves the source-owned partition and ignore ratchet against the available PLT. It does not replace the true CI cold-build timing and memory measurement owned by Plan 199-14.
