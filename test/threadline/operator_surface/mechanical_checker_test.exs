@@ -138,16 +138,49 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     assert String.contains?(details.recovery, "mechanical_floors:")
   end
 
-  test "run/1 over an empty/absent scorecards directory returns {:ok, []} (nothing to check)" do
-    empty = Path.join(System.tmp_dir!(), "mech_empty_#{System.unique_integer([:positive])}")
+  test "run/1 rejects an absent scorecard corpus with its expanded path" do
+    missing = unique_tmp_path("mech_missing")
+
+    assert {:error, {:missing_corpus, details}} =
+             MechanicalChecker.run(scorecard_dir: missing, mechanical_floors: %{})
+
+    assert_corpus_error(details, Path.expand(missing))
+    assert details.reason == :enoent
+  end
+
+  test "run/1 rejects an unreadable scorecard corpus distinctly" do
+    not_a_directory = unique_tmp_path("mech_not_a_directory")
+    File.write!(not_a_directory, "not a directory")
+    on_exit_rm(not_a_directory)
+
+    assert {:error, {:unreadable_corpus, details}} =
+             MechanicalChecker.run(scorecard_dir: not_a_directory, mechanical_floors: %{})
+
+    assert_corpus_error(details, Path.expand(not_a_directory))
+    assert details.reason == :enotdir
+  end
+
+  test "run/1 rejects an empty scorecard corpus instead of passing vacuously" do
+    empty = unique_tmp_path("mech_empty")
     File.mkdir_p!(empty)
+    on_exit_rm(empty)
 
-    assert MechanicalChecker.run(scorecard_dir: empty, mechanical_floors: %{}) == {:ok, []}
+    assert {:error, {:empty_corpus, details}} =
+             MechanicalChecker.run(scorecard_dir: empty, mechanical_floors: %{})
 
-    assert MechanicalChecker.run(
-             scorecard_dir: Path.join(empty, "does-not-exist"),
-             mechanical_floors: %{}
-           ) == {:ok, []}
+    assert_corpus_error(details, Path.expand(empty))
+    assert details.reason == :no_eligible_scorecards
+  end
+
+  test "run/1 rejects malformed scorecard JSON with the offending file path" do
+    {dir, path} = write_raw_fixture("{not-json")
+
+    assert {:error, {:malformed_scorecard, details}} =
+             MechanicalChecker.run(scorecard_dir: dir, mechanical_floors: %{})
+
+    assert_corpus_error(details, Path.expand(path))
+    assert is_binary(details.reason)
+    assert details.reason != ""
   end
 
   test "an off-scale border-radius yields a MODE-A radius violation carrying a nearest-token :fix" do
@@ -530,8 +563,24 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     |> Map.fetch!("mechanical_floors")
   end
 
+  defp assert_corpus_error(details, expected_path) do
+    assert details.dataset == "mechanical scorecard corpus"
+    assert details.path == expected_path
+    assert details.repository_only == false
+    assert String.contains?(details.recovery, "scorecard_dir:")
+  end
+
+  defp write_raw_fixture(body) do
+    dir = unique_tmp_path("mech_malformed")
+    File.mkdir_p!(dir)
+    path = Path.join(dir, "malformed.json")
+    File.write!(path, body)
+    on_exit_rm(dir)
+    {dir, path}
+  end
+
   defp write_fixtures(scorecards) do
-    dir = Path.join(System.tmp_dir!(), "mech_fixtures_#{System.unique_integer([:positive])}")
+    dir = unique_tmp_path("mech_fixtures")
     File.mkdir_p!(dir)
 
     for card <- scorecards do
@@ -541,6 +590,10 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
 
     on_exit_rm(dir)
     dir
+  end
+
+  defp unique_tmp_path(prefix) do
+    Path.join(System.tmp_dir!(), "#{prefix}_#{System.unique_integer([:positive])}")
   end
 
   defp on_exit_rm(dir) do
