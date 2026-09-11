@@ -480,7 +480,7 @@ Plans:
   3. A fresh clone plus `mix deps.get` leaves `git status` clean — generated artifacts, crash dumps, build tarballs, and the 596 MB of e2e artifacts are all ignored — and `mix format --check-formatted` covers `bench/`, `scripts/`, and the example app, not only `lib/`, `test/`, and `config/`. (DECOUPLE-05, DECOUPLE-06)
   4. `mix dialyzer` runs inside `ci.all` with all optional dependencies in the PLT, its cold-build cost is measured rather than estimated and documented in CONTRIBUTING, and its ignore file holds only specific, individually-commented entries under a committed ceiling that can only be lowered. (DECOUPLE-07, DECOUPLE-08)
 
-**Plans**: 14 plans
+**Plans**: 20 plans
 
 Plans:
 **Wave 1**
@@ -507,10 +507,22 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [ ] 199-13-PLAN.md — Full-app Dialyzer triage and strict ignore ratchet — **HALTED:** sealed first run found 22 warning-origin files against the 14-file maximum; re-plan/re-slice required
+- [ ] 199-15-PLAN.md — Bounded Dialyzer verifier tracer and critic-tooling remediation
 
-**Wave 5** *(blocked on Wave 4 completion)*
+**Wave 5** *(blocked on Plan 199-15; four disjoint slices run in parallel)*
 
-- [ ] 199-14-PLAN.md — CI wiring, maintainer-dispatched authenticated measurement, and no-planning certification — **BLOCKED** on halted Plan 199-13
+- [ ] 199-16-PLAN.md — Query, continuity, actor-page, and local-storage remediation
+- [ ] 199-17-PLAN.md — Export, Sigra, and investigation remediation
+- [ ] 199-18-PLAN.md — Operator authentication, plug, presentation, and redaction remediation
+- [ ] 199-19-PLAN.md — Operator LiveView timer and result-contract remediation
+
+**Wave 6** *(blocked on all four Wave 5 slices)*
+
+- [ ] 199-20-PLAN.md — Exact 40-warning partition, strict ignore ratchet, and full local Dialyzer proof
+
+**Wave 7** *(blocked on Plan 199-20 plus completed CI prerequisites)*
+
+- [ ] 199-14-PLAN.md — CI wiring, maintainer-dispatched authenticated measurement, and no-planning certification
 
 **Notes carried from the approved plan:**
 
