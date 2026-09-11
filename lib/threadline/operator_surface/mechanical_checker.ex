@@ -87,10 +87,10 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   """
   def run(opts) do
     with {:ok, dir} <- fetch_required_input(opts, :scorecard_dir),
-         {:ok, floors} <- fetch_required_input(opts, :mechanical_floors) do
+         {:ok, floors} <- fetch_required_input(opts, :mechanical_floors),
+         {:ok, scorecards} <- load_scorecards(dir) do
       violations =
-        dir
-        |> list_scorecards()
+        scorecards
         |> Enum.flat_map(&check_scorecard(&1, floors))
 
       if violations == [], do: {:ok, []}, else: {:error, violations}
@@ -160,35 +160,133 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     }
   end
 
-  defp list_scorecards(dir) do
-    case File.ls(dir) do
-      {:ok, files} ->
-        files
-        |> Enum.filter(&String.ends_with?(&1, ".json"))
-        # The mechanical FLOOR governs the real operator surface — the Tier-A `/audit`
-        # (`page.*`) cells and the committed refute/graded oracle. Two cell families are
-        # deliberately out of its jurisdiction:
-        #   • `route.*` — live-server, live-data captures (Phase 196), gitignored and not
-        #     byte-stable; a local capture would otherwise redden the gate off a
-        #     non-deterministic artifact (e.g. the deliberately-degraded ranking twin).
-        #   • `story.*` — Storybook demo cells that exist to feed the LLM critic's aesthetic
-        #     scoring, NOT the deterministic pixel-grid floor. They render isolated/unstyled
-        #     demo primitives (e.g. demo-only tl-accordion/tl-toast with no style.ex rules)
-        #     and demo scaffolding (bare description <p>) that were never meant to pass the
-        #     token-grid checks — holding demos to the production floor is a category error.
-        # CI over the real surface is unaffected (Tier-A cells still gate).
-        |> Enum.reject(&(String.starts_with?(&1, "route.") or String.starts_with?(&1, "story.")))
-        |> Enum.sort()
-        |> Enum.map(&Path.join(dir, &1))
+  defp load_scorecards(dir) do
+    expanded_dir = Path.expand(dir)
 
-      _ ->
-        []
+    with {:ok, paths} <- list_scorecard_paths(expanded_dir),
+         {:ok, scorecards} <- decode_scorecards(paths) do
+      {:ok, scorecards}
     end
   end
 
-  defp check_scorecard(path, floors) do
-    scorecard = path |> File.read!() |> Jason.decode!()
+  defp list_scorecard_paths(dir) do
+    case File.ls(dir) do
+      {:ok, files} ->
+        paths =
+          files
+          |> Enum.filter(&String.ends_with?(&1, ".json"))
+          # The mechanical FLOOR governs the real operator surface — the Tier-A `/audit`
+          # (`page.*`) cells and the committed refute/graded oracle. Two cell families are
+          # deliberately out of its jurisdiction:
+          #   • `route.*` — live-server, live-data captures (Phase 196), gitignored and not
+          #     byte-stable; a local capture would otherwise redden the gate off a
+          #     non-deterministic artifact (e.g. the deliberately-degraded ranking twin).
+          #   • `story.*` — Storybook demo cells that exist to feed the LLM critic's aesthetic
+          #     scoring, NOT the deterministic pixel-grid floor. They render isolated/unstyled
+          #     demo primitives (e.g. demo-only tl-accordion/tl-toast with no style.ex rules)
+          #     and demo scaffolding (bare description <p>) that were never meant to pass the
+          #     token-grid checks — holding demos to the production floor is a category error.
+          # CI over the real surface is unaffected (Tier-A cells still gate).
+          |> Enum.reject(
+            &(String.starts_with?(&1, "route.") or String.starts_with?(&1, "story."))
+          )
+          |> Enum.sort()
+          |> Enum.map(&Path.join(dir, &1))
 
+        if paths == [] do
+          corpus_error(:empty_corpus, dir, :no_eligible_scorecards)
+        else
+          {:ok, paths}
+        end
+
+      {:error, :enoent} ->
+        corpus_error(:missing_corpus, dir, :enoent)
+
+      {:error, reason} ->
+        corpus_error(:unreadable_corpus, dir, reason)
+    end
+  end
+
+  defp decode_scorecards(paths) do
+    Enum.reduce_while(paths, {:ok, []}, fn path, {:ok, scorecards} ->
+      case decode_scorecard(path) do
+        {:ok, scorecard} -> {:cont, {:ok, [scorecard | scorecards]}}
+        {:error, _reason} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, scorecards} -> {:ok, Enum.reverse(scorecards)}
+      error -> error
+    end
+  end
+
+  defp decode_scorecard(path) do
+    with {:ok, body} <- File.read(path),
+         {:ok, scorecard} <- Jason.decode(body),
+         :ok <- validate_scorecard(scorecard) do
+      {:ok, scorecard}
+    else
+      {:error, %Jason.DecodeError{} = error} ->
+        corpus_error(:malformed_scorecard, path, Exception.message(error))
+
+      {:error, {:invalid_scorecard, reason}} ->
+        corpus_error(:malformed_scorecard, path, reason)
+
+      {:error, reason} ->
+        corpus_error(:unreadable_corpus, path, reason)
+    end
+  end
+
+  defp validate_scorecard(scorecard) when is_map(scorecard) do
+    required = [
+      {"cell_id", &is_binary/1, "a string"},
+      {"ledger_id", &is_binary/1, "a string"},
+      {"theme", &is_binary/1, "a string"},
+      {"breakpoint", &is_number/1, "a number"},
+      {"tokens", &is_map/1, "an object"},
+      {"color_pairs", &list_of_maps?/1, "an array of objects"},
+      {"element_styles", &list_of_maps?/1, "an array of objects"},
+      {"applied_colors", &is_list/1, "an array"},
+      {"mode_b", &is_map/1, "an object"}
+    ]
+
+    case Enum.find(required, fn {key, valid?, _expected} ->
+           not valid?.(Map.get(scorecard, key))
+         end) do
+      nil ->
+        if is_binary(get_in(scorecard, ["tokens", "--tl-color-bg"])) do
+          :ok
+        else
+          {:error, {:invalid_scorecard, "tokens.--tl-color-bg must be a string"}}
+        end
+
+      {key, _valid?, expected} ->
+        {:error, {:invalid_scorecard, "#{key} must be #{expected}"}}
+    end
+  end
+
+  defp validate_scorecard(_scorecard) do
+    {:error, {:invalid_scorecard, "top-level JSON value must be an object"}}
+  end
+
+  defp list_of_maps?(value), do: is_list(value) and Enum.all?(value, &is_map/1)
+
+  defp corpus_error(tag, path, reason) do
+    expanded_path = Path.expand(path)
+
+    {:error,
+     {tag,
+      %{
+        dataset: "mechanical scorecard corpus",
+        path: expanded_path,
+        reason: reason,
+        repository_only: false,
+        recovery:
+          ~s|call MechanicalChecker.run(scorecard_dir: #{inspect(expanded_path)}, mechanical_floors: floors)|
+      }}}
+  end
+
+  defp check_scorecard(scorecard, floors) do
     check_wcag(scorecard) ++
       check_conformance(scorecard) ++
       check_mode_b(scorecard, floors)
