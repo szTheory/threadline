@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 199
 current_phase_name: decouple
 status: executing
-stopped_at: Completed 199-19-PLAN.md
-last_updated: "2026-09-11T19:25:08.348Z"
+stopped_at: Completed 199-20-PLAN.md
+last_updated: "2026-09-11T19:50:11.691Z"
 last_activity: 2026-09-10
 last_activity_desc: Phase 199 execution started
-state_head: 672e9c71d7034e506d6de8dd0b9f772432d51b98
+state_head: fd439e3b256351eea9a6a12d99242aea387862da
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 87
-  completed_plans: 84
+  completed_plans: 85
   percent: 14
 ---
 
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 ## Current Position
 
 Phase: 199 (decouple) — READY TO EXECUTE
-Plan: 20 of 21
-Status: Executing — Plans 199-16 through 199-19 completed their bounded remediation slices; Plan 199-20 remains in Wave 6
+Plan: 14 of 21
+Status: Executing — Plan 199-20 completed the exact source-owned ratchet and local strict-analyzer proof; Plan 199-14 remains in Wave 7 before final certification in Plan 199-21
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -127,6 +127,7 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 | Phase 199 P17 | 15 min | 2 tasks | 6 files |
 | Phase 199 P18 | 6 min | 2 tasks | 6 files |
 | Phase 199 P19 | 15 min | 3 tasks | 6 files |
+| Phase 199 P20 | 17 min | 2 tasks | 2 files |
 
 ## Deferred Items
 
@@ -600,6 +601,9 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 - [Phase 199]: Use normalized binary inputs directly in private path, email, and URL presentation helpers.
 - [Phase 199]: Consume LiveView timer results explicitly while preserving intervals, message names, and scheduling count.
 - [Phase 199]: Match Timeline export counts and transaction value tokens only across result shapes guaranteed by their callees.
+- [Phase 199]: Keep .dialyzer_ignore.exs empty and the committed ceiling at zero because every sealed warning is fixed.
+- [Phase 199]: Use only the five source fixtures as historical authority; the executable contract reads no planning artifact.
+- [Phase 199]: Treat unsealed warnings, origin drift, broad suppressions, and unused filters as fail-closed conditions.
 
 ### Blockers
 
@@ -607,8 +611,8 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T19:25:08.207Z
-**Stopped at:** Completed 199-19-PLAN.md
+**Last session:** 2026-09-11T19:50:11.518Z
+**Stopped at:** Completed 199-20-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

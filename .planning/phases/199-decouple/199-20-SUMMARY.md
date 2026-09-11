@@ -41,6 +41,8 @@ key-files:
     - test/fixtures/dialyzer/README.md
   modified:
     - test/threadline/dialyzer_ignore_contract_test.exs
+    - .planning/STATE.md
+    - .planning/ROADMAP.md
 
 key-decisions:
   - "Keep .dialyzer_ignore.exs empty and commit the ceiling at zero because every sealed warning is fixed."
@@ -166,10 +168,19 @@ status: complete
 - **Verification:** All five invocations then reported their exact sealed counts and zero live warnings.
 - **Commit:** Not applicable; execution-environment correction only.
 
+**2. [Rule 3 - Blocking Issue] Reconciled Phase 199 roadmap and dependency-aware next-plan state**
+
+- **Found during:** Post-summary planning-state synchronization
+- **Issue:** `roadmap.update-plan-progress 199` returned `missing_phase_details` despite the Phase 199 checklist and progress row, while the numeric state advance selected Plan 199-21 ahead of its explicit dependency on incomplete Plan 199-14.
+- **Fix:** Marked only Plan 199-20 complete, advanced the phase row to 19 of 21 summaries, and pointed Current Position to dependency-ready Plan 199-14 before final Plan 199-21 certification.
+- **Files modified:** `.planning/ROADMAP.md`, `.planning/STATE.md`.
+- **Verification:** Plan 199-20 is checked, the phase row reads `19/21 | In Progress`, and Current Position names Plan 14 of 21.
+- **Commit:** Final planning-state commit.
+
 ---
 
-**Total deviations:** 1 auto-fixed blocking execution-environment issue.
-**Impact on plan:** Product and analyzer scope are unchanged; the explicit environment makes the intended pinned toolchain reproducible without touching the user's untracked file.
+**Total deviations:** 2 auto-fixed blocking workflow/environment issues.
+**Impact on plan:** Product and analyzer scope are unchanged; the explicit environment makes the pinned toolchain reproducible, and planning state now follows the roadmap's dependency order.
 
 ## Issues Encountered
 
