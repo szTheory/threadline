@@ -204,16 +204,32 @@ defmodule Mix.Tasks.Critic.Measure do
 
   defp resolve_repository_root!(path, project_root, dataset) when is_binary(path) do
     expanded = Path.expand(path, project_root)
-    relative = Path.relative_to(expanded, project_root)
+    canonical_project_root = canonicalize_root!(project_root, "project root")
+    canonical_path = canonicalize_root!(expanded, dataset)
+    relative = Path.relative_to(canonical_path, canonical_project_root)
 
-    case Path.safe_relative_to(relative, project_root) do
+    case Path.safe_relative_to(relative, canonical_project_root) do
       {:ok, safe_relative} ->
-        Path.join(project_root, safe_relative)
+        Path.join(canonical_project_root, safe_relative)
 
       :error ->
         task_error!(
           "#{dataset} escapes or aliases the repository",
           expanded,
+          "mix help critic.measure"
+        )
+    end
+  end
+
+  defp canonicalize_root!(path, dataset) do
+    case System.cmd("realpath", ["--", path], stderr_to_stdout: true) do
+      {canonical, 0} ->
+        String.trim(canonical)
+
+      {detail, _status} ->
+        task_error!(
+          "#{dataset} cannot be canonicalized (#{String.trim(detail)})",
+          path,
           "mix help critic.measure"
         )
     end
@@ -227,7 +243,10 @@ defmodule Mix.Tasks.Critic.Measure do
       Path.join(fixture_root, "design-system-ledger.json")
     ]
 
-    if output_root == fixture_root or Enum.any?(immutable, &within?(output_root, &1)) do
+    if output_root == fixture_root or
+         Enum.any?(immutable, fn root ->
+           within?(output_root, root) or within?(root, output_root)
+         end) do
       task_error!(
         "critic-score output root aliases immutable evidence",
         output_root,

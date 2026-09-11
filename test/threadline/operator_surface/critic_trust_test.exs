@@ -824,6 +824,51 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     @tag phase199_task1: true
+    test "critic.measure rejects bidirectional canonical overlap without prefix confusion" do
+      preserve_repository_ledger(fn ->
+        %{base: base, fixture_root: fixture_root} = measurement_roots!("root-overlap")
+        child_output = Path.join(fixture_root, "golden/generated")
+        prefix_output = Path.join(base, "fixtures-output")
+        alias_output = Path.join(base, "output-alias")
+        File.mkdir_p!(child_output)
+        File.mkdir_p!(prefix_output)
+        File.ln_s!(base, alias_output)
+
+        for {label, output_root} <- [
+              {"equal", fixture_root},
+              {"child", child_output},
+              {"parent", base},
+              {"symlink parent alias", alias_output}
+            ] do
+          error =
+            assert_raise Mix.Error, fn ->
+              Mix.Tasks.Critic.Measure.run([
+                "--fixture-root",
+                Path.relative_to(fixture_root, project_root()),
+                "--output-root",
+                Path.relative_to(output_root, project_root())
+              ])
+            end
+
+          assert error.message =~ "immutable evidence", "#{label} overlap was not identified"
+        end
+
+        ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+        original = File.read!(ledger_path)
+
+        Mix.Tasks.Critic.Measure.run([
+          "--fixture-root",
+          Path.relative_to(fixture_root, project_root()),
+          "--output-root",
+          Path.relative_to(prefix_output, project_root())
+        ])
+
+        refute File.read!(ledger_path) == original,
+               "a similarly prefixed but separate output root must remain valid"
+      end)
+    end
+
+    @tag phase199_task1: true
     test "critic.measure rejects malformed required input before changing the ledger" do
       preserve_repository_ledger(fn ->
         %{fixture_root: fixture_root, output_root: output_root} = measurement_roots!("malformed")
