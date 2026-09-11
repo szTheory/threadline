@@ -480,7 +480,7 @@ Plans:
   3. A fresh clone plus `mix deps.get` leaves `git status` clean — generated artifacts, crash dumps, build tarballs, and the 596 MB of e2e artifacts are all ignored — and `mix format --check-formatted` covers `bench/`, `scripts/`, and the example app, not only `lib/`, `test/`, and `config/`. (DECOUPLE-05, DECOUPLE-06)
   4. `mix dialyzer` runs inside `ci.all` with all optional dependencies in the PLT, its cold-build cost is measured rather than estimated and documented in CONTRIBUTING, and its ignore file holds only specific, individually-commented entries under a committed ceiling that can only be lowered. (DECOUPLE-07, DECOUPLE-08)
 
-**Plans**: 20 plans
+**Plans**: 21 plans
 
 Plans:
 **Wave 1**
@@ -522,7 +522,11 @@ Plans:
 
 **Wave 7** *(blocked on Plan 199-20 plus completed CI prerequisites)*
 
-- [ ] 199-14-PLAN.md — CI wiring, maintainer-dispatched authenticated measurement, and no-planning certification
+- [ ] 199-14-PLAN.md — CI wiring plus maintainer-dispatched authenticated cold/hit measurement
+
+**Wave 8** *(blocked on completed Plan 199-14 measurement)*
+
+- [ ] 199-21-PLAN.md — Final committed planning-independent gate certification
 
 **Notes carried from the approved plan:**
 
