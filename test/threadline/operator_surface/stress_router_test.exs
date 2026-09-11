@@ -155,6 +155,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: build_conn()}
     end
 
+    test "test fixture adapter exposes one source-anchored corpus authority" do
+      fixtures = Threadline.Test.OperatorSurfaceFixtures
+
+      assert Code.ensure_loaded?(fixtures),
+             "expected Threadline.Test.OperatorSurfaceFixtures on the test support compile path"
+
+      expected_root = Path.expand("../../../.planning", __DIR__)
+
+      assert fixtures.root!() == expected_root
+      assert fixtures.ledger!() == Path.join(expected_root, "design-system-ledger.json")
+      assert fixtures.scorecards!() == Path.join(expected_root, "scorecards")
+      assert fixtures.golden!() == Path.join(expected_root, "golden")
+      assert fixtures.refute!() == Path.join(expected_root, "refute")
+      assert fixtures.critic_scores!() == Path.join(expected_root, "critic-scores")
+    end
+
     test "compiling a secure throwaway stress router registers the stress LiveView route" do
       modules =
         Code.compile_quoted(
