@@ -143,6 +143,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     File.mkdir_p!(empty)
 
     assert MechanicalChecker.run(scorecard_dir: empty, mechanical_floors: %{}) == {:ok, []}
+
     assert MechanicalChecker.run(
              scorecard_dir: Path.join(empty, "does-not-exist"),
              mechanical_floors: %{}

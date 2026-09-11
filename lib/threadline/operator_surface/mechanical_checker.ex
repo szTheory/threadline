@@ -64,20 +64,16 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   # Hue bucketing window: two hues within this many degrees share an accent family.
   @hue_bucket_window 15
 
-  @scorecards_dir ".planning/scorecards"
-  @ledger_path ".planning/design-system-ledger.json"
-
   @doc """
-  Run every mechanical check against the committed Tier A scorecard JSON.
+  Run every mechanical check against the supplied Tier A scorecard JSON.
 
-  Options:
-    * `:scorecard_dir` — directory of `*.json` scorecards (default `.planning/scorecards`).
-    * `:mechanical_floors` — MODE-B ratchet floors map (default: loaded from the ledger).
+  Required options:
+    * `:scorecard_dir` — directory of `*.json` scorecards.
+    * `:mechanical_floors` — MODE-B ratchet floors map.
 
-  Returns `{:ok, []}` when there are no violations (including when there is nothing to
-  check — an empty/absent scorecards directory is a clean "nothing captured yet" result,
-  never a silent pass over real evidence). Returns `{:error, violations}` otherwise, where
-  each violation is a located, actionable map:
+  Returns `{:ok, []}` when there are no violations. Missing inputs return an actionable
+  `{:error, {:missing_input, details}}` tuple. Mechanical violations retain their existing
+  `{:error, violations}` result, where each violation is a located, actionable map:
 
       %{
         cell_id: "page.home.happy__dark-1280",
@@ -89,16 +85,16 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
         fix: "raise contrast to >= 4.5:1 ..."
       }
   """
-  def run(opts \\ []) do
-    dir = Keyword.get(opts, :scorecard_dir, @scorecards_dir)
-    floors = Keyword.get(opts, :mechanical_floors) || load_floors()
+  def run(opts) do
+    with {:ok, dir} <- fetch_required_input(opts, :scorecard_dir),
+         {:ok, floors} <- fetch_required_input(opts, :mechanical_floors) do
+      violations =
+        dir
+        |> list_scorecards()
+        |> Enum.flat_map(&check_scorecard(&1, floors))
 
-    violations =
-      dir
-      |> list_scorecards()
-      |> Enum.flat_map(&check_scorecard(&1, floors))
-
-    if violations == [], do: {:ok, []}, else: {:error, violations}
+      if violations == [], do: {:ok, []}, else: {:error, violations}
+    end
   end
 
   @doc """
@@ -135,6 +131,35 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   # --- scorecard loading ---
 
+  defp fetch_required_input(opts, option) do
+    case Keyword.fetch(opts, option) do
+      {:ok, value} -> {:ok, value}
+      :error -> {:error, {:missing_input, missing_input_details(option)}}
+    end
+  end
+
+  defp missing_input_details(:scorecard_dir) do
+    %{
+      dataset: "mechanical scorecard corpus",
+      option: :scorecard_dir,
+      path: nil,
+      repository_only: false,
+      recovery:
+        ~s|call MechanicalChecker.run(scorecard_dir: "/absolute/path/to/scorecards", mechanical_floors: floors)|
+    }
+  end
+
+  defp missing_input_details(:mechanical_floors) do
+    %{
+      dataset: "mechanical floor map",
+      option: :mechanical_floors,
+      path: nil,
+      repository_only: false,
+      recovery:
+        ~s|call MechanicalChecker.run(scorecard_dir: scorecard_dir, mechanical_floors: %{})|
+    }
+  end
+
   defp list_scorecards(dir) do
     case File.ls(dir) do
       {:ok, files} ->
@@ -158,13 +183,6 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
       _ ->
         []
-    end
-  end
-
-  defp load_floors do
-    case File.read(@ledger_path) do
-      {:ok, body} -> Map.get(Jason.decode!(body), "mechanical_floors") || %{}
-      _ -> %{}
     end
   end
 
