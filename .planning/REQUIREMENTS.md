@@ -31,9 +31,9 @@
 
 ### Decouple
 
-- [ ] **DECOUPLE-01**: `mix ci.all` passes with `.planning/` renamed away, proving no gate reads the planning directory.
+- [x] **DECOUPLE-01**: `mix ci.all` passes with `.planning/` renamed away, proving no gate reads the planning directory.
 - [ ] **DECOUPLE-02**: All five load-bearing datasets live under `test/fixtures/`, moved with `git mv`, with every reader updated in the same commit and none of them entering the Hex tarball.
-- [ ] **DECOUPLE-03**: Dead planning artifacts are removed with `git rm` and no register or doc cites a path that no longer exists.
+- [x] **DECOUPLE-03**: Dead planning artifacts are removed with `git rm` and no register or doc cites a path that no longer exists.
 - [x] **DECOUPLE-04**: The repository root contains no one-off migration or patch scripts, and the test assertion one of them silently disabled is enabled and passing.
 - [x] **DECOUPLE-05**: A fresh clone plus `mix deps.get` leaves `git status` clean — generated artifacts, crash dumps, build tarballs and e2e artifacts are all ignored.
 - [x] **DECOUPLE-06**: `mix format --check-formatted` covers `bench/`, `scripts/`, and the example app, not only `lib/`, `test/` and `config/`.
@@ -152,9 +152,9 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | GREEN-11 | Phase 198 | Complete |
 | GREEN-12 | Phase 198 | Complete |
 | GREEN-01, 02, 03, 05, 06, 09, 10, 11, 12 (round 6) | Phase 198 | Carried forward unchanged — no new work, no satisfying files touched — see 198-CI-MEASUREMENT.md Round 6 section |
-| DECOUPLE-01 | Phase 199 | Pending |
+| DECOUPLE-01 | Phase 199 | Complete |
 | DECOUPLE-02 | Phase 199 | Pending |
-| DECOUPLE-03 | Phase 199 | Pending |
+| DECOUPLE-03 | Phase 199 | Complete |
 | DECOUPLE-04 | Phase 199 | Complete |
 | DECOUPLE-05 | Phase 199 | Complete |
 | DECOUPLE-06 | Phase 199 | Complete |
