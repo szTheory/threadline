@@ -38,6 +38,8 @@ key-files:
     - lib/threadline/query/actor_history_page.ex
     - lib/threadline/storage/local.ex
     - .planning/phases/199-decouple/deferred-items.md
+    - .planning/STATE.md
+    - .planning/ROADMAP.md
 
 key-decisions:
   - "Use concrete AuditChange and AuditTransaction struct types in query contracts because the remote modules do not export t/0 types."
@@ -173,9 +175,17 @@ Each TDD task was committed as an atomic RED/GREEN pair:
 - **Files modified:** `.planning/phases/199-decouple/deferred-items.md`
 - **Verification:** All Plan 199-16 focused tests and the exact live slice verifier pass.
 
+**3. [Rule 3 - Blocking Issue] Reconciled Phase 199 roadmap progress after the SDK found no writable phase entry**
+
+- **Found during:** Post-summary planning-state synchronization
+- **Issue:** `roadmap.update-plan-progress 199` returned `missing_phase_details` although the Phase 199 checklist and progress row exist.
+- **Fix:** Marked only Plan 199-16 complete and reconciled the phase row to the SDK-measured 15 summaries across 21 plans; every unfinished row remains unchecked.
+- **Files modified:** `.planning/ROADMAP.md`
+- **Verification:** Plan 199-16 is checked, the phase row reads `15/21 | In Progress`, and Plans 199-17 through 199-21 plus the deferred Plan 199-14 remain unchecked.
+
 ---
 
-**Total deviations:** 2 auto-fixed blocking workflow issues.
+**Total deviations:** 3 auto-fixed blocking workflow issues.
 **Impact on plan:** Product scope is unchanged; no warning origin outside the five-file authority was edited.
 
 ## Issues Encountered
