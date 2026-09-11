@@ -166,6 +166,67 @@ defmodule Threadline.CleanCheckoutContractTest do
     end
   end
 
+  describe "committed checkout verifier" do
+    @tag timeout: 120_000
+    test "proves exact committed HEAD stays clean while reviewed controls remain trackable" do
+      verifier = Path.join(@root, "bin/verify-clean-checkout")
+
+      assert File.exists?(verifier),
+             "#{verifier} must exist before the clean-checkout proof can run"
+
+      {expected_sha, 0} = System.cmd("git", ["rev-parse", "HEAD"], cd: @root)
+
+      assert {output, 0} =
+               System.cmd(verifier, [],
+                 cd: @root,
+                 stderr_to_stdout: true
+               )
+
+      assert output =~ "SOURCE_SHA=#{String.trim(expected_sha)}"
+      assert output =~ "DEPENDENCY_STATUS=CLEAN"
+      assert output =~ "GENERATED_PROBE_STATUS=CLEAN"
+      assert output =~ "TRACKABLE_CONTROLS=VISIBLE"
+      assert output =~ "CLEAN_CHECKOUT_VERIFIED"
+    end
+
+    test "forced verifier failure cleans only its clone child and preserves caller state" do
+      raw_temp_root = unique_temp_path("threadline-clean-verifier-test")
+      File.mkdir!(raw_temp_root)
+      temp_root = canonical_path(raw_temp_root)
+      sentinel = Path.join(temp_root, "caller-sentinel.bin")
+      sentinel_bytes = <<12, 34, 56, 78, 90>>
+      File.write!(sentinel, sentinel_bytes)
+
+      {head_before, 0} = System.cmd("git", ["rev-parse", "HEAD"], cd: @root)
+      {status_before, 0} = checkout_status()
+
+      try do
+        assert {output, status} =
+                 System.cmd(Path.join(@root, "bin/verify-clean-checkout"), [],
+                   cd: @root,
+                   env: [
+                     {"TMPDIR", temp_root},
+                     {"THREADLINE_VERIFY_CLEAN_CHECKOUT_FORCE_FAILURE", "1"}
+                   ],
+                   stderr_to_stdout: true
+                 )
+
+        assert status != 0
+        assert output =~ "forced failure control"
+        assert File.read!(sentinel) == sentinel_bytes
+
+        assert Path.wildcard(Path.join(temp_root, "threadline-clean-checkout-*")) == []
+
+        {head_after, 0} = System.cmd("git", ["rev-parse", "HEAD"], cd: @root)
+        {status_after, 0} = checkout_status()
+        assert head_after == head_before
+        assert status_after == status_before
+      after
+        File.rm_rf!(temp_root)
+      end
+    end
+  end
+
   defp run_cleanup(parent, child, mutation \\ "") do
     script = """
     set -u
@@ -197,6 +258,10 @@ defmodule Threadline.CleanCheckoutContractTest do
   defp canonical_path(path) do
     {canonical, 0} = System.cmd("realpath", [path])
     String.trim(canonical)
+  end
+
+  defp checkout_status do
+    System.cmd("git", ["status", "--porcelain=v1", "--untracked-files=all"], cd: @root)
   end
 
   defp shell_quote(value), do: "'#{String.replace(value, "'", "'\\''")}'"
