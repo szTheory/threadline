@@ -369,6 +369,7 @@ defmodule Mix.Tasks.Critic.Measure do
 
   defp restore_command(path), do: "git restore -- #{Path.relative_to(path, project_root!())}"
 
+  @spec task_error!(String.t(), Path.t(), String.t()) :: no_return()
   defp task_error!(message, path, recovery) do
     Mix.raise(
       "critic.measure: #{message}\n" <>
