@@ -199,6 +199,8 @@ interface BlastRadius {
   changed: string[]; // route.* cells whose bytes changed after recapture
   inScope: string[]; // all route.* cells a recapture would touch (the diff surface)
   scanned: number;
+  captureStatus: "skipped" | "passed" | "failed";
+  void: boolean;
   note: string;
 }
 
@@ -222,6 +224,8 @@ function blastRadius(page: string, dryRun: boolean): BlastRadius {
       changed: [],
       inScope,
       scanned: inScope.length,
+      captureStatus: "skipped",
+      void: false,
       note:
         `dry-run: skipped \`npm run capture:pages\`; would diff ${inScope.length} ` +
         `${page}.*__dark-* scorecard(s) byte-for-byte vs their prior copy. No edit applied → 0 changed.`,
@@ -242,6 +246,8 @@ function blastRadius(page: string, dryRun: boolean): BlastRadius {
       changed: [],
       inScope,
       scanned: inScope.length,
+      captureStatus: "failed",
+      void: true,
       note: `capture:pages failed — cannot compute blast radius (${String(err)}). Treat as VOID.`,
     };
   }
@@ -258,6 +264,8 @@ function blastRadius(page: string, dryRun: boolean): BlastRadius {
     changed,
     inScope: afterCells,
     scanned: afterCells.length,
+    captureStatus: "passed",
+    void: false,
     note:
       `${afterCells.length} ${page}.*__dark-* scorecard(s) recaptured; ` +
       `${changed.length} changed (byte-diff vs prior): ${changed.join(", ") || "(none)"}.`,
@@ -734,7 +742,16 @@ export async function runGate(argv: string[]): Promise<void> {
   const blast = blastRadius(args.page, args.dryRun);
   console.log(`\n  [1/7] Blast radius: ${blast.changed.length} changed of ${blast.scanned} scanned`);
   console.log(`        In-scope cells: ${blast.inScope.join(", ") || "(none on disk)"}`);
+  console.log(`        Capture status: ${blast.captureStatus}`);
   console.log(`        ${blast.note}`);
+  if (blast.void) {
+    console.log(`\n  [7/7] Verdict: VOID`);
+    console.log(
+      `\n  ⛔ Change VOID: route recapture failed; stale evidence was not scored. ` +
+        `No floor, ranking, divergence, advisory, or fix subprocesses ran.\n`,
+    );
+    process.exit(1);
+  }
   if (blast.inScope.length === 0) {
     console.error(
       `\n[critic gate] No route scorecards match the explicit page scope ${JSON.stringify(args.page)}. ` +

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
+  chmod,
   copyFile,
   mkdir,
   mkdtemp,
@@ -382,6 +383,67 @@ test("route scoring and gate discover generated scorecards and reject an empty e
       fixtureRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.fixtureRoot,
       outputRoot: adapter.DEFAULT_OPERATOR_SURFACE_PATHS.generatedRoot,
     });
+    await rm(outputRoot, { recursive: true, force: true });
+  }
+});
+
+test("failed route recapture forces VOID before any later gate subprocess", async () => {
+  const outputRoot = await mkdtemp(resolve(tmpdir(), "threadline-route-capture-failure-"));
+  const routeScorecardsDir = resolve(outputRoot, "route-scorecards");
+  const fakeBin = resolve(outputRoot, "fake-bin");
+  const invocationLog = resolve(outputRoot, "invocations.log");
+  const e2eRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e");
+  const runPath = resolve(e2eRoot, "critic/run.ts");
+  const tsxPath = resolve(e2eRoot, "node_modules/.bin/tsx");
+  const cellId = "route.timeline__dark-1280";
+
+  try {
+    await mkdir(routeScorecardsDir, { recursive: true });
+    await mkdir(fakeBin);
+    await writeFile(resolve(routeScorecardsDir, `${cellId}.json`), "{}\n", "utf8");
+    await writeFile(
+      resolve(fakeBin, "npm"),
+      `#!/usr/bin/env bash\nprintf 'npm %s\\n' "$*" >>${JSON.stringify(invocationLog)}\nexit 77\n`,
+      "utf8",
+    );
+    await writeFile(
+      resolve(fakeBin, "mix"),
+      `#!/usr/bin/env bash\nprintf 'mix %s\\n' "$*" >>${JSON.stringify(invocationLog)}\nexit 78\n`,
+      "utf8",
+    );
+    await chmod(resolve(fakeBin, "npm"), 0o755);
+    await chmod(resolve(fakeBin, "mix"), 0o755);
+
+    const env: NodeJS.ProcessEnv = {
+      ...process.env,
+      PATH: `${fakeBin}:${process.env.PATH ?? ""}`,
+      NO_COLOR: "1",
+    };
+    delete env.ANTHROPIC_API_KEY;
+
+    const gate = spawnSync(
+      tsxPath,
+      [
+        runPath,
+        "gate",
+        "--page",
+        "route.timeline",
+        "--lens",
+        "density",
+        "--output-root",
+        outputRoot,
+      ],
+      { cwd: e2eRoot, encoding: "utf8", env },
+    );
+    const output = `${gate.stdout}\n${gate.stderr}`;
+
+    assert.equal(gate.error, undefined, String(gate.error));
+    assert.notEqual(gate.status, 0);
+    assert.match(output, /capture:pages failed/);
+    assert.match(output, /Verdict: VOID/);
+    assert.doesNotMatch(output, /\[2\/7\]|\[3\/7\]|\[4\/7\]/);
+    assert.equal(await readFile(invocationLog, "utf8"), "npm run capture:pages\n");
+  } finally {
     await rm(outputRoot, { recursive: true, force: true });
   }
 });
