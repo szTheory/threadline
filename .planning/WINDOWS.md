@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 24
+open_count: 25
 waived_count: 0
 fixed_count: 1
-total_count: 25
-last_updated: 2026-09-10T22:19:12.757Z
+total_count: 26
+last_updated: 2026-09-11T04:40:32.551Z
 ---
 
 # Broken Windows Ledger
@@ -40,6 +40,7 @@ last_updated: 2026-09-10T22:19:12.757Z
 | 23 | 198 | deviation | examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts | 577 | SETTLES entry #19 (round 5): plan 198-31 established the cause (the shared expectOperatorChrome helper's mobile-nav-toggle click firing the row-history drawer's own phx-click-away, row_history_component.ex, dismissing the drawer and navigating away before the Row history heading assertion runs), confirmed by direct standalone reproduction outside the harness, and fixed at cause test-side with a scoped exerciseMobileNav opt-out for the row-history route (commit 887198c6). This was a fix at cause, not an honest halt -- no lib/ file was touched. Local re-run passed both projects across 3 repeated runs (.planning/audits/198-round5-playwright.md, 198-31-SUMMARY.md coverage D2). Entry #19's original text is unmodified per this ledger's append-only rule. | open |  | 2026-08-30T21:16:31.136Z |  |
 | 24 | 198 | deviation | .planning/STATE.md |  | state.advance-plan parsed legacy body position and required reconciliation to Plan 53 of 55 | open |  | 2026-09-09T22:11:55.348Z |  |
 | 25 | 198 | deviation | .planning/STATE.md |  | Canonical state.advance-plan incremented stale prose position to 2 of 65; reconciled prose to structured 66 of 66 progress | open |  | 2026-09-10T22:19:12.757Z |  |
+| 26 | 199 | deviation | test/threadline/operator_surface/operator_surface_fixture_contract_test.exs |  | Plan verify used unsupported mix test -x flag; execution used --max-failures 1 for RED and the unmodified targeted command for final GREEN verification | open |  | 2026-09-11T04:40:32.551Z |  |
 
 ````json
 [
@@ -342,6 +343,19 @@ last_updated: 2026-09-10T22:19:12.757Z
     "reason": "",
     "recorded_at": "2026-09-10T22:19:12.757Z",
     "resolved_at": null
+  },
+  {
+    "id": 26,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "test/threadline/operator_surface/operator_surface_fixture_contract_test.exs",
+    "line": null,
+    "description": "Plan verify used unsupported mix test -x flag; execution used --max-failures 1 for RED and the unmodified targeted command for final GREEN verification",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T04:40:32.551Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
   }
 ]
 ````
