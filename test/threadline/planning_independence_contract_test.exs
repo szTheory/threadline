@@ -42,7 +42,96 @@ defmodule Threadline.PlanningIndependenceContractTest do
     end)
   end
 
+  test "aggregate failure restores planning before contained cleanup" do
+    verifier = Path.join(@root, "bin/verify-planning-independent")
+
+    with_verifier_fixture("aggregate-failure", fn temp_root, fake_bin, _invocation_log ->
+      sentinel = write_caller_sentinel(temp_root)
+      {status_before, 0} = checkout_status()
+
+      assert {output, 73} =
+               System.cmd(verifier, [],
+                 cd: @root,
+                 env: [{"TMPDIR", temp_root}, {"PATH", path_with(fake_bin)}],
+                 stderr_to_stdout: true
+               )
+
+      assert output =~ "AGGREGATE_RESULT=FAIL status=73"
+      assert_before(output, "AGGREGATE_RESULT=FAIL", "PLANNING_RESTORED")
+      assert_before(output, "PLANNING_RESTORED", "SAFE_TEMP_TREE_REMOVED")
+      assert Path.wildcard(Path.join(temp_root, "threadline-planning-independent-*")) == []
+      assert_caller_unchanged(sentinel, status_before)
+    end)
+  end
+
+  test "restoration failure retains the clone and reports its quarantine" do
+    verifier = Path.join(@root, "bin/verify-planning-independent")
+
+    with_verifier_fixture("restore-failure", fn temp_root, fake_bin, _invocation_log ->
+      sentinel = write_caller_sentinel(temp_root)
+      {status_before, 0} = checkout_status()
+
+      assert {output, 74} =
+               System.cmd(verifier, [],
+                 cd: @root,
+                 env: [{"TMPDIR", temp_root}, {"PATH", path_with(fake_bin)}],
+                 stderr_to_stdout: true
+               )
+
+      assert output =~ "could not restore planning"
+      assert output =~ "retained clone and quarantine"
+      refute output =~ "SAFE_TEMP_TREE_REMOVED"
+
+      assert [retained_parent] =
+               Path.wildcard(Path.join(temp_root, "threadline-planning-independent-parent.*"))
+
+      assert File.dir?(Path.join(retained_parent, "checkout/.planning"))
+      assert File.dir?(Path.join(retained_parent, "checkout/.planning.threadline-quarantine"))
+      assert_caller_unchanged(sentinel, status_before)
+    end)
+  end
+
+  test "symlink replacement is rejected without touching the outside target or caller" do
+    verifier = Path.join(@root, "bin/verify-planning-independent")
+    outside = unique_temp_path("threadline-planning-independent-outside")
+    File.mkdir!(outside)
+    outside = canonical_path(outside)
+    outside_sentinel = Path.join(outside, "sentinel.bin")
+    outside_bytes = <<255, 128, 64, 0>>
+    File.write!(outside_sentinel, outside_bytes)
+
+    try do
+      with_verifier_fixture("symlink-swap", fn temp_root, fake_bin, _invocation_log ->
+        sentinel = write_caller_sentinel(temp_root)
+        {status_before, 0} = checkout_status()
+
+        assert {output, 75} =
+                 System.cmd(verifier, [],
+                   cd: @root,
+                   env: [
+                     {"TMPDIR", temp_root},
+                     {"PATH", path_with(fake_bin)},
+                     {"THREADLINE_TEST_OUTSIDE_TARGET", outside}
+                   ],
+                   stderr_to_stdout: true
+                 )
+
+        assert output =~ "PLANNING_RESTORED"
+        assert output =~ "literal child was replaced, removed, or is a symlink"
+        refute output =~ "SAFE_TEMP_TREE_REMOVED"
+        assert File.read!(outside_sentinel) == outside_bytes
+        assert_caller_unchanged(sentinel, status_before)
+      end)
+    after
+      File.rm_rf!(outside)
+    end
+  end
+
   defp with_verifier_fixture(fun) do
+    with_verifier_fixture("pass", fun)
+  end
+
+  defp with_verifier_fixture(mode, fun) do
     raw_temp_root = unique_temp_path("threadline-planning-independent-contract")
     File.mkdir!(raw_temp_root)
     temp_root = canonical_path(raw_temp_root)
@@ -61,6 +150,22 @@ defmodule Threadline.PlanningIndependenceContractTest do
         printf 'fake mix: planning remained visible during aggregate\\n' >&2
         exit 91
       }
+
+      case #{shell_quote(mode)} in
+        aggregate-failure)
+          exit 73
+          ;;
+        restore-failure)
+          mkdir .planning
+          exit 74
+          ;;
+        symlink-swap)
+          original="$PWD"
+          mv -- "$original" "${original}.moved"
+          ln -s -- "$THREADLINE_TEST_OUTSIDE_TARGET" "$original"
+          exit 75
+          ;;
+      esac
     fi
     """)
 
@@ -85,6 +190,25 @@ defmodule Threadline.PlanningIndependenceContractTest do
 
   defp checkout_status do
     System.cmd("git", ["status", "--porcelain=v1", "--untracked-files=all"], cd: @root)
+  end
+
+  defp write_caller_sentinel(temp_root) do
+    path = Path.join(temp_root, "caller-sentinel.bin")
+    bytes = <<0, 11, 22, 33, 244, 255>>
+    File.write!(path, bytes)
+    {path, bytes}
+  end
+
+  defp assert_caller_unchanged({sentinel, bytes}, status_before) do
+    assert File.read!(sentinel) == bytes
+    {status_after, 0} = checkout_status()
+    assert status_after == status_before
+  end
+
+  defp assert_before(output, earlier, later) do
+    {earlier_at, _} = :binary.match(output, earlier)
+    {later_at, _} = :binary.match(output, later)
+    assert earlier_at < later_at
   end
 
   defp path_with(fake_bin), do: fake_bin <> ":" <> System.get_env("PATH", "")
