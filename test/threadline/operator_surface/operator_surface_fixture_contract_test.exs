@@ -114,7 +114,125 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     assert details.cell_id == "page.missing.happy__dark-1280"
   end
 
-  defp validate_corpus(_repo, _corpus_root), do: :ok
+  defp validate_corpus(repo, corpus_root) do
+    root = Path.join(repo, corpus_root)
+
+    if File.dir?(root) do
+      manifest_paths =
+        repo
+        |> tracked_manifest(corpus_root)
+        |> Enum.map(& &1.path)
+        |> MapSet.new()
+
+      with :ok <- require_corpus_entries(manifest_paths, root),
+           {:ok, ledger} <- decode_json(root, "design-system-ledger.json"),
+           {:ok, golden} <- decode_json(root, "golden/golden-set.json"),
+           {:ok, refute} <- decode_json(root, "refute/refute-set.json"),
+           {:ok, scorecards} <- decode_scorecards(root, manifest_paths),
+           :ok <- validate_aria_pairs(manifest_paths),
+           :ok <- validate_references(ledger, golden, refute, scorecards) do
+        :ok
+      end
+    else
+      {:error, {:missing_root, root}}
+    end
+  end
+
+  defp require_corpus_entries(paths, root) do
+    required = [
+      "critic-scores/.gitkeep",
+      "design-system-ledger.json",
+      "golden/golden-set.json",
+      "refute/refute-set.json"
+    ]
+
+    case Enum.find(required, &(not MapSet.member?(paths, &1))) do
+      nil -> :ok
+      missing -> {:error, {:missing_required_entry, Path.join(root, missing)}}
+    end
+  end
+
+  defp decode_scorecards(root, manifest_paths) do
+    paths =
+      manifest_paths
+      |> Enum.filter(&(String.starts_with?(&1, "scorecards/") and String.ends_with?(&1, ".json")))
+      |> Enum.sort()
+
+    if paths == [] do
+      {:error, {:empty_scorecards, Path.join(root, "scorecards")}}
+    else
+      Enum.reduce_while(paths, {:ok, %{}}, fn path, {:ok, scorecards} ->
+        case decode_json(root, path) do
+          {:ok, %{"cell_id" => cell_id}} when is_binary(cell_id) and cell_id != "" ->
+            {:cont, {:ok, Map.put(scorecards, cell_id, path)}}
+
+          {:ok, _document} ->
+            {:halt, {:error, {:malformed_structure, Path.join(root, path)}}}
+
+          {:error, _reason} = error ->
+            {:halt, error}
+        end
+      end)
+    end
+  end
+
+  defp decode_json(root, relative_path) do
+    path = Path.join(root, relative_path)
+
+    case Jason.decode(File.read!(path)) do
+      {:ok, document} when is_map(document) -> {:ok, document}
+      _error -> {:error, {:malformed_json, path}}
+    end
+  end
+
+  defp validate_aria_pairs(paths) do
+    paths
+    |> Enum.filter(&String.ends_with?(&1, ".aria.yml"))
+    |> Enum.find_value(:ok, fn aria_path ->
+      scorecard_path = String.replace_suffix(aria_path, ".aria.yml", ".json")
+
+      if MapSet.member?(paths, scorecard_path) do
+        false
+      else
+        {:error, {:broken_pair, %{source: aria_path, missing: scorecard_path}}}
+      end
+    end)
+  end
+
+  defp validate_references(ledger, golden, refute, scorecards) do
+    with {:ok, references} <- corpus_references(ledger, golden, refute) do
+      case Enum.find(references, fn {_source, cell_id} ->
+             not Map.has_key?(scorecards, cell_id)
+           end) do
+        nil -> :ok
+        {source, cell_id} -> {:error, {:broken_reference, %{source: source, cell_id: cell_id}}}
+      end
+    end
+  end
+
+  defp corpus_references(ledger, golden, refute) do
+    with required when is_list(required) <- ledger["required_scorecards"],
+         golden_items when is_list(golden_items) and golden_items != [] <- golden["items"],
+         refute_items when is_list(refute_items) and refute_items != [] <- refute["items"] do
+      references =
+        Enum.map(required, &{"design-system-ledger.json", &1}) ++
+          Enum.map(golden_items, &{"golden/golden-set.json", &1["cell_id"]}) ++
+          Enum.flat_map(refute_items, fn item ->
+            [
+              {"refute/refute-set.json", item["polished_cell_id"]},
+              {"refute/refute-set.json", item["flawed_cell_id"]}
+            ]
+          end)
+
+      if Enum.all?(references, fn {_source, cell_id} -> is_binary(cell_id) and cell_id != "" end) do
+        {:ok, references}
+      else
+        {:error, {:malformed_structure, "corpus references"}}
+      end
+    else
+      _invalid -> {:error, {:malformed_structure, "corpus roots"}}
+    end
+  end
 
   defp tracked_manifest(repo, corpus_root) do
     {output, 0} =
