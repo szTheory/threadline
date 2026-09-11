@@ -8,9 +8,82 @@ defmodule Threadline.RemovedArtifactContract do
     "fix_tests.exs"
   ]
 
+  @root_one_off ~r/^(?:fix|update|patch|migrate)[_-].*\.(?:exs|rb)$/
+  @standard_root_executables MapSet.new([".credo.exs", ".formatter.exs", "mix.exs"])
+
   def removed_paths, do: @removed_paths
 
-  def scan(_file_sets, _read_file), do: []
+  def scan(file_sets, read_file) when is_map(file_sets) and is_function(read_file, 1) do
+    tracked = MapSet.new(Map.fetch!(file_sets, :tracked))
+
+    tracked_target_violations =
+      for target <- @removed_paths, MapSet.member?(tracked, target) do
+        violation(:tracked_removed_path, target, 1, target)
+      end
+
+    root_executable_violations =
+      file_sets
+      |> Map.fetch!(:executables)
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> Enum.reject(&(&1 in @removed_paths))
+      |> Enum.filter(&root_one_off_executable?/1)
+      |> Enum.map(&violation(:root_one_off_executable, &1, 1, nil))
+
+    citation_violations =
+      file_sets
+      |> Map.take([:executables, :documents])
+      |> Map.values()
+      |> List.flatten()
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> Enum.reject(&(&1 in @removed_paths))
+      |> Enum.flat_map(&citation_violations(&1, read_file.(&1)))
+
+    tracked_target_violations ++ root_executable_violations ++ citation_violations
+  end
+
+  defp root_one_off_executable?(file) do
+    Path.dirname(file) == "." and
+      not MapSet.member?(@standard_root_executables, file) and
+      Regex.match?(@root_one_off, Path.basename(file))
+  end
+
+  defp citation_violations(file, content) do
+    for {line, line_number} <- lines_with_numbers(content),
+        target <- @removed_paths,
+        active_citation?(line, target),
+        not historical_supersession?(content, target) do
+      violation(:active_citation, file, line_number, target)
+    end
+  end
+
+  defp lines_with_numbers(content) do
+    content
+    |> String.split("\n")
+    |> Enum.with_index(1)
+  end
+
+  defp active_citation?(line, target) do
+    trimmed = String.trim_leading(line)
+
+    String.starts_with?(trimmed, "@#{target}") or
+      String.contains?(line, "](#{target})") or
+      (String.contains?(line, target) and
+         (Regex.match?(~r/File\.(?:read|read!|stream|open)/, line) or
+            Regex.match?(~r/—\s+current\b/i, line)))
+  end
+
+  defp historical_supersession?(content, target) do
+    marker =
+      "removed-artifact: #{target} existed at execution time; superseded and removed in Phase 199"
+
+    String.contains?(content, marker)
+  end
+
+  defp violation(kind, file, line, target) do
+    %{file: file, kind: kind, line: line, target: target}
+  end
 end
 
 defmodule Threadline.RemovedArtifactContractTest do

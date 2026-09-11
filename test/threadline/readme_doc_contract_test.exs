@@ -324,7 +324,10 @@ defmodule Threadline.ReadmeDocContractTest do
     String.contains?(normalize(doc), normalize(snippet))
   end
 
-  defp operator_support_wording?(_doc), do: false
+  defp operator_support_wording?(doc) do
+    String.contains?(doc, "current support claims, stay with") and
+      contains_normalized?(doc, "rather than inferring broader compatibility from the README")
+  end
 
   defp normalize(value) do
     value
