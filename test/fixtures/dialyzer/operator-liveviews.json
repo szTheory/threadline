@@ -7,7 +7,9 @@
   },
   "authorized_origins": [
     "lib/threadline/operator_surface/live/coverage_live.ex",
-    "lib/threadline/operator_surface/live/export_status_live.ex"
+    "lib/threadline/operator_surface/live/export_status_live.ex",
+    "lib/threadline/operator_surface/live/retention_history_live.ex",
+    "lib/threadline/operator_surface/live/timeline_live.ex"
   ],
   "warnings": [
     {
@@ -31,6 +33,28 @@
       "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/operator_surface/live/export_status_live.ex\", 27}, {:unmatched_return, [~c\"'nil' | reference()\"]}}",
       "disposition": "fixed",
       "evidence": "Explicitly discard the refresh timer reference while preserving the existing one-timer-per-mount-or-refresh cadence."
+    },
+    {
+      "id": "W24",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/operator_surface/live/retention_history_live.ex",
+        "line": 35
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/operator_surface/live/retention_history_live.ex\", 35}, {:unmatched_return, [~c\"'nil' | reference()\"]}}",
+      "disposition": "fixed",
+      "evidence": "Explicitly discard the retention refresh timer reference while preserving the existing one-timer-per-mount-or-refresh cadence."
+    },
+    {
+      "id": "W25",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+        "line": 1297
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/operator_surface/live/timeline_live.ex\", {1297, 11}}, {:pattern_match_cov, [~c\"variable _\", ~c\"{'ok',\\#{'count':=non_neg_integer()}}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Remove the unreachable fallback after Export.count_matching/2's success-only contract while preserving the returned count comparison."
     }
   ],
   "post_analysis": {
