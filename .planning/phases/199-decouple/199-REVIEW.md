@@ -1,6 +1,6 @@
 ---
 phase: 199-decouple
-reviewed: 2026-09-11T21:58:30Z
+reviewed: 2026-09-11T23:40:12Z
 depth: standard
 files_reviewed: 526
 files_reviewed_list:
@@ -533,71 +533,45 @@ files_reviewed_list:
 
 findings:
   critical: 2
-  warning: 3
+  warning: 0
   info: 0
-  total: 5
+  total: 2
 status: issues_found
 ---
 
 # Phase 199: Code Review Report
 
-**Reviewed:** 2026-09-11T21:58:30Z
+**Reviewed:** 2026-09-11T23:40:12Z
 **Depth:** standard
 **Files Reviewed:** 526
 **Status:** issues_found
 
 ## Summary
 
-The review covered every existing non-planning path in the Phase 199 diff. The 427-file operator-surface payload was audited through its manifest, integrity contract, and representative schema consumers; every manifest checksum passed. The focused Elixir contracts passed (43 tests), the TypeScript path-adapter suite passed (11 tests), shell syntax checks passed, and the submitted aggregate certification evidence was considered. Those successes do not cover the five defects below: two fail-open safety/gating paths and three containment or generated-state defects remain.
+Iteration 3 preserved the original 526-file scope and independently inspected commits `122532a1` and `43adcdec` in the context of all prior fixes. The two direct reproductions are closed: generated route scorecards are read through the contained generated lane while oracle evidence remains fixture-only, explicit empty scopes fail nonzero, and truncated worktree registry output retains the target without leaking its temporary registry. All original five findings therefore remain closed. The 427-entry fixture manifest, 81 focused Elixir tests, 13 TypeScript path tests, TypeScript compilation, formatting, and shell syntax checks passed. Two gate correctness defects remain in the surrounding Phase 199 call path: route variants are omitted from blast-radius scope, and a failed recapture is described as VOID but is not propagated into the verdict.
 
 ## Narrative Findings (AI reviewer)
 
 ### Critical Issues
 
-#### CR-01: Mechanical gate accepts malformed nested evidence as clean
+#### CR-01: Route variants are omitted from the gate blast radius
 
-**File:** `/Users/jon/projects/threadline/lib/threadline/operator_surface/mechanical_checker.ex:240-265` (also `306-321`, `469-503`, `535-544`, `608-617`, and `795-796`)
+**File:** `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/gate.ts:188-192,216-264`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts:92-99`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/support/operator-surface-paths.test.ts:278-377`
 
-**Issue:** `validate_scorecard/1` validates only top-level container types and checks that the background token is a string. It never validates the nested fields consumed by the WCAG, conformance, and MODE-B checks. Downstream parse failures are then translated into success-shaped values: `wcag_violation/3` returns no violation for any failed parse, invalid CSS sizes are skipped, invalid colors are dropped, and missing/non-numeric MODE-B metrics become zero. A direct invocation with an invalid background color, an invalid color pair, invalid applied colors, and an empty `mode_b` object returned `{:ok, []}`. Malformed or tampered evidence can therefore bypass the mechanical gate rather than failing closed. The fixture integrity contract at `/Users/jon/projects/threadline/test/threadline/operator_surface/operator_surface_fixture_contract_test.exs:174-193` only requires a string `cell_id`, so it does not close this gap.
+**Issue:** `pageDarkCells/1` now requires the exact delimiter `${page}__`, so gating `route.timeline` includes `route.timeline__dark-1280` but excludes the generated `route.timeline.degraded__dark-1280` variant emitted by the same capture command. The pre-fix code deliberately used the page prefix, and the surrounding contract says the blast radius covers `${page}.*__dark-*` cells. A direct dry run with both scorecards present reported `0 changed of 1 scanned` and listed only the happy cell. A change that improves the happy timeline while regressing its degraded state can therefore be accepted without evaluating the degraded state, violating the gate's no-blocking-regression guarantee. The new end-to-end test creates only one route scorecard, so it cannot catch the omission.
 
-**Fix:** Deeply validate every consumed nested field before evaluating a scorecard: require parseable token/pair colors, the required element-style keys and parseable CSS values, every required numeric MODE-B metric, and parseable applied colors. Return `{:error, {:malformed_scorecard, reason}}` for any invalid value; do not convert parse failures or absent metrics to an empty violation list or zero. Add mutation tests for malformed nested scorecards.
+**Fix:** Centralize route-page matching and include both the exact page cell (`${page}__...`) and dot-qualified variants (`${page}.*__...`) without accepting prefix siblings. Use the same matcher for before-pole scoring and gate blast-radius discovery. Extend the end-to-end test with both `route.timeline__dark-1280` and `route.timeline.degraded__dark-1280`, assert two cells are scored/scanned, and retain a similarly prefixed negative control.
 
-#### CR-02: Worktree safety check fails open when Git cannot enumerate worktrees
+#### CR-02: Capture failure does not force the gate to VOID
 
-**File:** `/Users/jon/projects/threadline/bin/safe-temp-tree:110-134` (removal authority at `193-205`)
+**File:** `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/gate.ts:197-202,216-264,381-415,703-711,732-790`
 
-**Issue:** `_safe_temp_tree_reject_worktree_root` reads `git worktree list` through process substitution. Bash does not propagate the producer's exit status through the `while` loop, so a failed Git command produces an empty stream and the function returns success. The caller then reaches `rm -rf` without proving that the target is not a registered worktree. This creates a data-loss path precisely when repository metadata is unavailable or Git fails.
+**Issue:** When `npm run capture:pages` fails, `blastRadius/2` returns ordinary `changed`/`inScope` arrays and only places `Treat as VOID` in a human-readable note. `runGate/1` does not inspect capture success; with pre-existing scorecards it continues to the floor and LLM re-evaluation using stale evidence, and `verdict/4` has no blast-radius input. A direct run with a pre-existing generated route card and a fake failing `npm` printed `capture:pages failed ... Treat as VOID` but reached `[7/7] Verdict: REJECT`, proving the promised VOID state is not propagated. With an API key, model variance can make the stale-evidence re-evaluation satisfy the acceptance conditions, so a failed recapture can produce a false acceptance.
 
-**Fix:** Materialize the NUL-delimited registry into a safely created temporary file, check the `git worktree list --porcelain -z` exit status, and only then parse it. Any enumeration or parse failure must return nonzero before cleanup. Add a contract test with a fake `git` that fails specifically on `worktree list` and assert that the registered child is retained.
-
-### Warnings
-
-#### WR-01: Migrated generated outputs are no longer ignored
-
-**File:** `/Users/jon/projects/threadline/.gitignore:58-67`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/support/operator-surface-paths.ts:87-111`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/cache.ts:68-113`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/refute.ts:61-62,149-157`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/report.ts:43-46,391`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/report_html.ts:34,238`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts:105-115,374`
-
-**Issue:** The path adapter moved generated route scorecards, verdict caches, reports, and refute transcripts under `test/fixtures/operator_surface`, but the ignore rules still point to their former `.planning` or e2e locations. `git check-ignore --no-index` confirms that `scorecards/route.*.json`, `critic-verdict-cache/*.json`, `CRITIQUE.md`, `critic-report.html`, and `refute/transcripts/*.json` are now trackable; only `critic-scores/*` is ignored. Running the documented capture/critic tools can dirty the repository and make nondeterministic evidence easy to commit accidentally. The clean-checkout probe only exercises `critic-scores`, so the successful certification does not detect the regression.
-
-**Fix:** Route all nondeterministic outputs to one dedicated, source-anchored generated directory outside the immutable fixture roots and add exact anchored ignore rules for each producer-owned subtree/file. Extend `verify-clean-checkout` and the ignore contract to probe route scorecards, verdict cache entries, reports, and refute transcripts at their resolved destinations.
-
-#### WR-02: Elixir output containment permits a parent of immutable evidence
-
-**File:** `/Users/jon/projects/threadline/lib/mix/tasks/critic.measure.ex:222-245`
-
-**Issue:** `validate_root_separation!/2` rejects equality and an output root nested inside an immutable root, but it does not reject the inverse relationship. For example, `--fixture-root test/fixtures/operator_surface --output-root test/fixtures` passes this separation check even though the output root contains every immutable evidence root. This contradicts the bidirectional overlap check implemented by the TypeScript adapter and leaves future output cleanup or recursive processing able to affect trusted inputs.
-
-**Fix:** Reject overlap in both directions for each immutable root: `within?(output_root, immutable_root) or within?(immutable_root, output_root)`. Apply the check to canonical paths and add explicit tests for parent, child, equal, prefix-confusion, and symlink-alias cases.
-
-#### WR-03: Early verifier failures can rename caller-owned state
-
-**File:** `/Users/jon/projects/threadline/bin/verify-planning-independent:22-53` (early failure points at `79-85`; quarantine begins at `88-96`)
-
-**Issue:** The EXIT trap always looks for the relative path `.planning.threadline-quarantine`, but the script does not enter the clone until line 88. If source-SHA, clone, checkout, or SHA verification fails first, cleanup runs in the caller's working directory. A caller-owned path with that name can be renamed to `.planning` or can cause cleanup to retain the clone. The existing tests exercise failures after the clone quarantine begins, not these pre-`cd` failure paths.
-
-**Fix:** Track quarantine ownership explicitly (for example, initialize `PLANNING_QUARANTINED=0`, set it only after the clone-local `mv` succeeds, and condition restoration on that flag). Use absolute clone paths for restore checks, and add an early Git/clone-failure test that places sentinel `.planning` and quarantine names in the caller directory and asserts byte-for-byte preservation.
+**Fix:** Add an explicit capture status (or `void` flag) to `BlastRadius` and return it as failed from the catch path. Abort before any paid scoring, or pass that flag into `verdict/4` so capture failure deterministically yields `VOID` and a nonzero exit. Add a regression with a pre-existing route scorecard and a fake failing `npm`; assert that no scoring/floor/divergence subprocess runs and the final verdict is `VOID`.
 
 ---
 
-_Reviewed: 2026-09-11T21:58:30Z_
+_Reviewed: 2026-09-11T23:40:12Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
