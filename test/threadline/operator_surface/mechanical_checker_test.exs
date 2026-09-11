@@ -11,6 +11,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
 
   @checker_path "lib/threadline/operator_surface/mechanical_checker.ex"
   @scorecards_dir ".planning/scorecards"
+  @ledger_path ".planning/design-system-ledger.json"
 
   # ---------------------------------------------------------------------------
   # Meta-test: MODE-A LOCKED constants are pinned verbatim in the source. This is
@@ -114,12 +115,38 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
            "a fully token-conformant, high-contrast, within-ceiling scorecard must produce no violations"
   end
 
+  test "run/1 returns an actionable tagged error when scorecard_dir is missing" do
+    assert {:error, {:missing_input, details}} =
+             MechanicalChecker.run(mechanical_floors: %{})
+
+    assert details.dataset == "mechanical scorecard corpus"
+    assert details.option == :scorecard_dir
+    assert details.path == nil
+    assert details.repository_only == false
+    assert String.contains?(details.recovery, "scorecard_dir:")
+  end
+
+  test "run/1 returns an actionable tagged error when mechanical_floors is missing" do
+    dir = write_fixtures([passing_scorecard()])
+
+    assert {:error, {:missing_input, details}} = MechanicalChecker.run(scorecard_dir: dir)
+
+    assert details.dataset == "mechanical floor map"
+    assert details.option == :mechanical_floors
+    assert details.path == nil
+    assert details.repository_only == false
+    assert String.contains?(details.recovery, "mechanical_floors:")
+  end
+
   test "run/1 over an empty/absent scorecards directory returns {:ok, []} (nothing to check)" do
     empty = Path.join(System.tmp_dir!(), "mech_empty_#{System.unique_integer([:positive])}")
     File.mkdir_p!(empty)
 
     assert MechanicalChecker.run(scorecard_dir: empty, mechanical_floors: %{}) == {:ok, []}
-    assert MechanicalChecker.run(scorecard_dir: Path.join(empty, "does-not-exist")) == {:ok, []}
+    assert MechanicalChecker.run(
+             scorecard_dir: Path.join(empty, "does-not-exist"),
+             mechanical_floors: %{}
+           ) == {:ok, []}
   end
 
   test "an off-scale border-radius yields a MODE-A radius violation carrying a nearest-token :fix" do
@@ -267,7 +294,11 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     # At phase end this proves the real evidence passes. Locally the directory is
     # empty/absent (capture is CI-run), so this is a vacuously-clean "nothing to
     # check" result — the teeth above prove the checker still blocks real violations.
-    assert {:ok, []} = MechanicalChecker.run(scorecard_dir: @scorecards_dir)
+    assert {:ok, []} =
+             MechanicalChecker.run(
+               scorecard_dir: @scorecards_dir,
+               mechanical_floors: committed_floors()
+             )
   end
 
   # ---------------------------------------------------------------------------
@@ -331,7 +362,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     # until now, which is exactly how 120 floors sat frozen three capture generations
     # behind the evidence while the gate reported green.
     floors =
-      ".planning/design-system-ledger.json"
+      @ledger_path
       |> File.read!()
       |> Jason.decode!()
       |> Map.fetch!("mechanical_floors")
@@ -370,7 +401,7 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
 
       [{_name, sample} | _] ->
         floors =
-          ".planning/design-system-ledger.json"
+          @ledger_path
           |> File.read!()
           |> Jason.decode!()
           |> Map.fetch!("mechanical_floors")
@@ -480,11 +511,22 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
   test "run/1 is clean over the committed Tier A scorecards (real-evidence gate)" do
     committed = Path.wildcard(Path.join(@scorecards_dir, "*.json"))
 
-    assert {:ok, []} == MechanicalChecker.run(),
+    assert {:ok, []} ==
+             MechanicalChecker.run(
+               scorecard_dir: @scorecards_dir,
+               mechanical_floors: committed_floors()
+             ),
            "MechanicalChecker.run/1 must be clean over the #{length(committed)} committed " <>
              "Tier A scorecards (0 = fresh clone, vacuously clean). Regenerate with " <>
              "`mix verify.capture` or fix the offending token/style source — never loosen " <>
              "the checker's LOCKED constants."
+  end
+
+  defp committed_floors do
+    @ledger_path
+    |> File.read!()
+    |> Jason.decode!()
+    |> Map.fetch!("mechanical_floors")
   end
 
   defp write_fixtures(scorecards) do
