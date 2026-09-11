@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 51
+open_count: 56
 waived_count: 0
 fixed_count: 1
-total_count: 52
-last_updated: 2026-09-11T20:30:32.770Z
+total_count: 57
+last_updated: 2026-09-11T21:45:35.919Z
 ---
 
 # Broken Windows Ledger
@@ -67,6 +67,11 @@ last_updated: 2026-09-11T20:30:32.770Z
 | 50 | 199 | deviation | .github/workflows/ci.yml |  | Temporary exact measurement-branch push trigger added for the cold run and removed after evidence collection | open |  | 2026-09-11T20:29:40.961Z |  |
 | 51 | 199 | deviation | test/threadline/ci_topology_contract_test.exs |  | Tracer workflow-header matcher corrected to follow the established two-line roster contract | open |  | 2026-09-11T20:29:41.049Z |  |
 | 52 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-14 roadmap progress and next-plan position reconciled manually after roadmap.update-plan-progress returned missing_phase_details | open |  | 2026-09-11T20:30:32.770Z |  |
+| 53 | 199 | deviation | test/threadline/main_ci_observer_contract_test.exs |  | Plan 199-21 formatted two pre-existing contract files exposed by the planning-free aggregate format gate. | open |  | 2026-09-11T21:44:55.050Z |  |
+| 54 | 199 | deviation | test/threadline/removed_artifact_contract_test.exs |  | Plan 199-21 removed hidden physical planning dereferences and supplied clean-clone npm/dev-PLT prerequisites required by the exact aggregate. | open |  | 2026-09-11T21:44:55.155Z |  |
+| 55 | 199 | deviation | mix.exs |  | Plan 199-21 aligned local aggregate Dialyzer environment and browser projects with the committed CI topology. | open |  | 2026-09-11T21:44:55.260Z |  |
+| 56 | 199 | deviation | examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts | 130 | Plan 199-21 fixed cross-scroll-state browser geometry sampling without relaxing the ordering assertion. | open |  | 2026-09-11T21:44:55.367Z |  |
+| 57 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-21 roadmap.update-plan-progress returned missing_phase_details; executor reconciled the final checklist and 21/21 completion row manually. | open |  | 2026-09-11T21:45:35.919Z |  |
 
 ````json
 [
@@ -718,6 +723,71 @@ last_updated: 2026-09-11T20:30:32.770Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T20:30:32.770Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 53,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "test/threadline/main_ci_observer_contract_test.exs",
+    "line": null,
+    "description": "Plan 199-21 formatted two pre-existing contract files exposed by the planning-free aggregate format gate.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T21:44:55.050Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 54,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "test/threadline/removed_artifact_contract_test.exs",
+    "line": null,
+    "description": "Plan 199-21 removed hidden physical planning dereferences and supplied clean-clone npm/dev-PLT prerequisites required by the exact aggregate.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T21:44:55.155Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 55,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "mix.exs",
+    "line": null,
+    "description": "Plan 199-21 aligned local aggregate Dialyzer environment and browser projects with the committed CI topology.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T21:44:55.260Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 56,
+    "kind": "deviation",
+    "phase": "199",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts",
+    "line": 130,
+    "description": "Plan 199-21 fixed cross-scroll-state browser geometry sampling without relaxing the ordering assertion.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T21:44:55.367Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 57,
+    "kind": "deviation",
+    "phase": "199",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Plan 199-21 roadmap.update-plan-progress returned missing_phase_details; executor reconciled the final checklist and 21/21 completion row manually.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T21:45:35.919Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }

@@ -66,7 +66,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 ### Phases
 
 - [x] **Phase 198: Green Bringup** - `origin/main` carries all 584 local commits and CI concludes green in ≤ 20 min; the never-re-measured red-test baseline is retired on its merits; branch protection is repaired against the checks CI actually emits; worktrees, branches, and locks are triaged. (completed 2026-09-10)
-- [ ] **Phase 199: Decouple** - Tests and gates are self-contained in the source tree, proven by `mix ci.all` passing with `.planning/` renamed away; `.planning/` stays tracked but load-bearing on nothing; dialyxir lands early enough to typecheck the later refactors.
+- [x] **Phase 199: Decouple** - Tests and gates are self-contained in the source tree, proven by `mix ci.all` passing with `.planning/` renamed away; `.planning/` stays tracked but load-bearing on nothing; dialyxir lands early enough to typecheck the later refactors.
 - [ ] **Phase 200: Public Surface** - Everything a stranger or hex.pm consumer sees is accurate, navigable, and free of internal vocabulary — *before* anything is published. This is the phase that earns the right to release.
 - [ ] **Phase 201: Rendered Output** - Zero internal vocabulary reaches a browser, with zero design/IA/visual change, in two tiers separated by mechanical-floor blast radius.
 - [ ] **Phase 202: Release 0.10.0** - Merge PR #26 and publish a release whose public surface is already clean, with every version-bearing literal managed by release automation and exactly one publish path.
@@ -526,7 +526,7 @@ Plans:
 
 **Wave 8** *(blocked on completed Plan 199-14 measurement)*
 
-- [ ] 199-21-PLAN.md — Final committed planning-independent gate certification
+- [x] 199-21-PLAN.md — Final committed planning-independent gate certification
 
 **Notes carried from the approved plan:**
 
@@ -683,7 +683,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
-| 199. Decouple | v1.41 | 20/21 | In Progress | |
+| 199. Decouple | v1.41 | 21/21 | Complete | 2026-09-11 |
 | 200. Public Surface | v1.41 | 0/TBD | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
 | 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |

@@ -4,18 +4,18 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 199
 current_phase_name: decouple
-status: executing
-stopped_at: Completed 199-14-PLAN.md
-last_updated: "2026-09-11T20:30:01.400Z"
+status: ready_for_verification
+stopped_at: Completed 199-21-PLAN.md
+last_updated: "2026-09-11T21:45:36.287Z"
 last_activity: 2026-09-11
-last_activity_desc: Plan 199-14 completed blocking Dialyzer CI wiring and authenticated cold/hit measurement
-state_head: 1abed790de7804fc1f7d4135ab4efe245c39e0b8
+last_activity_desc: Plan 199-21 completed exact-HEAD planning-independent aggregate certification
+state_head: 4e172993ca1448e5740e5d4069982ef2a27a68e2
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 87
-  completed_plans: 86
-  percent: 14
+  completed_plans: 87
+  percent: 29
 ---
 
 # Project State: Threadline
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
 
 ## Current Position
 
-Phase: 199 (decouple) — READY TO EXECUTE
+Phase: 199 (decouple) — READY FOR VERIFICATION
 Plan: 21 of 21
-Status: Executing — Plan 199-14 completed the blocking current-lane Dialyzer gate and authenticated cold/hit measurement; Plan 199-21 is the sole remaining final certification plan
+Status: Ready for verification — all 21 plans are complete; committed SHA `c45b7712` passed the full aggregate with `.planning` physically absent
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
@@ -70,7 +70,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
+Progress: [███░░░░░░░] 29% (v1.41 — 0/7 phases complete)
 
 ## Performance Metrics
 
@@ -129,6 +129,7 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 | Phase 199 P19 | 15 min | 3 tasks | 6 files |
 | Phase 199 P20 | 17 min | 2 tasks | 2 files |
 | Phase 199 P14 | 34min | 3 tasks | 4 files |
+| Phase 199 P21 | 1h 8m | 2 tasks | 10 files |
 
 ## Deferred Items
 
@@ -608,6 +609,9 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 - [Phase 199]: Plan 199-14: Set verify-dialyzer timeout-minutes to 9 from ceil(252-second cold whole-job time × 2.0 / 60).
 - [Phase 199]: Plan 199-14: Only an exact PLT primary-key match is a cache hit; same-toolchain partial restores rebuild before analysis.
 - [Phase 199]: Plan 199-14: Remove the temporary phase-branch push trigger immediately after immutable miss/hit evidence collection.
+- [Phase 199]: Plan 199-21 certifies only an exact committed SHA in a no-local clone with .planning physically absent.
+- [Phase 199]: Planning quarantine restoration always precedes recursive cleanup delegated solely to bin/safe-temp-tree.
+- [Phase 199]: The planning-free aggregate preserves the committed dev-Dialyzer and desktop/mobile Chromium CI topology.
 
 ### Blockers
 
@@ -615,8 +619,8 @@ Progress: [█░░░░░░░░░] 14% (v1.41 — 0/7 phases complete)
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T20:30:01.271Z
-**Stopped at:** Completed 199-14-PLAN.md
+**Last session:** 2026-09-11T21:44:57.258Z
+**Stopped at:** Completed 199-21-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
