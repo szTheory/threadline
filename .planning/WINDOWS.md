@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 32
+open_count: 33
 waived_count: 0
 fixed_count: 1
-total_count: 33
-last_updated: 2026-09-11T14:19:51.495Z
+total_count: 34
+last_updated: 2026-09-11T14:38:01.325Z
 ---
 
 # Broken Windows Ledger
@@ -48,6 +48,7 @@ last_updated: 2026-09-11T14:19:51.495Z
 | 31 | 199 | deviation | bench/audit_capture_bench.exs |  | Plan 199-10 formatted newly-owned benchmark entrypoints when child-aware formatter coverage exposed drift | open |  | 2026-09-11T05:08:59.148Z |  |
 | 32 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-10 roadmap.update-plan-progress could not write the legacy Phase 199 plan checklist/progress row; executor reconciled both to 6/14 In Progress from live PLAN/SUMMARY counts | open |  | 2026-09-11T05:11:30.303Z |  |
 | 33 | 199 | deviation | .planning/ROADMAP.md |  | roadmap.update-plan-progress could not edit the legacy Phase 199 layout; reconciled eight summary-backed plans manually | open |  | 2026-09-11T14:19:51.495Z |  |
+| 34 | 199 | todo | examples/threadline_phoenix/e2e/critic/label.ts | 708 | Pre-existing pair-label token wiring remains unimplemented outside Plan 199-05 filesystem scope | open |  | 2026-09-11T14:38:01.325Z |  |
 
 ````json
 [
@@ -452,6 +453,19 @@ last_updated: 2026-09-11T14:19:51.495Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-11T14:19:51.495Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 34,
+    "kind": "todo",
+    "phase": "199",
+    "file": "examples/threadline_phoenix/e2e/critic/label.ts",
+    "line": 708,
+    "description": "Pre-existing pair-label token wiring remains unimplemented outside Plan 199-05 filesystem scope",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-11T14:38:01.325Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }

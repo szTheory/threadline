@@ -15,3 +15,11 @@
 - **Evidence:** `mix verify.test` ran 1,498 tests and reported one failure in `Threadline.OperatorSurface.RefutePartitionTest`: the test still calls `MechanicalChecker.run(scorecard_dir: tmp_dir)` after Plan 199-01 made `:mechanical_floors` a required explicit input.
 - **Scope:** Plan 199-12 does not own `test/threadline/operator_surface/refute_partition_test.exs`; Plan 199-02 explicitly lists that file and depends on 199-01.
 - **Disposition:** Deferred to Plan 199-02, which owns migration of operator-surface tests to the explicit fixture/floor boundary. The Plan 199-12 focused scanner, zero-skip, and migrated live-contract tests pass independently.
+
+## 199-05: Pre-existing pair-label token wiring TODO
+
+- **Status:** open
+- **Discovered during:** Plan 199-05 pre-summary stub scan
+- **Evidence:** `examples/threadline_phoenix/e2e/critic/label.ts:708` assigns `pair_with_token: null` with a TODO to wire pair tokens when pair mode is implemented; blame traces it to commit `a248073a9`, before this plan.
+- **Scope:** Plan 199-05 owns filesystem authority and atomic writes, not golden-oracle pair-mode behavior.
+- **Disposition:** Deferred to a future critic-labeling behavior plan; it does not block DECOUPLE-01 or the adapter-backed reader/writer goal.
