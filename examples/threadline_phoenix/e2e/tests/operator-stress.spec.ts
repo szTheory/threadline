@@ -1,16 +1,16 @@
 import { expect, Page, test } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import {
+  currentOperatorSurfacePaths,
+  resolveContainedPath,
+} from "../support/operator-surface-paths.js";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 const viewportWidths = [320, 375, 768, 1024, 1440];
-const ledgerPath = resolve(
-  process.cwd(),
-  "../../..",
-  ".planning/design-system-ledger.json",
-);
-const repoRoot = resolve(process.cwd(), "../../..");
+const paths = currentOperatorSurfacePaths();
+const ledgerPath = paths.ledgerPath;
+const generatedArtifactsRoot = resolveContainedPath(paths.e2eRoot, "artifacts");
 const selectedTierCStressStories = [
   "page.home.happy",
   "state.unavailable-down",
@@ -36,10 +36,9 @@ function ledgerEntryForStory(storyId: string) {
 function desktopSnapshotPath(baselineRef: string) {
   const snapshotName = baselineRef.replace(/\.png$/, "-desktop-chromium.png");
 
-  return resolve(
-    process.cwd(),
-    "tests/operator-stress.spec.ts-snapshots",
-    snapshotName,
+  return resolveContainedPath(
+    paths.e2eRoot,
+    `tests/operator-stress.spec.ts-snapshots/${snapshotName}`,
   );
 }
 
@@ -56,7 +55,8 @@ function stressScreenshotOutputDir() {
 
   if (!outputDir) return undefined;
 
-  return resolve(repoRoot, outputDir);
+  const requestedOutput = resolveContainedPath(paths.repositoryRoot, outputDir);
+  return resolveContainedPath(generatedArtifactsRoot, requestedOutput);
 }
 
 function stressPacketName(storyId: string, theme: string, viewport: number) {
@@ -254,7 +254,7 @@ test.describe("operator stress route semantics", () => {
 });
 
 test("light/system Playwright lane includes the stress route spec", () => {
-  const configPath = resolve(process.cwd(), "playwright.config.ts");
+  const configPath = resolveContainedPath(paths.e2eRoot, "playwright.config.ts");
   const config = readFileSync(configPath, "utf8");
 
   expect(config).toContain(
@@ -519,7 +519,7 @@ test.describe("ledger-owned stress structural cells", () => {
 // cannot keep claiming coverage that has been deleted elsewhere.
 test("the left-push footgun's real invariant is still asserted in the Phase 178 spec", () => {
   const spec = readFileSync(
-    resolve(process.cwd(), "tests/operator-phase-178-uat.spec.ts"),
+    resolveContainedPath(paths.e2eRoot, "tests/operator-phase-178-uat.spec.ts"),
     "utf8",
   );
 
@@ -561,7 +561,10 @@ test.describe("selected Tier C stress state packet", () => {
       await expect(page.getByTestId("stress-story-id")).toHaveText(storyId);
 
       await preview.screenshot({
-        path: join(outputDir!, stressPacketName(storyId, "dark", 1024)),
+        path: resolveContainedPath(
+          outputDir!,
+          stressPacketName(storyId, "dark", 1024),
+        ),
         scale: "css",
       });
     }
@@ -602,7 +605,7 @@ test("ledger CI stress allowlist is bounded, structurally backed, and pixel-free
   // this file): this spec may not reacquire a pixel-diff for the ledger-owned cells
   // without failing here first.
   const self = readFileSync(
-    resolve(process.cwd(), "tests/operator-stress.spec.ts"),
+    resolveContainedPath(paths.e2eRoot, "tests/operator-stress.spec.ts"),
     "utf8",
   );
   expect(self.includes("toHaveScreenshot" + "(")).toBe(false);
