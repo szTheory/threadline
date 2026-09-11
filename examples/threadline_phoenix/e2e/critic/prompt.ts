@@ -23,19 +23,13 @@
  */
 
 import { readFileSync, existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import type { ScorecardBundle } from "./bundle.js";
 import type { LensName } from "./schema.js";
+import { DEFAULT_OPERATOR_SURFACE_PATHS } from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
-const rubricDir = resolve(here, "rubrics");
-const artifactsRoot = resolve(
-  repoRoot,
-  "examples/threadline_phoenix/e2e/artifacts/tier-a",
-);
+const rubricDir = DEFAULT_OPERATOR_SURFACE_PATHS.criticRubricsDir;
+const artifactsRoot = DEFAULT_OPERATOR_SURFACE_PATHS.tierAArtifactsDir;
 
 // Persona definitions (D-06): JTBD + pass-condition clause (goes in uncached suffix)
 export const PERSONA_CLAUSES: Record<string, string> = {

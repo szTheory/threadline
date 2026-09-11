@@ -13,7 +13,7 @@
     "critic:score": "tsx critic/run.ts score",
     "critic:gate": "tsx critic/run.ts gate",
     "critic:validate": "tsx critic/run.ts validate",
-    "critic:check": "tsx critic/run.ts validate",
+    "critic:check": "tsx critic/run.ts rubric lint && tsx critic/run.ts validate --dry-run",
     "critic:label": "tsx critic/run.ts label",
     "critic:rubric": "tsx critic/run.ts rubric",
     "critic:report:html": "tsx critic/run.ts report --html",

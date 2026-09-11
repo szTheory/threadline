@@ -2,8 +2,8 @@
  * bundle.ts — Reads the deterministic Tier-B scorecard input for a cell.
  *
  * Reads:
- *   - .planning/scorecards/<cell_id>.json (deterministic, committed bundle)
- *   - .planning/scorecards/<cell_id>.aria.yml (band-2 only, may be null)
+ *   - scorecards/<cell_id>.json (deterministic, committed bundle)
+ *   - scorecards/<cell_id>.aria.yml (band-2 only, may be null)
  *   - e2e/artifacts/tier-a/<cell_id>/screenshot.png (gitignored binary)
  *
  * Downsamples the screenshot PNG to ~1092px on the long edge (D-11 / D-04:
@@ -22,15 +22,14 @@ import {
   mkdtempSync,
   unlinkSync,
 } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
-
-const here = dirname(fileURLToPath(import.meta.url));
-// critic/ → e2e/ → threadline_phoenix/ → examples/ → repo root
-const repoRoot = resolve(here, "../../../..");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
+import {
+  currentOperatorSurfacePaths,
+  readRequiredJson,
+  resolveContainedPath,
+} from "../support/operator-surface-paths.js";
 
 // Target long-edge for downsampled screenshots (D-11 / D-04: ~1600 tokens per image).
 // Prohibits: NO hi-res 2576px screenshots (VLM must not re-measure pixels).
@@ -79,10 +78,23 @@ export interface ScorecardJson {
  * Used to validate cell_id before path construction (T-195-17).
  */
 export function committedCellIds(): string[] {
-  if (!existsSync(scorecardsDir)) return [];
-  return readdirSync(scorecardsDir)
+  const { scorecardsDir } = currentOperatorSurfacePaths();
+  if (!existsSync(scorecardsDir)) {
+    throw new Error(
+      `Committed critic scorecards are unavailable.\nResolved path: ${scorecardsDir}\n` +
+        `repository-only: true\nRecovery: npm run capture:tier-a`,
+    );
+  }
+  const cellIds = readdirSync(scorecardsDir)
     .filter((f) => f.endsWith(".json"))
     .map((f) => f.replace(/\.json$/, ""));
+  if (cellIds.length === 0) {
+    throw new Error(
+      `Committed critic scorecards are empty.\nResolved path: ${scorecardsDir}\n` +
+        `repository-only: true\nRecovery: npm run capture:tier-a`,
+    );
+  }
+  return cellIds;
 }
 
 /**
@@ -90,6 +102,7 @@ export function committedCellIds(): string[] {
  * Throws if the cell is not in the ledger (T-195-17 path traversal guard).
  */
 export function validateCellId(cellId: string): void {
+  const { scorecardsDir } = currentOperatorSurfacePaths();
   const allowed = committedCellIds();
   if (!allowed.includes(cellId)) {
     throw new Error(
@@ -222,11 +235,16 @@ export async function loadBundle(cellId: string): Promise<ScorecardBundle> {
   // Security guard: validate before any path construction (T-195-17)
   validateCellId(cellId);
 
-  const scorecardPath = resolve(scorecardsDir, `${cellId}.json`);
-  const scorecard = JSON.parse(readFileSync(scorecardPath, "utf8")) as ScorecardJson;
+  const { repositoryRoot, scorecardsDir } = currentOperatorSurfacePaths();
+  const scorecardPath = resolveContainedPath(scorecardsDir, `${cellId}.json`);
+  const scorecard = readRequiredJson<ScorecardJson>(scorecardPath, {
+    dataset: `critic scorecard ${cellId}`,
+    repositoryOnly: true,
+    recoveryCommand: "npm run capture:tier-a",
+  });
 
   // Screenshot: path in scorecard is a relative repo path
-  const screenshotPath = resolve(repoRoot, scorecard.artifacts.screenshot);
+  const screenshotPath = resolveContainedPath(repositoryRoot, scorecard.artifacts.screenshot);
   if (!existsSync(screenshotPath)) {
     throw new Error(
       `Screenshot not found for cell ${cellId}: ${screenshotPath}\n` +
@@ -239,7 +257,7 @@ export async function loadBundle(cellId: string): Promise<ScorecardBundle> {
   // Aria snapshot (band-2 only; may be null)
   let ariaSnapshot: string | null = null;
   if (scorecard.artifacts.aria) {
-    const ariaPath = resolve(repoRoot, scorecard.artifacts.aria);
+    const ariaPath = resolveContainedPath(repositoryRoot, scorecard.artifacts.aria);
     if (existsSync(ariaPath)) {
       ariaSnapshot = readFileSync(ariaPath, "utf8");
     }
@@ -253,6 +271,6 @@ export async function loadBundle(cellId: string): Promise<ScorecardBundle> {
     screenshotBase64,
     ariaSnapshot,
     mechanicalLines,
-    repoRoot,
+    repoRoot: repositoryRoot,
   };
 }

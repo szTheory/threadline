@@ -21,6 +21,7 @@ export interface OperatorSurfacePaths {
   readonly repositoryRoot: string;
   readonly e2eRoot: string;
   readonly criticRubricsDir: string;
+  readonly tierAArtifactsDir: string;
   readonly fixtureRoot: string;
   readonly ledgerPath: string;
   readonly scorecardsDir: string;
@@ -28,6 +29,10 @@ export interface OperatorSurfacePaths {
   readonly refuteDir: string;
   readonly generatedRoot: string;
   readonly criticScoresDir: string;
+  readonly verdictCacheDir: string;
+  readonly critiqueReportPath: string;
+  readonly criticReportHtmlPath: string;
+  readonly criticFloorsPath: string;
 }
 
 export interface OperatorSurfaceRootOverrides {
@@ -77,6 +82,7 @@ export function resolveOperatorSurfacePaths(
   const generatedRoot = canonicalizeExistingParent(
     overrides.outputRoot ?? resolve(repositoryRoot, ".planning/critic-scores"),
   );
+  const generatedParent = dirname(generatedRoot);
 
   const ledgerPath = resolve(fixtureRoot, "design-system-ledger.json");
   const scorecardsDir = resolve(fixtureRoot, "scorecards");
@@ -88,6 +94,7 @@ export function resolveOperatorSurfacePaths(
     repositoryRoot,
     e2eRoot: resolve(repositoryRoot, "examples/threadline_phoenix/e2e"),
     criticRubricsDir: resolve(repositoryRoot, "examples/threadline_phoenix/e2e/critic/rubrics"),
+    tierAArtifactsDir: resolve(repositoryRoot, "examples/threadline_phoenix/e2e/artifacts/tier-a"),
     fixtureRoot,
     ledgerPath,
     scorecardsDir,
@@ -95,6 +102,10 @@ export function resolveOperatorSurfacePaths(
     refuteDir,
     generatedRoot,
     criticScoresDir: generatedRoot,
+    verdictCacheDir: resolve(generatedParent, "critic-verdict-cache"),
+    critiqueReportPath: resolve(generatedParent, "CRITIQUE.md"),
+    criticReportHtmlPath: resolve(generatedParent, "critic-report.html"),
+    criticFloorsPath: resolve(generatedParent, "critic-floors.json"),
   });
 }
 
@@ -239,7 +250,20 @@ export function readRequiredJson<T = unknown>(
   }
 }
 
-export const DEFAULT_OPERATOR_SURFACE_PATHS = resolveOperatorSurfacePaths();
+const processRootOverrides = parseOperatorSurfaceRootFlags(process.argv.slice(2)).overrides;
+export const DEFAULT_OPERATOR_SURFACE_PATHS = resolveOperatorSurfacePaths(processRootOverrides);
+let activeOperatorSurfacePaths = DEFAULT_OPERATOR_SURFACE_PATHS;
+
+export function configureOperatorSurfacePaths(
+  overrides: OperatorSurfaceRootOverrides,
+): Readonly<OperatorSurfacePaths> {
+  activeOperatorSurfacePaths = resolveOperatorSurfacePaths(overrides);
+  return activeOperatorSurfacePaths;
+}
+
+export function currentOperatorSurfacePaths(): Readonly<OperatorSurfacePaths> {
+  return activeOperatorSurfacePaths;
+}
 export const IMMUTABLE_EVIDENCE_ROOTS = Object.freeze([
   DEFAULT_OPERATOR_SURFACE_PATHS.ledgerPath,
   DEFAULT_OPERATOR_SURFACE_PATHS.scorecardsDir,

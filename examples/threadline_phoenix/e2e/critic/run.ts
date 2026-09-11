@@ -34,6 +34,7 @@ import { guardBeforePole } from "./gate.js";
 import { MODEL_ID, SCHEMA_VERSION, type LensName } from "./schema.js";
 import { generateReport } from "./report.js";
 import {
+  configureOperatorSurfacePaths,
   parseOperatorSurfaceRootFlags,
   readRequiredJson,
   resolveOperatorSurfacePaths,
@@ -43,6 +44,24 @@ let operatorPaths = resolveOperatorSurfacePaths();
 let goldenSetPath = resolve(operatorPaths.goldenDir, "golden-set.json");
 let syntheticSetPath = resolve(operatorPaths.goldenDir, "synthetic-set.json");
 let rubricDir = operatorPaths.criticRubricsDir;
+
+function printResolvedPath(argv: string[]): void {
+  const rootFlags = parseOperatorSurfaceRootFlags(argv);
+  const resolvedPaths = configureOperatorSurfacePaths(rootFlags.overrides);
+  const key = rootFlags.rest[0];
+  const selected = {
+    "repository-root": resolvedPaths.repositoryRoot,
+    "e2e-root": resolvedPaths.e2eRoot,
+    "verdict-cache": resolvedPaths.verdictCacheDir,
+  }[key ?? ""];
+
+  if (!selected) {
+    throw new Error(
+      `Unknown path key ${JSON.stringify(key)}. Expected repository-root, e2e-root, or verdict-cache.`,
+    );
+  }
+  console.log(selected);
+}
 
 // Pinned constants
 export { MODEL_ID, SCHEMA_VERSION };
@@ -508,6 +527,10 @@ async function runScore(argv: string[]): Promise<void> {
 const [subcommand, ...rest] = process.argv.slice(2);
 
 switch (subcommand) {
+  case "paths":
+    printResolvedPath(rest);
+    break;
+
   case "score":
     await runScore(rest);
     break;

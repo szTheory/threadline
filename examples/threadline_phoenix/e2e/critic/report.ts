@@ -1,9 +1,9 @@
 /**
- * report.ts — CRITIQUE.md projection from .planning/critic-scores/ (D-08, Plan 07).
+ * report.ts — CRITIQUE.md projection from generated critic scores (D-08, Plan 07).
  *
  * Invoked via `run.ts report` or automatically at the end of `run.ts score`.
- * Reads .planning/critic-scores/<cell_id>/<lens>/<dimension>.json files.
- * Generates .planning/CRITIQUE.md — never hand-edited.
+ * Reads <cell_id>/<lens>/<dimension>.json files from the generated score root.
+ * Generates the adapter-owned critique projection — never hand-edited.
  *
  * Report structure:
  *   - Legend (symbol+word+reason; not color-only — survives grep/screen-readers/monochrome)
@@ -30,20 +30,20 @@
 import {
   existsSync,
   readdirSync,
-  readFileSync,
   statSync,
-  writeFileSync,
 } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { scoreToBand, type LensName } from "./schema.js";
+import {
+  atomicWriteFile,
+  DEFAULT_OPERATOR_SURFACE_PATHS,
+  readRequiredJson,
+} from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-// critic/ → e2e/ → threadline_phoenix/ → examples/ → repo root
-export const repoRoot = resolve(here, "../../../..");
-export const criticScoresDir = resolve(repoRoot, ".planning/critic-scores");
-const critiqueOutputPath = resolve(repoRoot, ".planning/CRITIQUE.md");
-const floorsPath = resolve(repoRoot, ".planning/critic-floors.json");
+export const repoRoot = DEFAULT_OPERATOR_SURFACE_PATHS.repositoryRoot;
+export const criticScoresDir = DEFAULT_OPERATOR_SURFACE_PATHS.criticScoresDir;
+const critiqueOutputPath = DEFAULT_OPERATOR_SURFACE_PATHS.critiqueReportPath;
+const floorsPath = DEFAULT_OPERATOR_SURFACE_PATHS.criticFloorsPath;
 
 export const ALL_LENSES: LensName[] = [
   "hierarchy",
@@ -94,11 +94,11 @@ export type FloorMap = Record<string, Record<string, number>>;
 
 export function readFloors(): FloorMap {
   if (!existsSync(floorsPath)) return {};
-  try {
-    return JSON.parse(readFileSync(floorsPath, "utf8")) as FloorMap;
-  } catch {
-    return {};
-  }
+  return readRequiredJson<FloorMap>(floorsPath, {
+    dataset: "critic score floors",
+    repositoryOnly: false,
+    recoveryCommand: "npm run critic:score",
+  });
 }
 
 // ─── Score aggregation ───────────────────────────────────────────────────────
@@ -124,11 +124,11 @@ export function readCellLensScores(
 
     const dims: DimScoreFile[] = [];
     for (const dimPath of dimFiles) {
-      try {
-        dims.push(JSON.parse(readFileSync(dimPath, "utf8")) as DimScoreFile);
-      } catch {
-        // ignore malformed files
-      }
+      dims.push(readRequiredJson<DimScoreFile>(dimPath, {
+        dataset: "generated critic dimension score",
+        repositoryOnly: false,
+        recoveryCommand: "npm run critic:score -- --force",
+      }));
     }
 
     if (dims.length === 0) continue;
@@ -276,8 +276,8 @@ function formatRollupCell(
 // ─── Report generation ───────────────────────────────────────────────────────
 
 /**
- * Generate the CRITIQUE.md projection from .planning/critic-scores/.
- * Writes to .planning/CRITIQUE.md and returns the number of scored cells.
+ * Generate the critique projection from the adapter-owned critic-score root.
+ * Writes to the adapter-owned report path and returns the number of scored cells.
  * Never hand-edit the output — call this function to regenerate.
  */
 export function generateReport(): number {
@@ -336,7 +336,7 @@ export function generateReport(): number {
 
 # CRITIQUE.md — Adversarial Critic Projection
 
-> Generated from \`.planning/critic-scores/\` by \`report.ts\`.
+> Generated from the configured critic-score root by \`report.ts\`.
 > Never hand-edit — regenerate with \`npm run critic:score\`.
 > Freshness-tested: every scored cell must have a row here (see \`critic_trust_test.exs\`).
 
@@ -388,7 +388,7 @@ ${tableRows.join("\n")}${emptyNote}
 No production data. Opt-in via \`ANTHROPIC_API_KEY\`. See CONTRIBUTING.md "Local-only critic" section.*
 `;
 
-  writeFileSync(critiqueOutputPath, content, "utf8");
+  atomicWriteFile(critiqueOutputPath, content);
   return cells.length;
 }
 

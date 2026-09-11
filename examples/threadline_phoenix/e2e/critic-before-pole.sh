@@ -13,10 +13,11 @@
 set -euo pipefail
 
 E2E_DIR="$(cd "$(dirname "$0")" && pwd)"
-EXAMPLE="$(cd "$E2E_DIR/.." && pwd)"
-ROOT="$(cd "$EXAMPLE/../.." && pwd)"
+if [[ -f "$E2E_DIR/package-lock.json" ]]; then npm --prefix "$E2E_DIR" ci; else npm --prefix "$E2E_DIR" install; fi
+ROOT="$(cd "$E2E_DIR" && npm --silent exec -- tsx critic/run.ts paths repository-root)"
+EXAMPLE="$ROOT/examples/threadline_phoenix"
 LOG_FILE="${TMPDIR:-/tmp}/threadline_phoenix_before_pole.log"
-CACHE_DIR="$ROOT/.planning/critic-verdict-cache"
+CACHE_DIR="$(cd "$E2E_DIR" && npm --silent exec -- tsx critic/run.ts paths verdict-cache)"
 HOST="${E2E_HOST:-127.0.0.1}"
 CAPTURE_ONLY=0
 [[ "${1:-}" == "--capture-only" ]] && CAPTURE_ONLY=1
@@ -66,7 +67,6 @@ mix demo.reset
 mix demo.seed
 
 cd "$E2E_DIR"
-if [[ -f package-lock.json ]]; then npm ci; else npm install; fi
 npx playwright install chromium
 
 PHX_PID=""

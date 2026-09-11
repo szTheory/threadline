@@ -22,18 +22,19 @@ import {
   existsSync,
   readdirSync,
   readFileSync,
-  writeFileSync,
 } from "node:fs";
 import { createHash } from "node:crypto";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import type { LensName } from "./schema.js";
+import {
+  atomicWriteFile,
+  DEFAULT_OPERATOR_SURFACE_PATHS,
+  readRequiredJson,
+} from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-const rubricDir = resolve(here, "rubrics");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
-const ledgerPath = resolve(repoRoot, ".planning/design-system-ledger.json");
+const rubricDir = DEFAULT_OPERATOR_SURFACE_PATHS.criticRubricsDir;
+const scorecardsDir = DEFAULT_OPERATOR_SURFACE_PATHS.scorecardsDir;
+const ledgerPath = DEFAULT_OPERATOR_SURFACE_PATHS.ledgerPath;
 
 const ALL_LENSES: LensName[] = [
   "hierarchy",
@@ -372,22 +373,20 @@ function bumpRubric(
   // Read critic_trust block from ledger to compute blast radius
   let trustN = 0;
   let trustValidated = false;
-  if (existsSync(ledgerPath)) {
-    try {
-      const ledger = JSON.parse(readFileSync(ledgerPath, "utf8")) as {
-        critic_trust?: Record<
-          string,
-          { n?: number; validated?: boolean; golden_rubric_version?: string }
-        >;
-      };
-      const trust = ledger.critic_trust?.[lens];
-      if (trust) {
-        trustN = trust.n ?? 0;
-        trustValidated = trust.validated ?? false;
-      }
-    } catch {
-      // ignore ledger parse errors
-    }
+  const ledger = readRequiredJson<{
+    critic_trust?: Record<
+      string,
+      { n?: number; validated?: boolean; golden_rubric_version?: string }
+    >;
+  }>(ledgerPath, {
+    dataset: "operator design-system ledger",
+    repositoryOnly: true,
+    recoveryCommand: "npm run critic:check",
+  });
+  const trust = ledger.critic_trust?.[lens];
+  if (trust) {
+    trustN = trust.n ?? 0;
+    trustValidated = trust.validated ?? false;
   }
 
   console.log("\n  Invalidation blast radius:");
@@ -435,7 +434,7 @@ function bumpRubric(
   }
 
   // ── Write updated rubric ──────────────────────────────────────────────────
-  writeFileSync(rubricPath, finalContent, "utf8");
+  atomicWriteFile(rubricPath, finalContent);
 
   console.log(`\n  Written: ${rubricPath}`);
   console.log(`  Commit: git add ${rubricPath} && git commit -m 'chore: bump rubric ${newVersionStr}'`);

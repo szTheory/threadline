@@ -28,8 +28,7 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import type Anthropic from "@anthropic-ai/sdk";
 import type { ScorecardJson, ScorecardBundle } from "./bundle.js";
 import { loadBundle } from "./bundle.js";
@@ -38,9 +37,9 @@ import { buildPrompt } from "./prompt.js";
 import { writeCriticScore } from "./scorecard.js";
 import { lookupCache, writeCache, sha8OfFile } from "./cache.js";
 import { MODEL_ID, type LensName, type BandName } from "./schema.js";
+import { DEFAULT_OPERATOR_SURFACE_PATHS } from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const rubricDir = resolve(here, "rubrics");
+const rubricDir = DEFAULT_OPERATOR_SURFACE_PATHS.criticRubricsDir;
 
 // ─── Critic→Lens Map (D-06, 14 lens-cells/page) ─────────────────────────────
 
@@ -407,7 +406,7 @@ async function scoreOneDimension(
   const strata = buildPrompt(lens, dimension, persona, bundle);
   const result = await runNSamples(client, strata, lens);
 
-  // Write stamped output to .planning/critic-scores/ (NEVER .planning/scorecards/)
+  // Write stamped output to the generated critic-score root, never committed scorecards.
   writeCriticScore({
     cellId,
     lens,
@@ -546,7 +545,7 @@ export interface RunPanelOptions {
  * Run the full 7-critic panel for a single capture cell (RUNNER-03).
  *
  * Pipeline:
- *   (1) Load scorecard bundle from .planning/scorecards/
+ *   (1) Load scorecard bundle from the adapter-owned scorecard root
  *   (2) Run veto pipeline ($0, deterministic)
  *       → On veto: return vetoed PanelCellResult immediately (no aesthetic calls)
  *   (3) No veto: fan out vision calls in this order (pre-warm pattern):

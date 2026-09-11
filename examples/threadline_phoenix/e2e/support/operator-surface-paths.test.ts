@@ -183,7 +183,7 @@ test("critic readers share the adapter without independent planning or cwd roots
     "utf8",
   );
   assert.match(shellSource, /critic\/run\.ts paths/);
-  assert.doesNotMatch(shellSource, /\.planning|CACHE_DIR=/);
+  assert.doesNotMatch(shellSource, /\.planning|CACHE_DIR="\$ROOT/);
   assert.deepEqual(offenders, []);
 });
 
