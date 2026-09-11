@@ -212,6 +212,35 @@ test("graded capture uses contained generated targets without redirecting snapsh
   );
 });
 
+test("every remaining capture consumer shares contained paths and immutable snapshots", async () => {
+  const testsRoot = resolve(
+    expectedRepositoryRoot,
+    "examples/threadline_phoenix/e2e/tests",
+  );
+  const captureWriters = [
+    "operator-page-capture.spec.ts",
+    "operator-storybook-capture.spec.ts",
+    "operator-tier-a-capture.spec.ts",
+  ] as const;
+  const consumers = [...captureWriters, "operator-stress.spec.ts"] as const;
+
+  for (const filename of consumers) {
+    const source = await readFile(resolve(testsRoot, filename), "utf8");
+    assert.match(source, /operator-surface-paths\.js/, `${filename}: adapter import`);
+    assert.match(source, /resolveContainedPath/, `${filename}: contained targets`);
+    assert.doesNotMatch(source, /process\.cwd\(|\.planning\//, `${filename}: local path authority`);
+  }
+
+  for (const filename of captureWriters) {
+    const source = await readFile(resolve(testsRoot, filename), "utf8");
+    assert.match(source, /atomicWriteFile/, `${filename}: atomic evidence replacement`);
+    assert.doesNotMatch(source, /writeFileSync/, `${filename}: direct evidence write`);
+  }
+
+  const stressSource = await readFile(resolve(testsRoot, "operator-stress.spec.ts"), "utf8");
+  assert.match(stressSource, /tests\/operator-stress\.spec\.ts-snapshots/);
+});
+
 test("rejects traversal, absolute escape, prefix confusion, and symlink escape", async () => {
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
