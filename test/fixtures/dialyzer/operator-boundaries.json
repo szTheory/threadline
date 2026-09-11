@@ -7,7 +7,9 @@
   },
   "authorized_origins": [
     "lib/threadline/operator_surface/auth.ex",
-    "lib/threadline/plug.ex"
+    "lib/threadline/operator_surface/presentation.ex",
+    "lib/threadline/plug.ex",
+    "lib/threadline/policy/redaction_presenter.ex"
   ],
   "warnings": [
     {
@@ -42,6 +44,50 @@
       "raw_line": "{:warn_matching, {~c\"lib/threadline/plug.ex\", {114, 8}}, {:pattern_match_cov, [~c\"variable _ip@1\", ~c\"{byte(),byte(),byte(),byte()} | {char(),char(),char(),char(),char(),char(),char(),char()}\"]}}",
       "disposition": "fixed",
       "evidence": "Keep only tuple-shaped remote address formatting, which covers Plug.Conn IPv4 and IPv6 values."
+    },
+    {
+      "id": "W27",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/operator_surface/presentation.ex",
+        "line": 136
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/operator_surface/presentation.ex\", 136}, {:guard_fail, [~c\"_@1::binary()\", ~c\"=:=\", ~c\"'nil'\"]}}",
+      "disposition": "fixed",
+      "evidence": "Keep trailing-value truncation on the binary produced by the shared reference formatter without impossible nil coalescing."
+    },
+    {
+      "id": "W28",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/operator_surface/presentation.ex",
+        "line": 147
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/operator_surface/presentation.ex\", 147}, {:guard_fail, [~c\"_@1::binary()\", ~c\"=:=\", ~c\"'nil'\"]}}",
+      "disposition": "fixed",
+      "evidence": "Keep email truncation on the binary produced by the shared reference formatter without impossible nil coalescing."
+    },
+    {
+      "id": "W29",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/operator_surface/presentation.ex",
+        "line": 166
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/operator_surface/presentation.ex\", 166}, {:guard_fail, [~c\"_@1::binary()\", ~c\"=:=\", ~c\"'nil'\"]}}",
+      "disposition": "fixed",
+      "evidence": "Keep URL truncation on the binary produced by the shared reference formatter without impossible nil coalescing."
+    },
+    {
+      "id": "W32",
+      "class": "warn_matching",
+      "origin": {
+        "path": "lib/threadline/policy/redaction_presenter.ex",
+        "line": 489
+      },
+      "raw_line": "{:warn_matching, {~c\"lib/threadline/policy/redaction_presenter.ex\", {489, 8}}, {:pattern_match_cov, [~c\"variable _\", ~c\"'ambiguous_changed_from_mask' | 'ambiguous_fragment_repetition' | 'ambiguous_mask_placeholder' | 'ambiguous_masking' | 'changed_from_mask_mismatch' | 'unexpected_function_name' | 'unexpected_function_shape' | 'unexpected_mask_columns_fragment' | 'unexpected_mask_fragment'\"]}}",
+      "disposition": "fixed",
+      "evidence": "Remove the unreachable catchall after preserving explicit presentation clauses for every parser reason."
     }
   ],
   "post_analysis": {
