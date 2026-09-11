@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "slice": "critic-tooling",
+  "sealed_run": {
+    "output_sha256": "12c1164ae38a943a738b339d2758e866c51b284444480585e80d5d591169c3e6",
+    "warning_count": 40
+  },
+  "authorized_origins": [
+    "lib/threadline/critic_trust/measure.ex"
+  ],
+  "warnings": [
+    {
+      "id": "W05",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/critic_trust/measure.ex",
+        "line": 94
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/critic_trust/measure.ex\", {94, 11}}, {:unmatched_return, [~c\"{\\#{'next':=fun((_) -> {non_neg_integer(),_}), 'type':=atom(), 'bits'=>non_neg_integer(), 'jump'=>fun(({\\#{'type':=_, _=>_},_}) -> {\\#{'type':=_, _=>_},_}), 'max'=>non_neg_integer(), 'uniform'=>fun(({\\#{'type':=_, _=>_},_}) -> {float(),{\\#{'type':=_, _=>_},_}}), 'uniform_n'=>fun((pos_integer(),{\\#{'type':=_, _=>_},_}) -> {pos_integer(),{\\#{'type':=_, _=>_},_}}), 'weak_low_bits'=>non_neg_integer()},_}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Explicitly consume the :rand.seed/2 return while preserving the existing seed tuple and generator algorithm."
+    }
+  ],
+  "post_analysis": {
+    "command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
+    "authorized_output_sha256": "d216cdbd67a500c7cec6f4e8b12dc6faeaf83d0910bcdb306f1ef51445c0ee39"
+  }
+}
