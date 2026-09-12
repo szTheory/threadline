@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 200
 current_phase_name: Public Surface
 status: executing
-stopped_at: Phase 200 context gathered
-last_updated: "2026-09-12T06:57:25.271Z"
-last_activity: 2026-09-11
-last_activity_desc: Phase 199 complete, transitioned to Phase 200
-state_head: a43f19fe1fc292df03b401fe79a29fd6d7cbc01f
+stopped_at: Completed 200-01-PLAN.md
+last_updated: "2026-09-12T07:13:30.662Z"
+last_activity: 2026-09-12
+last_activity_desc: Phase 200 execution started
+state_head: a44f7ff246c34f673e5917b64683178808f3bffa
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 105
-  completed_plans: 87
+  completed_plans: 88
   percent: 29
 ---
 
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-11 after Phase 199)
 
 ## Current Position
 
-Phase: 200 (Public Surface) — READY TO EXECUTE
-Plan: Not started
+Phase: 200 (Public Surface) — EXECUTING
+Plan: 2 of 18
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -43,7 +43,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-11 — Phase 199 complete, transitioned to Phase 200
+Last activity: 2026-09-12 — Phase 200 execution started
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -130,6 +130,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 199 P20 | 17 min | 2 tasks | 2 files |
 | Phase 199 P14 | 34min | 3 tasks | 4 files |
 | Phase 199 P21 | 1h 8m | 2 tasks | 10 files |
+| Phase 200 P01 | 12min | 3 tasks | 5 files |
 
 ## Deferred Items
 
@@ -612,6 +613,9 @@ Progress: [████████████████████] 87/87 p
 - [Phase 199]: Plan 199-21 certifies only an exact committed SHA in a no-local clone with .planning physically absent.
 - [Phase 199]: Planning quarantine restoration always precedes recursive cleanup delegated solely to bin/safe-temp-tree.
 - [Phase 199]: The planning-free aggregate preserves the committed dev-Dialyzer and desktop/mobile Chromium CI topology.
+- [Phase 200]: Public-surface gates derive inventories from AST, compiled docs, Mix configuration, and the unpacked Hex artifact; classifications are exact, disjoint, and non-vacuous. — Prevents accidental compatibility promises and vacuous release gates.
+- [Phase 200]: Later Phase 200 plans own bounded red tags; full public-document and archive scans remain final-only aggregates. — Allows independently reviewable slices without weakening the complete consumer artifact gate.
+- [Phase 200]: The optional path/1 regression captures UndefinedFunctionError as an assertion value. — Proves the intended missing-callback behavior gap rather than accepting a fixture or load crash as RED.
 
 ### Blockers
 
@@ -619,9 +623,9 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-12T02:31:29.426Z
-**Stopped at:** Phase 200 context gathered
-**Resume file:** .planning/phases/200-public-surface/200-CONTEXT.md
+**Last session:** 2026-09-12T07:13:30.517Z
+**Stopped at:** Completed 200-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
