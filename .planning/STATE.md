@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 200
 current_phase_name: Public Surface
 status: executing
-stopped_at: Completed 200-12-PLAN.md
-last_updated: "2026-09-12T11:58:53.045Z"
+stopped_at: Completed 200-13-PLAN.md
+last_updated: "2026-09-12T12:04:30.961Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 200 execution started
-state_head: 57478afd7021bc70c2fbd5192b5417837dfb52e8
+state_head: 5b39e4c38d1491efe30be2f2a7b0b5b13e74fdf8
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 105
-  completed_plans: 103
+  completed_plans: 104
   percent: 29
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-11 after Phase 199)
 ## Current Position
 
 Phase: 200 (Public Surface) — EXECUTING
-Plan: 12 of 18
+Plan: 13 of 18
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -141,6 +141,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 200 P16 | 32min | 2 tasks | 9 files |
 | Phase 200 P17 | 12min | 2 tasks | 10 files |
 | Phase 200 P12 | 41min | 2 tasks | 8 files |
+| Phase 200 P13 | 5min | 2 tasks | 2 files |
 
 ## Deferred Items
 
@@ -653,6 +654,9 @@ Progress: [████████████████████] 87/87 p
 - [Phase 200]: Plan 200-12: Integration docs name supported public facades and observable outcomes, not hidden implementation modules.
 - [Phase 200]: Plan 200-12: Repository-local external resources resolve as links without becoming nodes in the exact 18-guide graph.
 - [Phase 200]: Plan 200-12: Package exactly the two theme-aware README logos and copy them through native ExDoc assets.
+- [Phase 200]: Ordinary contributors see the complete issue-to-PR path before specialized test and maintainer reference material.
+- [Phase 200]: Missing audit table guidance explains the local-state cause and delegates recovery commands to Local Docker DX.
+- [Phase 200]: Generated PostgreSQL triggers installed through host-owned Ecto migrations are the shipped capture boundary.
 
 ### Blockers
 
@@ -660,8 +664,8 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-12T11:58:52.893Z
-**Stopped at:** Completed 200-12-PLAN.md
+**Last session:** 2026-09-12T12:04:30.810Z
+**Stopped at:** Completed 200-13-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

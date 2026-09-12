@@ -49,9 +49,9 @@
 - [x] **SURFACE-05**: `DESIGN-SYSTEM.md` and the reference-app README are reachable from HexDocs.
 - [x] **SURFACE-06**: Every guide has at least one outbound link and one inbound link other than the README, and no relative link between docs is broken.
 - [x] **SURFACE-07**: Every module, mix alias, and `:threadline` config key referenced by public docs exists, and every supported config key and alias is documented somewhere public.
-- [ ] **SURFACE-08**: A contributor who hits the `(undefined_table) relation "audit_changes" does not exist` error finds the fix by searching the error string in the repository's own docs.
+- [x] **SURFACE-08**: A contributor who hits the `(undefined_table) relation "audit_changes" does not exist` error finds the fix by searching the error string in the repository's own docs.
 - [x] **SURFACE-09**: Install instructions, operator-surface overview, and local Docker setup each have one canonical home, with other mentions pointing to it.
-- [ ] **SURFACE-10**: `CONTRIBUTING.md` describes a contributor workflow that requires no knowledge of `.planning/`.
+- [x] **SURFACE-10**: `CONTRIBUTING.md` describes a contributor workflow that requires no knowledge of `.planning/`.
 - [ ] **SURFACE-11**: The repository provides a pull-request template, issue templates, a security policy, and a code of conduct.
 
 ### Rendered Output
@@ -167,9 +167,9 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | SURFACE-05 | Phase 200 | Complete |
 | SURFACE-06 | Phase 200 | Complete |
 | SURFACE-07 | Phase 200 | Complete |
-| SURFACE-08 | Phase 200 | Pending |
+| SURFACE-08 | Phase 200 | Complete |
 | SURFACE-09 | Phase 200 | Complete |
-| SURFACE-10 | Phase 200 | Pending |
+| SURFACE-10 | Phase 200 | Complete |
 | SURFACE-11 | Phase 200 | Pending |
 | RENDER-01 | Phase 201 | Pending |
 | RENDER-02 | Phase 201 | Pending |

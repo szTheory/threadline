@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 56
+open_count: 57
 waived_count: 0
 fixed_count: 4
-total_count: 60
-last_updated: 2026-09-12T11:57:18.005Z
+total_count: 61
+last_updated: 2026-09-12T12:02:55.570Z
 ---
 
 # Broken Windows Ledger
@@ -75,6 +75,7 @@ last_updated: 2026-09-12T11:57:18.005Z
 | 58 | 200 | deviation | test/threadline/guide_graph_contract_test.exs |  | Guide graph resolver omitted repository-local resources and underscores in normalized anchors | fixed |  | 2026-09-12T11:57:02.663Z | 2026-09-12T11:57:17.853Z |
 | 59 | 200 | deviation | guides/getting-started-saas.md |  | Adopt landing omitted three assigned guide routes required by the exact graph | fixed |  | 2026-09-12T11:57:02.743Z | 2026-09-12T11:57:17.929Z |
 | 60 | 200 | deviation | mix.exs |  | Generated ExDoc did not ship the README theme-aware logo assets | fixed |  | 2026-09-12T11:57:02.821Z | 2026-09-12T11:57:18.005Z |
+| 61 | 200 | unrun-verify | lib/threadline/operator_surface/mechanical_checker.ex | 729 | Repository-wide verify.format is blocked by a pre-existing formatting defect from Plan 200-16; Plan 200-13 owned files pass format checks | open |  | 2026-09-12T12:02:55.570Z |  |
 
 ````json
 [
@@ -831,6 +832,19 @@ last_updated: 2026-09-12T11:57:18.005Z
     "reason": "",
     "recorded_at": "2026-09-12T11:57:02.821Z",
     "resolved_at": "2026-09-12T11:57:18.005Z",
+    "milestone": "v1.41"
+  },
+  {
+    "id": 61,
+    "kind": "unrun-verify",
+    "phase": "200",
+    "file": "lib/threadline/operator_surface/mechanical_checker.ex",
+    "line": 729,
+    "description": "Repository-wide verify.format is blocked by a pre-existing formatting defect from Plan 200-16; Plan 200-13 owned files pass format checks",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-12T12:02:55.570Z",
+    "resolved_at": null,
     "milestone": "v1.41"
   }
 ]
