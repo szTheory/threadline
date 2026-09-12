@@ -130,8 +130,7 @@ Threadline repository.
 | `mix test.reset` | Recreate the root test database before running setup. |
 | `mix ci.all` | Run the complete local equivalent of the required CI gates. |
 
-`mix threadline.verify_topology`, implemented by
-`Mix.Tasks.Threadline.VerifyTopology`, is also repository-only. It requires the
+**mix threadline.verify_topology** is also repository-only. It requires the
 repository's PgBouncer test topology and is not part of the adopter command
 contract.
 
@@ -141,11 +140,11 @@ The following tools are shipped from source today but are not supported adopter
 or contributor interfaces. They operate on maintainer evidence, local
 credentials, or a repository-specific capture corpus:
 
-- `mix critic.measure` (`Mix.Tasks.Critic.Measure`)
-- `mix critic.synth` (`Mix.Tasks.Critic.Synth`)
+- **mix critic.measure**
+- **mix critic.synth**
 - `mix verify.ui_critique`
 - `mix verify.capture`
-- `mix verify.phase177_uat`
+- `mix verify.operator_component_contracts`
 
 There are no additional internal Mix tasks or aliases in the current source
 inventory. Adding a task or alias requires placing it in exactly one of these

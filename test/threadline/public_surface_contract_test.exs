@@ -409,7 +409,11 @@ defmodule Threadline.PublicSurfaceContractTest do
     maintainer =
       Enum.filter(
         aliases,
-        &(&1 in ["verify.ui_critique", "verify.capture", "verify.phase177_uat"])
+        &(&1 in [
+            "verify.ui_critique",
+            "verify.capture",
+            "verify.operator_component_contracts"
+          ])
       )
 
     repository = MapSet.to_list(aliases) -- maintainer
@@ -587,10 +591,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     ]
 
   defp reference_subjects(:public_doc_refs_external_design) do
-    [
-      {"DESIGN-SYSTEM.md", File.read!("DESIGN-SYSTEM.md")},
-      {"example README", File.read!("examples/threadline_phoenix/README.md")}
-    ]
+    [{"DESIGN-SYSTEM.md", File.read!("DESIGN-SYSTEM.md")}]
   end
 
   defp reference_subjects(:public_doc_refs_example),

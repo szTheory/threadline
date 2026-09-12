@@ -37,7 +37,7 @@ defmodule Threadline.MixProject do
       # Support contract: Elixir 1.15 floor / 1.17.3 current, OTP 26 min / 27 current,
       # PostgreSQL 14 min / 16 current. The floor is honored by the CI `min` lane (full
       # suite on 1.15/OTP26/PG14) — NOT by raising this requirement. Do not bump "~> 1.15"
-      # to a newer minor: that would strand 1.15 adopters (D-14).
+      # to a newer minor: that would strand applications on the supported floor.
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -121,23 +121,24 @@ defmodule Threadline.MixProject do
       "verify.example_browser": &verify_example_browser/1,
       "verify.example_browser_light": &verify_example_browser_light/1,
       "verify.operator_stress": &verify_operator_stress/1,
-      # Deterministic mechanical gate (Phase 194, MECH-03). Pure-Elixir arithmetic over
+      # Deterministic mechanical gate. Pure-Elixir arithmetic over
       # the committed Tier A scorecard JSON — NO browser, NO network, NO LLM. A MODE-A
       # violation or MODE-B ratchet regression blocks the change. Folded into ci.all
       # BEFORE verify.example_browser (fail fast, no browser cost).
       "verify.mechanical": ["test test/threadline/operator_surface/mechanical_checker_test.exs"],
-      # Critic trust gate (Phase 195, CRITIC-03). Pure-Elixir guard over the committed
+      # Critic trust gate. Pure-Elixir guard over the committed
       # design-system-ledger.json critic_trust block and golden-set.json — NO browser,
       # NO network, NO LLM. Asserts validated lenses meet the bar; seeds validated:false
-      # until Plan 04 lands the real α gate. Folded into ci.all BEFORE verify.mechanical.
+      # until the committed oracle cohort satisfies the rank-based trust bar. Folded into
+      # ci.all BEFORE verify.mechanical.
       "verify.critic_trust": ["test test/threadline/operator_surface/critic_trust_test.exs"],
-      # Local-only adversarial critic runner (Phase 195, RUNNER-04). Requires ANTHROPIC_API_KEY
+      # Local-only adversarial critic runner. Requires ANTHROPIC_API_KEY
       # (maintainer-local only — never committed, never in CI). Excluded from ci.all (same
       # precedent as verify.flake). When ANTHROPIC_API_KEY is absent, exits 0 with a skip
       # message so contributors without a key are unaffected. See CONTRIBUTING.md.
       "verify.ui_critique": &verify_ui_critique/1,
       "verify.capture": &verify_capture/1,
-      "verify.phase177_uat": &verify_phase177_uat/1,
+      "verify.operator_component_contracts": &verify_operator_component_contracts/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
@@ -145,17 +146,17 @@ defmodule Threadline.MixProject do
       # uses a fresh seed). Opt-in / nightly — not part of `ci.all` so per-PR CI
       # stays fast. See the "Deterministic tests" section in CONTRIBUTING.md.
       "verify.flake": ["test --repeat-until-failure 50"],
-      # Prepare a fresh clone's test environment, then run the suite (Phase 198, D-04).
+      # Prepare a fresh clone's test environment, then run the suite.
       # The example app's deps are fetched because the library suite itself shells into
       # examples/threadline_phoenix (test/threadline/operator_surface/stress_router_test.exs)
       # and cannot boot that router without them. Everything else the suite needs —
       # creating and migrating the test database — test/test_helper.exs already does.
       "test.setup": ["cmd --cd examples/threadline_phoenix mix deps.get", "test"],
-      # Restore a recreate-by-default posture (Phase 198, D-04). Threadline's effective
+      # Restore a recreate-by-default posture. Threadline's effective
       # default is --keepdb with NO staleness check, which is exactly how a database
       # predating the storage-schema migration produced ~81 misleading failures. Only the
       # drop is needed here: test/test_helper.exs already calls storage_up/1 and runs the
-      # migrator on the next run, and its D-03 tripwire catches the stale case.
+      # migrator on the next run, and the storage-schema tripwire catches the stale case.
       "test.reset": ["ecto.drop --quiet -r Threadline.Test.Repo", "test.setup"],
       "ci.all": [
         "verify.format",
@@ -203,7 +204,7 @@ defmodule Threadline.MixProject do
     [
       "bin/verify-release-shape",
       "mix test test/threadline/release_artifact_contract_test.exs test/threadline/ci_topology_contract_test.exs",
-      "MIX_ENV=dev mix docs",
+      "MIX_ENV=dev mix docs --warnings-as-errors",
       "mix hex.build"
     ]
     |> Enum.each(&run_release_step!/1)
@@ -238,7 +239,7 @@ defmodule Threadline.MixProject do
     end
   end
 
-  # Light-lane affordance proof (Phase 168, A11Y-02 part 2). Sets
+  # Light-lane affordance proof. Sets
   # THREADLINE_E2E_THEME=system so run-e2e.sh recompiles the example operator
   # mount to the :system lane and runs ONLY the colorScheme:"light" project
   # (scoped to operator-accessibility.spec.ts) — proving the affordances are
@@ -267,10 +268,10 @@ defmodule Threadline.MixProject do
   defp verify_operator_stress(args),
     do: verify_example_browser(["operator-stress.spec.ts" | args])
 
-  # Tier A deterministic capture-lane regeneration (Phase 194, MECH-04). Runs BOTH
+  # Tier A deterministic capture-lane regeneration. Runs BOTH
   # theme projects so a single `mix verify.capture` reproduces all 120 committed
   # scorecards (66 Band-1 + 54 Band-2). Local-only regeneration — deliberately NOT
-  # in ci.all (CI gates the committed scorecard JSON via verify.mechanical, Plan 03).
+  # in ci.all (CI gates the committed scorecard JSON via verify.mechanical).
   defp verify_capture(args),
     do:
       verify_example_browser([
@@ -279,14 +280,14 @@ defmodule Threadline.MixProject do
         "operator-tier-a-capture.spec.ts" | args
       ])
 
-  # Targeted runner for the Phase 177 UAT browser spec (viewport reflow + motion +
+  # Targeted runner for the operator component browser contract (viewport reflow + motion +
   # reconnect CSS contract). Convenience for local runs; CI runs it as part of the
   # full verify.example_browser suite (and verify.example_browser_light for the
   # light/system theme lane). Mirrors verify.operator_stress.
-  defp verify_phase177_uat(args),
-    do: verify_example_browser(["operator-phase-177-uat.spec.ts" | args])
+  defp verify_operator_component_contracts(args),
+    do: verify_example_browser(["operator-component-contracts.spec.ts" | args])
 
-  # Local-only adversarial critic runner (Phase 195, RUNNER-04).
+  # Local-only adversarial critic runner.
   # Requires ANTHROPIC_API_KEY (maintainer-local; never CI).
   # When the key is absent (empty or unset), prints a skip notice and returns :ok
   # so `mix verify.ui_critique` exits 0 on any contributor machine. See CONTRIBUTING.md.
@@ -373,8 +374,14 @@ defmodule Threadline.MixProject do
   end
 
   defp docs do
+    reference_app_url =
+      "#{@source_url}/blob/#{doc_source_ref()}/examples/threadline_phoenix/README.md"
+
+    design_system_url = "#{@source_url}/blob/#{doc_source_ref()}/DESIGN-SYSTEM.md"
+
     [
-      main: "Threadline",
+      main: "readme",
+      extra_section: "Guides",
       source_ref: doc_source_ref(),
       source_url: @source_url,
       favicon: "brandbook/favicon.svg",
@@ -400,26 +407,30 @@ defmodule Threadline.MixProject do
         "guides/audit-indexing.md",
         "guides/integrations/sigra.md",
         "guides/integrations/phx-gen-auth.md",
+        "guides/configuration-and-commands.md",
+        {reference_app_url, title: "Phoenix reference application", url: reference_app_url},
         "CONTRIBUTING.md",
+        {design_system_url, title: "Operator surface design system", url: design_system_url},
         "CHANGELOG.md"
       ],
-      # Routing sidebar lanes (Phase 191, D-191-16). Intent VERBS — the sidebar
-      # lane names equal the README `## Start here` intent columns. Order is
+      # Intent routing sidebar. The lane names equal the README `## Start here`
+      # intent columns. Order is
       # load-bearing: ExDoc groups each extra by FIRST matching regex, so
       # Overview (README) and Integrations (guides/integrations/**) precede the
       # verb lanes to keep the two integration guides out of a verb lane. Each
       # lane uses an explicit per-file regex (not a greedy `^guides/`); every one
-      # of the 21 extras lands in exactly one lane.
+      # of the extras lands in exactly one lane.
       groups_for_extras: [
         Overview: ~r/README/,
         Integrations: ~r{^guides/integrations/},
         Evaluate:
           ~r{^guides/(evaluating-threadline|how-threadline-works|code-walkthrough|domain-reference)\.md$},
         Adopt:
-          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path)\.md$},
+          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
         Operate:
           ~r{^guides/(operator-surface|incident-playbook|performance|audit-indexing|adoption-evidence-playbook)\.md$},
-        Contribute: ~r{^(CONTRIBUTING|CHANGELOG)\.md$|^guides/adoption-pilot-backlog\.md$}
+        Contribute:
+          ~r{^(CONTRIBUTING|CHANGELOG)\.md$|^guides/adoption-pilot-backlog\.md$|/DESIGN-SYSTEM\.md$}
       ],
       groups_for_modules: [
         "Core API": [

@@ -1,12 +1,12 @@
 defmodule Threadline.OperatorSurface.ComponentContractTest do
   @moduledoc """
-  Shift-left automation of Phase 177 human-verification items (177-UAT.md).
+  Fast DOM coverage for operator component and resilience contracts.
 
   Covers UAT #2 (data_panel state matrix) in full and the structural half of
   UAT #4 (reconnect / [data-tl-mutating] CSS contract) as fast, deterministic
   DOM/contract assertions — no browser required. The real-viewport, motion, and
   live-socket halves live in the example app's
-  `e2e/tests/operator-phase-177-uat.spec.ts` (CI job `verify-example-browser`).
+  `e2e/tests/operator-component-contracts.spec.ts` (CI job `verify-example-browser`).
 
   These replace the manual /audit/__stress checkpoints, so the recurring value is
   in `mix test` (CI job `verify-test`) on every change.

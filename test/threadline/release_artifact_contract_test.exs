@@ -53,6 +53,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
   defp guide_extras do
     docs_config()[:extras]
+    |> Enum.filter(&is_binary/1)
     |> Enum.filter(&String.starts_with?(&1, "guides/"))
     |> MapSet.new()
   end
@@ -77,6 +78,56 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "README.md" in extras
     assert "CONTRIBUTING.md" in extras
     assert "CHANGELOG.md" in extras
+  end
+
+  @tag :url_extras
+  test "README-led docs expose version-pinned repository resources without packaging them" do
+    docs = docs_config()
+    assert docs[:main] == "readme"
+    assert docs[:extra_section] == "Guides"
+    assert "guides/configuration-and-commands.md" in docs[:extras]
+
+    assert Keyword.keys(docs[:groups_for_extras]) == [
+             :Overview,
+             :Integrations,
+             :Evaluate,
+             :Adopt,
+             :Operate,
+             :Contribute
+           ]
+
+    external = Enum.filter(docs[:extras], &is_tuple/1)
+    assert length(external) == 2
+
+    targets =
+      Enum.map(external, fn {url, opts} ->
+        assert opts[:url] == url
+        assert is_binary(opts[:title]) and opts[:title] != ""
+        assert Regex.match?(~r{/blob/v\d+\.\d+\.\d+/(.+)$}, url)
+        [_, target] = Regex.run(~r{/blob/[^/]+/(.+)$}, url)
+        target
+      end)
+
+    assert MapSet.new(targets) ==
+             MapSet.new(["DESIGN-SYSTEM.md", "examples/threadline_phoenix/README.md"])
+
+    refute "DESIGN-SYSTEM.md" in package_files()
+    refute "examples/threadline_phoenix/README.md" in package_files()
+
+    groups = docs[:groups_for_extras]
+
+    example_url =
+      Enum.find_value(external, fn {url, _opts} ->
+        if String.ends_with?(url, "examples/threadline_phoenix/README.md"), do: url
+      end)
+
+    design_url =
+      Enum.find_value(external, fn {url, _opts} ->
+        if String.ends_with?(url, "DESIGN-SYSTEM.md"), do: url
+      end)
+
+    assert Regex.match?(Keyword.fetch!(groups, :Adopt), example_url)
+    assert Regex.match?(Keyword.fetch!(groups, :Contribute), design_url)
   end
 
   test "built Hex archive excludes repository evidence" do
@@ -172,36 +223,40 @@ defmodule Threadline.ReleaseArtifactContractTest do
            ]
   end
 
-  test "ExDoc module groups keep Sigra in a dedicated integrations bucket" do
+  test "ExDoc module groups keep integration and operator entrypoints discoverable" do
     groups = docs_config()[:groups_for_modules]
 
     assert Keyword.fetch!(groups, :Integrations) == [Threadline.Integrations.Sigra]
 
-    assert Keyword.fetch!(groups, :"Operator Surface (Optional In-Tree)") == [
+    assert Keyword.fetch!(groups, :"Operator Surface") == [
+             Threadline.OperatorSurface,
              Threadline.OperatorSurface.Router,
              Threadline.OperatorSurface.Auth
            ]
 
-    assert Keyword.fetch!(groups, :Integration) == [
-             Threadline.Plug,
-             Threadline.Job,
-             Threadline.Health,
-             Threadline.Continuity,
-             Threadline.Telemetry
-           ]
+    core_api = Keyword.fetch!(groups, :"Core API")
+
+    for module <- [
+          Threadline.Plug,
+          Threadline.Job,
+          Threadline.Health,
+          Threadline.Continuity,
+          Threadline.Telemetry
+        ] do
+      assert module in core_api
+    end
   end
 
-  test "ExDoc module groups include Evidence plane and Core API audit modules" do
+  test "ExDoc module groups include public evidence types and adopter Mix tasks" do
     groups = docs_config()[:groups_for_modules]
 
-    assert Keyword.fetch!(groups, :Evidence) == [
-             Threadline.Evidence,
-             Threadline.Evidence.Proof,
-             Threadline.Evidence.Subject
-           ]
+    data_types = Keyword.fetch!(groups, :"Data Types")
+    assert Threadline.Evidence.Proof in data_types
+    assert Threadline.Evidence.Subject in data_types
 
     core_api = Keyword.fetch!(groups, :"Core API")
     assert Threadline.Audit in core_api
+    assert Threadline.Evidence in core_api
 
     mix_tasks = Keyword.fetch!(groups, :"Mix Tasks")
     assert Mix.Tasks.Threadline.Evidence.Show in mix_tasks

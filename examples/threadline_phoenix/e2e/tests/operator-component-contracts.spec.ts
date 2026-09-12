@@ -1,12 +1,12 @@
 import { expect, Locator, Page, test } from "@playwright/test";
 
-// Shift-left automation of the Phase 177 human-verification items (177-UAT.md).
-// The fast, deterministic DOM/contract halves of UAT #2 and UAT #4 live in the core
+// Browser coverage for the operator component and resilience contracts.
+// The fast, deterministic DOM/contract halves live in the core
 // lib at test/threadline/operator_surface/component_contract_test.exs. This spec owns
 // the parts that genuinely need a real browser:
-//   UAT #1 — the 12 component-group stories hold together at every viewport (320..1440).
-//   UAT #3 — overlay enter motion + prefers-reduced-motion collapse.
-//   UAT #4 — the reconnect/offline CSS contract actually computes in a browser engine.
+//   - the 12 component-group stories hold together at every viewport (320..1440).
+//   - overlay enter motion + prefers-reduced-motion collapse.
+//   - the reconnect/offline CSS contract actually computes in a browser engine.
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
@@ -29,7 +29,7 @@ const REQUIRED_GROUP_STORY_IDS = [
   "group.offline.current",
 ];
 
-// The Phase 177 group stories — resolved at RUNTIME from the story catalog
+// The component-group stories are resolved at runtime from the story catalog
 // (stress_fixtures.ex's `category: "group"` registry) rather than a hard-coded
 // array, so this test does not rot when a group story is added or removed.
 // Restores the floor, the identity pins, and the filter-applied proof that
