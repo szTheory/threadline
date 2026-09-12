@@ -1,0 +1,35 @@
+name: Feature request
+description: Describe a Threadline job that is difficult or impossible today.
+title: "[Feature]: "
+labels: [enhancement]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start with the problem and desired outcome so we can evaluate the best solution together.
+        Remove secrets, personal data, and production audit records before submitting. For a suspected vulnerability, use the private reporting route in the issue chooser.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or job to be done
+      description: Who needs to accomplish what, in which situation, and what blocks them today?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What would become possible, easier, or safer if Threadline addressed this problem?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Possible solution
+      description: Optional. Share an approach or API shape if you have one; the problem and outcome come first.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Optional. Remove secrets, personal data, and production audit records from examples, logs, and screenshots.

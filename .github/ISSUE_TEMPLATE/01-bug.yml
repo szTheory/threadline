@@ -1,0 +1,54 @@
+name: Bug report
+description: Report a reproducible problem with Threadline.
+title: "[Bug]: "
+labels: [bug]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Threadline.
+        Remove secrets, personal data, and production audit records before submitting. For a suspected vulnerability, use the private reporting route in the issue chooser.
+  - type: input
+    id: version
+    attributes:
+      label: Threadline version or commit
+      description: Enter the released version or commit SHA where you observed the problem.
+      placeholder: 0.9.0 or a commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include relevant Elixir, OTP, Phoenix, Ecto, and PostgreSQL versions.
+      placeholder: Elixir 1.x, OTP 2x, Phoenix 1.x, Ecto 3.x, PostgreSQL 1x
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide the smallest sequence or sample that reproduces the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed result
+      description: What happened, including the exact error text when useful?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What did you expect Threadline to do?
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Logs, screenshots, or additional context
+      description: Optional. Remove secrets, personal data, and production audit records from all attachments and text.
+      render: shell
