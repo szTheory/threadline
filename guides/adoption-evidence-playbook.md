@@ -24,12 +24,15 @@ This is **not** a substitute for integrator-owned staging evidence. See [evaluat
 
 ## Demo app tracks
 
-Canonical app: [`examples/threadline_phoenix/`](../examples/threadline_phoenix/).
+The Phoenix reference application is available from the **Adopt** section of
+the generated HexDocs navigation. Its repository proof files support this
+playbook; the [Getting Started guide](getting-started-saas.md) remains the
+canonical adopter procedure.
 
 | Track | Audience | Requires `mix demo.seed`? | Proof |
 |-------|----------|---------------------------|-------|
 | **A** | First audited write on migrated DB | **No** | `track_a_golden_path_test.exs`, README Track A |
-| **B** | Maintainer walk / operator surface | **Yes** | [WALKTHROUGH.md](../examples/threadline_phoenix/WALKTHROUGH.md), walkthrough `*_test.exs` |
+| **B** | Maintainer walk / operator surface | **Yes** | Repository walkthrough and `walkthrough_*_test.exs` proofs |
 
 **Tour in five minutes (Track B):**
 
@@ -40,7 +43,8 @@ mix demo.seed
 mix phx.server
 ```
 
-Then sign in as `admin@example.com` / `password123456` (see [DEMO_USERS.md](../examples/threadline_phoenix/DEMO_USERS.md)) and open:
+Then sign in as `admin@example.com` / `password123456` (the repository's
+`DEMO_USERS.md` records these fictional accounts) and open:
 
 - `/audit` — timeline + correlation filter (`walk-acme-4521-close`)
 - `/audit/evidence` — retention_run, redaction_policy, trigger_coverage rows
@@ -63,11 +67,10 @@ Fill these in **your** repo or fork. Maintainers review modesty and redaction on
 - Production topology in your environment
 - Your auth/tenancy model
 - Legal/compliance sign-off
-- External pilot outcomes (see v1.28 signal-gated pilot pack in `.planning/threads/2026-05-29-v1.28-pilot-readiness.md`)
+- Results from staging or production-like environments outside this repository
 
-## Related docs
+## Next steps
 
-- [evaluating-threadline.md](evaluating-threadline.md) — evaluator mental model
-- [getting-started-saas.md](getting-started-saas.md) — wire Threadline into your app
-- [operator-surface.md](operator-surface.md) — `/audit` mount contract
-- [production-checklist.md](production-checklist.md) — host checklist shape
+- Return to the [Operator Surface guide](operator-surface.md) for the Operate lane.
+- Turn CI-class proof into an honest host record with the [adoption pilot backlog](adoption-pilot-backlog.md).
+- Revisit the [evaluation boundary](evaluating-threadline.md) before describing what Threadline proves.

@@ -46,7 +46,6 @@ defmodule Threadline.PublicSurfaceContractTest do
     public_doc_refs_adopt_core: [
       "guides/getting-started-saas.md",
       "guides/production-checklist.md",
-      "guides/brownfield-continuity.md",
       "guides/local-docker-dx.md",
       "guides/upgrade-path.md"
     ],
@@ -54,21 +53,25 @@ defmodule Threadline.PublicSurfaceContractTest do
       "guides/operator-surface.md",
       "guides/incident-playbook.md",
       "guides/performance.md",
-      "guides/audit-indexing.md",
-      "guides/adoption-evidence-playbook.md"
+      "guides/audit-indexing.md"
     ],
-    public_doc_refs_evaluate: ["guides/evaluating-threadline.md"],
+    public_doc_refs_evaluate: [
+      "guides/adoption-evidence-playbook.md",
+      "guides/adoption-pilot-backlog.md",
+      "guides/brownfield-continuity.md",
+      "guides/domain-reference.md",
+      "guides/evaluating-threadline.md"
+    ],
     public_doc_refs_architecture: [
       "guides/how-threadline-works.md",
-      "guides/code-walkthrough.md",
-      "guides/domain-reference.md"
+      "guides/code-walkthrough.md"
     ],
     public_doc_refs_integrations_contract: ["guides/integration-contracts.md"],
     public_doc_refs_integrations_tail: [
       "guides/integrations/sigra.md",
       "guides/integrations/phx-gen-auth.md"
     ],
-    public_doc_refs_contribute: ["CONTRIBUTING.md", "guides/adoption-pilot-backlog.md"],
+    public_doc_refs_contribute: ["CONTRIBUTING.md"],
     public_doc_refs_changelog: ["CHANGELOG.md"],
     public_doc_refs_config: ["guides/configuration-and-commands.md"],
     public_doc_refs_module_seed: ["README.md"]

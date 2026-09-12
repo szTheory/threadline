@@ -36,6 +36,19 @@ defmodule Threadline.GuideGraphContractTest do
     contribute: "CONTRIBUTING.md"
   }
 
+  @evaluate_owner_slice [
+    "guides/adoption-evidence-playbook.md",
+    "guides/adoption-pilot-backlog.md",
+    "guides/brownfield-continuity.md",
+    "guides/domain-reference.md",
+    "guides/evaluating-threadline.md"
+  ]
+
+  @architecture_owner_slice [
+    "guides/code-walkthrough.md",
+    "guides/how-threadline-works.md"
+  ]
+
   test "the Markdown resolver reports missing paths and normalized anchors" do
     files = %{
       "guides/source.md" => "# Source\n[valid](target.md#target-heading)\n[bad](missing.md)",
@@ -147,14 +160,14 @@ defmodule Threadline.GuideGraphContractTest do
 
   @tag :guide_graph_evaluate
   @tag :phase200_red
-  test "the Evaluate subgraph has valid paths, anchors, inbound, and outbound edges" do
-    assert_graph_slice!(:evaluate)
+  test "the evaluation and adoption-planning owners have valid graph contracts" do
+    assert_graph_nodes!(@evaluate_owner_slice)
   end
 
   @tag :guide_graph_architecture
   @tag :phase200_red
-  test "the architecture and Adopt subgraph has valid paths, anchors, inbound, and outbound edges" do
-    assert_graph_slice!(:adopt)
+  test "the architecture owners have valid graph contracts" do
+    assert_graph_nodes!(@architecture_owner_slice)
   end
 
   @tag :guide_graph
@@ -165,13 +178,20 @@ defmodule Threadline.GuideGraphContractTest do
   end
 
   defp assert_graph_slice!(lane) do
+    assert_graph_nodes!(Map.fetch!(@lanes, lane))
+  end
+
+  defp assert_graph_nodes!(nodes) do
     files = public_markdown_files()
-    nodes = Map.fetch!(@lanes, lane)
     assert nodes != []
 
     edges = markdown_edges(files)
 
     for node <- nodes do
+      lanes = for {lane, paths} <- @lanes, node in paths, do: lane
+      assert [lane] = lanes, "#{node} must belong to exactly one intent lane"
+
+      landing = Map.fetch!(@landings, lane)
       errors = validate_links(node, Map.fetch!(files, node), files)
       assert errors == [], "#{node} has broken Markdown links: #{inspect(errors)}"
 
@@ -182,7 +202,10 @@ defmodule Threadline.GuideGraphContractTest do
       assert inbound != [], "#{node} has no non-README inbound guide edge"
       assert outbound != [], "#{node} has no outbound guide edge"
 
-      if node != Map.fetch!(@landings, lane) do
+      if node != landing do
+        assert link_target?(landing, Map.fetch!(files, landing), node),
+               "#{landing} does not route its #{lane} lane to #{node}"
+
         content = Map.fetch!(files, node)
 
         assert Regex.match?(~r/^## Next steps\s*$/mi, content),
@@ -190,10 +213,16 @@ defmodule Threadline.GuideGraphContractTest do
 
         next_steps = content |> String.split(~r/^## Next steps\s*$/mi, parts: 2) |> List.last()
 
-        assert link_target?(node, next_steps, Map.fetch!(@landings, lane)),
+        assert link_target?(node, next_steps, landing),
                "#{node} Next steps does not return to its lane landing"
 
-        distinct = Enum.reject(outbound, &(&1 in [node, Map.fetch!(@landings, lane)]))
+        next_targets =
+          next_steps
+          |> markdown_links()
+          |> Enum.map(fn {_label, target} -> resolved_path(node, target) end)
+          |> Enum.reject(&is_nil/1)
+
+        distinct = Enum.reject(next_targets, &(&1 in [node, landing]))
         assert distinct != [], "#{node} Next steps lacks a distinct task-adjacent successor"
       end
     end

@@ -19,8 +19,13 @@ Do **not** fabricate `AuditChange` rows to “fill in” pre-capture history; th
 
 ## Compliance snapshot
 
-If you need a **point-in-time baseline** at go-live, keep it **outside** `audit_changes`: use an export (`COPY`, logical dump slice), or an **application-owned** table. That baseline is **not** a substitute for retroactive audit — Threadline will not invent trigger-backed history for the pre-capture era (see CONTEXT **D-03**).
+If you need a **point-in-time baseline** at go-live, keep it **outside** `audit_changes`: use an export (`COPY`, logical dump slice), or an **application-owned** table. That baseline is **not** a substitute for retroactive audit — Threadline will not invent trigger-backed history for the pre-capture era.
 
 ## PgBouncer / transactions
 
-When you run operator SQL bundles (install DDL, trigger deploy, verification), prefer a **single explicit `BEGIN…COMMIT`** so catalog changes and optional GUC publishing stay in one database transaction, matching transaction-scoped capture semantics (CONTEXT **D-07**).
+When you run operator SQL bundles (install DDL, trigger deploy, verification), prefer a **single explicit `BEGIN…COMMIT`** so catalog changes and optional GUC publishing stay in one database transaction, matching transaction-scoped capture semantics.
+
+## Next steps
+
+- Return to [Getting Started](getting-started-saas.md) for the Adopt lane.
+- Validate the cutover and live-database posture with the [production checklist](production-checklist.md).
