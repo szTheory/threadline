@@ -426,37 +426,53 @@ defmodule Threadline.MixProject do
           Threadline,
           Threadline.Audit,
           Threadline.ChangeDiff,
+          Threadline.Continuity,
+          Threadline.Evidence,
           Threadline.Export,
+          Threadline.Health,
           Threadline.Investigation,
+          Threadline.Job,
+          Threadline.Plug,
           Threadline.Query,
           Threadline.Retention,
-          Threadline.Retention.Policy,
+          Threadline.Telemetry
+        ],
+        "Data Types": [
+          Threadline.Capture.AuditChange,
+          Threadline.Capture.AuditTransaction,
+          Threadline.Evidence.Proof,
+          Threadline.Evidence.Subject,
+          Threadline.Governance.EvidenceRecord,
+          Threadline.Investigation.IncidentBundle,
+          Threadline.Investigation.IncidentChange,
+          Threadline.Investigation.LinkedChange,
+          Threadline.Investigation.LinkedTransaction,
+          Threadline.Query.ActorHistoryPage,
+          Threadline.Query.TimelinePage,
           Threadline.Semantics.ActorRef,
+          Threadline.Semantics.AuditAction,
           Threadline.Semantics.AuditContext
         ],
-        Evidence: [
-          Threadline.Evidence,
-          Threadline.Evidence.Proof,
-          Threadline.Evidence.Subject
-        ],
-        Integration: [
-          Threadline.Plug,
-          Threadline.Job,
-          Threadline.Health,
-          Threadline.Continuity,
-          Threadline.Telemetry
+        "Configuration & Extension Points": [
+          Threadline.Storage,
+          Threadline.Storage.Local,
+          Threadline.Storage.S3,
+          Threadline.ExportQueue,
+          Threadline.ExportQueue.TaskAdapter,
+          Threadline.ExportQueue.Oban,
+          Threadline.Export.Orchestrator,
+          Threadline.Retention.Policy,
+          Threadline.Health.Policy,
+          Threadline.Verify.CoveragePolicy,
+          Threadline.StorageSchema
         ],
         Integrations: [
           Threadline.Integrations.Sigra
         ],
-        "Operator Surface (Optional In-Tree)": [
+        "Operator Surface": [
+          Threadline.OperatorSurface,
           Threadline.OperatorSurface.Router,
           Threadline.OperatorSurface.Auth
-        ],
-        Schemas: [
-          Threadline.Semantics.AuditAction,
-          Threadline.Capture.AuditTransaction,
-          Threadline.Capture.AuditChange
         ],
         "Mix Tasks": [
           Mix.Tasks.Threadline.Install,
@@ -466,7 +482,6 @@ defmodule Threadline.MixProject do
           Mix.Tasks.Threadline.Retention.Purge,
           Mix.Tasks.Threadline.Export,
           Mix.Tasks.Threadline.Incident,
-          Mix.Tasks.Threadline.VerifyTopology,
           Mix.Tasks.Threadline.Evidence.Show,
           Mix.Tasks.Threadline.Health.Coverage,
           Mix.Tasks.Threadline.Policy.Show

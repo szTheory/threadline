@@ -1,20 +1,5 @@
 defmodule Threadline.CriticTrust.RankMetrics do
-  @moduledoc """
-  Ranking / separation metrics for the critic trust gate (D-12 gate revision v2).
-
-  Krippendorff's α measures exact-bucket *agreement*, which punishes a critic that
-  ranks severity correctly but *compresses* the score scale (never using the full
-  fail→exemplary range) — empirically how the LLM gestalt critic behaves. A
-  forward-only ratchet only asks "did this get worse?" — i.e. correct *ordering* —
-  so the trust bar is a rank correlation, not agreement.
-
-    * `spearman/2` — Spearman's ρ between the oracle severity ordinal and the critic's
-      continuous per-cell score (tie-aware average ranks; Pearson on the ranks).
-    * `auc/1` — the Mann-Whitney separation P(good-tier score > bad-tier score), a
-      reported companion: does the critic reliably put better UI above worse UI?
-
-  Pure and dependency-light (mirrors `KrippendorffAlpha`).
-  """
+  @moduledoc false
 
   @doc """
   Spearman's rank correlation ρ between two equal-length numeric lists.

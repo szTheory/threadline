@@ -1,29 +1,7 @@
 defmodule Mix.Tasks.Critic.Synth do
-  @shortdoc "Generates the synthetic golden set from the graded twin ladder (D-12)"
+  @shortdoc "Generates the synthetic golden set from the graded twin ladder"
 
-  @moduledoc """
-  Writes `test/fixtures/operator_surface/golden/synthetic-set.json` — the **synthetic twin oracle** (Phase
-  195 D-12). Each graded-ladder story (lens × scenario × severity rung) becomes a
-  `golden-set.json`-shaped item whose verdict is the rung's *constructed* label
-  (r4→good, r3→borderline, r2→bad, r1→broken). Because the labels are definitional
-  (authored, not observed), this reaches the trust gate's n≥20/lens with **zero human
-  labeling**.
-
-  This file is a **parallel** to the human `golden-set.json` (kept pristine/empty) so
-  provenance is never conflated at the data layer. `mix critic.measure --source
-  synthetic` reads it; `npm run capture:graded` reads its cell_ids to know what to shoot.
-
-  Honest claim (recorded in `golden_source`/`oracle_note`): the synthetic oracle proves
-  the critic **tracks known-severity injected flaws monotonically on held-out
-  interpolation rungs** — NOT that it matches the maintainer's taste on ambiguous real
-  UI. See D-12 in the phase context.
-
-  ## Usage
-
-      mix critic.synth
-
-  Deterministic: same catalog → byte-identical output.
-  """
+  @moduledoc false
 
   use Mix.Task
 
@@ -77,7 +55,7 @@ defmodule Mix.Tasks.Critic.Synth do
       "version" => 1,
       "golden_source" => "synthetic",
       "oracle_note" =>
-        "Constructed graded-twin severity labels (D-12). Proves the critic tracks " <>
+        "Constructed graded-twin severity labels. Proves the critic tracks " <>
           "known-severity injected flaws monotonically on held-out interpolation rungs — " <>
           "NOT that it matches human taste on ambiguous real UI.",
       "set_version" => @set_version,
@@ -97,7 +75,7 @@ defmodule Mix.Tasks.Critic.Synth do
 
     Mix.shell().info("wrote #{length(items)} synthetic items → #{target}")
     Mix.shell().info("  per lens: #{Enum.join(by_lens, ", ")}")
-    Mix.shell().info("  oracle: synthetic (D-12) — cells captured via `npm run capture:graded`")
+    Mix.shell().info("  oracle: synthetic — cells captured via `npm run capture:graded`")
     Mix.shell().info("git diff -- #{target}")
   end
 

@@ -1,26 +1,7 @@
 defmodule Mix.Tasks.Critic.Measure do
   @shortdoc "Measures per-lens critic↔human trust and writes the critic_trust block (local-only; never auto-commits)"
 
-  @moduledoc """
-  Computes the per-lens `critic_trust` block from the maintainer's golden set and
-  critic scores, then writes it into the repository's design-system ledger.
-
-  The task is a repository-only edge. Its private `--fixture-root` and
-  `--output-root` overrides resolve from `Mix.Project.project_file/0`, never the
-  caller's current directory or ambient environment. The fixture root owns the
-  ledger and golden oracles; the output root owns generated critic scores.
-
-  ## Usage
-
-      mix critic.measure
-      mix critic.measure --source synthetic
-      mix critic.measure --fixture-root test/fixtures/operator_surface --output-root test/generated/operator_surface/critic-scores
-
-  It computes per-lens trust via `Threadline.CriticTrust.Measure` and surgically
-  replaces only `critic_trust` and `critic_trust_provenance` through
-  `Threadline.CriticTrust.LedgerSplice`. The maintainer reviews the resulting
-  ledger diff; this task never runs git or commits.
-  """
+  @moduledoc false
 
   use Mix.Task
 
@@ -426,7 +407,7 @@ defmodule Mix.Tasks.Critic.Measure do
 
     Mix.shell().info(
       "\nReview and commit only the golden set and design-system-ledger.json. " <>
-        "Generated critic scores and reports remain local and ignored. This task never commits (T-195-24)."
+        "Generated critic scores and reports remain local and ignored. This task never commits."
     )
   end
 

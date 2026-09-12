@@ -1,51 +1,5 @@
 defmodule Threadline.CriticTrust.Measure do
-  @moduledoc """
-  Pure engine that turns an **oracle set** + the critic's scores into the per-lens
-  `critic_trust` block written to `test/fixtures/operator_surface/design-system-ledger.json`.
-
-  The oracle is label-source-agnostic (this engine only needs items carrying an
-  `r1.verdict`): either the maintainer's human `golden-set.json`, or — under D-12 —
-  the constructed `synthetic-set.json` (a graded twin-severity ladder, verdicts known
-  by construction). Synthetic validation proves the critic tracks known-severity
-  flaws monotonically on held-out rungs; it is NOT a claim of taste-agreement on
-  ambiguous UI. The oracle used is recorded honestly in the sibling
-  `critic_trust_provenance` ledger block (written by `mix critic.measure`).
-
-  This is the measurement/writer half of CRITIC-03: `mix critic.measure` (the IO
-  shell in `Mix.Tasks.Critic.Measure`) reads the files, calls `build_block/4`, and
-  splices the result via `Threadline.CriticTrust.LedgerSplice`. The guard
-  `mix verify.critic_trust` (in `ci.all`) then *asserts* the block this produces.
-
-  Kept pure (no file IO) so it is unit-testable in memory.
-
-  ## Trust metric (ranking, not agreement)
-
-  Per resolved cell we take:
-
-    * Oracle ordinal — the set's `r1.verdict` bucketed `broken → 1, bad → 2,
-      borderline → 3, good → 4`. The oracle is either a human label (golden-set.json) or
-      a **constructed** graded-twin label (synthetic-set.json, D-12) — this engine does
-      not care which. Single-kind items only.
-    * Critic score — the **mean of the stable dimensions' median scores** (0..100), the
-      continuous ranking signal. (A legacy `min()` band, crosswalked
-      `fail → 1 … strong/exemplary → 4`, is also kept for the companion α.)
-
-  The **primary trust metric is Spearman's ρ** between the oracle ordinal and the critic
-  score (`RankMetrics.spearman/2`) — it rewards correct *ordering* of severity, which is
-  what a forward-only ratchet needs, and tolerates the critic's scale *compression*.
-  `auc` (`RankMetrics.auc/1`) reports good-vs-bad separation. `alpha` (Krippendorff
-  band-agreement) and `raw_agreement` (exact-bucket match) are retained as reported-only
-  companions — they sink on a compressing critic even when its ranking is strong, so they
-  no longer gate. `pairwise_acc` stays `nil`.
-
-  ## Promotion
-
-  A lens is `validated: true` only when **all** hold: `spearman >= 0.7`,
-  `n >= 20`, `model_id == "claude-opus-4-8"`, and every contributing score was produced
-  at the current rubric version (auto-invalidation on a rubric or model bump). Otherwise
-  the measured numbers are still written (honest provisional). All 6 lenses are emitted
-  every run.
-  """
+  @moduledoc false
 
   alias Threadline.CriticTrust.{KrippendorffAlpha, RankMetrics}
 
@@ -57,14 +11,14 @@ defmodule Threadline.CriticTrust.Measure do
   @spearman_bar 0.7
 
   # Oracle verdict bucket → ordinal (single-kind items only). "Oracle" = the set's
-  # r1.verdict, whether human-labeled or constructed by the graded-twin ladder (D-12).
+  # r1.verdict, whether human-labeled or constructed by the graded-twin ladder.
   @oracle %{"broken" => 1, "bad" => 2, "borderline" => 3, "good" => 4}
   # Critic band → ordinal (strong and exemplary both fold to "good" to match oracle granularity).
   @band %{"fail" => 1, "weak" => 2, "ok" => 3, "strong" => 4, "exemplary" => 4}
 
   # Fixed field order — matches the committed ledger block for a minimal diff.
   # `spearman` (primary gate) + `auc` (companion) lead; `alpha`/`raw_agreement` are
-  # retained as reported-only companions (D-12 gate revision v2 — ranking, not agreement).
+  # retained as reported-only companions under the rank-based trust contract.
   @field_order ~w(spearman auc alpha raw_agreement pairwise_acc n ci95 golden_rubric_version model_id validated)
 
   @default_seed 424_242
@@ -140,7 +94,7 @@ defmodule Threadline.CriticTrust.Measure do
 
     fresh = resolved != [] and Enum.all?(resolved, & &1.fresh)
 
-    # D-12 gate revision v2: the trust bar is a RANKING correlation, not agreement. A
+    # The trust bar is a ranking correlation, not agreement. A
     # forward-only ratchet asks "did this get worse?" (ordering) — and the critic ranks
     # severity well (ρ) even though it compresses the exact scale (which sank α/raw). α +
     # raw_agreement stay as reported-only companions; auc is a separation sanity check.
