@@ -14,7 +14,6 @@ body:
     attributes:
       label: Threadline version or commit
       description: Enter the released version or commit SHA where you observed the problem.
-      placeholder: 0.9.0 or a commit SHA
     validations:
       required: true
   - type: textarea
@@ -22,7 +21,6 @@ body:
     attributes:
       label: Environment
       description: Include relevant Elixir, OTP, Phoenix, Ecto, and PostgreSQL versions.
-      placeholder: Elixir 1.x, OTP 2x, Phoenix 1.x, Ecto 3.x, PostgreSQL 1x
     validations:
       required: true
   - type: textarea
