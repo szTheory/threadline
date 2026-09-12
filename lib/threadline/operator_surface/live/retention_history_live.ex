@@ -4,9 +4,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: declared has-forms since Phase 176 (DATA-04 / D-20) — the
-    # destructive "Prune now" action is a server-enforced type-to-confirm flow whose
-    # modal hosts a single form plus the confirmation text input.
+    # This page owns the form policy for its destructive "Prune now" action. The
+    # server-enforced type-to-confirm flow has one modal form and one confirmation
+    # text input.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "type-to-confirm prune modal (security-mandated)"}
 
@@ -24,8 +24,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @default_limit 40
 
     # The retention policy is a process-wide singleton (one config, no per-row
-    # policy table), so the object's OWN identifier (D-20) is its canonical
-    # policy name. The operator types this to confirm the irreversible prune;
+    # policy table), so the object's own stable identifier is its canonical policy
+    # name. The operator types this to confirm the irreversible prune;
     # the handler re-derives it SERVER-SIDE at action time and never trusts a
     # client-supplied value. It is the only thing rendered into the prompt — the
     # comparison runs against this server constant, never a client claim.
@@ -55,7 +55,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:noreply, assign(socket, :base_path, base_path)}
     end
 
-    # T3 type-to-confirm prune with FULL server-side enforcement (DATA-04, D-21).
+    # Type-to-confirm prune with full server-side enforcement.
     #
     # The client signal is untrusted from end to end: the typed confirmation and
     # any `phx-value-id` are claims, never grants. Every irreversible prune,
@@ -67,9 +67,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     #      scope grant so a forged scope fails closed);
     #   3. `Plug.Crypto.secure_compare/2` the typed value against the canonical
     #      token (constant-time — never a hand-rolled `==`);
-    #   4. audit the destructive action itself as an `AuditAction` (§9.3.4)
+    #   4. audit the destructive action itself as an `AuditAction`
     #      BEFORE triggering — an audit-insert failure must abort the prune so
-    #      there is never an unaudited deletion (D-21.3); audit runs only after
+    #      there is never an unaudited operator-triggered deletion; audit runs only after
     #      a valid `secure_compare`, so a forged token still records nothing;
     #   5. trigger the real backend (`Pruner.trigger/0`) once the action is on
     #      the audit trail;
@@ -217,7 +217,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               </section>
 
-              <%!-- Density (196-06, signal-to-chrome): no status alert and no
+              <%!-- Signal-to-chrome rule: no status alert and no
               "destructive action" self-label here. The stat cards above already carry
               latest status + failure count (with a danger state and a deep link), and
               the type-to-confirm prune modal delivers the destructive warning at the
@@ -233,8 +233,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </button>
               </div>
 
-              <%!-- Honest cap caption (D-20, WR-04/WR-05): Retention is recent-only /
-                    low-volume, not a keyset pager. Report the actual rendered count
+              <%!-- Retention is a recent-only, low-volume view, not a keyset pager.
+                    Report the actual rendered count
                     (never over-claim against a short table) and, when the cap is hit,
                     interpolate the real @default_limit rather than a hardcoded literal. --%>
               <p class="tl-status" role="status" aria-live="polite">
@@ -280,7 +280,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             <% end %>
 
-            <%!-- T3 type-to-confirm modal (D-20/D-21). The operator types the
+            <%!-- Type-to-confirm modal. The operator types the
                   policy NAME (the object's own identifier) to confirm; the
                   canonical token is re-derived and compared SERVER-SIDE in the
                   prune_now handler and is never shipped to the client for a
@@ -338,9 +338,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if socket.assigns[:threadline_policy_enabled], do: :ok, else: {:error, :unauthorized}
     end
 
-    # Audit the destructive action itself (D-21.3 / domain §9.3.4): a successful
-    # prune records an `AuditAction` so the irreversible operation is never
-    # unattributable. The retention runtime is a system actor.
+    # Audit the operator's request only after authorization and confirmation
+    # succeed, and before starting the prune. The backend records deletion results
+    # after its database transaction succeeds. The retention runtime is a system actor.
     defp audit_prune(socket, policy_name) do
       {:ok, actor} = ActorRef.new(:system, "retention_pruner")
 

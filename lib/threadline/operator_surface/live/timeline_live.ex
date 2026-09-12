@@ -3,8 +3,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: has-forms — the timeline is the surface's primary query page
-    # (filter toolbar) and also hosts the save-view form.
+    # The timeline owns forms for its primary query controls (the filter toolbar)
+    # and for saving the current view.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "filter toolbar and saved-view form"}
 
@@ -171,8 +171,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   end)
 
                 # Two parallel queries; await with a generous timeout.
-                # Default Task.await is 5_000 ms; bump to 8_000 to leave headroom for
-                # slow capped-count queries on large tables (RESEARCH §P-7 line 651).
+                # Default Task.await is 5_000 ms; use 8_000 to leave headroom for
+                # capped-count queries on large tables.
                 {:ok, %{count: count}} = Task.await(count_task, 8_000)
 
                 page =
@@ -1035,7 +1035,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
 
     # Renders the match count for the status line:
-    # - At/above the cap (10_001) → "10,000+" (capped approximation per D-17 + RESEARCH §P-8)
+    # - At/above the cap (10_001) → "10,000+" so the UI does not imply an exact count
     # - Below the cap → exact integer with thousands separators
     defp format_count(count) when is_integer(count) do
       cond do
@@ -1223,7 +1223,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # Distinguish the two ok-empty states (D-17): a first-run empty (no narrowing
+    # Distinguish the two successful empty states: a first-run empty (no narrowing
     # filter beyond the time window) is `never` (history icon); a filtered-but-empty
     # result is `no_data` (funnel icon). AsyncResult/empty cannot make this call —
     # the page author branches it from whether a narrowing filter is active.
