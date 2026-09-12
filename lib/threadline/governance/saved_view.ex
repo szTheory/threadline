@@ -1,9 +1,5 @@
 defmodule Threadline.Governance.SavedView do
-  @moduledoc """
-  Ecto schema for the `threadline_saved_views` table.
-
-  Represents a saved view (filter set) for the Threadline operator surface.
-  """
+  @moduledoc false
 
   use Ecto.Schema
   import Ecto.Changeset

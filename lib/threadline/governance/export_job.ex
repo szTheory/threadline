@@ -1,9 +1,5 @@
 defmodule Threadline.Governance.ExportJob do
-  @moduledoc """
-  Ecto schema for the `threadline_export_jobs` table.
-
-  Represents an asynchronous background job to export audit data to a file.
-  """
+  @moduledoc false
 
   use Ecto.Schema
   import Ecto.Changeset
