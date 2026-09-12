@@ -347,6 +347,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "source contract: actor history and summaries use resolved storage opts" do
       source = File.read!("lib/threadline/operator_surface/live/actor_live.ex")
 
+      assert source =~ "@ui_form_policy :formless"
       assert source =~ "defp storage_schema_opts(_socket)"
       assert source =~ "storage_schema: StorageSchema.get()"
       assert source =~ "StorageSchema.repo_opts(storage_schema_opts)"

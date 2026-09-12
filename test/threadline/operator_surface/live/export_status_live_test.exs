@@ -673,6 +673,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "source contract: export status reads and queued writes use resolved storage opts" do
         source = File.read!("lib/threadline/operator_surface/live/export_status_live.ex")
 
+        assert source =~ "@ui_form_policy :formless"
         assert source =~ "defp storage_opts(_socket)"
         assert source =~ "|> repo.all(storage_opts(socket))"
         assert source =~ "storage_schema = StorageSchema.get()"

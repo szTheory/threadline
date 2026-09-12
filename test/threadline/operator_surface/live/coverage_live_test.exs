@@ -105,6 +105,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/coverage" do
+      test "declares the schema selector as its form capability" do
+        source = File.read!("lib/threadline/operator_surface/live/coverage_live.ex")
+
+        assert source =~
+                 ~s(@ui_form_policy {:has_forms, "schema selector owning ?schema= URL state"})
+      end
+
       test "renders unsupported state if coverage is disabled", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_coverage, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_coverage, true) end)
