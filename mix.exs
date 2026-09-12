@@ -369,7 +369,7 @@ defmodule Threadline.MixProject do
         "Changelog" => "#{@source_url}/blob/#{doc_source_ref()}/CHANGELOG.md"
       },
       files:
-        ~w(lib priv/fonts guides brandbook/favicon.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
+        ~w(lib priv/fonts guides brandbook/favicon.svg brandbook/logo-primary.svg brandbook/logo-primary-light.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
     ]
   end
 
@@ -385,6 +385,10 @@ defmodule Threadline.MixProject do
       source_ref: doc_source_ref(),
       source_url: @source_url,
       favicon: "brandbook/favicon.svg",
+      # Preserve the README's theme-aware picture in generated docs. The Hex
+      # archive carries only the two referenced logos plus the favicon, so
+      # repository-only brand guidance does not become consumer payload.
+      assets: %{"brandbook" => "brandbook"},
       before_closing_head_tag: &before_closing_head_tag/1,
       before_closing_body_tag: &before_closing_body_tag/1,
       extras: [

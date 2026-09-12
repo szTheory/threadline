@@ -78,6 +78,9 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "README.md" in extras
     assert "CONTRIBUTING.md" in extras
     assert "CHANGELOG.md" in extras
+    assert "brandbook/logo-primary.svg" in files
+    assert "brandbook/logo-primary-light.svg" in files
+    assert docs_config()[:assets] == %{"brandbook" => "brandbook"}
   end
 
   @tag :url_extras
