@@ -549,7 +549,14 @@ Plans:
   4. A contributor who hits `(undefined_table) relation "audit_changes" does not exist` finds the fix by searching that error string in the repository's own docs, and install instructions, operator-surface overview, and local Docker setup each have exactly one canonical home with other mentions pointing to it. (SURFACE-08, SURFACE-09)
   5. `CONTRIBUTING.md` describes a contributor workflow requiring no knowledge of `.planning/`, and the repository provides a pull-request template, issue templates, a security policy, and a code of conduct. (SURFACE-10, SURFACE-11)
 
-**Plans**: TBD (est. 5 — moduledoc/mix.exs vocabulary strip · ExDoc grouping and extras · docs-graph repair and link fixes · config/alias/`search_path` documentation and deduplication · `.github/` templates and CONTRIBUTING rewrite)
+**Plans**: 5 plans
+
+Plans:
+- [ ] 200-01-PLAN.md — Establish source-derived public-surface, guide, archive, community, and storage red contracts
+- [ ] 200-02-PLAN.md — Publish the configuration/command and storage/queue extension contract; honor optional storage callbacks
+- [ ] 200-03-PLAN.md — Curate module visibility, six ExDoc groups, external resources, and release-shaped package docs
+- [ ] 200-04-PLAN.md — Deduplicate canonical procedures, repair the guide graph, and rewrite contributor onboarding
+- [ ] 200-05-PLAN.md — Add safe community/security intake and close local plus post-merge hosted gates
 
 **Notes carried from the approved plan:**
 
