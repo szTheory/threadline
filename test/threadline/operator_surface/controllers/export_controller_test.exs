@@ -175,6 +175,26 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       def delete(_file_id), do: :ok
     end
 
+    defmodule NoPathStorageStub do
+      @behaviour Threadline.Storage
+
+      @impl true
+      def init(_opts), do: :ok
+
+      @impl true
+      def put(_content, _opts), do: {:error, :unsupported}
+
+      @impl true
+      def get(_file_id), do: {:error, :unsupported}
+
+      @impl true
+      def download_url(file_id, _opts),
+        do: {:ok, "https://downloads.example.test/no-path/#{file_id}"}
+
+      @impl true
+      def delete(_file_id), do: :ok
+    end
+
     setup_all do
       Application.put_env(:threadline, @endpoint,
         secret_key_base: String.duplicate("x", 64),
@@ -525,6 +545,45 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
         assert get_resp_header(conn, "location") == [
                  "https://downloads.example.test/remote-export.csv"
+               ]
+      end
+
+      @tag :phase200_red
+      test "delivers remotely when a conforming storage adapter omits optional path/1", %{
+        conn: conn
+      } do
+        Application.put_env(:threadline, :storage_adapter, NoPathStorageStub)
+
+        job =
+          insert_export_job!(%{
+            status: "completed",
+            query_params: %{"format" => "csv"},
+            file_path: "portable-export.csv",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "123"},
+            expires_at:
+              DateTime.utc_now() |> DateTime.add(600, :second) |> DateTime.truncate(:microsecond)
+          })
+
+        result =
+          try do
+            response =
+              conn
+              |> assign(:threadline_actor_ref, %Threadline.Semantics.ActorRef{
+                type: :user,
+                id: "123"
+              })
+              |> get("/audit/exports/download/#{job.id}")
+
+            {:response, response}
+          rescue
+            error in UndefinedFunctionError -> {:missing_optional_callback, error}
+          end
+
+        assert {:response, response} = result
+        assert response.status == 302
+
+        assert get_resp_header(response, "location") == [
+                 "https://downloads.example.test/no-path/portable-export.csv"
                ]
       end
 
