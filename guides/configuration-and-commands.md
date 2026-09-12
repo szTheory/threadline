@@ -76,3 +76,83 @@ those options to the adapter's `init/1` callback during application startup.
 Use the public `Threadline.Storage` and `Threadline.ExportQueue` behaviours as
 the implementation contracts; do not depend on another adapter's private
 options.
+
+## Commands available to host projects
+
+Adding Threadline as a dependency makes these ten Mix tasks available to the
+host project. Run them from the host project's root so they load its
+configuration and dependencies.
+
+| Command | Use it to | Implementation owner |
+| --- | --- | --- |
+| `mix threadline.install` | Generate the migration that creates Threadline's audit schema. | `Mix.Tasks.Threadline.Install` |
+| `mix threadline.gen.triggers` | Generate an Ecto migration that installs capture triggers on selected host tables. | `Mix.Tasks.Threadline.Gen.Triggers` |
+| `mix threadline.verify_coverage` | Fail a CI or deployment check when a table in `:verify_coverage` is missing or uncovered. | `Mix.Tasks.Threadline.VerifyCoverage` |
+| `mix threadline.health.coverage` | View trigger coverage, as a table or JSON, without turning uncovered tables into a failing policy gate. | `Mix.Tasks.Threadline.Health.Coverage` |
+| `mix threadline.continuity` | Inspect and establish the explicit starting boundary for capture in an existing database. | `Mix.Tasks.Threadline.Continuity` |
+| `mix threadline.retention.purge` | Preview or execute the configured batched retention purge. Preview before using `--execute`. | `Mix.Tasks.Threadline.Retention.Purge` |
+| `mix threadline.export` | Export captured audit rows to CSV or JSON using the same filter vocabulary as the timeline API. | `Mix.Tasks.Threadline.Export` |
+| `mix threadline.incident` | Show the changes and context linked to one audit transaction, in human-readable or JSON form. | `Mix.Tasks.Threadline.Incident` |
+| `mix threadline.evidence.show` | Show the latest or historical Threadline evidence records and proof classifications. | `Mix.Tasks.Threadline.Evidence.Show` |
+| `mix threadline.policy.show` | Compare configured capture redaction with the trigger policy deployed in PostgreSQL. | `Mix.Tasks.Threadline.Policy.Show` |
+
+These tasks are the supported command interface for adopters. Their module
+pages and the linked guides define their options and safety boundaries.
+
+## Commands for this repository
+
+Mix aliases belong to the project that defines them. Therefore none of the
+aliases below is installed into a host application when it adds Threadline as a
+dependency. They are supported contributor commands only when working in the
+Threadline repository.
+
+| Repository alias | Repository purpose |
+| --- | --- |
+| `mix verify.format` | Check the formatter-owned source tree. |
+| `mix verify.credo` | Run the repository's Credo policy. |
+| `mix verify.dialyzer` | Run the configured Dialyzer analysis without rebuilding the PLT. |
+| `mix verify.test` | Run the root ExUnit suite. |
+| `mix verify.threadline` | Run the configured positive-list trigger-coverage gate. |
+| `mix verify.doc_contract` | Run public documentation contract tests. |
+| `mix verify.release` | Validate the clean, taggable release shape, documentation, and Hex archive. |
+| `mix verify.topology` | Invoke the repository-only PgBouncer topology task. |
+| `mix verify.example` | Compile and test the Phoenix reference application. |
+| `mix verify.example_browser` | Run the reference application's voting browser projects. |
+| `mix verify.example_browser_light` | Run the focused light/system-theme browser lane. |
+| `mix verify.operator_stress` | Run the operator-surface stress browser specification. |
+| `mix verify.mechanical` | Check deterministic operator-surface mechanical constraints. |
+| `mix verify.critic_trust` | Check the committed, deterministic critic-trust evidence without calling an LLM. |
+| `mix verify.hex_evaluator` | Compile, migrate, and test the isolated Hex evaluator. |
+| `mix verify.bench` | Run the repository benchmark scripts. |
+| `mix verify.compile_no_optional` | Compile without optional dependencies and treat warnings as errors. |
+| `mix verify.flake` | Re-run tests with fresh seeds until a failure appears or the repeat limit is reached. |
+| `mix test.setup` | Prepare example dependencies, then run the root test setup path. |
+| `mix test.reset` | Recreate the root test database before running setup. |
+| `mix ci.all` | Run the complete local equivalent of the required CI gates. |
+
+`mix threadline.verify_topology`, implemented by
+`Mix.Tasks.Threadline.VerifyTopology`, is also repository-only. It requires the
+repository's PgBouncer test topology and is not part of the adopter command
+contract.
+
+## Maintainer-only commands
+
+The following tools are shipped from source today but are not supported adopter
+or contributor interfaces. They operate on maintainer evidence, local
+credentials, or a repository-specific capture corpus:
+
+- `mix critic.measure` (`Mix.Tasks.Critic.Measure`)
+- `mix critic.synth` (`Mix.Tasks.Critic.Synth`)
+- `mix verify.ui_critique`
+- `mix verify.capture`
+- `mix verify.phase177_uat`
+
+There are no additional internal Mix tasks or aliases in the current source
+inventory. Adding a task or alias requires placing it in exactly one of these
+classes and updating this reference.
+
+## Next steps
+
+- [Adopt Threadline through the canonical first-hour path](getting-started-saas.md).
+- [Configure and operate the mounted audit surface](operator-surface.md).
+- [Review the production-readiness checklist](production-checklist.md).
