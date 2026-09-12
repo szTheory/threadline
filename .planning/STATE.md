@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 200
 current_phase_name: Public Surface
 status: executing
-stopped_at: Completed 200-07-PLAN.md
-last_updated: "2026-09-12T09:52:32.669Z"
+stopped_at: Completed 200-08-PLAN.md
+last_updated: "2026-09-12T10:30:36.233Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 200 execution started
-state_head: a015468039f85febaf475d353365f5fb6b865247
+state_head: e25415d8825cd1ddd1c2928783b450a973fbf46c
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 105
-  completed_plans: 96
+  completed_plans: 97
   percent: 29
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-11 after Phase 199)
 ## Current Position
 
 Phase: 200 (Public Surface) — EXECUTING
-Plan: 8 of 18
+Plan: 9 of 18
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -137,6 +137,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 200 P05 | 12min | 2 tasks | 9 files |
 | Phase 200 P06 | 7min | 2 tasks | 9 files |
 | Phase 200 P07 | 4min | 2 tasks | 6 files |
+| Phase 200 P08 | 33min | 2 tasks | 9 files |
 
 ## Deferred Items
 
@@ -637,6 +638,9 @@ Progress: [████████████████████] 87/87 p
 - [Phase 200]: [200-07] Export delivery and coverage modules are internal router/rendering plumbing; Router and Auth remain the supported public seams.
 - [Phase 200]: [200-07] Router-installed export, session, and theme plugs are hidden without changing authorization, session, route, telemetry, or response behavior.
 - [Phase 200]: [200-07] Public operator documentation belongs on Router and Auth rather than generated controllers, hooks, state carriers, or plugs.
+- [Phase 200]: [200-08] Filename, FilterParams, Scope, Script, and SurfaceHeader are internal operator helpers; Presentation remains hidden and Router remains the supported public mount contract.
+- [Phase 200]: [200-08] Exact module visibility derives from compiled packaged lib/ sources, excluding test-support modules absent from HexDocs.
+- [Phase 200]: [200-08] All 23 modules documented in 0.9 and now hidden are named in the changelog; visibility changes do not alter runtime callability.
 
 ### Blockers
 
@@ -644,8 +648,8 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-12T09:52:32.518Z
-**Stopped at:** Completed 200-07-PLAN.md
+**Last session:** 2026-09-12T10:30:36.082Z
+**Stopped at:** Completed 200-08-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
