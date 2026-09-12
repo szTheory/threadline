@@ -22,10 +22,10 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-08-27 after opening v1.41)
+See: `.planning/PROJECT.md` (updated 2026-09-11 after Phase 199)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 199 — Decouple
+**Current focus:** Phase 200 — Public Surface
 
 ## Current Position
 
@@ -70,7 +70,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [███░░░░░░░] 29% (v1.41 — 0/7 phases complete)
+Progress: [████████████████████] 87/87 plans (100%)
 
 ## Performance Metrics
 
@@ -615,11 +615,11 @@ Progress: [███░░░░░░░] 29% (v1.41 — 0/7 phases complete)
 
 ### Blockers
 
-- `origin/main` is 202 commits behind local `HEAD` (measured 2026-08-30T22:50:23Z, up from round 5's 186 — the growth is plans 198-38/198-39 landing on `main` after PR #32 was opened, not a correction). This is NOT an independent blocker: it is owned by GREEN-07's accepted-Pending disposition (option-a, `198-39-DECISION.md`) — no push closes it while `CI required` stays red under branch protection requiring that single context, and no push is authorized until plan 198-40's own blocking checkpoint. PR #26 (release-please) and PR #32 (`ci/198-round5`, draft, DO NOT MERGE) both remain `mergeStateStatus: BLOCKED` for the same reason.
+- `origin/main` is 604 commits behind local `HEAD` (measured 2026-09-11). The Phase 199 measurement branch is intentionally only at prepared evidence SHA `a4f21e7e`; local verified closeout is ahead and has not been published. This remains under GREEN-07's accepted-Pending remote disposition rather than being relabeled by local success.
 
 ## Session Continuity
 
-**Last session:** 2026-09-11T21:44:57.258Z
+**Last session:** 2026-09-11T21:20:00-04:00
 **Stopped at:** Phase 199 complete, ready to plan Phase 200
 **Resume file:** None
 
