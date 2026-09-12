@@ -188,8 +188,13 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       def get(_file_id), do: {:error, :unsupported}
 
       @impl true
-      def download_url(file_id, _opts),
-        do: {:ok, "https://downloads.example.test/no-path/#{file_id}"}
+      def download_url(file_id, opts) do
+        token = Keyword.fetch!(opts, :test_token)
+        expires_in = Keyword.fetch!(opts, :expires_in)
+
+        {:ok,
+         "https://downloads.example.test/no-path/#{file_id}?token=#{token}&expires_in=#{expires_in}"}
+      end
 
       @impl true
       def delete(_file_id), do: :ok
@@ -461,9 +466,11 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         @repo.delete_all(ExportJob, repo_opts())
         previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
         previous_remote_opts = Application.get_env(:threadline, RemoteStorageStub)
+        previous_no_path_opts = Application.get_env(:threadline, NoPathStorageStub)
 
         Application.put_env(:threadline, :storage_adapter, Threadline.Storage.Local)
         Application.delete_env(:threadline, RemoteStorageStub)
+        Application.delete_env(:threadline, NoPathStorageStub)
 
         on_exit(fn ->
           if previous_storage_adapter do
@@ -476,6 +483,12 @@ if Code.ensure_loaded?(Phoenix.Controller) do
             Application.put_env(:threadline, RemoteStorageStub, previous_remote_opts)
           else
             Application.delete_env(:threadline, RemoteStorageStub)
+          end
+
+          if previous_no_path_opts do
+            Application.put_env(:threadline, NoPathStorageStub, previous_no_path_opts)
+          else
+            Application.delete_env(:threadline, NoPathStorageStub)
           end
         end)
 
@@ -548,11 +561,11 @@ if Code.ensure_loaded?(Phoenix.Controller) do
                ]
       end
 
-      @tag :phase200_red
       test "delivers remotely when a conforming storage adapter omits optional path/1", %{
         conn: conn
       } do
         Application.put_env(:threadline, :storage_adapter, NoPathStorageStub)
+        Application.put_env(:threadline, NoPathStorageStub, test_token: "adapter-option")
 
         job =
           insert_export_job!(%{
@@ -582,9 +595,16 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         assert {:response, response} = result
         assert response.status == 302
 
-        assert get_resp_header(response, "location") == [
-                 "https://downloads.example.test/no-path/portable-export.csv"
-               ]
+        [location] = get_resp_header(response, "location")
+
+        assert [expires_in] =
+                 Regex.run(
+                   ~r{^https://downloads\.example\.test/no-path/portable-export\.csv\?token=adapter-option&expires_in=(\d+)$},
+                   location,
+                   capture: :all_but_first
+                 )
+
+        assert String.to_integer(expires_in) in 590..600
       end
 
       test "returns 404 if actor_ref does not match (IDOR protection)", %{

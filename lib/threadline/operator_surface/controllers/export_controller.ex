@@ -107,18 +107,26 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       storage_adapter =
         Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
 
-      case storage_adapter.path(file_path) do
-        {:ok, absolute_path} ->
-          {:ok, {:local, absolute_path}}
+      if function_exported?(storage_adapter, :path, 1) do
+        case storage_adapter.path(file_path) do
+          {:ok, absolute_path} ->
+            {:ok, {:local, absolute_path}}
 
-        {:error, :not_local} ->
-          case storage_adapter.download_url(file_path, download_url_opts(storage_adapter, job)) do
-            {:ok, url} -> {:ok, {:remote, url}}
-            {:error, reason} -> {:error, reason}
-          end
+          {:error, :not_local} ->
+            resolve_download_url(storage_adapter, file_path, job)
 
-        {:error, reason} ->
-          {:error, reason}
+          {:error, reason} ->
+            {:error, reason}
+        end
+      else
+        resolve_download_url(storage_adapter, file_path, job)
+      end
+    end
+
+    defp resolve_download_url(storage_adapter, file_path, job) do
+      case storage_adapter.download_url(file_path, download_url_opts(storage_adapter, job)) do
+        {:ok, url} -> {:ok, {:remote, url}}
+        {:error, reason} -> {:error, reason}
       end
     end
 
