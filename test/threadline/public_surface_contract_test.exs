@@ -199,8 +199,19 @@ defmodule Threadline.PublicSurfaceContractTest do
       assert modules != [], "#{unquote(tag)} selected no modules"
 
       for module <- modules do
-        assert module in application_modules(),
+        assert module in MapSet.union(application_modules(), discovered_mix_tasks()),
                "#{inspect(module)} is absent from the compiled app"
+
+        case docs_visibility(module) do
+          :visible ->
+            assert module in grouped_modules(), "visible #{inspect(module)} is ungrouped"
+
+          :hidden ->
+            refute module in grouped_modules(), "hidden #{inspect(module)} is grouped"
+
+          :absent ->
+            flunk("#{inspect(module)} has no compiled documentation chunk")
+        end
       end
     end
   end
@@ -516,24 +527,64 @@ defmodule Threadline.PublicSurfaceContractTest do
       |> Keyword.values()
       |> List.flatten()
 
-  defp modules_for_visibility_tag(:module_visibility_seed), do: [Threadline]
+  defp modules_for_visibility_tag(:module_visibility_seed),
+    do: [
+      Threadline.OperatorSurface.Style,
+      Threadline.OperatorSurface.UI,
+      Threadline.Capture.Migration,
+      Threadline.Evidence.Subject,
+      Mix.Tasks.Threadline.Gen.Triggers
+    ]
 
   defp modules_for_visibility_tag(:module_visibility_capture),
-    do: [Threadline.Capture.AuditChange]
+    do: [
+      Threadline.Capture.RedactionPolicy,
+      Threadline.Capture.TriggerCaptureConfig,
+      Threadline.Capture.TriggerSQL,
+      Threadline.Export.CleanupTask
+    ]
 
   defp modules_for_visibility_tag(:module_visibility_governance),
-    do: [Threadline.Governance.ExportJob]
+    do: [
+      Threadline.Governance.ExportJob,
+      Threadline.Governance.Migration,
+      Threadline.Governance.RetentionRun,
+      Threadline.Governance.SavedView,
+      Threadline.Health.CoverageSchemas
+    ]
 
-  defp modules_for_visibility_tag(:module_visibility_domain_tail), do: [Threadline.Query]
+  defp modules_for_visibility_tag(:module_visibility_domain_tail),
+    do: [
+      Threadline.Policy.RedactionPresenter,
+      Threadline.Retention.Pruner,
+      Threadline.Semantics.Migration,
+      Threadline.OperatorSurface.Controllers.ThemeController,
+      Threadline.OperatorSurface.Fonts
+    ]
 
   defp modules_for_visibility_tag(:module_visibility_operator_coverage),
-    do: [Threadline.OperatorSurface.Router]
+    do: [
+      Threadline.OperatorSurface.Controllers.ExportController,
+      Threadline.OperatorSurface.Coverage.OnMount,
+      Threadline.OperatorSurface.Coverage.Snapshot
+    ]
 
   defp modules_for_visibility_tag(:module_visibility_operator_plugs),
-    do: [Threadline.OperatorSurface.Auth]
+    do: [
+      Threadline.OperatorSurface.ExportAuthPlug,
+      Threadline.OperatorSurface.SessionPlug,
+      Threadline.OperatorSurface.ThemeAuthPlug
+    ]
 
   defp modules_for_visibility_tag(:module_visibility_operator_helpers),
-    do: [Threadline.OperatorSurface.UI]
+    do: [
+      Threadline.OperatorSurface.Exports.Filename,
+      Threadline.OperatorSurface.Exports.FilterParams,
+      Threadline.OperatorSurface.Presentation,
+      Threadline.OperatorSurface.Scope,
+      Threadline.OperatorSurface.Script,
+      Threadline.OperatorSurface.Router
+    ]
 
   defp reference_subjects(:public_doc_refs_external_design) do
     [
@@ -547,6 +598,27 @@ defmodule Threadline.PublicSurfaceContractTest do
 
   defp reference_subjects(:public_doc_refs_extensions),
     do: module_doc_subjects([Threadline.Storage, Threadline.Storage.Local, Threadline.Storage.S3])
+
+  defp reference_subjects(:public_doc_refs_module_seed),
+    do: module_doc_subjects(modules_for_visibility_tag(:module_visibility_seed))
+
+  defp reference_subjects(:public_doc_refs_module_capture),
+    do: module_doc_subjects(modules_for_visibility_tag(:module_visibility_capture))
+
+  defp reference_subjects(:public_doc_refs_module_governance),
+    do: module_doc_subjects(modules_for_visibility_tag(:module_visibility_governance))
+
+  defp reference_subjects(:public_doc_refs_module_domain_tail),
+    do: module_doc_subjects(modules_for_visibility_tag(:module_visibility_domain_tail))
+
+  defp reference_subjects(:public_doc_refs_module_operator_coverage),
+    do: module_doc_subjects(modules_for_visibility_tag(:module_visibility_operator_coverage))
+
+  defp reference_subjects(:public_doc_refs_module_operator_plugs),
+    do: module_doc_subjects(modules_for_visibility_tag(:module_visibility_operator_plugs))
+
+  defp reference_subjects(:public_doc_refs_module_operator_helpers),
+    do: module_doc_subjects(modules_for_visibility_tag(:module_visibility_operator_helpers))
 
   defp reference_subjects(tag) do
     @local_reference_owners
