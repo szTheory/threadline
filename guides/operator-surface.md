@@ -1,13 +1,21 @@
 # Operator Surface
 
-The Threadline Operator Surface provides a suite of mountable, drop-in LiveView screens to investigate row mutations, actor histories, and transaction contexts directly in your host application.
+The Threadline Operator Surface provides mountable LiveView screens for investigating
+row mutations, actor histories, and transaction contexts inside your host application.
 
 It is designed to be fully optional: `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` are optional dependencies, so capture-only integrations aren't forced to bring in UI code.
 
-For compatibility, support boundaries, and deprecation policy, see `guides/upgrade-path.md`. This guide stays focused on mount, auth, and screens.
-For the broader composition contract across `Threadline.Plug`, `Threadline.Job`,
-reference adapters, and operator-surface auth/export auth, see
-`guides/integration-contracts.md`.
+This guide is the canonical owner for operator capabilities, mounting,
+authorization, and mount-specific configuration. For every supported application
+key and command, use the [complete configuration and command
+reference](configuration-and-commands.md) rather than treating examples here as
+an exhaustive inventory.
+This guide stays focused on mount, auth, and screens.
+
+For compatibility, support boundaries, and deprecation policy, see the [upgrade
+path](upgrade-path.md). For the broader composition contract across
+`Threadline.Plug`, `Threadline.Job`, reference adapters, and operator-surface
+auth/export auth, see the [integration contracts](integration-contracts.md).
 
 PhoenixStorybook is maintainer-only component documentation in `examples/threadline_phoenix`
 and example-app dev/test maintainer tooling, not a root `threadline` dependency.
@@ -477,3 +485,11 @@ server-posted form with CSRF, not a client-side storage or scripting feature.
 Disabling an embed never breaks a screen: fonts fall back to the system stack, and the copy affordance falls back to native text selection.
 
 `[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{error: message}`; alert on this for sustained drift.
+
+## Operational paths
+
+- [Investigate a reported change with the incident playbook](incident-playbook.md).
+- [Measure capture and query cost before tuning](performance.md).
+- [Choose evidence-backed indexes for audit workloads](audit-indexing.md).
+- [Understand the boundary between repository proof and host evidence](adoption-evidence-playbook.md).
+- [Review every supported key, adapter seam, and command](configuration-and-commands.md).

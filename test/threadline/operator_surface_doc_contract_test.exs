@@ -53,8 +53,8 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
   test "operator surface guide links the canonical upgrade-path guide and stays scoped" do
     guide = File.read!("guides/operator-surface.md")
 
-    assert String.contains?(guide, "guides/upgrade-path.md")
-    assert String.contains?(guide, "guides/integration-contracts.md")
+    assert String.contains?(guide, "[upgrade\npath](upgrade-path.md)")
+    assert String.contains?(guide, "[integration contracts](integration-contracts.md)")
     assert String.contains?(guide, "{:threadline, \"~> 0.9.0\"}")
     refute String.contains?(guide, "{:threadline, \"~> 0.5\"}")
     refute String.contains?(guide, "{:threadline, \"~> 0.3.0\"}")
@@ -62,6 +62,43 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, "This guide stays focused on mount, auth, and screens.")
     refute String.contains?(guide, "## Supported compatibility matrix")
     refute String.contains?(guide, "## Surface-only deprecation and removal policy")
+  end
+
+  test "operator surface owns procedures and routes exhaustive configuration to one reference" do
+    guide = File.read!("guides/operator-surface.md")
+
+    assert String.contains?(
+             guide,
+             "canonical owner for operator capabilities, mounting,\nauthorization, and mount-specific configuration"
+           )
+
+    assert String.contains?(
+             guide,
+             "[complete configuration and command\nreference](configuration-and-commands.md)"
+           )
+
+    assert String.contains?(guide, "threadline_operator_surface \"/\"")
+    assert String.contains?(guide, "## Security and Authorization (Fail-Closed Default)")
+    refute String.contains?(guide, "## Runtime configuration")
+    refute String.contains?(guide, "## Commands available to host projects")
+  end
+
+  test "operator surface leads with the production mount before advanced operation links" do
+    guide = File.read!("guides/operator-surface.md")
+
+    {mount_index, _} = :binary.match(guide, "## 1-Minute Mount")
+    {auth_index, _} = :binary.match(guide, "## Security and Authorization")
+    {operations_index, _} = :binary.match(guide, "## Operational paths")
+
+    assert mount_index < auth_index
+    assert auth_index < operations_index
+
+    assert String.contains?(
+             guide,
+             "[Measure capture and query cost before tuning](performance.md)"
+           )
+
+    assert String.contains?(guide, "[Review every supported key, adapter seam, and command]")
   end
 
   test "operator surface guide locks callback shape and export fallback wording" do

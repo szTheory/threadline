@@ -110,8 +110,20 @@ defmodule Threadline.GuideGraphContractTest do
   @tag :operator_owner_tracer
   @tag :phase200_red
   test "mounting and authorization procedures live only in Operator Surface" do
-    assert sole_sequence_owner("threadline_operator_surface", "guides/operator-surface.md")
-    assert sole_sequence_owner("authorize_fn", "guides/operator-surface.md")
+    owner = "guides/operator-surface.md"
+
+    routed_references = [
+      "guides/configuration-and-commands.md",
+      "examples/threadline_phoenix/README.md"
+    ]
+
+    assert sole_sequence_owner("threadline_operator_surface", owner, routed_references)
+    assert sole_sequence_owner("authorize_fn", owner, routed_references)
+
+    content = File.read!(owner)
+
+    assert link_target?(owner, content, "guides/configuration-and-commands.md"),
+           "the Operate landing must reach the canonical configuration reference"
   end
 
   @tag :canonical_owners
