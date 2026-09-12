@@ -17,9 +17,9 @@ provides:
   - warnings-as-errors release documentation step and durable maintainer command naming
 affects: [200-05, 200-06, 200-07, 200-08, 200-09, 200-12, 200-13, 200-14]
 actuals:
-  tokens: 10227
+  tokens: 10515
   tasks: 2
-  commits: 2
+  commits: 4
 plan_head_before: d573ade606f7cf6c9835c81b770ee15aac571f43
 tech-stack:
   added: []
@@ -84,7 +84,7 @@ coverage:
         ref: "npm run typecheck --prefix examples/threadline_phoenix/e2e"
         status: pass
     human_judgment: false
-duration: 33min
+duration: 36min
 completed: 2026-09-12
 status: complete
 ---
@@ -95,9 +95,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** 33 min
+- **Duration:** 36 min
 - **Started:** 2026-09-12T07:55:03Z
-- **Completed:** 2026-09-12T08:28:30Z
+- **Completed:** 2026-09-12T08:31:22Z
 - **Tasks:** 2
 - **Files modified:** 14
 
@@ -112,6 +112,7 @@ status: complete
 
 1. **Task 1: Prove a hidden critic and public façade through compiled docs** — `4c7496ea`
 2. **Task 2: Configure README-led HexDocs and version-pinned external resources** — `a484e4ce`
+3. **Task 1 acceptance follow-up: Enforce group order, unique façade, and exact adopter-task membership in the tracer** — `5f9f95fc`
 
 ## Files Created/Modified
 
@@ -162,7 +163,16 @@ status: complete
 - **Verification:** The focused URL, tracer, command-reference, compile, format, and TypeScript checks all pass.
 - **Committed in:** `a484e4ce`
 
-**Total deviations:** 3 auto-fixed (2 Rule 1, 1 Rule 2)
+**4. [Rule 1 - Acceptance gap] Strengthened the tracer to enforce every stated taxonomy invariant**
+
+- **Found during:** Final acceptance-criteria audit
+- **Issue:** The prepared tracer proved the façade and hidden critic set but did not itself fail on group key/order drift, duplicate façade membership, or a changed adopter-task set.
+- **Fix:** Added exact six-key order, unique façade, and ordered ten-task assertions to the same tagged tracer.
+- **Files modified:** `test/threadline/public_surface_contract_test.exs`
+- **Verification:** The strengthened tracer selects one test and passes from the committed tree.
+- **Committed in:** `5f9f95fc`
+
+**Total deviations:** 4 auto-fixed (3 Rule 1, 1 Rule 2)
 
 **Impact on plan:** The fixes make the planned release contracts executable and preserve exact cross-plan ownership; they introduce no runtime API, operator UI, dependency, or package-content expansion.
 
@@ -192,7 +202,7 @@ None.
 ## Self-Check: PASSED
 
 - All 14 created, renamed, or modified plan files exist at their expected final paths.
-- Task commits `4c7496ea` and `a484e4ce` exist after the persisted `plan_head_before` base; the measured count is 2.
+- Task commits `4c7496ea`, `a484e4ce`, and `5f9f95fc` exist after the persisted `plan_head_before` base; the measured count at this summary refresh is 4, including the superseded first metadata commit.
 - The tracer, URL-extra, external-design, and command-reference tags each select one test and pass.
 - Elixir warnings-as-errors compilation, root formatting, TypeScript typecheck, diff whitespace, stale-identifier scan, and stub review pass.
 
