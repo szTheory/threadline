@@ -4,8 +4,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: declared has-forms since Phase 185 (COV-01 / COV-03) — the page
-    # owns a native schema-selector form driving `/audit/coverage?schema=NAME` URL state.
+    # This page declares its own form capability. Its native schema selector filters
+    # coverage and owns the `/audit/coverage?schema=NAME` URL state.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "schema selector owning ?schema= URL state"}
 

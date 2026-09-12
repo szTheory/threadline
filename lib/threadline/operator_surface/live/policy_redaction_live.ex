@@ -4,9 +4,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: has-forms. NOTE: the superseded @formless_pages allowlist still
-    # listed this page as formless after it grew the host-schema picker at :262 — that
-    # stale exemption is exactly the reverse drift the self-declaring policy catches.
+    # This page declares its own form capability because the redaction diff includes a
+    # host-schema picker. Keeping that fact beside the page prevents a separate list
+    # from silently treating the current interaction as formless.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "host-schema picker for the redaction diff view"}
 

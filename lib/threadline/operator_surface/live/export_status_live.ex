@@ -4,8 +4,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: this page declares its own form policy, so a change that adds
-    # a form control fails the guard in the same diff. See
+    # This page declares its own form capability. Adding a form control must update
+    # this declaration so the form-policy contract fails in the same diff. See
     # test/threadline/operator_surface/ui_form_policy_contract_test.exs.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy :formless
@@ -263,10 +263,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </UI.empty_state>
             <% else %>
               <section id="export-jobs" data-testid="export-jobs">
-                <%!-- Honest cap caption (D-20, WR-04/WR-05): Exports is recent-only /
-                      low-volume, not a keyset pager. Report the actual rendered count
-                      (never over-claim against a short table) and, when the cap is hit,
-                      interpolate the real @default_limit rather than a hardcoded literal. --%>
+                <%!-- Export history is intentionally recent-only rather than keyset-paginated.
+                      Report the actual rendered count without overstating a short table;
+                      when the cap is reached, use @default_limit instead of a literal. --%>
                 <p class="tl-status" role="status" aria-live="polite">
                   <%= if @jobs_count >= @default_limit do %>
                     Showing the most recent <%= @default_limit %> export jobs (newest first).
