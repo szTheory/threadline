@@ -2,21 +2,104 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
-  alias Threadline.GettingStartedFixtures
-
   @repo_root File.cwd!()
-  @readme_path ["examples", "threadline_phoenix", "README.md"]
+  @readme_path "examples/threadline_phoenix/README.md"
+  @canonical_owner_links [
+    {"../../guides/getting-started-saas.md", "1-prerequisites"},
+    {"../../guides/operator-surface.md", "1-minute-mount"},
+    {"../../guides/local-docker-dx.md", "try-the-ui-demo"}
+  ]
 
-  defp read_rel!(segments) when is_list(segments) do
-    @repo_root |> Path.join(Path.join(segments)) |> File.read!()
+  test "example README is a proof surface with an honest support boundary" do
+    doc = read!(@readme_path)
+
+    assert String.contains?(doc, "maintained, repository-only proof")
+    assert contains_normalized?(doc, "It is not a second installation guide")
+    assert String.contains?(doc, "current `sigra-reference` lane")
+    assert String.contains?(doc, "without claiming that arbitrary Sigra")
+    assert String.contains?(doc, "Audience:")
+    assert String.contains?(doc, "Outcome:")
+    assert String.contains?(doc, "Prerequisites:")
+    assert String.contains?(doc, "Safety boundary:")
+    assert String.contains?(doc, "the host owns authentication, authorization, tenancy")
   end
 
-  test "example README locks the direct Sigra callback pair" do
-    doc = read_rel!(@readme_path)
+  test "package coordinates agree with the example Mix project" do
+    doc = read!(@readme_path)
+    mix_exs = read!("examples/threadline_phoenix/mix.exs")
 
-    assert String.contains?(doc, "This app is the current `sigra-reference` lane")
-    assert String.contains?(doc, "maintained first-party")
-    assert String.contains?(doc, "It does not claim that arbitrary Sigra versions")
+    for coordinate <- [
+          ~S|{:threadline, path: "../.."}|,
+          ~S|{:phoenix, "~> 1.8.5"}|,
+          ~S|{:sigra, "~> 0.2"}|
+        ] do
+      assert String.contains?(doc, coordinate)
+      assert String.contains?(mix_exs, coordinate)
+    end
+
+    assert String.contains?(doc, "[`mix.exs`](mix.exs)")
+    assert String.contains?(doc, "[`mix.lock`](mix.lock)")
+  end
+
+  test "example routes to all three canonical procedure owners at valid anchors" do
+    doc = read!(@readme_path)
+
+    for {target, anchor} <- @canonical_owner_links do
+      assert String.contains?(doc, "(#{target}##{anchor})")
+      assert :ok == validate_target(@readme_path, "#{target}##{anchor}")
+    end
+  end
+
+  test "relative-link validation rejects missing paths and anchors" do
+    assert {:error, :missing_path} ==
+             validate_target(@readme_path, "../../guides/not-a-guide.md")
+
+    assert {:error, :missing_anchor} ==
+             validate_target(
+               @readme_path,
+               "../../guides/getting-started-saas.md#not-an-anchor"
+             )
+  end
+
+  test "example README rejects a competing ordered setup block" do
+    doc = read!(@readme_path)
+
+    refute competing_procedure?(doc)
+
+    assert competing_procedure?("""
+           1. Install dependencies.
+
+           ```bash
+           mix deps.get
+           mix ecto.migrate
+           ```
+           """)
+  end
+
+  test "example-specific claims point to source and executable proof" do
+    doc = read!(@readme_path)
+
+    required_paths = [
+      "lib/threadline_phoenix_web/router.ex",
+      "lib/threadline_phoenix/blog.ex",
+      "test/threadline_phoenix_web/posts_audit_path_test.exs",
+      "test/threadline_phoenix_web/posts_correlation_path_test.exs",
+      "test/threadline_phoenix_web/posts_incident_json_path_test.exs",
+      "test/threadline_phoenix_web/operator_surface_test.exs",
+      "test/threadline_phoenix_web/walkthrough_happy_path_test.exs",
+      "test/threadline_phoenix_web/walkthrough_evidence_test.exs",
+      "test/threadline_phoenix_web/track_a_golden_path_test.exs"
+    ]
+
+    for path <- required_paths do
+      assert String.contains?(doc, "](#{path})"), "README does not link #{path}"
+      assert File.regular?(Path.join(@repo_root, "examples/threadline_phoenix/#{path}"))
+    end
+  end
+
+  test "example keeps direct Sigra and mounted authorization proof without recipes" do
+    doc = read!(@readme_path)
+
     assert String.contains?(doc, "Threadline.Integrations.Sigra.actor_ref_from_conn/1")
 
     assert String.contains?(
@@ -24,97 +107,22 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
              "Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1"
            )
 
-    assert String.contains?(doc, "wired directly into `Threadline.Plug`")
-    assert String.contains?(doc, "soft-loaded, host-owned")
-    assert String.contains?(doc, "runnable proof artifact behind both paths")
-  end
-
-  test "example README does not teach an app-local delegate seam" do
-    doc = read_rel!(@readme_path)
-
-    refute String.contains?(doc, "delegates to")
+    assert String.contains?(doc, "soft-loaded and host-owned")
+    assert String.contains?(doc, "Threadline.Audit.transaction/3")
+    assert String.contains?(doc, "Threadline.incident_bundle/2")
+    assert String.contains?(doc, "one secured\n`/audit` tree")
+    assert String.contains?(doc, "export/evidence access remains separately")
+    assert String.contains?(doc, "Neither is a production route")
+    refute String.contains?(doc, "threadline_operator_surface(")
     refute String.contains?(doc, "ThreadlinePhoenix.AuditActor")
   end
 
-  test "example README locks the incident drill-down auth boundary" do
-    doc = read_rel!(@readme_path)
-
-    assert String.contains?(doc, "Threadline.incident_bundle/2")
-    assert String.contains?(doc, "COMP-EXAMPLE-INCIDENT-JSON")
-    assert String.contains?(doc, "requires an authenticated actor before it serves the")
-    assert String.contains?(doc, "drill-down endpoint")
-    assert String.contains?(doc, "Hosts still need their own tenancy and policy checks")
-    assert String.contains?(doc, "mix threadline.incident <audit_transaction_id>")
-  end
-
-  test "example README locks the mounted operator-surface story to the router source" do
-    doc = read_rel!(@readme_path)
-
-    assert String.contains?(doc, "secured `/audit` path")
-    assert String.contains?(doc, "treat this as a `sigra-reference` example layered on top")
-    assert String.contains?(doc, "root library's broader `phoenix-surface` lane")
-    assert String.contains?(doc, "/audit/evidence")
-    assert String.contains?(doc, "Sigra `0.2.5`, Phoenix `1.8.5`")
-    assert String.contains?(doc, "scope and pipeline")
-    assert contains_normalized?(doc, router_mount_block())
-    assert String.contains?(doc, "pipeline :operator_auth")
-    assert String.contains?(doc, "authenticated operator user")
-    assert String.contains?(doc, "`phx.gen.auth`-style posture")
-    assert String.contains?(doc, "shared `%{assigns: assigns}`")
-    assert String.contains?(doc, "current scoped")
-    assert String.contains?(doc, "timeline, actor, transaction, and export denial")
-    assert String.contains?(doc, "`export_authorize_fn`")
-    assert String.contains?(doc, "`evidence_authorize_fn`")
-
-    assert String.contains?(
-             doc,
-             "evidence_authorize_fn: &ThreadlinePhoenixWeb.Router.my_evidence_authorize_fn/1"
-           )
-
-    assert String.contains?(doc, "shared scoped `/audit` proof now includes")
-    assert String.contains?(doc, "history / as-of")
-    assert String.contains?(doc, "HTTP-native `403`")
-    assert String.contains?(doc, "http://localhost:4000/audit")
-    assert String.contains?(doc, "../../guides/getting-started-saas.md")
-    assert String.contains?(doc, "without becoming the primary onboarding narrative")
-    assert String.contains?(doc, "mix threadline.health.coverage")
-    assert String.contains?(doc, "mix threadline.policy.show")
-    assert String.contains?(doc, "mix threadline.incident <audit_transaction_id>")
-    assert String.contains?(doc, "Coverage and policy surfaces stay admin/global")
-  end
-
-  test "example README distinguishes maintainer Storybook from operator stress testing" do
-    doc = read_rel!(@readme_path)
-
-    assert String.contains?(
-             doc,
-             "PhoenixStorybook is local maintainer component documentation and design review under `examples/threadline_phoenix`"
-           )
-
-    assert String.contains?(
-             doc,
-             "`/audit/__stress` is authenticated operator-flow stress testing"
-           )
-
-    assert String.contains?(
-             doc,
-             "Neither `/dev/storybook` nor `/audit/__stress` is a production route"
-           )
-
-    assert String.contains?(
-             doc,
-             "Host apps do not install `phoenix_storybook`; it stays in the example app's dev/test dependency set"
-           )
-
-    refute String.contains?(doc, "{:phoenix_storybook")
-    refute String.contains?(doc, "install PhoenixStorybook in your app")
-  end
-
-  test "example router uses one shared assigns-shaped authorizer" do
-    router =
-      read_rel!(["examples", "threadline_phoenix", "lib", "threadline_phoenix_web", "router.ex"])
+  test "example router still uses one assigns-shaped authorizer and real ActorRef" do
+    router = read!("examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex")
 
     assert String.contains?(router, "def my_authorize_fn(%{assigns: assigns}) do")
+    assert String.contains?(router, "alias Threadline.Semantics.ActorRef")
+    assert String.contains?(router, "%ActorRef{type: :user, id: to_string(user.id)}")
 
     assert String.contains?(
              router,
@@ -133,59 +141,68 @@ defmodule Threadline.ExamplePhoenixReadmeContractTest do
 
     refute String.contains?(router, "def my_authorize_fn(%Plug.Conn{}")
     refute String.contains?(router, "def my_authorize_fn(%Phoenix.LiveView.Socket{}")
-    refute String.contains?(router, "match?(%Phoenix.LiveView.Socket{}, transport)")
   end
 
-  test "example router actor callback returns a real ActorRef" do
-    router =
-      read_rel!(["examples", "threadline_phoenix", "lib", "threadline_phoenix_web", "router.ex"])
+  defp competing_procedure?(doc) do
+    ordered_command =
+      Regex.match?(~r/^\s*\d+\.\s+.*(?:`mix\s|`bin\/|`docker\s)/m, doc)
 
-    assert String.contains?(router, "alias Threadline.Semantics.ActorRef")
-    assert String.contains?(router, "%ActorRef{type: :user, id: to_string(user.id)}")
-    refute String.contains?(router, "avatar_url")
+    runnable_fence =
+      Regex.match?(
+        ~r/```(?:bash|sh|elixir)\s*\n[\s\S]*?(?:mix\s+(?:deps\.|ecto\.|phx\.|threadline\.)|bin\/demo-up|docker\s+compose)[\s\S]*?```/m,
+        doc
+      )
+
+    ordered_command or runnable_fence
   end
 
-  test "example README documents API auth staging for POST /api/posts" do
-    doc = read_rel!(@readme_path)
-
-    assert String.contains?(doc, "Authenticate before")
-    assert String.contains?(doc, "fetch_current_scope")
-    assert String.contains?(doc, "missing actor")
-    assert String.contains?(doc, "DEMO_USERS.md")
-    assert String.contains?(doc, "_threadline_phoenix_key")
-    assert String.contains?(doc, "does not ship API bearer")
-
-    auth_section =
-      doc
-      |> String.split("### Authenticate before", parts: 2)
-      |> case do
-        [_, rest] ->
-          rest
-          |> String.split("```", parts: 3)
-          |> Enum.at(1, "")
-
-        _ ->
-          ""
+  defp validate_target(source, target) do
+    [raw_path, anchor] =
+      case String.split(target, "#", parts: 2) do
+        [path, fragment] -> [path, URI.decode(fragment)]
+        [path] -> [path, nil]
       end
 
-    refute String.contains?(auth_section, "password123456")
-    refute String.contains?(auth_section, "@example.com")
+    resolved =
+      source
+      |> Path.dirname()
+      |> Path.join(URI.decode(raw_path))
+      |> Path.expand(@repo_root)
+
+    cond do
+      not File.regular?(resolved) ->
+        {:error, :missing_path}
+
+      anchor != nil and anchor not in heading_anchors(File.read!(resolved)) ->
+        {:error, :missing_anchor}
+
+      true ->
+        :ok
+    end
   end
 
-  defp router_mount_block do
-    GettingStartedFixtures.extract!(
-      "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex",
-      "operator-surface-mount"
-    )
+  defp heading_anchors(content) do
+    content
+    |> String.split("\n")
+    |> Enum.filter(&Regex.match?(~r/^\#{1,6}\s+/, &1))
+    |> Enum.map(fn heading ->
+      heading
+      |> String.replace(~r/^\#{1,6}\s+/, "")
+      |> String.replace(~r/`([^`]*)`/, "\\1")
+      |> String.downcase()
+      |> String.replace(~r/[^\p{L}\p{N}\s-]/u, "")
+      |> String.trim()
+      |> String.replace(~r/\s+/, "-")
+      |> String.replace(~r/-+/, "-")
+    end)
+    |> MapSet.new()
   end
 
   defp contains_normalized?(doc, snippet) do
     String.contains?(normalize(doc), normalize(snippet))
   end
 
-  defp normalize(value) do
-    value
-    |> String.trim()
-    |> String.replace(~r/\s+/, " ")
-  end
+  defp normalize(value), do: String.replace(value, ~r/\s+/, " ")
+
+  defp read!(path), do: @repo_root |> Path.join(path) |> File.read!()
 end

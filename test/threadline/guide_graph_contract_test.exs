@@ -92,7 +92,7 @@ defmodule Threadline.GuideGraphContractTest do
   @tag :canonical_owner_tracer
   @tag :phase200_red
   test "installation and first-hour commands live only in Getting Started" do
-    callers = ["README.md"]
+    callers = ["README.md", "examples/threadline_phoenix/README.md"]
 
     assert sole_sequence_owner(
              "mix threadline.install",

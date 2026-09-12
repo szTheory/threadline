@@ -167,53 +167,38 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(doc, "[`threadline_phoenix/README.md`](threadline_phoenix/README.md)")
   end
 
-  test "example README carries runbook literals for REF-01" do
+  test "example README routes procedures to their canonical owners" do
     doc = File.read!("examples/threadline_phoenix/README.md")
 
-    assert String.contains?(doc, "mix threadline.install")
-    assert String.contains?(doc, "mix threadline.gen.triggers")
-
-    assert String.contains?(doc, "mix phx.server") or
-             String.contains?(doc, "iex -S mix phx.server")
-
-    assert String.contains?(doc, "mix test")
-    assert String.contains?(doc, "ecto.migrate")
+    assert String.contains?(doc, "../../guides/getting-started-saas.md#1-prerequisites")
+    assert String.contains?(doc, "../../guides/operator-surface.md#1-minute-mount")
+    assert String.contains?(doc, "../../guides/local-docker-dx.md#try-the-ui-demo")
+    refute String.contains?(doc, "mix threadline.install")
+    refute String.contains?(doc, "mix threadline.gen.triggers")
+    refute String.contains?(doc, "mix phx.server")
   end
 
-  test "example README carries historical reconstruction walkthrough literals" do
+  test "example README preserves historical-reconstruction proof outcomes" do
     doc = File.read!("examples/threadline_phoenix/README.md")
 
-    assert String.contains?(doc, "Historical reconstruction walkthrough")
-    assert String.contains?(doc, "ThreadlinePhoenix.Post")
-    assert String.contains?(doc, "as_of/4")
-    assert String.contains?(doc, "cast: true")
+    assert String.contains?(doc, "Incident and historical investigation")
+    assert String.contains?(doc, "domain reference")
     assert String.contains?(doc, ":deleted_record")
     assert String.contains?(doc, ":before_audit_horizon")
   end
 
-  test "example README documents demo seed and reset tasks" do
+  test "example README indexes maintainer proof without copying its runbook" do
     doc = File.read!("examples/threadline_phoenix/README.md")
 
-    assert String.contains?(doc, "## Demo walkthrough data")
-    assert String.contains?(doc, "mix demo.seed")
-    assert String.contains?(doc, "mix demo.reset")
+    assert String.contains?(doc, "## Maintainer proof surfaces")
     assert String.contains?(doc, "DEMO-MANIFEST.md")
     assert String.contains?(doc, "DEMO_USERS.md")
-    assert String.contains?(doc, "does **not** run `demo.seed` automatically")
-    assert String.contains?(doc, "`mix ecto.reset` is schema/trigger recovery only")
-    assert String.contains?(doc, "`mix demo.reset` for the daily walkthrough loop")
-    assert String.contains?(doc, "Mix task ownership")
-    assert String.contains?(doc, "neutral")
-    assert String.contains?(doc, "walkthrough fiction")
-    assert String.contains?(doc, "skip generators on a normal clean clone")
-    assert String.contains?(doc, "## Choose your path")
-    assert String.contains?(doc, "## Base install (all paths)")
-    assert String.contains?(doc, "### Tour in five minutes")
     assert String.contains?(doc, "walkthrough_happy_path_test.exs")
     assert String.contains?(doc, "walkthrough_evidence_test.exs")
     assert String.contains?(doc, "track_a_golden_path_test.exs")
-    assert String.contains?(doc, "mix verify.example_browser")
     assert String.contains?(doc, "adoption-evidence-playbook.md")
+    refute String.contains?(doc, "mix demo.seed")
+    refute String.contains?(doc, "mix demo.reset")
   end
 
   test "example README carries audited HTTP and correlation literals" do
@@ -221,11 +206,10 @@ defmodule Threadline.ReadmeDocContractTest do
 
     assert String.contains?(doc, "Threadline.Plug")
     assert String.contains?(doc, "Threadline.Audit.transaction")
-    assert String.contains?(doc, "Threadline.record_action/2")
-    assert String.contains?(doc, "Threadline.timeline/2")
-    assert String.contains?(doc, "Threadline.export_json/2")
-    assert String.contains?(doc, "guides/domain-reference.md")
-    assert String.contains?(doc, "guides/production-checklist.md")
+    assert String.contains?(doc, "posts_audit_path_test.exs")
+    assert String.contains?(doc, "posts_correlation_path_test.exs")
+    assert String.contains?(doc, "../../guides/domain-reference.md")
+    assert String.contains?(doc, "../../guides/production-checklist.md")
   end
 
   test "fixture calls match public README API shapes" do
