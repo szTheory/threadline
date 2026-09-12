@@ -8,6 +8,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
   import ThreadlinePhoenixWeb.WalkthroughCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.HelpDesk.{Organization, Ticket}
   alias ThreadlinePhoenix.Repo
@@ -131,7 +132,8 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
             where: fragment("?->>'status' = ?", ac.data_after, "closed"),
             order_by: [desc: at.occurred_at],
             limit: 1
-          )
+          ),
+          StorageSchema.repo_opts()
         )
 
       reply_change =
@@ -140,7 +142,8 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
             where: ac.transaction_id == ^close_tx.id,
             where: ac.table_name == "ticket_replies",
             where: ac.op == "insert"
-          )
+          ),
+          StorageSchema.repo_opts()
         )
 
       {close_tx.id, reply_change.table_pk["id"]}

@@ -6,6 +6,7 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.Tables
   alias ThreadlinePhoenix.HelpDesk
   alias ThreadlinePhoenix.Repo
@@ -33,12 +34,15 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
           from(ac in AuditChange,
             where: ac.transaction_id == ^result.audit_transaction_id,
             where: ac.table_name in ["tickets", "ticket_replies"]
-          )
+          ),
+          StorageSchema.repo_opts()
         )
 
       assert length(changes) == 2
 
-      at = Repo.get!(AuditTransaction, result.audit_transaction_id)
+      at =
+        Repo.get!(AuditTransaction, result.audit_transaction_id, StorageSchema.repo_opts())
+
       assert at.meta["organization_id"] == to_string(org.id)
       assert %ActorRef{type: :user, id: "agent-user-1"} = at.actor_ref
 
@@ -47,7 +51,8 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
           from(a in AuditAction,
             where: a.id == ^at.action_id,
             where: a.name == "ticket_replied_and_closed"
-          )
+          ),
+          StorageSchema.repo_opts()
         )
 
       refute is_nil(action)
@@ -90,7 +95,8 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
             where: ac.op == "delete",
             where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(reply.id)),
             order_by: [desc: ac.captured_at]
-          )
+          ),
+          StorageSchema.repo_opts()
         )
 
       assert delete_change.changed_fields == nil
@@ -104,7 +110,8 @@ defmodule ThreadlinePhoenix.HelpDeskAuditTest do
             where: fragment("?->>'id' = ?", ac.table_pk, ^to_string(reply.id)),
             order_by: [desc: at.occurred_at],
             limit: 1
-          )
+          ),
+          StorageSchema.repo_opts()
         )
 
       assert delete_at.meta["organization_id"] == to_string(org.id)

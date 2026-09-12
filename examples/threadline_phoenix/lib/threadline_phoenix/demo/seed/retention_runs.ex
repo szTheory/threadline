@@ -13,6 +13,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionRuns do
   """
 
   alias Threadline.Governance.RetentionRun
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Demo.Manifest.UUID
   alias ThreadlinePhoenix.Repo
@@ -26,7 +27,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionRuns do
     # prior seeds against a persistent dev DB) so the screen shows exactly this
     # curated lifecycle — deterministic regardless of DB state and unaffected by
     # the default LIMIT. The offboard story lives in evidence, not this table.
-    Repo.delete_all(RetentionRun)
+    Repo.delete_all(RetentionRun, StorageSchema.repo_opts())
 
     now = Manifest.epoch()
     inserted_at = DateTime.utc_now(:second)
@@ -65,19 +66,23 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionRuns do
       ]
       |> Enum.map(&Map.merge(&1, %{inserted_at: inserted_at, updated_at: inserted_at}))
 
-    Repo.insert_all(RetentionRun, rows,
-      on_conflict:
-        {:replace,
-         [
-           :status,
-           :deleted_count,
-           :duration_ms,
-           :error_message,
-           :started_at,
-           :completed_at,
-           :updated_at
-         ]},
-      conflict_target: :id
+    Repo.insert_all(
+      RetentionRun,
+      rows,
+      [
+        on_conflict:
+          {:replace,
+           [
+             :status,
+             :deleted_count,
+             :duration_ms,
+             :error_message,
+             :started_at,
+             :completed_at,
+             :updated_at
+           ]},
+        conflict_target: :id
+      ] ++ StorageSchema.repo_opts()
     )
 
     ctx

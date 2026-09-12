@@ -9,6 +9,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.{Manifest, Reset, Seed}
   alias ThreadlinePhoenix.HelpDesk.{Organization, Ticket}
   alias ThreadlinePhoenix.Repo
@@ -52,7 +53,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: fragment("?->>'status' = ?", ac.data_after, "closed"),
               order_by: [desc: at.occurred_at],
               limit: 1
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         action =
@@ -60,7 +62,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             from(a in AuditAction,
               where: a.id == ^close_tx.action_id,
               where: a.name == "ticket_replied_and_closed"
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert action.name == "ticket_replied_and_closed"
@@ -82,7 +85,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: fragment("?->>'status' = ?", ac.data_after, "closed"),
               order_by: [desc: at.occurred_at],
               limit: 1
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         reply_change =
@@ -91,7 +95,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: ac.transaction_id == ^close_tx.id,
               where: ac.table_name == "ticket_replies",
               where: ac.op == "insert"
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         encoded = Jason.encode!(reply_change.data_after)
@@ -129,7 +134,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: at.occurred_at >= ^from_ts,
               where: at.occurred_at <= ^to_ts,
               select: count(at.id, :distinct)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert count == 12
@@ -144,7 +150,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: at.occurred_at >= ^from_ts,
               where: at.occurred_at <= ^to_ts
             ),
-            :count
+            :count,
+            StorageSchema.repo_opts()
           )
 
         assert ticket_change_count >= 1
@@ -171,7 +178,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: fragment("?->>'organization_id' = ?", at.meta, ^to_string(acme.id)),
               where: at.occurred_at == ^delete_at,
               select: {ac, at}
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert %Threadline.Semantics.ActorRef{type: :user, id: ^deleter_id} = at.actor_ref
@@ -293,7 +301,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             from(ac in AuditChange,
               where: ac.table_name == "org_memberships",
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert total_count >= 1,
@@ -306,7 +315,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: ac.table_name == "org_memberships",
               where: not is_nil(at.actor_ref),
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert count >= 1,
@@ -325,7 +335,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             from(ac in AuditChange,
               where: ac.table_name == "org_memberships",
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert total_count >= 1,
@@ -343,7 +354,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: ac.table_name == "org_memberships",
               where: at.occurred_at >= ^window_start,
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert in_window_count == 0,
@@ -363,7 +375,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               join: at in assoc(ac, :transaction),
               where: is_nil(at.actor_ref),
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert total_count >= 1,
@@ -381,7 +394,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: is_nil(at.actor_ref),
               where: at.occurred_at >= ^window_start,
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert in_window_count == 0,
@@ -408,7 +422,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
                 where: ac.op == ^op,
                 where: at.occurred_at >= ^window_start,
                 select: count(ac.id)
-              )
+              ),
+              StorageSchema.repo_opts()
             )
 
           assert count >= 1,

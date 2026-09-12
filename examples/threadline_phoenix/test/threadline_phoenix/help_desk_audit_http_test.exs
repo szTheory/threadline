@@ -6,6 +6,7 @@ defmodule ThreadlinePhoenix.HelpDeskAuditHttpTest do
 
   alias Threadline.Capture.AuditTransaction
   alias Threadline.Semantics.ActorRef
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Repo
 
   test "ticket reply via dev route captures actor_ref from Sigra session" do
@@ -36,7 +37,7 @@ defmodule ThreadlinePhoenix.HelpDeskAuditHttpTest do
 
       assert %{"audit_transaction_id" => tx_id} = json_response(conn, 200)
 
-      at = Repo.get!(AuditTransaction, tx_id)
+      at = Repo.get!(AuditTransaction, tx_id, StorageSchema.repo_opts())
 
       assert %ActorRef{type: :user, id: user_id} = at.actor_ref
       assert user_id == to_string(user.id)

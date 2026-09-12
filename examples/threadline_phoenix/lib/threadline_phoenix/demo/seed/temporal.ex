@@ -4,6 +4,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Temporal do
   import Ecto.Query
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Repo
 
@@ -43,17 +44,19 @@ defmodule ThreadlinePhoenix.Demo.Seed.Temporal do
         select: at.id
       )
 
-    ids = Repo.all(query)
+    ids = Repo.all(query, StorageSchema.repo_opts())
 
     if ids != [] do
       Repo.update_all(
         from(at in AuditTransaction, where: at.id in ^ids),
-        set: [occurred_at: setup_ts]
+        [set: [occurred_at: setup_ts]],
+        StorageSchema.repo_opts()
       )
 
       Repo.update_all(
         from(ac in AuditChange, where: ac.transaction_id in ^ids),
-        set: [captured_at: setup_ts]
+        [set: [captured_at: setup_ts]],
+        StorageSchema.repo_opts()
       )
     end
 

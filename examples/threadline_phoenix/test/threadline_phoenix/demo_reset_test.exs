@@ -7,6 +7,7 @@ defmodule ThreadlinePhoenix.DemoResetTest do
   alias ThreadlinePhoenix.HelpDesk.Organization
   alias ThreadlinePhoenix.Repo
   alias Threadline.Governance.ExportJob
+  alias Threadline.StorageSchema
 
   @app_dir Path.expand("../..", __DIR__)
 
@@ -51,10 +52,10 @@ defmodule ThreadlinePhoenix.DemoResetTest do
         query_params: %{"table" => "tickets"},
         actor_ref: actor_ref
       })
-      |> Repo.insert!()
+      |> Repo.insert!(StorageSchema.repo_opts())
 
       assert Repo.aggregate(Organization, :count, :id) >= 1
-      assert Repo.get_by(ExportJob, actor_ref: actor_ref)
+      assert Repo.get_by(ExportJob, [actor_ref: actor_ref], StorageSchema.repo_opts())
 
       assert :ok = Reset.run()
 
@@ -62,7 +63,7 @@ defmodule ThreadlinePhoenix.DemoResetTest do
       assert Repo.get_by!(Organization, slug: "globex")
       assert Repo.get_by!(Organization, slug: "offboarded-co")
       refute Repo.get_by(Organization, slug: "ephemeral-fixture-org")
-      refute Repo.get_by(ExportJob, actor_ref: actor_ref)
+      refute Repo.get_by(ExportJob, [actor_ref: actor_ref], StorageSchema.repo_opts())
     end)
   end
 

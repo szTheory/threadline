@@ -7,6 +7,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
   alias Threadline.Evidence
   alias Threadline.Health
   alias Threadline.Retention
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Repo
 
@@ -152,7 +153,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
   @doc false
   @spec org_y_audit_change_count(binary()) :: non_neg_integer()
   def org_y_audit_change_count(org_id) when is_binary(org_id) do
-    Repo.aggregate(org_y_audit_changes_query(org_id), :count)
+    Repo.aggregate(org_y_audit_changes_query(org_id), :count, StorageSchema.repo_opts())
   end
 
   defp backdate_org_y_audit!(org_id) do
@@ -358,7 +359,11 @@ defmodule ThreadlinePhoenix.Demo.Seed.RetentionTail do
   end
 
   defp other_org_audit_change_count(org_y_id) when is_binary(org_y_id) do
-    Repo.aggregate(other_org_audit_changes_query(org_y_id), :count)
+    Repo.aggregate(
+      other_org_audit_changes_query(org_y_id),
+      :count,
+      StorageSchema.repo_opts()
+    )
   end
 
   defp other_org_audit_changes_query(org_y_id) do

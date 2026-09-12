@@ -6,6 +6,7 @@ defmodule ThreadlinePhoenix.Workers.PostTouchWorkerTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.{Post, Repo}
   alias ThreadlinePhoenix.Workers.PostTouchWorker
 
@@ -40,7 +41,8 @@ defmodule ThreadlinePhoenix.Workers.PostTouchWorkerTest do
                    where: fragment("?->>'slug' = ?", ac.data_after, ^slug),
                    order_by: [desc: ac.captured_at],
                    select: {ac, at}
-                 )
+                 ),
+                 StorageSchema.repo_opts()
                )
 
       assert %ActorRef{type: :service_account, id: "threadline-phoenix-example-job"} =
@@ -52,7 +54,8 @@ defmodule ThreadlinePhoenix.Workers.PostTouchWorkerTest do
             where: a.name == "post_title_refreshed_from_queue",
             where: a.job_id == ^to_string(job.id),
             where: a.correlation_id == "phase-24-corr"
-          )
+          ),
+          StorageSchema.repo_opts()
         )
 
       refute is_nil(action)

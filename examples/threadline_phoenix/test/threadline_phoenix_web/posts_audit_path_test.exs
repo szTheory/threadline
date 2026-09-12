@@ -4,6 +4,7 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
   import Ecto.Query
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Repo
 
   test "POST /api/posts captures audit change with actor on transaction" do
@@ -31,7 +32,8 @@ defmodule ThreadlinePhoenixWeb.PostsAuditPathTest do
             ac.table_name == "posts" and
               fragment("?->>'id' = ?", ac.table_pk, ^to_string(post.id)),
           select: {ac, at}
-        )
+        ),
+        StorageSchema.repo_opts()
       )
 
     assert length(rows) >= 1

@@ -7,6 +7,7 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Semantics.{ActorRef, AuditContext}
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Blog
   alias ThreadlinePhoenix.Demo.Tables
   alias ThreadlinePhoenix.HelpDesk
@@ -121,7 +122,8 @@ defmodule ThreadlinePhoenixWeb.OperatorSurfaceTest do
             where: ac.transaction_id == ^result.audit_transaction_id,
             where: ac.table_name == "ticket_replies",
             where: ac.op == "insert"
-          )
+          ),
+          StorageSchema.repo_opts()
         )
 
       reply_pk = reply_change.table_pk["id"]

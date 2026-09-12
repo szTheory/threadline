@@ -15,10 +15,11 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
   driven by *which tests fail locally* is structurally blind to it.
 
   This module reads source text instead. It never connects to a database and
-  never runs another test, so tag exclusion, environment gates, and CI-only
-  services are all irrelevant to its coverage — that property is the entire
-  point. A file that only runs in CI, behind an env var, on a schedule, or not
-  at all, is scanned exactly like a file that runs by default.
+  never runs another test, so tag exclusion, environment gates, the Phoenix
+  example's independent test runner, and CI-only services are all irrelevant
+  to its coverage — that property is the entire point. A file that only runs
+  in CI, behind an env var, on a schedule, or not at all is scanned exactly
+  like a file that runs by default.
 
   **No escape hatch.** There is no permitted-file collection, no opt-out
   source marker, and no skipped-path constant. `repo_opts()` is harmless on a
@@ -47,7 +48,11 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
 
   alias Threadline.StorageSchemaCase
 
-  @test_glob "test/**/*.exs"
+  @source_globs [
+    "test/**/*.exs",
+    "examples/threadline_phoenix/lib/**/*.ex",
+    "examples/threadline_phoenix/test/**/*.exs"
+  ]
 
   # Ecto.Repo callbacks that accept a trailing opts list (the argument
   # `repo_opts()` is appended to). Longest/most-specific variants are listed
@@ -99,7 +104,12 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
     |> Enum.map(fn mod -> mod |> Module.split() |> List.last() end)
   end
 
-  defp test_files, do: Path.wildcard(@test_glob)
+  defp source_files do
+    @source_globs
+    |> Enum.flat_map(&Path.wildcard/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
 
   # Some call sites pass a variable bound earlier from `repo_opts(...)` rather
   # than the literal `repo_opts` token inline (e.g.
@@ -439,13 +449,17 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
   end
 
   describe "real tree sweep" do
-    test "no unprefixed owned-schema Ecto call site exists anywhere under test/ (source scan)" do
-      files = test_files()
+    test "no unprefixed owned-schema Ecto call site exists in library or example tests/source" do
+      files = source_files()
 
       assert files != [],
-             "no files matched #{@test_glob} — the glob is broken. A broken glob would " <>
+             "no files matched #{inspect(@source_globs)} — the globs are broken. Broken globs would " <>
                "make this guard pass vacuously while every unprefixed call site in the " <>
                "suite went unnoticed, which is worse than having no guard at all."
+
+      assert Enum.any?(files, &String.starts_with?(&1, "examples/threadline_phoenix/")),
+             "the Phoenix example source/test globs matched no files; example-owned " <>
+               "Threadline queries would be invisible to this guard"
 
       owned_names = owned_short_names()
 
@@ -459,13 +473,23 @@ defmodule Threadline.StorageSchemaCallSiteContractTest do
       offenses = Enum.filter(results, & &1.offense)
       in_scope_count = Enum.count(results, & &1.in_scope)
 
+      example_in_scope_count =
+        Enum.count(results, fn result ->
+          result.in_scope and
+            String.starts_with?(result.path, "examples/threadline_phoenix/")
+        end)
+
       assert offenses == [], format_offenses(offenses)
 
       assert in_scope_count > 0,
-             "found zero in-scope owned-schema call sites across #{@test_glob} — the " <>
+             "found zero in-scope owned-schema call sites across #{inspect(@source_globs)} — the " <>
                "detector's matching rule has silently stopped matching anything, which " <>
                "would let a real regression pass unnoticed. Expected many (transaction, " <>
                "change, action, evidence, export, retention, saved-view call sites)."
+
+      assert example_in_scope_count > 0,
+             "found zero in-scope owned-schema call sites in the Phoenix example — " <>
+               "its dedicated-schema regression coverage has become vacuous"
 
       # CR-01 non-vacuity: a future regression that re-narrows the receiver
       # regex back to rejecting fully-qualified module chains must fail here,

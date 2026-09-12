@@ -4,6 +4,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
   import Ecto.Query
 
   alias Threadline.Capture.AuditTransaction
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Demo.Seed.Support
   alias ThreadlinePhoenix.HelpDesk
@@ -119,7 +120,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Anchors do
           order_by: [desc: at.occurred_at],
           limit: 1,
           select: at.id
-        )
+        ),
+        StorageSchema.repo_opts()
       )
 
     delete_at =
