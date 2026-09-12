@@ -1,29 +1,6 @@
 if Code.ensure_loaded?(Phoenix.Controller) do
   defmodule Threadline.OperatorSurface.ExportAuthPlug do
-    @moduledoc """
-    Conn-shaped authorize plug for the Threadline operator-surface export
-    endpoints. Conn-shaped twin of `Threadline.OperatorSurface.Auth.on_mount/4`.
-
-    Same telemetry event (`[:threadline, :operator_surface, :authorize]`),
-    same `:granted | :denied | :error` results, same `:threadline_scope`
-    assign key — adopters watching the auth telemetry stream get one feed
-    of decisions across both the LV and HTTP surfaces.
-
-    ## Authorizer dispatch (D-20)
-
-    1. If `:export_authorize_fn` is provided (`is_function(fun, 1)`), the plug
-       calls it with `conn` directly.
-    2. Otherwise, the plug builds a synthetic `mirror = %{assigns: conn.assigns}`
-       and calls `:authorize_fn.(mirror)`. This preserves the v1.17
-       `:authorize_fn.(socket)` contract verbatim — most adopter functions
-       only access `assigns.current_user` or similar, so the mirror suffices.
-
-    ## Halt strategy
-
-    On denial or error, the plug responds with `403 forbidden` plain text
-    and halts. NO redirect — there is no redirect target that makes sense
-    for a download anchor.
-    """
+    @moduledoc false
 
     @behaviour Plug
 
