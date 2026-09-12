@@ -1,10 +1,5 @@
 defmodule Threadline.Capture.TriggerCaptureConfig do
-  @moduledoc """
-  Shared loader for `config :threadline, :trigger_capture`.
-
-  The normalized table entries returned here are reused by trigger generation
-  and drift reconciliation so both surfaces share one validated config truth.
-  """
+  @moduledoc false
 
   alias Threadline.Capture.RedactionPolicy
 
