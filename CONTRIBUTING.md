@@ -1,6 +1,22 @@
 # Contributing to Threadline
 
-## Development environment
+Thanks for helping improve Threadline. You can contribute without access to
+maintainer credentials or the project's internal planning history.
+
+## Communication
+
+Choose the route that matches the change:
+
+- Small bug fixes and documentation corrections may go directly to a pull
+  request.
+- Please discuss large behavior changes or public API changes in a
+  [feature request](https://github.com/szTheory/threadline/issues/new/choose)
+  before investing in an implementation.
+- Use the same issue chooser for reproducible bugs and questions. Report
+  suspected security vulnerabilities through the private route in
+  [SECURITY.md](SECURITY.md), never in a public issue.
+
+## Setup
 
 **Requirements:**
 
@@ -8,68 +24,50 @@
 - OTP 26+ (CI uses OTP 27.0)
 - PostgreSQL 14+ (PostgreSQL 16 recommended; matches CI and `docker-compose.yml`)
 
-## Setup
-
 1. Clone the repository.
 2. Install dependencies: `mix deps.get`
-3. Start PostgreSQL — **no manual `createdb` required**: the test helper creates `threadline_test` when missing.
+3. Start a local PostgreSQL test database by following
+   [Run the test database](guides/local-docker-dx.md#run-the-test-database).
 
-   ```bash
-   docker compose up -d
-   ```
-
-   Wait until Postgres is healthy (`docker compose ps`). The default Compose
-   stack starts only PostgreSQL; the Phoenix demo and PgBouncer are opt-in
-   profiles.
-
-   **Port 5432 already in use (e.g. Homebrew PostgreSQL):** Compose maps the container to host port **`5433`** by default (`THREADLINE_DB_PORT` in [`docker-compose.yml`](docker-compose.yml)). Point Mix at it:
-
-   ```bash
-   DB_PORT=5433 mix ci.all
-   ```
-
-   **Multiple Threadline worktrees or other Docker demos:** use the Phoenix demo
-   helper when you want the full UI stack. It derives a project name, searches
-   for free ports, and prints the URLs plus cleanup command:
-
-   ```bash
-   bin/demo-up
-   ```
-
-   For Postgres-only test stacks, give each stack a project name and unique host
-   port so containers, networks, volumes, and published ports do not collide:
-
-   ```bash
-   COMPOSE_PROJECT_NAME=threadline-ui-polish THREADLINE_DB_PORT=5434 docker compose up -d
-   DB_PORT=5434 mix ci.all
-   ```
-
-   See [`.env.example`](.env.example) for the full set of local Docker
-   overrides. Normal cleanup is `COMPOSE_PROJECT_NAME=<name> docker compose down
-   --remove-orphans`; use `docker compose down --remove-orphans -v` only when
-   you intentionally want to delete Compose volumes. For the full local Docker
-   mental model, read [`guides/local-docker-dx.md`](guides/local-docker-dx.md).
-
-4. Run the full local gate (same steps CI runs, modulo Postgres). The project sets **`preferred_envs: ["ci.all": :test]`** in `mix.exs`, so the whole chain (format, credo, strict compiles, tests, Threadline trigger coverage, doc contract tests, and Dialyzer) runs in the **test** environment and picks up `config/test.exs`.
-
-   ```bash
-   MIX_ENV=test mix ci.all
-   ```
-
-   `mix ci.all` is equivalent when invoked without `MIX_ENV` because of `preferred_envs`.
-
-   With the alternate Compose port: `DB_PORT=5433 mix ci.all`.
+The Docker guide owns lifecycle commands, port overrides, multi-checkout
+isolation, and cleanup. The test helper creates `threadline_test` when it is
+missing, so no manual `createdb` step is required.
 
 ## Running tests
 
 ```bash
-mix verify.test          # format of CI: full suite (needs PostgreSQL)
 mix test test/path.exs   # single file
+mix verify.test          # full suite (needs PostgreSQL)
 ```
 
 Integration tests use a **real** database and triggers; they are not excluded from `mix test`.
 
 **Environment:** `DB_HOST` defaults to `localhost`; **`DB_PORT`** defaults to `5432` (see `config/test.exs`). Override if Postgres listens on another port (e.g. **`DB_PORT=5433`** with the default `docker-compose.yml` mapping).
+
+## Run `mix ci.all`
+
+Before submitting, run the repository's complete local gate:
+
+```bash
+mix ci.all
+```
+
+This repository alias runs formatting, Credo, strict compiles, tests, trigger
+coverage, documentation contracts, and Dialyzer in the test environment. If
+your local database uses a non-default port, set `DB_PORT` for the command as
+described in the [local database guide](guides/local-docker-dx.md#run-the-test-database).
+
+## Pull requests
+
+1. Fork the repository and create a branch from `main`.
+2. Make the focused change and add or update tests when behavior changes.
+3. Run the relevant focused tests, then `mix ci.all`.
+4. Open a pull request against `main` and explain why the change is useful,
+   what changed, and how you verified it. An issue is not required for a small
+   fix.
+
+The sections below are reference material for specialized tests and maintainer
+work. They are not prerequisites for an ordinary contribution.
 
 ## Deterministic tests (no flakes)
 
@@ -79,13 +77,13 @@ as we learned, can block a release.
 
 **Test model.** This suite does **not** use Ecto's SQL Sandbox (audit triggers
 and `SET LOCAL` GUCs operate at the DB level, outside sandbox awareness).
-`Threadline.DataCase` is therefore `async: false` and cleans audit tables in
-`setup` (FK order). Keep DB-touching tests on `DataCase`.
+The repository's data-case helper is therefore `async: false` and cleans audit
+tables in `setup` (FK order). Keep DB-touching tests on that helper.
 
 **Rules of thumb:**
 
 - **Never `Process.sleep` to wait for a condition.** Use
-  `assert_eventually/2` (from `Threadline.AsyncHelpers`, imported by `DataCase`) —
+  `assert_eventually/2` (from the async test helpers, imported by the data case) —
   it polls against a real deadline, robust on slow CI without being racy.
 - **Drain GenServers deterministically.** Use `drain_mailbox/1` (two
   `:sys.get_state` round-trips) instead of sleeping after a `cast`/`send`.
@@ -139,7 +137,7 @@ them; the gate passes vacuously on the empty skeleton.
 > **Do not commit `ANTHROPIC_API_KEY` values anywhere.** The key is read from
 > the environment only; `mix verify.ui_critique` never writes it to files.
 
-## Maintainer: building and validating the golden oracle (CRITIC-01)
+## Maintainer: building and validating the golden oracle
 
 This section is **maintainer-only** — it requires `ANTHROPIC_API_KEY` and human judgment.
 Contributors do not need to run any of these steps; the `ci.all` gate (`verify.critic_trust`)
@@ -160,7 +158,7 @@ runs without an API key and passes vacuously until the maintainer has populated 
 The critic must be validated against an oracle before its scores may drive the ratchet.
 There are two oracles; the **synthetic** one is the default (no human labeling).
 
-#### Step 1a (recommended) — Synthetic twin oracle (labeling-free, D-12)
+#### Step 1a (recommended) — Synthetic twin oracle (labeling-free)
 
 The synthetic oracle is a graded severity ladder of twins (lens × scenario × 4 rungs)
 whose verdicts are known *by construction*, so the trust gate reaches n≥20/lens with **zero
@@ -286,7 +284,7 @@ mix ci.all
 git add test/fixtures/operator_surface/golden/golden-set.json
 git add test/fixtures/operator_surface/golden/rounds/r2.json
 git add test/fixtures/operator_surface/design-system-ledger.json  # critic_trust block updated
-git commit -m "chore: golden oracle scored + critic_trust measured (CRITIC-01)"
+git commit -m "chore: golden oracle scored and critic trust measured"
 ```
 
 This commit should never be auto-generated — it represents the maintainer's reviewed judgment.
@@ -320,7 +318,7 @@ a11y floor still passes. Like the oracle steps above it is **local-only** (needs
 `ANTHROPIC_API_KEY`) and **never runs in CI** — CI runs only the deterministic guards
 (`verify.critic_trust`, `verify.mechanical`).
 
-The loop operates on the real seeded `route.*` cells (Phase-196 D8), never the `page.*`
+The loop operates on the real seeded `route.*` cells, never the `page.*`
 stress-lab chrome and never the isolated `story.*` fixtures. Each `route.*` cell has a
 committed `page.<x>.happy` twin in `mechanical_floors`; that twin is the deterministic floor
 the gate gates on.
@@ -410,7 +408,7 @@ triggers on both push-to-`main` and a nightly `schedule`, plus manual dispatch.
 The pull-request set and the full set **overlap** — `desktop-chromium` and
 `mobile-chromium` run in both; the table is not a partition.
 
-**What stopped running on pull requests in v1.41 (Phase 198):**
+**What does not run on pull requests:**
 
 - `storybook-capture`, `graded-capture`, `refute-capture`, and `route-capture` —
   moved to `main` + nightly only.
@@ -437,7 +435,7 @@ pull request merged to `main` proves each of the following jobs succeeded.
 `.github/workflows/ci.yml`'s `ci-required` job itself and fails in either
 drift direction — a job the aggregate requires but this list omits, or a job
 this list claims but the aggregate no longer requires (the silent-narrowing
-case, per D-42) — so a future edit to `needs:` cannot shrink this guarantee
+case) — so a future edit to `needs:` cannot shrink this guarantee
 without also failing a test.
 
 - `verify-format`
@@ -568,18 +566,11 @@ For running the test job locally with [nektos/act](https://github.com/nektos/act
 
 ## Host STG evidence (integrators)
 
-**Host staging / pooler parity** (requirements **STG-01**–**STG-03**) is **integrator-owned attestation**: detailed topology, logs, and runbooks live in **your** repo or docs under **your** control. Threadline maintainers do not operate your staging stack.
+**Host staging / pooler parity** is **integrator-owned attestation**: detailed topology, logs, and runbooks live in **your** repo or docs under **your** control. Threadline maintainers do not operate your staging stack.
 
 To contribute a **short in-repo index** (tables, links, **redact**ed excerpts) that helps other operators, use a **fork** and open a **pull request** against this repository. Maintainers merge for **modesty** of claims, **redaction**, and **link** hygiene only — not to vouch for third-party environments.
 
 Fill the canonical scaffolds in the [adoption pilot backlog](guides/adoption-pilot-backlog.md): search for **`STG-HOST-TOPOLOGY-TEMPLATE`** (fixed-field topology narrative) and **`STG-AUDITED-PATH-RUBRIC`** (HTTP + job paths with OK / Issue / N/A / Not run and evidence pointers). Long-form evidence stays in integrator-controlled artifacts; the PR updates the **small, reviewable surface** in `main`.
-
-## Submitting a Pull Request
-
-1. Fork the repository and create a branch from `main`.
-2. Make your changes and run the full gate: `mix ci.all` (requires PostgreSQL — see Setup above).
-3. Open a pull request against `main`. Describe what changed and why.
-4. All CI checks on the PR must pass (including `verify-docs`, `verify-hex-package`, and `verify-release-shape` when present on `main`).
 
 ## Branch protection (maintainers)
 
@@ -644,7 +635,8 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 
 **Local manual runbook (optional):** `mix hex.publish --dry-run` / `mix hex.publish` with `mix hex.user auth` instead of CI.
 
-Post-publish distribution proof for adopters: adoption-pilot Distribution preflight OK row in `guides/adoption-pilot-backlog.md` plus `.planning/phases/122-release-distribution-truth/122-VERIFICATION.md`.
+Post-publish distribution proof for adopters is recorded in the adoption-pilot
+Distribution preflight row in `guides/adoption-pilot-backlog.md`.
 
 ## Maintainer manual checklist (release)
 
