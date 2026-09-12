@@ -2,9 +2,9 @@
 schema_version: 1
 open_count: 56
 waived_count: 0
-fixed_count: 1
-total_count: 57
-last_updated: 2026-09-11T21:45:35.919Z
+fixed_count: 4
+total_count: 60
+last_updated: 2026-09-12T11:57:18.005Z
 ---
 
 # Broken Windows Ledger
@@ -72,6 +72,9 @@ last_updated: 2026-09-11T21:45:35.919Z
 | 55 | 199 | deviation | mix.exs |  | Plan 199-21 aligned local aggregate Dialyzer environment and browser projects with the committed CI topology. | open |  | 2026-09-11T21:44:55.260Z |  |
 | 56 | 199 | deviation | examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts | 130 | Plan 199-21 fixed cross-scroll-state browser geometry sampling without relaxing the ordering assertion. | open |  | 2026-09-11T21:44:55.367Z |  |
 | 57 | 199 | deviation | .planning/ROADMAP.md |  | Plan 199-21 roadmap.update-plan-progress returned missing_phase_details; executor reconciled the final checklist and 21/21 completion row manually. | open |  | 2026-09-11T21:45:35.919Z |  |
+| 58 | 200 | deviation | test/threadline/guide_graph_contract_test.exs |  | Guide graph resolver omitted repository-local resources and underscores in normalized anchors | fixed |  | 2026-09-12T11:57:02.663Z | 2026-09-12T11:57:17.853Z |
+| 59 | 200 | deviation | guides/getting-started-saas.md |  | Adopt landing omitted three assigned guide routes required by the exact graph | fixed |  | 2026-09-12T11:57:02.743Z | 2026-09-12T11:57:17.929Z |
+| 60 | 200 | deviation | mix.exs |  | Generated ExDoc did not ship the README theme-aware logo assets | fixed |  | 2026-09-12T11:57:02.821Z | 2026-09-12T11:57:18.005Z |
 
 ````json
 [
@@ -789,6 +792,45 @@ last_updated: 2026-09-11T21:45:35.919Z
     "reason": "",
     "recorded_at": "2026-09-11T21:45:35.919Z",
     "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 58,
+    "kind": "deviation",
+    "phase": "200",
+    "file": "test/threadline/guide_graph_contract_test.exs",
+    "line": null,
+    "description": "Guide graph resolver omitted repository-local resources and underscores in normalized anchors",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T11:57:02.663Z",
+    "resolved_at": "2026-09-12T11:57:17.853Z",
+    "milestone": "v1.41"
+  },
+  {
+    "id": 59,
+    "kind": "deviation",
+    "phase": "200",
+    "file": "guides/getting-started-saas.md",
+    "line": null,
+    "description": "Adopt landing omitted three assigned guide routes required by the exact graph",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T11:57:02.743Z",
+    "resolved_at": "2026-09-12T11:57:17.929Z",
+    "milestone": "v1.41"
+  },
+  {
+    "id": 60,
+    "kind": "deviation",
+    "phase": "200",
+    "file": "mix.exs",
+    "line": null,
+    "description": "Generated ExDoc did not ship the README theme-aware logo assets",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T11:57:02.821Z",
+    "resolved_at": "2026-09-12T11:57:18.005Z",
     "milestone": "v1.41"
   }
 ]
