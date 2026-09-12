@@ -526,7 +526,22 @@ defmodule Threadline.PublicSurfaceContractTest do
 
   defp application_modules do
     {:ok, modules} = :application.get_key(:threadline, :modules)
-    MapSet.new(modules)
+
+    modules
+    |> Enum.filter(&packaged_source_module?/1)
+    |> MapSet.new()
+  end
+
+  defp packaged_source_module?(module) do
+    with {:module, ^module} <- Code.ensure_loaded(module),
+         source when is_list(source) <- module.module_info(:compile)[:source] do
+      source
+      |> List.to_string()
+      |> Path.relative_to(File.cwd!())
+      |> String.starts_with?("lib/")
+    else
+      _ -> false
+    end
   end
 
   defp visible_modules do

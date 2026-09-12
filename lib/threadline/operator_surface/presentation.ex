@@ -63,7 +63,7 @@ defmodule Threadline.OperatorSurface.Presentation do
     if String.length(value) <= max_length do
       value
     else
-      # Backward-compatible default split (unchanged when :tail_min is absent).
+      # Preserve the established default split when :tail_min is absent.
       default_keep = max(div(max_length - 3, 2), 4)
       tail_min = Keyword.get(opts, :tail_min)
 
@@ -76,7 +76,7 @@ defmodule Threadline.OperatorSurface.Presentation do
     end
   end
 
-  # The valid per-kind truncation kinds (D-03). Listed as literal atoms so they are
+  # The valid per-kind truncation kinds. Listed as literal atoms so they are
   # interned at compile time — UI.ref/1 resolves a kind STRING against this list
   # instead of String.to_existing_atom/1, which would raise for a kind whose atom
   # had not yet been referenced at runtime (e.g. :correlation, :arn, :actor, :email).
@@ -103,7 +103,7 @@ defmodule Threadline.OperatorSurface.Presentation do
     }
   end
 
-  # Per-kind truncation (DATA-01, D-03). All rules guarantee the discriminating
+  # Per-kind truncation rules guarantee the discriminating
   # tail survives; :timestamp is never truncated.
   defp truncate_for(full, opts) do
     case Keyword.get(opts, :kind) do
@@ -318,18 +318,14 @@ defmodule Threadline.OperatorSurface.Presentation do
   def export_downloadable?(job, opts \\ []), do: export_readiness(job, opts) == :ready
 
   @doc """
-  Adopter-facing **action**-shaped copy for an export job's next step
+  Returns **action**-shaped copy for an export job's next step
   ("Download export", "Preparing download", "Reopen source search", "Export
   expired", "File unavailable").
 
   This is deliberately distinct from `export_status_label/2`, which renders
   **status**-shaped copy ("Queued", "Processing", "Failed", ...) for a
-  `role="status"` element. Having no in-tree caller is intended, not dead
-  code: this is public library surface reserved for an adopter surface that
-  wants action-shaped copy (e.g. a bulk-action toolbar or a notification)
-  rather than a status label. It is not removed on that basis alone, since
-  `Presentation` is public surface in a published Hex package and removal
-  would be a semver-visible breaking change (198-34 decision, option B).
+  `role="status"` element. Keeping those responsibilities separate lets
+  operator views request action copy without coupling it to status rendering.
   """
   @spec export_action_label(map(), keyword()) :: String.t()
   def export_action_label(job, opts \\ []) when is_map(job) do
@@ -426,7 +422,7 @@ defmodule Threadline.OperatorSurface.Presentation do
 
   def value_token(value), do: value_token_string(to_string(value), "tl-value--string")
 
-  # DATA-04: truncate long machine values at ~56 chars (tail-safe), keeping the
+  # Truncate long machine values at about 56 characters, keeping the
   # complete value in :title so the rendered copy affordance can recover it.
   @value_token_max 56
   defp value_token_string(value, modifier) do

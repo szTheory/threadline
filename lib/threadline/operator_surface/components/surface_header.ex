@@ -1,17 +1,6 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Components.SurfaceHeader do
-    @moduledoc """
-    Surface-wide header showing a coverage-drift badge that links to
-    `/audit/coverage`.
-
-    Reads `coverage` (a `Threadline.OperatorSurface.Coverage.Snapshot`) and
-    `base_path` (the operator-surface mount path, e.g. `"/audit"`) from the
-    parent LV's assigns.
-
-    - `uncovered_count == 0` → `<a class="tl-chip tl-chip--muted">All tables captured</a>` (never hidden).
-    - `uncovered_count > 0`  → `<a class="tl-chip tl-chip--warning">{n} tables need audit coverage</a>`.
-    - `:threadline_coverage_error` set → small "stale (last checked Xs ago)" indicator.
-    """
+    @moduledoc false
 
     use Phoenix.Component
 

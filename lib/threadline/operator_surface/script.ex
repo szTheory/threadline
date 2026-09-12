@@ -1,19 +1,6 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Script do
-    @moduledoc """
-    Embeds a tiny, dependency-free copy-to-clipboard helper for the operator
-    surface. Rendered once per page alongside `Threadline.OperatorSurface.Style.css/1`.
-
-    Self-contained vanilla JS — no npm dependency, no host asset pipeline, and
-    no LiveSocket hook registration. It binds a single delegated `click` listener
-    (idempotent via a `window.__tlCopyBound` guard, so re-mounts don't double-bind)
-    on `[data-tl-copy]` elements: it copies the attribute value to the clipboard
-    and toggles `.is-copied` on the trigger for the confirmation pulse + chip.
-
-    Hosts with a strict Content-Security-Policy that forbids inline scripts can
-    disable it with `config :threadline, operator_surface_embed_scripts: false`
-    (the copy buttons then fall back to native text selection of the ids).
-    """
+    @moduledoc false
 
     import Phoenix.Component
 

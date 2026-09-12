@@ -1,7 +1,5 @@
 defmodule Threadline.OperatorSurface.Scope do
-  @moduledoc """
-  Host-owned query scoping helpers for operator-surface flows.
-  """
+  @moduledoc false
 
   @spec apply(Ecto.Queryable.t(), keyword()) :: Ecto.Queryable.t()
   def apply(query, opts \\ []) do
