@@ -450,7 +450,7 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp validate_references(content, inventory) do
     refs = extract_references(content)
     known_task_names = Enum.map(inventory.tasks, &mix_task_name/1)
-    unknown_commands = refs.commands -- known_task_names -- inventory.aliases
+    unknown_commands = refs.commands -- (known_task_names ++ inventory.aliases)
 
     %{
       modules: Enum.reject(refs.modules, &(&1 in inventory.modules)),
