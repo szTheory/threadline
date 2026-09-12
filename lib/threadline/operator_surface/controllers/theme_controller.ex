@@ -1,5 +1,7 @@
 if Code.ensure_loaded?(Phoenix.Controller) do
   defmodule Threadline.OperatorSurface.Controllers.ThemeController do
+    @moduledoc false
+
     use Phoenix.Controller, formats: [:html]
 
     @invalid_local_redirect_chars ["\\", "/%09", "/\t"]

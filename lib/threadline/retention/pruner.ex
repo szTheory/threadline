@@ -1,10 +1,5 @@
 defmodule Threadline.Retention.Pruner do
-  @moduledoc """
-  A GenServer that schedules and executes background retention pruning.
-
-  Ensures only one node in the cluster runs the pruning process concurrently
-  using PostgreSQL advisory locks.
-  """
+  @moduledoc false
 
   use GenServer
   require Logger

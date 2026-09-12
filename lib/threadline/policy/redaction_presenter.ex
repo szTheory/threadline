@@ -1,11 +1,5 @@
 defmodule Threadline.Policy.RedactionPresenter do
-  @moduledoc """
-  Shared redaction drift presenter for Mix and LiveView parity.
-
-  It compares validated configured policy against the deployed Threadline
-  trigger SQL found in PostgreSQL catalogs. Parsing is intentionally narrow and
-  fail-closed: only known `Threadline.Capture.TriggerSQL` fragments are trusted.
-  """
+  @moduledoc false
 
   alias Ecto.Adapters.SQL
   alias Threadline.Capture.{RedactionPolicy, TriggerCaptureConfig}
