@@ -109,19 +109,13 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(section_6, "demo-corr")
     assert String.contains?(section_6, "audit_transaction_id")
 
-    open_section_6 =
-      section_6
-      |> String.split("<details>", parts: 2)
-      |> List.first()
+    refute String.contains?(section_6, "_threadline_phoenix_key")
+    refute String.contains?(section_6, "curl ")
 
-    refute String.contains?(open_section_6, "_threadline_phoenix_key")
+    {section_9_idx, _} = :binary.match(doc, "## 9. Mount the operator surface and open `/audit`")
+    {optional_idx, _} = :binary.match(doc, "## Optional reference paths")
 
-    assert String.contains?(section_6, "getting-started-sigra-http-staging-fence")
-
-    {fence_idx, _} = :binary.match(section_6, "getting-started-sigra-http-staging-fence")
-    {key_idx, _} = :binary.match(section_6, "_threadline_phoenix_key")
-
-    assert fence_idx < key_idx
+    assert section_9_idx < optional_idx
   end
 
   test "getting-started §5 locks auth-neutral ADOPT-AUTH literals (DOC-02)" do
@@ -162,13 +156,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
 
     assert phx_idx < sigra_idx
 
-    {fence_idx, _} = :binary.match(doc, "getting-started-sigra-reference-fence")
-
-    {sigra_actor_idx, _} =
-      :binary.match(doc, "Threadline.Integrations.Sigra.actor_ref_from_conn/1")
-
-    assert neutrality_idx < fence_idx
-    assert fence_idx < sigra_actor_idx
+    refute String.contains?(section_5, "Threadline.Integrations.Sigra.actor_ref_from_conn/1")
   end
 
   test "getting-started documents Threadline ecto_repos before resolve_repo consumers" do
@@ -185,10 +173,8 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     {literal_idx, _} = Regex.run(literal, doc, return: :index) |> hd()
     {section_7_idx, _} = :binary.match(doc, "## 7. Check trigger coverage")
     {section_3_idx, _} = :binary.match(doc, "## 3. Install the audit schema")
-    {sigra_fence_idx, _} = :binary.match(doc, "getting-started-sigra-reference-fence")
 
     assert literal_idx < section_7_idx
-    assert literal_idx < sigra_fence_idx
     assert literal_idx < section_3_idx
 
     assert String.contains?(doc, "Mix tasks")
@@ -238,28 +224,18 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
            )
   end
 
-  test "getting-started optional sigra-reference fence is scoped" do
+  test "optional reference paths follow the complete numbered first-hour path" do
     doc = read_rel!(@guide_path)
 
-    assert String.contains?(doc, "getting-started-sigra-reference-fence")
+    optional = section_slice(doc, "## Optional reference paths", "## Next steps")
+    {step_9_idx, _} = :binary.match(doc, "## 9. Mount the operator surface and open `/audit`")
+    {optional_idx, _} = :binary.match(doc, "## Optional reference paths")
 
-    marker = "getting-started-sigra-reference-fence"
-    [_before, after_marker] = String.split(doc, marker, parts: 2)
-    subsection = after_marker
-
-    assert String.contains?(subsection, router_block())
-    refute String.contains?(subsection, "MyApp.Audit.actor_ref_from_conn")
-
-    {generic_idx, _} =
-      :binary.match(doc, "actor_fn: &MyApp.Audit.actor_ref_from_conn/1")
-
-    {marker_idx, _} = :binary.match(doc, marker)
-
-    {sigra_idx, _} =
-      :binary.match(doc, "Threadline.Integrations.Sigra.actor_ref_from_conn/1")
-
-    assert generic_idx < marker_idx
-    assert marker_idx < sigra_idx
+    assert step_9_idx < optional_idx
+    assert String.contains?(optional, "integrations/phx-gen-auth.md")
+    assert String.contains?(optional, "integrations/sigra.md")
+    assert String.contains?(optional, "../examples/threadline_phoenix/README.md")
+    refute Regex.match?(~r/```(?:bash|sh|elixir)/, optional)
   end
 
   test "quickstart closing pointers stay in-repo and present" do
@@ -286,13 +262,6 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     mix_exs = read_rel!(["mix.exs"])
     assert String.contains?(mix_exs, "\"guides/getting-started-saas.md\"")
     assert String.contains?(mix_exs, "\"guides/incident-playbook.md\"")
-  end
-
-  defp router_block do
-    GettingStartedFixtures.extract!(
-      "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex",
-      "router-pipeline-actor-fn"
-    )
   end
 
   defp blog_block do

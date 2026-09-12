@@ -123,21 +123,6 @@ Choose an auth lane when you need a full cookbook:
 Threadline does not require Sigra; do not use `Threadline.Integrations.Sigra`
 unless you adopt the optional sigra-reference lane.
 
-### Sigra reference wiring (optional)
-
-<!-- getting-started-sigra-reference-fence -->
-
-**sigra-reference example app only** — not required for capture.
-
-```elixir
-    plug(:accepts, ["json"])
-
-    plug(Threadline.Plug,
-      actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1,
-      context_overrides_fn: &Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1
-    )
-```
-
 ## 6. Exercise the first audited write
 
 ### Recommended path
@@ -227,30 +212,6 @@ host auth stack:
 | phx-gen-auth-reference | [`guides/integrations/phx-gen-auth.md`](integrations/phx-gen-auth.md) |
 | sigra-reference | [`guides/integrations/sigra.md`](integrations/sigra.md) |
 | Choose lane | [`guides/upgrade-path.md`](upgrade-path.md) |
-
-<details>
-<summary>Runnable curl — sigra-reference example app only</summary>
-
-<!-- getting-started-sigra-http-staging-fence -->
-
-Start the reference Phoenix app, then send the first audited request:
-
-```bash
-curl -sS -X POST "http://localhost:4000/api/posts" \
-  -H "content-type: application/json" \
-  -H "x-request-id: $(uuidgen)" \
-  -H "x-correlation-id: demo-corr" \
-  -b '_threadline_phoenix_key=PASTE_FROM_BROWSER' \
-  -d '{"post":{"title":"Hello","slug":"hello-demo-slug"}}'
-```
-
-Cookie staging for the reference app lives in
-[`examples/threadline_phoenix/README.md`](../examples/threadline_phoenix/README.md)
-— sign in at **`/users/log_in`**, copy **`_threadline_phoenix_key`** from
-DevTools, and pass **`-b '_threadline_phoenix_key=PASTE_FROM_BROWSER'`**. This
-example does not ship API bearer tokens — host-owned auth only.
-
-</details>
 
 ## 7. Check trigger coverage
 
@@ -410,6 +371,16 @@ Keep support-lane claims and exact proof pins in the
 [upgrade path](upgrade-path.md), and keep the Sigra-specific reference path in
 the [Sigra integration guide](integrations/sigra.md), rather than widening this first-hour guide into
 its own compatibility matrix.
+
+## Optional reference paths
+
+The numbered first-hour path above is complete without an authentication
+adapter. When the primary capture and query checks are green, choose the
+[phx.gen.auth reference](integrations/phx-gen-auth.md) or the
+[Sigra reference](integrations/sigra.md) for host-specific callback wiring.
+The [Phoenix example proof](../examples/threadline_phoenix/README.md) traces the
+maintained Sigra lane to its source and tests without introducing another setup
+procedure.
 
 ## Next steps
 
