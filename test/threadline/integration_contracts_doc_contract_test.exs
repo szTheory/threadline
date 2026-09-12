@@ -7,6 +7,7 @@ defmodule Threadline.IntegrationContractsDocContractTest do
 
     assert String.contains?(guide, "## Request path via `Threadline.Plug`")
     assert String.contains?(guide, "## Job path via `Threadline.Job`")
+
     assert String.contains?(
              guide,
              "## Reference integration via `Threadline.Integrations.Sigra`"
