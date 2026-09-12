@@ -1,34 +1,56 @@
 defmodule Threadline.Storage do
   @moduledoc """
-  Behaviour for storing and retrieving export files and other persistent artifacts.
+  Stores and retrieves export files and other persistent artifacts.
 
-  Threadline provides a `Threadline.Storage.Local` implementation out-of-the-box
-  for single-node deployments. Adopters needing multi-node support should implement
-  an S3-compatible backend conforming to this behaviour.
+  Threadline uses `Threadline.Storage.Local` by default. Select another built-in
+  or custom adapter in your host application's configuration:
 
-  The `init/1` callback is used for dependency safeguards, ensuring adapters fail
-  early if their required underlying library is missing from the environment.
+      config :threadline, storage_adapter: MyApp.AuditStorage
+
+  A custom adapter implements this behaviour. Threadline passes the keyword list
+  stored under the adapter module to `c:init/1` during application startup when a
+  repository is configured:
+
+      config :threadline, MyApp.AuditStorage, region: "us-east-1"
+
+  Return `:ok` from `c:init/1` only when the adapter is ready. Returning
+  `{:error, reason}` or raising prevents Threadline's supervision tree from
+  starting, so missing dependencies and invalid configuration fail early.
+
+  `c:put/2` accepts binary content as the portable cross-adapter contract and
+  returns an opaque file identifier used by the remaining callbacks. The built-in
+  Local adapter also accepts the path of an existing regular file as a
+  Local-specific convenience; custom and remote adapters do not need to support
+  that shortcut.
+
+  `c:path/1` is optional. Implement it only when the web process can serve a
+  stored file from its local filesystem. When it is absent, or returns
+  `{:error, :not_local}`, export delivery uses `c:download_url/2` instead.
+
+  See `Threadline.Storage.Local` for single-node storage and
+  `Threadline.Storage.S3` for optional S3-compatible object storage.
   """
 
   @type file_id :: String.t()
-  @type path_or_content :: String.t() | binary()
+  @type content :: binary()
   @type options :: keyword()
 
   @doc """
-  Initializes the adapter. Called during application startup to verify
-  configuration and presence of underlying dependencies.
+  Initializes the adapter from its module-keyed configuration.
+
+  Threadline calls this during application startup. Return `{:error, reason}`
+  for invalid configuration or unavailable dependencies.
   """
   @callback init(keyword()) :: :ok | {:error, term()}
 
   @doc """
-  Puts a file into storage.
-
+  Stores binary content.
 
   Returns `{:ok, file_id}` where `file_id` is a backend-specific identifier
   (such as an S3 key or a local filesystem path) that can be used with `get/1`
   and `download_url/2`.
   """
-  @callback put(path_or_content(), options()) :: {:ok, file_id()} | {:error, term()}
+  @callback put(content(), options()) :: {:ok, file_id()} | {:error, term()}
 
   @doc """
   Retrieves a file's content from storage.
@@ -36,15 +58,20 @@ defmodule Threadline.Storage do
   @callback get(file_id()) :: {:ok, binary()} | {:error, term()}
 
   @doc """
-  Returns a direct local path to the stored file, if supported by the backend.
+  Returns a direct local path to the stored file when supported by the adapter.
+
+  This callback is optional. Adapters without a locally readable file should
+  omit it or return `{:error, :not_local}`.
   """
   @callback path(file_id()) :: {:ok, String.t()} | {:error, term()}
   @optional_callbacks path: 1
 
   @doc """
-  Generates a presigned or localized URL for downloading the file.
+  Generates a URL for downloading the file.
 
-  Options may include `:expires_in` (in seconds).
+  Threadline may pass `:expires_in` in seconds. Remote adapters commonly return
+  a short-lived presigned URL; adapters that cannot generate a URL return an
+  adapter-specific error.
   """
   @callback download_url(file_id(), options()) :: {:ok, String.t()} | {:error, term()}
 

@@ -1,10 +1,26 @@
 defmodule Threadline.Storage.S3 do
   @moduledoc """
-  S3 implementation of `Threadline.Storage`.
+  Stores Threadline exports in S3-compatible object storage.
 
-  This adapter stores files in an S3-compatible object storage service,
-  making them accessible across a multi-node cluster via presigned URLs.
-  Requires the optional `:ex_aws`, `:ex_aws_s3`, `:hackney`, and `:sweet_xml` dependencies.
+  Use this optional `Threadline.Storage` adapter when export files must be
+  available across nodes. Add the optional `:ex_aws`, `:ex_aws_s3`, `:hackney`,
+  and `:sweet_xml` dependencies to the host project, then configure the adapter
+  and its required bucket:
+
+      config :threadline, storage_adapter: Threadline.Storage.S3
+      config :threadline, Threadline.Storage.S3, bucket: "my-audit-exports"
+
+  Module-keyed options are merged with per-call options, with per-call values
+  taking precedence. Supported runtime options are:
+
+    * `:bucket` - required non-empty bucket name
+    * `:expires_in` - presigned-download lifetime in seconds; defaults to `900`
+    * `:presigned_url_opts` - options forwarded while creating the download URL
+
+  `put/2` uploads the binary content it receives; it does not interpret a binary
+  as a local filename. `path/1` returns `{:error, :not_local}`, so export delivery
+  uses a presigned URL. Missing dependencies or bucket configuration fail
+  `init/1`; request and presigning failures are returned as descriptive errors.
   """
 
   @behaviour Threadline.Storage

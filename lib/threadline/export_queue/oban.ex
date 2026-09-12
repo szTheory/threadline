@@ -1,9 +1,28 @@
 defmodule Threadline.ExportQueue.Oban do
   @moduledoc """
-  Oban-based implementation of `Threadline.ExportQueue`.
+  Enqueues Threadline exports in Oban.
 
-  This adapter enqueues export jobs into Oban for robust, persistent background processing.
-  Requires the optional `:oban` dependency.
+  Use this optional `Threadline.ExportQueue` adapter for durable, multi-node job
+  execution. Add `:oban` to the host project, configure and supervise Oban in the
+  host application, then select the adapter:
+
+      config :threadline, export_queue_adapter: Threadline.ExportQueue.Oban
+
+      config :threadline, Threadline.ExportQueue.Oban,
+        oban_name: Oban,
+        queue: :threadline_exports
+
+  Supported module-keyed options are:
+
+    * `:oban_name` - the supervised Oban instance name; defaults to `Oban`
+    * `:queue` - the queue atom; defaults to `:threadline_exports`
+    * `:worker_mod` - a module exporting `new/2`; defaults to Threadline's worker
+
+  `init/1` returns an error when Oban is unavailable or these options are invalid.
+  `enqueue/2` inserts a job carrying the Threadline export-job identifier and
+  storage schema. The built-in worker calls `Threadline.Export.Orchestrator.run/2`,
+  preserving Threadline's lifecycle, storage, failure, and expiry semantics.
+  Insert failures are returned as descriptive `{:error, reason}` values.
   """
 
   @behaviour Threadline.ExportQueue

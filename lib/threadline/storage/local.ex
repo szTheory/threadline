@@ -1,12 +1,23 @@
 defmodule Threadline.Storage.Local do
   @moduledoc """
-  Local filesystem implementation of `Threadline.Storage`.
+  Stores Threadline exports on the local filesystem.
 
-  This adapter is suitable for single-node deployments where the filesystem
-  is persistent and accessible by the web server.
+  This is the default `Threadline.Storage` adapter. It is intended for a
+  single-node deployment whose filesystem is persistent and readable by the
+  web process. Select it explicitly when needed:
 
-  Files are stored in the application's `priv/threadline_exports` directory
-  by default.
+      config :threadline, storage_adapter: Threadline.Storage.Local
+
+  Files are stored under `priv/threadline_exports`. `put/2` writes the supplied
+  binary content and accepts an optional `:file_id`; otherwise it generates a
+  CSV identifier. As an adapter-specific convenience, when the supplied binary
+  names an existing regular file, Local copies that file instead of storing the
+  path text. Other adapters are required to accept binary content only.
+
+  `path/1` returns an expanded local path for export delivery. `download_url/2`
+  returns `{:error, :not_supported}` because this adapter does not generate
+  URLs. Filesystem failures are returned as `{:error, reason}` values from
+  Elixir's `File` module, while deleting a missing file is successful.
   """
 
   @behaviour Threadline.Storage

@@ -1,11 +1,19 @@
 defmodule Threadline.ExportQueue.TaskAdapter do
   @moduledoc """
-  A simple implementation of `Threadline.ExportQueue` using `Task.Supervisor`.
+  Runs export jobs in supervised, in-process tasks.
 
-  It spawns a background process using `Task.Supervisor.start_child/3`. By default,
-  it expects a supervisor named `Threadline.Export.TaskSupervisor` to be running
-  in the application tree, but you can override this by passing the `:supervisor`
-  option in `opts`.
+  This is the default `Threadline.ExportQueue` adapter. It starts a child under
+  the `Threadline.Export.TaskSupervisor` that Threadline adds to its supervision
+  tree, then delegates the job lifecycle to `Threadline.Export.Orchestrator`.
+
+  The adapter is lightweight and requires no optional dependency, but queued work
+  is not durable across node or process restarts. Use
+  `Threadline.ExportQueue.Oban` when the queue must be persistent or shared by
+  multiple nodes.
+
+  `enqueue/2` accepts `:storage_schema` and passes it to the orchestrator. Tests
+  and custom supervision trees may override `:supervisor`; if that supervisor is
+  unavailable, the adapter returns `{:error, :supervisor_not_started}`.
   """
 
   @behaviour Threadline.ExportQueue
