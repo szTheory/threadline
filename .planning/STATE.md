@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 200
 current_phase_name: Public Surface
 status: executing
-stopped_at: Completed 200-16-PLAN.md
-last_updated: "2026-09-12T11:05:39.577Z"
+stopped_at: Completed 200-17-PLAN.md
+last_updated: "2026-09-12T11:11:19.873Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 200 execution started
-state_head: 1a5fbef2d643349484a342544611c5e8c08b6bcd
+state_head: a24b46adef2294783617237fbae3255e6fe305b1
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 105
-  completed_plans: 100
+  completed_plans: 101
   percent: 29
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-11 after Phase 199)
 ## Current Position
 
 Phase: 200 (Public Surface) — EXECUTING
-Plan: 10 of 18
+Plan: 11 of 18
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -139,6 +139,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 200 P07 | 4min | 2 tasks | 6 files |
 | Phase 200 P08 | 33min | 2 tasks | 9 files |
 | Phase 200 P16 | 32min | 2 tasks | 9 files |
+| Phase 200 P17 | 12min | 2 tasks | 10 files |
 
 ## Deferred Items
 
@@ -645,6 +646,9 @@ Progress: [████████████████████] 87/87 p
 - [Phase 200]: Plan 200-16: Stress provenance uses baseline, page-state, data-display, refute-twin, and graded-ladder cohort names instead of numeric implementation chronology.
 - [Phase 200]: Plan 200-16: Fixture and ledger provenance share origin_cohort and reserved_for_cohort with exact round-trip coverage.
 - [Phase 200]: Plan 200-16: Stress copy cleanup preserves existing DOM structure, classes, styles, routes, and behavior.
+- [Phase 200]: Plan 200-17: Each form-oriented LiveView explains its form capability as a current page invariant beside the persisted module attribute.
+- [Phase 200]: Plan 200-17: Coverage and redaction name their schema-selector behavior directly; actor, evidence, and exports remain explicitly formless.
+- [Phase 200]: Plan 200-17: Export history documents its recent-only cap as a product fact while retaining the dynamic default limit and rendered count.
 
 ### Blockers
 
@@ -652,8 +656,8 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-12T11:05:38.488Z
-**Stopped at:** Completed 200-16-PLAN.md
+**Last session:** 2026-09-12T11:11:19.725Z
+**Stopped at:** Completed 200-17-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
