@@ -26,15 +26,15 @@ Operator-surface release: the `/audit` admin UI matured into a coherent, branded
 
 ### Features
 
-* **123-01:** add Configure Threadline subsection to getting-started ([7b929a1](https://github.com/szTheory/threadline/commit/7b929a17963b01b09cd1c51d0972f77cce73927a))
-* **123-02:** add Host repo wiring prerequisite to production checklist ([a07775d](https://github.com/szTheory/threadline/commit/a07775dd039aa3dedfa6b40eca21f3c6bf80bd5f))
-* **127-01:** wire :schemas mount and sync operator-surface doc snippets examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex guides/getting-started-saas.md examples/threadline_phoenix/README.md .planning/phases/127-example-app-schemas-demonstration/127-01-SUMMARY.md ([17507ba](https://github.com/szTheory/threadline/commit/17507ba958215b86c761d1e4b613ab5193bdd502))
-* **128-02:** add PhxGenAuthReference.Audit mirroring guide module ([2836be1](https://github.com/szTheory/threadline/commit/2836be141df0e5c2547a9fb91f9478cf35431213))
+* **documentation:** add Configure Threadline subsection to getting-started ([7b929a1](https://github.com/szTheory/threadline/commit/7b929a17963b01b09cd1c51d0972f77cce73927a))
+* **documentation:** add host-repository wiring prerequisite to the production checklist ([a07775d](https://github.com/szTheory/threadline/commit/a07775dd039aa3dedfa6b40eca21f3c6bf80bd5f))
+* **operator surface:** wire the schemas mount and synchronize operator-surface examples ([17507ba](https://github.com/szTheory/threadline/commit/17507ba958215b86c761d1e4b613ab5193bdd502))
+* **auth integration:** add the PhxGenAuthReference.Audit guide module ([2836be1](https://github.com/szTheory/threadline/commit/2836be141df0e5c2547a9fb91f9478cf35431213))
 
 
 ### Bug Fixes
 
-* **130-02:** format phx_gen_auth_integration_test for ci.all gate ([e04f275](https://github.com/szTheory/threadline/commit/e04f275cd3bd123ae18f192da73f6da332aa1285))
+* **ci:** format the phx-gen-auth integration contract for the ci.all gate ([e04f275](https://github.com/szTheory/threadline/commit/e04f275cd3bd123ae18f192da73f6da332aa1285))
 * operator timeline crash on correlation_id filter (+ release-please changelog guard) ([43a6f23](https://github.com/szTheory/threadline/commit/43a6f2364feb3a285c15b13a68f35f905bc8a0d5))
 * **operator-surface:** prevent timeline crash on correlation_id filter ([d62e509](https://github.com/szTheory/threadline/commit/d62e509e932b3b85b1749a13745b510ad78c0042))
 * **release:** run publish chain when release-ref succeeds via dispatch ([19c7549](https://github.com/szTheory/threadline/commit/19c7549d64f67f34329566590ebf45eca96223a7))
@@ -45,6 +45,13 @@ Operator-surface release: the `/audit` admin UI matured into a coherent, branded
 ### Added
 
 - **Architecture documentation** — rewrote How Threadline Works as an end-to-end visual architecture guide and added a source-driven Code Walkthrough, with dark/light Mermaid rendering and the Threadline mark as the HexDocs favicon.
+
+### Changed
+
+- **HexDocs public-surface clarification** — generated module documentation now focuses on supported façades, returned data, extension points, integrations, the operator `Threadline.OperatorSurface.Router` and `Threadline.OperatorSurface.Auth` boundary, and adopter Mix tasks. The following implementation modules that had pages in the 0.9 documentation are no longer listed:
+  - Capture and lifecycle implementation: `Threadline.Capture.Migration`, `Threadline.Capture.RedactionPolicy`, `Threadline.Capture.TriggerCaptureConfig`, `Threadline.Capture.TriggerSQL`, `Threadline.Export.CleanupTask`, `Threadline.Governance.ExportJob`, `Threadline.Governance.Migration`, `Threadline.Governance.RetentionRun`, `Threadline.Governance.SavedView`, `Threadline.Policy.RedactionPresenter`, `Threadline.Retention.Pruner`, and `Threadline.Semantics.Migration`.
+  - Operator implementation: `Threadline.OperatorSurface.Style`, `Threadline.OperatorSurface.Components.SurfaceHeader`, `Threadline.OperatorSurface.Controllers.ExportController`, `Threadline.OperatorSurface.Coverage.OnMount`, `Threadline.OperatorSurface.Coverage.Snapshot`, `Threadline.OperatorSurface.ExportAuthPlug`, `Threadline.OperatorSurface.SessionPlug`, `Threadline.OperatorSurface.Exports.Filename`, `Threadline.OperatorSurface.Exports.FilterParams`, `Threadline.OperatorSurface.Scope`, and `Threadline.OperatorSurface.Script`.
+  These modules remain callable for Threadline's own composition; this is a documentation-surface clarification, not runtime privacy or a change to supported façade behavior.
 
 ## [0.6.0] - 2026-05-27
 
@@ -77,7 +84,7 @@ Threadline 0.6.0 is the adopter-ready release: it packages the in-repo stack sin
 - If using Evidence: apply evidence schema migrations from library docs / example migrations before calling `Threadline.Evidence` APIs.
 - Wire `evidence_authorize_fn` on `threadline_operator_surface/2` when mounting `/audit/evidence` — it does **not** inherit timeline/export `authorize_fn`.
 - Adopt `Threadline.Audit.transaction/3` for new write paths; keep legacy GUC/`record_action/2` only where migration cost is high.
-- Use `mix threadline.evidence.show` (not deprecated `mix verify.evidence` naming) for CLI proof export.
+- Use `mix threadline.evidence.show` (not the earlier `verify.evidence` alias) for CLI proof export.
 - Re-run host verification: `mix threadline.verify_coverage`, `mix verify.doc_contract` (host), and operator-surface smoke tests if mounted.
 - See `guides/upgrade-path.md` for lane matrix (`capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, `sigra-reference`) and surface deprecation policy.
 - ExDoc sidebar adds **Evidence** group and Core API entries for Audit, Query, Investigation, ChangeDiff.
@@ -113,7 +120,7 @@ Threadline 0.5.0 is the integration-breadth release: the package now ships a nar
 
 ### Changed
 
-- **Release metadata** — install snippets now target `{:threadline, "~> 0.5"}`, ExDoc names the operator surface `Optional In-Tree`, and the release/audit artifacts record v1.19 as the integration-breadth closeout milestone.
+- **Release metadata** — install snippets now target `{:threadline, "~> 0.5"}`, ExDoc names the operator surface `Optional In-Tree`, and the release/audit artifacts record the integration-breadth release boundary.
 - **Operator-surface auth/scoping contract** — the example app no longer relies on a socket-only auth bypass, and timeline, actor, transaction, and export flows all consume the same host-owned scope seam.
 - **`Threadline.Verify.CoveragePolicy.violations/2`** treats `{:expected_uncovered, _}` as covered-equivalent for tables not in the adopter's `:expected_tables`. Existing semantics preserved for tables IN `:expected_tables`.
 
@@ -190,7 +197,7 @@ Threadline 0.3.0 is the drop-in production adoption release for Phoenix SaaS tea
 
 ### Release notes (capabilities since 0.1.0)
 
-This minor release documents and packages capabilities shipped across the **v1.1–v1.3** planning cycles that were not fully reflected in the **0.1.0** changelog entry:
+This minor release documents and packages capabilities shipped after **0.1.0** that were not fully reflected in that changelog entry:
 
 - **Before-values** — optional `changed_from` on UPDATE when triggers are generated with `--store-changed-from`; `Threadline.history/3` loads the column when present.
 - **Verify coverage & doc contracts** — `mix threadline.verify_coverage`, CI `verify.threadline` / `verify.doc_contract`, README fixture contracts.
