@@ -339,8 +339,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # Audit the operator's request only after authorization and confirmation
-    # succeed, and before starting the prune. The backend records deletion results
-    # after its database transaction succeeds. The retention runtime is a system actor.
+    # succeed, and before starting the prune. The backend records completed
+    # deletion totals only after the purge succeeds. The retention runtime is a system actor.
     defp audit_prune(socket, policy_name) do
       {:ok, actor} = ActorRef.new(:system, "retention_pruner")
 
