@@ -62,13 +62,12 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      "Textarea control current baseline", ["one", "disabled", "error"]}
   ]
 
-  # GROUP-01: the 12 recurring component configurations audited as cohesive units on
-  # /audit/__stress. The 6 prior reserved baselines (action-bar, filter-bar, kv-list,
-  # pagination, status-strip, timeline-list) are remapped/absorbed into these 12 — see
-  # the per-story `absorbs` notes below. Each carries a `surface` tag (`:live` |
-  # `:reference`) so Phase 178 (page-stress) knows which groups ship on a real page (D-07).
-  # Reference-only configs (drawer+form, tabs+subviews) have no live page consumer this
-  # phase — the stress story IS the canonical reference assembly (D-06b / Deferred Ideas).
+  # These 12 recurring component configurations are audited as cohesive units on
+  # /audit/__stress. The prior reserved baselines (action-bar, filter-bar, kv-list,
+  # pagination, status-strip, timeline-list) are remapped into these configurations;
+  # the per-story summaries name what each absorbs. The `surface` tag (`:live` |
+  # `:reference`) distinguishes groups used on product pages from canonical reference
+  # assemblies that intentionally have no live page consumer.
   @group_stories [
     {"group.page-header.current", "group.page_header.current",
      "Page header + actions + breadcrumbs", :live},
@@ -83,10 +82,10 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     {"group.modal-destructive.current", "group.modal_destructive.current",
      "Modal confirm + destructive action", :live},
     {"group.drawer-form.reference", "group.drawer_form.reference",
-     "Drawer + form (reference-only — no live page, D-07)", :reference},
+     "Drawer + form (reference-only — no live page)", :reference},
     {"group.toast-update.current", "group.toast_update.current", "Toast + state update", :live},
     {"group.tabs-subviews.reference", "group.tabs_subviews.reference",
-     "Tabs + subviews (reference-only — no live page, D-07)", :reference},
+     "Tabs + subviews (reference-only — no live page)", :reference},
     {"group.empty-cta.current", "group.empty_cta.current",
      "Empty + CTA (absorbs action-bar action-cluster semantics)", :live},
     {"group.permission-denied.current", "group.permission_denied.current",
@@ -95,7 +94,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      "Reconnect / offline banner + disabled actions", :live}
   ]
 
-  # PAGE-01 / D-04: each of the 11 operator pages is audited across the 7 audit
+  # Each of the 11 operator pages is audited across the 7 audit
   # paths (happy/empty/loading/error/permission/boundary/advanced) via deterministic
   # DB-free static fixtures on /audit/__stress. The 11 prior `page.<x>.reserved`
   # baselines are CONVERTED here (no orphaned reserved id — the 177-05 group
@@ -103,10 +102,10 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   # the two pre-existing baselines (page.home.happy, page.timeline.empty) are
   # absorbed as the home/happy and timeline/empty cells.
   #
-  # Honesty contract (D-01/D-03): this Tier A cartesian proves the FULL structural
+  # Honesty contract: this Tier A cartesian proves the full structural
   # matrix (page × path × theme × viewport renders, carries data-state, no
   # loud-fail). The genuinely-live loading/reconnect flows are proven by the
-  # real-LiveView Tier B specs (Plans 01/05), NOT these static fixtures.
+  # real-LiveView Tier B specs, not these static fixtures.
   @page_subjects ~w(
     actor
     coverage
@@ -123,7 +122,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
 
   # The 7 audit paths each page is fixture-backed across, mapped onto the
   # @required_cases ugly-data vocabulary. Each path's cases satisfy the page-story
-  # conversion contract (stress_fixtures_test PAGE-01 @page_path_cases).
+  # conversion contract in `stress_fixtures_test.exs` (`@page_path_cases`).
   @page_paths [
     {"happy", ["one", "many", "mixed_severity"]},
     {"empty", ["empty", "zero_count"]},
@@ -134,7 +133,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     {"advanced", ["non_ascii", "null_fields"]}
   ]
 
-  # The two pre-existing fixture-backed baselines (Phase 171, score 62). Their
+  # The two pre-existing fixture-backed baseline-cohort cells (score 62). Their
   # ledger ids/fixture_keys are reused verbatim as the home/happy and
   # timeline/empty cells so no id is orphaned.
   @page_baseline_cells %{
@@ -157,7 +156,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      ["timezone_boundary"]}
   ]
 
-  # Phase 176 data-display components + DATA-03 data-state taxonomy. Each new UI unit
+  # The data-display components and typed data-state taxonomy. Each UI unit
   # (ref/kv/data_table) and each typed data-state is audited in isolation on /audit/__stress
   # (the 173/174/175 pattern) before any page adopts it.
   @data_display_stories [
@@ -179,13 +178,13 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      ["timezone_boundary"]}
   ]
 
-  # Phase 195 Plan 03 (CRITIC-02): D-03 refute-twin catalog.
+  # Refute-twin catalog: each entry is
   # Each entry: {id, fixture_key, scenario, twin_atom, pole_atom, summary}.
   # 6 gestalt twins (each = polished + injected flaw that PASSES all mechanical gates).
   # 1 veto-ordering twin (off-token raw-hex trips --tl-* token-parity veto at panel layer;
   # the flawed pole is NOT added to the capture band, so no committed scorecard is generated
   # for it and verify.mechanical stays green).
-  # Partition rule (D-03): every gestalt flaw PASSES MODE A (no hard-block) and MODE B
+  # Partition rule: every gestalt flaw passes MODE A (no hard block) and MODE B
   # (within ratchet floor). If a flaw trips mechanics, it is a mechanical test, never a critic one.
   @refute_twin_stories [
     # 1. Rhythm: doubled padding (token-step to token-step: --tl-space-4 → --tl-space-8, on-grid)
@@ -250,15 +249,15 @@ defmodule Threadline.OperatorSurface.StressFixtures do
      "refute.veto_ordering.off_token_accent.flawed",
      "Veto-ordering – raw hex #e8a246 accent [trips --tl-* token-parity veto]", :veto_ordering,
      :flawed,
-     "Veto flaw: raw hex #e8a246 (Ember-alike) instead of var(--tl-color-ember); trips token-parity veto, no aesthetic score emitted (panel layer, Plan 06 only)."}
+     "Veto flaw: raw hex #e8a246 (Ember-alike) instead of var(--tl-color-ember); trips the panel-layer token-parity veto, so no aesthetic score is emitted."}
   ]
 
-  # Phase 195 D-12: graded severity ladder — the synthetic twin oracle.
+  # Graded severity ladder — the synthetic twin oracle.
   # Each (lens, scenario) renders at 4 severity rungs mapping onto the human ordinal
   # scale: r4=good(4), r3=borderline(3), r2=bad(2), r1=broken(1). Cell-ids are DISTINCT
   # from the rubric anchor poles (refute.<lens>.<twin>.polished/flawed) so validation is
   # on held-out cells, and each scenario carries DISTINCT content so ~6 scenarios × 4
-  # rungs nets ≥20 low-correlation cells per lens (D-12 pseudo-replication honesty).
+  # rungs nets ≥20 low-correlation cells per lens, limiting pseudo-replication.
   # The twin atom drives the render block; the lens tags the cell for measurement.
   @graded_rungs [:r4, :r3, :r2, :r1]
 
@@ -270,7 +269,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     {"typography", :typography, ~w(activity coverage retention exports evidence actor)},
     {"brand_fidelity", :brand_fidelity, ~w(export coverage retention evidence actor timeline)},
     {"color_contrast", :color_contrast, ~w(status coverage retention diff evidence actor)},
-    # D-12 follow-up (Phase 196): hierarchy joins the graded ladder — the :hierarchy twin now
+    # Hierarchy joins the graded ladder: the :hierarchy twin
     # renders a rung-graded weight/size cascade (see @hierarchy_scale in stress_live.ex). Scored
     # with 1 persona (probe 2026-07-28 proved p1-p5 redundant on hierarchy); oracle ρ is the backstop.
     {"hierarchy", :hierarchy, ~w(activity coverage retention exports evidence actor)},
@@ -289,7 +288,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
                            lens, scenario, rung}
                         end)
 
-  @reserved_copy "This baseline records the current issue; do not fix it in Phase 171."
+  @reserved_copy "This baseline records the current issue; resolve it only with the reserved cohort."
 
   @doc """
   Returns every canonical stress story sorted by string ID.
@@ -378,12 +377,12 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   end
 
   def assigns_for(%{status: "reserved"} = story) do
-    phase = story.metadata.reserved_for_phase
+    cohort = story.metadata.reserved_for_cohort
 
     {:ok,
      %{
        title: "Reserved stress story",
-       body: "Reserved for Phase #{phase}. #{@reserved_copy}",
+       body: "Reserved for the #{cohort} cohort. #{@reserved_copy}",
        fallback_label: "Story",
        fallback_value: story.id,
        base_path: "/audit"
@@ -407,7 +406,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     [
       foundation_story_maps(),
       current_primitive_story(),
-      reserved_story_maps(@primitive_stories, "primitive", 171),
+      reserved_story_maps(@primitive_stories, "primitive", "baseline"),
       form_control_story_maps(),
       group_story_maps(),
       page_story_maps(),
@@ -496,12 +495,12 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       fixture_key: fixture_key,
       cases: group_cases(id),
       status: "current",
-      owner_phase: 177,
+      origin_cohort: "baseline",
       data: %{
         surface: surface,
         summary: group_summary(id, scenario)
       },
-      metadata: %{owner_phase: 177, surface: surface}
+      metadata: %{origin_cohort: "baseline", surface: surface}
     })
   end
 
@@ -510,7 +509,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   end
 
   defp group_summary(_id, scenario) do
-    "Phase 177 #{scenario} audited as a unit on /audit/__stress."
+    "#{scenario} audited as a unit on /audit/__stress."
   end
 
   defp group_cases("group.data-panel.current"), do: ["empty", "stale", "error"]
@@ -551,13 +550,13 @@ defmodule Threadline.OperatorSurface.StressFixtures do
         fixture_key: fixture_key,
         cases: cases,
         status: "current",
-        owner_phase: 176,
+        origin_cohort: "data-display",
         data: %{
           id: id,
           cases: cases,
           summary: data_display_summary(id, scenario)
         },
-        metadata: %{owner_phase: 176}
+        metadata: %{origin_cohort: "data-display"}
       })
     end)
   end
@@ -579,12 +578,12 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   end
 
   defp data_display_summary(_id, scenario) do
-    "Phase 176 #{scenario} audited in isolation on /audit/__stress."
+    "#{scenario} audited in isolation on /audit/__stress."
   end
 
   defp page_story_maps do
     for subject <- @page_subjects, {path, cases} <- @page_paths do
-      {id, fixture_key, status, owner_phase} = page_cell_identity(subject, path)
+      {id, fixture_key, status, origin_cohort} = page_cell_identity(subject, path)
 
       story(%{
         id: id,
@@ -594,23 +593,23 @@ defmodule Threadline.OperatorSurface.StressFixtures do
         fixture_key: fixture_key,
         cases: cases,
         status: status,
-        owner_phase: owner_phase,
+        origin_cohort: origin_cohort,
         data: page_data(id, cases),
         metadata: %{page_subject: subject, page_path: path}
       })
     end
   end
 
-  # The two Phase 171 baselines keep their exact ids/fixture_keys and `baseline`
-  # status; every other cell is a Phase 178 fixture-backed `current` page story.
+  # The two baseline-cohort cells keep their exact ids/fixture_keys and `baseline`
+  # status; every other cell is a fixture-backed `current` page-state story.
   defp page_cell_identity(subject, path) do
     case Map.get(@page_baseline_cells, {subject, path}) do
       nil ->
         {"page.#{subject}.#{path}", "page.#{page_fixture_subject(subject)}.#{path}", "current",
-         178}
+         "page-state"}
 
       baseline_id ->
-        {baseline_id, baseline_id, "baseline", 171}
+        {baseline_id, baseline_id, "baseline", "baseline"}
     end
   end
 
@@ -654,32 +653,32 @@ defmodule Threadline.OperatorSurface.StressFixtures do
         "future.theme_picker.idiomatic_ui",
         "Runtime theme picker states reserved baseline",
         "future_reserved",
-        175
+        "baseline"
       ),
       reserved_story(
         "footgun.coverage-schema-card-declutter",
         "footgun.coverage_schema.card_declutter",
         "Coverage schema nested-card baseline",
         "footgun",
-        176
+        "data-display"
       ),
       reserved_story(
         "footgun.transaction-page-left-push-desktop",
         "footgun.transaction_page.left_push_desktop",
         "Transaction page desktop centering baseline",
         "footgun",
-        178
+        "page-state"
       )
     ]
   end
 
-  defp reserved_story_maps(entries, kind, phase) do
+  defp reserved_story_maps(entries, kind, cohort) do
     Enum.map(entries, fn {id, fixture_key, scenario} ->
-      reserved_story(id, fixture_key, scenario, kind, phase)
+      reserved_story(id, fixture_key, scenario, kind, cohort)
     end)
   end
 
-  defp reserved_story(id, fixture_key, scenario, kind, phase) do
+  defp reserved_story(id, fixture_key, scenario, kind, cohort) do
     story(%{
       id: id,
       kind: kind,
@@ -688,13 +687,13 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       fixture_key: fixture_key,
       cases: ["warning"],
       status: "reserved",
-      owner_phase: phase,
+      origin_cohort: cohort,
       data: %{
-        reserved_for_phase: phase,
-        note: "Reserved for Phase #{phase}. #{@reserved_copy}",
+        reserved_for_cohort: cohort,
+        note: "Reserved for the #{cohort} cohort. #{@reserved_copy}",
         synthetic_reference: "stress-#{String.replace(id, ".", "-")}"
       },
-      metadata: %{reserved_for_phase: phase}
+      metadata: %{reserved_for_cohort: cohort}
     })
   end
 
@@ -711,7 +710,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
       cases: Map.fetch!(attrs, :cases) |> Enum.sort(),
       themes: @theme_modes,
       viewports: @viewports,
-      owner_phase: Map.get(attrs, :owner_phase, 171),
+      origin_cohort: Map.get(attrs, :origin_cohort, "baseline"),
       status: Map.fetch!(attrs, :status),
       data: Map.fetch!(attrs, :data),
       metadata:
@@ -864,12 +863,12 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     %{
       id: id,
       cases: cases,
-      summary: "Synthetic per-page path fixture for #{id} (PAGE-01 Tier A structural cell)."
+      summary: "Synthetic per-page path fixture for #{id} (Tier A structural cell)."
     }
   end
 
-  # Phase 195 Plan 03: builds the 14 refute-twin stories (7 twins × 2 poles) from
-  # @refute_twin_stories. Category "refute", status "current", owner_phase 195.
+  # Builds the 14 refute-twin stories (7 twins × 2 poles) from
+  # @refute_twin_stories. Category "refute", status "current", origin cohort "refute-twin".
   # Polished poles = the well-designed reference; flawed poles = the injected flaw.
   defp refute_twin_story_maps do
     Enum.map(
@@ -883,7 +882,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
           fixture_key: fixture_key,
           cases: ["one"],
           status: "current",
-          owner_phase: 195,
+          origin_cohort: "refute-twin",
           data: %{
             twin: twin,
             pole: pole,
@@ -892,14 +891,14 @@ defmodule Threadline.OperatorSurface.StressFixtures do
           metadata: %{
             twin: twin,
             pole: pole,
-            owner_phase: 195
+            origin_cohort: "refute-twin"
           }
         })
       end
     )
   end
 
-  # Phase 195 D-12: builds the graded-ladder refute stories (lens × scenario × 4 rungs)
+  # Builds the graded-ladder refute stories (lens × scenario × 4 rungs)
   # from @graded_twin_stories. Same category/status as the binary twins so the capture
   # + veto pipeline treat them identically; the extra rung/lens/scenario keys drive the
   # rung-aware render helpers and the synthetic-set generator (mix critic.synth).
@@ -915,7 +914,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
           fixture_key: fixture_key,
           cases: ["one"],
           status: "current",
-          owner_phase: 195,
+          origin_cohort: "graded-ladder",
           data: %{
             twin: twin,
             lens: lens,
@@ -928,7 +927,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
             twin: twin,
             rung: rung,
             lens: lens,
-            owner_phase: 195
+            origin_cohort: "graded-ladder"
           }
         })
       end
@@ -941,7 +940,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   def graded_rungs, do: @graded_rungs
 
   @doc """
-  Every graded-ladder story (the synthetic twin oracle, D-12), sorted by id. These
+  Every graded-ladder story in the synthetic twin oracle, sorted by id. These
   are dev/test-only oracle fixtures — NOT product surfaces — so they are surfaced in
   the stress lab for capture without a design-system-ledger entry (they never enter
   the product ratchet).

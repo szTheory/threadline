@@ -4,12 +4,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: has-forms. This is the dev/test-only design-system stress
-    # harness, not a shipped operator page — it renders form controls as component
-    # fixtures. It was in NO list under the superseded @formless_pages allowlist, i.e.
-    # silently unguarded; that gap is the concrete reason the allowlist was replaced.
-    # Relocation out of live/ is a live candidate but is Phase 204 structure work, not
-    # this phase's — the declaration is what makes it guarded in the meantime.
+    # This dev/test-only design-system stress harness renders form controls as component
+    # fixtures, so it explicitly declares a has-forms policy even though it is not a
+    # shipped operator page. The declaration keeps form-policy validation structural
+    # instead of relying on a path-based exception.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "stress harness renders form controls as fixtures"}
 
@@ -62,7 +60,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_params(params, uri, socket) do
       ledger_entries = socket.assigns.ledger_entries
-      # Ledger-backed product stories PLUS the graded-ladder oracle fixtures (D-12).
+      # Ledger-backed product stories plus the graded-ladder oracle fixtures.
       # The latter are dev/test-only validation cells with no ledger entry — surfaced
       # here purely so the graded capture lane can render + screenshot them.
       stories =
@@ -230,8 +228,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <dd class="tl-stress__mono"><%= ledger_id(@selected_entry) %></dd>
                   </div>
                   <div>
-                    <dt>Owner phase</dt>
-                    <dd><%= owner_phase(@selected_entry, @selected_story) %></dd>
+                    <dt>Origin cohort</dt>
+                    <dd><%= origin_cohort(@selected_entry, @selected_story) %></dd>
                   </div>
                   <div>
                     <dt>Status</dt>
@@ -244,7 +242,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
 
                 <div :if={show_refute_matrix?(@selected_story)} class="tl-stress__ui-matrix tl-mt-8 tl-space-y-6" data-testid="refute-matrix">
-                  <p style="font-size: var(--tl-font-size-label); font-weight: 600; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-4) 0;">Phase 195 Refute Twin — design principle under test</p>
+                  <p style="font-size: var(--tl-font-size-label); font-weight: 600; color: var(--tl-color-muted); margin: 0 0 var(--tl-space-4) 0;">Refute Twin — design principle under test</p>
 
                   <%!-- Twin 1: Rhythm — section spacing (graded ladder; scenario content) --%>
                   <div :if={refute_twin(@selected_story) == :rhythm} class="tl-space-y-0">
@@ -349,7 +347,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%!-- Twin 7: Veto-ordering — off-token raw-hex accent.
                        The diff rows use a border-left accent in ember (token) vs #e8a246 (raw hex).
                        Border colors are not captured in color_pairs; no WCAG contrast violation.
-                       Plan 06 token-parity veto detects the raw-hex in the flawed pole's DOM. --%>
+                       The token-parity panel detects the raw hex in the flawed pole's DOM. --%>
                   <div :if={refute_twin(@selected_story) == :veto_ordering} class="tl-space-y-3">
                     <div style="padding: var(--tl-space-4); background: var(--tl-color-bg); border: 1px solid var(--tl-color-border); border-radius: var(--tl-radius-md);">
                       <h2 style="font-size: var(--tl-font-size-heading); font-weight: 600; margin: 0 0 var(--tl-space-3) 0; color: var(--tl-color-text);">Row diff</h2>
@@ -369,7 +367,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
 
                 <div :if={show_ui_matrix?(@selected_story)} class="tl-stress__ui-matrix tl-mt-8 tl-space-y-8">
-                  <h3>Phase 173 Primitives Matrix</h3>
+                  <h3>Primitives Matrix</h3>
                   
                   <div class="tl-space-y-4">
                     <h4>Buttons</h4>
@@ -463,7 +461,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
 
                   <div class="tl-space-y-4">
-                    <h4>Phase 176 Data Display</h4>
+                    <h4>Data Display</h4>
                     <div class="tl-space-y-4">
                       <Threadline.OperatorSurface.UI.ref
                         value="chg_00000000-0000-4000-8000-000000000176/correlation/abcdef0123456789"
@@ -492,7 +490,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
 
                   <div class="tl-space-y-4">
-                    <h4>Phase 176 Data States (DATA-03 taxonomy)</h4>
+                    <h4>Data States</h4>
                     <div class="tl-space-y-4">
                       <Threadline.OperatorSurface.UI.stale_banner as_of="2026-06-16 23:59 UTC" />
                       <Threadline.OperatorSurface.UI.loading_state />
@@ -772,8 +770,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp ledger_id(nil), do: "unreported"
     defp ledger_id(entry), do: entry["id"]
 
-    defp owner_phase(nil, story), do: story.owner_phase
-    defp owner_phase(entry, _story), do: entry["owner_phase"]
+    defp origin_cohort(nil, story), do: story.origin_cohort
+    defp origin_cohort(entry, _story), do: entry["origin_cohort"]
 
     defp status(nil, story), do: story.status
     defp status(entry, _story), do: entry["status"]
@@ -792,7 +790,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp show_ui_matrix?(_story), do: false
 
-    # Phase 195 Plan 03: refute-twin render helpers.
+    # Refute-twin render helpers.
     # Each twin pair (polished + flawed) renders via show_refute_matrix? + a per-twin block.
 
     defp show_refute_matrix?(%{category: "refute"}), do: true
@@ -804,7 +802,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp refute_pole(%{data: data}) when is_map(data), do: Map.get(data, :pole)
     defp refute_pole(_), do: nil
 
-    # Phase 195 D-12: severity rung for a graded-ladder story. Binary twins carry no
+    # Severity rung for a graded-ladder story. Binary twins carry no
     # :rung, so they map back to the two extremes (flawed → :r2 "bad", polished → :r4)
     # keeping the existing pole render byte-identical.
     defp refute_rung(%{data: %{rung: rung}}) when not is_nil(rung), do: rung
@@ -900,8 +898,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # Twin 3: Hierarchy — graded visual-weight/size cascade (mirrors the @typo_scale shape,
-    # D-12). r4 gives a clear meta < body < subtitle < title size+weight progression so ONE
+    # Twin 3: Hierarchy — graded visual-weight/size cascade mirrors the @typo_scale shape.
+    # r4 gives a clear meta < body < subtitle < title size+weight progression so one
     # element (the title) owns the emphasis budget; worse rungs progressively flatten the
     # cascade until r1 is near-uniform (nothing dominates). Both scored dims degrade together
     # — entry_point_clarity/scan_path AND emphasis_discipline — keeping min()-rollup signal on
@@ -1248,7 +1246,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # reports against the `button` selector on the three
     # `refute.brand-fidelity.mis-jobbed-accent.flawed__light-*` cells.
     #
-    # That violation is NOT this twin's intended flaw. Per D-03 a flawed pole must stay
+    # That violation is not this twin's intended flaw. A flawed pole must stay
     # mechanically clean so its flaw is isolated to perception (mis-jobbing Ember onto the
     # action job) rather than leaking into the mechanical gate. Ember is a light mid-tone
     # in both themes, so it always needs dark ink; thread-blue keeps the semantic
@@ -1309,7 +1307,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # ember=change, cyan=info); r3 mild creep; r2 reuses one hue across two jobs; r1 scrambles
     # every hue so colour stops meaning anything. Accents are border-left + a plain <div>
     # swatch (neither is in the color_pairs text selector) so every rung passes WCAG MODE-A —
-    # this is a gestalt colour-semantics flaw, not a contrast violation (D-03 partition).
+    # this is a gestalt colour-semantics flaw, not a contrast violation.
     defp refute_color_accent(story, role) do
       case {refute_rung(story), role} do
         {:r4, :action} -> "var(--tl-color-thread-blue)"
@@ -1381,11 +1379,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # Each diff row is wrapped in a div with a left-border accent: ember token (polished) vs
     # raw hex #e8a246 (flawed). Border-left is not in the color_pairs selector so no WCAG
     # contrast MODE-A violation fires here. The raw hex trips the token-parity veto at the
-    # panel layer (Plan 06), which fires AFTER mechanical gates pass (correct veto ordering).
+    # panel layer, which fires after mechanical gates pass (correct veto ordering).
     defp refute_veto_accent_style(story) do
       case refute_pole(story) do
         :flawed ->
-          # off-token raw hex (Ember-alike; not a CSS variable reference) — veto fires in Plan 06
+          # Off-token raw hex (Ember-alike; not a CSS variable reference) triggers the panel veto.
           "display: flex; gap: var(--tl-space-3); align-items: center; padding-left: var(--tl-space-2); border-left: 3px solid #e8a246; margin-bottom: var(--tl-space-2);"
 
         _ ->

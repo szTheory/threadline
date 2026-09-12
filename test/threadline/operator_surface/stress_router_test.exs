@@ -353,7 +353,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     test "authenticated stress route renders the operator shell, theme, selected story, and preview",
          %{conn: conn} do
-      {:ok, _view, html} = live(conn, "/audit/__stress")
+      {:ok, _view, html} = live(conn, "/audit/__stress?story=foundation.color")
 
       assert html =~ ~s|class="threadline-ui"|
       assert html =~ ~s|data-tl-theme="system"|
@@ -365,6 +365,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="stress-ledger-score"|
       assert html =~ ~s|data-testid="stress-target-score"|
       assert html =~ ~s|data-testid="stress-screenshot-status"|
+      assert html =~ "Origin cohort"
+      refute html =~ "Owner phase"
+      assert html =~ "Primitives Matrix"
+      assert html =~ "Data Display"
+      assert html =~ "Data States"
+      refute html =~ "Phase 173 Primitives Matrix"
+      refute html =~ "Phase 176 Data Display"
+      refute html =~ "Phase 176 Data States"
+
+      {:ok, _view, refute_html} =
+        live(conn, "/audit/__stress?story=refute.rhythm.doubled-padding.polished")
+
+      assert refute_html =~ "Refute Twin — design principle under test"
+      refute refute_html =~ "Phase 195 Refute Twin"
     end
 
     test "stress route renders the decoded ledger supplied by its live session", %{conn: conn} do
@@ -450,7 +464,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert story_html =~ ~s|data-testid="stress-preview"|
 
         assert story_html =~ entry["fixture_key"] or
-                 story_html =~ "Reserved for Phase #{entry["reserved_for_phase"]}"
+                 story_html =~ "Reserved for the #{entry["reserved_for_cohort"]} cohort"
       end
     end
 
@@ -469,7 +483,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       group.toolbar.current
     )
 
-    test "all 12 GROUP-01 group stories render without error across the matrix", %{conn: conn} do
+    test "all 12 baseline-cohort group stories render without error across the matrix", %{
+      conn: conn
+    } do
       assert length(@group_story_ids) == 12
 
       for story_id <- @group_story_ids do

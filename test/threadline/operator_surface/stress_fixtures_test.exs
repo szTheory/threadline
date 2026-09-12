@@ -176,7 +176,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert string_list?(story.cases), "#{story.id} cases must be a list of strings"
         assert string_list?(story.themes), "#{story.id} themes must be a list of strings"
         assert integer_list?(story.viewports), "#{story.id} viewports must be a list of integers"
-        assert is_integer(story.owner_phase), "#{story.id} owner_phase must be an integer"
+
+        assert story.origin_cohort in [
+                 "baseline",
+                 "page-state",
+                 "data-display",
+                 "refute-twin",
+                 "graded-ladder"
+               ],
+               "#{story.id} origin_cohort must use the named cohort vocabulary"
+
         assert is_binary(story.status), "#{story.id} status must be a string"
         assert is_map(story.data), "#{story.id} data must be a map"
         assert is_map(story.metadata), "#{story.id} metadata must be a map"
@@ -212,9 +221,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "folded todos are future-owned reserved baseline stories" do
-      assert_reserved_story!("future.theme-picker-idiomatic-ui", 175)
-      assert_reserved_story!("footgun.coverage-schema-card-declutter", 176)
-      assert_reserved_story!("footgun.transaction-page-left-push-desktop", 178)
+      assert_reserved_story!("future.theme-picker-idiomatic-ui", "baseline")
+      assert_reserved_story!("footgun.coverage-schema-card-declutter", "data-display")
+      assert_reserved_story!("footgun.transaction-page-left-push-desktop", "page-state")
     end
 
     test "fixture registry source stays synthetic and package-free" do
@@ -258,7 +267,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert denied_html =~ "account needs `audit.read`"
     end
 
-    test "Phase 179 copy-state evidence uses final state grammar without story churn" do
+    test "copy-state evidence uses final state grammar without story churn" do
       expectations = [
         {"state.permission-denied",
          [
@@ -310,7 +319,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         for expected <- required_copy do
           assert copy =~ expected,
-                 "#{story_id} must render Phase 179 copy #{inspect(expected)}; got #{inspect(copy)}"
+                 "#{story_id} must render final-state copy #{inspect(expected)}; got #{inspect(copy)}"
         end
       end
 
@@ -354,17 +363,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       group.tabs-subviews.reference
     )
 
-    test "GROUP-01 maps the 12 configurations to current group stories with a surface tag" do
+    test "the baseline cohort maps 12 configurations to current group stories with a surface tag" do
       group_stories =
         StressFixtures.all()
         |> Enum.filter(&(&1.category == "group"))
 
       assert length(group_stories) == 12,
-             "GROUP-01 requires exactly 12 group configurations, got #{length(group_stories)}"
+             "the baseline cohort requires exactly 12 group configurations, got #{length(group_stories)}"
 
       for story <- group_stories do
         assert story.status == "current", "#{story.id} group story must be status current"
-        assert story.owner_phase == 177, "#{story.id} group story must be owned by Phase 177"
+
+        assert story.origin_cohort == "baseline",
+               "#{story.id} group story must belong to the baseline cohort"
 
         assert story.data.surface in [:live, :reference],
                "#{story.id} must carry a surface tag in [:live, :reference]"
@@ -374,10 +385,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       refute Enum.any?(group_stories, &String.ends_with?(&1.id, ".reserved")),
-             "no orphaned reserved group ids may remain after the GROUP-01 remap"
+             "no orphaned reserved group ids may remain after the baseline-cohort remap"
     end
 
-    test "the live/reference split matches the GROUP-01 mapping" do
+    test "the live/reference split matches the baseline-cohort mapping" do
       by_surface =
         StressFixtures.all()
         |> Enum.filter(&(&1.category == "group"))
@@ -387,7 +398,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Enum.sort(by_surface[:reference]) == Enum.sort(@reference_group_story_ids)
     end
 
-    # --- Phase 178 (PAGE-01 / D-04): 77 current page-path story ratchet --------
+    # --- Page-state cohort: 77 current page-path story ratchet ----------------
     #
     # The 11 page subjects must stay fixture-backed across the 7 audit paths
     # (happy/empty/loading/error/permission/boundary/advanced). This assertion locks
@@ -407,7 +418,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       transaction
     )
 
-    # The 7 audit paths each page must eventually be fixture-backed across (D-04).
+    # The 7 audit paths each page must remain fixture-backed across.
     # The cases vocabulary maps onto this taxonomy; a converted page story must carry
     # cases covering each path's representative fixture case.
     @page_path_cases %{
@@ -420,7 +431,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "advanced" => ~w(non_ascii null_fields mixed_severity)
     }
 
-    test "PAGE-01 (D-04): each of the 11 page subjects is a fixture-backed CURRENT 7-path story" do
+    test "each of the 11 page subjects is a fixture-backed current 7-path story" do
       stories = StressFixtures.all()
 
       page_stories_by_subject =
@@ -438,15 +449,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         subject_stories = Map.get(page_stories_by_subject, subject, [])
 
         refute subject_stories == [],
-               "PAGE-01: page subject #{subject} must have at least one page story (D-04)"
+               "page subject #{subject} must have at least one page story"
 
-        # D-04: the page must stay converted off the reserved baseline. A subject
+        # The page must stay converted off the reserved baseline. A subject
         # that only carries `.reserved` (status "reserved") stories has regressed.
         converted =
           Enum.filter(subject_stories, fn story -> story.status != "reserved" end)
 
         refute converted == [],
-               "PAGE-01: page subject #{subject} is still a RESERVED baseline — it must expose fixture-backed current/baseline path stories (D-04)"
+               "page subject #{subject} is still a reserved baseline — it must expose fixture-backed current/baseline path stories"
 
         # The converted page story/stories must cover all 7 audit paths via their
         # fixture cases.
@@ -457,17 +468,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         for {path, representative_cases} <- @page_path_cases do
           assert Enum.any?(representative_cases, &MapSet.member?(covered_cases, &1)),
-                 "PAGE-01: page subject #{subject} must be fixture-backed for the '#{path}' path (one of #{inspect(representative_cases)}); got cases #{inspect(MapSet.to_list(covered_cases))} (D-04)"
+                 "page subject #{subject} must be fixture-backed for the '#{path}' path (one of #{inspect(representative_cases)}); got cases #{inspect(MapSet.to_list(covered_cases))}"
         end
       end
     end
 
-    defp assert_reserved_story!(story_id, phase) do
+    defp assert_reserved_story!(story_id, cohort) do
       assert {:ok, story} = StressFixtures.by_id(story_id)
-      assert story.status == "reserved", "#{story_id} must remain a reserved Phase 171 baseline"
-      assert story.owner_phase == phase, "#{story_id} must be owned by Phase #{phase}"
-      assert story.metadata.reserved_for_phase == phase
-      assert story.data.reserved_for_phase == phase
+      assert story.status == "reserved", "#{story_id} must remain a reserved baseline"
+      assert story.origin_cohort == cohort, "#{story_id} must belong to the #{cohort} cohort"
+      assert story.metadata.reserved_for_cohort == cohort
+      assert story.data.reserved_for_cohort == cohort
     end
 
     defp fixture_copy(story) do

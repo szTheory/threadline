@@ -89,10 +89,10 @@
       "id": "footgun.coverage-schema-card-declutter",
       "kind": "footgun",
       "legacy_score": 25,
-      "notes": "Reserved for Phase 176. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 176,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "data-display",
       "ratchet_score": 25,
-      "reserved_for_phase": 176,
+      "reserved_for_cohort": "data-display",
       "scores": {
         "P1.density": {
           "current": null,
@@ -179,10 +179,10 @@
       "id": "footgun.transaction-page-left-push-desktop",
       "kind": "footgun",
       "legacy_score": 25,
-      "notes": "Reserved for Phase 178. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 178,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "page-state",
       "ratchet_score": 25,
-      "reserved_for_phase": 178,
+      "reserved_for_cohort": "page-state",
       "scores": {
         "P1.density": {
           "current": null,
@@ -271,10 +271,10 @@
       "id": "form-control.checkbox.current",
       "kind": "form_control",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 174. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 174,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 174,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -361,10 +361,10 @@
       "id": "form-control.date-range.current",
       "kind": "form_control",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 174. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 174,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 174,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -451,10 +451,10 @@
       "id": "form-control.input.current",
       "kind": "form_control",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 174. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 174,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 174,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -541,10 +541,10 @@
       "id": "form-control.radio.current",
       "kind": "form_control",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 174. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 174,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 174,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -631,10 +631,10 @@
       "id": "form-control.search.current",
       "kind": "form_control",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 174. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 174,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 174,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -721,10 +721,10 @@
       "id": "form-control.select.current",
       "kind": "form_control",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 174. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 174,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 174,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -811,10 +811,10 @@
       "id": "form-control.textarea.current",
       "kind": "form_control",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 174. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 174,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 174,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -901,8 +901,8 @@
       "id": "foundation.color",
       "kind": "foundation",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Color token groups.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Color token groups.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -990,8 +990,8 @@
       "id": "foundation.density",
       "kind": "foundation",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Density and control rhythm.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Density and control rhythm.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1079,8 +1079,8 @@
       "id": "foundation.motion",
       "kind": "foundation",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Motion duration and reduced-motion lane.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Motion duration and reduced-motion lane.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1168,8 +1168,8 @@
       "id": "foundation.radius",
       "kind": "foundation",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Radius scale.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Radius scale.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1257,8 +1257,8 @@
       "id": "foundation.shadow",
       "kind": "foundation",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Shadow and elevation scale.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Shadow and elevation scale.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1346,8 +1346,8 @@
       "id": "foundation.spacing",
       "kind": "foundation",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Spacing scale.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Spacing scale.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1435,8 +1435,8 @@
       "id": "foundation.typography",
       "kind": "foundation",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Typography scale.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Typography scale.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1524,8 +1524,8 @@
       "id": "foundation.z-index",
       "kind": "foundation",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Layering scale.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Layering scale.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1613,10 +1613,10 @@
       "id": "future.theme-picker-idiomatic-ui",
       "kind": "future_reserved",
       "legacy_score": 20,
-      "notes": "Reserved for Phase 175. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 175,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 20,
-      "reserved_for_phase": 175,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -1703,8 +1703,8 @@
       "id": "group.data-panel.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Table + empty + loading + pagination (absorbs pagination, timeline-list); coverage/retention/timeline.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Table + empty + loading + pagination (absorbs pagination, timeline-list); coverage/retention/timeline.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1792,8 +1792,8 @@
       "id": "group.detail-header.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Detail header + metadata + actions (absorbs kv-list); transaction/actor/row-history.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Detail header + metadata + actions (absorbs kv-list); transaction/actor/row-history.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1881,8 +1881,8 @@
       "id": "group.drawer-form.reference",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "reference-only surface — Phase 177 GROUP-01 Drawer + form; no live page this phase (D-07).",
-      "owner_phase": 177,
+      "notes": "reference-only surface — baseline cohort Drawer + form; no live page consumer.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -1970,8 +1970,8 @@
       "id": "group.empty-cta.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Empty + CTA (absorbs action-bar action-cluster semantics); timeline empty.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Empty + CTA (absorbs action-bar action-cluster semantics); timeline empty.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2059,8 +2059,8 @@
       "id": "group.modal-destructive.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Modal confirm + destructive action; retention prune.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Modal confirm + destructive action; retention prune.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2148,8 +2148,8 @@
       "id": "group.offline.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Reconnect / offline banner + disabled actions; shell-level.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Reconnect / offline banner + disabled actions; shell-level.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2237,8 +2237,8 @@
       "id": "group.page-header.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Page header + actions + breadcrumbs; every page.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Page header + actions + breadcrumbs; every page.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2326,8 +2326,8 @@
       "id": "group.permission-denied.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Permission denied group; scoped pages.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Permission denied group; scoped pages.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2415,8 +2415,8 @@
       "id": "group.stats-chart-table.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Stat cards + chart + table (absorbs status-strip); coverage.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Stat cards + chart + table (absorbs status-strip); coverage.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2504,8 +2504,8 @@
       "id": "group.tabs-subviews.reference",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "reference-only surface — Phase 177 GROUP-01 Tabs + subviews; no live page this phase (D-07).",
-      "owner_phase": 177,
+      "notes": "reference-only surface — baseline cohort Tabs + subviews; no live page consumer.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2593,8 +2593,8 @@
       "id": "group.toast-update.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Toast + state update; export/prune toasts.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Toast + state update; export/prune toasts.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2682,8 +2682,8 @@
       "id": "group.toolbar.current",
       "kind": "group",
       "legacy_score": 62,
-      "notes": "live surface — Phase 177 GROUP-01 Toolbar + search + filters + sort (absorbs filter-bar); timeline.",
-      "owner_phase": 177,
+      "notes": "live surface — baseline cohort Toolbar + search + filters + sort (absorbs filter-bar); timeline.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2771,8 +2771,8 @@
       "id": "page.actor.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Actor page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Actor page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2860,8 +2860,8 @@
       "id": "page.actor.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Actor page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Actor page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -2949,8 +2949,8 @@
       "id": "page.actor.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Actor page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Actor page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3038,8 +3038,8 @@
       "id": "page.actor.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Actor page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Actor page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3127,8 +3127,8 @@
       "id": "page.actor.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Actor page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Actor page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3216,8 +3216,8 @@
       "id": "page.actor.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Actor page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Actor page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3305,8 +3305,8 @@
       "id": "page.actor.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Actor page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Actor page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3394,8 +3394,8 @@
       "id": "page.coverage.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Coverage page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Coverage page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3483,8 +3483,8 @@
       "id": "page.coverage.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Coverage page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Coverage page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3572,8 +3572,8 @@
       "id": "page.coverage.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Coverage page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Coverage page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3661,8 +3661,8 @@
       "id": "page.coverage.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Coverage page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Coverage page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3750,8 +3750,8 @@
       "id": "page.coverage.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Coverage page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Coverage page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3839,8 +3839,8 @@
       "id": "page.coverage.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Coverage page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Coverage page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -3928,8 +3928,8 @@
       "id": "page.coverage.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Coverage page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Coverage page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4017,8 +4017,8 @@
       "id": "page.evidence.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Evidence page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Evidence page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4106,8 +4106,8 @@
       "id": "page.evidence.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Evidence page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Evidence page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4195,8 +4195,8 @@
       "id": "page.evidence.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Evidence page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Evidence page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4284,8 +4284,8 @@
       "id": "page.evidence.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Evidence page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Evidence page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4373,8 +4373,8 @@
       "id": "page.evidence.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Evidence page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Evidence page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4462,8 +4462,8 @@
       "id": "page.evidence.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Evidence page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Evidence page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4551,8 +4551,8 @@
       "id": "page.evidence.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Evidence page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Evidence page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4640,8 +4640,8 @@
       "id": "page.exports.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Exports page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Exports page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4729,8 +4729,8 @@
       "id": "page.exports.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Exports page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Exports page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4818,8 +4818,8 @@
       "id": "page.exports.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Exports page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Exports page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4907,8 +4907,8 @@
       "id": "page.exports.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Exports page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Exports page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -4996,8 +4996,8 @@
       "id": "page.exports.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Exports page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Exports page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5085,8 +5085,8 @@
       "id": "page.exports.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Exports page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Exports page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5174,8 +5174,8 @@
       "id": "page.exports.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Exports page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Exports page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5263,8 +5263,8 @@
       "id": "page.home.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Home page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Home page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5352,8 +5352,8 @@
       "id": "page.home.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Home page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Home page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5441,8 +5441,8 @@
       "id": "page.home.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Home page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Home page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5530,8 +5530,8 @@
       "id": "page.home.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Home page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Home page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5619,8 +5619,8 @@
       "id": "page.home.happy",
       "kind": "page",
       "legacy_score": 72,
-      "notes": "Fixture-backed Phase 171 baseline for Home page happy path; PAGE-01 Tier A home/happy cell.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Home page happy path; Tier A home/happy cell.",
+      "origin_cohort": "baseline",
       "ratchet_score": 72,
       "scores": {
         "P1.density": {
@@ -5710,8 +5710,8 @@
       "id": "page.home.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Home page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Home page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5799,8 +5799,8 @@
       "id": "page.home.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Home page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Home page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5888,8 +5888,8 @@
       "id": "page.redaction.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Redaction page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Redaction page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -5977,8 +5977,8 @@
       "id": "page.redaction.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Redaction page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Redaction page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6066,8 +6066,8 @@
       "id": "page.redaction.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Redaction page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Redaction page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6155,8 +6155,8 @@
       "id": "page.redaction.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Redaction page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Redaction page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6244,8 +6244,8 @@
       "id": "page.redaction.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Redaction page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Redaction page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6333,8 +6333,8 @@
       "id": "page.redaction.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Redaction page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Redaction page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6422,8 +6422,8 @@
       "id": "page.redaction.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Redaction page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Redaction page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6511,8 +6511,8 @@
       "id": "page.retention.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Retention page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Retention page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6600,8 +6600,8 @@
       "id": "page.retention.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Retention page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Retention page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6689,8 +6689,8 @@
       "id": "page.retention.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Retention page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Retention page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6778,8 +6778,8 @@
       "id": "page.retention.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Retention page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Retention page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6867,8 +6867,8 @@
       "id": "page.retention.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Retention page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Retention page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -6956,8 +6956,8 @@
       "id": "page.retention.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Retention page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Retention page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7045,8 +7045,8 @@
       "id": "page.retention.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Retention page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Retention page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7134,8 +7134,8 @@
       "id": "page.row-history.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Row history page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Row history page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7223,8 +7223,8 @@
       "id": "page.row-history.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Row history page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Row history page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7312,8 +7312,8 @@
       "id": "page.row-history.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Row history page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Row history page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7401,8 +7401,8 @@
       "id": "page.row-history.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Row history page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Row history page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7490,8 +7490,8 @@
       "id": "page.row-history.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Row history page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Row history page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7579,8 +7579,8 @@
       "id": "page.row-history.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Row history page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Row history page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7668,8 +7668,8 @@
       "id": "page.row-history.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Row history page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Row history page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7757,8 +7757,8 @@
       "id": "page.shell.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Operator shell page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Operator shell page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7846,8 +7846,8 @@
       "id": "page.shell.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Operator shell page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Operator shell page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -7935,8 +7935,8 @@
       "id": "page.shell.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Operator shell page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Operator shell page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8024,8 +8024,8 @@
       "id": "page.shell.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Operator shell page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Operator shell page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8113,8 +8113,8 @@
       "id": "page.shell.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Operator shell page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Operator shell page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8202,8 +8202,8 @@
       "id": "page.shell.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Operator shell page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Operator shell page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8291,8 +8291,8 @@
       "id": "page.shell.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Operator shell page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Operator shell page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8380,8 +8380,8 @@
       "id": "page.timeline.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Timeline page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Timeline page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8469,8 +8469,8 @@
       "id": "page.timeline.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Timeline page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Timeline page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8558,8 +8558,8 @@
       "id": "page.timeline.empty",
       "kind": "page",
       "legacy_score": 72,
-      "notes": "Fixture-backed Phase 171 baseline for Timeline page empty state; PAGE-01 Tier A timeline/empty cell.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Timeline page empty state; Tier A timeline/empty cell.",
+      "origin_cohort": "baseline",
       "ratchet_score": 72,
       "scores": {
         "P1.density": {
@@ -8649,8 +8649,8 @@
       "id": "page.timeline.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Timeline page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Timeline page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8738,8 +8738,8 @@
       "id": "page.timeline.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Timeline page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Timeline page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8827,8 +8827,8 @@
       "id": "page.timeline.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Timeline page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Timeline page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -8916,8 +8916,8 @@
       "id": "page.timeline.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Timeline page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Timeline page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -9005,8 +9005,8 @@
       "id": "page.transaction.advanced",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Transaction page advanced/dense state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Transaction page advanced/dense state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -9094,8 +9094,8 @@
       "id": "page.transaction.boundary",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Transaction page boundary state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Transaction page boundary state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -9183,8 +9183,8 @@
       "id": "page.transaction.empty",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Transaction page empty state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Transaction page empty state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -9272,8 +9272,8 @@
       "id": "page.transaction.error",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Transaction page error state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Transaction page error state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -9361,8 +9361,8 @@
       "id": "page.transaction.happy",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Transaction page happy path (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Transaction page happy path (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -9450,8 +9450,8 @@
       "id": "page.transaction.loading",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Transaction page loading state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Transaction page loading state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -9539,8 +9539,8 @@
       "id": "page.transaction.permission",
       "kind": "page",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 178 PAGE-01 cell: Transaction page permission-denied state (Tier A structural; Tier B sample lands in Plan 05).",
-      "owner_phase": 178,
+      "notes": "Fixture-backed page-state cohort cell: Transaction page permission-denied state (Tier A structural; the corresponding LiveView path has separate coverage).",
+      "origin_cohort": "page-state",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -9628,10 +9628,10 @@
       "id": "primitive.icon.reserved",
       "kind": "primitive",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 171. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 171,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 171,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -9718,10 +9718,10 @@
       "id": "primitive.logo.reserved",
       "kind": "primitive",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 171. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 171,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 171,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -9808,8 +9808,8 @@
       "id": "primitive.surface-header.current",
       "kind": "primitive",
       "legacy_score": 72,
-      "notes": "Fixture-backed Phase 171 baseline for Current operator surface header.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Current operator surface header.",
+      "origin_cohort": "baseline",
       "ratchet_score": 72,
       "scores": {
         "P1.density": {
@@ -9897,10 +9897,10 @@
       "id": "primitive.unsupported-view.reserved",
       "kind": "primitive",
       "legacy_score": 35,
-      "notes": "Reserved for Phase 171. This baseline records the current issue; do not fix it in Phase 171.",
-      "owner_phase": 171,
+      "notes": "Reserved for its named evaluation cohort. This baseline records the current issue; resolve it only with that cohort.",
+      "origin_cohort": "baseline",
       "ratchet_score": 35,
-      "reserved_for_phase": 171,
+      "reserved_for_cohort": "baseline",
       "scores": {
         "P1.density": {
           "current": null,
@@ -9986,7 +9986,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin gestalt-flaw pole: Ember (--tl-color-ember) applied to primary action (real --tl-* token, wrong job). Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
@@ -10075,7 +10075,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin polished pole: Thread Blue for actions, Ember for diff-emphasis only (correct accent jobs).",
       "current_score": null,
       "legacy_score": null,
@@ -10164,7 +10164,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin gestalt-flaw pole: content section wrapped in card (nesting depth 2, below ceiling 3). Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
@@ -10253,7 +10253,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin polished pole: content section as plain section (brand card-rule: cards for repeated items, not sections).",
       "current_score": null,
       "legacy_score": null,
@@ -10342,7 +10342,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin gestalt-flaw pole: verbose help text on every field (chrome bloat; removal costs task nothing). Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
@@ -10431,7 +10431,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin polished pole: form with labels only, no redundant help copy (task-primary chrome).",
       "current_score": null,
       "legacy_score": null,
@@ -10520,7 +10520,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin gestalt-flaw pole: flattened weights (all font-weight:500, minimal size difference). Type-size count above floor. Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
@@ -10609,7 +10609,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin polished pole: clear title/subtitle/body weight and size progression; one dominant entry-point.",
       "current_score": null,
       "legacy_score": null,
@@ -10698,7 +10698,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin gestalt-flaw pole: doubled section padding (--tl-space-8, on-grid token; cadence broken). Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
@@ -10787,7 +10787,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin polished pole: correct single-step section spacing (--tl-space-4). Partition proof: gestalt flaw pole PASSES all mechanical gates.",
       "current_score": null,
       "legacy_score": null,
@@ -10876,7 +10876,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin gestalt-flaw pole: two primary roles 1 px apart (sm 13 px vs label 14 px); count above floor. Passes MODE A + B — gestalt flaw only.",
       "current_score": null,
       "legacy_score": null,
@@ -10965,7 +10965,7 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
+      "origin_cohort": "refute-twin",
       "notes": "Refute twin polished pole: distinct type scale across 4+ steps (display, title, body, label, xs).",
       "current_score": null,
       "legacy_score": null,
@@ -11054,8 +11054,8 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
-      "notes": "Refute veto-ordering flaw pole: raw hex #e8a246 instead of var(--tl-color-ember). Trips --tl-* token-parity veto at panel layer (Plan 06 only). NO committed scorecard; verify.mechanical stays green.",
+      "origin_cohort": "refute-twin",
+      "notes": "Refute veto-ordering flaw pole: raw hex #e8a246 instead of var(--tl-color-ember). Trips the panel-layer token-parity veto. No committed scorecard; verify.mechanical stays green.",
       "current_score": null,
       "legacy_score": null,
       "ratchet_score": 0,
@@ -11143,8 +11143,8 @@
       "kind": "refute",
       "category": "refute",
       "status": "current",
-      "owner_phase": 195,
-      "notes": "Refute veto-ordering polished pole: var(--tl-color-ember) for diff-emphasis (on-token; veto passes). Reference for Plan 06 panel veto-ordering test.",
+      "origin_cohort": "refute-twin",
+      "notes": "Refute veto-ordering polished pole: var(--tl-color-ember) for diff-emphasis (on-token; veto passes). Reference for the panel veto-ordering test.",
       "current_score": null,
       "legacy_score": null,
       "ratchet_score": 0,
@@ -11233,8 +11233,8 @@
       "id": "state.data-table.current",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Responsive data table.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Responsive data table.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -11322,8 +11322,8 @@
       "id": "state.empty",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Empty audit result.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Empty audit result.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -11411,8 +11411,8 @@
       "id": "state.kv.current",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Single-record key/value display.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Single-record key/value display.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -11500,8 +11500,8 @@
       "id": "state.loading",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Loading data-state.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Loading data-state.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -11589,8 +11589,8 @@
       "id": "state.many",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Dense audit result list.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Dense audit result list.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -11678,8 +11678,8 @@
       "id": "state.mixed-severity",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Mixed severity audit result.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Mixed severity audit result.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -11767,8 +11767,8 @@
       "id": "state.no-data",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for No-data (filter excluded) data-state.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for No-data (filter excluded) data-state.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -11856,8 +11856,8 @@
       "id": "state.null-fields",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Null field rendering.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Null field rendering.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -11945,8 +11945,8 @@
       "id": "state.one",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Single audit result.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Single audit result.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12034,8 +12034,8 @@
       "id": "state.pagination-boundary",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Pagination boundary.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Pagination boundary.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12123,8 +12123,8 @@
       "id": "state.permission",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Permission-denied data-state.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Permission-denied data-state.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12212,8 +12212,8 @@
       "id": "state.permission-denied",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Permission denied state.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Permission denied state.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12301,8 +12301,8 @@
       "id": "state.ref.current",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Forensic ref copy affordance.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Forensic ref copy affordance.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12390,8 +12390,8 @@
       "id": "state.stale",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Stale banner above last-good data.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Stale banner above last-good data.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12479,8 +12479,8 @@
       "id": "state.stale-reconnecting",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Stale and reconnecting state.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Stale and reconnecting state.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12568,8 +12568,8 @@
       "id": "state.timezone-boundary",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 171 baseline for Timezone boundary state.",
-      "owner_phase": 171,
+      "notes": "Fixture-backed baseline cohort for Timezone boundary state.",
+      "origin_cohort": "baseline",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12657,8 +12657,8 @@
       "id": "state.unavailable-down",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — source down data-state.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Unavailable — source down data-state.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12746,8 +12746,8 @@
       "id": "state.unavailable-pruned",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — pruned data-state.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Unavailable — pruned data-state.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -12835,8 +12835,8 @@
       "id": "state.unavailable-redacted",
       "kind": "state",
       "legacy_score": 62,
-      "notes": "Fixture-backed Phase 176 data-display baseline for Unavailable — redacted data-state.",
-      "owner_phase": 176,
+      "notes": "Fixture-backed data-display cohort for Unavailable — redacted data-state.",
+      "origin_cohort": "data-display",
       "ratchet_score": 62,
       "scores": {
         "P1.density": {
@@ -13760,7 +13760,7 @@
       }
     }
   },
-  "phase": 171,
+  "provenance": "baseline",
   "ratchet": {
     "locked_ids": [
       "footgun.coverage-schema-card-declutter",
@@ -14026,7 +14026,7 @@
         },
         "verdict": "ACCEPT",
         "date": "2026-08-26",
-        "ratified_by": "maintainer (in-session PROOF-01 ratification, phase 196-06)",
+        "ratified_by": "maintainer",
         "commit": "c6f9355e",
         "notes": "Removed the status banner duplicating stat-card status/failures and the 'Retention window destructive action' self-label; the type-to-confirm prune modal owns the destructive warning at point of action. Gate: no blocking regression on any affected cell, page.retention.happy mechanical floor green, held-out oracle rho holds on all four blocking lenses."
       }
@@ -14103,7 +14103,7 @@
         "pixel_baseline_retired": {
           "retired_baseline_ref": "stress-page-home-happy-dark-1024.png",
           "retired_at": "2026-08-31T00:00:00Z",
-          "reason": "Stale-baseline drift from intended phase 195-197 UI work (CI run 33344382035). The retired PNG framed stress-lab chrome plus one copy sentence - page/footgun cells do not render the primitives matrix (show_ui_matrix?/1, stress_live.ex:794) - so its real sensitivity was to global tokens, not to this story. Replaced by deterministic structural + geometry assertions. Sub-threshold visual drift inside the preview panel is no longer asserted anywhere.",
+          "reason": "The stale baseline no longer framed the intended product subject. The retired PNG framed stress-lab chrome plus one copy sentence - page/footgun cells do not render the primitives matrix (show_ui_matrix?/1, stress_live.ex:794) - so its real sensitivity was to global tokens, not to this story. Replaced by deterministic structural + geometry assertions. Sub-threshold visual drift inside the preview panel is no longer asserted anywhere.",
           "evidence_ref": ".planning/phases/198-green-bringup/198-TRIAGE.md"
         },
         "semantic_guard_stamp": {
@@ -14123,7 +14123,7 @@
         "pixel_baseline_retired": {
           "retired_baseline_ref": "stress-page-timeline-empty-dark-1024.png",
           "retired_at": "2026-08-31T00:00:00Z",
-          "reason": "Stale-baseline drift from intended phase 195-197 UI work (CI run 33344382035). The retired PNG framed stress-lab chrome plus one copy sentence - page/footgun cells do not render the primitives matrix (show_ui_matrix?/1, stress_live.ex:794) - so its real sensitivity was to global tokens, not to this story. Replaced by deterministic structural + geometry assertions. Sub-threshold visual drift inside the preview panel is no longer asserted anywhere.",
+          "reason": "The stale baseline no longer framed the intended product subject. The retired PNG framed stress-lab chrome plus one copy sentence - page/footgun cells do not render the primitives matrix (show_ui_matrix?/1, stress_live.ex:794) - so its real sensitivity was to global tokens, not to this story. Replaced by deterministic structural + geometry assertions. Sub-threshold visual drift inside the preview panel is no longer asserted anywhere.",
           "evidence_ref": ".planning/phases/198-green-bringup/198-TRIAGE.md"
         },
         "semantic_guard_stamp": {
@@ -14143,7 +14143,7 @@
         "pixel_baseline_retired": {
           "retired_baseline_ref": "stress-footgun-transaction-desktop-centering-dark-1024.png",
           "retired_at": "2026-08-31T00:00:00Z",
-          "reason": "Stale-baseline drift from intended phase 195-197 UI work (CI run 33344382035). The retired PNG framed stress-lab chrome plus one copy sentence - page/footgun cells do not render the primitives matrix (show_ui_matrix?/1, stress_live.ex:794) - so its real sensitivity was to global tokens, not to this story. Replaced by deterministic structural + geometry assertions. Sub-threshold visual drift inside the preview panel is no longer asserted anywhere.",
+          "reason": "The stale baseline no longer framed the intended product subject. The retired PNG framed stress-lab chrome plus one copy sentence - page/footgun cells do not render the primitives matrix (show_ui_matrix?/1, stress_live.ex:794) - so its real sensitivity was to global tokens, not to this story. Replaced by deterministic structural + geometry assertions. Sub-threshold visual drift inside the preview panel is no longer asserted anywhere.",
           "evidence_ref": ".planning/phases/198-green-bringup/198-TRIAGE.md"
         },
         "semantic_guard_stamp": {
@@ -14188,7 +14188,10 @@
       "raw_agreement": 0.2916666666666667,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [-0.5409511784511785,0.15082125603864738],
+      "ci95": [
+        -0.5409511784511785,
+        0.15082125603864738
+      ],
       "golden_rubric_version": "hierarchy@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": false
@@ -14200,7 +14203,10 @@
       "raw_agreement": 0.5416666666666666,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [0.6523578811369509,0.8953048443180022],
+      "ci95": [
+        0.6523578811369509,
+        0.8953048443180022
+      ],
       "golden_rubric_version": "density@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
@@ -14212,7 +14218,10 @@
       "raw_agreement": 0.4166666666666667,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [0.4303391634829672,0.8140815596667246],
+      "ci95": [
+        0.4303391634829672,
+        0.8140815596667246
+      ],
       "golden_rubric_version": "rhythm@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
@@ -14224,7 +14233,10 @@
       "raw_agreement": 0.22727272727272727,
       "pairwise_acc": null,
       "n": 22,
-      "ci95": [0.008259020724960764,0.6335227272727273],
+      "ci95": [
+        0.008259020724960764,
+        0.6335227272727273
+      ],
       "golden_rubric_version": "typography@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
@@ -14236,7 +14248,10 @@
       "raw_agreement": 0.3,
       "pairwise_acc": null,
       "n": 20,
-      "ci95": [-0.6962328767123291,-0.29238281249999964],
+      "ci95": [
+        -0.6962328767123291,
+        -0.29238281249999964
+      ],
       "golden_rubric_version": "color_contrast@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": false
@@ -14248,7 +14263,10 @@
       "raw_agreement": 0.3333333333333333,
       "pairwise_acc": null,
       "n": 24,
-      "ci95": [-0.46485598939503503,0.41521990740740744],
+      "ci95": [
+        -0.46485598939503503,
+        0.41521990740740744
+      ],
       "golden_rubric_version": "brand_fidelity@1.0.0+00000000",
       "model_id": "claude-opus-4-8",
       "validated": true
