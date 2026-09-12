@@ -247,65 +247,36 @@ defmodule Threadline.ReadmeDocContractTest do
            )
   end
 
-  test "README Quick Start locks Threadline ecto_repos and storage schema ordering" do
+  test "README Quick Start is package orientation that routes to the canonical owner" do
     readme = File.read!("README.md")
     slice = section_slice(readme, @quick_start_start, @quick_start_end)
 
-    literal =
-      ~r/config :threadline,\s+ecto_repos: \[MyApp\.Repo\],\s+storage_schema: "audit"/
-
-    assert slice =~ literal
-    assert String.contains?(slice, "getting-started-saas.md#configure-threadline")
-
-    {literal_idx, _} = Regex.run(literal, slice, return: :index) |> hd()
-    {install_idx, _} = :binary.match(slice, "mix threadline.install")
-
-    assert literal_idx < install_idx
+    assert String.contains?(slice, ~S|{:threadline, "~> 0.9.0"}|)
+    assert String.contains?(slice, "guides/getting-started-saas.md")
+    assert String.contains?(slice, "guides/configuration-and-commands.md")
+    refute String.contains?(slice, "config :threadline")
+    refute String.contains?(slice, "mix threadline.install")
+    refute String.contains?(slice, "mix threadline.gen.triggers")
   end
 
-  test "README Quick Start documents custom storage schema generation timing" do
+  test "README leaves configuration and migration timing to its canonical guides" do
     readme = File.read!("README.md")
     slice = section_slice(readme, @quick_start_start, @quick_start_end)
+    getting_started = File.read!("guides/getting-started-saas.md")
+    reference = File.read!("guides/configuration-and-commands.md")
 
-    assert String.contains?(slice, ~S|storage_schema: "audit"|)
-    assert String.contains?(slice, "before you run `mix threadline.install`")
-
-    assert String.contains?(
-             slice,
-             "Generated migration files carry the configured storage schema name"
-           )
-
-    assert String.contains?(
-             slice,
-             "Changing `storage_schema` later does not rewrite existing migration files"
-           )
-
-    assert String.contains?(
-             slice,
-             "Threadline storage schema is separate from audited host-table schema"
-           )
-
-    assert String.contains?(
-             slice,
-             "Host tables can still live in `public`, `support`, or another app schema"
-           )
-
-    {audit_idx, _} = :binary.match(slice, ~S|storage_schema: "audit"|)
-    {install_idx, _} = :binary.match(slice, "mix threadline.install")
-
-    assert audit_idx < install_idx
-    refute String.contains?(slice, "set `storage_schema` after `mix threadline.install`")
+    refute String.contains?(slice, "storage_schema")
+    assert String.contains?(getting_started, ~S|storage_schema: "audit"|)
+    assert String.contains?(getting_started, "before you run `mix threadline.install`")
+    assert String.contains?(reference, "config :threadline, storage_schema:")
   end
 
-  test "README Quick Start locks posts-only trigger step and SSOT cross-links" do
+  test "README Quick Start cannot grow a second ordered setup procedure" do
     readme = File.read!("README.md")
     slice = section_slice(readme, @quick_start_start, @quick_start_end)
 
-    assert String.contains?(slice, "mix threadline.gen.triggers --tables posts")
-    assert String.contains?(slice, "getting-started-saas.md")
-    assert String.contains?(slice, "production-checklist.md")
-
-    refute String.contains?(slice, "users,posts,comments")
+    refute Regex.match?(~r/^\s*\d+\.\s+/m, slice)
+    refute Regex.match?(~r/```(?:bash|sh|elixir)[\s\S]*?mix\s+(?:threadline\.|ecto\.)/m, slice)
   end
 
   defp readme_mount_block do

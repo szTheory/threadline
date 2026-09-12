@@ -469,12 +469,17 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp validate_references(content, inventory) do
     refs = extract_references(content)
     known_task_names = Enum.map(inventory.tasks, &mix_task_name/1)
-    unknown_commands = refs.commands -- (known_task_names ++ inventory.aliases)
+    threadline_commands = Enum.filter(refs.commands, &String.starts_with?(&1, "threadline."))
+
+    repository_aliases =
+      Enum.filter(refs.commands, fn command ->
+        String.starts_with?(command, ["verify.", "ci.", "test."])
+      end)
 
     %{
       modules: Enum.reject(refs.modules, &(&1 in inventory.modules)),
-      tasks: Enum.filter(unknown_commands, &String.starts_with?(&1, "threadline.")),
-      aliases: Enum.reject(unknown_commands, &String.starts_with?(&1, "threadline.")),
+      tasks: threadline_commands -- known_task_names,
+      aliases: repository_aliases -- inventory.aliases,
       keys: Enum.reject(refs.keys, &(&1 in inventory.keys))
     }
   end

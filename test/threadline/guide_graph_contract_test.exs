@@ -92,8 +92,19 @@ defmodule Threadline.GuideGraphContractTest do
   @tag :canonical_owner_tracer
   @tag :phase200_red
   test "installation and first-hour commands live only in Getting Started" do
-    assert sole_sequence_owner("mix threadline.install", "guides/getting-started-saas.md")
-    assert sole_sequence_owner("mix threadline.gen.triggers", "guides/getting-started-saas.md")
+    callers = ["README.md"]
+
+    assert sole_sequence_owner(
+             "mix threadline.install",
+             "guides/getting-started-saas.md",
+             callers
+           )
+
+    assert sole_sequence_owner(
+             "mix threadline.gen.triggers",
+             "guides/getting-started-saas.md",
+             callers
+           )
   end
 
   @tag :operator_owner_tracer
@@ -270,6 +281,28 @@ defmodule Threadline.GuideGraphContractTest do
            "#{inspect(needle)} procedure appears outside #{owner}: #{inspect(matches)}"
 
     true
+  end
+
+  defp sole_sequence_owner(needle, owner, caller_paths) do
+    subjects = [owner | caller_paths]
+
+    matches =
+      public_markdown_files()
+      |> Map.take(subjects)
+      |> Enum.filter(fn {_path, content} -> runnable_fence_contains?(content, needle) end)
+      |> Enum.map(&elem(&1, 0))
+
+    assert owner in matches, "canonical owner lost #{inspect(needle)}"
+
+    assert matches == [owner],
+           "#{inspect(needle)} procedure appears in a routed caller: #{inspect(matches)}"
+
+    true
+  end
+
+  defp runnable_fence_contains?(content, needle) do
+    Regex.scan(~r/```(?:bash|sh|elixir)\s*\n([\s\S]*?)```/m, content, capture: :all_but_first)
+    |> Enum.any?(fn [body] -> String.contains?(body, needle) end)
   end
 
   defp link_target?(source, content, expected) do

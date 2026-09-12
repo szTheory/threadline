@@ -266,18 +266,19 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     doc = read_rel!(@guide_path)
 
     pointers = [
-      "guides/production-checklist.md",
-      "guides/incident-playbook.md",
-      "guides/performance.md",
-      "guides/integrations/phx-gen-auth.md",
-      "guides/integrations/sigra.md",
-      "guides/brownfield-continuity.md",
-      "guides/adoption-pilot-backlog.md"
+      "configuration-and-commands.md",
+      "production-checklist.md",
+      "incident-playbook.md",
+      "performance.md",
+      "integrations/phx-gen-auth.md",
+      "integrations/sigra.md",
+      "brownfield-continuity.md",
+      "adoption-pilot-backlog.md"
     ]
 
     Enum.each(pointers, fn path ->
-      assert String.contains?(doc, path)
-      assert File.exists?(Path.join(@repo_root, path))
+      assert String.contains?(doc, "](#{path}")
+      assert File.exists?(Path.join(@repo_root, Path.join("guides", path)))
     end)
   end
 

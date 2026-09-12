@@ -59,7 +59,10 @@ Threadline-owned tables/functions live in `audit`. Use
 `storage_schema: "public"` only when you intentionally want the older
 public-schema footprint.
 
-For the full mix-task inventory and multi-database notes, see [`guides/production-checklist.md`](production-checklist.md#host-repo-wiring-prerequisite).
+For every supported setting and command boundary, see the
+[configuration and command reference](configuration-and-commands.md). For the
+production multi-database checklist, see
+[host repository wiring](production-checklist.md#host-repo-wiring-prerequisite).
 
 ## 3. Install the audit schema
 
@@ -342,7 +345,7 @@ browser and operator pipeline. Reuse the real example router shape:
 
 Map captured table names to Ecto modules with the `:schemas` option on
 `threadline_operator_surface/2` — see
-[Row history reification](guides/operator-surface.md#row-history-reification-schemas)
+[Row history reification](operator-surface.md#row-history-reification-schemas)
 in the operator-surface guide.
 
 `pipe_through [:browser, :operator_browser, :operator_auth]` is the important
@@ -376,8 +379,8 @@ threadline.health.coverage` or `mix threadline.policy.show` when needed.
 Mounted `/audit/evidence` is separately gated via `evidence_authorize_fn`.
 Support scopes that reach the scoped timeline do **not** automatically get the
 evidence UI — denied sessions see Unsupported View and should use
-`mix threadline.evidence.show`. For the full runbook, see
-`guides/operator-surface.md`. If you ever need a
+`mix threadline.evidence.show`. For the full runbook, see the
+[Operator Surface guide](operator-surface.md). If you ever need a
 non-standard transport shape, manual `SessionPlug` composition is still
 available as an advanced escape hatch rather than the primary setup path.
 
@@ -403,17 +406,18 @@ If you are not ready to mount the UI yet, you can stop after step 8 and stay on
 the capture-only path for now, but treat that as a temporary branch rather than
 the main first-hour adoption story.
 
-Keep support-lane claims and exact proof pins in
-`guides/upgrade-path.md`, and keep the Sigra-specific reference path in
-`guides/integrations/sigra.md`, rather than widening this first-hour guide into
+Keep support-lane claims and exact proof pins in the
+[upgrade path](upgrade-path.md), and keep the Sigra-specific reference path in
+the [Sigra integration guide](integrations/sigra.md), rather than widening this first-hour guide into
 its own compatibility matrix.
 
-## Next reads
+## Next steps
 
-- [guides/production-checklist.md](production-checklist.md)
-- [guides/incident-playbook.md](incident-playbook.md)
-- [guides/performance.md](performance.md)
-- [guides/integrations/phx-gen-auth.md](integrations/phx-gen-auth.md)
-- [guides/integrations/sigra.md](integrations/sigra.md)
-- [guides/brownfield-continuity.md](brownfield-continuity.md)
-- [guides/adoption-pilot-backlog.md](adoption-pilot-backlog.md)
+- [Configuration and command reference](configuration-and-commands.md)
+- [Production checklist](production-checklist.md)
+- [Incident playbook](incident-playbook.md)
+- [Performance](performance.md)
+- [phx.gen.auth integration](integrations/phx-gen-auth.md)
+- [Sigra integration](integrations/sigra.md)
+- [Brownfield continuity](brownfield-continuity.md)
+- [Adoption pilot backlog](adoption-pilot-backlog.md)
