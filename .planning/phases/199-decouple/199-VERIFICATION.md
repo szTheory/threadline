@@ -10,6 +10,7 @@ decisions_verified: 30/30
 security_status: verified
 security_threats: 61/61 closed
 current_head: "d6d3baee5eabe993fede1b4e2100cb23f131bff8"
+tracking_finalized_head: "edb2b240515a8869fd704d2bfd4d2a195c56d890"
 historical_certification_sha: "c45b7712"
 regressions: []
 covered_files:
@@ -599,7 +600,7 @@ covered_files:
   - "test/threadline/release_artifact_contract_test.exs"
   - "test/threadline/removed_artifact_contract_test.exs"
   - "test/threadline/row_history_focus_evidence_contract_test.exs"
-covered_digest: "v1:sha256:86ccdffd861a7dc1558ed003ee28d35e3249aa42a26e87f317a8e2973a45306c"
+covered_digest: "v1:sha256:6250b9b28af15d1d0eaea9d24347a9306894514982ae44012df560f44b692941"
 ---
 
 # Phase 199: Decouple Verification Report
