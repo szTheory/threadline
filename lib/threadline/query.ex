@@ -3,7 +3,8 @@ defmodule Threadline.Query do
   Ecto query implementations for the Threadline public API.
 
   All functions require an explicit `:repo` option and return plain lists of
-  Ecto structs. DB errors propagate as exceptions, consistent with `Ecto.Repo.all/2`.
+  Ecto structs. Database errors propagate as exceptions, matching normal Ecto
+  repository query behavior.
 
   ## Timeline filters
 

@@ -50,8 +50,8 @@ defmodule Threadline.Plug do
   ## PostgreSQL bridge
 
   To populate `audit_transactions.actor_ref` from capture triggers, the host
-  must set a **transaction-local** GUC inside the same `Ecto.Repo.transaction/1`
-  as audited writes, **before** the first row change in that transaction:
+  must set a **transaction-local** GUC inside the same database transaction as
+  audited writes, **before** the first row change in that transaction:
 
       json = Threadline.Semantics.ActorRef.to_map(actor_ref) |> Jason.encode!()
 

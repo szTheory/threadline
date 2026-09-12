@@ -166,8 +166,8 @@ defmodule Threadline.Export do
     so multi-million-row tables return immediately at the cap rather than
     waiting for a full aggregate scan. The default (`nil`) preserves the
     existing unbounded behavior. The Mix task `mix threadline.export` does
-    NOT pass `:cap` and is unaffected; `Threadline.OperatorSurface.Live.TimelineLive`
-    and the export controller pass `cap: 10_001` so the LV can render
+    NOT pass `:cap` and is unaffected; the operator timeline and export
+    controller pass `cap: 10_001` so the LiveView can render
     "10,000+ matches" without hitting `statement_timeout`.
   """
   @spec count_matching(keyword(), keyword()) :: {:ok, %{count: non_neg_integer()}}

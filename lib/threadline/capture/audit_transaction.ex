@@ -14,9 +14,9 @@ defmodule Threadline.Capture.AuditTransaction do
   - `:occurred_at` — timestamp when the transaction committed (microsecond
     precision).
   - `:actor_ref` — who performed the writes. Populated from the
-    `threadline.actor_ref` GUC when it is set inside the same
-    `Ecto.Repo.transaction/1` as the audited writes (see `Threadline.Plug`
-    for the bridge pattern).
+    `threadline.actor_ref` GUC when it is set inside the same database
+    transaction as the audited writes (see `Threadline.Plug` for the bridge
+    pattern).
   - `:action_id` — optional FK to `Threadline.Semantics.AuditAction`. Set
     when you call `Threadline.record_action/2` and link semantic intent to
     captured rows.

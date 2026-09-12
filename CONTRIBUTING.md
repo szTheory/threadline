@@ -13,8 +13,8 @@ Choose the route that matches the change:
   [feature request](https://github.com/szTheory/threadline/issues/new/choose)
   before investing in an implementation.
 - Use the same issue chooser for reproducible bugs and questions. Report
-  suspected security vulnerabilities through the private route in
-  [SECURITY.md](SECURITY.md), never in a public issue.
+  suspected security vulnerabilities through the repository's
+  [private security policy](https://github.com/szTheory/threadline/security/policy), never in a public issue.
 
 ## Setup
 
@@ -100,9 +100,8 @@ tables in `setup` (FK order). Keep DB-touching tests on that helper.
 - **Advisory locks: hold them on a dedicated session.** Use
   `with_advisory_lock_held/3`, not the repo pool — a pooled lock-holder races
   with the code under test on pool allocation.
-- **Stop singletons in `setup`.** For globally-named GenServers (e.g.
-  `Threadline.Retention.Pruner`), call `stop_named_process!/1` so a previous
-  test can't leak work into the next.
+- **Stop singletons in `setup`.** For globally named Threadline workers, call
+  `stop_named_process!/1` so a previous test can't leak work into the next.
 - **Telemetry tests are `async: false`.** `:telemetry` handlers are
   process-global; an `async: true` module that attaches a handler will receive
   events emitted by *any* concurrently-running test for the same event name.
@@ -260,7 +259,7 @@ cd ../../.. && mix critic.measure
 `test/generated/operator_surface/critic-scores/`. All local capture and critic output
 lives below the ignored `test/generated/operator_surface/` boundary; immutable inputs
 remain under `test/fixtures/operator_surface/`.
-`mix critic.measure` then computes per-lens Krippendorff's α, raw agreement, and n against the
+The measurement alias then computes per-lens Krippendorff's α, raw agreement, and n against the
 golden labels and writes the `critic_trust` block in `test/fixtures/operator_surface/design-system-ledger.json`.
 It is local-only (not in `ci.all`) and never git-commits — you review the diff and commit.
 

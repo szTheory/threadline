@@ -5,7 +5,7 @@ defmodule Threadline.ChangeDiff do
   ## Authority
 
   `from_audit_change/2` is a **pass-through** of persisted `audit_changes` columns only.
-  It does not query the database, re-apply `Threadline.Capture.RedactionPolicy`, or invent
+  It does not query the database, re-apply capture-time redaction, or invent
   values that capture did not store. Low-information rows (masked columns, sparse
   `changed_from`) are expected and honest.
 

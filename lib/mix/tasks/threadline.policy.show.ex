@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Threadline.Policy.Show do
 
   @moduledoc """
   Shows configured versus deployed redaction policy drift for Threadline capture
-  triggers, using the shared `Threadline.Policy.RedactionPresenter`.
+  triggers through the same report shape used by the operator surface.
 
   Unlike CI-gate tasks, this viewer ALWAYS exits 0 when drift is detected.
 

@@ -315,10 +315,9 @@ assigns Threadline expects, then `authorize_fn` acts as the fail-closed final
 check. Threadline does not provide host auth for you. Use one shared `%{assigns: assigns}` callback so the same
 host-owned policy can serve the LiveView mount and the export fallback mirror.
 
-When `actor_fn` is present on this standard mount path, Threadline
-auto-installs `Threadline.OperatorSurface.SessionPlug` and carries the returned
-`ActorRef` into LiveView automatically. No extra manual `SessionPlug` is
-required for the normal `/audit` recipe.
+When `actor_fn` is present on this standard mount path, Threadline installs its
+session bridge and carries the returned `ActorRef` into LiveView automatically.
+No extra manual plug is required for the normal `/audit` recipe.
 
 The canonical first-hour recipe is still admin first, but the runnable example
 also proves the stronger shared-operator shape: admins get the full surface,

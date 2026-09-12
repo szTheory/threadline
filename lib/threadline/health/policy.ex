@@ -22,8 +22,8 @@ defmodule Threadline.Health.Policy do
   @doc """
   Validates `:expected_uncovered_tables` and `:audit_anyway` config.
 
-  Accepts a keyword list or a map (dual-form intake matching
-  `Threadline.Capture.RedactionPolicy.validate!/1`).
+  Accepts a keyword list or a map, matching the dual-form intake used by
+  capture-time redaction validation.
 
   Raises `ArgumentError` on:
   - non-binary entries inside either list
