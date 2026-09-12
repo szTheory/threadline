@@ -68,7 +68,9 @@ These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
 - Correct by default — harder to miss capture than to enable it.
 - SQL-native — operators query audit data with plain SQL, no opaque blobs.
 - Composable — idiomatic Plug, Phoenix, Ecto, Oban, and LiveView integration.
-- Capture mechanism TBD — evaluate Carbonite and alternatives; do not assume one approach.
+- Capture uses generated PostgreSQL triggers installed through host-owned Ecto
+  migrations; preserve that trigger-backed boundary unless a future public API
+  decision explicitly changes it.
 - Not a SIEM, not event sourcing, not a pgAudit replacement, not a data warehouse product.
 
 ## GSD / local planning

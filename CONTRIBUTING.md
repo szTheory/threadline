@@ -57,6 +57,16 @@ coverage, documentation contracts, and Dialyzer in the test environment. If
 your local database uses a non-default port, set `DB_PORT` for the command as
 described in the [local database guide](guides/local-docker-dx.md#run-the-test-database).
 
+### Troubleshooting a missing audit table
+
+If a repository or example-app command fails with
+`(undefined_table) relation "audit_changes" does not exist`, the local database
+schema does not match the checkout: the Threadline migrations have not run
+against that database, or an older Compose volume is still in use. Follow the
+[local database reset and stale-state troubleshooting](guides/local-docker-dx.md#troubleshooting)
+for the canonical repair. Keep the lifecycle and cleanup commands in that guide
+so its volume-deletion warning stays attached to the procedure.
+
 ## Pull requests
 
 1. Fork the repository and create a branch from `main`.
