@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 200
 current_phase_name: Public Surface
 status: executing
-stopped_at: Completed 200-02-PLAN.md
-last_updated: "2026-09-12T07:44:03.362Z"
+stopped_at: Completed 200-03-PLAN.md
+last_updated: "2026-09-12T07:52:34.500Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 200 execution started
-state_head: b650e4790fc0c9b848ae26e7241f387b5d1200d1
+state_head: 8577c6f98aeb9b8f59e463b7f4b8be5977295775
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 105
-  completed_plans: 89
+  completed_plans: 90
   percent: 29
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-11 after Phase 199)
 ## Current Position
 
 Phase: 200 (Public Surface) — EXECUTING
-Plan: 3 of 18
+Plan: 4 of 18
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -132,6 +132,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 199 P21 | 1h 8m | 2 tasks | 10 files |
 | Phase 200 P01 | 12min | 3 tasks | 5 files |
 | Phase 200 P02 | 25min | 2 tasks | 2 files |
+| Phase 200 P03 | 4min | 3 tasks | 8 files |
 
 ## Deferred Items
 
@@ -619,6 +620,8 @@ Progress: [████████████████████] 87/87 p
 - [Phase 200]: The optional path/1 regression captures UndefinedFunctionError as an assertion value. — Proves the intended missing-callback behavior gap rather than accepting a fixture or load crash as RED.
 - [Phase 200]: All fourteen literal :threadline runtime keys are the supported application-environment contract; adapter-module options remain a distinct dynamic key class.
 - [Phase 200]: Host projects receive threadline.* Mix tasks, while this repository's verify.*, test.*, and ci.all aliases remain repository-local.
+- [Phase 200]: Confirmed :storage_adapter as a supported extension point with binary content as the portable put/2 contract and Local file-path detection as an adapter-specific convenience. — Implements the already-locked D-02 compatibility commitment without a new callback or configuration namespace.
+- [Phase 200]: Optional storage path/1 dispatch checks adapter capability and otherwise reuses the existing download_url/2 fallback. — Keeps optional callbacks honest while preserving adapter options, export expiry, authorization, and delivery outcomes.
 
 ### Blockers
 
@@ -626,8 +629,8 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-12T07:44:03.220Z
-**Stopped at:** Completed 200-02-PLAN.md
+**Last session:** 2026-09-12T07:52:34.358Z
+**Stopped at:** Completed 200-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
