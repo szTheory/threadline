@@ -45,13 +45,15 @@ defmodule Threadline.Capture.AuditTransaction do
   @foreign_key_type :binary_id
 
   schema "audit_transactions" do
-    # Internal: PostgreSQL transaction ID used by trigger for PgBouncer-safe grouping (D-06)
+    # PostgreSQL transaction ID used by the trigger to group changes safely under
+    # PgBouncer transaction-mode pooling.
     field(:txid, :integer)
     field(:occurred_at, :utc_datetime_usec)
     field(:source, :string)
     field(:meta, :map)
 
-    # Additive fields — both nullable (CTX-04: capture works without context)
+    # Actor and semantic-action context are additive and nullable; capture works
+    # without either.
     field(:actor_ref, Threadline.Semantics.ActorRef)
 
     @compile {:no_warn_undefined, Threadline.Semantics.AuditAction}

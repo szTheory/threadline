@@ -47,7 +47,7 @@ defmodule Threadline.Plug do
   metadata lives on `conn.assigns` only. This design is safe for PgBouncer
   transaction-mode pooling.
 
-  ## PostgreSQL bridge (CTX-03)
+  ## PostgreSQL bridge
 
   To populate `audit_transactions.actor_ref` from capture triggers, the host
   must set a **transaction-local** GUC inside the same `Ecto.Repo.transaction/1`
@@ -61,8 +61,10 @@ defmodule Threadline.Plug do
       end)
 
   The trigger reads `threadline.actor_ref` via `current_setting` only; it never
-  calls `set_config` itself (see `gate-01-01.md`). See
-  `test/threadline/capture/trigger_context_test.exs` for the contract example.
+  calls `set_config` itself. New integrations should use
+  `Threadline.Audit.transaction/3`, which owns this transaction-local bridge.
+  Callers that manage `set_config` directly should follow the manual bridge
+  contract in [Getting started §6](guides/getting-started-saas.md#6-exercise-the-first-audited-write).
   """
 
   @behaviour Plug
