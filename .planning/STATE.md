@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 200
 current_phase_name: Public Surface
 status: executing
-stopped_at: Completed 200-03-PLAN.md
-last_updated: "2026-09-12T07:52:34.500Z"
+stopped_at: Completed 200-04-PLAN.md
+last_updated: "2026-09-12T08:30:09.106Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 200 execution started
-state_head: 8577c6f98aeb9b8f59e463b7f4b8be5977295775
+state_head: a484e4ced4b19057d9abcb0870129f2a9705f37e
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 105
-  completed_plans: 90
+  completed_plans: 91
   percent: 29
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-11 after Phase 199)
 ## Current Position
 
 Phase: 200 (Public Surface) — EXECUTING
-Plan: 4 of 18
+Plan: 5 of 18
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -133,6 +133,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 200 P01 | 12min | 3 tasks | 5 files |
 | Phase 200 P02 | 25min | 2 tasks | 2 files |
 | Phase 200 P03 | 4min | 3 tasks | 8 files |
+| Phase 200 P04 | 33min | 2 tasks | 14 files |
 
 ## Deferred Items
 
@@ -622,6 +623,9 @@ Progress: [████████████████████] 87/87 p
 - [Phase 200]: Host projects receive threadline.* Mix tasks, while this repository's verify.*, test.*, and ci.all aliases remain repository-local.
 - [Phase 200]: Confirmed :storage_adapter as a supported extension point with binary content as the portable put/2 contract and Local file-path detection as an adapter-specific convenience. — Implements the already-locked D-02 compatibility commitment without a new callback or configuration namespace.
 - [Phase 200]: Optional storage path/1 dispatch checks adapter capability and otherwise reuses the existing download_url/2 fallback. — Keeps optional callbacks honest while preserving adapter options, export expiry, authorization, and delivery outcomes.
+- [Phase 200]: Use six user-role ExDoc module groups with critic tooling hidden and exactly ten adopter Mix tasks. — Keeps documentation compatibility aligned with supported call paths, return types, and extension roles.
+- [Phase 200]: Link repository-only project resources as version-derived ExDoc URL extras outside package.files. — Preserves README-led native HexDocs without expanding the consumer archive or adding a custom docs site.
+- [Phase 200]: Rename the planning-specific browser alias to verify.operator_component_contracts with no compatibility alias. — A durable purpose-based name removes release chronology while preserving the same targeted browser behavior.
 
 ### Blockers
 
@@ -629,8 +633,8 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-12T07:52:34.358Z
-**Stopped at:** Completed 200-03-PLAN.md
+**Last session:** 2026-09-12T08:30:08.959Z
+**Stopped at:** Completed 200-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
