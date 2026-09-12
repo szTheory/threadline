@@ -14026,7 +14026,7 @@
         },
         "verdict": "ACCEPT",
         "date": "2026-08-26",
-        "ratified_by": "maintainer",
+        "ratified_by": "maintainer (in-session PROOF-01 ratification, phase 196-06)",
         "commit": "c6f9355e",
         "notes": "Removed the status banner duplicating stat-card status/failures and the 'Retention window destructive action' self-label; the type-to-confirm prune modal owns the destructive warning at point of action. Gate: no blocking regression on any affected cell, page.retention.happy mechanical floor green, held-out oracle rho holds on all four blocking lenses."
       }

@@ -95,8 +95,8 @@ defmodule Threadline.OperatorSurface.ThemeDocContractTest do
   test "guide documents runtime picker auth and session guard" do
     section = theme_section()
 
-    assert String.contains?(section, "Threadline.OperatorSurface.ThemeAuthPlug"),
-           "expected #{@guide_path} Theme section to document the theme route auth plug"
+    assert String.contains?(section, "same mounted `authorize_fn` decision"),
+           "expected #{@guide_path} Theme section to document the shared authorization decision"
 
     assert String.contains?(section, "session-backed browser pipeline"),
            "expected #{@guide_path} Theme section to document the session-backed browser pipeline requirement"

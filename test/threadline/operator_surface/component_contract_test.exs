@@ -403,7 +403,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       assert src =~ ~r/<input\n\s+type=\{@type\}/,
              "search/date/number controls remain native inputs"
 
-      assert src =~ "NO ARIA role=\"table\"/\"row\"/\"cell\"",
+      assert src =~ "Do not add ARIA role=\"table\"/\"row\"/\"cell\"",
              "data_table documents native table semantics rather than pretending to be an interactive grid"
 
       refute src =~ ~s(role="grid"),

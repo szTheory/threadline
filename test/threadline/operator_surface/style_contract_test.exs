@@ -557,7 +557,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
-  test "phase 142 breakpoint scale is tokenized and source-governed" do
+  test "breakpoint scale is tokenized and source-governed" do
     src = File.read!(@style_path)
 
     for token <- [
@@ -565,17 +565,17 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
           "--tl-breakpoint-tablet: 768px;",
           "--tl-breakpoint-desktop: 1280px;"
         ] do
-      assert String.contains?(src, token), "missing phase 142 breakpoint token #{token}"
+      assert String.contains?(src, token), "missing breakpoint token #{token}"
     end
 
     for comment <- [
-          "Phase 142 breakpoint tokens document the accepted phone/tablet/desktop scale",
+          "Breakpoint tokens document the accepted phone/tablet/desktop scale",
           "CSS custom properties are not valid inside @media conditions",
           "Phone-proof base: 375px acceptance viewport",
           "Tablet enhancement layer starts at 768px",
           "Desktop dense/operator layer starts at 1280px"
         ] do
-      assert String.contains?(src, comment), "missing phase 142 breakpoint comment #{comment}"
+      assert String.contains?(src, comment), "missing breakpoint comment #{comment}"
     end
 
     min_width_literals =
@@ -584,10 +584,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       |> Enum.sort()
 
     assert min_width_literals == ["1280", "768"],
-           "phase 142 allows only 768px and 1280px min-width media literals"
+           "the responsive scale allows only 768px and 1280px min-width media literals"
 
     refute String.contains?(src, "@media (min-width: 481px)"),
-           "phase 142 retires the old 481px tablet media layer"
+           "the responsive scale retires the old 481px tablet media layer"
 
     refute String.contains?(src, "@media (min-width: 721px)"),
            "phase 142 retires the old 721px desktop media layer"
@@ -1424,10 +1424,11 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     end
   end
 
-  test "phase 144 token freeze preserves the source token and canonical primitive catalog" do
+  test "stable token catalog preserves the source tokens and canonical primitives" do
     src = File.read!(@style_path)
 
-    assert String.contains?(src, "Phase 144 token freeze")
+    assert String.contains?(src, "source contract for the stable design-system")
+    assert String.contains?(src, "token catalog")
 
     for token <- [
           "--tl-space-1: 4px;",

@@ -163,11 +163,12 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
     assert human_output =~ "Claim assessment: unsupported"
   end
 
-  test "threadline.evidence.show docs keep viewer semantics separate from any future gate task" do
+  test "threadline.evidence.show docs keep viewer semantics separate from host policy" do
     assert {:docs_v1, _, :elixir, _, %{"en" => moduledoc}, _, _} =
              Code.fetch_docs(Mix.Tasks.Threadline.Evidence.Show)
 
     assert moduledoc =~ "This task is a viewer, not a gate."
-    assert moduledoc =~ "future gate task"
+    assert moduledoc =~ "host application's own validation workflow"
+    refute moduledoc =~ "threadline.evidence.verify"
   end
 end

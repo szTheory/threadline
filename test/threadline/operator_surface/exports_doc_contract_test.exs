@@ -73,9 +73,11 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
       assert src =~ ~r/plug\(?\s*Threadline\.OperatorSurface\.ExportAuthPlug/
     end
 
-    test "router macro uses LiveDashboard hygiene `alias: false, as: false`" do
+    test "router macro preserves host helper and alias namespaces" do
       src = File.read!(@router_path)
-      assert String.contains?(src, "alias: false, as: false")
+      assert String.contains?(src, "scope unquote(path), as: false do")
+      assert String.contains?(src, "as: false,")
+      assert String.contains?(src, "alias: Threadline.OperatorSurface.Controllers do")
     end
   end
 

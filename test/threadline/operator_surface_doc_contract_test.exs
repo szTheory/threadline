@@ -154,10 +154,10 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
   test "operator surface guide locks the default actor handoff story" do
     guide = File.read!("guides/operator-surface.md")
 
-    assert String.contains?(guide, "auto-installs `Threadline.OperatorSurface.SessionPlug`")
-    assert String.contains?(guide, "No extra manual `SessionPlug` is required")
+    assert String.contains?(guide, "installs Threadline's session bridge")
+    assert String.contains?(guide, "No extra manual plug is required")
     assert String.contains?(guide, "Session actor data stays authoritative")
-    assert String.contains?(guide, "advanced escape hatch")
+    assert String.contains?(guide, "non-standard router or transport shape")
   end
 
   test "operator surface guide keeps Storybook out of adopter install guidance" do
