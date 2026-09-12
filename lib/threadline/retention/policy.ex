@@ -2,14 +2,14 @@ defmodule Threadline.Retention.Policy do
   @moduledoc """
   Validates **`config :threadline, :retention`** before purge runs.
 
-  v1.3 exposes a **single global retention window** (`:keep_days` or
+  Threadline supports a **single global retention window** (`:keep_days` or
   `:max_age_seconds`, mutually exclusive) plus an **`enabled`** flag that must
   be true for destructive purge. **`delete_empty_transactions`** defaults to
   `true` (remove parent `audit_transactions` rows with no remaining children
   after change deletes).
 
-  Per-table / per-tenant overrides are **not** in v1.3; callers should treat
-  this module as the guardrail for the global policy shape only.
+  Per-table and per-tenant overrides are not supported; this module validates
+  the global policy shape only.
   """
 
   @typedoc "Normalized retention options as returned by `resolve/1`."
