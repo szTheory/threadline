@@ -3,8 +3,8 @@ defmodule Threadline.ExportQueue.TaskAdapter do
   Runs export jobs in supervised, in-process tasks.
 
   This is the default `Threadline.ExportQueue` adapter. It starts a child under
-  the `Threadline.Export.TaskSupervisor` that Threadline adds to its supervision
-  tree, then delegates the job lifecycle to `Threadline.Export.Orchestrator`.
+  the export task supervisor that Threadline adds to its supervision tree, then
+  runs the queued export lifecycle.
 
   The adapter is lightweight and requires no optional dependency, but queued work
   is not durable across node or process restarts. Use

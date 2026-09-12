@@ -138,7 +138,7 @@ with a skip message. Contributors and CI without a key are completely unaffected
 The companion gate **`mix verify.critic_trust`** is pure-Elixir (no network, no
 AI), runs in `ci.all` before `verify.mechanical`, and asserts that every validated
 critic lens meets its statistical trust bar — **Spearman ρ ≥ 0.70** (rank
-correlation of oracle severity vs critic score, the Phase-195 validation pivot);
+correlation of oracle severity vs critic score, the validated ranking signal);
 with n ≥ 20. Krippendorff α, AUC, and raw agreement are recorded as reported-only
 companions and never gate (the lenses rank well even where their absolute scale is
 compressed). All lenses seed as `validated: false` until the trust run promotes
@@ -226,8 +226,8 @@ Lenses under the 20-judgment bar stay `provisional` and cannot ratchet. That is 
 for this phase; add more cells with `--add <cell-id>` or run `--bootstrap --lens <lens>`.
 
 **Key invariant:** `--reconcile` is the ONLY writer of `golden-set.json`. Never hand-edit it.
-Held-out IDs (in `held_out_ids`) are refused at queue time — they are the Phase-196 true-north
-and must never be rubric-tuned.
+Held-out IDs (in `held_out_ids`) are refused at queue time — they are the independent
+true-north set and must never be rubric-tuned.
 
 ### Step 2 — Prove the critic (refute battery)
 
