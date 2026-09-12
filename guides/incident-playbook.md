@@ -242,3 +242,8 @@ the bundled default story.
 
 <!-- LIVE-JOIN-WARNING -->
 Warning: if you extend any of these recipes by joining live application tables such as `users` or `posts`, keep the join narrow and time-bounded so your debugging query does not become its own production load spike.
+
+## Next steps
+
+- [Return to the mounted operator workflow](operator-surface.md).
+- [Review index choices for recurring incident queries](audit-indexing.md).

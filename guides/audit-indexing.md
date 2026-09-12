@@ -133,3 +133,8 @@ The following is **illustrative only**—not shipped by Threadline, **not mandat
 
 - [Threadline domain reference](domain-reference.md) — vocabulary, retention vs timeline time bases, export filters
 - [Production checklist](production-checklist.md) — operational gates before relying on purge/export in prod
+
+## Next steps
+
+- [Return to the mounted operator workflow](operator-surface.md).
+- [Use the production checklist to validate an index change safely](production-checklist.md).

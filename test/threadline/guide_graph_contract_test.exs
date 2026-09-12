@@ -129,8 +129,20 @@ defmodule Threadline.GuideGraphContractTest do
   @tag :canonical_owners
   @tag :phase200_red
   test "Docker lifecycle commands live only in the Docker guide" do
-    assert sole_sequence_owner("docker compose up", "guides/local-docker-dx.md")
-    assert sole_sequence_owner("docker compose down", "guides/local-docker-dx.md")
+    owner = "guides/local-docker-dx.md"
+
+    routed_references = [
+      "examples/threadline_phoenix/README.md",
+      "guides/audit-indexing.md",
+      "guides/incident-playbook.md",
+      "guides/operator-surface.md",
+      "guides/performance.md",
+      "guides/production-checklist.md",
+      "guides/upgrade-path.md"
+    ]
+
+    assert sole_sequence_owner("docker compose up", owner, routed_references)
+    assert sole_sequence_owner("docker compose down", owner, routed_references)
   end
 
   @tag :guide_graph_evaluate
@@ -279,20 +291,6 @@ defmodule Threadline.GuideGraphContractTest do
   defp external_or_asset?(target) do
     String.starts_with?(target, ["http://", "https://", "mailto:", "#"]) or
       String.match?(target, ~r/\.(?:png|svg|jpg|jpeg|gif)(?:#.*)?$/i)
-  end
-
-  defp sole_sequence_owner(needle, owner) do
-    matches =
-      public_markdown_files()
-      |> Enum.filter(fn {_path, content} -> String.contains?(content, needle) end)
-      |> Enum.map(&elem(&1, 0))
-
-    assert matches != [], "canonical-owner discovery found no #{inspect(needle)} sentinel"
-
-    assert matches == [owner],
-           "#{inspect(needle)} procedure appears outside #{owner}: #{inspect(matches)}"
-
-    true
   end
 
   defp sole_sequence_owner(needle, owner, caller_paths) do

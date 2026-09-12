@@ -171,3 +171,8 @@ Exceptions are allowed only for security issues, upstream hard incompatibility, 
 - `mix.lock`
 - `.github/workflows/ci.yml`
 - `CHANGELOG.md`
+
+## Next steps
+
+- [Return to the canonical first-hour adoption path](getting-started-saas.md).
+- [Review the mounted operator contract after an upgrade](operator-surface.md).
