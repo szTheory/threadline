@@ -558,12 +558,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
 
+        assert count_audit_actions() == before + 1,
+               "an accepted prune request must be audited before the asynchronous backend starts"
+
         assert_eventually(fn ->
           Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) > 0
         end)
 
-        assert count_audit_actions() > before,
-               "a successful destructive prune must record an AuditAction (domain §9.3.4)"
+        assert count_audit_actions() == before + 1,
+               "the backend run must not duplicate the operator-request audit action"
       end
 
       defp canonical_policy_name(html) do
