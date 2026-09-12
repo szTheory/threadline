@@ -1,46 +1,6 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Coverage.OnMount do
-    @moduledoc """
-    `live_session` `on_mount/4` callback that drives polled trigger-coverage
-    for every LV in the `:threadline` session.
-
-    ## Mount order
-
-    MUST run AFTER `Threadline.OperatorSurface.Auth` in the `on_mount:` list,
-    because Auth populates `:threadline_repo` from opts (Pitfall 7). The
-    canonical mount in `router.ex` is:
-
-        live_session :threadline,
-          on_mount: [
-            {Threadline.OperatorSurface.Auth, opts},
-            {Threadline.OperatorSurface.Coverage.OnMount, opts}
-          ]
-
-    ## Polling
-
-    Default 30_000 ms; configure via `config :threadline, :coverage_poll_ms`
-    (global) or socket assign `:threadline_coverage_poll_ms` (per-mount).
-    Floor 5_000 ms — raises `ArgumentError` at mount below that. The Application
-    env is the test seam (Pitfall 13): tests set a low interval to avoid
-    scheduling flakiness.
-
-    ## Error policy
-
-    On poll failure: keep the previous `:threadline_coverage` assign, set
-    `:threadline_coverage_error` to the exception message, emit
-    `[:threadline, :health, :checked, :error]` via `Threadline.Telemetry`,
-    and ALWAYS reschedule (Pitfall 4 — a transient DB blip must not freeze
-    the count). The "always reschedule" guarantee is enforced unconditionally
-    after the try/rescue block.
-
-    ## PubSub forward-compat (D-30d)
-
-    Out of v1.18 scope. If real adopter pain emerges at v1.19+ scale, a
-    runtime opt-in `config :threadline, :coverage_source, {:pubsub, MyApp.PubSub}`
-    will let this hook become a no-op while a single-source GenServer
-    broadcasts via `Phoenix.PubSub`. Documented here only for forward-compat
-    navigation.
-    """
+    @moduledoc false
 
     import Phoenix.LiveView
 
@@ -62,7 +22,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           if connected?(socket) do
             ref = Process.send_after(self(), :threadline_refresh_coverage, interval)
 
-            # Doc-contract grep depends on the literal
+            # The coverage contract depends on the literal
             # `attach_hook(:threadline_coverage_refresh, :handle_info` substring
             # appearing on a single line — keep the args on one row.
             socket
