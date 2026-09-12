@@ -244,7 +244,7 @@ The exact helper names are illustrative, but the branch is prescriptive: absence
 
 ### Pattern 5: Archive is the vocabulary authority
 
-**What:** Build to a fresh temporary directory, walk every unpacked regular file, scan valid UTF-8 content and path/identifier names, and require zero matches. Derive requirement IDs and milestone tokens from planning source at test time; scan general decision and phase shapes plus embedded identifier forms such as `phase177`. Then inject one forbidden token into the temporary unpack directory and assert the same scanner reports it before cleanup. [VERIFIED: D-14 in .planning/phases/200-public-surface/200-CONTEXT.md:36]
+**What:** Build to a fresh temporary directory, walk every unpacked regular file, scan valid UTF-8 content and path/identifier names, and require zero matches. Keep a project-local static banned-shape contract in tracked test code for phase-number prose and embedded identifiers such as `phase177`, `D-NN` decision forms, requirement-ID forms, and milestone literals. Neither the test nor any helper reads `.planning/` at compile or test runtime; this preserves Phase 199's planning-independent CI guarantee. Inject representative phase, decision, requirement, and milestone offenders into the temporary unpack directory and assert the same scanner reports each before cleanup. [VERIFIED: D-14 in .planning/phases/200-public-surface/200-CONTEXT.md:36; Phase 199 DECOUPLE-01]
 
 Do not scan only `@moduledoc` text: the live archive offenders include `mix.exs` comments/alias identifiers and implementation comments as well as guides. Do not exclude `CONTRIBUTING.md` or other legitimate packaged text. Binary font files may be skipped only by a documented binary/UTF-8 test, not by path allowlist. [VERIFIED: current package allowlist quote `DATA_43AF71B6_START lib priv/fonts guides brandbook/favicon.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md DATA_43AF71B6_END`, mix.exs:370-372] [VERIFIED: fresh unpacked archive scan, 2026-09-11]
 
@@ -410,49 +410,49 @@ These are read-only status checks. Enabling private vulnerability reporting is a
 
 The useful cross-ecosystem lesson from successful SDKs is stable routing: tutorials own first success, how-to guides own procedures, reference owns exhaustive options, and policies own sensitive intake. Threadline should emulate that separation without creating multiple sites or duplicating executable sequences. [VERIFIED: prompts/Audit logging for Elixir:Phoenix:Ecto- product strategy and ecosystem lessons.md] [VERIFIED: prompts/threadline-elixir-oss-dna.md]
 
-## Recommended Plan Decomposition
+## Recommended Workstream Decomposition
 
-### Plan 1 — Wave 0 executable inventories and red baselines
+These five research workstreams describe cohesive concerns, not execution-plan size. Revision planning splits them into eighteen plans so every plan owns at most ten files: contracts (01), config reference (02), storage/queue (03), five ordered visibility/vocabulary slices (04-08), four documentation slices (09-12), contributor onboarding (13), four bounded remaining-source owners (15-18), and community/final hosted gates (14).
+
+### Workstream 1 — Wave 0 executable inventories and red baselines
 
 Create source-derived helpers/contracts for runtime config keys, tasks, aliases, compiled visible modules, ExDoc group membership, guide graph, archive vocabulary, and community files. Record current red failures, including docs warnings, without relaxing assertions. This plan establishes the reviewable classification tables that later plans consume. [VERIFIED: .planning/phases/200-public-surface/200-CONTEXT.md:25,34,36,43,57]
 
-### Plan 2 — Public configuration and extension behavior
+### Workstream 2 — Public configuration and extension behavior
 
 Write the canonical config/command reference; classify all runtime keys/tasks/aliases; document storage and queue behaviors/adapters; clarify binary `put/2`; implement only the D-03 optional-callback repair and regression test; document the three poll intervals exactly. Link the reference from both Adopt and Operate. [VERIFIED: .planning/phases/200-public-surface/200-CONTEXT.md:20-26]
 
-### Plan 3 — Module taxonomy, ExDoc, and package contract
+### Workstream 3 — Module taxonomy, ExDoc, and package contract
 
 Audit D-10 call sites, hide confirmed internals and the six unconditional critic modules, create the six exact module groups, switch README main/Guides label, add version-derived URL extras, update changelog, and make docs warnings fatal in the existing release lane. Keep URL-extra normalization and package absence checks in the same slice. [VERIFIED: .planning/phases/200-public-surface/200-CONTEXT.md:30-45]
 
-### Plan 4 — Canonical docs, guide graph, and contributor path
+### Workstream 4 — Canonical docs, guide graph, and contributor path
 
 Move ordered procedures to the three locked owners, replace caller copies with descriptive deep links, repair all graph edges/anchors/references, add `Next steps`, rewrite stable domain prose, and restructure CONTRIBUTING newcomer-first with the exact database error. Update existing doc contracts atomically. [VERIFIED: .planning/phases/200-public-surface/200-CONTEXT.md:41-51]
 
-### Plan 5 — Community/security files and final artifact gates
+### Workstream 5 — Remaining source ownership, community/security files, and final artifact gates
 
-Add the three issue forms/config, PR template, SECURITY, and Contributor Covenant adaptation; validate schema shape/safety routing/labels; enable private reporting; perform the full unpacked vocabulary scan with positive control; run docs/package/release gates; after default-branch merge, perform the non-maintainer hosted smoke and REST read-backs. [VERIFIED: .planning/phases/200-public-surface/200-CONTEXT.md:52-57]
+Assign every matched packaged source file to one bounded zero-allowlist owner before any full source/archive aggregate: core Mix/capture/Plug/query/retention (15), operator logo/mechanical/stress infrastructure (16), five form-oriented LiveViews (17), and five record-oriented LiveViews (18). Add the three issue forms/config, PR template, SECURITY, and Contributor Covenant adaptation; validate schema shape/safety routing/labels; enable private reporting; perform the full unpacked vocabulary scan with positive control only after those owners; run docs/package/release gates; after default-branch merge, perform the non-maintainer hosted smoke and REST read-backs. [VERIFIED: .planning/phases/200-public-surface/200-CONTEXT.md:36,52-57]
 
-Ordering matters: Plan 1 defines the contracts; Plans 2-4 satisfy them; the archive vocabulary sweep in Plan 5 must run after all shipped prose/code comments change. Community work may execute in parallel with Plans 2-4 until the final hosted/default-branch checkpoint. [ASSUMED]
+Ordering matters: Plan 01 defines task-local controls, bounded owner projections, and final aggregates; Plans 02-03 establish config/extension seams; Plans 04-08 finalize visibility before Plans 11-12 consume the module surface; Plans 09-13 repair canonical docs and contributor routing; Plans 15-18 make the remaining matched source cohorts independently green in parallel after 08; final Plan 14 depends on all source/prose owners and alone runs complete source/public-document/archive/CI plus hosted default-branch gates. [VERIFIED: revised Phase 200 PLAN frontmatter]
 
 ## Assumptions Log
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
 | A1 | The three new contract files use the proposed names rather than extending fewer existing files. | Recommended Project Structure | Low; planner may choose a coherent alternative under agent discretion. |
-| A2 | Five plans are the right execution granularity. | Recommended Plan Decomposition | Low; dependencies matter more than file count. |
+| A2 | Five cohesive research workstreams map to eighteen bounded execution plans. | Recommended Workstream Decomposition | Resolved by the at-most-ten-files execution and exact source-ownership constraints. |
 | A3 | A separate non-maintainer browser identity must be supplied through a human checkpoint. | Environment Availability / Validation Architecture | Medium; the hosted smoke cannot be completed from the authenticated owner CLI alone. |
 
-## Open Questions
+## Resolved Questions
 
-1. **When can the default-branch GitHub smoke run?**
+1. **RESOLVED — When can the default-branch GitHub smoke run?**
    - What we know: issue-form/community recognition is default-branch hosted state; private vulnerability reporting is currently disabled. [VERIFIED: live GitHub probes, 2026-09-11]
-   - What's unclear: whether the execution workflow merges Phase 200 before its verification gate.
-   - Recommendation: planner must include an explicit post-merge human/non-maintainer checkpoint. If merge is outside phase execution, mark only that hosted portion pending rather than claiming SURFACE-11/D-29 complete.
+   - Resolution: the hosted smoke runs only after the Phase 200 changes are merged to the default branch, through a signed-out or otherwise non-maintainer view. The final plan carries an explicit blocking hosted checkpoint; if merge is outside phase execution, SURFACE-11/D-29 remain pending rather than being inferred from local files.
 
-2. **Which exact module candidates survive the final D-10 call-site audit?**
+2. **RESOLVED — Which exact module candidates survive the final D-10 call-site audit?**
    - What we know: the table above is a source-backed recommendation; `Export.Orchestrator` and all public return structs have clear extension/return roles. [VERIFIED: lib/threadline/export_queue/task_adapter.ex:20-28; lib/threadline/evidence.ex:62-160; lib/threadline/query.ex:512-549]
-   - What's unclear: an unknown downstream adopter cannot be observed in-repo.
-   - Recommendation: preserve the recommended visible set; hide D-10 candidates only with a test that no public docs/types/specs/runtime returns point to them, and record the clarification in CHANGELOG.
+   - Resolution: final visibility follows D-10's audited internal-candidate rule plus the six unconditional D-09 critic modules. Preserve the recommended visible set, including `Export.Orchestrator` and public return/extension roles; hide a D-10 candidate only after the source/docs/test audit proves no supported call, return, configuration, or implementation contract, then record the clarification in CHANGELOG. This is execution evidence under the locked rule, not a new product decision.
 
 ## Environment Availability
 

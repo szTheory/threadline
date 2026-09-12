@@ -549,21 +549,66 @@ Plans:
   4. A contributor who hits `(undefined_table) relation "audit_changes" does not exist` finds the fix by searching that error string in the repository's own docs, and install instructions, operator-surface overview, and local Docker setup each have exactly one canonical home with other mentions pointing to it. (SURFACE-08, SURFACE-09)
   5. `CONTRIBUTING.md` describes a contributor workflow requiring no knowledge of `.planning/`, and the repository provides a pull-request template, issue templates, a security policy, and a code of conduct. (SURFACE-10, SURFACE-11)
 
-**Plans**: 5 plans
+**Plans**: 18 plans across 11 execution waves
 
 Plans:
-- [ ] 200-01-PLAN.md — Establish source-derived public-surface, guide, archive, community, and storage red contracts
-- [ ] 200-02-PLAN.md — Publish the configuration/command and storage/queue extension contract; honor optional storage callbacks
-- [ ] 200-03-PLAN.md — Curate module visibility, six ExDoc groups, external resources, and release-shaped package docs
-- [ ] 200-04-PLAN.md — Deduplicate canonical procedures, repair the guide graph, and rewrite contributor onboarding
-- [ ] 200-05-PLAN.md — Add safe community/security intake and close local plus post-merge hosted gates
+**Wave 1**
+
+- [ ] 200-01-PLAN.md — Wave 1; establish source-derived inventories, exact public-document corpus, guide/archive/community contracts, and storage regression
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 200-02-PLAN.md — Wave 2 after 01; publish the exact configuration and command reference
+- [ ] 200-03-PLAN.md — Wave 2 after 01; confirm and publish the storage/queue contract, then honor optional callbacks
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 200-04-PLAN.md — Wave 3 after 01–03; establish D-09 visibility, six ExDoc groups, README main, and external resources
+- [ ] 200-09-PLAN.md — Wave 3 after 02; make Getting Started the sole adoption owner and route README/example callers
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 200-05-PLAN.md — Wave 4 after 04; audit and clean the seed plus capture/export visibility cohorts
+- [ ] 200-10-PLAN.md — Wave 4 after 03 and 09; make Operator Surface and Local Docker the sole operational owners
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 200-06-PLAN.md — Wave 5 after 05; audit governance/domain-tail visibility cohorts
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 200-07-PLAN.md — Wave 6 after 06; audit operator controller, coverage, authorization, and session cohorts
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 200-08-PLAN.md — Wave 7 after 07; finish operator audit, reconcile module groups, and update CHANGELOG without running the full source aggregate
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 200-11-PLAN.md — Wave 8 after 08–10; connect Evaluate and architecture guide subgraphs
+- [ ] 200-15-PLAN.md — Wave 8 after 08; clean the exact core Mix/capture/Plug/query/retention source cohort
+- [ ] 200-16-PLAN.md — Wave 8 after 08; clean operator logo/mechanical/stress provenance without mechanics or UI-structure drift
+- [ ] 200-17-PLAN.md — Wave 8 after 08; clean five form-oriented LiveViews without behavior or rendering drift
+- [ ] 200-18-PLAN.md — Wave 8 after 08; clean five record-oriented LiveViews without behavior or rendering drift
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 200-12-PLAN.md — Wave 9 after 11; finish integrations, exact 18-node guide graph, and native ExDoc inspection
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 200-13-PLAN.md — Wave 10 after 10 and 12; rewrite contributor onboarding and the exact database repair path
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 200-14-PLAN.md — Wave 11 after 08, 12, 13, and 15–18; add safe community/security intake and close the only full source/public-doc/archive plus hosted gates
 
 **Notes carried from the approved plan:**
 
 - Known offenders: `capture/trigger_sql.ex:7,10`, `export_auth_plug.ex:12`, `coverage/snapshot.ex:8`, `coverage/on_mount.ex:36,38`, `evidence/subject.ex:28`, `router.ex:40`, `threadline.gen.triggers.ex:52`, `ui.ex:402,510,794`; `mix/tasks/critic.synth.ex:19` points at a directory that is not in the tarball; `mix.exs` comments at :34/:97/:102/:107/:194/:223/:235/:359 plus the function name `verify_phase177_uat`.
 - Six accidentally-public maintainer-only modules need `@moduledoc false`: `critic_trust/{measure,rank_metrics,ledger_splice,krippendorff_alpha}` and `mix/tasks/critic.{measure,synth}`.
-- The docs graph is a star with dead ends — **13 of 19 guides link to nothing**. Broken links at `guides/getting-started-saas.md:345` (wrong `guides/` prefix, also :49 and :380) and `domain-reference.md:88` (`Threadline.Proof` → `Threadline.Evidence.Proof`).
-- Three orphan config keys (`:export_status_poll_ms`, `:retention_poll_ms`, `:storage_adapter` — decide whether the last is actually public rather than documenting by default) and five orphan mix aliases.
+- The docs graph is a star with dead ends — **13 of 18 guide-graph nodes link to nothing**. Broken links at `guides/getting-started-saas.md:345` (wrong `guides/` prefix, also :49 and :380) and `domain-reference.md:88` (`Threadline.Proof` → `Threadline.Evidence.Proof`). The new canonical configuration reference is a separately owned local ExDoc extra, not a nineteenth graph node.
+- Previously orphaned keys include `:export_status_poll_ms`, `:retention_poll_ms`, and `:storage_adapter`; D-02/D-04 resolve their public status, and the source-derived canonical reference must close them together with every other discovered key/task/alias.
 - Deduplicate Quick Start (4 copies), Operator Surface (3), Docker/DX (3). Fix `CLAUDE.md:71` ("Capture mechanism TBD" — it shipped long ago).
 
 **UI hint**: no
@@ -691,7 +736,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 |-------|-----------|----------------|--------|-----------|
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
 | 199. Decouple | v1.41 | 21/21 | Complete    | 2026-09-11 |
-| 200. Public Surface | v1.41 | 0/TBD | Not started | |
+| 200. Public Surface | v1.41 | 0/11 | Not started | |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
 | 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |
 | 203. Real Gates | v1.41 | 0/TBD | Not started | |
