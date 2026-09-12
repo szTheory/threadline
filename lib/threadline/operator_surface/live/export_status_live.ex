@@ -24,10 +24,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @evidence_context_keys ~w(source subject subject_ref_json mode)
 
     def mount(_params, _session, socket) do
-      if connected?(socket) and socket.assigns[:threadline_exports_enabled] do
-        schedule_refresh(socket)
-      end
-
       socket =
         socket
         |> assign(:base_path, nil)
@@ -35,6 +31,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:evidence_export_context, nil)
         |> assign(:export_denied_descriptor, Unsupported.export_denied_descriptor())
         |> assign_jobs(fetch_jobs(socket))
+
+      socket =
+        if connected?(socket) and socket.assigns[:threadline_exports_enabled] do
+          schedule_refresh(socket)
+        else
+          socket
+        end
 
       {:ok, socket}
     end
@@ -111,12 +114,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if not socket.assigns[:threadline_exports_enabled] do
         {:noreply, socket}
       else
-        schedule_refresh(socket)
-
-        socket = assign_jobs(socket, fetch_jobs(socket))
+        socket =
+          socket
+          |> schedule_refresh()
+          |> assign_jobs(fetch_jobs(socket))
 
         {:noreply, socket}
       end
+    end
+
+    def terminate(_reason, socket) do
+      cancel_refresh(socket)
+      :ok
     end
 
     def render(assigns) do
@@ -385,11 +394,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp schedule_refresh(socket) do
+      cancel_refresh(socket)
+
       interval =
         socket.assigns[:threadline_export_status_poll_ms] ||
           Application.get_env(:threadline, :export_status_poll_ms, 5_000)
 
-      _timer_ref = Process.send_after(self(), :refresh, interval)
+      timer_ref = Process.send_after(self(), :refresh, interval)
+      assign(socket, :threadline_export_status_timer_ref, timer_ref)
+    end
+
+    defp cancel_refresh(socket) do
+      if timer_ref = socket.assigns[:threadline_export_status_timer_ref] do
+        case Process.cancel_timer(timer_ref) do
+          _result -> :ok
+        end
+      end
+
       :ok
     end
 

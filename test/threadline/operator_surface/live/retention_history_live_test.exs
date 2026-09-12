@@ -350,14 +350,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "select_all"
       end
 
-      test "page auto-refreshes periodically", %{conn: conn} do
+      test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/retention")
 
-        # Send refresh message directly to trigger it
+        mounted_socket = :sys.get_state(view.pid).socket
+        mounted_ref = mounted_socket.assigns.threadline_retention_timer_ref
+        assert is_reference(mounted_ref)
+        assert is_integer(Process.read_timer(mounted_ref))
+
         send(view.pid, :refresh)
 
-        # Should not crash and render successfully
+        refreshed_socket = :sys.get_state(view.pid).socket
+        refreshed_ref = refreshed_socket.assigns.threadline_retention_timer_ref
+        assert is_reference(refreshed_ref)
+        refute refreshed_ref == mounted_ref
+        assert Process.read_timer(mounted_ref) == false
+        assert is_integer(Process.read_timer(refreshed_ref))
+
         assert render(view) =~ "Run retention prune"
+
+        assert :ok =
+                 Threadline.OperatorSurface.Live.RetentionHistoryLive.terminate(
+                   :normal,
+                   refreshed_socket
+                 )
+
+        assert Process.read_timer(refreshed_ref) == false
       end
 
       test "latest completed context is separate from newest failed run", %{conn: conn} do

@@ -137,6 +137,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "export status live view" do
+      test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/exports")
+
+        mounted_socket = :sys.get_state(view.pid).socket
+        mounted_ref = mounted_socket.assigns.threadline_export_status_timer_ref
+        assert is_reference(mounted_ref)
+        assert is_integer(Process.read_timer(mounted_ref))
+
+        send(view.pid, :refresh)
+        refreshed_socket = :sys.get_state(view.pid).socket
+        refreshed_ref = refreshed_socket.assigns.threadline_export_status_timer_ref
+
+        assert is_reference(refreshed_ref)
+        refute refreshed_ref == mounted_ref
+        assert Process.read_timer(mounted_ref) == false
+        assert is_integer(Process.read_timer(refreshed_ref))
+
+        assert :ok =
+                 Threadline.OperatorSurface.Live.ExportStatusLive.terminate(
+                   :normal,
+                   refreshed_socket
+                 )
+
+        assert Process.read_timer(refreshed_ref) == false
+      end
+
       test "renders a generic denied fallback when the current state is not safely exportable", %{
         conn: conn
       } do

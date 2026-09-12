@@ -32,16 +32,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @canonical_policy_name "default"
 
     def mount(_params, _session, socket) do
-      if connected?(socket) and socket.assigns[:threadline_policy_enabled] do
-        schedule_refresh(socket)
-      end
-
       socket =
         socket
         |> assign(:base_path, nil)
         |> assign(:prune_modal_open, false)
         |> assign_runs(fetch_runs(socket))
         |> assign(:has_runs, has_runs?(socket))
+
+      socket =
+        if connected?(socket) and socket.assigns[:threadline_policy_enabled] do
+          schedule_refresh(socket)
+        else
+          socket
+        end
 
       {:ok, socket}
     end
@@ -115,12 +118,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if not socket.assigns[:threadline_policy_enabled] do
         {:noreply, socket}
       else
-        schedule_refresh(socket)
-
         runs = fetch_runs(socket)
 
         socket =
-          Enum.reduce(runs, socket, fn run, acc_socket ->
+          runs
+          |> Enum.reduce(schedule_refresh(socket), fn run, acc_socket ->
             stream_insert(acc_socket, :runs, run)
           end)
           |> assign(:runs_summary, summarize_runs(runs))
@@ -130,6 +132,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:noreply, socket}
       end
+    end
+
+    def terminate(_reason, socket) do
+      cancel_refresh(socket)
+      :ok
     end
 
     def render(assigns) do
@@ -366,11 +373,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp schedule_refresh(socket) do
+      cancel_refresh(socket)
+
       interval =
         socket.assigns[:threadline_retention_poll_ms] ||
           Application.get_env(:threadline, :retention_poll_ms, 5_000)
 
-      _timer_ref = Process.send_after(self(), :refresh, interval)
+      timer_ref = Process.send_after(self(), :refresh, interval)
+      assign(socket, :threadline_retention_timer_ref, timer_ref)
+    end
+
+    defp cancel_refresh(socket) do
+      if timer_ref = socket.assigns[:threadline_retention_timer_ref] do
+        case Process.cancel_timer(timer_ref) do
+          _result -> :ok
+        end
+      end
+
       :ok
     end
 

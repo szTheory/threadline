@@ -303,15 +303,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "manual refresh" do
-      test "Refresh click cancels pending timer and re-fetches", %{conn: conn} do
+      test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/coverage")
 
-        # Click the Refresh link via render_click
+        mounted_socket = :sys.get_state(view.pid).socket
+        mounted_ref = mounted_socket.assigns.threadline_timer_ref
+        assert is_reference(mounted_ref)
+        assert is_integer(Process.read_timer(mounted_ref))
+
         new_html = render_click(view, "refresh")
 
-        # After refresh, the dashboard should still render normally with the same literals
+        refreshed_socket = :sys.get_state(view.pid).socket
+        refreshed_ref = refreshed_socket.assigns.threadline_timer_ref
+        assert is_reference(refreshed_ref)
+        refute refreshed_ref == mounted_ref
+        assert Process.read_timer(mounted_ref) == false
+        assert is_integer(Process.read_timer(refreshed_ref))
+
         assert new_html =~ "Audit coverage"
         assert new_html =~ "Schema: public"
+
+        assert :ok =
+                 Threadline.OperatorSurface.Live.CoverageLive.terminate(
+                   :normal,
+                   refreshed_socket
+                 )
+
+        assert Process.read_timer(refreshed_ref) == false
       end
     end
 

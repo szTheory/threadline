@@ -120,6 +120,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    def terminate(_reason, socket) do
+      if timer_ref = socket.assigns[:threadline_timer_ref] do
+        case Process.cancel_timer(timer_ref) do
+          _result -> :ok
+        end
+      end
+
+      :ok
+    end
+
     def render(assigns) do
       ~H"""
       <UI.shell
