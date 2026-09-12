@@ -726,8 +726,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       selector: "##{theme_bp}",
       observed: fmt(current),
       expected: "<= #{ceiling}",
-      fix:
-        "reduce #{metric} to <= #{ceiling} (structural correction + human review required)"
+      fix: "reduce #{metric} to <= #{ceiling} (structural correction + human review required)"
     }
   end
 
