@@ -157,15 +157,21 @@ test.describe("operator stress route semantics", () => {
       });
     }
 
-    test("renders folded reserved cases with exact future-phase copy", async ({
+    test("renders folded reserved cases with exact cohort copy", async ({
       page,
     }) => {
       for (const [story, copy] of [
-        ["future.theme-picker-idiomatic-ui", "Reserved for Phase 175"],
-        ["footgun.coverage-schema-card-declutter", "Reserved for Phase 176"],
+        [
+          "future.theme-picker-idiomatic-ui",
+          "Reserved for the baseline cohort. This baseline records the current issue; resolve it only with the reserved cohort.",
+        ],
+        [
+          "footgun.coverage-schema-card-declutter",
+          "Reserved for the data-display cohort. This baseline records the current issue; resolve it only with the reserved cohort.",
+        ],
         [
           "footgun.transaction-page-left-push-desktop",
-          "Reserved for Phase 178",
+          "Reserved for the page-state cohort. This baseline records the current issue; resolve it only with the reserved cohort.",
         ],
       ]) {
         await page.goto(`/audit/__stress?story=${story}`);
@@ -316,7 +322,7 @@ const CELL_CONTRACTS: Record<
   },
   "footgun.transaction-page-left-push-desktop": {
     scenario: "Transaction page desktop centering baseline",
-    body: "Reserved for Phase 178. This baseline records the current issue; do not fix it in Phase 171.",
+    body: "Reserved for the page-state cohort. This baseline records the current issue; resolve it only with the reserved cohort.",
     status: "reserved",
     fixtureKey: "footgun.transaction_page.left_push_desktop",
   },
