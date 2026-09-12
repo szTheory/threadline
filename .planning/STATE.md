@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 200
 current_phase_name: Public Surface
 status: executing
-stopped_at: Completed 200-05-PLAN.md
-last_updated: "2026-09-12T09:24:00.824Z"
+stopped_at: Completed 200-06-PLAN.md
+last_updated: "2026-09-12T09:45:41.176Z"
 last_activity: 2026-09-12
 last_activity_desc: Phase 200 execution started
-state_head: "0b0b15a5934695d10da477142708a7a469228144"
+state_head: 767bac8291ea5112232a05f480f8e99a5c360e38
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 105
-  completed_plans: 93
+  completed_plans: 95
   percent: 29
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-11 after Phase 199)
 ## Current Position
 
 Phase: 200 (Public Surface) — EXECUTING
-Plan: 6 of 18
+Plan: 7 of 18
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -135,6 +135,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 200 P03 | 4min | 3 tasks | 8 files |
 | Phase 200 P04 | 36min | 2 tasks | 14 files |
 | Phase 200 P05 | 12min | 2 tasks | 9 files |
+| Phase 200 P06 | 7min | 2 tasks | 9 files |
 
 ## Deferred Items
 
@@ -630,6 +631,8 @@ Progress: [████████████████████] 87/87 p
 - [Phase 200]: Style, UI, and Capture.Migration are implementation-only; Evidence.Subject and Mix.Tasks.Threadline.Gen.Triggers remain public because they are supported data and task contracts. — Public documentation follows supported adopter seams rather than raw Elixir callability.
 - [Phase 200]: RedactionPolicy, TriggerCaptureConfig, TriggerSQL, and CleanupTask are internal plumbing. — Their call sites are Threadline-owned tasks, migrations, supervision, tests, and benchmarks; no supported direct adopter seam exists.
 - [Phase 200]: Plan 200-05 changed documentation visibility only and preserved functions, returned structs, runtime behavior, and supported entrypoints. — The public-surface audit must not widen or break the runtime API.
+- [Phase 200]: Governance persistence records and migration generators are internal documentation surfaces; supported facades and return values remain public.
+- [Phase 200]: Coverage, redaction, retention scheduling, theme routing, and font helpers remain hidden behind public tasks, facades, configuration, and router contracts.
 
 ### Blockers
 
@@ -637,8 +640,8 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-12T09:24:00.391Z
-**Stopped at:** Completed 200-05-PLAN.md
+**Last session:** 2026-09-12T09:45:41.026Z
+**Stopped at:** Completed 200-06-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
