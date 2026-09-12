@@ -313,24 +313,24 @@ Ecto, Postgrex, Jason, NimbleCSV, Plug, and telemetry support the core. Phoenix,
 | Question | Start with |
 |---|---|
 | How is storage named and generated? | `Threadline.StorageSchema`, `Mix.Tasks.Threadline.Install`, `Mix.Tasks.Threadline.Gen.Triggers` |
-| What exactly does the trigger write? | `Threadline.Capture.TriggerSQL`, `Threadline.Capture.AuditTransaction`, `Threadline.Capture.AuditChange` |
+| What exactly does the trigger write? | `Mix.Tasks.Threadline.Gen.Triggers`, `Threadline.Capture.AuditTransaction`, `Threadline.Capture.AuditChange` |
 | How does identity enter the write? | `Threadline.Semantics.ActorRef`, `Threadline.Semantics.AuditContext`, `Threadline.Plug`, `Threadline.Job` |
 | What is the supported audited-write boundary? | `Threadline.Audit` |
 | How are physical and semantic facts linked? | `Threadline.Semantics.AuditAction`, `Threadline.Capture.AuditTransaction` |
-| How do filters, pages, and scopes work? | `Threadline.Query`, `Threadline.OperatorSurface.Scope` |
+| How do filters, pages, and host scopes work? | `Threadline.Query`, `Threadline.OperatorSurface.Router` |
 | How is an incident assembled? | `Threadline.Investigation`, `Threadline.ChangeDiff` |
 | How is the UI mounted securely? | `Threadline.OperatorSurface.Router`, `Threadline.OperatorSurface.Auth` |
 | How do large exports leave the process? | `Threadline.Export`, `Threadline.ExportQueue`, `Threadline.Storage`, `Threadline.Export.Orchestrator` |
-| How are lifecycle and attestations represented? | `Threadline.Retention`, `Threadline.Retention.Pruner`, `Threadline.Evidence` |
+| How are lifecycle and attestations represented? | `Threadline.Retention`, `Threadline.Evidence` |
 
 ## Code-reading routes
 
 Choose a route based on the question you are answering:
 
-1. **Audited write:** `Threadline.Plug` → `Threadline.Audit` → `Threadline.Capture.TriggerSQL` → the three core schemas → `Threadline.Investigation`.
-2. **Capture policy:** `Threadline.StorageSchema` → the two Mix generators → `Threadline.Capture.RedactionPolicy` → `Threadline.Capture.TriggerSQL` → trigger and redaction tests.
-3. **Operator security:** `Threadline.OperatorSurface.Router` → `Threadline.OperatorSurface.Auth` → `Threadline.OperatorSurface.Scope` → query scope tests.
-4. **Operational lifecycle:** `Threadline.Export` and its queue/storage behaviours → `Threadline.Export.Orchestrator`; then `Threadline.Retention.Pruner` and `Threadline.Evidence`.
+1. **Audited write:** `Threadline.Plug` → `Threadline.Audit` → the returned capture structs → `Threadline.Investigation`.
+2. **Capture policy:** `Threadline.StorageSchema` → `Mix.Tasks.Threadline.Install` and `Mix.Tasks.Threadline.Gen.Triggers` → generated migration SQL → `Threadline.Health`.
+3. **Operator security:** `Threadline.OperatorSurface.Router` → `Threadline.OperatorSurface.Auth` → `Threadline.Query` with the host scope callback.
+4. **Operational lifecycle:** `Threadline.Export` and its queue/storage behaviours → `Threadline.Export.Orchestrator`; then `Threadline.Retention` and `Threadline.Evidence`.
 
 The [Code walkthrough](code-walkthrough.md) follows these routes with short excerpts from the implementation and names the tests that prove each seam.
 
@@ -348,8 +348,9 @@ When changing the system, preserve the ownership boundary before optimizing a lo
 
 For release work, verify source contracts, generated docs, the Hex package, and any PostgreSQL-backed capture behavior. Do not update documentation to describe a more convenient architecture than the code actually ships.
 
-## Where to go next
+## Next steps
 
+- [Evaluating Threadline](evaluating-threadline.md) — return to the Evaluate lane and its proof boundary.
 - [Code walkthrough](code-walkthrough.md) — read the implementation in the same order as this guide.
 - [Getting started with Phoenix SaaS](getting-started-saas.md) — install and exercise the supported write path.
 - [Domain reference](domain-reference.md) — exact vocabulary and public API routing.

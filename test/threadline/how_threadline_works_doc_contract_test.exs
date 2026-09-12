@@ -19,7 +19,7 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
       "## Module atlas",
       "## Code-reading routes",
       "## Changing Threadline safely",
-      "## Where to go next"
+      "## Next steps"
     ])
 
     refute String.contains?(doc, "## The SaaS Builder's JTBD Map")
@@ -69,9 +69,14 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
     end
 
     assert String.contains?(doc, "[Code walkthrough](code-walkthrough.md)")
-    assert String.contains?(doc, "Threadline.OperatorSurface.Scope")
+    assert String.contains?(doc, "Threadline.OperatorSurface.Router")
     assert String.contains?(doc, "Threadline.Export.Orchestrator")
     assert String.contains?(doc, "Threadline.Evidence")
+
+    refute String.contains?(doc, "Threadline.Capture.TriggerSQL")
+    refute String.contains?(doc, "Threadline.Capture.RedactionPolicy")
+    refute String.contains?(doc, "Threadline.OperatorSurface.Scope")
+    refute String.contains?(doc, "Threadline.Retention.Pruner")
   end
 
   test "architecture guide keeps host-written evidence framing" do

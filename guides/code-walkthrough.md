@@ -4,7 +4,10 @@ This guide starts where [How Threadline works](how-threadline-works.md) stops. F
 
 The excerpts are deliberately short and copied from the current source. `# ...` marks code removed only to keep the route readable. Module and function names are the durable navigation points; use the generated API reference or source search to open the complete definition.
 
-> **Public API versus internals:** Reachability is not a support promise. Public modules and documented functions such as `Threadline.Audit.transaction/3`, `Threadline.Query`, `Threadline.Investigation`, `Threadline.ExportQueue`, and `Threadline.Storage` are adopter-facing contracts. Mix task implementation, generated SQL helpers, private query functions, schemas marked internal, and operator implementation modules are shown to explain the machinery. Do not call an internal function from host code merely because it appears below.
+> **Public API versus internals:** Reachability is not a support promise. This
+> walkthrough names public façades, Mix tasks, behaviours, and returned data
+> types. It explains generated SQL and operator machinery in domain language
+> without presenting implementation modules as adopter entrypoints.
 
 ## Installation turns configuration into DDL
 
@@ -34,44 +37,13 @@ The important consequence is temporal: configure the storage schema before gener
 
 ### 2. Installation adds missing migration families without overwriting
 
-Source: `Mix.Tasks.Threadline.Install`.
+Source: the public `mix threadline.install` task.
 
 Capture, semantics, and governance are separate migration families. A rerun can fill a missing family, but it does not replace one the host has already reviewed or edited.
 
-```elixir
-capture_written =
-  if existing_capture_migration?(path) do
-    Mix.shell().info("Threadline audit schema migration already exists — skipping.")
-    false
-  else
-    file = Path.join(path, "#{timestamp()}_threadline_audit_schema.exs")
-    create_file(file, Threadline.Capture.Migration.migration_content())
-    true
-  end
-
-# ...
-
-semantics_written =
-  if existing_semantics_migration?(path) do
-    Mix.shell().info("Threadline semantics schema migration already exists — skipping.")
-    false
-  else
-    file = Path.join(path, "#{timestamp()}_threadline_semantics_schema.exs")
-    create_file(file, Threadline.Semantics.Migration.migration_content())
-    true
-  end
-
-# ...
-
-governance_written =
-  if existing_governance_migration?(path) do
-    Mix.shell().info("Threadline governance schema migration already exists — skipping.")
-    false
-  else
-    file = Path.join(path, "#{timestamp()}_threadline_governance_schema.exs")
-    create_file(file, Threadline.Governance.Migration.migration_content())
-    true
-  end
+```bash
+mix threadline.install
+mix ecto.migrate
 ```
 
 The generated files are the review boundary between package-provided templates and the host database.
@@ -88,7 +60,7 @@ forbidden = Enum.filter(tables, &StorageSchema.threadline_table?/1)
 if forbidden != [] do
   Mix.raise(
     "Cannot install audit triggers on Threadline's own tables: #{Enum.join(forbidden, ", ")}. " <>
-      "This would cause a recursive audit loop (CAP-10)."
+      "This would cause a recursive audit loop."
   )
 end
 
@@ -97,86 +69,44 @@ end
 needs_per_table = store_changed_from or exclude != [] or mask != []
 
 %{needs_per_table: needs_per_table, opts: opts}
-
-# ...
-
-trig =
-  if per?,
-    do: TriggerSQL.create_trigger(t, :per_table),
-    else: TriggerSQL.create_trigger(t)
 ```
 
 This is an availability control as much as a convenience: installing a capture trigger on an audit table would make the audit write recursively audit itself.
 
 ### 4. The trigger groups row changes by PostgreSQL transaction
 
-Source: the internal SQL generator in `Threadline.Capture.TriggerSQL`.
+Source: generated migration SQL emitted by `mix threadline.gen.triggers`.
 
 Every trigger invocation resolves the current PostgreSQL transaction ID, idempotently creates its parent capture row, and selects that row for the following `AuditChange` insert.
 
-```elixir
-defp transaction_capture_begin_sql(opts) do
-  """
-    v_txid := txid_current();
+```sql
+v_txid := txid_current();
 
-    -- Upsert the audit_transactions row keyed on the PostgreSQL transaction ID.
-    -- ON CONFLICT DO NOTHING is idempotent: multiple writes in the same transaction
-    -- reuse the existing row. This is PgBouncer-safe because txid_current() is
-    -- transaction-scoped, not session-scoped.
-    INSERT INTO #{StorageSchema.table("audit_transactions", opts)} (id, txid, occurred_at, actor_ref)
-    VALUES (
-      gen_random_uuid(),
-      v_txid,
-      clock_timestamp(),
-      NULLIF(current_setting('threadline.actor_ref', true), '')::jsonb
-    )
-    ON CONFLICT (txid) DO NOTHING;
+INSERT INTO threadline.audit_transactions (id, txid, occurred_at, actor_ref)
+VALUES (
+  gen_random_uuid(),
+  v_txid,
+  clock_timestamp(),
+  NULLIF(current_setting('threadline.actor_ref', true), '')::jsonb
+)
+ON CONFLICT (txid) DO NOTHING;
 
-    SELECT id INTO v_tx_id
-    FROM #{StorageSchema.table("audit_transactions", opts)}
-    WHERE txid = v_txid;
-  """
-end
+SELECT id INTO v_tx_id
+FROM threadline.audit_transactions
+WHERE txid = v_txid;
 ```
 
 The uniqueness constraint on `txid` turns repeated row-level trigger calls into one capture transaction. The actor value is read, never assigned, by the trigger.
 
 ### 5. Redaction transforms the row before the audit insert
 
-Source: the internal redaction builder in `Threadline.Capture.TriggerSQL`.
+Source: generated migration SQL emitted for a configured table.
 
 Excluded keys are removed. Masked keys are replaced with a stable JSON string. The generator emits these statements into the trigger body before it inserts the captured row.
 
-```elixir
-defp data_after_redaction_statements(_var, [], [], _placeholder), do: ""
-
-defp data_after_redaction_statements(var, exclude, mask, placeholder) do
-  strip =
-    exclude
-    |> Enum.map(fn col ->
-      lit = sql_string_literal(col)
-      "        #{var} := #{var} - #{lit};\n"
-    end)
-    |> IO.iodata_to_binary()
-
-  mask_obj =
-    if mask == [] do
-      ""
-    else
-      pairs =
-        mask
-        |> Enum.map(fn col ->
-          k = sql_string_literal(col)
-          pe = mask_placeholder_sql_expr(placeholder)
-          "#{k}, #{pe}"
-        end)
-        |> Enum.join(", ")
-
-      "        #{var} := #{var} || jsonb_build_object(#{pairs});\n"
-    end
-
-  strip <> mask_obj
-end
+```sql
+v_data_after := v_data_after - 'password_hash';
+v_data_after := v_data_after || jsonb_build_object('email', '[REDACTED]');
 ```
 
 This is why changing only runtime configuration is insufficient: deployed PostgreSQL runs the SQL from the generated migration.
@@ -512,47 +442,18 @@ Inside the omitted quoted router definition, LiveViews and controller exports re
 
 ### 15. Capability gates fail closed while tenant scope remains host-owned
 
-Sources: internal `Threadline.OperatorSurface.Auth` and `Threadline.OperatorSurface.Scope`.
+Sources: the public `Threadline.OperatorSurface.Router` and
+`Threadline.OperatorSurface.Auth` contracts.
 
 The main mount can rely on the host's secure pipeline or authorization callback. More sensitive coverage, policy, and evidence capabilities default to false. Once authorization returns a scope, Threadline treats it as opaque and invokes the host's query transformer.
 
 ```elixir
-defp coverage_enabled_for_socket?(coverage_authorize_fn, socket)
-     when is_function(coverage_authorize_fn, 1) do
-  mirror = %{assigns: socket.assigns}
-
-  case coverage_authorize_fn.(mirror) do
-    :ok -> true
-    true -> true
-    {:ok, _scope} -> true
-    _ -> false
-  end
-rescue
-  _ -> false
-end
-
-# ...
-
-def apply(query, opts \\ []) do
-  scope = Keyword.get(opts, :scope)
-  scope_query_fn = Keyword.get(opts, :scope_query_fn)
-
-  cond do
-    is_nil(scope) or is_nil(scope_query_fn) ->
-      query
-
-    is_function(scope_query_fn, 3) ->
-      context = %{
-        surface: Keyword.get(opts, :surface),
-        params: Keyword.get(opts, :params, %{})
-      }
-
-      scope_query_fn.(query, scope, context)
-
-    true ->
-      query
-  end
-end
+threadline_operator_surface "/audit",
+  pipe_through: [:browser, :require_admin],
+  repo: MyApp.Repo,
+  authorize_fn: &MyApp.AuditAccess.authorize/1,
+  scope_query_fn: &MyApp.AuditAccess.scope_query/3,
+  coverage_authorize_fn: &MyApp.AuditAccess.authorize_coverage/1
 ```
 
 Threadline cannot infer a tenant predicate from arbitrary host data. The host must provide both the authorized scope and the function that applies it.
@@ -572,11 +473,11 @@ The default implementations are sufficient for a single-node process. Persistent
 # ...
 
 @type file_id :: String.t()
-@type path_or_content :: String.t() | binary()
+@type content :: binary()
 @type options :: keyword()
 
 @callback init(keyword()) :: :ok | {:error, term()}
-@callback put(path_or_content(), options()) :: {:ok, file_id()} | {:error, term()}
+@callback put(content(), options()) :: {:ok, file_id()} | {:error, term()}
 @callback get(file_id()) :: {:ok, binary()} | {:error, term()}
 @callback download_url(file_id(), options()) :: {:ok, String.t()} | {:error, term()}
 @callback delete(file_id()) :: :ok | {:error, term()}
@@ -642,4 +543,11 @@ The source shows mechanism; tests show which behavior maintainers have promised 
 5. **Lifecycle:** export orchestrator and adapter contract tests → retention purge and advisory-lock tests → evidence subject and append-only history tests.
 6. **Reference host:** the Phoenix example's audited context functions, generated migrations, secure router mount, and walkthrough tests show the pieces composed in an application.
 
-When a change crosses two layers, run both sets of focused tests before the broad verification aliases. Return to [How Threadline works](how-threadline-works.md) whenever the local code makes it easy to lose sight of host ownership or the single-transaction invariant.
+When a change crosses two layers, run both sets of focused tests before the
+broad verification aliases.
+
+## Next steps
+
+- Return to [Evaluating Threadline](evaluating-threadline.md) for the Evaluate lane.
+- Revisit [How Threadline works](how-threadline-works.md) when local code obscures host ownership or the single-transaction invariant.
+- Use the [domain reference](domain-reference.md) when you need the exact public vocabulary and result shapes.

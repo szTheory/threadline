@@ -12,9 +12,6 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     "lib/mix/tasks/threadline.gen.triggers.ex" => [
       "StorageSchema.threadline_table?"
     ],
-    "lib/threadline/capture/trigger_sql.ex" => [
-      "v_txid := txid_current();"
-    ],
     "lib/threadline/plug.ex" => [
       "assign(conn, :audit_context, context)"
     ],
@@ -27,8 +24,8 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     "lib/threadline/investigation.ex" => [
       "Threadline.change_diff(linked_change.audit_change)"
     ],
-    "lib/threadline/operator_surface/scope.ex" => [
-      "scope_query_fn.(query, scope, context)"
+    "lib/threadline/operator_surface/router.ex" => [
+      "has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)"
     ],
     "lib/threadline/export/orchestrator.ex" => [
       "storage.put(temp_path)"
@@ -39,7 +36,7 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     blocks = elixir_blocks(File.read!(@walkthrough_path))
 
     assert length(blocks) in 12..18
-    assert length(blocks) == 17
+    assert length(blocks) == 14
 
     Enum.with_index(blocks, 1)
     |> Enum.each(fn {block, index} ->
@@ -73,6 +70,19 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     refute String.contains?(guides, "file://")
     refute Regex.match?(~r{https://github\.com/[^\s)]+/blob/}, guides)
     refute Regex.match?(~r{#L\d+}, guides)
+
+    for internal <- [
+          "Threadline.Capture.Migration",
+          "Threadline.Semantics.Migration",
+          "Threadline.Governance.Migration",
+          "Threadline.Capture.RedactionPolicy",
+          "Threadline.Capture.TriggerSQL",
+          "Threadline.OperatorSurface.Scope",
+          "Threadline.Retention.Pruner"
+        ] do
+      refute String.contains?(guides, internal),
+             "public architecture guides name hidden implementation module #{internal}"
+    end
   end
 
   test "architecture and walkthrough cross-link and occupy the Evaluate lane" do
