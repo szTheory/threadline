@@ -25,7 +25,7 @@ defmodule Threadline.Evidence.Subject do
             }
 
   @doc """
-  Returns the closed supported subject inventory for v1.22.
+  Returns the closed supported subject inventory.
   """
   def supported_subjects, do: @supported_subjects
 

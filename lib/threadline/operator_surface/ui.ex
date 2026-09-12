@@ -275,19 +275,19 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # De-emphasized, accessible pager over the EXISTING keyset engine (NAV-02 / D-16/17/18).
+    # De-emphasized, accessible pager over the existing keyset engine.
     # Infinite scroll stays the primary interaction; this gives keyboard/SR users explicit
     # "Older"/"Newer" (time-axis) controls plus an honest end-of-stream signal. No engine
     # change — the controls emit the host page's existing next-page/prev-page events.
     #
     # Contract (locked by pager_test.exs):
-    #   * hide-at-zero (D-16): renders NOTHING when match_count == 0 (no tl-pager markup).
-    #   * disable-not-hide (D-18): a boundary control stays in the DOM but `disabled`,
+    #   * hide-at-zero: renders nothing when match_count == 0 (no tl-pager markup).
+    #   * disable-not-hide: a boundary control stays in the DOM but `disabled`,
     #     never dropped (a Newer/Older control is only omitted when its event is nil,
     #     e.g. Timeline is next-only).
     #   * range caption is a role="status" aria-live="polite" "Showing N of … matching
     #     changes" live region.
-    #   * deep-total cap (D-17): match_count >= 10_001 renders "10,000+", never an exact
+    #   * deep-total cap: match_count >= 10_001 renders "10,000+", never an exact
     #     deep total (mirrors timeline_live format_count/1).
     attr(:shown, :integer, required: true, doc: "Count currently rendered on the page")
 
@@ -389,7 +389,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Forensic copy affordance (DATA-01, D-02/D-06/D-07). The single call-site API that
+    # Forensic copy affordance. The single call-site API that
     # retires the ad-hoc inline copy wirings: renders the truncated value while binding
     # the EXACT complete value to data-tl-copy on BOTH the <code> and the gated copy
     # button — never .title, never .visible. When the delegated copy script is disabled
@@ -401,7 +401,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
       doc: "uuid|correlation|arn|actor|hash|path|email|url|timestamp — drives per-kind truncation"
     )
 
-    attr(:copy_label, :string, required: true, doc: "aria-label specificity (D-07, no default)")
+    attr(:copy_label, :string, required: true, doc: "Specific aria-label; no default")
     attr(:class, :any, default: nil)
     attr(:rest, :global)
 
@@ -428,7 +428,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Single-record key/value display (D-08). Lifts the canonical tl-kv <dl> body; the
+    # Single-record key/value display. Lifts the canonical tl-kv <dl> body; the
     # :item slot carries a REQUIRED key attr so callers drop a ref/1 or value span inside
     # the <dd> (path of least resistance for "single record -> <dl>").
     attr(:class, :any, default: nil)
@@ -450,11 +450,11 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Responsive data table (D-08/D-09). The :col slot's required label feeds BOTH the
+    # Responsive data table. The :col slot's required label feeds both the
     # <th> AND every <td data-label> from one source (structurally guarantees mobile
     # labels match the header). Supports `rows` OR `stream` (truthy -> phx-update="stream"
     # on <tbody>); row_id sets <tr id=...>; row_status emits the data-status stripe (zero
-    # new CSS). NO ARIA role="table"/"row"/"cell" (D-09) — the responsive layout is the
+    # new CSS). Do not add ARIA role="table"/"row"/"cell"; the native table is the
     # accessibility surface, not synthetic table roles.
     attr(:rows, :list, default: nil)
     attr(:stream, :any, default: nil)
@@ -505,11 +505,11 @@ if Code.ensure_loaded?(Phoenix.Component) do
     )
 
     attr(:role, :string, default: nil, doc: "ARIA live role: status (default) or alert")
-    attr(:icon, :atom, default: nil, doc: "Distinct glyph shape (no color alone, D-16)")
+    attr(:icon, :atom, default: nil, doc: "Distinct glyph shape; never color alone")
 
     attr(:focus_heading, :boolean,
       default: false,
-      doc: "D-15 focus rescue: render the heading as a tabindex=-1 target and move focus on mount"
+      doc: "Render the heading as a tabindex=-1 target and move focus on mount"
     )
 
     attr(:heading_id, :string, default: nil)
@@ -547,7 +547,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Thin variant="error" wrapper (D-15): role=alert, distinct alert glyph, and a
+    # Thin variant="error" wrapper: role=alert, distinct alert glyph, and a
     # tabindex=-1 heading that takes focus on mount (focus rescue).
     attr(:class, :any, default: nil)
     attr(:rest, :global)
@@ -573,7 +573,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Loading state (D-13): a structurally distinct named sibling (NOT an empty_state
+    # Loading state: a structurally distinct named sibling (not an empty_state
     # variant). role=status + aria-busy so SR users hear progress; renders the spinner
     # plus a text node that callers may override. Must always resolve to a terminal state.
     attr(:class, :any, default: nil)
@@ -592,8 +592,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Stale banner (D-13/D-14): a role=status strip rendered ABOVE still-visible last-good
-    # data — it PRECEDES, never replaces, and is NOT a clause in any async switch. Reuses
+    # Stale banner: a role=status strip rendered above still-visible last-good
+    # data. It precedes, never replaces, and is not a clause in any async switch. Reuses
     # the tl-alert--warning shell with a refresh glyph and an as_of timestamp.
     attr(:as_of, :string, default: nil, doc: "Timestamp of the last known good data")
     attr(:object_label, :string, default: "audit data", doc: "Object shown from last-good data")
@@ -610,8 +610,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Typed-reason data-state dispatcher (DATA-03, D-13..D-16). Preserves the server's
-    # typed reason all the way to the view and maps it to a DISTINCT role + icon SHAPE +
+    # Typed-reason data-state dispatcher. Preserves the server's typed reason all the way
+    # to the view and maps it to a distinct role, icon shape, and
     # heading — the three load-bearing forensic distinctions (permission ≠ no-data ≠
     # unavailable) never collapse to a generic "something went wrong". Each unavailable
     # sub-case states it is NOT a permissions issue.
@@ -699,17 +699,17 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Filter/search/sort toolbar (D-06 / RESEARCH Pitfall 6). A `cluster`-style row that
-    # carries the cross-child DISABLED coordination: when the data region is loading or
-    # in a hard error, the page derives `disabled` from the SAME state assign
-    # (`state in [:loading, :error]`, D-06) and passes it here. The container then gets
+    # Filter/search/sort toolbar. A `cluster`-style row that carries cross-child disabled
+    # coordination: when the data region is loading or in a hard error, the page derives
+    # `disabled` from the same state assign (`state in [:loading, :error]`) and passes it
+    # here. The container then gets
     # `aria-disabled` + the `is-disabled` class (pointer-events:none + dimming — affordance
     # only). The page MUST ALSO set the HTML `disabled` attribute on the actual controls
     # from that same assign: `pointer-events:none` alone leaves controls keyboard-focusable
-    # and SR-activatable (Pitfall 6 — affordance is not enforcement).
+    # and screen-reader activatable; affordance is not enforcement.
     attr(:disabled, :boolean,
       default: false,
-      doc: "true while the data region is loading or in a hard error (D-06)"
+      doc: "true while the data region is loading or in a hard error"
     )
 
     attr(:class, :any, default: nil)
@@ -730,9 +730,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Detail-page header (D-03). Title + metadata kv + actions cluster, recurring on the
+    # Detail-page header. Title + metadata kv + actions cluster, recurring on the
     # transaction / actor / row-history pages. Renders an <h2> (NOT <h1>) — page_header
-    # owns the single <h1> per page (D-175-03). Composes the existing kv/1 + cluster
+    # owns the single <h1> per page. Composes the existing kv/1 + cluster
     # rather than re-rolling layout.
     attr(:title, :string, required: true)
     attr(:class, :any, default: nil)
@@ -761,9 +761,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # State-coordinating shell (D-03 / D-06 / D-06c). data_panel COMPOSES the existing
-    # named state family (D-176-13) — it does NOT reinvent the taxonomy or the focus
-    # logic. The page author still branches the typed server reason (D-06d); the shell
+    # State-coordinating shell. data_panel composes the existing named state family; it
+    # does not reinvent the taxonomy or the focus logic. The page author still branches
+    # the typed server reason; the shell
     # only decides which region shows and where the pager/stale-banner sit.
     #
     # Coordination rules (locked):
@@ -775,9 +775,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
     #   * :permission /
     #     :unavailable   -> data_state(@reason) COLLAPSES the body to one message,
     #                       preserving the distinct icon shape + heading + focus rescue
-    #                       (D-176-16, ASVS V4). NEVER converted to a generic empty.
+    #                       and is never converted to a generic empty.
     #   * as_of present  -> stale_banner rendered ABOVE the region regardless of state
-    #                       (coexists with :ok data; never replaces it, D-176-14). Stale
+    #                       (coexists with :ok data and never replaces it). Stale
     #                       is NOT a clause in the region cond.
     # Focus-move on error/permission/unavailable is delegated to the state family (the
     # rendered tabindex=-1 heading / phx-mounted JS.focus the family already emits).
@@ -793,14 +793,14 @@ if Code.ensure_loaded?(Phoenix.Component) do
 
     attr(:as_of, :string,
       default: nil,
-      doc: "stale timestamp; presence renders stale_banner ABOVE the region (D-176-14)"
+      doc: "stale timestamp; presence renders stale_banner above the region"
     )
 
     attr(:id, :string,
       default: nil,
       doc:
         "optional base id; when set the region is state-keyed (`{id}-region-{state}`) so an " <>
-          "in-place state swap replays the cross-fade (D-10.2)"
+          "in-place state swap replays the cross-fade"
     )
 
     attr(:class, :any, default: nil)
@@ -812,7 +812,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
       if assigns.state in [:permission, :unavailable] and is_nil(assigns.reason) do
         # Fail loudly: a missing reason would otherwise fall through data_state/1 to the
         # generic error, silently erasing the permission/unavailable forensic distinction
-        # this shell promises to NEVER collapse (D-176-16, ASVS V4).
+        # this shell promises never to collapse.
         raise ArgumentError,
               "data_panel state=#{inspect(assigns.state)} requires a typed :reason " <>
                 "(e.g. :unauthorized, :source_down, :redacted, :pruned)"
@@ -1080,7 +1080,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Reconnect / offline banner (D-11 corrected by real-engine verification). A
+    # Reconnect / offline banner verified against LiveView's real lifecycle classes. A
     # calm, transient `role="status"` strip rendered at the shell level. It is
     # hidden by default and revealed PURELY in CSS while the `[data-phx-main]`
     # container carries LiveView lifecycle classes; `.threadline-ui` is the scoped
@@ -1091,7 +1091,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     #
     # Mutating controls elsewhere in the shell carry `data-tl-mutating` so the paired
     # CSS disables them (pointer-events + dimming) while disconnected. Because
-    # `pointer-events:none` is an AFFORDANCE, not enforcement (Pitfall 6), mutating
+    # `pointer-events:none` is an affordance, not enforcement, so mutating
     # LINKS (which cannot take HTML `disabled`) must ALSO set `aria-disabled="true"`
     # and `tabindex="-1"` so keyboard/SR users are not stranded on a dead control,
     # e.g.:
@@ -1111,24 +1111,24 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # SEED-005 / D-10: the single shared shell/chrome for ALL 11 operator
+    # This is the single shared shell and chrome for all operator
     # LiveViews. Before this component existed, every LiveView hand-duplicated
     # the threadline-ui root + the inner #tl-main wrapper, which is exactly why
-    # the reconnect strip had no home and nothing mounted it (the 177 follow-up).
-    # Routing all 11 pages through `shell/1` gives that strip a single mount
+    # the reconnect strip had no home and nothing mounted it. Routing every page
+    # through `shell/1` gives that strip a single mount
     # point — rendered exactly ONCE by the banner component below, directly
     # above the #tl-main element and inside the threadline-ui root — and kills
     # the 11-way drift.
     #
-    # Connection lifecycle (D-11): phoenix_live_view applies `.phx-loading`,
+    # Phoenix LiveView applies `.phx-loading`,
     # `.phx-error`, and `.phx-client-error` to the `[data-phx-main]` container in
     # this app; the threadline-ui element is the scoped descendant shell. The strip
     # + `[data-tl-mutating]` dimming is pure CSS keyed off that ancestor/container
     # relationship — never the document body, never the legacy pre-1.0 disconnected
     # class.
     #
-    # Stays `@doc false` / private — no public, host-facing component API (v1.31
-    # freeze). Pages keep their own `<main>` class via `:main_class` so the
+    # Stays `@doc false` and private: there is no public host-facing component API.
+    # Pages keep their own `<main>` class via `:main_class` so the
     # per-page centering wrappers (e.g. `tl-container`, `tl-home`) survive, and any
     # page-specific `<main>` attributes ride the `:main_rest` global.
     # `:base_path` is nilable: four LiveViews (evidence, policy_redaction,

@@ -1,8 +1,6 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Style do
-    @moduledoc """
-    Provides isolated CSS for the Threadline Operator Surface.
-    """
+    @moduledoc false
 
     import Phoenix.Component
 
@@ -17,8 +15,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
       {@fonts_html}<style>
         .threadline-ui {
-          /* Phase 144 token freeze: this block is the source contract for the
-             final v1.31 design-system catalog. */
+          /* This block is the source contract for the stable design-system
+             token catalog. */
           --tl-space-1: 4px;
           --tl-space-2: 8px;
           --tl-space-3: 12px;
@@ -163,7 +161,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           --tl-drawer-width: 760px;
           --tl-shell-gutter: var(--tl-space-4);
           --tl-viewport-max-height: 600px;
-          /* Phase 142 breakpoint tokens document the accepted phone/tablet/desktop scale.
+          /* Breakpoint tokens document the accepted phone/tablet/desktop scale.
              CSS custom properties are not valid inside @media conditions, so media
              layers below keep standards-compliant literals governed by source tests. */
           --tl-breakpoint-phone-proof: 375px;
@@ -307,7 +305,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
         }
 
-        /* Phase 167 (B): coverage table row hover polarity on light surfaces.
+        /* Coverage table row hover polarity on light surfaces.
            The dark base keeps surface-raised default / surface hover (correct on
            dark, where raised is lighter than surface). On white that reads inverted
            (tinted default -> white hover), so the light and system lanes flip to a
@@ -1737,12 +1735,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-variant-numeric: tabular-nums;
         }
 
-        /* Phase 167 — status chips: "signal node" treatment (cross-mode redesign).
+        /* Status chips use a shared "signal node" treatment across themes.
            The status color lives in a single dot (--tl-chip-dot) plus a faint fill;
            the label text is neutral and readable. Replaces the prior tone-on-tone
            (status-colored text on a same-hue tint), which read muddy on white. Authored
-           in the shared base rules so :dark and :light share one designed treatment —
-           this intentionally retires the chip from the dark byte-stable freeze (167 D-09). */
+           in the shared base rules so :dark and :light share one designed treatment. */
         .tl-chip--info::before,
         .tl-chip--warning::before,
         .tl-chip--danger::before,
@@ -2106,10 +2103,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           font-weight: var(--tl-weight-medium);
         }
 
-        /* De-emphasized pager (NAV-02): explicit Older/Newer controls + an honest
+        /* De-emphasized pager: explicit Older/Newer controls + an honest
            role=status range caption over the existing keyset engine. Infinite scroll
            stays primary, so this sits quiet (secondary/compact buttons). Boundary
-           controls are disabled, not hidden (D-18), so they read as visibly inactive
+           controls are disabled, not hidden, so they read as visibly inactive
            (muted text, reduced opacity) rather than "disabled-looks-enabled". */
         .tl-pager {
           display: flex;
@@ -2215,7 +2212,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
-         * Layout primitives (GROUP-01 / D-02) — stack/cluster own the group
+         * Layout primitives — stack/cluster own the group
          * spacing rhythm via flexbox `gap` over the semantic --tl-gap-* tokens.
          * No raw child margins: gap is the single source of inter-child spacing.
          */
@@ -2262,8 +2259,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
-         * data_panel — the state-coordinating shell (D-03 / D-06). Flat page-stack
-         * section: ONE card boundary per logical unit (D-176-11), so the panel itself
+         * data_panel — the state-coordinating shell. Flat page-stack section: one
+         * card boundary per logical unit, so the panel itself
          * is NOT wrapped in a card. Inner rhythm uses the semantic gap tokens.
          */
         .tl-data-panel {
@@ -2280,9 +2277,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          * value never changes. We use an opacity-in `animation` instead: when the caller
          * supplies an id, the region's id is state-keyed (`{id}-region-{state}`), so a
          * state swap makes LiveView replace the element and the fade replays; within :ok
-         * the id is stable so streamed <tr> updates do NOT re-trigger it (D-11). Opacity-
+         * the id is stable so streamed <tr> updates do not re-trigger it. Opacity-
          * only so it degrades cleanly; the reduced-motion blanket collapses it near-
-         * instantly (D-12), no per-component handling.
+         * instantly, with no per-component handling.
          */
         .tl-data-panel__region {
           animation: tl-fade-in var(--tl-motion-fast) var(--tl-ease-standard);
@@ -2294,10 +2291,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
-         * toolbar — search/filter/sort row (D-06). Built on the cluster mechanism so it
-         * wraps at narrow widths (D-13). `is-disabled` is the AFFORDANCE (pointer-events
+         * toolbar — search/filter/sort row. Built on the cluster mechanism so it
+         * wraps at narrow widths. `is-disabled` is the affordance (pointer-events
          * off + dimming); the page also sets the HTML `disabled` attr on the real
-         * controls for enforcement (Pitfall 6). The reduced-motion blanket needs no
+         * controls for enforcement. The reduced-motion blanket needs no
          * special handling here (no motion).
          */
         .tl-toolbar {
@@ -2310,7 +2307,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
-         * detail_header — title + metadata kv + actions (D-03). Rhythm: <h2> title,
+         * detail_header — title + metadata kv + actions. Rhythm: <h2> title,
          * actions clustered to the trailing edge on the same top row, kv metadata a
          * --tl-space-6 break below.
          */
@@ -2590,7 +2587,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
-         * Narrow-viewport truncation (D-13, Pitfall 5): the current/last crumb (the
+         * Narrow-viewport truncation: the current/last crumb (the
          * location label, which can be a long table/correlation name) ellipsis-clips so
          * the header never forces horizontal scroll at 320px. Ancestor crumbs stay
          * links and wrap via the trail's flex-wrap.
@@ -3392,7 +3389,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
-         * Overlay JS-transition utility classes (D-10.1, RESEARCH Pitfall 2).
+         * Overlay JS-transition utility classes.
          * modal/drawer/toast (ui.ex) drive enter/exit via Phoenix.LiveView.JS
          * show/hide `transition:` tuples {transition_classes, from, to}. The
          * transition class sets the tokenized transition-property; the from/to
@@ -3400,10 +3397,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          * (NOT the same-named @keyframes, which drive CSS `animation:` mount
          * reveals) — defining them here makes the overlay motion real instead of
          * an instant snap. GPU-only (opacity/transform); the reduced-motion
-         * blanket below collapses the transition near-instantly (D-12), so no
+         * blanket below collapses the transition near-instantly, so no
          * per-component prefers-reduced-motion handling is needed. Every JS.show/
          * hide passes an explicit time matching --tl-motion-base so the token
-         * stays the single source of truth (D-11, Pitfall 3).
+         * stays the single source of truth.
          */
         .tl-fade-in,
         .tl-fade-out {
@@ -3554,7 +3551,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         }
 
         /*
-         * Reconnect / offline group (D-11 corrected by real-engine verification).
+         * Reconnect / offline group, verified against LiveView's real lifecycle classes.
          * Phoenix LiveView applies connection lifecycle classes to the
          * `[data-phx-main]` container in this app. `.threadline-ui` is the scoped
          * Threadline shell inside that container, so selectors anchor on
@@ -3567,7 +3564,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          * socket is loading/erroring. Mutating controls marked `data-tl-mutating`
          * are disabled (affordance: pointer-events + dimming); the markup also
          * carries aria-disabled + tabindex=-1 for links so the affordance is also
-         * announced/keyboard-safe (Pitfall 6 — affordance is not enforcement).
+         * announced and keyboard-safe because affordance is not enforcement.
          */
         .tl-reconnect-banner {
           display: none;

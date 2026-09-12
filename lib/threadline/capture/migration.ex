@@ -1,13 +1,5 @@
 defmodule Threadline.Capture.Migration do
-  @moduledoc """
-  SQL DDL for the Threadline audit schema.
-
-  Used by `mix threadline.install` to generate a migration file. The generated
-  migration creates `audit_transactions` and `audit_changes` tables along with
-  the `threadline_capture_changes()` trigger function.
-
-  All DDL uses `IF NOT EXISTS` / `CREATE OR REPLACE` for idempotency (PKG-04).
-  """
+  @moduledoc false
 
   alias Threadline.Capture.TriggerSQL
   alias Threadline.StorageSchema
