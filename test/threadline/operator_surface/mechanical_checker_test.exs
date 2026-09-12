@@ -283,6 +283,9 @@ defmodule Threadline.OperatorSurface.MechanicalCheckerTest do
     assert nesting.mode == "B"
     assert nesting.observed == 4
     assert nesting.expected == "<= 3"
+
+    assert nesting.fix ==
+             "reduce card_nesting_depth to <= 3 (structural correction + human review required)"
   end
 
   test "a card_nesting_depth of 4 is grandfathered when a recorded floor covers it" do

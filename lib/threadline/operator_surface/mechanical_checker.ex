@@ -1,7 +1,7 @@
 defmodule Threadline.OperatorSurface.MechanicalChecker do
   @moduledoc false
 
-  # Deterministic mechanical gate (Phase 194, D-04 / MECH-01 / MECH-02 / MECH-03).
+  # Deterministic mechanical gate for the operator-surface quality floor.
   #
   # Reads the committed Tier A scorecard JSON (RAW computed-style inputs emitted by
   # examples/threadline_phoenix/e2e/tests/operator-tier-a-capture.spec.ts) and computes
@@ -12,7 +12,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   # MODE-A (absolute hard blockers, no grandfathering): WCAG contrast (dark + light,
   # from color_pairs) and token conformance (radius / shadow / motion / font-size /
   # spacing, from element_styles). Each MODE-A violation carries a located, actionable,
-  # fix-bearing map — the exact Phase-196 auto-apply whitelist.
+  # fix-bearing map — the exact approved set for automated remediation.
   #
   # MODE-B (betterer-style ratchet floors): type-size count, interactive-control count,
   # card-nesting depth, scroll-cost/bp, distinct-accent-hue (Elixir does RGB->HSL +
@@ -101,7 +101,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   WCAG 2.x relative luminance of an sRGB `{r, g, b}` (0..255) colour.
 
   Uses the piecewise sRGB linearization with the gamma exponent 2.4 — a 2.2 exponent
-  silently mis-grades mid-tones (RESEARCH Pitfall 4). `{255, 255, 255}` -> `1.0`,
+  silently mis-grades mid-tones. `{255, 255, 255}` -> `1.0`,
   `{0, 0, 0}` -> `0.0`.
   """
   def relative_luminance({r, g, b}) do
@@ -178,8 +178,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
           # The mechanical FLOOR governs the real operator surface — the Tier-A `/audit`
           # (`page.*`) cells and the committed refute/graded oracle. Two cell families are
           # deliberately out of its jurisdiction:
-          #   • `route.*` — live-server, live-data captures (Phase 196), gitignored and not
-          #     byte-stable; a local capture would otherwise redden the gate off a
+          #   • `route.*` — live-server, live-data captures, gitignored and not byte-stable;
+          #     a local capture would otherwise redden the gate off a
           #     non-deterministic artifact (e.g. the deliberately-degraded ranking twin).
           #   • `story.*` — Storybook demo cells that exist to feed the LLM critic's aesthetic
           #     scoring, NOT the deterministic pixel-grid floor. They render isolated/unstyled
@@ -726,7 +726,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       selector: "##{theme_bp}",
       observed: fmt(current),
       expected: "<= #{ceiling}",
-      fix: "reduce #{metric} to <= #{ceiling} (structural — Phase 196/197 + human review)"
+      fix:
+        "reduce #{metric} to <= #{ceiling} (structural correction + human review required)"
     }
   end
 
