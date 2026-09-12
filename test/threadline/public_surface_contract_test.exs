@@ -180,8 +180,23 @@ defmodule Threadline.PublicSurfaceContractTest do
   @tag :module_visibility_tracer
   @tag :phase200_red
   test "the public façade is grouped and mandatory critic modules are hidden" do
-    grouped = grouped_modules()
-    assert Threadline in grouped
+    groups = Threadline.MixProject.project()[:docs][:groups_for_modules]
+
+    assert Keyword.keys(groups) == [
+             :"Core API",
+             :"Data Types",
+             :"Configuration & Extension Points",
+             :Integrations,
+             :"Operator Surface",
+             :"Mix Tasks"
+           ]
+
+    grouped = List.flatten(Keyword.values(groups))
+    assert Enum.count(grouped, &(&1 == Threadline)) == 1
+
+    assert Keyword.fetch!(groups, :"Mix Tasks") ==
+             ~w(threadline.install threadline.gen.triggers threadline.verify_coverage threadline.continuity threadline.retention.purge threadline.export threadline.incident threadline.evidence.show threadline.health.coverage threadline.policy.show)
+             |> Enum.map(&task_module/1)
 
     for module <- @hidden_modules do
       assert docs_visibility(module) == :hidden,
