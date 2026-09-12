@@ -229,7 +229,13 @@ defmodule Threadline.GuideGraphContractTest do
   end
 
   defp public_markdown_files do
-    (["README.md", "CONTRIBUTING.md", "CHANGELOG.md"] ++ Path.wildcard("guides/**/*.md"))
+    ([
+       "README.md",
+       "CONTRIBUTING.md",
+       "CHANGELOG.md",
+       "DESIGN-SYSTEM.md",
+       "examples/threadline_phoenix/README.md"
+     ] ++ Path.wildcard("guides/**/*.md"))
     |> Map.new(&{&1, File.read!(&1)})
   end
 
@@ -309,7 +315,9 @@ defmodule Threadline.GuideGraphContractTest do
       |> String.replace(~r/^\#{1,6}\s+/, "")
       |> String.replace(~r/`([^`]*)`/, "\\1")
       |> String.downcase()
-      |> String.replace(~r/[^\p{L}\p{N}\s-]/u, "")
+      # GitHub/ExDoc heading ids preserve underscores in identifiers such as
+      # `correlation_id`; strip punctuation without collapsing identifier text.
+      |> String.replace(~r/[^\p{L}\p{N}_\s-]/u, "")
       |> String.trim()
       |> String.replace(~r/\s+/, "-")
       |> String.replace(~r/-+/, "-")

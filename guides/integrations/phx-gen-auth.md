@@ -107,3 +107,9 @@ Default `context_overrides_fn` returns `%{}`; headers win. Optionally propagate 
 ## Lane and proof
 
 Maintained composition path: this guide. Root CI proof: `test/threadline/integrations/phx_gen_auth_integration_test.exs` (`mix verify.test`). This is not a second example application. Reference semantics items 4–6 are covered by `test/threadline/plug_test.exs`.
+
+## Next steps
+
+- Return to [Getting started](../getting-started-saas.md) for the Adopt lane.
+- Review the shared callback boundaries in [Integration contracts](../integration-contracts.md).
+- Mount and authorize the audit screens with the [Operator surface guide](../operator-surface.md).

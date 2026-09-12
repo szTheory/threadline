@@ -386,6 +386,9 @@ procedure.
 
 - [Configuration and command reference](configuration-and-commands.md)
 - [Production checklist](production-checklist.md)
+- [Integration contracts](integration-contracts.md)
+- [Local Docker development](local-docker-dx.md)
+- [Upgrade and support lanes](upgrade-path.md)
 - [Incident playbook](incident-playbook.md)
 - [Performance](performance.md)
 - [phx.gen.auth integration](integrations/phx-gen-auth.md)
