@@ -286,9 +286,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert_before(html, "Find what changed", "Check audit readiness")
       assert_before(html, "Check audit readiness", "Use evidence and exports")
-      assert_before(html, "Use evidence and exports", ~s|data-earned-flow="EF1"|)
-      assert_before(html, ~s|data-earned-flow="EF1"|, ~s|data-earned-flow="EF4"|)
-      assert_before(html, ~s|data-earned-flow="EF4"|, "Pick up where you left off")
+      assert_before(html, "Use evidence and exports", "Go straight to an audited record")
+      assert_before(html, "Open row history", "Open incident timeline")
+      assert_before(html, "Open incident timeline", "Pick up where you left off")
     end
 
     test "renders dark theme by default on the surface root", %{conn: conn} do
@@ -439,16 +439,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
     end
 
-    test "renders earned record-first lookup without Timeline filter builder controls", %{
-      conn: conn
-    } do
+    test "renders record and correlation lookups with semantic controls and no planning provenance",
+         %{
+           conn: conn
+         } do
       {:ok, view, html} = live(conn, "/audit")
 
-      assert html =~ ~s|data-earned-flow="EF1"|
-      assert html =~ ~s|data-persona="P2"|
-      assert html =~ ~s|data-jtbd="J4"|
-      assert html =~ ~s|name="record_lookup[table]"|
-      assert html =~ ~s|name="record_lookup[record_id]"|
+      assert has_element?(view, "#tl-record-lookup", "Open row history")
+      assert has_element?(view, ~s|#tl-record-lookup [name="record_lookup[table]"]|)
+      assert has_element?(view, ~s|#tl-record-lookup [name="record_lookup[record_id]"]|)
+      assert has_element?(view, "#tl-correlation-lookup", "Open Timeline")
+
+      assert has_element?(
+               view,
+               ~s|#tl-correlation-lookup [name="correlation[correlation_id]"]|
+             )
 
       assert has_element?(
                view,
@@ -468,6 +473,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             "saved_search_builder"
           ] do
         refute record_form =~ forbidden
+      end
+
+      for planning_attribute <- ~w(data-earned-flow data-persona data-jtbd) do
+        refute html =~ planning_attribute
       end
     end
 
@@ -508,13 +517,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              |> alert_contains?("Enter a record id for row history.")
     end
 
-    test "renders earned correlation shortcut and navigates with canonical query", %{conn: conn} do
-      {:ok, view, html} = live(conn, "/audit")
-
-      assert html =~ ~s|data-earned-flow="EF4"|
-      assert html =~ ~s|data-persona="P1"|
-      assert html =~ ~s|data-jtbd="J1"|
-      assert html =~ ~s|name="correlation[correlation_id]"|
+    test "correlation lookup navigates with canonical query", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "/audit")
 
       view
       |> form("#tl-correlation-lookup", %{

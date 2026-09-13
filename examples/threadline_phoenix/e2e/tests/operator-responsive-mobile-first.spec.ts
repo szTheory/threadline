@@ -440,7 +440,19 @@ async function assertHome(page: Page) {
   await expect(
     page.getByRole("heading", { name: "Follow what happened." }),
   ).toBeVisible();
-  await expect(page.locator('[data-earned-flow="EF1"]')).toBeVisible();
+
+  const recordLookup = page.locator("#tl-record-lookup");
+  await expect(recordLookup.getByLabel("Table")).toBeVisible();
+  await expect(recordLookup.getByLabel("Record id")).toBeVisible();
+  await expect(
+    recordLookup.getByRole("button", { name: "Open row history" }),
+  ).toBeVisible();
+
+  const correlationLookup = page.locator("#tl-correlation-lookup");
+  await expect(correlationLookup.getByLabel("Correlation id")).toBeVisible();
+  await expect(
+    correlationLookup.getByRole("button", { name: "Open Timeline" }),
+  ).toBeVisible();
 }
 
 async function assertTimeline(page: Page) {
