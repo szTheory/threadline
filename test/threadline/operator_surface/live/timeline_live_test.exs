@@ -223,7 +223,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def auth(_socket), do: {:ok, %{access: :support_read_only, organization_id: "org_123"}}
-    def export_auth(_mirror), do: {:error, :unauthorized}
+
+    def export_auth(_mirror) do
+      case Application.get_env(:threadline, :test_support_export_auth, :deny) do
+        :raise -> raise "authorization backend unavailable"
+        :allow -> :ok
+        :deny -> {:error, :unauthorized}
+      end
+    end
 
     def scope_operator_query(query, %{organization_id: org_id}, %{surface: :timeline}) do
       where(query, [_ac, at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
@@ -1747,6 +1754,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
+
+    test "export authorization exceptions hide exports and forged queue events create no job", %{
+      conn: conn
+    } do
+      Application.put_env(:threadline, :test_support_export_auth, :raise)
+      on_exit(fn -> Application.delete_env(:threadline, :test_support_export_auth) end)
+
+      {:ok, lv, html} =
+        case live(conn, "/audit_support/timeline?table=support_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      refute html =~ "Queue export"
+      refute html =~ ">CSV<"
+
+      render_click(lv, "request_background_export", %{})
       assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
   end

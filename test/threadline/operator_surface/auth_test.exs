@@ -46,9 +46,21 @@ defmodule Threadline.OperatorSurface.AuthTest do
       nil
     )
 
+    export_handler_id = "export_auth_test_#{System.unique_integer()}"
+
+    :telemetry.attach(
+      export_handler_id,
+      [:threadline, :operator_surface, :export_authorize],
+      fn name, measurements, metadata, _config ->
+        send(pid, {:export_telemetry_event, name, measurements, metadata})
+      end,
+      nil
+    )
+
     on_exit(fn ->
       :telemetry.detach(handler_id)
       :telemetry.detach(mismatch_handler_id)
+      :telemetry.detach(export_handler_id)
     end)
 
     :ok
@@ -121,6 +133,24 @@ defmodule Threadline.OperatorSurface.AuthTest do
   end
 
   describe "on_mount/4" do
+    test "export authorization exceptions fail closed and emit error telemetry" do
+      actor_ref = %Threadline.Semantics.ActorRef{type: :user, id: "user-1"}
+
+      opts = [
+        authorize_fn: fn _socket -> :ok end,
+        export_authorize_fn: fn _mirror -> raise "authorization backend unavailable" end
+      ]
+
+      socket = Phoenix.Component.assign(mock_socket(), :threadline_actor_ref, actor_ref)
+
+      assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
+      refute returned_socket.assigns.threadline_exports_enabled
+
+      assert_receive {:export_telemetry_event,
+                      [:threadline, :operator_surface, :export_authorize],
+                      %{result: :error, count: 1}, %{actor_ref: ^actor_ref}}
+    end
+
     test "Case 1: returns :ok -> connection continues, telemetry :granted emitted" do
       opts = [authorize_fn: fn _socket -> :ok end]
       socket = mock_socket()

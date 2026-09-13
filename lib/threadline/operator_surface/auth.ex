@@ -203,7 +203,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         _ -> false
       end
     rescue
-      _ -> true
+      _ ->
+        emit_export_authorize_error(socket)
+        false
+    end
+
+    defp emit_export_authorize_error(socket) do
+      :telemetry.execute(
+        [:threadline, :operator_surface, :export_authorize],
+        %{result: :error, count: 1},
+        %{actor_ref: socket.assigns[:threadline_actor_ref]}
+      )
     end
 
     defp assign_coverage_enabled(socket, opts) do
