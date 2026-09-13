@@ -905,6 +905,52 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
 
+    test "independent anonymous sessions cannot create, list, apply, or delete saved views" do
+      anonymous_actor = %Threadline.Semantics.ActorRef{type: :anonymous, id: nil}
+      serialized_actor = Jason.encode!(Threadline.Semantics.ActorRef.to_map(anonymous_actor))
+
+      legacy_view =
+        Threadline.Test.Repo.insert!(
+          %Threadline.Governance.SavedView{
+            name: "private anonymous filters",
+            actor_ref: anonymous_actor,
+            filters: %{"table" => "private_rows"}
+          },
+          repo_opts()
+        )
+
+      conn_a =
+        build_conn()
+        |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+      conn_b =
+        build_conn()
+        |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+      {:ok, view_a, html_a} = live(conn_a, "/audit/timeline?table=posts")
+      {:ok, view_b, html_b} = live(conn_b, "/audit/timeline?table=posts")
+
+      refute html_a =~ "save-view-form"
+      refute html_b =~ "save-view-form"
+      refute html_a =~ "private anonymous filters"
+      refute html_b =~ "private anonymous filters"
+
+      render_submit(view_a, "save-view", %{"name" => "session a filters"})
+      render_submit(view_b, "save-view", %{"name" => "session b filters"})
+      render_click(view_a, "apply-view", %{"id" => legacy_view.id})
+      render_click(view_b, "delete-view", %{"id" => legacy_view.id})
+
+      assert Threadline.Test.Repo.get!(
+               Threadline.Governance.SavedView,
+               legacy_view.id,
+               repo_opts()
+             )
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.SavedView, repo_opts()) == [
+               legacy_view
+             ]
+    end
+
     test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do
       {:ok, _lv, html} =
         live(

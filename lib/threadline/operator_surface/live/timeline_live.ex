@@ -47,7 +47,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> Enum.sort()
 
       saved_views =
-        if actor_ref do
+        if ActorRef.identifiable?(actor_ref) do
           repo.all(
             from(v in Threadline.Governance.SavedView,
               where: v.actor_ref == ^actor_ref,
@@ -207,7 +207,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # --------------------------------------------------------------------------
 
     def handle_event("save-view", %{"name" => name}, socket) do
-      if socket.assigns[:threadline_actor_ref] && name != "" do
+      if ActorRef.identifiable?(socket.assigns[:threadline_actor_ref]) and name != "" do
         attrs = %{
           name: name,
           actor_ref: Threadline.Semantics.ActorRef.to_map(socket.assigns.threadline_actor_ref),
@@ -833,7 +833,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </.link>
           </section>
 
-          <section :if={@actor_ref} class="tl-utility-group tl-utility-group--views" aria-label="Saved views">
+          <section
+            :if={ActorRef.identifiable?(@actor_ref)}
+            class="tl-utility-group tl-utility-group--views"
+            aria-label="Saved views"
+          >
             <span class="tl-utility-group__label">Views</span>
             <form id="save-view-form" phx-submit="save-view" class="tl-saved-view-form">
               <input
