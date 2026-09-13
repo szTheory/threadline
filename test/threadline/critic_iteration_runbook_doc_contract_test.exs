@@ -1,9 +1,9 @@
-defmodule Threadline.ForwardOnlyGateDocContractTest do
+defmodule Threadline.CriticIterationRunbookDocContractTest do
   @moduledoc """
   Pins the CONTRIBUTING.md "Forward-only gate — run one iteration" maintainer
-  runbook (Phase 196, PROOF-01) so its canonical commands, the route ↔ page twin
+  runbook so its canonical commands, the route ↔ page twin
   mapping, and the ρ-ranking trust bar cannot drift silently, and so the critic
-  never leaks into the published ExDoc/hex adopter guides (RESEARCH A1).
+  never leaks into the published ExDoc/hex adopter guides.
   """
   use ExUnit.Case, async: true
 
