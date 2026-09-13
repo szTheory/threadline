@@ -642,7 +642,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 201-04-PLAN.md — Remove the final six Row History/Timeline attributes and activate the exact-seven-node live guard.
+- [x] 201-04-PLAN.md — Remove the final six Row History/Timeline attributes and activate the exact-seven-node live guard.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 

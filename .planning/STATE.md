@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 201
 current_phase_name: Rendered Output
 status: executing
-stopped_at: Completed 201-03-PLAN.md
-last_updated: "2026-09-13T20:28:29.546Z"
+stopped_at: Completed 201-04-PLAN.md
+last_updated: "2026-09-13T20:39:10.600Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 201 execution started
-state_head: d31a72bc238daff9738f6a5050be90787acdd938
+state_head: 3d7a0c6347845f3200f629d4391257c4de0d2e6a
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 110
-  completed_plans: 108
+  completed_plans: 109
   percent: 14
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 201 (Rendered Output) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -145,6 +145,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 201-rendered-output P01 | 13min | 3 tasks | 4 files |
 | Phase 201-rendered-output P02 | 11min | 1 tasks | 5 files |
 | Phase 201-rendered-output P03 | 7min | 1 tasks | 5 files |
+| Phase 201-rendered-output P04 | 6min | 1 tasks | 5 files |
 
 ## Deferred Items
 
@@ -667,6 +668,8 @@ Progress: [████████████████████] 87/87 p
 - [Phase 201]: The focused Start contract rejects planning attributes only after proving both lookup controls remain present and operable.
 - [Phase 201]: Existing export-context task IDs and the accessible Carry to Exports link express the complete behavior contract without replacement provenance metadata.
 - [Phase 201]: The shared earned-flow browser journey uses roles, visible names, routes, and existing product test IDs for both this cohort and the later Row History/Timeline cohort.
+- [Phase 201]: [201-04] Validate exact sorted identity for all seven canonical renders before accepting an empty provenance-offender set.
+- [Phase 201]: [201-04] Preserve Row History and Timeline through existing semantic anchors without replacement provenance hooks.
 
 ### Blockers
 
@@ -674,8 +677,8 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-13T20:28:29.399Z
-**Stopped at:** Completed 201-03-PLAN.md
+**Last session:** 2026-09-13T20:39:10.461Z
+**Stopped at:** Completed 201-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
