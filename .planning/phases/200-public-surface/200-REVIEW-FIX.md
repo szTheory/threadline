@@ -1,6 +1,6 @@
 ---
 phase: 200-public-surface
-fixed_at: 2026-09-13T03:58:15Z
+fixed_at: 2026-09-13T04:56:44Z
 review_path: .planning/phases/200-public-surface/200-REVIEW.md
 iteration: 3
 findings_in_scope: 2
@@ -11,7 +11,7 @@ status: all_fixed
 
 # Phase 200: Code Review Fix Report
 
-**Fixed at:** 2026-09-13T03:58:15Z
+**Fixed at:** 2026-09-13T04:56:44Z
 **Source review:** `.planning/phases/200-public-surface/200-REVIEW.md`
 **Iteration:** 3
 
@@ -23,35 +23,34 @@ status: all_fixed
 
 ## Fixed Issues
 
-### CR-01: Background exports upload a temporary pathname to remote storage instead of CSV content
+### CR-01: Reconciliation ignores the human's selected verdict
 
-**Files modified:** `lib/threadline/export/orchestrator.ex`, `test/threadline/export/orchestrator_test.exs`
-**Commit:** 6e7dd0fb
+**Files modified:** `examples/threadline_phoenix/e2e/critic/label.ts`, `examples/threadline_phoenix/e2e/critic/label.test.ts`, `lib/threadline/critic_trust/measure.ex`, `lib/mix/tasks/critic.measure.ex`, `lib/mix/tasks/critic.synth.ex`, `test/fixtures/operator_surface/golden/synthetic-set.json`, `test/threadline/critic_pair_labeling_contract_test.exs`, `test/threadline/critic_trust/measure_test.exs`, `test/threadline/operator_surface/critic_trust_test.exs`
+**Commit:** 14e41efa
 **Status:** fixed: requires human verification
-**Applied fix:** Read the completed temporary export and passed its CSV bytes through the portable `Storage.put/2` content contract. The existing Local adapter continues to write those bytes through its contained-path protections. A remote-shaped adapter regression proves the uploaded body begins with the canonical CSV header, contains an exported audit row, and is not a temporary pathname.
+**Applied fix:** Added an explicit canonical `adjudicated` result that records the selected source, verdict, and pair margin while preserving both blind rounds as provenance. Agreement and disagreement paths share one serializer, trust measurement consumes the adjudicated verdict, schema checks validate single and pair outcomes, and synthetic evidence emits the same contract. Runtime and ExUnit regressions prove r1 and r2 choices serialize differently and downstream measurement follows the selected result.
 
-### CR-02: Anonymous ownership lets one anonymous session access every anonymous export
+### WR-01: The new executable label tests are not included in any test command
 
-**Files modified:** `lib/threadline/semantics/actor_ref.ex`, `lib/threadline/governance/export_job.ex`, `lib/threadline/operator_surface/live/timeline_live.ex`, `lib/threadline/operator_surface/live/export_status_live.ex`, `lib/threadline/operator_surface/controllers/export_controller.ex`, `test/threadline/semantics/actor_ref_test.exs`, `test/threadline/operator_surface/live/timeline_live_test.exs`, `test/threadline/operator_surface/live/export_status_live_test.exs`, `test/threadline/operator_surface/controllers/export_controller_test.exs`
-**Commit:** 1ce75557
-**Status:** fixed: requires human verification
-**Applied fix:** Added a shared stable-identity predicate and required a non-anonymous actor with a non-empty ID for operator job changesets, background queue handlers and affordances, job listing, and downloads. Independent anonymous-session regressions prove anonymous users cannot queue or list anonymous-owned jobs; a controller regression proves legacy anonymous-owned exports return 404.
+**Files modified:** `examples/threadline_phoenix/e2e/package.json`
+**Commit:** ce689484
+**Applied fix:** Added a `test:unit` script covering both Node unit-test files and made the default `npm test` run it before the existing Playwright suite, retaining Playwright rather than replacing it.
 
 ## Verification
 
-Verification ran in the isolated review-fix worktree, using the main checkout's installed dependency/build caches and the explicitly requested Elixir/Erlang versions. The verified commits were then fast-forwarded into the main checkout.
+Focused Node and ExUnit tests plus warnings-as-errors compilation ran in the isolated review-fix worktree using the main checkout's dependency/build caches and the explicitly requested Elixir/Erlang versions. The exact aggregate Node command and TypeScript typecheck ran in the main checkout after fast-forward, where installed Node dependencies are available.
 
+- Standalone label runtime tests — 4 tests passed.
+- Focused ExUnit reconciliation/trust contracts — 43 tests, 0 failures.
 - `mix compile --warnings-as-errors` — passed.
-- Five focused ExUnit modules were run one module per invocation because the repository uses shared non-sandboxed database/LiveView state — 134 tests, 0 failures.
-- `git diff HEAD~2..HEAD --check` — passed.
-- The isolated worktree was clean before transactional cleanup; the temporary branch was fast-forwarded and removed successfully.
-
-## Skipped Issues
-
-None.
+- `npm run test:unit` — 19 tests passed from the main checkout.
+- `npm run typecheck` — passed.
+- The default `npm test` script still invokes Playwright after `test:unit`.
+- `git diff --check 9fb70e46..ce689484` — passed.
+- The temporary worktree, review-fix branch, and recovery sentinel were removed after a successful fast-forward.
 
 ---
 
-_Fixed: 2026-09-13T03:58:15Z_
+_Fixed: 2026-09-13T04:56:44Z_
 _Fixer: the agent (gsd-code-fixer)_
 _Iteration: 3_
