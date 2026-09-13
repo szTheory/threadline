@@ -1,7 +1,7 @@
 ---
 phase: 200-public-surface
-verified: 2026-09-13T11:19:18Z
-verification_target: eeb0ba9ecd51ca3a4311d1fa3b6af018e7b2fed6
+verified: 2026-09-13T11:50:33Z
+verification_target: 833a5965af24b6fe5c17d300ff13bc4b3b5b4f2d
 status: passed
 score: 8/8 must-haves verified
 covered_files:
@@ -10,6 +10,7 @@ covered_files:
   - .github/ISSUE_TEMPLATE/03-question.yml
   - .github/ISSUE_TEMPLATE/config.yml
   - .github/pull_request_template.md
+  - .planning/PROJECT.md
   - .planning/REQUIREMENTS.md
   - .planning/ROADMAP.md
   - .planning/STATE.md
@@ -182,13 +183,13 @@ covered_files:
   - test/threadline/readme_doc_contract_test.exs
   - test/threadline/release_artifact_contract_test.exs
   - test/threadline/retention/policy_test.exs
-covered_digest: "v1:sha256:76f04bb5b737e17a6baae3986d8a32e8385bbea518252f0e9ba79f8b9149bfa7"
+covered_digest: "v1:sha256:b56e5fefa26c543546a1d1901d5ddf006666784fc29ccb83cc7d36e2f4680735"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
   previous_status: passed
   previous_score: 8/8
-  previous_target: 3b386cfad890aaca363dbec74bdf37fd14352366
+  previous_target: eeb0ba9ecd51ca3a4311d1fa3b6af018e7b2fed6
   gaps_closed: []
   gaps_remaining: []
   regressions: []
@@ -198,8 +199,8 @@ re_verification:
 
 **Phase Goal:** Everything a stranger or a hex.pm consumer sees — module docs, the tarball, the HexDocs index and its grouping, the guide graph, the config and alias vocabulary, the contributor onboarding path, and the `.github/` directory — is accurate, navigable, and free of internal planning vocabulary, so that publishing 0.10.0 in Phase 202 is safe rather than permanent regret.
 
-**Verified:** 2026-09-13T11:19:18Z
-**Verification target:** committed HEAD `eeb0ba9ecd51ca3a4311d1fa3b6af018e7b2fed6`
+**Verified:** 2026-09-13T11:50:33Z
+**Verification target:** committed HEAD `833a5965af24b6fe5c17d300ff13bc4b3b5b4f2d`
 **Status:** passed
 **Re-verification:** Yes — after gap closure
 
@@ -224,9 +225,9 @@ re_verification:
 
 | Previous failure | Closure evidence at final HEAD | Status |
 |---|---|---|
-| README duplicated the canonical Operator Surface mount/auth procedure, while tests omitted or pinned the duplication. | The `3b386cfa` repair remains byte-for-byte intact at `eeb0ba9e`: README names `guides/operator-surface.md` as sole owner; `guide_graph_contract_test.exs:128-135` includes README in both mount and authorization checks; `readme_doc_contract_test.exs:129-132` rejects the heading and runnable fences; 46/46 focused tests pass again. | ✓ CLOSED |
+| README duplicated the canonical Operator Surface mount/auth procedure, while tests omitted or pinned the duplication. | The `3b386cfa` repair remains byte-for-byte intact at `833a5965`: README names `guides/operator-surface.md` as sole owner; `guide_graph_contract_test.exs:128-135` includes README in both mount and authorization checks; `readme_doc_contract_test.exs:129-132` rejects the heading and runnable fences; 46/46 focused tests pass again. | ✓ CLOSED |
 
-No regressions were found in any previously verified truth. Apart from committing the verification report itself, the only post-pass changes are closeout metadata (`REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`) and explicit existing paths in `200-04-SUMMARY.md`; no product implementation or test source changed.
+No regressions were found in any previously verified truth. Since the exact-head pass at `eeb0ba9e`, only `.planning/PROJECT.md` and `.planning/STATE.md` changed; no product implementation, public documentation, or test source changed.
 
 ### Closeout Metadata Consistency
 
@@ -234,6 +235,8 @@ No regressions were found in any previously verified truth. Apart from committin
 |---|---|---|
 | Phase completion | ROADMAP marks Phase 200 and all 18 plans complete; REQUIREMENTS marks SURFACE-01..11 complete; STATE advances to Phase 201 planning | Consistent | ✓ VERIFIED |
 | Summary path audit | `200-04-SUMMARY.md` names the six existing critic module/task paths explicitly instead of brace shorthand | All six paths exist and are already covered by the fingerprint | ✓ VERIFIED |
+| Project transition | PROJECT records SURFACE-01..11 validated, narrows active work to Phase 201 rendered output, and records canonical procedure ownership | Consistent with ROADMAP, REQUIREMENTS, implementation, and contracts | ✓ VERIFIED |
+| State transition | STATE points to the updated PROJECT, names Phase 201 as current focus, records no active blocker, and retains Phase 200 completion | Consistent | ✓ VERIFIED |
 | State validation | `gsd-tools state validate` | Only S004: Phase 201 has no matching phase directory yet | ℹ️ EXPECTED |
 
 S004 is not a Phase 200 defect: Phase 201 is intentionally the current unplanned phase, so its directory will be created by planning.
@@ -283,7 +286,7 @@ The mechanical `verify.key-links` queries passed 22/24 declared links. The two m
 | Optional storage adapter without `path/1` | `mix test export_controller_test.exs:631 --max-failures 1` | 28 tests, 0 failures, 27 excluded; 1 selected | ✓ PASS |
 | ExDoc build | `MIX_ENV=dev mix docs --warnings-as-errors` | Documentation generated with no warnings | ✓ PASS |
 | Dependency advisory audit | Root and example `mix hex.audit` | No retired or security-advisory packages | ✓ PASS |
-| Hosted compatibility/checkpoint | GitHub Actions run `34753641231`, exact head `eeb0ba9e` | Completed successfully; all 14 component jobs plus `CI required` passed (15/15), including current/minimum suites, ExDoc, Hex tarball, Dialyzer, Tier A byte stability, mechanical checks, and Playwright | ✓ PASS |
+| Hosted compatibility/checkpoint | GitHub Actions run `34755017258`, exact head `833a5965` | Completed successfully; all 14 component jobs plus `CI required` passed (15/15), including current/minimum suites, ExDoc, Hex tarball, Dialyzer, Tier A byte stability, mechanical checks, and Playwright | ✓ PASS |
 
 ### Probe Execution
 
@@ -325,9 +328,9 @@ None. The repaired ownership invariant is deterministically covered. The separat
 
 ### Gaps Summary
 
-No gaps remain. The only initial blocker remains closed at committed HEAD `eeb0ba9e`: README is routing-only, the Operator Surface guide owns the runnable mount/auth procedure, the sole-owner tracer includes README, and README-specific tests reject recurrence. The closeout metadata is internally consistent apart from expected S004 for the not-yet-planned Phase 201. All eight observable truths and SURFACE-01 through SURFACE-11 are satisfied.
+No gaps remain. The only initial blocker remains closed at committed HEAD `833a5965`: README is routing-only, the Operator Surface guide owns the runnable mount/auth procedure, the sole-owner tracer includes README, and README-specific tests reject recurrence. PROJECT/STATE now consistently record Phase 200 as validated and Phase 201 as the only active work. State validation has only expected S004 for the not-yet-planned Phase 201. All eight observable truths and SURFACE-01 through SURFACE-11 are satisfied.
 
 ---
 
-_Verified: 2026-09-13T11:19:18Z_
+_Verified: 2026-09-13T11:50:33Z_
 _Verifier: the agent (gsd-verifier)_
