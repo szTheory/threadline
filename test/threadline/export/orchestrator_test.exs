@@ -34,6 +34,71 @@ defmodule Threadline.Export.OrchestratorTest do
     def delete(file_id), do: Threadline.Storage.Local.delete(file_id)
   end
 
+  defmodule RecordingStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, opts \\ []) do
+      result = Threadline.Storage.Local.put(content, opts)
+      notify({:storage_put, result})
+      result
+    end
+
+    @impl true
+    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+
+    @impl true
+    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+
+    @impl true
+    def download_url(file_id, opts \\ []),
+      do: Threadline.Storage.Local.download_url(file_id, opts)
+
+    @impl true
+    def delete(file_id) do
+      notify({:storage_delete, file_id})
+      Threadline.Storage.Local.delete(file_id)
+    end
+
+    defp notify(message) do
+      if pid = Application.get_env(:threadline, :test_orchestrator_notify_pid) do
+        send(pid, message)
+      end
+    end
+  end
+
+  defmodule DeleteFailStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, opts \\ []), do: RecordingStorage.put(content, opts)
+
+    @impl true
+    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+
+    @impl true
+    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+
+    @impl true
+    def download_url(file_id, opts \\ []),
+      do: Threadline.Storage.Local.download_url(file_id, opts)
+
+    @impl true
+    def delete(file_id) do
+      if pid = Application.get_env(:threadline, :test_orchestrator_notify_pid) do
+        send(pid, {:storage_delete, file_id})
+      end
+
+      {:error, :storage_unavailable}
+    end
+  end
+
   setup do
     previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
     previous_storage_schema = Application.get_env(:threadline, :storage_schema)
@@ -41,6 +106,7 @@ defmodule Threadline.Export.OrchestratorTest do
     on_exit(fn ->
       restore_env(:storage_adapter, previous_storage_adapter)
       restore_env(:storage_schema, previous_storage_schema)
+      Application.delete_env(:threadline, :test_orchestrator_notify_pid)
     end)
 
     if File.exists?(@test_priv) do
@@ -193,6 +259,79 @@ defmodule Threadline.Export.OrchestratorTest do
     assert csv =~ "audit-storage"
     refute csv =~ to_string(default_change.id)
     refute csv =~ "default-storage"
+  end
+
+  test "a transaction commit failure never stores an export object", %{job: job} do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+
+    transaction_fn = fn transaction_body, transaction_opts ->
+      Repo.transaction(
+        fn ->
+          transaction_body.()
+          Repo.rollback(:forced_commit_failure)
+        end,
+        transaction_opts
+      )
+    end
+
+    assert {:error, :forced_commit_failure} =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: RecordingStorage,
+               transaction_fn: transaction_fn
+             )
+
+    refute_receive {:storage_put, _}
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "failed"
+    assert is_nil(updated_job.file_path)
+  end
+
+  test "a completion update failure compensates by deleting the stored object", %{job: job} do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+
+    completion_fn = fn _repo, _job, _file_path, _storage_opts ->
+      {:error, :forced_completion_update_failure}
+    end
+
+    assert {:error, :forced_completion_update_failure} =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: RecordingStorage,
+               completion_fn: completion_fn
+             )
+
+    assert_receive {:storage_put, {:ok, file_id}}
+    assert_receive {:storage_delete, ^file_id}
+    assert {:error, :enoent} = Local.get(file_id)
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "failed"
+    assert is_nil(updated_job.file_path)
+  end
+
+  test "a failed compensation retains the object identifier for cleanup retry", %{job: job} do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+
+    completion_fn = fn _repo, _job, _file_path, _storage_opts ->
+      {:error, :forced_completion_update_failure}
+    end
+
+    assert {:error, :forced_completion_update_failure} =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: DeleteFailStorage,
+               completion_fn: completion_fn
+             )
+
+    assert_receive {:storage_put, {:ok, file_id}}
+    assert_receive {:storage_delete, ^file_id}
+    assert {:ok, _content} = Local.get(file_id)
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "failed"
+    assert updated_job.file_path == file_id
+    assert updated_job.error_message =~ "compensation failed"
   end
 
   defp insert_job!(attrs, storage_schema \\ "threadline") do
