@@ -1,6 +1,6 @@
 ---
 phase: 199-decouple
-verified: 2026-09-12T01:11:11Z
+verified: 2026-09-13T14:53:14Z
 status: passed
 score: 40/40 must-haves verified
 behavior_unverified: 0
@@ -9,7 +9,7 @@ requirements_verified: 8/8
 decisions_verified: 30/30
 security_status: verified
 security_threats: 61/61 closed
-current_head: "d6d3baee5eabe993fede1b4e2100cb23f131bff8"
+current_head: "40c68f848fa98e7bd4f1275b7eac5c738f3bd255"
 tracking_finalized_head: "edb2b240515a8869fd704d2bfd4d2a195c56d890"
 historical_certification_sha: "c45b7712"
 regressions: []
@@ -600,14 +600,14 @@ covered_files:
   - "test/threadline/release_artifact_contract_test.exs"
   - "test/threadline/removed_artifact_contract_test.exs"
   - "test/threadline/row_history_focus_evidence_contract_test.exs"
-covered_digest: "v1:sha256:6250b9b28af15d1d0eaea9d24347a9306894514982ae44012df560f44b692941"
+covered_digest: "v1:sha256:0bcae97445bd1813404557acf4b18a86b40bcb4849017afd5031f9525fcc7b9d"
 ---
 
 # Phase 199: Decouple Verification Report
 
 **Phase Goal:** The test suite and every CI gate are self-contained in the source tree, so mix ci.all passes with .planning renamed away; dead planning artifacts and root one-off scripts are gone with citations repaired; a fresh clone plus mix deps.get is clean; Dialyzer is a real measured ratcheting gate before refactor-heavy phases.
 
-**Verified:** 2026-09-12T01:11:11Z  
+**Verified:** 2026-09-13T14:53:14Z
 **Status:** passed  
 **Re-verification:** No — initial verification  
 **Current committed HEAD:** d6d3baee5eabe993fede1b4e2100cb23f131bff8
@@ -713,7 +713,7 @@ No rendered dynamic-data artifact is introduced by this non-UI phase; Level 4 he
 | Behavior | Command | Result | Status |
 |---|---|---|---|
 | Exact current HEAD passes with .planning absent | bin/verify-planning-independent | Exit 0; exact SHA; planning absent; aggregate pass; planning restored; safe temp removed | ✓ PASS |
-| Root tests inside planning-absent aggregate | mix verify.test via mix ci.all | 1,540 tests, 0 failures, 1 intentional exclusion | ✓ PASS |
+| Root tests inside planning-absent aggregate | mix verify.test via mix ci.all | 1,650 tests, 0 failures, 1 intentional exclusion | ✓ PASS |
 | Example tests inside planning-absent aggregate | mix verify.example via mix ci.all | 114 tests, 0 failures | ✓ PASS |
 | Browser lane inside planning-absent aggregate | Playwright via mix ci.all | 344 total: 317 passed, 26 intentional skips, 1 flaky test passed on retry | ✓ PASS WITH FLAKE |
 | Focused Phase 199 contracts | 12 named ExUnit files | 95 tests, 0 failures | ✓ PASS |
@@ -792,7 +792,7 @@ The centralized decision-coverage verb independently returned 30/30 honored. The
 
 Plan 199-13 is not an unexplained incomplete plan. It halted at the designed 14-origin authority ceiling when the sealed full run exposed 22 origins. Plans 199-15 through 199-20 are the authorized bounded re-slice and consolidation. Their current artifacts account for the exact W01–W40 and 22-origin partition, fix every warning, set the ignore ceiling to 0, and pass both the contract and live analyzer.
 
-The historical Plan 21 certificate at c45b7712 remains a valid receipt for that SHA. It is not used as current-head proof; the new direct probe at d6d3baee5eabe993fede1b4e2100cb23f131bff8 supersedes it for this verification.
+The historical Plan 21 certificate at c45b7712 remains a valid receipt for that SHA. It is not used as current-head proof; the new direct probe at 40c68f848fa98e7bd4f1275b7eac5c738f3bd255 supersedes it for this verification.
 
 ## CI Measurement Receipt Calibration
 
@@ -816,7 +816,7 @@ The fresh dependency fetch prints advisories for several locked third-party pack
 - Requirement-linked ExUnit and Node contracts are active and passed; no phase requirement relies only on a skipped test.
 - The aggregate has one intentional ExUnit exclusion governed by the existing topology contract.
 - Playwright reports 26 intentional capture/snapshot skips. Active structural and route tests cover the Phase 199 fixture/gate paths.
-- One reduced-motion test timed out on its first attempt because a visible toast intercepted the Show Drawer click, then passed in 1.4 seconds on retry. The aggregate exit remained 0. This is a reproducible flake signal worth fixing, but it is outside the Decouple goal and does not invalidate the successful planning-absent gate.
+- One reduced-motion test timed out on its first attempt because a visible toast intercepted the Show Drawer click, then passed in 1.5 seconds on retry. The aggregate exit remained 0. This is a reproducible flake signal worth fixing, but it is outside the Decouple goal and does not invalidate the successful planning-absent gate.
 - Six rubric sha8=00000000 warnings remain visible during critic dry-run. They predate this phase and the critic command still exits 0; no Decouple requirement depends on those hashes.
 
 ## Anti-Patterns Found
@@ -841,5 +841,5 @@ Non-blocking follow-up signals are the single retry-only Playwright flake, the s
 
 ---
 
-_Verified: 2026-09-12T01:11:11Z_  
+_Verified: 2026-09-13T14:53:14Z_
 _Verifier: the agent (gsd-verifier)_
