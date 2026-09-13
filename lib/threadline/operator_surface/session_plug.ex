@@ -30,10 +30,16 @@ defmodule Threadline.OperatorSurface.SessionPlug do
           |> put_session("threadline_actor_ref", serialized)
 
         _ ->
-          conn
+          clear_actor(conn)
       end
     rescue
-      _ -> conn
+      _ -> clear_actor(conn)
     end
+  end
+
+  defp clear_actor(conn) do
+    conn
+    |> delete_session("threadline_actor_ref")
+    |> Map.update!(:assigns, &Map.delete(&1, :threadline_actor_ref))
   end
 end
