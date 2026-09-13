@@ -1623,7 +1623,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              )
     end
 
-    test "Case 12: Request Background Export enqueues job and redirects", %{conn: conn} do
+    test "Case 12: scoped Timeline refuses background export and keeps scoped downloads", %{
+      conn: conn
+    } do
       original_adapter = Application.get_env(:threadline, :export_queue_adapter)
 
       Application.put_env(
@@ -1653,25 +1655,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Initial state
       initial_jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
 
-      # Click the export button
-      lv |> element("button", "Queue export") |> render_click()
+      html = render(lv)
+      refute html =~ "Queue export"
+      assert html =~ ~s|href="/audit_scoped/exports/changes.csv?|
 
-      # Assert redirected to /audit_scoped/exports
-      assert_redirect(lv, "/audit_scoped/exports")
+      # A forged event must also fail closed without inserting or enqueueing a job.
+      render_click(lv, "request_background_export", %{})
 
-      # Job is inserted
       jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
-      assert length(jobs) == length(initial_jobs) + 1
-      job = hd(jobs -- initial_jobs)
-      assert job.status == "pending"
-      assert job.query_params["table"] == "support_posts"
-      assert job.query_params["table_schema"] == "support"
-      assert job.actor_ref.type == :user
-      # the user_id mapped to actor_ref
-      assert job.actor_ref.id == "op1"
-      job_id = job.id
-      assert_receive {:threadline_export_enqueued, ^job_id, enqueue_opts}
-      assert enqueue_opts[:storage_schema] == "threadline"
+      assert jobs == initial_jobs
+      refute_receive {:threadline_export_enqueued, _, _}
     end
 
     test "background export failure preserves the row and surfaces the error", %{conn: conn} do
@@ -1697,14 +1690,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      _html = lv |> element("button", "Queue export") |> render_click()
+      render_click(lv, "request_background_export", %{})
 
-      [job] = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
-      assert job.status == "failed"
-      assert job.error_message =~ "built-in export runtime is unavailable"
-      assert %DateTime{} = job.expires_at
-      assert job.query_params["table"] == "support_posts"
-      assert render(lv) =~ "Queue export"
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
       assert render(lv) =~ "support_posts"
     end
   end

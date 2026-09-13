@@ -61,8 +61,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _params,
           %{assigns: %{threadline_exports_enabled: true}} = socket
         ) do
-      case socket.assigns.timeline_export_context do
-        %{status: :valid, query_params: query_params} when query_params != %{} ->
+      case {socket.assigns[:threadline_scope], socket.assigns.timeline_export_context} do
+        {scope, _context} when not is_nil(scope) ->
+          {:noreply,
+           put_flash(
+             socket,
+             :error,
+             "Scoped background exports are unavailable. Return to Timeline and use a scoped CSV, JSON, or NDJSON download."
+           )}
+
+        {nil, %{status: :valid, query_params: query_params}} when query_params != %{} ->
           repo = resolve_repo(socket)
 
           storage_schema = StorageSchema.get()
@@ -183,7 +191,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
                   <div class="tl-job__actions">
                     <button
-                      :if={@timeline_export_context.status == :valid}
+                      :if={
+                        @timeline_export_context.status == :valid and
+                          is_nil(assigns[:threadline_scope])
+                      }
                       type="button"
                       phx-click="queue_timeline_export_context"
                       class="tl-button tl-button--primary tl-button--compact"
@@ -191,6 +202,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
                       Queue Timeline export
                     </button>
+                    <.link
+                      :if={
+                        @timeline_export_context.status == :valid and
+                          not is_nil(assigns[:threadline_scope])
+                      }
+                      navigate={"#{@base_path}/timeline?#{FilterParams.canonical_query(@timeline_export_context.query_params)}"}
+                      class="tl-button tl-button--compact tl-button--secondary"
+                    >
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                      Use scoped download
+                    </.link>
                   </div>
                 </div>
 

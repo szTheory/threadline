@@ -31,6 +31,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        authorize_fn: &Threadline.OperatorSurface.ExportStatusLiveTest.Auth.scope_authorize/1,
         export_authorize_fn: &Threadline.OperatorSurface.ExportStatusLiveTest.Auth.authorize/1
       )
     end
@@ -38,6 +39,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Auth do
     def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_exports, true)
+
+    def scope_authorize(_mirror) do
+      Application.get_env(:threadline, :test_operator_scope, true)
+    end
   end
 
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.SuccessfulQueueAdapter do
@@ -104,8 +109,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       original_interval = Application.get_env(:threadline, :export_status_poll_ms)
       original_allow_exports = Application.get_env(:threadline, :test_allow_exports)
+      original_operator_scope = Application.get_env(:threadline, :test_operator_scope)
       Application.put_env(:threadline, :export_status_poll_ms, 5_000)
       Application.put_env(:threadline, :test_allow_exports, true)
+      Application.put_env(:threadline, :test_operator_scope, true)
 
       on_exit(fn ->
         if original_interval do
@@ -118,6 +125,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Application.delete_env(:threadline, :test_allow_exports)
         else
           Application.put_env(:threadline, :test_allow_exports, original_allow_exports)
+        end
+
+        if is_nil(original_operator_scope) do
+          Application.delete_env(:threadline, :test_operator_scope)
+        else
+          Application.put_env(:threadline, :test_operator_scope, original_operator_scope)
         end
       end)
 
@@ -389,6 +402,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "table" => "ticket_replies",
                  "correlation_id" => "req_ef3"
                }
+      end
+
+      test "scoped carried Timeline context cannot create an unscoped background job", %{
+        conn: conn
+      } do
+        Application.put_env(
+          :threadline,
+          :test_operator_scope,
+          {:ok, %{tenant_id: "tenant-b"}}
+        )
+
+        on_exit(fn -> Application.put_env(:threadline, :test_operator_scope, true) end)
+
+        {:ok, view, html} = live(conn, "/audit/exports?table=tenant_rows")
+
+        refute html =~ "Queue Timeline export"
+        assert html =~ "Use scoped download"
+
+        render_click(view, "queue_timeline_export_context", %{})
+        assert Repo.all(ExportJob, repo_opts()) == []
       end
 
       test "displays existing jobs for the actor", %{conn: conn, actor_ref: actor_ref} do

@@ -272,6 +272,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event(
           "request_background_export",
           _params,
+          %{assigns: %{threadline_exports_enabled: true, threadline_scope: scope}} = socket
+        )
+        when not is_nil(scope) do
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         "Scoped background exports are unavailable. Use a scoped CSV, JSON, or NDJSON download instead."
+       )}
+    end
+
+    def handle_event(
+          "request_background_export",
+          _params,
           %{assigns: %{threadline_exports_enabled: true}} = socket
         ) do
       repo = scope_aware_opts(socket)[:repo] || default_repo()
@@ -503,6 +517,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           base_path={@base_path}
           filter_query={@filter_query}
           export_ready={is_nil(@form_error)}
+          background_export_ready={is_nil(@form_error) and is_nil(@scope)}
         />
       </UI.shell>
       """
@@ -759,7 +774,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               Carry to Exports
             </.link>
             <button
-              :if={@export_ready}
+              :if={@background_export_ready}
               phx-click="request_background_export"
               type="button"
               class="tl-button tl-button--quiet-primary"
