@@ -9,6 +9,7 @@
  *   --reconcile           Present r1≠r2 disagreements; write golden-set.json
  *   --status              Show per-lens N vs the ≥20 bar
  *   --add <cell-id>       Append a cell to the queue (refuses held_out_ids)
+ *   --pair-with <cell-id> Enqueue the --add cell against this distinct cell
  *   --revalidate          Re-queue cells for a specific lens (requires --lens)
  *   --lens <lens>         Scope to a specific lens
  *   --page <ledger_id>    Scope to a specific page
@@ -137,8 +138,8 @@ function renderLensGuide(lens: LensName, pairs: boolean, brief: boolean): void {
 
   if (pairs) {
     console.log(`  Comparing for ${name} — ${g.q}`);
-    console.log("    b better    this screenshot serves the lens better");
-    console.log("    w worse     this one is weaker");
+    console.log("    b better    LEFT serves the lens better than RIGHT");
+    console.log("    w worse     LEFT is weaker than RIGHT");
     console.log("    then  c clear (obvious)  /  s subtle (slight)");
     console.log("  Glance ~2s, trust your gut.");
     return;
@@ -179,6 +180,7 @@ interface RoundItem {
   cell_id: string; // stored for reconcile; NOT shown during labeling
   lens: LensName;
   kind: "single" | "pair";
+  pair_with: string | null; // stored for reconcile; never shown to labeler
   pair_with_token: string | null;
   verdict: "good" | "borderline" | "bad" | "broken" | "better" | "worse";
   margin?: "clear" | "subtle"; // for pair verdicts
@@ -199,8 +201,8 @@ interface GoldenItem {
   lens: LensName;
   kind: "single" | "pair";
   pair_with: string | null;
-  r1: { verdict: string; evidence: string; blind: true };
-  r2: { verdict: string; evidence: string; blind: true };
+  r1: { verdict: string; margin?: "clear" | "subtle"; evidence: string; blind: true };
+  r2: { verdict: string; margin?: "clear" | "subtle"; evidence: string; blind: true };
   kept: boolean;
 }
 
@@ -235,6 +237,14 @@ function ensureDirs(): void {
 function generateToken(index: number, round: "r1" | "r2"): string {
   const prefix = round === "r1" ? "A" : "B";
   return `${prefix}${String(index + 1).padStart(3, "0")}`;
+}
+
+function tokenCount(items: RoundItem[]): number {
+  return items.reduce((count, item) => count + (item.kind === "pair" ? 2 : 1), 0);
+}
+
+function roundItemKey(item: RoundItem): string {
+  return [item.cell_id, item.lens, item.kind, item.pair_with ?? ""].join("::");
 }
 
 /** Return committed scorecard cell IDs from the adapter-owned scorecard root. */
@@ -597,7 +607,7 @@ async function runRound(
     if (labeledQueueIds.has(qi.id)) return false;
     if (opts.lens && qi.lens !== opts.lens) return false;
     if (opts.page && !qi.cell_id.includes(opts.page)) return false;
-    if (opts.pairs && qi.kind !== "pair") return false;
+    if ((qi.kind === "pair") !== opts.pairs) return false;
     return true;
   });
 
@@ -645,15 +655,25 @@ async function runRound(
   }
 
   const verdictKeys = opts.pairs ? ["b", "w"] : ["g", "o", "a", "x"];
+  let tokenIndex = tokenCount(roundFile.items);
 
   for (let idx = 0; idx < toLabel.length; idx++) {
     const qItem = toLabel[idx];
-    const token = generateToken(roundFile.items.length, round);
+    if (
+      qItem.kind === "pair" &&
+      (!qItem.pair_with || qItem.pair_with === qItem.cell_id)
+    ) {
+      throw new Error(`Invalid pair queue item: ${qItem.id}`);
+    }
+
+    const token = generateToken(tokenIndex, round);
+    const pairToken =
+      qItem.kind === "pair" ? generateToken(tokenIndex + 1, round) : null;
 
     console.log(`\n─── [${idx + 1}/${toLabel.length}] Token: ${token} ───────────────────`);
     console.log(`  Lens:    ${qItem.lens}`);
     if (qItem.kind === "pair" && qItem.pair_with) {
-      console.log(`  Kind:    pair (vs ${round === "r1" ? "B" : "A"}${String(roundFile.items.length + 2).padStart(3, "0")})`);
+      console.log(`  Kind:    pair (${token} vs ${pairToken})`);
     } else {
       console.log("  Kind:    single");
     }
@@ -663,10 +683,17 @@ async function runRound(
     renderLensGuide(qItem.lens, opts.pairs, opts.brief);
     console.log("");
 
-    // Show screenshot (masked — no cell_id displayed)
+    // Show screenshot(s), identified only by opaque round tokens.
     const screenshotPath = getScreenshotPath(qItem.cell_id);
     if (screenshotPath) {
+      if (pairToken) console.log(`  LEFT: ${token}`);
       showScreenshot(screenshotPath);
+    }
+
+    if (qItem.kind === "pair" && qItem.pair_with && pairToken) {
+      const pairScreenshotPath = getScreenshotPath(qItem.pair_with);
+      console.log(`  RIGHT: ${pairToken}`);
+      if (pairScreenshotPath) showScreenshot(pairScreenshotPath);
     }
 
     // Verdict prompt
@@ -674,8 +701,8 @@ async function runRound(
     let verdict: RoundItem["verdict"];
     let margin: "clear" | "subtle" | undefined;
 
-    if (opts.pairs) {
-      process.stdout.write("  Better? [b/w]  (Ctrl+C = quit)\n  > ");
+    if (qItem.kind === "pair") {
+      process.stdout.write("  Is LEFT better or worse than RIGHT? [b/w]  (Ctrl+C = quit)\n  > ");
       verdictChar = await promptKeystroke(verdictKeys);
       verdict = (verdictChar === "b" ? "better" : "worse") as RoundItem["verdict"];
 
@@ -706,7 +733,8 @@ async function runRound(
       cell_id: qItem.cell_id, // stored for reconcile; NOT shown to labeler
       lens: qItem.lens,
       kind: qItem.kind,
-      pair_with_token: null, // TODO: wire pair tokens when pair mode is implemented
+      pair_with: qItem.pair_with,
+      pair_with_token: pairToken,
       verdict,
       ...(margin !== undefined ? { margin } : {}),
       evidence,
@@ -718,6 +746,7 @@ async function runRound(
     }
 
     roundFile.items.push(item);
+    tokenIndex += qItem.kind === "pair" ? 2 : 1;
 
     // Save after each label (crash-safe, enables --resume)
     ensureDirs();
@@ -771,40 +800,45 @@ async function runReconcile(): Promise<void> {
   const r1 = readJson<RoundFile>(r1Path);
   const r2 = readJson<RoundFile>(r2Path);
 
-  // Build lookup by cell_id + lens for each round
+  // Include pair identity in the key so distinct comparisons never collapse.
   const r1Map = new Map<string, RoundItem>();
   for (const item of r1.items) {
-    r1Map.set(`${item.cell_id}::${item.lens}`, item);
+    r1Map.set(roundItemKey(item), item);
   }
 
   const r2Map = new Map<string, RoundItem>();
   for (const item of r2.items) {
-    r2Map.set(`${item.cell_id}::${item.lens}`, item);
+    r2Map.set(roundItemKey(item), item);
   }
 
   const agreements: GoldenItem[] = [];
-  const disagreements: Array<{ key: string; r1Item: RoundItem; r2Item: RoundItem }> = [];
+  const disagreements: Array<{ r1Item: RoundItem; r2Item: RoundItem }> = [];
 
   // Compare rounds — keep only items in both rounds
   for (const [key, r1Item] of r1Map) {
     const r2Item = r2Map.get(key);
     if (!r2Item) continue; // r2 didn't label this item
 
-    if (r1Item.verdict === r2Item.verdict) {
+    const marginsAgree =
+      r1Item.kind !== "pair" || r1Item.margin === r2Item.margin;
+
+    if (r1Item.verdict === r2Item.verdict && marginsAgree) {
       // Agreement: include in golden set
       agreements.push({
         id: `gs_${String(agreements.length + 1).padStart(3, "0")}`,
         cell_id: r1Item.cell_id,
         lens: r1Item.lens,
         kind: r1Item.kind,
-        pair_with: null,
+        pair_with: r1Item.pair_with,
         r1: {
           verdict: r1Item.verdict,
+          ...(r1Item.margin ? { margin: r1Item.margin } : {}),
           evidence: r1Item.evidence,
           blind: true,
         },
         r2: {
           verdict: r2Item.verdict,
+          ...(r2Item.margin ? { margin: r2Item.margin } : {}),
           evidence: r2Item.evidence,
           blind: true,
         },
@@ -812,7 +846,7 @@ async function runReconcile(): Promise<void> {
       });
     } else {
       // Disagreement: queue for human tiebreak
-      disagreements.push({ key, r1Item, r2Item });
+      disagreements.push({ r1Item, r2Item });
     }
   }
 
@@ -830,9 +864,8 @@ async function runReconcile(): Promise<void> {
     );
     console.log("  (r1 and r2 gave different verdicts — keep r1, keep r2, or drop)\n");
 
-    for (const { key, r1Item, r2Item } of disagreements) {
-      const cellParts = key.split("::");
-      const lens = cellParts[1];
+    for (const { r1Item, r2Item } of disagreements) {
+      const lens = r1Item.lens;
       console.log(
         `\n  Disagreement: lens=${lens}`,
       );
@@ -844,6 +877,10 @@ async function runReconcile(): Promise<void> {
       // Show screenshot
       const screenshotPath = getScreenshotPath(r1Item.cell_id);
       if (screenshotPath) showScreenshot(screenshotPath);
+      if (r1Item.kind === "pair" && r1Item.pair_with) {
+        const pairScreenshotPath = getScreenshotPath(r1Item.pair_with);
+        if (pairScreenshotPath) showScreenshot(pairScreenshotPath);
+      }
 
       console.log("  Keep: 1=r1  2=r2  d=drop   [Ctrl+C = quit]");
       process.stdout.write("  > ");
@@ -855,9 +892,9 @@ async function runReconcile(): Promise<void> {
           cell_id: r1Item.cell_id,
           lens: r1Item.lens,
           kind: r1Item.kind,
-          pair_with: null,
-          r1: { verdict: r1Item.verdict, evidence: r1Item.evidence, blind: true },
-          r2: { verdict: r2Item.verdict, evidence: r2Item.evidence, blind: true },
+          pair_with: r1Item.pair_with,
+          r1: { verdict: r1Item.verdict, ...(r1Item.margin ? { margin: r1Item.margin } : {}), evidence: r1Item.evidence, blind: true },
+          r2: { verdict: r2Item.verdict, ...(r2Item.margin ? { margin: r2Item.margin } : {}), evidence: r2Item.evidence, blind: true },
           kept: true,
         });
         console.log("  Kept r1 verdict.");
@@ -867,9 +904,9 @@ async function runReconcile(): Promise<void> {
           cell_id: r1Item.cell_id,
           lens: r1Item.lens,
           kind: r1Item.kind,
-          pair_with: null,
-          r1: { verdict: r1Item.verdict, evidence: r1Item.evidence, blind: true },
-          r2: { verdict: r2Item.verdict, evidence: r2Item.evidence, blind: true },
+          pair_with: r1Item.pair_with,
+          r1: { verdict: r1Item.verdict, ...(r1Item.margin ? { margin: r1Item.margin } : {}), evidence: r1Item.evidence, blind: true },
+          r2: { verdict: r2Item.verdict, ...(r2Item.margin ? { margin: r2Item.margin } : {}), evidence: r2Item.evidence, blind: true },
           kept: true,
         });
         console.log("  Kept r2 verdict.");
@@ -969,20 +1006,33 @@ function runStatus(): void {
 
 // ── Add cell ──────────────────────────────────────────────────────────────────
 
-function runAdd(cellId: string, lens: LensName | undefined): void {
+function runAdd(
+  cellId: string,
+  lens: LensName | undefined,
+  pairWith: string | null,
+): void {
   const held = heldOutIds();
-  if (held.includes(cellId)) {
+  const requestedCells = pairWith ? [cellId, pairWith] : [cellId];
+
+  if (pairWith === cellId) {
+    console.error("\n[critic label] ERROR: A pair requires two distinct cells.");
+    process.exit(1);
+  }
+
+  const heldCell = requestedCells.find((id) => held.includes(id));
+  if (heldCell) {
     console.error(
-      `\n[critic label] ERROR: ${cellId} is in held_out_ids — Phase-196 true-north.`,
+      `\n[critic label] ERROR: ${heldCell} is in held_out_ids — Phase-196 true-north.`,
     );
     console.error("  Held-out cells cannot be labeled (T-195-23).");
     process.exit(1);
   }
 
   const allCells = committedCellIds();
-  if (!allCells.includes(cellId)) {
+  const missingCell = requestedCells.find((id) => !allCells.includes(id));
+  if (missingCell) {
     console.error(
-      `\n[critic label] ERROR: ${cellId} not found in ${scorecardsDir}.`,
+      `\n[critic label] ERROR: ${missingCell} not found in ${scorecardsDir}.`,
     );
     console.error("  Only committed Tier-A scorecard cells can be enqueued.");
     process.exit(1);
@@ -997,15 +1047,21 @@ function runAdd(cellId: string, lens: LensName | undefined): void {
   let added = 0;
 
   for (const l of lensesToAdd) {
-    const key = `${cellId}::${l}`;
-    const exists = queue.items.some((i) => `${i.cell_id}::${i.lens}` === key);
+    const kind: QueueItem["kind"] = pairWith ? "pair" : "single";
+    const exists = queue.items.some(
+      (item) =>
+        item.cell_id === cellId &&
+        item.lens === l &&
+        item.kind === kind &&
+        item.pair_with === pairWith,
+    );
     if (!exists) {
       queue.items.push({
         id: `q_${String(queue.items.length + 1).padStart(3, "0")}`,
         cell_id: cellId,
         lens: l,
-        kind: "single",
-        pair_with: null,
+        kind,
+        pair_with: pairWith,
         queue_order: queue.items.length,
         source: "manual",
       });
@@ -1015,7 +1071,9 @@ function runAdd(cellId: string, lens: LensName | undefined): void {
 
   writeJson(queuePath, queue);
   console.log(
-    `[critic label] Added ${added} item${added === 1 ? "" : "s"} for ${cellId} to queue.`,
+    pairWith
+      ? `[critic label] Added ${added} pair${added === 1 ? "" : "s"} for ${cellId} vs ${pairWith} to queue.`
+      : `[critic label] Added ${added} item${added === 1 ? "" : "s"} for ${cellId} to queue.`,
   );
 }
 
@@ -1098,6 +1156,12 @@ function printEmptyState(): void {
   );
   console.log("          npm run critic:label -- --bootstrap");
   console.log("");
+  console.log("  Optional pair workflow (two distinct, non-held-out cells):");
+  console.log(
+    "          npm run critic:label -- --add <left-cell> --pair-with <right-cell> --pairs --lens hierarchy",
+  );
+  console.log("          npm run critic:label -- --round r1 --pairs");
+  console.log("");
   console.log("  Step 2: Label round 1 (keystroke-driven, ~20 min for the poles):");
   console.log("          npm run critic:label -- --round r1");
   console.log(`          git add ${repoRelative(r1Path)} && git commit`);
@@ -1130,6 +1194,7 @@ export async function runLabel(argv: string[]): Promise<void> {
   let reconcile = false;
   let status = false;
   let addCellId: string | null = null;
+  let pairWithCellId: string | null = null;
   let revalidate = false;
   let lens: LensName | undefined;
   let page: string | undefined;
@@ -1160,6 +1225,9 @@ export async function runLabel(argv: string[]): Promise<void> {
         break;
       case "--add":
         addCellId = argv[++i];
+        break;
+      case "--pair-with":
+        pairWithCellId = argv[++i];
         break;
       case "--revalidate":
         revalidate = true;
@@ -1192,6 +1260,11 @@ export async function runLabel(argv: string[]): Promise<void> {
   }
 
   // Dispatch
+  if (pairWithCellId && !addCellId) {
+    console.error("--pair-with requires --add <cell-id>");
+    process.exit(1);
+  }
+
   if (bootstrap) {
     runBootstrap({ lens, page });
     return;
@@ -1203,7 +1276,15 @@ export async function runLabel(argv: string[]): Promise<void> {
   }
 
   if (addCellId) {
-    runAdd(addCellId, lens);
+    if (pairs && !pairWithCellId) {
+      console.error("--add with --pairs requires --pair-with <cell-id>");
+      process.exit(1);
+    }
+    if (!pairs && pairWithCellId) {
+      console.error("--pair-with requires --pairs");
+      process.exit(1);
+    }
+    runAdd(addCellId, lens, pairWithCellId);
     return;
   }
 
