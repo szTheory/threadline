@@ -208,23 +208,21 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
       end
     end
 
-    test "classic protection falls back to GraphQL when REST denies the Actions token" do
+    test "classic protection falls back to branch metadata when REST denies the Actions token" do
       verifier = Path.expand("../../bin/verify-branch-protection", __DIR__)
 
       scenarios = [
-        {"absent", ~s({"data":{"repository":{"branchProtectionRules":{"nodes":[]}}}}), 0, 0},
-        {"present",
-         ~s({"data":{"repository":{"branchProtectionRules":{"nodes":[{"matchingRefs":{"totalCount":1}}]}}}}),
-         0, 1},
+        {"absent", ~s({"protected":true,"protection":{"enabled":false}}), 0, 0},
+        {"present", ~s({"protected":true,"protection":{"enabled":true}}), 0, 1},
         {"unreadable", "not-json", 0, 1},
         {"api-error", "", 1, 1}
       ]
 
-      for {scenario, graphql_response, graphql_exit, expected_exit} <- scenarios do
+      for {scenario, branch_response, branch_exit, expected_exit} <- scenarios do
         fake_bin =
           Path.join(
             System.tmp_dir!(),
-            "branch_protection_graphql_#{scenario}_#{System.unique_integer([:positive])}"
+            "branch_protection_metadata_#{scenario}_#{System.unique_integer([:positive])}"
           )
 
         File.mkdir_p!(fake_bin)
@@ -239,7 +237,7 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
             *"commits/main"*) printf '%s' 'abc123' ;;
             *"check-runs"*) printf '%s' '{"check_runs":[{"name":"CI required"}]}' ;;
             *"branches/main/protection"*) printf 'HTTP/2.0 403 Forbidden\\r\\n\\r\\n'; exit 1 ;;
-            *"api graphql"*) printf '%s' '#{graphql_response}'; exit #{graphql_exit} ;;
+            *"branches/main"*) printf '%s' '#{branch_response}'; exit #{branch_exit} ;;
             *) exit 2 ;;
           esac
           """
