@@ -30,6 +30,36 @@ defmodule Threadline.Export.CleanupTest do
     end
   end
 
+  defmodule FailOnceDeleteStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, opts \\ []), do: Threadline.Storage.Local.put(content, opts)
+
+    @impl true
+    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+
+    @impl true
+    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+
+    @impl true
+    def download_url(file_id, opts \\ []),
+      do: Threadline.Storage.Local.download_url(file_id, opts)
+
+    @impl true
+    def delete(file_id) do
+      if Application.get_env(:threadline, :test_fail_export_delete_once, false) do
+        Application.put_env(:threadline, :test_fail_export_delete_once, false)
+        {:error, :transient_storage_failure}
+      else
+        Threadline.Storage.Local.delete(file_id)
+      end
+    end
+  end
+
   setup do
     {:ok, _} = Application.ensure_all_started(:threadline)
     previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
@@ -193,6 +223,33 @@ defmodule Threadline.Export.CleanupTest do
       refute Repo.get(ExportJob, job_id, repo_opts("audit"))
       assert Repo.get(ExportJob, job_id, repo_opts())
       assert {:error, :not_found} = Threadline.Storage.Local.path(expired_file_id)
+    end
+
+    test "retains an expired job until backing object deletion succeeds" do
+      Application.put_env(:threadline, :storage_adapter, FailOnceDeleteStorage)
+      Application.put_env(:threadline, :test_fail_export_delete_once, true)
+      on_exit(fn -> Application.delete_env(:threadline, :test_fail_export_delete_once) end)
+
+      file_id = "retry_delete.csv"
+      assert {:ok, ^file_id} = Threadline.Storage.Local.put("sensitive", file_id: file_id)
+
+      job =
+        insert_job!(%{
+          status: "completed",
+          query_params: %{},
+          file_path: file_id,
+          expires_at: DateTime.add(DateTime.utc_now(), -1, :hour)
+        })
+
+      state = %{repo: Repo, interval_ms: :timer.hours(1)}
+
+      assert {:noreply, ^state} = CleanupTask.handle_info(:run_cleanup, state)
+      assert Repo.get!(ExportJob, job.id, repo_opts())
+      assert {:ok, "sensitive"} = Threadline.Storage.Local.get(file_id)
+
+      assert {:noreply, ^state} = CleanupTask.handle_info(:run_cleanup, state)
+      refute Repo.get(ExportJob, job.id, repo_opts())
+      assert {:error, :not_found} = Threadline.Storage.Local.path(file_id)
     end
   end
 

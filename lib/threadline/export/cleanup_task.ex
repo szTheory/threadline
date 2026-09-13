@@ -88,15 +88,30 @@ defmodule Threadline.Export.CleanupTask do
 
     expired_jobs = repo.all(query, storage_opts)
 
-    for job <- expired_jobs do
-      if job.file_path do
-        storage_adapter =
-          Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
+    Enum.each(expired_jobs, fn job ->
+      case delete_backing_object(job) do
+        :ok ->
+          repo.delete!(job, storage_opts)
 
-        storage_adapter.delete(job.file_path)
+        {:error, reason} ->
+          Logger.warning(
+            "retaining expired export job #{job.id} because backing object deletion failed: #{inspect(reason)}"
+          )
       end
+    end)
+  end
 
-      repo.delete!(job, storage_opts)
+  defp delete_backing_object(%ExportJob{file_path: nil}), do: :ok
+
+  defp delete_backing_object(%ExportJob{file_path: file_path}) do
+    storage_adapter =
+      Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
+
+    case storage_adapter.delete(file_path) do
+      :ok -> :ok
+      {:error, reason} when reason in [:enoent, :not_found] -> :ok
+      {:error, reason} -> {:error, reason}
+      other -> {:error, {:unexpected_delete_result, other}}
     end
   end
 
