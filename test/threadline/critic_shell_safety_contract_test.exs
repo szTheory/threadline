@@ -23,8 +23,15 @@ defmodule Threadline.CriticShellSafetyContractTest do
 
     assert label =~ ~S|execFileSync("open", [screenshotPath]|
 
-    assert label =~
-             ~S|["-C", repoRoot, "status", "--porcelain", "--", repoRelative(r1Path)]|
+    assert Regex.match?(
+             ~r/execFileSync\(\s*"git",\s*\[\s*"-C",\s*repositoryRoot,\s*"ls-files",\s*"--error-unmatch",\s*"--",\s*relativePath\s*\]/s,
+             label
+           )
+
+    assert Regex.match?(
+             ~r/execFileSync\(\s*"git",\s*\[\s*"-C",\s*repositoryRoot,\s*"status",\s*"--porcelain",\s*"--",\s*relativePath,?\s*\]/s,
+             label
+           )
 
     assert label_web =~ ~S|execFileSync("open", [uri]|
   end

@@ -28,7 +28,7 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
       "has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)"
     ],
     "lib/threadline/export/orchestrator.ex" => [
-      "storage.put(temp_path)"
+      "storage.put(csv_content)"
     ]
   }
 

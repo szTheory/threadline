@@ -489,7 +489,10 @@ Adapter initialization runs during application startup when a host repository is
 
 Source: internal `Threadline.Export.Orchestrator`.
 
-Large exports avoid holding the complete result in memory. They stream ordered rows to a temporary file, delegate persistence, clean up locally, and mark the job completed or failed.
+Large exports stream ordered database rows to a temporary file so query results are
+not accumulated in memory. Once the file is complete, the orchestrator reads its
+bytes for the portable storage-adapter contract, delegates persistence, cleans up
+locally, and marks the job completed or failed.
 
 ```elixir
 res =
@@ -509,10 +512,7 @@ res =
 
       File.close(file)
 
-      case storage.put(temp_path) do
-        {:ok, file_path} -> file_path
-        {:error, reason} -> repo.rollback({:storage_error, reason})
-      end
+      :written
     end,
     timeout: :infinity
   )
@@ -520,9 +520,11 @@ res =
 # ...
 
 case res do
-  {:ok, file_path} ->
-    mark_completed(repo, job, file_path, storage_opts)
-    :ok
+  {:ok, :written} ->
+    with {:ok, csv_content} <- File.read(temp_path),
+         {:ok, file_path} <- storage.put(csv_content) do
+      mark_completed(repo, job, file_path, storage_opts)
+    end
 
   {:error, reason} ->
     mark_failed(repo, job, inspect(reason), storage_opts)
