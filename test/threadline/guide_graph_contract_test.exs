@@ -126,6 +126,7 @@ defmodule Threadline.GuideGraphContractTest do
     owner = "guides/operator-surface.md"
 
     routed_references = [
+      "README.md",
       "guides/configuration-and-commands.md",
       "examples/threadline_phoenix/README.md"
     ]

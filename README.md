@@ -81,31 +81,14 @@ Verify, and Prove workflows, with no asset build step. Mounting is fail-closed:
 the host supplies authentication and authorization, and must declare the
 optional Phoenix surface dependencies. The Threadline UI currently ships as an
 optional in-tree dependency; the [Operator Surface guide](guides/operator-surface.md)
-owns its screen inventory and the [Upgrade Path](guides/upgrade-path.md) owns its
-support guarantees.
+is the sole owner for the supported `threadline_operator_surface/2` mount,
+authentication callbacks, screen inventory, and mount-specific configuration.
+The [Upgrade Path](guides/upgrade-path.md) owns its support guarantees.
 
 Daytime and bright-environment teams can mount with `theme: :system` to
 auto-follow each operator's OS light/dark preference (pure CSS, no JS); see the
 [Operator Surface guide](guides/operator-surface.md#theme) for the full
 `:dark | :light | :system` triad.
-
-**1-Minute Mount**
-
-```elixir
-defmodule MyAppWeb.Router do
-  use MyAppWeb, :router
-  import Threadline.OperatorSurface.Router
-
-  # Must pipe through your own authentication
-  scope "/audit", MyAppWeb do
-    pipe_through [:browser, :require_authenticated_admin]
-
-    threadline_operator_surface "/",
-      actor_fn: &MyApp.Audit.current_actor/1,
-      authorize_fn: &MyApp.Audit.authorize_operator/1
-  end
-end
-```
 
 Continue with the [canonical first-hour Phoenix walkthrough](guides/getting-started-saas.md),
 then use the [Operator Surface guide](guides/operator-surface.md) for fail-closed
