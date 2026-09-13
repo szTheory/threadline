@@ -61,8 +61,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _params,
           %{assigns: %{threadline_exports_enabled: true}} = socket
         ) do
-      case {socket.assigns[:threadline_scope], socket.assigns.timeline_export_context} do
-        {scope, _context} when not is_nil(scope) ->
+      case {
+        socket.assigns[:threadline_scope],
+        socket.assigns[:threadline_export_scope],
+        socket.assigns.timeline_export_context
+      } do
+        {scope, export_scope, _context}
+        when not is_nil(scope) or not is_nil(export_scope) ->
           {:noreply,
            put_flash(
              socket,
@@ -70,7 +75,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              "Scoped background exports are unavailable. Return to Timeline and use a scoped CSV, JSON, or NDJSON download."
            )}
 
-        {nil, %{status: :valid, query_params: query_params}} when query_params != %{} ->
+        {nil, nil, %{status: :valid, query_params: query_params}} when query_params != %{} ->
           repo = resolve_repo(socket)
 
           storage_schema = StorageSchema.get()
@@ -193,7 +198,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <button
                       :if={
                         @timeline_export_context.status == :valid and
-                          is_nil(assigns[:threadline_scope])
+                          is_nil(assigns[:threadline_scope]) and
+                          is_nil(assigns[:threadline_export_scope])
                       }
                       type="button"
                       phx-click="queue_timeline_export_context"
@@ -205,7 +211,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <.link
                       :if={
                         @timeline_export_context.status == :valid and
-                          not is_nil(assigns[:threadline_scope])
+                          (not is_nil(assigns[:threadline_scope]) or
+                             not is_nil(assigns[:threadline_export_scope]))
                       }
                       navigate={"#{@base_path}/timeline?#{FilterParams.canonical_query(@timeline_export_context.query_params)}"}
                       class="tl-button tl-button--compact tl-button--secondary"

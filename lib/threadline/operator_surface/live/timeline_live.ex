@@ -272,9 +272,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event(
           "request_background_export",
           _params,
-          %{assigns: %{threadline_exports_enabled: true, threadline_scope: scope}} = socket
+          %{
+            assigns: %{
+              threadline_exports_enabled: true,
+              threadline_scope: scope,
+              threadline_export_scope: export_scope
+            }
+          } = socket
         )
-        when not is_nil(scope) do
+        when not is_nil(scope) or not is_nil(export_scope) do
       {:noreply,
        put_flash(
          socket,
@@ -517,7 +523,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           base_path={@base_path}
           filter_query={@filter_query}
           export_ready={is_nil(@form_error)}
-          background_export_ready={is_nil(@form_error) and is_nil(@scope)}
+          background_export_ready={
+            is_nil(@form_error) and is_nil(@scope) and
+              is_nil(assigns[:threadline_export_scope])
+          }
         />
       </UI.shell>
       """

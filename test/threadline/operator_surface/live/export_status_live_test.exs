@@ -424,6 +424,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Repo.all(ExportJob, repo_opts()) == []
       end
 
+      test "export-specific scope cannot create an unscoped background job", %{conn: conn} do
+        Application.put_env(
+          :threadline,
+          :test_allow_exports,
+          {:ok, %{tenant_id: "tenant-export-scope"}}
+        )
+
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_exports, true) end)
+
+        {:ok, view, html} = live(conn, "/audit/exports?table=tenant_rows")
+
+        refute html =~ "Queue Timeline export"
+        assert html =~ "Use scoped download"
+
+        render_click(view, "queue_timeline_export_context", %{})
+        assert Repo.all(ExportJob, repo_opts()) == []
+      end
+
       test "displays existing jobs for the actor", %{conn: conn, actor_ref: actor_ref} do
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 

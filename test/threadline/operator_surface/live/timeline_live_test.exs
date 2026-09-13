@@ -108,7 +108,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_actor",
         actor_fn: &__MODULE__.actor_fn/1,
-        authorize_fn: &__MODULE__.auth/1
+        authorize_fn: &__MODULE__.auth/1,
+        export_authorize_fn: &__MODULE__.export_auth/1
       )
     end
 
@@ -124,6 +125,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def auth(_socket), do: :ok
+
+    def export_auth(_socket) do
+      Application.get_env(:threadline, :test_timeline_export_auth, :ok)
+    end
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.Endpoint do
@@ -1516,6 +1521,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert view.name == "Actor View"
       assert view.filters["table"] == "posts"
       assert view.actor_ref == %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"}
+    end
+
+    test "export-specific scope hides and rejects background exports", %{conn: conn} do
+      Application.put_env(
+        :threadline,
+        :test_timeline_export_auth,
+        {:ok, %{tenant_id: "tenant-export-scope"}}
+      )
+
+      on_exit(fn -> Application.delete_env(:threadline, :test_timeline_export_auth) end)
+
+      {:ok, lv, html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
+
+      refute html =~ "Queue export"
+      assert html =~ ~s|href="/audit_actor/exports/changes.csv?|
+
+      render_click(lv, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
   end
 
