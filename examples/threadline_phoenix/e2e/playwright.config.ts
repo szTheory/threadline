@@ -106,7 +106,7 @@ const projects = [
           name: "desktop-chromium-light",
           testMatch: [
             /operator-(accessibility|motion|screenshots|screenshot-regression|stress)\.spec\.ts/,
-            /operator-shell-home-phase183\.spec\.ts/,
+            /operator-shell-home\.spec\.ts/,
             /operator-coverage-readiness\.spec\.ts/,
             /operator-storybook\.spec\.ts/,
             /operator-timeline-investigation-flow\.spec\.ts/,
