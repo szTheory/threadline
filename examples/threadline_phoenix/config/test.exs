@@ -16,6 +16,9 @@ config :threadline_phoenix, ThreadlinePhoenix.Repo,
   hostname: System.get_env("DB_HOST", "localhost"),
   port: System.get_env("DB_PORT", "5432") |> String.to_integer(),
   database: "threadline_phoenix_test#{System.get_env("MIX_TEST_PARTITION")}",
+  # Reap clients abandoned while idle inside a transaction so their locks cannot
+  # wedge later deterministic demo resets. Active queries are unaffected.
+  parameters: [idle_in_transaction_session_timeout: "60000"],
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2,
   timeout: 60_000,
