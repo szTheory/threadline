@@ -625,7 +625,12 @@ Plans:
   3. Any text change that does move a measured value is absorbed by narrowing the offending check to be text-length-invariant, or by a registered whitelist entry of at most three named nodes carrying the measured delta and a stated expiry — **never** by regenerating a capture this environment cannot reproduce. (RENDER-05)
   4. No operator page's element structure, layout, or visual appearance changes — node count, tag, classes, and nesting stay byte-identical; only text content and non-visual attributes differ. (RENDER-06)
 
-**Plans**: TBD (est. 3 — Tier 1 attribute/comment/filename removal · Tier 2 text-only renames · whitelist-or-narrow resolution if the probe says text matters)
+**Plans**: 3 plans across 3 execution waves
+
+Plans:
+- [ ] 201-01-PLAN.md — Guard accepted landed copy/CSS, record immutable pre-edit evidence, and durably rename the shell browser spec.
+- [ ] 201-02-PLAN.md — Remove exactly 21 provenance attributes while migrating all LiveView and browser consumers to behavioral semantics.
+- [ ] 201-03-PLAN.md — Durably rename the two residual root tests and seal structural, corpus, browser, mechanical, and CI evidence for Phase 202.
 
 **Notes carried from the approved plan:**
 
