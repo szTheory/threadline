@@ -222,9 +222,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <section class="tl-home__earned-flow" aria-label="Go straight to an audited record">
             <div
               class="tl-home__earned-panel"
-              data-earned-flow="EF1"
-              data-persona="P2"
-              data-jtbd="J4"
             >
               <div class="tl-home__earned-copy">
                 <span class="tl-home__card-kicker">Record</span>
@@ -262,9 +259,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             <div
               class="tl-home__earned-panel"
-              data-earned-flow="EF4"
-              data-persona="P1"
-              data-jtbd="J1"
             >
               <div class="tl-home__earned-copy">
                 <span class="tl-home__card-kicker">Correlation</span>
