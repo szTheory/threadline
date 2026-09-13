@@ -165,7 +165,6 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
 
       for {http_status, gh_exit, expected_exit} <- [
             {404, 1, 0},
-            {403, 1, 1},
             {429, 1, 1},
             {500, 1, 1},
             {503, 1, 1}
@@ -206,6 +205,59 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
 
         File.rm_rf!(fake_bin)
         assert exit_status == expected_exit, "HTTP #{http_status} produced exit #{exit_status}"
+      end
+    end
+
+    test "classic protection falls back to GraphQL when REST denies the Actions token" do
+      verifier = Path.expand("../../bin/verify-branch-protection", __DIR__)
+
+      scenarios = [
+        {"absent", ~s({"data":{"repository":{"branchProtectionRules":{"nodes":[]}}}}), 0, 0},
+        {"present",
+         ~s({"data":{"repository":{"branchProtectionRules":{"nodes":[{"matchingRefs":{"totalCount":1}}]}}}}),
+         0, 1},
+        {"unreadable", "not-json", 0, 1},
+        {"api-error", "", 1, 1}
+      ]
+
+      for {scenario, graphql_response, graphql_exit, expected_exit} <- scenarios do
+        fake_bin =
+          Path.join(
+            System.tmp_dir!(),
+            "branch_protection_graphql_#{scenario}_#{System.unique_integer([:positive])}"
+          )
+
+        File.mkdir_p!(fake_bin)
+        fake_gh = Path.join(fake_bin, "gh")
+
+        File.write!(
+          fake_gh,
+          """
+          #!/usr/bin/env bash
+          case "$*" in
+            *"rules/branches/main"*) printf '%s' '[{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"CI required"}]}}]' ;;
+            *"commits/main"*) printf '%s' 'abc123' ;;
+            *"check-runs"*) printf '%s' '{"check_runs":[{"name":"CI required"}]}' ;;
+            *"branches/main/protection"*) printf 'HTTP/2.0 403 Forbidden\\r\\n\\r\\n'; exit 1 ;;
+            *"api graphql"*) printf '%s' '#{graphql_response}'; exit #{graphql_exit} ;;
+            *) exit 2 ;;
+          esac
+          """
+        )
+
+        File.chmod!(fake_gh, 0o755)
+
+        {_output, exit_status} =
+          System.cmd("bash", [verifier],
+            env: [
+              {"GITHUB_REPOSITORY", "example/threadline"},
+              {"PATH", fake_bin <> ":" <> System.fetch_env!("PATH")}
+            ],
+            stderr_to_stdout: true
+          )
+
+        File.rm_rf!(fake_bin)
+        assert exit_status == expected_exit, "#{scenario} produced exit #{exit_status}"
       end
     end
   end

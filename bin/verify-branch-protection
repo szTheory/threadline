@@ -93,6 +93,12 @@ if [[ "${EMITTED_COUNT:-0}" -lt 1 ]]; then
 fi
 
 # --- Third block: classic branch protection must not be stacking -------------
+#
+# GitHub's REST endpoint requires Administration:read, which the default
+# Actions token cannot request. Prefer it when available (maintainer/local
+# tokens), and on HTTP 403 fall back to GraphQL's read-only repository surface.
+# `matchingRefs` lets the fallback ask whether any classic rule actually
+# applies to main instead of treating unrelated branch patterns as stacking.
 set +e
 CLASSIC_RESPONSE=$(gh api --include --silent \
   "repos/${REPO}/branches/${BRANCH}/protection" \
@@ -106,13 +112,49 @@ else
   CLASSIC_HTTP_STATUS=$(printf '%s\n' "$CLASSIC_RESPONSE" \
     | awk '/^HTTP\/[0-9.]+ [0-9][0-9][0-9]/ { status=$2 } END { print status }')
 
-  if [[ "$CLASSIC_HTTP_STATUS" == "404" ]]; then
-    CLASSIC_STATUS="absent"
-  else
-    echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
-    echo "gh api exited ${CLASSIC_EXIT}; HTTP status: ${CLASSIC_HTTP_STATUS:-unavailable}." >&2
-    exit 1
-  fi
+  case "$CLASSIC_HTTP_STATUS" in
+    404)
+      CLASSIC_STATUS="absent"
+      ;;
+    403)
+      REPO_OWNER=${REPO%%/*}
+      REPO_NAME=${REPO#*/}
+      CLASSIC_GRAPHQL_QUERY='query($owner:String!, $name:String!, $branch:String!) { repository(owner:$owner, name:$name) { branchProtectionRules(first:100) { nodes { matchingRefs(first:1, query:$branch) { totalCount } } } } }'
+
+      set +e
+      CLASSIC_GRAPHQL_RESPONSE=$(gh api graphql \
+        -f query="$CLASSIC_GRAPHQL_QUERY" \
+        -F owner="$REPO_OWNER" \
+        -F name="$REPO_NAME" \
+        -F branch="$BRANCH" 2>&1)
+      CLASSIC_GRAPHQL_EXIT=$?
+      set -e
+
+      if [[ "$CLASSIC_GRAPHQL_EXIT" -ne 0 ]]; then
+        echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
+        echo "REST returned 403 and the GraphQL fallback exited ${CLASSIC_GRAPHQL_EXIT}." >&2
+        exit 1
+      fi
+
+      CLASSIC_MATCH_COUNT=$(printf '%s\n' "$CLASSIC_GRAPHQL_RESPONSE" \
+        | jq -er '[.data.repository.branchProtectionRules.nodes[]? | select(.matchingRefs.totalCount > 0)] | length' 2>/dev/null || true)
+
+      if [[ -z "$CLASSIC_MATCH_COUNT" ]]; then
+        echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
+        echo "REST returned 403 and the GraphQL fallback returned an unreadable response." >&2
+        exit 1
+      elif [[ "$CLASSIC_MATCH_COUNT" -eq 0 ]]; then
+        CLASSIC_STATUS="absent"
+      else
+        CLASSIC_STATUS="present"
+      fi
+      ;;
+    *)
+      echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
+      echo "gh api exited ${CLASSIC_EXIT}; HTTP status: ${CLASSIC_HTTP_STATUS:-unavailable}." >&2
+      exit 1
+      ;;
+  esac
 fi
 
 if [[ "$CLASSIC_STATUS" == "present" ]]; then
