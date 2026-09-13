@@ -136,3 +136,12 @@ Applicable ASVS L1 areas are configuration, error handling, file/content handlin
 | Escalated/manual-only | 1 accepted hosted-UI observation |
 
 All eleven SURFACE requirements have automated contract coverage. The manual-only row records additional hosted-perspective evidence, not a missing behavioral test.
+
+## Post-Execution Regression Evidence
+
+- Root ExUnit suite after the final dependency refresh: `1648 tests, 0 failures, 1 excluded`.
+- Phoenix example suite after the final dependency refresh: `114 tests, 0 failures`.
+- Desktop Chromium project after the final dependency refresh: `160 passed`, `11` capture-only skips, and one `networkidle` retry that led to a deterministic capture-helper repair.
+- Repaired screenshot capture paths on desktop and mobile: `4 passed` without retries.
+- Focused row-history LiveView compatibility suite: `8 tests, 0 failures` with the form-recovery warning removed.
+- Root and example `mix hex.audit`: no retired or security-advisory packages.

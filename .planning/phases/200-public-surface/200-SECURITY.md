@@ -43,6 +43,7 @@ created: "2026-09-13"
 | T-200-11 | Repudiation | contact and response promises | medium | mitigate | SECURITY promises acknowledgment only as practical and distinguishes support, vulnerability, conduct, and abuse routes | closed |
 | T-200-12 | Tampering | hosted GitHub recognition/rendering | medium | transfer | Default-branch API/public-content read-back, 100% community health, green hosted CI, and explicit maintainer acceptance of the login-gated outsider-render residual | closed |
 | T-200-13 | Elevation of privilege | private-reporting setting mutation | low | accept | One authenticated maintainer-scoped enable/read-back; no credentials printed and no other repository setting changed | closed |
+| T-200-14 | Denial of service / information disclosure | Hex dependency graph in the library and Phoenix example | high | mitigate | Upgrade every advisory-flagged package to a fixed release, including the Ecto 3.14 / Decimal 3 compatibility line and ExAws 2.7 / Hackney 4 transport line; require clean root and example `mix hex.audit` results plus regression suites | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 
@@ -72,6 +73,8 @@ created: "2026-09-13"
 - GitHub reports community health 100% and private vulnerability reporting enabled.
 - SECURITY routes only to the private-advisory endpoint; CODE_OF_CONDUCT routes private abuse to GitHub Report Abuse.
 - GitHub's legacy community-profile `files.issue_template issue_template` field remains `null` for the YAML forms despite the 100% profile. This external inconsistency and the separate-account UI limitation are retained as accepted evidence constraints, not hidden.
+- Root and example dependency locks were refreshed to fixed releases after the closeout gate surfaced 2026 Hex advisories. Both `mix hex.audit` runs now report `No retired or security advisory packages found`.
+- Post-upgrade regression evidence: root `1648 tests, 0 failures, 1 excluded`; Phoenix example `114 tests, 0 failures`; focused row-history LiveView tests `8 tests, 0 failures`; and the desktop Chromium browser project passed after the final dependency graph refresh.
 
 ---
 
@@ -79,7 +82,7 @@ created: "2026-09-13"
 
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
-| 2026-09-13 | 13 | 13 | 0 | Codex / maintainer-approved hosted disposition |
+| 2026-09-13 | 14 | 14 | 0 | Codex / maintainer-approved hosted disposition |
 
 ---
 
