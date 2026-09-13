@@ -74,6 +74,21 @@ defmodule Threadline.Export.OrchestratorTest do
     assert {:ok, _content} = Local.get(updated_job.file_path)
   end
 
+  test "only one concurrent worker atomically claims a pending export", %{job: job} do
+    tasks =
+      for _ <- 1..2 do
+        Task.async(fn -> Orchestrator.run(job.id, repo: Repo) end)
+      end
+
+    results = tasks |> Enum.map(&Task.await(&1, 5_000)) |> Enum.sort()
+
+    assert results == [:ok, {:error, :not_claimable}]
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "completed"
+    assert {:ok, _content} = Local.get(updated_job.file_path)
+  end
+
   test "replays persisted string date params and stores only rows inside the requested window" do
     insert_change!("outside-before", ~U[2026-04-30 23:59:59Z])
     insert_change!("inside-start", ~U[2026-05-01 00:00:00Z])

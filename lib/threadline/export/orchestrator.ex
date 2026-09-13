@@ -4,6 +4,7 @@ defmodule Threadline.Export.Orchestrator do
   """
 
   require Logger
+  import Ecto.Query, only: [from: 2]
 
   alias Threadline.Export
   alias Threadline.Governance.ExportJob
@@ -90,14 +91,28 @@ defmodule Threadline.Export.Orchestrator do
   end
 
   defp fetch_and_mark_running(repo, job_id, storage_opts) do
-    job = repo.get!(ExportJob, job_id, storage_opts)
+    started_at = now()
 
-    Ecto.Changeset.change(job, %{
-      status: "running",
-      started_at: now(),
-      error_message: nil
-    })
-    |> repo.update(storage_opts)
+    claim_query =
+      from(j in ExportJob,
+        where: j.id == ^job_id and j.status == "pending"
+      )
+
+    case repo.update_all(
+           claim_query,
+           [
+             set: [
+               status: "running",
+               started_at: started_at,
+               error_message: nil,
+               updated_at: DateTime.truncate(started_at, :second)
+             ]
+           ],
+           storage_opts
+         ) do
+      {1, _rows} -> {:ok, repo.get!(ExportJob, job_id, storage_opts)}
+      {0, _rows} -> {:error, :not_claimable}
+    end
   end
 
   defp mark_completed(repo, job, file_path, storage_opts) do
