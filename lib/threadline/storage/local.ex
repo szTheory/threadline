@@ -22,15 +22,20 @@ defmodule Threadline.Storage.Local do
 
   @behaviour Threadline.Storage
 
+  @allowed_extensions MapSet.new([".csv"])
+  @invalid_file_id_chars ~r{[/\\\x00-\x1F\x7F]}
+
   @impl true
   def init(_opts), do: :ok
 
   @impl true
   def put(content, opts \\ []) do
     file_id = Keyword.get_lazy(opts, :file_id, fn -> Ecto.UUID.generate() <> ".csv" end)
-    path = local_path(file_id)
 
-    with :ok <- File.mkdir_p(Path.dirname(path)) do
+    with {:ok, path} <- resolve_path(file_id),
+         :ok <- File.mkdir_p(export_root()),
+         :ok <- reject_symlink(export_root()),
+         :ok <- reject_symlink(path) do
       if is_binary(content) and File.regular?(content) do
         case File.cp(content, path) do
           :ok -> {:ok, file_id}
@@ -47,17 +52,19 @@ defmodule Threadline.Storage.Local do
 
   @impl true
   def get(file_id) do
-    File.read(local_path(file_id))
+    with {:ok, path} <- resolve_path(file_id) do
+      File.read(path)
+    end
   end
 
   @impl true
   def path(file_id) do
-    path = local_path(file_id)
-
-    if File.exists?(path) do
-      {:ok, Path.expand(path)}
-    else
-      {:error, :not_found}
+    with {:ok, path} <- resolve_path(file_id) do
+      if File.exists?(path) do
+        {:ok, path}
+      else
+        {:error, :not_found}
+      end
     end
   end
 
@@ -68,20 +75,67 @@ defmodule Threadline.Storage.Local do
 
   @impl true
   def delete(file_id) do
-    case File.rm(local_path(file_id)) do
-      :ok -> :ok
-      {:error, :enoent} -> :ok
-      error -> error
+    with {:ok, path} <- resolve_path(file_id) do
+      case File.rm(path) do
+        :ok -> :ok
+        {:error, :enoent} -> :ok
+        error -> error
+      end
     end
   end
 
-  defp local_path(file_id) do
+  defp resolve_path(file_id) when is_binary(file_id) do
+    root = export_root()
+
+    with :ok <- validate_file_id(file_id),
+         candidate <- Path.expand(file_id, root),
+         true <- Path.dirname(candidate) == root,
+         :ok <- reject_symlink(root),
+         :ok <- reject_symlink(candidate) do
+      {:ok, candidate}
+    else
+      false -> {:error, :invalid_file_id}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  defp resolve_path(_file_id), do: {:error, :invalid_file_id}
+
+  defp validate_file_id(file_id) do
+    cond do
+      file_id in ["", ".", ".."] ->
+        {:error, :invalid_file_id}
+
+      Regex.match?(@invalid_file_id_chars, file_id) ->
+        {:error, :invalid_file_id}
+
+      Path.basename(file_id) != file_id ->
+        {:error, :invalid_file_id}
+
+      not MapSet.member?(@allowed_extensions, Path.extname(file_id)) ->
+        {:error, :invalid_file_id}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp reject_symlink(path) do
+    case File.lstat(path) do
+      {:ok, %File.Stat{type: :symlink}} -> {:error, :unsafe_path}
+      {:ok, _stat} -> :ok
+      {:error, :enoent} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp export_root do
     priv_dir =
       case :code.priv_dir(:threadline) do
         path when is_list(path) -> path
         {:error, :bad_name} -> "priv"
       end
 
-    Path.join([to_string(priv_dir), "threadline_exports", file_id])
+    Path.expand(Path.join(to_string(priv_dir), "threadline_exports"))
   end
 end
