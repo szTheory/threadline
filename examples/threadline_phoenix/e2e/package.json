@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "playwright test",
+    "test": "npm run test:unit && playwright test",
     "test:headed": "playwright test --headed",
     "capture:tier-a": "playwright test --project=tier-a-capture --project=tier-a-capture-light operator-tier-a-capture.spec.ts",
     "capture:storybook": "playwright test --project=storybook-capture operator-storybook-capture.spec.ts",
@@ -17,6 +17,7 @@
     "critic:label": "tsx critic/run.ts label",
     "critic:rubric": "tsx critic/run.ts rubric",
     "critic:report:html": "tsx critic/run.ts report --html",
+    "test:unit": "tsx --test support/operator-surface-paths.test.ts critic/label.test.ts",
     "test:paths": "tsx --test support/operator-surface-paths.test.ts",
     "typecheck": "tsc --noEmit"
   },
