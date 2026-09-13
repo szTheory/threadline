@@ -6,6 +6,9 @@ defmodule Threadline.DialyzerSliceContractTest do
   @raw_command "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status"
 
   @tag :live_dialyzer
+  # This test intentionally shells out to the same cold Dialyzer workload whose
+  # hosted-CI budget is nine minutes. Keep that allowance local to this test.
+  @tag timeout: 540_000
   test "committed critic-tooling slice has no live warnings" do
     {output, status} = System.cmd(@script, ["--fixture", @fixture], stderr_to_stdout: true)
 
