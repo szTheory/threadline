@@ -870,6 +870,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
 
+    test "actorless Timeline mounts hide and reject background export actions", %{conn: conn} do
+      {:ok, lv, html} = live(conn, "/audit/timeline?table=posts")
+
+      refute html =~ "Queue export"
+      assert html =~ ~s|href="/audit/exports/changes.csv?|
+
+      render_click(lv, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
+
     test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do
       {:ok, _lv, html} =
         live(

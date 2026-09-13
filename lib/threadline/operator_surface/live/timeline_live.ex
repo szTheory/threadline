@@ -15,6 +15,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.Query
+    alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
     alias Threadline.OperatorSurface.UI
 
@@ -276,7 +277,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             assigns: %{
               threadline_exports_enabled: true,
               threadline_scope: scope,
-              threadline_export_scope: export_scope
+              threadline_export_scope: export_scope,
+              threadline_actor_ref: %ActorRef{}
             }
           } = socket
         )
@@ -292,18 +294,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event(
           "request_background_export",
           _params,
-          %{assigns: %{threadline_exports_enabled: true}} = socket
+          %{
+            assigns: %{
+              threadline_exports_enabled: true,
+              threadline_actor_ref: %ActorRef{} = actor_ref
+            }
+          } = socket
         ) do
       repo = scope_aware_opts(socket)[:repo] || default_repo()
 
-      job = %Threadline.Governance.ExportJob{
-        status: "pending",
-        query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
-        actor_ref: socket.assigns[:threadline_actor_ref]
-      }
+      job_changeset =
+        Threadline.Governance.ExportJob.operator_changeset(%{
+          status: "pending",
+          query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
+          actor_ref: actor_ref
+        })
 
       storage_schema = StorageSchema.get()
-      job = repo.insert!(job, StorageSchema.repo_opts(storage_schema: storage_schema))
+
+      job =
+        repo.insert!(job_changeset, StorageSchema.repo_opts(storage_schema: storage_schema))
 
       adapter =
         Application.get_env(
@@ -525,7 +535,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           export_ready={is_nil(@form_error)}
           background_export_ready={
             is_nil(@form_error) and is_nil(@scope) and
-              is_nil(assigns[:threadline_export_scope])
+              is_nil(assigns[:threadline_export_scope]) and
+              match?(%ActorRef{}, assigns[:threadline_actor_ref])
           }
         />
       </UI.shell>

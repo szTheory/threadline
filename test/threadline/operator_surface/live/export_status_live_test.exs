@@ -150,6 +150,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "export status live view" do
+      test "operator-created export jobs require actor ownership" do
+        changeset =
+          ExportJob.operator_changeset(%{
+            status: "pending",
+            query_params: %{"table" => "ticket_replies"}
+          })
+
+        refute changeset.valid?
+        assert {"can't be blank", _metadata} = changeset.errors[:actor_ref]
+      end
+
       test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/exports")
 
@@ -272,6 +283,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           live(conn, "/audit/exports?table=ticket_replies&correlation_id=req_ef3")
 
         assert html =~ "Export access needed"
+        refute html =~ "Queue Timeline export"
+
+        render_click(view, "queue_timeline_export_context", %{})
+
+        assert Repo.all(ExportJob, repo_opts()) == []
+      end
+
+      test "actorless mounts hide and reject Timeline context queue actions" do
+        conn = build_conn()
+
+        {:ok, view, html} = live(conn, "/audit/exports?table=ticket_replies")
+
         refute html =~ "Queue Timeline export"
 
         render_click(view, "queue_timeline_export_context", %{})

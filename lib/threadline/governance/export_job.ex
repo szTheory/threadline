@@ -35,4 +35,11 @@ defmodule Threadline.Governance.ExportJob do
     ])
     |> validate_required([:status, :query_params])
   end
+
+  @doc false
+  def operator_changeset(job \\ %__MODULE__{}, attrs) do
+    job
+    |> changeset(attrs)
+    |> validate_required([:actor_ref])
+  end
 end

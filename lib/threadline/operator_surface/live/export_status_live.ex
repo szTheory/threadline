@@ -18,6 +18,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
 
     @default_limit 100
@@ -59,7 +60,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event(
           "queue_timeline_export_context",
           _params,
-          %{assigns: %{threadline_exports_enabled: true}} = socket
+          %{
+            assigns: %{
+              threadline_exports_enabled: true,
+              threadline_actor_ref: %ActorRef{} = actor_ref
+            }
+          } = socket
         ) do
       case {
         socket.assigns[:threadline_scope],
@@ -81,11 +87,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           storage_schema = StorageSchema.get()
 
           job =
-            %ExportJob{
+            ExportJob.operator_changeset(%{
               status: "pending",
               query_params: query_params,
-              actor_ref: socket.assigns[:threadline_actor_ref]
-            }
+              actor_ref: actor_ref
+            })
             |> repo.insert!(StorageSchema.repo_opts(storage_schema: storage_schema))
 
           adapter =
@@ -199,7 +205,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       :if={
                         @timeline_export_context.status == :valid and
                           is_nil(assigns[:threadline_scope]) and
-                          is_nil(assigns[:threadline_export_scope])
+                          is_nil(assigns[:threadline_export_scope]) and
+                          match?(%ActorRef{}, assigns[:threadline_actor_ref])
                       }
                       type="button"
                       phx-click="queue_timeline_export_context"
