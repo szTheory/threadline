@@ -48,6 +48,7 @@ defmodule Threadline.OperatorSurface.SessionPlugTest do
     conn = SessionPlug.call(conn, opts)
 
     assert get_session(conn, "threadline_actor_ref") == "{\"id\":\"123\",\"type\":\"user\"}"
+    assert conn.assigns.threadline_actor_ref == actor_ref
   end
 
   test "leaves session unchanged when actor_fn returns nil", %{conn: conn} do

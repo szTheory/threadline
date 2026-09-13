@@ -32,12 +32,16 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         {:ok, uuid} ->
           job = fetch_export_job(repo, uuid, storage_schema)
 
-          if job && job.actor_ref == actor_ref do
-            deliver_export(conn, job)
-          else
-            conn
-            |> put_resp_header("content-type", "text/plain; charset=utf-8")
-            |> send_resp(404, "Export not found")
+          case {job, actor_ref} do
+            {%ExportJob{actor_ref: %Threadline.Semantics.ActorRef{} = owner_actor},
+             %Threadline.Semantics.ActorRef{} = request_actor}
+            when owner_actor == request_actor ->
+              deliver_export(conn, job)
+
+            _ ->
+              conn
+              |> put_resp_header("content-type", "text/plain; charset=utf-8")
+              |> send_resp(404, "Export not found")
           end
 
         :error ->
