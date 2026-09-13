@@ -180,7 +180,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Regex.scan(~r/<h1\b/, html) |> length() == 1
     end
 
-    test "first-class row-history route renders EF2 shell without a transaction id", %{conn: conn} do
+    test "first-class row-history route renders its semantic shell without a transaction id", %{
+      conn: conn
+    } do
       captured_at = ~U[2026-10-03 12:00:00.000000Z]
       txn = insert_transaction(%{occurred_at: captured_at})
 
@@ -192,17 +194,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: captured_at
       })
 
-      assert {:ok, _lv, html} = live(conn, "/audit/rows/ticket_replies/reply-1")
+      assert {:ok, lv, html} = live(conn, "/audit/rows/ticket_replies/reply-1")
 
       assert_single_h1(html, "Row history")
       assert html =~ ~s|class="tl-detail-header|
       assert html =~ "ticket_replies / reply-1"
-      assert html =~ ~s|href="/audit/timeline"|
-      assert html =~ ~s|data-testid="row-history-drawer"|
-      assert html =~ ~s|data-earned-flow="EF2"|
-      assert html =~ ~s|data-persona="P1"|
-      assert html =~ ~s|data-jtbd="J2"|
-      assert html =~ "Row history: ticket_replies / reply-1"
+      assert has_element?(lv, ".threadline-ui #tl-main")
+      assert has_element?(lv, "h1", "Row history")
+      assert has_element?(lv, ~s|a[href="/audit/timeline"]|, "Timeline")
+
+      assert has_element?(
+               lv,
+               ~s|[data-testid="row-history-drawer"]|,
+               "Row history: ticket_replies / reply-1"
+             )
+
+      refute has_element?(lv, "[data-earned-flow]")
+      refute has_element?(lv, "[data-persona]")
+      refute has_element?(lv, "[data-jtbd]")
       assert html =~ "Snapshot as of"
       assert html =~ "Customer-visible answer"
       refute html =~ "/transactions/"
