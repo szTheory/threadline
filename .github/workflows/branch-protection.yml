@@ -11,13 +11,21 @@
 # making it block pull requests would fail contributors for something they did
 # not change and cannot fix.
 #
+# Main-branch verification runs after CI completes. Running both workflows
+# directly from the same push races half (b) of bin/verify-branch-protection:
+# the aggregate `CI required` check is created only after its matrix finishes,
+# so this faster workflow can otherwise report a false failure while CI is
+# still healthy and in progress.
+#
 # The job id `verify-branch-protection` is STABLE and relied on by docs and by
 # `.planning/audits/198-branch-protection-migration.md`. Evolve `name:` freely;
 # do not rename the id.
 name: Branch Protection
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
   schedule:
     # 06:30 UTC daily, ahead of the nightly flake lane.

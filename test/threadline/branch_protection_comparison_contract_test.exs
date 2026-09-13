@@ -129,6 +129,16 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
   end
 
   describe "the verifier delegates to this script" do
+    test "the hosted audit runs after CI so the aggregate check exists" do
+      workflow = File.read!(".github/workflows/branch-protection.yml")
+
+      assert workflow =~ "workflow_run:"
+      assert workflow =~ ~s(workflows: ["CI"])
+      assert workflow =~ "types: [completed]"
+      assert workflow =~ "branches: [main]"
+      refute Regex.match?(~r/^  push:/m, workflow)
+    end
+
     test "bin/verify-branch-protection calls compare-required-contexts" do
       source = File.read!("bin/verify-branch-protection")
 
