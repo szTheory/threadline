@@ -355,16 +355,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     # Audit the operator's request only after authorization and confirmation
     # succeed, and before starting the prune. The backend records completed
-    # deletion totals only after the purge succeeds. The retention runtime is a system actor.
+    # deletion totals only after the purge succeeds.
     defp audit_prune(socket, policy_name) do
-      {:ok, actor} = ActorRef.new(:system, "retention_pruner")
+      case socket.assigns[:threadline_actor_ref] do
+        %ActorRef{} = actor ->
+          Threadline.record_action(:"retention.pruned",
+            repo: resolve_repo(socket),
+            actor: actor,
+            comment: "Operator-triggered retention prune for policy #{policy_name}",
+            storage_schema: StorageSchema.get()
+          )
 
-      Threadline.record_action(:"retention.pruned",
-        repo: resolve_repo(socket),
-        actor: actor,
-        comment: "Operator-triggered retention prune for policy #{policy_name}",
-        storage_schema: StorageSchema.get()
-      )
+        _ ->
+          {:error, :unauthorized}
+      end
     end
 
     defp fetch_runs(socket) do
