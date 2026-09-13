@@ -958,26 +958,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "/audit/timeline?from=2026-05-01T00:00&to=2026-05-06T23:59&table=ticket_replies&correlation_id=req_ef3"
         )
 
-      escaped_query =
-        "from=2026-05-01T00%3A00&amp;to=2026-05-06T23%3A59&amp;table=ticket_replies&amp;correlation_id=req_ef3"
+      query =
+        "from=2026-05-01T00%3A00&to=2026-05-06T23%3A59&table=ticket_replies&correlation_id=req_ef3"
 
       assert has_element?(
                lv,
-               ~s|a[href="/audit/exports?#{escaped_query}"]|,
+               ~s|a[href="/audit/exports?#{query}"]|,
                "Carry to Exports"
              )
 
-      assert has_element?(lv, ~s|a[href="/audit/exports/changes.csv?#{escaped_query}"]|, "CSV")
+      assert has_element?(lv, ~s|a[href="/audit/exports/changes.csv?#{query}"]|, "CSV")
 
       assert has_element?(
                lv,
-               ~s|a[href="/audit/exports/changes.json?#{escaped_query}"]|,
+               ~s|a[href="/audit/exports/changes.json?#{query}"]|,
                "JSON"
              )
 
       assert has_element?(
                lv,
-               ~s|a[href="/audit/exports/changes.ndjson?#{escaped_query}"]|,
+               ~s|a[href="/audit/exports/changes.ndjson?#{query}"]|,
                "NDJSON"
              )
 
