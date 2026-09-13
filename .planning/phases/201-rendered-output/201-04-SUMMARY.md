@@ -60,7 +60,7 @@ coverage:
         ref: "mix verify.mechanical (28 tests)"
         status: pass
     human_judgment: false
-duration: 6min
+duration: 8min
 completed: 2026-09-13
 status: complete
 ---
@@ -71,9 +71,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** 6 min
+- **Duration:** 8 min
 - **Started:** 2026-09-13T20:31:36Z
-- **Completed:** 2026-09-13T20:37:34Z
+- **Completed:** 2026-09-13T20:39:45Z
 - **Tasks:** 1
 - **Files modified:** 5
 
