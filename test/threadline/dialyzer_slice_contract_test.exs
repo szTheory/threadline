@@ -108,10 +108,40 @@ defmodule Threadline.DialyzerSliceContractTest do
     source = File.read!(@script)
     assert committed_fixture()["post_analysis"]["command"] == @raw_command
     refute source =~ ".planning"
+    refute source =~ ":json.decode"
+    assert source =~ "apply(Jason, :decode"
     assert source =~ "mix"
     assert source =~ "dialyzer"
     assert source =~ "--format"
     assert source =~ "raw"
+  end
+
+  test "invalid JSON is rejected through the supported project decoder" do
+    root = Path.dirname(Mix.Project.project_file())
+
+    temp_root =
+      Path.join([
+        root,
+        "_build",
+        "dialyzer-slice-contract",
+        Integer.to_string(System.unique_integer([:positive]))
+      ])
+
+    File.mkdir_p!(temp_root)
+    fixture_path = Path.join(temp_root, "invalid.json")
+    raw_path = Path.join(temp_root, "dialyzer.raw")
+    File.write!(fixture_path, ~S|{"schema_version": 1, }|)
+    File.write!(raw_path, "")
+    on_exit(fn -> File.rm_rf!(temp_root) end)
+
+    assert {output, 1} =
+             System.cmd(
+               @script,
+               ["--fixture", fixture_path, "--raw-output", raw_path],
+               stderr_to_stdout: true
+             )
+
+    assert output =~ "fixture is not valid JSON"
   end
 
   defp committed_fixture do

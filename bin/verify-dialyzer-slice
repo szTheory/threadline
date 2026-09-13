@@ -59,9 +59,58 @@ defmodule Threadline.DialyzerSliceVerifier do
   end
 
   defp decode_json(bytes) do
-    {:ok, :json.decode(bytes)}
-  rescue
-    error -> {:error, "fixture is not valid JSON: #{Exception.message(error)}"}
+    with :ok <- ensure_jason_loaded() do
+      case apply(Jason, :decode, [bytes]) do
+        {:ok, fixture} -> {:ok, fixture}
+        {:error, error} -> {:error, "fixture is not valid JSON: #{Exception.message(error)}"}
+      end
+    end
+  end
+
+  defp ensure_jason_loaded do
+    case Code.ensure_loaded(Jason) do
+      {:module, Jason} ->
+        :ok
+
+      {:error, _reason} ->
+        load_compiled_jason()
+    end
+  end
+
+  defp load_compiled_jason do
+    case Enum.find(jason_ebin_candidates(), &File.dir?/1) do
+      nil ->
+        {:error, "Jason dependency is not compiled; run mix deps.compile jason"}
+
+      ebin ->
+        true = Code.prepend_path(ebin)
+
+        case Code.ensure_loaded(Jason) do
+          {:module, Jason} -> :ok
+          {:error, reason} -> {:error, "cannot load Jason dependency: #{inspect(reason)}"}
+        end
+    end
+  end
+
+  defp jason_ebin_candidates do
+    configured_build_paths =
+      case System.get_env("MIX_BUILD_PATH") do
+        nil -> []
+        path -> [Path.expand(path, @root)]
+      end
+
+    conventional_build_paths =
+      [System.get_env("MIX_ENV", "dev"), "dev", "test", "prod"]
+      |> Enum.uniq()
+      |> Enum.map(&Path.join([@root, "_build", &1]))
+
+    discovered_build_paths = Path.wildcard(Path.join([@root, "_build", "*"]))
+
+    configured_build_paths
+    |> Kernel.++(conventional_build_paths)
+    |> Kernel.++(discovered_build_paths)
+    |> Enum.uniq()
+    |> Enum.map(&Path.join([&1, "lib", "jason", "ebin"]))
   end
 
   defp validate_fixture(fixture) when is_map(fixture) do
