@@ -788,9 +788,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <.link
               navigate={"#{@base_path}/exports?#{@filter_query}"}
               class="tl-button tl-button--compact tl-button--secondary"
-              data-earned-flow="EF3"
-              data-persona="P3"
-              data-jtbd="J6"
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
               Carry to Exports

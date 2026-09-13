@@ -51,9 +51,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         current={:timeline}
         script
         main_class="tl-page"
-        data-earned-flow="EF2"
-        data-persona="P1"
-        data-jtbd="J2"
       >
           <UI.page_header
             title="Row history"
