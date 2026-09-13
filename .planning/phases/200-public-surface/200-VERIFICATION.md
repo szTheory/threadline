@@ -1,7 +1,7 @@
 ---
 phase: 200-public-surface
-verified: 2026-09-13T10:45:45Z
-verification_target: 3b386cfad890aaca363dbec74bdf37fd14352366
+verified: 2026-09-13T11:19:18Z
+verification_target: eeb0ba9ecd51ca3a4311d1fa3b6af018e7b2fed6
 status: passed
 score: 8/8 must-haves verified
 covered_files:
@@ -12,6 +12,7 @@ covered_files:
   - .github/pull_request_template.md
   - .planning/REQUIREMENTS.md
   - .planning/ROADMAP.md
+  - .planning/STATE.md
   - .planning/phases/200-public-surface/200-01-PLAN.md
   - .planning/phases/200-public-surface/200-01-SUMMARY.md
   - .planning/phases/200-public-surface/200-02-PLAN.md
@@ -181,15 +182,14 @@ covered_files:
   - test/threadline/readme_doc_contract_test.exs
   - test/threadline/release_artifact_contract_test.exs
   - test/threadline/retention/policy_test.exs
-covered_digest: "v1:sha256:3738ea0925763cb2f8bdb118a5c7cee0a8bf4ce97d6c1d1067b62ea807f528f0"
+covered_digest: "v1:sha256:76f04bb5b737e17a6baae3986d8a32e8385bbea518252f0e9ba79f8b9149bfa7"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: gaps_found
-  previous_score: 7/8
-  previous_target: a876c09245e56d135869b7dfa81935df1f65a6da
-  gaps_closed:
-    - "README is routing-only for Operator Surface mounting/authentication, and contracts now enforce guides/operator-surface.md as the sole runnable owner."
+  previous_status: passed
+  previous_score: 8/8
+  previous_target: 3b386cfad890aaca363dbec74bdf37fd14352366
+  gaps_closed: []
   gaps_remaining: []
   regressions: []
 ---
@@ -198,9 +198,9 @@ re_verification:
 
 **Phase Goal:** Everything a stranger or a hex.pm consumer sees — module docs, the tarball, the HexDocs index and its grouping, the guide graph, the config and alias vocabulary, the contributor onboarding path, and the `.github/` directory — is accurate, navigable, and free of internal planning vocabulary, so that publishing 0.10.0 in Phase 202 is safe rather than permanent regret.
 
-**Verified:** 2026-09-13T10:45:45Z  
-**Verification target:** committed HEAD `3b386cfad890aaca363dbec74bdf37fd14352366`  
-**Status:** passed  
+**Verified:** 2026-09-13T11:19:18Z
+**Verification target:** committed HEAD `eeb0ba9ecd51ca3a4311d1fa3b6af018e7b2fed6`
+**Status:** passed
 **Re-verification:** Yes — after gap closure
 
 ## Goal Achievement
@@ -222,11 +222,21 @@ re_verification:
 
 ### Re-verification of Previous Gap
 
-| Previous failure | Closure evidence | Status |
+| Previous failure | Closure evidence at final HEAD | Status |
 |---|---|---|
-| README duplicated the canonical Operator Surface mount/auth procedure, while tests omitted or pinned the duplication. | Commit `3b386cfa` removes the 23-line runnable block; README explicitly names `guides/operator-surface.md` as sole owner; `guide_graph_contract_test.exs:128-135` includes README in both mount and authorization checks; `readme_doc_contract_test.exs:129-132` rejects the heading and runnable fences; 46/46 focused tests pass. | ✓ CLOSED |
+| README duplicated the canonical Operator Surface mount/auth procedure, while tests omitted or pinned the duplication. | The `3b386cfa` repair remains byte-for-byte intact at `eeb0ba9e`: README names `guides/operator-surface.md` as sole owner; `guide_graph_contract_test.exs:128-135` includes README in both mount and authorization checks; `readme_doc_contract_test.exs:129-132` rejects the heading and runnable fences; 46/46 focused tests pass again. | ✓ CLOSED |
 
-No regressions were found in the seven previously verified truths. Hosted CI exercises the full current and minimum suites, ExDoc, Hex packaging, formatting, strict Credo, Dialyzer, browser E2E, and the mechanical checker at the exact repaired commit.
+No regressions were found in any previously verified truth. Apart from committing the verification report itself, the only post-pass changes are closeout metadata (`REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`) and explicit existing paths in `200-04-SUMMARY.md`; no product implementation or test source changed.
+
+### Closeout Metadata Consistency
+
+| Check | Result | Status |
+|---|---|---|
+| Phase completion | ROADMAP marks Phase 200 and all 18 plans complete; REQUIREMENTS marks SURFACE-01..11 complete; STATE advances to Phase 201 planning | Consistent | ✓ VERIFIED |
+| Summary path audit | `200-04-SUMMARY.md` names the six existing critic module/task paths explicitly instead of brace shorthand | All six paths exist and are already covered by the fingerprint | ✓ VERIFIED |
+| State validation | `gsd-tools state validate` | Only S004: Phase 201 has no matching phase directory yet | ℹ️ EXPECTED |
+
+S004 is not a Phase 200 defect: Phase 201 is intentionally the current unplanned phase, so its directory will be created by planning.
 
 ### Advisory (New Scope, Unevidenced)
 
@@ -273,7 +283,7 @@ The mechanical `verify.key-links` queries passed 22/24 declared links. The two m
 | Optional storage adapter without `path/1` | `mix test export_controller_test.exs:631 --max-failures 1` | 28 tests, 0 failures, 27 excluded; 1 selected | ✓ PASS |
 | ExDoc build | `MIX_ENV=dev mix docs --warnings-as-errors` | Documentation generated with no warnings | ✓ PASS |
 | Dependency advisory audit | Root and example `mix hex.audit` | No retired or security-advisory packages | ✓ PASS |
-| Hosted compatibility/checkpoint | GitHub Actions run `34751792465`, exact head `3b386cfa` | Completed successfully; PR #37 reports 15/15 checks passing, including current/minimum suites, ExDoc, Hex tarball, Dialyzer, browser E2E, and required rollup | ✓ PASS |
+| Hosted compatibility/checkpoint | GitHub Actions run `34753641231`, exact head `eeb0ba9e` | Completed successfully; all 14 component jobs plus `CI required` passed (15/15), including current/minimum suites, ExDoc, Hex tarball, Dialyzer, Tier A byte stability, mechanical checks, and Playwright | ✓ PASS |
 
 ### Probe Execution
 
@@ -293,7 +303,7 @@ No Phase 200 plan declares a `probe-*.sh`, and no conventional `scripts/**/tests
 | SURFACE-08 | 01, 09 | ✓ SATISFIED | Exact `(undefined_table) relation \"audit_changes\" does not exist` text is searchable in contributor docs with a canonical fix path. |
 | SURFACE-09 | 01, 09, 10 | ✓ SATISFIED | README is routing-only; Operator Surface is the sole runnable mount/auth owner; enforcement covers all three routed callers and rejects README fences. |
 | SURFACE-10 | 01, 11 | ✓ SATISFIED | Contributor workflow has no `.planning/` dependency or planning vocabulary. |
-| SURFACE-11 | 01, 11 | ✓ SATISFIED | Required community files and hosted safety routes exist. The unchecked REQUIREMENTS checkbox is tracking lag, not an implementation absence. |
+| SURFACE-11 | 01, 11 | ✓ SATISFIED | Required community files and hosted safety routes exist; REQUIREMENTS now records both the checkbox and traceability row as Complete. |
 
 No Phase 200 requirement is orphaned: the roadmap maps SURFACE-01 through SURFACE-11 and the plans claim all eleven. Later Phases 201-204 do not own canonical public-procedure routing, so the SURFACE-09 gap is not deferred.
 
@@ -315,9 +325,9 @@ None. The repaired ownership invariant is deterministically covered. The separat
 
 ### Gaps Summary
 
-No gaps remain. The only initial blocker is closed at committed HEAD `3b386cfa`: README is routing-only, the Operator Surface guide owns the runnable mount/auth procedure, the sole-owner tracer includes README, and README-specific tests reject recurrence. All eight observable truths and SURFACE-01 through SURFACE-11 are satisfied.
+No gaps remain. The only initial blocker remains closed at committed HEAD `eeb0ba9e`: README is routing-only, the Operator Surface guide owns the runnable mount/auth procedure, the sole-owner tracer includes README, and README-specific tests reject recurrence. The closeout metadata is internally consistent apart from expected S004 for the not-yet-planned Phase 201. All eight observable truths and SURFACE-01 through SURFACE-11 are satisfied.
 
 ---
 
-_Verified: 2026-09-13T10:45:45Z_  
+_Verified: 2026-09-13T11:19:18Z_
 _Verifier: the agent (gsd-verifier)_
