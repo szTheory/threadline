@@ -212,13 +212,15 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
       verifier = Path.expand("../../bin/verify-branch-protection", __DIR__)
 
       scenarios = [
-        {"absent", ~s({"protected":true,"protection":{"enabled":false}}), 0, 0},
-        {"present", ~s({"protected":true,"protection":{"enabled":true}}), 0, 1},
-        {"unreadable", "not-json", 0, 1},
-        {"api-error", "", 1, 1}
+        {"absent", ~s({"protected":true,"protection":{"enabled":false}}), 0, false, 0},
+        {"present", ~s({"protected":true,"protection":{"enabled":true}}), 0, false, 1},
+        {"unreadable", "not-json", 0, false, 1},
+        {"api-error", "", 1, false, 1},
+        {"actions-field-omission", ~s({"protected":true}), 0, true, 0},
+        {"actions-api-error", "", 1, true, 1}
       ]
 
-      for {scenario, branch_response, branch_exit, expected_exit} <- scenarios do
+      for {scenario, branch_response, branch_exit, allow_unverified, expected_exit} <- scenarios do
         fake_bin =
           Path.join(
             System.tmp_dir!(),
@@ -249,6 +251,7 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
           System.cmd("bash", [verifier],
             env: [
               {"GITHUB_REPOSITORY", "example/threadline"},
+              {"ALLOW_UNVERIFIED_CLASSIC_PROTECTION", if(allow_unverified, do: "1", else: "0")},
               {"PATH", fake_bin <> ":" <> System.fetch_env!("PATH")}
             ],
             stderr_to_stdout: true
