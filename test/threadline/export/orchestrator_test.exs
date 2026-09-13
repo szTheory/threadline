@@ -99,6 +99,35 @@ defmodule Threadline.Export.OrchestratorTest do
     end
   end
 
+  defmodule RemoteRecordingStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, _opts \\ []) do
+      send(
+        Application.fetch_env!(:threadline, :test_orchestrator_notify_pid),
+        {:remote_put, content}
+      )
+
+      {:ok, "remote-export.csv"}
+    end
+
+    @impl true
+    def get(_file_id), do: {:error, :not_implemented}
+
+    @impl true
+    def path(_file_id), do: {:error, :not_local}
+
+    @impl true
+    def download_url(_file_id, _opts \\ []), do: {:ok, "https://exports.example.test/file"}
+
+    @impl true
+    def delete(_file_id), do: :ok
+  end
+
   setup do
     previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
     previous_storage_schema = Application.get_env(:threadline, :storage_schema)
@@ -259,6 +288,35 @@ defmodule Threadline.Export.OrchestratorTest do
     assert csv =~ "audit-storage"
     refute csv =~ to_string(default_change.id)
     refute csv =~ "default-storage"
+  end
+
+  test "portable storage adapters receive CSV bytes instead of a temporary pathname" do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+    row_id = "remote-storage-row"
+    table = "remote_storage_exports"
+    insert_change!(row_id, ~U[2026-06-01 00:00:00Z], table: table)
+
+    job =
+      insert_job!(%{
+        status: "pending",
+        query_params: %{"table" => table}
+      })
+
+    assert :ok =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: RemoteRecordingStorage
+             )
+
+    assert_receive {:remote_put, uploaded_body}
+    assert is_binary(uploaded_body)
+    assert String.starts_with?(uploaded_body, Threadline.Export.csv_header())
+    assert uploaded_body =~ row_id
+    refute uploaded_body =~ System.tmp_dir!() <> "/export_"
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "completed"
+    assert updated_job.file_path == "remote-export.csv"
   end
 
   test "a transaction commit failure never stores an export object", %{job: job} do

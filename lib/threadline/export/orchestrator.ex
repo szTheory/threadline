@@ -72,14 +72,13 @@ defmodule Threadline.Export.Orchestrator do
 
           case transaction_result do
             {:ok, :written} ->
-              case storage.put(temp_path) do
-                {:ok, file_path} ->
-                  remove_temp_file(temp_path)
-
-                  finalize_stored_export(
+              case File.read(temp_path) do
+                {:ok, csv_content} ->
+                  persist_export(
+                    storage.put(csv_content),
                     repo,
                     job,
-                    file_path,
+                    temp_path,
                     storage,
                     storage_opts,
                     completion_fn
@@ -87,8 +86,8 @@ defmodule Threadline.Export.Orchestrator do
 
                 {:error, reason} ->
                   remove_temp_file(temp_path)
-                  mark_failed(repo, job, inspect({:storage_error, reason}), storage_opts)
-                  {:error, {:storage_error, reason}}
+                  mark_failed(repo, job, inspect({:temp_file_read_error, reason}), storage_opts)
+                  {:error, {:temp_file_read_error, reason}}
               end
 
             {:error, reason} ->
@@ -117,6 +116,35 @@ defmodule Threadline.Export.Orchestrator do
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  defp persist_export(
+         storage_result,
+         repo,
+         job,
+         temp_path,
+         storage,
+         storage_opts,
+         completion_fn
+       ) do
+    case storage_result do
+      {:ok, file_path} ->
+        remove_temp_file(temp_path)
+
+        finalize_stored_export(
+          repo,
+          job,
+          file_path,
+          storage,
+          storage_opts,
+          completion_fn
+        )
+
+      {:error, reason} ->
+        remove_temp_file(temp_path)
+        mark_failed(repo, job, inspect({:storage_error, reason}), storage_opts)
+        {:error, {:storage_error, reason}}
     end
   end
 
