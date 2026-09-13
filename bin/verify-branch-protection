@@ -94,11 +94,11 @@ fi
 
 # --- Third block: classic branch protection must not be stacking -------------
 #
-# GitHub's REST endpoint requires Administration:read, which the default
-# Actions token cannot request. Prefer it when available (maintainer/local
-# tokens), and on HTTP 403 fall back to GraphQL's read-only repository surface.
-# `matchingRefs` lets the fallback ask whether any classic rule actually
-# applies to main instead of treating unrelated branch patterns as stacking.
+# GitHub's dedicated protection endpoint requires Administration:read, which
+# the default Actions token cannot request. Prefer it when available
+# (maintainer/local tokens), and on HTTP 403 fall back to the ordinary branch
+# metadata endpoint. Its `protection.enabled` flag reports classic protection
+# separately from the top-level `protected` flag, which also includes rulesets.
 set +e
 CLASSIC_RESPONSE=$(gh api --include --silent \
   "repos/${REPO}/branches/${BRANCH}/protection" \
@@ -117,36 +117,29 @@ else
       CLASSIC_STATUS="absent"
       ;;
     403)
-      REPO_OWNER=${REPO%%/*}
-      REPO_NAME=${REPO#*/}
-      CLASSIC_GRAPHQL_QUERY='query($owner:String!, $name:String!, $branch:String!) { repository(owner:$owner, name:$name) { branchProtectionRules(first:100) { nodes { matchingRefs(first:1, query:$branch) { totalCount } } } } }'
-
       set +e
-      CLASSIC_GRAPHQL_RESPONSE=$(gh api graphql \
-        -f query="$CLASSIC_GRAPHQL_QUERY" \
-        -F owner="$REPO_OWNER" \
-        -F name="$REPO_NAME" \
-        -F branch="$BRANCH" 2>&1)
-      CLASSIC_GRAPHQL_EXIT=$?
+      BRANCH_METADATA=$(gh api --silent \
+        "repos/${REPO}/branches/${BRANCH}" 2>&1)
+      BRANCH_METADATA_EXIT=$?
       set -e
 
-      if [[ "$CLASSIC_GRAPHQL_EXIT" -ne 0 ]]; then
+      if [[ "$BRANCH_METADATA_EXIT" -ne 0 ]]; then
         echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
-        echo "REST returned 403 and the GraphQL fallback exited ${CLASSIC_GRAPHQL_EXIT}." >&2
+        echo "The protection endpoint returned 403 and branch metadata exited ${BRANCH_METADATA_EXIT}." >&2
         exit 1
       fi
 
-      CLASSIC_MATCH_COUNT=$(printf '%s\n' "$CLASSIC_GRAPHQL_RESPONSE" \
-        | jq -er '[.data.repository.branchProtectionRules.nodes[]? | select(.matchingRefs.totalCount > 0)] | length' 2>/dev/null || true)
+      CLASSIC_ENABLED=$(printf '%s\n' "$BRANCH_METADATA" \
+        | jq -er 'if .protection.enabled == true then "true" elif .protection.enabled == false then "false" else empty end' 2>/dev/null || true)
 
-      if [[ -z "$CLASSIC_MATCH_COUNT" ]]; then
+      if [[ -z "$CLASSIC_ENABLED" ]]; then
         echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
-        echo "REST returned 403 and the GraphQL fallback returned an unreadable response." >&2
+        echo "The protection endpoint returned 403 and branch metadata was unreadable." >&2
         exit 1
-      elif [[ "$CLASSIC_MATCH_COUNT" -eq 0 ]]; then
-        CLASSIC_STATUS="absent"
-      else
+      elif [[ "$CLASSIC_ENABLED" == "true" ]]; then
         CLASSIC_STATUS="present"
+      else
+        CLASSIC_STATUS="absent"
       fi
       ;;
     *)
