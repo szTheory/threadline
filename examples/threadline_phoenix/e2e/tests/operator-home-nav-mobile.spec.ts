@@ -189,7 +189,6 @@ test.describe("operator Home orientation mobile UAT", () => {
       main.getByRole("link", { name: "Closed this week" }),
     ).toBeVisible();
 
-    await expect(main.locator('[data-earned-flow="EF1"]')).toBeVisible();
     await expect(
       main.locator("#tl-record-lookup").getByLabel("Table"),
     ).toBeVisible();
@@ -202,7 +201,6 @@ test.describe("operator Home orientation mobile UAT", () => {
         .getByRole("button", { name: "Open row history" }),
     ).toBeVisible();
 
-    await expect(main.locator('[data-earned-flow="EF4"]')).toBeVisible();
     await expect(
       main.locator("#tl-correlation-lookup").getByLabel("Correlation id"),
     ).toBeVisible();

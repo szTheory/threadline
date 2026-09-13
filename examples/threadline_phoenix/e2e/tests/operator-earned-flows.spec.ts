@@ -76,17 +76,17 @@ test.describe("operator earned-flow browser UAT", () => {
     await login(page);
   });
 
-  test("EF1 Home record-first lookup reaches first-class row history", async ({
+  test("Home record lookup reaches first-class row history", async ({
     page,
   }) => {
     const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
 
     await page.goto("/audit");
 
-    const earnedFlow = page.locator('[data-earned-flow="EF1"]');
-    await expectEarnedFlow(earnedFlow, "EF1");
-
     const form = page.locator("#tl-record-lookup");
+    await expect(form).toBeVisible();
+    await expect(form.getByLabel("Table")).toBeVisible();
+    await expect(form.getByLabel("Record id")).toBeVisible();
     await form
       .locator('select[name="record_lookup[table]"]')
       .selectOption(rowTable);
@@ -118,15 +118,14 @@ test.describe("operator earned-flow browser UAT", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("EF4 Home correlation paste lands on Timeline correlation filter", async ({
+  test("Home correlation lookup lands on Timeline correlation filter", async ({
     page,
   }) => {
     await page.goto("/audit");
 
-    const earnedFlow = page.locator('[data-earned-flow="EF4"]');
-    await expectEarnedFlow(earnedFlow, "EF4");
-
     const form = page.locator("#tl-correlation-lookup");
+    await expect(form).toBeVisible();
+    await expect(form.getByLabel("Correlation id")).toBeVisible();
     await form
       .locator('input[name="correlation[correlation_id]"]')
       .fill(closeCorrelation);
