@@ -182,28 +182,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       exports_enabled = Keyword.get(opts, :exports, true)
       export_authorize_fn = Keyword.get(opts, :export_authorize_fn)
 
-      Phoenix.Component.assign(
-        socket,
-        :threadline_exports_enabled,
-        exports_enabled_for_socket?(exports_enabled, export_authorize_fn, socket)
-      )
+      {enabled?, export_scope} =
+        export_capability(exports_enabled, export_authorize_fn, socket)
+
+      socket
+      |> Phoenix.Component.assign(:threadline_exports_enabled, enabled?)
+      |> Phoenix.Component.assign(:threadline_export_scope, export_scope)
     end
 
-    defp exports_enabled_for_socket?(false, _export_authorize_fn, _socket), do: false
-    defp exports_enabled_for_socket?(true, nil, _socket), do: true
+    defp export_capability(false, _export_authorize_fn, _socket), do: {false, nil}
+    defp export_capability(true, nil, _socket), do: {true, nil}
 
-    defp exports_enabled_for_socket?(true, export_authorize_fn, socket)
+    defp export_capability(true, export_authorize_fn, socket)
          when is_function(export_authorize_fn, 1) do
       mirror = %{assigns: socket.assigns}
 
       case export_authorize_fn.(mirror) do
-        :ok -> true
-        true -> true
-        {:ok, _scope} -> true
-        _ -> false
+        :ok -> {true, nil}
+        true -> {true, nil}
+        {:ok, scope} -> {true, scope}
+        _ -> {false, nil}
       end
     rescue
-      _ -> true
+      _ ->
+        emit_export_authorize_error(socket)
+        {false, nil}
+    end
+
+    defp emit_export_authorize_error(socket) do
+      :telemetry.execute(
+        [:threadline, :operator_surface, :export_authorize],
+        %{result: :error, count: 1},
+        %{actor_ref: socket.assigns[:threadline_actor_ref]}
+      )
     end
 
     defp assign_coverage_enabled(socket, opts) do
@@ -235,8 +246,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp assign_policy_enabled(socket, opts) do
       policy_authorize_fn = Keyword.get(opts, :policy_authorize_fn, fn _ -> false end)
 
-      Phoenix.Component.assign(
-        socket,
+      socket
+      |> Phoenix.Component.assign(:threadline_policy_authorize_fn, policy_authorize_fn)
+      |> Phoenix.Component.assign(
         :threadline_policy_enabled,
         policy_enabled_for_socket?(policy_authorize_fn, socket)
       )

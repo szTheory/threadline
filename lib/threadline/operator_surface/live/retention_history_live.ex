@@ -335,21 +335,40 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # Re-check authorization at action time. `phx-value-id` is an untrusted claim,
     # so authorization is derived only from the server-resolved policy gate.
     defp authorize_prune(socket) do
-      if socket.assigns[:threadline_policy_enabled], do: :ok, else: {:error, :unauthorized}
+      case socket.assigns[:threadline_policy_authorize_fn] do
+        authorize_fn when is_function(authorize_fn, 1) ->
+          mirror = %{assigns: socket.assigns}
+
+          case authorize_fn.(mirror) do
+            :ok -> :ok
+            true -> :ok
+            {:ok, _scope} -> :ok
+            _ -> {:error, :unauthorized}
+          end
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    rescue
+      _ -> {:error, :unauthorized}
     end
 
     # Audit the operator's request only after authorization and confirmation
     # succeed, and before starting the prune. The backend records completed
-    # deletion totals only after the purge succeeds. The retention runtime is a system actor.
+    # deletion totals only after the purge succeeds.
     defp audit_prune(socket, policy_name) do
-      {:ok, actor} = ActorRef.new(:system, "retention_pruner")
+      case socket.assigns[:threadline_actor_ref] do
+        %ActorRef{} = actor ->
+          Threadline.record_action(:"retention.pruned",
+            repo: resolve_repo(socket),
+            actor: actor,
+            comment: "Operator-triggered retention prune for policy #{policy_name}",
+            storage_schema: StorageSchema.get()
+          )
 
-      Threadline.record_action(:"retention.pruned",
-        repo: resolve_repo(socket),
-        actor: actor,
-        comment: "Operator-triggered retention prune for policy #{policy_name}",
-        storage_schema: StorageSchema.get()
-      )
+        _ ->
+          {:error, :unauthorized}
+      end
     end
 
     defp fetch_runs(socket) do

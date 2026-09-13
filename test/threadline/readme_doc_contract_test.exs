@@ -111,8 +111,6 @@ defmodule Threadline.ReadmeDocContractTest do
     readme = File.read!("README.md")
 
     assert String.contains?(readme, "## Operator Surface")
-    assert String.contains?(readme, "**1-Minute Mount**")
-    assert contains_normalized?(readme, readme_mount_block())
     assert String.contains?(readme, "canonical first-hour Phoenix walkthrough")
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/operator-surface.md")
@@ -129,6 +127,9 @@ defmodule Threadline.ReadmeDocContractTest do
            )
 
     refute String.contains?(readme, "http://localhost:4000/audit")
+    refute String.contains?(readme, "**1-Minute Mount**")
+    refute runnable_fence_contains?(readme, "threadline_operator_surface")
+    refute runnable_fence_contains?(readme, "authorize_fn")
   end
 
   test "README operator support wording contract rejects a temporary mutation" do
@@ -263,20 +264,13 @@ defmodule Threadline.ReadmeDocContractTest do
     refute Regex.match?(~r/```(?:bash|sh|elixir)[\s\S]*?mix\s+(?:threadline\.|ecto\.)/m, slice)
   end
 
-  defp readme_mount_block do
-    """
-    scope "/audit", MyAppWeb do
-      pipe_through [:browser, :require_authenticated_admin]
-
-      threadline_operator_surface "/",
-        actor_fn: &MyApp.Audit.current_actor/1,
-        authorize_fn: &MyApp.Audit.authorize_operator/1
-    end
-    """
-  end
-
   defp contains_normalized?(doc, snippet) do
     String.contains?(normalize(doc), normalize(snippet))
+  end
+
+  defp runnable_fence_contains?(content, needle) do
+    Regex.scan(~r/```(?:bash|sh|elixir)\s*\n([\s\S]*?)```/m, content, capture: :all_but_first)
+    |> Enum.any?(fn [body] -> String.contains?(body, needle) end)
   end
 
   defp operator_support_wording?(doc) do

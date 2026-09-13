@@ -31,12 +31,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
+        actor_fn: &Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth.actor/1,
         policy_authorize_fn: &Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth.authorize/1
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth do
+    def actor(_conn), do: %Threadline.Semantics.ActorRef{type: :user, id: "operator-1"}
     def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_policy, true)
   end
 
@@ -59,6 +61,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest do
     use Threadline.DataCase, async: false
+    import Ecto.Query
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -545,6 +548,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "Run retention prune"
       end
 
+      test "event-time authorization revocation prevents audit and prune", %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_policy, true)
+        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+
+        before_actions = count_audit_actions()
+        policy_name = view |> open_prune_modal() |> canonical_policy_name()
+
+        Application.put_env(:threadline, :test_allow_policy, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
+
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
+
+        assert count_audit_actions() == before_actions
+        assert Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+      end
+
+      test "missing accountable actor prevents audit and prune", %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+        before_actions = count_audit_actions()
+        policy_name = view |> open_prune_modal() |> canonical_policy_name()
+
+        :sys.replace_state(view.pid, fn state ->
+          update_in(state.socket.assigns, &Map.delete(&1, :threadline_actor_ref))
+        end)
+
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
+
+        assert count_audit_actions() == before_actions
+        assert Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+      end
+
       test "a valid type-to-confirm prune records an AuditAction for the destructive action",
            %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/retention")
@@ -560,6 +594,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert count_audit_actions() == before + 1,
                "an accepted prune request must be audited before the asynchronous backend starts"
+
+        action =
+          Threadline.Test.Repo.one!(
+            from(a in AuditAction, order_by: [desc: a.inserted_at], limit: 1),
+            repo_opts()
+          )
+
+        assert action.actor_ref == %Threadline.Semantics.ActorRef{
+                 type: :user,
+                 id: "operator-1"
+               }
 
         assert_eventually(fn ->
           Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) > 0

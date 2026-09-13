@@ -10,11 +10,9 @@
 [![HexDocs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/threadline)
 **CI:** Runs on [GitHub Actions](https://github.com/szTheory/threadline/actions).
 
-**Supported versions:** Elixir **1.15 floor / 1.17.3 current**, OTP **26 min / 27 current**, PostgreSQL **14 min / 16 current**. The floor is a promise, not a suggestion: the CI `min` lane runs the full suite on Elixir 1.15 / OTP 26 / PostgreSQL 14 so the floor stays honored and is never raised out from under adopters.
+**Auditing for Phoenix, without a separate event system or black box.**
 
-Auditing for Phoenix.
-
-Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with semantic actions, then exposes the audit trail through `Threadline.Plug`, `Threadline.Audit.transaction/3`, `Threadline.record_action/2`, `Threadline.history/3`, `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.incident_bundle/2`, `Threadline.export_json/2`, and `Threadline.as_of/4`.
+Threadline is an open-source audit library for Elixir teams using Phoenix, Ecto, and PostgreSQL. It combines PostgreSQL trigger capture with application-level actor, intent, and correlation context.
 
 New Phoenix integrations should use `Threadline.Audit.transaction/3`; see [Getting started](guides/getting-started-saas.md) §6.
 
@@ -31,11 +29,12 @@ Pick the row that matches what you want to do. Each lane points at its canonical
 | **Operate** — investigate row changes, actor history, and evidence in the `/audit` console. | [guides/operator-surface.md](guides/operator-surface.md) | [incident-playbook.md](guides/incident-playbook.md) |
 | **Contribute** — set up the repo, run `mix ci.all`, and follow the contribution gate. | [`CONTRIBUTING.md`](CONTRIBUTING.md) | [guides/adoption-pilot-backlog.md](guides/adoption-pilot-backlog.md) |
 
-Both audited write paths converge on `Threadline.Audit.transaction/3`; new Phoenix integrations should use it (§6). [HexDocs](https://hexdocs.pm/threadline) remains the API reference.
-
-Threadline names four support lanes — the canonical `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, and `sigra-reference` matrix — in [guides/upgrade-path.md](guides/upgrade-path.md). Phoenix auth (reference lanes, pick one): [phx.gen.auth integration](guides/integrations/phx-gen-auth.md) · [Sigra integration](guides/integrations/sigra.md) — neither is required; see [upgrade-path](guides/upgrade-path.md) for claim types.
+[HexDocs](https://hexdocs.pm/threadline) remains the complete API reference.
 
 ## Evidence plane
+
+Use Threadline's evidence to answer a practical operator question: is the audit
+system configured and behaving the way your team expects right now?
 
 Threadline can persist evidence about its own governance surfaces such as
 trigger coverage, redaction posture, retention runs, export delivery, and the
@@ -59,6 +58,8 @@ read [guides/domain-reference.md](guides/domain-reference.md).
 - **Exploration:** timelines and history with `Threadline.timeline/2`, `Threadline.timeline_page/2`, and `Threadline.history/3`.
 - **Operations:** exports, snapshots, coverage checks, retention, redaction, and health tooling via `Threadline.export_json/2` and `Threadline.as_of/4`.
 
+The broader public surface includes `Threadline.Plug`, `Threadline.record_action/2`, and `Threadline.incident_bundle/2`; the [domain reference](guides/domain-reference.md) maps each job to the API to use first.
+
 ## Quick Start
 
 Add the current Threadline package coordinate to your dependencies:
@@ -75,62 +76,42 @@ The [domain reference](guides/domain-reference.md) keeps the canonical "which pu
 
 ## Operator Surface
 
-Threadline ships an optional, drop-in LiveView **operator console** — a dark,
-branded admin surface for investigating the audit trail natively in your app,
-with no asset build step. It opens on a task launcher (**Find / Verify /
-Prove**) and threads into a filterable change timeline, atomic-transaction and
-row-level diffs, per-actor history, append-only **evidence** with
-Proven / Inferred / Unsupported verdicts, a polled **coverage** dashboard, and
-read-only **redaction-drift** and **retention** viewers — backed by parity Mix
-tasks (`mix threadline.incident`, `mix threadline.health.coverage`,
-`mix threadline.policy.show`) for capture-only adopters. Mount is fail-closed by
-default. Ensure you have the optional Phoenix
-surface dependencies declared in `mix.exs`. The Threadline UI currently ships as
-an optional in-tree dependency. For details on this architecture decision and
-support guarantees, see the [Upgrade Path](guides/upgrade-path.md).
+Threadline ships an optional, in-tree LiveView **operator console** for Find,
+Verify, and Prove workflows, with no asset build step. Mounting is fail-closed:
+the host supplies authentication and authorization, and must declare the
+optional Phoenix surface dependencies. The Threadline UI currently ships as an
+optional in-tree dependency; the [Operator Surface guide](guides/operator-surface.md)
+is the sole owner for the supported `threadline_operator_surface/2` mount,
+authentication callbacks, screen inventory, and mount-specific configuration.
+The [Upgrade Path](guides/upgrade-path.md) owns its support guarantees.
 
 Daytime and bright-environment teams can mount with `theme: :system` to
 auto-follow each operator's OS light/dark preference (pure CSS, no JS); see the
 [Operator Surface guide](guides/operator-surface.md#theme) for the full
 `:dark | :light | :system` triad.
 
-**1-Minute Mount**
-
-```elixir
-defmodule MyAppWeb.Router do
-  use MyAppWeb, :router
-  import Threadline.OperatorSurface.Router
-
-  # Must pipe through your own authentication
-  scope "/audit", MyAppWeb do
-    pipe_through [:browser, :require_authenticated_admin]
-
-    threadline_operator_surface "/",
-      actor_fn: &MyApp.Audit.current_actor/1,
-      authorize_fn: &MyApp.Audit.authorize_operator/1
-  end
-end
-```
-
-For the canonical first-hour Phoenix walkthrough, read
-[guides/getting-started-saas.md](guides/getting-started-saas.md). For the
-"fail-closed" security default, authorization setup, and screen inventory, read
-the [Operator Surface guide](guides/operator-surface.md). For the broader host
-and framework contract across `Threadline.Plug`, `Threadline.Job`,
-`Threadline.Integrations.*`, and operator-surface auth/export auth, read
-[guides/integration-contracts.md](guides/integration-contracts.md). For the
-current support claims, stay with
-[guides/upgrade-path.md](guides/upgrade-path.md) rather than inferring broader
-compatibility from the README.
+Continue with the [canonical first-hour Phoenix walkthrough](guides/getting-started-saas.md),
+then use the [Operator Surface guide](guides/operator-surface.md) for fail-closed
+authorization and the [integration contracts](guides/integration-contracts.md)
+for host/framework boundaries. For current support claims, stay with the
+[Upgrade Path](guides/upgrade-path.md) rather than inferring broader compatibility
+from the README.
 
 ## Notes
 
+- **Supported versions:** Elixir **1.15 floor / 1.17.3 current**, OTP **26 min / 27 current**, PostgreSQL **14 min / 16 current**. The CI `min` lane runs the full suite on Elixir 1.15 / OTP 26 / PostgreSQL 14 so the published floor remains enforced.
+- Threadline names four support lanes — the canonical `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, and `sigra-reference` matrix — in [guides/upgrade-path.md](guides/upgrade-path.md). Phoenix auth (reference lanes, pick one): [phx.gen.auth integration](guides/integrations/phx-gen-auth.md) · [Sigra integration](guides/integrations/sigra.md); neither is required.
 - Threadline works with PgBouncer transaction pooling.
 - Redaction drift uses three states: `Config matches deployed`, `Drift detected`, and `Could not introspect`; rerun `mix threadline.gen.triggers` if the latter two appear.
 - Redaction, retention, export, and continuity live in the guides and HexDocs.
 - Next operator reads after the first install are [guides/performance.md](guides/performance.md) and [guides/incident-playbook.md](guides/incident-playbook.md).
 
 ## Documentation
+
+Quick destinations: [Evaluate](guides/evaluating-threadline.md) ·
+[Adopt](guides/getting-started-saas.md) ·
+[Operate](guides/operator-surface.md) ·
+[Contribute](CONTRIBUTING.md)
 
 <details>
 <summary>All guides</summary>

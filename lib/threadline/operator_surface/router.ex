@@ -140,6 +140,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           # `threadline_operator_surface` mounts in one router would collide;
           # the macro is designed to be mounted exactly once per router.
           pipeline :threadline_exports do
+            if unquote(has_actor_fn?) do
+              plug(Threadline.OperatorSurface.SessionPlug, unquote(opts))
+            end
+
             plug(Threadline.OperatorSurface.ExportAuthPlug, unquote(opts))
           end
 

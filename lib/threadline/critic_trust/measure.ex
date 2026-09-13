@@ -11,7 +11,7 @@ defmodule Threadline.CriticTrust.Measure do
   @spearman_bar 0.7
 
   # Oracle verdict bucket → ordinal (single-kind items only). "Oracle" = the set's
-  # r1.verdict, whether human-labeled or constructed by the graded-twin ladder.
+  # explicit adjudicated verdict; r1/r2 remain blind-round provenance only.
   @oracle %{"broken" => 1, "bad" => 2, "borderline" => 3, "good" => 4}
   # Critic band → ordinal (strong and exemplary both fold to "good" to match oracle granularity).
   @band %{"fail" => 1, "weak" => 2, "ok" => 3, "strong" => 4, "exemplary" => 4}
@@ -120,7 +120,7 @@ defmodule Threadline.CriticTrust.Measure do
   # continuous per-cell score (mean of stable dims' median scores — the ranking signal),
   # the min-band (legacy α companion), and provenance.
   defp resolve(item, lens, scores, current_version) do
-    oracle = Map.get(@oracle, get_in(item, ["r1", "verdict"]))
+    oracle = Map.get(@oracle, get_in(item, ["adjudicated", "verdict"]))
     dims = Map.get(scores, {item["cell_id"], lens}, [])
     stable_dims = Enum.filter(dims, & &1.stable)
 

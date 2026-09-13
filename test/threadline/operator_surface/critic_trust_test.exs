@@ -640,12 +640,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert is_list(gs["held_out_ids"]), "golden-set.json 'held_out_ids' must be an array"
     end
 
-    test "every golden-set item resolves cell_id to an existing scorecard and has consistent r1/r2 evidence" do
+    test "every golden-set item resolves its scorecard and has an explicit adjudicated verdict" do
       # Vacuously passes while items: [] (empty skeleton).
       # When items are populated (Plan 06+), this gate enforces:
       # - cell_id → test/fixtures/operator_surface/scorecards/<cell_id>.json exists
       # - r1.evidence and r2.evidence are non-empty strings
-      # - r1.verdict == r2.verdict (reconciled before golden promotion)
+      # - adjudicated verdict records the agreement or selected blind round
       items = golden_set()["items"]
 
       for item <- items do
@@ -657,6 +657,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         r1 = item["r1"] || %{}
         r2 = item["r2"] || %{}
+        adjudicated = item["adjudicated"] || %{}
 
         assert is_binary(r1["evidence"]) and r1["evidence"] != "",
                "golden-set item #{inspect(item["id"])}: r1.evidence is empty or missing"
@@ -664,8 +665,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert is_binary(r2["evidence"]) and r2["evidence"] != "",
                "golden-set item #{inspect(item["id"])}: r2.evidence is empty or missing"
 
-        assert r1["verdict"] == r2["verdict"],
-               "golden-set item #{inspect(item["id"])}: r1.verdict #{inspect(r1["verdict"])} != r2.verdict #{inspect(r2["verdict"])} (not reconciled)"
+        assert adjudicated["source"] in ~w(agreement r1 r2),
+               "golden-set item #{inspect(item["id"])}: invalid adjudicated.source #{inspect(adjudicated["source"])}"
+
+        selected = if adjudicated["source"] == "r2", do: r2, else: r1
+
+        assert adjudicated["verdict"] == selected["verdict"],
+               "golden-set item #{inspect(item["id"])}: adjudicated verdict does not match selected #{adjudicated["source"]}"
+
+        if item["kind"] == "pair" do
+          assert adjudicated["margin"] == selected["margin"],
+                 "golden-set item #{inspect(item["id"])}: adjudicated margin does not match selected #{adjudicated["source"]}"
+        end
       end
     end
 
@@ -906,6 +917,94 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert schema_error.message =~ "golden oracle schema is invalid"
         assert File.read!(ledger_path) == original
+      end)
+    end
+
+    @tag phase199_task1: true
+    test "critic.measure rejects incomplete or contradictory adjudication before changing the ledger" do
+      preserve_repository_ledger(fn ->
+        %{fixture_root: fixture_root, output_root: output_root} =
+          measurement_roots!("invalid-adjudication")
+
+        ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+        golden_path = Path.join(fixture_root, "golden/golden-set.json")
+        original = File.read!(ledger_path)
+
+        valid_item = %{
+          "id" => "gs_001",
+          "cell_id" => "page.example",
+          "lens" => "hierarchy",
+          "kind" => "single",
+          "pair_with" => nil,
+          "r1" => %{"verdict" => "good", "evidence" => "r1 evidence", "blind" => true},
+          "r2" => %{"verdict" => "bad", "evidence" => "r2 evidence", "blind" => true},
+          "adjudicated" => %{"source" => "r1", "verdict" => "good"},
+          "kept" => true
+        }
+
+        invalid_items = [
+          {"missing source", put_in(valid_item, ["adjudicated"], %{"verdict" => "good"})},
+          {"empty r1 provenance", put_in(valid_item, ["r1"], %{})},
+          {"empty r2 evidence", put_in(valid_item, ["r2", "evidence"], " ")},
+          {"selected verdict mismatch",
+           put_in(valid_item, ["adjudicated"], %{"source" => "r2", "verdict" => "good"})},
+          {"false agreement",
+           put_in(valid_item, ["adjudicated"], %{
+             "source" => "agreement",
+             "verdict" => "good"
+           })},
+          {"pair margin mismatch",
+           valid_item
+           |> Map.put("kind", "pair")
+           |> put_in(["r1"], %{
+             "verdict" => "better",
+             "margin" => "clear",
+             "evidence" => "r1 pair",
+             "blind" => true
+           })
+           |> put_in(["r2"], %{
+             "verdict" => "worse",
+             "margin" => "subtle",
+             "evidence" => "r2 pair",
+             "blind" => true
+           })
+           |> put_in(["adjudicated"], %{
+             "source" => "r2",
+             "verdict" => "worse",
+             "margin" => "clear"
+           })}
+        ]
+
+        for {label, invalid_item} <- invalid_items do
+          File.write!(golden_path, Jason.encode!(%{"items" => [invalid_item]}))
+
+          error =
+            assert_raise Mix.Error, fn ->
+              Mix.Tasks.Critic.Measure.run([
+                "--fixture-root",
+                Path.relative_to(fixture_root, project_root()),
+                "--output-root",
+                Path.relative_to(output_root, project_root())
+              ])
+            end
+
+          assert error.message =~ "golden oracle schema is invalid", label
+          assert File.read!(ledger_path) == original, "#{label} changed the ledger"
+        end
+
+        File.write!(golden_path, Jason.encode!(%{"items" => [valid_item]}))
+
+        capture_io(fn ->
+          Mix.Tasks.Critic.Measure.run([
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root()),
+            "--output-root",
+            Path.relative_to(output_root, project_root())
+          ])
+        end)
+
+        refute File.read!(ledger_path) == original,
+               "consistent selected-round provenance should remain accepted"
       end)
     end
 

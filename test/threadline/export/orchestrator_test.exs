@@ -34,6 +34,100 @@ defmodule Threadline.Export.OrchestratorTest do
     def delete(file_id), do: Threadline.Storage.Local.delete(file_id)
   end
 
+  defmodule RecordingStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, opts \\ []) do
+      result = Threadline.Storage.Local.put(content, opts)
+      notify({:storage_put, result})
+      result
+    end
+
+    @impl true
+    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+
+    @impl true
+    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+
+    @impl true
+    def download_url(file_id, opts \\ []),
+      do: Threadline.Storage.Local.download_url(file_id, opts)
+
+    @impl true
+    def delete(file_id) do
+      notify({:storage_delete, file_id})
+      Threadline.Storage.Local.delete(file_id)
+    end
+
+    defp notify(message) do
+      if pid = Application.get_env(:threadline, :test_orchestrator_notify_pid) do
+        send(pid, message)
+      end
+    end
+  end
+
+  defmodule DeleteFailStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, opts \\ []), do: RecordingStorage.put(content, opts)
+
+    @impl true
+    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+
+    @impl true
+    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+
+    @impl true
+    def download_url(file_id, opts \\ []),
+      do: Threadline.Storage.Local.download_url(file_id, opts)
+
+    @impl true
+    def delete(file_id) do
+      if pid = Application.get_env(:threadline, :test_orchestrator_notify_pid) do
+        send(pid, {:storage_delete, file_id})
+      end
+
+      {:error, :storage_unavailable}
+    end
+  end
+
+  defmodule RemoteRecordingStorage do
+    @behaviour Threadline.Storage
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(content, _opts \\ []) do
+      send(
+        Application.fetch_env!(:threadline, :test_orchestrator_notify_pid),
+        {:remote_put, content}
+      )
+
+      {:ok, "remote-export.csv"}
+    end
+
+    @impl true
+    def get(_file_id), do: {:error, :not_implemented}
+
+    @impl true
+    def path(_file_id), do: {:error, :not_local}
+
+    @impl true
+    def download_url(_file_id, _opts \\ []), do: {:ok, "https://exports.example.test/file"}
+
+    @impl true
+    def delete(_file_id), do: :ok
+  end
+
   setup do
     previous_storage_adapter = Application.get_env(:threadline, :storage_adapter)
     previous_storage_schema = Application.get_env(:threadline, :storage_schema)
@@ -41,6 +135,7 @@ defmodule Threadline.Export.OrchestratorTest do
     on_exit(fn ->
       restore_env(:storage_adapter, previous_storage_adapter)
       restore_env(:storage_schema, previous_storage_schema)
+      Application.delete_env(:threadline, :test_orchestrator_notify_pid)
     end)
 
     if File.exists?(@test_priv) do
@@ -71,6 +166,21 @@ defmodule Threadline.Export.OrchestratorTest do
     assert is_binary(updated_job.file_path)
 
     # Verify the file is in local storage
+    assert {:ok, _content} = Local.get(updated_job.file_path)
+  end
+
+  test "only one concurrent worker atomically claims a pending export", %{job: job} do
+    tasks =
+      for _ <- 1..2 do
+        Task.async(fn -> Orchestrator.run(job.id, repo: Repo) end)
+      end
+
+    results = tasks |> Enum.map(&Task.await(&1, 5_000)) |> Enum.sort()
+
+    assert results == [:ok, {:error, :not_claimable}]
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "completed"
     assert {:ok, _content} = Local.get(updated_job.file_path)
   end
 
@@ -178,6 +288,108 @@ defmodule Threadline.Export.OrchestratorTest do
     assert csv =~ "audit-storage"
     refute csv =~ to_string(default_change.id)
     refute csv =~ "default-storage"
+  end
+
+  test "portable storage adapters receive CSV bytes instead of a temporary pathname" do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+    row_id = "remote-storage-row"
+    table = "remote_storage_exports"
+    insert_change!(row_id, ~U[2026-06-01 00:00:00Z], table: table)
+
+    job =
+      insert_job!(%{
+        status: "pending",
+        query_params: %{"table" => table}
+      })
+
+    assert :ok =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: RemoteRecordingStorage
+             )
+
+    assert_receive {:remote_put, uploaded_body}
+    assert is_binary(uploaded_body)
+    assert String.starts_with?(uploaded_body, Threadline.Export.csv_header())
+    assert uploaded_body =~ row_id
+    refute uploaded_body =~ System.tmp_dir!() <> "/export_"
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "completed"
+    assert updated_job.file_path == "remote-export.csv"
+  end
+
+  test "a transaction commit failure never stores an export object", %{job: job} do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+
+    transaction_fn = fn transaction_body, transaction_opts ->
+      Repo.transaction(
+        fn ->
+          transaction_body.()
+          Repo.rollback(:forced_commit_failure)
+        end,
+        transaction_opts
+      )
+    end
+
+    assert {:error, :forced_commit_failure} =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: RecordingStorage,
+               transaction_fn: transaction_fn
+             )
+
+    refute_receive {:storage_put, _}
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "failed"
+    assert is_nil(updated_job.file_path)
+  end
+
+  test "a completion update failure compensates by deleting the stored object", %{job: job} do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+
+    completion_fn = fn _repo, _job, _file_path, _storage_opts ->
+      {:error, :forced_completion_update_failure}
+    end
+
+    assert {:error, :forced_completion_update_failure} =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: RecordingStorage,
+               completion_fn: completion_fn
+             )
+
+    assert_receive {:storage_put, {:ok, file_id}}
+    assert_receive {:storage_delete, ^file_id}
+    assert {:error, :enoent} = Local.get(file_id)
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "failed"
+    assert is_nil(updated_job.file_path)
+  end
+
+  test "a failed compensation retains the object identifier for cleanup retry", %{job: job} do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+
+    completion_fn = fn _repo, _job, _file_path, _storage_opts ->
+      {:error, :forced_completion_update_failure}
+    end
+
+    assert {:error, :forced_completion_update_failure} =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: DeleteFailStorage,
+               completion_fn: completion_fn
+             )
+
+    assert_receive {:storage_put, {:ok, file_id}}
+    assert_receive {:storage_delete, ^file_id}
+    assert {:ok, _content} = Local.get(file_id)
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "failed"
+    assert updated_job.file_path == file_id
+    assert updated_job.error_message =~ "compensation failed"
   end
 
   defp insert_job!(attrs, storage_schema \\ "threadline") do

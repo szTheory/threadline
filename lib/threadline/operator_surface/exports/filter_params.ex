@@ -171,8 +171,10 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
         end
 
       is_binary(actor_kind) and actor_kind != "" ->
-        # kind supplied but no id — leave without actor_ref filter
-        {:ok, filters_without_actor_params}
+        {:error, "actor id is required for non-anonymous actors"}
+
+      is_binary(actor_id) and actor_id != "" ->
+        {:error, "actor kind is required when actor id is present"}
 
       true ->
         {:ok, filters_without_actor_params}

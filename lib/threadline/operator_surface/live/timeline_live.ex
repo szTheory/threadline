@@ -15,6 +15,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.Exports.FilterParams
     alias Threadline.Query
+    alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
     alias Threadline.OperatorSurface.UI
 
@@ -46,7 +47,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> Enum.sort()
 
       saved_views =
-        if actor_ref do
+        if ActorRef.identifiable?(actor_ref) do
           repo.all(
             from(v in Threadline.Governance.SavedView,
               where: v.actor_ref == ^actor_ref,
@@ -206,7 +207,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # --------------------------------------------------------------------------
 
     def handle_event("save-view", %{"name" => name}, socket) do
-      if socket.assigns[:threadline_actor_ref] && name != "" do
+      if ActorRef.identifiable?(socket.assigns[:threadline_actor_ref]) and name != "" do
         attrs = %{
           name: name,
           actor_ref: Threadline.Semantics.ActorRef.to_map(socket.assigns.threadline_actor_ref),
@@ -272,18 +273,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event(
           "request_background_export",
           _params,
-          %{assigns: %{threadline_exports_enabled: true}} = socket
-        ) do
+          %{
+            assigns: %{
+              threadline_exports_enabled: true,
+              threadline_scope: scope,
+              threadline_export_scope: export_scope,
+              threadline_actor_ref: %ActorRef{type: actor_type, id: actor_id}
+            }
+          } = socket
+        )
+        when actor_type != :anonymous and is_binary(actor_id) and actor_id != "" and
+               (not is_nil(scope) or not is_nil(export_scope)) do
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         "Scoped background exports are unavailable. Use a scoped CSV, JSON, or NDJSON download instead."
+       )}
+    end
+
+    def handle_event(
+          "request_background_export",
+          _params,
+          %{
+            assigns: %{
+              threadline_exports_enabled: true,
+              threadline_actor_ref: %ActorRef{type: actor_type, id: actor_id} = actor_ref
+            }
+          } = socket
+        )
+        when actor_type != :anonymous and is_binary(actor_id) and actor_id != "" do
       repo = scope_aware_opts(socket)[:repo] || default_repo()
 
-      job = %Threadline.Governance.ExportJob{
-        status: "pending",
-        query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
-        actor_ref: socket.assigns[:threadline_actor_ref]
-      }
+      job_changeset =
+        Threadline.Governance.ExportJob.operator_changeset(%{
+          status: "pending",
+          query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
+          actor_ref: actor_ref
+        })
 
       storage_schema = StorageSchema.get()
-      job = repo.insert!(job, StorageSchema.repo_opts(storage_schema: storage_schema))
+
+      job =
+        repo.insert!(job_changeset, StorageSchema.repo_opts(storage_schema: storage_schema))
 
       adapter =
         Application.get_env(
@@ -503,6 +535,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           base_path={@base_path}
           filter_query={@filter_query}
           export_ready={is_nil(@form_error)}
+          background_export_ready={
+              is_nil(@form_error) and is_nil(@scope) and
+              is_nil(assigns[:threadline_export_scope]) and
+              ActorRef.identifiable?(assigns[:threadline_actor_ref])
+          }
         />
       </UI.shell>
       """
@@ -759,7 +796,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               Carry to Exports
             </.link>
             <button
-              :if={@export_ready}
+              :if={@background_export_ready}
               phx-click="request_background_export"
               type="button"
               class="tl-button tl-button--quiet-primary"
@@ -796,7 +833,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </.link>
           </section>
 
-          <section :if={@actor_ref} class="tl-utility-group tl-utility-group--views" aria-label="Saved views">
+          <section
+            :if={ActorRef.identifiable?(@actor_ref)}
+            class="tl-utility-group tl-utility-group--views"
+            aria-label="Saved views"
+          >
             <span class="tl-utility-group__label">Views</span>
             <form id="save-view-form" phx-submit="save-view" class="tl-saved-view-form">
               <input

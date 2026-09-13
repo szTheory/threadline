@@ -47,6 +47,7 @@ defmodule Mix.Tasks.Critic.Synth do
           "pair_with" => nil,
           "r1" => %{"verdict" => verdict, "evidence" => evidence, "blind" => true},
           "r2" => %{"verdict" => verdict, "evidence" => evidence, "blind" => true},
+          "adjudicated" => %{"source" => "agreement", "verdict" => verdict},
           "kept" => true
         }
       end)

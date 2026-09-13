@@ -48,27 +48,38 @@ defmodule Threadline.OperatorSurface.SessionPlugTest do
     conn = SessionPlug.call(conn, opts)
 
     assert get_session(conn, "threadline_actor_ref") == "{\"id\":\"123\",\"type\":\"user\"}"
+    assert conn.assigns.threadline_actor_ref == actor_ref
   end
 
-  test "leaves session unchanged when actor_fn returns nil", %{conn: conn} do
+  test "clears stale session ownership when actor_fn returns nil", %{conn: conn} do
+    actor_a = %ActorRef{type: :user, id: "actor-a"}
+    conn = SessionPlug.call(conn, SessionPlug.init(actor_fn: fn _ -> actor_a end))
+    assert get_session(conn, "threadline_actor_ref")
+
     actor_fn = fn _conn -> nil end
 
     opts = SessionPlug.init(actor_fn: actor_fn)
     conn = SessionPlug.call(conn, opts)
 
     assert get_session(conn, "threadline_actor_ref") == nil
+    refute Map.has_key?(conn.assigns, :threadline_actor_ref)
   end
 
-  test "leaves session unchanged when actor_fn raises or returns error", %{conn: conn} do
-    actor_fn = fn _conn -> {:error, :unauthenticated} end
+  test "clears stale session ownership when actor_fn raises", %{conn: conn} do
+    actor_a = %ActorRef{type: :user, id: "actor-a"}
+    conn = SessionPlug.call(conn, SessionPlug.init(actor_fn: fn _ -> actor_a end))
+    assert get_session(conn, "threadline_actor_ref")
+
+    actor_fn = fn _conn -> raise "identity lookup failed" end
 
     opts = SessionPlug.init(actor_fn: actor_fn)
     conn = SessionPlug.call(conn, opts)
 
     assert get_session(conn, "threadline_actor_ref") == nil
+    refute Map.has_key?(conn.assigns, :threadline_actor_ref)
   end
 
-  test "leaves session unchanged when actor_fn does not return an ActorRef", %{conn: conn} do
+  test "clears session when actor_fn does not return an ActorRef", %{conn: conn} do
     actor_fn = fn _conn -> %{id: "123", type: "user"} end
 
     opts = SessionPlug.init(actor_fn: actor_fn)

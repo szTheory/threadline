@@ -24,13 +24,22 @@ defmodule Threadline.OperatorSurface.SessionPlug do
       case actor_fn.(conn) do
         %ActorRef{} = actor_ref ->
           serialized = actor_ref |> ActorRef.to_map() |> Jason.encode!()
-          put_session(conn, "threadline_actor_ref", serialized)
+
+          conn
+          |> assign(:threadline_actor_ref, actor_ref)
+          |> put_session("threadline_actor_ref", serialized)
 
         _ ->
-          conn
+          clear_actor(conn)
       end
     rescue
-      _ -> conn
+      _ -> clear_actor(conn)
     end
+  end
+
+  defp clear_actor(conn) do
+    conn
+    |> delete_session("threadline_actor_ref")
+    |> Map.update!(:assigns, &Map.delete(&1, :threadline_actor_ref))
   end
 end

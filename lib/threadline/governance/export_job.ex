@@ -4,6 +4,8 @@ defmodule Threadline.Governance.ExportJob do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Threadline.Semantics.ActorRef
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
@@ -34,5 +36,17 @@ defmodule Threadline.Governance.ExportJob do
       :expires_at
     ])
     |> validate_required([:status, :query_params])
+  end
+
+  @doc false
+  def operator_changeset(job \\ %__MODULE__{}, attrs) do
+    job
+    |> changeset(attrs)
+    |> validate_required([:actor_ref])
+    |> validate_change(:actor_ref, fn :actor_ref, actor_ref ->
+      if ActorRef.identifiable?(actor_ref),
+        do: [],
+        else: [actor_ref: "must identify a non-anonymous actor"]
+    end)
   end
 end

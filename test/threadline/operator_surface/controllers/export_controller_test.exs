@@ -132,6 +132,49 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     plug(Threadline.OperatorSurface.ExportControllerTest.DeniedRouter)
   end
 
+  defmodule Threadline.OperatorSurface.ExportControllerTest.ActorRouter do
+    use Phoenix.Router
+    require Threadline.OperatorSurface.Router
+
+    pipeline :browser do
+      plug(:accepts, ["html", "csv", "json"])
+      plug(:fetch_session)
+    end
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_actor",
+        actor_fn: &__MODULE__.actor_from_header/1
+      )
+    end
+
+    def actor_from_header(conn) do
+      case Plug.Conn.get_req_header(conn, "x-test-actor-id") do
+        ["anonymous"] -> %Threadline.Semantics.ActorRef{type: :anonymous, id: nil}
+        [id] when id != "" -> %Threadline.Semantics.ActorRef{type: :user, id: id}
+        _ -> nil
+      end
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.ExportControllerTest.ActorEndpoint do
+    use Phoenix.Endpoint, otp_app: :threadline
+
+    @session_options [
+      store: :cookie,
+      key: "_threadline_export_actor_key",
+      signing_salt: String.duplicate("a", 8)
+    ]
+
+    plug(Plug.Session, @session_options)
+    plug(:fetch_session)
+    plug(Plug.Parsers, parsers: [:urlencoded, :json], pass: ["*/*"], json_decoder: Jason)
+    plug(Plug.MethodOverride)
+    plug(Plug.Head)
+    plug(Threadline.OperatorSurface.ExportControllerTest.ActorRouter)
+  end
+
   defmodule Threadline.OperatorSurface.ExportControllerTest do
     @moduledoc false
     # async: false — Threadline does NOT use SQL Sandbox; tests share a real DB
@@ -341,6 +384,30 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       assert ndjson_conn.status == 422
       assert response(ndjson_conn, 422) =~ "invalid filter"
+    end
+
+    test "GET with actor kind but no actor id returns 422 instead of widening the export", %{
+      conn: conn
+    } do
+      seed_changes!(1, table: "must-not-export")
+
+      conn = get(conn, "/audit/exports/changes.csv?actor_kind=user")
+
+      assert conn.status == 422
+      assert response(conn, 422) =~ "actor id is required for non-anonymous actors"
+      refute response(conn, 422) =~ "must-not-export"
+    end
+
+    test "GET with actor id but no actor kind returns 422 instead of widening the export", %{
+      conn: conn
+    } do
+      seed_changes!(1, table: "must-not-export")
+
+      conn = get(conn, "/audit/exports/changes.csv?actor_id=42")
+
+      assert conn.status == 422
+      assert response(conn, 422) =~ "actor kind is required when actor id is present"
+      refute response(conn, 422) =~ "must-not-export"
     end
 
     # ---- Empty window — header-only CSV (RFC 4180 valid) ----
@@ -953,6 +1020,99 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     setup do
       {:ok, conn: build_conn()}
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.ExportControllerActorBridgeTest do
+    @moduledoc false
+    use ExUnit.Case, async: false
+
+    import Phoenix.ConnTest
+    import Plug.Conn
+    import Threadline.StorageSchemaCase
+
+    alias Threadline.Governance.ExportJob
+    alias Threadline.Semantics.ActorRef
+    alias Threadline.Test.Repo
+
+    @endpoint Threadline.OperatorSurface.ExportControllerTest.ActorEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, @endpoint,
+        secret_key_base: String.duplicate("a", 64),
+        live_view: [signing_salt: String.duplicate("a", 8)],
+        render_errors: [view: Threadline.OperatorSurface.ExportControllerTest.Layouts]
+      )
+
+      start_supervised!(@endpoint)
+      :ok
+    end
+
+    setup do
+      clean_storage_schemas!()
+      Application.put_env(:threadline, :storage_adapter, Threadline.Storage.Local)
+      {:ok, conn: build_conn()}
+    end
+
+    test "documented actor_fn owns completed downloads and denies other or missing actors", %{
+      conn: conn
+    } do
+      actor = %ActorRef{type: :user, id: "actor-a"}
+      {:ok, file_id} = Threadline.Storage.Local.put("actor-owned export")
+
+      job =
+        Repo.insert!(
+          %ExportJob{
+            status: "completed",
+            query_params: %{},
+            file_path: file_id,
+            actor_ref: actor
+          },
+          repo_opts()
+        )
+
+      owner_conn =
+        conn
+        |> put_req_header("x-test-actor-id", "actor-a")
+        |> get("/audit_actor/exports/download/#{job.id}")
+
+      assert owner_conn.status == 200
+      assert response(owner_conn, 200) == "actor-owned export"
+
+      other_conn =
+        build_conn()
+        |> put_req_header("x-test-actor-id", "actor-b")
+        |> get("/audit_actor/exports/download/#{job.id}")
+
+      assert other_conn.status == 404
+
+      missing_conn = get(build_conn(), "/audit_actor/exports/download/#{job.id}")
+      assert missing_conn.status == 404
+    end
+
+    test "anonymous requests cannot download legacy anonymous-owned exports", %{conn: conn} do
+      anonymous_actor = %ActorRef{type: :anonymous, id: nil}
+      {:ok, file_id} = Threadline.Storage.Local.put("anonymous-owned export")
+      on_exit(fn -> Threadline.Storage.Local.delete(file_id) end)
+
+      job =
+        Repo.insert!(
+          %ExportJob{
+            status: "completed",
+            query_params: %{},
+            file_path: file_id,
+            actor_ref: anonymous_actor
+          },
+          repo_opts()
+        )
+
+      anonymous_conn =
+        conn
+        |> put_req_header("x-test-actor-id", "anonymous")
+        |> get("/audit_actor/exports/download/#{job.id}")
+
+      assert anonymous_conn.status == 404
+      assert response(anonymous_conn, 404) == "Export not found"
     end
   end
 end

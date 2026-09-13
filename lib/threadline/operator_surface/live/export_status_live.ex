@@ -18,6 +18,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
 
     @default_limit 100
@@ -59,20 +60,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event(
           "queue_timeline_export_context",
           _params,
-          %{assigns: %{threadline_exports_enabled: true}} = socket
-        ) do
-      case socket.assigns.timeline_export_context do
-        %{status: :valid, query_params: query_params} when query_params != %{} ->
+          %{
+            assigns: %{
+              threadline_exports_enabled: true,
+              threadline_actor_ref: %ActorRef{type: actor_type, id: actor_id} = actor_ref
+            }
+          } = socket
+        )
+        when actor_type != :anonymous and is_binary(actor_id) and actor_id != "" do
+      case {
+        socket.assigns[:threadline_scope],
+        socket.assigns[:threadline_export_scope],
+        socket.assigns.timeline_export_context
+      } do
+        {scope, export_scope, _context}
+        when not is_nil(scope) or not is_nil(export_scope) ->
+          {:noreply,
+           put_flash(
+             socket,
+             :error,
+             "Scoped background exports are unavailable. Return to Timeline and use a scoped CSV, JSON, or NDJSON download."
+           )}
+
+        {nil, nil, %{status: :valid, query_params: query_params}} when query_params != %{} ->
           repo = resolve_repo(socket)
 
           storage_schema = StorageSchema.get()
 
           job =
-            %ExportJob{
+            ExportJob.operator_changeset(%{
               status: "pending",
               query_params: query_params,
-              actor_ref: socket.assigns[:threadline_actor_ref]
-            }
+              actor_ref: actor_ref
+            })
             |> repo.insert!(StorageSchema.repo_opts(storage_schema: storage_schema))
 
           adapter =
@@ -183,7 +203,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
                   <div class="tl-job__actions">
                     <button
-                      :if={@timeline_export_context.status == :valid}
+                      :if={
+                        @timeline_export_context.status == :valid and
+                          is_nil(assigns[:threadline_scope]) and
+                          is_nil(assigns[:threadline_export_scope]) and
+                          ActorRef.identifiable?(assigns[:threadline_actor_ref])
+                      }
                       type="button"
                       phx-click="queue_timeline_export_context"
                       class="tl-button tl-button--primary tl-button--compact"
@@ -191,6 +216,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
                       Queue Timeline export
                     </button>
+                    <.link
+                      :if={
+                        @timeline_export_context.status == :valid and
+                          (not is_nil(assigns[:threadline_scope]) or
+                             not is_nil(assigns[:threadline_export_scope]))
+                      }
+                      navigate={"#{@base_path}/timeline?#{FilterParams.canonical_query(@timeline_export_context.query_params)}"}
+                      class="tl-button tl-button--compact tl-button--secondary"
+                    >
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                      Use scoped download
+                    </.link>
                   </div>
                 </div>
 
@@ -379,7 +416,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         repo = resolve_repo(socket)
         actor_ref = socket.assigns[:threadline_actor_ref]
 
-        if actor_ref do
+        if ActorRef.identifiable?(actor_ref) do
           from(j in ExportJob,
             where: j.actor_ref == ^actor_ref,
             order_by: [desc: j.inserted_at],

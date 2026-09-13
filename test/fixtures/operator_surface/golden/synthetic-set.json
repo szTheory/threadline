@@ -3,6 +3,10 @@
   "held_out_ids": [],
   "items": [
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.brand_fidelity.graded.actor.r1__dark-1280",
       "id": "syn_001",
       "kept": true,
@@ -21,6 +25,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.brand_fidelity.graded.actor.r2__dark-1280",
       "id": "syn_002",
       "kept": true,
@@ -39,6 +47,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.brand_fidelity.graded.actor.r3__dark-1280",
       "id": "syn_003",
       "kept": true,
@@ -57,6 +69,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.brand_fidelity.graded.actor.r4__dark-1280",
       "id": "syn_004",
       "kept": true,
@@ -75,6 +91,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.brand_fidelity.graded.coverage.r1__dark-1280",
       "id": "syn_005",
       "kept": true,
@@ -93,6 +113,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.brand_fidelity.graded.coverage.r2__dark-1280",
       "id": "syn_006",
       "kept": true,
@@ -111,6 +135,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.brand_fidelity.graded.coverage.r3__dark-1280",
       "id": "syn_007",
       "kept": true,
@@ -129,6 +157,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.brand_fidelity.graded.coverage.r4__dark-1280",
       "id": "syn_008",
       "kept": true,
@@ -147,6 +179,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.brand_fidelity.graded.evidence.r1__dark-1280",
       "id": "syn_009",
       "kept": true,
@@ -165,6 +201,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.brand_fidelity.graded.evidence.r2__dark-1280",
       "id": "syn_010",
       "kept": true,
@@ -183,6 +223,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.brand_fidelity.graded.evidence.r3__dark-1280",
       "id": "syn_011",
       "kept": true,
@@ -201,6 +245,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.brand_fidelity.graded.evidence.r4__dark-1280",
       "id": "syn_012",
       "kept": true,
@@ -219,6 +267,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.brand_fidelity.graded.export.r1__dark-1280",
       "id": "syn_013",
       "kept": true,
@@ -237,6 +289,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.brand_fidelity.graded.export.r2__dark-1280",
       "id": "syn_014",
       "kept": true,
@@ -255,6 +311,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.brand_fidelity.graded.export.r3__dark-1280",
       "id": "syn_015",
       "kept": true,
@@ -273,6 +333,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.brand_fidelity.graded.export.r4__dark-1280",
       "id": "syn_016",
       "kept": true,
@@ -291,6 +355,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.brand_fidelity.graded.retention.r1__dark-1280",
       "id": "syn_017",
       "kept": true,
@@ -309,6 +377,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.brand_fidelity.graded.retention.r2__dark-1280",
       "id": "syn_018",
       "kept": true,
@@ -327,6 +399,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.brand_fidelity.graded.retention.r3__dark-1280",
       "id": "syn_019",
       "kept": true,
@@ -345,6 +421,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.brand_fidelity.graded.retention.r4__dark-1280",
       "id": "syn_020",
       "kept": true,
@@ -363,6 +443,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.brand_fidelity.graded.timeline.r1__dark-1280",
       "id": "syn_021",
       "kept": true,
@@ -381,6 +465,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.brand_fidelity.graded.timeline.r2__dark-1280",
       "id": "syn_022",
       "kept": true,
@@ -399,6 +487,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.brand_fidelity.graded.timeline.r3__dark-1280",
       "id": "syn_023",
       "kept": true,
@@ -417,6 +509,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.brand_fidelity.graded.timeline.r4__dark-1280",
       "id": "syn_024",
       "kept": true,
@@ -435,6 +531,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.color_contrast.graded.actor.r1__dark-1280",
       "id": "syn_025",
       "kept": true,
@@ -453,6 +553,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.color_contrast.graded.actor.r2__dark-1280",
       "id": "syn_026",
       "kept": true,
@@ -471,6 +575,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.color_contrast.graded.actor.r3__dark-1280",
       "id": "syn_027",
       "kept": true,
@@ -489,6 +597,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.color_contrast.graded.actor.r4__dark-1280",
       "id": "syn_028",
       "kept": true,
@@ -507,6 +619,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.color_contrast.graded.coverage.r1__dark-1280",
       "id": "syn_029",
       "kept": true,
@@ -525,6 +641,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.color_contrast.graded.coverage.r2__dark-1280",
       "id": "syn_030",
       "kept": true,
@@ -543,6 +663,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.color_contrast.graded.coverage.r3__dark-1280",
       "id": "syn_031",
       "kept": true,
@@ -561,6 +685,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.color_contrast.graded.coverage.r4__dark-1280",
       "id": "syn_032",
       "kept": true,
@@ -579,6 +707,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.color_contrast.graded.diff.r1__dark-1280",
       "id": "syn_033",
       "kept": true,
@@ -597,6 +729,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.color_contrast.graded.diff.r2__dark-1280",
       "id": "syn_034",
       "kept": true,
@@ -615,6 +751,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.color_contrast.graded.diff.r3__dark-1280",
       "id": "syn_035",
       "kept": true,
@@ -633,6 +773,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.color_contrast.graded.diff.r4__dark-1280",
       "id": "syn_036",
       "kept": true,
@@ -651,6 +795,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.color_contrast.graded.evidence.r1__dark-1280",
       "id": "syn_037",
       "kept": true,
@@ -669,6 +817,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.color_contrast.graded.evidence.r2__dark-1280",
       "id": "syn_038",
       "kept": true,
@@ -687,6 +839,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.color_contrast.graded.evidence.r3__dark-1280",
       "id": "syn_039",
       "kept": true,
@@ -705,6 +861,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.color_contrast.graded.evidence.r4__dark-1280",
       "id": "syn_040",
       "kept": true,
@@ -723,6 +883,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.color_contrast.graded.retention.r1__dark-1280",
       "id": "syn_041",
       "kept": true,
@@ -741,6 +905,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.color_contrast.graded.retention.r2__dark-1280",
       "id": "syn_042",
       "kept": true,
@@ -759,6 +927,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.color_contrast.graded.retention.r3__dark-1280",
       "id": "syn_043",
       "kept": true,
@@ -777,6 +949,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.color_contrast.graded.retention.r4__dark-1280",
       "id": "syn_044",
       "kept": true,
@@ -795,6 +971,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.color_contrast.graded.status.r1__dark-1280",
       "id": "syn_045",
       "kept": true,
@@ -813,6 +993,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.color_contrast.graded.status.r2__dark-1280",
       "id": "syn_046",
       "kept": true,
@@ -831,6 +1015,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.color_contrast.graded.status.r3__dark-1280",
       "id": "syn_047",
       "kept": true,
@@ -849,6 +1037,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.color_contrast.graded.status.r4__dark-1280",
       "id": "syn_048",
       "kept": true,
@@ -867,6 +1059,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.density.graded.activity.r1__dark-1280",
       "id": "syn_049",
       "kept": true,
@@ -885,6 +1081,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.density.graded.activity.r2__dark-1280",
       "id": "syn_050",
       "kept": true,
@@ -903,6 +1103,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.density.graded.activity.r3__dark-1280",
       "id": "syn_051",
       "kept": true,
@@ -921,6 +1125,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.density.graded.activity.r4__dark-1280",
       "id": "syn_052",
       "kept": true,
@@ -939,6 +1147,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.density.graded.actor.r1__dark-1280",
       "id": "syn_053",
       "kept": true,
@@ -957,6 +1169,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.density.graded.actor.r2__dark-1280",
       "id": "syn_054",
       "kept": true,
@@ -975,6 +1191,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.density.graded.actor.r3__dark-1280",
       "id": "syn_055",
       "kept": true,
@@ -993,6 +1213,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.density.graded.actor.r4__dark-1280",
       "id": "syn_056",
       "kept": true,
@@ -1011,6 +1235,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.density.graded.coverage.r1__dark-1280",
       "id": "syn_057",
       "kept": true,
@@ -1029,6 +1257,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.density.graded.coverage.r2__dark-1280",
       "id": "syn_058",
       "kept": true,
@@ -1047,6 +1279,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.density.graded.coverage.r3__dark-1280",
       "id": "syn_059",
       "kept": true,
@@ -1065,6 +1301,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.density.graded.coverage.r4__dark-1280",
       "id": "syn_060",
       "kept": true,
@@ -1083,6 +1323,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.density.graded.evidence.r1__dark-1280",
       "id": "syn_061",
       "kept": true,
@@ -1101,6 +1345,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.density.graded.evidence.r2__dark-1280",
       "id": "syn_062",
       "kept": true,
@@ -1119,6 +1367,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.density.graded.evidence.r3__dark-1280",
       "id": "syn_063",
       "kept": true,
@@ -1137,6 +1389,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.density.graded.evidence.r4__dark-1280",
       "id": "syn_064",
       "kept": true,
@@ -1155,6 +1411,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.density.graded.exports.r1__dark-1280",
       "id": "syn_065",
       "kept": true,
@@ -1173,6 +1433,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.density.graded.exports.r2__dark-1280",
       "id": "syn_066",
       "kept": true,
@@ -1191,6 +1455,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.density.graded.exports.r3__dark-1280",
       "id": "syn_067",
       "kept": true,
@@ -1209,6 +1477,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.density.graded.exports.r4__dark-1280",
       "id": "syn_068",
       "kept": true,
@@ -1227,6 +1499,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.density.graded.retention.r1__dark-1280",
       "id": "syn_069",
       "kept": true,
@@ -1245,6 +1521,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.density.graded.retention.r2__dark-1280",
       "id": "syn_070",
       "kept": true,
@@ -1263,6 +1543,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.density.graded.retention.r3__dark-1280",
       "id": "syn_071",
       "kept": true,
@@ -1281,6 +1565,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.density.graded.retention.r4__dark-1280",
       "id": "syn_072",
       "kept": true,
@@ -1299,6 +1587,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.hierarchy.graded.activity.r1__dark-1280",
       "id": "syn_073",
       "kept": true,
@@ -1317,6 +1609,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.hierarchy.graded.activity.r2__dark-1280",
       "id": "syn_074",
       "kept": true,
@@ -1335,6 +1631,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.hierarchy.graded.activity.r3__dark-1280",
       "id": "syn_075",
       "kept": true,
@@ -1353,6 +1653,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.hierarchy.graded.activity.r4__dark-1280",
       "id": "syn_076",
       "kept": true,
@@ -1371,6 +1675,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.hierarchy.graded.actor.r1__dark-1280",
       "id": "syn_077",
       "kept": true,
@@ -1389,6 +1697,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.hierarchy.graded.actor.r2__dark-1280",
       "id": "syn_078",
       "kept": true,
@@ -1407,6 +1719,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.hierarchy.graded.actor.r3__dark-1280",
       "id": "syn_079",
       "kept": true,
@@ -1425,6 +1741,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.hierarchy.graded.actor.r4__dark-1280",
       "id": "syn_080",
       "kept": true,
@@ -1443,6 +1763,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.hierarchy.graded.coverage.r1__dark-1280",
       "id": "syn_081",
       "kept": true,
@@ -1461,6 +1785,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.hierarchy.graded.coverage.r2__dark-1280",
       "id": "syn_082",
       "kept": true,
@@ -1479,6 +1807,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.hierarchy.graded.coverage.r3__dark-1280",
       "id": "syn_083",
       "kept": true,
@@ -1497,6 +1829,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.hierarchy.graded.coverage.r4__dark-1280",
       "id": "syn_084",
       "kept": true,
@@ -1515,6 +1851,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.hierarchy.graded.evidence.r1__dark-1280",
       "id": "syn_085",
       "kept": true,
@@ -1533,6 +1873,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.hierarchy.graded.evidence.r2__dark-1280",
       "id": "syn_086",
       "kept": true,
@@ -1551,6 +1895,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.hierarchy.graded.evidence.r3__dark-1280",
       "id": "syn_087",
       "kept": true,
@@ -1569,6 +1917,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.hierarchy.graded.evidence.r4__dark-1280",
       "id": "syn_088",
       "kept": true,
@@ -1587,6 +1939,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.hierarchy.graded.exports.r1__dark-1280",
       "id": "syn_089",
       "kept": true,
@@ -1605,6 +1961,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.hierarchy.graded.exports.r2__dark-1280",
       "id": "syn_090",
       "kept": true,
@@ -1623,6 +1983,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.hierarchy.graded.exports.r3__dark-1280",
       "id": "syn_091",
       "kept": true,
@@ -1641,6 +2005,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.hierarchy.graded.exports.r4__dark-1280",
       "id": "syn_092",
       "kept": true,
@@ -1659,6 +2027,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.hierarchy.graded.retention.r1__dark-1280",
       "id": "syn_093",
       "kept": true,
@@ -1677,6 +2049,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.hierarchy.graded.retention.r2__dark-1280",
       "id": "syn_094",
       "kept": true,
@@ -1695,6 +2071,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.hierarchy.graded.retention.r3__dark-1280",
       "id": "syn_095",
       "kept": true,
@@ -1713,6 +2093,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.hierarchy.graded.retention.r4__dark-1280",
       "id": "syn_096",
       "kept": true,
@@ -1731,6 +2115,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.rhythm.graded.activity.r1__dark-1280",
       "id": "syn_097",
       "kept": true,
@@ -1749,6 +2137,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.rhythm.graded.activity.r2__dark-1280",
       "id": "syn_098",
       "kept": true,
@@ -1767,6 +2159,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.rhythm.graded.activity.r3__dark-1280",
       "id": "syn_099",
       "kept": true,
@@ -1785,6 +2181,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.rhythm.graded.activity.r4__dark-1280",
       "id": "syn_100",
       "kept": true,
@@ -1803,6 +2203,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.rhythm.graded.actor.r1__dark-1280",
       "id": "syn_101",
       "kept": true,
@@ -1821,6 +2225,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.rhythm.graded.actor.r2__dark-1280",
       "id": "syn_102",
       "kept": true,
@@ -1839,6 +2247,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.rhythm.graded.actor.r3__dark-1280",
       "id": "syn_103",
       "kept": true,
@@ -1857,6 +2269,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.rhythm.graded.actor.r4__dark-1280",
       "id": "syn_104",
       "kept": true,
@@ -1875,6 +2291,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.rhythm.graded.coverage.r1__dark-1280",
       "id": "syn_105",
       "kept": true,
@@ -1893,6 +2313,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.rhythm.graded.coverage.r2__dark-1280",
       "id": "syn_106",
       "kept": true,
@@ -1911,6 +2335,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.rhythm.graded.coverage.r3__dark-1280",
       "id": "syn_107",
       "kept": true,
@@ -1929,6 +2357,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.rhythm.graded.coverage.r4__dark-1280",
       "id": "syn_108",
       "kept": true,
@@ -1947,6 +2379,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.rhythm.graded.evidence.r1__dark-1280",
       "id": "syn_109",
       "kept": true,
@@ -1965,6 +2401,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.rhythm.graded.evidence.r2__dark-1280",
       "id": "syn_110",
       "kept": true,
@@ -1983,6 +2423,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.rhythm.graded.evidence.r3__dark-1280",
       "id": "syn_111",
       "kept": true,
@@ -2001,6 +2445,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.rhythm.graded.evidence.r4__dark-1280",
       "id": "syn_112",
       "kept": true,
@@ -2019,6 +2467,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.rhythm.graded.exports.r1__dark-1280",
       "id": "syn_113",
       "kept": true,
@@ -2037,6 +2489,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.rhythm.graded.exports.r2__dark-1280",
       "id": "syn_114",
       "kept": true,
@@ -2055,6 +2511,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.rhythm.graded.exports.r3__dark-1280",
       "id": "syn_115",
       "kept": true,
@@ -2073,6 +2533,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.rhythm.graded.exports.r4__dark-1280",
       "id": "syn_116",
       "kept": true,
@@ -2091,6 +2555,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.rhythm.graded.retention.r1__dark-1280",
       "id": "syn_117",
       "kept": true,
@@ -2109,6 +2577,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.rhythm.graded.retention.r2__dark-1280",
       "id": "syn_118",
       "kept": true,
@@ -2127,6 +2599,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.rhythm.graded.retention.r3__dark-1280",
       "id": "syn_119",
       "kept": true,
@@ -2145,6 +2621,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.rhythm.graded.retention.r4__dark-1280",
       "id": "syn_120",
       "kept": true,
@@ -2163,6 +2643,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.typography.graded.activity.r1__dark-1280",
       "id": "syn_121",
       "kept": true,
@@ -2181,6 +2665,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.typography.graded.activity.r2__dark-1280",
       "id": "syn_122",
       "kept": true,
@@ -2199,6 +2687,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.typography.graded.activity.r3__dark-1280",
       "id": "syn_123",
       "kept": true,
@@ -2217,6 +2709,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.typography.graded.activity.r4__dark-1280",
       "id": "syn_124",
       "kept": true,
@@ -2235,6 +2731,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.typography.graded.actor.r1__dark-1280",
       "id": "syn_125",
       "kept": true,
@@ -2253,6 +2753,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.typography.graded.actor.r2__dark-1280",
       "id": "syn_126",
       "kept": true,
@@ -2271,6 +2775,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.typography.graded.actor.r3__dark-1280",
       "id": "syn_127",
       "kept": true,
@@ -2289,6 +2797,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.typography.graded.actor.r4__dark-1280",
       "id": "syn_128",
       "kept": true,
@@ -2307,6 +2819,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.typography.graded.coverage.r1__dark-1280",
       "id": "syn_129",
       "kept": true,
@@ -2325,6 +2841,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.typography.graded.coverage.r2__dark-1280",
       "id": "syn_130",
       "kept": true,
@@ -2343,6 +2863,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.typography.graded.coverage.r3__dark-1280",
       "id": "syn_131",
       "kept": true,
@@ -2361,6 +2885,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.typography.graded.coverage.r4__dark-1280",
       "id": "syn_132",
       "kept": true,
@@ -2379,6 +2907,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.typography.graded.evidence.r1__dark-1280",
       "id": "syn_133",
       "kept": true,
@@ -2397,6 +2929,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.typography.graded.evidence.r2__dark-1280",
       "id": "syn_134",
       "kept": true,
@@ -2415,6 +2951,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.typography.graded.evidence.r3__dark-1280",
       "id": "syn_135",
       "kept": true,
@@ -2433,6 +2973,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.typography.graded.evidence.r4__dark-1280",
       "id": "syn_136",
       "kept": true,
@@ -2451,6 +2995,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.typography.graded.exports.r1__dark-1280",
       "id": "syn_137",
       "kept": true,
@@ -2469,6 +3017,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.typography.graded.exports.r2__dark-1280",
       "id": "syn_138",
       "kept": true,
@@ -2487,6 +3039,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.typography.graded.exports.r3__dark-1280",
       "id": "syn_139",
       "kept": true,
@@ -2505,6 +3061,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.typography.graded.exports.r4__dark-1280",
       "id": "syn_140",
       "kept": true,
@@ -2523,6 +3083,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "broken"
+      },
       "cell_id": "refute.typography.graded.retention.r1__dark-1280",
       "id": "syn_141",
       "kept": true,
@@ -2541,6 +3105,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "bad"
+      },
       "cell_id": "refute.typography.graded.retention.r2__dark-1280",
       "id": "syn_142",
       "kept": true,
@@ -2559,6 +3127,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "borderline"
+      },
       "cell_id": "refute.typography.graded.retention.r3__dark-1280",
       "id": "syn_143",
       "kept": true,
@@ -2577,6 +3149,10 @@
       }
     },
     {
+      "adjudicated": {
+        "source": "agreement",
+        "verdict": "good"
+      },
       "cell_id": "refute.typography.graded.retention.r4__dark-1280",
       "id": "syn_144",
       "kept": true,
@@ -2596,7 +3172,7 @@
     }
   ],
   "model_pin": "claude-opus-4-8",
-  "oracle_note": "Constructed graded-twin severity labels (D-12). Proves the critic tracks known-severity injected flaws monotonically on held-out interpolation rungs — NOT that it matches human taste on ambiguous real UI.",
+  "oracle_note": "Constructed graded-twin severity labels. Proves the critic tracks known-severity injected flaws monotonically on held-out interpolation rungs — NOT that it matches human taste on ambiguous real UI.",
   "rubric_rev": null,
   "set_version": "195.12.0",
   "version": 1

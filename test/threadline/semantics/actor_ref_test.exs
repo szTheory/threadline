@@ -37,6 +37,16 @@ defmodule Threadline.Semantics.ActorRefTest do
     end
   end
 
+  describe "identifiable?/1" do
+    test "accepts stable non-anonymous actors and rejects anonymous or missing identities" do
+      assert ActorRef.identifiable?(%ActorRef{type: :user, id: "u1"})
+      refute ActorRef.identifiable?(%ActorRef{type: :anonymous, id: nil})
+      refute ActorRef.identifiable?(%ActorRef{type: :user, id: nil})
+      refute ActorRef.identifiable?(%ActorRef{type: :user, id: ""})
+      refute ActorRef.identifiable?(nil)
+    end
+  end
+
   describe "to_map/1 and from_map/1 round-trip" do
     test "typed actor round-trips through map" do
       {:ok, ref} = ActorRef.new(:user, "u1")

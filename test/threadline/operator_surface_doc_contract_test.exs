@@ -2,7 +2,7 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
-  test "README declares the operator surface mount macro" do
+  test "README routes the operator surface mount macro to its canonical owner" do
     readme = File.read!("README.md")
     assert String.contains?(readme, "threadline_operator_surface")
   end

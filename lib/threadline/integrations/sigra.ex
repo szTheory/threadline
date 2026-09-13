@@ -100,19 +100,42 @@ defmodule Threadline.Integrations.Sigra do
     base =
       cond do
         is_map(scope) and Map.get(scope, :impersonating_from) ->
-          "sigra-imp:#{session_id(sigra_session)}:user:#{impersonated_user_id(scope)}"
+          build_impersonation_correlation_id(scope, sigra_session)
 
         is_map(scope) and Map.get(scope, :user) ->
-          "sigra-session:#{session_id(sigra_session)}"
+          build_session_correlation_id(sigra_session)
 
         is_map(scope) and Map.get(scope, :auth_method) in [:api_token, :jwt] ->
-          "sigra-token:#{token_id(scope)}"
+          build_token_correlation_id(scope)
 
         true ->
           nil
       end
 
     maybe_append_org(base, scope, sigra_session)
+  end
+
+  defp build_impersonation_correlation_id(scope, sigra_session) do
+    with session_id when is_binary(session_id) and session_id != "" <- session_id(sigra_session),
+         user_id when is_binary(user_id) and user_id != "" <- impersonated_user_id(scope) do
+      "sigra-imp:#{session_id}:user:#{user_id}"
+    else
+      _ -> nil
+    end
+  end
+
+  defp build_session_correlation_id(sigra_session) do
+    case session_id(sigra_session) do
+      session_id when is_binary(session_id) and session_id != "" -> "sigra-session:#{session_id}"
+      _ -> nil
+    end
+  end
+
+  defp build_token_correlation_id(scope) do
+    case token_id(scope) do
+      token_id when is_binary(token_id) and token_id != "" -> "sigra-token:#{token_id}"
+      _ -> nil
+    end
   end
 
   defp maybe_append_org(nil, _scope, _sigra_session), do: nil

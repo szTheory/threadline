@@ -23,7 +23,7 @@ import {
   unlinkSync,
 } from "node:fs";
 import { resolve } from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import {
   currentOperatorSurfacePaths,
@@ -185,8 +185,9 @@ function downsampleScreenshot(srcPath: string, targetLongEdge = TARGET_LONG_EDGE
 
     // Try sips (macOS system tool, no install required)
     try {
-      execSync(
-        `sips -z ${dstH} ${dstW} ${JSON.stringify(srcPath)} --out ${JSON.stringify(tmpOut)}`,
+      execFileSync(
+        "sips",
+        ["-z", String(dstH), String(dstW), srcPath, "--out", tmpOut],
         { stdio: "pipe" },
       );
       resized = existsSync(tmpOut);
@@ -197,8 +198,9 @@ function downsampleScreenshot(srcPath: string, targetLongEdge = TARGET_LONG_EDGE
     // Try magick (ImageMagick 7+) if sips didn't work
     if (!resized) {
       try {
-        execSync(
-          `magick ${JSON.stringify(srcPath)} -resize ${dstW}x${dstH} ${JSON.stringify(tmpOut)}`,
+        execFileSync(
+          "magick",
+          [srcPath, "-resize", `${dstW}x${dstH}`, tmpOut],
           { stdio: "pipe" },
         );
         resized = existsSync(tmpOut);

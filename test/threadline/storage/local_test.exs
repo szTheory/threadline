@@ -39,4 +39,55 @@ defmodule Threadline.Storage.LocalTest do
       assert File.exists?(path)
     end
   end
+
+  describe "file-id validation" do
+    test "all filesystem operations reject traversal, absolute, separator, control, and extension escapes" do
+      outside = Path.join(System.tmp_dir!(), "threadline-outside-#{System.unique_integer()}.csv")
+      File.write!(outside, "outside")
+      on_exit(fn -> File.rm(outside) end)
+
+      invalid_ids = [
+        "../../#{Path.basename(outside)}",
+        outside,
+        "nested/export.csv",
+        "nested\\export.csv",
+        "bad\nname.csv",
+        ".",
+        "..",
+        "export.txt"
+      ]
+
+      for file_id <- invalid_ids do
+        assert {:error, :invalid_file_id} = Local.put("malicious", file_id: file_id)
+        assert {:error, :invalid_file_id} = Local.get(file_id)
+        assert {:error, :invalid_file_id} = Local.path(file_id)
+        assert {:error, :invalid_file_id} = Local.delete(file_id)
+      end
+
+      assert File.read!(outside) == "outside"
+    end
+
+    test "rejects an existing symlink without reading or deleting its target" do
+      assert {:ok, safe_id} = Local.put("safe")
+      assert {:ok, safe_path} = Local.path(safe_id)
+
+      target =
+        Path.join(System.tmp_dir!(), "threadline-symlink-target-#{System.unique_integer()}.csv")
+
+      File.write!(target, "secret")
+      link = Path.join(Path.dirname(safe_path), "escaped.csv")
+      File.ln_s!(target, link)
+
+      on_exit(fn ->
+        File.rm(link)
+        File.rm(target)
+      end)
+
+      assert {:error, :unsafe_path} = Local.put("overwrite", file_id: "escaped.csv")
+      assert {:error, :unsafe_path} = Local.get("escaped.csv")
+      assert {:error, :unsafe_path} = Local.path("escaped.csv")
+      assert {:error, :unsafe_path} = Local.delete("escaped.csv")
+      assert File.read!(target) == "secret"
+    end
+  end
 end

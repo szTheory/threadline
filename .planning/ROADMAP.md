@@ -67,7 +67,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 
 - [x] **Phase 198: Green Bringup** - `origin/main` carries all 584 local commits and CI concludes green in ≤ 20 min; the never-re-measured red-test baseline is retired on its merits; branch protection is repaired against the checks CI actually emits; worktrees, branches, and locks are triaged. (completed 2026-09-10)
 - [x] **Phase 199: Decouple** - Tests and gates are self-contained in the source tree, proven by `mix ci.all` passing with `.planning/` renamed away; `.planning/` stays tracked but load-bearing on nothing; dialyxir lands early enough to typecheck the later refactors.
-- [ ] **Phase 200: Public Surface** - Everything a stranger or hex.pm consumer sees is accurate, navigable, and free of internal vocabulary — *before* anything is published. This is the phase that earns the right to release.
+- [x] **Phase 200: Public Surface** - Everything a stranger or hex.pm consumer sees is accurate, navigable, and free of internal vocabulary — *before* anything is published. This is the phase that earns the right to release. (completed 2026-09-13)
 - [ ] **Phase 201: Rendered Output** - Zero internal vocabulary reaches a browser, with zero design/IA/visual change, in two tiers separated by mechanical-floor blast radius.
 - [ ] **Phase 202: Release 0.10.0** - Merge PR #26 and publish a release whose public surface is already clean, with every version-bearing literal managed by release automation and exactly one publish path.
 - [ ] **Phase 203: Real Gates** - Full Credo defaults expressed as `extra:`/`disabled:` deltas, the dialyzer backlog drained, and the layer inversions plus the Capture↔Semantics cycle fixed.
@@ -554,54 +554,54 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 200-01-PLAN.md — Wave 1; establish source-derived inventories, exact public-document corpus, guide/archive/community contracts, and storage regression
+- [x] 200-01-PLAN.md — Wave 1; establish source-derived inventories, exact public-document corpus, guide/archive/community contracts, and storage regression
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 200-02-PLAN.md — Wave 2 after 01; publish the exact configuration and command reference
-- [ ] 200-03-PLAN.md — Wave 2 after 01; confirm and publish the storage/queue contract, then honor optional callbacks
+- [x] 200-02-PLAN.md — Wave 2 after 01; publish the exact configuration and command reference
+- [x] 200-03-PLAN.md — Wave 2 after 01; confirm and publish the storage/queue contract, then honor optional callbacks
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 200-04-PLAN.md — Wave 3 after 01–03; establish D-09 visibility, six ExDoc groups, README main, and external resources
-- [ ] 200-09-PLAN.md — Wave 3 after 02; make Getting Started the sole adoption owner and route README/example callers
+- [x] 200-04-PLAN.md — Wave 3 after 01–03; establish D-09 visibility, six ExDoc groups, README main, and external resources
+- [x] 200-09-PLAN.md — Wave 3 after 02; make Getting Started the sole adoption owner and route README/example callers
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 200-05-PLAN.md — Wave 4 after 04; audit and clean the seed plus capture/export visibility cohorts
-- [ ] 200-10-PLAN.md — Wave 4 after 03 and 09; make Operator Surface and Local Docker the sole operational owners
+- [x] 200-05-PLAN.md — Wave 4 after 04; audit and clean the seed plus capture/export visibility cohorts
+- [x] 200-10-PLAN.md — Wave 4 after 03 and 09; make Operator Surface and Local Docker the sole operational owners
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 200-06-PLAN.md — Wave 5 after 05; audit governance/domain-tail visibility cohorts
+- [x] 200-06-PLAN.md — Wave 5 after 05; audit governance/domain-tail visibility cohorts
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 200-07-PLAN.md — Wave 6 after 06; audit operator controller, coverage, authorization, and session cohorts
+- [x] 200-07-PLAN.md — Wave 6 after 06; audit operator controller, coverage, authorization, and session cohorts
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 200-08-PLAN.md — Wave 7 after 07; finish operator audit, reconcile module groups, and update CHANGELOG without running the full source aggregate
+- [x] 200-08-PLAN.md — Wave 7 after 07; finish operator audit, reconcile module groups, and update CHANGELOG without running the full source aggregate
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 200-11-PLAN.md — Wave 8 after 08–10; connect Evaluate and architecture guide subgraphs
-- [ ] 200-15-PLAN.md — Wave 8 after 08; clean the exact core Mix/capture/Plug/query/retention source cohort
-- [ ] 200-16-PLAN.md — Wave 8 after 08; clean operator logo/mechanical/stress provenance without mechanics or UI-structure drift
-- [ ] 200-17-PLAN.md — Wave 8 after 08; clean five form-oriented LiveViews without behavior or rendering drift
-- [ ] 200-18-PLAN.md — Wave 8 after 08; clean five record-oriented LiveViews without behavior or rendering drift
+- [x] 200-11-PLAN.md — Wave 8 after 08–10; connect Evaluate and architecture guide subgraphs
+- [x] 200-15-PLAN.md — Wave 8 after 08; clean the exact core Mix/capture/Plug/query/retention source cohort
+- [x] 200-16-PLAN.md — Wave 8 after 08; clean operator logo/mechanical/stress provenance without mechanics or UI-structure drift
+- [x] 200-17-PLAN.md — Wave 8 after 08; clean five form-oriented LiveViews without behavior or rendering drift
+- [x] 200-18-PLAN.md — Wave 8 after 08; clean five record-oriented LiveViews without behavior or rendering drift
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 200-12-PLAN.md — Wave 9 after 11; finish integrations, exact 18-node guide graph, and native ExDoc inspection
+- [x] 200-12-PLAN.md — Wave 9 after 11; finish integrations, exact 18-node guide graph, and native ExDoc inspection
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 200-13-PLAN.md — Wave 10 after 10 and 12; rewrite contributor onboarding and the exact database repair path
+- [x] 200-13-PLAN.md — Wave 10 after 10 and 12; rewrite contributor onboarding and the exact database repair path
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 200-14-PLAN.md — Wave 11 after 08, 12, 13, and 15–18; add safe community/security intake and close the only full source/public-doc/archive plus hosted gates
+- [x] 200-14-PLAN.md — Wave 11 after 08, 12, 13, and 15–18; add safe community/security intake and close the only full source/public-doc/archive plus hosted gates
 
 **Notes carried from the approved plan:**
 
@@ -736,7 +736,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 |-------|-----------|----------------|--------|-----------|
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
 | 199. Decouple | v1.41 | 21/21 | Complete    | 2026-09-11 |
-| 200. Public Surface | v1.41 | 0/11 | Not started | |
+| 200. Public Surface | v1.41 | 18/18 | Complete    | 2026-09-13 |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
 | 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |
 | 203. Real Gates | v1.41 | 0/TBD | Not started | |

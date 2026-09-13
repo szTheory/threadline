@@ -108,7 +108,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_actor",
         actor_fn: &__MODULE__.actor_fn/1,
-        authorize_fn: &__MODULE__.auth/1
+        authorize_fn: &__MODULE__.auth/1,
+        export_authorize_fn: &__MODULE__.export_auth/1
       )
     end
 
@@ -124,6 +125,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def auth(_socket), do: :ok
+
+    def export_auth(_socket) do
+      Application.get_env(:threadline, :test_timeline_export_auth, :ok)
+    end
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.Endpoint do
@@ -223,7 +228,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def auth(_socket), do: {:ok, %{access: :support_read_only, organization_id: "org_123"}}
-    def export_auth(_mirror), do: {:error, :unauthorized}
+
+    def export_auth(_mirror) do
+      case Application.get_env(:threadline, :test_support_export_auth, :deny) do
+        :raise -> raise "authorization backend unavailable"
+        :allow -> :ok
+        :deny -> {:error, :unauthorized}
+      end
+    end
 
     def scope_operator_query(query, %{organization_id: org_id}, %{surface: :timeline}) do
       where(query, [_ac, at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
@@ -673,6 +685,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s(selected)
     end
 
+    test "actor kind without actor id renders an error and no unfiltered rows", %{conn: conn} do
+      seed_changes!(1, table: "must-not-render")
+
+      assert {:ok, _lv, html} = live(conn, "/audit/timeline?actor_kind=user")
+
+      assert html =~ "actor id is required for non-anonymous actors"
+      refute html =~ "must-not-render"
+      refute html =~ "Queue export"
+    end
+
+    test "actor id without actor kind renders an error and no unfiltered rows", %{conn: conn} do
+      seed_changes!(1, table: "must-not-render")
+
+      assert {:ok, _lv, html} = live(conn, "/audit/timeline?actor_id=42")
+
+      assert html =~ "actor kind is required when actor id is present"
+      refute html =~ "must-not-render"
+      refute html =~ "Queue export"
+      refute html =~ ~r{href="/audit/exports/changes\.(csv|json|ndjson)\?}
+    end
+
     # -------------------------------------------------------------------
     # Case 12 — unknown_param_dropped (BROWSE-02 — allowlist enforcement)
     # -------------------------------------------------------------------
@@ -835,6 +868,87 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_click(lv, "request_background_export", %{})
 
       assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
+
+    test "actorless Timeline mounts hide and reject background export actions", %{conn: conn} do
+      {:ok, lv, html} = live(conn, "/audit/timeline?table=posts")
+
+      refute html =~ "Queue export"
+      assert html =~ ~s|href="/audit/exports/changes.csv?|
+
+      render_click(lv, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
+
+    test "independent anonymous sessions cannot queue background exports" do
+      anonymous_actor = %Threadline.Semantics.ActorRef{type: :anonymous, id: nil}
+      serialized_actor = Jason.encode!(Threadline.Semantics.ActorRef.to_map(anonymous_actor))
+
+      conn_a =
+        build_conn()
+        |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+      conn_b =
+        build_conn()
+        |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+      {:ok, view_a, html_a} = live(conn_a, "/audit/timeline?table=posts")
+      {:ok, view_b, html_b} = live(conn_b, "/audit/timeline?table=posts")
+
+      refute html_a =~ "Queue export"
+      refute html_b =~ "Queue export"
+
+      render_click(view_a, "request_background_export", %{})
+      render_click(view_b, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
+
+    test "independent anonymous sessions cannot create, list, apply, or delete saved views" do
+      anonymous_actor = %Threadline.Semantics.ActorRef{type: :anonymous, id: nil}
+      serialized_actor = Jason.encode!(Threadline.Semantics.ActorRef.to_map(anonymous_actor))
+
+      legacy_view =
+        Threadline.Test.Repo.insert!(
+          %Threadline.Governance.SavedView{
+            name: "private anonymous filters",
+            actor_ref: anonymous_actor,
+            filters: %{"table" => "private_rows"}
+          },
+          repo_opts()
+        )
+
+      conn_a =
+        build_conn()
+        |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+      conn_b =
+        build_conn()
+        |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+      {:ok, view_a, html_a} = live(conn_a, "/audit/timeline?table=posts")
+      {:ok, view_b, html_b} = live(conn_b, "/audit/timeline?table=posts")
+
+      refute html_a =~ "save-view-form"
+      refute html_b =~ "save-view-form"
+      refute html_a =~ "private anonymous filters"
+      refute html_b =~ "private anonymous filters"
+
+      render_submit(view_a, "save-view", %{"name" => "session a filters"})
+      render_submit(view_b, "save-view", %{"name" => "session b filters"})
+      render_click(view_a, "apply-view", %{"id" => legacy_view.id})
+      render_click(view_b, "delete-view", %{"id" => legacy_view.id})
+
+      assert Threadline.Test.Repo.get!(
+               Threadline.Governance.SavedView,
+               legacy_view.id,
+               repo_opts()
+             )
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.SavedView, repo_opts()) == [
+               legacy_view
+             ]
     end
 
     test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do
@@ -1500,6 +1614,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert view.filters["table"] == "posts"
       assert view.actor_ref == %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"}
     end
+
+    test "export-specific scope hides and rejects background exports", %{conn: conn} do
+      Application.put_env(
+        :threadline,
+        :test_timeline_export_auth,
+        {:ok, %{tenant_id: "tenant-export-scope"}}
+      )
+
+      on_exit(fn -> Application.delete_env(:threadline, :test_timeline_export_auth) end)
+
+      {:ok, lv, html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
+
+      refute html =~ "Queue export"
+      assert html =~ ~s|href="/audit_actor/exports/changes.csv?|
+
+      render_click(lv, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
   end
 
   # -------------------------------------------------------------------
@@ -1623,7 +1756,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              )
     end
 
-    test "Case 12: Request Background Export enqueues job and redirects", %{conn: conn} do
+    test "Case 12: scoped Timeline refuses background export and keeps scoped downloads", %{
+      conn: conn
+    } do
       original_adapter = Application.get_env(:threadline, :export_queue_adapter)
 
       Application.put_env(
@@ -1653,25 +1788,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Initial state
       initial_jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
 
-      # Click the export button
-      lv |> element("button", "Queue export") |> render_click()
+      html = render(lv)
+      refute html =~ "Queue export"
+      assert html =~ ~s|href="/audit_scoped/exports/changes.csv?|
 
-      # Assert redirected to /audit_scoped/exports
-      assert_redirect(lv, "/audit_scoped/exports")
+      # A forged event must also fail closed without inserting or enqueueing a job.
+      render_click(lv, "request_background_export", %{})
 
-      # Job is inserted
       jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
-      assert length(jobs) == length(initial_jobs) + 1
-      job = hd(jobs -- initial_jobs)
-      assert job.status == "pending"
-      assert job.query_params["table"] == "support_posts"
-      assert job.query_params["table_schema"] == "support"
-      assert job.actor_ref.type == :user
-      # the user_id mapped to actor_ref
-      assert job.actor_ref.id == "op1"
-      job_id = job.id
-      assert_receive {:threadline_export_enqueued, ^job_id, enqueue_opts}
-      assert enqueue_opts[:storage_schema] == "threadline"
+      assert jobs == initial_jobs
+      refute_receive {:threadline_export_enqueued, _, _}
     end
 
     test "background export failure preserves the row and surfaces the error", %{conn: conn} do
@@ -1697,14 +1823,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
         end
 
-      _html = lv |> element("button", "Queue export") |> render_click()
+      render_click(lv, "request_background_export", %{})
 
-      [job] = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
-      assert job.status == "failed"
-      assert job.error_message =~ "built-in export runtime is unavailable"
-      assert %DateTime{} = job.expires_at
-      assert job.query_params["table"] == "support_posts"
-      assert render(lv) =~ "Queue export"
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
       assert render(lv) =~ "support_posts"
     end
   end
@@ -1759,6 +1880,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
+
+    test "export authorization exceptions hide exports and forged queue events create no job", %{
+      conn: conn
+    } do
+      Application.put_env(:threadline, :test_support_export_auth, :raise)
+      on_exit(fn -> Application.delete_env(:threadline, :test_support_export_auth) end)
+
+      {:ok, lv, html} =
+        case live(conn, "/audit_support/timeline?table=support_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      refute html =~ "Queue export"
+      refute html =~ ">CSV<"
+
+      render_click(lv, "request_background_export", %{})
       assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
   end

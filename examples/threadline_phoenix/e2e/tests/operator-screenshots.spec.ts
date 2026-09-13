@@ -32,7 +32,7 @@ async function login(page: Page, email = adminEmail) {
 }
 
 async function capture(page: Page, testInfo: TestInfo, name: string) {
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
   await page.screenshot({
     path: testInfo.outputPath(`${name}.png`),
     fullPage: true,

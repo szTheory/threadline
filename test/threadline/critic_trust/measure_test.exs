@@ -18,7 +18,8 @@ defmodule Threadline.CriticTrust.MeasureTest do
       "kind" => "single",
       "kept" => kept,
       "r1" => %{"verdict" => verdict, "evidence" => "e1", "blind" => true},
-      "r2" => %{"verdict" => verdict, "evidence" => "e2", "blind" => true}
+      "r2" => %{"verdict" => verdict, "evidence" => "e2", "blind" => true},
+      "adjudicated" => %{"source" => "agreement", "verdict" => verdict}
     }
   end
 
@@ -176,6 +177,19 @@ defmodule Threadline.CriticTrust.MeasureTest do
     assert h["n"] == 2
     # one match (c1), one mismatch (c0) → raw 0.5 proves min() picked 3 for c0
     assert h["raw_agreement"] == 0.5
+  end
+
+  test "uses the adjudicated verdict instead of either raw round" do
+    item =
+      gitem("c0", "hierarchy", "good")
+      |> put_in(["r2", "verdict"], "bad")
+      |> put_in(["adjudicated"], %{"source" => "r2", "verdict" => "bad"})
+
+    scores = %{{"c0", "hierarchy"} => [dim("weak")]}
+    h = Measure.build_block(%{"items" => [item]}, scores, versions())["hierarchy"]
+
+    assert h["n"] == 1
+    assert h["raw_agreement"] == 1.0
   end
 
   test "kept:false items and items without a stable critic score are skipped" do
