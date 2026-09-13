@@ -951,25 +951,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              ]
     end
 
-    test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do
-      {:ok, _lv, html} =
+    test "filtered Timeline carries allowed context to Exports", %{conn: conn} do
+      {:ok, lv, html} =
         live(
           conn,
           "/audit/timeline?from=2026-05-01T00:00&to=2026-05-06T23:59&table=ticket_replies&correlation_id=req_ef3"
         )
 
-      assert html =~ "Carry to Exports"
-      assert html =~ ~s|data-earned-flow="EF3"|
-      assert html =~ ~s|data-persona="P3"|
-      assert html =~ ~s|data-jtbd="J6"|
-
       escaped_query =
         "from=2026-05-01T00%3A00&amp;to=2026-05-06T23%3A59&amp;table=ticket_replies&amp;correlation_id=req_ef3"
 
-      assert html =~ ~s|href="/audit/exports?#{escaped_query}"|
-      assert html =~ ~s|href="/audit/exports/changes.csv?#{escaped_query}"|
-      assert html =~ ~s|href="/audit/exports/changes.json?#{escaped_query}"|
-      assert html =~ ~s|href="/audit/exports/changes.ndjson?#{escaped_query}"|
+      assert has_element?(
+               lv,
+               ~s|a[href="/audit/exports?#{escaped_query}"]|,
+               "Carry to Exports"
+             )
+
+      assert has_element?(lv, ~s|a[href="/audit/exports/changes.csv?#{escaped_query}"]|, "CSV")
+
+      assert has_element?(
+               lv,
+               ~s|a[href="/audit/exports/changes.json?#{escaped_query}"]|,
+               "JSON"
+             )
+
+      assert has_element?(
+               lv,
+               ~s|a[href="/audit/exports/changes.ndjson?#{escaped_query}"]|,
+               "NDJSON"
+             )
+
+      refute has_element?(lv, "[data-earned-flow]")
+      refute has_element?(lv, "[data-persona]")
+      refute has_element?(lv, "[data-jtbd]")
       refute html =~ "subject_ref_json"
     end
 

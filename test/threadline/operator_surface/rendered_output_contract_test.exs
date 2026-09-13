@@ -142,6 +142,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         sha256: "eb676f68c6ff8f1073d2974ca829b9997a4695ad5734cc8ac2027dd676833c2a"
       }
     }
+    @representative_node_ids @pre_edit_receipts |> Map.keys() |> Enum.sort()
 
     setup_all do
       Application.put_env(:threadline, @endpoint,
@@ -221,6 +222,45 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert scan_planning_attributes("clean-control", "<section data-state=\"ready\"></section>") ==
                []
+    end
+
+    test "exact seven-node representative inventory rejects incomplete sets and planning attributes",
+         %{conn: conn} do
+      inventory = representative_render_inventory(conn)
+
+      assert map_size(inventory) == 7
+      assert Map.keys(inventory) |> Enum.sort() == @representative_node_ids
+
+      assert {:error, {:unexpected_inventory, []}} = validate_render_inventory(%{})
+
+      incomplete = Map.delete(inventory, "timeline.carry_to_exports")
+
+      assert {:error, {:unexpected_inventory, incomplete_ids}} =
+               validate_render_inventory(incomplete)
+
+      assert incomplete_ids ==
+               Enum.reject(@representative_node_ids, &(&1 == "timeline.carry_to_exports"))
+
+      clean_control_inventory =
+        Map.new(@representative_node_ids, &{&1, "<section data-state=\"ready\"></section>"})
+
+      for attribute <- @planning_attributes do
+        seeded =
+          Map.put(
+            clean_control_inventory,
+            "timeline.carry_to_exports",
+            ~s(<a #{attribute}="seed" href="/audit/exports">Carry to Exports</a>)
+          )
+
+        expected_kind = String.to_atom(String.replace(attribute, "-", "_"))
+
+        assert {:error,
+                {:planning_attributes,
+                 [%{file: "timeline.carry_to_exports", kind: ^expected_kind}]}} =
+                 validate_render_inventory(seeded)
+      end
+
+      assert :ok = validate_render_inventory(inventory)
     end
 
     test "visible Threadline copy and Style.css comments contain no planning vocabulary", %{
@@ -396,6 +436,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end)
         end)
       end)
+    end
+
+    defp validate_render_inventory(inventory) when is_map(inventory) do
+      actual_ids = inventory |> Map.keys() |> Enum.sort()
+
+      if actual_ids == @representative_node_ids do
+        offenders =
+          Enum.flat_map(@representative_node_ids, fn node_id ->
+            scan_planning_attributes(node_id, Map.fetch!(inventory, node_id))
+          end)
+
+        case offenders do
+          [] -> :ok
+          offenders -> {:error, {:planning_attributes, offenders}}
+        end
+      else
+        {:error, {:unexpected_inventory, actual_ids}}
+      end
     end
 
     defp scan_css_provenance(css) do
