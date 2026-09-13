@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 201
 current_phase_name: Rendered Output
 status: executing
-stopped_at: Completed 201-02-PLAN.md
-last_updated: "2026-09-13T20:17:29.753Z"
+stopped_at: Completed 201-03-PLAN.md
+last_updated: "2026-09-13T20:28:29.546Z"
 last_activity: 2026-09-13
 last_activity_desc: Phase 201 execution started
-state_head: c4ac16c99207b9b9b7d79c6f4606932ac3ed6bf5
+state_head: d31a72bc238daff9738f6a5050be90787acdd938
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 110
-  completed_plans: 107
+  completed_plans: 108
   percent: 14
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 201 (Rendered Output) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -144,6 +144,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 200 P13 | 5min | 2 tasks | 2 files |
 | Phase 201-rendered-output P01 | 13min | 3 tasks | 4 files |
 | Phase 201-rendered-output P02 | 11min | 1 tasks | 5 files |
+| Phase 201-rendered-output P03 | 7min | 1 tasks | 5 files |
 
 ## Deferred Items
 
@@ -664,6 +665,8 @@ Progress: [████████████████████] 87/87 p
 - [Phase 201]: Shell and Home browser coverage uses existing form IDs, accessible labels, roles, and visible hierarchy instead of roadmap taxonomy attributes.
 - [Phase 201]: Start browser consumers use existing forms, accessible labels, roles, and visible outcomes; no replacement test IDs or provenance hooks were added.
 - [Phase 201]: The focused Start contract rejects planning attributes only after proving both lookup controls remain present and operable.
+- [Phase 201]: Existing export-context task IDs and the accessible Carry to Exports link express the complete behavior contract without replacement provenance metadata.
+- [Phase 201]: The shared earned-flow browser journey uses roles, visible names, routes, and existing product test IDs for both this cohort and the later Row History/Timeline cohort.
 
 ### Blockers
 
@@ -671,8 +674,8 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-13T20:17:29.566Z
-**Stopped at:** Completed 201-02-PLAN.md
+**Last session:** 2026-09-13T20:28:29.399Z
+**Stopped at:** Completed 201-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

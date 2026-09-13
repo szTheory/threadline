@@ -638,7 +638,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 201-03-PLAN.md — Remove the nine Exports/Evidence provenance attributes with atomic direct-consumer migration.
+- [x] 201-03-PLAN.md — Remove the nine Exports/Evidence provenance attributes with atomic direct-consumer migration.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
