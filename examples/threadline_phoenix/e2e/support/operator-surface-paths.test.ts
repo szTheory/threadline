@@ -487,6 +487,34 @@ test("rejects traversal, absolute escape, prefix confusion, and symlink escape",
   }
 });
 
+test("resolves first-run output paths beneath a root that does not exist yet", async () => {
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+  assert.equal(typeof adapter.resolveContainedPath, "function");
+
+  const sandbox = await mkdtemp(resolve(tmpdir(), "threadline-paths-first-run-"));
+  const outputRoot = resolve(sandbox, "artifacts", "tier-a");
+
+  try {
+    const canonicalSandbox = await realpath(sandbox);
+    const expectedRoot = resolve(canonicalSandbox, "artifacts", "tier-a");
+    const cellRoot = adapter.resolveContainedPath(outputRoot, "timeline-density-dark-1280");
+
+    assert.equal(cellRoot, resolve(expectedRoot, "timeline-density-dark-1280"));
+    assert.equal(
+      adapter.resolveContainedPath(cellRoot, "screenshot.png"),
+      resolve(expectedRoot, "timeline-density-dark-1280", "screenshot.png"),
+    );
+    assert.throws(() => adapter.resolveContainedPath(outputRoot, "../escape.json"), /outside/i);
+    assert.throws(
+      () => adapter.resolveContainedPath(outputRoot, resolve(sandbox, "outside.json")),
+      /outside/i,
+    );
+  } finally {
+    await rm(sandbox, { recursive: true, force: true });
+  }
+});
+
 test("rejects immutable and generated root aliasing while allowing a separated output", async () => {
   const adapter = await loadAdapter();
   assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);

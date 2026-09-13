@@ -151,7 +151,10 @@ export function resolveContainedPath(root: string, candidate: string): string {
     throw new Error(`Path is outside the permitted root (traversal): ${candidate}`);
   }
 
-  const canonicalRoot = realpathSync(resolve(root));
+  // Capture lanes create their gitignored output roots on first use. Resolve the
+  // nearest existing ancestor so containment can be checked before `root`
+  // exists, while still canonicalizing any symlinks in its existing prefix.
+  const canonicalRoot = canonicalizeExistingParent(root);
   const absoluteCandidate = isAbsolute(candidate)
     ? resolve(candidate)
     : resolve(canonicalRoot, candidate);
