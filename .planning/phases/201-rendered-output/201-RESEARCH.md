@@ -422,17 +422,15 @@ assert css_vocabulary_offenders(rendered_threadline_css()) == []
 | A7 | Only the post-change run can determine whether any measured value moves; current evidence predicts zero entries. | Open Questions | A movement would require the locked narrow-check-or-bounded-registry contingency. |
 | A8 | Research remains valid through 2026-10-13 if HEAD does not change. | Metadata | Any intervening render/test change requires re-inventory. |
 
-## Open Questions
+## Open Questions — RESOLVED
 
 1. **Should the structural receipt helper remain local to the contract test or live in `test/support`?**
    - What we know: LazyHTML is already test-only and the evidence is one-time, not a permanent snapshot suite. [VERIFIED: mix.exs:101-105] [VERIFIED: .planning/phases/201-rendered-output/201-CONTEXT.md]
-   - What's unclear: whether more than one test file needs the canonicalizer during execution. [ASSUMED]
-   - Recommendation: keep it private in `rendered_output_contract_test.exs` unless pre/post orchestration demonstrates real reuse; avoid a production module. [ASSUMED]
+   - RESOLVED disposition: keep the helper private in `test/threadline/operator_surface/rendered_output_contract_test.exs`; only move it to test support if execution demonstrates a second real caller. The evidence is one-time, LazyHTML is already test-only, and no current second consumer exists, so a production abstraction is not justified. [VERIFIED: mix.exs:101-105] [VERIFIED: .planning/phases/201-rendered-output/201-CONTEXT.md]
 
 2. **Will any measured value move after residual work?**
    - What we know: residual implementation is attribute removal and test/filename migration; accepted text/CSS cleanup is already at baseline, and the Phase 198 probe found text/width invisible to the mechanical checker. [VERIFIED: repository inventory, 2026-09-13] [VERIFIED: .planning/audits/198-mechanical-sensitivity.md]
-   - What's unclear: only an executed post-change gate can establish the final result. [ASSUMED]
-   - Recommendation: expect zero whitelist entries. If a separate measured check moves, first make that check text-length-invariant; otherwise register no more than three named nodes with measured before/after delta and expiry. Never recapture. [VERIFIED: .planning/ROADMAP.md:623-626]
+   - RESOLVED disposition: expect zero measured movement and an explicit zero-entry registry because the residual implementation is attribute/test-identity only and the accepted copy/CSS blobs are already fixed. Final deterministic execution remains the deciding evidence; only real measured movement may enter the bounded registry, with exact stable node ID, numeric before/after/delta, rationale, and expiry. Never recapture. [VERIFIED: .planning/audits/198-mechanical-sensitivity.md] [VERIFIED: .planning/ROADMAP.md:623-626]
 
 ## Environment Availability
 
