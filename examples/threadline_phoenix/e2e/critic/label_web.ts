@@ -110,6 +110,11 @@ export async function startWebLabeling(round: "r1" | "r2", pairs: boolean, lens?
     return true;
   });
 
+  if (remaining.length > 0) {
+    roundFile.completed = false;
+    roundFile.completed_at = null;
+  }
+
   for (const item of remaining) {
     if (item.kind === "pair" && (!item.pair_with || item.pair_with === item.cell_id)) {
       throw new Error(`Invalid pair queue item: ${item.id}`);
@@ -189,7 +194,7 @@ export async function startWebLabeling(round: "r1" | "r2", pairs: boolean, lens?
       roundFile.completed_at = new Date().toISOString();
       writeJson(rp, roundFile);
       const next = round === "r1"
-        ? "Commit r1, then run: npm run critic:label -- --round r2 --web"
+        ? `Commit r1, then run: npm run critic:label -- --round r2${pairs ? " --pairs" : ""} --web`
         : "Run: npm run critic:label -- --reconcile";
       res.end(`<!doctype html><meta charset=utf-8><body style="font:16px system-ui;background:#0b0b0d;color:#e7e7ea;padding:3rem">
         <h1>Round ${round.toUpperCase()} complete</h1><p>${roundFile.items.length} items labeled.</p>

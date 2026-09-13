@@ -174,7 +174,7 @@ interface QueueFile {
   items: QueueItem[];
 }
 
-interface RoundItem {
+export interface RoundItem {
   queue_id: string;
   token: string; // ephemeral opaque token shown to labeler
   cell_id: string; // stored for reconcile; NOT shown during labeling
@@ -188,14 +188,14 @@ interface RoundItem {
   labeled_at: string;
 }
 
-interface RoundFile {
+export interface RoundFile {
   round: "r1" | "r2";
   completed: boolean;
   completed_at: string | null;
   items: RoundItem[];
 }
 
-interface GoldenItem {
+export interface GoldenItem {
   id: string; // gs_001 etc
   cell_id: string;
   lens: LensName;
@@ -245,6 +245,95 @@ function tokenCount(items: RoundItem[]): number {
 
 function roundItemKey(item: RoundItem): string {
   return [item.cell_id, item.lens, item.kind, item.pair_with ?? ""].join("::");
+}
+
+/**
+ * Load all evidence already authored for a round. Pair and single sessions are
+ * intentionally separate UI runs, but their durable evidence shares one round
+ * file, so a new invocation must always append to the existing collection.
+ */
+export function loadRoundEvidence(
+  path: string,
+  round: "r1" | "r2",
+): RoundFile {
+  if (!existsSync(path)) {
+    return { round, completed: false, completed_at: null, items: [] };
+  }
+
+  const existing = readJson<RoundFile>(path);
+  if (existing.round !== round) {
+    throw new Error(`Round file ${path} contains ${existing.round}, expected ${round}.`);
+  }
+
+  return {
+    ...existing,
+    completed: false,
+    completed_at: null,
+    items: [...existing.items],
+  };
+}
+
+export function nextRoundCommand(round: "r1" | "r2", pairs: boolean): string {
+  return `npm run critic:label -- --round ${round}${pairs ? " --pairs" : ""}`;
+}
+
+export function reconcileRoundEvidence(
+  r1Items: RoundItem[],
+  r2Items: RoundItem[],
+): {
+  agreements: GoldenItem[];
+  disagreements: Array<{ r1Item: RoundItem; r2Item: RoundItem }>;
+  r1Count: number;
+  r2Count: number;
+} {
+  const r1Map = new Map<string, RoundItem>();
+  for (const item of r1Items) r1Map.set(roundItemKey(item), item);
+
+  const r2Map = new Map<string, RoundItem>();
+  for (const item of r2Items) r2Map.set(roundItemKey(item), item);
+
+  const agreements: GoldenItem[] = [];
+  const disagreements: Array<{ r1Item: RoundItem; r2Item: RoundItem }> = [];
+
+  for (const [key, r1Item] of r1Map) {
+    const r2Item = r2Map.get(key);
+    if (!r2Item) continue;
+
+    const marginsAgree =
+      r1Item.kind !== "pair" || r1Item.margin === r2Item.margin;
+
+    if (r1Item.verdict === r2Item.verdict && marginsAgree) {
+      agreements.push({
+        id: `gs_${String(agreements.length + 1).padStart(3, "0")}`,
+        cell_id: r1Item.cell_id,
+        lens: r1Item.lens,
+        kind: r1Item.kind,
+        pair_with: r1Item.pair_with,
+        r1: {
+          verdict: r1Item.verdict,
+          ...(r1Item.margin ? { margin: r1Item.margin } : {}),
+          evidence: r1Item.evidence,
+          blind: true,
+        },
+        r2: {
+          verdict: r2Item.verdict,
+          ...(r2Item.margin ? { margin: r2Item.margin } : {}),
+          evidence: r2Item.evidence,
+          blind: true,
+        },
+        kept: true,
+      });
+    } else {
+      disagreements.push({ r1Item, r2Item });
+    }
+  }
+
+  return {
+    agreements,
+    disagreements,
+    r1Count: r1Map.size,
+    r2Count: r2Map.size,
+  };
 }
 
 /** Return committed scorecard cell IDs from the adapter-owned scorecard root. */
@@ -582,21 +671,14 @@ async function runRound(
     process.exit(0);
   }
 
-  // Load existing round file for resume
+  // Pair and single modes are separate UI runs over one durable round file.
+  // Always preserve already-authored evidence, even without --resume.
   const roundPath = round === "r1" ? r1Path : r2Path;
-  let roundFile: RoundFile;
-  if (opts.resume && existsSync(roundPath)) {
-    roundFile = readJson<RoundFile>(roundPath);
+  const roundFile = loadRoundEvidence(roundPath, round);
+  if (existsSync(roundPath)) {
     console.log(
-      `[critic label] Resuming ${round} (${roundFile.items.length} already labeled).`,
+      `[critic label] ${opts.resume ? "Resuming" : "Preserving"} ${round} (${roundFile.items.length} already labeled).`,
     );
-  } else {
-    roundFile = {
-      round,
-      completed: false,
-      completed_at: null,
-      items: [],
-    };
   }
 
   // Determine which queue items to label (skip already-labeled ones)
@@ -771,7 +853,7 @@ async function runRound(
     console.log(
       `  git add ${repoRelative(r1Path)} && git commit -m 'chore: golden set r1 labels'`,
     );
-    console.log("  npm run critic:label -- --round r2");
+    console.log(`  ${nextRoundCommand("r2", opts.pairs)}`);
   } else {
     console.log(
       "\nNext: reconcile the two rounds into golden-set.json:",
@@ -800,58 +882,11 @@ async function runReconcile(): Promise<void> {
   const r1 = readJson<RoundFile>(r1Path);
   const r2 = readJson<RoundFile>(r2Path);
 
-  // Include pair identity in the key so distinct comparisons never collapse.
-  const r1Map = new Map<string, RoundItem>();
-  for (const item of r1.items) {
-    r1Map.set(roundItemKey(item), item);
-  }
-
-  const r2Map = new Map<string, RoundItem>();
-  for (const item of r2.items) {
-    r2Map.set(roundItemKey(item), item);
-  }
-
-  const agreements: GoldenItem[] = [];
-  const disagreements: Array<{ r1Item: RoundItem; r2Item: RoundItem }> = [];
-
-  // Compare rounds — keep only items in both rounds
-  for (const [key, r1Item] of r1Map) {
-    const r2Item = r2Map.get(key);
-    if (!r2Item) continue; // r2 didn't label this item
-
-    const marginsAgree =
-      r1Item.kind !== "pair" || r1Item.margin === r2Item.margin;
-
-    if (r1Item.verdict === r2Item.verdict && marginsAgree) {
-      // Agreement: include in golden set
-      agreements.push({
-        id: `gs_${String(agreements.length + 1).padStart(3, "0")}`,
-        cell_id: r1Item.cell_id,
-        lens: r1Item.lens,
-        kind: r1Item.kind,
-        pair_with: r1Item.pair_with,
-        r1: {
-          verdict: r1Item.verdict,
-          ...(r1Item.margin ? { margin: r1Item.margin } : {}),
-          evidence: r1Item.evidence,
-          blind: true,
-        },
-        r2: {
-          verdict: r2Item.verdict,
-          ...(r2Item.margin ? { margin: r2Item.margin } : {}),
-          evidence: r2Item.evidence,
-          blind: true,
-        },
-        kept: true,
-      });
-    } else {
-      // Disagreement: queue for human tiebreak
-      disagreements.push({ r1Item, r2Item });
-    }
-  }
+  const { agreements, disagreements, r1Count, r2Count } =
+    reconcileRoundEvidence(r1.items, r2.items);
 
   console.log(
-    `\n[critic label] Reconcile: ${r1Map.size} r1 items, ${r2Map.size} r2 items`,
+    `\n[critic label] Reconcile: ${r1Count} r1 items, ${r2Count} r2 items`,
   );
   console.log(
     `  ${agreements.length} agreements, ${disagreements.length} disagreements`,
@@ -1161,6 +1196,7 @@ function printEmptyState(): void {
     "          npm run critic:label -- --add <left-cell> --pair-with <right-cell> --pairs --lens hierarchy",
   );
   console.log("          npm run critic:label -- --round r1 --pairs");
+  console.log("          npm run critic:label -- --round r2 --pairs");
   console.log("");
   console.log("  Step 2: Label round 1 (keystroke-driven, ~20 min for the poles):");
   console.log("          npm run critic:label -- --round r1");
