@@ -920,6 +920,94 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
     end
 
+    @tag phase199_task1: true
+    test "critic.measure rejects incomplete or contradictory adjudication before changing the ledger" do
+      preserve_repository_ledger(fn ->
+        %{fixture_root: fixture_root, output_root: output_root} =
+          measurement_roots!("invalid-adjudication")
+
+        ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+        golden_path = Path.join(fixture_root, "golden/golden-set.json")
+        original = File.read!(ledger_path)
+
+        valid_item = %{
+          "id" => "gs_001",
+          "cell_id" => "page.example",
+          "lens" => "hierarchy",
+          "kind" => "single",
+          "pair_with" => nil,
+          "r1" => %{"verdict" => "good", "evidence" => "r1 evidence", "blind" => true},
+          "r2" => %{"verdict" => "bad", "evidence" => "r2 evidence", "blind" => true},
+          "adjudicated" => %{"source" => "r1", "verdict" => "good"},
+          "kept" => true
+        }
+
+        invalid_items = [
+          {"missing source", put_in(valid_item, ["adjudicated"], %{"verdict" => "good"})},
+          {"empty r1 provenance", put_in(valid_item, ["r1"], %{})},
+          {"empty r2 evidence", put_in(valid_item, ["r2", "evidence"], " ")},
+          {"selected verdict mismatch",
+           put_in(valid_item, ["adjudicated"], %{"source" => "r2", "verdict" => "good"})},
+          {"false agreement",
+           put_in(valid_item, ["adjudicated"], %{
+             "source" => "agreement",
+             "verdict" => "good"
+           })},
+          {"pair margin mismatch",
+           valid_item
+           |> Map.put("kind", "pair")
+           |> put_in(["r1"], %{
+             "verdict" => "better",
+             "margin" => "clear",
+             "evidence" => "r1 pair",
+             "blind" => true
+           })
+           |> put_in(["r2"], %{
+             "verdict" => "worse",
+             "margin" => "subtle",
+             "evidence" => "r2 pair",
+             "blind" => true
+           })
+           |> put_in(["adjudicated"], %{
+             "source" => "r2",
+             "verdict" => "worse",
+             "margin" => "clear"
+           })}
+        ]
+
+        for {label, invalid_item} <- invalid_items do
+          File.write!(golden_path, Jason.encode!(%{"items" => [invalid_item]}))
+
+          error =
+            assert_raise Mix.Error, fn ->
+              Mix.Tasks.Critic.Measure.run([
+                "--fixture-root",
+                Path.relative_to(fixture_root, project_root()),
+                "--output-root",
+                Path.relative_to(output_root, project_root())
+              ])
+            end
+
+          assert error.message =~ "golden oracle schema is invalid", label
+          assert File.read!(ledger_path) == original, "#{label} changed the ledger"
+        end
+
+        File.write!(golden_path, Jason.encode!(%{"items" => [valid_item]}))
+
+        capture_io(fn ->
+          Mix.Tasks.Critic.Measure.run([
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root()),
+            "--output-root",
+            Path.relative_to(output_root, project_root())
+          ])
+        end)
+
+        refute File.read!(ledger_path) == original,
+               "consistent selected-round provenance should remain accepted"
+      end)
+    end
+
     # ── Canonical atomic writers (Phase 199 D-04) ─────────────────────────────
 
     @tag phase199_task2: true

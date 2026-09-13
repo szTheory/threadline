@@ -305,32 +305,7 @@ defmodule Mix.Tasks.Critic.Measure do
   defp validate_golden!(golden, path, recovery) do
     items = Map.get(golden, "items")
 
-    valid =
-      is_list(items) and
-        Enum.all?(items, fn item ->
-          if is_map(item) do
-            adjudicated = if is_map(item["adjudicated"]), do: item["adjudicated"], else: %{}
-
-            verdict_valid =
-              case item["kind"] do
-                "single" ->
-                  adjudicated["verdict"] in ~w(broken bad borderline good)
-
-                "pair" ->
-                  adjudicated["verdict"] in ~w(better worse) and
-                    adjudicated["margin"] in ~w(clear subtle)
-
-                _other ->
-                  false
-              end
-
-            is_binary(item["cell_id"]) and item["lens"] in Measure.lenses() and
-              is_map(item["r1"]) and is_map(item["r2"]) and
-              is_map(item["adjudicated"]) and verdict_valid
-          else
-            false
-          end
-        end)
+    valid = is_list(items) and Enum.all?(items, &valid_golden_item?/1)
 
     if valid do
       golden
@@ -338,6 +313,58 @@ defmodule Mix.Tasks.Critic.Measure do
       task_error!("golden oracle schema is invalid", path, recovery)
     end
   end
+
+  defp valid_golden_item?(item) when is_map(item) do
+    kind = item["kind"]
+    r1 = item["r1"]
+    r2 = item["r2"]
+    adjudicated = item["adjudicated"]
+
+    is_binary(item["cell_id"]) and item["cell_id"] != "" and
+      item["lens"] in Measure.lenses() and kind in ~w(single pair) and
+      valid_round_provenance?(r1, kind) and valid_round_provenance?(r2, kind) and
+      valid_adjudication?(adjudicated, r1, r2, kind)
+  end
+
+  defp valid_golden_item?(_item), do: false
+
+  defp valid_round_provenance?(round, kind) when is_map(round) do
+    verdict_valid =
+      case kind do
+        "single" -> round["verdict"] in ~w(broken bad borderline good) and is_nil(round["margin"])
+        "pair" -> round["verdict"] in ~w(better worse) and round["margin"] in ~w(clear subtle)
+      end
+
+    verdict_valid and round["blind"] == true and is_binary(round["evidence"]) and
+      String.trim(round["evidence"]) != ""
+  end
+
+  defp valid_round_provenance?(_round, _kind), do: false
+
+  defp valid_adjudication?(adjudicated, r1, r2, kind) when is_map(adjudicated) do
+    source = adjudicated["source"]
+
+    selected =
+      case source do
+        "agreement" -> r1
+        "r1" -> r1
+        "r2" -> r2
+        _other -> nil
+      end
+
+    source_consistent =
+      source != "agreement" or
+        (r1["verdict"] == r2["verdict"] and
+           (kind != "pair" or r1["margin"] == r2["margin"]))
+
+    is_map(selected) and source_consistent and adjudicated["verdict"] == selected["verdict"] and
+      case kind do
+        "single" -> is_nil(adjudicated["margin"])
+        "pair" -> adjudicated["margin"] == selected["margin"]
+      end
+  end
+
+  defp valid_adjudication?(_adjudicated, _r1, _r2, _kind), do: false
 
   defp atomic_replace!(target, contents) do
     temp = "#{target}.tmp-#{System.unique_integer([:positive, :monotonic])}"
