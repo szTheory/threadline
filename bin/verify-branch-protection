@@ -133,9 +133,14 @@ else
         | jq -er 'if .protection.enabled == true then "true" elif .protection.enabled == false then "false" else empty end' 2>/dev/null || true)
 
       if [[ -z "$CLASSIC_ENABLED" ]]; then
-        echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
-        echo "The protection endpoint returned 403 and branch metadata was unreadable." >&2
-        exit 1
+        if [[ "${ALLOW_UNVERIFIED_CLASSIC_PROTECTION:-0}" == "1" ]]; then
+          CLASSIC_STATUS="unverified"
+          echo "WARNING: this token cannot inspect classic protection for ${REPO}@${BRANCH}; ruleset and emitted-check assertions still passed." >&2
+        else
+          echo "Could not inspect classic branch protection for ${REPO}@${BRANCH}." >&2
+          echo "The protection endpoint returned 403 and branch metadata omitted protection.enabled." >&2
+          exit 1
+        fi
       elif [[ "$CLASSIC_ENABLED" == "true" ]]; then
         CLASSIC_STATUS="present"
       else
@@ -159,4 +164,8 @@ if [[ "$CLASSIC_STATUS" == "present" ]]; then
   exit 1
 fi
 
-echo "Branch protection OK for ${REPO}@${BRANCH}: required contexts are exactly [${EXPECTED_CONTEXT}], that name has been emitted ${EMITTED_COUNT} time(s) on head ${HEAD_SHA}, and no classic protection is stacking."
+if [[ "$CLASSIC_STATUS" == "unverified" ]]; then
+  echo "Branch protection PARTIAL for ${REPO}@${BRANCH}: required contexts are exactly [${EXPECTED_CONTEXT}] and that name has been emitted ${EMITTED_COUNT} time(s) on head ${HEAD_SHA}; classic protection was not visible to this token."
+else
+  echo "Branch protection OK for ${REPO}@${BRANCH}: required contexts are exactly [${EXPECTED_CONTEXT}], that name has been emitted ${EMITTED_COUNT} time(s) on head ${HEAD_SHA}, and no classic protection is stacking."
+fi

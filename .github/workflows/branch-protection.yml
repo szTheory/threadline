@@ -46,7 +46,11 @@ jobs:
 
       - name: Assert main's protection contract
         env:
-          # The default GITHUB_TOKEN can read repository rules and check runs.
+          # The default GITHUB_TOKEN can read repository rules and check runs,
+          # but GitHub withholds classic-protection fields that require
+          # Administration:read. Keep local/maintainer runs strict while
+          # explicitly allowing only that field omission in hosted Actions.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          ALLOW_UNVERIFIED_CLASSIC_PROTECTION: "1"
         run: bin/verify-branch-protection
