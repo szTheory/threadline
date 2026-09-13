@@ -1,21 +1,21 @@
 ---
-gsd_state_version: 1.0
+gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 201
-current_phase_name: rendered-output
+current_phase_name: Rendered Output
 status: executing
-stopped_at: Phase 201 context gathered
-last_updated: "2026-09-13T19:38:20.256Z"
+stopped_at: Completed 201-01-PLAN.md
+last_updated: "2026-09-13T20:02:19.665Z"
 last_activity: 2026-09-13
-last_activity_desc: Phase 200 complete, transitioned to Phase 201
-state_head: d424cf989afbba105b0adbdc4eb2d458e9c1c60b
+last_activity_desc: Phase 201 execution started
+state_head: fecfe684dffeedf6b9d01da271a3086e0ce95f45
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 1
   total_plans: 110
-  completed_plans: 105
-  percent: 43
+  completed_plans: 106
+  percent: 14
 ---
 
 # Project State: Threadline
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 201 (rendered-output) — READY TO EXECUTE
-Plan: Not started
+Phase: 201 (Rendered Output) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
@@ -43,7 +43,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-13 — Phase 200 complete, transitioned to Phase 201
+Last activity: 2026-09-13 — Phase 201 execution started
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -70,7 +70,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 87/87 plans ([████░░░░░░] 43%)
+Progress: [████████████████████] 87/87 plans ([█░░░░░░░░░] 14%)
 
 ## Performance Metrics
 
@@ -142,6 +142,7 @@ Progress: [████████████████████] 87/87 p
 | Phase 200 P17 | 12min | 2 tasks | 10 files |
 | Phase 200 P12 | 41min | 2 tasks | 8 files |
 | Phase 200 P13 | 5min | 2 tasks | 2 files |
+| Phase 201-rendered-output P01 | 13min | 3 tasks | 4 files |
 
 ## Deferred Items
 
@@ -657,6 +658,9 @@ Progress: [████████████████████] 87/87 p
 - [Phase 200]: Ordinary contributors see the complete issue-to-PR path before specialized test and maintainer reference material.
 - [Phase 200]: Missing audit table guidance explains the local-state cause and delegates recovery commands to Local Docker DX.
 - [Phase 200]: Generated PostgreSQL triggers installed through host-owned Ecto migrations are the shipped capture boundary.
+- [Phase 201]: Canonical receipts mount real routes, fix time-dependent inputs, normalize only nondeterministic CSRF values, and otherwise preserve meaningful structure.
+- [Phase 201]: Reference comparison requires exact sorted path identity before any per-path byte digest comparison.
+- [Phase 201]: Shell and Home browser coverage uses existing form IDs, accessible labels, roles, and visible hierarchy instead of roadmap taxonomy attributes.
 
 ### Blockers
 
@@ -664,9 +668,9 @@ Progress: [████████████████████] 87/87 p
 
 ## Session Continuity
 
-**Last session:** 2026-09-13T18:27:53.560Z
-**Stopped at:** Phase 201 context gathered
-**Resume file:** .planning/phases/201-rendered-output/201-CONTEXT.md
+**Last session:** 2026-09-13T20:02:19.509Z
+**Stopped at:** Completed 201-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

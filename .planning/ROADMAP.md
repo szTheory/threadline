@@ -630,7 +630,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 201-01-PLAN.md — Guard accepted landed copy/CSS, record immutable pre-edit evidence, and durably rename the shell browser spec.
+- [x] 201-01-PLAN.md — Guard accepted landed copy/CSS, record immutable pre-edit evidence, and durably rename the shell browser spec.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
