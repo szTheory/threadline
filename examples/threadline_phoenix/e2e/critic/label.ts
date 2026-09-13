@@ -203,6 +203,11 @@ export interface GoldenItem {
   pair_with: string | null;
   r1: { verdict: string; margin?: "clear" | "subtle"; evidence: string; blind: true };
   r2: { verdict: string; margin?: "clear" | "subtle"; evidence: string; blind: true };
+  adjudicated: {
+    source: "agreement" | "r1" | "r2";
+    verdict: RoundItem["verdict"];
+    margin?: "clear" | "subtle";
+  };
   kept: boolean;
 }
 
@@ -277,6 +282,42 @@ export function nextRoundCommand(round: "r1" | "r2", pairs: boolean): string {
   return `npm run critic:label -- --round ${round}${pairs ? " --pairs" : ""}`;
 }
 
+/** Build the canonical oracle result while retaining both blind rounds as provenance. */
+export function adjudicateRoundItems(
+  r1Item: RoundItem,
+  r2Item: RoundItem,
+  source: "agreement" | "r1" | "r2",
+  id: string,
+): GoldenItem {
+  const selected = source === "r2" ? r2Item : r1Item;
+
+  return {
+    id,
+    cell_id: r1Item.cell_id,
+    lens: r1Item.lens,
+    kind: r1Item.kind,
+    pair_with: r1Item.pair_with,
+    r1: {
+      verdict: r1Item.verdict,
+      ...(r1Item.margin ? { margin: r1Item.margin } : {}),
+      evidence: r1Item.evidence,
+      blind: true,
+    },
+    r2: {
+      verdict: r2Item.verdict,
+      ...(r2Item.margin ? { margin: r2Item.margin } : {}),
+      evidence: r2Item.evidence,
+      blind: true,
+    },
+    adjudicated: {
+      source,
+      verdict: selected.verdict,
+      ...(selected.margin ? { margin: selected.margin } : {}),
+    },
+    kept: true,
+  };
+}
+
 export function reconcileRoundEvidence(
   r1Items: RoundItem[],
   r2Items: RoundItem[],
@@ -303,26 +344,14 @@ export function reconcileRoundEvidence(
       r1Item.kind !== "pair" || r1Item.margin === r2Item.margin;
 
     if (r1Item.verdict === r2Item.verdict && marginsAgree) {
-      agreements.push({
-        id: `gs_${String(agreements.length + 1).padStart(3, "0")}`,
-        cell_id: r1Item.cell_id,
-        lens: r1Item.lens,
-        kind: r1Item.kind,
-        pair_with: r1Item.pair_with,
-        r1: {
-          verdict: r1Item.verdict,
-          ...(r1Item.margin ? { margin: r1Item.margin } : {}),
-          evidence: r1Item.evidence,
-          blind: true,
-        },
-        r2: {
-          verdict: r2Item.verdict,
-          ...(r2Item.margin ? { margin: r2Item.margin } : {}),
-          evidence: r2Item.evidence,
-          blind: true,
-        },
-        kept: true,
-      });
+      agreements.push(
+        adjudicateRoundItems(
+          r1Item,
+          r2Item,
+          "agreement",
+          `gs_${String(agreements.length + 1).padStart(3, "0")}`,
+        ),
+      );
     } else {
       disagreements.push({ r1Item, r2Item });
     }
@@ -932,30 +961,17 @@ async function runReconcile(): Promise<void> {
       process.stdout.write("  > ");
       const choice = await promptKeystroke(["1", "2", "d"]);
 
-      if (choice === "1") {
-        agreements.push({
-          id: `gs_${String(agreements.length + 1).padStart(3, "0")}`,
-          cell_id: r1Item.cell_id,
-          lens: r1Item.lens,
-          kind: r1Item.kind,
-          pair_with: r1Item.pair_with,
-          r1: { verdict: r1Item.verdict, ...(r1Item.margin ? { margin: r1Item.margin } : {}), evidence: r1Item.evidence, blind: true },
-          r2: { verdict: r2Item.verdict, ...(r2Item.margin ? { margin: r2Item.margin } : {}), evidence: r2Item.evidence, blind: true },
-          kept: true,
-        });
-        console.log("  Kept r1 verdict.");
-      } else if (choice === "2") {
-        agreements.push({
-          id: `gs_${String(agreements.length + 1).padStart(3, "0")}`,
-          cell_id: r1Item.cell_id,
-          lens: r1Item.lens,
-          kind: r1Item.kind,
-          pair_with: r1Item.pair_with,
-          r1: { verdict: r1Item.verdict, ...(r1Item.margin ? { margin: r1Item.margin } : {}), evidence: r1Item.evidence, blind: true },
-          r2: { verdict: r2Item.verdict, ...(r2Item.margin ? { margin: r2Item.margin } : {}), evidence: r2Item.evidence, blind: true },
-          kept: true,
-        });
-        console.log("  Kept r2 verdict.");
+      if (choice === "1" || choice === "2") {
+        const source = choice === "1" ? "r1" : "r2";
+        agreements.push(
+          adjudicateRoundItems(
+            r1Item,
+            r2Item,
+            source,
+            `gs_${String(agreements.length + 1).padStart(3, "0")}`,
+          ),
+        );
+        console.log(`  Kept ${source} verdict.`);
       } else {
         console.log("  Dropped (disagreement not resolved).");
       }

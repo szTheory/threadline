@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import test from "node:test";
 import {
+  adjudicateRoundItems,
   loadRoundEvidence,
   nextRoundCommand,
   r1CommitState,
@@ -95,6 +96,28 @@ test("generated next-round commands preserve pair mode", () => {
   assert.equal(
     nextRoundCommand("r2", false),
     "npm run critic:label -- --round r2",
+  );
+});
+
+test("reconciliation serializes the adjudicator's selected verdict and pair margin", () => {
+  const r1Single = singleItem("r1");
+  const r2Single = { ...singleItem("r2"), verdict: "bad" as const };
+  const keepR1 = adjudicateRoundItems(r1Single, r2Single, "r1", "gs_001");
+  const keepR2 = adjudicateRoundItems(r1Single, r2Single, "r2", "gs_001");
+
+  assert.deepEqual(keepR1.adjudicated, { source: "r1", verdict: "good" });
+  assert.deepEqual(keepR2.adjudicated, { source: "r2", verdict: "bad" });
+  assert.notDeepEqual(keepR1.adjudicated, keepR2.adjudicated);
+
+  const r1Pair = pairItem("r1");
+  const r2Pair = {
+    ...pairItem("r2"),
+    verdict: "worse" as const,
+    margin: "subtle" as const,
+  };
+  assert.deepEqual(
+    adjudicateRoundItems(r1Pair, r2Pair, "r2", "gs_002").adjudicated,
+    { source: "r2", verdict: "worse", margin: "subtle" },
   );
 });
 

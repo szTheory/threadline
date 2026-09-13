@@ -35,7 +35,10 @@ defmodule Threadline.CriticPairLabelingContractTest do
     assert label =~
              ~s|return [item.cell_id, item.lens, item.kind, item.pair_with ?? ""].join("::")|
 
-    assert length(Regex.scan(~r/pair_with: r1Item\.pair_with/, label)) == 3
+    assert label =~ "export function adjudicateRoundItems("
+    assert label =~ "pair_with: r1Item.pair_with"
+    assert label =~ ~s/source: "agreement" | "r1" | "r2"/
+    assert label =~ "verdict: selected.verdict"
 
     assert label =~ "r1Item.kind !== \"pair\" || r1Item.margin === r2Item.margin"
     assert label =~ ~s|{ margin: r1Item.margin }|

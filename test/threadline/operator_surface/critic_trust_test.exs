@@ -640,12 +640,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert is_list(gs["held_out_ids"]), "golden-set.json 'held_out_ids' must be an array"
     end
 
-    test "every golden-set item resolves cell_id to an existing scorecard and has consistent r1/r2 evidence" do
+    test "every golden-set item resolves its scorecard and has an explicit adjudicated verdict" do
       # Vacuously passes while items: [] (empty skeleton).
       # When items are populated (Plan 06+), this gate enforces:
       # - cell_id → test/fixtures/operator_surface/scorecards/<cell_id>.json exists
       # - r1.evidence and r2.evidence are non-empty strings
-      # - r1.verdict == r2.verdict (reconciled before golden promotion)
+      # - adjudicated verdict records the agreement or selected blind round
       items = golden_set()["items"]
 
       for item <- items do
@@ -657,6 +657,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         r1 = item["r1"] || %{}
         r2 = item["r2"] || %{}
+        adjudicated = item["adjudicated"] || %{}
 
         assert is_binary(r1["evidence"]) and r1["evidence"] != "",
                "golden-set item #{inspect(item["id"])}: r1.evidence is empty or missing"
@@ -664,8 +665,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert is_binary(r2["evidence"]) and r2["evidence"] != "",
                "golden-set item #{inspect(item["id"])}: r2.evidence is empty or missing"
 
-        assert r1["verdict"] == r2["verdict"],
-               "golden-set item #{inspect(item["id"])}: r1.verdict #{inspect(r1["verdict"])} != r2.verdict #{inspect(r2["verdict"])} (not reconciled)"
+        assert adjudicated["source"] in ~w(agreement r1 r2),
+               "golden-set item #{inspect(item["id"])}: invalid adjudicated.source #{inspect(adjudicated["source"])}"
+
+        selected = if adjudicated["source"] == "r2", do: r2, else: r1
+
+        assert adjudicated["verdict"] == selected["verdict"],
+               "golden-set item #{inspect(item["id"])}: adjudicated verdict does not match selected #{adjudicated["source"]}"
+
+        if item["kind"] == "pair" do
+          assert adjudicated["margin"] == selected["margin"],
+                 "golden-set item #{inspect(item["id"])}: adjudicated margin does not match selected #{adjudicated["source"]}"
+        end
       end
     end
 

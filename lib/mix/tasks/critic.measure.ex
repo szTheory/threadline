@@ -308,9 +308,28 @@ defmodule Mix.Tasks.Critic.Measure do
     valid =
       is_list(items) and
         Enum.all?(items, fn item ->
-          is_map(item) and is_binary(item["cell_id"]) and
-            item["lens"] in Measure.lenses() and is_binary(item["kind"]) and
-            is_map(item["r1"]) and item["r1"]["verdict"] in ~w(broken bad borderline good)
+          if is_map(item) do
+            adjudicated = if is_map(item["adjudicated"]), do: item["adjudicated"], else: %{}
+
+            verdict_valid =
+              case item["kind"] do
+                "single" ->
+                  adjudicated["verdict"] in ~w(broken bad borderline good)
+
+                "pair" ->
+                  adjudicated["verdict"] in ~w(better worse) and
+                    adjudicated["margin"] in ~w(clear subtle)
+
+                _other ->
+                  false
+              end
+
+            is_binary(item["cell_id"]) and item["lens"] in Measure.lenses() and
+              is_map(item["r1"]) and is_map(item["r2"]) and
+              is_map(item["adjudicated"]) and verdict_valid
+          else
+            false
+          end
         end)
 
     if valid do
