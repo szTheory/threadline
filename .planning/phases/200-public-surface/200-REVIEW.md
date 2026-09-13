@@ -1,6 +1,6 @@
 ---
 phase: 200-public-surface
-reviewed: 2026-09-13T03:10:57Z
+reviewed: 2026-09-13T03:52:58Z
 depth: standard
 files_reviewed: 703
 files_reviewed_list:
@@ -708,128 +708,46 @@ files_reviewed_list:
   - test/threadline/storage_schema_call_site_contract_test.exs
   - test/threadline/storage_schema_prefix_contract_test.exs
 findings:
-  critical: 8
-  warning: 4
+  critical: 2
+  warning: 0
   info: 0
-  total: 12
+  total: 2
 status: issues_found
 ---
 
 # Phase 200: Code Review Report
 
-**Reviewed:** 2026-09-13T03:10:57Z
+**Reviewed:** 2026-09-13T03:52:58Z
 **Depth:** standard
 **Files Reviewed:** 703
 **Status:** issues_found
 
 ## Summary
 
-The canonical 704-path workflow scope was reviewed, with `mix.lock` excluded under the review workflow's lock-file rule. The remaining 703 files include 435 fixture files, 107 test files, 33 documentation/template files, and 128 runtime or automation files. All 377 JSON fixtures parsed successfully and all 62 YAML files parsed successfully. The executable and security-sensitive paths contain eight release-blocking correctness/security defects and four robustness defects. The most serious problems are tenant scope being dropped from asynchronous exports, fail-open export authorization, a destructive action that does not actually re-authorize at event time, path traversal in the default local storage adapter, and shell command injection in the screenshot critic.
+The exact original 703-file source scope was re-reviewed after iteration-2 fix commits `c6fb58bb`, `8434129e`, `70959a0f`, and `ad1454ec`. All four findings from the previous report are resolved in their reported forms. The final pass found two separate release-blocking export defects: remote adapters receive a temporary pathname instead of CSV content, and anonymous ownership collapses every anonymous session into the same export principal. No tests were run during this read-only review.
 
 ## Narrative Findings (AI reviewer)
 
 ## Critical Issues
 
-### CR-01: Background exports discard host authorization scope and can export cross-tenant rows
+### CR-01: Background exports upload a temporary pathname to remote storage instead of CSV content
 
-**File:** `lib/threadline/operator_surface/live/timeline_live.ex:277-294`, `lib/threadline/operator_surface/live/export_status_live.ex:64-85`, `lib/threadline/export/orchestrator.ex:42-47`
+**File:** `lib/threadline/export/orchestrator.ex:73-86`, `lib/threadline/storage.ex:20-24`, `lib/threadline/storage/s3.ex:20-21`, `lib/threadline/storage/s3.ex:37-49`
 
-**Issue:** The synchronous export controller passes `scope` and `scope_query_fn` into `Threadline.Export`, but both LiveView queue paths persist only URL filters and actor identity. The worker later calls `stream_export_rows/2` with only `repo` and `storage_schema`. A user authorized with `{:ok, tenant_scope}` therefore sees scoped rows in the LiveView but receives an unscoped asynchronous export containing every tenant that matches the URL filters.
+**Issue:** `Threadline.Storage.put/2` defines its portable argument as binary content, and the built-in S3 adapter explicitly uploads the binary it receives without interpreting paths. The orchestrator nevertheless calls `storage.put(temp_path)`. This works only because the Local adapter has a private path-copy convenience; S3 and conforming custom adapters store a string such as `/tmp/export_<uuid>_<n>.csv` as the entire object body. The job is then marked completed, so the advertised remote-storage background export downloads a local pathname rather than audit CSV data.
 
-**Fix:** Persist a durable, host-defined scope descriptor with the export job and rehydrate it in the worker, then call `stream_export_rows/2` with both `scope:` and `scope_query_fn:`. If a scope cannot be durably rehydrated (for example with the generic Oban adapter), refuse to queue the background export and direct the operator to the already-scoped synchronous endpoint. Add a two-tenant regression test that asserts tenant A can never appear in tenant B's completed export.
+**Fix:** Pass actual file bytes to the existing portable `put/2` contract, or add an explicit `put_file/2`/streaming callback implemented by Local and S3 rather than overloading binary content with a pathname. Add an orchestrator test using an S3-shaped adapter and assert that the uploaded body begins with `Threadline.Export.csv_header/0` and contains exported rows, never the temporary path.
 
-### CR-02: An exception in `export_authorize_fn` enables LiveView exports
+### CR-02: Anonymous ownership lets one anonymous session access every anonymous export
 
-**File:** `lib/threadline/operator_surface/auth.ex:195-207`
+**File:** `lib/threadline/semantics/actor_ref.ex:41-43`, `lib/threadline/governance/export_job.ex:39-44`, `lib/threadline/operator_surface/live/timeline_live.ex:294-316`, `lib/threadline/operator_surface/live/export_status_live.ex:60-95`, `lib/threadline/operator_surface/live/export_status_live.ex:411-424`, `lib/threadline/operator_surface/controllers/export_controller.ex:26-45`
 
-**Issue:** `exports_enabled_for_socket?/3` returns `true` from its rescue clause. That is the opposite of the behavior used by the controller plug and by every other capability gate. A callback crash therefore sets `threadline_exports_enabled: true`, and the background-export handlers treat that cached boolean as authorization to insert and enqueue an export.
+**Issue:** The actorless-export fix accepts any `%ActorRef{}` as an owner, including the valid anonymous value `%ActorRef{type: :anonymous, id: nil}`. Anonymous identity has no per-session identifier, so every anonymous browser compares equal. An anonymous operator can therefore list all export jobs created by other anonymous sessions and pass the controller's equality check to download their audit exports. `operator_changeset/2` only checks that `actor_ref` is present and does not enforce an identifiable owner.
 
-**Fix:** Change the rescue result to `false`, emit an authorization-error telemetry event, and add a LiveView test whose `export_authorize_fn` raises and whose forged `request_background_export` event creates no job.
-
-### CR-03: Destructive retention prune checks a stale mount-time boolean instead of re-authorizing
-
-**File:** `lib/threadline/operator_surface/live/retention_history_live.ex:77-105`, `lib/threadline/operator_surface/live/retention_history_live.ex:335-339`
-
-**Issue:** The source comments and security contract say authorization is re-checked at action time, but `authorize_prune/1` only reads `socket.assigns[:threadline_policy_enabled]`, which was computed during mount. Revoking the operator's policy permission while the LiveView remains connected does not prevent that socket from triggering the irreversible prune.
-
-**Fix:** Retain the server-side `policy_authorize_fn` (or a dedicated event authorizer) and invoke it against current server-owned assigns inside `handle_event("prune_now", ...)`. Treat denial, malformed returns, and exceptions as `{:error, :unauthorized}`. Add a connected-socket regression test that grants at mount, revokes before submit, and proves neither the audit action nor prune trigger occurs.
-
-### CR-04: Default local storage permits path traversal for write, read, serve, and delete operations
-
-**File:** `lib/threadline/storage/local.ex:29-85`
-
-**Issue:** The public `:file_id` option and all subsequent adapter operations flow directly into `Path.join/1` without validating separators or dot segments. Values such as `../../outside.csv` escape `priv/threadline_exports`; `put/2` can overwrite, `get/1` and `path/1` can read/serve, and `delete/1` can remove arbitrary files reachable by the application user. `Path.expand/1` in `path/1` happens after the escaped path has already been constructed and does not enforce containment.
-
-**Fix:** Resolve the export root once, reject non-basename IDs, separators, control characters, `.`/`..`, and disallowed extensions, then expand the candidate and require it to remain a strict child of the canonical root. Reject symlink traversal for existing components. Apply the same validated resolver to `put`, `get`, `path`, and `delete`, and add traversal/absolute/symlink escape tests.
-
-### CR-05: Supplying an actor kind without an actor ID silently removes the actor filter
-
-**File:** `lib/threadline/operator_surface/exports/filter_params.ex:141-179`
-
-**Issue:** The public contract says a missing actor ID is an error, but the `actor_kind`-without-`actor_id` branch returns the filter list after deleting both actor parameters. A malformed or tampered request for one actor kind is silently widened into an unfiltered timeline/export, potentially disclosing substantially more audit data than the operator requested.
-
-**Fix:** Replace the branch at lines 173-175 with `{:error, "actor id is required for non-anonymous actors"}`. Add controller and LiveView tests proving `actor_kind=user` without an ID returns an error and never executes an unfiltered query.
-
-### CR-06: The standard actor bridge is not installed on export download routes
-
-**File:** `lib/threadline/operator_surface/router.ex:93-107`, `lib/threadline/operator_surface/router.ex:135-158`, `lib/threadline/operator_surface/controllers/export_controller.ex:26-40`
-
-**Issue:** When `actor_fn` is configured, `SessionPlug` is applied only inside the LiveView scope. The sibling export-controller pipeline installs only `ExportAuthPlug`, which neither invokes `actor_fn` nor restores `threadline_actor_ref` from the fetched session. Jobs are created with the LiveView actor, while downloads compare them to a missing controller actor and return 404. The documented normal mount therefore cannot download its own completed background exports unless the host happens to provide an undocumented duplicate actor assignment.
-
-**Fix:** Have the export pipeline derive and assign the actor from the configured `actor_fn` (or add a controller-safe actor bridge that reads the fetched session), and fail closed when either the job actor or request actor is absent. Add an end-to-end router-macro test using only the documented `actor_fn` option: queue, complete, and download as the same actor; deny a different actor and a missing actor.
-
-### CR-07: Cleanup permanently forgets exports whose backing-object deletion failed
-
-**File:** `lib/threadline/export/cleanup_task.ex:79-100`
-
-**Issue:** `perform_cleanup/2` ignores the result of `storage_adapter.delete/1` and unconditionally deletes the database job. A transient S3/network/permission failure therefore leaves the sensitive export object in storage beyond its retention deadline while removing the only metadata needed to retry or locate it. This is a retention failure and an unrecoverable orphaning path.
-
-**Fix:** Delete the `ExportJob` only after the adapter reports `:ok` (with adapter-specific not-found treated as success). On any other result, retain the row, record/log the failure, and retry on the next cleanup pass. Add a storage stub that fails once and prove the row survives until object deletion succeeds.
-
-### CR-08: Repository-contained screenshot paths are interpolated into a shell command unsafely
-
-**File:** `examples/threadline_phoenix/e2e/critic/bundle.ts:165-202`
-
-**Issue:** `JSON.stringify(path)` is not shell escaping: command substitutions and backticks are still evaluated inside the resulting double-quoted shell argument. A scorecard artifact path containing shell metacharacters can execute commands when the critic invokes `sips` or `magick`, even though filesystem containment checks pass.
-
-**Fix:** Replace `execSync(commandString)` with `execFileSync("sips", ["-z", String(dstH), String(dstW), srcPath, "--out", tmpOut])` and the equivalent argument-array call for `magick`. Do the same for other path-bearing `execSync` calls in the critic tooling.
-
-## Warnings
-
-### WR-01: Export jobs are claimed non-atomically and can run concurrently more than once
-
-**File:** `lib/threadline/export/orchestrator.ex:92-101`
-
-**Issue:** `fetch_and_mark_running/3` performs an unlocked `get!` followed by an unconditional update. Duplicate enqueue, retry overlap, or two nodes can both read the same job and execute it, producing competing terminal updates and orphaning at least one generated object.
-
-**Fix:** Claim only an eligible status with one atomic conditional update, or lock the row in a transaction with `FOR UPDATE SKIP LOCKED`; proceed only when exactly one worker wins the claim.
-
-### WR-02: Actor extraction failures leave stale session ownership in place
-
-**File:** `lib/threadline/operator_surface/session_plug.ex:22-34`
-
-**Issue:** When `actor_fn` returns `nil`, an invalid value, or raises, the plug returns the connection unchanged. If the same browser session previously stored `threadline_actor_ref`, that old identity remains authoritative for subsequent LiveView mounts, causing actions and ownership checks to be attributed to the previous actor after logout, impersonation changes, or extraction failures.
-
-**Fix:** Delete the `threadline_actor_ref` session key on every non-`ActorRef` result and in the rescue path. Add an identity-transition test that stores actor A, then returns nil/raises for actor B and proves no stale actor reaches the socket.
-
-### WR-03: Operator-triggered destructive actions are attributed to a generic system actor
-
-**File:** `lib/threadline/operator_surface/live/retention_history_live.ex:341-352`
-
-**Issue:** The audit record described as the operator's request always uses `%ActorRef{type: :system, id: "retention_pruner"}` even though the socket already carries the authenticated operator identity. This prevents the audit trail from answering which human initiated an irreversible deletion and weakens repudiation controls.
-
-**Fix:** Record the request with `socket.assigns[:threadline_actor_ref]` and fail closed if a destructive action has no accountable actor. If backend execution also needs a system record, emit it as a separate lifecycle action linked by correlation ID.
-
-### WR-04: Missing Sigra identifiers collapse unrelated requests onto constant correlation IDs
-
-**File:** `lib/threadline/integrations/sigra.ex:99-115`, `lib/threadline/integrations/sigra.ex:166-176`
-
-**Issue:** The correlation builder interpolates `nil` session/token IDs into strings such as `sigra-session:` and `sigra-token:`. Requests with a recognized scope shape but absent identifier therefore share one correlation ID, incorrectly grouping unrelated audit actions and investigations.
-
-**Fix:** Construct a correlation ID only when every required component is a non-empty binary; otherwise return `nil`/`%{}`. Add cases for missing session ID, token ID, and impersonation session ID.
+**Fix:** Require an identifiable, non-anonymous actor with a non-empty ID for background-export creation, listing, and download. Enforce that invariant in `operator_changeset/2` and in the LiveView/controller gates so historical anonymous jobs also fail closed. Add two independent anonymous-session tests proving neither session can queue a background job, and direct requests cannot retrieve an anonymous-owned legacy job.
 
 ---
 
-_Reviewed: 2026-09-13T03:10:57Z_
+_Reviewed: 2026-09-13T03:52:58Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
