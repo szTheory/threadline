@@ -340,6 +340,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    test "release exception registry is empty by default and rejects unstable evidence" do
+      assert :ok = validate_exception_registry([])
+
+      valid = %{
+        node_id: "start.record_lookup",
+        before: 20,
+        after: 21,
+        delta: 1,
+        rationale: "Measured exception approved for a bounded transition",
+        expiry: "2026-10-01"
+      }
+
+      assert :ok = validate_exception_registry([valid])
+
+      assert {:error, {:unknown_node_id, "Carry to Exports"}} =
+               validate_exception_registry([%{valid | node_id: "Carry to Exports"}])
+
+      assert {:error, {:delta_mismatch, "start.record_lookup"}} =
+               validate_exception_registry([%{valid | delta: 2}])
+
+      assert {:error, {:invalid_measurement, "start.record_lookup"}} =
+               validate_exception_registry([%{valid | before: "20"}])
+
+      assert {:error, {:invalid_rationale, "start.record_lookup"}} =
+               validate_exception_registry([%{valid | rationale: ""}])
+
+      assert {:error, {:invalid_expiry, "start.record_lookup"}} =
+               validate_exception_registry([%{valid | expiry: "eventually"}])
+
+      assert {:error, {:too_many_entries, 4}} =
+               validate_exception_registry(List.duplicate(valid, 4))
+    end
+
     defp owned_static_sources do
       {output, 0} =
         System.cmd("git", [
@@ -355,6 +388,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.filter(&String.ends_with?(&1, ".ex"))
       |> Enum.sort()
     end
+
+    defp validate_exception_registry(_entries), do: {:error, :not_implemented}
 
     defp representative_render_inventory(conn) do
       {:ok, _start, start_html} = live(conn, "/audit")
