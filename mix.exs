@@ -524,6 +524,76 @@ defmodule Threadline.MixProject do
       body.dark .threadline-mermaid {
         color-scheme: dark;
       }
+
+      #top-content h1,
+      #top-content h2,
+      #top-content h3 {
+        text-wrap: balance;
+      }
+
+      #top-content p,
+      #top-content li {
+        text-wrap: pretty;
+      }
+
+      @media (max-width: 640px) {
+        #start-here + p + table {
+          border: 0;
+          display: block;
+          overflow: visible;
+        }
+
+        #start-here + p + table thead {
+          clip: rect(0 0 0 0);
+          clip-path: inset(50%);
+          height: 1px;
+          overflow: hidden;
+          position: absolute;
+          white-space: nowrap;
+          width: 1px;
+        }
+
+        #start-here + p + table tbody {
+          display: grid;
+          gap: 1rem;
+        }
+
+        #start-here + p + table tr {
+          display: grid;
+          gap: 0.75rem;
+          padding: 1rem 0;
+        }
+
+        #start-here + p + table td {
+          border: 0;
+          display: block;
+          padding: 0;
+          width: auto;
+        }
+
+        #start-here + p + table td + td {
+          border-top: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+          padding-top: 0.75rem;
+        }
+
+        #start-here + p + table td:nth-child(2)::before,
+        #start-here + p + table td:nth-child(3)::before {
+          display: block;
+          font-size: var(--text-xs);
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+          opacity: 0.72;
+          text-transform: uppercase;
+        }
+
+        #start-here + p + table td:nth-child(2)::before {
+          content: "Start here";
+        }
+
+        #start-here + p + table td:nth-child(3)::before {
+          content: "Then read";
+        }
+      }
     </style>
     """
   end

@@ -149,6 +149,12 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
     assert String.contains?(head, ".threadline-mermaid")
     assert String.contains?(head, "overflow-x: auto")
     assert String.contains?(head, "body.dark")
+    assert String.contains?(head, "@media (max-width: 640px)")
+    assert String.contains?(head, "#start-here + p + table")
+    assert String.contains?(head, ~S|content: "Start here"|)
+    assert String.contains?(head, ~S|content: "Then read"|)
+    assert String.contains?(head, "text-wrap: balance")
+    assert String.contains?(head, "text-wrap: pretty")
 
     assert String.contains?(body, "mermaid@11.16.0/dist/mermaid.min.js")
 
