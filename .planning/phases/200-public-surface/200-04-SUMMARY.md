@@ -117,8 +117,8 @@ status: complete
 ## Files Created/Modified
 
 - `mix.exs` — six module groups, README main, Guides section, external URL extras, warnings-as-errors release step, and durable alias naming.
-- `lib/threadline/critic_trust/{measure,rank_metrics,ledger_splice,krippendorff_alpha}.ex` — hidden maintainer modules with durable source rationale.
-- `lib/mix/tasks/critic.{measure,synth}.ex` — hidden maintainer Mix tasks and chronology-free local output language.
+- `lib/threadline/critic_trust/measure.ex`, `lib/threadline/critic_trust/rank_metrics.ex`, `lib/threadline/critic_trust/ledger_splice.ex`, and `lib/threadline/critic_trust/krippendorff_alpha.ex` — hidden maintainer modules with durable source rationale.
+- `lib/mix/tasks/critic.measure.ex` and `lib/mix/tasks/critic.synth.ex` — hidden maintainer Mix tasks and chronology-free local output language.
 - `DESIGN-SYSTEM.md` — valid repository command references and durable evidence terminology.
 - `guides/configuration-and-commands.md` — renamed maintainer browser contract and non-autolinking descriptions for hidden tasks.
 - `test/threadline/public_surface_contract_test.exs` — exact owner scope and alias classification for this plan.
