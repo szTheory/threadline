@@ -37,6 +37,6 @@ If a warning is proven irreducible, its fixture record must first change to `irr
 
 ## Full analyzer handoff
 
-The complete local gate uses Dialyxir only in the development and test environments with `runtime: false`. Its PLT additions are Mix and ExUnit plus all nine optional applications: Phoenix, Phoenix LiveView, Phoenix HTML, Phoenix PubSub, Oban, ExAws, ExAws S3, Hackney, and SweetXml. The `unknown`, `unmatched_returns`, and `extra_return` warning classes stay enabled.
+The complete local gate uses Dialyxir only in the development and test environments with `runtime: false`. Its PLT additions are Mix and ExUnit plus all nine optional applications: Phoenix, Phoenix LiveView, Phoenix HTML, Phoenix PubSub, Oban, ExAws, ExAws S3, Req, and SweetXml. The `unknown`, `unmatched_returns`, and `extra_return` warning classes stay enabled.
 
 A successful local run proves the source-owned partition and ignore ratchet against the available PLT. It does not replace the true CI cold-build timing and memory measurement owned by Plan 199-14.

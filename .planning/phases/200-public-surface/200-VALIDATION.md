@@ -145,3 +145,5 @@ All eleven SURFACE requirements have automated contract coverage. The manual-onl
 - Repaired screenshot capture paths on desktop and mobile: `4 passed` without retries.
 - Focused row-history LiveView compatibility suite: `8 tests, 0 failures` with the form-recovery warning removed.
 - Root and example `mix hex.audit`: no retired or security-advisory packages.
+- Req-backed S3 and Dialyzer contracts: `18 tests, 0 failures`; strict Dialyzer: zero errors and zero unused filters.
+- The hosted Elixir 1.15 / OTP 26 lane is required before closing the dependency remediation because the local asdf installation begins at OTP 27.

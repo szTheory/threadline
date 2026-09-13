@@ -3,7 +3,7 @@ defmodule Threadline.Storage.S3 do
   Stores Threadline exports in S3-compatible object storage.
 
   Use this optional `Threadline.Storage` adapter when export files must be
-  available across nodes. Add the optional `:ex_aws`, `:ex_aws_s3`, `:hackney`,
+  available across nodes. Add the optional `:ex_aws`, `:ex_aws_s3`, `:req`,
   and `:sweet_xml` dependencies to the host project, then configure the adapter
   and its required bucket:
 
@@ -16,6 +16,8 @@ defmodule Threadline.Storage.S3 do
     * `:bucket` - required non-empty bucket name
     * `:expires_in` - presigned-download lifetime in seconds; defaults to `900`
     * `:presigned_url_opts` - options forwarded while creating the download URL
+    * `:ex_aws_request_opts` - request overrides passed to `ExAws.request/2`;
+      defaults to `[http_client: ExAws.Request.Req]`
 
   `put/2` uploads the binary content it receives; it does not interpret a binary
   as a local filename. `path/1` returns `{:error, :not_local}`, so export delivery
@@ -44,7 +46,7 @@ defmodule Threadline.Storage.S3 do
       ex_aws_s3_mod = Keyword.get(opts, :ex_aws_s3_mod, ExAws.S3)
       request = ex_aws_s3_mod.put_object(bucket, file_id, content)
 
-      case ex_aws_mod.request(request) do
+      case ex_aws_mod.request(request, ex_aws_request_opts(opts)) do
         {:ok, _response} -> {:ok, file_id}
         {:error, reason} -> {:error, normalize_storage_error("S3 upload failed", reason)}
       end
@@ -61,7 +63,7 @@ defmodule Threadline.Storage.S3 do
       ex_aws_s3_mod = Keyword.get(opts, :ex_aws_s3_mod, ExAws.S3)
       request = ex_aws_s3_mod.get_object(bucket, file_id)
 
-      case ex_aws_mod.request(request) do
+      case ex_aws_mod.request(request, ex_aws_request_opts(opts)) do
         {:ok, %{body: body}} -> {:ok, body}
         {:error, reason} -> {:error, normalize_storage_error("S3 download failed", reason)}
       end
@@ -108,7 +110,7 @@ defmodule Threadline.Storage.S3 do
       ex_aws_s3_mod = Keyword.get(opts, :ex_aws_s3_mod, ExAws.S3)
       request = ex_aws_s3_mod.delete_object(bucket, file_id)
 
-      case ex_aws_mod.request(request) do
+      case ex_aws_mod.request(request, ex_aws_request_opts(opts)) do
         {:ok, _response} -> :ok
         {:error, reason} -> {:error, normalize_storage_error("S3 delete failed", reason)}
       end
@@ -121,11 +123,15 @@ defmodule Threadline.Storage.S3 do
   end
 
   defp ensure_dependencies_loaded do
-    if Code.ensure_loaded?(ExAws.S3) do
+    if Code.ensure_loaded?(ExAws.S3) and Code.ensure_loaded?(ExAws.Request.Req) do
       :ok
     else
-      {:error, "S3 adapter requires ExAws dependencies"}
+      {:error, "S3 adapter requires ExAws S3 and Req dependencies"}
     end
+  end
+
+  defp ex_aws_request_opts(opts) do
+    Keyword.get(opts, :ex_aws_request_opts, http_client: ExAws.Request.Req)
   end
 
   defp fetch_bucket(opts) do

@@ -29,15 +29,16 @@ defmodule Threadline.Storage.S3Test do
   end
 
   defmodule MockExAws do
-    def request(%{op: :put_object}) do
+    def request(%{op: :put_object}, opts) do
+      send(self(), {:request_opts, opts})
       {:ok, %{status_code: 200}}
     end
 
-    def request(%{op: :get_object}) do
+    def request(%{op: :get_object}, _opts) do
       {:ok, %{body: "csv,content"}}
     end
 
-    def request(%{op: :delete_object}) do
+    def request(%{op: :delete_object}, _opts) do
       {:ok, %{status_code: 204}}
     end
   end
@@ -65,6 +66,20 @@ defmodule Threadline.Storage.S3Test do
 
       assert file_id == "test.csv"
       assert_received {:put_object, "test.csv", "csv,content"}
+      assert_received {:request_opts, [http_client: ExAws.Request.Req]}
+    end
+
+    test "forwards explicit ExAws request overrides" do
+      assert {:ok, "test.csv"} =
+               Threadline.Storage.S3.put("csv,content",
+                 bucket: "test-bucket",
+                 ex_aws_mod: MockExAws,
+                 ex_aws_s3_mod: MockExAwsS3,
+                 ex_aws_request_opts: [region: "us-west-2"],
+                 file_id: "test.csv"
+               )
+
+      assert_received {:request_opts, [region: "us-west-2"]}
     end
   end
 

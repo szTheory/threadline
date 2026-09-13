@@ -61,7 +61,7 @@ defmodule Threadline.MixProject do
           :oban,
           :ex_aws,
           :ex_aws_s3,
-          :hackney,
+          :req,
           :sweet_xml
         ],
         flags: [:unmatched_returns, :extra_return],
@@ -96,7 +96,7 @@ defmodule Threadline.MixProject do
       {:oban, "~> 2.15", optional: true},
       {:ex_aws, "~> 2.7", optional: true},
       {:ex_aws_s3, "~> 2.4", optional: true},
-      {:hackney, "~> 4.0", optional: true},
+      {:req, "~> 0.7", optional: true},
       {:sweet_xml, "~> 0.7", optional: true},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

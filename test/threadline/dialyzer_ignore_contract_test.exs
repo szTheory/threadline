@@ -16,7 +16,7 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     {"operator-liveviews.json", "operator-liveviews", ~w(W22 W23 W24 W25 W26)}
   ]
 
-  @required_plt_apps ~w(mix ex_unit phoenix phoenix_live_view phoenix_html phoenix_pubsub oban ex_aws ex_aws_s3 hackney sweet_xml)a
+  @required_plt_apps ~w(mix ex_unit phoenix phoenix_live_view phoenix_html phoenix_pubsub oban ex_aws ex_aws_s3 req sweet_xml)a
   @sealed_output_sha256 "12c1164ae38a943a738b339d2758e866c51b284444480585e80d5d591169c3e6"
   @empty_output_sha256 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   @raw_command "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status"
