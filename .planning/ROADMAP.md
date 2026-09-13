@@ -628,10 +628,24 @@ Plans:
 **Plans**: 5 plans across 5 execution waves
 
 Plans:
+**Wave 1**
+
 - [ ] 201-01-PLAN.md — Guard accepted landed copy/CSS, record immutable pre-edit evidence, and durably rename the shell browser spec.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 201-02-PLAN.md — Remove the six Start provenance attributes with atomic ExUnit and browser consumer migration.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 201-03-PLAN.md — Remove the nine Exports/Evidence provenance attributes with atomic direct-consumer migration.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 201-04-PLAN.md — Remove the final six Row History/Timeline attributes and activate the exact-seven-node live guard.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 201-05-PLAN.md — Durably rename the two residual root tests and seal structural, corpus, browser, mechanical, and CI evidence for Phase 202.
 
 **Notes carried from the approved plan:**
