@@ -6,8 +6,8 @@
   - definition: page.transaction.empty
   - term: Ledger item
   - definition: page.transaction.empty
-  - term: Owner phase
-  - definition: "178"
+  - term: Origin cohort
+  - definition: page-state
   - term: Status
   - definition: current
-  - text: Synthetic per-page path fixture for page.transaction.empty (PAGE-01 Tier A structural cell).
+  - text: Synthetic per-page path fixture for page.transaction.empty (Tier A structural cell).

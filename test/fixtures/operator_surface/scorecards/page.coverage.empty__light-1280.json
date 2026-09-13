@@ -127,6 +127,6 @@
     "screenshot": "examples/threadline_phoenix/e2e/artifacts/tier-a/page.coverage.empty__light-1280/screenshot.png",
     "dom": "examples/threadline_phoenix/e2e/artifacts/tier-a/page.coverage.empty__light-1280/dom.html",
     "a11y": "examples/threadline_phoenix/e2e/artifacts/tier-a/page.coverage.empty__light-1280/a11y.json",
-    "aria": ".planning/scorecards/page.coverage.empty__light-1280.aria.yml"
+    "aria": "test/fixtures/operator_surface/scorecards/page.coverage.empty__light-1280.aria.yml"
   }
 }

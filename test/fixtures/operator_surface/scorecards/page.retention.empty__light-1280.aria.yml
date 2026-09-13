@@ -6,8 +6,8 @@
   - definition: page.retention.empty
   - term: Ledger item
   - definition: page.retention.empty
-  - term: Owner phase
-  - definition: "178"
+  - term: Origin cohort
+  - definition: page-state
   - term: Status
   - definition: current
-  - text: Synthetic per-page path fixture for page.retention.empty (PAGE-01 Tier A structural cell).
+  - text: Synthetic per-page path fixture for page.retention.empty (Tier A structural cell).

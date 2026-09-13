@@ -6,8 +6,8 @@
   - definition: page.coverage.permission
   - term: Ledger item
   - definition: page.coverage.permission
-  - term: Owner phase
-  - definition: "178"
+  - term: Origin cohort
+  - definition: page-state
   - term: Status
   - definition: current
-  - text: Synthetic per-page path fixture for page.coverage.permission (PAGE-01 Tier A structural cell).
+  - text: Synthetic per-page path fixture for page.coverage.permission (Tier A structural cell).

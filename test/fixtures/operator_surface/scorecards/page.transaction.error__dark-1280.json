@@ -127,6 +127,6 @@
     "screenshot": "examples/threadline_phoenix/e2e/artifacts/tier-a/page.transaction.error__dark-1280/screenshot.png",
     "dom": "examples/threadline_phoenix/e2e/artifacts/tier-a/page.transaction.error__dark-1280/dom.html",
     "a11y": "examples/threadline_phoenix/e2e/artifacts/tier-a/page.transaction.error__dark-1280/a11y.json",
-    "aria": ".planning/scorecards/page.transaction.error__dark-1280.aria.yml"
+    "aria": "test/fixtures/operator_surface/scorecards/page.transaction.error__dark-1280.aria.yml"
   }
 }
