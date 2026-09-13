@@ -245,8 +245,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp assign_policy_enabled(socket, opts) do
       policy_authorize_fn = Keyword.get(opts, :policy_authorize_fn, fn _ -> false end)
 
-      Phoenix.Component.assign(
-        socket,
+      socket
+      |> Phoenix.Component.assign(:threadline_policy_authorize_fn, policy_authorize_fn)
+      |> Phoenix.Component.assign(
         :threadline_policy_enabled,
         policy_enabled_for_socket?(policy_authorize_fn, socket)
       )

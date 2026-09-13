@@ -335,7 +335,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # Re-check authorization at action time. `phx-value-id` is an untrusted claim,
     # so authorization is derived only from the server-resolved policy gate.
     defp authorize_prune(socket) do
-      if socket.assigns[:threadline_policy_enabled], do: :ok, else: {:error, :unauthorized}
+      case socket.assigns[:threadline_policy_authorize_fn] do
+        authorize_fn when is_function(authorize_fn, 1) ->
+          mirror = %{assigns: socket.assigns}
+
+          case authorize_fn.(mirror) do
+            :ok -> :ok
+            true -> :ok
+            {:ok, _scope} -> :ok
+            _ -> {:error, :unauthorized}
+          end
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    rescue
+      _ -> {:error, :unauthorized}
     end
 
     # Audit the operator's request only after authorization and confirmation

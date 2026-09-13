@@ -545,6 +545,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "Run retention prune"
       end
 
+      test "event-time authorization revocation prevents audit and prune", %{conn: conn} do
+        Application.put_env(:threadline, :test_allow_policy, true)
+        {:ok, view, _html} = live(conn, "/audit/policy/retention")
+
+        before_actions = count_audit_actions()
+        policy_name = view |> open_prune_modal() |> canonical_policy_name()
+
+        Application.put_env(:threadline, :test_allow_policy, false)
+        on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)
+
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
+
+        assert count_audit_actions() == before_actions
+        assert Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+      end
+
       test "a valid type-to-confirm prune records an AuditAction for the destructive action",
            %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/policy/retention")
