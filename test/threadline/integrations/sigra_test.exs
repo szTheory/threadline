@@ -124,6 +124,28 @@ defmodule Threadline.Integrations.SigraTest do
                SigraAdapter.audit_context_overrides_from_conn(conn)
     end
 
+    test "returns empty overrides when a user scope has no session id" do
+      conn = build_sigra_conn(scope: %{user: %{id: "u-42"}}, sigra_session: %Sigra.Session{})
+
+      assert %{} = SigraAdapter.audit_context_overrides_from_conn(conn)
+    end
+
+    test "returns empty overrides when a token scope has no token id" do
+      conn = build_sigra_conn(scope: %{auth_method: :api_token, id: "u-99"})
+
+      assert %{} = SigraAdapter.audit_context_overrides_from_conn(conn)
+    end
+
+    test "returns empty overrides when impersonation has no session id" do
+      conn =
+        build_sigra_conn(
+          scope: %{impersonating_from: %{id: "admin-7"}, user: %{id: "imp-user-1"}},
+          sigra_session: %Sigra.Session{}
+        )
+
+      assert %{} = SigraAdapter.audit_context_overrides_from_conn(conn)
+    end
+
     test "returns empty overrides when x-correlation-id header is already present" do
       conn =
         build_sigra_conn(
