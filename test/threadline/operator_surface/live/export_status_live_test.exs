@@ -247,18 +247,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "renders carried Timeline export context with canonical allowed filters", %{conn: conn} do
-        {:ok, _view, html} =
+        {:ok, view, html} =
           live(
             conn,
             "/audit/exports?table=ticket_replies&correlation_id=req_ef3&from=2026-05-01T00:00&to=2026-05-06T23:59&unknown=drop_me"
           )
 
-        assert html =~ "Timeline export context"
-        assert html =~ "Timeline handoff"
-        assert html =~ ~s|data-testid="timeline-export-context"|
-        assert html =~ ~s|data-earned-flow="EF3"|
-        assert html =~ ~s|data-persona="P3"|
-        assert html =~ ~s|data-jtbd="J6"|
+        assert has_element?(
+                 view,
+                 ~s|[data-testid="timeline-export-context"]|,
+                 "Timeline handoff"
+               )
+
+        assert has_element?(
+                 view,
+                 ~s|[data-testid="timeline-export-context"] button|,
+                 "Queue Timeline export"
+               )
+
+        for planning_attribute <- ~w(data-earned-flow data-persona data-jtbd) do
+          refute has_element?(
+                   view,
+                   ~s|[data-testid="timeline-export-context"][#{planning_attribute}]|
+                 )
+        end
+
         assert html =~ "table"
         assert html =~ "ticket_replies"
         assert html =~ "correlation_id"
@@ -355,19 +368,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       } do
         subject_ref_json = URI.encode_www_form(~s({"export_id":"export-123"}))
 
-        {:ok, _view, html} =
+        {:ok, view, html} =
           live(
             conn,
             "/audit/exports?source=evidence&subject=export_delivery&mode=history&subject_ref_json=#{subject_ref_json}"
           )
 
-        assert html =~ "Evidence export context"
-        assert html =~ "Evidence handoff"
+        assert has_element?(
+                 view,
+                 ~s|[data-testid="evidence-export-context"]|,
+                 "Evidence handoff"
+               )
+
+        assert has_element?(
+                 view,
+                 ~s|[data-testid="evidence-export-context"] a[href^="/audit/evidence?"]|,
+                 "Reopen Evidence"
+               )
+
+        for planning_attribute <- ~w(data-earned-flow data-persona data-jtbd) do
+          refute has_element?(
+                   view,
+                   ~s|[data-testid="evidence-export-context"][#{planning_attribute}]|
+                 )
+        end
+
         assert html =~ "active Evidence view"
-        assert html =~ ~s|data-testid="evidence-export-context"|
-        assert html =~ ~s|data-earned-flow="EF3"|
-        assert html =~ ~s|data-persona="P3"|
-        assert html =~ ~s|data-jtbd="J6"|
         assert html =~ "export_delivery"
         assert html =~ "history"
         assert html =~ "export-123"
