@@ -131,7 +131,10 @@ defmodule Threadline.Storage.S3 do
   end
 
   defp ex_aws_request_opts(opts) do
-    Keyword.get(opts, :ex_aws_request_opts, http_client: ExAws.Request.Req)
+    Keyword.merge(
+      [http_client: ExAws.Request.Req],
+      Keyword.get(opts, :ex_aws_request_opts, [])
+    )
   end
 
   defp fetch_bucket(opts) do

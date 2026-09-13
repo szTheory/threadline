@@ -79,7 +79,9 @@ defmodule Threadline.Storage.S3Test do
                  file_id: "test.csv"
                )
 
-      assert_received {:request_opts, [region: "us-west-2"]}
+      assert_received {:request_opts, request_opts}
+      assert Keyword.fetch!(request_opts, :http_client) == ExAws.Request.Req
+      assert Keyword.fetch!(request_opts, :region) == "us-west-2"
     end
   end
 
