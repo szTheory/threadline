@@ -49,10 +49,9 @@ defmodule Threadline.OperatorSurface.Exports.FilterParamsTest do
       assert {:actor_ref, %ActorRef{type: :user, id: "42"}} = List.keyfind(filters, :actor_ref, 0)
     end
 
-    test "actor_kind without actor_id (and not anonymous) is silently dropped — no actor_ref filter" do
-      assert {:ok, filters} = FilterParams.parse(%{"actor_kind" => "user"})
-      refute Keyword.has_key?(filters, :actor_ref)
-      refute Keyword.has_key?(filters, :actor_kind)
+    test "actor_kind without actor_id fails closed" do
+      assert FilterParams.parse(%{"actor_kind" => "user"}) ==
+               {:error, "actor id is required for non-anonymous actors"}
     end
 
     test "unknown actor_kind atom string returns {:error, ...}" do
@@ -65,9 +64,9 @@ defmodule Threadline.OperatorSurface.Exports.FilterParamsTest do
                })
     end
 
-    test "actor_id whitespace-only with non-anonymous kind treats as missing id (drops actor_ref)" do
-      assert {:ok, filters} = FilterParams.parse(%{"actor_kind" => "user", "actor_id" => ""})
-      refute Keyword.has_key?(filters, :actor_ref)
+    test "blank actor_id with non-anonymous kind fails closed" do
+      assert FilterParams.parse(%{"actor_kind" => "user", "actor_id" => ""}) ==
+               {:error, "actor id is required for non-anonymous actors"}
     end
 
     test "correlation_id is passed through verbatim" do

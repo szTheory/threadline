@@ -343,6 +343,18 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       assert response(ndjson_conn, 422) =~ "invalid filter"
     end
 
+    test "GET with actor kind but no actor id returns 422 instead of widening the export", %{
+      conn: conn
+    } do
+      seed_changes!(1, table: "must-not-export")
+
+      conn = get(conn, "/audit/exports/changes.csv?actor_kind=user")
+
+      assert conn.status == 422
+      assert response(conn, 422) =~ "actor id is required for non-anonymous actors"
+      refute response(conn, 422) =~ "must-not-export"
+    end
+
     # ---- Empty window — header-only CSV (RFC 4180 valid) ----
 
     test "GET with no matching rows returns 200 + header-only CSV (RFC 4180 valid)", %{conn: conn} do

@@ -680,6 +680,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s(selected)
     end
 
+    test "actor kind without actor id renders an error and no unfiltered rows", %{conn: conn} do
+      seed_changes!(1, table: "must-not-render")
+
+      assert {:ok, _lv, html} = live(conn, "/audit/timeline?actor_kind=user")
+
+      assert html =~ "actor id is required for non-anonymous actors"
+      refute html =~ "must-not-render"
+      refute html =~ "Queue export"
+    end
+
     # -------------------------------------------------------------------
     # Case 12 — unknown_param_dropped (BROWSE-02 — allowlist enforcement)
     # -------------------------------------------------------------------
