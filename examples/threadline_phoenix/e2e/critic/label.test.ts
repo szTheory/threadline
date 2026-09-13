@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import test from "node:test";
 import {
   loadRoundEvidence,
   nextRoundCommand,
+  r1CommitState,
   reconcileRoundEvidence,
+  runLabel,
   type RoundFile,
   type RoundItem,
 } from "./label.js";
@@ -93,4 +96,52 @@ test("generated next-round commands preserve pair mode", () => {
     nextRoundCommand("r2", false),
     "npm run critic:label -- --round r2",
   );
+});
+
+test("CLI and web r2 reject missing, untracked, and modified r1 evidence", async () => {
+  const root = await mkdtemp(resolve(tmpdir(), "threadline-r2-gate-"));
+  const firstRoundPath = resolve(root, "golden/rounds/r1.json");
+  const commands = [
+    ["--round", "r2"],
+    ["--round", "r2", "--web"],
+  ];
+
+  try {
+    execFileSync("git", ["init", "--quiet"], { cwd: root });
+    execFileSync("git", ["config", "user.email", "critic-test@threadline.invalid"], { cwd: root });
+    execFileSync("git", ["config", "user.name", "Threadline Critic Test"], { cwd: root });
+
+    assert.equal(r1CommitState(firstRoundPath, root), "missing");
+    for (const argv of commands) {
+      await assert.rejects(
+        runLabel(argv, { r1Path: firstRoundPath, repoRoot: root }),
+        /does not exist/,
+      );
+    }
+
+    await mkdir(resolve(root, "golden/rounds"), { recursive: true });
+    await writeFile(firstRoundPath, "{}\n", "utf8");
+    assert.equal(r1CommitState(firstRoundPath, root), "dirty");
+    for (const argv of commands) {
+      await assert.rejects(
+        runLabel(argv, { r1Path: firstRoundPath, repoRoot: root }),
+        /not committed to git/,
+      );
+    }
+
+    execFileSync("git", ["add", "golden/rounds/r1.json"], { cwd: root });
+    execFileSync("git", ["commit", "--quiet", "-m", "test: commit r1"], { cwd: root });
+    assert.equal(r1CommitState(firstRoundPath, root), "committed");
+
+    await writeFile(firstRoundPath, "{\"modified\":true}\n", "utf8");
+    assert.equal(r1CommitState(firstRoundPath, root), "dirty");
+    for (const argv of commands) {
+      await assert.rejects(
+        runLabel(argv, { r1Path: firstRoundPath, repoRoot: root }),
+        /not committed to git/,
+      );
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

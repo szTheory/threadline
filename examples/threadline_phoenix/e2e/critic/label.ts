@@ -606,22 +606,58 @@ function runBootstrap(opts: { lens?: LensName; page?: string }): void {
 
 // ── Round labeling ────────────────────────────────────────────────────────────
 
-/**
- * Check whether r1.json is committed to git (required before r2 can run).
- * Blind test-retest: r2 refuses until r1 is committed.
- */
-function isR1Committed(): boolean {
+export type R1CommitState = "missing" | "dirty" | "committed";
+
+/** Inspect the durable r1 evidence without reading any of its judgments. */
+export function r1CommitState(
+  firstRoundPath = r1Path,
+  repositoryRoot = repoRoot,
+): R1CommitState {
+  if (!existsSync(firstRoundPath)) return "missing";
+
   try {
-    const result = execFileSync(
+    const relativePath = relative(repositoryRoot, firstRoundPath);
+    execFileSync(
       "git",
-      ["-C", repoRoot, "status", "--porcelain", "--", repoRelative(r1Path)],
+      ["-C", repositoryRoot, "ls-files", "--error-unmatch", "--", relativePath],
       { encoding: "utf8", stdio: "pipe" },
     );
-    // If r1.json is tracked with no untracked/modified status, it's committed
-    // An empty result means the file is committed and clean
-    return result.trim() === "";
+    const result = execFileSync(
+      "git",
+      [
+        "-C",
+        repositoryRoot,
+        "status",
+        "--porcelain",
+        "--",
+        relativePath,
+      ],
+      { encoding: "utf8", stdio: "pipe" },
+    );
+    return result.trim() === "" ? "committed" : "dirty";
   } catch {
-    return false;
+    return "dirty";
+  }
+}
+
+/** Enforce the blind test-retest gate shared by CLI and web r2 dispatch. */
+export function assertR2Ready(
+  firstRoundPath = r1Path,
+  repositoryRoot = repoRoot,
+): void {
+  const state = r1CommitState(firstRoundPath, repositoryRoot);
+  if (state === "missing") {
+    throw new Error(
+      `[critic label] ERROR: ${firstRoundPath} does not exist.\n` +
+        "Run --round r1 first, then commit r1.json before running r2.",
+    );
+  }
+  if (state === "dirty") {
+    throw new Error(
+      "[critic label] ERROR: r1.json exists but is not committed to git.\n" +
+        `Commit r1.json first: git add ${relative(repositoryRoot, firstRoundPath)} && git commit\n` +
+        "This enforces a time gap between r1 and r2 for honest blind test-retest.",
+    );
   }
 }
 
@@ -629,31 +665,6 @@ async function runRound(
   round: "r1" | "r2",
   opts: { lens?: LensName; page?: string; pairs: boolean; resume: boolean; brief: boolean },
 ): Promise<void> {
-  // Blind enforcement: r2 refuses until r1 is committed
-  if (round === "r2") {
-    if (!existsSync(r1Path)) {
-      console.error(
-        `\n[critic label] ERROR: ${r1Path} does not exist.`,
-      );
-      console.error(
-        "  Run --round r1 first, then commit r1.json before running r2.",
-      );
-      process.exit(1);
-    }
-    if (!isR1Committed()) {
-      console.error(
-        "\n[critic label] ERROR: r1.json exists but is not committed to git.",
-      );
-      console.error(
-        `  Commit r1.json first: git add ${repoRelative(r1Path)} && git commit`,
-      );
-      console.error(
-        "  This enforces a time gap between r1 and r2 for honest blind test-retest.",
-      );
-      process.exit(1);
-    }
-  }
-
   if (!existsSync(queuePath)) {
     console.log("\n[critic label] No queue found.");
     console.log(
@@ -1223,7 +1234,10 @@ function printEmptyState(): void {
 
 // ── Main entry ────────────────────────────────────────────────────────────────
 
-export async function runLabel(argv: string[]): Promise<void> {
+export async function runLabel(
+  argv: string[],
+  runtime: { r1Path?: string; repoRoot?: string } = {},
+): Promise<void> {
   // Parse flags
   let bootstrap = false;
   let round: "r1" | "r2" | null = null;
@@ -1336,6 +1350,12 @@ export async function runLabel(argv: string[]): Promise<void> {
   if (reconcile) {
     await runReconcile();
     return;
+  }
+
+  // One blind-test gate protects both terminal and web entry points. Keep this
+  // before either dispatch so the web server cannot start on absent/dirty r1.
+  if (round === "r2") {
+    assertR2Ready(runtime.r1Path ?? r1Path, runtime.repoRoot ?? repoRoot);
   }
 
   if (round && web) {
