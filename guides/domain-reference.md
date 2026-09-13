@@ -44,7 +44,7 @@ Threadline can **exclude** or **mask** configured columns when PL/pgSQL capture 
 
 ### Configured versus deployed redaction drift
 
-Phase 67 adds a second operator question on top of capture-time redaction: does the deployed trigger SQL still match the configured policy? Threadline answers that through the operator-surface page at `/audit/policy/redaction` and the parity Mix task `mix threadline.policy.show`.
+Operators need a second question on top of capture-time redaction: does the deployed trigger SQL still match the configured policy? Threadline answers that through the operator-surface page at `/audit/policy/redaction` and the parity Mix task `mix threadline.policy.show`.
 
 Both surfaces use the same three-state taxonomy:
 
@@ -85,7 +85,7 @@ Evidence rows in **`threadline_evidence_records`** are **host-written attestatio
 - `record_export_delivery/3`
 - `record_support_scope_posture/3`
 
-Read surfaces — `Threadline.Proof`, `mix threadline.evidence.show`, and mounted `/audit/evidence` — **interpret rows already written**. They are viewers, not writers.
+Read surfaces — `Threadline.Evidence.Proof`, `mix threadline.evidence.show`, and mounted `/audit/evidence` — **interpret rows already written**. They are viewers, not writers.
 
 Threadline does not auto-populate evidence from retention, health, or export paths. Running `Threadline.Retention`, `Threadline.Health`, or export APIs may write ops metadata (for example rows in **`threadline_retention_runs`** for operator retention history), but that metadata does not auto-create `threadline_evidence_records` rows. **`threadline_retention_runs`** (ops metadata) ≠ **`threadline_evidence_records`** (host attestations).
 
@@ -279,7 +279,9 @@ Contract marker for automated doc checks: **ASOF-06**
 | Genesis gap | Returns an explicit genesis gap error when no historical row exists yet. |
 | `cast: true` | Reifies into the current schema via `Ecto.embedded_load/3`; unknown keys are ignored and cast failures return `{:error, {:cast_error, message}}`. |
 
-Use this when you need a one-row reconstruction by primary key. For a copy-paste walkthrough, see [the Phoenix example README](../examples/threadline_phoenix/README.md#historical-reconstruction-walkthrough).
+Use this when you need a one-row reconstruction by primary key. For a
+copy-paste path using the public APIs, follow [the captured-timeline step in
+Getting Started](getting-started-saas.md#8-investigate-the-captured-timeline).
 
 <span id="example-incident-json-v111"></span>
 
@@ -437,14 +439,8 @@ ORDER BY ac.captured_at DESC
 LIMIT 500;
 ```
 
-red_at DESC
-LIMIT 500;
-```
+## Next steps
 
-ORDER BY ac.captured_at DESC
-LIMIT 500;
-```
-
-red_at DESC
-LIMIT 500;
-```
+- Return to [Evaluating Threadline](evaluating-threadline.md) for the Evaluate lane.
+- Follow the public boundaries through the [code walkthrough](code-walkthrough.md).
+- Apply these terms during an investigation with the [incident playbook](incident-playbook.md).

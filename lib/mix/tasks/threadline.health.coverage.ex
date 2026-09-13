@@ -57,7 +57,8 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
       render_table(schema, coverage)
     end
 
-    # Always exit 0 — viewer, not gate (D-34)
+    # Viewer semantics: report findings and return :ok. Use
+    # mix threadline.verify_coverage when CI must fail on uncovered tables.
     :ok
   end
 

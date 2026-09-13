@@ -41,18 +41,18 @@
 
 import { execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { committedCellIds } from "./bundle.js";
+import { resolve } from "node:path";
 import { scoreCellLens, LENS_DIMENSIONS } from "./refute.js";
 import type { LensName } from "./schema.js";
+import {
+  currentOperatorSurfacePaths,
+  readRequiredJson,
+  routeCellMatchesPage,
+  routeScorecardCellIds,
+  routeScorecardPath,
+} from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
-const criticScoresDir = resolve(repoRoot, ".planning/critic-scores");
-const ledgerPath = resolve(repoRoot, ".planning/design-system-ledger.json");
-const e2eDir = resolve(repoRoot, "examples/threadline_phoenix/e2e");
+const paths = () => currentOperatorSurfacePaths();
 
 // The blocking panel (196-D2, mirroring the frozen `critic_panel.blocking` ledger block,
 // guarded by GATE-04 / verify.critic_trust). A ranking regression on ANY blocking lens rejects.
@@ -153,7 +153,7 @@ export interface PoleGuardResult {
 /**
  * Refuse to let `critic:score` silently clobber a stamped before pole (197-01).
  *
- * The before pole IS the set of score JSONs under `.planning/critic-scores/<cell>/<lens>/`
+ * The before pole IS the set of score JSONs under the generated critic-score root
  * written by the pre-edit `npm run critic:score` — the gate's Δ baseline. Re-running
  * critic:score AFTER an edit would overwrite it and fake the before/after evidence
  * (T-197-02). For each (cell, lens) pair about to be scored:
@@ -172,7 +172,7 @@ export function guardBeforePole(
   const blocked: PoleGuardBlocked[] = [];
   const cleared: string[] = [];
   for (const { cell, lens } of pairs) {
-    const dir = resolve(criticScoresDir, cell, lens);
+    const dir = resolve(paths().criticScoresDir, cell, lens);
     if (!existsSync(dir)) continue;
     const files = readdirSync(dir).filter((f) => f.endsWith(".json")).length;
     if (files === 0) continue;
@@ -188,10 +188,8 @@ export function guardBeforePole(
 
 /** The dark-theme blast-radius cells for a page currently on disk (gitignored route.* cells). */
 function pageDarkCells(page: string): string[] {
-  if (!existsSync(scorecardsDir)) return [];
-  return readdirSync(scorecardsDir)
-    .filter((f) => f.startsWith(`${page}`) && f.includes("__dark-") && f.endsWith(".json"))
-    .map((f) => f.replace(/\.json$/, ""))
+  return routeScorecardCellIds()
+    .filter((cellId) => routeCellMatchesPage(cellId, page) && cellId.includes("__dark-"))
     .sort();
 }
 
@@ -201,6 +199,8 @@ interface BlastRadius {
   changed: string[]; // route.* cells whose bytes changed after recapture
   inScope: string[]; // all route.* cells a recapture would touch (the diff surface)
   scanned: number;
+  captureStatus: "skipped" | "passed" | "failed";
+  void: boolean;
   note: string;
 }
 
@@ -224,6 +224,8 @@ function blastRadius(page: string, dryRun: boolean): BlastRadius {
       changed: [],
       inScope,
       scanned: inScope.length,
+      captureStatus: "skipped",
+      void: false,
       note:
         `dry-run: skipped \`npm run capture:pages\`; would diff ${inScope.length} ` +
         `${page}.*__dark-* scorecard(s) byte-for-byte vs their prior copy. No edit applied → 0 changed.`,
@@ -234,16 +236,18 @@ function blastRadius(page: string, dryRun: boolean): BlastRadius {
   // out of the blast radius (unchanged = not affected), which drops scroll_cost jitter (R2).
   const before = new Map<string, string>();
   for (const cell of inScope) {
-    before.set(cell, readFileSync(resolve(scorecardsDir, `${cell}.json`), "utf8"));
+    before.set(cell, readFileSync(routeScorecardPath(cell), "utf8"));
   }
 
   try {
-    execSync(`npm run capture:pages`, { cwd: e2eDir, stdio: "pipe" });
+    execSync(`npm run capture:pages`, { cwd: paths().e2eRoot, stdio: "pipe" });
   } catch (err) {
     return {
       changed: [],
       inScope,
       scanned: inScope.length,
+      captureStatus: "failed",
+      void: true,
       note: `capture:pages failed — cannot compute blast radius (${String(err)}). Treat as VOID.`,
     };
   }
@@ -251,17 +255,17 @@ function blastRadius(page: string, dryRun: boolean): BlastRadius {
   const afterCells = pageDarkCells(page);
   const changed = afterCells.filter((cell) => {
     const priorBytes = before.get(cell);
-    const nowBytes = existsSync(resolve(scorecardsDir, `${cell}.json`))
-      ? readFileSync(resolve(scorecardsDir, `${cell}.json`), "utf8")
-      : null;
+    const nowBytes = readFileSync(routeScorecardPath(cell), "utf8");
     // A brand-new cell (no prior) or a byte-changed cell is in the blast radius.
-    return priorBytes === undefined || (nowBytes !== null && nowBytes !== priorBytes);
+    return priorBytes === undefined || nowBytes !== priorBytes;
   });
 
   return {
     changed,
     inScope: afterCells,
     scanned: afterCells.length,
+    captureStatus: "passed",
+    void: false,
     note:
       `${afterCells.length} ${page}.*__dark-* scorecard(s) recaptured; ` +
       `${changed.length} changed (byte-diff vs prior): ${changed.join(", ") || "(none)"}.`,
@@ -305,7 +309,7 @@ function mechanicalFloor(page: string, dryRun: boolean): MechanicalFloor {
   }
 
   try {
-    execSync(`mix verify.mechanical`, { cwd: repoRoot, stdio: "pipe" });
+    execSync(`mix verify.mechanical`, { cwd: paths().repositoryRoot, stdio: "pipe" });
     return { twin, passed: true, note: `mix verify.mechanical passed (floor holds on ${twin}${CELL_SUFFIX}).` };
   } catch {
     return {
@@ -348,13 +352,13 @@ const ACCEPT_REJECT_RULE =
 
 /**
  * Read the pre-edit ("before") per-lens score for a cell from the committed critic-scores
- * snapshot (`.planning/critic-scores/<cell>/<lens>/<dim>.json`, written by an earlier
+ * snapshot (generated critic-score JSON written by an earlier
  * `npm run critic:score --page <page>` the maintainer runs BEFORE editing). This is the
  * before pole the RESEARCH flow specifies ("reuse scoreCellLens OR the committed critic-scores").
  * Returns null when no before-snapshot exists (→ the caller voids and asks for a pre-edit score).
  */
 function beforeLensScore(cell: string, lens: LensName): { score: number | null; stable: boolean } | null {
-  const dir = resolve(criticScoresDir, cell, lens);
+  const dir = resolve(paths().criticScoresDir, cell, lens);
   if (!existsSync(dir)) return null;
   const files = readdirSync(dir).filter((f) => f.endsWith(".json"));
   if (files.length === 0) return null;
@@ -422,7 +426,7 @@ async function rankReeval(
 
   const deltas: CellLensDelta[] = [];
   for (const cell of cells) {
-    if (!committedCellIds().includes(cell)) {
+    if (!routeScorecardCellIds().includes(cell)) {
       return {
         ...base,
         void: true,
@@ -511,7 +515,11 @@ interface LedgerShape {
 }
 
 function readLedger(): LedgerShape {
-  return JSON.parse(readFileSync(ledgerPath, "utf8")) as LedgerShape;
+  return readRequiredJson<LedgerShape>(paths().ledgerPath, {
+    dataset: "operator design-system ledger",
+    repositoryOnly: true,
+    recoveryCommand: "npm run critic:check",
+  });
 }
 
 interface DivergenceComparison {
@@ -574,7 +582,10 @@ function divergenceHalt(dryRun: boolean): Divergence {
   // Live: recompute the held-out ρ on the synthetic oracle, then compare. This is the ONLY
   // path that shells `mix critic.measure --source synthetic` (never under --dry-run).
   try {
-    execSync(`mix critic.measure --source synthetic`, { cwd: repoRoot, stdio: "pipe" });
+    execSync(`mix critic.measure --source synthetic`, {
+      cwd: paths().repositoryRoot,
+      stdio: "pipe",
+    });
   } catch (err) {
     return {
       ran: true,
@@ -665,7 +676,7 @@ function surfaceMechanicalFixes(page: string, dryRun: boolean): void {
   let out = "";
   try {
     out = execSync(`mix run --no-start -e ${JSON.stringify(snippet)}`, {
-      cwd: repoRoot,
+      cwd: paths().repositoryRoot,
       stdio: ["ignore", "pipe", "pipe"],
     }).toString();
   } catch (err) {
@@ -731,7 +742,23 @@ export async function runGate(argv: string[]): Promise<void> {
   const blast = blastRadius(args.page, args.dryRun);
   console.log(`\n  [1/7] Blast radius: ${blast.changed.length} changed of ${blast.scanned} scanned`);
   console.log(`        In-scope cells: ${blast.inScope.join(", ") || "(none on disk)"}`);
+  console.log(`        Capture status: ${blast.captureStatus}`);
   console.log(`        ${blast.note}`);
+  if (blast.void) {
+    console.log(`\n  [7/7] Verdict: VOID`);
+    console.log(
+      `\n  ⛔ Change VOID: route recapture failed; stale evidence was not scored. ` +
+        `No floor, ranking, divergence, advisory, or fix subprocesses ran.\n`,
+    );
+    process.exit(1);
+  }
+  if (blast.inScope.length === 0) {
+    console.error(
+      `\n[critic gate] No route scorecards match the explicit page scope ${JSON.stringify(args.page)}. ` +
+        `Run \`npm run capture:pages\` before gating.`,
+    );
+    process.exit(1);
+  }
 
   // Step 2 — deterministic mechanical floor on the committed page.* twin
   const floor = mechanicalFloor(args.page, args.dryRun);

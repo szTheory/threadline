@@ -1,7 +1,7 @@
 /**
  * report_html.ts — self-contained visual critique viewer.
  *
- * Renders `.planning/critic-report.html`: one card per scored REAL-UI cell (page.* /
+ * Renders the adapter-owned HTML report: one card per scored REAL-UI cell (page.* /
  * story.*, refute/graded synthetic cells excluded) with the screenshot beside its
  * 6-lens scorecard — rollup, per-lens band + score + delta-vs-floor, a trusted/advisory
  * badge (from the ledger's validated lenses), and the worst finding's evidence +
@@ -12,8 +12,8 @@
  * Deterministic: cells sorted by id, so re-running with unchanged scores is a clean diff.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import {
   ALL_LENSES,
   computeRollup,
@@ -23,11 +23,17 @@ import {
   repoRoot,
   type LensResult,
 } from "./report.js";
+import { readScorecard } from "./bundle.js";
 import { scoreToBand, type LensName } from "./schema.js";
+import {
+  atomicWriteFile,
+  DEFAULT_OPERATOR_SURFACE_PATHS,
+  readRequiredJson,
+  resolveContainedPath,
+} from "../support/operator-surface-paths.js";
 
-const outPath = resolve(repoRoot, ".planning/critic-report.html");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
-const ledgerPath = resolve(repoRoot, ".planning/design-system-ledger.json");
+const outPath = DEFAULT_OPERATOR_SURFACE_PATHS.criticReportHtmlPath;
+const ledgerPath = DEFAULT_OPERATOR_SURFACE_PATHS.ledgerPath;
 
 // Band → colour (never colour-only; always paired with the band word — D-08).
 const BAND_COLOR: Record<string, string> = {
@@ -52,12 +58,15 @@ const esc = (s: string): string =>
 
 // Lenses the trust gate has promoted to validated:true (ledger critic_trust block).
 function validatedLenses(): Set<string> {
-  try {
-    const ct = JSON.parse(readFileSync(ledgerPath, "utf8")).critic_trust ?? {};
-    return new Set(Object.entries(ct).filter(([, v]) => (v as { validated?: boolean }).validated).map(([k]) => k));
-  } catch {
-    return new Set();
-  }
+  const ct = readRequiredJson<{ critic_trust?: Record<string, { validated?: boolean }> }>(
+    ledgerPath,
+    {
+      dataset: "operator design-system ledger",
+      repositoryOnly: true,
+      recoveryCommand: "npm run critic:check",
+    },
+  ).critic_trust ?? {};
+  return new Set(Object.entries(ct).filter(([, v]) => v.validated).map(([k]) => k));
 }
 
 // Worst (lowest-scoring stable) dimension per lens → the actionable finding.
@@ -66,33 +75,37 @@ function worstFinding(cellDir: string, lens: LensName): Finding | null {
   if (!existsSync(lensDir)) return null;
   let worst: Finding | null = null;
   for (const f of readdirSync(lensDir).filter((x) => x.endsWith(".json"))) {
-    try {
-      const d = JSON.parse(readFileSync(resolve(lensDir, f), "utf8"));
-      const cur: Finding = {
-        dimension: d.dimension,
-        score: d.score,
-        band: d.band,
-        locator: d.evidence?.locator ?? "",
-        observation: d.evidence?.observation ?? "",
-        rationale: d.rationale ?? "",
-      };
-      if (worst === null || (cur.score !== null && (worst.score === null || cur.score < worst.score))) {
-        worst = cur;
-      }
-    } catch {
-      /* skip malformed */
+    const dimensionPath = resolve(lensDir, f);
+    const d = readRequiredJson<Record<string, any>>(dimensionPath, {
+      dataset: "generated critic dimension score",
+      repositoryOnly: false,
+      recoveryCommand: "npm run critic:score -- --force",
+    });
+    const cur: Finding = {
+      dimension: d.dimension,
+      score: d.score,
+      band: d.band,
+      locator: d.evidence?.locator ?? "",
+      observation: d.evidence?.observation ?? "",
+      rationale: d.rationale ?? "",
+    };
+    if (worst === null || (cur.score !== null && (worst.score === null || cur.score < worst.score))) {
+      worst = cur;
     }
   }
   return worst;
 }
 
-// The committed scorecard's screenshot → base64 data URI (single portable file).
+// The cell's trusted scorecard lane (generated route or immutable committed) → screenshot URI.
 function screenshotDataUri(cellId: string): string | null {
-  const sc = resolve(scorecardsDir, `${cellId}.json`);
-  if (!existsSync(sc)) return null;
-  const rel = (JSON.parse(readFileSync(sc, "utf8")).artifacts ?? {}).screenshot as string | undefined;
+  let rel: string | undefined;
+  try {
+    rel = readScorecard(cellId).artifacts?.screenshot;
+  } catch {
+    return null;
+  }
   if (!rel) return null;
-  const abs = resolve(repoRoot, rel);
+  const abs = resolveContainedPath(repoRoot, rel);
   if (!existsSync(abs)) return null;
   return `data:image/png;base64,${readFileSync(abs).toString("base64")}`;
 }
@@ -221,7 +234,8 @@ ${cards || `<div class="muted">No real-UI cells scored yet. Run: npm run critic:
 </main>
 </body></html>`;
 
-  writeFileSync(outPath, html, "utf8");
+  mkdirSync(dirname(outPath), { recursive: true });
+  atomicWriteFile(outPath, html);
   console.log(`[critic report --html] wrote ${cells.length} cells → ${outPath}`);
   return cells.length;
 }

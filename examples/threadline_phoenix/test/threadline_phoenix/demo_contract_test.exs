@@ -9,6 +9,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.{Manifest, Reset, Seed}
   alias ThreadlinePhoenix.HelpDesk.{Organization, Ticket}
   alias ThreadlinePhoenix.Repo
@@ -52,7 +53,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: fragment("?->>'status' = ?", ac.data_after, "closed"),
               order_by: [desc: at.occurred_at],
               limit: 1
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         action =
@@ -60,7 +62,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
             from(a in AuditAction,
               where: a.id == ^close_tx.action_id,
               where: a.name == "ticket_replied_and_closed"
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert action.name == "ticket_replied_and_closed"
@@ -82,7 +85,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: fragment("?->>'status' = ?", ac.data_after, "closed"),
               order_by: [desc: at.occurred_at],
               limit: 1
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         reply_change =
@@ -91,7 +95,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: ac.transaction_id == ^close_tx.id,
               where: ac.table_name == "ticket_replies",
               where: ac.op == "insert"
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         encoded = Jason.encode!(reply_change.data_after)
@@ -129,7 +134,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: at.occurred_at >= ^from_ts,
               where: at.occurred_at <= ^to_ts,
               select: count(at.id, :distinct)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert count == 12
@@ -144,7 +150,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: at.occurred_at >= ^from_ts,
               where: at.occurred_at <= ^to_ts
             ),
-            :count
+            :count,
+            StorageSchema.repo_opts()
           )
 
         assert ticket_change_count >= 1
@@ -171,7 +178,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: fragment("?->>'organization_id' = ?", at.meta, ^to_string(acme.id)),
               where: at.occurred_at == ^delete_at,
               select: {ac, at}
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert %Threadline.Semantics.ActorRef{type: :user, id: ^deleter_id} = at.actor_ref
@@ -249,6 +257,15 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         subject_ref = Manifest.evidence_subject_ref(:redaction_policy)
 
+        # Pin the manifest's declared value (CR-03, restored). This is a
+        # published demo contract, so a drift in
+        # `Manifest.evidence_subject_ref(:redaction_policy)` must be a
+        # deliberate, reviewed change — not one silently absorbed by a
+        # self-satisfying comparison further down. Verified against
+        # examples/threadline_phoenix/lib/threadline_phoenix/demo/manifest.ex
+        # before writing this literal.
+        assert subject_ref == %{"policy" => "walk-demo-redaction-policy"}
+
         records =
           Threadline.Evidence.list_subject_ref_history(
             "redaction_policy",
@@ -260,7 +277,14 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         record = hd(records)
         assert record.subject == "redaction_policy"
-        assert record.subject_ref == %{"policy" => "walk-demo-redaction-policy"}
+        # Round-trip documentation, not a real assertion (CR-03): this compares
+        # a query result against the same value the query filtered on
+        # (Threadline.Evidence.list_subject_ref_history/3 puts both `subject`
+        # and `subject_ref` into the SQL WHERE clause), so every returned
+        # record satisfies this equality by construction. It cannot fail. Kept
+        # to document the query's filter contract; the load-bearing assertion
+        # is the manifest pin above.
+        assert record.subject_ref == subject_ref
       end)
     end
   end
@@ -270,6 +294,20 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         import Ecto.Query
 
+        # Non-emptiness first: an empty org_memberships change set must fail this test,
+        # never pass it vacuously by virtue of there being nothing to check.
+        total_count =
+          Repo.one!(
+            from(ac in AuditChange,
+              where: ac.table_name == "org_memberships",
+              select: count(ac.id)
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        assert total_count >= 1,
+               "expected ≥1 org_memberships AuditChange rows to exist, got #{total_count}"
+
         count =
           Repo.one!(
             from(ac in AuditChange,
@@ -277,7 +315,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: ac.table_name == "org_memberships",
               where: not is_nil(at.actor_ref),
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert count >= 1,
@@ -289,8 +328,25 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         import Ecto.Query
 
+        # Non-emptiness first: with zero org_memberships rows at all, "0 in window" would
+        # pass vacuously without proving anything was actually backdated.
+        total_count =
+          Repo.one!(
+            from(ac in AuditChange,
+              where: ac.table_name == "org_memberships",
+              select: count(ac.id)
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        assert total_count >= 1,
+               "expected ≥1 org_memberships AuditChange rows to exist, got #{total_count}"
+
         window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
+        # Boundary: `>=` is strict-inclusive on the window's near edge, so a row landing
+        # exactly on `window_start` counts as INSIDE the 24h window (and therefore would
+        # fail this "outside the window" assertion, not pass it).
         in_window_count =
           Repo.one!(
             from(ac in AuditChange,
@@ -298,7 +354,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: ac.table_name == "org_memberships",
               where: at.occurred_at >= ^window_start,
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert in_window_count == 0,
@@ -310,8 +367,26 @@ defmodule ThreadlinePhoenix.DemoContractTest do
       Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
         import Ecto.Query
 
+        # Non-emptiness first: with zero null-actor rows at all, "0 in window" would pass
+        # vacuously without proving anything was actually backdated.
+        total_count =
+          Repo.one!(
+            from(ac in AuditChange,
+              join: at in assoc(ac, :transaction),
+              where: is_nil(at.actor_ref),
+              select: count(ac.id)
+            ),
+            StorageSchema.repo_opts()
+          )
+
+        assert total_count >= 1,
+               "expected ≥1 null-actor AuditChange rows to exist, got #{total_count}"
+
         window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
+        # Boundary: `>=` is strict-inclusive on the window's near edge, so a row landing
+        # exactly on `window_start` counts as INSIDE the 24h window (and therefore would
+        # fail this "outside the window" assertion, not pass it).
         in_window_count =
           Repo.one!(
             from(ac in AuditChange,
@@ -319,7 +394,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
               where: is_nil(at.actor_ref),
               where: at.occurred_at >= ^window_start,
               select: count(ac.id)
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         assert in_window_count == 0,
@@ -335,6 +411,9 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         window_start = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
+        # Set-membership over the distinct operations present in the window, checked
+        # independently per op — not a positional/ordered check, so a change in seed
+        # emission order can never flip this assertion.
         for op <- ["insert", "update", "delete"] do
           count =
             Repo.one!(
@@ -343,7 +422,8 @@ defmodule ThreadlinePhoenix.DemoContractTest do
                 where: ac.op == ^op,
                 where: at.occurred_at >= ^window_start,
                 select: count(ac.id)
-              )
+              ),
+              StorageSchema.repo_opts()
             )
 
           assert count >= 1,

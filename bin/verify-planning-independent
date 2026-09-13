@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)"
+# shellcheck source=bin/safe-temp-tree
+source "$SCRIPT_DIR/safe-temp-tree"
+
+fail() {
+  printf 'verify-planning-independent: %s\n' "$*" >&2
+  return 1
+}
+
+[ "$#" -eq 0 ] || fail 'this verifier accepts no arguments'
+
+TEMP_BASE="${TMPDIR:-/tmp}"
+[ -d "$TEMP_BASE" ] && [ ! -L "$TEMP_BASE" ] || fail "unsafe temporary base: $TEMP_BASE"
+TEMP_BASE="$(realpath -- "$TEMP_BASE")"
+TRUSTED_PARENT="$(mktemp -d "$TEMP_BASE/threadline-planning-independent-parent.XXXXXX")"
+TRUSTED_PARENT="$(realpath -- "$TRUSTED_PARENT")"
+CLONE_CHILD="$TRUSTED_PARENT/checkout"
+PLANNING_NAME='.planning'
+QUARANTINE_NAME='.planning.threadline-quarantine'
+PLANNING_PATH="$CLONE_CHILD/$PLANNING_NAME"
+QUARANTINE_PATH="$CLONE_CHILD/$QUARANTINE_NAME"
+QUARANTINE_OWNED=0
+AGGREGATE_STARTED=0
+AGGREGATE_PASSED=0
+
+mkdir "$CLONE_CHILD"
+safe_temp_tree_register "$TRUSTED_PARENT" "$CLONE_CHILD"
+
+cleanup() {
+  local original_status=$? restore_status=0 cleanup_status=0
+  local physical_cwd='' restore_root='' restore_planning='' restore_quarantine=''
+  trap - EXIT
+  set +e
+
+  if [ "$AGGREGATE_STARTED" -eq 1 ] && [ "$AGGREGATE_PASSED" -ne 1 ]; then
+    printf 'AGGREGATE_RESULT=FAIL status=%s\n' "$original_status"
+  fi
+
+  # Only this process may claim ownership of the quarantine. Use absolute clone
+  # paths while the registered pathname is intact. If that pathname was swapped,
+  # the shell still resides in the original clone inode, so relative paths keep
+  # restoration there; the shared primitive then rejects the swap before
+  # recursive removal.
+  if [ "$QUARANTINE_OWNED" -eq 1 ]; then
+    if [ -d "$CLONE_CHILD" ] && [ ! -L "$CLONE_CHILD" ] &&
+      physical_cwd="$(pwd -P)" && [ "$physical_cwd" = "$CLONE_CHILD" ]; then
+      restore_root="$CLONE_CHILD"
+    else
+      restore_root='.'
+    fi
+    restore_planning="$restore_root/$PLANNING_NAME"
+    restore_quarantine="$restore_root/$QUARANTINE_NAME"
+
+    if [ -e "$restore_planning" ] || [ -L "$restore_planning" ]; then
+      fail "could not restore planning: $restore_planning already exists; retained clone and quarantine at $restore_quarantine"
+      restore_status=1
+    elif mv -- "$restore_quarantine" "$restore_planning"; then
+      QUARANTINE_OWNED=0
+      printf 'PLANNING_RESTORED\n'
+    else
+      fail "could not restore planning; retained clone and quarantine at $restore_quarantine"
+      restore_status=1
+    fi
+  fi
+
+  if [ "$restore_status" -eq 0 ]; then
+    cd "$TRUSTED_PARENT" || cleanup_status=1
+
+    if [ "$cleanup_status" -eq 0 ] && { [ -d "$CLONE_CHILD" ] || [ -L "$CLONE_CHILD" ]; }; then
+      safe_temp_tree_cleanup "$TRUSTED_PARENT" "$CLONE_CHILD"
+      cleanup_status=$?
+    fi
+
+    if [ "$cleanup_status" -eq 0 ] && [ -d "$TRUSTED_PARENT" ]; then
+      rmdir -- "$TRUSTED_PARENT"
+      cleanup_status=$?
+    fi
+  fi
+
+  if [ "$original_status" -ne 0 ]; then
+    exit "$original_status"
+  fi
+  if [ "$restore_status" -ne 0 ]; then
+    exit "$restore_status"
+  fi
+  exit "$cleanup_status"
+}
+trap cleanup EXIT
+
+SOURCE_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+git clone --quiet --no-local "$REPO_ROOT" "$CLONE_CHILD"
+git -C "$CLONE_CHILD" checkout --quiet --detach "$SOURCE_SHA"
+
+CLONE_SHA="$(git -C "$CLONE_CHILD" rev-parse HEAD)"
+[ "$CLONE_SHA" = "$SOURCE_SHA" ] ||
+  fail "clone SHA $CLONE_SHA does not match source SHA $SOURCE_SHA"
+printf 'CERTIFIED_SHA=%s\n' "$SOURCE_SHA"
+
+cd "$CLONE_CHILD"
+[ -d "$PLANNING_PATH" ] && [ ! -L "$PLANNING_PATH" ] ||
+  fail "committed planning directory is missing or unsafe: $PLANNING_PATH"
+[ ! -e "$QUARANTINE_PATH" ] && [ ! -L "$QUARANTINE_PATH" ] ||
+  fail "planning quarantine already exists: $QUARANTINE_PATH"
+mv -- "$PLANNING_PATH" "$QUARANTINE_PATH"
+QUARANTINE_OWNED=1
+[ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
+  fail 'planning remained visible after quarantine'
+printf 'PLANNING_STATUS=ABSENT\n'
+
+mix deps.get --check-locked
+[ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
+  fail 'dependency setup made planning visible'
+
+(cd examples/threadline_phoenix/e2e && npm ci)
+[ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
+  fail 'browser dependency setup made planning visible'
+
+MIX_ENV=dev mix dialyzer --plt
+[ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
+  fail 'analyzer setup made planning visible'
+
+AGGREGATE_STARTED=1
+mix ci.all
+[ ! -e "$PLANNING_NAME" ] && [ ! -L "$PLANNING_NAME" ] ||
+  fail 'aggregate made planning visible'
+AGGREGATE_PASSED=1
+printf 'AGGREGATE_RESULT=PASS\n'

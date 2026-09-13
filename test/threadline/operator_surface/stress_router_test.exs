@@ -17,6 +17,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def coverage_authorize(_), do: true
   end
 
+  defmodule Threadline.OperatorSurface.StressRouterTest.LedgerSession do
+    def session(_conn) do
+      Application.fetch_env!(:threadline, :stress_router_ledger_session)
+    end
+  end
+
   defmodule Threadline.OperatorSurface.StressRouterTest.Router do
     use Phoenix.Router
     import Phoenix.LiveView.Router
@@ -36,6 +42,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress("/__stress",
+        ledger_session: {Threadline.OperatorSurface.StressRouterTest.LedgerSession, :session, []},
         authorize_fn: &Threadline.OperatorSurface.StressRouterTest.Auth.authorize/1,
         coverage_authorize_fn:
           &Threadline.OperatorSurface.StressRouterTest.Auth.coverage_authorize/1,
@@ -80,6 +87,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress("/__stress",
+        ledger_session: {Threadline.OperatorSurface.StressRouterTest.LedgerSession, :session, []},
         authorize_fn: &Threadline.OperatorSurface.StressRouterTest.Auth.authorize/1,
         coverage_authorize_fn:
           &Threadline.OperatorSurface.StressRouterTest.Auth.coverage_authorize/1,
@@ -111,9 +119,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveViewTest
 
     alias Threadline.OperatorSurface.StressFixtures
+    alias Threadline.Test.OperatorSurfaceFixtures
 
     @endpoint Threadline.OperatorSurface.StressRouterTest.Endpoint
-    @ledger_path ".planning/design-system-ledger.json"
+    @ledger_path OperatorSurfaceFixtures.ledger!()
     @router_source "lib/threadline/operator_surface/router.ex"
     @example_router_source "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex"
     @stress_router_source "lib/threadline/operator_surface/stress_router.ex"
@@ -143,7 +152,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     setup do
       Application.put_env(:threadline, :stress_router_authorized, true)
+      Application.put_env(:threadline, :stress_router_ledger_session, ledger_session())
       {:ok, conn: build_conn()}
+    end
+
+    test "test fixture adapter exposes one source-anchored corpus authority" do
+      fixtures = Threadline.Test.OperatorSurfaceFixtures
+
+      assert Code.ensure_loaded?(fixtures),
+             "expected Threadline.Test.OperatorSurfaceFixtures on the test support compile path"
+
+      root = fixtures.root!()
+
+      assert Path.type(root) == :absolute
+      assert fixtures.ledger!() == Path.join(root, "design-system-ledger.json")
+      assert fixtures.scorecards!() == Path.join(root, "scorecards")
+      assert fixtures.golden!() == Path.join(root, "golden")
+      assert fixtures.refute!() == Path.join(root, "refute")
+      assert fixtures.critic_scores!() == Path.join(root, "critic-scores")
     end
 
     test "compiling a secure throwaway stress router registers the stress LiveView route" do
@@ -262,6 +288,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       refute File.read!(@router_source) =~ forbidden
       refute File.read!(@example_router_source) =~ forbidden
+      refute File.read!(@stress_router_source) =~ forbidden
     end
 
     test "root operator macro source does not expose stress or story routes" do
@@ -297,26 +324,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Regex.scan(~r/threadline_operator_surface_stress\("\/__stress"/, source) |> length() ==
                2
 
-      {output, status} =
-        System.cmd(
-          "bash",
-          [
-            "-lc",
-            "cd examples/threadline_phoenix && MIX_ENV=test mix run --no-start -e 'routes = Phoenix.Router.routes(ThreadlinePhoenixWeb.Router); IO.puts(Enum.map(routes, & &1.path)); IO.puts(File.read!(\"../../lib/threadline/operator_surface/stress_router.ex\"))'"
-          ],
-          stderr_to_stdout: true
-        )
-
-      assert status == 0, output
-      assert output =~ "/audit"
-      assert output =~ "/audit/__stress"
-      assert output =~ "live_session :threadline_stress"
-      refute output =~ "stress" <> ": true"
+      # Runtime proof that the example app's compiled router actually EXPANDS
+      # and mounts /audit and /audit/__stress inside a distinct live_session
+      # (rather than merely containing the macro call source-statically, which
+      # the assertion above already covers) lives in
+      # examples/threadline_phoenix/e2e/tests/operator-stress.spec.ts — the
+      # "requires authentication before rendering the stress lab" and
+      # "renders the real operator shell, theme scope, story metadata, and
+      # preview" cases, run via `mix verify.operator_stress` locally and by
+      # the `verify-example-browser` CI job (inside `ci-required`'s `needs:`
+      # list) on every PR. Before Phase 198-15 this test shelled out to
+      # `mix run --no-start` inside examples/threadline_phoenix, which made
+      # its outcome depend on whether that example app's dependencies had
+      # previously been fetched on the machine running `mix test` — an
+      # ambient-state dependency `mix test` in CI does not satisfy. See
+      # 198-15-SUMMARY.md for the full disposition and the red/green teeth
+      # proof that the successor guard still catches a broken route mount.
+      #
+      # The "live_session :threadline_stress" presence check that used to run
+      # against a subprocess-printed copy of stress_router.ex is redundant
+      # with "stress macro source keeps auth, coverage, and prod fail-closed
+      # hooks together" below, which asserts the same string directly against
+      # @stress_router_source with no subprocess. The "stress: true" negative
+      # check is folded into "source keeps stress routing off the public
+      # operator macro option surface" above, which now also checks
+      # @stress_router_source.
     end
 
     test "authenticated stress route renders the operator shell, theme, selected story, and preview",
          %{conn: conn} do
-      {:ok, _view, html} = live(conn, "/audit/__stress")
+      {:ok, _view, html} = live(conn, "/audit/__stress?story=foundation.color")
 
       assert html =~ ~s|class="threadline-ui"|
       assert html =~ ~s|data-tl-theme="system"|
@@ -328,6 +365,47 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="stress-ledger-score"|
       assert html =~ ~s|data-testid="stress-target-score"|
       assert html =~ ~s|data-testid="stress-screenshot-status"|
+      assert html =~ "Origin cohort"
+      refute html =~ "Owner phase"
+      assert html =~ "Primitives Matrix"
+      assert html =~ "Data Display"
+      assert html =~ "Data States"
+      refute html =~ "Phase 173 Primitives Matrix"
+      refute html =~ "Phase 176 Data Display"
+      refute html =~ "Phase 176 Data States"
+
+      {:ok, _view, refute_html} =
+        live(conn, "/audit/__stress?story=refute.rhythm.doubled-padding.polished")
+
+      assert refute_html =~ "Refute Twin — design principle under test"
+      refute refute_html =~ "Phase 195 Refute Twin"
+    end
+
+    test "stress route renders the decoded ledger supplied by its live session", %{conn: conn} do
+      entry =
+        ledger_entries()
+        |> Enum.find(&(&1["story_id"] == "page.home.happy"))
+        |> Map.put("current_score", 912)
+
+      Application.put_env(:threadline, :stress_router_ledger_session, %{
+        "threadline_stress_ledger_entries" => [entry]
+      })
+
+      {:ok, _view, html} = live(conn, "/audit/__stress?story=page.home.happy")
+
+      assert html =~ ~s|data-testid="stress-ledger-score">912|
+    end
+
+    test "stress route rejects malformed injected ledger data with recovery guidance" do
+      assert_raise ArgumentError,
+                   ~r/Threadline stress session ledger entries must be a non-empty list.*Recovery: mix test test\/threadline\/operator_surface\/stress_router_test.exs/s,
+                   fn ->
+                     Threadline.OperatorSurface.Live.StressLive.mount(
+                       %{},
+                       %{"threadline_stress_ledger_entries" => %{}},
+                       %Phoenix.LiveView.Socket{}
+                     )
+                   end
     end
 
     test "selected theme query drives the stress root theme instead of mount default",
@@ -386,7 +464,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert story_html =~ ~s|data-testid="stress-preview"|
 
         assert story_html =~ entry["fixture_key"] or
-                 story_html =~ "Reserved for Phase #{entry["reserved_for_phase"]}"
+                 story_html =~ "Reserved for the #{entry["reserved_for_cohort"]} cohort"
       end
     end
 
@@ -405,7 +483,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       group.toolbar.current
     )
 
-    test "all 12 GROUP-01 group stories render without error across the matrix", %{conn: conn} do
+    test "all 12 baseline-cohort group stories render without error across the matrix", %{
+      conn: conn
+    } do
       assert length(@group_story_ids) == 12
 
       for story_id <- @group_story_ids do
@@ -471,6 +551,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> File.read!()
       |> Jason.decode!()
       |> Map.fetch!("entries")
+    end
+
+    defp ledger_session do
+      %{"threadline_stress_ledger_entries" => ledger_entries()}
     end
 
     defp fixture_backed_entry?(entry) do
@@ -540,6 +624,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     setup do
       Application.put_env(:threadline, :stress_router_authorized, true)
+
+      Application.put_env(:threadline, :stress_router_ledger_session, %{
+        "threadline_stress_ledger_entries" =>
+          Threadline.Test.OperatorSurfaceFixtures.ledger!()
+          |> File.read!()
+          |> Jason.decode!()
+          |> Map.fetch!("entries")
+      })
+
       {:ok, conn: build_conn()}
     end
 

@@ -3,6 +3,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Exports do
 
   alias Threadline.Governance.{ExportJob, SavedView}
   alias Threadline.Semantics.ActorRef
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.Demo.Manifest.UUID
   alias ThreadlinePhoenix.Repo
@@ -70,21 +71,25 @@ defmodule ThreadlinePhoenix.Demo.Seed.Exports do
       ]
       |> Enum.map(&Map.merge(&1, %{inserted_at: inserted_at, updated_at: inserted_at}))
 
-    Repo.insert_all(ExportJob, rows,
-      on_conflict:
-        {:replace,
-         [
-           :status,
-           :query_params,
-           :actor_ref,
-           :file_path,
-           :error_message,
-           :started_at,
-           :completed_at,
-           :expires_at,
-           :updated_at
-         ]},
-      conflict_target: :id
+    Repo.insert_all(
+      ExportJob,
+      rows,
+      [
+        on_conflict:
+          {:replace,
+           [
+             :status,
+             :query_params,
+             :actor_ref,
+             :file_path,
+             :error_message,
+             :started_at,
+             :completed_at,
+             :expires_at,
+             :updated_at
+           ]},
+        conflict_target: :id
+      ] ++ StorageSchema.repo_opts()
     )
 
     seed_saved_views(actor_ref, inserted_at)
@@ -114,9 +119,13 @@ defmodule ThreadlinePhoenix.Demo.Seed.Exports do
       }
     ]
 
-    Repo.insert_all(SavedView, saved_view_rows,
-      on_conflict: {:replace, [:name, :filters, :actor_ref, :updated_at]},
-      conflict_target: :id
+    Repo.insert_all(
+      SavedView,
+      saved_view_rows,
+      [
+        on_conflict: {:replace, [:name, :filters, :actor_ref, :updated_at]},
+        conflict_target: :id
+      ] ++ StorageSchema.repo_opts()
     )
   end
 

@@ -7,7 +7,8 @@ The contract is intentionally code-shaped:
 
 - `Threadline.Plug` owns request-path capture context.
 - `Threadline.Job` owns serialized job-path context.
-- `Threadline.Integrations.*` owns soft-loaded reference adapters.
+- `Threadline.Integrations.Sigra` owns the supported soft-loaded reference
+  adapter.
 - `threadline_operator_surface/2` owns the operator-surface mount boundary, with
   `authorize_fn` and optional `export_authorize_fn` covering the LiveView and
   HTTP export faces.
@@ -131,10 +132,10 @@ Contract bullets:
 - **Callback must not** call `set_config` for `threadline.actor_ref`, `Threadline.record_action/2`,
   or nested `Repo.transaction/1` — the helper owns GUC, action recording, and linkage.
 
-## Reference integrations via `Threadline.Integrations.*` (`sigra-reference` lane)
+## Reference integration via `Threadline.Integrations.Sigra` (`sigra-reference` lane)
 
-`Threadline.Integrations.*` modules are reference adapters for the
-**`sigra-reference`** lane. They translate host or framework state into the
+`Threadline.Integrations.Sigra` is the reference adapter for the
+**`sigra-reference`** lane. It translates host or framework state into the
 existing Threadline-native seams above.
 
 `Threadline.Integrations.Sigra` is the current model:
@@ -152,9 +153,9 @@ plug Threadline.Plug,
   context_overrides_fn: &Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1
 ```
 
-These modules are reference adapters, not framework ownership claims. A
-`Threadline.Integrations.*` module should adapt host state into `Threadline.Plug`
-or `Threadline.Job`; it should not redefine those contracts.
+This module is a reference adapter, not a framework ownership claim. It adapts
+host state into `Threadline.Plug`; it does not redefine the request or job
+contracts.
 
 ## Operator-surface composition via `authorize_fn` and `export_authorize_fn`
 
@@ -200,10 +201,10 @@ of these conditions at compile time:
 
 Anything outside that boundary is outside the supported surface story.
 
-When that mount also receives `actor_fn`, the standard route path
-auto-installs `Threadline.OperatorSurface.SessionPlug` before the LiveView
-routes. That keeps actor-owned saved views and similar UI features on the same
-`ActorRef` contract as request-path capture without extra adopter wiring.
+When that mount also receives `actor_fn`, the public router installs the
+actor-to-session bridge before the LiveView routes. That keeps actor-owned saved
+views and similar UI features on the same `ActorRef` contract as request-path
+capture without exposing internal plug wiring to the host application.
 
 ### Shared authorization vocabulary
 
@@ -287,13 +288,16 @@ supervision and external storage infrastructure.
 
 ## Canonical references
 
-- Request path and additive override validation: `lib/threadline/plug.ex`
-- Job-path serialized context helpers: `lib/threadline/job.ex`
-- Soft-loaded reference adapter model: `lib/threadline/integrations/sigra.ex`
-- Secure operator-surface mount boundary: `lib/threadline/operator_surface/router.ex`
-- LiveView auth hook: `lib/threadline/operator_surface/auth.ex`
-- HTTP export auth parity and fallback mirror: `lib/threadline/operator_surface/export_auth_plug.ex`
+- Request capture and additive overrides: `Threadline.Plug`
+- Serialized background-job context: `Threadline.Job`
+- Audited database writes: `Threadline.Audit`
+- Soft-loaded Sigra composition: `Threadline.Integrations.Sigra`
+- Secure operator-surface mount boundary: `Threadline.OperatorSurface.Router`
+- LiveView authorization result handling: `Threadline.OperatorSurface.Auth`
 
-Use this guide when you need the host/framework breadth contract. Use
-`guides/operator-surface.md` for the screen-level mount walkthrough and
-`guides/integrations/sigra.md` for the current first-party reference adapter.
+## Next steps
+
+- Return to [Getting started](getting-started-saas.md) for the Adopt lane.
+- Mount and authorize the screens with the [Operator surface guide](operator-surface.md).
+- If Sigra owns request authentication in your host, continue with the
+  [Sigra reference integration](integrations/sigra.md).

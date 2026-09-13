@@ -32,8 +32,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   At task start the host app config is loaded (`Mix.Task.run("app.config", [])`).
   Per-table entries under `:tables` may set `:exclude`, `:mask`, optional
   `:mask_placeholder`, `:store_changed_from`, and `:except_columns`. Overlap
-  between `:exclude` and `:mask` is validated with `Threadline.Capture.RedactionPolicy`
-  before writing the migration.
+  between `:exclude` and `:mask` is validated before writing the migration.
 
   ## Options
 
@@ -49,7 +48,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
 
   The task exits non-zero if `audit_transactions` or `audit_changes` is in the
   table list. Installing audit triggers on Threadline's own tables would cause
-  recursive loops (D-10, CAP-10).
+  recursive loops in the audit tables themselves.
   """
 
   use Mix.Task
@@ -93,7 +92,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
     if forbidden != [] do
       Mix.raise(
         "Cannot install audit triggers on Threadline's own tables: #{Enum.join(forbidden, ", ")}. " <>
-          "This would cause a recursive audit loop (CAP-10)."
+          "This would cause a recursive audit loop."
       )
     end
 

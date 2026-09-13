@@ -137,6 +137,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "export status live view" do
+      test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/exports")
+
+        mounted_socket = :sys.get_state(view.pid).socket
+        mounted_ref = mounted_socket.assigns.threadline_export_status_timer_ref
+        assert is_reference(mounted_ref)
+        assert is_integer(Process.read_timer(mounted_ref))
+
+        send(view.pid, :refresh)
+        refreshed_socket = :sys.get_state(view.pid).socket
+        refreshed_ref = refreshed_socket.assigns.threadline_export_status_timer_ref
+
+        assert is_reference(refreshed_ref)
+        refute refreshed_ref == mounted_ref
+        assert Process.read_timer(mounted_ref) == false
+        assert is_integer(Process.read_timer(refreshed_ref))
+
+        assert :ok =
+                 Threadline.OperatorSurface.Live.ExportStatusLive.terminate(
+                   :normal,
+                   refreshed_socket
+                 )
+
+        assert Process.read_timer(refreshed_ref) == false
+      end
+
       test "renders a generic denied fallback when the current state is not safely exportable", %{
         conn: conn
       } do
@@ -487,7 +513,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Queued"
         assert html =~ "Processing"
-        assert html =~ "Expired"
+        assert html =~ "Export expired"
         assert html =~ "Failed"
         refute html =~ "Download export"
 
@@ -517,7 +543,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, _view, html} = live(conn, "/audit/exports")
 
         refute html =~ "Download export"
-        assert html =~ "Expired"
+        assert html =~ "Export expired"
       end
 
       test "shows the persisted failure reason for failed jobs", %{
@@ -626,7 +652,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Unavailable"
         assert html =~ "Download export"
         assert html =~ "Processing"
-        assert html =~ "Expired"
+        assert html =~ "Export expired"
         assert html =~ "File unavailable"
         assert html =~ "tl-secondary-ref"
         assert html =~ long_correlation
@@ -647,6 +673,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "source contract: export status reads and queued writes use resolved storage opts" do
         source = File.read!("lib/threadline/operator_surface/live/export_status_live.ex")
 
+        assert source =~ "@ui_form_policy :formless"
         assert source =~ "defp storage_opts(_socket)"
         assert source =~ "|> repo.all(storage_opts(socket))"
         assert source =~ "storage_schema = StorageSchema.get()"

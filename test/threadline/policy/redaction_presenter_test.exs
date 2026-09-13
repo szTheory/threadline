@@ -199,6 +199,85 @@ defmodule Threadline.Policy.RedactionPresenterTest do
       assert warning == "Unsupported trigger function language: sql."
     end
 
+    test "maps every supported introspection failure to its exact operator warning" do
+      source =
+        TriggerSQL.install_function_for_table("users",
+          exclude: ["password_hash"],
+          mask: ["email"],
+          mask_placeholder: "[MASKED]",
+          store_changed_from: true
+        )
+
+      mask_fragment =
+        "v_data_after := v_data_after || jsonb_build_object('email', to_jsonb('[MASKED]'::text));"
+
+      cases = [
+        {:unexpected_function_name, "not_threadline", source,
+         "Deployed trigger function name is not a Threadline-generated shape."},
+        {:unexpected_function_shape, "threadline_capture_changes_users",
+         String.replace(source, "audit_transactions", "other_transactions"),
+         "Deployed trigger SQL did not match the expected Threadline trigger shape."},
+        {:ambiguous_fragment_repetition, "threadline_capture_changes_users",
+         String.replace(
+           source,
+           "v_data_after := v_data_after - 'password_hash';",
+           "v_data_after := v_data_after - 'different_column';",
+           global: false
+         ), "Deployed trigger SQL contained ambiguous redaction fragments."},
+        {:unexpected_mask_fragment, "threadline_capture_changes_users",
+         String.replace(
+           source,
+           mask_fragment,
+           "v_data_after := v_data_after || jsonb_build_object('email');"
+         ), "Deployed trigger SQL contained an unsupported mask fragment."},
+        {:unexpected_mask_columns_fragment, "threadline_capture_changes_users",
+         String.replace(
+           source,
+           "WHEN u.k = ANY(ARRAY['email']::text[])",
+           "WHEN u.k = ANY(ARRAY[email]::text[])"
+         ), "Deployed trigger SQL contained an unsupported changed_from mask fragment."},
+        {:changed_from_mask_mismatch, "threadline_capture_changes_users",
+         String.replace(
+           source,
+           "THEN to_jsonb('[MASKED]'::text)",
+           "THEN to_jsonb('[OTHER]'::text)"
+         ), "Deployed trigger SQL contained inconsistent mask behavior across fragments."},
+        {:ambiguous_masking, "threadline_capture_changes_users",
+         source <>
+           "\n#{String.replace(mask_fragment, "'email'", "'display_name'")}\n#{String.replace(mask_fragment, "'email'", "'display_name'")}\n",
+         "Deployed trigger SQL contained ambiguous masking fragments."},
+        {:ambiguous_mask_placeholder, "threadline_capture_changes_users",
+         String.replace(
+           source,
+           mask_fragment,
+           "v_data_after := v_data_after || jsonb_build_object('email', to_jsonb('[MASKED]'::text), 'display_name', to_jsonb('[OTHER]'::text));"
+         ), "Deployed trigger SQL contained multiple mask placeholders."},
+        {:ambiguous_changed_from_mask, "threadline_capture_changes_users",
+         source <>
+           "\n-- WHEN u.k = ANY(ARRAY['display_name']::text[]) THEN to_jsonb('[MASKED]'::text)\n",
+         "Deployed trigger SQL contained ambiguous changed_from masking."}
+      ]
+
+      for {reason, function_name, mutated_source, expected_warning} <- cases do
+        report =
+          RedactionPresenter.build_report(
+            %{"users" => [exclude: ["password_hash"], mask: ["email"]]},
+            [
+              %{
+                table: "users",
+                trigger_name: "threadline_audit_users",
+                function_name: function_name,
+                function_language: "plpgsql",
+                function_source: mutated_source
+              }
+            ]
+          )
+
+        assert [%{status: :could_not_introspect, warning: ^expected_warning}] = report.tables,
+               "expected exact warning for #{inspect(reason)}"
+      end
+    end
+
     test "preserves canonical section ordering and alphabetical order within sections" do
       report =
         RedactionPresenter.build_report(

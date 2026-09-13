@@ -71,15 +71,21 @@ coverage:
   - id: D3
     description: "Classification of F-002/F-003 (example app dev/test secret_key_base) as Class C rather than Class A"
     requirement: GREEN-07
-    verification: []
-    human_judgment: true
-    rationale: "A defensible maintainer could apply a blanket rotate-anything-secret-shaped policy instead. Deliberately surfaced at the Task 3 gate rather than settled by the executor; no test can adjudicate a policy posture. RESOLVED at that gate on 2026-08-27: Class C stands, neither value rotated. The rationale is recorded in the artifact under '## D-30 authorization' so a later reader can re-open the call on the reasoning, not on a bare verdict."
+    verification:
+      - kind: unit
+        ref: "test/threadline/phase198_decision_attestation_test.exs"
+        status: pass
+    human_judgment: false
+    rationale: "A defensible maintainer could apply a blanket rotate-anything-secret-shaped policy instead. Deliberately surfaced at the Task 3 gate rather than settled by the executor; no test can adjudicate a policy posture. RESOLVED at that gate on 2026-08-27: Class C stands, neither value rotated. The rationale is recorded in the artifact under '## D-30 authorization' so a later reader can re-open the call on the reasoning, not on a bare verdict. Discharged by phase-199: the Class C disposition and the A=0/B=0/C=5 counts are asserted mechanically against '## D-30 authorization' on every run."
   - id: D4
     description: "The one-way publication of `.planning/` history authorized by the maintainer at a recorded checkpoint (D-30)"
     requirement: GREEN-07
-    verification: []
-    human_judgment: true
-    rationale: "Irreversible and outward-facing; requires explicit human authorization that can never be auto-approved. DELIVERED — the gate was resolved by the maintainer and the confirmation is recorded verbatim under '## D-30 authorization' in .planning/audits/198-credential-audit.md. human_judgment stays true because the deliverable IS a human decision; no test can attest to it and a verifier should read the recorded confirmation rather than trust a green check."
+    verification:
+      - kind: unit
+        ref: "test/threadline/phase198_decision_attestation_test.exs"
+        status: pass
+    human_judgment: false
+    rationale: "Irreversible and outward-facing; requires explicit human authorization that can never be auto-approved. DELIVERED — the gate was resolved by the maintainer and the confirmation is recorded verbatim under '## D-30 authorization' in .planning/audits/198-credential-audit.md. human_judgment stays true because the deliverable IS a human decision; no test can attest to it and a verifier should read the recorded confirmation rather than trust a green check. Discharged by phase-199: that read is now performed mechanically on every run - the verbatim confirmation, its date, and the one-way framing are asserted by the attestation test. The deliverable is still a human decision; the test attests only that the decision remains recorded."
   - id: D5
     description: "GitHub secret scanning and push protection live on szTheory/threadline before any push of these commits"
     requirement: GREEN-07

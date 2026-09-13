@@ -1,19 +1,5 @@
 defmodule Threadline.CriticTrust.LedgerSplice do
-  @moduledoc """
-  Surgical, byte-stable replacement of *only* the `"critic_trust"` object in the
-  design-system ledger JSON text.
-
-  The ledger is ~14k lines. Re-encoding the whole document with `Jason.encode!`
-  would reorder every key (Elixir maps are unordered) — a catastrophic diff and a
-  violation of "never writes outside the critic_trust block". Instead we locate the
-  `"critic_trust":` value, brace-match its object (string-literal aware), and splice
-  a freshly rendered block over exactly those bytes. Everything else is preserved
-  verbatim.
-
-  `render_block/1` emits the block with a fixed lens order, fixed field order, and
-  the ledger's exact 2-space nesting, so re-running with unchanged inputs produces
-  byte-identical output (idempotent — empty `git diff`).
-  """
+  @moduledoc false
 
   alias Threadline.CriticTrust.Measure
 
@@ -29,7 +15,7 @@ defmodule Threadline.CriticTrust.LedgerSplice do
 
   @doc """
   Replace the sibling `critic_trust_provenance` object in `ledger_text` with the
-  rendered `provenance` map (Phase 195 D-12). The object must already exist as a
+  rendered `provenance` map. The object must already exist as a
   sibling of `critic_trust` (seeded once in the committed ledger) so the byte-stable
   splice has a target; keys not in `provenance` are dropped, so pass the full map.
   """

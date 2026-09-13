@@ -108,18 +108,20 @@ coverage:
         status: pass
     human_judgment: false
   - id: D7
-    description: "Classification of the min-lane failure as a genuine code/test failure rather than runner-image or Playwright version drift"
+    description: "The identical min/current fingerprints are classified automatically as shared code/test failures rather than a toolchain differential."
     verification:
-      - kind: e2e
-        ref: "current lane (job 98661003731) reported the IDENTICAL '1382 tests, 83 failures, 1 excluded' — the min lane contributes zero additional failures"
+      - kind: integration
+        ref: "bin/verify-phase198-evidence .planning/audits/198-automation-policy.json -> min/current fingerprint classification passes"
         status: pass
-    human_judgment: true
-    rationale: "The differential evidence (min and current failing identically) is strong and mechanical, and it is what rules out toolchain drift. But 'is the Elixir 1.15 floor promise sound?' is ultimately a maintainer's judgment about what the 83 shared failures mean, and those failures are the milestone's pre-existing red baseline that Plans 04-06 have not yet triaged. A verifier should read the differential rather than accept the headline."
+    human_judgment: false
   - id: D8
     description: "Whether the aggregate gate goes GREEN when all twelve needed jobs succeed"
-    verification: []
-    human_judgment: true
-    rationale: "NOT OBSERVED and not observable in this plan — six of twelve lanes are red, so the all-success path has never executed. The gate is proven red-on-failure only. Deliberately recorded as an open half rather than implied by the red-path proof; closing it is Plans 04-06's work."
+    verification:
+      - kind: integration
+        ref: "test/threadline/ci_attestation_contract_test.exs + .planning/audits/ci-attestation-33353447804.json"
+        status: pass
+    human_judgment: false
+    rationale: "NOT OBSERVED and not observable in this plan — six of twelve lanes are red, so the all-success path has never executed. The gate is proven red-on-failure only. Deliberately recorded as an open half rather than implied by the red-path proof; closing it is Plans 04-06's work. Discharged by measured CI run 33353447804: the all-success path finally executed. `CI required` concluded success with all 12 needs: members green (14/14 jobs), so the aggregate gate is now proven GREEN-on-success as well as red-on-failure. This entry was recorded as NOT OBSERVED because six of twelve lanes were red at the time; that is no longer the case."
 
 # Metrics
 duration: 17 min

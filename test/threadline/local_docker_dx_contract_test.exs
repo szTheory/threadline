@@ -193,10 +193,13 @@ defmodule Threadline.LocalDockerDxContractTest do
     assert String.contains?(env, "THREADLINE_PROXY_HOST=threadline.localhost")
     assert String.contains?(env, "THREADLINE_PROXY_NETWORK=proxy")
 
-    assert String.contains?(example_readme, "bin/demo-up")
-    assert String.contains?(example_readme, "The demo does not need a shared local proxy")
-    assert String.contains?(example_readme, "bin/demo-up --proxy")
-    assert String.contains?(example_readme, "http://threadline.localhost")
+    assert String.contains?(
+             example_readme,
+             "../../guides/local-docker-dx.md#try-the-ui-demo"
+           )
+
+    refute String.contains?(example_readme, "bin/demo-up")
+    refute String.contains?(example_readme, "docker compose")
     assert String.contains?(walkthrough, "It prints")
     assert String.contains?(walkthrough, "threadline.localhost")
     assert String.contains?(walkthrough, "Local Docker DX guide")

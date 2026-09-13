@@ -86,11 +86,18 @@ defmodule Threadline.CiTopologyContractTest do
     {pos_verify_example, _} = :binary.match(ci_block, "\"verify.example\"")
     {pos_verify_doc_contract, _} = :binary.match(ci_block, "\"verify.doc_contract\"")
 
+    {pos_verify_browser, _} =
+      :binary.match(
+        ci_block,
+        "cmd env CI=true mix verify.example_browser --project=desktop-chromium --project=mobile-chromium"
+      )
+
     assert pos_compile_strict < pos_compile_no_optional
     assert pos_compile_no_optional < pos_verify_test
     assert pos_verify_test < pos_verify_threadline
     assert pos_verify_threadline < pos_verify_example
     assert pos_verify_example < pos_verify_doc_contract
+    assert pos_verify_doc_contract < pos_verify_browser
   end
 
   test "ci workflow exposes the documented support-lane job ids" do
@@ -99,6 +106,95 @@ defmodule Threadline.CiTopologyContractTest do
     assert Regex.match?(~r/^  verify-compile-no-optional:/m, yaml)
     assert Regex.match?(~r/^  verify-test:/m, yaml)
     assert Regex.match?(~r/^  verify-docs:/m, yaml)
+  end
+
+  test "the sole required-check decision pins alls-green immutably" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert Regex.match?(
+             ~r|uses: re-actors/alls-green@[0-9a-f]{40}$|m,
+             yaml
+           ),
+           "ci-required must execute alls-green from a reviewed full commit SHA"
+
+    refute String.contains?(yaml, "re-actors/alls-green@release/"),
+           "a mutable release ref can retarget the only branch-protection decision"
+  end
+
+  test "Dialyzer is one blocking local and current-lane CI path with an exact measured PLT cache" do
+    mix_exs = read_rel!(["mix.exs"])
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+    contributing = read_rel!(["CONTRIBUTING.md"])
+
+    assert dialyzer_topology_errors(mix_exs, yaml, contributing) == []
+
+    mutation_controls = [
+      {"PLT timing command",
+       String.replace(
+         yaml,
+         "/usr/bin/time -v -o \"$time_file\" mix dialyzer --plt",
+         "mix dialyzer --plt"
+       )},
+      {"analysis timing command",
+       String.replace(
+         yaml,
+         "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check",
+         "mix dialyzer --no-check"
+       )},
+      {"measured timeout", String.replace(yaml, "timeout-minutes: 9", "timeout-minutes: 8")},
+      {"fail-on-unparseable guard",
+       String.replace(yaml, "Unable to parse GNU time output", "Timing unavailable")},
+      {"build-before-save ordering",
+       String.replace(yaml, "- name: Save Dialyzer PLT", "- name: Save analyzer cache")},
+      {"same-toolchain restore boundary",
+       String.replace(
+         yaml,
+         "ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-",
+         "ubuntu-24.04-dialyzer-plt-"
+       )},
+      {"no analyzer in no-optional lane",
+       String.replace(
+         yaml,
+         "run: mix verify.compile_no_optional",
+         "run: |\n          mix verify.compile_no_optional\n          mix dialyzer --no-check"
+       )}
+    ]
+
+    for {control, mutated_yaml} <- mutation_controls do
+      refute dialyzer_topology_errors(mix_exs, mutated_yaml, contributing) == [],
+             "#{control} mutation must make the Dialyzer topology contract fail"
+    end
+
+    for marker <- [
+          "THREADLINE_DIALYZER_PLT_CACHE=",
+          "THREADLINE_DIALYZER_PLT_WALL_SECONDS=",
+          "THREADLINE_DIALYZER_PLT_MAX_RSS_KB=",
+          "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=",
+          "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB="
+        ] do
+      mutated_yaml = String.replace(yaml, marker, "THREADLINE_BROKEN_MARKER=")
+
+      refute dialyzer_topology_errors(mix_exs, mutated_yaml, contributing) == [],
+             "removing stable marker #{marker} must make the topology contract fail"
+    end
+
+    hit_step = workflow_step(yaml, "Report exact PLT cache hit")
+
+    hit_with_fabricated_plt =
+      String.replace(
+        yaml,
+        hit_step,
+        hit_step <> "          echo \"THREADLINE_DIALYZER_PLT_WALL_SECONDS=0\"\n"
+      )
+
+    refute dialyzer_topology_errors(mix_exs, hit_with_fabricated_plt, contributing) == [],
+           "the exact-key hit path must never fabricate a PLT-build measurement"
+
+    evidence_without_cold_run =
+      String.replace(contributing, "34642915672", "unlinked-cold-run")
+
+    refute dialyzer_topology_errors(mix_exs, yaml, evidence_without_cold_run) == [],
+           "authenticated cold-run provenance must be part of the documentation contract"
   end
 
   test "verify-test job runs the phoenix-surface and sigra-reference proof path" do
@@ -112,6 +208,26 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(yaml, "run: mix verify.example")
     assert String.contains?(yaml, "- name: Doc contract tests")
     assert String.contains?(yaml, "run: mix verify.doc_contract")
+  end
+
+  test "verify-test checkout includes complete history and annotated tags" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert [_, block] =
+             Regex.run(
+               ~r/^  verify-test:\n([\s\S]*?)(?=^  [a-z][a-z0-9-]+:\n)/m,
+               yaml
+             ),
+           "verify-test job is missing"
+
+    assert Regex.match?(
+             ~r/^      - uses: actions\/checkout@v5\n        with:\n          fetch-depth: 0\s*$/m,
+             block
+           ),
+           "verify-test must fetch full history so archive tag objects are present"
+
+    refute Regex.match?(~r/^\s+fetch-tags:\s*false\s*$/m, block),
+           "verify-test must not disable tag fetching"
   end
 
   # Globs BOTH extensions on purpose. GitHub Actions honours .yaml as well as
@@ -182,5 +298,323 @@ defmodule Threadline.CiTopologyContractTest do
   test "adoption pilot backlog carries STG audited path rubric marker" do
     doc = read_rel!(["guides", "adoption-pilot-backlog.md"])
     assert String.contains?(doc, "STG-AUDITED-PATH-RUBRIC")
+  end
+
+  # --- Phase 198-21 / D-42 merge-gate self-guarding contracts ---------------
+  #
+  # `.github/rulesets/main.json` names only the single aggregate context
+  # `CI required`, so it structurally cannot detect a lane quietly dropped
+  # from `ci-required`'s `needs:` list — the ruleset stays byte-identical
+  # while the guarantee behind it shrinks. These two tests derive the merge
+  # gate's real membership and its required-context singleton from source, in
+  # both directions, so that narrowing is a red test rather than an invisible
+  # YAML edit.
+
+  @ci_required_roster_heading "### `ci-required` needs: roster"
+
+  # Isolates the `ci-required:` job block. `ci-required` is the final job in
+  # `ci.yml`'s `jobs:` map, so everything after the marker belongs to it.
+  defp ci_required_block do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    case String.split(yaml, "\n  ci-required:\n", parts: 2) do
+      [_, tail] ->
+        tail
+
+      _ ->
+        flunk(
+          "could not find a \"  ci-required:\" job in .github/workflows/ci.yml — " <>
+            "the derive source for the merge-gate roster contract is broken"
+        )
+    end
+  end
+
+  defp ci_required_needs do
+    block = ci_required_block()
+
+    case Regex.run(~r/    needs:\n((?:      - .+\n)+)/, block) do
+      [_, items] ->
+        items
+        |> String.split("\n", trim: true)
+        |> Enum.map(&(&1 |> String.trim() |> String.trim_leading("- ")))
+
+      nil ->
+        []
+    end
+  end
+
+  defp dialyzer_topology_errors(mix_exs, yaml, contributing) do
+    job = workflow_job(yaml, "verify-dialyzer")
+    no_optional_job = workflow_job(yaml, "verify-compile-no-optional")
+    hit_step = workflow_step(yaml, "Report exact PLT cache hit")
+
+    order = [
+      position(job, "mix deps.get"),
+      position(job, "mix compile --warnings-as-errors"),
+      position(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --plt"),
+      position(job, "THREADLINE_DIALYZER_PLT_WALL_SECONDS="),
+      position(job, "- name: Save Dialyzer PLT"),
+      position(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check"),
+      position(job, "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=")
+    ]
+
+    [
+      {mix_exs =~ ~s("verify.dialyzer": ["dialyzer --no-check"]),
+       "verify.dialyzer must be the stable local no-check command"},
+      {ci_all_entries(mix_exs)
+       |> Enum.count(&(&1 == "cmd env MIX_ENV=dev mix verify.dialyzer")) == 1,
+       "ci.all must invoke verify.dialyzer exactly once in the CI job's dev environment"},
+      {Regex.match?(~r/^# Job id contract[^\n]*\n#[^\n]*verify-dialyzer/m, yaml),
+       "workflow header roster must contain verify-dialyzer"},
+      {String.contains?(yaml, "branches: [main]") and
+         not String.contains?(yaml, "phase-199/scroll-cost-cause-fix"),
+       "the temporary measurement-branch trigger must be removed after collection"},
+      {job != "", "verify-dialyzer job must exist"},
+      {String.contains?(job, "runs-on: ubuntu-24.04"),
+       "verify-dialyzer must run on ubuntu-24.04"},
+      {String.contains?(job, ~s(elixir-version: "1.17.3")),
+       "verify-dialyzer must pin Elixir 1.17.3"},
+      {String.contains?(job, ~s(otp-version: "27.0")), "verify-dialyzer must pin OTP 27.0"},
+      {String.contains?(job, "timeout-minutes: 9") and
+         String.contains?(job, "ceil(252 * 2 / 60) = 9"),
+       "Dialyzer timeout must retain the documented cold-run derivation"},
+      {String.contains?(job, "uses: actions/cache/restore@v4"),
+       "Dialyzer PLT restore must be a separate cache action"},
+      {String.contains?(job, "id: dialyzer-plt-restore"),
+       "PLT restore must expose a stable cache-hit id"},
+      {String.contains?(job, "path: .dialyzer"), "PLT cache must use .dialyzer"},
+      {String.contains?(job, "ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-"),
+       "PLT cache and restore must retain exact runner/OTP/Elixir identity"},
+      {String.contains?(job, "${{ hashFiles('mix.lock') }}") and
+         String.contains?(job, "${{ hashFiles('mix.exs') }}"),
+       "PLT key must include both mix.lock and mix.exs hashes"},
+      {String.contains?(job, "uses: actions/cache/save@v4"),
+       "Dialyzer PLT save must be a separate cache action"},
+      {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-primary-key"),
+       "PLT save must reuse the restore action's exact primary key"},
+      {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-hit != 'true'"),
+       "PLT build/save must be conditional on an exact-key miss"},
+      {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-hit == 'true'"),
+       "the exact-key hit path must be explicit"},
+      {String.contains?(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --plt"),
+       "PLT build must be timed independently"},
+      {String.contains?(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check"),
+       "analysis must be timed independently"},
+      {String.contains?(job, "Unable to parse GNU time output"),
+       "GNU time parsing must fail closed"},
+      {String.contains?(job, "[[ \"$wall_seconds\" =~ ^[0-9]+([.][0-9]+)?$ ]]") and
+         String.contains?(job, "[[ \"$max_rss_kb\" =~ ^[0-9]+$ ]]"),
+       "measurement values must be normalized numeric fields"},
+      {Enum.all?(
+         [
+           "THREADLINE_DIALYZER_PLT_CACHE=miss",
+           "THREADLINE_DIALYZER_PLT_CACHE=hit",
+           "THREADLINE_DIALYZER_PLT_WALL_SECONDS=",
+           "THREADLINE_DIALYZER_PLT_MAX_RSS_KB=",
+           "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=",
+           "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB="
+         ],
+         &String.contains?(job, &1)
+       ), "all stable cache and measurement markers must be emitted"},
+      {ordered_positions?(order),
+       "dependency fetch/compile, PLT timing, save, and analysis timing must stay ordered"},
+      {not String.contains?(hit_step, "THREADLINE_DIALYZER_PLT_WALL_SECONDS=") and
+         not String.contains?(hit_step, "THREADLINE_DIALYZER_PLT_MAX_RSS_KB="),
+       "exact-key hits must not synthesize PLT-build measurements"},
+      {not String.contains?(no_optional_job, "dialyzer"),
+       "the no-optional lane must not run Dialyzer"},
+      {ci_required_needs_from(yaml) |> Enum.count(&(&1 == "verify-dialyzer")) == 1,
+       "ci-required must block on verify-dialyzer exactly once"},
+      {String.contains?(contributing, "- `verify-dialyzer`") and
+         String.contains?(contributing, "| `verify-dialyzer` | `mix verify.dialyzer`"),
+       "CONTRIBUTING must document the aggregate edge and stable job key"},
+      {Enum.all?(
+         [
+           "THREADLINE_DIALYZER_PLT_CACHE",
+           "THREADLINE_DIALYZER_PLT_WALL_SECONDS",
+           "THREADLINE_DIALYZER_PLT_MAX_RSS_KB",
+           "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS",
+           "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB"
+         ],
+         &String.contains?(contributing, &1)
+       ), "CONTRIBUTING must document the stable measurement field contract"},
+      {Enum.all?(
+         [
+           "34642915672",
+           "34643744220",
+           "a4f21e7e89ed4f958bc4ff0bb48c796225496bdd",
+           "20260907.300.1",
+           "f8275246d287e483bdc4bea1cc53781d9076e21403d44c887c3adfedaabbb53a",
+           "1025d27a2bd55968da5682d1654a62eff358df117b8d8a52e6c8ed034c0b7861",
+           "THREADLINE_DIALYZER_PLT_WALL_SECONDS=152.82",
+           "THREADLINE_DIALYZER_PLT_MAX_RSS_KB=2282540",
+           "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=9.82",
+           "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1023056",
+           "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=9.42",
+           "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1009288",
+           "ceil(252 seconds × 2.0 / 60)",
+           "= 9 minutes"
+         ],
+         &String.contains?(contributing, &1)
+       ), "CONTRIBUTING must link the immutable miss/hit evidence and timeout formula"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp ci_all_entries(mix_exs) do
+    case Regex.run(~r/"ci\.all":\s*\[\s*\n((?:.*\n)*?)\s*\]/, mix_exs) do
+      [_, block] -> Regex.scan(~r/"([^"]+)"/, block) |> Enum.map(&List.last/1)
+      nil -> []
+    end
+  end
+
+  defp ci_required_needs_from(yaml) do
+    case Regex.run(~r/  ci-required:\n[\s\S]*?    needs:\n((?:      - .+\n)+)/, yaml) do
+      [_, items] ->
+        items
+        |> String.split("\n", trim: true)
+        |> Enum.map(&(&1 |> String.trim() |> String.trim_leading("- ")))
+
+      nil ->
+        []
+    end
+  end
+
+  defp workflow_job(yaml, id) do
+    case Regex.run(~r/^  #{Regex.escape(id)}:\n([\s\S]*?)(?=^  [a-z][a-z0-9-]+:\n|\z)/m, yaml) do
+      [full, _body] -> full
+      nil -> ""
+    end
+  end
+
+  defp workflow_step(yaml, name) do
+    case Regex.run(
+           ~r/^      - name: #{Regex.escape(name)}\n([\s\S]*?)(?=^      - (?:name:|uses:)|^  [a-z][a-z0-9-]+:\n|\z)/m,
+           yaml
+         ) do
+      [full, _body] -> full
+      nil -> ""
+    end
+  end
+
+  defp position(source, needle) do
+    case :binary.match(source, needle) do
+      {position, _length} -> position
+      :nomatch -> nil
+    end
+  end
+
+  defp ordered_positions?(positions) do
+    Enum.all?(positions, &is_integer/1) and positions == Enum.sort(positions)
+  end
+
+  defp strip_comment_lines(block) do
+    block
+    |> String.split("\n")
+    |> Enum.reject(&String.match?(&1, ~r/^\s*#/))
+    |> Enum.join("\n")
+  end
+
+  defp documented_needs_section do
+    contributing = read_rel!(["CONTRIBUTING.md"])
+
+    assert String.contains?(contributing, @ci_required_roster_heading),
+           "CONTRIBUTING.md has no \"#{@ci_required_roster_heading}\" heading — the " <>
+             "documented side of the merge-gate roster contract is missing entirely."
+
+    contributing
+    |> String.split(@ci_required_roster_heading, parts: 2)
+    |> List.last()
+    |> String.split(~r/\n#+ /, parts: 2)
+    |> List.first()
+  end
+
+  defp documented_needs_roster do
+    documented_needs_section()
+    |> then(&Regex.scan(~r/^- `([a-z0-9-]+)`$/m, &1))
+    |> Enum.map(fn [_, id] -> id end)
+  end
+
+  test "ci-required's needs: roster matches CONTRIBUTING.md in both drift directions and stays non-vacuous" do
+    actual = ci_required_needs()
+    documented = documented_needs_roster()
+
+    assert length(actual) >= 10,
+           "ci-required's derived needs: list has only #{length(actual)} entr" <>
+             "#{if length(actual) == 1, do: "y", else: "ies"} (#{inspect(actual)}) — fewer " <>
+             "than ten is a broken derive, not a real narrowing, and must fail loudly rather " <>
+             "than silently asserting nothing while still reporting success."
+
+    missing_from_docs = actual -- documented
+
+    assert missing_from_docs == [],
+           "ci-required requires #{inspect(missing_from_docs)} but CONTRIBUTING.md's " <>
+             "\"#{@ci_required_roster_heading}\" roster omits it — the docs have drifted " <>
+             "behind the pipeline."
+
+    undocumented_extra = documented -- actual
+
+    assert undocumented_extra == [],
+           "CONTRIBUTING.md's \"#{@ci_required_roster_heading}\" roster claims " <>
+             "#{inspect(undocumented_extra)} but ci-required no longer requires it in " <>
+             ".github/workflows/ci.yml — this is the silent-narrowing case D-42 exists to " <>
+             "catch: a needs: entry was removed without a matching documented roster edit."
+
+    stripped = strip_comment_lines(ci_required_block())
+
+    if Regex.match?(~r/^\s*allowed-skips:/m, stripped) or
+         Regex.match?(~r/^\s*allowed-failures:/m, stripped) do
+      section = documented_needs_section()
+
+      assert String.contains?(section, "allowed-skips decision:") or
+               String.contains?(section, "allowed-failures decision:"),
+             "ci-required's alls-green step now carries allowed-skips or allowed-failures, " <>
+               "but the \"#{@ci_required_roster_heading}\" section records no decision " <>
+               "citation for it — an allowed failure launders a red lane into a green gate " <>
+               "(D-09) and must be documented, not silently introduced."
+    end
+  end
+
+  test "the ruleset's sole required status check is byte-exact with ci-required's emitted name" do
+    ruleset =
+      [".github", "rulesets", "main.json"]
+      |> read_rel!()
+      |> Jason.decode!()
+
+    required_status_checks_rule =
+      Enum.find(ruleset["rules"], fn rule -> rule["type"] == "required_status_checks" end)
+
+    refute is_nil(required_status_checks_rule),
+           ".github/rulesets/main.json has no required_status_checks rule at all"
+
+    contexts = required_status_checks_rule["parameters"]["required_status_checks"]
+
+    assert length(contexts) == 1,
+           "expected exactly one required status check context in " <>
+             ".github/rulesets/main.json, found #{length(contexts)}: #{inspect(contexts)}. " <>
+             "A second required context reintroduces the enumeration hazard D-08 replaced " <>
+             "with a single aggregate gate."
+
+    [%{"context" => context}] = contexts
+
+    assert context === "CI required",
+           "expected the ruleset's required status check context to be the exact literal " <>
+             "\"CI required\", got #{inspect(context)} — GitHub matches required checks on " <>
+             "exact string, never case-insensitively or trimmed."
+
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    job_name =
+      case Regex.run(~r/\n  ci-required:\n    name: (.+)\n/, yaml) do
+        [_, name] -> name
+        nil -> flunk("could not find ci-required's \"    name:\" line in ci.yml")
+      end
+
+    assert job_name === context,
+           "ci-required's emitted name: (#{inspect(job_name)}) no longer matches the " <>
+             "ruleset's sole required context (#{inspect(context)}) — GitHub matches " <>
+             "required checks on the exact emitted job name (D-08), so this mismatch would " <>
+             "make the required check permanently unsatisfiable."
   end
 end

@@ -7,8 +7,39 @@ defmodule ThreadlinePhoenix.DemoResetTest do
   alias ThreadlinePhoenix.HelpDesk.Organization
   alias ThreadlinePhoenix.Repo
   alias Threadline.Governance.ExportJob
+  alias Threadline.StorageSchema
 
   @app_dir Path.expand("../..", __DIR__)
+
+  # Cold `MIX_ENV=prod mix compile` (~30s measured on this machine, 2026-08-30)
+  # is paid once here, in `setup_all`, rather than inside the per-test 60s
+  # ExUnit timeout budget. ExUnit's `:timeout` does not apply to `setup_all`,
+  # so the compile is visible as its own named failure if it breaks, instead
+  # of silently eating into (or blowing) the test at line 56. The warm
+  # guard-only `mix demo.reset` run measured ~0.75s, comfortably inside the
+  # 60s default, so no `@tag timeout:` is added below — a tag that is not
+  # needed is itself a small mask.
+  setup_all do
+    {output, exit_code} =
+      System.cmd(
+        "mix",
+        ["compile"],
+        cd: @app_dir,
+        env: [{"MIX_ENV", "prod"}],
+        stderr_to_stdout: true
+      )
+
+    unless exit_code == 0 do
+      flunk("""
+      MIX_ENV=prod mix compile failed in setup_all — this is a prod build defect,
+      not a test-harness defect. Output:
+
+      #{output}
+      """)
+    end
+
+    :ok
+  end
 
   test "run/0 truncates demo tables then reseeds manifest organizations" do
     Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
@@ -21,10 +52,10 @@ defmodule ThreadlinePhoenix.DemoResetTest do
         query_params: %{"table" => "tickets"},
         actor_ref: actor_ref
       })
-      |> Repo.insert!()
+      |> Repo.insert!(StorageSchema.repo_opts())
 
       assert Repo.aggregate(Organization, :count, :id) >= 1
-      assert Repo.get_by(ExportJob, actor_ref: actor_ref)
+      assert Repo.get_by(ExportJob, [actor_ref: actor_ref], StorageSchema.repo_opts())
 
       assert :ok = Reset.run()
 
@@ -32,7 +63,7 @@ defmodule ThreadlinePhoenix.DemoResetTest do
       assert Repo.get_by!(Organization, slug: "globex")
       assert Repo.get_by!(Organization, slug: "offboarded-co")
       refute Repo.get_by(Organization, slug: "ephemeral-fixture-org")
-      refute Repo.get_by(ExportJob, actor_ref: actor_ref)
+      refute Repo.get_by(ExportJob, [actor_ref: actor_ref], StorageSchema.repo_opts())
     end)
   end
 

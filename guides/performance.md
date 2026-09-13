@@ -77,3 +77,8 @@ The side-by-side update benchmark from `redaction_and_changed_from_bench.exs` is
 | `update_both` | 2.85 K | 351.39 &micro;s | 1.24x slower than the fastest run |
 
 `concurrent_purge` remains part of the reproducible harness, but its published numbers should be refreshed from a clean rerun after the helper path fix so new artifacts land in the tracked `bench/baselines` directory again.
+
+## Next steps
+
+- [Return to the mounted operator workflow](operator-surface.md).
+- [Measure index tradeoffs against the audit workload](audit-indexing.md).

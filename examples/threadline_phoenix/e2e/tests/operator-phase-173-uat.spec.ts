@@ -79,10 +79,15 @@ test.describe("Phase 173 UAT #2 — overlay dismissal, focus, stacking", () => {
     const menu = page.locator("#stress-dropdown-menu");
 
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    // Product contract: UI.dropdown renders a menu-triggering button, so the valid
+    // WAI-ARIA enumerated value is "menu" (not the boolean-style "true", which is for
+    // non-menu popups). aria-haspopup itself never changes on open/close — only
+    // aria-expanded toggles.
+    await expect(trigger).toHaveAttribute("aria-haspopup", "menu");
     await trigger.click();
     await expect(menu).toBeVisible();
     await expect(trigger).toHaveAttribute("aria-expanded", "true");
-    await expect(trigger).toHaveAttribute("aria-haspopup", "true");
+    await expect(trigger).toHaveAttribute("aria-haspopup", "menu");
   });
 
   test("modal: open overlay stacks above page chrome (topmost at its center)", async ({

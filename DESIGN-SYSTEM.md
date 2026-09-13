@@ -1,10 +1,10 @@
 # Threadline Operator Surface Design System
 
-This inventory is projected from `.planning/design-system-ledger.json`. Update the JSON ledger first, then keep this table projection fresh.
+This inventory is projected from `test/fixtures/operator_surface/design-system-ledger.json`. Update the JSON ledger first, then keep this table projection fresh.
 
 ## Ratchet Rule
 
-Scores may only stay level or increase unless an explicit reset with rationale is recorded in the ledger. Locked entries cannot be silently removed, and minimum scores are enforced by `mix test test/threadline/operator_surface/stress_ledger_test.exs`.
+Scores may only stay level or increase unless an explicit reset with rationale is recorded in the ledger. Locked entries cannot be silently removed, and minimum scores are enforced by the repository test suite (`mix verify.test`).
 
 ## Foundations
 
@@ -181,17 +181,17 @@ For `prefers-reduced-motion: reduce`, do not use universal 0ms. Zero out positio
 
 ## Capture Matrix
 
-Design-system evidence is captured in three tiers (MECH-05). Each tier has a
+Design-system evidence is captured in three tiers. Each tier has a
 distinct authority and cost; only Tier A gates CI, and it does so over committed,
 diffable evidence — never a live browser at assert time.
 
 **Tier A — deterministic (CI-gated, all 120 cells).** The `operator-tier-a-capture`
 Playwright lane drives `/audit/__stress` and emits, per cell, a committed RAW-inputs
-scorecard (`.planning/scorecards/<cell-id>.json`) plus, for the deep band, a
+scorecard (`test/fixtures/operator_surface/scorecards/<cell-id>.json`) plus, for the deep band, a
 committed `#tl-main` ARIA snapshot (`.aria.yml`); binaries (PNG/DOM/raw a11y) stay
 gitignored under `examples/threadline_phoenix/e2e/artifacts/tier-a/`. Cell-id =
 `{ledger_id}__{theme}-{breakpoint}`. Regenerate with `mix verify.capture`
-(→ `npm run capture:tier-a`); the mechanical checker (Plan 03, `mix verify.mechanical`)
+(→ `npm run capture:tier-a`); the mechanical checker (`mix verify.mechanical`)
 reads the committed JSON. Determinism stack: `deviceScaleFactor:1` (project-level) +
 global `reducedMotion:"reduce"` + `scale:"css"` + `dynamicMasks` + `#tl-main` aria
 subtree + DB-free static fixtures — a re-run leaves `git diff` on the scorecards empty.
@@ -211,7 +211,7 @@ The Tier A matrix is `page × state × breakpoint × theme`:
   cells additionally commit a `<cell-id>.aria.yml`.
 - **Total: 120 cells** (66 Band 1 + 54 Band 2).
 
-**Tier B — LLM sample (local-only, Phase 195).** A curated subset of Tier A cells
+**Tier B — LLM sample (local-only).** A curated subset of Tier A cells
 handed to the Claude-vision critic for judged lenses (`hierarchy`, and the critic
 side of the hybrid lenses). Local-only, never a committed CI number — Linear is the
 critic's reference bar only, not a gate.
@@ -224,7 +224,7 @@ mechanical gate.
 
 ## Scorecard Cube
 
-Per-persona × per-lens projection of the v2 scorecard cube (`scores` in the ledger), covering page-kind surfaces only. Lens columns follow the D-01 frozen order. Cells render `—` while unrated; the `Score` column is the entry `current_score` rollup. Regenerate this table from the ledger whenever a cube cell changes.
+Per-persona × per-lens projection of the v2 scorecard cube (`scores` in the ledger), covering page-kind surfaces only. Lens columns follow the ledger's frozen order. Cells render `—` while unrated; the `Score` column is the entry `current_score` rollup. Regenerate this table from the ledger whenever a cube cell changes.
 
 | Entry | Persona | hierarchy | density | rhythm | typography | color_contrast | brand_fidelity | Score |
 |---|---|---|---|---|---|---|---|---:|

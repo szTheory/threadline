@@ -1,11 +1,5 @@
 defmodule Threadline.Health.CoverageSchemas do
-  @moduledoc """
-  Boundary helpers for user-facing trigger-coverage schema selection.
-
-  `Threadline.Health.trigger_coverage/1` deliberately trusts programmatic callers.
-  LiveView and Mix-task surfaces use this module before passing user-provided schema
-  names into catalog queries.
-  """
+  @moduledoc false
 
   @schema_regex ~r/\A[a-z_][a-z0-9_]{0,62}\z/
 

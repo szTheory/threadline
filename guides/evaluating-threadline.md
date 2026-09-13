@@ -22,7 +22,10 @@ Threadline separates concerns into three layers:
 - **Semantics** — application-level actions binding actor, intent, correlation, and request/job context (`AuditAction`, `ActorRef`).
 - **Exploration** — timelines, exports, retention, redaction, and operator surfaces for investigation.
 
-See [`guides/how-threadline-works.md`](how-threadline-works.md) for the full architecture narrative.
+Continue with [How Threadline works](how-threadline-works.md) for the full
+architecture narrative, the [code walkthrough](code-walkthrough.md) for a
+source-backed tour of the supported boundaries, and the [domain
+reference](domain-reference.md) for exact vocabulary and return contracts.
 
 ## What maintainers prove in-repo (CI-class)
 

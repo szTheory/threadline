@@ -35,14 +35,14 @@ defmodule Threadline.Capture.TriggerContextTest do
       Repo.query!("INSERT INTO test_audit_target_ctx (name, value) VALUES ('with-ctx', 1)")
     end)
 
-    assert [%AuditTransaction{} = txn] = Repo.all(AuditTransaction)
+    assert [%AuditTransaction{} = txn] = Repo.all(AuditTransaction, repo_opts())
     assert %Threadline.Semantics.ActorRef{type: :user, id: "u1"} = txn.actor_ref
   end
 
   test "when GUC is unset, audit_transactions.actor_ref is NULL (CTX-04)" do
     Repo.query!("INSERT INTO test_audit_target_ctx (name, value) VALUES ('no-ctx', 2)")
 
-    assert [%AuditTransaction{} = txn] = Repo.all(AuditTransaction)
+    assert [%AuditTransaction{} = txn] = Repo.all(AuditTransaction, repo_opts())
     assert is_nil(txn.actor_ref)
   end
 end

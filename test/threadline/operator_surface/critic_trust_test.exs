@@ -1,13 +1,15 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.CriticTrustTest do
-    use ExUnit.Case, async: true
+    use ExUnit.Case, async: false
 
-    @ledger_path ".planning/design-system-ledger.json"
-    @golden_set_path ".planning/golden/golden-set.json"
-    @synthetic_set_path ".planning/golden/synthetic-set.json"
-    @scorecards_dir ".planning/scorecards"
-    @critic_scores_dir ".planning/critic-scores"
-    @critique_path "CRITIQUE.md"
+    import ExUnit.CaptureIO
+
+    @ledger_path "test/fixtures/operator_surface/design-system-ledger.json"
+    @golden_set_path "test/fixtures/operator_surface/golden/golden-set.json"
+    @synthetic_set_path "test/fixtures/operator_surface/golden/synthetic-set.json"
+    @scorecards_dir "test/fixtures/operator_surface/scorecards"
+    @critic_scores_dir "test/generated/operator_surface/critic-scores"
+    @critique_path "test/generated/operator_surface/reports/CRITIQUE.md"
     @rubrics_dir "examples/threadline_phoenix/e2e/critic/rubrics"
 
     @critic_lenses ~w(
@@ -641,7 +643,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "every golden-set item resolves cell_id to an existing scorecard and has consistent r1/r2 evidence" do
       # Vacuously passes while items: [] (empty skeleton).
       # When items are populated (Plan 06+), this gate enforces:
-      # - cell_id → .planning/scorecards/<cell_id>.json exists
+      # - cell_id → test/fixtures/operator_surface/scorecards/<cell_id>.json exists
       # - r1.evidence and r2.evidence are non-empty strings
       # - r1.verdict == r2.verdict (reconciled before golden promotion)
       items = golden_set()["items"]
@@ -723,20 +725,273 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     # ── Separation of concerns: critic-scores vs scorecards ──────────────────────
 
-    test "no scorecard file in .planning/scorecards/ references .planning/critic-scores" do
+    test "no committed scorecard references generated critic scores" do
       # Assert the critic never writes output under the committed scorecard tree.
-      # The critic writes under .planning/critic-scores/ (gitignored); the capture
-      # pipeline writes under .planning/scorecards/ (committed).
+      # The critic writes under test/generated/operator_surface/critic-scores/ (gitignored); the capture
+      # pipeline writes under test/fixtures/operator_surface/scorecards/ (committed).
       if File.dir?(@scorecards_dir) do
         scorecard_files = Path.wildcard(Path.join(@scorecards_dir, "*.json"))
 
         for path <- scorecard_files do
           content = File.read!(path)
 
-          refute String.contains?(content, ".planning/critic-scores"),
-                 "#{path} references .planning/critic-scores/ — scorecards and critic output must remain separate"
+          refute String.contains?(content, "test/generated/operator_surface/critic-scores"),
+                 "#{path} references generated critic scores — scorecards and critic output must remain separate"
         end
       end
+    end
+
+    # ── Maintainer Mix-task path boundary (Phase 199 D-03..D-12) ───────────────
+
+    @tag phase199_task1: true
+    test "critic.measure anchors roots to the loaded project and honors explicit overrides" do
+      preserve_repository_ledger(fn ->
+        %{base: base, fixture_root: fixture_root, output_root: output_root} =
+          measurement_roots!("anchored")
+
+        nested = Path.join(base, "nested/workdir")
+        File.mkdir_p!(nested)
+        ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+        original = File.read!(ledger_path)
+
+        File.cd!(nested, fn ->
+          Mix.Tasks.Critic.Measure.run([
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root()),
+            "--output-root",
+            Path.relative_to(output_root, project_root())
+          ])
+        end)
+
+        refute File.read!(ledger_path) == original
+      end)
+    end
+
+    @tag phase199_task1: true
+    test "critic.measure rejects traversal, absolute escape, prefix confusion, and symlink roots" do
+      preserve_repository_ledger(fn ->
+        %{base: base, fixture_root: fixture_root, output_root: output_root} =
+          measurement_roots!("escape-controls")
+
+        outside =
+          Path.join(
+            System.tmp_dir!(),
+            "threadline-critic-outside-#{System.unique_integer([:positive])}"
+          )
+
+        File.mkdir_p!(outside)
+
+        link = Path.join(base, "outside-link")
+        File.ln_s!(outside, link)
+
+        controls = [
+          {"traversal", "../threadline-outside"},
+          {"absolute escape", outside},
+          {"prefix confusion", project_root() <> "-evil"},
+          {"symlink escape", Path.relative_to(link, project_root())}
+        ]
+
+        for {label, invalid_root} <- controls do
+          error =
+            assert_raise Mix.Error, fn ->
+              Mix.Tasks.Critic.Measure.run([
+                "--fixture-root",
+                invalid_root,
+                "--output-root",
+                Path.relative_to(output_root, project_root())
+              ])
+            end
+
+          assert error.message =~ "repository-only: true",
+                 "#{label} omitted repository-only context"
+
+          assert error.message =~ "resolved path:", "#{label} omitted the resolved path"
+          assert error.message =~ "next:", "#{label} omitted the recovery command"
+        end
+
+        alias_error =
+          assert_raise Mix.Error, fn ->
+            Mix.Tasks.Critic.Measure.run([
+              "--fixture-root",
+              Path.relative_to(fixture_root, project_root()),
+              "--output-root",
+              Path.relative_to(Path.join(fixture_root, "golden"), project_root())
+            ])
+          end
+
+        assert alias_error.message =~ "immutable evidence"
+      end)
+    end
+
+    @tag phase199_task1: true
+    test "critic.measure rejects bidirectional canonical overlap without prefix confusion" do
+      preserve_repository_ledger(fn ->
+        %{base: base, fixture_root: fixture_root} = measurement_roots!("root-overlap")
+        child_output = Path.join(fixture_root, "golden/generated")
+        prefix_output = Path.join(base, "fixtures-output")
+        alias_output = Path.join(base, "output-alias")
+        File.mkdir_p!(child_output)
+        File.mkdir_p!(prefix_output)
+        File.ln_s!(base, alias_output)
+
+        for {label, output_root} <- [
+              {"equal", fixture_root},
+              {"child", child_output},
+              {"parent", base},
+              {"symlink parent alias", alias_output}
+            ] do
+          error =
+            assert_raise Mix.Error, fn ->
+              Mix.Tasks.Critic.Measure.run([
+                "--fixture-root",
+                Path.relative_to(fixture_root, project_root()),
+                "--output-root",
+                Path.relative_to(output_root, project_root())
+              ])
+            end
+
+          assert error.message =~ "immutable evidence", "#{label} overlap was not identified"
+        end
+
+        ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+        original = File.read!(ledger_path)
+
+        Mix.Tasks.Critic.Measure.run([
+          "--fixture-root",
+          Path.relative_to(fixture_root, project_root()),
+          "--output-root",
+          Path.relative_to(prefix_output, project_root())
+        ])
+
+        refute File.read!(ledger_path) == original,
+               "a similarly prefixed but separate output root must remain valid"
+      end)
+    end
+
+    @tag phase199_task1: true
+    test "critic.measure rejects malformed required input before changing the ledger" do
+      preserve_repository_ledger(fn ->
+        %{fixture_root: fixture_root, output_root: output_root} = measurement_roots!("malformed")
+        ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+        original = File.read!(ledger_path)
+        File.write!(Path.join(fixture_root, "golden/golden-set.json"), "not-json")
+
+        error =
+          assert_raise Mix.Error, fn ->
+            Mix.Tasks.Critic.Measure.run([
+              "--fixture-root",
+              Path.relative_to(fixture_root, project_root()),
+              "--output-root",
+              Path.relative_to(output_root, project_root())
+            ])
+          end
+
+        assert error.message =~ "golden oracle is invalid"
+        assert error.message =~ Path.join(fixture_root, "golden/golden-set.json")
+        assert error.message =~ "repository-only: true"
+        assert error.message =~ "next:"
+        assert File.read!(ledger_path) == original
+
+        File.write!(Path.join(fixture_root, "golden/golden-set.json"), ~s({"items":"not-a-list"}))
+
+        schema_error =
+          assert_raise Mix.Error, fn ->
+            Mix.Tasks.Critic.Measure.run([
+              "--fixture-root",
+              Path.relative_to(fixture_root, project_root()),
+              "--output-root",
+              Path.relative_to(output_root, project_root())
+            ])
+          end
+
+        assert schema_error.message =~ "golden oracle schema is invalid"
+        assert File.read!(ledger_path) == original
+      end)
+    end
+
+    # ── Canonical atomic writers (Phase 199 D-04) ─────────────────────────────
+
+    @tag phase199_task2: true
+    test "critic.measure atomically replaces the ledger and prints the exact review command" do
+      %{fixture_root: fixture_root, output_root: output_root} =
+        measurement_roots!("atomic-measure")
+
+      ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+      original = File.read!(ledger_path)
+
+      output =
+        capture_io(fn ->
+          Mix.Tasks.Critic.Measure.run([
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root()),
+            "--output-root",
+            Path.relative_to(output_root, project_root())
+          ])
+        end)
+
+      refute File.read!(ledger_path) == original
+      assert output =~ "git diff -- #{ledger_path}"
+      assert Path.wildcard(ledger_path <> ".tmp-*") == []
+    end
+
+    @tag phase199_task2: true
+    test "critic.synth atomically replaces its oracle and prints the exact review command" do
+      fixture_root = synth_root!("atomic-synth")
+      target = Path.join(fixture_root, "golden/synthetic-set.json")
+      File.write!(target, "original bytes\n")
+
+      output =
+        capture_io(fn ->
+          Mix.Tasks.Critic.Synth.run([
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root())
+          ])
+        end)
+
+      refute File.read!(target) == "original bytes\n"
+      assert output =~ "git diff -- #{target}"
+      assert Path.wildcard(target <> ".tmp-*") == []
+    end
+
+    @tag phase199_task2: true
+    test "atomic writer interruption preserves both originals and cleans sibling temps" do
+      %{fixture_root: fixture_root, output_root: output_root} =
+        measurement_roots!("interrupted-measure")
+
+      ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+      ledger_original = File.read!(ledger_path)
+
+      Process.put({Mix.Tasks.Critic.Measure, :atomic_write_hook}, fn -> {:error, :interrupted} end)
+
+      assert_raise Mix.Error, fn ->
+        Mix.Tasks.Critic.Measure.run([
+          "--fixture-root",
+          Path.relative_to(fixture_root, project_root()),
+          "--output-root",
+          Path.relative_to(output_root, project_root())
+        ])
+      end
+
+      assert File.read!(ledger_path) == ledger_original
+      assert Path.wildcard(ledger_path <> ".tmp-*") == []
+
+      synth_root = synth_root!("interrupted-synth")
+      synth_target = Path.join(synth_root, "golden/synthetic-set.json")
+      File.write!(synth_target, "original synth bytes\n")
+      Process.put({Mix.Tasks.Critic.Synth, :atomic_write_hook}, fn -> {:error, :interrupted} end)
+
+      assert_raise Mix.Error, fn ->
+        Mix.Tasks.Critic.Synth.run([
+          "--fixture-root",
+          Path.relative_to(synth_root, project_root())
+        ])
+      end
+
+      assert File.read!(synth_target) == "original synth bytes\n"
+      assert Path.wildcard(synth_target <> ".tmp-*") == []
+    after
+      Process.delete({Mix.Tasks.Critic.Measure, :atomic_write_hook})
+      Process.delete({Mix.Tasks.Critic.Synth, :atomic_write_hook})
     end
 
     # ── CRITIQUE.md guards ────────────────────────────────────────────────────────
@@ -778,6 +1033,59 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # ── Helpers ──────────────────────────────────────────────────────────────────
+
+    defp measurement_roots!(name) do
+      base =
+        Path.join([
+          project_root(),
+          "_build",
+          "critic-trust-path-tests",
+          "#{name}-#{System.unique_integer([:positive])}"
+        ])
+
+      fixture_root = Path.join(base, "fixtures")
+      output_root = Path.join(base, "critic-scores")
+      File.mkdir_p!(Path.join(fixture_root, "golden"))
+      File.mkdir_p!(output_root)
+
+      File.cp!(@ledger_path, Path.join(fixture_root, "design-system-ledger.json"))
+      File.cp!(@golden_set_path, Path.join(fixture_root, "golden/golden-set.json"))
+      File.cp!(@synthetic_set_path, Path.join(fixture_root, "golden/synthetic-set.json"))
+
+      %{base: base, fixture_root: fixture_root, output_root: output_root}
+    end
+
+    defp synth_root!(name) do
+      root =
+        Path.join([
+          project_root(),
+          "_build",
+          "critic-trust-path-tests",
+          "#{name}-#{System.unique_integer([:positive])}",
+          "fixtures"
+        ])
+
+      File.mkdir_p!(Path.join(root, "golden"))
+      root
+    end
+
+    defp project_root do
+      Mix.Project.project_file()
+      |> Path.expand()
+      |> Path.dirname()
+    end
+
+    defp preserve_repository_ledger(fun) do
+      original = File.read!(@ledger_path)
+
+      try do
+        fun.()
+      after
+        if File.read!(@ledger_path) != original do
+          File.write!(@ledger_path, original)
+        end
+      end
+    end
 
     defp ledger, do: @ledger_path |> File.read!() |> Jason.decode!()
     defp golden_set, do: @golden_set_path |> File.read!() |> Jason.decode!()

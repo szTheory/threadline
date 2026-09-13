@@ -100,29 +100,6 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     end
   end
 
-  describe "CI-02 (Plan 06-02 Task 3): maintainer verification doc literals" do
-    test "06-VERIFICATION.md includes workflow, jobs, and gh audit commands" do
-      # Live phase dirs may be cleared between milestones; archived v1.1 copy is canonical.
-      path = [".planning", "milestones", "v1.1-phases", "06-ci-on-github", "06-VERIFICATION.md"]
-      doc = read_rel!(path)
-
-      assert String.contains?(doc, "ci.yml")
-      assert String.contains?(doc, "verify-format")
-      assert String.contains?(doc, "verify-credo")
-      assert String.contains?(doc, "verify-test")
-
-      assert String.contains?(
-               doc,
-               "gh run list --repo szTheory/threadline --workflow=ci.yml --branch=main --limit=5"
-             )
-
-      assert String.contains?(
-               doc,
-               "gh run view RUN_ID --repo szTheory/threadline --json conclusion,headSha,url"
-             )
-    end
-  end
-
   # --- Phase 192 Plan 04 Task 1 (D-26): additive alignment assertions ---------
   # These lock the Wave-2 constructs (matrix, caches, concurrency, pins,
   # doc alignment) with static-parse guards. Green-by-construction: they land

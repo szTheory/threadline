@@ -91,7 +91,7 @@ defmodule Threadline.Export do
       end
 
     data_rows = Enum.map(rows, &csv_row(&1, include_meta))
-    iodata = RFC4180.dump_to_iodata([header | data_rows])
+    iodata = dump_csv_to_iodata([header | data_rows])
 
     {:ok,
      %{
@@ -166,8 +166,8 @@ defmodule Threadline.Export do
     so multi-million-row tables return immediately at the cap rather than
     waiting for a full aggregate scan. The default (`nil`) preserves the
     existing unbounded behavior. The Mix task `mix threadline.export` does
-    NOT pass `:cap` and is unaffected; `Threadline.OperatorSurface.Live.TimelineLive`
-    and the export controller pass `cap: 10_001` so the LV can render
+    NOT pass `:cap` and is unaffected; the operator timeline and export
+    controller pass `cap: 10_001` so the LiveView can render
     "10,000+ matches" without hitting `statement_timeout`.
   """
   @spec count_matching(keyword(), keyword()) :: {:ok, %{count: non_neg_integer()}}
@@ -217,7 +217,7 @@ defmodule Threadline.Export do
   - `:include_action_metadata` — when `true`, append `correlation_id` and
     `action_id` columns (same shape as `to_csv_iodata/2`).
   """
-  @spec csv_header(keyword()) :: iodata()
+  @spec csv_header(keyword()) :: [binary()]
   def csv_header(opts \\ []) when is_list(opts) do
     include_meta = Keyword.get(opts, :include_action_metadata, false)
 
@@ -228,7 +228,7 @@ defmodule Threadline.Export do
         @csv_header
       end
 
-    RFC4180.dump_to_iodata([header])
+    dump_csv_to_iodata([header])
   end
 
   @doc """
@@ -253,7 +253,8 @@ defmodule Threadline.Export do
 
   - `:include_action_metadata` (default `false`) — same shape as `to_csv_iodata/2`.
   """
-  @spec format_changes_iodata([struct()], :csv | :json_wrapped | :ndjson, keyword()) :: iodata()
+  @spec format_changes_iodata([struct()], :csv | :json_wrapped | :ndjson, keyword()) ::
+          [binary()]
   def format_changes_iodata(rows, format, opts \\ [])
       when is_list(rows) and is_list(opts) and format in [:csv, :json_wrapped, :ndjson] do
     do_format_changes_iodata(rows, format, opts)
@@ -262,7 +263,7 @@ defmodule Threadline.Export do
   defp do_format_changes_iodata(rows, :csv, opts) do
     include_meta = Keyword.get(opts, :include_action_metadata, false)
     data_rows = Enum.map(rows, &csv_row(&1, include_meta))
-    RFC4180.dump_to_iodata(data_rows)
+    dump_csv_to_iodata(data_rows)
   end
 
   defp do_format_changes_iodata(rows, :json_wrapped, _opts) do
@@ -270,7 +271,13 @@ defmodule Threadline.Export do
   end
 
   defp do_format_changes_iodata(rows, :ndjson, _opts) do
-    Enum.map(rows, fn row -> [Jason.encode!(change_map(row)), ?\n] end)
+    Enum.map(rows, fn row -> IO.iodata_to_binary([Jason.encode!(change_map(row)), ?\n]) end)
+  end
+
+  defp dump_csv_to_iodata(rows) do
+    rows
+    |> RFC4180.dump_to_iodata()
+    |> Enum.map(&IO.iodata_to_binary/1)
   end
 
   @doc """

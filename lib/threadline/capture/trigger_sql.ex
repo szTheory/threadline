@@ -1,36 +1,5 @@
 defmodule Threadline.Capture.TriggerSQL do
-  @moduledoc """
-  Generates PL/pgSQL trigger DDL for Threadline audit capture.
-
-  The trigger function uses `txid_current()` to group row changes from the same
-  database transaction under a single `audit_transactions` row. This approach is
-  transaction-pooling safe per D-06: no session-local configuration writes.
-  Optional `audit_transactions.actor_ref` is read from the transaction-local GUC
-  `threadline.actor_ref` (published by the host application in the same
-  transaction — see D-09); the trigger only **reads** this setting and never
-  assigns session configuration from PL/pgSQL. The `txid` column on `audit_transactions` has a `UNIQUE`
-  constraint so concurrent INSERTs with `ON CONFLICT DO NOTHING` are safe.
-
-  ## Before-values (`changed_from`)
-
-  The default `threadline_capture_changes()` always writes `changed_from` as SQL
-  NULL. To capture sparse prior-row JSON on UPDATE for specific tables, generate a
-  migration with `mix threadline.gen.triggers --tables ... --store-changed-from`
-  (and optional `--except-columns col1,col2`). That emits a per-table function
-  `threadline_capture_changes_<table>()` and rewires triggers to call it.
-
-  ## Redaction (`:exclude` / `:mask`)
-
-  When non-empty column lists are passed to `install_function/1` or
-  `install_function_for_table/2`, keys are removed (`:exclude`) or replaced with a
-  stable placeholder (`:mask`) in `data_after` (and in `changed_from` when
-  enabled). **`except_columns`** (per-table only) still removes keys from
-  `changed_fields` / `changed_from` only; **`exclude`** also strips keys from the
-  full-row `data_after` JSON. Union of both applies to change detection.
-
-  **json / jsonb columns:** masking replaces the entire column value with the
-  placeholder (no deep redaction).
-  """
+  @moduledoc false
 
   alias Threadline.Capture.RedactionPolicy
   alias Threadline.StorageSchema
@@ -495,7 +464,7 @@ defmodule Threadline.Capture.TriggerSQL do
     """
   end
 
-  # D-10: changed_fields for masked columns uses raw NEW vs OLD from jsonb_each (already true).
+  # Masked-column change detection compares raw NEW and OLD values before redaction.
   # Exclude list removes keys from change detection as well as payloads.
 
   defp data_after_redaction_statements(_var, [], [], _placeholder), do: ""

@@ -115,10 +115,19 @@ test.describe("operator screenshot regression guard", () => {
   test("row-history drawer keeps as-of evidence stable", async ({ page }) => {
     const rowHistoryHref = await discoverRowHistoryHref(page);
     const drawer = page.getByTestId("row-history-drawer");
+    // `data-testid="row-history-drawer"` lands on `.tl-drawer-container`, the
+    // fixed, full-viewport overlay shell (scrim + bounded panel) — not the
+    // bounded visual panel itself. `.tl-drawer` (the JS.drawer's inner
+    // `#{id}-content` element) is the actual fixed-width panel
+    // (`width: min(var(--tl-drawer-width), 100vw)`, style.ex:3504) that this
+    // guard exists to compare. Screenshotting the outer container captured
+    // the whole viewport (scrim included), guaranteeing a dimension mismatch
+    // against the panel-sized baseline.
+    const drawerPanel = drawer.locator(".tl-drawer");
 
     await page.goto(rowHistoryHref);
     await expect(drawer).toBeVisible();
-    await expect(drawer).toHaveScreenshot("row-history.png", {
+    await expect(drawerPanel).toHaveScreenshot("row-history.png", {
       maxDiffPixelRatio: 0.03,
       mask: dynamicMasks(page),
     });
@@ -126,7 +135,7 @@ test.describe("operator screenshot regression guard", () => {
 
   test("Exports readiness hierarchy stays stable", async ({ page }) => {
     await page.goto("/audit/exports");
-    await expect(page.getByRole("heading", { name: "Exports" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Exports", exact: true })).toBeVisible();
     await expect(
       page.getByTestId("export-jobs").getByRole("heading", { name: "Ready to hand off" }),
     ).toBeVisible();

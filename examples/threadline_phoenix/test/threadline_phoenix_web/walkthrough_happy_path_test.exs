@@ -14,6 +14,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Semantics.AuditAction
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.Demo.Manifest
   alias ThreadlinePhoenix.HelpDesk.{Agent, Organization, Ticket}
   alias ThreadlinePhoenix.Repo
@@ -73,7 +74,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
           })
 
         assert %{"audit_transaction_id" => tx_id} = json_response(conn, 200)
-        assert Repo.get!(AuditTransaction, tx_id)
+        assert Repo.get!(AuditTransaction, tx_id, StorageSchema.repo_opts())
       end)
     end
   end
@@ -105,7 +106,8 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
               on: a.id == at.action_id,
               where: at.id == ^tx_id,
               where: a.name == "ticket_replied_and_closed"
-            )
+            ),
+            StorageSchema.repo_opts()
           )
 
         refute is_nil(action)
@@ -228,7 +230,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughHappyPathTest do
             where: at.occurred_at == ^delete_at,
             select: at
           )
-          |> Repo.all()
+          |> Repo.all(StorageSchema.repo_opts())
           |> Enum.find(fn at ->
             match?(%Threadline.Semantics.ActorRef{type: :user, id: ^deleter_id}, at.actor_ref)
           end)

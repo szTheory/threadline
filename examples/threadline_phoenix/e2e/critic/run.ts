@@ -24,22 +24,51 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { createClient, runNSamples } from "./client.js";
-import { loadBundle, committedCellIds } from "./bundle.js";
+import {
+  loadBundle,
+  committedCellIds,
+  readScorecard,
+  type ScorecardLane,
+} from "./bundle.js";
 import { buildPrompt } from "./prompt.js";
 import { writeCriticScore } from "./scorecard.js";
 import { lookupCache, writeCache, sha8OfFile } from "./cache.js";
 import { guardBeforePole } from "./gate.js";
 import { MODEL_ID, SCHEMA_VERSION, type LensName } from "./schema.js";
 import { generateReport } from "./report.js";
+import {
+  configureOperatorSurfacePaths,
+  parseOperatorSurfaceRootFlags,
+  readRequiredJson,
+  resolveOperatorSurfacePaths,
+  routeCellMatchesPage,
+  routeScorecardCellIds,
+} from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-const goldenSetPath = resolve(repoRoot, ".planning/golden/golden-set.json");
-const syntheticSetPath = resolve(repoRoot, ".planning/golden/synthetic-set.json");
-const rubricDir = resolve(here, "rubrics");
+let operatorPaths = resolveOperatorSurfacePaths();
+let goldenSetPath = resolve(operatorPaths.goldenDir, "golden-set.json");
+let syntheticSetPath = resolve(operatorPaths.goldenDir, "synthetic-set.json");
+let rubricDir = operatorPaths.criticRubricsDir;
+
+function printResolvedPath(argv: string[]): void {
+  const rootFlags = parseOperatorSurfaceRootFlags(argv);
+  const resolvedPaths = configureOperatorSurfacePaths(rootFlags.overrides);
+  const key = rootFlags.rest[0];
+  const selected = {
+    "repository-root": resolvedPaths.repositoryRoot,
+    "e2e-root": resolvedPaths.e2eRoot,
+    "verdict-cache": resolvedPaths.verdictCacheDir,
+  }[key ?? ""];
+
+  if (!selected) {
+    throw new Error(
+      `Unknown path key ${JSON.stringify(key)}. Expected repository-root, e2e-root, or verdict-cache.`,
+    );
+  }
+  console.log(selected);
+}
 
 // Pinned constants
 export { MODEL_ID, SCHEMA_VERSION };
@@ -178,11 +207,11 @@ function parseScoreArgs(argv: string[]): ScoreArgs {
  * Returns the parsed object or null if empty.
  */
 function loadGoldenSet(): { items: unknown[] } | null {
-  if (!existsSync(activeSetPath)) return null;
-  const gs = JSON.parse(readFileSync(activeSetPath, "utf8")) as {
-    items: unknown[];
-  };
-  return gs;
+  return readRequiredJson<{ items: unknown[] }>(activeSetPath, {
+    dataset: activeSetPath === syntheticSetPath ? "synthetic set" : "golden set",
+    repositoryOnly: true,
+    recoveryCommand: "npm run critic:check",
+  });
 }
 
 /**
@@ -234,12 +263,10 @@ function getRubricHash(rubricVersion: string): string {
  * when the scorecard/screenshot is unreadable — the cache is then bypassed (treated as a
  * miss) and the scoring attempt surfaces the real error via loadBundle.
  */
-function screenshotSha8(cellId: string): string | null {
+function screenshotSha8(cellId: string, lane: ScorecardLane): string | null {
   try {
-    const scorecard = JSON.parse(
-      readFileSync(resolve(repoRoot, ".planning/scorecards", `${cellId}.json`), "utf8"),
-    ) as { artifacts: { screenshot: string } };
-    return sha8OfFile(resolve(repoRoot, scorecard.artifacts.screenshot));
+    const scorecard = readScorecard(cellId, lane);
+    return sha8OfFile(resolve(operatorPaths.repositoryRoot, scorecard.artifacts.screenshot));
   } catch {
     return null;
   }
@@ -250,6 +277,7 @@ function screenshotSha8(cellId: string): string | null {
  */
 function dryRun(args: ScoreArgs): void {
   const cellIds = getScopedCellIds(args);
+  rejectEmptyExplicitScope(args, cellIds);
   const lenses = args.lens ? [args.lens] : ALL_LENSES;
   let totalDimensions = 0;
   for (const lens of lenses) {
@@ -276,18 +304,32 @@ function dryRun(args: ScoreArgs): void {
  * Determine the set of cell IDs to score based on the score args.
  */
 function getScopedCellIds(args: ScoreArgs): string[] {
-  const committed = new Set(committedCellIds());
-  // --golden restricts the base set to labeled golden cells; otherwise all committed cells.
-  const base = args.golden ? goldenScope().cellIds : committedCellIds();
+  const oracleRun = args.golden || args.synthetic || args.refuteOnly;
+  const routeRun = !oracleRun && args.page?.startsWith("route.") === true;
+  const committed = args.golden ? new Set(committedCellIds()) : null;
+  // Oracle and committed-evidence runs stay immutable. Explicit route runs use
+  // only the adapter-owned generated route lane written by capture:pages.
+  const base = args.golden
+    ? goldenScope().cellIds
+    : routeRun
+      ? routeScorecardCellIds()
+      : committedCellIds();
   return base.filter((cellId) => {
     // T-195-17: a golden cell must resolve to a committed scorecard (no path traversal)
-    if (args.golden && !committed.has(cellId)) return false;
+    if (args.golden && !committed?.has(cellId)) return false;
     // Theme filter
     if (!cellId.includes(`__${args.theme}-`)) return false;
     // Breakpoint filter (e.g. --breakpoint 1280 → only the __<theme>-1280 cell)
     if (args.breakpoint && !cellId.endsWith(`-${args.breakpoint}`)) return false;
     // Page filter
-    if (args.page && !cellId.startsWith(args.page + "__")) return false;
+    if (
+      args.page &&
+      !(routeRun
+        ? routeCellMatchesPage(cellId, args.page)
+        : cellId.startsWith(args.page + "__"))
+    ) {
+      return false;
+    }
     // Refute-only filter
     if (args.refuteOnly && !cellId.startsWith("refute.")) return false;
     // Normal run excludes refute cells (scored via --refute-only / --synthetic);
@@ -297,11 +339,27 @@ function getScopedCellIds(args: ScoreArgs): string[] {
   });
 }
 
+function rejectEmptyExplicitScope(args: ScoreArgs, cellIds: readonly string[]): void {
+  if (cellIds.length > 0 || (!args.page && !args.breakpoint && !args.refuteOnly)) return;
+
+  console.error(
+    `[critic score] No cells match the explicit scope ` +
+      `(page=${args.page ?? "all"}, theme=${args.theme}, breakpoint=${args.breakpoint ?? "all"}).`,
+  );
+  process.exit(1);
+}
+
 /**
  * Run the score subcommand — fully wired: bundle → prompt → client → cache → scorecard.
  */
 async function runScore(argv: string[]): Promise<void> {
-  const args = parseScoreArgs(argv);
+  const rootFlags = parseOperatorSurfaceRootFlags(argv);
+  operatorPaths = resolveOperatorSurfacePaths(rootFlags.overrides);
+  goldenSetPath = resolve(operatorPaths.goldenDir, "golden-set.json");
+  syntheticSetPath = resolve(operatorPaths.goldenDir, "synthetic-set.json");
+  rubricDir = operatorPaths.criticRubricsDir;
+
+  const args = parseScoreArgs([...rootFlags.rest]);
   activeSetPath = args.synthetic ? syntheticSetPath : goldenSetPath;
 
   if (args.dryRun) {
@@ -319,14 +377,15 @@ async function runScore(argv: string[]): Promise<void> {
       console.log(`\nThe oracle set is required for --golden/--synthetic trust scoping.`);
       console.log(`  synthetic: run \`mix critic.synth\` (D-12 graded twin oracle)`);
       console.log(`  human:     run \`npm run critic:label -- --bootstrap\``);
-      console.log(`See .planning/golden/${args.synthetic ? "synthetic" : "golden"}-set.json.`);
+      console.log(`See test/fixtures/operator_surface/golden/${args.synthetic ? "synthetic" : "golden"}-set.json.`);
       process.exit(0);
     }
   }
 
   const cellIds = getScopedCellIds(args);
   if (cellIds.length === 0) {
-    console.log(`[critic score] No cells match the scope (page=${args.page ?? "all"}, theme=${args.theme}).`);
+    rejectEmptyExplicitScope(args, cellIds);
+    console.log(`[critic score] No cells match the scope (theme=${args.theme}).`);
     process.exit(0);
   }
 
@@ -357,7 +416,7 @@ async function runScore(argv: string[]): Promise<void> {
       console.error(
         `\n[critic score] REFUSED — a stamped before pole already exists for:\n` +
           guard.blocked
-            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in .planning/critic-scores/)`)
+            .map((b) => `  ${b.cell}/${b.lens} (${b.files} score file(s) in test/generated/operator_surface/critic-scores/)`)
             .join("\n") +
           `\n\nOverwriting it would fake the gate's before/after evidence (T-197-02).\n` +
           `\`npm run critic:gate -- --page ${page} --lens <lens>\` is the ONLY post-edit scoring command.\n` +
@@ -375,10 +434,12 @@ async function runScore(argv: string[]): Promise<void> {
   let scored = 0;
   let skipped = 0;
   let errored = 0;
+  const immutableRun = args.golden || args.synthetic || args.refuteOnly;
 
   for (const cellId of cellIds) {
+    const lane: ScorecardLane = immutableRun || !cellId.startsWith("route.") ? "committed" : "route";
     // sha8 of the cell's current screenshot (197-01): null → cache bypassed (miss).
-    const screenshotHash = screenshotSha8(cellId);
+    const screenshotHash = screenshotSha8(cellId, lane);
     const cellLenses = goldenLensMap
       ? lenses.filter((l) => goldenLensMap.get(cellId)?.has(l))
       : lenses;
@@ -410,7 +471,7 @@ async function runScore(argv: string[]): Promise<void> {
           }
 
           try {
-            const bundle = await loadBundle(cellId);
+            const bundle = await loadBundle(cellId, lane);
             const strata = buildPrompt(lens, dimension, persona, bundle);
             const result = await runNSamples(client, strata, lens);
 
@@ -442,7 +503,7 @@ async function runScore(argv: string[]): Promise<void> {
               model_id: MODEL_ID,
               screenshot_hash:
                 screenshotHash ??
-                sha8OfFile(resolve(repoRoot, bundle.scorecard.artifacts.screenshot)),
+                sha8OfFile(resolve(operatorPaths.repositoryRoot, bundle.scorecard.artifacts.screenshot)),
               result: {
                 ...result.evidence,
                 score: result.score ?? 0,
@@ -499,6 +560,10 @@ async function runScore(argv: string[]): Promise<void> {
 const [subcommand, ...rest] = process.argv.slice(2);
 
 switch (subcommand) {
+  case "paths":
+    printResolvedPath(rest);
+    break;
+
   case "score":
     await runScore(rest);
     break;

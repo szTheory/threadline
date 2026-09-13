@@ -27,8 +27,8 @@ defmodule Threadline.Investigation.IncidentBundle do
   defstruct [:transaction, :action, changes: []]
 
   @type t :: %__MODULE__{
-          transaction: AuditTransaction.t(),
-          action: AuditAction.t() | nil,
+          transaction: %AuditTransaction{},
+          action: %AuditAction{} | nil,
           changes: [IncidentChange.t()]
         }
 end

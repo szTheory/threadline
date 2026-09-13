@@ -105,6 +105,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/coverage" do
+      test "declares the schema selector as its form capability" do
+        source = File.read!("lib/threadline/operator_surface/live/coverage_live.ex")
+
+        assert source =~
+                 ~s(@ui_form_policy {:has_forms, "schema selector owning ?schema= URL state"})
+      end
+
       test "renders unsupported state if coverage is disabled", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_coverage, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_coverage, true) end)
@@ -303,15 +310,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "manual refresh" do
-      test "Refresh click cancels pending timer and re-fetches", %{conn: conn} do
+      test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/coverage")
 
-        # Click the Refresh link via render_click
+        mounted_socket = :sys.get_state(view.pid).socket
+        mounted_ref = mounted_socket.assigns.threadline_timer_ref
+        assert is_reference(mounted_ref)
+        assert is_integer(Process.read_timer(mounted_ref))
+
         new_html = render_click(view, "refresh")
 
-        # After refresh, the dashboard should still render normally with the same literals
+        refreshed_socket = :sys.get_state(view.pid).socket
+        refreshed_ref = refreshed_socket.assigns.threadline_timer_ref
+        assert is_reference(refreshed_ref)
+        refute refreshed_ref == mounted_ref
+        assert Process.read_timer(mounted_ref) == false
+        assert is_integer(Process.read_timer(refreshed_ref))
+
         assert new_html =~ "Audit coverage"
         assert new_html =~ "Schema: public"
+
+        assert :ok =
+                 Threadline.OperatorSurface.Live.CoverageLive.terminate(
+                   :normal,
+                   refreshed_socket
+                 )
+
+        assert Process.read_timer(refreshed_ref) == false
       end
     end
 

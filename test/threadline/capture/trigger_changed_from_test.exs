@@ -29,8 +29,8 @@ defmodule Threadline.Capture.TriggerChangedFromTest do
     Repo.query!(TriggerSQL.drop_trigger(@table))
     Repo.query!(TriggerSQL.drop_function_for_table(@table))
     Repo.query!("TRUNCATE #{@table} CASCADE")
-    Repo.delete_all(AuditChange)
-    Repo.delete_all(Threadline.Capture.AuditTransaction)
+    Repo.delete_all(AuditChange, repo_opts())
+    Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
     :ok
   end
 
@@ -45,12 +45,12 @@ defmodule Threadline.Capture.TriggerChangedFromTest do
       %{rows: [[id]]} =
         Repo.query!("INSERT INTO #{@table} (name, value) VALUES ('a', 1) RETURNING id")
 
-      Repo.delete_all(AuditChange)
-      Repo.delete_all(Threadline.Capture.AuditTransaction)
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       Repo.query!("UPDATE #{@table} SET value = 2 WHERE id = $1", [id])
 
-      [change] = Repo.all(AuditChange)
+      [change] = Repo.all(AuditChange, repo_opts())
       assert change.op == "update"
       assert "value" in change.changed_fields
       assert change.changed_from == nil
@@ -60,15 +60,19 @@ defmodule Threadline.Capture.TriggerChangedFromTest do
       %{rows: [[id]]} =
         Repo.query!("INSERT INTO #{@table} (name, value) VALUES ('b', 3) RETURNING id")
 
-      insert = Repo.one!(Ecto.Query.from(c in AuditChange, where: c.op == "insert"))
+      insert =
+        Repo.one!(Ecto.Query.from(c in AuditChange, where: c.op == "insert"), repo_opts())
+
       assert insert.changed_from == nil
 
-      Repo.delete_all(AuditChange)
-      Repo.delete_all(Threadline.Capture.AuditTransaction)
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       Repo.query!("DELETE FROM #{@table} WHERE id = $1", [id])
 
-      delete = Repo.one!(Ecto.Query.from(c in AuditChange, where: c.op == "delete"))
+      delete =
+        Repo.one!(Ecto.Query.from(c in AuditChange, where: c.op == "delete"), repo_opts())
+
       assert delete.changed_from == nil
     end
   end
@@ -91,12 +95,12 @@ defmodule Threadline.Capture.TriggerChangedFromTest do
       %{rows: [[id]]} =
         Repo.query!("INSERT INTO #{@table} (name, value) VALUES ('c', 10) RETURNING id")
 
-      Repo.delete_all(AuditChange)
-      Repo.delete_all(Threadline.Capture.AuditTransaction)
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       Repo.query!("UPDATE #{@table} SET value = 20, name = 'c2' WHERE id = $1", [id])
 
-      [change] = Repo.all(AuditChange)
+      [change] = Repo.all(AuditChange, repo_opts())
       assert change.op == "update"
       assert Enum.sort(change.changed_fields) == ["name", "value"]
 
@@ -119,12 +123,12 @@ defmodule Threadline.Capture.TriggerChangedFromTest do
       %{rows: [[id]]} =
         Repo.query!("INSERT INTO #{@table} (name, value) VALUES ('d', 5) RETURNING id")
 
-      Repo.delete_all(AuditChange)
-      Repo.delete_all(Threadline.Capture.AuditTransaction)
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       Repo.query!("UPDATE #{@table} SET value = 6, name = 'd2' WHERE id = $1", [id])
 
-      [change] = Repo.all(AuditChange)
+      [change] = Repo.all(AuditChange, repo_opts())
       assert change.changed_fields == ["name"]
       assert change.changed_from == %{"name" => "d"}
     end

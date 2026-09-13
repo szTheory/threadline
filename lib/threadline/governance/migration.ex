@@ -1,11 +1,5 @@
 defmodule Threadline.Governance.Migration do
-  @moduledoc """
-  SQL DDL for the Threadline governance schema .
-
-  Used by `mix threadline.install` to generate a migration file. The generated
-  migration creates `threadline_export_jobs`, `threadline_retention_runs`,
-  `threadline_saved_views`, and `threadline_evidence_records` tables.
-  """
+  @moduledoc false
 
   @doc """
   Returns the full migration content as a string, ready to write to a `.exs` file.

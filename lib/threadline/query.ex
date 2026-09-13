@@ -3,7 +3,8 @@ defmodule Threadline.Query do
   Ecto query implementations for the Threadline public API.
 
   All functions require an explicit `:repo` option and return plain lists of
-  Ecto structs. DB errors propagate as exceptions, consistent with `Ecto.Repo.all/2`.
+  Ecto structs. Database errors propagate as exceptions, matching normal Ecto
+  repository query behavior.
 
   ## Timeline filters
 
@@ -50,7 +51,7 @@ defmodule Threadline.Query do
 
     @type cursor :: %{captured_at: DateTime.t(), id: Ecto.UUID.t()}
     @type t :: %__MODULE__{
-            entries: [AuditChange.t()],
+            entries: [%AuditChange{}],
             next_cursor: cursor() | nil
           }
   end
@@ -61,7 +62,7 @@ defmodule Threadline.Query do
   The helper fixes `table_name` and primary-key containment internally so callers
   do not need to construct low-level row predicates.
   """
-  @spec row_history(module(), term(), keyword(), keyword()) :: [AuditChange.t()]
+  @spec row_history(module(), term(), keyword(), keyword()) :: [%AuditChange{}]
   def row_history(schema_module, id, filters \\ [], opts \\ [])
       when is_list(filters) and is_list(opts) do
     validate_row_history_filters!(filters)
@@ -102,7 +103,7 @@ defmodule Threadline.Query do
   end
 
   @doc false
-  @spec preload_investigation_context([AuditChange.t()], module(), keyword()) :: [AuditChange.t()]
+  @spec preload_investigation_context([%AuditChange{}], module(), keyword()) :: [%AuditChange{}]
   def preload_investigation_context(changes, repo, opts \\ [])
       when is_list(changes) and is_atom(repo) and is_list(opts) do
     repo.preload(changes, [transaction: :action], storage_opts([], opts))
@@ -113,7 +114,7 @@ defmodule Threadline.Query do
 
   Raises `ArgumentError` when `transaction_id` is not a valid UUID.
   """
-  @spec audit_transaction(term(), keyword()) :: AuditTransaction.t() | nil
+  @spec audit_transaction(term(), keyword()) :: %AuditTransaction{} | nil
   def audit_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)
@@ -348,15 +349,11 @@ defmodule Threadline.Query do
   # Keyset order: (captured_at DESC, id DESC). The `id` is a stable tiebreaker so the
   # cursor never skips/duplicates rows when two changes share a `captured_at`.
   #
-  # PERF DEBT (D-15, deferred per Q1): this `ORDER BY captured_at, id` is currently backed
-  # only by the single-column `audit_changes (captured_at)` index
-  # (lib/threadline/capture/migration.ex). A composite `(captured_at, id)` index would back
-  # the tiebreaker and avoid a latent perf cliff on very deep timelines, but it lives in the
-  # CAPTURE LAYER, which is intentionally left untouched this milestone. The risk is low:
-  # ties on `captured_at` are rare (microsecond timestamps + a random UUID primary key), so
-  # the single-column index satisfies the leading sort key and Postgres only sorts within a
-  # (typically singleton) `captured_at` group. Backlog: add the composite capture-layer index
-  # when capture-layer perf work is scheduled. See threat register T-175-10 (accepted).
+  # The single-column `audit_changes (captured_at)` index covers the leading sort key.
+  # A composite `(captured_at, id)` index could also cover the tiebreaker on very deep
+  # timelines, but index ownership belongs to the capture migration layer. With
+  # microsecond timestamps and random UUID primary keys, ties are rare, so PostgreSQL
+  # normally sorts only a singleton `captured_at` group for the second key.
   defp timeline_order(query) do
     query
     |> order_by([ac], desc: ac.captured_at)
@@ -462,8 +459,9 @@ defmodule Threadline.Query do
   Returns a keyset page of `AuditTransaction` records for a given actor, ordered by
   `occurred_at` descending, then `id` descending.
 
-  For anonymous actors, returns all anonymous transactions (no actor_id
-  distinction — all anonymous transactions are equivalent by design, per ACTR-03).
+  For an anonymous actor, returns every transaction whose actor identity is absent.
+  Anonymous transactions intentionally have no finer-grained actor distinction, so
+  they are equivalent for this query.
 
   ## Options
 
@@ -648,7 +646,7 @@ defmodule Threadline.Query do
   Raises `ArgumentError` with message containing `invalid audit transaction id`
   when `transaction_id` fails UUID cast (before hitting Postgrex).
   """
-  @spec audit_changes_for_transaction(term(), keyword()) :: [AuditChange.t()]
+  @spec audit_changes_for_transaction(term(), keyword()) :: [%AuditChange{}]
   def audit_changes_for_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)

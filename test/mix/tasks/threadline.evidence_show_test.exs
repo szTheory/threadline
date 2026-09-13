@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
   alias Threadline.Governance.EvidenceRecord
 
   setup do
-    Repo.delete_all(EvidenceRecord)
+    Repo.delete_all(EvidenceRecord, repo_opts())
     Mix.Task.reenable("threadline.evidence.show")
     :ok
   end
@@ -24,7 +24,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
 
     %EvidenceRecord{}
     |> EvidenceRecord.changeset(Map.merge(defaults, Map.new(attrs)))
-    |> Repo.insert!()
+    |> Repo.insert!(repo_opts())
   end
 
   test "threadline.evidence.show prints overview-first human output by default" do
@@ -163,11 +163,12 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
     assert human_output =~ "Claim assessment: unsupported"
   end
 
-  test "threadline.evidence.show docs keep viewer semantics separate from any future gate task" do
+  test "threadline.evidence.show docs keep viewer semantics separate from host policy" do
     assert {:docs_v1, _, :elixir, _, %{"en" => moduledoc}, _, _} =
              Code.fetch_docs(Mix.Tasks.Threadline.Evidence.Show)
 
     assert moduledoc =~ "This task is a viewer, not a gate."
-    assert moduledoc =~ "future gate task"
+    assert moduledoc =~ "host application's own validation workflow"
+    refute moduledoc =~ "threadline.evidence.verify"
   end
 end

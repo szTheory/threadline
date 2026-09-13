@@ -1,8 +1,5 @@
 defmodule Threadline.Export.CleanupTask do
-  @moduledoc """
-  A GenServer that periodically cleans up expired export jobs and abandons
-  jobs that have been stuck in the "running" state for too long.
-  """
+  @moduledoc false
   use GenServer
   require Logger
   import Ecto.Query

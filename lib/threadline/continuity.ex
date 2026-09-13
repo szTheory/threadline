@@ -67,7 +67,7 @@ defmodule Threadline.Continuity do
     schema = selected_schema!(parsed, opts)
     table_name = parsed.table
 
-    validate_schema!(repo, schema)
+    schema = validate_schema!(repo, schema)
 
     unless table_exists?(repo, schema, table_name) do
       raise ArgumentError, missing_table_message(schema, table_name)

@@ -1,38 +1,6 @@
 if Code.ensure_loaded?(Phoenix.Controller) do
   defmodule Threadline.OperatorSurface.Controllers.ExportController do
-    @moduledoc """
-    HTTP-side parity controller for the operator-surface "Download CSV / JSON
-    / NDJSON" affordances. Three actions (`csv/2`, `json/2`, `ndjson/2`); each
-    dispatches through one private `dispatch/3` so the format-vs-transport
-    branching is in one place.
-
-    Per request:
-
-    1. Parse URL params via `Threadline.OperatorSurface.Exports.FilterParams.parse/1`
-       (single source of truth shared with `TimelineLive`).
-    2. Re-validate via `Threadline.Query.validate_timeline_filters!/1` (single
-       source of truth shared with the lib + Mix task).
-    3. Pre-flight `Threadline.Export.count_matching/2` with `cap: 10_001` so
-       multi-million-row tables short-circuit instead of hitting
-       `statement_timeout`.
-    4. Dispatch:
-       - `count <= 5_000`: full iodata via `to_csv_iodata/2` /
-         `to_json_document/2` and `send_resp(200, iodata)`.
-       - `count > 5_000`: `send_chunked(200)` then stream via
-         `stream_export_rows(filters, page_size: 1_000) |> Stream.take(10_000) |>
-         Stream.chunk_every(500) |> Enum.reduce_while/3` calling
-         `Plug.Conn.chunk/2` per chunk; halts on client disconnect.
-
-    Response headers (set BEFORE `send_chunked/2` per Plug API):
-
-    - `Content-Type: text/csv; charset=utf-8` / `application/json; charset=utf-8` / `application/x-ndjson; charset=utf-8`
-    - `Content-Disposition: attachment; filename="<canonical>"; filename*=UTF-8''<canonical>` (RFC 6266 §4.3 dual-emit)
-    - `Cache-Control: no-store` (audit-data hygiene)
-
-    Filename comes from `Threadline.OperatorSurface.Exports.Filename.for/2`
-    (UTC, minute granularity, hyphen-not-colon between hours and minutes for
-    Windows compatibility).
-    """
+    @moduledoc false
 
     use Phoenix.Controller, formats: [:html]
 
@@ -107,18 +75,26 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       storage_adapter =
         Application.get_env(:threadline, :storage_adapter, Threadline.Storage.Local)
 
-      case storage_adapter.path(file_path) do
-        {:ok, absolute_path} ->
-          {:ok, {:local, absolute_path}}
+      if function_exported?(storage_adapter, :path, 1) do
+        case storage_adapter.path(file_path) do
+          {:ok, absolute_path} ->
+            {:ok, {:local, absolute_path}}
 
-        {:error, :not_local} ->
-          case storage_adapter.download_url(file_path, download_url_opts(storage_adapter, job)) do
-            {:ok, url} -> {:ok, {:remote, url}}
-            {:error, reason} -> {:error, reason}
-          end
+          {:error, :not_local} ->
+            resolve_download_url(storage_adapter, file_path, job)
 
-        {:error, reason} ->
-          {:error, reason}
+          {:error, reason} ->
+            {:error, reason}
+        end
+      else
+        resolve_download_url(storage_adapter, file_path, job)
+      end
+    end
+
+    defp resolve_download_url(storage_adapter, file_path, job) do
+      case storage_adapter.download_url(file_path, download_url_opts(storage_adapter, job)) do
+        {:ok, url} -> {:ok, {:remote, url}}
+        {:error, reason} -> {:error, reason}
       end
     end
 
@@ -190,7 +166,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         {:ok, %{count: count}} =
           Export.count_matching(filters, Keyword.merge([cap: @max_rows + 1], scope_opts))
 
-        # Headers MUST be set BEFORE send_chunked/2 (Pitfall 2).
+        # Plug requires response headers to be set before send_chunked/2.
         conn = put_export_headers(conn, format)
 
         if count <= @sync_threshold do

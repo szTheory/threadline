@@ -377,6 +377,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       test "source contract: Evidence reads pass resolved storage schema opts" do
         source = File.read!("lib/threadline/operator_surface/live/evidence_live.ex")
 
+        assert source =~ "@ui_form_policy :formless"
+
         assert source =~
                  "fetch_records(request, resolve_repo(socket), storage_schema_opts(socket))"
 

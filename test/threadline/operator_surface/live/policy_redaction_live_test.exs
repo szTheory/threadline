@@ -162,6 +162,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/policy/redaction" do
+      test "declares the host-schema picker as its form capability" do
+        source = File.read!("lib/threadline/operator_surface/live/policy_redaction_live.ex")
+
+        assert source =~
+                 ~s(@ui_form_policy {:has_forms, "host-schema picker for the redaction diff view"})
+      end
+
       test "renders unsupported state when policy access is disabled", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_policy, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)

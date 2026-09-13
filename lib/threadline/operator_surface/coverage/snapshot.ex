@@ -1,16 +1,5 @@
 defmodule Threadline.OperatorSurface.Coverage.Snapshot do
-  @moduledoc """
-  Snapshot of `Threadline.Health.trigger_coverage/1` results for the operator
-  surface coverage dashboard and surface-header pill.
-
-  Held on `socket.assigns.:threadline_coverage` and refreshed by
-  `Threadline.OperatorSurface.Coverage.OnMount` on a 30-second interval
-  (configurable; floor 5_000 ms — see D-30a).
-
-  This module is pure stdlib — NO `Code.ensure_loaded?(Phoenix.LiveView)`
-  file-scope gate (D-36). The struct is consumed by the LV-gated dashboard
-  AND will be consumed by future Mix-task surfaces (`mix threadline.health.coverage`).
-  """
+  @moduledoc false
 
   defstruct covered_count: 0,
             uncovered_count: 0,

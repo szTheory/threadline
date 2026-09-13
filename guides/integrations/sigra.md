@@ -113,3 +113,9 @@ When that check is false:
 That soft-dep contract is part of the `sigra-reference` lane. The host owns
 whether Sigra is present; Threadline only adapts that state when the dependency
 is loaded.
+
+## Next steps
+
+- Return to [Getting started](../getting-started-saas.md) for the Adopt lane.
+- Review the shared callback boundaries in [Integration contracts](../integration-contracts.md).
+- Mount and authorize the audit screens with the [Operator surface guide](../operator-surface.md).

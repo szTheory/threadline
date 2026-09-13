@@ -7,7 +7,11 @@ defmodule Threadline.IntegrationContractsDocContractTest do
 
     assert String.contains?(guide, "## Request path via `Threadline.Plug`")
     assert String.contains?(guide, "## Job path via `Threadline.Job`")
-    assert String.contains?(guide, "## Reference integrations via `Threadline.Integrations.*`")
+
+    assert String.contains?(
+             guide,
+             "## Reference integration via `Threadline.Integrations.Sigra`"
+           )
 
     assert String.contains?(
              guide,
@@ -25,7 +29,7 @@ defmodule Threadline.IntegrationContractsDocContractTest do
 
     assert String.contains?(
              guide,
-             "`Threadline.Integrations.*` owns soft-loaded reference adapters."
+             "`Threadline.Integrations.Sigra` owns the supported soft-loaded reference"
            )
 
     assert String.contains?(
@@ -83,15 +87,8 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert String.contains?(guide, "surface without optional Phoenix UI dependencies.")
     assert String.contains?(guide, "Threadline.Integrations.Sigra` is the current model:")
 
-    assert String.contains?(
-             guide,
-             "`guides/operator-surface.md` for the screen-level mount walkthrough"
-           )
-
-    assert String.contains?(
-             guide,
-             "`guides/integrations/sigra.md` for the current first-party reference adapter"
-           )
+    assert String.contains?(guide, "[Operator surface guide](operator-surface.md)")
+    assert String.contains?(guide, "[Sigra reference integration](integrations/sigra.md)")
   end
 
   test "integration-contracts guide locks operator-surface callback and export fallback wording" do
@@ -129,7 +126,10 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert String.contains?(guide, "Both transport faces share the same telemetry event")
     assert String.contains?(guide, "not define a role enum, permissions DSL, tenancy DSL")
     assert String.contains?(guide, "page-level")
-    assert String.contains?(guide, "auto-installs `Threadline.OperatorSurface.SessionPlug`")
+    assert String.contains?(guide, "public router installs the")
+    assert String.contains?(guide, "actor-to-session bridge")
+    refute String.contains?(guide, "Threadline.OperatorSurface.SessionPlug")
+    refute String.contains?(guide, "Threadline.OperatorSurface.ExportAuthPlug")
     assert String.contains?(guide, "session actor wins")
   end
 
@@ -158,5 +158,28 @@ defmodule Threadline.IntegrationContractsDocContractTest do
     assert idx_phx_gen < idx_sigra
 
     refute String.contains?(guide, "| Lane | Claim type |")
+  end
+
+  test "integration-contracts guide ends at public facades and graph exits" do
+    guide = File.read!("guides/integration-contracts.md")
+
+    assert String.contains?(guide, "## Next steps")
+    assert String.contains?(guide, "[Getting started](getting-started-saas.md)")
+    assert String.contains?(guide, "[Operator surface guide](operator-surface.md)")
+    assert String.contains?(guide, "[Sigra reference integration](integrations/sigra.md)")
+
+    for module <- [
+          "Threadline.Plug",
+          "Threadline.Job",
+          "Threadline.Audit",
+          "Threadline.Integrations.Sigra",
+          "Threadline.OperatorSurface.Router",
+          "Threadline.OperatorSurface.Auth"
+        ] do
+      assert String.contains?(guide, module)
+    end
+
+    refute String.contains?(guide, "lib/threadline/")
+    refute String.contains?(guide, "Threadline.Integrations.*")
   end
 end

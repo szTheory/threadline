@@ -1,10 +1,5 @@
 defmodule Threadline.Capture.RedactionPolicy do
-  @moduledoc """
-  Validates trigger redaction options at codegen time (Mix / `TriggerSQL`).
-
-  Excludes and masks are mutually exclusive per column: a column cannot appear
-  in both `:exclude` and `:mask`.
-  """
+  @moduledoc false
 
   @max_placeholder_length 200
 

@@ -5,9 +5,12 @@
 *.ez
 *.beam
 # Hex local build output
-threadline-*.tar
-threadline-*/
-erl_crash.dump
+/threadline-*.tar
+/threadline-*/
+/erl_crash.dump
+# Dialyxir local/cache outputs (only produced PLT files and their hashes)
+/.dialyzer/*.plt
+/.dialyzer/*.plt.hash
 
 # ── GSD baseline (auto-generated) ──
 .gsd
@@ -50,23 +53,15 @@ tmp/
 /examples/threadline_phoenix/e2e/test-results/
 /examples/threadline_phoenix/e2e/playwright-report/
 /examples/threadline_phoenix/e2e/blob-report/
-# Tier A capture binaries (Phase 194) — regenerated deterministically; the
-# diffable evidence (scorecard JSON + aria YAML) is committed under .planning/scorecards/.
-/examples/threadline_phoenix/e2e/artifacts/tier-a/
-# Real operator-route capture PNGs (Phase 196) — regenerable, not byte-stable
-# (live server + data). Both the PNGs and the route.* scorecards stay out of git:
-# live-data-derived values aren't byte-stable, so they must NOT feed the
-# committed-scorecard mechanical gate. They stay on disk for local critic scoring.
-/examples/threadline_phoenix/e2e/artifacts/routes/
-/.planning/scorecards/route.*.json
-
-# Critic runner: nondeterministic LLM verdict cache (gitignored; regenerate with mix verify.ui_critique).
-# The oracle (.planning/golden/) and committed skeleton manifests are NOT gitignored.
-/examples/threadline_phoenix/e2e/critic-verdict-cache/
-/.planning/critic-verdict-cache/
-# Nondeterministic LLM critic-score outputs — regenerable; keep .gitkeep tracked for dir structure.
-/.planning/critic-scores/*
-!/.planning/critic-scores/.gitkeep
+# Playwright capture output is generated; reviewed tests/**-snapshots/ stay trackable.
+/examples/threadline_phoenix/e2e/artifacts/
+# Nondeterministic operator-surface output. Canonical fixtures under
+# /test/fixtures/operator_surface/ remain trackable and manifest-owned.
+/test/generated/operator_surface/route-scorecards/
+/test/generated/operator_surface/critic-scores/
+/test/generated/operator_surface/critic-verdict-cache/
+/test/generated/operator_surface/reports/
+/test/generated/operator_surface/refute-transcripts/
 
 # Local agent/session config
 /.claude/
@@ -77,4 +72,3 @@ tmp/
 
 #secrets
 .env
-/.planning/critic-report.html

@@ -1,15 +1,6 @@
 if Code.ensure_loaded?(Phoenix.Controller) do
   defmodule Threadline.OperatorSurface.ThemeAuthPlug do
-    @moduledoc """
-    Conn-shaped authorize and session guard for the Threadline runtime theme
-    picker endpoint.
-
-    The LiveView `on_mount` callbacks do not apply to the sibling
-    `POST /theme` controller route. This plug mirrors the LiveView
-    `:authorize_fn` contract with `%{assigns: conn.assigns}` and requires the
-    host browser pipeline to have fetched a session before the theme controller
-    can write `:tl_theme`.
-    """
+    @moduledoc false
 
     @behaviour Plug
 

@@ -2,22 +2,22 @@ if Code.ensure_loaded?(Phoenix.Component) do
   defmodule Threadline.OperatorSurface.Components.Logo do
     @moduledoc false
 
-    # C13 stitch lockup (v1.35 winner). Geometry is copied verbatim from
-    # `brandbook/logo-primary.svg` — the geometry authority. Glyphs are Geist 600
+    # C13 stitch lockup. Geometry is copied verbatim from
+    # `brandbook/logo-primary.svg`, the brandbook authority. Glyphs are Geist 600
     # pure-path outlines (no font dependence); the adjacent d/l ascenders are cut
     # and their strokes escape into one stitch arc. Path order matters: the arc
     # paints after the d/l glyphs so its legs sit flush on the cut stems.
     #
-    # Theming contract (frozen): colors come from the `--tl-*` custom properties,
+    # Theming contract: colors come from the `--tl-*` custom properties,
     # never brand constants. Glyph ink is `var(--tl-color-text)`; the stitch arc
     # carries `var(--tl-color-accent)` (the brand asset constant #4781E6 lives in
     # brandbook files only). C13 is flat — no gradients.
     #
     # The hidden `<text class="tl-topbar__brand-wordmark">` node renders nothing
     # (display="none"): it keeps a machine-readable wordmark string in the SVG and
-    # preserves the in-flight nav-overhaul lane's header contract
-    # (`>Threadline</text>` / wordmark class) until that lane lands. The visible
-    # wordmark is the path outlines above it.
+    # preserves the topbar's machine-readable wordmark contract
+    # (`>Threadline</text>` / wordmark class). The visible wordmark is the path
+    # outlines above it.
 
     use Phoenix.Component
 

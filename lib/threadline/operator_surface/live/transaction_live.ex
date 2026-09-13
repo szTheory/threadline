@@ -2,8 +2,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TransactionLive do
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: this page declares its own form policy, so a change that adds
-    # a form control fails the guard in the same diff. See
+    # This page declares its own form policy, so a change that adds a form control
+    # fails the guard in the same diff. See
     # test/threadline/operator_surface/ui_form_policy_contract_test.exs.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy :formless
@@ -284,8 +284,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # operator surface mount root (e.g. `/audit`) so the coverage badge
     # links to `/audit/coverage`, not `/audit/transactions/:id/coverage`.
     # Strip the `/transactions/...` suffix to recover the mount root.
-    # (Rule 1 auto-fix during Plan 66-04 Task 1 — surface header invocation
-    # produced wrong href without this transformation.)
+    # Without this transformation the surface header would append `/coverage` to
+    # the transaction path and produce the wrong destination.
     defp surface_root(path) when is_binary(path) do
       case Regex.run(~r/^(.*)\/transactions\//, path) do
         [_, root] -> root
@@ -376,8 +376,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp diff_full(_), do: nil
-
     defp timeline_correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
       "#{base_path}/timeline?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
     end
@@ -408,7 +406,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp change_time(%DateTime{} = value), do: Presentation.human_time(value)
     defp change_time(value), do: inspect(value)
 
-    # UTC-explicit ISO timestamp for the semantic <time datetime=…> attribute (D-22).
+    # Semantic <time datetime=…> attributes require UTC-explicit ISO timestamps.
     defp change_datetime(value) when is_binary(value) do
       case DateTime.from_iso8601(value) do
         {:ok, dt, _offset} -> Presentation.exact_time(dt)

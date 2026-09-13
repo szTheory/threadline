@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)"
+# shellcheck source=bin/safe-temp-tree
+source "$SCRIPT_DIR/safe-temp-tree"
+
+fail() {
+  printf 'verify-clean-checkout: %s\n' "$*" >&2
+  return 1
+}
+
+[ "$#" -eq 0 ] || fail 'this verifier accepts no arguments'
+
+TEMP_BASE="${TMPDIR:-/tmp}"
+[ -d "$TEMP_BASE" ] && [ ! -L "$TEMP_BASE" ] || fail "unsafe temporary base: $TEMP_BASE"
+TEMP_BASE="$(realpath -- "$TEMP_BASE")"
+TRUSTED_PARENT="$(mktemp -d "$TEMP_BASE/threadline-clean-checkout-parent.XXXXXX")"
+TRUSTED_PARENT="$(realpath -- "$TRUSTED_PARENT")"
+CLONE_CHILD="$TRUSTED_PARENT/checkout"
+mkdir "$CLONE_CHILD"
+safe_temp_tree_register "$TRUSTED_PARENT" "$CLONE_CHILD"
+
+cleanup() {
+  local original_status=$? cleanup_status=0
+  trap - EXIT
+  set +e
+
+  if [ -d "${CLONE_CHILD-}" ] || [ -L "${CLONE_CHILD-}" ]; then
+    safe_temp_tree_cleanup "$TRUSTED_PARENT" "$CLONE_CHILD"
+    cleanup_status=$?
+  fi
+
+  if [ "$cleanup_status" -eq 0 ] && [ -d "${TRUSTED_PARENT-}" ]; then
+    rmdir -- "$TRUSTED_PARENT"
+    cleanup_status=$?
+  fi
+
+  if [ "$original_status" -ne 0 ]; then
+    exit "$original_status"
+  fi
+  exit "$cleanup_status"
+}
+trap cleanup EXIT
+
+SOURCE_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+git clone --quiet --no-local "$REPO_ROOT" "$CLONE_CHILD"
+git -C "$CLONE_CHILD" checkout --quiet --detach "$SOURCE_SHA"
+
+CLONE_SHA="$(git -C "$CLONE_CHILD" rev-parse HEAD)"
+[ "$CLONE_SHA" = "$SOURCE_SHA" ] || fail "clone SHA $CLONE_SHA does not match source SHA $SOURCE_SHA"
+printf 'SOURCE_SHA=%s\n' "$SOURCE_SHA"
+
+if [ "${THREADLINE_VERIFY_CLEAN_CHECKOUT_FORCE_FAILURE:-0}" = 1 ]; then
+  fail 'forced failure control'
+fi
+
+(
+  cd "$CLONE_CHILD"
+  mix deps.get --check-locked
+)
+
+dependency_status="$(git -C "$CLONE_CHILD" status --porcelain=v1 --untracked-files=all)"
+[ -z "$dependency_status" ] || {
+  printf '%s\n' "$dependency_status" >&2
+  fail 'dependency fetch dirtied the committed checkout'
+}
+printf 'DEPENDENCY_STATUS=CLEAN\n'
+
+generated_paths=(
+  'erl_crash.dump'
+  'threadline-0.10.0.tar'
+  'threadline-0.10.0/lib/threadline.ex'
+  '.dialyzer/threadline.plt'
+  '.dialyzer/threadline.plt.hash'
+  'examples/threadline_phoenix/e2e/test-results/results.json'
+  'examples/threadline_phoenix/e2e/playwright-report/index.html'
+  'examples/threadline_phoenix/e2e/blob-report/report.zip'
+  'examples/threadline_phoenix/e2e/artifacts/capture/screenshot.png'
+  'test/generated/operator_surface/route-scorecards/route.timeline.json'
+  'test/generated/operator_surface/critic-scores/local-run.json'
+  'test/generated/operator_surface/critic-verdict-cache/local-run.json'
+  'test/generated/operator_surface/reports/CRITIQUE.md'
+  'test/generated/operator_surface/reports/critic-report.html'
+  'test/generated/operator_surface/refute-transcripts/local-run.json'
+)
+
+for relative_path in "${generated_paths[@]}"; do
+  absolute_path="$CLONE_CHILD/$relative_path"
+  mkdir -p "$(dirname "$absolute_path")"
+  printf 'generated probe\n' >"$absolute_path"
+done
+
+generated_status="$(git -C "$CLONE_CHILD" status --porcelain=v1 --untracked-files=all)"
+[ -z "$generated_status" ] || {
+  printf '%s\n' "$generated_status" >&2
+  fail 'generated-output probes dirtied the committed checkout'
+}
+printf 'GENERATED_PROBE_STATUS=CLEAN\n'
+
+snapshot_control='examples/threadline_phoenix/e2e/tests/clean-checkout.spec.ts-snapshots/reviewed.png'
+source_control='lib/threadline/clean_checkout_probe.ex'
+[ ! -e "$CLONE_CHILD/$snapshot_control" ] && [ ! -e "$CLONE_CHILD/$source_control" ] ||
+  fail 'trackable control path unexpectedly exists in committed history'
+
+mkdir -p "$(dirname "$CLONE_CHILD/$snapshot_control")"
+printf 'reviewed snapshot control\n' >"$CLONE_CHILD/$snapshot_control"
+printf 'defmodule Threadline.CleanCheckoutProbe do\nend\n' >"$CLONE_CHILD/$source_control"
+
+trackable_status="$(
+  git -C "$CLONE_CHILD" status --porcelain=v1 --untracked-files=all -- \
+    "$snapshot_control" "$source_control"
+)"
+expected_trackable_status="$(printf '?? %s\n?? %s' "$snapshot_control" "$source_control")"
+[ "$trackable_status" = "$expected_trackable_status" ] || {
+  printf '%s\n' "$trackable_status" >&2
+  fail 'reviewed snapshot/source controls were hidden or reported unexpectedly'
+}
+printf 'TRACKABLE_CONTROLS=VISIBLE\n'
+
+unlink "$CLONE_CHILD/$snapshot_control"
+unlink "$CLONE_CHILD/$source_control"
+rmdir -- "$(dirname "$CLONE_CHILD/$snapshot_control")"
+
+printf 'CLEAN_CHECKOUT_VERIFIED\n'

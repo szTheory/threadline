@@ -27,7 +27,7 @@ Pick the row that matches what you want to do. Each lane points at its canonical
 | I want to... | Start here | Then read |
 | --- | --- | --- |
 | **Evaluate** — see what Threadline proves in-repo, and what you must prove in staging. | [guides/evaluating-threadline.md](guides/evaluating-threadline.md) | [how-threadline-works.md](guides/how-threadline-works.md) |
-| **Adopt** — install, capture one real write, and mount the operator surface in the first hour. Wire it into a Phoenix app. | [guides/getting-started-saas.md](guides/getting-started-saas.md) | [production-checklist.md](guides/production-checklist.md) |
+| **Adopt** — install, capture one real write, and mount the operator surface in the first hour. Wire it into a Phoenix app. | [guides/getting-started-saas.md](guides/getting-started-saas.md) | [configuration and commands](guides/configuration-and-commands.md) |
 | **Operate** — investigate row changes, actor history, and evidence in the `/audit` console. | [guides/operator-surface.md](guides/operator-surface.md) | [incident-playbook.md](guides/incident-playbook.md) |
 | **Contribute** — set up the repo, run `mix ci.all`, and follow the contribution gate. | [`CONTRIBUTING.md`](CONTRIBUTING.md) | [guides/adoption-pilot-backlog.md](guides/adoption-pilot-backlog.md) |
 
@@ -61,77 +61,17 @@ read [guides/domain-reference.md](guides/domain-reference.md).
 
 ## Quick Start
 
-1. Add `threadline` to your dependencies:
+Add the current Threadline package coordinate to your dependencies:
 
-   ```elixir
-   def deps do
-     [
-       {:threadline, "~> 0.9.0"}
-     ]
-   end
-   ```
+```elixir
+{:threadline, "~> 0.9.0"}
+```
 
-2. Configure Threadline:
-
-   Threadline Mix tasks resolve the repo from `config :threadline, ecto_repos` (not host `:ecto_repos` alone). Add this to `config/config.exs`:
-
-   ```elixir
-   config :threadline,
-     ecto_repos: [MyApp.Repo],
-     storage_schema: "audit"
-   ```
-
-   `storage_schema` defaults to `"threadline"` and keeps Threadline-owned
-   tables/functions out of `public`. Set `storage_schema: "audit"` before you run `mix threadline.install` when you want a custom Threadline storage
-   schema. Generated migration files carry the configured storage schema name.
-   Changing `storage_schema` later does not rewrite existing migration files;
-   deliberate migration work is required to move Threadline-owned objects.
-
-   Threadline storage schema is separate from audited host-table schema. Host tables can still live in `public`, `support`, or another app schema while
-   Threadline-owned tables/functions live in `audit`. Set
-   `storage_schema: "public"` explicitly only if you want the historical
-   public-schema footprint.
-
-   See [Getting started §2 — Configure Threadline](guides/getting-started-saas.md#configure-threadline) for dual-repo rationale.
-
-3. Install and migrate:
-
-   ```bash
-   mix threadline.install
-   mix ecto.migrate
-   ```
-
-4. Register triggers for your first audited table:
-
-   ```bash
-   mix threadline.gen.triggers --tables posts
-   mix ecto.migrate
-   ```
-
-   See [getting-started §4](guides/getting-started-saas.md) for the first-table walkthrough and [production-checklist §1](guides/production-checklist.md) for the full `expected_tables` inventory.
-
-5. Wrap audited writes with `Threadline.Audit.transaction/3` — see [Getting started with Threadline in a Phoenix SaaS app](guides/getting-started-saas.md) §6 for the canonical helper snippet (actor GUC + domain writes + optional action linkage in one transaction).
-
-6. Query the audit trail:
-
-    ```elixir
-    Threadline.history(MyApp.Post, post.id, repo: MyApp.Repo)
-    Threadline.timeline([table: "posts"], repo: MyApp.Repo)
-    Threadline.timeline_page([table: "posts"], repo: MyApp.Repo, page_size: 200)
-    Threadline.export_json([table: "posts"], repo: MyApp.Repo)
-    Threadline.as_of(MyApp.Post, post.id, DateTime.utc_now(), repo: MyApp.Repo)
-    ```
-
-Use `Threadline.timeline/2` for smaller eager slices. When the window is too
-large to read eagerly, switch to `Threadline.timeline_page/2` and continue with
-`next_cursor` instead of offset pagination.
-
-See
-[guides/domain-reference.md](guides/domain-reference.md) for the canonical
-"which public API first?" table,
-[guides/getting-started-saas.md](guides/getting-started-saas.md) for the
-canonical first-hour Phoenix walkthrough, and
-[guides/incident-playbook.md](guides/incident-playbook.md) for operator recipes.
+Then follow [Getting started with Threadline in a Phoenix SaaS app](guides/getting-started-saas.md)
+for the single runnable install, configuration, first audited write, and first
+query path. When you need the exhaustive supported settings and command
+boundaries, use the [configuration and command reference](guides/configuration-and-commands.md).
+The [domain reference](guides/domain-reference.md) keeps the canonical "which public API first?" table.
 
 ## Operator Surface
 
@@ -172,7 +112,7 @@ defmodule MyAppWeb.Router do
 end
 ```
 
-For the full first-hour mounted walkthrough, read
+For the canonical first-hour Phoenix walkthrough, read
 [guides/getting-started-saas.md](guides/getting-started-saas.md). For the
 "fail-closed" security default, authorization setup, and screen inventory, read
 the [Operator Surface guide](guides/operator-surface.md). For the broader host

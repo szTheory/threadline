@@ -10,9 +10,9 @@ defmodule Threadline.Investigation.LinkedChange do
   defstruct [:audit_change, :transaction, :action]
 
   @type t :: %__MODULE__{
-          audit_change: AuditChange.t(),
-          transaction: AuditTransaction.t(),
-          action: AuditAction.t() | nil
+          audit_change: %AuditChange{},
+          transaction: %AuditTransaction{},
+          action: %AuditAction{} | nil
         }
 end
 
@@ -28,8 +28,8 @@ defmodule Threadline.Investigation.LinkedTransaction do
   defstruct [:transaction, :action, changes: []]
 
   @type t :: %__MODULE__{
-          transaction: AuditTransaction.t() | nil,
-          action: AuditAction.t() | nil,
+          transaction: %AuditTransaction{} | nil,
+          action: %AuditAction{} | nil,
           changes: [LinkedChange.t()]
         }
 end

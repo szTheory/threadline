@@ -76,7 +76,7 @@ Map each section of the production checklist. **Status:** `OK` | `Issue` | `N/A`
 | Install + gen.triggers migrations applied | OK | Integration tests apply Threadline migrations (e.g. `priv/repo/migrations/*threadline*`, capture fixtures); capture tests under `test/threadline/capture/`. |
 | `MIX_ENV` parity for trigger regeneration | N/A | Parity for **host** `MIX_ENV=prod` codegen not exercised here; CI uses **`MIX_ENV: test`** (`.github/workflows/ci.yml` → `verify-test`). |
 | `verify_coverage` + `expected_tables` in CI / prod-like | OK | `config/test.exs` → `:verify_coverage, expected_tables: ["threadline_ci_coverage_canary"]`; **`verify.threadline`** in **`verify-test`** and again in **`verify-pgbouncer-topology`** (through pooler); `test/threadline/verify_coverage_task_test.exs`. |
-| `Threadline.Health.trigger_coverage/1` wired | OK | `test/threadline/health_test.exs`; README doc contract calls `Threadline.ReadmeQuickstartFixtures.trigger_coverage_call/0` (`test/support/readme_quickstart_fixtures.ex`). |
+| `Threadline.Health.trigger_coverage/1` wired | OK | `test/threadline/health_test.exs`; the README doc contract exercises the public coverage call through `test/support/readme_quickstart_fixtures.ex`. |
 
 ### 2. Actor bridge and semantics
 
@@ -140,3 +140,9 @@ These do **not** replace a host pilot when production uses **PgBouncer** or besp
 | P2 | AP-ENV.1 | **Residual host depth:** CI covers **PgBouncer transaction** + `verify.threadline` (see **CI-PGBOUNCER-TOPOLOGY-CONTRACT**). **Not** replaced: *your* staging with **session vs transaction** choices matching prod, plus **HTTP + Oban job** paths inside the host app. | adoption / topology | Host integrator | **STG-01** |
 
 _Add rows as you discover gaps. P0 = wrong or missing audit data / security; P1 = ops friction or docs._
+
+## Next steps
+
+- Return to [Contributing to Threadline](../CONTRIBUTING.md) for the Contribute lane and submission path.
+- Establish the proof boundary first with [Evaluating Threadline](evaluating-threadline.md).
+- Run the repository evidence path with the [adoption evidence playbook](adoption-evidence-playbook.md).

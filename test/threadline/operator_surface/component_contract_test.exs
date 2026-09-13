@@ -1,12 +1,12 @@
 defmodule Threadline.OperatorSurface.ComponentContractTest do
   @moduledoc """
-  Shift-left automation of Phase 177 human-verification items (177-UAT.md).
+  Fast DOM coverage for operator component and resilience contracts.
 
   Covers UAT #2 (data_panel state matrix) in full and the structural half of
   UAT #4 (reconnect / [data-tl-mutating] CSS contract) as fast, deterministic
   DOM/contract assertions — no browser required. The real-viewport, motion, and
   live-socket halves live in the example app's
-  `e2e/tests/operator-phase-177-uat.spec.ts` (CI job `verify-example-browser`).
+  `e2e/tests/operator-component-contracts.spec.ts` (CI job `verify-example-browser`).
 
   These replace the manual /audit/__stress checkpoints, so the recurring value is
   in `mix test` (CI job `verify-test`) on every change.
@@ -400,10 +400,10 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       assert src =~ ~s(<select id={@id} name={@name}),
              "select remains native HTML, not a custom combobox"
 
-      assert src =~ ~s(<input\n      type={@type}),
+      assert src =~ ~r/<input\n\s+type=\{@type\}/,
              "search/date/number controls remain native inputs"
 
-      assert src =~ "NO ARIA role=\"table\"/\"row\"/\"cell\"",
+      assert src =~ "Do not add ARIA role=\"table\"/\"row\"/\"cell\"",
              "data_table documents native table semantics rather than pretending to be an interactive grid"
 
       refute src =~ ~s(role="grid"),

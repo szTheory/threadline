@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+E2E=${THREADLINE_PLAYWRIGHT_E2E:-"$ROOT/examples/threadline_phoenix/e2e"}
+TMP_BASE=${TMPDIR:-/tmp}
+TMP=$(mktemp -d "$TMP_BASE/threadline-fail-fast.XXXXXX")
+trap 'rm -rf "$TMP"' EXIT INT TERM HUP
+
+# `mix verify.test` runs in a clean checkout before the browser job has installed
+# the example app's npm dependencies. A bare `npx playwright` installs the
+# `playwright` CLI, but leaves imports of `@playwright/test` in this config, the
+# production config, and the generated spec unresolved. Ask npm for the exact
+# test-runner version committed in package-lock.json and make that package root
+# visible to Playwright's TypeScript loader instead of depending on an ambient
+# e2e/node_modules directory.
+playwright_version=$(
+  cd "$E2E"
+  node -p 'require("./package-lock.json").packages["node_modules/@playwright/test"].version'
+)
+[ -n "$playwright_version" ] || { echo "unable to resolve @playwright/test version from package-lock.json" >&2; exit 1; }
+playwright_bin=$(
+  npm exec --yes --package="@playwright/test@$playwright_version" -- \
+    sh -c 'command -v playwright'
+)
+[ -x "$playwright_bin" ] || { echo "unable to resolve @playwright/test CLI" >&2; exit 1; }
+playwright_node_modules=$(cd "$(dirname "$playwright_bin")/.." && pwd -P)
+[ -f "$playwright_node_modules/@playwright/test/package.json" ] || {
+  echo "resolved Playwright CLI does not contain @playwright/test" >&2
+  exit 1
+}
+
+# Browser binaries are not part of a clean test job either. This is a cached
+# no-op on prepared developer/CI machines and a deterministic bootstrap on a
+# fresh runner. Hosted Ubuntu and supported developer platforms already provide
+# the system libraries; the dedicated browser job remains responsible for the
+# heavier `--with-deps` setup.
+NODE_PATH="$playwright_node_modules${NODE_PATH:+:$NODE_PATH}" \
+  "$playwright_bin" install chromium
+
+# Evaluate a byte-for-byte copy so imports in the production config resolve to
+# the same npm-exec package as the runner even when a developer has a separate
+# e2e/node_modules tree. The smoke wrapper overrides only test/output routing.
+cp "$E2E/playwright.config.ts" "$TMP/production.config.ts"
+cat > "$TMP/playwright.config.ts" <<EOF
+import { defineConfig, devices } from "@playwright/test";
+import base from "$TMP/production.config.ts";
+if (base.maxFailures !== 5) throw new Error("production CI maxFailures must be 5");
+if (base.use?.trace !== "retain-on-failure") throw new Error("production trace policy must retain failures");
+export default defineConfig({
+  testDir: "$TMP/tests", timeout: 15_000, workers: 1, retries: 0,
+  maxFailures: base.maxFailures, outputDir: "$TMP/results",
+  use: { ...base.use, baseURL: undefined },
+  projects: [{ name: "smoke", use: { ...devices["Desktop Chrome"] } }],
+  reporter: [["json", { outputFile: "$TMP/report.json" }]],
+});
+EOF
+mkdir -p "$TMP/tests"
+cat > "$TMP/tests/fail-fast.spec.ts" <<'EOF'
+import { test, expect } from "@playwright/test";
+for (let i = 1; i <= 7; i++) {
+  test(`deterministic failure ${i}`, async ({ page }) => {
+    await page.setContent(`<main data-case="${i}">fail-fast smoke</main>`);
+    await expect(page.locator("main")).toHaveAttribute("data-case", "never");
+  });
+}
+EOF
+
+set +e
+(cd "$E2E" && CI=1 NODE_PATH="$playwright_node_modules${NODE_PATH:+:$NODE_PATH}" \
+  "$playwright_bin" test --config "$TMP/playwright.config.ts")
+status=$?
+set -e
+[ "$status" -ne 0 ] || { echo "fail-fast smoke unexpectedly passed" >&2; exit 1; }
+failed=$(jq '[.. | objects | select(.status? == "unexpected")] | length' "$TMP/report.json")
+skipped=$(jq '[.. | objects | select(.status? == "skipped")] | length' "$TMP/report.json")
+traces=$(find "$TMP/results" -name trace.zip -type f | wc -l | tr -d ' ')
+[ "$failed" -eq 5 ] || { echo "expected 5 failed tests, got $failed" >&2; exit 1; }
+[ "$skipped" -ge 2 ] || { echo "expected at least 2 skipped/interrupted tests, got $skipped" >&2; exit 1; }
+[ "$traces" -ge 5 ] || { echo "expected at least 5 traces, got $traces" >&2; exit 1; }
+printf 'failures=%s skipped=%s traces=%s\n' "$failed" "$skipped" "$traces"

@@ -1,0 +1,22 @@
+# Phase 199 Retired Executable Contracts
+
+These Phase-198 and historical document contracts had completed their purpose. They are no longer part of the default executable surface; Git history and the durable evidence named below preserve their audit trail.
+
+| Retired path | Purpose and last meaningful use | Superseding live or durable evidence | Full recovery SHA |
+|---|---|---|---|
+| `test/threadline/ia_lock_doc_contract_test.exs` | Locked the Phase-135 persona, JTBD, earned-flow, and UI-audit pointer documents; last meaningful use was the Phase-135 documentation lock. | `.planning/milestones/v1.31-phases/135-seed-enrichment-ia-lock-in/135-VERIFICATION.md` preserves the verified lock, while current UI behavior remains covered by operator-surface tests. | `755b29d707cd31f50168185e2aaae4bfcec0a835` |
+| `test/threadline/phase198_automation_policy_test.exs` | Exercised the completed Phase-198 automation evidence policy and its mutation controls; last meaningful use was Phase-198 terminal certification. | `.planning/audits/198-automation-policy.json`, `.planning/phases/198-green-bringup/198-44-SUMMARY.md`, and the terminal certification retain the durable result. | `324a0d4e01f913a4e06b787ba93f3b1a36dc0a8f` |
+| `test/threadline/phase198_decision_attestation_test.exs` | Attested Phase-198 one-way decisions and supersession prose; last meaningful use was Phase-198 closeout. | `.planning/phases/198-green-bringup/198-CONTEXT.md`, the Phase-198 summaries, and terminal certification preserve those decisions. | `9832e69ea9d37f8e53fbece6379dcd1eda519d99` |
+| `test/threadline/phase198_nyquist_contract_test.exs` | Replayed Phase-198 GREEN evidence, archive diagnostics, and policy judgments; last meaningful use was the certified Phase-198 verification run. | `.planning/phases/198-green-bringup/198-VALIDATION.md`, `198-VERIFICATION.md`, and current live CI/default-suite contracts supersede the executable receipt. | `9bab2b5e0382d362bc0a6eb2e225ec7c2aa0d183` |
+| `test/threadline/phase198_prohibition_resolution_contract_test.exs` | Validated the completed prohibition-resolution ledgers, security dispositions, and mutation cases through Phase-198 round 15. | `.planning/phases/198-green-bringup/198-SECURITY.md` and the immutable round-12 through round-15 audit artifacts preserve the disposition record. | `496c8fc13c781f9c9ffb58c4a67e6783de25bef7` |
+| `test/threadline/phase198_ref_disposition_contract_test.exs` | Tested the Phase-198 ref inventory, preservation authority, live controls, and destructive receipts; last meaningful use was final ref-disposition certification. | `.planning/ARCHIVE-REGISTER.md`, `.planning/audits/198-round11-ref-disposition.{json,md}`, and live branch-protection contracts preserve the durable and current evidence. | `e111efa100b768fb5d3fea0ac8ac425535687f75` |
+| `test/threadline/phase198_terminal_certification_contract_test.exs` | Revalidated the completed Phase-198 terminal record, source identities, command receipts, and unresolved findings. | `.planning/audits/198-round13-terminal-certification.md`, `198-SECURITY.md`, and `198-VERIFICATION.md` are the sealed certification evidence. | `aa424411d85ffcda075d6f3bf1490af8f387b839` |
+| `test/threadline/phase198_zero_human_uat_contract_test.exs` | Enforced the exact Phase-198 summary manifest and automated closeout coverage; last meaningful use was the terminal default-suite run. | `.planning/audits/198-summary-coverage-manifest.json` and the round-13 terminal certification preserve that completed coverage record. | `b96eba0d8f6672f00cc6fa4e2cc067d9eeeceda5` |
+| `bin/verify-phase198-evidence` | Evaluated Phase-198-only automation policy and evidence joins; last meaningful use was the Phase-198 GREEN-policy closeout. | `.planning/audits/198-automation-policy.json`, its Phase-198 summaries, and current live test/CI gates supersede the phase-specific command. | `324a0d4e01f913a4e06b787ba93f3b1a36dc0a8f` |
+| `bin/verify-phase198-ref-disposition` | Ran the Phase-198 ref inventory, authority, controls, preservation, and final disposition lifecycle. | `.planning/audits/198-round11-ref-disposition.{json,md}`, `.planning/ARCHIVE-REGISTER.md`, and live branch-protection verification supersede the completed lifecycle command. | `e111efa100b768fb5d3fea0ac8ac425535687f75` |
+
+Recover any retired artifact without changing the working tree with:
+
+```text
+git show <full-recovery-sha>:<retired-path>
+```

@@ -1,9 +1,5 @@
 defmodule Threadline.Governance.RetentionRun do
-  @moduledoc """
-  Ecto schema for the `threadline_retention_runs` table.
-
-  Represents an execution of the retention policy pruning process.
-  """
+  @moduledoc false
 
   use Ecto.Schema
   import Ecto.Changeset

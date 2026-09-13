@@ -8,6 +8,7 @@ defmodule Threadline.PgbouncerTopologyTest do
   use ExUnit.Case, async: false
 
   import Ecto.Query, only: [from: 2]
+  import Threadline.StorageSchemaCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Semantics.AuditAction
@@ -18,9 +19,9 @@ defmodule Threadline.PgbouncerTopologyTest do
   @table "threadline_pooler_topology_ctx"
 
   setup do
-    Repo.delete_all(AuditChange)
-    Repo.delete_all(AuditTransaction)
-    Repo.delete_all(AuditAction)
+    Repo.delete_all(AuditChange, repo_opts())
+    Repo.delete_all(AuditTransaction, repo_opts())
+    Repo.delete_all(AuditAction, repo_opts())
 
     Repo.query!("ALTER TABLE #{@table} DISABLE TRIGGER USER")
     Repo.query!("DELETE FROM #{@table}")
@@ -37,7 +38,7 @@ defmodule Threadline.PgbouncerTopologyTest do
     end)
 
     assert [%AuditTransaction{} = txn] =
-             Repo.all(from(t in AuditTransaction, order_by: [asc: t.txid]))
+             Repo.all(from(t in AuditTransaction, order_by: [asc: t.txid]), repo_opts())
 
     assert %Threadline.Semantics.ActorRef{type: :user, id: "pooler-ci"} = txn.actor_ref
   end

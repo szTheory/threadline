@@ -403,7 +403,12 @@ test.describe("operator accessibility baseline", () => {
       name: "Selected schema readiness",
     });
     await expect(readiness).toBeVisible();
-    await expect(readiness).toContainText("selected schema");
+    // 197-02 (commit 842bd737) intentionally dropped the verdict's
+    // self-labeling "selected schema: … · Checked …" meta line — the verdict
+    // heading itself still names the schema (coverage_live.ex
+    // verdict_heading/2). This test navigates to /audit/coverage with no
+    // `schema` param, so it defaults to "public" (coverage_live.ex:49).
+    await expect(readiness).toContainText("public");
 
     const schemaSelect = page.locator("#coverage-schema");
     await expect(schemaSelect).toBeVisible();
@@ -603,7 +608,10 @@ test.describe("operator accessibility baseline", () => {
     await expect(exportJobs.getByText(/Queued|Processing/).first()).toBeVisible();
     await expect(exportJobs.getByText("Export failed.").first()).toBeVisible();
     await expect(
-      exportJobs.getByText(/Expired|File unavailable/).first(),
+      // Anchored to the canonical rendered literal (export_status_live.ex:489,
+      // "Export expired") — plan 198-25 fixed the "Expired" -> "Export expired"
+      // product copy, which this partial-capital-E regex no longer matched.
+      exportJobs.getByText(/Export expired|File unavailable/).first(),
     ).toBeVisible();
 
     await expectNoHorizontalOverflow(page);
@@ -611,7 +619,18 @@ test.describe("operator accessibility baseline", () => {
 
   test("keeps row-history drawer dialog semantics and visible focus", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    const rowHistoryRedControl =
+      process.env.THREADLINE_ROW_HISTORY_RED_CONTROL;
+
+    if (
+      rowHistoryRedControl !== undefined &&
+      rowHistoryRedControl !== "" &&
+      rowHistoryRedControl !== "obscure-date-input"
+    ) {
+      throw new Error(`unknown row-history red control: ${rowHistoryRedControl}`);
+    }
+
     const { transactionHref, rowHistoryHref } =
       await discoverTransactionAndRowHistory(page);
 
@@ -643,8 +662,107 @@ test.describe("operator accessibility baseline", () => {
     const snapshot = dialog.getByLabel("View snapshot at");
     await expect(snapshot).toBeVisible();
     await snapshot.focus();
-    await expectNonObscuredFocused(snapshot, page);
-    await expectNoHorizontalOverflow(page);
+
+    if (rowHistoryRedControl === "obscure-date-input") {
+      await snapshot.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const obscurer = document.createElement("div");
+        obscurer.setAttribute("data-threadline-row-history-red-control", "");
+        Object.assign(obscurer.style, {
+          background: "transparent",
+          height: `${rect.height}px`,
+          left: `${rect.left}px`,
+          position: "fixed",
+          top: `${rect.top}px`,
+          width: `${rect.width}px`,
+          zIndex: "2147483647",
+        });
+        document.body.appendChild(obscurer);
+      });
+    }
+
+    try {
+      const geometry = await snapshot.evaluate((input) => {
+        const active = document.activeElement;
+        const dialogElement = input.closest('[role="dialog"]');
+        const rect = (element: Element | null) => {
+          if (!element) return null;
+          const bounds = element.getBoundingClientRect();
+
+          return {
+            bottom: bounds.bottom,
+            height: bounds.height,
+            left: bounds.left,
+            right: bounds.right,
+            top: bounds.top,
+            width: bounds.width,
+          };
+        };
+
+        const inputRect = input.getBoundingClientRect();
+        const style = window.getComputedStyle(input);
+
+        return {
+          activeElement: active
+            ? {
+                ariaLabel: active.getAttribute("aria-label"),
+                id: active.id || null,
+                name: active.getAttribute("name"),
+                role: active.getAttribute("role"),
+                tag: active.tagName,
+                testId: active.getAttribute("data-testid"),
+                type: active.getAttribute("type"),
+              }
+            : null,
+          dialogRect: rect(dialogElement),
+          dialogScroll: dialogElement
+            ? { left: dialogElement.scrollLeft, top: dialogElement.scrollTop }
+            : null,
+          documentScroll: { left: window.scrollX, top: window.scrollY },
+          inputRect: rect(input),
+          visible:
+            inputRect.width > 0 &&
+            inputRect.height > 0 &&
+            style.display !== "none" &&
+            style.visibility !== "hidden",
+          windowViewport: {
+            height: window.innerHeight,
+            width: window.innerWidth,
+          },
+        };
+      });
+
+      const focusEvidence = {
+        ...geometry,
+        attempt: {
+          repeatEachIndex: testInfo.repeatEachIndex,
+          retry: testInfo.retry,
+          workerIndex: testInfo.workerIndex,
+        },
+        project: testInfo.project.name,
+        trace: {
+          outputDirectory: testInfo.outputDir.split(/[\\/]/).pop(),
+          setting: "retain-on-failure",
+        },
+        viewport: page.viewportSize(),
+      };
+
+      await testInfo.attach("row-history-focus-geometry", {
+        body: Buffer.from(JSON.stringify(focusEvidence, null, 2)),
+        contentType: "application/json",
+      });
+
+      await expectNonObscuredFocused(snapshot, page);
+      await expectNoHorizontalOverflow(page);
+    } finally {
+      const redControl = page.locator(
+        "[data-threadline-row-history-red-control]",
+      );
+      await redControl.evaluateAll((elements) =>
+        elements.forEach((element) => element.remove()),
+      );
+      await expect(redControl).toHaveCount(0);
+    }
   });
 
   test("opens stress rendered widgets with names, keyboard state, and focus entry", async ({

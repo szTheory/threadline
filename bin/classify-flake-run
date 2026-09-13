@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# GREEN-11 / D-35 / CR-01 / CR-02 (198-11): classify a `mix verify.flake`
+# (`test --repeat-until-failure 50`) run as pass/broken/flaky/unknown.
+#
+# Extracted out of `.github/workflows/flake-detection.yml` so the logic is a
+# committed, directly executable, and unit-testable artifact rather than
+# inline workflow shell reachable only by a 120-minute nightly job nobody
+# watches (the same idiom as bin/verify-release-shape and
+# bin/verify-branch-protection). A runbook is an assertion; a script is proof.
+#
+# Classification anchored on a STABLE MARKER, verified against real output
+# rather than assumed. ExUnit prints exactly one
+#   `Running ExUnit with seed: <n>, max_cases: <m>`
+# header per suite run, so counting that line counts completed iterations.
+# Measured locally before this was written:
+#   all green, 3 repeats -> exit 0, 4 headers  (initial + 3)
+#   fail on run 1        -> exit 2, 1 header
+#   fail on run 3        -> exit 2, 3 headers
+#
+# Behavior table:
+#   exit code 0,              any header count      -> pass
+#   exit code non-zero,       0 headers              -> unknown (suite never started:
+#                                                        deps/compile failure, or ExUnit
+#                                                        changed its banner)
+#   exit code non-zero,       exactly 1 header        -> broken (failed on first iteration;
+#                                                        that is not flakiness)
+#   exit code non-zero,       2+ headers              -> flaky
+#   exit code non-zero,       header count empty/NaN  -> unknown, NEVER flaky (CR-02: the
+#                                                        original integer comparison against
+#                                                        an empty value fell through to the
+#                                                        flaky branch)
+#   exit code empty/non-numeric                       -> unknown (stated on stderr)
+#
+# `unknown` is the default arm of every branch below. `flaky` is reachable ONLY by the
+# explicit `headers -ge 2` check — never as a fall-through `else`.
+#
+# This script does not rely on the caller's `-e` (errexit) for correctness: every
+# comparison is guarded and explicitly branched, matching CR-01's fix (the calling
+# workflow step must not depend on inherited errexit either — see flake-detection.yml).
+set -uo pipefail
+
+usage() {
+  echo "Usage: EXIT_CODE=<n> $0 <log-file-path>" >&2
+}
+
+if [ "$#" -ne 1 ]; then
+  usage
+  exit 1
+fi
+
+LOG_FILE="$1"
+
+is_integer() {
+  # POSIX-portable integer check. A '-' is a sign only in leading position:
+  # an embedded dash ("1-2") is NOT an integer and must not classify.
+  case "$1" in
+    '' | '-' ) return 1 ;;
+    -* ) case "${1#-}" in *[!0-9]* ) return 1 ;; * ) return 0 ;; esac ;;
+    *  ) case "$1"      in *[!0-9]* ) return 1 ;; * ) return 0 ;; esac ;;
+  esac
+}
+
+EXIT_CODE_RAW="${EXIT_CODE:-}"
+
+if ! is_integer "$EXIT_CODE_RAW"; then
+  echo "classify-flake-run: EXIT_CODE is empty or non-numeric ('$EXIT_CODE_RAW') — cannot classify, reporting unknown" >&2
+  classification="unknown"
+else
+  if [ -f "$LOG_FILE" ]; then
+    headers_raw=$(grep -c 'Running ExUnit with seed:' "$LOG_FILE" 2>/dev/null || true)
+  else
+    headers_raw=""
+  fi
+
+  if [ "$EXIT_CODE_RAW" = "0" ]; then
+    classification="pass"
+  elif ! is_integer "$headers_raw"; then
+    # No parseable iteration count at all (missing/unreadable log, grep failed
+    # in a way `|| true` swallowed) — never guess. This is CR-02's fix: this
+    # branch used to fall through to `flaky`.
+    classification="unknown"
+  elif [ "$headers_raw" -eq 0 ]; then
+    classification="unknown"
+  elif [ "$headers_raw" -eq 1 ]; then
+    classification="broken"
+  elif [ "$headers_raw" -ge 2 ]; then
+    classification="flaky"
+  else
+    classification="unknown"
+  fi
+fi
+
+echo "$classification"
+
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "classification=$classification" >> "$GITHUB_OUTPUT"
+fi
+
+exit 0

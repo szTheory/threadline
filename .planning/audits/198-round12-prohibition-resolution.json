@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "round": 12,
+  "created_at": "2026-09-10T01:55:00Z",
+  "purpose": "Typed, append-only resolution ledger for the five Plan-53/55 prohibitions",
+  "immutable_sources": {
+    "round11_json": {
+      "path": ".planning/audits/198-round11-ref-disposition.json",
+      "sha256": "6b39204b95dcf1dbd42c6885bd4d0d0f6c861ef4d7286b18822edf6c721c6591"
+    },
+    "round11_markdown": {
+      "path": ".planning/audits/198-round11-ref-disposition.md",
+      "sha256": "70589513acd68de861d74f928ec302a6b455ad0e5c548b3383fa723c50b0ef19"
+    }
+  },
+  "prohibitions": [
+    {
+      "id": "P-198-53-01",
+      "source_plan": "198-53-PLAN.md",
+      "statement": "A stale-ref recommendation, historical maintainer response, or complete ancestry proof must never be converted into branch, pull-request, tag, main, ruleset, or protection mutation authority.",
+      "tier": "test",
+      "status": "pass",
+      "risk_accepted": false,
+      "evidence": [
+        {
+          "kind": "unit",
+          "test": "round 11 authority rejects silence, preserve, abort, stale digests, missing subjects, and outsiders",
+          "command": "mix test test/threadline/phase198_ref_disposition_contract_test.exs",
+          "result": "pass"
+        },
+        {
+          "kind": "unit",
+          "test": "production lifecycle stages reject fixture adapters and disabled live observation",
+          "command": "mix test test/threadline/phase198_ref_disposition_contract_test.exs",
+          "result": "pass"
+        }
+      ],
+      "threat_ids": ["T-198-53-01", "T-198-53-06", "T-198-54-02", "T-198-54-04", "T-198-58-01"]
+    },
+    {
+      "id": "P-198-53-02",
+      "source_plan": "198-53-PLAN.md",
+      "statement": "No preservation subject may be collapsed merely because its local and remote refs share a branch name.",
+      "tier": "test",
+      "status": "pass",
+      "risk_accepted": false,
+      "evidence": [
+        {
+          "kind": "unit",
+          "test": "round 11 keeps divergent local and remote tips as separate preservation subjects",
+          "command": "mix test test/threadline/phase198_ref_disposition_contract_test.exs",
+          "result": "pass"
+        },
+        {
+          "kind": "unit",
+          "test": "round 11 rejects a missing, substituted, or collapsed divergent side",
+          "command": "mix test test/threadline/phase198_ref_disposition_contract_test.exs",
+          "result": "pass"
+        }
+      ],
+      "threat_ids": ["T-198-53-02", "T-198-58-01"]
+    },
+    {
+      "id": "P-198-55-01",
+      "source_plan": "198-55-PLAN.md",
+      "statement": "Do not use wildcard, mirror, all-tags, force, rebase, squash, branch-switch, merge, ruleset, or protection mutations.",
+      "tier": "judgment",
+      "status": "pending",
+      "resolution": {
+        "outcome": "cannot-attest",
+        "verbatim": "cannot-attest by szTheory",
+        "recorded_at": "2026-09-10T02:37:41Z",
+        "signer": "szTheory"
+      },
+      "risk_accepted": false,
+      "evidence": [],
+      "historical_limitation": "Final refs, abstract round-11 receipts, and Plan-55 summary prose cannot establish which command operands were typed. No retrospective command representation is asserted.",
+      "threat_ids": ["T-198-55-02", "T-198-55-03", "T-198-58-02", "T-198-58-03"]
+    },
+    {
+      "id": "P-198-55-02",
+      "source_plan": "198-55-PLAN.md",
+      "statement": "Do not retire any handle until every distinct object reachable only through that handle has verified local and remote annotated-tag recovery plus a tracked register row.",
+      "tier": "test",
+      "status": "pass",
+      "risk_accepted": false,
+      "evidence": [
+        {
+          "kind": "unit",
+          "test": "round 11 refuses delete-before-preserve ordering and incomplete divergent preservation",
+          "command": "mix test test/threadline/phase198_ref_disposition_contract_test.exs",
+          "result": "pass"
+        },
+        {
+          "kind": "unit",
+          "test": "fixture mutation receipts reject force batching ambiguity and unverifiable outcomes",
+          "command": "mix test test/threadline/phase198_ref_disposition_contract_test.exs",
+          "result": "pass"
+        }
+      ],
+      "threat_ids": ["T-198-55-02", "T-198-55-05", "T-198-58-01"]
+    },
+    {
+      "id": "P-198-55-03",
+      "source_plan": "198-55-PLAN.md",
+      "statement": "Do not relabel GREEN-07 or roadmap criterion 3 as met from repository-hygiene work.",
+      "tier": "test",
+      "status": "pass",
+      "risk_accepted": false,
+      "evidence": [
+        {
+          "kind": "unit",
+          "test": "round 11 final derives both namespaces and rejects an unremembered live ref or GREEN-07 promotion",
+          "command": "mix test test/threadline/phase198_ref_disposition_contract_test.exs",
+          "result": "pass"
+        }
+      ],
+      "threat_ids": ["T-198-55-06", "T-198-58-01"]
+    }
+  ],
+  "findings": {
+    "T-198-55-03": {
+      "severity": "medium",
+      "blocking_threshold": "high",
+      "classification": "irrecoverable_below_threshold",
+      "status": "open",
+      "blocking": false,
+      "accepted": false,
+      "missing_receipt_fields": [
+        "argv",
+        "per_operation_timestamps",
+        "exit_status",
+        "before_identity",
+        "after_identity"
+      ],
+      "reason": "The completed round-11 execution did not persist these fields, so they cannot be truthfully reconstructed after the fact.",
+      "closure_condition": "A distinct truthful Plan-59 attestation must supply every missing field; resolving only the broad prohibited-method judgment does not close this finding."
+    }
+  },
+  "attestation_policy": {
+    "plan": "198-59",
+    "target_prohibition": "P-198-55-01",
+    "gate": "blocking-human",
+    "allowed_outcomes": ["attested", "cannot-attest"],
+    "required_attestation_fields": ["verbatim", "recorded_at", "signer", "outcome"],
+    "rules": [
+      "An attested outcome resolves only the broad prohibited-method judgment unless it truthfully supplies every field missing from T-198-55-03.",
+      "A cannot-attest outcome leaves the judgment open.",
+      "Neither outcome is risk acceptance."
+    ]
+  }
+}

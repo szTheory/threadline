@@ -4,8 +4,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: this page declares its own form policy, so a change that adds
-    # a form control fails the guard in the same diff. See
+    # This page declares its own form capability. Adding a form control must update
+    # this declaration so the form-policy contract fails in the same diff. See
     # test/threadline/operator_surface/ui_form_policy_contract_test.exs.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy :formless
@@ -24,10 +24,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @evidence_context_keys ~w(source subject subject_ref_json mode)
 
     def mount(_params, _session, socket) do
-      if connected?(socket) and socket.assigns[:threadline_exports_enabled] do
-        schedule_refresh(socket)
-      end
-
       socket =
         socket
         |> assign(:base_path, nil)
@@ -35,6 +31,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:evidence_export_context, nil)
         |> assign(:export_denied_descriptor, Unsupported.export_denied_descriptor())
         |> assign_jobs(fetch_jobs(socket))
+
+      socket =
+        if connected?(socket) and socket.assigns[:threadline_exports_enabled] do
+          schedule_refresh(socket)
+        else
+          socket
+        end
 
       {:ok, socket}
     end
@@ -111,12 +114,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if not socket.assigns[:threadline_exports_enabled] do
         {:noreply, socket}
       else
-        schedule_refresh(socket)
-
-        socket = assign_jobs(socket, fetch_jobs(socket))
+        socket =
+          socket
+          |> schedule_refresh()
+          |> assign_jobs(fetch_jobs(socket))
 
         {:noreply, socket}
       end
+    end
+
+    def terminate(_reason, socket) do
+      cancel_refresh(socket)
+      :ok
     end
 
     def render(assigns) do
@@ -254,10 +263,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </UI.empty_state>
             <% else %>
               <section id="export-jobs" data-testid="export-jobs">
-                <%!-- Honest cap caption (D-20, WR-04/WR-05): Exports is recent-only /
-                      low-volume, not a keyset pager. Report the actual rendered count
-                      (never over-claim against a short table) and, when the cap is hit,
-                      interpolate the real @default_limit rather than a hardcoded literal. --%>
+                <%!-- Export history is intentionally recent-only rather than keyset-paginated.
+                      Report the actual rendered count without overstating a short table;
+                      when the cap is reached, use @default_limit instead of a literal. --%>
                 <p class="tl-status" role="status" aria-live="polite">
                   <%= if @jobs_count >= @default_limit do %>
                     Showing the most recent <%= @default_limit %> export jobs (newest first).
@@ -305,7 +313,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                               Download export
                             </.link>
                           <% else %>
-                            <span class="tl-hint" role="status"><%= export_job_status_label(job) %></span>
+                            <span class="tl-hint" role="status"><%= Presentation.export_status_label(job) %></span>
                           <% end %>
                         </div>
                       </div>
@@ -385,11 +393,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp schedule_refresh(socket) do
+      cancel_refresh(socket)
+
       interval =
         socket.assigns[:threadline_export_status_poll_ms] ||
           Application.get_env(:threadline, :export_status_poll_ms, 5_000)
 
-      Process.send_after(self(), :refresh, interval)
+      timer_ref = Process.send_after(self(), :refresh, interval)
+      assign(socket, :threadline_export_status_timer_ref, timer_ref)
+    end
+
+    defp cancel_refresh(socket) do
+      if timer_ref = socket.assigns[:threadline_export_status_timer_ref] do
+        case Process.cancel_timer(timer_ref) do
+          _result -> :ok
+        end
+      end
+
+      :ok
     end
 
     defp resolve_repo(socket) do
@@ -470,25 +491,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               "Queue an export from Timeline, then return here to download the completed packet.",
             status: "No export jobs"
           }
-      end
-    end
-
-    defp export_job_status_label(job) do
-      status = job |> Map.get(:status, Map.get(job, "status")) |> to_string()
-
-      expired? =
-        case Map.get(job, :expires_at, Map.get(job, "expires_at")) do
-          %DateTime{} = expires_at -> DateTime.compare(expires_at, DateTime.utc_now()) != :gt
-          _ -> false
-        end
-
-      cond do
-        status in ~w(pending queued) -> "Queued"
-        status in ~w(running processing) -> "Processing"
-        status in ~w(failed error) -> "Failed"
-        status == "completed" and expired? -> "Expired"
-        status == "completed" -> "File unavailable"
-        true -> Presentation.status_label(status)
       end
     end
 

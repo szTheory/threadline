@@ -5,9 +5,9 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
   Shows Threadline-owned evidence proof output through one canonical viewer task.
 
   This task is a viewer, not a gate. Successful proof reads always exit `0`,
-  including outputs that classify claims as unsupported. If you need a failing
-  policy check later, that belongs in a future gate task such as
-  `mix threadline.evidence.verify`, not in this viewer.
+  including outputs that classify claims as unsupported. Apply any policy that
+  should fail a deployment in the host application's own validation workflow;
+  this viewer does not turn a proof classification into a failing exit status.
 
   ## Usage
 

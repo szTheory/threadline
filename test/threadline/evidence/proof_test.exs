@@ -7,7 +7,7 @@ defmodule Threadline.Evidence.ProofTest do
   @repo Threadline.Test.Repo
 
   setup do
-    Repo.delete_all(EvidenceRecord)
+    Repo.delete_all(EvidenceRecord, repo_opts())
     :ok
   end
 
@@ -24,7 +24,7 @@ defmodule Threadline.Evidence.ProofTest do
 
     %EvidenceRecord{}
     |> EvidenceRecord.changeset(Map.merge(defaults, Map.new(attrs)))
-    |> Repo.insert!()
+    |> Repo.insert!(repo_opts())
   end
 
   test "builds wrapped proof json with the stable top-level contract for proven facts" do

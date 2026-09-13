@@ -4,8 +4,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     use Phoenix.LiveView
 
-    # GREEN-05 / D-07: declared has-forms since Phase 185 (COV-01 / COV-03) — the page
-    # owns a native schema-selector form driving `/audit/coverage?schema=NAME` URL state.
+    # This page declares its own form capability. Its native schema selector filters
+    # coverage and owns the `/audit/coverage?schema=NAME` URL state.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "schema selector owning ?schema= URL state"}
 
@@ -101,7 +101,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           # Cancel pending timer (Pitfall 6 — manual refresh races a tick).
           # Process.cancel_timer/1 is idempotent on already-fired timers (returns false).
           if ref = socket.assigns[:threadline_timer_ref] do
-            Process.cancel_timer(ref)
+            _cancel_result = Process.cancel_timer(ref)
+            :ok
           end
 
           schema = socket.assigns[:schema_param] || "public"
@@ -117,6 +118,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           {:noreply, socket}
       end
+    end
+
+    def terminate(_reason, socket) do
+      if timer_ref = socket.assigns[:threadline_timer_ref] do
+        case Process.cancel_timer(timer_ref) do
+          _result -> :ok
+        end
+      end
+
+      :ok
     end
 
     def render(assigns) do

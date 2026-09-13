@@ -2,8 +2,8 @@
  * bundle.ts — Reads the deterministic Tier-B scorecard input for a cell.
  *
  * Reads:
- *   - .planning/scorecards/<cell_id>.json (deterministic, committed bundle)
- *   - .planning/scorecards/<cell_id>.aria.yml (band-2 only, may be null)
+ *   - scorecards/<cell_id>.json (deterministic, committed bundle)
+ *   - scorecards/<cell_id>.aria.yml (band-2 only, may be null)
  *   - e2e/artifacts/tier-a/<cell_id>/screenshot.png (gitignored binary)
  *
  * Downsamples the screenshot PNG to ~1092px on the long edge (D-11 / D-04:
@@ -22,15 +22,16 @@ import {
   mkdtempSync,
   unlinkSync,
 } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
-
-const here = dirname(fileURLToPath(import.meta.url));
-// critic/ → e2e/ → threadline_phoenix/ → examples/ → repo root
-const repoRoot = resolve(here, "../../../..");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
+import {
+  currentOperatorSurfacePaths,
+  readRouteScorecard,
+  readRequiredJson,
+  resolveContainedPath,
+  routeScorecardCellIds,
+} from "../support/operator-surface-paths.js";
 
 // Target long-edge for downsampled screenshots (D-11 / D-04: ~1600 tokens per image).
 // Prohibits: NO hi-res 2576px screenshots (VLM must not re-measure pixels).
@@ -74,29 +75,71 @@ export interface ScorecardJson {
   };
 }
 
+export type ScorecardLane = "committed" | "route";
+
+function inferredScorecardLane(cellId: string): ScorecardLane {
+  return cellId.startsWith("route.") ? "route" : "committed";
+}
+
 /**
  * Returns the list of all committed cell IDs (from the scorecards directory).
  * Used to validate cell_id before path construction (T-195-17).
  */
 export function committedCellIds(): string[] {
-  if (!existsSync(scorecardsDir)) return [];
-  return readdirSync(scorecardsDir)
+  const { scorecardsDir } = currentOperatorSurfacePaths();
+  if (!existsSync(scorecardsDir)) {
+    throw new Error(
+      `Committed critic scorecards are unavailable.\nResolved path: ${scorecardsDir}\n` +
+        `repository-only: true\nRecovery: npm run capture:tier-a`,
+    );
+  }
+  const cellIds = readdirSync(scorecardsDir)
     .filter((f) => f.endsWith(".json"))
     .map((f) => f.replace(/\.json$/, ""));
+  if (cellIds.length === 0) {
+    throw new Error(
+      `Committed critic scorecards are empty.\nResolved path: ${scorecardsDir}\n` +
+        `repository-only: true\nRecovery: npm run capture:tier-a`,
+    );
+  }
+  return cellIds;
 }
 
 /**
  * Validate that a cell_id is a committed scorecard cell.
  * Throws if the cell is not in the ledger (T-195-17 path traversal guard).
  */
-export function validateCellId(cellId: string): void {
-  const allowed = committedCellIds();
+export function validateCellId(
+  cellId: string,
+  lane: ScorecardLane = inferredScorecardLane(cellId),
+): void {
+  const { routeScorecardsDir, scorecardsDir } = currentOperatorSurfacePaths();
+  const root = lane === "route" ? routeScorecardsDir : scorecardsDir;
+  const allowed = lane === "route" ? routeScorecardCellIds() : committedCellIds();
   if (!allowed.includes(cellId)) {
     throw new Error(
-      `Unknown cell_id: ${JSON.stringify(cellId)} — not found in ${scorecardsDir}. ` +
+      `Unknown cell_id: ${JSON.stringify(cellId)} — not found in ${root}. ` +
         `Refusing to construct filesystem path from untrusted input.`,
     );
   }
+}
+
+/** Read a route scorecard from generated evidence, or any other cell from immutable evidence. */
+export function readScorecard(
+  cellId: string,
+  lane: ScorecardLane = inferredScorecardLane(cellId),
+): ScorecardJson {
+  if (lane === "route") return readRouteScorecard<ScorecardJson>(cellId);
+
+  validateCellId(cellId, lane);
+
+  const { scorecardsDir } = currentOperatorSurfacePaths();
+  const scorecardPath = resolveContainedPath(scorecardsDir, `${cellId}.json`);
+  return readRequiredJson<ScorecardJson>(scorecardPath, {
+    dataset: `committed critic scorecard ${cellId}`,
+    repositoryOnly: true,
+    recoveryCommand: "npm run capture:tier-a",
+  });
 }
 
 /**
@@ -218,15 +261,15 @@ function buildMechanicalLines(scorecard: ScorecardJson): string[] {
  * @param cellId - The capture cell ID (e.g. "page.actor.happy__dark-1280")
  * @returns ScorecardBundle ready for prompt.ts
  */
-export async function loadBundle(cellId: string): Promise<ScorecardBundle> {
-  // Security guard: validate before any path construction (T-195-17)
-  validateCellId(cellId);
-
-  const scorecardPath = resolve(scorecardsDir, `${cellId}.json`);
-  const scorecard = JSON.parse(readFileSync(scorecardPath, "utf8")) as ScorecardJson;
+export async function loadBundle(
+  cellId: string,
+  lane: ScorecardLane = inferredScorecardLane(cellId),
+): Promise<ScorecardBundle> {
+  const { repositoryRoot } = currentOperatorSurfacePaths();
+  const scorecard = readScorecard(cellId, lane);
 
   // Screenshot: path in scorecard is a relative repo path
-  const screenshotPath = resolve(repoRoot, scorecard.artifacts.screenshot);
+  const screenshotPath = resolveContainedPath(repositoryRoot, scorecard.artifacts.screenshot);
   if (!existsSync(screenshotPath)) {
     throw new Error(
       `Screenshot not found for cell ${cellId}: ${screenshotPath}\n` +
@@ -239,7 +282,7 @@ export async function loadBundle(cellId: string): Promise<ScorecardBundle> {
   // Aria snapshot (band-2 only; may be null)
   let ariaSnapshot: string | null = null;
   if (scorecard.artifacts.aria) {
-    const ariaPath = resolve(repoRoot, scorecard.artifacts.aria);
+    const ariaPath = resolveContainedPath(repositoryRoot, scorecard.artifacts.aria);
     if (existsSync(ariaPath)) {
       ariaSnapshot = readFileSync(ariaPath, "utf8");
     }
@@ -253,6 +296,6 @@ export async function loadBundle(cellId: string): Promise<ScorecardBundle> {
     screenshotBase64,
     ariaSnapshot,
     mechanicalLines,
-    repoRoot,
+    repoRoot: repositoryRoot,
   };
 }

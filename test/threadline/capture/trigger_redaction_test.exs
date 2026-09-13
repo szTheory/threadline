@@ -32,8 +32,8 @@ defmodule Threadline.Capture.TriggerRedactionTest do
     Repo.query!(TriggerSQL.drop_trigger(@table))
     Repo.query!(TriggerSQL.drop_function_for_table(@table))
     Repo.query!("TRUNCATE #{@table} CASCADE")
-    Repo.delete_all(AuditChange)
-    Repo.delete_all(Threadline.Capture.AuditTransaction)
+    Repo.delete_all(AuditChange, repo_opts())
+    Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
     :ok
   end
 
@@ -59,7 +59,7 @@ defmodule Threadline.Capture.TriggerRedactionTest do
         ["secret", "alice@example.com", "hi"]
       )
 
-      [change] = Repo.all(AuditChange)
+      [change] = Repo.all(AuditChange, repo_opts())
       assert change.op == "insert"
       assert change.data_after
 
@@ -75,15 +75,15 @@ defmodule Threadline.Capture.TriggerRedactionTest do
           ["s0", "a@b.com", "x"]
         )
 
-      Repo.delete_all(AuditChange)
-      Repo.delete_all(Threadline.Capture.AuditTransaction)
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       Repo.query!(
         "UPDATE #{@table} SET password = $2, email = $3, public_bio = $4 WHERE id = $1",
         [id, "s1", "c@d.com", "y"]
       )
 
-      [change] = Repo.all(AuditChange)
+      [change] = Repo.all(AuditChange, repo_opts())
       assert change.op == "update"
       assert "email" in change.changed_fields
       refute Map.has_key?(change.data_after, "password")
@@ -100,12 +100,14 @@ defmodule Threadline.Capture.TriggerRedactionTest do
           ["pw", "u@example.com", "z"]
         )
 
-      Repo.delete_all(AuditChange)
-      Repo.delete_all(Threadline.Capture.AuditTransaction)
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       Repo.query!("DELETE FROM #{@table} WHERE id = $1", [id])
 
-      change = Repo.one!(Ecto.Query.from(c in AuditChange, where: c.op == "delete"))
+      change =
+        Repo.one!(Ecto.Query.from(c in AuditChange, where: c.op == "delete"), repo_opts())
+
       assert change.data_after == nil
     end
   end

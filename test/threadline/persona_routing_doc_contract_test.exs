@@ -60,6 +60,16 @@ defmodule Threadline.PersonaRoutingDocContractTest do
     end
   end
 
+  test "README keeps the theme-aware brand asset above the routing hub" do
+    readme = read_rel!(["README.md"])
+
+    assert String.starts_with?(readme, "<picture>")
+    assert String.contains?(readme, ~S|media="(prefers-color-scheme: dark)"|)
+    assert String.contains?(readme, "brandbook/logo-primary.svg")
+    assert String.contains?(readme, "brandbook/logo-primary-light.svg")
+    assert String.contains?(readme, ~S|alt="Threadline"|)
+  end
+
   test "no standalone start-here / where-to-go-next guide exists (ADOPT-03)" do
     refute File.exists?(Path.join(@repo_root, "guides/where-to-go-next.md")),
            "ADOPT-03 forbids a new wayfinding guide — reader intent, not a new guide, is the fix"

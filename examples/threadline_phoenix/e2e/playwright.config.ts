@@ -110,7 +110,7 @@ const projects = [
             /operator-coverage-readiness\.spec\.ts/,
             /operator-storybook\.spec\.ts/,
             /operator-timeline-investigation-flow\.spec\.ts/,
-            /operator-phase-177-uat\.spec\.ts/,
+            /operator-component-contracts\.spec\.ts/,
             /operator-phase-178-uat\.spec\.ts/,
           ],
           use: {

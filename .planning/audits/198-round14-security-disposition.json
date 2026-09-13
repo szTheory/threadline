@@ -1,0 +1,17 @@
+{
+  "schema_version": "threadline.phase198.security-disposition.v1",
+  "phase": "198",
+  "threat_id": "T-198-55-02",
+  "decision": "accept-risk",
+  "verbatim": "accept-risk by YOUR_NAME: I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained.",
+  "decided_by": "YOUR_NAME",
+  "decided_at": "2026-09-10T20:59:16Z",
+  "historical_evidence_reconstructed": false,
+  "rationale": "I accept the residual uncertainty that Plan 198-55’s exact historical argv and non-force method evidence was not retained.",
+  "accepted_scope": "The residual uncertainty for T-198-55-02 caused solely by the unavailable exact historical argv and non-force method evidence for completed Plan 198-55 mutations.",
+  "excluded_threats": ["T-198-55-03", "T-198-62-SC"],
+  "green_07": {
+    "status": "accepted-Pending",
+    "changed": false
+  }
+}

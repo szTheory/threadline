@@ -1,34 +1,5 @@
 defmodule Threadline.OperatorSurface.Exports.FilterParams do
-  @moduledoc """
-  Parses a string-keyed URL params map into a keyword list ready for
-  `Threadline.Query.validate_timeline_filters!/1`.
-
-  Used by both `Threadline.OperatorSurface.Live.TimelineLive` (LV-side) and
-  `Threadline.OperatorSurface.Controllers.ExportController` (HTTP-side) so
-  the two surfaces share one parser — guaranteeing the EXPO-05 byte-equality
-  parity test holds for every input edge case (RESEARCH §"Pitfall 3").
-
-  ## Allowed URL keys
-
-      from, to, table_schema, table, actor_kind, actor_id, correlation_id
-
-  Mapping to filter keys:
-
-  - `from`/`to` — ISO-8601 datetime-local (16-char form `YYYY-MM-DDTHH:MM` is
-    padded to `:00Z`; 19-char form `YYYY-MM-DDTHH:MM:SS` is padded to `Z`).
-  - `table_schema` / `table` — passed through verbatim.
-  - `actor_kind` + `actor_id` — collapsed to a single `actor_ref:
-    %Threadline.Semantics.ActorRef{}` keyword. `actor_kind=anonymous` strips
-    `actor_id`. Other kinds require both fields.
-  - `correlation_id` — passed through verbatim.
-
-  ## Atom safety
-
-  `actor_kind` is converted to an atom via `String.to_existing_atom/1` — never
-  via the unsafe variant that creates fresh atoms from arbitrary strings. The
-  atom table (16 MiB default) is shared process-wide; unfiltered HTTP input
-  could otherwise be used to fill it (RESEARCH §"Pitfall 11").
-  """
+  @moduledoc false
 
   alias Threadline.Semantics.ActorRef
 
@@ -40,7 +11,7 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
   # `?correlation_id=…` precisely because `:correlation_id` is only created when
   # `Threadline.Query` loads, which happens *after* normalize_params/1 runs.
   # Bounding the conversion to this fixed allowlist also preserves the
-  # atom-table-exhaustion guard (Pitfall 11): arbitrary input can never mint a
+  # atom-table-exhaustion guard: arbitrary input can never mint a
   # fresh atom.
   @filter_key_atoms %{
     "from" => :from,
@@ -118,7 +89,7 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
 
   defp normalize_anonymous(raw), do: raw
 
-  # ---- Private helpers (lifted verbatim from timeline_live.ex:282-393) ----
+  # Shared parsing helpers keep LiveView and HTTP export filters identical.
 
   defp normalize_params(params) do
     for {key, value} <- params,

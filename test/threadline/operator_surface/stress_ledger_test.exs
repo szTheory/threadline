@@ -3,10 +3,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use ExUnit.Case, async: true
 
     alias Threadline.OperatorSurface.StressFixtures
+    alias Threadline.Test.OperatorSurfaceFixtures
 
-    @ledger_path ".planning/design-system-ledger.json"
+    @ledger_path OperatorSurfaceFixtures.ledger!()
     @design_system_path "DESIGN-SYSTEM.md"
-    @synthetic_set_path ".planning/golden/synthetic-set.json"
+    @synthetic_set_path Path.join(OperatorSurfaceFixtures.golden!(), "synthetic-set.json")
 
     @top_level_keys ~w(
       critic_panel
@@ -16,7 +17,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       entries
       mechanical_auto_apply
       mechanical_floors
-      phase
+      provenance
       ratchet
       ratchet_rule
       required_inventory
@@ -32,7 +33,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       kind
       legacy_score
       notes
-      owner_phase
+      origin_cohort
       ratchet_score
       scores
       screenshot_baseline_refs
@@ -43,7 +44,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       target_score
     )
 
-    @optional_entry_keys ~w(evidence_ref reset_rationale reserved_for_phase)
+    @optional_entry_keys ~w(evidence_ref reset_rationale reserved_for_cohort)
 
     @allowed_kinds ~w(
       form_control
@@ -91,6 +92,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert is_list(ledger["entries"]), "#{@ledger_path} entries must be an array"
       assert is_map(ledger["ratchet"]), "#{@ledger_path} ratchet must be an object"
+      assert ledger["provenance"] == "baseline"
     end
 
     test "ledger entries are sorted and use only the contracted keys" do
@@ -110,6 +112,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert entry["kind"] in @allowed_kinds,
                "#{entry["id"]} kind #{inspect(entry["kind"])} is not an allowed ledger kind"
+
+        assert entry["origin_cohort"] in ["baseline", "page-state", "data-display", "refute-twin"],
+               "#{entry["id"]} must use the named origin-cohort vocabulary"
       end
     end
 
@@ -117,7 +122,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ledger = ledger()
       reset_ids = Map.get(ledger["ratchet"], "resets", [])
 
-      # Refute twins carry null scores by contract (D-04) and are covered by the
+      # Refute twins carry null scores by contract and are covered by the
       # dedicated refute sub-contract test below — never silently exempt.
       for entry <- ledger["entries"], entry["kind"] != "refute" do
         id = entry["id"]
@@ -142,24 +147,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    test "refute entries carry null scores (D-04) and never leak into the ratchet" do
+    test "refute entries carry null scores and never leak into the ratchet" do
       ledger = ledger()
       refute_entries = Enum.filter(ledger["entries"], &(&1["kind"] == "refute"))
       refute_ids = MapSet.new(refute_entries, & &1["id"])
 
       assert refute_entries != [],
-             "#{@ledger_path} must carry the Phase 195 refute-twin entries"
+             "#{@ledger_path} must carry the refute-twin cohort entries"
 
       for entry <- refute_entries do
         id = entry["id"]
 
-        # D-04: an unscored/vetoed fixture is null, NEVER 0 — a 0 would poison
+        # An unscored or vetoed fixture is null, never 0 — a 0 would poison
         # min() rollups and read as "scored bad" instead of "not scored".
         assert is_nil(entry["current_score"]),
-               "#{id} refute current_score must be null (D-04 null-never-0), got #{inspect(entry["current_score"])}"
+               "#{id} refute current_score must be null, got #{inspect(entry["current_score"])}"
 
         assert is_nil(entry["legacy_score"]),
-               "#{id} refute legacy_score must be null (D-04 null-never-0), got #{inspect(entry["legacy_score"])}"
+               "#{id} refute legacy_score must be null, got #{inspect(entry["legacy_score"])}"
 
         assert entry["ratchet_score"] == 0,
                "#{id} refute ratchet_score must be 0, got #{inspect(entry["ratchet_score"])}"
@@ -170,8 +175,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert entry["status"] == "current",
                "#{id} refute status must be \"current\", got #{inspect(entry["status"])}"
 
-        assert entry["owner_phase"] == 195,
-               "#{id} refute owner_phase must be 195, got #{inspect(entry["owner_phase"])}"
+        assert entry["origin_cohort"] == "refute-twin",
+               "#{id} refute origin_cohort must be refute-twin, got #{inspect(entry["origin_cohort"])}"
       end
 
       # The null-score allowance can never leak into the ratchet.
@@ -228,6 +233,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         entry = by_id[story.ledger_id]
         assert entry["story_id"] == story.id, "#{entry["id"]} story_id must match #{story.id}"
         assert entry["fixture_key"] == story.fixture_key
+        assert entry["origin_cohort"] == story.origin_cohort
       end
     end
 
@@ -238,7 +244,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert graded != [], "StressFixtures.graded_stories/0 must not be empty"
 
-      # D-12: the graded ladder's registry is the synthetic oracle set, not the
+      # The graded ladder's registry is the synthetic oracle set, not the
       # ledger — every graded story must back at least one oracle cell
       # ({story_id}__{theme}-{breakpoint}).
       for story <- graded do
@@ -266,8 +272,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             assert entry["status"] == "reserved",
                    "#{entry["id"]} assigns_for/1 failed with #{inspect(reason)} but is not reserved"
 
-            assert is_integer(entry["reserved_for_phase"]),
-                   "#{entry["id"]} reserved entries must include reserved_for_phase"
+            assert entry["reserved_for_cohort"] in ["baseline", "data-display", "page-state"],
+                   "#{entry["id"]} reserved entries must include a named reserved_for_cohort"
         end
       end
     end
@@ -280,8 +286,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert sorted_keys(allowlist) == ["ci", "local_review"],
              "#{@ledger_path} screenshot_allowlist must contain ci and local_review arrays"
 
-      # Tier C pixel allowlist stays bounded at exactly 3 (MECH-05). Tier A mechanical
-      # coverage grows via committed scorecards, NOT by expanding the pixel-diff lane.
+      # The Tier C cell list stays bounded at exactly 3. Tier A mechanical coverage
+      # grows via committed scorecards, NOT by expanding this lane.
       assert length(allowlist["ci"]) == 3,
              "#{@ledger_path} Tier C ci screenshot allowlist must stay bounded at exactly 3 entries, got #{length(allowlist["ci"])}"
 
@@ -289,10 +295,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Map.has_key?(by_id, item["ledger_id"]),
                "screenshot #{lane} allowlist references unknown ledger_id #{inspect(item["ledger_id"])}"
 
-        for key <- ~w(story_id theme viewport baseline_ref) do
+        for key <- ~w(story_id theme viewport) do
           assert Map.has_key?(item, key),
                  "screenshot #{lane} allowlist item #{inspect(item)} is missing #{key}"
         end
+      end
+
+      # `local_review` is a local capture list and still points at PNG names.
+      for item <- allowlist["local_review"] do
+        assert Map.has_key?(item, "baseline_ref"),
+               "local_review allowlist item #{inspect(item)} is missing baseline_ref"
+      end
+
+      # The `ci` lane uses structural proofs after retiring its pixel baselines. Each
+      # cell must now name the structural cell that asserts it AND carry a recorded
+      # retirement — a cell that simply dropped baseline_ref would silently assert nothing
+      # while still counting toward the bounded 3.
+      for item <- allowlist["ci"] do
+        assert is_binary(item["structural_ref"]) and item["structural_ref"] != "",
+               "ci allowlist item #{inspect(item["story_id"])} must name a structural_ref"
+
+        retired = item["pixel_baseline_retired"]
+
+        assert is_map(retired),
+               "ci allowlist item #{inspect(item["story_id"])} must record pixel_baseline_retired"
+
+        for key <- ~w(retired_baseline_ref reason evidence_ref) do
+          assert is_binary(retired[key]) and retired[key] != "",
+                 "pixel_baseline_retired for #{inspect(item["story_id"])} is missing a non-empty #{key}"
+        end
+
+        # evidence_ref is historical provenance, not an executable input. The non-empty
+        # contract above keeps the record non-vacuous without reading planning history.
       end
     end
 
@@ -344,7 +378,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "current_score is the min of rated cells, else the ratchet watermark (rollup integrity)" do
-      # Refute twins are all-null by contract (D-04) — rollup covered by the refute
+      # Refute twins are all-null by contract; rollup is covered by the refute
       # sub-contract test (current_score must be nil, never a watermark integer).
       for entry <- entries(), entry["kind"] != "refute" do
         id = entry["id"]
@@ -394,7 +428,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       valid_cell_keys = valid_cell_keys(ledger["cube_axes"])
 
       # is_integer/1 is load-bearing: under Elixir term ordering `nil > 0` is true,
-      # so a null current_score (refute twins, D-04) would masquerade as a score
+      # so a null current_score from refute twins would masquerade as a score
       # increase without it. Refute twins are additionally excluded by kind — their
       # null-score contract lives in the refute sub-contract test.
       for entry <- ledger["entries"],
@@ -426,7 +460,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       cube_lenses = Enum.map(cube_axes["lenses"], & &1["slug"])
 
       assert cube_lenses == ~w(hierarchy density rhythm typography color_contrast brand_fidelity),
-             "cube_axes lenses must match the D-01 frozen vocabulary in fixed order, got #{inspect(cube_lenses)}"
+             "cube_axes lenses must match the fixed vocabulary in order, got #{inspect(cube_lenses)}"
 
       valid_cell_keys = valid_cell_keys(cube_axes)
 

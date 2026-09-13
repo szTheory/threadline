@@ -5,7 +5,7 @@ defmodule Threadline.ChangeDiff do
   ## Authority
 
   `from_audit_change/2` is a **pass-through** of persisted `audit_changes` columns only.
-  It does not query the database, re-apply `Threadline.Capture.RedactionPolicy`, or invent
+  It does not query the database, re-apply capture-time redaction, or invent
   values that capture did not store. Low-information rows (masked columns, sparse
   `changed_from`) are expected and honest.
 
@@ -81,7 +81,7 @@ defmodule Threadline.ChangeDiff do
   `changed_from` to `%{}` when nil. Nested `"transaction"` and `"action"` are **not**
   included unless future versions add optional preload parameters.
   """
-  @spec from_audit_change(AuditChange.t(), keyword()) :: map()
+  @spec from_audit_change(%AuditChange{}, keyword()) :: map()
   def from_audit_change(%AuditChange{} = ch, opts \\ []) do
     if Keyword.get(opts, :format) == :export_compat do
       export_compat_map(ch)

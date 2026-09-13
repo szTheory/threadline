@@ -1,11 +1,5 @@
 defmodule Threadline.OperatorSurface.SessionPlug do
-  @moduledoc """
-  A Plug that executes a configured `actor_fn` on the connection and stores the
-  serialized `ActorRef` in the session under the `"threadline_actor_ref"` key.
-
-  This allows LiveView mounts (which don't have access to connection headers or
-  assigns) to read the authenticated actor directly from the session.
-  """
+  @moduledoc false
 
   @behaviour Plug
 

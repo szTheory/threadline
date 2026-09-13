@@ -59,7 +59,10 @@ Threadline-owned tables/functions live in `audit`. Use
 `storage_schema: "public"` only when you intentionally want the older
 public-schema footprint.
 
-For the full mix-task inventory and multi-database notes, see [`guides/production-checklist.md`](production-checklist.md#host-repo-wiring-prerequisite).
+For every supported setting and command boundary, see the
+[configuration and command reference](configuration-and-commands.md). For the
+production multi-database checklist, see
+[host repository wiring](production-checklist.md#host-repo-wiring-prerequisite).
 
 ## 3. Install the audit schema
 
@@ -119,21 +122,6 @@ Choose an auth lane when you need a full cookbook:
 
 Threadline does not require Sigra; do not use `Threadline.Integrations.Sigra`
 unless you adopt the optional sigra-reference lane.
-
-### Sigra reference wiring (optional)
-
-<!-- getting-started-sigra-reference-fence -->
-
-**sigra-reference example app only** — not required for capture.
-
-```elixir
-    plug(:accepts, ["json"])
-
-    plug(Threadline.Plug,
-      actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1,
-      context_overrides_fn: &Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1
-    )
-```
 
 ## 6. Exercise the first audited write
 
@@ -224,30 +212,6 @@ host auth stack:
 | phx-gen-auth-reference | [`guides/integrations/phx-gen-auth.md`](integrations/phx-gen-auth.md) |
 | sigra-reference | [`guides/integrations/sigra.md`](integrations/sigra.md) |
 | Choose lane | [`guides/upgrade-path.md`](upgrade-path.md) |
-
-<details>
-<summary>Runnable curl — sigra-reference example app only</summary>
-
-<!-- getting-started-sigra-http-staging-fence -->
-
-Start the reference Phoenix app, then send the first audited request:
-
-```bash
-curl -sS -X POST "http://localhost:4000/api/posts" \
-  -H "content-type: application/json" \
-  -H "x-request-id: $(uuidgen)" \
-  -H "x-correlation-id: demo-corr" \
-  -b '_threadline_phoenix_key=PASTE_FROM_BROWSER' \
-  -d '{"post":{"title":"Hello","slug":"hello-demo-slug"}}'
-```
-
-Cookie staging for the reference app lives in
-[`examples/threadline_phoenix/README.md`](../examples/threadline_phoenix/README.md)
-— sign in at **`/users/log_in`**, copy **`_threadline_phoenix_key`** from
-DevTools, and pass **`-b '_threadline_phoenix_key=PASTE_FROM_BROWSER'`**. This
-example does not ship API bearer tokens — host-owned auth only.
-
-</details>
 
 ## 7. Check trigger coverage
 
@@ -342,7 +306,7 @@ browser and operator pipeline. Reuse the real example router shape:
 
 Map captured table names to Ecto modules with the `:schemas` option on
 `threadline_operator_surface/2` — see
-[Row history reification](guides/operator-surface.md#row-history-reification-schemas)
+[Row history reification](operator-surface.md#row-history-reification-schemas)
 in the operator-surface guide.
 
 `pipe_through [:browser, :operator_browser, :operator_auth]` is the important
@@ -351,10 +315,9 @@ assigns Threadline expects, then `authorize_fn` acts as the fail-closed final
 check. Threadline does not provide host auth for you. Use one shared `%{assigns: assigns}` callback so the same
 host-owned policy can serve the LiveView mount and the export fallback mirror.
 
-When `actor_fn` is present on this standard mount path, Threadline
-auto-installs `Threadline.OperatorSurface.SessionPlug` and carries the returned
-`ActorRef` into LiveView automatically. No extra manual `SessionPlug` is
-required for the normal `/audit` recipe.
+When `actor_fn` is present on this standard mount path, Threadline installs its
+session bridge and carries the returned `ActorRef` into LiveView automatically.
+No extra manual plug is required for the normal `/audit` recipe.
 
 The canonical first-hour recipe is still admin first, but the runnable example
 also proves the stronger shared-operator shape: admins get the full surface,
@@ -376,8 +339,8 @@ threadline.health.coverage` or `mix threadline.policy.show` when needed.
 Mounted `/audit/evidence` is separately gated via `evidence_authorize_fn`.
 Support scopes that reach the scoped timeline do **not** automatically get the
 evidence UI — denied sessions see Unsupported View and should use
-`mix threadline.evidence.show`. For the full runbook, see
-`guides/operator-surface.md`. If you ever need a
+`mix threadline.evidence.show`. For the full runbook, see the
+[Operator Surface guide](operator-surface.md). If you ever need a
 non-standard transport shape, manual `SessionPlug` composition is still
 available as an advanced escape hatch rather than the primary setup path.
 
@@ -403,17 +366,31 @@ If you are not ready to mount the UI yet, you can stop after step 8 and stay on
 the capture-only path for now, but treat that as a temporary branch rather than
 the main first-hour adoption story.
 
-Keep support-lane claims and exact proof pins in
-`guides/upgrade-path.md`, and keep the Sigra-specific reference path in
-`guides/integrations/sigra.md`, rather than widening this first-hour guide into
+Keep support-lane claims and exact proof pins in the
+[upgrade path](upgrade-path.md), and keep the Sigra-specific reference path in
+the [Sigra integration guide](integrations/sigra.md), rather than widening this first-hour guide into
 its own compatibility matrix.
 
-## Next reads
+## Optional reference paths
 
-- [guides/production-checklist.md](production-checklist.md)
-- [guides/incident-playbook.md](incident-playbook.md)
-- [guides/performance.md](performance.md)
-- [guides/integrations/phx-gen-auth.md](integrations/phx-gen-auth.md)
-- [guides/integrations/sigra.md](integrations/sigra.md)
-- [guides/brownfield-continuity.md](brownfield-continuity.md)
-- [guides/adoption-pilot-backlog.md](adoption-pilot-backlog.md)
+The numbered first-hour path above is complete without an authentication
+adapter. When the primary capture and query checks are green, choose the
+[phx.gen.auth reference](integrations/phx-gen-auth.md) or the
+[Sigra reference](integrations/sigra.md) for host-specific callback wiring.
+The [Phoenix example proof](../examples/threadline_phoenix/README.md) traces the
+maintained Sigra lane to its source and tests without introducing another setup
+procedure.
+
+## Next steps
+
+- [Configuration and command reference](configuration-and-commands.md)
+- [Production checklist](production-checklist.md)
+- [Integration contracts](integration-contracts.md)
+- [Local Docker development](local-docker-dx.md)
+- [Upgrade and support lanes](upgrade-path.md)
+- [Incident playbook](incident-playbook.md)
+- [Performance](performance.md)
+- [phx.gen.auth integration](integrations/phx-gen-auth.md)
+- [Sigra integration](integrations/sigra.md)
+- [Brownfield continuity](brownfield-continuity.md)
+- [Adoption pilot backlog](adoption-pilot-backlog.md)

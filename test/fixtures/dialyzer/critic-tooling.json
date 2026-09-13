@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "slice": "critic-tooling",
+  "sealed_run": {
+    "output_sha256": "12c1164ae38a943a738b339d2758e866c51b284444480585e80d5d591169c3e6",
+    "warning_count": 40
+  },
+  "authorized_origins": [
+    "lib/mix/tasks/critic.measure.ex",
+    "lib/mix/tasks/critic.synth.ex",
+    "lib/threadline/critic_trust/measure.ex"
+  ],
+  "warnings": [
+    {
+      "id": "W01",
+      "class": "warn_return_no_exit",
+      "origin": {
+        "path": "lib/mix/tasks/critic.measure.ex",
+        "line": 372
+      },
+      "raw_line": "{:warn_return_no_exit, {~c\"lib/mix/tasks/critic.measure.ex\", {372, 8}}, {:no_return, [:only_normal, :task_error!, 3]}}",
+      "disposition": "fixed",
+      "evidence": "Describe the existing unconditional Mix.raise/1 helper with a truthful private no_return() contract."
+    },
+    {
+      "id": "W02",
+      "class": "warn_return_no_exit",
+      "origin": {
+        "path": "lib/mix/tasks/critic.synth.ex",
+        "line": 204
+      },
+      "raw_line": "{:warn_return_no_exit, {~c\"lib/mix/tasks/critic.synth.ex\", {204, 8}}, {:no_return, [:only_normal, :task_error!, 3]}}",
+      "disposition": "fixed",
+      "evidence": "Describe the existing unconditional Mix.raise/1 helper with a truthful private no_return() contract."
+    },
+    {
+      "id": "W05",
+      "class": "warn_umatched_return",
+      "origin": {
+        "path": "lib/threadline/critic_trust/measure.ex",
+        "line": 94
+      },
+      "raw_line": "{:warn_umatched_return, {~c\"lib/threadline/critic_trust/measure.ex\", {94, 11}}, {:unmatched_return, [~c\"{\\#{'next':=fun((_) -> {non_neg_integer(),_}), 'type':=atom(), 'bits'=>non_neg_integer(), 'jump'=>fun(({\\#{'type':=_, _=>_},_}) -> {\\#{'type':=_, _=>_},_}), 'max'=>non_neg_integer(), 'uniform'=>fun(({\\#{'type':=_, _=>_},_}) -> {float(),{\\#{'type':=_, _=>_},_}}), 'uniform_n'=>fun((pos_integer(),{\\#{'type':=_, _=>_},_}) -> {pos_integer(),{\\#{'type':=_, _=>_},_}}), 'weak_low_bits'=>non_neg_integer()},_}\"]}}",
+      "disposition": "fixed",
+      "evidence": "Explicitly consume the :rand.seed/2 return while preserving the existing seed tuple and generator algorithm."
+    }
+  ],
+  "post_analysis": {
+    "command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
+    "authorized_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

@@ -133,7 +133,35 @@ test.describe("operator surface screenshots", () => {
 
     await page.goto(`/audit/actors/user/${leavingAgentId}`);
     await page.getByRole("button", { name: "30d" }).click();
-    await expect(page.getByText(`Actor: user / ${leavingAgentId}`)).toBeVisible();
+    // The `<:heading>Actor: {type} / {id}</:heading>` literal this assertion
+    // originally targeted was removed by commit 3022e2e0 ("feat(186-01): align
+    // actor activity detail surface") well before this round; the page now
+    // shows the actor id inside `<UI.ref>`'s truncated-with-full-in-title
+    // `.tl-secondary-ref` span (same pattern already used below for the
+    // evidence page's `walk-retention-offboarded-co` ref), not as literal
+    // visible text — `getByText` on the un-truncated UUID can never match.
+    //
+    // WR-09: three restorations over the prior round's replacement.
+    // (a) `.first()` — `UI.ref` (`.tl-secondary-ref`) renders more than once on
+    //     this surface (same component the exports page uses per-row); without
+    //     `.first()` a duplicate render throws a strict-mode violation instead
+    //     of passing, matching the pattern already used elsewhere in this file.
+    // (b) `JSON.stringify(leavingAgentId)` — the id flows from seeded data into
+    //     a CSS attribute selector; quoting it means a value containing a quote
+    //     or backslash fails legibly instead of producing a silently-wrong
+    //     selector.
+    // (c) the actor **type** assertion the original `Actor: user / ${id}` text
+    //     check covered alongside id — restored via the `<:metadata key="Kind">`
+    //     row (actor_live.ex:156, rendered `<dt>Kind</dt><dd>user</dd>` by
+    //     `UI.kv`, ui.ex:441-450) rather than a loose page-wide text regex.
+    const actorRef = page
+      .locator(`.tl-secondary-ref[title=${JSON.stringify(leavingAgentId)}]`)
+      .first();
+    await expect(actorRef).toBeVisible();
+    const kindRow = page.locator(".tl-kv__row", {
+      has: page.locator(".tl-kv__key", { hasText: "Kind" }),
+    });
+    await expect(kindRow.locator(".tl-kv__value")).toHaveText("user");
     await expect(page.getByRole("button", { name: "30d", pressed: true })).toBeVisible();
     await expect(page.locator("#transactions-list, .tl-empty")).toBeVisible();
     await capture(page, testInfo, "actor");
@@ -157,7 +185,7 @@ test.describe("operator surface screenshots", () => {
     await capture(page, testInfo, "retention");
 
     await page.goto("/audit/exports");
-    await expect(page.getByRole("heading", { name: "Exports" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Exports", exact: true })).toBeVisible();
     await expect(page.getByText("Completed").first()).toBeVisible();
     await expect(page.getByText("Failed").first()).toBeVisible();
     await expect(page.getByText("Queued").first()).toBeVisible();

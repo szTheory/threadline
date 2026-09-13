@@ -17,6 +17,8 @@ The default path does not require Traefik, Caddy, or port 80.
 
 Read only the section for the job in front of you. The troubleshooting section
 is there for the moment Docker says a port or container already exists.
+These workflows are for local evaluation and contributor verification; they do
+not define a production deployment topology or production credentials.
 
 ## Try the UI demo
 
@@ -261,3 +263,8 @@ refreshes skip image rebuilds; use `--build` only when you need a rebuild.
 ```bash
 THREADLINE_DEMO_BASE_IMAGE=elixir:1.18-otp-27-slim bin/demo-up
 ```
+
+## Next steps
+
+- [Return to the canonical first-hour adoption path](getting-started-saas.md).
+- [Prepare the same integration for production](production-checklist.md).

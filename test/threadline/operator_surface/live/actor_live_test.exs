@@ -265,6 +265,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(lv, "next-page", %{})
     end
 
+    test "forged actor-window values are rejected without terminating the LiveView", %{conn: conn} do
+      assert {:ok, lv, _html} = live(conn, "/audit/actors/user/window-validation")
+
+      render_click(lv, "set-window", %{"hours" => "168"})
+      assert has_element?(lv, ~s|[phx-value-hours="168"][aria-pressed="true"]|)
+
+      for value <- ["abc", "-1", "999999999999999999999999", "24hours", 24, nil, [], %{}] do
+        render_click(lv, "set-window", %{"hours" => value})
+        assert has_element?(lv, ~s|[phx-value-hours="168"][aria-pressed="true"]|)
+      end
+
+      render_click(lv, "set-window", %{})
+      assert has_element?(lv, ~s|[phx-value-hours="168"][aria-pressed="true"]|)
+      assert Process.alive?(lv.pid)
+    end
+
     test "unscoped actor rows render blast-radius summaries and copyable transaction refs", %{
       conn: conn
     } do
@@ -331,6 +347,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "source contract: actor history and summaries use resolved storage opts" do
       source = File.read!("lib/threadline/operator_surface/live/actor_live.ex")
 
+      assert source =~ "@ui_form_policy :formless"
       assert source =~ "defp storage_schema_opts(_socket)"
       assert source =~ "storage_schema: StorageSchema.get()"
       assert source =~ "StorageSchema.repo_opts(storage_schema_opts)"

@@ -1,13 +1,21 @@
 # Operator Surface
 
-The Threadline Operator Surface provides a suite of mountable, drop-in LiveView screens to investigate row mutations, actor histories, and transaction contexts directly in your host application.
+The Threadline Operator Surface provides mountable LiveView screens for investigating
+row mutations, actor histories, and transaction contexts inside your host application.
 
 It is designed to be fully optional: `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` are optional dependencies, so capture-only integrations aren't forced to bring in UI code.
 
-For compatibility, support boundaries, and deprecation policy, see `guides/upgrade-path.md`. This guide stays focused on mount, auth, and screens.
-For the broader composition contract across `Threadline.Plug`, `Threadline.Job`,
-reference adapters, and operator-surface auth/export auth, see
-`guides/integration-contracts.md`.
+This guide is the canonical owner for operator capabilities, mounting,
+authorization, and mount-specific configuration. For every supported application
+key and command, use the [complete configuration and command
+reference](configuration-and-commands.md) rather than treating examples here as
+an exhaustive inventory.
+This guide stays focused on mount, auth, and screens.
+
+For compatibility, support boundaries, and deprecation policy, see the [upgrade
+path](upgrade-path.md). For the broader composition contract across
+`Threadline.Plug`, `Threadline.Job`, reference adapters, and operator-surface
+auth/export auth, see the [integration contracts](integration-contracts.md).
 
 PhoenixStorybook is maintainer-only component documentation in `examples/threadline_phoenix`
 and example-app dev/test maintainer tooling, not a root `threadline` dependency.
@@ -89,8 +97,8 @@ from the shell. The form uses native radio controls with values `system`,
 `Apply theme` button with POST `{base_path}/theme`. The controller allowlists
 those values, stores the choice in the session and `tl_theme` cookie, then
 redirects back to a same-origin referring operator page. The route is guarded by
-`Threadline.OperatorSurface.ThemeAuthPlug`, mirrors the mounted LiveView
-`authorize_fn`, and requires the host mount to run through a session-backed browser pipeline
+the same mounted `authorize_fn` decision as the LiveView pages and requires the
+host mount to run through a session-backed browser pipeline
 before session state can be mutated. Subsequent LiveView mounts
 use the session-backed runtime choice before falling back to the host `theme:`
 default, and the active lane renders server-side as `data-tl-theme`. The
@@ -122,8 +130,8 @@ Admin-first recipe:
 
 - Keep `/audit` behind `pipe_through [:browser, :admin_auth]`.
 - Return a real `Threadline.Semantics.ActorRef` from `actor_fn`; the standard
-  mount path auto-installs `Threadline.OperatorSurface.SessionPlug` and carries
-  that actor into LiveView for saved views and other actor-owned affordances.
+  mount path installs Threadline's session bridge and carries that actor into
+  LiveView for saved views and other actor-owned affordances.
 - Let `authorize_fn` make the final allow/deny decision.
 - Keep export routes enabled for admins unless your host wants stricter posture.
 
@@ -178,13 +186,13 @@ Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with t
 
 `live_session` and `on_mount` protect the LiveView pages only. They do not
 secure the sibling HTTP export controller routes. Export denials stay
-HTTP-native through `Threadline.OperatorSurface.ExportAuthPlug`: denial or
-error halts with plain-text `403`, not a LiveView redirect.
+HTTP-native through `export_authorize_fn`: denial or error halts with
+plain-text `403`, not a LiveView redirect.
 
 If you use one shared `%{assigns: assigns}` export callback, Threadline also
 uses that result to hide export affordances in the timeline LiveView for denied
 operator scopes. Direct HTTP export routes remain protected by server/controller auth
-through `Threadline.OperatorSurface.ExportAuthPlug`; LiveView hides affordances
+through the server-side export authorization contract; LiveView hides affordances
 for denied scopes, but HTTP export auth remains authoritative even if you choose
 a Conn-specific callback shape and keep the buttons visible.
 
@@ -214,9 +222,9 @@ The `:actor_fn` acts just like the native `Threadline.Plug` configuration,
 determining the identity performing actions in the operator surface.
 
 On the standard `threadline_operator_surface/2` mount path, providing
-`actor_fn` auto-installs `Threadline.OperatorSurface.SessionPlug` ahead of the
-LiveView routes. No extra manual `SessionPlug` is required for the normal
-mount. Return a real `Threadline.Semantics.ActorRef` or `nil`.
+`actor_fn` installs Threadline's session bridge ahead of the LiveView routes.
+No extra manual plug is required for the normal mount. Return a real
+`Threadline.Semantics.ActorRef` or `nil`.
 
 Session actor data stays authoritative once LiveView mounts. If your
 `authorize_fn` also returns a compatibility-only scope fallback such as
@@ -224,9 +232,8 @@ Session actor data stays authoritative once LiveView mounts. If your
 emits a low-noise mismatch telemetry event instead of silently inverting
 ownership.
 
-Manual `Threadline.OperatorSurface.SessionPlug` composition remains available as
-an advanced escape hatch when you intentionally need a non-standard router or
-transport shape outside the canonical mount path.
+For a non-standard router or transport shape outside the canonical mount path,
+compose actor context explicitly before dispatching to the operator router.
 
 ## Available Screens (v1.17)
 
@@ -446,9 +453,9 @@ Default output prints one summary line, one aligned `TABLE / STATUS / CONFIG / D
 
 The operator surface ships with **no external asset pipeline and no JavaScript dependencies**. Everything it needs is embedded inline by the mounted LiveViews at render time:
 
-- **Styles** — a single scoped `<style>` block (`Threadline.OperatorSurface.Style`).
-- **Fonts** — Geist and IBM Plex Mono as `@font-face` data-URIs, embedded at compile time (`Threadline.OperatorSurface.Fonts`).
-- **Copy helper** — a tiny, dependency-free `<script>` (`Threadline.OperatorSurface.Script`) that powers the "Copy" affordance on correlation and transaction ids. It binds one delegated listener; there is no host LiveSocket hook to register.
+- **Styles** — a single scoped `<style>` block rendered by the operator shell.
+- **Fonts** — Geist and IBM Plex Mono as `@font-face` data-URIs embedded at compile time.
+- **Copy helper** — a tiny, dependency-free `<script>` that powers the "Copy" affordance on correlation and transaction ids. It binds one delegated listener; there is no host LiveSocket hook to register.
 
 This keeps the surface a true drop-in: mount it and the screens render fully styled, with no `assets/` build step.
 
@@ -477,3 +484,11 @@ server-posted form with CSRF, not a client-side storage or scripting feature.
 Disabling an embed never breaks a screen: fonts fall back to the system stack, and the copy affordance falls back to native text selection.
 
 `[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{error: message}`; alert on this for sustained drift.
+
+## Operational paths
+
+- [Investigate a reported change with the incident playbook](incident-playbook.md).
+- [Measure capture and query cost before tuning](performance.md).
+- [Choose evidence-backed indexes for audit workloads](audit-indexing.md).
+- [Understand the boundary between repository proof and host evidence](adoption-evidence-playbook.md).
+- [Review every supported key, adapter seam, and command](configuration-and-commands.md).

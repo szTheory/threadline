@@ -1,37 +1,5 @@
 defmodule Threadline.CriticTrust.KrippendorffAlpha do
-  @moduledoc """
-  Pure-Elixir Krippendorff's alpha (ordinal distance function) for two raters.
-
-  Computes the chance-corrected inter-rater agreement coefficient α over a list
-  of `{r1_value, r2_value}` ordinal pairs. Used by `mix verify.critic_trust` to
-  gate per-lens critic trust (CRITIC-03).
-
-  ## Formula (ordinal coincidence matrix, Krippendorff 2011)
-
-      α = 1 − Dₒ / Dₑ
-
-  where:
-  - Dₒ = observed disagreement (weighted sum over the coincidence matrix)
-  - Dₑ = expected disagreement (what chance agreement predicts)
-
-  The ordinal distance between categories v and v' is:
-
-      d²(v, v') = (Σ_{g=v}^{v'} n_g − (n_v + n_v') / 2)²
-
-  where n_g is the marginal frequency of category g across both raters.
-
-  ## Edge cases
-
-  - Perfect agreement: Dₒ = 0, returns `{:ok, 1.0}`.
-  - All raters use a single value (Dₑ = 0): convention is `{:ok, 1.0}` (no
-    disagreement is possible; reliability is maximum by definition).
-  - Systematic agreement worse than chance: returns `{:ok, alpha}` where
-    `alpha < 0`. **Never clamp** — a negative α is a meaningful signal (the
-    critic disagrees with the human oracle more than chance predicts).
-  - Fewer than 2 pairs: returns `{:error, :insufficient_data}`.
-
-  No external dependencies — safe in `ci.all` alongside `stress_ledger_test.exs`.
-  """
+  @moduledoc false
 
   @doc """
   Computes Krippendorff's α (ordinal) for two raters.

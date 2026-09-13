@@ -13,16 +13,20 @@
  */
 
 import { createServer, IncomingMessage, ServerResponse } from "node:http";
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { existsSync, readFileSync, mkdirSync } from "node:fs";
+import { resolve } from "node:path";
 import { execSync } from "node:child_process";
 import type { LensName } from "./schema.js";
+import {
+  atomicWriteFile,
+  DEFAULT_OPERATOR_SURFACE_PATHS,
+  readRequiredJson,
+  resolveContainedPath,
+} from "../support/operator-surface-paths.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(here, "../../../..");
-const goldenDir = resolve(repoRoot, ".planning/golden");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
+const repoRoot = DEFAULT_OPERATOR_SURFACE_PATHS.repositoryRoot;
+const goldenDir = DEFAULT_OPERATOR_SURFACE_PATHS.goldenDir;
+const scorecardsDir = DEFAULT_OPERATOR_SURFACE_PATHS.scorecardsDir;
 const queuePath = resolve(goldenDir, "queue.json");
 const roundPath = (round: "r1" | "r2") => resolve(goldenDir, "rounds", `${round}.json`);
 
@@ -63,8 +67,12 @@ const LENS_GUIDE: Record<LensName, { q: string; good: string; bad: string }> = {
   brand_fidelity: { q: "does it feel designed in a terse, operational voice — not generically recolored?", good: "intentional design; precise, operational copy", bad: "generic / recolored; chatty, vague, or apologetic copy" },
 };
 
-const readJson = <T>(p: string): T => JSON.parse(readFileSync(p, "utf8")) as T;
-const writeJson = (p: string, v: unknown) => writeFileSync(p, `${JSON.stringify(v, null, 2)}\n`, "utf8");
+const readJson = <T>(p: string): T => readRequiredJson<T>(p, {
+  dataset: "critic web-label evidence",
+  repositoryOnly: true,
+  recoveryCommand: "npm run critic:label -- --bootstrap",
+});
+const writeJson = (p: string, v: unknown) => atomicWriteFile(p, `${JSON.stringify(v, null, 2)}\n`);
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
 
 function screenshotPathFor(cellId: string): string | null {
@@ -72,7 +80,7 @@ function screenshotPathFor(cellId: string): string | null {
   if (!existsSync(sc)) return null;
   const rel = (readJson<{ artifacts?: { screenshot?: string } }>(sc).artifacts || {}).screenshot;
   if (!rel) return null;
-  const abs = resolve(repoRoot, rel);
+  const abs = resolveContainedPath(repoRoot, rel);
   return existsSync(abs) ? abs : null;
 }
 

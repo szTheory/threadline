@@ -110,3 +110,8 @@ Pre-launch: confirm operators can answer the five canonical support questions (s
 - [Adoption pilot backlog](adoption-pilot-backlog.md) — matrix to run this checklist in a real environment and file issues with evidence.
 - [Domain reference](domain-reference.md) — schema, retention semantics, export behavior.
 - [HexDocs](https://hexdocs.pm/threadline) — `Threadline`, `Threadline.Export`, `Threadline.Retention`, `Threadline.Query`.
+
+## Next steps
+
+- [Return to the canonical first-hour adoption path](getting-started-saas.md).
+- [Continue with brownfield continuity checks](brownfield-continuity.md).

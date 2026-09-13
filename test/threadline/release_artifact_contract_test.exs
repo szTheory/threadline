@@ -1,6 +1,49 @@
 defmodule Threadline.ReleaseArtifactContractTest do
   @moduledoc false
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
+
+  @banned_shapes [
+    {:phase_prose, ~r/\bPhase\s+\d+(?:\.\d+)?\b/i},
+    {:phase_identifier, ~r/\bphase[_-]?\d+(?:[_-][a-z0-9_]+)?\b/i},
+    {:decision_id, ~r/\bD-\d{2,}\b/},
+    {:requirement_id,
+     ~r/\b(?:ADOPT|COMP|CRITIC|DATA|GREEN|GROUP|MECH|NAV|PROOF|SURFACE|WR)-\d{2,}\b/},
+    {:milestone_literal, ~r/\bv1\.(?:3[4-9]|4[01])\b/}
+  ]
+
+  @source_owners %{
+    source_vocab_core_runtime: [
+      "lib/mix/tasks/threadline.health.coverage.ex",
+      "lib/threadline/capture/audit_transaction.ex",
+      "lib/threadline/plug.ex"
+    ],
+    source_vocab_core_query_policy: [
+      "lib/threadline/query.ex",
+      "lib/threadline/retention/policy.ex"
+    ],
+    source_vocab_operator_infrastructure: [
+      "lib/threadline/operator_surface/components/logo.ex",
+      "lib/threadline/operator_surface/mechanical_checker.ex"
+    ],
+    source_vocab_operator_stress: [
+      "lib/threadline/operator_surface/stress_fixtures.ex",
+      "lib/threadline/operator_surface/live/stress_live.ex"
+    ],
+    source_vocab_operator_live_forms: [
+      "lib/threadline/operator_surface/live/actor_live.ex",
+      "lib/threadline/operator_surface/live/coverage_live.ex",
+      "lib/threadline/operator_surface/live/evidence_live.ex",
+      "lib/threadline/operator_surface/live/export_status_live.ex",
+      "lib/threadline/operator_surface/live/policy_redaction_live.ex"
+    ],
+    source_vocab_operator_live_records: [
+      "lib/threadline/operator_surface/live/retention_history_live.ex",
+      "lib/threadline/operator_surface/live/row_history_live.ex",
+      "lib/threadline/operator_surface/live/start_live.ex",
+      "lib/threadline/operator_surface/live/timeline_live.ex",
+      "lib/threadline/operator_surface/live/transaction_live.ex"
+    ]
+  }
 
   defp project_config, do: Threadline.MixProject.project()
 
@@ -10,6 +53,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
   defp guide_extras do
     docs_config()[:extras]
+    |> Enum.filter(&is_binary/1)
     |> Enum.filter(&String.starts_with?(&1, "guides/"))
     |> MapSet.new()
   end
@@ -34,6 +78,141 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "README.md" in extras
     assert "CONTRIBUTING.md" in extras
     assert "CHANGELOG.md" in extras
+    assert "brandbook/logo-primary.svg" in files
+    assert "brandbook/logo-primary-light.svg" in files
+    assert docs_config()[:assets] == %{"brandbook" => "brandbook"}
+  end
+
+  @tag :url_extras
+  test "README-led docs expose version-pinned repository resources without packaging them" do
+    docs = docs_config()
+    assert docs[:main] == "readme"
+    assert docs[:extra_section] == "Guides"
+    assert "guides/configuration-and-commands.md" in docs[:extras]
+
+    assert Keyword.keys(docs[:groups_for_extras]) == [
+             :Overview,
+             :Integrations,
+             :Evaluate,
+             :Adopt,
+             :Operate,
+             :Contribute
+           ]
+
+    external = Enum.filter(docs[:extras], &is_tuple/1)
+    assert length(external) == 2
+
+    targets =
+      Enum.map(external, fn {url, opts} ->
+        assert opts[:url] == url
+        assert is_binary(opts[:title]) and opts[:title] != ""
+        assert Regex.match?(~r{/blob/v\d+\.\d+\.\d+/(.+)$}, url)
+        [_, target] = Regex.run(~r{/blob/[^/]+/(.+)$}, url)
+        target
+      end)
+
+    assert MapSet.new(targets) ==
+             MapSet.new(["DESIGN-SYSTEM.md", "examples/threadline_phoenix/README.md"])
+
+    refute "DESIGN-SYSTEM.md" in package_files()
+    refute "examples/threadline_phoenix/README.md" in package_files()
+
+    groups = docs[:groups_for_extras]
+
+    example_url =
+      Enum.find_value(external, fn {url, _opts} ->
+        if String.ends_with?(url, "examples/threadline_phoenix/README.md"), do: url
+      end)
+
+    design_url =
+      Enum.find_value(external, fn {url, _opts} ->
+        if String.ends_with?(url, "DESIGN-SYSTEM.md"), do: url
+      end)
+
+    assert Regex.match?(Keyword.fetch!(groups, :Adopt), example_url)
+    assert Regex.match?(Keyword.fetch!(groups, :Contribute), design_url)
+  end
+
+  test "built Hex archive excludes repository evidence" do
+    %{entries: entries, readable: readable} = built_archive()
+
+    assert entries != [], "unpacked Hex archive contained no files"
+    assert map_size(readable) > 0, "unpacked Hex archive contained no readable UTF-8 files"
+    assert "lib/threadline.ex" in entries
+    assert "mix.exs" in entries
+    assert Map.has_key?(readable, "lib/threadline.ex")
+    assert Map.has_key?(readable, "mix.exs")
+    refute Enum.any?(entries, &String.starts_with?(&1, "test/fixtures/"))
+    refute Enum.any?(entries, &String.starts_with?(&1, ".planning/"))
+  end
+
+  test "planning-vocabulary matcher rejects every representative offender" do
+    offenders = [
+      {"README.md", "Phase 200 prepared this text"},
+      {"lib/sample.ex", "def phase177_gate, do: :ok"},
+      {"guides/sample.md", "Decision D-14 owns this"},
+      {"mix.exs", "SURFACE-07"},
+      {"CHANGELOG.md", "Milestone v1.41"}
+    ]
+
+    for {path, content} <- offenders do
+      assert [_ | _] = planning_vocabulary_matches(%{path => content}),
+             "positive control did not flag #{path}: #{content}"
+    end
+
+    assert planning_vocabulary_matches(%{
+             "lib/logo.ex" => "path d=\"M13 4 C13 8\"",
+             "README.md" => "Threadline 0.9 audit data"
+           }) == []
+  end
+
+  for {tag, paths} <- @source_owners do
+    @tag tag
+    @tag :phase200_red
+    test "#{tag} is an exact nonempty archive source owner" do
+      expected = unquote(Macro.escape(paths))
+      assert expected != []
+      assert Enum.all?(expected, &File.regular?/1)
+
+      archive = built_archive()
+      selected = Map.take(archive.readable, expected)
+      assert Map.keys(selected) |> Enum.sort() == Enum.sort(expected)
+
+      matches = planning_vocabulary_matches(selected)
+      assert matches == [], format_vocab_matches(matches)
+
+      injected = Map.put(selected, hd(expected), File.read!(hd(expected)) <> "\nD-99\n")
+      assert Enum.any?(planning_vocabulary_matches(injected), &(&1.path == hd(expected)))
+    end
+  end
+
+  @tag :source_module_vocabulary
+  @tag :phase200_red
+  @tag :phase200_aggregate
+  test "all packaged source uses durable vocabulary" do
+    archive = built_archive()
+
+    source =
+      archive.readable
+      |> Map.filter(fn {path, _content} ->
+        path == "mix.exs" or
+          (String.starts_with?(path, "lib/") and String.ends_with?(path, ".ex"))
+      end)
+
+    assert map_size(source) > 0
+    assert Map.has_key?(source, "lib/threadline.ex")
+    matches = planning_vocabulary_matches(source)
+    assert matches == [], format_vocab_matches(matches)
+  end
+
+  @tag :archive_vocabulary
+  @tag :phase200_red
+  @tag :phase200_aggregate
+  test "the entire readable archive is free of planning vocabulary" do
+    archive = built_archive()
+    assert map_size(archive.readable) > 0
+    matches = planning_vocabulary_matches(archive.readable)
+    assert matches == [], format_vocab_matches(matches)
   end
 
   test "ExDoc extras keep integrations ahead of the verb routing lanes" do
@@ -47,36 +226,40 @@ defmodule Threadline.ReleaseArtifactContractTest do
            ]
   end
 
-  test "ExDoc module groups keep Sigra in a dedicated integrations bucket" do
+  test "ExDoc module groups keep integration and operator entrypoints discoverable" do
     groups = docs_config()[:groups_for_modules]
 
     assert Keyword.fetch!(groups, :Integrations) == [Threadline.Integrations.Sigra]
 
-    assert Keyword.fetch!(groups, :"Operator Surface (Optional In-Tree)") == [
+    assert Keyword.fetch!(groups, :"Operator Surface") == [
+             Threadline.OperatorSurface,
              Threadline.OperatorSurface.Router,
              Threadline.OperatorSurface.Auth
            ]
 
-    assert Keyword.fetch!(groups, :Integration) == [
-             Threadline.Plug,
-             Threadline.Job,
-             Threadline.Health,
-             Threadline.Continuity,
-             Threadline.Telemetry
-           ]
+    core_api = Keyword.fetch!(groups, :"Core API")
+
+    for module <- [
+          Threadline.Plug,
+          Threadline.Job,
+          Threadline.Health,
+          Threadline.Continuity,
+          Threadline.Telemetry
+        ] do
+      assert module in core_api
+    end
   end
 
-  test "ExDoc module groups include Evidence plane and Core API audit modules" do
+  test "ExDoc module groups include public evidence types and adopter Mix tasks" do
     groups = docs_config()[:groups_for_modules]
 
-    assert Keyword.fetch!(groups, :Evidence) == [
-             Threadline.Evidence,
-             Threadline.Evidence.Proof,
-             Threadline.Evidence.Subject
-           ]
+    data_types = Keyword.fetch!(groups, :"Data Types")
+    assert Threadline.Evidence.Proof in data_types
+    assert Threadline.Evidence.Subject in data_types
 
     core_api = Keyword.fetch!(groups, :"Core API")
     assert Threadline.Audit in core_api
+    assert Threadline.Evidence in core_api
 
     mix_tasks = Keyword.fetch!(groups, :"Mix Tasks")
     assert Mix.Tasks.Threadline.Evidence.Show in mix_tasks
@@ -98,5 +281,67 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert String.contains?(doc, ".github/workflows/release.yml")
     assert String.contains?(doc, "workflow_dispatch")
     assert String.contains?(doc, "v0.6.0")
+  end
+
+  defp built_archive do
+    unpack_root =
+      Path.join(
+        System.tmp_dir!(),
+        "threadline-hex-contract-#{System.unique_integer([:positive])}"
+      )
+
+    on_exit(fn -> File.rm_rf!(unpack_root) end)
+
+    case System.cmd(
+           System.find_executable("mix"),
+           ["hex.build", "--unpack", "--output", unpack_root],
+           cd: File.cwd!(),
+           env: [{"MIX_ENV", "dev"}],
+           stderr_to_stdout: true
+         ) do
+      {_output, 0} ->
+        files =
+          unpack_root
+          |> Path.join("**/*")
+          |> Path.wildcard(match_dot: true)
+          |> Enum.filter(&File.regular?/1)
+
+        entries = files |> Enum.map(&Path.relative_to(&1, unpack_root)) |> Enum.sort()
+
+        readable =
+          Enum.reduce(files, %{}, fn path, acc ->
+            case File.read(path) do
+              {:ok, content} ->
+                if String.valid?(content),
+                  do: Map.put(acc, Path.relative_to(path, unpack_root), content),
+                  else: acc
+
+              {:error, _reason} ->
+                acc
+            end
+          end)
+
+        %{entries: entries, readable: readable}
+
+      {output, status} ->
+        flunk("mix hex.build --unpack failed (#{status}):\n#{output}")
+    end
+  end
+
+  defp planning_vocabulary_matches(files) do
+    for {path, content} <- files,
+        {line, line_number} <- content |> String.split("\n") |> Enum.with_index(1),
+        {shape, regex} <- @banned_shapes,
+        Regex.match?(regex, path) or Regex.match?(regex, line),
+        do: %{path: path, line: line_number, shape: shape, text: String.trim(line)}
+  end
+
+  defp format_vocab_matches(matches) do
+    details =
+      Enum.map_join(matches, "\n", fn match ->
+        "#{match.path}:#{match.line}: #{match.shape}: #{match.text}"
+      end)
+
+    "packaged planning vocabulary must be rewritten as durable domain rationale:\n#{details}"
   end
 end

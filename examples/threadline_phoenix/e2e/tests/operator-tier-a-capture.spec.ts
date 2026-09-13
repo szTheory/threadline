@@ -1,14 +1,19 @@
 import { expect, Page, test } from "@playwright/test";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdirSync } from "node:fs";
+import { relative } from "node:path";
+import {
+  atomicWriteFile,
+  currentOperatorSurfacePaths,
+  resolveContainedPath,
+} from "../support/operator-surface-paths.js";
 
 // Tier A deterministic capture lane (Phase 194, MECH-04 / MECH-05).
 //
 // This spec drives /audit/__stress and emits, per matrix cell:
 //   - gitignored binaries under examples/threadline_phoenix/e2e/artifacts/tier-a/<cell-id>/
 //     (screenshot.png + dom.html + a11y.json)
-//   - a COMMITTED, diffable RAW-inputs scorecard at .planning/scorecards/<cell-id>.json
-//   - for the deep band (Band 2) a COMMITTED .planning/scorecards/<cell-id>.aria.yml
+//   - a COMMITTED, diffable RAW-inputs scorecard in the shared immutable corpus
+//   - for the deep band (Band 2) a COMMITTED paired ARIA snapshot in that corpus
 //
 // Determinism contract (byte-stable regeneration): the committed JSON carries NO
 // wall-clock timestamp and NO machine-derived values. Every mechanical VERDICT
@@ -20,12 +25,9 @@ import { resolve } from "node:path";
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
 
-const repoRoot = resolve(process.cwd(), "../../..");
-const scorecardsDir = resolve(repoRoot, ".planning/scorecards");
-const artifactsRoot = resolve(
-  repoRoot,
-  "examples/threadline_phoenix/e2e/artifacts/tier-a",
-);
+const paths = currentOperatorSurfacePaths();
+const scorecardsDir = paths.scorecardsDir;
+const artifactsRoot = paths.tierAArtifactsDir;
 
 // Pinned for cross-machine byte-stability — never `new Date()` / installed version.
 const PLAYWRIGHT_VERSION = "1.61.1";
@@ -89,11 +91,11 @@ function cellId(ledgerId: string, theme: string, breakpoint: number): string {
 }
 
 function scorecardPath(id: string): string {
-  return resolve(scorecardsDir, `${id}.json`);
+  return resolveContainedPath(scorecardsDir, `${id}.json`);
 }
 
 function ariaSnapshotPath(id: string): string {
-  return resolve(scorecardsDir, `${id}.aria.yml`);
+  return resolveContainedPath(scorecardsDir, `${id}.aria.yml`);
 }
 
 function dynamicMasks(page: Page) {
@@ -107,7 +109,7 @@ function dynamicMasks(page: Page) {
 function writeJson(path: string, value: unknown) {
   // Two-space indent + trailing newline: matches the committed ledger convention
   // and keeps `git diff` on the scorecards byte-stable across regeneration.
-  writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  atomicWriteFile(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 async function login(page: Page) {
@@ -255,12 +257,30 @@ async function rawInputs(page: Page, cardSelector: string) {
       if (depth > cardNestingDepth) cardNestingDepth = depth;
     }
 
+    // Scroll cost is the PRODUCT surface's content height in viewports — scoped to
+    // `main` like every sibling field above, NOT `document.documentElement`. On
+    // /audit/__stress the document is ~98.5% harness-sidebar story catalog (35726px
+    // of 36374px measured; the preview itself is 502px), so a document-wide read
+    // grows with every newly registered story and carries no per-page signal at all.
+    // See the Phase 198 Tier-A byte-stability audit (198-16 diagnosis).
+    //
+    // Quantized to HALF-VIEWPORTS, deliberately. Once the read is scoped to real product
+    // content it becomes sensitive to real rendering differences: CI measured 0.654 where
+    // this machine measured 0.628 (~23px, one extra wrapped line) on four cells at the
+    // 375/768 breakpoints. At 3-decimal precision that value can be neither byte-stable
+    // nor ratcheted — CI's 0.654 would also breach a 0.628 floor. The old document-wide
+    // read only *looked* environment-stable because it was measuring a fixed sidebar
+    // rather than the page.
+    //
+    // A 0.5 bucket is ~19x the observed cross-environment delta, so both environments
+    // agree, while the metric still catches what a scroll-cost ratchet is actually for:
+    // gross bloat, a panel going from half a viewport to two. The honest claim is that
+    // this value is reproducible to half-viewport precision and no finer.
+    const SCROLL_COST_BUCKET = 0.5;
     const scrollCost =
       Math.round(
-        (document.documentElement.scrollHeight /
-          Math.max(window.innerHeight, 1)) *
-          1000,
-      ) / 1000;
+        main.scrollHeight / Math.max(window.innerHeight, 1) / SCROLL_COST_BUCKET,
+      ) * SCROLL_COST_BUCKET;
 
     const landmarkSel =
       'main, nav, header, footer, aside, [role="main"], [role="navigation"], ' +
@@ -312,27 +332,29 @@ async function captureCell(
   // Fonts affect computed sizes / scroll-cost — settle before observing styles.
   await page.evaluate(() => (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready);
 
-  const artifactDir = resolve(artifactsRoot, id);
+  const artifactDir = resolveContainedPath(artifactsRoot, id);
   mkdirSync(artifactDir, { recursive: true });
 
   // Gitignored, regenerable binaries.
   await page.screenshot({
-    path: resolve(artifactDir, "screenshot.png"),
+    path: resolveContainedPath(artifactDir, "screenshot.png"),
     fullPage: true,
     scale: "css",
     mask: dynamicMasks(page),
   });
-  writeFileSync(resolve(artifactDir, "dom.html"), await page.content(), "utf8");
+  atomicWriteFile(
+    resolveContainedPath(artifactDir, "dom.html"),
+    await page.content(),
+  );
   let rawA11y: unknown = null;
   try {
     rawA11y = await page.accessibility.snapshot();
   } catch {
     rawA11y = null;
   }
-  writeFileSync(
-    resolve(artifactDir, "a11y.json"),
+  atomicWriteFile(
+    resolveContainedPath(artifactDir, "a11y.json"),
     `${JSON.stringify(rawA11y, null, 2)}\n`,
-    "utf8",
   );
 
   const tokens = await resolvedTokens(page);
@@ -363,7 +385,7 @@ async function captureCell(
       screenshot: `${relDir}/screenshot.png`,
       dom: `${relDir}/dom.html`,
       a11y: `${relDir}/a11y.json`,
-      aria: deepBand ? `.planning/scorecards/${id}.aria.yml` : null,
+      aria: deepBand ? relative(paths.repositoryRoot, ariaSnapshotPath(id)) : null,
     },
   };
   writeJson(scorecardPath(id), scorecard);
@@ -372,10 +394,9 @@ async function captureCell(
     // Scope to the product preview surface (excludes the app-shell header/timestamp
     // AND the /audit/__stress harness sidebar chrome). (Pitfall 6.)
     const ariaYaml = await page.locator('[data-testid="stress-preview"]').ariaSnapshot();
-    writeFileSync(
+    atomicWriteFile(
       ariaSnapshotPath(id),
       ariaYaml.endsWith("\n") ? ariaYaml : `${ariaYaml}\n`,
-      "utf8",
     );
   }
 }

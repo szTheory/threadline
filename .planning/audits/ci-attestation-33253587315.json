@@ -1,0 +1,124 @@
+{
+  "schema": "threadline.ci-attestation/1",
+  "recorded_by": "bin/record-ci-attestation",
+  "note": "Verbatim snapshot of what GitHub Actions reported for this run. Conclusions are recorded as-is; every non-success value (failure, cancelled, skipped, neutral) is preserved rather than normalised.",
+  "run": {
+    "id": 33253587315,
+    "url": "https://github.com/szTheory/threadline/actions/runs/33253587315",
+    "workflow": "CI",
+    "title": "DO NOT MERGE — CI measurement: Phase 198 gap-closure round 4",
+    "branch": "ci/198-round4",
+    "head_sha": "f433ef3ea6fdc0667bb042addfa5a18eeb7f59e6",
+    "event": "pull_request",
+    "attempt": 1,
+    "status": "completed",
+    "conclusion": "failure",
+    "started_at": "2026-08-29T12:52:18Z",
+    "completed_at": "2026-08-29T13:00:29Z"
+  },
+  "totals": {
+    "jobs": 14,
+    "success": 10,
+    "not_success": 4
+  },
+  "jobs": [
+    {
+      "name": "Build ExDoc (dev)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:22Z",
+      "completed_at": "2026-08-29T12:53:48Z"
+    },
+    {
+      "name": "CI required",
+      "conclusion": "failure",
+      "status": "completed",
+      "started_at": "2026-08-29T13:00:24Z",
+      "completed_at": "2026-08-29T13:00:28Z"
+    },
+    {
+      "name": "Check formatting",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:22Z",
+      "completed_at": "2026-08-29T12:52:40Z"
+    },
+    {
+      "name": "Compile without optional deps",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:20Z",
+      "completed_at": "2026-08-29T12:53:20Z"
+    },
+    {
+      "name": "Example app browser E2E (Playwright)",
+      "conclusion": "failure",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:21Z",
+      "completed_at": "2026-08-29T13:00:22Z"
+    },
+    {
+      "name": "Hex evaluator smoke (threadline from hex.pm)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:21Z",
+      "completed_at": "2026-08-29T12:53:23Z"
+    },
+    {
+      "name": "Hex package tarball",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:20Z",
+      "completed_at": "2026-08-29T12:52:41Z"
+    },
+    {
+      "name": "Mechanical checker (committed scorecards)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:21Z",
+      "completed_at": "2026-08-29T12:53:48Z"
+    },
+    {
+      "name": "PgBouncer transaction topology",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:20Z",
+      "completed_at": "2026-08-29T12:54:02Z"
+    },
+    {
+      "name": "Release metadata (version / changelog)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:20Z",
+      "completed_at": "2026-08-29T12:52:27Z"
+    },
+    {
+      "name": "Run Credo (strict)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:20Z",
+      "completed_at": "2026-08-29T12:53:35Z"
+    },
+    {
+      "name": "Run test suite (current)",
+      "conclusion": "failure",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:21Z",
+      "completed_at": "2026-08-29T12:59:40Z"
+    },
+    {
+      "name": "Run test suite (min)",
+      "conclusion": "success",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:21Z",
+      "completed_at": "2026-08-29T12:56:49Z"
+    },
+    {
+      "name": "Tier A capture lane (byte-stable evidence)",
+      "conclusion": "failure",
+      "status": "completed",
+      "started_at": "2026-08-29T12:52:21Z",
+      "completed_at": "2026-08-29T13:00:18Z"
+    }
+  ]
+}

@@ -1,44 +1,26 @@
 defmodule Mix.Tasks.Critic.Synth do
-  @shortdoc "Generates the synthetic golden set from the graded twin ladder (D-12)"
+  @shortdoc "Generates the synthetic golden set from the graded twin ladder"
 
-  @moduledoc """
-  Writes `.planning/golden/synthetic-set.json` — the **synthetic twin oracle** (Phase
-  195 D-12). Each graded-ladder story (lens × scenario × severity rung) becomes a
-  `golden-set.json`-shaped item whose verdict is the rung's *constructed* label
-  (r4→good, r3→borderline, r2→bad, r1→broken). Because the labels are definitional
-  (authored, not observed), this reaches the trust gate's n≥20/lens with **zero human
-  labeling**.
-
-  This file is a **parallel** to the human `golden-set.json` (kept pristine/empty) so
-  provenance is never conflated at the data layer. `mix critic.measure --source
-  synthetic` reads it; `npm run capture:graded` reads its cell_ids to know what to shoot.
-
-  Honest claim (recorded in `golden_source`/`oracle_note`): the synthetic oracle proves
-  the critic **tracks known-severity injected flaws monotonically on held-out
-  interpolation rungs** — NOT that it matches the maintainer's taste on ambiguous real
-  UI. See D-12 in the phase context.
-
-  ## Usage
-
-      mix critic.synth
-
-  Deterministic: same catalog → byte-identical output.
-  """
+  @moduledoc false
 
   use Mix.Task
 
   alias Threadline.OperatorSurface.StressFixtures
 
-  @out ".planning/golden/synthetic-set.json"
+  @default_fixture_root "test/fixtures/operator_surface"
   @theme "dark"
   @breakpoint 1280
   @set_version "195.12.0"
   @model_pin "claude-opus-4-8"
 
   @impl Mix.Task
-  def run(_argv) do
+  def run(argv) do
     Mix.Task.run("loadpaths")
     Mix.Task.run("compile")
+
+    fixture_root = parse_fixture_root!(argv)
+    target = Path.join(fixture_root, "golden/synthetic-set.json")
+    require_directory!(Path.dirname(target), "synthetic oracle root", restore_command(target))
 
     graded =
       StressFixtures.all()
@@ -73,7 +55,7 @@ defmodule Mix.Tasks.Critic.Synth do
       "version" => 1,
       "golden_source" => "synthetic",
       "oracle_note" =>
-        "Constructed graded-twin severity labels (D-12). Proves the critic tracks " <>
+        "Constructed graded-twin severity labels. Proves the critic tracks " <>
           "known-severity injected flaws monotonically on held-out interpolation rungs — " <>
           "NOT that it matches human taste on ambiguous real UI.",
       "set_version" => @set_version,
@@ -83,8 +65,7 @@ defmodule Mix.Tasks.Critic.Synth do
       "items" => items
     }
 
-    File.mkdir_p!(Path.dirname(@out))
-    File.write!(@out, Jason.encode!(doc, pretty: true) <> "\n")
+    atomic_replace!(target, Jason.encode!(doc, pretty: true) <> "\n")
 
     by_lens =
       items
@@ -92,8 +73,119 @@ defmodule Mix.Tasks.Critic.Synth do
       |> Enum.sort()
       |> Enum.map(fn {l, n} -> "#{l}=#{n}" end)
 
-    Mix.shell().info("wrote #{length(items)} synthetic items → #{@out}")
+    Mix.shell().info("wrote #{length(items)} synthetic items → #{target}")
     Mix.shell().info("  per lens: #{Enum.join(by_lens, ", ")}")
-    Mix.shell().info("  oracle: synthetic (D-12) — cells captured via `npm run capture:graded`")
+    Mix.shell().info("  oracle: synthetic — cells captured via `npm run capture:graded`")
+    Mix.shell().info("git diff -- #{target}")
+  end
+
+  defp parse_fixture_root!(argv) do
+    project_root = project_root!()
+
+    case OptionParser.parse(argv, strict: [fixture_root: :string]) do
+      {opts, [], []} ->
+        root =
+          resolve_repository_root!(
+            Keyword.get(opts, :fixture_root, @default_fixture_root),
+            project_root
+          )
+
+        require_directory!(root, "fixture root", restore_command(root))
+        root
+
+      {_opts, args, invalid} ->
+        task_error!(
+          "command arguments are invalid: #{inspect(args ++ invalid)}",
+          project_root,
+          "mix help critic.synth"
+        )
+    end
+  end
+
+  defp project_root! do
+    case Mix.Project.project_file() do
+      nil -> task_error!("no Mix project file is loaded", File.cwd!(), "mix help critic.synth")
+      project_file -> project_file |> Path.expand() |> Path.dirname()
+    end
+  end
+
+  defp resolve_repository_root!(path, project_root) when is_binary(path) do
+    expanded = Path.expand(path, project_root)
+    relative = Path.relative_to(expanded, project_root)
+
+    case Path.safe_relative_to(relative, project_root) do
+      {:ok, safe_relative} ->
+        Path.join(project_root, safe_relative)
+
+      :error ->
+        task_error!(
+          "fixture root escapes or aliases the repository",
+          expanded,
+          "mix help critic.synth"
+        )
+    end
+  end
+
+  defp require_directory!(path, dataset, recovery) do
+    if not File.dir?(path), do: task_error!("#{dataset} is unavailable", path, recovery)
+  end
+
+  defp atomic_replace!(target, contents) do
+    temp = "#{target}.tmp-#{System.unique_integer([:positive, :monotonic])}"
+
+    case File.open(temp, [:write, :binary, :exclusive]) do
+      {:ok, io_device} ->
+        result =
+          try do
+            with :ok <- IO.binwrite(io_device, contents),
+                 :ok <- :file.sync(io_device),
+                 :ok <- File.close(io_device),
+                 :ok <- atomic_write_hook(),
+                 :ok <- File.rename(temp, target) do
+              :ok
+            end
+          after
+            _ = File.close(io_device)
+            _ = File.rm(temp)
+          end
+
+        case result do
+          :ok ->
+            :ok
+
+          {:error, reason} ->
+            task_error!(
+              "atomic synthetic-oracle replacement failed (#{inspect(reason)})",
+              target,
+              restore_command(target)
+            )
+        end
+
+      {:error, reason} ->
+        task_error!(
+          "could not create exclusive sibling temp (#{inspect(reason)})",
+          target,
+          restore_command(target)
+        )
+    end
+  end
+
+  defp atomic_write_hook do
+    case Process.get({__MODULE__, :atomic_write_hook}) do
+      hook when is_function(hook, 0) -> hook.()
+      _other -> :ok
+    end
+  end
+
+  defp restore_command(path), do: "git restore -- #{Path.relative_to(path, project_root!())}"
+
+  @spec task_error!(String.t(), Path.t(), String.t()) :: no_return()
+  defp task_error!(message, path, recovery) do
+    Mix.raise(
+      "critic.synth: #{message}\n" <>
+        "resolved path: #{Path.expand(path)}\n" <>
+        "repository-only: true\n" <>
+        "next: #{recovery}"
+    )
   end
 end

@@ -14,9 +14,9 @@ defmodule Threadline.Capture.AuditTransaction do
   - `:occurred_at` — timestamp when the transaction committed (microsecond
     precision).
   - `:actor_ref` — who performed the writes. Populated from the
-    `threadline.actor_ref` GUC when it is set inside the same
-    `Ecto.Repo.transaction/1` as the audited writes (see `Threadline.Plug`
-    for the bridge pattern).
+    `threadline.actor_ref` GUC when it is set inside the same database
+    transaction as the audited writes (see `Threadline.Plug` for the bridge
+    pattern).
   - `:action_id` — optional FK to `Threadline.Semantics.AuditAction`. Set
     when you call `Threadline.record_action/2` and link semantic intent to
     captured rows.
@@ -45,13 +45,15 @@ defmodule Threadline.Capture.AuditTransaction do
   @foreign_key_type :binary_id
 
   schema "audit_transactions" do
-    # Internal: PostgreSQL transaction ID used by trigger for PgBouncer-safe grouping (D-06)
+    # PostgreSQL transaction ID used by the trigger to group changes safely under
+    # PgBouncer transaction-mode pooling.
     field(:txid, :integer)
     field(:occurred_at, :utc_datetime_usec)
     field(:source, :string)
     field(:meta, :map)
 
-    # Additive fields — both nullable (CTX-04: capture works without context)
+    # Actor and semantic-action context are additive and nullable; capture works
+    # without either.
     field(:actor_ref, Threadline.Semantics.ActorRef)
 
     @compile {:no_warn_undefined, Threadline.Semantics.AuditAction}

@@ -5,6 +5,7 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
 
   alias Threadline.Capture.AuditTransaction
   alias Threadline.Semantics.ActorRef
+  alias Threadline.StorageSchema
   alias ThreadlinePhoenix.HelpDesk.Organization
   alias ThreadlinePhoenix.Repo
 
@@ -33,7 +34,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
       from(at in AuditTransaction,
         where: at.txid == fragment("txid_current()"),
         select: at.id
-      )
+      ),
+      StorageSchema.repo_opts()
     )
   end
 
@@ -43,7 +45,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
       from(at in AuditTransaction,
         where: at.txid == fragment("txid_current()"),
         select: at.id
-      )
+      ),
+      StorageSchema.repo_opts()
     )
   end
 
@@ -54,7 +57,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
     {count, _} =
       Repo.update_all(
         from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
-        set: [meta: meta]
+        [set: [meta: meta]],
+        StorageSchema.repo_opts()
       )
 
     if count != 1 do
@@ -71,7 +75,8 @@ defmodule ThreadlinePhoenix.Demo.Seed.Support do
     {_count, _} =
       Repo.update_all(
         from(at in AuditTransaction, where: at.txid == fragment("txid_current()")),
-        set: [meta: meta]
+        [set: [meta: meta]],
+        StorageSchema.repo_opts()
       )
 
     :ok
