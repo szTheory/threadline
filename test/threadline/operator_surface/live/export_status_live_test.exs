@@ -161,6 +161,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert {"can't be blank", _metadata} = changeset.errors[:actor_ref]
       end
 
+      test "operator-created export jobs reject anonymous ownership" do
+        changeset =
+          ExportJob.operator_changeset(%{
+            status: "pending",
+            query_params: %{"table" => "ticket_replies"},
+            actor_ref: %ActorRef{type: :anonymous, id: nil}
+          })
+
+        refute changeset.valid?
+        assert {"must identify a non-anonymous actor", _metadata} = changeset.errors[:actor_ref]
+      end
+
       test "mount, refresh, and termination keep exactly one owned timer", %{conn: conn} do
         {:ok, view, _html} = live(conn, "/audit/exports")
 
@@ -300,6 +312,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         render_click(view, "queue_timeline_export_context", %{})
 
         assert Repo.all(ExportJob, repo_opts()) == []
+      end
+
+      test "independent anonymous sessions cannot queue or list anonymous-owned jobs" do
+        anonymous_actor = %ActorRef{type: :anonymous, id: nil}
+        serialized_actor = Jason.encode!(ActorRef.to_map(anonymous_actor))
+
+        legacy_job =
+          Repo.insert!(
+            %ExportJob{
+              status: "pending",
+              query_params: %{"table" => "private-anonymous-export"},
+              actor_ref: anonymous_actor
+            },
+            repo_opts()
+          )
+
+        conn_a =
+          build_conn()
+          |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+        conn_b =
+          build_conn()
+          |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+        {:ok, view_a, html_a} = live(conn_a, "/audit/exports?table=ticket_replies")
+        {:ok, view_b, html_b} = live(conn_b, "/audit/exports?table=ticket_replies")
+
+        refute html_a =~ "Queue Timeline export"
+        refute html_b =~ "Queue Timeline export"
+        refute html_a =~ "private-anonymous-export"
+        refute html_b =~ "private-anonymous-export"
+
+        render_click(view_a, "queue_timeline_export_context", %{})
+        render_click(view_b, "queue_timeline_export_context", %{})
+
+        assert Enum.map(Repo.all(ExportJob, repo_opts()), & &1.id) == [legacy_job.id]
       end
 
       test "renders carried Evidence export context separately from Timeline exports", %{

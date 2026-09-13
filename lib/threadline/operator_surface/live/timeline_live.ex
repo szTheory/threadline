@@ -278,11 +278,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               threadline_exports_enabled: true,
               threadline_scope: scope,
               threadline_export_scope: export_scope,
-              threadline_actor_ref: %ActorRef{}
+              threadline_actor_ref: %ActorRef{type: actor_type, id: actor_id}
             }
           } = socket
         )
-        when not is_nil(scope) or not is_nil(export_scope) do
+        when actor_type != :anonymous and is_binary(actor_id) and actor_id != "" and
+               (not is_nil(scope) or not is_nil(export_scope)) do
       {:noreply,
        put_flash(
          socket,
@@ -297,10 +298,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           %{
             assigns: %{
               threadline_exports_enabled: true,
-              threadline_actor_ref: %ActorRef{} = actor_ref
+              threadline_actor_ref: %ActorRef{type: actor_type, id: actor_id} = actor_ref
             }
           } = socket
-        ) do
+        )
+        when actor_type != :anonymous and is_binary(actor_id) and actor_id != "" do
       repo = scope_aware_opts(socket)[:repo] || default_repo()
 
       job_changeset =
@@ -534,9 +536,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           filter_query={@filter_query}
           export_ready={is_nil(@form_error)}
           background_export_ready={
-            is_nil(@form_error) and is_nil(@scope) and
+              is_nil(@form_error) and is_nil(@scope) and
               is_nil(assigns[:threadline_export_scope]) and
-              match?(%ActorRef{}, assigns[:threadline_actor_ref])
+              ActorRef.identifiable?(assigns[:threadline_actor_ref])
           }
         />
       </UI.shell>

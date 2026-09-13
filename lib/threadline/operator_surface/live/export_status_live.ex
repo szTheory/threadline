@@ -63,10 +63,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           %{
             assigns: %{
               threadline_exports_enabled: true,
-              threadline_actor_ref: %ActorRef{} = actor_ref
+              threadline_actor_ref: %ActorRef{type: actor_type, id: actor_id} = actor_ref
             }
           } = socket
-        ) do
+        )
+        when actor_type != :anonymous and is_binary(actor_id) and actor_id != "" do
       case {
         socket.assigns[:threadline_scope],
         socket.assigns[:threadline_export_scope],
@@ -206,7 +207,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         @timeline_export_context.status == :valid and
                           is_nil(assigns[:threadline_scope]) and
                           is_nil(assigns[:threadline_export_scope]) and
-                          match?(%ActorRef{}, assigns[:threadline_actor_ref])
+                          ActorRef.identifiable?(assigns[:threadline_actor_ref])
                       }
                       type="button"
                       phx-click="queue_timeline_export_context"
@@ -415,7 +416,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         repo = resolve_repo(socket)
         actor_ref = socket.assigns[:threadline_actor_ref]
 
-        if actor_ref do
+        if ActorRef.identifiable?(actor_ref) do
           from(j in ExportJob,
             where: j.actor_ref == ^actor_ref,
             order_by: [desc: j.inserted_at],

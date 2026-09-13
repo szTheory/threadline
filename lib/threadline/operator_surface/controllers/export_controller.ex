@@ -10,6 +10,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     alias Threadline.Governance.ExportJob
     alias Threadline.OperatorSurface.Exports.Filename
     alias Threadline.OperatorSurface.Exports.FilterParams
+    alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
 
     @sync_threshold 5_000
@@ -33,15 +34,16 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           job = fetch_export_job(repo, uuid, storage_schema)
 
           case {job, actor_ref} do
-            {%ExportJob{actor_ref: %Threadline.Semantics.ActorRef{} = owner_actor},
-             %Threadline.Semantics.ActorRef{} = request_actor}
-            when owner_actor == request_actor ->
-              deliver_export(conn, job)
+            {%ExportJob{actor_ref: %ActorRef{} = owner_actor}, %ActorRef{} = request_actor} ->
+              if owner_actor == request_actor and ActorRef.identifiable?(owner_actor) and
+                   ActorRef.identifiable?(request_actor) do
+                deliver_export(conn, job)
+              else
+                export_not_found(conn)
+              end
 
             _ ->
-              conn
-              |> put_resp_header("content-type", "text/plain; charset=utf-8")
-              |> send_resp(404, "Export not found")
+              export_not_found(conn)
           end
 
         :error ->
@@ -49,6 +51,12 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           |> put_resp_header("content-type", "text/plain; charset=utf-8")
           |> send_resp(400, "Invalid job ID")
       end
+    end
+
+    defp export_not_found(conn) do
+      conn
+      |> put_resp_header("content-type", "text/plain; charset=utf-8")
+      |> send_resp(404, "Export not found")
     end
 
     defp fetch_export_job(repo, uuid, storage_schema) do

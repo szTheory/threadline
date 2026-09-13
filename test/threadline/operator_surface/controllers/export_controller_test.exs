@@ -151,6 +151,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     def actor_from_header(conn) do
       case Plug.Conn.get_req_header(conn, "x-test-actor-id") do
+        ["anonymous"] -> %Threadline.Semantics.ActorRef{type: :anonymous, id: nil}
         [id] when id != "" -> %Threadline.Semantics.ActorRef{type: :user, id: id}
         _ -> nil
       end
@@ -1087,6 +1088,31 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       missing_conn = get(build_conn(), "/audit_actor/exports/download/#{job.id}")
       assert missing_conn.status == 404
+    end
+
+    test "anonymous requests cannot download legacy anonymous-owned exports", %{conn: conn} do
+      anonymous_actor = %ActorRef{type: :anonymous, id: nil}
+      {:ok, file_id} = Threadline.Storage.Local.put("anonymous-owned export")
+      on_exit(fn -> Threadline.Storage.Local.delete(file_id) end)
+
+      job =
+        Repo.insert!(
+          %ExportJob{
+            status: "completed",
+            query_params: %{},
+            file_path: file_id,
+            actor_ref: anonymous_actor
+          },
+          repo_opts()
+        )
+
+      anonymous_conn =
+        conn
+        |> put_req_header("x-test-actor-id", "anonymous")
+        |> get("/audit_actor/exports/download/#{job.id}")
+
+      assert anonymous_conn.status == 404
+      assert response(anonymous_conn, 404) == "Export not found"
     end
   end
 end

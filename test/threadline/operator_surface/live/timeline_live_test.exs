@@ -881,6 +881,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
 
+    test "independent anonymous sessions cannot queue background exports" do
+      anonymous_actor = %Threadline.Semantics.ActorRef{type: :anonymous, id: nil}
+      serialized_actor = Jason.encode!(Threadline.Semantics.ActorRef.to_map(anonymous_actor))
+
+      conn_a =
+        build_conn()
+        |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+      conn_b =
+        build_conn()
+        |> Plug.Test.init_test_session(threadline_actor_ref: serialized_actor)
+
+      {:ok, view_a, html_a} = live(conn_a, "/audit/timeline?table=posts")
+      {:ok, view_b, html_b} = live(conn_b, "/audit/timeline?table=posts")
+
+      refute html_a =~ "Queue export"
+      refute html_b =~ "Queue export"
+
+      render_click(view_a, "request_background_export", %{})
+      render_click(view_b, "request_background_export", %{})
+
+      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
+
     test "EF3: filtered Timeline carries allowed context to Exports", %{conn: conn} do
       {:ok, _lv, html} =
         live(

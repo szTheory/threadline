@@ -51,6 +51,14 @@ defmodule Threadline.Semantics.ActorRef do
     {:ok, %__MODULE__{type: type, id: id}}
   end
 
+  @doc "Returns whether an actor has a stable identity suitable for resource ownership."
+  @spec identifiable?(term()) :: boolean()
+  def identifiable?(%__MODULE__{type: type, id: id})
+      when type in @types and type != :anonymous and is_binary(id) and id != "",
+      do: true
+
+  def identifiable?(_actor_ref), do: false
+
   # --- Map serialization (ACTR-04) ---
 
   @doc "Serializes an ActorRef to a plain map for JSONB storage."
