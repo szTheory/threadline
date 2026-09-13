@@ -35,7 +35,7 @@ import {
   readdirSync,
 } from "node:fs";
 import { createInterface } from "node:readline";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { relative, resolve } from "node:path";
 import type { LensName } from "./schema.js";
 import {
@@ -297,7 +297,7 @@ function showScreenshot(screenshotPath: string): void {
 
   // macOS `open` command (opens in Preview or default image viewer)
   try {
-    execSync(`open ${JSON.stringify(screenshotPath)}`, { stdio: "ignore" });
+    execFileSync("open", [screenshotPath], { stdio: "ignore" });
     console.log(`  [screenshot opened in viewer]`);
   } catch {
     console.log(`  [could not open screenshot: ${screenshotPath}]`);
@@ -513,8 +513,9 @@ function runBootstrap(opts: { lens?: LensName; page?: string }): void {
  */
 function isR1Committed(): boolean {
   try {
-    const result = execSync(
-      `git -C ${JSON.stringify(repoRoot)} status --porcelain ${JSON.stringify(repoRelative(r1Path))}`,
+    const result = execFileSync(
+      "git",
+      ["-C", repoRoot, "status", "--porcelain", "--", repoRelative(r1Path)],
       { encoding: "utf8", stdio: "pipe" },
     );
     // If r1.json is tracked with no untracked/modified status, it's committed

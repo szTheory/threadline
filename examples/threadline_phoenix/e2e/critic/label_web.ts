@@ -15,7 +15,7 @@
 import { createServer, IncomingMessage, ServerResponse } from "node:http";
 import { existsSync, readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import type { LensName } from "./schema.js";
 import {
   atomicWriteFile,
@@ -210,6 +210,6 @@ export async function startWebLabeling(round: "r1" | "r2", pairs: boolean, lens?
     const uri = `http://127.0.0.1:${port}`;
     console.log(`\n[critic label --web] Round ${round.toUpperCase()} — ${remaining.length} items to label`);
     console.log(`  Open: ${uri}   (Ctrl+C to stop — progress saves after every item)\n`);
-    try { execSync(`open ${JSON.stringify(uri)}`, { stdio: "ignore" }); } catch { /* print-only */ }
+    try { execFileSync("open", [uri], { stdio: "ignore" }); } catch { /* print-only */ }
   });
 }
