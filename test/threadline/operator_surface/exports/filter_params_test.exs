@@ -54,6 +54,11 @@ defmodule Threadline.OperatorSurface.Exports.FilterParamsTest do
                {:error, "actor id is required for non-anonymous actors"}
     end
 
+    test "actor_id without actor_kind fails closed" do
+      assert FilterParams.parse(%{"actor_id" => "42"}) ==
+               {:error, "actor kind is required when actor id is present"}
+    end
+
     test "unknown actor_kind atom string returns {:error, ...}" do
       # "definitely_not_a_real_actor_kind" is unlikely to be a registered atom — covered by
       # String.to_existing_atom/1 raising ArgumentError, mapped to :unknown_actor_type.

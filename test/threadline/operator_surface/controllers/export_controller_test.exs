@@ -397,6 +397,18 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       refute response(conn, 422) =~ "must-not-export"
     end
 
+    test "GET with actor id but no actor kind returns 422 instead of widening the export", %{
+      conn: conn
+    } do
+      seed_changes!(1, table: "must-not-export")
+
+      conn = get(conn, "/audit/exports/changes.csv?actor_id=42")
+
+      assert conn.status == 422
+      assert response(conn, 422) =~ "actor kind is required when actor id is present"
+      refute response(conn, 422) =~ "must-not-export"
+    end
+
     # ---- Empty window — header-only CSV (RFC 4180 valid) ----
 
     test "GET with no matching rows returns 200 + header-only CSV (RFC 4180 valid)", %{conn: conn} do

@@ -173,6 +173,9 @@ defmodule Threadline.OperatorSurface.Exports.FilterParams do
       is_binary(actor_kind) and actor_kind != "" ->
         {:error, "actor id is required for non-anonymous actors"}
 
+      is_binary(actor_id) and actor_id != "" ->
+        {:error, "actor kind is required when actor id is present"}
+
       true ->
         {:ok, filters_without_actor_params}
     end
