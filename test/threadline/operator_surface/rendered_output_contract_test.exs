@@ -98,6 +98,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @endpoint Threadline.OperatorSurface.RenderedOutputContractTest.Endpoint
 
     @planning_attributes ~w(data-earned-flow data-persona data-jtbd)
+    @reference_corpus_root "test/fixtures/operator_surface"
+    @reference_manifest_entry_count 427
+    @exception_fields [:after, :before, :delta, :expiry, :node_id, :rationale]
+    @max_exception_entries 3
     @planning_vocabulary [
       {:phase, ~r/(?<![A-Za-z0-9])phase(?:[\s_-]+)?\d+(?![A-Za-z0-9])/i},
       {:milestone, ~r/(?<![A-Za-z0-9])milestone(?:[\s_-]+)?v?\d+(?:\.\d+)*(?![A-Za-z0-9])/i},
@@ -180,6 +184,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert "lib/threadline/operator_surface/live/stress_live.ex" in sources
       assert "lib/threadline/operator_surface/stress_fixtures.ex" in sources
       assert "lib/threadline/operator_surface/style.ex" in sources
+
+      offenders =
+        Enum.flat_map(sources, fn path ->
+          scan_planning_attributes(path, File.read!(path))
+        end)
+
+      assert offenders == []
     end
 
     test "planning vocabulary matchers report actionable lines and honor token boundaries" do
@@ -289,6 +300,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert visible_offenders == []
       assert fixture_offenders == []
       assert scan_css_provenance(css) == []
+      assert [%{file: "Style.css/1", kind: :phase}] = scan_css_provenance("/* Phase 202 */")
 
       # Host-supplied values are deliberately outside the static-copy corpus.
       assert [%{kind: :phase}] =
@@ -373,6 +385,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                validate_exception_registry(List.duplicate(valid, 4))
     end
 
+    test "immutable reference manifest matches one tracked path and byte hash at a time" do
+      manifest = reference_manifest!()
+      tracked = tracked_reference_manifest!()
+
+      assert length(manifest) == @reference_manifest_entry_count
+      assert :ok = validate_reference_manifest(manifest, tracked)
+
+      assert {:error, :empty_manifest} = validate_reference_manifest([], [])
+
+      assert {:error, {:duplicate_manifest_path, duplicate_path}} =
+               validate_reference_manifest([hd(manifest), hd(manifest)], tracked)
+
+      assert duplicate_path == hd(manifest).path
+
+      assert {:error, {:path_set_mismatch, _details}} =
+               validate_reference_manifest(tl(manifest), tracked)
+
+      [first | rest] = manifest
+      changed = [%{first | sha256: String.duplicate("0", 64)} | rest]
+
+      assert {:error, {:byte_hash_mismatch, %{path: changed_path}}} =
+               validate_reference_manifest(changed, tracked)
+
+      assert changed_path == first.path
+    end
+
     defp owned_static_sources do
       {output, 0} =
         System.cmd("git", [
@@ -389,7 +427,153 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.sort()
     end
 
-    defp validate_exception_registry(_entries), do: {:error, :not_implemented}
+    defp validate_exception_registry(entries) when is_list(entries) do
+      cond do
+        length(entries) > @max_exception_entries ->
+          {:error, {:too_many_entries, length(entries)}}
+
+        duplicate_node_id = duplicate_exception_node_id(entries) ->
+          {:error, {:duplicate_node_id, duplicate_node_id}}
+
+        true ->
+          Enum.reduce_while(entries, :ok, fn entry, :ok ->
+            case validate_exception(entry) do
+              :ok -> {:cont, :ok}
+              {:error, _reason} = error -> {:halt, error}
+            end
+          end)
+      end
+    end
+
+    defp validate_exception_registry(_entries), do: {:error, :invalid_registry}
+
+    defp validate_exception(entry) when is_map(entry) do
+      node_id = Map.get(entry, :node_id)
+
+      cond do
+        Map.keys(entry) |> Enum.sort() != @exception_fields ->
+          {:error, {:invalid_fields, node_id}}
+
+        node_id not in @representative_node_ids ->
+          {:error, {:unknown_node_id, node_id}}
+
+        not Enum.all?([entry.before, entry.after, entry.delta], &is_number/1) ->
+          {:error, {:invalid_measurement, node_id}}
+
+        entry.after - entry.before != entry.delta ->
+          {:error, {:delta_mismatch, node_id}}
+
+        not (is_binary(entry.rationale) and String.trim(entry.rationale) != "") ->
+          {:error, {:invalid_rationale, node_id}}
+
+        not valid_iso_date?(entry.expiry) ->
+          {:error, {:invalid_expiry, node_id}}
+
+        true ->
+          :ok
+      end
+    end
+
+    defp validate_exception(_entry), do: {:error, {:invalid_fields, nil}}
+
+    defp duplicate_exception_node_id(entries) do
+      entries
+      |> Enum.map(fn
+        %{node_id: node_id} -> node_id
+        _entry -> nil
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.frequencies()
+      |> Enum.find_value(fn
+        {node_id, count} when count > 1 -> node_id
+        _entry -> nil
+      end)
+    end
+
+    defp valid_iso_date?(value) when is_binary(value) do
+      match?({:ok, %Date{}}, Date.from_iso8601(value))
+    end
+
+    defp valid_iso_date?(_value), do: false
+
+    defp reference_manifest! do
+      @reference_corpus_root
+      |> Path.join("manifest.sha256")
+      |> File.read!()
+      |> String.split("\n", trim: true)
+      |> Enum.map(fn line ->
+        case Regex.run(~r/^([0-9a-f]{64})  (.+)$/, line) do
+          [_, sha256, path] -> %{path: normalize_path(path), sha256: sha256}
+          _other -> flunk("malformed reference manifest row: #{inspect(line)}")
+        end
+      end)
+    end
+
+    defp tracked_reference_manifest! do
+      {output, 0} = System.cmd("git", ["ls-files", "-z", "--", @reference_corpus_root])
+
+      output
+      |> :binary.split(<<0>>, [:global, :trim_all])
+      |> Enum.map(&to_string/1)
+      |> Enum.map(&Path.relative_to(&1, @reference_corpus_root))
+      |> Enum.map(&normalize_path/1)
+      |> Enum.reject(&(&1 in ["README.md", "manifest.sha256"]))
+      |> Enum.sort()
+      |> Enum.map(fn path ->
+        bytes = File.read!(Path.join(@reference_corpus_root, path))
+        %{path: path, sha256: sha256(bytes)}
+      end)
+    end
+
+    defp validate_reference_manifest([], []), do: {:error, :empty_manifest}
+
+    defp validate_reference_manifest(manifest, tracked) do
+      manifest_paths = Enum.map(manifest, & &1.path)
+      tracked_paths = Enum.map(tracked, & &1.path)
+
+      case duplicate_path(manifest_paths) do
+        nil ->
+          if manifest_paths == Enum.sort(manifest_paths) and manifest_paths == tracked_paths do
+            compare_reference_hashes(manifest, tracked)
+          else
+            {:error,
+             {:path_set_mismatch,
+              %{
+                manifest: manifest_paths,
+                tracked: tracked_paths
+              }}}
+          end
+
+        path ->
+          {:error, {:duplicate_manifest_path, path}}
+      end
+    end
+
+    defp compare_reference_hashes(manifest, tracked) do
+      Enum.zip(manifest, tracked)
+      |> Enum.find_value(:ok, fn {expected, actual} ->
+        if expected.sha256 == actual.sha256 do
+          false
+        else
+          {:error,
+           {:byte_hash_mismatch,
+            %{path: expected.path, expected: expected.sha256, actual: actual.sha256}}}
+        end
+      end)
+    end
+
+    defp duplicate_path(paths) do
+      paths
+      |> Enum.frequencies()
+      |> Enum.find_value(fn
+        {path, count} when count > 1 -> path
+        _entry -> nil
+      end)
+    end
+
+    defp normalize_path(path), do: String.replace(path, "\\", "/")
+
+    defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
 
     defp representative_render_inventory(conn) do
       {:ok, _start, start_html} = live(conn, "/audit")
