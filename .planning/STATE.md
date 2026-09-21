@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 201
 current_phase_name: Rendered Output
 status: executing
-stopped_at: Completed 201-04-PLAN.md
-last_updated: "2026-09-13T20:39:10.600Z"
-last_activity: 2026-09-13
-last_activity_desc: Phase 201 execution started
+stopped_at: Completed 201-05-PLAN.md (final plan of Phase 201)
+last_updated: "2026-09-21T00:00:00.000Z"
+last_activity: 2026-09-21
+last_activity_desc: Phase 201 all 5 plans executed; ci.all green; awaiting phase verification
 state_head: 3d7a0c6347845f3200f629d4391257c4de0d2e6a
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 110
-  completed_plans: 109
+  completed_plans: 110
   percent: 14
 ---
 
@@ -29,9 +29,20 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 201 (Rendered Output) — EXECUTING
-Plan: 5 of 5
-Status: Ready to execute
+Phase: 201 (Rendered Output) — EXECUTED, awaiting verification
+Plan: 5 of 5 (all executed)
+Status: Ready for /gsd-verify-work (or /gsd-progress)
+
+**Phase 201 close-out state (2026-09-21).** All five plans executed. `mix ci.all`
+exits 0 — root 1660/0, example 116/0, Dialyzer 0 errors. The browser lane is
+82 passed / 8 failed, where the 8 are screenshot comparisons PROVEN pre-existing
+by direct measurement (reverting the phase's five LiveView modules to fecfe684
+reproduces the identical 8 failures), recorded as WINDOWS entry 62 and pinned as
+an exact non-regression gate in 201-05-PLAN.md. Phase 201's entire production
+delta is 21 deleted data-earned-flow/data-persona/data-jtbd attribute lines.
+Full evidence: `.planning/audits/201-rendered-output-evidence.md`. Nothing was
+regenerated or waived. GSD runtime switched from codex to claude with the
+adaptive model profile on 2026-09-21.
 Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
 
 - **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
