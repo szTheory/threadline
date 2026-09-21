@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 57
+open_count: 58
 waived_count: 0
 fixed_count: 4
-total_count: 61
-last_updated: 2026-09-12T12:02:55.570Z
+total_count: 62
+last_updated: 2026-09-21T00:00:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -76,6 +76,7 @@ last_updated: 2026-09-12T12:02:55.570Z
 | 59 | 200 | deviation | guides/getting-started-saas.md |  | Adopt landing omitted three assigned guide routes required by the exact graph | fixed |  | 2026-09-12T11:57:02.743Z | 2026-09-12T11:57:17.929Z |
 | 60 | 200 | deviation | mix.exs |  | Generated ExDoc did not ship the README theme-aware logo assets | fixed |  | 2026-09-12T11:57:02.821Z | 2026-09-12T11:57:18.005Z |
 | 61 | 200 | unrun-verify | lib/threadline/operator_surface/mechanical_checker.ex | 729 | Repository-wide verify.format is blocked by a pre-existing formatting defect from Plan 200-16; Plan 200-13 owned files pass format checks | open |  | 2026-09-12T12:02:55.570Z |  |
+| 62 | 201 | deviation | examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts | 108 | Plan 201-05 gate amendment: the browser lane's 8 screenshot-regression failures (cases 108 dense-Timeline, 115 row-history, 136 Exports, 145 Retention, each on desktop-chromium and mobile-chromium) are PROVEN pre-existing, not a Phase 201 regression. Measured both ways: at phase HEAD the lane is 82 passed / 8 failed, and with Phase 201's five LiveView modules reverted to fecfe684 the identical 8 fail and the same 2 Home cases pass. Phase 201's entire production delta is 21 deleted data-earned-flow/data-persona/data-jtbd attribute lines and nothing else, which cannot alter raster output. Baselines last written in 180-04 (799c7d6e) and left byte-identical (hashes sealed in .planning/audits/201-rendered-output-evidence.md). The plan's original verify clause demanded a fully green lane, unsatisfiable without the baseline regeneration the same plan prohibits; it is amended to an exact non-regression gate pinning this 8-failure set, Home passing, immutable PNG hashes, and all 82 behavior/a11y/responsive cases green. Supersedes nothing; complements open entries 8, 14, 15. Also corrected: the clause invoked `playwright test` directly, which starts no app server and yields 45 spurious ~50ms invalid-URL failures; the lane must run via mix verify.example_browser / run-e2e.sh. | open |  | 2026-09-21T00:00:00.000Z |  |
 
 ````json
 [
@@ -121,7 +122,7 @@ last_updated: 2026-09-12T12:02:55.570Z
     "phase": "198",
     "file": ".planning/phases/198-green-bringup/198-13-SUMMARY.md",
     "line": null,
-    "description": "GREEN-07 not verified this run — local commits unpushed by explicit orchestrator constraint; origin/main CI still red on last observed run 33138291361",
+    "description": "GREEN-07 not verified this run \u2014 local commits unpushed by explicit orchestrator constraint; origin/main CI still red on last observed run 33138291361",
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-28T14:45:38.316Z",
@@ -217,7 +218,7 @@ last_updated: 2026-09-12T12:02:55.570Z
     "phase": "198",
     "file": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
     "line": 565,
-    "description": "CORRECTS entry #10: root cause established (plan 198-28 Task 3) — NOT a demo-seed content change (demo/seed/exports.ex was not touched by any plan this round). Actual cause: fix(198-25) commit e6f3cd5d changed the completed-expired export job's rendered label from Expired to Export expired (lowercase e), breaking this test's /Expired|File unavailable/ regex (capital E). Still out of scope for 198-28's declared files; needs follow-up plan to update the regex/assertion to match the corrected canonical copy.",
+    "description": "CORRECTS entry #10: root cause established (plan 198-28 Task 3) \u2014 NOT a demo-seed content change (demo/seed/exports.ex was not touched by any plan this round). Actual cause: fix(198-25) commit e6f3cd5d changed the completed-expired export job's rendered label from Expired to Export expired (lowercase e), breaking this test's /Expired|File unavailable/ regex (capital E). Still out of scope for 198-28's declared files; needs follow-up plan to update the regex/assertion to match the corrected canonical copy.",
     "status": "open",
     "reason": "",
     "recorded_at": "2026-08-28T23:20:26.077Z",
@@ -844,6 +845,19 @@ last_updated: 2026-09-12T12:02:55.570Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-12T12:02:55.570Z",
+    "resolved_at": null,
+    "milestone": "v1.41"
+  },
+  {
+    "id": 62,
+    "kind": "deviation",
+    "phase": "201",
+    "file": "examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts",
+    "line": 108,
+    "description": "Plan 201-05 gate amendment: the browser lane's 8 screenshot-regression failures (cases 108 dense-Timeline, 115 row-history, 136 Exports, 145 Retention, each on desktop-chromium and mobile-chromium) are PROVEN pre-existing, not a Phase 201 regression. Measured both ways: at phase HEAD the lane is 82 passed / 8 failed, and with Phase 201's five LiveView modules reverted to fecfe684 the identical 8 fail and the same 2 Home cases pass. Phase 201's entire production delta is 21 deleted data-earned-flow/data-persona/data-jtbd attribute lines and nothing else, which cannot alter raster output. Baselines last written in 180-04 (799c7d6e) and left byte-identical (hashes sealed in .planning/audits/201-rendered-output-evidence.md). The plan's original verify clause demanded a fully green lane, unsatisfiable without the baseline regeneration the same plan prohibits; it is amended to an exact non-regression gate pinning this 8-failure set, Home passing, immutable PNG hashes, and all 82 behavior/a11y/responsive cases green. Supersedes nothing; complements open entries 8, 14, 15. Also corrected: the clause invoked `playwright test` directly, which starts no app server and yields 45 spurious ~50ms invalid-URL failures; the lane must run via mix verify.example_browser / run-e2e.sh.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-21T00:00:00.000Z",
     "resolved_at": null,
     "milestone": "v1.41"
   }
