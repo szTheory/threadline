@@ -1,40 +1,39 @@
 defmodule Mix.Tasks.Release.Pins do
-  @moduledoc """
-  Rewrites every documented Threadline install pin from `mix.exs` `@version`.
-
-  Maintainer-only tooling. This task is deliberately excluded from the
-  published Hex package (see `package[:exclude_patterns]` in `mix.exs`): it
-  rewrites tracked repository documentation and has no meaning inside an
-  adopter's application. It also deliberately carries no `@shortdoc`, because a
-  `@shortdoc` would list it in every adopter's `mix help` under a namespace
-  that is not this library's.
-
-  ## Usage
-
-      mix release.pins
-      mix release.pins --check
-
-  `--check` writes nothing and exits non-zero when any pin would change, so the
-  task doubles as a gate.
-
-  ## Why the floor stops at the minor
-
-  The pin written into documentation is `major.minor.0` derived from
-  `@version`. `~> 0.10.0` admits the whole `0.10.x` patch series and stops at
-  the minor, so a patch release is a provable no-op: the derived string does
-  not change. A two-segment pin (`~> 0.10`) would admit `0.99.0` and therefore
-  silently route adopters of a pre-1.0 library into future breaking minors.
-
-  ## Why release automation must never own a pin line
-
-  The generic release-automation updater writes the *full* version onto a
-  marked line, which would emit `~> 0.10.1` on a patch release while the
-  documentation contract derives `~> 0.10.0`. The component updater replaces
-  the first bare integer on the line, which inside `{:threadline, "~> 0.9.0"}`
-  is the leading `0` of the requirement string, producing a nonsense major.
-  Both are dead ends, so this task is the owner instead. That separation is
-  enforced by `Threadline.VersionTruthDocContractTest`, not by convention.
-  """
+  # Rewrites every documented Threadline install pin from `mix.exs` `@version`.
+  #
+  # Maintainer-only tooling, so `@moduledoc false` and no `@shortdoc`: this
+  # task rewrites tracked repository documentation and has no meaning inside an
+  # adopter's application. It is also excluded from the published Hex package
+  # (see `package[:exclude_patterns]` in `mix.exs`), because a `@shortdoc`-
+  # bearing maintainer task appears in every adopter's `mix help` under a
+  # namespace that is not this library's. Both the module doc and the package
+  # exclusion are needed: the first keeps it off the rendered documentation
+  # surface, the second keeps it out of the shipped archive.
+  #
+  # Usage:
+  #
+  #     mix release.pins
+  #     mix release.pins --check
+  #
+  # `--check` writes nothing and exits non-zero when any pin would change, so
+  # the task doubles as a gate.
+  #
+  # Why the floor stops at the minor: the pin written into documentation is
+  # `major.minor.0` derived from `@version`. A three-segment floor admits the
+  # whole patch series of that minor and stops there, so a patch release is a
+  # provable no-op — the derived string does not change. A two-segment pin
+  # would admit any later minor and therefore silently route adopters of a
+  # pre-1.0 library into future breaking releases.
+  #
+  # Why release automation must never own a pin line: the generic updater
+  # writes the FULL version onto a marked line, which would emit a pin one
+  # patch ahead of what the documentation contract derives; and the component
+  # updater replaces the first bare integer on the line, which inside the
+  # compound requirement string is the leading digit of the version, producing
+  # a nonsense major. Both are dead ends, so this task is the owner instead.
+  # That separation is enforced by the version-truth documentation contract,
+  # not by convention.
+  @moduledoc false
 
   use Mix.Task
 
