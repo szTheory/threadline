@@ -342,7 +342,25 @@ defmodule Threadline.ReleaseArtifactContractTest do
   test "README carries only the release-scoped installer and routing literals" do
     readme = File.read!("README.md")
 
-    assert String.contains?(readme, "{:threadline, \"~> 0.9.0\"}")
+    # The expected pin is asked of `mix release.pins` rather than written here.
+    # That task is the designated sole writer of every documented install pin,
+    # so a literal in this assertion would be a second, hand-maintained copy of
+    # the value the writer exists to change — the contract would go red the
+    # moment the writer did its job. `release.pins.ex` rules out extracting its
+    # rules into a shared module ("A shared module would be new production
+    # surface for a release-time-only concern"), so the task exposes its own
+    # derivation and this contract consults it: one rule, one owner, two
+    # readers. Reimplementing `major.minor.0` here would be the same drift
+    # footgun one step removed.
+    expected_pin = ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+
+    assert String.contains?(readme, expected_pin),
+           "README.md does not carry the install pin derived from mix.exs @version.\n" <>
+             "  expected: #{expected_pin}\n" <>
+             "  actual:   #{readme_install_pins(readme)}\n" <>
+             "`mix release.pins` owns every documented pin — run it rather than " <>
+             "editing the pin by hand."
+
     assert String.contains?(readme, "guides/how-threadline-works.md")
     assert String.contains?(readme, "guides/getting-started-saas.md")
     assert String.contains?(readme, "guides/integrations/sigra.md")
@@ -355,6 +373,22 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert String.contains?(doc, ".github/workflows/release.yml")
     assert String.contains?(doc, "workflow_dispatch")
     assert String.contains?(doc, "v0.6.0")
+  end
+
+  # Reports what README actually says, for the failure message only. This is a
+  # plain line filter, not a version matcher: the install-pin regex lives in
+  # `mix release.pins` and in the version-truth contract as two deliberately
+  # character-identical copies, and a third copy here would weaken that
+  # self-policing pair.
+  defp readme_install_pins(readme) do
+    readme
+    |> String.split("\n")
+    |> Enum.filter(&String.contains?(&1, "{:threadline,"))
+    |> Enum.map(&String.trim/1)
+    |> case do
+      [] -> "(README carries no `{:threadline, ...}` install snippet at all)"
+      lines -> Enum.join(lines, " | ")
+    end
   end
 
   defp built_archive do
