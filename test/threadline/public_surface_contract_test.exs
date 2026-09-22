@@ -227,6 +227,11 @@ defmodule Threadline.PublicSurfaceContractTest do
           :hidden ->
             refute module in grouped_modules(), "hidden #{inspect(module)} is grouped"
 
+          :undocumented ->
+            assert module in grouped_modules(),
+                   "#{inspect(module)} has no @moduledoc, so ExDoc publishes it ungrouped; " <>
+                     "give it @moduledoc false to hide it or add it to a group"
+
           :absent ->
             flunk("#{inspect(module)} has no compiled documentation chunk")
         end
@@ -547,17 +552,27 @@ defmodule Threadline.PublicSurfaceContractTest do
     end
   end
 
+  # Every module ExDoc puts on the public index, which is both the documented
+  # ones and the undocumented-but-published ones. The grouping criterion is a
+  # property of the generated index, so it has to be measured over the same set
+  # the index contains.
   defp visible_modules do
     application_modules()
     |> MapSet.union(discovered_mix_tasks())
-    |> Enum.filter(&(docs_visibility(&1) == :visible))
+    |> Enum.filter(&(docs_visibility(&1) in [:visible, :undocumented]))
     |> MapSet.new()
   end
 
+  # :none means the module has a documentation chunk but no @moduledoc. ExDoc
+  # PUBLISHES such a module — it is omitted only by @moduledoc false — so it is
+  # classified :undocumented rather than :absent. Folding it into :absent is what
+  # made the grouping assertion below vacuous against exactly the class of module
+  # that violates it: published, ungrouped, and invisible to the check.
+  # :absent is reserved for a module with no documentation chunk at all.
   defp docs_visibility(module) do
     case Code.fetch_docs(module) do
       {:docs_v1, _, _, _, :hidden, _, _} -> :hidden
-      {:docs_v1, _, _, _, :none, _, _} -> :absent
+      {:docs_v1, _, _, _, :none, _, _} -> :undocumented
       {:docs_v1, _, _, _, %{} = docs, _, _} when map_size(docs) > 0 -> :visible
       _ -> :absent
     end
