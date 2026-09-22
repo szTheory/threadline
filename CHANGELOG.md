@@ -53,7 +53,7 @@ but each one leaves something unchanged that you probably wanted changed.
 - **Operator-surface mounters** — two new routes, `POST <path>/theme` and
   `<path>/rows/:table/:record_id`, must pass any method allowlist, proxy rule,
   or Content-Security-Policy in front of your `/audit` mount.
-- **Custom `Threadline.Storage` adapters** — the `c:put/2` callback narrowed to
+- **Custom `Threadline.Storage` adapters** — the `c:Threadline.Storage.put/2` callback narrowed to
   binary content. This is visible to Dialyzer with no runtime change; update
   your adapter's typespec.
 - **Callers of implementation modules** — 25 implementation modules became
@@ -94,25 +94,25 @@ Threadline-owned tables, functions, and triggers now default to the host's
   `Threadline.OperatorSurface.Router` and `Threadline.OperatorSurface.Auth`
   boundary, and adopter Mix tasks. The following implementation modules that had
   pages in the 0.9 documentation are no longer listed:
-  - Capture and lifecycle implementation: `Threadline.Capture.Migration`,
-    `Threadline.Capture.RedactionPolicy`,
-    `Threadline.Capture.TriggerCaptureConfig`, `Threadline.Capture.TriggerSQL`,
-    `Threadline.Export.CleanupTask`, `Threadline.Governance.ExportJob`,
-    `Threadline.Governance.Migration`, `Threadline.Governance.RetentionRun`,
-    `Threadline.Governance.SavedView`, `Threadline.Policy.RedactionPresenter`,
-    `Threadline.Retention.Pruner`, and `Threadline.Semantics.Migration`.
-  - Operator implementation: `Threadline.OperatorSurface.Style`,
-    `Threadline.OperatorSurface.Script`, `Threadline.OperatorSurface.Scope`,
-    `Threadline.OperatorSurface.SessionPlug`,
-    `Threadline.OperatorSurface.ExportAuthPlug`,
-    `Threadline.OperatorSurface.Components.SurfaceHeader`,
-    `Threadline.OperatorSurface.Controllers.ExportController`,
-    `Threadline.OperatorSurface.Coverage.OnMount`,
-    `Threadline.OperatorSurface.Coverage.Snapshot`,
-    `Threadline.OperatorSurface.Exports.Filename`,
-    `Threadline.OperatorSurface.Exports.FilterParams`,
-    `Threadline.OperatorSurface.Live.ActorLive`, and
-    `Threadline.OperatorSurface.Live.TransactionLive`.
+  - Capture and lifecycle implementation: Threadline.Capture.Migration,
+    Threadline.Capture.RedactionPolicy,
+    Threadline.Capture.TriggerCaptureConfig, Threadline.Capture.TriggerSQL,
+    Threadline.Export.CleanupTask, Threadline.Governance.ExportJob,
+    Threadline.Governance.Migration, Threadline.Governance.RetentionRun,
+    Threadline.Governance.SavedView, Threadline.Policy.RedactionPresenter,
+    Threadline.Retention.Pruner, and Threadline.Semantics.Migration.
+  - Operator implementation: Threadline.OperatorSurface.Style,
+    Threadline.OperatorSurface.Script, Threadline.OperatorSurface.Scope,
+    Threadline.OperatorSurface.SessionPlug,
+    Threadline.OperatorSurface.ExportAuthPlug,
+    Threadline.OperatorSurface.Components.SurfaceHeader,
+    Threadline.OperatorSurface.Controllers.ExportController,
+    Threadline.OperatorSurface.Coverage.OnMount,
+    Threadline.OperatorSurface.Coverage.Snapshot,
+    Threadline.OperatorSurface.Exports.Filename,
+    Threadline.OperatorSurface.Exports.FilterParams,
+    Threadline.OperatorSurface.Live.ActorLive, and
+    Threadline.OperatorSurface.Live.TransactionLive.
 
   These modules remain callable for Threadline's own composition; this is a
   documentation-surface clarification, not runtime privacy or a change to
@@ -120,7 +120,7 @@ Threadline-owned tables, functions, and triggers now default to the host's
 - **S3 export HTTP client** — `:hackney` gave way to `{:req, "~> 0.7"}` and the
   `:ex_aws` floor rose to `~> 2.7`. Both remain optional dependencies; only
   hosts that export to S3 are affected.
-- **`Threadline.Storage` `c:put/2`** — the first argument narrowed from a path
+- **`c:Threadline.Storage.put/2`** — the first argument narrowed from a path
   or content union to binary content.
 
 ## [0.9.0](https://github.com/szTheory/threadline/compare/v0.8.0...v0.9.0) (2026-06-03)
