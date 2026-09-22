@@ -65,3 +65,36 @@ effect of a changelog plan.
 - **Next step:** decide whether the evaluator's install shape is still a
   pin-shaped claim at all. If it is not, remove the literal from both sentences
   and re-measure the pin inventory in the same change.
+
+### Flake re-check before the 202-05 publish gate (2026-09-22)
+
+Status: **NOT REPRODUCIBLE. Mechanism unproven. Closed as unresolved, not as fixed.**
+
+Evidence gathered:
+- 3 consecutive full-suite runs post-Wave-3: 1692 tests, 0 failures each.
+- Earlier: 25/25 green for `critic_trust_test.exs` in isolation under random seeds.
+- Combined with the post-Plan-01 run, that is 4 consecutive full-suite greens since
+  the original report (2 failures in 6 runs).
+
+Hypotheses tested and rejected:
+- **Timestamp/RNG in the writer** — rejected. `critic.measure` has no `utc_now`,
+  no `:rand`, no shuffle; its only nondeterminism is a monotonic temp-file suffix,
+  so the ledger write is deterministic given inputs.
+- **Cross-file contention on the shared fixture** — rejected. The other two modules
+  referencing `design-system-ledger` (`operator_surface_fixture_contract_test.exs`,
+  `stress_router_test.exs`) write only into their own private temp repos.
+- **Leftover scratch-tree accumulation** — rejected. Ran the suite with 517 leftover
+  `_build/critic-trust-path-tests/` dirs present, growing to 535; green throughout.
+
+Remaining unexercised suspect (documented, not proven): the test plants a
+self-referential symlink inside its own scratch base (`File.ln_s!(base, alias_output)`),
+a loop under the directory `critic.measure` walks. Filesystem read order over that loop
+is the only candidate nondeterminism left standing.
+
+Separate hygiene defect found while investigating: `_build/critic-trust-path-tests/` is
+**never cleaned up** — 535 scratch trees and counting, one per test per run. Not a
+correctness bug, not release-blocking, worth a cleanup task.
+
+**Bearing on the release:** 202-05 may NOT claim the suite is "green by construction."
+The honest claim is "green in 4/4 consecutive runs; one prior intermittent remains
+unexplained."
