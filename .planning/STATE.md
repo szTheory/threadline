@@ -33,11 +33,34 @@ Phase: 201 (Rendered Output) — COMPLETE (verification passed 2026-09-21)
 Plan: 5 of 5 executed and verified
 Status: Phase closed. Next = Phase 202 (Release 0.10.0) planning, but see verification debt below.
 
-**Open verification debt before Phase 202.** Phases 199 (Decouple) and 200
-(Public Surface) both report `verification_status: stale` — their
-`*-VERIFICATION.md` files predate their newest summaries. Re-run
-`/gsd-verify-work 199` and `/gsd-verify-work 200` (re-measurement, not new work)
-before Phase 202 planning reads the roadmap as settled.
+**Open verification debt before Phase 202.** Phase 199 (Decouple) still reports
+`verification_status: stale` — its `*-VERIFICATION.md` predates its newest
+summaries. Re-run `/gsd-verify-work 199` (re-measurement, not new work) before
+Phase 202 planning reads the roadmap as settled.
+
+**Phase 200 debt CLEARED (2026-09-22): PASSED, 8/8, re-measured at `bf42de71`.**
+The staleness was an ancestry fact, not a regression: the original target
+`833a5965` was squashed out of the history by PR #35. Re-measurement did not
+merely retarget — it found a real defect the first pass had recorded as
+VERIFIED. `ActorLive` and `TransactionLive` declared neither `@moduledoc` nor
+`@moduledoc false`, so ExDoc published both on the public index ungrouped,
+falsifying SURFACE-04. The contract meant to enforce grouping could not see
+them: it folded "has a doc chunk but no `@moduledoc`" into "absent" and asserted
+only over documented modules, excluding precisely the violating class. Both were
+hidden (matching all ten sibling operator LiveViews) and the gate was rebuilt to
+measure the set ExDoc actually publishes; a differential mutation confirms the
+repaired gate rejects what the old one passed. Generated docs now carry 42 module
+pages, 0 ungrouped.
+
+Carried forward: a warning-free `mix docs` and an exact `groups_for_modules`
+declaration are both true and neither can observe the generated index — ExDoc
+emits no warning for an ungrouped module. Any future grouping claim must parse
+the built sidebar, not the configuration that feeds it.
+
+Phase 200 also now carries zero human-verification items: its last manual UAT
+checkpoint (non-maintainer community-health intake) was automated into a
+commit-time issue-forms schema contract plus a scheduled live check, rather than
+answered by hand.
 
 **Phase 201 verification (2026-09-21): PASSED, 6/6, zero gaps.** All six RENDER
 requirements independently re-derived by the verifier, not accepted from the
