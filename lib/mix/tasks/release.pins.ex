@@ -100,7 +100,7 @@ defmodule Mix.Tasks.Release.Pins do
     ["README.md" | Path.wildcard("guides/**/*.md")]
   end
 
-  defp current_version, do: Threadline.MixProject.project()[:version]
+  defp current_version, do: Mix.Project.config()[:version]
 
   # Read at runtime rather than frozen into a module attribute so that a bump
   # to mix.exs can never be shadowed by a stale compiled artifact.
