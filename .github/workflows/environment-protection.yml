@@ -1,0 +1,58 @@
+# Publish-gate contract verification (Phase 202 / D-18).
+#
+# This lives in its OWN workflow rather than inside ci.yml on purpose. A job
+# restricted to `main` inside ci.yml would be a conditionally-skipped member of
+# `ci-required`'s `needs:` list on every pull request, and GitHub scores a
+# SKIPPED required check as PASSING. Keeping it separate means the aggregate
+# gate's needs list stays unconditional and this check cannot launder a pass.
+#
+# Deliberately NOT part of the required aggregate: it asserts a property of the
+# repository's live GitHub configuration, not of the commit under test, so
+# making it block pull requests would fail contributors for something they did
+# not change and cannot fix. Its job id must never be added to ci.yml's job-id
+# contract header, to `ci-required`'s `needs:`, or to any allowed-skips list.
+#
+# What it buys: `release_control_plane_contract_test.exs` asserts only that
+# release.yml carries the line `environment: production-hex`. Deleting the
+# required reviewer on GitHub's side leaves that assertion green while the
+# human gate in front of an irreversible hex.pm publish is gone. This workflow
+# is the live half of that claim.
+#
+# ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION is deliberately NOT set below. Unlike
+# bin/verify-branch-protection's classic-protection field, the protection rule
+# read here IS the load-bearing assertion — passing on an unreadable response
+# would make this workflow the very vacuous gate it exists to close. If the
+# token cannot read the environment, this check must go red and a maintainer
+# must grant the scope.
+#
+# The job id `verify-environment-protection` is STABLE. Evolve `name:` freely;
+# do not rename the id.
+name: Environment Protection
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  schedule:
+    # 06:40 UTC daily, just behind the branch-protection contract check.
+    - cron: "40 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Job id is stable (see header). Evolve `name:` freely.
+  verify-environment-protection:
+    name: Publish environment protection contract (production-hex)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Assert the live publish gate still requires a reviewer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: bin/verify-environment-protection
