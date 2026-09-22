@@ -1,9 +1,50 @@
 defmodule Threadline.StorageSchemaTest do
-  use ExUnit.Case, async: true
+  # async: false — the default-resolution describe block below temporarily
+  # removes `:threadline, :storage_schema` from the application environment,
+  # which is process-global. Sync modules run after every async module has
+  # finished, so no concurrently-running test can observe the gap.
+  use ExUnit.Case, async: false
 
   alias Threadline.StorageSchema
 
-  test "defaults to dedicated threadline schema" do
+  describe "default storage schema (D-01)" do
+    setup do
+      previous = Application.fetch_env(:threadline, :storage_schema)
+      Application.delete_env(:threadline, :storage_schema)
+
+      on_exit(fn ->
+        case previous do
+          {:ok, value} -> Application.put_env(:threadline, :storage_schema, value)
+          :error -> Application.delete_env(:threadline, :storage_schema)
+        end
+      end)
+
+      :ok
+    end
+
+    test "resolves to the host's public schema when no storage_schema is configured" do
+      assert StorageSchema.get([]) == "public",
+             "a host that sets no :storage_schema must resolve to public — anything else " <>
+               "prefixes every read path onto tables a pre-0.10 install does not have while " <>
+               "its already-deployed unqualified triggers keep writing to public"
+
+      assert StorageSchema.get() == "public"
+      assert StorageSchema.table("audit_changes") == ~s("public"."audit_changes")
+      assert StorageSchema.repo_opts() == [prefix: "public"]
+    end
+
+    test "a dedicated schema stays available as an explicit opt-in" do
+      assert StorageSchema.get(storage_schema: "threadline") == "threadline"
+
+      assert StorageSchema.table("audit_changes", storage_schema: "threadline") ==
+               ~s("threadline"."audit_changes")
+
+      Application.put_env(:threadline, :storage_schema, "threadline")
+      assert StorageSchema.get([]) == "threadline"
+    end
+  end
+
+  test "honours an explicitly configured storage schema" do
     assert StorageSchema.get() == "threadline"
     assert StorageSchema.table("audit_changes") == ~s("threadline"."audit_changes")
   end
