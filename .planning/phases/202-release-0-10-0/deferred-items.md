@@ -26,3 +26,12 @@
   racing with another test's `_build` access, not a collision within this file's own runs.
 - Still unfixed and still out of 202-01's blast radius. **Re-check before the 202-05 publish
   gate** — "green by construction" cannot rest on a suite with an unexplained intermittent.
+
+## From 202-02 (2026-09-22)
+
+- **Stale hex-evaluator prose.** `guides/evaluating-threadline.md:41` and
+  `guides/adoption-evidence-playbook.md:15` both claim `mix verify.hex_evaluator`
+  depends on threadline "from hex.pm — not a path dep". Plan 01 changed the
+  default to a local rehearsal registry built from this tree's own tarball, so
+  the claim is now false. Out of scope for 202-02 (not a version-bearing line and
+  not in that plan's file list). Owner: Plan 03's documentation pass.
