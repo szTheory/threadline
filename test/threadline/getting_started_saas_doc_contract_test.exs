@@ -30,7 +30,16 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "phoenixframework.org")
     assert String.contains?(doc, "how-threadline-works.md")
     assert String.contains?(doc, "mix threadline.gen.triggers --tables posts")
-    assert String.contains?(doc, "{:threadline, \"~> 0.9.0\"}")
+    # Derived from `mix release.pins`, the designated sole writer of every
+    # documented install pin, rather than hardcoded. A literal here goes red the
+    # moment that writer does its job at a version bump — the born-red shape
+    # Plan 202-09 removed from release_artifact_contract_test.exs (which carries
+    # the full rationale) and the bump rehearsal found four more copies of.
+    assert String.contains?(
+             doc,
+             ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+           )
+
     refute String.contains?(doc, "{:threadline, \"~> 0.5\"}")
     assert String.contains?(doc, "{:covered, _}")
     assert String.contains?(doc, "mix threadline.health.coverage")
