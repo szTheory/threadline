@@ -6,11 +6,16 @@ defmodule Threadline.AdoptionPilotDocContractTest do
   @release_please_config "release-please-config.json"
   @version Threadline.MixProject.project()[:version]
 
-  test "adoption-pilot distribution preflight matches mix.exs version and ~> 0.9.0 constraint" do
+  test "adoption-pilot distribution preflight matches mix.exs version and the derived install pin" do
     guide = File.read!(@guide)
 
     assert String.contains?(guide, @version)
-    assert String.contains?(guide, "~> 0.9.0")
+    # Derived from `mix release.pins`, the designated sole writer of every
+    # documented install pin, rather than hardcoded. A literal here goes red the
+    # moment that writer does its job at a version bump — the born-red shape
+    # Plan 202-09 removed from release_artifact_contract_test.exs (which carries
+    # the full rationale) and the bump rehearsal found four more copies of.
+    assert String.contains?(guide, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}")
     refute String.contains?(guide, "~> 0.6")
     refute String.contains?(guide, "~> 0.5")
     refute String.contains?(guide, "0.2.0")
