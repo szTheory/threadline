@@ -633,6 +633,23 @@ The release workflow:
 
 **Secrets:** **`HEX_API_KEY`** (required). **`RELEASE_PLEASE_TOKEN`** (optional fine-grained PAT — recommended for Release Please PRs and distribution sync PRs).
 
+### The publish approval is a confirmation, not a review
+
+The `publish-hex` job declares the **`production-hex`** environment, which carries a required-reviewer rule. The approval prompt sits after the green-CI gate and immediately before `mix hex.publish`, so it is the last thing between a commit and a permanent public artifact.
+
+Every automated gate above it answers one question: **is this artifact well-formed?** — formatting, Credo, Dialyzer, the suite, the tarball shape, the evaluator install, the release metadata. The human answers a different question that no gate can: **is this the release I meant to make, and from this commit?**
+
+Be honest about what it is not. This repository has a single maintainer, and the environment rule permits self-review, so the approval is a **confirmation step** — it is **not peer review and not a second pair of eyes**. Describing it as review would be the same category of claim as a gate that asserts a line of configuration and calls it behavior, which is exactly the failure this project keeps finding in its own tooling.
+
+Two checks cover the gate, and they prove different things:
+
+| Check | What it proves | What it does **not** prove |
+|-------|----------------|-----------------------------|
+| `test/threadline/release_control_plane_contract_test.exs` | `release.yml` still declares the environment on the publish job, and the publish command still sits behind it | Nothing about GitHub's side — deleting the reviewer leaves this green and the gate inert |
+| [`bin/verify-environment-protection`](bin/verify-environment-protection) (workflow: `Environment Protection`) | The **live** environment still carries a required-reviewer rule with at least one reviewer, and the publish job is gated on that same environment name | Nothing about the artifact — it is a property of repository configuration, not of the commit under test |
+
+The script fails closed: an unreadable response is never scored as a pass. Its only partial-pass path requires `ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION=1` and prints a warning naming what it could not inspect. That variable is deliberately not set in the workflow. The check runs **outside** the required status check, because a contributor cannot fix repository configuration and should not be blocked by it.
+
 ### Version-bearing lines and who owns them
 
 Every line in `README.md`, `guides/**`, and this file that carries a Threadline version number has exactly one named owner. The goal is that **no version-bearing line requires a hand edit at release time** — not that no version literal exists. A sentence that uses a version as an *example* stays true after a bump and needs no owner; a sentence that asserts *what the current version is* must be produced by automation.
@@ -684,6 +701,40 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 
 Post-publish distribution proof for adopters is recorded in the adoption-pilot
 Distribution preflight row in `guides/adoption-pilot-backlog.md`.
+
+### Recovery after a bad publish
+
+Written down **before** a publish goes wrong, so it is a procedure rather than a decision made under pressure.
+
+**The decision rule, first:** inside the revert window, **revert**. Outside it, **retire and patch**. Do not spend the window deciding which one to do.
+
+**1. Inside the window — revert.** Hex allows a published release to be reverted for a short period after it is published, on the order of **an hour**. Within that window:
+
+```bash
+mix hex.publish --revert X.Y.Z
+```
+
+This is the only path that actually withdraws the release. Treat the window as short and act immediately; do not wait for a full diagnosis, because a diagnosis that takes two hours costs you this option.
+
+**2. Outside the window — retire, then ship a patch the same day.** Retirement is the only remaining lever:
+
+```bash
+mix hex.retire threadline X.Y.Z invalid --message "Reason, and the version to use instead"
+```
+
+Be precise about what retirement does: it **warns**. Resolving the retired version prints a warning, and the package page marks it. Be equally precise about what it does **not** do:
+
+- It does **not** remove the tarball — the release stays downloadable.
+- It does **not** break existing lockfiles — a project with the bad version in `mix.lock` keeps resolving it.
+- It does **not** move anyone already pinned — nobody is upgraded off the retired release by retiring it.
+
+So retirement is a signal, not a fix. The **fix** is a **same-day patch release** that corrects the defect, paired with the retirement so the warning has somewhere to point. Ship it through the normal Release Please path; do not hand-publish around the gates.
+
+**3. Removal beyond retirement is not available to you.** Deleting a published release after the revert window is a support request to the Hex team, granted at their discretion and not on your schedule. Plan as if it is unavailable, because in any timeframe that matters it is.
+
+**4. Documentation is permanent regardless.** Published documentation for a version stays published even when that version is reverted, so the recovery path never fully restores the prior state. Anything embarrassing or wrong that reaches HexDocs is public from then on — which is the strongest argument for the confirmation step in front of the publish, above.
+
+Recovery is deliberately **not automated**. There is no mix alias, script, or workflow for it, and adding one would create a fast path to an irreversible action. The commands above are run by a human who has read this section.
 
 ## Maintainer manual checklist (release)
 
