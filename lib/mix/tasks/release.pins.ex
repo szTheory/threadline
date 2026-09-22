@@ -104,7 +104,19 @@ defmodule Mix.Tasks.Release.Pins do
 
   # Read at runtime rather than frozen into a module attribute so that a bump
   # to mix.exs can never be shadowed by a stale compiled artifact.
-  defp target_pin_version do
+  #
+  # Public deliberately, and only for that reason: this task is the designated
+  # sole writer of every documented install pin, so the documentation contracts
+  # that assert what a pin should say must ask this function rather than
+  # restate the rule. The alternative — a shared module — is ruled out above
+  # for the glob and the regex, and the same reasoning applies here: a
+  # release-time-only concern does not earn new production surface. Exposing
+  # the existing derivation keeps one rule with one owner and two readers.
+  # `@moduledoc false` keeps it off the rendered documentation surface, and the
+  # `exclude_patterns` entry in mix.exs keeps the whole task out of the
+  # published archive, so this is not adopter API.
+  @doc false
+  def target_pin_version do
     parsed = Version.parse!(current_version())
     "#{parsed.major}.#{parsed.minor}.0"
   end
