@@ -415,7 +415,27 @@ defmodule Threadline.MixProject do
         "Changelog" => "#{@source_url}/blob/#{doc_source_ref()}/CHANGELOG.md"
       },
       files:
-        ~w(lib priv/fonts guides brandbook/favicon.svg brandbook/logo-primary.svg brandbook/logo-primary-light.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
+        ~w(lib priv/fonts guides brandbook/favicon.svg brandbook/logo-primary.svg brandbook/logo-primary-light.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md),
+      # Maintainer-only tooling must never cross into the published package.
+      # Two of the critic tasks carry a `@shortdoc`, so once shipped they would
+      # appear in every adopter's `mix help` under a namespace that is not this
+      # library's; the stress and mechanical harness and the release pin
+      # rewriter are repository instruments with no meaning inside a host
+      # application. Expressed as patterns rather than by converting `files:`
+      # into a file-granular enumeration of `lib/`, because an allowlist of
+      # individual modules would silently omit any legitimate new one. The
+      # exclusion is proven against the UNPACKED tarball in
+      # test/threadline/release_artifact_contract_test.exs, not against this
+      # configuration — a gate that asserts its own inputs proves nothing.
+      exclude_patterns: [
+        ~r{^lib/mix/tasks/critic\.},
+        ~r{^lib/mix/tasks/release\.pins\.ex$},
+        ~r{^lib/threadline/critic_trust/},
+        ~r{^lib/threadline/operator_surface/live/stress_live\.ex$},
+        ~r{^lib/threadline/operator_surface/mechanical_checker\.ex$},
+        ~r{^lib/threadline/operator_surface/stress_fixtures\.ex$},
+        ~r{^lib/threadline/operator_surface/stress_router\.ex$}
+      ]
     ]
   end
 
