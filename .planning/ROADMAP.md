@@ -680,7 +680,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 202-02-PLAN.md — `mix release.pins`, the pin/marker separation invariant, and tarball exclusion of maintainer-only tooling (D-04, D-05, D-06, D-20)
-- [ ] 202-03-PLAN.md — Split changelog ownership by file, write the 0.10.0 entry breaking-changes-first, enforce its shape, and re-scope the upgrade path (D-11 – D-16)
+- [x] 202-03-PLAN.md — Split changelog ownership by file, write the 0.10.0 entry breaking-changes-first, enforce its shape, and re-scope the upgrade path (D-11 – D-16)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

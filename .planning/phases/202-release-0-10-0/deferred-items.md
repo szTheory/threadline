@@ -35,3 +35,33 @@
   default to a local rehearsal registry built from this tree's own tarball, so
   the claim is now false. Out of scope for 202-02 (not a version-bearing line and
   not in that plan's file list). Owner: Plan 03's documentation pass.
+
+### Adjudicated by 202-03 (2026-09-22): still deferred, with a newly measured reason
+
+Plan 03 read the stale hex-evaluator prose item above and declined to fix it.
+The claim IS false — Plan 01 changed the default resolution to a local rehearsal
+registry built from this tree's own tarball — but the two sentences carrying it
+are **install-pin lines**, not ordinary prose:
+
+```
+guides/evaluating-threadline.md:41      {:threadline, "~> 0.9.0"} from hex.pm — not a path dep
+guides/adoption-evidence-playbook.md:15 {:threadline, "~> 0.9.0"} from hex.pm, not a path dep
+```
+
+Both match `version_truth_doc_contract_test.exs`'s `@pin_regex` and are 2 of the
+6 pin sites `mix release.pins` rewrites (confirmed this session: a simulated
+`0.10.0` bump rewrote exactly these 6 files). Correcting the sentence truthfully
+means deleting the pin literal from it, because the evaluator fixture no longer
+carries a version literal at all — which would drop the pin inventory from 6 to
+4 and make 202-02's measured "all six documented install pins" narrative stale.
+
+That is a release-tooling change, not a documentation edit, and it is outside
+this plan's file list and blast radius. Both files also render in the published
+tarball, so the correction is worth making — just not as an unreviewed side
+effect of a changelog plan.
+
+- **Owner:** a follow-up with `mix release.pins` in scope (202-05 publish gate at
+  the earliest, or its own maintenance item).
+- **Next step:** decide whether the evaluator's install shape is still a
+  pin-shaped claim at all. If it is not, remove the literal from both sentences
+  and re-measure the pin inventory in the same change.

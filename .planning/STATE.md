@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 202
 current_phase_name: Release 0.10.0
 status: executing
-stopped_at: Completed 202-02-PLAN.md
-last_updated: "2026-09-22T14:16:30.479Z"
+stopped_at: Completed 202-03-PLAN.md
+last_updated: "2026-09-22T15:02:44.610Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 202 execution started
-state_head: 46d240bf0929c74b15899b854b701713745e87f1
+state_head: c35cb0dc2372f48644aa12816720a4cbcb267ea0
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 115
-  completed_plans: 112
+  completed_plans: 113
   percent: 57
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 202 (Release 0.10.0) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [██████████████████░░] 112/115 plans ([██████░░░░] 57% of phases — 4 of 7 marked complete in ROADMAP; 199 and 200 carry stale verification)
+Progress: [██████████████████░░] 113/115 plans ([██████░░░░] 57% of phases — 4 of 7 marked complete in ROADMAP; 199 and 200 carry stale verification)
 
 ## Performance Metrics
 
@@ -238,6 +238,7 @@ Progress: [██████████████████░░] 112/115
 | Phase 201-rendered-output P04 | 8min | 1 tasks | 5 files |
 | Phase 202 P01 | 26 min | 3 tasks | 13 files |
 | Phase 202 P02 | 12 min | 4 tasks | 5 files |
+| Phase 202 P03 | 40 min | 3 tasks | 5 files |
 
 ## Deferred Items
 
@@ -766,6 +767,9 @@ Progress: [██████████████████░░] 112/115
 - [Phase 202]: The hex evaluator resolves :threadline from a per-run local rehearsal registry built from this tree's own mix hex.build tarball, with hexpm reserved for the published mode set by the release workflow. — The fixture previously pinned threadline ~> 0.9.0 from hexpm with a committed lock, so it re-proved the last published release instead of the tree under test - a pre-publish gate resting on a post-publish fact. bin/with-rehearsal-registry closes that; the lock is now untracked and gitignored.
 - [Phase 202]: Install pins are owned by mix release.pins alone; release automation is test-forbidden from ever owning a pin line
 - [Phase 202]: Maintainer-only tooling (11 files, 4706 lines) is excluded from the Hex package via exclude_patterns, proven against the unpacked tarball rather than the config
+- [Phase 202]: release-please's changelog-path now names CHANGELOG-GENERATED.md; CHANGELOG.md is human-owned and is the file shipped in the tarball
+- [Phase 202]: The 0.10.0 changelog entry ships the complete 25-module undocumented list, not the folded 23 — the two sets were measured, not assumed
+- [Phase 202]: The stale hex-evaluator prose stays deferred: the false sentences are 2 of the 6 install-pin sites, so the fix is release-tooling work
 
 ### Blockers
 
@@ -775,8 +779,8 @@ Progress: [██████████████████░░] 112/115
 
 ## Session Continuity
 
-**Last session:** 2026-09-22T14:15:52.280Z
-**Stopped at:** Completed 202-02-PLAN.md
+**Last session:** 2026-09-22T15:02:37.592Z
+**Stopped at:** Completed 202-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
