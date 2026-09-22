@@ -26,6 +26,43 @@ would be read as a release.
 
 _Nothing yet for the next release._
 
+## [0.10.1] - 2026-09-22
+
+A patch release that corrects the storage-schema advice `mix threadline.install`
+prints on a new install, and the default the configuration reference states for
+`storage_schema`. No library behavior changes: an install that followed the
+getting-started guide, or that ignored the installer's advice, is unaffected.
+
+### Breaking changes
+
+None.
+
+### Required action
+
+None for most installs. One case needs a check: on 0.10.0, if you ran
+`mix threadline.install` with no `storage_schema` configured, then followed its
+advice to add `config :threadline, storage_schema: "threadline"` and re-ran the
+task, the re-run kept the migrations it had already generated for `public`. Your
+config then names a schema your migrations do not create. To fix it:
+
+- **Not yet migrated:** delete the three generated `*_threadline_*_schema.exs`
+  migrations and run `mix threadline.install` again. The dedicated schema is
+  then frozen into the new migrations.
+- **Already migrated:** remove the `storage_schema` key (or set it to
+  `"public"`) so Threadline reads the tables where your migrations put them.
+  Moving them to a dedicated schema is deliberate migration work — see
+  [`guides/upgrade-path.md`](guides/upgrade-path.md).
+
+### Fixed
+
+- `mix threadline.install` now gives its storage-schema advice after generating,
+  names the migration files it just wrote, and says to delete them before
+  re-running. It gives no advice when every migration already exists, which is
+  an existing install that `public` already describes correctly.
+- `guides/configuration-and-commands.md` stated the `storage_schema` default as
+  `"threadline"`; it has been `"public"` since 0.10.0. A test now ties the
+  documented default to the resolved one.
+
 ## [0.10.0] - 2026-09-22
 
 The public-surface and release-truth release: a documented surface an evaluator

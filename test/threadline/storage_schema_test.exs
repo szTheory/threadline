@@ -33,6 +33,28 @@ defmodule Threadline.StorageSchemaTest do
       assert StorageSchema.repo_opts() == [prefix: "public"]
     end
 
+    test "the configuration reference states the default the code actually resolves" do
+      default = StorageSchema.get([])
+
+      row =
+        "guides/configuration-and-commands.md"
+        |> File.read!()
+        |> String.split("\n")
+        |> Enum.find(&String.starts_with?(&1, "| `config :threadline, storage_schema:"))
+
+      assert row, "guides/configuration-and-commands.md lost its `storage_schema` row"
+
+      # Columns: key | meaning | default | where documented. The default column
+      # must open with the resolved default — 0.10.0 shipped this row still
+      # claiming `"threadline"` after the default flipped to `public`.
+      [_, _key, _meaning, default_cell | _] = String.split(row, "|")
+
+      assert String.starts_with?(String.trim(default_cell), ~s(`"#{default}"`)),
+             "guides/configuration-and-commands.md documents the storage_schema default as " <>
+               "#{String.trim(default_cell)}, but StorageSchema resolves #{inspect(default)} " <>
+               "when no key is configured"
+    end
+
     test "a dedicated schema stays available as an explicit opt-in" do
       assert StorageSchema.get(storage_schema: "threadline") == "threadline"
 
