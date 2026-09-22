@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, ci-required
+# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, verify-bump-rehearsal, ci-required
 #
 # `ci-required` (name: "CI required") is the SINGLE required status check on
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
@@ -859,8 +859,58 @@ jobs:
       - name: Verify CHANGELOG and @version alignment
         run: bin/verify-release-shape
 
+  verify-bump-rehearsal:
+    name: Bump rehearsal (next minor)
+    runs-on: ubuntu-24.04
+    # Measured at 66s wall locally (macOS, 295% CPU) for the full run: throwaway
+    # clone, deps.get, mix release.pins, verify.doc_contract, verify.release
+    # (which builds ExDoc and the Hex tarball). 15 gives roughly 4x headroom on a
+    # slower 2-core hosted runner without hiding a hang.
+    timeout-minutes: 15
+    env:
+      DB_HOST: localhost
+    services:
+      # The rehearsal runs mix verify.doc_contract and the release contract
+      # tests, and test/test_helper.exs creates and migrates the test database on
+      # boot. No database means no rehearsal, which this gate scores as a
+      # failure rather than a pass.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: threadline_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      # fetch-depth: 0 because bin/verify-bump-rehearsal clones this checkout
+      # into a throwaway tree. A depth-1 checkout would make that clone shallow
+      # and couple the gate to git's shallow-source behaviour for no benefit.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      # Deliberately NO `deps` cache here. The rehearsal fetches dependencies
+      # inside its own throwaway clone, so this job's `deps/` directory is never
+      # populated or read — a cache entry keyed on it would restore nothing that
+      # is used, while adding a key shape to the CACHE KEY CONTRACT above that
+      # nothing verifies. A cold dependency fetch inside the clone is the honest
+      # cost of rehearsing a fresh release checkout.
+      - name: Rehearse the next minor bump
+        run: mix verify.bump_rehearsal
+
   # The single required status check on `main` (D-08). Collapses every job above
-  # into one pass/fail signal so branch protection names one context, not thirteen,
+  # into one pass/fail signal so branch protection names one context, not fourteen,
   # and so no required-check name carries a matrix axis that could rot.
   #
   # `if: always()` is load-bearing (D-09): a job that `needs:` a FAILED job is
@@ -888,6 +938,7 @@ jobs:
       - verify-docs
       - verify-hex-package
       - verify-release-shape
+      - verify-bump-rehearsal
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -900,5 +951,5 @@ jobs:
           # Extension point: the first `needs:` job that becomes conditionally
           # skipped (a job-level `if:`) must be listed here via `allowed-skips`,
           # or this gate will correctly fail on its skip. Deliberately absent
-          # today — all thirteen jobs above run unconditionally, so neither
+          # today — all fourteen jobs above run unconditionally, so neither
           # `allowed-skips` nor `allowed-failures` applies yet.

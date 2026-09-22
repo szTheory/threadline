@@ -576,6 +576,77 @@ defmodule Threadline.CiTopologyContractTest do
     end
   end
 
+  # --- Plan 202-10: the bump-rehearsal gate cannot be silently deleted ------
+  #
+  # Every born-red cause Phase 202 found was GREEN at the current version and
+  # observable only under a simulated bump. That is exactly why nothing else in
+  # this suite would notice if `verify-bump-rehearsal` were dropped from
+  # `ci.yml` or quietly moved onto an allowed-skips list: the tree would stay
+  # green right up to the publish gate, which is the failure mode the job
+  # exists to remove. A gate that can be deleted in one YAML edit is not a
+  # gate, so its wiring is asserted from source here in every direction that
+  # could weaken it.
+  @bump_rehearsal_job "verify-bump-rehearsal"
+
+  # Collects the items of every `allowed-skips:` / `allowed-failures:` list in
+  # the workflow, comments stripped so a commented-out example (the
+  # `ci-required` extension-point note is exactly that) is never mistaken for a
+  # live entry.
+  defp allowed_skip_or_failure_items(yaml) do
+    yaml
+    |> strip_comment_lines()
+    |> then(&Regex.scan(~r/^\s*allowed-(?:skips|failures):\s*\n((?:\s*- .+\n)*)/m, &1))
+    |> Enum.flat_map(fn [_, items] -> String.split(items, "\n", trim: true) end)
+    |> Enum.map(&(&1 |> String.trim() |> String.trim_leading("- ")))
+  end
+
+  test "the bump-rehearsal gate is wired, required, and never skip-listed" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+    mix_exs = read_rel!(["mix.exs"])
+
+    job = workflow_job(yaml, @bump_rehearsal_job)
+
+    assert job != "",
+           "#{@bump_rehearsal_job} is gone from .github/workflows/ci.yml. It is the only " <>
+             "check that observes the release-commit state, where every born-red cause " <>
+             "Phase 202 found lives; removing it restores the four-plans-late discovery."
+
+    assert String.contains?(job, "mix verify.bump_rehearsal"),
+           "#{@bump_rehearsal_job} no longer runs `mix verify.bump_rehearsal`, so the job " <>
+             "can report green without rehearsing anything."
+
+    refute Regex.match?(~r/^    if:/m, job),
+           "#{@bump_rehearsal_job} acquired a job-level `if:`. A conditionally skipped " <>
+             "member of ci-required needs an allowed-skips entry to keep the aggregate " <>
+             "green, which is the laundering path this contract exists to block."
+
+    assert Regex.match?(~r/^# Job id contract[^\n]*\n#[^\n]*#{@bump_rehearsal_job}/m, yaml),
+           "the job-id contract header no longer lists #{@bump_rehearsal_job}; the roster " <>
+             "of stable keys has drifted from the jobs that exist."
+
+    assert @bump_rehearsal_job in ci_required_needs(),
+           "#{@bump_rehearsal_job} is not in ci-required's needs:. Outside the single " <>
+             "required check it is advisory, and an advisory red is exactly what a " <>
+             "contributor merges past on the way to a born-red release."
+
+    refute @bump_rehearsal_job in allowed_skip_or_failure_items(yaml),
+           "#{@bump_rehearsal_job} appears in an allowed-skips or allowed-failures list. " <>
+             "That launders a red release rehearsal into a green merge gate (D-09)."
+
+    assert String.contains?(mix_exs, "\"verify.bump_rehearsal\": &verify_bump_rehearsal/1"),
+           "mix.exs no longer declares the `verify.bump_rehearsal` alias the CI job cites."
+
+    assert String.contains?(mix_exs, "bin/verify-bump-rehearsal"),
+           "the `verify.bump_rehearsal` alias no longer invokes bin/verify-bump-rehearsal."
+
+    [_, ci_all_block] = String.split(mix_exs, "\"ci.all\": [")
+    [ci_all_list | _] = String.split(ci_all_block, "]")
+
+    refute String.contains?(ci_all_list, "\"verify.bump_rehearsal\""),
+           "verify.bump_rehearsal was folded into ci.all. It is a release-lane check and " <>
+             "follows verify.release's precedent of staying out of the per-change gate."
+  end
+
   test "the ruleset's sole required status check is byte-exact with ci-required's emitted name" do
     ruleset =
       [".github", "rulesets", "main.json"]
