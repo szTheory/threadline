@@ -431,16 +431,88 @@ jobs:
           done
           exit 1
 
-  distribution-sync:
-    name: Post-publish distribution sync
+  # Job id `smoke-published` is STABLE and asserted by
+  # test/threadline/release_control_plane_contract_test.exs (D-09). Evolve
+  # `name:` freely; do not rename the id.
+  #
+  # This job installs the tarball that was just published and exercises it, so
+  # that distribution-sync never attests a release nobody proved installs
+  # (D-10). It is the published-mode half of the evaluator fixture: the same
+  # `mix verify.hex_evaluator` entrypoint CI runs in rehearsal mode, with
+  # THREADLINE_HEX_EVALUATOR_MODE=published so `:threadline` resolves
+  # `== THREADLINE_PUBLISHED_VERSION` from hexpm instead of from the local
+  # rehearsal registry. The fixture reads that version with `fetch_env!`, so a
+  # broken output wiring fails loudly here rather than silently re-rehearsing.
+  #
+  # It lives in release.yml and NOT in ci.yml on purpose: a post-publish job
+  # inside the per-PR workflow would be a conditionally-skipped member of
+  # `ci-required` on every pull request, and GitHub scores a skip as a pass.
+  # Never add this id to ci.yml's job-id contract header, to `ci-required`'s
+  # `needs:`, or to any allowed-skips/allowed-failures list.
+  smoke-published:
+    name: Smoke test the published release (threadline from hex.pm)
     runs-on: ubuntu-24.04
-    # A second 36 x 10s (6 min) Hex-registry poll, then a doc edit and PR.
-    timeout-minutes: 20
+    timeout-minutes: 15
     needs: [release-ref, publish-hex]
     if: |
       always() &&
       needs.release-ref.result == 'success' &&
       needs.publish-hex.result == 'success' &&
+      needs.release-ref.outputs.dry_run != 'true' &&
+      (needs.publish-hex.outputs.published == 'true' || needs.publish-hex.outputs.skipped == 'true')
+    env:
+      DB_HOST: localhost
+      MIX_ENV: test
+      THREADLINE_HEX_EVALUATOR_MODE: published
+      THREADLINE_PUBLISHED_VERSION: ${{ needs.release-ref.outputs.release_version }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: threadline_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.release-ref.outputs.checkout_ref }}
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Ensure hex_evaluator_test database exists
+        env:
+          PGPASSWORD: postgres
+        run: |
+          createdb -h "$DB_HOST" -U postgres hex_evaluator_test 2>/dev/null || true
+
+      - name: Verify the just-published threadline adopt path
+        run: mix verify.hex_evaluator
+
+  distribution-sync:
+    name: Post-publish distribution sync
+    runs-on: ubuntu-24.04
+    # A second 36 x 10s (6 min) Hex-registry poll, then a doc edit and PR.
+    timeout-minutes: 20
+    # smoke-published is a hard member (D-10): never attest a published
+    # artifact that has not been proven to install. Because this job carries
+    # `always()`, membership in `needs:` alone would not block it — the result
+    # check below is what makes the ordering load-bearing.
+    needs: [release-ref, publish-hex, smoke-published]
+    if: |
+      always() &&
+      needs.release-ref.result == 'success' &&
+      needs.publish-hex.result == 'success' &&
+      needs.smoke-published.result == 'success' &&
       needs.release-ref.outputs.skip_distribution_sync != 'true' &&
       needs.release-ref.outputs.dry_run != 'true' &&
       (needs.publish-hex.outputs.published == 'true' || needs.publish-hex.outputs.skipped == 'true')
