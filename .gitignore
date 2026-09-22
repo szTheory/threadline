@@ -63,6 +63,18 @@ tmp/
 /test/generated/operator_surface/reports/
 /test/generated/operator_surface/refute-transcripts/
 
+# Local critic/GSD scratch under .planning/. These are machine-local, stale-prone
+# caches and generated run state — no code reads them (the gated scorecards live
+# under /test/fixtures/operator_surface/, which stays tracked and manifest-owned).
+/.planning/critic-scores/
+/.planning/critic-verdict-cache/
+/.planning/critic-report.html
+/.planning/scorecards/
+/.planning/refute/
+/.planning/state.json
+/.planning/milestone.lock
+/.planning/agent-history.json
+
 # Local agent/session config
 /.claude/
 /.git-commit-task*.sh
