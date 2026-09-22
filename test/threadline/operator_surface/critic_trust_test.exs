@@ -787,10 +787,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         outside =
           Path.join(
             System.tmp_dir!(),
-            "threadline-critic-outside-#{System.unique_integer([:positive])}"
+            scratch_dir_name("threadline-critic-outside")
           )
 
         File.mkdir_p!(outside)
+        on_exit(fn -> File.rm_rf(outside) end)
 
         link = Path.join(base, "outside-link")
         File.ln_s!(outside, link)
@@ -1139,8 +1140,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           project_root(),
           "_build",
           "critic-trust-path-tests",
-          "#{name}-#{System.unique_integer([:positive])}"
+          scratch_dir_name(name)
         ])
+
+      cleanup_scratch(base)
 
       fixture_root = Path.join(base, "fixtures")
       output_root = Path.join(base, "critic-scores")
@@ -1155,17 +1158,43 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp synth_root!(name) do
-      root =
+      base =
         Path.join([
           project_root(),
           "_build",
           "critic-trust-path-tests",
-          "#{name}-#{System.unique_integer([:positive])}",
-          "fixtures"
+          scratch_dir_name(name)
         ])
 
+      cleanup_scratch(base)
+
+      root = Path.join(base, "fixtures")
       File.mkdir_p!(Path.join(root, "golden"))
       root
+    end
+
+    # Scratch directory names must be unique ACROSS `mix test` runs, not merely within
+    # one. `System.unique_integer/1` draws from a counter that is unique per BEAM
+    # instance and restarts on every `mix test`, so on its own it re-draws names that
+    # earlier runs already left behind under `_build/critic-trust-path-tests/`. A reused
+    # directory still holds that run's `output-alias`, so `File.ln_s!/2` then raises
+    # `File.LinkError` — the intermittent tracked in Phase 202.
+    #
+    # The OS pid separates two `mix test` processes running concurrently against this
+    # same checkout; the nanosecond clock separates sequential runs that recycle a pid;
+    # the counter separates calls within a single run.
+    defp scratch_dir_name(name) do
+      "#{name}-#{System.pid()}-#{System.os_time(:nanosecond)}-#{System.unique_integer([:positive])}"
+    end
+
+    # Registers removal of exactly the scratch tree this test created — never the shared
+    # `critic-trust-path-tests` root, never a sibling. `on_exit/1` runs even when the
+    # test raises, and `File.rm_rf/1` is a no-op on a path that is already gone.
+    # Cleanup is unconditional, including on failure: the unbounded leak is what caused
+    # the defect, and the scratch tree is fully reconstructible from the checked-in
+    # fixtures plus the test body, so retaining it carries no unique diagnostic value.
+    defp cleanup_scratch(base) do
+      on_exit(fn -> File.rm_rf(base) end)
     end
 
     defp project_root do
