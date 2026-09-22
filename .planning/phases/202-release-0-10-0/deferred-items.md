@@ -15,3 +15,14 @@
   across concurrent runs is the obvious candidate. Not investigated.
 - **Next step:** reproduce under `mix verify.flake` and record the failing seed
   before attempting a fix.
+
+### Orchestrator follow-up (2026-09-22, post-wave-1 gate)
+
+- Full suite after Plan 01: `mix verify.test` → **1679 tests, 0 failures, 1 excluded**.
+- `mix test test/threadline/operator_surface/critic_trust_test.exs --repeat-until-failure 25`
+  → **25/25 green** (seeds 156679 … 850554). The file is NOT flaky in isolation.
+- Therefore the suspected mechanism narrows to **cross-file interaction inside a full-suite
+  run** — most likely concurrent scratch trees under `_build/critic-trust-path-tests/<label>-<random>/`
+  racing with another test's `_build` access, not a collision within this file's own runs.
+- Still unfixed and still out of 202-01's blast radius. **Re-check before the 202-05 publish
+  gate** — "green by construction" cannot rest on a suite with an unexplained intermittent.
