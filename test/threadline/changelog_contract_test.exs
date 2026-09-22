@@ -170,7 +170,7 @@ defmodule Threadline.ChangelogContractTest do
              "Any of them would hand a bot write access to adopter-facing prose."
   end
 
-  test "the generated changelog documents the ownership split and carries no release entry" do
+  test "the generated changelog documents the ownership split and holds no pre-0.10.0 entry" do
     generated = read!(@generated_changelog)
 
     assert String.contains?(generated, @human_changelog),
@@ -181,10 +181,16 @@ defmodule Threadline.ChangelogContractTest do
            "#{@generated_changelog} does not name its owner. A file nobody is documented as " <>
              "owning gets hand-edited, and a hand edit here is silently overwritten."
 
-    refute Regex.match?(@dated_entry_regex, generated),
-           "#{@generated_changelog} already contains a dated release entry, but this file is " <>
-             "seeded empty-but-headed: generated notes begin accumulating at 0.10.0, and " <>
-             "earlier generated bodies stay in #{@human_changelog} as published history " <>
-             "because the compare and commit links inside them are what adopters have followed."
+    # release-please writes a dated entry here on every release PR, starting at
+    # 0.10.0, so the invariant is about WHICH entries may appear, not whether any
+    # do. An earlier version here means published history was migrated out of
+    # the human changelog, or the bot was pointed back at an old range.
+    for [_heading, version] <- Regex.scan(@dated_entry_regex, generated) do
+      assert Version.compare(version, "0.10.0") != :lt,
+             "#{@generated_changelog} carries a dated entry for #{version}. Generated notes " <>
+               "begin accumulating at 0.10.0; earlier generated bodies stay in " <>
+               "#{@human_changelog} as published history because the compare and commit " <>
+               "links inside them are what adopters have followed."
+    end
   end
 end
