@@ -84,3 +84,14 @@ tmp/
 
 #secrets
 .env
+
+# The hex evaluator fixture's lock is deliberately untracked (202 D-08).
+# This fixture's job is RESOLVABILITY — "does a packaged build of this tree
+# install into a bare host?" — not reproducibility. A committed lock pinned
+# `threadline 0.9.0` from hexpm with a checksum, which is exactly how the
+# evaluator kept proving a previously published release instead of the tree
+# under test. The accepted tradeoff is the loss of an offline cached fallback;
+# that is safe by construction because `verify_hex_evaluator/1` runs
+# `mix deps.get` unconditionally before compile/test, so a mode switch always
+# re-resolves rather than compiling against a stale lock.
+/priv/ci/hex_evaluator/mix.lock

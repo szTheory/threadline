@@ -336,8 +336,27 @@ defmodule Threadline.MixProject do
   end
 
   defp verify_hex_evaluator(_args) do
+    # The fixture resolves `:threadline` in one of two modes (202 D-07).
+    #
+    #   rehearsal (default) — wrap the run in `bin/with-rehearsal-registry`,
+    #     which packages THIS tree with `mix hex.build`, serves it from a
+    #     throwaway signed local registry, and tears the registry down on every
+    #     exit path. This is what makes the evaluator a usable PRE-publish gate
+    #     instead of a re-test of the last published release.
+    #
+    #   published — set only by release.yml AFTER `mix hex.publish`. No local
+    #     registry; the fixture resolves the exact published version from
+    #     hexpm, so the run must NOT be wrapped.
+    #
+    # `mix verify.hex_evaluator` stays the single named entrypoint either way.
+    inner =
+      "cd priv/ci/hex_evaluator && printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test"
+
     cmd =
-      "bash -lc 'set -euo pipefail && cd priv/ci/hex_evaluator && printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test'"
+      case System.get_env("THREADLINE_HEX_EVALUATOR_MODE", "rehearsal") do
+        "published" -> "bash -lc 'set -euo pipefail && #{inner}'"
+        _ -> "bin/with-rehearsal-registry bash -lc 'set -euo pipefail && #{inner}'"
+      end
 
     case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
       0 -> :ok

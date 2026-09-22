@@ -2,12 +2,24 @@ defmodule Threadline.StorageSchema do
   @moduledoc """
   Resolves and validates the PostgreSQL schema that stores Threadline-owned data.
 
-  Threadline defaults to the dedicated `threadline` schema. Hosts may set
-  `config :threadline, storage_schema: "audit"` or `"public"` when they need a
-  different footprint.
+  Threadline defaults to the host's `public` schema — the schema every install
+  that predates this module already uses. Threadline cannot detect where an
+  existing install put its audit tables, so the default has to be the one that
+  is true for installs that already exist.
+
+  A dedicated schema is an explicit opt-in, and is the recommended choice for a
+  NEW install:
+
+      config :threadline, storage_schema: "threadline"
+
+  Any other single-segment PostgreSQL identifier works too (`"audit"`, for
+  example). The choice is frozen at migration-generation time: the generated
+  triggers and tables are written into whichever schema was configured when
+  `mix threadline.install` ran, so changing the key afterwards requires a
+  migration, not just a config edit.
   """
 
-  @default "threadline"
+  @default "public"
   @identifier ~r/^[A-Za-z_][A-Za-z0-9_]*$/
   @max_identifier_bytes 63
 
@@ -21,7 +33,13 @@ defmodule Threadline.StorageSchema do
     threadline_evidence_records
   )
 
-  @doc "Returns the configured storage schema, defaulting to `threadline`."
+  @doc """
+  Returns the configured storage schema, defaulting to the host's `public` schema.
+
+  A dedicated schema is opted into with
+  `config :threadline, storage_schema: "threadline"`, or per-call via the
+  `:storage_schema` option.
+  """
   def get(opts \\ []) when is_list(opts) do
     opts
     |> Keyword.get(:storage_schema, Application.get_env(:threadline, :storage_schema, @default))
