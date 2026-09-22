@@ -670,7 +670,16 @@ Plans:
   4. The 0.10.0 changelog entry opens with human-written highlights above the generated commit list. (RELEASE-04)
   5. Release-shape and post-publish distribution-sync checks pass against the published tarball. (RELEASE-05)
 
-**Plans**: TBD (est. 3 — version-literal wiring before merge · merge and publish · changelog highlights and post-publish sync)
+**Plans**: 5 plans
+
+Plans:
+- [ ] 202-01-PLAN.md — Flip the storage-schema default to `public` and prove a legacy 0.9.x-shaped install reads green end to end via a rehearsal-registry hex evaluator (D-01, D-02, D-03, D-07, D-08)
+- [ ] 202-02-PLAN.md — `mix release.pins`, the pin/marker separation invariant, and tarball exclusion of maintainer-only tooling (D-04, D-05, D-06, D-20)
+- [ ] 202-03-PLAN.md — Split changelog ownership by file, write the 0.10.0 entry breaking-changes-first, enforce its shape, and re-scope the upgrade path (D-11 – D-16)
+- [ ] 202-04-PLAN.md — Live environment-protection verifier, `smoke-published` before `distribution-sync`, and the honest gate/recovery docs (D-09, D-10, D-17, D-18, D-19)
+- [ ] 202-05-PLAN.md — Dress rehearsal, human-gated push/merge/publish, and post-publish verification against live evidence
+
+**Waves**: 1 → 202-01 · 2 → 202-02, 202-03 (parallel) · 3 → 202-04 · 4 → 202-05
 
 **Notes carried from the approved plan:**
 
