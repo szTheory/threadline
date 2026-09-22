@@ -40,7 +40,7 @@ key-decisions:
 patterns-established:
   - "Rehearse the whole bump in one piece: per-plan fragment rehearsals each passed in isolation while the composition was red. bin/verify-bump-rehearsal (202-10) makes that composition routine."
 
-requirements-completed: []
+requirements-completed: [RELEASE-01, RELEASE-05]
 
 coverage:
   - id: D1
@@ -97,36 +97,97 @@ coverage:
     human_judgment: false
   - id: D8
     description: "The release PR will be green by construction on its first CI run."
-    verification: []
-    human_judgment: true
-    rationale: "Every gate that can be measured locally is green, and the bump rehearsal proves the bumped state green too. But three things have never executed on GitHub Actions under a hosted token: the x-release-please-version regeneration by the real release-please updater (the rehearsal SIMULATES it), .github/workflows/environment-protection.yml, and the new verify-bump-rehearsal CI job. A local green is strong evidence, not proof."
+    verification:
+      - kind: other
+        ref: "PR #26 CI run 35765331006 at b4aa566e — 12 pass / 4 fail (bump rehearsal + both suites: 6 stale pins, changelog seed assertion)"
+        status: fail
+      - kind: other
+        ref: "PR #26 CI run 35781240139 at 2f5248b9 (after PR #44) — 16/16 pass"
+        status: pass
+    human_judgment: false
+    rationale: "FALSE on the first real run — see Part 0. Two further born-red causes the rehearsal could not see (it simulated `mix release.pins`, which nothing in the real flow ran; it never simulated release-please's CHANGELOG-GENERATED.md write). Fixed by PR #44; true from its merge on."
   - id: D9
-    description: "The release is ready to publish."
-    verification: []
-    human_judgment: true
-    rationale: "Tasks 2, 3 and 4 are gate=\"blocking-human\" and are the maintainer's alone. Nothing was pushed, merged, dispatched or published. RELEASE-01 is NOT complete."
+    description: "threadline 0.10.0 is published on hex.pm and the five Task 4 post-publish claims hold against live evidence."
+    verification:
+      - kind: other
+        ref: "Release run 35787338837 — publish-hex success after production-hex approval (deployment 6601382499, SHA 3d148435); hex.pm latest_stable=0.10.0, inserted 2026-09-22T21:46:35Z"
+        status: pass
+      - kind: other
+        ref: "Part 0, Task 4 table — all five checks confirmed"
+        status: pass
+    human_judgment: false
 
 duration: 47min
 completed: 2026-09-22
-status: halted
+status: complete
 ---
 
 # Phase 202 Plan 05: Publish 0.10.0 Summary
 
-**Task 1 of 4 complete, re-run GREEN. Every gate this plan names now passes at the current version and under a simulated 0.10.0 bump. The plan is READY for its Task 2 blocking-human checkpoint and is NOT complete — Tasks 2, 3 and 4 are the maintainer's. One new finding: `verify.doc_contract` is a silent no-op inside `mix ci.all`.**
+**Complete. threadline 0.10.0 is live on hex.pm (published 2026-09-22T21:46:35Z from `3d148435`), and all five Task 4 post-publish claims hold against live evidence. Getting there took two more PRs than planned: the first real release-PR CI run was red for two causes no local rehearsal could see (Part 0).**
 
 ## Status
 
 | Task | Type | Status |
 |---|---|---|
-| 1. Dress-rehearse the release locally against a simulated bump | auto | **Complete — run 1 RED, run 2 GREEN** |
-| 2. Confirm pushing the branch and dispatching CI | checkpoint:decision, `gate="blocking-human"` | **Not started — pending human** |
-| 3. Confirm the merge and the publish | checkpoint:decision, `gate="blocking-human"` | **Not started — pending human** |
-| 4. Verify what actually landed | checkpoint:human-verify | **Not started — pending human** |
+| 1. Dress-rehearse the release locally against a simulated bump | auto | **Complete — run 1 RED, run 2 GREEN (Parts A/B)** |
+| 2. Confirm pushing the branch and dispatching CI | checkpoint:decision, `gate="blocking-human"` | **Complete — maintainer named the push; PR #43 (41 commits, 0 `.planning/` paths), CI 16/16, squash-merged `23f0505a`** |
+| 3. Confirm the merge and the publish | checkpoint:decision, `gate="blocking-human"` | **Complete — maintainer authorized the #26 merge; maintainer approved `production-hex` themselves (deployment `6601382499`)** |
+| 4. Verify what actually landed | checkpoint:human-verify | **Complete — five checks confirmed below; RELEASE-05's sync PR evidence in 0.4** |
 
-`status: halted` is retained deliberately. The **reason** for the halt has changed — from "three red gates" to "awaiting a blocking-human checkpoint" — but the plan is not complete and must not be read as complete. RELEASE-01 and RELEASE-05 are NOT marked complete.
+---
 
-Nothing was pushed, merged, dispatched or published. No GitHub API write was made. No branch was created. No repository or environment setting was changed.
+# PART 0 — TASKS 2–4 (2026-09-22)
+
+## 0.1 Task 2 — the push
+
+The maintainer named the push directly ("push release-0.10.0-fixes and open the PR"). The branch was rebuilt clean with the `gsd-pr-branch` algorithm: 41 commits, 0 `.planning/` paths, code tree byte-identical to the rehearsed tree. PR #43 CI 16/16 green (including the first hosted run of the `verify-bump-rehearsal` job). Squash-merged as `23f0505a` on the maintainer's explicit "squash merge 43".
+
+## 0.2 The release PR was born red anyway — two causes the rehearsal could not see
+
+release-please rebuilt #26 at `b4aa566e`. CI run 35765331006: **12 pass / 4 fail.**
+
+| Failure | Cause | Why the rehearsal missed it |
+|---|---|---|
+| 6 tests: all six install pins still `~> 0.9.0` | `mix release.pins` is the sole pin writer, but **nothing in the release flow ran it**. `CONTRIBUTING.md`'s "no manual doc prep — green by construction" was false. | The rehearsal RAN `mix release.pins` inside its clone, assuming the release commit would. It simulated a step the real flow did not have. |
+| `changelog_contract_test.exs:173` | Asserted CHANGELOG-GENERATED.md carries NO dated entry — a seed-time truth that release-please falsifies on every release PR. | The rehearsal never simulated release-please's `changelog-path` write, and never ran that test file. |
+| Bump rehearsal (0.10.0 -> 0.11.0) | Family C needs `upgrade-path.md` to cover `0.10.x -> 0.11.x` — human-authored during the NEXT release plan. | Not a miss: a design gap. On #43 the `0.9.x -> 0.10.x` row already existed. Left alone, every PR after 0.10.0 would be red. |
+
+**RELEASE-02 honesty note:** RELEASE-02 was checked complete before this, but the six pins were not, in fact, managed by release automation until PR #44. It is true now — proven by the job's first real run below — and was not true when it was ticked.
+
+## 0.3 PR #44 — the fix (maintainer authorized the gate/test edits and the push by name)
+
+- `release.yml`: new `sync-release-pr-pins` job — runs `mix release.pins` (+ `--check`) on `release-please--branches--main` whenever release-please creates/updates its PR; stages only `README.md` and `guides/`; pushes with `RELEASE_PLEASE_TOKEN`. Bootstrap CI dispatch now `needs:` it.
+- `changelog_contract_test.exs`: "no dated entry" -> "no generated entry older than 0.10.0" (the invariant the old message stated).
+- `bin/verify-bump-rehearsal`: disclosed upgrade-path stand-in; CHANGELOG stand-in given the shape the changelog contract demands; simulates release-please's CHANGELOG-GENERATED.md entry; runs the changelog contract as a gate at the next minor. Header now separates human-content stand-ins from automation simulations and names its dependency on the new job.
+- Local proof against #26's 0.10.0 tree + pins: the 7 failing files 81/0; rehearsal 0.10.0->0.11.0 OK from a plain clone (doc_contract 134/0, changelog 7/0, verify.release 37/0, identity MATCH). **Negative control:** same run with the old changelog test restored FAILS at the changelog gate.
+- CI 16/16; squash-merged `8c6b8c6b`.
+
+First real run of the new job (release run on `8c6b8c6b`): `Sync install pins on Release PR: success`, pushed `2f5248b9 chore(release): sync documented install pins to @version` onto #26. #26 CI run 35781240139 at `2f5248b9`: **16/16 pass**. Merged (squash, `--match-head-commit 2f5248b9`) as `3d148435` on the maintainer's authorization.
+
+## 0.4 Task 3 — publish (release run 35787338837)
+
+| Job | Result | Window (UTC) |
+|---|---|---|
+| Release Please (tag `v0.10.0` -> `3d148435`) | success | |
+| Verify CI is green on release SHA | success | |
+| Publish to Hex.pm (`production-hex`, approved by the maintainer via the API, deployment `6601382499`) | success | 21:45:18 – 21:46:40 |
+| Smoke test the published release | success | 21:46:42 – 21:47:44 |
+| Post-publish distribution sync (opened PR #45) | success | 21:47:47 – 21:48:00 |
+
+`environment-protection.yml` — first runs observed: 2026-09-22T20:41:31Z and 21:44:12Z, both `workflow_run` success.
+
+## 0.5 Task 4 — what actually landed (checked against live results, not job ticks)
+
+| # | Claim | Result | Evidence |
+|---|---|---|---|
+| 1 | hex.pm lists 0.10.0 as latest; Changelog link resolves to the human changelog with breaking/required-action above the feature tour | **Confirmed** | `hex.pm/api/packages/threadline`: `latest_stable_version=0.10.0`; `meta.links.Changelog = https://github.com/szTheory/threadline/blob/v0.10.0/CHANGELOG.md` -> HTTP 200; `CHANGELOG.md@v0.10.0` entry section order: `### Breaking changes` (l.8), `### Required action` (l.16), … `### Added` (l.51), `### Changed` (l.62) |
+| 2 | HexDocs renders with the intended grouping; undocumented modules absent | **Confirmed** | `threadline.hexdocs.pm/0.10.0` sidebar (`sidebar_items-85894A6E.js`): 42 modules, all grouped — Core API 13, Data Types 14, Configuration & Extension Points 11, Operator Surface 3, Integrations 1; **0 ungrouped**. 58 modules carry `@moduledoc false` at `v0.10.0`; intersection with the sidebar: **empty** |
+| 3 | Smoke resolves the exact published version from hex.pm | **Confirmed** | job 106951511254, env `THREADLINE_HEX_EVALUATOR_MODE=published`, `THREADLINE_PUBLISHED_VERSION=0.10.0`; dep is `{:threadline, "== 0.10.0", repo: "hexpm"}`; resolution line verbatim: `  threadline 0.10.0` followed by `* Getting threadline (Hex package)`; `6 tests, 0 failures` (incl. "threadline dependency resolves from hex.pm not repo path override") |
+| 4 | Distribution sync ran only after the smoke, and its row names 0.10.0 | **Confirmed** | smoke ended 21:47:44, sync started 21:47:47; PR #45 diff replaces the `0.9.0` attestation row with `threadline **0.10.0** … latest is **0.10.0** (tag **`v0.10.0`**) … actions/runs/35787338837` |
+| 5 | A published-package install with no storage_schema migrates and reads green | **Confirmed** | same smoke job: the evaluator app configures no `storage_schema` (`legacy_public_schema_test.exs`: "this fixture is still legacy-shaped: no storage_schema is configured", "an unconfigured host resolves to the public schema", "the audit tables are physically in public…", "a trigger-written change row reads back with no schema prefix") — all green against the real hex.pm artifact |
+
+RELEASE-05 distribution-sync PR #45: CI 16/16 (incl. `adoption_pilot_doc_contract_test`, release metadata and the Hex tarball check against the published tree), squash-merged `53b5d71a`. Release-shape passed in the release run's "Verify CI is green on release SHA" gate.
 
 ---
 
@@ -469,16 +530,12 @@ Run 2: one new finding (A2, the `ci.all` doc_contract no-op). Not fixed.
 
 ## Next Phase Readiness
 
-**Ready for the Task 2 checkpoint. NOT ready to publish, and not complete.**
-
-Task 2, Task 3 and Task 4 are `gate="blocking-human"` and are the maintainer's alone. Task 2 requires an explicit first-person confirmation of the push and its scope — the plan states that a relayed or inferred approval is not sufficient.
-
-Two items the maintainer should decide on before that confirmation: the `ci.all` doc_contract no-op (A2), and the fact that three CI surfaces — the real release-please regeneration, `environment-protection.yml`, and the required `verify-bump-rehearsal` job — have never executed on GitHub Actions (A7).
+**Released.** Open follow-ups, none blocking: the `ci.all` doc_contract no-op (A2); `main` has no branch protection (API: "Branch not protected") — the only thing that held a red release PR was the maintainer gate; the rehearsal's "surviving worktree" check counts all linked worktrees rather than new ones (local-only false failure).
 
 ---
 *Phase: 202-release-0-10-0*
-*Task 1 of 4 complete — re-run GREEN — plan HOLDS at the Task 2 human checkpoint*
-*Run 1 recorded: 2026-09-22 (HEAD 9fe19b57) · Run 2 recorded: 2026-09-22 (HEAD bf575949)*
+*All four tasks complete — 0.10.0 published 2026-09-22T21:46:35Z*
+*Run 1: HEAD 9fe19b57 · Run 2: HEAD bf575949 · Release: 3d148435*
 
 ## Self-Check: PASSED
 
