@@ -693,7 +693,7 @@ Plans:
 **Wave 5 — gap closure** *(the red gates blocking 202-05)*
 
 - [x] 202-06-PLAN.md — BR-3: read the `release.pins` version through `Mix.Project.config/0` so `mix dialyzer` reports `Total errors: 0`
-- [ ] 202-07-PLAN.md — BR-4: clear the 60 `mix docs --warnings-as-errors` warning lines blocking `mix verify.release`
+- [x] 202-07-PLAN.md — BR-4: clear the 60 `mix docs --warnings-as-errors` warning lines blocking `mix verify.release`
 - [x] 202-08-PLAN.md — Fix the `CriticTrustTest` intermittent and the unbounded scratch-tree leak behind it
 - [ ] 202-09-PLAN.md — BR-5: replace the hardcoded `{:threadline, "~> 0.9.0"}` literal in the release-artifact contract test
 

@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 202
 current_phase_name: Release 0.10.0
 status: executing
-stopped_at: Completed 202-08-PLAN.md
-last_updated: "2026-09-22T16:35:00.000Z"
+stopped_at: Completed 202-07-PLAN.md
+last_updated: "2026-09-22T18:05:00.000Z"
 last_activity: 2026-09-22
-last_activity_desc: Completed 202-08 (CriticTrustTest scratch-name collision reproduced, fixed at the cause, and the unbounded _build leak closed)
+last_activity_desc: Completed 202-07 (BR-4 closed — mix docs --warnings-as-errors went 60 warning lines to 0 by de-linkifying at the reference site; mix.exs untouched)
 state_head: c35cb0dc2372f48644aa12816720a4cbcb267ea0
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 119
-  completed_plans: 116
+  completed_plans: 117
   percent: 57
 ---
 
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 202 (Release 0.10.0) — EXECUTING
-Plan: 7 of 9 complete (gap-closure plans 06-09 opened after 202-05 halted at three red gates; 202-08 executed ahead of 202-07)
-Status: 202-06 and 202-08 complete — Dialyzer gate green and the CriticTrustTest intermittent fixed at the cause; 202-07 and 202-09 remain
+Plan: 8 of 9 complete (gap-closure plans 06-09 opened after 202-05 halted at three red gates; 202-08 executed ahead of 202-07)
+Status: 202-06, 202-07, and 202-08 complete — Dialyzer gate green, the CriticTrustTest intermittent fixed at the cause, and the ExDoc warning gate green (mix docs exits 0); only 202-09 (BR-5) remains
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
