@@ -1,7 +1,7 @@
 ---
 phase: 202-release-0-10-0
 verified: 2026-09-22T22:10:00Z
-status: gaps_found
+status: passed
 score: 5/5 roadmap success criteria verified; 44/46 merged must-haves verified (2 plan-level truths FAILED as worded, intent now met — override suggested)
 covered_files:
   - .planning/REQUIREMENTS.md
@@ -25,11 +25,11 @@ covered_files:
   - .planning/phases/202-release-0-10-0/202-09-SUMMARY.md
   - .planning/phases/202-release-0-10-0/202-10-PLAN.md
   - .planning/phases/202-release-0-10-0/202-10-SUMMARY.md
-covered_digest: "v1:sha256:804c5ce955fbac09b8af9d5bcf59ccbf19a24f911ca3d50d84f664100e572322"
+covered_digest: "v1:sha256:5b147ab98e0da1b4af56997e3201487c3daf65f124281746bf73bb2fffb32ab5"
 # NOTE: shipped code was verified at origin/main 53b5d71a (detached checkout), which is NOT
 # the local planning branch; impl files are therefore not fingerprinted against ROOT.
 behavior_unverified: 0
-overrides_applied: 0
+overrides_applied: 2
 gaps:
   - truth: "202-05: The release pull request is green by construction on the first CI run after the update — both measured born-red causes are closed before the run, not patched after it."
     status: failed
@@ -47,13 +47,22 @@ gaps:
         issue: "Covers 2 of the 3 named causes; BR-3 covered by verify-dialyzer instead"
     missing:
       - "No code change required. Maintainer acceptance via an `overrides:` entry, OR reword the truth to 'the required check (verify-bump-rehearsal + verify-dialyzer) would have caught all three'."
+overrides:
+  - must_have: "The release pull request is green by construction on the first CI run after the update — both measured born-red causes are closed before the run, not patched after it."
+    reason: "First release-PR run (35765331006) was red; fixed by PR #44 (sync-release-pr-pins + changelog test). Forward invariant proven: #26 16/16 at 2f5248b9, release commit fully bot-authored, bump-rehearsal CI green at 53b5d71a. Historical event cannot be re-run."
+    accepted_by: "szTheory (maintainer, via AskUserQuestion in the release session)"
+    accepted_at: "2026-09-22T22:20:00Z"
+  - must_have: "The gate would have caught all three of the born-red causes found at Phase 202 Task 1."
+    reason: "verify-bump-rehearsal catches BR-4 and BR-5; BR-3 (Dialyzer) is caught on every PR by verify-dialyzer, also a ci-required member. Intent (born-red defects fail a required check on the introducing PR) holds for the composite gate."
+    accepted_by: "szTheory (maintainer, via AskUserQuestion in the release session)"
+    accepted_at: "2026-09-22T22:20:00Z"
 ---
 
 # Phase 202: Release 0.10.0 Verification Report
 
 **Phase Goal:** PR #26 is merged and threadline 0.10.0 is published to hex.pm with a public surface that Phases 200 and 201 already made clean, every version-bearing literal managed by release automation so a version bump needs no hand edits, and a changelog a human can read.
 **Verified:** 2026-09-22T22:10Z
-**Status:** gaps_found (both gaps are plan-level over-claims whose intent is now met. The phase goal and all five roadmap success criteria are VERIFIED against live evidence. See "Gaps Summary".)
+**Status:** passed — both overrides accepted by the maintainer 2026-09-22 (originally gaps_found: both gaps are plan-level over-claims whose intent is now met. The phase goal and all five roadmap success criteria are VERIFIED against live evidence. See "Gaps Summary".)
 **Re-verification:** No. This is the initial verification.
 **Codebase verified:** origin/main `53b5d71a` (detached checkout `.../scratchpad/prbranch`); release tag `v0.10.0` -> `3d148435`.
 

@@ -69,7 +69,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 - [x] **Phase 199: Decouple** - Tests and gates are self-contained in the source tree, proven by `mix ci.all` passing with `.planning/` renamed away; `.planning/` stays tracked but load-bearing on nothing; dialyxir lands early enough to typecheck the later refactors.
 - [x] **Phase 200: Public Surface** - Everything a stranger or hex.pm consumer sees is accurate, navigable, and free of internal vocabulary — *before* anything is published. This is the phase that earns the right to release. (completed 2026-09-13)
 - [x] **Phase 201: Rendered Output** - Zero internal vocabulary reaches a browser, with zero design/IA/visual change, in two tiers separated by mechanical-floor blast radius. (completed 2026-09-21)
-- [ ] **Phase 202: Release 0.10.0** - Merge PR #26 and publish a release whose public surface is already clean, with every version-bearing literal managed by release automation and exactly one publish path.
+- [x] **Phase 202: Release 0.10.0** - Merge PR #26 and publish a release whose public surface is already clean, with every version-bearing literal managed by release automation and exactly one publish path. (completed 2026-09-22)
 - [ ] **Phase 203: Real Gates** - Full Credo defaults expressed as `extra:`/`disabled:` deltas, the dialyzer backlog drained, and the layer inversions plus the Capture↔Semantics cycle fixed.
 - [ ] **Phase 204: Structure** - Make the largest files legible without changing a byte of output, behind an executable CSS byte-hash lock.
 
@@ -688,7 +688,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 202-05-PLAN.md — Dress rehearsal, human-gated push/merge/publish, and post-publish verification against live evidence *(halted at three red gates; the four gap-closure plans below were opened to clear them)*
+- [x] 202-05-PLAN.md — Dress rehearsal, human-gated push/merge/publish, and post-publish verification against live evidence *(halted at three red gates; the four gap-closure plans below were opened to clear them)*
 
 **Wave 5 — gap closure** *(the red gates blocking 202-05)*
 
@@ -789,8 +789,8 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 198. Green Bringup | v1.41 | 66/66 | Complete    | 2026-09-10 |
 | 199. Decouple | v1.41 | 21/21 | Complete    | 2026-09-11 |
 | 200. Public Surface | v1.41 | 18/18 | Complete    | 2026-09-13 |
-| 201. Rendered Output | v1.41 | 0/TBD | Not started | |
-| 202. Release 0.10.0 | v1.41 | 8/9 | In Progress | |
+| 201. Rendered Output | v1.41 | 5/5 | Complete    | 2026-09-21 |
+| 202. Release 0.10.0 | v1.41 | 10/10 | Complete    | 2026-09-22 |
 | 203. Real Gates | v1.41 | 0/TBD | Not started | |
 | 204. Structure | v1.41 | 0/TBD | Not started | |
 

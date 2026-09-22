@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 202
-current_phase_name: Release 0.10.0
-status: executing
-stopped_at: Completed 202-10-PLAN.md
-last_updated: "2026-09-22T20:45:00.000Z"
+current_phase: 203
+current_phase_name: Real Gates
+status: planning
+stopped_at: Phase 202 complete, ready to plan Phase 203
+last_updated: "2026-09-22T22:23:21.226Z"
 last_activity: 2026-09-22
-last_activity_desc: "Completed 202-10 (the bump rehearsal is now a required CI check: `bin/verify-bump-rehearsal` simulates the next-minor release commit in a throwaway clone — extra-files rewrite included — and runs `mix verify.doc_contract` + `mix verify.release` against it; its first run found four MORE hardcoded install pins, all fixed)"
-state_head: c35cb0dc2372f48644aa12816720a4cbcb267ea0
+last_activity_desc: Phase 202 complete, transitioned to Phase 203
+state_head: 0e5741a679742855e27fb99663dfb2b008a0fddb
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 120
-  completed_plans: 119
-  percent: 57
+  completed_plans: 120
+  percent: 71
 ---
 
 # Project State: Threadline
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 202 (Release 0.10.0) — EXECUTING
-Plan: 10 of 10 written, 9 complete (202-05 remains halted; gap-closure plans 06-09 cleared its three red gates, and 202-10 shifted the whole defect class left)
-Status: 202-06 through 202-09 complete (Dialyzer green, CriticTrustTest intermittent fixed at the cause, ExDoc warning gate green, BR-5 closed) and 202-10 complete — `mix verify.bump_rehearsal` now simulates the next-minor release commit on every PR as a member of the single required check `ci-required`. Its first run found four MORE copies of the hardcoded-install-pin defect, all fixed. `bash bin/verify-bump-rehearsal` is GREEN at 0.10.0, which is the strongest pre-publish signal this repo has had. 202-05's human-gated push/merge/publish can resume. 0.10.0 is NOT published, so RELEASE-01 stays open.
+Phase: 203 — Real Gates
+Plan: Not started
+Status: Ready to plan
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-22 — Phase 202 execution started
+Last activity: 2026-09-22 — Phase 202 complete, transitioned to Phase 203
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [██████████████████░░] 113/115 plans ([██████░░░░] 57% of phases — 4 of 7 marked complete in ROADMAP; 199 and 200 carry stale verification)
+Progress: [████████████████████] 120/120 plans ([███████░░░] 71% of phases — 5 of 7 complete: 198–202; 203 and 204 not started; 199, 200 and 201 carry stale verification)
 
 ## Performance Metrics
 
@@ -785,7 +785,7 @@ Progress: [██████████████████░░] 113/115
 ## Session Continuity
 
 **Last session:** 2026-09-22T15:30:00.000Z
-**Stopped at:** Completed 202-04-PLAN.md
+**Stopped at:** Phase 202 complete, ready to plan Phase 203
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
