@@ -646,7 +646,7 @@ Two checks cover the gate, and they prove different things:
 | Check | What it proves | What it does **not** prove |
 |-------|----------------|-----------------------------|
 | `test/threadline/release_control_plane_contract_test.exs` | `release.yml` still declares the environment on the publish job, and the publish command still sits behind it | Nothing about GitHub's side — deleting the reviewer leaves this green and the gate inert |
-| [`bin/verify-environment-protection`](bin/verify-environment-protection) (workflow: `Environment Protection`) | The **live** environment still carries a required-reviewer rule with at least one reviewer, and the publish job is gated on that same environment name | Nothing about the artifact — it is a property of repository configuration, not of the commit under test |
+| `bin/verify-environment-protection` (workflow: `Environment Protection`) | The **live** environment still carries a required-reviewer rule with at least one reviewer, and the publish job is gated on that same environment name | Nothing about the artifact — it is a property of repository configuration, not of the commit under test |
 
 The script fails closed: an unreadable response is never scored as a pass. Its only partial-pass path requires `ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION=1` and prints a warning naming what it could not inspect. That variable is deliberately not set in the workflow. The check runs **outside** the required status check, because a contributor cannot fix repository configuration and should not be blocked by it.
 
@@ -658,7 +658,7 @@ That distinction is the honest scope of the rule. An illustrative literal is not
 
 | Line | Owner | Disposition |
 |------|-------|-------------|
-| The six `{:threadline, "~> x.y.z"}` install pins (`README.md`; `guides/getting-started-saas.md`, `operator-surface.md`, `evaluating-threadline.md`, `adoption-evidence-playbook.md`, `adoption-pilot-backlog.md`) | `mix release.pins` | current-version claim |
+| The six `{:threadline, "~> x.y.z"}` install pins (`README.md`; `guides/getting-started-saas.md`, `operator-surface.md`, `evaluating-threadline.md`, `adoption-evidence-playbook.md`, `adoption-pilot-backlog.md`) | mix release.pins | current-version claim |
 | `guides/adoption-pilot-backlog.md` preflight SSOT sentence; `guides/evaluating-threadline.md` SSOT sentence (both carry `x-release-please-version`) | Release Please `extra-files` marker | current-version claim |
 | `guides/adoption-pilot-backlog.md` Hex attestation row ("latest is **X** on Hex", tag **`vX`**) | `bin/post-publish-distribution-sync` | current-version claim |
 | `guides/upgrade-path.md` opening era narrative (the minor range ending at the latest minor) | human prose, written with that release's upgrade row — see the release checklist item below | current-version claim |
