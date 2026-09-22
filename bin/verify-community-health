@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+# CI / local: assert the community-health surface an outsider actually reaches.
+#
+# The companion to test/threadline/community_health_render_contract_test.exs.
+# That suite proves the committed intake files conform to GitHub's issue-forms
+# schema — the contract that decides whether a form renders at all. It cannot
+# prove that the files GitHub is SERVING are the committed ones, because that
+# is a property of the live repository rather than of the commit under test.
+#
+# Two halves, which are NOT equally strong — stated plainly so neither is read
+# for more than it proves:
+#
+#   (a) every community-health file GitHub serves from the default branch is
+#       byte-identical to the checkout, compared by git blob SHA (the same
+#       identifier both sides already compute, so no content is round-tripped
+#       through the API and re-hashed). Run from a non-main checkout — locally,
+#       or before cutting a release — this answers "does published main carry
+#       the community surface I think it does?". Run FROM main in CI it is
+#       nearly tautological, since the checkout is that same commit; it still
+#       catches a partially applied push and an unexpected default branch, but
+#       it is not the half doing the work there.
+#
+#   (b) GitHub's own scoring of that surface: community profile at 100% and
+#       private vulnerability reporting enabled. This is the half with
+#       recurring teeth, because both can change with NO commit at all —
+#       GitHub adjusting what it counts, a file stopping being detected, or
+#       someone switching private reporting off in repository settings, which
+#       would silently turn SECURITY.md's "report privately" instruction into
+#       a dead end. Nothing in the test suite can see either.
+#
+# What neither half does is confirm the forms RENDER. No public API exposes
+# GitHub's parsed view of a repository's issue forms, and the chooser redirects
+# signed-out visitors to login, so no observer — human or machine — can watch
+# the outsider render. That is why the render contract lives in the test suite
+# as schema conformance: it is the property that decides the render, and it is
+# checkable. This script covers the part that a commit-time test cannot see.
+#
+# Deliberately NOT part of `ci-required`: it asserts a property of the live
+# default branch, not of the commit under test, so blocking pull requests on it
+# would fail contributors for something they did not change and cannot fix.
+# Same reasoning, and same precedent, as bin/verify-branch-protection.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+# The files GitHub scores for community health, plus the intake forms an
+# outsider meets before any of them. Keep in sync with @community_paths in
+# test/threadline/community_health_render_contract_test.exs's companion suite.
+COMMUNITY_PATHS=(
+  ".github/ISSUE_TEMPLATE/01-bug.yml"
+  ".github/ISSUE_TEMPLATE/02-feature-request.yml"
+  ".github/ISSUE_TEMPLATE/03-question.yml"
+  ".github/ISSUE_TEMPLATE/config.yml"
+  ".github/pull_request_template.md"
+  "SECURITY.md"
+  "CODE_OF_CONDUCT.md"
+  "CONTRIBUTING.md"
+  "README.md"
+  "LICENSE"
+)
+
+for tool in jq gh; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "bin/verify-community-health requires $tool and it is not on PATH." >&2
+    exit 1
+  fi
+done
+
+REPO="${GITHUB_REPOSITORY:-}"
+if [[ -z "$REPO" ]]; then
+  REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null || true)
+fi
+if [[ -z "$REPO" ]]; then
+  echo "bin/verify-community-health could not determine the repository slug." >&2
+  echo "Set GITHUB_REPOSITORY=owner/name or run inside a checkout with a GitHub remote." >&2
+  exit 1
+fi
+
+DEFAULT_BRANCH=$(gh api "repos/$REPO" --jq .default_branch)
+echo "Verifying the community-health surface of $REPO@$DEFAULT_BRANCH"
+echo
+
+failures=0
+
+fail() {
+  echo "  FAIL: $*" >&2
+  failures=$((failures + 1))
+}
+
+# -- (a) served files are byte-identical to the checkout ---------------------
+
+echo "(a) Served community files match the checkout"
+
+# One tree read instead of one request per file: the contents API would cost a
+# request each and re-download bodies this script never needs.
+TREE=$(gh api "repos/$REPO/git/trees/$DEFAULT_BRANCH?recursive=1")
+
+for path in "${COMMUNITY_PATHS[@]}"; do
+  if [[ ! -f "$path" ]]; then
+    fail "$path is missing from the checkout"
+    continue
+  fi
+
+  local_sha=$(git hash-object "$path")
+  remote_sha=$(printf '%s' "$TREE" | jq -r --arg p "$path" '.tree[] | select(.path == $p) | .sha')
+
+  if [[ -z "$remote_sha" ]]; then
+    fail "$path is not served from $DEFAULT_BRANCH"
+  elif [[ "$local_sha" != "$remote_sha" ]]; then
+    fail "$path differs from $DEFAULT_BRANCH (checkout $local_sha, served $remote_sha)"
+  else
+    echo "  ok: $path"
+  fi
+done
+
+echo
+
+# -- (b) GitHub's own scoring of that surface --------------------------------
+
+echo "(b) GitHub community profile"
+
+PROFILE=$(gh api "repos/$REPO/community/profile")
+HEALTH=$(printf '%s' "$PROFILE" | jq -r '.health_percentage')
+
+if [[ "$HEALTH" == "100" ]]; then
+  echo "  ok: health_percentage = 100"
+else
+  fail "health_percentage = $HEALTH (expected 100)"
+  printf '%s' "$PROFILE" |
+    jq -r '.files | to_entries[] | select(.value == null) | "        uncounted: \(.key)"' >&2 || true
+fi
+
+# SECURITY.md tells outsiders to report privately. If the setting behind that
+# instruction is off, the advertised route does not exist.
+# The dedicated endpoint answers with plain `{"enabled": bool}` and, unlike the
+# `security_and_analysis` block on the repository object, does not require
+# Administration:read — so this reads truthfully under the default Actions
+# token instead of degrading to "unknown".
+PRIVATE_REPORTING=$(gh api "repos/$REPO/private-vulnerability-reporting" --jq '.enabled // "unknown"' 2>/dev/null || echo "unreadable")
+
+case "$PRIVATE_REPORTING" in
+  true)
+    echo "  ok: private vulnerability reporting is enabled"
+    ;;
+  unreadable)
+    # An unreadable field is not a disabled one, and half (a) already proves
+    # SECURITY.md itself is intact — so report rather than fail.
+    echo "  note: private vulnerability reporting status is not readable with this token"
+    ;;
+  *)
+    fail "private vulnerability reporting is '$PRIVATE_REPORTING' but SECURITY.md advertises it"
+    ;;
+esac
+
+echo
+
+if (( failures > 0 )); then
+  echo "bin/verify-community-health: $failures check(s) failed." >&2
+  exit 1
+fi
+
+echo "bin/verify-community-health: community-health surface verified."

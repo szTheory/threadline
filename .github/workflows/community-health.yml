@@ -1,0 +1,66 @@
+# Community-health surface verification.
+#
+# Answers the one contributor-intake question no test can reach on its own:
+# "does this repository still present a working intake to someone who is not
+# the maintainer?".
+#
+# That question splits in two, and the two halves live in different places on
+# purpose:
+#
+#   * Whether the issue forms WOULD render is a property of the committed YAML
+#     — GitHub renders a form when, and only when, it conforms to the
+#     issue-forms schema. That is checked at commit time by
+#     test/threadline/community_health_render_contract_test.exs, inside the
+#     ordinary suite, so a broken form fails the PR that breaks it.
+#
+#   * Whether the live repository still presents that surface is external
+#     state, invisible to any test: community health scoring and the private
+#     vulnerability reporting setting can both change with no commit at all.
+#     That is what this workflow checks, on a schedule.
+#
+# This lives in its OWN workflow rather than inside ci.yml for the same reason
+# branch-protection.yml does: it asserts a property of the live repository, not
+# of the commit under test. A job restricted to `main` inside ci.yml would be a
+# conditionally-skipped member of `ci-required`'s `needs:` list on every pull
+# request, and GitHub scores a SKIPPED required check as PASSING — so it would
+# launder a pass. Keeping it separate also means it cannot fail a contributor
+# for repository settings they did not change and cannot fix.
+#
+# The job id `verify-community-health` is STABLE and relied on by docs. Evolve
+# `name:` freely; do not rename the id.
+name: Community Health
+
+on:
+  # Main-branch verification runs after CI completes, matching
+  # branch-protection.yml — the same push should not have two workflows racing
+  # to read state CI is still settling.
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  schedule:
+    # 06:45 UTC daily — after branch protection (06:30), ahead of the nightly
+    # flake lane. The schedule is the point of this workflow: it is the only
+    # trigger that catches settings drift with no commit behind it.
+    - cron: "45 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Job id is stable (see header). Evolve `name:` freely.
+  verify-community-health:
+    name: Community health surface (main)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Assert the community-health surface
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: bin/verify-community-health
