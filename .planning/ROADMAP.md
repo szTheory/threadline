@@ -684,7 +684,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 202-04-PLAN.md — Live environment-protection verifier, `smoke-published` before `distribution-sync`, and the honest gate/recovery docs (D-09, D-10, D-17, D-18, D-19)
+- [x] 202-04-PLAN.md — Live environment-protection verifier, `smoke-published` before `distribution-sync`, and the honest gate/recovery docs (D-09, D-10, D-17, D-18, D-19)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

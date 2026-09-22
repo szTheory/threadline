@@ -67,7 +67,7 @@
 
 - [ ] **RELEASE-01**: Threadline 0.10.0 is published on hex.pm with clean, grouped HexDocs.
 - [x] **RELEASE-02**: Every version-bearing line in the repository is managed by release automation, so a version bump requires no hand edits.
-- [ ] **RELEASE-03**: The Hex evaluator smoke test validates the newly published release rather than silently continuing to validate its predecessor.
+- [x] **RELEASE-03**: The Hex evaluator smoke test validates the newly published release rather than silently continuing to validate its predecessor.
 - [x] **RELEASE-04**: The 0.10.0 changelog entry opens with human-written highlights above the generated commit list.
 - [ ] **RELEASE-05**: Release-shape and post-publish distribution-sync checks pass against the published tarball.
 
@@ -179,7 +179,7 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | RENDER-06 | Phase 201 | Complete |
 | RELEASE-01 | Phase 202 | Pending |
 | RELEASE-02 | Phase 202 | Complete |
-| RELEASE-03 | Phase 202 | Pending |
+| RELEASE-03 | Phase 202 | Complete |
 | RELEASE-04 | Phase 202 | Complete |
 | RELEASE-05 | Phase 202 | Pending |
 | GATE-01 | Phase 203 | Pending |

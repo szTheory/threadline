@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 202
 current_phase_name: Release 0.10.0
 status: executing
-stopped_at: Completed 202-03-PLAN.md
-last_updated: "2026-09-22T15:02:44.610Z"
+stopped_at: Completed 202-04-PLAN.md
+last_updated: "2026-09-22T15:30:00.000Z"
 last_activity: 2026-09-22
-last_activity_desc: Phase 202 execution started
+last_activity_desc: Completed 202-04 (publish-gate liveness, smoke-published, recovery runbook)
 state_head: c35cb0dc2372f48644aa12816720a4cbcb267ea0
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 115
-  completed_plans: 113
+  completed_plans: 114
   percent: 57
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 202 (Release 0.10.0) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -412,6 +412,10 @@ Progress: [██████████████████░░] 113/115
 
 ### Decisions
 
+- [202-04]: `ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION` is deliberately NOT set in `environment-protection.yml`. Unlike the branch-protection script's classic-protection field, the live required-reviewer read IS the load-bearing assertion, so passing on an unreadable response would recreate the vacuous gate the check exists to close. A hosted token that cannot read the environment must turn the check red.
+- [202-04]: `distribution-sync` required `needs.smoke-published.result == 'success'` in its `if:`, not only a `needs:` entry — the job carries `always()`, under which needs: membership orders execution but does not block. Without the result clause the attestation row could still be written after a FAILED smoke run with every gate green.
+- [202-04]: Live API observation (2026-09-22) confirmed the logged endpoint assumption: `GET /repos/{owner}/{repo}/environments/production-hex` returns 200 with `protection_rules[].type == "required_reviewers"` and one reviewer, and `prevent_self_review: false` — which is why the approval is documented as a confirmation step, not peer review.
+- [202-04]: RELEASE-05 stays OPEN. It is co-declared by 202-05, and its remaining clause (the smoke job resolving the just-published version from hexpm) is observable only in a real release run — marked `verification: backstop`, not manufactured.
 - [197-05]: Debt seed #9 re-measured fresh (2026-08-27 full mix test): (undefined_table) count = 0 — the ALTER DATABASE search_path fix is in effect; register row closed-in-environment with a CI reopen-trigger, not an open ~81-failure row.
 - [197-05]: copy_contract_test.exs:249 red (stale "Selected schema readiness" pin vs landed 842bd737) discovered and registered rank 2, not auto-fixed (caused by 197-02, out of 197-05 scope); Phase-185 coverage doc-contract copy lock registered rank 5 with owner + concrete trigger.
 - [197-05]: GATE-02 true auto-write stays register-as-debt per OQ-1 with trigger N=3 consecutive accepted iterations where the surfaced mechanical diff was applied verbatim with zero human modification.
@@ -779,8 +783,8 @@ Progress: [██████████████████░░] 113/115
 
 ## Session Continuity
 
-**Last session:** 2026-09-22T15:02:37.592Z
-**Stopped at:** Completed 202-03-PLAN.md
+**Last session:** 2026-09-22T15:30:00.000Z
+**Stopped at:** Completed 202-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
