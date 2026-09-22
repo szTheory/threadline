@@ -2,13 +2,13 @@
 gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 201
-current_phase_name: Rendered Output
-status: executing
-stopped_at: Phase 201 verified (status: passed, 6/6 requirements)
-last_updated: "2026-09-21T00:00:00.000Z"
-last_activity: 2026-09-21
-last_activity_desc: Phase 201 COMPLETE — verification passed 6/6, closeout bookkeeping reconciled
+current_phase: 202
+current_phase_name: Release 0.10.0
+status: planning
+stopped_at: Phase 202 context captured (202-CONTEXT.md, 20 decisions) — ready for /gsd-plan-phase 202
+last_updated: "2026-09-22T00:00:00.000Z"
+last_activity: 2026-09-22
+last_activity_desc: Phases 199+200 re-verified (passed); Phase 202 discussed — four born-red release causes found, one a silent breaking change
 state_head: 3d7a0c6347845f3200f629d4391257c4de0d2e6a
 progress:
   total_phases: 7
@@ -25,13 +25,35 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 201 — Rendered Output
+**Current focus:** Phase 202 — Release 0.10.0 (planning)
 
 ## Current Position
 
-Phase: 201 (Rendered Output) — COMPLETE (verification passed 2026-09-21)
-Plan: 5 of 5 executed and verified
-Status: Phase closed. Next = Phase 202 (Release 0.10.0) planning, but see verification debt below.
+Phase: 202 (Release 0.10.0) — DISCUSSED, not yet planned
+Plan: 0 of TBD. `202-CONTEXT.md` holds 20 locked decisions; `RELEASE-BLOCKERS.md` holds the measured born-red analysis.
+Status: Ready for `/gsd-plan-phase 202`. Phase 201 is closed (verification passed 2026-09-21).
+
+**READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
+Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
+born red for FOUR distinct reasons, not stale red. The decisive one: 0.10.0
+introduces `Threadline.StorageSchema`, defaulting to a schema it cannot detect
+and threaded through every read path, so an existing 0.9.x adopter would upgrade
+into a split brain — triggers still writing to `public`, every query reading
+`threadline.*`. Capture continues, exploration breaks, and the symptom is an
+empty timeline rather than an error. Every automated gate would have passed it.
+DECISION D-01 flips the default to `"public"` to make the release non-breaking;
+it is rated one-way because hex.pm has no unpublish beyond a ~1 hour window.
+
+Do not start planning without reading `202-CONTEXT.md` in full.
+
+**Cross-session facts this session established (not in git alone):**
+- PR #42 (`auto/verification-debt-closeout`) is OPEN and GREEN — all 15 checks
+  including the Elixir 1.15 min lane. It carries the Phase 199/200 automation
+  and the ungrouped-module fix. Not merged; merging is the maintainer's call.
+- The local branch `fix/branch-protection-actions-capability` carries the
+  planning artifacts. Its own PR #41 is already MERGED and the branch is deleted
+  on origin, so it is a stale local branch — do not push it as-is.
+- `.tool-versions` is deliberately untracked; see CONTRIBUTING for the reason.
 
 **Verification debt CLEARED (2026-09-22). Phases 199 and 200 both report
 `passed`.** Phase 202 planning can read the roadmap as settled.
