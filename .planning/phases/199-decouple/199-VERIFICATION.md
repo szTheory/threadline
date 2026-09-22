@@ -9,7 +9,8 @@ requirements_verified: 8/8
 decisions_verified: 30/30
 security_status: verified
 security_threats: 61/61 closed
-current_head: "40c68f848fa98e7bd4f1275b7eac5c738f3bd255"
+current_head: "51ee7137fdea94dd79832de29a7e00bb1d89f2eb"
+previous_current_head: "40c68f848fa98e7bd4f1275b7eac5c738f3bd255"
 tracking_finalized_head: "edb2b240515a8869fd704d2bfd4d2a195c56d890"
 historical_certification_sha: "c45b7712"
 regressions: []
@@ -591,7 +592,7 @@ covered_files:
   - "test/threadline/operator_surface/stress_ledger_test.exs"
   - "test/threadline/operator_surface/stress_router_test.exs"
   - "test/threadline/operator_surface/style_contract_test.exs"
-  - "test/threadline/phase06_nyquist_ci_contract_test.exs"
+  - "test/threadline/ci_workflow_parity_contract_test.exs"
   - "test/threadline/planning_dependency_contract_test.exs"
   - "test/threadline/planning_independence_contract_test.exs"
   - "test/threadline/plug_test.exs"
@@ -600,7 +601,9 @@ covered_files:
   - "test/threadline/release_artifact_contract_test.exs"
   - "test/threadline/removed_artifact_contract_test.exs"
   - "test/threadline/row_history_focus_evidence_contract_test.exs"
-covered_digest: "v1:sha256:0bcae97445bd1813404557acf4b18a86b40bcb4849017afd5031f9525fcc7b9d"
+covered_digest: "v1:sha256:a696b527c1f0d8ea7b0266887c9e8e95e686c9d8ec33e2a036ded5e26956701b"
+covered_digest_note: "Refreshed 2026-09-22 during /gsd-verify-work 199. The prior digest stopped resolving because a covered path no longer existed: test/threadline/phase06_nyquist_ci_contract_test.exs was RENAMED to test/threadline/ci_workflow_parity_contract_test.exs by Phase 201-05 (dee6b824), and a missing covered file makes the whole fingerprint unresolvable, which fails closed to `stale`. The path above is updated to the rename target and the digest recomputed with `gsd-tools query verification.fingerprint` over the same 586-file covered set as it stands at 51ee7137. Seven further covered files drifted under Phases 200/201, all bookkeeping or later-phase product work that does not touch a Phase 199 must-have: .gitignore (ADDS /.planning/critic-scores/ and 8 sibling machine-local paths \u2014 this REINFORCES 199's planning-decoupling goal rather than eroding it), .planning/REQUIREMENTS.md and .planning/ROADMAP.md (phase bookkeeping), lib/threadline/operator_surface/live/timeline_live.ex and lib/threadline/operator_surface/live/export_status_live.ex plus test/threadline/operator_surface/live/export_status_live_test.exs (Phase 201-02..201-04 removal of data-earned-flow / data-persona / data-jtbd rendered provenance attributes), and mix.exs (one doc-contract test filename swapped inside the verify.doc_contract alias by 201-05, c12f024d). The 40/40 verdict is NOT re-asserted on file reading alone: Phase 199's decisive proof is that `mix ci.all` completes planning-free end to end, and that was RE-MEASURED at this HEAD \u2014 exit 0, all 11 gates green (199-UAT.md checkpoints 52, 53, 56). No Phase 199 gate, alias, or contract test was removed or weakened by the drift."
+previous_covered_digest: "v1:sha256:0bcae97445bd1813404557acf4b18a86b40bcb4849017afd5031f9525fcc7b9d"
 ---
 
 # Phase 199: Decouple Verification Report
