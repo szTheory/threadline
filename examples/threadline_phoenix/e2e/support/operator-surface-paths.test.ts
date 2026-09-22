@@ -20,6 +20,17 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const expectedRepositoryRoot = resolve(here, "../../../..");
 
+// The three required evidence datasets D1 names, each with the reader that owns
+// it and the path expression that reader passes. A required dataset must be read
+// through readRequiredJson, which throws naming the dataset, resolved path, scope
+// and recovery command. A permissive read would let a missing or truncated
+// scorecard score as absent-but-fine, which is the failure this pins shut.
+const requiredEvidenceReaders = [
+  { dataset: "scorecard", filename: "bundle.ts", pathExpression: "scorecardPath" },
+  { dataset: "refute set", filename: "refute.ts", pathExpression: "refuteSetPath" },
+  { dataset: "ledger", filename: "gate.ts", pathExpression: "paths().ledgerPath" },
+] as const;
+
 const criticReaders = [
   "bundle.ts",
   "gate.ts",
@@ -191,6 +202,69 @@ test("critic readers share the adapter without independent planning or cwd roots
   assert.match(shellSource, /critic\/run\.ts paths/);
   assert.doesNotMatch(shellSource, /\.planning|CACHE_DIR="\$ROOT/);
   assert.deepEqual(offenders, []);
+});
+
+test("required scorecard, refute, and ledger evidence is read through the failing-closed reader", async () => {
+  // The sibling sweep above proves each reader IMPORTS the shared adapter. That
+  // is a proxy, not the property: a reader can import the adapter and still take
+  // a permissive read for a dataset whose absence must be fatal. This pins the
+  // call site itself for the three datasets D1 declares required.
+  const criticRoot = resolve(expectedRepositoryRoot, "examples/threadline_phoenix/e2e/critic");
+  const offenders: string[] = [];
+
+  for (const { dataset, filename, pathExpression } of requiredEvidenceReaders) {
+    const source = await readFile(resolve(criticRoot, filename), "utf8");
+    const call = new RegExp(
+      `readRequiredJson<[^>]*>\\(\\s*${pathExpression.replace(/[.()]/g, "\\$&")}`,
+    );
+
+    if (!call.test(source)) {
+      offenders.push(`${filename}: ${dataset} is not read through readRequiredJson(${pathExpression})`);
+    }
+  }
+
+  assert.deepEqual(offenders, []);
+
+  // Non-vacuity: the same matcher must reject a reader that swaps the required
+  // read for a permissive one, otherwise the assertion above proves nothing.
+  const permissive = `const data = JSON.parse(readFileSync(scorecardPath, "utf8"));`;
+  assert.equal(
+    new RegExp(`readRequiredJson<[^>]*>\\(\\s*scorecardPath`).test(permissive),
+    false,
+    "the matcher accepts a permissive read, so it cannot detect the regression it guards",
+  );
+});
+
+test("a required dataset read fails closed rather than reporting an empty result", async () => {
+  // The adapter-level counterpart to the call-site pin above: given a path that
+  // does not exist, the required reader must THROW. Returning null, {} or [] is
+  // the specific failure mode that would let parked or missing critic evidence
+  // pass as a clean score.
+  const adapter = await loadAdapter();
+  assert.equal("loadError" in adapter, false, `adapter failed to load: ${String(adapter.loadError)}`);
+
+  const fixtureRoot = await mkdtemp(resolve(tmpdir(), "threadline-required-evidence-"));
+
+  try {
+    for (const dataset of ["scorecard", "refute set", "ledger"]) {
+      const absent = resolve(fixtureRoot, `${dataset.replace(/\s+/g, "-")}.json`);
+      let threw = false;
+
+      try {
+        adapter.readRequiredJson(absent, {
+          dataset,
+          repositoryOnly: true,
+          recoveryCommand: "npm run critic:check",
+        });
+      } catch {
+        threw = true;
+      }
+
+      assert.equal(threw, true, `${dataset}: an absent required dataset did not fail closed`);
+    }
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
+  }
 });
 
 test("graded capture uses contained generated targets without redirecting snapshots", async () => {
