@@ -41,7 +41,9 @@ covered_files:
   - test/threadline/operator_surface/live/start_live_test.exs
   - test/threadline/operator_surface/live/timeline_live_test.exs
   - test/threadline/operator_surface/rendered_output_contract_test.exs
-covered_digest: "v1:sha256:9ee00d5700029a9805e37a7bb89d4c0b7da32055b9368491730fc52be711bc43"
+covered_digest: "v1:sha256:c90d61d79a5b25ad7eefdc3969f653df769140a81a67b6f7e02a84a7144dc5ca"
+covered_digest_note: "Recomputed with `gsd-tools verification fingerprint` over the 33 declared covered files as they stand at this target. It supersedes v1:sha256:9ee00d57..., which the refresh pass sealed before two further bookkeeping edits landed: ROADMAP.md:71 (the PHASE-level Phase 201 checkbox, which the refresh pass itself flagged as its advisory 1 — only the plan-level box at :649 had been flipped) and STATE.md completed_phases 2 -> 4 with its percent/progress line (the refresh pass's advisory 2, that STATE under-counted against a ROADMAP marking 198/199/200 complete). No implementation file, fixture, scorecard, screenshot, or baseline moved in either edit; `git diff ae7e75fa..HEAD -- lib/ test/ examples/ mix.exs` remains empty. The passed verdict below was earned against the substance, which these two edits did not touch; only the content hash of already-judged bookkeeping files changed."
+superseded_covered_digest: "v1:sha256:9ee00d5700029a9805e37a7bb89d4c0b7da32055b9368491730fc52be711bc43"
 previous_covered_digest: "v1:sha256:86d45010c30bb7c07c9b3fcdab6b7c8d30f5697b7701d65aa5abac9263a02449"
 behavior_unverified: 0
 overrides_applied: 0
