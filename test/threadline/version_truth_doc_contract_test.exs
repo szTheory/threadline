@@ -7,7 +7,7 @@ defmodule Threadline.VersionTruthDocContractTest do
   it never hardcodes a literal, because a hardcoded version would be the same
   drift footgun it is meant to guard (T-191-03).
 
-  Three families, each failing on a distinct drift:
+  Four families, each failing on a distinct drift:
 
     * Family A — install pins. Globs README + guides and asserts every
       `{:threadline, "~> x.y.z"}` equals the three-segment `~> major.minor.0`
@@ -16,6 +16,9 @@ defmodule Threadline.VersionTruthDocContractTest do
       `x-release-please-version` marker must contain `@version` AND its file must
       be registered in `release-please-config.json` `extra-files`, so the release
       commit auto-bumps it (born-red-proof by identity).
+    * Family B-inverse — ownership separation. No install-pin line may also
+      carry an `x-release-please-version` marker; pin lines belong to
+      `mix release.pins` alone.
     * Family C — upgrade coverage. `guides/upgrade-path.md` must document the
       current-minor bump `0.(minor-1).x -> 0.minor.x` (ASCII or U+2192 arrow).
   """
@@ -36,6 +39,12 @@ defmodule Threadline.VersionTruthDocContractTest do
 
   @release_please_config "release-please-config.json"
 
+  # The install-pin shape, shared by Family A and by the pin/marker separation
+  # test below. `mix release.pins` carries a character-identical copy of this
+  # expression: the task and this contract must never disagree about which
+  # lines count as an install pin.
+  @pin_regex ~r/\{:threadline,\s*"~>\s*([0-9][0-9.]*)"\}/
+
   # README + guides only — priv/ and examples/ are intentionally excluded by
   # this glob (their pins are exercised by mix verify.hex_evaluator / the
   # example app, not doc-contract). A glob (not an allowlist) means a future
@@ -47,13 +56,11 @@ defmodule Threadline.VersionTruthDocContractTest do
   # Family A ---------------------------------------------------------------
 
   test "every threadline install pin across README + guides equals the derived ~> #{@expected_pin_version}" do
-    pin_regex = ~r/\{:threadline,\s*"~>\s*([0-9][0-9.]*)"\}/
-
     # Prove the glob actually finds pins — a silent empty scan would make this
     # guard vacuously pass and let drift through.
     all_pins =
       for path <- doc_files(),
-          [_full, captured] <- Regex.scan(pin_regex, File.read!(path)),
+          [_full, captured] <- Regex.scan(@pin_regex, File.read!(path)),
           do: {path, captured}
 
     assert all_pins != [],
@@ -97,6 +104,37 @@ defmodule Threadline.VersionTruthDocContractTest do
                "`extra-files` in #{@release_please_config}. release-please will not auto-bump it, " <>
                "so the marked line will be born red on the next release. Register the file in " <>
                "extra-files (prose-claim files only — never a pin-bearing file)."
+    end
+  end
+
+  # Family B-inverse -------------------------------------------------------
+
+  test "no install pin line is also owned by a release-please version marker" do
+    pin_lines =
+      for path <- doc_files(),
+          {line, number} <-
+            path |> File.read!() |> String.split("\n") |> Enum.with_index(1),
+          Regex.match?(@pin_regex, line),
+          do: {path, number, line}
+
+    # Prove the scan actually found pin lines. Without this the separation
+    # assertion below would pass vacuously the moment the glob or the regex
+    # stopped matching, which is precisely the drift it exists to catch.
+    assert pin_lines != [],
+           "no {:threadline, \"~> x.y.z\"} pin line found across README + guides — the glob " <>
+             "or regex is broken, so this ownership guard is asserting nothing."
+
+    for {path, number, line} <- pin_lines do
+      refute String.contains?(line, "x-release-please-version"),
+             "#{path}:#{number} carries BOTH an install pin and an x-release-please-version " <>
+               "marker, so release automation would own a pin line. That cannot work: the " <>
+               "generic updater writes the FULL version onto a marked line, emitting " <>
+               "`~> x.y.1` on a patch release while this contract derives `~> x.y.0`; and the " <>
+               "component updater replaces the first bare integer on the line, which inside " <>
+               "`{:threadline, \"~> 0.9.0\"}` is the leading `0` of the requirement string, " <>
+               "producing a nonsense major. Install pins are owned by `mix release.pins` and " <>
+               "by nothing else — remove the marker, and never register a pin-bearing file " <>
+               "under `extra-files` in #{@release_please_config}.\n\n    #{String.trim(line)}"
     end
   end
 
