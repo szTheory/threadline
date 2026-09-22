@@ -695,7 +695,7 @@ Plans:
 - [x] 202-06-PLAN.md — BR-3: read the `release.pins` version through `Mix.Project.config/0` so `mix dialyzer` reports `Total errors: 0`
 - [x] 202-07-PLAN.md — BR-4: clear the 60 `mix docs --warnings-as-errors` warning lines blocking `mix verify.release`
 - [x] 202-08-PLAN.md — Fix the `CriticTrustTest` intermittent and the unbounded scratch-tree leak behind it
-- [ ] 202-09-PLAN.md — BR-5: replace the hardcoded `{:threadline, "~> 0.9.0"}` literal in the release-artifact contract test
+- [x] 202-09-PLAN.md — BR-5: replace the hardcoded `{:threadline, "~> 0.9.0"}` literal in the release-artifact contract test *(derived from `Mix.Tasks.Release.Pins.target_pin_version/0`; next-minor bump rehearsed green)*
 
 **Waves**: 1 → 202-01 · 2 → 202-02, 202-03 (parallel) · 3 → 202-04 · 4 → 202-05 · 5 → 202-06, 202-07, 202-08, 202-09
 
@@ -786,7 +786,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 199. Decouple | v1.41 | 21/21 | Complete    | 2026-09-11 |
 | 200. Public Surface | v1.41 | 18/18 | Complete    | 2026-09-13 |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
-| 202. Release 0.10.0 | v1.41 | 7/9 | In Progress | |
+| 202. Release 0.10.0 | v1.41 | 8/9 | In Progress | |
 | 203. Real Gates | v1.41 | 0/TBD | Not started | |
 | 204. Structure | v1.41 | 0/TBD | Not started | |
 
