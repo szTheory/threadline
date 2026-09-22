@@ -131,10 +131,13 @@ defmodule Threadline.MixProject do
       ],
       "verify.release": &verify_release/1,
       # Simulate the NEXT MINOR release commit and run the release gates against
-      # it. The born-red defect class Phase 202 found is invisible at the current
-      # version by construction, so a gate that only ever measures the current
-      # version cannot see it. Not folded into `ci.all` — same release-lane
-      # precedent as `verify.release`, and the topology contract asserts both.
+      # it. A whole class of release defect — a doc pin, a marked prose line, a
+      # contract assertion that hardcodes the current version — is green at the
+      # current version by construction and only becomes observable once the
+      # version has moved, so a gate that only ever measures the current version
+      # cannot see it. Not folded into `ci.all`: it is a release-lane check and
+      # follows `verify.release`'s precedent of staying out of the per-change
+      # gate. The CI topology contract asserts both halves of that placement.
       "verify.bump_rehearsal": &verify_bump_rehearsal/1,
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,

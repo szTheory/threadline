@@ -477,6 +477,7 @@ without also failing a test.
 - `verify-docs`
 - `verify-hex-package`
 - `verify-release-shape`
+- `verify-bump-rehearsal`
 
 No `allowed-skips` or `allowed-failures` entry is documented here today,
 because `.github/workflows/ci.yml`'s `alls-green` step carries neither — every
@@ -504,6 +505,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
+| `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs `mix verify.doc_contract` + `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 
 ### Dialyzer PLT cache and measurement contract
 
