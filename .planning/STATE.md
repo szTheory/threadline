@@ -33,10 +33,25 @@ Phase: 201 (Rendered Output) — COMPLETE (verification passed 2026-09-21)
 Plan: 5 of 5 executed and verified
 Status: Phase closed. Next = Phase 202 (Release 0.10.0) planning, but see verification debt below.
 
-**Open verification debt before Phase 202.** Phase 199 (Decouple) still reports
-`verification_status: stale` — its `*-VERIFICATION.md` predates its newest
-summaries. Re-run `/gsd-verify-work 199` (re-measurement, not new work) before
-Phase 202 planning reads the roadmap as settled.
+**Verification debt CLEARED (2026-09-22). Phases 199 and 200 both report
+`passed`.** Phase 202 planning can read the roadmap as settled.
+
+**Phase 199 re-verified: PASSED, 40/40, zero gaps, at `4d893e19`.** Re-measured
+from a fresh `git clone --no-local` with `.planning` quarantined before any
+command ran, so the decoupling claim was tested rather than assumed: 1677 library
+tests, 117 example tests, Dialyzer 0 errors under an empty ignore file and a
+zero warning ceiling, and every `verify.*` gate green. Three SHAs the OLD report
+cited are dangling — `d6d3baee`, `edb2b240`, `c45b7712` are not ancestors of
+HEAD; nothing in the new report rests on them. The Playwright lane is CARRIED,
+not re-run, on a checked delta argument: the only library change in the window
+is `@moduledoc false` on two modules, so there is no rendered-output delta.
+
+Its last skipped checkpoint (Shared Critic Reader Authority, 199-05-D1) is now
+proven deterministically. The skip had been blocked on the parked paid critic
+loop, but D1 asserts path authority and fail-closed reads — neither depends on
+LLM scoring, so `critic:check` was the wrong instrument and a real-key run was
+never what would prove it. The paid loop REMAINS PARKED; scoring quality is a
+separate claim.
 
 **Phase 200 debt CLEARED (2026-09-22): PASSED, 8/8, re-measured at `bf42de71`.**
 The staleness was an ancestry fact, not a regression: the original target

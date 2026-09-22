@@ -1,19 +1,26 @@
 ---
 phase: 199-decouple
-verified: 2026-09-13T14:53:14Z
+verified: 2026-09-22T11:08:34Z
 status: passed
 score: 40/40 must-haves verified
+verification_target: "4d893e19099601cf6af12372adabbbe77510e1a4"
+verification_target_is_ancestor_of_head: true
 behavior_unverified: 0
 overrides_applied: 0
 requirements_verified: 8/8
 decisions_verified: 30/30
 security_status: verified
 security_threats: 61/61 closed
-current_head: "51ee7137fdea94dd79832de29a7e00bb1d89f2eb"
-previous_current_head: "40c68f848fa98e7bd4f1275b7eac5c738f3bd255"
-tracking_finalized_head: "edb2b240515a8869fd704d2bfd4d2a195c56d890"
-historical_certification_sha: "c45b7712"
+previous_verification_target: "51ee7137fdea94dd79832de29a7e00bb1d89f2eb"
 regressions: []
+re_verification:
+  previous_status: passed
+  previous_score: 40/40
+  previous_verified: "2026-09-13T14:53:14Z"
+  gaps_closed: []
+  gaps_remaining: []
+  regressions: []
+  delta_commits: 6
 covered_files:
   - ".dialyzer_ignore.exs"
   - ".formatter.exs"
@@ -601,248 +608,187 @@ covered_files:
   - "test/threadline/release_artifact_contract_test.exs"
   - "test/threadline/removed_artifact_contract_test.exs"
   - "test/threadline/row_history_focus_evidence_contract_test.exs"
-covered_digest: "v1:sha256:a696b527c1f0d8ea7b0266887c9e8e95e686c9d8ec33e2a036ded5e26956701b"
-covered_digest_note: "Refreshed 2026-09-22 during /gsd-verify-work 199. The prior digest stopped resolving because a covered path no longer existed: test/threadline/phase06_nyquist_ci_contract_test.exs was RENAMED to test/threadline/ci_workflow_parity_contract_test.exs by Phase 201-05 (dee6b824), and a missing covered file makes the whole fingerprint unresolvable, which fails closed to `stale`. The path above is updated to the rename target and the digest recomputed with `gsd-tools query verification.fingerprint` over the same 586-file covered set as it stands at 51ee7137. Seven further covered files drifted under Phases 200/201, all bookkeeping or later-phase product work that does not touch a Phase 199 must-have: .gitignore (ADDS /.planning/critic-scores/ and 8 sibling machine-local paths \u2014 this REINFORCES 199's planning-decoupling goal rather than eroding it), .planning/REQUIREMENTS.md and .planning/ROADMAP.md (phase bookkeeping), lib/threadline/operator_surface/live/timeline_live.ex and lib/threadline/operator_surface/live/export_status_live.ex plus test/threadline/operator_surface/live/export_status_live_test.exs (Phase 201-02..201-04 removal of data-earned-flow / data-persona / data-jtbd rendered provenance attributes), and mix.exs (one doc-contract test filename swapped inside the verify.doc_contract alias by 201-05, c12f024d). The 40/40 verdict is NOT re-asserted on file reading alone: Phase 199's decisive proof is that `mix ci.all` completes planning-free end to end, and that was RE-MEASURED at this HEAD \u2014 exit 0, all 11 gates green (199-UAT.md checkpoints 52, 53, 56). No Phase 199 gate, alias, or contract test was removed or weakened by the drift."
-previous_covered_digest: "v1:sha256:0bcae97445bd1813404557acf4b18a86b40bcb4849017afd5031f9525fcc7b9d"
+covered_digest: "v1:sha256:680599af5951be9d593724bb18f57aa3d84e79c4bef658635f1c4fd263013541"
+previous_covered_digest: "v1:sha256:a696b527c1f0d8ea7b0266887c9e8e95e686c9d8ec33e2a036ded5e26956701b"
+covered_digest_note: "Recomputed 2026-09-22 at HEAD 4d893e19 over the same 586-file covered set as the previous report. All 586 paths resolve on disk (checked individually before hashing), so the fingerprint is determinate rather than failing closed. The set is unchanged because the 6 commits since 51ee7137 touched exactly one covered implementation file — examples/threadline_phoenix/e2e/support/operator-surface-paths.test.ts, which added the two fail-closed reader tests in 4d893e19 — plus .planning bookkeeping and mix.exs/mix.lock (a test-only yaml_elixir dependency added by Phase 200). No Phase 199 gate, alias, fixture, or contract test was removed or weakened by the drift."
+scope_note: "The full `mix ci.all` aggregate was NOT re-run end to end at this HEAD. Ten of its twelve members were re-measured inside a fresh planning-quarantined clone of 4d893e19; the strict Dialyzer member was re-measured in-tree at 4d893e19; the Playwright browser lane was NOT re-run and is carried from the 51ee7137 measurement under an evidenced zero-delta argument (see 'Aggregate Coverage and What Was Carried'). This is stated in the report body rather than absorbed into the verdict."
+advisory:
+  - finding: ".tool-versions is untracked and not ignored, so a fresh clone cannot resolve `mix` on an asdf machine; bin/verify-clean-checkout and bin/verify-planning-independent both failed with `No version is set for command mix` until ASDF_* versions were supplied externally."
+    category: other
+    reason: "DECOUPLE-05's letter (a fresh clone plus `mix deps.get` leaves `git status` clean) is unaffected and was re-measured green. But the two clone-based decoupling probes are not self-sufficient from a clean clone on this toolchain manager. Resolution would be tracking a toolchain pin or documenting the required env in CONTRIBUTING."
+    evidence_status: "reproduced twice at HEAD (exit 126 without the env pin, exit 0 with it)"
+  - finding: "Two permissive JSON reads remain in the critic tree: critic/cache.ts:89 (verdict cache) and critic/gate.ts:369 (before-pole snapshot)."
+    category: other
+    reason: "Both are datasets whose ABSENCE is a defined non-error (cache miss; no pre-edit score → caller voids), so they are correctly outside D1's three required datasets. Recorded so 'all critic reads fail closed' is not over-read from the new pins."
+    evidence_status: "source-read at HEAD; not a gap"
+human_verification: []
 ---
 
 # Phase 199: Decouple Verification Report
 
-**Phase Goal:** The test suite and every CI gate are self-contained in the source tree, so mix ci.all passes with .planning renamed away; dead planning artifacts and root one-off scripts are gone with citations repaired; a fresh clone plus mix deps.get is clean; Dialyzer is a real measured ratcheting gate before refactor-heavy phases.
+**Phase Goal:** The test suite and every CI gate are self-contained in the source tree, so `mix ci.all` passes with `.planning/` renamed away; dead planning artifacts and root one-off scripts are gone with citations repaired; a fresh clone plus `mix deps.get` is clean; Dialyzer is a real, measured, ratcheting gate before the refactor-heavy phases begin.
 
-**Verified:** 2026-09-13T14:53:14Z
-**Status:** passed  
-**Re-verification:** No — initial verification  
-**Current committed HEAD:** d6d3baee5eabe993fede1b4e2100cb23f131bff8
+**Verified:** 2026-09-22T11:08:34Z
+**Status:** passed
+**Re-verification:** Yes — second pass, re-measured at current HEAD
+**Verification target:** `4d893e19099601cf6af12372adabbbe77510e1a4` (confirmed ancestor of HEAD: it *is* HEAD; `git merge-base --is-ancestor` exits 0)
+**Previous target:** `51ee7137fdea94dd79832de29a7e00bb1d89f2eb` (ancestor; 6 commits behind)
+
+## Why this report was rewritten
+
+`gsd-tools query verification.status .planning/phases/199-decouple` reported `stale`. The staleness was not resolved by moving a commit pointer. Every roadmap truth was re-executed against `4d893e19`, in a fresh planning-quarantined clone where the truth is about planning independence, and in-tree where the truth is about the current toolchain. The commands and their exact outputs are recorded below.
+
+Two ancestry facts from the previous report are worth stating plainly, because they were load-bearing there and are dangling now:
+
+- The previous body claimed `Current committed HEAD: d6d3baee…`. `d6d3baee` is **not** an ancestor of today's HEAD. Neither is `edb2b240` (`tracking_finalized_head`) nor `c45b7712` (`historical_certification_sha`). Those three SHAs no longer resolve into this branch's history, so nothing in this report rests on them. The one previous field that *does* resolve — `current_head: 51ee7137` — is an ancestor and is retained as `previous_verification_target`.
+- Accordingly the Plan-21 historical certificate at `c45b7712` is cited here only as a historical receipt, never as current-head proof.
 
 ## Verdict
 
-Phase 199 achieves its goal in the current committed tree. This verdict is based on direct inspection and fresh commands, not SUMMARY claims.
+Phase 199 still achieves its goal at `4d893e19`. No regression was found in the 6 commits since the previous verification, and the one behavioral gap the previous pass left open (UAT test 10, coverage id `199-05-D1`) is now genuinely closed by deterministic evidence.
 
-The strongest proof is a new execution of bin/verify-planning-independent against exact current HEAD. In its disposable no-local clone, it physically quarantined .planning, ran dependency setup and the complete mix ci.all aggregate, printed AGGREGATE_RESULT=PASS, restored .planning, removed only the registered temporary clone, and exited 0. The current aggregate produced 1,540 root tests with 0 failures and 1 intentional exclusion, 114 example tests with 0 failures, strict Dialyzer with 0 errors/skips/unnecessary skips, and the 344-test Playwright inventory with 317 passed, 26 intentional skips, and one retry-only pass.
+The decisive re-measurement is a fresh `--no-local` clone of the exact HEAD with `.planning` renamed to `.planning.quarantine` before any command ran. In that clone, with `.planning` verifiably absent after every step:
 
-No human verification is required. The phase is repository/tooling work, and each success criterion has executable current-tree evidence.
+| `ci.all` member | Re-run at 4d893e19 with `.planning` absent | Result |
+|---|---|---|
+| `verify.format` | yes | exit 0 |
+| `verify.credo` | yes | exit 0 |
+| `compile --warnings-as-errors` | yes | exit 0 (105 files) |
+| `verify.compile_no_optional` | yes | exit 0 |
+| `verify.test` | yes | **1677 tests, 0 failures, 1 excluded** |
+| `verify.threadline` | yes (`MIX_ENV=test`) | exit 0 — 1/1 expected tables covered, 0 violated |
+| `verify.example` | yes | **117 tests, 0 failures** |
+| `verify.doc_contract` | yes | exit 0 |
+| `verify.critic_trust` | yes | exit 0 |
+| `verify.mechanical` | yes | exit 0 |
+| `cmd env MIX_ENV=dev mix verify.dialyzer` | in-tree at HEAD, not in the clone | **Total errors: 0, Skipped: 0, Unnecessary Skips: 0** |
+| `verify.example_browser` (Playwright) | **no** — carried from `51ee7137` | see below |
+
+`.planning` was confirmed still absent after `mix deps.get --check-locked`, after compilation, and after every gate above.
+
+## Aggregate Coverage and What Was Carried
+
+This report does **not** claim that `mix ci.all` was executed end to end at `4d893e19`. Two members were handled differently, and both deviations are stated rather than absorbed:
+
+1. **Strict Dialyzer** was re-measured in the working tree at HEAD rather than inside the quarantined clone, because a fresh clone forces a cold PLT rebuild. The property it proves (zero warnings, zero skips, zero unnecessary skips, with the full optional-app PLT) is a property of the committed source and analyzer configuration, not of the directory layout; `.planning` independence for this member is separately evidenced by the source scan below. Result at HEAD: `Total errors: 0, Skipped: 0, Unnecessary Skips: 0`, exit 0, against the `deps-dev` PLT with `warnings: [:unmatched_returns, :extra_return, :unknown]`.
+2. **The Playwright browser lane was not re-run.** Running it here is barred (no app server in this context produces ~45 spurious sub-100ms failures) and it is the hour-plus member of the aggregate. It is carried from the `51ee7137` measurement under a delta argument that was checked, not assumed: `git diff 51ee7137..HEAD` touches exactly two library files, and both changes are `+ @moduledoc false` inside `actor_live.ex` and `transaction_live.ex` — zero rendered-output delta. The only other source change in the window is a *unit* test file, which I ran directly (below). No `.spec.ts`, template, style token, or fixture changed.
+
+The honest reading: planning independence and gate health are re-established at HEAD for every deterministic member; the browser member's currency rests on an evidenced no-op diff plus its last full run at an ancestor.
 
 ## Goal Achievement
 
-### Observable Truths
+### Observable Truths (roadmap success criteria)
 
-| # | Roadmap truth | Status | Current evidence |
+| # | Roadmap truth | Status | Evidence re-measured at 4d893e19 |
 |---|---|---|---|
-| 1 | mix ci.all passes with .planning absent; five datasets are test-owned, byte-preserved, reader-wired, and excluded from Hex. | ✓ VERIFIED | Current-head planning-independent probe exited 0. Git reports 427/427 R100 renames in 9de9d968; the live tree contains 429 tracked fixture-root files (427 evidence entries plus README and manifest). Fixture, path, planning-dependency, release archive, root, example, Dialyzer, and browser checks passed. |
-| 2 | Dead planning/root artifacts are removed, citations are repaired, and the README assertion is active. | ✓ VERIFIED | All four declared targets are absent from the index and disk. The tracked-root executable inventory contains only .credo.exs, .dialyzer_ignore.exs, .formatter.exs, and mix.exs. The live removal/citation scanner and README mutation control passed in the 95-test focused bundle. |
-| 3 | Fresh clone plus mix deps.get is clean and formatter ownership covers bench, scripts, and example. | ✓ VERIFIED | bin/verify-clean-checkout at current HEAD printed DEPENDENCY_STATUS=CLEAN, GENERATED_PROBE_STATUS=CLEAN, TRACKABLE_CONTROLS=VISIBLE, CLEAN_CHECKOUT_VERIFIED, and contained cleanup. mix format --check-formatted passed; .formatter.exs delegates bench and example and directly includes scripts. |
-| 4 | Dialyzer is a full-build, blocking, measured, ratcheting gate. | ✓ VERIFIED | Current strict run reported Total errors: 0, Skipped: 0, Unnecessary Skips: 0. mix.exs contains the full optional-app PLT list and ci.all alias; CI has unconditional verify-dialyzer and ci-required wiring. CONTRIBUTING records authenticated cold/hit job evidence. The ignore ceiling is now 0 and fail-closed contract controls passed. |
+| 1 | `mix ci.all` passes with `.planning/` renamed away; the five datasets are test-owned, `git mv`-moved, reader-wired, and excluded from the Hex tarball. | ✓ VERIFIED | Fresh `--no-local` clone at exact HEAD, `.planning` quarantined before any command: 10 of 12 aggregate members green (table above), `.planning` never reappeared. Dialyzer member green in-tree; browser member carried on an evidenced zero-delta diff. Corpus: `git ls-files test/fixtures/operator_surface` = 429 tracked (427 evidence + README + manifest). `package.files` in mix.exs:384-385 lists only `lib priv/fonts guides brandbook/… .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md` — `test/fixtures` and `.planning` are both outside it, and `release_artifact_contract_test.exs` (which refutes `.planning/` entries in a real archive) passed. Source scan for planning reads across `lib/ test/ mix.exs bin/ .github/workflows/ scripts/` found only refutations and one writer (`bin/record-ci-attestation`, not in any gate). |
+| 2 | Dead planning/root artifacts are removed, no register or doc cites a vanished path, the root holds no one-off migration/patch script, and the silently-disabled assertion is enabled and passing. | ✓ VERIFIED | `mix test removed_artifact_contract_test.exs planning_dependency_contract_test.exs planning_independence_contract_test.exs` → 13 tests, 0 failures at HEAD. Tracked root inventory re-enumerated with `git ls-files --full-name \| grep -v /`: 21 files, all of them config/docs/manifests (`.credo.exs`, `.dialyzer_ignore.exs`, `.dockerignore`, `.env.example`, `.formatter.exs`, `.gitignore`, `.release-please-manifest.json`, `CHANGELOG/CLAUDE/CODE_OF_CONDUCT/CONTRIBUTING/DESIGN-SYSTEM/GEMINI/LICENSE/README/SECURITY`, two `docker-compose*.yml`, `mix.exs`, `mix.lock`, `release-please-config.json`) — no migration or patch script. `verify.doc_contract` (21 contract files including the README assertion) passed inside the planning-absent clone. |
+| 3 | A fresh clone plus `mix deps.get` leaves `git status` clean, generated/crash/tarball/e2e artifacts are ignored, and `mix format --check-formatted` covers bench, scripts, and the example app. | ✓ VERIFIED | `bin/verify-clean-checkout` executed at HEAD: `SOURCE_SHA=4d893e19…`, `DEPENDENCY_STATUS=CLEAN`, `GENERATED_PROBE_STATUS=CLEAN`, `TRACKABLE_CONTROLS=VISIBLE`, `CLEAN_CHECKOUT_VERIFIED`, `SAFE_TEMP_TREE_REMOVED`, exit 0 — this now includes the newly-added test-only `yaml_elixir` dependency, so the clean-clone contract holds across the Phase 200 dependency change. `mix format --check-formatted` exit 0 in-tree and `verify.format` exit 0 in the quarantined clone; `formatter_topology_contract_test.exs` passed. See the advisory about `.tool-versions` for the one friction this probe exposed. |
+| 4 | Dialyzer runs inside `ci.all` with all optional deps in the PLT, its cold cost is measured and documented in CONTRIBUTING, and its ignore file holds only specific commented entries under a committed lower-only ceiling. | ✓ VERIFIED | `env MIX_ENV=dev mix verify.dialyzer` at HEAD: `Total errors: 0, Skipped: 0, Unnecessary Skips: 0`, exit 0. `.dialyzer_ignore.exs` re-read at HEAD: literally `[]`. `dialyzer_ignore_contract_test.exs` + `dialyzer_slice_contract_test.exs` passed in the 186-test bundle, with `@warning_ceiling 0` and the exact W01–W40 / five-fixture partition intact. `.github/workflows/ci.yml:132` still defines `verify-dialyzer` and line 880 still lists it under `ci-required`'s `needs`; the new `community-health.yml` workflow added since the last verification did not displace it. `CONTRIBUTING.md:491-542` still records the authenticated cold/hit job evidence and the 2x-derived timeout. |
 
-**Roadmap score:** 4/4 roadmap truths verified.  
-**Merged score:** 40/40 must-haves verified (4 roadmap truths plus 36 non-duplicate plan-specific truths; 0 present-but-behavior-unverified).
+**Roadmap score:** 4/4.
+**Merged score:** 40/40 must-haves (4 roadmap truths + 36 non-duplicate plan-specific truths). `behavior_unverified: 0`.
 
-### Plan-Specific Truths
+### Plan-Specific Truths (36) — regression pass
 
-Every PLAN frontmatter truth was merged with the roadmap contract. The compact rows below preserve all 36 plan-specific truths while avoiding repetition of the four broader roadmap truths.
+Re-verification optimization: these 36 passed in the previous pass and none of them names an artifact touched by the 6-commit delta except 199-05 (treated as a full re-verification below). They were re-confirmed by re-running the executable contracts that own them rather than by re-reading each summary:
 
-| Plan | Truths | Status | Direct evidence |
+| Plans | Truths | Re-measurement at HEAD | Status |
 |---|---:|---|---|
-| 199-01 | 1 | ✓ VERIFIED | MechanicalChecker requires explicit corpus/floors and fails closed; focused contracts pass. |
-| 199-02 | 1 | ✓ VERIFIED | Source-anchored ExUnit roots and injected decoded stress ledger are wired; root/example tests pass. |
-| 199-03 | 1 | ✓ VERIFIED | Mix anchors, separation, containment, atomic writes, and review command are implemented and tested. |
-| 199-04 | 1 | ✓ VERIFIED | Single ESM path authority is imported; 14 path/symlink/atomic controls pass. |
-| 199-05 | 1 | ✓ VERIFIED | Critic reader/writer family imports the shared adapter; critic dry-run and typecheck pass. |
-| 199-06 | 1 | ✓ VERIFIED | Capture outputs use generated roots while reviewed snapshots remain trackable; contracts pass. |
-| 199-07 | 1 | ✓ VERIFIED | Manifest is Git-index-derived and excludes mutable generated scores; live and mutation tests pass. |
-| 199-08 | 1 | ✓ VERIFIED | Exactly 427 byte-identical R100 moves plus reader flips occur in atomic commit 9de9d968. |
-| 199-09 | 1 | ✓ VERIFIED | Four deletions, recovery/citation repair, live scanner, and README mutation control all pass. |
-| 199-10 | 1 | ✓ VERIFIED | Ignore rules are precise and formatter ownership is exactly one; clean-clone/formatter contracts pass. |
-| 199-11 | 1 | ✓ VERIFIED | Current fresh-clone probe is clean; hardened cleanup and registered-worktree rejection tests pass. |
-| 199-12 | 1 | ✓ VERIFIED | Active planning IO scan is empty; successor live assertions pass; retirement inventory is exact/recoverable. |
-| 199-13 | 1 | ✓ VERIFIED via authorized re-slice | Immediate strict full-app gate and triage intent were completed by Plans 15–20 after the designed halt. |
-| 199-14 | 1 | ✓ VERIFIED | Local/protected CI wiring, exact cache lifecycle, and authenticated cold/hit measurements exist and are tested. |
-| 199-15 | 3 | ✓ VERIFIED | Sealed 40-warning input, W01/W02/W05 fixes, and source-owned bounded verifier contracts pass. |
-| 199-16 | 3 | ✓ VERIFIED | Ten warnings/five origins are fully dispositioned; concrete Ecto/ActorRef types and continuity/storage fixes pass tests and analyzer. |
-| 199-17 | 3 | ✓ VERIFIED | Fifteen warnings/five origins are dispositioned; export cleanup/bytes and Sigra/investigation contracts pass tests and analyzer. |
-| 199-18 | 3 | ✓ VERIFIED | Seven warnings/four origins are dispositioned; auth/plug and presentation/redaction behavior is retained and tested. |
-| 199-19 | 3 | ✓ VERIFIED | Five warnings/five LiveView origins are dispositioned; timer lifecycle and reachable result matching pass current analyzer and named timer test. |
-| 199-20 | 4 | ✓ VERIFIED | Exact W01–W40/22-origin partition, zero residue/ceiling, strict ignore controls, full-app configuration, and live analyzer all pass. |
-| 199-21 | 3 | ✓ VERIFIED | Current full planning-absent certification passes; restoration/cleanup failure test and hostile target/scanner controls pass. |
+| 199-01, 199-03, 199-07, 199-08, 199-09, 199-10, 199-11, 199-12 | 8 | 186-test focused bundle (15 contract files incl. fixture-manifest, mechanical-checker, removal/citation, formatter-topology, clean-checkout, release-artifact, CI topology/parity/attestation/observer, e2e preflight, critic-trust, refute-partition) — **186 tests, 0 failures**; plus the 13-test planning bundle | ✓ VERIFIED |
+| 199-02, 199-06 | 2 | Full root suite in the planning-absent clone — 1677 tests, 0 failures; example suite 117/0 | ✓ VERIFIED |
+| **199-05** | 1 | **Fully re-verified — see "Test 10 / 199-05-D1" below.** `npm run test:paths` 17/17, `npm run typecheck` exit 0, and the three required-read call sites read directly in source | ✓ VERIFIED |
+| 199-13, 199-15 … 199-20 | 20 | Strict analyzer 0/0/0 at HEAD; ignore ceiling 0; W01–W40 partition contracts green | ✓ VERIFIED |
+| 199-14 | 1 | `verify-dialyzer` job + `ci-required` needs entry present at ci.yml:132/880; CONTRIBUTING cold/hit receipts intact | ✓ VERIFIED |
+| 199-21 | 3 | Planning-quarantined clone at exact HEAD completed its gate set and the clone was removed; `planning_independence_contract_test.exs` (restore-before-cleanup failure path) green | ✓ VERIFIED |
 
-### Required Artifacts
+## Test 10 / 199-05-D1 — judgement on the flip to `pass`
 
-The frontmatter artifact checker reported every declared artifact substantive across all 21 plans. Several path-literal key-link probes reported false negatives for module aliases, imported symbols, globs, and System.cmd calls; those links were checked manually below.
+**The flip is warranted.** I checked it as a claim, not as a given, and it survives.
 
-| Artifact | Expected | Status | Evidence |
-|---|---|---|---|
-| test/fixtures/operator_surface/ | Test-owned five-dataset corpus | ✓ VERIFIED | 429 tracked files; README says complete corpus is 427 evidence files; manifest contract passes. |
-| test/fixtures/operator_surface/manifest.sha256 | Index-derived byte manifest | ✓ VERIFIED | Exists, non-empty, and live contract verifies it against Git-index entries. |
-| lib/threadline/operator_surface/mechanical_checker.ex | Pure explicit-input checker | ✓ VERIFIED | run/1 requires scorecard_dir and mechanical_floors; no repository-relative fallback. |
-| test/support/operator_surface_fixtures.ex | Test-edge path adapter | ✓ VERIFIED | Test authority points to the fixture tree and is consumed by corpus readers. |
-| examples/threadline_phoenix/e2e/support/operator-surface-paths.ts | TypeScript edge resolver and safe writer | ✓ VERIFIED | Imported by critic and capture paths; traversal, symlink, alias, and atomic-write tests pass. |
-| test/threadline/removed_artifact_contract_test.exs | Tracked deletion/citation/root scanner | ✓ VERIFIED | Live Git-derived scan passes and injected violations fail. |
-| bin/verify-clean-checkout | Exact-SHA clean-clone proof | ✓ VERIFIED | Direct current-head execution exited 0. |
-| bin/safe-temp-tree | Hardened sole recursive-cleanup primitive | ✓ VERIFIED | Canonical path, lstat identity, direct-child, and registered-worktree checks guard the sole recursive removal. |
-| .formatter.exs and child formatter files | Exactly-one formatter ownership | ✓ VERIFIED | Format check and topology contract pass. |
-| mix.exs, .dialyzer_ignore.exs, CI workflow | Analyzer configuration and gates | ✓ VERIFIED | Full apps, strict flags, zero ceiling, cache topology, measurements, and required aggregation are wired. |
-| bin/verify-planning-independent | End-to-end exact-HEAD proof | ✓ VERIFIED | Direct probe completed aggregate, restore, and cleanup at current HEAD. |
+D1 asserts two things: (a) all bounded critic readers and the shell edge consume the shared path authority, and (b) required scorecard, refute, and ledger evidence fails closed. Neither half is a statement about LLM scoring quality, so a real-`ANTHROPIC_API_KEY` run was never the instrument that would settle it; `npm run critic:check` would have proven the planner exits 0, not that a missing scorecard is fatal. Re-scoping to the claim as written is the correct move, and the paid loop stays parked.
 
-### Key Link Verification
+What I measured, rather than accepting:
 
-| From | To | Via | Status | Details |
-|---|---|---|---|---|
-| mix ci.all | strict Dialyzer | cmd env MIX_ENV=dev mix verify.dialyzer | ✓ WIRED | mix.exs lines 160–175; direct aggregate executed it successfully. |
-| bin/verify-planning-independent | mix ci.all | quarantined clone invocation | ✓ WIRED | Lines 94–131 clone exact HEAD, remove planning visibility, run aggregate, and assert it stays absent. |
-| bin/verify-planning-independent | bin/safe-temp-tree | sourced containment/cleanup | ✓ WIRED | Restore precedes registered-tree cleanup; current probe emitted both markers. |
-| ExUnit and Mix readers | test/fixtures/operator_surface | explicit test/Mix edge roots | ✓ WIRED | Live corpus contracts, mechanical/critic/refute tests, and aggregate pass. |
-| Critic/capture TypeScript | operator-surface-paths.ts | imported resolver and writer exports | ✓ WIRED | run.ts, scorecard.ts, and capture specs import the adapter; 14 path tests and typecheck pass. |
-| Mechanical checker tests | MechanicalChecker | explicit corpus and floors | ✓ WIRED | run/1 has no hidden repository default; positive/negative tests pass. |
-| CI verify-dialyzer | ci-required | unconditional needs entry | ✓ WIRED | Workflow lines 132–251 define the job; lines 874–899 aggregate it under if: always(). |
-| .dialyzer_ignore.exs | Dialyxir | ignore_warnings plus unused-filter enforcement | ✓ WIRED | mix.exs points to the file and enables list_unused_filters; live analyzer reports zero skipped/unused. |
-| Removal scanner | tracked repository | git ls-files-derived source sets | ✓ WIRED | Direct System.cmd calls are present; live scanner passes. |
-| Planning dependency scanner | active ExUnit/Mix/CI sources | Git-derived tracked set plus injected controls | ✓ WIRED | Current 95-test bundle passed and planning-independent aggregate provided behavioral proof. |
+- **The artifact, not the config.** I read the three call sites in source at HEAD — `critic/bundle.ts:138 readRequiredJson<ScorecardJson>(scorecardPath, …)`, `critic/refute.ts:165 readRequiredJson<RefuteSet>(refuteSetPath, …)`, `critic/gate.ts:518 readRequiredJson<LedgerShape>(paths().ledgerPath, …)` — and the adapter itself at `support/operator-surface-paths.ts:238-264`, which wraps `readFileSync` and `JSON.parse` in try/catch and **throws** a diagnostic naming dataset, resolved path, repository scope, and recovery command. There is no return path that yields `null`, `{}` or `[]`.
+- **The tests actually run and actually discriminate.** `npm --prefix examples/threadline_phoenix/e2e run test:paths` → 17 tests, 0 failures (was 14 before this commit; +2 new, +1 from an earlier commit). `npm run typecheck` → exit 0. The call-site test carries its own non-vacuity control (it asserts the matcher rejects a permissive `JSON.parse(readFileSync(scorecardPath …))`), which is the guard whose absence produced the Phase 200 vacuous-gate finding.
+- **They run in CI, not only locally.** `package.json:6` `"test": "npm run test:unit && playwright test"`, `:20` `test:unit` includes `support/operator-surface-paths.test.ts`; `run-e2e.sh:304/306` invokes `npm test`; `mix.exs:238/262` invokes `run-e2e.sh` from `verify.example_browser`, which is the last member of `ci.all`. The chain is real.
 
-### Data-Flow Trace
+Two limits I am recording rather than smoothing over, neither of which defeats the flip:
 
-| Consumer | Data source | Flow | Status |
-|---|---|---|---|
-| MechanicalChecker | Explicit scorecard_dir and mechanical_floors supplied by repository tests | JSON decode → validation → findings | ✓ FLOWING |
-| Critic trust gate | Ledger, golden set, scorecards under test/fixtures/operator_surface | Edge adapter → decoded data → measured trust block | ✓ FLOWING |
-| TypeScript critic/capture tools | import.meta.url-anchored repository root and explicit overrides | Resolver → contained immutable/generated roots → atomic writer | ✓ FLOWING |
-| Release gate | Actual mix hex.build archive | Archive contents → rejection of test/fixtures and .planning | ✓ FLOWING |
-| Planning-independent certification | Exact committed no-local clone | .planning quarantine → deps/PLT → mix ci.all → restore/cleanup | ✓ FLOWING |
-| Dialyzer CI | mix.lock/mix.exs-keyed PLT plus full compiled build | Restore/build/save/analyze → parsed wall/RSS markers → required aggregate | ✓ FLOWING |
+- The call-site test is a **source-text** assertion. It pins the identifier passed (`scorecardPath`, `refuteSetPath`, `paths().ledgerPath`), so the regression it names — swapping to a permissive read — is caught, and the mutation check proves that. It would not catch a reader that passed a *different but correctly-required* path. That is a weaker property than the one D1 claims, but the adapter-level throw test covers the behavioral half, so the pair is sufficient.
+- D1's "all bounded critic readers" half was already covered by the pre-existing 11-reader + `critic-before-pole.sh` sweep, which is an *import* assertion. The new call-site pin is precisely the acknowledgement that an import is a proxy. The two remaining permissive reads in the critic tree (`cache.ts:89`, `gate.ts:369`) are recorded in `advisory:` — both read datasets whose absence is a defined non-error, so they are correctly outside D1's three.
 
-No rendered dynamic-data artifact is introduced by this non-UI phase; Level 4 here concerns repository evidence and gate data rather than UI rendering.
-
-## Current Behavioral Evidence
-
-| Behavior | Command | Result | Status |
-|---|---|---|---|
-| Exact current HEAD passes with .planning absent | bin/verify-planning-independent | Exit 0; exact SHA; planning absent; aggregate pass; planning restored; safe temp removed | ✓ PASS |
-| Root tests inside planning-absent aggregate | mix verify.test via mix ci.all | 1,650 tests, 0 failures, 1 intentional exclusion | ✓ PASS |
-| Example tests inside planning-absent aggregate | mix verify.example via mix ci.all | 114 tests, 0 failures | ✓ PASS |
-| Browser lane inside planning-absent aggregate | Playwright via mix ci.all | 344 total: 317 passed, 26 intentional skips, 1 flaky test passed on retry | ✓ PASS WITH FLAKE |
-| Focused Phase 199 contracts | 12 named ExUnit files | 95 tests, 0 failures | ✓ PASS |
-| TypeScript path safety | npm run test:paths | 14 tests, 0 failures | ✓ PASS |
-| TypeScript compile | npm run typecheck | Exit 0 | ✓ PASS |
-| Critic dry-run | npm run critic:check | Exit 0; six pre-existing rubric sha8 warnings remain non-blocking | ✓ PASS |
-| Root formatting | mix format --check-formatted | Exit 0 | ✓ PASS |
-| Strict analyzer | mix dialyzer --no-check --list-unused-filters | 0 errors, 0 skipped, 0 unnecessary skips | ✓ PASS |
-| Clean clone | bin/verify-clean-checkout | All four clean/control markers and safe cleanup; exit 0 | ✓ PASS |
-| CONTEXT decision gate | check.decision-coverage-verify | 30 honored, 0 not_honored | ✓ PASS |
-| Timer ownership transition | mix test test/threadline/operator_surface/live/export_status_live_test.exs:140 | 1 named test, 0 failures | ✓ PASS |
-| Restore-before-cleanup failure transition | mix test test/threadline/planning_independence_contract_test.exs:45 | 1 named test, 0 failures | ✓ PASS |
-
-### Probe Execution
-
-| Probe | Result | Status |
-|---|---|---|
-| bin/verify-planning-independent | Current exact-HEAD clone passed complete aggregate with planning absent; restore and cleanup passed | PASS |
-| bin/verify-clean-checkout | Current exact-HEAD dependency and generated-output cleanliness passed | PASS |
-| Historical Plan 21 certificate at c45b7712 | 1,534 root, 114 example, 0 Dialyzer errors/skips, 318 browser passed plus 26 skips | PASS (historical) |
-| Current direct strict Dialyzer | 0 errors/skips/unnecessary skips | PASS |
+The deferred follow-up ("prove D1 against a real-key refute battery") is correctly marked `withdrawn` rather than dropped: a real-key run would validate scoring quality, which is a different claim and is not owed by Phase 199.
 
 ## Requirements Coverage
 
-| Requirement | Status | Evidence |
+| Requirement | Status | Re-measured evidence |
 |---|---|---|
-| DECOUPLE-01 | ✓ SATISFIED | Current planning-independent exact-HEAD probe ran the full aggregate with .planning absent and exited 0. |
-| DECOUPLE-02 | ✓ SATISFIED | 427 R100 Git renames in atomic commit 9de9d968; 427-row manifest and live reader/package contracts pass. |
-| DECOUPLE-03 | ✓ SATISFIED | Four removal targets absent; Git-derived active citation scanner passes; removal inventory preserves recovery SHAs. |
-| DECOUPLE-04 | ✓ SATISFIED | No tracked root one-off patch/migration script; README canonical-wording assertion and deliberate mutation control pass. |
-| DECOUPLE-05 | ✓ SATISFIED | Fresh no-local clone remains clean after locked deps fetch and generated-output probes. |
-| DECOUPLE-06 | ✓ SATISFIED | Root format command passes with bench/example subdirectories and scripts inputs under executable topology contracts. |
-| DECOUPLE-07 | ✓ SATISFIED | Dialyzer runs locally and in CI with full optional apps; cold/hit cost and bounded timeout are documented from authenticated jobs. |
-| DECOUPLE-08 | ✓ SATISFIED | Ignore file is empty under a committed zero ceiling; exact-entry, comment, broad-filter, duplicate, fixed-warning, extra-entry, and unused-filter controls fail closed. |
+| DECOUPLE-01 | ✓ SATISFIED | Planning-quarantined clone at exact HEAD; 10/12 aggregate members green, `.planning` absent throughout |
+| DECOUPLE-02 | ✓ SATISFIED | 429 tracked fixture files; fixture/manifest contracts green; `package.files` excludes `test/fixtures` |
+| DECOUPLE-03 | ✓ SATISFIED | `removed_artifact_contract_test.exs` green; Git-derived citation scan clean |
+| DECOUPLE-04 | ✓ SATISFIED | 21-file tracked root inventory re-enumerated — no one-off script; README assertion green inside `verify.doc_contract` |
+| DECOUPLE-05 | ✓ SATISFIED | `bin/verify-clean-checkout` exit 0 at HEAD, including the new test-only dependency |
+| DECOUPLE-06 | ✓ SATISFIED | `mix format --check-formatted` exit 0; formatter-topology contract green |
+| DECOUPLE-07 | ✓ SATISFIED | Dialyzer 0/0/0 at HEAD with the full optional-app PLT; `verify-dialyzer` → `ci-required` wiring intact |
+| DECOUPLE-08 | ✓ SATISFIED | `.dialyzer_ignore.exs` is `[]` under `@warning_ceiling 0`; ratchet controls green |
 
-No orphaned Phase 199 requirements were found: ROADMAP and REQUIREMENTS map exactly DECOUPLE-01 through DECOUPLE-08.
+ROADMAP and REQUIREMENTS map exactly DECOUPLE-01…08; no orphaned Phase 199 requirement.
 
 ## Locked Decision Coverage
 
-| Decision | Status | Codebase evidence |
-|---|---|---|
-| D-01 | ✓ | Single mirror at test/fixtures/operator_surface with all five named roots. |
-| D-02 | ✓ | Git reports exactly 427 R100 renames; tracked SHA-256 manifest and mutation control pass. |
-| D-03 | ✓ | README and precise ignore rules separate immutable evidence from generated critic/report output. |
-| D-04 | ✓ | Ordinary contracts are read-only; named maintainer writers use sibling temporary files and rename. |
-| D-05 | ✓ | Live corpus test rejects missing/malformed/empty required evidence and validates non-vacuously. |
-| D-06 | ✓ | Elixir/TypeScript containment and separation controls cover traversal, sibling prefixes, symlinks, and aliases. |
-| D-07 | ✓ | MechanicalChecker requires explicit scorecard_dir and mechanical_floors; release archive excludes fixtures. |
-| D-08 | ✓ | Path adapters live at test, Mix, TypeScript, and CI edges; no runtime/global fixture service locator. |
-| D-09 | ✓ | Mix anchors to project_file, TypeScript to import.meta.url, tests expose roots; root/nested/worktree tests pass. |
-| D-10 | ✓ | Explicit fixture-root/output-root options override deterministic defaults and are normalized/validated. |
-| D-11 | ✓ | Writers reject immutable/generated aliasing and contained immutable targets except named canonical regeneration. |
-| D-12 | ✓ | Missing/invalid/installed-Hex controls produce dataset, resolved-path, scope, and recovery diagnostics. |
-| D-13 | ✓ | Surgical removal targets are absent; Git history is the recovery source. |
-| D-14 | ✓ | Live citation scan is clean; historical addenda retain execution truth and route to durable evidence. |
-| D-15 | ✓ | README assertion targets current support wording and its deliberate mutation is rejected. |
-| D-16 | ✓ | Removal inventory records purpose/use/supersession/recovery; live consumer/citation scanner passes. |
-| D-17 | ✓ | Shared ignores are anchored and producer-owned; broad-hide controls remain trackable. |
-| D-18 | ✓ | e2e artifacts/results/reports are ignored while reviewed snapshots remain trackable; tarball ignore is root-anchored. |
-| D-19 | ✓ | Disposable clone uses mix deps.get --check-locked and exact porcelain emptiness with generated probes. |
-| D-20 | ✓ | Root delegates bench/example and includes scripts; child ownership/import contracts pass. |
-| D-21 | ✓ | Tracked root executable inventory has no one-off patch/migration script; untracked operator scratch is out of contract. |
-| D-22 | ✓ | Dialyxir is dev/test-only, runtime false, and blocking in ci.all/CI. |
-| D-23 | ✓ | All 40 triaged warnings are fixed; ignore file is empty rather than a generated broad snapshot. |
-| D-24 | ✓ | All nine optional applications plus Mix/ExUnit are explicitly in the PLT; no-optional compile remains independent. |
-| D-25 | ✓ | unmatched_returns and extra_return are enabled; unknown was not removed. |
-| D-26 | ✓ | Zero entries vacuously meet exact-commented shape; executable controls reject regex/file/class/wildcard/broad forms. |
-| D-27 | ✓ | Ceiling is 0 and can only decrease; extra/broadened/duplicate/uncommented/unused controls fail. |
-| D-28 | ✓ | Stable current-toolchain CI job, header/docs/topology, ci-required, and local ci.all are wired. |
-| D-29 | ✓ | PLT is outside _build; precise ignores and exact toolchain/config/dependency keys; restore/build/save/analyze order is enforced. |
-| D-30 | ✓ | CONTRIBUTING records same-SHA authenticated cold/hit measurements, hashes, runner/toolchain, wall/RSS, and 2x-derived nine-minute timeout. |
+30/30 honored. The previous report's per-decision table (D-01 … D-30) was re-checked against the delta rather than re-derived: no commit in `51ee7137..HEAD` touches a decision's artifact except D-08/D-09 (path-adapter authority), whose contracts were re-run green (`test:paths` 17/17, typecheck 0), and none weakens a decision. `.gitignore` drift noted in the previous digest note (machine-local `.planning/critic-scores/` entries) reinforces D-03/D-17/D-18 rather than eroding them.
 
-The centralized decision-coverage verb independently returned 30/30 honored. The table above records the direct evidence basis rather than using that heuristic as the sole proof.
+## Behavioral Evidence (this pass)
 
-## Historical Integrity and Plan 13
-
-Plan 199-13 is not an unexplained incomplete plan. It halted at the designed 14-origin authority ceiling when the sealed full run exposed 22 origins. Plans 199-15 through 199-20 are the authorized bounded re-slice and consolidation. Their current artifacts account for the exact W01–W40 and 22-origin partition, fix every warning, set the ignore ceiling to 0, and pass both the contract and live analyzer.
-
-The historical Plan 21 certificate at c45b7712 remains a valid receipt for that SHA. It is not used as current-head proof; the new direct probe at 40c68f848fa98e7bd4f1275b7eac5c738f3bd255 supersedes it for this verification.
-
-## CI Measurement Receipt Calibration
-
-The two CONTRIBUTING links are valid job-level Dialyzer evidence, not globally green workflow receipts:
-
-| Run | Event / SHA | Workflow conclusion | Dialyzer job |
+| Behavior | Command | Result | Status |
 |---|---|---|---|
-| 34642915672 | push / a4f21e7e | failure | Job 103406722917: success; cold miss measurements present |
-| 34643744220 | workflow_dispatch / a4f21e7e | failure | Job 103410179816: success; exact-key hit measurements present |
+| Root suite with `.planning` absent at exact HEAD | `mix verify.test` in quarantined clone | 1677 tests, 0 failures, 1 excluded | ✓ PASS |
+| Example suite with `.planning` absent | `mix verify.example` in quarantined clone | 117 tests, 0 failures | ✓ PASS |
+| Dependency fetch cannot resurrect planning | `mix deps.get --check-locked` then existence check | exit 0; `PLANNING_STILL_ABSENT` | ✓ PASS |
+| Coverage gate with `.planning` absent | `MIX_ENV=test mix verify.threadline` | exit 0; 1/1 tables covered, 0 violated | ✓ PASS |
+| Doc contracts with `.planning` absent | `mix verify.doc_contract` | exit 0 | ✓ PASS |
+| Deterministic critic + mechanical gates, planning absent | `mix verify.critic_trust`, `mix verify.mechanical` | exit 0, exit 0 | ✓ PASS |
+| No-optional compile, planning absent | `mix verify.compile_no_optional` | exit 0 | ✓ PASS |
+| Focused Phase 199 contracts in-tree | 15 named ExUnit files | 186 tests, 0 failures | ✓ PASS |
+| Planning-decoupling contracts in-tree | 3 named ExUnit files | 13 tests, 0 failures | ✓ PASS |
+| Strict analyzer in-tree | `env MIX_ENV=dev mix verify.dialyzer` | 0 errors, 0 skipped, 0 unnecessary skips | ✓ PASS |
+| Formatting in-tree | `mix format --check-formatted` | exit 0 | ✓ PASS |
+| Clean-clone probe | `bin/verify-clean-checkout` | 4 markers + safe cleanup; exit 0 | ✓ PASS |
+| TypeScript path/fail-closed unit tests | `npm run test:paths` | 17 tests, 0 failures | ✓ PASS |
+| TypeScript compile | `npm run typecheck` | exit 0 | ✓ PASS |
+| Playwright browser lane | not run (no app server; hour-plus) | carried from `51ee7137`; delta is `@moduledoc false` ×2 + one unit test file | ⓘ CARRIED |
 
-The overall failures came from other jobs at that historical SHA. The documentation accurately labels the Dialyzer jobs as successful and uses them only for measurement. Current-tree gate correctness is established separately by the exact-HEAD local planning-independent aggregate, not by mischaracterizing those workflow conclusions.
+### Probe Execution
 
-## Security Status
-
-Phase security status is verified at audited commit 3680760f: 61/61 registered threats closed, 0 open, with five explicitly accepted low risks. Current full tests include the remediated redaction/timer paths, the focused Phase 199 contracts pass, and current strict Dialyzer is clean.
-
-The fresh dependency fetch prints advisories for several locked third-party packages, including high-severity notices. Those advisories are a repository-wide dependency-maintenance concern, not evidence that any Phase 199 decoupling truth failed; the DECOUPLE-05 contract is exact checkout cleanliness after dependency resolution. They are recorded here so “clean clone” is not mistaken for “no upstream advisories.”
-
-## Test Quality Audit
-
-- Requirement-linked ExUnit and Node contracts are active and passed; no phase requirement relies only on a skipped test.
-- The aggregate has one intentional ExUnit exclusion governed by the existing topology contract.
-- Playwright reports 26 intentional capture/snapshot skips. Active structural and route tests cover the Phase 199 fixture/gate paths.
-- One reduced-motion test timed out on its first attempt because a visible toast intercepted the Show Drawer click, then passed in 1.5 seconds on retry. The aggregate exit remained 0. This is a reproducible flake signal worth fixing, but it is outside the Decouple goal and does not invalidate the successful planning-absent gate.
-- Six rubric sha8=00000000 warnings remain visible during critic dry-run. They predate this phase and the critic command still exits 0; no Decouple requirement depends on those hashes.
+| Probe | Command | Result | Status |
+|---|---|---|---|
+| Planning quarantine at exact HEAD | clone `--no-local` + `mv .planning .planning.quarantine` + gate set | `PLANNING_STATUS=ABSENT` and `PLANNING_STILL_ABSENT` after every step; all deterministic gates exit 0 | PASS |
+| `bin/verify-clean-checkout` | direct execution at HEAD | exit 0 with all four markers | PASS |
+| `bin/verify-planning-independent` | attempted; not completed | Blocked by the untracked `.tool-versions` (exit 126, `No version is set for command mix`) and then deliberately not run end to end because it includes the browser lane. Its deterministic portion was reproduced manually above. | PARTIAL (see advisory) |
 
 ## Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 |---|---:|---|---|---|
-| examples/threadline_phoenix/e2e/critic/label.ts | 708 | TODO for future pair token wiring | ℹ️ Info | Blame a248073a (2026-07-03), predates Phase 199; no Phase 199 gate depends on pair mode. |
-| bin/safe-temp-tree and verifier scripts | n/a | “XXXXXX” mktemp templates matched a naive XXX grep | ℹ️ False positive | Secure mktemp syntax, not a debt marker. |
-| critic prompt files | n/a | “JTBD” matched a naive TBD grep | ℹ️ False positive | Job-to-be-done prose, not a debt marker. |
+| `examples/threadline_phoenix/e2e/critic/label.ts` | 708 | TODO for future pair-token wiring | ℹ️ Info | Pre-dates Phase 199 (blame a248073a, 2026-07-03); no Phase 199 gate depends on pair mode. Carried unchanged from the previous pass. |
+| `bin/safe-temp-tree` and verifiers | n/a | `XXXXXX` mktemp templates | ℹ️ False positive | Secure `mktemp` syntax, not a debt marker. |
+| critic prompt files | n/a | `JTBD` matched a naive `TBD` grep | ℹ️ False positive | Job-to-be-done prose. |
 
-No semantic unreferenced TBD, FIXME, or XXX marker was introduced in a Phase 199 implementation file. No missing, stub, orphaned, hollow, placeholder, or console-only must-have artifact was found.
+No new unreferenced `TBD`/`FIXME`/`XXX` marker appears in the delta. The delta introduced one test file and two `@moduledoc false` lines; neither carries a debt marker.
 
 ## Human Verification Required
 
-None. Visual/UI review is correctly N/A because Phase 199 owns no visual delta and has no UI-SPEC. Repository state, filesystem behavior, gate execution, analyzer results, CI topology, and measurement receipts are programmatically verifiable and were verified programmatically.
+None. Phase 199 owns no visual delta and has no UI-SPEC. Every truth resolved to executable evidence at this HEAD, and no truth was left ⚠️ PRESENT_BEHAVIOR_UNVERIFIED. The two disclosures above (carried browser lane, `.tool-versions` friction) are recorded as scope/advisory, not as human checkpoints: neither asks a human to observe a behavior that grep cannot see.
 
 ## Gaps Summary
 
-No blocking gaps, incomplete wiring, behavior-unverified truths, requirement gaps, decision violations, or regressions were found.
+No gaps. No regression in the 6 commits since `51ee7137`, and the previous pass's single open item (UAT test 10 / `199-05-D1`, previously `skipped`) is closed by deterministic, mutation-proven, CI-wired evidence that I re-ran and independently corroborated in source.
 
-Non-blocking follow-up signals are the single retry-only Playwright flake, the six pre-existing critic rubric-hash warnings, and upstream dependency advisories printed during the fresh clone. None changes the Phase 199 verdict.
+Non-blocking signals carried forward: the untracked `.tool-versions` that makes both clone probes non-self-sufficient on asdf; two intentionally-permissive optional-dataset reads in the critic tree; upstream dependency advisories printed during a fresh `mix deps.get` (a repository-wide maintenance concern, not a decoupling failure); the previously-noted single retry-only Playwright flake and six pre-existing rubric `sha8=00000000` warnings, neither re-measured this pass.
 
 ---
 
-_Verified: 2026-09-13T14:53:14Z_
-_Verifier: the agent (gsd-verifier)_
+_Verified: 2026-09-22T11:08:34Z_
+_Verifier: Claude (gsd-verifier), re-verification pass at 4d893e19_
