@@ -21,13 +21,12 @@ defmodule Threadline.ReleaseArtifactContractTest do
       "lib/threadline/query.ex",
       "lib/threadline/retention/policy.ex"
     ],
+    # The stress/mechanical harness and the critic tooling are no longer
+    # packaged (see `exclude_patterns` in mix.exs), so they cannot be archive
+    # source owners — their vocabulary never reaches an adopter. The archive
+    # refutations below assert their absence instead.
     source_vocab_operator_infrastructure: [
-      "lib/threadline/operator_surface/components/logo.ex",
-      "lib/threadline/operator_surface/mechanical_checker.ex"
-    ],
-    source_vocab_operator_stress: [
-      "lib/threadline/operator_surface/stress_fixtures.ex",
-      "lib/threadline/operator_surface/live/stress_live.ex"
+      "lib/threadline/operator_surface/components/logo.ex"
     ],
     source_vocab_operator_live_forms: [
       "lib/threadline/operator_surface/live/actor_live.ex",
@@ -144,6 +143,81 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert Map.has_key?(readable, "mix.exs")
     refute Enum.any?(entries, &String.starts_with?(&1, "test/fixtures/"))
     refute Enum.any?(entries, &String.starts_with?(&1, ".planning/"))
+  end
+
+  # Maintainer-only tooling, enumerated from `git ls-files 'lib/**'` rather than
+  # from any prose figure. Each path must exist in the repository (otherwise
+  # this guard would pass because the file was renamed, not because it was
+  # excluded) and must be absent from the built archive.
+  @maintainer_only_paths [
+    "lib/mix/tasks/critic.measure.ex",
+    "lib/mix/tasks/critic.synth.ex",
+    "lib/mix/tasks/release.pins.ex",
+    "lib/threadline/critic_trust/krippendorff_alpha.ex",
+    "lib/threadline/critic_trust/ledger_splice.ex",
+    "lib/threadline/critic_trust/measure.ex",
+    "lib/threadline/critic_trust/rank_metrics.ex",
+    "lib/threadline/operator_surface/live/stress_live.ex",
+    "lib/threadline/operator_surface/mechanical_checker.ex",
+    "lib/threadline/operator_surface/stress_fixtures.ex",
+    "lib/threadline/operator_surface/stress_router.ex"
+  ]
+
+  @maintainer_only_prefixes [
+    "lib/mix/tasks/critic.",
+    "lib/threadline/critic_trust/"
+  ]
+
+  test "built Hex archive excludes maintainer-only tooling" do
+    %{entries: entries} = built_archive()
+
+    # Populated-archive assertions first: a refutation over an empty archive is
+    # the vacuous-gate shape this repository has already been bitten by.
+    assert entries != [], "unpacked Hex archive contained no files"
+    assert "lib/threadline.ex" in entries
+    assert "mix.exs" in entries
+
+    for path <- @maintainer_only_paths do
+      assert File.regular?(path),
+             "#{path} is enumerated as maintainer-only tooling but does not exist in the " <>
+               "repository. Either it was renamed — in which case this list and the " <>
+               "`exclude_patterns` in mix.exs must move with it — or this guard is asserting " <>
+               "the absence of a file that could not have been present anyway."
+
+      refute path in entries,
+             "#{path} is maintainer-only tooling and was published in the Hex archive. Two of " <>
+               "the critic tasks carry a `@shortdoc`, so shipping them puts maintainer " <>
+               "instruments in every adopter's `mix help` under a namespace that is not this " <>
+               "library's — and nothing in a published version can be withdrawn from it. Add " <>
+               "the path to `exclude_patterns` in mix.exs `package/0`."
+    end
+
+    for prefix <- @maintainer_only_prefixes do
+      offenders = Enum.filter(entries, &String.starts_with?(&1, prefix))
+
+      assert offenders == [],
+             "the published archive carries #{length(offenders)} file(s) under the " <>
+               "maintainer-only prefix `#{prefix}`: #{Enum.join(offenders, ", ")}. A new file " <>
+               "added under that prefix is excluded by pattern, not by enumeration — if these " <>
+               "appear, the pattern in mix.exs `exclude_patterns` stopped matching."
+    end
+  end
+
+  test "the bot-owned generated changelog is never adopter surface" do
+    %{entries: entries} = built_archive()
+
+    assert entries != [], "unpacked Hex archive contained no files"
+    assert "CHANGELOG.md" in entries
+
+    refute "CHANGELOG-GENERATED.md" in entries,
+           "CHANGELOG-GENERATED.md is release-automation output — a raw commit-subject dump " <>
+             "carrying internal vocabulary — and was published in the Hex archive. The file " <>
+             "adopters read is the human-owned CHANGELOG.md. Keep the generated file out of " <>
+             "`package[:files]`."
+
+    refute "CHANGELOG-GENERATED.md" in docs_config()[:extras],
+           "CHANGELOG-GENERATED.md is listed in the ExDoc extras, which would render " <>
+             "release-automation output as a documentation page on the published docs site."
   end
 
   test "planning-vocabulary matcher rejects every representative offender" do
