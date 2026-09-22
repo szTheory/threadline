@@ -5,17 +5,17 @@ milestone_name: Green, Clean, and Honest
 current_phase: 201
 current_phase_name: Rendered Output
 status: executing
-stopped_at: Completed 201-05-PLAN.md (final plan of Phase 201)
+stopped_at: Phase 201 verified (status: passed, 6/6 requirements)
 last_updated: "2026-09-21T00:00:00.000Z"
 last_activity: 2026-09-21
-last_activity_desc: Phase 201 all 5 plans executed; ci.all green; awaiting phase verification
+last_activity_desc: Phase 201 COMPLETE — verification passed 6/6, closeout bookkeeping reconciled
 state_head: 3d7a0c6347845f3200f629d4391257c4de0d2e6a
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 4
   total_plans: 110
   completed_plans: 110
-  percent: 14
+  percent: 57
 ---
 
 # Project State: Threadline
@@ -29,9 +29,27 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 201 (Rendered Output) — EXECUTED, awaiting verification
-Plan: 5 of 5 (all executed)
-Status: Ready for /gsd-verify-work (or /gsd-progress)
+Phase: 201 (Rendered Output) — COMPLETE (verification passed 2026-09-21)
+Plan: 5 of 5 executed and verified
+Status: Phase closed. Next = Phase 202 (Release 0.10.0) planning, but see verification debt below.
+
+**Open verification debt before Phase 202.** Phases 199 (Decouple) and 200
+(Public Surface) both report `verification_status: stale` — their
+`*-VERIFICATION.md` files predate their newest summaries. Re-run
+`/gsd-verify-work 199` and `/gsd-verify-work 200` (re-measurement, not new work)
+before Phase 202 planning reads the roadmap as settled.
+
+**Phase 201 verification (2026-09-21): PASSED, 6/6, zero gaps.** All six RENDER
+requirements independently re-derived by the verifier, not accepted from the
+summaries. The amended visual gate was judged honest disposition rather than
+laundering on four grounds, three of them re-measured. Two facts carried
+forward: the 8 screenshot failures sit OUTSIDE `ci.all` (the spec self-skips on
+`CI=true`, which is how `ci.all` invokes the lane), so the 82/8 figure is the
+stricter local measurement; and `tl-home__earned-flow`
+(`start_live.ex:222`, `style.ex:907`/`4233`) still carries planning taxonomy in
+a CSS class — NOT a Phase 201 violation, since RENDER-06 requires class
+attributes stay byte-identical, so it is a Phase 204 (Structure) candidate.
+Report: `.planning/phases/201-rendered-output/201-VERIFICATION.md`.
 
 **Phase 201 close-out state (2026-09-21).** All five plans executed. `mix ci.all`
 exits 0 — root 1660/0, example 116/0, Dialyzer 0 errors. The browser lane is
@@ -81,7 +99,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 87/87 plans ([█░░░░░░░░░] 14%)
+Progress: [████████████████████] 110/110 plans ([██████░░░░] 57% of phases — 4 of 7 marked complete in ROADMAP; 199 and 200 carry stale verification)
 
 ## Performance Metrics
 

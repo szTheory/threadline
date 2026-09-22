@@ -68,7 +68,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 - [x] **Phase 198: Green Bringup** - `origin/main` carries all 584 local commits and CI concludes green in ≤ 20 min; the never-re-measured red-test baseline is retired on its merits; branch protection is repaired against the checks CI actually emits; worktrees, branches, and locks are triaged. (completed 2026-09-10)
 - [x] **Phase 199: Decouple** - Tests and gates are self-contained in the source tree, proven by `mix ci.all` passing with `.planning/` renamed away; `.planning/` stays tracked but load-bearing on nothing; dialyxir lands early enough to typecheck the later refactors.
 - [x] **Phase 200: Public Surface** - Everything a stranger or hex.pm consumer sees is accurate, navigable, and free of internal vocabulary — *before* anything is published. This is the phase that earns the right to release. (completed 2026-09-13)
-- [ ] **Phase 201: Rendered Output** - Zero internal vocabulary reaches a browser, with zero design/IA/visual change, in two tiers separated by mechanical-floor blast radius.
+- [x] **Phase 201: Rendered Output** - Zero internal vocabulary reaches a browser, with zero design/IA/visual change, in two tiers separated by mechanical-floor blast radius. (completed 2026-09-21)
 - [ ] **Phase 202: Release 0.10.0** - Merge PR #26 and publish a release whose public surface is already clean, with every version-bearing literal managed by release automation and exactly one publish path.
 - [ ] **Phase 203: Real Gates** - Full Credo defaults expressed as `extra:`/`disabled:` deltas, the dialyzer backlog drained, and the layer inversions plus the Capture↔Semantics cycle fixed.
 - [ ] **Phase 204: Structure** - Make the largest files legible without changing a byte of output, behind an executable CSS byte-hash lock.
@@ -646,7 +646,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 201-05-PLAN.md — Durably rename the two residual root tests and seal structural, corpus, browser, mechanical, and CI evidence for Phase 202.
+- [x] 201-05-PLAN.md — Durably rename the two residual root tests and seal structural, corpus, browser, mechanical, and CI evidence for Phase 202.
 
 **Notes carried from the approved plan:**
 

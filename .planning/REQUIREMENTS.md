@@ -58,9 +58,9 @@
 
 - [x] **RENDER-01**: No operator page renders a phase number, decision ID, or internal taxonomy label in visible text.
 - [x] **RENDER-02**: No rendered DOM carries planning-provenance attributes.
-- [ ] **RENDER-03**: The emitted CSS contains no phase or milestone provenance comments.
-- [ ] **RENDER-04**: Attribute-only and comment-only removals are proven not to move the mechanical floor, passing against an unmodified scorecard set.
-- [ ] **RENDER-05**: Any text change that does move a measured value is absorbed by narrowing the check or by a registered, counted whitelist entry with a stated expiry — never by regenerating a capture that this environment cannot reproduce.
+- [x] **RENDER-03**: The emitted CSS contains no phase or milestone provenance comments.
+- [x] **RENDER-04**: Attribute-only and comment-only removals are proven not to move the mechanical floor, passing against an unmodified scorecard set.
+- [x] **RENDER-05**: Any text change that does move a measured value is absorbed by narrowing the check or by a registered, counted whitelist entry with a stated expiry — never by regenerating a capture that this environment cannot reproduce.
 - [x] **RENDER-06**: No operator page's element structure, layout, or visual appearance changes — only text content and non-visual attributes.
 
 ### Release
@@ -173,9 +173,9 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | SURFACE-11 | Phase 200 | Complete |
 | RENDER-01 | Phase 201 | Complete |
 | RENDER-02 | Phase 201 | Complete |
-| RENDER-03 | Phase 201 | Pending |
-| RENDER-04 | Phase 201 | Pending |
-| RENDER-05 | Phase 201 | Pending |
+| RENDER-03 | Phase 201 | Complete |
+| RENDER-04 | Phase 201 | Complete |
+| RENDER-05 | Phase 201 | Complete |
 | RENDER-06 | Phase 201 | Complete |
 | RELEASE-01 | Phase 202 | Pending |
 | RELEASE-02 | Phase 202 | Pending |

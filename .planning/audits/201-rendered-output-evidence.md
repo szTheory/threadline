@@ -232,3 +232,34 @@ corpus deviation required a contingency entry.
    comparisons above, proven unchanged by this phase and pinned as an exact
    non-regression set in the amended Plan 05 gate. Phase 202 inherits them as
    named, measured, already-registered debt — not as an unknown.
+
+---
+
+## Verification addenda (2026-09-21)
+
+Two facts surfaced by phase verification that change how the evidence above
+should be read. Both were re-confirmed directly against the source.
+
+**1. The eight screenshot failures are outside `mix ci.all` by design.**
+`operator-screenshot-regression.spec.ts:77` is
+`test.skip(!!process.env.CI, "visual screenshot baselines are platform-sensitive; ...")`,
+and `ci.all` invokes the lane as `cmd env CI=true mix verify.example_browser ...`
+(mix.exs:186, whose own comment states that "CI's explicitly platform-local
+screenshot guards remain outside the gate"). So `ci.all` exiting 0 and the local
+browser lane reporting 8 failures are not in tension — the aggregate gate never
+runs those four comparisons. The 82/8 figure in this document is the **local,
+non-CI** lane, which is the stricter of the two measurements.
+
+**2. `tl-home__earned-flow` still carries planning taxonomy into rendered DOM and CSS.**
+`start_live.ex:222` emits `class="tl-home__earned-flow"`, defined at
+`style.ex:907` and `style.ex:4233`. This is **not** a RENDER-01/02/03 violation:
+the guarded vocabulary covers visible text, the three provenance attributes, and
+CSS comments, and RENDER-06 explicitly requires class attributes to remain
+byte-identical — renaming it inside Phase 201 would breach this phase's own
+contract. Carried forward as a candidate for Phase 204 (Structure) or explicit
+acceptance, not as phase debt.
+
+Also noted, non-blocking: four e2e spec filenames still encode phase numbers
+(`operator-phase-135/173/175/178-uat.spec.ts`). Filenames are not rendered
+output and were outside the declared rename set; the root Elixir test tree is
+clean.
