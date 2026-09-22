@@ -1,0 +1,225 @@
+#!/usr/bin/env bash
+# CI / local: assert the LIVE publish gate on the `production-hex` environment
+# (Phase 202 / D-18).
+#
+# Two halves, because a configuration assertion alone is not proof:
+#
+#   (a) the LIVE environment still carries a `required_reviewers` protection
+#       rule with at least one reviewer. `release_control_plane_contract_test`
+#       asserts only that release.yml CONTAINS the line
+#       `environment: production-hex`. Deleting the required reviewer on
+#       GitHub's side leaves that assertion green and the gate inert: the
+#       publish job would run straight through the "human click in front of the
+#       irreversible step" without a human. This half is the executable form of
+#       "the rule still exists where it is actually enforced".
+#
+#   (b) the environment inspected in half (a) is the SAME environment the
+#       release workflow gates the publish job on. Without this, a rename on
+#       either side leaves each half passing against a different name — half (a)
+#       verifying a protected environment nothing uses, while the publish job
+#       runs under an unprotected one.
+#
+# Fail-closed by design. An unreadable response is never scored as a pass: the
+# only path that passes without full verification requires the operator to opt
+# in explicitly via ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION=1, and it prints a
+# warning naming the field that could not be inspected. That variable is
+# deliberately NOT set in .github/workflows/environment-protection.yml — a
+# hosted run that cannot read the protection rule must go red, not pass
+# quietly, or this script becomes the third vacuous gate rather than the fix
+# for the second.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+# Overridable so the FAIL path can be exercised against a name that does not
+# exist without mutating live repository configuration (the same motivation as
+# bin/compare-required-contexts' fixture split).
+ENVIRONMENT="${THREADLINE_PUBLISH_ENVIRONMENT:-production-hex}"
+RELEASE_WORKFLOW=".github/workflows/release.yml"
+PUBLISH_MARKER="mix hex.publish"
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "bin/verify-environment-protection requires jq (JSON processor) and it is not on PATH." >&2
+  echo "Install it (macOS: brew install jq; ubuntu: apt-get install -y jq) and re-run." >&2
+  exit 1
+fi
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "bin/verify-environment-protection requires the gh CLI and it is not on PATH." >&2
+  exit 1
+fi
+
+# Repository slug from the environment (GitHub Actions sets GITHUB_REPOSITORY),
+# with a CLI fallback for local runs.
+REPO="${GITHUB_REPOSITORY:-}"
+if [[ -z "$REPO" ]]; then
+  REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null || true)
+fi
+if [[ -z "$REPO" ]]; then
+  echo "Could not resolve the repository slug from GITHUB_REPOSITORY or 'gh repo view'." >&2
+  exit 1
+fi
+
+# --- Half (a): the live environment still requires a reviewer ----------------
+#
+# Observed response shape (GET /repos/{owner}/{repo}/environments/{name},
+# 2026-09-22, HTTP 200): a `protection_rules` array whose members carry a
+# `type`, and the required-reviewer member carries a `reviewers` array of
+# {type, reviewer} objects. Asserted against the live API rather than recalled
+# from a research note.
+ENV_PATH="repos/${REPO}/environments/${ENVIRONMENT}"
+
+set +e
+ENV_HEADERS=$(gh api --include --silent "$ENV_PATH" \
+  -H "Accept: application/vnd.github+json" 2>&1)
+ENV_EXIT=$?
+set -e
+
+ENV_HTTP_STATUS=$(printf '%s\n' "$ENV_HEADERS" \
+  | awk '/^HTTP\/[0-9.]+ [0-9][0-9][0-9]/ { status=$2 } END { print status }')
+
+REVIEWER_COUNT=""
+ENVIRONMENT_STATUS=""
+
+read_reviewer_count() {
+  # $1: JSON body of an environment object. Echoes the reviewer count, or
+  # nothing at all when the shape is unreadable — an unreadable shape must not
+  # collapse to "0" and be reported as a determinate finding.
+  local body="$1"
+  [[ -n "$body" ]] || return 0
+  printf '%s' "$body" | jq empty 2>/dev/null || return 0
+  printf '%s' "$body" \
+    | jq -er '[.protection_rules[]? | select(.type == "required_reviewers") | .reviewers[]?] | length' \
+      2>/dev/null || true
+}
+
+if [[ "$ENV_EXIT" -eq 0 ]]; then
+  ENV_JSON=$(gh api "$ENV_PATH" -H "Accept: application/vnd.github+json" 2>/dev/null || true)
+
+  if [[ -z "$ENV_JSON" ]]; then
+    echo "FAIL (a): read of ${REPO} environment \"${ENVIRONMENT}\" returned an empty body." >&2
+    echo "An unreadable protection config must not read as passing." >&2
+    exit 1
+  fi
+
+  REVIEWER_COUNT=$(read_reviewer_count "$ENV_JSON")
+
+  if [[ -z "$REVIEWER_COUNT" ]]; then
+    echo "FAIL (a): could not read protection rules for ${REPO} environment \"${ENVIRONMENT}\"." >&2
+    echo "The response was not the expected environment object with a protection_rules array." >&2
+    exit 1
+  fi
+
+  if [[ "$REVIEWER_COUNT" -lt 1 ]]; then
+    FOUND_TYPES=$(printf '%s' "$ENV_JSON" \
+      | jq -r '[.protection_rules[]?.type] | if length == 0 then "(none)" else join(", ") end' 2>/dev/null || echo "(unreadable)")
+    echo "FAIL (a): ${REPO} environment \"${ENVIRONMENT}\" has no required_reviewers rule with a reviewer." >&2
+    echo "  protection rules found instead: ${FOUND_TYPES}" >&2
+    echo "Without that rule the publish job runs straight through the human gate in front of" >&2
+    echo "an irreversible hex.pm publish, while the YAML assertion in" >&2
+    echo "test/threadline/release_control_plane_contract_test.exs stays green and inert." >&2
+    exit 1
+  fi
+
+  ENVIRONMENT_STATUS="verified"
+  echo "Inspected ${REPO} environment \"${ENVIRONMENT}\": required_reviewers rule present with ${REVIEWER_COUNT} reviewer(s)."
+else
+  case "$ENV_HTTP_STATUS" in
+    404)
+      echo "FAIL (a): ${REPO} has no environment named \"${ENVIRONMENT}\" (HTTP 404)." >&2
+      echo "Either the environment was deleted, or the name this script checks has drifted" >&2
+      echo "from the one ${RELEASE_WORKFLOW} gates the publish job on." >&2
+      exit 1
+      ;;
+    403)
+      # Documented fallback: the environments LIST endpoint returns the same
+      # environment objects, and is reachable by some tokens that the
+      # single-environment read is gated away from.
+      set +e
+      ENV_LIST=$(gh api "repos/${REPO}/environments" -H "Accept: application/vnd.github+json" 2>/dev/null)
+      ENV_LIST_EXIT=$?
+      set -e
+
+      if [[ "$ENV_LIST_EXIT" -eq 0 && -n "$ENV_LIST" ]]; then
+        FALLBACK_ENV=$(printf '%s' "$ENV_LIST" \
+          | jq -c --arg name "$ENVIRONMENT" '.environments[]? | select(.name == $name)' 2>/dev/null || true)
+        REVIEWER_COUNT=$(read_reviewer_count "$FALLBACK_ENV")
+      fi
+
+      if [[ -z "$REVIEWER_COUNT" ]]; then
+        if [[ "${ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION:-0}" == "1" ]]; then
+          ENVIRONMENT_STATUS="unverified"
+          echo "WARNING: this token cannot inspect the required_reviewers protection rule on ${REPO} environment \"${ENVIRONMENT}\"; the environment read returned HTTP 403 and the environments list omitted it." >&2
+        else
+          echo "Could not inspect the protection rules for ${REPO} environment \"${ENVIRONMENT}\"." >&2
+          echo "The environment endpoint returned HTTP 403 and the environments list did not" >&2
+          echo "yield a required_reviewers reviewer count. Grant the token environment read" >&2
+          echo "access, or set ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION=1 to accept an" >&2
+          echo "explicitly partial verification." >&2
+          exit 1
+        fi
+      elif [[ "$REVIEWER_COUNT" -lt 1 ]]; then
+        echo "FAIL (a): ${REPO} environment \"${ENVIRONMENT}\" has no required_reviewers rule with a reviewer." >&2
+        exit 1
+      else
+        ENVIRONMENT_STATUS="verified"
+        echo "Inspected ${REPO} environment \"${ENVIRONMENT}\" via the environments list: required_reviewers rule present with ${REVIEWER_COUNT} reviewer(s)."
+      fi
+      ;;
+    *)
+      echo "Could not read ${REPO} environment \"${ENVIRONMENT}\"." >&2
+      echo "gh api exited ${ENV_EXIT}; HTTP status: ${ENV_HTTP_STATUS:-unavailable}." >&2
+      exit 1
+      ;;
+  esac
+fi
+
+# --- Half (b): the publish job is gated on THAT environment ------------------
+#
+# Derived from the workflow source rather than hardcoded to a job id, so a
+# renamed publish job is caught too. Emits "<job-id> <environment-or-(none)>"
+# for every job whose body contains the publish command.
+if [[ ! -f "$RELEASE_WORKFLOW" ]]; then
+  echo "FAIL (b): ${RELEASE_WORKFLOW} does not exist." >&2
+  exit 1
+fi
+
+PUBLISH_JOBS=$(awk -v marker="$PUBLISH_MARKER" '
+  # Only the `jobs:` mapping counts. The `on:` block also carries two-space
+  # keys (workflow_dispatch) and mentions the publish command in an input
+  # description, which would otherwise be read as an unprotected publish job.
+  /^jobs:[[:space:]]*$/ { in_jobs = 1; next }
+  in_jobs != 1 { next }
+  /^  [A-Za-z0-9_-]+:[[:space:]]*$/ {
+    if (job != "") { print job, (env == "" ? "(none)" : env), (publishes ? "publishes" : "-") }
+    job = $1; sub(/:$/, "", job); env = ""; publishes = 0; next
+  }
+  /^[^ ]/ { if (job != "") { print job, (env == "" ? "(none)" : env), (publishes ? "publishes" : "-") } job = ""; env = ""; publishes = 0; in_jobs = 0; next }
+  job != "" && /^    environment:[[:space:]]/ { env = $2 }
+  job != "" && index($0, marker) > 0 { publishes = 1 }
+  END { if (job != "") print job, (env == "" ? "(none)" : env), (publishes ? "publishes" : "-") }
+' "$RELEASE_WORKFLOW" | awk '$3 == "publishes" { print $1, $2 }')
+
+if [[ -z "$PUBLISH_JOBS" ]]; then
+  echo "FAIL (b): no job in ${RELEASE_WORKFLOW} contains \"${PUBLISH_MARKER}\"." >&2
+  echo "Half (b) cannot confirm which environment gates the publish, so the live rule" >&2
+  echo "verified in half (a) may be protecting an environment nothing uses." >&2
+  exit 1
+fi
+
+while read -r JOB_ID JOB_ENV; do
+  [[ -n "$JOB_ID" ]] || continue
+  if [[ "$JOB_ENV" != "$ENVIRONMENT" ]]; then
+    echo "FAIL (b): ${RELEASE_WORKFLOW} job \"${JOB_ID}\" publishes to Hex under environment \"${JOB_ENV}\"," >&2
+    echo "but half (a) verified \"${ENVIRONMENT}\". A rename on either side leaves both halves" >&2
+    echo "passing against different names while the publish runs unprotected." >&2
+    exit 1
+  fi
+  echo "Confirmed ${RELEASE_WORKFLOW} job \"${JOB_ID}\" gates the publish on environment \"${ENVIRONMENT}\"."
+done <<<"$PUBLISH_JOBS"
+
+if [[ "$ENVIRONMENT_STATUS" == "unverified" ]]; then
+  echo "Environment protection PARTIAL for ${REPO} environment \"${ENVIRONMENT}\": the publish job in ${RELEASE_WORKFLOW} is gated on it, but the required_reviewers rule was not visible to this token."
+else
+  echo "Environment protection OK for ${REPO} environment \"${ENVIRONMENT}\": a required_reviewers rule with ${REVIEWER_COUNT} reviewer(s) is live, and the publish job in ${RELEASE_WORKFLOW} is gated on that same environment."
+fi
