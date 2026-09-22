@@ -1,0 +1,420 @@
+#!/usr/bin/env bash
+# CI / local: rehearse the NEXT MINOR release bump and run the release gates
+# against that bumped state (Phase 202 / Plan 202-10).
+#
+# WHY THIS EXISTS
+#
+# Phase 202 found three independent causes that would each have made the 0.10.0
+# release pull request red: a Dialyzer `unknown_function`, an ExDoc
+# `--warnings-as-errors` wall, and a hardcoded `~> 0.9.0` literal inside
+# `test/threadline/release_artifact_contract_test.exs`. The third one is the
+# purest instance of the class: it is GREEN at the current version and can only
+# be observed once `mix release.pins` has rewritten README to the next minor.
+# Nothing in CI simulated a bump, so it survived four plans and surfaced with a
+# human standing at the publish gate.
+#
+# This script makes that simulation routine. It is the automated form of the
+# hand-run rehearsal recorded in `.planning/phases/202-release-0-10-0/
+# 202-05-SUMMARY.md`, and it follows that sequence: derive the next minor, apply
+# it everywhere the release commit would apply it, run `mix release.pins`, then
+# run the named release gates against the result.
+#
+# THE EXTRA-FILES TRAP (read before editing the bump step)
+#
+# A bump that only rewrites `mix.exs` is NOT a faithful simulation and is
+# born-red for a reason nobody can fix. release-please rewrites, in the SAME
+# commit that bumps `mix.exs`, every line annotated `x-release-please-version`
+# in each file registered under `release-please-config.json` ->
+# `packages["."]["extra-files"]`. `mix release.pins` deliberately does not own
+# those lines (see the ownership comment in `lib/mix/tasks/release.pins.ex`), so
+# a mix.exs-only bump leaves them stale and Family B of
+# `test/threadline/version_truth_doc_contract_test.exs` fails with
+# "<file> has an x-release-please-version marked line that does not contain the
+# current @version". That was measured at 202-05 and is the trap this script
+# must not reproduce: a gate red for an unfixable reason IS the defect class it
+# exists to prevent. `apply_extra_files_rewrite` below is the simulation of that
+# generic updater, driven off the config file rather than a hardcoded list.
+#
+# THE CHANGELOG STAND-IN (disclosed, not laundered)
+#
+# `bin/verify-release-shape` requires a dated `## [<version>]` heading in
+# CHANGELOG.md. For an UNRELEASED next minor that section does not exist yet —
+# in this repo a human writes it during the release plan (CHANGELOG.md is
+# human-owned; release-please owns CHANGELOG-GENERATED.md). So the rehearsal
+# synthesises a dated stand-in heading for the next minor IF AND ONLY IF one is
+# absent, and says so on stdout. This is not the gate looking away: it stands in
+# for work that provably happens in the real release commit, and it is the only
+# fabricated input in the whole run. If the heading already exists (as it does
+# today for 0.10.0) nothing is synthesised.
+#
+# TRACE-FREE BY CONSTRUCTION, NOT BY DISCIPLINE
+#
+# The real working tree is never mutated. Every edit happens inside a throwaway
+# `git clone` in a `mktemp -d`, torn down by a `trap` on every exit path via
+# `bin/safe-temp-tree` — the same shape `bin/verify-clean-checkout` established
+# for the same class of problem. A clone (not a `git worktree`) is deliberate:
+# `git worktree add` writes a registration into the REAL repository's `.git/`,
+# so a failed teardown would leave a registered worktree behind. A clone writes
+# nothing into the source repository at all, which makes "no worktree survives"
+# true by construction rather than by cleanup.
+#
+# The bump is COMMITTED inside the clone. That is not a shortcut: `mix
+# verify.release` begins with `ensure_clean_tree!/0`, so an uncommitted bump
+# would abort the gate before its step list ever ran. Committing inside a
+# throwaway clone exercises the real entrypoint end to end and still leaves no
+# trace, which is exactly what 202-05 did by hand on a scratch branch.
+#
+# FAIL-CLOSED
+#
+# Every precondition that cannot be established is a named FAIL and a non-zero
+# exit. There is no path on which an unrunnable rehearsal prints OK.
+#
+# CONTROLS (for proving the gate has teeth; never set in CI)
+#
+#   THREADLINE_BUMP_REHEARSAL_FORCE_UNRUNNABLE=1
+#       Abort right after the clone is made, exercising the unrunnable path.
+#
+#   THREADLINE_BUMP_REHEARSAL_INJECT_DEFECT=hardcoded-pin
+#       In the CLONE ONLY, revert Plan 202-09's fix by re-hardcoding the install
+#       pin literal in `test/threadline/release_artifact_contract_test.exs`.
+#       This is the standing negative control: the rehearsal must go red and
+#       name it.
+#
+#   THREADLINE_BUMP_REHEARSAL_INJECT_DEFECT=stale-marked-line
+#       In the CLONE ONLY, skip the extra-files rewrite — i.e. reproduce the
+#       trap described above. Proves the rewrite is load-bearing.
+#
+# Usage:
+#   bin/verify-bump-rehearsal
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)"
+# shellcheck source=bin/safe-temp-tree
+source "$SCRIPT_DIR/safe-temp-tree"
+
+fail() {
+  printf '\n=== FAIL: %s ===\n' "$1" >&2
+  shift
+  while [[ $# -gt 0 ]]; do
+    printf '  %s\n' "$1" >&2
+    shift
+  done
+  exit 1
+}
+
+step() { printf '\n==> %s\n' "$*"; }
+
+[[ $# -eq 0 ]] || fail "arguments" "bin/verify-bump-rehearsal accepts no arguments."
+
+# --- Tool-presence guards ----------------------------------------------------
+for tool in git mix jq perl realpath; do
+  command -v "$tool" >/dev/null 2>&1 || fail "missing tool: $tool" \
+    "bin/verify-bump-rehearsal requires $tool and it is not on PATH." \
+    "Install it (macOS: brew install $tool; ubuntu: apt-get install -y $tool) and re-run."
+done
+
+cd "$ROOT"
+
+CONFIG="release-please-config.json"
+MANIFEST=".release-please-manifest.json"
+for required in mix.exs CHANGELOG.md "$CONFIG" "$MANIFEST"; do
+  [[ -f "$required" ]] || fail "missing input: $required" \
+    "The rehearsal cannot simulate a release commit without $required."
+done
+
+# --- Files the rehearsal could conceivably touch ------------------------------
+#
+# The post-run identity check is computed over exactly this set. Keeping it
+# explicit (rather than checksumming all 3200 tracked files) makes the check
+# fast enough to run unconditionally, and makes the blast radius auditable.
+tracked_blast_radius() {
+  {
+    printf '%s\n' mix.exs "$MANIFEST" "$CONFIG" CHANGELOG.md CHANGELOG-GENERATED.md README.md
+    printf '%s\n' test/threadline/release_artifact_contract_test.exs
+    printf '%s\n' test/threadline/version_truth_doc_contract_test.exs
+    printf '%s\n' .github/workflows/ci.yml
+    git ls-files -- 'guides/*.md'
+  } | sort -u
+}
+
+capture_identity() {
+  git status --porcelain=v1 --untracked-files=all
+  printf -- '--- HEAD %s\n' "$(git rev-parse HEAD)"
+  printf -- '--- BRANCH %s\n' "$(git rev-parse --abbrev-ref HEAD)"
+  printf -- '--- WORKTREES %s\n' "$(git worktree list | wc -l | tr -d ' ')"
+  while IFS= read -r path; do
+    if [[ -f "$path" ]]; then
+      printf -- '--- %s %s\n' "$path" "$(git hash-object "$path")"
+    else
+      printf -- '--- %s ABSENT\n' "$path"
+    fi
+  done < <(tracked_blast_radius)
+}
+
+# --- Derive the current and the next minor -----------------------------------
+CURRENT="$(sed -n 's/^[[:space:]]*@version "\([^"]*\)".*/\1/p' mix.exs | head -1)"
+[[ -n "$CURRENT" ]] || fail "unparseable @version" \
+  "No \`@version \"x.y.z\"\` line could be read from mix.exs."
+[[ "$CURRENT" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || fail "unsupported @version shape" \
+  "mix.exs @version is \"$CURRENT\"." \
+  "The rehearsal simulates a clean next-minor bump and cannot derive one from a" \
+  "pre-release or build-metadata version. Bump to a release version first."
+
+NEXT="${BASH_REMATCH[1]}.$((BASH_REMATCH[2] + 1)).0"
+
+# --- Pre-run identity capture ------------------------------------------------
+BEFORE="$(capture_identity)"
+
+step "rehearsing the next minor: $CURRENT -> $NEXT"
+
+# --- Throwaway clone ---------------------------------------------------------
+TEMP_BASE="${TMPDIR:-/tmp}"
+[[ -d "$TEMP_BASE" && ! -L "$TEMP_BASE" ]] || fail "unsafe temporary base" "TMPDIR resolves to $TEMP_BASE"
+TEMP_BASE="$(realpath -- "$TEMP_BASE")"
+TRUSTED_PARENT="$(mktemp -d "$TEMP_BASE/threadline-bump-rehearsal-parent.XXXXXX")" ||
+  fail "temp tree" "Could not create the trusted parent directory under $TEMP_BASE."
+TRUSTED_PARENT="$(realpath -- "$TRUSTED_PARENT")"
+CLONE="$TRUSTED_PARENT/tree"
+mkdir "$CLONE" || fail "temp tree" "Could not create $CLONE."
+safe_temp_tree_register "$TRUSTED_PARENT" "$CLONE" ||
+  fail "temp tree" "safe_temp_tree_register refused $CLONE."
+
+cleanup() {
+  local original_status=$? cleanup_status=0
+  trap - EXIT
+  set +e
+  if [[ -d "${CLONE-}" || -L "${CLONE-}" ]]; then
+    safe_temp_tree_cleanup "$TRUSTED_PARENT" "$CLONE" >/dev/null
+    cleanup_status=$?
+  fi
+  if [[ "$cleanup_status" -eq 0 && -d "${TRUSTED_PARENT-}" ]]; then
+    rmdir -- "$TRUSTED_PARENT"
+    cleanup_status=$?
+  fi
+  if [[ "$original_status" -ne 0 ]]; then
+    exit "$original_status"
+  fi
+  if [[ "$cleanup_status" -ne 0 ]]; then
+    printf '\n=== FAIL: teardown ===\n  The throwaway rehearsal tree could not be removed: %s\n' "$CLONE" >&2
+    exit 1
+  fi
+  exit 0
+}
+trap cleanup EXIT INT TERM
+
+SOURCE_SHA="$(git rev-parse HEAD)"
+step "cloning HEAD ($SOURCE_SHA) into a throwaway tree"
+# `--no-local` forces a real object transfer: no hardlinks into the source
+# repository's object store, so nothing the clone does can reach back.
+git clone --quiet --no-local "$ROOT" "$CLONE" ||
+  fail "clone" "Could not clone $ROOT into the throwaway tree."
+git -C "$CLONE" checkout --quiet --detach "$SOURCE_SHA" ||
+  fail "clone" "Could not detach the throwaway tree at $SOURCE_SHA."
+[[ "$(git -C "$CLONE" rev-parse HEAD)" == "$SOURCE_SHA" ]] ||
+  fail "clone" "The throwaway tree is not at $SOURCE_SHA."
+
+# `.tool-versions` is deliberately untracked in this repository, so the clone
+# does not inherit it and an asdf-managed shell would resolve a different (or
+# no) Elixir inside /tmp. Copy it across when it exists so the rehearsal runs on
+# the same toolchain as the tree it is rehearsing. In CI the file is absent and
+# `erlef/setup-beam` has already pinned the toolchain on PATH, so this is a
+# no-op there.
+if [[ -f "$ROOT/.tool-versions" ]]; then
+  cp "$ROOT/.tool-versions" "$CLONE/.tool-versions"
+  printf '    copied the untracked .tool-versions into the throwaway tree\n'
+fi
+
+if [[ "${THREADLINE_BUMP_REHEARSAL_FORCE_UNRUNNABLE:-0}" == "1" ]]; then
+  fail "forced unrunnable control" \
+    "THREADLINE_BUMP_REHEARSAL_FORCE_UNRUNNABLE=1 is set." \
+    "This is the exercise of the unrunnable path: a rehearsal that cannot run is a" \
+    "failure, never a silent pass."
+fi
+
+INJECT="${THREADLINE_BUMP_REHEARSAL_INJECT_DEFECT:-none}"
+
+# --- Apply the bump exactly where the release commit applies it ---------------
+
+step "bumping mix.exs @version to $NEXT"
+CUR="$CURRENT" NXT="$NEXT" perl -pi -e \
+  's/\@version "\Q$ENV{CUR}\E"/\@version "$ENV{NXT}"/' "$CLONE/mix.exs" ||
+  fail "bump" "Could not rewrite the @version line in the throwaway mix.exs."
+grep -qF "@version \"$NEXT\"" "$CLONE/mix.exs" ||
+  fail "bump" "mix.exs in the throwaway tree does not read @version \"$NEXT\" after the rewrite."
+
+step "bumping $MANIFEST to $NEXT"
+jq --arg v "$NEXT" '.["."] = $v' "$CLONE/$MANIFEST" >"$CLONE/$MANIFEST.tmp" ||
+  fail "bump" "Could not rewrite $MANIFEST in the throwaway tree."
+mv "$CLONE/$MANIFEST.tmp" "$CLONE/$MANIFEST"
+
+# release-please's generic updater, simulated. Derived from the config file so a
+# newly registered extra-file is picked up without editing this script.
+apply_extra_files_rewrite() {
+  local rewritten=0 path marked
+  local -a paths=()
+  local listing
+  listing="$(
+    jq -r '.packages["."]["extra-files"][] | if type == "object" then .path else . end' \
+      "$CLONE/$CONFIG"
+  )" || fail "extra-files" "Could not read packages[\".\"][\"extra-files\"] from $CONFIG."
+  while IFS= read -r path; do
+    [[ -n "$path" ]] && paths+=("$path")
+  done <<<"$listing"
+
+  [[ ${#paths[@]} -gt 0 ]] || fail "extra-files" \
+    "$CONFIG registers no extra-files." \
+    "Every x-release-please-version marked line would then be stale after a bump," \
+    "and Family B of version_truth_doc_contract_test.exs would fail by construction."
+
+  for path in "${paths[@]}"; do
+    [[ -f "$CLONE/$path" ]] || fail "extra-files" \
+      "$CONFIG registers \"$path\" but that file does not exist."
+    marked="$(grep -c 'x-release-please-version' "$CLONE/$path" || true)"
+    if [[ "$marked" -gt 0 ]]; then
+      # Replace the version ON the marked line only — exactly the updater's
+      # blast radius. Surrounding prose and markup stay byte-identical.
+      CUR="$CURRENT" NXT="$NEXT" perl -pi -e \
+        's/\Q$ENV{CUR}\E/$ENV{NXT}/g if m{x-release-please-version}' "$CLONE/$path" ||
+        fail "extra-files" "Could not rewrite the marked line in $path."
+      rewritten=$((rewritten + marked))
+      printf '    %s: %s marked line(s) -> %s\n' "$path" "$marked" "$NEXT"
+    fi
+  done
+
+  [[ "$rewritten" -gt 0 ]] || fail "extra-files" \
+    "No x-release-please-version marked line was found in any registered extra-file." \
+    "The marker is how the release commit keeps current-version prose true; if it is" \
+    "gone, the rehearsal is not simulating what release-please actually does."
+}
+
+if [[ "$INJECT" == "stale-marked-line" ]]; then
+  step "NEGATIVE CONTROL: skipping the extra-files rewrite (reproducing the 202-05 trap)"
+else
+  step "simulating release-please's extra-files generic updater"
+  apply_extra_files_rewrite
+fi
+
+# CHANGELOG stand-in for the unreleased next minor. See the header.
+if grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\]" "$CLONE/CHANGELOG.md"; then
+  step "CHANGELOG.md already carries a heading for $NEXT — nothing synthesised"
+else
+  step "synthesising a dated CHANGELOG stand-in heading for the unreleased $NEXT"
+  printf '    (rehearsal-only: the real release commit carries a human-written section here)\n'
+  TODAY="$(date -u +%Y-%m-%d)"
+  NXT="$NEXT" TODAY="$TODAY" perl -0pi -e \
+    's/^(## \[)/"## [$ENV{NXT}] - $ENV{TODAY}\n\n_Rehearsal stand-in section._\n\n" . $1/me' \
+    "$CLONE/CHANGELOG.md" ||
+    fail "changelog" "Could not insert the rehearsal stand-in heading into CHANGELOG.md."
+  grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\] - " "$CLONE/CHANGELOG.md" ||
+    fail "changelog" \
+      "CHANGELOG.md carries no '## [$NEXT] - YYYY-MM-DD' heading after the stand-in insert." \
+      "bin/verify-release-shape would fail for a reason the rehearsal invented."
+fi
+
+if [[ "$INJECT" == "hardcoded-pin" ]]; then
+  step "NEGATIVE CONTROL: re-hardcoding the install pin literal (reverting Plan 202-09)"
+  CONTRACT="$CLONE/test/threadline/release_artifact_contract_test.exs"
+  grep -qF 'Mix.Tasks.Release.Pins.target_pin_version()' "$CONTRACT" ||
+    fail "negative control" \
+      "release_artifact_contract_test.exs no longer derives the pin from" \
+      "Mix.Tasks.Release.Pins.target_pin_version(), so the hardcoded-pin control cannot" \
+      "be injected. Update the control rather than deleting it."
+  CUR="$CURRENT" perl -pi -e \
+    's/~s\(\{:threadline, "~> #\{Mix\.Tasks\.Release\.Pins\.target_pin_version\(\)\}"\}\)/"{:threadline, \\"~> $ENV{CUR}\\"}"/' \
+    "$CONTRACT" || fail "negative control" "Could not inject the hardcoded pin literal."
+  grep -qF "~> $CURRENT" "$CONTRACT" ||
+    fail "negative control" "The hardcoded pin literal was not injected."
+fi
+
+# --- Fetch deps, then run the pin writer -------------------------------------
+step "fetching dependencies in the throwaway tree"
+(cd "$CLONE" && printf 'n\n' | mix deps.get) ||
+  fail "deps" "\`mix deps.get\` failed inside the throwaway tree."
+
+step "running mix release.pins against the bumped @version"
+(cd "$CLONE" && mix release.pins) ||
+  fail "release.pins" \
+    "\`mix release.pins\` could not rewrite the documented install pins at $NEXT." \
+    "Every documented pin is derived from mix.exs @version by that task; if it cannot" \
+    "run, the bumped state cannot be constructed at all."
+
+step "confirming the pin writer is now idempotent (mix release.pins --check)"
+(cd "$CLONE" && mix release.pins --check) ||
+  fail "release.pins --check" \
+    "\`mix release.pins\` left at least one documented pin disagreeing with the derived" \
+    "\`~> $NEXT\`. The bumped state is not self-consistent, so the gates below would be" \
+    "measuring a broken simulation rather than the tree."
+
+step "the simulated release commit"
+(cd "$CLONE" && git --no-pager diff --stat)
+
+# Commit so `mix verify.release`'s ensure_clean_tree!/0 is exercised rather than
+# tripped. The clone is detached and thrown away; this commit reaches nothing.
+(
+  cd "$CLONE"
+  git -c user.name="bump-rehearsal" -c user.email="bump-rehearsal@invalid" \
+    commit --quiet --no-verify --all --message "chore: rehearsal bump to $NEXT"
+) || fail "commit" "Could not commit the simulated release commit inside the throwaway tree."
+
+# --- Run the gates against the bumped state ----------------------------------
+GATE_STATUS=0
+FAILED_GATE=""
+
+run_gate() {
+  local label="$1"
+  shift
+  step "GATE: $label"
+  if ! (cd "$CLONE" && "$@"); then
+    GATE_STATUS=1
+    FAILED_GATE="$label"
+    return 1
+  fi
+  return 0
+}
+
+# Order is fail-fast-cheapest-first: the doc contracts (which carry Families A/B
+# of the version-truth contract, the ones a bump moves) before the full release
+# entrypoint, which additionally builds docs and the Hex tarball.
+run_gate "mix verify.doc_contract at $NEXT" mix verify.doc_contract &&
+  run_gate "mix verify.release at $NEXT" mix verify.release || true
+
+# --- Tree identity: the rehearsal must have changed nothing -------------------
+step "verifying the real working tree is byte-identical"
+AFTER="$(capture_identity)"
+
+if [[ "$BEFORE" != "$AFTER" ]]; then
+  printf '\n=== FAIL: the rehearsal modified the real working tree ===\n' >&2
+  diff <(printf '%s\n' "$BEFORE") <(printf '%s\n' "$AFTER") >&2 || true
+  printf '  A rehearsal that leaves a trace is a failure even when the gates passed.\n' >&2
+  exit 1
+fi
+printf '    tree identity: MATCH (%s files checksummed, plus status/HEAD/branch/worktree count)\n' \
+  "$(tracked_blast_radius | wc -l | tr -d ' ')"
+
+SURVIVING_WORKTREES="$(git worktree list | tail -n +2 | grep -c . || true)"
+if [[ "$SURVIVING_WORKTREES" != "0" ]]; then
+  git worktree list >&2
+  fail "surviving worktree" "The rehearsal left $SURVIVING_WORKTREES linked worktree(s) registered."
+fi
+
+SURVIVING_BRANCHES="$(git branch --list 'scratch/*' 'rehearsal/*' | grep -c . || true)"
+if [[ "$SURVIVING_BRANCHES" != "0" ]]; then
+  git branch --list 'scratch/*' 'rehearsal/*' >&2
+  fail "surviving branch" "The rehearsal left $SURVIVING_BRANCHES scratch branch(es) behind."
+fi
+printf '    no scratch branch and no linked worktree survived\n'
+
+# --- Terminal summary --------------------------------------------------------
+printf '\n'
+if [[ "$GATE_STATUS" -ne 0 ]]; then
+  printf 'Bump rehearsal FAIL: %s -> %s would release RED.\n' "$CURRENT" "$NEXT" >&2
+  printf 'The failing gate was: %s\n' "$FAILED_GATE" >&2
+  printf 'Its output is above, in the throwaway tree that has since been removed. Fix the\n' >&2
+  printf 'cause on this pull request — that is the whole point of running the bump here\n' >&2
+  printf 'instead of discovering it at the publish gate.\n' >&2
+  exit 1
+fi
+
+printf 'Bump rehearsal OK: a %s -> %s release commit passes mix verify.doc_contract and\n' "$CURRENT" "$NEXT"
+printf 'mix verify.release, and the real working tree is byte-identical.\n'
