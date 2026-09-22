@@ -633,6 +633,27 @@ The release workflow:
 
 **Secrets:** **`HEX_API_KEY`** (required). **`RELEASE_PLEASE_TOKEN`** (optional fine-grained PAT — recommended for Release Please PRs and distribution sync PRs).
 
+### Version-bearing lines and who owns them
+
+Every line in `README.md`, `guides/**`, and this file that carries a Threadline version number has exactly one named owner. The goal is that **no version-bearing line requires a hand edit at release time** — not that no version literal exists. A sentence that uses a version as an *example* stays true after a bump and needs no owner; a sentence that asserts *what the current version is* must be produced by automation.
+
+That distinction is the honest scope of the rule. An illustrative literal is not a maintenance burden, and pretending otherwise would push us toward deleting useful examples to satisfy a metric.
+
+| Line | Owner | Disposition |
+|------|-------|-------------|
+| The six `{:threadline, "~> x.y.z"}` install pins (`README.md`; `guides/getting-started-saas.md`, `operator-surface.md`, `evaluating-threadline.md`, `adoption-evidence-playbook.md`, `adoption-pilot-backlog.md`) | `mix release.pins` | current-version claim |
+| `guides/adoption-pilot-backlog.md` preflight SSOT sentence; `guides/evaluating-threadline.md` SSOT sentence (both carry `x-release-please-version`) | Release Please `extra-files` marker | current-version claim |
+| `guides/adoption-pilot-backlog.md` Hex attestation row ("latest is **X** on Hex", tag **`vX`**) | `bin/post-publish-distribution-sync` | current-version claim |
+| `guides/upgrade-path.md` opening era narrative (the minor range ending at the latest minor) | human prose, written with that release's upgrade row — see the release checklist item below | current-version claim |
+| `guides/upgrade-path.md` backport-policy example (`0.9.1` / `~> 0.9.0`) | human prose | illustrative |
+| `guides/upgrade-path.md` historical era rows and per-minor upgrade bullets (`[0.7.0]`…`[0.9.0]`, `0.8.x → 0.9.x`) | human prose, append-only history | illustrative |
+| `CONTRIBUTING.md` backport-policy example (`0.9.1` / `~> 0.9.0`) | human prose | illustrative |
+| `CONTRIBUTING.md` bootstrap references to **`v0.6.0`** | human prose, historical record | illustrative |
+
+**Release checklist item (minor bumps only).** A minor release must add that minor's upgrade row to [`guides/upgrade-path.md`](guides/upgrade-path.md) and extend the opening era narrative to include it. This is authoring new *content* — what changed and what an adopter must do — not a mechanical version substitution, which is why it has a human owner rather than an automated one. `test/threadline/version_truth_doc_contract_test.exs` Family C fails the build until the new minor's coverage exists, so the step cannot be silently skipped.
+
+**Enforced invariants.** `test/threadline/version_truth_doc_contract_test.exs` fails if an install pin drifts from the `major.minor.0` floor derived from `mix.exs` `@version` (Family A), if a marked SSOT line is unregistered or stale (Family B), or if a pin line ever *also* carries a Release Please marker (Family B-inverse). The last one exists because Release Please cannot correctly own a pin line: its generic updater writes the full version (wrong for a floor pinned at the minor) and its component updater replaces the leading digit inside the requirement string (producing a nonsense major). Never add a pin-bearing file to `extra-files` in `release-please-config.json`.
+
 ### Bootstrap `v0.6.0` (one-shot)
 
 After Wave 1 distribution doc work is on **`main`** and CI is green:
