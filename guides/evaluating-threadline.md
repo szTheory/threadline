@@ -8,7 +8,7 @@ It is **not** a compliance procurement sign-off or legal attestation of your env
 
 ## What the current Threadline release packages
 
-Threadline **0.9.0** is the in-repo, doc, and [Hex](https://hex.pm/packages/threadline) SSOT (`mix.exs` `@version`). See [`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md) Distribution preflight for maintainer attestation and publish workflow evidence. <!-- x-release-please-version -->
+Threadline **0.10.0** is the in-repo, doc, and [Hex](https://hex.pm/packages/threadline) SSOT (`mix.exs` `@version`). See [`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md) Distribution preflight for maintainer attestation and publish workflow evidence. <!-- x-release-please-version -->
 
 0.6.0 packages Evidence, `Audit.transaction/3`, and aligned operator surfaces that landed in-repo after **0.5.0**; upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
