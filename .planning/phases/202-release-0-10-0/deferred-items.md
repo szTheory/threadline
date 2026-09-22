@@ -98,3 +98,32 @@ correctness bug, not release-blocking, worth a cleanup task.
 **Bearing on the release:** 202-05 may NOT claim the suite is "green by construction."
 The honest claim is "green in 4/4 consecutive runs; one prior intermittent remains
 unexplained."
+
+### CORRECTION (2026-09-22, Task 1 rehearsal) — the flake mechanism IS proven
+
+The entry above is **wrong** where it rejects the leftover-scratch-tree hypothesis and
+concludes "not reproducible." Superseded by direct evidence.
+
+Mechanism, proven:
+- `critic_trust_test.exs:1142` names its scratch dir with a bare
+  `System.unique_integer([:positive])`. That counter is unique **per BEAM instance**
+  and **restarts on every `mix test`**.
+- `_build/critic-trust-path-tests/` is never cleaned — 542 dirs, oldest Sep 13.
+- Proof of reuse: `root-overlap-132290` (mtime Sep 22 09:50) and
+  `interrupted-measure-132290` (mtime Sep 22 06:18) share integer 132290 across two
+  different runs and two different labels. A reused counter range, not a race.
+- On collision the scratch dir already contains `output-alias` from the earlier run,
+  so `File.ln_s!` raises `File.LinkError`.
+
+Why the earlier rejection was wrong: it tested whether the *volume* of leftovers was the
+trigger (517 -> 535 dirs, green throughout). Volume is not the trigger; **counter reuse**
+is. Three green runs simply did not draw a colliding integer. The symlink-loop
+read-order suspect is also withdrawn — it was never the cause.
+
+Consequences:
+- Collision probability rises monotonically with every run until `_build` is cleaned.
+  `mix clean` or deleting `_build/critic-trust-path-tests/` resets it.
+- **CI is only safe here if its `_build` cache does not carry prior scratch trees.**
+  Verify that before any "green by construction" claim.
+- Real fix: seed the dir name from something run-unique (pid/timestamp/`mktemp`), and
+  clean up the tree in an `on_exit`.
