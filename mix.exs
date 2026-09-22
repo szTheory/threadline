@@ -13,6 +13,7 @@ defmodule Threadline.MixProject do
         "verify.doc_contract": :test,
         "verify.dialyzer": :dev,
         "verify.release": :dev,
+        "verify.bump_rehearsal": :dev,
         "verify.test": :test,
         # `test.reset` runs `ecto.drop -r Threadline.Test.Repo`, and that repo only
         # exists on the :test compile path (see elixirc_paths/1) — without this it
@@ -129,6 +130,12 @@ defmodule Threadline.MixProject do
         "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/adoption_evidence_playbook_doc_contract_test.exs test/threadline/release_distribution_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs test/threadline/integrations/phx_gen_auth_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs test/threadline/persona_routing_doc_contract_test.exs test/threadline/version_truth_doc_contract_test.exs test/threadline/critic_iteration_runbook_doc_contract_test.exs"
       ],
       "verify.release": &verify_release/1,
+      # Simulate the NEXT MINOR release commit and run the release gates against
+      # it. The born-red defect class Phase 202 found is invisible at the current
+      # version by construction, so a gate that only ever measures the current
+      # version cannot see it. Not folded into `ci.all` — same release-lane
+      # precedent as `verify.release`, and the topology contract asserts both.
+      "verify.bump_rehearsal": &verify_bump_rehearsal/1,
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,
       "verify.example_browser": &verify_example_browser/1,
@@ -208,6 +215,13 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd(cmd) do
       0 -> :ok
       status -> Mix.raise("verify.bench failed (#{status})")
+    end
+  end
+
+  defp verify_bump_rehearsal(_args) do
+    case Mix.shell().cmd("bin/verify-bump-rehearsal") do
+      0 -> :ok
+      status -> Mix.raise("verify.bump_rehearsal failed (#{status})")
     end
   end
 
