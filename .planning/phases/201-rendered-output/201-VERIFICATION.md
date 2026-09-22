@@ -1,7 +1,8 @@
 ---
 phase: 201-rendered-output
 verified: 2026-09-22T00:05:50Z
-verification_target: 43c0672e7e81cf5ecce94f7ab745ab2fbfb3ad4e
+verification_target: 7ef820bce2327454e44846a985911408e8b71247
+verification_target_note: "Retargeted from 43c0672e, which was amended (never pushed) to exclude 1066 machine-local critic cache files an over-broad `git add .planning/` had swept in. The covered-input bytes are unchanged, so covered_digest below still holds; 201-VERIFICATION.md is not a member of its own covered set."
 previous_verification_target: ae7e75fa1eaa31efa837c957690eb8dfb506d0c7
 refresh_pass: true
 status: passed
