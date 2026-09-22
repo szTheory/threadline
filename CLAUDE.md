@@ -75,7 +75,17 @@ These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
 
 ## GSD / local planning
 
-When running **`gsd-sdk query state.begin-phase`**, use **positional** arguments (`phase`, `slug`, `plan_count`). Flag-style `--phase` / `--name` invocations can corrupt `.planning/STATE.md` depending on `gsd-sdk` version. Phase 20 details: `.planning/phases/20-first-external-pilot/PLAN.md` (GSD execute-phase preflight).
+**`state.begin-phase` argument style depends on which tool is on PATH — check first.**
+- `@opengsd/gsd-core` v1.14.0 (`gsd-tools.cjs`, current): requires **flags** —
+  `--phase 202 --name "Release 0.10.0" --plans 5`. Positional args are rejected
+  (`Error: unexpected positional argument`). Verified 2026-09-22; STATE.md diffed
+  afterwards, no corruption.
+- Older `gsd-sdk` wrapper: requires **positional** args (`phase`, `slug`, `plan_count`);
+  flag-style invocations there can corrupt `.planning/STATE.md`.
+
+Separately, and regardless of invocation style: the `state.*` handlers miscompute this
+repo's bespoke progress block. Hand-check `.planning/STATE.md` and `ROADMAP.md` after
+calling them. Phase 20 details: `.planning/phases/20-first-external-pilot/PLAN.md` (GSD execute-phase preflight).
 
 ## Reference Documents
 
