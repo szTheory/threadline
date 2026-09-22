@@ -24,6 +24,16 @@ Choose the route that matches the change:
 - OTP 26+ (CI uses OTP 27.0)
 - PostgreSQL 14+ (PostgreSQL 16 recommended; matches CI and `docker-compose.yml`)
 
+If you manage toolchains with a version manager such as asdf or mise, note that
+this repository intentionally does **not** commit a `.tool-versions` file: it
+supports a range of Elixir versions rather than one, and pinning a single
+version here would stop you developing on the lower end of that range. A fresh
+clone therefore inherits whatever version you already have set. If your version
+manager has no version set at all, `mix` will fail with something like `No
+version is set for command mix` — set one yourself, either globally or with a
+local `.tool-versions` you do not commit. To match the lane CI runs, use Elixir
+1.17.3 with the matching OTP 27 build.
+
 1. Clone the repository.
 2. Install dependencies: `mix deps.get`
 3. Start a local PostgreSQL test database by following
