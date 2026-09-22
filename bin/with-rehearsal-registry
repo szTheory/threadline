@@ -71,6 +71,14 @@ fi
 WORK_DIR="$(mktemp -d)"
 SERVER_PID=""
 
+# Hex caches fetched tarballs under $HEX_HOME/packages/<repo>/. The rehearsal
+# tarball's VERSION does not change when the tree does, so a cached
+# threadline-<version>.tar from a previous run shadows the one we are about to
+# build and Hex warns about (or trips over) a checksum mismatch. This cache
+# entry belongs entirely to our throwaway repo, so purging it is safe and is
+# the only way each run genuinely measures the current tree.
+REHEARSAL_CACHE="${HEX_HOME:-$HOME/.hex}/packages/$REPO_NAME"
+
 cleanup() {
   local status=$?
   set +e
@@ -81,11 +89,16 @@ cleanup() {
   # Remove the registration unconditionally. `mix hex.repo remove` on an
   # absent repo is a no-op we do not want to surface, hence the redirect.
   mix hex.repo remove "$REPO_NAME" >/dev/null 2>&1
+  rm -rf "$REHEARSAL_CACHE"
   rm -rf "$WORK_DIR"
   set -e
   exit "$status"
 }
 trap cleanup EXIT INT TERM
+
+# Purge on the way in as well, so an interrupted previous run cannot leave a
+# stale tarball that this run would silently resolve instead of the tree.
+rm -rf "$REHEARSAL_CACHE"
 
 PRIVATE_KEY="$WORK_DIR/private_key.pem"
 PUBLIC_DIR="$WORK_DIR/public"

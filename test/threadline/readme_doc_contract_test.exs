@@ -251,7 +251,8 @@ defmodule Threadline.ReadmeDocContractTest do
     reference = File.read!("guides/configuration-and-commands.md")
 
     refute String.contains?(slice, "storage_schema")
-    assert String.contains?(getting_started, ~S|storage_schema: "audit"|)
+    # "threadline", not "audit" — see 202 D-01/D-02.
+    assert String.contains?(getting_started, ~S|storage_schema: "threadline"|)
     assert String.contains?(getting_started, "before you run `mix threadline.install`")
     assert String.contains?(reference, "config :threadline, storage_schema:")
   end

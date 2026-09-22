@@ -162,8 +162,11 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
   test "getting-started documents Threadline ecto_repos before resolve_repo consumers" do
     doc = read_rel!(@guide_path)
 
+    # "threadline", not "audit": under 202 D-01 the default is the host's
+    # `public` schema and a dedicated schema is an explicit opt-in, so the
+    # guide's worked example is now the recommended `"threadline"` value.
     literal =
-      ~r/config :threadline,\s+ecto_repos: \[MyApp\.Repo\],\s+storage_schema: "audit"/
+      ~r/config :threadline,\s+ecto_repos: \[MyApp\.Repo\],\s+storage_schema: "threadline"/
 
     assert String.contains?(doc, "### Configure Threadline")
 
@@ -190,8 +193,22 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     install_section =
       section_slice(doc, "## 3. Install the audit schema", "## 4. Generate triggers for posts")
 
-    assert String.contains?(configure_section, ~S|storage_schema: "audit"|)
+    assert String.contains?(configure_section, ~S|storage_schema: "threadline"|)
     assert String.contains?(configure_section, "before you run `mix threadline.install`")
+
+    # 202 D-02. The default no longer provides schema isolation, so the guide
+    # must say so out loud AND must steer a new install to opt in. Both are
+    # asserted here so the steering cannot silently drift back out of the doc
+    # while the default stays flipped — which is exactly the shape that let a
+    # breaking default reach a release PR unnoticed.
+    assert String.contains?(configure_section, ~S|defaults to `"public"`|)
+
+    assert String.contains?(
+             configure_section,
+             "recommended choice for a new install"
+           )
+
+    assert String.contains?(configure_section, "existing installs need no action on upgrade")
 
     assert String.contains?(
              install_section,
@@ -213,7 +230,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
              "Host tables can still live in `public`, `support`, or another app schema"
            )
 
-    {configure_idx, _} = :binary.match(doc, ~S|storage_schema: "audit"|)
+    {configure_idx, _} = :binary.match(doc, ~S|storage_schema: "threadline"|)
     {install_idx, _} = :binary.match(doc, "mix threadline.install")
 
     assert configure_idx < install_idx
