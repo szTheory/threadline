@@ -23,16 +23,23 @@ Choose the route that matches the change:
 - Elixir 1.15+ (CI uses 1.17.3)
 - OTP 26+ (CI uses OTP 27.0)
 - PostgreSQL 14+ (PostgreSQL 16 recommended; matches CI and `docker-compose.yml`)
+- Node.js 22 — only for the browser end-to-end lane, which is the last step of
+  the full verification gate described under Running tests below. Everything
+  else, including the whole library test suite, runs without it.
 
 If you manage toolchains with a version manager such as asdf or mise, note that
-this repository intentionally does **not** commit a `.tool-versions` file: it
-supports a range of Elixir versions rather than one, and pinning a single
-version here would stop you developing on the lower end of that range. A fresh
-clone therefore inherits whatever version you already have set. If your version
-manager has no version set at all, `mix` will fail with something like `No
-version is set for command mix` — set one yourself, either globally or with a
-local `.tool-versions` you do not commit. To match the lane CI runs, use Elixir
-1.17.3 with the matching OTP 27 build.
+this repository intentionally does **not** commit a `.tool-versions` file. It
+supports a range of Elixir versions rather than a single one, and committing a
+pin would turn "Elixir 1.15 and up works" into "install exactly the version this
+file names" — which would break contributors on versions the project genuinely
+supports and tests.
+
+A fresh clone therefore inherits whatever versions you already have set. If your
+version manager has none set at all, `mix` fails with something like `No version
+is set for command mix`, which names your version manager rather than this
+project and is an easy trail to lose. Set one yourself, globally or in a local
+`.tool-versions` you leave uncommitted. To match the lane CI runs, use Elixir
+1.17.3 with the matching OTP 27 build and Node.js 22.
 
 1. Clone the repository.
 2. Install dependencies: `mix deps.get`
