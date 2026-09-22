@@ -20,7 +20,7 @@ affects: [202-02 pin rewriting, 202-03 changelog and upgrade guide, 202-04 relea
 actuals:
   tokens: 9197
   tasks: 3
-  commits: 3
+  commits: 5
   plan_head_before: 9e51da200a4beba35faad3c60e94e9683eecebd8
 
 tech-stack:
@@ -167,7 +167,13 @@ status: complete
 2. **Task 2 (GREEN): default flip + rehearsal registry + mode switch + lock untrack** — `037852cb` (feat)
 3. **Task 3: legacy-public end-to-end proof + installer/guide steering** — `3f9e3b79` (feat)
 
+**Plan metadata:** `7a1f47c5` (SUMMARY), followed by the final metadata commit at this plan's tip (STATE.md + ROADMAP.md). That tip commit is intentionally left unnamed here: it was amended to carry this very correction, so any hash written into it would be stale the moment it was written.
+
 Task 1 was a `checkpoint:decision` and produced no commit.
+
+`actuals.commits: 5` is measured with `git rev-list --count 9e51da20..HEAD` and includes both
+metadata commits. The two carry the same subject line because the SUMMARY was committed first
+(as the atomic write-then-commit rule requires) and the STATE/ROADMAP updates followed.
 
 ## Files Created/Modified
 
@@ -251,6 +257,12 @@ The plan's `<flagged_assumptions>` rows are **not** closed by this plan and are 
 | RELEASE-03 | partially proven | The pre-publish half — the evaluator now validates *this tree* — is proven and marked complete. The post-publish half, that the evaluator validated the *newly published* release, remains observable only in a real release run (see coverage D7). |
 
 `RELEASE-01` was deliberately **not** marked complete despite appearing in this plan's `requirements:` frontmatter, because nothing in this plan makes it true.
+
+**Neither requirement was written to `REQUIREMENTS.md` by this plan.** `requirements.ready-ids`
+returned `0/2 ready`: `RELEASE-03` is also declared by `202-04-PLAN.md`, and `RELEASE-01` by
+`202-05-PLAN.md`, so the shared-ID gate correctly holds both open until every declaring plan has
+a SUMMARY. The `requirements-completed: [RELEASE-03]` field above records this plan's own
+contribution, not a completed requirement.
 
 ## User Setup Required
 

@@ -779,7 +779,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 199. Decouple | v1.41 | 21/21 | Complete    | 2026-09-11 |
 | 200. Public Surface | v1.41 | 18/18 | Complete    | 2026-09-13 |
 | 201. Rendered Output | v1.41 | 0/TBD | Not started | |
-| 202. Release 0.10.0 | v1.41 | 0/TBD | Not started | |
+| 202. Release 0.10.0 | v1.41 | 1/5 | In Progress | |
 | 203. Real Gates | v1.41 | 0/TBD | Not started | |
 | 204. Structure | v1.41 | 0/TBD | Not started | |
 
