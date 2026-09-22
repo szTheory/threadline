@@ -58,7 +58,7 @@ but each one leaves something unchanged that you probably wanted changed.
   your adapter's typespec.
 - **Callers of implementation modules** — 25 implementation modules became
   `@moduledoc false`. They remain callable for Threadline's own composition, but
-  they are no longer a supported surface; see "Documented surface" below.
+  they are no longer a supported surface.
 
 ### Storage schema default
 
