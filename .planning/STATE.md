@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 202
 current_phase_name: Release 0.10.0
 status: executing
-stopped_at: Completed 202-09-PLAN.md
-last_updated: "2026-09-22T19:05:00.000Z"
+stopped_at: Completed 202-10-PLAN.md
+last_updated: "2026-09-22T20:45:00.000Z"
 last_activity: 2026-09-22
-last_activity_desc: Completed 202-09 (BR-5 closed — the README install-pin assertion now derives from `Mix.Tasks.Release.Pins.target_pin_version/0`; a next-minor bump rehearsal left the contract green with zero edits to it)
+last_activity_desc: "Completed 202-10 (the bump rehearsal is now a required CI check: `bin/verify-bump-rehearsal` simulates the next-minor release commit in a throwaway clone — extra-files rewrite included — and runs `mix verify.doc_contract` + `mix verify.release` against it; its first run found four MORE hardcoded install pins, all fixed)"
 state_head: c35cb0dc2372f48644aa12816720a4cbcb267ea0
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 119
-  completed_plans: 118
+  total_plans: 120
+  completed_plans: 119
   percent: 57
 ---
 
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 202 (Release 0.10.0) — EXECUTING
-Plan: 9 of 9 written, 8 complete (202-05 remains halted; gap-closure plans 06-09 opened to clear its three red gates)
-Status: all four gap-closure plans (202-06 through 202-09) complete — Dialyzer gate green, CriticTrustTest intermittent fixed at the cause, ExDoc warning gate green, and BR-5 closed by deriving the README install pin from the designated sole writer. The red gates that halted 202-05 are cleared; 202-05's human-gated push/merge/publish can resume. 0.10.0 is NOT published, so RELEASE-01 stays open.
+Plan: 10 of 10 written, 9 complete (202-05 remains halted; gap-closure plans 06-09 cleared its three red gates, and 202-10 shifted the whole defect class left)
+Status: 202-06 through 202-09 complete (Dialyzer green, CriticTrustTest intermittent fixed at the cause, ExDoc warning gate green, BR-5 closed) and 202-10 complete — `mix verify.bump_rehearsal` now simulates the next-minor release commit on every PR as a member of the single required check `ci-required`. Its first run found four MORE copies of the hardcoded-install-pin defect, all fixed. `bash bin/verify-bump-rehearsal` is GREEN at 0.10.0, which is the strongest pre-publish signal this repo has had. 202-05's human-gated push/merge/publish can resume. 0.10.0 is NOT published, so RELEASE-01 stays open.
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is

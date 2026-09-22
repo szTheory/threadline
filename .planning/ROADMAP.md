@@ -697,7 +697,11 @@ Plans:
 - [x] 202-08-PLAN.md — Fix the `CriticTrustTest` intermittent and the unbounded scratch-tree leak behind it
 - [x] 202-09-PLAN.md — BR-5: replace the hardcoded `{:threadline, "~> 0.9.0"}` literal in the release-artifact contract test *(derived from `Mix.Tasks.Release.Pins.target_pin_version/0`; next-minor bump rehearsed green)*
 
-**Waves**: 1 → 202-01 · 2 → 202-02, 202-03 (parallel) · 3 → 202-04 · 4 → 202-05 · 5 → 202-06, 202-07, 202-08, 202-09
+**Wave 6 — shift the class left** *(blocked on Wave 5 completion)*
+
+- [x] 202-10-PLAN.md — `bin/verify-bump-rehearsal` + the `verify-bump-rehearsal` CI job: simulate the next-minor release commit on every PR so a born-red cause fails the pull request that introduces it *(found and fixed four more hardcoded install pins on its first run)*
+
+**Waves**: 1 → 202-01 · 2 → 202-02, 202-03 (parallel) · 3 → 202-04 · 4 → 202-05 · 5 → 202-06, 202-07, 202-08, 202-09 · 6 → 202-10
 
 **Notes carried from the approved plan:**
 
