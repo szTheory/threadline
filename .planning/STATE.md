@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 202
-current_phase_name: Release 0.10.0
+current_phase_name: release-0-10-0
 status: planning
 stopped_at: Phase 202 context captured (202-CONTEXT.md, 20 decisions) — ready for /gsd-plan-phase 202
-last_updated: "2026-09-22T00:00:00.000Z"
+last_updated: "2026-09-22T13:04:45.724Z"
 last_activity: 2026-09-22
 last_activity_desc: Phases 199+200 re-verified (passed); Phase 202 discussed — four born-red release causes found, one a silent breaking change
-state_head: 3d7a0c6347845f3200f629d4391257c4de0d2e6a
+state_head: 5f192bcb17d06a749b12dc0fcd3393f343231bb2
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 110
+  total_plans: 115
   completed_plans: 110
-  percent: 57
+  percent: 43
 ---
 
 # Project State: Threadline
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 202 (Release 0.10.0) — DISCUSSED, not yet planned
-Plan: 0 of TBD. `202-CONTEXT.md` holds 20 locked decisions; `RELEASE-BLOCKERS.md` holds the measured born-red analysis.
-Status: Ready for `/gsd-plan-phase 202`. Phase 201 is closed (verification passed 2026-09-21).
+Phase: 202 (release-0-10-0) — READY TO EXECUTE
+Plan: 0 of 5. `202-CONTEXT.md` holds 20 locked decisions; `202-RESEARCH.md`, `202-PATTERNS.md` and `RELEASE-BLOCKERS.md` back them; five plans across four waves.
+Status: Planned 2026-09-22 — ready for `/gsd-execute-phase 202`. Plan checker passed; 5/5 requirements and 20/20 decisions covered. Phase 201 is closed (verification passed 2026-09-21).
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -47,6 +47,7 @@ it is rated one-way because hex.pm has no unpublish beyond a ~1 hour window.
 Do not start planning without reading `202-CONTEXT.md` in full.
 
 **Cross-session facts this session established (not in git alone):**
+
 - PR #42 (`auto/verification-debt-closeout`) is OPEN and GREEN — all 15 checks
   including the Elixir 1.15 min lane. It carries the Phase 199/200 automation
   and the ungrouped-module fix. Not merged; merging is the maintainer's call.
@@ -159,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 110/110 plans ([██████░░░░] 57% of phases — 4 of 7 marked complete in ROADMAP; 199 and 200 carry stale verification)
+Progress: [██████████████████░░] 110/115 plans ([████░░░░░░] 43% of phases — 4 of 7 marked complete in ROADMAP; 199 and 200 carry stale verification)
 
 ## Performance Metrics
 
