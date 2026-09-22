@@ -101,7 +101,20 @@ defmodule Threadline.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
-      {:lazy_html, "~> 0.1.0", only: :test}
+      {:lazy_html, "~> 0.1.0", only: :test},
+      # Test-only. Parses .github issue forms as real YAML so the
+      # community-health render contract validates GitHub's issue-forms schema
+      # instead of pattern-matching prose. Never reaches consumers of the
+      # published package.
+      #
+      # Pinned to the 2.11.x series deliberately. 2.12 floors at Elixir
+      # ~> 1.17 and 2.12.0 at ~> 1.18; either would silently falsify this
+      # package's own Elixir 1.15 support floor, since a test-only dependency
+      # still has to install on the minimum supported lane. 2.11.0 floors at
+      # ~> 1.8. Use `~> 2.11.0` rather than `~> 2.11` — the latter admits
+      # 2.12.x and reintroduces the break. The dependency floor guard in the
+      # test suite enforces this invariant.
+      {:yaml_elixir, "~> 2.11.0", only: :test, runtime: false}
     ]
   end
 
