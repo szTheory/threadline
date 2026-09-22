@@ -611,7 +611,7 @@ covered_files:
 covered_digest: "v1:sha256:680599af5951be9d593724bb18f57aa3d84e79c4bef658635f1c4fd263013541"
 previous_covered_digest: "v1:sha256:a696b527c1f0d8ea7b0266887c9e8e95e686c9d8ec33e2a036ded5e26956701b"
 covered_digest_note: "Recomputed 2026-09-22 at HEAD 4d893e19 over the same 586-file covered set as the previous report. All 586 paths resolve on disk (checked individually before hashing), so the fingerprint is determinate rather than failing closed. The set is unchanged because the 6 commits since 51ee7137 touched exactly one covered implementation file — examples/threadline_phoenix/e2e/support/operator-surface-paths.test.ts, which added the two fail-closed reader tests in 4d893e19 — plus .planning bookkeeping and mix.exs/mix.lock (a test-only yaml_elixir dependency added by Phase 200). No Phase 199 gate, alias, fixture, or contract test was removed or weakened by the drift."
-scope_note: "The full `mix ci.all` aggregate was NOT re-run end to end at this HEAD. Ten of its twelve members were re-measured inside a fresh planning-quarantined clone of 4d893e19; the strict Dialyzer member was re-measured in-tree at 4d893e19; the Playwright browser lane was NOT re-run and is carried from the 51ee7137 measurement under an evidenced zero-delta argument (see 'Aggregate Coverage and What Was Carried'). This is stated in the report body rather than absorbed into the verdict."
+scope_note: "SUPERSEDED 2026-09-22 — `mix ci.all` was subsequently run end to end at `2925bd95` (a descendant of this target) and exited 0, so the carry below is now closed by measurement: credo 3150 mods/funs no issues, 1677 library tests 0 failures, 117 example tests 0 failures, Dialyzer `Total errors: 0, Skipped: 0, Unnecessary Skips: 0`, Playwright 318 passed / 26 skipped / 0 failed. The original wording is kept verbatim below so the carry is legible rather than erased. ORIGINAL: The full `mix ci.all` aggregate was NOT re-run end to end at this HEAD. Ten of its twelve members were re-measured inside a fresh planning-quarantined clone of 4d893e19; the strict Dialyzer member was re-measured in-tree at 4d893e19; the Playwright browser lane was NOT re-run and is carried from the 51ee7137 measurement under an evidenced zero-delta argument (see 'Aggregate Coverage and What Was Carried'). This is stated in the report body rather than absorbed into the verdict."
 advisory:
   - finding: ".tool-versions is untracked and not ignored, so a fresh clone cannot resolve `mix` on an asdf machine; bin/verify-clean-checkout and bin/verify-planning-independent both failed with `No version is set for command mix` until ASDF_* versions were supplied externally."
     category: other
@@ -662,11 +662,20 @@ The decisive re-measurement is a fresh `--no-local` clone of the exact HEAD with
 | `verify.critic_trust` | yes | exit 0 |
 | `verify.mechanical` | yes | exit 0 |
 | `cmd env MIX_ENV=dev mix verify.dialyzer` | in-tree at HEAD, not in the clone | **Total errors: 0, Skipped: 0, Unnecessary Skips: 0** |
-| `verify.example_browser` (Playwright) | **no** — carried from `51ee7137` | see below |
+| `verify.example_browser` (Playwright) | **yes** — measured at `2925bd95` via full `ci.all` (318 passed / 26 skipped / 0 failed); originally carried from `51ee7137` | see below |
 
 `.planning` was confirmed still absent after `mix deps.get --check-locked`, after compilation, and after every gate above.
 
 ## Aggregate Coverage and What Was Carried
+
+> **Carry closed (2026-09-22).** Everything in this section described the state at
+> `4d893e19`, where the browser lane was carried on a zero-delta argument rather
+> than measured. `mix ci.all` has since been run end to end at `2925bd95` and
+> exited 0, including the Playwright member. The zero-delta argument turned out
+> to be correct, but it is no longer what the verdict rests on. The section is
+> left unedited below so the difference between a carried lane and a measured one
+> stays visible in the record.
+
 
 This report does **not** claim that `mix ci.all` was executed end to end at `4d893e19`. Two members were handled differently, and both deviations are stated rather than absorbed:
 
@@ -758,7 +767,7 @@ ROADMAP and REQUIREMENTS map exactly DECOUPLE-01…08; no orphaned Phase 199 req
 | Clean-clone probe | `bin/verify-clean-checkout` | 4 markers + safe cleanup; exit 0 | ✓ PASS |
 | TypeScript path/fail-closed unit tests | `npm run test:paths` | 17 tests, 0 failures | ✓ PASS |
 | TypeScript compile | `npm run typecheck` | exit 0 | ✓ PASS |
-| Playwright browser lane | not run (no app server; hour-plus) | carried from `51ee7137`; delta is `@moduledoc false` ×2 + one unit test file | ⓘ CARRIED |
+| Playwright browser lane | RUN — full `ci.all` at `2925bd95`, exit 0 | 318 passed, 26 skipped, 0 failed; the 8 known local screenshot failures self-skip under `CI=true`, which is how `ci.all` invokes the lane | ✓ MEASURED |
 
 ### Probe Execution
 
