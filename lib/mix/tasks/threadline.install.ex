@@ -23,6 +23,8 @@ defmodule Mix.Tasks.Threadline.Install do
   def run(_args) do
     Mix.Task.run("app.config", [])
 
+    recommend_dedicated_storage_schema()
+
     path = migrations_path()
     File.mkdir_p!(path)
 
@@ -58,6 +60,33 @@ defmodule Mix.Tasks.Threadline.Install do
 
     if capture_written or semantics_written or governance_written do
       Mix.shell().info("Run `mix ecto.migrate` to apply the migration(s).")
+    end
+  end
+
+  # The storage schema is frozen into the migrations this task is about to
+  # generate, so this is the last moment a NEW install can make the choice
+  # cheaply. Threadline defaults to the host's `public` schema because it
+  # cannot detect where an existing install put its audit tables, which means a
+  # new install gets no schema isolation unless it opts in here.
+  defp recommend_dedicated_storage_schema do
+    if is_nil(Application.get_env(:threadline, :storage_schema)) do
+      Mix.shell().info("""
+
+      No `:storage_schema` is configured, so Threadline-owned tables and trigger
+      functions will be generated into your `public` schema.
+
+      For a NEW install a dedicated schema is recommended:
+
+          config :threadline, storage_schema: "threadline"
+
+      Add that to `config/config.exs` and re-run `mix threadline.install` if you
+      want it. The choice is frozen at generation time — changing the key later
+      does not move objects the generated migrations already created, so moving
+      afterwards is deliberate migration work.
+
+      Existing installs need no action: `public` is the default precisely so an
+      upgrade keeps reading the tables it already has.
+      """)
     end
   end
 

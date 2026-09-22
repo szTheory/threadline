@@ -41,23 +41,38 @@ Threadline Mix tasks and operator-surface fallbacks resolve the Ecto repo from *
 ```elixir
 config :threadline,
   ecto_repos: [MyApp.Repo],
-  storage_schema: "audit"
+  storage_schema: "threadline"
 ```
 
 `mix threadline.install` (next section) still uses your host app's `config :my_app, ecto_repos` for migration paths — the two config keys serve different surfaces.
 
 If you host audit data on a dedicated database, put that repo **first** in the list. Threadline uses only the **first** entry (`List.first/1`), unlike Ecto Mix tasks which may run against every repo in the list. For mount and APIs you can still pass `repo: MyApp.Repo` explicitly (see `guides/operator-surface.md`).
 
-`storage_schema` defaults to `"threadline"`. Set `storage_schema: "audit"`
-before you run `mix threadline.install` when you want a custom Threadline
-storage schema. That schema stores Threadline-owned tables and trigger functions
+**Set `storage_schema` before you run `mix threadline.install`.** A dedicated
+schema is the recommended choice for a new install:
+
+```elixir
+config :threadline, storage_schema: "threadline"
+```
+
+That schema stores Threadline-owned tables and trigger functions
 (`audit_changes`, `audit_transactions`, `audit_actions`, governance/evidence
-tables).
+tables), keeping them out of the namespace your application migrations manage.
+Any single-segment PostgreSQL identifier works — `"audit"` is a common choice.
+
+`storage_schema` **defaults to `"public"`**, your host's default schema.
+Threadline cannot detect where an existing install put its audit tables, so the
+default has to be the one that is already true for installs that exist —
+which means **existing installs need no action on upgrade**, and a new install
+gets no schema isolation unless it opts in above.
+
+The choice is frozen at generation time: `mix threadline.install` writes the
+configured schema into the migration files it generates, so changing the key
+afterwards does not move objects those migrations already created. Moving later
+is deliberate migration work.
 
 Threadline storage schema is separate from audited host-table schema. Host tables can still live in `public`, `support`, or another app schema while
-Threadline-owned tables/functions live in `audit`. Use
-`storage_schema: "public"` only when you intentionally want the older
-public-schema footprint.
+Threadline-owned tables/functions live in `threadline` or `audit`.
 
 For every supported setting and command boundary, see the
 [configuration and command reference](configuration-and-commands.md). For the
