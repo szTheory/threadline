@@ -675,11 +675,11 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 202-01-PLAN.md — Flip the storage-schema default to `public` and prove a legacy 0.9.x-shaped install reads green end to end via a rehearsal-registry hex evaluator (D-01, D-02, D-03, D-07, D-08)
+- [x] 202-01-PLAN.md — Flip the storage-schema default to `public` and prove a legacy 0.9.x-shaped install reads green end to end via a rehearsal-registry hex evaluator (D-01, D-02, D-03, D-07, D-08)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 202-02-PLAN.md — `mix release.pins`, the pin/marker separation invariant, and tarball exclusion of maintainer-only tooling (D-04, D-05, D-06, D-20)
+- [x] 202-02-PLAN.md — `mix release.pins`, the pin/marker separation invariant, and tarball exclusion of maintainer-only tooling (D-04, D-05, D-06, D-20)
 - [ ] 202-03-PLAN.md — Split changelog ownership by file, write the 0.10.0 entry breaking-changes-first, enforce its shape, and re-scope the upgrade path (D-11 – D-16)
 
 **Wave 3** *(blocked on Wave 2 completion)*
