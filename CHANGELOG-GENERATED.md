@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/szTheory/threadline/compare/v0.10.0...v0.10.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* correct the installer's storage-schema advice and the documented default ([#46](https://github.com/szTheory/threadline/issues/46)) ([4553277](https://github.com/szTheory/threadline/commit/45532778d612b40cda920047c4d9ac368c607fbb))
+
 ## [0.10.0](https://github.com/szTheory/threadline/compare/v0.9.0...v0.10.0) (2026-09-22)
 
 
