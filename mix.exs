@@ -13,6 +13,7 @@ defmodule Threadline.MixProject do
         "verify.doc_contract": :test,
         "verify.dialyzer": :dev,
         "verify.release": :dev,
+        "verify.bump_rehearsal": :dev,
         "verify.test": :test,
         # `test.reset` runs `ecto.drop -r Threadline.Test.Repo`, and that repo only
         # exists on the :test compile path (see elixirc_paths/1) — without this it
@@ -101,7 +102,20 @@ defmodule Threadline.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
-      {:lazy_html, "~> 0.1.0", only: :test}
+      {:lazy_html, "~> 0.1.0", only: :test},
+      # Test-only. Parses .github issue forms as real YAML so the
+      # community-health render contract validates GitHub's issue-forms schema
+      # instead of pattern-matching prose. Never reaches consumers of the
+      # published package.
+      #
+      # Pinned to the 2.11.x series deliberately. 2.12 floors at Elixir
+      # ~> 1.17 and 2.12.0 at ~> 1.18; either would silently falsify this
+      # package's own Elixir 1.15 support floor, since a test-only dependency
+      # still has to install on the minimum supported lane. 2.11.0 floors at
+      # ~> 1.8. Use `~> 2.11.0` rather than `~> 2.11` — the latter admits
+      # 2.12.x and reintroduces the break. The dependency floor guard in the
+      # test suite enforces this invariant.
+      {:yaml_elixir, "~> 2.11.0", only: :test, runtime: false}
     ]
   end
 
@@ -113,9 +127,18 @@ defmodule Threadline.MixProject do
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.doc_contract": [
-        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/adoption_evidence_playbook_doc_contract_test.exs test/threadline/release_distribution_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs test/threadline/integrations/phx_gen_auth_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs test/threadline/persona_routing_doc_contract_test.exs test/threadline/version_truth_doc_contract_test.exs test/threadline/forward_only_gate_doc_contract_test.exs"
+        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/adoption_evidence_playbook_doc_contract_test.exs test/threadline/release_distribution_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs test/threadline/integrations/phx_gen_auth_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs test/threadline/persona_routing_doc_contract_test.exs test/threadline/version_truth_doc_contract_test.exs test/threadline/critic_iteration_runbook_doc_contract_test.exs"
       ],
       "verify.release": &verify_release/1,
+      # Simulate the NEXT MINOR release commit and run the release gates against
+      # it. A whole class of release defect — a doc pin, a marked prose line, a
+      # contract assertion that hardcodes the current version — is green at the
+      # current version by construction and only becomes observable once the
+      # version has moved, so a gate that only ever measures the current version
+      # cannot see it. Not folded into `ci.all`: it is a release-lane check and
+      # follows `verify.release`'s precedent of staying out of the per-change
+      # gate. The CI topology contract asserts both halves of that placement.
+      "verify.bump_rehearsal": &verify_bump_rehearsal/1,
       "verify.topology": ["threadline.verify_topology"],
       "verify.example": &verify_example/1,
       "verify.example_browser": &verify_example_browser/1,
@@ -195,6 +218,13 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd(cmd) do
       0 -> :ok
       status -> Mix.raise("verify.bench failed (#{status})")
+    end
+  end
+
+  defp verify_bump_rehearsal(_args) do
+    case Mix.shell().cmd("bin/verify-bump-rehearsal") do
+      0 -> :ok
+      status -> Mix.raise("verify.bump_rehearsal failed (#{status})")
     end
   end
 
@@ -323,8 +353,41 @@ defmodule Threadline.MixProject do
   end
 
   defp verify_hex_evaluator(_args) do
+    # The fixture resolves `:threadline` in one of two modes.
+    #
+    #   rehearsal (default) — wrap the run in `bin/with-rehearsal-registry`,
+    #     which packages THIS tree with `mix hex.build`, serves it from a
+    #     throwaway signed local registry, and tears the registry down on every
+    #     exit path. This is what makes the evaluator a usable PRE-publish gate
+    #     instead of a re-test of the last published release.
+    #
+    #   published — set only by release.yml AFTER `mix hex.publish`. No local
+    #     registry; the fixture resolves the exact published version from
+    #     hexpm, so the run must NOT be wrapped.
+    #
+    # `mix verify.hex_evaluator` stays the single named entrypoint either way.
+    steps =
+      "printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test"
+
+    # Rehearsal mode must re-resolve `:threadline` on EVERY run. The rehearsal
+    # tarball's version does not change when the tree does, so a lock entry
+    # left over from a previous run records a checksum for a DIFFERENT tarball
+    # at the same version — and Hex then aborts with "Registry checksum
+    # mismatch against lock" instead of picking up the current tree. Unlocking
+    # just this one dep keeps every other dep's cache intact, which is why this
+    # is not a blanket `rm mix.lock`. Only `:threadline` is unlocked; the lock
+    # itself is deliberately untracked and gitignored, because this fixture's
+    # job is resolvability rather than reproducibility.
+    unlock = "(mix deps.unlock threadline || true)"
+
     cmd =
-      "bash -lc 'set -euo pipefail && cd priv/ci/hex_evaluator && printf \"n\\n\" | mix deps.get && mix compile --warnings-as-errors && mix ecto.create --quiet -r HexEvaluator.Repo && mix ecto.migrate --quiet && mix test'"
+      case System.get_env("THREADLINE_HEX_EVALUATOR_MODE", "rehearsal") do
+        "published" ->
+          "bash -lc 'set -euo pipefail && cd priv/ci/hex_evaluator && #{steps}'"
+
+        _ ->
+          "bin/with-rehearsal-registry bash -lc 'set -euo pipefail && cd priv/ci/hex_evaluator && #{unlock} && #{steps}'"
+      end
 
     case Mix.shell().cmd(cmd, env: [{"MIX_ENV", "test"}]) do
       0 -> :ok
@@ -369,7 +432,27 @@ defmodule Threadline.MixProject do
         "Changelog" => "#{@source_url}/blob/#{doc_source_ref()}/CHANGELOG.md"
       },
       files:
-        ~w(lib priv/fonts guides brandbook/favicon.svg brandbook/logo-primary.svg brandbook/logo-primary-light.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md)
+        ~w(lib priv/fonts guides brandbook/favicon.svg brandbook/logo-primary.svg brandbook/logo-primary-light.svg .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md),
+      # Maintainer-only tooling must never cross into the published package.
+      # Two of the critic tasks carry a `@shortdoc`, so once shipped they would
+      # appear in every adopter's `mix help` under a namespace that is not this
+      # library's; the stress and mechanical harness and the release pin
+      # rewriter are repository instruments with no meaning inside a host
+      # application. Expressed as patterns rather than by converting `files:`
+      # into a file-granular enumeration of `lib/`, because an allowlist of
+      # individual modules would silently omit any legitimate new one. The
+      # exclusion is proven against the UNPACKED tarball in
+      # test/threadline/release_artifact_contract_test.exs, not against this
+      # configuration — a gate that asserts its own inputs proves nothing.
+      exclude_patterns: [
+        ~r{^lib/mix/tasks/critic\.},
+        ~r{^lib/mix/tasks/release\.pins\.ex$},
+        ~r{^lib/threadline/critic_trust/},
+        ~r{^lib/threadline/operator_surface/live/stress_live\.ex$},
+        ~r{^lib/threadline/operator_surface/mechanical_checker\.ex$},
+        ~r{^lib/threadline/operator_surface/stress_fixtures\.ex$},
+        ~r{^lib/threadline/operator_surface/stress_router\.ex$}
+      ]
     ]
   end
 

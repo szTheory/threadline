@@ -1,5 +1,6 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TransactionLive do
+    @moduledoc false
     use Phoenix.LiveView
 
     # This page declares its own form policy, so a change that adds a form control

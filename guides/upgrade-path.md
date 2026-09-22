@@ -2,7 +2,7 @@
 
 This guide is the canonical support-matrix and lifecycle reference for Threadline's named adoption lanes. `guides/integration-contracts.md` defines the reusable seams, and `guides/operator-surface.md` covers mount, auth, and screens. This guide answers a different set of questions: which lane you are on, what compatibility is actually supported, and how surface-only changes move between Threadline minors.
 
-Threadline **0.6.0** landed Evidence, `Audit.transaction/3`, and aligned operator surfaces in-repo after **0.5.0**; the later minors (`0.7.0` through `0.9.0`) added surface, DX, and proof-lane work only. Upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
+Threadline **0.6.0** landed Evidence, `Audit.transaction/3`, and aligned operator surfaces in-repo after **0.5.0**; the later minors (`0.7.0` through `0.9.0`) added surface, DX, and proof-lane work only. **0.10.0** is the first bump in that run with adopter actions attached — see the `0.9.x → 0.10.x` bullet below. Upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
 ## Who this guide is for
 
@@ -86,10 +86,10 @@ Every adopter-visible change from 0.6.x through 0.9.x fell into one of four them
 
 | Theme | Where it landed | Adopter action |
 | --- | --- | --- |
-| **storage-schema default** | The `threadline` storage-schema default keeps Threadline-owned tables/functions out of `public`; it applies to **new** installs only. | None for existing installs — you keep the schema you generated. New installs set `storage_schema` before `mix threadline.install` (see the migration callout below). |
+| **storage-schema default** | Nothing landed here in this era: the `storage_schema` seam does not exist before `0.10.0`. Installs generated in the 0.6.x–0.9.x era put Threadline-owned tables, functions, and triggers wherever the installer wrote them, which is the host's `public` schema. | None in this era, and none arriving later either — `0.10.0` defaults to `public`, which is what these installs already have. The no-action outcome is settled by the `0.10.0` change, not by this era; see the `0.9.x → 0.10.x` bullet and the migration callout below. |
 | **operator surface/theming** | `[0.8.0]` operator-surface overhaul (dark "night infrastructure" theme, Home task-launcher, copy-to-clipboard, evidence verdicts) and `[0.9.0]` first-class positioning + accessibility pass. | Nothing required — `capture-only` is unaffected and `phoenix-surface` gets the improved `/audit` surface with no mount-shape change. |
 | **release proof lanes** | `[0.7.0]` through `[0.9.0]` hardened the release/proof pipeline (flake-detection gate, doc-contract locks, release-please publishing). | Nothing required — these are maintainer/CI proofs, not host code. |
-| **migration expectations** | No host-DB migration shipped in the 0.6.x → 0.9.x era; the only migration-shaped expectation is the storage-schema freeze described below. | Nothing required for existing adopters — see the storage-schema callout. |
+| **migration expectations** | No host-DB migration shipped in the 0.6.x → 0.9.x era. The one migration-shaped expectation this guide carries — the `storage_schema` freeze — belongs to `0.10.0`, not to this era. | Nothing required for existing adopters — see the storage-schema callout. |
 
 ### At a glance, per minor
 
@@ -98,6 +98,7 @@ Every adopter-visible change from 0.6.x through 0.9.x fell into one of four them
 | 0.6.x → 0.7.x | No | None | None | Nothing required — first-hour DX + reference-lane docs only. |
 | 0.7.x → 0.8.x | No | None | None | Nothing required — operator-surface/theming + CI proof-lane work only. |
 | 0.8.x → 0.9.x | No | None | None | Nothing required — operator-surface positioning + accessibility only. |
+| 0.9.x → 0.10.x | No | None | Optional — `storage_schema` is a new opt-in whose default is what you already have | **Not** nothing required: four adopter actions (S3 export dependencies, two new operator-surface routes, a narrowed `Storage` callback, 25 newly undocumented modules). |
 
 Current guidance by minor:
 
@@ -105,14 +106,27 @@ Current guidance by minor:
 - **0.6.x → 0.7.x**: First-hour DX and reference-lane docs — a Configure Threadline subsection, `:schemas` mount wiring, and the `phx-gen-auth-reference` lane. Breaking changes: **None**. Required migration: **None**. Config changes: **None**. For `capture-only` and `phoenix-surface` adopters: **nothing required**. See `CHANGELOG.md` `[0.7.0]`.
 - **0.7.x → 0.8.x**: Operator-surface overhaul (dark "night infrastructure" theme, Home task-launcher, copy-to-clipboard, evidence verdicts) plus CI/quality hardening. Breaking changes: **None**. Required migration: **None**. Config changes: **None** (optional `operator_surface_embed_scripts: false` opts out of the embedded copy helper). For `capture-only` and `phoenix-surface` adopters: **nothing required**. See `CHANGELOG.md` `[0.8.0]`.
 - **0.8.x → 0.9.x**: Operator-surface first-class positioning and an accessibility pass. Breaking changes: **None**. Required migration: **None**. Config changes: **None**. For `capture-only` and `phoenix-surface` adopters: **nothing required**. See `CHANGELOG.md` `[0.9.0]`.
+- **0.9.x → 0.10.x**: A documented public surface, the new `storage_schema` seam, and an operator surface with a theme lane and row-level deep links. Breaking changes: **None**. Required migration: **None**. Config changes: **None required** — `storage_schema` is a new opt-in and its default is the host's `public` schema, which is what your install already has. Unlike every earlier bump in this list, this one is **not** a nothing-required bump: four adopter actions remain.
+  - **S3 export adopters** — the export HTTP client moved from `:hackney` to `{:req, "~> 0.7"}`, and the `:ex_aws` floor rose from `~> 2.4` to `~> 2.7`. Swap the dependency and raise the floor in your host `mix.exs`; a raised floor is not additive.
+  - **Operator-surface mounters** — two new routes, `POST <path>/theme` and `<path>/rows/:table/:record_id`, must pass any method allowlist, proxy rule, or Content-Security-Policy in front of your `/audit` mount.
+  - **Custom `Threadline.Storage` adapters** — the `c:Threadline.Storage.put/2` callback narrowed to binary content. This is visible to Dialyzer with no runtime change; update your adapter's typespec.
+  - **Callers of implementation modules** — 25 implementation modules became `@moduledoc false`. They remain callable for Threadline's own composition, but they are no longer a supported surface.
+
+  Per lane: `capture-only` adopters can be touched by the S3-export and implementation-module items only; `phoenix-surface` adopters should also re-check the two new routes against whatever sits in front of their `/audit` mount. See `CHANGELOG.md` `[0.10.0]`.
 - `0.3.x -> 0.4.x`: the operator surface became an official optional dependency lane. `capture-only` adopters keep the no-optional-deps path. `phoenix-surface` adopters must align with the declared `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` ranges and re-check their router mount/auth setup after upgrade. `sigra-reference` adopters should also re-check the current example app and Sigra guide before treating that path as unchanged.
 - future minor upgrades: do not infer support from ecosystem norms or upstream release notes alone. Re-check this guide, the declared optional dependency ranges, the current example-app proof path, and the current changelog entry for the target Threadline minor.
 
 ### Storage-schema migration expectation
 
-`storage_schema` is frozen at generation time — set it before `mix threadline.install`. Changing it later is deliberate migration work (move or recreate the Threadline-owned tables, functions, and triggers in the new schema and re-run `mix threadline.gen.triggers`), not a runtime config edit. This is the one migration-shaped expectation in the 0.6.x → 0.9.x era, and it only affects you if you deliberately move schemas.
+`storage_schema` arrived in `0.10.0`. It defaults to the host's `public` schema, and a dedicated schema (`config :threadline, storage_schema: "threadline"`) is an explicit opt-in chosen before install.
 
-Threadline-owned `storage_schema` is separate from the host `table_schema` (`--schema`) of your audited application tables: host tables can stay in `public`, `support`, or another app schema while Threadline-owned objects live in `threadline` (the default) or a schema you choose. Existing adopters keep whatever schema they generated; only **new** installs pick up the `threadline` default.
+The choice is frozen at generation time — set it before `mix threadline.install`. Changing it later is deliberate migration work (move or recreate the Threadline-owned tables, functions, and triggers in the new schema and re-run `mix threadline.gen.triggers`), not a runtime config edit. This is the one migration-shaped expectation in this guide, and it only affects you if you deliberately move schemas.
+
+**Existing installs need no action, and the `0.10.0` change is what makes that true** — not anything settled in the 0.6.x → 0.9.x era, which had no `storage_schema` seam at all. `0.10.0` defaults to `public` precisely because Threadline cannot detect the schema an existing install generated into: a dedicated-schema default would have re-pointed every read path at tables that do not exist, while the already-deployed, unqualified triggers kept writing where they always did.
+
+**New installs should opt in.** The default no longer provides schema isolation, so choose a dedicated schema before you run the installer if you want Threadline-owned objects out of `public`.
+
+Threadline-owned `storage_schema` is separate from the host `table_schema` (`--schema`) of your audited application tables: host tables can stay in `public`, `support`, or another app schema while Threadline-owned objects live in `public` (the default) or a dedicated schema you choose. Existing adopters keep whatever schema they generated.
 
 ## What breaks when Phoenix/LiveView floors move
 

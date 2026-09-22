@@ -1,4 +1,4 @@
-defmodule Threadline.Phase06NyquistCIContractTest do
+defmodule Threadline.CIWorkflowParityContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
@@ -8,7 +8,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
 
-  describe "CI-01 (Plan 06-01 Task 1): workflow contract" do
+  describe "workflow triggers and stable job keys" do
     test "ci.yml exposes stable job keys and main-only triggers" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
@@ -29,7 +29,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     end
   end
 
-  describe "CI-02 (Plan 06-01 Task 2): local parity alias" do
+  describe "local CI parity alias" do
     test "mix.exs ci.all matches verify-test ordering (compile strict before tests)" do
       mix = read_rel!(["mix.exs"])
 
@@ -62,7 +62,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     end
   end
 
-  describe "CI-03 (Plan 06-02 Task 1): README discovery (D-05)" do
+  describe "README CI discovery" do
     test "HexDocs badge line is immediately followed by **CI:** paragraph" do
       lines = read_rel!(["README.md"]) |> String.split("\n")
 
@@ -88,7 +88,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     end
   end
 
-  describe "CI-03 (Plan 06-02 Task 2): CONTRIBUTING discovery" do
+  describe "contributor CI discovery" do
     test "CONTRIBUTING documents job keys and Actions URL" do
       doc = read_rel!(["CONTRIBUTING.md"])
 
@@ -165,7 +165,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     |> MapSet.new()
   end
 
-  describe "CI-03/CI-04 (Plan 192-04 Task 1, D-26): job-key parity" do
+  describe "workflow documentation job-key parity" do
     test "ci.yml jobs == header comment == CONTRIBUTING List 1" do
       jobs = ci_job_keys()
       header = ci_header_comment_keys()
@@ -198,7 +198,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     end
   end
 
-  describe "CI-02 (Plan 192-04 Task 1, D-26): no mutable rolling image tags" do
+  describe "workflow image pinning" do
     test "no workflow file pins a service image to the mutable :latest tag" do
       for path <- workflow_files() do
         refute String.contains?(File.read!(path), ":latest"),
@@ -208,7 +208,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     end
   end
 
-  describe "CI-04 (Plan 192-04 Task 1, D-26): concurrency contracts" do
+  describe "workflow concurrency" do
     test "ci.yml has a top-level concurrency block gated on pull_request" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
@@ -231,7 +231,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     end
   end
 
-  describe "CI-03/CI-04 (Plan 192-04 Task 1, D-26): verify-test matrix construction" do
+  describe "verify-test matrix construction" do
     test "ci.yml declares static name + lane axis [min, current] (construction A)" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
@@ -250,7 +250,7 @@ defmodule Threadline.Phase06NyquistCIContractTest do
     end
   end
 
-  describe "CI-02 (Plan 192-04 Task 1, D-26): dependency cache contract" do
+  describe "dependency cache contract" do
     test "ci.yml caches deps + e2e lockfile and never caches _build" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 

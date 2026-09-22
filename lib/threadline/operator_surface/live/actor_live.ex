@@ -1,5 +1,6 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.ActorLive do
+    @moduledoc false
     use Phoenix.LiveView
 
     # This page declares its own form capability. Adding a form control must update

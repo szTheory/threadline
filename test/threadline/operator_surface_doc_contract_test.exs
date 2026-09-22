@@ -55,7 +55,16 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
     assert String.contains?(guide, "[upgrade\npath](upgrade-path.md)")
     assert String.contains?(guide, "[integration contracts](integration-contracts.md)")
-    assert String.contains?(guide, "{:threadline, \"~> 0.9.0\"}")
+    # Derived from `mix release.pins`, the designated sole writer of every
+    # documented install pin, rather than hardcoded. A literal here goes red the
+    # moment that writer does its job at a version bump — the born-red shape
+    # Plan 202-09 removed from release_artifact_contract_test.exs (which carries
+    # the full rationale) and the bump rehearsal found four more copies of.
+    assert String.contains?(
+             guide,
+             ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+           )
+
     refute String.contains?(guide, "{:threadline, \"~> 0.5\"}")
     refute String.contains?(guide, "{:threadline, \"~> 0.3.0\"}")
     refute String.contains?(guide, "{:phoenix, \"~> 1.7\"}")

@@ -1,5 +1,128 @@
 # Changelog
 
+<!--
+  This file is HUMAN-OWNED. release-please has no write access to it: its
+  `changelog-path` points at CHANGELOG-GENERATED.md, and no `extra-files` entry
+  or version marker may ever name this file. Bot-generated, commit-subject-
+  derived release notes live in CHANGELOG-GENERATED.md, which is deliberately
+  absent from the published package and from HexDocs.
+
+  This is the changelog adopters read: it ships in the Hex tarball and renders
+  on HexDocs. Write for an upgrader. Within a release entry, breaking changes
+  and required action come BEFORE the feature tour — an upgrader's first two
+  questions are "will this break me" and "what must I do". An explicit "None"
+  beats omission, which reads as oversight.
+
+  Entries dated 0.9.0 and earlier were written by release automation when this
+  file was its target. They stay as published history.
+-->
+
+## Unreleased — highlights
+
+Highlights accumulate here as work lands, and this heading is retitled to the
+dated release heading at release time. The heading is deliberately unbracketed:
+a bracketed form collides with release automation's version-header pattern and
+would be read as a release.
+
+_Nothing yet for the next release._
+
+## [0.10.0] - 2026-09-22
+
+The public-surface and release-truth release: a documented surface an evaluator
+can read end to end, a storage-schema default that matches what existing
+installs already have, and an operator surface with a theme lane and row-level
+deep links.
+
+### Breaking changes
+
+**None.** No commit in this release carries a breaking-change footer or a
+breaking-change subject marker, and the one default that did change — the
+storage schema — was changed *toward* what every existing install already runs,
+which is what makes this release non-breaking rather than merely declared so.
+See "Storage schema default" below.
+
+### Required action
+
+Four adopter actions remain. None of them break an install that does nothing,
+but each one leaves something unchanged that you probably wanted changed.
+
+- **S3 export adopters** — the export HTTP client moved from `:hackney` to
+  `{:req, "~> 0.7"}`, and the `:ex_aws` floor rose from `~> 2.4` to `~> 2.7`.
+  Swap the dependency and raise the floor in your host `mix.exs`; a raised floor
+  is not additive.
+- **Operator-surface mounters** — two new routes, `POST <path>/theme` and
+  `<path>/rows/:table/:record_id`, must pass any method allowlist, proxy rule,
+  or Content-Security-Policy in front of your `/audit` mount.
+- **Custom `Threadline.Storage` adapters** — the `c:Threadline.Storage.put/2` callback narrowed to
+  binary content. This is visible to Dialyzer with no runtime change; update
+  your adapter's typespec.
+- **Callers of implementation modules** — 25 implementation modules became
+  `@moduledoc false`. They remain callable for Threadline's own composition, but
+  they are no longer a supported surface.
+
+### Storage schema default
+
+Threadline-owned tables, functions, and triggers now default to the host's
+`public` schema. A dedicated schema became an explicit opt-in:
+`config :threadline, storage_schema: "threadline"`, set before
+`mix threadline.install`.
+
+- **Existing installs need no action.** The default now matches the schema your
+  install already generated into, so the read paths and your already-deployed
+  triggers keep agreeing about where Threadline-owned objects live. This is
+  settled by the change in this release, not by an earlier one.
+- **New installs should opt in.** The default no longer provides schema
+  isolation. Choose `storage_schema` before you run the installer — the choice
+  is frozen at generation time, and changing it later is deliberate migration
+  work rather than a runtime config edit.
+
+### Added
+
+- **Architecture documentation** — rewrote How Threadline Works as an end-to-end
+  visual architecture guide and added a source-driven Code Walkthrough, with
+  dark/light Mermaid rendering and the Threadline mark as the HexDocs favicon.
+- **Operator-surface theme lane** — `threadline_operator_surface/2` accepts
+  `:theme` (`:dark | :light | :system`, default `:dark`), backed by a
+  session-persisted picker served from the new `POST <path>/theme` route.
+- **Row-level history deep links** — `<path>/rows/:table/:record_id` addresses a
+  single audited row's history directly, rather than only through a transaction.
+
+### Changed
+
+- **Documented surface** — generated module documentation now focuses on
+  supported façades, returned data, extension points, integrations, the operator
+  `Threadline.OperatorSurface.Router` and `Threadline.OperatorSurface.Auth`
+  boundary, and adopter Mix tasks. The following implementation modules that had
+  pages in the 0.9 documentation are no longer listed:
+  - Capture and lifecycle implementation: Threadline.Capture.Migration,
+    Threadline.Capture.RedactionPolicy,
+    Threadline.Capture.TriggerCaptureConfig, Threadline.Capture.TriggerSQL,
+    Threadline.Export.CleanupTask, Threadline.Governance.ExportJob,
+    Threadline.Governance.Migration, Threadline.Governance.RetentionRun,
+    Threadline.Governance.SavedView, Threadline.Policy.RedactionPresenter,
+    Threadline.Retention.Pruner, and Threadline.Semantics.Migration.
+  - Operator implementation: Threadline.OperatorSurface.Style,
+    Threadline.OperatorSurface.Script, Threadline.OperatorSurface.Scope,
+    Threadline.OperatorSurface.SessionPlug,
+    Threadline.OperatorSurface.ExportAuthPlug,
+    Threadline.OperatorSurface.Components.SurfaceHeader,
+    Threadline.OperatorSurface.Controllers.ExportController,
+    Threadline.OperatorSurface.Coverage.OnMount,
+    Threadline.OperatorSurface.Coverage.Snapshot,
+    Threadline.OperatorSurface.Exports.Filename,
+    Threadline.OperatorSurface.Exports.FilterParams,
+    Threadline.OperatorSurface.Live.ActorLive, and
+    Threadline.OperatorSurface.Live.TransactionLive.
+
+  These modules remain callable for Threadline's own composition; this is a
+  documentation-surface clarification, not runtime privacy or a change to
+  supported façade behavior.
+- **S3 export HTTP client** — `:hackney` gave way to `{:req, "~> 0.7"}` and the
+  `:ex_aws` floor rose to `~> 2.7`. Both remain optional dependencies; only
+  hosts that export to S3 are affected.
+- **`c:Threadline.Storage.put/2`** — the first argument narrowed from a path
+  or content union to binary content.
+
 ## [0.9.0](https://github.com/szTheory/threadline/compare/v0.8.0...v0.9.0) (2026-06-03)
 
 
@@ -39,19 +162,6 @@ Operator-surface release: the `/audit` admin UI matured into a coherent, branded
 * **operator-surface:** prevent timeline crash on correlation_id filter ([d62e509](https://github.com/szTheory/threadline/commit/d62e509e932b3b85b1749a13745b510ad78c0042))
 * **release:** run publish chain when release-ref succeeds via dispatch ([19c7549](https://github.com/szTheory/threadline/commit/19c7549d64f67f34329566590ebf45eca96223a7))
 * **release:** use hex.build preflight instead of verify.release in CI ([d4413ef](https://github.com/szTheory/threadline/commit/d4413efe783779554a8d9b39d395034d0dea405f))
-
-## [Unreleased]
-
-### Added
-
-- **Architecture documentation** — rewrote How Threadline Works as an end-to-end visual architecture guide and added a source-driven Code Walkthrough, with dark/light Mermaid rendering and the Threadline mark as the HexDocs favicon.
-
-### Changed
-
-- **HexDocs public-surface clarification** — generated module documentation now focuses on supported façades, returned data, extension points, integrations, the operator `Threadline.OperatorSurface.Router` and `Threadline.OperatorSurface.Auth` boundary, and adopter Mix tasks. The following implementation modules that had pages in the 0.9 documentation are no longer listed:
-  - Capture and lifecycle implementation: <code>Threadline.Capture.Migration</code>, <code>Threadline.Capture.RedactionPolicy</code>, <code>Threadline.Capture.TriggerCaptureConfig</code>, <code>Threadline.Capture.TriggerSQL</code>, <code>Threadline.Export.CleanupTask</code>, <code>Threadline.Governance.ExportJob</code>, <code>Threadline.Governance.Migration</code>, <code>Threadline.Governance.RetentionRun</code>, <code>Threadline.Governance.SavedView</code>, <code>Threadline.Policy.RedactionPresenter</code>, <code>Threadline.Retention.Pruner</code>, and <code>Threadline.Semantics.Migration</code>.
-  - Operator implementation: <code>Threadline.OperatorSurface.Style</code>, <code>Threadline.OperatorSurface.Components.SurfaceHeader</code>, <code>Threadline.OperatorSurface.Controllers.ExportController</code>, <code>Threadline.OperatorSurface.Coverage.OnMount</code>, <code>Threadline.OperatorSurface.Coverage.Snapshot</code>, <code>Threadline.OperatorSurface.ExportAuthPlug</code>, <code>Threadline.OperatorSurface.SessionPlug</code>, <code>Threadline.OperatorSurface.Exports.Filename</code>, <code>Threadline.OperatorSurface.Exports.FilterParams</code>, <code>Threadline.OperatorSurface.Scope</code>, and <code>Threadline.OperatorSurface.Script</code>.
-  These modules remain callable for Threadline's own composition; this is a documentation-surface clarification, not runtime privacy or a change to supported façade behavior.
 
 ## [0.6.0] - 2026-05-27
 

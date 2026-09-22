@@ -213,10 +213,16 @@ async function expectHomeTaskHierarchy(page: Page) {
     await expect(main.getByRole("link", { name: action, exact: true })).toBeVisible();
   }
 
-  await expect(main.locator('[data-earned-flow="EF1"]')).toBeVisible();
-  await expect(main.locator('[data-earned-flow="EF4"]')).toBeVisible();
-  await expect(main.getByRole("button", { name: "Open row history" })).toBeVisible();
-  await expect(main.getByRole("button", { name: "Open Timeline" })).toBeVisible();
+  const recordLookup = main.locator("#tl-record-lookup");
+  await expect(recordLookup).toBeVisible();
+  await expect(recordLookup.getByLabel("Table")).toBeVisible();
+  await expect(recordLookup.getByLabel("Record id")).toBeVisible();
+  await expect(recordLookup.getByRole("button", { name: "Open row history" })).toBeVisible();
+
+  const correlationLookup = main.locator("#tl-correlation-lookup");
+  await expect(correlationLookup).toBeVisible();
+  await expect(correlationLookup.getByLabel("Correlation id")).toBeVisible();
+  await expect(correlationLookup.getByRole("button", { name: "Open Timeline" })).toBeVisible();
   await expect(
     main.getByRole("heading", { name: "Pick up where you left off" }),
   ).toBeVisible();

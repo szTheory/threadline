@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# Run a command with `:threadline` resolvable from a throwaway local Hex
+# registry built out of THIS tree (202 D-07).
+#
+# Why this exists. `priv/ci/hex_evaluator` is supposed to answer "does a
+# packaged build of this library install into a bare host and capture rows?".
+# It could not: its only source for `:threadline` was hex.pm, so it kept
+# re-proving the LAST published release no matter what the working tree said.
+# That is the pre-publish-gated-on-a-post-publish-fact shape the release
+# pipeline exists to remove — and it is why a storage-schema default that
+# breaks every existing adopter sailed through every gate.
+#
+# The fix is Hex's own local-registry support (`mix hex.registry build`), the
+# Hex equivalent of Verdaccio or TestPyPI. This script wraps a command so that,
+# for the duration of that command only:
+#
+#   1. a throwaway RSA key pair exists in a `mktemp -d` directory — never in
+#      the working tree, never cached, never reused across runs (T-202-01);
+#   2. `mix hex.build` has packaged this tree into `<registry>/tarballs/`;
+#   3. `mix hex.registry build` has signed a registry over that tarball;
+#   4. that registry is served over loopback HTTP by OTP's built-in inets
+#      httpd — no extra dependency, and it is the server the `mix help
+#      hex.registry` worked example itself demonstrates (there is no
+#      documented `file://` shortcut);
+#   5. `mix hex.repo add threadline_rehearsal` points Hex at it (T-202-02).
+#
+# Every one of those is undone by a single `trap` on EVERY exit path, including
+# failure and interrupt: the repo registration is removed, the HTTP server is
+# killed, and the temp dir (with the private key in it) is deleted. A leftover
+# `threadline_rehearsal` in `mix hex.repo list` after a completed run means the
+# teardown did not run and is a bug.
+#
+# Usage:
+#   bin/with-rehearsal-registry <command> [args...]
+#
+# Environment:
+#   THREADLINE_REHEARSAL_REGISTRY_PORT  loopback port to serve on (default 4173)
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+REPO_NAME="threadline_rehearsal"
+PORT="${THREADLINE_REHEARSAL_REGISTRY_PORT:-4173}"
+
+if [[ $# -eq 0 ]]; then
+  echo "bin/with-rehearsal-registry requires a command to run." >&2
+  echo "Usage: bin/with-rehearsal-registry <command> [args...]" >&2
+  exit 1
+fi
+
+# Tool-presence guards, matching bin/verify-branch-protection's
+# guard-and-instruct convention rather than letting the failure surface as an
+# opaque non-zero exit three steps later.
+if ! command -v openssl >/dev/null 2>&1; then
+  echo "bin/with-rehearsal-registry requires openssl (to generate the registry signing key) and it is not on PATH." >&2
+  echo "Install it (macOS: brew install openssl; ubuntu: apt-get install -y openssl) and re-run." >&2
+  exit 1
+fi
+
+if ! command -v erl >/dev/null 2>&1; then
+  echo "bin/with-rehearsal-registry requires erl (it serves the registry with OTP's built-in inets httpd) and it is not on PATH." >&2
+  echo "Install Erlang/OTP (this repo pins it in .tool-versions) and re-run." >&2
+  exit 1
+fi
+
+if ! command -v mix >/dev/null 2>&1; then
+  echo "bin/with-rehearsal-registry requires mix and it is not on PATH." >&2
+  exit 1
+fi
+
+WORK_DIR="$(mktemp -d)"
+SERVER_PID=""
+
+# Hex caches fetched tarballs under $HEX_HOME/packages/<repo>/. The rehearsal
+# tarball's VERSION does not change when the tree does, so a cached
+# threadline-<version>.tar from a previous run shadows the one we are about to
+# build and Hex warns about (or trips over) a checksum mismatch. This cache
+# entry belongs entirely to our throwaway repo, so purging it is safe and is
+# the only way each run genuinely measures the current tree.
+REHEARSAL_CACHE="${HEX_HOME:-$HOME/.hex}/packages/$REPO_NAME"
+
+cleanup() {
+  local status=$?
+  set +e
+  if [[ -n "$SERVER_PID" ]]; then
+    kill "$SERVER_PID" >/dev/null 2>&1
+    wait "$SERVER_PID" >/dev/null 2>&1
+  fi
+  # Remove the registration unconditionally. `mix hex.repo remove` on an
+  # absent repo is a no-op we do not want to surface, hence the redirect.
+  mix hex.repo remove "$REPO_NAME" >/dev/null 2>&1
+  rm -rf "$REHEARSAL_CACHE"
+  rm -rf "$WORK_DIR"
+  set -e
+  exit "$status"
+}
+trap cleanup EXIT INT TERM
+
+# Purge on the way in as well, so an interrupted previous run cannot leave a
+# stale tarball that this run would silently resolve instead of the tree.
+rm -rf "$REHEARSAL_CACHE"
+
+PRIVATE_KEY="$WORK_DIR/private_key.pem"
+PUBLIC_DIR="$WORK_DIR/public"
+
+# Per-invocation signing key. It lives only inside the mktemp dir the trap
+# deletes; it is never written into the repo and never reused (T-202-01).
+openssl genrsa -out "$PRIVATE_KEY" 2048 >/dev/null 2>&1
+chmod 600 "$PRIVATE_KEY"
+
+mkdir -p "$PUBLIC_DIR/tarballs"
+
+# Build the tarball from this tree and stage it for the registry. `mix
+# hex.build` writes `<app>-<version>.tar` into the current directory.
+echo "==> packaging this tree with mix hex.build"
+mix hex.build
+
+TARBALL="$(ls -1 threadline-*.tar 2>/dev/null | head -n 1 || true)"
+if [[ -z "$TARBALL" ]]; then
+  echo "mix hex.build did not produce a threadline-<version>.tar in $ROOT." >&2
+  exit 1
+fi
+mv "$TARBALL" "$PUBLIC_DIR/tarballs/"
+echo "==> staged $TARBALL"
+
+echo "==> building the $REPO_NAME registry"
+mix hex.registry build "$PUBLIC_DIR" --name="$REPO_NAME" --private-key="$PRIVATE_KEY"
+
+# Serve it over loopback with OTP's built-in inets httpd — the exact server the
+# `mix help hex.registry` worked example uses. Bound to 127.0.0.1 so the
+# registry is never reachable off-host (T-202-02, T-202-03).
+echo "==> serving $REPO_NAME on http://127.0.0.1:$PORT"
+erl -noshell -s inets \
+  -eval "inets:start(httpd,[{port,${PORT}},{bind_address,{127,0,0,1}},{server_name,\"localhost\"},{server_root,\"${WORK_DIR}\"},{document_root,\"${PUBLIC_DIR}\"}])." \
+  &
+SERVER_PID=$!
+
+# Wait for the port to actually accept connections before handing Hex a URL it
+# would otherwise fail to reach. Poll rather than sleep a fixed interval.
+READY=""
+for _ in $(seq 1 50); do
+  if erl -noshell -eval "case gen_tcp:connect({127,0,0,1}, ${PORT}, [], 200) of {ok, S} -> gen_tcp:close(S), halt(0); _ -> halt(1) end." >/dev/null 2>&1; then
+    READY="yes"
+    break
+  fi
+  sleep 0.2
+done
+
+if [[ -z "$READY" ]]; then
+  echo "The rehearsal registry server did not start accepting connections on 127.0.0.1:$PORT." >&2
+  echo "If that port is already in use, set THREADLINE_REHEARSAL_REGISTRY_PORT to a free one." >&2
+  exit 1
+fi
+
+# Replace any stale registration from a previous interrupted run, then add
+# this run's own, verified against this run's own generated public key.
+mix hex.repo remove "$REPO_NAME" >/dev/null 2>&1 || true
+mix hex.repo add "$REPO_NAME" "http://127.0.0.1:$PORT" --public-key="$PUBLIC_DIR/public_key"
+
+echo "==> running: $*"
+"$@"

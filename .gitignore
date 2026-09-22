@@ -63,6 +63,18 @@ tmp/
 /test/generated/operator_surface/reports/
 /test/generated/operator_surface/refute-transcripts/
 
+# Local critic/GSD scratch under .planning/. These are machine-local, stale-prone
+# caches and generated run state — no code reads them (the gated scorecards live
+# under /test/fixtures/operator_surface/, which stays tracked and manifest-owned).
+/.planning/critic-scores/
+/.planning/critic-verdict-cache/
+/.planning/critic-report.html
+/.planning/scorecards/
+/.planning/refute/
+/.planning/state.json
+/.planning/milestone.lock
+/.planning/agent-history.json
+
 # Local agent/session config
 /.claude/
 /.git-commit-task*.sh
@@ -72,3 +84,14 @@ tmp/
 
 #secrets
 .env
+
+# The hex evaluator fixture's lock is deliberately untracked (202 D-08).
+# This fixture's job is RESOLVABILITY — "does a packaged build of this tree
+# install into a bare host?" — not reproducibility. A committed lock pinned
+# `threadline 0.9.0` from hexpm with a checksum, which is exactly how the
+# evaluator kept proving a previously published release instead of the tree
+# under test. The accepted tradeoff is the loss of an offline cached fallback;
+# that is safe by construction because `verify_hex_evaluator/1` runs
+# `mix deps.get` unconditionally before compile/test, so a mode switch always
+# re-resolves rather than compiling against a stale lock.
+/priv/ci/hex_evaluator/mix.lock

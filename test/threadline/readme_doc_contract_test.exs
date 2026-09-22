@@ -236,7 +236,16 @@ defmodule Threadline.ReadmeDocContractTest do
     readme = File.read!("README.md")
     slice = section_slice(readme, @quick_start_start, @quick_start_end)
 
-    assert String.contains?(slice, ~S|{:threadline, "~> 0.9.0"}|)
+    # Derived from `mix release.pins`, the designated sole writer of every
+    # documented install pin, rather than hardcoded. A literal here goes red the
+    # moment that writer does its job at a version bump — the born-red shape
+    # Plan 202-09 removed from release_artifact_contract_test.exs (which carries
+    # the full rationale) and the bump rehearsal found four more copies of.
+    assert String.contains?(
+             slice,
+             ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+           )
+
     assert String.contains?(slice, "guides/getting-started-saas.md")
     assert String.contains?(slice, "guides/configuration-and-commands.md")
     refute String.contains?(slice, "config :threadline")
@@ -251,7 +260,8 @@ defmodule Threadline.ReadmeDocContractTest do
     reference = File.read!("guides/configuration-and-commands.md")
 
     refute String.contains?(slice, "storage_schema")
-    assert String.contains?(getting_started, ~S|storage_schema: "audit"|)
+    # "threadline", not "audit" — see 202 D-01/D-02.
+    assert String.contains?(getting_started, ~S|storage_schema: "threadline"|)
     assert String.contains?(getting_started, "before you run `mix threadline.install`")
     assert String.contains?(reference, "config :threadline, storage_schema:")
   end

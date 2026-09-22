@@ -189,9 +189,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <section
                 class="tl-job tl-job--info"
                 data-testid="timeline-export-context"
-                data-earned-flow="EF3"
-                data-persona="P3"
-                data-jtbd="J6"
               >
                 <div class="tl-job__main">
                   <div class="tl-job__summary">
@@ -249,9 +246,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <section
                 class="tl-job tl-job--info"
                 data-testid="evidence-export-context"
-                data-earned-flow="EF3"
-                data-persona="P3"
-                data-jtbd="J6"
               >
                 <div class="tl-job__main">
                   <div class="tl-job__summary">

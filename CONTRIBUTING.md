@@ -23,6 +23,23 @@ Choose the route that matches the change:
 - Elixir 1.15+ (CI uses 1.17.3)
 - OTP 26+ (CI uses OTP 27.0)
 - PostgreSQL 14+ (PostgreSQL 16 recommended; matches CI and `docker-compose.yml`)
+- Node.js 22 — only for the browser end-to-end lane, which is the last step of
+  the full verification gate described under Running tests below. Everything
+  else, including the whole library test suite, runs without it.
+
+If you manage toolchains with a version manager such as asdf or mise, note that
+this repository intentionally does **not** commit a `.tool-versions` file. It
+supports a range of Elixir versions rather than a single one, and committing a
+pin would turn "Elixir 1.15 and up works" into "install exactly the version this
+file names" — which would break contributors on versions the project genuinely
+supports and tests.
+
+A fresh clone therefore inherits whatever versions you already have set. If your
+version manager has none set at all, `mix` fails with something like `No version
+is set for command mix`, which names your version manager rather than this
+project and is an easy trail to lose. Set one yourself, globally or in a local
+`.tool-versions` you leave uncommitted. To match the lane CI runs, use Elixir
+1.17.3 with the matching OTP 27 build and Node.js 22.
 
 1. Clone the repository.
 2. Install dependencies: `mix deps.get`
@@ -460,6 +477,7 @@ without also failing a test.
 - `verify-docs`
 - `verify-hex-package`
 - `verify-release-shape`
+- `verify-bump-rehearsal`
 
 No `allowed-skips` or `allowed-failures` entry is documented here today,
 because `.github/workflows/ci.yml`'s `alls-green` step carries neither — every
@@ -487,6 +505,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
+| `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs `mix verify.doc_contract` + `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 
 ### Dialyzer PLT cache and measurement contract
 
@@ -616,6 +635,44 @@ The release workflow:
 
 **Secrets:** **`HEX_API_KEY`** (required). **`RELEASE_PLEASE_TOKEN`** (optional fine-grained PAT — recommended for Release Please PRs and distribution sync PRs).
 
+### The publish approval is a confirmation, not a review
+
+The `publish-hex` job declares the **`production-hex`** environment, which carries a required-reviewer rule. The approval prompt sits after the green-CI gate and immediately before `mix hex.publish`, so it is the last thing between a commit and a permanent public artifact.
+
+Every automated gate above it answers one question: **is this artifact well-formed?** — formatting, Credo, Dialyzer, the suite, the tarball shape, the evaluator install, the release metadata. The human answers a different question that no gate can: **is this the release I meant to make, and from this commit?**
+
+Be honest about what it is not. This repository has a single maintainer, and the environment rule permits self-review, so the approval is a **confirmation step** — it is **not peer review and not a second pair of eyes**. Describing it as review would be the same category of claim as a gate that asserts a line of configuration and calls it behavior, which is exactly the failure this project keeps finding in its own tooling.
+
+Two checks cover the gate, and they prove different things:
+
+| Check | What it proves | What it does **not** prove |
+|-------|----------------|-----------------------------|
+| `test/threadline/release_control_plane_contract_test.exs` | `release.yml` still declares the environment on the publish job, and the publish command still sits behind it | Nothing about GitHub's side — deleting the reviewer leaves this green and the gate inert |
+| `bin/verify-environment-protection` (workflow: `Environment Protection`) | The **live** environment still carries a required-reviewer rule with at least one reviewer, and the publish job is gated on that same environment name | Nothing about the artifact — it is a property of repository configuration, not of the commit under test |
+
+The script fails closed: an unreadable response is never scored as a pass. Its only partial-pass path requires `ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION=1` and prints a warning naming what it could not inspect. That variable is deliberately not set in the workflow. The check runs **outside** the required status check, because a contributor cannot fix repository configuration and should not be blocked by it.
+
+### Version-bearing lines and who owns them
+
+Every line in `README.md`, `guides/**`, and this file that carries a Threadline version number has exactly one named owner. The goal is that **no version-bearing line requires a hand edit at release time** — not that no version literal exists. A sentence that uses a version as an *example* stays true after a bump and needs no owner; a sentence that asserts *what the current version is* must be produced by automation.
+
+That distinction is the honest scope of the rule. An illustrative literal is not a maintenance burden, and pretending otherwise would push us toward deleting useful examples to satisfy a metric.
+
+| Line | Owner | Disposition |
+|------|-------|-------------|
+| The six `{:threadline, "~> x.y.z"}` install pins (`README.md`; `guides/getting-started-saas.md`, `operator-surface.md`, `evaluating-threadline.md`, `adoption-evidence-playbook.md`, `adoption-pilot-backlog.md`) | mix release.pins | current-version claim |
+| `guides/adoption-pilot-backlog.md` preflight SSOT sentence; `guides/evaluating-threadline.md` SSOT sentence (both carry `x-release-please-version`) | Release Please `extra-files` marker | current-version claim |
+| `guides/adoption-pilot-backlog.md` Hex attestation row ("latest is **X** on Hex", tag **`vX`**) | `bin/post-publish-distribution-sync` | current-version claim |
+| `guides/upgrade-path.md` opening era narrative (the minor range ending at the latest minor) | human prose, written with that release's upgrade row — see the release checklist item below | current-version claim |
+| `guides/upgrade-path.md` backport-policy example (`0.9.1` / `~> 0.9.0`) | human prose | illustrative |
+| `guides/upgrade-path.md` historical era rows and per-minor upgrade bullets (`[0.7.0]`…`[0.9.0]`, `0.8.x → 0.9.x`) | human prose, append-only history | illustrative |
+| `CONTRIBUTING.md` backport-policy example (`0.9.1` / `~> 0.9.0`) | human prose | illustrative |
+| `CONTRIBUTING.md` bootstrap references to **`v0.6.0`** | human prose, historical record | illustrative |
+
+**Release checklist item (minor bumps only).** A minor release must add that minor's upgrade row to [`guides/upgrade-path.md`](guides/upgrade-path.md) and extend the opening era narrative to include it. This is authoring new *content* — what changed and what an adopter must do — not a mechanical version substitution, which is why it has a human owner rather than an automated one. `test/threadline/version_truth_doc_contract_test.exs` Family C fails the build until the new minor's coverage exists, so the step cannot be silently skipped.
+
+**Enforced invariants.** `test/threadline/version_truth_doc_contract_test.exs` fails if an install pin drifts from the `major.minor.0` floor derived from `mix.exs` `@version` (Family A), if a marked SSOT line is unregistered or stale (Family B), or if a pin line ever *also* carries a Release Please marker (Family B-inverse). The last one exists because Release Please cannot correctly own a pin line: its generic updater writes the full version (wrong for a floor pinned at the minor) and its component updater replaces the leading digit inside the requirement string (producing a nonsense major). Never add a pin-bearing file to `extra-files` in `release-please-config.json`.
+
 ### Bootstrap `v0.6.0` (one-shot)
 
 After Wave 1 distribution doc work is on **`main`** and CI is green:
@@ -646,6 +703,40 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 
 Post-publish distribution proof for adopters is recorded in the adoption-pilot
 Distribution preflight row in `guides/adoption-pilot-backlog.md`.
+
+### Recovery after a bad publish
+
+Written down **before** a publish goes wrong, so it is a procedure rather than a decision made under pressure.
+
+**The decision rule, first:** inside the revert window, **revert**. Outside it, **retire and patch**. Do not spend the window deciding which one to do.
+
+**1. Inside the window — revert.** Hex allows a published release to be reverted for a short period after it is published, on the order of **an hour**. Within that window:
+
+```bash
+mix hex.publish --revert X.Y.Z
+```
+
+This is the only path that actually withdraws the release. Treat the window as short and act immediately; do not wait for a full diagnosis, because a diagnosis that takes two hours costs you this option.
+
+**2. Outside the window — retire, then ship a patch the same day.** Retirement is the only remaining lever:
+
+```bash
+mix hex.retire threadline X.Y.Z invalid --message "Reason, and the version to use instead"
+```
+
+Be precise about what retirement does: it **warns**. Resolving the retired version prints a warning, and the package page marks it. Be equally precise about what it does **not** do:
+
+- It does **not** remove the tarball — the release stays downloadable.
+- It does **not** break existing lockfiles — a project with the bad version in `mix.lock` keeps resolving it.
+- It does **not** move anyone already pinned — nobody is upgraded off the retired release by retiring it.
+
+So retirement is a signal, not a fix. The **fix** is a **same-day patch release** that corrects the defect, paired with the retirement so the warning has somewhere to point. Ship it through the normal Release Please path; do not hand-publish around the gates.
+
+**3. Removal beyond retirement is not available to you.** Deleting a published release after the revert window is a support request to the Hex team, granted at their discretion and not on your schedule. Plan as if it is unavailable, because in any timeframe that matters it is.
+
+**4. Documentation is permanent regardless.** Published documentation for a version stays published even when that version is reverted, so the recovery path never fully restores the prior state. Anything embarrassing or wrong that reaches HexDocs is public from then on — which is the strongest argument for the confirmation step in front of the publish, above.
+
+Recovery is deliberately **not automated**. There is no mix alias, script, or workflow for it, and adding one would create a fast path to an irreversible action. The commands above are run by a human who has read this section.
 
 ## Maintainer manual checklist (release)
 

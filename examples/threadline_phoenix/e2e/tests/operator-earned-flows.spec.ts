@@ -1,4 +1,4 @@
-import { expect, Locator, Page, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
@@ -25,15 +25,6 @@ async function expectNoHorizontalOverflow(page: Page) {
 
 async function expectPath(page: Page, path: string) {
   await expect.poll(() => new URL(page.url()).pathname).toBe(path);
-}
-
-async function expectEarnedFlow(locator: Locator, flow: string) {
-  await expect(locator).toBeVisible();
-  await expect(locator).toHaveAttribute("data-earned-flow", flow);
-}
-
-async function expectEarnedFlowTrace(locator: Locator, flow: string) {
-  await expect(locator).toHaveAttribute("data-earned-flow", flow);
 }
 
 async function discoverTicketReplyRecordId(page: Page) {
@@ -76,17 +67,17 @@ test.describe("operator earned-flow browser UAT", () => {
     await login(page);
   });
 
-  test("EF1 Home record-first lookup reaches first-class row history", async ({
+  test("Home record lookup reaches first-class row history", async ({
     page,
   }) => {
     const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
 
     await page.goto("/audit");
 
-    const earnedFlow = page.locator('[data-earned-flow="EF1"]');
-    await expectEarnedFlow(earnedFlow, "EF1");
-
     const form = page.locator("#tl-record-lookup");
+    await expect(form).toBeVisible();
+    await expect(form.getByLabel("Table")).toBeVisible();
+    await expect(form.getByLabel("Record id")).toBeVisible();
     await form
       .locator('select[name="record_lookup[table]"]')
       .selectOption(rowTable);
@@ -96,14 +87,13 @@ test.describe("operator earned-flow browser UAT", () => {
     await form.getByRole("button", { name: "Open row history" }).click();
 
     await expectPath(page, `/audit/rows/${rowTable}/${ticketReplyRecordId}`);
-    await expectEarnedFlowTrace(page.locator("#tl-main"), "EF2");
     const drawer = page.getByTestId("row-history-drawer");
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText("Row history:")).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
-  test("EF2 direct first-class row-history route opens without a transaction first", async ({
+  test("direct first-class row-history route opens without a transaction first", async ({
     page,
   }) => {
     const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
@@ -111,22 +101,20 @@ test.describe("operator earned-flow browser UAT", () => {
     await page.goto(`/audit/rows/${rowTable}/${ticketReplyRecordId}`);
 
     await expectPath(page, `/audit/rows/${rowTable}/${ticketReplyRecordId}`);
-    await expectEarnedFlowTrace(page.locator("#tl-main"), "EF2");
     const drawer = page.getByTestId("row-history-drawer");
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText(`Row history: ${rowTable}`)).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 
-  test("EF4 Home correlation paste lands on Timeline correlation filter", async ({
+  test("Home correlation lookup lands on Timeline correlation filter", async ({
     page,
   }) => {
     await page.goto("/audit");
 
-    const earnedFlow = page.locator('[data-earned-flow="EF4"]');
-    await expectEarnedFlow(earnedFlow, "EF4");
-
     const form = page.locator("#tl-correlation-lookup");
+    await expect(form).toBeVisible();
+    await expect(form.getByLabel("Correlation id")).toBeVisible();
     await form
       .locator('input[name="correlation[correlation_id]"]')
       .fill(closeCorrelation);
@@ -142,7 +130,7 @@ test.describe("operator earned-flow browser UAT", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("EF3 filtered Timeline context carries into Exports", async ({
+  test("filtered Timeline context carries into Exports", async ({
     page,
   }) => {
     await page.goto(
@@ -160,7 +148,8 @@ test.describe("operator earned-flow browser UAT", () => {
     await expect(filterDrawer).toBeVisible();
 
     const carry = filterDrawer.getByRole("link", { name: "Carry to Exports" });
-    await expectEarnedFlow(carry, "EF3");
+    await expect(carry).toBeVisible();
+    await expect(carry).toHaveAttribute("href", /\/audit\/exports\?/);
     await carry.click();
 
     await expectPath(page, "/audit/exports");
@@ -169,7 +158,7 @@ test.describe("operator earned-flow browser UAT", () => {
     expect(url.searchParams.get("correlation_id")).toBe(closeCorrelation);
 
     const context = page.getByTestId("timeline-export-context");
-    await expectEarnedFlow(context, "EF3");
+    await expect(context).toBeVisible();
     await expect(context.getByText("Timeline export context")).toBeVisible();
     await expect(context.locator("dt", { hasText: "table" })).toBeVisible();
     await expect(
@@ -184,7 +173,7 @@ test.describe("operator earned-flow browser UAT", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("EF3 filtered Evidence context carries into Exports", async ({
+  test("filtered Evidence context carries into Exports", async ({
     page,
   }) => {
     await page.goto("/audit/evidence");
@@ -203,10 +192,10 @@ test.describe("operator earned-flow browser UAT", () => {
     await expect(page).toHaveURL(/\/audit\/evidence\?.*mode=history/);
 
     const carry = page
-      .locator('[data-earned-flow="EF3"]')
-      .filter({ hasText: "Carry to Exports" })
+      .getByRole("link", { name: "Carry to Exports" })
       .first();
-    await expectEarnedFlow(carry, "EF3");
+    await expect(carry).toBeVisible();
+    await expect(carry).toHaveAttribute("href", /\/audit\/exports\?/);
     await carry.click();
 
     await expectPath(page, "/audit/exports");
@@ -217,7 +206,7 @@ test.describe("operator earned-flow browser UAT", () => {
     expect(url.searchParams.get("subject_ref_json")).toBeTruthy();
 
     const context = page.getByTestId("evidence-export-context");
-    await expectEarnedFlow(context, "EF3");
+    await expect(context).toBeVisible();
     await expect(context.getByText("Evidence export context")).toBeVisible();
     await expect(context.getByText("Evidence handoff")).toBeVisible();
     await expect(context.getByText("active Evidence view")).toBeVisible();

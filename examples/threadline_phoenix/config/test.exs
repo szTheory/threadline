@@ -16,6 +16,19 @@ config :threadline_phoenix, ThreadlinePhoenix.Repo,
   hostname: System.get_env("DB_HOST", "localhost"),
   port: System.get_env("DB_PORT", "5432") |> String.to_integer(),
   database: "threadline_phoenix_test#{System.get_env("MIX_TEST_PARTITION")}",
+  # Reap clients abandoned while idle inside a transaction so their locks cannot
+  # wedge later deterministic demo resets. Active queries are unaffected.
+  #
+  # This MUST stay strictly below `ownership_timeout` and the ExUnit per-test
+  # timeout (both 60_000 below). At an equal deadline the reaper fires at the
+  # same instant the waiting test gives up, so it can never unwedge the blocked
+  # query in time — which is exactly the race that made
+  # DemoContractTest "SEED-02 idempotency and SEED-04 reset recovery" flake with
+  # an ExUnit.TimeoutError while parked server-side in
+  # Demo.Seed.Exports.run/1 -> insert_all. 20s leaves ~3x headroom over the
+  # slowest observed demo-seed test (~7s) and 40s of margin for the unblocked
+  # waiter to finish. Enforced by IdleTransactionReaperContractTest.
+  parameters: [idle_in_transaction_session_timeout: "20000"],
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2,
   timeout: 60_000,

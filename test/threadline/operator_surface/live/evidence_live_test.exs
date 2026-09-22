@@ -233,16 +233,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         subject_ref_json = URI.encode_www_form(~s({"export_id":"export-123"}))
 
-        {:ok, _view, html} =
+        {:ok, view, html} =
           live(
             conn,
             "/audit/evidence?subject=export_delivery&subject_ref_json=#{subject_ref_json}&mode=history"
           )
 
-        assert html =~ "Carry to Exports"
-        assert html =~ ~s|data-earned-flow="EF3"|
-        assert html =~ ~s|data-persona="P3"|
-        assert html =~ ~s|data-jtbd="J6"|
+        assert has_element?(
+                 view,
+                 ~s|a[href^="/audit/exports?"]|,
+                 "Carry to Exports"
+               )
+
+        for planning_attribute <- ~w(data-earned-flow data-persona data-jtbd) do
+          refute has_element?(
+                   view,
+                   ~s|a[#{planning_attribute}]|,
+                   "Carry to Exports"
+                 )
+        end
+
         assert html =~ ~s|href="/audit/exports?|
         assert html =~ "source=evidence"
         assert html =~ "subject=export_delivery"
