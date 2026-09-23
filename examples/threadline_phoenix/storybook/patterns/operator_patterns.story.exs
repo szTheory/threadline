@@ -67,12 +67,12 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
 
           <UI.Display.card>
             <:title>data panel plus state and pager</:title>
-            <UI.data_panel state={:ok} id="pattern-data-panel">
+            <UI.Data.data_panel state={:ok} id="pattern-data-panel">
               <:data>
-                <UI.data_table rows={[%{subject: "ticket:4521", action: "ticket.reopened"}]}>
+                <UI.Data.data_table rows={[%{subject: "ticket:4521", action: "ticket.reopened"}]}>
                   <:col :let={row} label="Subject"><%= row.subject %></:col>
                   <:col :let={row} label="Action"><%= row.action %></:col>
-                </UI.data_table>
+                </UI.Data.data_table>
               </:data>
               <:pager>
                 <UI.pager
@@ -82,10 +82,10 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                   has_newer={@pager.has_newer}
                 />
               </:pager>
-            </UI.data_panel>
-            <UI.data_panel state={:empty} id="pattern-empty-panel">
+            </UI.Data.data_panel>
+            <UI.Data.data_panel state={:empty} id="pattern-empty-panel">
               <:data><span>not rendered for empty pattern</span></:data>
-            </UI.data_panel>
+            </UI.Data.data_panel>
           </UI.Display.card>
 
           <UI.Display.card variant="danger">
@@ -114,7 +114,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
 
           <UI.Display.card>
             <:title>permission denied</:title>
-            <UI.data_state reason={:unauthorized} />
+            <UI.Data.data_state reason={:unauthorized} />
             <p class="tl-page__lede"><%= @permission_denied.story_id %></p>
           </UI.Display.card>
         </UI.Display.stack>

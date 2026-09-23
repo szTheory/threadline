@@ -82,8 +82,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   @data_display_contracts [
     {"ref", ["<UI.Display.ref"]},
     {"kv", ["<UI.Display.kv"]},
-    {"data table", ["<UI.data_table"]},
-    {"data panel", ["<UI.data_panel"]},
+    {"data table", ["<UI.Data.data_table"]},
+    {"data panel", ["<UI.Data.data_panel"]},
     {"code block", ["<UI.Display.code_block"]},
     {"detail header", ["<UI.detail_header"]},
     {"toolbar", ["<UI.toolbar"]}

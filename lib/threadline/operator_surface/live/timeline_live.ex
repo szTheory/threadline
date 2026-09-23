@@ -513,7 +513,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           older_event="next-page"
           newer_event={nil}
         />
-        <UI.empty_state
+        <UI.Data.empty_state
           :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
           variant={timeline_empty_variant(@filters_raw, @future_window_empty)}
           role="status"
@@ -527,7 +527,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <%= timeline_empty_action_label(@filters_raw, @future_window_empty) %>
             </.link>
           </:actions>
-        </UI.empty_state>
+        </UI.Data.empty_state>
         <.timeline_filter_drawer
           filters_raw={@filters_raw}
           coverage_enabled={@threadline_coverage_enabled}

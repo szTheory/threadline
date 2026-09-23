@@ -97,10 +97,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @groups == [] do %>
-                <UI.empty_state variant="no_data" role="status" icon={:funnel}>
+                <UI.Data.empty_state variant="no_data" role="status" icon={:funnel}>
                   <:title>No evidence records yet</:title>
                   Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed.
-                </UI.empty_state>
+                </UI.Data.empty_state>
               <% else %>
                 <section :for={group <- @groups} class="tl-section">
                   <header class="tl-section__header">

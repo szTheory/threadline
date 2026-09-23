@@ -80,13 +80,13 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
             </:actions>
           </UI.detail_header>
 
-          <UI.data_panel state={:ok} id="group-data-panel" as_of={@stale.as_of}>
+          <UI.Data.data_panel state={:ok} id="group-data-panel" as_of={@stale.as_of}>
             <:data>
-              <UI.data_table rows={[%{subject: "ticket:4521", action: "ticket.reopened", status: "warning"}]}>
+              <UI.Data.data_table rows={[%{subject: "ticket:4521", action: "ticket.reopened", status: "warning"}]}>
                 <:col :let={row} label="Subject"><%= row.subject %></:col>
                 <:col :let={row} label="Action"><%= row.action %></:col>
                 <:col :let={row} label="Status"><%= row.status %></:col>
-              </UI.data_table>
+              </UI.Data.data_table>
             </:data>
             <:pager>
               <UI.pager
@@ -96,7 +96,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
                 has_newer={@pager.has_newer}
               />
             </:pager>
-          </UI.data_panel>
+          </UI.Data.data_panel>
 
           <UI.Display.cluster>
             <UI.modal id="group-modal-destructive" show>
@@ -111,7 +111,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
               </UI.Display.stack>
             </UI.modal>
 
-            <UI.data_state reason={:unauthorized} />
+            <UI.Data.data_state reason={:unauthorized} />
           </UI.Display.cluster>
 
           <UI.Display.alert variant="warning" data-tl-mutating>

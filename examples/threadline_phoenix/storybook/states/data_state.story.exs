@@ -29,36 +29,36 @@ defmodule ThreadlinePhoenixWeb.Storybook.States.DataStateStory do
     <.threadline_preview theme="system">
       <.preview_section title="Data-state variation groups" description="Representative empty, no-data, permission, loading, stale, error, unavailable, redacted, pruned, null, pagination, and timezone boundaries.">
         <UI.Display.stack gap="section">
-          <UI.stale_banner
+          <UI.Data.stale_banner
             as_of={@fixtures.stale.as_of}
             object_label={@fixtures.stale.object_label}
           />
 
           <UI.Display.cluster>
-            <UI.empty_state role="status">
+            <UI.Data.empty_state role="status">
               <:title><%= @fixtures.empty.title %></:title>
               Audit Changes appear after captured database transactions.
-            </UI.empty_state>
+            </UI.Data.empty_state>
 
-            <UI.data_state reason={@fixtures.no_data.reason} />
+            <UI.Data.data_state reason={@fixtures.no_data.reason} />
           </UI.Display.cluster>
 
           <UI.Display.cluster>
-            <UI.data_state reason={:loading} />
-            <UI.data_state reason={:unauthorized} capability={@fixtures.permission.capability} />
+            <UI.Data.data_state reason={:loading} />
+            <UI.Data.data_state reason={:unauthorized} capability={@fixtures.permission.capability} />
           </UI.Display.cluster>
 
           <UI.Display.cluster>
-            <UI.data_state reason={:source_down} logs_label={@fixtures.source_down.logs_label} />
-            <UI.error_state>
+            <UI.Data.data_state reason={:source_down} logs_label={@fixtures.source_down.logs_label} />
+            <UI.Data.error_state>
               <:title><%= @fixtures.error.title %></:title>
               Retry, then check <%= @fixtures.error.logs_label %>.
-            </UI.error_state>
+            </UI.Data.error_state>
           </UI.Display.cluster>
 
           <UI.Display.cluster>
-            <UI.data_state reason={:redacted} />
-            <UI.data_state reason={:pruned} as_of={@fixtures.pruned.as_of} />
+            <UI.Data.data_state reason={:redacted} />
+            <UI.Data.data_state reason={:pruned} as_of={@fixtures.pruned.as_of} />
           </UI.Display.cluster>
 
           <UI.Display.card>

@@ -644,6 +644,7 @@ defmodule Threadline.PublicSurfaceContractTest do
       Threadline.OperatorSurface.UI,
       Threadline.OperatorSurface.UI.Actions,
       Threadline.OperatorSurface.UI.Display,
+      Threadline.OperatorSurface.UI.Data,
       Threadline.Capture.Migration,
       Threadline.Evidence.Subject,
       Mix.Tasks.Threadline.Gen.Triggers

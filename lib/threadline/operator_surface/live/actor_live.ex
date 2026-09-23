@@ -132,7 +132,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:lede>Review what an actor touched in a time window, then open a transaction to inspect row-level changes.</:lede>
             </UI.page_header>
 
-            <UI.error_state>
+            <UI.Data.error_state>
               <:title>Invalid actor reference</:title>
               This actor kind and id could not be parsed as a Threadline actor reference.
               Return to Timeline and check the actor reference.
@@ -142,7 +142,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Open timeline
                 </.link>
               </:actions>
-            </UI.error_state>
+            </UI.Data.error_state>
           </div>
         <% else %>
           <div class="tl-transaction">
@@ -181,7 +181,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
 
           <%= if not @has_ever_acted do %>
-            <UI.empty_state variant="never" role="status" icon={:history}>
+            <UI.Data.empty_state variant="never" role="status" icon={:history}>
               <:title>No actor activity recorded</:title>
               No transactions or actions are linked to this actor yet.
               Run an audited transaction or record a semantic action for this actor, then return here.
@@ -191,10 +191,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Open timeline
                 </a>
               </:actions>
-            </UI.empty_state>
+            </UI.Data.empty_state>
           <% else %>
             <%= if @has_ever_acted and Enum.empty?(@streams.transactions.inserts) do %>
-              <UI.empty_state variant="no_data" role="status" icon={:funnel}>
+              <UI.Data.empty_state variant="no_data" role="status" icon={:funnel}>
                 <:title>No actor activity in this window</:title>
                 No transactions or actions are linked to this actor in the selected time window.
                 <%= if @last_activity do %>This actor was last active <%= Presentation.human_time(@last_activity) %>.<% end %>
@@ -209,7 +209,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     Open timeline
                   </a>
                 </:actions>
-              </UI.empty_state>
+              </UI.Data.empty_state>
             <% else %>
               <div
                 id="transactions-list"

@@ -177,7 +177,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
 
             <%= if not @has_runs do %>
-              <UI.empty_state variant="never" role="status">
+              <UI.Data.empty_state variant="never" role="status">
                 <:title>No retention runs yet</:title>
                 Configure a retention window, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.
                 <:actions>
@@ -190,7 +190,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <%= @prune_copy.open_label %>
                   </button>
                 </:actions>
-              </UI.empty_state>
+              </UI.Data.empty_state>
             <% else %>
               <section class="tl-summary-grid" aria-label="Retention window health">
                 <div class="tl-card--metric">
@@ -245,7 +245,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <% end %>
               </p>
               <div class="tl-table-wrap" data-testid="retention-runs-table">
-                <UI.data_table
+                <UI.Data.data_table
                   class="tl-table--retention tl-table--compact tl-table--sticky"
                   stream={@streams.runs}
                   tbody_id="retention-runs"
@@ -276,7 +276,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       Review evidence
                     </.link>
                   </:action>
-                </UI.data_table>
+                </UI.Data.data_table>
               </div>
             <% end %>
 

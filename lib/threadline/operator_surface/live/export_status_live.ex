@@ -282,7 +282,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <% end %>
 
             <%= if not @has_jobs do %>
-              <UI.empty_state variant="never" role="status" icon={:history}>
+              <UI.Data.empty_state variant="never" role="status" icon={:history}>
                 <:title>No export jobs queued</:title>
                 Queue an export from Timeline, then return here to download the completed packet or reopen the source search.
                 <:actions>
@@ -291,7 +291,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     Open timeline
                   </.link>
                 </:actions>
-              </UI.empty_state>
+              </UI.Data.empty_state>
             <% else %>
               <section id="export-jobs" data-testid="export-jobs">
                 <%!-- Export history is intentionally recent-only rather than keyset-paginated.

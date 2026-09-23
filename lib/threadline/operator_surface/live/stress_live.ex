@@ -449,14 +449,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-space-y-4">
                     <h4>Empty & Error States</h4>
                     <div class="tl-grid tl-grid-cols-2 tl-gap-4">
-                      <Threadline.OperatorSurface.UI.empty_state>
+                      <Threadline.OperatorSurface.UI.Data.empty_state>
                         <:title>No data</:title>
                         Try adjusting filters.
-                      </Threadline.OperatorSurface.UI.empty_state>
-                      <Threadline.OperatorSurface.UI.error_state>
+                      </Threadline.OperatorSurface.UI.Data.empty_state>
+                      <Threadline.OperatorSurface.UI.Data.error_state>
                         <:title>Loading failed</:title>
                         Could not reach database.
-                      </Threadline.OperatorSurface.UI.error_state>
+                      </Threadline.OperatorSurface.UI.Data.error_state>
                     </div>
                   </div>
 
@@ -474,7 +474,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <:item key="Actor">operator@example.invalid</:item>
                       </Threadline.OperatorSurface.UI.Display.kv>
 
-                      <Threadline.OperatorSurface.UI.data_table
+                      <Threadline.OperatorSurface.UI.Data.data_table
                         rows={[
                           %{status: "completed", rows: "1,234", at: "2026-06-16T12:00:00Z"},
                           %{status: "failed", rows: "0", at: "2026-06-16T13:00:00Z"}
@@ -485,20 +485,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <:col :let={r} label="Deleted rows"><%= r.rows %></:col>
                         <:col :let={r} label="Date"><%= r.at %></:col>
                         <:action>Actions</:action>
-                      </Threadline.OperatorSurface.UI.data_table>
+                      </Threadline.OperatorSurface.UI.Data.data_table>
                     </div>
                   </div>
 
                   <div class="tl-space-y-4">
                     <h4>Data States</h4>
                     <div class="tl-space-y-4">
-                      <Threadline.OperatorSurface.UI.stale_banner as_of="2026-06-16 23:59 UTC" />
-                      <Threadline.OperatorSurface.UI.loading_state />
-                      <Threadline.OperatorSurface.UI.data_state reason={:no_data} />
-                      <Threadline.OperatorSurface.UI.data_state reason={:unauthorized} />
-                      <Threadline.OperatorSurface.UI.data_state reason={:source_down} />
-                      <Threadline.OperatorSurface.UI.data_state reason={:redacted} />
-                      <Threadline.OperatorSurface.UI.data_state reason={:pruned} as_of="2026-05-01" />
+                      <Threadline.OperatorSurface.UI.Data.stale_banner as_of="2026-06-16 23:59 UTC" />
+                      <Threadline.OperatorSurface.UI.Data.loading_state />
+                      <Threadline.OperatorSurface.UI.Data.data_state reason={:no_data} />
+                      <Threadline.OperatorSurface.UI.Data.data_state reason={:unauthorized} />
+                      <Threadline.OperatorSurface.UI.Data.data_state reason={:source_down} />
+                      <Threadline.OperatorSurface.UI.Data.data_state reason={:redacted} />
+                      <Threadline.OperatorSurface.UI.Data.data_state reason={:pruned} as_of="2026-05-01" />
                     </div>
                   </div>
 
@@ -533,9 +533,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                   <div class="tl-space-y-4">
                     <h4>Data Panel</h4>
-                    <Threadline.OperatorSurface.UI.data_panel id="stress-data-panel" aria-label="Stress data panel">
+                    <Threadline.OperatorSurface.UI.Data.data_panel id="stress-data-panel" aria-label="Stress data panel">
                       <:data>
-                        <Threadline.OperatorSurface.UI.data_table
+                        <Threadline.OperatorSurface.UI.Data.data_table
                           rows={[
                             %{status: "ready", rows: "24", at: "2026-06-16T12:00:00Z"}
                           ]}
@@ -543,9 +543,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <:col :let={r} label="Status"><%= r.status %></:col>
                           <:col :let={r} label="Rows"><%= r.rows %></:col>
                           <:col :let={r} label="Date"><%= r.at %></:col>
-                        </Threadline.OperatorSurface.UI.data_table>
+                        </Threadline.OperatorSurface.UI.Data.data_table>
                       </:data>
-                    </Threadline.OperatorSurface.UI.data_panel>
+                    </Threadline.OperatorSurface.UI.Data.data_panel>
                   </div>
 
                   <div class="tl-space-y-4">

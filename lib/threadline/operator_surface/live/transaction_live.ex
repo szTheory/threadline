@@ -108,7 +108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
             </UI.page_header>
 
-            <UI.error_state>
+            <UI.Data.error_state>
               <:title>Transaction not found</:title>
               This database transaction may not exist, or it may have been pruned by the retention policy.
               Return to Timeline and check the transaction id.
@@ -118,7 +118,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Open timeline
                 </.link>
               </:actions>
-            </UI.error_state>
+            </UI.Data.error_state>
           </div>
         <% else %>
           <div class="tl-transaction tl-short-content">
@@ -167,7 +167,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
 
           <%= if Enum.empty?(@bundle.changes) do %>
-            <UI.empty_state variant="no_data" role="status" icon={:history}>
+            <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
               <:title>No row-level changes captured</:title>
               A database transaction was found, but row-level changes were not captured.
               Check audit readiness for this table, then return to Timeline.
@@ -177,7 +177,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Open timeline
                 </.link>
               </:actions>
-            </UI.empty_state>
+            </UI.Data.empty_state>
           <% else %>
             <div
               id="changes-list"

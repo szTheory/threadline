@@ -64,10 +64,10 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:ok}>
+        <UI.Data.data_panel state={:ok}>
           <:data><p id="payload">live rows</p></:data>
           <:pager><span id="pager">1 of 3</span></:pager>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="ok")
@@ -81,10 +81,10 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:loading}>
+        <UI.Data.data_panel state={:loading}>
           <:data><p id="payload">should not appear</p></:data>
           <:pager><span id="pager">hidden</span></:pager>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="loading")
@@ -100,9 +100,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:empty}>
+        <UI.Data.data_panel state={:empty}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="empty")
@@ -119,9 +119,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:no_data}>
+        <UI.Data.data_panel state={:no_data}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="no_data")
@@ -137,9 +137,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:error}>
+        <UI.Data.data_panel state={:error}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="error")
@@ -153,9 +153,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:permission} reason={:unauthorized}>
+        <UI.Data.data_panel state={:permission} reason={:unauthorized}>
           <:data><p>should never leak</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="permission")
@@ -173,9 +173,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:unavailable} reason={:source_down}>
+        <UI.Data.data_panel state={:unavailable} reason={:source_down}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="unavailable")
@@ -190,16 +190,16 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       redacted =
         rendered_to_string(~H"""
-        <UI.data_panel state={:unavailable} reason={:redacted}>
+        <UI.Data.data_panel state={:unavailable} reason={:redacted}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       pruned =
         rendered_to_string(~H"""
-        <UI.data_panel state={:unavailable} reason={:pruned} as_of="2026-06-01">
+        <UI.Data.data_panel state={:unavailable} reason={:pruned} as_of="2026-06-01">
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert redacted =~ "tl-empty--unavailable"
@@ -218,9 +218,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
         assert_raise ArgumentError, ~r/requires a typed :reason/, fn ->
           rendered_to_string(~H"""
-          <UI.data_panel state={@state}>
+          <UI.Data.data_panel state={@state}>
             <:data><p>hidden</p></:data>
-          </UI.data_panel>
+          </UI.Data.data_panel>
           """)
         end
       end
@@ -231,9 +231,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:ok} as_of="2026-06-17 09:00">
+        <UI.Data.data_panel state={:ok} as_of="2026-06-17 09:00">
           <:data><p id="payload">last known good rows</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       # stale banner coexists with :ok data, never replaces it

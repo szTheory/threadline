@@ -87,7 +87,7 @@ defmodule Threadline.OperatorSurface.UIStressTest do
 
         html =
           rendered_to_string(~H"""
-          <UI.empty_state variant={@variant}>Empty</UI.empty_state>
+          <UI.Data.empty_state variant={@variant}>Empty</UI.Data.empty_state>
           """)
 
         assert html =~ "tl-empty"

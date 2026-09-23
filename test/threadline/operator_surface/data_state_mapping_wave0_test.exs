@@ -38,7 +38,7 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
     assigns = %{reason: reason}
 
     rendered_to_string(~H"""
-    <UI.data_state reason={@reason} />
+    <UI.Data.data_state reason={@reason} />
     """)
   end
 

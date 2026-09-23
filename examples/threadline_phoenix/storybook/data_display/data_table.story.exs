@@ -101,7 +101,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
             <UI.Actions.button type="button" disabled={@disabled.disabled}>Refresh</UI.Actions.button>
           </UI.toolbar>
 
-          <UI.data_table
+          <UI.Data.data_table
             rows={@rows}
             row_id={fn row -> "storybook-#{row.key}" end}
             row_status={fn row -> row.severity end}
@@ -118,9 +118,9 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
             <:action :let={row}>
               <UI.Actions.link href={"/audit/transactions/#{row.key}"}>Open</UI.Actions.link>
             </:action>
-          </UI.data_table>
+          </UI.Data.data_table>
 
-          <UI.data_panel state={:ok} id="storybook-data-panel" as_of="2026-06-27 01:12:00Z">
+          <UI.Data.data_panel state={:ok} id="storybook-data-panel" as_of="2026-06-27 01:12:00Z">
             <:data>
               <UI.Display.kv>
                 <:item key="Mixed severity"><%= inspect(@mixed_severity) %></:item>
@@ -136,20 +136,20 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
                 has_newer={@pager.has_newer}
               />
             </:pager>
-          </UI.data_panel>
+          </UI.Data.data_panel>
 
           <UI.Display.cluster>
-            <UI.data_panel state={:loading} id="storybook-loading-panel">
+            <UI.Data.data_panel state={:loading} id="storybook-loading-panel">
               <:data><span>not rendered while loading</span></:data>
-            </UI.data_panel>
+            </UI.Data.data_panel>
 
-            <UI.data_panel state={:empty} id="storybook-empty-panel">
+            <UI.Data.data_panel state={:empty} id="storybook-empty-panel">
               <:data><span>not rendered for empty state</span></:data>
-            </UI.data_panel>
+            </UI.Data.data_panel>
 
-            <UI.data_panel state={:error} id="storybook-error-panel">
+            <UI.Data.data_panel state={:error} id="storybook-error-panel">
               <:data><span>not rendered for error state</span></:data>
-            </UI.data_panel>
+            </UI.Data.data_panel>
           </UI.Display.cluster>
 
           <UI.Display.code_block>

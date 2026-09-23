@@ -193,11 +193,11 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.empty_state variant="unsupported">
+        <UI.Data.empty_state variant="unsupported">
           <:title>No items</:title>
           Nothing here
           <:actions><button>Add</button></:actions>
-        </UI.empty_state>
+        </UI.Data.empty_state>
         """)
 
       assert html =~ "tl-empty"
@@ -217,10 +217,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_state>
+        <UI.Data.error_state>
           <:title>Error Occurred</:title>
           Server failed
-        </UI.error_state>
+        </UI.Data.error_state>
         """)
 
       assert html =~ "tl-empty"
@@ -782,10 +782,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_table rows={@rows}>
+        <UI.Data.data_table rows={@rows}>
           <:col :let={r} label="Status"><%= r.a %></:col>
           <:col :let={r} label="Count"><%= r.b %></:col>
-        </UI.data_table>
+        </UI.Data.data_table>
         """)
 
       assert html =~ "tl-table"
@@ -807,18 +807,18 @@ defmodule Threadline.OperatorSurface.UITest do
 
       rows_html =
         rendered_to_string(~H"""
-        <UI.data_table rows={@rows}>
+        <UI.Data.data_table rows={@rows}>
           <:col :let={r} label="A"><%= r.a %></:col>
-        </UI.data_table>
+        </UI.Data.data_table>
         """)
 
       refute rows_html =~ ~s(phx-update="stream")
 
       stream_html =
         rendered_to_string(~H"""
-        <UI.data_table stream={@stream} row_id={fn {dom_id, _} -> dom_id end}>
+        <UI.Data.data_table stream={@stream} row_id={fn {dom_id, _} -> dom_id end}>
           <:col :let={{_dom, r}} label="A"><%= r.a %></:col>
-        </UI.data_table>
+        </UI.Data.data_table>
         """)
 
       assert stream_html =~ ~s(phx-update="stream")
@@ -830,10 +830,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_table rows={@rows} row_status={fn r -> r.status end}>
+        <UI.Data.data_table rows={@rows} row_status={fn r -> r.status end}>
           <:col :let={r} label="A"><%= r.a %></:col>
           <:action>menu</:action>
-        </UI.data_table>
+        </UI.Data.data_table>
         """)
 
       assert html =~ ~s(data-status="failed")
@@ -847,7 +847,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.loading_state />
+        <UI.Data.loading_state />
         """)
 
       assert html =~ ~s(role="status")
@@ -861,7 +861,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.loading_state>Loading retention runs…</UI.loading_state>
+        <UI.Data.loading_state>Loading retention runs…</UI.Data.loading_state>
         """)
 
       assert html =~ "Loading retention runs"
@@ -874,7 +874,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.stale_banner as_of={@as_of} />
+        <UI.Data.stale_banner as_of={@as_of} />
         """)
 
       assert html =~ "tl-alert"
@@ -891,7 +891,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.stale_banner as_of={@as_of} object_label="coverage status" />
+        <UI.Data.stale_banner as_of={@as_of} object_label="coverage status" />
         """)
 
       assert html =~
@@ -905,10 +905,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.empty_state variant="no_data">
+        <UI.Data.empty_state variant="no_data">
           <:title>No changes match these filters</:title>
           Clear the filter or widen the time range.
-        </UI.empty_state>
+        </UI.Data.empty_state>
         """)
 
       assert html =~ "tl-empty--no_data"
@@ -921,10 +921,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
         html =
           rendered_to_string(~H"""
-          <UI.empty_state variant={@variant}>
+          <UI.Data.empty_state variant={@variant}>
             <:title>Heading</:title>
             Body
-          </UI.empty_state>
+          </UI.Data.empty_state>
           """)
 
         assert html =~ "tl-empty--#{variant}"
@@ -947,7 +947,7 @@ defmodule Threadline.OperatorSurface.UITest do
       assigns = %{reason: reason}
 
       rendered_to_string(~H"""
-      <UI.data_state reason={@reason} />
+      <UI.Data.data_state reason={@reason} />
       """)
     end
 
@@ -1025,10 +1025,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_state>
+        <UI.Data.error_state>
           <:title>Could not load this timeline</:title>
           Retry, then check logs.
-        </UI.error_state>
+        </UI.Data.error_state>
         """)
 
       assert html =~ ~s(tabindex="-1")
@@ -1109,10 +1109,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:ok}>
+        <UI.Data.data_panel state={:ok}>
           <:data><div id="the-data-table">rows</div></:data>
           <:pager><div id="the-pager">pager</div></:pager>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ "tl-data-panel"
@@ -1126,10 +1126,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:loading}>
+        <UI.Data.data_panel state={:loading}>
           <:data><div id="the-data-table">rows</div></:data>
           <:pager><div id="the-pager">pager</div></:pager>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       # The data slot is NOT rendered while loading (toolbar-disable is the page's job).
@@ -1145,9 +1145,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-          <UI.data_panel state={:permission} reason={:unauthorized}>
+          <UI.Data.data_panel state={:permission} reason={:unauthorized}>
             <:data><div id="the-data-table">rows</div></:data>
-          </UI.data_panel>
+          </UI.Data.data_panel>
         """)
 
       refute html =~ "the-data-table"
@@ -1166,9 +1166,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
         html =
           rendered_to_string(~H"""
-          <UI.data_panel state={@state} as_of={@as_of}>
+          <UI.Data.data_panel state={@state} as_of={@as_of}>
             <:data><div id="the-data-table">rows</div></:data>
-          </UI.data_panel>
+          </UI.Data.data_panel>
           """)
 
         assert html =~ "tl-alert--warning", "stale banner must render for state #{inspect(state)}"
@@ -1191,9 +1191,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
         assert_raise ArgumentError, ~r/requires a typed :reason/, fn ->
           rendered_to_string(~H"""
-          <UI.data_panel state={@state}>
+          <UI.Data.data_panel state={@state}>
             <:data><div id="the-data-table">rows</div></:data>
-          </UI.data_panel>
+          </UI.Data.data_panel>
           """)
         end
       end
@@ -1204,9 +1204,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel id="txns" state={:loading}>
+        <UI.Data.data_panel id="txns" state={:loading}>
           <:data><div id="the-data-table">rows</div></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       # The region id carries the state suffix so LiveView replaces it on a state swap.
