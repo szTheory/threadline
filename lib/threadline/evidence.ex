@@ -283,19 +283,8 @@ defmodule Threadline.Evidence do
     end
   end
 
-  # Structural debt: complexity 10 — split validate_subject!/1 normalization out
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp validate_subject!(subject) do
-    normalized_subject =
-      case subject do
-        %{subject: nested_subject} -> validate_subject!(nested_subject)
-        %{name: nested_subject} -> validate_subject!(nested_subject)
-        %{"subject" => nested_subject} -> validate_subject!(nested_subject)
-        %{"name" => nested_subject} -> validate_subject!(nested_subject)
-        value when is_atom(value) -> Atom.to_string(value)
-        value when is_binary(value) -> value
-        value -> value
-      end
+    normalized_subject = normalize_subject!(subject)
 
     case Subject.validate(normalized_subject) do
       :ok ->
@@ -305,6 +294,15 @@ defmodule Threadline.Evidence do
         raise ArgumentError, "unsupported evidence subject: #{inspect(value)}"
     end
   end
+
+  # Clause order is the original branch order (first match wins).
+  defp normalize_subject!(%{subject: nested_subject}), do: validate_subject!(nested_subject)
+  defp normalize_subject!(%{name: nested_subject}), do: validate_subject!(nested_subject)
+  defp normalize_subject!(%{"subject" => nested_subject}), do: validate_subject!(nested_subject)
+  defp normalize_subject!(%{"name" => nested_subject}), do: validate_subject!(nested_subject)
+  defp normalize_subject!(value) when is_atom(value), do: Atom.to_string(value)
+  defp normalize_subject!(value) when is_binary(value), do: value
+  defp normalize_subject!(value), do: value
 
   defp validate_datetime!(%DateTime{}, _label), do: :ok
 
