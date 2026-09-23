@@ -53,18 +53,18 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   ]
 
   @form_contracts [
-    {"field/input", ["<UI.field", "<UI.input"]},
-    {"label", ["<UI.label"]},
-    {"help text", ["<UI.help"]},
-    {"error text", ["<UI.error"]},
-    {"error summary", ["<UI.error_summary"]},
-    {"field group", ["<UI.field_group"]},
+    {"field/input", ["<UI.Form.field", "<UI.Form.input"]},
+    {"label", ["<UI.Form.label"]},
+    {"help text", ["<UI.Form.help"]},
+    {"error text", ["<UI.Form.error"]},
+    {"error summary", ["<UI.Form.error_summary"]},
+    {"field group", ["<UI.Form.field_group"]},
     {"checkbox", [~s|type="checkbox"|]},
-    {"radio", ["<UI.radio"]},
-    {"switch", ["<UI.switch"]},
+    {"radio", ["<UI.Form.radio"]},
+    {"switch", ["<UI.Form.switch"]},
     {"select", [~s|type="select"|]},
     {"textarea", [~s|type="textarea"|]},
-    {"combobox", ["<UI.combobox"]}
+    {"combobox", ["<UI.Form.combobox"]}
   ]
 
   @overlay_contracts [

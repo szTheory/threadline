@@ -90,7 +90,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
           </UI.Page.detail_header>
 
           <UI.Page.toolbar disabled={@disabled.disabled}>
-            <UI.field
+            <UI.Form.field
               id="storybook-data-filter"
               name="storybook_data_filter"
               label="Filter"

@@ -40,7 +40,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
           <UI.Display.card>
             <:title>toolbar plus filters</:title>
             <UI.Page.toolbar disabled={@disabled.disabled}>
-              <UI.field
+              <UI.Form.field
                 id="pattern-action-filter"
                 name="pattern_action_filter"
                 label="Audit Action"

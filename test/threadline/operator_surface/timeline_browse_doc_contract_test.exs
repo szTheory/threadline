@@ -149,7 +149,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
 
   defp field_source(src, key) do
     pattern =
-      ~r/<UI\.field\b(?=[^>]*\bname="filter\[#{Regex.escape(key)}\]")[^>]*\/>/s
+      ~r/<UI\.Form\.field\b(?=[^>]*\bname="filter\[#{Regex.escape(key)}\]")[^>]*\/>/s
 
     case Regex.run(pattern, src) do
       [field] -> field

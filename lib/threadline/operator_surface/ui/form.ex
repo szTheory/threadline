@@ -1,5 +1,5 @@
 if Code.ensure_loaded?(Phoenix.Component) do
-  defmodule Threadline.OperatorSurface.UI do
+  defmodule Threadline.OperatorSurface.UI.Form do
     @moduledoc false
     use Phoenix.Component
     alias Phoenix.LiveView.JS

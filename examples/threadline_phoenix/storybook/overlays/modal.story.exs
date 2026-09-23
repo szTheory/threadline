@@ -74,7 +74,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
               <p id="storybook-filter-drawer-description" class="tl-page__lede">
                 Drawer focus enters the first control and returns to the trigger on close.
               </p>
-              <UI.field
+              <UI.Form.field
                 id="drawer-action"
                 name="drawer_action"
                 label="Audit Action"

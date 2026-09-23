@@ -231,7 +231,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </p>
               </div>
               <form id="tl-record-lookup" class="tl-home__earned-form" phx-submit="open-row-history">
-                <UI.field
+                <UI.Form.field
                   id="record-lookup-table"
                   type="select"
                   name="record_lookup[table]"
@@ -239,7 +239,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   class="tl-toolbar__field"
                   options={[{"Choose table", ""} | Enum.map(@record_table_options, &{&1, &1})]}
                 />
-                <UI.field
+                <UI.Form.field
                   id="record-lookup-id"
                   type="text"
                   name="record_lookup[record_id]"

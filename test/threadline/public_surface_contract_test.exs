@@ -641,7 +641,7 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp modules_for_visibility_tag(:module_visibility_seed),
     do: [
       Threadline.OperatorSurface.Style,
-      Threadline.OperatorSurface.UI,
+      Threadline.OperatorSurface.UI.Form,
       Threadline.OperatorSurface.UI.Actions,
       Threadline.OperatorSurface.UI.Display,
       Threadline.OperatorSurface.UI.Data,

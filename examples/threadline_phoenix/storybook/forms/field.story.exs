@@ -29,7 +29,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Forms.FieldStory do
     <.threadline_preview theme="light">
       <.preview_section title="Form variation groups" description="Field, input, help, error, choice, select, textarea, and combobox controls.">
         <UI.Display.stack gap="section">
-          <UI.error_summary
+          <UI.Form.error_summary
             id="storybook-error-summary"
             errors={[
               {"audit-action", "Choose an Audit Action before filtering."},
@@ -37,9 +37,9 @@ defmodule ThreadlinePhoenixWeb.Storybook.Forms.FieldStory do
             ]}
           >
             <:title>There is a problem with this filter</:title>
-          </UI.error_summary>
+          </UI.Form.error_summary>
 
-          <UI.field
+          <UI.Form.field
             id="audit-action"
             name={@fixtures.field.name}
             label={@fixtures.field.label}
@@ -47,7 +47,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Forms.FieldStory do
             help_text={@fixtures.help}
           />
 
-          <UI.field
+          <UI.Form.field
             id="retention-reason"
             name="retention_reason"
             label="Retention reason"
@@ -57,21 +57,21 @@ defmodule ThreadlinePhoenixWeb.Storybook.Forms.FieldStory do
           />
 
           <div class="tl-field">
-            <UI.label for="manual-subject">Subject</UI.label>
-            <UI.input id="manual-subject" name="subject" value="ticket:4521" />
-            <UI.help id="manual-subject-help">Help text names how this filter affects Timeline entries.</UI.help>
-            <UI.error id="manual-subject-error">Error text stays adjacent to the field.</UI.error>
+            <UI.Form.label for="manual-subject">Subject</UI.Form.label>
+            <UI.Form.input id="manual-subject" name="subject" value="ticket:4521" />
+            <UI.Form.help id="manual-subject-help">Help text names how this filter affects Timeline entries.</UI.Form.help>
+            <UI.Form.error id="manual-subject-error">Error text stays adjacent to the field.</UI.Form.error>
           </div>
 
-          <UI.field_group legend="Export options">
-            <UI.input id="include-redacted" name={@fixtures.checkbox.name} type="checkbox" value="false" />
-            <UI.label for="include-redacted"><%= @fixtures.checkbox.label %></UI.label>
-            <UI.radio name={@fixtures.radio.name} value="CSV" options={[{"CSV", "CSV"}, {"NDJSON", "NDJSON"}]} />
-            <UI.switch id="show-stale" name={@fixtures.switch.name} value="true" />
-            <UI.label for="show-stale"><%= @fixtures.switch.label %></UI.label>
-          </UI.field_group>
+          <UI.Form.field_group legend="Export options">
+            <UI.Form.input id="include-redacted" name={@fixtures.checkbox.name} type="checkbox" value="false" />
+            <UI.Form.label for="include-redacted"><%= @fixtures.checkbox.label %></UI.Form.label>
+            <UI.Form.radio name={@fixtures.radio.name} value="CSV" options={[{"CSV", "CSV"}, {"NDJSON", "NDJSON"}]} />
+            <UI.Form.switch id="show-stale" name={@fixtures.switch.name} value="true" />
+            <UI.Form.label for="show-stale"><%= @fixtures.switch.label %></UI.Form.label>
+          </UI.Form.field_group>
 
-          <UI.field
+          <UI.Form.field
             id="severity"
             name={@fixtures.select.name}
             label="Severity"
@@ -80,7 +80,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Forms.FieldStory do
             options={[{"Info", "info"}, {"Warning", "warning"}, {"Danger", "danger"}]}
           />
 
-          <UI.combobox
+          <UI.Form.combobox
             id="actor"
             name={@fixtures.combobox.name}
             value={@fixtures.combobox.value}

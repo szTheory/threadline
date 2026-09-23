@@ -505,26 +505,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-space-y-4">
                     <h4>Forms</h4>
                     <div class="tl-flex tl-flex-col tl-gap-4">
-                      <Threadline.OperatorSurface.UI.field id="stress-text" name="text_field" label="Text Field" type="text" value="Sample text" />
-                      <Threadline.OperatorSurface.UI.field id="stress-textarea" name="textarea_field" label="Textarea Field" type="textarea" value="Sample text" />
-                      <Threadline.OperatorSurface.UI.field id="stress-select" name="select_field" label="Select Field" type="select" options={["Option 1", "Option 2"]} />
-                      <Threadline.OperatorSurface.UI.field id="stress-search" name="search_field" label="Search Field" type="search" value="audit changes" />
-                      <Threadline.OperatorSurface.UI.field id="stress-checkbox" name="checkbox_field" label="Checkbox Field" type="checkbox" value="true" />
-                      <Threadline.OperatorSurface.UI.field id="stress-radio" name="radio_field" label="Radio Field" type="radio" value="true" />
-                      <Threadline.OperatorSurface.UI.field id="stress-switch" name="switch_field" label="Switch Field" type="switch" value="true" />
-                      <Threadline.OperatorSurface.UI.field id="stress-date" name="date_field" label="Date Field" type="date" value="2026-06-16" />
-                      <Threadline.OperatorSurface.UI.field id="stress-error" name="error_field" label="Error Field" type="text" value="Bad input" errors={["This field is required"]} help_text="Please enter a valid value." />
-                      <Threadline.OperatorSurface.UI.field id="stress-disabled" name="disabled_field" label="Disabled Field" type="text" value="Can't touch this" disabled />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-text" name="text_field" label="Text Field" type="text" value="Sample text" />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-textarea" name="textarea_field" label="Textarea Field" type="textarea" value="Sample text" />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-select" name="select_field" label="Select Field" type="select" options={["Option 1", "Option 2"]} />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-search" name="search_field" label="Search Field" type="search" value="audit changes" />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-checkbox" name="checkbox_field" label="Checkbox Field" type="checkbox" value="true" />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-radio" name="radio_field" label="Radio Field" type="radio" value="true" />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-switch" name="switch_field" label="Switch Field" type="switch" value="true" />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-date" name="date_field" label="Date Field" type="date" value="2026-06-16" />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-error" name="error_field" label="Error Field" type="text" value="Bad input" errors={["This field is required"]} help_text="Please enter a valid value." />
+                      <Threadline.OperatorSurface.UI.Form.field id="stress-disabled" name="disabled_field" label="Disabled Field" type="text" value="Can't touch this" disabled />
                       <div class="tl-field">
                         <label class="tl-label" for="stress-combobox">Combobox Field</label>
-                        <Threadline.OperatorSurface.UI.combobox
+                        <Threadline.OperatorSurface.UI.Form.combobox
                           id="stress-combobox"
                           name="combobox_field"
                           value="Option 1"
                           options={[{"Option 1", "option_1"}, {"Option 2", "option_2"}]}
                         />
                       </div>
-                      <Threadline.OperatorSurface.UI.error_summary
+                      <Threadline.OperatorSurface.UI.Form.error_summary
                         id="stress-error-summary"
                         errors={[{"stress-error", "Error Field is required"}]}
                       />

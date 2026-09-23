@@ -99,7 +99,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-subview__panel">
                 <h4 class="tl-subview__panel-title">Row timeline</h4>
                 <form id={"#{@id}-as-of-form"} phx-change="update-as-of" phx-target={@myself}>
-                  <UI.field
+                  <UI.Form.field
                     id={"#{@id}-as-of"}
                     type="datetime-local"
                     name="as_of"

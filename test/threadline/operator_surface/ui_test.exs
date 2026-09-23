@@ -432,7 +432,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.field id="user-email" name="email" value="test@example" label="Email" type="email" help_text="Enter your email" errors={["Invalid format"]} />
+        <UI.Form.field id="user-email" name="email" value="test@example" label="Email" type="email" help_text="Enter your email" errors={["Invalid format"]} />
         """)
 
       assert html =~ "tl-field"
@@ -462,7 +462,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Text
       html =
         rendered_to_string(~H"""
-        <UI.input id="t1" name="t1" value="text" type="text" />
+        <UI.Form.input id="t1" name="t1" value="text" type="text" />
         """)
 
       assert html =~ "tl-control"
@@ -471,7 +471,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Textarea
       html =
         rendered_to_string(~H"""
-        <UI.input id="t2" name="t2" value="text" type="textarea" />
+        <UI.Form.input id="t2" name="t2" value="text" type="textarea" />
         """)
 
       assert html =~ "tl-control"
@@ -480,7 +480,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Select
       html =
         rendered_to_string(~H"""
-        <UI.input id="t3" name="t3" value="1" type="select" options={[{"One", "1"}]} />
+        <UI.Form.input id="t3" name="t3" value="1" type="select" options={[{"One", "1"}]} />
         """)
 
       assert html =~ "tl-control"
@@ -490,7 +490,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Checkbox
       html =
         rendered_to_string(~H"""
-        <UI.input id="t4" name="t4" value="true" type="checkbox" />
+        <UI.Form.input id="t4" name="t4" value="true" type="checkbox" />
         """)
 
       assert html =~ "tl-checkbox"
@@ -499,7 +499,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Date
       html =
         rendered_to_string(~H"""
-        <UI.input id="t5" name="t5" value="2024-01-01" type="date" />
+        <UI.Form.input id="t5" name="t5" value="2024-01-01" type="date" />
         """)
 
       assert html =~ "tl-control"
@@ -513,7 +513,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}, {"name", "Name is required"}]} />
+        <UI.Form.error_summary id="form-errors" errors={[{"email", "Email is invalid"}, {"name", "Name is required"}]} />
         """)
 
       assert html =~ ~s(role="alert")
@@ -536,9 +536,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]}>
+        <UI.Form.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]}>
           <:title>Please fix the following</:title>
-        </UI.error_summary>
+        </UI.Form.error_summary>
         """)
 
       assert html =~ "Please fix the following"
@@ -550,7 +550,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]} />
+        <UI.Form.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]} />
         """)
 
       assert html =~ "There is a problem"
@@ -561,7 +561,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_summary id="form-errors" errors={[]} />
+        <UI.Form.error_summary id="form-errors" errors={[]} />
         """)
 
       refute html =~ ~s(role="alert")
@@ -575,9 +575,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.field_group legend="Date range">
+        <UI.Form.field_group legend="Date range">
           <span>inner field</span>
-        </UI.field_group>
+        </UI.Form.field_group>
         """)
 
       assert html =~ "<fieldset"
@@ -593,9 +593,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.field_group legend="Filters" class="extra-class" data-testid="grp">
+        <UI.Form.field_group legend="Filters" class="extra-class" data-testid="grp">
           <span>content</span>
-        </UI.field_group>
+        </UI.Form.field_group>
         """)
 
       assert html =~ "tl-filter-group"
@@ -610,7 +610,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.radio name="mode" value="b" options={[{"Option A", "a"}, {"Option B", "b"}]} />
+        <UI.Form.radio name="mode" value="b" options={[{"Option A", "a"}, {"Option B", "b"}]} />
         """)
 
       # both inputs share the same name
@@ -637,7 +637,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.switch id="notify" name="notify" value={true} />
+        <UI.Form.switch id="notify" name="notify" value={true} />
         """)
 
       assert html =~ ~s(role="switch")
@@ -652,7 +652,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.switch id="notify" name="notify" value={false} />
+        <UI.Form.switch id="notify" name="notify" value={false} />
         """)
 
       assert html =~ ~s(aria-checked="false")
@@ -666,7 +666,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.input id="q" name="q" value="" type="search" />
+        <UI.Form.input id="q" name="q" value="" type="search" />
         """)
 
       assert html =~ ~s(type="search")
@@ -680,7 +680,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.combobox id="city" name="city" value="" options={[{"Berlin", "berlin"}, {"Paris", "paris"}]} />
+        <UI.Form.combobox id="city" name="city" value="" options={[{"Berlin", "berlin"}, {"Paris", "paris"}]} />
         """)
 
       assert html =~ ~s(role="combobox")

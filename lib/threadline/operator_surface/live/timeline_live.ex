@@ -592,9 +592,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </div>
 
         <form id="timeline-filters" phx-submit="apply" role="search" class="tl-toolbar__form">
-          <UI.field_group legend="Search" class="tl-filter-group--primary">
+          <UI.Form.field_group legend="Search" class="tl-filter-group--primary">
             <div class="tl-filter-grid tl-filter-grid--primary">
-              <UI.field
+              <UI.Form.field
                 id="filter-from"
                 type="datetime-local"
                 name="filter[from]"
@@ -603,7 +603,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 class="tl-toolbar__field"
                 phx-debounce="blur"
               />
-              <UI.field
+              <UI.Form.field
                 id="filter-to"
                 type="datetime-local"
                 name="filter[to]"
@@ -612,7 +612,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 class="tl-toolbar__field"
                 phx-debounce="blur"
               />
-              <UI.field
+              <UI.Form.field
                 id="filter-table"
                 type="text"
                 name="filter[table]"
@@ -625,7 +625,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <datalist id="audited-tables">
                 <option :for={name <- @audited_tables} value={name}></option>
               </datalist>
-              <UI.field
+              <UI.Form.field
                 id="filter-correlation-id"
                 type="text"
                 name="filter[correlation_id]"
@@ -660,7 +660,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </button>
               </div>
             </div>
-          </UI.field_group>
+          </UI.Form.field_group>
         </form>
 
         <section class="tl-filter-summary" aria-label="Active Timeline filters">
@@ -720,7 +720,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </span>
           </div>
           <div class="tl-filter-grid tl-filter-grid--advanced">
-            <UI.field
+            <UI.Form.field
               id="filter-table-schema"
               type="text"
               name="filter[table_schema]"
@@ -730,7 +730,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               form="timeline-filters"
               phx-debounce="blur"
             />
-            <UI.field
+            <UI.Form.field
               id="filter-actor-kind"
               type="select"
               name="filter[actor_kind]"
@@ -740,7 +740,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               class="tl-toolbar__field"
               form="timeline-filters"
             />
-            <UI.field
+            <UI.Form.field
               id="filter-actor-id"
               type="text"
               name="filter[actor_id]"

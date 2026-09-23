@@ -58,7 +58,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
           </UI.Display.card>
 
           <UI.Page.toolbar>
-            <UI.field
+            <UI.Form.field
               id="group-toolbar-filter"
               name="group_toolbar_filter"
               label="Filter Audit Actions"
