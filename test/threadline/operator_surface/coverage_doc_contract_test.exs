@@ -268,7 +268,7 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
              "expected JSON top-level keys to be exactly [\"covered\", \"expected_uncovered\", \"schema\", \"uncovered\"] per D-34/D-35"
     end
 
-    test "--json expected_uncovered entries have exactly [\"source\", \"table\"] keys with source ∈ {baseline, config}" do
+    test ~s(--json expected_uncovered entries have exactly ["source", "table"] keys with source ∈ {baseline, config}) do
       output =
         capture_io(fn ->
           Coverage.run(["--json"])
