@@ -39,18 +39,7 @@ defmodule Threadline.CriticTrust.KrippendorffAlpha do
       # For 2 raters each pair {v1, v2} contributes:
       #   v1 == v2  →  +2 to o_{v1,v1}
       #   v1 != v2  →  +1 to o_{v1,v2} and +1 to o_{v2,v1}  (symmetric)
-      coincidences =
-        Enum.reduce(pairs, %{}, fn {v1, v2}, acc ->
-          # Structural debt: if inside reduce fn — extract the coincidence accumulator
-          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-          if v1 == v2 do
-            Map.update(acc, {v1, v1}, 2, &(&1 + 2))
-          else
-            acc
-            |> Map.update({v1, v2}, 1, &(&1 + 1))
-            |> Map.update({v2, v1}, 1, &(&1 + 1))
-          end
-        end)
+      coincidences = Enum.reduce(pairs, %{}, &add_coincidence/2)
 
       do_ = weighted_sum(coincidences, sorted_values, freq, n, :observed)
       de_ = weighted_sum(coincidences, sorted_values, freq, n, :expected)
@@ -136,21 +125,36 @@ defmodule Threadline.CriticTrust.KrippendorffAlpha do
               Map.get(coincidences, {v, v2}, 0) * w
 
             :expected ->
-              # Structural debt: diagonal if inside reduce fn — extract the expected term
-              # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-              if v == v2 do
-                # Diagonal: n_v choose 2 (coincidences within the same category)
-                freq[v] * (freq[v] - 1) / (n - 1) * w
-              else
-                # Off-diagonal: product of marginals, normalised by n−1
-                freq[v] * freq[v2] / (n - 1) * w
-              end
+              expected_term(v, v2, freq, n, w)
           end
 
         acc + contribution
       end)
 
     sum / 2.0
+  end
+
+  # One pair's contribution to the coincidence matrix (see compute/1).
+  defp add_coincidence({v1, v2}, acc) do
+    if v1 == v2 do
+      Map.update(acc, {v1, v1}, 2, &(&1 + 2))
+    else
+      acc
+      |> Map.update({v1, v2}, 1, &(&1 + 1))
+      |> Map.update({v2, v1}, 1, &(&1 + 1))
+    end
+  end
+
+  # Expected-coincidence term for (v, v2), weighted by w. The expressions are
+  # unchanged from the inline form, so evaluation order and float results are too.
+  defp expected_term(v, v2, freq, n, w) do
+    if v == v2 do
+      # Diagonal: n_v choose 2 (coincidences within the same category)
+      freq[v] * (freq[v] - 1) / (n - 1) * w
+    else
+      # Off-diagonal: product of marginals, normalised by n−1
+      freq[v] * freq[v2] / (n - 1) * w
+    end
   end
 
   # d²(v, v) = 0.
