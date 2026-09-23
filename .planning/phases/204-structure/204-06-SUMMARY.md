@@ -49,7 +49,8 @@ key-decisions:
   - "The timeline drawer field pin regex (~r/<UI\\.field\\b.../) is a rename pin for a component the Form commit moved, so it was rewritten to <UI\\.Form\\.field in that commit, with its logic unchanged."
   - "UI.Page aliases Script, Display, and Overlay. UI.Overlay aliases JS and Icon. UI.Form keeps JS only."
 
-requirements-completed: [STRUCT-03]
+requirements-completed: []
+requirements-advanced: [STRUCT-03]  # still open: 204-08..11 and 204-15 continue STRUCT-03
 
 coverage:
   - id: D1
@@ -202,7 +203,7 @@ None.
 
 ## Next Phase Readiness
 
-- STRUCT-03's UI split is complete: six families and no ui.ex. 204-08 still owns `ui_form_policy_contract_test`'s message, and the page-shell refutation widening.
+- The UI split part of STRUCT-03 is complete: six families and no ui.ex. STRUCT-03 itself stays Pending, because 204-08 through 204-11 and 204-15 continue it. 204-08 still owns `ui_form_policy_contract_test`'s message, and the page-shell refutation widening.
 
 ---
 *Phase: 204-structure*
