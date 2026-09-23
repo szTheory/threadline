@@ -14,6 +14,8 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
 
   import ExUnit.CaptureIO
 
+  alias Mix.Tasks.Threadline.Health.Coverage
+
   @router_path "lib/threadline/operator_surface/router.ex"
   @health_path "lib/threadline/health.ex"
   @policy_path "lib/threadline/health/policy.ex"
@@ -256,7 +258,7 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
     test "--json emits exactly the locked top-level keys (sorted)" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--json"])
+          Coverage.run(["--json"])
         end)
 
       parsed = Jason.decode!(output)
@@ -269,7 +271,7 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
     test "--json expected_uncovered entries have exactly [\"source\", \"table\"] keys with source ∈ {baseline, config}" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--json"])
+          Coverage.run(["--json"])
         end)
 
       parsed = Jason.decode!(output)
