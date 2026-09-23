@@ -35,9 +35,27 @@ defmodule Mix.Tasks.Threadline.Export do
   alias Threadline.Semantics.ActorRef
 
   @impl Mix.Task
-  # Structural debt: complexity 13 — split run/1 option parsing from dispatch
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def run(argv) do
+    opts = parse_argv(argv)
+
+    Mix.Task.run("app.config", [])
+    {:ok, _} = Application.ensure_all_started(:ssl)
+    {:ok, _} = Application.ensure_all_started(:postgrex)
+    {:ok, _} = Application.ensure_all_started(:ecto_sql)
+
+    repo = resolve_repo!()
+    ensure_repo_started!(repo)
+
+    filters = build_filters(repo, opts)
+
+    if opts[:dry_run] == true do
+      dry_run(repo, filters)
+    else
+      write_export(repo, filters, opts)
+    end
+  end
+
+  defp parse_argv(argv) do
     {opts, _, _} =
       OptionParser.parse(argv,
         strict: [
@@ -54,62 +72,66 @@ defmodule Mix.Tasks.Threadline.Export do
         aliases: [o: :output]
       )
 
-    Mix.Task.run("app.config", [])
-    {:ok, _} = Application.ensure_all_started(:ssl)
-    {:ok, _} = Application.ensure_all_started(:postgrex)
-    {:ok, _} = Application.ensure_all_started(:ecto_sql)
+    opts
+  end
 
-    repo = resolve_repo!()
-    ensure_repo_started!(repo)
+  defp dry_run(repo, filters) do
+    {:ok, %{count: count}} = Export.count_matching(filters, [])
+    banner(repo, count)
+    Mix.shell().info(inspect(%{count: count}, pretty: true))
+  end
 
-    filters = build_filters(repo, opts)
+  # Validation raises in the original order: --output, --format, --json-format.
+  defp write_export(repo, filters, opts) do
+    output =
+      opts[:output] || Mix.raise("threadline.export: pass --output PATH or use --dry-run")
 
-    if opts[:dry_run] == true do
-      {:ok, %{count: count}} = Export.count_matching(filters, [])
-      banner(repo, count)
-      Mix.shell().info(inspect(%{count: count}, pretty: true))
-    else
-      output =
-        opts[:output] || Mix.raise("threadline.export: pass --output PATH or use --dry-run")
+    format = export_format!(opts[:format])
 
-      format =
-        case opts[:format] do
-          nil -> "json"
-          other -> other
-        end
+    max_rows_kw = if(n = opts[:max_rows], do: [max_rows: n], else: [])
 
-      format = String.downcase(format)
+    json_format_kw = json_format_kw!(opts[:json_format])
 
-      unless format in ["csv", "json"] do
-        Mix.raise("threadline.export: --format must be csv or json, got: #{inspect(format)}")
+    {:ok, %{count: count}} = Export.count_matching(filters, [])
+    banner(repo, count)
+
+    {:ok, %{data: data}} = export_data(format, filters, max_rows_kw, json_format_kw)
+
+    File.write!(output, IO.iodata_to_binary(data))
+
+    Mix.shell().info(
+      "threadline.export: wrote #{byte_size(IO.iodata_to_binary(data))} bytes to #{output}"
+    )
+  end
+
+  defp export_format!(format_opt) do
+    format =
+      case format_opt do
+        nil -> "json"
+        other -> other
       end
 
-      max_rows_kw = if(n = opts[:max_rows], do: [max_rows: n], else: [])
+    format = String.downcase(format)
 
-      json_format_kw =
-        case opts[:json_format] do
-          nil -> []
-          "wrapped" -> [json_format: :wrapped]
-          "ndjson" -> [json_format: :ndjson]
-          other -> Mix.raise("threadline.export: unknown --json-format #{inspect(other)}")
-        end
-
-      {:ok, %{count: count}} = Export.count_matching(filters, [])
-      banner(repo, count)
-
-      {:ok, %{data: data}} =
-        case format do
-          "csv" -> Export.to_csv_iodata(filters, max_rows_kw)
-          "json" -> Export.to_json_document(filters, max_rows_kw ++ json_format_kw)
-        end
-
-      File.write!(output, IO.iodata_to_binary(data))
-
-      Mix.shell().info(
-        "threadline.export: wrote #{byte_size(IO.iodata_to_binary(data))} bytes to #{output}"
-      )
+    unless format in ["csv", "json"] do
+      Mix.raise("threadline.export: --format must be csv or json, got: #{inspect(format)}")
     end
+
+    format
   end
+
+  defp json_format_kw!(nil), do: []
+  defp json_format_kw!("wrapped"), do: [json_format: :wrapped]
+  defp json_format_kw!("ndjson"), do: [json_format: :ndjson]
+
+  defp json_format_kw!(other),
+    do: Mix.raise("threadline.export: unknown --json-format #{inspect(other)}")
+
+  defp export_data("csv", filters, max_rows_kw, _json_format_kw),
+    do: Export.to_csv_iodata(filters, max_rows_kw)
+
+  defp export_data("json", filters, max_rows_kw, json_format_kw),
+    do: Export.to_json_document(filters, max_rows_kw ++ json_format_kw)
 
   defp banner(repo, count) do
     Mix.shell().info(
