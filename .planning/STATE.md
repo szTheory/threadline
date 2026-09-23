@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 203
 current_phase_name: Real Gates
 status: executing
-stopped_at: Completed 203-01-PLAN.md
-last_updated: "2026-09-23T02:10:35.884Z"
+stopped_at: Completed 203-02-PLAN.md
+last_updated: "2026-09-23T02:15:36.250Z"
 last_activity: 2026-09-22
-last_activity_desc: Plan 203-01 complete (GATE-03 layer boundary pinned)
-state_head: 2829a494c110bbd81ef81ce8f7f04c4a931243e6
+last_activity_desc: Plan 203-02 complete (GATE-04 no_warn_undefined deleted, xref cycle gate live)
+state_head: cc05fd44e35ad6a65d1d6a46d0eccd578988fb28
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 130
-  completed_plans: 121
+  completed_plans: 122
   percent: 71
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 203 (Real Gates) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-22 — Plan 203-01 complete: Scope + FilterParams moved to Threadline.Query.*, layer-boundary contract green (GATE-03)
+Last activity: 2026-09-22 — Plan 203-02 complete: no_warn_undefined papering deleted + pinned; `mix verify.xref_cycles` in ci.all and CI verify-test (GATE-04)
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -241,6 +241,7 @@ Progress: [████████████████████] 120/120
 | Phase 202 P03 | 40 min | 3 tasks | 5 files |
 | Phase 202 P08 | 22 min | 1 tasks | 1 files |
 | Phase 203 P01 | 6min | 2 tasks | 15 files |
+| Phase 203 P02 | 4min | 2 tasks | 9 files |
 
 ## Deferred Items
 
@@ -777,6 +778,7 @@ Progress: [████████████████████] 120/120
 - [Phase 202]: The 0.10.0 changelog entry ships the complete 25-module undocumented list, not the folded 23 — the two sets were measured, not assumed
 - [Phase 202]: The stale hex-evaluator prose stays deferred: the false sentences are 2 of the 6 install-pin sites, so the fix is release-tooling work
 - [Phase 203]: 203-01: Query.Scope/FilterParams moved to :module_visibility_domain_tail; released CHANGELOG kept verbatim via explicit @renamed_modules register in public_surface_contract_test
+- [Phase 203]: GATE-04: zero compile-connected xref cycles + zero no_warn_undefined; runtime AuditTransaction<->AuditAction edge kept (D-18); mix verify.xref_cycles in ci.all and CI verify-test (both lanes)
 
 ### Blockers
 
@@ -786,8 +788,8 @@ Progress: [████████████████████] 120/120
 
 ## Session Continuity
 
-**Last session:** 2026-09-23T02:10:35.736Z
-**Stopped at:** Completed 203-01-PLAN.md
+**Last session:** 2026-09-23T02:15:36.106Z
+**Stopped at:** Completed 203-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

@@ -734,7 +734,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 203-02-PLAN.md — delete the `no_warn_undefined` papering; no_warn_undefined contract; `verify.xref_cycles` in `ci.all` + `verify-test` + chain docs (GATE-04)
+- [x] 203-02-PLAN.md — delete the `no_warn_undefined` papering; no_warn_undefined contract; `verify.xref_cycles` in `ci.all` + `verify-test` + chain docs (GATE-04)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
