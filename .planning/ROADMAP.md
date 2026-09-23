@@ -800,21 +800,69 @@ Plans:
 **Plans**: 15 plans (fully serial: one plan per wave — the Elixir suite cannot run in a worktree, and same-tree parallel plans would share `_build`, the port-5433 test DB, and the git index)
 
 Plans:
+**Wave 1**
+
 - [ ] 204-01-PLAN.md — **Tracer:** CSS byte lock (golden + sha256 pins), then the size/function/banner/heex gate seeded at measured values, plus the source-family reader (STRUCT-01, STRUCT-03, STRUCT-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 204-02-PLAN.md — ci.all de-duplication: delete `verify.doc_contract`, drop critic_trust/mechanical re-runs, runtime alias-tree guard (retired name assembled by concatenation), derived bump-rehearsal list, truthful docs (STRUCT-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 204-03-PLAN.md — `style.ex` pivot to a compile-time `.css` resource, then eight tail-first peels into nine ordered segments, hash unchanged every commit (STRUCT-02)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 204-04-PLAN.md — `mechanical_checker` split behind a widened Hex exclusion, `Threadline.Query.Cursors`, pinned `migration_content/0` split; 4 register sites (STRUCT-03, STRUCT-04, STRUCT-07)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 204-05-PLAN.md — `ui.ex` split, part 1: `UI.Actions`, `UI.Display`, `UI.Data` with call sites and storybook source markers (STRUCT-03)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 204-06-PLAN.md — `ui.ex` split, part 2: `UI.Overlay`, `UI.Page`, `UI.Form` (`git mv` retires ui.ex), shell pin and visibility seed updated (STRUCT-03)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 204-07-PLAN.md — non-surface lib register drain: core domain, critic-trust, Mix tasks (15 sites) (STRUCT-07)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
 - [ ] 204-08-PLAN.md — `timeline_live` → Helpers + Filters siblings, per-page source scans read the source family, carved render, banners and 2 register sites gone (STRUCT-03, STRUCT-04, STRUCT-07)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
 - [ ] 204-09-PLAN.md — `stress_live` sections sibling under a directory-wide Hex exclusion; 2 register sites (STRUCT-03, STRUCT-07)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
 - [ ] 204-10-PLAN.md — carve retention_history / export_status / transaction `render/1`s; export_status register site (STRUCT-03, STRUCT-07)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
 - [ ] 204-11-PLAN.md — carve actor / start / coverage `render/1`s; start/coverage banners; actor register site (STRUCT-03, STRUCT-04, STRUCT-07)
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
 - [ ] 204-12-PLAN.md — export controller and ActorRef banners to real boundaries; last 5 lib register sites; banner gate zero-tolerance (STRUCT-04, STRUCT-07)
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
 - [ ] 204-13-PLAN.md — **Tracer:** shared operator-surface test templates + nine LiveView tests migrated (STRUCT-05)
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
 - [ ] 204-14-PLAN.md — export/gating/page tests migrated, exports_mix_parity decoupled, test-structure contract with reasoned allowlist (STRUCT-05)
+
+**Wave 15** *(blocked on Wave 14 completion)*
+
 - [ ] 204-15-PLAN.md — last 12 test register sites, register `%{}` / ceiling 0, size gate at rest (one named exception), phase-end proof (STRUCT-07, STRUCT-03, STRUCT-04)
+
+**Cross-cutting constraints:**
+
+- Rendered HTML is unchanged at every commit: CSS byte lock, rendered_output_contract, copy_contract, component contract render assertions, each LiveView's tests, `mix verify.example`, and the browser lane at exactly the 8 known failures (D-00b).
 
 **Notes carried from the approved plan:**
 
