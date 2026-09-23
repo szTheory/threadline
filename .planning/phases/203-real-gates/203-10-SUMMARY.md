@@ -113,3 +113,7 @@ None.
 ## Threat Flags
 
 None. T-203-19 through T-203-23 are mitigated as planned: the AST `:enabled` walk, the `disabled == []` check, the header-version and upstream ≥ 69 checks, the env-independent `metadata_keys:`, and a halt-only policy (no gate relaxation).
+
+## Self-Check: PASSED
+
+- .credo.exs, test/threadline/credo_config_contract_test.exs present; commits 9a2633c2, b5e24ce6 found.

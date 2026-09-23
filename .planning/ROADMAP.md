@@ -766,7 +766,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 203-10-PLAN.md — rebuild `.credo.exs` as verbatim scaffolding + three `extra:` deltas, `disabled: []`; config-shape contract; gate live; phase-end proof (GATE-01)
+- [x] 203-10-PLAN.md — rebuild `.credo.exs` as verbatim scaffolding + three `extra:` deltas, `disabled: []`; config-shape contract; gate live; phase-end proof (GATE-01)
 
 **Cross-cutting constraints:**
 
@@ -840,7 +840,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 200. Public Surface | v1.41 | 18/18 | Complete    | 2026-09-13 |
 | 201. Rendered Output | v1.41 | 5/5 | Complete    | 2026-09-21 |
 | 202. Release 0.10.0 | v1.41 | 10/10 | Complete    | 2026-09-22 |
-| 203. Real Gates | v1.41 | 0/TBD | Not started | |
+| 203. Real Gates | v1.41 | 10/10 | In Progress | |
 | 204. Structure | v1.41 | 0/TBD | Not started | |
 
 ## Prior Milestones
