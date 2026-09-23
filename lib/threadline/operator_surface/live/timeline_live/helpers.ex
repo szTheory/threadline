@@ -107,21 +107,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp schema_for_public_table(schemas, table) when is_map(schemas) do
       case Map.fetch(schemas, table) do
-        {:ok, schema} ->
-          schema
-
-        :error ->
-          Enum.find_value(schemas, fn
-            {key, schema} when is_atom(key) ->
-              # Structural debt: if inside find_value fn inside case — extract the key matcher
-              # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-              if Atom.to_string(key) == table, do: schema
-
-            _entry ->
-              nil
-          end)
+        {:ok, schema} -> schema
+        :error -> Enum.find_value(schemas, &atom_key_schema(&1, table))
       end
     end
+
+    defp atom_key_schema({key, schema}, table) when is_atom(key) do
+      if Atom.to_string(key) == table, do: schema
+    end
+
+    defp atom_key_schema(_entry, _table), do: nil
 
     defp host_table_schema(%{table_schema: table_schema}),
       do: normalize_host_table_schema(table_schema)
