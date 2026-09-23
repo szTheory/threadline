@@ -822,7 +822,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 204-06-PLAN.md — `ui.ex` split, part 2: `UI.Overlay`, `UI.Page`, `UI.Form` (`git mv` retires ui.ex), shell pin and visibility seed updated (STRUCT-03)
+- [x] 204-06-PLAN.md — `ui.ex` split, part 2: `UI.Overlay`, `UI.Page`, `UI.Form` (`git mv` retires ui.ex), shell pin and visibility seed updated (STRUCT-03)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
