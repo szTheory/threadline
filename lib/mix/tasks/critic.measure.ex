@@ -341,6 +341,8 @@ defmodule Mix.Tasks.Critic.Measure do
 
   defp valid_round_provenance?(_round, _kind), do: false
 
+  # Phase 204 (STRUCT-07): complexity 13 — split valid_adjudication?/4 per check
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp valid_adjudication?(adjudicated, r1, r2, kind) when is_map(adjudicated) do
     source = adjudicated["source"]
 
