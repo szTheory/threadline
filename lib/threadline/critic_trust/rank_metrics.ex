@@ -31,6 +31,8 @@ defmodule Threadline.CriticTrust.RankMetrics do
       wins =
         for p <- pos, n <- neg, reduce: 0.0 do
           acc ->
+            # Phase 204 (STRUCT-07): cond inside for-reduce — extract the pairwise win score
+            # credo:disable-for-next-line Credo.Check.Refactor.Nesting
             cond do
               p > n -> acc + 1.0
               p == n -> acc + 0.5
