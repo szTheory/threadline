@@ -86,7 +86,7 @@
 - [ ] **STRUCT-03**: No file in `lib/` exceeds roughly 800 lines and no function roughly 120 lines, or the exception is named with a stated reason.
 - [ ] **STRUCT-04**: Separator comments no longer stand in for module or function boundaries in `lib/`.
 - [ ] **STRUCT-05**: Test files share endpoint and router case templates from `test/support/` instead of hand-rolling their own, except where a per-file difference is deliberate and documented.
-- [ ] **STRUCT-06**: `ci.all` contains no step that re-runs assertions another step already ran, and no second, drift-prone definition of which contract tests matter.
+- [x] **STRUCT-06**: `ci.all` contains no step that re-runs assertions another step already ran, and no second, drift-prone definition of which contract tests matter.
 - [ ] **STRUCT-07**: The Credo structural register (Refactor.Nesting and Refactor.CyclomaticComplexity per-site disables in lib/ and test/) is drained to zero and its ceiling pinned at 0, or each remaining site is re-registered with its exact count and a named successor beyond v1.41, with the ceiling lowered to match.
 
 ## Future Requirements
@@ -193,7 +193,7 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | STRUCT-03 | Phase 204 | Pending |
 | STRUCT-04 | Phase 204 | Pending |
 | STRUCT-05 | Phase 204 | Pending |
-| STRUCT-06 | Phase 204 | Pending |
+| STRUCT-06 | Phase 204 | Complete |
 | STRUCT-07 | Phase 204 | Pending |
 
 ## Phase 198 Round 7 Plan 42 status note — 2026-09-08

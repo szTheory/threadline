@@ -806,7 +806,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 204-02-PLAN.md — ci.all de-duplication: delete `verify.doc_contract`, drop critic_trust/mechanical re-runs, runtime alias-tree guard (retired name assembled by concatenation), derived bump-rehearsal list, truthful docs (STRUCT-06)
+- [x] 204-02-PLAN.md — ci.all de-duplication: delete `verify.doc_contract`, drop critic_trust/mechanical re-runs, runtime alias-tree guard (retired name assembled by concatenation), derived bump-rehearsal list, truthful docs (STRUCT-06)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
