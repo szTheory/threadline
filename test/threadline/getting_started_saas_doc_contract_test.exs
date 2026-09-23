@@ -2,6 +2,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  alias Mix.Tasks.Release.Pins
   alias Threadline.GettingStartedFixtures
 
   @repo_root File.cwd!()
@@ -37,7 +38,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     # the full rationale) and the bump rehearsal found four more copies of.
     assert String.contains?(
              doc,
-             ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+             ~s({:threadline, "~> #{Pins.target_pin_version()}"})
            )
 
     refute String.contains?(doc, "{:threadline, \"~> 0.5\"}")
