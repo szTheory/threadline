@@ -82,7 +82,7 @@
 ### Structure
 
 - [x] **STRUCT-01**: The emitted CSS is locked by a committed content hash gated in `ci.all`, proving byte-equality across refactors.
-- [ ] **STRUCT-02**: The style module is split into ordered, individually-legible segments with the CSS hash unchanged at every intermediate commit.
+- [x] **STRUCT-02**: The style module is split into ordered, individually-legible segments with the CSS hash unchanged at every intermediate commit.
 - [ ] **STRUCT-03**: No file in `lib/` exceeds roughly 800 lines and no function roughly 120 lines, or the exception is named with a stated reason.
 - [ ] **STRUCT-04**: Separator comments no longer stand in for module or function boundaries in `lib/`.
 - [ ] **STRUCT-05**: Test files share endpoint and router case templates from `test/support/` instead of hand-rolling their own, except where a per-file difference is deliberate and documented.
@@ -189,7 +189,7 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | GATE-04 | Phase 203 | Complete |
 | GATE-05 | Phase 203 | Complete |
 | STRUCT-01 | Phase 204 | Complete |
-| STRUCT-02 | Phase 204 | Pending |
+| STRUCT-02 | Phase 204 | Complete |
 | STRUCT-03 | Phase 204 | Pending |
 | STRUCT-04 | Phase 204 | Pending |
 | STRUCT-05 | Phase 204 | Pending |

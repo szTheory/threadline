@@ -810,7 +810,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 204-03-PLAN.md — `style.ex` pivot to a compile-time `.css` resource, then eight tail-first peels into nine ordered segments, hash unchanged every commit (STRUCT-02)
+- [x] 204-03-PLAN.md — `style.ex` pivot to a compile-time `.css` resource, then eight tail-first peels into nine ordered segments, hash unchanged every commit (STRUCT-02)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
