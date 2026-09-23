@@ -62,7 +62,7 @@ defmodule Threadline.Query do
   The helper fixes `table_name` and primary-key containment internally so callers
   do not need to construct low-level row predicates.
   """
-  @spec row_history(module(), term(), keyword(), keyword()) :: [%AuditChange{}]
+  @spec row_history(module(), term(), keyword(), keyword()) :: [AuditChange.t()]
   def row_history(schema_module, id, filters \\ [], opts \\ [])
       when is_list(filters) and is_list(opts) do
     validate_row_history_filters!(filters)
@@ -103,7 +103,7 @@ defmodule Threadline.Query do
   end
 
   @doc false
-  @spec preload_investigation_context([%AuditChange{}], module(), keyword()) :: [%AuditChange{}]
+  @spec preload_investigation_context([AuditChange.t()], module(), keyword()) :: [AuditChange.t()]
   def preload_investigation_context(changes, repo, opts \\ [])
       when is_list(changes) and is_atom(repo) and is_list(opts) do
     repo.preload(changes, [transaction: :action], storage_opts([], opts))
@@ -114,7 +114,7 @@ defmodule Threadline.Query do
 
   Raises `ArgumentError` when `transaction_id` is not a valid UUID.
   """
-  @spec audit_transaction(term(), keyword()) :: %AuditTransaction{} | nil
+  @spec audit_transaction(term(), keyword()) :: AuditTransaction.t() | nil
   def audit_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)
@@ -601,14 +601,12 @@ defmodule Threadline.Query do
     has_occurred_at? = Map.has_key?(cursor, :occurred_at)
     has_id? = Map.has_key?(cursor, :id)
 
-    cond do
-      has_occurred_at? or has_id? ->
-        raise ArgumentError,
-              "cursor must include both :occurred_at and :id or be nil, got: #{inspect(cursor)}"
-
-      true ->
-        raise ArgumentError,
-              "cursor must be nil or %{occurred_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
+    if has_occurred_at? or has_id? do
+      raise ArgumentError,
+            "cursor must include both :occurred_at and :id or be nil, got: #{inspect(cursor)}"
+    else
+      raise ArgumentError,
+            "cursor must be nil or %{occurred_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
     end
   end
 
@@ -646,7 +644,7 @@ defmodule Threadline.Query do
   Raises `ArgumentError` with message containing `invalid audit transaction id`
   when `transaction_id` fails UUID cast (before hitting Postgrex).
   """
-  @spec audit_changes_for_transaction(term(), keyword()) :: [%AuditChange{}]
+  @spec audit_changes_for_transaction(term(), keyword()) :: [AuditChange.t()]
   def audit_changes_for_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)
@@ -816,14 +814,12 @@ defmodule Threadline.Query do
     has_captured_at? = Map.has_key?(cursor, :captured_at)
     has_id? = Map.has_key?(cursor, :id)
 
-    cond do
-      has_captured_at? or has_id? ->
-        raise ArgumentError,
-              ":cursor must include both :captured_at and :id or be nil, got: #{inspect(cursor)}"
-
-      true ->
-        raise ArgumentError,
-              ":cursor must be nil or %{captured_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
+    if has_captured_at? or has_id? do
+      raise ArgumentError,
+            ":cursor must include both :captured_at and :id or be nil, got: #{inspect(cursor)}"
+    else
+      raise ArgumentError,
+            ":cursor must be nil or %{captured_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
     end
   end
 
