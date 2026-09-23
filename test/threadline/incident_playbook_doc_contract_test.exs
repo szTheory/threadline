@@ -56,7 +56,7 @@ defmodule Threadline.IncidentPlaybookDocContractTest do
       # Extract all SQL blocks
       sql_blocks = Regex.scan(~r/```sql\n(.*?)```/s, content)
 
-      assert length(sql_blocks) > 0, "Expected to find at least one SQL block"
+      assert sql_blocks != [], "Expected to find at least one SQL block"
 
       Enum.each(sql_blocks, fn [_, sql_content] ->
         # Assert that SELECT * is not in the block
