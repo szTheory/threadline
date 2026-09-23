@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   alias Threadline.OperatorSurface.MechanicalChecker.Contrast
   alias Threadline.OperatorSurface.MechanicalChecker.Parsing
+  alias Threadline.OperatorSurface.MechanicalChecker.RatchetMetrics
   alias Threadline.OperatorSurface.MechanicalChecker.Scorecards
   alias Threadline.OperatorSurface.MechanicalChecker.TokenConformance
 
@@ -127,7 +128,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   defp check_scorecard(scorecard, floors) do
     Contrast.check(scorecard, wcag_thresholds()) ++
       TokenConformance.check(scorecard, token_scales()) ++
-      check_mode_b(scorecard, floors)
+      RatchetMetrics.check(scorecard, floors, mode_b_limits(scorecard))
   end
 
   defp wcag_thresholds do
@@ -149,13 +150,22 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     }
   end
 
-  # --- MODE-B: ratchet-floor metrics + far ceilings ---
+  defp mode_b_limits(scorecard) do
+    %{
+      metrics: @mode_b_metrics,
+      measured: measure_mode_b(scorecard),
+      ceilings: %{
+        "card_nesting_depth" => @mode_b_card_nesting_ceiling,
+        "distinct_accent_hue_count" => @mode_b_distinct_accent_hue_ceiling
+      }
+    }
+  end
 
   @doc """
   Returns the measured MODE-B metric values for a decoded scorecard as a map
   keyed by the `@mode_b_metrics` names.
 
-  This is the single source of truth for MODE-B measurement: `check_mode_b/2`
+  This is the single source of truth for MODE-B measurement: the MODE-B check
   ratchets these values against the recorded floors, and the betterer-floor
   seeder writes these same values into the ledger's `mechanical_floors` block,
   so committed floors can never drift from what the checker computes.
@@ -169,65 +179,6 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       "card_nesting_depth" => Parsing.num(mode_b["card_nesting_depth"]),
       "scroll_cost" => Parsing.num(mode_b["scroll_cost"]),
       "distinct_accent_hue_count" => distinct_accent_hue_count(scorecard["applied_colors"] || [])
-    }
-  end
-
-  defp check_mode_b(scorecard, floors) do
-    cell_id = scorecard["cell_id"]
-    ledger_id = scorecard["ledger_id"]
-    theme_bp = "#{scorecard["theme"]}_#{scorecard["breakpoint"]}"
-    measured = measure_mode_b(scorecard)
-
-    Enum.flat_map(@mode_b_metrics, fn metric ->
-      current = Map.fetch!(measured, metric)
-      floor = get_in(floors, [ledger_id, metric, theme_bp])
-      ceiling = ceiling_for(metric)
-      mode_b_metric_violations(metric, current, floor, ceiling, cell_id, theme_bp)
-    end)
-  end
-
-  defp ceiling_for("card_nesting_depth"), do: @mode_b_card_nesting_ceiling
-  defp ceiling_for("distinct_accent_hue_count"), do: @mode_b_distinct_accent_hue_ceiling
-  defp ceiling_for(_), do: nil
-
-  # Absent floor + a real far ceiling -> absolute blocker. A recorded floor grandfathers
-  # any pre-existing >ceiling value; only worsening past that floor then fails.
-  defp mode_b_metric_violations(metric, current, floor, ceiling, cell_id, theme_bp) do
-    cond do
-      is_nil(floor) and not is_nil(ceiling) and current > ceiling ->
-        [ceiling_violation(metric, current, ceiling, cell_id, theme_bp)]
-
-      not is_nil(floor) and current > floor ->
-        [ratchet_violation(metric, current, floor, cell_id, theme_bp)]
-
-      true ->
-        []
-    end
-  end
-
-  defp ceiling_violation(metric, current, ceiling, cell_id, theme_bp) do
-    %{
-      cell_id: cell_id,
-      metric: metric,
-      mode: "B",
-      selector: "##{theme_bp}",
-      observed: Parsing.fmt(current),
-      expected: "<= #{ceiling}",
-      fix: "reduce #{metric} to <= #{ceiling} (structural correction + human review required)"
-    }
-  end
-
-  defp ratchet_violation(metric, current, floor, cell_id, theme_bp) do
-    %{
-      cell_id: cell_id,
-      metric: metric,
-      mode: "B",
-      selector: "##{theme_bp}",
-      observed: Parsing.fmt(current),
-      expected: "<= floor #{Parsing.fmt(floor)}",
-      fix:
-        "#{metric} regressed past its ratchet floor (#{Parsing.fmt(current)} > #{Parsing.fmt(floor)}) — " <>
-          "revert the regression or record a ratchet reset with rationale"
     }
   end
 

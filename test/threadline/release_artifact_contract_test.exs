@@ -171,6 +171,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/threadline/operator_surface/mechanical_checker.ex",
     "lib/threadline/operator_surface/mechanical_checker/contrast.ex",
     "lib/threadline/operator_surface/mechanical_checker/parsing.ex",
+    "lib/threadline/operator_surface/mechanical_checker/ratchet_metrics.ex",
     "lib/threadline/operator_surface/mechanical_checker/scorecards.ex",
     "lib/threadline/operator_surface/mechanical_checker/token_conformance.ex",
     "lib/threadline/operator_surface/stress_fixtures.ex",
