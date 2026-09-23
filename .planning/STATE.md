@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 203
 current_phase_name: Real Gates
 status: executing
-stopped_at: Completed 203-04-PLAN.md
-last_updated: "2026-09-23T02:36:22.948Z"
+stopped_at: Completed 203-05-PLAN.md
+last_updated: "2026-09-23T02:45:50.084Z"
 last_activity: 2026-09-22
-last_activity_desc: Plan 203-04 complete (AliasUsage 0 outside test/threadline/operator_surface/, 7 directory-batched refactor commits)
-state_head: cd8cd717400c720582393d74403dbfefa4cbde15
+last_activity_desc: Plan 203-05 complete (AliasUsage 0 tree-wide, 3 directory-batched refactor commits)
+state_head: e16f678a92aaad877781eeaaa39dfef855213c81
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 130
-  completed_plans: 124
+  completed_plans: 125
   percent: 71
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 203 (Real Gates) — EXECUTING
-Plan: 5 of 10
+Plan: 6 of 10
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-22 — Plan 203-04 complete: Design.AliasUsage paid to 0 in the 14 non-contract test files outside test/threadline/operator_surface/ (116); 303 → 187 tree-wide; 7 directory-batched `refactor(203-04)` commits
+Last activity: 2026-09-22 — Plan 203-05 complete: Design.AliasUsage paid to 0 tree-wide (last 187 findings in 20 test/threadline/operator_surface/ files); 313 → 126 total findings; 3 directory-batched `refactor(203-05)` commits
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -244,6 +244,7 @@ Progress: [████████████████████] 120/120
 | Phase 203 P02 | 4min | 2 tasks | 9 files |
 | Phase 203 P03 | 15min | 2 tasks | 22 files |
 | Phase 203 P04 | 3min | 2 tasks | 14 files |
+| Phase 203 P05 | 7min | 2 tasks | 20 files |
 
 ## Deferred Items
 
@@ -783,6 +784,7 @@ Progress: [████████████████████] 120/120
 - [Phase 203]: GATE-04: zero compile-connected xref cycles + zero no_warn_undefined; runtime AuditTransaction<->AuditAction edge kept (D-18); mix verify.xref_cycles in ci.all and CI verify-test (both lanes)
 - [Phase 203]: 203-03: AliasUsage in lib/ and contract tests paid down to 0 as 22 single-file refactor commits; timeline_live.ex and copy_contract_test.exs pre-existing AliasOrder absorbed (Plans 06/07 each expect one fewer)
 - [Phase 203]: 203-04: AliasUsage outside test/threadline/operator_surface/ paid to 0 (116 findings, 14 files, 7 directory-batched refactor commits); Threadline.ExportQueue.Oban aliased as ObanAdapter because bare Oban is the real Oban module in oban_test
+- [Phase 203]: 203-05: AliasUsage paid to 0 tree-wide (last 187 findings, 20 operator_surface test files, 3 directory-batched refactor commits); no as: needed; StressRouter alias for Code.compile_quoted routers lives in the enclosing module because quote hygiene blocks an inner alias
 
 ### Blockers
 
@@ -792,8 +794,8 @@ Progress: [████████████████████] 120/120
 
 ## Session Continuity
 
-**Last session:** 2026-09-23T02:36:22.791Z
-**Stopped at:** Completed 203-04-PLAN.md
+**Last session:** 2026-09-23T02:45:49.940Z
+**Stopped at:** Completed 203-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

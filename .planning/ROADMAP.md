@@ -746,7 +746,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 203-05-PLAN.md — `Design.AliasUsage` sweep, part 3: non-contract operator_surface tests; AliasUsage 0 tree-wide
+- [x] 203-05-PLAN.md — `Design.AliasUsage` sweep, part 3: non-contract operator_surface tests; AliasUsage 0 tree-wide
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
