@@ -247,9 +247,10 @@ defmodule Threadline.Policy.RedactionPresenter do
         capture: :all_but_first
       )
 
-    with {:ok, []} <- bucket_fragment_occurrences(matches) do
-      {:ok, {[], RedactionPolicy.default_placeholder()}}
-    else
+    case bucket_fragment_occurrences(matches) do
+      {:ok, []} ->
+        {:ok, {[], RedactionPolicy.default_placeholder()}}
+
       {:ok, [[fragment]]} ->
         parse_mask_fragment(fragment)
 
