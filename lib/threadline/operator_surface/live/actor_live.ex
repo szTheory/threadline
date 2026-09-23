@@ -43,6 +43,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {has_ever_acted, last_activity} =
           if Enum.empty?(page.entries) do
+            # Phase 204 (STRUCT-07): history case inside if in mount/3 — extract last-activity lookup
+            # credo:disable-for-next-line Credo.Check.Refactor.Nesting
             case Threadline.actor_history(
                    actor_ref,
                    [
