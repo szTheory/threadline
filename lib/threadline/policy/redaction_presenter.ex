@@ -317,6 +317,8 @@ defmodule Threadline.Policy.RedactionPresenter do
           parsed_list = Enum.reverse(list)
           placeholders = Enum.map(parsed_list, &elem(&1, 1)) |> Enum.uniq()
 
+          # Phase 204 (STRUCT-07): nested placeholder case — extract the placeholder check
+          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
           case placeholders do
             [placeholder] ->
               {:ok, {Enum.map(parsed_list, &elem(&1, 0)) |> Enum.sort(), placeholder}}
