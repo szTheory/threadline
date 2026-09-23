@@ -39,24 +39,18 @@ defmodule Threadline.Query.FilterParams do
     end
   end
 
+  # Form fields echoed back by filters_raw_from_params/1; a missing field echoes
+  # as the empty string.
+  @raw_filter_keys ~w(from to table_schema table actor_kind actor_id correlation_id)
+
   @doc """
   Returns a string-keyed `%{key => value}` map suitable for re-rendering the
   filter form on URL paste. Mirrors the `actor_kind=anonymous` strip-id
   normalization so the form echoes the canonical (post-strip) URL.
   """
   @spec filters_raw_from_params(map()) :: %{required(String.t()) => String.t()}
-  # Structural debt: complexity 10 — split filters_raw_from_params/1 per field
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def filters_raw_from_params(params) when is_map(params) do
-    raw = %{
-      "from" => params["from"] || "",
-      "to" => params["to"] || "",
-      "table_schema" => params["table_schema"] || "",
-      "table" => params["table"] || "",
-      "actor_kind" => params["actor_kind"] || "",
-      "actor_id" => params["actor_id"] || "",
-      "correlation_id" => params["correlation_id"] || ""
-    }
+    raw = Map.new(@raw_filter_keys, &{&1, params[&1] || ""})
 
     case raw["actor_kind"] do
       "anonymous" -> Map.put(raw, "actor_id", "")
@@ -139,42 +133,42 @@ defmodule Threadline.Query.FilterParams do
     end
   end
 
-  # Structural debt: complexity 11 — split collapse_actor_ref/1 per actor case
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp collapse_actor_ref(filters) do
-    actor_kind = Keyword.get(filters, :actor_kind)
-    actor_id = Keyword.get(filters, :actor_id)
-
     filters_without_actor_params =
       filters
       |> Keyword.delete(:actor_kind)
       |> Keyword.delete(:actor_id)
 
-    cond do
-      actor_kind == "anonymous" ->
-        actor_ref = %ActorRef{type: :anonymous, id: nil}
-        {:ok, Keyword.put(filters_without_actor_params, :actor_ref, actor_ref)}
+    case actor_ref_from(Keyword.get(filters, :actor_kind), Keyword.get(filters, :actor_id)) do
+      :none -> {:ok, filters_without_actor_params}
+      {:ok, actor_ref} -> {:ok, Keyword.put(filters_without_actor_params, :actor_ref, actor_ref)}
+      {:error, _message} = error -> error
+    end
+  end
 
-      is_binary(actor_kind) and actor_kind != "" and is_binary(actor_id) and actor_id != "" ->
-        with {:ok, kind_atom} <- safe_actor_kind(actor_kind),
-             {:ok, actor_ref} <- ActorRef.new(kind_atom, actor_id) do
-          {:ok, Keyword.put(filters_without_actor_params, :actor_ref, actor_ref)}
-        else
-          {:error, :unknown_actor_type} ->
-            {:error, "unknown actor kind: " <> inspect(actor_kind)}
+  defp actor_ref_from("anonymous", _actor_id), do: {:ok, %ActorRef{type: :anonymous, id: nil}}
 
-          {:error, :missing_actor_id} ->
-            {:error, "actor id is required for non-anonymous actors"}
-        end
+  defp actor_ref_from(actor_kind, actor_id) do
+    case {present?(actor_kind), present?(actor_id)} do
+      {true, true} -> build_actor_ref(actor_kind, actor_id)
+      {true, false} -> {:error, "actor id is required for non-anonymous actors"}
+      {false, true} -> {:error, "actor kind is required when actor id is present"}
+      {false, false} -> :none
+    end
+  end
 
-      is_binary(actor_kind) and actor_kind != "" ->
+  defp present?(value), do: is_binary(value) and value != ""
+
+  defp build_actor_ref(actor_kind, actor_id) do
+    with {:ok, kind_atom} <- safe_actor_kind(actor_kind),
+         {:ok, actor_ref} <- ActorRef.new(kind_atom, actor_id) do
+      {:ok, actor_ref}
+    else
+      {:error, :unknown_actor_type} ->
+        {:error, "unknown actor kind: " <> inspect(actor_kind)}
+
+      {:error, :missing_actor_id} ->
         {:error, "actor id is required for non-anonymous actors"}
-
-      is_binary(actor_id) and actor_id != "" ->
-        {:error, "actor kind is required when actor id is present"}
-
-      true ->
-        {:ok, filters_without_actor_params}
     end
   end
 
