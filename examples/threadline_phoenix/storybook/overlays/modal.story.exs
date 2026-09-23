@@ -39,7 +39,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
             not a live retention action, and page-flow stress remains in /audit/__stress.
           </UI.Display.alert>
 
-          <UI.modal id="storybook-prune-modal" show>
+          <UI.Overlay.modal id="storybook-prune-modal" show>
             <UI.Display.stack>
               <h2 id="storybook-prune-modal-title" class="tl-detail-header__title">
                 Prune retention window permanently?
@@ -64,9 +64,9 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
                 <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
               </UI.Display.cluster>
             </UI.Display.stack>
-          </UI.modal>
+          </UI.Overlay.modal>
 
-          <UI.drawer id="storybook-filter-drawer" show>
+          <UI.Overlay.drawer id="storybook-filter-drawer" show>
             <UI.Display.stack>
               <h2 id="storybook-filter-drawer-title" class="tl-detail-header__title">
                 Audit filter drawer
@@ -83,23 +83,23 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
               />
               <UI.Actions.button type="button" variant="primary">Apply filters</UI.Actions.button>
             </UI.Display.stack>
-          </UI.drawer>
+          </UI.Overlay.drawer>
 
           <UI.Display.cluster>
-            <UI.toast id="storybook-toast" kind="warning" title="Timeline stale">
+            <UI.Overlay.toast id="storybook-toast" kind="warning" title="Timeline stale">
               Could not refresh - showing last known <%= @stale.object_label %> from <%= @stale.as_of %>.
-            </UI.toast>
+            </UI.Overlay.toast>
 
-            <UI.tooltip id="storybook-tooltip">
+            <UI.Overlay.tooltip id="storybook-tooltip">
               <:trigger>
                 <span class="tl-button tl-button--secondary">Why disabled?</span>
               </:trigger>
               Refresh is disabled while the source is reconnecting.
-            </UI.tooltip>
+            </UI.Overlay.tooltip>
           </UI.Display.cluster>
 
           <UI.Display.cluster>
-            <UI.popover id="storybook-popover">
+            <UI.Overlay.popover id="storybook-popover">
               <:trigger>
                 <span class="tl-button tl-button--secondary">Inspect policy</span>
               </:trigger>
@@ -107,20 +107,20 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
                 <:item key="Policy">retention.default</:item>
                 <:item key="Sample"><%= @non_ascii %></:item>
               </UI.Display.kv>
-            </UI.popover>
+            </UI.Overlay.popover>
 
-            <UI.dropdown id="storybook-dropdown">
+            <UI.Overlay.dropdown id="storybook-dropdown">
               <:trigger>
                 <span class="tl-button tl-button--secondary">Export actions</span>
               </:trigger>
               <a href="/audit/exports" role="menuitem" class="tl-link">Download CSV</a>
               <a href="/audit/exports" role="menuitem" class="tl-link">Download NDJSON</a>
-            </UI.dropdown>
+            </UI.Overlay.dropdown>
           </UI.Display.cluster>
 
-          <UI.accordion id="storybook-accordion" title="Keyboard contract">
+          <UI.Overlay.accordion id="storybook-accordion" title="Keyboard contract">
             Disclosure state is announced through aria-expanded and the panel remains tied to the trigger.
-          </UI.accordion>
+          </UI.Overlay.accordion>
 
           <UI.Display.stack>
             <UI.tabs>

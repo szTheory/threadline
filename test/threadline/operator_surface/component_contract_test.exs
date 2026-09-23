@@ -307,7 +307,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.reconnect_banner />
+        <UI.Overlay.reconnect_banner />
         """)
 
       assert html =~ "tl-reconnect-banner"
@@ -474,22 +474,47 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       src = SourceFamily.read!(@ui_module)
 
       assert src =~ "def shell(assigns)",
-             "ui.ex must define the shared @doc false shell/1 chrome component (D-10)"
+             "the UI family must define the shared @doc false shell/1 chrome component (D-10)"
 
       banner_count =
         src
         |> String.split("reconnect_banner")
         |> length()
         |> Kernel.-(1)
-        # def reconnect_banner + the single <.reconnect_banner /> mount in shell/1
+        # def reconnect_banner + the single <Overlay.reconnect_banner /> mount in shell/1
         |> Kernel.-(1)
 
       assert banner_count == 1,
-             "ui.ex shell must mount reconnect_banner EXACTLY once (D-10), found #{banner_count} mount references"
+             "the UI family shell must mount reconnect_banner EXACTLY once (D-10), found #{banner_count} mount references"
 
-      shell_at = index_of!(src, ~s(class="threadline-ui"))
-      banner_at = index_of!(src, "<.reconnect_banner")
-      main_at = index_of!(src, ~s(id="tl-main"))
+      mount_re = ~r/<(?:\.|Overlay\.|UI\.Overlay\.)reconnect_banner\b/
+
+      assert length(Regex.scan(~r/def reconnect_banner\(/, src)) == 1,
+             "the UI family must define reconnect_banner/1 exactly once (D-10)"
+
+      assert length(Regex.scan(mount_re, src)) == 1,
+             "the UI family shell must mount reconnect_banner EXACTLY once (D-10)"
+
+      shell_files =
+        @ui_module
+        |> SourceFamily.files!()
+        |> Enum.map(&File.read!/1)
+        |> Enum.filter(&String.contains?(&1, "def shell(assigns)"))
+
+      assert length(shell_files) == 1,
+             "exactly one UI family file must define the shared shell/1 (D-10)"
+
+      [shell_src] = shell_files
+
+      shell_at = index_of!(shell_src, ~s(class="threadline-ui"))
+
+      banner_at =
+        case Regex.run(mount_re, shell_src, return: :index) do
+          [{at, _len}] -> at
+          nil -> flunk("the shell-owning UI family file must mount reconnect_banner (D-10)")
+        end
+
+      main_at = index_of!(shell_src, ~s(id="tl-main"))
 
       assert shell_at < banner_at and banner_at < main_at,
              "the reconnect banner must sit AFTER the .threadline-ui open and BEFORE #tl-main (D-10/D-11)"

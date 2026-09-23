@@ -286,7 +286,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   prune_now handler and is never shipped to the client for a
                   client-side comparison. The danger button copy names the
                   irreversible consequence (not "Continue"). --%>
-            <UI.modal :if={@prune_modal_open} id="prune-confirm" show={true} on_cancel={JS.push("close_prune_modal")}>
+            <UI.Overlay.modal :if={@prune_modal_open} id="prune-confirm" show={true} on_cancel={JS.push("close_prune_modal")}>
               <h2 id="prune-confirm-title" class="tl-modal__title"><%= @prune_copy.title %></h2>
               <p id="prune-confirm-description" class="tl-modal__body">
                 <%= @prune_copy.consequence_prefix %> <code><%= @prune_copy.policy_name %></code>; it cannot be undone.
@@ -315,7 +315,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </button>
                 </div>
               </form>
-            </UI.modal>
+            </UI.Overlay.modal>
           <% else %>
             <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
               descriptor={Unsupported.descriptor(:retention_unavailable)}

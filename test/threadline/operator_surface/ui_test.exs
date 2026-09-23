@@ -254,9 +254,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.modal id="test-modal">
+        <UI.Overlay.modal id="test-modal">
           Modal Content
-        </UI.modal>
+        </UI.Overlay.modal>
         """)
 
       assert html =~ "role=\"dialog\""
@@ -272,9 +272,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.drawer id="test-drawer">
+        <UI.Overlay.drawer id="test-drawer">
           Drawer Content
-        </UI.drawer>
+        </UI.Overlay.drawer>
         """)
 
       assert html =~ "id=\"test-drawer\""
@@ -289,9 +289,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.toast id="test-toast" kind="info" title="Info">
+        <UI.Overlay.toast id="test-toast" kind="info" title="Info">
           Toast Message
-        </UI.toast>
+        </UI.Overlay.toast>
         """)
 
       assert html =~ "phx-click-away"
@@ -305,10 +305,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.tooltip id="test-tooltip">
+        <UI.Overlay.tooltip id="test-tooltip">
           <:trigger>Hover me</:trigger>
           Tooltip text
-        </UI.tooltip>
+        </UI.Overlay.tooltip>
         """)
 
       assert html =~ "tl-tooltip"
@@ -323,10 +323,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.popover id="test-popover">
+        <UI.Overlay.popover id="test-popover">
           <:trigger>Click me</:trigger>
           Popover content
-        </UI.popover>
+        </UI.Overlay.popover>
         """)
 
       assert html =~ "aria-expanded=\"false\""
@@ -343,10 +343,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.dropdown id="test-dropdown">
+        <UI.Overlay.dropdown id="test-dropdown">
           <:trigger>Menu</:trigger>
           Dropdown item
-        </UI.dropdown>
+        </UI.Overlay.dropdown>
         """)
 
       assert html =~ "aria-haspopup=\"menu\""
@@ -412,9 +412,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.accordion id="test-accordion" title="Section 1">
+        <UI.Overlay.accordion id="test-accordion" title="Section 1">
           Accordion content
-        </UI.accordion>
+        </UI.Overlay.accordion>
         """)
 
       assert html =~ "aria-expanded=\"false\""

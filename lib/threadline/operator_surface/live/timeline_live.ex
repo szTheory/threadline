@@ -642,7 +642,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   class="tl-button tl-button--secondary"
                   aria-haspopup="dialog"
                   aria-controls="timeline-filters-drawer"
-                  phx-click={JS.push_focus() |> UI.show_drawer("timeline-filters-drawer")}
+                  phx-click={JS.push_focus() |> UI.Overlay.show_drawer("timeline-filters-drawer")}
                 >
                   <Threadline.OperatorSurface.Components.Icon.icon name={:funnel} class="tl-button__icon" />
                   Filters
@@ -685,10 +685,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:advanced_filter_count, advanced_filter_count(assigns.filters_raw))
 
       ~H"""
-      <UI.drawer
+      <UI.Overlay.drawer
         id="timeline-filters-drawer"
         class="tl-timeline-drawer"
-        phx-window-keydown={UI.hide_drawer("timeline-filters-drawer")}
+        phx-window-keydown={UI.Overlay.hide_drawer("timeline-filters-drawer")}
         phx-key="Escape"
       >
         <div class="tl-timeline-drawer__header">
@@ -703,7 +703,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <button
             type="button"
             class="tl-button tl-button--secondary"
-            phx-click={UI.hide_drawer("timeline-filters-drawer")}
+            phx-click={UI.Overlay.hide_drawer("timeline-filters-drawer")}
             data-tl-initial-focus
           >
             Close
@@ -878,7 +878,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </ul>
           </section>
         </div>
-      </UI.drawer>
+      </UI.Overlay.drawer>
       """
     end
 

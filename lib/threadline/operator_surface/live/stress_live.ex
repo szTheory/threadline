@@ -551,21 +551,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-space-y-4">
                     <h4>Overlays & Disclosures</h4>
                     <div class="tl-flex tl-gap-4 tl-flex-wrap">
-                      <Threadline.OperatorSurface.UI.tooltip id="stress-tooltip">
+                      <Threadline.OperatorSurface.UI.Overlay.tooltip id="stress-tooltip">
                         <:trigger>
                           <Threadline.OperatorSurface.UI.Actions.button>Hover Tooltip</Threadline.OperatorSurface.UI.Actions.button>
                         </:trigger>
                         Tooltip content
-                      </Threadline.OperatorSurface.UI.tooltip>
+                      </Threadline.OperatorSurface.UI.Overlay.tooltip>
 
-                      <Threadline.OperatorSurface.UI.popover id="stress-popover">
+                      <Threadline.OperatorSurface.UI.Overlay.popover id="stress-popover">
                         <:trigger>
                           <Threadline.OperatorSurface.UI.Actions.button>Click Popover</Threadline.OperatorSurface.UI.Actions.button>
                         </:trigger>
                         Popover content
-                      </Threadline.OperatorSurface.UI.popover>
+                      </Threadline.OperatorSurface.UI.Overlay.popover>
 
-                      <Threadline.OperatorSurface.UI.dropdown id="stress-dropdown">
+                      <Threadline.OperatorSurface.UI.Overlay.dropdown id="stress-dropdown">
                         <:trigger>
                           <span class="tl-button tl-button--secondary">Dropdown Menu</span>
                         </:trigger>
@@ -575,12 +575,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <button type="button" role="menuitem" class="tl-button tl-button--compact tl-button--ghost">
                           Copy stress link
                         </button>
-                      </Threadline.OperatorSurface.UI.dropdown>
+                      </Threadline.OperatorSurface.UI.Overlay.dropdown>
                     </div>
                     
-                    <Threadline.OperatorSurface.UI.accordion id="stress-accordion" title="Accordion Section">
+                    <Threadline.OperatorSurface.UI.Overlay.accordion id="stress-accordion" title="Accordion Section">
                       Accordion inner content
-                    </Threadline.OperatorSurface.UI.accordion>
+                    </Threadline.OperatorSurface.UI.Overlay.accordion>
                     
                     <Threadline.OperatorSurface.UI.tabs>
                       <:tab active>Tab 1</:tab>
@@ -593,39 +593,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </Threadline.OperatorSurface.UI.segmented_control>
 
                     <div class="tl-flex tl-gap-4">
-                      <Threadline.OperatorSurface.UI.Actions.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.show_modal("stress-modal")}>Show Modal</Threadline.OperatorSurface.UI.Actions.button>
-                      <Threadline.OperatorSurface.UI.Actions.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.show_drawer("stress-drawer")}>Show Drawer</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_modal("stress-modal")}>Show Modal</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_drawer("stress-drawer")}>Show Drawer</Threadline.OperatorSurface.UI.Actions.button>
                       
-                      <Threadline.OperatorSurface.UI.modal id="stress-modal">
+                      <Threadline.OperatorSurface.UI.Overlay.modal id="stress-modal">
                         <h2 id="stress-modal-title" class="tl-modal__title">Stress modal</h2>
                         <p id="stress-modal-description" class="tl-modal__body">
                           Modal content for rendered accessibility checks.
                         </p>
                         <Threadline.OperatorSurface.UI.Actions.button
                           variant="primary"
-                          phx-click={Threadline.OperatorSurface.UI.hide_modal("stress-modal")}
+                          phx-click={Threadline.OperatorSurface.UI.Overlay.hide_modal("stress-modal")}
                           data-tl-initial-focus
                         >
                           Confirm stress modal
                         </Threadline.OperatorSurface.UI.Actions.button>
-                      </Threadline.OperatorSurface.UI.modal>
+                      </Threadline.OperatorSurface.UI.Overlay.modal>
                       
-                      <Threadline.OperatorSurface.UI.drawer id="stress-drawer">
+                      <Threadline.OperatorSurface.UI.Overlay.drawer id="stress-drawer">
                         <h2 id="stress-drawer-title" class="tl-modal__title">Stress drawer</h2>
                         <p id="stress-drawer-description" class="tl-modal__body">
                           Drawer content for rendered accessibility checks.
                         </p>
                         <Threadline.OperatorSurface.UI.Actions.button
-                          phx-click={Threadline.OperatorSurface.UI.hide_drawer("stress-drawer")}
+                          phx-click={Threadline.OperatorSurface.UI.Overlay.hide_drawer("stress-drawer")}
                           data-tl-initial-focus
                         >
                           Close stress drawer
                         </Threadline.OperatorSurface.UI.Actions.button>
-                      </Threadline.OperatorSurface.UI.drawer>
+                      </Threadline.OperatorSurface.UI.Overlay.drawer>
                       
-                      <Threadline.OperatorSurface.UI.toast id="stress-toast" kind="info" title="Toast Title">
+                      <Threadline.OperatorSurface.UI.Overlay.toast id="stress-toast" kind="info" title="Toast Title">
                         Toast message body
-                      </Threadline.OperatorSurface.UI.toast>
+                      </Threadline.OperatorSurface.UI.Overlay.toast>
                     </div>
                   </div>
                 </div>

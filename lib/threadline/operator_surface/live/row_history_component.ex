@@ -70,7 +70,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def render(assigns) do
       ~H"""
       <div id={"#{@id}-shell"}>
-        <UI.drawer
+        <UI.Overlay.drawer
           id={@id}
           show
           on_cancel={JS.patch(@close_path)}
@@ -130,7 +130,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </div>
           <% end %>
-        </UI.drawer>
+        </UI.Overlay.drawer>
       </div>
       """
     end

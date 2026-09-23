@@ -90,7 +90,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
 
           <UI.Display.card variant="danger">
             <:title>inert destructive modal</:title>
-            <UI.modal id="pattern-destructive-modal" show>
+            <UI.Overlay.modal id="pattern-destructive-modal" show>
               <UI.Display.stack>
                 <h2 id="pattern-destructive-modal-title" class="tl-detail-header__title">
                   Prune retention window permanently?
@@ -100,13 +100,13 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                 </p>
                 <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
               </UI.Display.stack>
-            </UI.modal>
+            </UI.Overlay.modal>
           </UI.Display.card>
 
           <UI.Display.card>
             <:title>offline and reconnect</:title>
             <UI.Display.alert variant="warning">
-              <UI.reconnect_banner />
+              <UI.Overlay.reconnect_banner />
               <span><%= @offline.body %></span>
               <UI.Actions.button type="button" disabled>Retry after reconnect</UI.Actions.button>
             </UI.Display.alert>

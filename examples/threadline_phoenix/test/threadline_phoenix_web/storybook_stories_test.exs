@@ -68,13 +68,13 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   ]
 
   @overlay_contracts [
-    {"modal", ["<UI.modal"]},
-    {"drawer", ["<UI.drawer"]},
-    {"toast", ["<UI.toast"]},
-    {"tooltip", ["<UI.tooltip"]},
-    {"popover", ["<UI.popover"]},
-    {"dropdown", ["<UI.dropdown"]},
-    {"accordion", ["<UI.accordion"]},
+    {"modal", ["<UI.Overlay.modal"]},
+    {"drawer", ["<UI.Overlay.drawer"]},
+    {"toast", ["<UI.Overlay.toast"]},
+    {"tooltip", ["<UI.Overlay.tooltip"]},
+    {"popover", ["<UI.Overlay.popover"]},
+    {"dropdown", ["<UI.Overlay.dropdown"]},
+    {"accordion", ["<UI.Overlay.accordion"]},
     {"tabs", ["<UI.tabs"]},
     {"segmented control", ["<UI.segmented_control"]}
   ]

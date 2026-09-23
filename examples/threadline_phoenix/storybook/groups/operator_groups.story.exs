@@ -99,7 +99,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
           </UI.Data.data_panel>
 
           <UI.Display.cluster>
-            <UI.modal id="group-modal-destructive" show>
+            <UI.Overlay.modal id="group-modal-destructive" show>
               <UI.Display.stack>
                 <h2 id="group-modal-destructive-title" class="tl-detail-header__title">
                   Prune retention window permanently?
@@ -109,13 +109,13 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
                 </p>
                 <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
               </UI.Display.stack>
-            </UI.modal>
+            </UI.Overlay.modal>
 
             <UI.Data.data_state reason={:unauthorized} />
           </UI.Display.cluster>
 
           <UI.Display.alert variant="warning" data-tl-mutating>
-            <UI.reconnect_banner />
+            <UI.Overlay.reconnect_banner />
             <span><%= @groups["offline"].body %></span>
             <UI.Actions.button type="button" disabled>Retry while reconnecting</UI.Actions.button>
           </UI.Display.alert>
