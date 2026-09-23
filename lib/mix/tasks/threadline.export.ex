@@ -35,6 +35,8 @@ defmodule Mix.Tasks.Threadline.Export do
   alias Threadline.Semantics.ActorRef
 
   @impl Mix.Task
+  # Phase 204 (STRUCT-07): complexity 13 — split run/1 option parsing from dispatch
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def run(argv) do
     {opts, _, _} =
       OptionParser.parse(argv,
