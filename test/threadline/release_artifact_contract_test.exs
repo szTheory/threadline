@@ -170,6 +170,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/threadline/operator_surface/live/stress_live.ex",
     "lib/threadline/operator_surface/mechanical_checker.ex",
     "lib/threadline/operator_surface/mechanical_checker/parsing.ex",
+    "lib/threadline/operator_surface/mechanical_checker/scorecards.ex",
     "lib/threadline/operator_surface/stress_fixtures.ex",
     "lib/threadline/operator_surface/stress_router.ex"
   ]
