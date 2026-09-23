@@ -5,7 +5,7 @@ milestone_name: Green, Clean, and Honest
 current_phase: 204
 current_phase_name: Structure
 status: executing
-stopped_at: "204-05 halted at Task 2 browser gate (Tasks 1-2 committed: 1fe2d345, 8d6e69c6)"
+stopped_at: "204-05 halted at Task 3 browser gate (Tasks 1-3 committed: 1fe2d345, 8d6e69c6, 3dd1f64f)"
 last_updated: "2026-09-23T21:01:54.386Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 204 execution started
@@ -813,12 +813,12 @@ Progress: [████████████████████] 130/130
 -
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
-- 204-05 halted at Task 2 browser gate: verify.example_browser on 8d6e69c6 gave 324/10/16 (8 known + 2 desktop-only lost-interaction assertion timeouts: operator-screenshots.spec.ts:90, operator-timeline-investigation-flow.spec.ts:583). Decide re-run vs revert, then resume Task 3 (UI.Data).
+- 204-05 halted at Task 3 browser gate: verify.example_browser on 3dd1f64f gave 325/9/16 (8 known + desktop-only operator-accessibility.spec.ts:620 row-history drawer toBeFocused assertion timeout). The Task 2 flake is resolved (orchestrator re-run 326/8/16). Full mix test, xref_cycles, and dialyzer are green on 3dd1f64f. Decide re-run vs revert 3dd1f64f; a clean re-run completes the plan.
 
 ## Session Continuity
 
 **Last session:** 2026-09-23T21:01:54.088Z
-**Stopped at:** 204-05 halted at Task 2 browser gate (Tasks 1-2 committed: 1fe2d345, 8d6e69c6)
+**Stopped at:** 204-05 halted at Task 3 browser gate (Tasks 1-3 committed: 1fe2d345, 8d6e69c6, 3dd1f64f)
 **Resume file:** .planning/phases/204-structure/204-05-SUMMARY.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
