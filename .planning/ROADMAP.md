@@ -730,7 +730,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 203-01-PLAN.md — **Tracer:** move `Scope` and `FilterParams` into `Threadline.Query.*` with all pins (in-place alias rename); layer-boundary contract test (GATE-03)
+- [x] 203-01-PLAN.md — **Tracer:** move `Scope` and `FilterParams` into `Threadline.Query.*` with all pins (in-place alias rename); layer-boundary contract test (GATE-03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

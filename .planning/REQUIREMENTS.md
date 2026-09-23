@@ -75,7 +75,7 @@
 
 - [ ] **GATE-01**: `mix credo --strict` runs Credo's full default check set, with project adjustments expressed as deltas so a future Credo release cannot silently drop checks.
 - [ ] **GATE-02**: Every Credo finding is either fixed or recorded as a register row carrying an exact count and a named successor milestone — no check is silently disabled.
-- [ ] **GATE-03**: No module in the capture, semantics, query, or export layers references the operator-surface namespace.
+- [x] **GATE-03**: No module in the capture, semantics, query, or export layers references the operator-surface namespace.
 - [ ] **GATE-04**: The Capture↔Semantics module cycle is resolved and its compiler suppression removed rather than relocated.
 - [ ] **GATE-05**: No comment in `lib/` cites a file location whose referent has moved, and every module has a deliberate `@moduledoc` or `@moduledoc false`.
 
@@ -184,7 +184,7 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | RELEASE-05 | Phase 202 | Complete |
 | GATE-01 | Phase 203 | Pending |
 | GATE-02 | Phase 203 | Pending |
-| GATE-03 | Phase 203 | Pending |
+| GATE-03 | Phase 203 | Complete |
 | GATE-04 | Phase 203 | Pending |
 | GATE-05 | Phase 203 | Pending |
 | STRUCT-01 | Phase 204 | Pending |
