@@ -22,6 +22,8 @@ defmodule Mix.Tasks.Threadline.Incident do
 
   use Mix.Task
 
+  alias Threadline.Semantics.ActorRef
+
   @impl Mix.Task
   def run(argv) do
     {opts, args, _} = OptionParser.parse(argv, strict: [json: :boolean])
@@ -63,7 +65,7 @@ defmodule Mix.Tasks.Threadline.Incident do
 
     actor_str =
       if bundle.transaction.actor_ref,
-        do: inspect(Threadline.Semantics.ActorRef.to_map(bundle.transaction.actor_ref)),
+        do: inspect(ActorRef.to_map(bundle.transaction.actor_ref)),
         else: "nil"
 
     IO.puts("Actor: #{actor_str}")
@@ -105,7 +107,7 @@ defmodule Mix.Tasks.Threadline.Incident do
   end
 
   defp transaction_to_map(tx) do
-    actor_map = if tx.actor_ref, do: Threadline.Semantics.ActorRef.to_map(tx.actor_ref), else: nil
+    actor_map = if tx.actor_ref, do: ActorRef.to_map(tx.actor_ref), else: nil
 
     %{
       id: tx.id,
