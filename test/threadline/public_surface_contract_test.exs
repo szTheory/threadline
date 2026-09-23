@@ -667,6 +667,7 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp modules_for_visibility_tag(:module_visibility_domain_tail),
     do: [
       Threadline.Policy.RedactionPresenter,
+      Threadline.Query.Cursors,
       Threadline.Query.FilterParams,
       Threadline.Query.Scope,
       Threadline.Retention.Pruner,
