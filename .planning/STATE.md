@@ -8,7 +8,7 @@ status: executing
 stopped_at: Completed 203-09-PLAN.md
 last_updated: "2026-09-23T12:39:16.365Z"
 last_activity: 2026-09-23
-last_activity_desc: "Plan 203-09 complete (11 test structural sites filed; exact Credo register contract Nesting 25 / CyclomaticComplexity 16 / ceiling 41 / historical max 46; STRUCT-07 added; release_artifact_contract_test.exs:424 Nesting left unfiled — orchestrator forbids touching that file)"
+last_activity_desc: "Plan 203-09 complete (12 test structural sites filed; exact Credo register contract Nesting 26 / CyclomaticComplexity 16 / ceiling 42 / historical max 46; STRUCT-07 added; full-default residue = Logger only)"
 state_head: d8d5b2ffa082b76728c4aa49d344ce023e5d359e
 progress:
   total_phases: 7
@@ -792,14 +792,13 @@ Progress: [████████████████████] 120/120
 - [Phase 203]: 203-06 D-09: retention.ex MissedMetadataKeyInLoggerConfig resolved by .credo.exs metadata_keys: param (Plan 10), never by config/*.exs Logger config
 - [Phase 203]: 203-07: StringSigils fixes use ~s with an absent delimiter (never ~S), byte-equality proven by evaluation; GATE-05 stale-location half pinned by source_comment_location_contract_test.exs, requirement checkbox left for Plan 10 (moduledoc delta)
 - [Phase 203]: D-31: per-site structural-debt line is '# Structural debt: <reason>' — no phase number or requirement ID in packaged source; Phase 204/STRUCT-07 named only in the test-resident register
-- [Phase 203]: 203-09: release_artifact_contract_test.exs:424 left unfiled (orchestrator forbids touching that file); Credo register pinned at Nesting 25 / CyclomaticComplexity 16 / ceiling 41 — filing it later bumps to 26/42
+- [Phase 203]: 203-09: Credo structural register pinned in source (credo_config_contract_test.exs) at Nesting 26 / CyclomaticComplexity 16 / ceiling 42 / historical max 46, exact equality, successor Phase 204 / STRUCT-07; GATE-02 checkbox left for Plan 10 (Logger finding still open)
 
 ### Blockers
 
 -
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
-- 203-09: test/threadline/release_artifact_contract_test.exs:424 Refactor.Nesting (depth 4) is live and unfiled — the orchestrator forbade touching that file. Full-default Credo residue is Logger + this 1 site. Maintainer decides: allow filing (then register Nesting 25→26, @ceiling 41→42, ROADMAP mirror 42) or accept it live until Phase 204.
 
 ## Session Continuity
 
