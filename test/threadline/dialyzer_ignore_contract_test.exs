@@ -447,6 +447,8 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     Enum.map(fixtures, fn fixture ->
       warnings =
         Enum.map(fixture["warnings"], fn warning ->
+          # Structural debt: id-match if inside nested map fns — extract the per-warning rewrite
+          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
           if warning["id"] == warning_id do
             warning
             |> Map.put("disposition", "irreducible")
