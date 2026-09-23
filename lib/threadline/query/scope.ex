@@ -1,4 +1,4 @@
-defmodule Threadline.OperatorSurface.Scope do
+defmodule Threadline.Query.Scope do
   @moduledoc false
 
   @spec apply(Ecto.Queryable.t(), keyword()) :: Ecto.Queryable.t()

@@ -75,7 +75,7 @@ defmodule Threadline.HowThreadlineWorksDocContractTest do
 
     refute String.contains?(doc, "Threadline.Capture.TriggerSQL")
     refute String.contains?(doc, "Threadline.Capture.RedactionPolicy")
-    refute String.contains?(doc, "Threadline.OperatorSurface.Scope")
+    refute String.contains?(doc, "Threadline.Query.Scope")
     refute String.contains?(doc, "Threadline.Retention.Pruner")
   end
 

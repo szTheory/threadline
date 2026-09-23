@@ -77,7 +77,7 @@ defmodule Threadline.CodeWalkthroughDocContractTest do
           "Threadline.Governance.Migration",
           "Threadline.Capture.RedactionPolicy",
           "Threadline.Capture.TriggerSQL",
-          "Threadline.OperatorSurface.Scope",
+          "Threadline.Query.Scope",
           "Threadline.Retention.Pruner"
         ] do
       refute String.contains?(guides, internal),

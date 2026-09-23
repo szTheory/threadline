@@ -32,7 +32,7 @@ defmodule Threadline.Query do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Capture.AuditTransaction
-  alias Threadline.OperatorSurface.Scope, as: OperatorScope
+  alias Threadline.Query.Scope
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -728,7 +728,7 @@ defmodule Threadline.Query do
 
   @doc false
   def maybe_apply_scope(query, opts) do
-    OperatorScope.apply(query, opts)
+    Scope.apply(query, opts)
   end
 
   @doc false
