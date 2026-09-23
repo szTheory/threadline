@@ -376,6 +376,7 @@ Guides ship in the Hex package (`files:` includes `guides`), so D-25 guide edits
 - Update storybook call sites, not `doc/0` prose.
 - Run `mix verify.example` plus the browser lane after each family.
 - `storybook_stories_test.exs:261` asserts `source =~ "Threadline.OperatorSurface.UI"`. That still matches `Threadline.OperatorSurface.UI.Actions`, but verify it.
+- **Source-text markers (missed in the first pass):** `storybook_stories_test.exs:38-89` pins ~45 `"<UI.<fn>"` markers in `@primitive_contracts`/`@form_contracts`/`@overlay_contracts`/`@data_display_contracts`, all required by `rendered_or_source_backed?/3` (`String.contains?`). `"<UI.Actions.button"` does not contain `"<UI.button"`, so each family commit must rewrite the markers of the components it moves. Likewise `component_contract_test.exs:504` asserts `src =~ "UI.shell"` per page LiveView, which fails once pages call `UI.Page.shell`. These are rename pins, not rendered-output checks. `public_surface_contract_test.exs:622` seeds `Threadline.OperatorSurface.UI` in `:module_visibility_seed`, which must be swapped for the family modules when ui.ex is retired.
 
 ### Pitfall 7: Endpoint env ordering and async
 `Application.put_env(:threadline, Endpoint, secret_key_base: …, live_view: [signing_salt: …], render_errors: …)` must precede `start_supervised!`. The existing files do this in `setup_all` (e.g. stress_router_test.exs:138-143). Unique per-file endpoint module names avoid cross-file `already_started` coupling.
@@ -454,14 +455,17 @@ end)
 | A3 | `migration_content/0` is best handled as a named exception (a second exception beyond D-12) | Size Inventory | Needs maintainer confirmation; the alternative is a split behind a new output pin |
 | A4 | The gating endpoint's lack of `Plug.Parsers` is incidental, but preserving it with a `parsers: false` option is the safe default | Test Templates | None if preserved |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Second size exception (`migration_content/0`, 138 lines).**
    - Known: it is one heredoc, adopter-visible output, with no golden test.
    - Unclear: whether the maintainer accepts 2 exceptions.
    - Recommendation: exception with reason. If refused, pin the output sha256 first, then split into up/down helpers.
+   - **RESOLVED:** no second exception — D-12 stays exactly one (`stress_fixtures.ex`). `migration_content/0` output is sha256-pinned (default and `AuditLog` storage schemas) first, then split into ordered helpers behind the unchanged pins (plan 204-04, Task 3).
 2. **timeline_live second sibling.** Moving helpers alone lands at ~885 lines. The recommendation is `TimelineLive.Helpers` (presentation helpers :920–end) plus a filter-components sibling (`timeline_command` and `timeline_filter_drawer`), with doc-contract pins repointed through the source-family reader. This goes beyond D-08's "only if still over 800" wording, but it is the case D-08 anticipates.
+   - **RESOLVED:** timeline_live gets two siblings, `TimelineLive.Helpers` and `TimelineLive.Filters`, with doc-contract pins repointed through `Threadline.Test.SourceFamily.read!/1` (plan 204-08).
 3. **STRUCT-04 enforcement.** CONTEXT has none. The recommendation is a banner scan in `source_size_contract_test.exs`, at planner discretion on placement.
+   - **RESOLVED:** the banner guard lives in `test/threadline/source_size_contract_test.exs` as an exact `@banner_exceptions` register seeded at today's counts and drained to `%{}` (plans 204-01, 204-04, 204-08, 204-11, 204-12, 204-15).
 
 ## Environment Availability
 
