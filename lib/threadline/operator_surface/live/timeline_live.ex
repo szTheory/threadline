@@ -24,10 +24,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @page_size 50
 
-    # --------------------------------------------------------------------------
-    # mount/3
-    # --------------------------------------------------------------------------
-
     def mount(_params, _session, socket) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
@@ -84,10 +80,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, socket}
     end
 
-    # --------------------------------------------------------------------------
-    # handle_params/3
-    # --------------------------------------------------------------------------
-
     def handle_params(params, uri, socket) do
       uri_parsed = URI.parse(uri)
       # Timeline is mounted at "<surface>/timeline"; strip the suffix so base_path
@@ -115,99 +107,75 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         socket = assign(socket, :filters_raw, FilterParams.filters_raw_from_params(params))
 
-        case FilterParams.parse(params) do
-          {:error, message} ->
-            filter_query = build_canonical_query(socket.assigns.filters_raw)
-
-            socket =
-              socket
-              |> assign(:form_error, message)
-              |> assign(:filters, [])
-              |> assign(:cursor, nil)
-              |> assign(:future_window_empty, false)
-              |> assign(:match_count, 0)
-              |> assign(:shown_count, 0)
-              |> assign(:filter_query, filter_query)
-              |> stream(:changes, [], reset: true)
-
-            {:noreply, socket}
-
-          {:ok, filters} ->
-            case safe_validate(filters) do
-              {:error, message} ->
-                filter_query = build_canonical_query(socket.assigns.filters_raw)
-
-                socket =
-                  socket
-                  |> assign(:form_error, message)
-                  |> assign(:filters, [])
-                  |> assign(:cursor, nil)
-                  |> assign(:future_window_empty, false)
-                  |> assign(:match_count, 0)
-                  |> assign(:shown_count, 0)
-                  |> assign(:filter_query, filter_query)
-                  |> stream(:changes, [], reset: true)
-
-                {:noreply, socket}
-
-              :ok ->
-                unknown_table_attempted =
-                  case Keyword.get(filters, :table) do
-                    nil ->
-                      false
-
-                    table ->
-                      table not in socket.assigns.audited_tables
-                  end
-
-                # Clear cursor BEFORE stream reset (Pitfall 1 + F-3 mitigation)
-                socket = assign(socket, :cursor, nil)
-
-                count_task =
-                  Task.async(fn ->
-                    Export.count_matching(filters, count_opts(socket, 10_001))
-                  end)
-
-                page_opts = scope_aware_opts(socket)
-
-                # Structural debt: nesting 4 in handle_params/3 — extract the filtered-page load
-                # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-                page_task = Task.async(fn -> Query.timeline_page(filters, page_opts) end)
-
-                # Two parallel queries; await with a generous timeout.
-                # Default Task.await is 5_000 ms; use 8_000 to leave headroom for
-                # capped-count queries on large tables.
-                {:ok, %{count: count}} = Task.await(count_task, 8_000)
-
-                page =
-                  page_task
-                  |> Task.await(8_000)
-                  |> preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))
-
-                filter_query = build_canonical_query(socket.assigns.filters_raw)
-                future_window_empty = future_window_empty?(filters, count, socket)
-
-                socket =
-                  socket
-                  |> assign(:filters, filters)
-                  |> assign(:form_error, nil)
-                  |> assign(:unknown_table_attempted, unknown_table_attempted)
-                  |> assign(:future_window_empty, future_window_empty)
-                  |> assign(:match_count, count)
-                  |> assign(:shown_count, length(page.entries))
-                  |> assign(:filter_query, filter_query)
-                  |> stream(:changes, page.entries, reset: true)
-                  |> assign(:cursor, page.next_cursor)
-
-                {:noreply, socket}
-            end
+        with {:ok, filters} <- FilterParams.parse(params),
+             :ok <- safe_validate(filters) do
+          {:noreply, load_filtered_page(socket, filters)}
+        else
+          {:error, message} -> {:noreply, filter_error(socket, message)}
         end
       end
     end
 
-    # --------------------------------------------------------------------------
-    # handle_event/3
-    # --------------------------------------------------------------------------
+    defp filter_error(socket, message) do
+      filter_query = build_canonical_query(socket.assigns.filters_raw)
+
+      socket
+      |> assign(:form_error, message)
+      |> assign(:filters, [])
+      |> assign(:cursor, nil)
+      |> assign(:future_window_empty, false)
+      |> assign(:match_count, 0)
+      |> assign(:shown_count, 0)
+      |> assign(:filter_query, filter_query)
+      |> stream(:changes, [], reset: true)
+    end
+
+    defp load_filtered_page(socket, filters) do
+      unknown_table_attempted =
+        case Keyword.get(filters, :table) do
+          nil ->
+            false
+
+          table ->
+            table not in socket.assigns.audited_tables
+        end
+
+      # Clear cursor BEFORE stream reset (Pitfall 1 + F-3 mitigation)
+      socket = assign(socket, :cursor, nil)
+
+      count_task =
+        Task.async(fn ->
+          Export.count_matching(filters, count_opts(socket, 10_001))
+        end)
+
+      page_opts = scope_aware_opts(socket)
+
+      page_task = Task.async(fn -> Query.timeline_page(filters, page_opts) end)
+
+      # Two parallel queries; await with a generous timeout.
+      # Default Task.await is 5_000 ms; use 8_000 to leave headroom for
+      # capped-count queries on large tables.
+      {:ok, %{count: count}} = Task.await(count_task, 8_000)
+
+      page =
+        page_task
+        |> Task.await(8_000)
+        |> preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))
+
+      filter_query = build_canonical_query(socket.assigns.filters_raw)
+      future_window_empty = future_window_empty?(filters, count, socket)
+
+      socket
+      |> assign(:filters, filters)
+      |> assign(:form_error, nil)
+      |> assign(:unknown_table_attempted, unknown_table_attempted)
+      |> assign(:future_window_empty, future_window_empty)
+      |> assign(:match_count, count)
+      |> assign(:shown_count, length(page.entries))
+      |> assign(:filter_query, filter_query)
+      |> stream(:changes, page.entries, reset: true)
+      |> assign(:cursor, page.next_cursor)
+    end
 
     def handle_event("save-view", %{"name" => name}, socket) do
       if ActorRef.identifiable?(socket.assigns[:threadline_actor_ref]) and name != "" do
@@ -377,10 +345,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:noreply, socket}
       end
     end
-
-    # --------------------------------------------------------------------------
-    # render/1
-    # --------------------------------------------------------------------------
 
     def render(assigns) do
       ~H"""
