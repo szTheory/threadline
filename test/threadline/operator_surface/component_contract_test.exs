@@ -522,7 +522,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
     test "every operator page routes its chrome through the shared UI.Page.shell (no per-page wrapper duplication)" do
       for file <- @page_live_views do
-        src = File.read!(Path.join("lib/threadline/operator_surface/live", file))
+        src = SourceFamily.read!(Path.join("lib/threadline/operator_surface/live", file))
 
         assert src =~ "UI.Page.shell" or src =~ "<.shell",
                "#{file}: must render its chrome via the shared shell component (D-10), not a hand-rolled <div class=\"threadline-ui\"> wrapper"

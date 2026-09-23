@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   use ExUnit.Case, async: true
 
   alias Threadline.OperatorSurface.Exports.Filename
+  alias Threadline.Test.SourceFamily
 
   @router_path "lib/threadline/operator_surface/router.ex"
   @lv_path "lib/threadline/operator_surface/live/timeline_live.ex"
@@ -16,7 +17,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
   describe "button labels (D-22, D-26)" do
     test "TimelineLive renders the three compact download button labels verbatim" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       # The compact download buttons render an icon followed by the verbatim
       # format label as the anchor's text content (v1.36 component-retune added
       # the leading download icon), so the label is no longer the bare `>CSV<`
@@ -29,7 +30,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
     end
 
     test "TimelineLive download anchors include the HTML `download` attribute (PR #2611 / Pitfall 9)" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       # Each of the three anchors must have `download` as a bare HTML attribute
       # on a <.link href={...}> tag. The tag is now multi-line (attributes on
       # their own lines), so allow whitespace/newlines between `<.link` and
@@ -153,7 +154,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
     end
 
     test "BOTH TimelineLive AND ExportController delegate to the shared FilterParams module (Pitfall 3 / Footgun F-6)" do
-      lv_src = File.read!(@lv_path)
+      lv_src = SourceFamily.read!(@lv_path)
       controller_src = File.read!(@controller_path)
 
       assert String.contains?(lv_src, "Threadline.Query.FilterParams") or
@@ -240,24 +241,24 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
   describe "count-line and truncation banner literals (D-17, D-18)" do
     test "TimelineLive renders the count status line wrapper class" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       assert String.contains?(src, "tl-status")
     end
 
     test "TimelineLive renders the band-1 informational banner literal at >5,000" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       assert String.contains?(src, "Large export — will stream in chunks.")
       assert String.contains?(src, "tl-alert--info")
     end
 
     test "TimelineLive renders the band-2 warning banner literal at >=10,001" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       assert String.contains?(src, "Truncated to first 10,000 rows.")
       assert String.contains?(src, "tl-alert--warning")
     end
 
     test "TimelineLive uses cap: 10_001 in count_matching (matches controller cap; allows '10,000+' approximation)" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       assert src =~ ~r/count_opts\(socket,\s*10_001\)/
     end
   end
@@ -288,7 +289,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
   describe "Phase 64 carry-forward refutations" do
     test "TimelineLive form does NOT reintroduce phx-change (Phase 64 D-04 + Footgun F-12 stays green)" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       refute String.contains?(src, "phx-change=")
     end
   end
