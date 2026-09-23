@@ -738,7 +738,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 203-03-PLAN.md — `Design.AliasUsage` sweep, part 1: lib/ (one commit per file) + `*_contract_test.exs` (one commit per file)
+- [x] 203-03-PLAN.md — `Design.AliasUsage` sweep, part 1: lib/ (one commit per file) + `*_contract_test.exs` (one commit per file)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
