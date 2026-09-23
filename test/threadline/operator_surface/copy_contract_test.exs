@@ -39,6 +39,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
 
+    alias Threadline.OperatorSurface.CopyContractTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -58,10 +60,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "ticket_replies" => Threadline.OperatorSurface.CopyContractTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.CopyContractTest.FakeUser
         },
-        coverage_authorize_fn: &Threadline.OperatorSurface.CopyContractTest.Auth.authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.CopyContractTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.CopyContractTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.CopyContractTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -89,13 +91,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
+    alias Threadline.Capture.AuditChange
+    alias Threadline.Capture.AuditTransaction
     alias Threadline.Governance.{ExportJob, RetentionRun, SavedView}
     alias Threadline.OperatorSurface.Components.SurfaceHeader
     alias Threadline.OperatorSurface.Components.UnsupportedView
-    alias Threadline.OperatorSurface.Unsupported
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
+    alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Semantics.ActorRef
+    alias Threadline.Test.Repo
 
     @endpoint Threadline.OperatorSurface.CopyContractTest.Endpoint
     @coverage %{uncovered_count: 0, last_checked_at: ~U[2026-06-04 00:00:00Z]}
@@ -145,9 +150,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(SavedView, repo_opts())
-      Threadline.Test.Repo.delete_all(ExportJob, repo_opts())
-      Threadline.Test.Repo.delete_all(RetentionRun, repo_opts())
+      Repo.delete_all(SavedView, repo_opts())
+      Repo.delete_all(ExportJob, repo_opts())
+      Repo.delete_all(RetentionRun, repo_opts())
 
       {:ok, actor_ref} = ActorRef.new(:user, "copy-contract-operator")
 
@@ -288,7 +293,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         """)
 
       visible =
-        Threadline.OperatorSurface.Presentation.ref(@long_correlation_id, kind: :correlation).visible
+        Presentation.ref(@long_correlation_id, kind: :correlation).visible
 
       copy_targets = extract_copy_targets(html)
 
@@ -564,8 +569,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       occurred_at = ~U[2020-01-01 12:00:00Z]
 
       txn =
-        Threadline.Test.Repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+        Repo.insert!(
+          AuditTransaction.changeset(%{
             txid: System.unique_integer([:positive]),
             occurred_at: occurred_at,
             actor_ref: %{"type" => "user", "id" => "copy-contract-operator"},
@@ -574,8 +579,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           repo_opts()
         )
 
-      Threadline.Test.Repo.insert!(
-        Threadline.Capture.AuditChange.changeset(%{
+      Repo.insert!(
+        AuditChange.changeset(%{
           transaction_id: txn.id,
           table_schema: "public",
           table_name: "ticket_replies",
