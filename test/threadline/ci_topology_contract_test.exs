@@ -4,6 +4,9 @@ defmodule Threadline.CiTopologyContractTest do
 
   @repo_root File.cwd!()
 
+  # Assembled so this file's own text never contains the retired alias name as a literal.
+  @retired_alias "verify." <> "doc_contract"
+
   defp read_rel!(segments) when is_list(segments) do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
@@ -56,27 +59,6 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert String.contains?(mix_exs, "\"verify.test\": [\"test\"]")
     assert String.contains?(mix_exs, "\"verify.example\": &verify_example/1")
-
-    assert String.contains?(mix_exs, "\"verify.doc_contract\": [")
-    assert String.contains?(mix_exs, "test test/threadline/readme_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/how_threadline_works_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/operator_surface_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/upgrade_path_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/getting_started_saas_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/audit_doc_contract_test.exs")
-
-    assert String.contains?(
-             mix_exs,
-             "test/threadline/integration_contracts_doc_contract_test.exs"
-           )
-
-    assert String.contains?(mix_exs, "test/threadline/example_phoenix_readme_contract_test.exs")
-
-    # v1_23_charter_doc_contract_test.exs was deleted in Phase 198 (D-06) as
-    # genuinely obsolete, and dropped from the verify.doc_contract alias in the
-    # same commit. Asserting a deleted file is still listed would have forced the
-    # alias to reference a path that no longer exists.
-    refute String.contains?(mix_exs, "test/threadline/v1_23_charter_doc_contract_test.exs")
   end
 
   test "ci.all keeps capture-only and phoenix-surface proof steps in order" do
@@ -92,7 +74,6 @@ defmodule Threadline.CiTopologyContractTest do
     {pos_verify_test, _} = :binary.match(ci_block, "\"verify.test\"")
     {pos_verify_threadline, _} = :binary.match(ci_block, "\"verify.threadline\"")
     {pos_verify_example, _} = :binary.match(ci_block, "\"verify.example\"")
-    {pos_verify_doc_contract, _} = :binary.match(ci_block, "\"verify.doc_contract\"")
 
     {pos_verify_browser, _} =
       :binary.match(
@@ -106,8 +87,7 @@ defmodule Threadline.CiTopologyContractTest do
     assert pos_compile_no_optional < pos_verify_test
     assert pos_verify_test < pos_verify_threadline
     assert pos_verify_threadline < pos_verify_example
-    assert pos_verify_example < pos_verify_doc_contract
-    assert pos_verify_doc_contract < pos_verify_browser
+    assert pos_verify_example < pos_verify_browser
   end
 
   test "ci workflow exposes the documented support-lane job ids" do
@@ -216,8 +196,7 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(yaml, "run: mix verify.threadline")
     assert String.contains?(yaml, "- name: Verify Threadline Phoenix example")
     assert String.contains?(yaml, "run: mix verify.example")
-    assert String.contains?(yaml, "- name: Doc contract tests")
-    assert String.contains?(yaml, "run: mix verify.doc_contract")
+    refute String.contains?(yaml, "mix " <> @retired_alias)
   end
 
   # GitHub Actions never runs `ci.all`, so pinning the alias alone would let the

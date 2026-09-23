@@ -10,7 +10,6 @@ defmodule Threadline.MixProject do
     [
       preferred_envs: [
         "ci.all": :test,
-        "verify.doc_contract": :test,
         "verify.dialyzer": :dev,
         "verify.release": :dev,
         "verify.bump_rehearsal": :dev,
@@ -126,9 +125,6 @@ defmodule Threadline.MixProject do
       "verify.dialyzer": ["dialyzer --no-check"],
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
-      "verify.doc_contract": [
-        "test test/threadline/readme_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs test/threadline/operator_surface_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/getting_started_saas_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/integration_contracts_doc_contract_test.exs test/threadline/example_phoenix_readme_contract_test.exs test/threadline/adoption_pilot_doc_contract_test.exs test/threadline/evaluating_threadline_doc_contract_test.exs test/threadline/adoption_evidence_playbook_doc_contract_test.exs test/threadline/release_distribution_doc_contract_test.exs test/threadline/evidence_cli_doc_contract_test.exs test/threadline/exploration_routing_doc_contract_test.exs test/threadline/semver_adopter_doc_contract_test.exs test/threadline/integrations/phx_gen_auth_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs test/threadline/persona_routing_doc_contract_test.exs test/threadline/version_truth_doc_contract_test.exs test/threadline/critic_iteration_runbook_doc_contract_test.exs"
-      ],
       "verify.release": &verify_release/1,
       # Simulate the NEXT MINOR release commit and run the release gates against
       # it. A whole class of release defect — a doc pin, a marked prose line, a
@@ -146,14 +142,15 @@ defmodule Threadline.MixProject do
       "verify.operator_stress": &verify_operator_stress/1,
       # Deterministic mechanical gate. Pure-Elixir arithmetic over
       # the committed Tier A scorecard JSON — NO browser, NO network, NO LLM. A MODE-A
-      # violation or MODE-B ratchet regression blocks the change. Folded into ci.all
-      # BEFORE verify.example_browser (fail fast, no browser cost).
+      # violation or MODE-B ratchet regression blocks the change. A focused maintainer
+      # and CI-job command: its test file already runs in `verify.test` (and so in
+      # ci.all), which keeps ci.all from running it twice.
       "verify.mechanical": ["test test/threadline/operator_surface/mechanical_checker_test.exs"],
       # Critic trust gate. Pure-Elixir guard over the committed
       # design-system-ledger.json critic_trust block and golden-set.json — NO browser,
       # NO network, NO LLM. Asserts validated lenses meet the bar; seeds validated:false
-      # until the committed oracle cohort satisfies the rank-based trust bar. Folded into
-      # ci.all BEFORE verify.mechanical.
+      # until the committed oracle cohort satisfies the rank-based trust bar. A focused
+      # maintainer command: its test file already runs in `verify.test` (and so in ci.all).
       "verify.critic_trust": ["test test/threadline/operator_surface/critic_trust_test.exs"],
       # Local-only adversarial critic runner. Requires ANTHROPIC_API_KEY
       # (maintainer-local only — never committed, never in CI). Excluded from ci.all (same
@@ -194,7 +191,6 @@ defmodule Threadline.MixProject do
         "verify.test",
         "verify.threadline",
         "verify.example",
-        "verify.doc_contract",
         # Strict full-build Dialyzer gate. The dedicated CI job runs the same command
         # on the exact current toolchain and owns the PLT cache lifecycle.
         # `ci.all` itself runs in :test so the test database and support modules are
@@ -202,12 +198,9 @@ defmodule Threadline.MixProject do
         # analysis, matching the dedicated CI job and preventing test/support from
         # silently expanding the warning surface in a fresh checkout.
         "cmd env MIX_ENV=dev mix verify.dialyzer",
-        # Deterministic critic trust gate (reads committed ledger + golden JSON, no browser, no LLM).
-        # Runs BEFORE verify.mechanical so a ratchet tamper or lens-trust gap fails fast.
-        "verify.critic_trust",
-        # Deterministic mechanical gate (reads committed scorecard JSON, no browser).
-        # Runs BEFORE the browser lane so a token/contrast/ratchet violation fails fast.
-        "verify.mechanical",
+        # The critic trust and mechanical gates are not listed here: their test files
+        # already ran in `verify.test` above, which still precedes the browser lane, so
+        # a ratchet or token violation fails fast without running the same tests twice.
         # Browser e2e last (slowest; needs Node + Playwright). Reproduce the
         # committed CI lane exactly: only its two voting projects run and CI's
         # explicitly platform-local screenshot guards remain outside the gate.

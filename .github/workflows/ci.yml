@@ -376,10 +376,6 @@ jobs:
         if: matrix.lane == 'current'
         run: mix verify.example
 
-      - name: Doc contract tests
-        if: matrix.lane == 'current'
-        run: mix verify.doc_contract
-
   verify-hex-evaluator:
     name: Hex evaluator smoke (threadline from hex.pm)
     runs-on: ubuntu-24.04
@@ -866,16 +862,16 @@ jobs:
     name: Bump rehearsal (next minor)
     runs-on: ubuntu-24.04
     # Measured at 66s wall locally (macOS, 295% CPU) for the full run: throwaway
-    # clone, deps.get, mix release.pins, verify.doc_contract, verify.release
-    # (which builds ExDoc and the Hex tarball). 15 gives roughly 4x headroom on a
-    # slower 2-core hosted runner without hiding a hang.
+    # clone, deps.get, mix release.pins, the doc-contract tests it derives by
+    # filename, verify.release (which builds ExDoc and the Hex tarball). 15 gives
+    # roughly 4x headroom on a slower 2-core hosted runner without hiding a hang.
     timeout-minutes: 15
     env:
       DB_HOST: localhost
     services:
-      # The rehearsal runs mix verify.doc_contract and the release contract
-      # tests, and test/test_helper.exs creates and migrates the test database on
-      # boot. No database means no rehearsal, which this gate scores as a
+      # The rehearsal runs the doc-contract files it derives by filename, plus
+      # verify.release and the release contract tests, and test/test_helper.exs
+      # creates and migrates the test database on boot. No database means no rehearsal, which this gate scores as a
       # failure rather than a pass.
       postgres:
         image: postgres:16
