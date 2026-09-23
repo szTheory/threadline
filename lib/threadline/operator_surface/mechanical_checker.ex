@@ -633,6 +633,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       case parse_px(el[prop]) do
         nil -> []
         +0.0 -> []
+        # Phase 204 (STRUCT-07): scale if inside case inside flat_map fn — extract the prop check
+        # credo:disable-for-next-line Credo.Check.Refactor.Nesting
         value -> if on_scale?(value, @spacing_scale_px), do: [], else: [{prop, value}]
       end
     end)
