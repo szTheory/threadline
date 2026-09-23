@@ -43,7 +43,6 @@ defmodule Threadline.SourceSizeContractTest do
 
   @file_exceptions %{
     "lib/threadline/operator_surface/live/stress_live.ex" => {1398, @splitting},
-    "lib/threadline/operator_surface/live/timeline_live.ex" => {968, @splitting},
     "lib/threadline/operator_surface/stress_fixtures.ex" =>
       {980,
        "declarative fixture data tables; excluded from the Hex package (mix.exs exclude_patterns)"}
@@ -58,11 +57,7 @@ defmodule Threadline.SourceSizeContractTest do
       {186, @splitting},
     {"lib/threadline/operator_surface/live/start_live.ex", :render, 1} => {190, @splitting},
     {"lib/threadline/operator_surface/live/stress_live.ex", :render, 1} => {540, @splitting},
-    {"lib/threadline/operator_surface/live/timeline_live.ex", :render, 1} => {165, @splitting},
-    {"lib/threadline/operator_surface/live/timeline_live.ex", :timeline_command, 1} =>
-      {130, @splitting},
-    {"lib/threadline/operator_surface/live/timeline_live.ex", :timeline_filter_drawer, 1} =>
-      {202, @splitting},
+    {"lib/threadline/operator_surface/live/timeline_live.ex", :render, 1} => {157, @splitting},
     {"lib/threadline/operator_surface/live/transaction_live.ex", :render, 1} => {183, @splitting}
   }
 

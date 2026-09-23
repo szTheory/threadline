@@ -42,6 +42,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
       "lib/threadline/operator_surface/live/row_history_live.ex",
       "lib/threadline/operator_surface/live/start_live.ex",
       "lib/threadline/operator_surface/live/timeline_live.ex",
+      "lib/threadline/operator_surface/live/timeline_live/filters.ex",
       "lib/threadline/operator_surface/live/timeline_live/helpers.ex",
       "lib/threadline/operator_surface/live/transaction_live.ex"
     ]
