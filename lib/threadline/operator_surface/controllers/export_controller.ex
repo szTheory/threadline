@@ -346,15 +346,13 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       |> put_resp_header("cache-control", "no-store")
     end
 
-    # ---- Filter validation (lifted from timeline_live.ex:366-373) ----
+    # ---- Filter validation (mirrors `TimelineLive.safe_validate/1`) ----
 
     defp safe_validate(filters) do
-      try do
-        Threadline.Query.validate_timeline_filters!(filters)
-        :ok
-      rescue
-        e in ArgumentError -> {:error, e.message}
-      end
+      Threadline.Query.validate_timeline_filters!(filters)
+      :ok
+    rescue
+      e in ArgumentError -> {:error, e.message}
     end
 
     # ---- Repo resolution ----
