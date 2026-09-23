@@ -20,6 +20,8 @@ defmodule Threadline.Health do
   subscribers reading only `covered`/`uncovered` keep working unchanged).
   """
 
+  alias Ecto.Adapters.SQL
+
   @audit_tables ~w(audit_transactions audit_changes audit_actions)
   @expected_uncovered_baseline ~w(schema_migrations)
 
@@ -88,7 +90,7 @@ defmodule Threadline.Health do
 
   defp fetch_all_user_tables(repo, schema) do
     sql = "SELECT tablename FROM pg_tables WHERE schemaname = $1"
-    %{rows: rows} = Ecto.Adapters.SQL.query!(repo, sql, [schema])
+    %{rows: rows} = SQL.query!(repo, sql, [schema])
     List.flatten(rows)
   end
 
@@ -102,7 +104,7 @@ defmodule Threadline.Health do
       AND n.nspname = $1
     """
 
-    %{rows: rows} = Ecto.Adapters.SQL.query!(repo, sql, [schema])
+    %{rows: rows} = SQL.query!(repo, sql, [schema])
     List.flatten(rows)
   end
 
