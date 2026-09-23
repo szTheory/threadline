@@ -4,6 +4,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   alias Threadline.OperatorSurface.MechanicalChecker.Contrast
   alias Threadline.OperatorSurface.MechanicalChecker.Parsing
   alias Threadline.OperatorSurface.MechanicalChecker.Scorecards
+  alias Threadline.OperatorSurface.MechanicalChecker.TokenConformance
 
   # Deterministic mechanical gate for the operator-surface quality floor.
   #
@@ -44,13 +45,6 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   @motion_duration_ms [120, 180, 240]
   @font_size_scale_px [12, 13, 14, 15, 16, 20, 24, 32]
 
-  # box-shadow token geometry signatures (offset-x, offset-y, blur) in px, derived
-  # from --tl-shadow-border/subtle/popover/raised in style.ex. [3, 0, 0] is the status
-  # stripe — `inset var(--tl-status-stripe-width) 0 0 <color>` with --tl-status-stripe-width:
-  # 3px — a tokenized inset left-edge indicator (cards/facts with data-status), not a stray
-  # drop shadow; it was previously (incorrectly) flagged as off-token geometry.
-  @shadow_token_signatures [[0, 0, 0], [0, 1, 2], [0, 1, 3], [0, 10, 28], [0, 18, 48], [3, 0, 0]]
-
   # MODE-B metrics keyed as they appear in mechanical_floors[ledger_id][metric][theme_bp].
   @mode_b_metrics ~w(
     type_size_count
@@ -60,8 +54,6 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     distinct_accent_hue_count
   )
 
-  # Sub-millisecond tolerance for on-scale motion durations.
-  @ms_tolerance 1.0
   # Chromatic saturation floor: colours below this are grey and excluded from hue counting.
   @accent_saturation_floor 0.20
   # Hue bucketing window: two hues within this many degrees share an accent family.
@@ -134,7 +126,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   defp check_scorecard(scorecard, floors) do
     Contrast.check(scorecard, wcag_thresholds()) ++
-      check_conformance(scorecard) ++
+      TokenConformance.check(scorecard, token_scales()) ++
       check_mode_b(scorecard, floors)
   end
 
@@ -148,128 +140,12 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     }
   end
 
-  # --- MODE-A: token conformance (from element_styles) ---
-
-  defp check_conformance(scorecard) do
-    cell_id = scorecard["cell_id"]
-
-    scorecard
-    |> Map.get("element_styles", [])
-    |> Enum.flat_map(&element_conformance(&1, cell_id))
-  end
-
-  defp element_conformance(el, cell_id) do
-    radius_violations(el, cell_id) ++
-      shadow_violations(el, cell_id) ++
-      motion_violations(el, cell_id) ++
-      font_size_violations(el, cell_id) ++
-      spacing_violations(el, cell_id)
-  end
-
-  defp radius_violations(el, cell_id) do
-    el["border_radius"]
-    |> Parsing.px_values()
-    |> Enum.reject(&(&1 == 0.0 or Parsing.on_scale?(&1, @radius_scale_px)))
-    |> Enum.map(fn value ->
-      scale_violation(
-        cell_id,
-        "border_radius",
-        el["selector"],
-        value,
-        @radius_scale_px,
-        "--tl-radius"
-      )
-    end)
-  end
-
-  defp shadow_violations(el, cell_id) do
-    el["box_shadow"]
-    |> Parsing.shadow_signatures()
-    |> Enum.reject(&(&1 in @shadow_token_signatures))
-    |> Enum.map(fn sig ->
-      %{
-        cell_id: cell_id,
-        metric: "box_shadow",
-        mode: "A",
-        selector: el["selector"],
-        observed: "geometry #{inspect(sig)}",
-        expected: "one of #{inspect(@shadow_token_signatures)}",
-        fix: "replace box-shadow with a --tl-shadow-* token (border/subtle/popover/raised)"
-      }
-    end)
-  end
-
-  defp motion_violations(el, cell_id) do
-    el["transition_duration"]
-    |> Parsing.duration_ms_values()
-    |> Enum.reject(&(&1 == 0.0 or Parsing.on_scale?(&1, @motion_duration_ms, @ms_tolerance)))
-    |> Enum.map(fn value ->
-      scale_violation(
-        cell_id,
-        "transition_duration",
-        el["selector"],
-        value,
-        @motion_duration_ms,
-        "--tl-motion",
-        "ms"
-      )
-    end)
-  end
-
-  defp font_size_violations(el, cell_id) do
-    case Parsing.parse_px(el["font_size"]) do
-      nil ->
-        []
-
-      +0.0 ->
-        []
-
-      value ->
-        if Parsing.on_scale?(value, @font_size_scale_px) do
-          []
-        else
-          [
-            scale_violation(
-              cell_id,
-              "font_size",
-              el["selector"],
-              value,
-              @font_size_scale_px,
-              "--tl-font-size"
-            )
-          ]
-        end
-    end
-  end
-
-  defp spacing_violations(el, cell_id) do
-    ~w(margin_top margin_bottom padding_top padding_bottom)
-    |> Enum.flat_map(fn prop ->
-      case Parsing.parse_px(el[prop]) do
-        nil -> []
-        +0.0 -> []
-        # Structural debt: scale if inside case inside flat_map fn — extract the prop check
-        # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-        value -> if Parsing.on_scale?(value, @spacing_scale_px), do: [], else: [{prop, value}]
-      end
-    end)
-    |> Enum.map(fn {prop, value} ->
-      scale_violation(cell_id, prop, el["selector"], value, @spacing_scale_px, "--tl-space")
-    end)
-  end
-
-  defp scale_violation(cell_id, metric, selector, value, scale, token_family, unit \\ "px") do
-    nearest = Enum.min_by(scale, &abs(&1 - value))
-
+  defp token_scales do
     %{
-      cell_id: cell_id,
-      metric: metric,
-      mode: "A",
-      selector: selector,
-      observed: "#{Parsing.fmt(value)}#{unit}",
-      expected: "one of #{inspect(scale)} #{unit}",
-      fix:
-        "snap #{metric} #{Parsing.fmt(value)}#{unit} -> nearest token #{nearest}#{unit} (#{token_family}-* scale)"
+      radius: @radius_scale_px,
+      motion: @motion_duration_ms,
+      font_size: @font_size_scale_px,
+      spacing: @spacing_scale_px
     }
   end
 
