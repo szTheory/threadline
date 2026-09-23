@@ -39,7 +39,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @style_dir Path.join(@root, @style_dir_relative)
 
     # The cascade: segment order is rule order in the rendered stylesheet.
-    @cascade ~w(stylesheet.css)
+    @cascade ~w(
+      stylesheet.css
+      09_responsive.css
+    )
 
     test "fonts are embedded, so the lock is computed against the default render" do
       assert Application.get_env(:threadline, :operator_surface_embed_fonts, true) == true,

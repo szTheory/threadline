@@ -12,7 +12,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Fonts
 
     @style_dir Path.join(__DIR__, "style")
-    @segments ~w(stylesheet.css)
+    @segments ~w(
+      stylesheet.css
+      09_responsive.css
+    )
 
     for segment <- @segments do
       @external_resource Path.join(@style_dir, segment)
