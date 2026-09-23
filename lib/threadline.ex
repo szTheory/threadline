@@ -6,9 +6,9 @@ defmodule Threadline do
   (actor/intent/context), and operator-grade exploration.
   """
 
+  alias Threadline.Investigation
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
-  alias Threadline.Investigation
   alias Threadline.StorageSchema
 
   @doc """
