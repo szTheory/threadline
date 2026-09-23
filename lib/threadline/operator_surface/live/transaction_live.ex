@@ -297,9 +297,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp surface_root(_), do: nil
 
     defp pk_label(pk) when is_map(pk) do
-      pk
-      |> Enum.map(fn {key, value} -> "#{key}=#{value}" end)
-      |> Enum.join(", ")
+      Enum.map_join(pk, ", ", fn {key, value} -> "#{key}=#{value}" end)
     end
 
     defp pk_label(pk), do: inspect(pk)
