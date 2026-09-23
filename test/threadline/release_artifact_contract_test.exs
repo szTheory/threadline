@@ -169,13 +169,15 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/threadline/critic_trust/rank_metrics.ex",
     "lib/threadline/operator_surface/live/stress_live.ex",
     "lib/threadline/operator_surface/mechanical_checker.ex",
+    "lib/threadline/operator_surface/mechanical_checker/parsing.ex",
     "lib/threadline/operator_surface/stress_fixtures.ex",
     "lib/threadline/operator_surface/stress_router.ex"
   ]
 
   @maintainer_only_prefixes [
     "lib/mix/tasks/critic.",
-    "lib/threadline/critic_trust/"
+    "lib/threadline/critic_trust/",
+    "lib/threadline/operator_surface/mechanical_checker/"
   ]
 
   test "built Hex archive excludes maintainer-only tooling" do

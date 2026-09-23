@@ -1,6 +1,8 @@
 defmodule Threadline.OperatorSurface.MechanicalChecker do
   @moduledoc false
 
+  alias Threadline.OperatorSurface.MechanicalChecker.Parsing
+
   # Deterministic mechanical gate for the operator-surface quality floor.
   #
   # Reads the committed Tier A scorecard JSON (RAW computed-style inputs emitted by
@@ -56,8 +58,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     distinct_accent_hue_count
   )
 
-  # Sub-pixel tolerances for on-scale membership (browsers report integer px for tokens).
-  @px_tolerance 0.5
+  # Sub-millisecond tolerance for on-scale motion durations.
   @ms_tolerance 1.0
   # Chromatic saturation floor: colours below this are grey and excluded from hue counting.
   @accent_saturation_floor 0.20
@@ -340,7 +341,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     do: invalid_scorecard("#{field} must be a non-empty string")
 
   defp validate_color(value, field) do
-    case parse_color(value) do
+    case Parsing.parse_color(value) do
       {:ok, _rgba} -> :ok
       :error -> invalid_scorecard("#{field} must be a parseable CSS color")
     end
@@ -369,7 +370,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   defp validate_box_shadow("none", _field), do: :ok
 
   defp validate_box_shadow(value, field) when is_binary(value) do
-    signatures = shadow_signatures(value)
+    signatures = Parsing.shadow_signatures(value)
 
     if signatures != [] and Enum.all?(signatures, &(length(&1) == 3)),
       do: :ok,
@@ -433,7 +434,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   defp check_wcag(scorecard) do
     cell_id = scorecard["cell_id"]
-    page_bg = parse_color(scorecard["tokens"]["--tl-color-bg"])
+    page_bg = Parsing.parse_color(scorecard["tokens"]["--tl-color-bg"])
 
     scorecard
     |> Map.get("color_pairs", [])
@@ -441,7 +442,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   end
 
   defp wcag_violation(pair, cell_id, page_bg) do
-    with {:ok, fg_rgba} <- parse_color(pair["color"]),
+    with {:ok, fg_rgba} <- Parsing.parse_color(pair["color"]),
          true <- visible?(fg_rgba),
          {:ok, bg_rgb} <- resolve_background(pair["background_color"], page_bg) do
       fg_rgb = composite(fg_rgba, bg_rgb)
@@ -465,7 +466,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   # thread-blue fill scored 1.26:1 as if blue-on-blue, when it renders as blue-on-dark). A
   # fully/near-transparent bg falls back to the page background token.
   defp resolve_background(raw, page_bg) do
-    case parse_color(raw) do
+    case Parsing.parse_color(raw) do
       {:ok, {_r, _g, _b, a} = bg_rgba} when a >= 0.1 ->
         with {:ok, page_rgb} <- to_rgb(page_bg), do: {:ok, composite(bg_rgba, page_rgb)}
 
@@ -504,7 +505,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   defp ui_component?(_), do: false
 
   defp large_text?(pair) do
-    size = parse_px(pair["font_size"]) || 0.0
+    size = Parsing.parse_px(pair["font_size"]) || 0.0
     bold = bold?(pair["font_weight"])
     size >= @wcag_large_text_px or (bold and size >= @wcag_large_text_bold_px)
   end
@@ -525,10 +526,10 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       metric: "wcag_contrast",
       mode: "A",
       selector: pair["selector"],
-      observed: "#{fmt(ratio)}:1",
-      expected: ">= #{fmt(required)}:1",
+      observed: "#{Parsing.fmt(ratio)}:1",
+      expected: ">= #{Parsing.fmt(required)}:1",
       fix:
-        "raise contrast to >= #{fmt(required)}:1 (observed #{fmt(ratio)}:1) — " <>
+        "raise contrast to >= #{Parsing.fmt(required)}:1 (observed #{Parsing.fmt(ratio)}:1) — " <>
           "lighten the foreground toward --tl-color-text or darken the background"
     }
   end
@@ -553,8 +554,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   defp radius_violations(el, cell_id) do
     el["border_radius"]
-    |> px_values()
-    |> Enum.reject(&(&1 == 0.0 or on_scale?(&1, @radius_scale_px)))
+    |> Parsing.px_values()
+    |> Enum.reject(&(&1 == 0.0 or Parsing.on_scale?(&1, @radius_scale_px)))
     |> Enum.map(fn value ->
       scale_violation(
         cell_id,
@@ -569,7 +570,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   defp shadow_violations(el, cell_id) do
     el["box_shadow"]
-    |> shadow_signatures()
+    |> Parsing.shadow_signatures()
     |> Enum.reject(&(&1 in @shadow_token_signatures))
     |> Enum.map(fn sig ->
       %{
@@ -586,8 +587,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   defp motion_violations(el, cell_id) do
     el["transition_duration"]
-    |> duration_ms_values()
-    |> Enum.reject(&(&1 == 0.0 or on_scale?(&1, @motion_duration_ms, @ms_tolerance)))
+    |> Parsing.duration_ms_values()
+    |> Enum.reject(&(&1 == 0.0 or Parsing.on_scale?(&1, @motion_duration_ms, @ms_tolerance)))
     |> Enum.map(fn value ->
       scale_violation(
         cell_id,
@@ -602,7 +603,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   end
 
   defp font_size_violations(el, cell_id) do
-    case parse_px(el["font_size"]) do
+    case Parsing.parse_px(el["font_size"]) do
       nil ->
         []
 
@@ -610,7 +611,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
         []
 
       value ->
-        if on_scale?(value, @font_size_scale_px) do
+        if Parsing.on_scale?(value, @font_size_scale_px) do
           []
         else
           [
@@ -630,12 +631,12 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   defp spacing_violations(el, cell_id) do
     ~w(margin_top margin_bottom padding_top padding_bottom)
     |> Enum.flat_map(fn prop ->
-      case parse_px(el[prop]) do
+      case Parsing.parse_px(el[prop]) do
         nil -> []
         +0.0 -> []
         # Structural debt: scale if inside case inside flat_map fn — extract the prop check
         # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-        value -> if on_scale?(value, @spacing_scale_px), do: [], else: [{prop, value}]
+        value -> if Parsing.on_scale?(value, @spacing_scale_px), do: [], else: [{prop, value}]
       end
     end)
     |> Enum.map(fn {prop, value} ->
@@ -651,10 +652,10 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       metric: metric,
       mode: "A",
       selector: selector,
-      observed: "#{fmt(value)}#{unit}",
+      observed: "#{Parsing.fmt(value)}#{unit}",
       expected: "one of #{inspect(scale)} #{unit}",
       fix:
-        "snap #{metric} #{fmt(value)}#{unit} -> nearest token #{nearest}#{unit} (#{token_family}-* scale)"
+        "snap #{metric} #{Parsing.fmt(value)}#{unit} -> nearest token #{nearest}#{unit} (#{token_family}-* scale)"
     }
   end
 
@@ -673,10 +674,10 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     mode_b = scorecard["mode_b"] || %{}
 
     %{
-      "type_size_count" => num(mode_b["type_size_count"]),
-      "interactive_control_count" => num(mode_b["interactive_control_count"]),
-      "card_nesting_depth" => num(mode_b["card_nesting_depth"]),
-      "scroll_cost" => num(mode_b["scroll_cost"]),
+      "type_size_count" => Parsing.num(mode_b["type_size_count"]),
+      "interactive_control_count" => Parsing.num(mode_b["interactive_control_count"]),
+      "card_nesting_depth" => Parsing.num(mode_b["card_nesting_depth"]),
+      "scroll_cost" => Parsing.num(mode_b["scroll_cost"]),
       "distinct_accent_hue_count" => distinct_accent_hue_count(scorecard["applied_colors"] || [])
     }
   end
@@ -720,7 +721,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       metric: metric,
       mode: "B",
       selector: "##{theme_bp}",
-      observed: fmt(current),
+      observed: Parsing.fmt(current),
       expected: "<= #{ceiling}",
       fix: "reduce #{metric} to <= #{ceiling} (structural correction + human review required)"
     }
@@ -732,10 +733,10 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
       metric: metric,
       mode: "B",
       selector: "##{theme_bp}",
-      observed: fmt(current),
-      expected: "<= floor #{fmt(floor)}",
+      observed: Parsing.fmt(current),
+      expected: "<= floor #{Parsing.fmt(floor)}",
       fix:
-        "#{metric} regressed past its ratchet floor (#{fmt(current)} > #{fmt(floor)}) — " <>
+        "#{metric} regressed past its ratchet floor (#{Parsing.fmt(current)} > #{Parsing.fmt(floor)}) — " <>
           "revert the regression or record a ratchet reset with rationale"
     }
   end
@@ -744,7 +745,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
 
   defp distinct_accent_hue_count(colors) do
     colors
-    |> Enum.map(&parse_color/1)
+    |> Enum.map(&Parsing.parse_color/1)
     |> Enum.flat_map(fn
       {:ok, {r, g, b, a}} when a >= 0.1 -> [rgb_to_hue_sat({r, g, b})]
       _ -> []
@@ -800,149 +801,4 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   end
 
   defp wraparound_merge(count, _sorted), do: count
-
-  # --- shared parsing helpers ---
-
-  # Parse "rgb(...)", "rgba(...)", or "#rrggbb"/"#rgb" -> {:ok, {r, g, b, a}} | :error.
-  defp parse_color(str) when is_binary(str) do
-    cond do
-      String.starts_with?(str, "rgb") -> parse_rgb(str)
-      String.starts_with?(str, "#") -> parse_hex(str)
-      true -> :error
-    end
-  end
-
-  defp parse_color(_), do: :error
-
-  defp parse_rgb(str) do
-    case Regex.run(~r/^rgba?\(([^)]+)\)$/, str) do
-      [_, inner] ->
-        parts = inner |> String.split(",") |> Enum.map(&String.trim/1)
-
-        case parts do
-          [r, g, b] -> parse_rgb_parts(r, g, b, "1")
-          [r, g, b, a] -> parse_rgb_parts(r, g, b, a)
-          _ -> :error
-        end
-
-      _ ->
-        :error
-    end
-  end
-
-  defp parse_hex(str) do
-    hex = String.trim_leading(str, "#")
-
-    cond do
-      Regex.match?(~r/^[0-9a-fA-F]{6}$/, hex) -> {:ok, expand_hex(hex, 2)}
-      Regex.match?(~r/^[0-9a-fA-F]{3}$/, hex) -> {:ok, expand_hex(hex, 1)}
-      true -> :error
-    end
-  end
-
-  defp parse_rgb_parts(r, g, b, a) do
-    with {red, ""} <- Integer.parse(r),
-         {green, ""} <- Integer.parse(g),
-         {blue, ""} <- Integer.parse(b),
-         {alpha, ""} <- Float.parse(a),
-         true <- Enum.all?([red, green, blue], &(&1 >= 0 and &1 <= 255)),
-         true <- alpha >= 0.0 and alpha <= 1.0 do
-      {:ok, {red, green, blue, alpha}}
-    else
-      _ -> :error
-    end
-  end
-
-  defp expand_hex(hex, chunk) do
-    [r, g, b] =
-      hex
-      |> String.graphemes()
-      |> Enum.chunk_every(chunk)
-      |> Enum.take(3)
-      |> Enum.map(fn pair ->
-        digits = Enum.join(pair)
-        digits = if chunk == 1, do: digits <> digits, else: digits
-        String.to_integer(digits, 16)
-      end)
-
-    {r, g, b, 1.0}
-  end
-
-  defp to_f(str) do
-    case Float.parse(str) do
-      {n, _} -> n
-      :error -> 1.0
-    end
-  end
-
-  # Extract every "<n>px" number from a computed value (e.g. "8px 8px 8px 8px").
-  defp px_values(nil), do: []
-
-  defp px_values(str) when is_binary(str) do
-    ~r/(-?\d*\.?\d+)px/
-    |> Regex.scan(str)
-    |> Enum.map(fn [_, n] -> to_f(n) end)
-    |> Enum.uniq()
-  end
-
-  defp parse_px(nil), do: nil
-
-  defp parse_px(str) when is_binary(str) do
-    case Regex.run(~r/(-?\d*\.?\d+)px/, str) do
-      [_, n] -> to_f(n)
-      _ -> nil
-    end
-  end
-
-  defp parse_px(_), do: nil
-
-  # Comma-separated durations in seconds -> milliseconds (e.g. "0.12s, 0s" -> [120.0, 0.0]).
-  defp duration_ms_values(nil), do: []
-
-  defp duration_ms_values(str) when is_binary(str) do
-    str
-    |> String.split(",")
-    |> Enum.flat_map(fn seg ->
-      case Regex.run(~r/(-?\d*\.?\d+)s/, String.trim(seg)) do
-        [_, n] -> [to_f(n) * 1000]
-        _ -> []
-      end
-    end)
-  end
-
-  # Strip colour functions, split shadow layers, take each layer's (x, y, blur) px triple.
-  defp shadow_signatures(nil), do: []
-  defp shadow_signatures("none"), do: []
-
-  defp shadow_signatures(str) when is_binary(str) do
-    ~r/rgba?\([^)]*\)/
-    |> Regex.replace(str, "")
-    |> String.split(",")
-    |> Enum.flat_map(fn seg ->
-      case px_layer_signature(seg) do
-        [] -> []
-        sig -> [sig]
-      end
-    end)
-  end
-
-  defp px_layer_signature(seg) do
-    ~r/(-?\d*\.?\d+)px/
-    |> Regex.scan(seg)
-    |> Enum.map(fn [_, n] -> round(to_f(n)) end)
-    |> Enum.take(3)
-  end
-
-  defp on_scale?(value, scale, tolerance \\ @px_tolerance) do
-    Enum.any?(scale, &(abs(&1 - value) <= tolerance))
-  end
-
-  defp num(n) when is_number(n), do: n
-  defp num(_), do: 0
-
-  defp fmt(n) when is_float(n) do
-    if n == Float.round(n), do: trunc(n), else: Float.round(n, 2)
-  end
-
-  defp fmt(n), do: n
 end
