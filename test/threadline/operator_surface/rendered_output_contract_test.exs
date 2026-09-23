@@ -40,6 +40,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
 
+    alias Threadline.OperatorSurface.RenderedOutputContractTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -60,14 +62,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             Threadline.OperatorSurface.RenderedOutputContractTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.RenderedOutputContractTest.FakeUser
         },
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.RenderedOutputContractTest.Auth.coverage_authorize/1,
-        policy_authorize_fn:
-          &Threadline.OperatorSurface.RenderedOutputContractTest.Auth.authorize/1,
-        evidence_authorize_fn:
-          &Threadline.OperatorSurface.RenderedOutputContractTest.Auth.authorize/1,
-        export_authorize_fn:
-          &Threadline.OperatorSurface.RenderedOutputContractTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -94,6 +92,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
+
+    alias Threadline.OperatorSurface.StressFixtures
+    alias Threadline.OperatorSurface.Style
 
     @endpoint Threadline.OperatorSurface.RenderedOutputContractTest.Endpoint
 
@@ -289,13 +290,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end)
 
       fixture_offenders =
-        Threadline.OperatorSurface.StressFixtures.all()
+        StressFixtures.all()
         |> Enum.flat_map(&Map.values/1)
         |> Enum.filter(&is_binary/1)
         |> Enum.join("\n")
         |> then(&scan_planning_vocabulary("Threadline.OperatorSurface.StressFixtures", &1))
 
-      css = render_component(&Threadline.OperatorSurface.Style.css/1, [])
+      css = render_component(&Style.css/1, [])
 
       assert visible_offenders == []
       assert fixture_offenders == []
