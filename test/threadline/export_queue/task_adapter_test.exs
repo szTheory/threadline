@@ -1,8 +1,8 @@
 defmodule Threadline.ExportQueue.TaskAdapterTest do
   use Threadline.DataCase, async: false
 
-  alias Threadline.Governance.ExportJob
   alias Threadline.ExportQueue.TaskAdapter
+  alias Threadline.Governance.ExportJob
 
   defmodule NoopStorage do
     @behaviour Threadline.Storage
