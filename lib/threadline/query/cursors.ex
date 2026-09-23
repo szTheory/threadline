@@ -50,6 +50,46 @@ defmodule Threadline.Query.Cursors do
     )
   end
 
+  # Orders the actor-history query for the requested direction. A `before`
+  # cursor pages toward newer records, so it reads ascending and the caller
+  # reverses the page; it wins over an `after` cursor when both are given.
+  def actor_history_window(query, nil, nil) do
+    {order_by(query, [at], desc: at.occurred_at, desc: at.id), false}
+  end
+
+  def actor_history_window(query, nil, after_cursor) do
+    {query
+     |> actor_history_after_cursor(after_cursor)
+     |> order_by([at], desc: at.occurred_at, desc: at.id), false}
+  end
+
+  def actor_history_window(query, before_cursor, _after_cursor) do
+    {query
+     |> actor_history_before_cursor(before_cursor)
+     |> order_by([at], asc: at.occurred_at, asc: at.id), true}
+  end
+
+  # The query fetched `limit + 1` rows; the extra row only signals that more
+  # records exist. Returns the page in descending order and that signal.
+  def actor_history_trim(entries, limit, reverse?) do
+    has_more? = length(entries) > limit
+    {trim_actor_history(entries, limit, has_more?, reverse?), has_more?}
+  end
+
+  defp trim_actor_history(entries, _limit, true, true),
+    do: entries |> Enum.reverse() |> Enum.drop(1)
+
+  defp trim_actor_history(entries, limit, true, false), do: Enum.take(entries, limit)
+  defp trim_actor_history(entries, _limit, false, true), do: Enum.reverse(entries)
+  defp trim_actor_history(entries, _limit, false, false), do: entries
+
+  # The cursor at one edge of the page, or nil when that direction has no more
+  # records or the page is empty.
+  def actor_history_cursor(true, %{occurred_at: occurred_at, id: id}),
+    do: %{occurred_at: occurred_at, id: id}
+
+  def actor_history_cursor(_more?, _entry), do: nil
+
   def validate_actor_history_cursor!(nil), do: nil
 
   def validate_actor_history_cursor!(%{occurred_at: %DateTime{} = occurred_at, id: id})

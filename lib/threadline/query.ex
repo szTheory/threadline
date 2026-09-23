@@ -476,8 +476,6 @@ defmodule Threadline.Query do
 
       Threadline.actor_history(actor_ref, repo: MyApp.Repo)
   """
-  # Structural debt: complexity 13 — split actor_history/2 query from pagination
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def actor_history(%ActorRef{} = actor_ref, opts) do
     repo = Keyword.fetch!(opts, :repo)
     actor_map = ActorRef.to_map(actor_ref)
@@ -492,55 +490,20 @@ defmodule Threadline.Query do
       |> Cursors.actor_history_filter_to(Keyword.get(opts, :to))
       |> maybe_apply_scope(actor_history_scope_opts(actor_ref, opts))
 
-    {query, reverse?} =
-      cond do
-        before_cursor != nil ->
-          {base_query
-           |> Cursors.actor_history_before_cursor(before_cursor)
-           |> order_by([at], asc: at.occurred_at, asc: at.id), true}
-
-        after_cursor != nil ->
-          {base_query
-           |> Cursors.actor_history_after_cursor(after_cursor)
-           |> order_by([at], desc: at.occurred_at, desc: at.id), false}
-
-        true ->
-          {base_query
-           |> order_by([at], desc: at.occurred_at, desc: at.id), false}
-      end
+    {query, reverse?} = Cursors.actor_history_window(base_query, before_cursor, after_cursor)
 
     entries_raw =
       query
       |> limit(^(limit + 1))
       |> repo.all(storage_opts([], opts))
 
-    {entries, has_more?} =
-      if length(entries_raw) > limit do
-        if reverse? do
-          {entries_raw |> Enum.reverse() |> Enum.drop(1), true}
-        else
-          {entries_raw |> Enum.take(limit), true}
-        end
-      else
-        if reverse? do
-          {Enum.reverse(entries_raw), false}
-        else
-          {entries_raw, false}
-        end
-      end
+    {entries, has_more?} = Cursors.actor_history_trim(entries_raw, limit, reverse?)
 
     has_next? = if reverse?, do: true, else: has_more?
     has_prev? = if reverse?, do: has_more?, else: after_cursor != nil
 
-    next_cursor =
-      if has_next? and entries != [] do
-        %{occurred_at: List.last(entries).occurred_at, id: List.last(entries).id}
-      end
-
-    prev_cursor =
-      if has_prev? and entries != [] do
-        %{occurred_at: List.first(entries).occurred_at, id: List.first(entries).id}
-      end
+    next_cursor = Cursors.actor_history_cursor(has_next?, List.last(entries))
+    prev_cursor = Cursors.actor_history_cursor(has_prev?, List.first(entries))
 
     %Threadline.Query.ActorHistoryPage{
       entries: entries,
