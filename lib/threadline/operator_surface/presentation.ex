@@ -201,6 +201,8 @@ defmodule Threadline.OperatorSurface.Presentation do
   end
 
   @spec status_label(String.t() | atom() | nil) :: String.t()
+  # Phase 204 (STRUCT-07): complexity 17 — replace status_label/1 case with a lookup
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def status_label(status) do
     case normalize_status(status) do
       "inferred_posture" -> "Inferred"
