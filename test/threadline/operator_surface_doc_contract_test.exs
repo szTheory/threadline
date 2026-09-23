@@ -2,6 +2,8 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  alias Mix.Tasks.Release.Pins
+
   test "README routes the operator surface mount macro to its canonical owner" do
     readme = File.read!("README.md")
     assert String.contains?(readme, "threadline_operator_surface")
@@ -62,7 +64,7 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     # the full rationale) and the bump rehearsal found four more copies of.
     assert String.contains?(
              guide,
-             ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+             ~s({:threadline, "~> #{Pins.target_pin_version()}"})
            )
 
     refute String.contains?(guide, "{:threadline, \"~> 0.5\"}")
