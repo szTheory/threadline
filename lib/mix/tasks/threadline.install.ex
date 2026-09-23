@@ -98,13 +98,18 @@ defmodule Mix.Tasks.Threadline.Install do
 
       case app_env do
         [repo | _] ->
-          priv =
-            case repo.config()[:priv] do
-              nil -> "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}"
-              p -> p
-            end
+          # Phase 204 (STRUCT-07): priv case inside app-env case — extract priv-path resolution
+          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
+          case repo.config()[:priv] do
+            nil ->
+              Path.join(
+                "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}",
+                "migrations"
+              )
 
-          Path.join(priv, "migrations")
+            p ->
+              Path.join(p, "migrations")
+          end
 
         [] ->
           "priv/repo/migrations"
