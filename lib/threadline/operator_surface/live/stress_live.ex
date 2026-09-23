@@ -1264,6 +1264,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     # Copy voice by (rung, scenario): r4/r3 operational; r2 adds a chatty line; r1 is
     # marketing/apologetic + emoji (off the Threadline register). Drives register_voice_fit.
+    # Phase 204 (STRUCT-07): complexity 10 — split refute_brand_lines/1 into a copy table
+    # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
     defp refute_brand_lines(story) do
       {heading, body} =
         case Map.get(story.data, :scenario) do
@@ -1308,6 +1310,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # every hue so colour stops meaning anything. Accents are border-left + a plain <div>
     # swatch (neither is in the color_pairs text selector) so every rung passes WCAG MODE-A —
     # this is a gestalt colour-semantics flaw, not a contrast violation.
+    # Phase 204 (STRUCT-07): complexity 13 — split refute_color_accent/2 into a rung table
+    # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
     defp refute_color_accent(story, role) do
       case {refute_rung(story), role} do
         {:r4, :action} -> "var(--tl-color-thread-blue)"
