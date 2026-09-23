@@ -462,6 +462,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> assign(:default_limit, @default_limit)
     end
 
+    # Phase 204 (STRUCT-07): complexity 11 — split export_workflow_summary/1 per state
+    # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
     defp export_workflow_summary(assigns) do
       jobs = Map.get(assigns, :jobs, [])
 
