@@ -106,13 +106,15 @@ if Code.ensure_loaded?(Oban) do
     @moduledoc false
     use Oban.Worker, queue: :threadline_exports, max_attempts: 3
 
+    alias Threadline.Export.Orchestrator
+
     @impl Oban.Worker
     def perform(%Oban.Job{args: %{"job_id" => job_id, "storage_schema" => storage_schema}}) do
-      Threadline.Export.Orchestrator.run(job_id, storage_schema: storage_schema)
+      Orchestrator.run(job_id, storage_schema: storage_schema)
     end
 
     def perform(%Oban.Job{args: %{"job_id" => job_id}}) do
-      Threadline.Export.Orchestrator.run(job_id)
+      Orchestrator.run(job_id)
     end
   end
 end
