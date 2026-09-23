@@ -18,6 +18,7 @@ defmodule Threadline.PublicSurfaceContractTest do
   # entry cannot outlive the rename it records or stand in for a live module.
   @changelog_subject "CHANGELOG.md"
   @renamed_modules %{
+    Threadline.OperatorSurface.Exports.FilterParams => Threadline.Query.FilterParams,
     Threadline.OperatorSurface.Scope => Threadline.Query.Scope
   }
   @module_owner_tags [
@@ -645,6 +646,7 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp modules_for_visibility_tag(:module_visibility_domain_tail),
     do: [
       Threadline.Policy.RedactionPresenter,
+      Threadline.Query.FilterParams,
       Threadline.Query.Scope,
       Threadline.Retention.Pruner,
       Threadline.Semantics.Migration,
@@ -669,7 +671,6 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp modules_for_visibility_tag(:module_visibility_operator_helpers),
     do: [
       Threadline.OperatorSurface.Exports.Filename,
-      Threadline.OperatorSurface.Exports.FilterParams,
       Threadline.OperatorSurface.Presentation,
       Threadline.OperatorSurface.Script,
       Threadline.OperatorSurface.Router

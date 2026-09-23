@@ -13,7 +13,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Phoenix.LiveView.JS
     alias Threadline.Export
     alias Threadline.OperatorSurface.Presentation
-    alias Threadline.OperatorSurface.Exports.FilterParams
+    alias Threadline.Query.FilterParams
     alias Threadline.Query
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema

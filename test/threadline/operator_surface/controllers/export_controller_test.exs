@@ -433,7 +433,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       seed_changes!(1, table: drop_table)
 
       query =
-        Threadline.OperatorSurface.Exports.FilterParams.canonical_query(%{
+        Threadline.Query.FilterParams.canonical_query(%{
           "from" => "2020-01-01T00:00",
           "to" => "2099-01-01T00:00",
           "table" => keep_table

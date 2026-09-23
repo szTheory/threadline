@@ -8,7 +8,7 @@ defmodule Threadline.Export.Orchestrator do
 
   alias Threadline.Export
   alias Threadline.Governance.ExportJob
-  alias Threadline.OperatorSurface.Exports.FilterParams
+  alias Threadline.Query.FilterParams
   alias Threadline.StorageSchema
 
   @default_retention_ttl_hours 24 * 7

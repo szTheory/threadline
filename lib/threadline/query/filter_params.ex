@@ -1,4 +1,4 @@
-defmodule Threadline.OperatorSurface.Exports.FilterParams do
+defmodule Threadline.Query.FilterParams do
   @moduledoc false
 
   alias Threadline.Semantics.ActorRef

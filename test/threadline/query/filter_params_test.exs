@@ -1,8 +1,8 @@
-defmodule Threadline.OperatorSurface.Exports.FilterParamsTest do
+defmodule Threadline.Query.FilterParamsTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
-  alias Threadline.OperatorSurface.Exports.FilterParams
+  alias Threadline.Query.FilterParams
   alias Threadline.Semantics.ActorRef
 
   describe "parse/1" do
@@ -143,7 +143,7 @@ defmodule Threadline.OperatorSurface.Exports.FilterParamsTest do
 
   describe "atom safety (RESEARCH Pitfall 11)" do
     test "FilterParams source uses String.to_existing_atom, NEVER String.to_atom" do
-      src = File.read!("lib/threadline/operator_surface/exports/filter_params.ex")
+      src = File.read!("lib/threadline/query/filter_params.ex")
       assert src =~ "String.to_existing_atom"
       refute src =~ ~r/String\.to_atom\b/
     end

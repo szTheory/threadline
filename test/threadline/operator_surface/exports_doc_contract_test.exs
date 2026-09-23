@@ -7,7 +7,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   @controller_path "lib/threadline/operator_surface/controllers/export_controller.ex"
   @plug_path "lib/threadline/operator_surface/export_auth_plug.ex"
   @filename_path "lib/threadline/operator_surface/exports/filename.ex"
-  @filter_params_path "lib/threadline/operator_surface/exports/filter_params.ex"
+  @filter_params_path "lib/threadline/query/filter_params.ex"
   @query_path "lib/threadline/query.ex"
 
   # ---- EXPO-05: button-label literals (D-22 + D-26) ----
@@ -154,8 +154,8 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
       lv_src = File.read!(@lv_path)
       controller_src = File.read!(@controller_path)
 
-      assert String.contains?(lv_src, "Threadline.OperatorSurface.Exports.FilterParams") or
-               String.contains?(lv_src, "alias Threadline.OperatorSurface.Exports.FilterParams"),
+      assert String.contains?(lv_src, "Threadline.Query.FilterParams") or
+               String.contains?(lv_src, "alias Threadline.Query.FilterParams"),
              "TimelineLive must reference FilterParams (no inline parser)"
 
       assert String.contains?(controller_src, "FilterParams.parse") or

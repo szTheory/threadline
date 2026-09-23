@@ -9,7 +9,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     alias Threadline.Export
     alias Threadline.Governance.ExportJob
     alias Threadline.OperatorSurface.Exports.Filename
-    alias Threadline.OperatorSurface.Exports.FilterParams
+    alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
 

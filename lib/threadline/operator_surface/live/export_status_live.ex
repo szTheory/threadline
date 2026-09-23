@@ -14,7 +14,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Governance.ExportJob
     alias Threadline.Evidence.Subject
-    alias Threadline.OperatorSurface.Exports.FilterParams
+    alias Threadline.Query.FilterParams
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
