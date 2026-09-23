@@ -725,17 +725,21 @@ Plans:
   4. The Capture↔Semantics module cycle is resolved and its compiler suppression removed rather than relocated. (GATE-04)
   5. No comment in `lib/` cites a file location whose referent has moved, and every module has a deliberate `@moduledoc` or `@moduledoc false`. (GATE-05)
 
-**Plans**: 6 plans (sized by the re-measured 484-finding histogram under the pre-committed rule: 150-600 band → split mechanical from judgment; strictly serial — heavy file overlap)
+**Plans**: 10 plans (sized by the re-measured 484-finding histogram under the pre-committed rule: 150-600 band → split mechanical from judgment; the D-21 five-step shape is split further so each plan fits one executor context; strictly serial — heavy file overlap)
 
 Plans:
-- [ ] 203-01-PLAN.md — **Tracer:** move `Scope` and `FilterParams` into `Threadline.Query.*` with all pins; layer-boundary contract test (GATE-03)
-- [ ] 203-02-PLAN.md — delete the `no_warn_undefined` papering; no_warn_undefined contract; `verify.xref_cycles` in `ci.all` + `verify-test` (GATE-04)
-- [ ] 203-03-PLAN.md — all 356 `Design.AliasUsage` findings as pure per-file/per-directory `refactor` commits
-- [ ] 203-04-PLAN.md — remaining mechanical findings, `@type t` for SpecWithStruct, stale location comments + comment-location contract (GATE-05)
-- [ ] 203-05-PLAN.md — file structural findings to Phase 204 per-site; exact register contract; add STRUCT-07 (GATE-02)
-- [ ] 203-06-PLAN.md — rebuild `.credo.exs` as verbatim scaffolding + three `extra:` deltas, `disabled: []`; config-shape contract; gate live; phase-end proof (GATE-01)
+- [ ] 203-01-PLAN.md — **Tracer:** move `Scope` and `FilterParams` into `Threadline.Query.*` with all pins (in-place alias rename); layer-boundary contract test (GATE-03)
+- [ ] 203-02-PLAN.md — delete the `no_warn_undefined` papering; no_warn_undefined contract; `verify.xref_cycles` in `ci.all` + `verify-test` + chain docs (GATE-04)
+- [ ] 203-03-PLAN.md — `Design.AliasUsage` sweep, part 1: lib/ (one commit per file) + `*_contract_test.exs` (one commit per file)
+- [ ] 203-04-PLAN.md — `Design.AliasUsage` sweep, part 2: non-contract tests outside operator_surface (batched by directory)
+- [ ] 203-05-PLAN.md — `Design.AliasUsage` sweep, part 3: non-contract operator_surface tests; AliasUsage 0 tree-wide
+- [ ] 203-06-PLAN.md — lib mechanical findings, `@type t` for SpecWithStruct, stale location comments (GATE-05)
+- [ ] 203-07-PLAN.md — test mechanical findings, `Test.Repo` moduledoc, comment-location contract (GATE-05)
+- [ ] 203-08-PLAN.md — file lib structural findings to Phase 204 per-site (GATE-02)
+- [ ] 203-09-PLAN.md — file test structural findings; exact register contract; add STRUCT-07 (GATE-02)
+- [ ] 203-10-PLAN.md — rebuild `.credo.exs` as verbatim scaffolding + three `extra:` deltas, `disabled: []`; config-shape contract; gate live; phase-end proof (GATE-01)
 
-**Waves**: 1 → 203-01 · 2 → 203-02 · 3 → 203-03 · 4 → 203-04 · 5 → 203-05 · 6 → 203-06
+**Waves**: 1 → 203-01 · 2 → 203-02 · 3 → 203-03 · 4 → 203-04 · 5 → 203-05 · 6 → 203-06 · 7 → 203-07 · 8 → 203-08 · 9 → 203-09 · 10 → 203-10
 
 **Notes carried from the approved plan:**
 

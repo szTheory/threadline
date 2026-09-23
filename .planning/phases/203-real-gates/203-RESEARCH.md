@@ -384,17 +384,17 @@ CI: add a step to `verify-test` (both matrix lanes, so 1.15 proves it) after `Co
 | A1 | Deleting the `@compile {:no_warn_undefined, …}` compiles clean on Elixir 1.15/OTP 26 (verified only on 1.17.3; 1.15 not installed locally) | GATE-04 | Min-lane red. Mitigation: the CI min lane runs `compile --warnings-as-errors`, and no_warn_undefined only affects remote-call warnings, which `belongs_to` does not emit |
 | A2 | Credo 1.8 will promote `UtcNowTruncate` (upstream comment says "scheduled for next check update") | Pitfall 1 | Low: the hazard is structural regardless of which check is promoted |
 | A3 | Mix deletes stale beams for renamed modules on normal recompile | Runtime State | Stale-module test flakiness; mitigated by `mix compile --force` |
-| A4 | `STRUCT-03` is the right successor ID for all 46 structural rows | Code Examples / Open Q2 | Register names a requirement that doesn't own the work |
+| A4 | ~~`STRUCT-03` is the right successor ID for all 46 structural rows~~ SUPERSEDED by D-27 (STRUCT-07) | Code Examples / Open Q2 | Register names a requirement that doesn't own the work |
 
-## Open Questions
+## Open Questions (all RESOLVED — see CONTEXT.md D-23, D-27, D-28)
 
-1. **Upstream opt-in list in `disabled:` (D-06 literal vs GATE-01 intent)**
+1. **RESOLVED by D-23.** **Upstream opt-in list in `disabled:` (D-06 literal vs GATE-01 intent)**
    - What we know: `disabled:` forces checks off over defaults (proven empirically). The opt-ins are already off in the embedded base, so copying the list adds nothing today and can only subtract later.
    - Recommendation: `disabled: []`, and satisfy D-06's intent ("do not enable opt-ins") by having the contract test assert that `extra:` contains none of the upstream opt-in modules. The planner should record this as the D-06 interpretation (reversible).
-2. **Which requirement owns the 46 structural rows in Phase 204?**
+2. **RESOLVED by D-27 (the STRUCT-03 recommendation below is SUPERSEDED: the successor is a new requirement STRUCT-07 covering both lib/ and test/ sites).** **Which requirement owns the 46 structural rows in Phase 204?**
    - What we know: STRUCT-01..06 cover CSS hash, style split, file/function size, separator comments, case templates, and ci.all redundancy. None says "drain the Nesting/CyclomaticComplexity register", and 12 of the sites are in `test/`, which STRUCT-03 (`lib/` only) does not cover. GATE-02 also says "named successor **milestone**".
    - Recommendation: use `STRUCT-03` for lib sites. Have Plan 5's ROADMAP mirror add an explicit Phase 204 note/success line ("ratchet `credo_config_contract_test` ceiling to 0"). Flag the test-site ownership for the maintainer.
-3. **Commit granularity for 56 alias files.** The "one file per commit wherever contract tests are involved" convention applies to many of them (`*_contract_test.exs`). Recommendation: one commit per contract-test file and per lib file; batch the remaining non-contract tests by directory.
+3. **RESOLVED by D-28.** **Commit granularity for 56 alias files.** The "one file per commit wherever contract tests are involved" convention applies to many of them (`*_contract_test.exs`). Recommendation: one commit per contract-test file and per lib file; batch the remaining non-contract tests by directory.
 
 ## Environment Availability
 
