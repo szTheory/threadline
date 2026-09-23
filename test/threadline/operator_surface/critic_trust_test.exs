@@ -4,6 +4,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import ExUnit.CaptureIO
 
+    alias Mix.Tasks.Critic.Measure
+    alias Mix.Tasks.Critic.Synth
+
     @ledger_path "test/fixtures/operator_surface/design-system-ledger.json"
     @golden_set_path "test/fixtures/operator_surface/golden/golden-set.json"
     @synthetic_set_path "test/fixtures/operator_surface/golden/synthetic-set.json"
@@ -766,7 +769,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         original = File.read!(ledger_path)
 
         File.cd!(nested, fn ->
-          Mix.Tasks.Critic.Measure.run([
+          Measure.run([
             "--fixture-root",
             Path.relative_to(fixture_root, project_root()),
             "--output-root",
@@ -806,7 +809,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         for {label, invalid_root} <- controls do
           error =
             assert_raise Mix.Error, fn ->
-              Mix.Tasks.Critic.Measure.run([
+              Measure.run([
                 "--fixture-root",
                 invalid_root,
                 "--output-root",
@@ -823,7 +826,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         alias_error =
           assert_raise Mix.Error, fn ->
-            Mix.Tasks.Critic.Measure.run([
+            Measure.run([
               "--fixture-root",
               Path.relative_to(fixture_root, project_root()),
               "--output-root",
@@ -854,7 +857,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             ] do
           error =
             assert_raise Mix.Error, fn ->
-              Mix.Tasks.Critic.Measure.run([
+              Measure.run([
                 "--fixture-root",
                 Path.relative_to(fixture_root, project_root()),
                 "--output-root",
@@ -868,7 +871,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         ledger_path = Path.join(fixture_root, "design-system-ledger.json")
         original = File.read!(ledger_path)
 
-        Mix.Tasks.Critic.Measure.run([
+        Measure.run([
           "--fixture-root",
           Path.relative_to(fixture_root, project_root()),
           "--output-root",
@@ -890,7 +893,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         error =
           assert_raise Mix.Error, fn ->
-            Mix.Tasks.Critic.Measure.run([
+            Measure.run([
               "--fixture-root",
               Path.relative_to(fixture_root, project_root()),
               "--output-root",
@@ -908,7 +911,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         schema_error =
           assert_raise Mix.Error, fn ->
-            Mix.Tasks.Critic.Measure.run([
+            Measure.run([
               "--fixture-root",
               Path.relative_to(fixture_root, project_root()),
               "--output-root",
@@ -981,7 +984,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
           error =
             assert_raise Mix.Error, fn ->
-              Mix.Tasks.Critic.Measure.run([
+              Measure.run([
                 "--fixture-root",
                 Path.relative_to(fixture_root, project_root()),
                 "--output-root",
@@ -996,7 +999,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         File.write!(golden_path, Jason.encode!(%{"items" => [valid_item]}))
 
         capture_io(fn ->
-          Mix.Tasks.Critic.Measure.run([
+          Measure.run([
             "--fixture-root",
             Path.relative_to(fixture_root, project_root()),
             "--output-root",
@@ -1021,7 +1024,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       output =
         capture_io(fn ->
-          Mix.Tasks.Critic.Measure.run([
+          Measure.run([
             "--fixture-root",
             Path.relative_to(fixture_root, project_root()),
             "--output-root",
@@ -1042,7 +1045,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       output =
         capture_io(fn ->
-          Mix.Tasks.Critic.Synth.run([
+          Synth.run([
             "--fixture-root",
             Path.relative_to(fixture_root, project_root())
           ])
@@ -1064,7 +1067,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Process.put({Mix.Tasks.Critic.Measure, :atomic_write_hook}, fn -> {:error, :interrupted} end)
 
       assert_raise Mix.Error, fn ->
-        Mix.Tasks.Critic.Measure.run([
+        Measure.run([
           "--fixture-root",
           Path.relative_to(fixture_root, project_root()),
           "--output-root",
@@ -1081,7 +1084,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       Process.put({Mix.Tasks.Critic.Synth, :atomic_write_hook}, fn -> {:error, :interrupted} end)
 
       assert_raise Mix.Error, fn ->
-        Mix.Tasks.Critic.Synth.run([
+        Synth.run([
           "--fixture-root",
           Path.relative_to(synth_root, project_root())
         ])

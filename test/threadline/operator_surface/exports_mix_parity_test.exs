@@ -36,6 +36,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     import ExUnit.CaptureIO
     import Threadline.StorageSchemaCase
 
+    alias Mix.Tasks.Threadline.Export
     alias Threadline.Capture.{AuditChange, AuditTransaction}
 
     @endpoint Threadline.OperatorSurface.ExportControllerTest.Endpoint
@@ -73,7 +74,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       # Mix task — write to disk
       capture_io(fn ->
-        Mix.Tasks.Threadline.Export.run([
+        Export.run([
           "--format",
           "csv",
           "--output",
@@ -112,7 +113,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       tmp_path = Path.join(tmp_dir, "parity-json-#{:rand.uniform(1_000_000)}.json")
 
       capture_io(fn ->
-        Mix.Tasks.Threadline.Export.run([
+        Export.run([
           "--format",
           "json",
           # Default --json-format is wrapped; pass explicitly for clarity.
@@ -170,7 +171,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       tmp_path = Path.join(tmp_dir, "parity-ndjson-#{:rand.uniform(1_000_000)}.ndjson")
 
       capture_io(fn ->
-        Mix.Tasks.Threadline.Export.run([
+        Export.run([
           "--format",
           "json",
           "--json-format",

@@ -77,6 +77,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.AuditTransaction
+    alias Threadline.Test.Repo
 
     @endpoint Threadline.OperatorSurface.BreadcrumbTest.Endpoint
 
@@ -98,7 +99,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "drill-down trail is a Breadcrumb landmark rooted at Timeline (NAV-01/D-12)" do
       conn = build_conn()
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditTransaction.changeset(%{
           txid: :rand.uniform(1_000_000_000),
           occurred_at: DateTime.utc_now(),
@@ -120,7 +121,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "exactly one aria-current=page across the page; never on the trail segment (NAV-01/D-13)" do
       conn = build_conn()
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditTransaction.changeset(%{
           txid: :rand.uniform(1_000_000_000),
           occurred_at: DateTime.utc_now(),

@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.UITest do
   import Phoenix.Component
   import Phoenix.LiveViewTest
 
+  alias Threadline.OperatorSurface.Presentation
   alias Threadline.OperatorSurface.UI
 
   describe "button" do
@@ -728,7 +729,7 @@ defmodule Threadline.OperatorSurface.UITest do
              "every data-tl-copy must equal the full value"
 
       # The visible (truncated) face is shown but is NOT what gets copied (forensic D-02).
-      visible = Threadline.OperatorSurface.Presentation.ref(@long_ref, kind: :correlation).visible
+      visible = Presentation.ref(@long_ref, kind: :correlation).visible
       assert visible != @long_ref, "fixture must actually truncate so the test is meaningful"
       assert html =~ visible
       refute Enum.member?(targets, visible)

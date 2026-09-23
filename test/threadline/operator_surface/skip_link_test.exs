@@ -45,6 +45,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
 
+    alias Threadline.OperatorSurface.SkipLinkTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -64,10 +66,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "ticket_replies" => Threadline.OperatorSurface.SkipLinkTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.SkipLinkTest.FakeUser
         },
-        coverage_authorize_fn: &Threadline.OperatorSurface.SkipLinkTest.Auth.authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.SkipLinkTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.SkipLinkTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.SkipLinkTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end

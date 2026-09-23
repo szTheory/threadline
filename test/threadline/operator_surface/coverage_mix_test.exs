@@ -14,6 +14,9 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
 
   import ExUnit.CaptureIO
 
+  alias Mix.Tasks.Threadline.Health.Coverage
+  alias Mix.Tasks.Threadline.VerifyCoverage
+
   setup do
     # Re-enable both Mix tasks so each test case can re-invoke (Pitfall 8 — Mix.Task
     # no-ops on a second run/2 within the same OS process unless reenabled).
@@ -26,7 +29,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "prints TABLE / STATUS / SOURCE header and a Coverage summary line" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run([])
+          Coverage.run([])
         end)
 
       # Header literals — MUST be present
@@ -48,7 +51,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
       # Just verify the task completes without an exception.
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run([])
+          Coverage.run([])
         end)
 
       assert is_binary(output)
@@ -59,7 +62,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "produces valid JSON with exactly the locked top-level keys" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--json"])
+          Coverage.run(["--json"])
         end)
 
       parsed = Jason.decode!(output)
@@ -76,7 +79,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "expected_uncovered entries have keys [\"source\", \"table\"] and source ∈ {baseline, config}" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--json"])
+          Coverage.run(["--json"])
         end)
 
       parsed = Jason.decode!(output)
@@ -91,7 +94,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "schema_migrations is in expected_uncovered with source baseline" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--json"])
+          Coverage.run(["--json"])
         end)
 
       parsed = Jason.decode!(output)
@@ -111,7 +114,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
       # Should not raise — public is the canonical schema.
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--schema=public"])
+          Coverage.run(["--schema=public"])
         end)
 
       assert output =~ "TABLE"
@@ -120,7 +123,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "--schema=Public fails the regex (uppercase rejected)" do
       assert_raise Mix.Error, ~r/not a valid PostgreSQL identifier|schema "Public"/, fn ->
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--schema=Public"])
+          Coverage.run(["--schema=Public"])
         end)
       end
     end
@@ -128,7 +131,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "--schema=nonexistent fails the pg_namespace lookup" do
       assert_raise Mix.Error, ~r/not found/, fn ->
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run([
+          Coverage.run([
             "--schema=nonexistent_schema_xyz_definitely_not_present"
           ])
         end)
@@ -138,7 +141,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "--schema with semicolon (SQL-injection probe) fails the regex" do
       assert_raise Mix.Error, ~r/not a valid PostgreSQL identifier/, fn ->
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--schema=public;DROP"])
+          Coverage.run(["--schema=public;DROP"])
         end)
       end
     end
@@ -152,7 +155,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
       result =
         try do
           capture_io(fn ->
-            Mix.Tasks.Threadline.VerifyCoverage.run([])
+            VerifyCoverage.run([])
           end)
         catch
           :exit, {:shutdown, _} -> :ok
@@ -164,7 +167,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "--schema=public is byte-equivalent to no-flag default" do
       out_no_flag =
         try do
-          capture_io(fn -> Mix.Tasks.Threadline.VerifyCoverage.run([]) end)
+          capture_io(fn -> VerifyCoverage.run([]) end)
         catch
           :exit, {:shutdown, _} -> ""
         end
@@ -173,7 +176,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
 
       out_with_flag =
         try do
-          capture_io(fn -> Mix.Tasks.Threadline.VerifyCoverage.run(["--schema=public"]) end)
+          capture_io(fn -> VerifyCoverage.run(["--schema=public"]) end)
         catch
           :exit, {:shutdown, _} -> ""
         end
@@ -188,7 +191,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     test "--schema=Public fails the regex (uppercase rejected)" do
       assert_raise Mix.Error, ~r/not a valid PostgreSQL identifier/, fn ->
         capture_io(fn ->
-          Mix.Tasks.Threadline.VerifyCoverage.run(["--schema=Public"])
+          VerifyCoverage.run(["--schema=Public"])
         end)
       end
     end
