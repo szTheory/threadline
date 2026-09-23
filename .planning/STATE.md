@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 204
 current_phase_name: Structure
 status: executing
-stopped_at: Phase 204 planned (15 plans, checker passed iter 3)
-last_updated: "2026-09-23T16:50:47.934Z"
+stopped_at: Completed 204-01-PLAN.md
+last_updated: "2026-09-23T17:02:16.863Z"
 last_activity: 2026-09-23
-last_activity_desc: Phase 203 complete, transitioned to Phase 204
-state_head: b3176a137a60b04f2b8ca0312c0652045e2da413
+last_activity_desc: Phase 204 execution started
+state_head: 86403937934200b039d2a1937c0759e9458c80c3
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 145
-  completed_plans: 130
+  completed_plans: 131
   percent: 86
 ---
 
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 204 (Structure) — READY TO EXECUTE
-Plan: Not started
+Phase: 204 (Structure) — EXECUTING
+Plan: 2 of 15
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-23 — Phase 203 complete, transitioned to Phase 204
+Last activity: 2026-09-23 — Phase 204 execution started
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -250,6 +250,7 @@ Progress: [████████████████████] 130/130
 | Phase 203 P08 | 45min | 2 tasks | 28 files |
 | Phase 203 P09 | 25min | 3 tasks | 9 files |
 | Phase 203 P10 | 40min | 2 tasks | 2 files |
+| Phase 204 P01 | 8 min | 3 tasks | 6 files |
 
 ## Deferred Items
 
@@ -795,6 +796,8 @@ Progress: [████████████████████] 130/130
 - [Phase 203]: D-31: per-site structural-debt line is '# Structural debt: <reason>' — no phase number or requirement ID in packaged source; Phase 204/STRUCT-07 named only in the test-resident register
 - [Phase 203]: 203-09: Credo structural register pinned in source (credo_config_contract_test.exs) at Nesting 26 / CyclomaticComplexity 16 / ceiling 42 / historical max 46, exact equality, successor Phase 204 / STRUCT-07; GATE-02 checkbox left for Plan 10 (Logger finding still open)
 - [Phase 203]: 203-10: .credo.exs is credo 1.7.18 scaffolding + 3 extra deltas, disabled: []; Logger finding resolved via metadata_keys param (D-09)
+- [Phase 204]: 204-01: CSS byte lock pins golden c7baf51e (119,508 B) and full render b10d6a2c (212,633 B); never re-pin during the phase
+- [Phase 204]: 204-01: size gate seeded exact (7 files, 12 functions, 42 banner lines in 7 files); each extraction edits the maps in the same commit
 
 ### Blockers
 
@@ -804,9 +807,9 @@ Progress: [████████████████████] 130/130
 
 ## Session Continuity
 
-**Last session:** 2026-09-23T15:09:38.005Z
-**Stopped at:** Phase 204 context gathered
-**Resume file:** .planning/phases/204-structure/204-CONTEXT.md
+**Last session:** 2026-09-23T17:02:16.628Z
+**Stopped at:** Completed 204-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

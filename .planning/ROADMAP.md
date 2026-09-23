@@ -802,7 +802,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 204-01-PLAN.md — **Tracer:** CSS byte lock (golden + sha256 pins), then the size/function/banner/heex gate seeded at measured values, plus the source-family reader (STRUCT-01, STRUCT-03, STRUCT-04)
+- [x] 204-01-PLAN.md — **Tracer:** CSS byte lock (golden + sha256 pins), then the size/function/banner/heex gate seeded at measured values, plus the source-family reader (STRUCT-01, STRUCT-03, STRUCT-04)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
