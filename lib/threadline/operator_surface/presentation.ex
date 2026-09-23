@@ -566,7 +566,7 @@ defmodule Threadline.OperatorSurface.Presentation do
   end
 
   defp deterministic_json(value) when is_list(value) do
-    "[" <> (value |> Enum.map(&deterministic_json/1) |> Enum.join(",")) <> "]"
+    "[" <> Enum.map_join(value, ",", &deterministic_json/1) <> "]"
   end
 
   defp deterministic_json(%{} = value) do
