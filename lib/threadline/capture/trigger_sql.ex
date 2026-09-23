@@ -19,7 +19,7 @@ defmodule Threadline.Capture.TriggerSQL do
 
   When both lists are empty, SQL is identical to the historical global function.
   """
-  def install_function(), do: install_function([])
+  def install_function, do: install_function([])
 
   def install_function(opts) when is_list(opts) do
     exclude = Keyword.get(opts, :exclude, [])
@@ -483,13 +483,11 @@ defmodule Threadline.Capture.TriggerSQL do
         ""
       else
         pairs =
-          mask
-          |> Enum.map(fn col ->
+          Enum.map_join(mask, ", ", fn col ->
             k = sql_string_literal(col)
             pe = mask_placeholder_sql_expr(placeholder)
             "#{k}, #{pe}"
           end)
-          |> Enum.join(", ")
 
         "        #{var} := #{var} || jsonb_build_object(#{pairs});\n"
       end
@@ -505,10 +503,7 @@ defmodule Threadline.Capture.TriggerSQL do
   defp mask_array_sql_fragment([]), do: "ARRAY[]::text[]"
 
   defp mask_array_sql_fragment(cols) do
-    inner =
-      cols
-      |> Enum.map(&sql_string_literal/1)
-      |> Enum.join(", ")
+    inner = Enum.map_join(cols, ", ", &sql_string_literal/1)
 
     "ARRAY[#{inner}]::text[]"
   end
@@ -522,10 +517,7 @@ defmodule Threadline.Capture.TriggerSQL do
   defp except_array_sql_fragment([]), do: "ARRAY[]::text[]"
 
   defp except_array_sql_fragment(cols) do
-    inner =
-      cols
-      |> Enum.map(&sql_string_literal/1)
-      |> Enum.join(", ")
+    inner = Enum.map_join(cols, ", ", &sql_string_literal/1)
 
     "ARRAY[#{inner}]::text[]"
   end
