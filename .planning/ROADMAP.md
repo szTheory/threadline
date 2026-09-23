@@ -750,7 +750,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 203-06-PLAN.md — lib mechanical findings, `@type t` for SpecWithStruct, stale location comments (GATE-05)
+- [x] 203-06-PLAN.md — lib mechanical findings, `@type t` for SpecWithStruct, stale location comments (GATE-05)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
