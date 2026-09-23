@@ -246,6 +246,34 @@ defmodule Threadline.CredoConfigContractTest do
       assert Map.get(checks, :extra) == @deltas
     end
 
+    test "the non-checks scaffolding equals upstream except strict" do
+      {%{configs: [upstream]} = upstream_top, _binding} = Code.eval_file(@upstream_config)
+      {project_top, _binding} = Code.eval_file(@credo_config)
+      config = project_config()
+
+      assert Map.keys(project_top) == Map.keys(upstream_top)
+
+      # A shrunk `files:` (dropping test/, or an `excluded:` subtree), a plugin that
+      # injects or alters checks, or a required custom check would all narrow the
+      # gate without touching `checks:`, so every non-checks key is pinned to the
+      # upstream scaffolding. Regexes are compared by source and options because
+      # compiled patterns are not guaranteed to compare equal across OTP releases.
+      assert config.name == "default"
+      assert config.plugins == []
+      assert config.requires == []
+
+      assert normalize_regexes(config.files) == normalize_regexes(upstream.files),
+             "`files:` must equal the upstream scaffolding: narrowing `included:` or " <>
+               "widening `excluded:` silently removes code from the gate (GATE-01)."
+
+      # `strict` is the one legitimate divergence: upstream ships `false`, and the
+      # project pins `true` so bare `mix credo` equals the CI gate.
+      assert config.strict == true
+
+      assert normalize_regexes(Map.drop(config, [:checks, :strict])) ==
+               normalize_regexes(Map.drop(upstream, [:checks, :strict]))
+    end
+
     test "every delta re-parameterizes an upstream default and the default set is not shrunk" do
       upstream = upstream_checks()
       enabled = Enum.map(upstream.enabled, &elem(&1, 0))
@@ -302,6 +330,13 @@ defmodule Threadline.CredoConfigContractTest do
     assert [config] = configs
     config
   end
+
+  defp normalize_regexes(%Regex{} = regex), do: {:regex, Regex.source(regex), Regex.opts(regex)}
+
+  defp normalize_regexes(%{} = map), do: Map.new(map, fn {k, v} -> {k, normalize_regexes(v)} end)
+
+  defp normalize_regexes(list) when is_list(list), do: Enum.map(list, &normalize_regexes/1)
+  defp normalize_regexes(other), do: other
 
   defp upstream_checks do
     {%{configs: [%{checks: checks}]}, _binding} = Code.eval_file(@upstream_config)
