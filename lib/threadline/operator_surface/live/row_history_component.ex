@@ -150,6 +150,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           schemas
           |> Enum.find_value(fn
             {key, schema} when is_atom(key) ->
+              # Phase 204 (STRUCT-07): if inside find_value fn inside case — extract the key matcher
+              # credo:disable-for-next-line Credo.Check.Refactor.Nesting
               if Atom.to_string(key) == table, do: schema
 
             _entry ->
