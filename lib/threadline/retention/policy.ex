@@ -45,6 +45,8 @@ defmodule Threadline.Retention.Policy do
   @spec resolve!(keyword() | map()) :: t()
   def resolve!(opts) when is_list(opts), do: resolve!(Map.new(opts))
 
+  # Phase 204 (STRUCT-07): cyclomatic complexity 33 — split resolve!/1 per option group
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def resolve!(opts) when is_map(opts) do
     env = mix_env()
 
