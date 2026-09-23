@@ -98,18 +98,7 @@ defmodule Mix.Tasks.Threadline.Install do
 
       case app_env do
         [repo | _] ->
-          # Structural debt: priv case inside app-env case — extract priv-path resolution
-          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-          case repo.config()[:priv] do
-            nil ->
-              Path.join(
-                "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}",
-                "migrations"
-              )
-
-            p ->
-              Path.join(p, "migrations")
-          end
+          repo_migrations_path(repo)
 
         [] ->
           "priv/repo/migrations"
@@ -117,6 +106,20 @@ defmodule Mix.Tasks.Threadline.Install do
     end)
   rescue
     _ -> "priv/repo/migrations"
+  end
+
+  # Called inside migrations_path/0, so its rescue still covers a raising repo.
+  defp repo_migrations_path(repo) do
+    case repo.config()[:priv] do
+      nil ->
+        Path.join(
+          "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}",
+          "migrations"
+        )
+
+      p ->
+        Path.join(p, "migrations")
+    end
   end
 
   defp existing_capture_migration?(path) do
