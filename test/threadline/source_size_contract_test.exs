@@ -51,7 +51,6 @@ defmodule Threadline.SourceSizeContractTest do
   }
 
   @function_exceptions %{
-    {"lib/threadline/governance/migration.ex", :migration_content, 0} => {138, @splitting},
     {"lib/threadline/operator_surface/live/actor_live.ex", :render, 1} => {149, @splitting},
     {"lib/threadline/operator_surface/live/coverage_live.ex", :render, 1} => {135, @splitting},
     {"lib/threadline/operator_surface/live/export_status_live.ex", :render, 1} =>
