@@ -50,8 +50,8 @@ key-decisions:
   - "The carved templates use natural indentation. HEEx drops whitespace between tags, so the only byte change is indentation inside text nodes. After whitespace collapsing and attribute sorting, the HTML is identical across all 22 captures (see Zero-output-change evidence)."
   - "scope_aware_opts, preload_visible_context, count_opts, storage_opts, future_window_empty?, safe_validate, build_canonical_query, and the export-error helpers stay in the LiveView. They are query or state code, not presentation."
 
-requirements-completed: [STRUCT-04]  # timeline_live banners are gone; ready-ids gating decides the final marking
-requirements-advanced: [STRUCT-03, STRUCT-07]  # other LiveViews and the remaining 21 register sites are owned by later 204 plans
+requirements-completed: []
+requirements-advanced: [STRUCT-03, STRUCT-04, STRUCT-07]  # timeline family done; other files and 21 register sites belong to later 204 plans (ready-ids: 0/3 ready)
 
 coverage:
   - id: D1

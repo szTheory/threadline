@@ -830,7 +830,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 204-08-PLAN.md — `timeline_live` → Helpers + Filters siblings, per-page source scans read the source family, carved render, banners and 2 register sites gone (STRUCT-03, STRUCT-04, STRUCT-07)
+- [x] 204-08-PLAN.md — `timeline_live` → Helpers + Filters siblings, per-page source scans read the source family, carved render, banners and 2 register sites gone (STRUCT-03, STRUCT-04, STRUCT-07)
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
