@@ -814,7 +814,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 204-04-PLAN.md — `mechanical_checker` split behind a widened Hex exclusion, `Threadline.Query.Cursors`, pinned `migration_content/0` split; 4 register sites (STRUCT-03, STRUCT-04, STRUCT-07)
+- [x] 204-04-PLAN.md — `mechanical_checker` split behind a widened Hex exclusion, `Threadline.Query.Cursors`, pinned `migration_content/0` split; 4 register sites (STRUCT-03, STRUCT-04, STRUCT-07)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 

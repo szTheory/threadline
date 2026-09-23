@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 204
 current_phase_name: Structure
 status: executing
-stopped_at: Completed 204-03-PLAN.md
-last_updated: "2026-09-23T19:51:58.478Z"
+stopped_at: Completed 204-04-PLAN.md
+last_updated: "2026-09-23T20:22:03.581Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 204 execution started
-state_head: 1a49692f370be35cf56771bd4a149df035238213
+state_head: ce1888d3493a2d1312bbf2534bb0688ba5fdc944
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 145
-  completed_plans: 133
+  completed_plans: 134
   percent: 86
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 204 (Structure) — EXECUTING
-Plan: 4 of 15
+Plan: 5 of 15
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -253,6 +253,7 @@ Progress: [████████████████████] 130/130
 | Phase 204 P01 | 8 min | 3 tasks | 6 files |
 | Phase 204 P02 | 35 min | 3 tasks | 16 files |
 | Phase 204 P03 | 2h 8m | 3 tasks | 24 files |
+| Phase 204 P04 | 26 min | 3 tasks | 17 files |
 
 ## Deferred Items
 
@@ -803,6 +804,9 @@ Progress: [████████████████████] 130/130
 - [Phase 204]: 204-02: ci.all runs test files once (verify.test); hand-listed doc-contract alias deleted; runtime alias-tree guard; bump rehearsal derives 33 doc-contract files by filename (floor 30)
 - [Phase 204]: 204-03: <style> tags live in the Elixir concatenation; segment bytes are the golden minus those tags (byte-identical first try)
 - [Phase 204]: 204-03: browser-lane gate is the known-8 invariant (326 passed / 8 known / 16 skipped today), not the stale 82-passed literal
+- [Phase 204]: 204-04: MechanicalChecker pinned constants stay in the parent and reach its six siblings as argument maps; only unpinned constants moved
+- [Phase 204]: 204-04: Governance migration pinned by sha256+bytes under the library default (public) and AuditLog schemas before the split
+- [Phase 204]: 204-04: Query.Cursors shares the Query.Scope alias line so no recorded Dialyzer coordinate above the moved code shifts
 
 ### Blockers
 
@@ -812,8 +816,8 @@ Progress: [████████████████████] 130/130
 
 ## Session Continuity
 
-**Last session:** 2026-09-23T19:51:58.323Z
-**Stopped at:** Completed 204-03-PLAN.md
+**Last session:** 2026-09-23T20:22:03.353Z
+**Stopped at:** Completed 204-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

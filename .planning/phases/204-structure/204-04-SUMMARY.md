@@ -60,7 +60,10 @@ patterns-established:
   - "An internal sibling takes pinned constants as arguments, never redeclaring them"
   - "Each new maintainer-only sibling joins @maintainer_only_paths in the commit that creates it"
 
-requirements-completed: [STRUCT-03, STRUCT-04, STRUCT-07]
+requirements-completed: []
+# Advanced, not closed: other lib files still carry size exceptions, banners, and
+# register sites, so REQUIREMENTS.md keeps these three Pending.
+requirements-advanced: [STRUCT-03, STRUCT-04, STRUCT-07]
 
 coverage:
   - id: D1
