@@ -185,8 +185,7 @@ defmodule Threadline.CommunityHealthRenderContractTest do
   defp issue_form_paths do
     @issue_template_dir
     |> File.ls!()
-    |> Enum.filter(&(&1 != "config.yml"))
-    |> Enum.filter(&String.ends_with?(&1, [".yml", ".yaml"]))
+    |> Enum.filter(&(&1 != "config.yml" and String.ends_with?(&1, [".yml", ".yaml"])))
     |> Enum.sort()
     |> Enum.map(&Path.join(@issue_template_dir, &1))
   end
