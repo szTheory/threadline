@@ -126,7 +126,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         scope_actor_ref ->
           case Map.get(socket.assigns, :threadline_actor_ref) do
             %ActorRef{} = session_actor_ref ->
-              # Phase 204 (STRUCT-07): mismatch if inside nested case — extract the actor reconciliation
+              # Structural debt: mismatch if inside nested case — extract the actor reconciliation
               # credo:disable-for-next-line Credo.Check.Refactor.Nesting
               if session_actor_ref != scope_actor_ref do
                 emit_actor_mismatch(session_actor_ref, scope_actor_ref)

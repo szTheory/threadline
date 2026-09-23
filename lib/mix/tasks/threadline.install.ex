@@ -98,7 +98,7 @@ defmodule Mix.Tasks.Threadline.Install do
 
       case app_env do
         [repo | _] ->
-          # Phase 204 (STRUCT-07): priv case inside app-env case — extract priv-path resolution
+          # Structural debt: priv case inside app-env case — extract priv-path resolution
           # credo:disable-for-next-line Credo.Check.Refactor.Nesting
           case repo.config()[:priv] do
             nil ->

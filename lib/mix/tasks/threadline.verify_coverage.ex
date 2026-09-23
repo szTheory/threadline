@@ -122,7 +122,7 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
               )
 
             list when is_list(list) ->
-              # Phase 204 (STRUCT-07): fn inside nested case — extract the table-name validator
+              # Structural debt: fn inside nested case — extract the table-name validator
               # credo:disable-for-next-line Credo.Check.Refactor.Nesting
               Enum.map(list, fn
                 name when is_binary(name) ->

@@ -82,7 +82,7 @@ defmodule Threadline.Audit do
 
         result = fun.()
 
-        # Phase 204 (STRUCT-07): case inside transaction fn inside with — extract the transaction body
+        # Structural debt: case inside transaction fn inside with — extract the transaction body
         # credo:disable-for-next-line Credo.Check.Refactor.Nesting
         case finalize_success(repo, resolved, result) do
           {:error, reason} -> repo.rollback(reason)

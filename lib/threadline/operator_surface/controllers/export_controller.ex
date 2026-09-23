@@ -35,7 +35,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
           case {job, actor_ref} do
             {%ExportJob{actor_ref: %ActorRef{} = owner_actor}, %ActorRef{} = request_actor} ->
-              # Phase 204 (STRUCT-07): owner if inside nested case — extract the ownership check
+              # Structural debt: owner if inside nested case — extract the ownership check
               # credo:disable-for-next-line Credo.Check.Refactor.Nesting
               if owner_actor == request_actor and ActorRef.identifiable?(owner_actor) and
                    ActorRef.identifiable?(request_actor) do

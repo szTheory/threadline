@@ -45,7 +45,7 @@ defmodule Threadline.Query.FilterParams do
   normalization so the form echoes the canonical (post-strip) URL.
   """
   @spec filters_raw_from_params(map()) :: %{required(String.t()) => String.t()}
-  # Phase 204 (STRUCT-07): complexity 10 — split filters_raw_from_params/1 per field
+  # Structural debt: complexity 10 — split filters_raw_from_params/1 per field
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def filters_raw_from_params(params) when is_map(params) do
     raw = %{
@@ -139,7 +139,7 @@ defmodule Threadline.Query.FilterParams do
     end
   end
 
-  # Phase 204 (STRUCT-07): complexity 11 — split collapse_actor_ref/1 per actor case
+  # Structural debt: complexity 11 — split collapse_actor_ref/1 per actor case
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp collapse_actor_ref(filters) do
     actor_kind = Keyword.get(filters, :actor_kind)

@@ -108,7 +108,7 @@ defmodule Threadline.ChangeDiff do
   defp datetime_iso(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
   defp datetime_iso(nil), do: nil
 
-  # Phase 204 (STRUCT-07): complexity 11 — split primary_map/2 op normalization out
+  # Structural debt: complexity 11 — split primary_map/2 op normalization out
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp primary_map(%AuditChange{} = ch, opts) do
     # Capture persists lowercase per DB constraint (`lower(TG_OP)` in triggers).

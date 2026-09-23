@@ -61,7 +61,7 @@ defmodule Threadline.Export.CleanupTask do
 
     if repo_started?(repo) do
       repo.checkout(fn ->
-        # Phase 204 (STRUCT-07): lock if inside checkout fn — extract the locked cleanup body
+        # Structural debt: lock if inside checkout fn — extract the locked cleanup body
         # credo:disable-for-next-line Credo.Check.Refactor.Nesting
         if acquire_lock(repo) do
           try do

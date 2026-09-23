@@ -170,7 +170,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
                 page_opts = scope_aware_opts(socket)
 
-                # Phase 204 (STRUCT-07): nesting 4 in handle_params/3 — extract the filtered-page load
+                # Structural debt: nesting 4 in handle_params/3 — extract the filtered-page load
                 # credo:disable-for-next-line Credo.Check.Refactor.Nesting
                 page_task = Task.async(fn -> Query.timeline_page(filters, page_opts) end)
 
@@ -1014,7 +1014,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         :error ->
           Enum.find_value(schemas, fn
             {key, schema} when is_atom(key) ->
-              # Phase 204 (STRUCT-07): if inside find_value fn inside case — extract the key matcher
+              # Structural debt: if inside find_value fn inside case — extract the key matcher
               # credo:disable-for-next-line Credo.Check.Refactor.Nesting
               if Atom.to_string(key) == table, do: schema
 

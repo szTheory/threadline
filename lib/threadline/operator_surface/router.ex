@@ -53,7 +53,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       JavaScript and no local storage.
     """
 
-    # Phase 204 (STRUCT-07): complexity 12 — split the macro's option validation out
+    # Structural debt: complexity 12 — split the macro's option validation out
     # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
     defmacro threadline_operator_surface(path, opts \\ []) do
       has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)
