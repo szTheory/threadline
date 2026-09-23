@@ -38,8 +38,8 @@ defmodule Threadline.RowHistoryFocusEvidenceContractTest do
       "#!/usr/bin/env bash\n" <>
         "set -euo pipefail\n" <>
         "touch \"$PROVER_STARTED\"\n" <>
-        "printf '%s\\0' \"$@\" >> \"$PROVER_ARGV_LOG\"\n" <>
-        "if [[ \"${#{@flag}:-}\" == \"#{@control}\" ]]; then\n" <>
+        ~s|printf '%s\\0' "$@" >> "$PROVER_ARGV_LOG"\n| <>
+        ~s|if [[ "${#{@flag}:-}" == "#{@control}" ]]; then\n| <>
         "  echo 'expected non-obscured focus, got {\\\"visible\\\":false}' >&2\n" <>
         "  exit 1\n" <>
         "fi\n"
