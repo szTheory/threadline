@@ -341,32 +341,34 @@ defmodule Mix.Tasks.Critic.Measure do
 
   defp valid_round_provenance?(_round, _kind), do: false
 
-  # Structural debt: complexity 13 — split valid_adjudication?/4 per check
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp valid_adjudication?(adjudicated, r1, r2, kind) when is_map(adjudicated) do
     source = adjudicated["source"]
-
-    selected =
-      case source do
-        "agreement" -> r1
-        "r1" -> r1
-        "r2" -> r2
-        _other -> nil
-      end
-
-    source_consistent =
-      source != "agreement" or
-        (r1["verdict"] == r2["verdict"] and
-           (kind != "pair" or r1["margin"] == r2["margin"]))
+    selected = adjudication_source(source, r1, r2)
+    source_consistent = adjudication_source_consistent?(source, r1, r2, kind)
 
     is_map(selected) and source_consistent and adjudicated["verdict"] == selected["verdict"] and
-      case kind do
-        "single" -> is_nil(adjudicated["margin"])
-        "pair" -> adjudicated["margin"] == selected["margin"]
-      end
+      adjudicated_margin_valid?(adjudicated, selected, kind)
   end
 
   defp valid_adjudication?(_adjudicated, _r1, _r2, _kind), do: false
+
+  defp adjudication_source("agreement", r1, _r2), do: r1
+  defp adjudication_source("r1", r1, _r2), do: r1
+  defp adjudication_source("r2", _r1, r2), do: r2
+  defp adjudication_source(_other, _r1, _r2), do: nil
+
+  defp adjudication_source_consistent?(source, r1, r2, kind) do
+    source != "agreement" or
+      (r1["verdict"] == r2["verdict"] and
+         (kind != "pair" or r1["margin"] == r2["margin"]))
+  end
+
+  defp adjudicated_margin_valid?(adjudicated, selected, kind) do
+    case kind do
+      "single" -> is_nil(adjudicated["margin"])
+      "pair" -> adjudicated["margin"] == selected["margin"]
+    end
+  end
 
   defp atomic_replace!(target, contents) do
     temp = "#{target}.tmp-#{System.unique_integer([:positive, :monotonic])}"
