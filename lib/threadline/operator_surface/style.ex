@@ -14,6 +14,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @style_dir Path.join(__DIR__, "style")
     @segments ~w(
       stylesheet.css
+      05_feedback.css
       06_layout_primitives.css
       07_find_detail.css
       08_overlays_motion.css
