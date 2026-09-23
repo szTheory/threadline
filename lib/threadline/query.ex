@@ -476,6 +476,8 @@ defmodule Threadline.Query do
 
       Threadline.actor_history(actor_ref, repo: MyApp.Repo)
   """
+  # Phase 204 (STRUCT-07): complexity 13 — split actor_history/2 query from pagination
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def actor_history(%ActorRef{} = actor_ref, opts) do
     repo = Keyword.fetch!(opts, :repo)
     actor_map = ActorRef.to_map(actor_ref)
