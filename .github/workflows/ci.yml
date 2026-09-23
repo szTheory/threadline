@@ -348,6 +348,9 @@ jobs:
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
 
+      - name: Verify no compile-connected xref cycles
+        run: mix verify.xref_cycles
+
       - name: Run tests
         run: mix verify.test
 
