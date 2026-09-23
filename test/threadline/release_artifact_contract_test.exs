@@ -170,6 +170,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/threadline/critic_trust/measure.ex",
     "lib/threadline/critic_trust/rank_metrics.ex",
     "lib/threadline/operator_surface/live/stress_live.ex",
+    "lib/threadline/operator_surface/live/stress_live/sections.ex",
     "lib/threadline/operator_surface/mechanical_checker.ex",
     "lib/threadline/operator_surface/mechanical_checker/accent_hue.ex",
     "lib/threadline/operator_surface/mechanical_checker/contrast.ex",
@@ -184,6 +185,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
   @maintainer_only_prefixes [
     "lib/mix/tasks/critic.",
     "lib/threadline/critic_trust/",
+    "lib/threadline/operator_surface/live/stress_live/",
     "lib/threadline/operator_surface/mechanical_checker/"
   ]
 

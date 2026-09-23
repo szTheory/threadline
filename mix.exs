@@ -446,7 +446,7 @@ defmodule Threadline.MixProject do
         ~r{^lib/mix/tasks/critic\.},
         ~r{^lib/mix/tasks/release\.pins\.ex$},
         ~r{^lib/threadline/critic_trust/},
-        ~r{^lib/threadline/operator_surface/live/stress_live\.ex$},
+        ~r{^lib/threadline/operator_surface/live/stress_live(\.ex$|/)},
         ~r{^lib/threadline/operator_surface/mechanical_checker(\.ex$|/)},
         ~r{^lib/threadline/operator_surface/stress_fixtures\.ex$},
         ~r{^lib/threadline/operator_surface/stress_router\.ex$}

@@ -12,6 +12,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @ui_form_policy {:has_forms, "stress harness renders form controls as fixtures"}
 
     alias Phoenix.LiveView.JS
+    alias Threadline.OperatorSurface.Live.StressLive.Sections
     alias Threadline.OperatorSurface.StressFixtures
 
     @category_allowlist StressFixtures.categories()
@@ -119,18 +120,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page tl-stress"
         data-testid="stress-lab"
       >
-          <header class="tl-page__header tl-stress__header">
-            <div>
-              <p class="tl-page__meta">Internal stress lab</p>
-              <h1 class="tl-page__title">Operator surface stress audit</h1>
-              <p class="tl-page__lede">
-                Fixture-backed stories, ledger scores, and screenshot status for the current audit baseline.
-              </p>
-            </div>
-            <a class="tl-button tl-button--secondary tl-button--compact" href={clear_path(@stress_path)}>
-              Clear filters
-            </a>
-          </header>
+          <Sections.page_header clear_path={clear_path(@stress_path)} />
 
           <section :if={@ledger_error} class="tl-alert tl-alert--error" role="alert">
             Stress story could not render. Check the fixture shape, story assigns, and route gate, then rerun the audit.

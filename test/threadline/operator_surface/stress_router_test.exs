@@ -126,6 +126,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.StressFixtures
     alias Threadline.OperatorSurface.StressRouter
     alias Threadline.Test.OperatorSurfaceFixtures
+    alias Threadline.Test.SourceFamily
     alias Threadline.Test.StyleSource
 
     @endpoint Threadline.OperatorSurface.StressRouterTest.Endpoint
@@ -521,7 +522,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       source =
         [
           File.read!(@stress_router_source),
-          File.read!(@stress_live_source),
+          SourceFamily.read!(@stress_live_source),
           StyleSource.read!()
         ]
         |> Enum.join("\n")
@@ -539,7 +540,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "StressLive source exposes required stable test IDs" do
-      source = File.read!(@stress_live_source)
+      source = SourceFamily.read!(@stress_live_source)
 
       for test_id <- [
             "stress-story-id",
