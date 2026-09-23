@@ -9,11 +9,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "schema selector owning ?schema= URL state"}
 
-    alias Threadline.OperatorSurface.Presentation
+    alias Threadline.Health.CoverageSchemas
     alias Threadline.OperatorSurface.Coverage.Snapshot
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
-    alias Threadline.Health.CoverageSchemas
 
     @baseline ~w(schema_migrations)
 
