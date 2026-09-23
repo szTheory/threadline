@@ -56,18 +56,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         record_id = params["record_id"]
 
         as_of =
-          case params["as_of"] do
-            nil ->
-              nil
-
-            "" ->
-              nil
-
-            str ->
-              case DateTime.from_iso8601(str) do
-                {:ok, dt, _offset} -> dt
-                _ -> nil
-              end
+          with str when str not in [nil, ""] <- params["as_of"],
+               {:ok, dt, _offset} <- DateTime.from_iso8601(str) do
+            dt
+          else
+            _ -> nil
           end
 
         {:noreply,
