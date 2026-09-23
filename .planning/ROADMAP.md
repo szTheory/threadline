@@ -728,16 +728,49 @@ Plans:
 **Plans**: 10 plans (sized by the re-measured 484-finding histogram under the pre-committed rule: 150-600 band → split mechanical from judgment; the D-21 five-step shape is split further so each plan fits one executor context; strictly serial — heavy file overlap)
 
 Plans:
+**Wave 1**
+
 - [ ] 203-01-PLAN.md — **Tracer:** move `Scope` and `FilterParams` into `Threadline.Query.*` with all pins (in-place alias rename); layer-boundary contract test (GATE-03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 203-02-PLAN.md — delete the `no_warn_undefined` papering; no_warn_undefined contract; `verify.xref_cycles` in `ci.all` + `verify-test` + chain docs (GATE-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 203-03-PLAN.md — `Design.AliasUsage` sweep, part 1: lib/ (one commit per file) + `*_contract_test.exs` (one commit per file)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 203-04-PLAN.md — `Design.AliasUsage` sweep, part 2: non-contract tests outside operator_surface (batched by directory)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 203-05-PLAN.md — `Design.AliasUsage` sweep, part 3: non-contract operator_surface tests; AliasUsage 0 tree-wide
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 203-06-PLAN.md — lib mechanical findings, `@type t` for SpecWithStruct, stale location comments (GATE-05)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 203-07-PLAN.md — test mechanical findings, `Test.Repo` moduledoc, comment-location contract (GATE-05)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
 - [ ] 203-08-PLAN.md — file lib structural findings to Phase 204 per-site (GATE-02)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
 - [ ] 203-09-PLAN.md — file test structural findings; exact register contract; add STRUCT-07 (GATE-02)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
 - [ ] 203-10-PLAN.md — rebuild `.credo.exs` as verbatim scaffolding + three `extra:` deltas, `disabled: []`; config-shape contract; gate live; phase-end proof (GATE-01)
+
+**Cross-cutting constraints:**
+
+- Commits follow D-28: non-contract test files batched by directory, type `refactor`, pure mechanical, blame-ignorable.
 
 **Waves**: 1 → 203-01 · 2 → 203-02 · 3 → 203-03 · 4 → 203-04 · 5 → 203-05 · 6 → 203-06 · 7 → 203-07 · 8 → 203-08 · 9 → 203-09 · 10 → 203-10
 
