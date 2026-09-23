@@ -299,34 +299,38 @@ defmodule Threadline.Policy.RedactionPresenter do
     else
       pairs = Enum.chunk_every(pieces, 2)
 
-      parsed =
-        Enum.reduce_while(pairs, [], fn [column_expr, value_expr], acc ->
-          with [_, column] <- Regex.run(~r/^'([^']+)'$/, column_expr),
-               [_, placeholder] <- Regex.run(~r/^to_jsonb\('([^']*)'::text\)$/, value_expr) do
-            {:cont, [{column, placeholder} | acc]}
-          else
-            _ -> {:halt, :error}
-          end
-        end)
+      parsed = Enum.reduce_while(pairs, [], &parse_mask_pair/2)
 
       case parsed do
         :error ->
           {:error, :unexpected_mask_fragment}
 
         list ->
-          parsed_list = Enum.reverse(list)
-          placeholders = Enum.map(parsed_list, &elem(&1, 1)) |> Enum.uniq()
-
-          # Structural debt: nested placeholder case — extract the placeholder check
-          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-          case placeholders do
-            [placeholder] ->
-              {:ok, {Enum.map(parsed_list, &elem(&1, 0)) |> Enum.sort(), placeholder}}
-
-            _ ->
-              {:error, :ambiguous_mask_placeholder}
-          end
+          single_placeholder_mask(list)
       end
+    end
+  end
+
+  defp parse_mask_pair([column_expr, value_expr], acc) do
+    with [_, column] <- Regex.run(~r/^'([^']+)'$/, column_expr),
+         [_, placeholder] <- Regex.run(~r/^to_jsonb\('([^']*)'::text\)$/, value_expr) do
+      {:cont, [{column, placeholder} | acc]}
+    else
+      _ -> {:halt, :error}
+    end
+  end
+
+  # `list` is the reversed accumulator from parse_mask_fragment/1.
+  defp single_placeholder_mask(list) do
+    parsed_list = Enum.reverse(list)
+    placeholders = Enum.map(parsed_list, &elem(&1, 1)) |> Enum.uniq()
+
+    case placeholders do
+      [placeholder] ->
+        {:ok, {Enum.map(parsed_list, &elem(&1, 0)) |> Enum.sort(), placeholder}}
+
+      _ ->
+        {:error, :ambiguous_mask_placeholder}
     end
   end
 
