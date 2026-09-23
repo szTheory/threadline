@@ -542,8 +542,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     module
     |> Module.split()
     |> Enum.drop(2)
-    |> Enum.map(&Macro.underscore/1)
-    |> Enum.join(".")
+    |> Enum.map_join(".", &Macro.underscore/1)
   end
 
   defp module_namespaces(modules) do
