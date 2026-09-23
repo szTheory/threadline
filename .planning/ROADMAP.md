@@ -725,7 +725,17 @@ Plans:
   4. The Capture↔Semantics module cycle is resolved and its compiler suppression removed rather than relocated. (GATE-04)
   5. No comment in `lib/` cites a file location whose referent has moved, and every module has a deliberate `@moduledoc` or `@moduledoc false`. (GATE-05)
 
-**Plans**: TBD (est. 4-6 — **plan count is sized by 198 Plan 01's histogram under the pre-committed rule**, not chosen here)
+**Plans**: 6 plans (sized by the re-measured 484-finding histogram under the pre-committed rule: 150-600 band → split mechanical from judgment; strictly serial — heavy file overlap)
+
+Plans:
+- [ ] 203-01-PLAN.md — **Tracer:** move `Scope` and `FilterParams` into `Threadline.Query.*` with all pins; layer-boundary contract test (GATE-03)
+- [ ] 203-02-PLAN.md — delete the `no_warn_undefined` papering; no_warn_undefined contract; `verify.xref_cycles` in `ci.all` + `verify-test` (GATE-04)
+- [ ] 203-03-PLAN.md — all 356 `Design.AliasUsage` findings as pure per-file/per-directory `refactor` commits
+- [ ] 203-04-PLAN.md — remaining mechanical findings, `@type t` for SpecWithStruct, stale location comments + comment-location contract (GATE-05)
+- [ ] 203-05-PLAN.md — file structural findings to Phase 204 per-site; exact register contract; add STRUCT-07 (GATE-02)
+- [ ] 203-06-PLAN.md — rebuild `.credo.exs` as verbatim scaffolding + three `extra:` deltas, `disabled: []`; config-shape contract; gate live; phase-end proof (GATE-01)
+
+**Waves**: 1 → 203-01 · 2 → 203-02 · 3 → 203-03 · 4 → 203-04 · 5 → 203-05 · 6 → 203-06
 
 **Notes carried from the approved plan:**
 
