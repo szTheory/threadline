@@ -74,7 +74,7 @@ defmodule Threadline.SourceSizeContractTest do
     "lib/threadline/operator_surface/live/coverage_live.ex" => 3,
     "lib/threadline/operator_surface/live/start_live.ex" => 6,
     "lib/threadline/operator_surface/live/timeline_live.ex" => 10,
-    "lib/threadline/operator_surface/mechanical_checker.ex" => 5,
+    "lib/threadline/operator_surface/mechanical_checker.ex" => 4,
     "lib/threadline/query.ex" => 1,
     "lib/threadline/semantics/actor_ref.ex" => 3
   }
