@@ -168,10 +168,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     Export.count_matching(filters, count_opts(socket, 10_001))
                   end)
 
-                page_task =
-                  Task.async(fn ->
-                    Query.timeline_page(filters, scope_aware_opts(socket))
-                  end)
+                page_opts = scope_aware_opts(socket)
+
+                # Phase 204 (STRUCT-07): nesting 4 in handle_params/3 — extract the filtered-page load
+                # credo:disable-for-next-line Credo.Check.Refactor.Nesting
+                page_task = Task.async(fn -> Query.timeline_page(filters, page_opts) end)
 
                 # Two parallel queries; await with a generous timeout.
                 # Default Task.await is 5_000 ms; use 8_000 to leave headroom for
@@ -1013,6 +1014,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         :error ->
           Enum.find_value(schemas, fn
             {key, schema} when is_atom(key) ->
+              # Phase 204 (STRUCT-07): if inside find_value fn inside case — extract the key matcher
+              # credo:disable-for-next-line Credo.Check.Refactor.Nesting
               if Atom.to_string(key) == table, do: schema
 
             _entry ->
