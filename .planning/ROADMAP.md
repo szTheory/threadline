@@ -758,7 +758,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 203-08-PLAN.md — file lib structural findings to Phase 204 per-site (GATE-02)
+- [x] 203-08-PLAN.md — file lib structural findings to Phase 204 per-site (GATE-02)
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
