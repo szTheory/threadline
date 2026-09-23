@@ -122,17 +122,7 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
               )
 
             list when is_list(list) ->
-              # Structural debt: fn inside nested case — extract the table-name validator
-              # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-              Enum.map(list, fn
-                name when is_binary(name) ->
-                  name
-
-                other ->
-                  Mix.raise(
-                    "Threadline: :expected_tables must contain only binary strings, got: #{inspect(other)}"
-                  )
-              end)
+              Enum.map(list, &expected_table_name!/1)
 
             other ->
               Mix.raise(
@@ -145,6 +135,14 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
       end
 
     tables
+  end
+
+  defp expected_table_name!(name) when is_binary(name), do: name
+
+  defp expected_table_name!(other) do
+    Mix.raise(
+      "Threadline: :expected_tables must contain only binary strings, got: #{inspect(other)}"
+    )
   end
 
   defp print_report(expected, coverage, counts) do
