@@ -17,9 +17,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.Retention.Pruner
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
-    alias Threadline.Retention.Pruner
 
     @default_limit 40
 
@@ -115,9 +115,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_info(:refresh, socket) do
-      if not socket.assigns[:threadline_policy_enabled] do
-        {:noreply, socket}
-      else
+      if socket.assigns[:threadline_policy_enabled] do
         runs = fetch_runs(socket)
 
         socket =
@@ -126,10 +124,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             stream_insert(acc_socket, :runs, run)
           end)
           |> assign(:runs_summary, summarize_runs(runs))
-          |> assign(:has_runs, length(runs) > 0)
+          |> assign(:has_runs, runs != [])
           |> assign(:runs_count, length(runs))
           |> assign(:default_limit, @default_limit)
 
+        {:noreply, socket}
+      else
         {:noreply, socket}
       end
     end
@@ -372,22 +372,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp fetch_runs(socket) do
-      if not socket.assigns[:threadline_policy_enabled] do
-        []
-      else
+      if socket.assigns[:threadline_policy_enabled] do
         repo = resolve_repo(socket)
 
         from(r in RetentionRun, order_by: [desc: r.started_at], limit: @default_limit)
         |> repo.all(storage_opts(socket))
+      else
+        []
       end
     end
 
     defp has_runs?(socket) do
-      if not socket.assigns[:threadline_policy_enabled] do
-        false
-      else
+      if socket.assigns[:threadline_policy_enabled] do
         repo = resolve_repo(socket)
         repo.exists?(from(r in RetentionRun), storage_opts(socket))
+      else
+        false
       end
     end
 
