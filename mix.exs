@@ -165,6 +165,10 @@ defmodule Threadline.MixProject do
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
+      # GATE-04: zero compile-connected module cycles (runtime association edges are allowed).
+      "verify.xref_cycles": [
+        "xref graph --format cycles --label compile-connected --fail-above 0"
+      ],
       # Flake detection: re-run the suite until a failure surfaces (each repeat
       # uses a fresh seed). Opt-in / nightly — not part of `ci.all` so per-PR CI
       # stays fast. See the "Deterministic tests" section in CONTRIBUTING.md.
@@ -185,6 +189,7 @@ defmodule Threadline.MixProject do
         "verify.format",
         "verify.credo",
         "compile --warnings-as-errors",
+        "verify.xref_cycles",
         "verify.compile_no_optional",
         "verify.test",
         "verify.threadline",
