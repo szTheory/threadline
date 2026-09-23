@@ -180,26 +180,24 @@ defmodule Threadline.DialyzerIgnoreContractTest do
   end
 
   defp validate_contract(fixtures, ignore_source, ceiling, unused_filters \\ []) do
-    try do
-      validate_fixtures!(fixtures)
-      {entries, entry_lines, source_lines} = parse_ignore_source!(ignore_source)
+    validate_fixtures!(fixtures)
+    {entries, entry_lines, source_lines} = parse_ignore_source!(ignore_source)
 
-      reject_broad_entries!(entries)
-      demand!(length(entries) == length(Enum.uniq(entries)), "duplicate exact ignore tuple")
-      reject_unused_filters!(unused_filters)
+    reject_broad_entries!(entries)
+    demand!(length(entries) == length(Enum.uniq(entries)), "duplicate exact ignore tuple")
+    reject_unused_filters!(unused_filters)
 
-      warnings = Enum.flat_map(fixtures, & &1["warnings"])
-      validate_entries!(entries, entry_lines, source_lines, warnings)
+    warnings = Enum.flat_map(fixtures, & &1["warnings"])
+    validate_entries!(entries, entry_lines, source_lines, warnings)
 
-      demand!(
-        length(entries) <= ceiling,
-        "ignore count exceeds the ratchet ceiling of #{ceiling}"
-      )
+    demand!(
+      length(entries) <= ceiling,
+      "ignore count exceeds the ratchet ceiling of #{ceiling}"
+    )
 
-      :ok
-    catch
-      {:contract_error, message} -> {:error, message}
-    end
+    :ok
+  catch
+    {:contract_error, message} -> {:error, message}
   end
 
   defp validate_fixtures!(fixtures) do
