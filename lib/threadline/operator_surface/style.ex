@@ -4,6 +4,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Phoenix.Component
 
+    alias Threadline.OperatorSurface.Fonts
+
     def css(assigns) do
       assigns =
         assign(
@@ -4498,7 +4500,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp font_face_style do
-      case Threadline.OperatorSurface.Fonts.face_css() do
+      case Fonts.face_css() do
         "" -> ""
         css -> "<style>" <> css <> "</style>"
       end
