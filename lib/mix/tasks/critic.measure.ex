@@ -98,7 +98,7 @@ defmodule Mix.Tasks.Critic.Measure do
   end
 
   defp provenance_for(source, golden) do
-    has_items = length(Map.get(golden, "items", []) || []) > 0
+    has_items = not Enum.empty?(Map.get(golden, "items", []) || [])
 
     oracle =
       cond do
@@ -376,9 +376,8 @@ defmodule Mix.Tasks.Critic.Measure do
             with :ok <- IO.binwrite(io_device, contents),
                  :ok <- :file.sync(io_device),
                  :ok <- File.close(io_device),
-                 :ok <- atomic_write_hook(),
-                 :ok <- File.rename(temp, target) do
-              :ok
+                 :ok <- atomic_write_hook() do
+              File.rename(temp, target)
             end
           after
             _ = File.close(io_device)
