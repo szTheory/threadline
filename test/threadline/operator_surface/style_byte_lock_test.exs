@@ -41,6 +41,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # The cascade: segment order is rule order in the rendered stylesheet.
     @cascade ~w(
       stylesheet.css
+      04_controls.css
       05_feedback.css
       06_layout_primitives.css
       07_find_detail.css

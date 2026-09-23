@@ -141,6 +141,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert "lib/threadline.ex" in entries
     assert "mix.exs" in entries
     assert "lib/threadline/operator_surface/style/stylesheet.css" in entries
+    assert "lib/threadline/operator_surface/style/04_controls.css" in entries
     assert "lib/threadline/operator_surface/style/05_feedback.css" in entries
     assert "lib/threadline/operator_surface/style/06_layout_primitives.css" in entries
     assert "lib/threadline/operator_surface/style/07_find_detail.css" in entries
