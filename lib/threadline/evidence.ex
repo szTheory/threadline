@@ -283,6 +283,8 @@ defmodule Threadline.Evidence do
     end
   end
 
+  # Phase 204 (STRUCT-07): complexity 10 — split validate_subject!/1 normalization out
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp validate_subject!(subject) do
     normalized_subject =
       case subject do
