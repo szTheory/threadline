@@ -2,6 +2,7 @@ defmodule Threadline.Capture.TriggerContextTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.AuditTransaction
+  alias Threadline.Capture.TriggerSQL
 
   setup_all do
     Repo.query!("""
@@ -12,10 +13,10 @@ defmodule Threadline.Capture.TriggerContextTest do
     )
     """)
 
-    Repo.query!(Threadline.Capture.TriggerSQL.create_trigger("test_audit_target_ctx"))
+    Repo.query!(TriggerSQL.create_trigger("test_audit_target_ctx"))
 
     on_exit(fn ->
-      Repo.query!(Threadline.Capture.TriggerSQL.drop_trigger("test_audit_target_ctx"))
+      Repo.query!(TriggerSQL.drop_trigger("test_audit_target_ctx"))
       Repo.query!("DROP TABLE IF EXISTS test_audit_target_ctx")
     end)
 
