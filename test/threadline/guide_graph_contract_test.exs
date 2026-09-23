@@ -220,6 +220,8 @@ defmodule Threadline.GuideGraphContractTest do
         next_targets =
           next_steps
           |> markdown_links()
+          # Structural debt: resolve fn inside if inside the per-node loop — extract next-step target resolution
+          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
           |> Enum.map(fn {_label, target} -> resolved_path(node, target) end)
           |> Enum.reject(&is_nil/1)
 
