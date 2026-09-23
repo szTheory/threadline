@@ -123,21 +123,21 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
           </UI.Overlay.accordion>
 
           <UI.Display.stack>
-            <UI.tabs>
+            <UI.Page.tabs>
               <:tab id="storybook-tab-action" controls="storybook-panel-action" active>Audit Action</:tab>
               <:tab id="storybook-tab-change" controls="storybook-panel-change">Audit Change</:tab>
               <:tab id="storybook-tab-actor" controls="storybook-panel-actor">Actor</:tab>
-            </UI.tabs>
+            </UI.Page.tabs>
             <div id="storybook-panel-action" role="tabpanel" aria-labelledby="storybook-tab-action">
               <%= @long_string %>
             </div>
           </UI.Display.stack>
 
-          <UI.segmented_control aria-label="Theme support">
+          <UI.Page.segmented_control aria-label="Theme support">
             <:segment active>Dark</:segment>
             <:segment>Light</:segment>
             <:segment>System</:segment>
-          </UI.segmented_control>
+          </UI.Page.segmented_control>
         </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>

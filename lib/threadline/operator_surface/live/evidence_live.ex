@@ -59,7 +59,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage || %{uncovered_count: 0}}
         base_path={@base_path}
@@ -77,13 +77,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             restatement is chrome (196-06, signal-to-chrome). History mode keeps its lede
             because it disambiguates the drilled-in view. --%>
             <%= if @request.mode == :history do %>
-              <UI.page_header title="Evidence">
+              <UI.Page.page_header title="Evidence">
                 <:lede>
                   Viewing append-only proof history for one evidence subject reference.
                 </:lede>
-              </UI.page_header>
+              </UI.Page.page_header>
             <% else %>
-              <UI.page_header title="Evidence" />
+              <UI.Page.page_header title="Evidence" />
             <% end %>
 
             <.evidence_workflow_summary
@@ -168,7 +168,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               base_path={@base_path}
             />
           <% end %>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

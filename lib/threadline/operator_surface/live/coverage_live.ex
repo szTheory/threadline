@@ -132,7 +132,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage}
         base_path={@base_path}
@@ -146,7 +146,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_coverage_enabled do %>
-            <UI.page_header title="Audit coverage">
+            <UI.Page.page_header title="Audit coverage">
               <:lede>
                 Selected-schema audit readiness and table-level capture gaps.
               </:lede>
@@ -169,7 +169,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Refresh
                 </button>
               </:actions>
-            </UI.page_header>
+            </UI.Page.page_header>
 
             <%= if @form_error do %>
               <.render_invalid_schema schema={@schema_param} form_error={@form_error} base_path={@base_path} />
@@ -262,7 +262,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               base_path={@base_path}
             />
           <% end %>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

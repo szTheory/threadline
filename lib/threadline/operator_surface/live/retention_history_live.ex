@@ -147,7 +147,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:prune_copy, prune_modal_copy(@canonical_policy_name))
 
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage || %{uncovered_count: 0}}
         base_path={@base_path}
@@ -159,7 +159,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_policy_enabled do %>
-            <UI.page_header title="Retention window">
+            <UI.Page.page_header title="Retention window">
               <:lede>Review retention window pruning runs, failures, and evidence before triggering another destructive retention pass.</:lede>
               <:actions>
                 <.link :if={@retention_actions.evidence_path} navigate={@retention_actions.evidence_path} class="tl-button tl-button--compact tl-button--secondary">
@@ -167,7 +167,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Review evidence
                 </.link>
               </:actions>
-            </UI.page_header>
+            </UI.Page.page_header>
 
             <div :if={Phoenix.Flash.get(@flash, :error)} class="tl-alert tl-alert--error" role="alert">
               <%= Phoenix.Flash.get(@flash, :error) %>
@@ -322,7 +322,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               base_path={@base_path}
             />
           <% end %>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

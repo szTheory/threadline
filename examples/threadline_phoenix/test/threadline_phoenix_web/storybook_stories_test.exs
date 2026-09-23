@@ -47,8 +47,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     {"card", ["<UI.Display.card"]},
     {"stack", ["<UI.Display.stack"]},
     {"cluster", ["<UI.Display.cluster"]},
-    {"page header", ["<UI.page_header"]},
-    {"pager", ["<UI.pager"]},
+    {"page header", ["<UI.Page.page_header"]},
+    {"pager", ["<UI.Page.pager"]},
     {"stat tile", ["<UI.Display.stat_tile"]}
   ]
 
@@ -75,8 +75,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     {"popover", ["<UI.Overlay.popover"]},
     {"dropdown", ["<UI.Overlay.dropdown"]},
     {"accordion", ["<UI.Overlay.accordion"]},
-    {"tabs", ["<UI.tabs"]},
-    {"segmented control", ["<UI.segmented_control"]}
+    {"tabs", ["<UI.Page.tabs"]},
+    {"segmented control", ["<UI.Page.segmented_control"]}
   ]
 
   @data_display_contracts [
@@ -85,8 +85,8 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     {"data table", ["<UI.Data.data_table"]},
     {"data panel", ["<UI.Data.data_panel"]},
     {"code block", ["<UI.Display.code_block"]},
-    {"detail header", ["<UI.detail_header"]},
-    {"toolbar", ["<UI.toolbar"]}
+    {"detail header", ["<UI.Page.detail_header"]},
+    {"toolbar", ["<UI.Page.toolbar"]}
   ]
 
   @group_story_ids [

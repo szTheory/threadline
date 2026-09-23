@@ -104,7 +104,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <Threadline.OperatorSurface.UI.shell
+      <Threadline.OperatorSurface.UI.Page.shell
         theme={@selected_theme}
         header_theme={@threadline_theme}
         coverage={@threadline_coverage}
@@ -582,15 +582,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       Accordion inner content
                     </Threadline.OperatorSurface.UI.Overlay.accordion>
                     
-                    <Threadline.OperatorSurface.UI.tabs>
+                    <Threadline.OperatorSurface.UI.Page.tabs>
                       <:tab active>Tab 1</:tab>
                       <:tab>Tab 2</:tab>
-                    </Threadline.OperatorSurface.UI.tabs>
+                    </Threadline.OperatorSurface.UI.Page.tabs>
 
-                    <Threadline.OperatorSurface.UI.segmented_control>
+                    <Threadline.OperatorSurface.UI.Page.segmented_control>
                       <:segment active>Seg 1</:segment>
                       <:segment>Seg 2</:segment>
-                    </Threadline.OperatorSurface.UI.segmented_control>
+                    </Threadline.OperatorSurface.UI.Page.segmented_control>
 
                     <div class="tl-flex tl-gap-4">
                       <Threadline.OperatorSurface.UI.Actions.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_modal("stress-modal")}>Show Modal</Threadline.OperatorSurface.UI.Actions.button>
@@ -639,7 +639,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <% end %>
             </section>
           </div>
-      </Threadline.OperatorSurface.UI.shell>
+      </Threadline.OperatorSurface.UI.Page.shell>
       """
     end
 

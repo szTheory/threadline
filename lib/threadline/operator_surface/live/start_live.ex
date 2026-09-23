@@ -125,7 +125,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage}
         base_path={@base_path}
@@ -138,7 +138,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         scoped={not is_nil(assigns[:threadline_scope])}
         main_class="tl-page tl-home"
       >
-          <UI.page_header variant="display" title="Follow what happened.">
+          <UI.Page.page_header variant="display" title="Follow what happened.">
             <:lede>
               Every change is connected to the action, context, and story around it.
               Pick where you want to start.
@@ -157,7 +157,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </a>
               <% end %>
             </div>
-          </UI.page_header>
+          </UI.Page.page_header>
 
           <ul class="tl-home__cards">
             <li class="tl-home__card tl-home__card--primary">
@@ -302,7 +302,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </li>
             </ul>
           </section>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

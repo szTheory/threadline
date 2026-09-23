@@ -384,7 +384,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={assigns[:threadline_coverage] || %{uncovered_count: 0}}
         base_path={@base_path}
@@ -505,7 +505,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
           </div>
         </section>
-        <UI.pager
+        <UI.Page.pager
           shown={@shown_count}
           match_count={@match_count}
           has_older={@cursor != nil}
@@ -544,7 +544,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ActorRef.identifiable?(assigns[:threadline_actor_ref])
           }
         />
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

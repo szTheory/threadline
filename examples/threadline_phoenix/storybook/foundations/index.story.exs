@@ -27,11 +27,11 @@ defmodule ThreadlinePhoenixWeb.Storybook.Foundations.IndexStory do
         title="Foundation rules"
         description="Tokens, theme lanes, typography, density, radius, focus, and motion rules for component review."
       >
-        <UI.page_header title="Follow what happened">
+        <UI.Page.page_header title="Follow what happened">
           <:lede>
             Audit history uses calm hierarchy, dense spacing, visible focus, and exact domain language.
           </:lede>
-        </UI.page_header>
+        </UI.Page.page_header>
 
         <UI.Display.stack gap="section">
           <UI.Display.cluster>

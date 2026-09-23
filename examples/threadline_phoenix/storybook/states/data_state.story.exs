@@ -73,7 +73,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.States.DataStateStory do
 
           <UI.Display.card>
             <:title>Pagination boundary and zero count</:title>
-            <UI.pager
+            <UI.Page.pager
               shown={@fixtures.pagination_boundary.shown}
               match_count={@fixtures.pagination_boundary.match_count}
               has_older={@fixtures.pagination_boundary.has_older}

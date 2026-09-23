@@ -152,7 +152,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assigns = assign(assigns, :workflow_summary, export_workflow_summary(assigns))
 
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage || %{uncovered_count: 0}}
         base_path={@base_path}
@@ -164,11 +164,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_exports_enabled do %>
-            <UI.page_header title="Exports">
+            <UI.Page.page_header title="Exports">
               <:lede>
                 Download completed Timeline packets, or reopen the source search when an export needs another pass.
               </:lede>
-            </UI.page_header>
+            </UI.Page.page_header>
 
             <section class="tl-job tl-job--info" aria-label="Export workflow summary">
               <div class="tl-job__main">
@@ -399,7 +399,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               base_path={@base_path}
             />
           <% end %>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

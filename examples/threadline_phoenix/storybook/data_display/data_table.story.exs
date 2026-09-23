@@ -76,7 +76,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
     <.threadline_preview theme="system">
       <.preview_section title="Data Display contracts" description="Refs, metadata, tables, panels, code, headers, and toolbar coordination under representative ugly data.">
         <UI.Display.stack gap="section">
-          <UI.detail_header title="Audit Transaction #4521">
+          <UI.Page.detail_header title="Audit Transaction #4521">
             <:metadata key="Audit Transaction">
               <UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy Audit Transaction reference" />
             </:metadata>
@@ -87,9 +87,9 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
               <UI.Actions.button type="button" variant="primary">Download current view</UI.Actions.button>
               <UI.Actions.button type="button" disabled>Refresh disabled</UI.Actions.button>
             </:actions>
-          </UI.detail_header>
+          </UI.Page.detail_header>
 
-          <UI.toolbar disabled={@disabled.disabled}>
+          <UI.Page.toolbar disabled={@disabled.disabled}>
             <UI.field
               id="storybook-data-filter"
               name="storybook_data_filter"
@@ -99,7 +99,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
               disabled={@disabled.disabled}
             />
             <UI.Actions.button type="button" disabled={@disabled.disabled}>Refresh</UI.Actions.button>
-          </UI.toolbar>
+          </UI.Page.toolbar>
 
           <UI.Data.data_table
             rows={@rows}
@@ -129,7 +129,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
               </UI.Display.kv>
             </:data>
             <:pager>
-              <UI.pager
+              <UI.Page.pager
                 shown={@pager.shown}
                 match_count={@pager.match_count}
                 has_older={@pager.has_older}

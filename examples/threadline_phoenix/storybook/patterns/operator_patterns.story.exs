@@ -39,7 +39,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
         <UI.Display.stack gap="section">
           <UI.Display.card>
             <:title>toolbar plus filters</:title>
-            <UI.toolbar disabled={@disabled.disabled}>
+            <UI.Page.toolbar disabled={@disabled.disabled}>
               <UI.field
                 id="pattern-action-filter"
                 name="pattern_action_filter"
@@ -49,12 +49,12 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                 disabled={@disabled.disabled}
               />
               <UI.Actions.button type="button" disabled={@disabled.disabled}>Apply</UI.Actions.button>
-            </UI.toolbar>
+            </UI.Page.toolbar>
           </UI.Display.card>
 
           <UI.Display.card>
             <:title>detail header plus metadata</:title>
-            <UI.detail_header title="Ticket reply changed">
+            <UI.Page.detail_header title="Ticket reply changed">
               <:metadata key="Pattern source"><%= @detail_header.story_id %></:metadata>
               <:metadata key="Audit Transaction">
                 <UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy pattern Audit Transaction reference" />
@@ -62,7 +62,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
               <:actions>
                 <UI.Actions.button type="button" variant="secondary">Return</UI.Actions.button>
               </:actions>
-            </UI.detail_header>
+            </UI.Page.detail_header>
           </UI.Display.card>
 
           <UI.Display.card>
@@ -75,7 +75,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                 </UI.Data.data_table>
               </:data>
               <:pager>
-                <UI.pager
+                <UI.Page.pager
                   shown={@pager.shown}
                   match_count={@pager.match_count}
                   has_older={@pager.has_older}

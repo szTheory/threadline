@@ -57,7 +57,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
             </UI.Display.kv>
           </UI.Display.card>
 
-          <UI.toolbar>
+          <UI.Page.toolbar>
             <UI.field
               id="group-toolbar-filter"
               name="group_toolbar_filter"
@@ -67,9 +67,9 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
             />
             <UI.Actions.button type="button" variant="primary">Apply filters</UI.Actions.button>
             <UI.Actions.button type="button" variant="secondary">Reset</UI.Actions.button>
-          </UI.toolbar>
+          </UI.Page.toolbar>
 
-          <UI.detail_header title="Transaction detail group">
+          <UI.Page.detail_header title="Transaction detail group">
             <:metadata key="Story"><%= @groups["detail_header"].story_id %></:metadata>
             <:metadata key="Audit Transaction">
               <UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy grouped detail reference" />
@@ -78,7 +78,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
             <:actions>
               <UI.Actions.button type="button" variant="secondary">Compare changes</UI.Actions.button>
             </:actions>
-          </UI.detail_header>
+          </UI.Page.detail_header>
 
           <UI.Data.data_panel state={:ok} id="group-data-panel" as_of={@stale.as_of}>
             <:data>
@@ -89,7 +89,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
               </UI.Data.data_table>
             </:data>
             <:pager>
-              <UI.pager
+              <UI.Page.pager
                 shown={@pager.shown}
                 match_count={@pager.match_count}
                 has_older={@pager.has_older}

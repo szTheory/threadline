@@ -385,7 +385,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       actor = source(@actor_live_path)
 
       assert transaction =~ ~s(title="Transaction")
-      assert transaction =~ ~s(<UI.detail_header title={transaction_title}>)
+      assert transaction =~ ~s(<UI.Page.detail_header title={transaction_title}>)
       assert transaction =~ ~S|defp transaction_detail_title(%{id: id}) do|
       assert transaction =~ ~S|"Transaction #{Presentation.short_id(id, 12)}"|
       assert transaction =~ ~S|defp transaction_detail_title(_), do: "Transaction"|
@@ -393,7 +393,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert row_route =~ ~s(title="Row history")
 
       assert row_route =~
-               ~S|<UI.detail_header title={row_history_detail_title(@table, @record_id)}>|
+               ~S|<UI.Page.detail_header title={row_history_detail_title(@table, @record_id)}>|
 
       assert row_route =~ ~S|defp row_history_detail_title(table, record_id) do|
       assert row_route =~ ~S|"#{table} / #{Presentation.short_id(record_id, 14)}"|
@@ -404,7 +404,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                ~S|Row history: <%= @table %> / <%= Presentation.short_id(@record_id, 14) %>|
 
       assert actor =~ ~s(title="Actor activity")
-      assert actor =~ ~S|<UI.detail_header title={actor_detail_title(@actor_ref)}>|
+      assert actor =~ ~S|<UI.Page.detail_header title={actor_detail_title(@actor_ref)}>|
       assert actor =~ ~S|defp safe_actor_kind(kind) when is_binary(kind) do|
       assert actor =~ ~S|Enum.find(@actor_kinds, &(Atom.to_string(&1) == kind))|
       refute actor =~ "String.to_atom("

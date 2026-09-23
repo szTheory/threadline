@@ -258,12 +258,12 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       disabled =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={true}><span>filters</span></UI.toolbar>
+        <UI.Page.toolbar disabled={true}><span>filters</span></UI.Page.toolbar>
         """)
 
       enabled =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={false}><span>filters</span></UI.toolbar>
+        <UI.Page.toolbar disabled={false}><span>filters</span></UI.Page.toolbar>
         """)
 
       assert disabled =~ "tl-toolbar"
@@ -524,7 +524,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       for file <- @page_live_views do
         src = File.read!(Path.join("lib/threadline/operator_surface/live", file))
 
-        assert src =~ "UI.shell" or src =~ "<.shell",
+        assert src =~ "UI.Page.shell" or src =~ "<.shell",
                "#{file}: must render its chrome via the shared shell component (D-10), not a hand-rolled <div class=\"threadline-ui\"> wrapper"
 
         refute String.contains?(src, ~s(class="threadline-ui")),
@@ -641,7 +641,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       disabled =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={true}><span>filters</span></UI.toolbar>
+        <UI.Page.toolbar disabled={true}><span>filters</span></UI.Page.toolbar>
         """)
 
       # #7 disabled-looks-enabled: the disabled toolbar must carry BOTH the real

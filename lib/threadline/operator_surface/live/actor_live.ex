@@ -106,7 +106,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage}
         base_path={@base_path}
@@ -122,7 +122,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       >
         <%= if @not_found do %>
           <div class="tl-transaction">
-            <UI.page_header
+            <UI.Page.page_header
               title="Actor activity"
               breadcrumbs={[
                 %{label: "Timeline", href: "#{@base_path}/timeline"},
@@ -130,7 +130,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ]}
             >
               <:lede>Review what an actor touched in a time window, then open a transaction to inspect row-level changes.</:lede>
-            </UI.page_header>
+            </UI.Page.page_header>
 
             <UI.Data.error_state>
               <:title>Invalid actor reference</:title>
@@ -146,7 +146,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         <% else %>
           <div class="tl-transaction">
-            <UI.page_header
+            <UI.Page.page_header
               title="Actor activity"
               breadcrumbs={[
                 %{label: "Timeline", href: "#{@base_path}/timeline"},
@@ -154,9 +154,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ]}
             >
               <:lede>Review what this actor touched in a time window, then open a transaction to inspect row-level changes.</:lede>
-            </UI.page_header>
+            </UI.Page.page_header>
 
-            <UI.detail_header title={actor_detail_title(@actor_ref)}>
+            <UI.Page.detail_header title={actor_detail_title(@actor_ref)}>
               <:metadata key="Kind"><%= @actor_ref.type %></:metadata>
               <:metadata :if={@actor_ref.id} key="Actor id">
                 <UI.Display.ref value={@actor_ref.id} kind="actor" copy_label="Copy actor id" />
@@ -170,14 +170,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Open timeline
                 </a>
               </:actions>
-            </UI.detail_header>
+            </UI.Page.detail_header>
 
-            <UI.segmented_control aria-label="Actor activity window">
+            <UI.Page.segmented_control aria-label="Actor activity window">
               <:segment active={@time_window_hours == 1} phx-click="set-window" phx-value-hours="1">1h</:segment>
               <:segment active={@time_window_hours == 24} phx-click="set-window" phx-value-hours="24">24h</:segment>
               <:segment active={@time_window_hours == 168} phx-click="set-window" phx-value-hours="168">7d</:segment>
               <:segment active={@time_window_hours == 720} phx-click="set-window" phx-value-hours="720">30d</:segment>
-            </UI.segmented_control>
+            </UI.Page.segmented_control>
           </div>
 
           <%= if not @has_ever_acted do %>
@@ -238,7 +238,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </div>
                 </div>
               </div>
-              <UI.pager
+              <UI.Page.pager
                 shown={@shown_count}
                 match_count={nil}
                 label="Actor activity pagination"
@@ -250,7 +250,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <% end %>
           <% end %>
         <% end %>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

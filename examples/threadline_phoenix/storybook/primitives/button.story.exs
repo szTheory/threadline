@@ -29,13 +29,13 @@ defmodule ThreadlinePhoenixWeb.Storybook.Primitives.ButtonStory do
     <.threadline_preview theme="dark">
       <.preview_section title="Primitive variation groups" description="Buttons, signals, containers, layout, and counters under real Threadline theme CSS.">
         <UI.Display.stack gap="section">
-          <UI.page_header title="Audit Transaction primitives">
+          <UI.Page.page_header title="Audit Transaction primitives">
             <:lede>Use these private components to filter, scan, open, copy, compare, refresh, and return.</:lede>
             <:actions>
               <UI.Actions.button variant="primary"><%= @fixtures.button.primary_label %></UI.Actions.button>
               <UI.Actions.button variant="secondary" disabled><%= @fixtures.button.disabled_label %></UI.Actions.button>
             </:actions>
-          </UI.page_header>
+          </UI.Page.page_header>
 
           <UI.Display.cluster>
             <UI.Actions.button variant="primary">Open Audit Transaction</UI.Actions.button>
@@ -80,7 +80,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Primitives.ButtonStory do
 
           <UI.Display.stack>
             <UI.Display.stat_tile label={@fixtures.stat_tile.label} value={@fixtures.stat_tile.value} status="warning" />
-            <UI.pager
+            <UI.Page.pager
               shown={@fixtures.pager.shown}
               match_count={@fixtures.pager.match_count}
               has_older={@fixtures.pager.has_older}

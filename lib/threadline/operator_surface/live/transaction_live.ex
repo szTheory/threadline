@@ -83,7 +83,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage}
         base_path={surface_root(@base_path)}
@@ -98,7 +98,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       >
         <%= if @not_found do %>
           <div class="tl-transaction tl-short-content">
-            <UI.page_header
+            <UI.Page.page_header
               title="Transaction"
               breadcrumbs={[
                 %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
@@ -106,7 +106,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ]}
             >
               <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
-            </UI.page_header>
+            </UI.Page.page_header>
 
             <UI.Data.error_state>
               <:title>Transaction not found</:title>
@@ -123,7 +123,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         <% else %>
           <div class="tl-transaction tl-short-content">
             <% transaction_title = transaction_detail_title(@bundle.transaction) %>
-            <UI.page_header
+            <UI.Page.page_header
               title="Transaction"
               breadcrumbs={[
                 %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
@@ -131,9 +131,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ]}
             >
               <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
-            </UI.page_header>
+            </UI.Page.page_header>
 
-            <UI.detail_header title={transaction_title}>
+            <UI.Page.detail_header title={transaction_title}>
               <:metadata key="Transaction id">
                 <UI.Display.ref value={@bundle.transaction.id} kind="uuid" copy_label="Copy transaction id" />
               </:metadata>
@@ -163,7 +163,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%= Presentation.human_time(captured_at) %>
                 </time>
               </:metadata>
-            </UI.detail_header>
+            </UI.Page.detail_header>
           </div>
 
           <%= if Enum.empty?(@bundle.changes) do %>
@@ -261,7 +261,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             scope_query_fn={@threadline_scope_query_fn}
           />
         <% end %>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

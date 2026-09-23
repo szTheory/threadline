@@ -363,10 +363,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.tabs>
+        <UI.Page.tabs>
           <:tab id="events-tab" controls="events-panel" active>Tab 1</:tab>
           <:tab id="evidence-tab" controls="evidence-panel">Tab 2</:tab>
-        </UI.tabs>
+        </UI.Page.tabs>
         """)
 
       assert html =~ "role=\"tablist\""
@@ -388,10 +388,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.segmented_control>
+        <UI.Page.segmented_control>
           <:segment active phx-click="set-window" phx-value-hours="24">Seg 1</:segment>
           <:segment phx-click="set-window" phx-value-hours="168">Seg 2</:segment>
-        </UI.segmented_control>
+        </UI.Page.segmented_control>
         """)
 
       assert html =~ "role=\"group\""
@@ -1220,9 +1220,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={true}>
+        <UI.Page.toolbar disabled={true}>
           <button disabled>Filter</button>
-        </UI.toolbar>
+        </UI.Page.toolbar>
         """)
 
       assert html =~ "tl-toolbar"
@@ -1238,9 +1238,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={false}>
+        <UI.Page.toolbar disabled={false}>
           <button>Filter</button>
-        </UI.toolbar>
+        </UI.Page.toolbar>
         """)
 
       assert html =~ "tl-toolbar"
@@ -1254,11 +1254,11 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.detail_header title="tx_0192">
+        <UI.Page.detail_header title="tx_0192">
           <:metadata key="Actor">alice</:metadata>
           <:metadata key="When">just now</:metadata>
           <:actions><button>Export</button></:actions>
-        </UI.detail_header>
+        </UI.Page.detail_header>
         """)
 
       assert html =~ "tl-detail-header"
@@ -1286,7 +1286,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.page_header title="Transaction" breadcrumbs={@breadcrumbs} />
+        <UI.Page.page_header title="Transaction" breadcrumbs={@breadcrumbs} />
         """)
 
       assert html =~ ~s(<nav aria-label="Breadcrumb")

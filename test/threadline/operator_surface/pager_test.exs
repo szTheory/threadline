@@ -16,7 +16,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         and never an exact deep total.
 
     Expected state at Wave 0 (this plan, 175-01):
-      * RED — `Threadline.OperatorSurface.UI.pager/1` does not exist yet, so the render
+      * RED — `Threadline.OperatorSurface.UI.Page.pager/1` does not exist yet, so the render
         raises / fails to compile the call. Plan 04 turns it GREEN on the contract above.
 
     Idiom copied from `ui_test.exs` (rendered_to_string standalone component render).
@@ -32,7 +32,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.pager shown={0} match_count={0} has_older={false} has_newer={false} />
+        <UI.Page.pager shown={0} match_count={0} has_older={false} has_newer={false} />
         """)
 
       refute html =~ "tl-pager"
@@ -44,7 +44,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # A single full page: "Newer" has nowhere to go and must render disabled.
       html =
         rendered_to_string(~H"""
-        <UI.pager shown={25} match_count={25} has_older={true} has_newer={false} />
+        <UI.Page.pager shown={25} match_count={25} has_older={true} has_newer={false} />
         """)
 
       assert html =~ "Older"
@@ -57,7 +57,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.pager shown={25} match_count={250} has_older={true} has_newer={true} />
+        <UI.Page.pager shown={25} match_count={250} has_older={true} has_newer={true} />
         """)
 
       assert html =~ ~s|role="status"|
@@ -71,7 +71,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.pager shown={25} match_count={50_000} has_older={true} has_newer={true} />
+        <UI.Page.pager shown={25} match_count={50_000} has_older={true} has_newer={true} />
         """)
 
       assert html =~ "10,000+"
@@ -84,7 +84,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.pager shown={150} match_count={2_431} has_older={true} has_newer={false} />
+        <UI.Page.pager shown={150} match_count={2_431} has_older={true} has_newer={false} />
         """)
 
       # The true total is reported; the cumulative shown count is honest.
@@ -96,14 +96,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       default_html =
         rendered_to_string(~H"""
-        <UI.pager shown={25} match_count={250} has_older={true} has_newer={true} />
+        <UI.Page.pager shown={25} match_count={250} has_older={true} has_newer={true} />
         """)
 
       assert default_html =~ ~s|aria-label="Timeline pagination"|
 
       labelled_html =
         rendered_to_string(~H"""
-        <UI.pager
+        <UI.Page.pager
           shown={25}
           match_count={nil}
           label="Actor activity pagination"
@@ -121,7 +121,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.pager shown={75} match_count={nil} has_older={true} has_newer={true} />
+        <UI.Page.pager shown={75} match_count={nil} has_older={true} has_newer={true} />
         """)
 
       # No fabricated total: drop the "of N" clause entirely, keep the domain wording
