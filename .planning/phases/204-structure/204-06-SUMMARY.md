@@ -208,3 +208,8 @@ None.
 ---
 *Phase: 204-structure*
 *Completed: 2026-09-23*
+
+## Self-Check: PASSED
+
+- `ui/overlay.ex`, `ui/page.ex`, and `ui/form.ex` exist, and `lib/threadline/operator_surface/ui.ex` does not.
+- Commits `9e604767`, `2f240c5a`, `c22b6b08`, and `5006395b` resolve. `git rev-list --count 53f5c4e3..5006395b` = 4, which matches `actuals.commits`.
