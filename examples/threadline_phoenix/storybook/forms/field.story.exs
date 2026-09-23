@@ -28,7 +28,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Forms.FieldStory do
     ~H"""
     <.threadline_preview theme="light">
       <.preview_section title="Form variation groups" description="Field, input, help, error, choice, select, textarea, and combobox controls.">
-        <UI.stack gap="section">
+        <UI.Display.stack gap="section">
           <UI.error_summary
             id="storybook-error-summary"
             errors={[
@@ -89,7 +89,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Forms.FieldStory do
               {"System actor", "system:retention"}
             ]}
           />
-        </UI.stack>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

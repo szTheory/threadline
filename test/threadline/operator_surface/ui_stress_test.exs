@@ -29,7 +29,7 @@ defmodule Threadline.OperatorSurface.UIStressTest do
 
         html =
           rendered_to_string(~H"""
-          <UI.badge variant={@variant}>Badge</UI.badge>
+          <UI.Display.badge variant={@variant}>Badge</UI.Display.badge>
           """)
 
         assert html =~ "tl-chip"
@@ -42,7 +42,7 @@ defmodule Threadline.OperatorSurface.UIStressTest do
 
         html =
           rendered_to_string(~H"""
-          <UI.alert variant={@variant}>Alert</UI.alert>
+          <UI.Display.alert variant={@variant}>Alert</UI.Display.alert>
           """)
 
         assert html =~ "tl-alert"
@@ -55,7 +55,7 @@ defmodule Threadline.OperatorSurface.UIStressTest do
 
         html =
           rendered_to_string(~H"""
-          <UI.card variant={@variant}>Card</UI.card>
+          <UI.Display.card variant={@variant}>Card</UI.Display.card>
           """)
 
         assert html =~ "tl-card"
@@ -71,7 +71,7 @@ defmodule Threadline.OperatorSurface.UIStressTest do
 
         html =
           rendered_to_string(~H"""
-          <UI.stat_tile status={@status} label="L" value="V" />
+          <UI.Display.stat_tile status={@status} label="L" value="V" />
           """)
 
         assert html =~ "tl-card--metric"
@@ -103,7 +103,7 @@ defmodule Threadline.OperatorSurface.UIStressTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.badge variant="success">Active</UI.badge>
+        <UI.Display.badge variant="success">Active</UI.Display.badge>
         """)
 
       refute html =~ "cursor-pointer"
@@ -114,7 +114,7 @@ defmodule Threadline.OperatorSurface.UIStressTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.stat_tile label="L" value="V" />
+        <UI.Display.stat_tile label="L" value="V" />
         """)
 
       refute html =~ "cursor-pointer"

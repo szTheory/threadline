@@ -44,18 +44,18 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
     ~H"""
     <.threadline_preview theme="light">
       <.preview_section title="Recurring operator groups" description="Selected groups are sampled from the explicit Storybook helper allowlist, not generated from the full stress registry.">
-        <UI.stack gap="section">
-          <UI.card>
+        <UI.Display.stack gap="section">
+          <UI.Display.card>
             <:title>fixture provenance</:title>
-            <UI.kv>
+            <UI.Display.kv>
               <:item key="Toolbar"><%= @groups["toolbar"].story_id %> / <%= @groups["toolbar"].fixture_key %></:item>
               <:item key="Data panel"><%= @groups["data_panel"].story_id %> / <%= @groups["data_panel"].fixture_key %></:item>
               <:item key="Detail header"><%= @groups["detail_header"].story_id %> / <%= @groups["detail_header"].fixture_key %></:item>
               <:item key="Destructive modal"><%= @groups["modal_destructive"].story_id %> / <%= @groups["modal_destructive"].fixture_key %></:item>
               <:item key="Offline"><%= @groups["offline"].story_id %> / <%= @groups["offline"].fixture_key %></:item>
               <:item key="Permission denied"><%= @groups["permission_denied"].story_id %> / <%= @groups["permission_denied"].fixture_key %></:item>
-            </UI.kv>
-          </UI.card>
+            </UI.Display.kv>
+          </UI.Display.card>
 
           <UI.toolbar>
             <UI.field
@@ -72,7 +72,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
           <UI.detail_header title="Transaction detail group">
             <:metadata key="Story"><%= @groups["detail_header"].story_id %></:metadata>
             <:metadata key="Audit Transaction">
-              <UI.ref value={@long_id} kind="correlation" copy_label="Copy grouped detail reference" />
+              <UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy grouped detail reference" />
             </:metadata>
             <:metadata key="Cases"><%= Enum.join(@groups["detail_header"].cases, ", ") %></:metadata>
             <:actions>
@@ -98,9 +98,9 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
             </:pager>
           </UI.data_panel>
 
-          <UI.cluster>
+          <UI.Display.cluster>
             <UI.modal id="group-modal-destructive" show>
-              <UI.stack>
+              <UI.Display.stack>
                 <h2 id="group-modal-destructive-title" class="tl-detail-header__title">
                   Prune retention window permanently?
                 </h2>
@@ -108,18 +108,18 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
                   <%= @groups["modal_destructive"].body %>
                 </p>
                 <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
-              </UI.stack>
+              </UI.Display.stack>
             </UI.modal>
 
             <UI.data_state reason={:unauthorized} />
-          </UI.cluster>
+          </UI.Display.cluster>
 
-          <UI.alert variant="warning" data-tl-mutating>
+          <UI.Display.alert variant="warning" data-tl-mutating>
             <UI.reconnect_banner />
             <span><%= @groups["offline"].body %></span>
             <UI.Actions.button type="button" disabled>Retry while reconnecting</UI.Actions.button>
-          </UI.alert>
-        </UI.stack>
+          </UI.Display.alert>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

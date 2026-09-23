@@ -120,7 +120,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         the group (groups are keyed by subject), so it is not repeated as an inline
                         label here — each fact renders once (196-05, signal-to-chrome). --%>
                         <div class="tl-record-card__meta">
-                          <UI.ref value={row.subject_ref} copy_label="Copy subject ref" />
+                          <UI.Display.ref value={row.subject_ref} copy_label="Copy subject ref" />
                           <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
                             <%= Presentation.human_time(row.recorded_at) %>
                           </time>
@@ -339,13 +339,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <h2 class="tl-section__title">Evidence scope</h2>
         </header>
 
-        <UI.kv>
+        <UI.Display.kv>
           <:item key="Mode"><span class="tl-chip tl-chip--info"><%= @mode_label %></span></:item>
           <:item key="Subject"><%= @scope_label %></:item>
           <:item :if={@request.subject_ref} key="Subject ref">
-            <UI.ref value={@request.subject_ref} copy_label="Copy subject ref" />
+            <UI.Display.ref value={@request.subject_ref} copy_label="Copy subject ref" />
           </:item>
-        </UI.kv>
+        </UI.Display.kv>
 
         <div class="tl-cluster tl-cluster--start">
           <.link

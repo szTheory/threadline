@@ -159,7 +159,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <UI.detail_header title={actor_detail_title(@actor_ref)}>
               <:metadata key="Kind"><%= @actor_ref.type %></:metadata>
               <:metadata :if={@actor_ref.id} key="Actor id">
-                <UI.ref value={@actor_ref.id} kind="actor" copy_label="Copy actor id" />
+                <UI.Display.ref value={@actor_ref.id} kind="actor" copy_label="Copy actor id" />
               </:metadata>
               <:metadata key="Window"><%= actor_window_label(@time_window_hours) %></:metadata>
               <:metadata key="Transactions"><%= actor_transaction_count(@shown_count) %></:metadata>
@@ -227,7 +227,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       </time>
                     </div>
                     <div class="tl-meta">
-                      <span>Transaction <UI.ref value={tx.id} kind="uuid" copy_label="Copy transaction id" /></span>
+                      <span>Transaction <UI.Display.ref value={tx.id} kind="uuid" copy_label="Copy transaction id" /></span>
                     </div>
                     <div class="tl-change__actions">
                       <a href={"#{@base_path}/transactions/#{tx.id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">

@@ -57,7 +57,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.badge variant="success">Active</UI.badge>
+        <UI.Display.badge variant="success">Active</UI.Display.badge>
         """)
 
       assert html =~ "tl-chip"
@@ -73,7 +73,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.alert variant="warning">Watch out</UI.alert>
+        <UI.Display.alert variant="warning">Watch out</UI.Display.alert>
         """)
 
       assert html =~ "tl-alert"
@@ -89,7 +89,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.divider />
+        <UI.Display.divider />
         """)
 
       assert html =~ "tl-divider"
@@ -103,7 +103,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.spinner />
+        <UI.Display.spinner />
         """)
 
       assert html =~ "tl-spinner"
@@ -117,7 +117,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.avatar src="user.png" alt="User" />
+        <UI.Display.avatar src="user.png" alt="User" />
         """)
 
       assert html =~ "tl-avatar"
@@ -133,12 +133,12 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.card variant="danger">
+        <UI.Display.card variant="danger">
           <:title>Card Title</:title>
           <:meta>Card Meta</:meta>
           Card Body
           <:actions><button>Action</button></:actions>
-        </UI.card>
+        </UI.Display.card>
         """)
 
       assert html =~ "tl-card"
@@ -159,7 +159,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.card>Body Only</UI.card>
+        <UI.Display.card>Body Only</UI.Display.card>
         """)
 
       assert html =~ "tl-card"
@@ -175,7 +175,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.stat_tile status="success" label="Total" value="1,234" />
+        <UI.Display.stat_tile status="success" label="Total" value="1,234" />
         """)
 
       assert html =~ "tl-card--metric"
@@ -238,7 +238,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.code_block>{"{\"key\": \"value\"}"}</UI.code_block>
+        <UI.Display.code_block>{"{\"key\": \"value\"}"}</UI.Display.code_block>
         """)
 
       assert html =~ "<pre"
@@ -713,7 +713,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
+        <UI.Display.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
         """)
 
       # The mono code element carries the full value as the copy target and title.
@@ -744,7 +744,7 @@ defmodule Threadline.OperatorSurface.UITest do
             alias Threadline.OperatorSurface.UI
 
             def render(assigns) do
-              ~H"<UI.ref value=\\"x\\" />"
+              ~H"<UI.Display.ref value=\\"x\\" />"
             end
           end
           """)
@@ -761,10 +761,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.kv>
+        <UI.Display.kv>
           <:item key="Correlation">corr-123</:item>
           <:item key="Actor">alice</:item>
-        </UI.kv>
+        </UI.Display.kv>
         """)
 
       assert html =~ ~r/<dl class="tl-kv\s*"/
@@ -1059,10 +1059,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       section =
         rendered_to_string(~H"""
-        <UI.stack gap="section">
+        <UI.Display.stack gap="section">
           <div>row a</div>
           <div>row b</div>
-        </UI.stack>
+        </UI.Display.stack>
         """)
 
       assert section =~ "tl-stack"
@@ -1071,9 +1071,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       default =
         rendered_to_string(~H"""
-        <UI.stack>
+        <UI.Display.stack>
           <div>only</div>
-        </UI.stack>
+        </UI.Display.stack>
         """)
 
       # Default gap is the stack rhythm.
@@ -1091,10 +1091,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.cluster justify="between">
+        <UI.Display.cluster justify="between">
           <button>search</button>
           <button>filter</button>
-        </UI.cluster>
+        </UI.Display.cluster>
         """)
 
       assert html =~ "tl-cluster"

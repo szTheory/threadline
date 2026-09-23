@@ -460,7 +460,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <span>
                   Actor
                   <%= if actor_label(change) != "unknown" do %>
-                    <UI.ref value={actor_label(change)} kind="actor" copy_label="Copy actor ref" />
+                    <UI.Display.ref value={actor_label(change)} kind="actor" copy_label="Copy actor ref" />
                     <a
                       :if={path = actor_path(@base_path, change)}
                       href={path}
@@ -476,7 +476,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </span>
                 <span :if={correlation_id(change)}>
                   Correlation
-                  <UI.ref value={correlation_id(change)} kind="correlation" copy_label="Copy correlation id" />
+                  <UI.Display.ref value={correlation_id(change)} kind="correlation" copy_label="Copy correlation id" />
                   <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
                     Timeline
@@ -484,7 +484,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </span>
                 <span :if={row_id = routeable_row_ref(change)}>
                   Row
-                  <UI.ref value={row_id} kind="uuid" copy_label="Copy row id" />
+                  <UI.Display.ref value={row_id} kind="uuid" copy_label="Copy row id" />
                 </span>
               </div>
               <div class="tl-change__actions">

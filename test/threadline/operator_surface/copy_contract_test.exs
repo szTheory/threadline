@@ -287,7 +287,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
+        <UI.Display.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
         """)
 
       visible =

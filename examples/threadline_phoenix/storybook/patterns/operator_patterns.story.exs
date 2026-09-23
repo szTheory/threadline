@@ -36,8 +36,8 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
     ~H"""
     <.threadline_preview theme="dark">
       <.preview_section title="Small operator patterns" description="Six recurring assemblies for maintainers to review without expanding Storybook into flow testing.">
-        <UI.stack gap="section">
-          <UI.card>
+        <UI.Display.stack gap="section">
+          <UI.Display.card>
             <:title>toolbar plus filters</:title>
             <UI.toolbar disabled={@disabled.disabled}>
               <UI.field
@@ -50,22 +50,22 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
               />
               <UI.Actions.button type="button" disabled={@disabled.disabled}>Apply</UI.Actions.button>
             </UI.toolbar>
-          </UI.card>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>detail header plus metadata</:title>
             <UI.detail_header title="Ticket reply changed">
               <:metadata key="Pattern source"><%= @detail_header.story_id %></:metadata>
               <:metadata key="Audit Transaction">
-                <UI.ref value={@long_id} kind="correlation" copy_label="Copy pattern Audit Transaction reference" />
+                <UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy pattern Audit Transaction reference" />
               </:metadata>
               <:actions>
                 <UI.Actions.button type="button" variant="secondary">Return</UI.Actions.button>
               </:actions>
             </UI.detail_header>
-          </UI.card>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>data panel plus state and pager</:title>
             <UI.data_panel state={:ok} id="pattern-data-panel">
               <:data>
@@ -86,12 +86,12 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
             <UI.data_panel state={:empty} id="pattern-empty-panel">
               <:data><span>not rendered for empty pattern</span></:data>
             </UI.data_panel>
-          </UI.card>
+          </UI.Display.card>
 
-          <UI.card variant="danger">
+          <UI.Display.card variant="danger">
             <:title>inert destructive modal</:title>
             <UI.modal id="pattern-destructive-modal" show>
-              <UI.stack>
+              <UI.Display.stack>
                 <h2 id="pattern-destructive-modal-title" class="tl-detail-header__title">
                   Prune retention window permanently?
                 </h2>
@@ -99,25 +99,25 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                   <%= @modal_destructive.body %>
                 </p>
                 <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
-              </UI.stack>
+              </UI.Display.stack>
             </UI.modal>
-          </UI.card>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>offline and reconnect</:title>
-            <UI.alert variant="warning">
+            <UI.Display.alert variant="warning">
               <UI.reconnect_banner />
               <span><%= @offline.body %></span>
               <UI.Actions.button type="button" disabled>Retry after reconnect</UI.Actions.button>
-            </UI.alert>
-          </UI.card>
+            </UI.Display.alert>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>permission denied</:title>
             <UI.data_state reason={:unauthorized} />
             <p class="tl-page__lede"><%= @permission_denied.story_id %></p>
-          </UI.card>
-        </UI.stack>
+          </UI.Display.card>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

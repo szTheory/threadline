@@ -33,24 +33,24 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
     ~H"""
     <.threadline_preview theme="dark">
       <.preview_section title="Overlay and disclosure contracts" description="Static open states for visual, focus, keyboard, and layering review without page-flow behavior.">
-        <UI.stack gap="section">
-          <UI.alert variant="info">
+        <UI.Display.stack gap="section">
+          <UI.Display.alert variant="info">
             Storybook keeps overlays component-focused: the destructive modal is an inert destructive example,
             not a live retention action, and page-flow stress remains in /audit/__stress.
-          </UI.alert>
+          </UI.Display.alert>
 
           <UI.modal id="storybook-prune-modal" show>
-            <UI.stack>
+            <UI.Display.stack>
               <h2 id="storybook-prune-modal-title" class="tl-detail-header__title">
                 Prune retention window permanently?
               </h2>
               <p id="storybook-prune-modal-description" class="tl-page__lede">
                 Type default exactly. This static preview documents focus and keyboard expectations only.
               </p>
-              <UI.kv>
-                <:item key="Audit Transaction"><UI.ref value={@long_id} kind="correlation" copy_label="Copy inert modal reference" /></:item>
+              <UI.Display.kv>
+                <:item key="Audit Transaction"><UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy inert modal reference" /></:item>
                 <:item key="Consequence">Permanently deletes audit records older than the retention window.</:item>
-              </UI.kv>
+              </UI.Display.kv>
               <label class="tl-label" for="storybook-prune-confirm">Confirmation text</label>
               <input
                 id="storybook-prune-confirm"
@@ -59,15 +59,15 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
                 class="tl-control"
                 data-tl-initial-focus
               />
-              <UI.cluster justify="end">
+              <UI.Display.cluster justify="end">
                 <UI.Actions.button type="button" variant="secondary">Cancel</UI.Actions.button>
                 <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
-              </UI.cluster>
-            </UI.stack>
+              </UI.Display.cluster>
+            </UI.Display.stack>
           </UI.modal>
 
           <UI.drawer id="storybook-filter-drawer" show>
-            <UI.stack>
+            <UI.Display.stack>
               <h2 id="storybook-filter-drawer-title" class="tl-detail-header__title">
                 Audit filter drawer
               </h2>
@@ -82,10 +82,10 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
                 help_text="Keyboard users close this drawer with Escape or Cancel."
               />
               <UI.Actions.button type="button" variant="primary">Apply filters</UI.Actions.button>
-            </UI.stack>
+            </UI.Display.stack>
           </UI.drawer>
 
-          <UI.cluster>
+          <UI.Display.cluster>
             <UI.toast id="storybook-toast" kind="warning" title="Timeline stale">
               Could not refresh - showing last known <%= @stale.object_label %> from <%= @stale.as_of %>.
             </UI.toast>
@@ -96,17 +96,17 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
               </:trigger>
               Refresh is disabled while the source is reconnecting.
             </UI.tooltip>
-          </UI.cluster>
+          </UI.Display.cluster>
 
-          <UI.cluster>
+          <UI.Display.cluster>
             <UI.popover id="storybook-popover">
               <:trigger>
                 <span class="tl-button tl-button--secondary">Inspect policy</span>
               </:trigger>
-              <UI.kv>
+              <UI.Display.kv>
                 <:item key="Policy">retention.default</:item>
                 <:item key="Sample"><%= @non_ascii %></:item>
-              </UI.kv>
+              </UI.Display.kv>
             </UI.popover>
 
             <UI.dropdown id="storybook-dropdown">
@@ -116,13 +116,13 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
               <a href="/audit/exports" role="menuitem" class="tl-link">Download CSV</a>
               <a href="/audit/exports" role="menuitem" class="tl-link">Download NDJSON</a>
             </UI.dropdown>
-          </UI.cluster>
+          </UI.Display.cluster>
 
           <UI.accordion id="storybook-accordion" title="Keyboard contract">
             Disclosure state is announced through aria-expanded and the panel remains tied to the trigger.
           </UI.accordion>
 
-          <UI.stack>
+          <UI.Display.stack>
             <UI.tabs>
               <:tab id="storybook-tab-action" controls="storybook-panel-action" active>Audit Action</:tab>
               <:tab id="storybook-tab-change" controls="storybook-panel-change">Audit Change</:tab>
@@ -131,14 +131,14 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
             <div id="storybook-panel-action" role="tabpanel" aria-labelledby="storybook-tab-action">
               <%= @long_string %>
             </div>
-          </UI.stack>
+          </UI.Display.stack>
 
           <UI.segmented_control aria-label="Theme support">
             <:segment active>Dark</:segment>
             <:segment>Light</:segment>
             <:segment>System</:segment>
           </UI.segmented_control>
-        </UI.stack>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

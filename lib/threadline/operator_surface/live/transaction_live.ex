@@ -135,7 +135,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             <UI.detail_header title={transaction_title}>
               <:metadata key="Transaction id">
-                <UI.ref value={@bundle.transaction.id} kind="uuid" copy_label="Copy transaction id" />
+                <UI.Display.ref value={@bundle.transaction.id} kind="uuid" copy_label="Copy transaction id" />
               </:metadata>
               <:metadata key="Actor">
                 <%= if path = transaction_actor_path(surface_root(@base_path), @bundle.transaction) do %>
@@ -151,7 +151,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:metadata key="Changes"><%= transaction_change_count(@bundle.changes) %></:metadata>
               <:metadata :if={transaction_correlation_value(@bundle.transaction)} key="Correlation">
                 <% correlation_id = transaction_correlation_value(@bundle.transaction) %>
-                <UI.ref value={correlation_id} kind="correlation" copy_label="Copy correlation id" />
+                <UI.Display.ref value={correlation_id} kind="correlation" copy_label="Copy correlation id" />
                 <a href={timeline_correlation_path(surface_root(@base_path), correlation_id)} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
                   Open timeline

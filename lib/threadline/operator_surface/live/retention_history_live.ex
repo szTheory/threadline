@@ -254,7 +254,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   data-testid="retention-runs-table-el"
                 >
                   <:col :let={{_dom_id, run}} label="Run">
-                    <UI.ref value={"retention_run/#{run.id}"} kind="actor" copy_label="Copy retention run id" />
+                    <UI.Display.ref value={"retention_run/#{run.id}"} kind="actor" copy_label="Copy retention run id" />
                   </:col>
                   <:col :let={{_dom_id, run}} label="Status">
                     <span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span>

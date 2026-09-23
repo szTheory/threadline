@@ -39,17 +39,17 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
     {"button", ["<UI.Actions.button"]},
     {"icon button", ["<UI.Actions.icon_button"]},
     {"link", ["<UI.Actions.link"]},
-    {"badge", ["<UI.badge"]},
-    {"alert", ["<UI.alert"]},
-    {"divider", ["<UI.divider"]},
-    {"spinner", ["<UI.spinner"]},
-    {"avatar", ["<UI.avatar"]},
-    {"card", ["<UI.card"]},
-    {"stack", ["<UI.stack"]},
-    {"cluster", ["<UI.cluster"]},
+    {"badge", ["<UI.Display.badge"]},
+    {"alert", ["<UI.Display.alert"]},
+    {"divider", ["<UI.Display.divider"]},
+    {"spinner", ["<UI.Display.spinner"]},
+    {"avatar", ["<UI.Display.avatar"]},
+    {"card", ["<UI.Display.card"]},
+    {"stack", ["<UI.Display.stack"]},
+    {"cluster", ["<UI.Display.cluster"]},
     {"page header", ["<UI.page_header"]},
     {"pager", ["<UI.pager"]},
-    {"stat tile", ["<UI.stat_tile"]}
+    {"stat tile", ["<UI.Display.stat_tile"]}
   ]
 
   @form_contracts [
@@ -80,11 +80,11 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   ]
 
   @data_display_contracts [
-    {"ref", ["<UI.ref"]},
-    {"kv", ["<UI.kv"]},
+    {"ref", ["<UI.Display.ref"]},
+    {"kv", ["<UI.Display.kv"]},
     {"data table", ["<UI.data_table"]},
     {"data panel", ["<UI.data_panel"]},
-    {"code block", ["<UI.code_block"]},
+    {"code block", ["<UI.Display.code_block"]},
     {"detail header", ["<UI.detail_header"]},
     {"toolbar", ["<UI.toolbar"]}
   ]

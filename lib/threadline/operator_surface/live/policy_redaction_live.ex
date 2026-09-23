@@ -305,7 +305,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Configured redaction policy matches deployed trigger policy for every introspected table. Continue to Evidence for the latest evidence record.
         </p>
 
-        <UI.kv>
+        <UI.Display.kv>
           <:item key="Host schema">
             <code><%= @schema %></code>
           </:item>
@@ -322,7 +322,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <:item key="Deployed matches config">
             <span class="tl-chip tl-chip--success"><%= @report.summary.config_matches_deployed %></span>
           </:item>
-        </UI.kv>
+        </UI.Display.kv>
 
         <div :if={@actions != []} class="tl-cluster tl-cluster--start">
           <.link

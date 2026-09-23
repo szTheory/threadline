@@ -425,7 +425,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.ref value={@value} kind="correlation" copy_label="Copy audit correlation id" />
+        <UI.Display.ref value={@value} kind="correlation" copy_label="Copy audit correlation id" />
         """)
 
       assert html =~ ~s(data-tl-copy="#{value}")

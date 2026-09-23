@@ -64,7 +64,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <UI.detail_header title={row_history_detail_title(@table, @record_id)}>
             <:metadata key="Table"><code><%= @table %></code></:metadata>
             <:metadata key="Row id">
-              <UI.ref value={@record_id} copy_label="Copy row id" />
+              <UI.Display.ref value={@record_id} copy_label="Copy row id" />
             </:metadata>
             <:metadata :if={@as_of} key="Selected snapshot">
               <time datetime={Presentation.exact_time(@as_of)} title={Presentation.exact_time(@as_of)}>

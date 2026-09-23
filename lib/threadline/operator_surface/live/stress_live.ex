@@ -401,48 +401,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-space-y-4">
                     <h4>Badges</h4>
                     <div class="tl-flex tl-gap-4 tl-flex-wrap">
-                      <Threadline.OperatorSurface.UI.badge variant="neutral">Neutral</Threadline.OperatorSurface.UI.badge>
-                      <Threadline.OperatorSurface.UI.badge variant="info">Info</Threadline.OperatorSurface.UI.badge>
-                      <Threadline.OperatorSurface.UI.badge variant="success">Success</Threadline.OperatorSurface.UI.badge>
-                      <Threadline.OperatorSurface.UI.badge variant="warning">Warning</Threadline.OperatorSurface.UI.badge>
-                      <Threadline.OperatorSurface.UI.badge variant="danger">Danger</Threadline.OperatorSurface.UI.badge>
-                      <Threadline.OperatorSurface.UI.badge variant="accent">Accent</Threadline.OperatorSurface.UI.badge>
-                      <Threadline.OperatorSurface.UI.badge variant="muted">Muted</Threadline.OperatorSurface.UI.badge>
+                      <Threadline.OperatorSurface.UI.Display.badge variant="neutral">Neutral</Threadline.OperatorSurface.UI.Display.badge>
+                      <Threadline.OperatorSurface.UI.Display.badge variant="info">Info</Threadline.OperatorSurface.UI.Display.badge>
+                      <Threadline.OperatorSurface.UI.Display.badge variant="success">Success</Threadline.OperatorSurface.UI.Display.badge>
+                      <Threadline.OperatorSurface.UI.Display.badge variant="warning">Warning</Threadline.OperatorSurface.UI.Display.badge>
+                      <Threadline.OperatorSurface.UI.Display.badge variant="danger">Danger</Threadline.OperatorSurface.UI.Display.badge>
+                      <Threadline.OperatorSurface.UI.Display.badge variant="accent">Accent</Threadline.OperatorSurface.UI.Display.badge>
+                      <Threadline.OperatorSurface.UI.Display.badge variant="muted">Muted</Threadline.OperatorSurface.UI.Display.badge>
                     </div>
                   </div>
 
                   <div class="tl-space-y-4">
                     <h4>Alerts</h4>
                     <div class="tl-flex tl-flex-col tl-gap-4">
-                      <Threadline.OperatorSurface.UI.alert variant="info">Info alert</Threadline.OperatorSurface.UI.alert>
-                      <Threadline.OperatorSurface.UI.alert variant="success">Success alert</Threadline.OperatorSurface.UI.alert>
-                      <Threadline.OperatorSurface.UI.alert variant="warning">Warning alert</Threadline.OperatorSurface.UI.alert>
-                      <Threadline.OperatorSurface.UI.alert variant="error">Error alert</Threadline.OperatorSurface.UI.alert>
+                      <Threadline.OperatorSurface.UI.Display.alert variant="info">Info alert</Threadline.OperatorSurface.UI.Display.alert>
+                      <Threadline.OperatorSurface.UI.Display.alert variant="success">Success alert</Threadline.OperatorSurface.UI.Display.alert>
+                      <Threadline.OperatorSurface.UI.Display.alert variant="warning">Warning alert</Threadline.OperatorSurface.UI.Display.alert>
+                      <Threadline.OperatorSurface.UI.Display.alert variant="error">Error alert</Threadline.OperatorSurface.UI.Display.alert>
                     </div>
                   </div>
 
                   <div class="tl-space-y-4">
                     <h4>Misc Atoms</h4>
                     <div class="tl-flex tl-gap-4 tl-items-center">
-                      <Threadline.OperatorSurface.UI.spinner />
-                      <Threadline.OperatorSurface.UI.avatar src="" alt="Avatar" />
+                      <Threadline.OperatorSurface.UI.Display.spinner />
+                      <Threadline.OperatorSurface.UI.Display.avatar src="" alt="Avatar" />
                     </div>
-                    <Threadline.OperatorSurface.UI.divider />
+                    <Threadline.OperatorSurface.UI.Display.divider />
                   </div>
 
                   <div class="tl-space-y-4">
                     <h4>Cards & Tiles</h4>
                     <div class="tl-grid tl-grid-cols-2 tl-gap-4">
-                      <Threadline.OperatorSurface.UI.card>
+                      <Threadline.OperatorSurface.UI.Display.card>
                         <:title>Card Title</:title>
                         <:meta>Meta info</:meta>
                         Card body content
                         <:actions>
                           <Threadline.OperatorSurface.UI.Actions.button>Action</Threadline.OperatorSurface.UI.Actions.button>
                         </:actions>
-                      </Threadline.OperatorSurface.UI.card>
+                      </Threadline.OperatorSurface.UI.Display.card>
                       
-                      <Threadline.OperatorSurface.UI.stat_tile label="Total Users" value="1,234" />
+                      <Threadline.OperatorSurface.UI.Display.stat_tile label="Total Users" value="1,234" />
                     </div>
                   </div>
 
@@ -463,16 +463,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-space-y-4">
                     <h4>Data Display</h4>
                     <div class="tl-space-y-4">
-                      <Threadline.OperatorSurface.UI.ref
+                      <Threadline.OperatorSurface.UI.Display.ref
                         value="chg_00000000-0000-4000-8000-000000000176/correlation/abcdef0123456789"
                         kind="correlation"
                         copy_label="Copy correlation id"
                       />
 
-                      <Threadline.OperatorSurface.UI.kv>
+                      <Threadline.OperatorSurface.UI.Display.kv>
                         <:item key="Correlation">corr-176</:item>
                         <:item key="Actor">operator@example.invalid</:item>
-                      </Threadline.OperatorSurface.UI.kv>
+                      </Threadline.OperatorSurface.UI.Display.kv>
 
                       <Threadline.OperatorSurface.UI.data_table
                         rows={[
