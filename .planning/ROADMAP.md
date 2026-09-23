@@ -762,7 +762,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 203-09-PLAN.md — file test structural findings; exact register contract; add STRUCT-07 (GATE-02)
+- [x] 203-09-PLAN.md — file test structural findings; exact register contract; add STRUCT-07 (GATE-02)
 
 **Wave 10** *(blocked on Wave 9 completion)*
 

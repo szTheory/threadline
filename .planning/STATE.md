@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 203
 current_phase_name: Real Gates
 status: executing
-stopped_at: Completed 203-08-PLAN.md
-last_updated: "2026-09-23T12:30:17.041Z"
+stopped_at: Completed 203-09-PLAN.md
+last_updated: "2026-09-23T12:39:16.365Z"
 last_activity: 2026-09-23
-last_activity_desc: Plan 203-08 complete (lib structural Credo findings 0 — 30 filed per-site as "# Structural debt:" (15 Nesting, 15 CyclomaticComplexity), 4 Nesting flattened; D-31 wording; tree residue = test Nesting 11, CyclomaticComplexity 1, Logger 1)
-state_head: fa36f680bc0504d2fa9d5b49a0777f9b73ae634d
+last_activity_desc: "Plan 203-09 complete (11 test structural sites filed; exact Credo register contract Nesting 25 / CyclomaticComplexity 16 / ceiling 41 / historical max 46; STRUCT-07 added; release_artifact_contract_test.exs:424 Nesting left unfiled — orchestrator forbids touching that file)"
+state_head: d8d5b2ffa082b76728c4aa49d344ce023e5d359e
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 130
-  completed_plans: 128
+  completed_plans: 129
   percent: 71
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 203 (Real Gates) — EXECUTING
-Plan: 9 of 10
+Plan: 10 of 10
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -248,6 +248,7 @@ Progress: [████████████████████] 120/120
 | Phase 203 P06 | 8min | 2 tasks | 28 files |
 | Phase 203 P07 | 6min | 2 tasks | 23 files |
 | Phase 203 P08 | 45min | 2 tasks | 28 files |
+| Phase 203 P09 | 25min | 3 tasks | 9 files |
 
 ## Deferred Items
 
@@ -791,17 +792,19 @@ Progress: [████████████████████] 120/120
 - [Phase 203]: 203-06 D-09: retention.ex MissedMetadataKeyInLoggerConfig resolved by .credo.exs metadata_keys: param (Plan 10), never by config/*.exs Logger config
 - [Phase 203]: 203-07: StringSigils fixes use ~s with an absent delimiter (never ~S), byte-equality proven by evaluation; GATE-05 stale-location half pinned by source_comment_location_contract_test.exs, requirement checkbox left for Plan 10 (moduledoc delta)
 - [Phase 203]: D-31: per-site structural-debt line is '# Structural debt: <reason>' — no phase number or requirement ID in packaged source; Phase 204/STRUCT-07 named only in the test-resident register
+- [Phase 203]: 203-09: release_artifact_contract_test.exs:424 left unfiled (orchestrator forbids touching that file); Credo register pinned at Nesting 25 / CyclomaticComplexity 16 / ceiling 41 — filing it later bumps to 26/42
 
 ### Blockers
 
 -
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
+- 203-09: test/threadline/release_artifact_contract_test.exs:424 Refactor.Nesting (depth 4) is live and unfiled — the orchestrator forbade touching that file. Full-default Credo residue is Logger + this 1 site. Maintainer decides: allow filing (then register Nesting 25→26, @ceiling 41→42, ROADMAP mirror 42) or accept it live until Phase 204.
 
 ## Session Continuity
 
-**Last session:** 2026-09-23T12:30:16.891Z
-**Stopped at:** Completed 203-08-PLAN.md
+**Last session:** 2026-09-23T12:38:58.763Z
+**Stopped at:** Completed 203-09-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
