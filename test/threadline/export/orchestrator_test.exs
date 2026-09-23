@@ -11,56 +11,60 @@ defmodule Threadline.Export.OrchestratorTest do
   defmodule FlipToDefaultStorage do
     @behaviour Threadline.Storage
 
+    alias Threadline.Storage.Local
+
     @impl true
     def init(_opts), do: :ok
 
     @impl true
     def put(content, opts \\ []) do
       Application.put_env(:threadline, :storage_schema, "threadline")
-      Threadline.Storage.Local.put(content, opts)
+      Local.put(content, opts)
     end
 
     @impl true
-    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+    def get(file_id), do: Local.get(file_id)
 
     @impl true
-    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+    def path(file_id), do: Local.path(file_id)
 
     @impl true
     def download_url(file_id, opts \\ []),
-      do: Threadline.Storage.Local.download_url(file_id, opts)
+      do: Local.download_url(file_id, opts)
 
     @impl true
-    def delete(file_id), do: Threadline.Storage.Local.delete(file_id)
+    def delete(file_id), do: Local.delete(file_id)
   end
 
   defmodule RecordingStorage do
     @behaviour Threadline.Storage
+
+    alias Threadline.Storage.Local
 
     @impl true
     def init(_opts), do: :ok
 
     @impl true
     def put(content, opts \\ []) do
-      result = Threadline.Storage.Local.put(content, opts)
+      result = Local.put(content, opts)
       notify({:storage_put, result})
       result
     end
 
     @impl true
-    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+    def get(file_id), do: Local.get(file_id)
 
     @impl true
-    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+    def path(file_id), do: Local.path(file_id)
 
     @impl true
     def download_url(file_id, opts \\ []),
-      do: Threadline.Storage.Local.download_url(file_id, opts)
+      do: Local.download_url(file_id, opts)
 
     @impl true
     def delete(file_id) do
       notify({:storage_delete, file_id})
-      Threadline.Storage.Local.delete(file_id)
+      Local.delete(file_id)
     end
 
     defp notify(message) do
@@ -73,6 +77,8 @@ defmodule Threadline.Export.OrchestratorTest do
   defmodule DeleteFailStorage do
     @behaviour Threadline.Storage
 
+    alias Threadline.Storage.Local
+
     @impl true
     def init(_opts), do: :ok
 
@@ -80,14 +86,14 @@ defmodule Threadline.Export.OrchestratorTest do
     def put(content, opts \\ []), do: RecordingStorage.put(content, opts)
 
     @impl true
-    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+    def get(file_id), do: Local.get(file_id)
 
     @impl true
-    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+    def path(file_id), do: Local.path(file_id)
 
     @impl true
     def download_url(file_id, opts \\ []),
-      do: Threadline.Storage.Local.download_url(file_id, opts)
+      do: Local.download_url(file_id, opts)
 
     @impl true
     def delete(file_id) do
