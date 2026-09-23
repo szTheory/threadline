@@ -142,7 +142,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         occurred_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditTransaction.changeset(Map.merge(defaults, attrs)),
         repo_opts(storage_schema)
       )
@@ -161,7 +161,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: transaction.occurred_at || DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditChange.changeset(Map.merge(defaults, attrs)),
         repo_opts(storage_schema)
       )
@@ -207,7 +207,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       # Insert an event older than 24h (the default window)
       repo.insert!(
-        Threadline.Capture.AuditTransaction.changeset(%{
+        AuditTransaction.changeset(%{
           txid: :rand.uniform(1_000_000_000),
           occurred_at: DateTime.utc_now() |> DateTime.add(-48, :hour),
           actor_ref: %{"type" => "user", "id" => "window_test"}
@@ -436,7 +436,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         occurred_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditTransaction.changeset(Map.merge(defaults, attrs)),
         repo_opts(storage_schema)
       )
@@ -455,7 +455,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: transaction.occurred_at || DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditChange.changeset(Map.merge(defaults, attrs)),
         repo_opts(storage_schema)
       )
@@ -465,7 +465,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo = Threadline.Test.Repo
 
       repo.insert!(
-        Threadline.Capture.AuditTransaction.changeset(%{
+        AuditTransaction.changeset(%{
           txid: :rand.uniform(1_000_000_000),
           occurred_at: DateTime.utc_now(),
           actor_ref: %{"type" => "user", "id" => "scoped_actor"},

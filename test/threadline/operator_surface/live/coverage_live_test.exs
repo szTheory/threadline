@@ -30,6 +30,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
 
+    alias Threadline.OperatorSurface.CoverageLiveTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -44,7 +46,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
-        coverage_authorize_fn: &Threadline.OperatorSurface.CoverageLiveTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -73,6 +75,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
+
+    alias Ecto.Adapters.SQL
+    alias Threadline.Capture.TriggerSQL
+    alias Threadline.OperatorSurface.Live.CoverageLive
 
     @endpoint Threadline.OperatorSurface.CoverageLiveTest.Endpoint
 
@@ -331,7 +337,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert new_html =~ "Schema: public"
 
         assert :ok =
-                 Threadline.OperatorSurface.Live.CoverageLive.terminate(
+                 CoverageLive.terminate(
                    :normal,
                    refreshed_socket
                  )
@@ -457,31 +463,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "non-public schema row activity links include table_schema", %{conn: conn} do
-        Ecto.Adapters.SQL.query!(
+        SQL.query!(
           Threadline.Test.Repo,
           "CREATE SCHEMA IF NOT EXISTS tenant_demo",
           []
         )
 
-        Ecto.Adapters.SQL.query!(
+        SQL.query!(
           Threadline.Test.Repo,
           "CREATE TABLE IF NOT EXISTS tenant_demo.coverage_link_target (id bigint PRIMARY KEY)",
           []
         )
 
-        Ecto.Adapters.SQL.query!(
+        SQL.query!(
           Threadline.Test.Repo,
-          Threadline.Capture.TriggerSQL.create_trigger("tenant_demo.coverage_link_target")
+          TriggerSQL.create_trigger("tenant_demo.coverage_link_target")
         )
 
         on_exit(fn ->
-          Ecto.Adapters.SQL.query!(
+          SQL.query!(
             Threadline.Test.Repo,
             "DROP TABLE IF EXISTS tenant_demo.coverage_link_target CASCADE",
             []
           )
 
-          Ecto.Adapters.SQL.query!(Threadline.Test.Repo, "DROP SCHEMA IF EXISTS tenant_demo", [])
+          SQL.query!(Threadline.Test.Repo, "DROP SCHEMA IF EXISTS tenant_demo", [])
         end)
 
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=tenant_demo")

@@ -17,6 +17,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
 
+    alias Threadline.OperatorSurface.ExportStatusLiveTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -31,8 +33,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
-        authorize_fn: &Threadline.OperatorSurface.ExportStatusLiveTest.Auth.scope_authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.ExportStatusLiveTest.Auth.authorize/1
+        authorize_fn: &Auth.scope_authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -94,6 +96,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveViewTest
 
     alias Threadline.Governance.ExportJob
+    alias Threadline.OperatorSurface.Live.ExportStatusLive
     alias Threadline.Semantics.ActorRef
 
     @endpoint Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint
@@ -191,7 +194,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert is_integer(Process.read_timer(refreshed_ref))
 
         assert :ok =
-                 Threadline.OperatorSurface.Live.ExportStatusLive.terminate(
+                 ExportStatusLive.terminate(
                    :normal,
                    refreshed_socket
                  )

@@ -17,6 +17,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
 
+    alias Threadline.OperatorSurface.PolicyRedactionLiveTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -31,7 +33,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
-        policy_authorize_fn: &Threadline.OperatorSurface.PolicyRedactionLiveTest.Auth.authorize/1
+        policy_authorize_fn: &Auth.authorize/1
       )
     end
   end

@@ -44,6 +44,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
 
+    alias Threadline.OperatorSurface.StartLiveTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -63,11 +65,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
         },
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -76,6 +77,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.Router
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
+
+    alias Threadline.OperatorSurface.StartLiveTest.Auth
 
     pipeline :browser do
       plug(:accepts, ["html"])
@@ -96,12 +99,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
         },
-        authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.scoped_authorize/1,
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+        authorize_fn: &Auth.scoped_authorize/1,
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -110,6 +112,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.Router
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.Router
+
+    alias Threadline.OperatorSurface.StartLiveTest.Auth
 
     pipeline :browser do
       plug(:accepts, ["html"])
@@ -131,11 +135,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
         },
         theme: :system,
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -238,9 +241,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(SavedView, repo_opts())
-      Threadline.Test.Repo.delete_all(ExportJob, repo_opts())
-      Threadline.Test.Repo.delete_all(RetentionRun, repo_opts())
+      Repo.delete_all(SavedView, repo_opts())
+      Repo.delete_all(ExportJob, repo_opts())
+      Repo.delete_all(RetentionRun, repo_opts())
 
       {:ok, actor_ref} = ActorRef.new(:user, "home-operator")
 
@@ -346,7 +349,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         completed_at: now,
         deleted_count: 0
       })
-      |> Threadline.Test.Repo.insert!(repo_opts())
+      |> Repo.insert!(repo_opts())
 
       {:ok, _view, html} = live(conn, "/audit")
 
@@ -418,7 +421,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           completed_at: now,
           deleted_count: 0
         })
-        |> Threadline.Test.Repo.insert!(repo_opts("audit"))
+        |> Repo.insert!(repo_opts("audit"))
 
         insert_view!(actor_ref, "Audit resume", %{"table" => "audit_rows"}, "audit")
 
@@ -583,7 +586,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref: actor_ref,
         started_at: started_at
       })
-      |> Threadline.Test.Repo.insert!(repo_opts(storage_schema))
+      |> Repo.insert!(repo_opts(storage_schema))
     end
 
     defp insert_view!(actor_ref, name, filters, storage_schema \\ "threadline") do
@@ -593,7 +596,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref: actor_ref,
         filters: filters
       })
-      |> Threadline.Test.Repo.insert!(repo_opts(storage_schema))
+      |> Repo.insert!(repo_opts(storage_schema))
     end
 
     defp home_health(html) do

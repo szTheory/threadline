@@ -336,6 +336,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
+    alias Threadline.OperatorSurface.Presentation
+    alias Threadline.Semantics.ActorRef
+    alias Threadline.Semantics.AuditAction
+
     @endpoint Threadline.OperatorSurface.TimelineLiveTest.Endpoint
 
     setup_all do
@@ -388,7 +392,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       action =
         if correlation_id do
           repo.insert!(
-            Threadline.Semantics.AuditAction.changeset(%{
+            AuditAction.changeset(%{
               name: "timeline.test",
               actor_ref: actor_ref,
               status: "ok",
@@ -400,7 +404,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       txn =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: occurred_at,
             actor_ref: actor_ref,
@@ -411,7 +415,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       repo.insert!(
-        Threadline.Capture.AuditChange.changeset(%{
+        AuditChange.changeset(%{
           transaction_id: txn.id,
           table_schema: table_schema,
           table_name: Keyword.get(opts, :table, "posts"),
@@ -440,7 +444,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       txn =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
           }),
@@ -867,7 +871,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+      assert Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
 
     test "actorless Timeline mounts hide and reject background export actions", %{conn: conn} do
@@ -878,12 +882,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+      assert Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
 
     test "independent anonymous sessions cannot queue background exports" do
       anonymous_actor = %Threadline.Semantics.ActorRef{type: :anonymous, id: nil}
-      serialized_actor = Jason.encode!(Threadline.Semantics.ActorRef.to_map(anonymous_actor))
+      serialized_actor = Jason.encode!(ActorRef.to_map(anonymous_actor))
 
       conn_a =
         build_conn()
@@ -902,15 +906,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_click(view_a, "request_background_export", %{})
       render_click(view_b, "request_background_export", %{})
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+      assert Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
 
     test "independent anonymous sessions cannot create, list, apply, or delete saved views" do
       anonymous_actor = %Threadline.Semantics.ActorRef{type: :anonymous, id: nil}
-      serialized_actor = Jason.encode!(Threadline.Semantics.ActorRef.to_map(anonymous_actor))
+      serialized_actor = Jason.encode!(ActorRef.to_map(anonymous_actor))
 
       legacy_view =
-        Threadline.Test.Repo.insert!(
+        Repo.insert!(
           %Threadline.Governance.SavedView{
             name: "private anonymous filters",
             actor_ref: anonymous_actor,
@@ -940,13 +944,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_click(view_a, "apply-view", %{"id" => legacy_view.id})
       render_click(view_b, "delete-view", %{"id" => legacy_view.id})
 
-      assert Threadline.Test.Repo.get!(
+      assert Repo.get!(
                Threadline.Governance.SavedView,
                legacy_view.id,
                repo_opts()
              )
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.SavedView, repo_opts()) == [
+      assert Repo.all(Threadline.Governance.SavedView, repo_opts()) == [
                legacy_view
              ]
     end
@@ -1234,8 +1238,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{table}"
                )
 
-      table_ref = Threadline.OperatorSurface.Presentation.secondary_ref(table, 30)
-      correlation_ref = Threadline.OperatorSurface.Presentation.secondary_ref(correlation_id, 34)
+      table_ref = Presentation.secondary_ref(table, 30)
+      correlation_ref = Presentation.secondary_ref(correlation_id, 34)
 
       assert html =~ ~s|title="#{table}"|
       assert html =~ table_ref.visible
@@ -1388,11 +1392,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp clear_audit_rows! do
-      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
-      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       if Code.ensure_loaded?(Threadline.Semantics.AuditAction) do
-        Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
+        Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       end
     end
 
@@ -1452,6 +1456,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Threadline.DataCase, async: false
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
+
+    alias Threadline.Semantics.AuditAction
 
     @endpoint Threadline.OperatorSurface.TimelineLiveTest.SchemaEndpoint
 
@@ -1520,11 +1526,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp clear_audit_rows! do
-      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
-      Threadline.Test.Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditChange, repo_opts())
+      Repo.delete_all(Threadline.Capture.AuditTransaction, repo_opts())
 
       if Code.ensure_loaded?(Threadline.Semantics.AuditAction) do
-        Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
+        Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       end
     end
 
@@ -1539,7 +1545,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       action =
         if correlation_id do
           repo.insert!(
-            Threadline.Semantics.AuditAction.changeset(%{
+            AuditAction.changeset(%{
               name: "timeline.test",
               actor_ref: actor_ref,
               status: "ok",
@@ -1551,7 +1557,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       txn =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: occurred_at,
             actor_ref: actor_ref,
@@ -1562,7 +1568,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       repo.insert!(
-        Threadline.Capture.AuditChange.changeset(%{
+        AuditChange.changeset(%{
           transaction_id: txn.id,
           table_schema: table_schema,
           table_name: Keyword.fetch!(opts, :table),
@@ -1618,7 +1624,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert render(lv) =~ "Actor View"
 
       view =
-        Threadline.Test.Repo.get_by!(
+        Repo.get_by!(
           Threadline.Governance.SavedView,
           [name: "Actor View"],
           repo_opts()
@@ -1645,7 +1651,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+      assert Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
   end
 
@@ -1685,7 +1691,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       txn =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: occurred_at,
             actor_ref: actor_ref,
@@ -1695,7 +1701,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       repo.insert!(
-        Threadline.Capture.AuditChange.changeset(%{
+        AuditChange.changeset(%{
           transaction_id: txn.id,
           table_schema: "public",
           table_name: Keyword.get(opts, :table, "posts"),
@@ -1742,7 +1748,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Apply view
       # Since we don't have a specific ID, let's pull it from the DB
       view =
-        Threadline.Test.Repo.get_by!(
+        Repo.get_by!(
           Threadline.Governance.SavedView,
           [name: "My Support View"],
           repo_opts()
@@ -1763,7 +1769,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Ensure it's deleted
       refute render(lv) =~ "My Support View"
 
-      refute Threadline.Test.Repo.get_by(
+      refute Repo.get_by(
                Threadline.Governance.SavedView,
                [name: "My Support View"],
                repo_opts()
@@ -1800,7 +1806,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
 
       # Initial state
-      initial_jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
+      initial_jobs = Repo.all(Threadline.Governance.ExportJob, repo_opts())
 
       html = render(lv)
       refute html =~ "Queue export"
@@ -1809,7 +1815,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # A forged event must also fail closed without inserting or enqueueing a job.
       render_click(lv, "request_background_export", %{})
 
-      jobs = Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts())
+      jobs = Repo.all(Threadline.Governance.ExportJob, repo_opts())
       assert jobs == initial_jobs
       refute_receive {:threadline_export_enqueued, _, _}
     end
@@ -1839,7 +1845,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+      assert Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
       assert render(lv) =~ "support_posts"
     end
   end
@@ -1894,7 +1900,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
 
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+      assert Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
 
     test "export authorization exceptions hide exports and forged queue events create no job", %{
@@ -1913,7 +1919,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ ">CSV<"
 
       render_click(lv, "request_background_export", %{})
-      assert Threadline.Test.Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+      assert Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
     end
   end
 end
