@@ -818,7 +818,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 204-05-PLAN.md — `ui.ex` split, part 1: `UI.Actions`, `UI.Display`, `UI.Data` with call sites and storybook source markers (STRUCT-03)
+- [x] 204-05-PLAN.md — `ui.ex` split, part 1: `UI.Actions`, `UI.Display`, `UI.Data` with call sites and storybook source markers (STRUCT-03)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 

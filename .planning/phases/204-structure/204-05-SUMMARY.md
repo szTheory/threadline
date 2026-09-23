@@ -16,7 +16,7 @@ affects: [204-06, source-size-gate, storybook-contracts]
 
 actuals:
   tokens: 24002    # chars/4 over the changed lines of lib/test/examples, 0a4c1ff5..3dd1f64f (moved code counted as removed + added)
-  tasks: 3         # all three family commits landed; the Task 3 browser gate is red (see HALT)
+  tasks: 3         # all three family commits landed; both browser halts were cleared as flakes by orchestrator re-runs
   commits: 5       # MEASURED: git rev-list --count 0a4c1ff5..HEAD = 3 task commits + 2 docs commits from the first halt
 plan_head_before: 0a4c1ff536c10590bb13fce67543ffe1cdaab960
 
@@ -101,12 +101,12 @@ coverage:
 
 duration: 28 min (first run) + about 35 min (resume)
 completed: 2026-09-23
-status: halted
+status: complete
 ---
 
-# Phase 204 Plan 05: UI Family Split, Actions, Display, and Data (HALTED at the Task 3 browser gate)
+# Phase 204 Plan 05: UI Family Split, Actions, Display, and Data
 
-**All three families (`UI.Actions`, `UI.Display`, `UI.Data`) are now `@moduledoc false` modules. Every call site and every storybook contract marker names the family, and ui.ex went from 1686 lines to 1047. Every rendered-output check is green, and so are the full `mix test`, `verify.xref_cycles`, and `verify.dialyzer`. The Task 3 browser lane then showed 9 failures: the known 8 plus one desktop-only focus assertion in the row-history drawer. That is an assertion failure, not a teardown hang, so the plan halted without a re-run.**
+**All three families (`UI.Actions`, `UI.Display`, `UI.Data`) are now `@moduledoc false` modules. Every call site and every storybook contract marker names the family, and ui.ex went from 1686 lines to 1047. Every rendered-output check is green, and so are the full `mix test`, `verify.xref_cycles`, and `verify.dialyzer`. The Task 3 browser lane then showed 9 failures: the known 8 plus one desktop-only focus assertion in the row-history drawer. That is an assertion failure, not a teardown hang, so the plan halted without a re-run. The orchestrator then re-ran the lane on the unchanged `3dd1f64f` and got exactly 326/8/16. The extra failure was a flake, and the plan is complete.**
 
 ## Performance
 
@@ -114,7 +114,9 @@ status: halted
 - **Resume:** Task 3 committed as `3dd1f64f`, then halted at the Task 3 browser gate.
 - **Tasks:** 3 of 3 committed. The plan is not complete because the Task 3 browser gate is red.
 
-## HALT: Task 3 browser gate
+## HALT: Task 3 browser gate (resolved as a flake)
+
+**Resolution:** the orchestrator re-ran `mix verify.example_browser` on the unchanged `3dd1f64f` and got exactly **326 passed / 8 failed / 16 skipped**. The failures were the known 8 only, and `operator-accessibility.spec.ts:620` passed on desktop. It was a flake, not a regression, so option (a) applied and nothing was reverted.
 
 Run: `mix verify.example_browser` on `3dd1f64f`, log in `/tmp/p204-05-browser-t3.log`. Result: **325 passed / 9 failed / 16 skipped**. The screenshot baselines are clean, and the scorecard fixtures were restored after the run.
 
@@ -204,13 +206,13 @@ The ui.ex file exception went 1686 → 1607 (Task 1) → 1390 (Task 2) → 1047 
 
 **3. [Gate] Task 2 browser flake, resolved by the orchestrator.** The first executor saw 324 passed / 10 failed / 16 skipped on `8d6e69c6`. The two extras were desktop-only interaction timeouts: `operator-screenshots.spec.ts:90` and `operator-timeline-investigation-flow.spec.ts:583`. It halted, per the rules. The orchestrator re-ran `mix verify.example_browser` on that unchanged code and got exactly 326 passed / 8 failed / 16 skipped, the known 8 only, with both extras passing. It ruled them a flake, not a regression, and Tasks 1 and 2 were kept.
 
-**4. [Gate] Task 3 browser gate red (open).** See HALT.
+**4. [Gate] Task 3 browser flake, resolved by the orchestrator.** The executor saw 325/9/16 on `3dd1f64f`, with one extra failure: a desktop-only `toBeFocused` timeout in the row-history drawer. The orchestrator re-ran that unchanged code and got exactly 326/8/16. It was a flake. See HALT.
 
 **5. [Rule 3 - Blocking] Root-pin guard script denied by the permission classifier.** Running `bash .../root-pin.sh` was blocked by the auto-mode classifier. It was not a guard failure. As the equivalent check, `git rev-parse --show-toplevel` was confirmed to equal the pinned root `/Users/jon/projects/threadline` before the edit and before the commit. The branch was also confirmed as `fix/branch-protection-actions-capability`, which is not protected.
 
 ## Issues Encountered
 
-- The HALT described above.
+- The two browser halts above. Both were desktop-only lost-input flakes, and each was cleared by one unchanged re-run.
 - Comment and prose mentions of `UI.ref/1`, `UI.data_table`, `UI.data_panel`, and `UI.data_state/1` remain in `presentation.ex:80`, the story `doc/0` prose, and test moduledocs and comments. They are prose, not call sites, and they were left as is.
 - **Broken-windows ledger not appended:** `.planning/WINDOWS.md` is a protected path for this dispatch.
 
@@ -224,14 +226,14 @@ None.
 
 ## Next Phase Readiness
 
-- Blocked until the orchestrator resolves the Task 3 browser gate (re-run or revert `3dd1f64f`). If a re-run comes back at exactly the known 8, the plan is complete, and 204-06 (Overlay, Page, Form, and retiring ui.ex) can start.
+- Ready: 204-06 (Overlay, Page, Form, and retiring ui.ex) can start.
 
 ---
 *Phase: 204-structure*
-*Halted: 2026-09-23*
+*Completed: 2026-09-23*
 
 ## Self-Check: PASSED
 
 - `lib/threadline/operator_surface/ui/actions.ex`, `ui/display.ex`, and `ui/data.ex` exist, and each has `@moduledoc false`.
 - Commits `1fe2d345`, `8d6e69c6`, and `3dd1f64f` resolve. The ledger count (`git rev-list --count 0a4c1ff5..HEAD`) was 5 when this SUMMARY was written, matching `actuals.commits`.
-- `status: halted` is recorded honestly. The plan is not complete.
+- `status: complete` is set by the orchestrator after a clean browser re-run (326/8/16) on `3dd1f64f`.
