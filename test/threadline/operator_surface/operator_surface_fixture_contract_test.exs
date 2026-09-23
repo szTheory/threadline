@@ -180,6 +180,8 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
       {:error, {:empty_scorecards, Path.join(root, "scorecards")}}
     else
       Enum.reduce_while(paths, {:ok, %{}}, fn path, {:ok, scorecards} ->
+        # Structural debt: decode case inside reduce_while in else — extract the scorecard load step
+        # credo:disable-for-next-line Credo.Check.Refactor.Nesting
         case decode_json(root, path) do
           {:ok, %{"cell_id" => cell_id}} when is_binary(cell_id) and cell_id != "" ->
             {:cont, {:ok, Map.put(scorecards, cell_id, path)}}
@@ -219,6 +221,8 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
 
   defp validate_references(ledger, golden, synthetic, refute, scorecards) do
     with {:ok, references} <- corpus_references(ledger, golden, synthetic, refute) do
+      # Structural debt: find case inside with — extract the unreferenced-cell lookup
+      # credo:disable-for-next-line Credo.Check.Refactor.Nesting
       case Enum.find(references, fn {_source, cell_id} ->
              not scorecard_reference?(scorecards, cell_id)
            end) do
@@ -253,6 +257,8 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
             end
           end)
 
+      # Structural debt: refute class case inside flat_map fn inside with — extract the refute reference mapper
+      # credo:disable-for-next-line Credo.Check.Refactor.Nesting
       if Enum.all?(references, fn {_source, cell_id} -> is_binary(cell_id) and cell_id != "" end) do
         {:ok, references}
       else
