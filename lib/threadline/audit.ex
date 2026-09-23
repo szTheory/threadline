@@ -77,19 +77,21 @@ defmodule Threadline.Audit do
     resolved = resolve_opts(opts)
 
     with :ok <- validate_actor(resolved) do
-      repo.transaction(fn ->
-        set_actor_guc!(repo, resolved.actor_ref)
-
-        result = fun.()
-
-        # Structural debt: case inside transaction fn inside with — extract the transaction body
-        # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-        case finalize_success(repo, resolved, result) do
-          {:error, reason} -> repo.rollback(reason)
-          ok -> ok
-        end
-      end)
+      repo.transaction(fn -> transaction_body(repo, resolved, fun) end)
       |> normalize_transaction_result()
+    end
+  end
+
+  # Runs inside the `repo.transaction/1` fn, so `repo.rollback/1` still aborts
+  # the same transaction.
+  defp transaction_body(repo, resolved, fun) do
+    set_actor_guc!(repo, resolved.actor_ref)
+
+    result = fun.()
+
+    case finalize_success(repo, resolved, result) do
+      {:error, reason} -> repo.rollback(reason)
+      ok -> ok
     end
   end
 
