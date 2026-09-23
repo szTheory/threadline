@@ -17,6 +17,7 @@ defmodule Threadline.Continuity do
   compliance notes.
   """
 
+  alias Ecto.Adapters.SQL
   alias Threadline.Health.CoverageSchemas
   alias Threadline.StorageSchema
 
@@ -104,7 +105,7 @@ defmodule Threadline.Continuity do
 
   defp table_exists?(repo, schema, table_name) do
     %{rows: rows} =
-      Ecto.Adapters.SQL.query!(
+      SQL.query!(
         repo,
         """
         SELECT 1 FROM information_schema.tables
