@@ -140,7 +140,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert map_size(readable) > 0, "unpacked Hex archive contained no readable UTF-8 files"
     assert "lib/threadline.ex" in entries
     assert "mix.exs" in entries
-    assert "lib/threadline/operator_surface/style/stylesheet.css" in entries
+    assert "lib/threadline/operator_surface/style/01_tokens.css" in entries
     assert "lib/threadline/operator_surface/style/02_base_shell.css" in entries
     assert "lib/threadline/operator_surface/style/03_page_home.css" in entries
     assert "lib/threadline/operator_surface/style/04_controls.css" in entries

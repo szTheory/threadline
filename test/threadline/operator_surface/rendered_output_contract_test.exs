@@ -185,7 +185,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert "lib/threadline/operator_surface/live/stress_live.ex" in sources
       assert "lib/threadline/operator_surface/stress_fixtures.ex" in sources
       assert "lib/threadline/operator_surface/style.ex" in sources
-      assert "lib/threadline/operator_surface/style/stylesheet.css" in sources
+      assert "lib/threadline/operator_surface/style/01_tokens.css" in sources
 
       offenders =
         Enum.flat_map(sources, fn path ->
