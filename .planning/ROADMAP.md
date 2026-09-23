@@ -742,7 +742,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 203-04-PLAN.md — `Design.AliasUsage` sweep, part 2: non-contract tests outside operator_surface (batched by directory)
+- [x] 203-04-PLAN.md — `Design.AliasUsage` sweep, part 2: non-contract tests outside operator_surface (batched by directory)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
