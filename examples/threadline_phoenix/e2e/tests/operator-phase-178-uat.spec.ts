@@ -50,7 +50,7 @@ const adminEmail = "admin@example.com";
 const SWEEP_WIDTHS = [320, 1440];
 const DESKTOP_CENTERING_WIDTHS = [1024, 1440];
 
-// The grid nav column is minmax(196px, 232px) at >=768px (style.ex:3893). RESEARCH
+// The grid nav column is minmax(196px, 232px) at >=768px (`09_responsive.css`, `@media (min-width: 768px)`). RESEARCH
 // Pitfall 4: content is centered within COLUMN 2, offset right of true viewport
 // center by the nav column — never measure against raw viewport/2. We measure the
 // symmetric left/right gutters of the content box WITHIN its column instead, with a
@@ -147,7 +147,7 @@ test.describe("Phase 178 PAGE-03 — transaction page centers within grid column
 
   for (const width of DESKTOP_CENTERING_WIDTHS) {
     // GREEN as of Plan 03 Task 1: `.tl-container` now carries `justify-self: center`
-    // (style.ex:678), so the max-width-capped grid-item main centers within column 2
+    // (`03_page_home.css`, `.tl-container`), so the max-width-capped grid-item main centers within column 2
     // instead of anchoring to the column start (the old "left push").
     test(`transaction .tl-container is centered within column 2 at ${width}px (D-09)`, async ({
       page,
@@ -169,7 +169,7 @@ test.describe("Phase 178 PAGE-03 — transaction page centers within grid column
 
   for (const width of DESKTOP_CENTERING_WIDTHS) {
     // Home latent twin (RESEARCH Pitfall 1, RESOLVED: fold in). GREEN as of Plan 03
-    // Task 1: `.tl-home` now carries `justify-self: center` (style.ex:693).
+    // Task 1: `.tl-home` now carries `justify-self: center` (`03_page_home.css`, `.tl-home`).
     test(`Home .tl-home is centered within column 2 at ${width}px (latent twin)`, async ({
       page,
     }) => {
@@ -227,7 +227,7 @@ test.describe("Phase 178 footgun sweep — /audit/* hold together (#6, #1)", () 
   // reconciliation the real-engine way: the live desktop grid shell's COMPUTED
   // scroll-padding-top must reserve at least the sticky topbar's real height. If the
   // reserved offset under-shoots the topbar, a jumped-to anchor would hide beneath it.
-  // GREEN as of Plan 05 Task 1 (desktop scroll-margin-top reconciliation, style.ex >=768px).
+  // GREEN as of Plan 05 Task 1 (desktop scroll-margin-top reconciliation, `09_responsive.css` >=768px).
   test("desktop scroll container reserves the sticky topbar height (no occlusion, #1)", async ({
     page,
   }) => {

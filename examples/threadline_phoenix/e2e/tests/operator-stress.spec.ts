@@ -291,7 +291,7 @@ test("light/system Playwright lane includes the stress route spec", () => {
 // ---------------------------------------------------------------------------
 
 const CI_CELL_VIEWPORT = 1024;
-// style.ex:4223 opens `@media (min-width: 1280px)`; :4248 sets the two-track template.
+// `09_responsive.css`: `@media (min-width: 1280px)` gives `.tl-stress__layout` two tracks.
 const TWO_COLUMN_BREAKPOINT = 1280;
 
 // Dark/light separation band. Measured surfaces sit near the extremes, so this band
@@ -495,7 +495,7 @@ test.describe("ledger-owned stress structural cells", () => {
       });
       expect(
         await gridTrackCount(page, ".tl-stress__layout"),
-        `.tl-stress__layout must become two-column at ${TWO_COLUMN_BREAKPOINT}px (style.ex:4223/4248)`,
+        `.tl-stress__layout must become two-column at ${TWO_COLUMN_BREAKPOINT}px (09_responsive.css, @media (min-width: 1280px))`,
       ).toBe(2);
       await page.setViewportSize({ width: CI_CELL_VIEWPORT, height: 900 });
     });
