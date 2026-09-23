@@ -130,7 +130,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       path = "priv/repo/migrations"
       File.mkdir_p!(path)
 
-      table_suffix = tables |> Enum.map(&StorageSchema.host_table_suffix/1) |> Enum.join("_")
+      table_suffix = Enum.map_join(tables, "_", &StorageSchema.host_table_suffix/1)
       file = Path.join(path, "#{timestamp()}_threadline_triggers_#{table_suffix}.exs")
 
       create_file(file, migration_content(table_specs))
@@ -203,8 +203,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       |> Enum.join("\n\n")
 
     trigger_ups =
-      table_specs
-      |> Enum.map(fn {t, %{needs_per_table: per?}} ->
+      Enum.map_join(table_specs, "\n\n", fn {t, %{needs_per_table: per?}} ->
         trig =
           if per?,
             do: TriggerSQL.create_trigger(t, :per_table),
@@ -212,22 +211,18 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
 
         "    execute #{inspect(trig)}"
       end)
-      |> Enum.join("\n\n")
 
     trigger_downs =
-      table_specs
-      |> Enum.map(fn {t, _} ->
+      Enum.map_join(table_specs, "\n\n", fn {t, _} ->
         "    execute #{inspect(TriggerSQL.drop_trigger(t))}"
       end)
-      |> Enum.join("\n\n")
 
     function_downs =
       table_specs
       |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
-      |> Enum.map(fn {t, _} ->
+      |> Enum.map_join("\n\n", fn {t, _} ->
         "    execute #{inspect(TriggerSQL.drop_function_for_table(t))}"
       end)
-      |> Enum.join("\n\n")
 
     tables = Enum.map(table_specs, &elem(&1, 0))
 
