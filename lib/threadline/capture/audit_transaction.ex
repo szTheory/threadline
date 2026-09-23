@@ -56,7 +56,6 @@ defmodule Threadline.Capture.AuditTransaction do
     # without either.
     field(:actor_ref, Threadline.Semantics.ActorRef)
 
-    @compile {:no_warn_undefined, Threadline.Semantics.AuditAction}
     belongs_to(:action, Threadline.Semantics.AuditAction)
 
     has_many(:changes, Threadline.Capture.AuditChange, foreign_key: :transaction_id)
