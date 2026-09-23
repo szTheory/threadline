@@ -30,18 +30,18 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   # MODE-A LOCKED constants below are pinned verbatim by mechanical_checker_test.exs
   # (the brandbook_token_parity idiom). They may NEVER be loosened.
 
-  # --- MODE-A LOCKED WCAG constants (pinned by the meta-test) ---
+  # MODE-A locked WCAG constants, pinned by the meta-test.
   @wcag_text_contrast_ratio 4.5
   @wcag_large_text_contrast_ratio 3.0
   @wcag_non_text_contrast_ratio 3.0
   @wcag_large_text_px 24
   @wcag_large_text_bold_px 18.66
 
-  # --- MODE-B far ceilings (brand-anchored absolute limits; >3 = violation) ---
+  # MODE-B far ceilings: brand-anchored absolute limits, where >3 is a violation.
   @mode_b_card_nesting_ceiling 3
   @mode_b_distinct_accent_hue_ceiling 3
 
-  # --- Token scale constants (SSOT: lib/threadline/operator_surface/style.ex) ---
+  # Token scale constants. Source of truth: lib/threadline/operator_surface/style/01_tokens.css.
   @spacing_scale_px [4, 8, 12, 16, 20, 24, 32, 40, 48]
   @radius_scale_px [3, 4, 6, 8, 12, 999]
   @motion_duration_ms [120, 180, 240]
@@ -108,8 +108,6 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     {lighter, darker} = if l1 >= l2, do: {l1, l2}, else: {l2, l1}
     (lighter + 0.05) / (darker + 0.05)
   end
-
-  # --- luminance helpers ---
 
   defp linearize_channel(c) do
     srgb = c / 255.0
