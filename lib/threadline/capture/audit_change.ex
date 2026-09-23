@@ -40,6 +40,9 @@ defmodule Threadline.Capture.AuditChange do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @typedoc "One row mutation (`INSERT`, `UPDATE`, or `DELETE`) in one audited table."
+  @type t :: %__MODULE__{}
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
