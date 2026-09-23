@@ -12,12 +12,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Ecto.Query
 
-    alias Threadline.Governance.ExportJob
     alias Threadline.Evidence.Subject
-    alias Threadline.Query.FilterParams
+    alias Threadline.Governance.ExportJob
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
 
@@ -131,14 +131,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("queue_timeline_export_context", _params, socket), do: {:noreply, socket}
 
     def handle_info(:refresh, socket) do
-      if not socket.assigns[:threadline_exports_enabled] do
-        {:noreply, socket}
-      else
+      if socket.assigns[:threadline_exports_enabled] do
         socket =
           socket
           |> schedule_refresh()
           |> assign_jobs(fetch_jobs(socket))
 
+        {:noreply, socket}
+      else
         {:noreply, socket}
       end
     end
@@ -404,9 +404,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp fetch_jobs(socket) do
-      if not socket.assigns[:threadline_exports_enabled] do
-        []
-      else
+      if socket.assigns[:threadline_exports_enabled] do
         repo = resolve_repo(socket)
         actor_ref = socket.assigns[:threadline_actor_ref]
 
@@ -420,6 +418,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         else
           []
         end
+      else
+        []
       end
     end
 
@@ -773,12 +773,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp safe_validate(filters) do
-      try do
-        Threadline.Query.validate_timeline_filters!(filters)
-        :ok
-      rescue
-        e in ArgumentError -> {:error, e.message}
-      end
+      Threadline.Query.validate_timeline_filters!(filters)
+      :ok
+    rescue
+      e in ArgumentError -> {:error, e.message}
     end
 
     defp background_export_error_message(:supervisor_not_started) do
