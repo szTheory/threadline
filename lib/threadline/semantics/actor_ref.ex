@@ -18,6 +18,9 @@ defmodule Threadline.Semantics.ActorRef do
 
   use Ecto.ParameterizedType
 
+  @typedoc "A stable reference to who performed an audited operation."
+  @type t :: %__MODULE__{}
+
   @enforce_keys [:type]
   defstruct [:type, :id]
 
@@ -90,12 +93,10 @@ defmodule Threadline.Semantics.ActorRef do
   def from_map(_), do: {:error, :invalid_actor_ref_map}
 
   defp type_from_string(str) do
-    try do
-      atom = String.to_existing_atom(str)
-      if atom in @types, do: {:ok, atom}, else: {:error, :unknown_actor_type}
-    rescue
-      ArgumentError -> {:error, :unknown_actor_type}
-    end
+    atom = String.to_existing_atom(str)
+    if atom in @types, do: {:ok, atom}, else: {:error, :unknown_actor_type}
+  rescue
+    ArgumentError -> {:error, :unknown_actor_type}
   end
 
   # --- Ecto.ParameterizedType callbacks ---
