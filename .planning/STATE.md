@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 204
 current_phase_name: Structure
 status: executing
-stopped_at: Completed 204-06-PLAN.md
-last_updated: "2026-09-23T22:17:55.138Z"
+stopped_at: Completed 204-07-PLAN.md
+last_updated: "2026-09-23T22:32:13.207Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 204 execution started
-state_head: 63896303737ed8391d91011ea37b7553536ef5b9
+state_head: af0dd605d13a8b45e39e0855d6573dda829e769e
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 145
-  completed_plans: 136
+  completed_plans: 137
   percent: 86
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 204 (Structure) — EXECUTING
-Plan: 7 of 15
+Plan: 8 of 15
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -256,6 +256,7 @@ Progress: [████████████████████] 130/130
 | Phase 204 P04 | 26 min | 3 tasks | 17 files |
 | Phase 204 P05 | 63 min | 3 tasks | 9 files |
 | Phase 204 P06 | 36 min | 3 tasks | 41 files |
+| Phase 204 P07 | 12min | 3 tasks | 15 files |
 
 ## Deferred Items
 
@@ -811,6 +812,7 @@ Progress: [████████████████████] 130/130
 - [Phase 204]: 204-04: Query.Cursors shares the Query.Scope alias line so no recorded Dialyzer coordinate above the moved code shifts
 - [Phase 204]: 204-05: desktop-only lost-input browser failures (Task 2: screenshots:90, timeline:583; Task 3: accessibility:620 focus) were flakes, each cleared by one unchanged orchestrator re-run at exactly 326/8/16
 - [Phase 204]: 204-06: ui.ex retired into UI.Form via git mv; six @moduledoc false UI families; cross-family shell mount via <Overlay.reconnect_banner /> alias, never import
+- [Phase 204]: 204-07: all 15 non-surface lib register sites drained in place (no per-site fallback); register 38 -> 23 (Nesting 17, CyclomaticComplexity 6)
 
 ### Blockers
 
@@ -820,8 +822,8 @@ Progress: [████████████████████] 130/130
 
 ## Session Continuity
 
-**Last session:** 2026-09-23T22:17:54.985Z
-**Stopped at:** Completed 204-06-PLAN.md
+**Last session:** 2026-09-23T22:32:13.048Z
+**Stopped at:** Completed 204-07-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

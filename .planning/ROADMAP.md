@@ -826,7 +826,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 204-07-PLAN.md — non-surface lib register drain: core domain, critic-trust, Mix tasks (15 sites) (STRUCT-07)
+- [x] 204-07-PLAN.md — non-surface lib register drain: core domain, critic-trust, Mix tasks (15 sites) (STRUCT-07)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
