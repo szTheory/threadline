@@ -871,8 +871,8 @@ jobs:
     services:
       # The rehearsal runs the doc-contract files it derives by filename, plus
       # verify.release and the release contract tests, and test/test_helper.exs
-      # creates and migrates the test database on boot. No database means no rehearsal, which this gate scores as a
-      # failure rather than a pass.
+      # creates and migrates the test database on boot. No database means no
+      # rehearsal, which this gate scores as a failure rather than a pass.
       postgres:
         image: postgres:16
         env:

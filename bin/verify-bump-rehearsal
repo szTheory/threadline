@@ -373,10 +373,35 @@ run_gate() {
   return 0
 }
 
+# The doc-contract set is derived by filename inside the throwaway tree, so it is
+# exactly the set of doc-contract files that exist at $NEXT. A hand-maintained list
+# drifts; this one cannot. The floor matters: `mix test` with no file arguments runs
+# the whole suite, so an empty or truncated list would pass vacuously instead of
+# measuring the doc contracts. Runs inside "$CLONE" (run_gate cds there first).
+derived_doc_contract_tests() {
+  local file
+  local -a DC_FILES=()
+  while IFS= read -r file; do
+    DC_FILES+=("$file")
+  done < <(find test \( -name '*doc_contract_test.exs' -o -name '*readme_contract_test.exs' \) | sort)
+
+  # Floor: 30 files. There were 33 when the list became derived.
+  if [[ "${#DC_FILES[@]}" -lt 30 ]]; then
+    printf '  found only %s doc-contract test files (floor 30); refusing to run mix test\n' \
+      "${#DC_FILES[@]}" >&2
+    printf '  on a short list. A rename or a moved test directory would otherwise let\n' >&2
+    printf '  this gate pass without running the doc contracts.\n' >&2
+    return 1
+  fi
+
+  printf '    running %s doc-contract test files (derived by filename)\n' "${#DC_FILES[@]}"
+  mix test "${DC_FILES[@]}"
+}
+
 # Order is fail-fast-cheapest-first: the doc contracts (which carry Families A/B
 # of the version-truth contract, the ones a bump moves) before the full release
 # entrypoint, which additionally builds docs and the Hex tarball.
-run_gate "mix verify.doc_contract at $NEXT" mix verify.doc_contract &&
+run_gate "doc-contract tests (derived by filename) at $NEXT" derived_doc_contract_tests &&
   run_gate "mix verify.release at $NEXT" mix verify.release || true
 
 # --- Tree identity: the rehearsal must have changed nothing -------------------
@@ -416,5 +441,6 @@ if [[ "$GATE_STATUS" -ne 0 ]]; then
   exit 1
 fi
 
-printf 'Bump rehearsal OK: a %s -> %s release commit passes mix verify.doc_contract and\n' "$CURRENT" "$NEXT"
-printf 'mix verify.release, and the real working tree is byte-identical.\n'
+printf 'Bump rehearsal OK: a %s -> %s release commit passes every doc-contract test\n' "$CURRENT" "$NEXT"
+printf '(derived by filename) and mix verify.release, and the real working tree is\n'
+printf 'byte-identical.\n'
