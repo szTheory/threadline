@@ -17,6 +17,8 @@ defmodule Threadline.Export.Orchestrator do
   Runs an export job by `job_id`. Streams records directly to a temporary file
   and then persists it via `Threadline.Storage`.
   """
+  # Phase 204 (STRUCT-07): complexity 12 — split run/2 into load, stream, persist
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def run(job_id, opts \\ []) do
     repo = Keyword.get(opts, :repo) || default_repo()
     storage_schema = StorageSchema.get(opts)
