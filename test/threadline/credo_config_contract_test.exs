@@ -1,6 +1,10 @@
 defmodule Threadline.CredoConfigContractTest do
   @moduledoc """
-  Source-resident contract for Credo config comments.
+  Source-resident contract for the Credo config and its config comments.
+
+  The config shape half pins `.credo.exs` as upstream scaffolding plus exactly
+  three `extra:` deltas over Credo's embedded defaults, with `disabled: []` and no
+  `enabled:` key, so the default check set can never be replaced or quietly shrunk.
 
   The structural register counts every per-site Credo suppression of
   `Credo.Check.Refactor.Nesting` and `Credo.Check.Refactor.CyclomaticComplexity`
@@ -23,6 +27,8 @@ defmodule Threadline.CredoConfigContractTest do
 
   use ExUnit.Case, async: true
 
+  alias Credo.Check.Params
+
   @root Path.expand("../..", __DIR__)
   @scan_glob "{lib,test}/**/*.{ex,exs}"
 
@@ -40,6 +46,29 @@ defmodule Threadline.CredoConfigContractTest do
   # Assembled so this file's own text never contains a literal suppression comment.
   @comment_head "# " <> "credo:"
   @ratchet_message "fix it (prefer `with`/early return); adding a disable requires raising the register in review."
+
+  @credo_config Path.join(@root, ".credo.exs")
+  @upstream_config Path.join([Mix.Project.deps_path(), "credo", ".credo.exs"])
+
+  # The only deltas over Credo's embedded defaults, compared exactly and in order.
+  @deltas [
+    {Credo.Check.Design.TagTODO, [exit_status: 0]},
+    {Credo.Check.Readability.ModuleDoc, [ignore_names: [], ignore_modules_using: []]},
+    {Credo.Check.Warning.MissedMetadataKeyInLoggerConfig,
+     [
+       metadata_keys: [
+         :deleted_changes,
+         :deleted_transactions,
+         :batch,
+         :total_changes,
+         :total_transactions
+       ]
+     ]}
+  ]
+  @min_default_checks 69
+  # Delta param keys may be the check's own params or these Credo builtins (exit_status etc.).
+  @credo_builtin_params [:category, :exit_status, :files, :priority, :tags]
+  @header_version ~r/^# Scaffolding copied from credo (\S+) deps\/credo\/\.credo\.exs; checks are deltas over Credo's embedded defaults — do not add enabled:$/m
 
   describe "structural register (GATE-02)" do
     test "the real tree matches the register exactly and the ceiling is pinned" do
@@ -185,6 +214,106 @@ defmodule Threadline.CredoConfigContractTest do
       literal = "    _ = #{inspect(disable("Nesting"))}\n"
 
       assert :ok = validate_register([synthetic("lib/literal.ex", [literal])], zero_register(), 0)
+    end
+  end
+
+  describe "config shape (GATE-01)" do
+    test "the config source has no :enabled key anywhere" do
+      ast = @credo_config |> File.read!() |> Code.string_to_quoted!()
+
+      {_ast, enabled_keys} =
+        Macro.prewalk(ast, [], fn
+          {{:__block__, _, [:enabled]}, _value} = node, acc -> {node, [node | acc]}
+          {:enabled, _value} = node, acc -> {node, [node | acc]}
+          node, acc -> {node, acc}
+        end)
+
+      assert enabled_keys == [],
+             "`.credo.exs` must not contain an `enabled:` key: it replaces Credo's " <>
+               "embedded defaults wholesale, so the gate would lint almost nothing (GATE-01)."
+    end
+
+    test "the evaluated config is strict, deltas-only, and disables nothing" do
+      %{checks: checks} = config = project_config()
+
+      assert config.strict == true
+      assert Map.keys(checks) -- [:extra, :disabled] == []
+
+      assert Map.get(checks, :disabled) == [],
+             "`disabled:` must be `[]` (GATE-01): a listed check is silently dropped from " <>
+               "the gate, including a default that a Credo release promotes."
+
+      assert Map.get(checks, :extra) == @deltas
+    end
+
+    test "every delta re-parameterizes an upstream default and the default set is not shrunk" do
+      upstream = upstream_checks()
+      enabled = Enum.map(upstream.enabled, &elem(&1, 0))
+      disabled = Enum.map(upstream.disabled, &elem(&1, 0))
+
+      assert length(enabled) >= @min_default_checks
+
+      for {mod, _params} <- @deltas do
+        assert mod in enabled, "#{inspect(mod)} is not an upstream default check"
+        refute mod in disabled, "#{inspect(mod)} is an upstream opt-in check"
+      end
+    end
+
+    test "every delta param key is a check param or a pinned Credo builtin" do
+      assert @credo_builtin_params -- Params.builtin_param_names() == []
+
+      for delta <- @deltas do
+        assert :ok = validate_delta_params(delta)
+      end
+
+      assert {:error, message} =
+               validate_delta_params({Credo.Check.Design.TagTODO, [exit_statuss: 0]})
+
+      assert message =~ "exit_statuss"
+    end
+
+    test "the header cites the loaded Credo version" do
+      case Application.load(:credo) do
+        :ok -> :ok
+        {:error, {:already_loaded, :credo}} -> :ok
+      end
+
+      loaded = to_string(Application.spec(:credo, :vsn))
+
+      header =
+        @credo_config |> File.read!() |> String.split("\n") |> Enum.take(3) |> Enum.join("\n")
+
+      assert [_, cited] = Regex.run(@header_version, header),
+             "`.credo.exs` must open with the scaffolding header comment"
+
+      assert cited == loaded,
+             "`.credo.exs` cites credo #{cited} but #{loaded} is loaded: " <>
+               "re-diff the scaffolding and bump the header"
+    end
+
+    test "the verify.credo alias is pinned" do
+      assert @root |> Path.join("mix.exs") |> File.read!() =~
+               ~s("verify.credo": ["credo --strict"])
+    end
+  end
+
+  defp project_config do
+    {%{configs: configs}, _binding} = Code.eval_file(@credo_config)
+    assert [config] = configs
+    config
+  end
+
+  defp upstream_checks do
+    {%{configs: [%{checks: checks}]}, _binding} = Code.eval_file(@upstream_config)
+    checks
+  end
+
+  defp validate_delta_params({mod, params}) do
+    Code.ensure_loaded!(mod)
+
+    case Keyword.keys(params) -- (mod.param_names() ++ @credo_builtin_params) do
+      [] -> :ok
+      unknown -> {:error, "#{inspect(mod)} has unknown params #{inspect(unknown)}"}
     end
   end
 
