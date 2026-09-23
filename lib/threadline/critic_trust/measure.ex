@@ -53,56 +53,36 @@ defmodule Threadline.CriticTrust.Measure do
     end)
   end
 
-  # Structural debt: cyclomatic complexity 18 — split measure_lens/4 into per-metric steps
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
+  # Metric steps run in the original order; alpha_and_ci/1 is the only step that
+  # draws from the seeded RNG, so per-lens RNG consumption is unchanged.
   defp measure_lens(lens, items, scores, rubric_versions) do
     current_version = Map.get(rubric_versions || %{}, lens)
 
     resolved =
       items
-      |> Enum.filter(fn it ->
-        it["lens"] == lens and it["kind"] == "single" and Map.get(it, "kept", true) != false
-      end)
+      |> Enum.filter(&lens_single_item?(&1, lens))
       |> Enum.flat_map(&resolve(&1, lens, scores, current_version))
 
     n = length(resolved)
 
     # Primary gate: Spearman's ρ (oracle severity vs the critic's continuous score).
     spearman =
-      case RankMetrics.spearman(Enum.map(resolved, & &1.oracle), Enum.map(resolved, & &1.score)) do
-        {:ok, r} -> r
-        {:error, _} -> nil
-      end
+      ok_or_nil(
+        RankMetrics.spearman(Enum.map(resolved, & &1.oracle), Enum.map(resolved, & &1.score))
+      )
 
     # Companion: good-vs-bad separation over the continuous score.
-    auc =
-      case RankMetrics.auc(Enum.map(resolved, &{&1.score, &1.oracle})) do
-        {:ok, a} -> a
-        {:error, _} -> nil
-      end
+    auc = ok_or_nil(RankMetrics.auc(Enum.map(resolved, &{&1.score, &1.oracle})))
 
     # Legacy companions (reported, never gate): band-agreement α + raw exact-match.
     band_pairs = Enum.map(resolved, &{&1.oracle, &1.band})
     {alpha, ci95} = alpha_and_ci(band_pairs)
 
-    raw =
-      if n > 0, do: Enum.count(resolved, &(&1.oracle == &1.band)) / n, else: nil
+    raw = raw_agreement(resolved, n)
 
-    model_id =
-      case resolved do
-        [] -> @model_pin
-        [r | _] -> r.model_id || @model_pin
-      end
+    model_id = lens_model_id(resolved)
 
     fresh = resolved != [] and Enum.all?(resolved, & &1.fresh)
-
-    # The trust bar is a ranking correlation, not agreement. A
-    # forward-only ratchet asks "did this get worse?" (ordering) — and the critic ranks
-    # severity well (ρ) even though it compresses the exact scale (which sank α/raw). α +
-    # raw_agreement stay as reported-only companions; auc is a separation sanity check.
-    validated =
-      is_number(spearman) and spearman >= @spearman_bar and n >= 20 and
-        model_id == @model_pin and fresh
 
     %{
       "spearman" => spearman,
@@ -114,8 +94,31 @@ defmodule Threadline.CriticTrust.Measure do
       "ci95" => ci95,
       "golden_rubric_version" => if(n > 0, do: current_version, else: nil),
       "model_id" => model_id,
-      "validated" => validated
+      "validated" => validated?(spearman, n, model_id, fresh)
     }
+  end
+
+  defp lens_single_item?(it, lens) do
+    it["lens"] == lens and it["kind"] == "single" and Map.get(it, "kept", true) != false
+  end
+
+  defp ok_or_nil({:ok, value}), do: value
+  defp ok_or_nil({:error, _}), do: nil
+
+  defp raw_agreement(resolved, n) do
+    if n > 0, do: Enum.count(resolved, &(&1.oracle == &1.band)) / n, else: nil
+  end
+
+  defp lens_model_id([]), do: @model_pin
+  defp lens_model_id([r | _]), do: r.model_id || @model_pin
+
+  # The trust bar is a ranking correlation, not agreement. A
+  # forward-only ratchet asks "did this get worse?" (ordering) — and the critic ranks
+  # severity well (ρ) even though it compresses the exact scale (which sank α/raw). α +
+  # raw_agreement stay as reported-only companions; auc is a separation sanity check.
+  defp validated?(spearman, n, model_id, fresh) do
+    is_number(spearman) and spearman >= @spearman_bar and n >= 20 and
+      model_id == @model_pin and fresh
   end
 
   # Resolve one oracle item into zero or one record with the oracle ordinal, the critic's
