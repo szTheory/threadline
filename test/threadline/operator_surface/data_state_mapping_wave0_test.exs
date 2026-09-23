@@ -13,7 +13,7 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
     * unavailable  = NOT a permissions issue — down /   (plug/cloud-off / eye-off
                      redacted / pruned                    / archive)
 
-  This test asserts the current `UI.data_state/1` dispatcher maps each typed
+  This test asserts the current `UI.Data.data_state/1` dispatcher maps each typed
   reason to the correct component (icon + heading + role). The invariant is that
   these states remain distinct as the operator surface evolves.
   """

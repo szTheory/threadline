@@ -33,7 +33,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
     live_src = File.read!(@lv_path)
 
     # Each label asserted individually so CI output pinpoints which label regressed
-    # Replaced naked aria-label asserts with label attribute assertions since UI.field renders native `<label>` wrapping.
+    # Replaced naked aria-label asserts with label attribute assertions since UI.Form.field renders native `<label>` wrapping.
     assert String.contains?(live_src, ~s|label="From"|),
            "missing label for filter input 'from'"
 
@@ -221,7 +221,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   #
   # Phase 175-03 (NAV-01/D-13) replaced the bespoke "← Timeline" back-link inside the
   # "Investigation path" landmark with a location-based breadcrumb whose root link is
-  # labelled "Timeline" (no arrow glyph) and rendered through UI.page_header. The
+  # labelled "Timeline" (no arrow glyph) and rendered through UI.Page.page_header. The
   # contract intent — a Timeline escape hatch rooted in the page header — is unchanged;
   # the literal is now the breadcrumb root crumb threaded into page_header.
 

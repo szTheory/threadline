@@ -1048,7 +1048,7 @@ defmodule Threadline.OperatorSurface.UITest do
   #
   # These pin the render + coordination contract for the five new meta-components
   # BEFORE any production code exists (Nyquist: tests precede code). They fail
-  # today because UI.stack/cluster/data_panel/toolbar/detail_header are undefined,
+  # today because UI.Display.stack/cluster, UI.Data.data_panel, UI.Page.toolbar/detail_header are undefined,
   # and turn GREEN in Plans 02 (stack/cluster/data_panel/toolbar) and 03
   # (detail_header + breadcrumb truncation). Do NOT add production code here.
   # ===========================================================================

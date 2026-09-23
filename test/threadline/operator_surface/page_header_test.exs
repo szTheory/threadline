@@ -3,7 +3,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc """
     Wave 0 RED scaffold for NAV-01 / D-11 — the one-`<h1>`-per-page page header.
 
-    Asserts the *target* contract for the not-yet-built `UI.page_header/1`
+    Asserts the *target* contract for the not-yet-built `UI.Page.page_header/1`
     component (Plan 03 owns the implementation): a single `<h1 class="tl-page__title">`
     wrapped in `<header class="tl-page__header">`, and an optional breadcrumb landmark
     `<nav aria-label="Breadcrumb">` when a `breadcrumbs` assign is supplied.

@@ -412,7 +412,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
       src = SourceFamily.read!(@ui_source_path)
 
       assert src =~ ~s(attr(:copy_label, :string, required: true),
-             "UI.ref/1 must require a specific copy label at every call site"
+             "UI.Display.ref/1 must require a specific copy label at every call site"
 
       assert src =~ ~s(aria-label={@copy_label}),
              "copy controls must use caller-supplied accessible names, not a generic Copy label"
@@ -438,15 +438,15 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   #
   # SEED-005 (D-10) extracted the previously-11-way-duplicated
   # `<div class="threadline-ui">…<Style.css/>…<surface_header/>…<main id="tl-main">`
-  # wrapper into ONE shared `@doc false` `UI.shell/1` chrome component. That shell
+  # wrapper into ONE shared `@doc false` `UI.Page.shell/1` chrome component. That shell
   # is the single mount point for `reconnect_banner/1`: rendered exactly once,
   # directly above `#tl-main` and inside `.threadline-ui`. All 11 operator
-  # LiveViews route their chrome through `UI.shell` instead of hand-rolling the
+  # LiveViews route their chrome through `UI.Page.shell` instead of hand-rolling the
   # wrapper, which is what gives the banner one structural home and kills drift.
   #
   # The guard therefore has two halves:
   #   (1) the shell in ui.ex carries the banner exactly once, in the right order;
-  #   (2) every page LiveView routes through `UI.shell` (no per-page
+  #   (2) every page LiveView routes through `UI.Page.shell` (no per-page
   #       `class="threadline-ui"` / `id="tl-main"` duplication left behind).
   #
   # Parser-agnostic by design (RESEARCH Pitfall 2): we scan SOURCE (no DB, no
@@ -470,7 +470,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   @ui_module "lib/threadline/operator_surface/ui.ex"
 
   describe "reconnect banner mounted once in shared shell (SEED-005 / D-10, D-11)" do
-    test "the shared UI.shell mounts tl-reconnect-banner exactly once, above #tl-main inside .threadline-ui" do
+    test "the shared UI.Page.shell mounts tl-reconnect-banner exactly once, above #tl-main inside .threadline-ui" do
       src = SourceFamily.read!(@ui_module)
 
       assert src =~ "def shell(assigns)",
@@ -520,7 +520,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
              "the reconnect banner must sit AFTER the .threadline-ui open and BEFORE #tl-main (D-10/D-11)"
     end
 
-    test "every operator page routes its chrome through the shared UI.shell (no per-page wrapper duplication)" do
+    test "every operator page routes its chrome through the shared UI.Page.shell (no per-page wrapper duplication)" do
       for file <- @page_live_views do
         src = File.read!(Path.join("lib/threadline/operator_surface/live", file))
 
@@ -528,10 +528,10 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
                "#{file}: must render its chrome via the shared shell component (D-10), not a hand-rolled <div class=\"threadline-ui\"> wrapper"
 
         refute String.contains?(src, ~s(class="threadline-ui")),
-               "#{file}: the `.threadline-ui` wrapper now lives in UI.shell — no per-page duplication (D-10)"
+               "#{file}: the `.threadline-ui` wrapper now lives in UI.Page.shell — no per-page duplication (D-10)"
 
         refute String.contains?(src, ~s(id="tl-main")),
-               "#{file}: the `#tl-main` element now lives in UI.shell — no per-page duplication (D-10)"
+               "#{file}: the `#tl-main` element now lives in UI.Page.shell — no per-page duplication (D-10)"
       end
     end
 
@@ -615,13 +615,13 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
              "#8: active nav must carry a non-color cue (border/box-shadow), not background color alone (footgun #8)"
     end
 
-    test "#9 pager disables at the edges and hides at zero matches (UI.pager contract)" do
+    test "#9 pager disables at the edges and hides at zero matches (UI.Page.pager contract)" do
       src = SourceFamily.read!(@ui_source_path)
 
       pager_def =
         case Regex.run(~r/def pager\(assigns\) do.*?~H"""(.*?)"""/s, src) do
           [_, template] -> template
-          _ -> flunk("missing UI.pager/1 definition")
+          _ -> flunk("missing UI.Page.pager/1 definition")
         end
 
       # Disabled-at-edge: both controls bind disabled to the has_newer/has_older edge.

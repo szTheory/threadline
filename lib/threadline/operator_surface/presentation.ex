@@ -77,7 +77,7 @@ defmodule Threadline.OperatorSurface.Presentation do
   end
 
   # The valid per-kind truncation kinds. Listed as literal atoms so they are
-  # interned at compile time — UI.ref/1 resolves a kind STRING against this list
+  # interned at compile time — UI.Display.ref/1 resolves a kind STRING against this list
   # instead of String.to_existing_atom/1, which would raise for a kind whose atom
   # had not yet been referenced at runtime (e.g. :correlation, :arn, :actor, :email).
   @ref_kinds [:uuid, :correlation, :arn, :actor, :hash, :path, :email, :url, :timestamp]

@@ -109,7 +109,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
 
     refute String.contains?(src, ".tl-segmented__item"),
-           "segmented-control hit-area and selected-state CSS must target UI.segmented_control/1's actual .tl-segment markup"
+           "segmented-control hit-area and selected-state CSS must target UI.Page.segmented_control/1's actual .tl-segment markup"
   end
 
   test "dark interaction tokens cover readable hover and focus states" do
@@ -640,7 +640,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "Phase 185 retires the page-level trust rail; selected-schema readiness lives in .tl-coverage-verdict"
 
     # DATA-05 / D-12: the synthetic `tl-coverage-command` command-shell is flattened
-    # away — the coverage success branch now uses UI.page_header with its children
+    # away — the coverage success branch now uses UI.Page.page_header with its children
     # (trust-rail, tl-summary-grid metric tiles, remediation, table) as direct
     # page-stack siblings. The dead `tl-coverage-command__*` CSS must be GONE so it
     # can't silently regress (paired-deletion contract). The metric-grid keeps its

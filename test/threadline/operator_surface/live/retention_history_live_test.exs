@@ -644,7 +644,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -----------------------------------------------------------------------
     # DATA-01 / D-02, Pitfall 4. Cross-page copy contract: the rendered copy target
     # must carry the EXACT full value, never the truncated visible text. Retention run
-    # identifiers use `UI.ref/1`, which binds `data-tl-copy={ref.full}`.
+    # identifiers use `UI.Display.ref/1`, which binds `data-tl-copy={ref.full}`.
     # -----------------------------------------------------------------------
     describe "ref copy-equals-full contract" do
       test "rendered run reference copies the full value, not the truncated text", %{conn: conn} do

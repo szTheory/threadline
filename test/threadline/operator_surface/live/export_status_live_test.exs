@@ -809,7 +809,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ long_correlation
 
         # Export filters now render as a kv <dl>: the key is the <dt> and the full
-        # value is recoverable via UI.ref (title + data-tl-copy bind the FULL value).
+        # value is recoverable via UI.Display.ref (title + data-tl-copy bind the FULL value).
         assert html =~ ~s(class="tl-kv)
         assert html =~ ~s(correlation_id</dt>)
         assert html =~ ~s(title="#{long_correlation}")

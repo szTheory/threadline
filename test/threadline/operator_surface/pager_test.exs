@@ -3,7 +3,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc """
     Wave 0 RED scaffold for NAV-02 / D-16 / D-17 / D-18 — the timeline pager.
 
-    Asserts the *target* contract for the not-yet-built `UI.pager/1` component
+    Asserts the *target* contract for the not-yet-built `UI.Page.pager/1` component
     (Plan 04 owns the implementation):
       * D-16 hide-at-zero — when there are no results the pager renders nothing
         (no `tl-pager` markup at all), never an empty disabled shell.

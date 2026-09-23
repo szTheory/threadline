@@ -484,7 +484,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       correlation_visible = Presentation.ref(correlation_id, kind: :correlation).visible
 
       assert html =~ "tl-short-content"
-      # UI.ref binds the FULL value to BOTH the <code> title/data-tl-copy and the
+      # UI.Display.ref binds the FULL value to BOTH the <code> title/data-tl-copy and the
       # gated copy button — never the truncated/visible/title face (D-02 footgun fix).
       assert html =~ ~s|title="#{txn.id}"|
       assert html =~ txn_visible

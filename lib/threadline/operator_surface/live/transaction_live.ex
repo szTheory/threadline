@@ -342,7 +342,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "#{count} #{if count == 1, do: "change", else: "changes"}"
     end
 
-    # The EXACT full correlation id (never truncated) — UI.ref/1 handles the
+    # The EXACT full correlation id (never truncated) — UI.Display.ref/1 handles the
     # per-kind visible truncation while binding this full value to data-tl-copy.
     defp transaction_correlation_value(%{action: %{correlation_id: correlation_id}})
          when is_binary(correlation_id) and correlation_id != "",

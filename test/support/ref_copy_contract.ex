@@ -15,7 +15,7 @@ defmodule Threadline.OperatorSurface.RefCopyContract do
       assert_copy_equals_full(html, full: long_correlation_id)
 
   The assertion is RED until the consuming page migrates its copy wiring to
-  `UI.ref/1` (which binds `data-tl-copy={ref.full}`); today the transaction page
+  `UI.Display.ref/1` (which binds `data-tl-copy={ref.full}`); today the transaction page
   binds `.title` and other pages render no copy affordance at all.
   """
 

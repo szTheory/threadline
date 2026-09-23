@@ -288,7 +288,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "complete timeline answers"
       end
 
-      test "form-error branch renders the header via UI.page_header", %{conn: conn} do
+      test "form-error branch renders the header via UI.Page.page_header", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=Public")
 
         refute html =~ "tl-coverage-command"
