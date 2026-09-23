@@ -47,6 +47,13 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert String.contains?(mix_exs, "\"verify.compile_no_optional\":")
     assert String.contains?(mix_exs, "\"compile --no-optional-deps --warnings-as-errors\"")
+    assert String.contains?(mix_exs, "\"verify.xref_cycles\":")
+
+    assert String.contains?(
+             mix_exs,
+             "\"xref graph --format cycles --label compile-connected --fail-above 0\""
+           )
+
     assert String.contains?(mix_exs, "\"verify.test\": [\"test\"]")
     assert String.contains?(mix_exs, "\"verify.example\": &verify_example/1")
 
@@ -80,6 +87,7 @@ defmodule Threadline.CiTopologyContractTest do
            "expected mix.exs to declare a multiline ci.all list"
 
     {pos_compile_strict, _} = :binary.match(ci_block, "\"compile --warnings-as-errors\"")
+    {pos_xref_cycles, _} = :binary.match(ci_block, "\"verify.xref_cycles\"")
     {pos_compile_no_optional, _} = :binary.match(ci_block, "\"verify.compile_no_optional\"")
     {pos_verify_test, _} = :binary.match(ci_block, "\"verify.test\"")
     {pos_verify_threadline, _} = :binary.match(ci_block, "\"verify.threadline\"")
@@ -92,6 +100,8 @@ defmodule Threadline.CiTopologyContractTest do
         "cmd env CI=true mix verify.example_browser --project=desktop-chromium --project=mobile-chromium"
       )
 
+    assert pos_compile_strict < pos_xref_cycles
+    assert pos_xref_cycles < pos_compile_no_optional
     assert pos_compile_strict < pos_compile_no_optional
     assert pos_compile_no_optional < pos_verify_test
     assert pos_verify_test < pos_verify_threadline
