@@ -2,6 +2,8 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  alias Threadline.OperatorSurface.Exports.Filename
+
   @router_path "lib/threadline/operator_surface/router.ex"
   @lv_path "lib/threadline/operator_surface/live/timeline_live.ex"
   @controller_path "lib/threadline/operator_surface/controllers/export_controller.ex"
@@ -110,13 +112,13 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
     test "Filename.for/2 produces the canonical UTC-minute pattern for each format" do
       dt = ~U[2026-05-06 12:00:00.000Z]
 
-      assert Threadline.OperatorSurface.Exports.Filename.for("csv", dt) ==
+      assert Filename.for("csv", dt) ==
                "threadline-changes-2026-05-06T12-00Z.csv"
 
-      assert Threadline.OperatorSurface.Exports.Filename.for("json", dt) ==
+      assert Filename.for("json", dt) ==
                "threadline-changes-2026-05-06T12-00Z.json"
 
-      assert Threadline.OperatorSurface.Exports.Filename.for("ndjson", dt) ==
+      assert Filename.for("ndjson", dt) ==
                "threadline-changes-2026-05-06T12-00Z.ndjson"
     end
   end
