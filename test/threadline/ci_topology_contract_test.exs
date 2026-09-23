@@ -220,6 +220,36 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(yaml, "run: mix verify.doc_contract")
   end
 
+  # GitHub Actions never runs `ci.all`, so pinning the alias alone would let the
+  # GATE-04 cycle gate be dropped from CI with every test still green.
+  test "verify-test job runs the xref cycle gate unconditionally before the suite" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert [_, block] =
+             Regex.run(
+               ~r/^  verify-test:\n([\s\S]*?)(?=^  [a-z][a-z0-9-]+:\n)/m,
+               yaml
+             ),
+           "verify-test job is missing"
+
+    step = workflow_step(block, "Verify no compile-connected xref cycles")
+
+    assert step =~ ~r/^        run: mix verify\.xref_cycles\s*$/m,
+           "verify-test must run `mix verify.xref_cycles` (GATE-04)"
+
+    refute step =~ ~r/^        if:/m, "the xref cycle gate must not be conditional"
+
+    refute step =~ ~r/^        continue-on-error:/m,
+           "the xref cycle gate must fail the job"
+
+    assert ordered_positions?([
+             position(block, "run: mix compile --warnings-as-errors"),
+             position(block, "run: mix verify.xref_cycles"),
+             position(block, "run: mix verify.test")
+           ]),
+           "the xref cycle gate must run after compile and before the test suite"
+  end
+
   test "verify-test checkout includes complete history and annotated tags" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
