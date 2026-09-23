@@ -14,8 +14,8 @@ defmodule Threadline.DataCase do
     quote do
       use ExUnit.Case, unquote(opts)
 
-      alias Threadline.Test.Repo
       alias Threadline.Capture.{AuditChange, AuditTransaction}
+      alias Threadline.Test.Repo
       import Ecto.Query
       import Threadline.AsyncHelpers
       import Threadline.StorageSchemaCase
