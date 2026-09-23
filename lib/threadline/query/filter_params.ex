@@ -152,21 +152,15 @@ defmodule Threadline.Query.FilterParams do
         {:ok, Keyword.put(filters_without_actor_params, :actor_ref, actor_ref)}
 
       is_binary(actor_kind) and actor_kind != "" and is_binary(actor_id) and actor_id != "" ->
-        case safe_actor_kind(actor_kind) do
-          {:ok, kind_atom} ->
-            case ActorRef.new(kind_atom, actor_id) do
-              {:ok, actor_ref} ->
-                {:ok, Keyword.put(filters_without_actor_params, :actor_ref, actor_ref)}
-
-              {:error, :unknown_actor_type} ->
-                {:error, "unknown actor kind: " <> inspect(actor_kind)}
-
-              {:error, :missing_actor_id} ->
-                {:error, "actor id is required for non-anonymous actors"}
-            end
-
+        with {:ok, kind_atom} <- safe_actor_kind(actor_kind),
+             {:ok, actor_ref} <- ActorRef.new(kind_atom, actor_id) do
+          {:ok, Keyword.put(filters_without_actor_params, :actor_ref, actor_ref)}
+        else
           {:error, :unknown_actor_type} ->
             {:error, "unknown actor kind: " <> inspect(actor_kind)}
+
+          {:error, :missing_actor_id} ->
+            {:error, "actor id is required for non-anonymous actors"}
         end
 
       is_binary(actor_kind) and actor_kind != "" ->
