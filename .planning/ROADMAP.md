@@ -754,7 +754,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 203-07-PLAN.md — test mechanical findings, `Test.Repo` moduledoc, comment-location contract (GATE-05)
+- [x] 203-07-PLAN.md — test mechanical findings, `Test.Repo` moduledoc, comment-location contract (GATE-05)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
