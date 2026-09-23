@@ -14,9 +14,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Governance.ExportJob
     alias Threadline.Governance.RetentionRun
     alias Threadline.Governance.SavedView
+    alias Threadline.OperatorSurface.UI
     alias Threadline.Query.FilterParams
     alias Threadline.StorageSchema
-    alias Threadline.OperatorSurface.UI
 
     # ------------------------------------------------------------------
     # Operator Home — the orienting landing page (surface root).
