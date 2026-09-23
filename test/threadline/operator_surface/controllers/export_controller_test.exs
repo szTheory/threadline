@@ -187,6 +187,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
     alias Threadline.Governance.ExportJob
+    alias Threadline.Query.FilterParams
 
     @endpoint Threadline.OperatorSurface.ExportControllerTest.Endpoint
     @repo Threadline.Test.Repo
@@ -433,7 +434,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       seed_changes!(1, table: drop_table)
 
       query =
-        Threadline.Query.FilterParams.canonical_query(%{
+        FilterParams.canonical_query(%{
           "from" => "2020-01-01T00:00",
           "to" => "2099-01-01T00:00",
           "table" => keep_table
@@ -1033,6 +1034,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     alias Threadline.Governance.ExportJob
     alias Threadline.Semantics.ActorRef
+    alias Threadline.Storage.Local
     alias Threadline.Test.Repo
 
     @endpoint Threadline.OperatorSurface.ExportControllerTest.ActorEndpoint
@@ -1058,7 +1060,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       conn: conn
     } do
       actor = %ActorRef{type: :user, id: "actor-a"}
-      {:ok, file_id} = Threadline.Storage.Local.put("actor-owned export")
+      {:ok, file_id} = Local.put("actor-owned export")
 
       job =
         Repo.insert!(
@@ -1092,8 +1094,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     test "anonymous requests cannot download legacy anonymous-owned exports", %{conn: conn} do
       anonymous_actor = %ActorRef{type: :anonymous, id: nil}
-      {:ok, file_id} = Threadline.Storage.Local.put("anonymous-owned export")
-      on_exit(fn -> Threadline.Storage.Local.delete(file_id) end)
+      {:ok, file_id} = Local.put("anonymous-owned export")
+      on_exit(fn -> Local.delete(file_id) end)
 
       job =
         Repo.insert!(
