@@ -619,22 +619,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if FilterParams.canonical_query(raw) == "" do
         nil
       else
-        case FilterParams.parse(params) do
-          {:ok, filters} ->
-            case safe_validate(filters) do
-              :ok ->
-                query_params = canonical_query_params(raw)
+        with {:ok, filters} <- FilterParams.parse(params),
+             :ok <- safe_validate(filters) do
+          query_params = canonical_query_params(raw)
 
-                %{
-                  status: :valid,
-                  query_params: query_params,
-                  pairs: Presentation.query_pairs(query_params)
-                }
-
-              {:error, message} ->
-                %{status: :invalid, error: message}
-            end
-
+          %{
+            status: :valid,
+            query_params: query_params,
+            pairs: Presentation.query_pairs(query_params)
+          }
+        else
           {:error, message} ->
             %{status: :invalid, error: message}
         end
