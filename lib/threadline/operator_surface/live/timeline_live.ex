@@ -12,12 +12,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Phoenix.LiveView.JS
     alias Threadline.Export
+    alias Threadline.Governance.ExportJob
+    alias Threadline.Governance.SavedView
     alias Threadline.OperatorSurface.Presentation
-    alias Threadline.Query.FilterParams
+    alias Threadline.OperatorSurface.UI
     alias Threadline.Query
+    alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
-    alias Threadline.OperatorSurface.UI
 
     @page_size 50
     @default_window_hours 24
@@ -49,7 +51,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       saved_views =
         if ActorRef.identifiable?(actor_ref) do
           repo.all(
-            from(v in Threadline.Governance.SavedView,
+            from(v in SavedView,
               where: v.actor_ref == ^actor_ref,
               order_by: [desc: v.inserted_at]
             ),
@@ -210,11 +212,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if ActorRef.identifiable?(socket.assigns[:threadline_actor_ref]) and name != "" do
         attrs = %{
           name: name,
-          actor_ref: Threadline.Semantics.ActorRef.to_map(socket.assigns.threadline_actor_ref),
+          actor_ref: ActorRef.to_map(socket.assigns.threadline_actor_ref),
           filters: socket.assigns.filters_raw
         }
 
-        changeset = Threadline.Governance.SavedView.changeset(attrs)
+        changeset = SavedView.changeset(attrs)
 
         case socket.assigns.repo.insert(changeset, storage_opts(socket)) do
           {:ok, view} ->
@@ -306,7 +308,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo = scope_aware_opts(socket)[:repo] || default_repo()
 
       job_changeset =
-        Threadline.Governance.ExportJob.operator_changeset(%{
+        ExportJob.operator_changeset(%{
           status: "pending",
           query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
           actor_ref: actor_ref
@@ -338,7 +340,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           error_message = background_export_error_message(reason)
 
           job
-          |> Threadline.Governance.ExportJob.changeset(%{
+          |> ExportJob.changeset(%{
             status: "failed",
             error_message: error_message,
             expires_at: terminal_export_expiry()
