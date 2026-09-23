@@ -41,6 +41,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # The cascade: segment order is rule order in the rendered stylesheet.
     @cascade ~w(
       stylesheet.css
+      08_overlays_motion.css
       09_responsive.css
     )
 
