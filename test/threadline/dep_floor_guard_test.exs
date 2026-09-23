@@ -41,9 +41,9 @@ defmodule Threadline.DepFloorGuardTest do
              "These locked deps floor above Elixir #{@floor} — the min-lane 1.15 support " <>
                "promise is now false. Fix the lock (pin a 1.15-compatible version) or drop " <>
                "the 1.15 floor claim:\n" <>
-               (offenders
-                |> Enum.map(fn {dep, req} -> "  - #{dep}: elixir #{inspect(req)}" end)
-                |> Enum.join("\n"))
+               Enum.map_join(offenders, "\n", fn {dep, req} ->
+                 "  - #{dep}: elixir #{inspect(req)}"
+               end)
     end
   end
 

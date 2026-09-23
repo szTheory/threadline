@@ -2,8 +2,8 @@ defmodule Threadline.StorageSchemaIntegrationTest do
   use Threadline.DataCase
 
   alias Ecto.Adapters.SQL
-  alias Threadline.{Evidence, Export, Retention}
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.{Evidence, Export, Retention}
   alias Threadline.Governance.RetentionRun
   alias Threadline.Semantics.ActorRef
   alias Threadline.Test.Repo
