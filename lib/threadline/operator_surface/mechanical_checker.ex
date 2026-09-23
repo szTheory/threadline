@@ -163,9 +163,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   defp load_scorecards(dir) do
     expanded_dir = Path.expand(dir)
 
-    with {:ok, paths} <- list_scorecard_paths(expanded_dir),
-         {:ok, scorecards} <- decode_scorecards(paths) do
-      {:ok, scorecards}
+    with {:ok, paths} <- list_scorecard_paths(expanded_dir) do
+      decode_scorecards(paths)
     end
   end
 
@@ -275,9 +274,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
          :ok <- validate_non_empty_list(scorecard["element_styles"], "element_styles"),
          :ok <- validate_entries(scorecard["element_styles"], &validate_element_style/2),
          :ok <- validate_non_empty_list(scorecard["applied_colors"], "applied_colors"),
-         :ok <- validate_entries(scorecard["applied_colors"], &validate_applied_color/2),
-         :ok <- validate_mode_b(scorecard["mode_b"]) do
-      :ok
+         :ok <- validate_entries(scorecard["applied_colors"], &validate_applied_color/2) do
+      validate_mode_b(scorecard["mode_b"])
     end
   end
 
@@ -301,9 +299,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
     with :ok <- validate_non_empty_string(pair["selector"], "#{prefix}.selector"),
          :ok <- validate_color(pair["color"], "#{prefix}.color"),
          :ok <- validate_color(pair["background_color"], "#{prefix}.background_color"),
-         :ok <- validate_px(pair["font_size"], "#{prefix}.font_size"),
-         :ok <- validate_font_weight(pair["font_weight"], "#{prefix}.font_weight") do
-      :ok
+         :ok <- validate_px(pair["font_size"], "#{prefix}.font_size") do
+      validate_font_weight(pair["font_weight"], "#{prefix}.font_weight")
     end
   end
 
@@ -318,9 +315,8 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
          :ok <- validate_px(style["font_size"], "#{prefix}.font_size"),
          :ok <- validate_px(style["margin_top"], "#{prefix}.margin_top"),
          :ok <- validate_px(style["margin_bottom"], "#{prefix}.margin_bottom"),
-         :ok <- validate_px(style["padding_top"], "#{prefix}.padding_top"),
-         :ok <- validate_px(style["padding_bottom"], "#{prefix}.padding_bottom") do
-      :ok
+         :ok <- validate_px(style["padding_top"], "#{prefix}.padding_top") do
+      validate_px(style["padding_bottom"], "#{prefix}.padding_bottom")
     end
   end
 
@@ -558,8 +554,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   defp radius_violations(el, cell_id) do
     el["border_radius"]
     |> px_values()
-    |> Enum.reject(&(&1 == 0.0))
-    |> Enum.reject(&on_scale?(&1, @radius_scale_px))
+    |> Enum.reject(&(&1 == 0.0 or on_scale?(&1, @radius_scale_px)))
     |> Enum.map(fn value ->
       scale_violation(
         cell_id,
@@ -592,8 +587,7 @@ defmodule Threadline.OperatorSurface.MechanicalChecker do
   defp motion_violations(el, cell_id) do
     el["transition_duration"]
     |> duration_ms_values()
-    |> Enum.reject(&(&1 == 0.0))
-    |> Enum.reject(&on_scale?(&1, @motion_duration_ms, @ms_tolerance))
+    |> Enum.reject(&(&1 == 0.0 or on_scale?(&1, @motion_duration_ms, @ms_tolerance)))
     |> Enum.map(fn value ->
       scale_violation(
         cell_id,
