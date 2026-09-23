@@ -45,89 +45,68 @@ defmodule Threadline.Retention.Policy do
   @spec resolve!(keyword() | map()) :: t()
   def resolve!(opts) when is_list(opts), do: resolve!(Map.new(opts))
 
-  # Structural debt: cyclomatic complexity 33 — split resolve!/1 per option group
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def resolve!(opts) when is_map(opts) do
     env = mix_env()
 
     enabled =
-      case Map.get(opts, :enabled, Map.get(opts, "enabled", false)) do
-        true ->
-          true
-
-        false ->
-          false
-
-        "true" ->
-          true
-
-        "false" ->
-          false
-
-        other ->
-          raise ArgumentError,
-                "retention: :enabled must be boolean, got: #{inspect(other)}"
-      end
+      boolean_opt!(Map.get(opts, :enabled, Map.get(opts, "enabled", false)), ":enabled")
 
     delete_empty_transactions =
-      case Map.get(
-             opts,
-             :delete_empty_transactions,
-             Map.get(opts, "delete_empty_transactions", true)
-           ) do
-        true ->
-          true
-
-        false ->
-          false
-
-        "true" ->
-          true
-
-        "false" ->
-          false
-
-        other ->
-          raise ArgumentError,
-                "retention: :delete_empty_transactions must be boolean, got: #{inspect(other)}"
-      end
+      boolean_opt!(
+        Map.get(
+          opts,
+          :delete_empty_transactions,
+          Map.get(opts, "delete_empty_transactions", true)
+        ),
+        ":delete_empty_transactions"
+      )
 
     days = Map.get(opts, :keep_days) || Map.get(opts, "keep_days")
     secs = Map.get(opts, :max_age_seconds) || Map.get(opts, "max_age_seconds")
 
-    if is_integer(days) and days > 0 and is_integer(secs) and secs > 0 do
-      raise ArgumentError,
-            "retention: use only one of :keep_days or :max_age_seconds, not both"
-    end
-
-    window_seconds =
-      cond do
-        is_integer(days) and days > 0 and is_nil(secs) ->
-          days * 86_400
-
-        is_integer(secs) and secs > 0 and is_nil(days) ->
-          secs
-
-        is_integer(days) and not is_nil(days) and days <= 0 ->
-          raise ArgumentError, "retention: :keep_days must be positive"
-
-        is_integer(secs) and not is_nil(secs) and secs <= 0 ->
-          raise ArgumentError, "retention: :max_age_seconds must be positive"
-
-        env == :test and is_nil(days) and is_nil(secs) ->
-          # Sensible default so purge integration tests can omit repeating window keys.
-          86_400
-
-        true ->
-          raise ArgumentError,
-                "retention: set exactly one of :keep_days or :max_age_seconds as a positive integer"
-      end
-
     %__MODULE__{
       enabled: enabled,
       delete_empty_transactions: delete_empty_transactions,
-      window_seconds: window_seconds
+      window_seconds: window_seconds!(days, secs, env)
     }
+  end
+
+  defp boolean_opt!(true, _key), do: true
+  defp boolean_opt!(false, _key), do: false
+  defp boolean_opt!("true", _key), do: true
+  defp boolean_opt!("false", _key), do: false
+
+  defp boolean_opt!(other, key) do
+    raise ArgumentError, "retention: #{key} must be boolean, got: #{inspect(other)}"
+  end
+
+  # Clause order is the original check order (first match wins): the
+  # both-keys conflict, then the valid windows, then the non-positive errors,
+  # then the test-env default, then the catch-all.
+  defp window_seconds!(days, secs, _env)
+       when is_integer(days) and days > 0 and is_integer(secs) and secs > 0 do
+    raise ArgumentError,
+          "retention: use only one of :keep_days or :max_age_seconds, not both"
+  end
+
+  defp window_seconds!(days, nil, _env) when is_integer(days) and days > 0, do: days * 86_400
+
+  defp window_seconds!(nil, secs, _env) when is_integer(secs) and secs > 0, do: secs
+
+  defp window_seconds!(days, _secs, _env) when is_integer(days) and days <= 0 do
+    raise ArgumentError, "retention: :keep_days must be positive"
+  end
+
+  defp window_seconds!(_days, secs, _env) when is_integer(secs) and secs <= 0 do
+    raise ArgumentError, "retention: :max_age_seconds must be positive"
+  end
+
+  # Sensible default so purge integration tests can omit repeating window keys.
+  defp window_seconds!(nil, nil, :test), do: 86_400
+
+  defp window_seconds!(_days, _secs, _env) do
+    raise ArgumentError,
+          "retention: set exactly one of :keep_days or :max_age_seconds as a positive integer"
   end
 
   @doc """
