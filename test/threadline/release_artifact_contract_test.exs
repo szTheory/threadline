@@ -140,6 +140,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert map_size(readable) > 0, "unpacked Hex archive contained no readable UTF-8 files"
     assert "lib/threadline.ex" in entries
     assert "mix.exs" in entries
+    assert "lib/threadline/operator_surface/style/stylesheet.css" in entries
     assert Map.has_key?(readable, "lib/threadline.ex")
     assert Map.has_key?(readable, "mix.exs")
     refute Enum.any?(entries, &String.starts_with?(&1, "test/fixtures/"))

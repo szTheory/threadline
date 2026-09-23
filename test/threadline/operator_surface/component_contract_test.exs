@@ -17,8 +17,8 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   import Phoenix.LiveViewTest
 
   alias Threadline.OperatorSurface.UI
+  alias Threadline.Test.StyleSource
 
-  @style_path "lib/threadline/operator_surface/style.ex"
   @ui_source_path "lib/threadline/operator_surface/ui.ex"
   @source_prose_files [
     "test/threadline/operator_surface/card_nesting_regression_test.exs",
@@ -278,7 +278,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
   describe "overlay z-index stacking order (Phase 173 UAT #2)" do
     test "z-layer tokens are defined in strict ascending order so overlays stack correctly" do
-      src = File.read!(@style_path)
+      src = StyleSource.read!()
 
       layers = ~w(base toolbar header popover subview toast)
 
@@ -317,10 +317,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
 
     test "stylesheet anchors reconnect affordances on [data-phx-main] and scopes through .threadline-ui" do
-      block =
-        @style_path
-        |> File.read!()
-        |> reconnect_css_block!()
+      block = reconnect_css_block!(StyleSource.read!())
 
       # Hidden by default; revealed purely in CSS on the class-bearing
       # [data-phx-main] LiveView container, then scoped into the Threadline shell.
@@ -575,7 +572,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   # Tier B computed-style/real-engine halves live in operator-phase-178-uat.spec.ts.
   describe "footgun structural guards #5/#7/#8/#9 (PAGE-02, D-07)" do
     test "#8 nav active-state carries aria-current + a non-color cue (not color alone)" do
-      src = File.read!(@style_path)
+      src = StyleSource.read!()
 
       active_block =
         case Regex.run(

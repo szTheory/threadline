@@ -22,6 +22,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Phoenix.HTML.Safe
     alias Threadline.OperatorSurface.Fonts
     alias Threadline.OperatorSurface.Style
+    alias Threadline.Test.StyleSource
 
     @root Path.expand("../../..", __DIR__)
     @golden_relative "test/fixtures/style/operator_surface.css"
@@ -32,6 +33,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @readme_relative "test/fixtures/style/README.md"
     @readme_path Path.join(@root, @readme_relative)
+
+    @style_module_path Path.join(@root, "lib/threadline/operator_surface/style.ex")
+    @style_dir_relative "lib/threadline/operator_surface/style"
+    @style_dir Path.join(@root, @style_dir_relative)
+
+    # The cascade: segment order is rule order in the rendered stylesheet.
+    @cascade ~w(stylesheet.css)
 
     test "fonts are embedded, so the lock is computed against the default render" do
       assert Application.get_env(:threadline, :operator_surface_embed_fonts, true) == true,
@@ -102,6 +110,76 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert message =~ "actual #{byte_size(actual)} bytes"
       assert byte_size(expected) > 200_000
       assert byte_size(message) < 2_000
+    end
+
+    test "source reader follows the rendered cascade" do
+      css = StyleSource.css!()
+
+      case diff_report(read_golden!(), "<style>" <> css <> "</style>") do
+        :same ->
+          :ok
+
+        message ->
+          flunk(
+            "the segment files, read in Style.segments/0 order, do not reproduce " <>
+              "the rendered stylesheet. " <> message
+          )
+      end
+
+      css_first? = String.starts_with?(StyleSource.read!(), css)
+
+      assert css_first?,
+             "StyleSource.read!/0 must begin with the stylesheet in cascade order, " <>
+               "so positional slicers never see the module text first"
+    end
+
+    test "segments are the cascade" do
+      assert Style.segments() == @cascade
+    end
+
+    test "every segment exists, is non-empty, and is unique" do
+      segments = Style.segments()
+
+      assert segments != [], "Style.segments/0 is empty; the stylesheet would render nothing"
+      assert segments == Enum.uniq(segments), "a segment is listed twice: #{inspect(segments)}"
+
+      for segment <- segments do
+        path = Path.join(@style_dir, segment)
+        assert File.regular?(path), "segment #{@style_dir_relative}/#{segment} does not exist"
+        assert File.stat!(path).size > 0, "segment #{@style_dir_relative}/#{segment} is empty"
+      end
+    end
+
+    test "no orphan css" do
+      on_disk =
+        @style_dir
+        |> Path.join("*.css")
+        |> Path.wildcard()
+        |> Enum.map(&Path.basename/1)
+        |> Enum.sort()
+
+      assert Enum.sort(Style.segments()) == on_disk,
+             "every .css file in #{@style_dir_relative} must be listed in Style.segments/0, " <>
+               "and every listed segment must exist"
+    end
+
+    test "every segment is an external resource" do
+      resources =
+        Style.__info__(:attributes)
+        |> Keyword.get_values(:external_resource)
+        |> List.flatten()
+        |> Enum.map(&Path.basename/1)
+
+      missing = Style.segments() -- resources
+
+      assert missing == [],
+             "segments without @external_resource would leave stale compiled CSS: " <>
+               inspect(missing)
+    end
+
+    test "the style module lists its segments explicitly" do
+      refute File.read!(@style_module_path) =~ "Path.wildcard",
+             "the segment order is the cascade; list it literally instead of globbing"
     end
 
     test "the README carries the regeneration one-liner the failure message quotes" do

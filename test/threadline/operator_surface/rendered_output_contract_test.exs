@@ -185,6 +185,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert "lib/threadline/operator_surface/live/stress_live.ex" in sources
       assert "lib/threadline/operator_surface/stress_fixtures.ex" in sources
       assert "lib/threadline/operator_surface/style.ex" in sources
+      assert "lib/threadline/operator_surface/style/stylesheet.css" in sources
 
       offenders =
         Enum.flat_map(sources, fn path ->
@@ -419,12 +420,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "--",
           "lib/threadline/operator_surface/live/*.ex",
           "lib/threadline/operator_surface/stress_fixtures.ex",
-          "lib/threadline/operator_surface/style.ex"
+          "lib/threadline/operator_surface/style.ex",
+          "lib/threadline/operator_surface/style/*.css"
         ])
 
       output
       |> String.split("\n", trim: true)
-      |> Enum.filter(&String.ends_with?(&1, ".ex"))
+      |> Enum.filter(&String.ends_with?(&1, [".ex", ".css"]))
       |> Enum.sort()
     end
 

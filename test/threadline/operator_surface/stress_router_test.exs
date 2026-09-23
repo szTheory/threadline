@@ -126,6 +126,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.StressFixtures
     alias Threadline.OperatorSurface.StressRouter
     alias Threadline.Test.OperatorSurfaceFixtures
+    alias Threadline.Test.StyleSource
 
     @endpoint Threadline.OperatorSurface.StressRouterTest.Endpoint
     @ledger_path OperatorSurfaceFixtures.ledger!()
@@ -133,7 +134,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @example_router_source "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex"
     @stress_router_source "lib/threadline/operator_surface/stress_router.ex"
     @stress_live_source "lib/threadline/operator_surface/live/stress_live.ex"
-    @style_source "lib/threadline/operator_surface/style.ex"
 
     setup_all do
       Application.put_env(:threadline, Threadline.OperatorSurface.StressRouterTest.Endpoint,
@@ -522,7 +522,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         [
           File.read!(@stress_router_source),
           File.read!(@stress_live_source),
-          File.read!(@style_source)
+          StyleSource.read!()
         ]
         |> Enum.join("\n")
 

@@ -19,7 +19,9 @@ defmodule Threadline.BrandbookTokenParityTest do
   # messages, async: true (pure filesystem reads, no shared state). No token COUNT is
   # asserted anywhere — only value-equality on the named intersection.
 
-  @style_path "lib/threadline/operator_surface/style.ex"
+  alias Threadline.Test.StyleSource
+
+  @style_label "the operator stylesheet (lib/threadline/operator_surface/style/)"
   @brand_book_path "brandbook/brand-book.md"
   @pressure_test_path "brandbook/pressure-test.md"
   @tokens_css_path "brandbook/tokens.css"
@@ -31,7 +33,7 @@ defmodule Threadline.BrandbookTokenParityTest do
   # Brand-exclusive: lives in the brandbook, intentionally absent from style.ex.
   @brand_exclusive ~w[logo-arc]
 
-  defp style_source, do: File.read!(@style_path)
+  defp style_source, do: StyleSource.read!()
 
   # Runtime-only: structural tokens in style.ex, intentionally absent from the
   # brandbook semantic blocks (rgba composites, var() aliases, status tints, op badges).
@@ -113,7 +115,7 @@ defmodule Threadline.BrandbookTokenParityTest do
 
       # style.ex: same literal aliasing declaration (the shipped operator-surface lane).
       assert String.contains?(style, "#{gap}: var(#{space});"),
-             "#{@style_path} must declare #{gap}: var(#{space}); so the operator surface consumes the semantic gap token"
+             "#{@style_label} must declare #{gap}: var(#{space}); so the operator surface consumes the semantic gap token"
     end
 
     # tokens.json: a dedicated "gap" block keyed by the semantic name -> px value,
