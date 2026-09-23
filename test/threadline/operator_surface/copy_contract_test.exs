@@ -195,9 +195,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "primary shell and Home copy avoid unsafe vocabulary while keeping allowed contexts documented",
          %{conn: conn} do
       text =
-        [render_shell(), render_home(conn)]
-        |> Enum.map(&visible_text/1)
-        |> Enum.join("\n")
+        Enum.map_join([render_shell(), render_home(conn)], "\n", &visible_text/1)
 
       assert @allowed_evidence_verdict_terms == ["Proven", "Inferred", "Unsupported"]
       assert @allowed_proof_contexts == ["proof history"]
