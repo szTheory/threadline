@@ -125,6 +125,7 @@ Threadline repository.
 | `mix verify.hex_evaluator` | Compile, migrate, and test the isolated Hex evaluator. |
 | `mix verify.bench` | Run the repository benchmark scripts. |
 | `mix verify.compile_no_optional` | Compile without optional dependencies and treat warnings as errors. |
+| `mix verify.xref_cycles` | Fail if any compile-connected cycle exists between modules. |
 | `mix verify.flake` | Re-run tests with fresh seeds until a failure appears or the repeat limit is reached. |
 | `mix test.setup` | Prepare example dependencies, then run the root test setup path. |
 | `mix test.reset` | Recreate the root test database before running setup. |

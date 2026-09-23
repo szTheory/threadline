@@ -496,7 +496,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-credo` | `mix verify.credo` |
 | `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on Elixir 1.17.3 / OTP 27.0 with the exact PLT cache lifecycle below |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
-| `verify-test` | compile `--warnings-as-errors` + `mix verify.test` (Postgres service) |
+| `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
