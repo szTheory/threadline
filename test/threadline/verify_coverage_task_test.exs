@@ -3,7 +3,11 @@ defmodule Threadline.VerifyCoverageTaskTest do
 
   import ExUnit.CaptureIO
 
+  alias Ecto.Adapters.SQL
+  alias Mix.Tasks.Threadline.Health.Coverage
+  alias Mix.Tasks.Threadline.VerifyCoverage
   alias Threadline.Capture.TriggerSQL
+  alias Threadline.Verify.CoveragePolicy
 
   @repo Threadline.Test.Repo
 
@@ -62,7 +66,7 @@ defmodule Threadline.VerifyCoverageTaskTest do
     policy_input = MapSet.new(coverage)
 
     assert MapSet.subset?(tuples_for_expected, policy_input)
-    assert Threadline.Verify.CoveragePolicy.violations(coverage, expected) == []
+    assert CoveragePolicy.violations(coverage, expected) == []
   end
 
   describe "selected host schema support" do
@@ -73,7 +77,7 @@ defmodule Threadline.VerifyCoverageTaskTest do
       original_verify_coverage = Application.get_env(:threadline, :verify_coverage)
 
       on_exit(fn ->
-        Ecto.Adapters.SQL.query!(@repo, "DROP SCHEMA IF EXISTS support CASCADE", [])
+        SQL.query!(@repo, "DROP SCHEMA IF EXISTS support CASCADE", [])
         restore_env(:storage_schema, original_storage_schema)
         restore_env(:verify_coverage, original_verify_coverage)
       end)
@@ -100,7 +104,7 @@ defmodule Threadline.VerifyCoverageTaskTest do
 
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Health.Coverage.run(["--schema=support", "--json"])
+          Coverage.run(["--schema=support", "--json"])
         end)
 
       parsed = Jason.decode!(output)
@@ -116,7 +120,7 @@ defmodule Threadline.VerifyCoverageTaskTest do
 
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.VerifyCoverage.run(["--schema=support"])
+          VerifyCoverage.run(["--schema=support"])
         end)
 
       assert output =~ "tickets"
@@ -126,10 +130,10 @@ defmodule Threadline.VerifyCoverageTaskTest do
   end
 
   defp prepare_support_tickets! do
-    Ecto.Adapters.SQL.query!(@repo, "DROP SCHEMA IF EXISTS support CASCADE", [])
-    Ecto.Adapters.SQL.query!(@repo, "CREATE SCHEMA support", [])
+    SQL.query!(@repo, "DROP SCHEMA IF EXISTS support CASCADE", [])
+    SQL.query!(@repo, "CREATE SCHEMA support", [])
 
-    Ecto.Adapters.SQL.query!(
+    SQL.query!(
       @repo,
       """
       CREATE TABLE support.tickets (
@@ -140,7 +144,7 @@ defmodule Threadline.VerifyCoverageTaskTest do
       []
     )
 
-    Ecto.Adapters.SQL.query!(@repo, TriggerSQL.create_trigger("support.tickets"), [])
+    SQL.query!(@repo, TriggerSQL.create_trigger("support.tickets"), [])
   end
 
   defp restore_env(key, nil), do: Application.delete_env(:threadline, key)

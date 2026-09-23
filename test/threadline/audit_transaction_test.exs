@@ -4,6 +4,7 @@ defmodule Threadline.AuditTransactionTest do
   @moduletag :integration
 
   alias Threadline.Capture.AuditTransaction
+  alias Threadline.Capture.TriggerSQL
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -16,10 +17,10 @@ defmodule Threadline.AuditTransactionTest do
     )
     """)
 
-    Repo.query!(Threadline.Capture.TriggerSQL.create_trigger("test_audit_helper_target"))
+    Repo.query!(TriggerSQL.create_trigger("test_audit_helper_target"))
 
     on_exit(fn ->
-      Repo.query!(Threadline.Capture.TriggerSQL.drop_trigger("test_audit_helper_target"))
+      Repo.query!(TriggerSQL.drop_trigger("test_audit_helper_target"))
       Repo.query!("DROP TABLE IF EXISTS test_audit_helper_target")
     end)
 

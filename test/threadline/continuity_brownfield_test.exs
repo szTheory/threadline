@@ -3,6 +3,8 @@ defmodule Threadline.ContinuityBrownfieldTest do
 
   import Ecto.Query
 
+  alias Threadline.Capture.TriggerSQL
+
   defmodule Row do
     use Ecto.Schema
 
@@ -23,7 +25,7 @@ defmodule Threadline.ContinuityBrownfieldTest do
     """)
 
     on_exit(fn ->
-      Repo.query!(Threadline.Capture.TriggerSQL.drop_trigger("threadline_continuity_brownfield"))
+      Repo.query!(TriggerSQL.drop_trigger("threadline_continuity_brownfield"))
       Repo.query!("DROP TABLE IF EXISTS threadline_continuity_brownfield")
     end)
 
@@ -31,10 +33,10 @@ defmodule Threadline.ContinuityBrownfieldTest do
   end
 
   setup do
-    Repo.query!(Threadline.Capture.TriggerSQL.drop_trigger("threadline_continuity_brownfield"))
+    Repo.query!(TriggerSQL.drop_trigger("threadline_continuity_brownfield"))
     Repo.query!("TRUNCATE threadline_continuity_brownfield")
     Repo.query!("INSERT INTO threadline_continuity_brownfield (name) VALUES ('before_trigger')")
-    Repo.query!(Threadline.Capture.TriggerSQL.create_trigger("threadline_continuity_brownfield"))
+    Repo.query!(TriggerSQL.create_trigger("threadline_continuity_brownfield"))
     :ok
   end
 
@@ -50,7 +52,7 @@ defmodule Threadline.ContinuityBrownfieldTest do
       )
       """)
 
-      Repo.query!(Threadline.Capture.TriggerSQL.create_trigger("support.tickets"))
+      Repo.query!(TriggerSQL.create_trigger("support.tickets"))
 
       on_exit(fn ->
         Repo.query!("DROP SCHEMA IF EXISTS support CASCADE")

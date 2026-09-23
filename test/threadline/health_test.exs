@@ -1,6 +1,10 @@
 defmodule Threadline.HealthTest do
   use Threadline.DataCase
 
+  alias Ecto.Adapters.SQL
+  alias Threadline.Capture.TriggerSQL
+  alias Threadline.Health.CoverageSchemas
+
   @repo Threadline.Test.Repo
 
   describe "trigger_coverage/1 — HLTH-01, HLTH-02" do
@@ -48,12 +52,12 @@ defmodule Threadline.HealthTest do
 
   describe "CoverageSchemas boundary helper" do
     test "validates existing lowercase schemas and rejects invalid input" do
-      assert Threadline.Health.CoverageSchemas.validate(@repo, "public") == {:ok, "public"}
+      assert CoverageSchemas.validate(@repo, "public") == {:ok, "public"}
 
-      assert Threadline.Health.CoverageSchemas.validate(@repo, "Public") ==
+      assert CoverageSchemas.validate(@repo, "Public") ==
                {:error, "Schema Public was not found."}
 
-      assert Threadline.Health.CoverageSchemas.validate(
+      assert CoverageSchemas.validate(
                @repo,
                "nonexistent_schema_xyz_definitely_not_present"
              ) ==
@@ -61,7 +65,7 @@ defmodule Threadline.HealthTest do
     end
 
     test "lists non-system schemas with ordinary tables" do
-      schemas = Threadline.Health.CoverageSchemas.available(@repo)
+      schemas = CoverageSchemas.available(@repo)
 
       assert "public" in schemas
       refute "information_schema" in schemas
@@ -153,44 +157,44 @@ defmodule Threadline.HealthTest do
     @describetag :schema_isolation
 
     setup do
-      Ecto.Adapters.SQL.query!(@repo, "DROP SCHEMA IF EXISTS tenant_iso CASCADE", [])
-      Ecto.Adapters.SQL.query!(@repo, "CREATE SCHEMA tenant_iso", [])
+      SQL.query!(@repo, "DROP SCHEMA IF EXISTS tenant_iso CASCADE", [])
+      SQL.query!(@repo, "CREATE SCHEMA tenant_iso", [])
 
-      Ecto.Adapters.SQL.query!(@repo, "DROP TABLE IF EXISTS public.iso_test_table", [])
+      SQL.query!(@repo, "DROP TABLE IF EXISTS public.iso_test_table", [])
 
-      Ecto.Adapters.SQL.query!(
+      SQL.query!(
         @repo,
         "CREATE TABLE public.iso_test_table (id bigserial PRIMARY KEY)",
         []
       )
 
-      Ecto.Adapters.SQL.query!(
+      SQL.query!(
         @repo,
         "CREATE TABLE tenant_iso.iso_test_table (id bigserial PRIMARY KEY)",
         []
       )
 
       # Trigger only on public.iso_test_table — proves cross-schema isolation
-      Ecto.Adapters.SQL.query!(
+      SQL.query!(
         @repo,
-        Threadline.Capture.TriggerSQL.create_trigger("iso_test_table"),
+        TriggerSQL.create_trigger("iso_test_table"),
         []
       )
 
       on_exit(fn ->
         # Trigger drop must succeed even if table is gone; ignore failures.
         try do
-          Ecto.Adapters.SQL.query!(
+          SQL.query!(
             @repo,
-            Threadline.Capture.TriggerSQL.drop_trigger("iso_test_table"),
+            TriggerSQL.drop_trigger("iso_test_table"),
             []
           )
         rescue
           _ -> :ok
         end
 
-        Ecto.Adapters.SQL.query!(@repo, "DROP TABLE IF EXISTS public.iso_test_table", [])
-        Ecto.Adapters.SQL.query!(@repo, "DROP SCHEMA IF EXISTS tenant_iso CASCADE", [])
+        SQL.query!(@repo, "DROP TABLE IF EXISTS public.iso_test_table", [])
+        SQL.query!(@repo, "DROP SCHEMA IF EXISTS tenant_iso CASCADE", [])
       end)
 
       :ok
