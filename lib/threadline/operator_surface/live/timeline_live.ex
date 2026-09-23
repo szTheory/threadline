@@ -32,8 +32,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
 
-      # Bracket form — scope is set ONLY when :authorize_fn returns {:ok, scope}.
-      # For :ok / true returns, the assign is absent. (auth.ex:21-27)
+      # Bracket form — the scope assign is nil unless the operator's :authorize_fn
+      # returns {:ok, scope} (see `Threadline.OperatorSurface.Auth`).
       scope = socket.assigns[:threadline_scope]
       actor_ref = socket.assigns[:threadline_actor_ref]
 
@@ -1078,19 +1078,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # - At/above the cap (10_001) → "10,000+" so the UI does not imply an exact count
     # - Below the cap → exact integer with thousands separators
     defp format_count(count) when is_integer(count) do
-      cond do
-        count >= 10_001 ->
-          "10,000+"
-
-        true ->
-          count
-          |> Integer.to_string()
-          |> String.reverse()
-          |> String.codepoints()
-          |> Enum.chunk_every(3)
-          |> Enum.map(&Enum.join/1)
-          |> Enum.join(",")
-          |> String.reverse()
+      if count >= 10_001 do
+        "10,000+"
+      else
+        count
+        |> Integer.to_string()
+        |> String.reverse()
+        |> String.codepoints()
+        |> Enum.chunk_every(3)
+        |> Enum.map_join(",", &Enum.join/1)
+        |> String.reverse()
       end
     end
 
@@ -1370,12 +1367,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp safe_validate(filters) do
-      try do
-        Threadline.Query.validate_timeline_filters!(filters)
-        :ok
-      rescue
-        e in ArgumentError -> {:error, e.message}
-      end
+      Threadline.Query.validate_timeline_filters!(filters)
+      :ok
+    rescue
+      e in ArgumentError -> {:error, e.message}
     end
 
     defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)
