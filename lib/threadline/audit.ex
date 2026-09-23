@@ -188,9 +188,8 @@ defmodule Threadline.Audit do
   defp finalize_success(repo, resolved, result) do
     case resolved.action_name do
       nil ->
-        with :ok <- apply_capture_meta(repo, resolved),
-             result_with_id <- attach_audit_transaction_id(repo, resolved, result) do
-          result_with_id
+        with :ok <- apply_capture_meta(repo, resolved) do
+          attach_audit_transaction_id(repo, resolved, result)
         end
 
       action_name ->
