@@ -34,9 +34,8 @@ defmodule Threadline.Query.FilterParams do
   @spec parse(map()) :: {:ok, keyword()} | {:error, String.t()}
   def parse(params) when is_map(params) do
     with normalized <- normalize_params(params),
-         {:ok, with_datetimes} <- parse_datetimes(normalized),
-         {:ok, with_actor_ref} <- collapse_actor_ref(with_datetimes) do
-      {:ok, with_actor_ref}
+         {:ok, with_datetimes} <- parse_datetimes(normalized) do
+      collapse_actor_ref(with_datetimes)
     end
   end
 
@@ -182,10 +181,8 @@ defmodule Threadline.Query.FilterParams do
   end
 
   defp safe_actor_kind(kind) when is_binary(kind) do
-    try do
-      {:ok, String.to_existing_atom(kind)}
-    rescue
-      ArgumentError -> {:error, :unknown_actor_type}
-    end
+    {:ok, String.to_existing_atom(kind)}
+  rescue
+    ArgumentError -> {:error, :unknown_actor_type}
   end
 end
