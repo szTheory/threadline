@@ -1,6 +1,8 @@
 defmodule Threadline.Health.CoverageSchemas do
   @moduledoc false
 
+  alias Ecto.Adapters.SQL
+
   @schema_regex ~r/\A[a-z_][a-z0-9_]{0,62}\z/
 
   @doc """
@@ -22,7 +24,7 @@ defmodule Threadline.Health.CoverageSchemas do
     if schema =~ @schema_regex do
       sql = "SELECT 1 FROM pg_namespace WHERE nspname = $1 LIMIT 1"
 
-      case Ecto.Adapters.SQL.query!(repo, sql, [schema]) do
+      case SQL.query!(repo, sql, [schema]) do
         %{rows: []} -> {:error, "Schema #{schema} was not found."}
         %{rows: _} -> {:ok, schema}
       end
@@ -44,7 +46,7 @@ defmodule Threadline.Health.CoverageSchemas do
     ORDER BY schemaname
     """
 
-    %{rows: rows} = Ecto.Adapters.SQL.query!(repo, sql, [])
+    %{rows: rows} = SQL.query!(repo, sql, [])
     List.flatten(rows)
   end
 end
