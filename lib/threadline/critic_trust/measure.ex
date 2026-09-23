@@ -53,6 +53,8 @@ defmodule Threadline.CriticTrust.Measure do
     end)
   end
 
+  # Phase 204 (STRUCT-07): cyclomatic complexity 18 — split measure_lens/4 into per-metric steps
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp measure_lens(lens, items, scores, rubric_versions) do
     current_version = Map.get(rubric_versions || %{}, lens)
 
