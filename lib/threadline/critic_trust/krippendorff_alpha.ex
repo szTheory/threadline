@@ -41,6 +41,8 @@ defmodule Threadline.CriticTrust.KrippendorffAlpha do
       #   v1 != v2  →  +1 to o_{v1,v2} and +1 to o_{v2,v1}  (symmetric)
       coincidences =
         Enum.reduce(pairs, %{}, fn {v1, v2}, acc ->
+          # Phase 204 (STRUCT-07): if inside reduce fn — extract the coincidence accumulator
+          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
           if v1 == v2 do
             Map.update(acc, {v1, v1}, 2, &(&1 + 2))
           else
@@ -134,16 +136,15 @@ defmodule Threadline.CriticTrust.KrippendorffAlpha do
               Map.get(coincidences, {v, v2}, 0) * w
 
             :expected ->
-              e =
-                if v == v2 do
-                  # Diagonal: n_v choose 2 (coincidences within the same category)
-                  freq[v] * (freq[v] - 1) / (n - 1)
-                else
-                  # Off-diagonal: product of marginals, normalised by n−1
-                  freq[v] * freq[v2] / (n - 1)
-                end
-
-              e * w
+              # Phase 204 (STRUCT-07): diagonal if inside reduce fn — extract the expected term
+              # credo:disable-for-next-line Credo.Check.Refactor.Nesting
+              if v == v2 do
+                # Diagonal: n_v choose 2 (coincidences within the same category)
+                freq[v] * (freq[v] - 1) / (n - 1) * w
+              else
+                # Off-diagonal: product of marginals, normalised by n−1
+                freq[v] * freq[v2] / (n - 1) * w
+              end
           end
 
         acc + contribution
