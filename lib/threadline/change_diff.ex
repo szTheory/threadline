@@ -81,7 +81,7 @@ defmodule Threadline.ChangeDiff do
   `changed_from` to `%{}` when nil. Nested `"transaction"` and `"action"` are **not**
   included unless future versions add optional preload parameters.
   """
-  @spec from_audit_change(%AuditChange{}, keyword()) :: map()
+  @spec from_audit_change(AuditChange.t(), keyword()) :: map()
   def from_audit_change(%AuditChange{} = ch, opts \\ []) do
     if Keyword.get(opts, :format) == :export_compat do
       export_compat_map(ch)
