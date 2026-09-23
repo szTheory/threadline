@@ -108,22 +108,8 @@ defmodule Threadline.ChangeDiff do
   defp datetime_iso(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
   defp datetime_iso(nil), do: nil
 
-  # Structural debt: complexity 11 — split primary_map/2 op normalization out
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp primary_map(%AuditChange{} = ch, opts) do
-    # Capture persists lowercase per DB constraint (`lower(TG_OP)` in triggers).
-    op =
-      case ch.op do
-        "insert" -> "INSERT"
-        "update" -> "UPDATE"
-        "delete" -> "DELETE"
-        o when o in ["INSERT", "UPDATE", "DELETE"] -> o
-        other -> other
-      end
-
-    unless op in ["INSERT", "UPDATE", "DELETE"] do
-      raise ArgumentError, "unsupported op: #{inspect(ch.op)}"
-    end
+    op = normalize_op!(ch.op)
 
     base = %{
       "schema_version" => @schema_version,
@@ -138,17 +124,19 @@ defmodule Threadline.ChangeDiff do
       "data_after" => ch.data_after
     }
 
-    case op do
-      "INSERT" ->
-        Map.put(base, "field_changes", insert_field_changes(ch, opts))
-
-      "UPDATE" ->
-        Map.put(base, "field_changes", update_field_changes(ch))
-
-      "DELETE" ->
-        Map.put(base, "field_changes", [])
-    end
+    Map.put(base, "field_changes", field_changes(op, ch, opts))
   end
+
+  # Capture persists lowercase per DB constraint (`lower(TG_OP)` in triggers).
+  defp normalize_op!("insert"), do: "INSERT"
+  defp normalize_op!("update"), do: "UPDATE"
+  defp normalize_op!("delete"), do: "DELETE"
+  defp normalize_op!(op) when op in ["INSERT", "UPDATE", "DELETE"], do: op
+  defp normalize_op!(other), do: raise(ArgumentError, "unsupported op: #{inspect(other)}")
+
+  defp field_changes("INSERT", ch, opts), do: insert_field_changes(ch, opts)
+  defp field_changes("UPDATE", ch, _opts), do: update_field_changes(ch)
+  defp field_changes("DELETE", _ch, _opts), do: []
 
   defp before_values_signal(nil), do: "none"
   defp before_values_signal(%{}), do: "sparse"
