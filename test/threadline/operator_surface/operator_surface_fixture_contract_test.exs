@@ -147,9 +147,8 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
            {:ok, synthetic} <- decode_json(root, "golden/synthetic-set.json"),
            {:ok, refute} <- decode_json(root, "refute/refute-set.json"),
            {:ok, scorecards} <- decode_scorecards(root, manifest_paths),
-           :ok <- validate_aria_pairs(manifest_paths),
-           :ok <- validate_references(ledger, golden, synthetic, refute, scorecards) do
-        :ok
+           :ok <- validate_aria_pairs(manifest_paths) do
+        validate_references(ledger, golden, synthetic, refute, scorecards)
       end
     else
       {:error, {:missing_root, root}}
