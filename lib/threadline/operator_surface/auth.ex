@@ -6,6 +6,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Phoenix.LiveView
 
+    alias Threadline.Semantics.ActorRef
+
     def on_mount(opts, _params, session, socket) do
       authorize_fn = Keyword.get(opts, :authorize_fn, fn _socket -> true end)
       scope_query_fn = Keyword.get(opts, :scope_query_fn)
@@ -103,7 +105,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       case Map.get(session, "threadline_actor_ref") do
         serialized when is_binary(serialized) ->
           with {:ok, decoded} <- Jason.decode(serialized),
-               {:ok, actor_ref} <- Threadline.Semantics.ActorRef.from_map(decoded) do
+               {:ok, actor_ref} <- ActorRef.from_map(decoded) do
             Phoenix.Component.assign(socket, :threadline_actor_ref, actor_ref)
           else
             _ -> socket
@@ -123,7 +125,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         scope_actor_ref ->
           case Map.get(socket.assigns, :threadline_actor_ref) do
-            %Threadline.Semantics.ActorRef{} = session_actor_ref ->
+            %ActorRef{} = session_actor_ref ->
               if session_actor_ref != scope_actor_ref do
                 emit_actor_mismatch(session_actor_ref, scope_actor_ref)
               end
@@ -143,7 +145,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp legacy_user_id_to_actor(nil), do: nil
 
     defp legacy_user_id_to_actor(id) when is_binary(id) or is_integer(id) do
-      case Threadline.Semantics.ActorRef.new(:user, to_string(id)) do
+      case ActorRef.new(:user, to_string(id)) do
         {:ok, ref} -> ref
         _ -> nil
       end
@@ -154,8 +156,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         [:threadline, :operator_surface, :actor_ref_mismatch],
         %{count: 1},
         %{
-          session_actor_ref: Threadline.Semantics.ActorRef.to_map(session_actor_ref),
-          scope_actor_ref: Threadline.Semantics.ActorRef.to_map(scope_actor_ref)
+          session_actor_ref: ActorRef.to_map(session_actor_ref),
+          scope_actor_ref: ActorRef.to_map(scope_actor_ref)
         }
       )
     end
