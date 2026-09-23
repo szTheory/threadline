@@ -2,6 +2,8 @@ defmodule Threadline.AdoptionPilotDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  alias Mix.Tasks.Release.Pins
+
   @guide "guides/adoption-pilot-backlog.md"
   @release_please_config "release-please-config.json"
   @version Threadline.MixProject.project()[:version]
@@ -15,7 +17,7 @@ defmodule Threadline.AdoptionPilotDocContractTest do
     # moment that writer does its job at a version bump — the born-red shape
     # Plan 202-09 removed from release_artifact_contract_test.exs (which carries
     # the full rationale) and the bump rehearsal found four more copies of.
-    assert String.contains?(guide, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}")
+    assert String.contains?(guide, "~> #{Pins.target_pin_version()}")
     refute String.contains?(guide, "~> 0.6")
     refute String.contains?(guide, "~> 0.5")
     refute String.contains?(guide, "0.2.0")
