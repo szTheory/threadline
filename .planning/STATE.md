@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 203
-current_phase_name: Real Gates
-status: verifying
-stopped_at: Completed 203-10-PLAN.md
-last_updated: "2026-09-23T12:53:59.075Z"
+current_phase: 204
+current_phase_name: Structure
+status: planning
+stopped_at: Phase 203 complete, ready to plan Phase 204
+last_updated: "2026-09-23T13:21:23.362Z"
 last_activity: 2026-09-23
-last_activity_desc: "Plan 203-10 complete (.credo.exs rebuilt as credo 1.7.18 scaffolding + 3 extra deltas, disabled: []; config-shape contract; credo 69 checks / 0 issues, dialyzer 0, xref 0, ci.all green; phase 203 ready for verification)"
-state_head: bbca40520807e0d59861594c7df3e89af3ad40f5
+last_activity_desc: Phase 203 complete, transitioned to Phase 204
+state_head: 0caf83da2dea5699c8558a377bd01fd85695143e
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 130
   completed_plans: 130
-  percent: 71
+  percent: 86
 ---
 
 # Project State: Threadline
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 203 (Real Gates) — EXECUTING
-Plan: 10 of 10
-Status: Phase complete — ready for verification
+Phase: 204 — Structure
+Plan: Not started
+Status: Ready to plan
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-22 — Plan 203-05 complete: Design.AliasUsage paid to 0 tree-wide (last 187 findings in 20 test/threadline/operator_surface/ files); 313 → 126 total findings; 3 directory-batched `refactor(203-05)` commits
+Last activity: 2026-09-23 — Phase 203 complete, transitioned to Phase 204
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 120/120 plans ([███████░░░] 71% of phases — 5 of 7 complete: 198–202; 203 and 204 not started; 199, 200 and 201 carry stale verification)
+Progress: [████████████████████] 130/130 plans ([█████████░] 86% of phases — 6 of 7 complete: 198–203; 204 not started; 199, 200 and 201 carry stale verification)
 
 ## Performance Metrics
 
@@ -805,7 +805,7 @@ Progress: [████████████████████] 120/120
 ## Session Continuity
 
 **Last session:** 2026-09-23T12:53:58.922Z
-**Stopped at:** Completed 203-10-PLAN.md
+**Stopped at:** Phase 203 complete, ready to plan Phase 204
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
