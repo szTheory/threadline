@@ -29,9 +29,8 @@ defmodule Threadline.Application do
 
   defp validate_configured_adapters do
     if default_repo() do
-      with :ok <- validate_adapter(:storage_adapter, Threadline.Storage.Local),
-           :ok <- validate_adapter(:export_queue_adapter, Threadline.ExportQueue.TaskAdapter) do
-        :ok
+      with :ok <- validate_adapter(:storage_adapter, Threadline.Storage.Local) do
+        validate_adapter(:export_queue_adapter, Threadline.ExportQueue.TaskAdapter)
       end
     else
       :ok
