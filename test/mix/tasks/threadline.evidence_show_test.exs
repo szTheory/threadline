@@ -3,6 +3,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
 
   import ExUnit.CaptureIO
 
+  alias Mix.Tasks.Threadline.Evidence.Show
   alias Threadline.Governance.EvidenceRecord
 
   setup do
@@ -36,7 +37,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
 
     output =
       capture_io(fn ->
-        assert :ok = Mix.Tasks.Threadline.Evidence.Show.run([])
+        assert :ok = Show.run([])
       end)
 
     assert output =~ "Evidence proof overview"
@@ -53,7 +54,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
 
     output =
       capture_io(fn ->
-        assert :ok = Mix.Tasks.Threadline.Evidence.Show.run(["--json"])
+        assert :ok = Show.run(["--json"])
       end)
 
     document = Jason.decode!(output)
@@ -83,7 +84,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
     output =
       capture_io(fn ->
         assert :ok =
-                 Mix.Tasks.Threadline.Evidence.Show.run([
+                 Show.run([
                    "--subject",
                    "retention_run",
                    "--subject-ref-json",
@@ -109,13 +110,13 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
 
   test "threadline.evidence.show fails fast on unknown flags" do
     assert_raise Mix.Error, ~r/unknown option\(s\): --histroy/, fn ->
-      Mix.Tasks.Threadline.Evidence.Show.run(["--histroy"])
+      Show.run(["--histroy"])
     end
   end
 
   test "threadline.evidence.show requires --subject when --subject-ref-json is present" do
     assert_raise Mix.Error, ~r/--subject-ref-json requires --subject/, fn ->
-      Mix.Tasks.Threadline.Evidence.Show.run([
+      Show.run([
         "--subject-ref-json",
         ~s({"run_id":"ret-run-1"})
       ])
@@ -138,7 +139,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
     json_output =
       capture_io(fn ->
         assert :ok =
-                 Mix.Tasks.Threadline.Evidence.Show.run([
+                 Show.run([
                    "--subject",
                    "support_scope_posture",
                    "--json"
@@ -148,7 +149,7 @@ defmodule Mix.Tasks.Threadline.Evidence.ShowTest do
     human_output =
       capture_io(fn ->
         assert :ok =
-                 Mix.Tasks.Threadline.Evidence.Show.run([
+                 Show.run([
                    "--subject",
                    "support_scope_posture"
                  ])

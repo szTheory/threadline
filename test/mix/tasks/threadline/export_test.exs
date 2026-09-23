@@ -3,6 +3,7 @@ defmodule Mix.Tasks.Threadline.ExportTest do
 
   import ExUnit.CaptureIO
 
+  alias Mix.Tasks.Threadline.Export
   alias Threadline.Capture.{AuditChange, AuditTransaction}
 
   @repo Threadline.Test.Repo
@@ -34,7 +35,7 @@ defmodule Mix.Tasks.Threadline.ExportTest do
 
     out =
       capture_io(fn ->
-        Mix.Tasks.Threadline.Export.run(["--dry-run", "--table", tname])
+        Export.run(["--dry-run", "--table", tname])
       end)
 
     assert out =~ "matching_rows=1"
