@@ -185,6 +185,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             offenders =
               if is_card? and ancestor_card?, do: [class | offenders], else: offenders
 
+            # Structural debt: void? if inside case inside reduce fn — extract the start-tag stack step
+            # credo:disable-for-next-line Credo.Check.Refactor.Nesting
             if void? do
               {stack, offenders}
             else
