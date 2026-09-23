@@ -20,21 +20,19 @@ defmodule Threadline.OperatorSurface.SessionPlug do
 
   @impl Plug
   def call(conn, %{actor_fn: actor_fn}) do
-    try do
-      case actor_fn.(conn) do
-        %ActorRef{} = actor_ref ->
-          serialized = actor_ref |> ActorRef.to_map() |> Jason.encode!()
+    case actor_fn.(conn) do
+      %ActorRef{} = actor_ref ->
+        serialized = actor_ref |> ActorRef.to_map() |> Jason.encode!()
 
-          conn
-          |> assign(:threadline_actor_ref, actor_ref)
-          |> put_session("threadline_actor_ref", serialized)
+        conn
+        |> assign(:threadline_actor_ref, actor_ref)
+        |> put_session("threadline_actor_ref", serialized)
 
-        _ ->
-          clear_actor(conn)
-      end
-    rescue
-      _ -> clear_actor(conn)
+      _ ->
+        clear_actor(conn)
     end
+  rescue
+    _ -> clear_actor(conn)
   end
 
   defp clear_actor(conn) do
