@@ -15,7 +15,7 @@ defmodule Threadline.Integrations.Sigra do
   Returns an `ActorRef` derived from Sigra request state, or `nil` when the
   request does not carry a supported Sigra actor shape.
   """
-  @spec actor_ref_from_conn(Plug.Conn.t()) :: %ActorRef{} | nil
+  @spec actor_ref_from_conn(Plug.Conn.t()) :: ActorRef.t() | nil
   def actor_ref_from_conn(conn) do
     if sigra_available?() do
       conn
@@ -55,7 +55,7 @@ defmodule Threadline.Integrations.Sigra do
   @doc """
   Returns the adapter callback in a form suitable for `Threadline.Plug`.
   """
-  @spec actor_fn() :: (Plug.Conn.t() -> %ActorRef{} | nil)
+  @spec actor_fn() :: (Plug.Conn.t() -> ActorRef.t() | nil)
   def actor_fn, do: &actor_ref_from_conn/1
 
   defp header_correlation_id?(conn) do
