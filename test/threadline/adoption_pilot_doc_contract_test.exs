@@ -89,7 +89,7 @@ defmodule Threadline.AdoptionPilotDocContractTest do
     guide = File.read!(@guide)
 
     assert String.contains?(guide, "mix ci.all")
-    assert String.contains?(guide, "mix verify.doc_contract")
+    assert String.contains?(guide, "mix verify.test")
 
     for step <- [
           "verify.format",

@@ -4,7 +4,8 @@
  * Output tree: <cell_id>/<lens>/<dimension>.json
  *
  * INVARIANT: NEVER writes under committed scorecards — that tree is the deterministic
- * committed bundle gated by verify.mechanical in ci.all. LLM output goes ONLY under
+ * committed bundle gated by mechanical_checker_test, which runs in `mix verify.test` (and so
+ * in ci.all). LLM output goes ONLY under
  * critic-scores/. This is enforced by the guard in critic_trust_test.exs.
  *
  * Stamping fields (D-07/RUNNER-02): every output file includes model_id, rubric_version,

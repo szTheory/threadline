@@ -21,6 +21,11 @@ defmodule Threadline.PublicSurfaceContractTest do
     Threadline.OperatorSurface.Exports.FilterParams => Threadline.Query.FilterParams,
     Threadline.OperatorSurface.Scope => Threadline.Query.Scope
   }
+  # The same history rule for Mix aliases that were deleted after release: a retired
+  # alias is accepted as a reference in CHANGELOG.md only, and the register is itself
+  # asserted below (gone from mix.exs, still named in the changelog).
+  # Assembled so this file's own text never contains the retired alias name as a literal.
+  @retired_aliases ["verify." <> "doc_contract"]
   @module_owner_tags [
     :module_visibility_seed,
     :module_visibility_capture,
@@ -307,6 +312,18 @@ defmodule Threadline.PublicSurfaceContractTest do
     end
   end
 
+  test "every retired alias is gone from mix.exs and the changelog still names it" do
+    changelog = File.read!(@changelog_subject)
+
+    for name <- @retired_aliases do
+      refute MapSet.member?(discovered_aliases(), name),
+             "#{name} is a Mix alias again; remove it from @retired_aliases"
+
+      assert String.contains?(changelog, name),
+             "#{@changelog_subject} no longer names #{name}; remove it from @retired_aliases"
+    end
+  end
+
   @tag :public_doc_references
   @tag :phase200_red
   @tag :phase200_aggregate
@@ -520,8 +537,13 @@ defmodule Threadline.PublicSurfaceContractTest do
     }
   end
 
-  defp inventory_for(@changelog_subject, inventory),
-    do: %{inventory | modules: inventory.modules ++ Map.keys(@renamed_modules)}
+  defp inventory_for(@changelog_subject, inventory) do
+    %{
+      inventory
+      | modules: inventory.modules ++ Map.keys(@renamed_modules),
+        aliases: inventory.aliases ++ @retired_aliases
+    }
+  end
 
   defp inventory_for(_subject, inventory), do: inventory
 

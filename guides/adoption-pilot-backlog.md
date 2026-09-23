@@ -2,7 +2,7 @@
 
 Use this with [`production-checklist.md`](production-checklist.md) when you first run Threadline in a **staging or production-like** environment. Copy rows into issues when something fails; keep **Evidence** (logs, SQL, config redacted) so maintainers can reproduce.
 
-**Evidence pass:** Rows below cite **integration tests** under `test/`, **`config/test.exs`**, and **`.github/workflows/ci.yml`**. The canonical local maintainer gate is **`DB_PORT=5433 MIX_ENV=test mix ci.all`**, which runs (in order): `mix verify.format` → `mix verify.credo` → `mix compile --warnings-as-errors` → `mix verify.xref_cycles` → `mix verify.compile_no_optional` → `mix verify.test` → `mix verify.threadline` → `mix verify.example` → `mix verify.doc_contract`. See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for Postgres/Compose setup and the CI job table. **PgBouncer transaction pooling** is additionally exercised in CI by job **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through pooler) — see **Connection topology** and **CI-PGBOUNCER-TOPOLOGY-CONTRACT** below.
+**Evidence pass:** Rows below cite **integration tests** under `test/`, **`config/test.exs`**, and **`.github/workflows/ci.yml`**. The canonical local maintainer gate is **`DB_PORT=5433 MIX_ENV=test mix ci.all`**, which runs (in order): `mix verify.format` → `mix verify.credo` → `mix compile --warnings-as-errors` → `mix verify.xref_cycles` → `mix verify.compile_no_optional` → `mix verify.test` → `mix verify.threadline` → `mix verify.example`, then Dialyzer and the browser lane. See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for Postgres/Compose setup and the CI job table. **PgBouncer transaction pooling** is additionally exercised in CI by job **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through pooler) — see **Connection topology** and **CI-PGBOUNCER-TOPOLOGY-CONTRACT** below.
 
 Distribution preflight below reflects the **0.9.0** tree (`mix.exs` `@version` is SSOT); lane and upgrade narrative live in [`guides/upgrade-path.md`](upgrade-path.md). <!-- x-release-please-version -->
 
@@ -130,7 +130,7 @@ These do **not** replace a host pilot when production uses **PgBouncer** or besp
 | Check | Status | Evidence |
 |-------|--------|----------|
 | PostgreSQL integration tests | OK | `test/` — capture, retention, export, continuity, semantics. |
-| Full maintainer CI chain | OK | Same nine steps as **Evidence pass** above (`mix verify.format` → `mix verify.credo` → `mix compile --warnings-as-errors` → `mix verify.xref_cycles` → `mix verify.compile_no_optional` → `mix verify.test` → `mix verify.threadline` → `mix verify.example` → `mix verify.doc_contract` via `mix ci.all` in `mix.exs`). See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for env setup. Green on **`main`** via GitHub Actions. |
+| Full maintainer CI chain | OK | Same eight named steps as **Evidence pass** above (`mix verify.format` → `mix verify.credo` → `mix compile --warnings-as-errors` → `mix verify.xref_cycles` → `mix verify.compile_no_optional` → `mix verify.test` → `mix verify.threadline` → `mix verify.example` via `mix ci.all` in `mix.exs`). See [`CONTRIBUTING.md`](../CONTRIBUTING.md) for env setup. Green on **`main`** via GitHub Actions. |
 | PgBouncer transaction pool (CI) | OK | **`.github/workflows/ci.yml`** → **`verify-pgbouncer-topology`**; `mix verify.topology` (`test/threadline/pgbouncer_topology_test.exs`). |
 
 ## Prioritized issues from pilot

@@ -111,9 +111,8 @@ Threadline repository.
 | `mix verify.format` | Check the formatter-owned source tree. |
 | `mix verify.credo` | Run the repository's Credo policy. |
 | `mix verify.dialyzer` | Run the configured Dialyzer analysis without rebuilding the PLT. |
-| `mix verify.test` | Run the root ExUnit suite. |
+| `mix verify.test` | Run the root ExUnit suite, including every public documentation contract test. |
 | `mix verify.threadline` | Run the configured positive-list trigger-coverage gate. |
-| `mix verify.doc_contract` | Run public documentation contract tests. |
 | `mix verify.release` | Validate the clean, taggable release shape, documentation, and Hex archive. |
 | `mix verify.topology` | Invoke the repository-only PgBouncer topology task. |
 | `mix verify.example` | Compile and test the Phoenix reference application. |
