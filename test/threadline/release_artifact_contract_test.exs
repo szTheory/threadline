@@ -2,6 +2,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
   @moduledoc false
   use ExUnit.Case, async: false
 
+  alias Mix.Tasks.Release.Pins
+
   @banned_shapes [
     {:phase_prose, ~r/\bPhase\s+\d+(?:\.\d+)?\b/i},
     {:phase_identifier, ~r/\bphase[_-]?\d+(?:[_-][a-z0-9_]+)?\b/i},
@@ -352,7 +354,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     # derivation and this contract consults it: one rule, one owner, two
     # readers. Reimplementing `major.minor.0` here would be the same drift
     # footgun one step removed.
-    expected_pin = ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+    expected_pin = ~s({:threadline, "~> #{Pins.target_pin_version()}"})
 
     assert String.contains?(readme, expected_pin),
            "README.md does not carry the install pin derived from mix.exs @version.\n" <>
