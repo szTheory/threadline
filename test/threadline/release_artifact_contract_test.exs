@@ -54,8 +54,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
   defp guide_extras do
     docs_config()[:extras]
-    |> Enum.filter(&is_binary/1)
-    |> Enum.filter(&String.starts_with?(&1, "guides/"))
+    |> Enum.filter(&(is_binary(&1) and String.starts_with?(&1, "guides/")))
     |> MapSet.new()
   end
 
