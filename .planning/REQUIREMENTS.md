@@ -87,6 +87,7 @@
 - [ ] **STRUCT-04**: Separator comments no longer stand in for module or function boundaries in `lib/`.
 - [ ] **STRUCT-05**: Test files share endpoint and router case templates from `test/support/` instead of hand-rolling their own, except where a per-file difference is deliberate and documented.
 - [ ] **STRUCT-06**: `ci.all` contains no step that re-runs assertions another step already ran, and no second, drift-prone definition of which contract tests matter.
+- [ ] **STRUCT-07**: The Credo structural register (Refactor.Nesting and Refactor.CyclomaticComplexity per-site disables in lib/ and test/) is drained to zero and its ceiling pinned at 0, or each remaining site is re-registered with its exact count and a named successor beyond v1.41, with the ceiling lowered to match.
 
 ## Future Requirements
 
@@ -193,6 +194,7 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | STRUCT-04 | Phase 204 | Pending |
 | STRUCT-05 | Phase 204 | Pending |
 | STRUCT-06 | Phase 204 | Pending |
+| STRUCT-07 | Phase 204 | Pending |
 
 ## Phase 198 Round 7 Plan 42 status note — 2026-09-08
 
@@ -217,8 +219,8 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 
 **Coverage:**
 
-- v1.41 requirements: 53 total (GREEN 12, DECOUPLE 8, SURFACE 11, RENDER 6, RELEASE 5, GATE 5, STRUCT 6)
-- Mapped to phases: 53 ✓
+- v1.41 requirements: 54 total (GREEN 12, DECOUPLE 8, SURFACE 11, RENDER 6, RELEASE 5, GATE 5, STRUCT 7)
+- Mapped to phases: 54 ✓
 - Unmapped: 0
 
 **Per-phase distribution:**
@@ -231,9 +233,10 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | 201 | Rendered Output | RENDER-01..RENDER-06 | 6 |
 | 202 | Release 0.10.0 | RELEASE-01..RELEASE-05 | 5 |
 | 203 | Real Gates | GATE-01..GATE-05 | 5 |
-| 204 | Structure | STRUCT-01..STRUCT-06 | 6 |
-| | **Total** | | **53** |
+| 204 | Structure | STRUCT-01..STRUCT-07 | 7 |
+| | **Total** | | **54** |
 
 ---
 *Requirements defined: 2026-08-27*
 *Last updated: 2026-08-27 at roadmap creation (Phases 198-204 mapped, 53/53)*
+*Last updated: 2026-09-22 — STRUCT-07 added by Phase 203 per D-27 (54/54 mapped)*

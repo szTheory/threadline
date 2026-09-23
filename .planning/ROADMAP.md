@@ -788,13 +788,14 @@ Plans:
 
 **Goal**: The largest files become legible — `style.ex` split behind an executable byte-hash lock, the render monsters extracted, separator comments replaced by real boundaries, shared test case templates adopted — without changing a byte of output, and with the redundant second definition of "which contract tests matter" deleted rather than preserved.
 **Depends on**: Phase 203 (full-Credo findings requiring extraction are filed here) and Phase 199 (dialyzer typechecks each refactor)
-**Requirements**: STRUCT-01, STRUCT-02, STRUCT-03, STRUCT-04, STRUCT-05, STRUCT-06
+**Requirements**: STRUCT-01, STRUCT-02, STRUCT-03, STRUCT-04, STRUCT-05, STRUCT-06, STRUCT-07
 **Success Criteria** (what must be TRUE):
 
   1. The emitted CSS is locked by a committed content hash gated in `ci.all`, proving byte-equality across refactors, and the style module is split into ordered, individually-legible segments with that hash unchanged at every intermediate commit. (STRUCT-01, STRUCT-02)
   2. No file in `lib/` exceeds roughly 800 lines and no function roughly 120 lines, or the exception is named with a stated reason; and separator comments no longer stand in for module or function boundaries in `lib/`. (STRUCT-03, STRUCT-04)
   3. Test files share endpoint and router case templates from `test/support/` instead of hand-rolling their own, except where a per-file difference is deliberate and documented. (STRUCT-05)
   4. `ci.all` contains no step that re-runs assertions another step already ran, and no second, drift-prone definition of which contract tests matter. (STRUCT-06)
+  5. The `credo_config_contract_test` structural ceiling is ratcheted from 41 to 0, or every remaining site names a post-v1.41 successor. (STRUCT-07)
 
 **Plans**: TBD (est. 5 — CSS hash freeze · style-source test indirection · mechanical style split · render-monster extraction and banner-comment removal · shared case templates and `verify.doc_contract` deletion)
 
@@ -804,6 +805,7 @@ Plans:
 - **The split, in four independently revertible commits:** (1) **freeze the bytes first** — commit a SHA-256 test over `Style.css/1`'s rendered output across the full theme matrix *before touching anything*, pinning or stubbing `Fonts.face_css()` for determinism; this converts "byte-stable frozen" from a milestone convention into an executable gate, strictly stronger than today's source-text assertions. **If the hash cannot be made stable, stop** — that means the frozen invariant was never verifiable, which is itself the finding. (2) Introduce `style_source/0` in `style_contract_test.exs` with `@style_sources` still one element, proving the suite green, isolating the test refactor from the code refactor and avoiding a rewrite of 40+ `File.read!(@style_path)` sites. (3) Split mechanically into ordered `defp` segments returning plain heredocs — everything after `{@fonts_html}<style>` is static, no `:for`, no `:if`, one interpolation point — **splitting at the existing section markers**, because assertions at lines 198-200, 215-217, 265-267, 291-293, 522-524, 1259-1261 slice on them and assume adjacency; use an explicit ordered list, never `Path.wildcard` ordering. (4) Prove the hash and the suite.
 - Render monsters: `stress_live.ex:79` (540 lines), `export_status_live.ex:115` (244), `timeline_live.ex:636` (201), and six more ≥135. 33 banner comments stand in for module boundaries. 17 test files hand-roll `Phoenix.Endpoint` and 19 hand-roll `Phoenix.Router` — migrate one file per commit, since a per-file config difference may be load-bearing.
 - **`verify.doc_contract`: delete it, do not glob it.** Verified: `mix.exs` sets no `test_paths`, so `mix test` already runs all 44 `*_contract_test.exs`. The alias re-runs 22 of them a third step later in the same `ci.all` chain — 100% redundant — and the 20-file gap (register row D-197-B) went unnoticed for exactly as long as it did *because* the duplication made it look like something was being checked that `mix test` was already checking. Glob-ifying preserves the cause. Remove it from `aliases/0`, `ci.all`, `preferred_cli_env`, the `verify-test` job step, and the docs that cite it.
+- Credo structural register (from Phase 203; enforced in source by `test/threadline/credo_config_contract_test.exs`, this is a mirror only): Refactor.Nesting 25, Refactor.CyclomaticComplexity 16, ceiling 41, historical max 46; 4 Nesting sites were flattened in place in 203.
 
 **UI hint**: no
 
