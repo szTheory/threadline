@@ -15,7 +15,7 @@ defmodule Threadline.Test.SourceFamilyTest do
   end
 
   test "a file with no sibling directory reads as exactly itself" do
-    path = "lib/threadline/operator_surface/ui.ex"
+    path = "lib/threadline/query/filter_params.ex"
 
     assert SourceFamily.files!(path) == [Path.join(@root, path)]
     assert SourceFamily.read!(path) == File.read!(Path.join(@root, path))

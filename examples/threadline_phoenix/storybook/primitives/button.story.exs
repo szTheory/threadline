@@ -32,17 +32,17 @@ defmodule ThreadlinePhoenixWeb.Storybook.Primitives.ButtonStory do
           <UI.page_header title="Audit Transaction primitives">
             <:lede>Use these private components to filter, scan, open, copy, compare, refresh, and return.</:lede>
             <:actions>
-              <UI.button variant="primary"><%= @fixtures.button.primary_label %></UI.button>
-              <UI.button variant="secondary" disabled><%= @fixtures.button.disabled_label %></UI.button>
+              <UI.Actions.button variant="primary"><%= @fixtures.button.primary_label %></UI.Actions.button>
+              <UI.Actions.button variant="secondary" disabled><%= @fixtures.button.disabled_label %></UI.Actions.button>
             </:actions>
           </UI.page_header>
 
           <UI.cluster>
-            <UI.button variant="primary">Open Audit Transaction</UI.button>
-            <UI.button variant="secondary">Refresh Timeline</UI.button>
-            <UI.button variant="danger">Confirm prune</UI.button>
-            <UI.icon_button aria-label={@fixtures.icon_button.label}>Copy</UI.icon_button>
-            <UI.link href={@fixtures.link.href}><%= @fixtures.link.label %></UI.link>
+            <UI.Actions.button variant="primary">Open Audit Transaction</UI.Actions.button>
+            <UI.Actions.button variant="secondary">Refresh Timeline</UI.Actions.button>
+            <UI.Actions.button variant="danger">Confirm prune</UI.Actions.button>
+            <UI.Actions.icon_button aria-label={@fixtures.icon_button.label}>Copy</UI.Actions.icon_button>
+            <UI.Actions.link href={@fixtures.link.href}><%= @fixtures.link.label %></UI.Actions.link>
           </UI.cluster>
 
           <UI.divider />

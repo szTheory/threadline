@@ -17,6 +17,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   import Phoenix.LiveViewTest
 
   alias Threadline.OperatorSurface.UI
+  alias Threadline.Test.SourceFamily
   alias Threadline.Test.StyleSource
 
   @ui_source_path "lib/threadline/operator_surface/ui.ex"
@@ -356,7 +357,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
   describe "A11Y-02 APG semantics map" do
     test "custom APG widgets declare the state, popup, and relationship hooks they implement" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       assert src =~ ~s(role="dialog")
       assert src =~ ~s(aria-modal="true")
@@ -392,7 +393,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
 
     test "native/non-applicable categories stay documented instead of gaining misleading ARIA roles" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       assert src =~ ~s(<select id={@id} name={@name}),
              "select remains native HTML, not a custom combobox"
@@ -408,7 +409,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
 
     test "copy controls require explicit names and bind the complete value" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       assert src =~ ~s(attr(:copy_label, :string, required: true),
              "UI.ref/1 must require a specific copy label at every call site"
@@ -470,7 +471,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
   describe "reconnect banner mounted once in shared shell (SEED-005 / D-10, D-11)" do
     test "the shared UI.shell mounts tl-reconnect-banner exactly once, above #tl-main inside .threadline-ui" do
-      src = File.read!(@ui_module)
+      src = SourceFamily.read!(@ui_module)
 
       assert src =~ "def shell(assigns)",
              "ui.ex must define the shared @doc false shell/1 chrome component (D-10)"
@@ -514,7 +515,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
             @ui_module
             | Enum.map(@page_live_views, &Path.join("lib/threadline/operator_surface/live", &1))
           ] do
-        src = File.read!(file)
+        src = SourceFamily.read!(file)
 
         refute String.contains?(src, ".phx-disconnected"),
                "#{file}: .phx-disconnected is a LiveView <1.0 class — connection state anchors on [data-phx-main] with .threadline-ui descendant scoping (D-11)"
@@ -539,7 +540,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   #       handling.
   describe "overlay Esc + click-outside dismiss markers (PAGE-02 #4, D-06)" do
     test "modal and drawer scrims carry a click-outside (phx-click) dismiss marker, independent of #3 focus hooks" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       for {component, scrim_class} <- [
             {"modal", "tl-modal-scrim"},
@@ -590,7 +591,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
 
     test "#9 pager disables at the edges and hides at zero matches (UI.pager contract)" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       pager_def =
         case Regex.run(~r/def pager\(assigns\) do.*?~H"""(.*?)"""/s, src) do

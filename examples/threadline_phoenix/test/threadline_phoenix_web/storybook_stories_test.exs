@@ -36,9 +36,9 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   )
 
   @primitive_contracts [
-    {"button", ["<UI.button"]},
-    {"icon button", ["<UI.icon_button"]},
-    {"link", ["<UI.link"]},
+    {"button", ["<UI.Actions.button"]},
+    {"icon button", ["<UI.Actions.icon_button"]},
+    {"link", ["<UI.Actions.link"]},
     {"badge", ["<UI.badge"]},
     {"alert", ["<UI.alert"]},
     {"divider", ["<UI.divider"]},

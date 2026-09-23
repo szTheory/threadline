@@ -65,8 +65,8 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
               value="ticket.reopened"
               help_text={@groups["toolbar"].body}
             />
-            <UI.button type="button" variant="primary">Apply filters</UI.button>
-            <UI.button type="button" variant="secondary">Reset</UI.button>
+            <UI.Actions.button type="button" variant="primary">Apply filters</UI.Actions.button>
+            <UI.Actions.button type="button" variant="secondary">Reset</UI.Actions.button>
           </UI.toolbar>
 
           <UI.detail_header title="Transaction detail group">
@@ -76,7 +76,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
             </:metadata>
             <:metadata key="Cases"><%= Enum.join(@groups["detail_header"].cases, ", ") %></:metadata>
             <:actions>
-              <UI.button type="button" variant="secondary">Compare changes</UI.button>
+              <UI.Actions.button type="button" variant="secondary">Compare changes</UI.Actions.button>
             </:actions>
           </UI.detail_header>
 
@@ -107,7 +107,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
                 <p id="group-modal-destructive-description" class="tl-page__lede">
                   <%= @groups["modal_destructive"].body %>
                 </p>
-                <UI.button type="button" variant="danger">Prune records permanently</UI.button>
+                <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
               </UI.stack>
             </UI.modal>
 
@@ -117,7 +117,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
           <UI.alert variant="warning" data-tl-mutating>
             <UI.reconnect_banner />
             <span><%= @groups["offline"].body %></span>
-            <UI.button type="button" disabled>Retry while reconnecting</UI.button>
+            <UI.Actions.button type="button" disabled>Retry while reconnecting</UI.Actions.button>
           </UI.alert>
         </UI.stack>
       </.preview_section>

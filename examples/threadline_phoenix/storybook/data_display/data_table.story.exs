@@ -84,8 +84,8 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
             <:metadata key="Current value"><%= @null_fields.current %></:metadata>
             <:metadata key="Timezone boundary"><%= @timezone.utc %> / <%= @timezone.local %></:metadata>
             <:actions>
-              <UI.button type="button" variant="primary">Download current view</UI.button>
-              <UI.button type="button" disabled>Refresh disabled</UI.button>
+              <UI.Actions.button type="button" variant="primary">Download current view</UI.Actions.button>
+              <UI.Actions.button type="button" disabled>Refresh disabled</UI.Actions.button>
             </:actions>
           </UI.detail_header>
 
@@ -98,7 +98,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
               help_text={@disabled.reason}
               disabled={@disabled.disabled}
             />
-            <UI.button type="button" disabled={@disabled.disabled}>Refresh</UI.button>
+            <UI.Actions.button type="button" disabled={@disabled.disabled}>Refresh</UI.Actions.button>
           </UI.toolbar>
 
           <UI.data_table
@@ -116,7 +116,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
             <:col :let={row} label="After"><%= row.current %></:col>
             <:col :let={row} label="Captured"><%= row.captured_at %></:col>
             <:action :let={row}>
-              <UI.link href={"/audit/transactions/#{row.key}"}>Open</UI.link>
+              <UI.Actions.link href={"/audit/transactions/#{row.key}"}>Open</UI.Actions.link>
             </:action>
           </UI.data_table>
 

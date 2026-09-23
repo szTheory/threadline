@@ -13,7 +13,7 @@ defmodule Threadline.OperatorSurface.UIStressTest do
 
         html =
           rendered_to_string(~H"""
-          <UI.button variant={@variant}>Btn</UI.button>
+          <UI.Actions.button variant={@variant}>Btn</UI.Actions.button>
           """)
 
         assert html =~ "tl-button"

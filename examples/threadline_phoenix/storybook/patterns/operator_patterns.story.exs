@@ -48,7 +48,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                 help_text={@toolbar.story_id}
                 disabled={@disabled.disabled}
               />
-              <UI.button type="button" disabled={@disabled.disabled}>Apply</UI.button>
+              <UI.Actions.button type="button" disabled={@disabled.disabled}>Apply</UI.Actions.button>
             </UI.toolbar>
           </UI.card>
 
@@ -60,7 +60,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                 <UI.ref value={@long_id} kind="correlation" copy_label="Copy pattern Audit Transaction reference" />
               </:metadata>
               <:actions>
-                <UI.button type="button" variant="secondary">Return</UI.button>
+                <UI.Actions.button type="button" variant="secondary">Return</UI.Actions.button>
               </:actions>
             </UI.detail_header>
           </UI.card>
@@ -98,7 +98,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                 <p id="pattern-destructive-modal-description" class="tl-page__lede">
                   <%= @modal_destructive.body %>
                 </p>
-                <UI.button type="button" variant="danger">Prune records permanently</UI.button>
+                <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
               </UI.stack>
             </UI.modal>
           </UI.card>
@@ -108,7 +108,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
             <UI.alert variant="warning">
               <UI.reconnect_banner />
               <span><%= @offline.body %></span>
-              <UI.button type="button" disabled>Retry after reconnect</UI.button>
+              <UI.Actions.button type="button" disabled>Retry after reconnect</UI.Actions.button>
             </UI.alert>
           </UI.card>
 

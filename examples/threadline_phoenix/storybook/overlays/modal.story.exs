@@ -60,8 +60,8 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
                 data-tl-initial-focus
               />
               <UI.cluster justify="end">
-                <UI.button type="button" variant="secondary">Cancel</UI.button>
-                <UI.button type="button" variant="danger">Prune records permanently</UI.button>
+                <UI.Actions.button type="button" variant="secondary">Cancel</UI.Actions.button>
+                <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
               </UI.cluster>
             </UI.stack>
           </UI.modal>
@@ -81,7 +81,7 @@ defmodule ThreadlinePhoenixWeb.Storybook.Overlays.ModalStory do
                 value="ticket.reopened"
                 help_text="Keyboard users close this drawer with Escape or Cancel."
               />
-              <UI.button type="button" variant="primary">Apply filters</UI.button>
+              <UI.Actions.button type="button" variant="primary">Apply filters</UI.Actions.button>
             </UI.stack>
           </UI.drawer>
 

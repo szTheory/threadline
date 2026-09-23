@@ -12,7 +12,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.button>Click Me</UI.button>
+        <UI.Actions.button>Click Me</UI.Actions.button>
         """)
 
       assert html =~ "tl-button"
@@ -26,7 +26,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.icon_button>X</UI.icon_button>
+        <UI.Actions.icon_button>X</UI.Actions.icon_button>
         """)
 
       assert html =~ "tl-button"
@@ -41,7 +41,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.link href="/">Home</UI.link>
+        <UI.Actions.link href="/">Home</UI.Actions.link>
         """)
 
       assert html =~ "tl-link"

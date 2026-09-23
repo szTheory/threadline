@@ -372,29 +372,29 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-space-y-4">
                     <h4>Buttons</h4>
                     <div class="tl-flex tl-gap-4 tl-flex-wrap">
-                      <Threadline.OperatorSurface.UI.button>Default</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button variant="primary">Primary</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button variant="quiet-primary">Quiet Primary</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button variant="danger">Danger</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button variant="ghost">Ghost</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.icon_button>X</Threadline.OperatorSurface.UI.icon_button>
+                      <Threadline.OperatorSurface.UI.Actions.button>Default</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button variant="primary">Primary</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button variant="quiet-primary">Quiet Primary</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button variant="danger">Danger</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button variant="ghost">Ghost</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.icon_button>X</Threadline.OperatorSurface.UI.Actions.icon_button>
                       
                       <!-- Interaction matrix -->
-                      <Threadline.OperatorSurface.UI.button class="hover">Hover</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button class="focus-visible">Focus-Visible</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button class="active">Active/Pressed</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button disabled>Disabled</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.Actions.button class="hover">Hover</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button class="focus-visible">Focus-Visible</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button class="active">Active/Pressed</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button disabled>Disabled</Threadline.OperatorSurface.UI.Actions.button>
                     </div>
                   </div>
 
                   <div class="tl-space-y-4">
                     <h4>Links</h4>
                     <div class="tl-flex tl-gap-4 tl-flex-wrap">
-                      <Threadline.OperatorSurface.UI.link href="#">Deep Link</Threadline.OperatorSurface.UI.link>
-                      <Threadline.OperatorSurface.UI.link variant="back" href="#">Back Link</Threadline.OperatorSurface.UI.link>
+                      <Threadline.OperatorSurface.UI.Actions.link href="#">Deep Link</Threadline.OperatorSurface.UI.Actions.link>
+                      <Threadline.OperatorSurface.UI.Actions.link variant="back" href="#">Back Link</Threadline.OperatorSurface.UI.Actions.link>
                       <!-- Interaction matrix -->
-                      <Threadline.OperatorSurface.UI.link href="#" class="hover">Hover</Threadline.OperatorSurface.UI.link>
-                      <Threadline.OperatorSurface.UI.link href="#" class="focus-visible">Focus-Visible</Threadline.OperatorSurface.UI.link>
+                      <Threadline.OperatorSurface.UI.Actions.link href="#" class="hover">Hover</Threadline.OperatorSurface.UI.Actions.link>
+                      <Threadline.OperatorSurface.UI.Actions.link href="#" class="focus-visible">Focus-Visible</Threadline.OperatorSurface.UI.Actions.link>
                     </div>
                   </div>
 
@@ -438,7 +438,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <:meta>Meta info</:meta>
                         Card body content
                         <:actions>
-                          <Threadline.OperatorSurface.UI.button>Action</Threadline.OperatorSurface.UI.button>
+                          <Threadline.OperatorSurface.UI.Actions.button>Action</Threadline.OperatorSurface.UI.Actions.button>
                         </:actions>
                       </Threadline.OperatorSurface.UI.card>
                       
@@ -553,14 +553,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <div class="tl-flex tl-gap-4 tl-flex-wrap">
                       <Threadline.OperatorSurface.UI.tooltip id="stress-tooltip">
                         <:trigger>
-                          <Threadline.OperatorSurface.UI.button>Hover Tooltip</Threadline.OperatorSurface.UI.button>
+                          <Threadline.OperatorSurface.UI.Actions.button>Hover Tooltip</Threadline.OperatorSurface.UI.Actions.button>
                         </:trigger>
                         Tooltip content
                       </Threadline.OperatorSurface.UI.tooltip>
 
                       <Threadline.OperatorSurface.UI.popover id="stress-popover">
                         <:trigger>
-                          <Threadline.OperatorSurface.UI.button>Click Popover</Threadline.OperatorSurface.UI.button>
+                          <Threadline.OperatorSurface.UI.Actions.button>Click Popover</Threadline.OperatorSurface.UI.Actions.button>
                         </:trigger>
                         Popover content
                       </Threadline.OperatorSurface.UI.popover>
@@ -593,21 +593,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </Threadline.OperatorSurface.UI.segmented_control>
 
                     <div class="tl-flex tl-gap-4">
-                      <Threadline.OperatorSurface.UI.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.show_modal("stress-modal")}>Show Modal</Threadline.OperatorSurface.UI.button>
-                      <Threadline.OperatorSurface.UI.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.show_drawer("stress-drawer")}>Show Drawer</Threadline.OperatorSurface.UI.button>
+                      <Threadline.OperatorSurface.UI.Actions.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.show_modal("stress-modal")}>Show Modal</Threadline.OperatorSurface.UI.Actions.button>
+                      <Threadline.OperatorSurface.UI.Actions.button phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.show_drawer("stress-drawer")}>Show Drawer</Threadline.OperatorSurface.UI.Actions.button>
                       
                       <Threadline.OperatorSurface.UI.modal id="stress-modal">
                         <h2 id="stress-modal-title" class="tl-modal__title">Stress modal</h2>
                         <p id="stress-modal-description" class="tl-modal__body">
                           Modal content for rendered accessibility checks.
                         </p>
-                        <Threadline.OperatorSurface.UI.button
+                        <Threadline.OperatorSurface.UI.Actions.button
                           variant="primary"
                           phx-click={Threadline.OperatorSurface.UI.hide_modal("stress-modal")}
                           data-tl-initial-focus
                         >
                           Confirm stress modal
-                        </Threadline.OperatorSurface.UI.button>
+                        </Threadline.OperatorSurface.UI.Actions.button>
                       </Threadline.OperatorSurface.UI.modal>
                       
                       <Threadline.OperatorSurface.UI.drawer id="stress-drawer">
@@ -615,12 +615,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <p id="stress-drawer-description" class="tl-modal__body">
                           Drawer content for rendered accessibility checks.
                         </p>
-                        <Threadline.OperatorSurface.UI.button
+                        <Threadline.OperatorSurface.UI.Actions.button
                           phx-click={Threadline.OperatorSurface.UI.hide_drawer("stress-drawer")}
                           data-tl-initial-focus
                         >
                           Close stress drawer
-                        </Threadline.OperatorSurface.UI.button>
+                        </Threadline.OperatorSurface.UI.Actions.button>
                       </Threadline.OperatorSurface.UI.drawer>
                       
                       <Threadline.OperatorSurface.UI.toast id="stress-toast" kind="info" title="Toast Title">
