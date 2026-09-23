@@ -92,9 +92,9 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
 
   # Pull the first <path d="..."> sequence as a cheap icon-shape signature.
   defp extract_icon_signature(html) do
-    Regex.scan(~r/<path[^>]*\bd="([^"]*)"/, html)
-    |> Enum.map(fn [_, d] -> d end)
-    |> Enum.join("|")
+    ~r/<path[^>]*\bd="([^"]*)"/
+    |> Regex.scan(html)
+    |> Enum.map_join("|", fn [_, d] -> d end)
   end
 
   defp extract_heading(html) do

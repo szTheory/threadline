@@ -989,9 +989,9 @@ defmodule Threadline.OperatorSurface.UITest do
       # No two content-replacing states share their whole rendered glyph set.
       first_paths =
         Enum.map(signatures, fn html ->
-          Regex.scan(~r/<path[^>]*\bd="([^"]*)"/, html)
-          |> Enum.map(fn [_, d] -> d end)
-          |> Enum.join("|")
+          ~r/<path[^>]*\bd="([^"]*)"/
+          |> Regex.scan(html)
+          |> Enum.map_join("|", fn [_, d] -> d end)
         end)
 
       assert length(Enum.uniq(first_paths)) == length(first_paths)

@@ -492,8 +492,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       (assign_copy ++ data_copy)
       |> Enum.reject(&is_nil/1)
-      |> Enum.map(&to_string/1)
-      |> Enum.join("\n")
+      |> Enum.map_join("\n", &to_string/1)
     end
 
     defp string_list?(values), do: is_list(values) and Enum.all?(values, &is_binary/1)

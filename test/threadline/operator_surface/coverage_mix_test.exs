@@ -76,7 +76,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
       assert is_list(parsed["expected_uncovered"])
     end
 
-    test "expected_uncovered entries have keys [\"source\", \"table\"] and source ∈ {baseline, config}" do
+    test ~s(expected_uncovered entries have keys ["source", "table"] and source ∈ {baseline, config}) do
       output =
         capture_io(fn ->
           Coverage.run(["--json"])
