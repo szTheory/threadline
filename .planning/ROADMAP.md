@@ -842,7 +842,7 @@ Plans:
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 204-11-PLAN.md — carve actor / start / coverage `render/1`s; start/coverage banners; actor register site (STRUCT-03, STRUCT-04, STRUCT-07)
+- [x] 204-11-PLAN.md — carve actor / start / coverage `render/1`s; start/coverage banners; actor register site (STRUCT-03, STRUCT-04, STRUCT-07)
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
