@@ -7,6 +7,19 @@ defmodule Threadline.StorageSchemaTest do
 
   alias Threadline.StorageSchema
 
+  # A documented default claim is only looked for on lines that talk about the
+  # storage schema. Sources, not compiled regexes, are kept in attributes so the
+  # module compiles on OTP releases that refuse regexes in module attributes.
+  @default_claim_scope "storage[ _]schema"
+  @default_claim_id "`\"?([A-Za-z_][A-Za-z0-9_]*)\"?`"
+  @default_claim_sources [
+    {"\\bdefaults?\\s+(?:to\\s+)?(?:the host.s\\s+)?" <> @default_claim_id, "i"},
+    {"\\(default\\s+" <> @default_claim_id, ""},
+    {@default_claim_id <> "\\s+(?:\\(the default\\)|by default)", "i"},
+    {"\\busually\\s+" <> @default_claim_id, "i"}
+  ]
+  @documented_default_files Path.wildcard("guides/**/*.md") ++ ["README.md"]
+
   describe "default storage schema (D-01)" do
     setup do
       previous = Application.fetch_env(:threadline, :storage_schema)
@@ -64,6 +77,73 @@ defmodule Threadline.StorageSchemaTest do
       Application.put_env(:threadline, :storage_schema, "threadline")
       assert StorageSchema.get([]) == "threadline"
     end
+
+    test "every documented storage_schema default matches the code default" do
+      default = StorageSchema.get([])
+
+      claims =
+        for path <- @documented_default_files,
+            {line, value} <- default_claims(File.read!(path)),
+            do: {path, line, value}
+
+      offenders = Enum.reject(claims, fn {_path, _line, value} -> value == default end)
+      correct = length(claims) - length(offenders)
+
+      assert offenders == [],
+             "these docs claim a storage_schema default other than #{inspect(default)}, " <>
+               "which StorageSchema.get([]) resolves when no key is configured: " <>
+               Enum.map_join(offenders, ", ", fn {path, line, value} ->
+                 "#{path}:#{line} -> #{value}"
+               end)
+
+      assert correct >= 3,
+             "the default-claim scan over guides/**/*.md and README.md found only " <>
+               "#{correct} claim(s) of the #{inspect(default)} default; the matcher has " <>
+               "probably stopped matching and would pass without checking anything"
+    end
+
+    test "the default-claim matcher flags every known offender" do
+      offenders = [
+        "Threadline stores these relations in the configured `storage_schema` " <>
+          "(`threadline` by default, explicit `public` for the historical footprint).",
+        "confirm the configured Threadline `storage_schema` exists " <>
+          "(default `threadline`, explicit `public` for the historical footprint).",
+        "The storage schema defaults to `threadline`.",
+        "placeholder schema **`your_schema`** for Threadline's storage schema — usually " <>
+          "`threadline` unless you configured `storage_schema: \"public\"` or another name."
+      ]
+
+      for sentence <- offenders do
+        assert "threadline" in Enum.map(default_claims(sentence), &elem(&1, 1)),
+               "the default-claim matcher did not flag: #{sentence}"
+      end
+
+      for sentence <- [
+            ~s(config :threadline, storage_schema: "threadline"),
+            "`storage_schema` **defaults to `\"public\"`**, your host's default schema.",
+            "a dedicated schema such as `\"threadline\"` is an opt-in for `storage_schema`"
+          ] do
+        assert Enum.reject(default_claims(sentence), &(elem(&1, 1) == "public")) == [],
+               "the default-claim matcher flagged a correct or opt-in sentence: #{sentence}"
+      end
+    end
+  end
+
+  # Returns {1-based line number, claimed default} for every default claim found
+  # on a line that mentions the storage schema.
+  defp default_claims(text) do
+    scope = Regex.compile!(@default_claim_scope, "i")
+
+    claims =
+      Enum.map(@default_claim_sources, fn {source, opts} -> Regex.compile!(source, opts) end)
+
+    text
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.filter(fn {line, _number} -> Regex.match?(scope, line) end)
+    |> Enum.flat_map(fn {line, number} ->
+      for regex <- claims, [_match, value] <- Regex.scan(regex, line), do: {number, value}
+    end)
   end
 
   test "honours an explicitly configured storage schema" do

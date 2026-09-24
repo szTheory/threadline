@@ -308,7 +308,7 @@ authorization policy beyond that baseline.
 
 ## Support incident queries
 
-SQL-native operator playbooks for the five canonical evidence-driving support questions. Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** for Threadline's storage schema — usually `threadline` unless you configured `storage_schema: "public"` or another name. Replace it (and any `your_table` / PK literals) with your install’s names before executing.
+SQL-native operator playbooks for the five canonical evidence-driving support questions. Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** for Threadline's storage schema — usually `public` unless you configured a dedicated `storage_schema` such as `"threadline"`. Replace it (and any `your_table` / PK literals) with your install’s names before executing.
 
 **Replace before run:** `your_schema` → Threadline storage schema; `your_table` / PK values → the row under investigation; time literals → bounded window; `your_correlation_id` → trace string from logs. Use `ac.table_schema` predicates when audited host tables live outside `public` or duplicate table names exist.
 

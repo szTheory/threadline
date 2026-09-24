@@ -11,7 +11,7 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 
 ## 1. Capture and triggers
 
-- [ ] `mix threadline.install` and `mix threadline.gen.triggers` migrations applied in the target environment; confirm the configured Threadline `storage_schema` exists (default `threadline`, explicit `public` for the historical footprint).
+- [ ] `mix threadline.install` and `mix threadline.gen.triggers` migrations applied in the target environment; confirm the configured Threadline `storage_schema` exists (default `public`; a dedicated schema such as `"threadline"` is an opt-in set before install).
 - [ ] `MIX_ENV` matches between trigger regeneration and runtime (`mix threadline.gen.triggers` loads `app.config`).
 - [ ] `config :threadline, :verify_coverage, expected_tables: [...]` lists every audited table; `mix threadline.verify_coverage` passes in CI and on a production-like host.
 - [ ] Run `Threadline.Health.trigger_coverage/1` after deploys, schema changes, and on a periodic cadence you trust; each `{:covered, _}` / `{:uncovered, _}` tuple names one user table from the requested host schema (`schema: "public"` by default) — full interpretation: [`domain-reference.md#trigger-coverage-operational`](domain-reference.md#trigger-coverage-operational).
