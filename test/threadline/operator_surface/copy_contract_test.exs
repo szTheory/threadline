@@ -101,6 +101,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Semantics.ActorRef
     alias Threadline.Test.Repo
+    alias Threadline.Test.SourceFamily
 
     @endpoint Threadline.OperatorSurface.CopyContractTest.Endpoint
     @coverage %{uncovered_count: 0, last_checked_at: ~U[2026-06-04 00:00:00Z]}
@@ -445,7 +446,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "Phase 186 export source locks real completed downloads and non-ready status text" do
-      source = Threadline.Test.SourceFamily.read!(@export_status_live_path)
+      source = SourceFamily.read!(@export_status_live_path)
       presentation_source = source(@presentation_path)
       download_attrs = export_download_attrs_block(source)
       actions_block = export_job_actions_block(source)
