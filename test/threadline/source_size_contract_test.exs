@@ -42,7 +42,7 @@ defmodule Threadline.SourceSizeContractTest do
   @splitting "oversized; being split into cohesive modules"
 
   @file_exceptions %{
-    "lib/threadline/operator_surface/live/stress_live.ex" => {1342, @splitting},
+    "lib/threadline/operator_surface/live/stress_live.ex" => {1212, @splitting},
     "lib/threadline/operator_surface/stress_fixtures.ex" =>
       {980,
        "declarative fixture data tables; excluded from the Hex package (mix.exs exclude_patterns)"}
@@ -56,7 +56,7 @@ defmodule Threadline.SourceSizeContractTest do
     {"lib/threadline/operator_surface/live/retention_history_live.ex", :render, 1} =>
       {186, @splitting},
     {"lib/threadline/operator_surface/live/start_live.ex", :render, 1} => {190, @splitting},
-    {"lib/threadline/operator_surface/live/stress_live.ex", :render, 1} => {529, @splitting},
+    {"lib/threadline/operator_surface/live/stress_live.ex", :render, 1} => {449, @splitting},
     {"lib/threadline/operator_surface/live/transaction_live.ex", :render, 1} => {183, @splitting}
   }
 
