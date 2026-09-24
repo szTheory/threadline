@@ -838,7 +838,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 204-10-PLAN.md — carve retention_history / export_status / transaction `render/1`s; export_status register site (STRUCT-03, STRUCT-07)
+- [x] 204-10-PLAN.md — carve retention_history / export_status / transaction `render/1`s; export_status register site (STRUCT-03, STRUCT-07)
 
 **Wave 11** *(blocked on Wave 10 completion)*
 

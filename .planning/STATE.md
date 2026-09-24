@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 204
 current_phase_name: Structure
 status: executing
-stopped_at: Completed 204-09-PLAN.md
-last_updated: "2026-09-24T01:13:17.612Z"
+stopped_at: Completed 204-10-PLAN.md
+last_updated: "2026-09-24T01:52:28.096Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 204 execution started
-state_head: 0d94bfb85c018e718cba779be3b61b12d9607d29
+state_head: acc6c59a5d6c7f4eff1a7027560081f33ee6ad2d
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 145
-  completed_plans: 139
+  completed_plans: 140
   percent: 86
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 204 (Structure) — EXECUTING
-Plan: 10 of 15
+Plan: 11 of 15
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -259,6 +259,7 @@ Progress: [████████████████████] 130/130
 | Phase 204 P07 | 12min | 3 tasks | 15 files |
 | Phase 204 P08 | 47min | 3 tasks | 10 files |
 | Phase 204 P09 | 109min | 2 tasks | 10 files |
+| Phase 204 P10 | 37 min | 3 tasks | 9 files |
 
 ## Deferred Items
 
@@ -817,6 +818,8 @@ Progress: [████████████████████] 130/130
 - [Phase 204]: 204-07: all 15 non-surface lib register sites drained in place (no per-site fallback); register 38 -> 23 (Nesting 17, CyclomaticComplexity 6)
 - [Phase 204]: 204-08: LiveView siblings live under live/<page>/; per-page shell, formless, and doc pins read them via Threadline.Test.SourceFamily; sibling components declare attrs for exactly the assigns they read
 - [Phase 204]: 204-09: stress_live family is Sections (markup components) + Refute (pure refute-twin helpers) + Paths (URL helpers) under live/stress_live/; mix.exs excludes the family by directory; register 21 -> 19
+- [Phase 204]: 204-10: export job list and its display helpers moved to ExportStatusLive.Components (in-module would exceed 800 lines); the three context sections stay private in the LiveView
+- [Phase 204]: 204-10: export_workflow_summary/1 split into context and jobs summaries; credo register 19 -> 18
 
 ### Blockers
 
@@ -826,8 +829,8 @@ Progress: [████████████████████] 130/130
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T01:13:17.466Z
-**Stopped at:** Completed 204-09-PLAN.md
+**Last session:** 2026-09-24T01:52:27.943Z
+**Stopped at:** Completed 204-10-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
