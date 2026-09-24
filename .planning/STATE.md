@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — READY TO EXECUTE
 Plan: 2 of 2
-Status: All v1.41 phases complete — next: milestone re-audit
+Status: Phase 207 planned (3 plans) — next: execute 207, then milestone re-audit
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
