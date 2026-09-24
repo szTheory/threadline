@@ -1,31 +1,8 @@
 if Code.ensure_loaded?(Phoenix.Controller) do
-  defmodule Threadline.OperatorSurface.ExportControllerTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-
-    def render("500.html", assigns) do
-      ~H"Error 500: <%= inspect(assigns.reason) %>"
-    end
-  end
-
   defmodule Threadline.OperatorSurface.ExportControllerTest.Router do
-    use Phoenix.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      # NOTE: extends Phase 64's `["html"]` to include csv + json formats so
-      # response_content_type/2 lookups for :csv / :json succeed.
-      plug(:accepts, ["html", "csv", "json"])
-      plug(:fetch_session)
-    end
+    # NOTE: extends Phase 64's `["html"]` to include csv + json formats so
+    # response_content_type/2 lookups for :csv / :json succeed.
+    use Threadline.OperatorSurfaceTest.Router, accepts: ["html", "csv", "json"]
 
     scope "/" do
       pipe_through(:browser)
@@ -34,14 +11,9 @@ if Code.ensure_loaded?(Phoenix.Controller) do
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest.ScopedRouter do
-    use Phoenix.Router
-    import Ecto.Query
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router, accepts: ["html", "csv", "json"]
 
-    pipeline :browser do
-      plug(:accepts, ["html", "csv", "json"])
-      plug(:fetch_session)
-    end
+    import Ecto.Query
 
     scope "/" do
       pipe_through(:browser)
@@ -62,13 +34,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest.DeniedRouter do
-    use Phoenix.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html", "csv", "json"])
-      plug(:fetch_session)
-    end
+    use Threadline.OperatorSurfaceTest.Router, accepts: ["html", "csv", "json"]
 
     scope "/" do
       pipe_through(:browser)
@@ -82,64 +48,28 @@ if Code.ensure_loaded?(Phoenix.Controller) do
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_export_key",
-      signing_salt: String.duplicate("x", 8)
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:urlencoded, :json], pass: ["*/*"], json_decoder: Jason)
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.ExportControllerTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.ExportControllerTest.Router,
+      parsers: [:urlencoded, :json],
+      json_decoder: Jason
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest.ScopedEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_export_scoped_key",
-      signing_salt: String.duplicate("y", 8)
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:urlencoded, :json], pass: ["*/*"], json_decoder: Jason)
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.ExportControllerTest.ScopedRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.ExportControllerTest.ScopedRouter,
+      parsers: [:urlencoded, :json],
+      json_decoder: Jason
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest.DeniedEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_export_denied_key",
-      signing_salt: String.duplicate("d", 8)
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:urlencoded, :json], pass: ["*/*"], json_decoder: Jason)
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.ExportControllerTest.DeniedRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.ExportControllerTest.DeniedRouter,
+      parsers: [:urlencoded, :json],
+      json_decoder: Jason
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest.ActorRouter do
-    use Phoenix.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html", "csv", "json"])
-      plug(:fetch_session)
-    end
+    use Threadline.OperatorSurfaceTest.Router, accepts: ["html", "csv", "json"]
 
     scope "/" do
       pipe_through(:browser)
@@ -159,20 +89,10 @@ if Code.ensure_loaded?(Phoenix.Controller) do
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest.ActorEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_export_actor_key",
-      signing_salt: String.duplicate("a", 8)
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:urlencoded, :json], pass: ["*/*"], json_decoder: Jason)
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.ExportControllerTest.ActorRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.ExportControllerTest.ActorRouter,
+      parsers: [:urlencoded, :json],
+      json_decoder: Jason
   end
 
   defmodule Threadline.OperatorSurface.ExportControllerTest do
@@ -182,6 +102,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     use ExUnit.Case, async: false
 
     import Phoenix.ConnTest
+    import Threadline.OperatorSurfaceCase, only: [start_endpoint!: 1]
     import Plug.Conn, only: [get_resp_header: 2, assign: 3]
     import Threadline.StorageSchemaCase
 
@@ -245,13 +166,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: String.duplicate("x", 64),
-        live_view: [signing_salt: String.duplicate("x", 8)],
-        render_errors: [view: Threadline.OperatorSurface.ExportControllerTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -909,6 +824,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     use ExUnit.Case, async: false
 
     import Phoenix.ConnTest
+    import Threadline.OperatorSurfaceCase, only: [start_endpoint!: 1]
     import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
@@ -917,13 +833,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     @repo Threadline.Test.Repo
 
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: String.duplicate("y", 64),
-        live_view: [signing_salt: String.duplicate("y", 8)],
-        render_errors: [view: Threadline.OperatorSurface.ExportControllerTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -983,17 +893,12 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     use ExUnit.Case, async: false
 
     import Phoenix.ConnTest
+    import Threadline.OperatorSurfaceCase, only: [start_endpoint!: 1]
 
     @endpoint Threadline.OperatorSurface.ExportControllerTest.DeniedEndpoint
 
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: String.duplicate("d", 64),
-        live_view: [signing_salt: String.duplicate("d", 8)],
-        render_errors: [view: Threadline.OperatorSurface.ExportControllerTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -1029,6 +934,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     use ExUnit.Case, async: false
 
     import Phoenix.ConnTest
+    import Threadline.OperatorSurfaceCase, only: [start_endpoint!: 1]
     import Plug.Conn
     import Threadline.StorageSchemaCase
 
@@ -1040,13 +946,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     @endpoint Threadline.OperatorSurface.ExportControllerTest.ActorEndpoint
 
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: String.duplicate("a", 64),
-        live_view: [signing_salt: String.duplicate("a", 8)],
-        render_errors: [view: Threadline.OperatorSurface.ExportControllerTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
