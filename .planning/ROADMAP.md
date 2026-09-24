@@ -862,7 +862,7 @@ Plans:
 
 **Wave 16 — gap closure** *(from 204-VERIFICATION; blocked on Wave 15 completion)*
 
-- [ ] 204-16-PLAN.md — **Tracer:** widened banner gate RED on the 5 titled box-rule banners, then removed per D-11 (critic.measure repository boundary becomes a real module); keyword-clause length measure (WR-01); STRUCT-04 re-closed on green ci.all + erratum on 204-12 (STRUCT-04, STRUCT-03)
+- [x] 204-16-PLAN.md — **Tracer:** widened banner gate RED on the 5 titled box-rule banners, then removed per D-11 (critic.measure repository boundary becomes a real module); keyword-clause length measure (WR-01); STRUCT-04 re-closed on green ci.all + erratum on 204-12 (STRUCT-04, STRUCT-03)
 
 **Cross-cutting constraints:**
 

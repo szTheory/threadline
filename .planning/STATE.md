@@ -4,17 +4,17 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 204
 current_phase_name: Structure
-status: executing
-stopped_at: Completed 204-15-PLAN.md
-last_updated: "2026-09-24T04:25:48.053Z"
-last_activity: 2026-09-23
+status: verifying
+stopped_at: Completed 204-16-PLAN.md
+last_updated: "2026-09-24T04:45:41.347Z"
+last_activity: 2026-09-24
 last_activity_desc: Phase 204 execution started
-state_head: f26ded7be317f446c64c52f9f6b3a5a99bf9e959
+state_head: 456f35007672a10feac873802be1faea9569d185
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 146
-  completed_plans: 145
+  completed_plans: 146
   percent: 86
 ---
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 204 (Structure) — READY TO EXECUTE
-Plan: 15 of 16 (204-16 gap closure planned)
-Status: Ready to execute
+Phase: 204 (Structure) — EXECUTING
+Plan: 16 of 16 (204-16 gap closure)
+Status: Phase complete — ready for verification
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-23 — Phase 204 execution started
+Last activity: 2026-09-24 — Phase 204 execution started
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -265,6 +265,7 @@ Progress: [████████████████████] 130/130
 | Phase 204 P13 | 7min | 3 tasks | 10 files |
 | Phase 204 P14 | 6min | 3 tasks | 10 files |
 | Phase 204 P15 | 20min | 3 tasks | 9 files |
+| Phase 204 P16 | 17 | 3 tasks | 11 files |
 
 ## Deferred Items
 
@@ -839,8 +840,8 @@ Progress: [████████████████████] 130/130
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T03:43:14.632Z
-**Stopped at:** Completed 204-15-PLAN.md
+**Last session:** 2026-09-24T04:44:34.704Z
+**Stopped at:** Completed 204-16-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

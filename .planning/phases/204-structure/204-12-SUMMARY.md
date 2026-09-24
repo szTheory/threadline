@@ -208,3 +208,11 @@ None. No new endpoints, auth paths, or trust-boundary surface were introduced. T
 ## Self-Check: PASSED
 
 - All six commits (cb2147ea, 0e1c15f5, 3103d207, 42314f84, b33da7ea, 34b8c8a9) exist, and encoding.ex exists.
+
+## Erratum (204-16, 2026-09-24)
+
+Three claims in this summary were false when written. The body above is left unchanged.
+
+1. The patterns-established entry says the zero-tolerance banner gate fails any `# ---`, `# ===`, `# ───` or `# ***` rule comment. It did not. The `@banner` regex required three rule characters immediately after `#`, so a titled box-drawing banner (two box characters, a title, then a trailing rule) escaped it. Five such banners survived in lib/: four in `lib/mix/tasks/critic.measure.ex` and one in `lib/threadline/critic_trust/krippendorff_alpha.ex`.
+2. The statement that a tree-wide banner grep over `lib --include='*.ex'` prints 0 used a pattern with the same blind spot, so it could not see those five lines either.
+3. Plan 204-16 widened the regex to catch a comment that opens with a rule run (a box-drawing run of two or more) or ends with a rule run of three or more, added a planted self-test with titled positives and prose negatives, and removed the five banners by the D-11 rule. Four were deleted as cohesive clause groups, and the critic.measure repository boundary became the module `Threadline.CriticTrust.RepositoryBoundary`. STRUCT-04 was reopened for that work and re-closed after a green `ci.all`.
