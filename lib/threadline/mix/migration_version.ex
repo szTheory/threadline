@@ -56,18 +56,23 @@ defmodule Threadline.Mix.MigrationVersion do
 
   # Mirrors how Ecto discovers migrations: every .exs file under the
   # directory, including subdirectories, whose name starts with an integer
-  # followed by "_".
-  defp existing_versions(path) do
+  # followed by "_". The integer is the version and the rest of the file name
+  # is the migration name.
+  @doc false
+  @spec existing(Path.t()) :: [{non_neg_integer(), String.t(), Path.t()}]
+  def existing(path) do
     [path, "**", "*.exs"]
     |> Path.join()
     |> Path.wildcard()
     |> Enum.flat_map(fn file ->
       case Integer.parse(Path.basename(file, ".exs")) do
-        {version, "_" <> _} -> [version]
+        {version, "_" <> name} -> [{version, name, file}]
         _ -> []
       end
     end)
   end
+
+  defp existing_versions(path), do: Enum.map(existing(path), &elem(&1, 0))
 
   defp to_datetime(version) do
     with <<y::binary-4, mo::binary-2, d::binary-2, h::binary-2, mi::binary-2, s::binary-2>> <-

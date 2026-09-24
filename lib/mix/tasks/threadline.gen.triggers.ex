@@ -55,7 +55,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   import Mix.Generator
 
   alias Threadline.Capture.{RedactionPolicy, TriggerCaptureConfig, TriggerSQL}
-  alias Threadline.Mix.MigrationVersion
+  alias Threadline.Mix.{MigrationVersion, TriggerMigration}
   alias Threadline.StorageSchema
 
   @column_name ~r/^[A-Za-z0-9_]+$/
@@ -137,10 +137,12 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       # with a custom `:priv`, or a repo module not named `Repo`, it writes to
       # a different directory.
       [version] = MigrationVersion.next(path, 1)
-      table_suffix = Enum.map_join(tables, "_", &StorageSchema.host_table_suffix/1)
-      file = Path.join(path, "#{version}_threadline_triggers_#{table_suffix}.exs")
+      scan = TriggerMigration.scan(path)
+      suffixes = Enum.map(tables, &StorageSchema.host_table_suffix/1)
+      {name, module} = TriggerMigration.resolve_name(suffixes, scan)
+      file = Path.join(path, "#{version}_#{name}.exs")
 
-      create_file(file, migration_content(table_specs))
+      create_file(file, migration_content(table_specs, module))
       Mix.shell().info("Run `mix ecto.migrate` to install the triggers.")
     end
   end
@@ -198,7 +200,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
     end)
   end
 
-  defp migration_content(table_specs) do
+  defp migration_content(table_specs, module) do
     function_ups =
       table_specs
       |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
@@ -231,11 +233,6 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
         "    execute #{inspect(TriggerSQL.drop_function_for_table(t))}"
       end)
 
-    tables = Enum.map(table_specs, &elem(&1, 0))
-
-    module_name =
-      "ThreadlineTriggers#{Enum.map_join(tables, "", &(StorageSchema.host_table_suffix(&1) |> Macro.camelize()))}"
-
     up_body =
       [function_ups, trigger_ups]
       |> Enum.reject(&(&1 == ""))
@@ -247,7 +244,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       |> Enum.join("\n\n")
 
     """
-    defmodule #{module_name} do
+    defmodule #{module} do
       use Ecto.Migration
 
       def up do
