@@ -34,10 +34,10 @@ defmodule Threadline.CredoConfigContractTest do
 
   @successor "Phase 204 / STRUCT-07"
   @register %{
-    Credo.Check.Refactor.Nesting => {7, "Phase 204 / STRUCT-07"},
+    Credo.Check.Refactor.Nesting => {6, "Phase 204 / STRUCT-07"},
     Credo.Check.Refactor.CyclomaticComplexity => {0, "Phase 204 / STRUCT-07"}
   }
-  @ceiling 7
+  @ceiling 6
   @historical_max 46
 
   @registered_checks [Credo.Check.Refactor.CyclomaticComplexity, Credo.Check.Refactor.Nesting]

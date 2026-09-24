@@ -124,30 +124,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp card_under_card(html) do
       html
       |> tokenize()
-      |> Enum.reduce({[], []}, fn token, {stack, offenders} ->
-        case token do
-          {:start, _tag, class, void?} ->
-            is_card? = card_class?(class)
-            ancestor_card? = Enum.any?(stack)
-
-            offenders =
-              if is_card? and ancestor_card?, do: [class | offenders], else: offenders
-
-            # Structural debt: void? if inside case inside reduce fn — extract the start-tag stack step
-            # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-            if void? do
-              {stack, offenders}
-            else
-              {[is_card? | stack], offenders}
-            end
-
-          {:end, _tag} ->
-            {pop(stack), offenders}
-        end
-      end)
+      |> Enum.reduce({[], []}, &walk_token/2)
       |> elem(1)
       |> Enum.reverse()
     end
+
+    defp walk_token({:start, _tag, class, void?}, {stack, offenders}) do
+      is_card? = card_class?(class)
+      ancestor_card? = Enum.any?(stack)
+
+      offenders =
+        if is_card? and ancestor_card?, do: [class | offenders], else: offenders
+
+      if void? do
+        {stack, offenders}
+      else
+        {[is_card? | stack], offenders}
+      end
+    end
+
+    defp walk_token({:end, _tag}, {stack, offenders}), do: {pop(stack), offenders}
 
     defp pop([_ | rest]), do: rest
     defp pop([]), do: []
