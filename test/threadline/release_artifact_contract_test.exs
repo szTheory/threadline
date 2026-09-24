@@ -443,17 +443,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
         readable =
           Enum.reduce(files, %{}, fn path, acc ->
-            case File.read(path) do
-              {:ok, content} ->
-                # Structural debt: valid? if inside read case inside reduce fn — extract the readable-file loader
-                # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-                if String.valid?(content),
-                  do: Map.put(acc, Path.relative_to(path, unpack_root), content),
-                  else: acc
-
-              {:error, _reason} ->
-                acc
-            end
+            put_readable(acc, Path.relative_to(path, unpack_root), File.read(path))
           end)
 
         %{entries: entries, readable: readable}
@@ -462,6 +452,12 @@ defmodule Threadline.ReleaseArtifactContractTest do
         flunk("mix hex.build --unpack failed (#{status}):\n#{output}")
     end
   end
+
+  defp put_readable(acc, relative, {:ok, content}) do
+    if String.valid?(content), do: Map.put(acc, relative, content), else: acc
+  end
+
+  defp put_readable(acc, _relative, {:error, _reason}), do: acc
 
   defp planning_vocabulary_matches(files) do
     for {path, content} <- files,
