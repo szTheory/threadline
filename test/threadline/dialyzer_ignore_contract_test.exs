@@ -445,27 +445,23 @@ defmodule Threadline.DialyzerIgnoreContractTest do
 
   defp make_irreducible(fixtures, warning_id) do
     Enum.map(fixtures, fn fixture ->
-      warnings =
-        Enum.map(fixture["warnings"], fn warning ->
-          # Structural debt: id-match if inside nested map fns — extract the per-warning rewrite
-          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-          if warning["id"] == warning_id do
-            warning
-            |> Map.put("disposition", "irreducible")
-            |> Map.put("ignore_tuple", %{
-              "file" => warning["origin"]["path"],
-              "warning_description" => warning["raw_line"]
-            })
-            |> Map.put("rationale", "The sealed warning has no sound local source correction.")
-            |> Map.put("removal_trigger", "Remove after the upstream type contract is corrected.")
-          else
-            warning
-          end
-        end)
-
+      warnings = Enum.map(fixture["warnings"], &make_warning_irreducible(&1, warning_id))
       Map.put(fixture, "warnings", warnings)
     end)
   end
+
+  defp make_warning_irreducible(%{"id" => warning_id} = warning, warning_id) do
+    warning
+    |> Map.put("disposition", "irreducible")
+    |> Map.put("ignore_tuple", %{
+      "file" => warning["origin"]["path"],
+      "warning_description" => warning["raw_line"]
+    })
+    |> Map.put("rationale", "The sealed warning has no sound local source correction.")
+    |> Map.put("removal_trigger", "Remove after the upstream type contract is corrected.")
+  end
+
+  defp make_warning_irreducible(warning, _warning_id), do: warning
 
   defp ignore_source(fixtures) do
     irreducible =
