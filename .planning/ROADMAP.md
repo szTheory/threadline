@@ -73,6 +73,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 - [x] **Phase 203: Real Gates** - Full Credo defaults expressed as `extra:`/`disabled:` deltas, the dialyzer backlog drained, and the layer inversions plus the Capture↔Semantics cycle fixed. (completed 2026-09-23)
 - [x] **Phase 204: Structure** - Make the largest files legible without changing a byte of output, behind an executable CSS byte-hash lock. (completed 2026-09-24)
 - [x] **Phase 205: Release Reconciliation** - Close the v1.41 audit gap: merge origin/main's shipped 0.10.0 release work (#41, #43, #44, release commit, #45) into the milestone branch so RELEASE-02/05 hold on the branch itself.
+- [ ] **Phase 206: Installer Migration Versions** - Fix `mix threadline.install` stamping all three migrations with the same second-resolution version (205-REVIEW CR-01), which makes a fresh `mix ecto.migrate` fail.
 
 ## Phase Details
 
@@ -899,6 +900,19 @@ Plans:
 
 **UI hint**: no
 
+### Phase 206: Installer Migration Versions
+
+**Goal**: `mix threadline.install` writes its three migrations with strictly increasing version numbers, so a fresh adopter's `mix ecto.migrate` succeeds, with a regression test on the numeric prefixes (205-REVIEW CR-01; shipped since v0.9.0).
+**Requirements**: TBD (tech-debt closure from `.planning/v1.41-MILESTONE-AUDIT.md` re-audit, item CR-01)
+**Depends on:** Phase 205
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 206 to break down)
+
+**UI hint**: no
+
 ## Verification
 
 - **Per phase:** `mix ci.all` green on a clean tree, plus that phase's own success criteria.
@@ -921,7 +935,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 → 204
+Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 → 204 → 205 → 206
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -933,6 +947,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 203. Real Gates | v1.41 | 10/10 | Complete    | 2026-09-23 |
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
 | 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
+| 206. Installer Migration Versions | v1.41 | 0/0 | Not started | - |
 
 ## Prior Milestones
 
