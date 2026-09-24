@@ -52,6 +52,8 @@ Both surfaces use the same three-state taxonomy:
 - **Drift detected** — configured redaction does not match deployed trigger SQL. Rerun `mix threadline.gen.triggers` and apply the migration.
 - **Could not introspect** — Threadline could not safely parse the deployed trigger SQL. Rerun `mix threadline.gen.triggers`; do not assume capture is aligned.
 
+A rerun writes a new migration with a numbered name that replaces the trigger in place, with no capture gap. Rolling it back keeps capture on and does not restore the earlier capture policy; to stop capture, write an explicit migration that drops the trigger or roll back the migration that first installed it. If the rerun removed redaction rules, a rollback leaves changes captured unredacted, which the drift view and `mix threadline.policy.show` flag.
+
 This is a viewer, not a mutator. Policy edits still happen in `config :threadline, :trigger_capture`, then through regenerated trigger migrations. Both surfaces stay read-only and never show sample values; they expose only column names plus `mask_placeholder` metadata so operators can verify policy shape safely.
 
 ## Retention

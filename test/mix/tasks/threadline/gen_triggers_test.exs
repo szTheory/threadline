@@ -10,6 +10,25 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
 
   @legacy_fixture "priv/ci/hex_evaluator/priv/repo/migrations/20260424080642_threadline_triggers_posts.exs"
 
+  # Evaluated at compile time: the tests below File.cd! into tmp dirs, so the
+  # guides are read from an absolute path.
+  @repo_root File.cwd!()
+
+  # The rerun wording shared by the drift guides, the task docs and the
+  # generated rollback comment. The generated comment uses a subset, so the
+  # guides cannot describe a rollback the generator does not.
+  @rerun_doc_phrases [
+    "replaces the trigger in place",
+    "does not restore the earlier capture policy",
+    "unredacted",
+    "mix threadline.policy.show"
+  ]
+  @generated_down_phrases [
+    "does not restore the earlier capture policy",
+    "unredacted",
+    "mix threadline.policy.show"
+  ]
+
   setup do
     previous_shell = Mix.shell()
     previous_schema = Application.fetch_env(:threadline, :storage_schema)
@@ -380,6 +399,54 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
       output = run_triggers(tmp, ["--tables", "posts"])
       assert output =~ "already have a Threadline trigger migration"
       assert output =~ "posts"
+    end
+  end
+
+  describe "rerun documentation" do
+    test "guides and the task docs describe a rerun the way the generated migration does" do
+      {:docs_v1, _, :elixir, _, %{"en" => moduledoc}, _, _} =
+        Code.fetch_docs(Mix.Tasks.Threadline.Gen.Triggers)
+
+      sources = [
+        {"guides/production-checklist.md",
+         File.read!(Path.join(@repo_root, "guides/production-checklist.md"))},
+        {"guides/domain-reference.md",
+         File.read!(Path.join(@repo_root, "guides/domain-reference.md"))},
+        {"the mix threadline.gen.triggers moduledoc", moduledoc}
+      ]
+
+      missing =
+        for {source, text} <- sources,
+            phrase <- @rerun_doc_phrases,
+            not String.contains?(String.replace(text, ~r/\s+/, " "), phrase),
+            do: "#{source} lacks #{inspect(phrase)}"
+
+      assert missing == [],
+             "these docs no longer describe a rerun the way the generated migration " <>
+               "does: " <> Enum.join(missing, "; ")
+    end
+
+    test "a generated rerun down comment uses the shared phrases", %{tmp: tmp} do
+      assert @generated_down_phrases -- @rerun_doc_phrases == [],
+             "the generated rollback comment uses wording the guides are not held to"
+
+      Application.delete_env(:threadline, :storage_schema)
+      run_triggers(tmp, ["--tables", "posts"])
+      run_triggers(tmp, ["--tables", "posts"])
+
+      [_first, rerun] = trigger_files(tmp)
+
+      down_text =
+        rerun
+        |> File.read!()
+        |> String.split("def down do")
+        |> List.last()
+        |> String.replace(~r/\s+/, " ")
+
+      for phrase <- @generated_down_phrases do
+        assert down_text =~ phrase,
+               "the generated rerun rollback comment does not say #{inspect(phrase)}"
+      end
     end
   end
 end

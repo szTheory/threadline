@@ -33,6 +33,16 @@ migration, written since 0.6.0, could share it too. The installer now gives each
 migration a distinct version that sorts after every migration already in the
 directory.
 
+Rerunning `mix threadline.gen.triggers` for tables that already had a trigger
+migration, as the redaction drift guides instruct, wrote a migration that could
+not be applied. Every release from 0.1.0 through 0.10.1 is affected. The
+generator reused the first migration's name and module, and its trigger
+statement could not replace a trigger that already existed. A rerun now gets a
+numbered name and module, such as `threadline_triggers_posts_2`; a first run is
+named as before. The rerun migration replaces the trigger in place, drops a
+per-table capture function left behind when a table returns to the default
+trigger, and rolling it back keeps capture on.
+
 ### Breaking changes
 
 None.
@@ -52,6 +62,11 @@ each of the others a distinct, later timestamp so the order is
 migration, which must run after the audit migration. Then re-run
 `mix ecto.migrate`.
 
+None for trigger migrations, unless a rerun of `mix threadline.gen.triggers`
+wrote a migration that failed with one of the trigger errors listed under Fixed.
+That migration never applied: delete its file, upgrade, and run
+`mix threadline.gen.triggers` again.
+
 ### Fixed
 
 - `mix threadline.install` no longer writes duplicate migration versions, which
@@ -67,6 +82,21 @@ migration, which must run after the audit migration. Then re-run
   present is told to keep `:storage_schema` unset, because switching then would
   split Threadline's tables across two schemas. The fresh-install advice no
   longer ends with a paragraph that contradicted its own steps.
+- Rerunning `mix threadline.gen.triggers` for a table that already had a
+  trigger migration now writes a migration that applies. Before, it failed with
+  `(Ecto.MigrationError) migrations can't be executed, migration name threadline_triggers_<tables> is duplicated`
+  when both trigger migrations were pending together (a fresh or CI database,
+  `mix ecto.reset`, or a rollback across both), and with
+  `trigger "threadline_audit_<table>" for relation "<table>" already exists`
+  on a database that had already applied the first trigger migration.
+- Rolling back a rerun trigger migration no longer leaves the table uncaptured.
+  The generated migration explains its rollback: capture stays on with the
+  policy the rerun installed, and if the rerun removed redaction rules, a
+  rolled-back rerun continues unredacted until you regenerate the trigger
+  migration.
+- `guides/audit-indexing.md`, `guides/production-checklist.md`,
+  `guides/how-threadline-works.md` and `guides/domain-reference.md` now state
+  the real `storage_schema` default, `public`.
 
 ## [0.10.1] - 2026-09-22
 

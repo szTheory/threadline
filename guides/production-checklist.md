@@ -42,7 +42,7 @@ See also `guides/operator-surface.md` §"Coverage and audit readiness".
 - [ ] `mix threadline.gen.triggers --dry-run` used after config changes; migrations applied before relying on new trigger SQL.
 - [ ] Visit `/audit/policy/redaction` after deploys or config changes; confirm the affected tables land in `Config matches deployed`, not `Drift detected` or `Could not introspect`.
 - [ ] Capture-only path checked too: `mix threadline.policy.show` for human output, `mix threadline.policy.show --json` for machine checks or incident tooling.
-- [ ] If any table shows `Drift detected` or `Could not introspect`, rerun `mix threadline.gen.triggers`, apply the generated migration, and re-check before declaring the rollout aligned.
+- [ ] If any table shows `Drift detected` or `Could not introspect`, rerun `mix threadline.gen.triggers`, apply the generated migration, and re-check before declaring the rollout aligned. The rerun writes a new migration with a numbered name (for example `..._threadline_triggers_posts_2.exs`) that replaces the trigger in place, so capture has no gap. Rolling that migration back keeps capture on and does not restore the earlier capture policy. If the rerun removed redaction rules, a rollback leaves changes captured unredacted, which `/audit/policy/redaction` and `mix threadline.policy.show` report as `Drift detected`.
 - [ ] Confirm the redaction viewer stays safe for operator screenshots and incident notes: it should show only column names and placeholder metadata, never sample values.
 - [ ] JSON/JSONB columns: remember masking replaces the **whole** value (no field-level redaction in current releases).
 
