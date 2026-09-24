@@ -4,18 +4,18 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 204
 current_phase_name: Structure
-status: verifying
-stopped_at: Completed 204-16-PLAN.md
-last_updated: "2026-09-24T04:45:41.347Z"
+status: completed
+stopped_at: Phase 204 complete — all phases complete
+last_updated: "2026-09-24T05:51:08.323Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 204 execution started
-state_head: 456f35007672a10feac873802be1faea9569d185
+last_activity_desc: Phase 204 complete
+state_head: 759f282052d0fd85c31d60a88cc43e886af30194
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 146
   completed_plans: 146
-  percent: 86
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 204 (Structure) — EXECUTING
-Plan: 16 of 16 (204-16 gap closure)
-Status: Phase complete — ready for verification
+Phase: 204 (Structure) — COMPLETE
+Plan: 16 of 16
+Status: All phases complete — milestone v1.41 ready for audit/close
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-24 — Phase 204 execution started
+Last activity: 2026-09-24 — Phase 204 complete
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 130/130 plans ([█████████░] 86% of phases — 6 of 7 complete: 198–203; 204 not started; 199, 200 and 201 carry stale verification)
+Progress: [████████████████████] 146/146 plans ([██████████] 100% of phases — 7 of 7 complete: 198–204; 199, 200 and 201 carry stale verification)
 
 ## Performance Metrics
 
@@ -841,7 +841,7 @@ Progress: [████████████████████] 130/130
 ## Session Continuity
 
 **Last session:** 2026-09-24T04:44:34.704Z
-**Stopped at:** Completed 204-16-PLAN.md
+**Stopped at:** Phase 204 complete — all phases complete
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
