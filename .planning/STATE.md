@@ -4,16 +4,16 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 205
 current_phase_name: Release Reconciliation
-status: planning
-stopped_at: Phase 205 added — milestone audit gaps_found (F1)
+status: planned
+stopped_at: Phase 205 planned — 2 plans, checker passed (iteration 2)
 last_updated: "2026-09-24T05:51:08.323Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 205 added (audit gap closure)
+last_activity_desc: Phase 205 planned
 state_head: 759f282052d0fd85c31d60a88cc43e886af30194
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 146
+  total_plans: 148
   completed_plans: 146
   percent: 88
 ---
@@ -29,8 +29,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 205 (Release Reconciliation) — NOT PLANNED
-Plan: 0 of TBD
+Phase: 205 (Release Reconciliation) — PLANNED
+Plan: 0 of 2
 Status: Milestone audit found gaps (F1: origin/main release work unmerged) — Phase 205 closes them
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 146/146 plans ([█████████░] 88% of phases — 7 of 8 complete: 198–204; 205 Release Reconciliation added by the milestone audit, not yet planned; 199–203 carry stale verification)
+Progress: [████████████████████] 146/148 plans ([█████████░] 88% of phases — 7 of 8 complete: 198–204; 205 Release Reconciliation (audit gap F1) planned, 2 plans; 199–203 carry stale verification)
 
 ## Performance Metrics
 

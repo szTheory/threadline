@@ -357,12 +357,14 @@ The maintainer shipped 0.10.1 after the audit. Re-check `git rev-parse origin/ma
 | A3 | The browser lane is unaffected (delta argument) | Validation | Low; there is no rendered-code delta |
 | A4 | The merge commit type `chore` is the right choice so it never feeds release notes | Code Examples | Low; only matters when the branch reaches main |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should 205 add a contract test pinning `sync-release-pr-pins` in release.yml?**
    - What we know: no test in `test/` references the job. If a future resolution dropped it, nothing would fail. The audit's broken flow was exactly this absence.
    - Recommendation: add a small assertion in `release_control_plane_contract_test.exs` or `ci_topology_contract_test.exs`. It should require the job, `needs: release-please`, `mix release.pins`, and bootstrap's `needs: [release-please, sync-release-pr-pins]` with `always()`. This is cheap and directly serves RELEASE-02 ("green by construction"). Planner's call; not required to close F1.
+   - RESOLVED: yes. 205-01 Task 2 adds the test "the release PR pin-sync job exists, is scoped, and gates the CI bootstrap" to `release_control_plane_contract_test.exs` (it already parses release.yml via `job_block!/2` and is identical on both merge sides), proven RED against the pre-merge release.yml.
 2. **Should 203/204's adopter-visible changes get an "Unreleased — highlights" CHANGELOG line?** They are the `@moduledoc false` module renames and the Hex package exclude changes. This is out of 205 scope; flag it for the milestone close or next release plan.
+   - RESOLVED: out of scope for 205. Writing CHANGELOG highlights is release-authoring for the next version (RELEASE-04's human-highlights step at the next release PR), not reconciliation; 205 must not add adopter-facing CHANGELOG content, and the merge takes origin's CHANGELOG.md byte-exact. Carried to the milestone close / next release plan.
 
 ## Sources
 

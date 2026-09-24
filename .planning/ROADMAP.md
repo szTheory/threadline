@@ -885,11 +885,17 @@ Plans:
 **Requirements**: RELEASE-02, RELEASE-05 (gap closure from `.planning/v1.41-MILESTONE-AUDIT.md` F1)
 **Depends on:** Phase 204
 **Gap closure:** v1.41 milestone audit (2026-09-24), finding F1
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 205 to break down)
+**Wave 1**
+
+- [ ] 205-01-PLAN.md — **Tracer:** one `--no-ff` merge of origin/main 471ebf6e (v0.10.1), 17 conflicts resolved whole-file per the research rule table; credo alias, sync-pins contract test and CONTRIBUTING row follow-ups; full gate run incl. bump rehearsal 0.10.1 -> 0.11.0 and clean-clone verify.release (wave 1)
+
+**Wave 2** *(blocked on 205-01)*
+
+- [ ] 205-02-PLAN.md — Bookkeeping: 202-VERIFICATION addendum, RELEASE-02/05 traceability, 202-REVIEW disposition in deferred-items, STATE/ROADMAP phase complete (wave 2)
 
 **UI hint**: no
 
@@ -926,7 +932,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 202. Release 0.10.0 | v1.41 | 10/10 | Complete    | 2026-09-22 |
 | 203. Real Gates | v1.41 | 10/10 | Complete    | 2026-09-23 |
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
-| 205. Release Reconciliation | v1.41 | 0/0 | Not started | - |
+| 205. Release Reconciliation | v1.41 | 0/2 | Planned | - |
 
 ## Prior Milestones
 
