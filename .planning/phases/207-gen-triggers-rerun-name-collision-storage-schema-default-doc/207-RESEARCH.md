@@ -677,16 +677,22 @@ Today this yields two `…_threadline_triggers_posts.exs` files, both `defmodule
 | A2 | Adopters on other ecto_sql versions have the same pending-only duplicate check | Summary / CHANGELOG wording | Low. Phrase the CHANGELOG as "on a database that has not applied …" rather than naming the ecto_sql internals |
 | A3 | No adopter hand-edits generated migrations in a way that removes the `threadline_audit_<suffix>` literal while keeping the trigger | Pattern 4 | Low. Detection would call the table "first-run" and `down` would drop the trigger, which matches today's behaviour |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All four questions carried a recommendation, and the plans adopt each one.
 
 1. **D-02 wording vs uppercase-initial tables.**
    - What we know: `Macro.camelize` of the whole name differs from today for `AuditLog`-style tables (probe above).
    - Recommendation: use the parts form (Pattern 2). It satisfies D-02's intent and the "first-run byte-identical" specific. Not a user question.
+   - RESOLVED: adopted in plan 207-02 (Task 1 Step D, `Threadline.Mix.TriggerMigration.resolve_name/2` builds the module from the name parts).
 2. **Fourth wrong-default site (`guides/domain-reference.md:311`).**
    - What we know: the D-11 guard catches it, so D-10's list is incomplete.
    - Recommendation: fix it in the same doc task. Suggested text: "usually `public` unless you configured a dedicated `storage_schema` such as `"threadline"`".
+   - RESOLVED: adopted in plan 207-03 Task 1 Step B (fourth site fixed; the guard's positive control covers it).
 3. **NOTICE on first run.** `DROP FUNCTION IF EXISTS` on a nonexistent function emits a PostgreSQL NOTICE (`… does not exist, skipping`). D-05 accepted "harmless on a first run". Mention it in the moduledoc so adopters are not surprised. No decision change.
+   - RESOLVED: adopted in plan 207-02 Task 3 Step C (`## Rerunning` moduledoc names the first-run NOTICE).
 4. **Should the task print a line when it detects rerun tables?** This is discretion. Recommendation: one info line naming the rerun tables and that `down` keeps capture on. Tests can assert it via `drain_shell`.
+   - RESOLVED: adopted in plan 207-02 Task 3 Step B (one info line naming the rerun tables).
 
 ## Environment Availability
 

@@ -58,7 +58,7 @@ The planner fills in the Task IDs when it creates the plans.
 | D-06 | Rerun-table `down` has no drops; first-run table keeps them; mixed table sets | file | `gen_triggers_test.exs` :: down per table | yes | ❌ W0 | ⬜ pending |
 | D-06/07 | Rollback comment present (capture stays on; unredacted rollback case named) | file | `gen_triggers_test.exs` :: same case, stable phrases | yes | ❌ W0 | ⬜ pending |
 | D-10/11 | No guide or README claims a default other than `public`; guard flags 4 offenders; non-vacuous | unit (doc) | `storage_schema_test.exs` :: default guard | yes (4 sites) | ✅ extend | ⬜ pending |
-| D-12 | Rerun guidance updated (production-checklist:45, domain-reference:52-53, moduledoc) | doc | `=~` assertion on the new rerun phrase | n/a | ❌ optional | ⬜ pending |
+| D-12 | Rerun guidance in production-checklist:45, domain-reference:52-53 and the moduledoc uses the same phrases as the generated rerun down comment | doc (contract) | `gen_triggers_test.exs` :: describe "rerun documentation" (guides via File.read!, moduledoc via Code.fetch_docs, generated down; one shared phrase attribute) — plan 207-03 Task 2 | yes (guides lack the phrases) | ❌ W0 (plan 03 T2) | ⬜ pending |
 | D-13 | CHANGELOG Unreleased shape and planning-vocabulary scan | contract | `changelog_contract_test.exs`, `release_artifact_contract_test.exs` | no (guard) | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
