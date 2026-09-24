@@ -44,6 +44,12 @@ run, are named as before. The rerun migration replaces the trigger in place, dro
 per-table capture function left behind when a table returns to the default
 trigger, and rolling it back keeps capture on.
 
+Every generated trigger migration, including a first run, now uses
+`CREATE OR REPLACE TRIGGER` (PostgreSQL 14 or later, the supported floor), so
+it no longer applies on PostgreSQL 13 or older. For each table on the default
+trigger it also drops a leftover per-table capture function; on a table without
+one, PostgreSQL prints a harmless NOTICE during `mix ecto.migrate`.
+
 ### Breaking changes
 
 None.
