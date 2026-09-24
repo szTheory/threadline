@@ -19,6 +19,18 @@ defmodule Mix.Tasks.Threadline.Install do
   use Mix.Task
   import Mix.Generator
 
+  alias Threadline.Mix.MigrationVersion
+
+  # Written in this order, so each family's version sorts after the one before.
+  @families [
+    {"_threadline_audit_schema.exs", "Threadline audit schema migration",
+     &Threadline.Capture.Migration.migration_content/0},
+    {"_threadline_semantics_schema.exs", "Threadline semantics schema migration",
+     &Threadline.Semantics.Migration.migration_content/0},
+    {"_threadline_governance_schema.exs", "Threadline governance schema migration",
+     &Threadline.Governance.Migration.migration_content/0}
+  ]
+
   @impl Mix.Task
   def run(_args) do
     Mix.Task.run("app.config", [])
@@ -26,28 +38,25 @@ defmodule Mix.Tasks.Threadline.Install do
     path = migrations_path()
     File.mkdir_p!(path)
 
-    written =
-      [
-        generate(
-          path,
-          "_threadline_audit_schema.exs",
-          "Threadline audit schema migration",
-          &Threadline.Capture.Migration.migration_content/0
-        ),
-        generate(
-          path,
-          "_threadline_semantics_schema.exs",
-          "Threadline semantics schema migration",
-          &Threadline.Semantics.Migration.migration_content/0
-        ),
-        generate(
-          path,
-          "_threadline_governance_schema.exs",
-          "Threadline governance schema migration",
-          &Threadline.Governance.Migration.migration_content/0
-        )
-      ]
-      |> Enum.reject(&is_nil/1)
+    pending = Enum.reject(@families, fn {suffix, _, _} -> existing_migration?(path, suffix) end)
+
+    # Every version is chosen before anything is written, so the files this
+    # run creates can never share a version with each other or with a
+    # migration already in the directory.
+    versions = MigrationVersion.next(path, length(pending))
+
+    {results, []} =
+      Enum.map_reduce(@families, versions, fn {suffix, label, content_fun} = family, remaining ->
+        if family in pending do
+          [version | rest] = remaining
+          {generate(path, version <> suffix, content_fun), rest}
+        else
+          Mix.shell().info("#{label} already exists — skipping.")
+          {:skipped, remaining}
+        end
+      end)
+
+    written = for {:written, file} <- results, do: file
 
     if written != [] do
       Mix.shell().info("Run `mix ecto.migrate` to apply the migration(s).")
@@ -56,16 +65,11 @@ defmodule Mix.Tasks.Threadline.Install do
     recommend_dedicated_storage_schema(written)
   end
 
-  # Returns the path of the migration it wrote, or nil when one already exists.
-  defp generate(path, suffix, label, content_fun) do
-    if existing_migration?(path, suffix) do
-      Mix.shell().info("#{label} already exists — skipping.")
-      nil
-    else
-      file = Path.join(path, "#{timestamp()}#{suffix}")
-      create_file(file, content_fun.())
-      file
-    end
+  # Writes one migration under its full file name and reports the path written.
+  defp generate(path, filename, content_fun) do
+    file = Path.join(path, filename)
+    create_file(file, content_fun.())
+    {:written, file}
   end
 
   # The storage schema is frozen into the migrations at generation time.
@@ -151,12 +155,4 @@ defmodule Mix.Tasks.Threadline.Install do
   rescue
     _ -> false
   end
-
-  defp timestamp do
-    {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
-    "#{y}#{pad(m)}#{pad(d)}#{pad(hh)}#{pad(mm)}#{pad(ss)}"
-  end
-
-  defp pad(i) when i < 10, do: "0#{i}"
-  defp pad(i), do: "#{i}"
 end

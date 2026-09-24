@@ -48,6 +48,52 @@ defmodule Mix.Tasks.Threadline.InstallTest do
     end
   end
 
+  @migrations "priv/repo/migrations"
+
+  # The version prefix of each family's migration, in the order given.
+  defp prefixes(tmp, suffixes) do
+    for suffix <- suffixes do
+      [file] = Path.wildcard(Path.join([tmp, @migrations, "*" <> suffix]))
+      file |> Path.basename() |> String.split("_", parts: 2) |> hd()
+    end
+  end
+
+  defp seed(tmp, name) do
+    dir = Path.join(tmp, @migrations)
+    File.mkdir_p!(dir)
+    File.write!(Path.join(dir, name), "# seeded by the test\n")
+  end
+
+  # Ecto reads the integer before the first "_" as the migration version and
+  # refuses to run a set that contains the same version twice.
+  defp assert_valid_increasing!(versions) do
+    for v <- versions do
+      assert v =~ ~r/^\d{14}$/, "version #{v} is not 14 digits"
+
+      <<y::binary-4, mo::binary-2, d::binary-2, h::binary-2, mi::binary-2, s::binary-2>> = v
+
+      assert {:ok, _} =
+               NaiveDateTime.new(
+                 String.to_integer(y),
+                 String.to_integer(mo),
+                 String.to_integer(d),
+                 String.to_integer(h),
+                 String.to_integer(mi),
+                 String.to_integer(s)
+               ),
+             "version #{v} is not a valid timestamp"
+    end
+
+    dupes = versions -- Enum.uniq(versions)
+
+    assert dupes == [],
+           "`mix ecto.migrate` would raise (Ecto.MigrationError) migrations can't be executed, " <>
+             "migration version #{List.first(dupes)} is duplicated — got #{inspect(versions)}"
+
+    assert versions == Enum.sort(versions),
+           "versions are not increasing in write order: #{inspect(versions)}"
+  end
+
   defp generated(tmp) do
     tmp
     |> Path.join("**/*.exs")
@@ -120,5 +166,32 @@ defmodule Mix.Tasks.Threadline.InstallTest do
 
     assert length(generated(tmp)) == 3
     refute output =~ "No `:storage_schema` is configured"
+  end
+
+  describe "migration versions" do
+    test "a fresh install writes three distinct versions in family order", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+
+      run_install(tmp)
+
+      assert_valid_increasing!(prefixes(tmp, @suffixes))
+    end
+
+    test "every version is above a future-dated host migration, with the date carried",
+         %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      seed(tmp, "20991231235959_host_thing.exs")
+
+      run_install(tmp)
+      versions = prefixes(tmp, @suffixes)
+
+      for v <- versions do
+        assert String.to_integer(v) > 20_991_231_235_959,
+               "version #{v} does not sort after the existing host migration 20991231235959"
+      end
+
+      assert hd(versions) == "21000101000000"
+      assert_valid_increasing!(versions)
+    end
   end
 end
