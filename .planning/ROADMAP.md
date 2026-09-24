@@ -914,7 +914,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 206-02-PLAN.md — CHANGELOG Unreleased entry + phase gate (full suite, static gates, docs, end-to-end probe) (wave 2)
+- [x] 206-02-PLAN.md — CHANGELOG Unreleased entry + phase gate (full suite, static gates, docs, end-to-end probe) (wave 2)
 
 **UI hint**: no
 
@@ -952,7 +952,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 203. Real Gates | v1.41 | 10/10 | Complete    | 2026-09-23 |
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
 | 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
-| 206. Installer Migration Versions | v1.41 | 1/2 | In Progress | - |
+| 206. Installer Migration Versions | v1.41 | 2/2 | In Progress | - |
 
 ## Prior Milestones
 
