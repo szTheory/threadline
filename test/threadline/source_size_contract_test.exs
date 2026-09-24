@@ -51,6 +51,20 @@ defmodule Threadline.SourceSizeContractTest do
 
   @banner_exceptions %{}
 
+  describe "exceptions at rest" do
+    test "exactly one named exception remains: the declarative stress fixture tables" do
+      assert Map.keys(@file_exceptions) == ["lib/threadline/operator_surface/stress_fixtures.ex"],
+             "the only file exception is lib/threadline/operator_surface/stress_fixtures.ex; " <>
+               "a new exception needs a named reason in review, not a quiet pin"
+
+      assert @function_exceptions == %{},
+             "no function exceptions remain; a new one needs a named reason in review"
+
+      assert @banner_exceptions == %{},
+             "no banner exceptions remain; a new one needs a named reason in review"
+    end
+  end
+
   describe "file length" do
     test "the real tree matches the file exceptions exactly" do
       assert :ok = validate_files(scan(@file_glob), @file_exceptions)
