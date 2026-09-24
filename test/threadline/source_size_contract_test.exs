@@ -49,9 +49,7 @@ defmodule Threadline.SourceSizeContractTest do
 
   @function_exceptions %{}
 
-  @banner_exceptions %{
-    "lib/threadline/semantics/actor_ref.ex" => 3
-  }
+  @banner_exceptions %{}
 
   describe "file length" do
     test "the real tree matches the file exceptions exactly" do

@@ -26,8 +26,6 @@ defmodule Threadline.Semantics.ActorRef do
 
   @types ~w(user admin service_account job system anonymous)a
 
-  # --- Constructor ---
-
   @doc """
   Constructs a validated ActorRef.
 
@@ -61,8 +59,6 @@ defmodule Threadline.Semantics.ActorRef do
       do: true
 
   def identifiable?(_actor_ref), do: false
-
-  # --- Map serialization (ACTR-04) ---
 
   @doc "Serializes an ActorRef to a plain map for JSONB storage."
   def to_map(%__MODULE__{type: :anonymous}) do
@@ -98,8 +94,6 @@ defmodule Threadline.Semantics.ActorRef do
   rescue
     ArgumentError -> {:error, :unknown_actor_type}
   end
-
-  # --- Ecto.ParameterizedType callbacks ---
 
   @impl Ecto.ParameterizedType
   def init(opts), do: Enum.into(opts, %{})
