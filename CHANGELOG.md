@@ -24,7 +24,42 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
-_Nothing yet for the next release._
+`mix threadline.install` could give two or three of its generated migrations the
+same version, so `mix ecto.migrate` refused to run them. Every release through
+0.10.1 is affected. The installer has written the audit and semantics migrations
+with a shared one-second timestamp since 0.1.0, and it has written the
+governance migration since 0.6.0. The installer now gives each migration a
+distinct version that sorts after every migration already in the directory.
+
+### Breaking changes
+
+None.
+
+### Required action
+
+None for an app that has already migrated, including one whose migration files
+were renamed by hand, because the installer runs once.
+
+If you are on an earlier release and `mix ecto.migrate` failed with the error
+below, rename the `_threadline_semantics_schema.exs` migration's numeric prefix,
+and then the `_threadline_governance_schema.exs` one, to later timestamps so the
+order is audit, then semantics, then governance. Then re-run `mix ecto.migrate`.
+
+### Fixed
+
+- `mix threadline.install` no longer writes duplicate migration versions, which
+  made `mix ecto.migrate` fail with
+  `(Ecto.MigrationError) migrations can't be executed, migration version <N> is duplicated`.
+  The versions are computed once, before any file is written, and sort after
+  the newest existing migration, including a future-dated one.
+- `mix threadline.gen.triggers` had the same kind of bug: run in the same second
+  as the installer, its migration could share a version. It now uses the same
+  version logic.
+- The dedicated-schema advice now prints only after a fresh install that wrote
+  all three migrations. A re-run that finds some Threadline migrations already
+  present is told to keep `:storage_schema` unset, because switching then would
+  split Threadline's tables across two schemas. The fresh-install advice no
+  longer ends with a paragraph that contradicted its own steps.
 
 ## [0.10.1] - 2026-09-22
 
