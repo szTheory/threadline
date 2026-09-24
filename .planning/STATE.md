@@ -159,7 +159,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 150/150 plans ([██████████] 100% of phases — 9 of 9 complete: 198–206; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW WR-01 CHANGELOG workaround wording open); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
+Progress: [████████████████████] 150/150 plans ([██████████] 100% of phases — 9 of 9 complete: 198–206; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
 
 ## Performance Metrics
 
