@@ -1,23 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.SkipLinkTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-
-    def render("500.html", assigns) do
-      ~H"""
-      Error 500: <%= inspect(assigns.reason) %>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.SkipLinkTest.Auth do
     def authorize(_), do: true
   end
@@ -41,21 +22,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.SkipLinkTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
     alias Threadline.OperatorSurface.SkipLinkTest.Auth
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.SkipLinkTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -75,20 +44,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.SkipLinkTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_skip_link_key",
-      signing_salt: "skip-link"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.SkipLinkTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.SkipLinkTest.Router
   end
 
   defmodule Threadline.OperatorSurface.SkipLinkTest do
@@ -107,10 +64,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     stress_live is dev/test-only and intentionally excluded.
     """
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
-
-    @endpoint Threadline.OperatorSurface.SkipLinkTest.Endpoint
+    use Threadline.OperatorSurfaceCase, endpoint: Threadline.OperatorSurface.SkipLinkTest.Endpoint
 
     # Each operator page at its simplest reachable URL. Drill-down pages are mounted
     # with a non-existent id so they render their not-found state — which still wraps
@@ -129,15 +83,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     ]
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.SkipLinkTest.Endpoint,
-        secret_key_base: "k" |> String.duplicate(64),
-        live_view: [signing_salt: "k" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.SkipLinkTest.Layouts]
-      )
-
       Application.put_env(:threadline, :coverage_poll_ms, 5_000)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
