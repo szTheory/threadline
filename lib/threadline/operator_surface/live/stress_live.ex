@@ -12,6 +12,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @ui_form_policy {:has_forms, "stress harness renders form controls as fixtures"}
 
     alias Phoenix.LiveView.JS
+    alias Threadline.OperatorSurface.Live.StressLive.Paths
     alias Threadline.OperatorSurface.Live.StressLive.Sections
     alias Threadline.OperatorSurface.StressFixtures
 
@@ -87,8 +88,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       {:noreply,
        socket
-       |> assign(:base_path, base_path(uri))
-       |> assign(:stress_path, stress_path(uri))
+       |> assign(:base_path, Paths.base_path(uri))
+       |> assign(:stress_path, Paths.stress_path(uri))
        |> assign(:status_allowlist, @status_allowlist)
        |> assign(:ledger_error, nil)
        |> assign(:ledger_entries, ledger_entries)
@@ -120,7 +121,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page tl-stress"
         data-testid="stress-lab"
       >
-          <Sections.page_header clear_path={clear_path(@stress_path)} />
+          <Sections.page_header clear_path={Paths.clear_path(@stress_path)} />
 
           <section :if={@ledger_error} class="tl-alert tl-alert--error" role="alert">
             Stress story could not render. Check the fixture shape, story assigns, and route gate, then rerun the audit.
@@ -148,13 +149,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <div class="tl-stress__layout">
             <aside class="tl-stress__sidebar" aria-label="Stress filters and stories">
               <nav class="tl-stress__category-nav" data-testid="stress-category-nav" aria-label="Stress categories">
-                <a class={category_link_class(nil, @filter_category)} href={filter_path(@stress_path, nil, @filter_status)}>
+                <a class={category_link_class(nil, @filter_category)} href={Paths.filter_path(@stress_path, nil, @filter_status)}>
                   All
                 </a>
                 <a
                   :for={category <- @categories}
                   class={category_link_class(category, @filter_category)}
-                  href={filter_path(@stress_path, category, @filter_status)}
+                  href={Paths.filter_path(@stress_path, category, @filter_status)}
                   aria-current={if @filter_category == category, do: "page", else: nil}
                 >
                   <%= category %>
@@ -165,11 +166,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <a
                   :for={status <- @status_allowlist}
                   class={status_link_class(status, @filter_status)}
-                  href={filter_path(@stress_path, @filter_category, status)}
+                  href={Paths.filter_path(@stress_path, @filter_category, status)}
                 >
                   <%= status %>
                 </a>
-                <a class="tl-button tl-button--ghost tl-button--compact" data-testid="stress-clear-filters" href={clear_path(@stress_path)}>
+                <a class="tl-button tl-button--ghost tl-button--compact" data-testid="stress-clear-filters" href={Paths.clear_path(@stress_path)}>
                   Clear filters
                 </a>
               </div>
@@ -189,7 +190,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <a
                   :for={story <- @stories}
                   class={story_link_class(story, @selected_story)}
-                  href={story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}
+                  href={Paths.story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}
                 >
                   <span class="tl-stress__story-id"><%= story.id %></span>
                   <span class="tl-stress__story-meta"><%= story.category %> / <%= story.status %></span>
@@ -676,53 +677,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp allow(_value, _allowed), do: nil
-
-    defp base_path(uri) do
-      uri
-      |> URI.parse()
-      |> Map.get(:path)
-      |> case do
-        path when is_binary(path) -> String.replace_suffix(path, "/__stress", "")
-        _ -> "/audit"
-      end
-    end
-
-    defp stress_path(uri) do
-      uri
-      |> URI.parse()
-      |> Map.get(:path)
-      |> case do
-        path when is_binary(path) -> path
-        _ -> "/audit/__stress"
-      end
-    end
-
-    defp clear_path(stress_path), do: stress_path
-
-    defp filter_path(stress_path, category, status) do
-      query =
-        %{}
-        |> maybe_put("category", category)
-        |> maybe_put("status", status)
-        |> URI.encode_query()
-
-      if query == "", do: clear_path(stress_path), else: "#{stress_path}?#{query}"
-    end
-
-    defp story_path(stress_path, story, category, status, theme, viewport) do
-      query =
-        %{"story" => story.id}
-        |> maybe_put("category", category)
-        |> maybe_put("status", status)
-        |> maybe_put("theme", theme)
-        |> maybe_put("viewport", viewport)
-        |> URI.encode_query()
-
-      "#{stress_path}?#{query}"
-    end
-
-    defp maybe_put(map, _key, nil), do: map
-    defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
     defp category_link_class(category, current) do
       ["tl-stress__category-link", category == current && "tl-stress__category-link--active"]
