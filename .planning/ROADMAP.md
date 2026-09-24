@@ -834,7 +834,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 204-09-PLAN.md — `stress_live` sections sibling under a directory-wide Hex exclusion; 2 register sites (STRUCT-03, STRUCT-07)
+- [x] 204-09-PLAN.md — `stress_live` sections sibling under a directory-wide Hex exclusion; 2 register sites (STRUCT-03, STRUCT-07)
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
