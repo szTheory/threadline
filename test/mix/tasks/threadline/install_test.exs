@@ -3,6 +3,8 @@ defmodule Mix.Tasks.Threadline.InstallTest do
   # the global :storage_schema application env, and both are VM-wide.
   use ExUnit.Case, async: false
 
+  alias Mix.Tasks.Threadline.Install
+
   @suffixes [
     "_threadline_audit_schema.exs",
     "_threadline_semantics_schema.exs",
@@ -34,7 +36,7 @@ defmodule Mix.Tasks.Threadline.InstallTest do
   end
 
   defp run_install(tmp) do
-    File.cd!(tmp, fn -> Mix.Tasks.Threadline.Install.run([]) end)
+    File.cd!(tmp, fn -> Install.run([]) end)
     drain_shell([])
   end
 
