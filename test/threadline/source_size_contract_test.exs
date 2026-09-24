@@ -47,13 +47,10 @@ defmodule Threadline.SourceSizeContractTest do
        "declarative fixture data tables; excluded from the Hex package (mix.exs exclude_patterns)"}
   }
 
-  @function_exceptions %{
-    {"lib/threadline/operator_surface/live/coverage_live.ex", :render, 1} => {135, @splitting}
-  }
+  @function_exceptions %{}
 
   @banner_exceptions %{
     "lib/threadline/operator_surface/controllers/export_controller.ex" => 9,
-    "lib/threadline/operator_surface/live/coverage_live.ex" => 3,
     "lib/threadline/semantics/actor_ref.ex" => 3
   }
 
