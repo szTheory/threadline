@@ -938,7 +938,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 207-03-PLAN.md — `public` default in all guides + guard, rerun docs, CHANGELOG, end-to-end probe + phase gate (wave 3)
+- [x] 207-03-PLAN.md — `public` default in all guides + guard, rerun docs, CHANGELOG, end-to-end probe + phase gate (wave 3)
 
 **Context**:
 - W1: `lib/mix/tasks/threadline.gen.triggers.ex:141` names the file `<version>_threadline_triggers_<tables>.exs`, so a rerun for the same tables writes a second migration with the same name and module; Ecto raises "migration name ... is duplicated" (`deps/ecto_sql/lib/ecto/migrator.ex:714-716`). Prescribed by `guides/production-checklist.md:45` and `guides/domain-reference.md:52-53`. Pre-existing (not a 206 regression).
@@ -981,7 +981,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
 | 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
 | 206. Installer Migration Versions | v1.41 | 2/2 | Complete    | 2026-09-24 |
-| 207. Trigger Migration Rerun and Storage-Schema Default Docs | v1.41 | 2/3 | In Progress | - |
+| 207. Trigger Migration Rerun and Storage-Schema Default Docs | v1.41 | 3/3 | In Progress | - |
 
 ## Prior Milestones
 
