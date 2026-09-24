@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — ALL PLANS EXECUTED, VERIFYING
 Plan: 3 of 3
-Status: Phase 207 — 3/3 plans executed; code review found 1 critical (CR-01, orphan DROP FUNCTION vs 63-byte identifier truncation) — fix, then verify
+Status: Phase 207 — 3/3 plans executed; code review CR-01 + WR-01..03 fixed (35ec16b8, 917418ff, 292c0173, 660e2ad3; 207-REVIEW-FIX.md all_fixed, CR-01 flagged for human check of the logic change; per-table/per-table 36-byte-prefix collision deferred) — next: verify
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
