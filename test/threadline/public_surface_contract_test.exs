@@ -8,6 +8,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     Threadline.CriticTrust.RankMetrics,
     Threadline.CriticTrust.LedgerSplice,
     Threadline.CriticTrust.KrippendorffAlpha,
+    Threadline.CriticTrust.RepositoryBoundary,
     Mix.Tasks.Critic.Measure,
     Mix.Tasks.Critic.Synth
   ]

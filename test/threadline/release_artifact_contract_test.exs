@@ -171,6 +171,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/threadline/critic_trust/ledger_splice.ex",
     "lib/threadline/critic_trust/measure.ex",
     "lib/threadline/critic_trust/rank_metrics.ex",
+    "lib/threadline/critic_trust/repository_boundary.ex",
     "lib/threadline/operator_surface/live/stress_live.ex",
     "lib/threadline/operator_surface/live/stress_live/paths.ex",
     "lib/threadline/operator_surface/live/stress_live/refute.ex",
