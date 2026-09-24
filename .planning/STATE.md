@@ -4,16 +4,16 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 207
 current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
-status: planning
+status: ready_to_execute
 stopped_at: Phase 207 context gathered
-last_updated: "2026-09-24T20:18:18.866Z"
+last_updated: "2026-09-24T20:59:46.221Z"
 last_activity: 2026-09-24
 last_activity_desc: Phase 207 context gathered
-state_head: e848d5fb97c4d9677049afe12f9cdb815eb1ed9a
+state_head: 6b5ea0b747cf3133bbcf0ea16cbb28cdc343035b
 progress:
   total_phases: 10
   completed_phases: 9
-  total_plans: 150
+  total_plans: 153
   completed_plans: 150
   percent: 90
 ---
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 206 (Installer Migration Versions) — COMPLETE
+Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — READY TO EXECUTE
 Plan: 2 of 2
 Status: All v1.41 phases complete — next: milestone re-audit
 
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 150/150 plans ([█████████░] 90% of phases — 9 of 10 complete: 198–206; 207 Trigger Migration Rerun context gathered (e848d5fb), next /gsd-plan-phase 207; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
+Progress: [████████████████████] 150/153 plans ([█████████░] 90% of phases — 9 of 10 complete: 198–206; 207 Trigger Migration Rerun planned — 3 plans, checker passed (6b5ea0b7), next /gsd-execute-phase 207; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
 
 ## Performance Metrics
 
