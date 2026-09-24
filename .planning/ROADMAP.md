@@ -858,7 +858,7 @@ Plans:
 
 **Wave 15** *(blocked on Wave 14 completion)*
 
-- [ ] 204-15-PLAN.md — last 12 test register sites, register `%{}` / ceiling 0, size gate at rest (one named exception), phase-end proof (STRUCT-07, STRUCT-03, STRUCT-04)
+- [x] 204-15-PLAN.md — last 12 test register sites, register `%{}` / ceiling 0, size gate at rest (one named exception), phase-end proof (STRUCT-07, STRUCT-03, STRUCT-04)
 
 **Cross-cutting constraints:**
 
