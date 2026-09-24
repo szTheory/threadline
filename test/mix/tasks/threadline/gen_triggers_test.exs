@@ -312,4 +312,74 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
              end)
     end
   end
+
+  describe "down body" do
+    test "a first-run table keeps today's rollback", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      run_triggers(tmp, ["--tables", "posts"])
+
+      [file] = trigger_files(tmp)
+      assert executes(file, :down) == [TriggerSQL.drop_trigger("posts")]
+      refute File.read!(file) =~ "does not restore the earlier capture policy"
+
+      per_table = Path.join(tmp, "per_table")
+      File.mkdir_p!(per_table)
+      run_triggers(per_table, ["--tables", "test_redaction_users"])
+
+      [file] = trigger_files(per_table)
+
+      assert executes(file, :down) == [
+               TriggerSQL.drop_trigger("test_redaction_users"),
+               TriggerSQL.drop_function_for_table("test_redaction_users")
+             ]
+
+      refute File.read!(file) =~ "does not restore the earlier capture policy"
+    end
+
+    test "a rerun table's rollback leaves capture on", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      run_triggers(tmp, ["--tables", "posts"])
+      run_triggers(tmp, ["--tables", "posts"])
+
+      [first, rerun] = trigger_files(tmp)
+
+      assert executes(first, :down) == [TriggerSQL.drop_trigger("posts")]
+      assert executes(rerun, :down) == []
+
+      text = File.read!(rerun)
+
+      for phrase <- [
+            "does not restore the earlier capture policy",
+            "Capture stays on",
+            "continues unredacted",
+            "mix threadline.policy.show"
+          ] do
+        assert text =~ phrase, "the rerun rollback comment does not say #{inspect(phrase)}"
+      end
+    end
+
+    test "mixed table sets split the rollback per table", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      run_triggers(tmp, ["--tables", "posts,users"])
+      run_triggers(tmp, ["--tables", "posts,comments"])
+
+      [_first, rerun] = trigger_files(tmp)
+
+      assert executes(rerun, :down) == [TriggerSQL.drop_trigger("comments")]
+
+      down_text = rerun |> File.read!() |> String.split("def down do") |> List.last()
+      assert down_text =~ ~r/#[^\n]*\bposts\b/
+      refute down_text =~ ~r/#[^\n]*\bcomments\b/
+    end
+
+    test "the task names rerun tables", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      first_output = run_triggers(tmp, ["--tables", "posts"])
+      refute first_output =~ "already have a Threadline trigger migration"
+
+      output = run_triggers(tmp, ["--tables", "posts"])
+      assert output =~ "already have a Threadline trigger migration"
+      assert output =~ "posts"
+    end
+  end
 end

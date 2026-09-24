@@ -68,4 +68,17 @@ defmodule Threadline.Mix.TriggerMigration do
       end
     end)
   end
+
+  # A table already has a trigger migration when some migration in the
+  # directory names its audit trigger. The name must not run on into more
+  # identifier characters, so `threadline_audit_posts_archive` does not count
+  # as a trigger for `posts`. Both the quoted form the generator writes and the
+  # unquoted form of older releases end the name with a non-identifier
+  # character.
+  @doc false
+  @spec rerun?(String.t(), [String.t()]) :: boolean()
+  def rerun?(suffix, sources) do
+    trigger = Regex.compile!("threadline_audit_" <> Regex.escape(suffix) <> "(?![A-Za-z0-9_])")
+    Enum.any?(sources, &Regex.match?(trigger, &1))
+  end
 end

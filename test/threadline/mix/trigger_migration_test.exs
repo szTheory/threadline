@@ -119,6 +119,31 @@ defmodule Threadline.Mix.TriggerMigrationTest do
     end
   end
 
+  describe "rerun?/2" do
+    test "finds the trigger as the generator writes it" do
+      source = ~S|    execute "CREATE OR REPLACE TRIGGER \"threadline_audit_posts\"\nAFTER INSERT|
+
+      assert TriggerMigration.rerun?("posts", [source])
+    end
+
+    test "finds the trigger in a legacy migration" do
+      source = ~S|    execute "CREATE TRIGGER threadline_audit_posts\nAFTER INSERT OR UPDATE|
+
+      assert TriggerMigration.rerun?("posts", [source])
+    end
+
+    test "a longer table name with the same prefix is not a match" do
+      source =
+        ~S|    execute "CREATE OR REPLACE TRIGGER \"threadline_audit_posts_archive\"\nAFTER|
+
+      refute TriggerMigration.rerun?("posts", [source])
+    end
+
+    test "no sources means no earlier trigger migration" do
+      refute TriggerMigration.rerun?("posts", [])
+    end
+  end
+
   describe "MigrationVersion.existing/1" do
     test "returns version, name and path for each migration", %{dir: dir} do
       top = write(dir, "20260101000000_top.exs", "# fixture\n")
