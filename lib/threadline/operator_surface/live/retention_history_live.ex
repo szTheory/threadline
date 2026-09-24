@@ -192,6 +192,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </:actions>
               </UI.Data.empty_state>
             <% else %>
+              <.run_history
+                retention_summary={@retention_summary}
+                retention_actions={@retention_actions}
+                prune_copy={@prune_copy}
+                runs={@streams.runs}
+                runs_count={@runs_count}
+                default_limit={@default_limit}
+              />
+            <% end %>
+
+            <%!-- Type-to-confirm modal. The operator types the
+                  policy NAME (the object's own identifier) to confirm; the
+                  canonical token is re-derived and compared SERVER-SIDE in the
+                  prune_now handler and is never shipped to the client for a
+                  client-side comparison. The danger button copy names the
+                  irreversible consequence (not "Continue"). --%>
+            <.prune_modal :if={@prune_modal_open} prune_copy={@prune_copy} />
+          <% else %>
+            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
+              descriptor={Unsupported.descriptor(:retention_unavailable)}
+              base_path={@base_path}
+            />
+          <% end %>
+      </UI.Page.shell>
+      """
+    end
+
+    attr(:retention_summary, :map, required: true)
+    attr(:retention_actions, :map, required: true)
+    attr(:prune_copy, :map, required: true)
+    attr(:runs, :any, required: true)
+    attr(:runs_count, :integer, required: true)
+    attr(:default_limit, :integer, required: true)
+
+    defp run_history(assigns) do
+      ~H"""
               <section class="tl-summary-grid" aria-label="Retention window health">
                 <div class="tl-card--metric">
                   <span class="tl-card__metric-label">Latest run</span>
@@ -247,7 +283,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-table-wrap" data-testid="retention-runs-table">
                 <UI.Data.data_table
                   class="tl-table--retention tl-table--compact tl-table--sticky"
-                  stream={@streams.runs}
+                  stream={@runs}
                   tbody_id="retention-runs"
                   row_id={fn {dom_id, _run} -> dom_id end}
                   row_status={fn {_dom_id, run} -> run.status end}
@@ -278,15 +314,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </:action>
                 </UI.Data.data_table>
               </div>
-            <% end %>
+      """
+    end
 
-            <%!-- Type-to-confirm modal. The operator types the
-                  policy NAME (the object's own identifier) to confirm; the
-                  canonical token is re-derived and compared SERVER-SIDE in the
-                  prune_now handler and is never shipped to the client for a
-                  client-side comparison. The danger button copy names the
-                  irreversible consequence (not "Continue"). --%>
-            <UI.Overlay.modal :if={@prune_modal_open} id="prune-confirm" show={true} on_cancel={JS.push("close_prune_modal")}>
+    attr(:prune_copy, :map, required: true)
+
+    defp prune_modal(assigns) do
+      ~H"""
+            <UI.Overlay.modal id="prune-confirm" show={true} on_cancel={JS.push("close_prune_modal")}>
               <h2 id="prune-confirm-title" class="tl-modal__title"><%= @prune_copy.title %></h2>
               <p id="prune-confirm-description" class="tl-modal__body">
                 <%= @prune_copy.consequence_prefix %> <code><%= @prune_copy.policy_name %></code>; it cannot be undone.
@@ -316,13 +351,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               </form>
             </UI.Overlay.modal>
-          <% else %>
-            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
-              descriptor={Unsupported.descriptor(:retention_unavailable)}
-              base_path={@base_path}
-            />
-          <% end %>
-      </UI.Page.shell>
       """
     end
 
