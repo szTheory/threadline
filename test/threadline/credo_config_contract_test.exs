@@ -89,29 +89,41 @@ defmodule Threadline.CredoConfigContractTest do
     end
 
     test "one extra or one missing disable fails exact equality" do
-      {nesting, _} = Map.fetch!(@register, Credo.Check.Refactor.Nesting)
-      {complexity, _} = Map.fetch!(@register, Credo.Check.Refactor.CyclomaticComplexity)
+      register = register_with(2, 1)
 
       exact = [
-        synthetic("lib/nesting.ex", List.duplicate(pair("Nesting"), nesting)),
-        synthetic("lib/complexity.ex", List.duplicate(pair("CyclomaticComplexity"), complexity))
+        synthetic("lib/nesting.ex", List.duplicate(pair("Nesting"), 2)),
+        synthetic("lib/complexity.ex", [pair("CyclomaticComplexity")])
       ]
 
-      assert :ok = validate_register(exact, @register, @ceiling)
+      assert :ok = validate_register(exact, register, 3)
 
       extra = exact ++ [synthetic("lib/extra.ex", [pair("Nesting")])]
-      assert {:error, message} = validate_register(extra, @register, @ceiling)
+      assert {:error, message} = validate_register(extra, register, 3)
       assert message =~ "adding a disable requires raising the register in review"
-      assert message =~ "scanned #{nesting + 1}"
+      assert message =~ "scanned 3"
 
       missing = [
-        synthetic("lib/nesting.ex", List.duplicate(pair("Nesting"), nesting - 1)),
-        synthetic("lib/complexity.ex", List.duplicate(pair("CyclomaticComplexity"), complexity))
+        synthetic("lib/nesting.ex", [pair("Nesting")]),
+        synthetic("lib/complexity.ex", [pair("CyclomaticComplexity")])
       ]
 
-      assert {:error, message} = validate_register(missing, @register, @ceiling)
+      assert {:error, message} = validate_register(missing, register, 3)
       assert message =~ "adding a disable requires raising the register in review"
-      assert message =~ "scanned #{nesting - 1}"
+      assert message =~ "scanned 1"
+    end
+
+    test "an empty register accepts a tree with no disables and rejects one annotated Nesting disable" do
+      clean = [synthetic("lib/clean.ex", [])]
+      assert :ok = validate_register(clean, %{}, 0)
+
+      one = [synthetic("lib/one.ex", [pair("Nesting")])]
+      assert {:error, message} = validate_register(one, %{}, 0)
+      assert message =~ "Credo.Check.Refactor.Nesting: scanned 1"
+      assert message =~ "adding a disable requires raising the register in review"
+
+      nesting_only = %{Credo.Check.Refactor.Nesting => {1, @successor}}
+      assert :ok = validate_register(one, nesting_only, 1)
     end
 
     test "every other config-comment form is rejected" do
@@ -389,7 +401,7 @@ defmodule Threadline.CredoConfigContractTest do
     counts = Enum.frequencies_by(entries, & &1.check)
 
     for check <- @registered_checks do
-      {expected, successor} = Map.fetch!(register, check)
+      {expected, successor} = Map.get(register, check, {0, @successor})
       actual = Map.get(counts, check, 0)
 
       demand!(
@@ -406,8 +418,9 @@ defmodule Threadline.CredoConfigContractTest do
 
   defp validate_register_shape!(register, ceiling) do
     demand!(
-      is_map(register) and Enum.sort(Map.keys(register)) == @registered_checks,
-      "the register must name exactly #{inspect(@registered_checks)}"
+      is_map(register) and Map.keys(register) -- @registered_checks == [],
+      "the register may name only checks from exactly #{inspect(@registered_checks)} " <>
+        "(a missing key counts as 0)"
     )
 
     for {check, value} <- register do
