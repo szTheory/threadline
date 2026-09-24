@@ -179,20 +179,20 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     if paths == [] do
       {:error, {:empty_scorecards, Path.join(root, "scorecards")}}
     else
-      Enum.reduce_while(paths, {:ok, %{}}, fn path, {:ok, scorecards} ->
-        # Structural debt: decode case inside reduce_while in else — extract the scorecard load step
-        # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-        case decode_json(root, path) do
-          {:ok, %{"cell_id" => cell_id}} when is_binary(cell_id) and cell_id != "" ->
-            {:cont, {:ok, Map.put(scorecards, cell_id, path)}}
+      Enum.reduce_while(paths, {:ok, %{}}, &load_scorecard(root, &1, &2))
+    end
+  end
 
-          {:ok, _document} ->
-            {:halt, {:error, {:malformed_structure, Path.join(root, path)}}}
+  defp load_scorecard(root, path, {:ok, scorecards}) do
+    case decode_json(root, path) do
+      {:ok, %{"cell_id" => cell_id}} when is_binary(cell_id) and cell_id != "" ->
+        {:cont, {:ok, Map.put(scorecards, cell_id, path)}}
 
-          {:error, _reason} = error ->
-            {:halt, error}
-        end
-      end)
+      {:ok, _document} ->
+        {:halt, {:error, {:malformed_structure, Path.join(root, path)}}}
+
+      {:error, _reason} = error ->
+        {:halt, error}
     end
   end
 
@@ -221,16 +221,22 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
 
   defp validate_references(ledger, golden, synthetic, refute, scorecards) do
     with {:ok, references} <- corpus_references(ledger, golden, synthetic, refute) do
-      # Structural debt: find case inside with — extract the unreferenced-cell lookup
-      # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-      case Enum.find(references, fn {_source, cell_id} ->
-             not scorecard_reference?(scorecards, cell_id)
-           end) do
-        nil -> :ok
-        {source, cell_id} -> {:error, {:broken_reference, %{source: source, cell_id: cell_id}}}
-      end
+      references
+      |> unreferenced_cell(scorecards)
+      |> broken_reference()
     end
   end
+
+  defp unreferenced_cell(references, scorecards) do
+    Enum.find(references, fn {_source, cell_id} ->
+      not scorecard_reference?(scorecards, cell_id)
+    end)
+  end
+
+  defp broken_reference(nil), do: :ok
+
+  defp broken_reference({source, cell_id}),
+    do: {:error, {:broken_reference, %{source: source, cell_id: cell_id}}}
 
   defp corpus_references(ledger, golden, synthetic, refute) do
     required = ledger_references(ledger)
@@ -244,29 +250,30 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
         Enum.map(required, &{"design-system-ledger.json", &1}) ++
           Enum.map(golden_items, &{"golden/golden-set.json", &1["cell_id"]}) ++
           Enum.map(synthetic_items, &{"golden/synthetic-set.json", &1["cell_id"]}) ++
-          Enum.flat_map(refute_items, fn item ->
-            case item["class"] do
-              "veto_ordering" ->
-                [{"refute/refute-set.json", item["polished_cell_id"]}]
+          Enum.flat_map(refute_items, &refute_references/1)
 
-              _other ->
-                [
-                  {"refute/refute-set.json", item["polished_cell_id"]},
-                  {"refute/refute-set.json", item["flawed_cell_id"]}
-                ]
-            end
-          end)
-
-      # Structural debt: refute class case inside flat_map fn inside with — extract the refute reference mapper
-      # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-      if Enum.all?(references, fn {_source, cell_id} -> is_binary(cell_id) and cell_id != "" end) do
-        {:ok, references}
-      else
-        {:error, {:malformed_structure, "corpus references"}}
-      end
+      named_references(references)
     else
       _invalid -> {:error, {:malformed_structure, "corpus roots"}}
     end
+  end
+
+  defp named_references(references) do
+    if Enum.all?(references, fn {_source, cell_id} -> is_binary(cell_id) and cell_id != "" end) do
+      {:ok, references}
+    else
+      {:error, {:malformed_structure, "corpus references"}}
+    end
+  end
+
+  defp refute_references(%{"class" => "veto_ordering"} = item),
+    do: [{"refute/refute-set.json", item["polished_cell_id"]}]
+
+  defp refute_references(item) do
+    [
+      {"refute/refute-set.json", item["polished_cell_id"]},
+      {"refute/refute-set.json", item["flawed_cell_id"]}
+    ]
   end
 
   defp ledger_references(%{"required_scorecards" => required}) when is_list(required),
