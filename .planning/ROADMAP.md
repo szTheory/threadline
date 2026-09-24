@@ -850,7 +850,7 @@ Plans:
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
-- [ ] 204-13-PLAN.md — **Tracer:** shared operator-surface test templates + nine LiveView tests migrated (STRUCT-05)
+- [x] 204-13-PLAN.md — **Tracer:** shared operator-surface test templates + nine LiveView tests migrated (STRUCT-05)
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
