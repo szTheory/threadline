@@ -8,7 +8,7 @@ It is **not** a compliance procurement sign-off or legal attestation of your env
 
 ## What the current Threadline release packages
 
-Threadline **0.9.0** is the in-repo, doc, and [Hex](https://hex.pm/packages/threadline) SSOT (`mix.exs` `@version`). See [`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md) Distribution preflight for maintainer attestation and publish workflow evidence. <!-- x-release-please-version -->
+Threadline **0.10.1** is the in-repo, doc, and [Hex](https://hex.pm/packages/threadline) SSOT (`mix.exs` `@version`). See [`guides/adoption-pilot-backlog.md`](adoption-pilot-backlog.md) Distribution preflight for maintainer attestation and publish workflow evidence. <!-- x-release-please-version -->
 
 0.6.0 packages Evidence, `Audit.transaction/3`, and aligned operator surfaces that landed in-repo after **0.5.0**; upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
@@ -38,7 +38,7 @@ In-repo evidence includes:
 - **`mix verify.*` ladder** — doc-contract tests lock public prose to code; `mix verify.test` runs every one of them.
 - **PgBouncer transaction-mode class** via **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through a transaction pooler).
 - **Reference app CI-class HTTP paths** via `mix verify.example` (`examples/threadline_phoenix`).
-- **Hex-published install path** via `mix verify.hex_evaluator` (`priv/ci/hex_evaluator` depends on `{:threadline, "~> 0.9.0"}` from hex.pm — not a path dep).
+- **Hex-published install path** via `mix verify.hex_evaluator` (`priv/ci/hex_evaluator` depends on `{:threadline, "~> 0.10.0"}` from hex.pm — not a path dep).
 
 ## What integrators must prove (host-class)
 

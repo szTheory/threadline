@@ -98,12 +98,86 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+  # Release Please bumps `mix.exs` and the `x-release-please-version` lines, but it
+  # cannot own the documented install pins (see lib/mix/tasks/release.pins.ex for
+  # why), and `mix release.pins` is their only writer. Without this job the release
+  # PR is born red on every minor bump: the version-truth contract derives
+  # `~> x.y.0` from the bumped @version while every pin still reads the old minor.
+  # `prs_created` is true whenever Release Please created OR updated its PR, and an
+  # update force-pushes the branch (dropping any earlier pin commit), so the pins are
+  # re-synced every time the release commit is regenerated. A patch release is a
+  # no-op: the derived `major.minor.0` floor does not change, so nothing is pushed.
+  sync-release-pr-pins:
+    name: Sync install pins on Release PR
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    needs: release-please
+    if: github.event_name == 'push' && needs.release-please.outputs.prs_created == 'true'
+    # Two pushes to main close together would otherwise race to push onto the same
+    # branch, and the loser fails non-fast-forward. Only the newest run matters: it
+    # checks out the branch as Release Please last wrote it.
+    concurrency:
+      group: sync-release-pr-pins
+      cancel-in-progress: true
+    # The push below uses the PAT when configured; GITHUB_TOKEN is the fallback and
+    # needs nothing beyond pushing to the release branch.
+    permissions:
+      contents: write
+    steps:
+      # persist-credentials: false keeps the token out of .git/config. The steps
+      # below fetch and COMPILE every dependency (`mix release.pins` is a Mix task),
+      # and any dependency's compile-time code could otherwise read a persisted
+      # credential. The token is supplied to the push step alone.
+      - uses: actions/checkout@v5
+        with:
+          ref: release-please--branches--main
+          persist-credentials: false
+
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.0"
+
+      - name: Fetch dependencies
+        run: mix deps.get
+
+      - name: Rewrite install pins from the bumped @version
+        run: mix release.pins
+
+      - name: Confirm the pin writer is now idempotent
+        run: mix release.pins --check
+
+      # The PAT (when configured) is what makes the pushed commit trigger CI on the
+      # release PR; a GITHUB_TOKEN push does not fan out, which the bootstrap job
+      # below covers by dispatching CI after this job.
+      - name: Commit and push the pins to the release branch
+        env:
+          PUSH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Stage only the files the pin writer owns, so a stray lockfile or build
+          # artefact can never ride along into the release commit.
+          git add -- README.md guides/
+          if git diff --cached --quiet; then
+            echo "Install pins already match @version — nothing to push."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(release): sync documented install pins to @version"
+          git push "https://x-access-token:${PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            HEAD:release-please--branches--main
+
   bootstrap-release-pr-ci:
     name: Bootstrap CI on Release PR
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    needs: release-please
-    if: github.event_name == 'push' && needs.release-please.outputs.prs_created == 'true'
+    # After the pin sync, so the dispatched run tests the release PR's final head.
+    # always(): a failed pin sync must still produce a (red) CI run on the release
+    # PR. Without it, a failed sync skips this job, and with no PAT configured the
+    # release PR would get no CI at all — silence instead of a visible failure.
+    needs: [release-please, sync-release-pr-pins]
+    if: always() && github.event_name == 'push' && needs.release-please.outputs.prs_created == 'true'
     permissions:
       actions: write
       contents: read

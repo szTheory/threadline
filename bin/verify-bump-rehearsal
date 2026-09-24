@@ -35,17 +35,34 @@
 # exists to prevent. `apply_extra_files_rewrite` below is the simulation of that
 # generic updater, driven off the config file rather than a hardcoded list.
 #
-# THE CHANGELOG STAND-IN (disclosed, not laundered)
+# THE TWO STAND-INS (disclosed, not laundered)
 #
 # `bin/verify-release-shape` requires a dated `## [<version>]` heading in
 # CHANGELOG.md. For an UNRELEASED next minor that section does not exist yet —
 # in this repo a human writes it during the release plan (CHANGELOG.md is
 # human-owned; release-please owns CHANGELOG-GENERATED.md). So the rehearsal
-# synthesises a dated stand-in heading for the next minor IF AND ONLY IF one is
-# absent, and says so on stdout. This is not the gate looking away: it stands in
-# for work that provably happens in the real release commit, and it is the only
-# fabricated input in the whole run. If the heading already exists (as it does
-# today for 0.10.0) nothing is synthesised.
+# synthesises a dated stand-in section for the next minor IF AND ONLY IF one is
+# absent, and says so on stdout. The stand-in carries the minimum shape
+# test/threadline/changelog_contract_test.exs demands of the real entry (a
+# highlights line, then `### Breaking changes`, then a feature-tour section), so
+# the contract measures the tree rather than the stand-in's own omissions.
+#
+# Family C of `test/threadline/version_truth_doc_contract_test.exs` requires
+# guides/upgrade-path.md to cover the `<prev minor>.x -> <minor>.x` jump. That
+# bullet answers "must I act, and how?" for a release whose contents are not
+# known yet, so a human writes it during the release plan too. The rehearsal
+# appends a stand-in bullet IF AND ONLY IF the coverage is absent, and says so.
+# The real assertion is untouched: `mix test` (verify.test) still enforces it
+# at the actual @version on every pull request, including the release PR.
+#
+# Neither is the gate looking away: each stands in for human-authored work that
+# provably happens in the real release commit, and they are the only stand-ins
+# for human-authored content in the whole run. When the real content already
+# exists, nothing is synthesised. Every other rewrite simulates automation that
+# the real release runs: the extra-files updater and CHANGELOG-GENERATED.md entry
+# (Release Please), and `mix release.pins` (the `sync-release-pr-pins` job in
+# .github/workflows/release.yml). If that job is ever removed, this rehearsal
+# goes back to passing a release PR that is born red.
 #
 # TRACE-FREE BY CONSTRUCTION, NOT BY DISCIPLINE
 #
@@ -303,13 +320,53 @@ else
   printf '    (rehearsal-only: the real release commit carries a human-written section here)\n'
   TODAY="$(date -u +%Y-%m-%d)"
   NXT="$NEXT" TODAY="$TODAY" perl -0pi -e \
-    's/^(## \[)/"## [$ENV{NXT}] - $ENV{TODAY}\n\n_Rehearsal stand-in section._\n\n" . $1/me' \
+    's/^(## \[)/"## [$ENV{NXT}] - $ENV{TODAY}\n\n_Rehearsal stand-in section._\n\n### Breaking changes\n\nNone (rehearsal stand-in).\n\n### Added\n\n- Rehearsal stand-in.\n\n" . $1/me' \
     "$CLONE/CHANGELOG.md" ||
     fail "changelog" "Could not insert the rehearsal stand-in heading into CHANGELOG.md."
   grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\] - " "$CLONE/CHANGELOG.md" ||
     fail "changelog" \
       "CHANGELOG.md carries no '## [$NEXT] - YYYY-MM-DD' heading after the stand-in insert." \
       "bin/verify-release-shape would fail for a reason the rehearsal invented."
+fi
+
+# Upgrade-path stand-in for the unreleased next minor. See the header.
+UPGRADE_GUIDE="$CLONE/guides/upgrade-path.md"
+COVER_FROM="${CURRENT%.*}.x"
+COVER_TO="${NEXT%.*}.x"
+COVER_RE="$(sed 's/\./\\./g' <<<"$COVER_FROM")[[:space:]]*(->|→)[[:space:]]*$(sed 's/\./\\./g' <<<"$COVER_TO")"
+if grep -qE "$COVER_RE" "$UPGRADE_GUIDE"; then
+  step "upgrade-path.md already covers $COVER_FROM -> $COVER_TO — nothing synthesised"
+else
+  step "synthesising an upgrade-path stand-in bullet for the unreleased $COVER_FROM -> $COVER_TO"
+  printf '    (rehearsal-only: the real release commit carries a human-written bullet here)\n'
+  printf '\n- **%s → %s**: _Rehearsal stand-in bullet._\n' "$COVER_FROM" "$COVER_TO" >>"$UPGRADE_GUIDE" ||
+    fail "upgrade-path" "Could not append the rehearsal stand-in bullet to guides/upgrade-path.md."
+  grep -qE "$COVER_RE" "$UPGRADE_GUIDE" ||
+    fail "upgrade-path" \
+      "guides/upgrade-path.md carries no '$COVER_FROM -> $COVER_TO' coverage after the stand-in insert." \
+      "version_truth_doc_contract_test.exs would fail for a reason the rehearsal invented."
+fi
+
+# release-please's changelog write. The real release commit prepends a dated,
+# compare-linked entry to CHANGELOG-GENERATED.md (`changelog-path`), and on the
+# first write it replaces the file's H1 with its own `# Changelog` header and
+# demotes the old one. Simulate that shape rather than skipping it: the 0.10.0
+# release PR was born red because a contract forbade exactly this entry, and the
+# rehearsal never wrote one, so it could not see it.
+GENERATED="$CLONE/CHANGELOG-GENERATED.md"
+if grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\]" "$GENERATED"; then
+  step "CHANGELOG-GENERATED.md already carries an entry for $NEXT — nothing simulated"
+else
+  step "simulating release-please's CHANGELOG-GENERATED.md entry for $NEXT"
+  TODAY="$(date -u +%Y-%m-%d)"
+  CUR="$CURRENT" NXT="$NEXT" TODAY="$TODAY" perl -0pi -e '
+    my $entry = "## [$ENV{NXT}](https://github.com/szTheory/threadline/compare/v$ENV{CUR}...v$ENV{NXT}) ($ENV{TODAY})\n\n"
+              . "### Features\n\n"
+              . "* rehearsal stand-in ([0000000](https://github.com/szTheory/threadline/commit/0000000000000000000000000000000000000000))\n\n";
+    if (/^# Changelog\n/) { s/^# Changelog\n\n?/# Changelog\n\n$entry/; }
+    else { s/^# /## /mg; $_ = "# Changelog\n\n$entry$_"; }
+  ' "$GENERATED" ||
+    fail "generated changelog" "Could not simulate the release-please entry in CHANGELOG-GENERATED.md."
 fi
 
 if [[ "$INJECT" == "hardcoded-pin" ]]; then
@@ -402,6 +459,7 @@ derived_doc_contract_tests() {
 # of the version-truth contract, the ones a bump moves) before the full release
 # entrypoint, which additionally builds docs and the Hex tarball.
 run_gate "doc-contract tests (derived by filename) at $NEXT" derived_doc_contract_tests &&
+  run_gate "changelog contract at $NEXT" mix test test/threadline/changelog_contract_test.exs &&
   run_gate "mix verify.release at $NEXT" mix verify.release || true
 
 # --- Tree identity: the rehearsal must have changed nothing -------------------
@@ -442,5 +500,5 @@ if [[ "$GATE_STATUS" -ne 0 ]]; then
 fi
 
 printf 'Bump rehearsal OK: a %s -> %s release commit passes every doc-contract test\n' "$CURRENT" "$NEXT"
-printf '(derived by filename) and mix verify.release, and the real working tree is\n'
-printf 'byte-identical.\n'
+printf '(derived by filename), the changelog contract and mix verify.release, and the\n'
+printf 'real working tree is byte-identical.\n'
