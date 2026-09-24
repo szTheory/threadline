@@ -219,8 +219,8 @@ defmodule Mix.Tasks.Threadline.InstallTest do
       output = run_install(tmp)
       [governance] = prefixes(tmp, ["_threadline_governance_schema.exs"])
 
-      assert String.to_integer(governance) > 20_991_231_235_958
-      assert String.to_integer(governance) > 20_991_231_235_959
+      assert governance == "21000101000000"
+      assert_valid_increasing!([governance])
       assert output =~ "already exists — skipping"
       refute output =~ "No `:storage_schema` is configured"
       assert output =~ "Keep `:storage_schema` unset"
