@@ -50,9 +50,61 @@ defmodule Threadline.TestStructureContractTest do
 
   Returns `:ok`, or `{:error, message}` naming every violation.
   """
-  def validate(_files, _endpoint_allowlist, _router_allowlist) do
-    # RED: not implemented yet.
-    :ok
+  def validate(files, endpoint_allowlist, router_allowlist) do
+    sources = Map.new(files)
+
+    errors =
+      empty_scan_errors(files) ++
+        offender_errors(files, @endpoint_use, "use Phoenix.Endpoint", endpoint_allowlist) ++
+        offender_errors(files, @router_use, "use Phoenix.Router", router_allowlist) ++
+        stale_errors(sources, @endpoint_use, "use Phoenix.Endpoint", endpoint_allowlist) ++
+        stale_errors(sources, @router_use, "use Phoenix.Router", router_allowlist) ++
+        reason_errors(endpoint_allowlist) ++ reason_errors(router_allowlist)
+
+    case errors do
+      [] -> :ok
+      errors -> {:error, Enum.join(errors, "\n")}
+    end
+  end
+
+  defp empty_scan_errors([]),
+    do: [
+      "no files matched #{@test_glob}: the glob is broken, and a broken glob would " <>
+        "let the structure scan pass vacuously"
+    ]
+
+  defp empty_scan_errors(_files), do: []
+
+  defp offender_errors(files, matcher, label, allowlist) do
+    for {path, source} <- files,
+        path != @template_path,
+        not Map.has_key?(allowlist, path),
+        Regex.match?(matcher, source) do
+      "#{path} has its own `#{label}`. Use the shared template in #{@template_path}, " <>
+        "or add the file to the allowlist in #{__ENV__.file |> Path.relative_to_cwd()} " <>
+        "with the reason it cannot use the template"
+    end
+  end
+
+  defp stale_errors(sources, matcher, label, allowlist) do
+    for {path, _reason} <- Enum.sort(allowlist),
+        stale_reason = stale_reason(Map.fetch(sources, path), matcher, label),
+        stale_reason != nil do
+      "stale allowlist entry #{path}: #{stale_reason}. Remove the entry"
+    end
+  end
+
+  defp stale_reason(:error, _matcher, _label), do: "the file does not exist"
+
+  defp stale_reason({:ok, source}, matcher, label) do
+    if Regex.match?(matcher, source), do: nil, else: "the file no longer contains `#{label}`"
+  end
+
+  defp reason_errors(allowlist) do
+    for {path, reason} <- Enum.sort(allowlist),
+        not (is_binary(reason) and String.trim(reason) != "") do
+      "allowlist entry #{path} has no reason"
+    end
   end
 
   defp scan do
