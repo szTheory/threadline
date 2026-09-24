@@ -4,16 +4,16 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 206
 current_phase_name: Installer Migration Versions
-status: planning
-stopped_at: Phase 206 context gathered
-last_updated: "2026-09-24T15:03:11.245Z"
+status: ready_to_execute
+stopped_at: Phase 206 planned (2 plans, 2 waves)
+last_updated: "2026-09-24T15:41:41.849Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 206 context gathered (CR-01 + gen.triggers + WR-03); next is /gsd-plan-phase 206
-state_head: e4510c81c33262f8686d63e90b9bf26643e366e8
+last_activity_desc: Phase 206 planned — 2 plans verified (3 checker iterations); next is /gsd-execute-phase 206
+state_head: 8789c7962ff5fcb929e86f2ec34476d8a58ee96d
 progress:
   total_phases: 9
   completed_phases: 8
-  total_plans: 148
+  total_plans: 150
   completed_plans: 148
   percent: 89
 ---
@@ -25,13 +25,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 205 — Release Reconciliation
+**Current focus:** Phase 206 — Installer Migration Versions
 
 ## Current Position
 
-Phase: 205 (Release Reconciliation) — COMPLETE
-Plan: 2 of 2
-Status: All phases complete (205 verified 14/14) — re-run `/gsd-audit-milestone` for v1.41 so F1/F2 close on evidence
+Phase: 206 (Installer Migration Versions) — READY TO EXECUTE
+Plan: 0 of 2
+Status: Ready to execute — Phase 206 planned (206-01 wave 1, 206-02 wave 2); run `/gsd-execute-phase 206` in the main checkout (isolation none)
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is

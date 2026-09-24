@@ -587,13 +587,16 @@ Pre-fix output (this session): all four files at `20260924151757_*`. Post-fix: f
 | A1 | All APIs used (`NaiveDateTime.new/6`, `add/3`, `truncate/2`, `Calendar.strftime/2`, `first..last//step`) exist in Elixir 1.15 | Live Code Facts / Pattern 1 | Low. Would surface as a compile error on the 1.15 CI lane |
 | A2 | Placing the helper under `Threadline.Mix.*` rather than `Mix.Threadline.*` is the better namespace choice | Recommended layout | Cosmetic. Either passes every contract test |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Keep or drop the Unreleased heading's explanatory paragraph when adding the entry?**
    - Known: the heading must stay unbracketed, and the dated heading replaces it at release.
    - Recommendation: keep the heading and paragraph, and replace only `_Nothing yet for the next release._` with the entry (lead prose plus subsections). The release step retitles it.
+   - RESOLVED: adopted by plan 02 Task 1 (keep the heading and paragraph byte-for-byte, replace only the placeholder line).
 2. **gen.triggers path divergence** (hard-coded `priv/repo/migrations` versus repo-resolved). This is out of scope under D-04's "helper takes a path". Recommend a deferred note only.
+   - RESOLVED: out of scope; recorded as a deferred out-of-scope observation in plan 01 ("Recorded choices") for its SUMMARY.
 3. **Stale `production-checklist.md:14` default text.** Out of scope. Recommend a seed.
+   - RESOLVED: out of scope; recorded as a deferred out-of-scope observation in plan 01 ("Recorded choices") for its SUMMARY.
 
 ## Environment Availability
 

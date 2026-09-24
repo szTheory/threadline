@@ -905,11 +905,16 @@ Plans:
 **Goal**: `mix threadline.install` writes its three migrations with strictly increasing version numbers, so a fresh adopter's `mix ecto.migrate` succeeds, with a regression test on the numeric prefixes (205-REVIEW CR-01; shipped since v0.9.0).
 **Requirements**: TBD (tech-debt closure from `.planning/v1.41-MILESTONE-AUDIT.md` re-audit, item CR-01)
 **Depends on:** Phase 205
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
+**Wave 1**
 
-- [ ] TBD (run /gsd-plan-phase 206 to break down)
+- [ ] 206-01-PLAN.md — shared migration-version helper, install + gen.triggers rewired, fresh/partial storage-schema advice, RED-first regression tests (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 206-02-PLAN.md — CHANGELOG Unreleased entry + phase gate (full suite, static gates, docs, end-to-end probe) (wave 2)
 
 **UI hint**: no
 
@@ -947,7 +952,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 203. Real Gates | v1.41 | 10/10 | Complete    | 2026-09-23 |
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
 | 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
-| 206. Installer Migration Versions | v1.41 | 0/0 | Not started | - |
+| 206. Installer Migration Versions | v1.41 | 0/2 | Planned     | - |
 
 ## Prior Milestones
 
