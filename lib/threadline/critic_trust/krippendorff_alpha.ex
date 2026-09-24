@@ -104,8 +104,6 @@ defmodule Threadline.CriticTrust.KrippendorffAlpha do
     end
   end
 
-  # ── Private helpers ────────────────────────────────────────────────────────
-
   # Compute the weighted sum of either the observed or expected coincidence counts,
   # using the ordinal distance² as the weight.
   #
