@@ -507,7 +507,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
-| `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails) + `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
+| `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 
 ### Dialyzer PLT cache and measurement contract
 
