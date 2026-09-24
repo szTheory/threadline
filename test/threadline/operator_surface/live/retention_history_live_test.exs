@@ -1,33 +1,8 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
     alias Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -45,27 +20,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "r3t3nt10n"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.RetentionHistoryLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.RetentionHistoryLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest do
     use Threadline.DataCase, async: false
     import Ecto.Query
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
 
     import Threadline.OperatorSurface.RefCopyContract
 
@@ -73,8 +37,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Live.RetentionHistoryLive
     alias Threadline.Retention.Pruner
     alias Threadline.Semantics.AuditAction
-
-    @endpoint Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
 
     defp start_application_supervisor! do
       retention = Application.get_env(:threadline, :retention, [])
@@ -87,14 +49,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup_all do
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint,
-        secret_key_base: "r" |> String.duplicate(64),
-        live_view: [signing_salt: "r" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts]
-      )
-
       original_interval = Application.get_env(:threadline, :retention_poll_ms)
       Application.put_env(:threadline, :retention_poll_ms, 5_000)
 
@@ -106,7 +60,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       Application.put_env(:threadline, :test_allow_policy, true)
 
       :ok
