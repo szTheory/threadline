@@ -1,23 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.CoverageLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-
-    def render("500.html", assigns) do
-      ~H"""
-      Error 500: <%= inspect(assigns.reason) %>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Auth do
     def authorize(_), do: Application.get_env(:threadline, :test_allow_coverage, true)
   end
@@ -26,21 +7,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
     alias Threadline.OperatorSurface.CoverageLiveTest.Auth
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.CoverageLiveTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -52,20 +21,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "c0v3r4ge"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.CoverageLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.CoverageLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.CoverageLiveTest do
@@ -73,22 +30,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # is process-shared (Pitfall 13 test seam).
     use ExUnit.Case, async: false
 
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.CoverageLiveTest.Endpoint
 
     alias Ecto.Adapters.SQL
     alias Threadline.Capture.TriggerSQL
     alias Threadline.OperatorSurface.Live.CoverageLive
 
-    @endpoint Threadline.OperatorSurface.CoverageLiveTest.Endpoint
-
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.CoverageLiveTest.Endpoint,
-        secret_key_base: "c" |> String.duplicate(64),
-        live_view: [signing_salt: "c" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.CoverageLiveTest.Layouts]
-      )
-
       # Pitfall 13 test seam — lower the poll interval to the floor so on_mount
       # doesn't raise (the floor is 5_000 ms; below that ArgumentError).
       original_interval = Application.get_env(:threadline, :coverage_poll_ms)
@@ -102,7 +51,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
