@@ -121,6 +121,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
         <%= if @not_found do %>
+          <.not_found_state base_path={@base_path} />
+        <% else %>
+          <.actor_header
+            base_path={@base_path}
+            actor_ref={@actor_ref}
+            time_window_hours={@time_window_hours}
+            shown_count={@shown_count}
+            threadline_scope={assigns[:threadline_scope]}
+          />
+
+          <.actor_activity
+            base_path={@base_path}
+            actor_ref={@actor_ref}
+            streams={@streams}
+            actor_summaries={@actor_summaries}
+            time_window_hours={@time_window_hours}
+            has_ever_acted={@has_ever_acted}
+            last_activity={@last_activity}
+            shown_count={@shown_count}
+            next_cursor={@next_cursor}
+            prev_cursor={@prev_cursor}
+          />
+        <% end %>
+      </UI.Page.shell>
+      """
+    end
+
+    attr(:base_path, :string, required: true)
+
+    defp not_found_state(assigns) do
+      ~H"""
           <div class="tl-transaction">
             <UI.Page.page_header
               title="Actor activity"
@@ -144,7 +175,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:actions>
             </UI.Data.error_state>
           </div>
-        <% else %>
+      """
+    end
+
+    attr(:base_path, :string, required: true)
+    attr(:actor_ref, ActorRef, required: true)
+    attr(:time_window_hours, :integer, required: true)
+    attr(:shown_count, :integer, required: true)
+    attr(:threadline_scope, :any, default: nil)
+
+    defp actor_header(assigns) do
+      ~H"""
           <div class="tl-transaction">
             <UI.Page.page_header
               title="Actor activity"
@@ -163,7 +204,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:metadata>
               <:metadata key="Window"><%= actor_window_label(@time_window_hours) %></:metadata>
               <:metadata key="Transactions"><%= actor_transaction_count(@shown_count) %></:metadata>
-              <:metadata key="Visible scope"><%= actor_visible_scope(assigns[:threadline_scope]) %></:metadata>
+              <:metadata key="Visible scope"><%= actor_visible_scope(@threadline_scope) %></:metadata>
               <:actions>
                 <a href={timeline_actor_path(@base_path, @actor_ref)} class="tl-button tl-button--compact tl-button--secondary">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
@@ -179,7 +220,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:segment active={@time_window_hours == 720} phx-click="set-window" phx-value-hours="720">30d</:segment>
             </UI.Page.segmented_control>
           </div>
+      """
+    end
 
+    attr(:base_path, :string, required: true)
+    attr(:actor_ref, ActorRef, required: true)
+    attr(:streams, :map, required: true)
+    attr(:actor_summaries, :map, required: true)
+    attr(:time_window_hours, :integer, required: true)
+    attr(:has_ever_acted, :boolean, required: true)
+    attr(:last_activity, :any, default: nil)
+    attr(:shown_count, :integer, required: true)
+    attr(:next_cursor, :any, default: nil)
+    attr(:prev_cursor, :any, default: nil)
+
+    defp actor_activity(assigns) do
+      ~H"""
           <%= if not @has_ever_acted do %>
             <UI.Data.empty_state variant="never" role="status" icon={:history}>
               <:title>No actor activity recorded</:title>
@@ -249,8 +305,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               />
             <% end %>
           <% end %>
-        <% end %>
-      </UI.Page.shell>
       """
     end
 
