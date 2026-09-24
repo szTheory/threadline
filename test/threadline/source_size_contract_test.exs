@@ -50,7 +50,6 @@ defmodule Threadline.SourceSizeContractTest do
   @function_exceptions %{}
 
   @banner_exceptions %{
-    "lib/threadline/operator_surface/controllers/export_controller.ex" => 9,
     "lib/threadline/semantics/actor_ref.ex" => 3
   }
 

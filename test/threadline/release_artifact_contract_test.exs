@@ -28,7 +28,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
     # source owners — their vocabulary never reaches an adopter. The archive
     # refutations below assert their absence instead.
     source_vocab_operator_infrastructure: [
-      "lib/threadline/operator_surface/components/logo.ex"
+      "lib/threadline/operator_surface/components/logo.ex",
+      "lib/threadline/operator_surface/controllers/export_controller/encoding.ex"
     ],
     source_vocab_operator_live_forms: [
       "lib/threadline/operator_surface/live/actor_live.ex",

@@ -88,21 +88,21 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
   describe "content-type literals (D-26)" do
     test "controller emits exact content-type literals" do
-      src = File.read!(@controller_path)
+      src = SourceFamily.read!(@controller_path)
       assert String.contains?(src, ~s|"text/csv; charset=utf-8"|)
       assert String.contains?(src, ~s|"application/json; charset=utf-8"|)
       assert String.contains?(src, ~s|"application/x-ndjson; charset=utf-8"|)
     end
 
     test "controller emits RFC 5987 dual-emit Content-Disposition" do
-      src = File.read!(@controller_path)
+      src = SourceFamily.read!(@controller_path)
 
       assert src =~ ~r/filename\*=UTF-8''/,
              "expected RFC 5987 filename*=UTF-8'' interpolation in controller source"
     end
 
     test "controller emits Cache-Control: no-store (audit-data hygiene)" do
-      src = File.read!(@controller_path)
+      src = SourceFamily.read!(@controller_path)
       assert String.contains?(src, "no-store")
     end
   end
