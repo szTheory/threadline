@@ -147,20 +147,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           schema
 
         :error ->
-          schemas
-          |> Enum.find_value(fn
-            {key, schema} when is_atom(key) ->
-              # Structural debt: if inside find_value fn inside case — extract the key matcher
-              # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-              if Atom.to_string(key) == table, do: schema
-
-            _entry ->
-              nil
-          end)
+          Enum.find_value(schemas, &schema_for_atom_key(&1, table))
       end
     end
 
     defp schema_for_table(_schemas, _table), do: nil
+
+    defp schema_for_atom_key({key, schema}, table) when is_atom(key) do
+      if Atom.to_string(key) == table, do: schema
+    end
+
+    defp schema_for_atom_key(_entry, _table), do: nil
 
     defp as_of_path(history_path, %DateTime{} = as_of) do
       "#{history_path}?#{URI.encode_query(%{"as_of" => DateTime.to_iso8601(as_of)})}"
