@@ -15,33 +15,8 @@ defmodule Threadline.OperatorSurface.GatingTest do
 end
 
 if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Controller) do
-  defmodule Threadline.OperatorSurface.GatingTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.GatingTest.ExportsDisabledRouter do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.GatingTest.Layouts, :root}
-      )
-    end
+    use Threadline.OperatorSurfaceTest.Router
 
     scope "/" do
       pipe_through(:browser)
@@ -56,36 +31,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) and Code.ensure_loaded?(Phoenix.Control
   end
 
   defmodule Threadline.OperatorSurface.GatingTest.ExportsDisabledEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_gating_exports_disabled",
-      signing_salt: "gAtInG"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.GatingTest.ExportsDisabledRouter)
+    # No Plug.Parsers in this endpoint, as before the migration to the shared
+    # template.
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.GatingTest.ExportsDisabledRouter,
+      parsers: false
   end
 
   defmodule Threadline.OperatorSurface.ExportFeatureGatingTest do
     use ExUnit.Case, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
 
-    @endpoint Threadline.OperatorSurface.GatingTest.ExportsDisabledEndpoint
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.GatingTest.ExportsDisabledEndpoint
 
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: "g" |> String.duplicate(64),
-        live_view: [signing_salt: "g" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.GatingTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
