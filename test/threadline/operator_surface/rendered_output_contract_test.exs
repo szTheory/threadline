@@ -395,18 +395,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, {:duplicate_node_id, duplicate_node_id}}
 
         true ->
-          Enum.reduce_while(entries, :ok, fn entry, :ok ->
-            # Structural debt: validate case inside reduce_while in cond — extract the exception validation step
-            # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-            case validate_exception(entry) do
-              :ok -> {:cont, :ok}
-              {:error, _reason} = error -> {:halt, error}
-            end
-          end)
+          Enum.reduce_while(entries, :ok, &validate_exception_step/2)
       end
     end
 
     defp validate_exception_registry(_entries), do: {:error, :invalid_registry}
+
+    defp validate_exception_step(entry, :ok) do
+      case validate_exception(entry) do
+        :ok -> {:cont, :ok}
+        {:error, _reason} = error -> {:halt, error}
+      end
+    end
 
     defp validate_exception(entry) when is_map(entry) do
       node_id = Map.get(entry, :node_id)
@@ -587,14 +587,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       content
       |> String.split("\n")
       |> Enum.with_index(1)
-      |> Enum.flat_map(fn {line, line_number} ->
-        Enum.flat_map(@planning_vocabulary, fn {kind, pattern} ->
-          Regex.scan(pattern, line, return: :binary)
-          # Structural debt: match map inside nested flat_map fns — extract the per-line vocabulary scan
-          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-          |> Enum.map(fn [match] ->
-            %{file: file, kind: kind, line: line_number, match: match}
-          end)
+      |> Enum.flat_map(&scan_line_vocabulary(file, &1))
+    end
+
+    defp scan_line_vocabulary(file, {line, line_number}) do
+      Enum.flat_map(@planning_vocabulary, fn {kind, pattern} ->
+        Regex.scan(pattern, line, return: :binary)
+        |> Enum.map(fn [match] ->
+          %{file: file, kind: kind, line: line_number, match: match}
         end)
       end)
     end
@@ -603,21 +603,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       content
       |> String.split("\n")
       |> Enum.with_index(1)
-      |> Enum.flat_map(fn {line, line_number} ->
-        Enum.flat_map(@planning_attributes, fn attribute ->
-          pattern = ~r/#{Regex.escape(attribute)}\s*=\s*["'][^"']*["']/i
+      |> Enum.flat_map(&scan_line_attributes(file, &1))
+    end
 
-          Regex.scan(pattern, line, return: :binary)
-          # Structural debt: attribute scan inside nested flat_map fns — extract the per-line attribute scan
-          # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-          |> Enum.map(fn [match] ->
-            %{
-              file: file,
-              kind: String.to_atom(String.replace(attribute, "-", "_")),
-              line: line_number,
-              match: match
-            }
-          end)
+    defp scan_line_attributes(file, {line, line_number}) do
+      Enum.flat_map(@planning_attributes, fn attribute ->
+        pattern = ~r/#{Regex.escape(attribute)}\s*=\s*["'][^"']*["']/i
+
+        Regex.scan(pattern, line, return: :binary)
+        |> Enum.map(fn [match] ->
+          %{
+            file: file,
+            kind: String.to_atom(String.replace(attribute, "-", "_")),
+            line: line_number,
+            match: match
+          }
         end)
       end)
     end
