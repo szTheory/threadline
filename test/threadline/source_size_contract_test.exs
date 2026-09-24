@@ -9,8 +9,10 @@ defmodule Threadline.SourceSizeContractTest do
       lines (newline count, the same number `wc -l` prints).
     * Function length: every `def`/`defp`/`defmacro`/`defmacrop` clause in
       `lib/**/*.ex` spans at most `@function_limit` lines. Clauses are measured
-      one at a time from the parsed AST (`do` line through `end` line) and the
-      longest clause per name/arity is reported; clauses are never summed.
+      one at a time from the parsed AST (`do` line through `end` line; a
+      keyword-form `do:` clause from its head line to the end of its
+      expression) and the longest clause per name/arity is reported; clauses
+      are never summed.
     * Separator banners: a `#` comment that opens with a rule run (`---`,
       `===`, `***`, or a box-drawing run of two or more `─`) or ends with a
       rule run of three or more stands in for a real module or function
@@ -145,6 +147,36 @@ defmodule Threadline.SourceSizeContractTest do
 
       assert %{{"lib/guard.ex", :f, 1} => 5, {"lib/guard.ex", :g, 0} => 1} =
                measure_functions([{"lib/guard.ex", source}])
+    end
+
+    test "a keyword do: clause is measured to the end of its expression, not counted as one line" do
+      body = String.duplicate("      <p>x</p>\n", 119)
+      heredoc = ~s(""")
+
+      source =
+        "defmodule Synthetic do\n  def f(assigns),\n    do: ~H#{heredoc}\n" <>
+          body <> "      #{heredoc}\nend\n"
+
+      files = [{"lib/kw.ex", source}]
+
+      assert %{{"lib/kw.ex", :f, 1} => length} = measure_functions(files)
+      assert length >= 121
+
+      assert {:error, message} = validate_functions(files, %{})
+      assert message =~ "lib/kw.ex f/1 has a"
+      assert message =~ "-line clause"
+    end
+
+    test "a keyword clause followed by another def is measured exactly" do
+      heredoc = ~s(""")
+
+      source =
+        "defmodule Synthetic do\n  def f(x),\n    do: #{heredoc}\n" <>
+          String.duplicate("    line\n", 5) <>
+          "    #{heredoc}\n  def g, do: 1\nend\n"
+
+      assert %{{"lib/kw2.ex", :f, 1} => 8, {"lib/kw2.ex", :g, 0} => 1} =
+               measure_functions([{"lib/kw2.ex", source}])
     end
 
     test "an empty scan set fails instead of passing vacuously" do
@@ -283,7 +315,7 @@ defmodule Threadline.SourceSizeContractTest do
        when kind in [:def, :defp, :defmacro, :defmacrop] and is_list(meta) do
     length =
       case meta[:end] do
-        nil -> 1
+        nil -> last_meta_line(node) - meta[:line] + 1
         end_meta -> end_meta[:line] - meta[:line] + 1
       end
 
@@ -292,6 +324,31 @@ defmodule Threadline.SourceSizeContractTest do
   end
 
   defp collect_clause(node, acc), do: {node, acc}
+
+  # The last source line of a keyword-form clause (`def f(x), do: ...`), which has
+  # no `:end` metadata: its `end_of_expression` line when present, otherwise the
+  # largest line any node in the clause subtree records.
+  defp last_meta_line({_kind, meta, _args} = node) do
+    case meta[:end_of_expression] do
+      nil ->
+        {_node, line} = Macro.prewalk(node, meta[:line], &max_meta_line/2)
+        line
+
+      end_of_expression ->
+        end_of_expression[:line]
+    end
+  end
+
+  defp max_meta_line({_form, meta, _args} = node, line) when is_list(meta) do
+    lines =
+      for key <- [:line, :closing, :end, :end_of_expression],
+          value = meta[key],
+          do: if(is_list(value), do: value[:line], else: value)
+
+    {node, Enum.max([line | Enum.filter(lines, &is_integer/1)])}
+  end
+
+  defp max_meta_line(node, line), do: {node, line}
 
   defp name_arity({:when, _, [head | _]}), do: name_arity(head)
   defp name_arity({name, _, args}) when is_list(args), do: {clause_name(name), length(args)}
