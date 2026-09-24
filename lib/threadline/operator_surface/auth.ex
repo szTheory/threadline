@@ -124,20 +124,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           socket
 
         scope_actor_ref ->
-          case Map.get(socket.assigns, :threadline_actor_ref) do
-            %ActorRef{} = session_actor_ref ->
-              # Structural debt: mismatch if inside nested case — extract the actor reconciliation
-              # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-              if session_actor_ref != scope_actor_ref do
-                emit_actor_mismatch(session_actor_ref, scope_actor_ref)
-              end
-
-              socket
-
-            _ ->
-              Phoenix.Component.assign(socket, :threadline_actor_ref, scope_actor_ref)
-          end
+          session_actor_ref = Map.get(socket.assigns, :threadline_actor_ref)
+          reconcile_actor(socket, session_actor_ref, scope_actor_ref)
       end
+    end
+
+    # A session actor wins over the scope actor; a disagreement between them is
+    # reported, never silently resolved. Without a session actor the scope actor
+    # is assigned.
+    defp reconcile_actor(socket, %ActorRef{} = session_actor_ref, scope_actor_ref) do
+      if session_actor_ref != scope_actor_ref do
+        emit_actor_mismatch(session_actor_ref, scope_actor_ref)
+      end
+
+      socket
+    end
+
+    defp reconcile_actor(socket, _session_actor_ref, scope_actor_ref) do
+      Phoenix.Component.assign(socket, :threadline_actor_ref, scope_actor_ref)
     end
 
     defp scope_actor_ref(scope) when is_map(scope) do
