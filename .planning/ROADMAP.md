@@ -74,6 +74,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 - [x] **Phase 204: Structure** - Make the largest files legible without changing a byte of output, behind an executable CSS byte-hash lock. (completed 2026-09-24)
 - [x] **Phase 205: Release Reconciliation** - Close the v1.41 audit gap: merge origin/main's shipped 0.10.0 release work (#41, #43, #44, release commit, #45) into the milestone branch so RELEASE-02/05 hold on the branch itself.
 - [x] **Phase 206: Installer Migration Versions** - Fix `mix threadline.install` stamping all three migrations with the same second-resolution version (205-REVIEW CR-01), which makes a fresh `mix ecto.migrate` fail. (completed 2026-09-24)
+- [ ] **Phase 207: Trigger Migration Rerun and Storage-Schema Default Docs** - Make a `mix threadline.gen.triggers` rerun for the same tables produce a migration Ecto accepts (duplicate migration name, audit W1), and correct the stated `storage_schema` default in two guides (W2).
 
 ## Phase Details
 
@@ -918,6 +919,23 @@ Plans:
 
 **UI hint**: no
 
+### Phase 207: Trigger Migration Rerun and Storage-Schema Default Docs
+
+**Goal**: Rerunning `mix threadline.gen.triggers` for tables that already have a trigger migration produces a migration Ecto accepts (no duplicate migration name/module), as the drift-remediation guides instruct, with a second-run regression test; and every guide states the real `storage_schema` default (`public`).
+**Requirements**: TBD (tech-debt closure from `.planning/v1.41-MILESTONE-AUDIT.md` second re-audit, items W1 and W2)
+**Depends on:** Phase 206
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 207 to break down)
+
+**Context**:
+- W1: `lib/mix/tasks/threadline.gen.triggers.ex:141` names the file `<version>_threadline_triggers_<tables>.exs`, so a rerun for the same tables writes a second migration with the same name and module; Ecto raises "migration name ... is duplicated" (`deps/ecto_sql/lib/ecto/migrator.ex:714-716`). Prescribed by `guides/production-checklist.md:45` and `guides/domain-reference.md:52-53`. Pre-existing (not a 206 regression).
+- W2: `guides/audit-indexing.md:7` and `guides/production-checklist.md:14` say the default is `threadline`; the code default is `"public"` (`lib/threadline/storage_schema.ex:22`).
+
+**UI hint**: no
+
 ## Verification
 
 - **Per phase:** `mix ci.all` green on a clean tree, plus that phase's own success criteria.
@@ -940,7 +958,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 → 204 → 205 → 206
+Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 → 204 → 205 → 206 → 207
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -953,6 +971,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
 | 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
 | 206. Installer Migration Versions | v1.41 | 2/2 | Complete    | 2026-09-24 |
+| 207. Trigger Migration Rerun and Storage-Schema Default Docs | v1.41 | 0/0 | Not started | - |
 
 ## Prior Milestones
 
