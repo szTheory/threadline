@@ -934,7 +934,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 207-02-PLAN.md — gen.triggers rerun: distinct name/module on collision, orphan drop in up, per-table rollback + comment, moduledoc (wave 2)
+- [x] 207-02-PLAN.md — gen.triggers rerun: distinct name/module on collision, orphan drop in up, per-table rollback + comment, moduledoc (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -981,7 +981,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
 | 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
 | 206. Installer Migration Versions | v1.41 | 2/2 | Complete    | 2026-09-24 |
-| 207. Trigger Migration Rerun and Storage-Schema Default Docs | v1.41 | 1/3 | In Progress | - |
+| 207. Trigger Migration Rerun and Storage-Schema Default Docs | v1.41 | 2/3 | In Progress | - |
 
 ## Prior Milestones
 

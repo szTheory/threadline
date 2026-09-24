@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 207
 current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
 status: executing
-stopped_at: Completed 207-01-PLAN.md
-last_updated: "2026-09-24T21:06:33.359Z"
+stopped_at: Completed 207-02-PLAN.md
+last_updated: "2026-09-24T21:15:06.654Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 207 execution started
-state_head: c89492234238ecc5e6437499d6208953389bda9d
+last_activity_desc: Completed 207-02 (gen.triggers rerun naming and rollback)
+state_head: f74570f0b6a77604dd0840a9a48908610fb150e0
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 153
-  completed_plans: 151
+  completed_plans: 152
   percent: 90
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 151/153 plans ([█████████░] 90% of phases — 9 of 10 complete: 198–206; 207 Trigger Migration Rerun executing — 1 of 3 plans done (207-01 OR REPLACE trigger + non-cascading orphan drop: 1a9fbd53, 918103fa), next 207-02; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
+Progress: [████████████████████] 152/153 plans ([█████████░] 90% of phases — 9 of 10 complete: 198–206; 207 Trigger Migration Rerun executing — 2 of 3 plans done (207-01 OR REPLACE trigger + non-cascading orphan drop: 1a9fbd53, 918103fa; 207-02 gen.triggers rerun name/module, orphan drop in up, per-table rollback: 1dc427aa, a12ebddf, a32d97c0), next 207-03; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
 
 ## Performance Metrics
 
@@ -271,6 +271,7 @@ Progress: [████████████████████] 151/153
 | Phase 206 P01 | 4min | 3 tasks | 5 files |
 | Phase 206 P02 | 12 min | 2 tasks | 1 files |
 | Phase 207 P01 | 4min | 2 tasks | 3 files |
+| Phase 207 P02 | 6 min | 3 tasks | 5 files |
 
 ## Deferred Items
 
@@ -847,6 +848,7 @@ Progress: [████████████████████] 151/153
 - [Phase 206]: Phase 206-01: installer dedicated-schema advice prints only on a fresh install; partial re-run gets a keep-public note
 - [Phase 206]: 206-02: CHANGELOG keeps the meaning of the partial re-run advice fix but drops WR/CR IDs (packaged-file vocabulary test bans them)
 - [Phase 207]: Trigger DDL is CREATE OR REPLACE TRIGGER on every run (PG14 floor); per-table orphan drop has no CASCADE and reuses per_table_function_name/2
+- [Phase 207]: 207-02: gen.triggers picks the first free numbered name AND module (_2, Posts2...) from a text-only scan of the migrations dir; rerun tables' down keeps capture on with an explanatory comment
 
 ### Blockers
 
@@ -856,8 +858,8 @@ Progress: [████████████████████] 151/153
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T21:06:33.181Z
-**Stopped at:** Completed 207-01-PLAN.md
+**Last session:** 2026-09-24T21:15:06.489Z
+**Stopped at:** Completed 207-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
