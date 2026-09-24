@@ -55,7 +55,6 @@ defmodule Threadline.SourceSizeContractTest do
     {"lib/threadline/operator_surface/live/retention_history_live.ex", :render, 1} =>
       {186, @splitting},
     {"lib/threadline/operator_surface/live/start_live.ex", :render, 1} => {190, @splitting},
-    {"lib/threadline/operator_surface/live/stress_live.ex", :render, 1} => {326, @splitting},
     {"lib/threadline/operator_surface/live/transaction_live.ex", :render, 1} => {183, @splitting}
   }
 
