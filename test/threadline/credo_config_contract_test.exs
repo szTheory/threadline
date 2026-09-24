@@ -8,9 +8,11 @@ defmodule Threadline.CredoConfigContractTest do
 
   The structural register counts every per-site Credo suppression of
   `Credo.Check.Refactor.Nesting` and `Credo.Check.Refactor.CyclomaticComplexity`
-  in `lib/` and `test/`. Each site carries a `# Structural debt: <reason>` line
-  directly above its per-line disable, and the register names the successor that
-  drains it: Phase 204 (STRUCT-07), which ratchets the register toward 0.
+  in `lib/` and `test/`. Each site must carry a `# Structural debt: <reason>`
+  line directly above its per-line disable. Phase 204 (STRUCT-07) drained the
+  register: it is now empty and the ceiling is 0, so no such disable exists. Any
+  new disable fails this test until it is registered in review, with an exact
+  count and a named successor; a check missing from the register counts as 0.
 
   The scanned count must equal the register exactly. A ceiling alone would leave
   slack: fixing one site in place would let a new, unreviewed disable land in the
@@ -33,10 +35,7 @@ defmodule Threadline.CredoConfigContractTest do
   @scan_glob "{lib,test}/**/*.{ex,exs}"
 
   @successor "Phase 204 / STRUCT-07"
-  @register %{
-    Credo.Check.Refactor.Nesting => {0, "Phase 204 / STRUCT-07"},
-    Credo.Check.Refactor.CyclomaticComplexity => {0, "Phase 204 / STRUCT-07"}
-  }
+  @register %{}
   @ceiling 0
   @historical_max 46
 
