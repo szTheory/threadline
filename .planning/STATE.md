@@ -4,17 +4,17 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 206
 current_phase_name: Installer Migration Versions
-status: ready_to_execute
-stopped_at: Phase 206 planned (2 plans, 2 waves)
-last_updated: "2026-09-24T15:41:41.849Z"
+status: executing
+stopped_at: Completed 206-01-PLAN.md
+last_updated: "2026-09-24T17:47:56.953Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 206 planned — 2 plans verified (3 checker iterations); next is /gsd-execute-phase 206
-state_head: 8789c7962ff5fcb929e86f2ec34476d8a58ee96d
+last_activity_desc: Phase 206 execution started
+state_head: 8fdc49135e27404a8657c212ab2500419e13f40b
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 150
-  completed_plans: 148
+  completed_plans: 149
   percent: 89
 ---
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 206 (Installer Migration Versions) — READY TO EXECUTE
-Plan: 0 of 2
-Status: Ready to execute — Phase 206 planned (206-01 wave 1, 206-02 wave 2); run `/gsd-execute-phase 206` in the main checkout (isolation none)
+Phase: 206 (Installer Migration Versions) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-24 — Phase 205 complete
+Last activity: 2026-09-24 — Phase 206 execution started
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -268,6 +268,7 @@ Progress: [████████████████████] 148/148
 | Phase 204 P16 | 17 | 3 tasks | 11 files |
 | Phase 205 P01 | 11min | 3 tasks | 19 files |
 | Phase 205 P02 | 12 min | 2 tasks | 5 files |
+| Phase 206 P01 | 4min | 3 tasks | 5 files |
 
 ## Deferred Items
 
@@ -839,6 +840,8 @@ Progress: [████████████████████] 148/148
 - [Phase 205]: 205-01: sync-release-pr-pins wiring pinned by a contract test in release_control_plane_contract_test.exs, proven RED on the pre-merge release.yml
 - [Phase 205]: 205-01: verify.threadline runs under MIX_ENV=test (as ci.yml does); dev configures no :ecto_repos
 - [Phase 205]: 205-01: merged origin/main 471ebf6e (v0.10.1) as one merge commit 0d8ced0c; 17 conflicts resolved whole-file (10 ours / 4 theirs / 3 combined); rehearsal 0.10.1 -> 0.11.0 OK; sync-pins job pinned by contract test
+- [Phase 206]: Phase 206-01: migration versions come from one hidden helper (Threadline.Mix.MigrationVersion.next/3), computed once per install run and once per gen.triggers write; max(now, highest existing + 1s) with calendar-correct carry, integer fallback for non-timestamp schemes
+- [Phase 206]: Phase 206-01: installer dedicated-schema advice prints only on a fresh install; partial re-run gets a keep-public note
 
 ### Blockers
 
@@ -848,9 +851,9 @@ Progress: [████████████████████] 148/148
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T15:03:10.839Z
-**Stopped at:** Phase 206 context gathered
-**Resume file:** .planning/phases/206-installer-migration-versions/206-CONTEXT.md
+**Last session:** 2026-09-24T17:47:56.722Z
+**Stopped at:** Completed 206-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

@@ -910,7 +910,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 206-01-PLAN.md — shared migration-version helper, install + gen.triggers rewired, fresh/partial storage-schema advice, RED-first regression tests (wave 1)
+- [x] 206-01-PLAN.md — shared migration-version helper, install + gen.triggers rewired, fresh/partial storage-schema advice, RED-first regression tests (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -952,7 +952,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 203. Real Gates | v1.41 | 10/10 | Complete    | 2026-09-23 |
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
 | 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
-| 206. Installer Migration Versions | v1.41 | 0/2 | Planned     | - |
+| 206. Installer Migration Versions | v1.41 | 1/2 | In Progress | - |
 
 ## Prior Milestones
 
