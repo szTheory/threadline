@@ -1,37 +1,6 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.TimelineLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-
-    def render("500.html", assigns) do
-      ~H"""
-      Error 500: <%= inspect(assigns.reason) %>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.TimelineLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.TimelineLiveTest.Layouts, :root}
-      )
-    end
+    use Threadline.OperatorSurfaceTest.Router
 
     scope "/" do
       pipe_through(:browser)
@@ -59,19 +28,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.SchemaRouter do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.TimelineLiveTest.Layouts, :root}
-      )
-    end
+    use Threadline.OperatorSurfaceTest.Router
 
     scope "/" do
       pipe_through(:browser)
@@ -86,22 +43,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ActorRouter do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router, browser_plugs: [:put_test_actor]
 
     alias Threadline.Semantics.ActorRef
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-      plug(:put_test_actor)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.TimelineLiveTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -132,56 +76,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.TimelineLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.SchemaEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_schema_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.TimelineLiveTest.SchemaRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.SchemaRouter
   end
 
   # Scoped endpoint/router for Case 10 — mounts the surface with an authorize_fn
   # that returns {:ok, %{tenant: "t1"}} so :threadline_scope is populated on the socket.
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopedRouter do
-    use Phoenix.Router
+    use Threadline.OperatorSurfaceTest.Router
+
     import Ecto.Query
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.TimelineLiveTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -202,20 +111,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.SupportScopedRouter do
-    use Phoenix.Router
+    use Threadline.OperatorSurfaceTest.Router
+
     import Ecto.Query
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.TimelineLiveTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -245,54 +143,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_scoped_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.TimelineLiveTest.ScopedRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.ScopedRouter
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_support_scoped_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.TimelineLiveTest.SupportScopedRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.SupportScopedRouter
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ActorEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_actor_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.TimelineLiveTest.ActorRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.ActorRouter
   end
 
   defmodule Threadline.OperatorSurface.TimelineLiveTest.FailingQueueAdapter do
@@ -333,33 +195,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.Endpoint
 
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.Semantics.ActorRef
     alias Threadline.Semantics.AuditAction
 
-    @endpoint Threadline.OperatorSurface.TimelineLiveTest.Endpoint
-
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.TimelineLiveTest.Endpoint,
-        secret_key_base: "x" |> String.duplicate(64),
-        live_view: [signing_salt: "x" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
-      )
+      start_endpoint!(@endpoint)
 
-      start_supervised!(@endpoint)
-
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint,
-        secret_key_base: "z" |> String.duplicate(64),
-        live_view: [signing_salt: "z" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
-      )
-
-      start_supervised!(Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint)
+      start_endpoint!(Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint)
       :ok
     end
 
@@ -1454,21 +1301,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveSchemaBackedTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.SchemaEndpoint
 
     alias Threadline.Semantics.AuditAction
 
-    @endpoint Threadline.OperatorSurface.TimelineLiveTest.SchemaEndpoint
-
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: "s" |> String.duplicate(64),
-        live_view: [signing_salt: "s" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -1585,19 +1425,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveActorBackedTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
 
-    @endpoint Threadline.OperatorSurface.TimelineLiveTest.ActorEndpoint
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.ActorEndpoint
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.TimelineLiveTest.ActorEndpoint,
-        secret_key_base: "z" |> String.duplicate(64),
-        live_view: [signing_salt: "z" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -1663,19 +1496,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.Live.TimelineLiveScopedTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
 
-    @endpoint Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint,
-        secret_key_base: "y" |> String.duplicate(64),
-        live_view: [signing_salt: "y" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -1854,19 +1680,12 @@ end
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Live.TimelineLiveExportVisibilityTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
 
-    @endpoint Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.SupportScopedEndpoint
 
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: "z" |> String.duplicate(64),
-        live_view: [signing_salt: "z" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TimelineLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
