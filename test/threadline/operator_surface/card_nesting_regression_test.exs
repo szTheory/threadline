@@ -13,45 +13,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   #   PolicyRedactionLive, RetentionHistoryLive, RowHistoryLive, TransactionLive,
   #   ActorLive, and the SurfaceHeader shell.
   # ---------------------------------------------------------------------------
-  defmodule Threadline.OperatorSurface.CardNestingRegressionTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-
-    def render("500.html", assigns) do
-      ~H"""
-      Error 500: <%= inspect(assigns.reason) %>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.CardNestingRegressionTest.Auth do
     def authorize(_), do: true
   end
 
   defmodule Threadline.OperatorSurface.CardNestingRegressionTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
     alias Threadline.OperatorSurface.CardNestingRegressionTest.Auth
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.CardNestingRegressionTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -65,28 +34,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.CardNestingRegressionTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "c4rdn3st"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.CardNestingRegressionTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.CardNestingRegressionTest.Router
   end
 
   defmodule Threadline.OperatorSurface.CardNestingRegressionTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
 
-    @endpoint Threadline.OperatorSurface.CardNestingRegressionTest.Endpoint
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.CardNestingRegressionTest.Endpoint
 
     # Source-level reference to every operator page module this regression
     # guards (acceptance criteria: all 11 page modules referenced).
@@ -118,15 +74,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     ]
 
     setup_all do
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.CardNestingRegressionTest.Endpoint,
-        secret_key_base: String.duplicate("c", 64),
-        live_view: [signing_salt: String.duplicate("c", 8)],
-        render_errors: [view: Threadline.OperatorSurface.CardNestingRegressionTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
