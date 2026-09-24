@@ -42,26 +42,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           )
 
         {has_ever_acted, last_activity} =
-          if Enum.empty?(page.entries) do
-            # Structural debt: history case inside if in mount/3 — extract last-activity lookup
-            # credo:disable-for-next-line Credo.Check.Refactor.Nesting
-            case Threadline.actor_history(
-                   actor_ref,
-                   [
-                     repo: repo,
-                     limit: 1,
-                     scope: socket.assigns[:threadline_scope],
-                     scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-                     surface: :actor_history,
-                     params: %{actor_ref: actor_ref}
-                   ] ++ storage_schema_opts(socket)
-                 ) do
-              %{entries: [latest | _]} -> {true, latest.occurred_at}
-              _ -> {false, nil}
-            end
-          else
-            {true, nil}
-          end
+          activity_presence(page.entries, actor_ref, repo, socket)
 
         actor_summaries =
           actor_summaries(
@@ -440,6 +421,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:shown_count, length(page.entries))
        |> stream(:transactions, page.entries, reset: true)}
     end
+
+    # An empty window still needs to tell "never acted" apart from "acted
+    # outside this window", so look up the latest activity at any time.
+    defp activity_presence([], actor_ref, repo, socket) do
+      case Threadline.actor_history(
+             actor_ref,
+             [
+               repo: repo,
+               limit: 1,
+               scope: socket.assigns[:threadline_scope],
+               scope_query_fn: socket.assigns[:threadline_scope_query_fn],
+               surface: :actor_history,
+               params: %{actor_ref: actor_ref}
+             ] ++ storage_schema_opts(socket)
+           ) do
+        %{entries: [latest | _]} -> {true, latest.occurred_at}
+        _ -> {false, nil}
+      end
+    end
+
+    defp activity_presence(_entries, _actor_ref, _repo, _socket), do: {true, nil}
 
     defp safe_actor_kind(kind) when is_binary(kind) do
       case Enum.find(@actor_kinds, &(Atom.to_string(&1) == kind)) do
