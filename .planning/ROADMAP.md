@@ -72,7 +72,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 - [x] **Phase 202: Release 0.10.0** - Merge PR #26 and publish a release whose public surface is already clean, with every version-bearing literal managed by release automation and exactly one publish path. (completed 2026-09-22)
 - [x] **Phase 203: Real Gates** - Full Credo defaults expressed as `extra:`/`disabled:` deltas, the dialyzer backlog drained, and the layer inversions plus the Capture↔Semantics cycle fixed. (completed 2026-09-23)
 - [x] **Phase 204: Structure** - Make the largest files legible without changing a byte of output, behind an executable CSS byte-hash lock. (completed 2026-09-24)
-- [ ] **Phase 205: Release Reconciliation** - Close the v1.41 audit gap: merge origin/main's shipped 0.10.0 release work (#41, #43, #44, release commit, #45) into the milestone branch so RELEASE-02/05 hold on the branch itself.
+- [x] **Phase 205: Release Reconciliation** - Close the v1.41 audit gap: merge origin/main's shipped 0.10.0 release work (#41, #43, #44, release commit, #45) into the milestone branch so RELEASE-02/05 hold on the branch itself.
 
 ## Phase Details
 
@@ -895,7 +895,7 @@ Plans:
 
 **Wave 2** *(blocked on 205-01)*
 
-- [ ] 205-02-PLAN.md — Bookkeeping: 202-VERIFICATION addendum, RELEASE-02/05 traceability, 202-REVIEW disposition in deferred-items, STATE/ROADMAP phase complete (wave 2)
+- [x] 205-02-PLAN.md — Bookkeeping: 202-VERIFICATION addendum, RELEASE-02/05 traceability, 202-REVIEW disposition in deferred-items, STATE/ROADMAP phase complete (wave 2)
 
 **UI hint**: no
 
@@ -932,7 +932,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 202. Release 0.10.0 | v1.41 | 10/10 | Complete    | 2026-09-22 |
 | 203. Real Gates | v1.41 | 10/10 | Complete    | 2026-09-23 |
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
-| 205. Release Reconciliation | v1.41 | 0/2 | Planned | - |
+| 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
 
 ## Prior Milestones
 

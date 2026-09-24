@@ -127,3 +127,40 @@ Consequences:
   Verify that before any "green by construction" claim.
 - Real fix: seed the dir name from something run-unique (pid/timestamp/`mktemp`), and
   clean up the tree in an `on_exit`.
+
+## 202-REVIEW disposition after #46 (recorded 2026-09-24, Phase 205)
+
+This records the status of each `202-REVIEW.md` finding after PR #46 (`45532778`, v0.10.1). It does not change `202-REVIEW.md`. Each `resolved` line was checked against `git show 45532778` and the merged files on the milestone branch.
+
+- **CR-01** resolved: #46 (45532778) moved the storage-schema advice to after generation. It now names the files just written, says to delete them and then re-run, and is withheld when nothing was written. 4 tests in `test/mix/tasks/threadline/install_test.exs` cover it.
+  status: resolved
+- **WR-01** resolved: #46 checks out `sync-release-pr-pins` with `persist-credentials: false`, binds `PUSH_TOKEN` only in the push step, and scopes the job to `contents: write`. This is now pinned by the 205-01 test in `test/threadline/release_control_plane_contract_test.exs`.
+  status: resolved
+- **WR-02** resolved: #46 gives the job its own concurrency group `sync-release-pr-pins` with `cancel-in-progress: true`, pinned by the same 205-01 contract test.
+  status: resolved
+- **WR-03** resolved: #46 starts `bootstrap-release-pr-ci`'s `if:` with `always()`, so a failed pin sync still produces a red CI run. Pinned by the same 205-01 contract test.
+  status: resolved
+- **WR-05** resolved: #46 changed the `guides/configuration-and-commands.md` default to `"public"`, and `test/threadline/storage_schema_test.exs` now ties the documented default to the resolved one.
+  status: resolved
+- **WR-04** open: `bin/with-rehearsal-registry:118` still picks the tarball with `ls -1 threadline-*.tar | head -n 1`, so a stale gitignored tarball can still be served locally.
+  status: open
+- **WR-06** open: `legacy_public_schema_test.exs` still reads through `Repo.aggregate/2` and `Repo.one!/1` with no prefix, so it never consults the storage schema.
+  status: open
+- **WR-07** open: `bin/verify-environment-protection` still does not check that `HEX_API_KEY` is an environment secret of `production-hex` rather than a repository secret.
+  status: open
+- **IN-01** open (info): the rehearsal's signal trap can exit 0 on INT/TERM, and a failure before the trap is set leaks the temp parent.
+  status: open
+- **IN-02** open (info): the rehearsal checks HEAD, not the working tree, and does not warn when the tree is dirty.
+  status: open
+- **IN-03** open (info): unknown `THREADLINE_BUMP_REHEARSAL_INJECT_DEFECT` values are silently ignored.
+  status: open
+- **IN-04** open (info): CHANGELOG-GENERATED.md keeps a placeholder that is now false, and its header claims hand edits are overwritten.
+  status: open
+- **IN-05** open (info): the version-marker ownership guards only recognise markers on the same line.
+  status: open
+- **IN-06** open (info): the rehearsal registry's port probe cannot tell its own server from a foreign listener.
+  status: open
+- **IN-07** open (info): the CHANGELOG's "Breaking changes: None" sits next to a raised dependency floor and a narrowed callback.
+  status: open
+
+All five resolved items reached the milestone branch in the 205-01 merge commit `0d8ced0c`. #46 is not an ancestor of the pre-merge HEAD `ca99ff7c`.
