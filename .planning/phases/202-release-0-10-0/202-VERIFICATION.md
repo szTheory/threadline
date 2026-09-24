@@ -203,3 +203,24 @@ Non-blocking follow-ups: D2 `ci.all` doc_contract no-op (Warning; not scheduled 
 
 _Verified: 2026-09-22T22:10Z_
 _Verifier: Claude (gsd-verifier)_
+
+## Addendum (2026-09-24, Phase 205): verified on the milestone branch
+
+The v1.41 milestone audit (`.planning/v1.41-MILESTONE-AUDIT.md`, finding F1) found that this report's evidence came from origin/main 53b5d71a, not the milestone branch. At the time, the branch did not contain Phase 202's shipped release commits. Phase 205 (plan 205-01) merged origin/main 471ebf6e (v0.10.1) into `fix/branch-protection-actions-capability` as one merge commit. The values below are copied from `.planning/phases/205-release-reconciliation/205-01-SUMMARY.md`, not re-derived.
+
+| Check | Result on the milestone branch |
+|-------|--------------------------------|
+| Merge commit | `0d8ced0cc0af86d30fed6d973543305318e541b6`, parents `ca99ff7c` (pre-merge HEAD) and `471ebf6e` (origin/main, v0.10.1) |
+| Follow-ups | `849707e2` (installer test credo alias), `8f846b74` (sync-pins contract test), `486a1392` (bump-rehearsal CI row wording) |
+| `git merge-base --is-ancestor v0.10.0 HEAD` | exit 0 |
+| `git merge-base --is-ancestor v0.10.1 HEAD` | exit 0 |
+| `git rev-list --count HEAD..origin/main` | 0 |
+| `mix.exs` | `@version "0.10.1"` |
+| `MIX_ENV=dev mix release.pins --check` | exit 0: scanned 20 files, 0 pin sites differ, derived `~> 0.10.0` |
+| `release.yml` `sync-release-pr-pins` job | present, and pinned by the new test in `test/threadline/release_control_plane_contract_test.exs` (proven RED against the pre-merge release.yml) |
+| Changelog contract | green (runs inside the bump-rehearsal gate chain; the #44 correction is merged) |
+| `mix verify.bump_rehearsal` | exit 0: `Bump rehearsal OK: a 0.10.1 -> 0.11.0 release commit passes every doc-contract test` (closes audit F2) |
+| `mix verify.release`, clean clone at `486a1392` | exit 0: 38 tests, 0 failures, builds threadline 0.10.1 |
+| Full `DB_PORT=5433 mix test` at `486a1392` | 1787 tests, 0 failures, 1 excluded |
+
+RELEASE-02 and RELEASE-05 now hold on the milestone branch. The frontmatter above, including the `NOTE: shipped code was verified at origin/main 53b5d71a` comment, is historical and deliberately unchanged.

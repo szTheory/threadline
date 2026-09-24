@@ -179,10 +179,10 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 | RENDER-05 | Phase 201 | Complete |
 | RENDER-06 | Phase 201 | Complete |
 | RELEASE-01 | Phase 202 | Complete |
-| RELEASE-02 | Phase 202 | Complete |
+| RELEASE-02 | Phase 202, Phase 205 | Complete |
 | RELEASE-03 | Phase 202 | Complete |
 | RELEASE-04 | Phase 202 | Complete |
-| RELEASE-05 | Phase 202 | Complete |
+| RELEASE-05 | Phase 202, Phase 205 | Complete |
 | GATE-01 | Phase 203 | Complete |
 | GATE-02 | Phase 203 | Complete |
 | GATE-03 | Phase 203 | Complete |
@@ -240,3 +240,4 @@ Populated during roadmap creation (2026-08-27). Every v1.41 requirement maps to 
 *Requirements defined: 2026-08-27*
 *Last updated: 2026-08-27 at roadmap creation (Phases 198-204 mapped, 53/53)*
 *Last updated: 2026-09-22 — STRUCT-07 added by Phase 203 per D-27 (54/54 mapped)*
+*Last updated: 2026-09-24 — Phase 205 (Release Reconciliation) added to the RELEASE-02 and RELEASE-05 traceability rows after the v0.10.1 merge onto the milestone branch*
