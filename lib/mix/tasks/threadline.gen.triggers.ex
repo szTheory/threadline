@@ -132,7 +132,10 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       File.mkdir_p!(path)
 
       # Versioned after every migration already in the directory, so running
-      # this right after `mix threadline.install` cannot repeat a version.
+      # this right after `mix threadline.install` cannot repeat a version when
+      # both write here. Install resolves the repo's own migrations path, so
+      # with a custom `:priv`, or a repo module not named `Repo`, it writes to
+      # a different directory.
       [version] = MigrationVersion.next(path, 1)
       table_suffix = Enum.map_join(tables, "_", &StorageSchema.host_table_suffix/1)
       file = Path.join(path, "#{version}_threadline_triggers_#{table_suffix}.exs")
