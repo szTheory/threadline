@@ -85,10 +85,13 @@ That migration never applied: delete its file, upgrade, and run
 - Rerunning `mix threadline.gen.triggers` for a table that already had a
   trigger migration now writes a migration that applies. Before, it failed with
   `(Ecto.MigrationError) migrations can't be executed, migration name threadline_triggers_<tables> is duplicated`
-  when both trigger migrations were pending together (a fresh or CI database,
-  `mix ecto.reset`, or a rollback across both), and with
-  `trigger "threadline_audit_<table>" for relation "<table>" already exists`
-  on a database that had already applied the first trigger migration.
+  when the rerun listed the same tables and both trigger migrations were
+  pending together (a fresh or CI database, `mix ecto.reset`, or a rollback
+  across both). Otherwise it failed with
+  `trigger "threadline_audit_<table>" for relation "<table>" already exists`:
+  on a database that had already applied the first trigger migration, or when
+  the rerun listed a different set of tables, such as `posts` after
+  `posts,users`.
 - Rolling back a rerun trigger migration no longer leaves the table uncaptured.
   The generated migration explains its rollback: capture stays on with the
   policy the rerun installed, and if the rerun removed redaction rules, a
