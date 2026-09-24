@@ -891,7 +891,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 205-01-PLAN.md — **Tracer:** one `--no-ff` merge of origin/main 471ebf6e (v0.10.1), 17 conflicts resolved whole-file per the research rule table; credo alias, sync-pins contract test and CONTRIBUTING row follow-ups; full gate run incl. bump rehearsal 0.10.1 -> 0.11.0 and clean-clone verify.release (wave 1)
+- [x] 205-01-PLAN.md — **Tracer:** one `--no-ff` merge of origin/main 471ebf6e (v0.10.1), 17 conflicts resolved whole-file per the research rule table; credo alias, sync-pins contract test and CONTRIBUTING row follow-ups; full gate run incl. bump rehearsal 0.10.1 -> 0.11.0 and clean-clone verify.release (wave 1)
 
 **Wave 2** *(blocked on 205-01)*
 

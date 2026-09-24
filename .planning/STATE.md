@@ -4,17 +4,17 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 205
 current_phase_name: Release Reconciliation
-status: planned
-stopped_at: Phase 205 planned — 2 plans, checker passed (iteration 2)
-last_updated: "2026-09-24T05:51:08.323Z"
+status: executing
+stopped_at: Completed 205-01-PLAN.md
+last_updated: "2026-09-24T13:12:33.540Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 205 planned
-state_head: 759f282052d0fd85c31d60a88cc43e886af30194
+last_activity_desc: Phase 205 execution started
+state_head: 9efabfe01ac0e841edb6402ca430c5dd3ff63196
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 148
-  completed_plans: 146
+  completed_plans: 147
   percent: 88
 ---
 
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 205 (Release Reconciliation) — PLANNED
-Plan: 0 of 2
-Status: Milestone audit found gaps (F1: origin/main release work unmerged) — Phase 205 closes them
+Phase: 205 (Release Reconciliation) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-24 — Phase 204 complete
+Last activity: 2026-09-24 — Phase 205 execution started
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -266,6 +266,7 @@ Progress: [████████████████████] 146/148
 | Phase 204 P14 | 6min | 3 tasks | 10 files |
 | Phase 204 P15 | 20min | 3 tasks | 9 files |
 | Phase 204 P16 | 17 | 3 tasks | 11 files |
+| Phase 205 P01 | 11min | 3 tasks | 19 files |
 
 ## Deferred Items
 
@@ -832,6 +833,9 @@ Progress: [████████████████████] 146/148
 - [Phase 204]: 204-13: shared operator-surface test templates in test/support/operator_surface_case.ex; nine live/*_live_test files migrated (190 tests unchanged); parsers: false supported for 204-14's gating endpoint
 - [Phase 204]: 204-14: TestStructureContractTest fails any hand-rolled test Endpoint/Router outside test/support/operator_surface_case.ex unless allowlisted with a reason; stale entries fail
 - [Phase 204]: 204-15: structural register drained to %{} with @ceiling 0 (12 test-side sites fixed, none re-registered); size gate at rest pins exactly one named exception (stress_fixtures.ex); phase-end gates green (ci.all 1778/0, browser 326/8/16 known eight, bump rehearsal OK)
+- [Phase 205]: 205-01: origin/main (v0.10.1) merged as ONE merge commit 0d8ced0c; 17 conflicts resolved whole-file (10 ours, 4 theirs, 3 combined)
+- [Phase 205]: 205-01: sync-release-pr-pins wiring pinned by a contract test in release_control_plane_contract_test.exs, proven RED on the pre-merge release.yml
+- [Phase 205]: 205-01: verify.threadline runs under MIX_ENV=test (as ci.yml does); dev configures no :ecto_repos
 
 ### Blockers
 
@@ -841,8 +845,8 @@ Progress: [████████████████████] 146/148
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T04:44:34.704Z
-**Stopped at:** Phase 204 complete — all phases complete
+**Last session:** 2026-09-24T13:12:33.371Z
+**Stopped at:** Completed 205-01-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
