@@ -1,17 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.RenderedOutputContractTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Rendered output contract</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.RenderedOutputContractTest.Auth do
     def authorize(_), do: true
     def coverage_authorize(_), do: true
@@ -36,21 +23,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.RenderedOutputContractTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
     alias Threadline.OperatorSurface.RenderedOutputContractTest.Auth
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.RenderedOutputContractTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -71,32 +46,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.RenderedOutputContractTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_rendered_output_contract_key",
-      signing_salt: "rendered-output"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.RenderedOutputContractTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.RenderedOutputContractTest.Router
   end
 
   defmodule Threadline.OperatorSurface.RenderedOutputContractTest do
     @moduledoc false
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.RenderedOutputContractTest.Endpoint
 
     alias Threadline.OperatorSurface.StressFixtures
     alias Threadline.OperatorSurface.Style
-
-    @endpoint Threadline.OperatorSurface.RenderedOutputContractTest.Endpoint
 
     @planning_attributes ~w(data-earned-flow data-persona data-jtbd)
     @reference_corpus_root "test/fixtures/operator_surface"
@@ -150,12 +112,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @representative_node_ids @pre_edit_receipts |> Map.keys() |> Enum.sort()
 
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: String.duplicate("r", 64),
-        live_view: [signing_salt: String.duplicate("r", 8)],
-        render_errors: [view: Threadline.OperatorSurface.RenderedOutputContractTest.Layouts]
-      )
-
       original_export_interval = Application.get_env(:threadline, :export_status_poll_ms)
       original_timeline_interval = Application.get_env(:threadline, :timeline_poll_ms)
       Application.put_env(:threadline, :export_status_poll_ms, 60_000)
@@ -167,7 +123,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.delete_env(:threadline, @endpoint)
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
