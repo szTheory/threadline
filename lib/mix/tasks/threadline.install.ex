@@ -172,11 +172,9 @@ defmodule Mix.Tasks.Threadline.Install do
     end
   end
 
+  # Recursive, like Ecto's migrator and MigrationVersion.existing_versions/1, so
+  # a Threadline migration a host moved into a subdirectory still counts.
   defp existing_migration?(path, suffix) do
-    path
-    |> File.ls!()
-    |> Enum.any?(&String.ends_with?(&1, suffix))
-  rescue
-    _ -> false
+    Path.wildcard(Path.join([path, "**", "*" <> suffix])) != []
   end
 end

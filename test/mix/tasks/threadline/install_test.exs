@@ -60,9 +60,9 @@ defmodule Mix.Tasks.Threadline.InstallTest do
   end
 
   defp seed(tmp, name) do
-    dir = Path.join(tmp, @migrations)
-    File.mkdir_p!(dir)
-    File.write!(Path.join(dir, name), "# seeded by the test\n")
+    file = Path.join([tmp, @migrations, name])
+    File.mkdir_p!(Path.dirname(file))
+    File.write!(file, "# seeded by the test\n")
   end
 
   # Ecto reads the integer before the first "_" as the migration version and
@@ -194,6 +194,19 @@ defmodule Mix.Tasks.Threadline.InstallTest do
       assert hd(versions) == "21000101000000"
       assert_valid_increasing!(versions)
     end
+  end
+
+  test "a Threadline migration moved into a subdirectory is not written again", %{tmp: tmp} do
+    Application.delete_env(:threadline, :storage_schema)
+    seed(tmp, "archive/20991231235958_threadline_audit_schema.exs")
+
+    output = run_install(tmp)
+
+    assert Path.wildcard(Path.join([tmp, @migrations, "*_threadline_audit_schema.exs"])) == []
+    assert output =~ "already exists — skipping"
+    versions = prefixes(tmp, tl(@suffixes))
+    assert hd(versions) == "20991231235959"
+    assert_valid_increasing!(versions)
   end
 
   describe "storage-schema advice" do
