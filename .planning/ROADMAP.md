@@ -72,6 +72,7 @@ A counted, documented exclusion is honest. A config that runs 2 checks in 0.1s a
 - [x] **Phase 202: Release 0.10.0** - Merge PR #26 and publish a release whose public surface is already clean, with every version-bearing literal managed by release automation and exactly one publish path. (completed 2026-09-22)
 - [x] **Phase 203: Real Gates** - Full Credo defaults expressed as `extra:`/`disabled:` deltas, the dialyzer backlog drained, and the layer inversions plus the Capture↔Semantics cycle fixed. (completed 2026-09-23)
 - [x] **Phase 204: Structure** - Make the largest files legible without changing a byte of output, behind an executable CSS byte-hash lock. (completed 2026-09-24)
+- [ ] **Phase 205: Release Reconciliation** - Close the v1.41 audit gap: merge origin/main's shipped 0.10.0 release work (#41, #43, #44, release commit, #45) into the milestone branch so RELEASE-02/05 hold on the branch itself.
 
 ## Phase Details
 
@@ -878,6 +879,20 @@ Plans:
 
 **UI hint**: no
 
+### Phase 205: Release Reconciliation
+
+**Goal**: The milestone branch contains every commit Phase 202 shipped on `origin/main` (tag `v0.10.0` is an ancestor of HEAD), with 203/204's changes preserved through the merge, so the release flow (release-please → sync-release-pr-pins → verify.release → single publish) is whole on the branch and the next release PR would be green by construction.
+**Requirements**: RELEASE-02, RELEASE-05 (gap closure from `.planning/v1.41-MILESTONE-AUDIT.md` F1)
+**Depends on:** Phase 204
+**Gap closure:** v1.41 milestone audit (2026-09-24), finding F1
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 205 to break down)
+
+**UI hint**: no
+
 ## Verification
 
 - **Per phase:** `mix ci.all` green on a clean tree, plus that phase's own success criteria.
@@ -911,6 +926,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 202. Release 0.10.0 | v1.41 | 10/10 | Complete    | 2026-09-22 |
 | 203. Real Gates | v1.41 | 10/10 | Complete    | 2026-09-23 |
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
+| 205. Release Reconciliation | v1.41 | 0/0 | Not started | - |
 
 ## Prior Milestones
 

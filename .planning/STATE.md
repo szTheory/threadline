@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 204
-current_phase_name: Structure
-status: completed
-stopped_at: Phase 204 complete — all phases complete
+current_phase: 205
+current_phase_name: Release Reconciliation
+status: planning
+stopped_at: Phase 205 added — milestone audit gaps_found (F1)
 last_updated: "2026-09-24T05:51:08.323Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 204 complete
+last_activity_desc: Phase 205 added (audit gap closure)
 state_head: 759f282052d0fd85c31d60a88cc43e886af30194
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 7
   total_plans: 146
   completed_plans: 146
-  percent: 100
+  percent: 88
 ---
 
 # Project State: Threadline
@@ -25,13 +25,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 204 — Structure
+**Current focus:** Phase 205 — Release Reconciliation
 
 ## Current Position
 
-Phase: 204 (Structure) — COMPLETE
-Plan: 16 of 16
-Status: All phases complete — milestone v1.41 ready for audit/close
+Phase: 205 (Release Reconciliation) — NOT PLANNED
+Plan: 0 of TBD
+Status: Milestone audit found gaps (F1: origin/main release work unmerged) — Phase 205 closes them
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 146/146 plans ([██████████] 100% of phases — 7 of 7 complete: 198–204; 199, 200 and 201 carry stale verification)
+Progress: [████████████████████] 146/146 plans ([█████████░] 88% of phases — 7 of 8 complete: 198–204; 205 Release Reconciliation added by the milestone audit, not yet planned; 199–203 carry stale verification)
 
 ## Performance Metrics
 
@@ -436,6 +436,7 @@ Progress: [████████████████████] 146/146
 - **Milestone v1.38 archived (2026-06-30):** Operator UI Page-by-Page IA & Design-System Polish shipped with phases 181-188 complete, 24/24 requirements satisfied, and residual CI/screenshot/environment/Nyquist items explicitly classified in the archive audit.
 - **Milestone v1.39 roadmap created (2026-07-01):** Quality Baseline, Schema Confidence, and CI Efficiency — phases 189-193. Order is quality audit → storage-schema proof/fixes → release/version docs trust → CI/CD measurement and efficiency → closeout/next-step decision. 15/15 requirements mapped. Invariants held: no new operator product scope, no public component API, no compliance expansion, no synthetic external pilot, no runtime destructive redaction, no WAL/CDC backend, and no broad CI cleverness before measurement.
 - **Milestone v1.41 roadmap created (2026-08-27):** Green, Clean, and Honest — phases 198-204 per the approved plan `~/.claude/plans/so-i-don-t-really-have-quirky-wilkinson.md`, continued numbering. Order is green bringup → decouple (dialyxir lands here) → public surface → rendered output → **release 0.10.0 (deliberately mid-milestone: hex.pm has no undo, so publish once the permanent and rendered surfaces are clean, before the invisible internal work)** → real gates → structure. 53/53 requirements mapped, coarse granularity, est. 26-33 plans. Two workloads are deliberately unmeasured at roadmap time — the full-default Credo backlog (measured in 198 Plan 01) and the dialyzer finding count (measured in 199) — with a pre-committed sizing rule for Phase 203 (<150 → one phase; 150-600 → split mechanical from judgment; >600 or one dominating check → adopt defaults with that check as a counted register row plus a named successor milestone). Phase 201's cost depends on 198 Plan 01's mechanical-sensitivity probe. Highest-variance risk: the `min` CI lane (Elixir 1.15 / OTP 26 / pg14 / ubuntu-22.04) has never executed on origin. Invariants: no operator-UI design/IA/visual change, no Tier-A scorecard regeneration, paid critic scoring stays structurally untriggerable, `.planning/` stays tracked, no git history rewrite, no capture/query/auth semantic change, no version-floor bump; `git mv`/`git rm` for every move/removal, one file per commit where contract tests are involved.
+- Phase 205 added (2026-09-24): Release Reconciliation — gap closure for the v1.41 milestone audit (`.planning/v1.41-MILESTONE-AUDIT.md`, status gaps_found, finding F1). The milestone branch is 433 ahead / 5 behind origin/main and never merged Phase 202's shipped release commits (#41, #43, #44, the 0.10.0 release commit, #45); RELEASE-02/05 hold on origin/main only.
 
 ### Decisions
 
