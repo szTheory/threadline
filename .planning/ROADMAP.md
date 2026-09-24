@@ -797,7 +797,7 @@ Plans:
   4. `ci.all` contains no step that re-runs assertions another step already ran, and no second, drift-prone definition of which contract tests matter. (STRUCT-06)
   5. The `credo_config_contract_test` structural ceiling is ratcheted from 42 to 0, or every remaining site names a post-v1.41 successor. (STRUCT-07)
 
-**Plans**: 15 plans (fully serial: one plan per wave — the Elixir suite cannot run in a worktree, and same-tree parallel plans would share `_build`, the port-5433 test DB, and the git index)
+**Plans**: 16 plans (15 + 1 gap closure; fully serial: one plan per wave — the Elixir suite cannot run in a worktree, and same-tree parallel plans would share `_build`, the port-5433 test DB, and the git index)
 
 Plans:
 **Wave 1**
@@ -859,6 +859,10 @@ Plans:
 **Wave 15** *(blocked on Wave 14 completion)*
 
 - [x] 204-15-PLAN.md — last 12 test register sites, register `%{}` / ceiling 0, size gate at rest (one named exception), phase-end proof (STRUCT-07, STRUCT-03, STRUCT-04)
+
+**Wave 16 — gap closure** *(from 204-VERIFICATION; blocked on Wave 15 completion)*
+
+- [ ] 204-16-PLAN.md — **Tracer:** widened banner gate RED on the 5 titled box-rule banners, then removed per D-11 (critic.measure repository boundary becomes a real module); keyword-clause length measure (WR-01); STRUCT-04 re-closed on green ci.all + erratum on 204-12 (STRUCT-04, STRUCT-03)
 
 **Cross-cutting constraints:**
 
