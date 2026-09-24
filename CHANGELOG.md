@@ -26,10 +26,12 @@ would be read as a release.
 
 `mix threadline.install` could give two or three of its generated migrations the
 same version, so `mix ecto.migrate` refused to run them. Every release through
-0.10.1 is affected. The installer has written the audit and semantics migrations
-with a shared one-second timestamp since 0.1.0, and it has written the
-governance migration since 0.6.0. The installer now gives each migration a
-distinct version that sorts after every migration already in the directory.
+0.10.1 is affected. Since 0.1.0 the installer has computed each migration's
+version from the current second, so the audit and semantics migrations shared a
+version whenever both were written in the same second. The governance
+migration, written since 0.6.0, could share it too. The installer now gives each
+migration a distinct version that sorts after every migration already in the
+directory.
 
 ### Breaking changes
 
