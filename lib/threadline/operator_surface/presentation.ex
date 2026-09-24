@@ -200,29 +200,32 @@ defmodule Threadline.OperatorSurface.Presentation do
     end
   end
 
+  @status_labels %{
+    "inferred_posture" => "Inferred",
+    "config_matches_deployed" => "Deployed matches config",
+    "could_not_introspect" => "Could not introspect",
+    "drift_detected" => "Drift detected",
+    "expected_uncovered" => "Expected gap",
+    "uncovered" => "Needs capture",
+    "covered" => "Captured",
+    "completed" => "Completed",
+    "failed" => "Failed",
+    "pending" => "Queued",
+    "running" => "Running",
+    "proven" => "Proven",
+    "unsupported" => "Unsupported"
+  }
+
   @spec status_label(String.t() | atom() | nil) :: String.t()
-  # Structural debt: complexity 17 — replace status_label/1 case with a lookup
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def status_label(status) do
     case normalize_status(status) do
-      "inferred_posture" -> "Inferred"
-      "config_matches_deployed" -> "Deployed matches config"
-      "could_not_introspect" -> "Could not introspect"
-      "drift_detected" -> "Drift detected"
-      "expected_uncovered" -> "Expected gap"
-      "uncovered" -> "Needs capture"
-      "covered" -> "Captured"
-      "completed" -> "Completed"
-      "failed" -> "Failed"
-      "pending" -> "Queued"
-      "running" -> "Running"
-      "proven" -> "Proven"
-      "unsupported" -> "Unsupported"
       nil -> "Unknown"
       "" -> "Unknown"
-      other -> other |> String.replace("_", " ") |> String.capitalize()
+      status -> Map.get_lazy(@status_labels, status, fn -> humanize_status(status) end)
     end
   end
+
+  defp humanize_status(status), do: status |> String.replace("_", " ") |> String.capitalize()
 
   @spec operation_modifier(String.t() | atom() | nil) :: String.t()
   def operation_modifier(operation) do
