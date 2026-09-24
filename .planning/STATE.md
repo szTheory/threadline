@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 207
 current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
 status: executing
-stopped_at: Phase 207 context gathered
-last_updated: "2026-09-24T21:01:23.389Z"
+stopped_at: Completed 207-01-PLAN.md
+last_updated: "2026-09-24T21:06:33.359Z"
 last_activity: 2026-09-24
 last_activity_desc: Phase 207 execution started
-state_head: e24122fdcae13af92e782607c4e4c8ca80791084
+state_head: c89492234238ecc5e6437499d6208953389bda9d
 progress:
   total_phases: 10
   completed_phases: 9
   total_plans: 153
-  completed_plans: 150
+  completed_plans: 151
   percent: 90
 ---
 
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 207
+Plan: 2 of 3
+Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 150/153 plans ([█████████░] 90% of phases — 9 of 10 complete: 198–206; 207 Trigger Migration Rerun planned — 3 plans, checker passed (6b5ea0b7), next /gsd-execute-phase 207; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
+Progress: [████████████████████] 151/153 plans ([█████████░] 90% of phases — 9 of 10 complete: 198–206; 207 Trigger Migration Rerun executing — 1 of 3 plans done (207-01 OR REPLACE trigger + non-cascading orphan drop: 1a9fbd53, 918103fa), next 207-02; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
 
 ## Performance Metrics
 
@@ -270,6 +270,7 @@ Progress: [████████████████████] 150/153
 | Phase 205 P02 | 12 min | 2 tasks | 5 files |
 | Phase 206 P01 | 4min | 3 tasks | 5 files |
 | Phase 206 P02 | 12 min | 2 tasks | 1 files |
+| Phase 207 P01 | 4min | 2 tasks | 3 files |
 
 ## Deferred Items
 
@@ -845,6 +846,7 @@ Progress: [████████████████████] 150/153
 - [Phase 206]: Phase 206-01: migration versions come from one hidden helper (Threadline.Mix.MigrationVersion.next/3), computed once per install run and once per gen.triggers write; max(now, highest existing + 1s) with calendar-correct carry, integer fallback for non-timestamp schemes
 - [Phase 206]: Phase 206-01: installer dedicated-schema advice prints only on a fresh install; partial re-run gets a keep-public note
 - [Phase 206]: 206-02: CHANGELOG keeps the meaning of the partial re-run advice fix but drops WR/CR IDs (packaged-file vocabulary test bans them)
+- [Phase 207]: Trigger DDL is CREATE OR REPLACE TRIGGER on every run (PG14 floor); per-table orphan drop has no CASCADE and reuses per_table_function_name/2
 
 ### Blockers
 
@@ -854,9 +856,9 @@ Progress: [████████████████████] 150/153
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T20:18:18.486Z
-**Stopped at:** Phase 207 context gathered
-**Resume file:** .planning/phases/207-gen-triggers-rerun-name-collision-storage-schema-default-doc/207-CONTEXT.md
+**Last session:** 2026-09-24T21:06:33.181Z
+**Stopped at:** Completed 207-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

@@ -930,7 +930,7 @@ Plans:
 
 **Wave 1**
 
-- [ ] 207-01-PLAN.md — Rerun SQL applies: `CREATE OR REPLACE TRIGGER`, non-cascading orphan-function drop, DB-tier rerun tests (wave 1)
+- [x] 207-01-PLAN.md — Rerun SQL applies: `CREATE OR REPLACE TRIGGER`, non-cascading orphan-function drop, DB-tier rerun tests (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -981,7 +981,7 @@ Phases execute in numeric order: 198 → 199 → 200 → 201 → 202 → 203 →
 | 204. Structure | v1.41 | 16/16 | Complete    | 2026-09-24 |
 | 205. Release Reconciliation | v1.41 | 2/2 | Complete    | 2026-09-24 |
 | 206. Installer Migration Versions | v1.41 | 2/2 | Complete    | 2026-09-24 |
-| 207. Trigger Migration Rerun and Storage-Schema Default Docs | v1.41 | 0/0 | Not started | - |
+| 207. Trigger Migration Rerun and Storage-Schema Default Docs | v1.41 | 1/3 | In Progress | - |
 
 ## Prior Milestones
 
