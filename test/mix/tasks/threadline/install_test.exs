@@ -221,4 +221,21 @@ defmodule Mix.Tasks.Threadline.InstallTest do
       refute output =~ "Existing installs need no action"
     end
   end
+
+  describe "install then gen.triggers" do
+    defp triggers_prefix(tmp) do
+      [file] = Path.wildcard(Path.join([tmp, @migrations, "*_threadline_triggers_*.exs"]))
+      file |> Path.basename() |> String.split("_", parts: 2) |> hd()
+    end
+
+    test "the trigger migration is versioned after the three install migrations", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+
+      run_install(tmp)
+      File.cd!(tmp, fn -> Mix.Tasks.Threadline.Gen.Triggers.run(["--tables", "posts"]) end)
+      drain_shell([])
+
+      assert_valid_increasing!(prefixes(tmp, @suffixes) ++ [triggers_prefix(tmp)])
+    end
+  end
 end

@@ -55,6 +55,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   import Mix.Generator
 
   alias Threadline.Capture.{RedactionPolicy, TriggerCaptureConfig, TriggerSQL}
+  alias Threadline.Mix.MigrationVersion
   alias Threadline.StorageSchema
 
   @column_name ~r/^[A-Za-z0-9_]+$/
@@ -130,8 +131,11 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       path = "priv/repo/migrations"
       File.mkdir_p!(path)
 
+      # Versioned after every migration already in the directory, so running
+      # this right after `mix threadline.install` cannot repeat a version.
+      [version] = MigrationVersion.next(path, 1)
       table_suffix = Enum.map_join(tables, "_", &StorageSchema.host_table_suffix/1)
-      file = Path.join(path, "#{timestamp()}_threadline_triggers_#{table_suffix}.exs")
+      file = Path.join(path, "#{version}_threadline_triggers_#{table_suffix}.exs")
 
       create_file(file, migration_content(table_specs))
       Mix.shell().info("Run `mix ecto.migrate` to install the triggers.")
@@ -253,12 +257,4 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
     end
     """
   end
-
-  defp timestamp do
-    {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
-    "#{y}#{pad(m)}#{pad(d)}#{pad(hh)}#{pad(mm)}#{pad(ss)}"
-  end
-
-  defp pad(i) when i < 10, do: "0#{i}"
-  defp pad(i), do: "#{i}"
 end
