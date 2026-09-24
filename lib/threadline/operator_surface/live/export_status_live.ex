@@ -404,15 +404,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> assign(:default_limit, @default_limit)
     end
 
-    # Structural debt: complexity 11 — split export_workflow_summary/1 per state
-    # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
     defp export_workflow_summary(assigns) do
-      jobs = Map.get(assigns, :jobs, [])
+      context_workflow_summary(assigns) || jobs_workflow_summary(Map.get(assigns, :jobs, []))
+    end
 
-      ready_count = Enum.count(jobs, &Presentation.export_downloadable?/1)
-      processing_count = Enum.count(jobs, &(Presentation.export_readiness(&1) == :preparing))
-      attention_count = Enum.count(jobs, &(Presentation.export_readiness(&1) == :needs_attention))
-
+    defp context_workflow_summary(assigns) do
       cond do
         match?(%{status: :invalid}, assigns[:timeline_export_context]) ->
           %{
@@ -435,11 +431,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             status: "Evidence context"
           }
 
+        true ->
+          nil
+      end
+    end
+
+    defp jobs_workflow_summary(jobs) do
+      ready_count = Enum.count(jobs, &Presentation.export_downloadable?/1)
+      processing_count = Enum.count(jobs, &(Presentation.export_readiness(&1) == :preparing))
+      attention_count = Enum.count(jobs, &(Presentation.export_readiness(&1) == :needs_attention))
+
+      cond do
         ready_count > 0 ->
           %{
             title: "Completed exports are ready",
-            body:
-              "#{ready_count} #{if ready_count == 1, do: "export job", else: "export jobs"} can be downloaded now.",
+            body: "#{ready_count} #{export_job_noun(ready_count)} can be downloaded now.",
             status: "Download ready"
           }
 
@@ -447,7 +453,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           %{
             title: "Exports are processing",
             body:
-              "#{processing_count} #{if processing_count == 1, do: "export job", else: "export jobs"} queued or running. Reopen the source search from each job if filters need another pass.",
+              "#{processing_count} #{export_job_noun(processing_count)} queued or running. Reopen the source search from each job if filters need another pass.",
             status: "Processing"
           }
 
@@ -455,7 +461,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           %{
             title: "Exports need attention",
             body:
-              "#{attention_count} #{if attention_count == 1, do: "export job", else: "export jobs"} failed. Reopen the source search, adjust filters, and queue a new export.",
+              "#{attention_count} #{export_job_noun(attention_count)} failed. Reopen the source search, adjust filters, and queue a new export.",
             status: "Review failed jobs"
           }
 
@@ -468,6 +474,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           }
       end
     end
+
+    defp export_job_noun(1), do: "export job"
+    defp export_job_noun(_count), do: "export jobs"
 
     defp group_jobs(jobs) do
       jobs
