@@ -924,11 +924,21 @@ Plans:
 **Goal**: Rerunning `mix threadline.gen.triggers` for tables that already have a trigger migration produces a migration Ecto accepts (no duplicate migration name/module), as the drift-remediation guides instruct, with a second-run regression test; and every guide states the real `storage_schema` default (`public`).
 **Requirements**: TBD (tech-debt closure from `.planning/v1.41-MILESTONE-AUDIT.md` second re-audit, items W1 and W2)
 **Depends on:** Phase 206
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 207 to break down)
+**Wave 1**
+
+- [ ] 207-01-PLAN.md — Rerun SQL applies: `CREATE OR REPLACE TRIGGER`, non-cascading orphan-function drop, DB-tier rerun tests (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 207-02-PLAN.md — gen.triggers rerun: distinct name/module on collision, orphan drop in up, per-table rollback + comment, moduledoc (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 207-03-PLAN.md — `public` default in all guides + guard, rerun docs, CHANGELOG, end-to-end probe + phase gate (wave 3)
 
 **Context**:
 - W1: `lib/mix/tasks/threadline.gen.triggers.ex:141` names the file `<version>_threadline_triggers_<tables>.exs`, so a rerun for the same tables writes a second migration with the same name and module; Ecto raises "migration name ... is duplicated" (`deps/ecto_sql/lib/ecto/migrator.ex:714-716`). Prescribed by `guides/production-checklist.md:45` and `guides/domain-reference.md:52-53`. Pre-existing (not a 206 regression).
