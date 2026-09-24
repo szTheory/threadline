@@ -94,6 +94,11 @@ defmodule Threadline.Capture.TriggerSQL do
     "DROP FUNCTION IF EXISTS #{name}() CASCADE"
   end
 
+  @doc "Returns SQL to drop a per-table capture function only if nothing depends on it, so it fails instead of cascading into a trigger that still uses it."
+  def drop_orphan_function_for_table(table_name, opts \\ []) do
+    "DROP FUNCTION IF EXISTS " <> per_table_function_name(table_name, opts) <> "()"
+  end
+
   @doc """
   Returns SQL to install a trigger on the given table.
 

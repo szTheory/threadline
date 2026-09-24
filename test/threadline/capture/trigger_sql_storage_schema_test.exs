@@ -44,4 +44,13 @@ defmodule Threadline.Capture.TriggerSQLStorageSchemaTest do
     assert TriggerSQL.drop_function_for_table("support.tickets") =~
              ~S|DROP FUNCTION IF EXISTS "threadline"."threadline_capture_changes_support_tickets"()|
   end
+
+  test "orphan per-table function drop never cascades" do
+    sql = TriggerSQL.drop_orphan_function_for_table("support.tickets")
+
+    assert sql =~
+             ~S|DROP FUNCTION IF EXISTS "threadline"."threadline_capture_changes_support_tickets"()|
+
+    refute sql =~ "CASCADE"
+  end
 end

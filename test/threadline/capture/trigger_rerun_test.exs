@@ -78,6 +78,63 @@ defmodule Threadline.Capture.TriggerRerunTest do
       assert is_map(change.changed_from)
       assert Map.get(change.changed_from, "value") == 1
     end
+
+    test "switching back to default mode removes the orphaned per-table function" do
+      install_per_table_trigger!()
+
+      Repo.query!(TriggerSQL.create_trigger(@table))
+      Repo.query!(TriggerSQL.drop_orphan_function_for_table(@table))
+
+      assert per_table_function_count() == 0
+      assert trigger_function() == {StorageSchema.get(), "threadline_capture_changes"}
+    end
+
+    test "the orphan drop refuses to cascade into a live trigger" do
+      install_per_table_trigger!()
+
+      assert_raise Postgrex.Error, ~r/depends on it|other objects depend/, fn ->
+        Repo.query!(TriggerSQL.drop_orphan_function_for_table(@table))
+      end
+
+      assert per_table_function_count() == 1
+
+      assert trigger_function() ==
+               {StorageSchema.get(), "threadline_capture_changes_" <> @table}
+    end
+
+    test "the orphan drop is harmless when no per-table function exists" do
+      Repo.query!(TriggerSQL.create_trigger(@table))
+
+      Repo.query!(TriggerSQL.drop_orphan_function_for_table(@table))
+
+      assert trigger_function() == {StorageSchema.get(), "threadline_capture_changes"}
+    end
+  end
+
+  defp install_per_table_trigger! do
+    Repo.query!(
+      TriggerSQL.install_function_for_table(@table,
+        store_changed_from: true,
+        except_columns: []
+      )
+    )
+
+    Repo.query!(TriggerSQL.create_trigger(@table, :per_table))
+  end
+
+  defp per_table_function_count do
+    %{rows: [[count]]} =
+      Repo.query!(
+        """
+        SELECT count(*)
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = $1 AND p.proname = $2
+        """,
+        [StorageSchema.get(), "threadline_capture_changes_" <> @table]
+      )
+
+    count
   end
 
   # Identifies the trigger's function by catalog name and namespace rather than
