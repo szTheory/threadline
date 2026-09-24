@@ -11,9 +11,14 @@ defmodule Threadline.SourceSizeContractTest do
       `lib/**/*.ex` spans at most `@function_limit` lines. Clauses are measured
       one at a time from the parsed AST (`do` line through `end` line) and the
       longest clause per name/arity is reported; clauses are never summed.
-    * Separator banners: a `#` comment made of rule characters (`---`, `===`,
-      `───`, `***`) stands in for a real module or function boundary. Each file
-      that still has banners must match `@banner_exceptions` exactly.
+    * Separator banners: a `#` comment that opens with a rule run (`---`,
+      `===`, `***`, or a box-drawing run of two or more `─`) or ends with a
+      rule run of three or more stands in for a real module or function
+      boundary. That covers a bare rule and a titled banner alike, such as a
+      comment that reads two box characters, then a section title, then a long
+      trailing rule. A rule character inside prose (a `--tl-` custom property
+      name, a markdown table rule, an arrow) is not a banner. Each file that
+      still has banners must match `@banner_exceptions` exactly.
     * No `.heex` templates and no `embed_templates` in `lib/`: moving markup out
       of `.ex` files would satisfy the length limits without making anything
       more legible.
@@ -35,7 +40,7 @@ defmodule Threadline.SourceSizeContractTest do
   @file_limit 800
   @function_limit 120
 
-  @banner ~r/^\s*#\s*(-{3,}|={3,}|─{3,}|\*{3,})/u
+  @banner ~r/^\s*#\s*(?:-{3,}|={3,}|─{2,}|\*{3,})|(?:-{3,}|={3,}|─{3,}|\*{3,})\s*$/u
   @embed_templates ~r/\bembed_templates\b/
   @planning_vocabulary ~r/Phase \d|STRUCT-\d|\bD-\d{2}\b/
 
@@ -180,6 +185,31 @@ defmodule Threadline.SourceSizeContractTest do
       clean = [{"lib/clean.ex", "defmodule Clean do\n  # prose\nend\n"}]
       assert {:error, message} = validate_banners(clean, %{"lib/clean.ex" => 1})
       assert message =~ "stale"
+    end
+
+    test "a titled banner is counted whether the rule leads or trails, and prose with rule characters is not" do
+      long_box = String.duplicate("─", 40)
+
+      source = """
+      defmodule Titled do
+        # ── Section title #{long_box}
+        # ── Section title with no trailing rule
+        # === Section title ===
+        # Section title -----
+        # --tl-space-2 is the gap between rows
+        # |------|---|
+        # the reader flows from source -> ledger
+        # plain prose comment
+        def run, do: :ok
+      end
+      """
+
+      files = [{"lib/titled.ex", source}]
+
+      assert %{"lib/titled.ex" => 4} = count_banners(files)
+      assert {:error, message} = validate_banners(files, %{})
+      assert message =~ "lib/titled.ex has 4 separator banner"
+      assert :ok = validate_banners(files, %{"lib/titled.ex" => 4})
     end
 
     test "an empty scan set fails instead of passing vacuously" do
