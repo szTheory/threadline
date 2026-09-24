@@ -270,7 +270,7 @@ defmodule Threadline.OperatorSurface.StressFixtures do
     {"brand_fidelity", :brand_fidelity, ~w(export coverage retention evidence actor timeline)},
     {"color_contrast", :color_contrast, ~w(status coverage retention diff evidence actor)},
     # Hierarchy joins the graded ladder: the :hierarchy twin
-    # renders a rung-graded weight/size cascade (see @hierarchy_scale in stress_live.ex). Scored
+    # renders a rung-graded weight/size cascade (see @hierarchy_scale in StressLive.Refute). Scored
     # with 1 persona (probe 2026-07-28 proved p1-p5 redundant on hierarchy); oracle ρ is the backstop.
     {"hierarchy", :hierarchy, ~w(activity coverage retention exports evidence actor)},
     # density joins too — the :density_chrome twin renders a rung-graded help-text-chrome +
