@@ -101,6 +101,16 @@ Better still, `Mix.raise` when a generated trigger or function name would exceed
 bytes, because the pre-existing per-table/per-table collision has the same root cause.
 Add a regression test with two 40+ character table names that share a prefix.
 
+**Orchestrator decision (2026-09-24, binding for the fixer):** use the first fix above.
+Emit the orphan drop only when the full per-table function name fits in 63 bytes. Do
+**not** take the `Mix.raise` route. It would refuse long table names that generate and
+apply correctly on 0.10.1 today, so it would be a breaking change inside a `fix:`
+release. The pre-existing collision between two per-table tables is out of scope for
+this fix. Record it as deferred. The regression test uses two table names of 40+
+characters that share a 36+ byte prefix, one in default mode and one in per-table mode.
+Cover both orders: the per-table trigger already installed, and the default table listed
+first in one `--tables` run. Prove the test fails before the fix.
+
 ## Warnings
 
 ### WR-01: CHANGELOG attributes the wrong error to the "both pending" case for reruns with a different table set
