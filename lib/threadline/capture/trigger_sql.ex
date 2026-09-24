@@ -4,6 +4,9 @@ defmodule Threadline.Capture.TriggerSQL do
   alias Threadline.Capture.RedactionPolicy
   alias Threadline.StorageSchema
 
+  # PostgreSQL's NAMEDATALEN - 1.
+  @max_identifier_bytes 63
+
   @doc """
   Returns SQL to create or replace the `threadline_capture_changes()` trigger function.
 
@@ -94,6 +97,18 @@ defmodule Threadline.Capture.TriggerSQL do
     "DROP FUNCTION IF EXISTS #{name}() CASCADE"
   end
 
+  @doc """
+  Returns whether the table's per-table capture function name fits in PostgreSQL's
+  63-byte identifier limit.
+
+  A longer name is truncated by PostgreSQL, so it can match another table's
+  per-table function. Callers must not emit `drop_orphan_function_for_table/2` for
+  such a table.
+  """
+  def per_table_function_fits?(table_name) do
+    byte_size(per_table_function_base(table_name)) <= @max_identifier_bytes
+  end
+
   @doc "Returns SQL to drop a per-table capture function only if nothing depends on it, so it fails instead of cascading into a trigger that still uses it."
   def drop_orphan_function_for_table(table_name, opts \\ []) do
     "DROP FUNCTION IF EXISTS " <> per_table_function_name(table_name, opts) <> "()"
@@ -141,8 +156,11 @@ defmodule Threadline.Capture.TriggerSQL do
   end
 
   defp per_table_function_name(table_name, opts) do
-    function_name = "threadline_capture_changes_#{StorageSchema.host_table_suffix(table_name)}"
-    StorageSchema.function(function_name, opts)
+    StorageSchema.function(per_table_function_base(table_name), opts)
+  end
+
+  defp per_table_function_base(table_name) do
+    "threadline_capture_changes_#{StorageSchema.host_table_suffix(table_name)}"
   end
 
   # Exact legacy SQL (legacy) when no redaction rules apply.

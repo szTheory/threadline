@@ -45,7 +45,10 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
 
   A table that returns to the default trigger also drops its leftover per-table
   capture function. That drop never cascades. On a table that never had one,
-  PostgreSQL prints a harmless NOTICE that the function does not exist.
+  PostgreSQL prints a harmless NOTICE that the function does not exist. The
+  drop is skipped when `threadline_capture_changes_<table>` is longer than
+  PostgreSQL's 63-byte identifier limit, because the truncated name can belong
+  to another table's function.
 
   Rolling back a rerun migration keeps capture on for the tables it re-pointed.
   Rolling back does not restore the earlier capture policy: the trigger keeps the
@@ -251,15 +254,16 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
     # A table on the default trigger drops any per-table capture function left
     # by an earlier migration. The drop comes after the trigger is re-pointed
     # and does not cascade, so it fails loudly instead of removing a trigger
-    # that still uses the function.
+    # that still uses the function. It is skipped when the function name is
+    # longer than 63 bytes: PostgreSQL would truncate it, and the truncated
+    # name can belong to another table's live per-table function.
     trigger_ups =
       Enum.map_join(table_specs, "\n\n", fn
         {t, %{needs_per_table: true}} ->
           "    execute #{inspect(TriggerSQL.create_trigger(t, :per_table))}"
 
         {t, %{needs_per_table: false}} ->
-          "    execute #{inspect(TriggerSQL.create_trigger(t))}\n\n" <>
-            "    execute #{inspect(TriggerSQL.drop_orphan_function_for_table(t))}"
+          "    execute #{inspect(TriggerSQL.create_trigger(t))}" <> orphan_function_drop(t)
       end)
 
     # Rolling back only undoes what this migration was first to install. A
@@ -302,6 +306,14 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       end
     end
     """
+  end
+
+  defp orphan_function_drop(table) do
+    if TriggerSQL.per_table_function_fits?(table) do
+      "\n\n    execute #{inspect(TriggerSQL.drop_orphan_function_for_table(table))}"
+    else
+      ""
+    end
   end
 
   defp rerun_rollback_comment([]), do: ""
