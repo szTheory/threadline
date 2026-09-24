@@ -50,8 +50,7 @@ defmodule Threadline.SourceSizeContractTest do
   @function_exceptions %{
     {"lib/threadline/operator_surface/live/actor_live.ex", :render, 1} => {149, @splitting},
     {"lib/threadline/operator_surface/live/coverage_live.ex", :render, 1} => {135, @splitting},
-    {"lib/threadline/operator_surface/live/start_live.ex", :render, 1} => {190, @splitting},
-    {"lib/threadline/operator_surface/live/transaction_live.ex", :render, 1} => {183, @splitting}
+    {"lib/threadline/operator_surface/live/start_live.ex", :render, 1} => {190, @splitting}
   }
 
   @banner_exceptions %{

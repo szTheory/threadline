@@ -121,6 +121,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </UI.Data.error_state>
           </div>
         <% else %>
+          <.transaction_header bundle={@bundle} base_path={@base_path} />
+
+          <%= if Enum.empty?(@bundle.changes) do %>
+            <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
+              <:title>No row-level changes captured</:title>
+              A database transaction was found, but row-level changes were not captured.
+              Check audit readiness for this table, then return to Timeline.
+              <:actions>
+                <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+                  Open timeline
+                </.link>
+              </:actions>
+            </UI.Data.empty_state>
+          <% else %>
+            <.change_list changes={@streams.changes} base_path={@base_path} />
+          <% end %>
+        <% end %>
+        <%= if @show_history do %>
+          <.live_component
+            module={Threadline.OperatorSurface.Live.RowHistoryComponent}
+            id="row-history"
+            table={@history_table}
+            record_id={@history_record_id}
+            as_of={@history_as_of}
+            base_path={@base_path}
+            close_path={@base_path}
+            history_path={history_path(@base_path, @history_table, @history_record_id)}
+            threadline_schemas={@threadline_schemas}
+            repo={@threadline_repo}
+            scope={@threadline_scope}
+            scope_query_fn={@threadline_scope_query_fn}
+          />
+        <% end %>
+      </UI.Page.shell>
+      """
+    end
+
+    attr(:bundle, :map, required: true)
+    attr(:base_path, :string, default: nil)
+
+    defp transaction_header(assigns) do
+      ~H"""
           <div class="tl-transaction tl-short-content">
             <% transaction_title = transaction_detail_title(@bundle.transaction) %>
             <UI.Page.page_header
@@ -165,20 +208,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:metadata>
             </UI.Page.detail_header>
           </div>
+      """
+    end
 
-          <%= if Enum.empty?(@bundle.changes) do %>
-            <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
-              <:title>No row-level changes captured</:title>
-              A database transaction was found, but row-level changes were not captured.
-              Check audit readiness for this table, then return to Timeline.
-              <:actions>
-                <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
-                  Open timeline
-                </.link>
-              </:actions>
-            </UI.Data.empty_state>
-          <% else %>
+    attr(:changes, :any, required: true)
+    attr(:base_path, :string, default: nil)
+
+    defp change_list(assigns) do
+      ~H"""
             <div
               id="changes-list"
               phx-update="stream"
@@ -186,7 +223,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               phx-viewport-bottom="next-page"
               class="tl-viewport"
             >
-              <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change" data-testid="transaction-change-row">
+              <div :for={{dom_id, change} <- @changes} id={dom_id} class="tl-change" data-testid="transaction-change-row">
                 <div class="tl-change__summary">
                   <div class="tl-change__meta">
                     <span class={["tl-change__op", Presentation.operation_modifier(change.change_diff["op"])]}><%= Presentation.operation_label(change.change_diff["op"]) %></span>
@@ -243,25 +280,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               </div>
             </div>
-          <% end %>
-        <% end %>
-        <%= if @show_history do %>
-          <.live_component
-            module={Threadline.OperatorSurface.Live.RowHistoryComponent}
-            id="row-history"
-            table={@history_table}
-            record_id={@history_record_id}
-            as_of={@history_as_of}
-            base_path={@base_path}
-            close_path={@base_path}
-            history_path={history_path(@base_path, @history_table, @history_record_id)}
-            threadline_schemas={@threadline_schemas}
-            repo={@threadline_repo}
-            scope={@threadline_scope}
-            scope_query_fn={@threadline_scope_query_fn}
-          />
-        <% end %>
-      </UI.Page.shell>
       """
     end
 
