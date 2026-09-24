@@ -35,6 +35,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
       "lib/threadline/operator_surface/live/coverage_live.ex",
       "lib/threadline/operator_surface/live/evidence_live.ex",
       "lib/threadline/operator_surface/live/export_status_live.ex",
+      "lib/threadline/operator_surface/live/export_status_live/components.ex",
       "lib/threadline/operator_surface/live/policy_redaction_live.ex"
     ],
     source_vocab_operator_live_records: [

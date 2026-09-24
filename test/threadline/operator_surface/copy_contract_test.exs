@@ -445,7 +445,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "Phase 186 export source locks real completed downloads and non-ready status text" do
-      source = source(@export_status_live_path)
+      source = Threadline.Test.SourceFamily.read!(@export_status_live_path)
       presentation_source = source(@presentation_path)
       download_attrs = export_download_attrs_block(source)
       actions_block = export_job_actions_block(source)

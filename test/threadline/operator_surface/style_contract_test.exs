@@ -446,6 +446,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
         "lib/threadline/operator_surface/live/actor_live.ex",
         "lib/threadline/operator_surface/live/evidence_live.ex",
         "lib/threadline/operator_surface/live/export_status_live.ex",
+        "lib/threadline/operator_surface/live/export_status_live/components.ex",
         "lib/threadline/operator_surface/live/policy_redaction_live.ex",
         "lib/threadline/operator_surface/live/retention_history_live.ex"
       ]

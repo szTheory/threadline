@@ -14,6 +14,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Evidence.Subject
     alias Threadline.Governance.ExportJob
+    alias Threadline.OperatorSurface.Live.ExportStatusLive.Components
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
@@ -170,6 +171,55 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:lede>
             </UI.Page.page_header>
 
+            <.workflow_summary workflow_summary={@workflow_summary} />
+
+            <%= if @timeline_export_context do %>
+              <.timeline_context
+                timeline_export_context={@timeline_export_context}
+                base_path={@base_path}
+                threadline_scope={assigns[:threadline_scope]}
+                threadline_export_scope={assigns[:threadline_export_scope]}
+                threadline_actor_ref={assigns[:threadline_actor_ref]}
+              />
+            <% end %>
+
+            <%= if @evidence_export_context do %>
+              <.evidence_context evidence_export_context={@evidence_export_context} />
+            <% end %>
+
+            <%= if not @has_jobs do %>
+              <UI.Data.empty_state variant="never" role="status" icon={:history}>
+                <:title>No export jobs queued</:title>
+                Queue an export from Timeline, then return here to download the completed packet or reopen the source search.
+                <:actions>
+                  <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
+                    Open timeline
+                  </.link>
+                </:actions>
+              </UI.Data.empty_state>
+            <% else %>
+              <Components.job_history
+                jobs_count={@jobs_count}
+                default_limit={@default_limit}
+                job_groups={@job_groups}
+                base_path={@base_path}
+              />
+            <% end %>
+          <% else %>
+            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
+              descriptor={@export_denied_descriptor}
+              base_path={@base_path}
+            />
+          <% end %>
+      </UI.Page.shell>
+      """
+    end
+
+    attr(:workflow_summary, :map, required: true)
+
+    defp workflow_summary(assigns) do
+      ~H"""
             <section class="tl-job tl-job--info" aria-label="Export workflow summary">
               <div class="tl-job__main">
                 <div class="tl-job__summary">
@@ -184,8 +234,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               </div>
             </section>
+      """
+    end
 
-            <%= if @timeline_export_context do %>
+    attr(:timeline_export_context, :map, required: true)
+    attr(:base_path, :string, default: nil)
+    attr(:threadline_scope, :any, default: nil)
+    attr(:threadline_export_scope, :any, default: nil)
+    attr(:threadline_actor_ref, :any, default: nil)
+
+    defp timeline_context(assigns) do
+      ~H"""
               <section
                 class="tl-job tl-job--info"
                 data-testid="timeline-export-context"
@@ -202,9 +261,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <button
                       :if={
                         @timeline_export_context.status == :valid and
-                          is_nil(assigns[:threadline_scope]) and
-                          is_nil(assigns[:threadline_export_scope]) and
-                          ActorRef.identifiable?(assigns[:threadline_actor_ref])
+                          is_nil(@threadline_scope) and
+                          is_nil(@threadline_export_scope) and
+                          ActorRef.identifiable?(@threadline_actor_ref)
                       }
                       type="button"
                       phx-click="queue_timeline_export_context"
@@ -216,8 +275,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <.link
                       :if={
                         @timeline_export_context.status == :valid and
-                          (not is_nil(assigns[:threadline_scope]) or
-                             not is_nil(assigns[:threadline_export_scope]))
+                          (not is_nil(@threadline_scope) or
+                             not is_nil(@threadline_export_scope))
                       }
                       navigate={"#{@base_path}/timeline?#{FilterParams.canonical_query(@timeline_export_context.query_params)}"}
                       class="tl-button tl-button--compact tl-button--secondary"
@@ -240,9 +299,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <span><%= @timeline_export_context.error %></span>
                 </div>
               </section>
-            <% end %>
+      """
+    end
 
-            <%= if @evidence_export_context do %>
+    attr(:evidence_export_context, :map, required: true)
+
+    defp evidence_context(assigns) do
+      ~H"""
               <section
                 class="tl-job tl-job--info"
                 data-testid="evidence-export-context"
@@ -279,127 +342,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <span><%= @evidence_export_context.error %></span>
                 </div>
               </section>
-            <% end %>
-
-            <%= if not @has_jobs do %>
-              <UI.Data.empty_state variant="never" role="status" icon={:history}>
-                <:title>No export jobs queued</:title>
-                Queue an export from Timeline, then return here to download the completed packet or reopen the source search.
-                <:actions>
-                  <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
-                    <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                    Open timeline
-                  </.link>
-                </:actions>
-              </UI.Data.empty_state>
-            <% else %>
-              <section id="export-jobs" data-testid="export-jobs">
-                <%!-- Export history is intentionally recent-only rather than keyset-paginated.
-                      Report the actual rendered count without overstating a short table;
-                      when the cap is reached, use @default_limit instead of a literal. --%>
-                <p class="tl-status" role="status" aria-live="polite">
-                  <%= if @jobs_count >= @default_limit do %>
-                    Showing the most recent <%= @default_limit %> export jobs (newest first).
-                  <% else %>
-                    Showing the most recent <%= @jobs_count %> <%= if @jobs_count == 1, do: "export job", else: "export jobs" %> (newest first).
-                  <% end %>
-                </p>
-                <section :for={group <- @job_groups} class="tl-job-group" data-testid="export-readiness-group">
-                  <header class="tl-job-group__header">
-                    <h2 class="tl-job-group__title"><%= group.title %></h2>
-                    <span><%= length(group.jobs) %> <%= if length(group.jobs) == 1, do: "job", else: "jobs" %></span>
-                  </header>
-
-                  <div class="tl-job-list">
-                    <article
-                      :for={job <- group.jobs}
-                      id={"export-job-#{job.id}"}
-                      class={["tl-job", job_modifier(job)]}
-                      data-testid="export-job"
-                    >
-                      <div class="tl-job__main">
-                        <div class="tl-job__summary">
-                          <span class={["tl-chip", Presentation.status_modifier(job.status)]} role={status_role(job)}>
-                            <%= Presentation.status_label(job.status) %>
-                          </span>
-                          <div class="tl-job__title">
-                            <strong><%= Presentation.export_summary(job.query_params) %></strong>
-                            <span>
-                              requested by
-                              <UI.Display.ref value={job.actor_ref} kind="actor" copy_label="Copy actor ref" />
-                              <a :if={path = actor_path(@base_path, job.actor_ref)} href={path} class="tl-link tl-link--deep" title="Open actor activity">
-                                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-                                Actor
-                              </a>
-                            </span>
-                          </div>
-                        </div>
-
-                        <div class="tl-job__actions">
-                          <%= if Presentation.export_downloadable?(job) do %>
-                            <.link
-                              {download_link_attrs(%{base_path: @base_path, job: job})}
-                            >
-                              <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
-                              Download export
-                            </.link>
-                          <% else %>
-                            <span class="tl-hint" role="status"><%= Presentation.export_status_label(job) %></span>
-                          <% end %>
-                        </div>
-                      </div>
-
-                      <dl class="tl-job__meta" aria-label="Export job timestamps">
-                        <div>
-                          <dt>Started</dt>
-                          <dd><.time_label value={job.started_at} empty="Not started" /></dd>
-                        </div>
-                        <div>
-                          <dt>Completed</dt>
-                          <dd><.time_label value={job.completed_at} empty="Not completed" /></dd>
-                        </div>
-                        <div>
-                          <dt>Expires</dt>
-                          <dd><.time_label value={job.expires_at} empty="No expiration" /></dd>
-                        </div>
-                      </dl>
-
-                      <UI.Display.kv :if={Presentation.query_pairs(job.query_params) != []} aria-label="Export filters">
-                        <:item :for={{key, value} <- Presentation.query_pairs(job.query_params)} key={key}>
-                          <UI.Display.ref value={value} copy_label={"Copy #{key} filter"} />
-                        </:item>
-                      </UI.Display.kv>
-                      <p :if={Presentation.query_pairs(job.query_params) == []} class="tl-param tl-param--muted">
-                        No filters
-                      </p>
-
-                      <div :if={Presentation.query_pairs(job.query_params) != []} class="tl-job__source">
-                        <span class="tl-hint">Source Timeline search</span>
-                        <a href={timeline_search_path(@base_path, job.query_params)} class="tl-button tl-button--compact tl-button--secondary">
-                          <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                          Reopen source search
-                        </a>
-                      </div>
-
-                      <%= if job.status == "failed" do %>
-                        <div class="tl-alert tl-alert--error" role="alert">
-                          <strong>Export failed.</strong>
-                          Reopen the source search, adjust filters if needed, and queue a new export.
-                          <span :if={job.error_message}><%= job.error_message %></span>
-                        </div>
-                      <% end %>
-                    </article>
-                  </div>
-                </section>
-              </section>
-            <% end %>
-          <% else %>
-            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
-              descriptor={@export_denied_descriptor}
-              base_path={@base_path}
-            />
-          <% end %>
-      </UI.Page.shell>
       """
     end
 
@@ -527,13 +469,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp download_link_attrs(%{base_path: base_path, job: job}) do
-      [
-        href: "#{base_path}/exports/download/#{job.id}",
-        class: "tl-button tl-button--primary tl-button--compact"
-      ]
-    end
-
     defp group_jobs(jobs) do
       jobs
       |> Enum.sort_by(fn job ->
@@ -553,59 +488,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       (job.inserted_at || job.started_at || job.completed_at || DateTime.from_unix!(0))
       |> DateTime.to_unix()
     end
-
-    defp status_role(%{status: "failed"}), do: "alert"
-    defp status_role(_job), do: "status"
-
-    attr(:value, :any, required: true)
-    attr(:empty, :string, required: true)
-
-    defp time_label(assigns) do
-      ~H"""
-      <%= if @value do %>
-        <time datetime={Presentation.exact_time(@value)} title={Presentation.exact_time(@value)}>
-          <%= Presentation.human_time(@value, empty: @empty) %>
-        </time>
-      <% else %>
-        <span class="tl-muted"><%= @empty %></span>
-      <% end %>
-      """
-    end
-
-    defp job_modifier(job) do
-      case Presentation.export_readiness(job) do
-        :ready -> "tl-job--success"
-        :preparing -> "tl-job--info"
-        :needs_attention -> "tl-job--danger"
-        :unavailable -> nil
-      end
-    end
-
-    defp actor_path(base_path, %Threadline.Semantics.ActorRef{type: type, id: id})
-         when is_binary(base_path) and not is_nil(id) do
-      "#{base_path}/actors/#{URI.encode_www_form(to_string(type))}/#{URI.encode_www_form(to_string(id))}"
-    end
-
-    defp actor_path(base_path, %{"type" => type, "id" => id})
-         when is_binary(base_path) and not is_nil(id) do
-      "#{base_path}/actors/#{URI.encode_www_form(to_string(type))}/#{URI.encode_www_form(to_string(id))}"
-    end
-
-    defp actor_path(_base_path, _actor_ref), do: nil
-
-    defp timeline_search_path(base_path, params) when is_map(params) do
-      pairs =
-        params
-        |> Enum.map(fn {key, value} -> {to_string(key), to_string(value)} end)
-        |> Enum.reject(fn {_key, value} -> value == "" end)
-
-      case URI.encode_query(pairs) do
-        "" -> "#{base_path}/timeline"
-        query -> "#{base_path}/timeline?#{query}"
-      end
-    end
-
-    defp timeline_search_path(base_path, _params), do: base_path
 
     defp timeline_export_context(params) when is_map(params) do
       if Map.get(params, "source") == "evidence" do
