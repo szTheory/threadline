@@ -846,7 +846,7 @@ Plans:
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
-- [ ] 204-12-PLAN.md — export controller and ActorRef banners to real boundaries; last 5 lib register sites; banner gate zero-tolerance (STRUCT-04, STRUCT-07)
+- [x] 204-12-PLAN.md — export controller and ActorRef banners to real boundaries; last 5 lib register sites; banner gate zero-tolerance (STRUCT-04, STRUCT-07)
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
