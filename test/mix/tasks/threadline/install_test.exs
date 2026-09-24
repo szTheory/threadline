@@ -3,6 +3,7 @@ defmodule Mix.Tasks.Threadline.InstallTest do
   # the global :storage_schema application env, and both are VM-wide.
   use ExUnit.Case, async: false
 
+  alias Mix.Tasks.Threadline.Gen.Triggers
   alias Mix.Tasks.Threadline.Install
 
   @suffixes [
@@ -232,7 +233,7 @@ defmodule Mix.Tasks.Threadline.InstallTest do
       Application.delete_env(:threadline, :storage_schema)
 
       run_install(tmp)
-      File.cd!(tmp, fn -> Mix.Tasks.Threadline.Gen.Triggers.run(["--tables", "posts"]) end)
+      File.cd!(tmp, fn -> Triggers.run(["--tables", "posts"]) end)
       drain_shell([])
 
       assert_valid_increasing!(prefixes(tmp, @suffixes) ++ [triggers_prefix(tmp)])
