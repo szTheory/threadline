@@ -62,7 +62,7 @@ defmodule Mix.Tasks.Threadline.Install do
       Mix.shell().info("Run `mix ecto.migrate` to apply the migration(s).")
     end
 
-    recommend_dedicated_storage_schema(written)
+    recommend_storage_schema(results)
   end
 
   # Writes one migration under its full file name and reports the path written.
@@ -76,44 +76,68 @@ defmodule Mix.Tasks.Threadline.Install do
   # Threadline defaults to the host's `public` schema because it cannot detect
   # where an existing install put its audit tables, which means a new install
   # gets no schema isolation unless it opts in. This advice runs AFTER
-  # generation and names the files it just wrote: re-running the task skips any
-  # migration that already exists, so "set the key and re-run" alone would leave
-  # the config pointing at a dedicated schema while the generated migrations
-  # still target `public`. When nothing was written (an existing install), the
-  # advice is withheld — `public` is exactly what such an install already has.
-  defp recommend_dedicated_storage_schema([]), do: :ok
+  # generation and has three branches:
+  #
+  #   * A fresh install (every migration written by this run) gets the
+  #     dedicated-schema recipe, naming the files it just wrote: re-running
+  #     the task skips any migration that already exists, so "set the key and
+  #     re-run" alone would leave the config pointing at a dedicated schema
+  #     while the generated migrations still target `public`.
+  #   * A partial re-run (some migrations were already present) is told to
+  #     keep `public`: the migrations already there target it, so switching
+  #     now would split Threadline's tables across two schemas.
+  #   * When nothing was written, or the key is configured, there is no advice.
+  defp recommend_storage_schema(results) do
+    written = for {:written, file} <- results, do: file
 
-  defp recommend_dedicated_storage_schema(written) do
-    if is_nil(Application.get_env(:threadline, :storage_schema)) do
-      files = Enum.map_join(written, "\n", &"    #{&1}")
-
-      Mix.shell().info("""
-
-      No `:storage_schema` is configured, so the migrations above put
-      Threadline-owned tables and trigger functions in your `public` schema.
-
-      For a NEW install a dedicated schema is recommended. To switch BEFORE
-      running `mix ecto.migrate`:
-
-        1. Delete the migration files this run just generated:
-
-      #{files}
-
-        2. Add to `config/config.exs`:
-
-              config :threadline, storage_schema: "threadline"
-
-        3. Re-run `mix threadline.install`.
-
-      Deleting them first matters: the task skips any Threadline migration that
-      already exists, so re-running without deleting would keep the `public`
-      migrations while your config points at the dedicated schema. After
-      `mix ecto.migrate` has run, moving schemas is deliberate migration work.
-
-      Existing installs need no action: `public` is the default precisely so an
-      upgrade keeps reading the tables it already has.
-      """)
+    cond do
+      not is_nil(Application.get_env(:threadline, :storage_schema)) -> :ok
+      written == [] -> :ok
+      Enum.all?(results, &match?({:written, _}, &1)) -> recommend_dedicated_schema(written)
+      true -> keep_public_schema()
     end
+  end
+
+  defp recommend_dedicated_schema(written) do
+    files = Enum.map_join(written, "\n", &"    #{&1}")
+
+    Mix.shell().info("""
+
+    No `:storage_schema` is configured, so the migrations above put
+    Threadline-owned tables and trigger functions in your `public` schema.
+
+    For a NEW install a dedicated schema is recommended. To switch BEFORE
+    running `mix ecto.migrate`:
+
+      1. Delete the migration files this run just generated:
+
+    #{files}
+
+      2. Add to `config/config.exs`:
+
+            config :threadline, storage_schema: "threadline"
+
+      3. Re-run `mix threadline.install`.
+
+    Deleting them first matters: the task skips any Threadline migration that
+    already exists, so re-running without deleting would keep the `public`
+    migrations while your config points at the dedicated schema. After
+    `mix ecto.migrate` has run, moving schemas is deliberate migration work.
+    """)
+  end
+
+  defp keep_public_schema do
+    Mix.shell().info("""
+
+    Existing Threadline migrations were found, so the new migration(s) above
+    target `public` to match them. Keep `:storage_schema` unset.
+
+    Setting `storage_schema: "threadline"` now would split Threadline's tables
+    across two schemas. To move to a dedicated schema, delete ALL Threadline
+    migrations before the first `mix ecto.migrate`, set the key, and re-run
+    `mix threadline.install`. After migrating, moving schemas is deliberate
+    migration work.
+    """)
   end
 
   defp migrations_path do

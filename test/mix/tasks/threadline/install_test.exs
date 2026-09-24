@@ -194,4 +194,31 @@ defmodule Mix.Tasks.Threadline.InstallTest do
       assert_valid_increasing!(versions)
     end
   end
+
+  describe "storage-schema advice" do
+    test "a partial re-run versions the missing migration last and is told to keep `public`",
+         %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      seed(tmp, "20991231235958_threadline_audit_schema.exs")
+      seed(tmp, "20991231235959_threadline_semantics_schema.exs")
+
+      output = run_install(tmp)
+      [governance] = prefixes(tmp, ["_threadline_governance_schema.exs"])
+
+      assert String.to_integer(governance) > 20_991_231_235_958
+      assert String.to_integer(governance) > 20_991_231_235_959
+      assert output =~ "already exists — skipping"
+      refute output =~ "No `:storage_schema` is configured"
+      assert output =~ "Keep `:storage_schema` unset"
+    end
+
+    test "fresh-install advice has no paragraph about existing installs", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+
+      output = run_install(tmp)
+
+      assert output =~ "Delete the migration files this run just generated"
+      refute output =~ "Existing installs need no action"
+    end
+  end
 end
