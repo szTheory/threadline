@@ -48,14 +48,12 @@ defmodule Threadline.SourceSizeContractTest do
   }
 
   @function_exceptions %{
-    {"lib/threadline/operator_surface/live/coverage_live.ex", :render, 1} => {135, @splitting},
-    {"lib/threadline/operator_surface/live/start_live.ex", :render, 1} => {190, @splitting}
+    {"lib/threadline/operator_surface/live/coverage_live.ex", :render, 1} => {135, @splitting}
   }
 
   @banner_exceptions %{
     "lib/threadline/operator_surface/controllers/export_controller.ex" => 9,
     "lib/threadline/operator_surface/live/coverage_live.ex" => 3,
-    "lib/threadline/operator_surface/live/start_live.ex" => 6,
     "lib/threadline/semantics/actor_ref.ex" => 3
   }
 

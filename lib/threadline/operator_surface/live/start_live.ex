@@ -18,7 +18,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Query.FilterParams
     alias Threadline.StorageSchema
 
-    # ------------------------------------------------------------------
     # Operator Home — the orienting landing page (surface root).
     #
     # A task launcher: it lets each operator pick their job in plain
@@ -33,7 +32,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # Coverage.OnMount hooks before this mount/3 runs. Health queries are
     # read-only and individually fail-safe: any error degrades to "no
     # signal" rather than breaking the landing page.
-    # ------------------------------------------------------------------
 
     def mount(_params, _session, socket) do
       {:ok,
@@ -138,6 +136,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         scoped={not is_nil(assigns[:threadline_scope])}
         main_class="tl-page tl-home"
       >
+          <.home_header health_enabled={@health_enabled} health={@health} base_path={@base_path} />
+
+          <.task_cards
+            base_path={@base_path}
+            coverage_enabled={@threadline_coverage_enabled}
+            prove_enabled={@prove_enabled}
+            evidence_enabled={@threadline_evidence_enabled}
+            policy_enabled={@threadline_policy_enabled}
+            exports_enabled={@threadline_exports_enabled}
+          />
+
+          <section class="tl-home__earned-flow" aria-label="Go straight to an audited record">
+            <.record_lookup
+              record_table_options={@record_table_options}
+              record_lookup_error={@record_lookup_error}
+            />
+
+            <.correlation_lookup correlation_lookup_error={@correlation_lookup_error} />
+          </section>
+
+          <.saved_views saved_views={@saved_views} base_path={@base_path} />
+      </UI.Page.shell>
+      """
+    end
+
+    attr(:health_enabled, :boolean, required: true)
+    attr(:health, :list, required: true)
+    attr(:base_path, :string, required: true)
+
+    defp home_header(assigns) do
+      ~H"""
           <UI.Page.page_header variant="display" title="Follow what happened.">
             <:lede>
               Every change is connected to the action, context, and story around it.
@@ -158,7 +187,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <% end %>
             </div>
           </UI.Page.page_header>
+      """
+    end
 
+    attr(:base_path, :string, required: true)
+    attr(:coverage_enabled, :boolean, default: false)
+    attr(:prove_enabled, :boolean, default: false)
+    attr(:evidence_enabled, :boolean, default: false)
+    attr(:policy_enabled, :boolean, default: false)
+    attr(:exports_enabled, :boolean, default: false)
+
+    defp task_cards(assigns) do
+      ~H"""
           <ul class="tl-home__cards">
             <li class="tl-home__card tl-home__card--primary">
               <span class="tl-home__card-kicker">Timeline</span>
@@ -173,7 +213,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </a>
             </li>
 
-            <li :if={@threadline_coverage_enabled} class="tl-home__card">
+            <li :if={@coverage_enabled} class="tl-home__card">
               <span class="tl-home__card-kicker">Coverage</span>
               <h2 class="tl-home__card-title">Check audit readiness</h2>
               <p class="tl-home__card-body">
@@ -195,20 +235,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </p>
               <div class="tl-home__card-links">
                 <div class="tl-home__prove-controls">
-                  <a :if={@threadline_evidence_enabled} href={"#{@base_path}/evidence"} class="tl-button tl-button--secondary tl-button--compact">
+                  <a :if={@evidence_enabled} href={"#{@base_path}/evidence"} class="tl-button tl-button--secondary tl-button--compact">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
                     Evidence
                   </a>
-                  <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--secondary tl-button--compact">
+                  <a :if={@policy_enabled} href={"#{@base_path}/policy/redaction"} class="tl-button tl-button--secondary tl-button--compact">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
                     Redaction
                   </a>
-                  <a :if={@threadline_policy_enabled} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--secondary tl-button--compact">
+                  <a :if={@policy_enabled} href={"#{@base_path}/policy/retention"} class="tl-button tl-button--secondary tl-button--compact">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
                     Retention
                   </a>
                 </div>
-                <div :if={@threadline_exports_enabled} class="tl-home__prove-handoff" aria-label="Deliverable handoff">
+                <div :if={@exports_enabled} class="tl-home__prove-handoff" aria-label="Deliverable handoff">
                   <span class="tl-home__handoff-label">Handoff</span>
                   <a href={"#{@base_path}/exports"} class="tl-button tl-button--secondary tl-button--compact">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
@@ -218,8 +258,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </li>
           </ul>
+      """
+    end
 
-          <section class="tl-home__earned-flow" aria-label="Go straight to an audited record">
+    attr(:record_table_options, :list, required: true)
+    attr(:record_lookup_error, :string, default: nil)
+
+    defp record_lookup(assigns) do
+      ~H"""
             <div
               class="tl-home__earned-panel"
             >
@@ -256,7 +302,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <%= @record_lookup_error %>
               </div>
             </div>
+      """
+    end
 
+    attr(:correlation_lookup_error, :string, default: nil)
+
+    defp correlation_lookup(assigns) do
+      ~H"""
             <div
               class="tl-home__earned-panel"
             >
@@ -286,8 +338,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <%= @correlation_lookup_error %>
               </div>
             </div>
-          </section>
+      """
+    end
 
+    attr(:saved_views, :list, required: true)
+    attr(:base_path, :string, required: true)
+
+    defp saved_views(assigns) do
+      ~H"""
           <section class="tl-home__resume" aria-label="Saved searches">
             <h2 class="tl-home__section-title">Pick up where you left off</h2>
             <p :if={@saved_views != []} class="tl-home__section-lede">Reopen a saved timeline search.</p>
@@ -302,13 +360,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </li>
             </ul>
           </section>
-      </UI.Page.shell>
       """
     end
 
-    # ------------------------------------------------------------------
     # Health aggregation (read-only, individually fail-safe)
-    # ------------------------------------------------------------------
 
     defp any_subsystem_enabled?(socket) do
       !!(socket.assigns[:threadline_coverage_enabled] ||
@@ -408,10 +463,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp storage_opts(_socket), do: StorageSchema.repo_opts(storage_schema: StorageSchema.get())
 
-    # ------------------------------------------------------------------
     # Recent/saved fast-path (A4) — returning operators skip re-filtering.
     # Read-only and fail-safe: any error degrades to "no saved views".
-    # ------------------------------------------------------------------
 
     defp fetch_saved_views(socket) do
       actor_ref = socket.assigns[:threadline_actor_ref]
