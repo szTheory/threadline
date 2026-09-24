@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 205
-current_phase_name: Release Reconciliation
-status: completed
-stopped_at: Phase 205 complete — all phases complete
-last_updated: "2026-09-24T13:33:08.693Z"
+current_phase: 206
+current_phase_name: Installer Migration Versions
+status: planning
+stopped_at: Phase 206 context gathered
+last_updated: "2026-09-24T15:03:11.245Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 205 complete (verified 14/14); next is re-running /gsd-audit-milestone for v1.41
-state_head: a5dfdd3464030a3159603ec5e1527679a5c3c518
+last_activity_desc: Phase 206 context gathered (CR-01 + gen.triggers + WR-03); next is /gsd-plan-phase 206
+state_head: e4510c81c33262f8686d63e90b9bf26643e366e8
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 8
   total_plans: 148
   completed_plans: 148
-  percent: 100
+  percent: 89
 ---
 
 # Project State: Threadline
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 148/148 plans ([██████████] 100% of phases — 8 of 8 complete: 198–205; 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
+Progress: [████████████████████] 148/148 plans ([█████████░] 89% of phases — 8 of 9 complete: 198–205; 206 Installer Migration Versions context gathered (CR-01); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
 
 ## Performance Metrics
 
@@ -848,9 +848,9 @@ Progress: [████████████████████] 148/148
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T13:16:22.157Z
-**Stopped at:** Phase 205 complete — all phases complete
-**Resume file:** None
+**Last session:** 2026-09-24T15:03:10.839Z
+**Stopped at:** Phase 206 context gathered
+**Resume file:** .planning/phases/206-installer-migration-versions/206-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
