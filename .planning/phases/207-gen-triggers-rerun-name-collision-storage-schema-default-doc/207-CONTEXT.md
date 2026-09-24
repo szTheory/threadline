@@ -24,7 +24,7 @@ goal ("a migration Ecto accepts, as the guides instruct"):**
    Fixing only the name does not satisfy the goal.
 2. **The module name collides too.** Both runs define `ThreadlineTriggers<Tables>`
    (`lib/mix/tasks/threadline.gen.triggers.ex:236-237`), not just the same Ecto name.
-3. **A third guide states the wrong default.** `guides/how-threadline-works.md:94`
+3. **A third (and, per research, a fourth: `guides/domain-reference.md:311`) guide states the wrong default.** `guides/how-threadline-works.md:94`
    ("The storage schema defaults to `threadline`") is wrong, in addition to
    the two sites the audit named.
 
@@ -45,8 +45,11 @@ consistent set.
   Walk the same recursive `**/*.exs` set that `MigrationVersion` scans. If
   `threadline_triggers_<suffix>` is free, use it unchanged, so first-run output
   stays byte-identical. Otherwise try `_2`, `_3`, ... until one is free.
-- **D-02:** Derive the module by camelizing the **final** name, so the name and
-  the module cannot diverge. A candidate is "taken" if **either** its name
+- **D-02:** Build the module from the **same parts list** as the final name, so
+  the two cannot diverge: `"ThreadlineTriggers" <> Enum.map_join(parts, "", &Macro.camelize/1)`,
+  where the parts are the table suffixes plus any ordinal. (Research refinement: camelizing
+  the whole joined name would change today's module for mixed-case tables, e.g. `AuditLog`
+  → `ThreadlineTriggers_AuditLog`, which breaks D-01's byte-identical first run.) A candidate is "taken" if **either** its name
   **or** its camelized module already exists in the dir. Camelizing collides
   on real inputs: table `posts_2` vs a rerun of `posts` + `_2` both give
   `ThreadlineTriggersPosts2`, and `[a_b]` vs `[a, b]` both give
@@ -63,9 +66,9 @@ consistent set.
   and is tested at the floor. It swaps the trigger in one statement with no
   capture gap, even if a host sets `@disable_ddl_transaction`. The per-table
   `CREATE OR REPLACE FUNCTION`s still come first, then the triggers.
-  — **Reversibility:** costly — `Threadline.Capture.TriggerSQL.create_trigger/3`
-  is on the public surface (`test/threadline/public_surface_contract_test.exs` ~660),
-  so its output text is a published contract.
+  — **Reversibility:** costly — the emitted SQL is frozen into adopters' committed
+  migration files. (Research correction: `TriggerSQL` is `@moduledoc false`, so it is
+  not on the HexDocs surface; do not name it in backticks in CHANGELOG/guides.)
 - **D-04:** Deployed-policy introspection is unaffected. It reads catalogs
   (`pg_trigger` joined to `pg_proc.prosrc`, `lib/threadline/policy/redaction_presenter.ex:77-93`,
   `lib/threadline/health.ex:98-108`), not DDL text. The planner must still
@@ -137,9 +140,11 @@ consistent set.
     wiring needed.
 
 ### Docs (W2 + rerun truth)
-- **D-10:** Correct all three wrong-default sites:
-  `guides/audit-indexing.md:7`, `guides/production-checklist.md:14`, and
-  `guides/how-threadline-works.md:94`. Match the voice of the correct sites
+- **D-10:** Correct all **four** wrong-default sites:
+  `guides/audit-indexing.md:7`, `guides/production-checklist.md:14`,
+  `guides/how-threadline-works.md:94`, and `guides/domain-reference.md:311`
+  ("usually `threadline` unless you configured `storage_schema: \"public\"`").
+  Research found the fourth; the D-11 guard flags exactly these four. Match the voice of the correct sites
   (`guides/getting-started-saas.md:63`,
   `guides/configuration-and-commands.md:32`): `public` by default, and a
   dedicated schema such as `"threadline"` is an opt-in chosen before install.
