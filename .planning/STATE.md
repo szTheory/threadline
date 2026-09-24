@@ -5,16 +5,16 @@ milestone_name: Green, Clean, and Honest
 current_phase: 204
 current_phase_name: Structure
 status: executing
-stopped_at: Completed 204-13-PLAN.md
-last_updated: "2026-09-24T03:14:51.737Z"
+stopped_at: Completed 204-14-PLAN.md
+last_updated: "2026-09-24T03:22:00.021Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 204 execution started
-state_head: 26503711c3b47fcf41dcfe1dd79fbf12bc651389
+state_head: a13de5152cb7ad898f1775872c227576d2fb57f7
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 145
-  completed_plans: 143
+  completed_plans: 144
   percent: 86
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 ## Current Position
 
 Phase: 204 (Structure) — EXECUTING
-Plan: 14 of 15
+Plan: 15 of 15
 Status: Ready to execute
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
@@ -263,6 +263,7 @@ Progress: [████████████████████] 130/130
 | Phase 204 P11 | 37min | 2 tasks | 5 files |
 | Phase 204 P12 | 33min | 2 tasks | 11 files |
 | Phase 204 P13 | 7min | 3 tasks | 10 files |
+| Phase 204 P14 | 6min | 3 tasks | 10 files |
 
 ## Deferred Items
 
@@ -826,6 +827,7 @@ Progress: [████████████████████] 130/130
 - [Phase 204]: 204-11: actor/start/coverage renders carved in-module (43/47/59 lines); size gate @function_exceptions is %{}; start/coverage banners gone; credo register 17
 - [Phase 204]: 204-12: export encoding moved to ExportController.Encoding; lib is banner-free (@banner_exceptions %{}) and has no register site; credo register 17 -> 12 (Nesting 11, CC 1), all test-side
 - [Phase 204]: 204-13: shared operator-surface test templates in test/support/operator_surface_case.ex; nine live/*_live_test files migrated (190 tests unchanged); parsers: false supported for 204-14's gating endpoint
+- [Phase 204]: 204-14: TestStructureContractTest fails any hand-rolled test Endpoint/Router outside test/support/operator_surface_case.ex unless allowlisted with a reason; stale entries fail
 
 ### Blockers
 
@@ -835,8 +837,8 @@ Progress: [████████████████████] 130/130
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T03:14:51.589Z
-**Stopped at:** Completed 204-13-PLAN.md
+**Last session:** 2026-09-24T03:21:59.863Z
+**Stopped at:** Completed 204-14-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

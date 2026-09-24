@@ -162,3 +162,7 @@ None. T-204-30 was mitigated: per-file counts were compared, every gating and ex
 ---
 *Phase: 204-structure*
 *Completed: 2026-09-24*
+
+## Self-Check: PASSED
+
+- test/threadline/test_structure_contract_test.exs exists. All eleven task commits (d885a65b, a8255aa3, c3c44880, f74fd7cb, 4acc87e4, 2e6aee31, 47e43e32, 06cefc82, c59f4ef1, 10dbfc92, 79271c37) exist on the branch.

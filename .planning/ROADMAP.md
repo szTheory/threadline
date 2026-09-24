@@ -854,7 +854,7 @@ Plans:
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
-- [ ] 204-14-PLAN.md — export/gating/page tests migrated, exports_mix_parity decoupled, test-structure contract with reasoned allowlist (STRUCT-05)
+- [x] 204-14-PLAN.md — export/gating/page tests migrated, exports_mix_parity decoupled, test-structure contract with reasoned allowlist (STRUCT-05)
 
 **Wave 15** *(blocked on Wave 14 completion)*
 
