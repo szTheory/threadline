@@ -4,12 +4,12 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 207
 current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
-status: ready_to_execute
+status: executing
 stopped_at: Phase 207 context gathered
-last_updated: "2026-09-24T20:59:46.221Z"
+last_updated: "2026-09-24T21:01:23.389Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 207 context gathered
-state_head: 6b5ea0b747cf3133bbcf0ea16cbb28cdc343035b
+last_activity_desc: Phase 207 execution started
+state_head: e24122fdcae13af92e782607c4e4c8ca80791084
 progress:
   total_phases: 10
   completed_phases: 9
@@ -25,13 +25,13 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 206 — Installer Migration Versions
+**Current focus:** Phase 207 — Trigger Migration Rerun and Storage-Schema Default Docs
 
 ## Current Position
 
-Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — READY TO EXECUTE
-Plan: 2 of 2
-Status: Phase 207 planned (3 plans) — next: execute 207, then milestone re-audit
+Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 207
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-24 — Phase 206 complete
+Last activity: 2026-09-24 — Phase 207 execution started
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
