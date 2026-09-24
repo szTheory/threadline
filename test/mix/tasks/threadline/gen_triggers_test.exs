@@ -4,6 +4,7 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
   use ExUnit.Case, async: false
 
   alias Mix.Tasks.Threadline.Gen.Triggers
+  alias Threadline.Capture.TriggerSQL
 
   @migrations "priv/repo/migrations"
 
@@ -74,6 +75,26 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
       file |> File.read!() |> Code.string_to_quoted!()
 
     Module.concat(parts)
+  end
+
+  # The SQL string of every `execute` call in the named function of a
+  # generated migration, in source order. Parsed as data, never compiled.
+  defp executes(file, fun_name) do
+    ast = file |> File.read!() |> Code.string_to_quoted!()
+
+    {_, [body]} =
+      Macro.prewalk(ast, [], fn
+        {:def, _, [{^fun_name, _, _}, [do: body]]} = node, acc -> {node, [body | acc]}
+        node, acc -> {node, acc}
+      end)
+
+    {_, sqls} =
+      Macro.prewalk(body, [], fn
+        {:execute, _, [sql]} = node, acc when is_binary(sql) -> {node, [sql | acc]}
+        node, acc -> {node, acc}
+      end)
+
+    Enum.reverse(sqls)
   end
 
   # Ecto reads the integer before the first "_" as the migration version and
@@ -241,6 +262,54 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
              ]
 
       assert Enum.map(files, &module_of/1) == [ThreadlineTriggersAB, ThreadlineTriggersAB2]
+    end
+  end
+
+  describe "up body" do
+    test "default-mode up drops the orphan function after the trigger", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      run_triggers(tmp, ["--tables", "posts"])
+
+      [file] = trigger_files(tmp)
+      sqls = executes(file, :up)
+
+      assert sqls == [
+               TriggerSQL.create_trigger("posts"),
+               TriggerSQL.drop_orphan_function_for_table("posts")
+             ]
+
+      assert List.last(sqls) ==
+               ~s|DROP FUNCTION IF EXISTS "public"."threadline_capture_changes_posts"()|
+
+      refute Enum.any?(sqls, &String.contains?(&1, "CASCADE"))
+    end
+
+    test "per-table up keeps its function and gets no orphan drop", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      run_triggers(tmp, ["--tables", "test_redaction_users,posts"])
+
+      [file] = trigger_files(tmp)
+      sqls = executes(file, :up)
+
+      # Mirrors the `test_redaction_users` entry in config/test.exs.
+      per_table_opts = [
+        store_changed_from: true,
+        except_columns: [],
+        exclude: ["password"],
+        mask: ["email"]
+      ]
+
+      assert sqls == [
+               TriggerSQL.install_function_for_table("test_redaction_users", per_table_opts),
+               TriggerSQL.create_trigger("test_redaction_users", :per_table),
+               TriggerSQL.create_trigger("posts"),
+               TriggerSQL.drop_orphan_function_for_table("posts")
+             ]
+
+      refute Enum.any?(sqls, fn sql ->
+               String.starts_with?(sql, "DROP FUNCTION") and
+                 String.contains?(sql, "threadline_capture_changes_test_redaction_users")
+             end)
     end
   end
 end

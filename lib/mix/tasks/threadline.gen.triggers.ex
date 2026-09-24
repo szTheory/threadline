@@ -211,14 +211,18 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       |> Enum.reject(&(&1 == ""))
       |> Enum.join("\n\n")
 
+    # A table on the default trigger drops any per-table capture function left
+    # by an earlier migration. The drop comes after the trigger is re-pointed
+    # and does not cascade, so it fails loudly instead of removing a trigger
+    # that still uses the function.
     trigger_ups =
-      Enum.map_join(table_specs, "\n\n", fn {t, %{needs_per_table: per?}} ->
-        trig =
-          if per?,
-            do: TriggerSQL.create_trigger(t, :per_table),
-            else: TriggerSQL.create_trigger(t)
+      Enum.map_join(table_specs, "\n\n", fn
+        {t, %{needs_per_table: true}} ->
+          "    execute #{inspect(TriggerSQL.create_trigger(t, :per_table))}"
 
-        "    execute #{inspect(trig)}"
+        {t, %{needs_per_table: false}} ->
+          "    execute #{inspect(TriggerSQL.create_trigger(t))}\n\n" <>
+            "    execute #{inspect(TriggerSQL.drop_orphan_function_for_table(t))}"
       end)
 
     trigger_downs =
