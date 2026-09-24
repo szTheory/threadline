@@ -473,44 +473,34 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     # Copy voice by (rung, scenario): r4/r3 operational; r2 adds a chatty line; r1 is
     # marketing/apologetic + emoji (off the Threadline register). Drives register_voice_fit.
-    # Structural debt: complexity 10 — split brand_lines/1 into a copy table
-    # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
     def brand_lines(story) do
-      {heading, body} =
-        case Map.get(story.data, :scenario) do
-          "coverage" ->
-            {"Coverage summary", "3 of 12 audited tables have trigger coverage."}
-
-          "retention" ->
-            {"Retention settings", "Records retained 90 days; next prune 2026-09-30."}
-
-          "evidence" ->
-            {"Evidence chain", "Proof records current as of 2026-07-01."}
-
-          "actor" ->
-            {"Actor detail", "Change attributed to admin@example.com via console."}
-
-          "timeline" ->
-            {"Audit timeline", "24 changes captured in the last 30 days."}
-
-          _ ->
-            {"Export audit records", "Download a CSV of audit changes for the last 90 days."}
-        end
-
-      note =
-        case rung(story) do
-          :r2 ->
-            "This should only take a moment — thanks for your patience!"
-
-          :r1 ->
-            "You're all set! Everything looks great. 🎉 Powerful, seamless audit exports await."
-
-          _ ->
-            nil
-        end
-
-      {heading, body, note}
+      {heading, body} = brand_copy(Map.get(story.data, :scenario))
+      {heading, body, brand_note(rung(story))}
     end
+
+    defp brand_copy("coverage"),
+      do: {"Coverage summary", "3 of 12 audited tables have trigger coverage."}
+
+    defp brand_copy("retention"),
+      do: {"Retention settings", "Records retained 90 days; next prune 2026-09-30."}
+
+    defp brand_copy("evidence"), do: {"Evidence chain", "Proof records current as of 2026-07-01."}
+
+    defp brand_copy("actor"),
+      do: {"Actor detail", "Change attributed to admin@example.com via console."}
+
+    defp brand_copy("timeline"),
+      do: {"Audit timeline", "24 changes captured in the last 30 days."}
+
+    defp brand_copy(_scenario),
+      do: {"Export audit records", "Download a CSV of audit changes for the last 90 days."}
+
+    defp brand_note(:r2), do: "This should only take a moment — thanks for your patience!"
+
+    defp brand_note(:r1),
+      do: "You're all set! Everything looks great. 🎉 Powerful, seamless audit exports await."
+
+    defp brand_note(_rung), do: nil
 
     # Twin (new): Color contrast — one-hue-one-job discipline (graded). Degrades BOTH scored
     # dims together: color_as_signal (does colour map to meaning?) AND accent_job_discipline
@@ -519,27 +509,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # every hue so colour stops meaning anything. Accents are border-left + a plain <div>
     # swatch (neither is in the color_pairs text selector) so every rung passes WCAG MODE-A —
     # this is a gestalt colour-semantics flaw, not a contrast violation.
-    # Structural debt: complexity 13 — split color_accent/2 into a rung table
-    # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
-    def color_accent(story, role) do
-      case {rung(story), role} do
-        {:r4, :action} -> "var(--tl-color-thread-blue)"
-        {:r4, :change} -> "var(--tl-color-ember)"
-        {:r4, :info} -> "var(--tl-color-signal-cyan)"
-        {:r3, :action} -> "var(--tl-color-thread-blue)"
-        {:r3, :change} -> "var(--tl-color-ember)"
-        {:r3, :info} -> "var(--tl-color-iris)"
-        # WIDENED 2026-07-28: r2 was only ~1-wrong (info collided with action), too close to r3.
-        # Now r2 is a clean 2-wrong — change AND info both mis-jobbed to iris (a hue collision that
-        # also breaks color_as_signal), giving a monotonic mis-job gradient r4=0 < r3=1 < r2=2 < r1=3.
-        {:r2, :action} -> "var(--tl-color-thread-blue)"
-        {:r2, :change} -> "var(--tl-color-iris)"
-        {:r2, :info} -> "var(--tl-color-iris)"
-        {:r1, :action} -> "var(--tl-color-signal-cyan)"
-        {:r1, :change} -> "var(--tl-color-iris)"
-        {:r1, :info} -> "var(--tl-color-ember)"
-      end
-    end
+    @color_accents %{
+      {:r4, :action} => "var(--tl-color-thread-blue)",
+      {:r4, :change} => "var(--tl-color-ember)",
+      {:r4, :info} => "var(--tl-color-signal-cyan)",
+      {:r3, :action} => "var(--tl-color-thread-blue)",
+      {:r3, :change} => "var(--tl-color-ember)",
+      {:r3, :info} => "var(--tl-color-iris)",
+      # WIDENED 2026-07-28: r2 was only ~1-wrong (info collided with action), too close to r3.
+      # Now r2 is a clean 2-wrong — change AND info both mis-jobbed to iris (a hue collision that
+      # also breaks color_as_signal), giving a monotonic mis-job gradient r4=0 < r3=1 < r2=2 < r1=3.
+      {:r2, :action} => "var(--tl-color-thread-blue)",
+      {:r2, :change} => "var(--tl-color-iris)",
+      {:r2, :info} => "var(--tl-color-iris)",
+      {:r1, :action} => "var(--tl-color-signal-cyan)",
+      {:r1, :change} => "var(--tl-color-iris)",
+      {:r1, :info} => "var(--tl-color-ember)"
+    }
+
+    def color_accent(story, role), do: Map.fetch!(@color_accents, {rung(story), role})
 
     # Distinct per-scenario rows for the colour-signal twin (pseudo-replication honesty).
     def color_rows(story) do
