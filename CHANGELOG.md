@@ -37,9 +37,10 @@ Rerunning `mix threadline.gen.triggers` for tables that already had a trigger
 migration, as the redaction drift guides instruct, wrote a migration that could
 not be applied. Every release from 0.1.0 through 0.10.1 is affected. The
 generator reused the first migration's name and module, and its trigger
-statement could not replace a trigger that already existed. A rerun now gets a
-numbered name and module, such as `threadline_triggers_posts_2`; a first run is
-named as before. The rerun migration replaces the trigger in place, drops a
+statement could not replace a trigger that already existed. A rerun whose
+table-derived name is already taken now gets a numbered name and module, such
+as `threadline_triggers_posts_2`; a rerun for a different table set, and a first
+run, are named as before. The rerun migration replaces the trigger in place, drops a
 per-table capture function left behind when a table returns to the default
 trigger, and rolling it back keeps capture on.
 

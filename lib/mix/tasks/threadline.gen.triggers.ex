@@ -39,9 +39,12 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
 
   Run the task again for tables that already have a trigger migration, for
   example after changing `:trigger_capture` redaction rules or to clear a
-  `Drift detected` status. It writes a new migration with a numbered name, such
-  as `threadline_triggers_posts_2`, and a matching numbered module. The new
-  migration replaces the trigger in place, so capture has no gap.
+  `Drift detected` status. It writes a new migration. When the table-derived
+  name is already taken, the migration gets a numbered name, such as
+  `threadline_triggers_posts_2`, and a matching numbered module. A rerun for a
+  different table set, such as `posts` after `posts,users`, keeps the
+  un-numbered `threadline_triggers_posts`. The new migration replaces the
+  trigger in place, so capture has no gap.
 
   A table that returns to the default trigger also drops its leftover per-table
   capture function. That drop never cascades. On a table that never had one,
