@@ -2,19 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 206
-status: completed
-stopped_at: Phase 206 complete — all phases complete
-last_updated: "2026-09-24T18:06:30.465Z"
+current_phase: 207
+current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
+status: planning
+stopped_at: Phase 207 context gathered
+last_updated: "2026-09-24T20:18:18.866Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 206 complete
-state_head: 43d9d2faa506db4873eaa805cf3fa3e6981b9a13
+last_activity_desc: Phase 207 context gathered
+state_head: e848d5fb97c4d9677049afe12f9cdb815eb1ed9a
 progress:
-  total_phases: 9
+  total_phases: 10
   completed_phases: 9
   total_plans: 150
   completed_plans: 150
-  percent: 100
+  percent: 90
 ---
 
 # Project State: Threadline
@@ -159,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 150/150 plans ([██████████] 100% of phases — 9 of 9 complete: 198–206; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
+Progress: [████████████████████] 150/150 plans ([█████████░] 90% of phases — 9 of 10 complete: 198–206; 207 Trigger Migration Rerun context gathered (e848d5fb), next /gsd-plan-phase 207; 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
 
 ## Performance Metrics
 
@@ -853,9 +854,9 @@ Progress: [████████████████████] 150/150
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T17:55:54.235Z
-**Stopped at:** Phase 206 complete — all phases complete
-**Resume file:** None
+**Last session:** 2026-09-24T20:18:18.486Z
+**Stopped at:** Phase 207 context gathered
+**Resume file:** .planning/phases/207-gen-triggers-rerun-name-collision-storage-schema-default-doc/207-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
