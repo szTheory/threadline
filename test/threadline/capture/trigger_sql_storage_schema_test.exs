@@ -22,7 +22,7 @@ defmodule Threadline.Capture.TriggerSQLStorageSchemaTest do
   test "qualified host tables create schema-qualified triggers" do
     sql = TriggerSQL.create_trigger("support.tickets")
 
-    assert sql =~ ~S|CREATE TRIGGER "threadline_audit_support_tickets"|
+    assert sql =~ ~S|CREATE OR REPLACE TRIGGER "threadline_audit_support_tickets"|
     assert sql =~ ~S|ON "support"."tickets"|
     assert sql =~ ~S|EXECUTE FUNCTION "threadline"."threadline_capture_changes"()|
   end

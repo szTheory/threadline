@@ -99,6 +99,9 @@ defmodule Threadline.Capture.TriggerSQL do
 
   * `:default` — calls `threadline_capture_changes()` (default).
   * `:per_table` — calls `threadline_capture_changes_<table>()` from `install_function_for_table/2`.
+
+  The statement replaces an existing Threadline trigger of the same name in place, so it
+  can be applied again (requires PostgreSQL 14 or later).
   """
   def create_trigger(table_name, mode \\ :default, opts \\ [])
 
@@ -119,7 +122,7 @@ defmodule Threadline.Capture.TriggerSQL do
     host_table = StorageSchema.qualified_host_table(table_name)
 
     """
-    CREATE TRIGGER #{StorageSchema.quote_ident(trigger_name)}
+    CREATE OR REPLACE TRIGGER #{StorageSchema.quote_ident(trigger_name)}
     AFTER INSERT OR UPDATE OR DELETE ON #{host_table}
     FOR EACH ROW EXECUTE FUNCTION #{function_invocation}
     """
