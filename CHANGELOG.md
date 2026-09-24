@@ -41,9 +41,14 @@ None for an app that has already migrated, including one whose migration files
 were renamed by hand, because the installer runs once.
 
 If you are on an earlier release and `mix ecto.migrate` failed with the error
-below, rename the `_threadline_semantics_schema.exs` migration's numeric prefix,
-and then the `_threadline_governance_schema.exs` one, to later timestamps so the
-order is audit, then semantics, then governance. Then re-run `mix ecto.migrate`.
+below, rename the numeric prefixes of every Threadline migration that shares the
+duplicated version, including any `_threadline_triggers_*.exs` migration written
+by `mix threadline.gen.triggers`. Keep the audit migration's prefix and give
+each of the others a distinct, later timestamp so the order is
+`_threadline_audit_schema.exs`, then `_threadline_semantics_schema.exs`, then
+`_threadline_governance_schema.exs`, then any `_threadline_triggers_*.exs`
+migration, which must run after the audit migration. Then re-run
+`mix ecto.migrate`.
 
 ### Fixed
 
