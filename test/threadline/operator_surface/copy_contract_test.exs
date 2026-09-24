@@ -1,17 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.CopyContractTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Copy contract</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.CopyContractTest.Auth do
     def authorize(_), do: true
   end
@@ -35,21 +22,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.CopyContractTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
     alias Threadline.OperatorSurface.CopyContractTest.Auth
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.CopyContractTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -69,27 +44,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.CopyContractTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_copy_contract_key",
-      signing_salt: "copy-contract"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.CopyContractTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.CopyContractTest.Router
   end
 
   defmodule Threadline.OperatorSurface.CopyContractTest do
     use Threadline.DataCase, async: false
     import Phoenix.Component
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.CopyContractTest.Endpoint
 
     alias Threadline.Capture.AuditChange
     alias Threadline.Capture.AuditTransaction
@@ -103,7 +67,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Test.Repo
     alias Threadline.Test.SourceFamily
 
-    @endpoint Threadline.OperatorSurface.CopyContractTest.Endpoint
     @coverage %{uncovered_count: 0, last_checked_at: ~U[2026-06-04 00:00:00Z]}
     @expected_shell_groups ["Investigate", "Audit readiness", "Evidence & exports"]
     @expected_home_jobs ["Find what changed", "Check audit readiness", "Use evidence and exports"]
@@ -129,12 +92,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @retention_live_path "lib/threadline/operator_surface/live/retention_history_live.ex"
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.CopyContractTest.Endpoint,
-        secret_key_base: "c" |> String.duplicate(64),
-        live_view: [signing_salt: "c" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.CopyContractTest.Layouts]
-      )
-
       original_interval = Application.get_env(:threadline, :coverage_poll_ms)
       Application.put_env(:threadline, :coverage_poll_ms, 5_000)
 
@@ -146,7 +103,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
