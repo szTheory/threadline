@@ -8,6 +8,7 @@ defmodule Threadline.Capture.TriggerRerunTest do
 
   use Threadline.DataCase
 
+  alias Mix.Tasks.Threadline.Gen.Triggers
   alias Threadline.Capture.{AuditChange, AuditTransaction, TriggerSQL}
   alias Threadline.StorageSchema
 
@@ -216,7 +217,7 @@ defmodule Threadline.Capture.TriggerRerunTest do
 
       assert_raise ArgumentError, ~r/at most 63 bytes/, fn ->
         File.cd!(tmp, fn ->
-          Mix.Tasks.Threadline.Gen.Triggers.run([
+          Triggers.run([
             "--tables",
             "#{@long_default},#{@long_per_table}"
           ])
@@ -276,7 +277,7 @@ defmodule Threadline.Capture.TriggerRerunTest do
   # it wrote.
   defp generate!(tmp, args) do
     before = migration_files(tmp)
-    File.cd!(tmp, fn -> Mix.Tasks.Threadline.Gen.Triggers.run(args) end)
+    File.cd!(tmp, fn -> Triggers.run(args) end)
     [file] = migration_files(tmp) -- before
     file
   end
