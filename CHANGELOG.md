@@ -24,6 +24,10 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
+_Nothing yet for the next release._
+
+## [0.10.2] - 2026-09-24
+
 `mix threadline.install` could give two or three of its generated migrations the
 same version, so `mix ecto.migrate` refused to run them. Every release through
 0.10.1 is affected. Since 0.1.0 the installer has computed each migration's
