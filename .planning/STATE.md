@@ -2,142 +2,44 @@
 gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 207
-current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
-status: completed
+status: Awaiting next milestone
 stopped_at: Phase 207 complete — all phases complete
-last_updated: "2026-09-25T00:45:42.181Z"
+last_updated: "2026-09-25T01:27:20.136Z"
 last_activity: 2026-09-24
-last_activity_desc: Phase 207 complete
-state_head: 55c3d0f5d4ba6f1a6a846259caf2d1cc3f997824
+last_activity_desc: Milestone v1.41 completed and archived
+state_head: d9e7b6598dcdf8b4341c4ba14c5f147953b4c746
 progress:
   total_phases: 10
   completed_phases: 10
   total_plans: 153
   completed_plans: 153
   percent: 100
+current_phase: 207
+current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
+See: `.planning/PROJECT.md` (updated 2026-09-24 after v1.41 milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 207 — Trigger Migration Rerun and Storage-Schema Default Docs
+**Current focus:** Planning next milestone (v1.41 shipped 2026-09-24; start with `/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — COMPLETE, verified passed 16/16
-Plan: 3 of 3
-Status: All v1.41 phases complete (198–207) — next: milestone re-audit
+Phase: Milestone v1.41 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-09-24 — Milestone v1.41 completed and archived
 
-**READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
-Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
-born red for FOUR distinct reasons, not stale red. The decisive one: 0.10.0
-introduces `Threadline.StorageSchema`, defaulting to a schema it cannot detect
-and threaded through every read path, so an existing 0.9.x adopter would upgrade
-into a split brain — triggers still writing to `public`, every query reading
-`threadline.*`. Capture continues, exploration breaks, and the symptom is an
-empty timeline rather than an error. Every automated gate would have passed it.
-DECISION D-01 flips the default to `"public"` to make the release non-breaking;
-it is rated one-way because hex.pm has no unpublish beyond a ~1 hour window.
+**Carried forward from the v1.41 close (2026-09-24), not recorded in git alone:**
 
-Do not start planning without reading `202-CONTEXT.md` in full.
-
-**Cross-session facts this session established (not in git alone):**
-
-- PR #42 (`auto/verification-debt-closeout`) is OPEN and GREEN — all 15 checks
-  including the Elixir 1.15 min lane. It carries the Phase 199/200 automation
-  and the ungrouped-module fix. Not merged; merging is the maintainer's call.
-- The local branch `fix/branch-protection-actions-capability` carries the
-  planning artifacts. Its own PR #41 is already MERGED and the branch is deleted
-  on origin, so it is a stale local branch — do not push it as-is.
-- `.tool-versions` is deliberately untracked; see CONTRIBUTING for the reason.
-
-**Verification debt CLEARED (2026-09-22). Phases 199 and 200 both report
-`passed`.** Phase 202 planning can read the roadmap as settled.
-
-**Phase 199 re-verified: PASSED, 40/40, zero gaps, at `4d893e19`.** Re-measured
-from a fresh `git clone --no-local` with `.planning` quarantined before any
-command ran, so the decoupling claim was tested rather than assumed: 1677 library
-tests, 117 example tests, Dialyzer 0 errors under an empty ignore file and a
-zero warning ceiling, and every `verify.*` gate green. Three SHAs the OLD report
-cited are dangling — `d6d3baee`, `edb2b240`, `c45b7712` are not ancestors of
-HEAD; nothing in the new report rests on them. The Playwright lane is CARRIED,
-not re-run, on a checked delta argument: the only library change in the window
-is `@moduledoc false` on two modules, so there is no rendered-output delta.
-
-Its last skipped checkpoint (Shared Critic Reader Authority, 199-05-D1) is now
-proven deterministically. The skip had been blocked on the parked paid critic
-loop, but D1 asserts path authority and fail-closed reads — neither depends on
-LLM scoring, so `critic:check` was the wrong instrument and a real-key run was
-never what would prove it. The paid loop REMAINS PARKED; scoring quality is a
-separate claim.
-
-**Phase 200 debt CLEARED (2026-09-22): PASSED, 8/8, re-measured at `bf42de71`.**
-The staleness was an ancestry fact, not a regression: the original target
-`833a5965` was squashed out of the history by PR #35. Re-measurement did not
-merely retarget — it found a real defect the first pass had recorded as
-VERIFIED. `ActorLive` and `TransactionLive` declared neither `@moduledoc` nor
-`@moduledoc false`, so ExDoc published both on the public index ungrouped,
-falsifying SURFACE-04. The contract meant to enforce grouping could not see
-them: it folded "has a doc chunk but no `@moduledoc`" into "absent" and asserted
-only over documented modules, excluding precisely the violating class. Both were
-hidden (matching all ten sibling operator LiveViews) and the gate was rebuilt to
-measure the set ExDoc actually publishes; a differential mutation confirms the
-repaired gate rejects what the old one passed. Generated docs now carry 42 module
-pages, 0 ungrouped.
-
-Carried forward: a warning-free `mix docs` and an exact `groups_for_modules`
-declaration are both true and neither can observe the generated index — ExDoc
-emits no warning for an ungrouped module. Any future grouping claim must parse
-the built sidebar, not the configuration that feeds it.
-
-Phase 200 also now carries zero human-verification items: its last manual UAT
-checkpoint (non-maintainer community-health intake) was automated into a
-commit-time issue-forms schema contract plus a scheduled live check, rather than
-answered by hand.
-
-**Phase 201 verification (2026-09-21): PASSED, 6/6, zero gaps.** All six RENDER
-requirements independently re-derived by the verifier, not accepted from the
-summaries. The amended visual gate was judged honest disposition rather than
-laundering on four grounds, three of them re-measured. Two facts carried
-forward: the 8 screenshot failures sit OUTSIDE `ci.all` (the spec self-skips on
-`CI=true`, which is how `ci.all` invokes the lane), so the 82/8 figure is the
-stricter local measurement; and `tl-home__earned-flow`
-(`start_live.ex:222`, `style.ex:907`/`4233`) still carries planning taxonomy in
-a CSS class — NOT a Phase 201 violation, since RENDER-06 requires class
-attributes stay byte-identical, so it is a Phase 204 (Structure) candidate.
-Report: `.planning/phases/201-rendered-output/201-VERIFICATION.md`.
-
-**Phase 201 close-out state (2026-09-21).** All five plans executed. `mix ci.all`
-exits 0 — root 1660/0, example 116/0, Dialyzer 0 errors. The browser lane is
-82 passed / 8 failed, where the 8 are screenshot comparisons PROVEN pre-existing
-by direct measurement (reverting the phase's five LiveView modules to fecfe684
-reproduces the identical 8 failures), recorded as WINDOWS entry 62 and pinned as
-an exact non-regression gate in 201-05-PLAN.md. Phase 201's entire production
-delta is 21 deleted data-earned-flow/data-persona/data-jtbd attribute lines.
-Full evidence: `.planning/audits/201-rendered-output-evidence.md`. Nothing was
-regenerated or waived. GSD runtime switched from codex to claude with the
-adaptive model profile on 2026-09-21.
-Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
-
-- **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
-- **Verification** (`198-VERIFICATION.md`, round 6): **gaps_found**. Integrity **PASS** on six independently re-derived vectors (CR-01 fix traced by direct code read; GREEN-07 disposition propagation confirmed append-only; D-42 diff empty over `1bda5d1c..HEAD`; `ci-required` `needs:` still names both red lanes; the sealed prediction at `23c16267` byte-identical before/after the push; run `33344382035` re-queried via `gh run view`). Round 5's two gaps are both CLOSED. Remaining: GREEN-07/SC3 is still literally unmet in CI (`CI required` = `failure`) — now a terminal maintainer-accepted gap rather than an open one; and GREEN-08's second clause (PR #26 mergeable) stays BLOCKED downstream of it.
-- **Score discrepancy, unreconciled and deliberately not silently fixed:** `198-VERIFICATION.md` frontmatter records `requirements_complete: 10`, counting GREEN-08 as not fully met because its PR-#26-mergeable clause is BLOCKED. `REQUIREMENTS.md` records GREEN-08 as `Complete` with a BLOCKED note, giving 11/12. Round 5 also said 11/12. Two artifacts therefore give two different answers to how many requirements are Complete. This is a maintainer call (the same class of disposition decision 198-39 established must not be executor-selected) and is left OPEN.
-
-Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, preserved):
-
-- **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
-- **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
-
-Last activity: 2026-09-24 - Completed quick task 260924-taj: alias Gen.Triggers in trigger_rerun_test.exs to clear credo AliasUsage
-
-Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
-
-Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final plan of Phase 198): pre-push prediction committed (`23c16267`), maintainer pushed `ci/198-round6` and opened draft PR #33 by hand, CI run `33344382035` measured to completion (attempt 1, `failure`, 10m36s). GREEN-04 re-proved Complete strictly from this run; GREEN-07 re-measured unchanged (still Pending, `198-39-DECISION.md` option-a disposition undisturbed); GREEN-01/02/03/05/06/09/10/11/12 carried forward with no new work. D-42 invariants empty over the round-6-specific commit range. All 40 phase-198 plans now executed.
+- The v1.41 work is on local branch `fix/branch-protection-actions-capability`, 513 commits ahead of and 0 behind `origin/main` (at `v0.10.1`). It still needs a squash-land through a PR to `main`; that is the GREEN-07 clause still open. The branch's own PR #41 is already merged and deleted on origin, so the landing needs a fresh branch and PR.
+- Unreleased on that branch: the installer (206) and `gen.triggers` rerun (207) fixes, with a 0.10.2 CHANGELOG entry. release-please cuts 0.10.2 only after they land on `main`. Four of those subjects leak planning IDs (`fix(207): CR-01 ...`), so squash-landing with a clean title avoids them in the changelog.
+- PR #42 (`auto/verification-debt-closeout`) is open; PR #34 is a DO-NOT-MERGE draft. Both need a disposition.
+- `.tool-versions` is deliberately untracked (see CONTRIBUTING).
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -403,6 +305,13 @@ Progress: [████████████████████] 153/153
 | deferred_items (v1.40 close 2026-08-27) | Phase 177 deferred-items.md (archived v1.37) — 1 entry (example demo-seed 60s setup timeout) | acknowledged in-file (status: acknowledged) |
 | deferred_items (v1.40 close 2026-08-27) | Phase 179 deferred-items.md (archived v1.37) — 5 entries (charter doc-contract + example demo-seed/walkthrough residuals per plan 01/03/04/05/06) | acknowledged in-file (status: acknowledged) |
 | deferred_items (v1.40 close 2026-08-27) | Phase 180 deferred-items.md (archived v1.37) — 1 entry (mix precommit demo-seed failures; Status field repurposed, scope note kept) | acknowledged in-file (status: acknowledged) |
+| debug_session (v1.41 close 2026-09-24) | phase-199-ci-uat-classification | diagnosed — acknowledged & deferred |
+| seed (v1.41 close 2026-09-24) | SEED-006-ci-feedback-loop-cost-and-latency | dormant — acknowledged & deferred |
+| deferred_items (v1.41 close 2026-09-24) | Phase 198 deferred-items.md (archived v1.41) — 9 entries (GREEN-07 terminal disposition, round 4-6 CI lane records, IN-01 row-history height guard) | acknowledged in-file (status: acknowledged). |
+| deferred_items (v1.41 close 2026-09-24) | Phase 199 deferred-items.md (archived v1.41) — 5 entries (formatter drift, 199-02 checker handoff, pair-label TODO, locked dependency advisories, Dialyzer contract drift) | acknowledged in-file (status: acknowledged). |
+| deferred_items (v1.41 close 2026-09-24) | Phase 200 deferred-items.md (archived v1.41) — 1 entries (CONTRIBUTING.md planning vocabulary in release archive scan) | acknowledged in-file (status: acknowledged). |
+| deferred_items (v1.41 close 2026-09-24) | Phase 202 deferred-items.md (archived v1.41) — 11 entries (critic_trust_test temp-dir counter-reuse flake (mechanism proven, unfixed), stale hex-evaluator pin prose) | acknowledged in-file (status: acknowledged). One entry (CORRECTION section) marked by hand; gsd-tools writer cannot match heading-shaped entries in mixed files. |
+| deferred_items (v1.41 close 2026-09-24) | Phase 205 deferred-items.md (archived v1.41) — 1 entries (D-205-01 clean_checkout_contract_test temp-dir collision) | acknowledged in-file (status: acknowledged). |
 
 ## Accumulated Context
 

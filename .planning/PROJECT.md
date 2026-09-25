@@ -10,26 +10,29 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline shipped **v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness** on 2026-08-27 (Phases 194–197, 28/29 requirements; PROOF-02 closed as a human-ratified shortfall). The milestone built and validated the full critique loop: a deterministic `page × persona × lens` scorecard-cube ledger with per-lens monotonic ratchet, mechanical checkers + tiered Playwright evidence capture inside `mix ci.all`, a golden-set-validated local-only Claude-vision critic panel, and a forward-only net-positive gate that landed the first human-ratified improvement (Evidence page density, Δ+7). The paid critic loop is **parked** on spend/value grounds — do not run paid scoring unless explicitly un-parked; residual design debt lives in `197-DESIGN-DEBT-REGISTER.md` with owners + reopen-triggers.
+Threadline shipped **v1.41 Green, Clean, and Honest** on 2026-09-24 (Phases 198–207, 153 plans, 53/54 requirements; GREEN-07 accepted-pending). The repository's quality gates are now real: Credo `--strict` runs full defaults, and Dialyzer, xref cycles and warnings-as-errors are enforced in `ci.all`. `mix test` went from 83 failures to 0 on CI once the hidden `search_path` reliance was fixed at the call sites. The suite passes with `.planning/` physically absent, and no planning vocabulary reaches HexDocs, the tarball or rendered HTML. **0.10.0 and 0.10.1 are live on hex.pm** (default `storage_schema` is `"public"`, so a 0.9.x upgrade is non-breaking). The milestone branch also carries installer and `gen.triggers` rerun fixes with a 0.10.2 CHANGELOG entry, not yet landed on `main` or released.
 
-**Active milestone: v1.41 Green, Clean, and Honest** (opened 2026-08-27). The quality-mapping candidate resolved into a repo-hygiene-and-quality-ratchet milestone: publish and green `origin/main`, decouple the test suite from `.planning/`, purge planning vocabulary from every shipped surface, cut 0.10.0, then turn on real lint/type gates and fix the structural debt they expose. Phase 199 completed the decoupling slice: source-owned fixtures, planning-absent aggregate proof, clean-clone/formatter contracts, and a measured zero-warning Dialyzer gate are now verified. Phase 200 completed the permanent public surface: HexDocs and tarball vocabulary, module visibility, canonical guide ownership, newcomer repair paths, and GitHub community intake are contract-locked and verified; Phase 201 owns the remaining rendered-output cleanup. Core capture/query/auth semantics stay out of scope unless a truth/schema inconsistency forces it. The root package keeps Phoenix/LiveView optional, the Anthropic SDK remains an `e2e` devDependency only, no public component API exists, LLM calls stay out of CI, and external pilot/compliance expansion remains signal-gated.
+**Honest open state at close:** `origin/main` (at `v0.10.1`) is CI-green. The v1.41 branch is 513 commits ahead of it and still needs a squash-land via PR, which is GREEN-07's open clause. `verify-capture` and three `operator-stress.spec.ts` rows remain red by construction under D-39 (no Tier-A `page.*` baseline regeneration in v1.41). Paid critic scoring stays parked. The root package keeps Phoenix/LiveView optional, LLM calls stay out of CI, and external pilot/compliance expansion remains signal-gated.
 
-## Current Milestone: v1.41 Green, Clean, and Honest
+## Latest Milestone Shipped: v1.41 Green, Clean, and Honest (2026-09-24)
 
-**Goal:** Get the repository into a genuinely clean, green, publishable state — then ratchet software quality across every technical stakeholder lens (architecture, engineering, DX, CI/CD, code quality, docs) wherever the improvement can be made mechanical and gated.
+**Goal (achieved with one accepted-pending gap):** Get the repository into a genuinely clean, green, publishable state, then ratchet software quality wherever the improvement can be made mechanical and gated.
 
-**Target features:**
-- **Green bringup** — publish the 584 unpushed commits, fix the single Playwright job responsible for the 5m52s → 1h33m CI regression, retire the never-re-measured red-test baseline on its merits, repair branch protection before the matrix permanently blocks every PR, and triage worktrees/branches/locks.
-- **Decouple** — `git mv` the five load-bearing datasets out of `.planning/` into `test/fixtures/` so `mix ci.all` no longer reads a planning directory; `git rm` the dead artifacts; land dialyxir.
-- **Public surface** — strip planning vocabulary from every `@moduledoc`, `mix.exs` comment and shipped identifier; group the ~90 ungrouped ExDoc modules; repair the star-shaped docs graph and its broken links; document the orphan config keys, aliases and the `search_path` fix; fill the empty `.github/`.
-- **Rendered output** — remove `data-jtbd` DOM attributes, phase-numbered UI headings and CSS provenance comments with zero design/IA/visual change, in two tiers separated by scorecard blast radius.
-- **Release 0.10.0** — merge PR #26 with every version-bearing literal wired into release-please, one publish path instead of two, and hand-written highlights over the machine changelog.
-- **Real gates** — full Credo defaults expressed as `extra:`/`disabled:` deltas (never an `enabled:` list), dialyzer in `ci.all`, and the layer inversions + Capture↔Semantics cycle fixed.
-- **Structure** — split `style.ex` behind an executable byte-hash lock, extract the render monsters, add shared test case templates, and delete the redundant `verify.doc_contract` alias.
+**Delivered:**
+- **Green bringup (198)**: red-test baseline retired on its merits (83 → 0 on CI), browser lane cut by a third with `timeout-minutes` everywhere, hazard workflows deleted, Hex publish behind a `production-hex` required-reviewer Environment, `main` protected by a git-tracked ruleset requiring the one check CI emits.
+- **Decouple (199)**: suite and gates self-contained in the source tree; `mix ci.all` passes with `.planning/` renamed away.
+- **Public surface + rendered output (200, 201)**: HexDocs, tarball, guide graph, `.github/` and rendered HTML free of planning vocabulary.
+- **Releases (202, 205)**: 0.10.0 and 0.10.1 on hex.pm with release-please-managed pins and a PR bump rehearsal; shipped work merged back into the milestone branch.
+- **Real gates + structure (203, 204)**: full-default Credo, Dialyzer, xref and warnings-as-errors in `ci.all`; `style.ex` split behind a byte-hash lock; structural ceiling 42 → 0.
+- **Installer + trigger-migration correctness (206, 207)**: distinct migration versions, correct `gen.triggers` rerun migrations, and the real `storage_schema` default documented and doc-contract-guarded.
 
-**Key context:** `mix credo --strict` currently runs 2 checks on 253 files in 0.1s because `.credo.exs` uses `checks: %{enabled: [...]}`, which replaces Credo's defaults rather than extending them — the gate in `ci.all` lints almost nothing. `origin/main` has been red since 2026-06-26 and PR #26 is blocked by branch protection, not by `gate-ci-green`. Two backlogs (full-Credo findings, dialyzer findings) are deliberately unmeasured at roadmap time and are sized by a measurement plan in the first phase. Operator-surface work is cleanup-only: no design, IA, layout, or visual change. Paid critic scoring stays PARKED and is being made structurally impossible to trigger, not merely discouraged.
+**Known gap:** GREEN-07 (`origin/main` contains every local commit and CI concludes `success`) is accepted-pending per `198-39-DECISION.md`.
 
-## Latest Milestone Shipped: v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness (2026-08-27)
+**Archives:** `.planning/milestones/v1.41-ROADMAP.md`, `.planning/milestones/v1.41-REQUIREMENTS.md`, `.planning/milestones/v1.41-MILESTONE-AUDIT.md`, `.planning/milestones/v1.41-phases/`
+
+**Next milestone goals:** Define with `/gsd-new-milestone`. Land the v1.41 branch on `main` and let release-please cut 0.10.2 first. Other candidates from the tech-debt register: locked-dependency security advisories, the two `System.unique_integer` temp-dir flakes, and the 63-byte trigger-function name collision.
+
+## Prior shipped milestone: v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness (2026-08-27)
 
 **Goal (achieved with one ratified gap):** Make evaluating and improving the `/audit` operator UI fast and *monotonic* — an adversarial multi-lens critic panel over deterministic capture, feeding the design-system ledger's ratchet so on-brand improvements land and regressions are blocked, with far less human review time.
 
@@ -576,15 +579,16 @@ Threadline shipped **v1.40 Automated Operator-UI Critique & Forward-Only Iterati
 - [x] **CI-01 through CI-04 (Phase 192)** — Recorded a read-only CI baseline, then added reversible deps/Playwright/npm caches, a min/current Elixir·OTP·Postgres compatibility matrix, PR + publish concurrency, a pinned PgBouncer image, and aligned job names/CONTRIBUTING/`mix ci.*` behind contract + dep-floor guards (no `_build` cache, no hidden warnings). Validated in v1.39 (2026-07-02).
 - [x] **CLOSE-01 (Phase 193)** — Closed v1.39 with 15/15 requirements traceability, verification/CI evidence index, a ranked residual-risk register (owner + reopen-trigger per item, no vague polish bucket), and a clear v1.40/hold recommendation. Validated in v1.39 (2026-07-02).
 
+- [x] **Green bringup (Phase 198)** — red-test baseline retired on its merits (`mix test` 0 failures on CI run `33336651956`), branch protection matches the emitted check, Flake Detection distinguishes broken from flaky. Validated in v1.41 (2026-09-24). GREEN-07 (`origin/main` landed + CI `success`) accepted-pending under D-39.
+- [x] **Clean rendered surface (Phases 199–201)** — suite independent of `.planning/`; package, docs, community and rendered surfaces free of planning vocabulary with zero visual/IA change. Validated in v1.41 (2026-09-24).
+- [x] **0.10.0 released (Phases 202, 205)** — 0.10.0 and 0.10.1 published with release-please-managed pins and a single publish path. Validated in v1.41 (2026-09-22).
+- [x] **Real quality gates (Phase 203)** — Credo full defaults as deltas, Dialyzer clean in `ci.all`, layer inversions and the Capture↔Semantics cycle resolved. Validated in v1.41 (2026-09-24).
+- [x] **Legible structure (Phase 204)** — `style.ex` split behind a byte-hash lock, render monsters extracted, shared test case templates enforced. Validated in v1.41 (2026-09-24).
+- [x] **Installer and trigger-migration correctness (Phases 206–207)** — distinct installer migration versions, working `gen.triggers` rerun migrations, `storage_schema` default documented truthfully. Validated in v1.41 (2026-09-24); release pending as 0.10.2.
+
 ### Active
 
-**v1.41 Green, Clean, and Honest** (Phases 198–204) — see `.planning/REQUIREMENTS.md` for the full REQ-ID set.
-
-- [ ] **Green bringup** — `origin/main` carries all local commits and is green in ≤ 20 min; the red-test baseline is retired on its merits; branch protection matches the checks CI actually emits; Flake Detection is a trustworthy signal again.
-- [ ] **Clean rendered surface** — permanent package/docs/community surfaces are complete in Phase 200; Phase 201 removes the remaining planning vocabulary from rendered pages with zero visual or IA change.
-- [ ] **0.10.0 released** — PR #26 merged and published with every version literal release-please-managed and a single publish path.
-- [ ] **Real quality gates** — Credo running full defaults, dialyzer clean in `ci.all`, layer inversions and the Capture↔Semantics cycle resolved.
-- [ ] **Legible structure** — `style.ex` split behind a byte-hash lock, render monsters extracted, shared test case templates in `test/support/`.
+None yet. The next milestone defines them via `/gsd-new-milestone`.
 
 ### Out of Scope
 
@@ -599,7 +603,7 @@ Threadline shipped **v1.40 Automated Operator-UI Critique & Forward-Only Iterati
 - **Hard LiveView / Phoenix dependency in `threadline` core** — out of scope. The v1.17 operator surface is gated on `phoenix_live_view` as an optional dep so capture-only adopters retain a Plug-only install footprint.
 - **Multi-tenant / prefix-scoped capture beyond Ecto prefix support** — defer until basic capture is validated
 - **Forced `threadline_web` extraction before version-pressure exists** — out of scope for v1.19. The milestone should define objective extraction triggers first; a package split only makes sense once real adopters create version-matrix or release-cadence pressure.
-- **Automated Hex publish from CI** — tag-triggered workflow exists; interactive `mix hex.publish` remains the documented maintainer path for early releases
+- **Unattended Hex publish from CI** — the release-please publish path runs in CI but behind the `production-hex` required-reviewer Environment (v1.41); a human approval stays on every publish
 - **Elixir/OTP version bumps in CI** — unless required for runner or dependency breakage
 
 ## Context
@@ -699,12 +703,14 @@ Threadline shipped **v1.40 Automated Operator-UI Critique & Forward-Only Iterati
 | Critic must be validated against a golden set before driving any ratchet | An un-validated critic driving a ratchet optimizes toward a broken oracle; synthetic-twin oracle + Spearman-ρ ranking gate (not Krippendorff α — the critic compresses its scale) | ✓ Shipped (Phase 195, v1.40) |
 | Persona fan-out collapsed to 1 persona for hierarchy/density lenses | Probe proved P1–P5 unanimous on ranking (15/15); 5× cheaper with the oracle ρ as backstop | ✓ Shipped (Phase 197, v1.40) |
 | Paid critic loop PARKED at v1.40 close | Spend/value shortfall on PROOF-02 human-ratified; deterministic floor + guards remain in CI, paid scoring only on explicit un-park | ✓ Ratified (197-02, 2026-08-27) |
-| v1.41 publishes local `main` to `origin` and makes the public repo genuinely green | "Main green" is only true if the public repo is green. `origin/main` has been red since 2026-06-26 with the local tree 584 commits ahead; `.planning/` was already tracked and public up to that point, so publishing the remainder changes degree, not kind. Supersedes the local-only convention for `main` (milestone *tags* remain local). | — Active (v1.41, opened 2026-08-27) |
+| v1.41 publishes local `main` to `origin` and makes the public repo genuinely green | "Main green" is only true if the public repo is green. `origin/main` has been red since 2026-06-26 with the local tree 584 commits ahead; `.planning/` was already tracked and public up to that point, so publishing the remainder changes degree, not kind. Supersedes the local-only convention for `main` (milestone *tags* remain local). | ⚠️ Revisit — `origin/main` published and green (0.10.1), but the v1.41 branch is 513 commits ahead at close; GREEN-07 accepted-pending (v1.41) |
 | The test suite must not read `.planning/` | Nine test files reached into the planning directory at runtime, two of them (`verify.mechanical`, `verify.critic_trust`) inside `ci.all` — so the library's gates depended on planning prose. Load-bearing datasets now live in `test/fixtures/`; `.planning/` stays tracked as history but load-bearing on nothing. Exact-HEAD proof runs the full aggregate with `.planning/` physically absent. | ✓ Validated (Phase 199, 2026-09-11) |
-| A quality gate that passes vacuously is worse than no gate | `.credo.exs` used `checks: %{enabled: [...]}`, which replaces Credo's defaults (verified in `config_file.ex:377-385` — `merge_checks/2` binds `checks_base` and never uses it). The result ran 2 checks on 253 files in 0.1s inside `ci.all` and always passed. Config must be expressed as `extra:`/`disabled:` deltas so a future Credo release cannot silently re-create the hole; any check that must stay off ships as a register row with an exact finding count. | — Active (v1.41, opened 2026-08-27) |
-| Carried "known red baselines" must be re-derived, not restated | The v1.39 R-C / v1.40 Seed #8 "stable 3-module red baseline" was carried unchanged for four phases while its membership drifted (`coverage_live` → `policy_redaction_live`) and one member became green. A baseline nobody re-measures becomes a blindfold; every register row asserting a measurement must record when it was last re-derived. | — Active (v1.41, opened 2026-08-27) |
-| Planning vocabulary is a public-surface defect, not a cosmetic one | Phase numbers, decision/requirement identifiers, and milestone literals had reached rendered HTML, DOM attributes, CSS, public module docs, and the shipped package definition. The permanent package/docs surface must be clean before 0.10.0 publishes; rendered-output cleanup remains Phase 201's bounded follow-up. | ✓ Permanent public surface validated (Phase 200, 2026-09-13); rendered output remains active in Phase 201 |
+| A quality gate that passes vacuously is worse than no gate | `.credo.exs` used `checks: %{enabled: [...]}`, which replaces Credo's defaults (verified in `config_file.ex:377-385` — `merge_checks/2` binds `checks_base` and never uses it). The result ran 2 checks on 253 files in 0.1s inside `ci.all` and always passed. Config must be expressed as `extra:`/`disabled:` deltas so a future Credo release cannot silently re-create the hole; any check that must stay off ships as a register row with an exact finding count. | ✓ Validated (Phase 203, v1.41) — `credo --strict` 0 issues on full defaults |
+| Carried "known red baselines" must be re-derived, not restated | The v1.39 R-C / v1.40 Seed #8 "stable 3-module red baseline" was carried unchanged for four phases while its membership drifted (`coverage_live` → `policy_redaction_live`) and one member became green. A baseline nobody re-measures becomes a blindfold; every register row asserting a measurement must record when it was last re-derived. | ✓ Validated (v1.41) — re-derivation disproved the "stale DB" diagnosis and found the real cause |
+| Planning vocabulary is a public-surface defect, not a cosmetic one | Phase numbers, decision/requirement identifiers, and milestone literals had reached rendered HTML, DOM attributes, CSS, public module docs, and the shipped package definition. The permanent package/docs surface must be clean before 0.10.0 publishes; rendered-output cleanup remains Phase 201's bounded follow-up. | ✓ Validated (Phases 200–201, v1.41) |
 | Public adoption procedures have exactly one runnable owner | Duplicated install, mount/auth, or local-Docker recipes drift independently and can separate safety warnings from their commands. README, the reference app, and secondary guides route to the canonical Getting Started, Operator Surface, and Local Docker guides; contract tests reject competing runnable copies. | ✓ Validated (Phase 200, 2026-09-13) |
+| Default `storage_schema` is `"public"` (202 D-01) | 0.10.0 introduced `Threadline.StorageSchema`; a `threadline` default would have split a 0.9.x adopter's reads from its trigger writes (empty timeline, no error). Flipping the default made the release non-breaking; rated one-way because hex.pm cannot unpublish past ~1 hour. Supersedes the earlier "defaults owned tables to `threadline`" posture. | ✓ Shipped (0.10.0, v1.41) |
+| No Tier-A `page.*` baseline regeneration in v1.41 (D-39) | The only remedy for the red `verify-capture` lane and three stress rows was regenerating baselines, which would launder drift into evidence. Maintainer chose option-a: accept GREEN-07 pending rather than regenerate. | ⚠️ Revisit — unblock needs a milestone that authorizes regeneration and fixes the `scroll_cost` coupling |
 
 ## Evolution
 
@@ -726,4 +732,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-09-13 after completing Phase 200 — Public Surface*
+*Last updated: 2026-09-24 after v1.41 milestone*

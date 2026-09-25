@@ -18,3 +18,4 @@ Out-of-scope discoveries logged during execution. Not fixed in 205.
 - **Suggested fix (future plan):** add randomness (`:crypto.strong_rand_bytes/1` or the OS pid) to the
   prefix, or use `File.mkdir_p!` after an existence check that picks a fresh name. The stale
   `$TMPDIR/threadline-clean-verifier-test-{1,13}` directories were left in place (outside the repo).
+  status: acknowledged

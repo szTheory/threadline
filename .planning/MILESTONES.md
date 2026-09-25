@@ -1,5 +1,42 @@
 # Project milestones: Threadline
 
+## v1.41 Green, Clean, and Honest (Shipped: 2026-09-24)
+
+**Delivered:** A repo-hygiene and quality-ratchet milestone. It replaced a carried "stable red baseline" with measured causes, made every quality gate real (Credo, Dialyzer, xref, warnings-as-errors), shipped 0.10.0 and 0.10.1 to hex.pm, retired stale branches and worktrees, and fixed the installer and `gen.triggers` rerun defects found along the way. No operator-UI design work.
+
+**Phases completed:** 10 phases (198-207), 153 plans, 319 tasks. Requirements: 53/54 satisfied (GREEN-07 accepted-pending).
+
+**Stats:** 581 commits from `v1.40` to `d9e7b659`; 868 non-planning files changed, +145,639 / -17,172.
+
+**Closeout type:** override_closeout. **Known verification overrides:** 29 newly acknowledged, 28 carried forward from a prior close (see STATE.md Deferred Items). One of the 29 (phase 202 flake CORRECTION section) was acknowledged by hand-editing its `status:` line because the gsd-tools writer cannot match a heading-shaped entry in a mixed-shape file. `init.manager` reports phases 199-207 verification as `stale` (files touched after VERIFICATION.md); the milestone audit at `70530415` re-verified all ten (phases 10/10, integration 20/20, flows 6/6).
+
+**Known gaps:**
+
+- **GREEN-07** (Phase 198): "`origin/main` contains every local commit and its latest CI run concludes `success` in ≤ 20 minutes." Accepted-pending by maintainer option-a (`198-39-DECISION.md`). The time clause is met; `verify-capture` and three `operator-stress.spec.ts` rows are red by construction under D-39 (no Tier-A `page.*` regeneration this milestone), and the milestone branch is not yet landed on `origin/main`.
+- **GATE-01..05** (Phase 203): gates re-run green at `70530415`, but no 203 SUMMARY carries `requirements-completed` frontmatter. Bookkeeping only.
+
+**Key accomplishments:**
+
+- **Green bringup (198)**: proved the inherited "stale test DB" diagnosis wrong (79 unprefixed `Repo.all(AuditChange)` call sites that only passed because of a database-level `search_path`), fixed them at the call site, and took `mix test` from 83 failures to 0 on CI (run `33336651956`). Browser lane cut by a third, every job got `timeout-minutes`, hazard workflows deleted, Hex publish put behind a required-reviewer Environment.
+- **Honest gates (203)**: Credo `--strict` now runs full defaults (the old `enabled:` list silently replaced them, making the gate vacuous; 377 issues driven to 0), and Dialyzer, xref cycles and warnings-as-errors are all enforced in `ci.all`.
+- **Decouple (199)**: the test suite and every CI gate are self-contained in the source tree, so `mix ci.all` passes with `.planning/` renamed away; dead planning artifacts and one-off root scripts removed with citations repaired.
+- **Public surface + rendered output (200, 201)**: module docs, tarball, HexDocs grouping, guide graph and `.github/` made accurate for a stranger; no phase numbers, decision IDs or provenance attributes reach a browser.
+- **Structure (204)**: `style.ex` split behind a byte-hash lock, render monsters extracted, separator banners replaced by real boundaries, Credo structural ceiling 42 → 0, shared test case templates enforced by contract, with byte-identical output.
+- **Releases 0.10.0 and 0.10.1 (202, 205)**: shipped to hex.pm with grouped HexDocs, a bump rehearsal on every PR, and release-please pin sync. Phase 205 merged that shipped work back into the milestone branch.
+- **Installer and trigger-migration correctness (206, 207)**: each generated migration gets a distinct version; a rerun of `mix threadline.gen.triggers` now yields a distinctly named migration that replaces the trigger in place (`CREATE OR REPLACE TRIGGER`), drops leftover per-table functions without CASCADE, and keeps capture on after rollback. Guides now state the real `storage_schema` default (`public`), guarded by a doc-contract test. CHANGELOG carries a 0.10.2 entry; not yet released.
+- **Repo hygiene**: single worktree, stale CI branches retired under annotated archive tags, `main` protected by a git-tracked ruleset requiring exactly the one check CI emits.
+
+**Tech debt carried:** see `.planning/milestones/v1.41-MILESTONE-AUDIT.md` `tech_debt`: planning IDs leaking into four releasable commit subjects (`fix(207): ...`), the 63-byte function-name collision for per-table suffixes sharing 36 bytes, 207 review IN-01..05, two `System.unique_integer` temp-dir collision flakes (`critic_trust_test.exs`, `clean_checkout_contract_test.exs`), and locked-dependency security advisories (decimal, hackney, phoenix, phoenix_live_view, plug, postgrex).
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.41-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.41-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.41-MILESTONE-AUDIT.md`
+- Phases: `.planning/milestones/v1.41-phases/`
+
+---
+
 ## v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness (Shipped: 2026-08-27)
 
 **Phases completed:** 4 phases, 21 plans, 34 tasks. Requirements: 28/29 satisfied.

@@ -3,6 +3,10 @@ status: diagnosed
 trigger: "Diagnose UAT gap G-199-1: recurring-value proof must be shifted left into CI integration/E2E/smoke automation so no human UAT checkpoint is required. Determine why verify-work classified 199-13 D2 as a human checkpoint despite later automation summaries, and whether CI coverage exists with stale metadata or an actual automation gap remains."
 created: 2026-09-13T14:19:35Z
 updated: 2026-09-13T14:24:54Z
+audit_acknowledged:
+  milestone: v1.41
+  at: 2026-09-25
+  status: diagnosed
 ---
 
 ## Current Focus
@@ -29,8 +33,10 @@ reasoning_checkpoint:
 
 bug_class: bohrbug
 candidate_causes:
+
   - "config/artifact: 199-13-SUMMARY.md retains D2 status: fail after replacement plans completed the outcome"
   - "code: verify-work may lack a supersession/deduplication rule for later coverage records satisfying the same requirement/outcome"
+
 and_gate: "Potentially yes: stale failed metadata must coexist with plan-local classification that does not join later passing evidence."
 
 ## Symptoms

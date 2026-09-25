@@ -3,18 +3,24 @@
 ## Intermittent: `Threadline.OperatorSurface.CriticTrustTest`
 
 - **Test:** `critic.measure rejects bidirectional canonical overlap without prefix confusion`
+  status: acknowledged
 - **Observed during:** Plan 202-01 execution, 2026-09-22
+  status: acknowledged
 - **Frequency:** 2 failures in 6 consecutive `mix test test/threadline/` runs; passes at `--seed 0`.
+  status: acknowledged
 - **Why deferred:** Out of scope for 202-01. This plan touches
   `lib/threadline/storage_schema.ex`, `lib/mix/tasks/threadline.install.ex`,
   `guides/getting-started-saas.md`, `mix.exs`'s `verify_hex_evaluator/1`,
   `.gitignore`, `bin/with-rehearsal-registry`, the hex evaluator fixture, and two
   doc contract tests. None of them reach critic trust.
+  status: acknowledged
 - **Suspected mechanism (unverified):** the test builds scratch trees under
   `_build/critic-trust-path-tests/<label>-<random>/`; a collision or cleanup race
   across concurrent runs is the obvious candidate. Not investigated.
+  status: acknowledged
 - **Next step:** reproduce under `mix verify.flake` and record the failing seed
   before attempting a fix.
+  status: acknowledged
 
 ### Orchestrator follow-up (2026-09-22, post-wave-1 gate)
 
@@ -26,6 +32,7 @@
   racing with another test's `_build` access, not a collision within this file's own runs.
 - Still unfixed and still out of 202-01's blast radius. **Re-check before the 202-05 publish
   gate** — "green by construction" cannot rest on a suite with an unexplained intermittent.
+  status: acknowledged
 
 ## From 202-02 (2026-09-22)
 
@@ -35,6 +42,7 @@
   default to a local rehearsal registry built from this tree's own tarball, so
   the claim is now false. Out of scope for 202-02 (not a version-bearing line and
   not in that plan's file list). Owner: Plan 03's documentation pass.
+  status: acknowledged
 
 ### Adjudicated by 202-03 (2026-09-22): still deferred, with a newly measured reason
 
@@ -65,18 +73,23 @@ effect of a changelog plan.
 - **Next step:** decide whether the evaluator's install shape is still a
   pin-shaped claim at all. If it is not, remove the literal from both sentences
   and re-measure the pin inventory in the same change.
+  status: acknowledged
 
 ### Flake re-check before the 202-05 publish gate (2026-09-22)
+
+status: acknowledged
 
 Status: **NOT REPRODUCIBLE. Mechanism unproven. Closed as unresolved, not as fixed.**
 
 Evidence gathered:
+
 - 3 consecutive full-suite runs post-Wave-3: 1692 tests, 0 failures each.
 - Earlier: 25/25 green for `critic_trust_test.exs` in isolation under random seeds.
 - Combined with the post-Plan-01 run, that is 4 consecutive full-suite greens since
   the original report (2 failures in 6 runs).
 
 Hypotheses tested and rejected:
+
 - **Timestamp/RNG in the writer** — rejected. `critic.measure` has no `utc_now`,
   no `:rand`, no shuffle; its only nondeterminism is a monotonic temp-file suffix,
   so the ledger write is deterministic given inputs.
@@ -101,10 +114,13 @@ unexplained."
 
 ### CORRECTION (2026-09-22, Task 1 rehearsal) — the flake mechanism IS proven
 
+status: acknowledged (v1.41 close, 2026-09-24)
+
 The entry above is **wrong** where it rejects the leftover-scratch-tree hypothesis and
 concludes "not reproducible." Superseded by direct evidence.
 
 Mechanism, proven:
+
 - `critic_trust_test.exs:1142` names its scratch dir with a bare
   `System.unique_integer([:positive])`. That counter is unique **per BEAM instance**
   and **restarts on every `mix test`**.
@@ -121,6 +137,7 @@ is. Three green runs simply did not draw a colliding integer. The symlink-loop
 read-order suspect is also withdrawn — it was never the cause.
 
 Consequences:
+
 - Collision probability rises monotonically with every run until `_build` is cleaned.
   `mix clean` or deleting `_build/critic-trust-path-tests/` resets it.
 - **CI is only safe here if its `_build` cache does not carry prior scratch trees.**

@@ -5,6 +5,10 @@ planted: 2026-09-13
 planted_during: v1.41 Phase 201 planning, after Phase 200 closeout
 trigger_when: when relevant
 scope: unknown
+audit_acknowledged:
+  milestone: v1.41
+  at: 2026-09-25
+  status: dormant
 ---
 
 # SEED-006: Reduce CI/CD feedback-loop cost and latency without weakening coverage

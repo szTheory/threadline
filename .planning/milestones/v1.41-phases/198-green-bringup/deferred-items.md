@@ -97,7 +97,7 @@
 
 ## Plan 198-28
 
-- **Status:** acknowledged (complete)
+- **Status:** acknowledged
 - **Acknowledged at:** 2026-08-28 (Plan 198-28 execution)
 
 - Re-ran `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium`
@@ -145,7 +145,7 @@
 
 ## Plan 198-29
 
-- **Status:** acknowledged (complete)
+- **Status:** acknowledged
 - **Acknowledged at:** 2026-08-29 (Plan 198-29 execution, gap-closure round 4)
 
 Measured CI run `33253587315` (`ci/198-round4`, head
@@ -154,6 +154,7 @@ concluded `failure` with **3 of 12 `ci-required` `needs:` members red** — unch
 in count from round 3, against a stated target of 1. One dated entry per still-red
 lane follows, each naming its cause and the decision or successor work that owns it.
 Full record: `198-CI-MEASUREMENT.md` `## Round 4 (2026-08-29) — Measured CI run`.
+  status: acknowledged
 
 ### Still-red lane 1 — `verify-test` / `Run test suite (current)`
 
@@ -193,6 +194,7 @@ Full record: `198-CI-MEASUREMENT.md` `## Round 4 (2026-08-29) — Measured CI ru
   (a `@tag timeout:` budget sized for a cold prod compile, or pre-warming
   `_build/prod` in the job — never `@tag :skip`, never deleting the prod-guard
   assertion).
+  status: acknowledged
 
 ### Still-red lane 2 — `verify-example-browser` / `Example app browser E2E (Playwright)`
 
@@ -242,6 +244,7 @@ Full record: `198-CI-MEASUREMENT.md` `## Round 4 (2026-08-29) — Measured CI ru
   which covers a different population than a capped CI run. Only 2 of the 5 CI
   failures appear anywhere in it. A local inventory is a weak predictor of which
   tests a capped CI run will surface.
+  status: acknowledged
 
 ### Still-red lane 3 — `verify-capture` / `Tier A capture lane (byte-stable evidence)`
 
@@ -261,6 +264,7 @@ Full record: `198-CI-MEASUREMENT.md` `## Round 4 (2026-08-29) — Measured CI ru
   available remedy is Tier-A `page.*` scorecard regeneration, forbidden for this
   entire milestone. **No remedy attempted, no scorecard regenerated, lane not removed
   from `needs:`. Red by construction, not by defect.**
+  status: acknowledged
 
 ### Prohibitions verified for this plan
 
@@ -273,10 +277,11 @@ Full record: `198-CI-MEASUREMENT.md` `## Round 4 (2026-08-29) — Measured CI ru
   (D-39).
 - No check re-run, re-dispatched, or selectively retried. `attempt: 1`.
 - No assertion weakened, no `@tag :skip` added, no allowlist widened.
+  status: acknowledged
 
 ## Round 5
 
-- **Status:** deferred
+- **Status:** acknowledged
 - **Acknowledged at:** 2026-08-30 (Plan 198-36 execution, gap-closure round 5 review triage)
 
 **IN-01 — Row-history screenshot targets a content-sized element with no height guard.**
@@ -295,7 +300,7 @@ disposition record and its verification citation.
 
 ## Round 6 — GREEN-07 milestone disposition
 
-- **Status:** accepted (terminal for v1.41)
+- **Status:** acknowledged
 - **Acknowledged at:** 2026-08-30 (Plan 198-39 execution, gap-closure round 6, blocking-decision
   checkpoint answered by the maintainer: option-a)
 
