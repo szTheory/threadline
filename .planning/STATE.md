@@ -4,18 +4,18 @@ milestone: v1.41
 milestone_name: Green, Clean, and Honest
 current_phase: 207
 current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
-status: verifying
-stopped_at: Completed 207-03-PLAN.md
-last_updated: "2026-09-24T21:24:44.231Z"
+status: completed
+stopped_at: Phase 207 complete — all phases complete
+last_updated: "2026-09-25T00:45:42.181Z"
 last_activity: 2026-09-24
-last_activity_desc: Completed 207-03 (public storage_schema default in all guides, rerun docs, CHANGELOG, phase gate)
-state_head: 224ea8f21a83e23798613c06e6030a60841ecb21
+last_activity_desc: Phase 207 complete
+state_head: 55c3d0f5d4ba6f1a6a846259caf2d1cc3f997824
 progress:
   total_phases: 10
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 153
   completed_plans: 153
-  percent: 90
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -29,9 +29,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
 
 ## Current Position
 
-Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — ALL PLANS EXECUTED, VERIFYING
+Phase: 207 (Trigger Migration Rerun and Storage-Schema Default Docs) — COMPLETE, verified passed 16/16
 Plan: 3 of 3
-Status: Phase 207 — 3/3 plans executed; code review CR-01 + WR-01..03 fixed (35ec16b8, 917418ff, 292c0173, 660e2ad3; 207-REVIEW-FIX.md all_fixed, CR-01 flagged for human check of the logic change; per-table/per-table 36-byte-prefix collision deferred) — next: verify
+Status: All v1.41 phases complete (198–207) — next: milestone re-audit
 
 **READ BEFORE PLANNING 202 — the release is NOT a bookkeeping exercise.**
 Research found PR #26 (`chore(main): release 0.10.0`, open since 2026-06-26) is
@@ -133,7 +133,7 @@ Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, prese
 - **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
 - **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
 
-Last activity: 2026-09-24 — Phase 207 execution started
+Last activity: 2026-09-24 — Phase 207 complete
 
 Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
 
@@ -160,7 +160,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 153/153 plans ([█████████░] 90% of phases — 9 of 10 complete: 198–206; 207 Trigger Migration Rerun — 3 of 3 plans done, awaiting phase verification (207-01 OR REPLACE trigger + non-cascading orphan drop: 1a9fbd53, 918103fa; 207-02 gen.triggers rerun name/module, orphan drop in up, per-table rollback: 1dc427aa, a12ebddf, a32d97c0; 207-03 public default in all guides + guard, rerun docs, CHANGELOG, e2e probe + gate 1839 tests/0 failures: 96f703c6, a69b0cc1); 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
+Progress: [████████████████████] 153/153 plans ([██████████] 100% of phases — 10 of 10 complete: 198–207; 207 Trigger Migration Rerun verified passed 16/16 (W1+W2 closed; 207-01 OR REPLACE trigger + non-cascading orphan drop: 1a9fbd53, 918103fa; 207-02 gen.triggers rerun name/module, orphan drop in up, per-table rollback: 1dc427aa, a12ebddf, a32d97c0; 207-03 public default in all guides + guard, rerun docs, CHANGELOG, e2e probe + gate 1839 tests/0 failures: 96f703c6, a69b0cc1); 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
 
 ## Performance Metrics
 
@@ -862,7 +862,7 @@ Progress: [████████████████████] 153/153
 ## Session Continuity
 
 **Last session:** 2026-09-24T21:24:44.037Z
-**Stopped at:** Completed 207-03-PLAN.md
+**Stopped at:** Phase 207 complete — all phases complete
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
