@@ -345,10 +345,26 @@ defmodule Threadline.SourceSizeContractTest do
           value = meta[key],
           do: if(is_list(value), do: value[:line], else: value)
 
-    {node, Enum.max([line | Enum.filter(lines, &is_integer/1)])}
+    {node, Enum.max([line, heredoc_closing_line(node) | Enum.filter(lines, &is_integer/1)])}
   end
 
   defp max_meta_line(node, line), do: {node, line}
+
+  # A heredoc body records only its opening line, and Elixir 1.15 omits the
+  # clause's `end_of_expression` when it is the last expression before `end`, so
+  # the closing delimiter's line is derived from the content: one line per
+  # newline in the literal parts, then the delimiter line itself.
+  defp heredoc_closing_line({:<<>>, meta, parts}) when is_list(parts) do
+    case {meta[:indentation], meta[:line]} do
+      {indentation, start} when is_integer(indentation) and is_integer(start) ->
+        start + Enum.sum(for part <- parts, is_binary(part), do: line_count(part)) + 1
+
+      _not_heredoc ->
+        0
+    end
+  end
+
+  defp heredoc_closing_line(_node), do: 0
 
   defp name_arity({:when, _, [head | _]}), do: name_arity(head)
   defp name_arity({name, _, args}) when is_list(args), do: {clause_name(name), length(args)}
