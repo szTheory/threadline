@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/szTheory/threadline/compare/v0.10.1...v0.10.2) (2026-09-25)
+
+
+### Bug Fixes
+
+* give installer and gen.triggers rerun migrations distinct, applicable versions ([#49](https://github.com/szTheory/threadline/issues/49)) ([3885b7d](https://github.com/szTheory/threadline/commit/3885b7d14076fe61819d3fa4e8de7aa777344fca))
+
 ## [0.10.1](https://github.com/szTheory/threadline/compare/v0.10.0...v0.10.1) (2026-09-22)
 
 
