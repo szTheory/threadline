@@ -649,4 +649,4 @@ jobs:
             --title "chore(release): sync distribution docs for ${RELEASE_VERSION}" \
             --body "Automated post-publish distribution sync from Release workflow run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
 
-          Merge after \`mix verify.doc_contract\` passes on this PR."
+          Merge after CI (\`mix verify.test\`) is green on this PR."

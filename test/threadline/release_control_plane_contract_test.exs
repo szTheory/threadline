@@ -112,6 +112,52 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
              "never be a member of the per-PR required check."
   end
 
+  # --- Phase 205 / RELEASE-02: the release PR pin-sync job -------------------
+  #
+  # release-please bumps @version but cannot rewrite the documented `~> x.y.0`
+  # install pins; `mix release.pins` owns them. Without this job the release PR
+  # is born red. A merge that silently drops it leaves every other gate green,
+  # which is exactly how v1.41 audit finding F1 hid, so the wiring is pinned here.
+
+  test "the release PR pin-sync job exists, is scoped, and gates the CI bootstrap" do
+    sync = job_block!(release_workflow(), "sync-release-pr-pins")
+    bootstrap = job_block!(release_workflow(), "bootstrap-release-pr-ci")
+
+    assert sync =~ ~r/^    needs: release-please$/m,
+           "sync-release-pr-pins must need release-please. It can only rewrite pins on a " <>
+             "release PR that release-please has already opened or updated (RELEASE-02)."
+
+    assert sync =~ "run: mix release.pins\n",
+           "sync-release-pr-pins must run `mix release.pins`. Without it release-please " <>
+             "cannot own the install pins and the release PR is born red (RELEASE-02)."
+
+    assert sync =~ "mix release.pins --check",
+           "sync-release-pr-pins must confirm the pin writer is idempotent with " <>
+             "`mix release.pins --check`, or a half-written pin set is pushed as green."
+
+    assert sync =~ ~r/^\s+persist-credentials: false$/m,
+           "sync-release-pr-pins must check out with persist-credentials: false. The job " <>
+             "compiles every dependency, and a persisted token is readable by their " <>
+             "compile-time code (202-REVIEW WR-01)."
+
+    assert sync =~ ~r/^    concurrency:\n      group: sync-release-pr-pins$/m,
+           "sync-release-pr-pins must carry its own concurrency group, or two pushes to " <>
+             "main race to push onto the release branch and the loser fails (202-REVIEW WR-02)."
+
+    assert length(Regex.scan(~r/^\s+PUSH_TOKEN:/m, sync)) == 1,
+           "sync-release-pr-pins must bind PUSH_TOKEN exactly once, in the push step's env, " <>
+             "so the token is supplied to the push step alone (202-REVIEW WR-01)."
+
+    assert bootstrap =~ ~r/^    needs: \[release-please, sync-release-pr-pins\]$/m,
+           "bootstrap-release-pr-ci must need sync-release-pr-pins, so the dispatched CI " <>
+             "run tests the release PR's final head with its pins synced (RELEASE-02)."
+
+    assert bootstrap =~ ~r/^    if: always\(\)/m,
+           "bootstrap-release-pr-ci's `if:` must start with always(). Without it a failed " <>
+             "pin sync silently suppresses the CI bootstrap and the release PR gets no CI " <>
+             "at all (202-REVIEW WR-03)."
+  end
+
   defp release_workflow, do: File.read!(Path.join(@root, ".github/workflows/release.yml"))
 
   # Isolates one job's YAML block: everything from its two-space key up to the

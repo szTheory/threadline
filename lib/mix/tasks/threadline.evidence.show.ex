@@ -75,11 +75,10 @@ defmodule Mix.Tasks.Threadline.Evidence.Show do
   defp validate_argv!([], invalid) do
     flags =
       invalid
-      |> Enum.map(fn
+      |> Enum.map_join(", ", fn
         {key, nil} -> invalid_option_name(key)
         {key, value} -> "#{invalid_option_name(key)}=#{value}"
       end)
-      |> Enum.join(", ")
 
     Mix.raise("threadline.evidence.show: unknown option(s): #{flags}")
   end

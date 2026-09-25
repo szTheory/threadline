@@ -8,39 +8,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
-  defmodule Threadline.OperatorSurface.TransactionLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-
-    def render("500.html", assigns) do
-      ~H"""
-      Error 500: <%= inspect(assigns.reason) %>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.TransactionLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.TransactionLiveTest.Layouts, :root}
-      )
-    end
+    use Threadline.OperatorSurfaceTest.Router
 
     scope "/" do
       pipe_through(:browser)
@@ -49,20 +18,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.TransactionLiveTest.ScopedRouter do
-    use Phoenix.Router
+    use Threadline.OperatorSurfaceTest.Router
+
     import Ecto.Query
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.TransactionLiveTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -98,64 +56,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.TransactionLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.TransactionLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TransactionLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.TransactionLiveTest.ScopedEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_tx_scoped_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.TransactionLiveTest.ScopedRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TransactionLiveTest.ScopedRouter
   end
 
   defmodule Threadline.OperatorSurface.TransactionLiveTest do
     use ExUnit.Case, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TransactionLiveTest.Endpoint
+
     import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
-
-    @endpoint Threadline.OperatorSurface.TransactionLiveTest.Endpoint
+    alias Threadline.Semantics.AuditAction
+    alias Threadline.Test.Repo
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.TransactionLiveTest.Endpoint,
-        secret_key_base: "x" |> String.duplicate(64),
-        live_view: [signing_salt: "x" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TransactionLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
-      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(AuditTransaction, repo_opts())
+      Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -188,7 +118,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       txn =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
           }),
@@ -211,7 +141,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       txn =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
           }),
@@ -235,7 +165,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       txn =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now()
           }),
@@ -244,7 +174,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       _change =
         repo.insert!(
-          Threadline.Capture.AuditChange.changeset(%{
+          AuditChange.changeset(%{
             transaction_id: txn.id,
             table_schema: "public",
             table_name: "users",
@@ -439,7 +369,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       action =
         repo.insert!(
-          Threadline.Semantics.AuditAction.changeset(%{
+          AuditAction.changeset(%{
             name: "support.reply",
             actor_ref: %{"type" => "user", "id" => "agent-1"},
             status: :ok,
@@ -482,7 +412,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       correlation_visible = Presentation.ref(correlation_id, kind: :correlation).visible
 
       assert html =~ "tl-short-content"
-      # UI.ref binds the FULL value to BOTH the <code> title/data-tl-copy and the
+      # UI.Display.ref binds the FULL value to BOTH the <code> title/data-tl-copy and the
       # gated copy button — never the truncated/visible/title face (D-02 footgun fix).
       assert html =~ ~s|title="#{txn.id}"|
       assert html =~ txn_visible
@@ -506,7 +436,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       action =
         repo.insert!(
-          Threadline.Semantics.AuditAction.changeset(%{
+          AuditAction.changeset(%{
             name: "support.reply",
             actor_ref: %{"type" => "user", "id" => "agent-1"},
             status: :ok,
@@ -606,7 +536,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         txn =
           repo.insert!(
-            Threadline.Capture.AuditTransaction.changeset(%{
+            AuditTransaction.changeset(%{
               txid: :rand.uniform(1_000_000_000),
               occurred_at: DateTime.utc_now()
             }),
@@ -623,18 +553,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.TransactionLiveScopedTest do
     use ExUnit.Case, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TransactionLiveTest.ScopedEndpoint
+
     import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
-
-    @endpoint Threadline.OperatorSurface.TransactionLiveTest.ScopedEndpoint
+    alias Threadline.Test.Repo
 
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditTransaction.changeset(Map.merge(defaults, attrs)),
         repo_opts()
       )
@@ -653,26 +584,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
+      Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
     end
 
     setup_all do
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.TransactionLiveTest.ScopedEndpoint,
-        secret_key_base: "q" |> String.duplicate(64),
-        live_view: [signing_salt: "q" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.TransactionLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
-      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(AuditTransaction, repo_opts())
+      Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 

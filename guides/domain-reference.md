@@ -52,6 +52,8 @@ Both surfaces use the same three-state taxonomy:
 - **Drift detected** — configured redaction does not match deployed trigger SQL. Rerun `mix threadline.gen.triggers` and apply the migration.
 - **Could not introspect** — Threadline could not safely parse the deployed trigger SQL. Rerun `mix threadline.gen.triggers`; do not assume capture is aligned.
 
+A rerun writes a new migration that replaces the trigger in place, with no capture gap. Its name is numbered, for example `threadline_triggers_posts_2`, when the table-derived name is already taken; a rerun for a different table set keeps an un-numbered name. Rolling it back keeps capture on and does not restore the earlier capture policy; to stop capture, write an explicit migration that drops the trigger or roll back the migration that first installed it. If the rerun removed redaction rules, a rollback leaves changes captured unredacted, which the drift view and `mix threadline.policy.show` flag.
+
 This is a viewer, not a mutator. Policy edits still happen in `config :threadline, :trigger_capture`, then through regenerated trigger migrations. Both surfaces stay read-only and never show sample values; they expose only column names plus `mask_placeholder` metadata so operators can verify policy shape safely.
 
 ## Retention
@@ -308,7 +310,7 @@ authorization policy beyond that baseline.
 
 ## Support incident queries
 
-SQL-native operator playbooks for the five canonical evidence-driving support questions. Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** for Threadline's storage schema — usually `threadline` unless you configured `storage_schema: "public"` or another name. Replace it (and any `your_table` / PK literals) with your install’s names before executing.
+SQL-native operator playbooks for the five canonical evidence-driving support questions. Run against a **read-only** session or **replica** when possible. Example SQL uses placeholder schema **`your_schema`** for Threadline's storage schema — usually `public` unless you configured a dedicated `storage_schema` such as `"threadline"`. Replace it (and any `your_table` / PK literals) with your install’s names before executing.
 
 **Replace before run:** `your_schema` → Threadline storage schema; `your_table` / PK values → the row under investigation; time literals → bounded window; `your_correlation_id` → trace string from logs. Use `ac.table_schema` predicates when audited host tables live outside `public` or duplicate table names exist.
 

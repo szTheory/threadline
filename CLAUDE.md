@@ -75,6 +75,11 @@ These come from the project's OSS DNA (`prompts/threadline-elixir-oss-dna.md`):
 
 ## GSD / local planning
 
+**Zero human verification by default.** Automate UAT and verification (tests, CI
+gates where they keep paying off, and agent review for judgment calls such as prose
+clarity). Hand the maintainer only secrets, spend, push/publish, and scope decisions.
+Full rule: `.planning/PROJECT.md` → Constraints → "Zero human verification by default".
+
 **`state.begin-phase` argument style depends on which tool is on PATH — check first.**
 - `@opengsd/gsd-core` v1.14.0 (`gsd-tools.cjs`, current): requires **flags** —
   `--phase 202 --name "Release 0.10.0" --plans 5`. Positional args are rejected

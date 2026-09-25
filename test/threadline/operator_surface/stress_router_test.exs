@@ -28,6 +28,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.StressRouter
 
+    alias Threadline.OperatorSurface.StressRouter
+    alias Threadline.OperatorSurface.StressRouterTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -41,11 +44,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     scope "/audit" do
       pipe_through(:browser)
 
-      Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress("/__stress",
+      StressRouter.threadline_operator_surface_stress("/__stress",
         ledger_session: {Threadline.OperatorSurface.StressRouterTest.LedgerSession, :session, []},
-        authorize_fn: &Threadline.OperatorSurface.StressRouterTest.Auth.authorize/1,
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.StressRouterTest.Auth.coverage_authorize/1,
+        authorize_fn: &Auth.authorize/1,
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
         theme: :system
       )
     end
@@ -73,6 +75,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.LiveView.Router
     require Threadline.OperatorSurface.StressRouter
 
+    alias Threadline.OperatorSurface.StressRouter
+    alias Threadline.OperatorSurface.StressRouterTest.Auth
+
     pipeline :browser do
       plug(:accepts, ["html"])
       plug(:fetch_session)
@@ -86,11 +91,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     scope "/ops" do
       pipe_through(:browser)
 
-      Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress("/__stress",
+      StressRouter.threadline_operator_surface_stress("/__stress",
         ledger_session: {Threadline.OperatorSurface.StressRouterTest.LedgerSession, :session, []},
-        authorize_fn: &Threadline.OperatorSurface.StressRouterTest.Auth.authorize/1,
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.StressRouterTest.Auth.coverage_authorize/1,
+        authorize_fn: &Auth.authorize/1,
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
         theme: :dark
       )
     end
@@ -118,8 +122,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
+    alias Threadline.OperatorSurface.Live.StressLive
     alias Threadline.OperatorSurface.StressFixtures
+    alias Threadline.OperatorSurface.StressRouter
     alias Threadline.Test.OperatorSurfaceFixtures
+    alias Threadline.Test.SourceFamily
+    alias Threadline.Test.StyleSource
 
     @endpoint Threadline.OperatorSurface.StressRouterTest.Endpoint
     @ledger_path OperatorSurfaceFixtures.ledger!()
@@ -127,7 +135,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @example_router_source "examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex"
     @stress_router_source "lib/threadline/operator_surface/stress_router.ex"
     @stress_live_source "lib/threadline/operator_surface/live/stress_live.ex"
-    @style_source "lib/threadline/operator_surface/style.ex"
 
     setup_all do
       Application.put_env(:threadline, Threadline.OperatorSurface.StressRouterTest.Endpoint,
@@ -187,7 +194,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               scope "/" do
                 pipe_through(:browser)
 
-                Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress(
+                StressRouter.threadline_operator_surface_stress(
                   "/__stress",
                   authorize_fn: &__MODULE__.authorize/1
                 )
@@ -229,7 +236,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                            scope "/" do
                              pipe_through(:browser)
 
-                             Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress(
+                             StressRouter.threadline_operator_surface_stress(
                                "/__stress",
                                stress_env: :prod,
                                authorize_fn: &__MODULE__.authorize/1
@@ -256,7 +263,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               scope "/" do
                 pipe_through(:browser)
 
-                Threadline.OperatorSurface.StressRouter.threadline_operator_surface_stress(
+                StressRouter.threadline_operator_surface_stress(
                   "/__stress",
                   stress_env: :test,
                   authorize_fn: &__MODULE__.authorize/1
@@ -400,7 +407,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert_raise ArgumentError,
                    ~r/Threadline stress session ledger entries must be a non-empty list.*Recovery: mix test test\/threadline\/operator_surface\/stress_router_test.exs/s,
                    fn ->
-                     Threadline.OperatorSurface.Live.StressLive.mount(
+                     StressLive.mount(
                        %{},
                        %{"threadline_stress_ledger_entries" => %{}},
                        %Phoenix.LiveView.Socket{}
@@ -515,8 +522,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       source =
         [
           File.read!(@stress_router_source),
-          File.read!(@stress_live_source),
-          File.read!(@style_source)
+          SourceFamily.read!(@stress_live_source),
+          StyleSource.read!()
         ]
         |> Enum.join("\n")
 
@@ -533,7 +540,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "StressLive source exposes required stable test IDs" do
-      source = File.read!(@stress_live_source)
+      source = SourceFamily.read!(@stress_live_source)
 
       for test_id <- [
             "stress-story-id",
@@ -597,6 +604,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
+    alias Threadline.Test.OperatorSurfaceFixtures
+
     @endpoint Threadline.OperatorSurface.StressRouterTest.AlternateEndpoint
 
     setup_all do
@@ -627,7 +636,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Application.put_env(:threadline, :stress_router_ledger_session, %{
         "threadline_stress_ledger_entries" =>
-          Threadline.Test.OperatorSurfaceFixtures.ledger!()
+          OperatorSurfaceFixtures.ledger!()
           |> File.read!()
           |> Jason.decode!()
           |> Map.fetch!("entries")

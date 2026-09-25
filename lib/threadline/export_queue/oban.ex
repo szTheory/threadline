@@ -31,9 +31,8 @@ defmodule Threadline.ExportQueue.Oban do
   def init(opts) do
     with :ok <- ensure_oban_loaded(),
          :ok <- validate_oban_name(Keyword.get(opts, :oban_name, Oban)),
-         :ok <- validate_queue(Keyword.get(opts, :queue, :threadline_exports)),
-         :ok <- validate_worker(Keyword.get(opts, :worker_mod, Threadline.ExportQueue.ObanWorker)) do
-      :ok
+         :ok <- validate_queue(Keyword.get(opts, :queue, :threadline_exports)) do
+      validate_worker(Keyword.get(opts, :worker_mod, Threadline.ExportQueue.ObanWorker))
     end
   end
 
@@ -106,13 +105,15 @@ if Code.ensure_loaded?(Oban) do
     @moduledoc false
     use Oban.Worker, queue: :threadline_exports, max_attempts: 3
 
+    alias Threadline.Export.Orchestrator
+
     @impl Oban.Worker
     def perform(%Oban.Job{args: %{"job_id" => job_id, "storage_schema" => storage_schema}}) do
-      Threadline.Export.Orchestrator.run(job_id, storage_schema: storage_schema)
+      Orchestrator.run(job_id, storage_schema: storage_schema)
     end
 
     def perform(%Oban.Job{args: %{"job_id" => job_id}}) do
-      Threadline.Export.Orchestrator.run(job_id)
+      Orchestrator.run(job_id)
     end
   end
 end

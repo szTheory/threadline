@@ -1,37 +1,14 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.PolicyRedactionLiveTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.PolicyRedactionLiveTest.Auth
 
     scope "/" do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
-        policy_authorize_fn: &Threadline.OperatorSurface.PolicyRedactionLiveTest.Auth.authorize/1
+        policy_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -41,35 +18,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "p0l1cy"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.PolicyRedactionLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.PolicyRedactionLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest do
     use ExUnit.Case, async: false
 
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.PolicyRedactionLiveTest.Endpoint
 
     alias Threadline.Capture.{AuditChange, AuditTransaction, TriggerSQL}
     alias Threadline.Policy.RedactionPresenter
     alias Threadline.Semantics.AuditAction
     alias Threadline.StorageSchema
     alias Threadline.Test.Repo
-
-    @endpoint Threadline.OperatorSurface.PolicyRedactionLiveTest.Endpoint
 
     @alpha "threadline_policy_redaction_alpha"
     @bravo "threadline_policy_redaction_bravo"
@@ -79,14 +42,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @tables [@alpha, @bravo, @charlie, @delta]
 
     setup_all do
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.PolicyRedactionLiveTest.Endpoint,
-        secret_key_base: "p" |> String.duplicate(64),
-        live_view: [signing_salt: "p" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.PolicyRedactionLiveTest.Layouts]
-      )
-
       Application.put_env(:threadline, :test_allow_policy, true)
 
       Enum.each(@tables, fn table ->
@@ -106,7 +61,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end)
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 

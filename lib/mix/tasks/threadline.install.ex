@@ -19,6 +19,18 @@ defmodule Mix.Tasks.Threadline.Install do
   use Mix.Task
   import Mix.Generator
 
+  alias Threadline.Mix.MigrationVersion
+
+  # Written in this order, so each family's version sorts after the one before.
+  @families [
+    {"_threadline_audit_schema.exs", "Threadline audit schema migration",
+     &Threadline.Capture.Migration.migration_content/0},
+    {"_threadline_semantics_schema.exs", "Threadline semantics schema migration",
+     &Threadline.Semantics.Migration.migration_content/0},
+    {"_threadline_governance_schema.exs", "Threadline governance schema migration",
+     &Threadline.Governance.Migration.migration_content/0}
+  ]
+
   @impl Mix.Task
   def run(_args) do
     Mix.Task.run("app.config", [])
@@ -26,90 +38,106 @@ defmodule Mix.Tasks.Threadline.Install do
     path = migrations_path()
     File.mkdir_p!(path)
 
-    written =
-      [
-        generate(
-          path,
-          "_threadline_audit_schema.exs",
-          "Threadline audit schema migration",
-          &Threadline.Capture.Migration.migration_content/0
-        ),
-        generate(
-          path,
-          "_threadline_semantics_schema.exs",
-          "Threadline semantics schema migration",
-          &Threadline.Semantics.Migration.migration_content/0
-        ),
-        generate(
-          path,
-          "_threadline_governance_schema.exs",
-          "Threadline governance schema migration",
-          &Threadline.Governance.Migration.migration_content/0
-        )
-      ]
-      |> Enum.reject(&is_nil/1)
+    pending = Enum.reject(@families, fn {suffix, _, _} -> existing_migration?(path, suffix) end)
+
+    # Every version is chosen before anything is written, so the files this
+    # run creates can never share a version with each other or with a
+    # migration already in the directory.
+    versions = MigrationVersion.next(path, length(pending))
+
+    {results, []} =
+      Enum.map_reduce(@families, versions, fn {suffix, label, content_fun} = family, remaining ->
+        if family in pending do
+          [version | rest] = remaining
+          {generate(path, version <> suffix, content_fun), rest}
+        else
+          Mix.shell().info("#{label} already exists — skipping.")
+          {:skipped, remaining}
+        end
+      end)
+
+    written = for {:written, file} <- results, do: file
 
     if written != [] do
       Mix.shell().info("Run `mix ecto.migrate` to apply the migration(s).")
     end
 
-    recommend_dedicated_storage_schema(written)
+    recommend_storage_schema(results)
   end
 
-  # Returns the path of the migration it wrote, or nil when one already exists.
-  defp generate(path, suffix, label, content_fun) do
-    if existing_migration?(path, suffix) do
-      Mix.shell().info("#{label} already exists — skipping.")
-      nil
-    else
-      file = Path.join(path, "#{timestamp()}#{suffix}")
-      create_file(file, content_fun.())
-      file
-    end
+  # Writes one migration under its full file name and reports the path written.
+  defp generate(path, filename, content_fun) do
+    file = Path.join(path, filename)
+    create_file(file, content_fun.())
+    {:written, file}
   end
 
   # The storage schema is frozen into the migrations at generation time.
   # Threadline defaults to the host's `public` schema because it cannot detect
   # where an existing install put its audit tables, which means a new install
   # gets no schema isolation unless it opts in. This advice runs AFTER
-  # generation and names the files it just wrote: re-running the task skips any
-  # migration that already exists, so "set the key and re-run" alone would leave
-  # the config pointing at a dedicated schema while the generated migrations
-  # still target `public`. When nothing was written (an existing install), the
-  # advice is withheld — `public` is exactly what such an install already has.
-  defp recommend_dedicated_storage_schema([]), do: :ok
+  # generation and has three branches:
+  #
+  #   * A fresh install (every migration written by this run) gets the
+  #     dedicated-schema recipe, naming the files it just wrote: re-running
+  #     the task skips any migration that already exists, so "set the key and
+  #     re-run" alone would leave the config pointing at a dedicated schema
+  #     while the generated migrations still target `public`.
+  #   * A partial re-run (some migrations were already present) is told to
+  #     keep `public`: the migrations already there target it, so switching
+  #     now would split Threadline's tables across two schemas.
+  #   * When nothing was written, or the key is configured, there is no advice.
+  defp recommend_storage_schema(results) do
+    written = for {:written, file} <- results, do: file
 
-  defp recommend_dedicated_storage_schema(written) do
-    if is_nil(Application.get_env(:threadline, :storage_schema)) do
-      files = Enum.map_join(written, "\n", &"    #{&1}")
-
-      Mix.shell().info("""
-
-      No `:storage_schema` is configured, so the migrations above put
-      Threadline-owned tables and trigger functions in your `public` schema.
-
-      For a NEW install a dedicated schema is recommended. To switch BEFORE
-      running `mix ecto.migrate`:
-
-        1. Delete the migration files this run just generated:
-
-      #{files}
-
-        2. Add to `config/config.exs`:
-
-              config :threadline, storage_schema: "threadline"
-
-        3. Re-run `mix threadline.install`.
-
-      Deleting them first matters: the task skips any Threadline migration that
-      already exists, so re-running without deleting would keep the `public`
-      migrations while your config points at the dedicated schema. After
-      `mix ecto.migrate` has run, moving schemas is deliberate migration work.
-
-      Existing installs need no action: `public` is the default precisely so an
-      upgrade keeps reading the tables it already has.
-      """)
+    cond do
+      not is_nil(Application.get_env(:threadline, :storage_schema)) -> :ok
+      written == [] -> :ok
+      Enum.all?(results, &match?({:written, _}, &1)) -> recommend_dedicated_schema(written)
+      true -> keep_public_schema()
     end
+  end
+
+  defp recommend_dedicated_schema(written) do
+    files = Enum.map_join(written, "\n", &"    #{&1}")
+
+    Mix.shell().info("""
+
+    No `:storage_schema` is configured, so the migrations above put
+    Threadline-owned tables and trigger functions in your `public` schema.
+
+    For a NEW install a dedicated schema is recommended. To switch BEFORE
+    running `mix ecto.migrate`:
+
+      1. Delete the migration files this run just generated:
+
+    #{files}
+
+      2. Add to `config/config.exs`:
+
+            config :threadline, storage_schema: "threadline"
+
+      3. Re-run `mix threadline.install`.
+
+    Deleting them first matters: the task skips any Threadline migration that
+    already exists, so re-running without deleting would keep the `public`
+    migrations while your config points at the dedicated schema. After
+    `mix ecto.migrate` has run, moving schemas is deliberate migration work.
+    """)
+  end
+
+  defp keep_public_schema do
+    Mix.shell().info("""
+
+    Existing Threadline migrations were found, so the new migration(s) above
+    target `public` to match them. Keep `:storage_schema` unset.
+
+    Setting `storage_schema: "threadline"` now would split Threadline's tables
+    across two schemas. To move to a dedicated schema, delete ALL Threadline
+    migrations before the first `mix ecto.migrate`, set the key, and re-run
+    `mix threadline.install`. After migrating, moving schemas is deliberate
+    migration work.
+    """)
   end
 
   defp migrations_path do
@@ -120,13 +148,7 @@ defmodule Mix.Tasks.Threadline.Install do
 
       case app_env do
         [repo | _] ->
-          priv =
-            case repo.config()[:priv] do
-              nil -> "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}"
-              p -> p
-            end
-
-          Path.join(priv, "migrations")
+          repo_migrations_path(repo)
 
         [] ->
           "priv/repo/migrations"
@@ -136,19 +158,23 @@ defmodule Mix.Tasks.Threadline.Install do
     _ -> "priv/repo/migrations"
   end
 
+  # Called inside migrations_path/0, so its rescue still covers a raising repo.
+  defp repo_migrations_path(repo) do
+    case repo.config()[:priv] do
+      nil ->
+        Path.join(
+          "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}",
+          "migrations"
+        )
+
+      p ->
+        Path.join(p, "migrations")
+    end
+  end
+
+  # Recursive, like Ecto's migrator and MigrationVersion.existing_versions/1, so
+  # a Threadline migration a host moved into a subdirectory still counts.
   defp existing_migration?(path, suffix) do
-    path
-    |> File.ls!()
-    |> Enum.any?(&String.ends_with?(&1, suffix))
-  rescue
-    _ -> false
+    Path.wildcard(Path.join([path, "**", "*" <> suffix])) != []
   end
-
-  defp timestamp do
-    {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
-    "#{y}#{pad(m)}#{pad(d)}#{pad(hh)}#{pad(mm)}#{pad(ss)}"
-  end
-
-  defp pad(i) when i < 10, do: "0#{i}"
-  defp pad(i), do: "#{i}"
 end

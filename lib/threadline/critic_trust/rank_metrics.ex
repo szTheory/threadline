@@ -30,15 +30,19 @@ defmodule Threadline.CriticTrust.RankMetrics do
     else
       wins =
         for p <- pos, n <- neg, reduce: 0.0 do
-          acc ->
-            cond do
-              p > n -> acc + 1.0
-              p == n -> acc + 0.5
-              true -> acc
-            end
+          acc -> add_pairwise_win(acc, p, n)
         end
 
       {:ok, wins / (length(pos) * length(neg))}
+    end
+  end
+
+  # Pairwise win score for one (good, bad) pair: a win adds 1.0, a tie adds 0.5.
+  defp add_pairwise_win(acc, p, n) do
+    cond do
+      p > n -> acc + 1.0
+      p == n -> acc + 0.5
+      true -> acc
     end
   end
 

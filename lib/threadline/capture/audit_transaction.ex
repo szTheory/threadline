@@ -41,6 +41,9 @@ defmodule Threadline.Capture.AuditTransaction do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @typedoc "The row changes captured from one PostgreSQL database transaction."
+  @type t :: %__MODULE__{}
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
@@ -56,7 +59,6 @@ defmodule Threadline.Capture.AuditTransaction do
     # without either.
     field(:actor_ref, Threadline.Semantics.ActorRef)
 
-    @compile {:no_warn_undefined, Threadline.Semantics.AuditAction}
     belongs_to(:action, Threadline.Semantics.AuditAction)
 
     has_many(:changes, Threadline.Capture.AuditChange, foreign_key: :transaction_id)

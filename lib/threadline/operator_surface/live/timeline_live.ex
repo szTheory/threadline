@@ -10,28 +10,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Ecto.Query
 
-    alias Phoenix.LiveView.JS
     alias Threadline.Export
+    alias Threadline.Governance.ExportJob
+    alias Threadline.Governance.SavedView
+    alias Threadline.OperatorSurface.Live.TimelineLive.Filters
+    alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
     alias Threadline.OperatorSurface.Presentation
-    alias Threadline.OperatorSurface.Exports.FilterParams
+    alias Threadline.OperatorSurface.UI
     alias Threadline.Query
+    alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
-    alias Threadline.OperatorSurface.UI
 
     @page_size 50
-    @default_window_hours 24
-
-    # --------------------------------------------------------------------------
-    # mount/3
-    # --------------------------------------------------------------------------
 
     def mount(_params, _session, socket) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
 
-      # Bracket form — scope is set ONLY when :authorize_fn returns {:ok, scope}.
-      # For :ok / true returns, the assign is absent. (auth.ex:21-27)
+      # Bracket form — the scope assign is nil unless the operator's :authorize_fn
+      # returns {:ok, scope} (see `Threadline.OperatorSurface.Auth`).
       scope = socket.assigns[:threadline_scope]
       actor_ref = socket.assigns[:threadline_actor_ref]
 
@@ -49,7 +47,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       saved_views =
         if ActorRef.identifiable?(actor_ref) do
           repo.all(
-            from(v in Threadline.Governance.SavedView,
+            from(v in SavedView,
               where: v.actor_ref == ^actor_ref,
               order_by: [desc: v.inserted_at]
             ),
@@ -82,10 +80,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, socket}
     end
 
-    # --------------------------------------------------------------------------
-    # handle_params/3
-    # --------------------------------------------------------------------------
-
     def handle_params(params, uri, socket) do
       uri_parsed = URI.parse(uri)
       # Timeline is mounted at "<surface>/timeline"; strip the suffix so base_path
@@ -100,7 +94,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:timeline_path, timeline_path)
 
       if params == %{} do
-        from = DateTime.utc_now() |> DateTime.add(-@default_window_hours * 3600, :second)
+        from = DateTime.utc_now() |> DateTime.add(-Helpers.default_window_hours() * 3600, :second)
         to = DateTime.utc_now()
 
         query_string =
@@ -113,108 +107,85 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       else
         socket = assign(socket, :filters_raw, FilterParams.filters_raw_from_params(params))
 
-        case FilterParams.parse(params) do
-          {:error, message} ->
-            filter_query = build_canonical_query(socket.assigns.filters_raw)
-
-            socket =
-              socket
-              |> assign(:form_error, message)
-              |> assign(:filters, [])
-              |> assign(:cursor, nil)
-              |> assign(:future_window_empty, false)
-              |> assign(:match_count, 0)
-              |> assign(:shown_count, 0)
-              |> assign(:filter_query, filter_query)
-              |> stream(:changes, [], reset: true)
-
-            {:noreply, socket}
-
-          {:ok, filters} ->
-            case safe_validate(filters) do
-              {:error, message} ->
-                filter_query = build_canonical_query(socket.assigns.filters_raw)
-
-                socket =
-                  socket
-                  |> assign(:form_error, message)
-                  |> assign(:filters, [])
-                  |> assign(:cursor, nil)
-                  |> assign(:future_window_empty, false)
-                  |> assign(:match_count, 0)
-                  |> assign(:shown_count, 0)
-                  |> assign(:filter_query, filter_query)
-                  |> stream(:changes, [], reset: true)
-
-                {:noreply, socket}
-
-              :ok ->
-                unknown_table_attempted =
-                  case Keyword.get(filters, :table) do
-                    nil ->
-                      false
-
-                    table ->
-                      table not in socket.assigns.audited_tables
-                  end
-
-                # Clear cursor BEFORE stream reset (Pitfall 1 + F-3 mitigation)
-                socket = assign(socket, :cursor, nil)
-
-                count_task =
-                  Task.async(fn ->
-                    Export.count_matching(filters, count_opts(socket, 10_001))
-                  end)
-
-                page_task =
-                  Task.async(fn ->
-                    Query.timeline_page(filters, scope_aware_opts(socket))
-                  end)
-
-                # Two parallel queries; await with a generous timeout.
-                # Default Task.await is 5_000 ms; use 8_000 to leave headroom for
-                # capped-count queries on large tables.
-                {:ok, %{count: count}} = Task.await(count_task, 8_000)
-
-                page =
-                  page_task
-                  |> Task.await(8_000)
-                  |> preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))
-
-                filter_query = build_canonical_query(socket.assigns.filters_raw)
-                future_window_empty = future_window_empty?(filters, count, socket)
-
-                socket =
-                  socket
-                  |> assign(:filters, filters)
-                  |> assign(:form_error, nil)
-                  |> assign(:unknown_table_attempted, unknown_table_attempted)
-                  |> assign(:future_window_empty, future_window_empty)
-                  |> assign(:match_count, count)
-                  |> assign(:shown_count, length(page.entries))
-                  |> assign(:filter_query, filter_query)
-                  |> stream(:changes, page.entries, reset: true)
-                  |> assign(:cursor, page.next_cursor)
-
-                {:noreply, socket}
-            end
+        with {:ok, filters} <- FilterParams.parse(params),
+             :ok <- safe_validate(filters) do
+          {:noreply, load_filtered_page(socket, filters)}
+        else
+          {:error, message} -> {:noreply, filter_error(socket, message)}
         end
       end
     end
 
-    # --------------------------------------------------------------------------
-    # handle_event/3
-    # --------------------------------------------------------------------------
+    defp filter_error(socket, message) do
+      filter_query = build_canonical_query(socket.assigns.filters_raw)
+
+      socket
+      |> assign(:form_error, message)
+      |> assign(:filters, [])
+      |> assign(:cursor, nil)
+      |> assign(:future_window_empty, false)
+      |> assign(:match_count, 0)
+      |> assign(:shown_count, 0)
+      |> assign(:filter_query, filter_query)
+      |> stream(:changes, [], reset: true)
+    end
+
+    defp load_filtered_page(socket, filters) do
+      unknown_table_attempted =
+        case Keyword.get(filters, :table) do
+          nil ->
+            false
+
+          table ->
+            table not in socket.assigns.audited_tables
+        end
+
+      # Clear cursor BEFORE stream reset (Pitfall 1 + F-3 mitigation)
+      socket = assign(socket, :cursor, nil)
+
+      count_task =
+        Task.async(fn ->
+          Export.count_matching(filters, count_opts(socket, 10_001))
+        end)
+
+      page_opts = scope_aware_opts(socket)
+
+      page_task = Task.async(fn -> Query.timeline_page(filters, page_opts) end)
+
+      # Two parallel queries; await with a generous timeout.
+      # Default Task.await is 5_000 ms; use 8_000 to leave headroom for
+      # capped-count queries on large tables.
+      {:ok, %{count: count}} = Task.await(count_task, 8_000)
+
+      page =
+        page_task
+        |> Task.await(8_000)
+        |> preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))
+
+      filter_query = build_canonical_query(socket.assigns.filters_raw)
+      future_window_empty = future_window_empty?(filters, count, socket)
+
+      socket
+      |> assign(:filters, filters)
+      |> assign(:form_error, nil)
+      |> assign(:unknown_table_attempted, unknown_table_attempted)
+      |> assign(:future_window_empty, future_window_empty)
+      |> assign(:match_count, count)
+      |> assign(:shown_count, length(page.entries))
+      |> assign(:filter_query, filter_query)
+      |> stream(:changes, page.entries, reset: true)
+      |> assign(:cursor, page.next_cursor)
+    end
 
     def handle_event("save-view", %{"name" => name}, socket) do
       if ActorRef.identifiable?(socket.assigns[:threadline_actor_ref]) and name != "" do
         attrs = %{
           name: name,
-          actor_ref: Threadline.Semantics.ActorRef.to_map(socket.assigns.threadline_actor_ref),
+          actor_ref: ActorRef.to_map(socket.assigns.threadline_actor_ref),
           filters: socket.assigns.filters_raw
         }
 
-        changeset = Threadline.Governance.SavedView.changeset(attrs)
+        changeset = SavedView.changeset(attrs)
 
         case socket.assigns.repo.insert(changeset, storage_opts(socket)) do
           {:ok, view} ->
@@ -306,7 +277,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo = scope_aware_opts(socket)[:repo] || default_repo()
 
       job_changeset =
-        Threadline.Governance.ExportJob.operator_changeset(%{
+        ExportJob.operator_changeset(%{
           status: "pending",
           query_params: Map.new(socket.assigns.filters, fn {k, v} -> {to_string(k), v} end),
           actor_ref: actor_ref
@@ -338,7 +309,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           error_message = background_export_error_message(reason)
 
           job
-          |> Threadline.Governance.ExportJob.changeset(%{
+          |> ExportJob.changeset(%{
             status: "failed",
             error_message: error_message,
             expires_at: terminal_export_expiry()
@@ -375,13 +346,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # --------------------------------------------------------------------------
-    # render/1
-    # --------------------------------------------------------------------------
-
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={assigns[:threadline_coverage] || %{uncovered_count: 0}}
         base_path={@base_path}
@@ -395,31 +362,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         script
         main_class="tl-page tl-page--intro"
       >
-          <.timeline_command
+          <Filters.timeline_command
             filters_raw={@filters_raw}
             audited_tables={@audited_tables}
-            shown_count={@shown_count}
             match_count={@match_count}
             coverage={assigns[:threadline_coverage]}
-            coverage_enabled={@threadline_coverage_enabled}
-            evidence_enabled={@threadline_evidence_enabled}
-            exports_enabled={@threadline_exports_enabled}
-            actor_ref={assigns[:threadline_actor_ref]}
-            saved_views={@saved_views}
-            base_path={@base_path}
             timeline_path={@timeline_path}
-            filter_query={@filter_query}
           />
 
         <%= if @form_error do %>
           <div class="tl-alert tl-alert--error" role="alert">
-            <%= invalid_filter_message(@form_error) %>
+            <%= Helpers.invalid_filter_message(@form_error) %>
           </div>
         <% end %>
 
         <%= if Enum.empty?(@streams.changes.inserts) and @unknown_table_attempted do %>
           <div class="tl-alert tl-alert--info" role="status">
-            <%= unknown_table_message(@filters_raw["table"], @audited_tables) %>
+            <%= Helpers.unknown_table_message(@filters_raw["table"], @audited_tables) %>
           </div>
         <% end %>
 
@@ -435,74 +394,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         <% end %>
 
-        <section class="tl-change-list" id="timeline-rows" phx-update="stream"
-                 phx-viewport-bottom={@cursor && "next-page"}
-                 data-testid="operator-timeline">
-          <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class={["tl-change", op_row_modifier(change.op)]} data-testid="timeline-row">
-            <div class="tl-change__summary">
-              <div class="tl-change__meta">
-                <span class={["tl-change__op", Presentation.operation_modifier(change.op)]}><%= Presentation.operation_label(change.op) %></span>
-                <span
-                  class="tl-change__table tl-secondary-ref"
-                  title={table_ref(change).title}
-                  data-tl-copy={table_ref(change).title}
-                >
-                  <%= table_ref(change).visible %>
-                </span>
-                <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
-                  <%= Presentation.human_time(change.captured_at) %>
-                </time>
-              </div>
-              <div class="tl-meta">
-                <span>
-                  Actor
-                  <%= if actor_label(change) != "unknown" do %>
-                    <UI.ref value={actor_label(change)} kind="actor" copy_label="Copy actor ref" />
-                    <a
-                      :if={path = actor_path(@base_path, change)}
-                      href={path}
-                      class="tl-link tl-link--deep"
-                      title="View actor activity"
-                    >
-                      <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-                      Actor timeline
-                    </a>
-                  <% else %>
-                    <code><%= actor_label(change) %></code>
-                  <% end %>
-                </span>
-                <span :if={correlation_id(change)}>
-                  Correlation
-                  <UI.ref value={correlation_id(change)} kind="correlation" copy_label="Copy correlation id" />
-                  <a href={correlation_path(@timeline_path, correlation_id(change))} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
-                    <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-                    Timeline
-                  </a>
-                </span>
-                <span :if={row_id = routeable_row_ref(change)}>
-                  Row
-                  <UI.ref value={row_id} kind="uuid" copy_label="Copy row id" />
-                </span>
-              </div>
-              <div class="tl-change__actions">
-                <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-                  Open transaction
-                </a>
-                <a
-                  :if={row_history_path = safe_row_history_path(@base_path, change, assigns[:threadline_schemas])}
-                  href={row_history_path}
-                  class="tl-button tl-button--compact tl-button--secondary"
-                  data-testid="timeline-row-history-link"
-                >
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
-                  Row history
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
-        <UI.pager
+        <.change_list
+          changes={@streams.changes}
+          cursor={@cursor}
+          base_path={@base_path}
+          timeline_path={@timeline_path}
+          schemas={assigns[:threadline_schemas]}
+        />
+        <UI.Page.pager
           shown={@shown_count}
           match_count={@match_count}
           has_older={@cursor != nil}
@@ -510,22 +409,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           older_event="next-page"
           newer_event={nil}
         />
-        <UI.empty_state
+        <UI.Data.empty_state
           :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
-          variant={timeline_empty_variant(@filters_raw, @future_window_empty)}
+          variant={Helpers.timeline_empty_variant(@filters_raw, @future_window_empty)}
           role="status"
-          icon={timeline_empty_icon(@filters_raw, @future_window_empty)}
+          icon={Helpers.timeline_empty_icon(@filters_raw, @future_window_empty)}
         >
-          <:title><%= timeline_empty_title(@filters_raw, @future_window_empty) %></:title>
-          <%= timeline_empty_body(@filters_raw, @future_window_empty) %>
+          <:title><%= Helpers.timeline_empty_title(@filters_raw, @future_window_empty) %></:title>
+          <%= Helpers.timeline_empty_body(@filters_raw, @future_window_empty) %>
           <:actions>
             <.link patch={@timeline_path} class="tl-button tl-button--secondary">
               <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
-              <%= timeline_empty_action_label(@filters_raw, @future_window_empty) %>
+              <%= Helpers.timeline_empty_action_label(@filters_raw, @future_window_empty) %>
             </.link>
           </:actions>
-        </UI.empty_state>
-        <.timeline_filter_drawer
+        </UI.Data.empty_state>
+        <Filters.timeline_filter_drawer
           filters_raw={@filters_raw}
           coverage_enabled={@threadline_coverage_enabled}
           evidence_enabled={@threadline_evidence_enabled}
@@ -541,347 +440,87 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ActorRef.identifiable?(assigns[:threadline_actor_ref])
           }
         />
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 
-    defp timeline_command(assigns) do
-      assigns =
-        assigns
-        |> assign(:window, filter_window_summary(assigns.filters_raw))
-        |> assign(:active_filters, active_filter_pairs(assigns.filters_raw))
-        |> assign(:advanced_filter_count, advanced_filter_count(assigns.filters_raw))
+    attr(:changes, :any, required: true)
+    attr(:cursor, :any, default: nil)
+    attr(:base_path, :string, required: true)
+    attr(:timeline_path, :string, required: true)
+    attr(:schemas, :map, default: nil)
 
+    defp change_list(assigns) do
       ~H"""
-      <section class="tl-toolbar tl-timeline-command" aria-labelledby="timeline-command-title">
-        <div class="tl-timeline-command__summary">
-          <div class="tl-timeline-command__heading">
-            <h1 id="timeline-command-title" class="tl-timeline-command__title">
-              Investigate audit activity
-            </h1>
-            <p class="tl-timeline-command__lede">
-              Start with a time window, table, or correlation id. Add actor and schema filters only when the investigation needs them.
-            </p>
-          </div>
-
-          <div class="tl-timeline-command__facts" aria-label="Current investigation summary">
-            <div class="tl-timeline-fact tl-timeline-fact--window" data-status="info">
-              <span class="tl-timeline-fact__label">Window</span>
-              <strong class="tl-timeline-fact__value" title={@window.title}>
-                <%= @window.label %>
-              </strong>
-              <span class="tl-timeline-fact__detail"><%= @window.detail %></span>
+      <section class="tl-change-list" id="timeline-rows" phx-update="stream"
+               phx-viewport-bottom={@cursor && "next-page"}
+               data-testid="operator-timeline">
+        <div :for={{dom_id, change} <- @changes} id={dom_id} class={["tl-change", Helpers.op_row_modifier(change.op)]} data-testid="timeline-row">
+          <div class="tl-change__summary">
+            <div class="tl-change__meta">
+              <span class={["tl-change__op", Presentation.operation_modifier(change.op)]}><%= Presentation.operation_label(change.op) %></span>
+              <span
+                class="tl-change__table tl-secondary-ref"
+                title={Helpers.table_ref(change).title}
+                data-tl-copy={Helpers.table_ref(change).title}
+              >
+                <%= Helpers.table_ref(change).visible %>
+              </span>
+              <time class="tl-change__time" datetime={Presentation.exact_time(change.captured_at)} title={Presentation.exact_time(change.captured_at)}>
+                <%= Presentation.human_time(change.captured_at) %>
+              </time>
             </div>
-            <div class="tl-status tl-timeline-fact">
-              <span class="tl-timeline-fact__label">Matching changes</span>
-              <strong class="tl-timeline-fact__value"><%= format_count(@match_count) %></strong>
-              <span class="tl-timeline-fact__detail">current result set</span>
+            <div class="tl-meta">
+              <span>
+                Actor
+                <%= if Helpers.actor_label(change) != "unknown" do %>
+                  <UI.Display.ref value={Helpers.actor_label(change)} kind="actor" copy_label="Copy actor ref" />
+                  <a
+                    :if={path = Helpers.actor_path(@base_path, change)}
+                    href={path}
+                    class="tl-link tl-link--deep"
+                    title="View actor activity"
+                  >
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+                    Actor timeline
+                  </a>
+                <% else %>
+                  <code><%= Helpers.actor_label(change) %></code>
+                <% end %>
+              </span>
+              <span :if={Helpers.correlation_id(change)}>
+                Correlation
+                <UI.Display.ref value={Helpers.correlation_id(change)} kind="correlation" copy_label="Copy correlation id" />
+                <a href={Helpers.correlation_path(@timeline_path, Helpers.correlation_id(change))} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
+                  <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+                  Timeline
+                </a>
+              </span>
+              <span :if={row_id = Helpers.routeable_row_ref(change)}>
+                Row
+                <UI.Display.ref value={row_id} kind="uuid" copy_label="Copy row id" />
+              </span>
             </div>
-            <div
-              class="tl-timeline-fact"
-              data-status={if coverage_warning?(@coverage), do: "warning", else: "success"}
-            >
-              <span class="tl-timeline-fact__label">Audit readiness</span>
-              <strong class="tl-timeline-fact__value"><%= coverage_summary(@coverage) %></strong>
-              <span class="tl-timeline-fact__detail">coverage posture</span>
+            <div class="tl-change__actions">
+              <a href={"#{@base_path}/transactions/#{change.transaction_id}"} class="tl-button tl-button--compact tl-button--secondary" data-testid="transaction-link">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
+                Open transaction
+              </a>
+              <a
+                :if={row_history_path = Helpers.safe_row_history_path(@base_path, change, @schemas)}
+                href={row_history_path}
+                class="tl-button tl-button--compact tl-button--secondary"
+                data-testid="timeline-row-history-link"
+              >
+                <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
+                Row history
+              </a>
             </div>
           </div>
         </div>
-
-        <form id="timeline-filters" phx-submit="apply" role="search" class="tl-toolbar__form">
-          <UI.field_group legend="Search" class="tl-filter-group--primary">
-            <div class="tl-filter-grid tl-filter-grid--primary">
-              <UI.field
-                id="filter-from"
-                type="datetime-local"
-                name="filter[from]"
-                label="From"
-                value={@filters_raw["from"] || ""}
-                class="tl-toolbar__field"
-                phx-debounce="blur"
-              />
-              <UI.field
-                id="filter-to"
-                type="datetime-local"
-                name="filter[to]"
-                label="To"
-                value={@filters_raw["to"] || ""}
-                class="tl-toolbar__field"
-                phx-debounce="blur"
-              />
-              <UI.field
-                id="filter-table"
-                type="text"
-                name="filter[table]"
-                label="Table"
-                value={@filters_raw["table"] || ""}
-                class="tl-toolbar__field"
-                phx-debounce="blur"
-                list="audited-tables"
-              />
-              <datalist id="audited-tables">
-                <option :for={name <- @audited_tables} value={name}></option>
-              </datalist>
-              <UI.field
-                id="filter-correlation-id"
-                type="text"
-                name="filter[correlation_id]"
-                label="Correlation id"
-                value={@filters_raw["correlation_id"] || ""}
-                class="tl-toolbar__field tl-toolbar__field--wide"
-                maxlength="256"
-                phx-debounce="300"
-                placeholder="request, job, or integration id"
-              />
-              <div class="tl-toolbar__actions tl-filter-actions">
-                <button
-                  type="button"
-                  class="tl-button tl-button--secondary"
-                  aria-haspopup="dialog"
-                  aria-controls="timeline-filters-drawer"
-                  phx-click={JS.push_focus() |> UI.show_drawer("timeline-filters-drawer")}
-                >
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:funnel} class="tl-button__icon" />
-                  Filters
-                  <span :if={@advanced_filter_count > 0} class="tl-button__meta">
-                    <%= @advanced_filter_count %>
-                  </span>
-                </button>
-                <.link patch={@timeline_path} class="tl-button tl-button--ghost">
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
-                  Reset to last 24h
-                </.link>
-                <button type="submit" class="tl-button tl-button--primary">
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                  Apply
-                </button>
-              </div>
-            </div>
-          </UI.field_group>
-        </form>
-
-        <section class="tl-filter-summary" aria-label="Active Timeline filters">
-          <strong>Active filters</strong>
-          <span class="tl-chip tl-chip--info" title={@window.title}>Window: <%= @window.label %></span>
-          <span class="tl-filter-summary__window"><%= @window.detail %></span>
-          <span :for={{label, value} <- @active_filters} class="tl-chip tl-chip--neutral">
-            <%= label %>: <%= value %>
-          </span>
-          <span :if={@active_filters == []} class="tl-filter-summary__empty">
-            No table, schema, actor, or correlation filter
-          </span>
-        </section>
-
       </section>
       """
     end
-
-    defp timeline_filter_drawer(assigns) do
-      assigns =
-        assigns
-        |> assign(:advanced_filter_count, advanced_filter_count(assigns.filters_raw))
-
-      ~H"""
-      <UI.drawer
-        id="timeline-filters-drawer"
-        class="tl-timeline-drawer"
-        phx-window-keydown={UI.hide_drawer("timeline-filters-drawer")}
-        phx-key="Escape"
-      >
-        <div class="tl-timeline-drawer__header">
-          <div class="tl-timeline-drawer__heading">
-            <h2 id="timeline-filters-drawer-title" class="tl-modal__title">
-              Filters and handoff
-            </h2>
-            <p id="timeline-filters-drawer-description" class="tl-modal__body">
-              Refine the current Timeline query, save reusable views, or package this result set for a handoff.
-            </p>
-          </div>
-          <button
-            type="button"
-            class="tl-button tl-button--secondary"
-            phx-click={UI.hide_drawer("timeline-filters-drawer")}
-            data-tl-initial-focus
-          >
-            Close
-          </button>
-        </div>
-
-        <section class="tl-timeline-drawer__section" aria-labelledby="timeline-advanced-filters-title">
-          <div class="tl-timeline-drawer__section-heading">
-            <h3 id="timeline-advanced-filters-title" class="tl-utility-group__label">
-              Advanced filters
-            </h3>
-            <span :if={@advanced_filter_count > 0} class="tl-chip tl-chip--neutral">
-              <%= @advanced_filter_count %> active
-            </span>
-          </div>
-          <div class="tl-filter-grid tl-filter-grid--advanced">
-            <UI.field
-              id="filter-table-schema"
-              type="text"
-              name="filter[table_schema]"
-              label="Schema"
-              value={@filters_raw["table_schema"] || ""}
-              class="tl-toolbar__field"
-              form="timeline-filters"
-              phx-debounce="blur"
-            />
-            <UI.field
-              id="filter-actor-kind"
-              type="select"
-              name="filter[actor_kind]"
-              label="Actor kind"
-              options={[{"Any kind", ""} | Enum.map(~w(user admin service_account job system anonymous), &{&1, &1})]}
-              value={@filters_raw["actor_kind"] || ""}
-              class="tl-toolbar__field"
-              form="timeline-filters"
-            />
-            <UI.field
-              id="filter-actor-id"
-              type="text"
-              name="filter[actor_id]"
-              label="Actor id"
-              value={@filters_raw["actor_id"] || ""}
-              class="tl-toolbar__field"
-              disabled={@filters_raw["actor_kind"] == "anonymous"}
-              form="timeline-filters"
-              phx-debounce="blur"
-              help_text={if @filters_raw["actor_kind"] == "anonymous", do: "n/a for anonymous", else: nil}
-            />
-          </div>
-          <div class="tl-toolbar__actions tl-timeline-drawer__actions">
-            <button type="submit" form="timeline-filters" class="tl-button tl-button--primary">
-              <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-              Apply filters
-            </button>
-          </div>
-        </section>
-
-        <div class="tl-timeline-command__utilities">
-          <section
-            :if={@coverage_enabled or @evidence_enabled}
-            class="tl-utility-group"
-            aria-label="Investigation checks"
-          >
-            <span class="tl-utility-group__label">Check</span>
-            <a
-              :if={@coverage_enabled and @base_path}
-              href={"#{@base_path}/coverage"}
-              class="tl-button tl-button--secondary"
-            >
-              <Threadline.OperatorSurface.Components.Icon.icon name={:shield} class="tl-button__icon" />
-              Coverage
-            </a>
-            <a
-              :if={@evidence_enabled and @base_path}
-              href={"#{@base_path}/evidence"}
-              class="tl-button tl-button--secondary"
-            >
-              <Threadline.OperatorSurface.Components.Icon.icon name={:evidence} class="tl-button__icon" />
-              Evidence
-            </a>
-          </section>
-
-          <section :if={@exports_enabled} class="tl-utility-group" aria-label="Export actions">
-            <span class="tl-utility-group__label">Export</span>
-            <.link
-              navigate={"#{@base_path}/exports?#{@filter_query}"}
-              class="tl-button tl-button--compact tl-button--secondary"
-            >
-              <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
-              Carry to Exports
-            </.link>
-            <button
-              :if={@background_export_ready}
-              phx-click="request_background_export"
-              type="button"
-              class="tl-button tl-button--quiet-primary"
-            >
-              <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
-              Queue export
-            </button>
-            <.link
-              :if={@export_ready}
-              href={"#{@base_path}/exports/changes.csv?#{@filter_query}"}
-              download
-              class="tl-button tl-button--compact tl-button--secondary"
-            >
-              <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
-              CSV
-            </.link>
-            <.link
-              :if={@export_ready}
-              href={"#{@base_path}/exports/changes.json?#{@filter_query}"}
-              download
-              class="tl-button tl-button--compact tl-button--secondary"
-            >
-              <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
-              JSON
-            </.link>
-            <.link
-              :if={@export_ready}
-              href={"#{@base_path}/exports/changes.ndjson?#{@filter_query}"}
-              download
-              class="tl-button tl-button--compact tl-button--secondary"
-            >
-              <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
-              NDJSON
-            </.link>
-          </section>
-
-          <section
-            :if={ActorRef.identifiable?(@actor_ref)}
-            class="tl-utility-group tl-utility-group--views"
-            aria-label="Saved views"
-          >
-            <span class="tl-utility-group__label">Views</span>
-            <form id="save-view-form" phx-submit="save-view" class="tl-saved-view-form">
-              <input
-                type="text"
-                name="name"
-                placeholder="Name this view..."
-                aria-label="View name"
-                required
-                class="tl-control"
-              />
-              <button type="submit" class="tl-button tl-button--secondary" data-tl-mutating>
-                <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
-                Save view
-              </button>
-            </form>
-            <ul :if={@saved_views != []} class="tl-toolbar__saved-list" aria-label="Saved views">
-              <li :for={view <- @saved_views} class="tl-toolbar__saved-item">
-                <button
-                  phx-click="apply-view"
-                  phx-value-id={view.id}
-                  type="button"
-                  class="tl-button tl-button--secondary"
-                >
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                  <%= view.name %>
-                </button>
-                <button
-                  phx-click="delete-view"
-                  phx-value-id={view.id}
-                  type="button"
-                  class="tl-button tl-button--ghost tl-button--danger tl-button--icon"
-                  aria-label={"Delete " <> view.name}
-                  data-tl-mutating
-                >
-                  <Threadline.OperatorSurface.Components.Icon.icon name={:trash} />
-                </button>
-              </li>
-            </ul>
-          </section>
-        </div>
-      </UI.drawer>
-      """
-    end
-
-    # --------------------------------------------------------------------------
-    # Private helpers
-    # --------------------------------------------------------------------------
 
     defp scope_aware_opts(socket) do
       [
@@ -914,415 +553,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       }
     end
 
-    defp actor_label(%{transaction: %{actor_ref: %{type: type, id: id}}}) when not is_nil(id),
-      do: "#{type}/#{id}"
-
-    defp actor_label(%{transaction: %{actor_ref: %{"type" => type, "id" => id}}})
-         when not is_nil(id),
-         do: "#{type}/#{id}"
-
-    defp actor_label(_), do: "unknown"
-
-    defp actor_path(base_path, change) when is_binary(base_path) do
-      case actor_ref(change) do
-        {type, id} when is_binary(type) and is_binary(id) and id != "" ->
-          "#{base_path}/actors/#{URI.encode_www_form(type)}/#{URI.encode_www_form(id)}"
-
-        _ ->
-          nil
-      end
-    end
-
-    defp actor_path(_base_path, _change), do: nil
-
-    defp actor_ref(%{transaction: %{actor_ref: %{type: type, id: id}}}) when not is_nil(id),
-      do: {to_string(type), to_string(id)}
-
-    defp actor_ref(%{transaction: %{actor_ref: %{"type" => type, "id" => id}}})
-         when not is_nil(id),
-         do: {to_string(type), to_string(id)}
-
-    defp actor_ref(_), do: nil
-
-    defp correlation_id(%{transaction: %{action: %{correlation_id: correlation_id}}})
-         when is_binary(correlation_id) and correlation_id != "",
-         do: correlation_id
-
-    defp correlation_id(_), do: nil
-
-    defp correlation_path(base_path, correlation_id) when is_binary(correlation_id) do
-      "#{base_path}?#{URI.encode_query(%{"correlation_id" => correlation_id})}"
-    end
-
-    defp correlation_path(base_path, _correlation_id), do: base_path
-
-    defp table_ref(%{table_name: table_name}), do: Presentation.secondary_ref(table_name, 30)
-    defp table_ref(_change), do: Presentation.secondary_ref("", 30)
-
-    defp routeable_row_ref(change) do
-      case routeable_row_identity(change) do
-        {_table, record_id} -> record_id
-        nil -> nil
-      end
-    end
-
-    defp safe_row_history_path(base_path, change, schemas)
-         when is_binary(base_path) and is_map(schemas) do
-      with {table, record_id} <- routeable_row_identity(change),
-           route_table when is_binary(route_table) <-
-             row_history_route_table(schemas, table, host_table_schema(change)) do
-        "#{base_path}/rows/#{encode_segment(route_table)}/#{encode_segment(record_id)}"
-      else
-        _ ->
-          nil
-      end
-    end
-
-    defp safe_row_history_path(_base_path, _change, _schemas), do: nil
-
-    defp row_history_route_table(schemas, table, table_schema) when is_map(schemas) do
-      schema = normalize_host_table_schema(table_schema)
-      table = String.trim(table)
-
-      case row_history_schema_for_table(schemas, table, schema) do
-        nil -> nil
-        _schema -> row_history_table_identity(table, schema)
-      end
-    end
-
-    defp row_history_schema_for_table(_schemas, "", _schema), do: nil
-
-    defp row_history_schema_for_table(schemas, table, "public") do
-      schema_for_public_table(schemas, table)
-    end
-
-    defp row_history_schema_for_table(schemas, table, schema) do
-      Map.get(schemas, "#{schema}.#{table}")
-    end
-
-    defp row_history_table_identity(table, "public"), do: table
-    defp row_history_table_identity(table, schema), do: "#{schema}.#{table}"
-
-    defp schema_for_public_table(schemas, table) when is_map(schemas) do
-      case Map.fetch(schemas, table) do
-        {:ok, schema} ->
-          schema
-
-        :error ->
-          Enum.find_value(schemas, fn
-            {key, schema} when is_atom(key) ->
-              if Atom.to_string(key) == table, do: schema
-
-            _entry ->
-              nil
-          end)
-      end
-    end
-
-    defp host_table_schema(%{table_schema: table_schema}),
-      do: normalize_host_table_schema(table_schema)
-
-    defp host_table_schema(%{change_diff: %{} = diff}) do
-      diff
-      |> Map.get("table_schema", Map.get(diff, :table_schema))
-      |> normalize_host_table_schema()
-    end
-
-    defp host_table_schema(_change), do: "public"
-
-    defp normalize_host_table_schema(schema) when is_binary(schema) do
-      case String.trim(schema) do
-        "" -> "public"
-        value -> value
-      end
-    end
-
-    defp normalize_host_table_schema(_schema), do: "public"
-
-    defp routeable_row_identity(%{table_name: table, table_pk: table_pk}),
-      do: routeable_row_identity(table, table_pk)
-
-    defp routeable_row_identity(%{change_diff: %{} = diff}) do
-      table = Map.get(diff, "table_name") || Map.get(diff, :table_name)
-      table_pk = Map.get(diff, "table_pk") || Map.get(diff, :table_pk)
-
-      routeable_row_identity(table, table_pk)
-    end
-
-    defp routeable_row_identity(_change), do: nil
-
-    defp routeable_row_identity(table, %{} = table_pk) when is_binary(table) do
-      table = String.trim(table)
-
-      with true <- table != "",
-           [{_key, value}] <- Map.to_list(table_pk),
-           true <- routeable_row_value?(value) do
-        {table, to_string(value)}
-      else
-        _ -> nil
-      end
-    end
-
-    defp routeable_row_identity(_table, _table_pk), do: nil
-
-    defp routeable_row_value?(value) when is_binary(value), do: String.trim(value) != ""
-    defp routeable_row_value?(value) when is_integer(value), do: true
-    defp routeable_row_value?(value) when is_float(value), do: true
-    defp routeable_row_value?(_value), do: false
-
-    defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
-
-    # Renders the match count for the status line:
-    # - At/above the cap (10_001) → "10,000+" so the UI does not imply an exact count
-    # - Below the cap → exact integer with thousands separators
-    defp format_count(count) when is_integer(count) do
-      cond do
-        count >= 10_001 ->
-          "10,000+"
-
-        true ->
-          count
-          |> Integer.to_string()
-          |> String.reverse()
-          |> String.codepoints()
-          |> Enum.chunk_every(3)
-          |> Enum.map(&Enum.join/1)
-          |> Enum.join(",")
-          |> String.reverse()
-      end
-    end
-
-    defp filter_window_summary(%{} = raw) do
-      from_raw = Map.get(raw, "from", "")
-      to_raw = Map.get(raw, "to", "")
-
-      with {:ok, %DateTime{} = from} <- parse_window_datetime(from_raw),
-           {:ok, %DateTime{} = to} <- parse_window_datetime(to_raw) do
-        detail = "#{format_window_datetime(from)} to #{format_window_datetime(to)}"
-
-        %{
-          label: window_duration_label(from, to),
-          detail: detail,
-          title: detail
-        }
-      else
-        {:ok, nil} ->
-          partial_window_summary(from_raw, to_raw)
-
-        {:error, _reason} ->
-          %{
-            label: "Custom",
-            detail: "Invalid date value",
-            title: "Invalid date value"
-          }
-      end
-    end
-
-    defp filter_window_summary(_), do: default_window_summary()
-
-    defp active_filter_pairs(%{} = raw) do
-      raw
-      |> Map.take(["table", "table_schema", "actor_kind", "actor_id", "correlation_id"])
-      |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
-      |> Enum.map(fn {key, value} -> {filter_label(key), value} end)
-    end
-
-    defp active_filter_pairs(_), do: []
-
-    defp advanced_filter_count(%{} = raw) do
-      raw
-      |> Map.take(["table_schema", "actor_kind", "actor_id"])
-      |> Enum.count(fn {_key, value} -> is_binary(value) and value != "" end)
-    end
-
-    defp advanced_filter_count(_), do: 0
-
-    defp parse_window_datetime(value) when value in [nil, ""], do: {:ok, nil}
-
-    defp parse_window_datetime(value) when is_binary(value) do
-      padded =
-        cond do
-          String.ends_with?(value, "Z") -> value
-          String.length(value) == 16 -> value <> ":00Z"
-          String.length(value) == 19 -> value <> "Z"
-          true -> value
-        end
-
-      case DateTime.from_iso8601(padded) do
-        {:ok, dt, _offset} -> {:ok, dt}
-        _ -> {:error, :invalid_datetime}
-      end
-    end
-
-    defp parse_window_datetime(_), do: {:error, :invalid_datetime}
-
-    defp partial_window_summary("", ""), do: default_window_summary()
-
-    defp partial_window_summary(from_raw, "") when is_binary(from_raw) do
-      case parse_window_datetime(from_raw) do
-        {:ok, %DateTime{} = from} ->
-          detail = "From #{format_window_datetime(from)}"
-          %{label: "From", detail: detail, title: detail}
-
-        _ ->
-          %{label: "Custom", detail: "Invalid date value", title: "Invalid date value"}
-      end
-    end
-
-    defp partial_window_summary("", to_raw) when is_binary(to_raw) do
-      case parse_window_datetime(to_raw) do
-        {:ok, %DateTime{} = to} ->
-          detail = "Until #{format_window_datetime(to)}"
-          %{label: "Until", detail: detail, title: detail}
-
-        _ ->
-          %{label: "Custom", detail: "Invalid date value", title: "Invalid date value"}
-      end
-    end
-
-    defp partial_window_summary(_from_raw, _to_raw),
-      do: %{label: "Custom", detail: "Invalid date value", title: "Invalid date value"}
-
-    defp default_window_summary do
-      %{
-        label: "Last 24h",
-        detail: "Default rolling window",
-        title: "Default rolling 24 hour window"
-      }
-    end
-
-    defp window_duration_label(%DateTime{} = from, %DateTime{} = to) do
-      seconds = DateTime.diff(to, from, :second)
-
-      cond do
-        seconds == @default_window_hours * 3600 ->
-          "24h"
-
-        seconds > 0 and rem(seconds, 86_400) == 0 and seconds <= 86_400 * 14 ->
-          "#{div(seconds, 86_400)}d"
-
-        seconds > 0 and rem(seconds, 3600) == 0 and seconds < 86_400 ->
-          "#{div(seconds, 3600)}h"
-
-        true ->
-          "Custom"
-      end
-    end
-
-    defp format_window_datetime(%DateTime{} = dt) do
-      "#{dt.year}-#{pad2(dt.month)}-#{pad2(dt.day)} #{pad2(dt.hour)}:#{pad2(dt.minute)} UTC"
-    end
-
-    defp pad2(value) when is_integer(value) and value < 10, do: "0#{value}"
-    defp pad2(value) when is_integer(value), do: Integer.to_string(value)
-
-    defp filter_label("table_schema"), do: "host schema"
-    defp filter_label("actor_kind"), do: "actor kind"
-    defp filter_label("actor_id"), do: "actor id"
-    defp filter_label("correlation_id"), do: "correlation id"
-    defp filter_label(key), do: key
-
-    defp invalid_filter_message(message) do
-      target = invalid_filter_target(message)
-
-      "Timeline filters could not be applied. Fix the #{target} filter, then apply filters again. #{message}"
-    end
-
-    defp invalid_filter_target(message) when is_binary(message) do
-      cond do
-        String.contains?(message, "correlation_id") -> "correlation id"
-        String.contains?(message, "actor_kind") -> "actor kind"
-        String.contains?(message, "actor_id") -> "actor id"
-        String.contains?(message, "table_schema") -> "host schema"
-        String.contains?(message, "table") -> "table"
-        String.contains?(message, "from") or String.contains?(message, "to") -> "time window"
-        true -> "named"
-      end
-    end
-
-    defp invalid_filter_target(_message), do: "named"
-
-    defp unknown_table_message(table, audited_tables) do
-      table_name =
-        table
-        |> to_string()
-        |> String.trim()
-        |> case do
-          "" -> "selected table"
-          value -> value
-        end
-
-      base =
-        "Table filter `#{table_name}` is not audited. Select an audited table or clear the table filter."
-
-      case audited_tables do
-        [] -> base
-        tables -> base <> " Audited tables: " <> Enum.join(tables, ", ")
-      end
-    end
-
-    # Distinguish the two successful empty states: a first-run empty (no narrowing
-    # filter beyond the time window) is `never` (history icon); a filtered-but-empty
-    # result is `no_data` (funnel icon). AsyncResult/empty cannot make this call —
-    # the page author branches it from whether a narrowing filter is active.
-    @timeline_narrowing_filters ~w(table table_schema actor_kind actor_id correlation_id)
-
-    defp timeline_filters_active?(%{} = raw) do
-      Enum.any?(@timeline_narrowing_filters, fn key ->
-        value = Map.get(raw, key)
-        is_binary(value) and String.trim(value) != ""
-      end)
-    end
-
-    defp timeline_filters_active?(_), do: false
-
-    defp timeline_empty_reason(_raw, true), do: :future_window
-
-    defp timeline_empty_reason(raw, false),
-      do: if(timeline_filters_active?(raw), do: :filtered, else: :first_run)
-
-    defp timeline_empty_variant(raw, future_window_empty) do
-      case timeline_empty_reason(raw, future_window_empty) do
-        :filtered -> "no_data"
-        _ -> "never"
-      end
-    end
-
-    defp timeline_empty_icon(raw, future_window_empty) do
-      case timeline_empty_reason(raw, future_window_empty) do
-        :filtered -> :funnel
-        _ -> :history
-      end
-    end
-
-    defp timeline_empty_title(raw, future_window_empty) do
-      case timeline_empty_reason(raw, future_window_empty) do
-        :future_window -> "No captured changes in this time window"
-        :first_run -> "No captured changes in this window"
-        :filtered -> "No captured changes match this window"
-      end
-    end
-
-    defp timeline_empty_body(raw, future_window_empty) do
-      case timeline_empty_reason(raw, future_window_empty) do
-        :future_window ->
-          "This window has no matching changes, but Threadline has audit data outside it. Move the window back toward recent activity or clear filters."
-
-        :first_run ->
-          "No audit changes were captured in this window. Reset to last 24h or widen the time range."
-
-        :filtered ->
-          "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
-      end
-    end
-
-    defp timeline_empty_action_label(raw, future_window_empty) do
-      case timeline_empty_reason(raw, future_window_empty) do
-        :first_run -> "Reset to last 24h"
-        _ -> "Clear filters"
-      end
-    end
-
     defp future_window_empty?(_filters, count, _socket) when count != 0, do: false
 
     defp future_window_empty?(filters, 0, socket) do
@@ -1348,32 +578,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
     end
 
-    defp coverage_warning?(%{uncovered_count: count}) when is_integer(count), do: count > 0
-    defp coverage_warning?(_), do: false
-
-    defp coverage_summary(%{uncovered_count: count}) when is_integer(count) and count > 0 do
-      "#{count} need capture"
-    end
-
-    defp coverage_summary(%{uncovered_count: 0}), do: "All captured"
-    defp coverage_summary(_), do: "Not enabled"
-
-    defp op_row_modifier(op) do
-      case op |> to_string() |> String.downcase() do
-        "insert" -> "tl-change--insert"
-        "update" -> "tl-change--update"
-        "delete" -> "tl-change--delete"
-        _ -> nil
-      end
-    end
-
     defp safe_validate(filters) do
-      try do
-        Threadline.Query.validate_timeline_filters!(filters)
-        :ok
-      rescue
-        e in ArgumentError -> {:error, e.message}
-      end
+      Threadline.Query.validate_timeline_filters!(filters)
+      :ok
+    rescue
+      e in ArgumentError -> {:error, e.message}
     end
 
     defp build_canonical_query(%{} = raw), do: FilterParams.canonical_query(raw)

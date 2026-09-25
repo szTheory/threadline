@@ -35,18 +35,13 @@ defmodule Threadline.Storage.Local do
     with {:ok, path} <- resolve_path(file_id),
          :ok <- File.mkdir_p(export_root()),
          :ok <- reject_symlink(export_root()),
-         :ok <- reject_symlink(path) do
-      if is_binary(content) and File.regular?(content) do
-        case File.cp(content, path) do
-          :ok -> {:ok, file_id}
-          {:error, reason} -> {:error, reason}
-        end
-      else
-        case File.write(path, content) do
-          :ok -> {:ok, file_id}
-          {:error, reason} -> {:error, reason}
-        end
-      end
+         :ok <- reject_symlink(path),
+         :ok <-
+           if(is_binary(content) and File.regular?(content),
+             do: File.cp(content, path),
+             else: File.write(path, content)
+           ) do
+      {:ok, file_id}
     end
   end
 

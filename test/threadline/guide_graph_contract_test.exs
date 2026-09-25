@@ -217,16 +217,19 @@ defmodule Threadline.GuideGraphContractTest do
         assert link_target?(node, next_steps, landing),
                "#{node} Next steps does not return to its lane landing"
 
-        next_targets =
-          next_steps
-          |> markdown_links()
-          |> Enum.map(fn {_label, target} -> resolved_path(node, target) end)
-          |> Enum.reject(&is_nil/1)
+        next_targets = next_step_targets(node, next_steps)
 
         distinct = Enum.reject(next_targets, &(&1 in [node, landing]))
         assert distinct != [], "#{node} Next steps lacks a distinct task-adjacent successor"
       end
     end
+  end
+
+  defp next_step_targets(node, next_steps) do
+    next_steps
+    |> markdown_links()
+    |> Enum.map(fn {_label, target} -> resolved_path(node, target) end)
+    |> Enum.reject(&is_nil/1)
   end
 
   defp public_markdown_files do

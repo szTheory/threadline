@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.UITest do
   import Phoenix.Component
   import Phoenix.LiveViewTest
 
+  alias Threadline.OperatorSurface.Presentation
   alias Threadline.OperatorSurface.UI
 
   describe "button" do
@@ -11,7 +12,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.button>Click Me</UI.button>
+        <UI.Actions.button>Click Me</UI.Actions.button>
         """)
 
       assert html =~ "tl-button"
@@ -25,7 +26,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.icon_button>X</UI.icon_button>
+        <UI.Actions.icon_button>X</UI.Actions.icon_button>
         """)
 
       assert html =~ "tl-button"
@@ -40,7 +41,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.link href="/">Home</UI.link>
+        <UI.Actions.link href="/">Home</UI.Actions.link>
         """)
 
       assert html =~ "tl-link"
@@ -56,7 +57,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.badge variant="success">Active</UI.badge>
+        <UI.Display.badge variant="success">Active</UI.Display.badge>
         """)
 
       assert html =~ "tl-chip"
@@ -72,7 +73,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.alert variant="warning">Watch out</UI.alert>
+        <UI.Display.alert variant="warning">Watch out</UI.Display.alert>
         """)
 
       assert html =~ "tl-alert"
@@ -88,7 +89,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.divider />
+        <UI.Display.divider />
         """)
 
       assert html =~ "tl-divider"
@@ -102,7 +103,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.spinner />
+        <UI.Display.spinner />
         """)
 
       assert html =~ "tl-spinner"
@@ -116,7 +117,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.avatar src="user.png" alt="User" />
+        <UI.Display.avatar src="user.png" alt="User" />
         """)
 
       assert html =~ "tl-avatar"
@@ -132,12 +133,12 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.card variant="danger">
+        <UI.Display.card variant="danger">
           <:title>Card Title</:title>
           <:meta>Card Meta</:meta>
           Card Body
           <:actions><button>Action</button></:actions>
-        </UI.card>
+        </UI.Display.card>
         """)
 
       assert html =~ "tl-card"
@@ -158,7 +159,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.card>Body Only</UI.card>
+        <UI.Display.card>Body Only</UI.Display.card>
         """)
 
       assert html =~ "tl-card"
@@ -174,7 +175,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.stat_tile status="success" label="Total" value="1,234" />
+        <UI.Display.stat_tile status="success" label="Total" value="1,234" />
         """)
 
       assert html =~ "tl-card--metric"
@@ -192,11 +193,11 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.empty_state variant="unsupported">
+        <UI.Data.empty_state variant="unsupported">
           <:title>No items</:title>
           Nothing here
           <:actions><button>Add</button></:actions>
-        </UI.empty_state>
+        </UI.Data.empty_state>
         """)
 
       assert html =~ "tl-empty"
@@ -216,10 +217,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_state>
+        <UI.Data.error_state>
           <:title>Error Occurred</:title>
           Server failed
-        </UI.error_state>
+        </UI.Data.error_state>
         """)
 
       assert html =~ "tl-empty"
@@ -237,7 +238,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.code_block>{"{\"key\": \"value\"}"}</UI.code_block>
+        <UI.Display.code_block>{"{\"key\": \"value\"}"}</UI.Display.code_block>
         """)
 
       assert html =~ "<pre"
@@ -253,9 +254,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.modal id="test-modal">
+        <UI.Overlay.modal id="test-modal">
           Modal Content
-        </UI.modal>
+        </UI.Overlay.modal>
         """)
 
       assert html =~ "role=\"dialog\""
@@ -271,9 +272,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.drawer id="test-drawer">
+        <UI.Overlay.drawer id="test-drawer">
           Drawer Content
-        </UI.drawer>
+        </UI.Overlay.drawer>
         """)
 
       assert html =~ "id=\"test-drawer\""
@@ -288,9 +289,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.toast id="test-toast" kind="info" title="Info">
+        <UI.Overlay.toast id="test-toast" kind="info" title="Info">
           Toast Message
-        </UI.toast>
+        </UI.Overlay.toast>
         """)
 
       assert html =~ "phx-click-away"
@@ -304,10 +305,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.tooltip id="test-tooltip">
+        <UI.Overlay.tooltip id="test-tooltip">
           <:trigger>Hover me</:trigger>
           Tooltip text
-        </UI.tooltip>
+        </UI.Overlay.tooltip>
         """)
 
       assert html =~ "tl-tooltip"
@@ -322,10 +323,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.popover id="test-popover">
+        <UI.Overlay.popover id="test-popover">
           <:trigger>Click me</:trigger>
           Popover content
-        </UI.popover>
+        </UI.Overlay.popover>
         """)
 
       assert html =~ "aria-expanded=\"false\""
@@ -342,10 +343,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.dropdown id="test-dropdown">
+        <UI.Overlay.dropdown id="test-dropdown">
           <:trigger>Menu</:trigger>
           Dropdown item
-        </UI.dropdown>
+        </UI.Overlay.dropdown>
         """)
 
       assert html =~ "aria-haspopup=\"menu\""
@@ -362,10 +363,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.tabs>
+        <UI.Page.tabs>
           <:tab id="events-tab" controls="events-panel" active>Tab 1</:tab>
           <:tab id="evidence-tab" controls="evidence-panel">Tab 2</:tab>
-        </UI.tabs>
+        </UI.Page.tabs>
         """)
 
       assert html =~ "role=\"tablist\""
@@ -387,10 +388,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.segmented_control>
+        <UI.Page.segmented_control>
           <:segment active phx-click="set-window" phx-value-hours="24">Seg 1</:segment>
           <:segment phx-click="set-window" phx-value-hours="168">Seg 2</:segment>
-        </UI.segmented_control>
+        </UI.Page.segmented_control>
         """)
 
       assert html =~ "role=\"group\""
@@ -411,9 +412,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.accordion id="test-accordion" title="Section 1">
+        <UI.Overlay.accordion id="test-accordion" title="Section 1">
           Accordion content
-        </UI.accordion>
+        </UI.Overlay.accordion>
         """)
 
       assert html =~ "aria-expanded=\"false\""
@@ -431,7 +432,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.field id="user-email" name="email" value="test@example" label="Email" type="email" help_text="Enter your email" errors={["Invalid format"]} />
+        <UI.Form.field id="user-email" name="email" value="test@example" label="Email" type="email" help_text="Enter your email" errors={["Invalid format"]} />
         """)
 
       assert html =~ "tl-field"
@@ -461,7 +462,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Text
       html =
         rendered_to_string(~H"""
-        <UI.input id="t1" name="t1" value="text" type="text" />
+        <UI.Form.input id="t1" name="t1" value="text" type="text" />
         """)
 
       assert html =~ "tl-control"
@@ -470,7 +471,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Textarea
       html =
         rendered_to_string(~H"""
-        <UI.input id="t2" name="t2" value="text" type="textarea" />
+        <UI.Form.input id="t2" name="t2" value="text" type="textarea" />
         """)
 
       assert html =~ "tl-control"
@@ -479,7 +480,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Select
       html =
         rendered_to_string(~H"""
-        <UI.input id="t3" name="t3" value="1" type="select" options={[{"One", "1"}]} />
+        <UI.Form.input id="t3" name="t3" value="1" type="select" options={[{"One", "1"}]} />
         """)
 
       assert html =~ "tl-control"
@@ -489,7 +490,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Checkbox
       html =
         rendered_to_string(~H"""
-        <UI.input id="t4" name="t4" value="true" type="checkbox" />
+        <UI.Form.input id="t4" name="t4" value="true" type="checkbox" />
         """)
 
       assert html =~ "tl-checkbox"
@@ -498,7 +499,7 @@ defmodule Threadline.OperatorSurface.UITest do
       # Date
       html =
         rendered_to_string(~H"""
-        <UI.input id="t5" name="t5" value="2024-01-01" type="date" />
+        <UI.Form.input id="t5" name="t5" value="2024-01-01" type="date" />
         """)
 
       assert html =~ "tl-control"
@@ -512,7 +513,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}, {"name", "Name is required"}]} />
+        <UI.Form.error_summary id="form-errors" errors={[{"email", "Email is invalid"}, {"name", "Name is required"}]} />
         """)
 
       assert html =~ ~s(role="alert")
@@ -535,9 +536,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]}>
+        <UI.Form.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]}>
           <:title>Please fix the following</:title>
-        </UI.error_summary>
+        </UI.Form.error_summary>
         """)
 
       assert html =~ "Please fix the following"
@@ -549,7 +550,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]} />
+        <UI.Form.error_summary id="form-errors" errors={[{"email", "Email is invalid"}]} />
         """)
 
       assert html =~ "There is a problem"
@@ -560,7 +561,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_summary id="form-errors" errors={[]} />
+        <UI.Form.error_summary id="form-errors" errors={[]} />
         """)
 
       refute html =~ ~s(role="alert")
@@ -574,9 +575,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.field_group legend="Date range">
+        <UI.Form.field_group legend="Date range">
           <span>inner field</span>
-        </UI.field_group>
+        </UI.Form.field_group>
         """)
 
       assert html =~ "<fieldset"
@@ -592,9 +593,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.field_group legend="Filters" class="extra-class" data-testid="grp">
+        <UI.Form.field_group legend="Filters" class="extra-class" data-testid="grp">
           <span>content</span>
-        </UI.field_group>
+        </UI.Form.field_group>
         """)
 
       assert html =~ "tl-filter-group"
@@ -609,7 +610,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.radio name="mode" value="b" options={[{"Option A", "a"}, {"Option B", "b"}]} />
+        <UI.Form.radio name="mode" value="b" options={[{"Option A", "a"}, {"Option B", "b"}]} />
         """)
 
       # both inputs share the same name
@@ -636,7 +637,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.switch id="notify" name="notify" value={true} />
+        <UI.Form.switch id="notify" name="notify" value={true} />
         """)
 
       assert html =~ ~s(role="switch")
@@ -651,7 +652,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.switch id="notify" name="notify" value={false} />
+        <UI.Form.switch id="notify" name="notify" value={false} />
         """)
 
       assert html =~ ~s(aria-checked="false")
@@ -665,7 +666,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.input id="q" name="q" value="" type="search" />
+        <UI.Form.input id="q" name="q" value="" type="search" />
         """)
 
       assert html =~ ~s(type="search")
@@ -679,7 +680,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.combobox id="city" name="city" value="" options={[{"Berlin", "berlin"}, {"Paris", "paris"}]} />
+        <UI.Form.combobox id="city" name="city" value="" options={[{"Berlin", "berlin"}, {"Paris", "paris"}]} />
         """)
 
       assert html =~ ~s(role="combobox")
@@ -712,7 +713,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
+        <UI.Display.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
         """)
 
       # The mono code element carries the full value as the copy target and title.
@@ -728,7 +729,7 @@ defmodule Threadline.OperatorSurface.UITest do
              "every data-tl-copy must equal the full value"
 
       # The visible (truncated) face is shown but is NOT what gets copied (forensic D-02).
-      visible = Threadline.OperatorSurface.Presentation.ref(@long_ref, kind: :correlation).visible
+      visible = Presentation.ref(@long_ref, kind: :correlation).visible
       assert visible != @long_ref, "fixture must actually truncate so the test is meaningful"
       assert html =~ visible
       refute Enum.member?(targets, visible)
@@ -743,7 +744,7 @@ defmodule Threadline.OperatorSurface.UITest do
             alias Threadline.OperatorSurface.UI
 
             def render(assigns) do
-              ~H"<UI.ref value=\\"x\\" />"
+              ~H"<UI.Display.ref value=\\"x\\" />"
             end
           end
           """)
@@ -760,10 +761,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.kv>
+        <UI.Display.kv>
           <:item key="Correlation">corr-123</:item>
           <:item key="Actor">alice</:item>
-        </UI.kv>
+        </UI.Display.kv>
         """)
 
       assert html =~ ~r/<dl class="tl-kv\s*"/
@@ -781,10 +782,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_table rows={@rows}>
+        <UI.Data.data_table rows={@rows}>
           <:col :let={r} label="Status"><%= r.a %></:col>
           <:col :let={r} label="Count"><%= r.b %></:col>
-        </UI.data_table>
+        </UI.Data.data_table>
         """)
 
       assert html =~ "tl-table"
@@ -806,18 +807,18 @@ defmodule Threadline.OperatorSurface.UITest do
 
       rows_html =
         rendered_to_string(~H"""
-        <UI.data_table rows={@rows}>
+        <UI.Data.data_table rows={@rows}>
           <:col :let={r} label="A"><%= r.a %></:col>
-        </UI.data_table>
+        </UI.Data.data_table>
         """)
 
       refute rows_html =~ ~s(phx-update="stream")
 
       stream_html =
         rendered_to_string(~H"""
-        <UI.data_table stream={@stream} row_id={fn {dom_id, _} -> dom_id end}>
+        <UI.Data.data_table stream={@stream} row_id={fn {dom_id, _} -> dom_id end}>
           <:col :let={{_dom, r}} label="A"><%= r.a %></:col>
-        </UI.data_table>
+        </UI.Data.data_table>
         """)
 
       assert stream_html =~ ~s(phx-update="stream")
@@ -829,10 +830,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_table rows={@rows} row_status={fn r -> r.status end}>
+        <UI.Data.data_table rows={@rows} row_status={fn r -> r.status end}>
           <:col :let={r} label="A"><%= r.a %></:col>
           <:action>menu</:action>
-        </UI.data_table>
+        </UI.Data.data_table>
         """)
 
       assert html =~ ~s(data-status="failed")
@@ -846,7 +847,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.loading_state />
+        <UI.Data.loading_state />
         """)
 
       assert html =~ ~s(role="status")
@@ -860,7 +861,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.loading_state>Loading retention runs…</UI.loading_state>
+        <UI.Data.loading_state>Loading retention runs…</UI.Data.loading_state>
         """)
 
       assert html =~ "Loading retention runs"
@@ -873,7 +874,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.stale_banner as_of={@as_of} />
+        <UI.Data.stale_banner as_of={@as_of} />
         """)
 
       assert html =~ "tl-alert"
@@ -890,7 +891,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.stale_banner as_of={@as_of} object_label="coverage status" />
+        <UI.Data.stale_banner as_of={@as_of} object_label="coverage status" />
         """)
 
       assert html =~
@@ -904,10 +905,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.empty_state variant="no_data">
+        <UI.Data.empty_state variant="no_data">
           <:title>No changes match these filters</:title>
           Clear the filter or widen the time range.
-        </UI.empty_state>
+        </UI.Data.empty_state>
         """)
 
       assert html =~ "tl-empty--no_data"
@@ -920,10 +921,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
         html =
           rendered_to_string(~H"""
-          <UI.empty_state variant={@variant}>
+          <UI.Data.empty_state variant={@variant}>
             <:title>Heading</:title>
             Body
-          </UI.empty_state>
+          </UI.Data.empty_state>
           """)
 
         assert html =~ "tl-empty--#{variant}"
@@ -946,7 +947,7 @@ defmodule Threadline.OperatorSurface.UITest do
       assigns = %{reason: reason}
 
       rendered_to_string(~H"""
-      <UI.data_state reason={@reason} />
+      <UI.Data.data_state reason={@reason} />
       """)
     end
 
@@ -988,9 +989,9 @@ defmodule Threadline.OperatorSurface.UITest do
       # No two content-replacing states share their whole rendered glyph set.
       first_paths =
         Enum.map(signatures, fn html ->
-          Regex.scan(~r/<path[^>]*\bd="([^"]*)"/, html)
-          |> Enum.map(fn [_, d] -> d end)
-          |> Enum.join("|")
+          ~r/<path[^>]*\bd="([^"]*)"/
+          |> Regex.scan(html)
+          |> Enum.map_join("|", fn [_, d] -> d end)
         end)
 
       assert length(Enum.uniq(first_paths)) == length(first_paths)
@@ -1024,10 +1025,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.error_state>
+        <UI.Data.error_state>
           <:title>Could not load this timeline</:title>
           Retry, then check logs.
-        </UI.error_state>
+        </UI.Data.error_state>
         """)
 
       assert html =~ ~s(tabindex="-1")
@@ -1047,7 +1048,7 @@ defmodule Threadline.OperatorSurface.UITest do
   #
   # These pin the render + coordination contract for the five new meta-components
   # BEFORE any production code exists (Nyquist: tests precede code). They fail
-  # today because UI.stack/cluster/data_panel/toolbar/detail_header are undefined,
+  # today because UI.Display.stack/cluster, UI.Data.data_panel, UI.Page.toolbar/detail_header are undefined,
   # and turn GREEN in Plans 02 (stack/cluster/data_panel/toolbar) and 03
   # (detail_header + breadcrumb truncation). Do NOT add production code here.
   # ===========================================================================
@@ -1058,10 +1059,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       section =
         rendered_to_string(~H"""
-        <UI.stack gap="section">
+        <UI.Display.stack gap="section">
           <div>row a</div>
           <div>row b</div>
-        </UI.stack>
+        </UI.Display.stack>
         """)
 
       assert section =~ "tl-stack"
@@ -1070,9 +1071,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       default =
         rendered_to_string(~H"""
-        <UI.stack>
+        <UI.Display.stack>
           <div>only</div>
-        </UI.stack>
+        </UI.Display.stack>
         """)
 
       # Default gap is the stack rhythm.
@@ -1090,10 +1091,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.cluster justify="between">
+        <UI.Display.cluster justify="between">
           <button>search</button>
           <button>filter</button>
-        </UI.cluster>
+        </UI.Display.cluster>
         """)
 
       assert html =~ "tl-cluster"
@@ -1108,10 +1109,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:ok}>
+        <UI.Data.data_panel state={:ok}>
           <:data><div id="the-data-table">rows</div></:data>
           <:pager><div id="the-pager">pager</div></:pager>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ "tl-data-panel"
@@ -1125,10 +1126,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:loading}>
+        <UI.Data.data_panel state={:loading}>
           <:data><div id="the-data-table">rows</div></:data>
           <:pager><div id="the-pager">pager</div></:pager>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       # The data slot is NOT rendered while loading (toolbar-disable is the page's job).
@@ -1144,9 +1145,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-          <UI.data_panel state={:permission} reason={:unauthorized}>
+          <UI.Data.data_panel state={:permission} reason={:unauthorized}>
             <:data><div id="the-data-table">rows</div></:data>
-          </UI.data_panel>
+          </UI.Data.data_panel>
         """)
 
       refute html =~ "the-data-table"
@@ -1165,9 +1166,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
         html =
           rendered_to_string(~H"""
-          <UI.data_panel state={@state} as_of={@as_of}>
+          <UI.Data.data_panel state={@state} as_of={@as_of}>
             <:data><div id="the-data-table">rows</div></:data>
-          </UI.data_panel>
+          </UI.Data.data_panel>
           """)
 
         assert html =~ "tl-alert--warning", "stale banner must render for state #{inspect(state)}"
@@ -1190,9 +1191,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
         assert_raise ArgumentError, ~r/requires a typed :reason/, fn ->
           rendered_to_string(~H"""
-          <UI.data_panel state={@state}>
+          <UI.Data.data_panel state={@state}>
             <:data><div id="the-data-table">rows</div></:data>
-          </UI.data_panel>
+          </UI.Data.data_panel>
           """)
         end
       end
@@ -1203,9 +1204,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel id="txns" state={:loading}>
+        <UI.Data.data_panel id="txns" state={:loading}>
           <:data><div id="the-data-table">rows</div></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       # The region id carries the state suffix so LiveView replaces it on a state swap.
@@ -1219,9 +1220,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={true}>
+        <UI.Page.toolbar disabled={true}>
           <button disabled>Filter</button>
-        </UI.toolbar>
+        </UI.Page.toolbar>
         """)
 
       assert html =~ "tl-toolbar"
@@ -1237,9 +1238,9 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={false}>
+        <UI.Page.toolbar disabled={false}>
           <button>Filter</button>
-        </UI.toolbar>
+        </UI.Page.toolbar>
         """)
 
       assert html =~ "tl-toolbar"
@@ -1253,11 +1254,11 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.detail_header title="tx_0192">
+        <UI.Page.detail_header title="tx_0192">
           <:metadata key="Actor">alice</:metadata>
           <:metadata key="When">just now</:metadata>
           <:actions><button>Export</button></:actions>
-        </UI.detail_header>
+        </UI.Page.detail_header>
         """)
 
       assert html =~ "tl-detail-header"
@@ -1285,7 +1286,7 @@ defmodule Threadline.OperatorSurface.UITest do
 
       html =
         rendered_to_string(~H"""
-        <UI.page_header title="Transaction" breadcrumbs={@breadcrumbs} />
+        <UI.Page.page_header title="Transaction" breadcrumbs={@breadcrumbs} />
         """)
 
       assert html =~ ~s(<nav aria-label="Breadcrumb")

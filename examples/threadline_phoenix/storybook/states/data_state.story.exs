@@ -28,60 +28,60 @@ defmodule ThreadlinePhoenixWeb.Storybook.States.DataStateStory do
     ~H"""
     <.threadline_preview theme="system">
       <.preview_section title="Data-state variation groups" description="Representative empty, no-data, permission, loading, stale, error, unavailable, redacted, pruned, null, pagination, and timezone boundaries.">
-        <UI.stack gap="section">
-          <UI.stale_banner
+        <UI.Display.stack gap="section">
+          <UI.Data.stale_banner
             as_of={@fixtures.stale.as_of}
             object_label={@fixtures.stale.object_label}
           />
 
-          <UI.cluster>
-            <UI.empty_state role="status">
+          <UI.Display.cluster>
+            <UI.Data.empty_state role="status">
               <:title><%= @fixtures.empty.title %></:title>
               Audit Changes appear after captured database transactions.
-            </UI.empty_state>
+            </UI.Data.empty_state>
 
-            <UI.data_state reason={@fixtures.no_data.reason} />
-          </UI.cluster>
+            <UI.Data.data_state reason={@fixtures.no_data.reason} />
+          </UI.Display.cluster>
 
-          <UI.cluster>
-            <UI.data_state reason={:loading} />
-            <UI.data_state reason={:unauthorized} capability={@fixtures.permission.capability} />
-          </UI.cluster>
+          <UI.Display.cluster>
+            <UI.Data.data_state reason={:loading} />
+            <UI.Data.data_state reason={:unauthorized} capability={@fixtures.permission.capability} />
+          </UI.Display.cluster>
 
-          <UI.cluster>
-            <UI.data_state reason={:source_down} logs_label={@fixtures.source_down.logs_label} />
-            <UI.error_state>
+          <UI.Display.cluster>
+            <UI.Data.data_state reason={:source_down} logs_label={@fixtures.source_down.logs_label} />
+            <UI.Data.error_state>
               <:title><%= @fixtures.error.title %></:title>
               Retry, then check <%= @fixtures.error.logs_label %>.
-            </UI.error_state>
-          </UI.cluster>
+            </UI.Data.error_state>
+          </UI.Display.cluster>
 
-          <UI.cluster>
-            <UI.data_state reason={:redacted} />
-            <UI.data_state reason={:pruned} as_of={@fixtures.pruned.as_of} />
-          </UI.cluster>
+          <UI.Display.cluster>
+            <UI.Data.data_state reason={:redacted} />
+            <UI.Data.data_state reason={:pruned} as_of={@fixtures.pruned.as_of} />
+          </UI.Display.cluster>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>Null fields and timezone boundary</:title>
-            <UI.kv>
+            <UI.Display.kv>
               <:item key="Previous value"><%= inspect(@fixtures.null_fields.previous) %></:item>
               <:item key="Current value"><%= @fixtures.null_fields.current %></:item>
               <:item key="UTC"><%= @fixtures.timezone_boundary.utc %></:item>
               <:item key="Local"><%= @fixtures.timezone_boundary.local %></:item>
-            </UI.kv>
-          </UI.card>
+            </UI.Display.kv>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>Pagination boundary and zero count</:title>
-            <UI.pager
+            <UI.Page.pager
               shown={@fixtures.pagination_boundary.shown}
               match_count={@fixtures.pagination_boundary.match_count}
               has_older={@fixtures.pagination_boundary.has_older}
               has_newer={@fixtures.pagination_boundary.has_newer}
             />
             <p><%= @fixtures.empty.count %> current rows and <%= @fixtures.zero_count.label %>.</p>
-          </UI.card>
-        </UI.stack>
+          </UI.Display.card>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

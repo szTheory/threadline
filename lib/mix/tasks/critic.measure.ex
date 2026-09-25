@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Critic.Measure do
 
   use Mix.Task
 
-  alias Threadline.CriticTrust.{LedgerSplice, Measure}
+  alias Threadline.CriticTrust.{LedgerSplice, Measure, RepositoryBoundary}
 
   @default_fixture_root "test/fixtures/operator_surface"
   @default_output_root "test/generated/operator_surface/critic-scores"
@@ -21,30 +21,32 @@ defmodule Mix.Tasks.Critic.Measure do
     rubric_versions = read_rubric_versions!(paths)
 
     ledger_text =
-      read_json_text!(paths.ledger, "design-system ledger", restore_command(paths.ledger))
+      RepositoryBoundary.read_json_text!(
+        paths.ledger,
+        "design-system ledger",
+        RepositoryBoundary.restore_command(paths.ledger)
+      )
 
     block = Measure.build_block(golden, scores, rubric_versions)
     provenance = provenance_for(source, golden)
 
     with {:ok, trust_text} <- LedgerSplice.replace(ledger_text, block),
          {:ok, final_text} <- LedgerSplice.replace_provenance(trust_text, provenance) do
-      atomic_replace!(paths.ledger, final_text)
+      RepositoryBoundary.atomic_replace!(paths.ledger, final_text)
       print_summary(block, source)
       Mix.shell().info("git diff -- #{paths.ledger}")
     else
       {:error, reason} ->
-        task_error!(
+        RepositoryBoundary.task_error!(
           "could not splice ledger block (#{inspect(reason)})",
           paths.ledger,
-          restore_command(paths.ledger)
+          RepositoryBoundary.restore_command(paths.ledger)
         )
     end
   end
 
-  # ── Source + provenance ────────────────────────────────────────────────────
-
   defp parse_options!(argv) do
-    project_root = project_root!()
+    project_root = RepositoryBoundary.project_root!()
 
     case OptionParser.parse(argv,
            strict: [source: :string, fixture_root: :string, output_root: :string]
@@ -53,22 +55,32 @@ defmodule Mix.Tasks.Critic.Measure do
         source = source!(Keyword.get(opts, :source, "human"), project_root)
 
         fixture_root =
-          resolve_repository_root!(
+          RepositoryBoundary.resolve_repository_root!(
             Keyword.get(opts, :fixture_root, @default_fixture_root),
             project_root,
             "fixture root"
           )
 
         output_root =
-          resolve_repository_root!(
+          RepositoryBoundary.resolve_repository_root!(
             Keyword.get(opts, :output_root, @default_output_root),
             project_root,
             "critic-score output root"
           )
 
-        require_directory!(fixture_root, "fixture root", restore_command(fixture_root))
-        require_directory!(output_root, "critic-score output root", "mix verify.ui_critique")
-        validate_root_separation!(fixture_root, output_root)
+        RepositoryBoundary.require_directory!(
+          fixture_root,
+          "fixture root",
+          RepositoryBoundary.restore_command(fixture_root)
+        )
+
+        RepositoryBoundary.require_directory!(
+          output_root,
+          "critic-score output root",
+          "mix verify.ui_critique"
+        )
+
+        RepositoryBoundary.validate_root_separation!(fixture_root, output_root)
 
         {source,
          %{
@@ -82,7 +94,7 @@ defmodule Mix.Tasks.Critic.Measure do
          }}
 
       {_opts, args, invalid} ->
-        task_error!(
+        RepositoryBoundary.task_error!(
           "command arguments are invalid: #{inspect(args ++ invalid)}",
           project_root,
           "mix help critic.measure"
@@ -94,11 +106,15 @@ defmodule Mix.Tasks.Critic.Measure do
   defp source!("synthetic", _path), do: :synthetic
 
   defp source!(source, path) do
-    task_error!("unknown --source #{inspect(source)}", path, "mix help critic.measure")
+    RepositoryBoundary.task_error!(
+      "unknown --source #{inspect(source)}",
+      path,
+      "mix help critic.measure"
+    )
   end
 
   defp provenance_for(source, golden) do
-    has_items = length(Map.get(golden, "items", []) || []) > 0
+    has_items = not Enum.empty?(Map.get(golden, "items", []) || [])
 
     oracle =
       cond do
@@ -119,22 +135,24 @@ defmodule Mix.Tasks.Critic.Measure do
     }
   end
 
-  # ── Readers ────────────────────────────────────────────────────────────────
-
   defp read_golden!(source, paths) do
     path = if source == :synthetic, do: paths.synthetic, else: paths.golden
-    recovery = if source == :synthetic, do: "mix critic.synth", else: restore_command(path)
+
+    recovery =
+      if source == :synthetic,
+        do: "mix critic.synth",
+        else: RepositoryBoundary.restore_command(path)
 
     path
-    |> read_json_object!("golden oracle", recovery)
-    |> validate_golden!(path, recovery)
+    |> RepositoryBoundary.read_json_object!("golden oracle", recovery)
+    |> RepositoryBoundary.validate_golden!(path, recovery)
   end
 
   defp read_scores!(paths) do
     Path.wildcard(Path.join(paths.output_root, "*/*/*.json"))
     |> Enum.reduce(%{}, fn path, acc ->
-      score = read_json_object!(path, "critic score", "mix verify.ui_critique")
-      validate_score!(score, path)
+      score = RepositoryBoundary.read_json_object!(path, "critic score", "mix verify.ui_critique")
+      RepositoryBoundary.validate_score!(score, path)
       key = {score["cell_id"], score["lens"]}
 
       dimension = %{
@@ -150,282 +168,41 @@ defmodule Mix.Tasks.Critic.Measure do
   end
 
   defp read_rubric_versions!(paths) do
-    require_directory!(paths.rubrics, "critic rubric root", restore_command(paths.rubrics))
+    RepositoryBoundary.require_directory!(
+      paths.rubrics,
+      "critic rubric root",
+      RepositoryBoundary.restore_command(paths.rubrics)
+    )
 
     Map.new(Measure.lenses(), fn lens ->
       path = Path.join(paths.rubrics, "#{lens}.md")
-      content = read_text!(path, "critic rubric", restore_command(path))
+
+      content =
+        RepositoryBoundary.read_text!(
+          path,
+          "critic rubric",
+          RepositoryBoundary.restore_command(path)
+        )
 
       version =
         case Regex.run(
                ~r/<!--\s*lens:\s*\S+\s*\|\s*version:\s*(\S+)\s*\|\s*sha8:\s*(\S+)\s*-->/,
                content
              ) do
-          [_, semver, sha8] -> "#{lens}@#{semver}+#{sha8}"
-          _ -> task_error!("critic rubric is invalid", path, restore_command(path))
+          [_, semver, sha8] ->
+            "#{lens}@#{semver}+#{sha8}"
+
+          _ ->
+            RepositoryBoundary.task_error!(
+              "critic rubric is invalid",
+              path,
+              RepositoryBoundary.restore_command(path)
+            )
         end
 
       {lens, version}
     end)
   end
-
-  # ── Repository-only path and decode boundary ──────────────────────────────
-
-  defp project_root! do
-    case Mix.Project.project_file() do
-      nil ->
-        task_error!("no Mix project file is loaded", File.cwd!(), "mix help critic.measure")
-
-      project_file ->
-        project_file
-        |> Path.expand()
-        |> Path.dirname()
-    end
-  end
-
-  defp resolve_repository_root!(path, project_root, dataset) when is_binary(path) do
-    expanded = Path.expand(path, project_root)
-    canonical_project_root = canonicalize_root!(project_root, "project root")
-    canonical_path = canonicalize_root!(expanded, dataset)
-    relative = Path.relative_to(canonical_path, canonical_project_root)
-
-    case Path.safe_relative_to(relative, canonical_project_root) do
-      {:ok, safe_relative} ->
-        Path.join(canonical_project_root, safe_relative)
-
-      :error ->
-        task_error!(
-          "#{dataset} escapes or aliases the repository",
-          expanded,
-          "mix help critic.measure"
-        )
-    end
-  end
-
-  defp canonicalize_root!(path, dataset) do
-    case System.cmd("realpath", ["--", path], stderr_to_stdout: true) do
-      {canonical, 0} ->
-        String.trim(canonical)
-
-      {detail, _status} ->
-        task_error!(
-          "#{dataset} cannot be canonicalized (#{String.trim(detail)})",
-          path,
-          "mix help critic.measure"
-        )
-    end
-  end
-
-  defp validate_root_separation!(fixture_root, output_root) do
-    immutable = [
-      Path.join(fixture_root, "scorecards"),
-      Path.join(fixture_root, "golden"),
-      Path.join(fixture_root, "refute"),
-      Path.join(fixture_root, "design-system-ledger.json")
-    ]
-
-    if output_root == fixture_root or
-         Enum.any?(immutable, fn root ->
-           within?(output_root, root) or within?(root, output_root)
-         end) do
-      task_error!(
-        "critic-score output root aliases immutable evidence",
-        output_root,
-        "mix help critic.measure"
-      )
-    end
-  end
-
-  defp within?(candidate, parent) do
-    case Path.relative_to(candidate, parent) do
-      "." -> true
-      ".." -> false
-      "../" <> _ -> false
-      relative -> Path.type(relative) == :relative
-    end
-  end
-
-  defp require_directory!(path, dataset, recovery) do
-    if not File.dir?(path), do: task_error!("#{dataset} is unavailable", path, recovery)
-  end
-
-  defp read_json_object!(path, dataset, recovery) do
-    case path |> read_text!(dataset, recovery) |> Jason.decode() do
-      {:ok, decoded} when is_map(decoded) ->
-        decoded
-
-      {:ok, _other} ->
-        task_error!("#{dataset} is invalid (expected a JSON object)", path, recovery)
-
-      {:error, error} ->
-        task_error!("#{dataset} is invalid (#{Exception.message(error)})", path, recovery)
-    end
-  end
-
-  defp read_json_text!(path, dataset, recovery) do
-    text = read_text!(path, dataset, recovery)
-
-    case Jason.decode(text) do
-      {:ok, decoded} when is_map(decoded) ->
-        text
-
-      {:ok, _other} ->
-        task_error!("#{dataset} is invalid (expected a JSON object)", path, recovery)
-
-      {:error, error} ->
-        task_error!("#{dataset} is invalid (#{Exception.message(error)})", path, recovery)
-    end
-  end
-
-  defp read_text!(path, dataset, recovery) do
-    case File.read(path) do
-      {:ok, text} ->
-        text
-
-      {:error, reason} ->
-        task_error!(
-          "#{dataset} is unavailable (#{:file.format_error(reason)})",
-          path,
-          recovery
-        )
-    end
-  end
-
-  defp validate_score!(score, path) do
-    valid =
-      is_binary(score["cell_id"]) and score["cell_id"] != "" and
-        score["lens"] in Measure.lenses() and
-        score["band"] in ~w(fail weak ok strong exemplary) and
-        is_number(score["score"]) and is_boolean(score["stable"]) and
-        is_binary(score["model_id"]) and is_binary(score["rubric_version"])
-
-    if not valid, do: task_error!("critic score is invalid", path, "mix verify.ui_critique")
-  end
-
-  defp validate_golden!(golden, path, recovery) do
-    items = Map.get(golden, "items")
-
-    valid = is_list(items) and Enum.all?(items, &valid_golden_item?/1)
-
-    if valid do
-      golden
-    else
-      task_error!("golden oracle schema is invalid", path, recovery)
-    end
-  end
-
-  defp valid_golden_item?(item) when is_map(item) do
-    kind = item["kind"]
-    r1 = item["r1"]
-    r2 = item["r2"]
-    adjudicated = item["adjudicated"]
-
-    is_binary(item["cell_id"]) and item["cell_id"] != "" and
-      item["lens"] in Measure.lenses() and kind in ~w(single pair) and
-      valid_round_provenance?(r1, kind) and valid_round_provenance?(r2, kind) and
-      valid_adjudication?(adjudicated, r1, r2, kind)
-  end
-
-  defp valid_golden_item?(_item), do: false
-
-  defp valid_round_provenance?(round, kind) when is_map(round) do
-    verdict_valid =
-      case kind do
-        "single" -> round["verdict"] in ~w(broken bad borderline good) and is_nil(round["margin"])
-        "pair" -> round["verdict"] in ~w(better worse) and round["margin"] in ~w(clear subtle)
-      end
-
-    verdict_valid and round["blind"] == true and is_binary(round["evidence"]) and
-      String.trim(round["evidence"]) != ""
-  end
-
-  defp valid_round_provenance?(_round, _kind), do: false
-
-  defp valid_adjudication?(adjudicated, r1, r2, kind) when is_map(adjudicated) do
-    source = adjudicated["source"]
-
-    selected =
-      case source do
-        "agreement" -> r1
-        "r1" -> r1
-        "r2" -> r2
-        _other -> nil
-      end
-
-    source_consistent =
-      source != "agreement" or
-        (r1["verdict"] == r2["verdict"] and
-           (kind != "pair" or r1["margin"] == r2["margin"]))
-
-    is_map(selected) and source_consistent and adjudicated["verdict"] == selected["verdict"] and
-      case kind do
-        "single" -> is_nil(adjudicated["margin"])
-        "pair" -> adjudicated["margin"] == selected["margin"]
-      end
-  end
-
-  defp valid_adjudication?(_adjudicated, _r1, _r2, _kind), do: false
-
-  defp atomic_replace!(target, contents) do
-    temp = "#{target}.tmp-#{System.unique_integer([:positive, :monotonic])}"
-
-    case File.open(temp, [:write, :binary, :exclusive]) do
-      {:ok, io_device} ->
-        result =
-          try do
-            with :ok <- IO.binwrite(io_device, contents),
-                 :ok <- :file.sync(io_device),
-                 :ok <- File.close(io_device),
-                 :ok <- atomic_write_hook(),
-                 :ok <- File.rename(temp, target) do
-              :ok
-            end
-          after
-            _ = File.close(io_device)
-            _ = File.rm(temp)
-          end
-
-        case result do
-          :ok ->
-            :ok
-
-          {:error, reason} ->
-            task_error!(
-              "atomic ledger replacement failed (#{inspect(reason)})",
-              target,
-              restore_command(target)
-            )
-        end
-
-      {:error, reason} ->
-        task_error!(
-          "could not create exclusive sibling temp (#{inspect(reason)})",
-          target,
-          restore_command(target)
-        )
-    end
-  end
-
-  defp atomic_write_hook do
-    case Process.get({__MODULE__, :atomic_write_hook}) do
-      hook when is_function(hook, 0) -> hook.()
-      _other -> :ok
-    end
-  end
-
-  defp restore_command(path), do: "git restore -- #{Path.relative_to(path, project_root!())}"
-
-  @spec task_error!(String.t(), Path.t(), String.t()) :: no_return()
-  defp task_error!(message, path, recovery) do
-    Mix.raise(
-      "critic.measure: #{message}\n" <>
-        "resolved path: #{Path.expand(path)}\n" <>
-        "repository-only: true\n" <>
-        "next: #{recovery}"
-    )
-  end
-
-  # ── Output ─────────────────────────────────────────────────────────────────
 
   defp print_summary(block, source) do
     Mix.shell().info("\ncritic_trust measured — oracle: #{source}:\n")

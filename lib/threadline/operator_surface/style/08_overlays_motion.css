@@ -1,0 +1,685 @@
+  .tl-subview-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 49;
+    background: var(--tl-color-backdrop);
+    backdrop-filter: blur(var(--tl-blur-veil));
+  }
+
+  .tl-subview {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--tl-z-subview);
+    width: 100vw;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    background: var(--tl-color-bg);
+    box-shadow: var(--tl-shadow-raised);
+    animation: tl-drawer-in var(--tl-motion-base) var(--tl-ease-standard);
+  }
+
+  .tl-subview[role="dialog"] {
+    outline: none;
+  }
+
+  .tl-subview__header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tl-space-3);
+    padding: var(--tl-space-4);
+    border-bottom: 1px solid var(--tl-color-border);
+    background: var(--tl-color-surface-tint);
+    backdrop-filter: blur(var(--tl-blur-panel));
+  }
+
+  .tl-subview__title {
+    margin: 0;
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+    font-weight: var(--tl-weight-strong);
+    text-wrap: balance;
+  }
+
+  .tl-subview__content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--tl-space-4);
+    padding: var(--tl-space-4);
+  }
+
+  @keyframes tl-drawer-in {
+    from {
+      opacity: 0;
+      transform: translateX(var(--tl-motion-distance-md));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes tl-rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(var(--tl-motion-distance-sm));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes tl-thread-draw {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes tl-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /*
+   * Overlay JS-transition utility classes.
+   * modal/drawer/toast (ui.ex) drive enter/exit via Phoenix.LiveView.JS
+   * show/hide `transition:` tuples {transition_classes, from, to}. The
+   * transition class sets the tokenized transition-property; the from/to
+   * classes set the start/end opacity/transform. These are CLASS SELECTORS
+   * (NOT the same-named @keyframes, which drive CSS `animation:` mount
+   * reveals) — defining them here makes the overlay motion real instead of
+   * an instant snap. GPU-only (opacity/transform); the reduced-motion
+   * blanket below collapses the transition near-instantly, so no
+   * per-component prefers-reduced-motion handling is needed. Every JS.show/
+   * hide passes an explicit time matching --tl-motion-base so the token
+   * stays the single source of truth.
+   */
+  .tl-fade-in,
+  .tl-fade-out {
+    transition: opacity var(--tl-motion-base) var(--tl-ease-standard);
+  }
+
+  .tl-rise-in,
+  .tl-rise-out {
+    transition:
+      opacity var(--tl-motion-base) var(--tl-ease-standard),
+      transform var(--tl-motion-base) var(--tl-ease-standard);
+  }
+
+  .tl-slide-in-right,
+  .tl-slide-out-right {
+    transition: transform var(--tl-motion-base) var(--tl-ease-standard);
+  }
+
+  .opacity-0 {
+    opacity: 0;
+  }
+
+  .opacity-100 {
+    opacity: 1;
+  }
+
+  .translate-y-0 {
+    transform: translateY(0);
+  }
+
+  .translate-y-4 {
+    transform: translateY(var(--tl-motion-distance-md));
+  }
+
+  .translate-x-0 {
+    transform: translateX(0);
+  }
+
+  .translate-x-full {
+    transform: translateX(100%);
+  }
+
+  /* `.hidden` backs the modal/drawer `if(!@show, do: "hidden")` toggle. */
+  .hidden {
+    display: none;
+  }
+
+  /*
+   * Overlay shells. The *-container is the full-viewport positioning layer
+   * the JS show/hide targets (#id); the scrim is the dimmed backdrop and the
+   * wrapper centers/edges the dialog. Opacity/transform stay on the JS
+   * utility classes above so the container itself only owns layout + stacking.
+   */
+  .tl-modal-container,
+  .tl-drawer-container {
+    position: fixed;
+    inset: 0;
+    z-index: var(--tl-z-subview);
+  }
+
+  .tl-modal-scrim,
+  .tl-drawer-scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--tl-color-scrim, rgba(7, 11, 20, 0.62));
+  }
+
+  .tl-modal-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: var(--tl-space-4);
+  }
+
+  .tl-modal {
+    position: relative;
+    width: min(var(--tl-modal-width, 560px), 100%);
+    max-height: calc(100% - var(--tl-space-8));
+    overflow: auto;
+    padding: var(--tl-space-5);
+    background: var(--tl-color-surface-raised);
+    border: 1px solid var(--tl-color-border);
+    border-radius: var(--tl-radius-md);
+    transform-origin: top center;
+    transition-property: opacity, transform;
+    transition-duration: var(--tl-motion-base);
+    transition-timing-function: var(--tl-ease-standard);
+  }
+
+  .tl-drawer-wrapper {
+    position: absolute;
+    inset: 0 0 0 auto;
+    display: flex;
+  }
+
+  .tl-drawer {
+    position: relative;
+    width: min(var(--tl-drawer-width), 100vw);
+    height: 100%;
+    overflow: auto;
+    padding: var(--tl-space-5);
+    background: var(--tl-color-surface-raised);
+    border-left: 1px solid var(--tl-color-border);
+    transform-origin: top right;
+    transition-property: opacity, transform;
+    transition-duration: var(--tl-motion-base);
+    transition-timing-function: var(--tl-ease-standard);
+  }
+
+  .tl-popover,
+  .tl-shadow-popover,
+  .tl-accordion__panel {
+    transform-origin: top right;
+    transition-property: opacity, transform;
+    transition-duration: var(--tl-motion-base);
+    transition-timing-function: var(--tl-ease-standard);
+  }
+
+  .tl-accordion__panel {
+    transform-origin: top center;
+  }
+
+  /*
+   * toast — fade-up entrance (Open Question 3) via a phx-mounted JS.show
+   * using the same .tl-fade-in/.opacity-* utilities + explicit time. Manual/
+   * phx-click dismiss only (auto-dismiss is out of scope). Warning/info/etc.
+   * tinting rides the per-kind --tl-color-* tokens already in the catalog.
+   */
+  .tl-toast {
+    position: fixed;
+    right: var(--tl-space-4);
+    bottom: var(--tl-space-4);
+    z-index: var(--tl-z-toast);
+    display: flex;
+    flex-direction: column;
+    gap: var(--tl-space-1);
+    max-width: min(360px, calc(100vw - var(--tl-space-8)));
+    padding: var(--tl-space-4);
+    background: var(--tl-color-surface-raised);
+    border: 1px solid var(--tl-color-border);
+    border-radius: var(--tl-radius-md);
+    transform-origin: bottom right;
+    transition-property: opacity, transform;
+    transition-duration: var(--tl-motion-base);
+    transition-timing-function: var(--tl-ease-standard);
+  }
+
+  /*
+   * Reconnect / offline group, verified against LiveView's real lifecycle classes.
+   * Phoenix LiveView applies connection lifecycle classes to the
+   * `[data-phx-main]` container in this app. `.threadline-ui` is the scoped
+   * Threadline shell inside that container, so selectors anchor on
+   * `[data-phx-main].phx-*` and then descend into the shell. Never anchor on
+   * the document body or the legacy disconnected class. Zero new JS/deps,
+   * CSP-clean — it catches a dropped socket mid-session, unlike a mount-time
+   * connected?/1 assign.
+   *
+   * The reconnect banner is hidden by default and revealed only while the
+   * socket is loading/erroring. Mutating controls marked `data-tl-mutating`
+   * are disabled (affordance: pointer-events + dimming); the markup also
+   * carries aria-disabled + tabindex=-1 for links so the affordance is also
+   * announced and keyboard-safe because affordance is not enforcement.
+   */
+  .tl-reconnect-banner {
+    display: none;
+  }
+
+  [data-phx-main].phx-loading .threadline-ui .tl-reconnect-banner,
+  [data-phx-main].phx-error .threadline-ui .tl-reconnect-banner,
+  [data-phx-main].phx-client-error .threadline-ui .tl-reconnect-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--tl-gap-inline);
+    padding: var(--tl-space-2) var(--tl-space-4);
+    color: var(--tl-color-warning-text);
+    background: var(--tl-color-warning-bg);
+    border-bottom: 1px solid var(--tl-color-warning-border);
+  }
+
+  [data-phx-main].phx-loading .threadline-ui [data-tl-mutating],
+  [data-phx-main].phx-error .threadline-ui [data-tl-mutating],
+  [data-phx-main].phx-client-error .threadline-ui [data-tl-mutating] {
+    pointer-events: none;
+    opacity: 0.55;
+  }
+
+  /*
+   * Motion — purposeful, brand-coherent micro-interactions.
+   * Pure CSS, GPU-only (transform/opacity), reusing the motion tokens.
+   * Each fires on element mount; LiveView streams replay them only for
+   * newly inserted/changed rows, so a freshly prune-run row or a
+   * just-opened drawer animates while unchanged rows stay put. All
+   * auto-degrade via the prefers-reduced-motion blanket below. The
+   * high-traffic timeline stream is deliberately NOT animated — snappy
+   * paging beats an entrance flourish (never animate high-frequency
+   * actions).
+   */
+
+  /* C1 — a new retention run (the prune-now confirmation) rises in. */
+  #retention-runs > tr {
+    animation: tl-rise-in var(--tl-motion-base) var(--tl-ease-out) both;
+  }
+
+  /* C4 — opening row history: the drawer's history items stagger in,
+   * reading as the timeline thread continuing into the drawer. */
+  .tl-subview__timeline > * {
+    animation: tl-rise-in var(--tl-motion-base) var(--tl-ease-out) both;
+  }
+
+  .tl-subview__timeline > *:nth-child(2) {
+    animation-delay: var(--tl-motion-stagger);
+  }
+
+  .tl-subview__timeline > *:nth-child(3) {
+    animation-delay: calc(var(--tl-motion-stagger) * 2);
+  }
+
+  .tl-subview__timeline > *:nth-child(4) {
+    animation-delay: calc(var(--tl-motion-stagger) * 3);
+  }
+
+  .tl-subview__timeline > *:nth-child(n + 5) {
+    animation-delay: calc(var(--tl-motion-stagger) * 4);
+  }
+
+  /* Evidence proofs and actor transactions are low-frequency reveals:
+   * a gentle fade as the records assemble. (Actor rows are scoped to
+   * #transactions-list so the shared .tl-change on the timeline is
+   * untouched.) */
+  .tl-record-list > .tl-record-card,
+  #transactions-list > .tl-change {
+    animation: tl-fade-in var(--tl-motion-base) var(--tl-ease-out) both;
+  }
+
+  /* C2 — copy id affordance. Vanilla embedded JS (operator_surface/script.ex)
+   * toggles .is-copied on success: a Signal-Cyan pulse + a "Copied" chip.
+   * The chip is a static ::after (not animated) so it still confirms under
+   * prefers-reduced-motion; only the pulse is motion. */
+  .tl-copy {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: var(--tl-control-height-compact);
+    min-height: var(--tl-control-height-chip);
+    padding: 0 var(--tl-space-2);
+    border: 1px solid var(--tl-color-border);
+    border-radius: var(--tl-radius-sm);
+    background: transparent;
+    color: var(--tl-color-muted);
+    font-family: inherit;
+    font-size: var(--tl-font-size-xs);
+    cursor: pointer;
+    transition-property: color, border-color, background-color, box-shadow;
+    transition-duration: var(--tl-motion-fast);
+    transition-timing-function: var(--tl-ease-standard);
+  }
+
+  .tl-copy:hover {
+    color: var(--tl-color-text);
+    border-color: var(--tl-color-border-strong);
+  }
+
+  .tl-copy.is-copied {
+    color: var(--tl-color-signal);
+    border-color: var(--tl-color-signal-border);
+    animation: tl-copy-pulse var(--tl-motion-base) var(--tl-ease-out);
+  }
+
+  .tl-copy.is-copied::after {
+    content: "Copied";
+    position: absolute;
+    bottom: calc(100% + var(--tl-space-1));
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px var(--tl-space-2);
+    border-radius: var(--tl-radius-sm);
+    background: var(--tl-color-signal-bg);
+    color: var(--tl-color-signal);
+    border: 1px solid var(--tl-color-signal-border);
+    font-size: var(--tl-font-size-xs);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  @keyframes tl-copy-pulse {
+    from {
+      box-shadow: 0 0 0 0 var(--tl-color-signal-border);
+    }
+    to {
+      box-shadow: 0 0 0 6px transparent;
+    }
+  }
+
+  .tl-subview__panel {
+    min-width: 0;
+  }
+
+  .tl-subview__panel-title {
+    margin: 0 0 var(--tl-space-2);
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+    font-weight: var(--tl-weight-strong);
+  }
+
+  .tl-subview__timeline {
+    margin: var(--tl-space-3) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tl-subview__timeline li {
+    padding: var(--tl-space-2) 0;
+    border-bottom: 1px solid var(--tl-color-border);
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+  }
+
+  .tl-kv {
+    display: grid;
+    gap: var(--tl-space-2);
+    margin: 0;
+  }
+
+  .tl-kv__row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--tl-space-1);
+    padding: var(--tl-space-2) 0;
+    border-bottom: 1px solid var(--tl-color-border);
+  }
+
+  .tl-kv__key {
+    color: var(--tl-color-muted);
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+  }
+
+  .tl-kv__value {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--tl-font-mono);
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+  }
+
+  .tl-page-band {
+    display: grid;
+    gap: var(--tl-space-3);
+    margin-bottom: var(--tl-space-4);
+  }
+
+  .tl-journey-rail {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--tl-space-2);
+    margin-top: var(--tl-space-3);
+  }
+
+  /* Signature beat: a Signal-Cyan thread draws across the journey steps on
+     enter — the one branded motion moment, tying the steps into a thread. */
+  .tl-journey-rail::before {
+    content: "";
+    position: absolute;
+    top: calc(-1 * var(--tl-space-1));
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: var(--tl-radius-pill);
+    background: linear-gradient(90deg, var(--tl-color-signal), var(--tl-color-signal-border) 70%, transparent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    animation: tl-thread-draw var(--tl-motion-slow) var(--tl-ease-out) 120ms both;
+  }
+
+  .tl-journey-step {
+    min-width: 0;
+    padding: var(--tl-space-3);
+    border: 1px solid var(--tl-color-border);
+    border-radius: var(--tl-radius-lg);
+    background: var(--tl-color-surface-raised);
+  }
+
+  .tl-journey-step__label {
+    display: block;
+    color: var(--tl-color-muted);
+    font-size: var(--tl-font-size-xs);
+    font-weight: var(--tl-weight-strong);
+    line-height: var(--tl-line-label);
+    text-transform: uppercase;
+  }
+
+  .tl-journey-step__title {
+    display: block;
+    margin-top: var(--tl-space-1);
+    font-weight: var(--tl-weight-strong);
+    line-height: var(--tl-line-label);
+  }
+
+  .tl-coverage-verdict {
+    display: grid;
+    gap: var(--tl-space-3);
+    margin-bottom: var(--tl-space-4);
+    padding: var(--tl-space-4);
+    border: 1px solid var(--tl-color-border);
+    border-left: var(--tl-status-stripe-width) solid var(--tl-color-info-text);
+    border-radius: var(--tl-radius-lg);
+    background: var(--tl-color-surface-raised);
+    box-shadow: var(--tl-shadow-subtle);
+  }
+
+  .tl-coverage-verdict--not-ready {
+    border-left-color: var(--tl-color-danger);
+  }
+
+  .tl-coverage-verdict--ready,
+  .tl-coverage-verdict--tracked-ready {
+    border-left-color: var(--tl-color-success-text);
+  }
+
+  .tl-coverage-verdict--empty {
+    border-left-color: var(--tl-color-warning-border);
+  }
+
+  .tl-coverage-verdict__status {
+    justify-self: start;
+  }
+
+  .tl-coverage-verdict__eyebrow {
+    margin: 0;
+    color: var(--tl-color-muted);
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+    font-weight: var(--tl-weight-strong);
+    text-transform: uppercase;
+  }
+
+  .tl-coverage-verdict__title {
+    margin: 0;
+    font-size: var(--tl-font-size-title);
+    line-height: var(--tl-line-heading);
+    font-weight: var(--tl-weight-strong);
+    color: var(--tl-color-text);
+  }
+
+  .tl-coverage-verdict__meta {
+    margin: 0;
+    color: var(--tl-color-muted);
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+  }
+
+  .tl-coverage-verdict__counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tl-space-2);
+    margin: 0;
+  }
+
+  .tl-coverage-verdict__count {
+    display: grid;
+    min-width: 120px;
+    gap: var(--tl-space-1);
+    padding: var(--tl-space-2) var(--tl-space-3);
+    border: 1px solid var(--tl-color-border);
+    border-radius: var(--tl-radius-md);
+    background: var(--tl-color-surface);
+  }
+
+  .tl-coverage-verdict__count dt {
+    color: var(--tl-color-muted);
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+    font-weight: var(--tl-weight-strong);
+  }
+
+  .tl-coverage-verdict__count dd {
+    margin: 0;
+    font-size: var(--tl-font-size-title);
+    line-height: var(--tl-line-heading);
+    font-weight: var(--tl-weight-strong);
+  }
+
+  .tl-coverage-verdict__next-step {
+    margin: 0;
+    color: var(--tl-color-muted);
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+    overflow-wrap: anywhere;
+  }
+
+  .tl-table--coverage .tl-table__actions {
+    white-space: normal;
+  }
+
+  .tl-table--coverage td[data-label="TABLE"] code {
+    display: inline-block;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .tl-record-list {
+    display: grid;
+    gap: var(--tl-space-3);
+  }
+
+  .tl-record-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--tl-space-3);
+    padding: var(--tl-panel-padding);
+    border: 1px solid var(--tl-color-border);
+    border-left: var(--tl-status-stripe-width) solid var(--tl-color-border-strong);
+    border-radius: var(--tl-radius-lg);
+    background: var(--tl-color-surface-raised);
+    box-shadow: var(--tl-shadow-subtle);
+  }
+
+  .tl-record-card--success {
+    border-left-color: var(--tl-color-success-text);
+  }
+
+  .tl-record-card--warning {
+    border-left-color: var(--tl-color-warning-border);
+  }
+
+  .tl-record-card--danger {
+    border-left-color: var(--tl-color-danger);
+  }
+
+  .tl-record-card--info {
+    border-left-color: var(--tl-color-info-text);
+  }
+
+  .tl-record-card__main {
+    min-width: 0;
+    display: grid;
+    gap: var(--tl-space-2);
+  }
+
+  .tl-record-card__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tl-space-2);
+    margin: 0;
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+    font-weight: var(--tl-weight-strong);
+  }
+
+  .tl-record-card__ref {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--tl-font-mono);
+    font-size: var(--tl-font-size-label);
+    line-height: var(--tl-line-label);
+  }
+
+  .tl-record-card__meta,
+  .tl-record-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tl-space-2);
+  }
+
+  .tl-record-card__actions {
+    justify-content: flex-start;
+  }
+
+  .tl-table--actionable tbody tr:hover {
+    background: var(--tl-color-surface);
+  }
+
+  .tl-table__actions {
+    white-space: nowrap;
+  }
+

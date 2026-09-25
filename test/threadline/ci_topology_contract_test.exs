@@ -4,6 +4,9 @@ defmodule Threadline.CiTopologyContractTest do
 
   @repo_root File.cwd!()
 
+  # Assembled so this file's own text never contains the retired alias name as a literal.
+  @retired_alias "verify." <> "doc_contract"
+
   defp read_rel!(segments) when is_list(segments) do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
@@ -47,29 +50,15 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert String.contains?(mix_exs, "\"verify.compile_no_optional\":")
     assert String.contains?(mix_exs, "\"compile --no-optional-deps --warnings-as-errors\"")
-    assert String.contains?(mix_exs, "\"verify.test\": [\"test\"]")
-    assert String.contains?(mix_exs, "\"verify.example\": &verify_example/1")
-
-    assert String.contains?(mix_exs, "\"verify.doc_contract\": [")
-    assert String.contains?(mix_exs, "test test/threadline/readme_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/how_threadline_works_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/operator_surface_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/upgrade_path_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/getting_started_saas_doc_contract_test.exs")
-    assert String.contains?(mix_exs, "test/threadline/audit_doc_contract_test.exs")
+    assert String.contains?(mix_exs, "\"verify.xref_cycles\":")
 
     assert String.contains?(
              mix_exs,
-             "test/threadline/integration_contracts_doc_contract_test.exs"
+             "\"xref graph --format cycles --label compile-connected --fail-above 0\""
            )
 
-    assert String.contains?(mix_exs, "test/threadline/example_phoenix_readme_contract_test.exs")
-
-    # v1_23_charter_doc_contract_test.exs was deleted in Phase 198 (D-06) as
-    # genuinely obsolete, and dropped from the verify.doc_contract alias in the
-    # same commit. Asserting a deleted file is still listed would have forced the
-    # alias to reference a path that no longer exists.
-    refute String.contains?(mix_exs, "test/threadline/v1_23_charter_doc_contract_test.exs")
+    assert String.contains?(mix_exs, "\"verify.test\": [\"test\"]")
+    assert String.contains?(mix_exs, "\"verify.example\": &verify_example/1")
   end
 
   test "ci.all keeps capture-only and phoenix-surface proof steps in order" do
@@ -80,11 +69,11 @@ defmodule Threadline.CiTopologyContractTest do
            "expected mix.exs to declare a multiline ci.all list"
 
     {pos_compile_strict, _} = :binary.match(ci_block, "\"compile --warnings-as-errors\"")
+    {pos_xref_cycles, _} = :binary.match(ci_block, "\"verify.xref_cycles\"")
     {pos_compile_no_optional, _} = :binary.match(ci_block, "\"verify.compile_no_optional\"")
     {pos_verify_test, _} = :binary.match(ci_block, "\"verify.test\"")
     {pos_verify_threadline, _} = :binary.match(ci_block, "\"verify.threadline\"")
     {pos_verify_example, _} = :binary.match(ci_block, "\"verify.example\"")
-    {pos_verify_doc_contract, _} = :binary.match(ci_block, "\"verify.doc_contract\"")
 
     {pos_verify_browser, _} =
       :binary.match(
@@ -92,12 +81,13 @@ defmodule Threadline.CiTopologyContractTest do
         "cmd env CI=true mix verify.example_browser --project=desktop-chromium --project=mobile-chromium"
       )
 
+    assert pos_compile_strict < pos_xref_cycles
+    assert pos_xref_cycles < pos_compile_no_optional
     assert pos_compile_strict < pos_compile_no_optional
     assert pos_compile_no_optional < pos_verify_test
     assert pos_verify_test < pos_verify_threadline
     assert pos_verify_threadline < pos_verify_example
-    assert pos_verify_example < pos_verify_doc_contract
-    assert pos_verify_doc_contract < pos_verify_browser
+    assert pos_verify_example < pos_verify_browser
   end
 
   test "ci workflow exposes the documented support-lane job ids" do
@@ -206,8 +196,37 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(yaml, "run: mix verify.threadline")
     assert String.contains?(yaml, "- name: Verify Threadline Phoenix example")
     assert String.contains?(yaml, "run: mix verify.example")
-    assert String.contains?(yaml, "- name: Doc contract tests")
-    assert String.contains?(yaml, "run: mix verify.doc_contract")
+    refute String.contains?(yaml, "mix " <> @retired_alias)
+  end
+
+  # GitHub Actions never runs `ci.all`, so pinning the alias alone would let the
+  # GATE-04 cycle gate be dropped from CI with every test still green.
+  test "verify-test job runs the xref cycle gate unconditionally before the suite" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert [_, block] =
+             Regex.run(
+               ~r/^  verify-test:\n([\s\S]*?)(?=^  [a-z][a-z0-9-]+:\n)/m,
+               yaml
+             ),
+           "verify-test job is missing"
+
+    step = workflow_step(block, "Verify no compile-connected xref cycles")
+
+    assert step =~ ~r/^        run: mix verify\.xref_cycles\s*$/m,
+           "verify-test must run `mix verify.xref_cycles` (GATE-04)"
+
+    refute step =~ ~r/^        if:/m, "the xref cycle gate must not be conditional"
+
+    refute step =~ ~r/^        continue-on-error:/m,
+           "the xref cycle gate must fail the job"
+
+    assert ordered_positions?([
+             position(block, "run: mix compile --warnings-as-errors"),
+             position(block, "run: mix verify.xref_cycles"),
+             position(block, "run: mix verify.test")
+           ]),
+           "the xref cycle gate must run after compile and before the test suite"
   end
 
   test "verify-test checkout includes complete history and annotated tags" do

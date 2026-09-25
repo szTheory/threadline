@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
 
   import ExUnit.CaptureIO
 
+  alias Mix.Tasks.Threadline.Policy.Show
   alias Threadline.Capture.TriggerSQL
 
   @drift_table "threadline_policy_show_bravo"
@@ -117,7 +118,7 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
     test "prints the locked columns, statuses, rerun hint, and canonical row order" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Policy.Show.run([])
+          Show.run([])
         end)
 
       assert output =~
@@ -141,7 +142,7 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
     test "returns success even when drift exists and never prints sample values" do
       output =
         capture_io(fn ->
-          assert :ok = Mix.Tasks.Threadline.Policy.Show.run([])
+          assert :ok = Show.run([])
         end)
 
       refute output =~ "alice@example.com"
@@ -150,7 +151,7 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
     test "--json emits the stable top-level contract and exact status enums" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Policy.Show.run(["--json"])
+          Show.run(["--json"])
         end)
 
       parsed = Jason.decode!(output)
@@ -246,7 +247,7 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
 
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Policy.Show.run(["--schema=support", "--json"])
+          Show.run(["--schema=support", "--json"])
         end)
 
       parsed = Jason.decode!(output)
@@ -264,7 +265,7 @@ defmodule Threadline.OperatorSurface.PolicyShowMixTest do
       assert_raise Mix.Error,
                    ~r/threadline\.policy\.show: schema "Public" is not a valid PostgreSQL identifier/,
                    fn ->
-                     Mix.Tasks.Threadline.Policy.Show.run(["--schema=Public"])
+                     Show.run(["--schema=Public"])
                    end
     end
   end

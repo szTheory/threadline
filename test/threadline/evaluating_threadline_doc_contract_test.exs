@@ -39,7 +39,7 @@ defmodule Threadline.EvaluatingThreadlineDocContractTest do
     guide = File.read!(@guide)
 
     assert String.contains?(guide, "mix ci.all")
-    assert String.contains?(guide, "mix verify.doc_contract")
+    assert String.contains?(guide, "mix verify.test")
     assert String.contains?(guide, "mix verify.example")
     assert String.contains?(guide, "mix verify.hex_evaluator")
     assert String.contains?(guide, "adoption-evidence-playbook.md")

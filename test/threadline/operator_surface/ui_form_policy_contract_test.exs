@@ -32,6 +32,8 @@ defmodule Threadline.OperatorSurface.UIFormPolicyContractTest do
 
   use ExUnit.Case, async: true
 
+  alias Threadline.Test.SourceFamily
+
   @live_dir Path.join([
               File.cwd!(),
               "lib",
@@ -83,13 +85,13 @@ defmodule Threadline.OperatorSurface.UIFormPolicyContractTest do
 
       case policy do
         [:formless] ->
-          source = File.read!(path)
+          source = SourceFamily.read!(relative)
           offenders = Enum.filter(@form_control_tokens, &String.contains?(source, &1))
 
           assert offenders == [],
                  "#{relative} declares @ui_form_policy :formless but contains form " <>
                    "control(s): #{inspect(offenders)}. Either move the control behind " <>
-                   "UI.field / UI.field_group on a real form page, or change this page's " <>
+                   "UI.Form.field / UI.Form.field_group on a real form page, or change this page's " <>
                    "declaration to {:has_forms, \"reason\"} in this same diff."
 
         [{:has_forms, reason}] when is_binary(reason) and reason != "" ->

@@ -1,6 +1,16 @@
 defmodule Threadline.StorageSchemaMigrationContractTest do
   use ExUnit.Case, async: false
 
+  # Byte pins for the governance migration that `mix threadline.install` writes
+  # into an adopter's app. `nil` is the library default (no :storage_schema
+  # configured, so "public"); "AuditLog" exercises mixed-case identifier quoting.
+  # Change these only together with an intended change to the generated
+  # migration, and say why in the commit.
+  @governance_default_sha256 "f8364c7398b30ea454350e346162d4411c7ea4799e85eea68da7cf34df3d5956"
+  @governance_default_bytes 3377
+  @governance_auditlog_sha256 "ed742ee9fece935788acbe23f319491c1f2ed27ea9d37544dd68ff391d7194cb"
+  @governance_auditlog_bytes 3407
+
   setup do
     previous = Application.get_env(:threadline, :storage_schema)
     on_exit(fn -> Application.put_env(:threadline, :storage_schema, previous) end)
@@ -48,6 +58,32 @@ defmodule Threadline.StorageSchemaMigrationContractTest do
     assert capture =~ ~S|"AuditLog"."audit_transactions"|
     refute capture =~ ~S|"_audit1"."audit_transactions"|
     assert regenerated =~ ~S|"_audit1"."audit_transactions"|
+  end
+
+  test "generated governance migration output is byte-identical to its pins" do
+    for {schema, sha256, bytes} <- [
+          {nil, @governance_default_sha256, @governance_default_bytes},
+          {"AuditLog", @governance_auditlog_sha256, @governance_auditlog_bytes}
+        ] do
+      if schema,
+        do: put_storage_schema!(schema),
+        else: Application.delete_env(:threadline, :storage_schema)
+
+      migration = Threadline.Governance.Migration.migration_content()
+      measured = :sha256 |> :crypto.hash(migration) |> Base.encode16(case: :lower)
+
+      if measured != sha256 do
+        flunk(
+          "the generated governance migration changed for storage schema " <>
+            "#{inspect(schema || "public (library default)")}: pinned #{bytes} bytes " <>
+            "sha256 #{sha256}, measured #{byte_size(migration)} bytes sha256 #{measured}. " <>
+            "Compare `Threadline.Governance.Migration.migration_content/0` against the " <>
+            "last commit that touched it; the pinned output is what adopters already ran."
+        )
+      end
+
+      assert byte_size(migration) == bytes
+    end
   end
 
   test "generated migrations reject invalid storage schema before emitting SQL" do

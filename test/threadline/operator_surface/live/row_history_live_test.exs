@@ -17,39 +17,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
-  defmodule Threadline.OperatorSurface.RowHistoryLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-
-    def render("500.html", assigns) do
-      ~H"""
-      Error 500: <%= inspect(assigns.reason) %>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.RowHistoryLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.RowHistoryLiveTest.Layouts, :root}
-      )
-    end
+    use Threadline.OperatorSurfaceTest.Router
 
     scope "/" do
       pipe_through(:browser)
@@ -64,20 +33,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.RowHistoryLiveTest.ScopedRouter do
-    use Phoenix.Router
+    use Threadline.OperatorSurfaceTest.Router
+
     import Ecto.Query
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
-
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.RowHistoryLiveTest.Layouts, :root}
-      )
-    end
 
     scope "/" do
       pipe_through(:browser)
@@ -105,73 +63,36 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.RowHistoryLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_row_history_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.RowHistoryLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.RowHistoryLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_row_history_scoped_key",
-      signing_salt: "v8q+QWvj"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.RowHistoryLiveTest.ScopedRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.RowHistoryLiveTest.ScopedRouter
   end
 
   defmodule Threadline.OperatorSurface.RowHistoryLiveTest do
     use ExUnit.Case, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.RowHistoryLiveTest.Endpoint
+
     import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
-
-    @endpoint Threadline.OperatorSurface.RowHistoryLiveTest.Endpoint
+    alias Threadline.Test.Repo
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.RowHistoryLiveTest.Endpoint,
-        secret_key_base: "r" |> String.duplicate(64),
-        live_view: [signing_salt: "r" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.RowHistoryLiveTest.Layouts]
-      )
-
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint,
-        secret_key_base: "s" |> String.duplicate(64),
-        live_view: [signing_salt: "s" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.RowHistoryLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
-      start_supervised!(Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint)
+      start_endpoint!(@endpoint)
+      start_endpoint!(Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint)
       :ok
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
-      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(AuditTransaction, repo_opts())
+      Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -342,7 +263,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditTransaction.changeset(Map.merge(defaults, attrs)),
         repo_opts()
       )
@@ -361,37 +282,30 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
+      Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
     end
   end
 
   defmodule Threadline.OperatorSurface.RowHistoryLiveScopedTest do
     use ExUnit.Case, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint
+
     import Threadline.StorageSchemaCase
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
-
-    @endpoint Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint
+    alias Threadline.Test.Repo
 
     setup_all do
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.RowHistoryLiveTest.ScopedEndpoint,
-        secret_key_base: "s" |> String.duplicate(64),
-        live_view: [signing_salt: "s" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.RowHistoryLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
-      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(AuditTransaction, repo_opts())
+      Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
@@ -430,7 +344,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditTransaction.changeset(Map.merge(defaults, attrs)),
         repo_opts()
       )
@@ -449,7 +363,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
+      Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
     end
   end
 end

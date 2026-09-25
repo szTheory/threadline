@@ -1,23 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.CoverageLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-
-    def render("500.html", assigns) do
-      ~H"""
-      Error 500: <%= inspect(assigns.reason) %>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Auth do
     def authorize(_), do: Application.get_env(:threadline, :test_allow_coverage, true)
   end
@@ -26,44 +7,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.CoverageLiveTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.CoverageLiveTest.Auth
 
     scope "/" do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
-        coverage_authorize_fn: &Threadline.OperatorSurface.CoverageLiveTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.authorize/1
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.CoverageLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "c0v3r4ge"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.CoverageLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.CoverageLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.CoverageLiveTest do
@@ -71,18 +30,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # is process-shared (Pitfall 13 test seam).
     use ExUnit.Case, async: false
 
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.CoverageLiveTest.Endpoint
 
-    @endpoint Threadline.OperatorSurface.CoverageLiveTest.Endpoint
+    alias Ecto.Adapters.SQL
+    alias Threadline.Capture.TriggerSQL
+    alias Threadline.OperatorSurface.Live.CoverageLive
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.CoverageLiveTest.Endpoint,
-        secret_key_base: "c" |> String.duplicate(64),
-        live_view: [signing_salt: "c" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.CoverageLiveTest.Layouts]
-      )
-
       # Pitfall 13 test seam — lower the poll interval to the floor so on_mount
       # doesn't raise (the floor is 5_000 ms; below that ArgumentError).
       original_interval = Application.get_env(:threadline, :coverage_poll_ms)
@@ -96,7 +51,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -282,7 +237,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "complete timeline answers"
       end
 
-      test "form-error branch renders the header via UI.page_header", %{conn: conn} do
+      test "form-error branch renders the header via UI.Page.page_header", %{conn: conn} do
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=Public")
 
         refute html =~ "tl-coverage-command"
@@ -331,7 +286,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert new_html =~ "Schema: public"
 
         assert :ok =
-                 Threadline.OperatorSurface.Live.CoverageLive.terminate(
+                 CoverageLive.terminate(
                    :normal,
                    refreshed_socket
                  )
@@ -457,31 +412,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
 
       test "non-public schema row activity links include table_schema", %{conn: conn} do
-        Ecto.Adapters.SQL.query!(
+        SQL.query!(
           Threadline.Test.Repo,
           "CREATE SCHEMA IF NOT EXISTS tenant_demo",
           []
         )
 
-        Ecto.Adapters.SQL.query!(
+        SQL.query!(
           Threadline.Test.Repo,
           "CREATE TABLE IF NOT EXISTS tenant_demo.coverage_link_target (id bigint PRIMARY KEY)",
           []
         )
 
-        Ecto.Adapters.SQL.query!(
+        SQL.query!(
           Threadline.Test.Repo,
-          Threadline.Capture.TriggerSQL.create_trigger("tenant_demo.coverage_link_target")
+          TriggerSQL.create_trigger("tenant_demo.coverage_link_target")
         )
 
         on_exit(fn ->
-          Ecto.Adapters.SQL.query!(
+          SQL.query!(
             Threadline.Test.Repo,
             "DROP TABLE IF EXISTS tenant_demo.coverage_link_target CASCADE",
             []
           )
 
-          Ecto.Adapters.SQL.query!(Threadline.Test.Repo, "DROP SCHEMA IF EXISTS tenant_demo", [])
+          SQL.query!(Threadline.Test.Repo, "DROP SCHEMA IF EXISTS tenant_demo", [])
         end)
 
         {:ok, _view, html} = live(conn, "/audit/coverage?schema=tenant_demo")

@@ -8,8 +8,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     alias Threadline.Export
     alias Threadline.Governance.ExportJob
-    alias Threadline.OperatorSurface.Exports.Filename
-    alias Threadline.OperatorSurface.Exports.FilterParams
+    alias Threadline.OperatorSurface.Controllers.ExportController.Encoding
+    alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
 
@@ -18,7 +18,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     @chunk_batch_size 500
     @stream_page_size 1_000
 
-    # ---- Three thin actions, one shared dispatcher ----
+    # Three thin actions share one dispatcher.
 
     def csv(conn, params), do: dispatch(conn, params, :csv)
     def json(conn, params), do: dispatch(conn, params, :json)
@@ -33,17 +33,10 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         {:ok, uuid} ->
           job = fetch_export_job(repo, uuid, storage_schema)
 
-          case {job, actor_ref} do
-            {%ExportJob{actor_ref: %ActorRef{} = owner_actor}, %ActorRef{} = request_actor} ->
-              if owner_actor == request_actor and ActorRef.identifiable?(owner_actor) and
-                   ActorRef.identifiable?(request_actor) do
-                deliver_export(conn, job)
-              else
-                export_not_found(conn)
-              end
-
-            _ ->
-              export_not_found(conn)
+          if owned_by_requester?(job, actor_ref) do
+            deliver_export(conn, job)
+          else
+            export_not_found(conn)
           end
 
         :error ->
@@ -52,6 +45,16 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           |> send_resp(400, "Invalid job ID")
       end
     end
+
+    defp owned_by_requester?(
+           %ExportJob{actor_ref: %ActorRef{} = owner_actor},
+           %ActorRef{} = request_actor
+         ) do
+      owner_actor == request_actor and ActorRef.identifiable?(owner_actor) and
+        ActorRef.identifiable?(request_actor)
+    end
+
+    defp owned_by_requester?(_job, _actor_ref), do: false
 
     defp export_not_found(conn) do
       conn
@@ -179,7 +182,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
           Export.count_matching(filters, Keyword.merge([cap: @max_rows + 1], scope_opts))
 
         # Plug requires response headers to be set before send_chunked/2.
-        conn = put_export_headers(conn, format)
+        conn = Encoding.put_headers(conn, format)
 
         if count <= @sync_threshold do
           send_iodata(conn, filters, format, scope_opts)
@@ -194,7 +197,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       end
     end
 
-    # ---- Iodata path (count <= 5_000): single send_resp ----
+    # Iodata path (count <= 5_000): a single send_resp.
 
     defp send_iodata(conn, filters, :csv, scope_opts) do
       {:ok, %{data: iodata}} =
@@ -223,13 +226,13 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       send_resp(conn, 200, iodata)
     end
 
-    # ---- Chunked path (count > 5_000): send_chunked + reduce_while ----
+    # Chunked path (count > 5_000): send_chunked + reduce_while.
 
     defp send_chunked_stream(conn, filters, format, scope_opts) do
       conn = send_chunked(conn, 200)
 
       # Emit per-format prefix (CSV header / JSON envelope open) as the FIRST chunk.
-      conn = emit_prefix(conn, format)
+      conn = Encoding.emit_prefix(conn, format)
 
       # Stream the bounded export-row maps (join-projected; same shape as
       # to_csv_iodata/to_json_document consume internally).
@@ -239,7 +242,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         |> Stream.take(@max_rows)
         |> Stream.chunk_every(@chunk_batch_size)
         |> Enum.reduce_while({conn, _first_batch? = true}, fn rows, {conn, first_batch?} ->
-          batch_iodata = format_batch(rows, format, first_batch?)
+          batch_iodata = Encoding.format_batch(rows, format, first_batch?)
 
           case Plug.Conn.chunk(conn, batch_iodata) do
             {:ok, conn} -> {:cont, {conn, false}}
@@ -249,115 +252,16 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         end)
 
       # Emit per-format suffix (JSON envelope close) as the LAST chunk.
-      emit_suffix(conn, format)
+      Encoding.emit_suffix(conn, format)
     end
 
-    # ---- Per-format prefix emission (BEFORE the first row chunk) ----
-
-    defp emit_prefix(conn, :csv) do
-      header = Export.csv_header([])
-
-      case Plug.Conn.chunk(conn, header) do
-        {:ok, conn} -> conn
-        {:error, _} -> conn
-      end
-    end
-
-    defp emit_prefix(conn, :json) do
-      # Wrapped-JSON envelope opener (RESEARCH §"Open Question O-2" recommendation O-2a).
-      generated_at =
-        DateTime.utc_now() |> DateTime.truncate(:microsecond) |> DateTime.to_iso8601()
-
-      prefix = ~s|{"format_version":1,"generated_at":"#{generated_at}","changes":[|
-
-      case Plug.Conn.chunk(conn, prefix) do
-        {:ok, conn} -> conn
-        {:error, _} -> conn
-      end
-    end
-
-    defp emit_prefix(conn, :ndjson) do
-      # NDJSON has no envelope; nothing to emit.
-      conn
-    end
-
-    # ---- Per-batch row formatting ----
-    #
-    # CSV and NDJSON: each batch is independent iodata.
-    # JSON wrapped: rows must be comma-separated WITHIN and ACROSS batches; the
-    # very first row of the very first batch has NO leading comma.
-
-    defp format_batch(rows, :csv, _first_batch?) do
-      Export.format_changes_iodata(rows, :csv, [])
-    end
-
-    defp format_batch(rows, :json, first_batch?) do
-      json_rows = Export.format_changes_iodata(rows, :json_wrapped, [])
-
-      json_rows
-      |> Enum.with_index()
-      |> Enum.map(fn
-        {row, 0} -> if first_batch?, do: row, else: [",", row]
-        {row, _} -> [",", row]
-      end)
-    end
-
-    defp format_batch(rows, :ndjson, _first_batch?) do
-      Export.format_changes_iodata(rows, :ndjson, [])
-    end
-
-    # ---- Per-format suffix emission (AFTER the last row chunk) ----
-
-    defp emit_suffix(conn, :csv), do: conn
-
-    defp emit_suffix(conn, :json) do
-      case Plug.Conn.chunk(conn, "]}") do
-        {:ok, conn} -> conn
-        {:error, _} -> conn
-      end
-    end
-
-    defp emit_suffix(conn, :ndjson), do: conn
-
-    # ---- Headers ----
-    #
-    # Use put_resp_header/3 directly (NOT put_resp_content_type/2) because the
-    # latter always appends "; charset=<charset>" — passing "text/csv;
-    # charset=utf-8" would produce a doubled charset. Plan 04's doc-contract
-    # test pins the exact literals "text/csv; charset=utf-8",
-    # "application/json; charset=utf-8", "application/x-ndjson; charset=utf-8".
-
-    defp put_export_headers(conn, :csv),
-      do: put_export_headers(conn, "text/csv; charset=utf-8", "csv")
-
-    defp put_export_headers(conn, :json),
-      do: put_export_headers(conn, "application/json; charset=utf-8", "json")
-
-    defp put_export_headers(conn, :ndjson),
-      do: put_export_headers(conn, "application/x-ndjson; charset=utf-8", "ndjson")
-
-    defp put_export_headers(conn, content_type, ext) do
-      filename = Filename.for(ext, DateTime.utc_now())
-      disposition = ~s|attachment; filename="#{filename}"; filename*=UTF-8''#{filename}|
-
-      conn
-      |> put_resp_header("content-type", content_type)
-      |> put_resp_header("content-disposition", disposition)
-      |> put_resp_header("cache-control", "no-store")
-    end
-
-    # ---- Filter validation (lifted from timeline_live.ex:366-373) ----
-
+    # Mirrors `TimelineLive.safe_validate/1`.
     defp safe_validate(filters) do
-      try do
-        Threadline.Query.validate_timeline_filters!(filters)
-        :ok
-      rescue
-        e in ArgumentError -> {:error, e.message}
-      end
+      Threadline.Query.validate_timeline_filters!(filters)
+      :ok
+    rescue
+      e in ArgumentError -> {:error, e.message}
     end
-
-    # ---- Repo resolution ----
 
     defp default_repo do
       Application.get_env(:threadline, :ecto_repos) |> hd()

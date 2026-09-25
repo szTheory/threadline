@@ -19,8 +19,8 @@ defmodule Threadline.CiCoverageDocContractTest do
       `version_truth_doc_contract_test.exs:59` exists to prevent, transplanted.
 
   Deliberately a plain `*_contract_test.exs` picked up by bare `mix test`, NOT
-  wired into a `mix verify.*` alias: Phase 204 deletes `verify.doc_contract`,
-  and a guard that dies with an alias is not a guard.
+  wired into a `mix verify.*` alias: the hand-listed doc-contract alias was
+  deleted, and a guard that dies with an alias is not a guard.
   """
   use ExUnit.Case, async: true
 

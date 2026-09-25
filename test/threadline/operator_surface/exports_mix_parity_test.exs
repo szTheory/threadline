@@ -1,11 +1,20 @@
-# Load the sibling controller test file so its Endpoint/Router/Layouts modules
-# are compiled and available when this file runs in isolation
-# (`mix test test/threadline/operator_surface/exports_mix_parity_test.exs`).
-# When the full suite runs, the sibling file is loaded normally and
-# `Code.require_file/1` is a no-op for already-loaded files.
-Code.require_file("controllers/export_controller_test.exs", __DIR__)
-
 if Code.ensure_loaded?(Phoenix.Controller) do
+  defmodule Threadline.OperatorSurface.ExportsMixParityTest.Router do
+    use Threadline.OperatorSurfaceTest.Router, accepts: ["html", "csv", "json"]
+
+    scope "/" do
+      pipe_through(:browser)
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit")
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.ExportsMixParityTest.Endpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.ExportsMixParityTest.Router,
+      parsers: [:urlencoded, :json],
+      json_decoder: Jason
+  end
+
   defmodule Threadline.OperatorSurface.ExportsMixParityTest do
     @moduledoc """
     EXPO-05 byte-equality parity test (D-28).
@@ -22,9 +31,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     * `Mix.Task.reenable("threadline.export")` in setup — `Mix.Task.run/2`
       no-ops on second call within the same OS process; reenabling lets each
       test case re-invoke the Mix task (RESEARCH Pitfall 7 / Footgun F-4).
-    * Reuses the `@endpoint` from `Threadline.OperatorSurface.ExportControllerTest`
-      via `start_supervised/1` (idempotent — returns `{:error, {:already_started, _}}`
-      quietly when called from this second test module).
+    * Defines its own endpoint and router through the shared operator-surface
+      test templates, so the file runs alone without loading another test file.
     * Mix task accepts `--from "2020-01-01T00:00:00Z"` (full ISO-Z); controller
       accepts `?from=2020-01-01T00:00` (datetime-local, 16 chars). Convert via
       `String.slice(0..15)` so both paths see identical `DateTime` after parsing
@@ -34,18 +42,17 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     import Phoenix.ConnTest
     import ExUnit.CaptureIO
+    import Threadline.OperatorSurfaceCase, only: [start_endpoint!: 1]
     import Threadline.StorageSchemaCase
 
+    alias Mix.Tasks.Threadline.Export
     alias Threadline.Capture.{AuditChange, AuditTransaction}
 
-    @endpoint Threadline.OperatorSurface.ExportControllerTest.Endpoint
+    @endpoint Threadline.OperatorSurface.ExportsMixParityTest.Endpoint
     @repo Threadline.Test.Repo
 
     setup_all do
-      # Endpoint may already be started by ExportControllerTest's setup_all if
-      # the two modules run in the same suite. start_supervised/1 returns
-      # {:error, {:already_started, _}} quietly, which we ignore.
-      _ = start_supervised(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -73,7 +80,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       # Mix task — write to disk
       capture_io(fn ->
-        Mix.Tasks.Threadline.Export.run([
+        Export.run([
           "--format",
           "csv",
           "--output",
@@ -112,7 +119,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       tmp_path = Path.join(tmp_dir, "parity-json-#{:rand.uniform(1_000_000)}.json")
 
       capture_io(fn ->
-        Mix.Tasks.Threadline.Export.run([
+        Export.run([
           "--format",
           "json",
           # Default --json-format is wrapped; pass explicitly for clarity.
@@ -170,7 +177,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       tmp_path = Path.join(tmp_dir, "parity-ndjson-#{:rand.uniform(1_000_000)}.ndjson")
 
       capture_io(fn ->
-        Mix.Tasks.Threadline.Export.run([
+        Export.run([
           "--format",
           "json",
           "--json-format",

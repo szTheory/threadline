@@ -10,8 +10,9 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       mix threadline.gen.triggers --tables users
       mix threadline.gen.triggers --tables users,posts,comments
 
-  Each invocation produces one migration file containing `CREATE TRIGGER`
-  statements for all listed tables. Run `mix ecto.migrate` to apply.
+  Each invocation writes one migration whose statements create or replace the
+  audit trigger on each listed table (`CREATE OR REPLACE TRIGGER`, PostgreSQL 14
+  or later). Run `mix ecto.migrate` to apply.
 
   The trigger calls `threadline_capture_changes()`, which must already be
   installed via `mix threadline.install`.
@@ -34,6 +35,33 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   `:mask_placeholder`, `:store_changed_from`, and `:except_columns`. Overlap
   between `:exclude` and `:mask` is validated before writing the migration.
 
+  ## Rerunning
+
+  Run the task again for tables that already have a trigger migration, for
+  example after changing `:trigger_capture` redaction rules or to clear a
+  `Drift detected` status. It writes a new migration. When the table-derived
+  name is already taken, the migration gets a numbered name, such as
+  `threadline_triggers_posts_2`, and a matching numbered module. A rerun for a
+  different table set, such as `posts` after `posts,users`, keeps the
+  un-numbered `threadline_triggers_posts`. The new migration replaces the
+  trigger in place, so capture has no gap.
+
+  A table that returns to the default trigger also drops its leftover per-table
+  capture function. That drop never cascades. On a table that never had one,
+  PostgreSQL prints a harmless NOTICE that the function does not exist. The
+  drop is skipped when `threadline_capture_changes_<table>` is longer than
+  PostgreSQL's 63-byte identifier limit, because the truncated name can belong
+  to another table's function.
+
+  Rolling back a rerun migration keeps capture on for the tables it re-pointed.
+  Rolling back does not restore the earlier capture policy: the trigger keeps the
+  policy the rerun installed. If the rerun had removed redaction rules, a rolled
+  back rerun leaves capture running unredacted until you regenerate, and
+  `mix threadline.policy.show` flags the mismatch once your config lists those
+  rules again. The generated `down` says the
+  same in a comment. To stop capturing a table, write a migration that drops its
+  trigger.
+
   ## Options
 
   * `--tables` — comma-separated list of table names (required)
@@ -55,6 +83,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   import Mix.Generator
 
   alias Threadline.Capture.{RedactionPolicy, TriggerCaptureConfig, TriggerSQL}
+  alias Threadline.Mix.{MigrationVersion, TriggerMigration}
   alias Threadline.StorageSchema
 
   @column_name ~r/^[A-Za-z0-9_]+$/
@@ -130,10 +159,34 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       path = "priv/repo/migrations"
       File.mkdir_p!(path)
 
-      table_suffix = tables |> Enum.map(&StorageSchema.host_table_suffix/1) |> Enum.join("_")
-      file = Path.join(path, "#{timestamp()}_threadline_triggers_#{table_suffix}.exs")
+      # Versioned after every migration already in the directory, so running
+      # this right after `mix threadline.install` cannot repeat a version when
+      # both write here. Install resolves the repo's own migrations path, so
+      # with a custom `:priv`, or a repo module not named `Repo`, it writes to
+      # a different directory.
+      [version] = MigrationVersion.next(path, 1)
+      scan = TriggerMigration.scan(path)
+      suffixes = Enum.map(tables, &StorageSchema.host_table_suffix/1)
+      {name, module} = TriggerMigration.resolve_name(suffixes, scan)
+      file = Path.join(path, "#{version}_#{name}.exs")
 
-      create_file(file, migration_content(table_specs))
+      # Read before the new file is written, so only earlier migrations count.
+      rerun_tables =
+        Enum.filter(
+          tables,
+          &TriggerMigration.rerun?(StorageSchema.host_table_suffix(&1), scan.sources)
+        )
+
+      create_file(file, migration_content(table_specs, module, rerun_tables))
+
+      if rerun_tables != [] do
+        Mix.shell().info(
+          "These tables already have a Threadline trigger migration: " <>
+            Enum.join(rerun_tables, ", ") <>
+            ". Rolling back the new migration keeps their capture on."
+        )
+      end
+
       Mix.shell().info("Run `mix ecto.migrate` to install the triggers.")
     end
   end
@@ -191,7 +244,7 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
     end)
   end
 
-  defp migration_content(table_specs) do
+  defp migration_content(table_specs, module, rerun_tables) do
     function_ups =
       table_specs
       |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
@@ -202,37 +255,37 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       |> Enum.reject(&(&1 == ""))
       |> Enum.join("\n\n")
 
+    # A table on the default trigger drops any per-table capture function left
+    # by an earlier migration. The drop comes after the trigger is re-pointed
+    # and does not cascade, so it fails loudly instead of removing a trigger
+    # that still uses the function. It is skipped when the function name is
+    # longer than 63 bytes: PostgreSQL would truncate it, and the truncated
+    # name can belong to another table's live per-table function.
     trigger_ups =
-      table_specs
-      |> Enum.map(fn {t, %{needs_per_table: per?}} ->
-        trig =
-          if per?,
-            do: TriggerSQL.create_trigger(t, :per_table),
-            else: TriggerSQL.create_trigger(t)
+      Enum.map_join(table_specs, "\n\n", fn
+        {t, %{needs_per_table: true}} ->
+          "    execute #{inspect(TriggerSQL.create_trigger(t, :per_table))}"
 
-        "    execute #{inspect(trig)}"
+        {t, %{needs_per_table: false}} ->
+          "    execute #{inspect(TriggerSQL.create_trigger(t))}" <> orphan_function_drop(t)
       end)
-      |> Enum.join("\n\n")
+
+    # Rolling back only undoes what this migration was first to install. A
+    # table that already had a trigger migration keeps its trigger, because
+    # the earlier migration is still applied and still expects capture on.
+    first_run_specs = Enum.reject(table_specs, fn {t, _} -> t in rerun_tables end)
 
     trigger_downs =
-      table_specs
-      |> Enum.map(fn {t, _} ->
+      Enum.map_join(first_run_specs, "\n\n", fn {t, _} ->
         "    execute #{inspect(TriggerSQL.drop_trigger(t))}"
       end)
-      |> Enum.join("\n\n")
 
     function_downs =
-      table_specs
+      first_run_specs
       |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
-      |> Enum.map(fn {t, _} ->
+      |> Enum.map_join("\n\n", fn {t, _} ->
         "    execute #{inspect(TriggerSQL.drop_function_for_table(t))}"
       end)
-      |> Enum.join("\n\n")
-
-    tables = Enum.map(table_specs, &elem(&1, 0))
-
-    module_name =
-      "ThreadlineTriggers#{Enum.map_join(tables, "", &(StorageSchema.host_table_suffix(&1) |> Macro.camelize()))}"
 
     up_body =
       [function_ups, trigger_ups]
@@ -240,12 +293,12 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       |> Enum.join("\n\n")
 
     down_parts =
-      [trigger_downs, function_downs]
+      [rerun_rollback_comment(rerun_tables), trigger_downs, function_downs]
       |> Enum.reject(&(&1 == ""))
       |> Enum.join("\n\n")
 
     """
-    defmodule #{module_name} do
+    defmodule #{module} do
       use Ecto.Migration
 
       def up do
@@ -259,11 +312,28 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
     """
   end
 
-  defp timestamp do
-    {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
-    "#{y}#{pad(m)}#{pad(d)}#{pad(hh)}#{pad(mm)}#{pad(ss)}"
+  defp orphan_function_drop(table) do
+    if TriggerSQL.per_table_function_fits?(table) do
+      "\n\n    execute #{inspect(TriggerSQL.drop_orphan_function_for_table(table))}"
+    else
+      ""
+    end
   end
 
-  defp pad(i) when i < 10, do: "0#{i}"
-  defp pad(i), do: "#{i}"
+  defp rerun_rollback_comment([]), do: ""
+
+  defp rerun_rollback_comment(rerun_tables) do
+    [
+      "This migration replaced the audit trigger of #{Enum.join(rerun_tables, ", ")} in place.",
+      "Rolling it back does not restore the earlier capture policy.",
+      "Capture stays on with the policy this migration installed. To stop",
+      "capturing a table, write a migration that drops its trigger, or roll back",
+      "the migration that first installed it.",
+      "If this migration removed redaction rules, rolling it back leaves capture",
+      "running with them removed, so capture continues unredacted until you",
+      "regenerate the trigger migration. `mix threadline.policy.show` and the",
+      "redaction drift view flag that mismatch."
+    ]
+    |> Enum.map_join("\n", &("    # " <> &1))
+  end
 end

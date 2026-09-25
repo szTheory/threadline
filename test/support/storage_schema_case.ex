@@ -6,8 +6,8 @@ defmodule Threadline.StorageSchemaCase do
   alias Ecto.Adapters.SQL
   import Ecto.Query
 
-  alias Threadline.Capture.TriggerSQL
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Capture.TriggerSQL
   alias Threadline.Governance.{EvidenceRecord, ExportJob, RetentionRun, SavedView}
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.StorageSchema

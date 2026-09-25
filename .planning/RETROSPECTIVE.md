@@ -1132,6 +1132,42 @@ First-class light mode for the operator surface without disturbing the dark defa
 
 ---
 
+## Milestone: v1.41 — Green, Clean, and Honest
+
+**Shipped:** 2026-09-24  
+**Phases:** 10 (198–207) | **Plans:** 153
+
+### What was built
+
+- `mix test` 83 → 0 failures on CI by fixing 79 unprefixed call sites that only passed because of a database-level `search_path`.
+- Real gates: full-default Credo (the old `enabled:` list had made it vacuous), Dialyzer, xref cycles and warnings-as-errors in `ci.all`.
+- A suite that passes with `.planning/` absent, and public surfaces (HexDocs, tarball, rendered HTML) free of planning vocabulary.
+- 0.10.0 and 0.10.1 on hex.pm; installer and `gen.triggers` rerun fixes staged for 0.10.2.
+
+### What worked
+
+- Re-deriving inherited diagnoses instead of restating them: the "stale DB" story was disproved in one experiment (fresh DB went 4 → 82 failures).
+- Falsifiable per-lane CI predictions written before each push, then measured on `attempt: 1` with no re-runs.
+- Late gap-closure phases (205–207) and a quick task caught real defects the audit surfaced, including a credo regression introduced by a review fix.
+
+### What was inefficient
+
+- Phase 198 ran to 66 plans across six CI rounds; two of the red lanes were red by construction (D-39) and could never close inside the milestone.
+- The branch accumulated 513 commits without landing on `main`, so GREEN-07 stayed open to the end.
+- Verification timestamps went stale on 199–207 as later phases touched files, which forced an override close.
+
+### Patterns established
+
+- Gate configs expressed as deltas (`extra:`/`disabled:`), never replacement lists.
+- Carried red baselines must carry a "last re-derived" date.
+- Re-run `verify.credo` after applying review fixes.
+
+### Key lessons
+
+1. Land on `main` in slices during the milestone; a long-lived branch turns "main green" into a bookkeeping gap.
+2. Decide early whether a red lane is fixable inside the milestone's constraints; if not, record the terminal disposition before spending CI rounds on it.
+3. `System.unique_integer` is per-VM; test temp dirs need run-unique names (two separate flakes had this cause).
+
 ## Cross-Milestone Trends
 
 - v1.39 shows a non-feature "consolidation" milestone (quality audit → schema/docs/CI hardening → ranked residual register) can ship as a first-class milestone when surface area has outgrown its trust evidence.

@@ -1,38 +1,15 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.ExportStatusLiveTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.ExportStatusLiveTest.Auth
 
     scope "/" do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
-        authorize_fn: &Threadline.OperatorSurface.ExportStatusLiveTest.Auth.scope_authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.ExportStatusLiveTest.Auth.authorize/1
+        authorize_fn: &Auth.scope_authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -72,41 +49,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "eXp0rT"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.ExportStatusLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.ExportStatusLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint
 
     alias Threadline.Governance.ExportJob
+    alias Threadline.OperatorSurface.Live.ExportStatusLive
     alias Threadline.Semantics.ActorRef
 
-    @endpoint Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint
-
     setup_all do
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint,
-        secret_key_base: "e" |> String.duplicate(64),
-        live_view: [signing_salt: "e" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.ExportStatusLiveTest.Layouts]
-      )
-
       original_interval = Application.get_env(:threadline, :export_status_poll_ms)
       original_allow_exports = Application.get_env(:threadline, :test_allow_exports)
       original_operator_scope = Application.get_env(:threadline, :test_operator_scope)
@@ -134,7 +91,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -191,7 +148,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert is_integer(Process.read_timer(refreshed_ref))
 
         assert :ok =
-                 Threadline.OperatorSurface.Live.ExportStatusLive.terminate(
+                 ExportStatusLive.terminate(
                    :normal,
                    refreshed_socket
                  )
@@ -806,7 +763,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ long_correlation
 
         # Export filters now render as a kv <dl>: the key is the <dt> and the full
-        # value is recoverable via UI.ref (title + data-tl-copy bind the FULL value).
+        # value is recoverable via UI.Display.ref (title + data-tl-copy bind the FULL value).
         assert html =~ ~s(class="tl-kv)
         assert html =~ ~s(correlation_id</dt>)
         assert html =~ ~s(title="#{long_correlation}")

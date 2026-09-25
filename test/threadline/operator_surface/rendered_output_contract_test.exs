@@ -1,17 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.RenderedOutputContractTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Rendered output contract</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.RenderedOutputContractTest.Auth do
     def authorize(_), do: true
     def coverage_authorize(_), do: true
@@ -36,19 +23,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.RenderedOutputContractTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.RenderedOutputContractTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.RenderedOutputContractTest.Auth
 
     scope "/" do
       pipe_through(:browser)
@@ -60,42 +37,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             Threadline.OperatorSurface.RenderedOutputContractTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.RenderedOutputContractTest.FakeUser
         },
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.RenderedOutputContractTest.Auth.coverage_authorize/1,
-        policy_authorize_fn:
-          &Threadline.OperatorSurface.RenderedOutputContractTest.Auth.authorize/1,
-        evidence_authorize_fn:
-          &Threadline.OperatorSurface.RenderedOutputContractTest.Auth.authorize/1,
-        export_authorize_fn:
-          &Threadline.OperatorSurface.RenderedOutputContractTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.RenderedOutputContractTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_rendered_output_contract_key",
-      signing_salt: "rendered-output"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.RenderedOutputContractTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.RenderedOutputContractTest.Router
   end
 
   defmodule Threadline.OperatorSurface.RenderedOutputContractTest do
     @moduledoc false
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
 
-    @endpoint Threadline.OperatorSurface.RenderedOutputContractTest.Endpoint
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.RenderedOutputContractTest.Endpoint
+
+    alias Threadline.OperatorSurface.StressFixtures
+    alias Threadline.OperatorSurface.Style
 
     @planning_attributes ~w(data-earned-flow data-persona data-jtbd)
     @reference_corpus_root "test/fixtures/operator_surface"
@@ -149,12 +112,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @representative_node_ids @pre_edit_receipts |> Map.keys() |> Enum.sort()
 
     setup_all do
-      Application.put_env(:threadline, @endpoint,
-        secret_key_base: String.duplicate("r", 64),
-        live_view: [signing_salt: String.duplicate("r", 8)],
-        render_errors: [view: Threadline.OperatorSurface.RenderedOutputContractTest.Layouts]
-      )
-
       original_export_interval = Application.get_env(:threadline, :export_status_poll_ms)
       original_timeline_interval = Application.get_env(:threadline, :timeline_poll_ms)
       Application.put_env(:threadline, :export_status_poll_ms, 60_000)
@@ -166,7 +123,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         Application.delete_env(:threadline, @endpoint)
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -184,6 +141,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert "lib/threadline/operator_surface/live/stress_live.ex" in sources
       assert "lib/threadline/operator_surface/stress_fixtures.ex" in sources
       assert "lib/threadline/operator_surface/style.ex" in sources
+      assert "lib/threadline/operator_surface/style/01_tokens.css" in sources
 
       offenders =
         Enum.flat_map(sources, fn path ->
@@ -289,13 +247,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end)
 
       fixture_offenders =
-        Threadline.OperatorSurface.StressFixtures.all()
+        StressFixtures.all()
         |> Enum.flat_map(&Map.values/1)
         |> Enum.filter(&is_binary/1)
         |> Enum.join("\n")
         |> then(&scan_planning_vocabulary("Threadline.OperatorSurface.StressFixtures", &1))
 
-      css = render_component(&Threadline.OperatorSurface.Style.css/1, [])
+      css = render_component(&Style.css/1, [])
 
       assert visible_offenders == []
       assert fixture_offenders == []
@@ -418,12 +376,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "--",
           "lib/threadline/operator_surface/live/*.ex",
           "lib/threadline/operator_surface/stress_fixtures.ex",
-          "lib/threadline/operator_surface/style.ex"
+          "lib/threadline/operator_surface/style.ex",
+          "lib/threadline/operator_surface/style/*.css"
         ])
 
       output
       |> String.split("\n", trim: true)
-      |> Enum.filter(&String.ends_with?(&1, ".ex"))
+      |> Enum.filter(&String.ends_with?(&1, [".ex", ".css"]))
       |> Enum.sort()
     end
 
@@ -436,16 +395,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           {:error, {:duplicate_node_id, duplicate_node_id}}
 
         true ->
-          Enum.reduce_while(entries, :ok, fn entry, :ok ->
-            case validate_exception(entry) do
-              :ok -> {:cont, :ok}
-              {:error, _reason} = error -> {:halt, error}
-            end
-          end)
+          Enum.reduce_while(entries, :ok, &validate_exception_step/2)
       end
     end
 
     defp validate_exception_registry(_entries), do: {:error, :invalid_registry}
+
+    defp validate_exception_step(entry, :ok) do
+      case validate_exception(entry) do
+        :ok -> {:cont, :ok}
+        {:error, _reason} = error -> {:halt, error}
+      end
+    end
 
     defp validate_exception(entry) when is_map(entry) do
       node_id = Map.get(entry, :node_id)
@@ -626,12 +587,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       content
       |> String.split("\n")
       |> Enum.with_index(1)
-      |> Enum.flat_map(fn {line, line_number} ->
-        Enum.flat_map(@planning_vocabulary, fn {kind, pattern} ->
-          Regex.scan(pattern, line, return: :binary)
-          |> Enum.map(fn [match] ->
-            %{file: file, kind: kind, line: line_number, match: match}
-          end)
+      |> Enum.flat_map(&scan_line_vocabulary(file, &1))
+    end
+
+    defp scan_line_vocabulary(file, {line, line_number}) do
+      Enum.flat_map(@planning_vocabulary, fn {kind, pattern} ->
+        Regex.scan(pattern, line, return: :binary)
+        |> Enum.map(fn [match] ->
+          %{file: file, kind: kind, line: line_number, match: match}
         end)
       end)
     end
@@ -640,19 +603,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       content
       |> String.split("\n")
       |> Enum.with_index(1)
-      |> Enum.flat_map(fn {line, line_number} ->
-        Enum.flat_map(@planning_attributes, fn attribute ->
-          pattern = ~r/#{Regex.escape(attribute)}\s*=\s*["'][^"']*["']/i
+      |> Enum.flat_map(&scan_line_attributes(file, &1))
+    end
 
-          Regex.scan(pattern, line, return: :binary)
-          |> Enum.map(fn [match] ->
-            %{
-              file: file,
-              kind: String.to_atom(String.replace(attribute, "-", "_")),
-              line: line_number,
-              match: match
-            }
-          end)
+    defp scan_line_attributes(file, {line, line_number}) do
+      Enum.flat_map(@planning_attributes, fn attribute ->
+        pattern = ~r/#{Regex.escape(attribute)}\s*=\s*["'][^"']*["']/i
+
+        Regex.scan(pattern, line, return: :binary)
+        |> Enum.map(fn [match] ->
+          %{
+            file: file,
+            kind: String.to_atom(String.replace(attribute, "-", "_")),
+            line: line_number,
+            match: match
+          }
         end)
       end)
     end

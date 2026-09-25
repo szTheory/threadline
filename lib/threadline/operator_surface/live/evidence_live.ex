@@ -59,7 +59,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage || %{uncovered_count: 0}}
         base_path={@base_path}
@@ -77,13 +77,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             restatement is chrome (196-06, signal-to-chrome). History mode keeps its lede
             because it disambiguates the drilled-in view. --%>
             <%= if @request.mode == :history do %>
-              <UI.page_header title="Evidence">
+              <UI.Page.page_header title="Evidence">
                 <:lede>
                   Viewing append-only proof history for one evidence subject reference.
                 </:lede>
-              </UI.page_header>
+              </UI.Page.page_header>
             <% else %>
-              <UI.page_header title="Evidence" />
+              <UI.Page.page_header title="Evidence" />
             <% end %>
 
             <.evidence_workflow_summary
@@ -97,10 +97,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
               <%= if @groups == [] do %>
-                <UI.empty_state variant="no_data" role="status" icon={:funnel}>
+                <UI.Data.empty_state variant="no_data" role="status" icon={:funnel}>
                   <:title>No evidence records yet</:title>
                   Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed.
-                </UI.empty_state>
+                </UI.Data.empty_state>
               <% else %>
                 <section :for={group <- @groups} class="tl-section">
                   <header class="tl-section__header">
@@ -120,7 +120,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         the group (groups are keyed by subject), so it is not repeated as an inline
                         label here — each fact renders once (196-05, signal-to-chrome). --%>
                         <div class="tl-record-card__meta">
-                          <UI.ref value={row.subject_ref} copy_label="Copy subject ref" />
+                          <UI.Display.ref value={row.subject_ref} copy_label="Copy subject ref" />
                           <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
                             <%= Presentation.human_time(row.recorded_at) %>
                           </time>
@@ -168,7 +168,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               base_path={@base_path}
             />
           <% end %>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 
@@ -339,13 +339,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <h2 class="tl-section__title">Evidence scope</h2>
         </header>
 
-        <UI.kv>
+        <UI.Display.kv>
           <:item key="Mode"><span class="tl-chip tl-chip--info"><%= @mode_label %></span></:item>
           <:item key="Subject"><%= @scope_label %></:item>
           <:item :if={@request.subject_ref} key="Subject ref">
-            <UI.ref value={@request.subject_ref} copy_label="Copy subject ref" />
+            <UI.Display.ref value={@request.subject_ref} copy_label="Copy subject ref" />
           </:item>
-        </UI.kv>
+        </UI.Display.kv>
 
         <div class="tl-cluster tl-cluster--start">
           <.link

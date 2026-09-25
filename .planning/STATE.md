@@ -2,52 +2,44 @@
 gsd_state_version: "1.0"
 milestone: v1.41
 milestone_name: Green, Clean, and Honest
-current_phase: 201
-current_phase_name: Rendered Output
-status: planning
-stopped_at: Phase 200 complete, ready to plan Phase 201
-last_updated: "2026-09-13T10:47:58.783Z"
-last_activity: 2026-09-13
-last_activity_desc: Phase 200 complete, transitioned to Phase 201
-state_head: 4db87255d920f22192d81b45fc6d7f99408740a8
+status: Awaiting next milestone
+stopped_at: Phase 207 complete — all phases complete
+last_updated: "2026-09-25T01:27:20.136Z"
+last_activity: 2026-09-24
+last_activity_desc: Milestone v1.41 completed and archived
+state_head: d9e7b6598dcdf8b4341c4ba14c5f147953b4c746
 progress:
-  total_phases: 7
-  completed_phases: 2
-  total_plans: 105
-  completed_plans: 105
-  percent: 29
+  total_phases: 10
+  completed_phases: 10
+  total_plans: 153
+  completed_plans: 153
+  percent: 100
+current_phase: 207
+current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-09-13 after Phase 200)
+See: `.planning/PROJECT.md` (updated 2026-09-24 after v1.41 milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 201 — Rendered Output
+**Current focus:** Planning next milestone (v1.41 shipped 2026-09-24; start with `/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 201 — Rendered Output
-Plan: Not started
-Status: Ready to plan
-Closeout gates — ROUND 6 (run 2026-08-31 after 198-40; supersede the round-5 gates, which are preserved below):
+Phase: Milestone v1.41 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-09-24 — Milestone v1.41 completed and archived
 
-- **Code review** (`198-REVIEW.md`, 4 files, standard depth, round-6 source diff `1bda5d1c..HEAD`): **0 Critical** / 1 Warning / 1 Info. CR-01 confirmed FIXED AT CAUSE — the reviewer independently traced `ecto_sql`'s `checkout_or_transaction/4` and confirmed a nested `Repo.checkout/2` from the same process resolves against the process-dictionary-pinned connection rather than a fresh pool checkout; release is guaranteed via `try/after` on every exit path; `Demo.Seed` carries no second guard copy. The new regression test is a real falsifier, not a tautology. New WR-01 (round-6 numbering): `advisory_lock_pinning_test.exs:22-24,32-37` switches `Sandbox.mode(Repo, :auto)` mid-suite, which Ecto's docs warn force-checks-in other processes' connections — safe here only via an unstated ExUnit ordering guarantee the file's comment understates. New IN-02: `reset.ex:79-98` `timeout: :infinity` removes the pool checkout-queue backstop for the whole guarded region, so the docstring's bounding claim holds only for the acquisition phase. Round-5 review preserved verbatim at `198-REVIEW-round5.md`.
-- **Verification** (`198-VERIFICATION.md`, round 6): **gaps_found**. Integrity **PASS** on six independently re-derived vectors (CR-01 fix traced by direct code read; GREEN-07 disposition propagation confirmed append-only; D-42 diff empty over `1bda5d1c..HEAD`; `ci-required` `needs:` still names both red lanes; the sealed prediction at `23c16267` byte-identical before/after the push; run `33344382035` re-queried via `gh run view`). Round 5's two gaps are both CLOSED. Remaining: GREEN-07/SC3 is still literally unmet in CI (`CI required` = `failure`) — now a terminal maintainer-accepted gap rather than an open one; and GREEN-08's second clause (PR #26 mergeable) stays BLOCKED downstream of it.
-- **Score discrepancy, unreconciled and deliberately not silently fixed:** `198-VERIFICATION.md` frontmatter records `requirements_complete: 10`, counting GREEN-08 as not fully met because its PR-#26-mergeable clause is BLOCKED. `REQUIREMENTS.md` records GREEN-08 as `Complete` with a BLOCKED note, giving 11/12. Round 5 also said 11/12. Two artifacts therefore give two different answers to how many requirements are Complete. This is a maintainer call (the same class of disposition decision 198-39 established must not be executor-selected) and is left OPEN.
+**Carried forward from the v1.41 close (2026-09-24), not recorded in git alone:**
 
-Closeout gates — ROUND 5 (run 2026-08-30 after 198-37, superseded above, preserved):
-
-- **Code review** (`198-REVIEW.md`, 19 files, standard depth): 1 Critical / 1 Warning / 1 Info. **CR-01 is new and unresolved** — `Demo.Reset.run/1` (`reset.ex:111`) holds the demo advisory lock and then calls `Demo.Seed.run/0` (`:113`), which re-acquires the SAME lock at `seed.ex:29`; neither `with_demo_lock/1` pins a connection via `Repo.checkout/2`, and Postgres advisory locks are per-backend-session. Verified by hand against both files. Latent, not currently-failing: a single sequential process usually gets the same pooled connection back, which is why CI passed. Under real `mix demo.reset` / `mix demo.seed` (`pool_size: 10`, no sandbox) it can produce a false-positive 45s lock timeout or leak the lock onto an idle pooled connection. Every existing test wraps the call in `Sandbox.unboxed_run/2`, which pins one connection and structurally masks it — so GREEN-04's green CI evidence cannot speak to this defect.
-- **Verification** (`198-VERIFICATION.md`): **gaps_found**. 11/12 requirements Complete (up from round 4's 10/12). Integrity PASS — all six laundering vectors re-derived clean; D-42 confirmed independently (`git diff --stat ab412fdd..HEAD` over `.github/`, `CONTRIBUTING.md`, `playwright.config.ts`, `.planning/scorecards/`, `*.png` is empty). Two gaps: (1) GREEN-07 structurally unmet under standing D-39 — not new, honestly reported; (2) CR-01 unresolved, with no round-6 plan, no maintainer decision, and no `deferred-items.md` entry.
-
-Last activity: 2026-09-13 — Phase 200 complete, transitioned to Phase 201
-
-Last activity: 2026-09-08 — Planned round 8 to replace all 15 remaining human UAT checkpoints with integration, E2E, smoke, and evidence-contract automation; GREEN-07 remains machine-reported Pending unless its exact-main predicates pass
-
-Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final plan of Phase 198): pre-push prediction committed (`23c16267`), maintainer pushed `ci/198-round6` and opened draft PR #33 by hand, CI run `33344382035` measured to completion (attempt 1, `failure`, 10m36s). GREEN-04 re-proved Complete strictly from this run; GREEN-07 re-measured unchanged (still Pending, `198-39-DECISION.md` option-a disposition undisturbed); GREEN-01/02/03/05/06/09/10/11/12 carried forward with no new work. D-42 invariants empty over the round-6-specific commit range. All 40 phase-198 plans now executed.
+- The v1.41 work is on local branch `fix/branch-protection-actions-capability`, 513 commits ahead of and 0 behind `origin/main` (at `v0.10.1`). It still needs a squash-land through a PR to `main`; that is the GREEN-07 clause still open. The branch's own PR #41 is already merged and deleted on origin, so the landing needs a fresh branch and PR.
+- Unreleased on that branch: the installer (206) and `gen.triggers` rerun (207) fixes, with a 0.10.2 CHANGELOG entry. release-please cuts 0.10.2 only after they land on `main`. Four of those subjects leak planning IDs (`fix(207): CR-01 ...`), so squash-landing with a clean title avoids them in the changelog.
+- PR #42 (`auto/verification-debt-closeout`) is open; PR #34 is a DO-NOT-MERGE draft. Both need a disposition.
+- `.tool-versions` is deliberately untracked (see CONTRIBUTING).
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -70,7 +62,7 @@ Last activity: 2026-08-31 — gap-closure round 6 plan 198-40 executed (final pl
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 87/87 plans ([███░░░░░░░] 29%)
+Progress: [████████████████████] 153/153 plans ([██████████] 100% of phases — 10 of 10 complete: 198–207; 207 Trigger Migration Rerun verified passed 16/16 (W1+W2 closed; 207-01 OR REPLACE trigger + non-cascading orphan drop: 1a9fbd53, 918103fa; 207-02 gen.triggers rerun name/module, orphan drop in up, per-table rollback: 1dc427aa, a12ebddf, a32d97c0; 207-03 public default in all guides + guard, rerun docs, CHANGELOG, e2e probe + gate 1839 tests/0 failures: 96f703c6, a69b0cc1); 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
 
 ## Performance Metrics
 
@@ -142,6 +134,47 @@ Progress: [████████████████████] 87/87 p
 | Phase 200 P17 | 12min | 2 tasks | 10 files |
 | Phase 200 P12 | 41min | 2 tasks | 8 files |
 | Phase 200 P13 | 5min | 2 tasks | 2 files |
+| Phase 201-rendered-output P01 | 13min | 3 tasks | 4 files |
+| Phase 201-rendered-output P02 | 11min | 1 tasks | 5 files |
+| Phase 201-rendered-output P03 | 7min | 1 tasks | 5 files |
+| Phase 201-rendered-output P04 | 8min | 1 tasks | 5 files |
+| Phase 202 P01 | 26 min | 3 tasks | 13 files |
+| Phase 202 P02 | 12 min | 4 tasks | 5 files |
+| Phase 202 P03 | 40 min | 3 tasks | 5 files |
+| Phase 202 P08 | 22 min | 1 tasks | 1 files |
+| Phase 203 P01 | 6min | 2 tasks | 15 files |
+| Phase 203 P02 | 4min | 2 tasks | 9 files |
+| Phase 203 P03 | 15min | 2 tasks | 22 files |
+| Phase 203 P04 | 3min | 2 tasks | 14 files |
+| Phase 203 P05 | 7min | 2 tasks | 20 files |
+| Phase 203 P06 | 8min | 2 tasks | 28 files |
+| Phase 203 P07 | 6min | 2 tasks | 23 files |
+| Phase 203 P08 | 45min | 2 tasks | 28 files |
+| Phase 203 P09 | 25min | 3 tasks | 9 files |
+| Phase 203 P10 | 40min | 2 tasks | 2 files |
+| Phase 204 P01 | 8 min | 3 tasks | 6 files |
+| Phase 204 P02 | 35 min | 3 tasks | 16 files |
+| Phase 204 P03 | 2h 8m | 3 tasks | 24 files |
+| Phase 204 P04 | 26 min | 3 tasks | 17 files |
+| Phase 204 P05 | 63 min | 3 tasks | 9 files |
+| Phase 204 P06 | 36 min | 3 tasks | 41 files |
+| Phase 204 P07 | 12min | 3 tasks | 15 files |
+| Phase 204 P08 | 47min | 3 tasks | 10 files |
+| Phase 204 P09 | 109min | 2 tasks | 10 files |
+| Phase 204 P10 | 37 min | 3 tasks | 9 files |
+| Phase 204 P11 | 37min | 2 tasks | 5 files |
+| Phase 204 P12 | 33min | 2 tasks | 11 files |
+| Phase 204 P13 | 7min | 3 tasks | 10 files |
+| Phase 204 P14 | 6min | 3 tasks | 10 files |
+| Phase 204 P15 | 20min | 3 tasks | 9 files |
+| Phase 204 P16 | 17 | 3 tasks | 11 files |
+| Phase 205 P01 | 11min | 3 tasks | 19 files |
+| Phase 205 P02 | 12 min | 2 tasks | 5 files |
+| Phase 206 P01 | 4min | 3 tasks | 5 files |
+| Phase 206 P02 | 12 min | 2 tasks | 1 files |
+| Phase 207 P01 | 4min | 2 tasks | 3 files |
+| Phase 207 P02 | 6 min | 3 tasks | 5 files |
+| Phase 207 P03 | 7min | 3 tasks | 7 files |
 
 ## Deferred Items
 
@@ -272,6 +305,13 @@ Progress: [████████████████████] 87/87 p
 | deferred_items (v1.40 close 2026-08-27) | Phase 177 deferred-items.md (archived v1.37) — 1 entry (example demo-seed 60s setup timeout) | acknowledged in-file (status: acknowledged) |
 | deferred_items (v1.40 close 2026-08-27) | Phase 179 deferred-items.md (archived v1.37) — 5 entries (charter doc-contract + example demo-seed/walkthrough residuals per plan 01/03/04/05/06) | acknowledged in-file (status: acknowledged) |
 | deferred_items (v1.40 close 2026-08-27) | Phase 180 deferred-items.md (archived v1.37) — 1 entry (mix precommit demo-seed failures; Status field repurposed, scope note kept) | acknowledged in-file (status: acknowledged) |
+| debug_session (v1.41 close 2026-09-24) | phase-199-ci-uat-classification | diagnosed — acknowledged & deferred |
+| seed (v1.41 close 2026-09-24) | SEED-006-ci-feedback-loop-cost-and-latency | dormant — acknowledged & deferred |
+| deferred_items (v1.41 close 2026-09-24) | Phase 198 deferred-items.md (archived v1.41) — 9 entries (GREEN-07 terminal disposition, round 4-6 CI lane records, IN-01 row-history height guard) | acknowledged in-file (status: acknowledged). |
+| deferred_items (v1.41 close 2026-09-24) | Phase 199 deferred-items.md (archived v1.41) — 5 entries (formatter drift, 199-02 checker handoff, pair-label TODO, locked dependency advisories, Dialyzer contract drift) | acknowledged in-file (status: acknowledged). |
+| deferred_items (v1.41 close 2026-09-24) | Phase 200 deferred-items.md (archived v1.41) — 1 entries (CONTRIBUTING.md planning vocabulary in release archive scan) | acknowledged in-file (status: acknowledged). |
+| deferred_items (v1.41 close 2026-09-24) | Phase 202 deferred-items.md (archived v1.41) — 11 entries (critic_trust_test temp-dir counter-reuse flake (mechanism proven, unfixed), stale hex-evaluator pin prose) | acknowledged in-file (status: acknowledged). One entry (CORRECTION section) marked by hand; gsd-tools writer cannot match heading-shaped entries in mixed files. |
+| deferred_items (v1.41 close 2026-09-24) | Phase 205 deferred-items.md (archived v1.41) — 1 entries (D-205-01 clean_checkout_contract_test temp-dir collision) | acknowledged in-file (status: acknowledged). |
 
 ## Accumulated Context
 
@@ -312,9 +352,16 @@ Progress: [████████████████████] 87/87 p
 - **Milestone v1.38 archived (2026-06-30):** Operator UI Page-by-Page IA & Design-System Polish shipped with phases 181-188 complete, 24/24 requirements satisfied, and residual CI/screenshot/environment/Nyquist items explicitly classified in the archive audit.
 - **Milestone v1.39 roadmap created (2026-07-01):** Quality Baseline, Schema Confidence, and CI Efficiency — phases 189-193. Order is quality audit → storage-schema proof/fixes → release/version docs trust → CI/CD measurement and efficiency → closeout/next-step decision. 15/15 requirements mapped. Invariants held: no new operator product scope, no public component API, no compliance expansion, no synthetic external pilot, no runtime destructive redaction, no WAL/CDC backend, and no broad CI cleverness before measurement.
 - **Milestone v1.41 roadmap created (2026-08-27):** Green, Clean, and Honest — phases 198-204 per the approved plan `~/.claude/plans/so-i-don-t-really-have-quirky-wilkinson.md`, continued numbering. Order is green bringup → decouple (dialyxir lands here) → public surface → rendered output → **release 0.10.0 (deliberately mid-milestone: hex.pm has no undo, so publish once the permanent and rendered surfaces are clean, before the invisible internal work)** → real gates → structure. 53/53 requirements mapped, coarse granularity, est. 26-33 plans. Two workloads are deliberately unmeasured at roadmap time — the full-default Credo backlog (measured in 198 Plan 01) and the dialyzer finding count (measured in 199) — with a pre-committed sizing rule for Phase 203 (<150 → one phase; 150-600 → split mechanical from judgment; >600 or one dominating check → adopt defaults with that check as a counted register row plus a named successor milestone). Phase 201's cost depends on 198 Plan 01's mechanical-sensitivity probe. Highest-variance risk: the `min` CI lane (Elixir 1.15 / OTP 26 / pg14 / ubuntu-22.04) has never executed on origin. Invariants: no operator-UI design/IA/visual change, no Tier-A scorecard regeneration, paid critic scoring stays structurally untriggerable, `.planning/` stays tracked, no git history rewrite, no capture/query/auth semantic change, no version-floor bump; `git mv`/`git rm` for every move/removal, one file per commit where contract tests are involved.
+- Phase 205 added (2026-09-24): Release Reconciliation — gap closure for the v1.41 milestone audit (`.planning/v1.41-MILESTONE-AUDIT.md`, status gaps_found, finding F1). The milestone branch is 433 ahead / 5 behind origin/main and never merged Phase 202's shipped release commits (#41, #43, #44, the 0.10.0 release commit, #45); RELEASE-02/05 hold on origin/main only.
+- Phase 206 added (2026-09-24): Installer Migration Versions — tech-debt closure from the v1.41 re-audit (status tech_debt, 48/54, F1 resolved). `mix threadline.install` stamps all three migrations with one second-resolution `timestamp()` (lib/mix/tasks/threadline.install.ex:65), so a fresh `mix ecto.migrate` raises a duplicate-version error; 205-REVIEW CR-01, shipped since v0.9.0 incl. 0.10.0/0.10.1.
+- Phase 207 added (2026-09-24): Trigger Migration Rerun and Storage-Schema Default Docs — tech-debt closure from the v1.41 second re-audit (fe896464; status tech_debt, 48/54, flows 5/5, CR-01 resolved by 206). W1: rerunning `mix threadline.gen.triggers` for the same tables writes a duplicate migration name (gen.triggers.ex:141), which Ecto rejects, and the drift guides prescribe that rerun. W2: audit-indexing.md:7 and production-checklist.md:14 state the storage_schema default as `threadline`; the code default is `public`.
 
 ### Decisions
 
+- [202-04]: `ALLOW_UNVERIFIED_ENVIRONMENT_PROTECTION` is deliberately NOT set in `environment-protection.yml`. Unlike the branch-protection script's classic-protection field, the live required-reviewer read IS the load-bearing assertion, so passing on an unreadable response would recreate the vacuous gate the check exists to close. A hosted token that cannot read the environment must turn the check red.
+- [202-04]: `distribution-sync` required `needs.smoke-published.result == 'success'` in its `if:`, not only a `needs:` entry — the job carries `always()`, under which needs: membership orders execution but does not block. Without the result clause the attestation row could still be written after a FAILED smoke run with every gate green.
+- [202-04]: Live API observation (2026-09-22) confirmed the logged endpoint assumption: `GET /repos/{owner}/{repo}/environments/production-hex` returns 200 with `protection_rules[].type == "required_reviewers"` and one reviewer, and `prevent_self_review: false` — which is why the approval is documented as a confirmation step, not peer review.
+- [202-04]: RELEASE-05 stays OPEN. It is co-declared by 202-05, and its remaining clause (the smoke job resolving the just-published version from hexpm) is observable only in a real release run — marked `verification: backstop`, not manufactured.
 - [197-05]: Debt seed #9 re-measured fresh (2026-08-27 full mix test): (undefined_table) count = 0 — the ALTER DATABASE search_path fix is in effect; register row closed-in-environment with a CI reopen-trigger, not an open ~81-failure row.
 - [197-05]: copy_contract_test.exs:249 red (stale "Selected schema readiness" pin vs landed 842bd737) discovered and registered rank 2, not auto-fixed (caused by 197-02, out of 197-05 scope); Phase-185 coverage doc-contract copy lock registered rank 5 with owner + concrete trigger.
 - [197-05]: GATE-02 true auto-write stays register-as-debt per OQ-1 with trigger N=3 consecutive accepted iterations where the surfaced mechanical diff was applied verbatim with zero human modification.
@@ -657,15 +704,80 @@ Progress: [████████████████████] 87/87 p
 - [Phase 200]: Ordinary contributors see the complete issue-to-PR path before specialized test and maintainer reference material.
 - [Phase 200]: Missing audit table guidance explains the local-state cause and delegates recovery commands to Local Docker DX.
 - [Phase 200]: Generated PostgreSQL triggers installed through host-owned Ecto migrations are the shipped capture boundary.
+- [Phase 201]: Canonical receipts mount real routes, fix time-dependent inputs, normalize only nondeterministic CSRF values, and otherwise preserve meaningful structure.
+- [Phase 201]: Reference comparison requires exact sorted path identity before any per-path byte digest comparison.
+- [Phase 201]: Shell and Home browser coverage uses existing form IDs, accessible labels, roles, and visible hierarchy instead of roadmap taxonomy attributes.
+- [Phase 201]: Start browser consumers use existing forms, accessible labels, roles, and visible outcomes; no replacement test IDs or provenance hooks were added.
+- [Phase 201]: The focused Start contract rejects planning attributes only after proving both lookup controls remain present and operable.
+- [Phase 201]: Existing export-context task IDs and the accessible Carry to Exports link express the complete behavior contract without replacement provenance metadata.
+- [Phase 201]: The shared earned-flow browser journey uses roles, visible names, routes, and existing product test IDs for both this cohort and the later Row History/Timeline cohort.
+- [Phase 201]: [201-04] Validate exact sorted identity for all seven canonical renders before accepting an empty provenance-offender set.
+- [Phase 201]: [201-04] Preserve Row History and Timeline through existing semantic anchors without replacement provenance hooks.
+- [Phase 202]: Storage-schema default flipped from "threadline" to "public": 0.10.0 is non-breaking for the entire pre-0.10 adopter population, and a dedicated schema becomes an explicit opt-in steered by mix threadline.install and the getting-started guide. — Threadline cannot detect which schema an existing install put its audit tables in, so the default must be the one already true for installs that exist. Proven by HexEvaluator.LegacyPublicSchemaTest, which installs a packaged build of this tree into a fixture that sets no storage_schema key.
+- [Phase 202]: The hex evaluator resolves :threadline from a per-run local rehearsal registry built from this tree's own mix hex.build tarball, with hexpm reserved for the published mode set by the release workflow. — The fixture previously pinned threadline ~> 0.9.0 from hexpm with a committed lock, so it re-proved the last published release instead of the tree under test - a pre-publish gate resting on a post-publish fact. bin/with-rehearsal-registry closes that; the lock is now untracked and gitignored.
+- [Phase 202]: Install pins are owned by mix release.pins alone; release automation is test-forbidden from ever owning a pin line
+- [Phase 202]: Maintainer-only tooling (11 files, 4706 lines) is excluded from the Hex package via exclude_patterns, proven against the unpacked tarball rather than the config
+- [Phase 202]: release-please's changelog-path now names CHANGELOG-GENERATED.md; CHANGELOG.md is human-owned and is the file shipped in the tarball
+- [Phase 202]: The 0.10.0 changelog entry ships the complete 25-module undocumented list, not the folded 23 — the two sets were measured, not assumed
+- [Phase 202]: The stale hex-evaluator prose stays deferred: the false sentences are 2 of the 6 install-pin sites, so the fix is release-tooling work
+- [Phase 203]: 203-01: Query.Scope/FilterParams moved to :module_visibility_domain_tail; released CHANGELOG kept verbatim via explicit @renamed_modules register in public_surface_contract_test
+- [Phase 203]: GATE-04: zero compile-connected xref cycles + zero no_warn_undefined; runtime AuditTransaction<->AuditAction edge kept (D-18); mix verify.xref_cycles in ci.all and CI verify-test (both lanes)
+- [Phase 203]: 203-03: AliasUsage in lib/ and contract tests paid down to 0 as 22 single-file refactor commits; timeline_live.ex and copy_contract_test.exs pre-existing AliasOrder absorbed (Plans 06/07 each expect one fewer)
+- [Phase 203]: 203-04: AliasUsage outside test/threadline/operator_surface/ paid to 0 (116 findings, 14 files, 7 directory-batched refactor commits); Threadline.ExportQueue.Oban aliased as ObanAdapter because bare Oban is the real Oban module in oban_test
+- [Phase 203]: 203-05: AliasUsage paid to 0 tree-wide (last 187 findings, 20 operator_surface test files, 3 directory-batched refactor commits); no as: needed; StressRouter alias for Code.compile_quoted routers lives in the enclosing module because quote hygiene blocks an inner alias
+- [Phase 203]: 203-06 D-09: retention.ex MissedMetadataKeyInLoggerConfig resolved by .credo.exs metadata_keys: param (Plan 10), never by config/*.exs Logger config
+- [Phase 203]: 203-07: StringSigils fixes use ~s with an absent delimiter (never ~S), byte-equality proven by evaluation; GATE-05 stale-location half pinned by source_comment_location_contract_test.exs, requirement checkbox left for Plan 10 (moduledoc delta)
+- [Phase 203]: D-31: per-site structural-debt line is '# Structural debt: <reason>' — no phase number or requirement ID in packaged source; Phase 204/STRUCT-07 named only in the test-resident register
+- [Phase 203]: 203-09: Credo structural register pinned in source (credo_config_contract_test.exs) at Nesting 26 / CyclomaticComplexity 16 / ceiling 42 / historical max 46, exact equality, successor Phase 204 / STRUCT-07; GATE-02 checkbox left for Plan 10 (Logger finding still open)
+- [Phase 203]: 203-10: .credo.exs is credo 1.7.18 scaffolding + 3 extra deltas, disabled: []; Logger finding resolved via metadata_keys param (D-09)
+- [Phase 204]: 204-01: CSS byte lock pins golden c7baf51e (119,508 B) and full render b10d6a2c (212,633 B); never re-pin during the phase
+- [Phase 204]: 204-01: size gate seeded exact (7 files, 12 functions, 42 banner lines in 7 files); each extraction edits the maps in the same commit
+- [Phase 204]: 204-02: ci.all runs test files once (verify.test); hand-listed doc-contract alias deleted; runtime alias-tree guard; bump rehearsal derives 33 doc-contract files by filename (floor 30)
+- [Phase 204]: 204-03: <style> tags live in the Elixir concatenation; segment bytes are the golden minus those tags (byte-identical first try)
+- [Phase 204]: 204-03: browser-lane gate is the known-8 invariant (326 passed / 8 known / 16 skipped today), not the stale 82-passed literal
+- [Phase 204]: 204-04: MechanicalChecker pinned constants stay in the parent and reach its six siblings as argument maps; only unpinned constants moved
+- [Phase 204]: 204-04: Governance migration pinned by sha256+bytes under the library default (public) and AuditLog schemas before the split
+- [Phase 204]: 204-04: Query.Cursors shares the Query.Scope alias line so no recorded Dialyzer coordinate above the moved code shifts
+- [Phase 204]: 204-05: desktop-only lost-input browser failures (Task 2: screenshots:90, timeline:583; Task 3: accessibility:620 focus) were flakes, each cleared by one unchanged orchestrator re-run at exactly 326/8/16
+- [Phase 204]: 204-06: ui.ex retired into UI.Form via git mv; six @moduledoc false UI families; cross-family shell mount via <Overlay.reconnect_banner /> alias, never import
+- [Phase 204]: 204-07: all 15 non-surface lib register sites drained in place (no per-site fallback); register 38 -> 23 (Nesting 17, CyclomaticComplexity 6)
+- [Phase 204]: 204-08: LiveView siblings live under live/<page>/; per-page shell, formless, and doc pins read them via Threadline.Test.SourceFamily; sibling components declare attrs for exactly the assigns they read
+- [Phase 204]: 204-09: stress_live family is Sections (markup components) + Refute (pure refute-twin helpers) + Paths (URL helpers) under live/stress_live/; mix.exs excludes the family by directory; register 21 -> 19
+- [Phase 204]: 204-10: export job list and its display helpers moved to ExportStatusLive.Components (in-module would exceed 800 lines); the three context sections stay private in the LiveView
+- [Phase 204]: 204-10: export_workflow_summary/1 split into context and jobs summaries; credo register 19 -> 18
+- [Phase 204]: 204-11: actor/start/coverage renders carved in-module (43/47/59 lines); size gate @function_exceptions is %{}; start/coverage banners gone; credo register 17
+- [Phase 204]: 204-12: export encoding moved to ExportController.Encoding; lib is banner-free (@banner_exceptions %{}) and has no register site; credo register 17 -> 12 (Nesting 11, CC 1), all test-side
+- [Phase 204]: 204-13: shared operator-surface test templates in test/support/operator_surface_case.ex; nine live/*_live_test files migrated (190 tests unchanged); parsers: false supported for 204-14's gating endpoint
+- [Phase 204]: 204-14: TestStructureContractTest fails any hand-rolled test Endpoint/Router outside test/support/operator_surface_case.ex unless allowlisted with a reason; stale entries fail
+- [Phase 204]: 204-15: structural register drained to %{} with @ceiling 0 (12 test-side sites fixed, none re-registered); size gate at rest pins exactly one named exception (stress_fixtures.ex); phase-end gates green (ci.all 1778/0, browser 326/8/16 known eight, bump rehearsal OK)
+- [Phase 205]: 205-01: origin/main (v0.10.1) merged as ONE merge commit 0d8ced0c; 17 conflicts resolved whole-file (10 ours, 4 theirs, 3 combined)
+- [Phase 205]: 205-01: sync-release-pr-pins wiring pinned by a contract test in release_control_plane_contract_test.exs, proven RED on the pre-merge release.yml
+- [Phase 205]: 205-01: verify.threadline runs under MIX_ENV=test (as ci.yml does); dev configures no :ecto_repos
+- [Phase 205]: 205-01: merged origin/main 471ebf6e (v0.10.1) as one merge commit 0d8ced0c; 17 conflicts resolved whole-file (10 ours / 4 theirs / 3 combined); rehearsal 0.10.1 -> 0.11.0 OK; sync-pins job pinned by contract test
+- [Phase 206]: Phase 206-01: migration versions come from one hidden helper (Threadline.Mix.MigrationVersion.next/3), computed once per install run and once per gen.triggers write; max(now, highest existing + 1s) with calendar-correct carry, integer fallback for non-timestamp schemes
+- [Phase 206]: Phase 206-01: installer dedicated-schema advice prints only on a fresh install; partial re-run gets a keep-public note
+- [Phase 206]: 206-02: CHANGELOG keeps the meaning of the partial re-run advice fix but drops WR/CR IDs (packaged-file vocabulary test bans them)
+- [Phase 207]: Trigger DDL is CREATE OR REPLACE TRIGGER on every run (PG14 floor); per-table orphan drop has no CASCADE and reuses per_table_function_name/2
+- [Phase 207]: 207-02: gen.triggers picks the first free numbered name AND module (_2, Posts2...) from a text-only scan of the migrations dir; rerun tables' down keeps capture on with an explanatory comment
+- [Phase 207]: Default-claim guard over guides/**/*.md + README.md compares every storage_schema default claim to StorageSchema.get([]), with positive controls and a non-vacuity floor
+- [Phase 207]: Rerun doc contract pins shared phrases across both drift guides, the gen.triggers moduledoc and the generated rerun down comment
 
 ### Blockers
 
-- None.
+-
+
+- Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260924-taj | alias Gen.Triggers in trigger_rerun_test.exs to clear credo AliasUsage | 2026-09-24 | c960cefa | [260924-taj-alias-gen-triggers-in-trigger-rerun-test](./quick/260924-taj-alias-gen-triggers-in-trigger-rerun-test/) |
 
 ## Session Continuity
 
-**Last session:** 2026-09-13T11:38:51Z
-**Stopped at:** Phase 200 complete, ready to plan Phase 201
+**Last session:** 2026-09-24T21:24:44.037Z
+**Stopped at:** Phase 207 complete — all phases complete
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

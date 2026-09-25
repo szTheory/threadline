@@ -2,6 +2,8 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  alias Threadline.Test.SourceFamily
+
   @router_path "lib/threadline/operator_surface/router.ex"
   @lv_path "lib/threadline/operator_surface/live/timeline_live.ex"
   @query_path "lib/threadline/query.ex"
@@ -30,10 +32,10 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   # --- BROWSE-04: ARIA labels ---
 
   test "timeline live form exposes ARIA labels for every filter input" do
-    live_src = File.read!(@lv_path)
+    live_src = SourceFamily.read!(@lv_path)
 
     # Each label asserted individually so CI output pinpoints which label regressed
-    # Replaced naked aria-label asserts with label attribute assertions since UI.field renders native `<label>` wrapping.
+    # Replaced naked aria-label asserts with label attribute assertions since UI.Form.field renders native `<label>` wrapping.
     assert String.contains?(live_src, ~s|label="From"|),
            "missing label for filter input 'from'"
 
@@ -56,7 +58,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   # --- BROWSE-04: filter-key parity (LOAD-BEARING) ---
 
   test "filter form key list matches Threadline.Query allowlist exactly (BROWSE-04 parity guarantee)" do
-    live_src = File.read!(@lv_path)
+    live_src = SourceFamily.read!(@lv_path)
     query_src = File.read!(@query_path)
 
     # Extract @allowed_timeline_filter_keys literal from query.ex source
@@ -113,7 +115,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   # --- BROWSE-04: native widgets (no custom date-pickers, no custom selects) ---
 
   test "timeline live uses native datetime-local input for from/to and native select for actor_kind" do
-    live_src = File.read!(@lv_path)
+    live_src = SourceFamily.read!(@lv_path)
 
     assert String.contains?(live_src, ~s|type="datetime-local"|),
            "expected LV to use native <input type=\"datetime-local\"> per D-09 / BROWSE-03 (no custom date pickers)"
@@ -124,7 +126,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   end
 
   test "timeline command keeps starter filters inline and advanced filters in the drawer" do
-    live_src = File.read!(@lv_path)
+    live_src = SourceFamily.read!(@lv_path)
 
     [form_src] =
       Regex.run(~r/<form id="timeline-filters".*?<\/form>/s, live_src) ||
@@ -149,7 +151,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
 
   defp field_source(src, key) do
     pattern =
-      ~r/<UI\.field\b(?=[^>]*\bname="filter\[#{Regex.escape(key)}\]")[^>]*\/>/s
+      ~r/<UI\.Form\.field\b(?=[^>]*\bname="filter\[#{Regex.escape(key)}\]")[^>]*\/>/s
 
     case Regex.run(pattern, src) do
       [field] -> field
@@ -158,7 +160,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   end
 
   test "timeline source declares direct row-history helpers without route churn" do
-    live_src = File.read!(@lv_path)
+    live_src = SourceFamily.read!(@lv_path)
 
     assert String.contains?(live_src, "routeable_row_identity"),
            "TimelineLive must gate row-history links through routeable_row_identity/1"
@@ -188,7 +190,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   # --- BROWSE-04: phx-change prohibition (D-04 / F-6 / Pitfall 3) ---
 
   test "timeline live form contains no phx-change attribute (D-04 explicit Apply only)" do
-    live_src = File.read!(@lv_path)
+    live_src = SourceFamily.read!(@lv_path)
 
     refute String.contains?(live_src, "phx-change="),
            """
@@ -202,7 +204,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   # --- BROWSE-03: replace-style default-window canonicalization (no extra history entry) ---
 
   test "default-window canonicalization push_patches with replace: true (no extra history entry on bare /audit)" do
-    live_src = File.read!(@lv_path)
+    live_src = SourceFamily.read!(@lv_path)
 
     # The bare /audit → /audit?from=...&to=... patch must use replace: true so the
     # browser back button returns to the page before /audit, not to a bare /audit step.
@@ -221,7 +223,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   #
   # Phase 175-03 (NAV-01/D-13) replaced the bespoke "← Timeline" back-link inside the
   # "Investigation path" landmark with a location-based breadcrumb whose root link is
-  # labelled "Timeline" (no arrow glyph) and rendered through UI.page_header. The
+  # labelled "Timeline" (no arrow glyph) and rendered through UI.Page.page_header. The
   # contract intent — a Timeline escape hatch rooted in the page header — is unchanged;
   # the literal is now the breadcrumb root crumb threaded into page_header.
 

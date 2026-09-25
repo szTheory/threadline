@@ -1,0 +1,317 @@
+
+  .threadline-ui {
+    /* This block is the source contract for the stable design-system
+       token catalog. */
+    --tl-space-1: 4px;
+    --tl-space-2: 8px;
+    --tl-space-3: 12px;
+    --tl-space-4: 16px;
+    --tl-space-5: 20px;
+    --tl-space-6: 24px;
+    --tl-space-8: 32px;
+    --tl-space-10: 40px;
+    --tl-space-12: 48px;
+
+    --tl-font-family: "Geist", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --tl-font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --tl-font-size-xs: 12px;
+    --tl-font-size-sm: 13px;
+    --tl-font-size-dense: 13px;
+    --tl-font-size-body: 16px;
+    --tl-font-size-label: 14px;
+    --tl-font-size-ui: 15px;
+    --tl-font-size-heading: 20px;
+    --tl-font-size-title: 24px;
+    --tl-font-size-display: 32px;
+    --tl-line-body: 1.5;
+    --tl-line-label: 1.4;
+    --tl-line-heading: 1.2;
+    --tl-line-display: 1.15;
+    --tl-weight-regular: 400;
+    --tl-weight-medium: 500;
+    --tl-weight-strong: 600;
+    /* Letter-spacing scale: caps labels track wider, display tracks tighter. */
+    --tl-tracking-caps: 0.12em;
+    --tl-tracking-caps-wide: 0.16em;
+    --tl-tracking-tight: 0;
+
+
+    /* Primitives */
+    --tl-color-threadline-black: #0B1020;
+    --tl-color-graphite: #141B2D;
+    --tl-color-slate-line: #23304A;
+    --tl-color-fog: #D7DEEA;
+    --tl-color-paper: var(--tl-color-paper);
+    --tl-color-mist: #E7ECF4;
+    --tl-color-ink: var(--tl-color-ink);
+    --tl-color-thread-blue: #4F8CFF;
+    --tl-color-stitch-blue: #4781E6;
+    --tl-color-signal-cyan: #4EDFD1;
+    --tl-color-iris: #8A7CFF;
+    --tl-color-ember: #FF8A5B;
+
+    /* See DESIGN-SYSTEM.md § "Semantic Token Mapping" */
+    /* Semantic UI Tokens */
+    /* Brand: "night infrastructure with luminous signal lines" (Brand Book §10). */
+    --tl-color-bg: var(--tl-color-threadline-black);
+    /* Threadline Black */
+    --tl-color-surface: var(--tl-color-graphite);
+    /* Graphite */
+    --tl-color-surface-raised: #1B253A;
+    --tl-color-surface-hover: #202B42;
+    --tl-color-surface-selected: #22304D;
+    --tl-color-surface-tint: rgba(20, 27, 45, 0.94);
+    --tl-color-surface-tint-strong: rgba(11, 16, 32, 0.96);
+    --tl-color-backdrop: rgba(2, 4, 10, 0.62);
+    --tl-color-border: var(--tl-color-slate-line);
+    /* Slate Line */
+    --tl-color-border-strong: #2E3D5C;
+    --tl-color-border-focus: #7FA9FF;
+    --tl-color-text: var(--tl-color-fog);
+    /* Fog */
+    --tl-color-muted: #A3AFC2;
+    /* Steel, lifted for AA on dark */
+    --tl-color-muted-soft: #8F9DB5;
+    --tl-color-accent: var(--tl-color-thread-blue);
+    /* Thread Blue */
+    --tl-color-accent-strong: #6FA1FF;
+    --tl-color-accent-soft: rgba(79, 140, 255, 0.18);
+    --tl-color-accent-wash: rgba(79, 140, 255, 0.09);
+    --tl-color-accent-border: rgba(127, 169, 255, 0.48);
+    --tl-color-accent-inset: rgba(127, 169, 255, 0.16);
+    /* Faint accent veil for raised front-door surfaces */
+    --tl-color-on-accent: #08101F;
+    /* Dark ink for AA contrast on luminous accents */
+    --tl-color-signal: var(--tl-color-signal-cyan);
+    /* Signal Cyan — correlation, live traces, positive system flow */
+    --tl-color-signal-bg: rgba(78, 223, 209, 0.12);
+    --tl-color-signal-border: rgba(78, 223, 209, 0.30);
+    --tl-color-ink: var(--tl-color-ink);
+    --tl-color-paper: var(--tl-color-paper);
+    --tl-color-danger: #FF8585;
+    --tl-color-danger-bg: rgba(240, 106, 106, 0.16);
+    --tl-color-danger-border: rgba(255, 133, 133, 0.48);
+    --tl-color-warning-bg: rgba(255, 209, 102, 0.10);
+    --tl-color-warning-text: #F6C86B;
+    --tl-color-warning-dot: #F6C86B;
+    --tl-color-warning-border: rgba(246, 200, 107, 0.56);
+    --tl-color-success-bg: rgba(63, 208, 143, 0.16);
+    --tl-color-success-text: #5AE0A2;
+    --tl-color-success-border: rgba(90, 224, 162, 0.44);
+    --tl-color-info-bg: rgba(79, 140, 255, 0.16);
+    --tl-color-info-text: #9AB9FF;
+    --tl-color-info-border: rgba(127, 169, 255, 0.44);
+    --tl-color-neutral-bg: rgba(115, 129, 156, 0.15);
+    --tl-color-neutral-text: #B5C0D2;
+    --tl-color-neutral-border: #2E3D5C;
+    --tl-color-op-insert-bg: var(--tl-color-success-bg);
+    --tl-color-op-insert-text: var(--tl-color-success-text);
+    --tl-color-op-update-bg: var(--tl-color-info-bg);
+    --tl-color-op-update-text: var(--tl-color-info-text);
+    --tl-color-op-delete-bg: var(--tl-color-danger-bg);
+    --tl-color-op-delete-text: var(--tl-color-danger);
+    --tl-color-brand-rail: #0B1020;
+
+    --tl-radius-xs: 3px;
+    --tl-radius-sm: 4px;
+    --tl-radius-md: 6px;
+    --tl-radius-lg: 8px;
+    --tl-radius-xl: 12px;
+    --tl-radius-pill: 999px;
+    --tl-shadow-border: inset 0 0 0 1px var(--tl-color-border);
+    --tl-shadow-subtle: 0 1px 2px rgba(2, 4, 10, 0.50), 0 1px 3px rgba(2, 4, 10, 0.34);
+    --tl-shadow-popover: 0 10px 28px rgba(2, 4, 10, 0.55);
+    --tl-shadow-raised: 0 18px 48px rgba(2, 4, 10, 0.66);
+    --tl-z-base: 0;
+    --tl-z-toolbar: 20;
+    --tl-z-header: 30;
+    --tl-z-popover: 40;
+    --tl-z-subview: 50;
+    --tl-z-toast: 60;
+    --tl-header-height: 44px;
+    --tl-header-height-mobile: 52px;
+    --tl-brand-logo-width: 132px;
+    --tl-brand-logo-height: 32px;
+    --tl-brand-logo-width-desktop: 148px;
+    --tl-brand-logo-height-desktop: 36px;
+    --tl-control-height: 40px;
+    --tl-control-height-compact: 32px;
+    --tl-control-height-chip: 24px;
+    --tl-control-height-badge: 22px;
+    --tl-row-padding-compact: 10px;
+    --tl-status-stripe-width: 3px;
+    --tl-panel-padding: var(--tl-space-4);
+    --tl-row-padding: var(--tl-space-3);
+    --tl-table-min-width: 720px;
+    --tl-drawer-width: 760px;
+    --tl-shell-gutter: var(--tl-space-4);
+    --tl-viewport-max-height: 600px;
+    /* Breakpoint tokens document the accepted phone/tablet/desktop scale.
+       CSS custom properties are not valid inside @media conditions, so media
+       layers below keep standards-compliant literals governed by source tests. */
+    --tl-breakpoint-phone-proof: 375px;
+    --tl-breakpoint-tablet: 768px;
+    --tl-breakpoint-desktop: 1280px;
+    --tl-muted-bg: var(--tl-color-surface);
+    --tl-hit-area: 40px;
+    --tl-focus-ring: 0 0 0 3px rgba(127, 169, 255, 0.42), 0 0 0 1px var(--tl-color-border-focus);
+    --tl-gap-inline: var(--tl-space-2);
+    --tl-gap-stack: var(--tl-space-4);
+    --tl-gap-section: var(--tl-space-8);
+    --tl-pad-control: var(--tl-space-3);
+    --tl-pad-panel: var(--tl-space-4);
+    --tl-pad-page: var(--tl-space-4);
+    --tl-motion-fast: 120ms;
+    --tl-motion-base: 180ms;
+    --tl-motion-slow: 240ms;
+    --tl-motion-distance-sm: 8px;
+    --tl-motion-distance-md: 16px;
+    --tl-motion-stagger: 40ms;
+    --tl-blur-panel: 8px;
+    --tl-blur-veil: 1px;
+    --tl-chevron-size: 8px;
+    --tl-chevron-stroke: 2px;
+    --tl-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --tl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --tl-transition-fast: var(--tl-motion-fast) var(--tl-ease-standard);
+
+    min-height: 100%;
+    color-scheme: dark;
+    font-family: var(--tl-font-family);
+    font-size: var(--tl-font-size-body);
+    line-height: var(--tl-line-body);
+    color: var(--tl-color-text);
+    background: var(--tl-color-bg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .threadline-ui[data-tl-theme="light"] {
+    color-scheme: light;
+    --tl-color-bg: #F7F9FC;
+    --tl-color-surface: #FFFFFF;
+    --tl-color-surface-raised: #EEF3FA;
+    --tl-color-surface-hover: #E7ECF4;
+    --tl-color-surface-selected: #DDE8FF;
+    --tl-color-surface-tint: rgba(255, 255, 255, 0.92);
+    --tl-color-surface-tint-strong: rgba(247, 249, 252, 0.96);
+    --tl-color-backdrop: rgba(15, 23, 40, 0.42);
+    --tl-color-border: #C9D3E2;
+    --tl-color-border-strong: #A7B4C8;
+    --tl-color-border-focus: #1557C0;
+    --tl-color-text: #0F1728;
+    --tl-color-muted: #3B4762;
+    --tl-color-muted-soft: #73819C;
+    --tl-color-accent: #1557C0;
+    --tl-color-accent-strong: #0E459B;
+    --tl-color-accent-soft: rgba(21, 87, 192, 0.12);
+    --tl-color-accent-wash: rgba(21, 87, 192, 0.06);
+    --tl-color-accent-border: rgba(21, 87, 192, 0.28);
+    --tl-color-accent-inset: rgba(21, 87, 192, 0.16);
+    --tl-color-on-accent: #FFFFFF;
+    --tl-color-signal: #0F8F85;
+    --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
+    --tl-color-signal-border: rgba(15, 143, 133, 0.30);
+    --tl-color-ink: var(--tl-color-ink);
+    --tl-color-paper: var(--tl-color-paper);
+    --tl-color-danger: #A33434;
+    --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
+    --tl-color-danger-border: rgba(163, 52, 52, 0.28);
+    --tl-color-warning-bg: rgba(122, 84, 0, 0.12);
+    --tl-color-warning-text: #8A5512;
+    --tl-color-warning-dot: #CA8A04;
+    --tl-color-warning-border: rgba(122, 84, 0, 0.30);
+    --tl-color-success-bg: rgba(19, 108, 71, 0.12);
+    --tl-color-success-text: #136C47;
+    --tl-color-success-border: rgba(19, 108, 71, 0.30);
+    --tl-color-info-bg: rgba(21, 87, 192, 0.10);
+    --tl-color-info-text: #1557C0;
+    --tl-color-info-border: rgba(21, 87, 192, 0.28);
+    --tl-color-neutral-bg: rgba(59, 71, 98, 0.10);
+    --tl-color-neutral-text: #3B4762;
+    --tl-color-neutral-border: #C9D3E2;
+    --tl-color-brand-rail: #0F1728;
+    --tl-shadow-subtle: 0 1px 2px rgba(15, 23, 40, 0.08), 0 1px 3px rgba(15, 23, 40, 0.06);
+    --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
+    --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
+    --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+  }
+
+  @media (prefers-color-scheme: light) {
+    .threadline-ui[data-tl-theme="system"] {
+      color-scheme: light;
+      --tl-color-bg: #F7F9FC;
+      --tl-color-surface: #FFFFFF;
+      --tl-color-surface-raised: #EEF3FA;
+      --tl-color-surface-hover: #E7ECF4;
+      --tl-color-surface-selected: #DDE8FF;
+      --tl-color-surface-tint: rgba(255, 255, 255, 0.92);
+      --tl-color-surface-tint-strong: rgba(247, 249, 252, 0.96);
+      --tl-color-backdrop: rgba(15, 23, 40, 0.42);
+      --tl-color-border: #C9D3E2;
+      --tl-color-border-strong: #A7B4C8;
+      --tl-color-border-focus: #1557C0;
+      --tl-color-text: #0F1728;
+      --tl-color-muted: #3B4762;
+      --tl-color-muted-soft: #73819C;
+      --tl-color-accent: #1557C0;
+      --tl-color-accent-strong: #0E459B;
+      --tl-color-accent-soft: rgba(21, 87, 192, 0.12);
+      --tl-color-accent-wash: rgba(21, 87, 192, 0.06);
+      --tl-color-accent-border: rgba(21, 87, 192, 0.28);
+      --tl-color-accent-inset: rgba(21, 87, 192, 0.16);
+      --tl-color-on-accent: #FFFFFF;
+      --tl-color-signal: #0F8F85;
+      --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
+      --tl-color-signal-border: rgba(15, 143, 133, 0.30);
+      --tl-color-ink: var(--tl-color-ink);
+      --tl-color-paper: var(--tl-color-paper);
+      --tl-color-danger: #A33434;
+      --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
+      --tl-color-danger-border: rgba(163, 52, 52, 0.28);
+      --tl-color-warning-bg: rgba(122, 84, 0, 0.12);
+      --tl-color-warning-text: #8A5512;
+      --tl-color-warning-dot: #CA8A04;
+      --tl-color-warning-border: rgba(122, 84, 0, 0.30);
+      --tl-color-success-bg: rgba(19, 108, 71, 0.12);
+      --tl-color-success-text: #136C47;
+      --tl-color-success-border: rgba(19, 108, 71, 0.30);
+      --tl-color-info-bg: rgba(21, 87, 192, 0.10);
+      --tl-color-info-text: #1557C0;
+      --tl-color-info-border: rgba(21, 87, 192, 0.28);
+      --tl-color-neutral-bg: rgba(59, 71, 98, 0.10);
+      --tl-color-neutral-text: #3B4762;
+      --tl-color-neutral-border: #C9D3E2;
+      --tl-color-brand-rail: #0F1728;
+      --tl-shadow-subtle: 0 1px 2px rgba(15, 23, 40, 0.08), 0 1px 3px rgba(15, 23, 40, 0.06);
+      --tl-shadow-popover: 0 10px 28px rgba(15, 23, 40, 0.18);
+      --tl-shadow-raised: 0 18px 48px rgba(15, 23, 40, 0.24);
+      --tl-focus-ring: 0 0 0 3px rgba(21, 87, 192, 0.22), 0 0 0 1px var(--tl-color-border-focus);
+    }
+  }
+
+  /* Coverage table row hover polarity on light surfaces.
+     The dark base keeps surface-raised default / surface hover (correct on
+     dark, where raised is lighter than surface). On white that reads inverted
+     (tinted default -> white hover), so the light and system lanes flip to a
+     white default with a tinted hover. Additive only; the dark base rule and
+     tokens are untouched. Row-to-row separation is preserved by the per-cell
+     border-bottom (.tl-table td). */
+  .threadline-ui[data-tl-theme="light"] .tl-table {
+    background: var(--tl-color-surface);
+  }
+
+  .threadline-ui[data-tl-theme="light"] .tl-table--actionable tbody tr:hover {
+    background: var(--tl-color-surface-hover);
+  }
+
+  @media (prefers-color-scheme: light) {
+    .threadline-ui[data-tl-theme="system"] .tl-table {
+      background: var(--tl-color-surface);
+    }
+
+    .threadline-ui[data-tl-theme="system"] .tl-table--actionable tbody tr:hover {
+      background: var(--tl-color-surface-hover);
+    }
+  }
+

@@ -27,52 +27,52 @@ defmodule ThreadlinePhoenixWeb.Storybook.Foundations.IndexStory do
         title="Foundation rules"
         description="Tokens, theme lanes, typography, density, radius, focus, and motion rules for component review."
       >
-        <UI.page_header title="Follow what happened">
+        <UI.Page.page_header title="Follow what happened">
           <:lede>
             Audit history uses calm hierarchy, dense spacing, visible focus, and exact domain language.
           </:lede>
-        </UI.page_header>
+        </UI.Page.page_header>
 
-        <UI.stack gap="section">
-          <UI.cluster>
-            <UI.badge variant="info">theme support</UI.badge>
-            <UI.badge variant="success">accessibility</UI.badge>
-            <UI.badge variant="warning">fixture provenance</UI.badge>
-          </UI.cluster>
+        <UI.Display.stack gap="section">
+          <UI.Display.cluster>
+            <UI.Display.badge variant="info">theme support</UI.Display.badge>
+            <UI.Display.badge variant="success">accessibility</UI.Display.badge>
+            <UI.Display.badge variant="warning">fixture provenance</UI.Display.badge>
+          </UI.Display.cluster>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>Theme lanes</:title>
-            <UI.stack>
+            <UI.Display.stack>
               <%= for theme <- @fixtures.themes do %>
                 <.threadline_preview theme={theme}>
-                  <UI.alert variant="info">
+                  <UI.Display.alert variant="info">
                     data-tl-theme="<%= theme %>" uses the real Threadline.OperatorSurface.Style.css lane.
-                  </UI.alert>
+                  </UI.Display.alert>
                 </.threadline_preview>
               <% end %>
-            </UI.stack>
-          </UI.card>
+            </UI.Display.stack>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>Typography and density</:title>
             <p>
               Body text stays readable at 16px, labels stay compact, and refs use mono only for
               technical anchors such as <code><%= @fixtures.typography_sample %></code>.
             </p>
-            <UI.cluster>
-              <UI.badge :for={density <- @fixtures.density} variant="neutral"><%= density %></UI.badge>
-            </UI.cluster>
-          </UI.card>
+            <UI.Display.cluster>
+              <UI.Display.badge :for={density <- @fixtures.density} variant="neutral"><%= density %></UI.Display.badge>
+            </UI.Display.cluster>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>Radius, focus, and motion</:title>
-            <UI.kv>
+            <UI.Display.kv>
               <:item key="Radius"><%= Enum.join(@fixtures.radius, ", ") %></:item>
               <:item key="Motion"><%= Enum.join(@fixtures.motion, ", ") %></:item>
               <:item key="Focus">Visible ring from Style.css, not a Storybook-only override.</:item>
-            </UI.kv>
-          </UI.card>
-        </UI.stack>
+            </UI.Display.kv>
+          </UI.Display.card>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

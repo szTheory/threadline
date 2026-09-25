@@ -17,9 +17,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
+    alias Threadline.Retention.Pruner
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
-    alias Threadline.Retention.Pruner
 
     @default_limit 40
 
@@ -115,9 +115,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_info(:refresh, socket) do
-      if not socket.assigns[:threadline_policy_enabled] do
-        {:noreply, socket}
-      else
+      if socket.assigns[:threadline_policy_enabled] do
         runs = fetch_runs(socket)
 
         socket =
@@ -126,10 +124,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             stream_insert(acc_socket, :runs, run)
           end)
           |> assign(:runs_summary, summarize_runs(runs))
-          |> assign(:has_runs, length(runs) > 0)
+          |> assign(:has_runs, runs != [])
           |> assign(:runs_count, length(runs))
           |> assign(:default_limit, @default_limit)
 
+        {:noreply, socket}
+      else
         {:noreply, socket}
       end
     end
@@ -147,7 +147,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:prune_copy, prune_modal_copy(@canonical_policy_name))
 
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage || %{uncovered_count: 0}}
         base_path={@base_path}
@@ -159,7 +159,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_policy_enabled do %>
-            <UI.page_header title="Retention window">
+            <UI.Page.page_header title="Retention window">
               <:lede>Review retention window pruning runs, failures, and evidence before triggering another destructive retention pass.</:lede>
               <:actions>
                 <.link :if={@retention_actions.evidence_path} navigate={@retention_actions.evidence_path} class="tl-button tl-button--compact tl-button--secondary">
@@ -167,7 +167,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Review evidence
                 </.link>
               </:actions>
-            </UI.page_header>
+            </UI.Page.page_header>
 
             <div :if={Phoenix.Flash.get(@flash, :error)} class="tl-alert tl-alert--error" role="alert">
               <%= Phoenix.Flash.get(@flash, :error) %>
@@ -177,7 +177,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
 
             <%= if not @has_runs do %>
-              <UI.empty_state variant="never" role="status">
+              <UI.Data.empty_state variant="never" role="status">
                 <:title>No retention runs yet</:title>
                 Configure a retention window, run a dry-run first with <code>mix threadline.retention.purge --dry-run</code>, then trigger a prune to record evidence here.
                 <:actions>
@@ -190,8 +190,44 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <%= @prune_copy.open_label %>
                   </button>
                 </:actions>
-              </UI.empty_state>
+              </UI.Data.empty_state>
             <% else %>
+              <.run_history
+                retention_summary={@retention_summary}
+                retention_actions={@retention_actions}
+                prune_copy={@prune_copy}
+                runs={@streams.runs}
+                runs_count={@runs_count}
+                default_limit={@default_limit}
+              />
+            <% end %>
+
+            <%!-- Type-to-confirm modal. The operator types the
+                  policy NAME (the object's own identifier) to confirm; the
+                  canonical token is re-derived and compared SERVER-SIDE in the
+                  prune_now handler and is never shipped to the client for a
+                  client-side comparison. The danger button copy names the
+                  irreversible consequence (not "Continue"). --%>
+            <.prune_modal :if={@prune_modal_open} prune_copy={@prune_copy} />
+          <% else %>
+            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
+              descriptor={Unsupported.descriptor(:retention_unavailable)}
+              base_path={@base_path}
+            />
+          <% end %>
+      </UI.Page.shell>
+      """
+    end
+
+    attr(:retention_summary, :map, required: true)
+    attr(:retention_actions, :map, required: true)
+    attr(:prune_copy, :map, required: true)
+    attr(:runs, :any, required: true)
+    attr(:runs_count, :integer, required: true)
+    attr(:default_limit, :integer, required: true)
+
+    defp run_history(assigns) do
+      ~H"""
               <section class="tl-summary-grid" aria-label="Retention window health">
                 <div class="tl-card--metric">
                   <span class="tl-card__metric-label">Latest run</span>
@@ -245,16 +281,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <% end %>
               </p>
               <div class="tl-table-wrap" data-testid="retention-runs-table">
-                <UI.data_table
+                <UI.Data.data_table
                   class="tl-table--retention tl-table--compact tl-table--sticky"
-                  stream={@streams.runs}
+                  stream={@runs}
                   tbody_id="retention-runs"
                   row_id={fn {dom_id, _run} -> dom_id end}
                   row_status={fn {_dom_id, run} -> run.status end}
                   data-testid="retention-runs-table-el"
                 >
                   <:col :let={{_dom_id, run}} label="Run">
-                    <UI.ref value={"retention_run/#{run.id}"} kind="actor" copy_label="Copy retention run id" />
+                    <UI.Display.ref value={"retention_run/#{run.id}"} kind="actor" copy_label="Copy retention run id" />
                   </:col>
                   <:col :let={{_dom_id, run}} label="Status">
                     <span class={["tl-chip", Presentation.status_modifier(run.status)]}><%= Presentation.status_label(run.status) %></span>
@@ -276,17 +312,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       Review evidence
                     </.link>
                   </:action>
-                </UI.data_table>
+                </UI.Data.data_table>
               </div>
-            <% end %>
+      """
+    end
 
-            <%!-- Type-to-confirm modal. The operator types the
-                  policy NAME (the object's own identifier) to confirm; the
-                  canonical token is re-derived and compared SERVER-SIDE in the
-                  prune_now handler and is never shipped to the client for a
-                  client-side comparison. The danger button copy names the
-                  irreversible consequence (not "Continue"). --%>
-            <UI.modal :if={@prune_modal_open} id="prune-confirm" show={true} on_cancel={JS.push("close_prune_modal")}>
+    attr(:prune_copy, :map, required: true)
+
+    defp prune_modal(assigns) do
+      ~H"""
+            <UI.Overlay.modal id="prune-confirm" show={true} on_cancel={JS.push("close_prune_modal")}>
               <h2 id="prune-confirm-title" class="tl-modal__title"><%= @prune_copy.title %></h2>
               <p id="prune-confirm-description" class="tl-modal__body">
                 <%= @prune_copy.consequence_prefix %> <code><%= @prune_copy.policy_name %></code>; it cannot be undone.
@@ -315,14 +350,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   </button>
                 </div>
               </form>
-            </UI.modal>
-          <% else %>
-            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
-              descriptor={Unsupported.descriptor(:retention_unavailable)}
-              base_path={@base_path}
-            />
-          <% end %>
-      </UI.shell>
+            </UI.Overlay.modal>
       """
     end
 
@@ -372,22 +400,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp fetch_runs(socket) do
-      if not socket.assigns[:threadline_policy_enabled] do
-        []
-      else
+      if socket.assigns[:threadline_policy_enabled] do
         repo = resolve_repo(socket)
 
         from(r in RetentionRun, order_by: [desc: r.started_at], limit: @default_limit)
         |> repo.all(storage_opts(socket))
+      else
+        []
       end
     end
 
     defp has_runs?(socket) do
-      if not socket.assigns[:threadline_policy_enabled] do
-        false
-      else
+      if socket.assigns[:threadline_policy_enabled] do
         repo = resolve_repo(socket)
         repo.exists?(from(r in RetentionRun), storage_opts(socket))
+      else
+        false
       end
     end
 

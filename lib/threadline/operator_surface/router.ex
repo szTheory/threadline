@@ -58,35 +58,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       has_actor_fn? = Keyword.has_key?(opts, :actor_fn)
       has_ack? = Keyword.get(opts, :adopter_acknowledges_unauthenticated, false)
       exports_enabled? = Keyword.get(opts, :exports, true)
-      theme = Keyword.get(opts, :theme, :dark)
       caller_file = __CALLER__.file
       caller_line = __CALLER__.line
 
-      unless theme in [:dark, :light, :system] do
-        raise CompileError,
-          file: caller_file,
-          line: caller_line,
-          description: "Threadline Operator Surface theme must be one of :dark | :light | :system"
-      end
+      validate_theme!(Keyword.get(opts, :theme, :dark), caller_file, caller_line)
 
       quote do
-        _scopes = @phoenix_top_scopes || %{pipes: []}
-
-        _has_pipe? =
-          _scopes
-          |> List.wrap()
-          |> Enum.any?(fn
-            %{pipes: [_ | _]} -> true
-            _ -> false
-          end)
-
-        if not (_has_pipe? or unquote(has_auth_fn?) or unquote(has_ack?)) do
-          raise CompileError,
-            file: unquote(caller_file),
-            line: unquote(caller_line),
-            description:
-              "Threadline Operator Surface must be mounted inside a secure pipeline. Add `pipe_through :admin_browser` or explicitly provide an `:authorize_fn`."
-        end
+        unquote(secure_mount_guard(has_auth_fn?, has_ack?, caller_file, caller_line))
 
         import Phoenix.LiveView.Router, only: [live_session: 3, live: 3]
 
@@ -162,6 +140,42 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           end
         end
       end
+    end
+
+    # Expands, in the host router, to a compile-time check that the surface is
+    # mounted behind a pipeline, an `:authorize_fn`, or an explicit
+    # acknowledgement that it is unauthenticated.
+    defp secure_mount_guard(has_auth_fn?, has_ack?, caller_file, caller_line) do
+      quote do
+        _scopes = @phoenix_top_scopes || %{pipes: []}
+
+        _has_pipe? =
+          _scopes
+          |> List.wrap()
+          |> Enum.any?(fn
+            %{pipes: [_ | _]} -> true
+            _ -> false
+          end)
+
+        if not (_has_pipe? or unquote(has_auth_fn?) or unquote(has_ack?)) do
+          raise CompileError,
+            file: unquote(caller_file),
+            line: unquote(caller_line),
+            description:
+              "Threadline Operator Surface must be mounted inside a secure pipeline. Add `pipe_through :admin_browser` or explicitly provide an `:authorize_fn`."
+        end
+      end
+    end
+
+    defp validate_theme!(theme, _caller_file, _caller_line)
+         when theme in [:dark, :light, :system],
+         do: :ok
+
+    defp validate_theme!(_theme, caller_file, caller_line) do
+      raise CompileError,
+        file: caller_file,
+        line: caller_line,
+        description: "Threadline Operator Surface theme must be one of :dark | :light | :system"
     end
   end
 end

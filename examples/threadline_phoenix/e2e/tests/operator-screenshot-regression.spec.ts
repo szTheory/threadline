@@ -119,7 +119,7 @@ test.describe("operator screenshot regression guard", () => {
     // fixed, full-viewport overlay shell (scrim + bounded panel) — not the
     // bounded visual panel itself. `.tl-drawer` (the JS.drawer's inner
     // `#{id}-content` element) is the actual fixed-width panel
-    // (`width: min(var(--tl-drawer-width), 100vw)`, style.ex:3504) that this
+    // (`width: min(var(--tl-drawer-width), 100vw)`, `08_overlays_motion.css`) that this
     // guard exists to compare. Screenshotting the outer container captured
     // the whole viewport (scrim included), guaranteeing a dimension mismatch
     // against the panel-sized baseline.

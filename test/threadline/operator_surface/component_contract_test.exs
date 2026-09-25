@@ -17,8 +17,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   import Phoenix.LiveViewTest
 
   alias Threadline.OperatorSurface.UI
+  alias Threadline.Test.SourceFamily
+  alias Threadline.Test.StyleSource
 
-  @style_path "lib/threadline/operator_surface/style.ex"
   @ui_source_path "lib/threadline/operator_surface/ui.ex"
   @source_prose_files [
     "test/threadline/operator_surface/card_nesting_regression_test.exs",
@@ -63,10 +64,10 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:ok}>
+        <UI.Data.data_panel state={:ok}>
           <:data><p id="payload">live rows</p></:data>
           <:pager><span id="pager">1 of 3</span></:pager>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="ok")
@@ -80,10 +81,10 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:loading}>
+        <UI.Data.data_panel state={:loading}>
           <:data><p id="payload">should not appear</p></:data>
           <:pager><span id="pager">hidden</span></:pager>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="loading")
@@ -99,9 +100,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:empty}>
+        <UI.Data.data_panel state={:empty}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="empty")
@@ -118,9 +119,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:no_data}>
+        <UI.Data.data_panel state={:no_data}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="no_data")
@@ -136,9 +137,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:error}>
+        <UI.Data.data_panel state={:error}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="error")
@@ -152,9 +153,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:permission} reason={:unauthorized}>
+        <UI.Data.data_panel state={:permission} reason={:unauthorized}>
           <:data><p>should never leak</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="permission")
@@ -172,9 +173,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:unavailable} reason={:source_down}>
+        <UI.Data.data_panel state={:unavailable} reason={:source_down}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert html =~ ~s(data-state="unavailable")
@@ -189,16 +190,16 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       redacted =
         rendered_to_string(~H"""
-        <UI.data_panel state={:unavailable} reason={:redacted}>
+        <UI.Data.data_panel state={:unavailable} reason={:redacted}>
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       pruned =
         rendered_to_string(~H"""
-        <UI.data_panel state={:unavailable} reason={:pruned} as_of="2026-06-01">
+        <UI.Data.data_panel state={:unavailable} reason={:pruned} as_of="2026-06-01">
           <:data><p>hidden</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       assert redacted =~ "tl-empty--unavailable"
@@ -217,9 +218,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
         assert_raise ArgumentError, ~r/requires a typed :reason/, fn ->
           rendered_to_string(~H"""
-          <UI.data_panel state={@state}>
+          <UI.Data.data_panel state={@state}>
             <:data><p>hidden</p></:data>
-          </UI.data_panel>
+          </UI.Data.data_panel>
           """)
         end
       end
@@ -230,9 +231,9 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.data_panel state={:ok} as_of="2026-06-17 09:00">
+        <UI.Data.data_panel state={:ok} as_of="2026-06-17 09:00">
           <:data><p id="payload">last known good rows</p></:data>
-        </UI.data_panel>
+        </UI.Data.data_panel>
         """)
 
       # stale banner coexists with :ok data, never replaces it
@@ -257,12 +258,12 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       disabled =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={true}><span>filters</span></UI.toolbar>
+        <UI.Page.toolbar disabled={true}><span>filters</span></UI.Page.toolbar>
         """)
 
       enabled =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={false}><span>filters</span></UI.toolbar>
+        <UI.Page.toolbar disabled={false}><span>filters</span></UI.Page.toolbar>
         """)
 
       assert disabled =~ "tl-toolbar"
@@ -278,7 +279,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
   describe "overlay z-index stacking order (Phase 173 UAT #2)" do
     test "z-layer tokens are defined in strict ascending order so overlays stack correctly" do
-      src = File.read!(@style_path)
+      src = StyleSource.read!()
 
       layers = ~w(base toolbar header popover subview toast)
 
@@ -306,7 +307,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.reconnect_banner />
+        <UI.Overlay.reconnect_banner />
         """)
 
       assert html =~ "tl-reconnect-banner"
@@ -317,10 +318,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
 
     test "stylesheet anchors reconnect affordances on [data-phx-main] and scopes through .threadline-ui" do
-      block =
-        @style_path
-        |> File.read!()
-        |> reconnect_css_block!()
+      block = reconnect_css_block!(StyleSource.read!())
 
       # Hidden by default; revealed purely in CSS on the class-bearing
       # [data-phx-main] LiveView container, then scoped into the Threadline shell.
@@ -359,7 +357,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
   describe "A11Y-02 APG semantics map" do
     test "custom APG widgets declare the state, popup, and relationship hooks they implement" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       assert src =~ ~s(role="dialog")
       assert src =~ ~s(aria-modal="true")
@@ -395,7 +393,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
 
     test "native/non-applicable categories stay documented instead of gaining misleading ARIA roles" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       assert src =~ ~s(<select id={@id} name={@name}),
              "select remains native HTML, not a custom combobox"
@@ -411,10 +409,10 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
     end
 
     test "copy controls require explicit names and bind the complete value" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       assert src =~ ~s(attr(:copy_label, :string, required: true),
-             "UI.ref/1 must require a specific copy label at every call site"
+             "UI.Display.ref/1 must require a specific copy label at every call site"
 
       assert src =~ ~s(aria-label={@copy_label}),
              "copy controls must use caller-supplied accessible names, not a generic Copy label"
@@ -427,7 +425,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       html =
         rendered_to_string(~H"""
-        <UI.ref value={@value} kind="correlation" copy_label="Copy audit correlation id" />
+        <UI.Display.ref value={@value} kind="correlation" copy_label="Copy audit correlation id" />
         """)
 
       assert html =~ ~s(data-tl-copy="#{value}")
@@ -440,15 +438,15 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   #
   # SEED-005 (D-10) extracted the previously-11-way-duplicated
   # `<div class="threadline-ui">…<Style.css/>…<surface_header/>…<main id="tl-main">`
-  # wrapper into ONE shared `@doc false` `UI.shell/1` chrome component. That shell
+  # wrapper into ONE shared `@doc false` `UI.Page.shell/1` chrome component. That shell
   # is the single mount point for `reconnect_banner/1`: rendered exactly once,
   # directly above `#tl-main` and inside `.threadline-ui`. All 11 operator
-  # LiveViews route their chrome through `UI.shell` instead of hand-rolling the
+  # LiveViews route their chrome through `UI.Page.shell` instead of hand-rolling the
   # wrapper, which is what gives the banner one structural home and kills drift.
   #
   # The guard therefore has two halves:
   #   (1) the shell in ui.ex carries the banner exactly once, in the right order;
-  #   (2) every page LiveView routes through `UI.shell` (no per-page
+  #   (2) every page LiveView routes through `UI.Page.shell` (no per-page
   #       `class="threadline-ui"` / `id="tl-main"` duplication left behind).
   #
   # Parser-agnostic by design (RESEARCH Pitfall 2): we scan SOURCE (no DB, no
@@ -472,43 +470,68 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   @ui_module "lib/threadline/operator_surface/ui.ex"
 
   describe "reconnect banner mounted once in shared shell (SEED-005 / D-10, D-11)" do
-    test "the shared UI.shell mounts tl-reconnect-banner exactly once, above #tl-main inside .threadline-ui" do
-      src = File.read!(@ui_module)
+    test "the shared UI.Page.shell mounts tl-reconnect-banner exactly once, above #tl-main inside .threadline-ui" do
+      src = SourceFamily.read!(@ui_module)
 
       assert src =~ "def shell(assigns)",
-             "ui.ex must define the shared @doc false shell/1 chrome component (D-10)"
+             "the UI family must define the shared @doc false shell/1 chrome component (D-10)"
 
       banner_count =
         src
         |> String.split("reconnect_banner")
         |> length()
         |> Kernel.-(1)
-        # def reconnect_banner + the single <.reconnect_banner /> mount in shell/1
+        # def reconnect_banner + the single <Overlay.reconnect_banner /> mount in shell/1
         |> Kernel.-(1)
 
       assert banner_count == 1,
-             "ui.ex shell must mount reconnect_banner EXACTLY once (D-10), found #{banner_count} mount references"
+             "the UI family shell must mount reconnect_banner EXACTLY once (D-10), found #{banner_count} mount references"
 
-      shell_at = index_of!(src, ~s(class="threadline-ui"))
-      banner_at = index_of!(src, "<.reconnect_banner")
-      main_at = index_of!(src, ~s(id="tl-main"))
+      mount_re = ~r/<(?:\.|Overlay\.|UI\.Overlay\.)reconnect_banner\b/
+
+      assert length(Regex.scan(~r/def reconnect_banner\(/, src)) == 1,
+             "the UI family must define reconnect_banner/1 exactly once (D-10)"
+
+      assert length(Regex.scan(mount_re, src)) == 1,
+             "the UI family shell must mount reconnect_banner EXACTLY once (D-10)"
+
+      shell_files =
+        @ui_module
+        |> SourceFamily.files!()
+        |> Enum.map(&File.read!/1)
+        |> Enum.filter(&String.contains?(&1, "def shell(assigns)"))
+
+      assert length(shell_files) == 1,
+             "exactly one UI family file must define the shared shell/1 (D-10)"
+
+      [shell_src] = shell_files
+
+      shell_at = index_of!(shell_src, ~s(class="threadline-ui"))
+
+      banner_at =
+        case Regex.run(mount_re, shell_src, return: :index) do
+          [{at, _len}] -> at
+          nil -> flunk("the shell-owning UI family file must mount reconnect_banner (D-10)")
+        end
+
+      main_at = index_of!(shell_src, ~s(id="tl-main"))
 
       assert shell_at < banner_at and banner_at < main_at,
              "the reconnect banner must sit AFTER the .threadline-ui open and BEFORE #tl-main (D-10/D-11)"
     end
 
-    test "every operator page routes its chrome through the shared UI.shell (no per-page wrapper duplication)" do
+    test "every operator page routes its chrome through the shared UI.Page.shell (no per-page wrapper duplication)" do
       for file <- @page_live_views do
-        src = File.read!(Path.join("lib/threadline/operator_surface/live", file))
+        src = SourceFamily.read!(Path.join("lib/threadline/operator_surface/live", file))
 
-        assert src =~ "UI.shell" or src =~ "<.shell",
+        assert src =~ "UI.Page.shell" or src =~ "<.shell",
                "#{file}: must render its chrome via the shared shell component (D-10), not a hand-rolled <div class=\"threadline-ui\"> wrapper"
 
         refute String.contains?(src, ~s(class="threadline-ui")),
-               "#{file}: the `.threadline-ui` wrapper now lives in UI.shell — no per-page duplication (D-10)"
+               "#{file}: the `.threadline-ui` wrapper now lives in UI.Page.shell — no per-page duplication (D-10)"
 
         refute String.contains?(src, ~s(id="tl-main")),
-               "#{file}: the `#tl-main` element now lives in UI.shell — no per-page duplication (D-10)"
+               "#{file}: the `#tl-main` element now lives in UI.Page.shell — no per-page duplication (D-10)"
       end
     end
 
@@ -517,7 +540,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
             @ui_module
             | Enum.map(@page_live_views, &Path.join("lib/threadline/operator_surface/live", &1))
           ] do
-        src = File.read!(file)
+        src = SourceFamily.read!(file)
 
         refute String.contains?(src, ".phx-disconnected"),
                "#{file}: .phx-disconnected is a LiveView <1.0 class — connection state anchors on [data-phx-main] with .threadline-ui descendant scoping (D-11)"
@@ -542,7 +565,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   #       handling.
   describe "overlay Esc + click-outside dismiss markers (PAGE-02 #4, D-06)" do
     test "modal and drawer scrims carry a click-outside (phx-click) dismiss marker, independent of #3 focus hooks" do
-      src = File.read!(@ui_source_path)
+      src = SourceFamily.read!(@ui_source_path)
 
       for {component, scrim_class} <- [
             {"modal", "tl-modal-scrim"},
@@ -575,7 +598,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
   # Tier B computed-style/real-engine halves live in operator-phase-178-uat.spec.ts.
   describe "footgun structural guards #5/#7/#8/#9 (PAGE-02, D-07)" do
     test "#8 nav active-state carries aria-current + a non-color cue (not color alone)" do
-      src = File.read!(@style_path)
+      src = StyleSource.read!()
 
       active_block =
         case Regex.run(
@@ -592,13 +615,13 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
              "#8: active nav must carry a non-color cue (border/box-shadow), not background color alone (footgun #8)"
     end
 
-    test "#9 pager disables at the edges and hides at zero matches (UI.pager contract)" do
-      src = File.read!(@ui_source_path)
+    test "#9 pager disables at the edges and hides at zero matches (UI.Page.pager contract)" do
+      src = SourceFamily.read!(@ui_source_path)
 
       pager_def =
         case Regex.run(~r/def pager\(assigns\) do.*?~H"""(.*?)"""/s, src) do
           [_, template] -> template
-          _ -> flunk("missing UI.pager/1 definition")
+          _ -> flunk("missing UI.Page.pager/1 definition")
         end
 
       # Disabled-at-edge: both controls bind disabled to the has_newer/has_older edge.
@@ -618,7 +641,7 @@ defmodule Threadline.OperatorSurface.ComponentContractTest do
 
       disabled =
         rendered_to_string(~H"""
-        <UI.toolbar disabled={true}><span>filters</span></UI.toolbar>
+        <UI.Page.toolbar disabled={true}><span>filters</span></UI.Page.toolbar>
         """)
 
       # #7 disabled-looks-enabled: the disabled toolbar must carry BOTH the real

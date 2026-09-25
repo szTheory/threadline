@@ -56,18 +56,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         record_id = params["record_id"]
 
         as_of =
-          case params["as_of"] do
-            nil ->
-              nil
-
-            "" ->
-              nil
-
-            str ->
-              case DateTime.from_iso8601(str) do
-                {:ok, dt, _offset} -> dt
-                _ -> nil
-              end
+          with str when str not in [nil, ""] <- params["as_of"],
+               {:ok, dt, _offset} <- DateTime.from_iso8601(str) do
+            dt
+          else
+            _ -> nil
           end
 
         {:noreply,
@@ -90,7 +83,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage}
         base_path={surface_root(@base_path)}
@@ -105,7 +98,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       >
         <%= if @not_found do %>
           <div class="tl-transaction tl-short-content">
-            <UI.page_header
+            <UI.Page.page_header
               title="Transaction"
               breadcrumbs={[
                 %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
@@ -113,9 +106,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ]}
             >
               <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
-            </UI.page_header>
+            </UI.Page.page_header>
 
-            <UI.error_state>
+            <UI.Data.error_state>
               <:title>Transaction not found</:title>
               This database transaction may not exist, or it may have been pruned by the retention policy.
               Return to Timeline and check the transaction id.
@@ -125,12 +118,55 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Open timeline
                 </.link>
               </:actions>
-            </UI.error_state>
+            </UI.Data.error_state>
           </div>
         <% else %>
+          <.transaction_header bundle={@bundle} base_path={@base_path} />
+
+          <%= if Enum.empty?(@bundle.changes) do %>
+            <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
+              <:title>No row-level changes captured</:title>
+              A database transaction was found, but row-level changes were not captured.
+              Check audit readiness for this table, then return to Timeline.
+              <:actions>
+                <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+                  Open timeline
+                </.link>
+              </:actions>
+            </UI.Data.empty_state>
+          <% else %>
+            <.change_list changes={@streams.changes} base_path={@base_path} />
+          <% end %>
+        <% end %>
+        <%= if @show_history do %>
+          <.live_component
+            module={Threadline.OperatorSurface.Live.RowHistoryComponent}
+            id="row-history"
+            table={@history_table}
+            record_id={@history_record_id}
+            as_of={@history_as_of}
+            base_path={@base_path}
+            close_path={@base_path}
+            history_path={history_path(@base_path, @history_table, @history_record_id)}
+            threadline_schemas={@threadline_schemas}
+            repo={@threadline_repo}
+            scope={@threadline_scope}
+            scope_query_fn={@threadline_scope_query_fn}
+          />
+        <% end %>
+      </UI.Page.shell>
+      """
+    end
+
+    attr(:bundle, :map, required: true)
+    attr(:base_path, :string, default: nil)
+
+    defp transaction_header(assigns) do
+      ~H"""
           <div class="tl-transaction tl-short-content">
             <% transaction_title = transaction_detail_title(@bundle.transaction) %>
-            <UI.page_header
+            <UI.Page.page_header
               title="Transaction"
               breadcrumbs={[
                 %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
@@ -138,11 +174,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ]}
             >
               <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
-            </UI.page_header>
+            </UI.Page.page_header>
 
-            <UI.detail_header title={transaction_title}>
+            <UI.Page.detail_header title={transaction_title}>
               <:metadata key="Transaction id">
-                <UI.ref value={@bundle.transaction.id} kind="uuid" copy_label="Copy transaction id" />
+                <UI.Display.ref value={@bundle.transaction.id} kind="uuid" copy_label="Copy transaction id" />
               </:metadata>
               <:metadata key="Actor">
                 <%= if path = transaction_actor_path(surface_root(@base_path), @bundle.transaction) do %>
@@ -158,7 +194,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:metadata key="Changes"><%= transaction_change_count(@bundle.changes) %></:metadata>
               <:metadata :if={transaction_correlation_value(@bundle.transaction)} key="Correlation">
                 <% correlation_id = transaction_correlation_value(@bundle.transaction) %>
-                <UI.ref value={correlation_id} kind="correlation" copy_label="Copy correlation id" />
+                <UI.Display.ref value={correlation_id} kind="correlation" copy_label="Copy correlation id" />
                 <a href={timeline_correlation_path(surface_root(@base_path), correlation_id)} class="tl-link tl-link--deep" title="View correlated changes in Timeline">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_right} class="tl-button__icon" />
                   Open timeline
@@ -170,22 +206,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%= Presentation.human_time(captured_at) %>
                 </time>
               </:metadata>
-            </UI.detail_header>
+            </UI.Page.detail_header>
           </div>
+      """
+    end
 
-          <%= if Enum.empty?(@bundle.changes) do %>
-            <UI.empty_state variant="no_data" role="status" icon={:history}>
-              <:title>No row-level changes captured</:title>
-              A database transaction was found, but row-level changes were not captured.
-              Check audit readiness for this table, then return to Timeline.
-              <:actions>
-                <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
-                  Open timeline
-                </.link>
-              </:actions>
-            </UI.empty_state>
-          <% else %>
+    attr(:changes, :any, required: true)
+    attr(:base_path, :string, default: nil)
+
+    defp change_list(assigns) do
+      ~H"""
             <div
               id="changes-list"
               phx-update="stream"
@@ -193,7 +223,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               phx-viewport-bottom="next-page"
               class="tl-viewport"
             >
-              <div :for={{dom_id, change} <- @streams.changes} id={dom_id} class="tl-change" data-testid="transaction-change-row">
+              <div :for={{dom_id, change} <- @changes} id={dom_id} class="tl-change" data-testid="transaction-change-row">
                 <div class="tl-change__summary">
                   <div class="tl-change__meta">
                     <span class={["tl-change__op", Presentation.operation_modifier(change.change_diff["op"])]}><%= Presentation.operation_label(change.change_diff["op"]) %></span>
@@ -250,25 +280,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </div>
               </div>
             </div>
-          <% end %>
-        <% end %>
-        <%= if @show_history do %>
-          <.live_component
-            module={Threadline.OperatorSurface.Live.RowHistoryComponent}
-            id="row-history"
-            table={@history_table}
-            record_id={@history_record_id}
-            as_of={@history_as_of}
-            base_path={@base_path}
-            close_path={@base_path}
-            history_path={history_path(@base_path, @history_table, @history_record_id)}
-            threadline_schemas={@threadline_schemas}
-            repo={@threadline_repo}
-            scope={@threadline_scope}
-            scope_query_fn={@threadline_scope_query_fn}
-          />
-        <% end %>
-      </UI.shell>
       """
     end
 
@@ -297,9 +308,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp surface_root(_), do: nil
 
     defp pk_label(pk) when is_map(pk) do
-      pk
-      |> Enum.map(fn {key, value} -> "#{key}=#{value}" end)
-      |> Enum.join(", ")
+      Enum.map_join(pk, ", ", fn {key, value} -> "#{key}=#{value}" end)
     end
 
     defp pk_label(pk), do: inspect(pk)
@@ -351,7 +360,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       "#{count} #{if count == 1, do: "change", else: "changes"}"
     end
 
-    # The EXACT full correlation id (never truncated) — UI.ref/1 handles the
+    # The EXACT full correlation id (never truncated) — UI.Display.ref/1 handles the
     # per-kind visible truncation while binding this full value to data-tl-copy.
     defp transaction_correlation_value(%{action: %{correlation_id: correlation_id}})
          when is_binary(correlation_id) and correlation_id != "",

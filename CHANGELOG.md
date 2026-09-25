@@ -26,6 +26,93 @@ would be read as a release.
 
 _Nothing yet for the next release._
 
+## [0.10.2] - 2026-09-24
+
+`mix threadline.install` could give two or three of its generated migrations the
+same version, so `mix ecto.migrate` refused to run them. Every release through
+0.10.1 is affected. Since 0.1.0 the installer has computed each migration's
+version from the current second, so the audit and semantics migrations shared a
+version whenever both were written in the same second. The governance
+migration, written since 0.6.0, could share it too. The installer now gives each
+migration a distinct version that sorts after every migration already in the
+directory.
+
+Rerunning `mix threadline.gen.triggers` for tables that already had a trigger
+migration, as the redaction drift guides instruct, wrote a migration that could
+not be applied. Every release from 0.1.0 through 0.10.1 is affected. The
+generator reused the first migration's name and module, and its trigger
+statement could not replace a trigger that already existed. A rerun whose
+table-derived name is already taken now gets a numbered name and module, such
+as `threadline_triggers_posts_2`; a rerun for a different table set, and a first
+run, are named as before. The rerun migration replaces the trigger in place, drops a
+per-table capture function left behind when a table returns to the default
+trigger, and rolling it back keeps capture on for tables that already had a
+trigger migration.
+
+Every generated trigger migration, including a first run, now uses
+`CREATE OR REPLACE TRIGGER` (PostgreSQL 14 or later, the supported floor), so
+it no longer applies on PostgreSQL 13 or older. For each table on the default
+trigger it also drops a leftover per-table capture function; on a table without
+one, PostgreSQL prints a harmless NOTICE during `mix ecto.migrate`.
+
+### Breaking changes
+
+None.
+
+### Required action
+
+None for an app that has already migrated, including one whose migration files
+were renamed by hand, because the installer runs once.
+
+If you are on an earlier release and `mix ecto.migrate` failed with the error
+below, rename the numeric prefixes of every Threadline migration that shares the
+duplicated version, including any `_threadline_triggers_*.exs` migration written
+by `mix threadline.gen.triggers`. Keep the audit migration's prefix and give
+each of the others a distinct, later timestamp so the order is
+`_threadline_audit_schema.exs`, then `_threadline_semantics_schema.exs`, then
+`_threadline_governance_schema.exs`, then any `_threadline_triggers_*.exs`
+migration, which must run after the audit migration. Then re-run
+`mix ecto.migrate`.
+
+None for trigger migrations, unless a rerun of `mix threadline.gen.triggers`
+wrote a migration that failed with one of the trigger errors listed under Fixed.
+That migration never applied: delete its file, upgrade, and run
+`mix threadline.gen.triggers` again.
+
+### Fixed
+
+- `mix threadline.install` no longer writes duplicate migration versions, which
+  made `mix ecto.migrate` fail with
+  `(Ecto.MigrationError) migrations can't be executed, migration version <N> is duplicated`.
+  The versions are computed once, before any file is written, and sort after
+  the newest existing migration, including a future-dated one.
+- `mix threadline.gen.triggers` had the same kind of bug: run in the same second
+  as the installer, its migration could share a version. It now uses the same
+  version logic.
+- The dedicated-schema advice now prints only after a fresh install that wrote
+  all three migrations. A re-run that finds some Threadline migrations already
+  present is told to keep `:storage_schema` unset, because switching then would
+  split Threadline's tables across two schemas. The fresh-install advice no
+  longer ends with a paragraph that contradicted its own steps.
+- Rerunning `mix threadline.gen.triggers` for a table that already had a
+  trigger migration now writes a migration that applies. Before, it failed with
+  `(Ecto.MigrationError) migrations can't be executed, migration name threadline_triggers_<tables> is duplicated`
+  when the rerun listed the same tables and both trigger migrations were
+  pending together (a fresh or CI database, `mix ecto.reset`, or a rollback
+  across both). Otherwise it failed with
+  `trigger "threadline_audit_<table>" for relation "<table>" already exists`:
+  on a database that had already applied the first trigger migration, or when
+  the rerun listed a different set of tables, such as `posts` after
+  `posts,users`.
+- Rolling back a rerun trigger migration no longer leaves the table uncaptured.
+  The generated migration explains its rollback: capture stays on with the
+  policy the rerun installed, and if the rerun removed redaction rules, a
+  rolled-back rerun continues unredacted until you regenerate the trigger
+  migration.
+- `guides/audit-indexing.md`, `guides/production-checklist.md`,
+  `guides/how-threadline-works.md` and `guides/domain-reference.md` now state
+  the real `storage_schema` default, `public`.
+
 ## [0.10.1] - 2026-09-22
 
 A patch release that corrects the storage-schema advice `mix threadline.install`

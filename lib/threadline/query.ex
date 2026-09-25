@@ -32,7 +32,7 @@ defmodule Threadline.Query do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Capture.AuditTransaction
-  alias Threadline.OperatorSurface.Scope, as: OperatorScope
+  alias Threadline.Query.{Cursors, Scope}
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -62,7 +62,7 @@ defmodule Threadline.Query do
   The helper fixes `table_name` and primary-key containment internally so callers
   do not need to construct low-level row predicates.
   """
-  @spec row_history(module(), term(), keyword(), keyword()) :: [%AuditChange{}]
+  @spec row_history(module(), term(), keyword(), keyword()) :: [AuditChange.t()]
   def row_history(schema_module, id, filters \\ [], opts \\ [])
       when is_list(filters) and is_list(opts) do
     validate_row_history_filters!(filters)
@@ -84,9 +84,9 @@ defmodule Threadline.Query do
     repo = timeline_repo!(filters, opts)
 
     page_size =
-      validate_timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
+      Cursors.timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
 
-    cursor = validate_timeline_cursor!(Keyword.get(opts, :cursor))
+    cursor = Cursors.validate_timeline_cursor!(Keyword.get(opts, :cursor))
 
     entries =
       schema_module
@@ -98,12 +98,12 @@ defmodule Threadline.Query do
 
     %TimelinePage{
       entries: entries,
-      next_cursor: timeline_page_next_cursor(entries, page_size)
+      next_cursor: Cursors.timeline_page_next_cursor(entries, page_size)
     }
   end
 
   @doc false
-  @spec preload_investigation_context([%AuditChange{}], module(), keyword()) :: [%AuditChange{}]
+  @spec preload_investigation_context([AuditChange.t()], module(), keyword()) :: [AuditChange.t()]
   def preload_investigation_context(changes, repo, opts \\ [])
       when is_list(changes) and is_atom(repo) and is_list(opts) do
     repo.preload(changes, [transaction: :action], storage_opts([], opts))
@@ -114,7 +114,7 @@ defmodule Threadline.Query do
 
   Raises `ArgumentError` when `transaction_id` is not a valid UUID.
   """
-  @spec audit_transaction(term(), keyword()) :: %AuditTransaction{} | nil
+  @spec audit_transaction(term(), keyword()) :: AuditTransaction.t() | nil
   def audit_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)
@@ -311,9 +311,9 @@ defmodule Threadline.Query do
     repo = timeline_repo!(filters, opts)
 
     page_size =
-      validate_timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
+      Cursors.timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
 
-    cursor = validate_timeline_cursor!(Keyword.get(opts, :cursor))
+    cursor = Cursors.validate_timeline_cursor!(Keyword.get(opts, :cursor))
 
     q =
       filters
@@ -332,7 +332,7 @@ defmodule Threadline.Query do
 
     %TimelinePage{
       entries: entries,
-      next_cursor: timeline_page_next_cursor(entries, page_size)
+      next_cursor: Cursors.timeline_page_next_cursor(entries, page_size)
     }
   end
 
@@ -480,141 +480,36 @@ defmodule Threadline.Query do
     repo = Keyword.fetch!(opts, :repo)
     actor_map = ActorRef.to_map(actor_ref)
     limit = Keyword.get(opts, :limit, 50)
-    after_cursor = validate_actor_history_cursor!(Keyword.get(opts, :after))
-    before_cursor = validate_actor_history_cursor!(Keyword.get(opts, :before))
+    after_cursor = Cursors.validate_actor_history_cursor!(Keyword.get(opts, :after))
+    before_cursor = Cursors.validate_actor_history_cursor!(Keyword.get(opts, :before))
 
     base_query =
       AuditTransaction
       |> where([at], fragment("? @> ?::jsonb", at.actor_ref, ^actor_map))
-      |> actor_history_filter_from(Keyword.get(opts, :from))
-      |> actor_history_filter_to(Keyword.get(opts, :to))
+      |> Cursors.actor_history_filter_from(Keyword.get(opts, :from))
+      |> Cursors.actor_history_filter_to(Keyword.get(opts, :to))
       |> maybe_apply_scope(actor_history_scope_opts(actor_ref, opts))
 
-    {query, reverse?} =
-      cond do
-        before_cursor != nil ->
-          {base_query
-           |> actor_history_before_cursor(before_cursor)
-           |> order_by([at], asc: at.occurred_at, asc: at.id), true}
-
-        after_cursor != nil ->
-          {base_query
-           |> actor_history_after_cursor(after_cursor)
-           |> order_by([at], desc: at.occurred_at, desc: at.id), false}
-
-        true ->
-          {base_query
-           |> order_by([at], desc: at.occurred_at, desc: at.id), false}
-      end
+    {query, reverse?} = Cursors.actor_history_window(base_query, before_cursor, after_cursor)
 
     entries_raw =
       query
       |> limit(^(limit + 1))
       |> repo.all(storage_opts([], opts))
 
-    {entries, has_more?} =
-      if length(entries_raw) > limit do
-        if reverse? do
-          {entries_raw |> Enum.reverse() |> Enum.drop(1), true}
-        else
-          {entries_raw |> Enum.take(limit), true}
-        end
-      else
-        if reverse? do
-          {Enum.reverse(entries_raw), false}
-        else
-          {entries_raw, false}
-        end
-      end
+    {entries, has_more?} = Cursors.actor_history_trim(entries_raw, limit, reverse?)
 
     has_next? = if reverse?, do: true, else: has_more?
     has_prev? = if reverse?, do: has_more?, else: after_cursor != nil
 
-    next_cursor =
-      if has_next? and entries != [] do
-        %{occurred_at: List.last(entries).occurred_at, id: List.last(entries).id}
-      end
-
-    prev_cursor =
-      if has_prev? and entries != [] do
-        %{occurred_at: List.first(entries).occurred_at, id: List.first(entries).id}
-      end
+    next_cursor = Cursors.actor_history_cursor(has_next?, List.last(entries))
+    prev_cursor = Cursors.actor_history_cursor(has_prev?, List.first(entries))
 
     %Threadline.Query.ActorHistoryPage{
       entries: entries,
       next_cursor: next_cursor,
       prev_cursor: prev_cursor
     }
-  end
-
-  defp actor_history_filter_from(query, nil), do: query
-
-  defp actor_history_filter_from(query, %DateTime{} = from) do
-    where(query, [at], at.occurred_at >= ^from)
-  end
-
-  defp actor_history_filter_to(query, nil), do: query
-
-  defp actor_history_filter_to(query, %DateTime{} = to) do
-    where(query, [at], at.occurred_at <= ^to)
-  end
-
-  defp actor_history_after_cursor(query, %{occurred_at: %DateTime{} = occurred_at, id: id}) do
-    where(
-      query,
-      [at],
-      fragment(
-        "(?, ?) < (?, ?)",
-        at.occurred_at,
-        at.id,
-        ^occurred_at,
-        type(^id, :binary_id)
-      )
-    )
-  end
-
-  defp actor_history_before_cursor(query, %{occurred_at: %DateTime{} = occurred_at, id: id}) do
-    where(
-      query,
-      [at],
-      fragment(
-        "(?, ?) > (?, ?)",
-        at.occurred_at,
-        at.id,
-        ^occurred_at,
-        type(^id, :binary_id)
-      )
-    )
-  end
-
-  defp validate_actor_history_cursor!(nil), do: nil
-
-  defp validate_actor_history_cursor!(%{occurred_at: %DateTime{} = occurred_at, id: id})
-       when is_binary(id) do
-    case Ecto.UUID.cast(id) do
-      {:ok, canonical} -> %{occurred_at: occurred_at, id: canonical}
-      :error -> raise ArgumentError, "cursor.id must be a UUID binary, got: #{inspect(id)}"
-    end
-  end
-
-  defp validate_actor_history_cursor!(%{} = cursor) do
-    has_occurred_at? = Map.has_key?(cursor, :occurred_at)
-    has_id? = Map.has_key?(cursor, :id)
-
-    cond do
-      has_occurred_at? or has_id? ->
-        raise ArgumentError,
-              "cursor must include both :occurred_at and :id or be nil, got: #{inspect(cursor)}"
-
-      true ->
-        raise ArgumentError,
-              "cursor must be nil or %{occurred_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
-    end
-  end
-
-  defp validate_actor_history_cursor!(cursor) do
-    raise ArgumentError,
-          "cursor must be nil or %{occurred_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
   end
 
   @doc """
@@ -646,7 +541,7 @@ defmodule Threadline.Query do
   Raises `ArgumentError` with message containing `invalid audit transaction id`
   when `transaction_id` fails UUID cast (before hitting Postgrex).
   """
-  @spec audit_changes_for_transaction(term(), keyword()) :: [%AuditChange{}]
+  @spec audit_changes_for_transaction(term(), keyword()) :: [AuditChange.t()]
   def audit_changes_for_transaction(transaction_id, opts) do
     repo = Keyword.fetch!(opts, :repo)
     uuid = validate_audit_transaction_id!(transaction_id)
@@ -728,7 +623,7 @@ defmodule Threadline.Query do
 
   @doc false
   def maybe_apply_scope(query, opts) do
-    OperatorScope.apply(query, opts)
+    Scope.apply(query, opts)
   end
 
   @doc false
@@ -793,53 +688,6 @@ defmodule Threadline.Query do
       )
     )
   end
-
-  defp validate_timeline_page_size!(page_size) when is_integer(page_size) and page_size > 0,
-    do: page_size
-
-  defp validate_timeline_page_size!(page_size) do
-    raise ArgumentError,
-          ":page_size must be a positive integer, got: #{inspect(page_size)}"
-  end
-
-  defp validate_timeline_cursor!(nil), do: nil
-
-  defp validate_timeline_cursor!(%{captured_at: %DateTime{} = captured_at, id: id})
-       when is_binary(id) do
-    case Ecto.UUID.cast(id) do
-      {:ok, canonical} -> %{captured_at: captured_at, id: canonical}
-      :error -> raise ArgumentError, ":cursor.id must be a UUID binary, got: #{inspect(id)}"
-    end
-  end
-
-  defp validate_timeline_cursor!(%{} = cursor) do
-    has_captured_at? = Map.has_key?(cursor, :captured_at)
-    has_id? = Map.has_key?(cursor, :id)
-
-    cond do
-      has_captured_at? or has_id? ->
-        raise ArgumentError,
-              ":cursor must include both :captured_at and :id or be nil, got: #{inspect(cursor)}"
-
-      true ->
-        raise ArgumentError,
-              ":cursor must be nil or %{captured_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
-    end
-  end
-
-  defp validate_timeline_cursor!(cursor) do
-    raise ArgumentError,
-          ":cursor must be nil or %{captured_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
-  end
-
-  defp timeline_page_next_cursor(entries, page_size) when length(entries) < page_size, do: nil
-
-  defp timeline_page_next_cursor(entries, _page_size) do
-    last = List.last(entries)
-    %{captured_at: last.captured_at, id: last.id}
-  end
-
-  # --- Private filter pipeline (expects `at` binding from timeline_query) ---
 
   defp filter_by_table(query, nil), do: query
 

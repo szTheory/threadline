@@ -8,7 +8,7 @@ defmodule Threadline.Export.Orchestrator do
 
   alias Threadline.Export
   alias Threadline.Governance.ExportJob
-  alias Threadline.OperatorSurface.Exports.FilterParams
+  alias Threadline.Query.FilterParams
   alias Threadline.StorageSchema
 
   @default_retention_ttl_hours 24 * 7
@@ -33,90 +33,108 @@ defmodule Threadline.Export.Orchestrator do
 
     completion_fn = Keyword.get(opts, :completion_fn, &mark_completed/4)
 
+    ctx = %{
+      repo: repo,
+      storage_schema: storage_schema,
+      storage_opts: storage_opts,
+      storage: storage,
+      transaction_fn: transaction_fn,
+      completion_fn: completion_fn
+    }
+
     case fetch_and_mark_running(repo, job_id, storage_opts) do
-      {:ok, job} ->
-        temp_path =
-          Path.join(
-            System.tmp_dir!(),
-            "export_#{job_id}_#{System.unique_integer([:positive])}.csv"
-          )
+      {:ok, job} -> run_job(job_id, job, ctx)
+      {:error, reason} -> {:error, reason}
+    end
+  end
 
-        try do
-          transaction_result =
-            transaction_fn.(
-              fn ->
-                file = File.open!(temp_path, [:write, :utf8])
+  # Load is done: stream the rows to a temp file inside the export
+  # transaction, then persist. The rescue covers both steps, as before.
+  defp run_job(job_id, job, ctx) do
+    temp_path =
+      Path.join(
+        System.tmp_dir!(),
+        "export_#{job_id}_#{System.unique_integer([:positive])}.csv"
+      )
 
-                try do
-                  IO.binwrite(file, Export.csv_header())
+    try do
+      transaction_result =
+        ctx.transaction_fn.(
+          fn -> write_temp_csv(temp_path, job, ctx) end,
+          timeout: :infinity
+        )
 
-                  filters = prepare_filters(job.query_params, repo)
+      handle_transaction_result(transaction_result, job, temp_path, ctx)
+    rescue
+      e ->
+        remove_temp_file(temp_path)
+        mark_failed(ctx.repo, job, Exception.message(e), ctx.storage_opts)
+        {:error, e}
+    end
+  end
 
-                  Export.stream_export_rows(filters,
-                    repo: repo,
-                    storage_schema: storage_schema
-                  )
-                  |> Stream.chunk_every(1000)
-                  |> Enum.each(fn chunk ->
-                    iodata = Export.format_changes_iodata(chunk, :csv)
-                    IO.binwrite(file, iodata)
-                  end)
-                after
-                  close_temp_file(file, temp_path)
-                end
+  # Runs inside the export transaction fn.
+  defp write_temp_csv(temp_path, job, ctx) do
+    file = File.open!(temp_path, [:write, :utf8])
 
-                :written
-              end,
-              timeout: :infinity
-            )
+    try do
+      IO.binwrite(file, Export.csv_header())
 
-          case transaction_result do
-            {:ok, :written} ->
-              case File.read(temp_path) do
-                {:ok, csv_content} ->
-                  persist_export(
-                    storage.put(csv_content),
-                    repo,
-                    job,
-                    temp_path,
-                    storage,
-                    storage_opts,
-                    completion_fn
-                  )
+      filters = prepare_filters(job.query_params, ctx.repo)
 
-                {:error, reason} ->
-                  remove_temp_file(temp_path)
-                  mark_failed(repo, job, inspect({:temp_file_read_error, reason}), storage_opts)
-                  {:error, {:temp_file_read_error, reason}}
-              end
+      Export.stream_export_rows(filters,
+        repo: ctx.repo,
+        storage_schema: ctx.storage_schema
+      )
+      |> Stream.chunk_every(1000)
+      |> Enum.each(fn chunk ->
+        iodata = Export.format_changes_iodata(chunk, :csv)
+        IO.binwrite(file, iodata)
+      end)
+    after
+      close_temp_file(file, temp_path)
+    end
 
-            {:error, reason} ->
-              remove_temp_file(temp_path)
-              mark_failed(repo, job, inspect(reason), storage_opts)
-              {:error, reason}
+    :written
+  end
 
-            other ->
-              remove_temp_file(temp_path)
-
-              mark_failed(
-                repo,
-                job,
-                inspect({:unexpected_transaction_result, other}),
-                storage_opts
-              )
-
-              {:error, {:unexpected_transaction_result, other}}
-          end
-        rescue
-          e ->
-            remove_temp_file(temp_path)
-            mark_failed(repo, job, Exception.message(e), storage_opts)
-            {:error, e}
-        end
+  defp handle_transaction_result({:ok, :written}, job, temp_path, ctx) do
+    case File.read(temp_path) do
+      {:ok, csv_content} ->
+        persist_export(
+          ctx.storage.put(csv_content),
+          ctx.repo,
+          job,
+          temp_path,
+          ctx.storage,
+          ctx.storage_opts,
+          ctx.completion_fn
+        )
 
       {:error, reason} ->
-        {:error, reason}
+        remove_temp_file(temp_path)
+        mark_failed(ctx.repo, job, inspect({:temp_file_read_error, reason}), ctx.storage_opts)
+        {:error, {:temp_file_read_error, reason}}
     end
+  end
+
+  defp handle_transaction_result({:error, reason}, job, temp_path, ctx) do
+    remove_temp_file(temp_path)
+    mark_failed(ctx.repo, job, inspect(reason), ctx.storage_opts)
+    {:error, reason}
+  end
+
+  defp handle_transaction_result(other, job, temp_path, ctx) do
+    remove_temp_file(temp_path)
+
+    mark_failed(
+      ctx.repo,
+      job,
+      inspect({:unexpected_transaction_result, other}),
+      ctx.storage_opts
+    )
+
+    {:error, {:unexpected_transaction_result, other}}
   end
 
   defp persist_export(

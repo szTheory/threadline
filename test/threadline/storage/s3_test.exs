@@ -1,6 +1,8 @@
 defmodule Threadline.Storage.S3Test do
   use ExUnit.Case, async: true
 
+  alias Threadline.Storage.S3
+
   defmodule MockExAwsS3 do
     def put_object("test-bucket", file_id, "csv,content") do
       send(self(), {:put_object, file_id, "csv,content"})
@@ -45,19 +47,19 @@ defmodule Threadline.Storage.S3Test do
 
   describe "init/1" do
     test "returns :ok when ExAws.S3 is loaded" do
-      assert :ok = Threadline.Storage.S3.init(bucket: "test-bucket")
+      assert :ok = S3.init(bucket: "test-bucket")
     end
 
     test "returns an actionable error when bucket config is missing" do
       assert {:error, "S3 adapter requires a non-empty :bucket configuration"} =
-               Threadline.Storage.S3.init([])
+               S3.init([])
     end
   end
 
   describe "put/2" do
     test "pushes content to S3" do
       assert {:ok, file_id} =
-               Threadline.Storage.S3.put("csv,content",
+               S3.put("csv,content",
                  bucket: "test-bucket",
                  ex_aws_mod: MockExAws,
                  ex_aws_s3_mod: MockExAwsS3,
@@ -71,7 +73,7 @@ defmodule Threadline.Storage.S3Test do
 
     test "forwards explicit ExAws request overrides" do
       assert {:ok, "test.csv"} =
-               Threadline.Storage.S3.put("csv,content",
+               S3.put("csv,content",
                  bucket: "test-bucket",
                  ex_aws_mod: MockExAws,
                  ex_aws_s3_mod: MockExAwsS3,
@@ -90,7 +92,7 @@ defmodule Threadline.Storage.S3Test do
       Application.put_env(:threadline, Threadline.Storage.S3, bucket: "test-bucket")
 
       assert {:ok, "csv,content"} =
-               Threadline.Storage.S3.get("test.csv",
+               S3.get("test.csv",
                  ex_aws_mod: MockExAws,
                  ex_aws_s3_mod: MockExAwsS3
                )
@@ -101,14 +103,14 @@ defmodule Threadline.Storage.S3Test do
 
   describe "path/1" do
     test "returns :not_local error" do
-      assert Threadline.Storage.S3.path("test.csv") == {:error, :not_local}
+      assert S3.path("test.csv") == {:error, :not_local}
     end
   end
 
   describe "download_url/2" do
     test "returns a presigned URL" do
       assert {:ok, url} =
-               Threadline.Storage.S3.download_url("test.csv",
+               S3.download_url("test.csv",
                  bucket: "test-bucket",
                  ex_aws_s3_mod: MockExAwsS3
                )
@@ -120,7 +122,7 @@ defmodule Threadline.Storage.S3Test do
 
     test "returns a stable error when presigning fails" do
       assert {:error, "S3 download URL generation failed: :signature_failure"} =
-               Threadline.Storage.S3.download_url("test.csv",
+               S3.download_url("test.csv",
                  bucket: "broken-bucket",
                  ex_aws_s3_mod: MockExAwsS3
                )
@@ -132,7 +134,7 @@ defmodule Threadline.Storage.S3Test do
       Application.put_env(:threadline, Threadline.Storage.S3, bucket: "test-bucket")
 
       assert :ok =
-               Threadline.Storage.S3.delete("test.csv",
+               S3.delete("test.csv",
                  ex_aws_mod: MockExAws,
                  ex_aws_s3_mod: MockExAwsS3
                )

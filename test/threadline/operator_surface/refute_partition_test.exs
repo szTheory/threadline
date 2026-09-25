@@ -46,7 +46,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert is_binary(m["version"]) and m["version"] != "",
              "#{@refute_manifest} must have a non-empty version string"
 
-      assert is_list(m["items"]) and length(m["items"]) > 0,
+      assert is_list(m["items"]) and m["items"] != [],
              "#{@refute_manifest} items must be a non-empty array"
     end
 
@@ -190,11 +190,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # ── partition integrity — refute disjoint from golden ────────────────────
 
     test "no refute twin_id or cell_id appears in golden-set.json (no teaching-to-the-test)" do
-      unless File.exists?(@golden_set) do
-        # golden-set.json may not exist yet — it is created in a later plan.
-        # When it does not exist there is nothing to be disjoint from.
-        :ok
-      else
+      if File.exists?(@golden_set) do
         golden_text = File.read!(@golden_set)
         golden = Jason.decode!(golden_text)
 
@@ -220,6 +216,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                      "refute must be disjoint from golden"
           end
         end
+      else
+        # golden-set.json may not exist yet — it is created in a later plan.
+        # When it does not exist there is nothing to be disjoint from.
+        :ok
       end
     end
 

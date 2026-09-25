@@ -4,6 +4,9 @@ defmodule Threadline.Capture.TriggerSQL do
   alias Threadline.Capture.RedactionPolicy
   alias Threadline.StorageSchema
 
+  # PostgreSQL's NAMEDATALEN - 1.
+  @max_identifier_bytes 63
+
   @doc """
   Returns SQL to create or replace the `threadline_capture_changes()` trigger function.
 
@@ -19,7 +22,7 @@ defmodule Threadline.Capture.TriggerSQL do
 
   When both lists are empty, SQL is identical to the historical global function.
   """
-  def install_function(), do: install_function([])
+  def install_function, do: install_function([])
 
   def install_function(opts) when is_list(opts) do
     exclude = Keyword.get(opts, :exclude, [])
@@ -95,10 +98,30 @@ defmodule Threadline.Capture.TriggerSQL do
   end
 
   @doc """
+  Returns whether the table's per-table capture function name fits in PostgreSQL's
+  63-byte identifier limit.
+
+  A longer name is truncated by PostgreSQL, so it can match another table's
+  per-table function. Callers must not emit `drop_orphan_function_for_table/2` for
+  such a table.
+  """
+  def per_table_function_fits?(table_name) do
+    byte_size(per_table_function_base(table_name)) <= @max_identifier_bytes
+  end
+
+  @doc "Returns SQL to drop a per-table capture function only if nothing depends on it, so it fails instead of cascading into a trigger that still uses it."
+  def drop_orphan_function_for_table(table_name, opts \\ []) do
+    "DROP FUNCTION IF EXISTS " <> per_table_function_name(table_name, opts) <> "()"
+  end
+
+  @doc """
   Returns SQL to install a trigger on the given table.
 
   * `:default` — calls `threadline_capture_changes()` (default).
   * `:per_table` — calls `threadline_capture_changes_<table>()` from `install_function_for_table/2`.
+
+  The statement replaces an existing Threadline trigger of the same name in place, so it
+  can be applied again (requires PostgreSQL 14 or later).
   """
   def create_trigger(table_name, mode \\ :default, opts \\ [])
 
@@ -119,7 +142,7 @@ defmodule Threadline.Capture.TriggerSQL do
     host_table = StorageSchema.qualified_host_table(table_name)
 
     """
-    CREATE TRIGGER #{StorageSchema.quote_ident(trigger_name)}
+    CREATE OR REPLACE TRIGGER #{StorageSchema.quote_ident(trigger_name)}
     AFTER INSERT OR UPDATE OR DELETE ON #{host_table}
     FOR EACH ROW EXECUTE FUNCTION #{function_invocation}
     """
@@ -133,8 +156,11 @@ defmodule Threadline.Capture.TriggerSQL do
   end
 
   defp per_table_function_name(table_name, opts) do
-    function_name = "threadline_capture_changes_#{StorageSchema.host_table_suffix(table_name)}"
-    StorageSchema.function(function_name, opts)
+    StorageSchema.function(per_table_function_base(table_name), opts)
+  end
+
+  defp per_table_function_base(table_name) do
+    "threadline_capture_changes_#{StorageSchema.host_table_suffix(table_name)}"
   end
 
   # Exact legacy SQL (legacy) when no redaction rules apply.
@@ -483,13 +509,11 @@ defmodule Threadline.Capture.TriggerSQL do
         ""
       else
         pairs =
-          mask
-          |> Enum.map(fn col ->
+          Enum.map_join(mask, ", ", fn col ->
             k = sql_string_literal(col)
             pe = mask_placeholder_sql_expr(placeholder)
             "#{k}, #{pe}"
           end)
-          |> Enum.join(", ")
 
         "        #{var} := #{var} || jsonb_build_object(#{pairs});\n"
       end
@@ -505,10 +529,7 @@ defmodule Threadline.Capture.TriggerSQL do
   defp mask_array_sql_fragment([]), do: "ARRAY[]::text[]"
 
   defp mask_array_sql_fragment(cols) do
-    inner =
-      cols
-      |> Enum.map(&sql_string_literal/1)
-      |> Enum.join(", ")
+    inner = Enum.map_join(cols, ", ", &sql_string_literal/1)
 
     "ARRAY[#{inner}]::text[]"
   end
@@ -522,10 +543,7 @@ defmodule Threadline.Capture.TriggerSQL do
   defp except_array_sql_fragment([]), do: "ARRAY[]::text[]"
 
   defp except_array_sql_fragment(cols) do
-    inner =
-      cols
-      |> Enum.map(&sql_string_literal/1)
-      |> Enum.join(", ")
+    inner = Enum.map_join(cols, ", ", &sql_string_literal/1)
 
     "ARRAY[#{inner}]::text[]"
   end

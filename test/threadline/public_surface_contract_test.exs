@@ -8,9 +8,25 @@ defmodule Threadline.PublicSurfaceContractTest do
     Threadline.CriticTrust.RankMetrics,
     Threadline.CriticTrust.LedgerSplice,
     Threadline.CriticTrust.KrippendorffAlpha,
+    Threadline.CriticTrust.RepositoryBoundary,
     Mix.Tasks.Critic.Measure,
     Mix.Tasks.Critic.Synth
   ]
+  # Released CHANGELOG entries are history and are never rewritten, so a module
+  # renamed after release stays named there under its old name. Each rename is
+  # recorded here explicitly (old => new). The old name is accepted as a
+  # reference in CHANGELOG.md only; the pairing is itself asserted below, so an
+  # entry cannot outlive the rename it records or stand in for a live module.
+  @changelog_subject "CHANGELOG.md"
+  @renamed_modules %{
+    Threadline.OperatorSurface.Exports.FilterParams => Threadline.Query.FilterParams,
+    Threadline.OperatorSurface.Scope => Threadline.Query.Scope
+  }
+  # The same history rule for Mix aliases that were deleted after release: a retired
+  # alias is accepted as a reference in CHANGELOG.md only, and the register is itself
+  # asserted below (gone from mix.exs, still named in the changelog).
+  # Assembled so this file's own text never contains the retired alias name as a literal.
+  @retired_aliases ["verify." <> "doc_contract"]
   @module_owner_tags [
     :module_visibility_seed,
     :module_visibility_capture,
@@ -271,11 +287,41 @@ defmodule Threadline.PublicSurfaceContractTest do
       inventory = reference_inventory()
 
       for {subject, content} <- subjects do
-        unknown = validate_references(content, inventory)
+        unknown = validate_references(content, inventory_for(subject, inventory))
 
         assert unknown == %{aliases: [], keys: [], modules: [], tasks: []},
                "#{subject} contains unknown public references: #{inspect(unknown)}"
       end
+    end
+  end
+
+  test "every renamed module is gone, its successor is compiled, and the changelog still names it" do
+    assert @renamed_modules != %{}, "the rename register is empty; drop the CHANGELOG exemption"
+
+    compiled = application_modules()
+    changelog = File.read!(@changelog_subject)
+
+    for {old, new} <- @renamed_modules do
+      refute MapSet.member?(compiled, old),
+             "#{inspect(old)} is compiled again; remove it from @renamed_modules"
+
+      assert MapSet.member?(compiled, new),
+             "#{inspect(new)} (successor of #{inspect(old)}) is absent from the compiled app"
+
+      assert String.contains?(changelog, inspect(old)),
+             "#{@changelog_subject} no longer names #{inspect(old)}; remove it from @renamed_modules"
+    end
+  end
+
+  test "every retired alias is gone from mix.exs and the changelog still names it" do
+    changelog = File.read!(@changelog_subject)
+
+    for name <- @retired_aliases do
+      refute MapSet.member?(discovered_aliases(), name),
+             "#{name} is a Mix alias again; remove it from @retired_aliases"
+
+      assert String.contains?(changelog, name),
+             "#{@changelog_subject} no longer names #{name}; remove it from @retired_aliases"
     end
   end
 
@@ -302,7 +348,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     assert Enum.any?(all_subjects, fn {name, _} -> name == "README.md" end)
 
     for {subject, content} <- all_subjects do
-      unknown = validate_references(content, reference_inventory())
+      unknown = validate_references(content, inventory_for(subject, reference_inventory()))
 
       assert unknown == %{aliases: [], keys: [], modules: [], tasks: []},
              "#{subject} contains unknown public references: #{inspect(unknown)}"
@@ -492,6 +538,16 @@ defmodule Threadline.PublicSurfaceContractTest do
     }
   end
 
+  defp inventory_for(@changelog_subject, inventory) do
+    %{
+      inventory
+      | modules: inventory.modules ++ Map.keys(@renamed_modules),
+        aliases: inventory.aliases ++ @retired_aliases
+    }
+  end
+
+  defp inventory_for(_subject, inventory), do: inventory
+
   defp reference_inventory do
     application_modules = MapSet.to_list(application_modules())
 
@@ -509,8 +565,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     module
     |> Module.split()
     |> Enum.drop(2)
-    |> Enum.map(&Macro.underscore/1)
-    |> Enum.join(".")
+    |> Enum.map_join(".", &Macro.underscore/1)
   end
 
   defp module_namespaces(modules) do
@@ -587,7 +642,12 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp modules_for_visibility_tag(:module_visibility_seed),
     do: [
       Threadline.OperatorSurface.Style,
-      Threadline.OperatorSurface.UI,
+      Threadline.OperatorSurface.UI.Form,
+      Threadline.OperatorSurface.UI.Actions,
+      Threadline.OperatorSurface.UI.Display,
+      Threadline.OperatorSurface.UI.Data,
+      Threadline.OperatorSurface.UI.Overlay,
+      Threadline.OperatorSurface.UI.Page,
       Threadline.Capture.Migration,
       Threadline.Evidence.Subject,
       Mix.Tasks.Threadline.Gen.Triggers
@@ -613,6 +673,9 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp modules_for_visibility_tag(:module_visibility_domain_tail),
     do: [
       Threadline.Policy.RedactionPresenter,
+      Threadline.Query.Cursors,
+      Threadline.Query.FilterParams,
+      Threadline.Query.Scope,
       Threadline.Retention.Pruner,
       Threadline.Semantics.Migration,
       Threadline.OperatorSurface.Controllers.ThemeController,
@@ -636,9 +699,7 @@ defmodule Threadline.PublicSurfaceContractTest do
   defp modules_for_visibility_tag(:module_visibility_operator_helpers),
     do: [
       Threadline.OperatorSurface.Exports.Filename,
-      Threadline.OperatorSurface.Exports.FilterParams,
       Threadline.OperatorSurface.Presentation,
-      Threadline.OperatorSurface.Scope,
       Threadline.OperatorSurface.Script,
       Threadline.OperatorSurface.Router
     ]

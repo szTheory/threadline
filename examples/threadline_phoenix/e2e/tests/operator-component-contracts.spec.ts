@@ -249,7 +249,7 @@ test.describe("Phase 177 UAT #3 — overlay motion (default motion)", () => {
     await page.goto(`/audit/__stress?story=${motionStory}`);
     await page.getByRole("button", { name: "Show Modal" }).click();
 
-    // Threshold: the reduced-motion collapse floor is exactly "0.001s" (style.ex's
+    // Threshold: the reduced-motion collapse floor is exactly "0.001s" (`09_responsive.css`
     // media-query override). "Real" (non-collapsed) motion means strictly ABOVE that
     // floor — anything that is not "0.001s" and not "0s" passes; "0.001s" itself or
     // "0s" fails (that would mean default motion collapsed with no motion preference set).
@@ -345,7 +345,7 @@ test.describe("Phase 177 UAT #4 — reconnect/offline CSS contract", () => {
     await expect(page.locator(".threadline-ui").first()).toBeVisible();
 
     const result = await page.evaluate(() => {
-      // Product contract (style.ex): the CSS selector is scoped
+      // Product contract (`08_overlays_motion.css`): the CSS selector is scoped
       // `[data-phx-main].phx-error .threadline-ui .tl-reconnect-banner` — LiveView's
       // client JS toggles `.phx-error` on the `[data-phx-main]` root, an ANCESTOR of
       // `.threadline-ui`, never on `.threadline-ui` itself. The simulation must match

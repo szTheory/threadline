@@ -75,22 +75,22 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
     ~H"""
     <.threadline_preview theme="system">
       <.preview_section title="Data Display contracts" description="Refs, metadata, tables, panels, code, headers, and toolbar coordination under representative ugly data.">
-        <UI.stack gap="section">
-          <UI.detail_header title="Audit Transaction #4521">
+        <UI.Display.stack gap="section">
+          <UI.Page.detail_header title="Audit Transaction #4521">
             <:metadata key="Audit Transaction">
-              <UI.ref value={@long_id} kind="correlation" copy_label="Copy Audit Transaction reference" />
+              <UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy Audit Transaction reference" />
             </:metadata>
             <:metadata key="Previous value"><%= inspect(@null_fields.previous) %></:metadata>
             <:metadata key="Current value"><%= @null_fields.current %></:metadata>
             <:metadata key="Timezone boundary"><%= @timezone.utc %> / <%= @timezone.local %></:metadata>
             <:actions>
-              <UI.button type="button" variant="primary">Download current view</UI.button>
-              <UI.button type="button" disabled>Refresh disabled</UI.button>
+              <UI.Actions.button type="button" variant="primary">Download current view</UI.Actions.button>
+              <UI.Actions.button type="button" disabled>Refresh disabled</UI.Actions.button>
             </:actions>
-          </UI.detail_header>
+          </UI.Page.detail_header>
 
-          <UI.toolbar disabled={@disabled.disabled}>
-            <UI.field
+          <UI.Page.toolbar disabled={@disabled.disabled}>
+            <UI.Form.field
               id="storybook-data-filter"
               name="storybook_data_filter"
               label="Filter"
@@ -98,16 +98,16 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
               help_text={@disabled.reason}
               disabled={@disabled.disabled}
             />
-            <UI.button type="button" disabled={@disabled.disabled}>Refresh</UI.button>
-          </UI.toolbar>
+            <UI.Actions.button type="button" disabled={@disabled.disabled}>Refresh</UI.Actions.button>
+          </UI.Page.toolbar>
 
-          <UI.data_table
+          <UI.Data.data_table
             rows={@rows}
             row_id={fn row -> "storybook-#{row.key}" end}
             row_status={fn row -> row.severity end}
           >
             <:col :let={row} label="Audit Change">
-              <UI.ref value={row.id} kind="correlation" copy_label={"Copy #{row.action} reference"} />
+              <UI.Display.ref value={row.id} kind="correlation" copy_label={"Copy #{row.action} reference"} />
             </:col>
             <:col :let={row} label="Subject"><%= row.subject %></:col>
             <:col :let={row} label="Action"><%= row.action %></:col>
@@ -116,51 +116,51 @@ defmodule ThreadlinePhoenixWeb.Storybook.DataDisplay.DataTableStory do
             <:col :let={row} label="After"><%= row.current %></:col>
             <:col :let={row} label="Captured"><%= row.captured_at %></:col>
             <:action :let={row}>
-              <UI.link href={"/audit/transactions/#{row.key}"}>Open</UI.link>
+              <UI.Actions.link href={"/audit/transactions/#{row.key}"}>Open</UI.Actions.link>
             </:action>
-          </UI.data_table>
+          </UI.Data.data_table>
 
-          <UI.data_panel state={:ok} id="storybook-data-panel" as_of="2026-06-27 01:12:00Z">
+          <UI.Data.data_panel state={:ok} id="storybook-data-panel" as_of="2026-06-27 01:12:00Z">
             <:data>
-              <UI.kv>
+              <UI.Display.kv>
                 <:item key="Mixed severity"><%= inspect(@mixed_severity) %></:item>
                 <:item key="Empty count"><%= @empty.count %></:item>
                 <:item key="Error state"><%= @error.title %></:item>
-              </UI.kv>
+              </UI.Display.kv>
             </:data>
             <:pager>
-              <UI.pager
+              <UI.Page.pager
                 shown={@pager.shown}
                 match_count={@pager.match_count}
                 has_older={@pager.has_older}
                 has_newer={@pager.has_newer}
               />
             </:pager>
-          </UI.data_panel>
+          </UI.Data.data_panel>
 
-          <UI.cluster>
-            <UI.data_panel state={:loading} id="storybook-loading-panel">
+          <UI.Display.cluster>
+            <UI.Data.data_panel state={:loading} id="storybook-loading-panel">
               <:data><span>not rendered while loading</span></:data>
-            </UI.data_panel>
+            </UI.Data.data_panel>
 
-            <UI.data_panel state={:empty} id="storybook-empty-panel">
+            <UI.Data.data_panel state={:empty} id="storybook-empty-panel">
               <:data><span>not rendered for empty state</span></:data>
-            </UI.data_panel>
+            </UI.Data.data_panel>
 
-            <UI.data_panel state={:error} id="storybook-error-panel">
+            <UI.Data.data_panel state={:error} id="storybook-error-panel">
               <:data><span>not rendered for error state</span></:data>
-            </UI.data_panel>
-          </UI.cluster>
+            </UI.Data.data_panel>
+          </UI.Display.cluster>
 
-          <UI.code_block>
+          <UI.Display.code_block>
     <%= "{" %>
       "audit_transaction_id": "<%= @long_id %>",
       "previous": <%= inspect(@null_fields.previous) %>,
       "current": "<%= @null_fields.current %>",
       "captured_at_utc": "<%= @timezone.utc %>"
     <%= "}" %>
-          </UI.code_block>
-        </UI.stack>
+          </UI.Display.code_block>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

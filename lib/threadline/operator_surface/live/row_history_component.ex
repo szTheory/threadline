@@ -70,7 +70,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def render(assigns) do
       ~H"""
       <div id={"#{@id}-shell"}>
-        <UI.drawer
+        <UI.Overlay.drawer
           id={@id}
           show
           on_cancel={JS.patch(@close_path)}
@@ -99,7 +99,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <div class="tl-subview__panel">
                 <h4 class="tl-subview__panel-title">Row timeline</h4>
                 <form id={"#{@id}-as-of-form"} phx-change="update-as-of" phx-target={@myself}>
-                  <UI.field
+                  <UI.Form.field
                     id={"#{@id}-as-of"}
                     type="datetime-local"
                     name="as_of"
@@ -130,7 +130,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </div>
             </div>
           <% end %>
-        </UI.drawer>
+        </UI.Overlay.drawer>
       </div>
       """
     end
@@ -147,18 +147,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           schema
 
         :error ->
-          schemas
-          |> Enum.find_value(fn
-            {key, schema} when is_atom(key) ->
-              if Atom.to_string(key) == table, do: schema
-
-            _entry ->
-              nil
-          end)
+          Enum.find_value(schemas, &schema_for_atom_key(&1, table))
       end
     end
 
     defp schema_for_table(_schemas, _table), do: nil
+
+    defp schema_for_atom_key({key, schema}, table) when is_atom(key) do
+      if Atom.to_string(key) == table, do: schema
+    end
+
+    defp schema_for_atom_key(_entry, _table), do: nil
 
     defp as_of_path(history_path, %DateTime{} = as_of) do
       "#{history_path}?#{URI.encode_query(%{"as_of" => DateTime.to_iso8601(as_of)})}"

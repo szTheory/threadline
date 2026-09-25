@@ -11,6 +11,8 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
 
   import ExUnit.CaptureIO
 
+  alias Mix.Tasks.Threadline.Policy.Show
+
   @router_path "lib/threadline/operator_surface/router.ex"
   @live_view_path "lib/threadline/operator_surface/live/policy_redaction_live.ex"
   @mix_task_path "lib/mix/tasks/threadline.policy.show.ex"
@@ -104,7 +106,7 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
     test "--json emits the locked top-level keys and stable status enums" do
       output =
         capture_io(fn ->
-          Mix.Tasks.Threadline.Policy.Show.run(["--json"])
+          Show.run(["--json"])
         end)
 
       parsed = Jason.decode!(output)

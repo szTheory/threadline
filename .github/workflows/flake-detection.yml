@@ -30,14 +30,15 @@ jobs:
     runs-on: ubuntu-24.04
     # `mix verify.flake` is `mix test --repeat-until-failure 50`, which MEASURED
     # as 51 total suite runs (the initial run plus 50 repeats — verified locally,
-    # not inferred from the flag name). One full local suite run measured 72.9s,
-    # so a fully-green pass is ~62 minutes of test time before setup and compile.
-    # 120 leaves real headroom on a slower hosted runner.
+    # not inferred from the flag name).
     #
-    # Honest caveat: a green 51-run pass has never actually been observed, because
-    # the suite is not green yet. Tighten this bound to the observed p95 once one
-    # completes rather than leaving it generous forever.
-    timeout-minutes: 120
+    # Measured on the hosted runner (nightly run 35967937335, 2026-09-24, 1698
+    # tests): the first run took 288s cold, each repeat about 165s, and the job
+    # completed 42 green runs in 117 minutes before the old 120-minute bound
+    # cancelled it. It was cancelled four nights running without a failure, so
+    # it reported nothing. 51 runs need about 145 minutes; 180 leaves about 25%
+    # headroom. Re-measure and adjust if the suite grows by a lot.
+    timeout-minutes: 180
     permissions:
       contents: read
       issues: write

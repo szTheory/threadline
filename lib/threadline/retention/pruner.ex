@@ -5,6 +5,7 @@ defmodule Threadline.Retention.Pruner do
   require Logger
   import Ecto.Query
 
+  alias Ecto.Adapters.SQL
   alias Threadline.Governance.RetentionRun
   alias Threadline.StorageSchema
 
@@ -117,12 +118,12 @@ defmodule Threadline.Retention.Pruner do
 
   defp acquire_lock(repo) do
     %{rows: [[acquired]]} =
-      Ecto.Adapters.SQL.query!(repo, "SELECT pg_try_advisory_lock($1)", [@lock_key])
+      SQL.query!(repo, "SELECT pg_try_advisory_lock($1)", [@lock_key])
 
     acquired
   end
 
   defp release_lock(repo) do
-    Ecto.Adapters.SQL.query!(repo, "SELECT pg_advisory_unlock($1)", [@lock_key])
+    SQL.query!(repo, "SELECT pg_advisory_unlock($1)", [@lock_key])
   end
 end

@@ -11,7 +11,7 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 
 ## 1. Capture and triggers
 
-- [ ] `mix threadline.install` and `mix threadline.gen.triggers` migrations applied in the target environment; confirm the configured Threadline `storage_schema` exists (default `threadline`, explicit `public` for the historical footprint).
+- [ ] `mix threadline.install` and `mix threadline.gen.triggers` migrations applied in the target environment; confirm the configured Threadline `storage_schema` exists (default `public`; a dedicated schema such as `"threadline"` is an opt-in set before install).
 - [ ] `MIX_ENV` matches between trigger regeneration and runtime (`mix threadline.gen.triggers` loads `app.config`).
 - [ ] `config :threadline, :verify_coverage, expected_tables: [...]` lists every audited table; `mix threadline.verify_coverage` passes in CI and on a production-like host.
 - [ ] Run `Threadline.Health.trigger_coverage/1` after deploys, schema changes, and on a periodic cadence you trust; each `{:covered, _}` / `{:uncovered, _}` tuple names one user table from the requested host schema (`schema: "public"` by default) — full interpretation: [`domain-reference.md#trigger-coverage-operational`](domain-reference.md#trigger-coverage-operational).
@@ -42,7 +42,7 @@ See also `guides/operator-surface.md` §"Coverage and audit readiness".
 - [ ] `mix threadline.gen.triggers --dry-run` used after config changes; migrations applied before relying on new trigger SQL.
 - [ ] Visit `/audit/policy/redaction` after deploys or config changes; confirm the affected tables land in `Config matches deployed`, not `Drift detected` or `Could not introspect`.
 - [ ] Capture-only path checked too: `mix threadline.policy.show` for human output, `mix threadline.policy.show --json` for machine checks or incident tooling.
-- [ ] If any table shows `Drift detected` or `Could not introspect`, rerun `mix threadline.gen.triggers`, apply the generated migration, and re-check before declaring the rollout aligned.
+- [ ] If any table shows `Drift detected` or `Could not introspect`, rerun `mix threadline.gen.triggers`, apply the generated migration, and re-check before declaring the rollout aligned. The rerun writes a new migration that replaces the trigger in place, so capture has no gap. Its name is numbered (for example `..._threadline_triggers_posts_2.exs`) when the table-derived name is already taken; a rerun for a different table set keeps an un-numbered name. Rolling that migration back keeps capture on and does not restore the earlier capture policy. If the rerun removed redaction rules, a rollback leaves changes captured unredacted, which `/audit/policy/redaction` and `mix threadline.policy.show` report as `Drift detected` once your config lists those rules again.
 - [ ] Confirm the redaction viewer stays safe for operator screenshots and incident notes: it should show only column names and placeholder metadata, never sample values.
 - [ ] JSON/JSONB columns: remember masking replaces the **whole** value (no field-level redaction in current releases).
 

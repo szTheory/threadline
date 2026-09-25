@@ -1,6 +1,8 @@
 defmodule Threadline.Capture.TriggerTest do
   use Threadline.DataCase
 
+  alias Threadline.Capture.TriggerSQL
+
   setup_all do
     # Create a temporary audited table for trigger testing
     Repo.query!("""
@@ -12,10 +14,10 @@ defmodule Threadline.Capture.TriggerTest do
     """)
 
     # Install trigger on test_audit_target
-    Repo.query!(Threadline.Capture.TriggerSQL.create_trigger("test_audit_target"))
+    Repo.query!(TriggerSQL.create_trigger("test_audit_target"))
 
     on_exit(fn ->
-      Repo.query!(Threadline.Capture.TriggerSQL.drop_trigger("test_audit_target"))
+      Repo.query!(TriggerSQL.drop_trigger("test_audit_target"))
       Repo.query!("DROP TABLE IF EXISTS test_audit_target")
     end)
 

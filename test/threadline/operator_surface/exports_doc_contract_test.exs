@@ -2,19 +2,22 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  alias Threadline.OperatorSurface.Exports.Filename
+  alias Threadline.Test.SourceFamily
+
   @router_path "lib/threadline/operator_surface/router.ex"
   @lv_path "lib/threadline/operator_surface/live/timeline_live.ex"
   @controller_path "lib/threadline/operator_surface/controllers/export_controller.ex"
   @plug_path "lib/threadline/operator_surface/export_auth_plug.ex"
   @filename_path "lib/threadline/operator_surface/exports/filename.ex"
-  @filter_params_path "lib/threadline/operator_surface/exports/filter_params.ex"
+  @filter_params_path "lib/threadline/query/filter_params.ex"
   @query_path "lib/threadline/query.ex"
 
   # ---- EXPO-05: button-label literals (D-22 + D-26) ----
 
   describe "button labels (D-22, D-26)" do
     test "TimelineLive renders the three compact download button labels verbatim" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       # The compact download buttons render an icon followed by the verbatim
       # format label as the anchor's text content (v1.36 component-retune added
       # the leading download icon), so the label is no longer the bare `>CSV<`
@@ -27,7 +30,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
     end
 
     test "TimelineLive download anchors include the HTML `download` attribute (PR #2611 / Pitfall 9)" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       # Each of the three anchors must have `download` as a bare HTML attribute
       # on a <.link href={...}> tag. The tag is now multi-line (attributes on
       # their own lines), so allow whitespace/newlines between `<.link` and
@@ -85,21 +88,21 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
   describe "content-type literals (D-26)" do
     test "controller emits exact content-type literals" do
-      src = File.read!(@controller_path)
+      src = SourceFamily.read!(@controller_path)
       assert String.contains?(src, ~s|"text/csv; charset=utf-8"|)
       assert String.contains?(src, ~s|"application/json; charset=utf-8"|)
       assert String.contains?(src, ~s|"application/x-ndjson; charset=utf-8"|)
     end
 
     test "controller emits RFC 5987 dual-emit Content-Disposition" do
-      src = File.read!(@controller_path)
+      src = SourceFamily.read!(@controller_path)
 
       assert src =~ ~r/filename\*=UTF-8''/,
              "expected RFC 5987 filename*=UTF-8'' interpolation in controller source"
     end
 
     test "controller emits Cache-Control: no-store (audit-data hygiene)" do
-      src = File.read!(@controller_path)
+      src = SourceFamily.read!(@controller_path)
       assert String.contains?(src, "no-store")
     end
   end
@@ -110,13 +113,13 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
     test "Filename.for/2 produces the canonical UTC-minute pattern for each format" do
       dt = ~U[2026-05-06 12:00:00.000Z]
 
-      assert Threadline.OperatorSurface.Exports.Filename.for("csv", dt) ==
+      assert Filename.for("csv", dt) ==
                "threadline-changes-2026-05-06T12-00Z.csv"
 
-      assert Threadline.OperatorSurface.Exports.Filename.for("json", dt) ==
+      assert Filename.for("json", dt) ==
                "threadline-changes-2026-05-06T12-00Z.json"
 
-      assert Threadline.OperatorSurface.Exports.Filename.for("ndjson", dt) ==
+      assert Filename.for("ndjson", dt) ==
                "threadline-changes-2026-05-06T12-00Z.ndjson"
     end
   end
@@ -151,11 +154,11 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
     end
 
     test "BOTH TimelineLive AND ExportController delegate to the shared FilterParams module (Pitfall 3 / Footgun F-6)" do
-      lv_src = File.read!(@lv_path)
+      lv_src = SourceFamily.read!(@lv_path)
       controller_src = File.read!(@controller_path)
 
-      assert String.contains?(lv_src, "Threadline.OperatorSurface.Exports.FilterParams") or
-               String.contains?(lv_src, "alias Threadline.OperatorSurface.Exports.FilterParams"),
+      assert String.contains?(lv_src, "Threadline.Query.FilterParams") or
+               String.contains?(lv_src, "alias Threadline.Query.FilterParams"),
              "TimelineLive must reference FilterParams (no inline parser)"
 
       assert String.contains?(controller_src, "FilterParams.parse") or
@@ -238,24 +241,24 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
   describe "count-line and truncation banner literals (D-17, D-18)" do
     test "TimelineLive renders the count status line wrapper class" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       assert String.contains?(src, "tl-status")
     end
 
     test "TimelineLive renders the band-1 informational banner literal at >5,000" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       assert String.contains?(src, "Large export — will stream in chunks.")
       assert String.contains?(src, "tl-alert--info")
     end
 
     test "TimelineLive renders the band-2 warning banner literal at >=10,001" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       assert String.contains?(src, "Truncated to first 10,000 rows.")
       assert String.contains?(src, "tl-alert--warning")
     end
 
     test "TimelineLive uses cap: 10_001 in count_matching (matches controller cap; allows '10,000+' approximation)" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       assert src =~ ~r/count_opts\(socket,\s*10_001\)/
     end
   end
@@ -286,7 +289,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
   describe "Phase 64 carry-forward refutations" do
     test "TimelineLive form does NOT reintroduce phx-change (Phase 64 D-04 + Footgun F-12 stays green)" do
-      src = File.read!(@lv_path)
+      src = SourceFamily.read!(@lv_path)
       refute String.contains?(src, "phx-change=")
     end
   end

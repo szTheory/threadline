@@ -152,7 +152,7 @@ When `ANTHROPIC_API_KEY` is absent or empty, `mix verify.ui_critique` exits 0
 with a skip message. Contributors and CI without a key are completely unaffected.
 
 The companion gate **`mix verify.critic_trust`** is pure-Elixir (no network, no
-AI), runs in `ci.all` before `verify.mechanical`, and asserts that every validated
+AI), runs in `mix verify.test` (and so in `ci.all`), and asserts that every validated
 critic lens meets its statistical trust bar — **Spearman ρ ≥ 0.70** (rank
 correlation of oracle severity vs critic score, the validated ranking signal);
 with n ≥ 20. Krippendorff α, AUC, and raw agreement are recorded as reported-only
@@ -166,8 +166,9 @@ them; the gate passes vacuously on the empty skeleton.
 ## Maintainer: building and validating the golden oracle
 
 This section is **maintainer-only** — it requires `ANTHROPIC_API_KEY` and human judgment.
-Contributors do not need to run any of these steps; the `ci.all` gate (`verify.critic_trust`)
-runs without an API key and passes vacuously until the maintainer has populated the golden set.
+Contributors do not need to run any of these steps; the `verify.critic_trust` gate runs in
+`mix verify.test` (and so in `ci.all`) without an API key and passes vacuously until the
+maintainer has populated the golden set.
 
 ### Prerequisites
 
@@ -300,7 +301,7 @@ Verify `test/generated/operator_surface/reports/CRITIQUE.md` is fresh — it sho
 mix ci.all
 ```
 
-`mix verify.critic_trust` (part of `ci.all`) enforces whatever was recorded in
+`mix verify.critic_trust` (its test file runs in `mix verify.test`, and so in `ci.all`) enforces whatever was recorded in
 `critic_trust`. All other gates (`verify.mechanical`, `verify.test`, etc.) must stay green.
 `mix verify.ui_critique` itself is excluded from `ci.all` — it is local-only.
 
@@ -342,7 +343,8 @@ accepted only if it moves the targeted **blocking** lens in the right direction 
 regression** anywhere on the blocking panel, and only after the deterministic mechanical /
 a11y floor still passes. Like the oracle steps above it is **local-only** (needs
 `ANTHROPIC_API_KEY`) and **never runs in CI** — CI runs only the deterministic guards
-(`verify.critic_trust`, `verify.mechanical`).
+(`verify.critic_trust`, `verify.mechanical`), whose test files run in `mix verify.test` (and
+so in `ci.all`).
 
 The loop operates on the real seeded `route.*` cells, never the `page.*`
 stress-lab chrome and never the isolated `story.*` fixtures. Each `route.*` cell has a
@@ -395,7 +397,7 @@ git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regress
 
 - **LLM stays local-only and out of CI** (196-D9). The gate's scoring/re-eval calls the
   external AI API; only the deterministic `verify.critic_trust` + `verify.mechanical` guards
-  run in `ci.all`.
+  run, in `mix verify.test` (and so in `ci.all`).
 - **Only the four validated lenses block**: `brand_fidelity`, `density`, `typography`,
   `rhythm`. `hierarchy` and `color_contrast` are **advisory only** — reported under an
   advisory badge, **never** auto-block, and their findings must be **verified against ground
@@ -496,7 +498,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-credo` | `mix verify.credo` |
 | `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on Elixir 1.17.3 / OTP 27.0 with the exact PLT cache lifecycle below |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
-| `verify-test` | compile `--warnings-as-errors` + `mix verify.test` (Postgres service) |
+| `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
@@ -505,7 +507,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
-| `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs `mix verify.doc_contract` + `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
+| `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 
 ### Dialyzer PLT cache and measurement contract
 
@@ -679,7 +681,7 @@ After Wave 1 distribution doc work is on **`main`** and CI is green:
 
 1. Actions → **Release** → **Run workflow**
 2. Inputs: `tag` = `v0.6.0`, `release_version` = `0.6.0`
-3. Merge the automated **distribution sync** PR when `mix verify.doc_contract` passes on that PR
+3. Merge the automated **distribution sync** PR when CI (`mix verify.test`) is green on that PR
 
 The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not exist yet.
 

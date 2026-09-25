@@ -77,7 +77,7 @@ defmodule Threadline.OperatorSurface.Presentation do
   end
 
   # The valid per-kind truncation kinds. Listed as literal atoms so they are
-  # interned at compile time — UI.ref/1 resolves a kind STRING against this list
+  # interned at compile time — UI.Display.ref/1 resolves a kind STRING against this list
   # instead of String.to_existing_atom/1, which would raise for a kind whose atom
   # had not yet been referenced at runtime (e.g. :correlation, :arn, :actor, :email).
   @ref_kinds [:uuid, :correlation, :arn, :actor, :hash, :path, :email, :url, :timestamp]
@@ -200,27 +200,32 @@ defmodule Threadline.OperatorSurface.Presentation do
     end
   end
 
+  @status_labels %{
+    "inferred_posture" => "Inferred",
+    "config_matches_deployed" => "Deployed matches config",
+    "could_not_introspect" => "Could not introspect",
+    "drift_detected" => "Drift detected",
+    "expected_uncovered" => "Expected gap",
+    "uncovered" => "Needs capture",
+    "covered" => "Captured",
+    "completed" => "Completed",
+    "failed" => "Failed",
+    "pending" => "Queued",
+    "running" => "Running",
+    "proven" => "Proven",
+    "unsupported" => "Unsupported"
+  }
+
   @spec status_label(String.t() | atom() | nil) :: String.t()
   def status_label(status) do
     case normalize_status(status) do
-      "inferred_posture" -> "Inferred"
-      "config_matches_deployed" -> "Deployed matches config"
-      "could_not_introspect" -> "Could not introspect"
-      "drift_detected" -> "Drift detected"
-      "expected_uncovered" -> "Expected gap"
-      "uncovered" -> "Needs capture"
-      "covered" -> "Captured"
-      "completed" -> "Completed"
-      "failed" -> "Failed"
-      "pending" -> "Queued"
-      "running" -> "Running"
-      "proven" -> "Proven"
-      "unsupported" -> "Unsupported"
       nil -> "Unknown"
       "" -> "Unknown"
-      other -> other |> String.replace("_", " ") |> String.capitalize()
+      status -> Map.get_lazy(@status_labels, status, fn -> humanize_status(status) end)
     end
   end
+
+  defp humanize_status(status), do: status |> String.replace("_", " ") |> String.capitalize()
 
   @spec operation_modifier(String.t() | atom() | nil) :: String.t()
   def operation_modifier(operation) do
@@ -566,7 +571,7 @@ defmodule Threadline.OperatorSurface.Presentation do
   end
 
   defp deterministic_json(value) when is_list(value) do
-    "[" <> (value |> Enum.map(&deterministic_json/1) |> Enum.join(",")) <> "]"
+    "[" <> Enum.map_join(value, ",", &deterministic_json/1) <> "]"
   end
 
   defp deterministic_json(%{} = value) do

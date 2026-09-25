@@ -9,18 +9,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy {:has_forms, "schema selector owning ?schema= URL state"}
 
-    alias Threadline.OperatorSurface.Presentation
+    alias Threadline.Health.CoverageSchemas
     alias Threadline.OperatorSurface.Coverage.Snapshot
+    alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.OperatorSurface.Unsupported
-    alias Threadline.Health.CoverageSchemas
 
     @baseline ~w(schema_migrations)
 
-    # ------------------------------------------------------------------
-    # mount/3
-    # ------------------------------------------------------------------
-    #
     # :threadline_coverage and :threadline_coverage_error are populated by
     # Coverage.OnMount BEFORE this mount/3 runs (router on_mount: order
     # locked: Auth -> Coverage.OnMount -> mount/3). We additionally hold
@@ -132,7 +128,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage}
         base_path={@base_path}
@@ -146,7 +142,58 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_coverage_enabled do %>
-            <UI.page_header title="Audit coverage">
+            <.coverage_header
+              schema_param={@schema_param}
+              form_error={@form_error}
+              coverage_for_schema={@coverage_for_schema}
+              available_schemas={@available_schemas}
+            />
+
+            <%= if @form_error do %>
+              <.render_invalid_schema schema={@schema_param} form_error={@form_error} base_path={@base_path} />
+            <% else %>
+              <%= if stale_selected_schema?(@coverage_for_schema) do %>
+                <div class="tl-alert tl-alert--warning" role="status">
+                  Could not refresh coverage for <%= @schema_param %>; showing last known results from <%= last_label(@coverage_for_schema.last_checked_at) %>.
+                  Retry refresh.
+                </div>
+              <% end %>
+
+              <.coverage_verdict snapshot={@coverage_for_schema} schema={@schema_param} />
+
+              <%= if all_empty?(@coverage_for_schema) do %>
+                <div class="tl-empty">
+                  <h3 class="tl-empty__title">No audited tables found</h3>
+                  <p class="tl-empty__body">
+                    No audited tables were found for schema <%= @schema_param %>. Generate trigger migrations for the tables that should be tracked, apply them, then refresh audit readiness.
+                  </p>
+                </div>
+              <% else %>
+                <.coverage_table
+                  coverage_for_schema={@coverage_for_schema}
+                  schema_param={@schema_param}
+                  base_path={@base_path}
+                />
+              <% end %>
+            <% end %>
+          <% else %>
+            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
+              descriptor={Unsupported.descriptor(:coverage_unavailable)}
+              base_path={@base_path}
+            />
+          <% end %>
+      </UI.Page.shell>
+      """
+    end
+
+    attr(:schema_param, :string, required: true)
+    attr(:form_error, :string, default: nil)
+    attr(:coverage_for_schema, :map, required: true)
+    attr(:available_schemas, :list, default: [])
+
+    defp coverage_header(assigns) do
+      ~H"""
+            <UI.Page.page_header title="Audit coverage">
               <:lede>
                 Selected-schema audit readiness and table-level capture gaps.
               </:lede>
@@ -169,28 +216,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   Refresh
                 </button>
               </:actions>
-            </UI.page_header>
+            </UI.Page.page_header>
+      """
+    end
 
-            <%= if @form_error do %>
-              <.render_invalid_schema schema={@schema_param} form_error={@form_error} base_path={@base_path} />
-            <% else %>
-              <%= if stale_selected_schema?(@coverage_for_schema) do %>
-                <div class="tl-alert tl-alert--warning" role="status">
-                  Could not refresh coverage for <%= @schema_param %>; showing last known results from <%= last_label(@coverage_for_schema.last_checked_at) %>.
-                  Retry refresh.
-                </div>
-              <% end %>
+    attr(:coverage_for_schema, :map, required: true)
+    attr(:schema_param, :string, required: true)
+    attr(:base_path, :string, required: true)
 
-              <.coverage_verdict snapshot={@coverage_for_schema} schema={@schema_param} />
-
-              <%= if all_empty?(@coverage_for_schema) do %>
-                <div class="tl-empty">
-                  <h3 class="tl-empty__title">No audited tables found</h3>
-                  <p class="tl-empty__body">
-                    No audited tables were found for schema <%= @schema_param %>. Generate trigger migrations for the tables that should be tracked, apply them, then refresh audit readiness.
-                  </p>
-                </div>
-              <% else %>
+    defp coverage_table(assigns) do
+      ~H"""
                 <div class="tl-table-wrap" data-testid="coverage-table">
                   <table class="tl-table tl-table--coverage tl-table--compact tl-table--sticky tl-table--actionable tl-table--responsive">
                     <thead>
@@ -254,15 +289,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     </tbody>
                   </table>
                 </div>
-              <% end %>
-            <% end %>
-          <% else %>
-            <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
-              descriptor={Unsupported.descriptor(:coverage_unavailable)}
-              base_path={@base_path}
-            />
-          <% end %>
-      </UI.shell>
       """
     end
 
@@ -332,8 +358,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       </form>
       """
     end
-
-    # -------------------------- private helpers --------------------------
 
     defp validate_schema(socket, schema) when is_binary(schema) do
       socket

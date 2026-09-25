@@ -190,8 +190,7 @@ defmodule Mix.Tasks.Threadline.Policy.Show do
 
   defp rule(widths) do
     widths
-    |> Enum.map(&String.duplicate("-", &1))
-    |> Enum.join("  ")
+    |> Enum.map_join("  ", &String.duplicate("-", &1))
   end
 
   defp diff_summary(diff) do

@@ -4,6 +4,7 @@ defmodule Threadline.Export.CleanupTask do
   require Logger
   import Ecto.Query
 
+  alias Ecto.Adapters.SQL
   alias Threadline.Governance.ExportJob
   alias Threadline.StorageSchema
 
@@ -59,21 +60,25 @@ defmodule Threadline.Export.CleanupTask do
     storage_schema = storage_schema_from_state(state)
 
     if repo_started?(repo) do
-      repo.checkout(fn ->
-        if acquire_lock(repo) do
-          try do
-            perform_cleanup(repo, storage_schema)
-          after
-            release_lock(repo)
-          end
-        else
-          Logger.debug("threadline_export_cleanup lock held elsewhere, skipping cleanup")
-        end
-      end)
+      repo.checkout(fn -> locked_cleanup(repo, storage_schema) end)
     end
 
     schedule_next(interval_ms)
     {:noreply, state}
+  end
+
+  # Runs inside the repo.checkout fn, so the lock, the cleanup, and the
+  # release all use the same checked-out connection.
+  defp locked_cleanup(repo, storage_schema) do
+    if acquire_lock(repo) do
+      try do
+        perform_cleanup(repo, storage_schema)
+      after
+        release_lock(repo)
+      end
+    else
+      Logger.debug("threadline_export_cleanup lock held elsewhere, skipping cleanup")
+    end
   end
 
   defp perform_cleanup(repo, storage_schema) do
@@ -141,13 +146,13 @@ defmodule Threadline.Export.CleanupTask do
 
   defp acquire_lock(repo) do
     %{rows: [[acquired]]} =
-      Ecto.Adapters.SQL.query!(repo, "SELECT pg_try_advisory_lock($1)", [@lock_key])
+      SQL.query!(repo, "SELECT pg_try_advisory_lock($1)", [@lock_key])
 
     acquired
   end
 
   defp release_lock(repo) do
-    Ecto.Adapters.SQL.query!(repo, "SELECT pg_advisory_unlock($1)", [@lock_key])
+    SQL.query!(repo, "SELECT pg_advisory_unlock($1)", [@lock_key])
   end
 
   defp terminal_expiry do

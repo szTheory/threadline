@@ -3,6 +3,9 @@ defmodule Mix.Tasks.Threadline.InstallTest do
   # the global :storage_schema application env, and both are VM-wide.
   use ExUnit.Case, async: false
 
+  alias Mix.Tasks.Threadline.Gen.Triggers
+  alias Mix.Tasks.Threadline.Install
+
   @suffixes [
     "_threadline_audit_schema.exs",
     "_threadline_semantics_schema.exs",
@@ -34,7 +37,7 @@ defmodule Mix.Tasks.Threadline.InstallTest do
   end
 
   defp run_install(tmp) do
-    File.cd!(tmp, fn -> Mix.Tasks.Threadline.Install.run([]) end)
+    File.cd!(tmp, fn -> Install.run([]) end)
     drain_shell([])
   end
 
@@ -44,6 +47,52 @@ defmodule Mix.Tasks.Threadline.InstallTest do
     after
       0 -> acc |> Enum.reverse() |> Enum.join("\n")
     end
+  end
+
+  @migrations "priv/repo/migrations"
+
+  # The version prefix of each family's migration, in the order given.
+  defp prefixes(tmp, suffixes) do
+    for suffix <- suffixes do
+      [file] = Path.wildcard(Path.join([tmp, @migrations, "*" <> suffix]))
+      file |> Path.basename() |> String.split("_", parts: 2) |> hd()
+    end
+  end
+
+  defp seed(tmp, name) do
+    file = Path.join([tmp, @migrations, name])
+    File.mkdir_p!(Path.dirname(file))
+    File.write!(file, "# seeded by the test\n")
+  end
+
+  # Ecto reads the integer before the first "_" as the migration version and
+  # refuses to run a set that contains the same version twice.
+  defp assert_valid_increasing!(versions) do
+    for v <- versions do
+      assert v =~ ~r/^\d{14}$/, "version #{v} is not 14 digits"
+
+      <<y::binary-4, mo::binary-2, d::binary-2, h::binary-2, mi::binary-2, s::binary-2>> = v
+
+      assert {:ok, _} =
+               NaiveDateTime.new(
+                 String.to_integer(y),
+                 String.to_integer(mo),
+                 String.to_integer(d),
+                 String.to_integer(h),
+                 String.to_integer(mi),
+                 String.to_integer(s)
+               ),
+             "version #{v} is not a valid timestamp"
+    end
+
+    dupes = versions -- Enum.uniq(versions)
+
+    assert dupes == [],
+           "`mix ecto.migrate` would raise (Ecto.MigrationError) migrations can't be executed, " <>
+             "migration version #{List.first(dupes)} is duplicated — got #{inspect(versions)}"
+
+    assert versions == Enum.sort(versions),
+           "versions are not increasing in write order: #{inspect(versions)}"
   end
 
   defp generated(tmp) do
@@ -118,5 +167,89 @@ defmodule Mix.Tasks.Threadline.InstallTest do
 
     assert length(generated(tmp)) == 3
     refute output =~ "No `:storage_schema` is configured"
+  end
+
+  describe "migration versions" do
+    test "a fresh install writes three distinct versions in family order", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+
+      run_install(tmp)
+
+      assert_valid_increasing!(prefixes(tmp, @suffixes))
+    end
+
+    test "every version is above a future-dated host migration, with the date carried",
+         %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      seed(tmp, "20991231235959_host_thing.exs")
+
+      run_install(tmp)
+      versions = prefixes(tmp, @suffixes)
+
+      for v <- versions do
+        assert String.to_integer(v) > 20_991_231_235_959,
+               "version #{v} does not sort after the existing host migration 20991231235959"
+      end
+
+      assert hd(versions) == "21000101000000"
+      assert_valid_increasing!(versions)
+    end
+  end
+
+  test "a Threadline migration moved into a subdirectory is not written again", %{tmp: tmp} do
+    Application.delete_env(:threadline, :storage_schema)
+    seed(tmp, "archive/20991231235958_threadline_audit_schema.exs")
+
+    output = run_install(tmp)
+
+    assert Path.wildcard(Path.join([tmp, @migrations, "*_threadline_audit_schema.exs"])) == []
+    assert output =~ "already exists — skipping"
+    versions = prefixes(tmp, tl(@suffixes))
+    assert hd(versions) == "20991231235959"
+    assert_valid_increasing!(versions)
+  end
+
+  describe "storage-schema advice" do
+    test "a partial re-run versions the missing migration last and is told to keep `public`",
+         %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+      seed(tmp, "20991231235958_threadline_audit_schema.exs")
+      seed(tmp, "20991231235959_threadline_semantics_schema.exs")
+
+      output = run_install(tmp)
+      [governance] = prefixes(tmp, ["_threadline_governance_schema.exs"])
+
+      assert governance == "21000101000000"
+      assert_valid_increasing!([governance])
+      assert output =~ "already exists — skipping"
+      refute output =~ "No `:storage_schema` is configured"
+      assert output =~ "Keep `:storage_schema` unset"
+    end
+
+    test "fresh-install advice has no paragraph about existing installs", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+
+      output = run_install(tmp)
+
+      assert output =~ "Delete the migration files this run just generated"
+      refute output =~ "Existing installs need no action"
+    end
+  end
+
+  describe "install then gen.triggers" do
+    defp triggers_prefix(tmp) do
+      [file] = Path.wildcard(Path.join([tmp, @migrations, "*_threadline_triggers_*.exs"]))
+      file |> Path.basename() |> String.split("_", parts: 2) |> hd()
+    end
+
+    test "the trigger migration is versioned after the three install migrations", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+
+      run_install(tmp)
+      File.cd!(tmp, fn -> Triggers.run(["--tables", "posts"]) end)
+      drain_shell([])
+
+      assert_valid_increasing!(prefixes(tmp, @suffixes) ++ [triggers_prefix(tmp)])
+    end
   end
 end

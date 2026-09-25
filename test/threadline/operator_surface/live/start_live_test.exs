@@ -1,17 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.StartLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.StartLiveTest.Auth do
     def authorize(_), do: true
 
@@ -40,19 +27,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.StartLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.StartLiveTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.StartLiveTest.Auth
 
     scope "/" do
       pipe_through(:browser)
@@ -63,29 +40,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
         },
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.StartLiveTest.ScopedRouter do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.StartLiveTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.StartLiveTest.Auth
 
     scope "/" do
       pipe_through(:browser)
@@ -96,30 +62,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "ticket_replies" => Threadline.OperatorSurface.StartLiveTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
         },
-        authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.scoped_authorize/1,
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+        authorize_fn: &Auth.scoped_authorize/1,
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.StartLiveTest.SystemRouter do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.StartLiveTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.StartLiveTest.Auth
 
     scope "/" do
       pipe_through(:browser)
@@ -131,85 +86,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "users" => Threadline.OperatorSurface.StartLiveTest.FakeUser
         },
         theme: :system,
-        coverage_authorize_fn:
-          &Threadline.OperatorSurface.StartLiveTest.Auth.coverage_authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.StartLiveTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.coverage_authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.StartLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_start_key",
-      signing_salt: "start-home"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.StartLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.StartLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.StartLiveTest.ScopedEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_start_scoped_key",
-      signing_salt: "start-scoped"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.StartLiveTest.ScopedRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.StartLiveTest.ScopedRouter
   end
 
   defmodule Threadline.OperatorSurface.StartLiveTest.SystemEndpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_start_system_key",
-      signing_salt: "start-system"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.StartLiveTest.SystemRouter)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.StartLiveTest.SystemRouter
   end
 
   defmodule Threadline.OperatorSurface.Live.StartLiveTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.StartLiveTest.Endpoint
 
     alias Threadline.Governance.ExportJob
     alias Threadline.Governance.RetentionRun
     alias Threadline.Governance.SavedView
     alias Threadline.Semantics.ActorRef
 
-    @endpoint Threadline.OperatorSurface.StartLiveTest.Endpoint
-
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.StartLiveTest.Endpoint,
-        secret_key_base: "s" |> String.duplicate(64),
-        live_view: [signing_salt: "s" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.StartLiveTest.Layouts]
-      )
-
       original_interval = Application.get_env(:threadline, :coverage_poll_ms)
       original_start_live_coverage = Application.get_env(:threadline, :test_start_live_coverage)
       Application.put_env(:threadline, :coverage_poll_ms, 5_000)
@@ -233,14 +144,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(SavedView, repo_opts())
-      Threadline.Test.Repo.delete_all(ExportJob, repo_opts())
-      Threadline.Test.Repo.delete_all(RetentionRun, repo_opts())
+      Repo.delete_all(SavedView, repo_opts())
+      Repo.delete_all(ExportJob, repo_opts())
+      Repo.delete_all(RetentionRun, repo_opts())
 
       {:ok, actor_ref} = ActorRef.new(:user, "home-operator")
 
@@ -346,7 +257,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         completed_at: now,
         deleted_count: 0
       })
-      |> Threadline.Test.Repo.insert!(repo_opts())
+      |> Repo.insert!(repo_opts())
 
       {:ok, _view, html} = live(conn, "/audit")
 
@@ -418,7 +329,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           completed_at: now,
           deleted_count: 0
         })
-        |> Threadline.Test.Repo.insert!(repo_opts("audit"))
+        |> Repo.insert!(repo_opts("audit"))
 
         insert_view!(actor_ref, "Audit resume", %{"table" => "audit_rows"}, "audit")
 
@@ -583,7 +494,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref: actor_ref,
         started_at: started_at
       })
-      |> Threadline.Test.Repo.insert!(repo_opts(storage_schema))
+      |> Repo.insert!(repo_opts(storage_schema))
     end
 
     defp insert_view!(actor_ref, name, filters, storage_schema \\ "threadline") do
@@ -593,7 +504,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref: actor_ref,
         filters: filters
       })
-      |> Threadline.Test.Repo.insert!(repo_opts(storage_schema))
+      |> Repo.insert!(repo_opts(storage_schema))
     end
 
     defp home_health(html) do
@@ -625,21 +536,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.Live.StartLiveScopedTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.StartLiveTest.ScopedEndpoint
 
     alias Threadline.Semantics.ActorRef
 
-    @endpoint Threadline.OperatorSurface.StartLiveTest.ScopedEndpoint
-
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.StartLiveTest.ScopedEndpoint,
-        secret_key_base: "z" |> String.duplicate(64),
-        live_view: [signing_salt: "z" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.StartLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
@@ -667,21 +571,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.Live.StartLiveThemeTest do
     use Threadline.DataCase, async: false
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.StartLiveTest.SystemEndpoint
 
     alias Threadline.Semantics.ActorRef
 
-    @endpoint Threadline.OperatorSurface.StartLiveTest.SystemEndpoint
-
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.StartLiveTest.SystemEndpoint,
-        secret_key_base: "y" |> String.duplicate(64),
-        live_view: [signing_salt: "y" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.StartLiveTest.Layouts]
-      )
-
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 

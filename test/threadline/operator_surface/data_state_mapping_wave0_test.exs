@@ -13,7 +13,7 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
     * unavailable  = NOT a permissions issue — down /   (plug/cloud-off / eye-off
                      redacted / pruned                    / archive)
 
-  This test asserts the current `UI.data_state/1` dispatcher maps each typed
+  This test asserts the current `UI.Data.data_state/1` dispatcher maps each typed
   reason to the correct component (icon + heading + role). The invariant is that
   these states remain distinct as the operator surface evolves.
   """
@@ -38,7 +38,7 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
     assigns = %{reason: reason}
 
     rendered_to_string(~H"""
-    <UI.data_state reason={@reason} />
+    <UI.Data.data_state reason={@reason} />
     """)
   end
 
@@ -92,9 +92,9 @@ defmodule Threadline.OperatorSurface.DataStateMappingWave0Test do
 
   # Pull the first <path d="..."> sequence as a cheap icon-shape signature.
   defp extract_icon_signature(html) do
-    Regex.scan(~r/<path[^>]*\bd="([^"]*)"/, html)
-    |> Enum.map(fn [_, d] -> d end)
-    |> Enum.join("|")
+    ~r/<path[^>]*\bd="([^"]*)"/
+    |> Regex.scan(html)
+    |> Enum.map_join("|", fn [_, d] -> d end)
   end
 
   defp extract_heading(html) do

@@ -19,6 +19,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Capture.{AuditChange, AuditTransaction}
     alias Threadline.OperatorSurface.RowHistoryComponentTest.FakeUser
+    alias Threadline.Test.Repo
 
     # We test it using render_component/2
 
@@ -27,9 +28,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(AuditChange, repo_opts())
-      Threadline.Test.Repo.delete_all(AuditTransaction, repo_opts())
-      Threadline.Test.Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
+      Repo.delete_all(AuditChange, repo_opts())
+      Repo.delete_all(AuditTransaction, repo_opts())
+      Repo.delete_all(Threadline.Semantics.AuditAction, repo_opts())
       {:ok, %{}}
     end
 
@@ -201,7 +202,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
-      Threadline.Test.Repo.insert!(
+      Repo.insert!(
         AuditTransaction.changeset(Map.merge(defaults, attrs)),
         repo_opts()
       )
@@ -220,7 +221,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         captured_at: DateTime.utc_now()
       }
 
-      Threadline.Test.Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
+      Repo.insert!(AuditChange.changeset(Map.merge(defaults, attrs)), repo_opts())
     end
 
     defp scope_operator_query(query, %{source: source}, %{surface: :row_history}) do

@@ -111,9 +111,8 @@ Threadline repository.
 | `mix verify.format` | Check the formatter-owned source tree. |
 | `mix verify.credo` | Run the repository's Credo policy. |
 | `mix verify.dialyzer` | Run the configured Dialyzer analysis without rebuilding the PLT. |
-| `mix verify.test` | Run the root ExUnit suite. |
+| `mix verify.test` | Run the root ExUnit suite, including every public documentation contract test. |
 | `mix verify.threadline` | Run the configured positive-list trigger-coverage gate. |
-| `mix verify.doc_contract` | Run public documentation contract tests. |
 | `mix verify.release` | Validate the clean, taggable release shape, documentation, and Hex archive. |
 | `mix verify.topology` | Invoke the repository-only PgBouncer topology task. |
 | `mix verify.example` | Compile and test the Phoenix reference application. |
@@ -125,6 +124,7 @@ Threadline repository.
 | `mix verify.hex_evaluator` | Compile, migrate, and test the isolated Hex evaluator. |
 | `mix verify.bench` | Run the repository benchmark scripts. |
 | `mix verify.compile_no_optional` | Compile without optional dependencies and treat warnings as errors. |
+| `mix verify.xref_cycles` | Fail if any compile-connected cycle exists between modules. |
 | `mix verify.flake` | Re-run tests with fresh seeds until a failure appears or the repeat limit is reached. |
 | `mix test.setup` | Prepare example dependencies, then run the root test setup path. |
 | `mix test.reset` | Recreate the root test database before running setup. |

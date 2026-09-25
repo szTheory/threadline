@@ -91,7 +91,7 @@ flowchart TB
 
 ### Configure before generating
 
-The storage schema defaults to `threadline`. A host can choose another valid PostgreSQL identifier, but it must do so before generation because the generated SQL carries that schema name.
+The storage schema defaults to `public`, your host's default schema. A host can choose a dedicated schema such as `"threadline"` or another valid PostgreSQL identifier, but it must do so before generation because the generated SQL carries that schema name.
 
 ```elixir
 config :threadline,

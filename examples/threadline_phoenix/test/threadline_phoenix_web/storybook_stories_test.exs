@@ -36,57 +36,57 @@ defmodule ThreadlinePhoenixWeb.StorybookStoriesTest do
   )
 
   @primitive_contracts [
-    {"button", ["<UI.button"]},
-    {"icon button", ["<UI.icon_button"]},
-    {"link", ["<UI.link"]},
-    {"badge", ["<UI.badge"]},
-    {"alert", ["<UI.alert"]},
-    {"divider", ["<UI.divider"]},
-    {"spinner", ["<UI.spinner"]},
-    {"avatar", ["<UI.avatar"]},
-    {"card", ["<UI.card"]},
-    {"stack", ["<UI.stack"]},
-    {"cluster", ["<UI.cluster"]},
-    {"page header", ["<UI.page_header"]},
-    {"pager", ["<UI.pager"]},
-    {"stat tile", ["<UI.stat_tile"]}
+    {"button", ["<UI.Actions.button"]},
+    {"icon button", ["<UI.Actions.icon_button"]},
+    {"link", ["<UI.Actions.link"]},
+    {"badge", ["<UI.Display.badge"]},
+    {"alert", ["<UI.Display.alert"]},
+    {"divider", ["<UI.Display.divider"]},
+    {"spinner", ["<UI.Display.spinner"]},
+    {"avatar", ["<UI.Display.avatar"]},
+    {"card", ["<UI.Display.card"]},
+    {"stack", ["<UI.Display.stack"]},
+    {"cluster", ["<UI.Display.cluster"]},
+    {"page header", ["<UI.Page.page_header"]},
+    {"pager", ["<UI.Page.pager"]},
+    {"stat tile", ["<UI.Display.stat_tile"]}
   ]
 
   @form_contracts [
-    {"field/input", ["<UI.field", "<UI.input"]},
-    {"label", ["<UI.label"]},
-    {"help text", ["<UI.help"]},
-    {"error text", ["<UI.error"]},
-    {"error summary", ["<UI.error_summary"]},
-    {"field group", ["<UI.field_group"]},
+    {"field/input", ["<UI.Form.field", "<UI.Form.input"]},
+    {"label", ["<UI.Form.label"]},
+    {"help text", ["<UI.Form.help"]},
+    {"error text", ["<UI.Form.error"]},
+    {"error summary", ["<UI.Form.error_summary"]},
+    {"field group", ["<UI.Form.field_group"]},
     {"checkbox", [~s|type="checkbox"|]},
-    {"radio", ["<UI.radio"]},
-    {"switch", ["<UI.switch"]},
+    {"radio", ["<UI.Form.radio"]},
+    {"switch", ["<UI.Form.switch"]},
     {"select", [~s|type="select"|]},
     {"textarea", [~s|type="textarea"|]},
-    {"combobox", ["<UI.combobox"]}
+    {"combobox", ["<UI.Form.combobox"]}
   ]
 
   @overlay_contracts [
-    {"modal", ["<UI.modal"]},
-    {"drawer", ["<UI.drawer"]},
-    {"toast", ["<UI.toast"]},
-    {"tooltip", ["<UI.tooltip"]},
-    {"popover", ["<UI.popover"]},
-    {"dropdown", ["<UI.dropdown"]},
-    {"accordion", ["<UI.accordion"]},
-    {"tabs", ["<UI.tabs"]},
-    {"segmented control", ["<UI.segmented_control"]}
+    {"modal", ["<UI.Overlay.modal"]},
+    {"drawer", ["<UI.Overlay.drawer"]},
+    {"toast", ["<UI.Overlay.toast"]},
+    {"tooltip", ["<UI.Overlay.tooltip"]},
+    {"popover", ["<UI.Overlay.popover"]},
+    {"dropdown", ["<UI.Overlay.dropdown"]},
+    {"accordion", ["<UI.Overlay.accordion"]},
+    {"tabs", ["<UI.Page.tabs"]},
+    {"segmented control", ["<UI.Page.segmented_control"]}
   ]
 
   @data_display_contracts [
-    {"ref", ["<UI.ref"]},
-    {"kv", ["<UI.kv"]},
-    {"data table", ["<UI.data_table"]},
-    {"data panel", ["<UI.data_panel"]},
-    {"code block", ["<UI.code_block"]},
-    {"detail header", ["<UI.detail_header"]},
-    {"toolbar", ["<UI.toolbar"]}
+    {"ref", ["<UI.Display.ref"]},
+    {"kv", ["<UI.Display.kv"]},
+    {"data table", ["<UI.Data.data_table"]},
+    {"data panel", ["<UI.Data.data_panel"]},
+    {"code block", ["<UI.Display.code_block"]},
+    {"detail header", ["<UI.Page.detail_header"]},
+    {"toolbar", ["<UI.Page.toolbar"]}
   ]
 
   @group_story_ids [

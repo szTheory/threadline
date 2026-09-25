@@ -106,7 +106,8 @@ defmodule Threadline.OperatorSurface.AuthTest do
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
 
       # Since we only get a user_id, we might just store it. Wait, the goal says:
-      # "ensure socket.assigns.threadline_actor_ref is correctly populated with the ActorRef struct regardless of the source."
+      # "ensure socket.assigns.threadline_actor_ref is correctly populated with the
+      # ActorRef struct regardless of the source."
       # But legacy user_id might not be an ActorRef. We can create an ActorRef for user_id!
       assert %Threadline.Semantics.ActorRef{type: :user, id: "123"} =
                returned_socket.assigns.threadline_actor_ref

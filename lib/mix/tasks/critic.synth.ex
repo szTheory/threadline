@@ -141,9 +141,8 @@ defmodule Mix.Tasks.Critic.Synth do
             with :ok <- IO.binwrite(io_device, contents),
                  :ok <- :file.sync(io_device),
                  :ok <- File.close(io_device),
-                 :ok <- atomic_write_hook(),
-                 :ok <- File.rename(temp, target) do
-              :ok
+                 :ok <- atomic_write_hook() do
+              File.rename(temp, target)
             end
           after
             _ = File.close(io_device)

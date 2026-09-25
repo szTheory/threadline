@@ -180,26 +180,24 @@ defmodule Threadline.DialyzerIgnoreContractTest do
   end
 
   defp validate_contract(fixtures, ignore_source, ceiling, unused_filters \\ []) do
-    try do
-      validate_fixtures!(fixtures)
-      {entries, entry_lines, source_lines} = parse_ignore_source!(ignore_source)
+    validate_fixtures!(fixtures)
+    {entries, entry_lines, source_lines} = parse_ignore_source!(ignore_source)
 
-      reject_broad_entries!(entries)
-      demand!(length(entries) == length(Enum.uniq(entries)), "duplicate exact ignore tuple")
-      reject_unused_filters!(unused_filters)
+    reject_broad_entries!(entries)
+    demand!(length(entries) == length(Enum.uniq(entries)), "duplicate exact ignore tuple")
+    reject_unused_filters!(unused_filters)
 
-      warnings = Enum.flat_map(fixtures, & &1["warnings"])
-      validate_entries!(entries, entry_lines, source_lines, warnings)
+    warnings = Enum.flat_map(fixtures, & &1["warnings"])
+    validate_entries!(entries, entry_lines, source_lines, warnings)
 
-      demand!(
-        length(entries) <= ceiling,
-        "ignore count exceeds the ratchet ceiling of #{ceiling}"
-      )
+    demand!(
+      length(entries) <= ceiling,
+      "ignore count exceeds the ratchet ceiling of #{ceiling}"
+    )
 
-      :ok
-    catch
-      {:contract_error, message} -> {:error, message}
-    end
+    :ok
+  catch
+    {:contract_error, message} -> {:error, message}
   end
 
   defp validate_fixtures!(fixtures) do
@@ -447,25 +445,23 @@ defmodule Threadline.DialyzerIgnoreContractTest do
 
   defp make_irreducible(fixtures, warning_id) do
     Enum.map(fixtures, fn fixture ->
-      warnings =
-        Enum.map(fixture["warnings"], fn warning ->
-          if warning["id"] == warning_id do
-            warning
-            |> Map.put("disposition", "irreducible")
-            |> Map.put("ignore_tuple", %{
-              "file" => warning["origin"]["path"],
-              "warning_description" => warning["raw_line"]
-            })
-            |> Map.put("rationale", "The sealed warning has no sound local source correction.")
-            |> Map.put("removal_trigger", "Remove after the upstream type contract is corrected.")
-          else
-            warning
-          end
-        end)
-
+      warnings = Enum.map(fixture["warnings"], &make_warning_irreducible(&1, warning_id))
       Map.put(fixture, "warnings", warnings)
     end)
   end
+
+  defp make_warning_irreducible(%{"id" => warning_id} = warning, warning_id) do
+    warning
+    |> Map.put("disposition", "irreducible")
+    |> Map.put("ignore_tuple", %{
+      "file" => warning["origin"]["path"],
+      "warning_description" => warning["raw_line"]
+    })
+    |> Map.put("rationale", "The sealed warning has no sound local source correction.")
+    |> Map.put("removal_trigger", "Remove after the upstream type contract is corrected.")
+  end
+
+  defp make_warning_irreducible(warning, _warning_id), do: warning
 
   defp ignore_source(fixtures) do
     irreducible =

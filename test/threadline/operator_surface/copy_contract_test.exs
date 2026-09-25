@@ -1,17 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.CopyContractTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Copy contract</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.CopyContractTest.Auth do
     def authorize(_), do: true
   end
@@ -35,19 +22,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.CopyContractTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.CopyContractTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.CopyContractTest.Auth
 
     scope "/" do
       pipe_through(:browser)
@@ -58,46 +35,38 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           "ticket_replies" => Threadline.OperatorSurface.CopyContractTest.FakeTicketReply,
           "users" => Threadline.OperatorSurface.CopyContractTest.FakeUser
         },
-        coverage_authorize_fn: &Threadline.OperatorSurface.CopyContractTest.Auth.authorize/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.CopyContractTest.Auth.authorize/1,
-        evidence_authorize_fn: &Threadline.OperatorSurface.CopyContractTest.Auth.authorize/1,
-        export_authorize_fn: &Threadline.OperatorSurface.CopyContractTest.Auth.authorize/1
+        coverage_authorize_fn: &Auth.authorize/1,
+        policy_authorize_fn: &Auth.authorize/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize/1
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.CopyContractTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_copy_contract_key",
-      signing_salt: "copy-contract"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.CopyContractTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.CopyContractTest.Router
   end
 
   defmodule Threadline.OperatorSurface.CopyContractTest do
     use Threadline.DataCase, async: false
     import Phoenix.Component
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
 
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.CopyContractTest.Endpoint
+
+    alias Threadline.Capture.AuditChange
+    alias Threadline.Capture.AuditTransaction
     alias Threadline.Governance.{ExportJob, RetentionRun, SavedView}
     alias Threadline.OperatorSurface.Components.SurfaceHeader
     alias Threadline.OperatorSurface.Components.UnsupportedView
-    alias Threadline.OperatorSurface.Unsupported
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
+    alias Threadline.OperatorSurface.Unsupported
     alias Threadline.Semantics.ActorRef
+    alias Threadline.Test.Repo
+    alias Threadline.Test.SourceFamily
 
-    @endpoint Threadline.OperatorSurface.CopyContractTest.Endpoint
     @coverage %{uncovered_count: 0, last_checked_at: ~U[2026-06-04 00:00:00Z]}
     @expected_shell_groups ["Investigate", "Audit readiness", "Evidence & exports"]
     @expected_home_jobs ["Find what changed", "Check audit readiness", "Use evidence and exports"]
@@ -123,12 +92,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @retention_live_path "lib/threadline/operator_surface/live/retention_history_live.ex"
 
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.CopyContractTest.Endpoint,
-        secret_key_base: "c" |> String.duplicate(64),
-        live_view: [signing_salt: "c" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.CopyContractTest.Layouts]
-      )
-
       original_interval = Application.get_env(:threadline, :coverage_poll_ms)
       Application.put_env(:threadline, :coverage_poll_ms, 5_000)
 
@@ -140,14 +103,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 
     setup do
-      Threadline.Test.Repo.delete_all(SavedView, repo_opts())
-      Threadline.Test.Repo.delete_all(ExportJob, repo_opts())
-      Threadline.Test.Repo.delete_all(RetentionRun, repo_opts())
+      Repo.delete_all(SavedView, repo_opts())
+      Repo.delete_all(ExportJob, repo_opts())
+      Repo.delete_all(RetentionRun, repo_opts())
 
       {:ok, actor_ref} = ActorRef.new(:user, "copy-contract-operator")
 
@@ -190,9 +153,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "primary shell and Home copy avoid unsafe vocabulary while keeping allowed contexts documented",
          %{conn: conn} do
       text =
-        [render_shell(), render_home(conn)]
-        |> Enum.map(&visible_text/1)
-        |> Enum.join("\n")
+        Enum.map_join([render_shell(), render_home(conn)], "\n", &visible_text/1)
 
       assert @allowed_evidence_verdict_terms == ["Proven", "Inferred", "Unsupported"]
       assert @allowed_proof_contexts == ["proof history"]
@@ -284,11 +245,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
+        <UI.Display.ref value={@value} kind="correlation" copy_label="Copy correlation id" />
         """)
 
       visible =
-        Threadline.OperatorSurface.Presentation.ref(@long_correlation_id, kind: :correlation).visible
+        Presentation.ref(@long_correlation_id, kind: :correlation).visible
 
       copy_targets = extract_copy_targets(html)
 
@@ -382,7 +343,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       actor = source(@actor_live_path)
 
       assert transaction =~ ~s(title="Transaction")
-      assert transaction =~ ~s(<UI.detail_header title={transaction_title}>)
+      assert transaction =~ ~s(<UI.Page.detail_header title={transaction_title}>)
       assert transaction =~ ~S|defp transaction_detail_title(%{id: id}) do|
       assert transaction =~ ~S|"Transaction #{Presentation.short_id(id, 12)}"|
       assert transaction =~ ~S|defp transaction_detail_title(_), do: "Transaction"|
@@ -390,7 +351,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert row_route =~ ~s(title="Row history")
 
       assert row_route =~
-               ~S|<UI.detail_header title={row_history_detail_title(@table, @record_id)}>|
+               ~S|<UI.Page.detail_header title={row_history_detail_title(@table, @record_id)}>|
 
       assert row_route =~ ~S|defp row_history_detail_title(table, record_id) do|
       assert row_route =~ ~S|"#{table} / #{Presentation.short_id(record_id, 14)}"|
@@ -401,7 +362,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                ~S|Row history: <%= @table %> / <%= Presentation.short_id(@record_id, 14) %>|
 
       assert actor =~ ~s(title="Actor activity")
-      assert actor =~ ~S|<UI.detail_header title={actor_detail_title(@actor_ref)}>|
+      assert actor =~ ~S|<UI.Page.detail_header title={actor_detail_title(@actor_ref)}>|
       assert actor =~ ~S|defp safe_actor_kind(kind) when is_binary(kind) do|
       assert actor =~ ~S|Enum.find(@actor_kinds, &(Atom.to_string(&1) == kind))|
       refute actor =~ "String.to_atom("
@@ -442,7 +403,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     test "Phase 186 export source locks real completed downloads and non-ready status text" do
-      source = source(@export_status_live_path)
+      source = SourceFamily.read!(@export_status_live_path)
       presentation_source = source(@presentation_path)
       download_attrs = export_download_attrs_block(source)
       actions_block = export_job_actions_block(source)
@@ -564,8 +525,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       occurred_at = ~U[2020-01-01 12:00:00Z]
 
       txn =
-        Threadline.Test.Repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+        Repo.insert!(
+          AuditTransaction.changeset(%{
             txid: System.unique_integer([:positive]),
             occurred_at: occurred_at,
             actor_ref: %{"type" => "user", "id" => "copy-contract-operator"},
@@ -574,8 +535,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           repo_opts()
         )
 
-      Threadline.Test.Repo.insert!(
-        Threadline.Capture.AuditChange.changeset(%{
+      Repo.insert!(
+        AuditChange.changeset(%{
           transaction_id: txn.id,
           table_schema: "public",
           table_name: "ticket_replies",

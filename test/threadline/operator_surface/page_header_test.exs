@@ -3,13 +3,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc """
     Wave 0 RED scaffold for NAV-01 / D-11 — the one-`<h1>`-per-page page header.
 
-    Asserts the *target* contract for the not-yet-built `UI.page_header/1`
+    Asserts the *target* contract for the not-yet-built `UI.Page.page_header/1`
     component (Plan 03 owns the implementation): a single `<h1 class="tl-page__title">`
     wrapped in `<header class="tl-page__header">`, and an optional breadcrumb landmark
     `<nav aria-label="Breadcrumb">` when a `breadcrumbs` assign is supplied.
 
     Expected state at Wave 0 (this plan, 175-01):
-      * RED — `Threadline.OperatorSurface.UI.page_header/1` does not exist yet, so the
+      * RED — `Threadline.OperatorSurface.UI.Page.page_header/1` does not exist yet, so the
         render raises / fails to compile the call. This is an acceptable Wave 0 scaffold;
         Plan 03 turns it GREEN by adding the component on the contract below.
 
@@ -26,7 +26,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.page_header title="Timeline" />
+        <UI.Page.page_header title="Timeline" />
         """)
 
       assert html =~ ~s|<header class="tl-page__header"|
@@ -45,7 +45,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       html =
         rendered_to_string(~H"""
-        <UI.page_header title="Transaction" breadcrumbs={@crumbs} />
+        <UI.Page.page_header title="Transaction" breadcrumbs={@crumbs} />
         """)
 
       assert html =~ ~s|<nav aria-label="Breadcrumb"|

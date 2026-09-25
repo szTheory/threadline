@@ -1,44 +1,84 @@
 defmodule Threadline.Governance.Migration do
   @moduledoc false
 
+  alias Threadline.StorageSchema
+
+  # The generated migration is assembled from ordered parts: the module header,
+  # the `up` statements (schema, the four tables, then the evidence indexes), and
+  # the `down` statements in reverse dependency order. Each statement is a
+  # heredoc ending in a newline, and statements are joined with one blank line.
+  # The output is pinned byte for byte in the storage schema migration contract
+  # test, because adopters have already run it.
+
   @doc """
   Returns the full migration content as a string, ready to write to a `.exs` file.
   """
   def migration_content do
-    storage_schema = Threadline.StorageSchema.get()
+    names = migration_names()
+
+    IO.iodata_to_binary([
+      """
+      defmodule ThreadlineGovernanceSchema do
+        use Ecto.Migration
+
+        def up do
+      """,
+      Enum.join(up_statements(names), "\n"),
+      """
+        end
+
+        def down do
+      """,
+      Enum.join(down_statements(names), "\n"),
+      """
+        end
+      end
+      """
+    ])
+  end
+
+  defp migration_names do
+    storage_schema = StorageSchema.get()
     storage_opts = [storage_schema: storage_schema]
-    quoted_schema = Threadline.StorageSchema.quote_ident(storage_schema)
-    export_jobs = Threadline.StorageSchema.table("threadline_export_jobs", storage_opts)
-    retention_runs = Threadline.StorageSchema.table("threadline_retention_runs", storage_opts)
-    saved_views = Threadline.StorageSchema.table("threadline_saved_views", storage_opts)
-    evidence_records = Threadline.StorageSchema.table("threadline_evidence_records", storage_opts)
 
-    evidence_subject_idx =
-      Threadline.StorageSchema.qualify(storage_schema, "threadline_evidence_records_subject_idx")
+    %{
+      quoted_schema: StorageSchema.quote_ident(storage_schema),
+      export_jobs: StorageSchema.table("threadline_export_jobs", storage_opts),
+      retention_runs: StorageSchema.table("threadline_retention_runs", storage_opts),
+      saved_views: StorageSchema.table("threadline_saved_views", storage_opts),
+      evidence_records: StorageSchema.table("threadline_evidence_records", storage_opts),
+      evidence_subject_idx:
+        StorageSchema.qualify(storage_schema, "threadline_evidence_records_subject_idx"),
+      evidence_recorded_at_idx:
+        StorageSchema.qualify(storage_schema, "threadline_evidence_records_recorded_at_idx"),
+      evidence_subject_ref_idx:
+        StorageSchema.qualify(storage_schema, "threadline_evidence_records_subject_ref_idx")
+    }
+  end
 
-    evidence_recorded_at_idx =
-      Threadline.StorageSchema.qualify(
-        storage_schema,
-        "threadline_evidence_records_recorded_at_idx"
-      )
+  defp up_statements(names) do
+    [
+      create_schema(names),
+      create_export_jobs(names),
+      create_retention_runs(names),
+      create_saved_views(names),
+      create_evidence_records(names)
+      | create_evidence_indexes(names)
+    ]
+  end
 
-    evidence_subject_ref_idx =
-      Threadline.StorageSchema.qualify(
-        storage_schema,
-        "threadline_evidence_records_subject_ref_idx"
-      )
-
+  defp create_schema(names) do
     """
-    defmodule ThreadlineGovernanceSchema do
-      use Ecto.Migration
-
-      def up do
         execute \"\"\"
-        CREATE SCHEMA IF NOT EXISTS #{quoted_schema}
+        CREATE SCHEMA IF NOT EXISTS #{names.quoted_schema}
         \"\"\"
+    """
+  end
 
+  defp create_export_jobs(names) do
+    """
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{export_jobs} (
+        CREATE TABLE IF NOT EXISTS #{names.export_jobs} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           status         text        NOT NULL,
           query_params   jsonb       NOT NULL,
@@ -52,9 +92,13 @@ defmodule Threadline.Governance.Migration do
           updated_at     timestamptz NOT NULL DEFAULT now()
         )
         \"\"\"
+    """
+  end
 
+  defp create_retention_runs(names) do
+    """
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{retention_runs} (
+        CREATE TABLE IF NOT EXISTS #{names.retention_runs} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           status         text        NOT NULL,
           deleted_count  integer,
@@ -66,9 +110,13 @@ defmodule Threadline.Governance.Migration do
           updated_at     timestamptz NOT NULL DEFAULT now()
         )
         \"\"\"
+    """
+  end
 
+  defp create_saved_views(names) do
+    """
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{saved_views} (
+        CREATE TABLE IF NOT EXISTS #{names.saved_views} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           name           text        NOT NULL,
           actor_ref      jsonb       NOT NULL,
@@ -77,9 +125,13 @@ defmodule Threadline.Governance.Migration do
           updated_at     timestamptz NOT NULL DEFAULT now()
         )
         \"\"\"
+    """
+  end
 
+  defp create_evidence_records(names) do
+    """
         execute \"\"\"
-        CREATE TABLE IF NOT EXISTS #{evidence_records} (
+        CREATE TABLE IF NOT EXISTS #{names.evidence_records} (
           id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
           subject        text        NOT NULL,
           subject_ref    jsonb       NOT NULL,
@@ -92,54 +144,52 @@ defmodule Threadline.Governance.Migration do
           inserted_at    timestamptz NOT NULL DEFAULT now()
         )
         \"\"\"
+    """
+  end
 
-        execute \"\"\"
-        CREATE INDEX IF NOT EXISTS threadline_evidence_records_subject_idx
-          ON #{evidence_records} (subject)
-        \"\"\"
+  defp create_evidence_indexes(names) do
+    [
+      """
+          execute \"\"\"
+          CREATE INDEX IF NOT EXISTS threadline_evidence_records_subject_idx
+            ON #{names.evidence_records} (subject)
+          \"\"\"
+      """,
+      """
+          execute \"\"\"
+          CREATE INDEX IF NOT EXISTS threadline_evidence_records_recorded_at_idx
+            ON #{names.evidence_records} (recorded_at)
+          \"\"\"
+      """,
+      """
+          execute \"\"\"
+          CREATE INDEX IF NOT EXISTS threadline_evidence_records_subject_ref_idx
+            ON #{names.evidence_records}
+            USING gin (subject_ref)
+          \"\"\"
+      """
+    ]
+  end
 
-        execute \"\"\"
-        CREATE INDEX IF NOT EXISTS threadline_evidence_records_recorded_at_idx
-          ON #{evidence_records} (recorded_at)
-        \"\"\"
+  # Indexes first, then tables in reverse creation order.
+  defp down_statements(names) do
+    indexes = [
+      names.evidence_subject_ref_idx,
+      names.evidence_recorded_at_idx,
+      names.evidence_subject_idx
+    ]
 
-        execute \"\"\"
-        CREATE INDEX IF NOT EXISTS threadline_evidence_records_subject_ref_idx
-          ON #{evidence_records}
-          USING gin (subject_ref)
-        \"\"\"
-      end
+    tables = [names.evidence_records, names.saved_views, names.retention_runs, names.export_jobs]
 
-      def down do
-        execute \"\"\"
-        DROP INDEX IF EXISTS #{evidence_subject_ref_idx}
-        \"\"\"
+    Enum.map(indexes, &drop_statement("INDEX", &1)) ++
+      Enum.map(tables, &drop_statement("TABLE", &1))
+  end
 
+  defp drop_statement(kind, name) do
+    """
         execute \"\"\"
-        DROP INDEX IF EXISTS #{evidence_recorded_at_idx}
+        DROP #{kind} IF EXISTS #{name}
         \"\"\"
-
-        execute \"\"\"
-        DROP INDEX IF EXISTS #{evidence_subject_idx}
-        \"\"\"
-
-        execute \"\"\"
-        DROP TABLE IF EXISTS #{evidence_records}
-        \"\"\"
-
-        execute \"\"\"
-        DROP TABLE IF EXISTS #{saved_views}
-        \"\"\"
-
-        execute \"\"\"
-        DROP TABLE IF EXISTS #{retention_runs}
-        \"\"\"
-
-        execute \"\"\"
-        DROP TABLE IF EXISTS #{export_jobs}
-        \"\"\"
-      end
-    end
     """
   end
 end

@@ -36,11 +36,11 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
     ~H"""
     <.threadline_preview theme="dark">
       <.preview_section title="Small operator patterns" description="Six recurring assemblies for maintainers to review without expanding Storybook into flow testing.">
-        <UI.stack gap="section">
-          <UI.card>
+        <UI.Display.stack gap="section">
+          <UI.Display.card>
             <:title>toolbar plus filters</:title>
-            <UI.toolbar disabled={@disabled.disabled}>
-              <UI.field
+            <UI.Page.toolbar disabled={@disabled.disabled}>
+              <UI.Form.field
                 id="pattern-action-filter"
                 name="pattern_action_filter"
                 label="Audit Action"
@@ -48,76 +48,76 @@ defmodule ThreadlinePhoenixWeb.Storybook.Patterns.OperatorPatternsStory do
                 help_text={@toolbar.story_id}
                 disabled={@disabled.disabled}
               />
-              <UI.button type="button" disabled={@disabled.disabled}>Apply</UI.button>
-            </UI.toolbar>
-          </UI.card>
+              <UI.Actions.button type="button" disabled={@disabled.disabled}>Apply</UI.Actions.button>
+            </UI.Page.toolbar>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>detail header plus metadata</:title>
-            <UI.detail_header title="Ticket reply changed">
+            <UI.Page.detail_header title="Ticket reply changed">
               <:metadata key="Pattern source"><%= @detail_header.story_id %></:metadata>
               <:metadata key="Audit Transaction">
-                <UI.ref value={@long_id} kind="correlation" copy_label="Copy pattern Audit Transaction reference" />
+                <UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy pattern Audit Transaction reference" />
               </:metadata>
               <:actions>
-                <UI.button type="button" variant="secondary">Return</UI.button>
+                <UI.Actions.button type="button" variant="secondary">Return</UI.Actions.button>
               </:actions>
-            </UI.detail_header>
-          </UI.card>
+            </UI.Page.detail_header>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>data panel plus state and pager</:title>
-            <UI.data_panel state={:ok} id="pattern-data-panel">
+            <UI.Data.data_panel state={:ok} id="pattern-data-panel">
               <:data>
-                <UI.data_table rows={[%{subject: "ticket:4521", action: "ticket.reopened"}]}>
+                <UI.Data.data_table rows={[%{subject: "ticket:4521", action: "ticket.reopened"}]}>
                   <:col :let={row} label="Subject"><%= row.subject %></:col>
                   <:col :let={row} label="Action"><%= row.action %></:col>
-                </UI.data_table>
+                </UI.Data.data_table>
               </:data>
               <:pager>
-                <UI.pager
+                <UI.Page.pager
                   shown={@pager.shown}
                   match_count={@pager.match_count}
                   has_older={@pager.has_older}
                   has_newer={@pager.has_newer}
                 />
               </:pager>
-            </UI.data_panel>
-            <UI.data_panel state={:empty} id="pattern-empty-panel">
+            </UI.Data.data_panel>
+            <UI.Data.data_panel state={:empty} id="pattern-empty-panel">
               <:data><span>not rendered for empty pattern</span></:data>
-            </UI.data_panel>
-          </UI.card>
+            </UI.Data.data_panel>
+          </UI.Display.card>
 
-          <UI.card variant="danger">
+          <UI.Display.card variant="danger">
             <:title>inert destructive modal</:title>
-            <UI.modal id="pattern-destructive-modal" show>
-              <UI.stack>
+            <UI.Overlay.modal id="pattern-destructive-modal" show>
+              <UI.Display.stack>
                 <h2 id="pattern-destructive-modal-title" class="tl-detail-header__title">
                   Prune retention window permanently?
                 </h2>
                 <p id="pattern-destructive-modal-description" class="tl-page__lede">
                   <%= @modal_destructive.body %>
                 </p>
-                <UI.button type="button" variant="danger">Prune records permanently</UI.button>
-              </UI.stack>
-            </UI.modal>
-          </UI.card>
+                <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
+              </UI.Display.stack>
+            </UI.Overlay.modal>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>offline and reconnect</:title>
-            <UI.alert variant="warning">
-              <UI.reconnect_banner />
+            <UI.Display.alert variant="warning">
+              <UI.Overlay.reconnect_banner />
               <span><%= @offline.body %></span>
-              <UI.button type="button" disabled>Retry after reconnect</UI.button>
-            </UI.alert>
-          </UI.card>
+              <UI.Actions.button type="button" disabled>Retry after reconnect</UI.Actions.button>
+            </UI.Display.alert>
+          </UI.Display.card>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>permission denied</:title>
-            <UI.data_state reason={:unauthorized} />
+            <UI.Data.data_state reason={:unauthorized} />
             <p class="tl-page__lede"><%= @permission_denied.story_id %></p>
-          </UI.card>
-        </UI.stack>
+          </UI.Display.card>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

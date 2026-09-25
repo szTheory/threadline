@@ -2,6 +2,7 @@ defmodule Threadline.ReadmeDocContractTest do
   @moduledoc false
   use Threadline.DataCase
 
+  alias Mix.Tasks.Release.Pins
   alias Threadline.Test.Repo
 
   @quick_start_start "## Quick Start"
@@ -243,7 +244,7 @@ defmodule Threadline.ReadmeDocContractTest do
     # the full rationale) and the bump rehearsal found four more copies of.
     assert String.contains?(
              slice,
-             ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+             ~s({:threadline, "~> #{Pins.target_pin_version()}"})
            )
 
     assert String.contains?(slice, "guides/getting-started-saas.md")

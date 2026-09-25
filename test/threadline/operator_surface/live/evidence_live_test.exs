@@ -1,17 +1,4 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.EvidenceLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Auth do
     def authorize(_mirror), do: Application.get_env(:threadline, :test_allow_evidence, true)
 
@@ -20,70 +7,39 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.EvidenceLiveTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.EvidenceLiveTest.Auth
 
     scope "/" do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
-        evidence_authorize_fn: &Threadline.OperatorSurface.EvidenceLiveTest.Auth.authorize/1,
-        export_authorize_fn:
-          &Threadline.OperatorSurface.EvidenceLiveTest.Auth.authorize_exports/1,
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize_exports/1,
         repo: Threadline.Test.Repo
       )
     end
   end
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "3v1d3nc3"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.EvidenceLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.EvidenceLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest do
     use Threadline.DataCase, async: false
 
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.EvidenceLiveTest.Endpoint
 
     alias Threadline.Governance.EvidenceRecord
 
-    @endpoint Threadline.OperatorSurface.EvidenceLiveTest.Endpoint
-
     setup_all do
-      Application.put_env(:threadline, Threadline.OperatorSurface.EvidenceLiveTest.Endpoint,
-        secret_key_base: "e" |> String.duplicate(64),
-        live_view: [signing_salt: "e" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.EvidenceLiveTest.Layouts]
-      )
-
       Application.put_env(:threadline, :test_allow_evidence, true)
       Application.put_env(:threadline, :test_allow_exports, true)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       :ok
     end
 

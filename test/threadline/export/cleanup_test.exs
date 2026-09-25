@@ -2,52 +2,57 @@ defmodule Threadline.Export.CleanupTest do
   use Threadline.DataCase
   alias Threadline.Export.CleanupTask
   alias Threadline.Governance.ExportJob
+  alias Threadline.Storage.Local
   alias Threadline.Test.Repo
 
   defmodule FlipToDefaultOnDeleteStorage do
     @behaviour Threadline.Storage
 
+    alias Threadline.Storage.Local
+
     @impl true
     def init(_opts), do: :ok
 
     @impl true
-    def put(content, opts \\ []), do: Threadline.Storage.Local.put(content, opts)
+    def put(content, opts \\ []), do: Local.put(content, opts)
 
     @impl true
-    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+    def get(file_id), do: Local.get(file_id)
 
     @impl true
-    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+    def path(file_id), do: Local.path(file_id)
 
     @impl true
     def download_url(file_id, opts \\ []),
-      do: Threadline.Storage.Local.download_url(file_id, opts)
+      do: Local.download_url(file_id, opts)
 
     @impl true
     def delete(file_id) do
       Application.put_env(:threadline, :storage_schema, "threadline")
-      Threadline.Storage.Local.delete(file_id)
+      Local.delete(file_id)
     end
   end
 
   defmodule FailOnceDeleteStorage do
     @behaviour Threadline.Storage
 
+    alias Threadline.Storage.Local
+
     @impl true
     def init(_opts), do: :ok
 
     @impl true
-    def put(content, opts \\ []), do: Threadline.Storage.Local.put(content, opts)
+    def put(content, opts \\ []), do: Local.put(content, opts)
 
     @impl true
-    def get(file_id), do: Threadline.Storage.Local.get(file_id)
+    def get(file_id), do: Local.get(file_id)
 
     @impl true
-    def path(file_id), do: Threadline.Storage.Local.path(file_id)
+    def path(file_id), do: Local.path(file_id)
 
     @impl true
     def download_url(file_id, opts \\ []),
-      do: Threadline.Storage.Local.download_url(file_id, opts)
+      do: Local.download_url(file_id, opts)
 
     @impl true
     def delete(file_id) do
@@ -55,7 +60,7 @@ defmodule Threadline.Export.CleanupTest do
         Application.put_env(:threadline, :test_fail_export_delete_once, false)
         {:error, :transient_storage_failure}
       else
-        Threadline.Storage.Local.delete(file_id)
+        Local.delete(file_id)
       end
     end
   end
@@ -130,7 +135,7 @@ defmodule Threadline.Export.CleanupTest do
 
       # File for expired job
       expired_file_id = "expired_job.csv"
-      Threadline.Storage.Local.put("some data", file_id: expired_file_id)
+      Local.put("some data", file_id: expired_file_id)
 
       expired_job =
         insert_job!(%{
@@ -149,7 +154,7 @@ defmodule Threadline.Export.CleanupTest do
 
       # File for valid job
       valid_file_id = "valid_job.csv"
-      Threadline.Storage.Local.put("some data", file_id: valid_file_id)
+      Local.put("some data", file_id: valid_file_id)
 
       valid_job =
         insert_job!(%{
@@ -175,12 +180,12 @@ defmodule Threadline.Export.CleanupTest do
       # Expired job should be deleted from DB and disk
       refute Repo.get(ExportJob, expired_job.id, repo_opts())
       refute Repo.get(ExportJob, failed_job.id, repo_opts())
-      assert {:error, :not_found} = Threadline.Storage.Local.path(expired_file_id)
+      assert {:error, :not_found} = Local.path(expired_file_id)
 
       # Valid job should remain
       assert Repo.get(ExportJob, valid_job.id, repo_opts())
       assert Repo.get(ExportJob, running_job.id, repo_opts())
-      assert {:ok, _} = Threadline.Storage.Local.path(valid_file_id)
+      assert {:ok, _} = Local.path(valid_file_id)
     end
 
     test "deletes expired jobs only from the configured storage schema" do
@@ -190,7 +195,7 @@ defmodule Threadline.Export.CleanupTest do
       now = DateTime.utc_now()
       job_id = Ecto.UUID.generate()
       expired_file_id = "audit_expired_job.csv"
-      Threadline.Storage.Local.put("some data", file_id: expired_file_id)
+      Local.put("some data", file_id: expired_file_id)
 
       insert_job!(
         %{
@@ -222,7 +227,7 @@ defmodule Threadline.Export.CleanupTest do
 
       refute Repo.get(ExportJob, job_id, repo_opts("audit"))
       assert Repo.get(ExportJob, job_id, repo_opts())
-      assert {:error, :not_found} = Threadline.Storage.Local.path(expired_file_id)
+      assert {:error, :not_found} = Local.path(expired_file_id)
     end
 
     test "retains an expired job until backing object deletion succeeds" do
@@ -231,7 +236,7 @@ defmodule Threadline.Export.CleanupTest do
       on_exit(fn -> Application.delete_env(:threadline, :test_fail_export_delete_once) end)
 
       file_id = "retry_delete.csv"
-      assert {:ok, ^file_id} = Threadline.Storage.Local.put("sensitive", file_id: file_id)
+      assert {:ok, ^file_id} = Local.put("sensitive", file_id: file_id)
 
       job =
         insert_job!(%{
@@ -245,11 +250,11 @@ defmodule Threadline.Export.CleanupTest do
 
       assert {:noreply, ^state} = CleanupTask.handle_info(:run_cleanup, state)
       assert Repo.get!(ExportJob, job.id, repo_opts())
-      assert {:ok, "sensitive"} = Threadline.Storage.Local.get(file_id)
+      assert {:ok, "sensitive"} = Local.get(file_id)
 
       assert {:noreply, ^state} = CleanupTask.handle_info(:run_cleanup, state)
       refute Repo.get(ExportJob, job.id, repo_opts())
-      assert {:error, :not_found} = Threadline.Storage.Local.path(file_id)
+      assert {:error, :not_found} = Local.path(file_id)
     end
   end
 

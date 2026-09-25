@@ -1,38 +1,15 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
-  defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts do
-    use Phoenix.Component
-
-    def root(assigns) do
-      ~H"""
-      <html>
-        <head><title>Test</title></head>
-        <body><%= @inner_content %></body>
-      </html>
-      """
-    end
-  end
-
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Router do
-    use Phoenix.Router
-    import Phoenix.LiveView.Router
-    require Threadline.OperatorSurface.Router
+    use Threadline.OperatorSurfaceTest.Router
 
-    pipeline :browser do
-      plug(:accepts, ["html"])
-      plug(:fetch_session)
-      plug(:fetch_live_flash)
-
-      plug(:put_root_layout,
-        html: {Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts, :root}
-      )
-    end
+    alias Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth
 
     scope "/" do
       pipe_through(:browser)
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit",
-        actor_fn: &Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth.actor/1,
-        policy_authorize_fn: &Threadline.OperatorSurface.RetentionHistoryLiveTest.Auth.authorize/1
+        actor_fn: &Auth.actor/1,
+        policy_authorize_fn: &Auth.authorize/1
       )
     end
   end
@@ -43,35 +20,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   end
 
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint do
-    use Phoenix.Endpoint, otp_app: :threadline
-
-    @session_options [
-      store: :cookie,
-      key: "_threadline_key",
-      signing_salt: "r3t3nt10n"
-    ]
-
-    plug(Plug.Session, @session_options)
-    plug(:fetch_session)
-    plug(Plug.Parsers, parsers: [:json], pass: ["*/*"], json_decoder: Phoenix.json_library())
-    plug(Plug.MethodOverride)
-    plug(Plug.Head)
-    plug(Threadline.OperatorSurface.RetentionHistoryLiveTest.Router)
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.RetentionHistoryLiveTest.Router
   end
 
   defmodule Threadline.OperatorSurface.RetentionHistoryLiveTest do
     use Threadline.DataCase, async: false
     import Ecto.Query
-    import Phoenix.ConnTest
-    import Phoenix.LiveViewTest
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
 
     import Threadline.OperatorSurface.RefCopyContract
 
     alias Threadline.Governance.RetentionRun
+    alias Threadline.OperatorSurface.Live.RetentionHistoryLive
     alias Threadline.Retention.Pruner
     alias Threadline.Semantics.AuditAction
-
-    @endpoint Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint
 
     defp start_application_supervisor! do
       retention = Application.get_env(:threadline, :retention, [])
@@ -84,14 +49,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     setup_all do
-      Application.put_env(
-        :threadline,
-        Threadline.OperatorSurface.RetentionHistoryLiveTest.Endpoint,
-        secret_key_base: "r" |> String.duplicate(64),
-        live_view: [signing_salt: "r" |> String.duplicate(8)],
-        render_errors: [view: Threadline.OperatorSurface.RetentionHistoryLiveTest.Layouts]
-      )
-
       original_interval = Application.get_env(:threadline, :retention_poll_ms)
       Application.put_env(:threadline, :retention_poll_ms, 5_000)
 
@@ -103,7 +60,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end
       end)
 
-      start_supervised!(@endpoint)
+      start_endpoint!(@endpoint)
       Application.put_env(:threadline, :test_allow_policy, true)
 
       :ok
@@ -111,7 +68,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     setup do
       stop_named_process!(Pruner)
-      Threadline.Test.Repo.delete_all(RetentionRun, repo_opts())
+      Repo.delete_all(RetentionRun, repo_opts())
 
       original_retention = Application.get_env(:threadline, :retention)
 
@@ -178,7 +135,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           started_at: DateTime.add(now, -10, :second),
           completed_at: now
         })
-        |> Threadline.Test.Repo.insert!(repo_opts())
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
@@ -204,7 +161,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           started_at: DateTime.add(now, -10, :second),
           completed_at: now
         })
-        |> Threadline.Test.Repo.insert!(repo_opts())
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
@@ -234,7 +191,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           started_at: DateTime.add(now, -5, :second),
           completed_at: now
         })
-        |> Threadline.Test.Repo.insert!(repo_opts())
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
@@ -254,7 +211,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           status: "failed",
           started_at: DateTime.add(now, -5, :second)
         })
-        |> Threadline.Test.Repo.insert!(repo_opts())
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
@@ -272,7 +229,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Run retention prune"
 
         # ensure no active runs initially
-        assert Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
         assert Pruner.started?()
 
         # Type the canonical policy name and submit the server-enforced form.
@@ -281,7 +238,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
 
         assert_eventually(fn ->
-          Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) > 0
+          Repo.aggregate(RetentionRun, :count, repo_opts()) > 0
         end)
       end
 
@@ -321,7 +278,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           started_at: DateTime.add(now, -5, :second),
           completed_at: now
         })
-        |> Threadline.Test.Repo.insert!(repo_opts())
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
@@ -342,7 +299,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           started_at: DateTime.add(now, -5, :second),
           completed_at: now
         })
-        |> Threadline.Test.Repo.insert!(repo_opts())
+        |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
@@ -373,7 +330,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert render(view) =~ "Run retention prune"
 
         assert :ok =
-                 Threadline.OperatorSurface.Live.RetentionHistoryLive.terminate(
+                 RetentionHistoryLive.terminate(
                    :normal,
                    refreshed_socket
                  )
@@ -393,7 +350,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             started_at: DateTime.add(now, -120, :second),
             completed_at: DateTime.add(now, -110, :second)
           })
-          |> Threadline.Test.Repo.insert!(repo_opts())
+          |> Repo.insert!(repo_opts())
 
         failed =
           %RetentionRun{}
@@ -401,7 +358,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             status: "failed",
             started_at: DateTime.add(now, -10, :second)
           })
-          |> Threadline.Test.Repo.insert!(repo_opts())
+          |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
@@ -439,7 +396,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               started_at: DateTime.add(now, -5, :second),
               completed_at: now
             })
-            |> Threadline.Test.Repo.insert!(repo_opts("audit"))
+            |> Repo.insert!(repo_opts("audit"))
 
           threadline_run =
             %RetentionRun{}
@@ -450,7 +407,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               started_at: DateTime.add(now, -1, :second),
               completed_at: now
             })
-            |> Threadline.Test.Repo.insert!(repo_opts("threadline"))
+            |> Repo.insert!(repo_opts("threadline"))
 
           {:ok, _view, html} = live(conn, "/audit/policy/retention")
 
@@ -469,7 +426,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -----------------------------------------------------------------------
     describe "T3 destructive prune — server-side fail-closed enforcement" do
       defp count_audit_actions do
-        Threadline.Test.Repo.aggregate(AuditAction, :count, :id, repo_opts())
+        Repo.aggregate(AuditAction, :count, :id, repo_opts())
       end
 
       test "the canonical confirmation token is never shipped to the client", %{conn: conn} do
@@ -502,7 +459,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         # (secure_compare against the DB-canonical policy name).
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "not-the-policy-name"})
 
-        assert Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) == 0,
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0,
                "a forged token must not trigger a prune"
 
         assert count_audit_actions() == before,
@@ -533,7 +490,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           id: "00000000-0000-0000-0000-000000000000"
         })
 
-        assert Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) == 0,
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0,
                "a forged scope must fail closed"
       end
 
@@ -561,7 +518,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
 
         assert count_audit_actions() == before_actions
-        assert Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
       end
 
       test "missing accountable actor prevents audit and prune", %{conn: conn} do
@@ -576,7 +533,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: policy_name})
 
         assert count_audit_actions() == before_actions
-        assert Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 0
       end
 
       test "a valid type-to-confirm prune records an AuditAction for the destructive action",
@@ -596,7 +553,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "an accepted prune request must be audited before the asynchronous backend starts"
 
         action =
-          Threadline.Test.Repo.one!(
+          Repo.one!(
             from(a in AuditAction, order_by: [desc: a.inserted_at], limit: 1),
             repo_opts()
           )
@@ -607,7 +564,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                }
 
         assert_eventually(fn ->
-          Threadline.Test.Repo.aggregate(RetentionRun, :count, repo_opts()) > 0
+          Repo.aggregate(RetentionRun, :count, repo_opts()) > 0
         end)
 
         assert count_audit_actions() == before + 1,
@@ -641,7 +598,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # -----------------------------------------------------------------------
     # DATA-01 / D-02, Pitfall 4. Cross-page copy contract: the rendered copy target
     # must carry the EXACT full value, never the truncated visible text. Retention run
-    # identifiers use `UI.ref/1`, which binds `data-tl-copy={ref.full}`.
+    # identifiers use `UI.Display.ref/1`, which binds `data-tl-copy={ref.full}`.
     # -----------------------------------------------------------------------
     describe "ref copy-equals-full contract" do
       test "rendered run reference copies the full value, not the truncated text", %{conn: conn} do
@@ -656,7 +613,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             started_at: DateTime.add(now, -5, :second),
             completed_at: now
           })
-          |> Threadline.Test.Repo.insert!(repo_opts())
+          |> Repo.insert!(repo_opts())
 
         {:ok, _view, html} = live(conn, "/audit/policy/retention")
 

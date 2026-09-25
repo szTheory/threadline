@@ -79,7 +79,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage || %{uncovered_count: 0}}
         base_path={@base_path}
@@ -92,9 +92,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         main_class="tl-page"
       >
           <%= if @threadline_policy_enabled do %>
-            <UI.page_header title="Redaction policy">
+            <UI.Page.page_header title="Redaction policy">
               <:lede>Compare the configured redaction policy with deployed database trigger policy before relying on sensitive Timeline captures.</:lede>
-            </UI.page_header>
+            </UI.Page.page_header>
 
             <.schema_form schema={@schema_param} available_schemas={@available_schemas} />
 
@@ -185,7 +185,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               base_path={@base_path}
             />
           <% end %>
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 
@@ -305,7 +305,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Configured redaction policy matches deployed trigger policy for every introspected table. Continue to Evidence for the latest evidence record.
         </p>
 
-        <UI.kv>
+        <UI.Display.kv>
           <:item key="Host schema">
             <code><%= @schema %></code>
           </:item>
@@ -322,7 +322,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <:item key="Deployed matches config">
             <span class="tl-chip tl-chip--success"><%= @report.summary.config_matches_deployed %></span>
           </:item>
-        </UI.kv>
+        </UI.Display.kv>
 
         <div :if={@actions != []} class="tl-cluster tl-cluster--start">
           <.link

@@ -78,7 +78,7 @@ defmodule Threadline.Retention.PrunerTest do
     assert_eventually(
       fn ->
         runs = Repo.all(RetentionRun, repo_opts())
-        length(runs) >= 1 and Enum.any?(runs, fn run -> run.status == "completed" end)
+        runs != [] and Enum.any?(runs, fn run -> run.status == "completed" end)
       end,
       message: "scheduled pruner should record a completed RetentionRun"
     )
@@ -162,7 +162,7 @@ defmodule Threadline.Retention.PrunerTest do
     assert_eventually(
       fn ->
         runs = Repo.all(RetentionRun, repo_opts("audit"))
-        length(runs) >= 1 and Enum.any?(runs, fn run -> run.status == "completed" end)
+        runs != [] and Enum.any?(runs, fn run -> run.status == "completed" end)
       end,
       message: "selected-storage pruner should record a completed audit RetentionRun"
     )

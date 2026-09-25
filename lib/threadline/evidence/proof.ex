@@ -4,6 +4,7 @@ defmodule Threadline.Evidence.Proof do
   """
 
   alias Threadline.Evidence
+  alias Threadline.Semantics.ActorRef
 
   @format_version 1
   @proof_type "threadline_evidence"
@@ -246,7 +247,7 @@ defmodule Threadline.Evidence.Proof do
   end
 
   defp actor_ref_to_map(nil), do: nil
-  defp actor_ref_to_map(actor_ref), do: Threadline.Semantics.ActorRef.to_map(actor_ref)
+  defp actor_ref_to_map(actor_ref), do: ActorRef.to_map(actor_ref)
 
   defp rendered_recorded_at(%DateTime{} = datetime), do: iso8601(datetime)
   defp rendered_recorded_at(value) when is_binary(value), do: value

@@ -2,10 +2,10 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
-  @style_path "lib/threadline/operator_surface/style.ex"
+  alias Threadline.Test.StyleSource
 
   test "operator surface is dark-primary with governed light and system token lanes" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert String.contains?(src, "color-scheme: dark;")
     assert String.contains?(src, ~s|.threadline-ui[data-tl-theme="light"]|)
@@ -27,7 +27,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "operator shell is CSP-proof: native [open] nav + pure-CSS picker cue + hardened scroll (NAV-03/NAV-04)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     # Mobile nav reveals its panel on the native <details> [open] attribute,
     # never on a JS-toggled checkbox/.--open class.
@@ -60,7 +60,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "A11Y-02 target-size and selected-state cues stay mapped to actual rendered selectors" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert String.contains?(src, "--tl-hit-area: 40px;")
     assert String.contains?(src, "--tl-control-height-compact: 32px;")
@@ -109,11 +109,11 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
 
     refute String.contains?(src, ".tl-segmented__item"),
-           "segmented-control hit-area and selected-state CSS must target UI.segmented_control/1's actual .tl-segment markup"
+           "segmented-control hit-area and selected-state CSS must target UI.Page.segmented_control/1's actual .tl-segment markup"
   end
 
   test "dark interaction tokens cover readable hover and focus states" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert String.contains?(src, "--tl-color-surface-hover:")
     assert String.contains?(src, "--tl-color-surface-selected:")
@@ -124,7 +124,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "dark semantic status tokens include visible borders" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert String.contains?(src, "--tl-color-danger-border:")
     assert String.contains?(src, "--tl-color-warning-border:")
@@ -135,7 +135,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "prove cluster primitives stay token-backed and reusable" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert String.contains?(src, ".tl-job-group")
     assert String.contains?(src, ".tl-job-group__header")
@@ -167,7 +167,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 138 find primitives stay token-backed" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     for class <- [
           ".tl-value",
@@ -207,7 +207,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 139 shell navigation primitives stay mobile-reachable and token-backed" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     topbar_section =
       src
@@ -257,7 +257,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 139 home orientation primitives stay scoped token-backed" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     home_section =
       src
@@ -283,7 +283,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 140 home earned-flow controls stay scoped token-backed" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     home_section =
       src
@@ -309,7 +309,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 141 motion tokens and keyframes stay locked" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     for token <- [
           "--tl-motion-fast: 120ms;",
@@ -335,7 +335,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 141 animation consumers remain token-backed in live source" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     for {selector, keyframe} <- [
           {".tl-home__card", "tl-rise-in"},
@@ -354,7 +354,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 141 transition families remain token-backed in live source" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     for selector <- [
           ".threadline-ui a",
@@ -373,7 +373,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "MOTION-01 keeps copy transitions explicit and bounded" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
     copy_block = selector_block!(src, ".tl-copy")
 
     assert String.contains?(
@@ -391,7 +391,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 141 rejects ad-hoc motion and ungoverned duration drift" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     refute Regex.match?(~r/transition:\s*all\b/, src)
 
@@ -411,7 +411,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 186 Retention motion remains scoped to the governed run-row animation" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert Regex.match?(
              selector_block_pattern(
@@ -446,6 +446,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
         "lib/threadline/operator_surface/live/actor_live.ex",
         "lib/threadline/operator_surface/live/evidence_live.ex",
         "lib/threadline/operator_surface/live/export_status_live.ex",
+        "lib/threadline/operator_surface/live/export_status_live/components.ex",
         "lib/threadline/operator_surface/live/policy_redaction_live.ex",
         "lib/threadline/operator_surface/live/retention_history_live.ex"
       ]
@@ -463,7 +464,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 141 reduced-motion blanket covers animations, transitions, and transform reset" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     reduced_motion =
       src
@@ -499,7 +500,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "MOTION-01 press feedback is enabled-only and disabled controls remain still" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     refute Regex.match?(
              ~r/\.tl-button:active\s*\{[^}]*transform:\s*scale\(0\.96\);/s,
@@ -521,7 +522,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "MOTION-01 rejects unsafe zero-scale and layout-affecting motion transitions" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     refute Regex.match?(~r/transform:\s*scale\(\s*0(?:\.0+)?\s*\)/, src),
            "surface motion must not collapse elements with transform: scale(0)"
@@ -540,7 +541,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "MOTION-01 keeps high-frequency timeline and table streams free of entrance animations" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
     timeline_row = selector_block!(src, ".tl-change")
 
     refute String.contains?(timeline_row, "animation:"),
@@ -558,7 +559,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "breakpoint scale is tokenized and source-governed" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     for token <- [
           "--tl-breakpoint-phone-proof: 375px;",
@@ -597,7 +598,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 142 responsive primitives keep mobile-first source contracts" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
     base = base_responsive_section(src)
 
     assert_selector_contains(base, ".tl-shell-nav__panel", [
@@ -640,7 +641,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
            "Phase 185 retires the page-level trust rail; selected-schema readiness lives in .tl-coverage-verdict"
 
     # DATA-05 / D-12: the synthetic `tl-coverage-command` command-shell is flattened
-    # away — the coverage success branch now uses UI.page_header with its children
+    # away — the coverage success branch now uses UI.Page.page_header with its children
     # (trust-rail, tl-summary-grid metric tiles, remediation, table) as direct
     # page-stack siblings. The dead `tl-coverage-command__*` CSS must be GONE so it
     # can't silently regress (paired-deletion contract). The metric-grid keeps its
@@ -730,7 +731,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 184 Timeline rows and copy controls keep narrow-width reflow dimensions" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
     base = base_responsive_section(src)
 
     assert_selector_contains(base, ".tl-timeline-command__lede", [
@@ -817,7 +818,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 142 responsive primitives keep tablet wrapping and desktop table restoration" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
     tablet = media_section(src, "768px")
     desktop = media_section(src, "1280px")
 
@@ -910,7 +911,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 183 shell rail keeps native mobile disclosure and desktop rail visibility" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
     base = base_responsive_section(src)
     tablet = media_section(src, "768px")
 
@@ -966,11 +967,11 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 183 active shell nav state is keyed to aria-current and not color alone" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert_selector_contains(
       src,
-      ~s|.threadline-ui .tl-shell-nav__item--active,\n        .threadline-ui .tl-shell-nav__item[aria-current="page"]|,
+      ~s|.threadline-ui .tl-shell-nav__item--active,\n  .threadline-ui .tl-shell-nav__item[aria-current="page"]|,
       [
         "box-shadow: inset 0 0 0 1px var(--tl-color-accent-inset);",
         "font-weight: var(--tl-weight-strong);"
@@ -979,7 +980,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "operator typography defaults stay readable and dense text is opt-in" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     for token <- [
           "--tl-font-size-xs: 12px;",
@@ -1011,13 +1012,13 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_exact_selector_contains(src, ".tl-value", ["font-size: var(--tl-font-size-label);"])
 
-    assert_selector_contains(src, ".tl-table--compact th,\n        .tl-table--compact td", [
+    assert_selector_contains(src, ".tl-table--compact th,\n  .tl-table--compact td", [
       "font-size: var(--tl-font-size-dense);"
     ])
 
     assert_selector_contains(
       src,
-      ".tl-table--compact .tl-table__code,\n        .tl-table--compact code",
+      ".tl-table--compact .tl-table__code,\n  .tl-table--compact code",
       [
         "font-size: var(--tl-font-size-dense);"
       ]
@@ -1025,7 +1026,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 143 accessibility tokens meet dark-surface contrast baseline" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     tokens =
       src
@@ -1104,7 +1105,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 168 light and system lanes meet AA contrast incl. composited tints" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     light = src |> selector_block!(~s|.threadline-ui[data-tl-theme="light"]|) |> color_tokens()
     system = src |> system_lane_block!() |> color_tokens()
@@ -1187,7 +1188,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 143 focus-visible and non-color status contracts stay locked" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert String.contains?(src, "--tl-focus-ring:")
 
@@ -1236,7 +1237,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 168 focus ring clears non-text 3:1 per mode with halo reported only" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     light_block = selector_block!(src, ~s|.threadline-ui[data-tl-theme="light"]|)
     system_block = system_lane_block!(src)
@@ -1269,7 +1270,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 168 no --tl-color-* token escapes the alpha-aware parser (silent-drop guard)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     # Every --tl-color-* declaration in source must use a value format the parser
     # accepts (#RRGGBB or rgba(...)). A future #RRGGBBAA, #RGB, or hsl() value
@@ -1301,7 +1302,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 168 interaction states resolve to a perceptible per-mode delta" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     light = src |> selector_block!(~s|.threadline-ui[data-tl-theme="light"]|) |> color_tokens()
     system = src |> system_lane_block!() |> color_tokens()
@@ -1353,7 +1354,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert String.contains?(
              src,
-             ~s|.threadline-ui[data-tl-theme="light"] .tl-table {\n          background: var(--tl-color-surface);|
+             ~s|.threadline-ui[data-tl-theme="light"] .tl-table {\n    background: var(--tl-color-surface);|
            ) or
              String.contains?(
                src,
@@ -1363,7 +1364,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 168 dark phase-143 contrast + focus guards remain byte-stable" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     # The dark contrast baseline and dark focus guard consume only opaque hex /
     # source-string checks; the phase-168 parser/composite additions do not touch
@@ -1381,7 +1382,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "operator action primitives prevent host-link bleed and support icon buttons" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert String.contains?(src, "--tl-shell-gutter: var(--tl-space-4);")
     assert String.contains?(src, "column-gap: var(--tl-shell-gutter);")
@@ -1425,7 +1426,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "stable token catalog preserves the source tokens and canonical primitives" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     assert String.contains?(src, "source contract for the stable design-system")
     assert String.contains?(src, "token catalog")
@@ -1496,7 +1497,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 144 status verdict and operation semantics stay token-backed" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     for selector <- [
           ".tl-alert--error",
@@ -1541,7 +1542,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 167 light overrides are authored in both the light lane and the system branch (D-07a)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     # 167 fix-list (LIGHT-REVIEW.md): A = status-chip "signal dot" redesign (D-09), B = coverage row hover.
 
@@ -1568,7 +1569,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 167 keeps status-tint a shared-token decision — no per-rider light override (D-07b / TOKEN-02)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     # The status-tint fix (A) adjusts shared light-lane TOKENS, never a per-component rider selector.
     # For each tint-rider class, refute a [data-tl-theme="light"] selector QUALIFIED by that class
@@ -1594,7 +1595,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   # MUST NOT use the old same-element shell anchor, legacy disconnected class, or
   # document-body lifecycle selectors.
   test "offline group keys off [data-phx-main] with .threadline-ui descendant scoping" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     for state <- ~w(loading error client-error) do
       assert String.contains?(src, "[data-phx-main].phx-#{state} .threadline-ui"),
@@ -1618,7 +1619,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   # token-backed transitions. Each assertion is keyed to the class-SELECTOR form
   # (`.x {` or `.x,`) so `@keyframes tl-fade-in`/`tl-rise-in` cannot false-green it.
   test "phase 177 overlay JS-transition utility classes are defined as class selectors (not just keyframes)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     overlay_classes = [
       "tl-fade-in",
@@ -1674,7 +1675,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   # exactly like the transaction page. Both selectors must keep the same grid-native
   # centering contract.
   test "phase 178 PAGE-03 .tl-container centers as a grid item via justify-self: center (D-09)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     container = selector_block!(src, ".tl-container")
 
@@ -1686,7 +1687,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   end
 
   test "phase 178 PAGE-03 latent twin .tl-home centers as a grid item via justify-self: center (RESEARCH Pitfall 1)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     home = selector_block!(src, ".tl-home")
 
@@ -1708,7 +1709,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   # build a new calculator). If all current pairings already pass this is
   # GREEN-confirming (the guard still becomes permanent) — documented in the SUMMARY.
   test "phase 178 PAGE-02 #10/#11 secondary text roles meet AA on every chrome surface (dark + light + system)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     dark = src |> selector_block!(".threadline-ui") |> color_tokens()
     light = src |> selector_block!(~s|.threadline-ui[data-tl-theme="light"]|) |> color_tokens()
@@ -1752,7 +1753,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   # This is the surface-wide Tier A half D-06 mandates for #1; the Tier B sticky-
   # occlusion sweep half lives in operator-phase-178-uat.spec.ts.
   test "phase 178 PAGE-02 #1 desktop scroll offset reconciles scroll-padding-top to scroll-margin-top (D-06)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     # Desktop scroll container reserves the desktop header offset.
     assert src =~ "scroll-padding-top: calc(var(--tl-header-height) + var(--tl-space-4));",
@@ -1784,7 +1785,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
   # sibling rule cannot false-pass. The boundingBox / within-viewport half lives in
   # operator-phase-178-uat.spec.ts.
   test "phase 178 PAGE-02 #6 stressed-page child spacing resolves through the --tl-space-* token scale (no raw gap/margin literal) (D-06)" do
-    src = File.read!(@style_path)
+    src = StyleSource.read!()
 
     # `.tl-timeline-fact` is a timeline-page child. Its gap must resolve through the
     # space scale (var(--tl-space-*)) — a raw `gap: 2px` is the off-rhythm offender.

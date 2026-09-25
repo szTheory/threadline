@@ -39,7 +39,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def render(assigns) do
       ~H"""
-      <UI.shell
+      <UI.Page.shell
         theme={@threadline_theme}
         coverage={@threadline_coverage}
         base_path={@base_path}
@@ -52,7 +52,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         script
         main_class="tl-page"
       >
-          <UI.page_header
+          <UI.Page.page_header
             title="Row history"
             breadcrumbs={[
               %{label: "Timeline", href: "#{@base_path}/timeline"},
@@ -60,18 +60,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             ]}
           >
             <:lede>Inspect the captured state of one row over time, then jump back to the timeline.</:lede>
-          </UI.page_header>
-          <UI.detail_header title={row_history_detail_title(@table, @record_id)}>
+          </UI.Page.page_header>
+          <UI.Page.detail_header title={row_history_detail_title(@table, @record_id)}>
             <:metadata key="Table"><code><%= @table %></code></:metadata>
             <:metadata key="Row id">
-              <UI.ref value={@record_id} copy_label="Copy row id" />
+              <UI.Display.ref value={@record_id} copy_label="Copy row id" />
             </:metadata>
             <:metadata :if={@as_of} key="Selected snapshot">
               <time datetime={Presentation.exact_time(@as_of)} title={Presentation.exact_time(@as_of)}>
                 <%= Presentation.human_time(@as_of) %>
               </time>
             </:metadata>
-          </UI.detail_header>
+          </UI.Page.detail_header>
           <.live_component
             module={Threadline.OperatorSurface.Live.RowHistoryComponent}
             id="row-history"
@@ -86,7 +86,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             scope={@threadline_scope}
             scope_query_fn={@threadline_scope_query_fn}
           />
-      </UI.shell>
+      </UI.Page.shell>
       """
     end
 

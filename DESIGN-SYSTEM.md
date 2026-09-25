@@ -173,7 +173,7 @@ Scores may only stay level or increase unless an explicit reset with rationale i
 
 ## Semantic Token Mapping
 
-Keep `brandbook/tokens.json` strict to primitive brand tokens. Map primitives to functional UI tokens in `style.ex`. This separation of concerns allows the brand to own the core primitive color palette, while the UI system defines semantics like `--tl-color-surface` and maps them appropriately.
+Keep `brandbook/tokens.json` strict to primitive brand tokens. Map primitives to functional UI tokens in the operator stylesheet (`lib/threadline/operator_surface/style/01_tokens.css`). This separation of concerns allows the brand to own the core primitive color palette, while the UI system defines semantics like `--tl-color-surface` and maps them appropriately.
 
 ## Motion Reductions
 

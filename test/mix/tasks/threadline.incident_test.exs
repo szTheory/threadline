@@ -3,6 +3,7 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
 
   import ExUnit.CaptureIO
 
+  alias Mix.Tasks.Threadline.Incident
   alias Threadline.Capture.{AuditChange, AuditTransaction}
 
   @repo Threadline.Test.Repo
@@ -38,7 +39,7 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
   test "prints incident bundle in human-readable format", %{txn: txn} do
     out =
       capture_io(fn ->
-        Mix.Tasks.Threadline.Incident.run([txn.id])
+        Incident.run([txn.id])
       end)
 
     assert out =~ "Transaction: #{txn.id}"
@@ -49,7 +50,7 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
   test "prints incident bundle in JSON format", %{txn: txn} do
     out =
       capture_io(fn ->
-        Mix.Tasks.Threadline.Incident.run([txn.id, "--json"])
+        Incident.run([txn.id, "--json"])
       end)
 
     parsed = Jason.decode!(out)
@@ -67,14 +68,14 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
 
     assert_raise Mix.Error, ~r/transaction not found: #{missing_id}/, fn ->
       capture_io(fn ->
-        Mix.Tasks.Threadline.Incident.run([missing_id])
+        Incident.run([missing_id])
       end)
     end
   end
 
   test "raises when transaction id is missing" do
     assert_raise Mix.Error, ~r/requires exactly one argument/, fn ->
-      Mix.Tasks.Threadline.Incident.run([])
+      Incident.run([])
     end
   end
 end

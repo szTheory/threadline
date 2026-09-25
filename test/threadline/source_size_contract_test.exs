@@ -1,0 +1,542 @@
+defmodule Threadline.SourceSizeContractTest do
+  @moduledoc """
+  Size and structure contract for `lib/`.
+
+  Four rules, each enforced against the real tree and proven by synthetic
+  planted violations:
+
+    * File length: every `lib/**/*.{ex,css}` file has at most `@file_limit`
+      lines (newline count, the same number `wc -l` prints).
+    * Function length: every `def`/`defp`/`defmacro`/`defmacrop` clause in
+      `lib/**/*.ex` spans at most `@function_limit` lines. Clauses are measured
+      one at a time from the parsed AST (`do` line through `end` line; a
+      keyword-form `do:` clause from its head line to the end of its
+      expression) and the longest clause per name/arity is reported; clauses
+      are never summed.
+    * Separator banners: a `#` comment that opens with a rule run (`---`,
+      `===`, `***`, or a box-drawing run of two or more `─`) or ends with a
+      rule run of three or more stands in for a real module or function
+      boundary. That covers a bare rule and a titled banner alike, such as a
+      comment that reads two box characters, then a section title, then a long
+      trailing rule. A rule character inside prose (a `--tl-` custom property
+      name, a markdown table rule, an arrow) is not a banner. Each file that
+      still has banners must match `@banner_exceptions` exactly.
+    * No `.heex` templates and no `embed_templates` in `lib/`: moving markup out
+      of `.ex` files would satisfy the length limits without making anything
+      more legible.
+
+  Every exception is an exact pin. A measured value above its pin means the
+  code grew and must be split; a measured value below its pin means the pin is
+  stale and must be lowered or deleted. Either way the change lands in a
+  reviewed diff, so an exception cannot silently outlive its reason.
+  """
+
+  use ExUnit.Case, async: true
+
+  @root Path.expand("../..", __DIR__)
+
+  @file_glob "lib/**/*.{ex,css}"
+  @source_glob "lib/**/*.ex"
+  @template_glob "lib/**/*.heex"
+
+  @file_limit 800
+  @function_limit 120
+
+  @banner ~r/^\s*#\s*(?:-{3,}|={3,}|─{2,}|\*{3,})|(?:-{3,}|={3,}|─{3,}|\*{3,})\s*$/u
+  @embed_templates ~r/\bembed_templates\b/
+  @planning_vocabulary ~r/Phase \d|STRUCT-\d|\bD-\d{2}\b/
+
+  @splitting "oversized; being split into cohesive modules"
+
+  @file_exceptions %{
+    "lib/threadline/operator_surface/stress_fixtures.ex" =>
+      {980,
+       "declarative fixture data tables; excluded from the Hex package (mix.exs exclude_patterns)"}
+  }
+
+  @function_exceptions %{}
+
+  @banner_exceptions %{}
+
+  describe "exceptions at rest" do
+    test "exactly one named exception remains: the declarative stress fixture tables" do
+      assert Map.keys(@file_exceptions) == ["lib/threadline/operator_surface/stress_fixtures.ex"],
+             "the only file exception is lib/threadline/operator_surface/stress_fixtures.ex; " <>
+               "a new exception needs a named reason in review, not a quiet pin"
+
+      assert @function_exceptions == %{},
+             "no function exceptions remain; a new one needs a named reason in review"
+
+      assert @banner_exceptions == %{},
+             "no banner exceptions remain; a new one needs a named reason in review"
+    end
+  end
+
+  describe "file length" do
+    test "the real tree matches the file exceptions exactly" do
+      assert :ok = validate_files(scan(@file_glob), @file_exceptions)
+    end
+
+    test "an oversized file needs an exact exception and a stale one fails" do
+      big = [{"lib/big.css", lines(801)}]
+
+      assert {:error, message} = validate_files(big, %{})
+      assert message =~ "lib/big.css has 801 lines"
+
+      assert :ok = validate_files(big, %{"lib/big.css" => {801, @splitting}})
+
+      stale = [{"lib/big.css", lines(850)}]
+      assert {:error, message} = validate_files(stale, %{"lib/big.css" => {900, @splitting}})
+      assert message =~ "stale"
+
+      assert {:error, message} = validate_files(stale, %{"lib/big.css" => {820, @splitting}})
+      assert message =~ "grew"
+
+      small = [{"lib/small.ex", lines(800)}]
+      assert {:error, message} = validate_files(small, %{"lib/small.ex" => {800, @splitting}})
+      assert message =~ "stale"
+
+      assert {:error, message} = validate_files(small, %{"lib/gone.ex" => {900, @splitting}})
+      assert message =~ "lib/gone.ex"
+
+      assert {:error, message} = validate_files(big, %{"lib/big.css" => {801, "Phase 9"}})
+      assert message =~ "reason"
+    end
+
+    test "an empty scan set fails instead of passing vacuously" do
+      assert {:error, message} = validate_files([], %{})
+      assert message =~ "pass vacuously"
+    end
+  end
+
+  describe "function length" do
+    test "the real tree matches the function exceptions exactly" do
+      assert :ok = validate_functions(scan(@source_glob), @function_exceptions)
+    end
+
+    test "a 121-line clause fails without an exact exception" do
+      files = [{"lib/long.ex", module_source([clause("big", "x", 121)])}]
+
+      assert {:error, message} = validate_functions(files, %{})
+      assert message =~ "lib/long.ex big/1 has a 121-line clause"
+
+      assert :ok = validate_functions(files, %{{"lib/long.ex", :big, 1} => {121, @splitting}})
+
+      assert {:error, message} =
+               validate_functions(files, %{{"lib/long.ex", :big, 1} => {140, @splitting}})
+
+      assert message =~ "stale"
+    end
+
+    test "clauses are measured one at a time, never summed" do
+      source =
+        module_source([
+          clause("run", ":a", 60),
+          clause("run", ":b", 50),
+          clause("run", ":c", 40)
+        ])
+
+      files = [{"lib/multi.ex", source}]
+
+      assert %{{"lib/multi.ex", :run, 1} => 60} = measure_functions(files)
+      assert :ok = validate_functions(files, %{})
+    end
+
+    test "a guarded head is measured under its own name and arity" do
+      source = module_source([clause("f", "x", 5, "when is_integer(x)"), "  defp g, do: 1\n"])
+
+      assert %{{"lib/guard.ex", :f, 1} => 5, {"lib/guard.ex", :g, 0} => 1} =
+               measure_functions([{"lib/guard.ex", source}])
+    end
+
+    test "a keyword do: clause is measured to the end of its expression, not counted as one line" do
+      body = String.duplicate("      <p>x</p>\n", 119)
+      heredoc = ~s(""")
+
+      source =
+        "defmodule Synthetic do\n  def f(assigns),\n    do: ~H#{heredoc}\n" <>
+          body <> "      #{heredoc}\nend\n"
+
+      files = [{"lib/kw.ex", source}]
+
+      assert %{{"lib/kw.ex", :f, 1} => length} = measure_functions(files)
+      assert length >= 121
+
+      assert {:error, message} = validate_functions(files, %{})
+      assert message =~ "lib/kw.ex f/1 has a"
+      assert message =~ "-line clause"
+    end
+
+    test "a keyword clause followed by another def is measured exactly" do
+      heredoc = ~s(""")
+
+      source =
+        "defmodule Synthetic do\n  def f(x),\n    do: #{heredoc}\n" <>
+          String.duplicate("    line\n", 5) <>
+          "    #{heredoc}\n  def g, do: 1\nend\n"
+
+      assert %{{"lib/kw2.ex", :f, 1} => 8, {"lib/kw2.ex", :g, 0} => 1} =
+               measure_functions([{"lib/kw2.ex", source}])
+    end
+
+    test "an empty scan set fails instead of passing vacuously" do
+      assert {:error, message} = validate_functions([], %{})
+      assert message =~ "pass vacuously"
+    end
+  end
+
+  describe "separator banners" do
+    test "the real tree matches the banner register exactly" do
+      assert :ok = validate_banners(scan(@source_glob), @banner_exceptions)
+    end
+
+    test "banner comments are counted and string literals are ignored" do
+      rule = "# " <> String.duplicate("-", 10)
+
+      source = """
+      defmodule Banner do
+        #{rule}
+        # plain prose comment
+        def run, do: "#{rule}"
+        # ===
+        # ─── section ───
+        # ***
+      end
+      """
+
+      files = [{"lib/banner.ex", source}]
+
+      assert %{"lib/banner.ex" => 4} = count_banners(files)
+      assert {:error, message} = validate_banners(files, %{})
+      assert message =~ "lib/banner.ex has 4 separator banner"
+      assert :ok = validate_banners(files, %{"lib/banner.ex" => 4})
+
+      assert {:error, message} = validate_banners(files, %{"lib/banner.ex" => 5})
+      assert message =~ "stale"
+
+      clean = [{"lib/clean.ex", "defmodule Clean do\n  # prose\nend\n"}]
+      assert {:error, message} = validate_banners(clean, %{"lib/clean.ex" => 1})
+      assert message =~ "stale"
+    end
+
+    test "a titled banner is counted whether the rule leads or trails, and prose with rule characters is not" do
+      long_box = String.duplicate("─", 40)
+
+      source = """
+      defmodule Titled do
+        # ── Section title #{long_box}
+        # ── Section title with no trailing rule
+        # === Section title ===
+        # Section title -----
+        # --tl-space-2 is the gap between rows
+        # |------|---|
+        # the reader flows from source -> ledger
+        # plain prose comment
+        def run, do: :ok
+      end
+      """
+
+      files = [{"lib/titled.ex", source}]
+
+      assert %{"lib/titled.ex" => 4} = count_banners(files)
+      assert {:error, message} = validate_banners(files, %{})
+      assert message =~ "lib/titled.ex has 4 separator banner"
+      assert :ok = validate_banners(files, %{"lib/titled.ex" => 4})
+    end
+
+    test "an empty scan set fails instead of passing vacuously" do
+      assert {:error, message} = validate_banners([], %{})
+      assert message =~ "pass vacuously"
+    end
+  end
+
+  describe "templates" do
+    test "lib has no heex templates and no embed_templates calls" do
+      assert :ok = validate_templates(template_paths(), scan(@source_glob))
+    end
+
+    test "a heex file or an embed_templates call fails" do
+      clean = [{"lib/view.ex", "defmodule View do\nend\n"}]
+
+      assert {:error, message} = validate_templates(["lib/view/index.html.heex"], clean)
+      assert message =~ "lib/view/index.html.heex"
+
+      embedded = [{"lib/view.ex", "defmodule View do\n  embed_templates \"view/*\"\nend\n"}]
+      assert {:error, message} = validate_templates([], embedded)
+      assert message =~ "lib/view.ex"
+
+      assert :ok = validate_templates([], clean)
+    end
+  end
+
+  test "this contract never references the planning directory" do
+    planning_directory = "." <> "planning"
+    refute File.read!(__ENV__.file) =~ planning_directory
+  end
+
+  defp scan(glob) do
+    @root
+    |> Path.join(glob)
+    |> Path.wildcard()
+    |> Enum.sort()
+    |> Enum.map(&{Path.relative_to(&1, @root), File.read!(&1)})
+  end
+
+  defp template_paths do
+    @root
+    |> Path.join(@template_glob)
+    |> Path.wildcard()
+    |> Enum.map(&Path.relative_to(&1, @root))
+    |> Enum.sort()
+  end
+
+  defp line_count(source), do: source |> :binary.matches("\n") |> length()
+
+  defp measure_functions(files) do
+    for {path, source} <- files,
+        {name, arity, length} <- clauses!(path, source),
+        reduce: %{} do
+      acc -> Map.update(acc, {path, name, arity}, length, &max(&1, length))
+    end
+  end
+
+  defp clauses!(path, source) do
+    case Code.string_to_quoted(source, token_metadata: true, columns: true, file: path) do
+      {:ok, ast} ->
+        {_ast, clauses} = Macro.prewalk(ast, [], &collect_clause/2)
+        clauses
+
+      {:error, _reason} ->
+        fail!("#{path} does not parse, so its function lengths cannot be measured")
+    end
+  end
+
+  defp collect_clause({kind, meta, [head | _]} = node, acc)
+       when kind in [:def, :defp, :defmacro, :defmacrop] and is_list(meta) do
+    length =
+      case meta[:end] do
+        nil -> last_meta_line(node) - meta[:line] + 1
+        end_meta -> end_meta[:line] - meta[:line] + 1
+      end
+
+    {name, arity} = name_arity(head)
+    {node, [{name, arity, length} | acc]}
+  end
+
+  defp collect_clause(node, acc), do: {node, acc}
+
+  # The last source line of a keyword-form clause (`def f(x), do: ...`), which has
+  # no `:end` metadata: its `end_of_expression` line when present, otherwise the
+  # largest line any node in the clause subtree records.
+  defp last_meta_line({_kind, meta, _args} = node) do
+    case meta[:end_of_expression] do
+      nil ->
+        {_node, line} = Macro.prewalk(node, meta[:line], &max_meta_line/2)
+        line
+
+      end_of_expression ->
+        end_of_expression[:line]
+    end
+  end
+
+  defp max_meta_line({_form, meta, _args} = node, line) when is_list(meta) do
+    lines =
+      for key <- [:line, :closing, :end, :end_of_expression],
+          value = meta[key],
+          do: if(is_list(value), do: value[:line], else: value)
+
+    {node, Enum.max([line, heredoc_closing_line(node) | Enum.filter(lines, &is_integer/1)])}
+  end
+
+  defp max_meta_line(node, line), do: {node, line}
+
+  # A heredoc body records only its opening line, and Elixir 1.15 omits the
+  # clause's `end_of_expression` when it is the last expression before `end`, so
+  # the closing delimiter's line is derived from the content: one line per
+  # newline in the literal parts, then the delimiter line itself.
+  defp heredoc_closing_line({:<<>>, meta, parts}) when is_list(parts) do
+    case {meta[:indentation], meta[:line]} do
+      {indentation, start} when is_integer(indentation) and is_integer(start) ->
+        start + Enum.sum(for part <- parts, is_binary(part), do: line_count(part)) + 1
+
+      _not_heredoc ->
+        0
+    end
+  end
+
+  defp heredoc_closing_line(_node), do: 0
+
+  defp name_arity({:when, _, [head | _]}), do: name_arity(head)
+  defp name_arity({name, _, args}) when is_list(args), do: {clause_name(name), length(args)}
+  defp name_arity({name, _, _context}), do: {clause_name(name), 0}
+  defp name_arity(other), do: {Macro.to_string(other), 0}
+
+  defp clause_name(name) when is_atom(name), do: name
+  defp clause_name(name), do: Macro.to_string(name)
+
+  defp count_banners(files) do
+    files
+    |> Enum.map(fn {path, source} -> {path, banner_count!(path, source)} end)
+    |> Enum.reject(fn {_path, count} -> count == 0 end)
+    |> Map.new()
+  end
+
+  defp banner_count!(path, source) do
+    case Code.string_to_quoted_with_comments(source, file: path) do
+      {:ok, _ast, comments} -> Enum.count(comments, &Regex.match?(@banner, &1.text))
+      {:error, _reason} -> fail!("#{path} does not parse, so its comments cannot be read")
+    end
+  end
+
+  defp validate_files(files, exceptions) do
+    demand_non_empty!(files, @file_glob)
+    validate_reasons!(exceptions)
+
+    measured = Map.new(files, fn {path, source} -> {path, line_count(source)} end)
+
+    measured
+    |> compare_exact(exceptions, @file_limit, fn path, value ->
+      "#{path} has #{value} lines, over the #{@file_limit}-line limit, and has no exception. " <>
+        "Split it into cohesive modules."
+    end)
+    |> report!("file length")
+  catch
+    {:contract_error, message} -> {:error, message}
+  end
+
+  defp validate_functions(files, exceptions) do
+    demand_non_empty!(files, @source_glob)
+    validate_reasons!(exceptions)
+
+    files
+    |> measure_functions()
+    |> compare_exact(exceptions, @function_limit, fn {path, name, arity}, value ->
+      "#{path} #{name}/#{arity} has a #{value}-line clause, over the #{@function_limit}-line " <>
+        "limit, and has no exception. Extract function components or private helpers."
+    end)
+    |> report!("function length")
+  catch
+    {:contract_error, message} -> {:error, message}
+  end
+
+  defp validate_banners(files, exceptions) do
+    demand_non_empty!(files, @source_glob)
+
+    for {path, count} <- exceptions do
+      demand!(
+        is_integer(count) and count > 0,
+        "banner exception #{path} must pin a positive integer"
+      )
+    end
+
+    files
+    |> count_banners()
+    |> compare_exact(Map.new(exceptions, fn {path, count} -> {path, {count, nil}} end), 0, fn
+      path, value ->
+        "#{path} has #{value} separator banner comment(s) and no banner exception. " <>
+          "Replace each banner with a real module or function boundary."
+    end)
+    |> report!("separator banners")
+  catch
+    {:contract_error, message} -> {:error, message}
+  end
+
+  defp validate_templates(template_paths, files) do
+    heex = Enum.map(template_paths, &"#{&1} is a .heex template")
+
+    embedded =
+      for {path, source} <- files, Regex.match?(@embed_templates, source) do
+        "#{path} calls embed_templates"
+      end
+
+    report!(
+      heex ++ embedded,
+      "templates (keep markup in ~H inside .ex modules; moving it out games the length limits)"
+    )
+  catch
+    {:contract_error, message} -> {:error, message}
+  end
+
+  # Measured values must equal their pins exactly. Keys over the limit need a pin;
+  # a pin whose key is missing, back under the limit, or measured differently fails.
+  defp compare_exact(measured, exceptions, limit, missing_message) do
+    unpinned =
+      for {key, value} <- Enum.sort(measured),
+          value > limit,
+          not Map.has_key?(exceptions, key),
+          do: missing_message.(key, value)
+
+    pinned =
+      exceptions
+      |> Enum.sort()
+      |> Enum.map(fn {key, {pin, _reason}} ->
+        pin_problem(key, pin, Map.get(measured, key), limit)
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    unpinned ++ pinned
+  end
+
+  defp pin_problem(key, _pin, nil, _limit),
+    do: "exception #{inspect(key)} names nothing the scan measured; delete it (stale)"
+
+  defp pin_problem(key, _pin, measured, limit) when measured <= limit,
+    do:
+      "exception #{inspect(key)} is stale: measured #{measured}, at or under the limit " <>
+        "#{limit}; delete the pin"
+
+  defp pin_problem(_key, pin, pin, _limit), do: nil
+
+  defp pin_problem(key, pin, measured, _limit) when measured < pin,
+    do:
+      "exception #{inspect(key)} is stale: pinned #{pin}, measured #{measured}; lower or delete the pin"
+
+  defp pin_problem(key, pin, measured, _limit),
+    do:
+      "exception #{inspect(key)} grew: pinned #{pin}, measured #{measured}; split it, do not raise the pin"
+
+  defp validate_reasons!(exceptions) do
+    for {key, {count, reason}} <- exceptions do
+      demand!(
+        is_integer(count) and count > 0,
+        "exception #{inspect(key)} must pin a positive integer"
+      )
+
+      demand!(
+        is_binary(reason) and String.trim(reason) != "" and
+          not Regex.match?(@planning_vocabulary, reason),
+        "exception #{inspect(key)} needs a reason in plain terms, without planning references"
+      )
+    end
+
+    :ok
+  end
+
+  defp demand_non_empty!(files, glob) do
+    demand!(
+      files != [],
+      "the scanned file set is empty. A broken #{glob} glob would let this contract " <>
+        "pass vacuously, which is worse than having no gate at all."
+    )
+  end
+
+  defp report!([], _rule), do: :ok
+
+  defp report!(problems, rule) do
+    fail!("#{rule}:\n  " <> Enum.join(problems, "\n  "))
+  end
+
+  defp lines(count), do: String.duplicate("x\n", count)
+
+  defp module_source(clauses), do: "defmodule Synthetic do\n" <> Enum.join(clauses) <> "end\n"
+
+  # A clause spanning exactly `total` lines: head, `total - 2` body lines, `end`.
+  defp clause(name, arg, total, guard \\ nil) do
+    head = Enum.join(Enum.reject(["  def #{name}(#{arg})", guard, "do"], &is_nil/1), " ")
+    head <> "\n" <> String.duplicate("    :ok\n", total - 2) <> "  end\n"
+  end
+
+  defp demand!(true, _message), do: :ok
+  defp demand!(false, message), do: fail!(message)
+  defp fail!(message), do: throw({:contract_error, message})
+end

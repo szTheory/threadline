@@ -2,6 +2,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
   @moduledoc false
   use ExUnit.Case, async: false
 
+  alias Mix.Tasks.Release.Pins
+
   @banned_shapes [
     {:phase_prose, ~r/\bPhase\s+\d+(?:\.\d+)?\b/i},
     {:phase_identifier, ~r/\bphase[_-]?\d+(?:[_-][a-z0-9_]+)?\b/i},
@@ -26,13 +28,15 @@ defmodule Threadline.ReleaseArtifactContractTest do
     # source owners — their vocabulary never reaches an adopter. The archive
     # refutations below assert their absence instead.
     source_vocab_operator_infrastructure: [
-      "lib/threadline/operator_surface/components/logo.ex"
+      "lib/threadline/operator_surface/components/logo.ex",
+      "lib/threadline/operator_surface/controllers/export_controller/encoding.ex"
     ],
     source_vocab_operator_live_forms: [
       "lib/threadline/operator_surface/live/actor_live.ex",
       "lib/threadline/operator_surface/live/coverage_live.ex",
       "lib/threadline/operator_surface/live/evidence_live.ex",
       "lib/threadline/operator_surface/live/export_status_live.ex",
+      "lib/threadline/operator_surface/live/export_status_live/components.ex",
       "lib/threadline/operator_surface/live/policy_redaction_live.ex"
     ],
     source_vocab_operator_live_records: [
@@ -40,6 +44,8 @@ defmodule Threadline.ReleaseArtifactContractTest do
       "lib/threadline/operator_surface/live/row_history_live.ex",
       "lib/threadline/operator_surface/live/start_live.ex",
       "lib/threadline/operator_surface/live/timeline_live.ex",
+      "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+      "lib/threadline/operator_surface/live/timeline_live/helpers.ex",
       "lib/threadline/operator_surface/live/transaction_live.ex"
     ]
   }
@@ -52,8 +58,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
   defp guide_extras do
     docs_config()[:extras]
-    |> Enum.filter(&is_binary/1)
-    |> Enum.filter(&String.starts_with?(&1, "guides/"))
+    |> Enum.filter(&(is_binary(&1) and String.starts_with?(&1, "guides/")))
     |> MapSet.new()
   end
 
@@ -139,6 +144,15 @@ defmodule Threadline.ReleaseArtifactContractTest do
     assert map_size(readable) > 0, "unpacked Hex archive contained no readable UTF-8 files"
     assert "lib/threadline.ex" in entries
     assert "mix.exs" in entries
+    assert "lib/threadline/operator_surface/style/01_tokens.css" in entries
+    assert "lib/threadline/operator_surface/style/02_base_shell.css" in entries
+    assert "lib/threadline/operator_surface/style/03_page_home.css" in entries
+    assert "lib/threadline/operator_surface/style/04_controls.css" in entries
+    assert "lib/threadline/operator_surface/style/05_feedback.css" in entries
+    assert "lib/threadline/operator_surface/style/06_layout_primitives.css" in entries
+    assert "lib/threadline/operator_surface/style/07_find_detail.css" in entries
+    assert "lib/threadline/operator_surface/style/08_overlays_motion.css" in entries
+    assert "lib/threadline/operator_surface/style/09_responsive.css" in entries
     assert Map.has_key?(readable, "lib/threadline.ex")
     assert Map.has_key?(readable, "mix.exs")
     refute Enum.any?(entries, &String.starts_with?(&1, "test/fixtures/"))
@@ -157,15 +171,27 @@ defmodule Threadline.ReleaseArtifactContractTest do
     "lib/threadline/critic_trust/ledger_splice.ex",
     "lib/threadline/critic_trust/measure.ex",
     "lib/threadline/critic_trust/rank_metrics.ex",
+    "lib/threadline/critic_trust/repository_boundary.ex",
     "lib/threadline/operator_surface/live/stress_live.ex",
+    "lib/threadline/operator_surface/live/stress_live/paths.ex",
+    "lib/threadline/operator_surface/live/stress_live/refute.ex",
+    "lib/threadline/operator_surface/live/stress_live/sections.ex",
     "lib/threadline/operator_surface/mechanical_checker.ex",
+    "lib/threadline/operator_surface/mechanical_checker/accent_hue.ex",
+    "lib/threadline/operator_surface/mechanical_checker/contrast.ex",
+    "lib/threadline/operator_surface/mechanical_checker/parsing.ex",
+    "lib/threadline/operator_surface/mechanical_checker/ratchet_metrics.ex",
+    "lib/threadline/operator_surface/mechanical_checker/scorecards.ex",
+    "lib/threadline/operator_surface/mechanical_checker/token_conformance.ex",
     "lib/threadline/operator_surface/stress_fixtures.ex",
     "lib/threadline/operator_surface/stress_router.ex"
   ]
 
   @maintainer_only_prefixes [
     "lib/mix/tasks/critic.",
-    "lib/threadline/critic_trust/"
+    "lib/threadline/critic_trust/",
+    "lib/threadline/operator_surface/live/stress_live/",
+    "lib/threadline/operator_surface/mechanical_checker/"
   ]
 
   test "built Hex archive excludes maintainer-only tooling" do
@@ -352,7 +378,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
     # derivation and this contract consults it: one rule, one owner, two
     # readers. Reimplementing `major.minor.0` here would be the same drift
     # footgun one step removed.
-    expected_pin = ~s({:threadline, "~> #{Mix.Tasks.Release.Pins.target_pin_version()}"})
+    expected_pin = ~s({:threadline, "~> #{Pins.target_pin_version()}"})
 
     assert String.contains?(readme, expected_pin),
            "README.md does not carry the install pin derived from mix.exs @version.\n" <>
@@ -418,15 +444,7 @@ defmodule Threadline.ReleaseArtifactContractTest do
 
         readable =
           Enum.reduce(files, %{}, fn path, acc ->
-            case File.read(path) do
-              {:ok, content} ->
-                if String.valid?(content),
-                  do: Map.put(acc, Path.relative_to(path, unpack_root), content),
-                  else: acc
-
-              {:error, _reason} ->
-                acc
-            end
+            put_readable(acc, Path.relative_to(path, unpack_root), File.read(path))
           end)
 
         %{entries: entries, readable: readable}
@@ -435,6 +453,12 @@ defmodule Threadline.ReleaseArtifactContractTest do
         flunk("mix hex.build --unpack failed (#{status}):\n#{output}")
     end
   end
+
+  defp put_readable(acc, relative, {:ok, content}) do
+    if String.valid?(content), do: Map.put(acc, relative, content), else: acc
+  end
+
+  defp put_readable(acc, _relative, {:error, _reason}), do: acc
 
   defp planning_vocabulary_matches(files) do
     for {path, content} <- files,

@@ -16,6 +16,8 @@ defmodule Threadline.ExportQueue.TaskAdapter do
   unavailable, the adapter returns `{:error, :supervisor_not_started}`.
   """
 
+  alias Threadline.Export.Orchestrator
+
   @behaviour Threadline.ExportQueue
 
   @impl true
@@ -31,7 +33,7 @@ defmodule Threadline.ExportQueue.TaskAdapter do
 
     try do
       case Task.Supervisor.start_child(supervisor, fn ->
-             Threadline.Export.Orchestrator.run(job_id, storage_schema: storage_schema)
+             Orchestrator.run(job_id, storage_schema: storage_schema)
            end) do
         {:ok, _pid} -> :ok
         {:ok, _pid, _info} -> :ok

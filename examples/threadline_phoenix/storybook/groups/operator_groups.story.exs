@@ -44,82 +44,82 @@ defmodule ThreadlinePhoenixWeb.Storybook.Groups.OperatorGroupsStory do
     ~H"""
     <.threadline_preview theme="light">
       <.preview_section title="Recurring operator groups" description="Selected groups are sampled from the explicit Storybook helper allowlist, not generated from the full stress registry.">
-        <UI.stack gap="section">
-          <UI.card>
+        <UI.Display.stack gap="section">
+          <UI.Display.card>
             <:title>fixture provenance</:title>
-            <UI.kv>
+            <UI.Display.kv>
               <:item key="Toolbar"><%= @groups["toolbar"].story_id %> / <%= @groups["toolbar"].fixture_key %></:item>
               <:item key="Data panel"><%= @groups["data_panel"].story_id %> / <%= @groups["data_panel"].fixture_key %></:item>
               <:item key="Detail header"><%= @groups["detail_header"].story_id %> / <%= @groups["detail_header"].fixture_key %></:item>
               <:item key="Destructive modal"><%= @groups["modal_destructive"].story_id %> / <%= @groups["modal_destructive"].fixture_key %></:item>
               <:item key="Offline"><%= @groups["offline"].story_id %> / <%= @groups["offline"].fixture_key %></:item>
               <:item key="Permission denied"><%= @groups["permission_denied"].story_id %> / <%= @groups["permission_denied"].fixture_key %></:item>
-            </UI.kv>
-          </UI.card>
+            </UI.Display.kv>
+          </UI.Display.card>
 
-          <UI.toolbar>
-            <UI.field
+          <UI.Page.toolbar>
+            <UI.Form.field
               id="group-toolbar-filter"
               name="group_toolbar_filter"
               label="Filter Audit Actions"
               value="ticket.reopened"
               help_text={@groups["toolbar"].body}
             />
-            <UI.button type="button" variant="primary">Apply filters</UI.button>
-            <UI.button type="button" variant="secondary">Reset</UI.button>
-          </UI.toolbar>
+            <UI.Actions.button type="button" variant="primary">Apply filters</UI.Actions.button>
+            <UI.Actions.button type="button" variant="secondary">Reset</UI.Actions.button>
+          </UI.Page.toolbar>
 
-          <UI.detail_header title="Transaction detail group">
+          <UI.Page.detail_header title="Transaction detail group">
             <:metadata key="Story"><%= @groups["detail_header"].story_id %></:metadata>
             <:metadata key="Audit Transaction">
-              <UI.ref value={@long_id} kind="correlation" copy_label="Copy grouped detail reference" />
+              <UI.Display.ref value={@long_id} kind="correlation" copy_label="Copy grouped detail reference" />
             </:metadata>
             <:metadata key="Cases"><%= Enum.join(@groups["detail_header"].cases, ", ") %></:metadata>
             <:actions>
-              <UI.button type="button" variant="secondary">Compare changes</UI.button>
+              <UI.Actions.button type="button" variant="secondary">Compare changes</UI.Actions.button>
             </:actions>
-          </UI.detail_header>
+          </UI.Page.detail_header>
 
-          <UI.data_panel state={:ok} id="group-data-panel" as_of={@stale.as_of}>
+          <UI.Data.data_panel state={:ok} id="group-data-panel" as_of={@stale.as_of}>
             <:data>
-              <UI.data_table rows={[%{subject: "ticket:4521", action: "ticket.reopened", status: "warning"}]}>
+              <UI.Data.data_table rows={[%{subject: "ticket:4521", action: "ticket.reopened", status: "warning"}]}>
                 <:col :let={row} label="Subject"><%= row.subject %></:col>
                 <:col :let={row} label="Action"><%= row.action %></:col>
                 <:col :let={row} label="Status"><%= row.status %></:col>
-              </UI.data_table>
+              </UI.Data.data_table>
             </:data>
             <:pager>
-              <UI.pager
+              <UI.Page.pager
                 shown={@pager.shown}
                 match_count={@pager.match_count}
                 has_older={@pager.has_older}
                 has_newer={@pager.has_newer}
               />
             </:pager>
-          </UI.data_panel>
+          </UI.Data.data_panel>
 
-          <UI.cluster>
-            <UI.modal id="group-modal-destructive" show>
-              <UI.stack>
+          <UI.Display.cluster>
+            <UI.Overlay.modal id="group-modal-destructive" show>
+              <UI.Display.stack>
                 <h2 id="group-modal-destructive-title" class="tl-detail-header__title">
                   Prune retention window permanently?
                 </h2>
                 <p id="group-modal-destructive-description" class="tl-page__lede">
                   <%= @groups["modal_destructive"].body %>
                 </p>
-                <UI.button type="button" variant="danger">Prune records permanently</UI.button>
-              </UI.stack>
-            </UI.modal>
+                <UI.Actions.button type="button" variant="danger">Prune records permanently</UI.Actions.button>
+              </UI.Display.stack>
+            </UI.Overlay.modal>
 
-            <UI.data_state reason={:unauthorized} />
-          </UI.cluster>
+            <UI.Data.data_state reason={:unauthorized} />
+          </UI.Display.cluster>
 
-          <UI.alert variant="warning" data-tl-mutating>
-            <UI.reconnect_banner />
+          <UI.Display.alert variant="warning" data-tl-mutating>
+            <UI.Overlay.reconnect_banner />
             <span><%= @groups["offline"].body %></span>
-            <UI.button type="button" disabled>Retry while reconnecting</UI.button>
-          </UI.alert>
-        </UI.stack>
+            <UI.Actions.button type="button" disabled>Retry while reconnecting</UI.Actions.button>
+          </UI.Display.alert>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """

@@ -28,66 +28,66 @@ defmodule ThreadlinePhoenixWeb.Storybook.Primitives.ButtonStory do
     ~H"""
     <.threadline_preview theme="dark">
       <.preview_section title="Primitive variation groups" description="Buttons, signals, containers, layout, and counters under real Threadline theme CSS.">
-        <UI.stack gap="section">
-          <UI.page_header title="Audit Transaction primitives">
+        <UI.Display.stack gap="section">
+          <UI.Page.page_header title="Audit Transaction primitives">
             <:lede>Use these private components to filter, scan, open, copy, compare, refresh, and return.</:lede>
             <:actions>
-              <UI.button variant="primary"><%= @fixtures.button.primary_label %></UI.button>
-              <UI.button variant="secondary" disabled><%= @fixtures.button.disabled_label %></UI.button>
+              <UI.Actions.button variant="primary"><%= @fixtures.button.primary_label %></UI.Actions.button>
+              <UI.Actions.button variant="secondary" disabled><%= @fixtures.button.disabled_label %></UI.Actions.button>
             </:actions>
-          </UI.page_header>
+          </UI.Page.page_header>
 
-          <UI.cluster>
-            <UI.button variant="primary">Open Audit Transaction</UI.button>
-            <UI.button variant="secondary">Refresh Timeline</UI.button>
-            <UI.button variant="danger">Confirm prune</UI.button>
-            <UI.icon_button aria-label={@fixtures.icon_button.label}>Copy</UI.icon_button>
-            <UI.link href={@fixtures.link.href}><%= @fixtures.link.label %></UI.link>
-          </UI.cluster>
+          <UI.Display.cluster>
+            <UI.Actions.button variant="primary">Open Audit Transaction</UI.Actions.button>
+            <UI.Actions.button variant="secondary">Refresh Timeline</UI.Actions.button>
+            <UI.Actions.button variant="danger">Confirm prune</UI.Actions.button>
+            <UI.Actions.icon_button aria-label={@fixtures.icon_button.label}>Copy</UI.Actions.icon_button>
+            <UI.Actions.link href={@fixtures.link.href}><%= @fixtures.link.label %></UI.Actions.link>
+          </UI.Display.cluster>
 
-          <UI.divider />
+          <UI.Display.divider />
 
-          <UI.cluster>
-            <UI.badge variant="info">info</UI.badge>
-            <UI.badge variant="warning">warning</UI.badge>
-            <UI.badge variant="danger">danger</UI.badge>
-            <UI.badge variant="success">success</UI.badge>
-            <UI.badge variant="neutral">neutral</UI.badge>
-          </UI.cluster>
+          <UI.Display.cluster>
+            <UI.Display.badge variant="info">info</UI.Display.badge>
+            <UI.Display.badge variant="warning">warning</UI.Display.badge>
+            <UI.Display.badge variant="danger">danger</UI.Display.badge>
+            <UI.Display.badge variant="success">success</UI.Display.badge>
+            <UI.Display.badge variant="neutral">neutral</UI.Display.badge>
+          </UI.Display.cluster>
 
-          <UI.alert variant="warning">
+          <UI.Display.alert variant="warning">
             <%= @fixtures.alert.body %>
-          </UI.alert>
+          </UI.Display.alert>
 
-          <UI.card>
+          <UI.Display.card>
             <:title>Threadline component card</:title>
             <:meta>fixture provenance: mixed_severity</:meta>
-            <UI.stack>
+            <UI.Display.stack>
               <p>Long refs stay copyable and readable.</p>
-              <UI.ref value={@fixtures.ref.value} kind="correlation" copy_label="Copy Audit Change reference" />
-            </UI.stack>
-          </UI.card>
+              <UI.Display.ref value={@fixtures.ref.value} kind="correlation" copy_label="Copy Audit Change reference" />
+            </UI.Display.stack>
+          </UI.Display.card>
 
-          <UI.cluster>
-            <UI.avatar
+          <UI.Display.cluster>
+            <UI.Display.avatar
               src="data:image/gif;base64,R0lGODlhAQABAAAAACw="
               alt="Support operator avatar"
             />
             <div role="status" aria-live="polite">
-              <UI.spinner /> Loading Timeline Entry preview
+              <UI.Display.spinner /> Loading Timeline Entry preview
             </div>
-          </UI.cluster>
+          </UI.Display.cluster>
 
-          <UI.stack>
-            <UI.stat_tile label={@fixtures.stat_tile.label} value={@fixtures.stat_tile.value} status="warning" />
-            <UI.pager
+          <UI.Display.stack>
+            <UI.Display.stat_tile label={@fixtures.stat_tile.label} value={@fixtures.stat_tile.value} status="warning" />
+            <UI.Page.pager
               shown={@fixtures.pager.shown}
               match_count={@fixtures.pager.match_count}
               has_older={@fixtures.pager.has_older}
               has_newer={@fixtures.pager.has_newer}
             />
-          </UI.stack>
-        </UI.stack>
+          </UI.Display.stack>
+        </UI.Display.stack>
       </.preview_section>
     </.threadline_preview>
     """
