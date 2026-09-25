@@ -10,7 +10,7 @@ Distribution preflight below reflects the **0.10.2** tree (`mix.exs` `@version` 
 
 | Item | Status | Evidence / notes |
 |------|--------|------------------|
-| `threadline` **0.10.1** on [Hex](https://hex.pm/packages/threadline) | OK | Verified 2026-09-23: [hex.pm](https://hex.pm/packages/threadline) latest is **0.10.1** (tag **`v0.10.1`**). Publish workflow: https://github.com/szTheory/threadline/actions/runs/35797666620. Confirm locally: `mix hex.info threadline` ([CONTRIBUTING.md](../CONTRIBUTING.md#hex-publish-maintainers)). Doc contract: `test/threadline/adoption_pilot_doc_contract_test.exs` |
+| `threadline` **0.10.2** on [Hex](https://hex.pm/packages/threadline) | OK | Verified 2026-09-25: [hex.pm](https://hex.pm/packages/threadline) latest is **0.10.2** (tag **`v0.10.2`**). Publish workflow: https://github.com/szTheory/threadline/actions/runs/36085532676. Confirm locally: `mix hex.info threadline` ([CONTRIBUTING.md](../CONTRIBUTING.md#hex-publish-maintainers)). Doc contract: `test/threadline/adoption_pilot_doc_contract_test.exs` |
 | App depends on `{:threadline, "~> 0.10.0"}` | OK | README + adoption-pilot doc contract lock constraint |
 | `mix deps.get` resolves without overrides | OK | **GitHub Actions** runs `mix deps.get` per job (e.g. `.github/workflows/ci.yml` → `verify-test` / `verify-format`); root **`mix.lock`** pins resolution — no `override: true` on library deps. |
 
