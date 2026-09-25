@@ -42,7 +42,8 @@ table-derived name is already taken now gets a numbered name and module, such
 as `threadline_triggers_posts_2`; a rerun for a different table set, and a first
 run, are named as before. The rerun migration replaces the trigger in place, drops a
 per-table capture function left behind when a table returns to the default
-trigger, and rolling it back keeps capture on.
+trigger, and rolling it back keeps capture on for tables that already had a
+trigger migration.
 
 Every generated trigger migration, including a first run, now uses
 `CREATE OR REPLACE TRIGGER` (PostgreSQL 14 or later, the supported floor), so

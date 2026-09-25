@@ -636,6 +636,12 @@ Threadline shipped **v1.40 Automated Operator-UI Critique & Forward-Only Iterati
 - **OSS quality bar**: named `mix verify.*` / `mix ci.*` entrypoints; honest `mix test` (no silent exclusions); stable GitHub Actions job IDs
 - **Capture mechanism**: Path B (custom triggers) — see archived gate-01-01.md; PgBouncer transaction-mode safe
 - **No WAL/CDC as primary backend**: logical replication adds operational surface area incompatible with Threadline's "batteries-included" promise at v0.x
+- **Zero human verification by default (shift left)** — maintainer directive, standing since 2026-08-27, restated 2026-09-24. Goal: 0 human UAT. Applies to every GSD step (plan, execute, verify-work, audit):
+  - **Plan it in**: every deliverable ships with an executable check (unit / integration / e2e / smoke / seam / doc-contract test, or a Playwright spec for UI) that the SUMMARY `coverage:` block can cite. Don't plan any deliverable whose only verification is "a human looks at it".
+  - **Put it in CI only when it keeps paying off**: wire a check into CI when it guards something that can regress. A one-shot probe (throwaway-DB replay, a one-off migration apply) runs locally and is recorded as evidence, not added to CI.
+  - **Judgment items get an automated reviewer, not a person**: prose clarity, release-note readability and similar "human_judgment" coverage rows are handled by an independent agent review (accuracy vs. code + actionability + clarity), fixed if needed, and recorded `source: automated-review`.
+  - **`/gsd-verify-work` runs itself**: re-run every cited test on current HEAD, run the strict compile/docs/format gates, auto-resolve judgment rows as above, write UAT.md, and do NOT present checkpoints one by one.
+  - **Hand off only what can't be automated**: provisioning secrets or credentials, spending money (paid API scoring stays parked), pushing, publishing or releasing, and product/scope decisions. Anything handed off is listed together, once, at the end.
 
 ## Key Decisions
 

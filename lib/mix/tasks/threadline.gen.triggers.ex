@@ -57,7 +57,8 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   Rolling back does not restore the earlier capture policy: the trigger keeps the
   policy the rerun installed. If the rerun had removed redaction rules, a rolled
   back rerun leaves capture running unredacted until you regenerate, and
-  `mix threadline.policy.show` flags the mismatch. The generated `down` says the
+  `mix threadline.policy.show` flags the mismatch once your config lists those
+  rules again. The generated `down` says the
   same in a comment. To stop capturing a table, write a migration that drops its
   trigger.
 
