@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Per-PR supply-chain gate (SUP-02): asserts a minimum Hex client version, then
-# runs `mix deps.unlock --check-unused` + `mix hex.audit` over every lockfile
-# this repository maintains (root, bench, examples/threadline_phoenix), in
-# that fixed order. Aggregates failures across directories rather than
-# stopping at the first one, so a single `mix verify.deps_audit` run always
-# reports the full picture.
+# runs `mix deps.get --check-locked` + `mix deps.unlock --check-unused` +
+# `mix hex.audit` over every lockfile this repository maintains (root, bench,
+# examples/threadline_phoenix), in that fixed order. `--check-locked` means
+# the lock actually audited is the one committed to the repo: if mix.lock no
+# longer matches mix.exs, `deps.get` fails that directory instead of silently
+# re-resolving and auditing a lock other than the one on disk. Aggregates
+# failures across directories rather than stopping at the first one, so a
+# single `mix verify.deps_audit` run always reports the full picture.
 #
 # Env-var suppression (HEX_IGNORE_ADVISORIES / HEX_IGNORE_RETIREMENTS) is
 # refused outright, before any `mix` call: an unaccountable bypass would
@@ -24,15 +27,21 @@
 #   bin/verify-deps-audit DIR [DIR ...]    # explicit directories, in the given order
 #   bin/verify-deps-audit --self-test      # proves the gate goes red (see below)
 #
-# `--self-test` proves the gate actually has teeth: it copies a committed,
-# deliberately vulnerable lock (test/fixtures/deps_audit/vulnerable_lock/) into
-# a throwaway project under the repo's gitignored tmp/ and runs this gate on
-# it (must go red, and go red FOR AN ADVISORY, not vacuously), then repeats
-# with a faked Hex 2.4.0 (must go red on the version floor, without ever
-# reaching an audit call). This is the negative network proof required by
-# SUP-02; it runs as a step in the `verify-deps-audit` CI job, not as a tagged
-# ExUnit test, so no network-dependent test is excluded from the default
-# `mix test` lane.
+# `--self-test` proves the gate actually has teeth against real Hex, in four
+# cases: (a) it copies a committed, deliberately vulnerable lock
+# (test/fixtures/deps_audit/vulnerable_lock/) into a throwaway project under
+# the repo's gitignored tmp/ and runs this gate on it (must go red, and go
+# red FOR AN ADVISORY, not vacuously); (b) repeats with a faked Hex 2.4.0
+# (must go red on the version floor, without ever reaching an audit call);
+# (c) sets a real global `hex.config ignore_advisories` for the fixture's
+# advisory id under a throwaway HEX_HOME (must go red on the global-config
+# refusal, before any audit call); (d) copies the fixture into a second
+# throwaway project and edits its mix.exs so the lock no longer matches
+# (must go red via `--check-locked`, with the committed lock left
+# byte-identical). This is the negative network proof required by SUP-02; it
+# runs as a step in the `verify-deps-audit` CI job, not as a tagged ExUnit
+# test, so no network-dependent test is excluded from the default `mix test`
+# lane.
 #
 # Seam: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
 # exercise this script's behavior fully offline. Never used by real callers.
@@ -162,7 +171,31 @@ EOF
     ! grep -q 'audit clean' <<<"$global_ignore_output" ||
     die "global hex.config ignore_advisories was not refused (CR-01 regression): $global_ignore_output"
 
-  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red, global Hex ignore red)\n'
+  # (d) A mix.lock that no longer matches mix.exs must fail via
+  # --check-locked instead of being silently re-resolved and audited, and
+  # the committed lock must come out byte-identical.
+  drift_dir="$self_test_dir/drift"
+  mkdir -p "$drift_dir"
+  cp "$fixture_dir/mix.exs" "$drift_dir/mix.exs"
+  cp "$fixture_dir/mix.lock" "$drift_dir/mix.lock"
+  cp "$fixture_dir/mix.lock" "$drift_dir/mix.lock.before"
+
+  orig_mix_exs="$(cat "$drift_dir/mix.exs")"
+  drifted_mix_exs="${orig_mix_exs//== 1.19.1/~> 1.19.2}"
+  printf '%s\n' "$drifted_mix_exs" >"$drift_dir/mix.exs"
+
+  set +e
+  drift_output="$(HEX_IGNORE_ADVISORIES= HEX_IGNORE_RETIREMENTS= "$0" "$drift_dir" 2>&1)"
+  drift_status=$?
+  set -e
+
+  [ "$drift_status" -ne 0 ] &&
+    grep -q -- '--check-locked' <<<"$drift_output" &&
+    ! grep -q 'audit clean' <<<"$drift_output" &&
+    cmp -s "$drift_dir/mix.lock" "$drift_dir/mix.lock.before" ||
+    die "lock drift was not refused (WR-02 regression): $drift_output"
+
+  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red, global Hex ignore red, lock drift red)\n'
   exit 0
 fi
 
@@ -290,14 +323,15 @@ for d in "${DIRS[@]}"; do
   fi
 
   set +e
-  deps_get_output="$(cd "$resolved" && printf 'n\n' | "$MIX_BIN" deps.get 2>&1)"
+  deps_get_output="$(cd "$resolved" && printf 'n\n' | "$MIX_BIN" deps.get --check-locked 2>&1)"
   deps_get_status=$?
   set -e
 
   if [ "$deps_get_status" -ne 0 ]; then
     printf '%s\n' "$deps_get_output"
-    FAILURES+=("FAIL $d: deps.get exited $deps_get_status")
-    # A vacuous audit (deps not fetched) is skipped, not trusted.
+    FAILURES+=("FAIL $d: deps.get --check-locked exited $deps_get_status (the committed mix.lock must match mix.exs; this gate audits the committed lock, never a re-resolved one — re-lock locally and commit mix.lock)")
+    # A vacuous audit (deps not fetched, or fetched against a re-resolved
+    # lock other than the one committed) is skipped, not trusted.
     continue
   fi
 
