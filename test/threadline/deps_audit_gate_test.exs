@@ -33,6 +33,12 @@ defmodule Threadline.DepsAuditGateTest do
   # values entirely rather than passing them through, so this sentinel is the
   # only way to exercise that fail-closed path from Elixir. Exits
   # FAKE_HEX_CONFIG_EXIT (default 0).
+  #
+  # deps.get: for a dir whose basename is one of the comma-separated
+  # FAKE_LOCK_DRIFT tokens, `deps.get --check-locked` prints Mix's real
+  # out-of-date-lock message and exits 1, while plain `deps.get` (no
+  # --check-locked) exits 0 — mirroring real Mix, which silently re-resolves
+  # a drifted lock instead of refusing it.
   defp fake_mix(root) do
     path = Path.join(root, "mix")
 
@@ -60,6 +66,19 @@ defmodule Threadline.DepsAuditGateTest do
         [ "$val" = "__NOOUTPUT__" ] || printf '%s\\n' "$val"
       fi
       exit "${FAKE_HEX_CONFIG_EXIT:-0}"
+    fi
+    if [ "$cmd" = "deps.get" ]; then
+      base=$(basename "$(pwd)")
+      case ",${FAKE_LOCK_DRIFT:-}," in
+        *",$base,"*)
+          case " $* " in
+            *" --check-locked "*)
+              printf '** (Mix) Your mix.lock is out of date and must be updated without the --check-locked flag\\n'
+              exit 1
+              ;;
+          esac
+          ;;
+      esac
     fi
     base=$(basename "$(pwd)")
     key="$base:$cmd"
@@ -130,13 +149,13 @@ defmodule Threadline.DepsAuditGateTest do
              "hex.info",
              "hex.config ignore_advisories",
              "hex.config ignore_retirements",
-             "deps.get",
+             "deps.get --check-locked",
              "deps.unlock --check-unused",
              "hex.audit",
-             "deps.get",
+             "deps.get --check-locked",
              "deps.unlock --check-unused",
              "hex.audit",
-             "deps.get",
+             "deps.get --check-locked",
              "deps.unlock --check-unused",
              "hex.audit"
            ]
@@ -214,6 +233,34 @@ defmodule Threadline.DepsAuditGateTest do
     assert out =~ "one"
     assert out =~ "deps.get"
     refute log =~ "hex.audit"
+  end
+
+  test "a lock that no longer matches mix.exs fails via --check-locked and skips that dir's hex.audit" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+
+    {out, status, log} = run([d1], [{"FAKE_LOCK_DRIFT", "one"}], root)
+
+    assert status != 0
+    assert out =~ "one"
+    assert out =~ "--check-locked"
+    refute log =~ "one|hex.audit"
+  end
+
+  test "lock drift in the 1st of 3 dirs is aggregated: dirs two and three still run hex.audit" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+    d2 = project_dir(root, "two")
+    d3 = project_dir(root, "three")
+
+    {out, status, log} = run([d1, d2, d3], [{"FAKE_LOCK_DRIFT", "one"}], root)
+
+    assert status != 0
+    assert out =~ "one"
+    assert out =~ "--check-locked"
+    refute log =~ "one|hex.audit"
+    assert log =~ "two|hex.audit"
+    assert log =~ "three|hex.audit"
   end
 
   test "HEX_IGNORE_ADVISORIES non-empty exits non-zero before any mix call, naming the variable" do
