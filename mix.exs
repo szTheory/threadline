@@ -196,6 +196,10 @@ defmodule Threadline.MixProject do
       "ci.all": [
         "verify.format",
         "verify.credo",
+        # Per-PR required gate (SUP-02), unlike the release-lane verify.bench /
+        # verify.release / verify.bump_rehearsal above and below, which stay out
+        # of ci.all on purpose. Fast and network-bound, so it runs early.
+        "verify.deps_audit",
         "compile --warnings-as-errors",
         "verify.xref_cycles",
         "verify.compile_no_optional",
