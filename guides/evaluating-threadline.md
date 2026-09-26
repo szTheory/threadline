@@ -38,7 +38,7 @@ In-repo evidence includes:
 - **`mix verify.*` ladder** — doc-contract tests lock public prose to code; `mix verify.test` runs every one of them.
 - **PgBouncer transaction-mode class** via **`verify-pgbouncer-topology`** (`mix verify.topology`, `mix verify.threadline` through a transaction pooler).
 - **Reference app CI-class HTTP paths** via `mix verify.example` (`examples/threadline_phoenix`).
-- **Hex-published install path** via `mix verify.hex_evaluator` (`priv/ci/hex_evaluator` depends on `{:threadline, "~> 0.10.0"}` from hex.pm — not a path dep).
+- **Hex-published install path** via `mix verify.hex_evaluator` (`priv/ci/hex_evaluator` depends on `{:threadline, "~> 0.11.0"}` from hex.pm — not a path dep).
 
 ## What integrators must prove (host-class)
 
