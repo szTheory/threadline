@@ -18,8 +18,17 @@ defmodule Threadline.DepsAuditGateTest do
   end
 
   # Fake `mix`: logs `<cwd>|<args>` to CALL_LOG, prints FAKE_HEX_INFO (if any)
-  # for `hex.info`, and exits 1 when `<basename of cwd>:<subcommand>` is one of
-  # the comma-separated FAKE_FAIL tokens. Exits 0 otherwise.
+  # for `hex.info`, prints a fake `hex.config KEY` answer for `hex.config`, and
+  # exits 1 when `<basename of cwd>:<subcommand>` is one of the comma-separated
+  # FAKE_FAIL tokens. Exits 0 otherwise.
+  #
+  # hex.config KEY: prints FAKE_HEX_CONFIG_PREFIX (a warning line) first, if
+  # set; then the value of FAKE_HEX_CONFIG_IGNORE_ADVISORIES for key
+  # ignore_advisories or FAKE_HEX_CONFIG_IGNORE_RETIREMENTS for key
+  # ignore_retirements, using bash's unset-only default expansion so an UNSET
+  # var prints `[]` (clean) while a var explicitly set to the empty string
+  # prints nothing (used by the fail-closed tests). Exits FAKE_HEX_CONFIG_EXIT
+  # (default 0).
   defp fake_mix(root) do
     path = Path.join(root, "mix")
 
@@ -33,6 +42,18 @@ defmodule Threadline.DepsAuditGateTest do
         printf '%s\\n' "$FAKE_HEX_INFO"
       fi
       exit 0
+    fi
+    if [ "$cmd" = "hex.config" ]; then
+      key="${2:-}"
+      if [ -n "${FAKE_HEX_CONFIG_PREFIX:-}" ]; then
+        printf '%s\\n' "$FAKE_HEX_CONFIG_PREFIX"
+      fi
+      if [ "$key" = "ignore_advisories" ]; then
+        printf '%s\\n' "${FAKE_HEX_CONFIG_IGNORE_ADVISORIES-[]}"
+      elif [ "$key" = "ignore_retirements" ]; then
+        printf '%s\\n' "${FAKE_HEX_CONFIG_IGNORE_RETIREMENTS-[]}"
+      fi
+      exit "${FAKE_HEX_CONFIG_EXIT:-0}"
     fi
     base=$(basename "$(pwd)")
     key="$base:$cmd"
@@ -101,6 +122,8 @@ defmodule Threadline.DepsAuditGateTest do
 
     assert calls == [
              "hex.info",
+             "hex.config ignore_advisories",
+             "hex.config ignore_retirements",
              "deps.get",
              "deps.unlock --check-unused",
              "hex.audit",
@@ -209,6 +232,109 @@ defmodule Threadline.DepsAuditGateTest do
     assert String.trim(log) == ""
   end
 
+  @real_root Path.expand("../..", __DIR__)
+
+  test "a non-empty global hex.config ignore_advisories exits non-zero before any audit call, naming the key" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+
+    {out, status, log} =
+      run([d1], [{"FAKE_HEX_CONFIG_IGNORE_ADVISORIES", ~s(["EEF-CVE-2026-54892"])}], root)
+
+    assert status != 0
+    assert out =~ "ignore_advisories"
+    refute log =~ "deps.get"
+    refute log =~ "hex.audit"
+  end
+
+  test "a non-empty global hex.config ignore_retirements exits non-zero before any audit call, naming the key" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+
+    {out, status, log} =
+      run([d1], [{"FAKE_HEX_CONFIG_IGNORE_RETIREMENTS", ~s([{"plug", nil}])}], root)
+
+    assert status != 0
+    assert out =~ "ignore_retirements"
+    refute log =~ "deps.get"
+    refute log =~ "hex.audit"
+  end
+
+  for {key, env_key} <- [
+        {"ignore_advisories", "FAKE_HEX_CONFIG_IGNORE_ADVISORIES"},
+        {"ignore_retirements", "FAKE_HEX_CONFIG_IGNORE_RETIREMENTS"}
+      ] do
+    test "hex.config #{key} printing nothing fails closed, naming the key" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+      env_key = unquote(env_key)
+
+      {out, status, log} = run([d1], [{env_key, ""}], root)
+
+      assert status != 0
+      assert out =~ "could not read global Hex config"
+      refute log =~ "deps.get"
+    end
+
+    test "hex.config #{key} printing a non-list word fails closed" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+      env_key = unquote(env_key)
+
+      {out, status, log} = run([d1], [{env_key, "nope"}], root)
+
+      assert status != 0
+      assert out =~ "could not read global Hex config"
+      refute log =~ "deps.get"
+    end
+
+    test "hex.config #{key} exiting non-zero fails closed" do
+      root = tmp_root()
+      d1 = project_dir(root, "one")
+      env_key = unquote(env_key)
+
+      {out, status, log} = run([d1], [{env_key, "[]"}, {"FAKE_HEX_CONFIG_EXIT", "1"}], root)
+
+      assert status != 0
+      assert out =~ "could not read global Hex config"
+      refute log =~ "deps.get"
+    end
+  end
+
+  test "a warning line before the final [] line is tolerated (clean, gate proceeds)" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+
+    {_out, status, _log} = run([d1], [{"FAKE_HEX_CONFIG_PREFIX", "warning: something"}], root)
+
+    assert status == 0
+  end
+
+  test "the hex.config query runs from a neutral, mix.exs-free dir under tmp/, removed afterwards" do
+    root = tmp_root()
+    d1 = project_dir(root, "one")
+
+    {_out, status, log} = run([d1], [], root)
+
+    assert status == 0
+    lines = log |> String.trim() |> String.split("\n")
+
+    config_pwds =
+      lines
+      |> Enum.filter(&String.contains?(&1, "|hex.config"))
+      |> Enum.map(fn line -> line |> String.split("|", parts: 2) |> hd() end)
+
+    assert length(config_pwds) == 2
+
+    for pwd <- config_pwds do
+      assert String.starts_with?(pwd, Path.join(@real_root, "tmp") <> "/")
+      refute pwd == @real_root
+      refute pwd == d1
+    end
+
+    assert Path.wildcard(Path.join(@real_root, "tmp/deps-audit-hex-config.*")) == []
+  end
+
   test "a directory argument that does not exist is a non-zero exit naming it" do
     root = tmp_root()
     missing = Path.join(root, "does-not-exist")
@@ -271,9 +397,10 @@ defmodule Threadline.DepsAuditGateTest do
     lines = contents |> String.trim() |> String.split("\n")
     pwds = Enum.map(lines, fn line -> line |> String.split("|", parts: 2) |> hd() end)
 
-    # First line is the hex.info check (run in ROOT); the next three groups of
-    # three (deps.get / deps.unlock / hex.audit) are the canonical dirs.
-    dir_pwds = pwds |> tl() |> Enum.take_every(3)
+    # First three lines are hex.info + hex.config ignore_advisories +
+    # hex.config ignore_retirements (all run in ROOT); the next three groups
+    # of three (deps.get / deps.unlock / hex.audit) are the canonical dirs.
+    dir_pwds = pwds |> Enum.drop(3) |> Enum.take_every(3)
 
     assert Enum.at(dir_pwds, 0) |> String.ends_with?(real_root)
     assert Enum.at(dir_pwds, 1) |> String.ends_with?("/bench")
