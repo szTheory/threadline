@@ -24,7 +24,20 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
-_Nothing yet for the next release._
+This release refreshes a locked dependency to clear a published security
+advisory and changes no public API or configuration.
+
+### Breaking changes
+
+None.
+
+### Security
+
+- `mint` bumped to 1.10.1, fixing a response-smuggling advisory
+  (EEF-CVE-2026-82672 / GHSA-rj5m-69wp-cxq9). Threadline reaches `mint` only
+  through its optional `req` dependency (`req` -> `finch` -> `mint`), so the
+  package's own requirements do not change. Applications that depend on `req`
+  should run `mix deps.update mint` to pick up the fix.
 
 ## [0.11.0] - 2026-09-26
 
