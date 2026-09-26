@@ -58,6 +58,14 @@ defmodule Threadline.DepsHealthReportTest do
 
     case "$SUBCMD" in
       deps.get)
+        if should_match "${FAKE_LOCK_DRIFT:-}"; then
+          case " $* " in
+            *" --check-locked "*)
+              echo "** (Mix) Your mix.lock is out of date and must be updated without the --check-locked flag"
+              exit 1
+              ;;
+          esac
+        fi
         if should_match "${FAKE_FAIL_DEPS_GET:-}"; then
           echo "deps.get failed for $REL"
           exit 1
@@ -387,6 +395,31 @@ defmodule Threadline.DepsHealthReportTest do
 
       assert health_report =~ "ignore_advisories ignore_retirements"
       assert verify_audit =~ "ignore_advisories ignore_retirements"
+    end
+  end
+
+  describe "committed lock (WR-02)" do
+    test "a drifted lock in bench -> unknown, bench's audit/outdated skipped, root and example still run hex.audit" do
+      out_dir = tmp_out_dir()
+
+      {output, status, calls} = run_report(out_dir, [{"FAKE_LOCK_DRIFT", "bench"}])
+
+      assert status == 0
+      assert output =~ "classification=unknown"
+      refute calls =~ "bench hex.audit"
+      refute calls =~ "bench hex.outdated"
+      assert calls =~ ". hex.audit"
+      assert calls =~ "examples/threadline_phoenix hex.audit"
+    end
+
+    test "every fetch on a default run carries --check-locked" do
+      out_dir = tmp_out_dir()
+      {_output, status, calls} = run_report(out_dir)
+
+      assert status == 0
+      assert calls =~ ". deps.get --check-locked"
+      assert calls =~ "bench deps.get --check-locked"
+      assert calls =~ "examples/threadline_phoenix deps.get --check-locked"
     end
   end
 
