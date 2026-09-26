@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.11.0](https://github.com/szTheory/threadline/compare/v0.10.2...v0.11.0) (2026-09-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* capture every primary-key shape, read it back exactly, and detect broken capture ([#52](https://github.com/szTheory/threadline/issues/52))
+
+### Features
+
+* capture every primary-key shape, read it back exactly, and detect broken capture ([#52](https://github.com/szTheory/threadline/issues/52)) ([b0668e6](https://github.com/szTheory/threadline/commit/b0668e6d8e628c0e6ff70e4b4e41439c713450ac))
+
 ## [0.10.2](https://github.com/szTheory/threadline/compare/v0.10.1...v0.10.2) (2026-09-25)
 
 
