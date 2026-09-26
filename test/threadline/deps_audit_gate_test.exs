@@ -26,9 +26,13 @@ defmodule Threadline.DepsAuditGateTest do
   # set; then the value of FAKE_HEX_CONFIG_IGNORE_ADVISORIES for key
   # ignore_advisories or FAKE_HEX_CONFIG_IGNORE_RETIREMENTS for key
   # ignore_retirements, using bash's unset-only default expansion so an UNSET
-  # var prints `[]` (clean) while a var explicitly set to the empty string
-  # prints nothing (used by the fail-closed tests). Exits FAKE_HEX_CONFIG_EXIT
-  # (default 0).
+  # var prints `[]` (clean). The literal sentinel `__NOOUTPUT__` prints
+  # nothing at all for that key instead (used by the fail-closed "hex.config
+  # prints nothing" tests) — a real empty-string env value cannot be
+  # delivered through `System.cmd`'s `:env` option, which drops zero-length
+  # values entirely rather than passing them through, so this sentinel is the
+  # only way to exercise that fail-closed path from Elixir. Exits
+  # FAKE_HEX_CONFIG_EXIT (default 0).
   defp fake_mix(root) do
     path = Path.join(root, "mix")
 
@@ -49,9 +53,11 @@ defmodule Threadline.DepsAuditGateTest do
         printf '%s\\n' "$FAKE_HEX_CONFIG_PREFIX"
       fi
       if [ "$key" = "ignore_advisories" ]; then
-        printf '%s\\n' "${FAKE_HEX_CONFIG_IGNORE_ADVISORIES-[]}"
+        val="${FAKE_HEX_CONFIG_IGNORE_ADVISORIES-[]}"
+        [ "$val" = "__NOOUTPUT__" ] || printf '%s\\n' "$val"
       elif [ "$key" = "ignore_retirements" ]; then
-        printf '%s\\n' "${FAKE_HEX_CONFIG_IGNORE_RETIREMENTS-[]}"
+        val="${FAKE_HEX_CONFIG_IGNORE_RETIREMENTS-[]}"
+        [ "$val" = "__NOOUTPUT__" ] || printf '%s\\n' "$val"
       fi
       exit "${FAKE_HEX_CONFIG_EXIT:-0}"
     fi
@@ -269,7 +275,7 @@ defmodule Threadline.DepsAuditGateTest do
       d1 = project_dir(root, "one")
       env_key = unquote(env_key)
 
-      {out, status, log} = run([d1], [{env_key, ""}], root)
+      {out, status, log} = run([d1], [{env_key, "__NOOUTPUT__"}], root)
 
       assert status != 0
       assert out =~ "could not read global Hex config"

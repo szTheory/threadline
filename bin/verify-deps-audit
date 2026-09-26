@@ -8,8 +8,14 @@
 #
 # Env-var suppression (HEX_IGNORE_ADVISORIES / HEX_IGNORE_RETIREMENTS) is
 # refused outright, before any `mix` call: an unaccountable bypass would
-# defeat the point of a required gate. The only legitimate way to suppress an
-# advisory is a documented `hex_audit_ignores/0` entry on the relevant
+# defeat the point of a required gate. Hex's global client config
+# (`mix hex.config ignore_advisories|ignore_retirements`, read from any
+# HEX_HOME) is refused the same way, right after the Hex version floor check
+# and before any per-directory audit call: that query is run from a fresh,
+# mix.exs-free directory under this repo's gitignored tmp/, because running
+# it inside a project would also pick up that project's own accountable
+# `hex: [ignore_advisories: ...]` entry. The only legitimate way to suppress
+# an advisory is a documented `hex_audit_ignores/0` entry on the relevant
 # MixProject module (see test/threadline/ignore_advisories_contract_test.exs),
 # which records a reason, a reachability claim and a review-by date.
 #
@@ -136,7 +142,27 @@ EOF
   [ ! -s "$fake_log" ] ||
     die "old-Hex case ran a mix subcommand beyond hex.info: $(cat "$fake_log")"
 
-  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red)\n'
+  # (c) A non-empty global Hex ignore_advisories must be refused, against
+  # real Hex, before any audit call.
+  hex_home="$self_test_dir/hex-home"
+  mkdir -p "$hex_home"
+  (
+    cd "$self_test_dir" &&
+      HEX_HOME="$hex_home" "$MIX_BIN" hex.config ignore_advisories EEF-CVE-2026-54892
+  ) >/dev/null ||
+    die "self-test setup: could not set a global hex.config ignore_advisories for case (c)"
+
+  set +e
+  global_ignore_output="$(HEX_HOME="$hex_home" HEX_IGNORE_ADVISORIES= HEX_IGNORE_RETIREMENTS= "$0" "$project_dir" 2>&1)"
+  global_ignore_status=$?
+  set -e
+
+  [ "$global_ignore_status" -ne 0 ] &&
+    grep -q 'global Hex config sets ignore_advisories' <<<"$global_ignore_output" &&
+    ! grep -q 'audit clean' <<<"$global_ignore_output" ||
+    die "global hex.config ignore_advisories was not refused (CR-01 regression): $global_ignore_output"
+
+  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red, global Hex ignore red)\n'
   exit 0
 fi
 
@@ -184,6 +210,72 @@ fi
 if ! version_ge "$hex_version" "$MIN_HEX"; then
   die "requires Hex >= $MIN_HEX, found $hex_version"
 fi
+
+# --- Refuse a non-empty global Hex ignore before any per-dir audit -----------
+#
+# Hex's global client config (`mix hex.config ignore_advisories|ignore_retirements`,
+# read from any HEX_HOME) can suppress the exact advisories this gate exists
+# to catch, entirely outside the accountable hex_audit_ignores/0 convention.
+# The query MUST run from a directory with no mix.exs: inside this project,
+# `mix hex.config KEY` also merges this project's own accountable
+# `hex: [ignore_advisories: ...]` entry, which would wrongly refuse a
+# legitimate SUP-03 ignore.
+
+read_global_hex_ignore() {
+  local key="$1" neutral_dir="$2"
+  local raw status non_blank start_line value
+
+  set +e
+  raw="$(cd "$neutral_dir" && "$MIX_BIN" hex.config "$key" 2>&1)"
+  status=$?
+  set -e
+
+  raw="$(printf '%s' "$raw" | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g')"
+  non_blank="$(printf '%s\n' "$raw" | grep -v '^[[:space:]]*$' || true)"
+
+  # The list Hex reports is a single Elixir term that may itself wrap across
+  # multiple lines (long ignore lists do). Find the first non-blank line that
+  # starts with `[` and join it through the rest of the output into one
+  # value, so a wrapped `["A", "B",\n "C"]` reads as one term rather than
+  # only its last fragment. Any line(s) before that (warnings) are dropped.
+  start_line="$(printf '%s\n' "$non_blank" | grep -n '^[[:space:]]*\[' | head -n1 | cut -d: -f1 || true)"
+  if [ -z "$start_line" ]; then
+    value=""
+  else
+    value="$(printf '%s\n' "$non_blank" | tail -n +"$start_line" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+    value="$(printf '%s' "$value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+  fi
+
+  printf '%s\n%s' "$status" "$value"
+}
+
+refuse_global_hex_ignores() {
+  mkdir -p "$ROOT/tmp"
+  local neutral_dir
+  neutral_dir="$(mktemp -d "$ROOT/tmp/deps-audit-hex-config.XXXXXX")"
+  trap 'rm -rf "$neutral_dir"' EXIT
+
+  local key
+  for key in ignore_advisories ignore_retirements; do
+    local result status value
+    result="$(read_global_hex_ignore "$key" "$neutral_dir")"
+    status="$(printf '%s\n' "$result" | sed -n '1p')"
+    value="$(printf '%s\n' "$result" | tail -n +2)"
+
+    if [ "$status" -ne 0 ] || [ -z "$value" ] || [ "${value#[}" = "$value" ]; then
+      die "could not read global Hex config $key (mix hex.config $key exited $status): $value"
+    fi
+
+    if [ "$value" != "[]" ]; then
+      die "global Hex config sets $key to $value (mix hex.config $key). Suppressing a hex.audit finding through Hex client config is not accountable. Remove it (mix hex.config $key --delete) and add a hex_audit_ignores/0 entry (reason, reachability, review-by date) to the relevant MixProject module instead."
+    fi
+  done
+
+  rm -rf "$neutral_dir"
+  trap - EXIT
+}
+
+refuse_global_hex_ignores
 
 # --- Per-directory audit, aggregated (never fail-fast) ------------------------
 
