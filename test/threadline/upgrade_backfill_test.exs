@@ -132,7 +132,13 @@ defmodule Threadline.UpgradeBackfillTest do
         tmp,
         "20240301000000_threadline_triggers_upg_documents.exs",
         "Threadline.Test.Repo.Migrations.ThreadlineTriggersUpgDocuments",
-        [LegacyTriggerSQL.v0_10_2_create_trigger("public", @doc_table)],
+        [
+          LegacyTriggerSQL.v0_10_2_create_trigger(
+            "public",
+            @doc_table,
+            StorageSchema.function("threadline_capture_changes") <> "()"
+          )
+        ],
         ["DROP TRIGGER IF EXISTS threadline_audit_#{@doc_table} ON #{@doc_table}"]
       )
 
@@ -252,7 +258,13 @@ defmodule Threadline.UpgradeBackfillTest do
         tmp,
         "20240302000000_threadline_triggers_upg_accounts.exs",
         "Threadline.Test.Repo.Migrations.ThreadlineTriggersUpgAccounts",
-        [LegacyTriggerSQL.v0_10_2_create_trigger("public", @acct_table)],
+        [
+          LegacyTriggerSQL.v0_10_2_create_trigger(
+            "public",
+            @acct_table,
+            StorageSchema.function("threadline_capture_changes") <> "()"
+          )
+        ],
         ["DROP TRIGGER IF EXISTS threadline_audit_#{@acct_table} ON #{@acct_table}"]
       )
 
@@ -277,7 +289,13 @@ defmodule Threadline.UpgradeBackfillTest do
         tmp,
         "20240303000000_threadline_triggers_upg_tags.exs",
         "Threadline.Test.Repo.Migrations.ThreadlineTriggersUpgTags",
-        [LegacyTriggerSQL.v0_10_2_create_trigger("public", @tags_table)],
+        [
+          LegacyTriggerSQL.v0_10_2_create_trigger(
+            "public",
+            @tags_table,
+            StorageSchema.function("threadline_capture_changes") <> "()"
+          )
+        ],
         ["DROP TRIGGER IF EXISTS threadline_audit_#{@tags_table} ON #{@tags_table}"]
       )
 
@@ -300,7 +318,13 @@ defmodule Threadline.UpgradeBackfillTest do
         tmp,
         "20240304000000_threadline_triggers_upg_widgets.exs",
         "Threadline.Test.Repo.Migrations.ThreadlineTriggersUpgWidgets",
-        [LegacyTriggerSQL.v0_10_2_create_trigger("public", @widget_table)],
+        [
+          LegacyTriggerSQL.v0_10_2_create_trigger(
+            "public",
+            @widget_table,
+            StorageSchema.function("threadline_capture_changes") <> "()"
+          )
+        ],
         ["DROP TRIGGER IF EXISTS threadline_audit_#{@widget_table} ON #{@widget_table}"]
       )
 
@@ -323,7 +347,13 @@ defmodule Threadline.UpgradeBackfillTest do
         tmp,
         "20240305000000_threadline_triggers_upg_readings.exs",
         "Threadline.Test.Repo.Migrations.ThreadlineTriggersUpgReadings",
-        [LegacyTriggerSQL.v0_10_2_create_trigger("public", @readings_table)],
+        [
+          LegacyTriggerSQL.v0_10_2_create_trigger(
+            "public",
+            @readings_table,
+            StorageSchema.function("threadline_capture_changes") <> "()"
+          )
+        ],
         ["DROP TRIGGER IF EXISTS threadline_audit_#{@readings_table} ON #{@readings_table}"]
       )
 
@@ -566,7 +596,13 @@ defmodule Threadline.UpgradeBackfillTest do
         tmp,
         "20240301000000_threadline_triggers_upg_documents.exs",
         "Threadline.Test.Repo.Migrations.ThreadlineTriggersUpgDocuments",
-        [LegacyTriggerSQL.v0_10_2_create_trigger("public", @doc_table)],
+        [
+          LegacyTriggerSQL.v0_10_2_create_trigger(
+            "public",
+            @doc_table,
+            StorageSchema.function("threadline_capture_changes") <> "()"
+          )
+        ],
         ["DROP TRIGGER IF EXISTS threadline_audit_#{@doc_table} ON #{@doc_table}"]
       )
 

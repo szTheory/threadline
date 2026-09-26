@@ -168,7 +168,13 @@ defmodule Threadline.UpgradeRollbackTest do
           tmp,
           "20240401000000_threadline_triggers_rb_accounts.exs",
           "Threadline.Test.Repo.Migrations.ThreadlineTriggersRbAccounts",
-          [LegacyTriggerSQL.v0_10_2_create_trigger("public", @acct_table)],
+          [
+            LegacyTriggerSQL.v0_10_2_create_trigger(
+              "public",
+              @acct_table,
+              StorageSchema.function("threadline_capture_changes") <> "()"
+            )
+          ],
           ["DROP TRIGGER IF EXISTS threadline_audit_#{@acct_table} ON #{@acct_table}"]
         )
 
