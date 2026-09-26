@@ -1,0 +1,215 @@
+#!/usr/bin/env bash
+# SUP-04: weekly dependency-health lane classifier. Extracted out of
+# .github/workflows/deps-health.yml so the classification logic is a
+# committed, directly executable, and unit-tested artifact rather than
+# inline workflow shell reachable only by a weekly cron nobody watches — the
+# same idiom as bin/classify-flake-run (198-11) and bin/verify-deps-audit
+# (SUP-02).
+#
+# Runs, for each of the three lockfile directories this repo maintains, in
+# the fixed order `.  bench  examples/threadline_phoenix` (matching
+# bin/verify-deps-audit's own canonical order): `mix deps.get`, then (only on
+# a successful fetch) `mix hex.audit` and `mix hex.outdated`. It classifies
+# the overall result and writes a report body other tooling can post as a
+# GitHub issue.
+#
+# Classification precedence (highest wins, checked across ALL three dirs):
+#   any dir's hex.audit exits non-zero after a successful deps.get -> advisory
+#   any dir's deps.get exits non-zero                              -> unknown
+#   any dir's hex.outdated exits non-zero                          -> outdated
+#   everything succeeds                                            -> clean
+#
+# A real advisory always outranks an unrelated fetch failure elsewhere: a
+# confirmed finding must never be silently masked because some other
+# directory could not be fetched. `unknown` is the default arm otherwise — a
+# fetch failure is never quietly reported as `clean` or `outdated`. When a
+# directory's `deps.get` fails, its `hex.audit`/`hex.outdated` are skipped
+# entirely (a vacuous audit over unfetched deps is not trusted), matching
+# bin/verify-deps-audit's own "skip on fetch failure" behavior.
+#
+# Usage: bin/deps-health-report <out-dir>
+#
+# Writes <out-dir>/report.md (capped at 60000 bytes — GitHub's own issue body
+# limit is 65536) and, when $GITHUB_OUTPUT is set, appends
+#   classification=<clean|outdated|advisory|unknown>
+#   report=<out-dir>/report.md
+# to it (append, never overwrite — existing content is preserved). Always
+# echoes `classification=<value>` to stdout and exits 0: reporting is not the
+# verdict, the calling workflow's own fail step decides whether the run goes
+# red based on the classification value.
+#
+# Seam: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
+# exercise this script's behavior fully offline — the same idiom as
+# bin/verify-deps-audit. Never used by real callers.
+
+set -uo pipefail
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <out-dir>" >&2
+  exit 2
+fi
+
+OUT_DIR="$1"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+MIX_BIN="${MIX_BIN:-mix}"
+
+# Canonical audit order (never argument-overridable — this script takes no
+# directory arguments — matches bin/verify-deps-audit's CANONICAL_DIRS).
+CANONICAL_DIRS=(. bench examples/threadline_phoenix)
+
+mkdir -p "$OUT_DIR"
+REPORT_FILE="$OUT_DIR/report.md"
+SECTIONS_FILE="$OUT_DIR/.deps-health-sections.tmp"
+: >"$SECTIONS_FILE"
+cleanup_sections() {
+  rm -f "$SECTIONS_FILE"
+}
+trap cleanup_sections EXIT
+
+strip_ansi() {
+  sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g'
+}
+
+# Rank-based classification: clean=0, outdated=1, unknown=2, advisory=3. The
+# overall result is the MAX rank seen across every directory and subcommand —
+# this is what makes "a real advisory outranks an unknown elsewhere" hold
+# without a hand-written precedence table.
+RANK_NAMES=(clean outdated unknown advisory)
+overall_rank=0
+
+rank_of() {
+  case "$1" in
+    clean) echo 0 ;;
+    outdated) echo 1 ;;
+    unknown) echo 2 ;;
+    advisory) echo 3 ;;
+    *) echo 0 ;;
+  esac
+}
+
+bump() {
+  local candidate_rank
+  candidate_rank="$(rank_of "$1")"
+  if [ "$candidate_rank" -gt "$overall_rank" ]; then
+    overall_rank="$candidate_rank"
+  fi
+}
+
+resolve_dir() {
+  local d="$1"
+  case "$d" in
+    /*) printf '%s' "$d" ;;
+    *) printf '%s' "$ROOT/$d" ;;
+  esac
+}
+
+for d in "${CANONICAL_DIRS[@]}"; do
+  resolved="$(resolve_dir "$d")"
+
+  {
+    printf '## %s\n\n' "$d"
+  } >>"$SECTIONS_FILE"
+
+  if [ ! -d "$resolved" ] || [ ! -f "$resolved/mix.exs" ]; then
+    bump unknown
+    {
+      printf -- '- fetch exit: unknown (missing directory or mix.exs at %s)\n\n' "$resolved"
+      printf -- '- audit exit: skipped (fetch failed)\n\n'
+      printf -- '- outdated exit: skipped (fetch failed)\n\n'
+    } >>"$SECTIONS_FILE"
+    continue
+  fi
+
+  set +e
+  deps_get_output="$(cd "$resolved" && printf 'n\n' | "$MIX_BIN" deps.get 2>&1)"
+  deps_get_status=$?
+  set -e
+
+  {
+    printf -- '- fetch exit: %s\n\n' "$deps_get_status"
+    printf '```\n%s\n```\n\n' "$(printf '%s' "$deps_get_output" | strip_ansi)"
+  } >>"$SECTIONS_FILE"
+
+  if [ "$deps_get_status" -ne 0 ]; then
+    bump unknown
+    {
+      printf -- '- audit exit: skipped (fetch failed)\n\n'
+      printf -- '- outdated exit: skipped (fetch failed)\n\n'
+    } >>"$SECTIONS_FILE"
+    continue
+  fi
+
+  set +e
+  audit_output="$(cd "$resolved" && "$MIX_BIN" hex.audit 2>&1)"
+  audit_status=$?
+  set -e
+
+  {
+    printf -- '- audit exit: %s\n\n' "$audit_status"
+    printf '```\n%s\n```\n\n' "$(printf '%s' "$audit_output" | strip_ansi)"
+  } >>"$SECTIONS_FILE"
+
+  if [ "$audit_status" -ne 0 ]; then
+    bump advisory
+  fi
+
+  set +e
+  outdated_output="$(cd "$resolved" && "$MIX_BIN" hex.outdated 2>&1)"
+  outdated_status=$?
+  set -e
+
+  {
+    printf -- '- outdated exit: %s\n\n' "$outdated_status"
+    printf '```\n%s\n```\n\n' "$(printf '%s' "$outdated_output" | strip_ansi)"
+  } >>"$SECTIONS_FILE"
+
+  if [ "$outdated_status" -ne 0 ]; then
+    bump outdated
+  fi
+done
+
+# Restore the script's baseline mode (errexit off, per the top-level `set
+# -uo pipefail`). The loop above toggles `set -e` on around every command
+# substitution that must NOT abort on a non-zero mix exit; the last iteration
+# leaves it ON, which would otherwise turn a downstream SIGPIPE from the
+# truncation pipeline below (expected: `head -c` closes the pipe early on an
+# oversized body) into a premature script abort.
+set +e
+
+overall="${RANK_NAMES[$overall_rank]}"
+
+FOOTER='---
+
+This issue is reused across runs: a re-run comments on the same issue instead
+of opening a new one. Policy: see CONTRIBUTING.md, "Dependency freshness policy".'
+
+FULL_BODY="$(
+  printf '# Dependency health: %s\n\n' "$overall"
+  cat "$SECTIONS_FILE"
+  printf '%s\n' "$FOOTER"
+)"
+
+MAX_BYTES=60000
+BODY_LEN="$(printf '%s' "$FULL_BODY" | wc -c | tr -d ' ')"
+
+if [ "$BODY_LEN" -gt "$MAX_BYTES" ]; then
+  TRUNC_MARKER=$'\n\n(truncated)\n'
+  TRUNC_MARKER_LEN=${#TRUNC_MARKER}
+  KEEP=$((MAX_BYTES - TRUNC_MARKER_LEN))
+  printf '%s' "$FULL_BODY" | head -c "$KEEP" >"$REPORT_FILE"
+  printf '%s' "$TRUNC_MARKER" >>"$REPORT_FILE"
+else
+  printf '%s' "$FULL_BODY" >"$REPORT_FILE"
+fi
+
+echo "classification=$overall"
+
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  {
+    printf 'classification=%s\n' "$overall"
+    printf 'report=%s\n' "$REPORT_FILE"
+  } >>"$GITHUB_OUTPUT"
+fi
+
+exit 0
