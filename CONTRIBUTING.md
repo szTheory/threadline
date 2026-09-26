@@ -490,6 +490,55 @@ recorded here as `allowed-skips decision: D-NN` or `allowed-failures decision:
 D-NN`, citing the decision that authorized it; the roster contract test fails
 otherwise.
 
+## Dependency freshness policy
+
+Dependency updates are batched per release train, not merged as a stream of
+single-package bumps. Before a release the maintainer reviews `mix
+hex.outdated` and runs `mix deps.update` across `mix.lock`, `bench/mix.lock`
+and `examples/threadline_phoenix/mix.lock` together.
+
+This repository does not use Dependabot version-update pull requests.
+Dependabot *alerts* are a separate repository setting the maintainer controls
+independently of this policy.
+
+Every pull request runs the required `verify-deps-audit` job (`mix
+verify.deps_audit`): it asserts Hex 2.5.1 or newer, runs `mix deps.unlock
+--check-unused`, and runs `mix hex.audit` over all three lockfiles above. It
+refuses to run at all with `HEX_IGNORE_ADVISORIES` or `HEX_IGNORE_RETIREMENTS`
+set in the environment — an unaccountable bypass would defeat the point of a
+required gate. Run it locally (`mix verify.deps_audit`) before touching a
+lockfile.
+
+The weekly, non-required `.github/workflows/deps-health.yml` lane runs
+Mondays 08:00 UTC (`0 8 * * 1`), plus manual dispatch, and also runs `mix
+hex.audit` and `mix hex.outdated` over the same three lockfiles. It is *not*
+a required check. When the result is anything other than clean it opens or
+comments on a single issue labelled `ci-deps` — a label kept distinct from
+`ci-flake` and `ci-browser-full` so the three dedup streams never merge into
+one issue and mask each other. The lane goes red on an `advisory` (a
+`hex.audit` finding) or an `unknown` result (a fetch failure that prevented
+an audit from running at all); an `outdated` result alone stays green — it is
+informational only, reported on the issue but not a merge-style gate.
+
+Ignoring an advisory is only ever done through a documented convention, never
+the environment-variable bypass above: define `hex_audit_ignores/0` on the
+relevant MixProject module, returning a list of `%{id:, reason:,
+reachability:, review_by:}` maps (`review_by` a `%Date{}` strictly after
+today), and set `hex: [ignore_advisories: [...]]` to exactly those ids.
+`test/threadline/ignore_advisories_contract_test.exs` fails the suite on a
+missing field, a `review_by` on or before today, an id without a matching
+`hex_audit_ignores/0` justification, a stale (unlisted) justification, or any
+use of `ignore_retirements` at all — that key is never permitted.
+
+Hex's `cooldown` setting (delaying resolution of freshly-published releases)
+was considered and is not adopted; the batched release-train review above is
+the adopted control instead.
+
+This section is not documentation-on-trust:
+`test/threadline/deps_health_doc_contract_test.exs` derives the schedule, the
+label and the three lockfile paths from `.github/workflows/deps-health.yml`
+and `bin/deps-health-report`, and fails if this section drops one.
+
 ## CI parity and `act`
 
 GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`):** https://github.com/szTheory/threadline/actions?query=branch%3Amain — Stable job keys (do not rename; used by docs, `act`, and branch protection):
