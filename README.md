@@ -133,6 +133,7 @@ Quick destinations: [Evaluate](guides/evaluating-threadline.md) ·
 - [Integration contracts](guides/integration-contracts.md)
 - [Local Docker DX](guides/local-docker-dx.md)
 - [Support lanes and upgrade path](guides/upgrade-path.md)
+- [Upgrading to 0.11](guides/upgrading-to-0.11.md)
 
 **Operate**
 

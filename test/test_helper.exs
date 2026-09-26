@@ -34,7 +34,30 @@ end
 
 {:ok, _} = repo.start_link()
 
+# Any identifier PostgreSQL truncates (NOTICE 42622) fails the suite. Attached
+# before migrations so their DDL is observed too.
+Threadline.Test.NoticeGuard.attach!()
+ExUnit.after_suite(&Threadline.Test.NoticeGuard.verify!/1)
+
 unless topology_pooler? do
+  # The truncation guard only sees NOTICE messages PostgreSQL sends back. At
+  # client_min_messages = warning or above it sends none, and the guard would
+  # pass while seeing nothing.
+  %{rows: [[client_min_messages]]} =
+    Ecto.Adapters.SQL.query!(repo, "SHOW client_min_messages", [])
+
+  if client_min_messages != "notice" do
+    raise """
+    Threadline tests: client_min_messages is #{inspect(client_min_messages)}, expected "notice".
+
+    At warning or above PostgreSQL returns no NOTICE messages, so the identifier-truncation
+    guard (SQLSTATE 42622) would see nothing and every truncation would pass silently.
+
+    Fix: reset client_min_messages to notice for the test database or role
+    (for example `ALTER DATABASE <test db> RESET client_min_messages`).
+    """
+  end
+
   Ecto.Migrator.run(repo, :up, all: true)
 
   # Stale-database tripwire (Phase 198, D-03). A test database created before

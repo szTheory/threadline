@@ -16,6 +16,7 @@ Threadline’s install path creates the three relations **`audit_transactions`**
 | `audit_changes_transaction_id_idx` | `audit_changes` | `(transaction_id)` |
 | `audit_changes_table_name_idx` | `audit_changes` | `(table_name)` |
 | `audit_changes_captured_at_idx` | `audit_changes` | `(captured_at)` |
+| `audit_changes_row_history_idx` | `audit_changes` | `(table_schema, table_name, table_pk, captured_at DESC, id DESC)` |
 | `audit_actions_actor_ref_idx` | `audit_actions` | `GIN (actor_ref)` |
 | `audit_actions_inserted_at_idx` | `audit_actions` | `(inserted_at)` |
 | `audit_actions_name_idx` | `audit_actions` | `(name)` |
@@ -56,6 +57,21 @@ Each subsection below uses a **“Tables & modules”** box naming the entry poi
 | `captured_at` ordering + range filters (`filter_by_from` / `filter_by_to`) | Partial btree on `(table_name, captured_at DESC)` if one hot table dominates timeline |
 | `table_name` equality | Narrow composite matching your heaviest `where table_name = ? order by captured_at desc` |
 | `transaction_id` for FK traversal | Only after `EXPLAIN (ANALYZE, BUFFERS)` shows seq scans or sort spills |
+
+### Row history lookups
+
+`Threadline.history/3` and `Threadline.as_of/4` match the full stored `table_pk`
+with `=` (never a per-key predicate), which `audit_changes_row_history_idx` on
+`(table_schema, table_name, table_pk, captured_at DESC, id DESC)` serves
+directly. Installs created before this release do not have this index; run
+`mix threadline.gen.row_history_index` to add it (it builds concurrently and
+prints the recovery steps for an `INVALID` index if the build is interrupted).
+Audit keys are always cast from the primary-key type allowlist, so key sizes
+stay far below PostgreSQL's btree entry-size limit regardless of table width.
+History of a table that has since been dropped or renamed keeps working too —
+the key's comparison type falls back to the schema field's Ecto type — except
+a fixed-width `char(n)` key, which must be passed with its original blank
+padding intact.
 
 ## Export and Threadline.Export
 

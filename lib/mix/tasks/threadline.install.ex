@@ -7,6 +7,27 @@ defmodule Mix.Tasks.Threadline.Install do
   ## Usage
 
       mix threadline.install
+      mix threadline.install --migrations-path priv/audit/migrations
+      mix threadline.install --repo MyApp.AuditRepo
+
+  ## Options
+
+    * `--migrations-path PATH` - write the migrations to `PATH`, used as given
+      and relative to the current directory. The repo is not loaded.
+    * `--repo REPO` / `-r REPO` - the Ecto repo whose migrations directory to
+      use. Give it once: Threadline's audit tables live in one repo.
+
+  Without either option the directory is the first repo in your app's
+  `:ecto_repos`: its `:priv` setting joined with `migrations`, or
+  `priv/<repo name>/migrations` when `:priv` is unset. With no repo
+  configured it is `priv/repo/migrations`. A configured repo that cannot be
+  loaded also falls back to `priv/repo/migrations`, with a warning naming it.
+
+  Unknown flags raise an error instead of being ignored. Positional arguments
+  are ignored, so choose a directory or repo only with `--migrations-path` or
+  `--repo`.
+
+  In an umbrella, run the task from the child app's directory.
 
   The generated migration creates the `audit_transactions` and `audit_changes`
   tables plus the `threadline_capture_changes()` PL/pgSQL trigger function.
@@ -19,7 +40,7 @@ defmodule Mix.Tasks.Threadline.Install do
   use Mix.Task
   import Mix.Generator
 
-  alias Threadline.Mix.MigrationVersion
+  alias Threadline.Mix.{MigrationsPath, MigrationVersion}
 
   # Written in this order, so each family's version sorts after the one before.
   @families [
@@ -32,10 +53,20 @@ defmodule Mix.Tasks.Threadline.Install do
   ]
 
   @impl Mix.Task
-  def run(_args) do
+  def run(args) do
     Mix.Task.run("app.config", [])
 
-    path = migrations_path()
+    {opts, _rest, invalid} =
+      OptionParser.parse(args,
+        strict: [migrations_path: :string, repo: :keep],
+        aliases: [r: :repo]
+      )
+
+    if invalid != [] do
+      Mix.raise("Unknown options: #{inspect(invalid)}")
+    end
+
+    path = MigrationsPath.resolve(opts)
     File.mkdir_p!(path)
 
     pending = Enum.reject(@families, fn {suffix, _, _} -> existing_migration?(path, suffix) end)
@@ -138,38 +169,6 @@ defmodule Mix.Tasks.Threadline.Install do
     `mix threadline.install`. After migrating, moving schemas is deliberate
     migration work.
     """)
-  end
-
-  defp migrations_path do
-    Mix.Project.config()
-    |> Keyword.get(:app)
-    |> then(fn app ->
-      app_env = Application.get_env(app, :ecto_repos, [])
-
-      case app_env do
-        [repo | _] ->
-          repo_migrations_path(repo)
-
-        [] ->
-          "priv/repo/migrations"
-      end
-    end)
-  rescue
-    _ -> "priv/repo/migrations"
-  end
-
-  # Called inside migrations_path/0, so its rescue still covers a raising repo.
-  defp repo_migrations_path(repo) do
-    case repo.config()[:priv] do
-      nil ->
-        Path.join(
-          "priv/#{repo |> Module.split() |> List.last() |> Macro.underscore()}",
-          "migrations"
-        )
-
-      p ->
-        Path.join(p, "migrations")
-    end
   end
 
   # Recursive, like Ecto's migrator and MigrationVersion.existing_versions/1, so

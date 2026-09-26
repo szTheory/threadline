@@ -32,7 +32,7 @@ defmodule Threadline.Query do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Capture.AuditTransaction
-  alias Threadline.Query.{Cursors, Scope}
+  alias Threadline.Query.{Cursors, RowKey, Scope}
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -59,8 +59,8 @@ defmodule Threadline.Query do
   @doc """
   Returns `AuditChange` records for one schema row using timeline ordering.
 
-  The helper fixes `table_name` and primary-key containment internally so callers
-  do not need to construct low-level row predicates.
+  The helper matches the row's full stored key internally so callers do not
+  need to construct low-level row predicates.
   """
   @spec row_history(module(), term(), keyword(), keyword()) :: [AuditChange.t()]
   def row_history(schema_module, id, filters \\ [], opts \\ [])
@@ -69,7 +69,7 @@ defmodule Threadline.Query do
     repo = timeline_repo!(filters, opts)
 
     schema_module
-    |> row_history_query(id, filters)
+    |> row_history_query(id, Keyword.put(filters, :repo, repo))
     |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
     |> repo.all(storage_opts(filters, opts))
   end
@@ -90,7 +90,7 @@ defmodule Threadline.Query do
 
     entries =
       schema_module
-      |> row_history_query(id, filters)
+      |> row_history_query(id, Keyword.put(filters, :repo, repo))
       |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
       |> maybe_after_timeline_cursor(cursor)
       |> limit(^page_size)
@@ -368,42 +368,74 @@ defmodule Threadline.Query do
 
   - `:repo` — required `Ecto.Repo` module
 
-  ## Example
+  ## Examples
 
-      Threadline.history(MyApp.User, user.id, repo: MyApp.Repo)
+      Threadline.history(MyApp.User, 42, repo: MyApp.Repo)
+      Threadline.history(MyApp.LineItem, [tenant_id: 1, id: 5], repo: MyApp.Repo)
+      Threadline.history(MyApp.LineItem, %{"tenant_id" => 1, "id" => 5}, repo: MyApp.Repo)
 
   Each `AuditChange` loads all table columns mapped on the schema, including
   `changed_from` when the database column is populated (no narrowing `select`).
+
+  `id` names every key field: the schema's field names, or a `primary_key:`
+  override's declared columns when one is configured for the table. A missing,
+  extra, or misnamed key, a `nil` value, a scalar for a composite table, or a
+  loaded struct all raise `ArgumentError` (via the internal row-key
+  normalizer).
+
+  If `:scope_query_fn` is configured, it receives `id` unchanged as
+  `context.params.id` — exactly what the caller passed, not the normalized
+  key list.
+
+  History for a table that has since been dropped or renamed keeps working:
+  each key column's comparison type falls back to the schema field's Ecto
+  type when the catalog no longer has a live entry. The one inexact case is a
+  fixed-width `char(n)` key, whose stored blank-padding the fallback cannot
+  reproduce — pass the value already padded to the original column width.
   """
   def history(schema_module, id, opts) do
     repo = Keyword.fetch!(opts, :repo)
-    table = schema_module.__schema__(:source)
-    table_schema = schema_module.__schema__(:prefix) || "public"
-    [pk_field] = schema_module.__schema__(:primary_key)
-    pk_map = %{to_string(pk_field) => id}
+
+    schema_module
+    |> history_query(id, Keyword.put(opts, :repo, repo))
+    |> repo.all(storage_opts([], opts))
+  end
+
+  @doc false
+  @spec history_query(module(), term(), keyword()) :: Ecto.Query.t()
+  def history_query(schema_module, id, opts) when is_list(opts) do
+    repo = Keyword.fetch!(opts, :repo)
+    matched = RowKey.match!(schema_module, id, repo)
 
     AuditChange
-    |> where([ac], ac.table_schema == ^table_schema)
-    |> where([ac], ac.table_name == ^table)
-    |> where([ac], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
+    |> where_row(matched)
     |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
     |> order_by([ac], desc: ac.captured_at)
-    |> repo.all(storage_opts([], opts))
+    |> order_by([ac], desc: ac.id)
+  end
+
+  # Applies the three `where`s every read function in this module needs:
+  # table_schema, table_name, and a whole-map equality match on table_pk
+  # (never a per-key predicate, so the row-history index stays usable).
+  # `where([ac], ...)` only names the first binding, so this works whether
+  # `query` is a bare `AuditChange` query or `timeline_base_query`'s joined
+  # `[ac, at]` query.
+  defp where_row(query, %{table_schema: table_schema, table_name: table_name, table_pk: table_pk}) do
+    query
+    |> where([ac], ac.table_schema == ^table_schema)
+    |> where([ac], ac.table_name == ^table_name)
+    |> where([ac], ac.table_pk == type(^table_pk, :map))
   end
 
   @doc false
   @spec row_history_query(module(), term(), keyword()) :: Ecto.Query.t()
   def row_history_query(schema_module, id, filters \\ []) when is_list(filters) do
-    table = schema_module.__schema__(:source)
-    table_schema = schema_module.__schema__(:prefix) || "public"
-    [pk_field] = schema_module.__schema__(:primary_key)
-    pk_map = %{to_string(pk_field) => id}
+    repo = timeline_repo!(filters, [])
+    matched = RowKey.match!(schema_module, id, repo)
 
     filters
     |> timeline_base_query()
-    |> where([ac, _at], ac.table_schema == ^table_schema)
-    |> where([ac, _at], ac.table_name == ^table)
-    |> where([ac, _at], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
+    |> where_row(matched)
     |> timeline_order()
     |> select([ac, _at], ac)
   end
@@ -415,24 +447,29 @@ defmodule Threadline.Query do
   `{:error, :deleted_record}` when the latest snapshot is a delete, and
   `{:error, :before_audit_horizon}` when the row has no snapshot at or before the
   requested timestamp.
+
+  ## Examples
+
+      Threadline.as_of(MyApp.User, 42, ~U[2026-01-01 00:00:00Z], repo: MyApp.Repo)
+      Threadline.as_of(MyApp.LineItem, [tenant_id: 1, id: 5], ts, repo: MyApp.Repo)
+
+  `id` accepts the same scalar, map, and keyword-list shapes as `history/3`,
+  keyed by schema field names (or a `primary_key:` override's declared
+  columns), and raises the same `ArgumentError` cases for a missing, extra, or
+  misnamed key, a `nil` value, a scalar for a composite table, or a loaded
+  struct. If `:scope_query_fn` is configured, it receives `id` unchanged as
+  `context.params.id`.
+
+  History of a dropped or renamed table, or a retyped key column, keeps
+  working via the same Ecto-type fallback as `history/3` — including the
+  `char(n)` blank-padding caveat.
   """
   def as_of(schema_module, id, timestamp, opts) do
     repo = Keyword.fetch!(opts, :repo)
-    table = schema_module.__schema__(:source)
-    table_schema = schema_module.__schema__(:prefix) || "public"
-    [pk_field] = schema_module.__schema__(:primary_key)
-    pk_map = %{to_string(pk_field) => id}
 
     snapshot =
-      AuditChange
-      |> where([ac], ac.table_schema == ^table_schema)
-      |> where([ac], ac.table_name == ^table)
-      |> where([ac], fragment("? @> ?::jsonb", ac.table_pk, ^pk_map))
-      |> where([ac], ac.captured_at <= ^timestamp)
-      |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
-      |> order_by([ac], desc: ac.captured_at)
-      |> order_by([ac], desc: ac.id)
-      |> limit(1)
+      schema_module
+      |> as_of_query(id, timestamp, opts)
       |> repo.one(storage_opts([], opts))
 
     case snapshot do
@@ -440,6 +477,21 @@ defmodule Threadline.Query do
       %AuditChange{data_after: data_after} -> load_as_of_snapshot(schema_module, data_after, opts)
       nil -> {:error, :before_audit_horizon}
     end
+  end
+
+  @doc false
+  @spec as_of_query(module(), term(), DateTime.t(), keyword()) :: Ecto.Query.t()
+  def as_of_query(schema_module, id, timestamp, opts) do
+    repo = Keyword.fetch!(opts, :repo)
+    matched = RowKey.match!(schema_module, id, repo)
+
+    AuditChange
+    |> where_row(matched)
+    |> where([ac], ac.captured_at <= ^timestamp)
+    |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
+    |> order_by([ac], desc: ac.captured_at)
+    |> order_by([ac], desc: ac.id)
+    |> limit(1)
   end
 
   defp load_as_of_snapshot(schema_module, data_after, opts) do

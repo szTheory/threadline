@@ -52,10 +52,15 @@ config :threadline, :storage_adapter, Threadline.Storage.Local
 config :threadline, :export_queue_adapter, Threadline.ExportQueue.TaskAdapter
 config :threadline, Threadline.ExportQueue.Oban, oban_name: Oban, queue: :threadline_exports
 
-if System.get_env("THREADLINE_VERIFY_COVERAGE_FAILURE_TEST") == "1" do
-  config :threadline, :verify_coverage, expected_tables: ["threadline_verify_cov_uncovered"]
-else
-  config :threadline, :verify_coverage, expected_tables: ["threadline_ci_coverage_canary"]
+cond do
+  System.get_env("THREADLINE_VERIFY_COVERAGE_FINDINGS_TEST") == "1" ->
+    config :threadline, :verify_coverage, expected_tables: ["threadline_verify_cov_findings"]
+
+  System.get_env("THREADLINE_VERIFY_COVERAGE_FAILURE_TEST") == "1" ->
+    config :threadline, :verify_coverage, expected_tables: ["threadline_verify_cov_uncovered"]
+
+  true ->
+    config :threadline, :verify_coverage, expected_tables: ["threadline_ci_coverage_canary"]
 end
 
 # REDN-01 / REDN-02 — fixture for `mix threadline.gen.triggers` and capture tests.

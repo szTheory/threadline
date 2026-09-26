@@ -171,6 +171,7 @@ Threadline emits **`:telemetry.execute/3`** events (no attached handler is requi
 | `[:threadline, :transaction, :committed]` | After capture commits work, or as a proxy when `Threadline.record_action/2` succeeds without an explicit post-commit hook | `table_count` (non‑neg integer; accurate only if you call `Threadline.Telemetry.transaction_committed/2` after the transaction) | `%{}` |
 | `[:threadline, :action, :recorded]` | After `Threadline.record_action/2` finishes (success or failure) | `status` (`:ok` or `:error`) | `%{}` |
 | `[:threadline, :health, :checked]` | After `Threadline.Health.trigger_coverage/1` returns | `covered`, `uncovered` (counts of tables in each bucket) | `%{}` |
+| `[:threadline, :health, :findings_checked]` | After `Threadline.Health.trigger_findings/1` returns | `errors`, `warnings` (counts of findings at each severity) | `%{}` |
 
 ### `[:threadline, :transaction, :committed]`
 
@@ -210,6 +211,20 @@ Threadline emits **`:telemetry.execute/3`** events (no attached handler is requi
 
 **Where to look next.** Tuple-level results and Mix policy live under [`## Trigger coverage (operational)`](#trigger-coverage-operational); operational cadence in [`production-checklist.md` §1 — Capture and triggers](production-checklist.md#1-capture-and-triggers).
 
+<span id="threadline-health-findings-checked"></span>
+
+### `[:threadline, :health, :findings_checked]`
+
+**When it fires.** After `Threadline.Health.trigger_findings/1` returns from its catalog pass.
+
+**What to measure.** `errors` and `warnings` are aggregate counts of findings across every non-system schema `trigger_findings/1` scanned (or the schema(s) passed via `:schema`) — telemetry does not stream the individual findings, only the two counts. A non-zero `errors` count means at least one table has a `:pk_drift`, `:shared_capture_function`, `:duplicate_capture_trigger`, or `:capture_trigger_disabled` finding.
+
+**Metadata.** Empty map (`%{}`).
+
+**Misleading or degraded signals.** A steady non-zero `warnings` count is not itself urgent — `:legacy_trigger_no_pk_args` warnings mean "regenerate when convenient," not "capture is broken." Watch `errors` for anything that needs immediate action.
+
+**Where to look next.** The finding codes, severities, and fix commands live under [`## Trigger coverage (operational)`](#trigger-coverage-operational)'s **Trigger findings** paragraph; `mix threadline.health.coverage` prints the same findings for ad-hoc inspection, and `mix threadline.verify_coverage` gates CI on error findings for expected tables.
+
 **Weekly / post-deploy / “metrics look wrong” triage**
 
 1. Confirm `:telemetry` handlers for Threadline events are attached in the running release ([`production-checklist.md` §6 — Observability](production-checklist.md#6-observability)).
@@ -237,11 +252,23 @@ Each tuple names a user table the catalog query sees in the requested schema. `{
 
 **Audit catalog tables.** `audit_transactions`, `audit_changes`, and `audit_actions` are **excluded** from the per-table list — they are not expected to carry capture triggers (CAP-10 / `Threadline.Health` `@moduledoc`). Do not expect them in `Health` output.
 
-**`mix threadline.health.coverage`.** Viewer-only Mix-task parity for capture-only adopters: prints a three-section `TABLE / STATUS / SOURCE` table by default, or a JSON object via `--json` (`covered`, `uncovered`, `expected_uncovered`, `schema` keys; `expected_uncovered` entries are `{"table", "source"}` objects with `source ∈ {"baseline", "config"}`). Always exits 0 — viewer, not gate. Pass `--schema=NAME` for multi-schema adopters. Cross-link: see `guides/operator-surface.md` §"Coverage dashboard" for the LV companion.
+**Trigger findings.** `Threadline.Health.trigger_findings/1` takes `repo:` (required) and an optional `:schema` (string or list); with `:schema` omitted it checks **every non-system schema**, unlike `trigger_coverage/1`'s `"public"` default — this is deliberate, because shapes such as same-named tables in two schemas or a per-table function shared across schemas cannot be seen one schema at a time. It returns a list of `%Threadline.Health.Finding{}` structs, sorted by `{schema, table, code}`, catalog-only (safe through PgBouncer transaction pooling and for a role with no table grants):
+
+| Code | Severity | What it means | Fix |
+|------|----------|----------------|-----|
+| `:legacy_trigger_no_pk_args` | warning | The trigger was installed before primary keys were recorded and still keys implicitly on `id`. | `mix threadline.gen.triggers --tables <schema.table>`, then `mix ecto.migrate`. |
+| `:pk_drift` | error | The trigger's recorded key set no longer matches the table's actual (or configured) primary key. | Add or fix the `primary_key:` override or qualifying index as the message describes, then `mix threadline.gen.triggers --tables <schema.table>`. |
+| `:shared_capture_function` | error | A per-table capture function is referenced by triggers on more than one table. | `mix threadline.gen.triggers --tables a,b` — regenerate every affected table together, never one at a time. |
+| `:duplicate_capture_trigger` | error | More than one Threadline trigger is installed on the same table. | `DROP TRIGGER "<extra>" ON "<schema>"."<table>";`, then `mix threadline.gen.triggers --tables <schema.table>`. |
+| `:capture_trigger_disabled` | error | The trigger is disabled (`'D'`) or fires only for replica sessions (`'R'`); writes are not being captured. | `ALTER TABLE "<schema>"."<table>" ENABLE TRIGGER "<name>";` (or `ENABLE ALWAYS TRIGGER` for `'R'`). |
+
+A disabled or replica-only trigger is also no longer counted as covered by `trigger_coverage/1` (see the Breaking changes entry in the CHANGELOG) — the two checks agree on what "captured" means. `mix threadline.verify_coverage` fails the gate on an `:error`-severity finding for a table in its `expected_tables` list; error findings for unlisted tables print under a "not gated" heading without failing, and warnings never fail the gate.
+
+**`mix threadline.health.coverage`.** Viewer-only Mix-task parity for capture-only adopters: prints a three-section `TABLE / STATUS / SOURCE` table by default, followed by a `FINDINGS` section (`SEVERITY / CODE / TABLE / MESSAGE`), or a JSON object via `--json` (`covered`, `uncovered`, `expected_uncovered`, `schema`, and the additive `findings` keys; `expected_uncovered` entries are `{"table", "source"}` objects with `source ∈ {"baseline", "config"}`; each `findings` entry has `code`, `severity`, `schema`, `table`, `message`, and `details`). Always exits 0 — viewer, not gate. Pass `--schema=NAME` for multi-schema adopters. Cross-link: see `guides/operator-surface.md` §"Coverage dashboard" for the LV companion.
 
 **`mix threadline.policy.show`.** Viewer-only parity for redaction drift: prints one summary line, one aligned `TABLE / STATUS / CONFIG / DEPLOYED / HINT` table, and detail blocks only for actionable rows. `--json` emits additive top-level counts plus `tables`, with stable status values `config_matches_deployed`, `drift_detected`, and `could_not_introspect`. `mix threadline.policy.show --schema=NAME` selects the audited host schema; `--schema=NAME` selects the audited host schema and not Threadline storage. For example, `mix threadline.policy.show --schema=support` inspects redaction drift for host tables in `support` and does not change Threadline's storage schema. `/audit/policy/redaction` is the LiveView companion for Phoenix adopters; both surfaces use the same rerun guidance and never show sample values.
 
-**`mix threadline.verify_coverage`.** Hosts configure `config :threadline, :verify_coverage, expected_tables: [...]` with the audited tables CI must protect. The task calls `Threadline.Health.trigger_coverage/1`, then `Threadline.Verify.CoveragePolicy.violations/2`, which applies **intersection semantics:** only names in `expected_tables` can fail the Mix task. A `{:uncovered, table}` tuple for a table **not** listed in `expected_tables` is informative output, not a Mix failure by itself. `{:expected_uncovered, _}` tuples are treated as covered-equivalent for the CI gate. It also supports a `--schema=NAME` flag with the same edge-validation contract as the new Mix task; default behavior is unchanged.
+**`mix threadline.verify_coverage`.** Hosts configure `config :threadline, :verify_coverage, expected_tables: [...]` with the audited tables CI must protect. The task calls `Threadline.Health.trigger_coverage/1`, then `Threadline.Verify.CoveragePolicy.violations/2`, which applies **intersection semantics:** only names in `expected_tables` can fail the Mix task. A `{:uncovered, table}` tuple for a table **not** listed in `expected_tables` is informative output, not a Mix failure by itself. `{:expected_uncovered, _}` tuples are treated as covered-equivalent for the CI gate. It also supports a `--schema=NAME` flag with the same edge-validation contract as the new Mix task; default behavior is unchanged. It now also calls `Threadline.Health.trigger_findings/1` and fails on any `:error`-severity finding for a table in `expected_tables` — see **Trigger findings** above.
 
 **Telemetry link.** When you need how those aggregate counts surface in metrics, see the [`[:threadline, :health, :checked]`](#threadline-health-checked) subsection under [`## Telemetry (operator reference)`](#telemetry-operator-reference).
 

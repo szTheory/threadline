@@ -11,6 +11,14 @@ defmodule Threadline.Verify.CoveragePolicy do
 
   An empty `expected_tables` list yields no violations; the Mix task fails
   closed before invoking this module when the configured list is missing or empty.
+
+  ## Findings
+
+  `partition_findings/2` sorts `Threadline.Health.Finding` structs into three
+  buckets so a CI gate can fail on the ones it is responsible for while still
+  surfacing everything else: `:error` findings on an expected table gate the
+  task, `:error` findings on a table the host never listed are informational
+  only, and `:warning` findings never fail the task regardless of table.
   """
 
   @doc """
@@ -39,6 +47,41 @@ defmodule Threadline.Verify.CoveragePolicy do
 
   defp violation_rank(:missing), do: 0
   defp violation_rank(:uncovered), do: 1
+
+  @doc """
+  Partitions `Threadline.Health.Finding` structs into gated, not-gated and
+  warning buckets, given the host's expected-table positive list.
+
+  - `:gated` — `:error` findings whose `table` is in `expected_tables`. These
+    are the findings a CI gate must fail on.
+  - `:not_gated` — `:error` findings whose `table` is not in `expected_tables`.
+    Printed for visibility; never fails the task.
+  - `:warnings` — every `:warning` finding, regardless of table.
+
+  Each bucket keeps the input list's order. Pure; does not read the database
+  or call `Mix.raise`.
+  """
+  @spec partition_findings([Threadline.Health.Finding.t()], [String.t()]) :: %{
+          gated: [Threadline.Health.Finding.t()],
+          not_gated: [Threadline.Health.Finding.t()],
+          warnings: [Threadline.Health.Finding.t()]
+        }
+  def partition_findings(findings, expected_tables)
+      when is_list(findings) and is_list(expected_tables) do
+    expected = MapSet.new(Enum.uniq(expected_tables))
+
+    gated =
+      Enum.filter(findings, fn f -> f.severity == :error and MapSet.member?(expected, f.table) end)
+
+    not_gated =
+      Enum.filter(findings, fn f ->
+        f.severity == :error and not MapSet.member?(expected, f.table)
+      end)
+
+    warnings = Enum.filter(findings, fn f -> f.severity == :warning end)
+
+    %{gated: gated, not_gated: not_gated, warnings: warnings}
+  end
 
   @doc """
   Counts expected tables vs how many are fully covered (no violation row).

@@ -14,8 +14,12 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
 
   import ExUnit.CaptureIO
 
+  alias Ecto.Adapters.SQL
   alias Mix.Tasks.Threadline.Health.Coverage
   alias Mix.Tasks.Threadline.VerifyCoverage
+  alias Threadline.Capture.TriggerSQL
+
+  @repo Threadline.Test.Repo
 
   setup do
     # Re-enable both Mix tasks so each test case can re-invoke (Pitfall 8 — Mix.Task
@@ -59,7 +63,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
   end
 
   describe "--json output" do
-    test "produces valid JSON with exactly the locked top-level keys" do
+    test "produces valid JSON with the locked top-level keys plus additive findings (HLTH-06/D-18)" do
       output =
         capture_io(fn ->
           Coverage.run(["--json"])
@@ -68,12 +72,13 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
       parsed = Jason.decode!(output)
 
       assert parsed |> Map.keys() |> Enum.sort() ==
-               ["covered", "expected_uncovered", "schema", "uncovered"]
+               ["covered", "expected_uncovered", "findings", "schema", "uncovered"]
 
       assert parsed["schema"] == "public"
       assert is_list(parsed["covered"])
       assert is_list(parsed["uncovered"])
       assert is_list(parsed["expected_uncovered"])
+      assert is_list(parsed["findings"])
     end
 
     test ~s(expected_uncovered entries have keys ["source", "table"] and source ∈ {baseline, config}) do
@@ -194,6 +199,93 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
           VerifyCoverage.run(["--schema=Public"])
         end)
       end
+    end
+  end
+
+  describe "health.coverage findings (HLTH-06/D-18)" do
+    setup do
+      SQL.query!(@repo, "DROP SCHEMA IF EXISTS hcov_findings CASCADE", [])
+      SQL.query!(@repo, "CREATE SCHEMA hcov_findings", [])
+      SQL.query!(@repo, "CREATE TABLE hcov_findings.t (id bigserial PRIMARY KEY)", [])
+      SQL.query!(@repo, TriggerSQL.create_trigger("hcov_findings.t"), [])
+
+      SQL.query!(
+        @repo,
+        "ALTER TABLE hcov_findings.t DISABLE TRIGGER threadline_audit_hcov_findings_t",
+        []
+      )
+
+      on_exit(fn ->
+        SQL.query!(@repo, "DROP SCHEMA IF EXISTS hcov_findings CASCADE", [])
+      end)
+
+      :ok
+    end
+
+    test "--json findings entry has exactly the locked keys for a disabled trigger" do
+      output =
+        capture_io(fn ->
+          Coverage.run(["--schema=hcov_findings", "--json"])
+        end)
+
+      parsed = Jason.decode!(output)
+
+      assert [entry] = parsed["findings"]
+      assert entry |> Map.keys() |> Enum.sort() == ~w(code details message schema severity table)
+      assert entry["code"] == "capture_trigger_disabled"
+      assert entry["severity"] == "error"
+      assert entry["schema"] == "hcov_findings"
+      assert entry["table"] == "t"
+      assert entry["details"]["enabled_state"] == "D"
+    end
+
+    test "text mode shows FINDINGS section after the existing Coverage summary line" do
+      output =
+        capture_io(fn ->
+          Coverage.run(["--schema=hcov_findings"])
+        end)
+
+      assert output =~ "FINDINGS"
+      assert output =~ "SEVERITY"
+      assert output =~ "CODE"
+      assert output =~ "MESSAGE"
+      assert output =~ "capture_trigger_disabled"
+      assert output =~ "hcov_findings.t"
+
+      coverage_index = :binary.match(output, "Coverage: ") |> elem(0)
+      findings_index = :binary.match(output, "FINDINGS") |> elem(0)
+      assert coverage_index < findings_index
+    end
+
+    test "the task returns :ok (no exit) with an error finding present" do
+      assert Coverage.run(["--schema=hcov_findings"]) == :ok
+    end
+
+    test "a schema with no findings prints FINDINGS then none, and JSON emits an empty list" do
+      SQL.query!(
+        @repo,
+        "ALTER TABLE hcov_findings.t ENABLE TRIGGER threadline_audit_hcov_findings_t",
+        []
+      )
+
+      Mix.Task.reenable("threadline.health.coverage")
+
+      text_output =
+        capture_io(fn ->
+          Coverage.run(["--schema=hcov_findings"])
+        end)
+
+      assert text_output =~ "FINDINGS"
+      assert text_output =~ ~r/FINDINGS\nnone/
+
+      Mix.Task.reenable("threadline.health.coverage")
+
+      json_output =
+        capture_io(fn ->
+          Coverage.run(["--schema=hcov_findings", "--json"])
+        end)
+
+      assert Jason.decode!(json_output)["findings"] == []
     end
   end
 end

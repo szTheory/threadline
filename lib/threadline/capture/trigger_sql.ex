@@ -1,11 +1,8 @@
 defmodule Threadline.Capture.TriggerSQL do
   @moduledoc false
 
-  alias Threadline.Capture.RedactionPolicy
+  alias Threadline.Capture.{Naming, PrimaryKeySQL, RedactionPolicy}
   alias Threadline.StorageSchema
-
-  # PostgreSQL's NAMEDATALEN - 1.
-  @max_identifier_bytes 63
 
   @doc """
   Returns SQL to create or replace the `threadline_capture_changes()` trigger function.
@@ -38,7 +35,7 @@ defmodule Threadline.Capture.TriggerSQL do
   end
 
   @doc """
-  Returns SQL to create or replace `threadline_capture_changes_<table>()` with
+  Returns SQL to create or replace the table's own capture function with
   UPDATE-time sparse `changed_from` built from `OLD` for keys in `changed_fields`
   (after `except_columns` and `exclude` are removed). Requires `store_changed_from: true`
   **or** non-empty `:exclude` / `:mask`.
@@ -48,6 +45,11 @@ defmodule Threadline.Capture.TriggerSQL do
   * `:store_changed_from` — when true, populate `changed_from` on UPDATE.
   * `:except_columns` — omit from `changed_fields` / `changed_from` (does not strip from `data_after`).
   * `:exclude`, `:mask`, `:mask_placeholder` — same semantics as `install_function/1` for row JSON.
+
+  The function name is derived from the table's schema and name. A public
+  table of at most 36 bytes keeps `threadline_capture_changes_` followed by the
+  table name; any other table gets a readable stem followed by `_` and a
+  12-character hash of `schema.table`, so no two tables share a function.
   """
   def install_function_for_table(table_name, opts) do
     store_changed_from = Keyword.get(opts, :store_changed_from, false)
@@ -91,79 +93,165 @@ defmodule Threadline.Capture.TriggerSQL do
     "DROP FUNCTION IF EXISTS #{StorageSchema.function("threadline_capture_changes", opts)}()"
   end
 
-  @doc "Returns SQL to drop a per-table capture function (use after dropping triggers, or with CASCADE)."
+  @doc """
+  Returns SQL to drop a table's per-table capture function.
+
+  The drop does not cascade, so drop the table's trigger first: PostgreSQL
+  refuses to drop a function a trigger still uses. Generated migrations use
+  `drop_function_if_unused/2` instead.
+  """
   def drop_function_for_table(table_name, opts \\ []) do
     name = per_table_function_name(table_name, opts)
-    "DROP FUNCTION IF EXISTS #{name}() CASCADE"
+    "DROP FUNCTION IF EXISTS #{name}()"
   end
 
   @doc """
-  Returns whether the table's per-table capture function name fits in PostgreSQL's
-  63-byte identifier limit.
+  Returns a `DO` block that drops the capture function `function_name` from
+  the storage schema only when no trigger uses it.
 
-  A longer name is truncated by PostgreSQL, so it can match another table's
-  per-table function. Callers must not emit `drop_orphan_function_for_table/2` for
-  such a table.
+  `function_name` is a bare function name, such as one returned by
+  `Threadline.Capture.Naming.function_name/1`. The block does nothing when the
+  function does not exist. When a trigger still uses it, the function is kept
+  and a `WARNING` names every table whose trigger uses it, sorted by schema and
+  then table. The trigger PostgreSQL clones onto each partition of a
+  partitioned table is not listed; only the partitioned table's own trigger
+  counts. The block never raises and never cascades, and it installs nothing
+  in the database.
+
+  A name longer than PostgreSQL's 63-byte limit raises `ArgumentError`:
+  `to_regprocedure` would silently cut it and could resolve another function.
   """
-  def per_table_function_fits?(table_name) do
-    byte_size(per_table_function_base(table_name)) <= @max_identifier_bytes
+  def drop_function_if_unused(function_name, opts \\ []) do
+    literal =
+      function_name
+      |> StorageSchema.validate_identifier!(:derived)
+      |> StorageSchema.function(opts)
+
+    """
+    -- threadline: drop this capture function only if no trigger still uses it
+    DO $$
+    DECLARE
+      fn    regprocedure := to_regprocedure('#{literal}()');
+      users text;
+    BEGIN
+      IF fn IS NULL THEN RETURN; END IF;
+      SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ' ORDER BY n.nspname, c.relname) INTO users
+        FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+       WHERE t.tgfoid = fn AND t.tgparentid = 0;
+      IF users IS NULL THEN
+        EXECUTE format('DROP FUNCTION %s', fn);
+      ELSE
+        RAISE WARNING 'threadline: kept % because triggers on % still use it; regenerate triggers for those tables', fn, users;
+      END IF;
+    END $$;
+    """
   end
 
-  @doc "Returns SQL to drop a per-table capture function only if nothing depends on it, so it fails instead of cascading into a trigger that still uses it."
-  def drop_orphan_function_for_table(table_name, opts \\ []) do
-    "DROP FUNCTION IF EXISTS " <> per_table_function_name(table_name, opts) <> "()"
+  @doc """
+  Returns a `DO` block that fails when a trigger on another table uses the
+  table's own per-table capture function.
+
+  Generated migrations run it after every trigger in the migration points at
+  its final function. Releases up to 0.10.2 could give two tables one
+  function name; a trigger that still calls the function this migration just
+  rewrote would start applying this table's redaction rules. The block then
+  raises, so the migration's transaction rolls back and nothing is applied.
+  The error names the other tables, and its `HINT` gives the command that
+  regenerates all of them together, or says to regenerate them first. The
+  trigger PostgreSQL clones onto each partition of a partitioned table is not
+  another table's trigger, so a partitioned table passes its own guard.
+
+  The block never cascades and installs nothing in the database. Names are
+  validated like `drop_function_if_unused/2`.
+  """
+  def function_owner_guard(table_name, opts \\ []) do
+    function_literal = per_table_function_name(table_name, opts)
+    owner_literal = StorageSchema.qualified_host_table(table_name)
+    owner_token = tables_option_token(table_name)
+
+    """
+    -- threadline: fail if another table's trigger uses this table's capture function
+    DO $$
+    DECLARE
+      fn       regprocedure := to_regprocedure('#{function_literal}()');
+      owner    regclass     := to_regclass('#{owner_literal}');
+      others   text;
+      retables text;
+    BEGIN
+      SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ' ORDER BY n.nspname, c.relname),
+             string_agg(CASE WHEN n.nspname = 'public' THEN c.relname
+                             ELSE n.nspname || '.' || c.relname END, ',' ORDER BY n.nspname, c.relname)
+        INTO others, retables
+        FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+       WHERE t.tgfoid = fn AND t.tgparentid = 0 AND t.tgrelid <> owner;
+      IF others IS NOT NULL THEN
+        RAISE EXCEPTION 'threadline: triggers on % also use the capture function of #{Naming.qualified(table_name)} and may now apply another table''s redaction rules', others
+          USING HINT = format('Regenerate those tables in the same command: mix threadline.gen.triggers --tables #{owner_token},%s (or regenerate %s first).', retables, retables);
+      END IF;
+    END $$;
+    """
   end
+
+  # Shared with PrimaryKeySQL; see Naming.table_token/1.
+  defp tables_option_token(table_name), do: Naming.table_token(table_name)
 
   @doc """
   Returns SQL to install a trigger on the given table.
 
   * `:default` — calls `threadline_capture_changes()` (default).
-  * `:per_table` — calls `threadline_capture_changes_<table>()` from `install_function_for_table/2`.
+  * `:per_table` — calls the table's own function from `install_function_for_table/2`,
+    whose name is derived from the schema and table (see that function).
 
-  The statement replaces an existing Threadline trigger of the same name in place, so it
+  The statement resolves the table's primary key when the migration runs
+  (from `pg_index`, at DDL time — see `Threadline.Capture.PrimaryKeySQL`) and
+  passes its columns to the capture function as trigger arguments. It still
+  replaces an existing Threadline trigger of the same name in place, so it
   can be applied again (requires PostgreSQL 14 or later).
+
+  ## Options
+
+  * `:primary_key` — a declared column list for a table with no primary key
+    (`config :threadline, :trigger_capture, tables: %{"t" => [primary_key: [...]]}`).
+    Skips the `pg_index` primary-key lookup and enforces the declared columns
+    against a qualifying unique index instead. See
+    `Threadline.Capture.PrimaryKeySQL.create_trigger_block/3`.
+  * `:redacted_columns` — column names the table's function masks or excludes
+    (`exclude ++ mask`); a detected or declared key column listed here
+    refuses the migration.
   """
   def create_trigger(table_name, mode \\ :default, opts \\ [])
 
   def create_trigger(table_name, :default, opts) do
-    create_trigger_sql(
-      table_name,
-      "#{StorageSchema.function("threadline_capture_changes", opts)}()"
-    )
+    function_literal = StorageSchema.function("threadline_capture_changes", opts)
+    PrimaryKeySQL.create_trigger_block(table_name, function_literal, opts)
   end
 
   def create_trigger(table_name, :per_table, opts) do
-    fname = per_table_function_name(table_name, opts) <> "()"
-    create_trigger_sql(table_name, fname)
-  end
-
-  defp create_trigger_sql(table_name, function_invocation) do
-    trigger_name = "threadline_audit_#{StorageSchema.host_table_suffix(table_name)}"
-    host_table = StorageSchema.qualified_host_table(table_name)
-
-    """
-    CREATE OR REPLACE TRIGGER #{StorageSchema.quote_ident(trigger_name)}
-    AFTER INSERT OR UPDATE OR DELETE ON #{host_table}
-    FOR EACH ROW EXECUTE FUNCTION #{function_invocation}
-    """
+    function_literal = per_table_function_name(table_name, opts)
+    PrimaryKeySQL.create_trigger_block(table_name, function_literal, opts)
   end
 
   @doc "Returns SQL to drop a trigger from the given table."
   def drop_trigger(table_name) do
-    trigger_name = "threadline_audit_#{StorageSchema.host_table_suffix(table_name)}"
+    trigger_name = Naming.trigger_name(table_name)
     host_table = StorageSchema.qualified_host_table(table_name)
     "DROP TRIGGER IF EXISTS #{StorageSchema.quote_ident(trigger_name)} ON #{host_table}"
   end
 
+  # Naming.function_name/1 is the only source of per-table function names, so
+  # two tables never share one. The byte check guards the literal written
+  # into the migration: PostgreSQL would silently cut a longer name.
   defp per_table_function_name(table_name, opts) do
-    StorageSchema.function(per_table_function_base(table_name), opts)
+    table_name
+    |> Naming.function_name()
+    |> StorageSchema.validate_identifier!(:derived)
+    |> StorageSchema.function(opts)
   end
 
-  defp per_table_function_base(table_name) do
-    "threadline_capture_changes_#{StorageSchema.host_table_suffix(table_name)}"
-  end
-
-  # Exact legacy SQL (legacy) when no redaction rules apply.
+  # The row-key fragment reads key columns from trigger arguments, falling
+  # back to the id column for triggers installed without arguments (legacy).
   defp global_install_function_sql_legacy(opts) do
     """
     CREATE OR REPLACE FUNCTION #{StorageSchema.function("threadline_capture_changes", opts)}()
@@ -173,6 +261,7 @@ defmodule Threadline.Capture.TriggerSQL do
     DECLARE
       v_txid           bigint;
       v_tx_id          uuid;
+      v_row            jsonb;
       v_data_after     jsonb;
       v_table_pk       jsonb;
       v_changed_fields text[];
@@ -180,19 +269,22 @@ defmodule Threadline.Capture.TriggerSQL do
     #{transaction_capture_begin_sql(opts)}
 
       IF TG_OP = 'DELETE' THEN
-        v_table_pk       := jsonb_build_object('id', (to_jsonb(OLD) ->> 'id'));
+        v_row := to_jsonb(OLD);
+    #{PrimaryKeySQL.row_key_statements()}
         v_data_after     := NULL;
         v_changed_fields := NULL;
 
       ELSIF TG_OP = 'INSERT' THEN
-        v_table_pk       := jsonb_build_object('id', (to_jsonb(NEW) ->> 'id'));
-        v_data_after     := to_jsonb(NEW);
+        v_row := to_jsonb(NEW);
+    #{PrimaryKeySQL.row_key_statements()}
+        v_data_after     := v_row;
         v_changed_fields := NULL;
 
       ELSE
         -- UPDATE: capture changed field names
-        v_table_pk   := jsonb_build_object('id', (to_jsonb(NEW) ->> 'id'));
-        v_data_after := to_jsonb(NEW);
+        v_row := to_jsonb(NEW);
+    #{PrimaryKeySQL.row_key_statements()}
+        v_data_after := v_row;
 
         SELECT array_agg(n.key ORDER BY n.key)
         INTO   v_changed_fields
@@ -224,6 +316,7 @@ defmodule Threadline.Capture.TriggerSQL do
     DECLARE
       v_txid           bigint;
       v_tx_id          uuid;
+      v_row            jsonb;
       v_data_after     jsonb;
       v_table_pk       jsonb;
       v_changed_fields text[];
@@ -245,20 +338,23 @@ defmodule Threadline.Capture.TriggerSQL do
       WHERE txid = v_txid;
 
       IF TG_OP = 'DELETE' THEN
-        v_table_pk       := jsonb_build_object('id', (to_jsonb(OLD) ->> 'id'));
+        v_row := to_jsonb(OLD);
+    #{PrimaryKeySQL.row_key_statements()}
         v_data_after     := NULL;
         v_changed_fields := NULL;
         v_changed_from   := NULL;
 
       ELSIF TG_OP = 'INSERT' THEN
-        v_table_pk       := jsonb_build_object('id', (to_jsonb(NEW) ->> 'id'));
-        v_data_after     := to_jsonb(NEW);
+        v_row := to_jsonb(NEW);
+    #{PrimaryKeySQL.row_key_statements()}
+        v_data_after     := v_row;
         v_changed_fields := NULL;
         v_changed_from   := NULL;
 
       ELSE
-        v_table_pk   := jsonb_build_object('id', (to_jsonb(NEW) ->> 'id'));
-        v_data_after := to_jsonb(NEW);
+        v_row := to_jsonb(NEW);
+    #{PrimaryKeySQL.row_key_statements()}
+        v_data_after := v_row;
 
         SELECT array_agg(n.key ORDER BY n.key)
         INTO   v_changed_fields
@@ -329,6 +425,7 @@ defmodule Threadline.Capture.TriggerSQL do
     DECLARE
       v_txid           bigint;
       v_tx_id          uuid;
+      v_row            jsonb;
       v_data_after     jsonb;
       v_table_pk       jsonb;
       v_changed_fields text[];
@@ -337,21 +434,24 @@ defmodule Threadline.Capture.TriggerSQL do
     #{transaction_capture_begin_sql(opts)}
 
       IF TG_OP = 'DELETE' THEN
-        v_table_pk       := jsonb_build_object('id', (to_jsonb(OLD) ->> 'id'));
+        v_row := to_jsonb(OLD);
+    #{PrimaryKeySQL.row_key_statements()}
         v_data_after     := NULL;
         v_changed_fields := NULL;
         v_changed_from   := NULL;
 
       ELSIF TG_OP = 'INSERT' THEN
-        v_table_pk       := jsonb_build_object('id', (to_jsonb(NEW) ->> 'id'));
-        v_data_after     := to_jsonb(NEW);
+        v_row := to_jsonb(NEW);
+    #{PrimaryKeySQL.row_key_statements()}
+        v_data_after     := v_row;
     #{redact_after_new}
         v_changed_fields := NULL;
         v_changed_from   := NULL;
 
       ELSE
-        v_table_pk   := jsonb_build_object('id', (to_jsonb(NEW) ->> 'id'));
-        v_data_after := to_jsonb(NEW);
+        v_row := to_jsonb(NEW);
+    #{PrimaryKeySQL.row_key_statements()}
+        v_data_after := v_row;
     #{redact_after_new}
 
         SELECT array_agg(n.key ORDER BY n.key)
@@ -387,6 +487,7 @@ defmodule Threadline.Capture.TriggerSQL do
     DECLARE
       v_txid           bigint;
       v_tx_id          uuid;
+      v_row            jsonb;
       v_data_after     jsonb;
       v_table_pk       jsonb;
       v_changed_fields text[];
@@ -394,20 +495,23 @@ defmodule Threadline.Capture.TriggerSQL do
     #{transaction_capture_begin_sql(opts)}
 
       IF TG_OP = 'DELETE' THEN
-        v_table_pk       := jsonb_build_object('id', (to_jsonb(OLD) ->> 'id'));
+        v_row := to_jsonb(OLD);
+    #{PrimaryKeySQL.row_key_statements()}
         v_data_after     := NULL;
         v_changed_fields := NULL;
 
       ELSIF TG_OP = 'INSERT' THEN
-        v_table_pk       := jsonb_build_object('id', (to_jsonb(NEW) ->> 'id'));
-        v_data_after     := to_jsonb(NEW);
+        v_row := to_jsonb(NEW);
+    #{PrimaryKeySQL.row_key_statements()}
+        v_data_after     := v_row;
     #{redact}
         v_changed_fields := NULL;
 
       ELSE
         -- UPDATE: capture changed field names
-        v_table_pk   := jsonb_build_object('id', (to_jsonb(NEW) ->> 'id'));
-        v_data_after := to_jsonb(NEW);
+        v_row := to_jsonb(NEW);
+    #{PrimaryKeySQL.row_key_statements()}
+        v_data_after := v_row;
     #{redact}
 
         SELECT array_agg(n.key ORDER BY n.key)

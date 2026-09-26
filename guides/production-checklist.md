@@ -15,8 +15,9 @@ For **host staging / pooler parity** (**STG-01**–**STG-03**), use **[`guides/a
 - [ ] `MIX_ENV` matches between trigger regeneration and runtime (`mix threadline.gen.triggers` loads `app.config`).
 - [ ] `config :threadline, :verify_coverage, expected_tables: [...]` lists every audited table; `mix threadline.verify_coverage` passes in CI and on a production-like host.
 - [ ] Run `Threadline.Health.trigger_coverage/1` after deploys, schema changes, and on a periodic cadence you trust; each `{:covered, _}` / `{:uncovered, _}` tuple names one user table from the requested host schema (`schema: "public"` by default) — full interpretation: [`domain-reference.md#trigger-coverage-operational`](domain-reference.md#trigger-coverage-operational).
-- [ ] `mix threadline.verify_coverage` only fails CI when an **`expected_tables`** name is missing triggers or uncovered; `{:uncovered, _}` on other tables is informational. Audit catalog tables **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** are excluded from `Health`’s per-table list by design (same link).
+- [ ] `mix threadline.verify_coverage` fails CI when an **`expected_tables`** name is missing triggers or uncovered, or when `trigger_findings/1` reports an error finding (`:pk_drift`, `:shared_capture_function`, `:duplicate_capture_trigger`, `:capture_trigger_disabled`) for that table; `{:uncovered, _}` and error findings on other tables are informational. Audit catalog tables **`audit_transactions`**, **`audit_changes`**, and **`audit_actions`** are excluded from `Health`’s per-table list by design (same link).
 - [ ] `Threadline.Health.trigger_coverage/1` is wired into health checks or release checks where you need fast failure on drift.
+- [ ] `mix threadline.verify_coverage` fails on any error finding (`:pk_drift`, `:shared_capture_function`, `:duplicate_capture_trigger`, `:capture_trigger_disabled`) for an expected table; a `:legacy_trigger_no_pk_args` warning means "regenerate when convenient", not an immediate problem.
 
 ## Coverage drift visibility
 

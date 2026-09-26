@@ -1,6 +1,7 @@
 defmodule Threadline.VerifyCoveragePolicyTest do
   use ExUnit.Case, async: true
 
+  alias Threadline.Health.Finding
   alias Threadline.Verify.CoveragePolicy
 
   describe "violations/2" do
@@ -73,6 +74,84 @@ defmodule Threadline.VerifyCoveragePolicyTest do
                expected: 2,
                covered: 1,
                violated: 1
+             }
+    end
+  end
+
+  describe "partition_findings/2" do
+    defp finding(attrs) do
+      struct!(
+        Finding,
+        Map.merge(
+          %{
+            code: :capture_trigger_disabled,
+            severity: :error,
+            schema: "public",
+            table: "t",
+            message: "fix it",
+            details: %{}
+          },
+          attrs
+        )
+      )
+    end
+
+    test "an :error finding for an expected table is gated" do
+      f = finding(%{table: "gated_t"})
+
+      assert CoveragePolicy.partition_findings([f], ["gated_t"]) == %{
+               gated: [f],
+               not_gated: [],
+               warnings: []
+             }
+    end
+
+    test "an :error finding for an unlisted table is not_gated" do
+      f = finding(%{table: "other_t"})
+
+      assert CoveragePolicy.partition_findings([f], ["gated_t"]) == %{
+               gated: [],
+               not_gated: [f],
+               warnings: []
+             }
+    end
+
+    test "a :warning finding is always a warning, listed or not" do
+      f = finding(%{severity: :warning, table: "gated_t", code: :legacy_trigger_no_pk_args})
+
+      assert CoveragePolicy.partition_findings([f], ["gated_t"]) == %{
+               gated: [],
+               not_gated: [],
+               warnings: [f]
+             }
+    end
+
+    test "an empty findings list yields empty buckets" do
+      assert CoveragePolicy.partition_findings([], ["gated_t"]) == %{
+               gated: [],
+               not_gated: [],
+               warnings: []
+             }
+    end
+
+    test "duplicate expected table names do not duplicate a finding across buckets" do
+      f = finding(%{table: "gated_t"})
+
+      assert CoveragePolicy.partition_findings([f], ["gated_t", "gated_t"]) == %{
+               gated: [f],
+               not_gated: [],
+               warnings: []
+             }
+    end
+
+    test "input order is preserved within each bucket" do
+      f1 = finding(%{table: "gated_t", code: :capture_trigger_disabled})
+      f2 = finding(%{table: "gated_t", code: :duplicate_capture_trigger})
+
+      assert CoveragePolicy.partition_findings([f1, f2], ["gated_t"]) == %{
+               gated: [f1, f2],
+               not_gated: [],
+               warnings: []
              }
     end
   end

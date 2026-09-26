@@ -34,4 +34,11 @@ defmodule Threadline.AuditIndexingDocContractTest do
     assert String.contains?(doc, "domain-reference.md")
     assert String.contains?(doc, "production-checklist.md")
   end
+
+  test "audit-indexing guide documents the row-history index and its generator" do
+    doc = read_rel!(["guides", "audit-indexing.md"])
+
+    assert String.contains?(doc, "audit_changes_row_history_idx")
+    assert String.contains?(doc, "mix threadline.gen.row_history_index")
+  end
 end

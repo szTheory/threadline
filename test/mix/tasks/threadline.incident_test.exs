@@ -3,12 +3,18 @@ defmodule Mix.Tasks.Threadline.IncidentTest do
 
   import ExUnit.CaptureIO
 
+  require Logger
+
   alias Mix.Tasks.Threadline.Incident
   alias Threadline.Capture.{AuditChange, AuditTransaction}
 
   @repo Threadline.Test.Repo
 
   setup do
+    # `--json` raises the global Logger level; put it back for later tests.
+    level = Logger.level()
+    on_exit(fn -> Logger.configure(level: level) end)
+
     txn =
       @repo.insert!(
         AuditTransaction.changeset(%{

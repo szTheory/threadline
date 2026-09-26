@@ -32,7 +32,8 @@ defmodule Threadline.Policy.RedactionPresenter do
   """
   def build_report(configured_tables, deployed_rows, opts \\ [])
       when is_map(configured_tables) and is_list(deployed_rows) do
-    schema = opts |> Keyword.get(:schema, "public") |> StorageSchema.validate!()
+    schema =
+      opts |> Keyword.get(:schema, "public") |> StorageSchema.validate_identifier!(:host_schema)
 
     configured =
       configured_tables

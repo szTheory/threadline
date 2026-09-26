@@ -210,6 +210,20 @@ defmodule Threadline.UpgradePathDocContractTest do
            "expected upgrade-path guide to carry a mandatory nothing-required reassurance"
   end
 
+  test "upgrade-path guide covers the 0.10.x to 0.11.x bump and links the full procedure" do
+    guide = File.read!("guides/upgrade-path.md")
+
+    {idx_minor, _} = :binary.match(guide, "## Upgrade by Threadline minor")
+    {idx_phoenix, _} = :binary.match(guide, "## What breaks when Phoenix")
+    scope = {idx_minor, idx_phoenix - idx_minor}
+
+    assert :binary.match(guide, "0.10.x → 0.11.x", scope: scope) != :nomatch or
+             :binary.match(guide, "0.10.x -> 0.11.x", scope: scope) != :nomatch
+
+    assert :binary.match(guide, "upgrading-to-0.11.md", scope: scope) != :nomatch
+    assert :binary.match(guide, "CHANGELOG.md", scope: scope) != :nomatch
+  end
+
   test "upgrade-path guide refutes aspirational and product-milestone tokens" do
     guide = File.read!("guides/upgrade-path.md")
 

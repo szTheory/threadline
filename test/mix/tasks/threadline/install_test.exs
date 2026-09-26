@@ -36,8 +36,8 @@ defmodule Mix.Tasks.Threadline.InstallTest do
     %{tmp: tmp}
   end
 
-  defp run_install(tmp) do
-    File.cd!(tmp, fn -> Install.run([]) end)
+  defp run_install(tmp, args \\ []) do
+    File.cd!(tmp, fn -> Install.run(args) end)
     drain_shell([])
   end
 
@@ -250,6 +250,97 @@ defmodule Mix.Tasks.Threadline.InstallTest do
       drain_shell([])
 
       assert_valid_increasing!(prefixes(tmp, @suffixes) ++ [triggers_prefix(tmp)])
+    end
+  end
+
+  describe "migration directory flags" do
+    test "--migrations-path writes every family under the given directory", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+
+      run_install(tmp, ["--migrations-path", "db/audit_migrations"])
+
+      for suffix <- @suffixes do
+        assert [_] = Path.wildcard(Path.join([tmp, "db/audit_migrations", "*" <> suffix]))
+      end
+
+      assert Path.wildcard(Path.join([tmp, @migrations, "*.exs"])) == []
+    end
+
+    test "with no flags the default directory is unchanged", %{tmp: tmp} do
+      Application.delete_env(:threadline, :storage_schema)
+
+      run_install(tmp)
+
+      for suffix <- @suffixes do
+        assert [_] = Path.wildcard(Path.join([tmp, @migrations, "*" <> suffix]))
+      end
+    end
+
+    test "an unknown option raises instead of being ignored", %{tmp: tmp} do
+      assert_raise Mix.Error, ~r/Unknown options/, fn ->
+        File.cd!(tmp, fn -> Install.run(["--bogus"]) end)
+      end
+    end
+  end
+
+  describe "a repo with a custom :priv directory" do
+    @custom_repo Threadline.TestSupport.CustomPrivRepo
+    @custom_dir "priv/custom_repo/migrations"
+
+    setup do
+      previous = Application.fetch_env(:threadline, :ecto_repos)
+      Application.delete_env(:threadline, :storage_schema)
+
+      on_exit(fn ->
+        case previous do
+          {:ok, value} -> Application.put_env(:threadline, :ecto_repos, value)
+          :error -> Application.delete_env(:threadline, :ecto_repos)
+        end
+      end)
+
+      :ok
+    end
+
+    defp assert_families_in!(tmp, dir) do
+      for suffix <- @suffixes do
+        assert [_] = Path.wildcard(Path.join([tmp, dir, "*" <> suffix])),
+               "expected #{suffix} under #{dir}"
+      end
+    end
+
+    test "the configured repo's :priv decides the directory", %{tmp: tmp} do
+      Application.put_env(:threadline, :ecto_repos, [@custom_repo])
+
+      run_install(tmp)
+
+      assert_families_in!(tmp, @custom_dir)
+      assert Path.wildcard(Path.join([tmp, @migrations, "*.exs"])) == []
+    end
+
+    test "-r names the repo", %{tmp: tmp} do
+      run_install(tmp, ["-r", inspect(@custom_repo)])
+
+      assert_families_in!(tmp, @custom_dir)
+    end
+
+    test "--migrations-path beats the repo's :priv", %{tmp: tmp} do
+      run_install(tmp, ["--migrations-path", "other", "-r", inspect(@custom_repo)])
+
+      assert_families_in!(tmp, "other")
+      assert Path.wildcard(Path.join([tmp, @custom_dir, "*.exs"])) == []
+    end
+
+    test "a re-run detects the migrations in the same directory", %{tmp: tmp} do
+      Application.put_env(:threadline, :ecto_repos, [@custom_repo])
+
+      run_install(tmp)
+      output = run_install(tmp)
+
+      for label <- ["audit", "semantics", "governance"] do
+        assert output =~ "Threadline #{label} schema migration already exists — skipping"
+      end
+
+      assert_families_in!(tmp, @custom_dir)
     end
   end
 end

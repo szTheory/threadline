@@ -255,7 +255,7 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
       :ok
     end
 
-    test "--json emits exactly the locked top-level keys (sorted)" do
+    test "--json emits exactly the locked top-level keys (sorted) plus the additive findings key" do
       output =
         capture_io(fn ->
           Coverage.run(["--json"])
@@ -264,8 +264,9 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
       parsed = Jason.decode!(output)
 
       assert parsed |> Map.keys() |> Enum.sort() ==
-               ["covered", "expected_uncovered", "schema", "uncovered"],
-             "expected JSON top-level keys to be exactly [\"covered\", \"expected_uncovered\", \"schema\", \"uncovered\"] per D-34/D-35"
+               ["covered", "expected_uncovered", "findings", "schema", "uncovered"],
+             ~s(expected JSON top-level keys to be exactly ["covered", "expected_uncovered", ) <>
+               ~s("findings", "schema", "uncovered"] per D-34/D-35 plus the additive findings key)
     end
 
     test ~s(--json expected_uncovered entries have exactly ["source", "table"] keys with source ∈ {baseline, config}) do

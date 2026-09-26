@@ -73,7 +73,7 @@ defmodule Threadline.MixProject do
 
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :crypto],
       mod: {Threadline.Application, []}
     ]
   end
@@ -102,6 +102,11 @@ defmodule Threadline.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:lazy_html, "~> 0.1.0", only: :test},
+      # Test-only. Powers ExUnitProperties property tests for generated
+      # identifier names. Never reaches consumers of the published package.
+      # 1.4 floors at Elixir ~> 1.14, so the 1.15 support floor holds; the
+      # dependency floor guard in the test suite enforces this invariant.
+      {:stream_data, "~> 1.4", only: :test},
       # Test-only. Parses .github issue forms as real YAML so the
       # community-health render contract validates GitHub's issue-forms schema
       # instead of pattern-matching prose. Never reaches consumers of the
@@ -211,7 +216,7 @@ defmodule Threadline.MixProject do
 
   defp verify_bench(_args) do
     cmd =
-      "bash -lc 'set -euo pipefail && cd bench && mix deps.get && MIX_ENV=test mix run scripts/seed_audit_changes.exs && MIX_ENV=test mix run audit_capture_bench.exs && MIX_ENV=test mix run timeline_query_bench.exs && MIX_ENV=test mix run redaction_and_changed_from_bench.exs'"
+      "bash -lc 'set -euo pipefail && cd bench && mix deps.get && MIX_ENV=test mix run scripts/seed_audit_changes.exs && MIX_ENV=test mix run audit_capture_bench.exs && MIX_ENV=test mix run timeline_query_bench.exs && MIX_ENV=test mix run redaction_and_changed_from_bench.exs && MIX_ENV=test mix run pk_capture_bench.exs'"
 
     case Mix.shell().cmd(cmd) do
       0 -> :ok
@@ -481,6 +486,7 @@ defmodule Threadline.MixProject do
         "guides/domain-reference.md",
         "guides/operator-surface.md",
         "guides/upgrade-path.md",
+        "guides/upgrading-to-0.11.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
         "guides/incident-playbook.md",
@@ -511,7 +517,7 @@ defmodule Threadline.MixProject do
         Evaluate:
           ~r{^guides/(evaluating-threadline|how-threadline-works|code-walkthrough|domain-reference)\.md$},
         Adopt:
-          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
+          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|upgrading-to-0\.11|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
         Operate:
           ~r{^guides/(operator-surface|incident-playbook|performance|audit-indexing|adoption-evidence-playbook)\.md$},
         Contribute:
@@ -539,6 +545,7 @@ defmodule Threadline.MixProject do
           Threadline.Evidence.Proof,
           Threadline.Evidence.Subject,
           Threadline.Governance.EvidenceRecord,
+          Threadline.Health.Finding,
           Threadline.Investigation.IncidentBundle,
           Threadline.Investigation.IncidentChange,
           Threadline.Investigation.LinkedChange,
@@ -573,6 +580,7 @@ defmodule Threadline.MixProject do
         "Mix Tasks": [
           Mix.Tasks.Threadline.Install,
           Mix.Tasks.Threadline.Gen.Triggers,
+          Mix.Tasks.Threadline.Gen.RowHistoryIndex,
           Mix.Tasks.Threadline.VerifyCoverage,
           Mix.Tasks.Threadline.Continuity,
           Mix.Tasks.Threadline.Retention.Purge,

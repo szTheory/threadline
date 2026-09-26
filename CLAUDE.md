@@ -80,6 +80,10 @@ gates where they keep paying off, and agent review for judgment calls such as pr
 clarity). Hand the maintainer only secrets, spend, push/publish, and scope decisions.
 Full rule: `.planning/PROJECT.md` → Constraints → "Zero human verification by default".
 
+**Milestone guide.** Before choosing or closing a milestone, read `.planning/MILESTONE-GUIDE.txt`
+(intent, lenses, selection loop, quality/CI/release bar, roadmap ladder to 1.0.0) with
+`.planning/MILESTONE-ARC.md`. Operator-UI design work is parked until 1.0.0.
+
 **`state.begin-phase` argument style depends on which tool is on PATH — check first.**
 - `@opengsd/gsd-core` v1.14.0 (`gsd-tools.cjs`, current): requires **flags** —
   `--phase 202 --name "Release 0.10.0" --plans 5`. Positional args are rejected
@@ -90,7 +94,7 @@ Full rule: `.planning/PROJECT.md` → Constraints → "Zero human verification b
 
 Separately, and regardless of invocation style: the `state.*` handlers miscompute this
 repo's bespoke progress block. Hand-check `.planning/STATE.md` and `ROADMAP.md` after
-calling them. Phase 20 details: `.planning/phases/20-first-external-pilot/PLAN.md` (GSD execute-phase preflight).
+calling them.
 
 ## Reference Documents
 
