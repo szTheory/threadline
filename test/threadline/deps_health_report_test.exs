@@ -41,7 +41,7 @@ defmodule Threadline.DepsHealthReportTest do
     [ -z "$REL" ] && REL="."
 
     if [ -n "${FAKE_MIX_LOG:-}" ]; then
-      printf '%s %s\\n' "$REL" "$SUBCMD" >> "$FAKE_MIX_LOG"
+      printf '%s %s\\n' "$REL" "$*" >> "$FAKE_MIX_LOG"
     fi
 
     should_match() {
@@ -82,6 +82,17 @@ defmodule Threadline.DepsHealthReportTest do
         fi
         echo "All dependencies up to date"
         exit 0
+        ;;
+      hex.config)
+        key="${2:-}"
+        if [ "$key" = "ignore_advisories" ]; then
+          val="${FAKE_HEX_CONFIG_IGNORE_ADVISORIES-[]}"
+          [ "$val" = "__NOOUTPUT__" ] || printf '%s\\n' "$val"
+        elif [ "$key" = "ignore_retirements" ]; then
+          val="${FAKE_HEX_CONFIG_IGNORE_RETIREMENTS-[]}"
+          [ "$val" = "__NOOUTPUT__" ] || printf '%s\\n' "$val"
+        fi
+        exit "${FAKE_HEX_CONFIG_EXIT:-0}"
         ;;
       *)
         exit 0
@@ -260,6 +271,122 @@ defmodule Threadline.DepsHealthReportTest do
       assert contents =~ "pre_existing=value"
       assert contents =~ ~r/^classification=clean$/m
       assert contents =~ ~r/^report=.*report\.md$/m
+    end
+  end
+
+  describe "Hex advisory suppression" do
+    test "a non-empty global hex.config ignore_advisories -> unknown, no per-dir mix calls, report names it" do
+      out_dir = tmp_out_dir()
+
+      {output, status, calls} =
+        run_report(out_dir, [
+          {"FAKE_HEX_CONFIG_IGNORE_ADVISORIES", ~s(["EEF-CVE-2026-54892"])}
+        ])
+
+      assert status == 0
+      assert output =~ "classification=unknown"
+      refute calls =~ "deps.get"
+      refute calls =~ "hex.audit"
+      refute calls =~ "hex.outdated"
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "ignore_advisories"
+
+      for dir <- @canonical_dirs do
+        assert body =~ "## #{dir}"
+      end
+    end
+
+    test "a non-empty global hex.config ignore_retirements -> unknown, no per-dir mix calls, report names it" do
+      out_dir = tmp_out_dir()
+
+      {output, status, calls} =
+        run_report(out_dir, [
+          {"FAKE_HEX_CONFIG_IGNORE_RETIREMENTS", ~s([{"plug", nil}])}
+        ])
+
+      assert status == 0
+      assert output =~ "classification=unknown"
+      refute calls =~ "deps.get"
+      refute calls =~ "hex.audit"
+      refute calls =~ "hex.outdated"
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "ignore_retirements"
+    end
+
+    test "HEX_IGNORE_ADVISORIES set in the environment -> unknown, no per-dir mix calls, report names it" do
+      out_dir = tmp_out_dir()
+
+      {output, status, calls} = run_report(out_dir, [{"HEX_IGNORE_ADVISORIES", "x"}])
+
+      assert status == 0
+      assert output =~ "classification=unknown"
+      refute calls =~ "deps.get"
+      refute calls =~ "hex.audit"
+      refute calls =~ "hex.outdated"
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "HEX_IGNORE_ADVISORIES"
+    end
+
+    test "HEX_IGNORE_RETIREMENTS set in the environment -> unknown, no per-dir mix calls, report names it" do
+      out_dir = tmp_out_dir()
+
+      {output, status, calls} = run_report(out_dir, [{"HEX_IGNORE_RETIREMENTS", "x"}])
+
+      assert status == 0
+      assert output =~ "classification=unknown"
+      refute calls =~ "deps.get"
+      refute calls =~ "hex.audit"
+      refute calls =~ "hex.outdated"
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "HEX_IGNORE_RETIREMENTS"
+    end
+
+    test "hex.config printing nothing fails closed" do
+      out_dir = tmp_out_dir()
+
+      {output, status, calls} =
+        run_report(out_dir, [{"FAKE_HEX_CONFIG_IGNORE_ADVISORIES", "__NOOUTPUT__"}])
+
+      assert status == 0
+      assert output =~ "classification=unknown"
+      refute calls =~ "deps.get"
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "could not read global Hex config"
+    end
+
+    test "hex.config exiting non-zero fails closed" do
+      out_dir = tmp_out_dir()
+
+      {output, status, calls} =
+        run_report(out_dir, [{"FAKE_HEX_CONFIG_EXIT", "1"}])
+
+      assert status == 0
+      assert output =~ "classification=unknown"
+      refute calls =~ "deps.get"
+
+      body = File.read!(Path.join(out_dir, "report.md"))
+      assert body =~ "could not read global Hex config"
+    end
+
+    test "default fakes (hex.config answers []) still classify clean" do
+      out_dir = tmp_out_dir()
+      {output, status, _calls} = run_report(out_dir)
+
+      assert status == 0
+      assert output =~ "classification=clean"
+    end
+
+    test "the suppression key literal is present in both bin/deps-health-report and bin/verify-deps-audit" do
+      health_report = File.read!(Path.join(@repo_root, "bin/deps-health-report"))
+      verify_audit = File.read!(Path.join(@repo_root, "bin/verify-deps-audit"))
+
+      assert health_report =~ "ignore_advisories ignore_retirements"
+      assert verify_audit =~ "ignore_advisories ignore_retirements"
     end
   end
 
