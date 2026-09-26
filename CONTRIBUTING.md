@@ -502,12 +502,17 @@ Dependabot *alerts* are a separate repository setting the maintainer controls
 independently of this policy.
 
 Every pull request runs the required `verify-deps-audit` job (`mix
-verify.deps_audit`): it asserts Hex 2.5.1 or newer, runs `mix deps.unlock
---check-unused`, and runs `mix hex.audit` over all three lockfiles above. It
-refuses to run at all with `HEX_IGNORE_ADVISORIES` or `HEX_IGNORE_RETIREMENTS`
-set in the environment — an unaccountable bypass would defeat the point of a
-required gate. Run it locally (`mix verify.deps_audit`) before touching a
-lockfile.
+verify.deps_audit`): it asserts Hex 2.5.1 or newer, fetches with `mix
+deps.get --check-locked`, runs `mix deps.unlock --check-unused`, and runs
+`mix hex.audit` over all three lockfiles above. `--check-locked` means the
+lock actually audited is the one committed to the repo: a `mix.lock` that no
+longer matches `mix.exs` fails that directory's audit instead of being
+silently re-resolved and audited under a fresh lock. It refuses to run at
+all with `HEX_IGNORE_ADVISORIES` or `HEX_IGNORE_RETIREMENTS` set in the
+environment, or a non-empty global Hex `ignore_advisories` /
+`ignore_retirements` set with `mix hex.config` (in any Hex home) — an
+unaccountable bypass would defeat the point of a required gate. Run it
+locally (`mix verify.deps_audit`) before touching a lockfile.
 
 The weekly, non-required `.github/workflows/deps-health.yml` lane runs
 Mondays 08:00 UTC (`0 8 * * 1`), plus manual dispatch, and also runs `mix

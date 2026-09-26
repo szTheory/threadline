@@ -6,7 +6,11 @@ defmodule Threadline.DepsAuditContractTest do
   `services:`, be listed in the job-id header and in `ci-required`'s
   `needs:`, never appear in an `allowed-skips`/`allowed-failures` list, be
   mirrored in `ci.all` and in CONTRIBUTING.md's roster, and no workflow file
-  may ever set `HEX_IGNORE_ADVISORIES` or `HEX_IGNORE_RETIREMENTS`.
+  may ever reference `HEX_IGNORE_ADVISORIES`, `HEX_IGNORE_RETIREMENTS`,
+  `HEX_HOME`, `MIX_HOME`, or `hex.config ignore_` — the full Hex/Mix-home and
+  global-ignore suppression surface CR-01 identified (a workflow edit could
+  otherwise defeat bin/verify-deps-audit's runtime refusal without touching
+  the gate script itself).
 
   Local private helpers only — deliberately does not import from other test
   modules, per the same-commit roster rule's isolation convention.
@@ -81,6 +85,51 @@ defmodule Threadline.DepsAuditContractTest do
     assert_non_empty
   end
 
+  # The full CR-01 suppression surface a workflow edit could introduce ahead
+  # of the gate: the two env-var bypasses the gate already refuses, plus
+  # HEX_HOME / MIX_HOME (which can redirect Hex's or Mix's global config to a
+  # crafted file) and a `hex.config ignore_...` invocation (which sets that
+  # config directly). Returns the unique list of tokens found in `text`.
+  defp forbidden_hex_surface(text) do
+    ~r/HEX_IGNORE_ADVISORIES|HEX_IGNORE_RETIREMENTS|HEX_HOME|MIX_HOME|hex\.config\s+ignore_/
+    |> Regex.scan(text)
+    |> List.flatten()
+    |> Enum.uniq()
+  end
+
+  test "forbidden_hex_surface/1 is non-vacuous: finds every token in a synthetic positive, nothing in a benign snippet" do
+    positive = """
+    jobs:
+      verify-deps-audit:
+        env:
+          HEX_HOME: /tmp/x
+          MIX_HOME: /tmp/y
+        steps:
+          - run: mix hex.config   ignore_advisories X
+          - run: echo "$HEX_IGNORE_ADVISORIES $HEX_IGNORE_RETIREMENTS"
+    """
+
+    found = forbidden_hex_surface(positive)
+
+    for token <- ~w(HEX_IGNORE_ADVISORIES HEX_IGNORE_RETIREMENTS HEX_HOME MIX_HOME) do
+      assert token in found,
+             "forbidden_hex_surface/1 did not catch #{token} in the positive fixture"
+    end
+
+    assert Enum.any?(found, &String.starts_with?(&1, "hex.config")),
+           "forbidden_hex_surface/1 did not catch the `hex.config ignore_` invocation"
+
+    benign = """
+    jobs:
+      verify-deps-audit:
+        steps:
+          - run: mix hex.audit
+          - run: mix verify.deps_audit
+    """
+
+    assert forbidden_hex_surface(benign) == []
+  end
+
   test "verify-deps-audit job exists, runs both required commands, and carries no weakening" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
@@ -121,13 +170,16 @@ defmodule Threadline.DepsAuditContractTest do
              "gate into a green merge"
   end
 
-  test "no workflow file ever sets HEX_IGNORE_ADVISORIES or HEX_IGNORE_RETIREMENTS" do
+  test "no workflow file references the Hex/Mix-home or global-ignore suppression surface (CR-01)" do
     for file <- workflow_files() do
       contents = File.read!(file)
+      found = forbidden_hex_surface(contents)
 
-      refute Regex.match?(~r/HEX_IGNORE_(ADVISORIES|RETIREMENTS)/, contents),
-             "#{Path.relative_to(file, @repo_root)} references HEX_IGNORE_ADVISORIES or " <>
-               "HEX_IGNORE_RETIREMENTS — this is the exact env-var bypass the gate refuses"
+      assert found == [],
+             "#{Path.relative_to(file, @repo_root)} references #{inspect(found)} — this is the " <>
+               "CR-01 suppression bypass (env-var ignore, HEX_HOME/MIX_HOME redirection, or a " <>
+               "direct `hex.config ignore_` call) that would defeat bin/verify-deps-audit's " <>
+               "runtime refusal without touching the gate script itself"
     end
   end
 

@@ -18,15 +18,24 @@ defmodule Threadline.IgnoreAdvisoriesContractTest do
   deliberate future edit, not something that falls out of a bare ignore list.
 
   Why resolved config, not a source regex on mix.exs: `Mix.Project.config()`
-  sees exactly the ids Hex itself uses when it runs `hex.audit` — however
+  sees exactly the PROJECT-level `hex: [ignore_advisories: ...]` ids, however
   they were constructed (literal list, comprehension, module attribute) — so
-  a project cannot spell its ignore list in a way that dodges this check.
-  `Mix.Project.in_project/4` loads bench's and the example app's mix.exs on
-  Mix's own project stack (and pops it afterwards), the same way Mix itself
-  loads a path dependency — never Code's `eval_file` or `require_file`
-  (assembled so this text never contains either as one literal call), either
-  of which would load the module a second time outside Mix's own bookkeeping
-  and print a module-redefinition warning.
+  a project cannot spell its own ignore list in a way that dodges this check.
+  It does NOT see Hex's client-level config (`mix hex.config`,
+  `$HEX_HOME/hex.config`, or the HEX_IGNORE_ADVISORIES / HEX_IGNORE_RETIREMENTS
+  env vars) — that surface lives outside any project's mix.exs and would make
+  `mix test` depend on the machine it runs on, so this test deliberately does
+  not read it. That client-level surface is refused at RUNTIME instead, by
+  bin/verify-deps-audit's env-var refusal and its global `mix hex.config`
+  refusal (`refuse_global_hex_ignores`), proven by
+  test/threadline/deps_audit_gate_test.exs and, against real Hex, by
+  `bin/verify-deps-audit --self-test`. `Mix.Project.in_project/4` loads
+  bench's and the example app's mix.exs on Mix's own project stack (and pops
+  it afterwards), the same way Mix itself loads a path dependency — never
+  Code's `eval_file` or `require_file` (assembled so this text never contains
+  either as one literal call), either of which would load the module a
+  second time outside Mix's own bookkeeping and print a module-redefinition
+  warning.
   """
 
   use ExUnit.Case, async: false
