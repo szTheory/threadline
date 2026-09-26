@@ -8,10 +8,13 @@
 #
 # Runs, for each of the three lockfile directories this repo maintains, in
 # the fixed order `.  bench  examples/threadline_phoenix` (matching
-# bin/verify-deps-audit's own canonical order): `mix deps.get`, then (only on
-# a successful fetch) `mix hex.audit` and `mix hex.outdated`. It classifies
-# the overall result and writes a report body other tooling can post as a
-# GitHub issue.
+# bin/verify-deps-audit's own canonical order): `mix deps.get --check-locked`,
+# then (only on a successful fetch) `mix hex.audit` and `mix hex.outdated`.
+# `--check-locked` means the lock actually reported on is the one committed
+# to the repo: a `mix.lock` that no longer matches `mix.exs` fails that
+# directory's fetch instead of being silently re-resolved and audited under
+# a fresh lock (WR-02). It classifies the overall result and writes a report
+# body other tooling can post as a GitHub issue.
 #
 # Classification precedence (highest wins, checked across ALL three dirs):
 #   an active Hex advisory suppression (see below)                  -> unknown
@@ -24,8 +27,9 @@
 # confirmed finding must never be silently masked because some other
 # directory could not be fetched. `unknown` is the default arm otherwise — a
 # fetch failure is never quietly reported as `clean` or `outdated`. When a
-# directory's `deps.get` fails, its `hex.audit`/`hex.outdated` are skipped
-# entirely (a vacuous audit over unfetched deps is not trusted), matching
+# directory's `deps.get --check-locked` fails (a missing or drifted
+# mix.lock), its `hex.audit`/`hex.outdated` are skipped entirely (a vacuous
+# audit over unfetched or re-resolved deps is not trusted), matching
 # bin/verify-deps-audit's own "skip on fetch failure" behavior.
 #
 # Hex advisory suppression (CR-01): before touching any directory, this
@@ -231,7 +235,7 @@ for d in "${CANONICAL_DIRS[@]}"; do
   fi
 
   set +e
-  deps_get_output="$(cd "$resolved" && printf 'n\n' | "$MIX_BIN" deps.get 2>&1)"
+  deps_get_output="$(cd "$resolved" && printf 'n\n' | "$MIX_BIN" deps.get --check-locked 2>&1)"
   deps_get_status=$?
   set -e
 
@@ -245,6 +249,7 @@ for d in "${CANONICAL_DIRS[@]}"; do
     {
       printf -- '- audit exit: skipped (fetch failed)\n\n'
       printf -- '- outdated exit: skipped (fetch failed)\n\n'
+      printf -- '- note: deps.get --check-locked failed — the committed mix.lock is missing or does not match mix.exs, so this directory was not audited\n\n'
     } >>"$SECTIONS_FILE"
     continue
   fi
