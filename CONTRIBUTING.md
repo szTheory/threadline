@@ -524,6 +524,14 @@ one issue and mask each other. The lane goes red on an `advisory` (a
 `hex.audit` finding) or an `unknown` result (a fetch failure that prevented
 an audit from running at all); an `outdated` result alone stays green — it is
 informational only, reported on the issue but not a merge-style gate.
+Like the required gate above, this lane fetches with `mix deps.get
+--check-locked`: a `mix.lock` that no longer matches `mix.exs` is reported
+`unknown` for that directory rather than silently re-resolved and audited
+under a fresh lock. And like the required gate, an active Hex advisory
+suppression — `HEX_IGNORE_ADVISORIES` / `HEX_IGNORE_RETIREMENTS` in the
+environment, or a non-empty global `mix hex.config ignore_advisories` /
+`ignore_retirements` (any Hex home) — is reported `unknown` for the whole
+run without running any audit; the report names the reason.
 
 Ignoring an advisory is only ever done through a documented convention, never
 the environment-variable bypass above: define `hex_audit_ignores/0` on the
