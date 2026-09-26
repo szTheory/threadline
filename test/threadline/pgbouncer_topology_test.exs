@@ -10,13 +10,17 @@ defmodule Threadline.PgbouncerTopologyTest do
   import Ecto.Query, only: [from: 2]
   import Threadline.StorageSchemaCase
 
+  alias Ecto.Adapters.SQL
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Health
   alias Threadline.Semantics.AuditAction
   alias Threadline.Test.Repo
 
   @moduletag :pgbouncer_topology
 
   @table "threadline_pooler_topology_ctx"
+  @disabled_table "threadline_pooler_topology_disabled"
+  @reader_role "threadline_topology_reader"
 
   setup do
     Repo.delete_all(AuditChange, repo_opts())
@@ -41,5 +45,28 @@ defmodule Threadline.PgbouncerTopologyTest do
              Repo.all(from(t in AuditTransaction, order_by: [asc: t.txid]), repo_opts())
 
     assert %Threadline.Semantics.ActorRef{type: :user, id: "pooler-ci"} = txn.actor_ref
+  end
+
+  test "trigger_findings/1 through PgBouncer as owner and as a zero-grant role (SC1)" do
+    owner_findings = Health.trigger_findings(repo: Repo, schema: "public")
+
+    assert [%{code: :capture_trigger_disabled, severity: :error, table: @disabled_table}] =
+             Enum.filter(owner_findings, &(&1.table == @disabled_table))
+
+    refute Enum.any?(owner_findings, &(&1.table == @table and &1.severity == :error))
+
+    {:ok, {role_findings, current_user}} =
+      Repo.transaction(fn ->
+        SQL.query!(Repo, "SET LOCAL ROLE #{@reader_role}", [])
+
+        %{rows: [[current_user]]} = SQL.query!(Repo, "SELECT current_user", [])
+
+        findings = Health.trigger_findings(repo: Repo, schema: "public")
+
+        {findings, current_user}
+      end)
+
+    assert current_user == @reader_role
+    assert role_findings == owner_findings
   end
 end

@@ -211,4 +211,63 @@ defmodule Threadline.HealthTest do
              "expected tenant_iso.iso_test_table to be :uncovered — pg_namespace join must filter the trigger out (Pitfall 1)"
     end
   end
+
+  describe "trigger_coverage/1 - disabled and replica-only triggers" do
+    setup do
+      SQL.query!(@repo, "DROP SCHEMA IF EXISTS hlth_cov_state CASCADE", [])
+      SQL.query!(@repo, "CREATE SCHEMA hlth_cov_state", [])
+      SQL.query!(@repo, "CREATE TABLE hlth_cov_state.t (id bigserial PRIMARY KEY)", [])
+      SQL.query!(@repo, TriggerSQL.create_trigger("hlth_cov_state.t"), [])
+
+      on_exit(fn -> SQL.query!(@repo, "DROP SCHEMA IF EXISTS hlth_cov_state CASCADE", []) end)
+
+      :ok
+    end
+
+    test "a disabled ('D') trigger is not counted as covered" do
+      SQL.query!(
+        @repo,
+        "ALTER TABLE hlth_cov_state.t DISABLE TRIGGER threadline_audit_hlth_cov_state_t",
+        []
+      )
+
+      assert {:uncovered, "t"} in Threadline.Health.trigger_coverage(
+               repo: @repo,
+               schema: "hlth_cov_state"
+             )
+    end
+
+    test "a replica-only ('R') trigger is not counted as covered" do
+      SQL.query!(
+        @repo,
+        "ALTER TABLE hlth_cov_state.t ENABLE REPLICA TRIGGER threadline_audit_hlth_cov_state_t",
+        []
+      )
+
+      assert {:uncovered, "t"} in Threadline.Health.trigger_coverage(
+               repo: @repo,
+               schema: "hlth_cov_state"
+             )
+    end
+
+    test "an always ('A') trigger is covered" do
+      SQL.query!(
+        @repo,
+        "ALTER TABLE hlth_cov_state.t ENABLE ALWAYS TRIGGER threadline_audit_hlth_cov_state_t",
+        []
+      )
+
+      assert {:covered, "t"} in Threadline.Health.trigger_coverage(
+               repo: @repo,
+               schema: "hlth_cov_state"
+             )
+    end
+
+    test "a plain enabled ('O') trigger is covered" do
+      assert {:covered, "t"} in Threadline.Health.trigger_coverage(
+               repo: @repo,
+               schema: "hlth_cov_state"
+             )
+    end
+  end
 end

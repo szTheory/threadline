@@ -70,6 +70,24 @@ defmodule Threadline do
   UPDATE under an opt-in per-table capture function; `nil` when disabled or on
   INSERT/DELETE rows).
 
+  `id` is a bare scalar for a single-column key, or a map or keyword list naming
+  every key field for a composite key (atom- or string-keyed, any order):
+
+      Threadline.history(MyApp.User, 42, repo: MyApp.Repo)
+      Threadline.history(MyApp.LineItem, [tenant_id: 1, id: 5], repo: MyApp.Repo)
+
+  Key names are the schema's field names, not database column names — unless a
+  `primary_key:` override is configured for the table, in which case the
+  override's declared columns are the accepted keys instead. A missing, extra,
+  or misnamed key, a `nil` value, a scalar for a composite table, or a loaded
+  struct all raise `ArgumentError`.
+
+  History for a table that has since been dropped or renamed, or a key column
+  whose type changed, stays readable: the key's comparison type falls back to
+  the schema field's Ecto type. The one inexact case is a fixed-width `char(n)`
+  key — the fallback cannot reproduce the database's stored blank-padding, so
+  pass the value already padded to the original column width.
+
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
@@ -78,6 +96,10 @@ defmodule Threadline do
 
   @doc """
   Returns the row snapshot for a schema record at a point in time.
+
+  Accepts the same `id` shapes as `history/3` (bare scalar, or map/keyword list
+  for a composite key), with the same `ArgumentError` cases and the same
+  dropped-table/renamed-column fallback behavior.
 
   ## Options
 

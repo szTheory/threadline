@@ -63,7 +63,8 @@ defmodule Threadline.PublicSurfaceContractTest do
       "guides/getting-started-saas.md",
       "guides/production-checklist.md",
       "guides/local-docker-dx.md",
-      "guides/upgrade-path.md"
+      "guides/upgrade-path.md",
+      "guides/upgrading-to-0.11.md"
     ],
     public_doc_refs_operate: [
       "guides/operator-surface.md",
@@ -214,7 +215,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     assert Enum.count(grouped, &(&1 == Threadline)) == 1
 
     assert Keyword.fetch!(groups, :"Mix Tasks") ==
-             ~w(threadline.install threadline.gen.triggers threadline.verify_coverage threadline.continuity threadline.retention.purge threadline.export threadline.incident threadline.evidence.show threadline.health.coverage threadline.policy.show)
+             ~w(threadline.install threadline.gen.triggers threadline.gen.row_history_index threadline.verify_coverage threadline.continuity threadline.retention.purge threadline.export threadline.incident threadline.evidence.show threadline.health.coverage threadline.policy.show)
              |> Enum.map(&task_module/1)
 
     for module <- @hidden_modules do
@@ -332,7 +333,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     extras = Threadline.MixProject.project()[:docs][:extras]
     {urls, local} = Enum.split_with(extras, &url_extra?/1)
     assert MapSet.new(local) == MapSet.new(local_extra_owner_paths()), local_extra_diff(local)
-    assert length(local) == 22 and length(urls) == 2
+    assert length(local) == 23 and length(urls) == 2
 
     external_targets = Enum.map(urls, &external_extra_target/1) |> MapSet.new()
 
@@ -455,7 +456,7 @@ defmodule Threadline.PublicSurfaceContractTest do
 
   defp task_classifications(tasks) do
     public =
-      ~w(threadline.install threadline.gen.triggers threadline.verify_coverage threadline.continuity threadline.retention.purge threadline.export threadline.incident threadline.evidence.show threadline.health.coverage threadline.policy.show)
+      ~w(threadline.install threadline.gen.triggers threadline.gen.row_history_index threadline.verify_coverage threadline.continuity threadline.retention.purge threadline.export threadline.incident threadline.evidence.show threadline.health.coverage threadline.policy.show)
       |> Enum.map(&task_module/1)
 
     repository = [Mix.Tasks.Threadline.VerifyTopology]

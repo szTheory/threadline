@@ -687,7 +687,7 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 
 ### Ongoing releases (0.6.1+)
 
-1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`). The Release PR bumps `mix.exs`, `CHANGELOG.md`, **and** the adoption-pilot SSOT line together, so it is green on the doc contract without any manual prep.
+1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`). The Release PR bumps `mix.exs`, `CHANGELOG-GENERATED.md`, **and** the adoption-pilot SSOT line together, so it is green on the doc contract without any manual prep. `CHANGELOG.md` is human-owned — Release Please never writes to it.
 2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
 
 ### Recovery / dry-run

@@ -19,7 +19,7 @@ contract. An omitted key has the default or absence behavior stated here.
 | `config :threadline, ecto_repos: [MyApp.Repo]` | A non-empty list of Ecto repository modules. The first repository is the fallback used by Threadline's runtime and Mix tasks; explicit `repo:` options still take precedence where offered. | `[]`; repository-dependent runtime children are not started, and commands that require a repository raise with setup guidance. | `Threadline` and [Getting Started](getting-started-saas.md) |
 | `config :threadline, retention: [...]` | A keyword list for the global retention policy and its supervised pruner. Set `enabled: true` and exactly one positive `keep_days:` or `max_age_seconds:` value before destructive purge is allowed. `delete_empty_transactions:` defaults to `true`; runtime scheduling accepts `interval_ms:` and `sleep_ms:`. | `[]`; scheduled pruning is disabled and `Threadline.Retention.purge/1` returns `{:error, :disabled}`. When enabled, the pruner interval is 60 minutes and its between-batch sleep is 50 ms unless overridden. | `Threadline.Retention.Policy`, `Threadline.Retention`, and [Production Checklist](production-checklist.md) |
 | `config :threadline, exports: [...]` | A keyword list for export lifecycle timing. `retention_ttl_hours:` controls terminal export expiry; `cleanup_interval_ms:` controls cleanup cadence; `stale_running_cutoff_hours:` controls when an abandoned running export is marked failed. | `[]`; terminal exports expire after 168 hours, cleanup runs every 60 minutes, and running jobs are considered abandoned after 24 hours. | `Threadline.Export` and [Operator Surface](operator-surface.md) |
-| `config :threadline, trigger_capture: [...]` | A keyword list or map whose `tables:` map configures capture-time `exclude:`, `mask:`, `mask_placeholder:`, `store_changed_from:`, and `except_columns:` rules per host table. Redaction is applied when trigger SQL is generated, not dynamically on each write. | Missing configuration normalizes to an empty table map, so trigger generation uses no per-table capture overrides. | [Domain Reference](domain-reference.md) and [Getting Started](getting-started-saas.md) |
+| `config :threadline, trigger_capture: [...]` | A keyword list or map whose `tables:` map configures capture-time `exclude:`, `mask:`, `mask_placeholder:`, `store_changed_from:`, `except_columns:`, and `primary_key:` rules per host table. `primary_key:` declares the key columns for a table with no primary key (a non-empty list of column names, such as `["post_id", "tag_id"]` for a join table), enforced at migrate time against a qualifying unique index. Redaction is applied when trigger SQL is generated, not dynamically on each write. | Missing configuration normalizes to an empty table map, so trigger generation uses no per-table capture overrides; a table with a real primary key needs no `primary_key:` entry. | [Domain Reference](domain-reference.md) and [Getting Started](getting-started-saas.md) |
 | `config :threadline, verify_coverage: [...]` | A keyword list with a non-empty `expected_tables:` list of table-name strings. It defines the positive list checked by the coverage verification task. | Missing, malformed, or empty configuration causes the verification task to raise instead of passing vacuously. | `Threadline.Verify.CoveragePolicy` and [Production Checklist](production-checklist.md) |
 | `config :threadline, storage_adapter: MyApp.AuditStorage` | A module implementing `Threadline.Storage`. Threadline validates the adapter at application startup and uses it for background export persistence and delivery. | `Threadline.Storage.Local`. | `Threadline.Storage`; adapter details are documented under [Adapter-module options](#adapter-module-options) |
 | `config :threadline, health: [...]` | A keyword list accepted by `Threadline.Health.Policy`: `expected_uncovered_tables:` adds intentionally uncovered tables and `audit_anyway:` removes names from that set. Both values are duplicate-free lists of strings. | `[]`; only Threadline's built-in `schema_migrations` expected-uncovered baseline applies. | `Threadline.Health`, `Threadline.Health.Policy`, and [Operator Surface](operator-surface.md) |
@@ -30,6 +30,23 @@ contract. An omitted key has the default or absence behavior stated here.
 | `config :threadline, retention_poll_ms: 5_000` | A positive integer number of milliseconds between retention-history refreshes in the mounted operator surface. | `5_000`. | [Operator Surface](operator-surface.md) |
 | `config :threadline, operator_surface_embed_scripts: false` | A boolean controlling the operator surface's inline, dependency-free copy helper. | `true`; the copy helper is embedded. `false` removes the script and presents identifiers for native text selection. | [Operator Surface](operator-surface.md) |
 | `config :threadline, storage_schema: "audit"` | A PostgreSQL identifier naming the schema that stores Threadline-owned tables and functions. Strings and atoms are accepted after identifier validation. | `"public"`, your host's default schema, so an existing install keeps reading the tables it already has. A new install can opt into a dedicated schema such as `"threadline"`; set it before `mix threadline.install`, because the generated migrations freeze the choice. | `Threadline.StorageSchema` and [Getting Started](getting-started-saas.md) |
+
+### Known limitation: `primary_key:` only accepts bare identifiers
+
+A declared `primary_key:` column name must match `^[A-Za-z_][A-Za-z0-9_]*$`
+(letters, digits, underscore, not starting with a digit) and be at most 63
+bytes — the same rule Threadline applies to schema, table, and function
+identifiers. This is stricter than what PostgreSQL itself allows: a
+double-quoted identifier such as `"1code"`, `"post-id"`, or `"post id"` is
+legal DDL, and Threadline *would* capture it correctly if it were
+auto-detected as part of a real primary key. But that same column name
+cannot currently be *declared* through `primary_key:` for a table that has
+no real primary key — there is no quoting escape hatch in this option today.
+
+If your join table (or other PK-less table) needs `primary_key:` and its
+key columns were created with quoted, non-bare names, rename the columns to
+bare identifiers before declaring the override, or create a real primary
+key / unique index over bare-identifier columns instead.
 
 ## Advanced operator polling
 
@@ -79,16 +96,17 @@ options.
 
 ## Commands available to host projects
 
-Adding Threadline as a dependency makes these ten Mix tasks available to the
-host project. Run them from the host project's root so they load its
+Adding Threadline as a dependency makes these eleven Mix tasks available to
+the host project. Run them from the host project's root so they load its
 configuration and dependencies.
 
 | Command | Use it to | Implementation owner |
 | --- | --- | --- |
 | `mix threadline.install` | Generate the migration that creates Threadline's audit schema. | `Mix.Tasks.Threadline.Install` |
 | `mix threadline.gen.triggers` | Generate an Ecto migration that installs capture triggers on selected host tables. | `Mix.Tasks.Threadline.Gen.Triggers` |
-| `mix threadline.verify_coverage` | Fail a CI or deployment check when a table in `:verify_coverage` is missing or uncovered. | `Mix.Tasks.Threadline.VerifyCoverage` |
-| `mix threadline.health.coverage` | View trigger coverage, as a table or JSON, without turning uncovered tables into a failing policy gate. | `Mix.Tasks.Threadline.Health.Coverage` |
+| `mix threadline.gen.row_history_index` | Generate a non-blocking `CREATE INDEX CONCURRENTLY` migration that adds the row-history index to an install that predates it. | `Mix.Tasks.Threadline.Gen.RowHistoryIndex` |
+| `mix threadline.verify_coverage` | Fail a CI or deployment check when a table in `:verify_coverage` is missing, uncovered, or has an error-severity trigger finding. | `Mix.Tasks.Threadline.VerifyCoverage` |
+| `mix threadline.health.coverage` | View trigger coverage and findings, as a table or JSON, without turning uncovered tables or findings into a failing policy gate. | `Mix.Tasks.Threadline.Health.Coverage` |
 | `mix threadline.continuity` | Inspect and establish the explicit starting boundary for capture in an existing database. | `Mix.Tasks.Threadline.Continuity` |
 | `mix threadline.retention.purge` | Preview or execute the configured batched retention purge. Preview before using `--execute`. | `Mix.Tasks.Threadline.Retention.Purge` |
 | `mix threadline.export` | Export captured audit rows to CSV or JSON using the same filter vocabulary as the timeline API. | `Mix.Tasks.Threadline.Export` |

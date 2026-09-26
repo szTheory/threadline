@@ -1,7 +1,7 @@
 defmodule Threadline.Capture.Migration do
   @moduledoc false
 
-  alias Threadline.Capture.TriggerSQL
+  alias Threadline.Capture.{RowHistoryIndexSQL, TriggerSQL}
   alias Threadline.StorageSchema
 
   @doc """
@@ -64,11 +64,15 @@ defmodule Threadline.Capture.Migration do
         CREATE INDEX IF NOT EXISTS audit_changes_captured_at_idx ON #{audit_changes} (captured_at)
         \"\"\"
 
-        execute #{inspect(TriggerSQL.install_function([]))}
+        execute \"\"\"
+        #{RowHistoryIndexSQL.create_sql(storage_opts)}
+        \"\"\"
+
+        execute #{sql_literal(TriggerSQL.install_function([]))}
       end
 
       def down do
-        execute #{inspect(TriggerSQL.drop_function())}
+        execute #{sql_literal(TriggerSQL.drop_function())}
 
         execute \"\"\"
         DROP TABLE IF EXISTS #{audit_changes}
@@ -81,4 +85,8 @@ defmodule Threadline.Capture.Migration do
     end
     """
   end
+
+  # The whole SQL as an Elixir string literal. Plain inspect/1 cuts a string
+  # longer than 4096 bytes and appends `<> ...`, which is not valid SQL.
+  defp sql_literal(sql), do: inspect(sql, printable_limit: :infinity, limit: :infinity)
 end

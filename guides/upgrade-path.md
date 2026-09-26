@@ -99,6 +99,7 @@ Every adopter-visible change from 0.6.x through 0.9.x fell into one of four them
 | 0.7.x → 0.8.x | No | None | None | Nothing required — operator-surface/theming + CI proof-lane work only. |
 | 0.8.x → 0.9.x | No | None | None | Nothing required — operator-surface positioning + accessibility only. |
 | 0.9.x → 0.10.x | No | None | Optional — `storage_schema` is a new opt-in whose default is what you already have | **Not** nothing required: four adopter actions (S3 export dependencies, two new operator-surface routes, a narrowed `Storage` callback, 25 newly undocumented modules). |
+| 0.10.x → 0.11.x | Yes | Regenerate triggers + add the row-history index | Optional — a `primary_key:` override, only for a table with no usable primary key | **Not** nothing required: regenerate every audited table's trigger, then add the row-history index. Full procedure: [Upgrading to 0.11](upgrading-to-0.11.md). |
 
 Current guidance by minor:
 
@@ -113,6 +114,13 @@ Current guidance by minor:
   - **Callers of implementation modules** — 25 implementation modules became `@moduledoc false`. They remain callable for Threadline's own composition, but they are no longer a supported surface.
 
   Per lane: `capture-only` adopters can be touched by the S3-export and implementation-module items only; `phoenix-surface` adopters should also re-check the two new routes against whatever sits in front of their `/audit` mount. See `CHANGELOG.md` `[0.10.0]`.
+- **0.10.x → 0.11.x**: Threadline capture triggers now resolve and record a table's real primary key instead of always assuming a column named `id`, `Threadline.history/3` and `Threadline.as_of/4` raise `ArgumentError` on a bad key instead of silently returning nothing, and `trigger_coverage/1` no longer counts a disabled or replica-only trigger as covered. Breaking changes: **Yes** — see the bullets above. Required migration: **Yes** — regenerate every audited table's trigger (`mix threadline.gen.triggers`) and add the row-history index (`mix threadline.gen.row_history_index`), then migrate. Config changes: **Optional** — a `primary_key:` override under `config :threadline, :trigger_capture` is only needed for a table with no usable primary key.
+  - **Every adopter** regenerates triggers and adds the row-history index; a table whose primary-key type is outside the supported set keeps its legacy trigger until you widen that support.
+  - **Adopters with per-table capture settings** (redaction or `store_changed_from`) check whether two of their tables ever shared one capture function before regenerating — see the CHANGELOG Security note.
+  - **Callers matching `table_pk` directly**, such as `{"id": null}`, should match `{}` too after regenerating.
+  - Optional: backfill the real key for rows captured before you regenerated, using the SQL in the upgrade guide.
+
+  See `CHANGELOG.md` `[0.11.0]`. Full procedure: [Upgrading to 0.11](upgrading-to-0.11.md).
 - `0.3.x -> 0.4.x`: the operator surface became an official optional dependency lane. `capture-only` adopters keep the no-optional-deps path. `phoenix-surface` adopters must align with the declared `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` ranges and re-check their router mount/auth setup after upgrade. `sigra-reference` adopters should also re-check the current example app and Sigra guide before treating that path as unchanged.
 - future minor upgrades: do not infer support from ecosystem norms or upstream release notes alone. Re-check this guide, the declared optional dependency ranges, the current example-app proof path, and the current changelog entry for the target Threadline minor.
 

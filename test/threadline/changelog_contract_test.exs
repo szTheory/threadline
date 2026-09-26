@@ -44,6 +44,15 @@ defmodule Threadline.ChangelogContractTest do
 
   @breaking_section_regex ~r/^### (?:Breaking changes|Required action)\b/m
   @feature_tour_section_regex ~r/^### (?:Added|Changed|Fixed|Deprecated|Removed|Features|Bug Fixes)\b/m
+  @security_section_regex ~r/^### Security\b/m
+
+  # The 0.11.0 release block, wherever it currently lives: under its own
+  # dated heading once release-please retitles it, or (until then) under the
+  # standing `## Unreleased — highlights` staging heading. Keyed on 0.11.0,
+  # never on "newest", so this stays correct after the retitle and after
+  # later releases add newer dated entries above it.
+  @v0_11_0_heading_regex ~r/^## \[0\.11\.0\]/m
+  @unreleased_heading_regex ~r/^## Unreleased — highlights$/m
 
   defp read!(relative), do: @root |> Path.join(relative) |> File.read!()
 
@@ -64,6 +73,73 @@ defmodule Threadline.ChangelogContractTest do
     case Regex.run(~r/\n## /, tail, return: :index, offset: 1) do
       [{stop, _len}] -> binary_part(tail, 0, stop)
       nil -> tail
+    end
+  end
+
+  # Body of the block that carries 0.11.0's work: from `## [0.11.0]` if that
+  # heading exists, else from `## Unreleased — highlights`, to the next
+  # `\n## ` heading (or end of file).
+  defp v0_11_0_block_start(changelog) do
+    case Regex.run(@v0_11_0_heading_regex, changelog, return: :index) do
+      [{at, _len}] -> at
+      nil -> v0_11_0_block_fallback_start(changelog)
+    end
+  end
+
+  defp v0_11_0_block_fallback_start(changelog) do
+    case Regex.run(@unreleased_heading_regex, changelog, return: :index) do
+      [{at, _len}] ->
+        at
+
+      nil ->
+        flunk(
+          "neither a `## [0.11.0]` heading nor the standing `## Unreleased — highlights` " <>
+            "heading matched in #{@human_changelog}. This helper locates the 0.11.0 release " <>
+            "block by one of those two headings; if both are gone the block cannot be found " <>
+            "and every 0.11.0 assertion would be vacuous."
+        )
+    end
+  end
+
+  defp v0_11_0_block_body do
+    changelog = read!(@human_changelog)
+    start_at = v0_11_0_block_start(changelog)
+    tail = binary_part(changelog, start_at, byte_size(changelog) - start_at)
+
+    case Regex.run(~r/\n## /, tail, return: :index, offset: 1) do
+      [{stop, _len}] -> binary_part(tail, 0, stop)
+      nil -> tail
+    end
+  end
+
+  test "the 0.11.0 release block documents the shared-capture-function security note" do
+    body = v0_11_0_block_body()
+
+    security = Regex.run(@security_section_regex, body, return: :index)
+    feature_tour = Regex.run(@feature_tour_section_regex, body, return: :index)
+
+    assert security != nil,
+           "the 0.11.0 release block has no `### Security` heading. Installs where two " <>
+             "tables shared one per-table capture function need this disclosed in release notes."
+
+    if feature_tour != nil do
+      [{security_at, _}] = security
+      [{feature_tour_at, _}] = feature_tour
+
+      assert security_at < feature_tour_at,
+             "the `### Security` heading (offset #{security_at}) must come before the feature " <>
+               "tour (offset #{feature_tour_at}), matching this release's breaking-changes-first " <>
+               "ordering."
+    end
+
+    for fact <- [
+          "shared_capture_function",
+          "mix threadline.health.coverage",
+          "mix threadline.gen.triggers --tables",
+          "audit_changes"
+        ] do
+      assert String.contains?(body, fact),
+             "expected the 0.11.0 release block's Security section to mention #{inspect(fact)}"
     end
   end
 
@@ -192,5 +268,22 @@ defmodule Threadline.ChangelogContractTest do
                "#{@human_changelog} as published history because the compare and commit " <>
                "links inside them are what adopters have followed."
     end
+  end
+
+  test "pre-1.0 breaking changes propose a minor release, not 1.0.0" do
+    parsed = @release_please_config |> read!() |> Jason.decode!()
+
+    assert parsed["bump-minor-pre-major"] == true,
+           "#{@release_please_config} sets `bump-minor-pre-major` to " <>
+             "#{inspect(parsed["bump-minor-pre-major"])}, not true. While the version is below " <>
+             "1.0.0, a BREAKING CHANGE must propose a minor bump. With this key off, the first " <>
+             "breaking commit makes release-please propose 1.0.0, a stability promise the " <>
+             "project has not decided to make."
+
+    assert parsed["bump-patch-for-minor-pre-major"] == false,
+           "#{@release_please_config} sets `bump-patch-for-minor-pre-major` to " <>
+             "#{inspect(parsed["bump-patch-for-minor-pre-major"])}, not false. New features keep " <>
+             "bumping the minor version before 1.0.0; turning this on would ship them as patch " <>
+             "releases, which adopters read as bug fixes only."
   end
 end

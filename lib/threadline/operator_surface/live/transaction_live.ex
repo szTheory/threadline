@@ -9,6 +9,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
     @ui_form_policy :formless
 
+    alias Threadline.OperatorSurface.Live.TimelineLive.Helpers
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
 
@@ -235,8 +236,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <div class="tl-meta">
                     <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
                   </div>
-                  <div class="tl-change__actions">
-                    <.link patch={change_history_path(@base_path, change)} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
+                  <% row_history_path = change_history_path(@base_path, change) %>
+                  <div class="tl-change__actions" :if={row_history_path}>
+                    <.link patch={row_history_path} class="tl-button tl-button--compact tl-button--secondary" title="Open row history" data-testid="row-history-link">
                       <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
                       Open row history
                     </.link>
@@ -398,12 +400,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
 
+    # Reuses the timeline's single-key guard so the two surfaces cannot drift
+    # (T-211-14): a composite table_pk, `{}`, or `{"id" => nil}` is not
+    # routeable and yields no link rather than a link to the wrong row.
     defp change_history_path(base_path, change) do
-      table = change.change_diff["table_name"]
-      record_id = change.change_diff["table_pk"] |> Map.values() |> List.first()
-      captured_at = change.change_diff["captured_at"]
+      case Helpers.routeable_row_ref(change) do
+        nil ->
+          nil
 
-      "#{history_path(base_path, table, record_id)}?as_of=#{captured_at}"
+        record_id ->
+          table = change.change_diff["table_name"]
+          captured_at = change.change_diff["captured_at"]
+
+          "#{history_path(base_path, table, record_id)}?as_of=#{captured_at}"
+      end
     end
 
     defp change_time(value) when is_binary(value) do

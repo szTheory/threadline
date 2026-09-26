@@ -2,7 +2,7 @@ defmodule Threadline.Telemetry do
   @moduledoc """
   Telemetry integration helpers for Threadline.
 
-  Threadline emits four telemetry events:
+  Threadline emits five telemetry events:
 
   - `[:threadline, :transaction, :committed]` — after an `AuditTransaction` is
     committed. Automatically emitted (with `table_count: 0`) when
@@ -23,6 +23,10 @@ defmodule Threadline.Telemetry do
     polled coverage check raises . Metadata: `%{error: message}`.
     The dashboard keeps the last-good snapshot and reschedules the next poll;
     this event lets adopters alert on transient or sustained failure.
+
+  - `[:threadline, :health, :findings_checked]` — after
+    `Threadline.Health.trigger_findings/1` returns. Measurements:
+    `%{errors: integer, warnings: integer}`, counted over the returned list.
 
   ## Usage
 
@@ -91,6 +95,19 @@ defmodule Threadline.Telemetry do
       [:threadline, :health, :checked, :error],
       %{},
       %{error: error_message}
+    )
+  end
+
+  @doc """
+  Emits the `[:threadline, :health, :findings_checked]` event with error and
+  warning counts, measured over the list `Threadline.Health.trigger_findings/1`
+  is about to return.
+  """
+  def emit_findings_checked(errors, warnings) do
+    :telemetry.execute(
+      [:threadline, :health, :findings_checked],
+      %{errors: errors, warnings: warnings},
+      %{}
     )
   end
 end

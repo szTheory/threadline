@@ -15,6 +15,7 @@ unless Mix.env() == :test do
 end
 
 table = "threadline_pooler_topology_ctx"
+disabled_table = "threadline_pooler_topology_disabled"
 
 {:ok, _} = Application.ensure_all_started(:postgrex)
 {:ok, _} = Application.ensure_all_started(:ecto_sql)
@@ -35,7 +36,35 @@ try do
   Threadline.Test.Repo.query!(Threadline.Capture.TriggerSQL.drop_trigger(table))
   Threadline.Test.Repo.query!(Threadline.Capture.TriggerSQL.create_trigger(table))
 
-  IO.puts("Threadline: topology bootstrap OK (migrations + #{table})")
+  # Role DDL runs over this direct connection; the pooled test switches into
+  # threadline_topology_reader with SET LOCAL ROLE to prove trigger_findings/1
+  # is safe for a non-owner through PgBouncer transaction pooling.
+  Threadline.Test.Repo.query!("""
+  DO $$
+  BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'threadline_topology_reader') THEN
+      CREATE ROLE threadline_topology_reader NOLOGIN;
+    END IF;
+  END
+  $$
+  """)
+
+  Threadline.Test.Repo.query!("""
+  CREATE TABLE IF NOT EXISTS #{disabled_table} (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid()
+  )
+  """)
+
+  Threadline.Test.Repo.query!(Threadline.Capture.TriggerSQL.drop_trigger(disabled_table))
+  Threadline.Test.Repo.query!(Threadline.Capture.TriggerSQL.create_trigger(disabled_table))
+
+  Threadline.Test.Repo.query!(
+    "ALTER TABLE #{disabled_table} DISABLE TRIGGER #{Threadline.Capture.Naming.trigger_name(disabled_table)}"
+  )
+
+  IO.puts(
+    "Threadline: topology bootstrap OK (migrations + #{table} + #{disabled_table} + role threadline_topology_reader)"
+  )
 after
   GenServer.stop(pid, :normal, :infinity)
 end

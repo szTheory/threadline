@@ -234,6 +234,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "/history/users/tenant/row-transaction"
     end
 
+    test "renders a row-history link only for the single-key change (READ-04)", %{conn: conn} do
+      repo = Threadline.Test.Repo
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          }),
+          repo_opts()
+        )
+
+      for table_pk <- [
+            %{"id" => "row-one"},
+            %{"tenant_id" => "1", "id" => "5"},
+            %{},
+            %{"id" => nil}
+          ] do
+        repo.insert!(
+          AuditChange.changeset(%{
+            transaction_id: txn.id,
+            table_schema: "public",
+            table_name: "users",
+            table_pk: table_pk,
+            op: "update",
+            data_after: %{"email" => "test@example.com"},
+            changed_fields: ["email"],
+            changed_from: %{"email" => "old@example.com"},
+            captured_at: DateTime.utc_now()
+          }),
+          repo_opts()
+        )
+      end
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      assert Regex.scan(~r/data-testid="row-history-link"/, html) |> length() == 1
+      assert html =~ ~s|href="/audit/transactions/#{txn.id}/history/users/row-one|
+      refute html =~ "/history/users/5"
+      refute html =~ "/history/users/1"
+    end
+
     test "renders INSERT data_after fields when field_changes is empty", %{conn: conn} do
       repo = Threadline.Test.Repo
       captured_at = ~U[2026-06-04 12:30:00Z]

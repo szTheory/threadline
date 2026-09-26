@@ -86,7 +86,7 @@ defmodule Threadline.Continuity do
 
   defp selected_schema!(%{schema: parsed_schema}, opts) do
     selected = Keyword.get(opts, :schema, parsed_schema)
-    selected = StorageSchema.validate!(selected)
+    selected = StorageSchema.validate_identifier!(selected, :host_schema)
 
     if parsed_schema != "public" and selected != parsed_schema do
       raise ArgumentError,

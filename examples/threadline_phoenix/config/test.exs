@@ -63,19 +63,47 @@ config :threadline_phoenix, Oban, testing: :manual, plugins: false, queues: fals
 # policy was updated and triggers haven't been regenerated. Lets the operator
 # surface's redaction-drift screen demonstrate a real finding (the e2e runs in
 # MIX_ENV=test). Capture is unaffected, so row-history [REDACTED] still holds.
+# TWIN-01 shape fixtures (Phase 212): the `primary_key:` override for
+# shape_join and the `mask:` entries for the two same-named shape_twin
+# tables. These exist only in the ExUnit lane — priv/shape_fixtures/migrations
+# is migrated up by test/test_helper.exs and rolled back in
+# ExUnit.after_suite, never by `mix ecto.migrate` (see that migration's
+# header comment). They are omitted entirely when THREADLINE_E2E=1 so the
+# browser lane's redaction screen (e2e/run-e2e.sh) never sees them.
+#
+# Elixir's `Config` deep-merges keyword lists but replaces maps outright, and
+# this file already sets a `:trigger_capture` `tables:` map above (well,
+# below) for ticket_replies/posts — so folding the fixtures into config.exs
+# instead would be silently dead here. `Map.merge/2` combines both without
+# duplicating the ticket_replies/posts entries.
+shape_fixture_tables =
+  if System.get_env("THREADLINE_E2E") == "1" do
+    %{}
+  else
+    %{
+      "shape_join" => [primary_key: ["left_id", "right_id"]],
+      "shape_twin" => [mask: ["note"]],
+      "shapes.shape_twin" => [mask: ["note"]]
+    }
+  end
+
 config :threadline, :trigger_capture,
-  tables: %{
-    "ticket_replies" => [
-      mask: ["internal_note_body", "body"],
-      store_changed_from: true
-    ],
-    # `posts` has a deployed trigger with no redaction; an empty configured mask
-    # makes it a green "Deployed matches config" row on the redaction screen,
-    # so the e2e (MIX_ENV=test) shows a match alongside the ticket_replies drift.
-    "posts" => [
-      mask: []
-    ]
-  }
+  tables:
+    Map.merge(
+      %{
+        "ticket_replies" => [
+          mask: ["internal_note_body", "body"],
+          store_changed_from: true
+        ],
+        # `posts` has a deployed trigger with no redaction; an empty configured mask
+        # makes it a green "Deployed matches config" row on the redaction screen,
+        # so the e2e (MIX_ENV=test) shows a match alongside the ticket_replies drift.
+        "posts" => [
+          mask: []
+        ]
+      },
+      shape_fixture_tables
+    )
 
 # `audit_events` exists (migrations) but has no capture trigger, so listing it
 # as expected makes the coverage screen demonstrate a real "Needs capture" row

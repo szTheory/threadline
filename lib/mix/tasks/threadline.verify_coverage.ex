@@ -19,9 +19,26 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
 
   Prints a `TABLE` / `STATUS` report to stdout, then a line containing `summary:`
   with counts. Exits with status **1** if any expected table is missing or
-  uncovered; exits **0** when all expected tables are covered.
+  uncovered, or if `Threadline.Health.trigger_findings/1` reports an `:error`
+  finding for an expected table; exits **0** when all expected tables are
+  covered and no expected table has an error finding.
 
   Table names in output are public-schema metadata only (same scope as `Health`).
+
+  ## Findings gate
+
+  After the coverage report, this task also checks
+  `Threadline.Health.trigger_findings/1` and prints a `FINDINGS` section:
+
+  - An `:error` finding for a table in `:expected_tables` fails the task
+    (`exit({:shutdown, 1})`), the same as a missing or uncovered table.
+  - An `:error` finding for a table **not** in `:expected_tables` is printed
+    under a heading marking it as not gated, and never fails the
+    task, so the positive-list contract stays intact.
+  - `:warning` findings are always printed and never fail the task.
+
+  A malformed `config :threadline, :trigger_capture` stops the task with
+  `Mix.raise/1` before any findings are checked.
 
   ## Schema scope
 
@@ -33,6 +50,7 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
 
   use Mix.Task
 
+  alias Threadline.Capture.TriggerCaptureConfig
   alias Threadline.Health.CoverageSchemas
   alias Threadline.Verify.CoveragePolicy
 
@@ -50,16 +68,32 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
     ensure_repo_started!(repo)
     validate_schema!(repo, schema)
     expected = resolve_expected_tables!()
+    _ = load_capture_config!()
 
     coverage = Threadline.Health.trigger_coverage(repo: repo, schema: schema)
     violations = CoveragePolicy.violations(coverage, expected)
     counts = CoveragePolicy.summary_counts(coverage, expected)
 
-    print_report(expected, coverage, counts)
+    findings = Threadline.Health.trigger_findings(repo: repo, schema: schema)
+    partition = CoveragePolicy.partition_findings(findings, expected)
 
-    if violations != [] do
+    print_report(expected, coverage, counts)
+    print_findings(partition)
+
+    if violations != [] or partition.gated != [] do
       exit({:shutdown, 1})
     end
+  end
+
+  # A malformed :trigger_capture config makes TriggerCaptureConfig.load/0
+  # raise ArgumentError; surfaced here the same way mix threadline.gen.triggers
+  # surfaces it, so this task stops with a readable Mix error instead of a
+  # stack trace or a finding.
+  defp load_capture_config! do
+    TriggerCaptureConfig.load()
+  rescue
+    e in ArgumentError ->
+      Mix.raise("config :threadline, :trigger_capture " <> Exception.message(e))
   end
 
   defp resolve_repo! do
@@ -179,5 +213,70 @@ defmodule Mix.Tasks.Threadline.VerifyCoverage do
     Mix.shell().info(
       "summary: #{counts.covered}/#{counts.expected} expected tables covered (#{counts.violated} violated)"
     )
+  end
+
+  defp print_findings(%{gated: gated, not_gated: not_gated, warnings: warnings}) do
+    Mix.shell().info("")
+    Mix.shell().info("FINDINGS")
+
+    printed = gated ++ warnings
+
+    if printed == [] do
+      Mix.shell().info("none")
+    else
+      print_finding_rows(printed)
+    end
+
+    _ =
+      if not_gated != [] do
+        Mix.shell().info("")
+        Mix.shell().info("NOT GATED (table not in :expected_tables)")
+        print_finding_rows(not_gated)
+      end
+
+    Mix.shell().info("")
+
+    if gated == [] and not_gated == [] and warnings == [] do
+      Mix.shell().info("findings: none")
+    else
+      Mix.shell().info(
+        "findings: #{length(gated)} gated error(s), #{length(not_gated)} not-gated error(s), " <>
+          "#{length(warnings)} warning(s)"
+      )
+    end
+  end
+
+  defp print_finding_rows(findings) do
+    rows =
+      Enum.map(findings, fn f ->
+        {String.upcase(Atom.to_string(f.severity)), Atom.to_string(f.code),
+         "#{f.schema}.#{f.table}", f.message}
+      end)
+
+    severity_w = max(8, rows |> Enum.map(&byte_size(elem(&1, 0))) |> Enum.max(fn -> 8 end))
+    code_w = rows |> Enum.map(&byte_size(elem(&1, 1))) |> Enum.max(fn -> 4 end)
+    code_w = max(code_w, byte_size("CODE"))
+    table_w = rows |> Enum.map(&byte_size(elem(&1, 2))) |> Enum.max(fn -> 5 end)
+    table_w = max(table_w, byte_size("TABLE"))
+
+    header =
+      String.pad_trailing("SEVERITY", severity_w) <>
+        "  " <>
+        String.pad_trailing("CODE", code_w) <>
+        "  " <> String.pad_trailing("TABLE", table_w) <> "  MESSAGE"
+
+    rule = String.duplicate("-", String.length(header))
+
+    Mix.shell().info(header)
+    Mix.shell().info(rule)
+
+    for {severity, code, table, message} <- rows do
+      Mix.shell().info(
+        String.pad_trailing(severity, severity_w) <>
+          "  " <>
+          String.pad_trailing(code, code_w) <>
+          "  " <> String.pad_trailing(table, table_w) <> "  " <> message
+      )
+    end
   end
 end

@@ -9,7 +9,7 @@ defmodule Threadline.Capture.TriggerRerunTest do
   use Threadline.DataCase
 
   alias Mix.Tasks.Threadline.Gen.Triggers
-  alias Threadline.Capture.{AuditChange, AuditTransaction, TriggerSQL}
+  alias Threadline.Capture.{AuditChange, AuditTransaction, Naming, TriggerSQL}
   alias Threadline.StorageSchema
 
   @table "test_trigger_rerun_target"
@@ -80,34 +80,65 @@ defmodule Threadline.Capture.TriggerRerunTest do
       assert Map.get(change.changed_from, "value") == 1
     end
 
-    test "switching back to default mode removes the orphaned per-table function" do
+    test "switching back to default mode removes the unused per-table function" do
       install_per_table_trigger!()
 
       Repo.query!(TriggerSQL.create_trigger(@table))
-      Repo.query!(TriggerSQL.drop_orphan_function_for_table(@table))
+      result = Repo.query!(drop_if_unused())
 
+      assert warnings(result) == []
       assert per_table_function_count() == 0
       assert trigger_function() == {StorageSchema.get(), "threadline_capture_changes"}
     end
 
-    test "the orphan drop refuses to cascade into a live trigger" do
+    test "keeps the function and warns while a trigger still uses it" do
       install_per_table_trigger!()
 
-      assert_raise Postgrex.Error, ~r/depends on it|other objects depend/, fn ->
-        Repo.query!(TriggerSQL.drop_orphan_function_for_table(@table))
-      end
+      result = Repo.query!(drop_if_unused())
 
+      assert [warning] = warnings(result)
+      assert warning =~ "threadline: kept"
+      assert warning =~ "public.#{@table}"
+      assert warning =~ "regenerate triggers for those tables"
       assert per_table_function_count() == 1
 
       assert trigger_function() ==
                {StorageSchema.get(), "threadline_capture_changes_" <> @table}
     end
 
-    test "the orphan drop is harmless when no per-table function exists" do
+    test "names every table still using the function, sorted by schema then table" do
+      install_per_table_trigger!()
+      Repo.query!("CREATE SCHEMA IF NOT EXISTS rerun_sibling")
+      Repo.query!("CREATE TABLE IF NOT EXISTS rerun_sibling.a_table (id bigserial PRIMARY KEY)")
+
+      on_exit(fn -> Repo.query!("DROP SCHEMA IF EXISTS rerun_sibling CASCADE") end)
+
+      Repo.query!("""
+      CREATE TRIGGER threadline_audit_rerun_sibling_a_table
+      AFTER INSERT OR UPDATE OR DELETE ON rerun_sibling.a_table
+      FOR EACH ROW EXECUTE FUNCTION #{StorageSchema.function(Naming.function_name(@table))}()
+      """)
+
+      result = Repo.query!(drop_if_unused())
+
+      assert [warning] = warnings(result)
+      assert warning =~ "triggers on public.#{@table}, rerun_sibling.a_table still use it"
+      assert per_table_function_count() == 1
+
+      assert %{rows: [["O"], ["O"]]} =
+               Repo.query!("""
+               SELECT tgenabled::text FROM pg_trigger
+               WHERE tgname LIKE 'threadline_audit_%'
+                 AND tgrelid IN ('#{@table}'::regclass, 'rerun_sibling.a_table'::regclass)
+               """)
+    end
+
+    test "the drop is harmless when no per-table function exists" do
       Repo.query!(TriggerSQL.create_trigger(@table))
 
-      Repo.query!(TriggerSQL.drop_orphan_function_for_table(@table))
+      result = Repo.query!(drop_if_unused())
 
+      assert warnings(result) == []
       assert trigger_function() == {StorageSchema.get(), "threadline_capture_changes"}
     end
   end
@@ -158,6 +189,12 @@ defmodule Threadline.Capture.TriggerRerunTest do
         end
 
         Repo.query!("DROP FUNCTION IF EXISTS #{shared_function_ref()}()")
+
+        Repo.query!(
+          "DROP FUNCTION IF EXISTS " <>
+            StorageSchema.function(Naming.function_name(@long_per_table)) <> "()"
+        )
+
         File.rm_rf!(tmp)
       end)
 
@@ -192,9 +229,15 @@ defmodule Threadline.Capture.TriggerRerunTest do
       assert_captured!(@long_default)
     end
 
-    test "a default-mode table listed first in one run leaves the per-table function alone",
+    test "two default-mode tables on one cut function both leave it, and it is dropped",
          %{tmp: tmp} do
       install_legacy_per_table_trigger!()
+
+      Repo.query!("""
+      CREATE TRIGGER #{StorageSchema.quote_ident("threadline_audit_" <> @long_default)}
+      AFTER INSERT OR UPDATE OR DELETE ON #{@long_default}
+      FOR EACH ROW EXECUTE FUNCTION #{shared_function_ref()}()
+      """)
 
       tmp
       |> generate!(["--tables", "#{@long_default},#{@long_per_table}"])
@@ -204,37 +247,35 @@ defmodule Threadline.Capture.TriggerRerunTest do
         assert trigger_function(table) == {StorageSchema.get(), "threadline_capture_changes"}
       end
 
-      # The leftover per-table function is not dropped: its name does not fit,
-      # so the generator cannot tell it apart from another table's function.
-      assert shared_function_count() == 1
+      assert shared_function_count() == 0
     end
 
-    test "a per-table table after a default-mode table in one run is refused before writing",
+    test "a per-table table after a default-mode table in one run gets its own function",
          %{tmp: tmp} do
       Application.put_env(:threadline, :trigger_capture,
         tables: %{@long_per_table => [store_changed_from: true]}
       )
 
-      assert_raise ArgumentError, ~r/at most 63 bytes/, fn ->
-        File.cd!(tmp, fn ->
-          Triggers.run([
-            "--tables",
-            "#{@long_default},#{@long_per_table}"
-          ])
-        end)
-      end
+      tmp
+      |> generate!(["--tables", "#{@long_default},#{@long_per_table}"])
+      |> apply_up!()
 
-      assert migration_files(tmp) == []
+      assert trigger_function(@long_default) ==
+               {StorageSchema.get(), "threadline_capture_changes"}
+
+      assert trigger_function(@long_per_table) ==
+               {StorageSchema.get(), Naming.function_name(@long_per_table)}
+
+      assert Naming.function_name(@long_per_table) =~ ~r/_[0-9a-f]{12}\z/
     end
   end
 
   # A per-table function installed before Threadline validated identifier
-  # length (0.9.x and earlier): PostgreSQL truncated its name to 63 bytes.
+  # length (0.9.x and earlier): PostgreSQL truncated its name to 63 bytes. The
+  # fixture creates it under the name PostgreSQL stored, so it truncates nothing.
   defp install_legacy_per_table_trigger! do
-    full_name = "threadline_capture_changes_" <> @long_per_table
-
     Repo.query!("""
-    CREATE FUNCTION #{StorageSchema.quote_ident(StorageSchema.get())}.#{full_name}()
+    CREATE FUNCTION #{shared_function_ref()}()
     RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END $$
     """)
 
@@ -306,6 +347,12 @@ defmodule Threadline.Capture.TriggerRerunTest do
       end)
 
     sqls |> Enum.reverse() |> Enum.each(&Repo.query!/1)
+  end
+
+  defp drop_if_unused, do: TriggerSQL.drop_function_if_unused(Naming.function_name(@table))
+
+  defp warnings(%Postgrex.Result{messages: messages}) do
+    for %{severity: "WARNING", message: message} <- messages, do: message
   end
 
   defp install_per_table_trigger! do

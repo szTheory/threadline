@@ -286,6 +286,7 @@ defmodule Threadline.QueryTest do
       defmodule FakeUser do
         use Ecto.Schema
 
+        @primary_key {:id, :string, autogenerate: false}
         schema "users" do
           field(:name, :string)
         end
@@ -301,6 +302,7 @@ defmodule Threadline.QueryTest do
       defmodule FakeUser2 do
         use Ecto.Schema
 
+        @primary_key {:id, :string, autogenerate: false}
         schema "users" do
           field(:name, :string)
         end
@@ -317,6 +319,7 @@ defmodule Threadline.QueryTest do
       defmodule FakeUser3 do
         use Ecto.Schema
 
+        @primary_key {:id, :string, autogenerate: false}
         schema "users" do
           field(:name, :string)
         end
@@ -338,6 +341,7 @@ defmodule Threadline.QueryTest do
       defmodule FakeUserBval do
         use Ecto.Schema
 
+        @primary_key {:id, :string, autogenerate: false}
         schema "users" do
           field(:name, :string)
         end
@@ -842,7 +846,7 @@ defmodule Threadline.QueryTest do
 
   describe "QUERY-04: repo option" do
     test "history/3 accepts explicit repo" do
-      assert is_list(Threadline.history(AuditChange, "nonexistent", repo: @repo))
+      assert is_list(Threadline.history(AuditChange, Ecto.UUID.generate(), repo: @repo))
     end
 
     test "actor_history/2 accepts explicit repo" do
@@ -932,6 +936,7 @@ defmodule Threadline.QueryTest do
       defmodule FakeUser4 do
         use Ecto.Schema
 
+        @primary_key {:id, :string, autogenerate: false}
         schema "users" do
           field(:name, :string)
         end

@@ -24,6 +24,11 @@ defmodule Threadline.StorageSchemaMigrationContractTest do
     assert migration =~ ~S|CREATE TABLE IF NOT EXISTS "threadline"."audit_transactions"|
     assert migration =~ ~S|CREATE TABLE IF NOT EXISTS "threadline"."audit_changes"|
     assert migration =~ ~S|REFERENCES "threadline"."audit_transactions"(id)|
+
+    assert migration =~
+             ~S|CREATE INDEX IF NOT EXISTS audit_changes_row_history_idx ON "threadline"."audit_changes" (table_schema, table_name, table_pk, captured_at DESC, id DESC)|
+
+    assert migration =~ ~S|CREATE INDEX IF NOT EXISTS audit_changes_table_name_idx|
     refute migration =~ "threadline.audit_transactions"
   end
 
@@ -48,6 +53,10 @@ defmodule Threadline.StorageSchemaMigrationContractTest do
 
     assert capture =~ ~S|CREATE SCHEMA IF NOT EXISTS "AuditLog"|
     assert capture =~ ~S|CREATE TABLE IF NOT EXISTS "AuditLog"."audit_transactions"|
+
+    assert capture =~
+             ~S|CREATE INDEX IF NOT EXISTS audit_changes_row_history_idx ON "AuditLog"."audit_changes" (table_schema, table_name, table_pk, captured_at DESC, id DESC)|
+
     assert semantics =~ ~S|ALTER TABLE "AuditLog"."audit_transactions"|
     assert governance =~ ~S|CREATE TABLE IF NOT EXISTS "AuditLog"."threadline_saved_views"|
 

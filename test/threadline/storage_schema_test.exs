@@ -207,4 +207,112 @@ defmodule Threadline.StorageSchemaTest do
       end
     end
   end
+
+  describe "role-accurate identifier errors" do
+    test "a 70-byte host table names the role, value and byte count" do
+      table = String.duplicate("a", 70)
+
+      e =
+        assert_raise ArgumentError, fn ->
+          StorageSchema.parse_table_identifier("public." <> table)
+        end
+
+      assert e.message =~ "host table"
+      assert e.message =~ inspect(table)
+      assert e.message =~ "70 bytes"
+      assert e.message =~ "at most 63 bytes"
+      assert e.message =~ ~s[(from "public.#{table}")]
+      refute e.message =~ "storage schema"
+    end
+
+    test "an oversized host schema names the host schema role" do
+      e =
+        assert_raise ArgumentError, fn ->
+          StorageSchema.parse_table_identifier(String.duplicate("s", 64) <> ".t")
+        end
+
+      assert e.message =~ "host schema"
+      assert e.message =~ "64 bytes"
+      refute e.message =~ "storage schema"
+    end
+
+    test "63 bytes is accepted and 64 bytes is rejected" do
+      ok = String.duplicate("t", 63)
+      assert StorageSchema.parse_table_identifier(ok) == %{schema: "public", table: ok}
+
+      e =
+        assert_raise ArgumentError, fn ->
+          StorageSchema.parse_table_identifier(String.duplicate("t", 64))
+        end
+
+      assert e.message =~ "64 bytes"
+    end
+
+    test "the original input is omitted when it equals the offending segment" do
+      table = String.duplicate("a", 70)
+
+      e = assert_raise ArgumentError, fn -> StorageSchema.parse_table_identifier(table) end
+
+      assert e.message =~ "70 bytes"
+      refute e.message =~ "(from"
+    end
+
+    test "the original input is named when it differs from the offending segment" do
+      e =
+        assert_raise ArgumentError, fn ->
+          StorageSchema.parse_table_identifier("billing.bad-name")
+        end
+
+      assert e.message =~ "host table"
+      assert e.message =~ ~s[(from "billing.bad-name")]
+    end
+
+    test "validate!/1 keeps the storage schema message byte-for-byte" do
+      value = String.duplicate("a", 70)
+
+      e = assert_raise ArgumentError, fn -> StorageSchema.validate!(value) end
+
+      assert e.message ==
+               "Threadline storage schema must be a non-empty PostgreSQL identifier " <>
+                 "matching ^[A-Za-z_][A-Za-z0-9_]*$ and at most 63 bytes, " <>
+                 "got: " <> inspect(value)
+    end
+
+    test "byte counts use byte_size, not character length" do
+      e =
+        assert_raise ArgumentError, fn ->
+          StorageSchema.validate_identifier!("tàble", :host_table)
+        end
+
+      assert e.message =~ "6 bytes"
+      refute e.message =~ "5 bytes"
+    end
+
+    test "non-binary values raise without a byte count" do
+      for value <- [nil, true, false] do
+        e =
+          assert_raise ArgumentError, fn ->
+            StorageSchema.validate_identifier!(value, :host_table)
+          end
+
+        assert e.message =~ "host table"
+        refute e.message =~ "bytes;"
+      end
+    end
+
+    test "a host schema error names the host schema, not the storage schema" do
+      e =
+        assert_raise ArgumentError, fn ->
+          StorageSchema.validate_identifier!("Public-x", :host_schema)
+        end
+
+      assert e.message =~ "host schema"
+      refute e.message =~ "storage schema"
+    end
+
+    test "a valid identifier is returned trimmed" do
+      assert StorageSchema.validate_identifier!("  tickets ", :host_table) == "tickets"
+      assert StorageSchema.validate_identifier!(:support, :host_schema) == "support"
+    end
+  end
 end
