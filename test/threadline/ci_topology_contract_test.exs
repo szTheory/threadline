@@ -912,8 +912,79 @@ defmodule Threadline.CiTopologyContractTest do
   # (through mix verify.release) and verify-hex-evaluator catch the same failure
   # classes on the same triggers. These pins make that dominance impossible to
   # lapse silently.
-  defp dominance_errors(_mix_exs, _yaml) do
-    []
+  @dominators ["verify-bump-rehearsal", "verify-hex-evaluator"]
+
+  defp verify_release_body(mix_exs) do
+    case Regex.run(~r/  defp verify_release\(_args\) do\n([\s\S]*?)\n  end\n/, mix_exs) do
+      [_, body] -> body
+      nil -> ""
+    end
+  end
+
+  defp workflow_triggers(yaml) do
+    case Regex.run(~r/^on:\n((?:(?:  .*|\s*)\n)+?)(?=^\S)/m, yaml) do
+      [_, block] -> strip_comment_lines(block)
+      nil -> ""
+    end
+  end
+
+  defp dominance_errors(mix_exs, yaml) do
+    release = verify_release_body(mix_exs)
+    triggers = workflow_triggers(yaml)
+    needs = ci_required_needs_from(yaml)
+    skip_listed = allowed_skip_or_failure_items(yaml)
+
+    dominator_checks =
+      Enum.flat_map(@dominators, fn id ->
+        job = workflow_job(yaml, id)
+
+        [
+          {job != "" and id in needs and id not in skip_listed,
+           "#{id} must exist and sit in ci-required's needs: (never skip-listed). It is " <>
+             "what catches the failure classes of the removed verify-docs / " <>
+             "verify-hex-package jobs; outside the required gate those breaks merge unseen"},
+          {job != "" and not Regex.match?(~r/^    if:/m, job),
+           "#{id} acquired a job-level if:. A dominator that does not run on every " <>
+             "trigger the removed job ran on no longer dominates it"}
+        ]
+      end)
+
+    [
+      {String.contains?(release, ~s("MIX_ENV=dev mix docs --warnings-as-errors")),
+       "verify-docs was removed because verify.release builds ExDoc with " <>
+         "--warnings-as-errors; without it an ExDoc break reaches release unseen"},
+      {String.contains?(release, ~s("mix hex.build")),
+       "verify-hex-package was removed because verify.release runs mix hex.build; " <>
+         "without it a broken Hex package reaches release unseen"},
+      {String.contains?(
+         workflow_job(yaml, "verify-bump-rehearsal"),
+         "run: mix verify.bump_rehearsal"
+       ), "verify-bump-rehearsal must run mix verify.bump_rehearsal, which runs verify.release"},
+      {String.contains?(
+         workflow_job(yaml, "verify-hex-evaluator"),
+         "run: mix verify.hex_evaluator"
+       ),
+       "verify-hex-evaluator must run mix verify.hex_evaluator, which builds, resolves, " <>
+         "compiles and tests the tarball from this tree"},
+      {String.contains?(
+         mix_exs,
+         ~s|System.get_env("THREADLINE_HEX_EVALUATOR_MODE", "rehearsal")|
+       ),
+       "verify.hex_evaluator must default to rehearsal mode; the published mode resolves " <>
+         "hex.pm instead of this tree, so a tarball without a usable lib/ goes unseen"},
+      {not String.contains?(yaml, "THREADLINE_HEX_EVALUATOR_MODE"),
+       "ci.yml must not set THREADLINE_HEX_EVALUATOR_MODE; the evaluator must test this " <>
+         "tree's tarball on every CI run"},
+      {String.contains?(triggers, "  push:\n    branches: [main]\n") and
+         String.contains?(triggers, "  pull_request:\n    branches: [main]\n") and
+         String.contains?(triggers, "  workflow_dispatch:") and
+         not String.contains?(triggers, "paths"),
+       "ci.yml must trigger on push to main, pull_request to main and workflow_dispatch " <>
+         "with no paths: filter; the removed jobs ran on exactly that set"}
+    ]
+    |> Kernel.++(dominator_checks)
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
   end
 
   test "dominating proofs for removed jobs stay in force" do
