@@ -197,6 +197,31 @@ defmodule Threadline.DepsHealthDocContractTest do
     assert deps_health_yaml() =~ "bin/upsert-ci-issue"
   end
 
+  test "deps-health.yml closes the tracking issue only on a clean classification" do
+    yaml = deps_health_yaml()
+
+    assert yaml =~ "upsert-ci-issue --close",
+           "deps-health.yml must close the ci-deps issue via bin/upsert-ci-issue --close (ECON-02)"
+
+    close_step =
+      case String.split(yaml, "- name: Close the dependency health issue on a clean run",
+             parts: 2
+           ) do
+        [_, tail] ->
+          tail |> String.split(~r/\n      - /, parts: 2) |> List.first()
+
+        _ ->
+          flunk("deps-health.yml has no `Close the dependency health issue on a clean run` step")
+      end
+
+    assert close_step =~ ~r/^\s*if: steps\.report\.outputs\.classification == 'clean'\s*$/m,
+           "the close step must run only when classification == 'clean' (never on outdated, " <>
+             "advisory, unknown, or an empty/crashed report)"
+
+    assert close_step =~ "upsert-ci-issue --close",
+           "the `clean` gate must sit on the step that runs upsert-ci-issue --close"
+  end
+
   test "the ci-deps label is distinct from every other workflow's LABEL: value" do
     others = other_workflow_labels()
 

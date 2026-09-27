@@ -1,11 +1,31 @@
 #!/usr/bin/env bash
+# ECON-02 / D-06 (218-02): keep exactly one open tracking issue per CI lane,
+# found by a title prefix (--marker) under a label, and close it when the lane
+# goes green again. A tracking issue that never closes trains everyone to
+# ignore it.
+#
+# Behavior table (open issues whose title starts with --marker, under --label):
+#   upsert mode (default), 0 matches  -> issue create           -> action=create, issue_number=N
+#   upsert mode (default), 1 match    -> issue comment N        -> action=update, issue_number=N
+#   close mode (--close),  0 matches  -> no write at all        -> action=none
+#   close mode (--close),  1 match    -> issue comment N, then
+#                                        issue close N --reason completed
+#                                                               -> action=close, issue_number=N
+#   either mode,           2+ matches -> die "ambiguous marker matched <n> open issues" (exit 1)
+#   either mode,           bad JSON   -> die "issue list returned malformed JSON" (exit 1)
+#
+# --title is required only in upsert mode; close mode never creates. Close mode
+# also skips `label create`, since closing writes no label. Marker, title and
+# body travel only as argv (never eval), and an issue number is used only after
+# it matches ^[0-9]+$, so untrusted issue titles cannot reach a shell.
 set -euo pipefail
 
 die() { printf 'upsert-ci-issue: %s\n' "$*" >&2; exit 1; }
 GH_BIN=${GH_BIN:-gh}
-marker="" title="" body_file="" label="" label_description="CI automation finding" label_color="B60205"
+close=0 marker="" title="" body_file="" label="" label_description="CI automation finding" label_color="B60205"
 while [ "$#" -gt 0 ]; do
   case "$1" in
+    --close) close=1; shift ;;
     --marker) marker=${2-}; shift 2 ;;
     --title) title=${2-}; shift 2 ;;
     --body-file) body_file=${2-}; shift 2 ;;
@@ -16,14 +36,24 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 [ -n "$marker" ] || die "--marker is required"
-[ -n "$title" ] || die "--title is required"
+[ "$close" = 1 ] || [ -n "$title" ] || die "--title is required"
 [ -n "$label" ] || die "--label is required"
 [ -f "$body_file" ] || die "--body-file must name a readable file"
 command -v "$GH_BIN" >/dev/null 2>&1 || die "GH_BIN not found: $GH_BIN"
-"$GH_BIN" label create "$label" --description "$label_description" --color "$label_color" 2>/dev/null || true
+if [ "$close" = 0 ]; then
+  "$GH_BIN" label create "$label" --description "$label_description" --color "$label_color" 2>/dev/null || true
+fi
 issues=$("$GH_BIN" issue list --state open --label "$label" --search "$marker in:title" --json number,title)
 matches=$(printf '%s' "$issues" | jq -c --arg marker "$marker" '[.[] | select((.title | type) == "string" and (.title | startswith($marker)))]') || die "issue list returned malformed JSON"
 count=$(printf '%s' "$matches" | jq 'length')
+if [ "$close" = 1 ]; then
+  case "$count" in
+    0) printf 'action=none\n' ;;
+    1) number=$(printf '%s' "$matches" | jq -r '.[0].number'); printf '%s' "$number" | grep -Eq '^[0-9]+$' || die "matched issue has invalid number"; "$GH_BIN" issue comment "$number" --body-file "$body_file" >/dev/null; "$GH_BIN" issue close "$number" --reason completed >/dev/null; printf 'action=close\nissue_number=%s\n' "$number" ;;
+    *) die "ambiguous marker matched $count open issues" ;;
+  esac
+  exit 0
+fi
 case "$count" in
   0) url=$("$GH_BIN" issue create --title "$title" --label "$label" --body-file "$body_file"); printf 'action=create\nissue_number=%s\n' "${url##*/}" ;;
   1) number=$(printf '%s' "$matches" | jq -r '.[0].number'); printf '%s' "$number" | grep -Eq '^[0-9]+$' || die "matched issue has invalid number"; "$GH_BIN" issue comment "$number" --body-file "$body_file" >/dev/null; printf 'action=update\nissue_number=%s\n' "$number" ;;
