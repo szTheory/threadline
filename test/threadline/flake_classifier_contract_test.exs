@@ -225,6 +225,45 @@ defmodule Threadline.FlakeClassifierContractTest do
     end
   end
 
+  describe "Test 1d: the SHA gate decision is classified before the exit code (D-03/D-04)" do
+    defp classify_gated(tmp_dir, gate, exit_code) do
+      log = fixture_log(tmp_dir, 0)
+      output_path = Path.join(tmp_dir, "github-output-#{System.unique_integer([:positive])}")
+
+      {output, status} =
+        System.cmd(@script, [log],
+          env: [{"GATE_DECISION", gate}, {"EXIT_CODE", exit_code}, {"GITHUB_OUTPUT", output_path}],
+          stderr_to_stdout: false
+        )
+
+      {String.trim(output), status, File.read!(output_path)}
+    end
+
+    test "GATE_DECISION=skip -> skip", %{tmp_dir: tmp_dir} do
+      {output, status, gh_output} = classify_gated(tmp_dir, "skip", "")
+
+      assert status == 0
+      assert output == "skip"
+      assert gh_output =~ ~r/^reason=.*already proved this SHA green/m
+    end
+
+    test "GATE_DECISION=broken-upstream -> broken-upstream, even with EXIT_CODE empty", %{
+      tmp_dir: tmp_dir
+    } do
+      {output, status, gh_output} = classify_gated(tmp_dir, "broken-upstream", "")
+
+      assert status == 0
+      assert output == "broken-upstream"
+      refute output == "flaky"
+      assert gh_output =~ ~r/^reason=.*ci\.yml is red on this SHA/m
+    end
+
+    test "GATE_DECISION=run falls through to the exit-code table", %{tmp_dir: tmp_dir} do
+      assert {"unknown", 0, _} = classify_gated(tmp_dir, "run", "")
+      assert {"pass", 0, _} = classify_gated(tmp_dir, "run", "0")
+    end
+  end
+
   describe "Test 2: the classify step in the workflow carries an always-condition" do
     test "flake-detection.yml is non-empty and the classify step carries if: always()" do
       assert File.exists?(@workflow_path), "expected #{@workflow_path} to exist"
@@ -337,6 +376,77 @@ defmodule Threadline.FlakeClassifierContractTest do
       ]
       |> Enum.reject(&elem(&1, 0))
       |> Enum.map(&elem(&1, 1))
+    end
+
+    @heavy_steps [
+      "- uses: erlef/setup-beam@v1",
+      "- name: Cache deps",
+      "- name: Install dependencies",
+      "- name: Compile (warnings as errors)",
+      "- name: Repeat the suite until failure"
+    ]
+
+    defp heavy_step_body(yaml, marker) do
+      [_, after_step] = String.split(yaml, marker, parts: 2)
+      after_step |> String.split(~r/\n\s*\n/, parts: 2) |> hd()
+    end
+
+    # Returns every gate-wiring violation in `yaml`; [] means the wiring holds.
+    defp gate_wiring_violations(yaml) do
+      [_, job] = String.split(yaml, "\n  verify-flake:\n", parts: 2)
+      [header, _steps] = String.split(job, "\n    steps:\n", parts: 2)
+
+      ungated =
+        Enum.reject(@heavy_steps, fn marker ->
+          heavy_step_body(yaml, marker) =~ "if: steps.gate.outputs.decision == 'run'"
+        end)
+
+      gate_body = step_body(yaml, "Decide whether this SHA needs a flake run")
+      issue_body = step_body(yaml, "Open or update the flake tracking issue")
+      fail_body = step_body(yaml, "Fail the job if the suite did not pass")
+      skip_excluded = "steps.classify.outputs.classification != 'skip'"
+
+      [
+        {header =~ ~r/^      actions: read$/m, "job permissions must grant actions: read"},
+        {gate_body =~ "id: gate" and
+           gate_body =~
+             ~s(bin/ci-sha-gate --workflow flake-detection.yml --sha "$GITHUB_SHA" --event "$GITHUB_EVENT_NAME" --upstream ci.yml),
+         "gate step must run bin/ci-sha-gate on this SHA and event with ci.yml upstream"},
+        {ungated == [], "heavy steps missing the gate if: #{inspect(ungated)}"},
+        {step_body(yaml, "Classify broken vs flaky") =~
+           "GATE_DECISION: ${{ steps.gate.outputs.decision }}",
+         "classify step must receive GATE_DECISION"},
+        {issue_body =~ skip_excluded, "issue step must exclude skip"},
+        {fail_body =~ skip_excluded, "fail step must exclude skip"}
+      ]
+      |> Enum.reject(&elem(&1, 0))
+      |> Enum.map(&elem(&1, 1))
+    end
+
+    test "the SHA gate runs first and gates every heavy step (D-03)" do
+      yaml = File.read!(@workflow_path)
+      assert gate_wiring_violations(yaml) == []
+
+      [before_gate, _] = String.split(yaml, "Decide whether this SHA needs a flake run", parts: 2)
+      refute before_gate =~ "erlef/setup-beam", "the gate must run before any heavy step"
+    end
+
+    test "gate mutation controls: dropping actions: read or one heavy step's if: is caught" do
+      yaml = File.read!(@workflow_path)
+
+      no_actions = String.replace(yaml, "      actions: read\n", "")
+      assert no_actions != yaml
+      assert Enum.any?(gate_wiring_violations(no_actions), &(&1 =~ "actions: read"))
+
+      ungated_compile =
+        String.replace(
+          yaml,
+          "- name: Compile (warnings as errors)\n        if: steps.gate.outputs.decision == 'run'\n",
+          "- name: Compile (warnings as errors)\n"
+        )
+
+      assert ungated_compile != yaml
+      assert Enum.any?(gate_wiring_violations(ungated_compile), &(&1 =~ "Compile"))
     end
 
     test "the committed workflow is weekly plus dispatch, budgeted, with step < job timeout" do

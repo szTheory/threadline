@@ -38,6 +38,14 @@
 #                                                        suite started"
 #   exit code empty/non-numeric                       -> unknown (stated on stderr)
 #
+# The SHA gate (bin/ci-sha-gate, passed as GATE_DECISION) is checked BEFORE the exit
+# code, because on those paths the suite never ran and EXIT_CODE is empty:
+#   GATE_DECISION=broken-upstream                     -> broken-upstream (ci.yml is red on
+#                                                        this SHA with no green re-run)
+#   GATE_DECISION=skip                                -> skip (this workflow already proved
+#                                                        this SHA green)
+#   GATE_DECISION anything else / unset               -> the exit-code table above
+#
 # 124 is what `timeout(1)` returns when its budget expires; 137 is 128+SIGKILL, when
 # the process ignored SIGTERM past `--kill-after`. `mix test` itself exits 2 on a
 # test failure, so neither code can be a real suite failure.
@@ -55,7 +63,7 @@
 set -uo pipefail
 
 usage() {
-  echo "Usage: EXIT_CODE=<n> $0 <log-file-path>" >&2
+  echo "Usage: [GATE_DECISION=<run|skip|broken-upstream>] EXIT_CODE=<n> $0 <log-file-path>" >&2
 }
 
 if [ "$#" -ne 1 ]; then
@@ -76,10 +84,17 @@ is_integer() {
 }
 
 EXIT_CODE_RAW="${EXIT_CODE:-}"
+GATE_DECISION_RAW="${GATE_DECISION:-}"
 classification="unknown"
 reason="no suite header found in the log"
 
-if ! is_integer "$EXIT_CODE_RAW"; then
+if [ "$GATE_DECISION_RAW" = "broken-upstream" ]; then
+  classification="broken-upstream"
+  reason="ci.yml is red on this SHA with no green re-run; the suite was not run"
+elif [ "$GATE_DECISION_RAW" = "skip" ]; then
+  classification="skip"
+  reason="this workflow already proved this SHA green; the suite was not re-run"
+elif ! is_integer "$EXIT_CODE_RAW"; then
   echo "classify-flake-run: EXIT_CODE is empty or non-numeric ('$EXIT_CODE_RAW') — cannot classify, reporting unknown" >&2
   classification="unknown"
   reason="EXIT_CODE empty or non-numeric"

@@ -46,7 +46,11 @@ jobs:
     # classify, upload and issue steps always get to run. Re-measure and adjust
     # if the suite grows by a lot.
     timeout-minutes: 70
+    # The actions scope (read) lets bin/ci-sha-gate query this and ci.yml's runs. A
+    # job-level block zeroes every unlisted scope, and without it the gate's
+    # API call would 403 and fail open to `run`, so the skip would never happen.
     permissions:
+      actions: read
       contents: read
       issues: write
     env:
@@ -69,7 +73,18 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # D-03/D-04: skip a scheduled run on a SHA this workflow already proved
+      # green, and report `broken-upstream` instead of soaking a SHA whose CI is
+      # red. Only `schedule` honors the skip; dispatch always runs. Any API error
+      # fails open to `run`. Every heavy step below is gated on `run`.
+      - name: Decide whether this SHA needs a flake run
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bin/ci-sha-gate --workflow flake-detection.yml --sha "$GITHUB_SHA" --event "$GITHUB_EVENT_NAME" --upstream ci.yml
+
       - uses: erlef/setup-beam@v1
+        if: steps.gate.outputs.decision == 'run'
         id: beam
         with:
           version-file: .tool-versions
@@ -77,6 +92,7 @@ jobs:
 
       # Key shape follows the CACHE KEY CONTRACT in ci.yml.
       - name: Cache deps
+        if: steps.gate.outputs.decision == 'run'
         uses: actions/cache@v5
         with:
           path: deps
@@ -84,9 +100,11 @@ jobs:
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
+        if: steps.gate.outputs.decision == 'run'
         run: mix deps.get
 
       - name: Compile (warnings as errors)
+        if: steps.gate.outputs.decision == 'run'
         run: mix compile --warnings-as-errors
 
       # errexit-independent by construction (CR-01): GitHub runs every `run:`
@@ -105,6 +123,7 @@ jobs:
       # `exit_code=124` (or 137 after the 60 s kill grace).
       - name: Repeat the suite until failure
         id: repeat
+        if: steps.gate.outputs.decision == 'run'
         timeout-minutes: 58
         run: |
           set +e
@@ -130,6 +149,7 @@ jobs:
         id: classify
         if: always()
         env:
+          GATE_DECISION: ${{ steps.gate.outputs.decision }}
           EXIT_CODE: ${{ steps.repeat.outputs.exit_code }}
         run: |
           set -uo pipefail
@@ -143,10 +163,10 @@ jobs:
           echo "iterations=$iterations" >> "$GITHUB_OUTPUT"
           echo "::notice::Flake Detection classification: $classification (completed iterations: $iterations, exit: $EXIT_CODE)"
 
-      # Always uploaded: the UNKNOWN branch is only actionable with the raw log,
-      # and attaching it unconditionally means the link in the issue never 404s.
+      # Uploaded whenever the suite ran: the UNKNOWN branch is only actionable
+      # with the raw log. A gated-off run (skip / broken-upstream) has no log.
       - name: Upload raw repeat-until-failure log
-        if: always()
+        if: always() && steps.gate.outputs.decision == 'run'
         uses: actions/upload-artifact@v7
         with:
           name: flake-detection-log
@@ -168,9 +188,12 @@ jobs:
       # than the implicit success of everything before it (Task 2 item 4) —
       # so a future step inserted between `repeat` and here that changes the
       # default success chain cannot silently re-skip issue filing. Still does
-      # not fire when the classification is `pass`.
+      # not fire when the classification is `pass`, or `skip` (a skip is only
+      # reachable after a real pass on this SHA). `inconclusive` and
+      # `broken-upstream` DO end red and file: a green non-proof would count as
+      # success on this SHA and make every later scheduled run skip it.
       - name: Open or update the flake tracking issue
-        if: always() && steps.classify.outputs.classification != 'pass'
+        if: always() && steps.classify.outputs.classification != 'pass' && steps.classify.outputs.classification != 'skip'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TITLE_PREFIX: "Flake Detection: test suite"
@@ -224,7 +247,7 @@ jobs:
       # filing above are reporting, not absolution. `always()` keeps this step
       # reachable even if an earlier reporting step were to fail outright.
       - name: Fail the job if the suite did not pass
-        if: always() && steps.classify.outputs.classification != 'pass'
+        if: always() && steps.classify.outputs.classification != 'pass' && steps.classify.outputs.classification != 'skip'
         run: |
           echo "::error::Flake Detection classified this run as '${{ steps.classify.outputs.classification }}' after ${{ steps.classify.outputs.iterations }} iteration(s)."
           exit 1
