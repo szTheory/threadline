@@ -20,26 +20,26 @@ Choose the route that matches the change:
 
 **Requirements:**
 
-- Elixir 1.15+ (CI uses 1.17.3)
-- OTP 26+ (CI uses OTP 27.0)
+- Elixir 1.15+ (the CI current lane runs 1.17.3, pinned in `.tool-versions`)
+- OTP 26+ (the CI current lane runs OTP 27.3.4.15, pinned in `.tool-versions`)
 - PostgreSQL 14+ (PostgreSQL 16 recommended; matches CI and `docker-compose.yml`)
 - Node.js 22 — only for the browser end-to-end lane, which is the last step of
   the full verification gate described under Running tests below. Everything
   else, including the whole library test suite, runs without it.
 
-If you manage toolchains with a version manager such as asdf or mise, note that
-this repository intentionally does **not** commit a `.tool-versions` file. It
-supports a range of Elixir versions rather than a single one, and committing a
-pin would turn "Elixir 1.15 and up works" into "install exactly the version this
-file names" — which would break contributors on versions the project genuinely
-supports and tests.
+The repository commits a `.tool-versions` file, and it pins the CI current lane:
+Erlang 27.3.4.15 and Elixir 1.17.3-otp-27 (plus Node.js 22.14.0 for local
+shells; CI's Node steps request the 22 line). CI reads the Erlang and Elixir pins
+from that file through `erlef/setup-beam` in strict mode, so a CI job and an asdf
+(or mise) shell in a fresh clone run the same BEAM build rather than two versions
+that merely share a major number. The pin names the lane CI runs, not the only version that
+works: the supported floor (Elixir 1.15 / OTP 26) is proven separately by the CI
+min lane.
 
-A fresh clone therefore inherits whatever versions you already have set. If your
-version manager has none set at all, `mix` fails with something like `No version
-is set for command mix`, which names your version manager rather than this
-project and is an easy trail to lose. Set one yourself, globally or in a local
-`.tool-versions` you leave uncommitted. To match the lane CI runs, use Elixir
-1.17.3 with the matching OTP 27 build and Node.js 22.
+If you work on another supported version, override the pin for your shell
+instead of editing the committed file. With asdf, set `ASDF_ERLANG_VERSION` and
+`ASDF_ELIXIR_VERSION` (for example `ASDF_ELIXIR_VERSION=1.15.8-otp-26`);
+`asdf current elixir` then reports the environment variable as the source.
 
 1. Clone the repository.
 2. Install dependencies: `mix deps.get`

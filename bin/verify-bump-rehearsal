@@ -231,17 +231,6 @@ git -C "$CLONE" checkout --quiet --detach "$SOURCE_SHA" ||
 [[ "$(git -C "$CLONE" rev-parse HEAD)" == "$SOURCE_SHA" ]] ||
   fail "clone" "The throwaway tree is not at $SOURCE_SHA."
 
-# `.tool-versions` is deliberately untracked in this repository, so the clone
-# does not inherit it and an asdf-managed shell would resolve a different (or
-# no) Elixir inside /tmp. Copy it across when it exists so the rehearsal runs on
-# the same toolchain as the tree it is rehearsing. In CI the file is absent and
-# `erlef/setup-beam` has already pinned the toolchain on PATH, so this is a
-# no-op there.
-if [[ -f "$ROOT/.tool-versions" ]]; then
-  cp "$ROOT/.tool-versions" "$CLONE/.tool-versions"
-  printf '    copied the untracked .tool-versions into the throwaway tree\n'
-fi
-
 if [[ "${THREADLINE_BUMP_REHEARSAL_FORCE_UNRUNNABLE:-0}" == "1" ]]; then
   fail "forced unrunnable control" \
     "THREADLINE_BUMP_REHEARSAL_FORCE_UNRUNNABLE=1 is set." \

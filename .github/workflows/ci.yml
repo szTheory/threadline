@@ -58,9 +58,10 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       # CACHE KEY CONTRACT (Phase 198, D-19) — read before adding any cache.
       #
@@ -69,10 +70,11 @@ jobs:
       # the runner: it resolves to the literal `Linux` on every ubuntu image, so
       # a 22.04 lane and a 24.04 lane silently share one entry. (An anti-
       # regression grep asserts that expression appears nowhere in this file,
-      # which is why it is not spelled out here.) For non-matrix jobs the
-      # runner/OTP/Elixir
-      # segments are the literals that job already pins above; for the
-      # verify-test matrix they come from the matrix values.
+      # which is why it is not spelled out here.) For non-matrix jobs the OTP
+      # and Elixir segments come from the `beam` setup step's resolved outputs
+      # (`steps.beam.outputs.otp-version` / `elixir-version`), so a key names
+      # what was installed, not what was requested; the runner label stays a
+      # literal. For the verify-test matrix they come from the matrix values.
       #
       # There is currently NO `_build` cache in this workflow — only `deps` and
       # the Playwright browser download. If one is ever added, two rules apply:
@@ -95,8 +97,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
