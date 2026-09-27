@@ -408,7 +408,7 @@ defmodule Threadline.CiTopologyContractTest do
       {String.contains?(job, "timeout-minutes: 9") and
          String.contains?(job, "ceil(252 * 2 / 60) = 9"),
        "Dialyzer timeout must retain the documented cold-run derivation"},
-      {String.contains?(job, "uses: actions/cache/restore@v4"),
+      {String.contains?(job, "uses: actions/cache/restore@v5"),
        "Dialyzer PLT restore must be a separate cache action"},
       {String.contains?(job, "id: dialyzer-plt-restore"),
        "PLT restore must expose a stable cache-hit id"},
@@ -418,7 +418,7 @@ defmodule Threadline.CiTopologyContractTest do
       {String.contains?(job, "${{ hashFiles('mix.lock') }}") and
          String.contains?(job, "${{ hashFiles('mix.exs') }}"),
        "PLT key must include both mix.lock and mix.exs hashes"},
-      {String.contains?(job, "uses: actions/cache/save@v4"),
+      {String.contains?(job, "uses: actions/cache/save@v5"),
        "Dialyzer PLT save must be a separate cache action"},
       {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-primary-key"),
        "PLT save must reuse the restore action's exact primary key"},

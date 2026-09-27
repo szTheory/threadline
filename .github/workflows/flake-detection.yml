@@ -70,7 +70,7 @@ jobs:
 
       # Key shape follows the CACHE KEY CONTRACT in ci.yml.
       - name: Cache deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
@@ -134,7 +134,7 @@ jobs:
       # and attaching it unconditionally means the link in the issue never 404s.
       - name: Upload raw repeat-until-failure log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flake-detection-log
           path: flake-detection.log

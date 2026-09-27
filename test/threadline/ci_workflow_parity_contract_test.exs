@@ -383,8 +383,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     test "ci.yml caches deps + e2e lockfile and never caches _build" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
-      assert String.contains?(yaml, "actions/cache@v4"),
-             "ci.yml must use actions/cache@v4 for the deps cache"
+      assert String.contains?(yaml, "actions/cache@v5"),
+             "ci.yml must use actions/cache@v5 for the deps cache"
 
       assert Regex.match?(~r/^\s*path:\s*deps\s*$/m, yaml),
              "ci.yml must cache the `deps` directory"
