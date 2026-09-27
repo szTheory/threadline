@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1](https://github.com/szTheory/threadline/compare/v0.11.0...v0.11.1) (2026-09-27)
+
+
+### Bug Fixes
+
+* **ci:** read the release toolchain pin from its own checkout directory ([#57](https://github.com/szTheory/threadline/issues/57)) ([3d8ab20](https://github.com/szTheory/threadline/commit/3d8ab205415628e6e3fbb74834247639117ec920))
+* **deps:** clear dependency advisories behind an audit gate and run CI on the committed toolchain ([#55](https://github.com/szTheory/threadline/issues/55)) ([ff346b1](https://github.com/szTheory/threadline/commit/ff346b1ab0b9c33c68884874d3cdc74fd1f269f0))
+
 ## [0.11.0](https://github.com/szTheory/threadline/compare/v0.10.2...v0.11.0) (2026-09-26)
 
 
