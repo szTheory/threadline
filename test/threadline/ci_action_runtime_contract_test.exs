@@ -116,6 +116,88 @@ defmodule Threadline.CiActionRuntimeContractTest do
     |> Enum.uniq()
   end
 
+  @runbook_heading "### Upgrading the Release Please action"
+
+  @runbook_remedy "bumping the Release Please action requires re-running the documented " <>
+                    "rehearsal and updating this runbook in the same change"
+
+  defp release_please_runbook_errors(release_yml, contributing) do
+    case Regex.run(
+           ~r/googleapis\/release-please-action@v(\d+)\b/,
+           strip_comment_lines(release_yml),
+           capture: :all_but_first
+         ) do
+      [major] -> runbook_section_errors(runbook_section(contributing), major)
+      nil -> ["release.yml has no googleapis/release-please-action@vN ref — #{@runbook_remedy}"]
+    end
+  end
+
+  defp runbook_section(contributing) do
+    case String.split(contributing, "\n" <> @runbook_heading <> "\n", parts: 2) do
+      [_before, rest] -> rest |> String.split(~r/^\#{2,3} /m, parts: 2) |> List.first()
+      [_] -> nil
+    end
+  end
+
+  defp runbook_section_errors(nil, _major) do
+    ["CONTRIBUTING.md has no \"#{@runbook_heading}\" subsection — #{@runbook_remedy}"]
+  end
+
+  defp runbook_section_errors(section, major) do
+    [
+      {String.contains?(section, "googleapis/release-please-action@v#{major}"),
+       "the runbook does not name googleapis/release-please-action@v#{major}, the major " <>
+         "release.yml uses"},
+      {String.contains?(section, "--dry-run"),
+       "the runbook does not give the --dry-run rehearsal"},
+      {Regex.match?(~r/release-please(?: |@)\d+\.\d+\.\d+/, section),
+       "the runbook does not name the bundled release-please library version"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&"#{elem(&1, 1)} — #{@runbook_remedy}")
+  end
+
+  describe "release_please_runbook_errors/2" do
+    setup do
+      %{
+        release_yml: read_rel!([".github", "workflows", "release.yml"]),
+        contributing: read_rel!(["CONTRIBUTING.md"])
+      }
+    end
+
+    test "the runbook matches release.yml's action major", ctx do
+      assert release_please_runbook_errors(ctx.release_yml, ctx.contributing) == []
+    end
+
+    test "fails when release.yml moves to a major the runbook does not name", ctx do
+      bumped =
+        String.replace(
+          ctx.release_yml,
+          ~r/googleapis\/release-please-action@v\d+/,
+          "googleapis/release-please-action@" <> "v6"
+        )
+
+      assert [message] = release_please_runbook_errors(bumped, ctx.contributing)
+      assert message =~ "@v6"
+      assert message =~ "re-running the documented rehearsal"
+    end
+
+    test "fails when the runbook heading is deleted", ctx do
+      without = String.replace(ctx.contributing, @runbook_heading <> "\n", "")
+      assert [message] = release_please_runbook_errors(ctx.release_yml, without)
+      assert message =~ "no \"#{@runbook_heading}\" subsection"
+    end
+
+    test "fails when the bundled library version is removed from the runbook", ctx do
+      section = runbook_section(ctx.contributing)
+      stripped = Regex.replace(~r/release-please(?: |@)\d+\.\d+\.\d+/, section, "release-please")
+      mutated = String.replace(ctx.contributing, section, stripped)
+
+      assert [message] = release_please_runbook_errors(ctx.release_yml, mutated)
+      assert message =~ "bundled release-please library version"
+    end
+  end
+
   describe "live workflows" do
     test "every workflow action ref is verified as Node 24 or non-JavaScript" do
       yaml_by_path = live_yaml_by_path()

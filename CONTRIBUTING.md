@@ -755,6 +755,31 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`). The Release PR bumps `mix.exs`, `CHANGELOG-GENERATED.md`, **and** the adoption-pilot SSOT line together, so it is green on the doc contract without any manual prep. `CHANGELOG.md` is human-owned — Release Please never writes to it.
 2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
 
+### Upgrading the Release Please action
+
+A new major of `googleapis/release-please-action` bundles a newer `release-please` library, which can change how commits are parsed and how the Release PR is built. Rehearse before bumping:
+
+1. Read the new major's release notes and diff its `action.yml` against the current tag (`runs.using`, inputs, outputs).
+2. Find the `release-please` library version each tag bundles (the action's `package.json` at that tag).
+3. Dry-run both library versions against `main` and diff the output. The token is read from `gh` at run time and never written anywhere:
+
+   ```bash
+   export npm_config_ignore_scripts=true
+   for v in OLD_VERSION NEW_VERSION; do
+     npx -y release-please@$v release-pr \
+       --repo-url=szTheory/threadline --token="$(gh auth token)" --target-branch=main \
+       --config-file=release-please-config.json --manifest-file=.release-please-manifest.json \
+       --dry-run 2>&1 | sed "s/\x1b\[[0-9;]*m//g" | grep -v "^npm warn" > /tmp/rp-$v.log
+   done
+   diff /tmp/rp-OLD_VERSION.log /tmp/rp-NEW_VERSION.log && echo IDENTICAL
+   ```
+
+   Any difference must be understood before landing. The dry-run reads the published `main`, so it rehearses config and manifest parsing and commit analysis, not unpushed commits.
+4. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml` and this section disagree).
+5. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@vN'`, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
+
+Last rehearsal (2026-09-26): `googleapis/release-please-action@v5` (release-please 17.6.0) versus v4.4.1 (release-please 17.3.0) — identical dry-run output against origin/main `5e78b2f05d00619e11aa9b29bc8f612087756846`.
+
 ### Recovery / dry-run
 
 **`workflow_dispatch`** inputs:
