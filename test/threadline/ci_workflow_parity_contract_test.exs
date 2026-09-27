@@ -524,9 +524,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
       end
     end
 
-    test "every ci.yml job installs an exact toolchain and keys caches on it" do
+    test "every ci.yml and release.yml job installs an exact toolchain and keys caches on it" do
       live = read_rel!([".github", "workflows", "ci.yml"])
       path = ".github/workflows/ci.yml"
+      release_path = ".github/workflows/release.yml"
+      release = read_rel!([".github", "workflows", "release.yml"])
 
       setup_beam_steps =
         live |> strip_comment_lines() |> String.split("uses: erlef/setup-beam@") |> length()
@@ -535,7 +537,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
              "expected 14 setup-beam steps (13 file-fed, 1 matrix-fed) under the toolchain " <>
                "contract, found #{setup_beam_steps - 1}"
 
-      assert toolchain_contract_errors(%{path => live}) == []
+      assert toolchain_contract_errors(%{path => live, release_path => release}) == []
 
       docs_job = workflow_job(live, "verify-docs")
 
@@ -549,6 +551,72 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
         refute toolchain_contract_errors(%{path => mutated}) == [],
                "#{control} mutation must make the toolchain pin contract fail"
+      end
+    end
+
+    test "release jobs read the toolchain pin from the workflow's own commit" do
+      path = ".github/workflows/release.yml"
+      release = read_rel!([".github", "workflows", "release.yml"])
+      ci = read_rel!([".github", "workflows", "ci.yml"])
+
+      for {file, yaml} <- [{".github/workflows/ci.yml", ci}, {path, release}],
+          {job_id, block} <- workflow_jobs(yaml) do
+        assert toolchain_source_errors(file, job_id, block) == []
+      end
+
+      ref_switching = ["sync-release-pr-pins", "publish-hex", "smoke-published"]
+
+      for job_id <- ref_switching do
+        job = workflow_job(release, job_id)
+
+        assert String.contains?(job, "sparse-checkout: .tool-versions"),
+               "#{job_id} must check out .tool-versions from the workflow commit, " <>
+                 "or this contract is vacuous"
+      end
+
+      publish = workflow_job(release, "publish-hex")
+      smoke = workflow_job(release, "smoke-published")
+      sync = workflow_job(release, "sync-release-pr-pins")
+
+      [toolchain_checkout, beam_step | _] =
+        smoke |> job_steps() |> Enum.drop_while(&(not String.contains?(&1, "sparse-checkout:")))
+
+      target_checkout =
+        smoke
+        |> job_steps()
+        |> Enum.find(&String.contains?(&1, "ref: ${{ needs.release-ref.outputs.checkout_ref }}"))
+
+      publish_toolchain_checkout =
+        publish |> job_steps() |> Enum.find(&String.contains?(&1, "sparse-checkout:"))
+
+      controls = [
+        {"publish-hex", publish, "toolchain checkout removed",
+         String.replace(publish, publish_toolchain_checkout, "")},
+        {"smoke-published", smoke, "setup-beam moved below the target-ref checkout",
+         String.replace(
+           smoke,
+           toolchain_checkout <> beam_step <> target_checkout,
+           toolchain_checkout <> target_checkout <> beam_step
+         )},
+        {"sync-release-pr-pins", sync, "toolchain checkout without persist-credentials: false",
+         String.replace(
+           sync,
+           "          sparse-checkout-cone-mode: false\n          persist-credentials: false\n",
+           "          sparse-checkout-cone-mode: false\n"
+         )},
+        {"publish-hex", publish, "toolchain checkout naming a different file",
+         String.replace(
+           publish,
+           "sparse-checkout: .tool-versions",
+           "sparse-checkout: " <> "mix.exs"
+         )}
+      ]
+
+      for {job_id, job, control, mutated} <- controls do
+        refute mutated == job, "#{control} control did not change the input"
+
+        refute toolchain_source_errors(path, job_id, mutated) == [],
+               "#{control} mutation must make the toolchain source contract fail"
       end
     end
 
@@ -888,6 +956,54 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
+  # setup-beam reads `.tool-versions` from the workspace, so the checkout that
+  # precedes it decides which commit's pin is installed. It must be the workflow's
+  # own commit (no `ref:`): a release branch or recovery tag may predate the file.
+  # A checkout that narrows the workspace to the pin must be exactly that narrow
+  # and must not persist the job token.
+  defp toolchain_source_errors(path, job_id, block) do
+    steps = block |> strip_comment_lines() |> job_steps()
+    where = "#{path} #{job_id}"
+    checkout? = &String.contains?(&1, "uses: actions/checkout@")
+
+    source_errors =
+      case Enum.find_index(steps, &String.contains?(&1, "uses: erlef/setup-beam@")) do
+        nil ->
+          []
+
+        beam_at ->
+          steps |> Enum.take(beam_at) |> Enum.filter(checkout?) |> pin_checkout_errors(where)
+      end
+
+    sparse_errors =
+      for step <- steps,
+          checkout?.(step),
+          yaml_value(step, "sparse-checkout") != nil,
+          lines = trimmed_lines(step),
+          line <- [
+            "sparse-checkout: .tool-versions",
+            "sparse-checkout-cone-mode: false",
+            "persist-credentials: false"
+          ],
+          line not in lines do
+        "#{where} toolchain checkout must declare `#{line}`"
+      end
+
+    source_errors ++ sparse_errors
+  end
+
+  defp pin_checkout_errors([], where),
+    do: ["#{where} has no checkout before setup-beam, so .tool-versions is absent"]
+
+  defp pin_checkout_errors(checkouts, where) do
+    if yaml_value(List.last(checkouts), "ref"),
+      do: [
+        "#{where} checks out another ref right before setup-beam; read " <>
+          ".tool-versions from the workflow's own commit first"
+      ],
+      else: []
+  end
+
   # An output read before setup-beam runs is empty, which would collapse every
   # toolchain onto one cache key.
   defp beam_ordering_errors(path, job_id, block) do
@@ -983,16 +1099,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
     yaml
     |> strip_comment_lines()
     |> String.split("\n")
-    |> Enum.flat_map(fn line ->
-      case Regex.run(~r/^\s*(?:-\s+)?(runs-on|runner):\s*(.*?)\s*$/, line) do
-        [_, key, value] ->
-          if String.contains?(value, @deprecated_runner_image),
-            do: ["#{path} #{key}: #{value} names the deprecated runner image"],
-            else: []
-
-        nil ->
-          []
-      end
+    |> Enum.map(&Regex.run(~r/^\s*(?:-\s+)?(runs-on|runner):\s*(.*?)\s*$/, &1))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.filter(fn [_, _key, value] -> String.contains?(value, @deprecated_runner_image) end)
+    |> Enum.map(fn [_, key, value] ->
+      "#{path} #{key}: #{value} names the deprecated runner image"
     end)
   end
 
@@ -1029,6 +1140,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     steps = job_steps(block)
 
     Enum.flat_map(steps, &setup_beam_errors(path, job_id, &1)) ++
+      toolchain_source_errors(path, job_id, block) ++
       beam_ordering_errors(path, job_id, block) ++
       Enum.flat_map(steps, &cache_key_errors(path, job_id, &1))
   end

@@ -124,6 +124,24 @@ jobs:
     permissions:
       contents: write
     steps:
+      # setup-beam reads .tool-versions from the workspace, and the target ref below
+      # (a release-please branch or a recovery tag) may predate the tracked file, so
+      # the toolchain comes from this workflow's own commit, exactly as the literal
+      # pins did before. The toolchain lands in the runner tool cache, so the
+      # checkout below does not undo it.
+      - name: Read the toolchain pin from this workflow's commit
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: .tool-versions
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
       # persist-credentials: false keeps the token out of .git/config. The steps
       # below fetch and COMPILE every dependency (`mix release.pins` is a Mix task),
       # and any dependency's compile-time code could otherwise read a persisted
@@ -132,11 +150,6 @@ jobs:
         with:
           ref: release-please--branches--main
           persist-credentials: false
-
-      - uses: erlef/setup-beam@v1
-        with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
 
       - name: Fetch dependencies
         run: mix deps.get
@@ -407,14 +420,27 @@ jobs:
       RELEASE_TAG: ${{ needs.release-ref.outputs.release_tag }}
       DRY_RUN: ${{ needs.release-ref.outputs.dry_run }}
     steps:
+      # setup-beam reads .tool-versions from the workspace, and the target ref below
+      # (a release-please branch or a recovery tag) may predate the tracked file, so
+      # the toolchain comes from this workflow's own commit, exactly as the literal
+      # pins did before. The toolchain lands in the runner tool cache, so the
+      # checkout below does not undo it.
+      - name: Read the toolchain pin from this workflow's commit
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: .tool-versions
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.release-ref.outputs.checkout_ref }}
-
-      - uses: erlef/setup-beam@v1
-        with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
 
       - name: Install dependencies
         run: mix deps.get
@@ -554,14 +580,27 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      # setup-beam reads .tool-versions from the workspace, and the target ref below
+      # (a release-please branch or a recovery tag) may predate the tracked file, so
+      # the toolchain comes from this workflow's own commit, exactly as the literal
+      # pins did before. The toolchain lands in the runner tool cache, so the
+      # checkout below does not undo it.
+      - name: Read the toolchain pin from this workflow's commit
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: .tool-versions
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.release-ref.outputs.checkout_ref }}
-
-      - uses: erlef/setup-beam@v1
-        with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
 
       - name: Ensure hex_evaluator_test database exists
         env:
