@@ -23,5 +23,15 @@
 # comment or reason that itself contains a machine-local path is a finding
 # (exit 1), not silently allowed.
 #
-# No entry below may allowlist a person's home directory. See
-# bin/verify-repo-hygiene's header for the full contract.
+# No entry below may allowlist a person's home directory. Every entry here
+# is a GitHub-hosted-runner path, a cache path, or an agent-tooling
+# install path that is identical on every machine and carries no username.
+# See bin/verify-repo-hygiene's header for the full contract.
+.github/workflows/	~/.cache/ms-playwright	Playwright browser binaries cached on the GitHub-hosted runner.
+test/threadline/ci_workflow_parity_contract_test.exs	~/.cache/	The toolchain-pin contract test's exemption map and cache-path fixtures.
+.planning/	/home/runner	The GitHub-hosted runner account, quoted verbatim in CI log receipts.
+.planning/	~/.cache	Runner cache location cited in supply-chain and CI research docs.
+.planning/	~/.hex	Hex cache location cited in supply-chain and CI research docs.
+.planning/	~/.claude/gsd-core/	GSD tool install path that plan templates' execution_context includes require. It is identical on every machine and carries no username.
+.planning/	~/.claude/get-shit-done/	GSD tool install path that plan templates' execution_context includes require. It is identical on every machine and carries no username.
+.planning/	~/.claude/skills/	GSD tool install path that plan templates' execution_context includes require. It is identical on every machine and carries no username.

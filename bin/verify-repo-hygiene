@@ -98,7 +98,112 @@ export LC_ALL=C
 
 case "${1:-}" in
   "") ;;
-  --self-test) die "--self-test is not yet implemented" ;;
+  --self-test)
+    mkdir -p "$ROOT/tmp"
+    self_test_dir="$(mktemp -d "$ROOT/tmp/repo-hygiene-self-test.XXXXXX")"
+    cleanup_self_test() {
+      rm -rf "$self_test_dir"
+    }
+    trap cleanup_self_test EXIT
+
+    # Every fixture literal is built by concatenation, exactly like the
+    # matcher above, so this script's own text stays clean of the words it
+    # detects.
+    st_word_users="Us""ers"
+    st_word_home="ho""me"
+    st_fake_macos="/${st_word_users}/self-test-user"
+    st_fake_linux="/${st_word_home}/self-test-user"
+    st_fake_tilde="~""/""self-test-cache"
+
+    make_repo() {
+      mkdir -p "$1"
+      git init -q "$1"
+    }
+
+    header_allowlist() {
+      printf '# repo-hygiene self-test allowlist\n' >"$1"
+    }
+
+    # (a) a clean fixture exits 0.
+    case_a="$self_test_dir/case_a"
+    make_repo "$case_a"
+    printf 'nothing interesting here\n' >"$case_a/clean.md"
+    (cd "$case_a" && git add -- clean.md)
+    allow_a="$self_test_dir/allow_a.tsv"
+    header_allowlist "$allow_a"
+
+    set +e
+    out_a="$(REPO_HYGIENE_ROOT="$case_a" REPO_HYGIENE_ALLOWLIST="$allow_a" "$0" 2>&1)"
+    status_a=$?
+    set -e
+    [ "$status_a" -eq 0 ] || die "self-test (a): clean fixture did not exit 0: $out_a"
+
+    # (b) one hit per family 1, 2 and 4 exits 1, naming each fixture file.
+    case_b="$self_test_dir/case_b"
+    make_repo "$case_b"
+    printf 'x %s/code\n' "$st_fake_macos" >"$case_b/family1.md"
+    printf 'x %s/code\n' "$st_fake_linux" >"$case_b/family2.md"
+    printf 'x %s/code\n' "$st_fake_tilde" >"$case_b/family4.md"
+    (cd "$case_b" && git add -- family1.md family2.md family4.md)
+    allow_b="$self_test_dir/allow_b.tsv"
+    header_allowlist "$allow_b"
+
+    set +e
+    out_b="$(REPO_HYGIENE_ROOT="$case_b" REPO_HYGIENE_ALLOWLIST="$allow_b" "$0" 2>&1)"
+    status_b=$?
+    set -e
+    [ "$status_b" -eq 1 ] || die "self-test (b): three-family fixture did not exit 1: $out_b"
+    printf '%s' "$out_b" | grep -q 'HIT family1.md' || die "self-test (b): missing family1 HIT: $out_b"
+    printf '%s' "$out_b" | grep -q 'HIT family2.md' || die "self-test (b): missing family2 HIT: $out_b"
+    printf '%s' "$out_b" | grep -q 'HIT family4.md' || die "self-test (b): missing family4 HIT: $out_b"
+
+    # (c) an allowlist entry covering the hit exits 0.
+    case_c="$self_test_dir/case_c"
+    make_repo "$case_c"
+    printf 'x %s/code\n' "$st_fake_tilde" >"$case_c/a.md"
+    (cd "$case_c" && git add -- a.md)
+    allow_c="$self_test_dir/allow_c.tsv"
+    printf '.\t%s\tSelf-test cache path fixture with a long enough reason\n' "$st_fake_tilde" >"$allow_c"
+
+    set +e
+    out_c="$(REPO_HYGIENE_ROOT="$case_c" REPO_HYGIENE_ALLOWLIST="$allow_c" "$0" 2>&1)"
+    status_c=$?
+    set -e
+    [ "$status_c" -eq 0 ] || die "self-test (c): covered hit did not exit 0: $out_c"
+
+    # (d) an unused entry exits 1.
+    case_d="$self_test_dir/case_d"
+    make_repo "$case_d"
+    printf 'nothing interesting here\n' >"$case_d/clean.md"
+    (cd "$case_d" && git add -- clean.md)
+    allow_d="$self_test_dir/allow_d.tsv"
+    printf '.\t%s\tSelf-test cache path fixture that never appears here\n' "$st_fake_tilde" >"$allow_d"
+
+    set +e
+    out_d="$(REPO_HYGIENE_ROOT="$case_d" REPO_HYGIENE_ALLOWLIST="$allow_d" "$0" 2>&1)"
+    status_d=$?
+    set -e
+    [ "$status_d" -eq 1 ] || die "self-test (d): unused entry did not exit 1: $out_d"
+    printf '%s' "$out_d" | grep -q 'UNUSED allowlist entry' || die "self-test (d): missing UNUSED report: $out_d"
+
+    # (e) an untracked file with a hit exits 0.
+    case_e="$self_test_dir/case_e"
+    make_repo "$case_e"
+    printf 'nothing interesting here\n' >"$case_e/tracked.md"
+    (cd "$case_e" && git add -- tracked.md)
+    printf 'x %s/code\n' "$st_fake_macos" >"$case_e/untracked.md"
+    allow_e="$self_test_dir/allow_e.tsv"
+    header_allowlist "$allow_e"
+
+    set +e
+    out_e="$(REPO_HYGIENE_ROOT="$case_e" REPO_HYGIENE_ALLOWLIST="$allow_e" "$0" 2>&1)"
+    status_e=$?
+    set -e
+    [ "$status_e" -eq 0 ] || die "self-test (e): untracked hit did not exit 0: $out_e"
+
+    printf 'verify-repo-hygiene self-test: ok (5 cases)\n'
+    exit 0
+    ;;
   *) die "unknown argument: $1 (usage: verify-repo-hygiene [--self-test])" ;;
 esac
 

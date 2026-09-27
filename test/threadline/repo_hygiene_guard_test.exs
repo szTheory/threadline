@@ -460,4 +460,58 @@ defmodule Threadline.RepoHygieneGuardTest do
                stderr_to_stdout: true
              )
   end
+
+  # --- --self-test mode --------------------------------------------------------
+
+  test "--self-test runs its five cases and exits 0" do
+    assert {output, 0} = System.cmd(@script, ["--self-test"], stderr_to_stdout: true)
+    assert output =~ "self-test: ok"
+  end
+
+  # --- The real, seeded allowlist shape ----------------------------------------
+
+  @real_allowlist_path Path.expand("../../.github/repo-hygiene-allowlist.tsv", __DIR__)
+
+  defp real_allowlist_entries do
+    @real_allowlist_path
+    |> File.read!()
+    |> String.split("\n")
+    |> Enum.map(&String.trim_trailing/1)
+    |> Enum.reject(&(&1 == "" or String.starts_with?(&1, "#")))
+    |> Enum.map(&String.split(&1, "\t"))
+  end
+
+  test "every real allowlist entry has 3 tab-separated fields and a reason >= 20 chars" do
+    entries = real_allowlist_entries()
+    assert entries != []
+
+    for fields <- entries do
+      assert length(fields) == 3, "malformed allowlist line: #{inspect(fields)}"
+      [_scope, _literal, reason] = fields
+      assert String.length(reason) >= 20, "reason too short: #{inspect(fields)}"
+    end
+  end
+
+  test "the real allowlist allowlists runner and cache paths (HYG-02)" do
+    literals = Enum.map(real_allowlist_entries(), fn [_scope, literal, _reason] -> literal end)
+
+    assert Enum.any?(literals, &String.starts_with?(&1, "/" <> "home" <> "/" <> "runner"))
+    cache_prefix = "~" <> "/" <> ".cache"
+    assert Enum.any?(literals, &String.starts_with?(&1, cache_prefix))
+  end
+
+  test "the real allowlist never allowlists a person's home directory" do
+    literals = Enum.map(real_allowlist_entries(), fn [_scope, literal, _reason] -> literal end)
+
+    forbidden_prefix_1 = "/" <> "Users" <> "/"
+    forbidden_prefix_6 = "-" <> "Users" <> "-"
+
+    for literal <- literals do
+      refute String.starts_with?(literal, forbidden_prefix_1),
+             "allowlist entry allowlists a macOS home path: #{literal}"
+
+      refute String.starts_with?(literal, forbidden_prefix_6),
+             "allowlist entry allowlists a Claude-encoded home path: #{literal}"
+    end
+  end
 end
