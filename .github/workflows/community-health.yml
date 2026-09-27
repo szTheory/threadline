@@ -39,8 +39,8 @@ on:
     types: [completed]
     branches: [main]
   schedule:
-    # 06:45 UTC daily — after branch protection (06:30), ahead of the nightly
-    # flake lane. The schedule is the point of this workflow: it is the only
+    # 06:45 UTC daily — after branch protection (06:30); on Mondays it also runs
+    # ahead of the weekly flake lane (07:00 UTC). The schedule is the point of this workflow: it is the only
     # trigger that catches settings drift with no commit behind it.
     - cron: "45 6 * * *"
   workflow_dispatch:

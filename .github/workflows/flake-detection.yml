@@ -1,8 +1,13 @@
-# Opt-in / nightly flake detection. Re-runs the test suite under
+# Weekly / on-demand flake detection. Re-runs the test suite under
 # `--repeat-until-failure` (fresh seed each repeat) to surface intermittent
 # failures before they bite a release. Intentionally separate from ci.yml so
-# per-PR CI stays fast; trigger manually from the Actions tab or let the nightly
+# per-PR CI stays fast; trigger manually from the Actions tab or let the weekly
 # schedule run it on main.
+#
+# 218-05 (ECON-01, D-01/D-02): the lane used to run nightly with an unbounded
+# 50-repeat soak that outgrew its job timeout, so it was cancelled four nights
+# running and reported nothing. It now runs weekly with a bounded 15-repeat
+# budget, so every run ends with a classification a maintainer can act on.
 #
 # GREEN-11 / D-35. This lane classifies what it found BY NAME rather than filing
 # everything as "flaky":
@@ -17,8 +22,9 @@ name: Flake Detection
 on:
   workflow_dispatch:
   schedule:
-    # 07:00 UTC nightly (after typical US/EU working hours).
-    - cron: "0 7 * * *"
+    # Monday 07:00 UTC, weekly (after typical US/EU working hours). Weekly plus
+    # on-demand dispatch gives a bounded signal instead of an unbounded nightly.
+    - cron: "0 7 * * 1"
 
 permissions:
   contents: read
@@ -28,17 +34,18 @@ jobs:
   verify-flake:
     name: Suite repeat-until-failure (broken vs flaky)
     runs-on: ubuntu-24.04
-    # `mix verify.flake` is `mix test --repeat-until-failure 50`, which MEASURED
-    # as 51 total suite runs (the initial run plus 50 repeats — verified locally,
-    # not inferred from the flag name).
+    # `mix verify.flake` is `mix test --repeat-until-failure 15`: 16 suite runs
+    # (the initial run plus 15 repeats).
     #
-    # Measured on the hosted runner (nightly run 35967937335, 2026-09-24, 1698
-    # tests): the first run took 288s cold, each repeat about 165s, and the job
-    # completed 42 green runs in 117 minutes before the old 120-minute bound
-    # cancelled it. It was cancelled four nights running without a failure, so
-    # it reported nothing. 51 runs need about 145 minutes; 180 leaves about 25%
-    # headroom. Re-measure and adjust if the suite grows by a lot.
-    timeout-minutes: 180
+    # Budget arithmetic (D-01), from nightly run 35967937335 (2026-09-24, 1698
+    # tests): 288 s cold first run + 15 x 165 s per repeat = 2,763 s, about
+    # 46 min. The repeat step runs under a `timeout(1)` budget of 55 min, so a
+    # budget expiry writes exit 124 (137 if the suite ignores SIGTERM for 60 s)
+    # and is classified `inconclusive`, never `unknown` or `flaky`. The step
+    # timeout (58) sits above that budget and below the job timeout (70), so the
+    # classify, upload and issue steps always get to run. Re-measure and adjust
+    # if the suite grows by a lot.
+    timeout-minutes: 70
     permissions:
       contents: read
       issues: write
@@ -91,12 +98,18 @@ jobs:
       # failing suite cannot fail (and thus skip) this step. The job is still
       # failed deliberately, but only at the very end, after classification and
       # issue handling have both run.
+      #
+      # `timeout(1)` rather than only the step timeout: a GitHub step timeout
+      # kills the step before `exit_code` is written, which the classifier could
+      # only report as `unknown`. Under `timeout(1)` a budget expiry still writes
+      # `exit_code=124` (or 137 after the 60 s kill grace).
       - name: Repeat the suite until failure
         id: repeat
+        timeout-minutes: 58
         run: |
           set +e
           set -uo pipefail
-          mix verify.flake 2>&1 | tee flake-detection.log
+          timeout --signal=TERM --kill-after=60s 55m mix verify.flake 2>&1 | tee flake-detection.log
           exit_code="${PIPESTATUS[0]}"
           echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
           exit 0
@@ -110,7 +123,7 @@ jobs:
       # Classification logic itself lives in bin/classify-flake-run (extracted
       # per CR-01/CR-02 so it is directly executable and unit-tested by
       # test/threadline/flake_classifier_contract_test.exs rather than reachable
-      # only via this 120-minute nightly job). This step just supplies the
+      # only via this weekly job). This step just supplies the
       # inputs and derives `iterations` for the issue body below — no
       # classification branching happens here.
       - name: Classify broken vs flaky
@@ -142,7 +155,7 @@ jobs:
           retention-days: 14
 
       # Create-or-update ONE tracking issue, never a new issue per run. `schedule`
-      # runs notify nobody, so without this a nightly failure is invisible; with a
+      # runs notify nobody, so without this a scheduled failure is invisible; with a
       # create-per-run it would be invisible for the opposite reason.
       #
       # The label is deliberately distinct from browser-full.yml's `ci-browser-full`
@@ -199,7 +212,7 @@ jobs:
           \`flake-detection-log\` artifact.
 
           This issue is reused across runs — repeated failures accumulate here as
-          comments rather than opening a new issue each night.
+          comments rather than opening a new issue each run.
           EOF
           bin/upsert-ci-issue --marker "$TITLE_PREFIX" \
             --title "$TITLE_PREFIX reported ${CLASSIFICATION}" \

@@ -22,31 +22,25 @@ defmodule Threadline.FlakeClassifierContractTest do
   """
 
   use ExUnit.Case, async: true
+  @moduletag :tmp_dir
 
   @repo_root File.cwd!()
   @script Path.join(@repo_root, "bin/classify-flake-run")
   @workflow_path Path.join(@repo_root, ".github/workflows/flake-detection.yml")
   @seed_header "Running ExUnit with seed: 12345, max_cases: 8\n"
 
-  defp fixture_log(header_count) do
-    path = Path.join(System.tmp_dir!(), "flake-fixture-#{System.unique_integer([:positive])}.log")
-    contents = String.duplicate(@seed_header, header_count)
-    File.write!(path, contents)
-    on_exit_delete(path)
+  defp fixture_log(tmp_dir, header_count) do
+    path = Path.join(tmp_dir, "flake-fixture-#{System.unique_integer([:positive])}.log")
+    File.write!(path, String.duplicate(@seed_header, header_count))
     path
   end
 
-  defp fixture_log_missing_headers_marker do
+  defp fixture_log_missing_headers_marker(tmp_dir) do
     # A log file that exists but contains no ExUnit seed banner at all — the
     # "tee failed / disk filled / step layout changed" case CR-02 named.
-    path = Path.join(System.tmp_dir!(), "flake-fixture-#{System.unique_integer([:positive])}.log")
+    path = Path.join(tmp_dir, "flake-fixture-#{System.unique_integer([:positive])}.log")
     File.write!(path, "some unrelated output\nno seed banner here\n")
-    on_exit_delete(path)
     path
-  end
-
-  defp on_exit_delete(path) do
-    ExUnit.Callbacks.on_exit(fn -> File.rm(path) end)
   end
 
   defp run_classifier(log_path, exit_code_env) do
@@ -60,44 +54,48 @@ defmodule Threadline.FlakeClassifierContractTest do
   end
 
   describe "Test 1: six-row classification behavior table (the load-bearing half)" do
-    test "exit code 0, any header count -> pass" do
-      log = fixture_log(3)
+    test "exit code 0, any header count -> pass", %{tmp_dir: tmp_dir} do
+      log = fixture_log(tmp_dir, 3)
       {output, exit_status} = run_classifier(log, "0")
 
       assert exit_status == 0
       assert String.trim(output) == "pass"
     end
 
-    test "exit code non-zero, 0 headers -> unknown (suite never started)" do
-      log = fixture_log(0)
+    test "exit code non-zero, 0 headers -> unknown (suite never started)", %{tmp_dir: tmp_dir} do
+      log = fixture_log(tmp_dir, 0)
       {output, exit_status} = run_classifier(log, "2")
 
       assert exit_status == 0
       assert String.trim(output) == "unknown"
     end
 
-    test "exit code non-zero, exactly 1 header -> broken (failed on first iteration)" do
-      log = fixture_log(1)
+    test "exit code non-zero, exactly 1 header -> broken (failed on first iteration)", %{
+      tmp_dir: tmp_dir
+    } do
+      log = fixture_log(tmp_dir, 1)
       {output, exit_status} = run_classifier(log, "2")
 
       assert exit_status == 0
       assert String.trim(output) == "broken"
     end
 
-    test "exit code non-zero, 2 or more headers -> flaky" do
-      log = fixture_log(3)
+    test "exit code non-zero, 2 or more headers -> flaky", %{tmp_dir: tmp_dir} do
+      log = fixture_log(tmp_dir, 3)
       {output, exit_status} = run_classifier(log, "2")
 
       assert exit_status == 0
       assert String.trim(output) == "flaky"
     end
 
-    test "exit code non-zero, header count empty/non-numeric -> unknown, NOT flaky (CR-02)" do
+    test "exit code non-zero, header count empty/non-numeric -> unknown, NOT flaky (CR-02)", %{
+      tmp_dir: tmp_dir
+    } do
       # This is the exact fall-through CR-02 named: grep -c against a log with
       # no seed banner does not error, it legitimately counts zero — but the
       # historical bug's `else` branch made anything not provably 0 or 1 land
       # on `flaky`. Assert the marker case explicitly here too.
-      log = fixture_log_missing_headers_marker()
+      log = fixture_log_missing_headers_marker(tmp_dir)
       {output, exit_status} = run_classifier(log, "2")
 
       assert exit_status == 0
@@ -105,8 +103,10 @@ defmodule Threadline.FlakeClassifierContractTest do
       refute String.trim(output) == "flaky"
     end
 
-    test "exit code empty or non-numeric -> unknown, and the script says so on stderr" do
-      log = fixture_log(3)
+    test "exit code empty or non-numeric -> unknown, and the script says so on stderr", %{
+      tmp_dir: tmp_dir
+    } do
+      log = fixture_log(tmp_dir, 3)
 
       # EXIT_CODE unset entirely.
       {output, exit_status} = run_classifier(log, nil)
@@ -119,8 +119,10 @@ defmodule Threadline.FlakeClassifierContractTest do
       assert String.trim(output2) == "unknown"
     end
 
-    test "embedded dash is not an integer -> unknown, NOT flaky (198 review WR-01)" do
-      log = fixture_log(3)
+    test "embedded dash is not an integer -> unknown, NOT flaky (198 review WR-01)", %{
+      tmp_dir: tmp_dir
+    } do
+      log = fixture_log(tmp_dir, 3)
 
       # A dash is a sign only in leading position. "1-2" once slipped through the
       # validator's character-class check and classified as `flaky` off a
@@ -144,23 +146,82 @@ defmodule Threadline.FlakeClassifierContractTest do
   end
 
   describe "Test 1b: GITHUB_OUTPUT append behavior" do
-    test "appends classification=<token> to GITHUB_OUTPUT without overwriting existing contents" do
-      log = fixture_log(3)
-
-      output_path =
-        Path.join(System.tmp_dir!(), "github-output-#{System.unique_integer([:positive])}")
-
+    test "appends classification= and reason= after existing GITHUB_OUTPUT contents", %{
+      tmp_dir: tmp_dir
+    } do
+      log = fixture_log(tmp_dir, 3)
+      output_path = Path.join(tmp_dir, "github-output")
       File.write!(output_path, "pre_existing=value\n")
-      on_exit_delete(output_path)
 
-      {_output, exit_status} =
+      {output, exit_status} =
         System.cmd(@script, [log], env: [{"EXIT_CODE", "0"}, {"GITHUB_OUTPUT", output_path}])
 
       assert exit_status == 0
+      # Stdout stays the bare classification token; the reason rides only in GITHUB_OUTPUT.
+      assert output == "pass\n"
 
-      contents = File.read!(output_path)
-      assert contents =~ "pre_existing=value"
-      assert contents =~ ~r/^classification=pass$/m
+      assert ["pre_existing=value" | appended] =
+               output_path |> File.read!() |> String.split("\n", trim: true)
+
+      assert "classification=pass" in appended
+
+      assert Enum.any?(appended, &String.starts_with?(&1, "reason=")),
+             "expected a reason= line appended after classification=, got #{inspect(appended)}"
+    end
+  end
+
+  describe "Test 1c: a budget expiry is inconclusive, never flaky (D-04)" do
+    defp classify_with_output(tmp_dir, headers, exit_code) do
+      log = fixture_log(tmp_dir, headers)
+      output_path = Path.join(tmp_dir, "github-output-#{System.unique_integer([:positive])}")
+
+      {output, status} =
+        System.cmd(@script, [log],
+          env: [{"EXIT_CODE", exit_code}, {"GITHUB_OUTPUT", output_path}]
+        )
+
+      {String.trim(output), status, File.read!(output_path)}
+    end
+
+    test "exit 124 with 3 headers -> inconclusive, with a reason naming the clean iterations",
+         %{tmp_dir: tmp_dir} do
+      {output, status, gh_output} = classify_with_output(tmp_dir, 3, "124")
+
+      assert status == 0
+      assert output == "inconclusive"
+      refute output == "flaky"
+      assert gh_output =~ ~r/^classification=inconclusive$/m
+      assert gh_output =~ ~r/^reason=budget exhausted after 2 clean iteration\(s\)/m
+    end
+
+    test "exit 137 (killed after the grace period) with 2 headers -> inconclusive", %{
+      tmp_dir: tmp_dir
+    } do
+      {output, status, _} = classify_with_output(tmp_dir, 2, "137")
+
+      assert status == 0
+      assert output == "inconclusive"
+      refute output == "flaky"
+    end
+
+    test "exit 124 with 0 headers -> unknown, timed out before the suite started", %{
+      tmp_dir: tmp_dir
+    } do
+      {output, status, gh_output} = classify_with_output(tmp_dir, 0, "124")
+
+      assert status == 0
+      assert output == "unknown"
+      refute output == "flaky"
+      assert gh_output =~ ~r/^reason=.*timed out before the suite started/m
+    end
+
+    test "the original rows are unchanged next to the new ones", %{tmp_dir: tmp_dir} do
+      assert {"broken", 0, _} = classify_with_output(tmp_dir, 1, "2")
+      assert {"flaky", 0, flaky_out} = classify_with_output(tmp_dir, 3, "2")
+      assert flaky_out =~ ~r/^reason=passed 2 time\(s\) then failed on iteration 3$/m
+      assert {"pass", 0, _} = classify_with_output(tmp_dir, 3, "0")
+      assert {"unknown", 0, empty_out} = classify_with_output(tmp_dir, 3, "")
+      assert empty_out =~ ~r/^reason=EXIT_CODE empty or non-numeric$/m
     end
   end
 
@@ -221,6 +282,97 @@ defmodule Threadline.FlakeClassifierContractTest do
       assert repeat_step_body =~ ~r/exit_code=/,
              "the repeat step must write exit_code=... to \$GITHUB_OUTPUT on every path, " <>
                "including a failing mix verify.flake"
+    end
+  end
+
+  describe "Test 5: bounded weekly lane shape (D-01/D-02/D-04)" do
+    defp step_body(yaml, step_name) do
+      [_, after_step] = String.split(yaml, step_name, parts: 2)
+      after_step |> String.split(~r/\n\s{6}- name:/, parts: 2) |> hd()
+    end
+
+    defp job_timeout(yaml) do
+      [_, job] = String.split(yaml, "\n  verify-flake:\n", parts: 2)
+      [header, _steps] = String.split(job, "\n    steps:\n", parts: 2)
+      [_, minutes] = Regex.run(~r/^    timeout-minutes:\s*(\d+)\s*$/m, header)
+      String.to_integer(minutes)
+    end
+
+    defp repeat_step_timeout(yaml) do
+      body = step_body(yaml, "Repeat the suite until failure")
+
+      case Regex.run(~r/^\s+timeout-minutes:\s*(\d+)\s*$/m, body) do
+        [_, minutes] -> String.to_integer(minutes)
+        nil -> nil
+      end
+    end
+
+    # Returns every lane-shape violation in `yaml`; [] means the shape holds.
+    defp lane_shape_violations(yaml) do
+      crons = Regex.scan(~r/^\s*- cron:\s*"([^"]+)"/m, yaml, capture: :all_but_first)
+
+      weekly? =
+        case crons do
+          [[expr]] ->
+            case String.split(expr) do
+              [_min, _hour, "*", "*", dow] -> dow =~ ~r/^[0-6]$/
+              _ -> false
+            end
+
+          _ ->
+            false
+        end
+
+      step = repeat_step_timeout(yaml)
+      job = job_timeout(yaml)
+
+      [
+        {weekly?, "exactly one cron: and it must be weekly (one fixed day of week)"},
+        {yaml =~ ~r/^\s+workflow_dispatch:/m, "workflow_dispatch: trigger missing"},
+        {step_body(yaml, "Repeat the suite until failure") =~
+           "timeout --signal=TERM --kill-after=60s 55m mix verify.flake",
+         "repeat step must run mix verify.flake under the timeout(1) budget"},
+        {is_integer(step) and step < job,
+         "repeat step timeout-minutes (#{inspect(step)}) must be below the job's (#{job})"}
+      ]
+      |> Enum.reject(&elem(&1, 0))
+      |> Enum.map(&elem(&1, 1))
+    end
+
+    test "the committed workflow is weekly plus dispatch, budgeted, with step < job timeout" do
+      yaml = File.read!(@workflow_path)
+
+      assert lane_shape_violations(yaml) == []
+      assert yaml =~ ~s(cron: "0 7 * * 1")
+      assert repeat_step_timeout(yaml) == 58
+      assert job_timeout(yaml) == 70
+    end
+
+    test "mutation controls: each broken copy is caught" do
+      yaml = File.read!(@workflow_path)
+
+      daily = String.replace(yaml, ~s(cron: "0 7 * * 1"), ~s(cron: "0 7 * * *"))
+      assert daily != yaml
+      assert Enum.any?(lane_shape_violations(daily), &(&1 =~ "weekly"))
+
+      swapped =
+        yaml
+        |> String.replace(~r/^(\s+)timeout-minutes: 58$/m, "\\1timeout-minutes: __JOB__")
+        |> String.replace(~r/^    timeout-minutes: 70$/m, "    timeout-minutes: 58")
+        |> String.replace("__JOB__", "70")
+
+      assert swapped != yaml
+      assert Enum.any?(lane_shape_violations(swapped), &(&1 =~ "must be below"))
+
+      unwrapped =
+        String.replace(
+          yaml,
+          "timeout --signal=TERM --kill-after=60s 55m mix verify.flake",
+          "mix verify.flake"
+        )
+
+      assert unwrapped != yaml
+      assert Enum.any?(lane_shape_violations(unwrapped), &(&1 =~ "timeout(1) budget"))
     end
   end
 end

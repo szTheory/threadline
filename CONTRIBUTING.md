@@ -188,12 +188,19 @@ tables in `setup` (FK order). Keep DB-touching tests on that helper.
 ```bash
 mix test test/path/to/flaky_test.exs --repeat-until-failure 200
 mix test --seed 0 --repeat-until-failure 20   # pin a specific ordering
-mix verify.flake                              # full suite, 50 repeats (fresh seed each)
+mix verify.flake                              # full suite, 15 repeats (fresh seed each)
 ```
 
-`mix verify.flake` is also run nightly (and on demand) by the **Flake Detection**
-workflow ([`.github/workflows/flake-detection.yml`](.github/workflows/flake-detection.yml));
-it is intentionally kept out of `mix ci.all` so per-PR CI stays fast.
+`mix verify.flake` is also run weekly (Monday 07:00 UTC) and on demand by the
+**Flake Detection** workflow
+([`.github/workflows/flake-detection.yml`](.github/workflows/flake-detection.yml)),
+inside a 55-minute time budget; it is intentionally kept out of `mix ci.all` so
+per-PR CI stays fast. A run that does not pass ends red with one of these outcomes:
+
+- **broken**: the suite failed on its first iteration, so it is a deterministic failure, not a flake.
+- **flaky**: the suite passed at least once, then failed on a later iteration.
+- **inconclusive**: the time budget ran out while every iteration so far was clean. That is not a proof, so the run stays red.
+- **broken-upstream**: CI is already red on the same commit with no green re-run, so the suite was not run.
 
 ## Local-only critic (verify.ui_critique)
 
