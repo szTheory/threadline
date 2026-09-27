@@ -181,6 +181,12 @@ defmodule Threadline.MixProject do
       # uses a fresh seed). Opt-in / nightly — not part of `ci.all` so per-PR CI
       # stays fast. See the "Deterministic tests" section in CONTRIBUTING.md.
       "verify.flake": ["test --repeat-until-failure 50"],
+      # HYG-03: proves a full `mix test` run leaves nothing behind in the system
+      # temp dir, via bin/verify-temp-leaks (private TMPDIR + leftover scan).
+      # Opt-in / not in `ci.all`, same rationale as verify.flake above — it
+      # re-runs the whole suite, so per-PR CI stays fast. CLI args pass through
+      # to `mix test` (e.g. `mix verify.temp_leaks test/some_test.exs`).
+      "verify.temp_leaks": &verify_temp_leaks/1,
       # Prepare a fresh clone's test environment, then run the suite.
       # The example app's deps are fetched because the library suite itself shells into
       # examples/threadline_phoenix (test/threadline/operator_surface/stress_router_test.exs)
@@ -238,6 +244,15 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd("bin/verify-deps-audit") do
       0 -> :ok
       status -> Mix.raise("verify.deps_audit failed (#{status})")
+    end
+  end
+
+  defp verify_temp_leaks(args) do
+    script = Path.expand("bin/verify-temp-leaks")
+
+    case System.cmd(script, args, into: IO.stream(:stdio, :line)) do
+      {_output, 0} -> :ok
+      {_output, status} -> Mix.raise("verify.temp_leaks failed (#{status})")
     end
   end
 

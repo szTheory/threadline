@@ -125,6 +125,14 @@ tables in `setup` (FK order). Keep DB-touching tests on that helper.
   events emitted by *any* concurrently-running test for the same event name.
 - **Don't assert on unordered query results positionally.** Add an explicit
   `order_by` when a test depends on row order.
+- **Scratch files use ExUnit `@tag :tmp_dir`, not `System.tmp_dir!()`.** A
+  per-test, per-module directory under the repo's gitignored `tmp/` is
+  async-safe and wiped before each run, so a raised assertion never leaves a
+  file behind in the real system temp dir. A test that must sit outside the
+  git worktree (e.g. it clones a checkout or shells `git`/`mix` in place)
+  keeps `System.tmp_dir!()`, with cleanup registered via `on_exit/1` so it
+  still runs on failure. `mix verify.temp_leaks` proves that a full `mix test`
+  run leaves nothing behind in the system temp dir.
 
 **Reproduce / prove determinism.** Run a test (or the suite) repeatedly:
 

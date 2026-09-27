@@ -47,7 +47,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
 
-private="$(mktemp -d "${TMPDIR:-/tmp}/threadline-temp-leak-check.XXXXXX")" ||
+# Strip a trailing slash from the base before building the mktemp template.
+# macOS sets TMPDIR to a path that already ends in "/" (e.g.
+# "/var/folders/.../T/"); concatenating another "/" here bakes a double slash
+# into every path under $private. `mktemp` and directory-listing code
+# (Path.wildcard, File.ls!) both collapse that to a single slash on output,
+# but code that starts from the raw System.tmp_dir!()/TMPDIR string (e.g.
+# `Path.join(System.tmp_dir!(), name)`, which only normalizes the join
+# boundary, not slashes already inside its first argument) does not — so a
+# test comparing a hand-built path against one derived from a directory
+# listing sees two different strings for the same file and fails. Not a
+# theoretical case: it broke gen_triggers_test.exs's `[^legacy, new_file]`
+# pin under this script before this fix.
+tmpdir_base="${TMPDIR:-/tmp}"
+tmpdir_base="${tmpdir_base%/}"
+private="$(mktemp -d "${tmpdir_base}/threadline-temp-leak-check.XXXXXX")" ||
   die "could not create a private TMPDIR"
 
 cleanup_private() {

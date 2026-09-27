@@ -6,6 +6,18 @@ TMP_BASE=${TMPDIR:-/tmp}
 TMP=$(mktemp -d "$TMP_BASE/threadline-fail-fast.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT INT TERM HUP
 
+# npm's own CLI (lib/cli.js) calls `module.enableCompileCache()` unconditionally
+# with no directory argument, which defaults to `<tmpdir>/node-compile-cache`
+# when NODE_COMPILE_CACHE is unset — landing directly in the shared system temp
+# dir on every `npm exec` call below. Playwright's TS transform cache has the
+# same default (`<tmpdir>/playwright-transform-cache-<euid>`, see
+# playwright-core/lib/transform/esmLoader.js), overridable via PWTEST_CACHE_DIR.
+# Point both at this script's own scratch dir, which the EXIT trap above
+# already removes, so neither writes a HYG-03 leak into the real system temp
+# root (proven by bin/verify-temp-leaks against this script's test).
+export NODE_COMPILE_CACHE="$TMP/node-compile-cache"
+export PWTEST_CACHE_DIR="$TMP/playwright-transform-cache"
+
 # `mix verify.test` runs in a clean checkout before the browser job has installed
 # the example app's npm dependencies. A bare `npx playwright` installs the
 # `playwright` CLI, but leaves imports of `@playwright/test` in this config, the

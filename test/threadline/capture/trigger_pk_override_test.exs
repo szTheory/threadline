@@ -50,6 +50,7 @@ defmodule Threadline.Capture.TriggerPKOverrideTest do
 
       Harness.cleanup!(Harness.migration_files(tmp))
       drop_fixtures!()
+      File.rm_rf!(tmp)
     end)
 
     %{tmp: tmp}
