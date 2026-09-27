@@ -906,6 +906,78 @@ defmodule Threadline.CiTopologyContractTest do
            "tagging the mechanical checker test out of the default suite must fail the contract"
   end
 
+  # --- Plan 218-04: the proofs that dominate the removed jobs stay in force ---
+  #
+  # verify-docs and verify-hex-package left CI because verify-bump-rehearsal
+  # (through mix verify.release) and verify-hex-evaluator catch the same failure
+  # classes on the same triggers. These pins make that dominance impossible to
+  # lapse silently.
+  defp dominance_errors(_mix_exs, _yaml) do
+    []
+  end
+
+  test "dominating proofs for removed jobs stay in force" do
+    mix_exs = read_rel!(["mix.exs"])
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert dominance_errors(mix_exs, yaml) == []
+
+    mix_controls = [
+      {"ExDoc build dropped from verify.release",
+       String.replace(mix_exs, ~s("MIX_ENV=dev mix docs --warnings-as-errors",\n), "")},
+      {"hex.build dropped from verify.release",
+       String.replace(mix_exs, ~s(,\n      "mix hex.build"\n), "\n")},
+      {"evaluator default mode changed",
+       String.replace(
+         mix_exs,
+         ~s|System.get_env("THREADLINE_HEX_EVALUATOR_MODE", "rehearsal")|,
+         ~s|System.get_env("THREADLINE_HEX_EVALUATOR_MODE", "published")|
+       )}
+    ]
+
+    yaml_controls = [
+      {"verify-bump-rehearsal dropped from ci-required needs",
+       String.replace(yaml, "      - verify-bump-rehearsal\n", "")},
+      {"verify-hex-evaluator dropped from ci-required needs",
+       String.replace(yaml, "      - verify-hex-evaluator\n", "")},
+      {"job-level if on verify-hex-evaluator",
+       String.replace(
+         yaml,
+         "  verify-hex-evaluator:\n    name: ",
+         "  verify-hex-evaluator:\n    if: github.event_name == 'push'\n    name: "
+       )},
+      {"job-level if on verify-bump-rehearsal",
+       String.replace(
+         yaml,
+         "  verify-bump-rehearsal:\n    name: ",
+         "  verify-bump-rehearsal:\n    if: github.event_name == 'push'\n    name: "
+       )},
+      {"evaluator mode forced to published in ci.yml",
+       String.replace(
+         yaml,
+         "  verify-hex-evaluator:\n    name: Hex evaluator smoke (threadline from hex.pm)\n",
+         "  verify-hex-evaluator:\n    name: Hex evaluator smoke (threadline from hex.pm)\n" <>
+           "    env:\n      THREADLINE_HEX_EVALUATOR_MODE: published\n"
+       )},
+      {"pull_request trigger dropped",
+       String.replace(yaml, "  pull_request:\n    branches: [main]\n", "")}
+    ]
+
+    for {control, mutated} <- mix_controls do
+      refute mutated == mix_exs, "#{control} control did not change the input"
+
+      refute dominance_errors(mutated, yaml) == [],
+             "#{control} mutation must make the dominance contract fail"
+    end
+
+    for {control, mutated} <- yaml_controls do
+      refute mutated == yaml, "#{control} control did not change the input"
+
+      refute dominance_errors(mix_exs, mutated) == [],
+             "#{control} mutation must make the dominance contract fail"
+    end
+  end
+
   test "the ruleset's sole required status check is byte-exact with ci-required's emitted name" do
     ruleset =
       [".github", "rulesets", "main.json"]
