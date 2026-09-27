@@ -730,34 +730,53 @@ defmodule Threadline.CIWorkflowParityContractTest do
       end
     end
 
-    test "ci.yml never names the OS-family runner context, comments included" do
-      path = ".github/workflows/ci.yml"
-      yaml = read_rel!([".github", "workflows", "ci.yml"])
+    test "no workflow names the OS-family runner context, comments included" do
+      live = all_workflows()
+      ci = ".github/workflows/ci.yml"
+      flake = ".github/workflows/flake-detection.yml"
 
-      assert os_family_context_errors(path, yaml) == []
+      for path <- [ci, flake] do
+        assert Map.has_key?(live, path), "#{path} missing from all_workflows()"
+      end
+
+      for {path, yaml} <- all_workflows() do
+        assert os_family_context_errors(path, yaml) == []
+      end
+
+      mutate = fn path, from, to ->
+        Map.update!(live, path, &String.replace(&1, from, to, global: false))
+      end
 
       controls = [
-        {"cache key built on the OS-family context",
-         String.replace(
-           yaml,
+        {ci, "cache key built on the OS-family context",
+         mutate.(
+           ci,
            "key: ${{ matrix.runner }}-",
-           "key: ${{ " <> @os_family_context <> " }}-${{ matrix.runner }}-",
-           global: false
+           "key: ${{ " <> @os_family_context <> " }}-${{ matrix.runner }}-"
          )},
-        {"OS-family context named only in a comment",
-         String.replace(
-           yaml,
+        {ci, "OS-family context named only in a comment",
+         mutate.(
+           ci,
            "      # CACHE KEY CONTRACT",
-           "      # e.g. " <> @os_family_context <> "\n      # CACHE KEY CONTRACT",
-           global: false
+           "      # e.g. " <> @os_family_context <> "\n      # CACHE KEY CONTRACT"
+         )},
+        {flake, "OS-family context named only in a flake-detection.yml comment",
+         mutate.(
+           flake,
+           "      # Key shape follows the CACHE KEY CONTRACT",
+           "      # e.g. " <>
+             @os_family_context <> "\n      # Key shape follows the CACHE KEY CONTRACT"
          )}
       ]
 
-      for {control, mutated} <- controls do
-        refute mutated == yaml, "#{control} control did not change the input"
+      for {path, control, mutated} <- controls do
+        refute mutated == live, "#{control} control did not change the input"
 
-        refute os_family_context_errors(path, mutated) == [],
-               "#{control} mutation must make the OS-family context check fail"
+        errors = workflows_os_family_context_errors(mutated)
+
+        assert Enum.any?(errors, &String.starts_with?(&1, path <> ":")),
+               "#{control} mutation must make the OS-family context check fail for #{path}, " <>
+                 "got #{inspect(errors)}"
       end
     end
 
@@ -1257,6 +1276,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
     |> Enum.map(fn [_, key, value] ->
       "#{path} #{key}: #{value} names the deprecated runner image"
     end)
+  end
+
+  # Every workflow's OS-family context errors (D-05).
+  defp workflows_os_family_context_errors(yaml_by_path) do
+    yaml_by_path
+    |> Map.take([".github/workflows/ci.yml"])
+    |> Enum.flat_map(fn {path, yaml} -> os_family_context_errors(path, yaml) end)
   end
 
   # Whole file, comments included: the CACHE KEY CONTRACT comment promises the
