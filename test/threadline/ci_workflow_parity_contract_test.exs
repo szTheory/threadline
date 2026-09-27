@@ -421,6 +421,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
   @legacy_otp_segment "otp" <> "27"
   @legacy_otp_value "27" <> ".0"
 
+  # Release jobs read the pin into this directory so its sparse checkout never
+  # shares a git repository with the workspace-root checkout of the target ref.
+  @toolchain_pin_dir ".toolchain-pin"
+
   @resolved_otp "${{ steps.beam.outputs.otp-version }}"
   @resolved_elixir "${{ steps.beam.outputs.elixir-version }}"
   @resolved_deps_prefix "ubuntu-24.04-#{@resolved_otp}-elixir-#{@resolved_elixir}-mix-deps-"
@@ -626,6 +630,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
         assert String.contains?(job, "sparse-checkout: .tool-versions"),
                "#{job_id} must check out .tool-versions from the workflow commit, " <>
                  "or this contract is vacuous"
+
+        assert String.contains?(job, "path: #{@toolchain_pin_dir}\n"),
+               "#{job_id} must read the pin into #{@toolchain_pin_dir}, or its sparse " <>
+                 "config reaches the workspace-root checkout (main Release run 36319430805)"
       end
 
       publish = workflow_job(release, "publish-hex")
@@ -663,6 +671,21 @@ defmodule Threadline.CIWorkflowParityContractTest do
            publish,
            "sparse-checkout: .tool-versions",
            "sparse-checkout: " <> "mix.exs"
+         )},
+        # The shape that broke on main Release run 36319430805: the sparse pin
+        # checkout at the workspace root, followed by the release-branch checkout.
+        {"sync-release-pr-pins", sync, "toolchain checkout without its own path",
+         sync
+         |> String.replace("          path: #{@toolchain_pin_dir}\n", "")
+         |> String.replace(
+           "version-file: #{@toolchain_pin_dir}/.tool-versions",
+           "version-file: .tool-versions"
+         )},
+        {"smoke-published", smoke, "version-file at the root while the pin sits in its own path",
+         String.replace(
+           smoke,
+           "version-file: #{@toolchain_pin_dir}/.tool-versions",
+           "version-file: .tool-versions"
          )}
       ]
 
@@ -839,7 +862,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     text |> strip_comment_lines() |> String.split("\n") |> Enum.map(&String.trim/1)
   end
 
-  defp setup_beam_errors(path, job_id, step) do
+  defp setup_beam_errors(path, job_id, step, pin_dir) do
     stripped = strip_comment_lines(step)
 
     cond do
@@ -850,17 +873,20 @@ defmodule Threadline.CIWorkflowParityContractTest do
         matrix_setup_beam_errors(path, job_id, stripped)
 
       true ->
-        file_setup_beam_errors(path, job_id, stripped)
+        file_setup_beam_errors(path, job_id, stripped, pin_dir)
     end
   end
 
-  # FILE form: the step installs exactly the committed `.tool-versions` build.
-  defp file_setup_beam_errors(path, job_id, step) do
+  # FILE form: the step installs exactly the committed `.tool-versions` build,
+  # read from the workspace root, or from the job's toolchain checkout `path:`
+  # when the job isolates that checkout in a subdirectory.
+  defp file_setup_beam_errors(path, job_id, step, pin_dir) do
     lines = trimmed_lines(step)
     where = "#{path} #{job_id} setup-beam step"
+    version_file = "version-file: " <> pin_file(pin_dir)
 
     required =
-      for line <- ["id: beam", "version-file: .tool-versions", "version-type: strict"],
+      for line <- ["id: beam", version_file, "version-type: strict"],
           line not in lines do
         "#{where} must declare `#{line}`"
       end
@@ -1016,7 +1042,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # precedes it decides which commit's pin is installed. It must be the workflow's
   # own commit (no `ref:`): a release branch or recovery tag may predate the file.
   # A checkout that narrows the workspace to the pin must be exactly that narrow
-  # and must not persist the job token.
+  # and must not persist the job token. When a checkout of another ref follows it,
+  # the pin checkout must live in its own `path:`: git 2.55 leaves
+  # `core.sparseCheckout=true` in place after `git sparse-checkout disable` when
+  # sparse was enabled through plain config (actions/checkout's non-cone path),
+  # so a shared repository hands the target checkout a `.tool-versions`-only tree
+  # (main Release run 36319430805). setup-beam then reads the pin from that path.
   defp toolchain_source_errors(path, job_id, block) do
     steps = block |> strip_comment_lines() |> job_steps()
     where = "#{path} #{job_id}"
@@ -1045,7 +1076,72 @@ defmodule Threadline.CIWorkflowParityContractTest do
         "#{where} toolchain checkout must declare `#{line}`"
       end
 
-    source_errors ++ sparse_errors
+    source_errors ++ sparse_errors ++ pin_isolation_errors(steps, where)
+  end
+
+  defp pin_isolation_errors(steps, where) do
+    checkout? = &String.contains?(&1, "uses: actions/checkout@")
+
+    for {step, at} <- Enum.with_index(steps),
+        checkout?.(step),
+        yaml_value(step, "sparse-checkout") != nil,
+        later = Enum.drop(steps, at + 1),
+        error <- pin_path_errors(step, later, where) ++ pin_reader_errors(step, later, where) do
+      error
+    end
+  end
+
+  defp pin_path_errors(pin_checkout, later, where) do
+    pin_dir = checkout_dir(pin_checkout)
+
+    for target <- later,
+        String.contains?(target, "uses: actions/checkout@"),
+        yaml_value(target, "ref") != nil,
+        checkout_dir(target) == pin_dir do
+      "#{where} toolchain checkout must declare a `path:` that differs from the " <>
+        "later `ref:` checkout's path, or its sparse config reaches that checkout"
+    end
+  end
+
+  defp pin_reader_errors(pin_checkout, later, where) do
+    expected = pin_file(checkout_dir(pin_checkout))
+
+    case Enum.find(later, &String.contains?(&1, "uses: erlef/setup-beam@")) do
+      nil ->
+        []
+
+      beam ->
+        if yaml_value(beam, "version-file") == expected,
+          do: [],
+          else: [
+            "#{where} setup-beam must read `version-file: #{expected}` from the pin checkout"
+          ]
+    end
+  end
+
+  # The directory a checkout step writes into; the workspace root when no `path:`.
+  defp checkout_dir(step) do
+    case yaml_value(step, "path") do
+      value when value in [nil, "", ".", "./"] -> "."
+      value -> value |> String.trim_leading("./") |> String.trim_trailing("/")
+    end
+  end
+
+  defp pin_file("."), do: ".tool-versions"
+  defp pin_file(nil), do: ".tool-versions"
+  defp pin_file(dir), do: dir <> "/.tool-versions"
+
+  # The `path:` of the job's toolchain (sparse) checkout, or nil when it has none.
+  defp toolchain_pin_dir(steps) do
+    steps
+    |> Enum.find(fn step ->
+      String.contains?(step, "uses: actions/checkout@") and
+        yaml_value(step, "sparse-checkout") != nil
+    end)
+    |> case do
+      nil -> nil
+      step -> checkout_dir(step)
+    end
   end
 
   defp pin_checkout_errors([], where),
@@ -1194,8 +1290,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   defp job_toolchain_errors(path, {job_id, block}) do
     steps = job_steps(block)
+    pin_dir = block |> strip_comment_lines() |> job_steps() |> toolchain_pin_dir()
 
-    Enum.flat_map(steps, &setup_beam_errors(path, job_id, &1)) ++
+    Enum.flat_map(steps, &setup_beam_errors(path, job_id, &1, pin_dir)) ++
       toolchain_source_errors(path, job_id, block) ++
       beam_ordering_errors(path, job_id, block) ++
       Enum.flat_map(steps, &cache_key_errors(path, job_id, &1))
