@@ -63,6 +63,8 @@ defmodule Threadline.RepoHygieneGuardTest do
   @fake_tilde_home "~" <> "/" <> "fixture-cache"
   @fake_macos_temp "/" <> "var" <> "/" <> "folders" <> "/" <> "ab" <> "/"
   @fake_claude_dir "-" <> "Users" <> "-" <> "fixture-user" <> "-"
+  @fake_claude_dir_single "-" <> "Users" <> "-" <> "fixture"
+  @placeholder_claude_dir "-" <> "Users" <> "-" <> "<user>" <> "-" <> "<project>"
   @fake_json_home "\\" <> "/" <> "Users" <> "\\" <> "/" <> "fixture-user"
   @mid_word_form "shell" <> @fake_linux_home
   @placeholder_users "/" <> "Users" <> "/" <> "<user>" <> "/"
@@ -135,6 +137,29 @@ defmodule Threadline.RepoHygieneGuardTest do
     allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
     assert {output, 1} = run_guard(root, allowlist: allowlist)
     assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 6 (Claude-encoded project dir) hits a single-segment token at end of line", %{
+    tmp_dir: tmp_dir
+  } do
+    root = fixture_repo!(tmp_dir, %{"a.md" => "x " <> @fake_claude_dir_single <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 6 hits a single-segment token followed by a slash", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => "/foo/" <> @fake_claude_dir_single <> "/bar\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "a Claude-encoded placeholder form gives no HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @placeholder_claude_dir <> "/memory\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "clean"
   end
 
   test "family 7 (JSON-escaped home) produces exactly one HIT", %{tmp_dir: tmp_dir} do
@@ -463,9 +488,9 @@ defmodule Threadline.RepoHygieneGuardTest do
 
   # --- --self-test mode --------------------------------------------------------
 
-  test "--self-test runs its five cases and exits 0" do
+  test "--self-test runs its six cases and exits 0" do
     assert {output, 0} = System.cmd(@script, ["--self-test"], stderr_to_stdout: true)
-    assert output =~ "self-test: ok"
+    assert output =~ "self-test: ok (6 cases)"
   end
 
   # --- The real, seeded allowlist shape ----------------------------------------

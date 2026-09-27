@@ -71,7 +71,9 @@
 #   3. Windows user home:      <drive>:\Users\<name>  (backslashes)
 #   4. Home-relative:          ~/<name>
 #   5. macOS per-user temp:    [/private]/var/folders/<2 chars>/
-#   6. Claude-encoded project: -Users-<name>-
+#   6. Claude-encoded project: -Users-<name>  (dash, home word, dash, user
+#                              segment; the segment ends at `-`, `/`, any
+#                              byte outside [A-Za-z0-9._], or end of line)
 #   7. JSON-escaped home:      \/Users\/<name> or \/home\/<name>
 # Families 1, 2, 4, 5 and 7 require a preceding boundary byte (start of
 # line, or a byte outside [A-Za-z0-9._-]) — this is what keeps a mid-word
@@ -201,7 +203,24 @@ case "${1:-}" in
     set -e
     [ "$status_e" -eq 0 ] || die "self-test (e): untracked hit did not exit 0: $out_e"
 
-    printf 'verify-repo-hygiene self-test: ok (5 cases)\n'
+    # (f) a single-segment Claude-encoded token (the user segment is the
+    # last component) exits 1 with a HIT (CR-01 regression).
+    case_f="$self_test_dir/case_f"
+    make_repo "$case_f"
+    st_fake_claude_single="-${st_word_users}-self-test"
+    printf 'x /foo/%s/bar\n' "$st_fake_claude_single" >"$case_f/family6.md"
+    (cd "$case_f" && git add -- family6.md)
+    allow_f="$self_test_dir/allow_f.tsv"
+    header_allowlist "$allow_f"
+
+    set +e
+    out_f="$(REPO_HYGIENE_ROOT="$case_f" REPO_HYGIENE_ALLOWLIST="$allow_f" "$0" 2>&1)"
+    status_f=$?
+    set -e
+    [ "$status_f" -eq 1 ] || die "self-test (f): single-segment family-6 fixture did not exit 1: $out_f"
+    printf '%s' "$out_f" | grep -q 'HIT family6.md' || die "self-test (f): missing family6 HIT: $out_f"
+
+    printf 'verify-repo-hygiene self-test: ok (6 cases)\n'
     exit 0
     ;;
   *) die "unknown argument: $1 (usage: verify-repo-hygiene [--self-test])" ;;
@@ -247,7 +266,7 @@ my @res = (
   qr{([A-Za-z]:\\+\Q$users\E\\+[A-Za-z0-9._-]+[A-Za-z0-9._\\+-]*)},
   qr{(?<![A-Za-z0-9._-])(~/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)},
   qr{(?<![A-Za-z0-9._-])((?:/private)?/var/folders/[A-Za-z0-9_+-]{2}/)},
-  qr{(-\Q$users\E-[A-Za-z0-9._]+-)},
+  qr{(-\Q$users\E-[A-Za-z0-9._]+)},
   qr{(?<![A-Za-z0-9._-])(\\/(?:\Q$users\E|\Q$home\E)\\/[A-Za-z0-9._-]+[A-Za-z0-9._\\/+-]*)},
 );
 while (my $l = <STDIN>) {
