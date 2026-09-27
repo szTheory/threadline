@@ -70,8 +70,8 @@ mix ci.all
 ```
 
 This repository alias runs formatting, Credo, strict compiles, tests, trigger
-coverage, a dependency audit of all three lockfiles, documentation contracts,
-and Dialyzer in the test environment. If
+coverage, a dependency audit of all three lockfiles, a machine-local path
+check, documentation contracts, and Dialyzer in the test environment. If
 your local database uses a non-default port, set `DB_PORT` for the command as
 described in the [local database guide](guides/local-docker-dx.md#run-the-test-database).
 
@@ -490,6 +490,7 @@ without also failing a test.
 - `verify-release-shape`
 - `verify-bump-rehearsal`
 - `verify-deps-audit`
+- `verify-repo-hygiene`
 
 No `allowed-skips` or `allowed-failures` entry is documented here today,
 because `.github/workflows/ci.yml`'s `alls-green` step carries neither — every
@@ -581,6 +582,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 | `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.5.1 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
+| `verify-repo-hygiene` | `bin/verify-repo-hygiene` (also `mix verify.repo_hygiene` in `ci.all`): scans tracked text files only for machine-local paths (user homes, home-relative paths, macOS temp roots) against the scoped, reason-carrying `.github/repo-hygiene-allowlist.tsv`, and fails on any unused allowlist entry; then `bin/verify-repo-hygiene --self-test` proves it goes red on runtime-built fixtures |
 
 ### Dialyzer PLT cache and measurement contract
 

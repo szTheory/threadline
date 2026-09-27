@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, verify-bump-rehearsal, verify-deps-audit, ci-required
+# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, verify-bump-rehearsal, verify-deps-audit, verify-repo-hygiene, ci-required
 #
 # `ci-required` (name: "CI required") is the SINGLE required status check on
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
@@ -958,8 +958,29 @@ jobs:
       - name: Prove the gate goes red (vulnerable lock, old Hex)
         run: bin/verify-deps-audit --self-test
 
+  verify-repo-hygiene:
+    name: Repo hygiene (no machine-local paths)
+    runs-on: ubuntu-24.04
+    # Measured locally: `bin/verify-repo-hygiene` ~1.5s + `bin/verify-repo-hygiene
+    # --self-test` ~1.4s = ~3s combined wall time. 10 minutes is the repo's
+    # timeout floor and gives enormous headroom on a slower hosted runner
+    # without hiding a hang.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # Deliberately no erlef/setup-beam and no cache: the guard is pure git +
+      # bash + perl (see bin/verify-repo-hygiene), and `mix verify.repo_hygiene`
+      # shells to the identical script with no arguments, so CI and `ci.all`
+      # run identical logic without needing a BEAM toolchain in this job.
+      - name: Scan tracked text for machine-local paths
+        run: bin/verify-repo-hygiene
+
+      - name: Prove the guard goes red (runtime-built fixtures)
+        run: bin/verify-repo-hygiene --self-test
+
   # The single required status check on `main` (D-08). Collapses every job above
-  # into one pass/fail signal so branch protection names one context, not fifteen,
+  # into one pass/fail signal so branch protection names one context, not sixteen,
   # and so no required-check name carries a matrix axis that could rot.
   #
   # `if: always()` is load-bearing (D-09): a job that `needs:` a FAILED job is
@@ -989,6 +1010,7 @@ jobs:
       - verify-release-shape
       - verify-bump-rehearsal
       - verify-deps-audit
+      - verify-repo-hygiene
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -1001,5 +1023,5 @@ jobs:
           # Extension point: the first `needs:` job that becomes conditionally
           # skipped (a job-level `if:`) must be listed here via `allowed-skips`,
           # or this gate will correctly fail on its skip. Deliberately absent
-          # today — all fifteen jobs above run unconditionally, so neither
+          # today — all sixteen jobs above run unconditionally, so neither
           # `allowed-skips` nor `allowed-failures` applies yet.

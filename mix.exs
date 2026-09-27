@@ -172,6 +172,11 @@ defmodule Threadline.MixProject do
       # ignored on purpose so the gate cannot be narrowed from the command
       # line; see bin/verify-deps-audit for the full contract.
       "verify.deps_audit": &verify_deps_audit/1,
+      # HYG-02 per-PR gate: scans tracked text for machine-local paths via
+      # bin/verify-repo-hygiene. CLI args are ignored on purpose so the gate
+      # cannot be narrowed from the command line; see bin/verify-repo-hygiene
+      # for the full contract.
+      "verify.repo_hygiene": &verify_repo_hygiene/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
       # GATE-04: zero compile-connected module cycles (runtime association edges are allowed).
       "verify.xref_cycles": [
@@ -206,6 +211,7 @@ defmodule Threadline.MixProject do
         # verify.release / verify.bump_rehearsal above and below, which stay out
         # of ci.all on purpose. Fast and network-bound, so it runs early.
         "verify.deps_audit",
+        "verify.repo_hygiene",
         "compile --warnings-as-errors",
         "verify.xref_cycles",
         "verify.compile_no_optional",
@@ -244,6 +250,13 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd("bin/verify-deps-audit") do
       0 -> :ok
       status -> Mix.raise("verify.deps_audit failed (#{status})")
+    end
+  end
+
+  defp verify_repo_hygiene(_args) do
+    case Mix.shell().cmd("bin/verify-repo-hygiene") do
+      0 -> :ok
+      status -> Mix.raise("verify.repo_hygiene failed (#{status})")
     end
   end
 
