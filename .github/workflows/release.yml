@@ -128,10 +128,15 @@ jobs:
       # (a release-please branch or a recovery tag) may predate the tracked file, so
       # the toolchain comes from this workflow's own commit, exactly as the literal
       # pins did before. The toolchain lands in the runner tool cache, so the
-      # checkout below does not undo it.
+      # checkout below does not undo it. The pin is read into .toolchain-pin so its
+      # sparse config never touches the workspace-root checkout below: git 2.55
+      # leaves core.sparseCheckout set after `sparse-checkout disable`, which left
+      # only .tool-versions on disk (main Release run 36319430805). The root has no
+      # .git, so actions/checkout empties it, .toolchain-pin included, before cloning.
       - name: Read the toolchain pin from this workflow's commit
         uses: actions/checkout@v5
         with:
+          path: .toolchain-pin
           sparse-checkout: .tool-versions
           sparse-checkout-cone-mode: false
           persist-credentials: false
@@ -139,7 +144,7 @@ jobs:
       - uses: erlef/setup-beam@v1
         id: beam
         with:
-          version-file: .tool-versions
+          version-file: .toolchain-pin/.tool-versions
           version-type: strict
 
       # persist-credentials: false keeps the token out of .git/config. The steps
@@ -424,10 +429,15 @@ jobs:
       # (a release-please branch or a recovery tag) may predate the tracked file, so
       # the toolchain comes from this workflow's own commit, exactly as the literal
       # pins did before. The toolchain lands in the runner tool cache, so the
-      # checkout below does not undo it.
+      # checkout below does not undo it. The pin is read into .toolchain-pin so its
+      # sparse config never touches the workspace-root checkout below: git 2.55
+      # leaves core.sparseCheckout set after `sparse-checkout disable`, which left
+      # only .tool-versions on disk (main Release run 36319430805). The root has no
+      # .git, so actions/checkout empties it, .toolchain-pin included, before cloning.
       - name: Read the toolchain pin from this workflow's commit
         uses: actions/checkout@v5
         with:
+          path: .toolchain-pin
           sparse-checkout: .tool-versions
           sparse-checkout-cone-mode: false
           persist-credentials: false
@@ -435,7 +445,7 @@ jobs:
       - uses: erlef/setup-beam@v1
         id: beam
         with:
-          version-file: .tool-versions
+          version-file: .toolchain-pin/.tool-versions
           version-type: strict
 
       - uses: actions/checkout@v5
@@ -584,10 +594,15 @@ jobs:
       # (a release-please branch or a recovery tag) may predate the tracked file, so
       # the toolchain comes from this workflow's own commit, exactly as the literal
       # pins did before. The toolchain lands in the runner tool cache, so the
-      # checkout below does not undo it.
+      # checkout below does not undo it. The pin is read into .toolchain-pin so its
+      # sparse config never touches the workspace-root checkout below: git 2.55
+      # leaves core.sparseCheckout set after `sparse-checkout disable`, which left
+      # only .tool-versions on disk (main Release run 36319430805). The root has no
+      # .git, so actions/checkout empties it, .toolchain-pin included, before cloning.
       - name: Read the toolchain pin from this workflow's commit
         uses: actions/checkout@v5
         with:
+          path: .toolchain-pin
           sparse-checkout: .tool-versions
           sparse-checkout-cone-mode: false
           persist-credentials: false
@@ -595,7 +610,7 @@ jobs:
       - uses: erlef/setup-beam@v1
         id: beam
         with:
-          version-file: .tool-versions
+          version-file: .toolchain-pin/.tool-versions
           version-type: strict
 
       - uses: actions/checkout@v5
