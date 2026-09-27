@@ -177,20 +177,59 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
              "pin sync silently suppresses the CI bootstrap and the release PR gets no CI " <>
              "at all (202-REVIEW WR-03)."
 
-    assert bootstrap =~ ~r/^    permissions:\n      actions: write$/m,
-           "bootstrap-release-pr-ci must keep `actions: write`, or the no-PAT dispatch " <>
-             "fails and the release PR gets no CI at all (ECON-03)."
+    assert bootstrap_guard_errors(bootstrap) == []
+  end
 
-    assert bootstrap =~
-             ~r/^      RELEASE_PAT_CONFIGURED: \$\{\{ secrets\.RELEASE_PLEASE_TOKEN != '' \}\}$/m,
-           "bootstrap-release-pr-ci must export only the boolean `RELEASE_PLEASE_TOKEN != ''` " <>
-             "as RELEASE_PAT_CONFIGURED. Exporting the secret itself leaks the PAT into the " <>
-             "job environment (ECON-03, T-218-01)."
+  # --- Phase 218 / ECON-03: one CI run per release PR head --------------------
+  #
+  # With RELEASE_PLEASE_TOKEN configured, release-please's own push already fires
+  # the release PR's CI, so the bootstrap dispatch runs only when the PAT is
+  # absent. The decision must read configuration only, never prior runs.
 
-    assert bootstrap =~ ~r/^        if: env\.RELEASE_PAT_CONFIGURED != 'true'$/m,
-           "the dispatch step must run only when no PAT is configured. With the PAT, " <>
-             "release-please's push already fires the release PR's CI and a dispatch " <>
-             "doubles it; without the guard every release cycle runs CI twice (ECON-03)."
+  test "the bootstrap guard contract is not vacuous" do
+    live = job_block!(release_workflow(), "bootstrap-release-pr-ci")
+    assert bootstrap_guard_errors(live) == []
+
+    controls = [
+      {"step guard dropped", "        if: env.RELEASE_PAT_CONFIGURED != 'true'\n", ""},
+      {"comparison flipped", "RELEASE_PAT_CONFIGURED != 'true'",
+       "RELEASE_PAT_CONFIGURED == 'true'"},
+      {"env from the raw secret", "${{ secrets.RELEASE_PLEASE_TOKEN != '' }}",
+       "${{ secrets.RELEASE_PLEASE_TOKEN }}"},
+      {"run query added", "      - name: Dispatch CI on release PR branch\n",
+       "      - name: List prior CI runs\n" <>
+         "        run: gh run list --workflow ci.yml --branch release-please--branches--main\n\n" <>
+         "      - name: Dispatch CI on release PR branch\n"}
+    ]
+
+    for {name, from, to} <- controls do
+      mutated = String.replace(live, from, to)
+
+      refute mutated == live, "#{name} control did not change the input"
+
+      refute bootstrap_guard_errors(mutated) == [],
+             "the #{name} control must turn the bootstrap guard contract red"
+    end
+  end
+
+  # Returns the failed ECON-03 bootstrap-guard properties as `{false, message}`
+  # pairs; an empty list means the guard holds.
+  defp bootstrap_guard_errors(block) do
+    [
+      {block =~ ~r/^    permissions:\n      actions: write$/m,
+       "bootstrap-release-pr-ci must keep `actions: write`, or the no-PAT dispatch " <>
+         "fails and the release PR gets no CI at all (ECON-03)."},
+      {block =~
+         ~r/^      RELEASE_PAT_CONFIGURED: \$\{\{ secrets\.RELEASE_PLEASE_TOKEN != '' \}\}$/m,
+       "bootstrap-release-pr-ci must export only the boolean `RELEASE_PLEASE_TOKEN != ''` " <>
+         "as RELEASE_PAT_CONFIGURED. Exporting the secret itself leaks the PAT into the " <>
+         "job environment (ECON-03, T-218-01)."},
+      {block =~ ~r/^        if: env\.RELEASE_PAT_CONFIGURED != 'true'$/m,
+       "the dispatch step must run only when no PAT is configured. With the PAT, " <>
+         "release-please's push already fires the release PR's CI and a dispatch " <>
+         "doubles it; without the guard every release cycle runs CI twice (ECON-03)."}
+    ]
+    |> Enum.reject(fn {ok, _message} -> ok end)
   end
 
   defp release_workflow, do: File.read!(Path.join(@root, ".github/workflows/release.yml"))
