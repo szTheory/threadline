@@ -100,7 +100,7 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert Regex.match?(~r/^  verify-compile-no-optional:/m, yaml)
     assert Regex.match?(~r/^  verify-test:/m, yaml)
-    assert Regex.match?(~r/^  verify-docs:/m, yaml)
+    assert Regex.match?(~r/^  verify-bump-rehearsal:/m, yaml)
   end
 
   test "the sole required-check decision pins alls-green immutably" do
@@ -783,6 +783,7 @@ defmodule Threadline.CiTopologyContractTest do
   @removed_proofs_heading "### Removed CI proofs and what still catches them"
   @byte_stable_step "Assert byte-stable regeneration (no drift from committed evidence)"
   @mechanical_checker_test "test/threadline/operator_surface/mechanical_checker_test.exs"
+  @removed_job_ids ["verify-mechanical", "verify-docs", "verify-hex-package"]
 
   defp removed_proof_bullets(contributing) do
     case String.split(contributing, @removed_proofs_heading, parts: 2) do
@@ -818,6 +819,35 @@ defmodule Threadline.CiTopologyContractTest do
     |> Enum.uniq()
   end
 
+  defp header_roster(yaml) do
+    case Regex.run(~r/^# Job id contract[^\n]*\n# ([^\n]*)/m, yaml) do
+      [_, line] -> String.split(line, ", ")
+      nil -> []
+    end
+  end
+
+  # Each removed job id is gone from every roster (job keys, header, ci-required
+  # needs:) and leaves both a `# Removed:` comment in ci.yml and a "still caught
+  # by" bullet in CONTRIBUTING.md.
+  defp removed_job_checks(yaml, contributing) do
+    job_ids = workflow_job_ids(yaml)
+    header = header_roster(yaml)
+    needs = ci_required_needs_from(yaml)
+
+    Enum.flat_map(@removed_job_ids, fn id ->
+      [
+        {id not in job_ids and id not in header and id not in needs,
+         "#{id} was removed as a dominated proof but is back in ci.yml's job keys, " <>
+           "header roster or ci-required needs:"},
+        {String.contains?(yaml, "# Removed: #{id}"),
+         "ci.yml lost the `# Removed: #{id}` comment that says what still catches it"},
+        {justified_removal?(contributing, "`#{id}`"),
+         "CONTRIBUTING.md has no \"still caught by\" bullet naming `#{id}`, so its " <>
+           "removal no longer says which job catches its failure class"}
+      ]
+    end)
+  end
+
   defp removed_proof_errors(yaml, contributing, checker_test) do
     capture = workflow_job(yaml, "verify-capture")
 
@@ -846,8 +876,17 @@ defmodule Threadline.CiTopologyContractTest do
        "CONTRIBUTING.md has no \"still caught by\" bullet for the capture lane's removed " <>
          "mechanical step"}
     ]
+    |> Kernel.++(removed_job_checks(yaml, contributing))
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
+  end
+
+  defp removed_job_bullet(contributing, needle) do
+    contributing
+    |> removed_proof_bullets()
+    |> Enum.find(
+      &(String.contains?(&1, "still caught by") and String.starts_with?(&1, "- " <> needle))
+    )
   end
 
   test "removed CI proofs stay justified and dominated" do
@@ -886,11 +925,37 @@ defmodule Threadline.CiTopologyContractTest do
              "#{control} mutation must make the removed-proof contract fail"
     end
 
-    contributing_without_bullet = String.replace(contributing, capture_bullet <> "\n", "")
-    refute contributing_without_bullet == contributing
+    for {label, bullet} <- [
+          {"capture", capture_bullet},
+          {"verify-docs", removed_job_bullet(contributing, "`verify-docs`")},
+          {"verify-hex-package", removed_job_bullet(contributing, "`verify-hex-package`")},
+          {"verify-mechanical", removed_job_bullet(contributing, "`verify-mechanical`")}
+        ] do
+      assert is_binary(bullet), "the #{label} bullet must exist to mutate"
+      contributing_without_bullet = String.replace(contributing, bullet <> "\n", "")
+      refute contributing_without_bullet == contributing
 
-    refute removed_proof_errors(yaml, contributing_without_bullet, checker_test) == [],
-           "dropping the capture bullet must make the removed-proof contract fail"
+      refute removed_proof_errors(yaml, contributing_without_bullet, checker_test) == [],
+             "dropping the #{label} bullet must make the removed-proof contract fail"
+    end
+
+    readded =
+      String.replace(
+        yaml,
+        "      - verify-bump-rehearsal\n",
+        "      - verify-bump-rehearsal\n      - verify-docs\n"
+      )
+
+    refute readded == yaml
+
+    refute removed_proof_errors(readded, contributing, checker_test) == [],
+           "re-adding a removed job to ci-required needs: must make the contract fail"
+
+    uncommented = String.replace(yaml, "# Removed: verify-hex-package", "# verify-hex-package")
+    refute uncommented == yaml
+
+    refute removed_proof_errors(uncommented, contributing, checker_test) == [],
+           "dropping a `# Removed:` comment must make the contract fail"
 
     excluded_checker =
       String.replace(

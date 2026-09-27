@@ -531,11 +531,8 @@ without also failing a test.
 - `verify-test`
 - `verify-hex-evaluator`
 - `verify-example-browser`
-- `verify-mechanical`
 - `verify-capture`
 - `verify-pgbouncer-topology`
-- `verify-docs`
-- `verify-hex-package`
 - `verify-release-shape`
 - `verify-bump-rehearsal`
 - `verify-deps-audit`
@@ -624,10 +621,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
-| `verify-mechanical` | `mix verify.mechanical`; deterministic MODE-A / MODE-B gate over the committed `test/fixtures/operator_surface/scorecards/*.json` |
 | `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
-| `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
-| `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 | `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.5.1 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
@@ -642,6 +636,9 @@ with no job-level `if:`. Each removal keeps its justification here, and
 if the proof that still catches it stops running.
 
 - The capture lane's trailing `mix verify.mechanical` step (in `verify-capture`): failure class "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by `verify-capture`'s byte-stable regeneration step (regenerated evidence must equal the committed evidence) and by `verify-test` (min and current lanes), which runs `mechanical_checker_test.exs` over the committed scorecard JSON, on pull_request, push to `main` and workflow_dispatch.
+- `verify-mechanical` (the job): failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by `verify-test` (min and current lanes), which runs `test/threadline/operator_surface/mechanical_checker_test.exs` in the default suite, on pull_request, push to `main` and workflow_dispatch. The `mix verify.mechanical` alias stays as a focused local command.
+- `verify-docs`: failure class "the ExDoc build fails" is still caught by `verify-bump-rehearsal`, whose `mix verify.release` gate runs `MIX_ENV=dev mix docs --warnings-as-errors` (stricter than the old plain `mix docs`), on pull_request, push to `main` and workflow_dispatch. Coupling: any future change that skips `verify-bump-rehearsal` also skips the ExDoc proof, and a docs break now shows as a red "Bump rehearsal (next minor)" job.
+- `verify-hex-package`: failure class "`mix hex.build` fails or the tarball has no usable `lib/`" is still caught by `verify-bump-rehearsal` (`mix hex.build` in `mix verify.release`) and `verify-hex-evaluator` (builds this tree's tarball, resolves it from the rehearsal registry, then compiles and tests it), on pull_request, push to `main` and workflow_dispatch. `release.yml`'s own `hex.build` does not count: it runs only on release.
 
 ### Dialyzer PLT cache and measurement contract
 
@@ -763,11 +760,13 @@ In GitHub repository settings, require these checks on `main` (names match the w
 - Run test suite (min) (`verify-test` min lane)
 - Run test suite (current) (`verify-test` current lane)
 - PgBouncer transaction topology (`verify-pgbouncer-topology`)
-- Build ExDoc (dev) (`verify-docs`)
-- Hex package tarball (`verify-hex-package`)
 - Release metadata (version / changelog) (`verify-release-shape`)
 
 Exact labels depend on GitHub’s UI; map them to the job keys above.
+
+The only required status check is `CI required`, per `.github/rulesets/main.json`;
+`bin/verify-branch-protection` checks that live protection requires exactly that
+one context.
 
 ## Backport policy (maintainers)
 

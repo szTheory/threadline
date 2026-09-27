@@ -321,15 +321,15 @@ defmodule Threadline.CIWorkflowParityContractTest do
             flunk("verify-test must carry exactly one setup-beam step, found #{length(steps)}")
         end
 
-      docs_job = workflow_job(yaml, "verify-docs")
+      credo_job = workflow_job(yaml, "verify-credo")
 
-      docs_beam_step =
-        case Enum.filter(job_steps(docs_job), &String.contains?(&1, "uses: erlef/setup-beam@")) do
+      credo_beam_step =
+        case Enum.filter(job_steps(credo_job), &String.contains?(&1, "uses: erlef/setup-beam@")) do
           [step] ->
             step
 
           steps ->
-            flunk("verify-docs must carry exactly one setup-beam step, found #{length(steps)}")
+            flunk("verify-credo must carry exactly one setup-beam step, found #{length(steps)}")
         end
 
       controls = [
@@ -362,10 +362,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
                "#{control} mutation must make the toolchain pin contract fail"
       end
 
-      moved = String.replace(docs_job, docs_beam_step, beam_step)
+      moved = String.replace(credo_job, credo_beam_step, beam_step)
 
-      refute moved == docs_job,
-             "matrix step moved into verify-docs control did not change the input"
+      refute moved == credo_job,
+             "matrix step moved into verify-credo control did not change the input"
 
       refute toolchain_contract_errors(%{path => "jobs:\n" <> moved}) == [],
              "a matrix-fed setup-beam step outside verify-test must fail the toolchain contract"
@@ -542,19 +542,19 @@ defmodule Threadline.CIWorkflowParityContractTest do
       setup_beam_steps =
         live |> strip_comment_lines() |> String.split("uses: erlef/setup-beam@") |> length()
 
-      assert setup_beam_steps - 1 == 14,
-             "expected 14 setup-beam steps (13 file-fed, 1 matrix-fed) under the toolchain " <>
+      assert setup_beam_steps - 1 == 11,
+             "expected 11 setup-beam steps (10 file-fed, 1 matrix-fed) under the toolchain " <>
                "contract, found #{setup_beam_steps - 1}"
 
       assert toolchain_contract_errors(%{path => live, release_path => release}) == []
 
       assert toolchain_contract_errors(all_workflows()) == []
 
-      docs_job = workflow_job(live, "verify-docs")
+      credo_job = workflow_job(live, "verify-credo")
 
       controls = [
-        {"verify-docs id beam removed",
-         String.replace(live, docs_job, String.replace(docs_job, "        id: beam\n", ""))}
+        {"verify-credo id beam removed",
+         String.replace(live, credo_job, String.replace(credo_job, "        id: beam\n", ""))}
       ]
 
       for {control, mutated} <- controls do

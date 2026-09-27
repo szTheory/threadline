@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, verify-bump-rehearsal, verify-deps-audit, verify-repo-hygiene, ci-required
+# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-capture, verify-release-shape, verify-bump-rehearsal, verify-deps-audit, verify-repo-hygiene, ci-required
 #
 # `ci-required` (name: "CI required") is the SINGLE required status check on
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
@@ -565,55 +565,10 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # Deterministic mechanical gate over the committed Tier A evidence. Fast on
-  # every PR — no browser — and blocks a change if the committed
-  # test/fixtures/operator_surface/scorecards/*.json breach any MODE-A (WCAG / token conformance) or
-  # MODE-B (ratchet-floor) rule. The alias runs mechanical_checker_test.exs,
-  # whose real-evidence gate starts the application (and therefore the repo)
-  # to call MechanicalChecker.run/1 over the committed scorecards — it DOES
-  # need a database, unlike a purely arithmetic check.
-  verify-mechanical:
-    name: Mechanical checker (committed scorecards)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    env:
-      DB_HOST: localhost
-      DB_PORT: 5432
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: erlef/setup-beam@v1
-        id: beam
-        with:
-          version-file: .tool-versions
-          version-type: strict
-
-      - name: Cache deps
-        uses: actions/cache@v5
-        with:
-          path: deps
-          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
-
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Run mechanical checker
-        run: mix verify.mechanical
+  # Removed: verify-mechanical (mix verify.mechanical over the committed scorecards).
+  # Failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by
+  # verify-test (min and current lanes), which runs mechanical_checker_test.exs in
+  # the default suite, on push to main, pull_request and workflow_dispatch.
 
   # Heavy recurring gate: regenerate the Tier A capture from scratch against a
   # migrated example DB + real browser, and assert (1) the evidence bundle is
@@ -808,98 +763,17 @@ jobs:
           mix verify.topology
           mix verify.threadline
 
-  verify-docs:
-    name: Build ExDoc (dev)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    env:
-      MIX_ENV: dev
-    steps:
-      - uses: actions/checkout@v5
+  # Removed: verify-docs (plain `mix docs`). Failure class "the ExDoc build fails"
+  # is still caught by verify-bump-rehearsal, whose `mix verify.release` gate runs
+  # `MIX_ENV=dev mix docs --warnings-as-errors`, on push to main, pull_request and
+  # workflow_dispatch. A change that skips verify-bump-rehearsal skips this proof too.
 
-      - uses: erlef/setup-beam@v1
-        id: beam
-        with:
-          version-file: .tool-versions
-          version-type: strict
-
-      - name: Cache deps
-        uses: actions/cache@v5
-        with:
-          path: deps
-          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
-
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Build docs
-        run: mix docs
-
-  verify-hex-package:
-    name: Hex package tarball
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: erlef/setup-beam@v1
-        id: beam
-        with:
-          version-file: .tool-versions
-          version-type: strict
-
-      - name: Cache deps
-        uses: actions/cache@v5
-        with:
-          path: deps
-          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
-
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Build and inspect Hex tarball
-        run: |
-          set -euo pipefail
-          mix hex.build
-          shopt -s nullglob
-          archives=(threadline-*.tar)
-          if [[ ${#archives[@]} -eq 0 ]]; then
-            echo "No threadline-*.tar produced" >&2
-            exit 1
-          fi
-          for t in "${archives[@]}"; do
-            # Hex wraps sources in contents.tar.gz inside the outer .tar
-            if tar tf "$t" | grep -q '^contents\.tar\.gz$'; then
-              tmp=$(mktemp -d)
-              tar xf "$t" -C "$tmp" contents.tar.gz
-              # grep -q can close the pipe early; without this, pipefail makes tar SIGPIPE fail the step
-              set +o pipefail
-              inner_ok=false
-              if tar tzf "$tmp/contents.tar.gz" | grep -qE '^lib/'; then inner_ok=true; fi
-              set -o pipefail
-              if [[ "$inner_ok" == true ]]; then
-                echo "OK: $t → contents.tar.gz contains lib/"
-              else
-                echo "contents.tar.gz missing lib/: $t" >&2
-                set +o pipefail
-                tar tzf "$tmp/contents.tar.gz" | head -40 >&2
-                set -o pipefail
-                rm -rf "$tmp"
-                exit 1
-              fi
-              rm -rf "$tmp"
-            elif tar tf "$t" | grep -qE '^lib/'; then
-              echo "OK: $t contains lib/ at archive root"
-            elif tar tf "$t" | grep -qE '^[^/]+/lib/'; then
-              echo "OK: $t contains */lib/"
-            else
-              echo "Tarball missing expected layout: $t" >&2
-              tar tf "$t" | head -40 >&2
-              exit 1
-            fi
-          done
+  # Removed: verify-hex-package (`mix hex.build` plus a lib/ check). Failure class
+  # "hex.build fails or the tarball has no usable lib/" is still caught by
+  # verify-bump-rehearsal (`mix hex.build` in `mix verify.release`) and
+  # verify-hex-evaluator (builds this tree's tarball, resolves it from the
+  # rehearsal registry, compiles and tests it), on push to main, pull_request and
+  # workflow_dispatch.
 
   verify-release-shape:
     name: Release metadata (version / changelog)
@@ -1012,7 +886,7 @@ jobs:
         run: bin/verify-repo-hygiene --self-test
 
   # The single required status check on `main` (D-08). Collapses every job above
-  # into one pass/fail signal so branch protection names one context, not sixteen,
+  # into one pass/fail signal so branch protection names one context, not thirteen,
   # and so no required-check name carries a matrix axis that could rot.
   #
   # `if: always()` is load-bearing (D-09): a job that `needs:` a FAILED job is
@@ -1034,11 +908,8 @@ jobs:
       - verify-test
       - verify-hex-evaluator
       - verify-example-browser
-      - verify-mechanical
       - verify-capture
       - verify-pgbouncer-topology
-      - verify-docs
-      - verify-hex-package
       - verify-release-shape
       - verify-bump-rehearsal
       - verify-deps-audit
@@ -1055,5 +926,5 @@ jobs:
           # Extension point: the first `needs:` job that becomes conditionally
           # skipped (a job-level `if:`) must be listed here via `allowed-skips`,
           # or this gate will correctly fail on its skip. Deliberately absent
-          # today — all sixteen jobs above run unconditionally, so neither
+          # today — all thirteen jobs above run unconditionally, so neither
           # `allowed-skips` nor `allowed-failures` applies yet.
