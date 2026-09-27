@@ -16,7 +16,8 @@
 #   * output that does not match the expected shape is reported as UNKNOWN with
 #     the raw log attached — never silently downgraded to "flaky", which would
 #     let a broken suite be filed as an intermittent annoyance
-#   * no failure at all creates and updates nothing
+#   * a pass creates nothing and closes the open tracking issue, if any (D-06)
+#   * a budget expiry is INCONCLUSIVE and a red ci.yml is BROKEN-UPSTREAM (D-04)
 name: Flake Detection
 
 on:
@@ -200,10 +201,14 @@ jobs:
           LABEL: ci-flake
           CLASSIFICATION: ${{ steps.classify.outputs.classification }}
           ITERATIONS: ${{ steps.classify.outputs.iterations }}
+          REASON: ${{ steps.classify.outputs.reason }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
+          # D-04: every arm states the cause the classifier actually found.
+          # REASON is one of bin/classify-flake-run's fixed reason strings.
+          log_note="The full \`mix verify.flake\` output is attached to the run as the \`flake-detection-log\` artifact."
           case "$CLASSIFICATION" in
             broken)
               headline="The suite is **broken**, not flaky — it failed on the FIRST iteration."
@@ -213,9 +218,18 @@ jobs:
               headline="The suite is **flaky** — it passed $((ITERATIONS - 1)) time(s), then failed on iteration ${ITERATIONS}."
               detail="First failing iteration: ${ITERATIONS}. Earlier iterations passed, so this is genuinely intermittent."
               ;;
+            inconclusive)
+              headline="The run is **inconclusive** — the time budget ran out after $((ITERATIONS > 0 ? ITERATIONS - 1 : 0)) clean iteration(s), with no failure seen."
+              detail="This is not a flake report. The weekly budget is stale for the suite's size: re-measure the per-iteration time and resize the repeat count or the budget."
+              ;;
+            broken-upstream)
+              headline="CI (ci.yml) is **red** on this SHA, so the flake suite was not run."
+              detail="Fix CI first. The next weekly or dispatched run re-checks this."
+              log_note="The suite did not run, so no \`flake-detection-log\` artifact was uploaded."
+              ;;
             *)
-              headline="Classification is **unknown** — the repeat-until-failure output did not match the expected shape."
-              detail="No \`Running ExUnit with seed:\` header was found, so the suite likely never started (dependency or compile failure), or ExUnit changed its banner. Deliberately NOT reported as flaky: guessing here is how a broken suite gets filed as an intermittent annoyance. Read the attached raw log."
+              headline="Classification is **unknown** (\`${CLASSIFICATION}\`)."
+              detail="Reason: ${REASON}. Deliberately NOT reported as flaky: guessing here is how a broken suite gets filed as an intermittent annoyance."
               ;;
           esac
 
@@ -227,21 +241,40 @@ jobs:
           ${detail}
 
           - Classification: \`${CLASSIFICATION}\`
-          - Completed iterations before failure: \`${ITERATIONS}\`
+          - Reason: ${REASON}
+          - Suite headers seen: \`${ITERATIONS}\`
           - Run: ${RUN_URL}
           - Commit: \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME})
 
-          The full \`mix verify.flake\` output is attached to the run as the
-          \`flake-detection-log\` artifact.
+          ${log_note}
 
           This issue is reused across runs — repeated failures accumulate here as
-          comments rather than opening a new issue each run.
+          comments rather than opening a new issue each run. A passing run closes it.
           EOF
           bin/upsert-ci-issue --marker "$TITLE_PREFIX" \
             --title "$TITLE_PREFIX reported ${CLASSIFICATION}" \
             --body-file "$body_file" --label "$LABEL" \
-            --label-description "Flake Detection lane: suite reported broken, flaky, or unknown" \
+            --label-description "Flake Detection lane: suite reported broken, flaky, inconclusive, broken-upstream or unknown" \
             --label-color D93F0B
+
+      # D-06 close-on-green. Green means PROVEN green: only `pass` closes. A skip,
+      # inconclusive, broken-upstream or unknown run never closes the issue, since
+      # closing on a non-proof would bury a live failure. TITLE_PREFIX and LABEL
+      # must match the issue step above, or the close finds no issue (action=none).
+      - name: Close the flake tracking issue on a passing run
+        if: always() && steps.classify.outputs.classification == 'pass'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE_PREFIX: "Flake Detection: test suite"
+          LABEL: ci-flake
+          ITERATIONS: ${{ steps.classify.outputs.iterations }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          body_file=$(mktemp)
+          trap 'rm -f "$body_file"' EXIT
+          printf 'Passed %s iteration(s) on %s (%s): %s\n' "$ITERATIONS" "$GITHUB_SHA" "$GITHUB_EVENT_NAME" "$RUN_URL" > "$body_file"
+          bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file"
 
       # The job must still be red when the suite failed. Classification and issue
       # filing above are reporting, not absolution. `always()` keeps this step

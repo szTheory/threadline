@@ -484,5 +484,92 @@ defmodule Threadline.FlakeClassifierContractTest do
       assert unwrapped != yaml
       assert Enum.any?(lane_shape_violations(unwrapped), &(&1 =~ "timeout(1) budget"))
     end
+
+    # The old `*)` arm claimed a missing seed header for every non-broken,
+    # non-flaky outcome, which is how a timeout got filed as issue #36
+    # ("reported unknown"). The needle is assembled at runtime so this file
+    # does not contain it and cannot match itself.
+    @old_header_claim "header " <> "was found"
+    @close_step "Close the flake tracking issue on a passing run"
+    @pass_only "if: always() && steps.classify.outputs.classification == 'pass'"
+
+    # Returns every reporting violation in `yaml`; [] means the issue text is
+    # truthful and a pass (and only a pass) closes the tracking issue (D-04/D-06).
+    defp close_if(close_body) do
+      case Regex.run(~r/^\s+(if: .+)$/m, close_body) do
+        [_, condition] -> condition
+        nil -> nil
+      end
+    end
+
+    defp reporting_violations(yaml) do
+      issue_body = step_body(yaml, "Open or update the flake tracking issue")
+
+      close_body =
+        if String.contains?(yaml, @close_step), do: step_body(yaml, @close_step), else: ""
+
+      [
+        {not String.contains?(yaml, @old_header_claim),
+         "workflow still claims the seed header is missing"},
+        {issue_body =~ "REASON: ${{ steps.classify.outputs.reason }}",
+         "issue step must receive REASON from the classifier"},
+        {issue_body =~ ~r/^\s+inconclusive\)$/m, "issue step needs an inconclusive) arm"},
+        {issue_body =~ ~r/^\s+broken-upstream\)$/m, "issue step needs a broken-upstream) arm"},
+        {issue_body =~ ~r/^\s+\*\)\n.*unknown.*\n.*Reason: \$\{REASON\}/m,
+         "the *) arm must say unknown and print Reason: ${REASON}"},
+        {issue_body =~ "- Reason: ${REASON}", "issue body bullets must include the reason"},
+        {close_if(close_body) == @pass_only,
+         "close step must run only when the classification is pass"},
+        {close_body =~
+           ~s(bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file"),
+         "close step must call bin/upsert-ci-issue --close"},
+        {close_body =~ ~s(TITLE_PREFIX: "Flake Detection: test suite") and
+           close_body =~ ~r/^\s+LABEL: ci-flake$/m,
+         "close step must use the issue step's TITLE_PREFIX and LABEL"}
+      ]
+      |> Enum.reject(&elem(&1, 0))
+      |> Enum.map(&elem(&1, 1))
+    end
+
+    test "every non-pass outcome reports its cause, and only a pass closes the issue (D-04/D-06)" do
+      yaml = File.read!(@workflow_path)
+      assert reporting_violations(yaml) == []
+
+      # The close step sits after the issue step, so both see the same classification.
+      [before_close, _] = String.split(yaml, @close_step, parts: 2)
+      assert before_close =~ "Open or update the flake tracking issue"
+    end
+
+    test "reporting controls: the old header claim or a loosened close condition is caught" do
+      yaml = File.read!(@workflow_path)
+
+      reinserted =
+        String.replace(
+          yaml,
+          ~s(detail="Reason: ${REASON}.),
+          ~s(detail="No seed #{@old_header_claim}. Reason: ${REASON}.)
+        )
+
+      refute reinserted == yaml, "control did not change the input"
+      assert Enum.any?(reporting_violations(reinserted), &(&1 =~ "seed header is missing"))
+
+      loosened = String.replace(yaml, @pass_only, "if: always()")
+      refute loosened == yaml, "control did not change the input"
+
+      assert Enum.any?(
+               reporting_violations(loosened),
+               &(&1 =~ "only when the classification is pass")
+             )
+
+      wrong_label =
+        String.replace(
+          yaml,
+          "--close --marker \"$TITLE_PREFIX\" --label \"$LABEL\"",
+          "--close --marker \"$TITLE_PREFIX\" --label ci-flaky"
+        )
+
+      refute wrong_label == yaml, "control did not change the input"
+      assert Enum.any?(reporting_violations(wrong_label), &(&1 =~ "--close"))
+    end
   end
 end
