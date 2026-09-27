@@ -20,26 +20,26 @@ Choose the route that matches the change:
 
 **Requirements:**
 
-- Elixir 1.15+ (CI uses 1.17.3)
-- OTP 26+ (CI uses OTP 27.0)
+- Elixir 1.15+ (the CI current lane runs 1.17.3, pinned in `.tool-versions`)
+- OTP 26+ (the CI current lane runs OTP 27.3.4.15, pinned in `.tool-versions`)
 - PostgreSQL 14+ (PostgreSQL 16 recommended; matches CI and `docker-compose.yml`)
 - Node.js 22 — only for the browser end-to-end lane, which is the last step of
   the full verification gate described under Running tests below. Everything
   else, including the whole library test suite, runs without it.
 
-If you manage toolchains with a version manager such as asdf or mise, note that
-this repository intentionally does **not** commit a `.tool-versions` file. It
-supports a range of Elixir versions rather than a single one, and committing a
-pin would turn "Elixir 1.15 and up works" into "install exactly the version this
-file names" — which would break contributors on versions the project genuinely
-supports and tests.
+The repository commits a `.tool-versions` file, and it pins the CI current lane:
+Erlang 27.3.4.15 and Elixir 1.17.3-otp-27 (plus Node.js 22.14.0 for local
+shells; CI's Node steps request the 22 line). CI reads the Erlang and Elixir pins
+from that file through `erlef/setup-beam` in strict mode, so a CI job and an asdf
+(or mise) shell in a fresh clone run the same BEAM build rather than two versions
+that merely share a major number. The pin names the lane CI runs, not the only version that
+works: the supported floor (Elixir 1.15 / OTP 26) is proven separately by the CI
+min lane.
 
-A fresh clone therefore inherits whatever versions you already have set. If your
-version manager has none set at all, `mix` fails with something like `No version
-is set for command mix`, which names your version manager rather than this
-project and is an easy trail to lose. Set one yourself, globally or in a local
-`.tool-versions` you leave uncommitted. To match the lane CI runs, use Elixir
-1.17.3 with the matching OTP 27 build and Node.js 22.
+If you work on another supported version, override the pin for your shell
+instead of editing the committed file. With asdf, set `ASDF_ERLANG_VERSION` and
+`ASDF_ELIXIR_VERSION` (for example `ASDF_ELIXIR_VERSION=1.15.8-otp-26`);
+`asdf current elixir` then reports the environment variable as the source.
 
 1. Clone the repository.
 2. Install dependencies: `mix deps.get`
@@ -70,7 +70,8 @@ mix ci.all
 ```
 
 This repository alias runs formatting, Credo, strict compiles, tests, trigger
-coverage, documentation contracts, and Dialyzer in the test environment. If
+coverage, a dependency audit of all three lockfiles, documentation contracts,
+and Dialyzer in the test environment. If
 your local database uses a non-default port, set `DB_PORT` for the command as
 described in the [local database guide](guides/local-docker-dx.md#run-the-test-database).
 
@@ -480,6 +481,7 @@ without also failing a test.
 - `verify-hex-package`
 - `verify-release-shape`
 - `verify-bump-rehearsal`
+- `verify-deps-audit`
 
 No `allowed-skips` or `allowed-failures` entry is documented here today,
 because `.github/workflows/ci.yml`'s `alls-green` step carries neither — every
@@ -487,6 +489,68 @@ job above runs unconditionally. If either is ever introduced, it must be
 recorded here as `allowed-skips decision: D-NN` or `allowed-failures decision:
 D-NN`, citing the decision that authorized it; the roster contract test fails
 otherwise.
+
+## Dependency freshness policy
+
+Dependency updates are batched per release train, not merged as a stream of
+single-package bumps. Before a release the maintainer reviews `mix
+hex.outdated` and runs `mix deps.update` across `mix.lock`, `bench/mix.lock`
+and `examples/threadline_phoenix/mix.lock` together.
+
+This repository does not use Dependabot version-update pull requests.
+Dependabot *alerts* are a separate repository setting the maintainer controls
+independently of this policy.
+
+Every pull request runs the required `verify-deps-audit` job (`mix
+verify.deps_audit`): it asserts Hex 2.5.1 or newer, fetches with `mix
+deps.get --check-locked`, runs `mix deps.unlock --check-unused`, and runs
+`mix hex.audit` over all three lockfiles above. `--check-locked` means the
+lock actually audited is the one committed to the repo: a `mix.lock` that no
+longer matches `mix.exs` fails that directory's audit instead of being
+silently re-resolved and audited under a fresh lock. It refuses to run at
+all with `HEX_IGNORE_ADVISORIES` or `HEX_IGNORE_RETIREMENTS` set in the
+environment, or a non-empty global Hex `ignore_advisories` /
+`ignore_retirements` set with `mix hex.config` (in any Hex home) — an
+unaccountable bypass would defeat the point of a required gate. Run it
+locally (`mix verify.deps_audit`) before touching a lockfile.
+
+The weekly, non-required `.github/workflows/deps-health.yml` lane runs
+Mondays 08:00 UTC (`0 8 * * 1`), plus manual dispatch, and also runs `mix
+hex.audit` and `mix hex.outdated` over the same three lockfiles. It is *not*
+a required check. When the result is anything other than clean it opens or
+comments on a single issue labelled `ci-deps` — a label kept distinct from
+`ci-flake` and `ci-browser-full` so the three dedup streams never merge into
+one issue and mask each other. The lane goes red on an `advisory` (a
+`hex.audit` finding) or an `unknown` result (a fetch failure that prevented
+an audit from running at all); an `outdated` result alone stays green — it is
+informational only, reported on the issue but not a merge-style gate.
+Like the required gate above, this lane fetches with `mix deps.get
+--check-locked`: a `mix.lock` that no longer matches `mix.exs` is reported
+`unknown` for that directory rather than silently re-resolved and audited
+under a fresh lock. And like the required gate, an active Hex advisory
+suppression — `HEX_IGNORE_ADVISORIES` / `HEX_IGNORE_RETIREMENTS` in the
+environment, or a non-empty global `mix hex.config ignore_advisories` /
+`ignore_retirements` (any Hex home) — is reported `unknown` for the whole
+run without running any audit; the report names the reason.
+
+Ignoring an advisory is only ever done through a documented convention, never
+the environment-variable bypass above: define `hex_audit_ignores/0` on the
+relevant MixProject module, returning a list of `%{id:, reason:,
+reachability:, review_by:}` maps (`review_by` a `%Date{}` strictly after
+today), and set `hex: [ignore_advisories: [...]]` to exactly those ids.
+`test/threadline/ignore_advisories_contract_test.exs` fails the suite on a
+missing field, a `review_by` on or before today, an id without a matching
+`hex_audit_ignores/0` justification, a stale (unlisted) justification, or any
+use of `ignore_retirements` at all — that key is never permitted.
+
+Hex's `cooldown` setting (delaying resolution of freshly-published releases)
+was considered and is not adopted; the batched release-train review above is
+the adopted control instead.
+
+This section is not documentation-on-trust:
+`test/threadline/deps_health_doc_contract_test.exs` derives the schedule, the
+label and the three lockfile paths from `.github/workflows/deps-health.yml`
+and `bin/deps-health-report`, and fails if this section drops one.
 
 ## CI parity and `act`
 
@@ -496,7 +560,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 |---------|---------|
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
-| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on Elixir 1.17.3 / OTP 27.0 with the exact PLT cache lifecycle below |
+| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on the committed `.tool-versions` toolchain (Elixir 1.17.3 / OTP 27.3.4.15) with the exact PLT cache lifecycle below |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
@@ -508,15 +572,16 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
+| `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.5.1 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
 
 ### Dialyzer PLT cache and measurement contract
 
 `mix verify.dialyzer` is part of `mix ci.all`, and the unconditional
 `verify-dialyzer` job runs the same `mix dialyzer --no-check` analyzer command
-on the exact current lane: Ubuntu 24.04, Elixir 1.17.3, and OTP 27.0. The
-independent no-optional-dependencies compile lane never runs Dialyzer; analysis
-always uses the full optional build and the strict warning/ignore configuration
-from `mix.exs`.
+on the exact current lane: Ubuntu 24.04 and the `.tool-versions` pins (Elixir
+1.17.3, OTP 27.3.4.15). The independent no-optional-dependencies compile lane
+never runs Dialyzer; analysis always uses the full optional build and the
+strict warning/ignore configuration from `mix.exs`.
 
 The PLT cache lives at `.dialyzer` and is keyed by the runner image, exact OTP
 and Elixir versions, and both `mix.lock` and `mix.exs` hashes. A restore prefix
@@ -689,6 +754,31 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 
 1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`). The Release PR bumps `mix.exs`, `CHANGELOG-GENERATED.md`, **and** the adoption-pilot SSOT line together, so it is green on the doc contract without any manual prep. `CHANGELOG.md` is human-owned — Release Please never writes to it.
 2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
+
+### Upgrading the Release Please action
+
+A new major of `googleapis/release-please-action` bundles a newer `release-please` library, which can change how commits are parsed and how the Release PR is built. Rehearse before bumping:
+
+1. Read the new major's release notes and diff its `action.yml` against the current tag (`runs.using`, inputs, outputs).
+2. Find the `release-please` library version each tag bundles (the action's `package.json` at that tag).
+3. Dry-run both library versions against `main` and diff the output. The token is read from `gh` at run time and never written anywhere:
+
+   ```bash
+   export npm_config_ignore_scripts=true
+   for v in OLD_VERSION NEW_VERSION; do
+     npx -y release-please@$v release-pr \
+       --repo-url=szTheory/threadline --token="$(gh auth token)" --target-branch=main \
+       --config-file=release-please-config.json --manifest-file=.release-please-manifest.json \
+       --dry-run 2>&1 | sed "s/\x1b\[[0-9;]*m//g" | grep -v "^npm warn" > /tmp/rp-$v.log
+   done
+   diff /tmp/rp-OLD_VERSION.log /tmp/rp-NEW_VERSION.log && echo IDENTICAL
+   ```
+
+   Any difference must be understood before landing. The dry-run reads the published `main`, so it rehearses config and manifest parsing and commit analysis, not unpushed commits.
+4. Land the bump as its own `ci(release):` commit touching only `.github/workflows/release.yml`, and update the rehearsal record below in the same change (a contract test fails if the action major in `release.yml` and this section disagree).
+5. After landing, check the first **Release** run: the log shows `Download action repository 'googleapis/release-please-action@vN'`, there is no "Node.js 20 is deprecated" annotation, the Release PR is opened or updated as expected, and `Sync install pins on Release PR` is green when it runs.
+
+Last rehearsal (2026-09-26): `googleapis/release-please-action@v5` (release-please 17.6.0) versus v4.4.1 (release-please 17.3.0) — identical dry-run output against origin/main `5e78b2f05d00619e11aa9b29bc8f612087756846`.
 
 ### Recovery / dry-run
 

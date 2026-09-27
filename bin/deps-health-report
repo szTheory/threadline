@@ -1,0 +1,329 @@
+#!/usr/bin/env bash
+# SUP-04: weekly dependency-health lane classifier. Extracted out of
+# .github/workflows/deps-health.yml so the classification logic is a
+# committed, directly executable, and unit-tested artifact rather than
+# inline workflow shell reachable only by a weekly cron nobody watches — the
+# same idiom as bin/classify-flake-run (198-11) and bin/verify-deps-audit
+# (SUP-02).
+#
+# Runs, for each of the three lockfile directories this repo maintains, in
+# the fixed order `.  bench  examples/threadline_phoenix` (matching
+# bin/verify-deps-audit's own canonical order): `mix deps.get --check-locked`,
+# then (only on a successful fetch) `mix hex.audit` and `mix hex.outdated`.
+# `--check-locked` means the lock actually reported on is the one committed
+# to the repo: a `mix.lock` that no longer matches `mix.exs` fails that
+# directory's fetch instead of being silently re-resolved and audited under
+# a fresh lock (WR-02). It classifies the overall result and writes a report
+# body other tooling can post as a GitHub issue.
+#
+# Classification precedence (highest wins, checked across ALL three dirs):
+#   an active Hex advisory suppression (see below)                  -> unknown
+#   any dir's hex.audit exits non-zero after a successful deps.get -> advisory
+#   any dir's deps.get exits non-zero                              -> unknown
+#   any dir's hex.outdated exits non-zero                          -> outdated
+#   everything succeeds                                            -> clean
+#
+# A real advisory always outranks an unrelated fetch failure elsewhere: a
+# confirmed finding must never be silently masked because some other
+# directory could not be fetched. `unknown` is the default arm otherwise — a
+# fetch failure is never quietly reported as `clean` or `outdated`. When a
+# directory's `deps.get --check-locked` fails (a missing or drifted
+# mix.lock), its `hex.audit`/`hex.outdated` are skipped entirely (a vacuous
+# audit over unfetched or re-resolved deps is not trusted), matching
+# bin/verify-deps-audit's own "skip on fetch failure" behavior.
+#
+# Hex advisory suppression (CR-01): before touching any directory, this
+# script checks HEX_IGNORE_ADVISORIES / HEX_IGNORE_RETIREMENTS in the
+# environment, and Hex's own global client config (`mix hex.config
+# ignore_advisories|ignore_retirements`, from any HEX_HOME), mirroring
+# bin/verify-deps-audit's refuse_global_hex_ignores. An active suppression
+# (or an unreadable/unparseable hex.config answer) is never trusted to
+# report on: the classification is bumped to `unknown`, the reason is
+# written at the top of report.md, and every per-dir mix call is skipped —
+# an audit that ran under an active suppression would be worthless.
+#
+# Usage: bin/deps-health-report <out-dir>
+#
+# Writes <out-dir>/report.md (capped at 60000 bytes — GitHub's own issue body
+# limit is 65536) and, when $GITHUB_OUTPUT is set, appends
+#   classification=<clean|outdated|advisory|unknown>
+#   report=<out-dir>/report.md
+# to it (append, never overwrite — existing content is preserved). Always
+# echoes `classification=<value>` to stdout and exits 0: reporting is not the
+# verdict, the calling workflow's own fail step decides whether the run goes
+# red based on the classification value.
+#
+# Seam: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
+# exercise this script's behavior fully offline — the same idiom as
+# bin/verify-deps-audit. Never used by real callers.
+
+set -uo pipefail
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <out-dir>" >&2
+  exit 2
+fi
+
+OUT_DIR="$1"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+MIX_BIN="${MIX_BIN:-mix}"
+
+# Canonical audit order (never argument-overridable — this script takes no
+# directory arguments — matches bin/verify-deps-audit's CANONICAL_DIRS).
+CANONICAL_DIRS=(. bench examples/threadline_phoenix)
+
+mkdir -p "$OUT_DIR"
+REPORT_FILE="$OUT_DIR/report.md"
+SECTIONS_FILE="$OUT_DIR/.deps-health-sections.tmp"
+: >"$SECTIONS_FILE"
+NEUTRAL_HEX_CONFIG_DIR=""
+cleanup_sections() {
+  rm -f "$SECTIONS_FILE"
+  [ -z "$NEUTRAL_HEX_CONFIG_DIR" ] || rm -rf "$NEUTRAL_HEX_CONFIG_DIR"
+}
+trap cleanup_sections EXIT
+
+strip_ansi() {
+  sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g'
+}
+
+# Rank-based classification: clean=0, outdated=1, unknown=2, advisory=3. The
+# overall result is the MAX rank seen across every directory and subcommand —
+# this is what makes "a real advisory outranks an unknown elsewhere" hold
+# without a hand-written precedence table.
+RANK_NAMES=(clean outdated unknown advisory)
+overall_rank=0
+
+rank_of() {
+  case "$1" in
+    clean) echo 0 ;;
+    outdated) echo 1 ;;
+    unknown) echo 2 ;;
+    advisory) echo 3 ;;
+    *) echo 0 ;;
+  esac
+}
+
+bump() {
+  local candidate_rank
+  candidate_rank="$(rank_of "$1")"
+  if [ "$candidate_rank" -gt "$overall_rank" ]; then
+    overall_rank="$candidate_rank"
+  fi
+}
+
+resolve_dir() {
+  local d="$1"
+  case "$d" in
+    /*) printf '%s' "$d" ;;
+    *) printf '%s' "$ROOT/$d" ;;
+  esac
+}
+
+# --- Hex advisory suppression check (CR-01) -----------------------------------
+#
+# Mirrors bin/verify-deps-audit's refuse_global_hex_ignores: a non-empty
+# HEX_IGNORE_ADVISORIES / HEX_IGNORE_RETIREMENTS env var, or a non-`[]`
+# global `mix hex.config ignore_advisories|ignore_retirements` answer (from
+# any HEX_HOME), means an active suppression could be masking exactly the
+# advisories this lane exists to catch. The hex.config query MUST run from a
+# directory with no mix.exs (this script's own project accountably sets
+# nothing here, but any project would merge its own hex: [ignore_advisories:
+# ...] entry into the answer). A non-zero exit, empty output, or output that
+# does not start with `[` is treated the same as an active suppression —
+# fail closed, never assume "no ignores" from an unreadable answer.
+
+read_global_hex_ignore() {
+  local key="$1" neutral_dir="$2"
+  local raw status non_blank start_line value
+
+  set +e
+  raw="$(cd "$neutral_dir" && "$MIX_BIN" hex.config "$key" 2>&1)"
+  status=$?
+  set -e
+
+  raw="$(printf '%s' "$raw" | strip_ansi)"
+  non_blank="$(printf '%s\n' "$raw" | grep -v '^[[:space:]]*$' || true)"
+
+  # Real Hex may wrap a long ignore list across multiple output lines. Find
+  # the first non-blank line that starts with `[` and join it through the
+  # rest of the output into one value (mirrors
+  # bin/verify-deps-audit's read_global_hex_ignore). Any line(s) before that
+  # (warnings) are dropped.
+  start_line="$(printf '%s\n' "$non_blank" | grep -n '^[[:space:]]*\[' | head -n1 | cut -d: -f1 || true)"
+  if [ -z "$start_line" ]; then
+    value=""
+  else
+    value="$(printf '%s\n' "$non_blank" | tail -n +"$start_line" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+    value="$(printf '%s' "$value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+  fi
+
+  printf '%s\n%s' "$status" "$value"
+}
+
+SUPPRESSION_REASON=""
+
+check_hex_suppression() {
+  if [ -n "${HEX_IGNORE_ADVISORIES:-}" ]; then
+    SUPPRESSION_REASON="the HEX_IGNORE_ADVISORIES environment variable is set"
+    return
+  fi
+  if [ -n "${HEX_IGNORE_RETIREMENTS:-}" ]; then
+    SUPPRESSION_REASON="the HEX_IGNORE_RETIREMENTS environment variable is set"
+    return
+  fi
+
+  mkdir -p "$ROOT/tmp"
+  NEUTRAL_HEX_CONFIG_DIR="$(mktemp -d "$ROOT/tmp/deps-health-hex-config.XXXXXX")"
+
+  local key
+  for key in ignore_advisories ignore_retirements; do
+    local result status value
+    result="$(read_global_hex_ignore "$key" "$NEUTRAL_HEX_CONFIG_DIR")"
+    status="$(printf '%s\n' "$result" | sed -n '1p')"
+    value="$(printf '%s\n' "$result" | tail -n +2)"
+
+    if [ "$status" -ne 0 ] || [ -z "$value" ] || [ "${value#[}" = "$value" ]; then
+      SUPPRESSION_REASON="could not read global Hex config $key (mix hex.config $key exited $status)"
+      break
+    fi
+
+    if [ "$value" != "[]" ]; then
+      SUPPRESSION_REASON="global Hex config sets $key to $value (mix hex.config $key)"
+      break
+    fi
+  done
+
+  rm -rf "$NEUTRAL_HEX_CONFIG_DIR"
+  NEUTRAL_HEX_CONFIG_DIR=""
+}
+
+check_hex_suppression
+
+if [ -n "$SUPPRESSION_REASON" ]; then
+  bump unknown
+  {
+    printf '**Hex advisory suppression is active — no audit was trusted:** %s. See CONTRIBUTING.md, "Dependency freshness policy".\n\n' "$SUPPRESSION_REASON"
+  } >>"$SECTIONS_FILE"
+fi
+
+for d in "${CANONICAL_DIRS[@]}"; do
+  resolved="$(resolve_dir "$d")"
+
+  {
+    printf '## %s\n\n' "$d"
+  } >>"$SECTIONS_FILE"
+
+  if [ -n "$SUPPRESSION_REASON" ]; then
+    {
+      printf -- '- fetch exit: skipped (Hex advisory suppression active)\n\n'
+      printf -- '- audit exit: skipped (Hex advisory suppression active)\n\n'
+      printf -- '- outdated exit: skipped (Hex advisory suppression active)\n\n'
+    } >>"$SECTIONS_FILE"
+    continue
+  fi
+
+  if [ ! -d "$resolved" ] || [ ! -f "$resolved/mix.exs" ]; then
+    bump unknown
+    {
+      printf -- '- fetch exit: unknown (missing directory or mix.exs at %s)\n\n' "$resolved"
+      printf -- '- audit exit: skipped (fetch failed)\n\n'
+      printf -- '- outdated exit: skipped (fetch failed)\n\n'
+    } >>"$SECTIONS_FILE"
+    continue
+  fi
+
+  set +e
+  deps_get_output="$(cd "$resolved" && printf 'n\n' | "$MIX_BIN" deps.get --check-locked 2>&1)"
+  deps_get_status=$?
+  set -e
+
+  {
+    printf -- '- fetch exit: %s\n\n' "$deps_get_status"
+    printf '```\n%s\n```\n\n' "$(printf '%s' "$deps_get_output" | strip_ansi)"
+  } >>"$SECTIONS_FILE"
+
+  if [ "$deps_get_status" -ne 0 ]; then
+    bump unknown
+    {
+      printf -- '- audit exit: skipped (fetch failed)\n\n'
+      printf -- '- outdated exit: skipped (fetch failed)\n\n'
+      printf -- '- note: deps.get --check-locked failed — the committed mix.lock is missing or does not match mix.exs, so this directory was not audited\n\n'
+    } >>"$SECTIONS_FILE"
+    continue
+  fi
+
+  set +e
+  audit_output="$(cd "$resolved" && "$MIX_BIN" hex.audit 2>&1)"
+  audit_status=$?
+  set -e
+
+  {
+    printf -- '- audit exit: %s\n\n' "$audit_status"
+    printf '```\n%s\n```\n\n' "$(printf '%s' "$audit_output" | strip_ansi)"
+  } >>"$SECTIONS_FILE"
+
+  if [ "$audit_status" -ne 0 ]; then
+    bump advisory
+  fi
+
+  set +e
+  outdated_output="$(cd "$resolved" && "$MIX_BIN" hex.outdated 2>&1)"
+  outdated_status=$?
+  set -e
+
+  {
+    printf -- '- outdated exit: %s\n\n' "$outdated_status"
+    printf '```\n%s\n```\n\n' "$(printf '%s' "$outdated_output" | strip_ansi)"
+  } >>"$SECTIONS_FILE"
+
+  if [ "$outdated_status" -ne 0 ]; then
+    bump outdated
+  fi
+done
+
+# Restore the script's baseline mode (errexit off, per the top-level `set
+# -uo pipefail`). The loop above toggles `set -e` on around every command
+# substitution that must NOT abort on a non-zero mix exit; the last iteration
+# leaves it ON, which would otherwise turn a downstream SIGPIPE from the
+# truncation pipeline below (expected: `head -c` closes the pipe early on an
+# oversized body) into a premature script abort.
+set +e
+
+overall="${RANK_NAMES[$overall_rank]}"
+
+FOOTER='---
+
+This issue is reused across runs: a re-run comments on the same issue instead
+of opening a new one. Policy: see CONTRIBUTING.md, "Dependency freshness policy".'
+
+FULL_BODY="$(
+  printf '# Dependency health: %s\n\n' "$overall"
+  cat "$SECTIONS_FILE"
+  printf '%s\n' "$FOOTER"
+)"
+
+MAX_BYTES=60000
+BODY_LEN="$(printf '%s' "$FULL_BODY" | wc -c | tr -d ' ')"
+
+if [ "$BODY_LEN" -gt "$MAX_BYTES" ]; then
+  TRUNC_MARKER=$'\n\n(truncated)\n'
+  TRUNC_MARKER_LEN=${#TRUNC_MARKER}
+  KEEP=$((MAX_BYTES - TRUNC_MARKER_LEN))
+  printf '%s' "$FULL_BODY" | head -c "$KEEP" >"$REPORT_FILE"
+  printf '%s' "$TRUNC_MARKER" >>"$REPORT_FILE"
+else
+  printf '%s' "$FULL_BODY" >"$REPORT_FILE"
+fi
+
+echo "classification=$overall"
+
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  {
+    printf 'classification=%s\n' "$overall"
+    printf 'report=%s\n' "$REPORT_FILE"
+  } >>"$GITHUB_OUTPUT"
+fi
+
+exit 0

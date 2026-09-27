@@ -140,6 +140,26 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
              "compiles every dependency, and a persisted token is readable by their " <>
              "compile-time code (202-REVIEW WR-01)."
 
+    checkout_count = fn job -> length(Regex.scan(~r/uses: actions\/checkout@/, job)) end
+    credential_free = fn job -> length(Regex.scan(~r/^\s+persist-credentials: false$/m, job)) end
+
+    assert checkout_count.(sync) == credential_free.(sync),
+           "every checkout in sync-release-pr-pins must set persist-credentials: false. The " <>
+             "job compiles every dependency, and one credential-bearing checkout is enough " <>
+             "for their compile-time code to read the token."
+
+    mutated =
+      String.replace(
+        sync,
+        "ref: release-please--branches--main\n          persist-credentials: false\n",
+        "ref: release-please--branches--main\n"
+      )
+
+    refute mutated == sync, "the credential-free checkout control did not change the input"
+
+    refute checkout_count.(mutated) == credential_free.(mutated),
+           "dropping the flag from the release-branch checkout must make the counts diverge"
+
     assert sync =~ ~r/^    concurrency:\n      group: sync-release-pr-pins$/m,
            "sync-release-pr-pins must carry its own concurrency group, or two pushes to " <>
              "main race to push onto the release branch and the loser fails (202-REVIEW WR-02)."

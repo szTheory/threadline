@@ -1,0 +1,103 @@
+# Weekly, non-required dependency health lane (SUP-04). Deliberately NOT a
+# member of ci.yml or ci-required's needs: — this lane never blocks a pull
+# request. It runs `mix hex.audit` and `mix hex.outdated` over all three
+# lockfiles this repo maintains (root, bench, examples/threadline_phoenix)
+# and, when the result is anything other than clean, upserts exactly ONE
+# open issue labelled `ci-deps` — a re-run comments on the same issue rather
+# than opening a second one. The policy this lane implements is documented in
+# CONTRIBUTING.md's "Dependency freshness policy" section, and
+# test/threadline/deps_health_doc_contract_test.exs derives facts from this
+# workflow and fails if that section drifts.
+#
+# Job id is stable (relied on by docs/CI conventions); evolve `name:` freely.
+name: Dependency Health
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays 08:00 UTC.
+    - cron: "0 8 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deps-health
+  cancel-in-progress: false
+
+jobs:
+  # Job id is stable.
+  deps-health:
+    name: Weekly hex.audit + hex.outdated (all lockfiles)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Run hex.audit + hex.outdated over all three lockfiles
+        id: report
+        run: bin/deps-health-report "$RUNNER_TEMP/deps-health"
+
+      # `if: always() && ...` gates on the classification VALUE rather than
+      # the implicit success of everything before it, so a future step
+      # inserted between `report` and here cannot silently re-skip issue
+      # filing (same idiom as flake-detection.yml's own upsert step). An
+      # empty or crashed report step still has `classification` default to
+      # the empty string, which is not 'clean', so this still fires.
+      - name: Open or update the dependency health issue
+        if: always() && steps.report.outputs.classification != 'clean'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE_PREFIX: "Dependency health"
+          LABEL: ci-deps
+          CLASSIFICATION: ${{ steps.report.outputs.classification }}
+          REPORT_FILE: ${{ steps.report.outputs.report }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${REPORT_FILE:-}" ] && [ -f "$REPORT_FILE" ]; then
+            body_file="$REPORT_FILE"
+          else
+            # The report step crashed before producing a file (or
+            # $GITHUB_OUTPUT never received `report=...`). Never go silent:
+            # file a fallback body saying so, with the run URL attached.
+            body_file=$(mktemp)
+            trap 'rm -f "$body_file"' EXIT
+            cat > "$body_file" <<EOF
+          Classification: unknown (the report step produced no report file).
+
+          Run: ${RUN_URL}
+          Commit: \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME})
+
+          This issue is reused across runs. Policy: see CONTRIBUTING.md,
+          "Dependency freshness policy".
+          EOF
+          fi
+
+          bin/upsert-ci-issue --marker "$TITLE_PREFIX" \
+            --title "$TITLE_PREFIX: ${CLASSIFICATION:-unknown}" \
+            --body-file "$body_file" --label "$LABEL" \
+            --label-description "Weekly deps-health lane: hex.audit advisories or hex.outdated findings" \
+            --label-color FBCA04
+
+      # The lane goes red on `advisory` (a hex.audit finding) or `unknown`
+      # (a fetch failure that prevented an audit from running at all) —
+      # never silently on empty output, which is why this exempts only the
+      # two known-safe values instead of allow-listing 'advisory'/'unknown'.
+      # `outdated` alone stays green: it is informational, reported via the
+      # issue above but not a merge-style gate.
+      - name: Fail the job on an advisory or an unknown result
+        if: always() && steps.report.outputs.classification != 'clean' && steps.report.outputs.classification != 'outdated'
+        run: |
+          echo "::error::Dependency health classified this run as '${{ steps.report.outputs.classification }}'. See CONTRIBUTING.md, \"Dependency freshness policy\"."
+          exit 1

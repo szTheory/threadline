@@ -122,6 +122,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
     paths
   end
 
+  # Every workflow file, keyed by its repo-relative path.
+  defp all_workflows do
+    Map.new(workflow_files(), &{Path.relative_to(&1, @repo_root), File.read!(&1)})
+  end
+
   # The canonical stable job keys, derived from ci.yml (order-independent set).
   defp ci_job_keys do
     read_rel!([".github", "workflows", "ci.yml"])
@@ -240,6 +245,132 @@ defmodule Threadline.CIWorkflowParityContractTest do
              "verify-test matrix must declare base axis `lane: [min, current]`"
     end
 
+    test "each lane installs one exact toolchain: the floor build or the committed .tool-versions" do
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+      mix_exs = read_rel!(["mix.exs"])
+
+      assert verify_test_matrix_errors(yaml, mix_exs) == []
+
+      min_row = ~s(          - lane: min\n)
+      current_row = ~s(          - lane: current\n)
+      min_runner = ~s(            runner: "ubuntu-24.04"\n          - lane: current)
+
+      controls = [
+        {"min row also given version-file",
+         String.replace(
+           yaml,
+           min_row,
+           min_row <> ~s(            version-file: ".tool-versions"\n)
+         )},
+        {"current row also given an OTP pin",
+         String.replace(yaml, current_row, current_row <> ~s(            otp: "27.3.4.15"\n))},
+        {"min row with neither pins nor version-file",
+         yaml
+         |> String.replace(~s(            otp: "26.2.5.21"\n), "")
+         |> String.replace(~s(            elixir: "1.15.8"\n), "")},
+        {"min runner on the deprecated image",
+         String.replace(
+           yaml,
+           min_runner,
+           ~s(            runner: ") <> "ubuntu-" <> "22.04" <> ~s("\n          - lane: current)
+         )},
+        {"min OTP on a 25 build",
+         String.replace(yaml, ~s(otp: "26.2.5.21"), ~s(otp: "25.3.2.21"))},
+        {"min Elixir above the declared floor",
+         String.replace(yaml, ~s(elixir: "1.15.8"), ~s(elixir: "1.16.3"))},
+        {"a third matrix row",
+         String.replace(
+           yaml,
+           current_row,
+           ~s(          - lane: extra\n            version-file: ".tool-versions"\n) <>
+             current_row
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == yaml, "#{control} control did not change the input"
+
+        refute verify_test_matrix_errors(mutated, mix_exs) == [],
+               "#{control} mutation must make the verify-test matrix contract fail"
+      end
+
+      refute verify_test_matrix_errors(
+               yaml,
+               String.replace(mix_exs, ~s(elixir: "~> 1.15"), ~s(elixir: "~> 1.16"))
+             ) ==
+               [],
+             "a raised mix.exs floor must no longer match the min row"
+    end
+
+    test "the verify-test setup-beam step is strict and fed only by matrix values" do
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+      path = ".github/workflows/ci.yml"
+      job = workflow_job(yaml, "verify-test")
+
+      assert String.contains?(job, "uses: erlef/setup-beam@"),
+             "verify-test must contain a setup-beam step, or this contract is vacuous"
+
+      assert toolchain_contract_errors(%{path => "jobs:\n" <> job}) == []
+
+      beam_step =
+        case Enum.filter(job_steps(job), &String.contains?(&1, "uses: erlef/setup-beam@")) do
+          [step] ->
+            step
+
+          steps ->
+            flunk("verify-test must carry exactly one setup-beam step, found #{length(steps)}")
+        end
+
+      docs_job = workflow_job(yaml, "verify-docs")
+
+      docs_beam_step =
+        case Enum.filter(job_steps(docs_job), &String.contains?(&1, "uses: erlef/setup-beam@")) do
+          [step] ->
+            step
+
+          steps ->
+            flunk("verify-docs must carry exactly one setup-beam step, found #{length(steps)}")
+        end
+
+      controls = [
+        {"strict version type removed",
+         String.replace(job, "          version-type: strict\n", "")},
+        {"id beam removed", String.replace(job, "        id: beam\n", "")},
+        {"version-file input removed",
+         String.replace(job, "          version-file: ${{ matrix.version-file }}\n", "")},
+        {"extra rebar3 input",
+         String.replace(
+           job,
+           "          version-type: strict\n",
+           "          version-type: strict\n          rebar3-version: ${{ matrix.rebar3 }}\n"
+         )},
+        {"literal OTP input instead of the matrix value",
+         String.replace(job, "otp-version: ${{ matrix.otp }}", ~s(otp-version: "26"))},
+        {"legacy matrix-value deps key",
+         String.replace(
+           job,
+           "key: ${{ matrix.runner }}-${{ steps.beam.outputs.otp-version }}-elixir-" <>
+             "${{ steps.beam.outputs.elixir-version }}-mix-deps-",
+           "key: ${{ matrix.runner }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-mix-deps-"
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == job, "#{control} control did not change the input"
+
+        refute toolchain_contract_errors(%{path => "jobs:\n" <> mutated}) == [],
+               "#{control} mutation must make the toolchain pin contract fail"
+      end
+
+      moved = String.replace(docs_job, docs_beam_step, beam_step)
+
+      refute moved == docs_job,
+             "matrix step moved into verify-docs control did not change the input"
+
+      refute toolchain_contract_errors(%{path => "jobs:\n" <> moved}) == [],
+             "a matrix-fed setup-beam step outside verify-test must fail the toolchain contract"
+    end
+
     test "CONTRIBUTING List 2 carries both composed required-check names" do
       doc = read_rel!(["CONTRIBUTING.md"])
 
@@ -252,8 +383,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     test "ci.yml caches deps + e2e lockfile and never caches _build" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
-      assert String.contains?(yaml, "actions/cache@v4"),
-             "ci.yml must use actions/cache@v4 for the deps cache"
+      assert String.contains?(yaml, "actions/cache@v5"),
+             "ci.yml must use actions/cache@v5 for the deps cache"
 
       assert Regex.match?(~r/^\s*path:\s*deps\s*$/m, yaml),
              "ci.yml must cache the `deps` directory"
@@ -267,5 +398,806 @@ defmodule Threadline.CIWorkflowParityContractTest do
       refute Regex.match?(~r/^\s*path:\s*_build\s*$/m, yaml),
              "ci.yml must NOT cache _build (compile artifacts are not shared across matrix lanes)"
     end
+  end
+
+  # --- Toolchain pin contract -------------------------------------------------
+  #
+  # `.tool-versions` is the single source of the CI current-lane toolchain. Every
+  # setup-beam step reads it through `version-file` in strict mode, and every
+  # BEAM-dependent cache key names the toolchain setup-beam actually resolved
+  # (its `otp-version` / `elixir-version` outputs), never a requested literal.
+  #
+  # Cache paths that do not depend on the BEAM are exempt only by being named
+  # here with a reason. Any other cache path fails closed unless its key carries
+  # both resolved outputs.
+  @beam_independent_cache_paths %{
+    "~/.cache/ms-playwright" =>
+      "Playwright browser binaries are keyed by the e2e npm lockfile and do not depend on the BEAM"
+  }
+
+  # Assembled so this file's own text never contains the needles it forbids.
+  @os_family_context "runner" <> ".os"
+  @deprecated_runner_image "ubuntu-" <> "22.04"
+  @legacy_otp_segment "otp" <> "27"
+  @legacy_otp_value "27" <> ".0"
+
+  @resolved_otp "${{ steps.beam.outputs.otp-version }}"
+  @resolved_elixir "${{ steps.beam.outputs.elixir-version }}"
+  @resolved_deps_prefix "ubuntu-24.04-#{@resolved_otp}-elixir-#{@resolved_elixir}-mix-deps-"
+
+  describe "toolchain pin contract" do
+    test ".tool-versions is tracked and names one consistent erlang/elixir build" do
+      text = read_rel!([".tool-versions"])
+
+      assert tool_versions_errors(text) == []
+
+      {output, status} =
+        System.cmd("git", ["ls-files", "--error-unmatch", "--", ".tool-versions"],
+          cd: @repo_root,
+          stderr_to_stdout: true
+        )
+
+      assert status == 0,
+             ".tool-versions must be tracked so CI and a fresh clone read the same pins: " <>
+               output
+
+      controls = [
+        {"missing erlang line", String.replace(text, ~r/^erlang .*\n?/m, "")},
+        {"missing elixir line", String.replace(text, ~r/^elixir .*\n?/m, "")},
+        {"duplicated erlang line", text <> "\nerlang 27.3.4.15\n"},
+        {"elixir built for another OTP major",
+         String.replace(text, "elixir 1.17.3-otp-27", "elixir 1.17.3-otp-26")}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == text, "#{control} control did not change the input"
+
+        refute tool_versions_errors(mutated) == [],
+               "#{control} mutation must make the toolchain pin contract fail"
+      end
+    end
+
+    test "verify-format installs the committed toolchain and keys its deps cache on it" do
+      ci_yml = read_rel!([".github", "workflows", "ci.yml"])
+      job = workflow_job(ci_yml, "verify-format")
+      path = ".github/workflows/ci.yml"
+
+      assert String.contains?(job, "uses: erlef/setup-beam@"),
+             "verify-format must contain a setup-beam step, or this contract is vacuous"
+
+      assert toolchain_contract_errors(%{path => "jobs:\n" <> job}) == []
+
+      cache_step =
+        case Regex.run(~r/^      - name: Cache deps\n[\s\S]*?(?=^      - |\z)/m, job) do
+          [step] -> step
+          nil -> flunk("verify-format must carry a `Cache deps` step")
+        end
+
+      setup_line = "      - uses: erlef/setup-beam@v1"
+
+      controls = [
+        {"id beam removed", String.replace(job, "        id: beam\n", "")},
+        {"strict version type removed",
+         String.replace(job, "          version-type: strict\n", "")},
+        {"version file pointing elsewhere",
+         String.replace(
+           job,
+           "version-file: .tool-versions",
+           "version-file: " <> "elsewhere/.tool-versions"
+         )},
+        {"literal OTP input re-added",
+         String.replace(
+           job,
+           "          version-type: strict\n",
+           "          version-type: strict\n          otp-version: \"#{@legacy_otp_value}\"\n"
+         )},
+        {"legacy literal-segment deps key",
+         String.replace(
+           job,
+           "key: " <> @resolved_deps_prefix,
+           "key: ubuntu-24.04-" <> @legacy_otp_segment <> ".0-elixir1.17.3-mix-deps-"
+         )},
+        {"restore-keys missing the elixir output",
+         String.replace(
+           job,
+           "restore-keys: " <> @resolved_deps_prefix,
+           "restore-keys: ubuntu-24.04-#{@resolved_otp}-mix-deps-"
+         )},
+        {"key led by the OS-family context value",
+         String.replace(
+           job,
+           "key: ubuntu-24.04-",
+           "key: ${{ " <> @os_family_context <> " }}-"
+         )},
+        {"deps cache moved above setup-beam",
+         job
+         |> String.replace(cache_step, "")
+         |> String.replace(setup_line, cache_step <> setup_line)},
+        {"duplicated id beam",
+         String.replace(
+           job,
+           "      - name: Cache deps\n",
+           "      - name: Cache deps\n        id: beam\n"
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == job, "#{control} control did not change the input"
+
+        refute toolchain_contract_errors(%{path => "jobs:\n" <> mutated}) == [],
+               "#{control} mutation must make the toolchain pin contract fail"
+      end
+    end
+
+    test "every workflow job installs an exact toolchain and keys caches on it" do
+      live = read_rel!([".github", "workflows", "ci.yml"])
+      path = ".github/workflows/ci.yml"
+      release_path = ".github/workflows/release.yml"
+      release = read_rel!([".github", "workflows", "release.yml"])
+
+      setup_beam_steps =
+        live |> strip_comment_lines() |> String.split("uses: erlef/setup-beam@") |> length()
+
+      assert setup_beam_steps - 1 == 14,
+             "expected 14 setup-beam steps (13 file-fed, 1 matrix-fed) under the toolchain " <>
+               "contract, found #{setup_beam_steps - 1}"
+
+      assert toolchain_contract_errors(%{path => live, release_path => release}) == []
+
+      assert toolchain_contract_errors(all_workflows()) == []
+
+      docs_job = workflow_job(live, "verify-docs")
+
+      controls = [
+        {"verify-docs id beam removed",
+         String.replace(live, docs_job, String.replace(docs_job, "        id: beam\n", ""))}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == live, "#{control} control did not change the input"
+
+        refute toolchain_contract_errors(%{path => mutated}) == [],
+               "#{control} mutation must make the toolchain pin contract fail"
+      end
+    end
+
+    test "the browser and scheduled workflows install the committed toolchain" do
+      live = all_workflows()
+      flake = ".github/workflows/flake-detection.yml"
+      deps_health = ".github/workflows/deps-health.yml"
+      browser = ".github/workflows/browser-full.yml"
+
+      for path <- [flake, deps_health, browser] do
+        assert String.contains?(live[path], "uses: erlef/setup-beam@"),
+               "#{path} must contain a setup-beam step, or this contract is vacuous"
+      end
+
+      mutate = fn path, from, to -> Map.update!(live, path, &String.replace(&1, from, to)) end
+
+      unknown_cache =
+        "jobs:\n  some-job:\n    steps:\n      - uses: actions/checkout@v5\n" <>
+          "      - uses: erlef/setup-beam@v1\n        id: beam\n        with:\n" <>
+          "          version-file: .tool-versions\n          version-type: strict\n" <>
+          "      - uses: actions/cache@v4\n        with:\n          path: ~/.cache/something\n" <>
+          "          key: ubuntu-24.04-${{ hashFiles('x.lock') }}\n"
+
+      controls = [
+        {"flake-detection deps key led by the OS-family context value",
+         mutate.(flake, "key: ubuntu-24.04-", "key: ${{ " <> @os_family_context <> " }}-")},
+        {"deps-health setup-beam with a literal OTP input",
+         mutate.(
+           deps_health,
+           "          version-type: strict\n",
+           "          version-type: strict\n          otp-version: \"#{@legacy_otp_value}\"\n"
+         )},
+        {"browser-full deps key missing the elixir output",
+         mutate.(
+           browser,
+           "key: " <> @resolved_deps_prefix,
+           "key: ubuntu-24.04-#{@resolved_otp}-mix-deps-"
+         )},
+        {"a new workflow caching an unknown path on a lockfile-only key",
+         Map.put(live, ".github/workflows/new.yml", unknown_cache)}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == live, "#{control} control did not change the input"
+
+        refute toolchain_contract_errors(mutated) == [],
+               "#{control} mutation must make the toolchain pin contract fail"
+      end
+    end
+
+    test "release jobs read the toolchain pin from the workflow's own commit" do
+      path = ".github/workflows/release.yml"
+      release = read_rel!([".github", "workflows", "release.yml"])
+      ci = read_rel!([".github", "workflows", "ci.yml"])
+
+      for {file, yaml} <- [{".github/workflows/ci.yml", ci}, {path, release}],
+          {job_id, block} <- workflow_jobs(yaml) do
+        assert toolchain_source_errors(file, job_id, block) == []
+      end
+
+      ref_switching = ["sync-release-pr-pins", "publish-hex", "smoke-published"]
+
+      for job_id <- ref_switching do
+        job = workflow_job(release, job_id)
+
+        assert String.contains?(job, "sparse-checkout: .tool-versions"),
+               "#{job_id} must check out .tool-versions from the workflow commit, " <>
+                 "or this contract is vacuous"
+      end
+
+      publish = workflow_job(release, "publish-hex")
+      smoke = workflow_job(release, "smoke-published")
+      sync = workflow_job(release, "sync-release-pr-pins")
+
+      [toolchain_checkout, beam_step | _] =
+        smoke |> job_steps() |> Enum.drop_while(&(not String.contains?(&1, "sparse-checkout:")))
+
+      target_checkout =
+        smoke
+        |> job_steps()
+        |> Enum.find(&String.contains?(&1, "ref: ${{ needs.release-ref.outputs.checkout_ref }}"))
+
+      publish_toolchain_checkout =
+        publish |> job_steps() |> Enum.find(&String.contains?(&1, "sparse-checkout:"))
+
+      controls = [
+        {"publish-hex", publish, "toolchain checkout removed",
+         String.replace(publish, publish_toolchain_checkout, "")},
+        {"smoke-published", smoke, "setup-beam moved below the target-ref checkout",
+         String.replace(
+           smoke,
+           toolchain_checkout <> beam_step <> target_checkout,
+           toolchain_checkout <> target_checkout <> beam_step
+         )},
+        {"sync-release-pr-pins", sync, "toolchain checkout without persist-credentials: false",
+         String.replace(
+           sync,
+           "          sparse-checkout-cone-mode: false\n          persist-credentials: false\n",
+           "          sparse-checkout-cone-mode: false\n"
+         )},
+        {"publish-hex", publish, "toolchain checkout naming a different file",
+         String.replace(
+           publish,
+           "sparse-checkout: .tool-versions",
+           "sparse-checkout: " <> "mix.exs"
+         )}
+      ]
+
+      for {job_id, job, control, mutated} <- controls do
+        refute mutated == job, "#{control} control did not change the input"
+
+        refute toolchain_source_errors(path, job_id, mutated) == [],
+               "#{control} mutation must make the toolchain source contract fail"
+      end
+    end
+
+    test "no workflow runs a job on the deprecated runner image" do
+      for {file, text} <- all_workflows() do
+        assert runner_image_errors(file, text) == []
+      end
+
+      path = ".github/workflows/ci.yml"
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+      controls = [
+        {"runs-on value on the deprecated image",
+         String.replace(
+           yaml,
+           "    runs-on: ubuntu-24.04\n",
+           "    runs-on: " <> @deprecated_runner_image <> "\n",
+           global: false
+         )},
+        {"matrix runner value on the deprecated image",
+         String.replace(
+           yaml,
+           ~s(runner: "ubuntu-24.04"),
+           ~s(runner: ") <> @deprecated_runner_image <> ~s("),
+           global: false
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == yaml, "#{control} control did not change the input"
+
+        refute runner_image_errors(path, mutated) == [],
+               "#{control} mutation must make the runner image contract fail"
+      end
+    end
+
+    test "ci.yml never names the OS-family runner context, comments included" do
+      path = ".github/workflows/ci.yml"
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+      assert os_family_context_errors(path, yaml) == []
+
+      controls = [
+        {"cache key built on the OS-family context",
+         String.replace(
+           yaml,
+           "key: ${{ matrix.runner }}-",
+           "key: ${{ " <> @os_family_context <> " }}-${{ matrix.runner }}-",
+           global: false
+         )},
+        {"OS-family context named only in a comment",
+         String.replace(
+           yaml,
+           "      # CACHE KEY CONTRACT",
+           "      # e.g. " <> @os_family_context <> "\n      # CACHE KEY CONTRACT",
+           global: false
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == yaml, "#{control} control did not change the input"
+
+        refute os_family_context_errors(path, mutated) == [],
+               "#{control} mutation must make the OS-family context check fail"
+      end
+    end
+
+    test "the Playwright exemption is the only BEAM-independent cache path, with a reason" do
+      assert Map.keys(@beam_independent_cache_paths) == ["~/.cache/ms-playwright"]
+
+      for {_path, reason} <- @beam_independent_cache_paths do
+        assert is_binary(reason) and String.length(reason) > 20
+      end
+
+      unknown =
+        "jobs:\n  some-job:\n    steps:\n      - uses: erlef/setup-beam@v1\n        id: beam\n" <>
+          "        with:\n          version-file: .tool-versions\n          version-type: strict\n" <>
+          "      - uses: actions/cache@v4\n        with:\n          path: ~/.cache/something\n" <>
+          "          key: ubuntu-24.04-${{ hashFiles('x.lock') }}\n"
+
+      refute toolchain_contract_errors(%{"w.yml" => unknown}) == [],
+             "an unknown cache path without resolved toolchain outputs must fail closed"
+    end
+  end
+
+  defp tool_versions_errors(text) do
+    entries =
+      text
+      |> String.split("\n")
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == "" or String.starts_with?(&1, "#")))
+      |> Enum.map(fn line ->
+        case String.split(line, ~r/\s+/, parts: 2) do
+          [tool, version] -> {tool, String.trim(version)}
+          [tool] -> {tool, ""}
+        end
+      end)
+
+    erlang = for {"erlang", version} <- entries, do: version
+    elixir = for {"elixir", version} <- entries, do: version
+
+    count_errors =
+      for {tool, versions} <- [{"erlang", erlang}, {"elixir", elixir}],
+          length(versions) != 1 do
+        ".tool-versions must carry exactly one #{tool} line, found #{length(versions)}"
+      end
+
+    count_errors ++ otp_suffix_errors(erlang, elixir)
+  end
+
+  defp otp_suffix_errors([erlang], [elixir]) do
+    erlang_major = erlang |> String.split(".") |> hd()
+
+    case Regex.run(~r/-otp-(\d+)$/, elixir) do
+      [_, ^erlang_major] ->
+        []
+
+      [_, other] ->
+        [
+          "elixir #{elixir} is built for OTP #{other}, but erlang #{erlang} is OTP #{erlang_major}"
+        ]
+
+      nil ->
+        ["elixir #{elixir} must end in -otp-N naming the erlang major (#{erlang_major})"]
+    end
+  end
+
+  defp otp_suffix_errors(_erlang, _elixir), do: []
+
+  defp workflow_jobs(yaml) do
+    case String.split(yaml, ~r/^jobs:\n/m, parts: 2) do
+      [_, body] ->
+        ~r/^  ([a-z][a-z0-9-]+):\n[\s\S]*?(?=^  [a-z][a-z0-9-]+:\n|\z)/m
+        |> Regex.scan(body)
+        |> Enum.map(fn [block, job_id] -> {job_id, block} end)
+
+      _ ->
+        []
+    end
+  end
+
+  defp workflow_job(yaml, id) do
+    case Regex.run(~r/^  #{Regex.escape(id)}:\n([\s\S]*?)(?=^  [a-z][a-z0-9-]+:\n|\z)/m, yaml) do
+      [full, _body] -> full
+      nil -> ""
+    end
+  end
+
+  # Step texts of a job block, split at every 6-space-indented list item. The
+  # leading chunk (job header up to the first step) is dropped.
+  defp job_steps(block) do
+    case Regex.split(~r/^(?=      - )/m, block) do
+      [_header | steps] -> steps
+      [] -> []
+    end
+  end
+
+  defp strip_comment_lines(block) do
+    block
+    |> String.split("\n")
+    |> Enum.reject(&String.match?(&1, ~r/^\s*#/))
+    |> Enum.join("\n")
+  end
+
+  defp trimmed_lines(text) do
+    text |> strip_comment_lines() |> String.split("\n") |> Enum.map(&String.trim/1)
+  end
+
+  defp setup_beam_errors(path, job_id, step) do
+    stripped = strip_comment_lines(step)
+
+    cond do
+      not String.contains?(stripped, "uses: erlef/setup-beam@") ->
+        []
+
+      String.contains?(stripped, "${{ matrix.") ->
+        matrix_setup_beam_errors(path, job_id, stripped)
+
+      true ->
+        file_setup_beam_errors(path, job_id, stripped)
+    end
+  end
+
+  # FILE form: the step installs exactly the committed `.tool-versions` build.
+  defp file_setup_beam_errors(path, job_id, step) do
+    lines = trimmed_lines(step)
+    where = "#{path} #{job_id} setup-beam step"
+
+    required =
+      for line <- ["id: beam", "version-file: .tool-versions", "version-type: strict"],
+          line not in lines do
+        "#{where} must declare `#{line}`"
+      end
+
+    forbidden =
+      for key <- ["otp-version:", "elixir-version:", "gleam-version:", "rebar3-version:"],
+          Enum.any?(lines, &String.starts_with?(&1, key)) do
+        "#{where} must not carry a `#{key}` input (setup-beam strict mode reads .tool-versions)"
+      end
+
+    required ++ forbidden
+  end
+
+  # MATRIX form: only the verify-test matrix may feed setup-beam from matrix
+  # values, and only through exactly these inputs. Each matrix row sets either
+  # `version-file` or the `otp`/`elixir` pins (see verify_test_matrix_errors/2);
+  # an absent matrix key renders as an empty input, which setup-beam ignores.
+  @matrix_beam_inputs [
+    "version-file: ${{ matrix.version-file }}",
+    "otp-version: ${{ matrix.otp }}",
+    "elixir-version: ${{ matrix.elixir }}",
+    "version-type: strict"
+  ]
+
+  defp matrix_setup_beam_errors(path, job_id, step) do
+    lines = trimmed_lines(step)
+    where = "#{path} #{job_id} setup-beam step"
+
+    job_errors =
+      if job_id == "verify-test",
+        do: [],
+        else: ["#{where} reads matrix values, which only the verify-test matrix may do"]
+
+    id_errors = if "id: beam" in lines, do: [], else: ["#{where} must declare `id: beam`"]
+
+    inputs =
+      lines
+      |> Enum.drop_while(&(&1 != "with:"))
+      |> Enum.drop(1)
+      |> Enum.filter(&Regex.match?(~r/^[a-z0-9-]+:/, &1))
+
+    input_errors =
+      if Enum.sort(inputs) == Enum.sort(@matrix_beam_inputs),
+        do: [],
+        else: [
+          "#{where} must carry exactly the inputs #{inspect(@matrix_beam_inputs)}, " <>
+            "found #{inspect(inputs)}"
+        ]
+
+    job_errors ++ id_errors ++ input_errors
+  end
+
+  # The verify-test `include:` rows: the min row pins the exact floor build the
+  # mix.exs `elixir:` requirement promises; the current row reads .tool-versions.
+  defp verify_test_matrix_errors(yaml, mix_exs) do
+    rows = verify_test_rows(workflow_job(yaml, "verify-test"))
+    by_lane = Map.new(rows, &{&1["lane"], &1})
+
+    count_errors =
+      if length(rows) == 2 and Map.keys(by_lane) |> Enum.sort() == ["current", "min"],
+        do: [],
+        else: [
+          "verify-test must have exactly two include rows (min, current), found " <>
+            inspect(Enum.map(rows, & &1["lane"]))
+        ]
+
+    source_errors =
+      for row <- rows,
+          file? = Map.has_key?(row, "version-file"),
+          pins? = Map.has_key?(row, "otp") or Map.has_key?(row, "elixir"),
+          file? == pins? do
+        "verify-test #{row["lane"]} row must set exactly one toolchain source " <>
+          "(version-file, or otp/elixir pins)"
+      end
+
+    count_errors ++
+      source_errors ++
+      min_row_errors(by_lane["min"], elixir_floor(mix_exs)) ++
+      current_row_errors(by_lane["current"])
+  end
+
+  defp min_row_errors(nil, _floor), do: ["verify-test has no min row"]
+
+  defp min_row_errors(row, floor) do
+    otp_major = row |> Map.get("otp", "") |> String.split(".") |> hd()
+    elixir_minor = row |> Map.get("elixir", "") |> String.split(".") |> Enum.take(2)
+
+    [
+      {row["otp"] == "26.2.5.21", "min row must pin otp: \"26.2.5.21\""},
+      {row["elixir"] == "1.15.8", "min row must pin elixir: \"1.15.8\""},
+      {row["runner"] == "ubuntu-24.04", "min row must run on ubuntu-24.04"},
+      {row["pg"] == "14", "min row must use pg 14"},
+      {not Map.has_key?(row, "version-file"), "min row must not set version-file"},
+      {otp_major == "26", "min row OTP major must be 26, got #{inspect(otp_major)}"},
+      {floor != nil and elixir_minor == floor,
+       "min row Elixir #{inspect(row["elixir"])} must match the mix.exs floor #{inspect(floor)}"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&("verify-test " <> elem(&1, 1)))
+  end
+
+  defp current_row_errors(nil), do: ["verify-test has no current row"]
+
+  defp current_row_errors(row) do
+    [
+      {row["version-file"] == ".tool-versions",
+       "current row must set version-file: \".tool-versions\""},
+      {row["runner"] == "ubuntu-24.04", "current row must run on ubuntu-24.04"},
+      {row["pg"] == "16", "current row must use pg 16"},
+      {not Map.has_key?(row, "otp") and not Map.has_key?(row, "elixir"),
+       "current row must not carry otp/elixir pins"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&("verify-test " <> elem(&1, 1)))
+  end
+
+  defp verify_test_rows(job) do
+    case Regex.run(
+           ~r/^        include:\n((?:          .*\n)+)/m,
+           strip_comment_lines(job) <> "\n"
+         ) do
+      [_, body] ->
+        body
+        |> String.split(~r/^          - /m, trim: true)
+        |> Enum.map(&parse_matrix_row/1)
+
+      nil ->
+        []
+    end
+  end
+
+  defp parse_matrix_row(text) do
+    text
+    |> String.split("\n", trim: true)
+    |> Enum.map(&String.trim/1)
+    |> Enum.flat_map(fn line ->
+      case Regex.run(~r/^([a-z0-9-]+):\s*"?([^"]*)"?\s*$/, line) do
+        [_, key, value] -> [{key, value}]
+        nil -> []
+      end
+    end)
+    |> Map.new()
+  end
+
+  defp elixir_floor(mix_exs) do
+    case Regex.run(~r/^\s*elixir: "~> (\d+)\.(\d+)"/m, mix_exs) do
+      [_, major, minor] -> [major, minor]
+      nil -> nil
+    end
+  end
+
+  # setup-beam reads `.tool-versions` from the workspace, so the checkout that
+  # precedes it decides which commit's pin is installed. It must be the workflow's
+  # own commit (no `ref:`): a release branch or recovery tag may predate the file.
+  # A checkout that narrows the workspace to the pin must be exactly that narrow
+  # and must not persist the job token.
+  defp toolchain_source_errors(path, job_id, block) do
+    steps = block |> strip_comment_lines() |> job_steps()
+    where = "#{path} #{job_id}"
+    checkout? = &String.contains?(&1, "uses: actions/checkout@")
+
+    source_errors =
+      case Enum.find_index(steps, &String.contains?(&1, "uses: erlef/setup-beam@")) do
+        nil ->
+          []
+
+        beam_at ->
+          steps |> Enum.take(beam_at) |> Enum.filter(checkout?) |> pin_checkout_errors(where)
+      end
+
+    sparse_errors =
+      for step <- steps,
+          checkout?.(step),
+          yaml_value(step, "sparse-checkout") != nil,
+          lines = trimmed_lines(step),
+          line <- [
+            "sparse-checkout: .tool-versions",
+            "sparse-checkout-cone-mode: false",
+            "persist-credentials: false"
+          ],
+          line not in lines do
+        "#{where} toolchain checkout must declare `#{line}`"
+      end
+
+    source_errors ++ sparse_errors
+  end
+
+  defp pin_checkout_errors([], where),
+    do: ["#{where} has no checkout before setup-beam, so .tool-versions is absent"]
+
+  defp pin_checkout_errors(checkouts, where) do
+    if yaml_value(List.last(checkouts), "ref"),
+      do: [
+        "#{where} checks out another ref right before setup-beam; read " <>
+          ".tool-versions from the workflow's own commit first"
+      ],
+      else: []
+  end
+
+  # An output read before setup-beam runs is empty, which would collapse every
+  # toolchain onto one cache key.
+  defp beam_ordering_errors(path, job_id, block) do
+    block = strip_comment_lines(block)
+    where = "#{path} #{job_id}"
+
+    if String.contains?(block, "uses: erlef/setup-beam@") or
+         String.contains?(block, "steps.beam.outputs") do
+      case Enum.filter(job_steps(block), &("id: beam" in trimmed_lines(&1))) do
+        [beam_step] ->
+          early_output_errors(where, block, beam_step)
+
+        beam_steps ->
+          ["#{where} must have exactly one `id: beam` step, found #{length(beam_steps)}"]
+      end
+    else
+      []
+    end
+  end
+
+  defp early_output_errors(where, block, beam_step) do
+    {beam_at, _} = :binary.match(block, beam_step)
+
+    early = for {at, _} <- :binary.matches(block, "steps.beam.outputs"), at < beam_at, do: at
+
+    if early == [],
+      do: [],
+      else: ["#{where} reads steps.beam.outputs before the `id: beam` step runs"]
+  end
+
+  defp cache_key_errors(path, job_id, step) do
+    step = strip_comment_lines(step)
+
+    if Regex.match?(~r{uses: actions/cache(?:/restore|/save)?@}, step) do
+      cache_path = yaml_value(step, "path")
+      where = "#{path} #{job_id} cache step for #{inspect(cache_path)}"
+
+      cond do
+        Map.has_key?(@beam_independent_cache_paths, cache_path) ->
+          []
+
+        String.contains?(step, "uses: actions/cache/save@") and
+            Regex.match?(
+              ~r/^\s*key: \$\{\{ steps\.[a-z0-9_-]+\.outputs\.cache-primary-key \}\}\s*$/m,
+              step
+            ) ->
+          []
+
+        true ->
+          resolved_key_errors(where, yaml_value(step, "key"), yaml_value(step, "restore-keys"))
+      end
+    else
+      []
+    end
+  end
+
+  defp resolved_key_errors(where, nil, _restore_keys), do: ["#{where} has no `key:`"]
+
+  defp resolved_key_errors(where, key, restore_keys) do
+    key_value_errors(where, "key", key) ++
+      if restore_keys, do: key_value_errors(where, "restore-keys", restore_keys), else: []
+  end
+
+  defp key_value_errors(where, field, value) do
+    [
+      {String.contains?(value, "steps.beam.outputs.otp-version"),
+       "#{where} #{field} must carry the resolved OTP (steps.beam.outputs.otp-version)"},
+      {String.contains?(value, "steps.beam.outputs.elixir-version"),
+       "#{where} #{field} must carry the resolved Elixir (steps.beam.outputs.elixir-version)"},
+      {String.starts_with?(value, "ubuntu-24.04-") or
+         String.starts_with?(value, "${{ matrix.runner }}-"),
+       "#{where} #{field} must lead with the literal runner label"},
+      {not String.contains?(value, @os_family_context),
+       "#{where} #{field} must not use the OS-family context value"},
+      {not String.contains?(value, @legacy_otp_segment) and
+         not String.contains?(value, @legacy_otp_value),
+       "#{where} #{field} must not carry a literal OTP segment"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp yaml_value(step, key) do
+    case Regex.run(~r/^\s*#{Regex.escape(key)}:[ \t]*(.*?)[ \t]*$/m, step) do
+      [_, value] -> value
+      nil -> nil
+    end
+  end
+
+  # No `runs-on:` or matrix `runner:` value may name the deprecated image,
+  # which GitHub is retiring; a job pinned to it would stop being scheduled.
+  defp runner_image_errors(path, yaml) do
+    yaml
+    |> strip_comment_lines()
+    |> String.split("\n")
+    |> Enum.map(&Regex.run(~r/^\s*(?:-\s+)?(runs-on|runner):\s*(.*?)\s*$/, &1))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.filter(fn [_, _key, value] -> String.contains?(value, @deprecated_runner_image) end)
+    |> Enum.map(fn [_, key, value] ->
+      "#{path} #{key}: #{value} names the deprecated runner image"
+    end)
+  end
+
+  # Whole file, comments included: the CACHE KEY CONTRACT comment promises the
+  # OS-family context expression appears nowhere in ci.yml.
+  defp os_family_context_errors(path, yaml) do
+    yaml
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.filter(fn {line, _n} -> String.contains?(line, @os_family_context) end)
+    |> Enum.map(fn {_line, n} -> "#{path}:#{n} names the OS-family runner context" end)
+  end
+
+  defp toolchain_contract_errors(yaml_by_path) do
+    Enum.flat_map(yaml_by_path, fn {path, yaml} ->
+      jobs = workflow_jobs(yaml)
+
+      cond do
+        jobs == [] ->
+          ["#{path} has no parseable jobs — the toolchain contract would pass vacuously"]
+
+        Enum.any?(jobs, fn {_id, block} ->
+          String.contains?(strip_comment_lines(block), "uses: erlef/setup-beam@")
+        end) ->
+          Enum.flat_map(jobs, &job_toolchain_errors(path, &1))
+
+        true ->
+          []
+      end
+    end)
+  end
+
+  defp job_toolchain_errors(path, {job_id, block}) do
+    steps = job_steps(block)
+
+    Enum.flat_map(steps, &setup_beam_errors(path, job_id, &1)) ++
+      toolchain_source_errors(path, job_id, block) ++
+      beam_ordering_errors(path, job_id, block) ++
+      Enum.flat_map(steps, &cache_key_errors(path, job_id, &1))
   end
 end

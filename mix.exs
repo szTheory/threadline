@@ -166,6 +166,12 @@ defmodule Threadline.MixProject do
       "verify.operator_component_contracts": &verify_operator_component_contracts/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
+      # Per-PR supply-chain gate (SUP-02): asserts Hex >= 2.5.1, then runs
+      # `deps.unlock --check-unused` + `hex.audit` over root, bench and the
+      # example app's lockfiles via bin/verify-deps-audit. CLI args are
+      # ignored on purpose so the gate cannot be narrowed from the command
+      # line; see bin/verify-deps-audit for the full contract.
+      "verify.deps_audit": &verify_deps_audit/1,
       "verify.compile_no_optional": ["compile --no-optional-deps --warnings-as-errors"],
       # GATE-04: zero compile-connected module cycles (runtime association edges are allowed).
       "verify.xref_cycles": [
@@ -190,6 +196,10 @@ defmodule Threadline.MixProject do
       "ci.all": [
         "verify.format",
         "verify.credo",
+        # Per-PR required gate (SUP-02), unlike the release-lane verify.bench /
+        # verify.release / verify.bump_rehearsal above and below, which stay out
+        # of ci.all on purpose. Fast and network-bound, so it runs early.
+        "verify.deps_audit",
         "compile --warnings-as-errors",
         "verify.xref_cycles",
         "verify.compile_no_optional",
@@ -221,6 +231,13 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd(cmd) do
       0 -> :ok
       status -> Mix.raise("verify.bench failed (#{status})")
+    end
+  end
+
+  defp verify_deps_audit(_args) do
+    case Mix.shell().cmd("bin/verify-deps-audit") do
+      0 -> :ok
+      status -> Mix.raise("verify.deps_audit failed (#{status})")
     end
   end
 

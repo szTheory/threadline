@@ -1,0 +1,365 @@
+#!/usr/bin/env bash
+# Per-PR supply-chain gate (SUP-02): asserts a minimum Hex client version, then
+# runs `mix deps.get --check-locked` + `mix deps.unlock --check-unused` +
+# `mix hex.audit` over every lockfile this repository maintains (root, bench,
+# examples/threadline_phoenix), in that fixed order. `--check-locked` means
+# the lock actually audited is the one committed to the repo: if mix.lock no
+# longer matches mix.exs, `deps.get` fails that directory instead of silently
+# re-resolving and auditing a lock other than the one on disk. Aggregates
+# failures across directories rather than stopping at the first one, so a
+# single `mix verify.deps_audit` run always reports the full picture.
+#
+# Env-var suppression (HEX_IGNORE_ADVISORIES / HEX_IGNORE_RETIREMENTS) is
+# refused outright, before any `mix` call: an unaccountable bypass would
+# defeat the point of a required gate. Hex's global client config
+# (`mix hex.config ignore_advisories|ignore_retirements`, read from any
+# HEX_HOME) is refused the same way, right after the Hex version floor check
+# and before any per-directory audit call: that query is run from a fresh,
+# mix.exs-free directory under this repo's gitignored tmp/, because running
+# it inside a project would also pick up that project's own accountable
+# `hex: [ignore_advisories: ...]` entry. The only legitimate way to suppress
+# an advisory is a documented `hex_audit_ignores/0` entry on the relevant
+# MixProject module (see test/threadline/ignore_advisories_contract_test.exs),
+# which records a reason, a reachability claim and a review-by date.
+#
+# Modes:
+#   bin/verify-deps-audit                  # canonical: . bench examples/threadline_phoenix
+#   bin/verify-deps-audit DIR [DIR ...]    # explicit directories, in the given order
+#   bin/verify-deps-audit --self-test      # proves the gate goes red (see below)
+#
+# `--self-test` proves the gate actually has teeth against real Hex, in four
+# cases: (a) it copies a committed, deliberately vulnerable lock
+# (test/fixtures/deps_audit/vulnerable_lock/) into a throwaway project under
+# the repo's gitignored tmp/ and runs this gate on it (must go red, and go
+# red FOR AN ADVISORY, not vacuously); (b) repeats with a faked Hex 2.4.0
+# (must go red on the version floor, without ever reaching an audit call);
+# (c) sets a real global `hex.config ignore_advisories` for the fixture's
+# advisory id under a throwaway HEX_HOME (must go red on the global-config
+# refusal, before any audit call); (d) copies the fixture into a second
+# throwaway project and edits its mix.exs so the lock no longer matches
+# (must go red via `--check-locked`, with the committed lock left
+# byte-identical). This is the negative network proof required by SUP-02; it
+# runs as a step in the `verify-deps-audit` CI job, not as a tagged ExUnit
+# test, so no network-dependent test is excluded from the default `mix test`
+# lane.
+#
+# Seam: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
+# exercise this script's behavior fully offline. Never used by real callers.
+
+set -euo pipefail
+
+die() {
+  printf 'verify-deps-audit: %s\n' "$*" >&2
+  exit 2
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+MIX_BIN="${MIX_BIN:-mix}"
+# The floor is a literal, never environment-overridable. Bumping it is a
+# deliberate, reviewed edit to this file.
+MIN_HEX="2.5.1"
+
+# --- Refuse the env-var bypass before any mix call ---------------------------
+
+if [ -n "${HEX_IGNORE_ADVISORIES:-}" ]; then
+  die "HEX_IGNORE_ADVISORIES is set. Suppressing a hex.audit finding via an environment variable is not accountable. Add a hex_audit_ignores/0 entry (reason, reachability, review-by date) to the relevant MixProject module instead."
+fi
+if [ -n "${HEX_IGNORE_RETIREMENTS:-}" ]; then
+  die "HEX_IGNORE_RETIREMENTS is set. Suppressing a hex.audit finding via an environment variable is not accountable. Add a hex_audit_ignores/0 entry (reason, reachability, review-by date) to the relevant MixProject module instead."
+fi
+
+# --- version_ge: numeric (never lexical/string) MAJOR.MINOR.PATCH compare ---
+
+version_ge() {
+  local a_str="$1" b_str="$2"
+  local -a a b
+  IFS='.' read -r -a a <<<"$a_str"
+  IFS='.' read -r -a b <<<"$b_str"
+  local i
+  for i in 0 1 2; do
+    local av="${a[i]:-0}" bv="${b[i]:-0}"
+    if [ "$av" -gt "$bv" ]; then
+      return 0
+    fi
+    if [ "$av" -lt "$bv" ]; then
+      return 1
+    fi
+  done
+  return 0
+}
+
+# --- --self-test mode ---------------------------------------------------------
+
+if [ "${1:-}" = "--self-test" ]; then
+  fixture_dir="$ROOT/test/fixtures/deps_audit/vulnerable_lock"
+  [ -f "$fixture_dir/mix.exs" ] && [ -f "$fixture_dir/mix.lock" ] ||
+    die "self-test fixture missing at $fixture_dir"
+
+  mkdir -p "$ROOT/tmp"
+  self_test_dir="$(mktemp -d "$ROOT/tmp/deps-audit-self-test.XXXXXX")"
+  cleanup_self_test() {
+    rm -rf "$self_test_dir"
+  }
+  trap cleanup_self_test EXIT
+
+  project_dir="$self_test_dir/project"
+  mkdir -p "$project_dir"
+  cp "$fixture_dir/mix.exs" "$project_dir/mix.exs"
+  cp "$fixture_dir/mix.lock" "$project_dir/mix.lock"
+
+  # (a) The committed vulnerable lock must go red, and go red FOR AN ADVISORY.
+  set +e
+  vuln_output="$(HEX_IGNORE_ADVISORIES= HEX_IGNORE_RETIREMENTS= "$0" "$project_dir" 2>&1)"
+  vuln_status=$?
+  set -e
+
+  [ "$vuln_status" -ne 0 ] ||
+    die "gate stayed green on a known-vulnerable lock"
+  printf '%s' "$vuln_output" | grep -q 'Advisories:' &&
+    printf '%s' "$vuln_output" | grep -q 'plug 1.19.1' ||
+    die "gate went red for a reason other than an advisory (vacuous red): $vuln_output"
+
+  # (b) A faked old Hex must be refused before any mix call runs beyond hex.info.
+  fake_mix_dir="$self_test_dir/fake-mix-bin"
+  mkdir -p "$fake_mix_dir"
+  fake_mix="$fake_mix_dir/mix"
+  fake_log="$self_test_dir/fake-mix.log"
+  : >"$fake_log"
+  cat >"$fake_mix" <<EOF
+#!/usr/bin/env bash
+set -u
+if [ "\$1" = "hex.info" ]; then
+  printf 'Hex:    2.4.0\n'
+  exit 0
+fi
+printf '%s\n' "\$*" >> "$fake_log"
+exit 97
+EOF
+  chmod +x "$fake_mix"
+
+  set +e
+  old_hex_output="$(MIX_BIN="$fake_mix" HEX_IGNORE_ADVISORIES= HEX_IGNORE_RETIREMENTS= "$0" "$project_dir" 2>&1)"
+  old_hex_status=$?
+  set -e
+
+  [ "$old_hex_status" -ne 0 ] ||
+    die "gate stayed green with a faked Hex 2.4.0"
+  printf '%s' "$old_hex_output" | grep -q 'requires Hex >= 2.5.1' &&
+    printf '%s' "$old_hex_output" | grep -q '2.4.0' ||
+    die "old-Hex case failed for a reason other than the version floor: $old_hex_output"
+  [ ! -s "$fake_log" ] ||
+    die "old-Hex case ran a mix subcommand beyond hex.info: $(cat "$fake_log")"
+
+  # (c) A non-empty global Hex ignore_advisories must be refused, against
+  # real Hex, before any audit call.
+  hex_home="$self_test_dir/hex-home"
+  mkdir -p "$hex_home"
+  (
+    cd "$self_test_dir" &&
+      HEX_HOME="$hex_home" "$MIX_BIN" hex.config ignore_advisories EEF-CVE-2026-54892
+  ) >/dev/null ||
+    die "self-test setup: could not set a global hex.config ignore_advisories for case (c)"
+
+  set +e
+  global_ignore_output="$(HEX_HOME="$hex_home" HEX_IGNORE_ADVISORIES= HEX_IGNORE_RETIREMENTS= "$0" "$project_dir" 2>&1)"
+  global_ignore_status=$?
+  set -e
+
+  [ "$global_ignore_status" -ne 0 ] &&
+    grep -q 'global Hex config sets ignore_advisories' <<<"$global_ignore_output" &&
+    ! grep -q 'audit clean' <<<"$global_ignore_output" ||
+    die "global hex.config ignore_advisories was not refused (CR-01 regression): $global_ignore_output"
+
+  # (d) A mix.lock that no longer matches mix.exs must fail via
+  # --check-locked instead of being silently re-resolved and audited, and
+  # the committed lock must come out byte-identical.
+  drift_dir="$self_test_dir/drift"
+  mkdir -p "$drift_dir"
+  cp "$fixture_dir/mix.exs" "$drift_dir/mix.exs"
+  cp "$fixture_dir/mix.lock" "$drift_dir/mix.lock"
+  cp "$fixture_dir/mix.lock" "$drift_dir/mix.lock.before"
+
+  orig_mix_exs="$(cat "$drift_dir/mix.exs")"
+  drifted_mix_exs="${orig_mix_exs//== 1.19.1/~> 1.19.2}"
+  printf '%s\n' "$drifted_mix_exs" >"$drift_dir/mix.exs"
+
+  set +e
+  drift_output="$(HEX_IGNORE_ADVISORIES= HEX_IGNORE_RETIREMENTS= "$0" "$drift_dir" 2>&1)"
+  drift_status=$?
+  set -e
+
+  [ "$drift_status" -ne 0 ] &&
+    grep -q -- '--check-locked' <<<"$drift_output" &&
+    ! grep -q 'audit clean' <<<"$drift_output" &&
+    cmp -s "$drift_dir/mix.lock" "$drift_dir/mix.lock.before" ||
+    die "lock drift was not refused (WR-02 regression): $drift_output"
+
+  printf 'verify-deps-audit self-test: ok (vulnerable lock red, old Hex red, global Hex ignore red, lock drift red)\n'
+  exit 0
+fi
+
+# --- Resolve the directory list -----------------------------------------------
+
+# Canonical audit order (never env-overridable): . bench examples/threadline_phoenix
+CANONICAL_DIRS=(. bench examples/threadline_phoenix)
+
+DIRS=("$@")
+if [ ${#DIRS[@]} -eq 0 ]; then
+  DIRS=("${CANONICAL_DIRS[@]}")
+fi
+
+SEEN_DIRS=()
+for d in "${DIRS[@]}"; do
+  for prior in ${SEEN_DIRS[@]+"${SEEN_DIRS[@]}"}; do
+    if [ "$prior" = "$d" ]; then
+      die "duplicate directory argument: $d"
+    fi
+  done
+  SEEN_DIRS+=("$d")
+done
+
+resolve_dir() {
+  local d="$1"
+  case "$d" in
+    /*) printf '%s' "$d" ;;
+    *) printf '%s' "$ROOT/$d" ;;
+  esac
+}
+
+# --- Hex version floor, checked once, before any audit -----------------------
+
+set +e
+hex_info_output="$(cd "$ROOT" && "$MIX_BIN" hex.info 2>&1)"
+set -e
+
+hex_version_line="$(printf '%s\n' "$hex_info_output" | grep -m1 '^Hex:' || true)"
+hex_version="$(printf '%s' "$hex_version_line" | sed -E 's/^Hex:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/')"
+
+if [ -z "$hex_version" ] || [ "$hex_version" = "$hex_version_line" ]; then
+  die "could not determine Hex version (mix hex.info output: ${hex_version_line:-<empty>})"
+fi
+
+if ! version_ge "$hex_version" "$MIN_HEX"; then
+  die "requires Hex >= $MIN_HEX, found $hex_version"
+fi
+
+# --- Refuse a non-empty global Hex ignore before any per-dir audit -----------
+#
+# Hex's global client config (`mix hex.config ignore_advisories|ignore_retirements`,
+# read from any HEX_HOME) can suppress the exact advisories this gate exists
+# to catch, entirely outside the accountable hex_audit_ignores/0 convention.
+# The query MUST run from a directory with no mix.exs: inside this project,
+# `mix hex.config KEY` also merges this project's own accountable
+# `hex: [ignore_advisories: ...]` entry, which would wrongly refuse a
+# legitimate SUP-03 ignore.
+
+read_global_hex_ignore() {
+  local key="$1" neutral_dir="$2"
+  local raw status non_blank start_line value
+
+  set +e
+  raw="$(cd "$neutral_dir" && "$MIX_BIN" hex.config "$key" 2>&1)"
+  status=$?
+  set -e
+
+  raw="$(printf '%s' "$raw" | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g')"
+  non_blank="$(printf '%s\n' "$raw" | grep -v '^[[:space:]]*$' || true)"
+
+  # The list Hex reports is a single Elixir term that may itself wrap across
+  # multiple lines (long ignore lists do). Find the first non-blank line that
+  # starts with `[` and join it through the rest of the output into one
+  # value, so a wrapped `["A", "B",\n "C"]` reads as one term rather than
+  # only its last fragment. Any line(s) before that (warnings) are dropped.
+  start_line="$(printf '%s\n' "$non_blank" | grep -n '^[[:space:]]*\[' | head -n1 | cut -d: -f1 || true)"
+  if [ -z "$start_line" ]; then
+    value=""
+  else
+    value="$(printf '%s\n' "$non_blank" | tail -n +"$start_line" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+    value="$(printf '%s' "$value" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+  fi
+
+  printf '%s\n%s' "$status" "$value"
+}
+
+refuse_global_hex_ignores() {
+  mkdir -p "$ROOT/tmp"
+  local neutral_dir
+  neutral_dir="$(mktemp -d "$ROOT/tmp/deps-audit-hex-config.XXXXXX")"
+  trap 'rm -rf "$neutral_dir"' EXIT
+
+  local key
+  for key in ignore_advisories ignore_retirements; do
+    local result status value
+    result="$(read_global_hex_ignore "$key" "$neutral_dir")"
+    status="$(printf '%s\n' "$result" | sed -n '1p')"
+    value="$(printf '%s\n' "$result" | tail -n +2)"
+
+    if [ "$status" -ne 0 ] || [ -z "$value" ] || [ "${value#[}" = "$value" ]; then
+      die "could not read global Hex config $key (mix hex.config $key exited $status): $value"
+    fi
+
+    if [ "$value" != "[]" ]; then
+      die "global Hex config sets $key to $value (mix hex.config $key). Suppressing a hex.audit finding through Hex client config is not accountable. Remove it (mix hex.config $key --delete) and add a hex_audit_ignores/0 entry (reason, reachability, review-by date) to the relevant MixProject module instead."
+    fi
+  done
+
+  rm -rf "$neutral_dir"
+  trap - EXIT
+}
+
+refuse_global_hex_ignores
+
+# --- Per-directory audit, aggregated (never fail-fast) ------------------------
+
+FAILURES=()
+
+for d in "${DIRS[@]}"; do
+  resolved="$(resolve_dir "$d")"
+
+  if [ ! -d "$resolved" ] || [ ! -f "$resolved/mix.exs" ] || [ ! -f "$resolved/mix.lock" ]; then
+    FAILURES+=("FAIL $d: missing directory, mix.exs, or mix.lock at $resolved")
+    continue
+  fi
+
+  set +e
+  deps_get_output="$(cd "$resolved" && printf 'n\n' | "$MIX_BIN" deps.get --check-locked 2>&1)"
+  deps_get_status=$?
+  set -e
+
+  if [ "$deps_get_status" -ne 0 ]; then
+    printf '%s\n' "$deps_get_output"
+    FAILURES+=("FAIL $d: deps.get --check-locked exited $deps_get_status (the committed mix.lock must match mix.exs; this gate audits the committed lock, never a re-resolved one — re-lock locally and commit mix.lock)")
+    # A vacuous audit (deps not fetched, or fetched against a re-resolved
+    # lock other than the one committed) is skipped, not trusted.
+    continue
+  fi
+
+  set +e
+  unlock_output="$(cd "$resolved" && "$MIX_BIN" deps.unlock --check-unused 2>&1)"
+  unlock_status=$?
+  set -e
+
+  if [ "$unlock_status" -ne 0 ]; then
+    printf '%s\n' "$unlock_output"
+    FAILURES+=("FAIL $d: deps.unlock --check-unused exited $unlock_status")
+  fi
+
+  set +e
+  audit_output="$(cd "$resolved" && "$MIX_BIN" hex.audit 2>&1)"
+  audit_status=$?
+  set -e
+
+  if [ "$audit_status" -ne 0 ]; then
+    printf '%s\n' "$audit_output"
+    FAILURES+=("FAIL $d: hex.audit exited $audit_status")
+  fi
+done
+
+if [ ${#FAILURES[@]} -gt 0 ]; then
+  printf '%s\n' "${FAILURES[@]}"
+  exit 1
+fi
+
+printf 'verify-deps-audit: %d lockfile(s) audit clean (Hex %s)\n' "${#DIRS[@]}" "$hex_version"
+exit 0

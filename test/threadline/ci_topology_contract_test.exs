@@ -7,6 +7,9 @@ defmodule Threadline.CiTopologyContractTest do
   # Assembled so this file's own text never contains the retired alias name as a literal.
   @retired_alias "verify." <> "doc_contract"
 
+  @resolved_plt_prefix "ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-" <>
+                         "${{ steps.beam.outputs.elixir-version }}-dialyzer-plt-"
+
   defp read_rel!(segments) when is_list(segments) do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
@@ -118,6 +121,8 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert dialyzer_topology_errors(mix_exs, yaml, contributing) == []
 
+    dialyzer_job = workflow_job(yaml, "verify-dialyzer")
+
     mutation_controls = [
       {"PLT timing command",
        String.replace(
@@ -137,10 +142,16 @@ defmodule Threadline.CiTopologyContractTest do
       {"build-before-save ordering",
        String.replace(yaml, "- name: Save Dialyzer PLT", "- name: Save analyzer cache")},
       {"same-toolchain restore boundary",
+       String.replace(yaml, @resolved_plt_prefix, "ubuntu-24.04-dialyzer-plt-")},
+      {"literal OTP pin",
        String.replace(
          yaml,
-         "ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-",
-         "ubuntu-24.04-dialyzer-plt-"
+         dialyzer_job,
+         String.replace(
+           dialyzer_job,
+           "          version-type: strict\n",
+           "          version-type: strict\n          otp-version: \"" <> "27" <> ".0\"\n"
+         )
        )},
       {"no analyzer in no-optional lane",
        String.replace(
@@ -366,6 +377,7 @@ defmodule Threadline.CiTopologyContractTest do
     job = workflow_job(yaml, "verify-dialyzer")
     no_optional_job = workflow_job(yaml, "verify-compile-no-optional")
     hit_step = workflow_step(yaml, "Report exact PLT cache hit")
+    setup_beam_step = setup_beam_step(job)
 
     order = [
       position(job, "mix deps.get"),
@@ -391,23 +403,22 @@ defmodule Threadline.CiTopologyContractTest do
       {job != "", "verify-dialyzer job must exist"},
       {String.contains?(job, "runs-on: ubuntu-24.04"),
        "verify-dialyzer must run on ubuntu-24.04"},
-      {String.contains?(job, ~s(elixir-version: "1.17.3")),
-       "verify-dialyzer must pin Elixir 1.17.3"},
-      {String.contains?(job, ~s(otp-version: "27.0")), "verify-dialyzer must pin OTP 27.0"},
+      {committed_toolchain_step?(setup_beam_step),
+       "verify-dialyzer must install exactly the committed .tool-versions build (version-file, strict)"},
       {String.contains?(job, "timeout-minutes: 9") and
          String.contains?(job, "ceil(252 * 2 / 60) = 9"),
        "Dialyzer timeout must retain the documented cold-run derivation"},
-      {String.contains?(job, "uses: actions/cache/restore@v4"),
+      {String.contains?(job, "uses: actions/cache/restore@v5"),
        "Dialyzer PLT restore must be a separate cache action"},
       {String.contains?(job, "id: dialyzer-plt-restore"),
        "PLT restore must expose a stable cache-hit id"},
       {String.contains?(job, "path: .dialyzer"), "PLT cache must use .dialyzer"},
-      {String.contains?(job, "ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-"),
+      {String.contains?(job, @resolved_plt_prefix),
        "PLT cache and restore must retain exact runner/OTP/Elixir identity"},
       {String.contains?(job, "${{ hashFiles('mix.lock') }}") and
          String.contains?(job, "${{ hashFiles('mix.exs') }}"),
        "PLT key must include both mix.lock and mix.exs hashes"},
-      {String.contains?(job, "uses: actions/cache/save@v4"),
+      {String.contains?(job, "uses: actions/cache/save@v5"),
        "Dialyzer PLT save must be a separate cache action"},
       {String.contains?(job, "steps.dialyzer-plt-restore.outputs.cache-primary-key"),
        "PLT save must reuse the restore action's exact primary key"},
@@ -505,6 +516,26 @@ defmodule Threadline.CiTopologyContractTest do
       [full, _body] -> full
       nil -> ""
     end
+  end
+
+  # The job's setup-beam step: from its `- uses: erlef/setup-beam@` line up to
+  # the next step.
+  defp setup_beam_step(job) do
+    case Regex.run(~r/^      - uses: erlef\/setup-beam@[^\n]*\n[\s\S]*?(?=^      - |\z)/m, job) do
+      [step] -> step
+      nil -> ""
+    end
+  end
+
+  defp committed_toolchain_step?(step) do
+    lines = step |> strip_comment_lines() |> String.split("\n") |> Enum.map(&String.trim/1)
+
+    step != "" and "id: beam" in lines and "version-file: .tool-versions" in lines and
+      "version-type: strict" in lines and
+      not Enum.any?(
+        lines,
+        &(String.starts_with?(&1, "otp-version:") or String.starts_with?(&1, "elixir-version:"))
+      )
   end
 
   defp workflow_step(yaml, name) do
