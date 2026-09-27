@@ -2,19 +2,19 @@
 # verify-repo-hygiene: tracked-text machine-local path guard (HYG-02).
 #
 # Scans every tracked, non-binary file in a git work tree for a machine-local
-# path (a personal home directory, a home-relative tilde path, a per-user
-# macOS temp root, or an agent-tooling encoding of a home directory) and
-# fails if any is found and not covered by a reason-carrying allowlist
-# entry. The allowlist itself fails closed: every entry must be used by at
-# least one covered hit (the `.planning/` scope is the sole, explicit
-# exception — see below), so a stale entry cannot silently widen the gate.
+# path and fails if any is found and not covered by a reason-carrying
+# allowlist entry. The allowlist itself fails closed: every entry must be
+# used by at least one covered hit (the `.planning/` scope is the sole,
+# explicit exception — see below), so a stale entry cannot silently widen
+# the gate.
 #
 # Scan scope: `git grep -I` over tracked files only (via the current git
 # work tree's index) — never `deps/`, `_build/`, the gitignored `tmp/`, or
-# any untracked scratch file. Binary files (a NUL byte) are skipped by `-I`.
-# Matching runs under LC_ALL=C, byte-wise; the home-segment character class
-# is ASCII `[A-Za-z0-9._-]`. A home segment whose first byte is non-ASCII is
-# outside this guard's detection scope.
+# any untracked scratch file (including the untracked `.planning/` critic
+# scratch). Binary files (a NUL byte) are skipped by `-I`. Matching runs
+# under LC_ALL=C, byte-wise; the home-segment character class is ASCII
+# `[A-Za-z0-9._-]`. A home segment whose first byte is non-ASCII is outside
+# this guard's detection scope.
 #
 # Modes:
 #   bin/verify-repo-hygiene              # scan (no args)
@@ -47,21 +47,43 @@
 # and blank lines are allowed. `<scope>` is `.` (repo-wide), a repo-relative
 # directory ending in `/`, or a repo-relative file path — no leading `/`, no
 # glob characters. Every reason must be at least 20 characters. A malformed
-# line, a duplicate scope+literal pair, or a comment/reason that itself
-# contains a pattern hit is a config error (or a finding, for the latter).
-# An allowlist entry scoped to `.planning/` that covers no hit is reported
-# as inert, not failed, when the tracked tree has no `.planning/` file (the
-# public PR-branch case); any other never-used entry fails as UNUSED.
+# line (not exactly 3 tab-separated fields), a duplicate scope+literal pair,
+# an invalid scope, or a too-short reason is a config error (exit 2). A
+# comment line or reason field that itself contains a pattern hit is a
+# finding (exit 1), not a config error. The allowlist file itself is
+# excluded from the main tree scan; its comment lines and reason fields are
+# scanned separately with the same patterns.
 #
-# Pattern families implemented so far: family 1 (macOS user home,
-# `/Users/<name>`). Task 2 of the introducing plan adds families 2-7 and
-# full allowlist semantics (scope, adjacency, used/unused/inert tracking,
-# validation). Task 3 adds `--self-test` and seeds the real allowlist.
+# Coverage: a hit is covered by an entry when (a) the entry's scope is `.`,
+# equals the hit's file path, or is a directory prefix (ends in `/` and the
+# hit path starts with it), AND (b) the hit token starts with the entry's
+# literal, and — only when the literal does not itself end in `/` — the
+# next token byte is `/` or end-of-token. Every covering entry is marked
+# used, regardless of order or overlap with other covering entries. After
+# the scan, any entry never marked used fails as `UNUSED allowlist entry
+# <scope> <literal>` — except an entry scoped to exactly `.planning/`,
+# which is reported as inert (not failed) when the tracked tree has no
+# `.planning/` file at all (the public PR-branch case).
+#
+# Pattern families:
+#   1. macOS user home:        /Users/<name>
+#   2. Linux user home:        /home/<name>
+#   3. Windows user home:      <drive>:\Users\<name>  (backslashes)
+#   4. Home-relative:          ~/<name>
+#   5. macOS per-user temp:    [/private]/var/folders/<2 chars>/
+#   6. Claude-encoded project: -Users-<name>-
+#   7. JSON-escaped home:      \/Users\/<name> or \/home\/<name>
+# Families 1, 2, 4, 5 and 7 require a preceding boundary byte (start of
+# line, or a byte outside [A-Za-z0-9._-]) — this is what keeps a mid-word
+# false positive like a `home` segment stuck onto a preceding word (e.g. a
+# prose sentence ending in ".../shell" immediately followed by a Linux-home
+# path) from matching. Families 3 and 6 need
+# no such boundary.
 #
 # Bash 3.2 compatible (macOS ships 3.2): no associative-array declarations;
-# parallel indexed arrays are used instead where state is needed.
-# Every pattern family's source regex is built by string concatenation, so
-# this script's own text never contains a literal it exists to catch.
+# parallel indexed arrays are used instead where state is needed. Every
+# pattern family's source regex is built by string concatenation, so this
+# script's own text never contains a literal it exists to catch.
 
 set -euo pipefail
 
@@ -85,20 +107,149 @@ root="${REPO_HYGIENE_ROOT:-$ROOT}"
 git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
   die "not a git work tree: $root"
 
+allowlist_path="${REPO_HYGIENE_ALLOWLIST:-$root/.github/repo-hygiene-allowlist.tsv}"
+[ -f "$allowlist_path" ] || die "missing allowlist file: $allowlist_path"
+
+# Repo-relative path of the allowlist, for the tree-scan exclude pathspec.
+# When the allowlist lives outside the scanned root (a test-only seam), it
+# cannot be part of the tracked tree in the first place, so no exclude
+# pathspec is needed — and one would error with "outside repository".
+EXCLUDE_PATHSPEC=()
+case "$allowlist_path" in
+  "$root"/*)
+    allowlist_rel="${allowlist_path#"$root"/}"
+    EXCLUDE_PATHSPEC=(":(exclude)${allowlist_rel}")
+    ;;
+  *)
+    allowlist_rel="$allowlist_path"
+    ;;
+esac
+
 # Build every pattern family's literal word by concatenation, so this
 # script's own source text never contains a matchable home-directory word.
 _word_users="Us""ers"
+_word_home="ho""me"
 
-# Family 1: macOS user home. `/Users/` + one or more ASCII
-# [A-Za-z0-9._-] bytes, only when the preceding byte is start-of-line or a
-# byte outside [A-Za-z0-9._-]. The reported token continues through any
-# following [A-Za-z0-9._/+-] bytes.
-family1_grep_pattern="/${_word_users}/[A-Za-z0-9._-]"
+# --- The matcher: one perl program reused for the tree scan and for the
+# --- allowlist's own comment/reason content scan. Reads "path:line:content"
+# --- records on stdin and prints "HIT path:line: token" per finding.
+MATCHER_PROGRAM='
+my $users = "Us" . "ers";
+my $home  = "ho" . "me";
+my @res = (
+  qr{(?<![A-Za-z0-9._-])(/\Q$users\E/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)},
+  qr{(?<![A-Za-z0-9._-])(/\Q$home\E/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)},
+  qr{([A-Za-z]:\\+\Q$users\E\\+[A-Za-z0-9._-]+[A-Za-z0-9._\\+-]*)},
+  qr{(?<![A-Za-z0-9._-])(~/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)},
+  qr{(?<![A-Za-z0-9._-])((?:/private)?/var/folders/[A-Za-z0-9_+-]{2}/)},
+  qr{(-\Q$users\E-[A-Za-z0-9._]+-)},
+  qr{(?<![A-Za-z0-9._-])(\\/(?:\Q$users\E|\Q$home\E)\\/[A-Za-z0-9._-]+[A-Za-z0-9._\\/+-]*)},
+);
+while (my $l = <STDIN>) {
+  chomp $l;
+  next unless $l =~ /^([^:]*):([0-9]+):(.*)$/s;
+  my ($file, $lineno, $content) = ($1, $2, $3);
+  my %seen_pos;
+  my @found;
+  for my $re (@res) {
+    while ($content =~ /$re/g) {
+      my $tok = $1;
+      my $pos = $-[1];
+      next if $seen_pos{$pos};
+      $seen_pos{$pos} = 1;
+      push @found, [$pos, $tok];
+    }
+  }
+  for my $pair (sort { $a->[0] <=> $b->[0] } @found) {
+    print "HIT $file:$lineno: $pair->[1]\n";
+  }
+}
+'
 
-# --- Candidate lines from tracked files (coarse pre-filter) ------------------
+# --- Structural allowlist validation (a config error here is exit 2, and
+# --- is checked BEFORE any tree scan runs) -----------------------------------
+
+ALLOWLIST_STRUCT_ERRORS=()
+ENTRY_SCOPE=()
+ENTRY_LITERAL=()
+ENTRY_REASON=()
+ENTRY_USED=()
+SEEN_KEYS=()
+COMMENT_LINES=()   # "lineno<TAB>text" for later content-hit scan
+REASON_FIELDS=()   # "lineno<TAB>text" for later content-hit scan
+
+line_no=0
+while IFS= read -r raw_line || [ -n "$raw_line" ]; do
+  line_no=$((line_no + 1))
+  line="$raw_line"
+  trimmed="$(printf '%s' "$line" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+
+  if [ -z "$trimmed" ]; then
+    continue
+  fi
+
+  if [ "${trimmed:0:1}" = "#" ]; then
+    COMMENT_LINES+=("${line_no}"$'\t'"${line}")
+    continue
+  fi
+
+  tab_count="$(printf '%s' "$line" | tr -cd '\t' | wc -c | tr -d ' ')"
+  if [ "$tab_count" -ne 2 ]; then
+    ALLOWLIST_STRUCT_ERRORS+=("ALLOWLIST ${line_no}: malformed line (expected 3 tab-separated fields, found $((tab_count + 1)))")
+    continue
+  fi
+
+  scope="$(printf '%s' "$line" | cut -f1)"
+  literal="$(printf '%s' "$line" | cut -f2)"
+  reason="$(printf '%s' "$line" | cut -f3)"
+
+  problem=""
+  if [ -z "$scope" ]; then
+    problem="empty scope"
+  elif [ "${scope:0:1}" = "/" ]; then
+    problem="scope has a leading /"
+  elif case "$scope" in *['*?[]']*) true ;; *) false ;; esac; then
+    problem="scope contains a glob character"
+  elif [ -z "$literal" ]; then
+    problem="empty literal"
+  elif [ "${#reason}" -lt 20 ]; then
+    problem="reason is shorter than 20 characters"
+  fi
+
+  key="${scope}"$'\t'"${literal}"
+  if [ -z "$problem" ]; then
+    for seen in "${SEEN_KEYS[@]:-}"; do
+      if [ "$seen" = "$key" ]; then
+        problem="duplicate entry ${scope} ${literal}"
+        break
+      fi
+    done
+  fi
+
+  if [ -n "$problem" ]; then
+    ALLOWLIST_STRUCT_ERRORS+=("ALLOWLIST ${line_no}: ${problem}")
+    continue
+  fi
+
+  SEEN_KEYS+=("$key")
+  ENTRY_SCOPE+=("$scope")
+  ENTRY_LITERAL+=("$literal")
+  ENTRY_REASON+=("$reason")
+  ENTRY_USED+=(0)
+  REASON_FIELDS+=("${line_no}"$'\t'"${reason}")
+done <"$allowlist_path"
+
+if [ ${#ALLOWLIST_STRUCT_ERRORS[@]} -gt 0 ]; then
+  printf '%s\n' "${ALLOWLIST_STRUCT_ERRORS[@]}"
+  exit 2
+fi
+
+# --- Tree scan, excluding the allowlist file itself --------------------------
+
+coarse_pattern="(${_word_users}|${_word_home}|~/|var/folders)"
 
 set +e
-candidates="$(git -C "$root" -c core.quotePath=false grep -n -I -E "$family1_grep_pattern" -- .)"
+candidates="$(git -C "$root" -c core.quotePath=false grep -n -I -E "$coarse_pattern" -- . "${EXCLUDE_PATHSPEC[@]}")"
 grep_status=$?
 set -e
 
@@ -106,31 +257,150 @@ if [ "$grep_status" -gt 1 ]; then
   die "git grep failed (exit $grep_status)"
 fi
 
-# --- Precise extraction: exact token + preceding-byte boundary ---------------
+tree_hits="$(printf '%s\n' "$candidates" | perl -e "$MATCHER_PROGRAM")"
+tree_hits="$(printf '%s' "$tree_hits" | sed '/^$/d')"
 
-hits="$(
-  printf '%s\n' "$candidates" | perl -ne '
-    my $users = "Us" . "ers";
-    next unless /^([^:]+):([0-9]+):(.*)$/s;
-    my ($file, $lineno, $content) = ($1, $2, $3);
-    my $re = qr{(?<![A-Za-z0-9._-])(/\Q$users\E/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)};
-    while ($content =~ /$re/g) {
-      print "HIT $file:$lineno: $1\n";
-    }
-  '
-)"
-hits="$(printf '%s' "$hits" | sed '/^$/d')"
+# --- Coverage: mark entries used, collect uncovered hits ---------------------
 
-if [ -n "$hits" ]; then
-  printf '%s\n' "$hits" | sort -t: -k1,1 -k2,2n
+scope_matches() {
+  local path="$1" scope="$2"
+  if [ "$scope" = "." ]; then
+    return 0
+  fi
+  if [ "$path" = "$scope" ]; then
+    return 0
+  fi
+  case "$scope" in
+    */)
+      case "$path" in
+        "$scope"*) return 0 ;;
+      esac
+      ;;
+  esac
+  return 1
+}
+
+token_covered_by_literal() {
+  local token="$1" literal="$2"
+  case "$literal" in
+    */)
+      case "$token" in
+        "$literal"*) return 0 ;;
+        *) return 1 ;;
+      esac
+      ;;
+    *)
+      case "$token" in
+        "$literal")
+          return 0
+          ;;
+        "$literal"/*)
+          return 0
+          ;;
+        *)
+          return 1
+          ;;
+      esac
+      ;;
+  esac
+}
+
+UNCOVERED_HITS=()
+
+if [ -n "$tree_hits" ]; then
+  while IFS= read -r hit_line; do
+    [ -n "$hit_line" ] || continue
+    # hit_line: "HIT <path>:<line>: <token>"
+    rest="${hit_line#HIT }"
+    hit_path="${rest%%:*}"
+    after_path="${rest#*:}"
+    hit_token="${after_path#*: }"
+
+    covered=false
+    i=0
+    n=${#ENTRY_SCOPE[@]}
+    while [ "$i" -lt "$n" ]; do
+      if scope_matches "$hit_path" "${ENTRY_SCOPE[$i]}" && token_covered_by_literal "$hit_token" "${ENTRY_LITERAL[$i]}"; then
+        ENTRY_USED[$i]=1
+        covered=true
+      fi
+      i=$((i + 1))
+    done
+
+    if [ "$covered" = false ]; then
+      UNCOVERED_HITS+=("$hit_line")
+    fi
+  done <<<"$tree_hits"
+fi
+
+# --- Allowlist content-hit scan (comments + reasons) -------------------------
+
+ALLOWLIST_CONTENT_HITS=()
+
+scan_allowlist_content() {
+  local kind="$1"
+  shift
+  local entries=("$@")
+  local entry lineno text formatted result
+  for entry in "${entries[@]:-}"; do
+    [ -n "$entry" ] || continue
+    lineno="${entry%%$'\t'*}"
+    text="${entry#*$'\t'}"
+    formatted="${allowlist_rel}:${lineno}:${text}"
+    result="$(printf '%s\n' "$formatted" | perl -e "$MATCHER_PROGRAM")"
+    result="$(printf '%s' "$result" | sed '/^$/d')"
+    if [ -n "$result" ]; then
+      while IFS= read -r r; do
+        [ -n "$r" ] || continue
+        token="${r##*: }"
+        ALLOWLIST_CONTENT_HITS+=("ALLOWLIST ${lineno}: ${kind} contains a pattern hit: ${token}")
+      done <<<"$result"
+    fi
+  done
+}
+
+scan_allowlist_content "comment" "${COMMENT_LINES[@]:-}"
+scan_allowlist_content "reason" "${REASON_FIELDS[@]:-}"
+
+# --- Unused / inert entries ---------------------------------------------------
+
+UNUSED_FINDINGS=()
+used_count=0
+inert_count=0
+
+planning_tracked="$(git -C "$root" ls-files -- .planning/ 2>/dev/null || true)"
+
+i=0
+n=${#ENTRY_SCOPE[@]}
+while [ "$i" -lt "$n" ]; do
+  if [ "${ENTRY_USED[$i]}" = "1" ]; then
+    used_count=$((used_count + 1))
+  else
+    if [ "${ENTRY_SCOPE[$i]}" = ".planning/" ] && [ -z "$planning_tracked" ]; then
+      inert_count=$((inert_count + 1))
+    else
+      UNUSED_FINDINGS+=("UNUSED allowlist entry ${ENTRY_SCOPE[$i]} ${ENTRY_LITERAL[$i]}")
+    fi
+  fi
+  i=$((i + 1))
+done
+
+# --- Final verdict -------------------------------------------------------------
+
+if [ ${#UNCOVERED_HITS[@]} -gt 0 ] || [ ${#UNUSED_FINDINGS[@]} -gt 0 ] || [ ${#ALLOWLIST_CONTENT_HITS[@]} -gt 0 ]; then
+  if [ ${#UNCOVERED_HITS[@]} -gt 0 ]; then
+    printf '%s\n' "${UNCOVERED_HITS[@]}" | sort -t: -k1,1 -k2,2n
+  fi
+  if [ ${#UNUSED_FINDINGS[@]} -gt 0 ]; then
+    printf '%s\n' "${UNUSED_FINDINGS[@]}"
+  fi
+  if [ ${#ALLOWLIST_CONTENT_HITS[@]} -gt 0 ]; then
+    printf '%s\n' "${ALLOWLIST_CONTENT_HITS[@]}"
+  fi
   exit 1
 fi
 
-# --- Clean summary ------------------------------------------------------------
-
 file_count="$(git -C "$root" ls-files | wc -l | tr -d ' ')"
-used_count=0
-inert_count=0
 
 used_word="entries"
 if [ "$used_count" -eq 1 ]; then
