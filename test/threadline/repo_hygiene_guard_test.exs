@@ -537,6 +537,27 @@ defmodule Threadline.RepoHygieneGuardTest do
     assert files_and_lines == Enum.sort(files_and_lines)
   end
 
+  test "a hit in a colon-containing tracked filename is reported with its full path", %{
+    tmp_dir: tmp_dir
+  } do
+    root = fixture_repo!(tmp_dir, %{"notes:draft.md" => "x #{@fake_macos_home}/code\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT notes:draft.md:1:"
+  end
+
+  test "a file-scoped entry covers a hit in a colon-containing filename", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"notes:draft.md" => "x #{@fake_tilde_home}/y\n"})
+
+    allowlist =
+      write_allowlist!(tmp_dir, [
+        "notes:draft.md\t#{@fake_tilde_home}/\tCache path documented in a colon-named file"
+      ])
+
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "1 allowlist entry used"
+  end
+
   test "an unknown CLI argument exits 2", %{tmp_dir: tmp_dir} do
     root = fixture_repo!(tmp_dir, %{"a.md" => "clean\n"})
     allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
