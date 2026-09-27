@@ -43,6 +43,13 @@ None.
   package's own requirements do not change. Applications that depend on `req`
   should run `mix deps.update mint` to pick up the fix.
 
+### Changed
+
+- No library code changed. The supported toolchain range is now tested
+  exactly rather than approximately: CI builds and tests against the pinned
+  Erlang/OTP 27.3.4.15 and Elixir 1.17.3, and the minimum lane runs
+  Erlang/OTP 26.2.5.21 with Elixir 1.15.8 on Ubuntu 24.04.
+
 ## [0.11.0] - 2026-09-26
 
 Capture now resolves every supported primary-key shape -- single-column,
