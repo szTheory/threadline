@@ -74,7 +74,9 @@ jobs:
       # and Elixir segments come from the `beam` setup step's resolved outputs
       # (`steps.beam.outputs.otp-version` / `elixir-version`), so a key names
       # what was installed, not what was requested; the runner label stays a
-      # literal. For the verify-test matrix they come from the matrix values.
+      # literal. For the verify-test matrix too, the matrix values only select
+      # what to install: the OTP and Elixir segments come from the same `beam`
+      # step outputs, led by `${{ matrix.runner }}`.
       #
       # There is currently NO `_build` cache in this workflow — only `deps` and
       # the Playwright browser download. If one is ever added, two rules apply:
@@ -285,8 +287,12 @@ jobs:
     # "Run test suite (min)" and "Run test suite (current)". Keys carried only
     # via `include` (elixir/otp/pg/runner) do NOT append to that suffix, so the
     # static `name:` yields the two documented required checks (D-15/D-19,
-    # RESEARCH M1 construction A). Min lane = elixir 1.15 / otp 26 / pg14 /
-    # ubuntu-22.04 proving the declared floor; current lane = the full payload.
+    # RESEARCH M1 construction A). Min lane = Elixir 1.15.8 / OTP 26.2.5.21
+    # (exact floor build, strict) / pg14 on ubuntu-24.04 proving the declared
+    # floor; current lane = the committed .tool-versions build, the full
+    # payload. Each row sets exactly one toolchain source — the min row its
+    # explicit pins, the current row `version-file` — because setup-beam errors
+    # when both are set and an absent matrix key renders as an empty input.
     name: Run test suite
     strategy:
       fail-fast: false
@@ -294,13 +300,12 @@ jobs:
         lane: [min, current]
         include:
           - lane: min
-            elixir: "1.15"
-            otp: "26"
+            elixir: "1.15.8"
+            otp: "26.2.5.21"
             pg: "14"
-            runner: "ubuntu-22.04"
+            runner: "ubuntu-24.04"
           - lane: current
-            elixir: "1.17.3"
-            otp: "27"
+            version-file: ".tool-versions"
             pg: "16"
             runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}
@@ -328,24 +333,28 @@ jobs:
           fetch-depth: 0
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: ${{ matrix.elixir }}
+          version-file: ${{ matrix.version-file }}
           otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+          version-type: strict
 
-      # THE bug this key shape fixes (D-19): the previous key led with the
-      # OS-family context value of the runner, which is the literal string
-      # `Linux` on BOTH ubuntu-22.04 and ubuntu-24.04 and carries no OTP or
-      # Elixir at all. The min lane (elixir
-      # 1.15 / otp 26 / ubuntu-22.04) and the current lane (1.17.3 / 27 /
-      # ubuntu-24.04) therefore shared ONE cache entry — the min lane could be
-      # "verified" against dependencies compiled for current, which is a false
-      # green on the Elixir 1.15 floor promise, not merely a slow build.
+      # THE bug this key shape fixes (D-19): an older key led with the
+      # OS-family context value of the runner, which resolves to the literal
+      # string `Linux` on every ubuntu image and carries no OTP or Elixir at
+      # all. The min lane, then on an older ubuntu image, and the current lane
+      # therefore shared ONE cache entry — the min lane could be "verified"
+      # against dependencies compiled for current, which is a false green on
+      # the Elixir 1.15 floor promise, not merely a slow build. Today the key
+      # also carries the resolved OTP/Elixir, so the lanes cannot collide even
+      # on the same image.
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ matrix.runner }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ${{ matrix.runner }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-mix-deps-
+          key: ${{ matrix.runner }}-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ${{ matrix.runner }}-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get

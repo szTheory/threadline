@@ -240,6 +240,132 @@ defmodule Threadline.CIWorkflowParityContractTest do
              "verify-test matrix must declare base axis `lane: [min, current]`"
     end
 
+    test "each lane installs one exact toolchain: the floor build or the committed .tool-versions" do
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+      mix_exs = read_rel!(["mix.exs"])
+
+      assert verify_test_matrix_errors(yaml, mix_exs) == []
+
+      min_row = ~s(          - lane: min\n)
+      current_row = ~s(          - lane: current\n)
+      min_runner = ~s(            runner: "ubuntu-24.04"\n          - lane: current)
+
+      controls = [
+        {"min row also given version-file",
+         String.replace(
+           yaml,
+           min_row,
+           min_row <> ~s(            version-file: ".tool-versions"\n)
+         )},
+        {"current row also given an OTP pin",
+         String.replace(yaml, current_row, current_row <> ~s(            otp: "27.3.4.15"\n))},
+        {"min row with neither pins nor version-file",
+         yaml
+         |> String.replace(~s(            otp: "26.2.5.21"\n), "")
+         |> String.replace(~s(            elixir: "1.15.8"\n), "")},
+        {"min runner on the deprecated image",
+         String.replace(
+           yaml,
+           min_runner,
+           ~s(            runner: ") <> "ubuntu-" <> "22.04" <> ~s("\n          - lane: current)
+         )},
+        {"min OTP on a 25 build",
+         String.replace(yaml, ~s(otp: "26.2.5.21"), ~s(otp: "25.3.2.21"))},
+        {"min Elixir above the declared floor",
+         String.replace(yaml, ~s(elixir: "1.15.8"), ~s(elixir: "1.16.3"))},
+        {"a third matrix row",
+         String.replace(
+           yaml,
+           current_row,
+           ~s(          - lane: extra\n            version-file: ".tool-versions"\n) <>
+             current_row
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == yaml, "#{control} control did not change the input"
+
+        refute verify_test_matrix_errors(mutated, mix_exs) == [],
+               "#{control} mutation must make the verify-test matrix contract fail"
+      end
+
+      refute verify_test_matrix_errors(
+               yaml,
+               String.replace(mix_exs, ~s(elixir: "~> 1.15"), ~s(elixir: "~> 1.16"))
+             ) ==
+               [],
+             "a raised mix.exs floor must no longer match the min row"
+    end
+
+    test "the verify-test setup-beam step is strict and fed only by matrix values" do
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+      path = ".github/workflows/ci.yml"
+      job = workflow_job(yaml, "verify-test")
+
+      assert String.contains?(job, "uses: erlef/setup-beam@"),
+             "verify-test must contain a setup-beam step, or this contract is vacuous"
+
+      assert toolchain_contract_errors(%{path => "jobs:\n" <> job}) == []
+
+      beam_step =
+        case Enum.filter(job_steps(job), &String.contains?(&1, "uses: erlef/setup-beam@")) do
+          [step] ->
+            step
+
+          steps ->
+            flunk("verify-test must carry exactly one setup-beam step, found #{length(steps)}")
+        end
+
+      docs_job = workflow_job(yaml, "verify-docs")
+
+      docs_beam_step =
+        case Enum.filter(job_steps(docs_job), &String.contains?(&1, "uses: erlef/setup-beam@")) do
+          [step] ->
+            step
+
+          steps ->
+            flunk("verify-docs must carry exactly one setup-beam step, found #{length(steps)}")
+        end
+
+      controls = [
+        {"strict version type removed",
+         String.replace(job, "          version-type: strict\n", "")},
+        {"id beam removed", String.replace(job, "        id: beam\n", "")},
+        {"version-file input removed",
+         String.replace(job, "          version-file: ${{ matrix.version-file }}\n", "")},
+        {"extra rebar3 input",
+         String.replace(
+           job,
+           "          version-type: strict\n",
+           "          version-type: strict\n          rebar3-version: ${{ matrix.rebar3 }}\n"
+         )},
+        {"literal OTP input instead of the matrix value",
+         String.replace(job, "otp-version: ${{ matrix.otp }}", ~s(otp-version: "26"))},
+        {"legacy matrix-value deps key",
+         String.replace(
+           job,
+           "key: ${{ matrix.runner }}-${{ steps.beam.outputs.otp-version }}-elixir-" <>
+             "${{ steps.beam.outputs.elixir-version }}-mix-deps-",
+           "key: ${{ matrix.runner }}-otp${{ matrix.otp }}-elixir${{ matrix.elixir }}-mix-deps-"
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == job, "#{control} control did not change the input"
+
+        refute toolchain_contract_errors(%{path => "jobs:\n" <> mutated}) == [],
+               "#{control} mutation must make the toolchain pin contract fail"
+      end
+
+      moved = String.replace(docs_job, docs_beam_step, beam_step)
+
+      refute moved == docs_job,
+             "matrix step moved into verify-docs control did not change the input"
+
+      refute toolchain_contract_errors(%{path => "jobs:\n" <> moved}) == [],
+             "a matrix-fed setup-beam step outside verify-test must fail the toolchain contract"
+    end
+
     test "CONTRIBUTING List 2 carries both composed required-check names" do
       doc = read_rel!(["CONTRIBUTING.md"])
 
@@ -283,11 +409,6 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "~/.cache/ms-playwright" =>
       "Playwright browser binaries are keyed by the e2e npm lockfile and do not depend on the BEAM"
   }
-
-  # Jobs held out of the live toolchain contract. The verify-test matrix reads
-  # its toolchain from matrix values; the next change in this file brings it
-  # under its own rule and deletes this attribute.
-  @pending_matrix_jobs ["verify-test"]
 
   # Assembled so this file's own text never contains the needles it forbids.
   @os_family_context "runner" <> ".os"
@@ -402,23 +523,16 @@ defmodule Threadline.CIWorkflowParityContractTest do
       end
     end
 
-    test "every non-matrix ci.yml job installs the committed toolchain and keys caches on it" do
-      ci_yml = read_rel!([".github", "workflows", "ci.yml"])
+    test "every ci.yml job installs an exact toolchain and keys caches on it" do
+      live = read_rel!([".github", "workflows", "ci.yml"])
       path = ".github/workflows/ci.yml"
-
-      live =
-        Enum.reduce(@pending_matrix_jobs, ci_yml, fn job_id, yaml ->
-          job = workflow_job(yaml, job_id)
-          assert job != "", "pending matrix job #{job_id} must exist in ci.yml"
-          String.replace(yaml, job, "")
-        end)
 
       setup_beam_steps =
         live |> strip_comment_lines() |> String.split("uses: erlef/setup-beam@") |> length()
 
-      assert setup_beam_steps - 1 == 13,
-             "expected 13 non-matrix setup-beam steps under the toolchain contract, " <>
-               "found #{setup_beam_steps - 1}"
+      assert setup_beam_steps - 1 == 14,
+             "expected 14 setup-beam steps (13 file-fed, 1 matrix-fed) under the toolchain " <>
+               "contract, found #{setup_beam_steps - 1}"
 
       assert toolchain_contract_errors(%{path => live}) == []
 
@@ -573,10 +687,142 @@ defmodule Threadline.CIWorkflowParityContractTest do
     required ++ forbidden
   end
 
-  # MATRIX form: a step whose inputs come from matrix values. No rule accepts
-  # that shape yet, so it fails closed rather than passing silently.
-  defp matrix_setup_beam_errors(path, job_id, _step) do
-    ["#{path} #{job_id} setup-beam step reads matrix values, which no toolchain rule accepts yet"]
+  # MATRIX form: only the verify-test matrix may feed setup-beam from matrix
+  # values, and only through exactly these inputs. Each matrix row sets either
+  # `version-file` or the `otp`/`elixir` pins (see verify_test_matrix_errors/2);
+  # an absent matrix key renders as an empty input, which setup-beam ignores.
+  @matrix_beam_inputs [
+    "version-file: ${{ matrix.version-file }}",
+    "otp-version: ${{ matrix.otp }}",
+    "elixir-version: ${{ matrix.elixir }}",
+    "version-type: strict"
+  ]
+
+  defp matrix_setup_beam_errors(path, job_id, step) do
+    lines = trimmed_lines(step)
+    where = "#{path} #{job_id} setup-beam step"
+
+    job_errors =
+      if job_id == "verify-test",
+        do: [],
+        else: ["#{where} reads matrix values, which only the verify-test matrix may do"]
+
+    id_errors = if "id: beam" in lines, do: [], else: ["#{where} must declare `id: beam`"]
+
+    inputs =
+      lines
+      |> Enum.drop_while(&(&1 != "with:"))
+      |> Enum.drop(1)
+      |> Enum.filter(&Regex.match?(~r/^[a-z0-9-]+:/, &1))
+
+    input_errors =
+      if Enum.sort(inputs) == Enum.sort(@matrix_beam_inputs),
+        do: [],
+        else: [
+          "#{where} must carry exactly the inputs #{inspect(@matrix_beam_inputs)}, " <>
+            "found #{inspect(inputs)}"
+        ]
+
+    job_errors ++ id_errors ++ input_errors
+  end
+
+  # The verify-test `include:` rows: the min row pins the exact floor build the
+  # mix.exs `elixir:` requirement promises; the current row reads .tool-versions.
+  defp verify_test_matrix_errors(yaml, mix_exs) do
+    rows = verify_test_rows(workflow_job(yaml, "verify-test"))
+    by_lane = Map.new(rows, &{&1["lane"], &1})
+
+    count_errors =
+      if length(rows) == 2 and Map.keys(by_lane) |> Enum.sort() == ["current", "min"],
+        do: [],
+        else: [
+          "verify-test must have exactly two include rows (min, current), found " <>
+            inspect(Enum.map(rows, & &1["lane"]))
+        ]
+
+    source_errors =
+      for row <- rows,
+          file? = Map.has_key?(row, "version-file"),
+          pins? = Map.has_key?(row, "otp") or Map.has_key?(row, "elixir"),
+          file? == pins? do
+        "verify-test #{row["lane"]} row must set exactly one toolchain source " <>
+          "(version-file, or otp/elixir pins)"
+      end
+
+    count_errors ++
+      source_errors ++
+      min_row_errors(by_lane["min"], elixir_floor(mix_exs)) ++
+      current_row_errors(by_lane["current"])
+  end
+
+  defp min_row_errors(nil, _floor), do: ["verify-test has no min row"]
+
+  defp min_row_errors(row, floor) do
+    otp_major = row |> Map.get("otp", "") |> String.split(".") |> hd()
+    elixir_minor = row |> Map.get("elixir", "") |> String.split(".") |> Enum.take(2)
+
+    [
+      {row["otp"] == "26.2.5.21", "min row must pin otp: \"26.2.5.21\""},
+      {row["elixir"] == "1.15.8", "min row must pin elixir: \"1.15.8\""},
+      {row["runner"] == "ubuntu-24.04", "min row must run on ubuntu-24.04"},
+      {row["pg"] == "14", "min row must use pg 14"},
+      {not Map.has_key?(row, "version-file"), "min row must not set version-file"},
+      {otp_major == "26", "min row OTP major must be 26, got #{inspect(otp_major)}"},
+      {floor != nil and elixir_minor == floor,
+       "min row Elixir #{inspect(row["elixir"])} must match the mix.exs floor #{inspect(floor)}"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&("verify-test " <> elem(&1, 1)))
+  end
+
+  defp current_row_errors(nil), do: ["verify-test has no current row"]
+
+  defp current_row_errors(row) do
+    [
+      {row["version-file"] == ".tool-versions",
+       "current row must set version-file: \".tool-versions\""},
+      {row["runner"] == "ubuntu-24.04", "current row must run on ubuntu-24.04"},
+      {row["pg"] == "16", "current row must use pg 16"},
+      {not Map.has_key?(row, "otp") and not Map.has_key?(row, "elixir"),
+       "current row must not carry otp/elixir pins"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&("verify-test " <> elem(&1, 1)))
+  end
+
+  defp verify_test_rows(job) do
+    case Regex.run(
+           ~r/^        include:\n((?:          .*\n)+)/m,
+           strip_comment_lines(job) <> "\n"
+         ) do
+      [_, body] ->
+        body
+        |> String.split(~r/^          - /m, trim: true)
+        |> Enum.map(&parse_matrix_row/1)
+
+      nil ->
+        []
+    end
+  end
+
+  defp parse_matrix_row(text) do
+    text
+    |> String.split("\n", trim: true)
+    |> Enum.map(&String.trim/1)
+    |> Enum.flat_map(fn line ->
+      case Regex.run(~r/^([a-z0-9-]+):\s*"?([^"]*)"?\s*$/, line) do
+        [_, key, value] -> [{key, value}]
+        nil -> []
+      end
+    end)
+    |> Map.new()
+  end
+
+  defp elixir_floor(mix_exs) do
+    case Regex.run(~r/^\s*elixir: "~> (\d+)\.(\d+)"/m, mix_exs) do
+      [_, major, minor] -> [major, minor]
+      nil -> nil
+    end
   end
 
   # An output read before setup-beam runs is empty, which would collapse every
