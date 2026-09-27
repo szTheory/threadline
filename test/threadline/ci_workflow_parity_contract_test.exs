@@ -412,6 +412,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   # Assembled so this file's own text never contains the needles it forbids.
   @os_family_context "runner" <> ".os"
+  @deprecated_runner_image "ubuntu-" <> "22.04"
   @legacy_otp_segment "otp" <> "27"
   @legacy_otp_value "27" <> ".0"
 
@@ -548,6 +549,68 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
         refute toolchain_contract_errors(%{path => mutated}) == [],
                "#{control} mutation must make the toolchain pin contract fail"
+      end
+    end
+
+    test "ci.yml runs no job on the deprecated runner image" do
+      path = ".github/workflows/ci.yml"
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+      assert runner_image_errors(path, yaml) == []
+
+      controls = [
+        {"runs-on value on the deprecated image",
+         String.replace(
+           yaml,
+           "    runs-on: ubuntu-24.04\n",
+           "    runs-on: " <> @deprecated_runner_image <> "\n",
+           global: false
+         )},
+        {"matrix runner value on the deprecated image",
+         String.replace(
+           yaml,
+           ~s(runner: "ubuntu-24.04"),
+           ~s(runner: ") <> @deprecated_runner_image <> ~s("),
+           global: false
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == yaml, "#{control} control did not change the input"
+
+        refute runner_image_errors(path, mutated) == [],
+               "#{control} mutation must make the runner image contract fail"
+      end
+    end
+
+    test "ci.yml never names the OS-family runner context, comments included" do
+      path = ".github/workflows/ci.yml"
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+      assert os_family_context_errors(path, yaml) == []
+
+      controls = [
+        {"cache key built on the OS-family context",
+         String.replace(
+           yaml,
+           "key: ${{ matrix.runner }}-",
+           "key: ${{ " <> @os_family_context <> " }}-${{ matrix.runner }}-",
+           global: false
+         )},
+        {"OS-family context named only in a comment",
+         String.replace(
+           yaml,
+           "      # CACHE KEY CONTRACT",
+           "      # e.g. " <> @os_family_context <> "\n      # CACHE KEY CONTRACT",
+           global: false
+         )}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == yaml, "#{control} control did not change the input"
+
+        refute os_family_context_errors(path, mutated) == [],
+               "#{control} mutation must make the OS-family context check fail"
       end
     end
 
@@ -912,6 +975,35 @@ defmodule Threadline.CIWorkflowParityContractTest do
       [_, value] -> value
       nil -> nil
     end
+  end
+
+  # No `runs-on:` or matrix `runner:` value may name the deprecated image,
+  # which GitHub is retiring; a job pinned to it would stop being scheduled.
+  defp runner_image_errors(path, yaml) do
+    yaml
+    |> strip_comment_lines()
+    |> String.split("\n")
+    |> Enum.flat_map(fn line ->
+      case Regex.run(~r/^\s*(?:-\s+)?(runs-on|runner):\s*(.*?)\s*$/, line) do
+        [_, key, value] ->
+          if String.contains?(value, @deprecated_runner_image),
+            do: ["#{path} #{key}: #{value} names the deprecated runner image"],
+            else: []
+
+        nil ->
+          []
+      end
+    end)
+  end
+
+  # Whole file, comments included: the CACHE KEY CONTRACT comment promises the
+  # OS-family context expression appears nowhere in ci.yml.
+  defp os_family_context_errors(path, yaml) do
+    yaml
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.filter(fn {line, _n} -> String.contains?(line, @os_family_context) end)
+    |> Enum.map(fn {_line, n} -> "#{path}:#{n} names the OS-family runner context" end)
   end
 
   defp toolchain_contract_errors(yaml_by_path) do
