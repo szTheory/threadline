@@ -34,7 +34,9 @@
 # `UNUSED allowlist entry <scope> <literal>`, then `ALLOWLIST <n>: <problem>`.
 # On exit 0 the last line is:
 #   verify-repo-hygiene: <N> tracked text file(s) clean; <U> allowlist
-#   entr(y|ies) used, <I> inert (.planning/ absent)
+#   entr(y|ies) used, <I> inert[ (.planning/ absent)]
+# where the bracketed suffix is printed only when no `.planning/` file is
+# tracked (the public PR-branch case).
 #
 # Env seams, for tests and self-test only — never used by a real caller and
 # never referenced by any workflow file:
@@ -97,6 +99,10 @@ die() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 export LC_ALL=C
+
+# Every mode, including --self-test, needs git; name a missing git
+# explicitly rather than letting it surface as "not a git work tree".
+command -v git >/dev/null 2>&1 || die "git not found on PATH"
 
 case "${1:-}" in
   "") ;;
@@ -531,6 +537,11 @@ if [ "$used_count" -eq 1 ]; then
   used_word="entry"
 fi
 
-printf 'verify-repo-hygiene: %s tracked text file(s) clean; %s allowlist %s used, %s inert (.planning/ absent)\n' \
-  "$file_count" "$used_count" "$used_word" "$inert_count"
+planning_note=""
+if [ -z "$planning_tracked" ]; then
+  planning_note=" (.planning/ absent)"
+fi
+
+printf 'verify-repo-hygiene: %s tracked text file(s) clean; %s allowlist %s used, %s inert%s\n' \
+  "$file_count" "$used_count" "$used_word" "$inert_count" "$planning_note"
 exit 0

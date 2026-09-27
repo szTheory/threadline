@@ -445,6 +445,54 @@ defmodule Threadline.RepoHygieneGuardTest do
     assert output =~ "0 tracked text file(s) clean"
   end
 
+  # --- Summary label and missing git ------------------------------------------
+
+  test ".planning/ absent label appears only when no .planning/ file is tracked", %{
+    tmp_dir: tmp_dir
+  } do
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+
+    with_planning =
+      fixture_repo!(tmp_dir, %{"a.md" => "clean\n", ".planning/notes.md" => "clean notes\n"})
+
+    without_planning = fixture_repo!(tmp_dir, %{"a.md" => "clean\n"})
+
+    assert {present_output, 0} = run_guard(with_planning, allowlist: allowlist)
+    assert present_output =~ "inert"
+    refute present_output =~ "(.planning/ absent)"
+
+    assert {absent_output, 0} = run_guard(without_planning, allowlist: allowlist)
+    assert absent_output =~ "(.planning/ absent)"
+  end
+
+  test "a PATH without git exits 2 naming the missing git", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => "clean\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    bin_dir = Path.join(tmp_dir, "nogit_bin")
+    File.mkdir_p!(bin_dir)
+
+    for tool <- ["bash", "dirname"] do
+      source = System.find_executable(tool) || flunk("#{tool} not found on the test PATH")
+      File.ln_s!(source, Path.join(bin_dir, tool))
+    end
+
+    if File.exists?(Path.join(bin_dir, "git")) do
+      flunk("the git-free PATH fixture unexpectedly contains git; the test would be vacuous")
+    end
+
+    assert {output, 2} =
+             System.cmd(@script, [],
+               env: [
+                 {"PATH", bin_dir},
+                 {"REPO_HYGIENE_ROOT", root},
+                 {"REPO_HYGIENE_ALLOWLIST", allowlist}
+               ],
+               stderr_to_stdout: true
+             )
+
+    assert output =~ "git not found on PATH"
+  end
+
   # --- Ordering and CLI narrowing ------------------------------------------------
 
   test "HIT output is sorted by file then numeric line", %{tmp_dir: tmp_dir} do
@@ -525,18 +573,72 @@ defmodule Threadline.RepoHygieneGuardTest do
     assert Enum.any?(literals, &String.starts_with?(&1, cache_prefix))
   end
 
+  # Every home-directory prefix family the guard's matcher detects, built by
+  # concatenation. Home-relative (tilde) forms stay permitted: the real
+  # allowlist legitimately holds cache and tool-install forms that carry no
+  # username. The runner account (exactly, or a subpath) is the one Linux
+  # home the allowlist may hold.
+  @users_word "Us" <> "ers"
+  @home_word "ho" <> "me"
+  @runner_home "/" <> @home_word <> "/" <> "runner"
+
+  defp forbidden_home_literal?(literal) do
+    windows_home = Regex.compile!("^[A-Za-z]:" <> "\\\\+" <> @users_word <> "\\\\+")
+
+    prefixes = [
+      "/" <> @users_word <> "/",
+      "-" <> @users_word <> "-",
+      "\\" <> "/" <> @users_word <> "\\" <> "/",
+      "\\" <> "/" <> @home_word <> "\\" <> "/",
+      "/" <> "var" <> "/" <> "folders" <> "/",
+      "/" <> "private" <> "/" <> "var" <> "/" <> "folders" <> "/"
+    ]
+
+    linux_home? =
+      String.starts_with?(literal, "/" <> @home_word <> "/") and
+        not (literal == @runner_home or String.starts_with?(literal, @runner_home <> "/"))
+
+    linux_home? or Regex.match?(windows_home, literal) or
+      Enum.any?(prefixes, &String.starts_with?(literal, &1))
+  end
+
+  test "forbidden_home_literal?/1 flags one synthetic literal per family and passes runner/cache literals" do
+    user = "fix" <> "ture"
+
+    flagged = [
+      "/" <> @users_word <> "/" <> user,
+      "/" <> @home_word <> "/" <> user,
+      "C:" <> "\\" <> @users_word <> "\\" <> user,
+      "d:" <> "\\\\" <> @users_word <> "\\\\" <> user,
+      "-" <> @users_word <> "-" <> user,
+      "\\" <> "/" <> @users_word <> "\\" <> "/" <> user,
+      "\\" <> "/" <> @home_word <> "\\" <> "/" <> user,
+      "/" <> "var" <> "/" <> "folders" <> "/" <> "ab" <> "/",
+      "/" <> "private" <> "/" <> "var" <> "/" <> "folders" <> "/" <> "ab" <> "/"
+    ]
+
+    for literal <- flagged do
+      assert forbidden_home_literal?(literal), "expected a forbidden home literal: #{literal}"
+    end
+
+    passed = [
+      @runner_home,
+      @runner_home <> "/" <> "work",
+      "~" <> "/" <> ".cache",
+      "~" <> "/" <> ".claude" <> "/" <> "skills" <> "/"
+    ]
+
+    for literal <- passed do
+      refute forbidden_home_literal?(literal), "expected a permitted literal: #{literal}"
+    end
+  end
+
   test "the real allowlist never allowlists a person's home directory" do
     literals = Enum.map(real_allowlist_entries(), fn [_scope, literal, _reason] -> literal end)
 
-    forbidden_prefix_1 = "/" <> "Users" <> "/"
-    forbidden_prefix_6 = "-" <> "Users" <> "-"
-
     for literal <- literals do
-      refute String.starts_with?(literal, forbidden_prefix_1),
-             "allowlist entry allowlists a macOS home path: #{literal}"
-
-      refute String.starts_with?(literal, forbidden_prefix_6),
-             "allowlist entry allowlists a Claude-encoded home path: #{literal}"
+      refute forbidden_home_literal?(literal),
+             "allowlist entry allowlists a person's home directory: #{literal}"
     end
   end
 end
