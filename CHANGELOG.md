@@ -24,6 +24,10 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
+_Nothing yet for the next release._
+
+## [0.11.1] - 2026-09-27
+
 This release refreshes a locked dependency to clear a published security
 advisory and changes no public API or configuration.
 
@@ -38,6 +42,13 @@ None.
   through its optional `req` dependency (`req` -> `finch` -> `mint`), so the
   package's own requirements do not change. Applications that depend on `req`
   should run `mix deps.update mint` to pick up the fix.
+
+### Changed
+
+- No library code changed. The supported toolchain range is now tested
+  exactly rather than approximately: CI builds and tests against the pinned
+  Erlang/OTP 27.3.4.15 and Elixir 1.17.3, and the minimum lane runs
+  Erlang/OTP 26.2.5.21 with Elixir 1.15.8 on Ubuntu 24.04.
 
 ## [0.11.0] - 2026-09-26
 
