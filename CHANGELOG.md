@@ -24,6 +24,10 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
+_Nothing yet for the next release._
+
+## [0.11.1] - 2026-09-27
+
 This release refreshes a locked dependency to clear a published security
 advisory and changes no public API or configuration.
 
