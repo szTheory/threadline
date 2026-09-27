@@ -227,7 +227,10 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
       {block =~ ~r/^        if: env\.RELEASE_PAT_CONFIGURED != 'true'$/m,
        "the dispatch step must run only when no PAT is configured. With the PAT, " <>
          "release-please's push already fires the release PR's CI and a dispatch " <>
-         "doubles it; without the guard every release cycle runs CI twice (ECON-03)."}
+         "doubles it; without the guard every release cycle runs CI twice (ECON-03)."},
+      {not (block =~ ~r/gh run list|gh run view|actions\/runs/),
+       "bootstrap-release-pr-ci must never list or query workflow runs: a run query makes " <>
+         "the bootstrap decision depend on timing, which ECON-03 forbids."}
     ]
     |> Enum.reject(fn {ok, _message} -> ok end)
   end
