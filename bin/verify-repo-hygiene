@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# verify-repo-hygiene: tracked-text machine-local path guard (HYG-02).
+#
+# Scans every tracked, non-binary file in a git work tree for a machine-local
+# path (a personal home directory, a home-relative tilde path, a per-user
+# macOS temp root, or an agent-tooling encoding of a home directory) and
+# fails if any is found and not covered by a reason-carrying allowlist
+# entry. The allowlist itself fails closed: every entry must be used by at
+# least one covered hit (the `.planning/` scope is the sole, explicit
+# exception — see below), so a stale entry cannot silently widen the gate.
+#
+# Scan scope: `git grep -I` over tracked files only (via the current git
+# work tree's index) — never `deps/`, `_build/`, the gitignored `tmp/`, or
+# any untracked scratch file. Binary files (a NUL byte) are skipped by `-I`.
+# Matching runs under LC_ALL=C, byte-wise; the home-segment character class
+# is ASCII `[A-Za-z0-9._-]`. A home segment whose first byte is non-ASCII is
+# outside this guard's detection scope.
+#
+# Modes:
+#   bin/verify-repo-hygiene              # scan (no args)
+#   bin/verify-repo-hygiene --self-test  # self-test (added by a later task)
+# Any other argument exits 2 with a usage line — the gate cannot be
+# narrowed to a path/glob/directory from its caller.
+#
+# Exit codes:
+#   0  clean
+#   1  a finding: a HIT, an UNUSED allowlist entry, or an allowlist comment
+#      or reason that itself contains a pattern hit
+#   2  usage or config error: an unknown argument, not a git work tree, a
+#      malformed/duplicate allowlist line, a missing allowlist file, or a
+#      missing git
+#
+# Output lines, in stable order: `HIT <path>:<line>: <token>`, then
+# `UNUSED allowlist entry <scope> <literal>`, then `ALLOWLIST <n>: <problem>`.
+# On exit 0 the last line is:
+#   verify-repo-hygiene: <N> tracked text file(s) clean; <U> allowlist
+#   entr(y|ies) used, <I> inert (.planning/ absent)
+#
+# Env seams, for tests and self-test only — never used by a real caller and
+# never referenced by any workflow file:
+#   REPO_HYGIENE_ROOT       git work tree to scan (default: this script's
+#                           own repo root, resolved from its own path)
+#   REPO_HYGIENE_ALLOWLIST  allowlist file path (default:
+#                           <root>/.github/repo-hygiene-allowlist.tsv)
+#
+# Allowlist line format: `<scope>\t<literal>\t<reason>`. `#` comment lines
+# and blank lines are allowed. `<scope>` is `.` (repo-wide), a repo-relative
+# directory ending in `/`, or a repo-relative file path — no leading `/`, no
+# glob characters. Every reason must be at least 20 characters. A malformed
+# line, a duplicate scope+literal pair, or a comment/reason that itself
+# contains a pattern hit is a config error (or a finding, for the latter).
+# An allowlist entry scoped to `.planning/` that covers no hit is reported
+# as inert, not failed, when the tracked tree has no `.planning/` file (the
+# public PR-branch case); any other never-used entry fails as UNUSED.
+#
+# Pattern families implemented so far: family 1 (macOS user home,
+# `/Users/<name>`). Task 2 of the introducing plan adds families 2-7 and
+# full allowlist semantics (scope, adjacency, used/unused/inert tracking,
+# validation). Task 3 adds `--self-test` and seeds the real allowlist.
+#
+# Bash 3.2 compatible (macOS ships 3.2): no associative-array declarations;
+# parallel indexed arrays are used instead where state is needed.
+# Every pattern family's source regex is built by string concatenation, so
+# this script's own text never contains a literal it exists to catch.
+
+set -euo pipefail
+
+die() {
+  printf 'verify-repo-hygiene: %s\n' "$*" >&2
+  exit 2
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+export LC_ALL=C
+
+case "${1:-}" in
+  "") ;;
+  --self-test) die "--self-test is not yet implemented" ;;
+  *) die "unknown argument: $1 (usage: verify-repo-hygiene [--self-test])" ;;
+esac
+
+root="${REPO_HYGIENE_ROOT:-$ROOT}"
+
+git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
+  die "not a git work tree: $root"
+
+# Build every pattern family's literal word by concatenation, so this
+# script's own source text never contains a matchable home-directory word.
+_word_users="Us""ers"
+
+# Family 1: macOS user home. `/Users/` + one or more ASCII
+# [A-Za-z0-9._-] bytes, only when the preceding byte is start-of-line or a
+# byte outside [A-Za-z0-9._-]. The reported token continues through any
+# following [A-Za-z0-9._/+-] bytes.
+family1_grep_pattern="/${_word_users}/[A-Za-z0-9._-]"
+
+# --- Candidate lines from tracked files (coarse pre-filter) ------------------
+
+set +e
+candidates="$(git -C "$root" -c core.quotePath=false grep -n -I -E "$family1_grep_pattern" -- .)"
+grep_status=$?
+set -e
+
+if [ "$grep_status" -gt 1 ]; then
+  die "git grep failed (exit $grep_status)"
+fi
+
+# --- Precise extraction: exact token + preceding-byte boundary ---------------
+
+hits="$(
+  printf '%s\n' "$candidates" | perl -ne '
+    my $users = "Us" . "ers";
+    next unless /^([^:]+):([0-9]+):(.*)$/s;
+    my ($file, $lineno, $content) = ($1, $2, $3);
+    my $re = qr{(?<![A-Za-z0-9._-])(/\Q$users\E/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)};
+    while ($content =~ /$re/g) {
+      print "HIT $file:$lineno: $1\n";
+    }
+  '
+)"
+hits="$(printf '%s' "$hits" | sed '/^$/d')"
+
+if [ -n "$hits" ]; then
+  printf '%s\n' "$hits" | sort -t: -k1,1 -k2,2n
+  exit 1
+fi
+
+# --- Clean summary ------------------------------------------------------------
+
+file_count="$(git -C "$root" ls-files | wc -l | tr -d ' ')"
+used_count=0
+inert_count=0
+
+used_word="entries"
+if [ "$used_count" -eq 1 ]; then
+  used_word="entry"
+fi
+
+printf 'verify-repo-hygiene: %s tracked text file(s) clean; %s allowlist %s used, %s inert (.planning/ absent)\n' \
+  "$file_count" "$used_count" "$used_word" "$inert_count"
+exit 0

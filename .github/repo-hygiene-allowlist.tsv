@@ -1,0 +1,27 @@
+# repo-hygiene allowlist for bin/verify-repo-hygiene (HYG-02)
+#
+# Format: <scope>\t<literal>\t<reason>
+#
+# - <scope> is `.` (repo-wide), a repo-relative directory ending in `/`, or
+#   a repo-relative file path. No leading `/`, no glob characters.
+# - <literal> is a substring of a HIT token this entry covers. A hit is
+#   covered when the token starts with the literal and, if the literal
+#   does not end in `/`, the next token byte is `/` or end-of-token.
+# - <reason> must be at least 20 characters and explain why the covered
+#   path is a runner/cache/tool-install path, never a person's home
+#   directory.
+#
+# Unused-entry rule: every entry must cover at least one HIT in the
+# tracked tree, or the guard fails with `UNUSED allowlist entry <scope>
+# <literal>`. The sole exception: an entry scoped to exactly `.planning/`
+# is reported as inert (not failed) when the tracked tree has no
+# `.planning/` file at all — the public PR-branch case, where `.planning/`
+# is filtered out of the branch entirely.
+#
+# This file is excluded from the tree scan itself; its comment lines and
+# third (reason) fields are scanned separately with the same patterns, so a
+# comment or reason that itself contains a machine-local path is a finding
+# (exit 1), not silently allowed.
+#
+# No entry below may allowlist a person's home directory. See
+# bin/verify-repo-hygiene's header for the full contract.
