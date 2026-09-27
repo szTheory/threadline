@@ -1278,15 +1278,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end)
   end
 
-  # Every workflow's OS-family context errors (D-05).
+  # D-05: every workflow, not only ci.yml. The guard used to scan ci.yml alone,
+  # so another workflow could reintroduce the OS-family key context unnoticed.
   defp workflows_os_family_context_errors(yaml_by_path) do
-    yaml_by_path
-    |> Map.take([".github/workflows/ci.yml"])
-    |> Enum.flat_map(fn {path, yaml} -> os_family_context_errors(path, yaml) end)
+    Enum.flat_map(yaml_by_path, fn {path, yaml} -> os_family_context_errors(path, yaml) end)
   end
 
   # Whole file, comments included: the CACHE KEY CONTRACT comment promises the
-  # OS-family context expression appears nowhere in ci.yml.
+  # OS-family context expression appears in no workflow.
   defp os_family_context_errors(path, yaml) do
     yaml
     |> String.split("\n")
