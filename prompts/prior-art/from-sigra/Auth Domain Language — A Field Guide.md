@@ -174,7 +174,7 @@ A claim is an assertion about an identity, typically embedded in a JWT.
   "aud": "myapp.com",         ← audience (who should accept it)
   "exp": 1734567890,          ← expiry (unix timestamp)
   "iat": 1734481490,          ← issued at
-  "email": "jon@example.com", ← custom claim
+  "email": "user@example.com", ← custom claim
   "role": "admin"             ← custom claim
 }
 ```
