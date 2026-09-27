@@ -476,35 +476,38 @@ git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regress
 
 ## CI Coverage
 
-Browser coverage is **split** across two workflows. Pull requests run a reduced
-Playwright project set so per-PR feedback stays inside a usable loop; the full
-set runs on `main` and nightly. **This is a real trade, not a free speedup** —
-four projects that used to run on every pull request now run only after merge.
-They are named below.
+Browser coverage is **split** across two workflows, and the split is a
+**partition**: every default-config Playwright project runs in exactly one lane.
+Pull requests (and every push to `main`) run four projects through `ci.yml` so
+per-PR feedback stays inside a usable loop. Browser-full runs the other four.
+**This is a real trade, not a free speedup**: the four Browser-full projects do
+not run on pull requests. They are named below.
 
 | Playwright project | Pull request | `main` | Nightly | Runs via |
 |---|---|---|---|---|
-| `desktop-chromium` | **yes** | yes | yes | `verify-example-browser` (PR, **required**) + `verify-example-browser-full` |
-| `mobile-chromium` | **yes** | yes | yes | `verify-example-browser` (PR, **required**) + `verify-example-browser-full` |
-| `tier-a-capture` | **yes** | yes | yes | `verify-capture` (PR, `mix verify.capture`) + `verify-example-browser-full` |
-| `tier-a-capture-light` | **yes** | yes | yes | `verify-capture` (PR, `mix verify.capture`) + `verify-example-browser-full` |
-| `storybook-capture` | no | yes | yes | `verify-example-browser-full` only |
-| `graded-capture` | no | yes | yes | `verify-example-browser-full` only |
-| `refute-capture` | no | yes | yes | `verify-example-browser-full` only |
-| `route-capture` | no | yes | yes | `verify-example-browser-full` only |
+| `desktop-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
+| `mobile-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
+| `tier-a-capture` | **yes** | yes | no | `verify-capture` (ci.yml, `mix verify.capture`) |
+| `tier-a-capture-light` | **yes** | yes | no | `verify-capture` (ci.yml, `mix verify.capture`) |
+| `storybook-capture` | no | yes | yes | `verify-example-browser-full` |
+| `graded-capture` | no | yes | yes | `verify-example-browser-full` |
+| `refute-capture` | no | yes | yes | `verify-example-browser-full` |
+| `route-capture` | no | yes | yes | `verify-example-browser-full` |
 | `desktop-chromium-light` | no | no | no | Registered only under `THREADLINE_E2E_THEME=system`; run locally via `mix verify.example_browser_light`. Not wired into any CI job. |
 
-**The `main` and nightly columns are the same lane, not two lanes.** Job
+**Both lanes run on `main`; only Browser-full runs nightly.** `ci.yml` runs its
+four projects on every pull request and every push to `main`. Job
 `verify-example-browser-full` in
-[`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml)
-triggers on both push-to-`main` and a nightly `schedule`, plus manual dispatch.
-The pull-request set and the full set **overlap** — `desktop-chromium` and
-`mobile-chromium` run in both; the table is not a partition.
+[`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml) runs
+the other four on push to `main`, on a nightly `schedule`, and on manual
+dispatch. It never repeats a project `ci.yml` already runs. The nightly is
+skipped when Browser-full already passed on the same commit (`bin/ci-sha-gate`),
+because a re-run of a proven commit proves nothing new.
 
 **What does not run on pull requests:**
 
-- `storybook-capture`, `graded-capture`, `refute-capture`, and `route-capture` —
-  moved to `main` + nightly only.
+- `storybook-capture`, `graded-capture`, `refute-capture`, and `route-capture`:
+  they run on `main`, nightly and on dispatch only.
 - The bare `chromium` project was **deleted outright**, not moved. It was
   `Desktop Chrome` at 1280×720 with no scoped `testMatch`, and both
   snapshot-bearing specs already excluded it by name, so it carried zero
@@ -513,12 +516,18 @@ The pull-request set and the full set **overlap** — `desktop-chromium` and
 `verify-example-browser-full` is **not** a required check and does not block a
 pull request. Because a `schedule:` run notifies nobody, a failure of that lane
 opens (or comments on) a single deduplicated tracking issue labelled
-`ci-browser-full` — distinct from Flake Detection's own dedup stream.
+`ci-browser-full`, distinct from Flake Detection's own dedup stream. The next
+green Browser-full run closes that issue.
 
-This table is not documentation-on-trust:
-`test/threadline/ci_coverage_doc_contract_test.exs` derives the project list from
-the actual `--project` flags in the workflows and fails if a project a workflow
-really runs is missing from this table.
+This table is not documentation-on-trust. Browser-full's project list is never
+hand-written: `bin/browser-full-projects` derives it as the default
+`playwright.config.ts` projects minus the ones `ci.yml` runs (its `--project`
+flags plus those behind `mix verify.capture`).
+`test/threadline/browser_full_projects_contract_test.exs` proves the two lanes
+partition the config, so a newly added project cannot end up running nowhere.
+`test/threadline/ci_coverage_doc_contract_test.exs` takes the project list from
+that script and fails if a project is missing from this table or its row names
+the wrong lane.
 
 ### `ci-required` needs: roster
 

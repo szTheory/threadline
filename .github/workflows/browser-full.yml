@@ -97,12 +97,27 @@ jobs:
         run: |
           createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
 
-      # Unrestricted (no per-project flags): the whole registered project set.
-      # Adding a flag here without adding the corresponding CONTRIBUTING.md
-      # "## CI Coverage" row turns ci_coverage_doc_contract_test.exs red.
-      - name: Run example Playwright suite (all projects)
+      # Runs ONLY the default-config projects ci.yml does not run (ECON-04, D-07).
+      # The set is derived by bin/browser-full-projects from playwright.config.ts,
+      # ci.yml and mix.exs, and test/threadline/browser_full_projects_contract_test.exs
+      # proves the two lanes partition the config. Do not add literal project flags
+      # here: a hand list silently drops a newly added project from both lanes.
+      #
+      # The script output is captured first (plain command substitution), so a
+      # script failure fails this step under `set -e`; an empty list is refused,
+      # because `mix verify.example_browser` with no flags runs every project.
+      - name: Run example Playwright suite (projects ci.yml does not run)
         timeout-minutes: 45
-        run: mix verify.example_browser
+        run: |
+          set -euo pipefail
+          project_flags="$(bin/browser-full-projects)"
+          mapfile -t projects <<< "$project_flags"
+          if [ "${#projects[@]}" -eq 0 ] || [ -z "${projects[0]}" ]; then
+            echo "::error::bin/browser-full-projects returned no projects; refusing an unrestricted run"
+            exit 1
+          fi
+          echo "::notice::Browser-full projects: ${projects[*]}"
+          mix verify.example_browser "${projects[@]}"
 
       - name: Upload Playwright traces and e2e boot log on failure
         if: failure()

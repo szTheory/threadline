@@ -1,0 +1,267 @@
+#!/usr/bin/env elixir
+
+# ECON-04 / D-07 (218-07): which Playwright projects the Browser-full lane runs.
+#
+# Browser-full (.github/workflows/browser-full.yml) runs exactly the default-config
+# Playwright projects that ci.yml does NOT run. The list is derived here, never
+# hand-maintained: a hand list silently drops a project added to the config, and
+# that project would then run in neither lane.
+#
+# Three sets, all read from committed files (no npx, no node_modules, no network):
+#
+#   CONFIG        `name: "<x>"` entries inside `const projects = [` ... `];` in
+#                 examples/threadline_phoenix/e2e/playwright.config.ts, EXCLUDING the
+#                 env-gated `...(lightLane ? [` ... `] : [])` block (that project is
+#                 registered only under THREADLINE_E2E_THEME=system and is never run
+#                 by CI or Browser-full).
+#   CI            `--project` flags inside ci.yml `run:` bodies only (inline values and
+#                 `|` / `>` block scalars), after stripping shell comments. YAML
+#                 comments, `name:` values and every other key never count. PLUS the
+#                 `--project=` flags inside the mix.exs function behind any
+#                 `mix <alias>` a run body calls (today `mix verify.capture` ->
+#                 verify_capture/1).
+#   BROWSER-FULL  CONFIG minus CI.
+#
+# Usage:
+#   bin/browser-full-projects                      one sorted `--project=<name>` line
+#                                                  per BROWSER-FULL project
+#   bin/browser-full-projects --list config|ci|browser-full
+#                                                  bare sorted names of that set
+#   env THREADLINE_BROWSER_FULL_ROOT overrides the repo root (test fixtures).
+#
+# Exit codes:
+#   0  success
+#   1  CONFIG parsed empty; BROWSER-FULL is empty; or the number of project `name:`
+#      entries in the whole config differs from default plus env-gated (a name in a
+#      region this parser does not understand). Fail closed: a wrong list must never
+#      degrade into a green no-op or an unrestricted run.
+#   2  usage error or an unreadable input file.
+#
+# test/threadline/browser_full_projects_contract_test.exs proves CI and BROWSER-FULL
+# partition CONFIG on the live repo, with mutation and comment controls.
+
+defmodule Threadline.BrowserFullProjects do
+  @moduledoc false
+
+  @config_rel "examples/threadline_phoenix/e2e/playwright.config.ts"
+  @ci_rel ".github/workflows/ci.yml"
+  @mix_rel "mix.exs"
+
+  @name_entry ~r/\bname:\s*"([^"]+)"/
+  @project_flag ~r/--project[= ]([a-z0-9-]+)/
+  @gated_open ~r/\.\.\.\(\s*lightLane\s*\?\s*\[/
+
+  def main(argv) do
+    root = System.get_env("THREADLINE_BROWSER_FULL_ROOT") || Path.expand("..", __DIR__)
+
+    with {:ok, mode} <- parse_args(argv),
+         {:ok, config_src} <- read(root, @config_rel),
+         {:ok, ci_src} <- read(root, @ci_rel),
+         {:ok, mix_src} <- read(root, @mix_rel),
+         {:ok, config} <- config_projects(config_src),
+         ci = ci_projects(ci_src, mix_src),
+         {:ok, full} <- browser_full(config, ci) do
+      emit(mode, config, ci, full)
+    else
+      {:error, code, message} ->
+        IO.puts(:stderr, "browser-full-projects: #{message}")
+        System.halt(code)
+    end
+  end
+
+  defp parse_args([]), do: {:ok, :flags}
+  defp parse_args(["--list", "config"]), do: {:ok, :config}
+  defp parse_args(["--list", "ci"]), do: {:ok, :ci}
+  defp parse_args(["--list", "browser-full"]), do: {:ok, :browser_full}
+
+  defp parse_args(argv),
+    do:
+      {:error, 2,
+       "usage: bin/browser-full-projects [--list config|ci|browser-full] (got #{inspect(argv)})"}
+
+  defp read(root, rel) do
+    path = Path.join(root, rel)
+
+    case File.read(path) do
+      {:ok, source} -> {:ok, source}
+      {:error, reason} -> {:error, 2, "cannot read #{rel}: #{:file.format_error(reason)}"}
+    end
+  end
+
+  # --- CONFIG ---------------------------------------------------------------
+
+  defp config_projects(source) do
+    with {:ok, body} <- projects_array(source) do
+      {default_part, gated_part} = split_gated(body)
+      default = names(default_part)
+      gated = names(gated_part)
+      total = length(Regex.scan(@name_entry, source))
+
+      cond do
+        default == [] ->
+          {:error, 1, "no default projects parsed from `const projects = [` in #{@config_rel}"}
+
+        total != length(default) + length(gated) ->
+          {:error, 1,
+           "#{@config_rel} has #{total} project `name:` entries but only " <>
+             "#{length(default)} default + #{length(gated)} env-gated were parsed; " <>
+             "a name lives in a region this script does not understand"}
+
+        true ->
+          {:ok, Enum.uniq(default)}
+      end
+    end
+  end
+
+  # The text between `const projects = [` and its matching top-level `];`.
+  defp projects_array(source) do
+    case String.split(source, "const projects = [", parts: 2) do
+      [_, rest] ->
+        case match_bracket(rest, 1, []) do
+          {:ok, body} -> {:ok, body}
+          :error -> {:error, 1, "unterminated `const projects = [` in #{@config_rel}"}
+        end
+
+      [_] ->
+        {:error, 1, "no `const projects = [` in #{@config_rel}"}
+    end
+  end
+
+  defp match_bracket(<<"]", _rest::binary>>, 1, acc),
+    do: {:ok, acc |> Enum.reverse() |> IO.iodata_to_binary()}
+
+  defp match_bracket(<<"]", rest::binary>>, depth, acc),
+    do: match_bracket(rest, depth - 1, ["]" | acc])
+
+  defp match_bracket(<<"[", rest::binary>>, depth, acc),
+    do: match_bracket(rest, depth + 1, ["[" | acc])
+
+  defp match_bracket(<<c::utf8, rest::binary>>, depth, acc),
+    do: match_bracket(rest, depth, [<<c::utf8>> | acc])
+
+  defp match_bracket(<<>>, _depth, _acc), do: :error
+
+  # Cut out the `...(lightLane ? [ ... ] : [])` span as the env-gated set.
+  defp split_gated(body) do
+    case Regex.split(@gated_open, body, parts: 2) do
+      [before, after_open] ->
+        case match_bracket(after_open, 1, []) do
+          {:ok, gated} ->
+            rest = binary_part(after_open, byte_size(gated), byte_size(after_open) - byte_size(gated))
+            {before <> rest, gated}
+
+          :error ->
+            {body, ""}
+        end
+
+      [_] ->
+        {body, ""}
+    end
+  end
+
+  defp names(text), do: for([_, name] <- Regex.scan(@name_entry, text), do: name)
+
+  # --- CI -------------------------------------------------------------------
+
+  defp ci_projects(ci_src, mix_src) do
+    bodies = ci_src |> run_bodies() |> Enum.map(&strip_shell_comments/1)
+
+    direct = for body <- bodies, [_, p] <- Regex.scan(@project_flag, body), do: p
+
+    via_alias =
+      for body <- bodies,
+          [_, task] <- Regex.scan(~r/^\s*mix\s+([A-Za-z0-9_.]+)/m, body),
+          fun <- alias_function(mix_src, task),
+          p <- function_flags(mix_src, fun),
+          do: p
+
+    Enum.uniq(direct ++ via_alias)
+  end
+
+  # Every `run:` value: an inline scalar, or a `|`/`>` block scalar whose body is
+  # every following line indented deeper than the `run:` key (blank lines kept).
+  defp run_bodies(yaml) do
+    yaml
+    |> String.split("\n")
+    |> collect_runs([])
+  end
+
+  defp collect_runs([], acc), do: Enum.reverse(acc)
+
+  defp collect_runs([line | rest], acc) do
+    case Regex.run(~r/^(\s*(?:-\s+)?)run:(.*)$/, line) do
+      [_, prefix, value] ->
+        key_col = String.length(prefix)
+        value = String.trim(value)
+
+        if Regex.match?(~r/^[|>][-+]?\d*$/, value) do
+          {block, remaining} = Enum.split_while(rest, &(blank?(&1) or indent(&1) > key_col))
+          collect_runs(remaining, [Enum.join(block, "\n") | acc])
+        else
+          collect_runs(rest, [value | acc])
+        end
+
+      nil ->
+        collect_runs(rest, acc)
+    end
+  end
+
+  defp blank?(line), do: String.trim(line) == ""
+
+  defp indent(line), do: byte_size(line) - byte_size(String.trim_leading(line))
+
+  # Drop whole-line comments; cut ` #` and everything after it on other lines.
+  defp strip_shell_comments(body) do
+    body
+    |> String.split("\n")
+    |> Enum.reject(&String.starts_with?(String.trim_leading(&1), "#"))
+    |> Enum.map(fn line -> line |> String.split(~r/\s#/, parts: 2) |> hd() end)
+    |> Enum.join("\n")
+  end
+
+  defp alias_function(mix_src, task) do
+    case Regex.run(~r/"#{Regex.escape(task)}":\s*&([a-z_0-9]+)\/1/, mix_src) do
+      [_, fun] -> [fun]
+      nil -> []
+    end
+  end
+
+  # The body of `defp FUN(` up to the next `defp`/`def `, comment lines dropped.
+  defp function_flags(mix_src, fun) do
+    case String.split(mix_src, ~r/\bdefp?\s+#{Regex.escape(fun)}\(/, parts: 2) do
+      [_, rest] ->
+        rest
+        |> String.split(~r/\n\s*defp?\s/, parts: 2)
+        |> hd()
+        |> String.split("\n")
+        |> Enum.reject(&String.starts_with?(String.trim_leading(&1), "#"))
+        |> Enum.join("\n")
+        |> then(&Regex.scan(~r/--project=([a-z0-9-]+)/, &1))
+        |> Enum.map(fn [_, p] -> p end)
+
+      [_] ->
+        []
+    end
+  end
+
+  # --- BROWSER-FULL ---------------------------------------------------------
+
+  defp browser_full(config, ci) do
+    case config -- ci do
+      [] ->
+        {:error, 1,
+         "the Browser-full set is empty: ci.yml already runs every default-config project " <>
+           "(an empty flag list would run the whole config)"}
+
+      full ->
+        {:ok, full}
+    end
+  end
+
+  defp emit(:flags, _config, _ci, full), do: Enum.each(Enum.sort(full), &IO.puts("--project=#{&1}"))
+  defp emit(:config, config, _ci, _full), do: Enum.each(Enum.sort(config), &IO.puts/1)
+  defp emit(:ci, _config, ci, _full), do: Enum.each(Enum.sort(ci), &IO.puts/1)
+  defp emit(:browser_full, _config, _ci, full), do: Enum.each(Enum.sort(full), &IO.puts/1)
+end
+
+Threadline.BrowserFullProjects.main(System.argv())
