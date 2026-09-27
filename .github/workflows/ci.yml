@@ -137,11 +137,31 @@ jobs:
   verify-dialyzer:
     name: Dialyzer (current toolchain)
     runs-on: ubuntu-24.04
-    # Plan 199-14 measured the cold job at 252 seconds. A 2x headroom factor,
-    # rounded up to the next whole minute, gives ceil(252 * 2 / 60) = 9.
-    timeout-minutes: 9
+    # Plan 199-14 measured the cold job at 252 seconds. The live Dialyzer slice
+    # proof (plan 218-03) adds a test-env compile (47 s), the Postgres service
+    # init (23 s), both from the "Run test suite (current)" job of run
+    # 36258719902, and the live test itself (about 10 s, an estimate): 80 s.
+    # A 2x headroom factor, rounded up to the next whole minute, gives
+    # ceil((252 + 80) * 2 / 60) = 12.
+    timeout-minutes: 12
     env:
       MIX_ENV: dev
+      DB_HOST: localhost
+      DB_PORT: 5432
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v5
 
@@ -255,6 +275,16 @@ jobs:
           echo "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=${wall_seconds}"
           echo "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=${max_rss_kb}"
           exit "$dialyzer_status"
+
+      # Runs after the PLT restore/build/save above, so the analysis it shells out
+      # to has a real PLT. bin/verify-dialyzer-slice fails closed when Dialyzer did
+      # not complete (a missing or unreadable PLT can no longer read as
+      # "0 live warnings"). This is the only job that runs the `live_dialyzer` tag;
+      # test/test_helper.exs excludes it from default `mix test`.
+      - name: Live Dialyzer slice proof (fails closed)
+        env:
+          MIX_ENV: test
+        run: mix verify.dialyzer_slice
 
   verify-compile-no-optional:
     name: Compile without optional deps

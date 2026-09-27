@@ -11,6 +11,7 @@ defmodule Threadline.MixProject do
       preferred_envs: [
         "ci.all": :test,
         "verify.dialyzer": :dev,
+        "verify.dialyzer_slice": :test,
         "verify.release": :dev,
         "verify.bump_rehearsal": :dev,
         "verify.test": :test,
@@ -128,6 +129,14 @@ defmodule Threadline.MixProject do
       "verify.format": ["format --check-formatted"],
       "verify.credo": ["credo --strict"],
       "verify.dialyzer": ["dialyzer --no-check"],
+      # Live Dialyzer slice proof: the one `:live_dialyzer` test, which shells out to
+      # bin/verify-dialyzer-slice and fails closed when Dialyzer did not complete. It
+      # needs the dev PLT that `verify.dialyzer` builds, so it is excluded from default
+      # `mix test` (test/test_helper.exs) and runs only in the `verify-dialyzer` CI job
+      # and in ci.all right after `verify.dialyzer`.
+      "verify.dialyzer_slice": [
+        "test test/threadline/dialyzer_slice_contract_test.exs --only live_dialyzer"
+      ],
       "verify.test": ["test"],
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.release": &verify_release/1,
@@ -225,6 +234,10 @@ defmodule Threadline.MixProject do
         # analysis, matching the dedicated CI job and preventing test/support from
         # silently expanding the warning surface in a fresh checkout.
         "cmd env MIX_ENV=dev mix verify.dialyzer",
+        # The live Dialyzer slice proof needs the dev PLT the line above just built.
+        # The `cmd` form is required: `verify.test` already ran the `test` task, and a
+        # second bare `test` entry in the same alias chain is a Mix no-op.
+        "cmd env MIX_ENV=test mix verify.dialyzer_slice",
         # The critic trust and mechanical gates are not listed here: their test files
         # already ran in `verify.test` above, which still precedes the browser lane, so
         # a ratchet or token violation fails fast without running the same tests twice.

@@ -10,6 +10,8 @@ defmodule Threadline.CiTopologyContractTest do
   @resolved_plt_prefix "ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-" <>
                          "${{ steps.beam.outputs.elixir-version }}-dialyzer-plt-"
 
+  @live_slice_step_name "Live Dialyzer slice proof (fails closed)"
+
   defp read_rel!(segments) when is_list(segments) do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
@@ -122,6 +124,8 @@ defmodule Threadline.CiTopologyContractTest do
     assert dialyzer_topology_errors(mix_exs, yaml, contributing) == []
 
     dialyzer_job = workflow_job(yaml, "verify-dialyzer")
+    live_slice_step = workflow_step(yaml, @live_slice_step_name)
+    assert live_slice_step != "", "the live Dialyzer slice step must exist"
 
     mutation_controls = [
       {"PLT timing command",
@@ -136,7 +140,7 @@ defmodule Threadline.CiTopologyContractTest do
          "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check",
          "mix dialyzer --no-check"
        )},
-      {"measured timeout", String.replace(yaml, "timeout-minutes: 9", "timeout-minutes: 8")},
+      {"measured timeout", String.replace(yaml, "timeout-minutes: 12", "timeout-minutes: 11")},
       {"fail-on-unparseable guard",
        String.replace(yaml, "Unable to parse GNU time output", "Timing unavailable")},
       {"build-before-save ordering",
@@ -158,6 +162,20 @@ defmodule Threadline.CiTopologyContractTest do
          yaml,
          "run: mix verify.compile_no_optional",
          "run: |\n          mix verify.compile_no_optional\n          mix dialyzer --no-check"
+       )},
+      {"live slice step deleted", String.replace(yaml, live_slice_step, "")},
+      {"live slice step before the analysis",
+       yaml
+       |> String.replace(live_slice_step, "")
+       |> String.replace(
+         "      - name: Analyze and measure with Dialyzer\n",
+         live_slice_step <> "      - name: Analyze and measure with Dialyzer\n"
+       )},
+      {"live slice alias added to verify-test",
+       String.replace(
+         yaml,
+         "run: mix verify.test",
+         "run: |\n          mix verify.test\n          mix verify.dialyzer_slice"
        )}
     ]
 
@@ -190,6 +208,14 @@ defmodule Threadline.CiTopologyContractTest do
 
     refute dialyzer_topology_errors(mix_exs, hit_with_fabricated_plt, contributing) == [],
            "the exact-key hit path must never fabricate a PLT-build measurement"
+
+    mix_without_slice =
+      String.replace(mix_exs, ~s(        "cmd env MIX_ENV=test mix verify.dialyzer_slice",\n), "")
+
+    refute mix_without_slice == mix_exs, "the ci.all live-slice entry must be present to mutate"
+
+    refute dialyzer_topology_errors(mix_without_slice, yaml, contributing) == [],
+           "dropping the ci.all live-slice entry must make the Dialyzer topology contract fail"
 
     evidence_without_cold_run =
       String.replace(contributing, "34642915672", "unlinked-cold-run")
@@ -386,7 +412,8 @@ defmodule Threadline.CiTopologyContractTest do
       position(job, "THREADLINE_DIALYZER_PLT_WALL_SECONDS="),
       position(job, "- name: Save Dialyzer PLT"),
       position(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check"),
-      position(job, "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=")
+      position(job, "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS="),
+      position(job, "run: mix verify.dialyzer_slice")
     ]
 
     [
@@ -405,9 +432,10 @@ defmodule Threadline.CiTopologyContractTest do
        "verify-dialyzer must run on ubuntu-24.04"},
       {committed_toolchain_step?(setup_beam_step),
        "verify-dialyzer must install exactly the committed .tool-versions build (version-file, strict)"},
-      {String.contains?(job, "timeout-minutes: 9") and
-         String.contains?(job, "ceil(252 * 2 / 60) = 9"),
-       "Dialyzer timeout must retain the documented cold-run derivation"},
+      {String.contains?(job, "timeout-minutes: 12") and
+         String.contains?(job, "ceil((252 + 80) * 2 / 60) = 12") and
+         String.contains?(job, "36258719902"),
+       "Dialyzer timeout must retain the documented cold-run plus live-slice derivation"},
       {String.contains?(job, "uses: actions/cache/restore@v5"),
        "Dialyzer PLT restore must be a separate cache action"},
       {String.contains?(job, "id: dialyzer-plt-restore"),
@@ -482,14 +510,57 @@ defmodule Threadline.CiTopologyContractTest do
            "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1023056",
            "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=9.42",
            "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1009288",
-           "ceil(252 seconds × 2.0 / 60)",
-           "= 9 minutes"
+           "36258719902",
+           "ceil((252 + 80) seconds × 2.0 / 60)",
+           "= 12 minutes",
+           "mix verify.dialyzer_slice",
+           "drops no real coverage"
          ],
          &String.contains?(contributing, &1)
        ), "CONTRIBUTING must link the immutable miss/hit evidence and timeout formula"}
     ]
+    |> Kernel.++(live_slice_checks(mix_exs, yaml, job))
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
+  end
+
+  # The live Dialyzer slice proof (plan 218-03): it runs only in verify-dialyzer, under
+  # MIX_ENV=test with a postgres:16 service, is excluded from default `mix test`, and
+  # ci.all runs it once, after the dev PLT exists.
+  defp live_slice_checks(mix_exs, yaml, job) do
+    live_slice_step = workflow_step(job, @live_slice_step_name)
+    test_helper = read_rel!(["test", "test_helper.exs"])
+    ci_all = ci_all_entries(mix_exs)
+    ci_all_dialyzer = Enum.find_index(ci_all, &(&1 == "cmd env MIX_ENV=dev mix verify.dialyzer"))
+
+    ci_all_slice =
+      Enum.find_index(ci_all, &(&1 == "cmd env MIX_ENV=test mix verify.dialyzer_slice"))
+
+    other_jobs_running_slice =
+      for id <- workflow_job_ids(yaml),
+          id != "verify-dialyzer",
+          body = workflow_job(yaml, id),
+          String.contains?(body, "verify.dialyzer_slice") or
+            String.contains?(body, "live_dialyzer"),
+          do: id
+
+    [
+      {live_slice_step != "" and
+         String.contains?(live_slice_step, "MIX_ENV: test") and
+         String.contains?(live_slice_step, "run: mix verify.dialyzer_slice"),
+       "verify-dialyzer must run mix verify.dialyzer_slice under MIX_ENV: test"},
+      {String.contains?(job, "    services:\n      postgres:\n        image: postgres:16\n"),
+       "verify-dialyzer must carry a postgres:16 service for the live slice proof"},
+      {other_jobs_running_slice == [],
+       "only verify-dialyzer may run the live_dialyzer tag or verify.dialyzer_slice, found: " <>
+         inspect(other_jobs_running_slice)},
+      {String.contains?(test_helper, "live_dialyzer: true"),
+       "test/test_helper.exs must exclude live_dialyzer from default mix test"},
+      {Enum.count(ci_all, &(&1 == "cmd env MIX_ENV=test mix verify.dialyzer_slice")) == 1 and
+         is_integer(ci_all_dialyzer) and is_integer(ci_all_slice) and
+         ci_all_slice > ci_all_dialyzer,
+       "ci.all must invoke the live slice proof exactly once, after the dev verify.dialyzer"}
+    ]
   end
 
   defp ci_all_entries(mix_exs) do
@@ -508,6 +579,13 @@ defmodule Threadline.CiTopologyContractTest do
 
       nil ->
         []
+    end
+  end
+
+  defp workflow_job_ids(yaml) do
+    case String.split(yaml, "\njobs:\n", parts: 2) do
+      [_, jobs] -> ~r/^  ([a-z][a-z0-9-]+):\n/m |> Regex.scan(jobs) |> Enum.map(&List.last/1)
+      _ -> []
     end
   end
 

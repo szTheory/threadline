@@ -53,11 +53,23 @@ missing, so no manual `createdb` step is required.
 ## Running tests
 
 ```bash
-mix test test/path.exs   # single file
-mix verify.test          # full suite (needs PostgreSQL)
+mix test test/path.exs      # single file
+mix verify.test             # full suite (needs PostgreSQL)
+mix verify.dialyzer         # strict Dialyzer analysis (builds the dev PLT)
+mix verify.dialyzer_slice   # live Dialyzer slice proof (needs the dev PLT)
 ```
 
 Integration tests use a **real** database and triggers; they are not excluded from `mix test`.
+
+`test/test_helper.exs` excludes exactly two tags from default `mix test`, both
+environment gates rather than retired failures (`zero_skips_contract_test.exs`
+forbids a third):
+
+- `pgbouncer_topology`: those tests need PgBouncer plus bootstrap DDL; they run
+  under `mix verify.topology` (see [PgBouncer topology CI parity](#pgbouncer-topology-ci-parity)).
+- `live_dialyzer`: that test needs a restored `.dialyzer` PLT; it runs only via
+  `mix verify.dialyzer_slice`, in the `verify-dialyzer` job and in `mix ci.all`
+  right after `verify.dialyzer`.
 
 **Environment:** `DB_HOST` defaults to `localhost`; **`DB_PORT`** defaults to `5432` (see `config/test.exs`). Override if Postgres listens on another port (e.g. **`DB_PORT=5433`** with the default `docker-compose.yml` mapping).
 
@@ -606,7 +618,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 |---------|---------|
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
-| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on the committed `.tool-versions` toolchain (Elixir 1.17.3 / OTP 27.3.4.15) with the exact PLT cache lifecycle below |
+| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on the committed `.tool-versions` toolchain (Elixir 1.17.3 / OTP 27.3.4.15) with the exact PLT cache lifecycle below, then `mix verify.dialyzer_slice` (the fail-closed live Dialyzer slice proof, Postgres service) |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
@@ -637,6 +649,19 @@ fetches dependencies and compiles outside the timers, measures `mix dialyzer
 --plt`, saves the successfully built PLT, and only then measures `mix dialyzer
 --no-check`. On an exact-key hit, CI skips PLT construction and reports no
 synthetic PLT-build values.
+
+After the analysis step, the job runs `mix verify.dialyzer_slice` under
+`MIX_ENV=test` against a `postgres:16` service (the test helper starts the
+repo). That alias runs the one `live_dialyzer` test, which shells out to
+`bin/verify-dialyzer-slice` over the committed critic-tooling fixture. The
+verifier fails closed: `--ignore-exit-status` turns a Dialyzer error (a missing
+or unreadable PLT, a crash) into exit 0 with zero warn lines, so the verifier
+requires exactly one dialyxir completion marker (`done (passed successfully)`
+or `done (warnings were emitted)`) and rejects any `:dialyzer.run error:` line,
+reporting `Dialyzer did not complete`. `verify-dialyzer` is the only job that
+runs the tag. Removing the test from the `verify-test` lanes, `verify-test (min)`
+included, drops no real coverage: it passed vacuously there, because those
+lanes never had a PLT.
 
 The stable log fields are:
 
@@ -673,9 +698,14 @@ and
 | Whole job elapsed | 252 seconds (20:11:54Z–20:16:06Z) | 123 seconds (20:23:39Z–20:25:42Z) |
 
 The `verify-dialyzer` timeout is derived from the measured cold whole-job
-elapsed time, not just the analyzer subprocesses: `ceil(252 seconds × 2.0 / 60)
-= 9 minutes`. The 2.0 factor gives 100% headroom for dependency, runner, and
-PLT-build variance while keeping a bounded failure time. The exact-key hit
+elapsed time, not just the analyzer subprocesses, plus the live slice proof's
+added cost: the test-env compile (47 seconds) and Postgres service init
+(23 seconds) measured in the `Run test suite (current)` job of run
+[`36258719902`](https://github.com/szTheory/threadline/actions/runs/36258719902),
+and the live test itself (about 10 seconds, an estimate), 80 seconds in all:
+`ceil((252 + 80) seconds × 2.0 / 60) = 12 minutes`. The 2.0 factor gives 100%
+headroom for dependency, runner, and PLT-build variance while keeping a
+bounded failure time. The exact-key hit
 saved 143.4 seconds of analyzer work (`162.64 - 9.42`) and 129 seconds of
 whole-job elapsed time (`252 - 123`) on this evidence pair.
 
