@@ -285,4 +285,102 @@ defmodule Threadline.BrowserFullProjectsContractTest do
       assert lines(output) == flags(@live_browser_full)
     end
   end
+
+  describe "browser-full.yml wiring" do
+    @gate_if "if: steps.gate.outputs.decision == 'run'"
+    @close_if "if: success() && steps.gate.outputs.decision == 'run'"
+    @close_step "Close the browser-lane tracking issue on green"
+    @issue_step "Open or update the nightly browser-lane tracking issue"
+    @heavy_steps [
+      "uses: erlef/setup-beam@",
+      "uses: actions/setup-node@",
+      "name: Cache deps",
+      "name: Cache Playwright browsers",
+      "name: Install root dependencies",
+      "name: Ensure threadline_phoenix_test database exists",
+      "name: Run example Playwright suite (projects ci.yml does not run)"
+    ]
+
+    # The body of the step whose first line contains `marker`, up to the next step.
+    defp step(yaml, marker) do
+      case String.split(yaml, marker, parts: 2) do
+        [_, after_marker] -> after_marker |> String.split(~r/\n\s{6}- /, parts: 2) |> hd()
+        [_] -> nil
+      end
+    end
+
+    defp job_permissions(yaml) do
+      [_, job] = String.split(yaml, "\n  verify-example-browser-full:\n", parts: 2)
+      [header, _steps] = String.split(job, "\n    steps:\n", parts: 2)
+
+      case Regex.run(~r/\n    permissions:\n((?:      .*\n)+)/, header <> "\n") do
+        [_, block] -> block
+        nil -> ""
+      end
+    end
+
+    # True when the step body exists and contains every expected string/regex.
+    defp has_all?(nil, _expected), do: false
+    defp has_all?(body, expected), do: Enum.all?(expected, &(body =~ &1))
+
+    defp wiring_violations(yaml) do
+      gate = step(yaml, "name: Decide whether this SHA needs a browser-full run")
+      close = step(yaml, @close_step)
+
+      heavy =
+        for marker <- @heavy_steps do
+          {has_all?(step(yaml, marker), [@gate_if]), "heavy step #{marker} lacks the gate if:"}
+        end
+
+      [
+        {has_all?(gate, [
+           "id: gate",
+           ~s(bin/ci-sha-gate --workflow browser-full.yml --sha "$GITHUB_SHA" --event "$GITHUB_EVENT_NAME")
+         ]), "gate step must run bin/ci-sha-gate --workflow browser-full.yml as id: gate"},
+        {job_permissions(yaml) =~ ~r/^\s+actions: read$/m, "job permissions lack actions: read"},
+        {has_all?(close, [@close_if]), "close step must run only on success() of a run decision"},
+        {has_all?(close, [
+           ~s(bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file")
+         ]), "close step must call bin/upsert-ci-issue --close"},
+        {has_all?(close, [
+           ~s|TITLE_PREFIX: "Browser (full project set) is failing"|,
+           ~r/^\s+LABEL: ci-browser-full$/m
+         ]), "close step must use the issue step's TITLE_PREFIX and LABEL"},
+        {has_all?(step(yaml, @issue_step), ["if: failure()"]),
+         "failure-issue step must keep if: failure()"}
+        | heavy
+      ]
+      |> Enum.reject(&elem(&1, 0))
+      |> Enum.map(&elem(&1, 1))
+    end
+
+    test "gate, permissions, gated heavy steps, close-on-green and failure issue are wired" do
+      assert wiring_violations(File.read!(@browser_full)) == []
+    end
+
+    test "wiring controls: dropped actions: read, ungated run step, or always() close are caught" do
+      yaml = File.read!(@browser_full)
+
+      no_actions = String.replace(yaml, "      actions: read\n", "")
+      refute no_actions == yaml, "control did not change the input"
+      assert "job permissions lack actions: read" in wiring_violations(no_actions)
+
+      ungated =
+        String.replace(
+          yaml,
+          "(projects ci.yml does not run)\n        #{@gate_if}\n",
+          "(projects ci.yml does not run)\n"
+        )
+
+      refute ungated == yaml, "control did not change the input"
+      assert Enum.any?(wiring_violations(ungated), &(&1 =~ "Run example Playwright suite"))
+
+      always_close = String.replace(yaml, @close_if, "if: always()")
+      refute always_close == yaml, "control did not change the input"
+
+      assert "close step must run only on success() of a run decision" in wiring_violations(
+               always_close
+             )
+    end
+  end
 end
