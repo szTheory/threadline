@@ -617,10 +617,9 @@ jobs:
 
   # Heavy recurring gate: regenerate the Tier A capture from scratch against a
   # migrated example DB + real browser, and assert (1) the evidence bundle is
-  # non-empty and complete (every aria.yml has a matching scorecard JSON), (2)
-  # regeneration is byte-stable against the committed evidence (no drift), and
-  # (3) MechanicalChecker.run/1 is clean over it. This is the recurring proof
-  # of the two former human-UAT items (194-UAT.md).
+  # non-empty and complete (every aria.yml has a matching scorecard JSON) and
+  # (2) regeneration is byte-stable against the committed evidence (no drift).
+  # This is the recurring proof of the two former human-UAT items (194-UAT.md).
   verify-capture:
     name: Tier A capture lane (byte-stable evidence)
     runs-on: ubuntu-24.04
@@ -728,8 +727,11 @@ jobs:
           fi
           echo "Regeneration is byte-identical to the committed evidence."
 
-      - name: Assert mechanical checker clean over real evidence
-        run: mix verify.mechanical
+      # Removed: the trailing `mix verify.mechanical` step. Failure class
+      # "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by the
+      # byte-stable step above (regenerated == committed) plus verify-test running
+      # mechanical_checker_test.exs over the committed JSON, on push to main,
+      # pull_request and workflow_dispatch.
 
   verify-pgbouncer-topology:
     name: PgBouncer transaction topology

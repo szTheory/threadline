@@ -633,6 +633,16 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.5.1 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
 | `verify-repo-hygiene` | `bin/verify-repo-hygiene` (also `mix verify.repo_hygiene` in `ci.all`): scans tracked text files only for machine-local paths (user homes, home-relative paths, macOS temp roots) against the scoped, reason-carrying `.github/repo-hygiene-allowlist.tsv`, and fails on any unused allowlist entry; then `bin/verify-repo-hygiene --self-test` proves it goes red on runtime-built fixtures |
 
+### Removed CI proofs and what still catches them
+
+A CI proof is removed only when another job catches the same failure class on
+the same triggers (push to `main`, pull_request to `main`, workflow_dispatch)
+with no job-level `if:`. Each removal keeps its justification here, and
+`test/threadline/ci_topology_contract_test.exs` fails if a line goes missing or
+if the proof that still catches it stops running.
+
+- The capture lane's trailing `mix verify.mechanical` step (in `verify-capture`): failure class "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by `verify-capture`'s byte-stable regeneration step (regenerated evidence must equal the committed evidence) and by `verify-test` (min and current lanes), which runs `mechanical_checker_test.exs` over the committed scorecard JSON, on pull_request, push to `main` and workflow_dispatch.
+
 ### Dialyzer PLT cache and measurement contract
 
 `mix verify.dialyzer` is part of `mix ci.all`, and the unconditional

@@ -157,8 +157,8 @@ defmodule Threadline.MixProject do
       # Deterministic mechanical gate. Pure-Elixir arithmetic over
       # the committed Tier A scorecard JSON — NO browser, NO network, NO LLM. A MODE-A
       # violation or MODE-B ratchet regression blocks the change. A focused maintainer
-      # and CI-job command: its test file already runs in `verify.test` (and so in
-      # ci.all), which keeps ci.all from running it twice.
+      # command: its test file already runs in `verify.test` (and so in ci.all and in
+      # the verify-test CI job), which keeps ci.all from running it twice.
       "verify.mechanical": ["test test/threadline/operator_surface/mechanical_checker_test.exs"],
       # Critic trust gate. Pure-Elixir guard over the committed
       # design-system-ledger.json critic_trust block and golden-set.json — NO browser,
@@ -362,7 +362,8 @@ defmodule Threadline.MixProject do
   # Tier A deterministic capture-lane regeneration. Runs BOTH
   # theme projects so a single `mix verify.capture` reproduces all 120 committed
   # scorecards (66 Band-1 + 54 Band-2). Local-only regeneration — deliberately NOT
-  # in ci.all (CI gates the committed scorecard JSON via verify.mechanical).
+  # in ci.all (CI gates the committed scorecard JSON through verify-test, because
+  # mechanical_checker_test.exs is in the default suite).
   defp verify_capture(args),
     do:
       verify_example_browser([

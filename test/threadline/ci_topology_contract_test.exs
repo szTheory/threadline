@@ -775,6 +775,137 @@ defmodule Threadline.CiTopologyContractTest do
              "follows verify.release's precedent of staying out of the per-change gate."
   end
 
+  # --- Plan 218-04: removed CI proofs stay justified and dominated ---------
+  #
+  # A proof leaves CI only when another job catches its failure class on the same
+  # triggers. Each removal carries a "still caught by" bullet in CONTRIBUTING.md,
+  # and these pins keep the proof that still catches it from lapsing silently.
+  @removed_proofs_heading "### Removed CI proofs and what still catches them"
+  @byte_stable_step "Assert byte-stable regeneration (no drift from committed evidence)"
+  @mechanical_checker_test "test/threadline/operator_surface/mechanical_checker_test.exs"
+
+  defp removed_proof_bullets(contributing) do
+    case String.split(contributing, @removed_proofs_heading, parts: 2) do
+      [_, tail] ->
+        tail
+        |> String.split(~r/\n#+ /, parts: 2)
+        |> List.first()
+        |> String.split("\n")
+        |> Enum.filter(&String.starts_with?(&1, "- "))
+
+      _ ->
+        []
+    end
+  end
+
+  defp justified_removal?(contributing, needle) do
+    contributing
+    |> removed_proof_bullets()
+    |> Enum.any?(&(String.contains?(&1, "still caught by") and String.contains?(&1, needle)))
+  end
+
+  # Tags that `mix test` excludes by default, from the app-env copy test_helper
+  # writes, plus the two sanctioned gates by name so a broken read cannot pass.
+  defp default_excluded_tag_names do
+    :threadline
+    |> Application.get_env(:default_test_excludes, [])
+    |> Enum.map(fn
+      {tag, _value} -> tag
+      tag -> tag
+    end)
+    |> Kernel.++([:pgbouncer_topology, :live_dialyzer])
+    |> Enum.map(&Atom.to_string/1)
+    |> Enum.uniq()
+  end
+
+  defp removed_proof_errors(yaml, contributing, checker_test) do
+    capture = workflow_job(yaml, "verify-capture")
+
+    excluded_tags_in_checker =
+      for tag <- default_excluded_tag_names(),
+          Regex.match?(~r/@(?:module)?tag\b[^\n]*\b#{tag}\b/, checker_test),
+          do: tag
+
+    [
+      {capture != "", "verify-capture is gone from ci.yml"},
+      {workflow_step(capture, @byte_stable_step) != "",
+       "verify-capture lost its byte-stable regeneration step. The capture lane's mechanical " <>
+         "step was removed because that step proves regenerated evidence equals the committed " <>
+         "evidence; without it a rule breach in regenerated evidence reaches main unseen"},
+      {not String.contains?(strip_comment_lines(capture), "mix verify.mechanical"),
+       "verify-capture runs mix verify.mechanical again, which duplicates what verify-test " <>
+         "already runs over the committed scorecard JSON"},
+      {excluded_tags_in_checker == [],
+       "#{@mechanical_checker_test} carries a default-excluded tag " <>
+         "#{inspect(excluded_tags_in_checker)}, so verify-test no longer runs it and a " <>
+         "committed scorecard that breaches MODE-A/MODE-B is caught by nothing"},
+      {String.contains?(contributing, @removed_proofs_heading),
+       "CONTRIBUTING.md lost the \"#{@removed_proofs_heading}\" section, so the removed " <>
+         "proofs no longer say what still catches their failure class"},
+      {justified_removal?(contributing, "capture"),
+       "CONTRIBUTING.md has no \"still caught by\" bullet for the capture lane's removed " <>
+         "mechanical step"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  test "removed CI proofs stay justified and dominated" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+    contributing = read_rel!(["CONTRIBUTING.md"])
+    checker_test = read_rel!([@mechanical_checker_test])
+
+    assert removed_proof_errors(yaml, contributing, checker_test) == []
+
+    byte_stable_step = workflow_step(yaml, @byte_stable_step)
+    assert byte_stable_step != "", "the byte-stable step must exist to mutate"
+
+    capture_bullet =
+      contributing
+      |> removed_proof_bullets()
+      |> Enum.find(&(String.contains?(&1, "still caught by") and String.contains?(&1, "capture")))
+
+    assert is_binary(capture_bullet), "the capture bullet must exist to mutate"
+
+    yaml_controls = [
+      {"mechanical step re-added to verify-capture",
+       String.replace(
+         yaml,
+         byte_stable_step,
+         byte_stable_step <>
+           "      - name: Assert mechanical checker clean over real evidence\n" <>
+           "        run: mix verify.mechanical\n\n"
+       )},
+      {"byte-stable step deleted", String.replace(yaml, byte_stable_step, "")}
+    ]
+
+    for {control, mutated} <- yaml_controls do
+      refute mutated == yaml, "#{control} control did not change the input"
+
+      refute removed_proof_errors(mutated, contributing, checker_test) == [],
+             "#{control} mutation must make the removed-proof contract fail"
+    end
+
+    contributing_without_bullet = String.replace(contributing, capture_bullet <> "\n", "")
+    refute contributing_without_bullet == contributing
+
+    refute removed_proof_errors(yaml, contributing_without_bullet, checker_test) == [],
+           "dropping the capture bullet must make the removed-proof contract fail"
+
+    excluded_checker =
+      String.replace(
+        checker_test,
+        "use ExUnit.Case, async: true\n",
+        "use ExUnit.Case, async: true\n  @moduletag :pgbouncer_topology\n",
+        global: false
+      )
+
+    refute excluded_checker == checker_test
+
+    refute removed_proof_errors(yaml, contributing, excluded_checker) == [],
+           "tagging the mechanical checker test out of the default suite must fail the contract"
+  end
+
   test "the ruleset's sole required status check is byte-exact with ci-required's emitted name" do
     ruleset =
       [".github", "rulesets", "main.json"]
