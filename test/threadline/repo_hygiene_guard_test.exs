@@ -493,6 +493,20 @@ defmodule Threadline.RepoHygieneGuardTest do
     assert output =~ "git not found on PATH"
   end
 
+  test "an uncovered HIT prints the placeholder-convention hint; a clean run does not", %{
+    tmp_dir: tmp_dir
+  } do
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+
+    dirty = fixture_repo!(tmp_dir, %{"a.md" => "x #{@fake_macos_home}/code\n"})
+    assert {dirty_output, 1} = run_guard(dirty, allowlist: allowlist)
+    assert dirty_output =~ "Writing about machine-local paths"
+
+    clean = fixture_repo!(tmp_dir, %{"a.md" => "nothing interesting here\n"})
+    assert {clean_output, 0} = run_guard(clean, allowlist: allowlist)
+    refute clean_output =~ "Writing about machine-local paths"
+  end
+
   # --- Ordering and CLI narrowing ------------------------------------------------
 
   test "HIT output is sorted by file then numeric line", %{tmp_dir: tmp_dir} do

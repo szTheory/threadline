@@ -273,4 +273,137 @@ defmodule Threadline.RepoHygieneContractTest do
     refute String.contains?(mutated, "| `#{@job_id}` |"),
            "the table-row-removal mutation did not change the input"
   end
+
+  # --- Placeholder convention for describing machine-local path shapes --------
+
+  @placeholder_heading "## Writing about machine-local paths"
+  @placeholders_start "<!-- repo-hygiene-placeholders:start -->"
+  @placeholders_end "<!-- repo-hygiene-placeholders:end -->"
+  @guard_script Path.join(@repo_root, "bin/verify-repo-hygiene")
+
+  # Returns the first backticked span of each `- ` bullet between the
+  # placeholder markers in CONTRIBUTING.md.
+  defp placeholder_forms(contributing) do
+    body =
+      case String.split(contributing, @placeholders_start, parts: 2) do
+        [_, tail] ->
+          case String.split(tail, @placeholders_end, parts: 2) do
+            [body, _] -> body
+            _ -> flunk("CONTRIBUTING.md is missing #{@placeholders_end}")
+          end
+
+        _ ->
+          flunk("CONTRIBUTING.md is missing #{@placeholders_start}")
+      end
+
+    body
+    |> String.split("\n")
+    |> Enum.filter(&String.starts_with?(&1, "- "))
+    |> Enum.flat_map(fn line ->
+      case Regex.run(~r/`([^`]+)`/, line) do
+        [_, form] -> [form]
+        nil -> []
+      end
+    end)
+  end
+
+  defp guard_fixture!(tmp_dir, lines) do
+    root = Path.join(tmp_dir, "repo")
+    File.mkdir_p!(root)
+    File.write!(Path.join(root, "forms.md"), Enum.join(lines, "\n") <> "\n")
+    {_, 0} = System.cmd("git", ["init", "-q"], cd: root)
+    {_, 0} = System.cmd("git", ["add", "--", "forms.md"], cd: root)
+
+    allowlist = Path.join(tmp_dir, "allowlist.tsv")
+    File.write!(allowlist, "# repo-hygiene allowlist\n")
+
+    System.cmd(@guard_script, [],
+      env: [
+        {"REPO_HYGIENE_ROOT", root},
+        {"REPO_HYGIENE_ALLOWLIST", allowlist},
+        {"GIT_TERMINAL_PROMPT", "0"}
+      ],
+      stderr_to_stdout: true
+    )
+  end
+
+  test "CONTRIBUTING documents the placeholder convention right before Pull requests" do
+    contributing = read_rel!(["CONTRIBUTING.md"])
+    headings = String.split(contributing, "\n")
+
+    assert Enum.count(headings, &(&1 == @placeholder_heading)) == 1,
+           "CONTRIBUTING.md must contain exactly one `#{@placeholder_heading}` heading"
+
+    convention_index = Enum.find_index(headings, &(&1 == @placeholder_heading))
+    pull_requests_index = Enum.find_index(headings, &(&1 == "## Pull requests"))
+
+    assert convention_index && pull_requests_index,
+           "expected both `#{@placeholder_heading}` and `## Pull requests` in CONTRIBUTING.md"
+
+    assert convention_index < pull_requests_index,
+           "`#{@placeholder_heading}` must come before `## Pull requests`"
+  end
+
+  @tag :tmp_dir
+  test "every documented placeholder form passes the real guard", %{tmp_dir: tmp_dir} do
+    forms = placeholder_forms(read_rel!(["CONTRIBUTING.md"]))
+
+    assert length(forms) >= 8,
+           "expected at least 8 placeholder forms between the markers, got #{inspect(forms)}"
+
+    assert {output, 0} = guard_fixture!(tmp_dir, forms)
+    assert output =~ "clean"
+  end
+
+  @tag :tmp_dir
+  test "concretized placeholder forms are HITs (non-vacuity control)", %{tmp_dir: tmp_dir} do
+    forms = placeholder_forms(read_rel!(["CONTRIBUTING.md"]))
+    assert length(forms) >= 8
+    tilde_prefix = "~" <> "/"
+
+    concretized =
+      Enum.map(forms, fn form ->
+        form
+        |> String.replace("<user>", "fixture")
+        |> String.replace("<xx>", "ab")
+        |> String.replace("<path>", "code")
+        |> String.replace("<project>", "proj")
+      end)
+
+    expected =
+      forms
+      |> Enum.with_index(1)
+      |> Enum.filter(fn {form, _n} ->
+        String.contains?(form, "<user>") or String.contains?(form, "<xx>") or
+          String.starts_with?(form, tilde_prefix)
+      end)
+      |> Enum.map(fn {_form, n} -> n end)
+      |> MapSet.new()
+
+    assert MapSet.size(expected) >= 6,
+           "expected at least 6 concretizable forms, got #{MapSet.size(expected)}"
+
+    assert {output, 1} = guard_fixture!(tmp_dir, concretized)
+
+    hit_lines =
+      ~r/^HIT forms\.md:([0-9]+):/m
+      |> Regex.scan(output)
+      |> Enum.map(fn [_, n] -> String.to_integer(n) end)
+      |> MapSet.new()
+
+    assert hit_lines == expected,
+           "concretized forms must HIT exactly on lines #{inspect(MapSet.to_list(expected))}, " <>
+             "got #{inspect(MapSet.to_list(hit_lines))}:\n#{output}"
+  end
+
+  test "the guard's failure hint names the CONTRIBUTING heading byte-for-byte" do
+    script = read_rel!(["bin", "verify-repo-hygiene"])
+    contributing = read_rel!(["CONTRIBUTING.md"])
+
+    assert String.contains?(script, "Writing about machine-local paths"),
+           "bin/verify-repo-hygiene no longer names the CONTRIBUTING convention section"
+
+    assert String.contains?(contributing, @placeholder_heading),
+           "CONTRIBUTING.md no longer has `#{@placeholder_heading}`"
+  end
 end

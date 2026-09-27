@@ -37,6 +37,8 @@
 #   entr(y|ies) used, <I> inert[ (.planning/ absent)]
 # where the bracketed suffix is printed only when no `.planning/` file is
 # tracked (the public PR-branch case).
+# When any HIT is uncovered, one hint line on stderr points at CONTRIBUTING.md
+# "Writing about machine-local paths" (the placeholder convention for prose).
 #
 # Env seams, for tests and self-test only — never used by a real caller and
 # never referenced by any workflow file:
@@ -520,6 +522,7 @@ done
 if [ ${#UNCOVERED_HITS[@]} -gt 0 ] || [ ${#UNUSED_FINDINGS[@]} -gt 0 ] || [ ${#ALLOWLIST_CONTENT_HITS[@]} -gt 0 ]; then
   if [ ${#UNCOVERED_HITS[@]} -gt 0 ]; then
     printf '%s\n' "${UNCOVERED_HITS[@]}" | sort -t: -k1,1 -k2,2n
+    printf '%s\n' 'verify-repo-hygiene: describing a path shape in prose? write the user segment as a placeholder, see CONTRIBUTING.md "Writing about machine-local paths"' >&2
   fi
   if [ ${#UNUSED_FINDINGS[@]} -gt 0 ]; then
     printf '%s\n' "${UNUSED_FINDINGS[@]}"

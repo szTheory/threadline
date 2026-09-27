@@ -85,6 +85,43 @@ against that database, or an older Compose volume is still in use. Follow the
 for the canonical repair. Keep the lifecycle and cleanup commands in that guide
 so its volume-deletion warning stays attached to the procedure.
 
+## Writing about machine-local paths
+
+`bin/verify-repo-hygiene` scans every tracked text file, including any
+tracked planning docs. Any concrete user or machine segment in a home
+directory, a per-user temp root, or a Claude-encoded project path is a HIT,
+even an obviously fake name.
+
+When docs or planning prose (including agent-written code reviews,
+verification reports, plans and summaries) must describe a path shape, write
+the user- or machine-specific segment as an angle-bracket placeholder. Never
+paste a real path from tool output: rewrite its prefix to a placeholder first.
+The `<` character is outside every pattern's segment class, so these forms
+never match, while the guard stays strict for everything else.
+
+Use these forms:
+
+<!-- repo-hygiene-placeholders:start -->
+- `<home>/<path>`: any home directory, when the platform does not matter
+- `/Users/<user>/<path>`: a macOS home directory
+- `/home/<user>/<path>`: a Linux home directory
+- `C:\Users\<user>\<path>`: a Windows home directory
+- `~/<path>`: a home-relative path
+- `/var/folders/<xx>/<path>`: the macOS per-user temp root
+- `-Users-<user>-<project>`: a Claude-encoded project directory name
+- `<claude-projects-dir>/<encoded-project>/`: the Claude projects directory
+- `\/Users\/<user>\/<path>`: a JSON-escaped home directory
+<!-- repo-hygiene-placeholders:end -->
+
+Tests never write a fixture path literally. They build it at runtime by
+string concatenation; see `test/threadline/repo_hygiene_guard_test.exs`.
+
+The allowlist (`.github/repo-hygiene-allowlist.tsv`) is only for runner, cache
+and tool-install paths that carry no username. It is never for prose, and no
+file or directory is exempt from the scan.
+
+Run `bin/verify-repo-hygiene` before committing any doc or planning file.
+
 ## Pull requests
 
 1. Fork the repository and create a branch from `main`.
