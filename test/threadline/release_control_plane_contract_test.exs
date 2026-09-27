@@ -190,26 +190,45 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
     live = job_block!(release_workflow(), "bootstrap-release-pr-ci")
     assert bootstrap_guard_errors(live) == []
 
-    controls = [
-      {"step guard dropped", "        if: env.RELEASE_PAT_CONFIGURED != 'true'\n", ""},
-      {"comparison flipped", "RELEASE_PAT_CONFIGURED != 'true'",
-       "RELEASE_PAT_CONFIGURED == 'true'"},
-      {"env from the raw secret", "${{ secrets.RELEASE_PLEASE_TOKEN != '' }}",
-       "${{ secrets.RELEASE_PLEASE_TOKEN }}"},
-      {"run query added", "      - name: Dispatch CI on release PR branch\n",
-       "      - name: List prior CI runs\n" <>
-         "        run: gh run list --workflow ci.yml --branch release-please--branches--main\n\n" <>
-         "      - name: Dispatch CI on release PR branch\n"}
-    ]
+    dropped = String.replace(live, "        if: env.RELEASE_PAT_CONFIGURED != 'true'\n", "")
+    refute dropped == live, "the step-guard-dropped control did not change the input"
 
-    for {name, from, to} <- controls do
-      mutated = String.replace(live, from, to)
+    refute bootstrap_guard_errors(dropped) == [],
+           "dropping the dispatch step's `if:` must turn the bootstrap guard contract red"
 
-      refute mutated == live, "#{name} control did not change the input"
+    flipped =
+      String.replace(live, "RELEASE_PAT_CONFIGURED != 'true'", "RELEASE_PAT_CONFIGURED == 'true'")
 
-      refute bootstrap_guard_errors(mutated) == [],
-             "the #{name} control must turn the bootstrap guard contract red"
-    end
+    refute flipped == live, "the comparison-flipped control did not change the input"
+
+    refute bootstrap_guard_errors(flipped) == [],
+           "flipping the guard comparison must turn the bootstrap guard contract red"
+
+    raw_secret =
+      String.replace(
+        live,
+        "${{ secrets.RELEASE_PLEASE_TOKEN != '' }}",
+        "${{ secrets.RELEASE_PLEASE_TOKEN }}"
+      )
+
+    refute raw_secret == live, "the env-from-the-raw-secret control did not change the input"
+
+    refute bootstrap_guard_errors(raw_secret) == [],
+           "exporting the raw secret must turn the bootstrap guard contract red"
+
+    run_query =
+      String.replace(
+        live,
+        "      - name: Dispatch CI on release PR branch\n",
+        "      - name: List prior CI runs\n" <>
+          "        run: gh run list --workflow ci.yml --branch release-please--branches--main\n\n" <>
+          "      - name: Dispatch CI on release PR branch\n"
+      )
+
+    refute run_query == live, "the run-query-added control did not change the input"
+
+    refute bootstrap_guard_errors(run_query) == [],
+           "adding a workflow-run query must turn the bootstrap guard contract red"
   end
 
   # Returns the failed ECON-03 bootstrap-guard properties as `{false, message}`
