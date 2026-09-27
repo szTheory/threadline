@@ -176,6 +176,21 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
            "bootstrap-release-pr-ci's `if:` must start with always(). Without it a failed " <>
              "pin sync silently suppresses the CI bootstrap and the release PR gets no CI " <>
              "at all (202-REVIEW WR-03)."
+
+    assert bootstrap =~ ~r/^    permissions:\n      actions: write$/m,
+           "bootstrap-release-pr-ci must keep `actions: write`, or the no-PAT dispatch " <>
+             "fails and the release PR gets no CI at all (ECON-03)."
+
+    assert bootstrap =~
+             ~r/^      RELEASE_PAT_CONFIGURED: \$\{\{ secrets\.RELEASE_PLEASE_TOKEN != '' \}\}$/m,
+           "bootstrap-release-pr-ci must export only the boolean `RELEASE_PLEASE_TOKEN != ''` " <>
+             "as RELEASE_PAT_CONFIGURED. Exporting the secret itself leaks the PAT into the " <>
+             "job environment (ECON-03, T-218-01)."
+
+    assert bootstrap =~ ~r/^        if: env\.RELEASE_PAT_CONFIGURED != 'true'$/m,
+           "the dispatch step must run only when no PAT is configured. With the PAT, " <>
+             "release-please's push already fires the release PR's CI and a dispatch " <>
+             "doubles it; without the guard every release cycle runs CI twice (ECON-03)."
   end
 
   defp release_workflow, do: File.read!(Path.join(@root, ".github/workflows/release.yml"))

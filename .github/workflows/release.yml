@@ -194,13 +194,29 @@ jobs:
     # always(): a failed pin sync must still produce a (red) CI run on the release
     # PR. Without it, a failed sync skips this job, and with no PAT configured the
     # release PR would get no CI at all — silence instead of a visible failure.
+    # ECON-03: dispatch only when RELEASE_PLEASE_TOKEN is absent. With the PAT,
+    # release-please's API commit and the pin-sync push (PUSH_TOKEN) both fire
+    # pull_request CI on the release PR head, so a dispatch doubles the heaviest
+    # workflow (evidence: the pair run 36256339043 / run 36256344029). Without the
+    # PAT neither push fires CI, so the dispatch is the only run and must stay.
+    # An expired PAT fails loudly at the release-please step, so prs_created is
+    # false and this job never runs on a stale assumption. The decision reads
+    # configuration only; it never looks at previous runs. Secrets cannot appear
+    # in `if:`, so only the boolean comparison result enters the job env.
     needs: [release-please, sync-release-pr-pins]
     if: always() && github.event_name == 'push' && needs.release-please.outputs.prs_created == 'true'
     permissions:
       actions: write
       contents: read
+    env:
+      RELEASE_PAT_CONFIGURED: ${{ secrets.RELEASE_PLEASE_TOKEN != '' }}
     steps:
+      - name: Record whether the PAT already fans out CI
+        run: |
+          echo "::notice::RELEASE_PLEASE_TOKEN configured=${RELEASE_PAT_CONFIGURED}; the CI dispatch runs only when it is false (ECON-03)."
+
       - name: Dispatch CI on release PR branch
+        if: env.RELEASE_PAT_CONFIGURED != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh workflow run ci.yml --ref release-please--branches--main -R "${{ github.repository }}"
