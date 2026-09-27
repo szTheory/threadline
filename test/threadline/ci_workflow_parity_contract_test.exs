@@ -122,6 +122,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
     paths
   end
 
+  # Every workflow file, keyed by its repo-relative path.
+  defp all_workflows do
+    Map.new(workflow_files(), &{Path.relative_to(&1, @repo_root), File.read!(&1)})
+  end
+
   # The canonical stable job keys, derived from ci.yml (order-independent set).
   defp ci_job_keys do
     read_rel!([".github", "workflows", "ci.yml"])
@@ -524,7 +529,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       end
     end
 
-    test "every ci.yml and release.yml job installs an exact toolchain and keys caches on it" do
+    test "every workflow job installs an exact toolchain and keys caches on it" do
       live = read_rel!([".github", "workflows", "ci.yml"])
       path = ".github/workflows/ci.yml"
       release_path = ".github/workflows/release.yml"
@@ -539,6 +544,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       assert toolchain_contract_errors(%{path => live, release_path => release}) == []
 
+      assert toolchain_contract_errors(all_workflows()) == []
+
       docs_job = workflow_job(live, "verify-docs")
 
       controls = [
@@ -550,6 +557,53 @@ defmodule Threadline.CIWorkflowParityContractTest do
         refute mutated == live, "#{control} control did not change the input"
 
         refute toolchain_contract_errors(%{path => mutated}) == [],
+               "#{control} mutation must make the toolchain pin contract fail"
+      end
+    end
+
+    test "the browser and scheduled workflows install the committed toolchain" do
+      live = all_workflows()
+      flake = ".github/workflows/flake-detection.yml"
+      deps_health = ".github/workflows/deps-health.yml"
+      browser = ".github/workflows/browser-full.yml"
+
+      for path <- [flake, deps_health, browser] do
+        assert String.contains?(live[path], "uses: erlef/setup-beam@"),
+               "#{path} must contain a setup-beam step, or this contract is vacuous"
+      end
+
+      mutate = fn path, from, to -> Map.update!(live, path, &String.replace(&1, from, to)) end
+
+      unknown_cache =
+        "jobs:\n  some-job:\n    steps:\n      - uses: actions/checkout@v5\n" <>
+          "      - uses: erlef/setup-beam@v1\n        id: beam\n        with:\n" <>
+          "          version-file: .tool-versions\n          version-type: strict\n" <>
+          "      - uses: actions/cache@v4\n        with:\n          path: ~/.cache/something\n" <>
+          "          key: ubuntu-24.04-${{ hashFiles('x.lock') }}\n"
+
+      controls = [
+        {"flake-detection deps key led by the OS-family context value",
+         mutate.(flake, "key: ubuntu-24.04-", "key: ${{ " <> @os_family_context <> " }}-")},
+        {"deps-health setup-beam with a literal OTP input",
+         mutate.(
+           deps_health,
+           "          version-type: strict\n",
+           "          version-type: strict\n          otp-version: \"#{@legacy_otp_value}\"\n"
+         )},
+        {"browser-full deps key missing the elixir output",
+         mutate.(
+           browser,
+           "key: " <> @resolved_deps_prefix,
+           "key: ubuntu-24.04-#{@resolved_otp}-mix-deps-"
+         )},
+        {"a new workflow caching an unknown path on a lockfile-only key",
+         Map.put(live, ".github/workflows/new.yml", unknown_cache)}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == live, "#{control} control did not change the input"
+
+        refute toolchain_contract_errors(mutated) == [],
                "#{control} mutation must make the toolchain pin contract fail"
       end
     end
@@ -620,11 +674,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
       end
     end
 
-    test "ci.yml runs no job on the deprecated runner image" do
+    test "no workflow runs a job on the deprecated runner image" do
+      for {file, text} <- all_workflows() do
+        assert runner_image_errors(file, text) == []
+      end
+
       path = ".github/workflows/ci.yml"
       yaml = read_rel!([".github", "workflows", "ci.yml"])
-
-      assert runner_image_errors(path, yaml) == []
 
       controls = [
         {"runs-on value on the deprecated image",
