@@ -114,16 +114,17 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -143,24 +144,25 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Restore Dialyzer PLT
         id: dialyzer-plt-restore
         uses: actions/cache/restore@v4
         with:
           path: .dialyzer
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-${{ hashFiles('mix.lock') }}-${{ hashFiles('mix.exs') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-dialyzer-plt-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-dialyzer-plt-${{ hashFiles('mix.lock') }}-${{ hashFiles('mix.exs') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-dialyzer-plt-
 
       # Dependency work is deliberately outside both GNU time measurements.
       - name: Install dependencies
@@ -260,16 +262,17 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -403,9 +406,10 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - name: Ensure hex_evaluator_test database exists
         env:
@@ -447,9 +451,10 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - uses: actions/setup-node@v5
         with:
@@ -461,8 +466,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -553,16 +558,17 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -601,9 +607,10 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - uses: actions/setup-node@v5
         with:
@@ -615,8 +622,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -720,16 +727,17 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Wait for Postgres and PgBouncer
         env:
@@ -769,16 +777,17 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -794,16 +803,17 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       - name: Cache deps
         uses: actions/cache@v4
         with:
           path: deps
-          key: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-otp27.0-elixir1.17.3-mix-deps-
+          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
         run: mix deps.get
@@ -897,9 +907,10 @@ jobs:
           fetch-depth: 0
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       # Deliberately NO `deps` cache here. The rehearsal fetches dependencies
       # inside its own throwaway clone, so this job's `deps/` directory is never
@@ -922,9 +933,10 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: erlef/setup-beam@v1
+        id: beam
         with:
-          elixir-version: "1.17.3"
-          otp-version: "27.0"
+          version-file: .tool-versions
+          version-type: strict
 
       # Deliberately NO `deps` cache here. The gate fetches three separate
       # projects' dependencies itself (root, bench, examples/threadline_phoenix)

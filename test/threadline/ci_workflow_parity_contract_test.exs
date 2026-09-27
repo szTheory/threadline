@@ -284,6 +284,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
       "Playwright browser binaries are keyed by the e2e npm lockfile and do not depend on the BEAM"
   }
 
+  # Jobs held out of the live toolchain contract. The verify-test matrix reads
+  # its toolchain from matrix values; the next change in this file brings it
+  # under its own rule and deletes this attribute.
+  @pending_matrix_jobs ["verify-test"]
+
   # Assembled so this file's own text never contains the needles it forbids.
   @os_family_context "runner" <> ".os"
   @legacy_otp_segment "otp" <> "27"
@@ -393,6 +398,41 @@ defmodule Threadline.CIWorkflowParityContractTest do
         refute mutated == job, "#{control} control did not change the input"
 
         refute toolchain_contract_errors(%{path => "jobs:\n" <> mutated}) == [],
+               "#{control} mutation must make the toolchain pin contract fail"
+      end
+    end
+
+    test "every non-matrix ci.yml job installs the committed toolchain and keys caches on it" do
+      ci_yml = read_rel!([".github", "workflows", "ci.yml"])
+      path = ".github/workflows/ci.yml"
+
+      live =
+        Enum.reduce(@pending_matrix_jobs, ci_yml, fn job_id, yaml ->
+          job = workflow_job(yaml, job_id)
+          assert job != "", "pending matrix job #{job_id} must exist in ci.yml"
+          String.replace(yaml, job, "")
+        end)
+
+      setup_beam_steps =
+        live |> strip_comment_lines() |> String.split("uses: erlef/setup-beam@") |> length()
+
+      assert setup_beam_steps - 1 == 13,
+             "expected 13 non-matrix setup-beam steps under the toolchain contract, " <>
+               "found #{setup_beam_steps - 1}"
+
+      assert toolchain_contract_errors(%{path => live}) == []
+
+      docs_job = workflow_job(live, "verify-docs")
+
+      controls = [
+        {"verify-docs id beam removed",
+         String.replace(live, docs_job, String.replace(docs_job, "        id: beam\n", ""))}
+      ]
+
+      for {control, mutated} <- controls do
+        refute mutated == live, "#{control} control did not change the input"
+
+        refute toolchain_contract_errors(%{path => mutated}) == [],
                "#{control} mutation must make the toolchain pin contract fail"
       end
     end

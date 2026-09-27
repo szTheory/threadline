@@ -560,7 +560,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 |---------|---------|
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
-| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on Elixir 1.17.3 / OTP 27.0 with the exact PLT cache lifecycle below |
+| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on the committed `.tool-versions` toolchain (Elixir 1.17.3 / OTP 27.3.4.15) with the exact PLT cache lifecycle below |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
@@ -578,10 +578,10 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 
 `mix verify.dialyzer` is part of `mix ci.all`, and the unconditional
 `verify-dialyzer` job runs the same `mix dialyzer --no-check` analyzer command
-on the exact current lane: Ubuntu 24.04, Elixir 1.17.3, and OTP 27.0. The
-independent no-optional-dependencies compile lane never runs Dialyzer; analysis
-always uses the full optional build and the strict warning/ignore configuration
-from `mix.exs`.
+on the exact current lane: Ubuntu 24.04 and the `.tool-versions` pins (Elixir
+1.17.3, OTP 27.3.4.15). The independent no-optional-dependencies compile lane
+never runs Dialyzer; analysis always uses the full optional build and the
+strict warning/ignore configuration from `mix.exs`.
 
 The PLT cache lives at `.dialyzer` and is keyed by the runner image, exact OTP
 and Elixir versions, and both `mix.lock` and `mix.exs` hashes. A restore prefix
