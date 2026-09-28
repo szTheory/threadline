@@ -496,7 +496,33 @@ defmodule Threadline.CIWorkflowParityContractTest do
            alls_green_jobs <> "          allowed-failures: verify-test\n"
          ), "rule=allowed-failures"},
         {"verify-test dropped from ci-required needs",
-         &String.replace(&1, "      - verify-test\n", ""), "rule=needs-coverage"}
+         &String.replace(&1, "      - verify-test\n", ""), "rule=needs-coverage"},
+        {"Run tests skipped on the latest lane",
+         &String.replace(
+           &1,
+           run_tests,
+           "      - name: Run tests\n        if: matrix.lane != 'latest'\n" <>
+             "        run: mix verify.test\n"
+         ), "rule=lane-skip"},
+        {"Run tests made unable to fail",
+         &String.replace(
+           &1,
+           run_tests,
+           "      - name: Run tests\n        run: mix verify.test || true\n"
+         ), "rule=lane-command"},
+        {"Compile step skipped on the latest lane",
+         &String.replace(
+           &1,
+           "      - name: Compile (warnings as errors)\n",
+           "      - name: Compile (warnings as errors)\n        if: matrix.lane != 'latest'\n"
+         ), "rule=lane-skip"},
+        {"xref cycles step removed",
+         &String.replace(
+           &1,
+           "      - name: Verify no compile-connected xref cycles\n" <>
+             "        run: mix verify.xref_cycles\n",
+           ""
+         ), "rule=lane-step-missing"}
       ]
 
       for {control, mutate, fragment} <- controls do
@@ -649,7 +675,51 @@ defmodule Threadline.CIWorkflowParityContractTest do
           ]
       end
 
-    continue_errors ++ allowed_failures_errors ++ needs_errors
+    continue_errors ++ allowed_failures_errors ++ needs_errors ++ every_lane_step_errors(ci_yaml)
+  end
+
+  # D-15 (WR-01, 220 review): the steps that make the `latest` lane (and every
+  # other verify-test lane) prove something must run on every lane. A step
+  # `if:` (e.g. `matrix.lane != 'latest'`) would skip the step and leave the
+  # lane green; a changed `run:` (e.g. `mix verify.test || true`) would make it
+  # unable to fail. Each step must exist once, carry no `if:`, and run exactly
+  # the expected command.
+  @every_lane_steps [
+    {"Compile (warnings as errors)", "mix compile --warnings-as-errors"},
+    {"Verify no compile-connected xref cycles", "mix verify.xref_cycles"},
+    {"Run tests", "mix verify.test"}
+  ]
+
+  defp every_lane_step_errors(ci_yaml) do
+    steps = ci_yaml |> workflow_job("verify-test") |> strip_comment_lines() |> job_steps()
+
+    for {name, cmd} <- @every_lane_steps,
+        error <- every_lane_step_error(steps, name, cmd),
+        do: ".github/workflows/ci.yml job=verify-test step=#{inspect(name)} " <> error
+  end
+
+  defp every_lane_step_error(steps, name, cmd) do
+    case Enum.filter(steps, &String.starts_with?(&1, "      - name: #{name}\n")) do
+      [step] ->
+        lines = trimmed_lines(step)
+
+        skip_errors =
+          if Enum.any?(lines, &String.starts_with?(&1, "if:")),
+            do: ["rule=lane-skip: the step carries `if:`, so a lane could skip it (D-15)"],
+            else: []
+
+        command_errors =
+          if "run: #{cmd}" in lines,
+            do: [],
+            else: ["rule=lane-command: the step must run exactly `#{cmd}` (D-15)"]
+
+        skip_errors ++ command_errors
+
+      found ->
+        [
+          "rule=lane-step-missing: expected exactly one such step, found #{length(found)} (D-15)"
+        ]
+    end
   end
 
   # Parsed the same way ci_topology_contract_test.exs reads the roster.
