@@ -418,6 +418,96 @@ defmodule Threadline.CIWorkflowParityContractTest do
             key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
   """
 
+  @ci_workflow ".github/workflows/ci.yml"
+  @flake_workflow ".github/workflows/flake-detection.yml"
+  @browser_full_workflow ".github/workflows/browser-full.yml"
+  @release_workflow ".github/workflows/release.yml"
+
+  # D-11, D-20: the fail-closed `_build` cache allowlist. `{workflow, job} =>
+  # {reason, mode, projects}`. A `_build` cache step in any other job is an
+  # error, and each job must restore exactly its `projects`, no more and no less.
+  @build_cache_jobs %{
+    {@ci_workflow, "verify-test"} =>
+      {"both lanes compile the root project, and the current lane also builds the example app",
+       :save, [:root, :example]},
+    {@ci_workflow, "verify-pgbouncer-topology"} =>
+      {"reuses the current lane's root test key: restore-only adds no key and removes a save race",
+       :restore_only, [:root]},
+    {@ci_workflow, "verify-example-browser"} =>
+      {"builds only the example app before Playwright; the root project is never compiled here",
+       :save, [:example]},
+    {@ci_workflow, "verify-capture"} =>
+      {"builds only the example app before regenerating the Tier A capture", :save, [:example]}
+  }
+
+  # D-12, D-13: every deliberately cache-free job, each with its reason. Each
+  # entry must name a job that exists, and none may carry a `_build` cache.
+  @build_cache_exclusions %{
+    {@ci_workflow, "verify-format"} => "compiles nothing: it only runs the formatter check",
+    {@ci_workflow, "verify-credo"} =>
+      "dev env, not a test job, and off the critical path (deferred by D-12)",
+    {@ci_workflow, "verify-dialyzer"} =>
+      "dev env, and it switches MIX_ENV mid-job, so one env-scoped key cannot describe it",
+    {@ci_workflow, "verify-compile-no-optional"} =>
+      "the optional-deps proof must build from source with no cache step of any kind (D-13)",
+    {@ci_workflow, "verify-hex-evaluator"} =>
+      "its lock is gitignored and regenerated every run, so no exact key exists",
+    {@ci_workflow, "verify-release-shape"} =>
+      "compiles nothing: it checks CHANGELOG and @version text",
+    {@ci_workflow, "verify-bump-rehearsal"} =>
+      "builds inside a throwaway clone, so a restored _build would never be read",
+    {@ci_workflow, "verify-deps-audit"} => "compiles nothing: it audits the lockfiles",
+    {@ci_workflow, "verify-repo-hygiene"} => "compiles nothing: it scans tracked text",
+    {@flake_workflow, "verify-flake"} =>
+      "off the pull-request path (weekly and on dispatch); deferred by D-12",
+    {@browser_full_workflow, "verify-example-browser-full"} =>
+      "off the pull-request path (push to main and nightly); deferred by D-12",
+    {@release_workflow, "publish-hex"} =>
+      "a published package must be built from source, never from a cache (D-17)",
+    {@release_workflow, "smoke-published"} =>
+      "the published-release smoke test must prove hex.pm's package on a clean build (D-17)"
+  }
+
+  # D-01..D-05: the single source of the required `_build` key segments per
+  # project. The example key never carries the root lock or root config (D-02).
+  @build_key_segments %{
+    root: [
+      "steps.beam.outputs.otp-version",
+      "steps.beam.outputs.elixir-version",
+      "-build-v1-",
+      "-root-",
+      "${{ env.MIX_ENV }}",
+      "-full-",
+      "${{ hashFiles('mix.lock') }}",
+      "${{ hashFiles('config/**/*.exs') }}"
+    ],
+    example: [
+      "steps.beam.outputs.otp-version",
+      "steps.beam.outputs.elixir-version",
+      "-build-v1-",
+      "-example-",
+      "${{ env.MIX_ENV }}",
+      "-full-",
+      "${{ hashFiles('examples/threadline_phoenix/mix.lock') }}",
+      "${{ hashFiles('examples/threadline_phoenix/config/**/*.exs') }}"
+    ]
+  }
+
+  # D-02, D-03, D-05, D-06: inputs a `_build` key must never carry. `no-optional`
+  # is reserved for a job that never caches; `**/mix.lock` sweeps in the bench,
+  # fixture and regenerated evaluator locks; `.tool-versions` duplicates the
+  # resolved outputs. The example key must not carry the root lock or config.
+  @build_key_forbidden %{
+    root: ["no-optional", "**/mix.lock", ".tool-versions"],
+    example: [
+      "no-optional",
+      "**/mix.lock",
+      ".tool-versions",
+      "hashFiles('mix.lock')",
+      "hashFiles('config/**/*.exs')"
+    ]
+  }
+
   describe "deps-only build cache contract" do
     test "the D-17 security subset holds on every live workflow" do
       errors = build_cache_security_errors(all_workflows())
@@ -465,6 +555,62 @@ defmodule Threadline.CIWorkflowParityContractTest do
       """
 
       assert build_cache_security_errors(%{".github/workflows/release.yml" => text}) == []
+    end
+
+    test "the synthetic fixture satisfies every build cache rule" do
+      errors = build_cache_errors(build_cache_fixture(), "")
+
+      assert errors == [],
+             "the fixture is the shape plan 02 must reach; it must be clean, got:\n" <>
+               Enum.join(errors, "\n")
+    end
+
+    test "the build cache allowlist is exactly the D-11 set, each entry with a reason" do
+      ci = ".github/workflows/ci.yml"
+
+      assert Map.new(@build_cache_jobs, fn {key, {_reason, mode, projects}} ->
+               {key, {mode, projects}}
+             end) == %{
+               {ci, "verify-test"} => {:save, [:root, :example]},
+               {ci, "verify-pgbouncer-topology"} => {:restore_only, [:root]},
+               {ci, "verify-example-browser"} => {:save, [:example]},
+               {ci, "verify-capture"} => {:save, [:example]}
+             }
+
+      for {key, {reason, _mode, _projects}} <- @build_cache_jobs do
+        assert is_binary(reason) and String.length(reason) > 20,
+               "#{inspect(key)} needs a reason longer than 20 characters"
+      end
+    end
+
+    test "every deliberately cache-free job is named with a reason (D-12, D-13)" do
+      ci = ".github/workflows/ci.yml"
+
+      assert @build_cache_exclusions |> Map.keys() |> Enum.sort() ==
+               Enum.sort(
+                 for(
+                   job <- ~w(verify-format verify-credo verify-dialyzer verify-compile-no-optional
+                     verify-hex-evaluator verify-release-shape verify-bump-rehearsal
+                     verify-deps-audit verify-repo-hygiene),
+                   do: {ci, job}
+                 ) ++
+                   [
+                     {".github/workflows/flake-detection.yml", "verify-flake"},
+                     {".github/workflows/browser-full.yml", "verify-example-browser-full"},
+                     {".github/workflows/release.yml", "publish-hex"},
+                     {".github/workflows/release.yml", "smoke-published"}
+                   ]
+               )
+
+      for {key, reason} <- @build_cache_exclusions do
+        assert is_binary(reason) and String.length(reason) > 20,
+               "#{inspect(key)} needs a reason longer than 20 characters"
+      end
+
+      assert MapSet.disjoint?(
+               MapSet.new(Map.keys(@build_cache_exclusions)),
+               MapSet.new(Map.keys(@build_cache_jobs))
+             )
     end
   end
 
@@ -1393,8 +1539,6 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   # --- Deps-only build cache contract: rules (Phase 219, CACHE-01) -------------
 
-  @build_cache_release ".github/workflows/release.yml"
-
   # Triggers that run with the default branch's cache scope and a write-capable
   # token. A cache step there can poison entries every pull request reads (D-17).
   @privileged_triggers ["pull_request_target", "workflow_run", "issue_comment"]
@@ -1402,8 +1546,589 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # The whole CACHE-01 contract over `%{repo_rel_path => workflow_text}` plus the
   # CONTRIBUTING text. Returns one message per broken rule; `[]` means clean.
   defp build_cache_errors(yaml_by_path, _contributing) do
-    build_cache_security_errors(yaml_by_path)
+    build_cache_security_errors(yaml_by_path) ++ build_cache_tree_errors(yaml_by_path)
   end
+
+  # D-07: the contiguous step sequence of each cached project, by step class.
+  # A restore-only job drops `:save_build`.
+  @build_cache_sequences %{
+    root: [
+      :restore_build,
+      :deps_restore,
+      :deps_get,
+      :deps_compile,
+      :rm_own,
+      :save_build,
+      :compile
+    ],
+    example: [:restore_build, :deps_get, :deps_compile, :rm_own, :save_build, :consumer]
+  }
+
+  # D-08: what the unconditional removal step must name, per project.
+  @build_rm_targets %{
+    root: [~S("_build/${MIX_ENV:?}/lib/threadline")],
+    example: [
+      ~S("examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline"),
+      ~S("examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline_phoenix")
+    ]
+  }
+
+  # D-09: the only `_build` cache path elements, env-scoped.
+  @build_cache_paths [
+    "_build/${{ env.MIX_ENV }}",
+    "examples/threadline_phoenix/_build/${{ env.MIX_ENV }}"
+  ]
+
+  # Fail closed: without a parseable ci.yml every allowlist rule would pass
+  # vacuously (T-219-05).
+  defp build_cache_tree_errors(yaml_by_path) do
+    ci = Map.get(yaml_by_path, @ci_workflow, "")
+
+    if workflow_jobs(ci) == [] do
+      [
+        build_cache_error(
+          {@ci_workflow, "-", "-"},
+          "allowlist",
+          "ci.yml is missing or has no parseable jobs",
+          "every allowlist rule would pass vacuously",
+          "pass the real ci.yml text"
+        )
+      ]
+    else
+      Enum.flat_map(yaml_by_path, fn {path, yaml} ->
+        Enum.flat_map(workflow_jobs(yaml), &build_cache_scope_errors(path, &1))
+      end) ++
+        allowlist_unused_errors(yaml_by_path) ++
+        exclusion_unknown_errors(yaml_by_path) ++ no_optional_cache_errors(ci)
+    end
+  end
+
+  defp build_cache_scope_errors(path, {job_id, block}) do
+    steps = tagged_steps(block)
+
+    scoped =
+      case Map.fetch(@build_cache_jobs, {path, job_id}) do
+        {:ok, {_reason, _mode, projects}} ->
+          allowlist_project_errors(path, job_id, steps, projects) ++
+            build_cache_job_errors(path, job_id, block)
+
+        :error ->
+          allowlist_errors(path, job_id, steps)
+      end
+
+    combined_action_errors(path, job_id, steps) ++ scoped
+  end
+
+  defp allowlist_errors(path, job_id, steps) do
+    for {class, _project, step} <- steps,
+        class in [:restore_build, :save_build, :combined_build] do
+      build_cache_error(
+        {path, job_id, step_label(step)},
+        "allowlist",
+        "a `_build` cache step in a job outside @build_cache_jobs",
+        "the allowlist is fail-closed; every cached job is reviewed and named (D-11, D-20)",
+        "remove the step, or add the job to @build_cache_jobs and CONTRIBUTING with a reason"
+      )
+    end
+  end
+
+  defp allowlist_project_errors(path, job_id, steps, projects) do
+    for project <- restored_projects(steps) -- projects do
+      build_cache_error(
+        {path, job_id, "-"},
+        "allowlist-project",
+        "restores a #{project} `_build` cache, which is not in its allowlist entry",
+        "each job caches exactly the projects D-11 lists for it",
+        "remove the #{project} restore, or change the job's @build_cache_jobs entry"
+      )
+    end
+  end
+
+  defp allowlist_unused_errors(yaml_by_path) do
+    for {{path, job_id}, {_reason, _mode, projects}} <- @build_cache_jobs,
+        Map.has_key?(yaml_by_path, path),
+        restored <- [
+          yaml_by_path[path] |> workflow_job(job_id) |> tagged_steps() |> restored_projects()
+        ],
+        project <- projects -- restored do
+      build_cache_error(
+        {path, job_id, "-"},
+        "allowlist-unused",
+        "has no #{project} `_build` restore, but its allowlist entry requires one",
+        "every allowlist entry must be used, so a dropped cache block cannot go unnoticed (D-11)",
+        "restore the #{project} cache block, or remove #{project} from the entry"
+      )
+    end
+  end
+
+  defp exclusion_unknown_errors(yaml_by_path) do
+    for {{path, job_id}, _reason} <- @build_cache_exclusions,
+        Map.has_key?(yaml_by_path, path),
+        workflow_job(yaml_by_path[path], job_id) == "" do
+      build_cache_error(
+        {path, job_id, "-"},
+        "exclusion-unknown",
+        "@build_cache_exclusions names a job that does not exist",
+        "a stale exclusion hides which jobs are deliberately cache-free (D-12)",
+        "rename or remove the exclusion entry"
+      )
+    end
+  end
+
+  defp no_optional_cache_errors(ci) do
+    block = workflow_job(ci, "verify-compile-no-optional")
+
+    for chunk <- Regex.split(~r/^(?=      - )/m, block),
+        line <- lines_matching(chunk, &cache_line?/1) do
+      build_cache_error(
+        {@ci_workflow, "verify-compile-no-optional", step_label(chunk)},
+        "no-optional-cache",
+        "carries `#{line}`",
+        "the optional-deps proof must build from source with no cache step of any kind (D-13)",
+        "remove the cache step"
+      )
+    end
+  end
+
+  defp combined_action_errors(path, job_id, steps) do
+    for {:combined_build, _project, step} <- steps do
+      build_cache_error(
+        {path, job_id, step_label(step)},
+        "combined-action",
+        "caches `_build` with the combined actions/cache action",
+        "the combined action saves at job end, after the own build exists (CACHE-01, D-14)",
+        "use actions/cache/restore@v5 and actions/cache/save@v5"
+      )
+    end
+  end
+
+  # Every per-job rule for one allowlisted job (D-07..D-15, D-17, D-22).
+  defp build_cache_job_errors(path, job_id, block) do
+    {_reason, mode, _projects} = Map.fetch!(@build_cache_jobs, {path, job_id})
+    job = %{path: path, id: job_id, mode: mode, steps: tagged_steps(block)}
+
+    Enum.flat_map(restored_projects(job.steps), &project_cache_errors(job, &1)) ++
+      restore_only_errors(job) ++ inline_errors(job) ++ job_env_errors(job, block)
+  end
+
+  defp project_cache_errors(job, project) do
+    start = Enum.find_index(job.steps, &match?({:restore_build, ^project, _}, &1))
+    {_class, _project, restore} = Enum.at(job.steps, start)
+    expected = expected_sequence(project, job.mode)
+    window = Enum.slice(job.steps, start, length(expected))
+
+    order_errors(job, project, restore, window, expected) ++
+      restore_errors(job, project, restore) ++
+      save_errors(job, project, restore) ++
+      compile_guard_errors(job, project, restore) ++
+      continue_on_error_errors(job, window) ++
+      rm_errors(job, project) ++ cache_path_env_errors(job, project)
+  end
+
+  defp expected_sequence(project, :save), do: @build_cache_sequences[project]
+
+  defp expected_sequence(project, :restore_only),
+    do: List.delete(@build_cache_sequences[project], :save_build)
+
+  defp order_errors(job, project, restore, window, expected) do
+    observed = Enum.map(window, fn {class, proj, _step} -> {class, proj} end)
+    wanted = Enum.map(expected, &{&1, project})
+
+    if observed == wanted do
+      []
+    else
+      [
+        build_cache_error(
+          where(job, restore),
+          "order",
+          "the #{project} cache block is out of order: observed #{inspect(observed)}, " <>
+            "expected #{inspect(wanted)}",
+          "the own build is removed after the dependency compile and before both the save " <>
+            "and the compile, so first-party code is never cached or served stale (D-07)",
+          "make the steps run #{Enum.join(expected, " -> ")} with nothing in between"
+        )
+      ]
+    end
+  end
+
+  defp restore_errors(job, project, restore) do
+    stripped = strip_comment_lines(restore)
+    key = yaml_value(stripped, "key") || ""
+    where = where(job, restore)
+
+    split_action_errors(where, stripped, "uses: actions/cache/restore@v5") ++
+      restore_keys_errors(where, stripped) ++
+      key_segment_errors(where, project, key) ++ key_forbidden_errors(where, project, key)
+  end
+
+  defp split_action_errors(where, stripped, expected) do
+    if String.contains?(stripped, expected) do
+      []
+    else
+      [
+        build_cache_error(
+          where,
+          "combined-action",
+          "a `_build` cache step must carry `#{expected}`",
+          "the split restore/save pair is what lets the save run before the own build exists " <>
+            "(CACHE-01, D-14)",
+          "use `#{expected}`"
+        )
+      ]
+    end
+  end
+
+  defp restore_keys_errors(where, stripped) do
+    if yaml_value(stripped, "restore-keys") do
+      [
+        build_cache_error(
+          where,
+          "restore-keys",
+          "a `_build` restore carries `restore-keys:`",
+          "a near-miss restore across a changed lock serves wrong compiled artifacts " <>
+            "(CACHE-01, CargoSense/setup-elixir-project#13)",
+          "delete `restore-keys:`; a cold build is cheaper than a wrong one"
+        )
+      ]
+    else
+      []
+    end
+  end
+
+  defp key_segment_errors(where, project, key) do
+    missing =
+      for segment <- @build_key_segments[project], not String.contains?(key, segment) do
+        build_cache_error(
+          where,
+          "key-segment",
+          "the #{project} `_build` key lacks `#{segment}`",
+          "every input that changes compiled dependencies must be in the exact key (D-01..D-05)",
+          "add `#{segment}` to the key, as @build_key_segments lists it"
+        )
+      end
+
+    runner =
+      for message <- key_value_errors("the #{project} `_build` restore", "key", key) do
+        build_cache_error(
+          where,
+          "key-segment",
+          message,
+          "the Phase 216 cache-key contract applies to every cache",
+          "lead with the literal runner label and the resolved setup-beam outputs"
+        )
+      end
+
+    missing ++ runner
+  end
+
+  defp key_forbidden_errors(where, project, key) do
+    for input <- @build_key_forbidden[project], String.contains?(key, input) do
+      build_cache_error(
+        where,
+        "key-forbidden",
+        "the #{project} `_build` key carries `#{input}`",
+        "that input is reserved, redundant, or belongs to another project's lock (D-02..D-06)",
+        "remove `#{input}` from the key"
+      )
+    end
+  end
+
+  defp save_errors(job, project, restore) do
+    id = yaml_value(strip_comment_lines(restore), "id") || "<restore without id>"
+
+    for {:save_build, ^project, save} <- job.steps,
+        {rule, what, why, fix} <- save_rule_failures(job, id, restore, save) do
+      build_cache_error(where(job, save), rule, what, why, fix)
+    end
+  end
+
+  defp save_rule_failures(job, id, restore, save) do
+    stripped = strip_comment_lines(save)
+    primary = "${{ steps.#{id}.outputs.cache-primary-key }}"
+    guards = cache_miss_guards(job.id, id)
+
+    [
+      {String.contains?(stripped, "uses: actions/cache/save@v5"),
+       {"combined-action", "a `_build` save must carry `uses: actions/cache/save@v5`",
+        "only the split save runs before the own build exists (D-14)",
+        "use actions/cache/save@v5"}},
+      {yaml_value(stripped, "key") == primary,
+       {"save-key", "the save key must be exactly `#{primary}`",
+        "a retyped or foreign key saves under a name the restore never computed (D-14)",
+        "key the save on its own project's restore output"}},
+      {cache_path(save) == cache_path(restore),
+       {"save-path", "the save path differs from the `#{id}` restore path",
+        "a save that caches other paths than the restore reads poisons the key (D-14)",
+        "copy the restore's `path:` byte for byte"}},
+      {yaml_value(stripped, "if") in guards,
+       {"save-guard", "the save `if:` must be one of #{inspect(guards)}",
+        "only an exact miss after a successful dependency compile may save; always(), " <>
+          "failure() or || would save a failed or partial build (D-14, D-15)",
+        "set `if: #{List.first(guards)}`"}}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp cache_miss_guards("verify-test", id) do
+    base = "steps.#{id}.outputs.cache-hit != 'true'"
+    [base, "matrix.lane == 'current' && " <> base]
+  end
+
+  defp cache_miss_guards(_job_id, id), do: ["steps.#{id}.outputs.cache-hit != 'true'"]
+
+  defp compile_guard_errors(job, project, restore) do
+    id = yaml_value(strip_comment_lines(restore), "id") || "<restore without id>"
+    guards = cache_miss_guards(job.id, id)
+
+    for {:deps_compile, ^project, step} <- job.steps,
+        yaml_value(strip_comment_lines(step), "if") not in guards do
+      build_cache_error(
+        where(job, step),
+        "compile-guard",
+        "the dependency compile `if:` must be one of #{inspect(guards)}",
+        "dependencies compile only on an exact miss, and the save shares that guard (D-07)",
+        "set `if: #{List.first(guards)}`"
+      )
+    end
+  end
+
+  defp continue_on_error_errors(job, window) do
+    for {_class, _project, step} <- window,
+        Regex.match?(~r/^\s*continue-on-error:/m, strip_comment_lines(step)) do
+      build_cache_error(
+        where(job, step),
+        "continue-on-error",
+        "a step inside a cache block carries `continue-on-error:`",
+        "a failed dependency compile must never reach the save (D-15)",
+        "remove `continue-on-error:`"
+      )
+    end
+  end
+
+  defp rm_errors(job, project) do
+    for {:rm_own, ^project, step} <- job.steps,
+        {rule, what, why, fix} <- rm_rule_failures(project, strip_comment_lines(step)) do
+      build_cache_error(where(job, step), rule, what, why, fix)
+    end
+  end
+
+  defp rm_rule_failures(project, stripped) do
+    guarded =
+      ~r{_build/([^/"\s]*)}
+      |> Regex.scan(stripped, capture: :all_but_first)
+      |> List.flatten()
+      |> Enum.all?(&(&1 == "${MIX_ENV:?}"))
+
+    targets =
+      for target <- @build_rm_targets[project] do
+        {String.contains?(stripped, target),
+         {"rm-target", "the #{project} removal does not name #{target}",
+          "each first-party app's build must be removed before the save and the compile (D-08)",
+          "add #{target} to the `rm -rf`"}}
+      end
+
+    [
+      {yaml_value(stripped, "if") == nil,
+       {"rm-unconditional", "the own-build removal carries an `if:`",
+        "it must run on a hit and on a miss, or a restored stale copy is served (D-07)",
+        "delete the `if:`"}},
+      {guarded,
+       {"rm-env-guard", "every `_build/` in the removal must be `_build/${MIX_ENV:?}/`",
+        "an unset MIX_ENV must fail loudly instead of removing nothing (D-08)",
+        "write the path as `_build/${MIX_ENV:?}/lib/...`"}}
+      | targets
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp cache_path_env_errors(job, project) do
+    for {class, ^project, step} <- job.steps,
+        class in [:restore_build, :save_build],
+        element <- String.split(cache_path(step) || "", "\n"),
+        String.contains?(element, "_build"),
+        element not in @build_cache_paths do
+      build_cache_error(
+        where(job, step),
+        "cache-path-env",
+        "`_build` path element `#{element}` is not one of #{inspect(@build_cache_paths)}",
+        "the cache is env-scoped, so a test build never lands in another env's entry (D-09)",
+        "use `_build/${{ env.MIX_ENV }}`"
+      )
+    end
+  end
+
+  defp restore_only_errors(%{mode: :restore_only} = job) do
+    for {:save_build, _project, step} <- job.steps do
+      build_cache_error(
+        where(job, step),
+        "restore-only",
+        "a restore-only job saves a `_build` cache",
+        "restore-only jobs reuse another job's key; a second writer only adds a save race (D-11)",
+        "remove the save step"
+      )
+    end
+  end
+
+  defp restore_only_errors(_job), do: []
+
+  defp inline_errors(job) do
+    for {:local_action, _project, step} <- job.steps do
+      build_cache_error(
+        where(job, step),
+        "inline",
+        "a local `uses: ./` action inside a cached job",
+        "the contract reads literal job text; a composite action would hide the cache steps (D-22)",
+        "inline the steps in the job"
+      )
+    end
+  end
+
+  defp job_env_errors(job, block) do
+    header = ~r/^(?=      - )/m |> Regex.split(block) |> hd() |> strip_comment_lines()
+
+    mix_env =
+      if Regex.match?(~r/^    env:\s*$/m, header) and
+           Regex.match?(~r/^      MIX_ENV: [a-z]+\s*$/m, header),
+         do: [],
+         else: [
+           build_cache_error(
+             {job.path, job.id, "-"},
+             "job-mix-env",
+             "the job has no literal job-level `MIX_ENV:`",
+             "an unset MIX_ENV makes `_build/$MIX_ENV` collapse and preferred_envs pick the env (D-09)",
+             "add `MIX_ENV: test` under the job's `env:`"
+           )
+         ]
+
+    compiler =
+      for line <- lines_matching(block, &compiler_env_line?/1) do
+        build_cache_error(
+          {job.path, job.id, "-"},
+          "compiler-env",
+          "the job sets `#{line}`",
+          "compiler flags change dependency BEAMs without changing the key (D-17)",
+          "remove the variable from the cached job"
+        )
+      end
+
+    mix_env ++ compiler
+  end
+
+  defp compiler_env_line?(line),
+    do: Regex.match?(~r/^\s*(?:ERL_COMPILER_OPTIONS|ELIXIR_ERL_OPTIONS|CC|CFLAGS):/, line)
+
+  defp where(job, step), do: {job.path, job.id, step_label(step)}
+
+  defp tagged_steps(block) do
+    for step <- job_steps(block) do
+      class = build_cache_step_class(step)
+      {class, build_cache_project(step, class), step}
+    end
+  end
+
+  defp restored_projects(steps),
+    do: for({:restore_build, project, _step} <- steps, uniq: true, do: project)
+
+  # Classifies one step's uncommented text. A cache step counts as `_build` when
+  # any uncommented line mentions `_build`, including inside a `path: |` block.
+  defp build_cache_step_class(step) do
+    stripped = strip_comment_lines(step)
+    uses = step_uses(stripped)
+
+    cond do
+      String.starts_with?(uses, "./") -> :local_action
+      String.starts_with?(uses, "actions/cache") -> cache_step_class(uses, stripped)
+      Regex.match?(~r/\brm -rf\b[^\n]*_build\//, stripped) -> :rm_own
+      true -> run_step_class(stripped)
+    end
+  end
+
+  defp cache_step_class(uses, stripped) do
+    action = uses |> String.split("@") |> hd()
+
+    case {action, String.contains?(stripped, "_build")} do
+      {"actions/cache/restore", true} ->
+        :restore_build
+
+      {"actions/cache/save", true} ->
+        :save_build
+
+      {"actions/cache", true} ->
+        :combined_build
+
+      {"actions/cache", false} ->
+        if cache_path(stripped) == "deps", do: :deps_restore, else: :other
+
+      _ ->
+        :other
+    end
+  end
+
+  defp run_step_class(stripped) do
+    cond do
+      Regex.match?(~r/^\s*run:\s*mix deps\.get\s*$/m, stripped) ->
+        :deps_get
+
+      Regex.match?(~r/^\s*run:\s*mix deps\.compile\b/m, stripped) ->
+        :deps_compile
+
+      Regex.match?(~r/^\s*run:\s*mix compile --warnings-as-errors\s*$/m, stripped) ->
+        :compile
+
+      Regex.match?(~r/^\s*run:\s*mix verify\.(?:example|example_browser|capture)\b/m, stripped) ->
+        :consumer
+
+      true ->
+        :other
+    end
+  end
+
+  # Consumers (`mix verify.example`, `verify.example_browser`, `verify.capture`)
+  # build the example app, whatever directory they run from.
+  defp build_cache_project(_step, :consumer), do: :example
+
+  defp build_cache_project(step, _class) do
+    if String.contains?(strip_comment_lines(step), "examples/threadline_phoenix"),
+      do: :example,
+      else: :root
+  end
+
+  defp step_uses(stripped) do
+    case Regex.run(~r/^\s*(?:-\s+)?uses:\s*(\S+)/m, stripped) do
+      [_, uses] -> uses
+      nil -> ""
+    end
+  end
+
+  # A step's `path:` value: the scalar, or the trimmed lines of a `path: |`
+  # block joined by newlines (so restore and save paths compare line by line).
+  defp cache_path(step) do
+    step
+    |> strip_comment_lines()
+    |> String.split("\n")
+    |> Enum.drop_while(&(not Regex.match?(~r/^\s*path:/, &1)))
+    |> path_value()
+  end
+
+  defp path_value([]), do: nil
+
+  defp path_value([line | rest]) do
+    case yaml_value(line, "path") do
+      "|" ->
+        indent = indent_of(line)
+
+        rest
+        |> Enum.take_while(&(String.trim(&1) != "" and indent_of(&1) > indent))
+        |> Enum.map_join("\n", &String.trim/1)
+
+      value ->
+        value
+    end
+  end
+
+  defp indent_of(line), do: byte_size(line) - byte_size(String.trim_leading(line))
 
   # D-17: the release path and default-branch-context workflows carry no cache,
   # and the only built-in `cache:` input anywhere is `cache: npm` on setup-node.
@@ -1417,7 +2142,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end)
   end
 
-  defp release_cache_errors(@build_cache_release = path, yaml) do
+  defp release_cache_errors(@release_workflow = path, yaml) do
     for {job, chunk} <- workflow_chunks(yaml), line <- lines_matching(chunk, &cache_line?/1) do
       build_cache_error(
         {path, job, step_label(chunk)},
@@ -1578,4 +2303,382 @@ defmodule Threadline.CIWorkflowParityContractTest do
   end
 
   defp job_header_line?(line), do: Regex.match?(~r/^  [a-z][a-z0-9_-]*:\s*$/, line)
+
+  # --- Deps-only build cache contract: the synthetic fixture (D-21) -----------
+  #
+  # A correct workflow set, so every rule is proven on the shape plan 02 must
+  # reach before any YAML changes. The four allowlisted jobs copy the LIVE step
+  # skeletons (every live non-cache step name in live order, multi-line `run:`
+  # bodies trimmed to one representative line) with the cache steps inserted
+  # where plan 02 inserts them. Step names and ids are fixed by 219-01-PLAN
+  # `<interfaces>`: the mutation controls needle on them.
+
+  defp build_cache_fixture do
+    ci =
+      Enum.join(
+        [
+          fixture_workflow_head("CI"),
+          Enum.map_join(fixture_stub_jobs(@ci_workflow), "\n", &fixture_stub_job/1),
+          fixture_verify_test(),
+          fixture_pgbouncer(),
+          fixture_example_consumer_job(:browser),
+          fixture_example_consumer_job(:capture)
+        ],
+        "\n"
+      )
+
+    other =
+      for path <- [@release_workflow, @flake_workflow, @browser_full_workflow], into: %{} do
+        {path,
+         fixture_workflow_head(Path.basename(path)) <>
+           Enum.map_join(fixture_stub_jobs(path), "\n", &fixture_stub_job/1)}
+      end
+
+    Map.put(other, @ci_workflow, ci)
+  end
+
+  defp fixture_workflow_head(name) do
+    "name: #{name}\n\non:\n  push:\n    branches: [main]\n  workflow_dispatch:\n\n" <>
+      "permissions:\n  contents: read\n\njobs:\n"
+  end
+
+  defp fixture_stub_jobs(path) do
+    for({{^path, job_id}, _reason} <- @build_cache_exclusions, do: job_id) |> Enum.sort()
+  end
+
+  # Each stub copies the live job header line and the live `    steps:` line,
+  # so insert_step_in_job/3 finds the same needles as in the live files.
+  defp fixture_stub_job(job_id) do
+    "  #{job_id}:\n    name: #{job_id} stub\n    runs-on: ubuntu-24.04\n    steps:\n" <>
+      "      - uses: actions/checkout@v5\n\n      - name: Run #{job_id}\n        run: echo ok\n"
+  end
+
+  @fixture_beam_step ~S"""
+        - uses: erlef/setup-beam@v1
+          id: beam
+          with:
+            version-file: .tool-versions
+            version-type: strict
+  """
+
+  @fixture_root_block ~S"""
+        - name: Restore deps-only build cache
+          id: build-restore
+          uses: actions/cache/restore@v5
+          with:
+            path: _build/${{ env.MIX_ENV }}
+            key: __LEAD__-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
+
+        - name: Cache deps
+          uses: actions/cache@v5
+          with:
+            path: deps
+            key: __LEAD__-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+            restore-keys: __LEAD__-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
+
+        - name: Install dependencies
+          run: mix deps.get
+
+        - name: Compile dependencies on build cache miss
+          if: steps.build-restore.outputs.cache-hit != 'true'
+          run: mix deps.compile
+
+        - name: Remove own build (never cached, never reused)
+          run: |
+            echo "THREADLINE_BUILD_CACHE=${{ steps.build-restore.outputs.cache-hit == 'true' && 'hit' || 'miss' }} key=${{ steps.build-restore.outputs.cache-primary-key }}"
+            rm -rf "_build/${MIX_ENV:?}/lib/threadline"
+
+  __SAVE__      - name: Compile (warnings as errors)
+          run: mix compile --warnings-as-errors
+  """
+
+  @fixture_root_save ~S"""
+        - name: Save deps-only build cache
+          if: steps.build-restore.outputs.cache-hit != 'true'
+          uses: actions/cache/save@v5
+          with:
+            path: _build/${{ env.MIX_ENV }}
+            key: ${{ steps.build-restore.outputs.cache-primary-key }}
+
+  """
+
+  @fixture_example_block ~S"""
+        - name: Restore example deps and deps-only build cache
+          id: example-build-restore
+  __LANE_IF__        uses: actions/cache/restore@v5
+          with:
+            path: |
+              examples/threadline_phoenix/deps
+              examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+            key: __LEAD__-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-example-${{ env.MIX_ENV }}-full-${{ hashFiles('examples/threadline_phoenix/mix.lock') }}-${{ hashFiles('examples/threadline_phoenix/config/**/*.exs') }}
+
+        - name: Install example dependencies
+  __LANE_IF__        working-directory: examples/threadline_phoenix
+          run: mix deps.get
+
+        - name: Compile example dependencies on cache miss
+          if: __LANE_AND__steps.example-build-restore.outputs.cache-hit != 'true'
+          working-directory: examples/threadline_phoenix
+          run: mix deps.compile --skip-local-deps
+
+        - name: Remove example app's own build (never cached, never reused)
+          env:
+            EXAMPLE_BUILD_KEY: ${{ steps.example-build-restore.outputs.cache-primary-key }}
+            EXAMPLE_BUILD_HIT: ${{ steps.example-build-restore.outputs.cache-hit }}
+          run: |
+            if [ -n "$EXAMPLE_BUILD_KEY" ]; then
+              if [ "$EXAMPLE_BUILD_HIT" = "true" ]; then state=hit; else state=miss; fi
+              echo "THREADLINE_EXAMPLE_BUILD_CACHE=${state} key=${EXAMPLE_BUILD_KEY}"
+            fi
+            rm -rf "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline" \
+              "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline_phoenix"
+
+        - name: Save example deps and deps-only build cache
+          if: __LANE_AND__steps.example-build-restore.outputs.cache-hit != 'true'
+          uses: actions/cache/save@v5
+          with:
+            path: |
+              examples/threadline_phoenix/deps
+              examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+            key: ${{ steps.example-build-restore.outputs.cache-primary-key }}
+  """
+
+  defp fixture_root_block(lead, save?) do
+    @fixture_root_block
+    |> String.replace("__LEAD__", lead)
+    |> String.replace("__SAVE__", if(save?, do: @fixture_root_save, else: ""))
+  end
+
+  defp fixture_example_block(lead, lane?) do
+    @fixture_example_block
+    |> String.replace("__LEAD__", lead)
+    |> String.replace(
+      "__LANE_IF__",
+      if(lane?, do: "        if: matrix.lane == 'current'\n", else: "")
+    )
+    |> String.replace("__LANE_AND__", if(lane?, do: "matrix.lane == 'current' && ", else: ""))
+  end
+
+  defp fixture_verify_test do
+    ~S"""
+      verify-test:
+        name: Run test suite
+        strategy:
+          fail-fast: false
+          matrix:
+            lane: [min, current]
+            include:
+              - lane: min
+                elixir: "1.15.8"
+                otp: "26.2.5.21"
+                pg: "14"
+                runner: "ubuntu-24.04"
+              - lane: current
+                version-file: ".tool-versions"
+                pg: "16"
+                runner: "ubuntu-24.04"
+        runs-on: ${{ matrix.runner }}
+        timeout-minutes: 20
+        env:
+          DB_HOST: localhost
+          MIX_ENV: test
+        services:
+          postgres:
+            image: postgres:${{ matrix.pg }}
+            ports:
+              - 5432:5432
+        steps:
+          - uses: actions/checkout@v5
+            with:
+              fetch-depth: 0
+
+          - uses: erlef/setup-beam@v1
+            id: beam
+            with:
+              version-file: ${{ matrix.version-file }}
+              otp-version: ${{ matrix.otp }}
+              elixir-version: ${{ matrix.elixir }}
+              version-type: strict
+
+    """ <>
+      fixture_root_block("${{ matrix.runner }}", true) <>
+      ~S"""
+
+            - name: Verify no compile-connected xref cycles
+              run: mix verify.xref_cycles
+
+            - name: Run tests
+              run: mix verify.test
+
+            - name: Verify Threadline trigger coverage
+              if: matrix.lane == 'current'
+              run: mix verify.threadline
+
+            - name: Ensure threadline_phoenix_test database exists (threadline on search_path)
+              if: matrix.lane == 'current'
+              env:
+                PGPASSWORD: postgres
+              run: |
+                createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
+
+      """ <>
+      fixture_example_block("${{ matrix.runner }}", true) <>
+      ~S"""
+
+            - name: Verify Threadline Phoenix example
+              if: matrix.lane == 'current'
+              run: mix verify.example
+      """
+  end
+
+  defp fixture_pgbouncer do
+    ~S"""
+      verify-pgbouncer-topology:
+        name: PgBouncer transaction topology
+        runs-on: ubuntu-24.04
+        timeout-minutes: 20
+        env:
+          MIX_ENV: test
+        services:
+          postgres:
+            image: postgres:16
+          pgbouncer:
+            image: edoburu/pgbouncer:v1.25.2-p0
+        steps:
+          - uses: actions/checkout@v5
+
+    """ <>
+      @fixture_beam_step <>
+      "\n" <>
+      fixture_root_block("ubuntu-24.04", false) <>
+      ~S"""
+
+            - name: Wait for Postgres and PgBouncer
+              env:
+                PGPASSWORD: postgres
+              run: |
+                until pg_isready -h localhost -p 6432 -U postgres; do sleep 1; done
+
+            - name: Bootstrap test DB (direct Postgres, bypass pooler)
+              env:
+                DB_HOST: localhost
+                DB_PORT: "5432"
+                THREADLINE_TOPOLOGY_BOOTSTRAP: "1"
+              run: mix run priv/ci/topology_bootstrap.exs
+
+            - name: Topology tests + verify_coverage through PgBouncer
+              env:
+                DB_HOST: localhost
+                DB_PORT: "6432"
+                THREADLINE_PGBOUNCER_TOPOLOGY: "1"
+              run: |
+                mix verify.topology
+      """
+  end
+
+  # verify-example-browser and verify-capture share their live skeleton up to
+  # the example block, including the deferred root `Cache deps` and
+  # `Install root dependencies` steps (out of CACHE-01 scope, kept as live).
+  defp fixture_example_consumer_job(kind) do
+    {header, consumer} = fixture_consumer_parts(kind)
+
+    header <>
+      ~S"""
+          steps:
+            - uses: actions/checkout@v5
+
+      """ <>
+      @fixture_beam_step <>
+      ~S"""
+
+            - uses: actions/setup-node@v5
+              with:
+                node-version: "22"
+                cache: npm
+                cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
+
+            - name: Cache deps
+              uses: actions/cache@v5
+              with:
+                path: deps
+                key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
+                restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
+
+            - name: Cache Playwright browsers
+              uses: actions/cache@v5
+              with:
+                path: ~/.cache/ms-playwright
+                key: ubuntu-24.04-playwright-${{ hashFiles('examples/threadline_phoenix/e2e/package-lock.json') }}
+                restore-keys: ubuntu-24.04-playwright-
+
+            - name: Install root dependencies
+              run: mix deps.get
+
+            - name: Ensure threadline_phoenix_test database exists
+              env:
+                PGPASSWORD: postgres
+              run: |
+                createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
+
+      """ <>
+      fixture_example_block("ubuntu-24.04", false) <> "\n" <> consumer
+  end
+
+  defp fixture_consumer_parts(:browser) do
+    {~S"""
+       verify-example-browser:
+         name: Example app browser E2E (Playwright)
+         runs-on: ubuntu-24.04
+         timeout-minutes: 18
+         env:
+           DB_HOST: localhost
+           DB_PORT: 5432
+           MIX_ENV: test
+         services:
+           postgres:
+             image: postgres:16
+     """,
+     ~S"""
+           - name: Run example Playwright suite
+             timeout-minutes: 14
+             run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium
+
+           - name: Upload Playwright traces and e2e boot log on failure
+             if: failure()
+             uses: actions/upload-artifact@v7
+             with:
+               name: example-browser-e2e-diagnostics
+               path: |
+                 examples/threadline_phoenix/e2e/test-results
+                 /tmp/threadline_phoenix_e2e.log
+     """}
+  end
+
+  defp fixture_consumer_parts(:capture) do
+    {~S"""
+       verify-capture:
+         name: Tier A capture lane (byte-stable evidence)
+         runs-on: ubuntu-24.04
+         timeout-minutes: 35
+         env:
+           DB_HOST: localhost
+           DB_PORT: 5432
+           MIX_ENV: test
+         services:
+           postgres:
+             image: postgres:16
+     """,
+     ~S"""
+           - name: Regenerate Tier A capture
+             run: mix verify.capture
+
+           - name: Assert complete evidence bundle (non-empty, every aria.yml has a matching scorecard)
+             run: |
+               find test/fixtures/operator_surface/scorecards -maxdepth 1 -name '*.json' | wc -l
+
+           - name: Assert byte-stable regeneration (no drift from committed evidence)
+             run: |
+               git status --porcelain test/fixtures/operator_surface/scorecards/
+     """}
+  end
 end
