@@ -375,17 +375,36 @@ def sub_wall(args):
     return 0
 
 
+def critical_path_end(run_jobs):
+    """(offset seconds, names of the last voting jobs) for one run, or None.
+
+    None when no job ran or no voting job succeeded: all219 keeps failed runs,
+    and such a run has no critical-path end to measure (IN-02, 219 review).
+    """
+    jobs = [j for j in run_jobs if S.ran(j)]
+    voting = [j for j in jobs if j["conclusion"] == "success" and job_id(j["name"]) != "ci-required"]
+    if not jobs or not voting:
+        return None
+    first = min(S.ts(j["started_at"]) for j in jobs)
+    latest = max(S.ts(j["completed_at"]) for j in voting)
+    names = [j["name"] for j in voting if S.ts(j["completed_at"]) == latest]
+    return int((latest - first).total_seconds()), names
+
+
 def sub_critical_path(args):
-    offs, last = [], {}
+    offs, last, skipped = [], {}, []
     for r in runs_for(args.set):
-        jobs = [j for j in r["jobs"] if S.ran(j)]
-        first = min(S.ts(j["started_at"]) for j in jobs)
-        voting = [j for j in jobs if j["conclusion"] == "success" and job_id(j["name"]) != "ci-required"]
-        latest = max(S.ts(j["completed_at"]) for j in voting)
-        offs.append((int((latest - first).total_seconds()), r["run_id"]))
-        for j in voting:
-            if S.ts(j["completed_at"]) == latest:
-                last[j["name"]] = last.get(j["name"], 0) + 1
+        end = critical_path_end(r["jobs"])
+        if end is None:
+            skipped.append(r["run_id"])
+            continue
+        offs.append((end[0], r["run_id"]))
+        for name in end[1]:
+            last[name] = last.get(name, 0) + 1
+    if skipped:
+        print(f"| critical-path: runs with no successful voting job, not measured | set {args.set} | "
+              f"n={len(skipped)} | runs {', '.join(str(x) for x in skipped)} | "
+              f"{cmd('critical-path', args.set)} |")
     if not offs:
         return empty("critical-path", args.set)
     print(f"| critical-path end offset (last voting job) | set {args.set} | n={len(offs)} | {pcell(offs)} | "
@@ -539,6 +558,18 @@ def self_test():
     run_h3 = _run(ex_cur="hit", browser_save="skipped", capture_save_end=500)
     check("h3 save at restore instant", label_run_pairs(run_h3)[("Run test suite (current)", "example")],
           "in-run")
+
+    # (i) critical path: a run whose every voting job failed, or where no job ran,
+    # is skipped instead of raising ValueError (IN-02).
+    failed = [dict(j, conclusion="failure") for j in _run()]
+    for j in failed:
+        j["started_at"], j["completed_at"] = _t(0), _t(10)
+    check("i all voting failed", critical_path_end(failed), None)
+    check("i no job ran", critical_path_end([]), None)
+    ok = [{"name": "Run test suite (current)", "conclusion": "success",
+           "started_at": _t(0), "completed_at": _t(300)},
+          {"name": "CI required", "conclusion": "success", "started_at": _t(0), "completed_at": _t(400)}]
+    check("i one voting job", critical_path_end(ok), (300, ["Run test suite (current)"]))
 
     for f in fails:
         print(f)
