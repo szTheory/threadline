@@ -495,6 +495,21 @@ defmodule Threadline.CIWorkflowParityContractTest do
            alls_green_jobs,
            alls_green_jobs <> "          allowed-failures: verify-test\n"
          ), "rule=allowed-failures"},
+        {"quoted continue-on-error key on verify-test",
+         &String.replace(&1, job_header, job_header <> ~s(    "continue-on-error": true\n)),
+         "rule=continue-on-error"},
+        {"flow-mapped step with continue-on-error",
+         &String.replace(
+           &1,
+           run_tests,
+           run_tests <> "      - { name: Extra, run: mix help, continue-on-error: true }\n"
+         ), "rule=continue-on-error"},
+        {"quoted allowed-failures key in ci-required",
+         &String.replace(
+           &1,
+           alls_green_jobs,
+           alls_green_jobs <> ~s(          'allowed-failures': verify-test\n)
+         ), "rule=allowed-failures"},
         {"verify-test dropped from ci-required needs",
          &String.replace(&1, "      - verify-test\n", ""), "rule=needs-coverage"},
         {"Run tests skipped on the latest lane",
@@ -669,7 +684,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # D-15: every lane that `ci-required` needs must be able to fail. A job- or
   # step-level `continue-on-error:` (any value, including a `${{ matrix.* }}`
   # expression), an `allowed-failures:` on the alls-green step, or a ci.yml job
-  # missing from `needs:` would each let a red lane report green.
+  # missing from `needs:` would each let a red lane report green. The key match
+  # also catches a quoted key (`"continue-on-error": true`) and a flow-mapped
+  # step (`- { name: x, continue-on-error: true }`), both valid YAML GitHub honours.
+  @continue_on_error_key ~r/(^|[\s{,])["']?continue-on-error["']?\s*:/m
+  @allowed_failures_key ~r/(^|[\s{,])["']?allowed-failures["']?\s*:/m
+
   defp voting_lane_errors(yaml_by_path) do
     ci_path = ".github/workflows/ci.yml"
     ci_yaml = Map.get(yaml_by_path, ci_path, "")
@@ -677,14 +697,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
     continue_errors =
       for {path, yaml} <- Enum.sort(yaml_by_path),
           {job_id, block} <- workflow_jobs(yaml),
-          Regex.match?(~r/^\s*continue-on-error\s*:/m, strip_comment_lines(block)) do
+          Regex.match?(@continue_on_error_key, strip_comment_lines(block)) do
         "#{path} job=#{job_id} rule=continue-on-error: a voting job or step carries " <>
           "`continue-on-error:`, so a red lane could report green (D-15)"
       end
 
     allowed_failures_errors =
       if Regex.match?(
-           ~r/^\s*allowed-failures\s*:/m,
+           @allowed_failures_key,
            strip_comment_lines(workflow_job(ci_yaml, "ci-required"))
          ),
          do: [
