@@ -522,7 +522,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
            "      - name: Verify no compile-connected xref cycles\n" <>
              "        run: mix verify.xref_cycles\n",
            ""
-         ), "rule=lane-step-missing"}
+         ), "rule=lane-step-missing"},
+        {"underscore job id missing from ci-required needs",
+         &(&1 <> "\n  verify_extra:\n    runs-on: ubuntu-24.04\n"), "rule=needs-coverage"},
+        {"uppercase job id with continue-on-error",
+         &(&1 <>
+             "\n  VerifyExtra:\n    runs-on: ubuntu-24.04\n    continue-on-error: true\n"),
+         "job=VerifyExtra rule=continue-on-error"}
       ]
 
       for {control, mutate, fragment} <- controls do
@@ -1704,10 +1710,16 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   defp otp_suffix_errors(_erlang, _elixir), do: []
 
+  # Job headers follow GitHub's job-id grammar (letters, digits, `_`, `-`; must
+  # start with a letter or `_`). A narrower pattern would fold a job such as
+  # `verify_latest:` into the previous job's block and hide it from the
+  # needs-coverage check (WR-03, 220 review).
+  @job_id_pattern "[A-Za-z_][A-Za-z0-9_-]*"
+
   defp workflow_jobs(yaml) do
     case String.split(yaml, ~r/^jobs:\n/m, parts: 2) do
       [_, body] ->
-        ~r/^  ([a-z][a-z0-9-]+):\n[\s\S]*?(?=^  [a-z][a-z0-9-]+:\n|\z)/m
+        ~r/^  (#{@job_id_pattern}):[ \t]*\n[\s\S]*?(?=^  #{@job_id_pattern}:[ \t]*\n|\z)/m
         |> Regex.scan(body)
         |> Enum.map(fn [block, job_id] -> {job_id, block} end)
 
@@ -1717,7 +1729,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
   end
 
   defp workflow_job(yaml, id) do
-    case Regex.run(~r/^  #{Regex.escape(id)}:\n([\s\S]*?)(?=^  [a-z][a-z0-9-]+:\n|\z)/m, yaml) do
+    case Regex.run(
+           ~r/^  #{Regex.escape(id)}:[ \t]*\n([\s\S]*?)(?=^  #{@job_id_pattern}:[ \t]*\n|\z)/m,
+           yaml
+         ) do
       [full, _body] -> full
       nil -> ""
     end
