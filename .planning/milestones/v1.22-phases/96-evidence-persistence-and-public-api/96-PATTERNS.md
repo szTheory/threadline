@@ -25,7 +25,7 @@
 **Imports and boundary shape**  
 Copy the small public-context style: aliases only, explicit `repo:` at the edge, delegate or compose lower-level modules rather than exposing schemas directly.
 
-From [lib/threadline/export.ex](/Users/jon/projects/threadline/lib/threadline/export.ex:48):
+From [lib/threadline/export.ex](/Users/<user>/projects/threadline/lib/threadline/export.ex:48):
 ```elixir
 import Ecto.Query
 
@@ -34,7 +34,7 @@ alias Threadline.Query
 alias Threadline.Semantics.ActorRef
 ```
 
-From [lib/threadline/investigation.ex](/Users/jon/projects/threadline/lib/threadline/investigation.ex:9):
+From [lib/threadline/investigation.ex](/Users/<user>/projects/threadline/lib/threadline/investigation.ex:9):
 ```elixir
 alias Threadline.Query
 alias Threadline.Query.TimelinePage
@@ -43,7 +43,7 @@ alias Threadline.Query.TimelinePage
 **Root/public API restraint**  
 Do not add broad root-module CRUD. Existing root helpers are selective delegates, not a flat subsystem index.
 
-From [lib/threadline.ex](/Users/jon/projects/threadline/lib/threadline.ex:122):
+From [lib/threadline.ex](/Users/<user>/projects/threadline/lib/threadline.ex:122):
 ```elixir
 def timeline(filters \\ [], opts \\ []), do: Threadline.Query.timeline(filters, opts)
 
@@ -53,7 +53,7 @@ def timeline_page(filters \\ [], opts \\ []), do: Threadline.Query.timeline_page
 **Repo option convention**  
 Public entrypoints either `Keyword.fetch!` a required repo or resolve it through a dedicated helper. Phase 96 should keep evidence APIs explicit and Phoenix-optional.
 
-From [lib/threadline/investigation.ex](/Users/jon/projects/threadline/lib/threadline/investigation.ex:200):
+From [lib/threadline/investigation.ex](/Users/<user>/projects/threadline/lib/threadline/investigation.ex:200):
 ```elixir
 defp linked_changes(changes, opts) when is_list(changes) do
   repo = Query.timeline_repo!([], opts)
@@ -64,7 +64,7 @@ defp linked_changes(changes, opts) when is_list(changes) do
 end
 ```
 
-From [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:212):
+From [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:212):
 ```elixir
 @spec timeline_repo!(keyword(), keyword()) :: module()
 def timeline_repo!(filters \\ [], opts \\ []) when is_list(filters) and is_list(opts) do
@@ -78,7 +78,7 @@ def timeline_repo!(filters \\ [], opts \\ []) when is_list(filters) and is_list(
 **Helper naming and return-shape conventions**  
 Use small explicit verbs. Lists stay lists. Singular helpers return one record or `nil`. Separate eager history from convenience latest helpers; do not use options that change return shape.
 
-From [lib/threadline/investigation.ex](/Users/jon/projects/threadline/lib/threadline/investigation.ex:25):
+From [lib/threadline/investigation.ex](/Users/<user>/projects/threadline/lib/threadline/investigation.ex:25):
 ```elixir
 def row_history(schema_module, id, filters \\ [], opts \\ []) do
   filters = validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history)
@@ -89,13 +89,13 @@ def row_history(schema_module, id, filters \\ [], opts \\ []) do
 end
 ```
 
-From [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:108):
+From [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:108):
 ```elixir
 @spec audit_transaction(term(), keyword()) :: AuditTransaction.t() | nil
 def audit_transaction(transaction_id, opts) do
 ```
 
-From [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:364):
+From [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:364):
 ```elixir
 def history(schema_module, id, opts) do
   repo = Keyword.fetch!(opts, :repo)
@@ -104,7 +104,7 @@ def history(schema_module, id, opts) do
 **Append-only latest/history split**  
 Use history as canonical truth, then project latest from ordered history. Existing query code consistently orders newest-first and keeps singular read helpers separate from list helpers.
 
-From [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:370):
+From [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:370):
 ```elixir
 AuditChange
 |> where([ac], ac.table_name == ^table)
@@ -114,7 +114,7 @@ AuditChange
 |> repo.all()
 ```
 
-From [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:407):
+From [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:407):
 ```elixir
 snapshot =
   AuditChange
@@ -131,7 +131,7 @@ snapshot =
 **Write-side insert pattern**  
 Keep schema changesets behind the context boundary. The public helper should build attrs, call the schema changeset internally, and return `{:ok, schema}` or `{:error, changeset}`.
 
-From [lib/threadline.ex](/Users/jon/projects/threadline/lib/threadline.ex:44):
+From [lib/threadline.ex](/Users/<user>/projects/threadline/lib/threadline.ex:44):
 ```elixir
 result =
   with :ok <- validate_repo(repo),
@@ -161,7 +161,7 @@ result =
 **Schema/changeset boundary**  
 The repo uses plain Ecto schemas with `@doc false` changesets. Validation should stay narrow and structural here; semantic meaning belongs in the public context helper.
 
-From [lib/threadline/governance/evidence_record.ex](/Users/jon/projects/threadline/lib/threadline/governance/evidence_record.ex:15):
+From [lib/threadline/governance/evidence_record.ex](/Users/<user>/projects/threadline/lib/threadline/governance/evidence_record.ex:15):
 ```elixir
 schema "threadline_evidence_records" do
   field(:subject, :string)
@@ -176,7 +176,7 @@ schema "threadline_evidence_records" do
 end
 ```
 
-From [lib/threadline/governance/evidence_record.ex](/Users/jon/projects/threadline/lib/threadline/governance/evidence_record.ex:37):
+From [lib/threadline/governance/evidence_record.ex](/Users/<user>/projects/threadline/lib/threadline/governance/evidence_record.ex:37):
 ```elixir
 @doc false
 def changeset(record \\ %__MODULE__{}, attrs) do
@@ -197,7 +197,7 @@ end
 
 Supporting analogs:
 
-From [lib/threadline/governance/retention_run.ex](/Users/jon/projects/threadline/lib/threadline/governance/retention_run.ex:25):
+From [lib/threadline/governance/retention_run.ex](/Users/<user>/projects/threadline/lib/threadline/governance/retention_run.ex:25):
 ```elixir
 @doc false
 def changeset(run \\ %__MODULE__{}, attrs) do
@@ -214,7 +214,7 @@ def changeset(run \\ %__MODULE__{}, attrs) do
 end
 ```
 
-From [lib/threadline/governance/export_job.ex](/Users/jon/projects/threadline/lib/threadline/governance/export_job.ex:27):
+From [lib/threadline/governance/export_job.ex](/Users/<user>/projects/threadline/lib/threadline/governance/export_job.ex:27):
 ```elixir
 @doc false
 def changeset(job \\ %__MODULE__{}, attrs) do
@@ -259,7 +259,7 @@ end
 ## Shared Patterns
 
 ### Closed subject boundary
-**Source:** [lib/threadline/evidence/subject.ex](/Users/jon/projects/threadline/lib/threadline/evidence/subject.ex:10)  
+**Source:** [lib/threadline/evidence/subject.ex](/Users/<user>/projects/threadline/lib/threadline/evidence/subject.ex:10)  
 **Apply to:** all public write helpers
 
 ```elixir
@@ -284,7 +284,7 @@ end
 ```
 
 ### Fail-loud helper validation
-**Source:** [lib/threadline/health/policy.ex](/Users/jon/projects/threadline/lib/threadline/health/policy.ex:44), [lib/threadline/investigation.ex](/Users/jon/projects/threadline/lib/threadline/investigation.ex:183)  
+**Source:** [lib/threadline/health/policy.ex](/Users/<user>/projects/threadline/lib/threadline/health/policy.ex:44), [lib/threadline/investigation.ex](/Users/<user>/projects/threadline/lib/threadline/investigation.ex:183)  
 **Apply to:** evidence filter helpers and provenance/input normalization helpers
 
 ```elixir
@@ -315,7 +315,7 @@ end
 ```
 
 ### Machine-readable record envelope
-**Source:** [lib/threadline/export.ex](/Users/jon/projects/threadline/lib/threadline/export.ex:127)  
+**Source:** [lib/threadline/export.ex](/Users/<user>/projects/threadline/lib/threadline/export.ex:127)  
 **Apply to:** provenance conventions and any public evidence serialization
 
 ```elixir
@@ -333,7 +333,7 @@ Planner implication:
 - Prefer narrow stable keys like `"writer"` / `"entrypoint"` in `provenance` over ad hoc nested blobs.
 
 ### Mechanical defaults, explicit meaning
-**Source:** [lib/threadline/retention.ex](/Users/jon/projects/threadline/lib/threadline/retention.ex:78), [lib/threadline.ex](/Users/jon/projects/threadline/lib/threadline.ex:44)  
+**Source:** [lib/threadline/retention.ex](/Users/<user>/projects/threadline/lib/threadline/retention.ex:78), [lib/threadline.ex](/Users/<user>/projects/threadline/lib/threadline.ex:44)  
 **Apply to:** evidence write helpers
 
 ```elixir

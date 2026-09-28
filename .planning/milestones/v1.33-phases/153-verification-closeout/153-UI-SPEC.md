@@ -94,7 +94,7 @@ Closeout copy must state that v1.33 approves the reviewed brandbook direction, t
 
 | Surface | Contract |
 |---------|----------|
-| `brandbook/index.html` | Opens directly from disk via `file:///Users/jon/projects/threadline/brandbook/index.html`; title remains `Threadline Brandbook`; no missing local CSS, favicon, SVG, or Markdown links. |
+| `brandbook/index.html` | Opens directly from disk via `file:///Users/<user>/projects/threadline/brandbook/index.html`; title remains `Threadline Brandbook`; no missing local CSS, favicon, SVG, or Markdown links. |
 | Desktop screenshot | Capture at `1440x1000`; sidebar rail remains visible, hero copy is not occluded, and the first viewport communicates `Follow what happened.` |
 | Mobile screenshot | Capture at `390x844`; rail stacks above content, nav remains scannable, hero CTAs become full-width, and no text overlaps or clips. |
 | Logo usage | Preserve `logo-primary.svg` for dark/high-signal surfaces and `logo-primary-light.svg` for README/GitHub/light documentation surfaces. |

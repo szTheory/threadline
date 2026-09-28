@@ -97,7 +97,7 @@ The implementation center of gravity is backend/API plus PostgreSQL integration 
 
 ## Project Constraints (from AGENTS.md)
 
-No root `./AGENTS.md` exists in `/Users/jon/projects/threadline`; no AGENTS.md directives apply to this phase. [VERIFIED: rg --files -g AGENTS.md]
+No root `./AGENTS.md` exists in `/Users/<user>/projects/threadline`; no AGENTS.md directives apply to this phase. [VERIFIED: rg --files -g AGENTS.md]
 
 ## Standard Stack
 

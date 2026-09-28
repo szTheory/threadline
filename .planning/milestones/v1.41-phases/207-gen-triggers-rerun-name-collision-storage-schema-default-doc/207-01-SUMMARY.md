@@ -118,7 +118,7 @@ Tracer feedback gate: auto mode was active. The Task 1 `<verify>` was re-run end
 
 ## RED proof
 
-**Task 1** (`/Users/jon/.claude/jobs/77cf1bdd/tmp/207-01-t1-red.txt`, unmodified lib, exit 2):
+**Task 1** (`/Users/<user>/.claude/jobs/77cf1bdd/tmp/207-01-t1-red.txt`, unmodified lib, exit 2):
 ```
   1) test qualified host tables create schema-qualified triggers (Threadline.Capture.TriggerSQLStorageSchemaTest)
      Assertion with =~ failed
@@ -131,7 +131,7 @@ Tracer feedback gate: auto mode was active. The Task 1 `<verify>` was re-run end
 ```
 It was re-confirmed after the helper fix below, with only the lib line temporarily reverted (`207-01-t1-red-recheck.txt`): the same 3 failures, both DB cases on `already exists`, `16 tests, 3 failures`. The lib file was then restored byte-for-byte from a saved copy.
 
-**Task 2** (`/Users/jon/.claude/jobs/77cf1bdd/tmp/207-01-t2-red.txt`, before the helper existed, exit 2):
+**Task 2** (`/Users/<user>/.claude/jobs/77cf1bdd/tmp/207-01-t2-red.txt`, before the helper existed, exit 2):
 ```
   1) test orphan per-table function drop never cascades — ** (UndefinedFunctionError) ... drop_orphan_function_for_table/1 is undefined or private
   2) test ... the orphan drop is harmless when no per-table function exists — ** (UndefinedFunctionError)

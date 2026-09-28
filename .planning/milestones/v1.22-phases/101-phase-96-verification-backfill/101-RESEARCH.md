@@ -739,33 +739,33 @@ The authoritative Phase 96 rerun bundle is:
 
 ### Primary (HIGH confidence)
 
-- `/Users/jon/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-CONTEXT.md` — locked decisions D-01 through D-18 for this phase.
-- `/Users/jon/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-DISCUSSION-LOG.md` — alternative options considered (audit-trail only, not planning input).
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-RESEARCH.md` — Phase 100 research template (same gap-closure posture).
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-PATTERNS.md` — file-to-analog mapping for verification backfills.
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-01-PLAN.md` — exact plan shape for 101-01 (frontmatter keys, `<task>` shape, `<verify><automated>` pattern).
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-02-PLAN.md` — exact plan shape for 101-02.
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-VERIFICATION.md` — Phase 100's own verification artifact (sample shape for 101 itself, not 96).
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-VALIDATION.md` — Phase 100's draft validation (sample shape for 101 itself).
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-01-SUMMARY.md` and `100-02-SUMMARY.md` — completion record for Phase 100.
-- `/Users/jon/projects/threadline/.planning/phases/95-evidence-model-lock-and-scope-guard/95-VERIFICATION.md` — exact-shape template for `96-VERIFICATION.md` (frontmatter, preflight, numbered bands, requirement closure, "Not closed here").
-- `/Users/jon/projects/threadline/.planning/phases/95-evidence-model-lock-and-scope-guard/95-VALIDATION.md` — exact-shape template for the finalized `96-VALIDATION.md` (`nyquist_compliant: true`, sampling rate, per-task verification map, `## Commands Actually Used`, sign-off).
-- `/Users/jon/projects/threadline/.planning/phases/89-contract-lock-final-verification/89-VALIDATION.md` — supplementary template for the modern Nyquist shape (per-task verification map columns, `## Commands Actually Used` shape).
-- `/Users/jon/projects/threadline/.planning/phases/99-contract-lock-docs-and-final-verification/99-VERIFICATION.md` — supplementary template for per-band PASS/FAIL conventions and authority-statement shape.
-- `/Users/jon/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-CONTEXT.md` — locked Phase 96 contract decisions (write/read/defaults/Phoenix-optional).
-- `/Users/jon/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-RESEARCH.md` — Phase 96 contract rationale.
-- `/Users/jon/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-01-SUMMARY.md` and `96-02-SUMMARY.md` — execution summaries (96-02 records the `mix verify.test` alias-drift carry-forward at line 86).
-- `/Users/jon/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-VALIDATION.md` — current state (planning-time artifact) of the file 101-02 finalizes.
-- `/Users/jon/projects/threadline/lib/threadline/evidence.ex` — current Phase 96 implementation; line numbers for every public helper captured above.
-- `/Users/jon/projects/threadline/lib/threadline/evidence/subject.ex` — closed inventory enforced by Phase 96 helpers.
-- `/Users/jon/projects/threadline/lib/threadline/governance/evidence_record.ex` — schema and required-field enforcement.
-- `/Users/jon/projects/threadline/test/threadline/evidence_test.exs` — 9 tests across 2 describe blocks; line-precise test inventory captured above.
-- `/Users/jon/projects/threadline/test/threadline/governance/evidence_record_test.exs` — 3 top-level tests; line-precise inventory captured above.
-- `/Users/jon/projects/threadline/.planning/REQUIREMENTS.md` — `PROOF-01` definition (line 16) and Traceability row (line 57).
-- `/Users/jon/projects/threadline/.planning/ROADMAP.md` — Phase 101 goal at lines 99–108.
-- `/Users/jon/projects/threadline/.planning/STATE.md` — current milestone state (Phase 100 complete, Phase 101 next).
-- `/Users/jon/projects/threadline/.planning/v1.22-MILESTONE-AUDIT.md` — `PROOF-01` audit finding at line 33, `mix verify.test` alias-drift tech-debt note at line 66.
-- `/Users/jon/projects/threadline/CLAUDE.md` — project verify-alias conventions and three-layer architecture.
+- `/Users/<user>/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-CONTEXT.md` — locked decisions D-01 through D-18 for this phase.
+- `/Users/<user>/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-DISCUSSION-LOG.md` — alternative options considered (audit-trail only, not planning input).
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-RESEARCH.md` — Phase 100 research template (same gap-closure posture).
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-PATTERNS.md` — file-to-analog mapping for verification backfills.
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-01-PLAN.md` — exact plan shape for 101-01 (frontmatter keys, `<task>` shape, `<verify><automated>` pattern).
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-02-PLAN.md` — exact plan shape for 101-02.
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-VERIFICATION.md` — Phase 100's own verification artifact (sample shape for 101 itself, not 96).
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-VALIDATION.md` — Phase 100's draft validation (sample shape for 101 itself).
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-01-SUMMARY.md` and `100-02-SUMMARY.md` — completion record for Phase 100.
+- `/Users/<user>/projects/threadline/.planning/phases/95-evidence-model-lock-and-scope-guard/95-VERIFICATION.md` — exact-shape template for `96-VERIFICATION.md` (frontmatter, preflight, numbered bands, requirement closure, "Not closed here").
+- `/Users/<user>/projects/threadline/.planning/phases/95-evidence-model-lock-and-scope-guard/95-VALIDATION.md` — exact-shape template for the finalized `96-VALIDATION.md` (`nyquist_compliant: true`, sampling rate, per-task verification map, `## Commands Actually Used`, sign-off).
+- `/Users/<user>/projects/threadline/.planning/phases/89-contract-lock-final-verification/89-VALIDATION.md` — supplementary template for the modern Nyquist shape (per-task verification map columns, `## Commands Actually Used` shape).
+- `/Users/<user>/projects/threadline/.planning/phases/99-contract-lock-docs-and-final-verification/99-VERIFICATION.md` — supplementary template for per-band PASS/FAIL conventions and authority-statement shape.
+- `/Users/<user>/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-CONTEXT.md` — locked Phase 96 contract decisions (write/read/defaults/Phoenix-optional).
+- `/Users/<user>/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-RESEARCH.md` — Phase 96 contract rationale.
+- `/Users/<user>/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-01-SUMMARY.md` and `96-02-SUMMARY.md` — execution summaries (96-02 records the `mix verify.test` alias-drift carry-forward at line 86).
+- `/Users/<user>/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-VALIDATION.md` — current state (planning-time artifact) of the file 101-02 finalizes.
+- `/Users/<user>/projects/threadline/lib/threadline/evidence.ex` — current Phase 96 implementation; line numbers for every public helper captured above.
+- `/Users/<user>/projects/threadline/lib/threadline/evidence/subject.ex` — closed inventory enforced by Phase 96 helpers.
+- `/Users/<user>/projects/threadline/lib/threadline/governance/evidence_record.ex` — schema and required-field enforcement.
+- `/Users/<user>/projects/threadline/test/threadline/evidence_test.exs` — 9 tests across 2 describe blocks; line-precise test inventory captured above.
+- `/Users/<user>/projects/threadline/test/threadline/governance/evidence_record_test.exs` — 3 top-level tests; line-precise inventory captured above.
+- `/Users/<user>/projects/threadline/.planning/REQUIREMENTS.md` — `PROOF-01` definition (line 16) and Traceability row (line 57).
+- `/Users/<user>/projects/threadline/.planning/ROADMAP.md` — Phase 101 goal at lines 99–108.
+- `/Users/<user>/projects/threadline/.planning/STATE.md` — current milestone state (Phase 100 complete, Phase 101 next).
+- `/Users/<user>/projects/threadline/.planning/v1.22-MILESTONE-AUDIT.md` — `PROOF-01` audit finding at line 33, `mix verify.test` alias-drift tech-debt note at line 66.
+- `/Users/<user>/projects/threadline/CLAUDE.md` — project verify-alias conventions and three-layer architecture.
 
 ### Secondary (MEDIUM confidence)
 

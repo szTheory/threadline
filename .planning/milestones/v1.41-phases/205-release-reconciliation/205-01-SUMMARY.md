@@ -105,7 +105,7 @@ origin/main at 471ebf6e (the v0.10.0 and v0.10.1 releases, #44/#45/#46/#48) is n
 | 9 | `MIX_ENV=dev mix release.pins --check` | 0 | scanned 20 files; 0 pin sites differ; derived `~> 0.10.0` |
 | 10 | `DB_PORT=5433 mix verify.example` | 0 | 117 tests, 0 failures |
 | 11 | `DB_PORT=5433 mix verify.bump_rehearsal` | 0 | `==> rehearsing the next minor: 0.10.1 -> 0.11.0`. Gates: 265/0, 7/0, 38/0; tree identity MATCH. `Bump rehearsal OK: a 0.10.1 -> 0.11.0 release commit passes every doc-contract test` |
-| 12 | `verify.release` in a clean clone `/Users/jon/.claude/jobs/77cf1bdd/tmp/p205-release` | 0 | clone HEAD `486a1392580da13fcbd02a027b1235c9b46307c9` = real HEAD; 38 tests, 0 failures; Building threadline 0.10.1 |
+| 12 | `verify.release` in a clean clone `/Users/<user>/.claude/jobs/77cf1bdd/tmp/p205-release` | 0 | clone HEAD `486a1392580da13fcbd02a027b1235c9b46307c9` = real HEAD; 38 tests, 0 failures; Building threadline 0.10.1 |
 | 13 | Browser-lane delta | 0 | `git diff --name-only $PRE HEAD -- lib/threadline examples test/fixtures priv` prints nothing, and `grep -rnE 'vsn\|:version\]' lib/threadline/operator_surface` prints nothing. The lane is carried (baseline 326/8/16) and was not run. |
 | 14 | No-publish and protected paths | 0 | origin/main still 471ebf6e; tags 56 = recorded 56; `shasum -c` OK ×3; no dirty tracked path outside .planning/ and no intersection with origin's paths; `git diff $PRE HEAD -- .planning` empty before this SUMMARY |
 

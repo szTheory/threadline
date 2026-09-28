@@ -260,7 +260,7 @@ $ git status --porcelain=v1 -uall
 ?? .tool-versions
 
 $ git worktree list
-/Users/jon/projects/threadline  10c1c6ee [fix/branch-protection-actions-capability]
+/Users/<user>/projects/threadline  10c1c6ee [fix/branch-protection-actions-capability]
 
 $ git branch --list 'scratch/*'        # (no output)
 $ ls -d $TMPDIR/threadline-bump-rehearsal-parent.*

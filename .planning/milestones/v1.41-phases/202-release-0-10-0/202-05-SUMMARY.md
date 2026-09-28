@@ -414,7 +414,7 @@ _Everything below is the first execution's findings, kept verbatim. All three bo
      (Threadline.OperatorSurface.CriticTrustTest)
      test/threadline/operator_surface/critic_trust_test.exs:838
      ** (File.LinkError) could not create symlink from
-     "/Users/jon/projects/threadline/_build/critic-trust-path-tests/root-overlap-132290" to
+     "/Users/<user>/projects/threadline/_build/critic-trust-path-tests/root-overlap-132290" to
      ".../root-overlap-132290/output-alias": file already exists
 ```
 

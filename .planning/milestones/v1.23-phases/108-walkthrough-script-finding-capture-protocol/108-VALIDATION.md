@@ -20,7 +20,7 @@ created: 2026-05-27
 | **Framework** | ExUnit (example app + root doc contracts) |
 | **Config file** | `examples/threadline_phoenix/test/test_helper.exs` |
 | **Quick run command** | `cd examples/threadline_phoenix && mix test test/threadline_phoenix/demo_contract_test.exs --max-failures 1` |
-| **Full suite command** | `cd /Users/jon/projects/threadline && mix verify.test` |
+| **Full suite command** | `cd /Users/<user>/projects/threadline && mix verify.test` |
 | **Estimated runtime** | ~30–90 seconds (demo contract + optional walkthrough contract) |
 
 ---

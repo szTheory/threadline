@@ -24,7 +24,7 @@
 
 **Analog:** `examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex`
 
-**Direct Plug wiring pattern** ([router.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex:4)):
+**Direct Plug wiring pattern** ([router.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex:4)):
 ```elixir
 pipeline :api do
   # doc: start: router-pipeline-actor-fn
@@ -39,7 +39,7 @@ pipeline :api do
 end
 ```
 
-**Route scope shape** ([router.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex:16)):
+**Route scope shape** ([router.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex:16)):
 ```elixir
 scope "/api", ThreadlinePhoenixWeb do
   pipe_through(:api)
@@ -57,7 +57,7 @@ end
 
 **Analog:** `examples/threadline_phoenix/lib/threadline_phoenix/audit_actor.ex`
 
-**Dead delegate pattern to remove** ([audit_actor.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix/audit_actor.ex:1)):
+**Dead delegate pattern to remove** ([audit_actor.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix/audit_actor.ex:1)):
 ```elixir
 defmodule ThreadlinePhoenix.AuditActor do
   @moduledoc false
@@ -74,7 +74,7 @@ end
 
 **Analog:** `guides/integrations/sigra.md`
 
-**Canonical wiring prose + literal block** ([sigra.md](/Users/jon/projects/threadline/guides/integrations/sigra.md:17)):
+**Canonical wiring prose + literal block** ([sigra.md](/Users/<user>/projects/threadline/guides/integrations/sigra.md:17)):
 ```elixir
 pipeline :api do
   plug :accepts, ["json"]
@@ -84,13 +84,13 @@ pipeline :api do
 end
 ```
 
-**Contract wording to preserve** ([sigra.md](/Users/jon/projects/threadline/guides/integrations/sigra.md:31)):
+**Contract wording to preserve** ([sigra.md](/Users/<user>/projects/threadline/guides/integrations/sigra.md:31)):
 - `` `actor_fn` decides who acted. `context_overrides_fn` can add only additive request metadata ``
 - `` `Threadline.Plug` always derives `request_id` from `x-request-id` first ``
 - `` `correlation_id` from `x-correlation-id` first ``
 - `` `Threadline.Plug` raises `ArgumentError` immediately ``
 
-**Behavior checklist pattern** ([sigra.md](/Users/jon/projects/threadline/guides/integrations/sigra.md:43)):
+**Behavior checklist pattern** ([sigra.md](/Users/<user>/projects/threadline/guides/integrations/sigra.md:43)):
 - Enumerate exact supported semantics as numbered bullets.
 - Keep impersonation, token, organization suffix, anonymous fallback, and header precedence explicit.
 - Keep soft-dependency behavior in its own section.
@@ -103,12 +103,12 @@ end
 
 **Analog:** `examples/threadline_phoenix/README.md`
 
-**Example-app golden-path prose** ([README.md](/Users/jon/projects/threadline/examples/threadline_phoenix/README.md:87)):
+**Example-app golden-path prose** ([README.md](/Users/<user>/projects/threadline/examples/threadline_phoenix/README.md:87)):
 - The README anchors the `POST /api/posts` story first.
 - It explains that `Threadline.Plug` is wired on the `:api` pipeline with both callbacks.
 - It points to request-path tests as the proof surface.
 
-**Current line to tighten** ([README.md](/Users/jon/projects/threadline/examples/threadline_phoenix/README.md:100)):
+**Current line to tighten** ([README.md](/Users/<user>/projects/threadline/examples/threadline_phoenix/README.md:100)):
 ```text
 The actor callback now delegates to Threadline.Integrations.Sigra.actor_ref_from_conn/1.
 ```
@@ -121,7 +121,7 @@ The actor callback now delegates to Threadline.Integrations.Sigra.actor_ref_from
 
 **Analog:** `test/threadline/integrations/sigra_test.exs`
 
-**Adapter-shape matrix pattern** ([sigra_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_test.exs:36)):
+**Adapter-shape matrix pattern** ([sigra_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_test.exs:36)):
 ```elixir
 describe "actor_ref_from_conn/1" do
   test "returns a user actor for a user scope" do
@@ -141,7 +141,7 @@ describe "actor_ref_from_conn/1" do
 end
 ```
 
-**Threadline.Plug composition pattern** ([sigra_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_test.exs:196)):
+**Threadline.Plug composition pattern** ([sigra_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_test.exs:196)):
 ```elixir
 conn =
   build_sigra_conn(
@@ -161,7 +161,7 @@ conn =
   )
 ```
 
-**Authority split pattern** ([sigra_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_test.exs:241)):
+**Authority split pattern** ([sigra_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_test.exs:241)):
 ```elixir
 assert %AuditContext{
          actor_ref: ^expected_ref,
@@ -169,7 +169,7 @@ assert %AuditContext{
        } = conn.assigns.audit_context
 ```
 
-**Helper pattern for unit-level request shapes** ([sigra_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_test.exs:287)):
+**Helper pattern for unit-level request shapes** ([sigra_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_test.exs:287)):
 ```elixir
 defp build_sigra_conn(opts) do
   scope = Keyword.get(opts, :scope)
@@ -204,7 +204,7 @@ end
 
 **Analog:** `test/threadline/integrations/sigra_doc_contract_test.exs`
 
-**Doc loader pattern** ([sigra_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:5)):
+**Doc loader pattern** ([sigra_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:5)):
 ```elixir
 @repo_root File.cwd!()
 
@@ -213,7 +213,7 @@ defp read_rel!(segments) when is_list(segments) do
 end
 ```
 
-**Marker + section-order guard pattern** ([sigra_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:11)):
+**Marker + section-order guard pattern** ([sigra_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:11)):
 ```elixir
 assert String.contains?(doc, "<!-- SIGRA-03-INTEGRATION-GUIDE -->")
 assert String.contains?(doc, "# Threadline ↔ Sigra integration")
@@ -229,7 +229,7 @@ for heading <- [
 end
 ```
 
-**Literal-lock pattern** ([sigra_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:39)):
+**Literal-lock pattern** ([sigra_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:39)):
 ```elixir
 assert String.contains?(doc, "plug Threadline.Plug,")
 assert String.contains?(doc, "actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1")
@@ -247,7 +247,7 @@ assert String.contains?(
 
 **Analog:** `examples/threadline_phoenix/test/support/conn_case.ex`
 
-**Sigra request-state fixture pattern** ([conn_case.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/test/support/conn_case.ex:39)):
+**Sigra request-state fixture pattern** ([conn_case.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/support/conn_case.ex:39)):
 ```elixir
 def sigra_conn(conn, attrs \\ %{}) do
   user_id = Map.get(attrs, :user_id, "example-user-1")
@@ -287,7 +287,7 @@ end
 
 **Analog:** `examples/threadline_phoenix/test/threadline_phoenix_web/posts_audit_path_test.exs`
 
-**Real router-path request pattern** ([posts_audit_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_audit_path_test.exs:9)):
+**Real router-path request pattern** ([posts_audit_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_audit_path_test.exs:9)):
 ```elixir
 conn =
   build_conn()
@@ -298,7 +298,7 @@ conn =
   |> post(~p"/api/posts", Jason.encode!(%{post: %{title: "HTTP audit", slug: slug}}))
 ```
 
-**Persistence assertion pattern** ([posts_audit_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_audit_path_test.exs:26)):
+**Persistence assertion pattern** ([posts_audit_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_audit_path_test.exs:26)):
 ```elixir
 rows =
   Repo.all(
@@ -318,7 +318,7 @@ rows =
 
 **Analog:** `examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs`
 
-**Current header-driven correlation proof** ([posts_correlation_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs:6)):
+**Current header-driven correlation proof** ([posts_correlation_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs:6)):
 ```elixir
 conn =
   build_conn()
@@ -329,7 +329,7 @@ conn =
   |> post(~p"/api/posts", Jason.encode!(%{post: %{title: "Correlation path", slug: slug}}))
 ```
 
-**Timeline query assertion pattern** ([posts_correlation_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs:21)):
+**Timeline query assertion pattern** ([posts_correlation_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs:21)):
 ```elixir
 filters = [
   table: "posts",
@@ -353,7 +353,7 @@ assert Enum.any?(rows, fn ac ->
 
 ### Native `Threadline.Plug` callback contract
 
-**Source:** [plug.ex](/Users/jon/projects/threadline/lib/threadline/plug.ex:77)
+**Source:** [plug.ex](/Users/<user>/projects/threadline/lib/threadline/plug.ex:77)
 **Apply to:** Router wiring, Sigra adapter composition tests, guide prose
 
 ```elixir
@@ -382,7 +382,7 @@ end
 
 ### Sigra adapter strictness split
 
-**Source:** [sigra.ex](/Users/jon/projects/threadline/lib/threadline/integrations/sigra.ex:18)
+**Source:** [sigra.ex](/Users/<user>/projects/threadline/lib/threadline/integrations/sigra.ex:18)
 **Apply to:** Router docs, adapter tests, fallback-path integration tests
 
 ```elixir
@@ -409,7 +409,7 @@ end
 
 ### Doc-contract style
 
-**Source:** [sigra_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:11)
+**Source:** [sigra_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:11)
 **Apply to:** Any Phase 50 doc edits in `guides/integrations/sigra.md` and the example README, including the paired README contract test that locks the direct callback wording
 
 - Read docs from repo-relative paths with `read_rel!/1`.
@@ -419,7 +419,7 @@ end
 
 ### Phoenix request-path test style
 
-**Source:** [posts_audit_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_audit_path_test.exs:9), [posts_correlation_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs:6), [conn_case.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/test/support/conn_case.ex:39)
+**Source:** [posts_audit_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_audit_path_test.exs:9), [posts_correlation_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs:6), [conn_case.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/support/conn_case.ex:39)
 **Apply to:** The new fallback-path proof for Phase 50
 
 - Build a real conn with `build_conn()`.

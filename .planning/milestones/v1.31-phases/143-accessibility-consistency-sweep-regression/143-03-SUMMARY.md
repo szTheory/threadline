@@ -14,7 +14,7 @@ Captured the final v1.31 screenshot matrix, compared it with the Phase 134 basel
 ## Verification
 
 - Screenshot capture:
-  - `cd examples/threadline_phoenix/e2e && OPERATOR_SCREENSHOT_DIR=/Users/jon/projects/threadline/.planning/milestones/v1.31-screenshots/final E2E_BASE_URL=http://127.0.0.1:4002 npm test -- tests/operator-screenshots.spec.ts`
+  - `cd examples/threadline_phoenix/e2e && OPERATOR_SCREENSHOT_DIR=/Users/<user>/projects/threadline/.planning/milestones/v1.31-screenshots/final E2E_BASE_URL=http://127.0.0.1:4002 npm test -- tests/operator-screenshots.spec.ts`
   - 6 tests, 0 failures
 - Final PNG count:
   - `find .planning/milestones/v1.31-screenshots/final -type f -name '*.png' | wc -l`

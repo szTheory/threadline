@@ -86,7 +86,7 @@ Phase 105 adds a five-table help-desk domain to the canonical Phoenix example ap
 
 ### Root `lib/` — read-only
 
-No edits under `/Users/jon/projects/threadline/lib/` per scope guard and Phase 104 v1.23 non-goals.
+No edits under `/Users/<user>/projects/threadline/lib/` per scope guard and Phase 104 v1.23 non-goals.
 
 ---
 

@@ -33,7 +33,7 @@ Per-phase validation contract for feedback sampling during execution.
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 153-01-01 | 01 | 1 | BRAND-QA-02 | T-153-01 | Evidence is current-tree command output, not stale prior-phase text | CLI parse/inventory | `jq empty brandbook/tokens.json && find brandbook -name '*.svg' -print0 | xargs -0 xmllint --noout` | yes | pending |
-| 153-01-02 | 01 | 1 | BRAND-QA-02 | T-153-02 | Browser evidence renders from local files without network/build dependencies | browser/manual evidence | `agent-browser open file:///Users/jon/projects/threadline/brandbook/index.html` plus desktop/mobile screenshots | yes | pending |
+| 153-01-02 | 01 | 1 | BRAND-QA-02 | T-153-02 | Browser evidence renders from local files without network/build dependencies | browser/manual evidence | `agent-browser open file:///Users/<user>/projects/threadline/brandbook/index.html` plus desktop/mobile screenshots | yes | pending |
 | 153-01-03 | 01 | 1 | BRAND-QA-02 | T-153-03 | Closeout does not overclaim deferred rollout/legal work | source assertion | `rg -n "README-ROLLOUT-01|HEXDOCS-BRAND-01|LANDING-01|legal|trademark|deferred" .planning/phases/153-verification-closeout/153-VERIFICATION.md` | no | pending |
 
 ## Wave 0 Requirements

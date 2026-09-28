@@ -15,12 +15,12 @@ Not trusted from the plan's snapshot — captured directly.
 
 ```
 $ git worktree list
-/Users/jon/projects/threadline           3071d1bc [main]
-/Users/jon/projects/threadline-phase166  dd5b48be [gsd/phase-166-unfreeze-token-lane-mechanism]
+/Users/<user>/projects/threadline           3071d1bc [main]
+/Users/<user>/projects/threadline-phase166  dd5b48be [gsd/phase-166-unfreeze-token-lane-mechanism]
 
 $ git branch -vv
   backup/pre-release-cleanup-2026-05-08       50374eb7 docs(69): close phase execution
-+ gsd/phase-166-unfreeze-token-lane-mechanism dd5b48be (/Users/jon/projects/threadline-phase166) docs(166): complete phase verification
++ gsd/phase-166-unfreeze-token-lane-mechanism dd5b48be (/Users/<user>/projects/threadline-phase166) docs(166): complete phase verification
 * main                                        3071d1bc [origin/main: ahead 628] docs(phase-198): update tracking after wave 3
 ```
 
@@ -59,7 +59,7 @@ This is the GREEN-12 adjacency edge, and the two branches land on opposite sides
 | Merge base with `main` | `5d923ad9b0a9b29bc0c0759de282bd50e7565e6c` |
 | Ancestor of `main`? | **No** (`git merge-base --is-ancestor` exits 1) |
 | Commits ahead of `main` | 10 |
-| Worktree | `/Users/jon/projects/threadline-phase166` |
+| Worktree | `/Users/<user>/projects/threadline-phase166` |
 
 ### Commits ahead of main
 

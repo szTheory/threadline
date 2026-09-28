@@ -213,7 +213,7 @@ defp verify_release(_args) do
   end)
 end
 ```
-Source pattern: [mix.exs](/Users/jon/projects/threadline/mix.exs:52) [VERIFIED: mix.exs]
+Source pattern: [mix.exs](/Users/<user>/projects/threadline/mix.exs:52) [VERIFIED: mix.exs]
 
 ### Pattern 2: Release Artifact Set Comparison in ExUnit
 **What:** Derive `package[:files]` and `docs[:extras]` from `Threadline.MixProject.project/0`, then compare the guide subset against `Path.wildcard("guides/**/*.md")`. [RECOMMENDATION][VERIFIED: mix.exs]  
@@ -237,7 +237,7 @@ test "guide files on disk match docs extras allowlist" do
   assert "guides" in project[:package][:files]
 end
 ```
-Source pattern: [test/threadline/getting_started_saas_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:38) [VERIFIED: getting_started_saas_doc_contract_test.exs]
+Source pattern: [test/threadline/getting_started_saas_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:38) [VERIFIED: getting_started_saas_doc_contract_test.exs]
 
 ### Pattern 3: Changelog Upgrade Block as the Only 0.x Upgrade Guide
 **What:** Keep upgrade guidance inside the `CHANGELOG.md` release section rather than spawning a dedicated upgrade guide. [RECOMMENDATION][VERIFIED: REQUIREMENTS.md][VERIFIED: 48-CONTEXT.md]  
@@ -257,7 +257,7 @@ Source pattern: [test/threadline/getting_started_saas_doc_contract_test.exs](/Us
 - Migration steps: none.
 - Sigra wiring: use `actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1`.
 ```
-Source requirement: [REQUIREMENTS.md](/Users/jon/projects/threadline/.planning/REQUIREMENTS.md:59) [VERIFIED: REQUIREMENTS.md]
+Source requirement: [REQUIREMENTS.md](/Users/<user>/projects/threadline/.planning/REQUIREMENTS.md:59) [VERIFIED: REQUIREMENTS.md]
 
 ### Anti-Patterns to Avoid
 
@@ -318,7 +318,7 @@ defp verify_example(_args) do
   end
 end
 ```
-Source: [mix.exs](/Users/jon/projects/threadline/mix.exs:91) [VERIFIED: mix.exs]
+Source: [mix.exs](/Users/<user>/projects/threadline/mix.exs:91) [VERIFIED: mix.exs]
 
 ### Existing pure-file guide contract pattern
 ```elixir
@@ -335,7 +335,7 @@ test "performance guide retains required headings" do
   end
 end
 ```
-Source: [test/threadline/performance_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/performance_doc_contract_test.exs:18) [VERIFIED: performance_doc_contract_test.exs]
+Source: [test/threadline/performance_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/performance_doc_contract_test.exs:18) [VERIFIED: performance_doc_contract_test.exs]
 
 ### Recommended clean-tree helper
 ```elixir
@@ -440,16 +440,16 @@ Source basis: project already shells out for verification helpers and release po
 ## Sources
 
 ### Primary (HIGH confidence)
-- [mix.exs](/Users/jon/projects/threadline/mix.exs:1) - current `@version`, aliases, package files, ExDoc extras, and module groups. [VERIFIED: mix.exs]
-- [README.md](/Users/jon/projects/threadline/README.md:1) - current install snippet and docs routing. [VERIFIED: README.md]
-- [CHANGELOG.md](/Users/jon/projects/threadline/CHANGELOG.md:1) - current release sections and missing `0.3.0` entry. [VERIFIED: CHANGELOG.md]
-- [CONTRIBUTING.md](/Users/jon/projects/threadline/CONTRIBUTING.md:1) - existing publish runbook, CI job descriptions, and maintainer checklist. [VERIFIED: CONTRIBUTING.md]
-- [.github/workflows/ci.yml](/Users/jon/projects/threadline/.github/workflows/ci.yml:1) - separate `verify-docs`, `verify-hex-package`, and `verify-release-shape` jobs. [VERIFIED: ci.yml]
-- [.github/workflows/hex-publish.yml](/Users/jon/projects/threadline/.github/workflows/hex-publish.yml:1) - tag-triggered publish contract. [VERIFIED: hex-publish.yml]
-- [bin/verify-release-shape](/Users/jon/projects/threadline/bin/verify-release-shape:1) - current metadata validation behavior. [VERIFIED: bin/verify-release-shape]
-- [test/threadline/readme_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/readme_doc_contract_test.exs:1) - current README contract scope. [VERIFIED: readme_doc_contract_test.exs]
-- [test/threadline/performance_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/performance_doc_contract_test.exs:1), [test/threadline/getting_started_saas_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:1), [test/threadline/integrations/sigra_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:1), [test/threadline/incident_playbook_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/incident_playbook_doc_contract_test.exs:1) - existing pure-file guide contract patterns. [VERIFIED: codebase grep]
-- [test/threadline/ci_topology_contract_test.exs](/Users/jon/projects/threadline/test/threadline/ci_topology_contract_test.exs:1) - current `ci.all` exclusion guard pattern. [VERIFIED: ci_topology_contract_test.exs]
+- [mix.exs](/Users/<user>/projects/threadline/mix.exs:1) - current `@version`, aliases, package files, ExDoc extras, and module groups. [VERIFIED: mix.exs]
+- [README.md](/Users/<user>/projects/threadline/README.md:1) - current install snippet and docs routing. [VERIFIED: README.md]
+- [CHANGELOG.md](/Users/<user>/projects/threadline/CHANGELOG.md:1) - current release sections and missing `0.3.0` entry. [VERIFIED: CHANGELOG.md]
+- [CONTRIBUTING.md](/Users/<user>/projects/threadline/CONTRIBUTING.md:1) - existing publish runbook, CI job descriptions, and maintainer checklist. [VERIFIED: CONTRIBUTING.md]
+- [.github/workflows/ci.yml](/Users/<user>/projects/threadline/.github/workflows/ci.yml:1) - separate `verify-docs`, `verify-hex-package`, and `verify-release-shape` jobs. [VERIFIED: ci.yml]
+- [.github/workflows/hex-publish.yml](/Users/<user>/projects/threadline/.github/workflows/hex-publish.yml:1) - tag-triggered publish contract. [VERIFIED: hex-publish.yml]
+- [bin/verify-release-shape](/Users/<user>/projects/threadline/bin/verify-release-shape:1) - current metadata validation behavior. [VERIFIED: bin/verify-release-shape]
+- [test/threadline/readme_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/readme_doc_contract_test.exs:1) - current README contract scope. [VERIFIED: readme_doc_contract_test.exs]
+- [test/threadline/performance_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/performance_doc_contract_test.exs:1), [test/threadline/getting_started_saas_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:1), [test/threadline/integrations/sigra_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:1), [test/threadline/incident_playbook_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/incident_playbook_doc_contract_test.exs:1) - existing pure-file guide contract patterns. [VERIFIED: codebase grep]
+- [test/threadline/ci_topology_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/ci_topology_contract_test.exs:1) - current `ci.all` exclusion guard pattern. [VERIFIED: ci_topology_contract_test.exs]
 
 ### Secondary (MEDIUM confidence)
 - https://hexdocs.pm/ex_doc/Mix.Tasks.Docs.html - ExDoc `mix docs` behavior and docs configuration entrypoint. [CITED: https://hexdocs.pm/ex_doc/Mix.Tasks.Docs.html]

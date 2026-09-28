@@ -190,7 +190,7 @@ Output was empty.
 
 ```text
 === MechanicalChecker.run(scorecard_dir: ...) probe ===
-cwd: /Users/jon/projects/threadline/.claude/worktrees/agent-abe3be2844fee443c
+cwd: /Users/<user>/projects/threadline/.claude/worktrees/agent-abe3be2844fee443c
 
 --- control :: /tmp/198-mechanical-probe/control
 RESULT: {:ok, []}

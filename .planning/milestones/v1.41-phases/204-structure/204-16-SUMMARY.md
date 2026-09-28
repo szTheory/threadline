@@ -191,7 +191,7 @@ The snapshot directory is clean. `test/fixtures/operator_surface/scorecards/` wa
 - :865 after: `- [x] 204-16-PLAN.md — **Tracer:** widened banner gate ...`
 - Nothing else was changed. The progress-table row `| 204. Structure | v1.41 | 0/TBD | Not started | |` (:913) is stale from before this plan, and I left it alone as instructed.
 
-**STATE.md** (compared against `/Users/jon/.claude/jobs/77cf1bdd/tmp/p204-16-STATE.before`, which already held the orchestrator's uncommitted begin-phase edits):
+**STATE.md** (compared against `/Users/<user>/.claude/jobs/77cf1bdd/tmp/p204-16-STATE.before`, which already held the orchestrator's uncommitted begin-phase edits):
 - :7 `status: executing` → `status: verifying` (advance-plan, `reason: last_plan`)
 - :8 `stopped_at: Completed 204-15-PLAN.md` → `stopped_at: Completed 204-16-PLAN.md` (record-session)
 - :9 `last_updated: "2026-09-24T04:26:19.676Z"` → `last_updated: "2026-09-24T04:45:41.347Z"`

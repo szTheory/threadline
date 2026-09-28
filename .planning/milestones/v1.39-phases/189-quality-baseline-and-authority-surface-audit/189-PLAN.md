@@ -46,8 +46,8 @@ Decision coverage: D-189-01, D-189-02, D-189-03, D-189-04, D-189-05, D-189-06, D
 </objective>
 
 <execution_context>
-@/Users/jon/.codex/gsd-core/workflows/execute-plan.md
-@/Users/jon/.codex/gsd-core/templates/summary.md
+@/Users/<user>/.codex/gsd-core/workflows/execute-plan.md
+@/Users/<user>/.codex/gsd-core/templates/summary.md
 </execution_context>
 
 <context>

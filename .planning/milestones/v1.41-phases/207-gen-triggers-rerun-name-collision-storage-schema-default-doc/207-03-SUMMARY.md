@@ -65,7 +65,7 @@ coverage:
         ref: "test/threadline/storage_schema_test.exs#the default-claim matcher flags every known offender"
         status: pass
       - kind: other
-        ref: "/Users/jon/.claude/jobs/77cf1bdd/tmp/207-03-t1-red.txt (RED run)"
+        ref: "/Users/<user>/.claude/jobs/77cf1bdd/tmp/207-03-t1-red.txt (RED run)"
         status: pass
     human_judgment: false
   - id: D3
@@ -132,17 +132,17 @@ Each task wrote its test first and saved the RED run. RED and GREEN went into on
 
 ## RED proof
 
-**Task 1** (`/Users/jon/.claude/jobs/77cf1bdd/tmp/207-03-t1-red.txt`): `11 tests, 1 failure`. The real-tree test failed with:
+**Task 1** (`/Users/<user>/.claude/jobs/77cf1bdd/tmp/207-03-t1-red.txt`): `11 tests, 1 failure`. The real-tree test failed with:
 `these docs claim a storage_schema default other than "public", ...: guides/audit-indexing.md:7 -> threadline, guides/domain-reference.md:311 -> threadline, guides/how-threadline-works.md:94 -> threadline, guides/production-checklist.md:14 -> threadline, guides/production-checklist.md:14 -> threadline`.
 The matcher positive-control test passed, as designed. After the guide edits: 11 tests, 0 failures.
 
-**Task 2** (`/Users/jon/.claude/jobs/77cf1bdd/tmp/207-03-t2-red.txt`): `15 tests, 1 failure`. The guides test failed with:
+**Task 2** (`/Users/<user>/.claude/jobs/77cf1bdd/tmp/207-03-t2-red.txt`): `15 tests, 1 failure`. The guides test failed with:
 `guides/production-checklist.md lacks "replaces the trigger in place"; ... lacks "does not restore the earlier capture policy"; ... lacks "unredacted"; guides/domain-reference.md lacks` the same three phrases.
 The moduledoc part passed, which confirms plan 02's phrases. The generated-down test passed. After the guide edits: 15 tests, 0 failures.
 
 ## End-to-end probe
 
-The script `/Users/jon/.claude/jobs/77cf1bdd/tmp/207-probe.exs` was run with `MIX_ENV=test mix run --no-start`. The SQL was applied with `psql -v ON_ERROR_STOP=1` to the throwaway database `threadline_probe_207`, which was dropped afterwards (`pg_database` count is 0).
+The script `/Users/<user>/.claude/jobs/77cf1bdd/tmp/207-probe.exs` was run with `MIX_ENV=test mix run --no-start`. The SQL was applied with `psql -v ON_ERROR_STOP=1` to the throwaway database `threadline_probe_207`, which was dropped afterwards (`pg_database` count is 0).
 
 ```
 generated: 20260924212018_threadline_triggers_posts.exs

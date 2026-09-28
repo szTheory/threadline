@@ -23,7 +23,7 @@
 
 ### `examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex` (controller, request-response)
 
-**Analog:** [audit_transaction_controller.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:1)
+**Analog:** [audit_transaction_controller.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:1)
 
 **Endpoint-local guard pattern** (lines 15-21):
 ```elixir
@@ -79,7 +79,7 @@ end
 
 ### `examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs` (test, request-response)
 
-**Analog:** [posts_incident_json_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs:1)
+**Analog:** [posts_incident_json_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs:1)
 
 **Authenticated success path** (lines 6-39):
 ```elixir
@@ -118,7 +118,7 @@ assert Jason.decode!(conn.resp_body) == %{
 
 ### `examples/threadline_phoenix/test/support/conn_case.ex` (test helper, request-response)
 
-**Analog:** [conn_case.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/test/support/conn_case.ex:39)
+**Analog:** [conn_case.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/support/conn_case.ex:39)
 
 **Authenticated request fixture** (lines 39-66):
 ```elixir
@@ -152,7 +152,7 @@ end
 
 ### `examples/threadline_phoenix/README.md` (docs, request-response)
 
-**Analog:** [README.md](/Users/jon/projects/threadline/examples/threadline_phoenix/README.md:106)
+**Analog:** [README.md](/Users/<user>/projects/threadline/examples/threadline_phoenix/README.md:106)
 
 **Incident drill-down wording to mirror** (lines 106-113):
 ```markdown
@@ -170,7 +170,7 @@ before exposing transaction drill-down in production.
 
 ### `guides/domain-reference.md` (docs, request-response)
 
-**Analog:** [domain-reference.md](/Users/jon/projects/threadline/guides/domain-reference.md:209)
+**Analog:** [domain-reference.md](/Users/<user>/projects/threadline/guides/domain-reference.md:209)
 
 **Reference-example contract block** (lines 211-223):
 ```markdown
@@ -191,7 +191,7 @@ authorization policy beyond that baseline.
 
 ### `guides/incident-playbook.md` (docs, request-response)
 
-**Analog:** [incident-playbook.md](/Users/jon/projects/threadline/guides/incident-playbook.md:3)
+**Analog:** [incident-playbook.md](/Users/<user>/projects/threadline/guides/incident-playbook.md:3)
 
 **Operator-facing boundary wording** (lines 3-8):
 ```markdown
@@ -207,7 +207,7 @@ tenancy and policy rules on top.
 
 ### `guides/getting-started-saas.md` (docs, request-response)
 
-**Analog:** [getting-started-saas.md](/Users/jon/projects/threadline/guides/getting-started-saas.md:175)
+**Analog:** [getting-started-saas.md](/Users/<user>/projects/threadline/guides/getting-started-saas.md:175)
 
 **Onboarding wording** (lines 175-178):
 ```markdown
@@ -223,7 +223,7 @@ host app.
 
 ### `guides/adoption-pilot-backlog.md` (docs, request-response)
 
-**Analog:** [adoption-pilot-backlog.md](/Users/jon/projects/threadline/guides/adoption-pilot-backlog.md:54)
+**Analog:** [adoption-pilot-backlog.md](/Users/<user>/projects/threadline/guides/adoption-pilot-backlog.md:54)
 
 **Evidence-row pattern** (lines 54-58):
 ```markdown
@@ -236,7 +236,7 @@ host app.
 
 ### `test/threadline/example_phoenix_readme_contract_test.exs` (test, request-response)
 
-**Analog:** [example_phoenix_readme_contract_test.exs](/Users/jon/projects/threadline/test/threadline/example_phoenix_readme_contract_test.exs:1)
+**Analog:** [example_phoenix_readme_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/example_phoenix_readme_contract_test.exs:1)
 
 **Repo-root markdown loader pattern** (lines 5-10):
 ```elixir
@@ -263,7 +263,7 @@ assert String.contains?(doc, "wired directly into `Threadline.Plug`")
 
 ### `test/threadline/exploration_routing_doc_contract_test.exs` and `test/threadline/incident_playbook_doc_contract_test.exs` (test, request-response)
 
-**Analogs:** [exploration_routing_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11), [incident_playbook_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/incident_playbook_doc_contract_test.exs:11)
+**Analogs:** [exploration_routing_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11), [incident_playbook_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/incident_playbook_doc_contract_test.exs:11)
 
 **Anchor + literal-lock pattern** (`exploration_routing_doc_contract_test.exs`, lines 25-32):
 ```elixir
@@ -291,7 +291,7 @@ assert section_content =~ "### Recovery"
 ## Shared Patterns
 
 ### Auth baseline
-**Source:** [audit_transaction_controller.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:12)
+**Source:** [audit_transaction_controller.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:12)
 
 Use normalized Threadline context first:
 ```elixir
@@ -302,12 +302,12 @@ _ -> nil
 Apply to: controller logic, docs, and plan wording. Avoid Sigra-private checks in the endpoint contract.
 
 ### Request-path proof shape
-**Sources:** [posts_incident_json_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs:6), [conn_case.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/test/support/conn_case.ex:39)
+**Sources:** [posts_incident_json_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs:6), [conn_case.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/support/conn_case.ex:39)
 
 Use one success test that creates a post and follows the returned `audit_transaction_id`, plus one anonymous `401` test. Build authenticated requests with `sigra_conn/2`.
 
 ### Boundary wording
-**Sources:** [README.md](/Users/jon/projects/threadline/examples/threadline_phoenix/README.md:110), [domain-reference.md](/Users/jon/projects/threadline/guides/domain-reference.md:220), [incident-playbook.md](/Users/jon/projects/threadline/guides/incident-playbook.md:5), [getting-started-saas.md](/Users/jon/projects/threadline/guides/getting-started-saas.md:175), [adoption-pilot-backlog.md](/Users/jon/projects/threadline/guides/adoption-pilot-backlog.md:57)
+**Sources:** [README.md](/Users/<user>/projects/threadline/examples/threadline_phoenix/README.md:110), [domain-reference.md](/Users/<user>/projects/threadline/guides/domain-reference.md:220), [incident-playbook.md](/Users/<user>/projects/threadline/guides/incident-playbook.md:5), [getting-started-saas.md](/Users/<user>/projects/threadline/guides/getting-started-saas.md:175), [adoption-pilot-backlog.md](/Users/<user>/projects/threadline/guides/adoption-pilot-backlog.md:57)
 
 Repeat the same contract everywhere:
 - authenticated actor required for drill-down

@@ -91,7 +91,7 @@ cd examples/threadline_phoenix && mix test test/threadline_phoenix/demo_manifest
 cd examples/threadline_phoenix && mix test
 # 48 tests, 0 failures
 
-cd /Users/jon/projects/threadline && mix test test/threadline/readme_doc_contract_test.exs
+cd /Users/<user>/projects/threadline && mix test test/threadline/readme_doc_contract_test.exs
 # 16 tests, 0 failures
 
 grep -q "4521" examples/threadline_phoenix/DEMO-MANIFEST.md && \

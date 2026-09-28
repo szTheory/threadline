@@ -43,7 +43,7 @@ Four parallel research agents read the actual workflow files, `playwright.config
 - **Hex trusted publishing / OIDC is announced but NOT GA** as of 2026 (Hex 2.4 shipped OAuth device flow + CLI 2FA as the intermediate step). `HEX_API_KEY` stays for now.
 - **Live protection settings:** `strict: true`, `enforce_admins: false`, `required_linear_history: false`, `required_conversation_resolution: false`, `rulesets: []`.
 - **`.planning/` disclosure surface:** 2159 tracked files, 49 containing dollar figures (LLM spend down to `$0.015`), plus vendor/model names and internal quality assessments. A HEAD grep is already clean of `sk-ant-`, `ghp_`, `github_pat_`, `AKIA`, and PEM private-key patterns; `.gitignore:26-28,79` covers `.env`.
-- **Local git state:** 2 worktrees (`/Users/jon/projects/threadline`, `/Users/jon/projects/threadline-phase166` at `dd5b48be`); 3 branches (`main` ahead 587, `gsd/phase-166-unfreeze-token-lane-mechanism` at `dd5b48be`, `backup/pre-release-cleanup-2026-05-08` at `50374eb7`). `dd5b48be` is verified NOT an ancestor of `main`: 24 files, +719/−56.
+- **Local git state:** 2 worktrees (`/Users/<user>/projects/threadline`, `/Users/<user>/projects/threadline-phase166` at `dd5b48be`); 3 branches (`main` ahead 587, `gsd/phase-166-unfreeze-token-lane-mechanism` at `dd5b48be`, `backup/pre-release-cleanup-2026-05-08` at `50374eb7`). `dd5b48be` is verified NOT an ancestor of `main`: 24 files, +719/−56.
 - **`.planning/milestone.lock`** is a stale untracked artifact from a dead session (pid 62757, `"phase": "null"`) dirtying `git status`. Deferred to Phase 199 / DECOUPLE-05.
 
 </ground_truth>

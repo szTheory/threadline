@@ -130,7 +130,7 @@ Official docs support the chosen shape: LiveView `push_patch` plus `handle_param
 - Preserve domain terms such as `AuditTransaction`, `AuditChange`, `AuditAction`, `AuditContext`, `ActorRef`, and `Correlation` in code/docs where relevant. [VERIFIED: CLAUDE.md]
 - Use canonical verification entrypoints where practical: `mix verify.format`, `mix verify.credo`, `mix verify.test`, and `mix ci.all`; targeted phase proof may use narrower `mix test` and Playwright commands. [VERIFIED: CLAUDE.md] [VERIFIED: mix.exs]
 - Do not change capture semantics, auth boundaries, route paths, optional Phoenix/LiveView posture, feature gates, or public component APIs for this phase. [VERIFIED: CLAUDE.md] [VERIFIED: .planning/REQUIREMENTS.md]
-- No root `AGENTS.md` exists in `/Users/jon/projects/threadline`; the only discovered `AGENTS.md` is under `examples/threadline_phoenix/` and is not the working-directory project instruction file. [VERIFIED: rg --files -g 'AGENTS.md']
+- No root `AGENTS.md` exists in `/Users/<user>/projects/threadline`; the only discovered `AGENTS.md` is under `examples/threadline_phoenix/` and is not the working-directory project instruction file. [VERIFIED: rg --files -g 'AGENTS.md']
 - No project-defined `.codex/skills`, `.agents/skills`, or `.claude/skills` directories were present in the workspace. [VERIFIED: find .codex/skills .agents/skills .claude/skills -name SKILL.md -maxdepth 3]
 - No `.planning/graphs/graph.json` exists, so graph context was unavailable for this research. [VERIFIED: ls .planning/graphs/graph.json]
 

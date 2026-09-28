@@ -44,7 +44,7 @@ No explicit separate discretion section exists in `140-CONTEXT.md`. Planning dis
 
 ## Project Constraints (from AGENTS.md)
 
-No `AGENTS.md` exists in `/Users/jon/projects/threadline`, so no additional project-agent directives were found. [VERIFIED: codebase grep]
+No `AGENTS.md` exists in `/Users/<user>/projects/threadline`, so no additional project-agent directives were found. [VERIFIED: codebase grep]
 
 ## Summary
 

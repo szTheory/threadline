@@ -1289,7 +1289,7 @@ CLAUDE.md applies even to `.planning/`-only phases. Relevant constraints:
 | `mix verify.doc_contract` alias | D-10 bundle command 1 | ✓ | existing in `mix.exs` | — |
 | `mix verify.example` alias | D-10 bundle command 3 | ✓ | existing in `mix.exs` | — |
 | `mix test test/threadline/evidence_test.exs ...` (5-file list) | D-10 bundle command 2 | ✓ | files exist on disk (verified by line-count grep) | — |
-| `gsd-sdk` CLI | init context, find-phase, commit | ✓ at `~/.local/bin/gsd-sdk` | wrapper for `gsd-tools.cjs` per MEMORY note | None — workflow assumes it |
+| `gsd-sdk` CLI | init context, find-phase, commit | ✓ at `<home>/.local/bin/gsd-sdk` | wrapper for `gsd-tools.cjs` per MEMORY note | None — workflow assumes it |
 | `gsd-audit-milestone` skill | D-11 audit rerun | ✓ at `~/.claude/skills/gsd-audit-milestone/SKILL.md` | (skill) | None |
 | `rg` (ripgrep) | acceptance-criteria greps | (typically installed on macOS via homebrew; planner can assume yes per Phase 94 precedent which used `rg` in every `<verify>` block) | — | grep -E (fallback if needed) |
 | `git` | per-plan commits + boundary verification | ✓ | (per `git --version`; standard) | — |

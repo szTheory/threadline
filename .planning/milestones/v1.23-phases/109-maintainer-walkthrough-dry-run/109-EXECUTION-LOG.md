@@ -31,7 +31,7 @@ WALK_STARTED_AT=2026-05-27T19:13:47Z
 ## Clone plan
 
 ```
-CLONE_DIR=/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T//threadline-walk-109-368c315
+CLONE_DIR=<tmpdir>/threadline-walk-109-368c315
 ```
 
 Method: fresh `git clone` at pinned `WALK_BASELINE_SHA` (detached HEAD). Not the dirty dev tree.

@@ -7,7 +7,7 @@
 | Field | Value |
 |-------|-------|
 | `RE_WALK_BASELINE_SHA` | `d2ef6c86a0282c5885e86ce82e72f81461629f08` |
-| Clone | `/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/threadline-walk-110-d2ef6c8` |
+| Clone | `<tmpdir>/threadline-walk-110-d2ef6c8` |
 | Ladder rung | **L2** (WALK-01-04 → §5; L3 not required) |
 | Log | [`110-RE-WALK-LOG.md`](./110-RE-WALK-LOG.md) |
 

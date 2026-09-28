@@ -208,7 +208,7 @@ The ui.ex file exception went 1686 → 1607 (Task 1) → 1390 (Task 2) → 1047 
 
 **4. [Gate] Task 3 browser flake, resolved by the orchestrator.** The executor saw 325/9/16 on `3dd1f64f`, with one extra failure: a desktop-only `toBeFocused` timeout in the row-history drawer. The orchestrator re-ran that unchanged code and got exactly 326/8/16. It was a flake. See HALT.
 
-**5. [Rule 3 - Blocking] Root-pin guard script denied by the permission classifier.** Running `bash .../root-pin.sh` was blocked by the auto-mode classifier. It was not a guard failure. As the equivalent check, `git rev-parse --show-toplevel` was confirmed to equal the pinned root `/Users/jon/projects/threadline` before the edit and before the commit. The branch was also confirmed as `fix/branch-protection-actions-capability`, which is not protected.
+**5. [Rule 3 - Blocking] Root-pin guard script denied by the permission classifier.** Running `bash .../root-pin.sh` was blocked by the auto-mode classifier. It was not a guard failure. As the equivalent check, `git rev-parse --show-toplevel` was confirmed to equal the pinned root `/Users/<user>/projects/threadline` before the edit and before the commit. The branch was also confirmed as `fix/branch-protection-actions-capability`, which is not protected.
 
 ## Issues Encountered
 

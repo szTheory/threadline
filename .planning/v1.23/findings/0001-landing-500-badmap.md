@@ -28,7 +28,7 @@ Server log:
 (threadline_phoenix 0.1.0) lib/threadline_phoenix_web/controllers/page_html.ex:10
 ```
 
-Clone: `/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T//threadline-walk-109-368c315`  
+Clone: `<tmpdir>/threadline-walk-109-368c315`  
 SHA: `368c3159596dfa067f01f93ad25442553f3516db`  
 DB: `DB_HOST=localhost DB_PORT=5433`
 

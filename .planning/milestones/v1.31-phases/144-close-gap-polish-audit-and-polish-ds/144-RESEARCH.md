@@ -85,7 +85,7 @@ The implementation should be source-first and narrow: verify the existing baseli
 
 ## Project Constraints (from AGENTS.md)
 
-No root `AGENTS.md` exists in `/Users/jon/projects/threadline`; only `examples/threadline_phoenix/AGENTS.md` was found. [VERIFIED: `rg --files -g 'AGENTS.md'`]
+No root `AGENTS.md` exists in `/Users/<user>/projects/threadline`; only `examples/threadline_phoenix/AGENTS.md` was found. [VERIFIED: `rg --files -g 'AGENTS.md'`]
 
 If Phase 144 edits or runs work under `examples/threadline_phoenix`, honor these subtree directives: use `mix precommit` when all changes are done; use the existing `Req` library for HTTP requests and avoid `httpoison`, `tesla`, and `httpc`; follow Phoenix 1.8 LiveView/layout/input/icon guidance; avoid `String.to_atom/1` on user input; use `start_supervised!/1` in tests; avoid `Process.sleep/1` in tests. [VERIFIED: `examples/threadline_phoenix/AGENTS.md`]
 

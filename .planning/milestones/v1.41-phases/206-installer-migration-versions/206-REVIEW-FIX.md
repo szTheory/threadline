@@ -1,7 +1,7 @@
 ---
 phase: 206-installer-migration-versions
 fixed_at: 2026-09-24T00:00:00Z
-review_path: /Users/jon/projects/threadline/.planning/phases/206-installer-migration-versions/206-REVIEW.md
+review_path: /Users/<user>/projects/threadline/.planning/phases/206-installer-migration-versions/206-REVIEW.md
 iteration: 1
 findings_in_scope: 5
 fixed: 5

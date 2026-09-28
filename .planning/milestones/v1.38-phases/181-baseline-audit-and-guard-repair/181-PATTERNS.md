@@ -109,7 +109,7 @@ Apply this shape to the Phase 181 page/JTBD matrix. Replace requirement buckets 
 - Final: `.planning/milestones/v1.31-screenshots/final/`
 - Matrix: 12 screens x 2 viewports = 24 baseline PNGs and 24 final PNGs.
 - Final capture command:
-  - `cd examples/threadline_phoenix/e2e && OPERATOR_SCREENSHOT_DIR=/Users/jon/projects/threadline/.planning/milestones/v1.31-screenshots/final E2E_BASE_URL=http://127.0.0.1:4002 npm test -- tests/operator-screenshots.spec.ts`
+  - `cd examples/threadline_phoenix/e2e && OPERATOR_SCREENSHOT_DIR=/Users/<user>/projects/threadline/.planning/milestones/v1.31-screenshots/final E2E_BASE_URL=http://127.0.0.1:4002 npm test -- tests/operator-screenshots.spec.ts`
 - Result: 6 tests, 0 failures.
 ```
 

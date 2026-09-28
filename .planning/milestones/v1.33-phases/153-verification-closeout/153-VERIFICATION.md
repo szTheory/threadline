@@ -98,7 +98,7 @@ PASS. The current size baseline remains source-control friendly:
 
 | Check | Evidence | Result |
 |---|---|---|
-| Direct-open URL | `file:///Users/jon/projects/threadline/brandbook/index.html` | PASS |
+| Direct-open URL | `file:///Users/<user>/projects/threadline/brandbook/index.html` | PASS |
 | Page title | `Threadline Brandbook` | PASS |
 | Desktop screenshot | Viewport `1440x1000`; `/tmp/threadline-v133-brandbook-phase153-desktop.png`; file size `114129` bytes | PASS |
 | Mobile screenshot | Viewport `390x844`; `/tmp/threadline-v133-brandbook-phase153-mobile.png`; file size `51027` bytes | PASS |

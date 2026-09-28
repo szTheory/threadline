@@ -40,7 +40,7 @@
     "required_contexts": ["CI required"],
     "required_contexts_digest": "f02c07a558af08ef0d048996463adb29c61dcffd28c940b6562356f2293efcc3",
     "worktrees": [
-      {"path": "/Users/jon/projects/threadline", "branch": "refs/heads/phase-199/scroll-cost-cause-fix"}
+      {"path": "/Users/<user>/projects/threadline", "branch": "refs/heads/phase-199/scroll-cost-cause-fix"}
     ],
     "worktree_list_digest": "5253096fa066c0e3507f2a91e5a76ef2217191b63d76c90d6344ca2300ac5c1a"
   },

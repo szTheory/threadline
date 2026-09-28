@@ -60,7 +60,7 @@ Automated verification commands re-run during phase close:
 ```bash
 cd examples/threadline_phoenix && mix test
 cd examples/threadline_phoenix && mix threadline.verify_coverage
-cd /Users/jon/projects/threadline && mix verify.example
+cd /Users/<user>/projects/threadline && mix verify.example
 ```
 
 All exited 0.

@@ -20,7 +20,7 @@
 
 **Analog:** `lib/threadline.ex`
 
-**Public delegator pattern** ([lib/threadline.ex](/Users/jon/projects/threadline/lib/threadline.ex:97))
+**Public delegator pattern** ([lib/threadline.ex](/Users/<user>/projects/threadline/lib/threadline.ex:97))
 ```elixir
 @doc """
 Returns `AuditChange` records across tables, filtered by the given options,
@@ -42,7 +42,7 @@ def timeline_page(filters \\ [], opts \\ []), do: Threadline.Query.timeline_page
 
 **Analog:** `lib/threadline/query.ex`
 
-**Strict validation + repo resolution** ([lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:54))
+**Strict validation + repo resolution** ([lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:54))
 ```elixir
 def validate_timeline_filters!(filters) when is_list(filters) do
   for {key, value} <- filters do
@@ -68,7 +68,7 @@ def timeline_repo!(filters \\ [], opts \\ []) when is_list(filters) and is_list(
 end
 ```
 
-**Shared query-stack pattern** ([lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:135))
+**Shared query-stack pattern** ([lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:135))
 ```elixir
 def timeline_query(filters) when is_list(filters) do
   filters
@@ -78,7 +78,7 @@ def timeline_query(filters) when is_list(filters) do
 end
 ```
 
-**Existing low-level investigation primitives** ([lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:257), [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:329), [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:369), [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:423))
+**Existing low-level investigation primitives** ([lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:257), [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:329), [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:369), [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:423))
 ```elixir
 def history(schema_module, id, opts) do
   ...
@@ -112,7 +112,7 @@ end
 
 **Analog:** `lib/threadline/export.ex`
 
-**Packaging pattern above Query** ([lib/threadline/export.ex](/Users/jon/projects/threadline/lib/threadline/export.ex:70), [lib/threadline/export.ex](/Users/jon/projects/threadline/lib/threadline/export.ex:146), [lib/threadline/export.ex](/Users/jon/projects/threadline/lib/threadline/export.ex:184))
+**Packaging pattern above Query** ([lib/threadline/export.ex](/Users/<user>/projects/threadline/lib/threadline/export.ex:70), [lib/threadline/export.ex](/Users/<user>/projects/threadline/lib/threadline/export.ex:146), [lib/threadline/export.ex](/Users/<user>/projects/threadline/lib/threadline/export.ex:184))
 ```elixir
 def to_csv_iodata(filters, opts \\ []) when is_list(filters) and is_list(opts) do
   Query.validate_timeline_filters!(filters)
@@ -143,7 +143,7 @@ end
 
 **Analogs:** `Threadline.Query.TimelinePage`, `Threadline.Semantics.ActorRef`
 
-**Minimal struct pattern** ([lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:39), [lib/threadline/semantics/actor_ref.ex](/Users/jon/projects/threadline/lib/threadline/semantics/actor_ref.ex:21))
+**Minimal struct pattern** ([lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:39), [lib/threadline/semantics/actor_ref.ex](/Users/<user>/projects/threadline/lib/threadline/semantics/actor_ref.ex:21))
 ```elixir
 @enforce_keys [:entries]
 defstruct [:entries, :next_cursor]
@@ -161,7 +161,7 @@ defstruct [:type, :id]
 
 **Analogs:** `test/threadline/query_test.exs`, `test/threadline/export_test.exs`
 
-**Fixture and helper style** ([test/threadline/query_test.exs](/Users/jon/projects/threadline/test/threadline/query_test.exs:11))
+**Fixture and helper style** ([test/threadline/query_test.exs](/Users/<user>/projects/threadline/test/threadline/query_test.exs:11))
 ```elixir
 defp insert_transaction(attrs \\ %{}) do
   defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
@@ -174,7 +174,7 @@ defp insert_change(transaction, attrs \\ %{}) do
 end
 ```
 
-**Delegation/parity testing** ([test/threadline/query_test.exs](/Users/jon/projects/threadline/test/threadline/query_test.exs:300), [test/threadline/query_test.exs](/Users/jon/projects/threadline/test/threadline/query_test.exs:510), [test/threadline/export_test.exs](/Users/jon/projects/threadline/test/threadline/export_test.exs:220))
+**Delegation/parity testing** ([test/threadline/query_test.exs](/Users/<user>/projects/threadline/test/threadline/query_test.exs:300), [test/threadline/query_test.exs](/Users/<user>/projects/threadline/test/threadline/query_test.exs:510), [test/threadline/export_test.exs](/Users/<user>/projects/threadline/test/threadline/export_test.exs:220))
 ```elixir
 q = Threadline.Query.audit_changes_for_transaction(txn.id, repo: @repo)
 t = Threadline.audit_changes_for_transaction(txn.id, repo: @repo)
@@ -199,7 +199,7 @@ timeline_ids =
 ## Shared Patterns
 
 ### Ordering
-**Source:** [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:236)
+**Source:** [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:236)
 ```elixir
 defp timeline_order(query) do
   query
@@ -210,7 +210,7 @@ end
 Apply to all helpers that traverse `AuditChange` rows.
 
 ### Strict correlation linkage
-**Source:** [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:147)
+**Source:** [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:147)
 ```elixir
 Validates filters, then builds the same predicate stack as `timeline/2`, adds an
 optional `LEFT JOIN` to `audit_actions` when `:correlation_id` is absent ...
@@ -218,7 +218,7 @@ optional `LEFT JOIN` to `audit_actions` when `:correlation_id` is absent ...
 Apply when helper results need action context: no best-effort orphan inclusion when `:correlation_id` is present.
 
 ### JSON-ready per-change projection
-**Sources:** [lib/threadline/change_diff.ex](/Users/jon/projects/threadline/lib/threadline/change_diff.ex:68), [test/threadline/change_diff_test.exs](/Users/jon/projects/threadline/test/threadline/change_diff_test.exs:204)
+**Sources:** [lib/threadline/change_diff.ex](/Users/<user>/projects/threadline/lib/threadline/change_diff.ex:68), [test/threadline/change_diff_test.exs](/Users/<user>/projects/threadline/test/threadline/change_diff_test.exs:204)
 ```elixir
 defdelegate change_diff(audit_change, opts \\ []),
   to: Threadline.ChangeDiff,
@@ -227,7 +227,7 @@ defdelegate change_diff(audit_change, opts \\ []),
 Use `Threadline.change_diff/2` when a helper needs deterministic field-level projections; do not duplicate diff logic in the new slice APIs.
 
 ### Real host composition pressure
-**Sources:** [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:11), [examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs:21)
+**Sources:** [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:11), [examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_correlation_path_test.exs:21)
 ```elixir
 changes = Threadline.audit_changes_for_transaction(uuid, repo: Repo)
 

@@ -61,7 +61,7 @@ SUMMARY's docs commit. The count includes the orchestrator's e4559c0f.
 - Contract batch: install, changelog, release_artifact, public_surface,
   code_walkthrough, getting_started_saas and upgrade_path. Result: **101 tests,
   0 failures**.
-- Region grep (`/Users/jon/.claude/jobs/77cf1bdd/tmp/206-unreleased.md`) exited 0.
+- Region grep (`/Users/<user>/.claude/jobs/77cf1bdd/tmp/206-unreleased.md`) exited 0.
   - All required strings are present: `migrations can't be executed, migration version`,
     `is duplicated`, `0.10.1`, both schema filenames and `mix threadline.gen.triggers`.
   - None of the forbidden identifiers appear: the helper module name, WR/CR/D- IDs,
@@ -69,7 +69,7 @@ SUMMARY's docs commit. The count includes the orchestrator's e4559c0f.
 
 ## Task 2: Phase gate
 
-Outputs are saved ANSI-stripped under `/Users/jon/.claude/jobs/77cf1bdd/tmp/206-02-gate-*.txt`.
+Outputs are saved ANSI-stripped under `/Users/<user>/.claude/jobs/77cf1bdd/tmp/206-02-gate-*.txt`.
 
 | Gate | Result | Summary line |
 |------|--------|--------------|

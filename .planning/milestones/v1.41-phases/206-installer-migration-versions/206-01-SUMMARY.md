@@ -45,7 +45,7 @@ plan_head_before: 00022f156b232b368e306cfa567cdad875d9da85
 
 ## RED proof
 
-All five regression cases were written first and run against the unmodified code (`git diff -- lib/` empty at the time). Output saved ANSI-stripped to `/Users/jon/.claude/jobs/77cf1bdd/tmp/206-01-red.txt`:
+All five regression cases were written first and run against the unmodified code (`git diff -- lib/` empty at the time). Output saved ANSI-stripped to `/Users/<user>/.claude/jobs/77cf1bdd/tmp/206-01-red.txt`:
 
 ```
 1) test migration versions a fresh install writes three distinct versions in family order

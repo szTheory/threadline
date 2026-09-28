@@ -50,7 +50,7 @@
 
 - Plan Phase 153 as a verification-only closeout slice. The expected execution output is a current-tree `153-VERIFICATION.md` and any GSD closeout/status updates required by the workflow, not brandbook redesign work. [VERIFIED: `153-CONTEXT.md`; `152-SUMMARY.md`]
 - Refresh evidence against the current working tree rather than relying only on Phase 150 or Phase 152 evidence. Prior evidence is a command template and comparison point. [VERIFIED: `150-VERIFICATION.md`; `152-VERIFICATION.md`]
-- Keep browser evidence local-file based: open `file:///Users/jon/projects/threadline/brandbook/index.html` and capture desktop/mobile screenshots under `/tmp`. [VERIFIED: `150-VERIFICATION.md`; `152-VERIFICATION.md`; `153-CONTEXT.md`]
+- Keep browser evidence local-file based: open `file:///Users/<user>/projects/threadline/brandbook/index.html` and capture desktop/mobile screenshots under `/tmp`. [VERIFIED: `150-VERIFICATION.md`; `152-VERIFICATION.md`; `153-CONTEXT.md`]
 - Treat screenshots as evidence paths in the verification record, not committed binary outputs. [VERIFIED: `153-CONTEXT.md`; `brandbook/README.md`]
 - Preserve static brand token and runtime operator token separation. The plan should not touch `lib/threadline/operator_surface/style.ex` or runtime UI token wiring. [VERIFIED: `153-CONTEXT.md`; `brandbook/README.md`]
 
@@ -67,7 +67,7 @@ The planner should require one automated verification task that refreshes these 
 | Binary exclusion | `find brandbook -type f \( -name '*.png' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.pdf' -o -name '*.woff' -o -name '*.woff2' -o -name '.DS_Store' \) -print` | No output. |
 | File types | `find brandbook -type f -maxdepth 3 -print0 | xargs -0 file` | HTML, ASCII text, JSON, and SVG only. |
 | File size | `find brandbook -type f -maxdepth 3 -print | sort | xargs wc -c` | Total remains source-control friendly; current baseline is `95512 total` bytes. |
-| Browser direct-open | `agent-browser open file:///Users/jon/projects/threadline/brandbook/index.html` | Opens with title `Threadline Brandbook`. |
+| Browser direct-open | `agent-browser open file:///Users/<user>/projects/threadline/brandbook/index.html` | Opens with title `Threadline Brandbook`. |
 | Desktop screenshot | `agent-browser set viewport 1440 1000`; `agent-browser screenshot /tmp/threadline-v133-brandbook-phase153-desktop.png` | Screenshot saved. |
 | Mobile screenshot | `agent-browser set viewport 390 844`; `agent-browser screenshot /tmp/threadline-v133-brandbook-phase153-mobile.png` | Screenshot saved. |
 

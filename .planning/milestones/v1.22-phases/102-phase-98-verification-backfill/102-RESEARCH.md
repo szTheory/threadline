@@ -728,34 +728,34 @@ None — every question raised during research was answered by either CONTEXT.md
 
 ### Primary (HIGH confidence)
 
-- `/Users/jon/projects/threadline/.planning/phases/102-phase-98-verification-backfill/102-CONTEXT.md` — locked decisions D-01 through D-20 for this phase.
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-RESEARCH.md` — closest-template research artifact (same gap-closure posture, three requirements → three bands).
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-VERIFICATION.md` — verifier-output shape (used to confirm Behavioral Spot-Checks belongs in verifier output, not phase artifact).
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-VALIDATION.md` — Phase 100's own draft validation shape.
-- `/Users/jon/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-01-PLAN.md` and `100-02-PLAN.md` — exact plan-pair shape for 102-01 and 102-02.
-- `/Users/jon/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-CONTEXT.md` — mixed-posture rationale, retroactive-backfill honesty (D-16), `mix verify.test` disclaimer pattern (D-07).
-- `/Users/jon/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-RESEARCH.md` — alternate-template research artifact (4-band shape; not copied here because Phase 102 has 3 requirements).
-- `/Users/jon/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-VERIFICATION.md` — Phase 101's verifier-output (Phase 102 verifier will produce its own; not the phase-artifact shape).
-- `/Users/jon/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-VALIDATION.md` — Phase 101's own draft validation shape.
-- `/Users/jon/projects/threadline/.planning/phases/95-evidence-model-lock-and-scope-guard/95-VERIFICATION.md` — exact-shape template for `98-VERIFICATION.md` (frontmatter, preflight, numbered bands, requirement closure, "Not closed here").
-- `/Users/jon/projects/threadline/.planning/phases/95-evidence-model-lock-and-scope-guard/95-VALIDATION.md` — exact-shape template for the modernized `98-VALIDATION.md` (`nyquist_compliant: true`, sampling rate, per-task verification map, `## Commands Actually Used`, `## Phase Boundary Guard`, sign-off).
-- `/Users/jon/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-VALIDATION.md` — second-reference finalized validation (used to cross-confirm the `## Commands Actually Used` placement and `## Phase Boundary Guard` shape).
-- `/Users/jon/projects/threadline/.planning/phases/98-mounted-evidence-views-on-audit/98-CONTEXT.md` — locked Phase 98 implementation decisions D-01..D-23 (mount, parity, gating).
-- `/Users/jon/projects/threadline/.planning/phases/98-mounted-evidence-views-on-audit/98-UI-SPEC.md` — locked copy contract for SURF-02 (Copywriting Contract at lines 75-90).
-- `/Users/jon/projects/threadline/.planning/phases/98-mounted-evidence-views-on-audit/98-VALIDATION.md` — current state (planning-time artifact) of the file 102-02 finalizes.
-- `/Users/jon/projects/threadline/.planning/phases/98-mounted-evidence-views-on-audit/98-01-SUMMARY.md` and `98-02-SUMMARY.md` — execution summaries (98-02 records the `mix verify.test` alias-drift carry-forward at lines 70-74).
-- `/Users/jon/projects/threadline/.planning/REQUIREMENTS.md` — SURF-01/02/03 definitions (lines 22-24) and Traceability rows (lines 60-62).
-- `/Users/jon/projects/threadline/.planning/ROADMAP.md` — Phase 102 goal at lines 110-119; Phase 103 boundary at lines 121-129.
-- `/Users/jon/projects/threadline/.planning/STATE.md` — current milestone state ("Phase 102 Not started" at line 27).
-- `/Users/jon/projects/threadline/.planning/v1.22-MILESTONE-AUDIT.md` — SURF-01/02/03 audit findings at lines 40-60; tech-debt note for `98-VALIDATION.md` draft state at lines 70-73.
-- `/Users/jon/projects/threadline/lib/threadline/operator_surface/router.ex` — `/audit/evidence` mount at line 100 (verified live).
-- `/Users/jon/projects/threadline/lib/threadline/operator_surface/live/evidence_live.ex` — full file read; `mount/3` line 12, `handle_params/3` line 21, `render/1` line 49, copy literals at lines 67/89-95/142/154; `alias Threadline.Evidence.Proof` line 8; `Proof.present_record` call site line 253.
-- `/Users/jon/projects/threadline/lib/threadline/operator_surface/auth.ex` — full file read; `defp assign_evidence_enabled/2` line 253; fail-closed default `Keyword.get(opts, :evidence_authorize_fn, fn _ -> false end)` at line 254.
-- `/Users/jon/projects/threadline/lib/threadline/operator_surface/unsupported.ex` — full file read; `:evidence_unavailable` descriptor body at line 25 contains the locked `Evidence view unavailable.` literal.
-- `/Users/jon/projects/threadline/lib/threadline/evidence/proof.ex` — full file read; `@semantic_statuses ~w(proven inferred_posture unsupported)` at line 10; `present_record/1` at line 75 (the shared presenter Band 2 cites).
-- `/Users/jon/projects/threadline/test/threadline/operator_surface/live/evidence_live_test.exs` — full file read; 5 tests in `describe "mount /audit/evidence"` at lines 105-217.
-- `/Users/jon/projects/threadline/test/threadline/operator_surface/auth_test.exs` — full file read; 29 tests across 5 `describe` blocks, with `describe "assign_evidence_enabled"` at lines 337-394 owning SURF-03 unit-scope fan-out.
-- `/Users/jon/projects/threadline/CLAUDE.md` — project verify-alias conventions and three-layer architecture.
+- `/Users/<user>/projects/threadline/.planning/phases/102-phase-98-verification-backfill/102-CONTEXT.md` — locked decisions D-01 through D-20 for this phase.
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-RESEARCH.md` — closest-template research artifact (same gap-closure posture, three requirements → three bands).
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-VERIFICATION.md` — verifier-output shape (used to confirm Behavioral Spot-Checks belongs in verifier output, not phase artifact).
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-VALIDATION.md` — Phase 100's own draft validation shape.
+- `/Users/<user>/projects/threadline/.planning/phases/100-phase-95-verification-backfill/100-01-PLAN.md` and `100-02-PLAN.md` — exact plan-pair shape for 102-01 and 102-02.
+- `/Users/<user>/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-CONTEXT.md` — mixed-posture rationale, retroactive-backfill honesty (D-16), `mix verify.test` disclaimer pattern (D-07).
+- `/Users/<user>/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-RESEARCH.md` — alternate-template research artifact (4-band shape; not copied here because Phase 102 has 3 requirements).
+- `/Users/<user>/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-VERIFICATION.md` — Phase 101's verifier-output (Phase 102 verifier will produce its own; not the phase-artifact shape).
+- `/Users/<user>/projects/threadline/.planning/phases/101-phase-96-verification-backfill/101-VALIDATION.md` — Phase 101's own draft validation shape.
+- `/Users/<user>/projects/threadline/.planning/phases/95-evidence-model-lock-and-scope-guard/95-VERIFICATION.md` — exact-shape template for `98-VERIFICATION.md` (frontmatter, preflight, numbered bands, requirement closure, "Not closed here").
+- `/Users/<user>/projects/threadline/.planning/phases/95-evidence-model-lock-and-scope-guard/95-VALIDATION.md` — exact-shape template for the modernized `98-VALIDATION.md` (`nyquist_compliant: true`, sampling rate, per-task verification map, `## Commands Actually Used`, `## Phase Boundary Guard`, sign-off).
+- `/Users/<user>/projects/threadline/.planning/phases/96-evidence-persistence-and-public-api/96-VALIDATION.md` — second-reference finalized validation (used to cross-confirm the `## Commands Actually Used` placement and `## Phase Boundary Guard` shape).
+- `/Users/<user>/projects/threadline/.planning/phases/98-mounted-evidence-views-on-audit/98-CONTEXT.md` — locked Phase 98 implementation decisions D-01..D-23 (mount, parity, gating).
+- `/Users/<user>/projects/threadline/.planning/phases/98-mounted-evidence-views-on-audit/98-UI-SPEC.md` — locked copy contract for SURF-02 (Copywriting Contract at lines 75-90).
+- `/Users/<user>/projects/threadline/.planning/phases/98-mounted-evidence-views-on-audit/98-VALIDATION.md` — current state (planning-time artifact) of the file 102-02 finalizes.
+- `/Users/<user>/projects/threadline/.planning/phases/98-mounted-evidence-views-on-audit/98-01-SUMMARY.md` and `98-02-SUMMARY.md` — execution summaries (98-02 records the `mix verify.test` alias-drift carry-forward at lines 70-74).
+- `/Users/<user>/projects/threadline/.planning/REQUIREMENTS.md` — SURF-01/02/03 definitions (lines 22-24) and Traceability rows (lines 60-62).
+- `/Users/<user>/projects/threadline/.planning/ROADMAP.md` — Phase 102 goal at lines 110-119; Phase 103 boundary at lines 121-129.
+- `/Users/<user>/projects/threadline/.planning/STATE.md` — current milestone state ("Phase 102 Not started" at line 27).
+- `/Users/<user>/projects/threadline/.planning/v1.22-MILESTONE-AUDIT.md` — SURF-01/02/03 audit findings at lines 40-60; tech-debt note for `98-VALIDATION.md` draft state at lines 70-73.
+- `/Users/<user>/projects/threadline/lib/threadline/operator_surface/router.ex` — `/audit/evidence` mount at line 100 (verified live).
+- `/Users/<user>/projects/threadline/lib/threadline/operator_surface/live/evidence_live.ex` — full file read; `mount/3` line 12, `handle_params/3` line 21, `render/1` line 49, copy literals at lines 67/89-95/142/154; `alias Threadline.Evidence.Proof` line 8; `Proof.present_record` call site line 253.
+- `/Users/<user>/projects/threadline/lib/threadline/operator_surface/auth.ex` — full file read; `defp assign_evidence_enabled/2` line 253; fail-closed default `Keyword.get(opts, :evidence_authorize_fn, fn _ -> false end)` at line 254.
+- `/Users/<user>/projects/threadline/lib/threadline/operator_surface/unsupported.ex` — full file read; `:evidence_unavailable` descriptor body at line 25 contains the locked `Evidence view unavailable.` literal.
+- `/Users/<user>/projects/threadline/lib/threadline/evidence/proof.ex` — full file read; `@semantic_statuses ~w(proven inferred_posture unsupported)` at line 10; `present_record/1` at line 75 (the shared presenter Band 2 cites).
+- `/Users/<user>/projects/threadline/test/threadline/operator_surface/live/evidence_live_test.exs` — full file read; 5 tests in `describe "mount /audit/evidence"` at lines 105-217.
+- `/Users/<user>/projects/threadline/test/threadline/operator_surface/auth_test.exs` — full file read; 29 tests across 5 `describe` blocks, with `describe "assign_evidence_enabled"` at lines 337-394 owning SURF-03 unit-scope fan-out.
+- `/Users/<user>/projects/threadline/CLAUDE.md` — project verify-alias conventions and three-layer architecture.
 
 ### Secondary (MEDIUM confidence)
 
