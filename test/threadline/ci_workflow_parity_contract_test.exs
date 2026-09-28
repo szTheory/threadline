@@ -588,7 +588,26 @@ defmodule Threadline.CIWorkflowParityContractTest do
          &String.replace(&1, "postgres:16", "postgres:devel"), "rule=pg-tag"},
         {"unresolvable matrix key", @ci_path,
          &String.replace(&1, "postgres:${{ matrix.pg }}", "postgres:${{ matrix.pg_tag }}"),
-         "rule=pg-unresolved"}
+         "rule=pg-unresolved"},
+        {"registry-prefixed beta image in browser-full.yml", ".github/workflows/browser-full.yml",
+         &String.replace(
+           &1,
+           "image: postgres:16",
+           "image: docker.io/library/postgres:19beta1"
+         ), "rule=pg-tag"},
+        {"expression with a pre-release suffix", @ci_path,
+         &String.replace(&1, "postgres:${{ matrix.pg }}", "postgres:${{ matrix.pg }}rc1"),
+         "rule=pg-unresolved"},
+        {"untagged image (implicit latest) in docker-compose.yml", "docker-compose.yml",
+         &String.replace(&1, "    image: postgres:16\n", "    image: postgres\n"), "rule=pg-tag"},
+        {"digest-pinned image in flake-detection.yml", ".github/workflows/flake-detection.yml",
+         &String.replace(
+           &1,
+           "image: postgres:16",
+           "image: postgres@sha256:" <> String.duplicate("0", 64)
+         ), "rule=pg-tag"},
+        {"docker run of a beta image in release.yml", ".github/workflows/release.yml",
+         &(&1 <> "      - run: docker run --rm postgres:19beta1\n"), "rule=pg-tag"}
       ]
 
       for {control, path, mutate, fragment} <- controls do
@@ -617,6 +636,27 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       assert postgres_image_tags(with_url) == tags,
              "a postgres:// connection URL must not be read as an image reference"
+
+      # Positive controls: a registry-prefixed, quoted or commented release tag
+      # is still a release tag and must neither fail nor drop out of the scan.
+      for {control, replacement} <- [
+            {"registry-prefixed release tag", "    image: docker.io/library/postgres:16\n"},
+            {"quoted release tag", ~s(    image: "postgres:16"\n)},
+            {"trailing comment", "    image: postgres:16 # pinned\n"}
+          ] do
+        variant =
+          Map.update!(
+            sources,
+            "docker-compose.yml",
+            &String.replace(&1, "    image: postgres:16\n", replacement)
+          )
+
+        refute variant == sources, "#{control} positive control did not change the input"
+        assert postgres_image_errors(variant) == [], "#{control} must pass"
+
+        assert postgres_image_tags(variant) == tags,
+               "#{control} must still be scanned as postgres:16"
+      end
     end
   end
 
@@ -741,10 +781,19 @@ defmodule Threadline.CIWorkflowParityContractTest do
     Map.put(all_workflows(), "docker-compose.yml", read_rel!(["docker-compose.yml"]))
   end
 
-  # D-16: every `postgres:<tag>` image in every workflow and docker-compose.yml
-  # must be a release tag (`18` or `18.6`). `${{ matrix.pg }}` resolves through
-  # the job's parsed `include` rows; anything unresolvable fails closed. The
-  # lookbehind skips `postgres://…@postgres:5432` connection URLs.
+  # D-16: every PostgreSQL image in every workflow and docker-compose.yml must
+  # be a release tag (`18` or `18.6`). `${{ matrix.pg }}` resolves through the
+  # job's parsed `include` rows; anything unresolvable fails closed.
+  #
+  # `image:` lines are parsed whole (WR-02, 220 review), so a registry or
+  # namespace prefix (`docker.io/library/postgres:…`), an untagged image
+  # (implicit `latest`), a digest pin, or text around a `${{ … }}` expression
+  # cannot slip past. Any image whose final path segment starts with
+  # `postgres` counts (fail closed). Every other line is scanned for bare
+  # `postgres:<tag>` tokens (a `docker run` or `container:` shorthand); there
+  # the lookbehind skips `postgres://…@postgres:5432` connection URLs.
+  @postgres_image_line ~r/^\s*image:\s*(.+?)\s*$/
+  @image_value ~r/^(?:[^\s\/]+\/)*(?<name>[A-Za-z0-9._-]+)(?<rest>.*)$/
   @postgres_image_ref ~r/(?<![\w\/@:.-])postgres:(\$\{\{[^}]*\}\}|[A-Za-z0-9_.-]+)/
   @postgres_release_tag ~r/^\d+(\.\d+)?$/
 
@@ -767,6 +816,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
       ]
   end
 
+  defp postgres_ref_errors(path, job_id, {:invalid, image}) do
+    [
+      "#{path} job=#{job_id} rule=pg-tag: image #{image} carries no checkable release " <>
+        "tag (untagged means implicit latest; a digest pin hides the version) (D-16)"
+    ]
+  end
+
   defp postgres_ref_errors(path, job_id, {:unresolved, expr}) do
     [
       "#{path} job=#{job_id} rule=pg-unresolved: postgres:#{expr} does not resolve to " <>
@@ -774,14 +830,53 @@ defmodule Threadline.CIWorkflowParityContractTest do
     ]
   end
 
-  # [{path, job_id, {:ok, tag} | {:unresolved, expr}}]
+  # [{path, job_id, {:ok, tag} | {:unresolved, expr} | {:invalid, image}}]
   defp postgres_image_refs(sources) do
     for {path, text} <- Enum.sort(sources),
         {job_id, block} <- image_scan_units(text),
-        [_, ref] <- Regex.scan(@postgres_image_ref, strip_comment_lines(block)),
-        resolved <- resolve_postgres_ref(ref, block),
+        line <- block |> strip_comment_lines() |> String.split("\n"),
+        resolved <- postgres_line_refs(line, block),
         do: {path, job_id, resolved}
   end
+
+  defp postgres_line_refs(line, block) do
+    case Regex.run(@postgres_image_line, line) do
+      [_, value] ->
+        value |> strip_yaml_scalar() |> postgres_image_value_refs(block)
+
+      nil ->
+        for [_, ref] <- Regex.scan(@postgres_image_ref, line),
+            resolved <- resolve_postgres_ref(ref, block),
+            do: resolved
+    end
+  end
+
+  # Drops a trailing ` # comment` and one layer of surrounding quotes.
+  defp strip_yaml_scalar(value) do
+    value
+    |> String.replace(~r/\s+#.*$/, "")
+    |> String.trim()
+    |> String.replace(~r/^(["'])(.*)\1$/, "\\2")
+  end
+
+  defp postgres_image_value_refs(image, block) do
+    with %{"name" => name, "rest" => rest} <- Regex.named_captures(@image_value, image),
+         true <- String.starts_with?(String.downcase(name), "postgres") do
+      postgres_image_rest_refs(image, rest, block)
+    else
+      _ -> []
+    end
+  end
+
+  defp postgres_image_rest_refs(_image, ":" <> tag, block) do
+    cond do
+      not String.contains?(tag, "${{") -> [{:ok, tag}]
+      Regex.match?(~r/^\$\{\{[^}]*\}\}$/, tag) -> resolve_postgres_ref(tag, block)
+      true -> [{:unresolved, tag}]
+    end
+  end
+
+  defp postgres_image_rest_refs(image, _rest, _block), do: [{:invalid, image}]
 
   # A workflow is scanned per job (matrix expressions resolve per job); a file
   # with no `jobs:` section (docker-compose.yml) is scanned whole.
