@@ -33,6 +33,8 @@ defmodule Threadline.BrowserFullProjectsContractTest do
 
   import Bitwise
 
+  alias Threadline.Test.CiIssuePairing
+
   @moduletag :tmp_dir
 
   @repo_root Path.expand("../..", __DIR__)
@@ -570,16 +572,13 @@ defmodule Threadline.BrowserFullProjectsContractTest do
         {has_all?(close, [
            ~s(bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file")
          ]), "close step must call bin/upsert-ci-issue --close"},
-        {has_all?(close, [
-           ~s|TITLE_PREFIX: "Browser (full project set) is failing"|,
-           ~r/^\s+LABEL: ci-browser-full$/m
-         ]), "close step must use the issue step's TITLE_PREFIX and LABEL"},
         {has_all?(step(yaml, @issue_step), ["if: failure()"]),
          "failure-issue step must keep if: failure()"}
         | heavy
       ]
       |> Enum.reject(&elem(&1, 0))
       |> Enum.map(&elem(&1, 1))
+      |> Kernel.++(CiIssuePairing.violations(yaml, @issue_step, @close_step))
     end
 
     test "gate, permissions, gated heavy steps, close-on-green and failure issue are wired" do
@@ -609,6 +608,23 @@ defmodule Threadline.BrowserFullProjectsContractTest do
       assert "close step must run only on success() of a run decision" in wiring_violations(
                always_close
              )
+    end
+
+    test "wiring controls: renaming only the open step's TITLE_PREFIX or LABEL is caught (WR-06)" do
+      yaml = File.read!(@browser_full)
+      [before_close, close_and_after] = String.split(yaml, @close_step, parts: 2)
+
+      for {from, to} <- [
+            {~s|TITLE_PREFIX: "Browser (full project set) is failing"|,
+             ~s|TITLE_PREFIX: "Browser-full is failing"|},
+            {"LABEL: ci-browser-full\n", "LABEL: ci-browser\n"}
+          ] do
+        renamed_open = String.replace(before_close, from, to) <> @close_step <> close_and_after
+        refute renamed_open == yaml, "control did not change the input"
+
+        assert wiring_violations(renamed_open) != [],
+               "renaming only the open step (#{to}) must fail the contract"
+      end
     end
   end
 end

@@ -24,6 +24,8 @@ defmodule Threadline.FlakeClassifierContractTest do
   use ExUnit.Case, async: true
   @moduletag :tmp_dir
 
+  alias Threadline.Test.CiIssuePairing
+
   @repo_root File.cwd!()
   @script Path.join(@repo_root, "bin/classify-flake-run")
   @workflow_path Path.join(@repo_root, ".github/workflows/flake-detection.yml")
@@ -676,13 +678,13 @@ defmodule Threadline.FlakeClassifierContractTest do
          "close step must run only when the classification is pass"},
         {close_body =~
            ~s(bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file"),
-         "close step must call bin/upsert-ci-issue --close"},
-        {close_body =~ ~s(TITLE_PREFIX: "Flake Detection: test suite") and
-           close_body =~ ~r/^\s+LABEL: ci-flake$/m,
-         "close step must use the issue step's TITLE_PREFIX and LABEL"}
+         "close step must call bin/upsert-ci-issue --close"}
       ]
       |> Enum.reject(&elem(&1, 0))
       |> Enum.map(&elem(&1, 1))
+      |> Kernel.++(
+        CiIssuePairing.violations(yaml, "Open or update the flake tracking issue", @close_step)
+      )
     end
 
     test "every non-pass outcome reports its cause, and only a pass closes the issue (D-04/D-06)" do
@@ -724,6 +726,23 @@ defmodule Threadline.FlakeClassifierContractTest do
 
       refute wrong_label == yaml, "control did not change the input"
       assert Enum.any?(reporting_violations(wrong_label), &(&1 =~ "--close"))
+    end
+
+    test "reporting controls: renaming only the open step's TITLE_PREFIX or LABEL is caught (WR-06)" do
+      yaml = File.read!(@workflow_path)
+      [before_close, close_and_after] = String.split(yaml, @close_step, parts: 2)
+
+      for {from, to} <- [
+            {~s(TITLE_PREFIX: "Flake Detection: test suite"),
+             ~s(TITLE_PREFIX: "Flake Detection: suite")},
+            {"LABEL: ci-flake\n", "LABEL: ci-flakes\n"}
+          ] do
+        renamed_open = String.replace(before_close, from, to) <> @close_step <> close_and_after
+        refute renamed_open == yaml, "control did not change the input"
+
+        assert reporting_violations(renamed_open) != [],
+               "renaming only the open step (#{to}) must fail the contract"
+      end
     end
   end
 
