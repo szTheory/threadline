@@ -557,8 +557,21 @@ defmodule Threadline.CIWorkflowParityContractTest do
       assert build_cache_security_errors(%{".github/workflows/release.yml" => text}) == []
     end
 
+    test "docs: the fixture ci.yml comment and CONTRIBUTING section satisfy the doc rules" do
+      fixture = build_cache_fixture()
+      contributing = build_cache_fixture_contributing()
+
+      assert build_cache_doc_errors(fixture, contributing) == []
+
+      assert Enum.any?(
+               build_cache_doc_errors(fixture, "## Contributing\n"),
+               &(&1 =~ "rule=doc-contributing")
+             ),
+             "a CONTRIBUTING without the section must fail the doc rules"
+    end
+
     test "the synthetic fixture satisfies every build cache rule" do
-      errors = build_cache_errors(build_cache_fixture(), "")
+      errors = build_cache_errors(build_cache_fixture(), build_cache_fixture_contributing())
 
       assert errors == [],
              "the fixture is the shape plan 02 must reach; it must be clean, got:\n" <>
@@ -614,7 +627,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
 
     test "control: every build cache fault is red on the fixture, each with its own rule" do
-      assert_build_cache_controls(build_cache_fixture(), "")
+      assert_build_cache_controls(build_cache_fixture(), build_cache_fixture_contributing())
     end
 
     test "positive control: extra `_build` comment lines keep the fixture clean" do
@@ -630,23 +643,23 @@ defmodule Threadline.CIWorkflowParityContractTest do
         end)
 
       refute commented == fixture, "the positive control did not change the input"
-      assert build_cache_errors(commented, "") == []
+      assert build_cache_errors(commented, build_cache_fixture_contributing()) == []
     end
 
     test "control: every build cache fault is red on the hybrid map (live workflows, fixture ci.yml)" do
       hybrid = Map.put(all_workflows(), @ci_workflow, build_cache_fixture()[@ci_workflow])
-      errors = build_cache_errors(hybrid, "")
+      errors = build_cache_errors(hybrid, build_cache_fixture_contributing())
 
       assert errors == [],
              "every live workflow plus the fixture ci.yml must be clean, got:\n" <>
                Enum.join(errors, "\n")
 
-      assert_build_cache_controls(hybrid, "")
+      assert_build_cache_controls(hybrid, build_cache_fixture_contributing())
     end
 
     test "live needle: every control outside <interfaces> bites on the fully live workflows" do
       live = all_workflows()
-      contributing = ""
+      contributing = build_cache_fixture_contributing()
       baseline = build_cache_errors(live, contributing)
       controls = build_cache_live_needle_controls(live, contributing)
 
@@ -1595,8 +1608,144 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   # The whole CACHE-01 contract over `%{repo_rel_path => workflow_text}` plus the
   # CONTRIBUTING text. Returns one message per broken rule; `[]` means clean.
-  defp build_cache_errors(yaml_by_path, _contributing) do
-    build_cache_security_errors(yaml_by_path) ++ build_cache_tree_errors(yaml_by_path)
+  defp build_cache_errors(yaml_by_path, contributing) do
+    build_cache_security_errors(yaml_by_path) ++
+      build_cache_tree_errors(yaml_by_path) ++ build_cache_doc_errors(yaml_by_path, contributing)
+  end
+
+  # Assembled so this file's own text never contains the stale sentence it
+  # forbids (the `@os_family_context` idiom).
+  @stale_build_cache_sentence "There is " <> "currently NO"
+
+  @build_cache_rm_literal ~S(rm -rf "_build/${MIX_ENV:?}/lib/threadline")
+
+  @build_cache_cached_table_header "| Job | Build cache | Saves on miss |"
+  @build_cache_excluded_table_header "| Job or workflow | Why it has no build cache |"
+
+  # What the CONTRIBUTING `### Dependency build cache` section must say (D-19):
+  # the removal, the no-restore-keys rule, the key version, the poisoned-cache
+  # runbook, the benign save-race warning and the per-cache log markers.
+  @build_cache_doc_needles [
+    @build_cache_rm_literal,
+    "restore-keys",
+    "build-v1",
+    "gh cache list",
+    "gh cache delete",
+    "actions: write",
+    "Unable to reserve cache",
+    "THREADLINE_BUILD_CACHE",
+    "THREADLINE_EXAMPLE_BUILD_CACHE"
+  ]
+
+  # D-19, D-20: the ci.yml CACHE KEY CONTRACT comment and the CONTRIBUTING
+  # section describe the live cache, pinned by the same function as the YAML.
+  defp build_cache_doc_errors(yaml_by_path, contributing) do
+    ci_cache_comment_errors(Map.get(yaml_by_path, @ci_workflow, "")) ++
+      contributing_build_cache_errors(contributing)
+  end
+
+  defp ci_cache_comment_errors(ci) do
+    comments =
+      ci |> String.split("\n") |> Enum.filter(&String.match?(&1, ~r/^\s*#/)) |> Enum.join("\n")
+
+    [
+      # Pitfall 1: the OS-family control needles on this exact line.
+      {Regex.match?(~r/^      # CACHE KEY CONTRACT/m, comments),
+       "has no six-space `# CACHE KEY CONTRACT` heading line"},
+      {String.contains?(comments, "build-v1"), "does not name the `build-v1` key version"},
+      {String.contains?(comments, @build_cache_rm_literal),
+       "does not name `#{@build_cache_rm_literal}`"},
+      {not String.contains?(comments, @stale_build_cache_sentence),
+       "still says \"#{@stale_build_cache_sentence} `_build` cache\""}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(fn {_ok, what} ->
+      build_cache_error(
+        {@ci_workflow, "-", "CACHE KEY CONTRACT"},
+        "rule=doc-ci-comment",
+        "the CACHE KEY CONTRACT comment #{what}",
+        "the comment is the in-file record of the live cache design (D-19)",
+        "describe the live `_build` cache in the present tense"
+      )
+    end)
+  end
+
+  defp contributing_build_cache_errors(contributing) do
+    contributing
+    |> build_cache_section()
+    |> build_cache_section_failures()
+    |> Enum.map(fn what ->
+      build_cache_error(
+        {"CONTRIBUTING.md", "-", "Dependency build cache"},
+        "rule=doc-contributing",
+        what,
+        "maintainers debug and recover the cache from this section (D-19)",
+        "update `### Dependency build cache` in CONTRIBUTING.md"
+      )
+    end)
+  end
+
+  defp build_cache_section_failures(nil), do: ["has no `### Dependency build cache` section"]
+
+  defp build_cache_section_failures(section) do
+    cached = for {{_path, job}, _entry} <- @build_cache_jobs, into: MapSet.new(), do: job
+    excluded = for {{_path, job}, _reason} <- @build_cache_exclusions, into: MapSet.new(), do: job
+    cached_doc = doc_table_ids(section, @build_cache_cached_table_header)
+    excluded_doc = doc_table_ids(section, @build_cache_excluded_table_header)
+
+    [
+      {MapSet.equal?(cached_doc, cached),
+       "the cached-job table lists #{inspect(Enum.sort(cached_doc))}, " <>
+         "but @build_cache_jobs names #{inspect(Enum.sort(cached))}"},
+      {MapSet.equal?(excluded_doc, excluded),
+       "the not-cached table lists #{inspect(Enum.sort(excluded_doc))}, " <>
+         "but @build_cache_exclusions names #{inspect(Enum.sort(excluded))}"}
+      | for(
+          needle <- @build_cache_doc_needles,
+          do: {String.contains?(section, needle), "the section does not mention `#{needle}`"}
+        )
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  # The section body between the exact heading and the next `## ` / `### `.
+  defp build_cache_section(contributing) do
+    case contributing
+         |> String.split("\n")
+         |> Enum.drop_while(&(&1 != "### Dependency build cache")) do
+      [] ->
+        nil
+
+      [_heading | rest] ->
+        rest |> Enum.take_while(&(not Regex.match?(~r/^###? /, &1))) |> Enum.join("\n")
+    end
+  end
+
+  # Backticked ids in the first column of the table under `header`, up to the
+  # first blank line, separator row skipped. A missing table yields no ids.
+  defp doc_table_ids(section, header) do
+    case section |> String.split("\n") |> Enum.drop_while(&(String.trim(&1) != header)) do
+      [] ->
+        MapSet.new()
+
+      [_header | rows] ->
+        rows
+        |> Enum.take_while(&(String.trim(&1) != ""))
+        |> Enum.reject(&Regex.match?(~r/^\s*\|[\s:|-]+\|\s*$/, &1))
+        |> Enum.flat_map(&first_cell_ids/1)
+        |> MapSet.new()
+    end
+  end
+
+  defp first_cell_ids(row) do
+    case String.split(row, "|") do
+      [_, cell | _] ->
+        ~r/`([^`]+)`/ |> Regex.scan(cell, capture: :all_but_first) |> List.flatten()
+
+      _ ->
+        []
+    end
   end
 
   # D-07: the contiguous step sequence of each cached project, by step class.
@@ -2535,11 +2684,34 @@ defmodule Threadline.CIWorkflowParityContractTest do
       build_cache_key_controls(ctx) ++
       build_cache_rm_controls(ctx) ++
       build_cache_block_controls(ctx) ++
+      build_cache_doc_controls(ctx) ++
       [
         {"a workflow_run workflow with a cache step",
          Map.put(workflows, ".github/workflows/privileged-cache.yml", @privileged_cache_workflow),
          contributing, "rule=privileged-trigger-cache"}
       ] ++ build_cache_live_needle_controls(workflows, contributing)
+  end
+
+  # D-19: the stale comment sentence, a runbook needle and a table row.
+  defp build_cache_doc_controls(ctx) do
+    [
+      ci_control(
+        ctx,
+        "stale sentence back in the CACHE KEY CONTRACT comment",
+        "rule=doc-ci-comment",
+        &add_line_after(
+          &1,
+          "      # CACHE KEY CONTRACT",
+          "      # " <> @stale_build_cache_sentence <> " `_build` cache in this workflow."
+        )
+      ),
+      {"CONTRIBUTING without `gh cache delete`", ctx.workflows,
+       String.replace(ctx.contributing, "gh cache delete", "gh cache remove"),
+       "rule=doc-contributing"},
+      {"CONTRIBUTING cached-job table without its verify-capture row", ctx.workflows,
+       Regex.replace(~r/^\| `verify-capture` \|[^\n]*\n/m, ctx.contributing, "", global: false),
+       "rule=doc-contributing"}
+    ]
   end
 
   defp ci_control(ctx, label, fragment, fun),
@@ -2903,11 +3075,73 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for({{^path, job_id}, _reason} <- @build_cache_exclusions, do: job_id) |> Enum.sort()
   end
 
+  # The present-tense comment plan 02 writes into ci.yml verify-format (D-19).
+  @fixture_cache_key_comment ~S"""
+        # CACHE KEY CONTRACT (Phase 198 D-19, Phase 219 CACHE-01) — read before adding any cache.
+        #
+        # Every key leads with the literal runner label and the resolved OTP and
+        # Elixir from the `beam` step outputs. The deps-only `_build` caches add
+        # `build-v1`, the project, MIX_ENV, the `full` profile, and the project's
+        # own lock and config hashes. They carry no `restore-keys`, and every
+        # cached job runs `rm -rf "_build/${MIX_ENV:?}/lib/threadline"` (the
+        # example removes both of its apps) before the save and the compile.
+  """
+
   # Each stub copies the live job header line and the live `    steps:` line,
   # so insert_step_in_job/3 finds the same needles as in the live files.
   defp fixture_stub_job(job_id) do
+    comment = if job_id == "verify-format", do: @fixture_cache_key_comment, else: ""
+
     "  #{job_id}:\n    name: #{job_id} stub\n    runs-on: ubuntu-24.04\n    steps:\n" <>
-      "      - uses: actions/checkout@v5\n\n      - name: Run #{job_id}\n        run: echo ok\n"
+      "      - uses: actions/checkout@v5\n\n" <>
+      comment <> "      - name: Run #{job_id}\n        run: echo ok\n"
+  end
+
+  # A CONTRIBUTING-shaped text holding a correct `### Dependency build cache`
+  # section, bounded by neighbouring headings like the live file.
+  defp build_cache_fixture_contributing do
+    excluded_rows =
+      @build_cache_exclusions
+      |> Enum.sort()
+      |> Enum.map_join("\n", fn {{path, job}, reason} ->
+        "| `#{job}` (#{Path.basename(path)}) | #{reason} |"
+      end)
+
+    ~S"""
+    ## CI parity and `act`
+
+    ### Dialyzer PLT cache and measurement contract
+
+    The PLT cache is described here.
+
+    ### Dependency build cache
+
+    Test jobs restore an exact deps-only `_build` cache (key version `build-v1`)
+    and never use `restore-keys`. Before the save and the compile, every cached
+    job runs `rm -rf "_build/${MIX_ENV:?}/lib/threadline"`.
+
+    | Job | Build cache | Saves on miss |
+    | --- | --- | --- |
+    | `verify-test` | root (both lanes) and example (current lane) | yes |
+    | `verify-pgbouncer-topology` | root, restore-only | no |
+    | `verify-example-browser` | example | yes |
+    | `verify-capture` | example | yes |
+
+    | Job or workflow | Why it has no build cache |
+    | --- | --- |
+    """ <>
+      excluded_rows <>
+      ~S"""
+
+
+      A cold run can log `Unable to reserve cache` when two jobs save one key.
+      Each cached job prints `THREADLINE_BUILD_CACHE=hit|miss key=...` and
+      `THREADLINE_EXAMPLE_BUILD_CACHE=hit|miss key=...`. To recover from a
+      poisoned entry, find it with `gh cache list --key ...`, remove it with
+      `gh cache delete <key>` (needs `actions: write`), then bump `build-v1`.
+
+      ## PgBouncer topology CI parity
+      """
   end
 
   @fixture_beam_step ~S"""
