@@ -263,7 +263,21 @@ Plans:
   3. `verify-compile-no-optional` and the `release.yml` publish path contain no cache step, and the parity contract test asserts all of the above rules.
   4. A before/after measurement cites run IDs and records the per-job and critical-path delta against the Phase 214 baseline.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+**Wave 1**
+
+- [x] 219-01-PLAN.md — Contract first: pure `build_cache_errors/2` with allowlists, key segments, step-order classifier and docs parity, proven by D-21 mutation controls on a synthetic fixture; D-17 security subset asserted live (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 219-02-PLAN.md — One commit: exact-keyed deps-only root and example caches in verify-test, pgbouncer (restore-only), example-browser and capture; no-optional deps cache removed; ci.yml comment + CONTRIBUTING `### Dependency build cache`; contract flipped live (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 219-03-PLAN.md — Copied measurement tools + `remeasure-219.py`, maintainer landing/dispatch checkpoint, cited `219-REMEASURE.md` against BASE-01 and 218 (wave 3, non-autonomous)
+
 **Research**: Yes: config-in-key and profile-segment shape are inference; check eviction under the 10 GB cache budget
 
 ### Phase 220: Newest-Toolchain Lane
@@ -318,7 +332,7 @@ Plans:
 | 216. CI Platform Currency | 8/8 | Complete    | 2026-09-27 |
 | 217. Repo Hygiene | 7/7 | Complete    | 2026-09-27 |
 | 218. CI Economy: Remove Waste | 8/8 | Complete    | 2026-09-27 |
-| 219. Deps-Only Build Cache | 0/TBD | Not started | - |
+| 219. Deps-Only Build Cache | 2/3 | In Progress | - |
 | 220. Newest-Toolchain Lane | 0/TBD | Not started | - |
 | 221. CI Names and Order | 0/TBD | Not started | - |
 | 222. SEED-006 Change-Aware Lanes | 0/TBD | Not started | - |
