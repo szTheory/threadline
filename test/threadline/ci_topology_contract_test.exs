@@ -993,7 +993,7 @@ defmodule Threadline.CiTopologyContractTest do
     end
   end
 
-  defp dominance_errors(mix_exs, yaml) do
+  defp dominance_errors(mix_exs, yaml, rehearsal) do
     release = verify_release_body(mix_exs)
     triggers = workflow_triggers(yaml)
     needs = ci_required_needs_from(yaml)
@@ -1025,6 +1025,10 @@ defmodule Threadline.CiTopologyContractTest do
          workflow_job(yaml, "verify-bump-rehearsal"),
          "run: mix verify.bump_rehearsal"
        ), "verify-bump-rehearsal must run mix verify.bump_rehearsal, which runs verify.release"},
+      {Regex.match?(~r/^\s*run_gate\s+"[^"]*"\s+mix verify\.release\b/m, rehearsal),
+       "bin/verify-bump-rehearsal must run an uncommented `run_gate ... mix verify.release` " <>
+         "gate; without it the ExDoc and hex.build proofs of the removed verify-docs / " <>
+         "verify-hex-package jobs leave per-PR CI while every other pin stays green"},
       {String.contains?(
          workflow_job(yaml, "verify-hex-evaluator"),
          "run: mix verify.hex_evaluator"
@@ -1055,8 +1059,9 @@ defmodule Threadline.CiTopologyContractTest do
   test "dominating proofs for removed jobs stay in force" do
     mix_exs = read_rel!(["mix.exs"])
     yaml = read_rel!([".github", "workflows", "ci.yml"])
+    rehearsal = read_rel!(["bin", "verify-bump-rehearsal"])
 
-    assert dominance_errors(mix_exs, yaml) == []
+    assert dominance_errors(mix_exs, yaml, rehearsal) == []
 
     mix_controls = [
       {"ExDoc build dropped from verify.release",
@@ -1102,14 +1107,37 @@ defmodule Threadline.CiTopologyContractTest do
     for {control, mutated} <- mix_controls do
       refute mutated == mix_exs, "#{control} control did not change the input"
 
-      refute dominance_errors(mutated, yaml) == [],
+      refute dominance_errors(mutated, yaml, rehearsal) == [],
              "#{control} mutation must make the dominance contract fail"
     end
 
     for {control, mutated} <- yaml_controls do
       refute mutated == yaml, "#{control} control did not change the input"
 
-      refute dominance_errors(mix_exs, mutated) == [],
+      refute dominance_errors(mix_exs, mutated, rehearsal) == [],
+             "#{control} mutation must make the dominance contract fail"
+    end
+
+    # 218 review WR-04: the chain's third link (the rehearsal runs verify.release).
+    rehearsal_controls = [
+      {"verify.release gate removed from the rehearsal",
+       String.replace(
+         rehearsal,
+         ~s(  run_gate "mix verify.release at $NEXT" mix verify.release || true\n),
+         "  true\n"
+       )},
+      {"verify.release gate commented out",
+       String.replace(
+         rehearsal,
+         ~s(  run_gate "mix verify.release at $NEXT" mix verify.release || true\n),
+         ~s(  true # run_gate "mix verify.release at $NEXT" mix verify.release\n)
+       )}
+    ]
+
+    for {control, mutated} <- rehearsal_controls do
+      refute mutated == rehearsal, "#{control} control did not change the input"
+
+      refute dominance_errors(mix_exs, yaml, mutated) == [],
              "#{control} mutation must make the dominance contract fail"
     end
   end
