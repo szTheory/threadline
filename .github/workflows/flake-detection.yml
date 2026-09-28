@@ -125,7 +125,8 @@ jobs:
       # `timeout(1)` rather than only the step timeout: a GitHub step timeout
       # kills the step before `exit_code` is written, which the classifier could
       # only report as `unknown`. Under `timeout(1)` a budget expiry still writes
-      # `exit_code=124` (or 137 after the 60 s kill grace).
+      # `exit_code=124` (or 137 after the 60 s kill grace). `elapsed_s` lets the
+      # classifier tell that 137 from an OOM or other early SIGKILL (WR-02).
       - name: Repeat the suite until failure
         id: repeat
         if: steps.gate.outputs.decision == 'run'
@@ -133,9 +134,11 @@ jobs:
         run: |
           set +e
           set -uo pipefail
+          SECONDS=0
           timeout --signal=TERM --kill-after=60s 55m mix verify.flake 2>&1 | tee flake-detection.log
           exit_code="${PIPESTATUS[0]}"
           echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+          echo "elapsed_s=$SECONDS" >> "$GITHUB_OUTPUT"
           exit 0
 
       # `if: always()` is the CR-01 fix: without it this step defaults to
@@ -156,6 +159,11 @@ jobs:
         env:
           GATE_DECISION: ${{ steps.gate.outputs.decision }}
           EXIT_CODE: ${{ steps.repeat.outputs.exit_code }}
+          # WR-02: exit 137 is a budget kill only when the repeat step ran at
+          # least the timeout(1) budget (55m above = 3300 s); an earlier SIGKILL
+          # (OOM, runner) classifies unknown. The contract test pins 3300 to 55m.
+          ELAPSED_S: ${{ steps.repeat.outputs.elapsed_s }}
+          BUDGET_S: "3300"
         run: |
           set -uo pipefail
           classification=$(bin/classify-flake-run flake-detection.log)

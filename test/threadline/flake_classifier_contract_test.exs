@@ -171,6 +171,17 @@ defmodule Threadline.FlakeClassifierContractTest do
   end
 
   describe "Test 1c: a budget expiry is inconclusive, never flaky (D-04)" do
+    defp classify_log(tmp_dir, log_contents, env) do
+      log = Path.join(tmp_dir, "flake-fixture-#{System.unique_integer([:positive])}.log")
+      File.write!(log, log_contents)
+      output_path = Path.join(tmp_dir, "github-output-#{System.unique_integer([:positive])}")
+
+      {output, status} =
+        System.cmd(@script, [log], env: [{"GITHUB_OUTPUT", output_path} | env])
+
+      {String.trim(output), status, File.read!(output_path)}
+    end
+
     defp classify_with_output(tmp_dir, headers, exit_code) do
       log = fixture_log(tmp_dir, headers)
       output_path = Path.join(tmp_dir, "github-output-#{System.unique_integer([:positive])}")
@@ -197,7 +208,14 @@ defmodule Threadline.FlakeClassifierContractTest do
     test "exit 137 (killed after the grace period) with 2 headers -> inconclusive", %{
       tmp_dir: tmp_dir
     } do
-      {output, status, _} = classify_with_output(tmp_dir, 2, "137")
+      # 137 counts as a budget kill only with elapsed-time evidence at or over
+      # the budget (218 review WR-02); see Test 1f for the other rows.
+      {output, status, _} =
+        classify_log(tmp_dir, String.duplicate(@seed_header, 2), [
+          {"EXIT_CODE", "137"},
+          {"ELAPSED_S", "3361"},
+          {"BUDGET_S", "3300"}
+        ])
 
       assert status == 0
       assert output == "inconclusive"
@@ -222,6 +240,75 @@ defmodule Threadline.FlakeClassifierContractTest do
       assert {"pass", 0, _} = classify_with_output(tmp_dir, 3, "0")
       assert {"unknown", 0, empty_out} = classify_with_output(tmp_dir, 3, "")
       assert empty_out =~ ~r/^reason=EXIT_CODE empty or non-numeric$/m
+    end
+  end
+
+  describe "Test 1f: a cut-off iteration's failure and a non-budget kill are not inconclusive (218 review WR-02)" do
+    @failure_entry "\n  1) test widget saves (Threadline.WidgetTest)\n     test/widget_test.exs:12\n     Assertion with == failed\n"
+    @clean_summary "Finished in 200.1 seconds\n2460 tests, 0 failures, 26 excluded\n"
+
+    test "124 with a failure printed in the cut-off iteration -> flaky, not inconclusive", %{
+      tmp_dir: tmp_dir
+    } do
+      log = String.duplicate(@seed_header <> @clean_summary, 2) <> @seed_header <> @failure_entry
+
+      {output, 0, gh_output} = classify_log(tmp_dir, log, [{"EXIT_CODE", "124"}])
+
+      assert output == "flaky"
+      assert gh_output =~ ~r/^reason=.*failed on iteration 3 before the time budget cut it off/m
+    end
+
+    test "124 with a failure in the first, cut-off iteration -> broken", %{tmp_dir: tmp_dir} do
+      {output, 0, _} =
+        classify_log(tmp_dir, @seed_header <> @failure_entry, [{"EXIT_CODE", "124"}])
+
+      assert output == "broken"
+    end
+
+    test "a failure summary line alone is failure evidence", %{tmp_dir: tmp_dir} do
+      log = @seed_header <> @clean_summary <> @seed_header <> "2460 tests, 1 failure\n"
+
+      assert {"flaky", 0, _} = classify_log(tmp_dir, log, [{"EXIT_CODE", "124"}])
+    end
+
+    test "control: clean summaries only (0 failures) stay inconclusive", %{tmp_dir: tmp_dir} do
+      log = String.duplicate(@seed_header <> @clean_summary, 2) <> @seed_header
+
+      assert {"inconclusive", 0, _} = classify_log(tmp_dir, log, [{"EXIT_CODE", "124"}])
+    end
+
+    test "137 well under the budget -> unknown (OOM or external kill), not inconclusive", %{
+      tmp_dir: tmp_dir
+    } do
+      {output, 0, gh_output} =
+        classify_log(tmp_dir, String.duplicate(@seed_header, 2), [
+          {"EXIT_CODE", "137"},
+          {"ELAPSED_S", "600"},
+          {"BUDGET_S", "3300"}
+        ])
+
+      assert output == "unknown"
+      assert gh_output =~ ~r/^reason=killed \(exit 137\) after 600 s, under the 3300 s budget/m
+    end
+
+    test "137 with no elapsed-time evidence -> unknown", %{tmp_dir: tmp_dir} do
+      {output, 0, gh_output} =
+        classify_log(tmp_dir, String.duplicate(@seed_header, 2), [{"EXIT_CODE", "137"}])
+
+      assert output == "unknown"
+      assert gh_output =~ ~r/^reason=killed \(exit 137\) with no elapsed-time evidence/m
+    end
+
+    test "the workflow records elapsed time and passes it with the budget to the classifier" do
+      yaml = File.read!(@workflow_path)
+      repeat = step_body(yaml, "Repeat the suite until failure")
+      classify = step_body(yaml, "Classify broken vs flaky")
+
+      assert repeat =~ ~s(echo "elapsed_s=$SECONDS" >> "$GITHUB_OUTPUT")
+      assert classify =~ "ELAPSED_S: ${{ steps.repeat.outputs.elapsed_s }}"
+
+      assert [_, budget] = Regex.run(~r/^\s+BUDGET_S: "(\d+)"$/m, classify)
+      assert String.to_integer(budget) == budget_seconds(yaml)
     end
   end
 

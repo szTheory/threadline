@@ -199,7 +199,7 @@ per-PR CI stays fast. A run that does not pass ends red with one of these outcom
 
 - **broken**: the suite failed on its first iteration, so it is a deterministic failure, not a flake.
 - **flaky**: the suite passed at least once, then failed on a later iteration.
-- **inconclusive**: the time budget ran out while every iteration so far was clean. That is not a proof, so the run stays red.
+- **inconclusive**: the time budget ran out while every iteration so far was clean. That is not a proof, so the run stays red. A test failure printed before the budget ran out still counts as broken or flaky, and a kill well before the budget (such as an out-of-memory kill) is reported as unknown.
 - **broken-upstream**: CI is already red on the same commit with no green re-run, so the suite was not run.
 
 ## Local-only critic (verify.ui_critique)
