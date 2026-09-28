@@ -572,4 +572,104 @@ defmodule Threadline.FlakeClassifierContractTest do
       assert Enum.any?(reporting_violations(wrong_label), &(&1 =~ "--close"))
     end
   end
+
+  describe "Test 6: the repeat count fits inside the timeout(1) budget (D-01/D-02)" do
+    # Per-run figures measured on Flake Detection dispatch run 36359135268
+    # (land/v1.43-217-218, 2026-09-27, 2460 tests): cold first run 268.3 s,
+    # repeats 206.2-213.5 s (median ~209 s). Each ceiling is the measurement
+    # rounded up to the next whole second. That run was sized at 15 repeats
+    # from older, faster figures and expired its budget during iteration 16,
+    # so it classified `inconclusive` and a `pass` was unreachable.
+    @cold_first_run_ceiling_s 269
+    @repeat_ceiling_s 214
+    # Headroom kept free under the budget for runner variance and suite growth.
+    @headroom_percent 10
+
+    @mix_exs_path Path.join(@repo_root, "mix.exs")
+    @contributing_path Path.join(@repo_root, "CONTRIBUTING.md")
+
+    defp flake_repeats(mix_exs) do
+      [_, n] = Regex.run(~r/"verify\.flake":\s*\["test --repeat-until-failure (\d+)"\]/, mix_exs)
+      String.to_integer(n)
+    end
+
+    defp budget_seconds(yaml) do
+      [_, minutes] =
+        Regex.run(~r/timeout --signal=TERM --kill-after=60s (\d+)m mix verify\.flake/, yaml)
+
+      String.to_integer(minutes) * 60
+    end
+
+    # Returns every sizing violation; [] means 1 + repeats suite runs fit the budget.
+    defp sizing_violations(repeats, cold_s, repeat_s, budget_s) do
+      needed = cold_s + repeats * repeat_s
+      usable = div(budget_s * (100 - @headroom_percent), 100)
+
+      [
+        {repeats >= 1 and repeats <= 15,
+         "repeats (#{repeats}) must stay within D-02's bound of 15"},
+        {needed <= usable,
+         "1 + #{repeats} runs need #{needed} s (#{cold_s} + #{repeats} x #{repeat_s}), " <>
+           "over #{usable} s (#{budget_s} s budget less #{@headroom_percent}% headroom)"}
+      ]
+      |> Enum.reject(&elem(&1, 0))
+      |> Enum.map(&elem(&1, 1))
+    end
+
+    test "the committed repeat count fits the budget at the measured per-run ceilings" do
+      repeats = flake_repeats(File.read!(@mix_exs_path))
+      budget = budget_seconds(File.read!(@workflow_path))
+
+      assert budget == 55 * 60
+
+      assert sizing_violations(repeats, @cold_first_run_ceiling_s, @repeat_ceiling_s, budget) ==
+               []
+    end
+
+    test "the workflow comment, CONTRIBUTING and the classifier state the committed count" do
+      repeats = flake_repeats(File.read!(@mix_exs_path))
+      yaml = File.read!(@workflow_path)
+
+      assert yaml =~ "`mix test --repeat-until-failure #{repeats}`: #{repeats + 1} suite runs"
+      assert yaml =~ "bounded #{repeats}-repeat"
+      assert yaml =~ "run 36359135268"
+
+      assert File.read!(@contributing_path) =~ "full suite, #{repeats} repeats (fresh seed each)"
+      assert File.read!(@script) =~ "(`test --repeat-until-failure #{repeats}`)"
+    end
+
+    test "sizing mutation controls: the shipped 15 repeats or a longer ceiling is caught" do
+      budget = budget_seconds(File.read!(@workflow_path))
+
+      # The lane as 218-05 shipped it, at the measured median: red.
+      assert Enum.any?(
+               sizing_violations(15, @cold_first_run_ceiling_s, 209, budget),
+               &(&1 =~ "over")
+             )
+
+      mix_exs = File.read!(@mix_exs_path)
+      committed = flake_repeats(mix_exs)
+
+      reverted =
+        String.replace(
+          mix_exs,
+          "test --repeat-until-failure #{committed}",
+          "test --repeat-until-failure 15"
+        )
+
+      if committed != 15, do: refute(reverted == mix_exs, "control did not change the input")
+
+      assert Enum.any?(
+               sizing_violations(
+                 flake_repeats(reverted),
+                 @cold_first_run_ceiling_s,
+                 @repeat_ceiling_s,
+                 budget
+               ),
+               &(&1 =~ "over")
+             )
+
+      assert Enum.any?(sizing_violations(16, 1, 1, budget), &(&1 =~ "bound of 15"))
+    end
+  end
 end
