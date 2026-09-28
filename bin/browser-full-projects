@@ -20,20 +20,32 @@
 #                 `--project=` flags inside the mix.exs function behind any
 #                 `mix <alias>` a run body calls (today `mix verify.capture` ->
 #                 verify_capture/1).
-#   BROWSER-FULL  CONFIG minus CI.
+#   BROWSER-FULL  CONFIG minus CI. This is the `--project` flag set: CI and
+#                 BROWSER-FULL partition CONFIG (disjoint and complete).
+#   DEPS          `dependencies: ["<x>", ...]` declared on a default-config project
+#                 object (whole-line `//` comments ignored). Every dependency must
+#                 name a default-config project.
+#   EXECUTED      BROWSER-FULL plus its transitive DEPS closure: what Browser-full
+#                 actually runs, because Playwright runs a selected project's
+#                 dependencies first. A declared dependencies edge is the only way a
+#                 CI project may also execute in Browser-full (218-08: refute-capture
+#                 needs the tier-a-capture cell directories).
 #
 # Usage:
 #   bin/browser-full-projects                      one sorted `--project=<name>` line
 #                                                  per BROWSER-FULL project
-#   bin/browser-full-projects --list config|ci|browser-full
+#   bin/browser-full-projects --list config|ci|browser-full|executed
 #                                                  bare sorted names of that set
+#   bin/browser-full-projects --list deps          one sorted `<project> <dependency>`
+#                                                  line per declared edge
 #   env THREADLINE_BROWSER_FULL_ROOT overrides the repo root (test fixtures).
 #
 # Exit codes:
 #   0  success
 #   1  CONFIG parsed empty; BROWSER-FULL is empty; or the number of project `name:`
 #      entries in the whole config differs from default plus env-gated (a name in a
-#      region this parser does not understand). Fail closed: a wrong list must never
+#      region this parser does not understand); or a declared dependency names a
+#      project that is not a default-config project. Fail closed: a wrong list must never
 #      degrade into a green no-op or an unrestricted run.
 #   2  usage error or an unreadable input file.
 #
@@ -59,9 +71,10 @@ defmodule Threadline.BrowserFullProjects do
          {:ok, ci_src} <- read(root, @ci_rel),
          {:ok, mix_src} <- read(root, @mix_rel),
          {:ok, config} <- config_projects(config_src),
+         {:ok, deps} <- config_dependencies(config_src, config),
          ci = ci_projects(ci_src, mix_src),
          {:ok, full} <- browser_full(config, ci) do
-      emit(mode, config, ci, full)
+      emit(mode, %{config: config, ci: ci, full: full, deps: deps})
     else
       {:error, code, message} ->
         IO.puts(:stderr, "browser-full-projects: #{message}")
@@ -73,11 +86,14 @@ defmodule Threadline.BrowserFullProjects do
   defp parse_args(["--list", "config"]), do: {:ok, :config}
   defp parse_args(["--list", "ci"]), do: {:ok, :ci}
   defp parse_args(["--list", "browser-full"]), do: {:ok, :browser_full}
+  defp parse_args(["--list", "executed"]), do: {:ok, :executed}
+  defp parse_args(["--list", "deps"]), do: {:ok, :deps}
 
   defp parse_args(argv),
     do:
       {:error, 2,
-       "usage: bin/browser-full-projects [--list config|ci|browser-full] (got #{inspect(argv)})"}
+       "usage: bin/browser-full-projects [--list config|ci|browser-full|executed|deps] " <>
+         "(got #{inspect(argv)})"}
 
   defp read(root, rel) do
     path = Path.join(root, rel)
@@ -160,6 +176,71 @@ defmodule Threadline.BrowserFullProjects do
   end
 
   defp names(text), do: for([_, name] <- Regex.scan(@name_entry, text), do: name)
+
+  # --- DEPS -----------------------------------------------------------------
+
+  # `{project, dependency}` pairs from each default-region project object.
+  defp config_dependencies(source, config) do
+    {:ok, body} = projects_array(source)
+    {default_part, _gated} = split_gated(body)
+
+    edges =
+      for object <- top_level_objects(default_part, 0, [], []),
+          text = drop_line_comments(object),
+          [_, name] <- [Regex.run(@name_entry, text)],
+          [_, list] <- Regex.scan(~r/\bdependencies:\s*\[([^\]]*)\]/, text),
+          [_, dep] <- Regex.scan(~r/"([^"]+)"/, list),
+          do: {name, dep}
+
+    case Enum.reject(edges, fn {_from, to} -> to in config end) do
+      [] ->
+        {:ok, Enum.uniq(edges)}
+
+      unknown ->
+        {:error, 1,
+         "#{@config_rel} declares dependencies on projects that are not default-config " <>
+           "projects: #{inspect(unknown)}"}
+    end
+  end
+
+  # The `{ ... }` spans at brace depth 0 of the projects array body.
+  defp top_level_objects(<<"{", rest::binary>>, 0, _cur, acc),
+    do: top_level_objects(rest, 1, ["{"], acc)
+
+  defp top_level_objects(<<"}", rest::binary>>, 1, cur, acc) do
+    object = ["}" | cur] |> Enum.reverse() |> IO.iodata_to_binary()
+    top_level_objects(rest, 0, [], [object | acc])
+  end
+
+  defp top_level_objects(<<"{", rest::binary>>, depth, cur, acc),
+    do: top_level_objects(rest, depth + 1, ["{" | cur], acc)
+
+  defp top_level_objects(<<"}", rest::binary>>, depth, cur, acc) when depth > 0,
+    do: top_level_objects(rest, depth - 1, ["}" | cur], acc)
+
+  defp top_level_objects(<<_c::utf8, rest::binary>>, 0, cur, acc),
+    do: top_level_objects(rest, 0, cur, acc)
+
+  defp top_level_objects(<<c::utf8, rest::binary>>, depth, cur, acc),
+    do: top_level_objects(rest, depth, [<<c::utf8>> | cur], acc)
+
+  defp top_level_objects(<<>>, _depth, _cur, acc), do: Enum.reverse(acc)
+
+  defp drop_line_comments(text) do
+    text
+    |> String.split("\n")
+    |> Enum.reject(&String.starts_with?(String.trim_leading(&1), "//"))
+    |> Enum.join("\n")
+  end
+
+  defp executed(full, deps) do
+    next =
+      Enum.reduce(deps, full, fn {from, to}, acc ->
+        if from in acc and to not in acc, do: [to | acc], else: acc
+      end)
+
+    if length(next) == length(full), do: full, else: executed(next, deps)
+  end
 
   # --- CI -------------------------------------------------------------------
 
@@ -258,10 +339,16 @@ defmodule Threadline.BrowserFullProjects do
     end
   end
 
-  defp emit(:flags, _config, _ci, full), do: Enum.each(Enum.sort(full), &IO.puts("--project=#{&1}"))
-  defp emit(:config, config, _ci, _full), do: Enum.each(Enum.sort(config), &IO.puts/1)
-  defp emit(:ci, _config, ci, _full), do: Enum.each(Enum.sort(ci), &IO.puts/1)
-  defp emit(:browser_full, _config, _ci, full), do: Enum.each(Enum.sort(full), &IO.puts/1)
+  defp emit(:flags, %{full: full}), do: Enum.each(Enum.sort(full), &IO.puts("--project=#{&1}"))
+  defp emit(:config, %{config: config}), do: Enum.each(Enum.sort(config), &IO.puts/1)
+  defp emit(:ci, %{ci: ci}), do: Enum.each(Enum.sort(ci), &IO.puts/1)
+  defp emit(:browser_full, %{full: full}), do: Enum.each(Enum.sort(full), &IO.puts/1)
+
+  defp emit(:executed, %{full: full, deps: deps}),
+    do: Enum.each(Enum.sort(executed(full, deps)), &IO.puts/1)
+
+  defp emit(:deps, %{deps: deps}),
+    do: Enum.each(Enum.sort(for({from, to} <- deps, do: "#{from} #{to}")), &IO.puts/1)
 end
 
 Threadline.BrowserFullProjects.main(System.argv())

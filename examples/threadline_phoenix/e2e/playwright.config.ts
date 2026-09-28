@@ -76,9 +76,15 @@ const projects = [
   // Refute-pole clean re-capture lane (Phase 195-09 follow-up). Re-emits the 10
   // refute pole `screenshot.png` binaries clipped to the twin content (excludes the
   // /audit/__stress lab chrome) so the golden-set labeler shows a clean twin.
+  // It only overwrites PNGs inside the artifacts/tier-a cell directories that
+  // tier-a-capture creates in the same checkout, so it declares that project as a
+  // dependency: Playwright runs tier-a-capture first whenever refute-capture is
+  // selected. Browser-full selects only projects ci.yml does not run (218-07), so
+  // without this edge refute-capture ran with no cell directories (218-08).
   {
     name: "refute-capture",
     testMatch: /operator-refute-capture\.spec\.ts/,
+    dependencies: ["tier-a-capture"],
     use: {
       ...devices["Desktop Chrome"],
       viewport: { width: 1280, height: 900 },

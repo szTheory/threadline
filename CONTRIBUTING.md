@@ -487,7 +487,7 @@ not run on pull requests. They are named below.
 |---|---|---|---|---|
 | `desktop-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
 | `mobile-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
-| `tier-a-capture` | **yes** | yes | no | `verify-capture` (ci.yml, `mix verify.capture`) |
+| `tier-a-capture` | **yes** | yes | only as `refute-capture`'s dependency | `verify-capture` (ci.yml, `mix verify.capture`) |
 | `tier-a-capture-light` | **yes** | yes | no | `verify-capture` (ci.yml, `mix verify.capture`) |
 | `storybook-capture` | no | yes | yes | `verify-example-browser-full` |
 | `graded-capture` | no | yes | yes | `verify-example-browser-full` |
@@ -500,7 +500,10 @@ four projects on every pull request and every push to `main`. Job
 `verify-example-browser-full` in
 [`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml) runs
 the other four on push to `main`, on a nightly `schedule`, and on manual
-dispatch. It never repeats a project `ci.yml` already runs. The nightly is
+dispatch. It never selects a project `ci.yml` already runs; the one exception to
+never *executing* one is a declared Playwright `dependencies` edge, so
+`tier-a-capture` also runs there first because `refute-capture` overwrites the
+cell directories it creates (`bin/browser-full-projects --list deps`). The nightly is
 skipped when Browser-full already passed on the same commit (`bin/ci-sha-gate`),
 because a re-run of a proven commit proves nothing new.
 
