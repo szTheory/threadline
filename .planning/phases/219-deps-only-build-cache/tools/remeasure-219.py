@@ -50,6 +50,8 @@ Subcommands:
   wall [--set S]             per-run wall clock p50/p95
   critical-path [--set S]    per-run critical-path end offset p50/p95 and last-job counts
   jobs [--set S]             per-job duration p50/p95 (successful jobs only)
+  steps [--set S]            p50/p95 of the non-cache steps that did the dependency compile
+                             before phase 219 (successful steps of successful jobs only)
 
 Standard library only. Reads raw JSON only; never calls GitHub.
 """
@@ -126,6 +128,20 @@ SHORT = {"Run test suite (current)": "Test (current)", "Run test suite (min)": "
          "Tier A capture lane (byte-stable evidence)": "Capture"}
 
 VOTING = ("hit", "in-run", "miss")
+
+# Steps that compiled dependencies before phase 219 (they still compile first-party code).
+STEPS = (
+    ("Run test suite (current)", "Compile (warnings as errors)"),
+    ("Run test suite (current)", "Run tests"),
+    ("Run test suite (current)", "Verify Threadline Phoenix example"),
+    ("Run test suite (min)", "Compile (warnings as errors)"),
+    ("Run test suite (min)", "Run tests"),
+    ("PgBouncer transaction topology", "Compile (warnings as errors)"),
+    ("PgBouncer transaction topology", "Bootstrap test DB (direct Postgres, bypass pooler)"),
+    ("PgBouncer transaction topology", "Topology tests + verify_coverage through PgBouncer"),
+    ("Example app browser E2E (Playwright)", "Run example Playwright suite"),
+    ("Tier A capture lane (byte-stable evidence)", "Regenerate Tier A capture"),
+)
 
 _spec = importlib.util.spec_from_file_location("summarize_ci", os.path.join(TOOLS_DIR, "summarize-ci.py"))
 S = importlib.util.module_from_spec(_spec)
@@ -429,6 +445,28 @@ def sub_jobs(args):
     return 0
 
 
+def sub_steps(args):
+    runs = runs_for(args.set)
+    if not runs:
+        return empty("steps", args.set)
+    for job_name, step in STEPS:
+        s = []
+        for r in runs:
+            for j in r["jobs"]:
+                if j["name"] != job_name or j["conclusion"] != "success":
+                    continue
+                st = find_step(j.get("steps", []), step)
+                if st and st.get("conclusion") == "success" and st.get("started_at") and st.get("completed_at"):
+                    s.append((S.seconds(st["started_at"], st["completed_at"]), r["run_id"]))
+        if s:
+            print(f"| {SHORT[job_name]} | step: {step} | set {args.set} | n={len(s)} | {pcell(s)} | "
+                  f"{cmd('steps', args.set)} |")
+        else:
+            print(f"| {SHORT[job_name]} | step: {step} | set {args.set} | n=0, not measured | "
+                  f"{cmd('steps', args.set)} |")
+    return 0
+
+
 # ------------------------------------------------------------------ self-test
 
 def _t(sec):
@@ -587,7 +625,7 @@ def main(argv=None):
     sub = p.add_subparsers(dest="sub", required=True)
     table = {"samples": sub_samples, "cache": sub_cache, "cache-steps": sub_cache_steps,
              "runner-minutes": sub_runner_minutes, "wall": sub_wall,
-             "critical-path": sub_critical_path, "jobs": sub_jobs}
+             "critical-path": sub_critical_path, "jobs": sub_jobs, "steps": sub_steps}
     for name in table:
         sp = sub.add_parser(name)
         sp.add_argument("--set", default="all219", choices=SETS)

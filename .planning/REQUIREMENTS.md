@@ -87,7 +87,7 @@
 
 ### Build cache
 
-- [ ] **CACHE-01**: Test jobs restore a deps-only `_build` cache and a separate example-app cache.
+- [x] **CACHE-01**: Test jobs restore a deps-only `_build` cache and a separate example-app cache.
   - The keys are exact: runner, resolved OTP/Elixir, MIX_ENV, profile, lock and config. There are no restore-keys.
   - The project's own build is removed before compiling.
   - `verify-compile-no-optional` and the release publish path stay cache-free.
@@ -172,7 +172,7 @@
 | ECON-05 | Phase 218 | Complete |
 | ECON-06 | Phase 218 | Complete |
 | ECON-07 | Phase 218 | Complete |
-| CACHE-01 | Phase 219 | Pending |
+| CACHE-01 | Phase 219 | Complete |
 | LANE-01 | Phase 220 | Pending |
 | DX-01 | Phase 221 | Pending |
 | SCOPE-01 | Phase 222 | Pending |

@@ -1,0 +1,45 @@
+{
+  "repo": "szTheory/threadline",
+  "entries": {
+    "ci.yml:pull_request:any:since-2026-09-28": {
+      "workflow": "ci.yml",
+      "event": "pull_request",
+      "head_sha": null,
+      "status": "any",
+      "since": "2026-09-28",
+      "target": 0,
+      "run_ids": [
+        36447864779,
+        36446346094,
+        36370640310,
+        36370035321,
+        36364354586,
+        36363356238,
+        36362405054
+      ],
+      "list_command": "gh run list --repo szTheory/threadline --limit 200 --json databaseId,headSha,createdAt,event,attempt,conclusion,status,workflowName,displayTitle --workflow ci.yml --event pull_request --status completed --created '>=2026-09-28'",
+      "fetched_at_utc": "2026-09-28T17:31:37Z"
+    },
+    "ci.yml:workflow_dispatch:any:since-2026-09-28": {
+      "workflow": "ci.yml",
+      "event": "workflow_dispatch",
+      "head_sha": null,
+      "status": "any",
+      "since": "2026-09-28",
+      "target": 0,
+      "run_ids": [
+        36457705448,
+        36456537357,
+        36455432448,
+        36454272684,
+        36453043277,
+        36450388764,
+        36449352051,
+        36447911272,
+        36361003789
+      ],
+      "list_command": "gh run list --repo szTheory/threadline --limit 200 --json databaseId,headSha,createdAt,event,attempt,conclusion,status,workflowName,displayTitle --workflow ci.yml --event workflow_dispatch --status completed --created '>=2026-09-28'",
+      "fetched_at_utc": "2026-09-28T17:31:50Z"
+    }
+  }
+}

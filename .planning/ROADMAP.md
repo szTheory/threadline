@@ -276,7 +276,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 219-03-PLAN.md — Copied measurement tools + `remeasure-219.py`, maintainer landing/dispatch checkpoint, cited `219-REMEASURE.md` against BASE-01 and 218 (wave 3, non-autonomous)
+- [x] 219-03-PLAN.md — Copied measurement tools + `remeasure-219.py`, maintainer landing/dispatch checkpoint, cited `219-REMEASURE.md` against BASE-01 and 218 (wave 3, non-autonomous)
 
 **Research**: Yes: config-in-key and profile-segment shape are inference; check eviction under the 10 GB cache budget
 
@@ -332,7 +332,7 @@ Plans:
 | 216. CI Platform Currency | 8/8 | Complete    | 2026-09-27 |
 | 217. Repo Hygiene | 7/7 | Complete    | 2026-09-27 |
 | 218. CI Economy: Remove Waste | 8/8 | Complete    | 2026-09-27 |
-| 219. Deps-Only Build Cache | 2/3 | In Progress | - |
+| 219. Deps-Only Build Cache | 3/3 | In Progress | - |
 | 220. Newest-Toolchain Lane | 0/TBD | Not started | - |
 | 221. CI Names and Order | 0/TBD | Not started | - |
 | 222. SEED-006 Change-Aware Lanes | 0/TBD | Not started | - |
