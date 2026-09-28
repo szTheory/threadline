@@ -235,21 +235,22 @@ defmodule Threadline.CIWorkflowParityContractTest do
   end
 
   describe "verify-test matrix construction" do
-    test "ci.yml declares static name + lane axis [min, current] (construction A)" do
+    test "ci.yml declares static name + lane axis [min, current, latest] (construction A)" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
       assert Regex.match?(~r/^\s*name: Run test suite\s*$/m, yaml),
              "verify-test must declare the static `name: Run test suite` (GitHub composes the lane suffix)"
 
-      assert Regex.match?(~r/^\s*lane:\s*\[min,\s*current\]\s*$/m, yaml),
-             "verify-test matrix must declare base axis `lane: [min, current]`"
+      assert Regex.match?(~r/^\s*lane:\s*\[min,\s*current,\s*latest\]\s*$/m, yaml),
+             "verify-test matrix must declare base axis `lane: [min, current, latest]`"
     end
 
     test "each lane installs one exact toolchain: the floor build or the committed .tool-versions" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
       mix_exs = read_rel!(["mix.exs"])
+      tool_versions = read_rel!([".tool-versions"])
 
-      assert verify_test_matrix_errors(yaml, mix_exs) == []
+      assert verify_test_matrix_errors(yaml, mix_exs, tool_versions) == []
 
       min_row = ~s(          - lane: min\n)
       current_row = ~s(          - lane: current\n)
@@ -278,7 +279,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
          String.replace(yaml, ~s(otp: "26.2.5.21"), ~s(otp: "25.3.2.21"))},
         {"min Elixir above the declared floor",
          String.replace(yaml, ~s(elixir: "1.15.8"), ~s(elixir: "1.16.3"))},
-        {"a third matrix row",
+        {"a fourth matrix row",
          String.replace(
            yaml,
            current_row,
@@ -290,13 +291,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
       for {control, mutated} <- controls do
         refute mutated == yaml, "#{control} control did not change the input"
 
-        refute verify_test_matrix_errors(mutated, mix_exs) == [],
+        refute verify_test_matrix_errors(mutated, mix_exs, tool_versions) == [],
                "#{control} mutation must make the verify-test matrix contract fail"
       end
 
       refute verify_test_matrix_errors(
                yaml,
-               String.replace(mix_exs, ~s(elixir: "~> 1.15"), ~s(elixir: "~> 1.16"))
+               String.replace(mix_exs, ~s(elixir: "~> 1.15"), ~s(elixir: "~> 1.16")),
+               tool_versions
              ) ==
                [],
              "a raised mix.exs floor must no longer match the min row"
@@ -371,13 +373,371 @@ defmodule Threadline.CIWorkflowParityContractTest do
              "a matrix-fed setup-beam step outside verify-test must fail the toolchain contract"
     end
 
-    test "CONTRIBUTING List 2 carries both composed required-check names" do
+    test "the latest row pins an exact, strictly newer toolchain (D-14)" do
+      yaml = read_rel!([".github", "workflows", "ci.yml"])
+      mix_exs = read_rel!(["mix.exs"])
+      tool_versions = read_rel!([".tool-versions"])
+
+      assert verify_test_matrix_errors(yaml, mix_exs, tool_versions) == []
+
+      by_lane =
+        yaml
+        |> workflow_job("verify-test")
+        |> verify_test_rows()
+        |> Map.new(&{&1["lane"], &1})
+
+      latest = Map.fetch!(by_lane, "latest")
+      latest_row = ~s(          - lane: latest\n)
+
+      latest_runner =
+        ~s(            pg: "#{latest["pg"]}"\n            runner: "ubuntu-24.04"\n)
+
+      controls = [
+        {"version-file added",
+         String.replace(
+           yaml,
+           latest_row,
+           latest_row <> ~s(            version-file: ".tool-versions"\n)
+         ), tool_versions, ["latest row must not set version-file"]},
+        {"bare OTP major", String.replace(yaml, ~s(otp: "#{latest["otp"]}"), ~s(otp: "29")),
+         tool_versions, ["latest row otp must be an exact release"]},
+        {"release-candidate Elixir",
+         String.replace(yaml, ~s(elixir: "#{latest["elixir"]}"), ~s(elixir: "1.20.0-rc.1")),
+         tool_versions, ["latest row elixir must be an exact release"]},
+        {"pg not newer", String.replace(yaml, ~s(pg: "#{latest["pg"]}"), ~s(pg: "16")),
+         tool_versions, ["latest row pg major must be newer"]},
+        {"deprecated runner",
+         String.replace(
+           yaml,
+           latest_runner,
+           ~s(            pg: "#{latest["pg"]}"\n            runner: ") <>
+             "ubuntu-" <> "22.04" <> ~s("\n)
+         ), tool_versions, ["latest row must run on ubuntu-24.04"]},
+        {"current lane raised above latest", yaml,
+         tool_versions
+         |> String.replace(~r/^elixir .*$/m, "elixir 1.99.0-otp-27")
+         |> String.replace(~r/^erlang .*$/m, "erlang 99.0"),
+         ["latest row Elixir must be newer", "latest row OTP major must be newer"]}
+      ]
+
+      for {control, mutated_yaml, mutated_tv, fragments} <- controls do
+        refute {mutated_yaml, mutated_tv} == {yaml, tool_versions},
+               "#{control} control did not change the input"
+
+        errors = verify_test_matrix_errors(mutated_yaml, mix_exs, mutated_tv)
+
+        for fragment <- fragments do
+          assert Enum.any?(errors, &String.contains?(&1, fragment)),
+                 "#{control} mutation must report #{inspect(fragment)}, got #{inspect(errors)}"
+        end
+      end
+    end
+
+    test "the latest lane is documented as tested-on, never a support floor (D-17)" do
+      readme = read_rel!(["README.md"])
+      mix_exs = read_rel!(["mix.exs"])
+      contributing = read_rel!(["CONTRIBUTING.md"])
+      job = workflow_job(read_rel!([".github", "workflows", "ci.yml"]), "verify-test")
+
+      assert String.contains?(readme, "not a new support floor")
+      assert String.contains?(readme, "`latest` lane")
+      assert String.contains?(mix_exs, "CI `latest` lane")
+      assert String.contains?(contributing, "Run test suite (latest)")
+      assert String.contains?(contributing, "not a support floor")
+      assert String.contains?(contributing, "Test-file warnings stay non-fatal on every lane")
+      assert String.contains?(job, ~s["Run test suite (latest)"])
+    end
+
+    test "CONTRIBUTING List 2 carries every composed required-check name" do
       doc = read_rel!(["CONTRIBUTING.md"])
 
       assert String.contains?(doc, "Run test suite (min)")
       assert String.contains?(doc, "Run test suite (current)")
+      assert String.contains?(doc, "Run test suite (latest)")
     end
   end
+
+  describe "voting lanes and PostgreSQL images (LANE-01)" do
+    @ci_path ".github/workflows/ci.yml"
+
+    test "no voting lane can be made non-blocking (D-15)" do
+      workflows = all_workflows()
+
+      assert voting_lane_errors(workflows) == []
+
+      refute ci_required_needs(workflows[@ci_path]) == [],
+             "ci-required's needs: list parsed empty — the needs-coverage check would be vacuous"
+
+      job_header = "    name: Run test suite\n"
+      run_tests = "      - name: Run tests\n        run: mix verify.test\n"
+      alls_green_jobs = "          jobs: ${{ toJSON(needs) }}\n"
+
+      controls = [
+        {"job-level continue-on-error on verify-test",
+         &String.replace(&1, job_header, job_header <> "    continue-on-error: true\n"),
+         "rule=continue-on-error"},
+        {"step-level continue-on-error on Run tests",
+         &String.replace(
+           &1,
+           run_tests,
+           "      - name: Run tests\n        continue-on-error: true\n" <>
+             "        run: mix verify.test\n"
+         ), "rule=continue-on-error"},
+        {"matrix-expression continue-on-error",
+         &String.replace(
+           &1,
+           job_header,
+           job_header <> "    continue-on-error: ${{ matrix.lane == 'latest' }}\n"
+         ), "rule=continue-on-error"},
+        {"allowed-failures in ci-required",
+         &String.replace(
+           &1,
+           alls_green_jobs,
+           alls_green_jobs <> "          allowed-failures: verify-test\n"
+         ), "rule=allowed-failures"},
+        {"verify-test dropped from ci-required needs",
+         &String.replace(&1, "      - verify-test\n", ""), "rule=needs-coverage"}
+      ]
+
+      for {control, mutate, fragment} <- controls do
+        mutated = Map.update!(workflows, @ci_path, mutate)
+
+        refute mutated == workflows, "#{control} control did not change the input"
+
+        errors = voting_lane_errors(mutated)
+
+        assert Enum.any?(errors, &String.contains?(&1, fragment)),
+               "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
+      end
+
+      commented =
+        Map.update!(
+          workflows,
+          @ci_path,
+          &String.replace(
+            &1,
+            job_header,
+            job_header <> "      # continue-on-error is banned in this workflow\n"
+          )
+        )
+
+      refute commented == workflows, "comment positive control did not change the input"
+
+      assert voting_lane_errors(commented) == [],
+             "the word continue-on-error inside a comment must not trip the contract"
+    end
+
+    test "no workflow or compose file runs a pre-release PostgreSQL (D-16)" do
+      sources = image_sources()
+
+      assert postgres_image_errors(sources) == []
+
+      tags = postgres_image_tags(sources)
+
+      for path <- [
+            @ci_path,
+            ".github/workflows/browser-full.yml",
+            ".github/workflows/flake-detection.yml",
+            ".github/workflows/release.yml",
+            "docker-compose.yml"
+          ] do
+        assert Enum.any?(tags, &match?({^path, _job, _tag}, &1)),
+               "found no postgres image in #{path} — the tag scan would be vacuous there"
+      end
+
+      rows = verify_test_rows(workflow_job(sources[@ci_path], "verify-test"))
+      verify_test_tags = for {@ci_path, "verify-test", tag} <- tags, do: tag
+
+      assert length(rows) == 3
+      assert Enum.sort(verify_test_tags) == rows |> Enum.map(& &1["pg"]) |> Enum.sort()
+
+      latest_pg = rows |> Enum.find(&(&1["lane"] == "latest")) |> Map.fetch!("pg")
+
+      controls = [
+        {"beta PostgreSQL in the latest row", @ci_path,
+         &String.replace(&1, ~s(pg: "#{latest_pg}"), ~s(pg: "19beta1")), "rule=pg-tag"},
+        {"release-candidate image in browser-full.yml", ".github/workflows/browser-full.yml",
+         &String.replace(&1, "postgres:16", "postgres:18rc1"), "rule=pg-tag"},
+        {"devel image in release.yml", ".github/workflows/release.yml",
+         &String.replace(&1, "postgres:16", "postgres:devel"), "rule=pg-tag"},
+        {"unresolvable matrix key", @ci_path,
+         &String.replace(&1, "postgres:${{ matrix.pg }}", "postgres:${{ matrix.pg_tag }}"),
+         "rule=pg-unresolved"}
+      ]
+
+      for {control, path, mutate, fragment} <- controls do
+        mutated = Map.update!(sources, path, mutate)
+
+        refute mutated == sources, "#{control} control did not change the input"
+
+        errors = postgres_image_errors(mutated)
+
+        assert Enum.any?(errors, &String.contains?(&1, fragment)),
+               "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
+      end
+
+      url_line =
+        "      DATABASE_URL: postgres://postgres:postgres@postgres:5432/threadline_test\n"
+
+      with_url =
+        Map.update!(
+          sources,
+          "docker-compose.yml",
+          &String.replace(&1, "    image: postgres:16\n", "    image: postgres:16\n" <> url_line)
+        )
+
+      refute with_url == sources, "connection-URL positive control did not change the input"
+      assert postgres_image_errors(with_url) == []
+
+      assert postgres_image_tags(with_url) == tags,
+             "a postgres:// connection URL must not be read as an image reference"
+    end
+  end
+
+  # D-15: every lane that `ci-required` needs must be able to fail. A job- or
+  # step-level `continue-on-error:` (any value, including a `${{ matrix.* }}`
+  # expression), an `allowed-failures:` on the alls-green step, or a ci.yml job
+  # missing from `needs:` would each let a red lane report green.
+  defp voting_lane_errors(yaml_by_path) do
+    ci_path = ".github/workflows/ci.yml"
+    ci_yaml = Map.get(yaml_by_path, ci_path, "")
+
+    continue_errors =
+      for {path, yaml} <- Enum.sort(yaml_by_path),
+          {job_id, block} <- workflow_jobs(yaml),
+          Regex.match?(~r/^\s*continue-on-error\s*:/m, strip_comment_lines(block)) do
+        "#{path} job=#{job_id} rule=continue-on-error: a voting job or step carries " <>
+          "`continue-on-error:`, so a red lane could report green (D-15)"
+      end
+
+    allowed_failures_errors =
+      if Regex.match?(
+           ~r/^\s*allowed-failures\s*:/m,
+           strip_comment_lines(workflow_job(ci_yaml, "ci-required"))
+         ),
+         do: [
+           "#{ci_path} job=ci-required rule=allowed-failures: the alls-green gate must not " <>
+             "tolerate any failed lane (D-15)"
+         ],
+         else: []
+
+    needs = MapSet.new(ci_required_needs(ci_yaml))
+
+    jobs =
+      ci_yaml
+      |> workflow_jobs()
+      |> Enum.map(&elem(&1, 0))
+      |> MapSet.new()
+      |> MapSet.delete("ci-required")
+
+    needs_errors =
+      cond do
+        MapSet.size(needs) == 0 ->
+          [
+            "#{ci_path} job=ci-required rule=needs-coverage: needs: list parsed empty, " <>
+              "so the coverage check would be vacuous"
+          ]
+
+        needs == jobs ->
+          []
+
+        true ->
+          [
+            "#{ci_path} job=ci-required rule=needs-coverage: needs: must list every other " <>
+              "ci.yml job; missing=#{inspect(jobs |> MapSet.difference(needs) |> Enum.sort())} " <>
+              "extra=#{inspect(needs |> MapSet.difference(jobs) |> Enum.sort())}"
+          ]
+      end
+
+    continue_errors ++ allowed_failures_errors ++ needs_errors
+  end
+
+  # Parsed the same way ci_topology_contract_test.exs reads the roster.
+  defp ci_required_needs(ci_yaml) do
+    block = ci_yaml |> workflow_job("ci-required") |> strip_comment_lines()
+
+    case Regex.run(~r/    needs:\n((?:      - .+\n)+)/, block <> "\n") do
+      [_, list] ->
+        ~r/^      - (\S+)\s*$/m
+        |> Regex.scan(list)
+        |> Enum.map(fn [_, job] -> job end)
+
+      nil ->
+        []
+    end
+  end
+
+  defp image_sources do
+    Map.put(all_workflows(), "docker-compose.yml", read_rel!(["docker-compose.yml"]))
+  end
+
+  # D-16: every `postgres:<tag>` image in every workflow and docker-compose.yml
+  # must be a release tag (`18` or `18.6`). `${{ matrix.pg }}` resolves through
+  # the job's parsed `include` rows; anything unresolvable fails closed. The
+  # lookbehind skips `postgres://…@postgres:5432` connection URLs.
+  @postgres_image_ref ~r/(?<![\w\/@:.-])postgres:(\$\{\{[^}]*\}\}|[A-Za-z0-9_.-]+)/
+  @postgres_release_tag ~r/^\d+(\.\d+)?$/
+
+  defp postgres_image_errors(sources) do
+    for {path, job_id, ref} <- postgres_image_refs(sources),
+        error <- postgres_ref_errors(path, job_id, ref),
+        do: error
+  end
+
+  defp postgres_image_tags(sources) do
+    for {path, job_id, {:ok, tag}} <- postgres_image_refs(sources), do: {path, job_id, tag}
+  end
+
+  defp postgres_ref_errors(path, job_id, {:ok, tag}) do
+    if Regex.match?(@postgres_release_tag, tag),
+      do: [],
+      else: [
+        "#{path} job=#{job_id} rule=pg-tag: postgres:#{tag} is not a release tag matching " <>
+          "^\\d+(\\.\\d+)?$ (no beta, rc, devel, nightly, latest or variant suffix) (D-16)"
+      ]
+  end
+
+  defp postgres_ref_errors(path, job_id, {:unresolved, expr}) do
+    [
+      "#{path} job=#{job_id} rule=pg-unresolved: postgres:#{expr} does not resolve to " <>
+        "include-row pg values, so its tag cannot be checked (D-16)"
+    ]
+  end
+
+  # [{path, job_id, {:ok, tag} | {:unresolved, expr}}]
+  defp postgres_image_refs(sources) do
+    for {path, text} <- Enum.sort(sources),
+        {job_id, block} <- image_scan_units(text),
+        [_, ref] <- Regex.scan(@postgres_image_ref, strip_comment_lines(block)),
+        resolved <- resolve_postgres_ref(ref, block),
+        do: {path, job_id, resolved}
+  end
+
+  # A workflow is scanned per job (matrix expressions resolve per job); a file
+  # with no `jobs:` section (docker-compose.yml) is scanned whole.
+  defp image_scan_units(text) do
+    case workflow_jobs(text) do
+      [] -> [{"(file)", text}]
+      jobs -> jobs
+    end
+  end
+
+  defp resolve_postgres_ref("${{" <> _ = expr, block) do
+    rows = verify_test_rows(block)
+
+    cond do
+      not Regex.match?(~r/^\$\{\{\s*matrix\.pg\s*\}\}$/, expr) ->
+        [{:unresolved, expr}]
+
+      rows == [] or Enum.any?(rows, &(not Map.has_key?(&1, "pg"))) ->
+        [{:unresolved, expr}]
+
+      true ->
+        Enum.map(rows, &{:ok, &1["pg"]})
+    end
+  end
+
+  defp resolve_postgres_ref(tag, _block), do: [{:ok, tag}]
 
   describe "dependency cache contract" do
     test "ci.yml caches deps and the e2e npm lockfile" do
@@ -438,7 +798,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # error, and each job must restore exactly its `projects`, no more and no less.
   @build_cache_jobs %{
     {@ci_workflow, "verify-test"} =>
-      {"both lanes compile the root project, and the current lane also builds the example app",
+      {"every lane compiles the root project, and the current lane also builds the example app",
        :save, [:root, :example]},
     {@ci_workflow, "verify-pgbouncer-topology"} =>
       {"reuses the current lane's root test key: restore-only adds no key and removes a save race",
@@ -1297,15 +1657,15 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   # The verify-test `include:` rows: the min row pins the exact floor build the
   # mix.exs `elixir:` requirement promises; the current row reads .tool-versions.
-  defp verify_test_matrix_errors(yaml, mix_exs) do
+  defp verify_test_matrix_errors(yaml, mix_exs, tool_versions) do
     rows = verify_test_rows(workflow_job(yaml, "verify-test"))
     by_lane = Map.new(rows, &{&1["lane"], &1})
 
     count_errors =
-      if length(rows) == 2 and Map.keys(by_lane) |> Enum.sort() == ["current", "min"],
+      if length(rows) == 3 and Map.keys(by_lane) |> Enum.sort() == ["current", "latest", "min"],
         do: [],
         else: [
-          "verify-test must have exactly two include rows (min, current), found " <>
+          "verify-test must have exactly three include rows (min, current, latest), found " <>
             inspect(Enum.map(rows, & &1["lane"]))
         ]
 
@@ -1321,7 +1681,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     count_errors ++
       source_errors ++
       min_row_errors(by_lane["min"], elixir_floor(mix_exs)) ++
-      current_row_errors(by_lane["current"])
+      current_row_errors(by_lane["current"]) ++
+      latest_row_errors(by_lane["latest"], current_toolchain(tool_versions, by_lane["current"]))
   end
 
   defp min_row_errors(nil, _floor), do: ["verify-test has no min row"]
@@ -1357,6 +1718,90 @@ defmodule Threadline.CIWorkflowParityContractTest do
     ]
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&("verify-test " <> elem(&1, 1)))
+  end
+
+  # The current lane's committed toolchain: `.tool-versions` for OTP/Elixir (the
+  # `-otp-NN` build suffix stripped) and the current row for PostgreSQL. A
+  # missing value is nil, which skips the matching newer-than check.
+  defp current_toolchain(tool_versions, current_row) do
+    tool = fn name ->
+      case Regex.run(~r/^#{name}\s+(\S+)\s*$/m, tool_versions) do
+        [_, version] -> version
+        nil -> nil
+      end
+    end
+
+    elixir =
+      case tool.("elixir") do
+        nil -> nil
+        version -> String.replace(version, ~r/-otp-\d+$/, "")
+      end
+
+    %{otp: tool.("erlang"), elixir: elixir, pg: current_row && current_row["pg"]}
+  end
+
+  # The latest lane is tested-on evidence, not a support promise, so unlike the
+  # min row its pins are checked for shape and ordering only: an exact release,
+  # strictly newer than the current lane. A literal version here would break on
+  # every milestone re-pin (D-18). A shape-invalid value skips its newer-than
+  # check, so a malformed pin reports the shape error and never crashes.
+  defp latest_row_errors(nil, _current), do: ["verify-test has no latest row"]
+
+  defp latest_row_errors(row, current) do
+    otp = row["otp"]
+    elixir = row["elixir"]
+    pg = row["pg"]
+
+    otp_ok? = is_binary(otp) and Regex.match?(~r/^\d+\.\d+(\.\d+){0,2}$/, otp)
+    elixir_ok? = is_binary(elixir) and Regex.match?(~r/^\d+\.\d+\.\d+$/, elixir)
+    pg_ok? = is_binary(pg) and Regex.match?(~r/^\d+(\.\d+)?$/, pg)
+
+    [
+      {not Map.has_key?(row, "version-file"), "latest row must not set version-file"},
+      {row["runner"] == "ubuntu-24.04", "latest row must run on ubuntu-24.04"},
+      {otp_ok?,
+       "latest row otp must be an exact release matching ^\\d+\\.\\d+(\\.\\d+){0,2}$, got " <>
+         inspect(otp)},
+      {elixir_ok?,
+       "latest row elixir must be an exact release matching ^\\d+\\.\\d+\\.\\d+$ " <>
+         "(no x, -rc or -otp), got " <> inspect(elixir)},
+      {pg_ok?,
+       "latest row pg must be a release version matching ^\\d+(\\.\\d+)?$, got " <> inspect(pg)},
+      {not otp_ok? or newer_major?(otp, current.otp),
+       "latest row OTP major must be newer than the current lane's #{major(current.otp)}"},
+      {not elixir_ok? or newer_elixir?(elixir, current.elixir),
+       "latest row Elixir must be newer than the current lane's #{current.elixir}"},
+      {not pg_ok? or newer_major?(pg, current.pg),
+       "latest row pg major must be newer than the current lane's #{major(current.pg)}"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&("verify-test " <> elem(&1, 1)))
+  end
+
+  defp major(nil), do: nil
+
+  defp major(version) do
+    case Integer.parse(version) do
+      {n, _rest} -> n
+      :error -> nil
+    end
+  end
+
+  # A missing or unparseable current value cannot prove "newer", so it fails.
+  defp newer_major?(latest, current) do
+    case {major(latest), major(current)} do
+      {l, c} when is_integer(l) and is_integer(c) -> l > c
+      _ -> false
+    end
+  end
+
+  defp newer_elixir?(latest, current) do
+    with true <- is_binary(current),
+         {:ok, _} <- Version.parse(current) do
+      Version.compare(latest, current) == :gt
+    else
+      _ -> false
+    end
   end
 
   defp verify_test_rows(job) do
@@ -2172,7 +2617,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # verify-test's example block runs on the current lane only: its restore is
   # lane-skipped on the min lane, so a bare guard would be true there and
   # compile or save an unfetched tree (IN-03, 219 review). Its root block runs
-  # on both lanes.
+  # on every lane.
   defp cache_miss_guards("verify-test", :example, id),
     do: ["matrix.lane == 'current' && steps.#{id}.outputs.cache-hit != 'true'"]
 
@@ -3401,7 +3846,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
      | Job | Build cache | Saves on miss |
      | --- | --- | --- |
-     | `verify-test` | root (both lanes) and example (current lane) | yes |
+     | `verify-test` | root (every lane) and example (current lane) | yes |
      | `verify-pgbouncer-topology` | root, restore-only | no |
      | `verify-example-browser` | example | yes |
      | `verify-capture` | example | yes |

@@ -36,6 +36,14 @@ that merely share a major number. The pin names the lane CI runs, not the only v
 works: the supported floor (Elixir 1.15 / OTP 26) is proven separately by the CI
 min lane.
 
+CI also runs a `latest` lane, `Run test suite (latest)`, on the newest stable
+Elixir, OTP and PostgreSQL, exactly pinned in the `verify-test` matrix of
+`.github/workflows/ci.yml`. It compiles with `--warnings-as-errors`, checks xref
+cycles, runs the default suite, and votes through `CI required` on every run. It
+shows the suite works there; it is not a support floor and not a pin for your
+shell. Test-file warnings stay non-fatal on every lane, because `mix verify.test`
+is plain `mix test`. The pins are refreshed at each milestone close.
+
 If you work on another supported version, override the pin for your shell
 instead of editing the committed file. With asdf, set `ASDF_ERLANG_VERSION` and
 `ASDF_ELIXIR_VERSION` (for example `ASDF_ELIXIR_VERSION=1.15.8-otp-26`);
@@ -656,8 +664,8 @@ with no job-level `if:`. Each removal keeps its justification here, and
 `test/threadline/ci_topology_contract_test.exs` fails if a line goes missing or
 if the proof that still catches it stops running.
 
-- The capture lane's trailing `mix verify.mechanical` step (in `verify-capture`): failure class "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by `verify-capture`'s byte-stable regeneration step (regenerated evidence must equal the committed evidence) and by `verify-test` (min and current lanes), which runs `mechanical_checker_test.exs` over the committed scorecard JSON, on pull_request, push to `main` and workflow_dispatch.
-- `verify-mechanical` (the job): failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by `verify-test` (min and current lanes), which runs `test/threadline/operator_surface/mechanical_checker_test.exs` in the default suite, on pull_request, push to `main` and workflow_dispatch. The `mix verify.mechanical` alias stays as a focused local command.
+- The capture lane's trailing `mix verify.mechanical` step (in `verify-capture`): failure class "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by `verify-capture`'s byte-stable regeneration step (regenerated evidence must equal the committed evidence) and by `verify-test` (every lane), which runs `mechanical_checker_test.exs` over the committed scorecard JSON, on pull_request, push to `main` and workflow_dispatch.
+- `verify-mechanical` (the job): failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/mechanical_checker_test.exs` in the default suite, on pull_request, push to `main` and workflow_dispatch. The `mix verify.mechanical` alias stays as a focused local command.
 - `verify-docs`: failure class "the ExDoc build fails" is still caught by `verify-bump-rehearsal`, whose `mix verify.release` gate runs `MIX_ENV=dev mix docs --warnings-as-errors` (stricter than the old plain `mix docs`), on pull_request, push to `main` and workflow_dispatch. Coupling: any future change that skips `verify-bump-rehearsal` also skips the ExDoc proof, and a docs break now shows as a red "Bump rehearsal (next minor)" job. The rehearsal chains its gates, so the docs build runs only after the doc-contract and changelog gates pass; one of those failing first hides a docs break until it is fixed. `test/threadline/ci_topology_contract_test.exs` pins that `bin/verify-bump-rehearsal` still runs `mix verify.release`.
 - `verify-hex-package`: failure class "`mix hex.build` fails or the tarball has no usable `lib/`" is still caught by `verify-bump-rehearsal` (`mix hex.build` in `mix verify.release`) and `verify-hex-evaluator` (builds this tree's tarball, resolves it from the rehearsal registry, then compiles and tests it), on pull_request, push to `main` and workflow_dispatch. `release.yml`'s own `hex.build` does not count: it runs only on release.
 
@@ -750,10 +758,12 @@ so a failed or partial dependency build is never stored.
 
 | Job | Build cache | Saves on miss |
 | --- | --- | --- |
-| `verify-test` | root on both lanes; example on the current lane only | yes |
+| `verify-test` | root on every lane; example on the current lane only | yes |
 | `verify-pgbouncer-topology` | root, restoring the current lane's key | no, restore only |
 | `verify-example-browser` | example | yes |
 | `verify-capture` | example | yes |
+
+That is four build keys across six job-lanes: a root key per verify-test lane plus the shared example key.
 
 Every key is exact. In order it carries: the runner label (`${{ matrix.runner }}`
 in `verify-test`, the literal `ubuntu-24.04` elsewhere), the OTP and Elixir that
@@ -808,7 +818,7 @@ The stable log fields, printed by each cached job's removal step, are:
 - `THREADLINE_BUILD_CACHE`: exactly `hit` or `miss`, then ` key=<primary key>`.
 - `THREADLINE_EXAMPLE_BUILD_CACHE`: exactly `hit` or `miss`, then
   ` key=<primary key>`. It appears only in job-lanes whose example restore ran,
-  so `Run test suite (min)` never prints it.
+  so `Run test suite (min)` and `Run test suite (latest)` never print it.
 
 `verify-test (current)`, `verify-example-browser` and `verify-capture` share one
 example key. On a cold run two of them can try to save it at once; the loser
@@ -876,6 +886,7 @@ In GitHub repository settings, require these checks on `main` (names match the w
 - Run Credo (strict) (`verify-credo`)
 - Run test suite (min) (`verify-test` min lane)
 - Run test suite (current) (`verify-test` current lane)
+- Run test suite (latest) (`verify-test` latest lane)
 - PgBouncer transaction topology (`verify-pgbouncer-topology`)
 - Release metadata (version / changelog) (`verify-release-shape`)
 

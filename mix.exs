@@ -39,6 +39,9 @@ defmodule Threadline.MixProject do
       # PostgreSQL 14 min / 16 current. The floor is honored by the CI `min` lane (full
       # suite on 1.15/OTP26/PG14) — NOT by raising this requirement. Do not bump "~> 1.15"
       # to a newer minor: that would strand applications on the supported floor.
+      # The CI `latest` lane also runs the suite on the newest stable Elixir/OTP/
+      # PostgreSQL (exact pins in ci.yml). That is tested-on evidence, not a support
+      # promise, and never a reason to raise this requirement.
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,

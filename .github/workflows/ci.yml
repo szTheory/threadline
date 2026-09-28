@@ -314,20 +314,28 @@ jobs:
 
   verify-test:
     # Base axis `lane` drives the check-name suffix → GitHub posts exactly
-    # "Run test suite (min)" and "Run test suite (current)". Keys carried only
-    # via `include` (elixir/otp/pg/runner) do NOT append to that suffix, so the
-    # static `name:` yields the two documented required checks (D-15/D-19,
-    # RESEARCH M1 construction A). Min lane = Elixir 1.15.8 / OTP 26.2.5.21
-    # (exact floor build, strict) / pg14 on ubuntu-24.04 proving the declared
-    # floor; current lane = the committed .tool-versions build, the full
-    # payload. Each row sets exactly one toolchain source — the min row its
-    # explicit pins, the current row `version-file` — because setup-beam errors
-    # when both are set and an absent matrix key renders as an empty input.
+    # "Run test suite (min)", "Run test suite (current)" and
+    # "Run test suite (latest)". Keys carried only via `include`
+    # (elixir/otp/pg/runner) do NOT append to that suffix, so the static
+    # `name:` yields the three documented check names (D-15/D-19, RESEARCH
+    # M1 construction A). Min lane = Elixir 1.15.8 / OTP 26.2.5.21 (exact
+    # floor build, strict) / pg14 on ubuntu-24.04 proving the declared floor;
+    # current lane = the committed .tool-versions build, the full payload.
+    # Latest lane = the newest stable Elixir/OTP/PostgreSQL, exactly pinned
+    # with explicit `otp`/`elixir` (no `version-file`); it runs compile
+    # --warnings-as-errors, xref cycles and `mix verify.test` only (every
+    # current-only step guards on `matrix.lane == 'current'`), votes through
+    # `ci-required` on every run (Phase 220 D-07; Phase 222 may trim it), and
+    # is re-pinned at each milestone close. It is tested-on evidence, not a
+    # support floor. Each row sets exactly one toolchain source — the min and
+    # latest rows their explicit pins, the current row `version-file` —
+    # because setup-beam errors when both are set and an absent matrix key
+    # renders as an empty input.
     name: Run test suite
     strategy:
       fail-fast: false
       matrix:
-        lane: [min, current]
+        lane: [min, current, latest]
         include:
           - lane: min
             elixir: "1.15.8"
@@ -337,6 +345,11 @@ jobs:
           - lane: current
             version-file: ".tool-versions"
             pg: "16"
+            runner: "ubuntu-24.04"
+          - lane: latest
+            elixir: "1.20.4"
+            otp: "29.1.1"
+            pg: "18.6"
             runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
@@ -384,8 +397,9 @@ jobs:
       # therefore shared ONE cache entry — the min lane could be "verified"
       # against dependencies compiled for current, which is a false green on
       # the Elixir 1.15 floor promise, not merely a slow build. Today the key
-      # also carries the resolved OTP/Elixir, so the lanes cannot collide even
-      # on the same image.
+      # also carries the resolved OTP/Elixir, so the min, current and latest
+      # lanes cannot collide even on the same image: each lane restores and
+      # saves its own root key (four build keys across six job-lanes).
       - name: Cache deps
         uses: actions/cache@v5
         with:
