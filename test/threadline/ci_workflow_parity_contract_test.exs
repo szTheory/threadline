@@ -2265,6 +2265,20 @@ defmodule Threadline.CIWorkflowParityContractTest do
            )
          ]
 
+    # WR-02 (219 review): the job-level MIX_ENV is the only one. A step-level
+    # override builds or reads another env's tree than the key and path name.
+    step_mix_env =
+      for step <- job_steps(block), line <- lines_matching(step, &mix_env_line?/1) do
+        build_cache_error(
+          where(job, step),
+          "rule=job-mix-env",
+          "a step overrides MIX_ENV inside a cached job (`#{line}`)",
+          "the key and the env-scoped `_build/${{ env.MIX_ENV }}` path name the job-level env; " <>
+            "a step in another env compiles or reads a tree the key does not describe (D-09)",
+          "delete the step-level `MIX_ENV:`; set it once under the job's `env:`"
+        )
+      end
+
     compiler =
       for line <- lines_matching(block, &compiler_env_line?/1) do
         build_cache_error(
@@ -2276,8 +2290,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
         )
       end
 
-    mix_env ++ compiler
+    mix_env ++ step_mix_env ++ compiler
   end
+
+  defp mix_env_line?(line), do: Regex.match?(~r/^\s*MIX_ENV:/, line)
 
   defp compiler_env_line?(line),
     do: Regex.match?(~r/^\s*(?:ERL_COMPILER_OPTIONS|ELIXIR_ERL_OPTIONS|CC|CFLAGS):/, line)
@@ -2783,6 +2799,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
     build_cache_order_controls(ctx) ++
       build_cache_count_controls(ctx) ++
+      build_cache_step_env_controls(ctx) ++
       build_cache_save_controls(ctx) ++
       build_cache_key_controls(ctx) ++
       build_cache_rm_controls(ctx) ++
@@ -2900,6 +2917,41 @@ defmodule Threadline.CIWorkflowParityContractTest do
         "second root restore after the compile",
         ~s("Restore stale build cache" rule=cache-count),
         &insert_step_after(&1, "verify-test", @root_compile, @late_root_restore_step)
+      )
+    ]
+  end
+
+  # WR-02 (219 review): a step-level MIX_ENV makes a step build or read another
+  # env's tree than the one the key and the env-scoped path name.
+  defp build_cache_step_env_controls(ctx) do
+    override = "        env:\n          MIX_ENV: dev"
+
+    [
+      ci_control(
+        ctx,
+        "step-level MIX_ENV on the root deps compile",
+        ~s("#{@root_deps_compile}" rule=job-mix-env),
+        fn text ->
+          edit_step(
+            text,
+            "verify-test",
+            @root_deps_compile,
+            &add_line_after(&1, "        if: ", override)
+          )
+        end
+      ),
+      ci_control(
+        ctx,
+        "step-level MIX_ENV on the root compile",
+        ~s("#{@root_compile}" rule=job-mix-env),
+        fn text ->
+          edit_step(
+            text,
+            "verify-test",
+            @root_compile,
+            &add_line_after(&1, "      - name: ", override)
+          )
+        end
       )
     ]
   end
