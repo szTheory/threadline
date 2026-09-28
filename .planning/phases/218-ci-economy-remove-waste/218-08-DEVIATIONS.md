@@ -165,3 +165,67 @@ exactly the six release-bump files: `.release-please-manifest.json`,
   test; only a CI run executes the Playwright suite.
 - Whether Browser-full stays inside its 45-minute step timeout with tier-a-capture added.
 - A green "Repo hygiene" job on PR #60 depends on the residual blocker above.
+
+## 3. [Rule 1 - Bug] Flake Detection is sized past its own budget (run 36359135268)
+
+**Found during:** the Flake Detection dispatch on the land branch (run
+36359135268, at `0d000785`). It classified `inconclusive` after 16 iterations:
+the 55-minute `timeout(1)` budget expired during the 16th suite run. Every
+completed run was green ("9 properties, 2460 tests, 0 failures, 3 excluded").
+
+**Issue:** 218-05 sized the lane from 214's figures (run 35967937335, 1698
+tests): 288 s cold + 15 x 165 s, about 46 min. The measured figures on the
+current 2460-test suite are 268.3 s cold and 206.2-213.5 s per repeat (median
+about 209 s), so 1 + 15 runs need about 268 + 15 x 209, roughly 3,403 s or
+57 min. That is over the budget. As shipped, every run ends `inconclusive`, and
+the close-on-pass path (ECON-02, #36) can never fire.
+
+**Fix (TDD on milestone/v1.43):** the budget and timeouts are unchanged
+(55-minute `timeout(1)`, step 58, job 70). Only the repeat count moves, from 15
+to 12, which stays inside D-02's bound of 15.
+- RED `77f684c1` `test(218-08): assert the flake lane's repeat count fits its timeout budget`.
+  It adds `Test 6` to `test/threadline/flake_classifier_contract_test.exs`:
+  - Documented per-run ceilings from run 36359135268, rounded up: 269 s cold
+    and 214 s per repeat, with 10% headroom kept free under the budget.
+  - The repeat count is parsed from the `verify.flake` alias in `mix.exs`, and
+    the budget from the workflow's `timeout ... 55m mix verify.flake` line. The
+    test asserts that 1 + repeats runs fit the usable budget and that repeats
+    stay within 1..15.
+  - Doc agreement: the workflow comment, `CONTRIBUTING.md` and the
+    `bin/classify-flake-run` header must state the committed count, and the
+    workflow must cite run 36359135268.
+  - Mutation controls: 15 repeats at a 209 s ceiling is red; rewriting the
+    `mix.exs` alias back to 15 is red; 16 repeats trips the D-02 bound.
+
+  RED run: `mix test test/threadline/flake_classifier_contract_test.exs` ran 27
+  tests with 2 failures, both new. The sizing test reported `1 + 15 runs need
+  3479 s (269 + 15 x 214), over 2970 s (3300 s budget less 10% headroom)`. The
+  doc-agreement test failed on the missing run citation. The mutation-control
+  test and the 24 existing tests passed.
+- GREEN `fbfbcb11` `fix(218-08): size the flake lane at 12 repeats so a pass fits its budget`.
+  - `mix.exs`: `verify.flake` is `test --repeat-until-failure 12` (13 runs).
+  - `.github/workflows/flake-detection.yml`: the header says "bounded
+    12-repeat", and the sizing comment is rewritten from the measured figures:
+    269 + 12 x 214 = 2,837 s, about 47 min, about 14% headroom under 55.
+  - `CONTRIBUTING.md` and the `bin/classify-flake-run` header state 12. The
+    classifier logic does not depend on the count: pass is exit 0, and a
+    timeout exit is `inconclusive` whatever the header count.
+  - GREEN run: the same file ran 27 tests with 0 failures.
+
+**Why 12 and not 13 or 14:** at the ceilings, 13 repeats need 3,051 s and 14
+need 3,265 s. Both fit the raw 3,300 s budget, but with 7.5% and 1% headroom.
+12 is the largest count that keeps 10% headroom.
+
+**Cherry-pick onto the land branch:** `77f684c1` became `12eac623` and
+`fbfbcb11` became `398e8440`. Messages are preserved and there are no
+`.planning/` paths.
+
+**Gate results (main checkout, after GREEN):**
+- `mix test`: 9 properties, 2469 tests, 0 failures, 3 excluded (exit 0).
+- `actionlint -shellcheck=`: exit 0.
+- `mix verify.format`: exit 0.
+- `mix verify.credo`: exit 0, no issues.
+- `bin/verify-repo-hygiene`: exit 0, 8 allowlist entries used, 0 inert.
+
+**Not provable locally:** that a real Flake Detection run now classifies `pass`
+inside the budget. Only the next dispatch or weekly run shows that.
