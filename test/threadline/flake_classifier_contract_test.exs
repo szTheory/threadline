@@ -264,6 +264,73 @@ defmodule Threadline.FlakeClassifierContractTest do
     end
   end
 
+  describe "Test 1e: the classify step writes a well-formed GITHUB_OUTPUT (218 review WR-01)" do
+    # Runs the committed classify step's `run:` body, under the same
+    # `bash --noprofile --norc -eo pipefail` shell GitHub uses, against a real
+    # log. `grep -c` prints 0 AND exits 1 on a zero-header log, so a
+    # `|| echo 0` fallback appended a second bare `0` line, which the runner
+    # rejects as "Invalid format".
+    defp classify_run_body(yaml) do
+      body = step_body(yaml, "Classify broken vs flaky")
+      [_, script] = String.split(body, "run: |\n", parts: 2)
+
+      script
+      |> String.split("\n")
+      |> Enum.map_join("\n", &String.replace_prefix(&1, "          ", ""))
+    end
+
+    defp run_classify_step(tmp_dir, yaml, log_contents, exit_code) do
+      work = Path.join(tmp_dir, "classify-step-#{System.unique_integer([:positive])}")
+      File.mkdir_p!(work)
+      File.ln_s!(Path.join(@repo_root, "bin"), Path.join(work, "bin"))
+
+      if log_contents, do: File.write!(Path.join(work, "flake-detection.log"), log_contents)
+
+      output_path = Path.join(work, "github-output")
+      File.write!(output_path, "")
+
+      {_, status} =
+        System.cmd(
+          "bash",
+          ["--noprofile", "--norc", "-eo", "pipefail", "-c", classify_run_body(yaml)],
+          cd: work,
+          env: [
+            {"GITHUB_OUTPUT", output_path},
+            {"EXIT_CODE", exit_code},
+            {"GATE_DECISION", "run"}
+          ],
+          stderr_to_stdout: true
+        )
+
+      {status, output_path |> File.read!() |> String.split("\n", trim: true)}
+    end
+
+    defp malformed_output_lines(lines), do: Enum.reject(lines, &(&1 =~ ~r/^[A-Za-z_]+=/))
+
+    test "every log shape yields exactly one iterations= line and no bare lines", %{
+      tmp_dir: tmp_dir
+    } do
+      yaml = File.read!(@workflow_path)
+
+      cases = [
+        {"zero-header log, suite never started", "compile error\n", "2", "iterations=0"},
+        {"zero-header log, timed out before the suite started", "", "124", "iterations=0"},
+        {"missing log", nil, "2", "iterations=0"},
+        {"three-header log", String.duplicate(@seed_header, 3), "2", "iterations=3"}
+      ]
+
+      for {label, log, exit_code, expected} <- cases do
+        {status, lines} = run_classify_step(tmp_dir, yaml, log, exit_code)
+
+        assert status == 0, "#{label}: classify step exited #{status}"
+        assert malformed_output_lines(lines) == [], "#{label}: malformed lines #{inspect(lines)}"
+
+        assert Enum.filter(lines, &String.starts_with?(&1, "iterations=")) == [expected],
+               "#{label}: expected exactly one #{expected} line, got #{inspect(lines)}"
+      end
+    end
+  end
+
   describe "Test 2: the classify step in the workflow carries an always-condition" do
     test "flake-detection.yml is non-empty and the classify step carries if: always()" do
       assert File.exists?(@workflow_path), "expected #{@workflow_path} to exist"

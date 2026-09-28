@@ -160,8 +160,12 @@ jobs:
           set -uo pipefail
           classification=$(bin/classify-flake-run flake-detection.log)
 
-          iterations=$(grep -c 'Running ExUnit with seed:' flake-detection.log 2>/dev/null || echo 0)
-          if ! printf '%s' "$iterations" | grep -Eq '^[0-9]+$'; then
+          # `grep -c` prints 0 AND exits 1 on a zero-header log, so `|| echo 0`
+          # would add a second bare `0` line to GITHUB_OUTPUT (218 review WR-01).
+          # `|| true` keeps grep's own count; a missing log leaves it empty.
+          iterations=$(grep -c 'Running ExUnit with seed:' flake-detection.log 2>/dev/null) || true
+          iterations=${iterations:-0}
+          if ! [[ "$iterations" =~ ^[0-9]+$ ]]; then
             iterations=0
           fi
 
