@@ -188,7 +188,7 @@ tables in `setup` (FK order). Keep DB-touching tests on that helper.
 ```bash
 mix test test/path/to/flaky_test.exs --repeat-until-failure 200
 mix test --seed 0 --repeat-until-failure 20   # pin a specific ordering
-mix verify.flake                              # full suite, 15 repeats (fresh seed each)
+mix verify.flake                              # full suite, 12 repeats (fresh seed each)
 ```
 
 `mix verify.flake` is also run weekly (Monday 07:00 UTC) and on demand by the

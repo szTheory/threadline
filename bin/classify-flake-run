@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # GREEN-11 / D-35 / CR-01 / CR-02 (198-11): classify a `mix verify.flake`
-# (`test --repeat-until-failure 15`) run as pass/broken/flaky/inconclusive/unknown.
+# (`test --repeat-until-failure 12`) run as pass/broken/flaky/inconclusive/unknown.
 #
 # Extracted out of `.github/workflows/flake-detection.yml` so the logic is a
 # committed, directly executable, and unit-testable artifact rather than
