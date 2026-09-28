@@ -403,17 +403,30 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # every `_build` cache rule (D-20). It reads literal workflow text, so a rule
   # is proven by feeding it text, not by trusting a pushed run.
 
+  # D-04: the `_build` key version, the single place this contract names it.
+  # Bumping it is the durable recovery from a poisoned entry (CONTRIBUTING
+  # "Poisoned-cache runbook", step 3): bump it here in the same pull request
+  # that bumps every `_build` key and the CACHE KEY CONTRACT comment in ci.yml
+  # and the CONTRIBUTING section. The key segments, the doc needles and the
+  # fixtures below all derive from it (WR-03, 219 review).
+  @build_key_version "build-v1"
+
   # The root `_build` restore exactly as the cached jobs carry it (`<interfaces>`
   # in 219-01-PLAN). Controls insert this literal step into jobs that must stay
   # cache-free, so they never depend on cloning another job's text.
-  @root_build_restore_step ~S"""
+  @root_build_restore_template ~S"""
         - name: Restore deps-only build cache
           id: build-restore
           uses: actions/cache/restore@v5
           with:
             path: _build/${{ env.MIX_ENV }}
-            key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
+            key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-__BUILD_KEY_VERSION__-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
   """
+  @root_build_restore_step String.replace(
+                             @root_build_restore_template,
+                             "__BUILD_KEY_VERSION__",
+                             @build_key_version
+                           )
 
   @ci_workflow ".github/workflows/ci.yml"
   @flake_workflow ".github/workflows/flake-detection.yml"
@@ -471,7 +484,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     root: [
       "steps.beam.outputs.otp-version",
       "steps.beam.outputs.elixir-version",
-      "-build-v1-",
+      "-#{@build_key_version}-",
       "-root-",
       "${{ env.MIX_ENV }}",
       "-full-",
@@ -481,7 +494,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     example: [
       "steps.beam.outputs.otp-version",
       "steps.beam.outputs.elixir-version",
-      "-build-v1-",
+      "-#{@build_key_version}-",
       "-example-",
       "${{ env.MIX_ENV }}",
       "-full-",
@@ -601,6 +614,28 @@ defmodule Threadline.CIWorkflowParityContractTest do
       assert errors == [],
              "the fixture is the shape plan 02 must reach; it must be clean, got:\n" <>
                Enum.join(errors, "\n")
+    end
+
+    test "control: a D-04 key-version bump that skips @build_key_version is red on each pin" do
+      # The runbook's own example bump. It must not contain the old version as a
+      # substring, or the doc needles would still match.
+      bumped = "build-v2"
+      refute String.contains?(bumped, @build_key_version)
+      live = all_workflows()
+      contributing = read_rel!(["CONTRIBUTING.md"])
+
+      mutated = Map.update!(live, @ci_workflow, &String.replace(&1, @build_key_version, bumped))
+
+      errors =
+        build_cache_errors(mutated, String.replace(contributing, @build_key_version, bumped))
+
+      refute mutated == live, "the key-version bump did not change ci.yml"
+
+      for rule <- ["rule=key-segment", "rule=doc-ci-comment", "rule=doc-contributing"] do
+        assert Enum.any?(errors, &String.contains?(&1, rule)),
+               "a bump that skips @build_key_version must fail #{rule} (the CONTRIBUTING " <>
+                 "runbook names the attribute), got:\n" <> Enum.join(errors, "\n")
+      end
     end
 
     test "the build cache allowlist is exactly the D-11 set, each entry with a reason" do
@@ -1653,7 +1688,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   @build_cache_doc_needles [
     @build_cache_rm_literal,
     "restore-keys",
-    "build-v1",
+    @build_key_version,
     "gh cache list",
     "gh cache delete",
     "actions: write",
@@ -1677,7 +1712,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
       # Pitfall 1: the OS-family control needles on this exact line.
       {Regex.match?(~r/^      # CACHE KEY CONTRACT/m, comments),
        "has no six-space `# CACHE KEY CONTRACT` heading line"},
-      {String.contains?(comments, "build-v1"), "does not name the `build-v1` key version"},
+      {String.contains?(comments, @build_key_version),
+       "does not name the `#{@build_key_version}` key version"},
       {String.contains?(comments, @build_cache_rm_literal),
        "does not name `#{@build_cache_rm_literal}`"},
       {not String.contains?(comments, @stale_build_cache_sentence),
@@ -2981,7 +3017,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
           "verify-test",
           @root_save,
           "key: ${{ steps.build-restore.outputs.cache-primary-key }}",
-          "key: ubuntu-24.04-build-v1-root-test"
+          "key: ubuntu-24.04-#{@build_key_version}-root-test"
         )
       ),
       ci_control(
@@ -3291,7 +3327,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         #
         # Every key leads with the literal runner label and the resolved OTP and
         # Elixir from the `beam` step outputs. The deps-only `_build` caches add
-        # `build-v1`, the project, MIX_ENV, the `full` profile, and the project's
+        # `__BUILD_KEY_VERSION__`, the project, MIX_ENV, the `full` profile, and the project's
         # own lock and config hashes. They carry no `restore-keys`, and every
         # cached job runs `rm -rf "_build/${MIX_ENV:?}/lib/threadline"` (the
         # example removes both of its apps) before the save and the compile.
@@ -3300,7 +3336,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # Each stub copies the live job header line and the live `    steps:` line,
   # so insert_step_in_job/3 finds the same needles as in the live files.
   defp fixture_stub_job(job_id) do
-    comment = if job_id == "verify-format", do: @fixture_cache_key_comment, else: ""
+    comment =
+      if job_id == "verify-format", do: with_key_version(@fixture_cache_key_comment), else: ""
 
     "  #{job_id}:\n    name: #{job_id} stub\n    runs-on: ubuntu-24.04\n    steps:\n" <>
       "      - uses: actions/checkout@v5\n\n" <>
@@ -3317,41 +3354,42 @@ defmodule Threadline.CIWorkflowParityContractTest do
         "| `#{job}` (#{Path.basename(path)}) | #{reason} |"
       end)
 
-    ~S"""
-    ## CI parity and `act`
+    (~S"""
+     ## CI parity and `act`
 
-    ### Dialyzer PLT cache and measurement contract
+     ### Dialyzer PLT cache and measurement contract
 
-    The PLT cache is described here.
+     The PLT cache is described here.
 
-    ### Dependency build cache
+     ### Dependency build cache
 
-    Test jobs restore an exact deps-only `_build` cache (key version `build-v1`)
-    and never use `restore-keys`. Before the save and the compile, every cached
-    job runs `rm -rf "_build/${MIX_ENV:?}/lib/threadline"`.
+     Test jobs restore an exact deps-only `_build` cache (key version `__BUILD_KEY_VERSION__`)
+     and never use `restore-keys`. Before the save and the compile, every cached
+     job runs `rm -rf "_build/${MIX_ENV:?}/lib/threadline"`.
 
-    | Job | Build cache | Saves on miss |
-    | --- | --- | --- |
-    | `verify-test` | root (both lanes) and example (current lane) | yes |
-    | `verify-pgbouncer-topology` | root, restore-only | no |
-    | `verify-example-browser` | example | yes |
-    | `verify-capture` | example | yes |
+     | Job | Build cache | Saves on miss |
+     | --- | --- | --- |
+     | `verify-test` | root (both lanes) and example (current lane) | yes |
+     | `verify-pgbouncer-topology` | root, restore-only | no |
+     | `verify-example-browser` | example | yes |
+     | `verify-capture` | example | yes |
 
-    | Job or workflow | Why it has no build cache |
-    | --- | --- |
-    """ <>
-      excluded_rows <>
-      ~S"""
+     | Job or workflow | Why it has no build cache |
+     | --- | --- |
+     """ <>
+       excluded_rows <>
+       ~S"""
 
 
-      A cold run can log `Unable to reserve cache` when two jobs save one key.
-      Each cached job prints `THREADLINE_BUILD_CACHE=hit|miss key=...` and
-      `THREADLINE_EXAMPLE_BUILD_CACHE=hit|miss key=...`. To recover from a
-      poisoned entry, find it with `gh cache list --key ...`, remove it with
-      `gh cache delete <key>` (needs `actions: write`), then bump `build-v1`.
+       A cold run can log `Unable to reserve cache` when two jobs save one key.
+       Each cached job prints `THREADLINE_BUILD_CACHE=hit|miss key=...` and
+       `THREADLINE_EXAMPLE_BUILD_CACHE=hit|miss key=...`. To recover from a
+       poisoned entry, find it with `gh cache list --key ...`, remove it with
+       `gh cache delete <key>` (needs `actions: write`), then bump `__BUILD_KEY_VERSION__`.
 
-      ## PgBouncer topology CI parity
-      """
+       ## PgBouncer topology CI parity
+       """)
+    |> with_key_version()
   end
 
   @fixture_beam_step ~S"""
@@ -3368,7 +3406,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
           uses: actions/cache/restore@v5
           with:
             path: _build/${{ env.MIX_ENV }}
-            key: __LEAD__-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
+            key: __LEAD__-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-__BUILD_KEY_VERSION__-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
 
         - name: Cache deps
           uses: actions/cache@v5
@@ -3411,7 +3449,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
             path: |
               examples/threadline_phoenix/deps
               examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
-            key: __LEAD__-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-example-${{ env.MIX_ENV }}-full-${{ hashFiles('examples/threadline_phoenix/mix.lock') }}-${{ hashFiles('examples/threadline_phoenix/config/**/*.exs') }}
+            key: __LEAD__-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-__BUILD_KEY_VERSION__-example-${{ env.MIX_ENV }}-full-${{ hashFiles('examples/threadline_phoenix/mix.lock') }}-${{ hashFiles('examples/threadline_phoenix/config/**/*.exs') }}
 
         - name: Install example dependencies
   __LANE_IF__        working-directory: examples/threadline_phoenix
@@ -3446,14 +3484,21 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   defp fixture_root_save, do: @fixture_root_save
 
+  # The fixtures spell the key version as a placeholder, so a D-04 bump of
+  # @build_key_version carries them along.
+  defp with_key_version(text),
+    do: String.replace(text, "__BUILD_KEY_VERSION__", @build_key_version)
+
   defp fixture_root_block(lead, save?) do
     @fixture_root_block
+    |> with_key_version()
     |> String.replace("__LEAD__", lead)
     |> String.replace("__SAVE__", if(save?, do: @fixture_root_save, else: ""))
   end
 
   defp fixture_example_block(lead, lane?) do
     @fixture_example_block
+    |> with_key_version()
     |> String.replace("__LEAD__", lead)
     |> String.replace(
       "__LANE_IF__",

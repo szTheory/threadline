@@ -827,8 +827,11 @@ saved from `main` reaches every pull request, so act on it quickly:
 2. Delete it: `gh cache delete <key>`. This is a maintainer action: it needs a
    token with `actions: write`, which CI itself does not have.
 3. Make the fix durable in a normal pull request: bump `build-v1` to `build-v2`
-   in every `_build` key in `.github/workflows/ci.yml` (and here), so no job can
-   read the old entries again.
+   in every `_build` key and in the CACHE KEY CONTRACT comment in
+   `.github/workflows/ci.yml`, in this section, and in `@build_key_version` in
+   `test/threadline/ci_workflow_parity_contract_test.exs`, so no job can read the
+   old entries again. The parity contract pins the version, so a bump that skips
+   any of these fails `Run test suite`.
 
 Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
