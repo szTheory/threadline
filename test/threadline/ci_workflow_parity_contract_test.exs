@@ -612,6 +612,56 @@ defmodule Threadline.CIWorkflowParityContractTest do
                MapSet.new(Map.keys(@build_cache_jobs))
              )
     end
+
+    test "control: every build cache fault is red on the fixture, each with its own rule" do
+      assert_build_cache_controls(build_cache_fixture(), "")
+    end
+
+    test "positive control: extra `_build` comment lines keep the fixture clean" do
+      fixture = build_cache_fixture()
+
+      commented =
+        Map.update!(fixture, @ci_workflow, fn ci ->
+          String.replace(
+            ci,
+            "\n      - ",
+            "\n      # _build restore-keys actions/cache@v5\n      - "
+          )
+        end)
+
+      refute commented == fixture, "the positive control did not change the input"
+      assert build_cache_errors(commented, "") == []
+    end
+
+    test "control: every build cache fault is red on the hybrid map (live workflows, fixture ci.yml)" do
+      hybrid = Map.put(all_workflows(), @ci_workflow, build_cache_fixture()[@ci_workflow])
+      errors = build_cache_errors(hybrid, "")
+
+      assert errors == [],
+             "every live workflow plus the fixture ci.yml must be clean, got:\n" <>
+               Enum.join(errors, "\n")
+
+      assert_build_cache_controls(hybrid, "")
+    end
+
+    test "live needle: every control outside <interfaces> bites on the fully live workflows" do
+      live = all_workflows()
+      contributing = ""
+      baseline = build_cache_errors(live, contributing)
+      controls = build_cache_live_needle_controls(live, contributing)
+
+      refute controls == [], "the live needle control table is empty"
+
+      for {label, mutated, mutated_contributing, fragment} <- controls do
+        refute mutated == live, "#{label} control did not change the live input"
+        [_, job_id] = Regex.run(~r/^\S+ (\S+):/, label)
+        added = build_cache_errors(mutated, mutated_contributing) -- baseline
+
+        assert Enum.any?(added, &(&1 =~ fragment and &1 =~ " #{job_id} ")),
+               "#{label} must add a #{fragment} error for #{job_id}, got:\n" <>
+                 Enum.join(added, "\n")
+      end
+    end
   end
 
   # --- Toolchain pin contract -------------------------------------------------
@@ -1588,7 +1638,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       [
         build_cache_error(
           {@ci_workflow, "-", "-"},
-          "allowlist",
+          "rule=allowlist",
           "ci.yml is missing or has no parseable jobs",
           "every allowlist rule would pass vacuously",
           "pass the real ci.yml text"
@@ -1624,7 +1674,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         class in [:restore_build, :save_build, :combined_build] do
       build_cache_error(
         {path, job_id, step_label(step)},
-        "allowlist",
+        "rule=allowlist",
         "a `_build` cache step in a job outside @build_cache_jobs",
         "the allowlist is fail-closed; every cached job is reviewed and named (D-11, D-20)",
         "remove the step, or add the job to @build_cache_jobs and CONTRIBUTING with a reason"
@@ -1636,7 +1686,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for project <- restored_projects(steps) -- projects do
       build_cache_error(
         {path, job_id, "-"},
-        "allowlist-project",
+        "rule=allowlist-project",
         "restores a #{project} `_build` cache, which is not in its allowlist entry",
         "each job caches exactly the projects D-11 lists for it",
         "remove the #{project} restore, or change the job's @build_cache_jobs entry"
@@ -1653,7 +1703,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         project <- projects -- restored do
       build_cache_error(
         {path, job_id, "-"},
-        "allowlist-unused",
+        "rule=allowlist-unused",
         "has no #{project} `_build` restore, but its allowlist entry requires one",
         "every allowlist entry must be used, so a dropped cache block cannot go unnoticed (D-11)",
         "restore the #{project} cache block, or remove #{project} from the entry"
@@ -1667,7 +1717,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         workflow_job(yaml_by_path[path], job_id) == "" do
       build_cache_error(
         {path, job_id, "-"},
-        "exclusion-unknown",
+        "rule=exclusion-unknown",
         "@build_cache_exclusions names a job that does not exist",
         "a stale exclusion hides which jobs are deliberately cache-free (D-12)",
         "rename or remove the exclusion entry"
@@ -1682,7 +1732,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         line <- lines_matching(chunk, &cache_line?/1) do
       build_cache_error(
         {@ci_workflow, "verify-compile-no-optional", step_label(chunk)},
-        "no-optional-cache",
+        "rule=no-optional-cache",
         "carries `#{line}`",
         "the optional-deps proof must build from source with no cache step of any kind (D-13)",
         "remove the cache step"
@@ -1694,7 +1744,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for {:combined_build, _project, step} <- steps do
       build_cache_error(
         {path, job_id, step_label(step)},
-        "combined-action",
+        "rule=combined-action",
         "caches `_build` with the combined actions/cache action",
         "the combined action saves at job end, after the own build exists (CACHE-01, D-14)",
         "use actions/cache/restore@v5 and actions/cache/save@v5"
@@ -1740,7 +1790,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       [
         build_cache_error(
           where(job, restore),
-          "order",
+          "rule=order",
           "the #{project} cache block is out of order: observed #{inspect(observed)}, " <>
             "expected #{inspect(wanted)}",
           "the own build is removed after the dependency compile and before both the save " <>
@@ -1768,7 +1818,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       [
         build_cache_error(
           where,
-          "combined-action",
+          "rule=combined-action",
           "a `_build` cache step must carry `#{expected}`",
           "the split restore/save pair is what lets the save run before the own build exists " <>
             "(CACHE-01, D-14)",
@@ -1783,7 +1833,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       [
         build_cache_error(
           where,
-          "restore-keys",
+          "rule=restore-keys",
           "a `_build` restore carries `restore-keys:`",
           "a near-miss restore across a changed lock serves wrong compiled artifacts " <>
             "(CACHE-01, CargoSense/setup-elixir-project#13)",
@@ -1800,7 +1850,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       for segment <- @build_key_segments[project], not String.contains?(key, segment) do
         build_cache_error(
           where,
-          "key-segment",
+          "rule=key-segment",
           "the #{project} `_build` key lacks `#{segment}`",
           "every input that changes compiled dependencies must be in the exact key (D-01..D-05)",
           "add `#{segment}` to the key, as @build_key_segments lists it"
@@ -1811,7 +1861,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       for message <- key_value_errors("the #{project} `_build` restore", "key", key) do
         build_cache_error(
           where,
-          "key-segment",
+          "rule=key-segment",
           message,
           "the Phase 216 cache-key contract applies to every cache",
           "lead with the literal runner label and the resolved setup-beam outputs"
@@ -1825,7 +1875,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for input <- @build_key_forbidden[project], String.contains?(key, input) do
       build_cache_error(
         where,
-        "key-forbidden",
+        "rule=key-forbidden",
         "the #{project} `_build` key carries `#{input}`",
         "that input is reserved, redundant, or belongs to another project's lock (D-02..D-06)",
         "remove `#{input}` from the key"
@@ -1849,19 +1899,19 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
     [
       {String.contains?(stripped, "uses: actions/cache/save@v5"),
-       {"combined-action", "a `_build` save must carry `uses: actions/cache/save@v5`",
+       {"rule=combined-action", "a `_build` save must carry `uses: actions/cache/save@v5`",
         "only the split save runs before the own build exists (D-14)",
         "use actions/cache/save@v5"}},
       {yaml_value(stripped, "key") == primary,
-       {"save-key", "the save key must be exactly `#{primary}`",
+       {"rule=save-key", "the save key must be exactly `#{primary}`",
         "a retyped or foreign key saves under a name the restore never computed (D-14)",
         "key the save on its own project's restore output"}},
       {cache_path(save) == cache_path(restore),
-       {"save-path", "the save path differs from the `#{id}` restore path",
+       {"rule=save-path", "the save path differs from the `#{id}` restore path",
         "a save that caches other paths than the restore reads poisons the key (D-14)",
         "copy the restore's `path:` byte for byte"}},
       {yaml_value(stripped, "if") in guards,
-       {"save-guard", "the save `if:` must be one of #{inspect(guards)}",
+       {"rule=save-guard", "the save `if:` must be one of #{inspect(guards)}",
         "only an exact miss after a successful dependency compile may save; always(), " <>
           "failure() or || would save a failed or partial build (D-14, D-15)",
         "set `if: #{List.first(guards)}`"}}
@@ -1885,7 +1935,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         yaml_value(strip_comment_lines(step), "if") not in guards do
       build_cache_error(
         where(job, step),
-        "compile-guard",
+        "rule=compile-guard",
         "the dependency compile `if:` must be one of #{inspect(guards)}",
         "dependencies compile only on an exact miss, and the save shares that guard (D-07)",
         "set `if: #{List.first(guards)}`"
@@ -1898,7 +1948,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         Regex.match?(~r/^\s*continue-on-error:/m, strip_comment_lines(step)) do
       build_cache_error(
         where(job, step),
-        "continue-on-error",
+        "rule=continue-on-error",
         "a step inside a cache block carries `continue-on-error:`",
         "a failed dependency compile must never reach the save (D-15)",
         "remove `continue-on-error:`"
@@ -1923,18 +1973,18 @@ defmodule Threadline.CIWorkflowParityContractTest do
     targets =
       for target <- @build_rm_targets[project] do
         {String.contains?(stripped, target),
-         {"rm-target", "the #{project} removal does not name #{target}",
+         {"rule=rm-target", "the #{project} removal does not name #{target}",
           "each first-party app's build must be removed before the save and the compile (D-08)",
           "add #{target} to the `rm -rf`"}}
       end
 
     [
       {yaml_value(stripped, "if") == nil,
-       {"rm-unconditional", "the own-build removal carries an `if:`",
+       {"rule=rm-unconditional", "the own-build removal carries an `if:`",
         "it must run on a hit and on a miss, or a restored stale copy is served (D-07)",
         "delete the `if:`"}},
       {guarded,
-       {"rm-env-guard", "every `_build/` in the removal must be `_build/${MIX_ENV:?}/`",
+       {"rule=rm-env-guard", "every `_build/` in the removal must be `_build/${MIX_ENV:?}/`",
         "an unset MIX_ENV must fail loudly instead of removing nothing (D-08)",
         "write the path as `_build/${MIX_ENV:?}/lib/...`"}}
       | targets
@@ -1951,7 +2001,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         element not in @build_cache_paths do
       build_cache_error(
         where(job, step),
-        "cache-path-env",
+        "rule=cache-path-env",
         "`_build` path element `#{element}` is not one of #{inspect(@build_cache_paths)}",
         "the cache is env-scoped, so a test build never lands in another env's entry (D-09)",
         "use `_build/${{ env.MIX_ENV }}`"
@@ -1963,7 +2013,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for {:save_build, _project, step} <- job.steps do
       build_cache_error(
         where(job, step),
-        "restore-only",
+        "rule=restore-only",
         "a restore-only job saves a `_build` cache",
         "restore-only jobs reuse another job's key; a second writer only adds a save race (D-11)",
         "remove the save step"
@@ -1977,7 +2027,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for {:local_action, _project, step} <- job.steps do
       build_cache_error(
         where(job, step),
-        "inline",
+        "rule=inline",
         "a local `uses: ./` action inside a cached job",
         "the contract reads literal job text; a composite action would hide the cache steps (D-22)",
         "inline the steps in the job"
@@ -1995,7 +2045,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
          else: [
            build_cache_error(
              {job.path, job.id, "-"},
-             "job-mix-env",
+             "rule=job-mix-env",
              "the job has no literal job-level `MIX_ENV:`",
              "an unset MIX_ENV makes `_build/$MIX_ENV` collapse and preferred_envs pick the env (D-09)",
              "add `MIX_ENV: test` under the job's `env:`"
@@ -2006,7 +2056,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       for line <- lines_matching(block, &compiler_env_line?/1) do
         build_cache_error(
           {job.path, job.id, "-"},
-          "compiler-env",
+          "rule=compiler-env",
           "the job sets `#{line}`",
           "compiler flags change dependency BEAMs without changing the key (D-17)",
           "remove the variable from the cached job"
@@ -2146,7 +2196,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for {job, chunk} <- workflow_chunks(yaml), line <- lines_matching(chunk, &cache_line?/1) do
       build_cache_error(
         {path, job, step_label(chunk)},
-        "release-cache",
+        "rule=release-cache",
         "release.yml carries `#{line}`",
         "a published package must be built from source, never from a cache (D-17)",
         "remove the cache step or cache input from release.yml"
@@ -2166,7 +2216,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
             line <- lines_matching(chunk, &cache_line?/1) do
           build_cache_error(
             {path, job, step_label(chunk)},
-            "privileged-trigger-cache",
+            "rule=privileged-trigger-cache",
             "a workflow triggered by #{Enum.join(triggers, ", ")} carries `#{line}`",
             "those triggers run in the default branch's cache scope, so a cache step " <>
               "there can poison entries every pull request restores (D-17)",
@@ -2182,7 +2232,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         not (line == "cache: npm" and setup_node_step?(chunk)) do
       build_cache_error(
         {path, job, step_label(chunk)},
-        "builtin-cache",
+        "rule=builtin-cache",
         "built-in cache input `#{line}`",
         "an action's built-in cache hides its key and restore-keys from this contract (D-20)",
         "use an explicit actions/cache/restore + save pair; only `cache: npm` on " <>
@@ -2266,7 +2316,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # D-20 message shape: where, a stable `rule=<id>` token, what, why and the fix.
   defp build_cache_error({path, job, step}, rule, what, why, fix) do
     step = if step == "-", do: "-", else: inspect(step)
-    "#{path} #{job} #{step} rule=#{rule}: #{what}. Why: #{why}. Fix: #{fix}"
+    "#{path} #{job} #{step} #{rule}: #{what}. Why: #{why}. Fix: #{fix}"
   end
 
   # --- Deps-only build cache contract: text mutators for the controls ----------
@@ -2303,6 +2353,513 @@ defmodule Threadline.CIWorkflowParityContractTest do
   end
 
   defp job_header_line?(line), do: Regex.match?(~r/^  [a-z][a-z0-9_-]*:\s*$/, line)
+
+  defp job_header_or_steps_line?(line), do: line == "    steps:" or job_header_line?(line)
+
+  # Inserts `line` directly after the job-level `    env:` line of `job_id`
+  # (searched between the job header and its `    steps:` line). Raises when a
+  # needle is missing, like insert_step_in_job/3.
+  defp insert_env_line_in_job(text, job_id, line) do
+    lines = String.split(text, "\n")
+    at = job_line_index!(lines, job_id, "    env:", &job_header_or_steps_line?/1)
+    {before, rest} = Enum.split(lines, at + 1)
+    Enum.join(before ++ [line | rest], "\n")
+  end
+
+  # Removes the single `      <key>: ` line from the job-level `    env:` block
+  # of `job_id`. Raises when a needle is missing.
+  defp remove_env_line_in_job(text, job_id, key) do
+    lines = String.split(text, "\n")
+    env_at = job_line_index!(lines, job_id, "    env:", &job_header_or_steps_line?/1)
+
+    offset =
+      lines
+      |> Enum.drop(env_at + 1)
+      |> Enum.take_while(&String.starts_with?(&1, "      "))
+      |> Enum.find_index(&String.starts_with?(&1, "      #{key}: "))
+
+    unless offset, do: raise(ArgumentError, "job #{job_id} env has no #{key} line")
+
+    lines |> List.delete_at(env_at + 1 + offset) |> Enum.join("\n")
+  end
+
+  # Step-name needles (`<interfaces>` names, which plan 02 reproduces in live
+  # ci.yml). Each helper raises when its job or step is missing.
+  defp update_job!(text, job_id, fun) do
+    case workflow_job(text, job_id) do
+      "" -> raise ArgumentError, "no job #{job_id}"
+      block -> String.replace(text, block, fun.(block), global: false)
+    end
+  end
+
+  defp map_job_steps(text, job_id, fun) do
+    update_job!(text, job_id, fn block ->
+      ~r/^(?=      - )/m |> Regex.split(block) |> fun.() |> Enum.join()
+    end)
+  end
+
+  defp step_index!(chunks, name) do
+    Enum.find_index(chunks, &(step_label(&1) == name)) ||
+      raise ArgumentError, "no step #{inspect(name)}"
+  end
+
+  defp edit_step(text, job_id, name, fun),
+    do: map_job_steps(text, job_id, &List.update_at(&1, step_index!(&1, name), fun))
+
+  defp replace_in_step(text, job_id, name, from, to),
+    do: edit_step(text, job_id, name, &String.replace(&1, from, to))
+
+  defp insert_step_after(text, job_id, after_name, step),
+    do: map_job_steps(text, job_id, &List.insert_at(&1, step_index!(&1, after_name) + 1, step))
+
+  defp remove_steps(text, job_id, names) do
+    map_job_steps(text, job_id, fn chunks ->
+      Enum.each(names, &step_index!(chunks, &1))
+      Enum.reject(chunks, &(step_label(&1) in names))
+    end)
+  end
+
+  defp move_step_after(text, job_id, name, after_name) do
+    map_job_steps(text, job_id, fn chunks ->
+      at = step_index!(chunks, name)
+      rest = List.delete_at(chunks, at)
+      List.insert_at(rest, step_index!(rest, after_name) + 1, Enum.at(chunks, at))
+    end)
+  end
+
+  defp add_line_after(step, prefix, line) do
+    lines = String.split(step, "\n")
+
+    at =
+      Enum.find_index(lines, &String.starts_with?(&1, prefix)) ||
+        raise ArgumentError, "no line starting #{inspect(prefix)}"
+
+    lines |> List.insert_at(at + 1, line) |> Enum.join("\n")
+  end
+
+  # Rewrites only the `key:` line of a verify-test restore step, so the other
+  # project's key and the step's `path:` stay untouched.
+  defp edit_restore_key(text, restore_name, fun) do
+    edit_step(text, "verify-test", restore_name, fn step ->
+      step |> String.split("\n") |> Enum.map_join("\n", &edit_key_line(&1, fun))
+    end)
+  end
+
+  defp edit_key_line(line, fun) do
+    case Regex.run(~r/^(\s*key: )(.*)$/, line) do
+      [_, prefix, key] -> prefix <> fun.(key)
+      nil -> line
+    end
+  end
+
+  defp forbidden_injection("hashFiles(" <> _ = input), do: "-${{ #{input} }}"
+  defp forbidden_injection("no-optional"), do: "-no-optional"
+  defp forbidden_injection(input), do: "-${{ hashFiles('#{input}') }}"
+
+  # --- Deps-only build cache contract: mutation controls (D-21) ---------------
+
+  @root_restore "Restore deps-only build cache"
+  @root_deps_compile "Compile dependencies on build cache miss"
+  @root_rm "Remove own build (never cached, never reused)"
+  @root_save "Save deps-only build cache"
+  @root_compile "Compile (warnings as errors)"
+  @example_restore "Restore example deps and deps-only build cache"
+  @example_rm "Remove example app's own build (never cached, never reused)"
+  @example_save "Save example deps and deps-only build cache"
+  @example_block_steps [
+    @example_restore,
+    "Install example dependencies",
+    "Compile example dependencies on cache miss",
+    @example_rm,
+    @example_save
+  ]
+
+  @path_block_build_cache_step ~S"""
+        - name: Cache deps and build
+          uses: actions/cache@v5
+          with:
+            path: |
+              deps
+              _build
+            key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+  """
+
+  @setup_beam_cache_step ~S"""
+        - uses: erlef/setup-beam@v1
+          with:
+            version-file: .tool-versions
+            version-type: strict
+            cache: true
+  """
+
+  @privileged_cache_workflow ~S"""
+  name: Privileged cache
+  on:
+    workflow_run:
+      workflows: ["CI"]
+      types: [completed]
+  jobs:
+    poll:
+      runs-on: ubuntu-24.04
+      steps:
+        - uses: actions/cache@v5
+          with:
+            path: deps
+            key: ubuntu-24.04-deps
+  """
+
+  # Asserts every control changes its input and fails with its own fragment.
+  defp assert_build_cache_controls(workflows, contributing) do
+    controls = build_cache_controls(workflows, contributing)
+    refute controls == [], "the build cache control table is empty"
+
+    for {label, mutated, mutated_contributing, fragment} <- controls do
+      refute {mutated, mutated_contributing} == {workflows, contributing},
+             "#{label} control did not change its input"
+
+      errors = build_cache_errors(mutated, mutated_contributing)
+
+      assert Enum.any?(errors, &String.contains?(&1, fragment)),
+             "#{label} must fail with #{fragment}, got:\n" <> Enum.join(errors, "\n")
+    end
+  end
+
+  # `{label, mutated_workflows, mutated_contributing, fragment}` for every D-21
+  # fault. ci.yml controls needle on `<interfaces>` step names; the rest go
+  # through build_cache_live_needle_controls/2.
+  defp build_cache_controls(workflows, contributing) do
+    ctx = %{workflows: workflows, contributing: contributing}
+
+    build_cache_order_controls(ctx) ++
+      build_cache_save_controls(ctx) ++
+      build_cache_key_controls(ctx) ++
+      build_cache_rm_controls(ctx) ++
+      build_cache_block_controls(ctx) ++
+      [
+        {"a workflow_run workflow with a cache step",
+         Map.put(workflows, ".github/workflows/privileged-cache.yml", @privileged_cache_workflow),
+         contributing, "rule=privileged-trigger-cache"}
+      ] ++ build_cache_live_needle_controls(workflows, contributing)
+  end
+
+  defp ci_control(ctx, label, fragment, fun),
+    do: {label, Map.update!(ctx.workflows, @ci_workflow, fun), ctx.contributing, fragment}
+
+  defp build_cache_order_controls(ctx) do
+    [
+      ci_control(
+        ctx,
+        "root rm dropped",
+        "rule=order",
+        &remove_steps(&1, "verify-test", [@root_rm])
+      ),
+      ci_control(
+        ctx,
+        "root rm moved after the compile",
+        "rule=order",
+        &move_step_after(&1, "verify-test", @root_rm, @root_compile)
+      ),
+      ci_control(
+        ctx,
+        "root rm moved after the save",
+        "rule=order",
+        &move_step_after(&1, "verify-test", @root_rm, @root_save)
+      ),
+      ci_control(
+        ctx,
+        "root save moved after the compile",
+        "rule=order",
+        &move_step_after(&1, "verify-test", @root_save, @root_compile)
+      )
+    ]
+  end
+
+  defp build_cache_save_controls(ctx) do
+    guard = "        if: steps.build-restore.outputs.cache-hit != 'true'\n"
+
+    [
+      ci_control(ctx, "restore-keys on the root restore", "rule=restore-keys", fn text ->
+        edit_step(
+          text,
+          "verify-test",
+          @root_restore,
+          &add_line_after(
+            &1,
+            "          key: ",
+            "          restore-keys: ${{ matrix.runner }}-otp-"
+          )
+        )
+      end),
+      ci_control(
+        ctx,
+        "literal root save key",
+        "rule=save-key",
+        &replace_in_step(
+          &1,
+          "verify-test",
+          @root_save,
+          "key: ${{ steps.build-restore.outputs.cache-primary-key }}",
+          "key: ubuntu-24.04-build-v1-root-test"
+        )
+      ),
+      ci_control(
+        ctx,
+        "root save keyed on the example restore",
+        "rule=save-key",
+        &replace_in_step(
+          &1,
+          "verify-test",
+          @root_save,
+          "steps.build-restore.",
+          "steps.example-build-restore."
+        )
+      ),
+      ci_control(
+        ctx,
+        "root save if dropped",
+        "rule=save-guard",
+        &replace_in_step(&1, "verify-test", @root_save, guard, "")
+      ),
+      ci_control(
+        ctx,
+        "root save if flipped",
+        "rule=save-guard",
+        &replace_in_step(&1, "verify-test", @root_save, "!= 'true'", "== 'true'")
+      ),
+      ci_control(
+        ctx,
+        "root save if prefixed with always()",
+        "rule=save-guard",
+        &replace_in_step(&1, "verify-test", @root_save, "if: steps.", "if: always() && steps.")
+      ),
+      ci_control(
+        ctx,
+        "example save path without the deps line",
+        "rule=save-path",
+        &replace_in_step(
+          &1,
+          "verify-test",
+          @example_save,
+          "examples/threadline_phoenix/deps\n",
+          ""
+        )
+      ),
+      ci_control(ctx, "root cache path not env-scoped", "rule=cache-path-env", fn text ->
+        text
+        |> replace_in_step(
+          "verify-test",
+          @root_restore,
+          "_build/${{ env.MIX_ENV }}",
+          "_build/test"
+        )
+        |> replace_in_step("verify-test", @root_save, "_build/${{ env.MIX_ENV }}", "_build/test")
+      end),
+      ci_control(
+        ctx,
+        "root restore on the combined action",
+        "rule=combined-action",
+        &replace_in_step(
+          &1,
+          "verify-test",
+          @root_restore,
+          "actions/cache/restore@v5",
+          "actions/cache@v5"
+        )
+      ),
+      ci_control(
+        ctx,
+        "save added to the restore-only pgbouncer job",
+        "rule=restore-only",
+        &insert_step_after(&1, "verify-pgbouncer-topology", @root_rm, fixture_root_save())
+      ),
+      ci_control(
+        ctx,
+        "root deps compile without its guard",
+        "rule=compile-guard",
+        &replace_in_step(&1, "verify-test", @root_deps_compile, guard, "")
+      )
+    ] ++
+      for name <- [@root_deps_compile, @root_save] do
+        ci_control(ctx, "continue-on-error on #{name}", "rule=continue-on-error", fn text ->
+          edit_step(
+            text,
+            "verify-test",
+            name,
+            &add_line_after(&1, "        if: ", "        continue-on-error: true")
+          )
+        end)
+      end
+  end
+
+  # One segment-removal control per segment per project, and one injection
+  # control per forbidden input per project (D-01..D-06).
+  defp build_cache_key_controls(ctx) do
+    restores = %{root: @root_restore, example: @example_restore}
+
+    segments =
+      for project <- [:root, :example], segment <- @build_key_segments[project] do
+        ci_control(ctx, "#{project} key without #{segment}", "rule=key-segment", fn text ->
+          edit_restore_key(text, restores[project], &String.replace(&1, segment, ""))
+        end)
+      end
+
+    forbidden =
+      for project <- [:root, :example], input <- @build_key_forbidden[project] do
+        ci_control(ctx, "#{project} key with #{input}", "rule=key-forbidden", fn text ->
+          edit_restore_key(text, restores[project], &(&1 <> forbidden_injection(input)))
+        end)
+      end
+
+    segments ++
+      forbidden ++
+      [
+        ci_control(ctx, "root key profile no-optional", "rule=key-forbidden", fn text ->
+          edit_restore_key(text, @root_restore, &String.replace(&1, "-full-", "-no-optional-"))
+        end)
+      ]
+  end
+
+  defp build_cache_rm_controls(ctx) do
+    [
+      ci_control(
+        ctx,
+        "example rm without its threadline_phoenix target",
+        "rule=rm-target",
+        fn text ->
+          edit_step(
+            text,
+            "verify-test",
+            @example_rm,
+            &Regex.replace(
+              ~r{ \\\n\s*"examples/threadline_phoenix/_build/\$\{MIX_ENV:\?\}/lib/threadline_phoenix"},
+              &1,
+              ""
+            )
+          )
+        end
+      ),
+      ci_control(ctx, "example rm without its threadline target", "rule=rm-target", fn text ->
+        edit_step(
+          text,
+          "verify-test",
+          @example_rm,
+          &Regex.replace(
+            ~r{"examples/threadline_phoenix/_build/\$\{MIX_ENV:\?\}/lib/threadline" \\\n\s*},
+            &1,
+            ""
+          )
+        )
+      end),
+      ci_control(ctx, "root rm gated on always()", "rule=rm-unconditional", fn text ->
+        edit_step(
+          text,
+          "verify-test",
+          @root_rm,
+          &add_line_after(&1, "      - name: ", "        if: always()")
+        )
+      end),
+      ci_control(
+        ctx,
+        "root rm without the MIX_ENV guard",
+        "rule=rm-env-guard",
+        &replace_in_step(&1, "verify-test", @root_rm, "${MIX_ENV:?}", "$MIX_ENV")
+      )
+    ]
+  end
+
+  defp build_cache_block_controls(ctx) do
+    [
+      ci_control(
+        ctx,
+        "capture example block removed",
+        "rule=allowlist-unused",
+        &remove_steps(&1, "verify-capture", @example_block_steps)
+      ),
+      ci_control(
+        ctx,
+        "verify-test example block removed",
+        "rule=allowlist-unused: has no example",
+        &remove_steps(&1, "verify-test", @example_block_steps)
+      ),
+      ci_control(
+        ctx,
+        "verify-test root block removed",
+        "rule=allowlist-unused: has no root",
+        &remove_steps(&1, "verify-test", [@root_restore, @root_deps_compile, @root_rm, @root_save])
+      ),
+      ci_control(
+        ctx,
+        "root restore cloned into verify-capture",
+        "rule=allowlist-project",
+        &insert_step_in_job(&1, "verify-capture", @root_build_restore_step)
+      ),
+      ci_control(
+        ctx,
+        "local action inside the verify-test root block",
+        "rule=inline",
+        &insert_step_after(
+          &1,
+          "verify-test",
+          @root_restore,
+          "      - uses: ./.github/actions/setup-elixir\n\n"
+        )
+      ),
+      ci_control(ctx, "stale exclusion entry", "rule=exclusion-unknown", fn text ->
+        update_job!(text, "verify-repo-hygiene", fn _block -> "" end)
+      end)
+    ]
+  end
+
+  # Controls whose needle lies outside `<interfaces>`: a job header plus its
+  # first `    steps:` line, or a job-level env line. Those lines exist in the
+  # live files today, and plan 02 edits none of them (it may not edit
+  # release.yml, flake-detection.yml or browser-full.yml at all), so these are
+  # proven against the fully live workflows now. Labels are "<file> <job>: ...".
+  defp build_cache_live_needle_controls(workflows, contributing) do
+    update = fn path, fun -> Map.update!(workflows, path, fun) end
+    restore = @root_build_restore_step
+
+    [
+      {"ci.yml verify-format: path-block deps + _build cache",
+       update.(
+         @ci_workflow,
+         &insert_step_in_job(&1, "verify-format", @path_block_build_cache_step)
+       ), "rule=allowlist"},
+      {"ci.yml verify-format: setup-beam cache: true",
+       update.(@ci_workflow, &insert_step_in_job(&1, "verify-format", @setup_beam_cache_step)),
+       "rule=builtin-cache"},
+      {"ci.yml verify-compile-no-optional: root restore",
+       update.(@ci_workflow, &insert_step_in_job(&1, "verify-compile-no-optional", restore)),
+       "rule=no-optional-cache"},
+      {"ci.yml verify-test: job-level MIX_ENV removed",
+       update.(@ci_workflow, &remove_env_line_in_job(&1, "verify-test", "MIX_ENV")),
+       "rule=job-mix-env"},
+      {"ci.yml verify-capture: ERL_COMPILER_OPTIONS in the job env",
+       update.(
+         @ci_workflow,
+         &insert_env_line_in_job(
+           &1,
+           "verify-capture",
+           "      ERL_COMPILER_OPTIONS: +deterministic"
+         )
+       ), "rule=compiler-env"},
+      {"release.yml publish-hex: root restore",
+       update.(@release_workflow, &insert_step_in_job(&1, "publish-hex", restore)),
+       "rule=release-cache"},
+      {"release.yml smoke-published: root restore",
+       update.(@release_workflow, &insert_step_in_job(&1, "smoke-published", restore)),
+       "rule=release-cache"},
+      {"flake-detection.yml verify-flake: root restore",
+       update.(@flake_workflow, &insert_step_in_job(&1, "verify-flake", restore)),
+       "rule=allowlist"},
+      {"browser-full.yml verify-example-browser-full: root restore",
+       update.(
+         @browser_full_workflow,
+         &insert_step_in_job(&1, "verify-example-browser-full", restore)
+       ), "rule=allowlist"}
+    ]
+    |> Enum.map(fn {label, mutated, fragment} -> {label, mutated, contributing, fragment} end)
+  end
 
   # --- Deps-only build cache contract: the synthetic fixture (D-21) -----------
   #
@@ -2442,6 +2999,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
               examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
             key: ${{ steps.example-build-restore.outputs.cache-primary-key }}
   """
+
+  defp fixture_root_save, do: @fixture_root_save
 
   defp fixture_root_block(lead, save?) do
     @fixture_root_block
