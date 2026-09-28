@@ -1,0 +1,188 @@
+# Requirements: Threadline v1.43 Supply Chain, CI Economy and Repo Hygiene
+
+**Defined:** 2026-09-26
+**Core Value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
+**Milestone goal:** Close the open dependency advisories behind a CI audit gate. Make every CI job earn its runner minutes and read clearly. Keep the public repo free of local paths. Measure first, cut the lowest-risk waste first, and ship as a patch.
+**Evidence:** `.planning/research/SUMMARY.md` (with STACK/FEATURES/ARCHITECTURE/PITFALLS) and the PROJECT.md `## Current Milestone` baseline.
+
+**Standing rules for every requirement:**
+
+- Any add, remove or rename of a `verify-*` job changes `ci.yml`, CONTRIBUTING's job table and roster, `ci-required` `needs:` and the topology contract test **in the same commit**. Job `id:`s are immutable, and `CI required` stays byte-exact.
+- No trigger-level `paths:` filters on `ci.yml`, no static `allowed-skips`, and no `continue-on-error` on a voting job.
+- Never `git add .planning/` wholesale.
+- Verification is automated (zero human UAT). Push, merge and `production-hex` approval are handed to the maintainer.
+
+## v1.43 Requirements
+
+### Baseline
+
+- [x] **BASE-01**: The maintainer can cite a re-measured CI baseline doc. It covers per-job p50/p95 over ≥10 PR and ≥10 push runs, runner-minutes per PR, per push-to-main and per release cycle, the critical path, Flake Detection and Browser-full cost, `mix test --slowest 25`, the isolated `:live_dialyzer` cost, and the share of merged PRs that touch only provably inert paths. Every number cites a run ID or a command.
+- [x] **BASE-02**: PROJECT.md's baseline matches re-measured fact:
+  - the flake streak dates and the 180-min timeout;
+  - the two root advisories and the 3 HIGH in bench;
+  - the tracked-path count, including `prompts/prior-art/`;
+  - "tmp_dir hygiene" instead of "tmp_dir flakes";
+  - the xref disposition.
+
+### Supply chain
+
+- [x] **SUP-01**: `mix hex.audit` is clean for the root, `examples/threadline_phoenix` and `bench` lockfiles.
+  - The fixes are lock-only (mint 1.10.1, lazy_html 0.1.13, and a bench refresh), with no `mix.exs` constraint change.
+  - A releasable `fix(deps):` commit carries a CHANGELOG line for the mint advisory, which adopters with `req` can resolve.
+- [x] **SUP-02**: CI fails a PR that introduces an advisory, through `mix verify.deps_audit` in a `verify-deps-audit` job.
+  - The alias runs the unused-lock check plus `hex.audit` over all three lockfiles.
+  - It asserts Hex ≥ 2.5.1.
+  - A negative fixture test proves the gate goes red on a known-vulnerable lock.
+- [x] **SUP-03**: Every `hex: [ignore_advisories: ...]` entry carries a reason, a reachability claim and a review-by date. A test fails when an entry is expired or has no justification.
+- [x] **SUP-04**: The maintainer learns about new advisories and stale dependencies without a PR flood.
+  - A weekly, non-required `deps-health.yml` runs `hex.audit` + `hex.outdated` and upserts one `ci-deps` issue.
+  - CONTRIBUTING states the freshness policy: batched updates per release train, no Dependabot version-update PRs.
+
+### Platform currency
+
+- [x] **PLAT-01**: CI runs the Erlang/OTP it claims.
+  - `.tool-versions` is committed.
+  - Non-matrix jobs use setup-beam `version-file` in strict mode, and the `"27.0"` → 27.0.1 drift is gone.
+  - Every cache key uses the resolved OTP/Elixir versions.
+  - The contract tests assert the new pins.
+- [x] **PLAT-02**: No workflow uses a Node 20 action. That means `actions/cache@v5`, `upload-artifact@v7`, and `release-please-action@v5`. The release-please bump lands in its own commit and is rehearsed through the release runbook.
+- [x] **PLAT-03**: The min lane runs on a supported runner image (off the deprecated `ubuntu-22.04`), with lazy_html's OTP 26 NIF verified to resolve there.
+
+### Repo hygiene
+
+- [x] **HYG-01**: No tracked file contains an absolute machine-local path.
+  - A forward scrub rewrites path prefixes only, keeping receipts intact.
+  - It stages exactly the `git grep -l -I` file list and covers `prompts/prior-art/`.
+  - There is no history rewrite.
+- [x] **HYG-02**: CI fails a PR that adds a machine-local path, via a `bin/` guard script, a `verify.*` alias in `ci.all` and a `verify-repo-hygiene` job.
+  - It scans tracked text files only and allowlists runner and cache paths.
+  - It fails on an unused allowlist entry.
+  - It builds its fixtures at runtime, so no real username appears in the repo.
+  - A negative test proves it goes red.
+- [x] **HYG-03**: Tests that leak temp dirs or collide under async use ExUnit `@tag :tmp_dir`: the 7 files without cleanup, plus any async collisions. Tests that need a dir outside the repo keep the system temp dir, and tree-walking tests ignore `tmp/`.
+- [x] **HYG-04**: The xref disposition is recorded.
+  - The existing compile-connected `verify.xref_cycles` gate stays, and no runtime-cycle gate is added.
+  - MILESTONE-GUIDE §9a names the label correctly.
+  - The `Capture.AuditTransaction`↔`Semantics.AuditAction` runtime edge is logged as a v1.45 architecture observation.
+
+### CI economy: remove waste
+
+- [x] **ECON-01**: Flake Detection produces a signal within a bounded budget.
+  - It runs weekly plus on dispatch, with 10–15 repeats sized from measured iteration time.
+  - A step timeout shorter than the job timeout lets classification and reporting always run.
+  - It skips an unchanged green SHA and exits `broken-upstream` when CI on that SHA is red.
+  - A timeout is reported as inconclusive, not `unknown`, and the report no longer falsely says "no header".
+  - It uses a contract-compliant cache key, and the anti-regression grep covers all workflows.
+- [x] **ECON-02**: CI tracking issues close themselves when their lane goes green. `bin/upsert-ci-issue` can close them, and #28 and #36 are resolved.
+- [x] **ECON-03**: A release PR's head SHA gets exactly one CI run.
+  - `bootstrap-release-pr-ci` dispatches only when no PAT-triggered run exists, decided deterministically rather than by querying runs.
+  - The job wiring stays.
+  - `release_control_plane_contract_test.exs` is extended.
+- [x] **ECON-04**: Browser-full doesn't repeat CI's work.
+  - On push it runs only the Playwright projects that `ci.yml` does not run, and the nightly skips a SHA that is already green.
+  - A contract test proves CI's projects plus Browser-full's cover the full Playwright config.
+- [x] **ECON-05**: The uncached `:live_dialyzer` test is excluded from default `mix test` and runs only in the PLT-cached `verify-dialyzer` job. test_helper, CONTRIBUTING and the topology test are updated together.
+- [x] **ECON-06**: Each dominated proof is removed with a written "still caught by job Y on trigger Z" line. That covers the `verify-mechanical` job (its alias stays), the capture lane's trailing mechanical step, and any duplicate docs or tarball proof the baseline shows is dominated.
+- [ ] **ECON-07**: Runner-minutes and critical path are re-measured after ECON-01..06, and the deltas are recorded against BASE-01.
+
+### Build cache
+
+- [ ] **CACHE-01**: Test jobs restore a deps-only `_build` cache and a separate example-app cache.
+  - The keys are exact: runner, resolved OTP/Elixir, MIX_ENV, profile, lock and config. There are no restore-keys.
+  - The project's own build is removed before compiling.
+  - `verify-compile-no-optional` and the release publish path stay cache-free.
+  - The parity contract test asserts these rules.
+  - A measured before/after is recorded against BASE-01.
+
+### Newest toolchain
+
+- [ ] **LANE-01**: A dispatch spike runs the suite on the newest stable toolchain (Elixir 1.20.x / OTP 29.x / PostgreSQL 18, exactly pinned) under `--warnings-as-errors`.
+  - If green, it lands as a voting `lane: latest` in `verify-test`, with the roster and parity contracts updated.
+  - Otherwise the findings are recorded as "not yet".
+  - It never uses `continue-on-error` and never uses a beta PostgreSQL.
+
+### CI developer experience
+
+- [ ] **DX-01**: A contributor can tell from a red check's name what failed, without opening logs.
+  - `name:`s are rewritten once, after all roster changes. That includes the evaluator name, which is false on PRs.
+  - YAML is ordered by time-to-red, with no `needs:` preflight chain.
+  - Job ids and `CI required` stay unchanged.
+  - CONTRIBUTING quotes are updated in the same commit.
+
+### Change-aware lanes (conditional)
+
+- [ ] **SCOPE-01**: SEED-006 is decided from measured data. If BASE-01's inert-PR share, re-checked after ECON-07 and CACHE-01, is material, build:
+  - a `verify-change-scope` job with a table-tested, fail-closed `bin/classify-ci-lanes` classifier (anything unknown runs the full matrix);
+  - a dynamic `allowed-skips` only for skip-eligible jobs (never `verify-test` or the rehearsal);
+  - an empty skip list on push and on dispatch;
+  - a `ci-required` step that re-justifies each skip.
+
+  Otherwise record "measured, not worth it" and close the seed.
+
+## Future Requirements (deferred)
+
+- SHA-pin all mutable `uses:` references (v1.44+).
+- A composite setup action. Reopen only if the parity assertions are rewritten anyway.
+- Split `verify.example` out of the current test lane. It pays only after the browser job also shrinks.
+- Idle polling in the release `gate-ci-green` step (~11 min/release). It touches the release path.
+- Raise the Elixir 1.15 / PG 14 floor (PG 14 EOL 2026-11-12). This is a v1.45 API-contract decision.
+- v1.42 debt: an orphaned rerun per-table function left after gen.triggers `down`; `mix threadline.gen.backfill`; health `--strict` (v1.44).
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Runtime xref-cycle gate | The 5 runtime cycles are Ecto association edges by design, and the compile-connected gate already exists |
+| Dependabot `mix`/actions version-update PRs | Churn. Each PR needs a maintainer merge, and the freshness policy covers it |
+| `mix_audit` / gitleaks / trufflehog | The audit DB misses current advisories. Secret scanning and push protection are already on, and history mode would flag the deliberately unrewritten past |
+| Trigger-level `paths:` on `ci.yml` | Violates the required-aggregate contract (guide §9) |
+| Retries as a flake cure, Playwright sharding/workers > 1 | They hide failures, and there is no isolation for parallel workers |
+| Dropping the min lane | It caught 2 unique failures in 30 days |
+| Making Browser-full required | A non-required confidence lane by design |
+| Git history rewrite | Maintainer decision (2026-09-25): forward scrub only |
+| `postgres:19beta*` in a voting lane | Beta. Revisit after the October 2026 release |
+
+## Maintainer hand-offs (not code)
+
+- Enable Dependabot **alerts** (repo setting).
+- Optionally enable non-provider secret-scanning patterns.
+- Push, merge and `production-hex` approval for the patch release.
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| BASE-01 | Phase 214 | Complete |
+| BASE-02 | Phase 214 | Complete |
+| SUP-01 | Phase 215 | Complete |
+| SUP-02 | Phase 215 | Complete |
+| SUP-03 | Phase 215 | Complete |
+| SUP-04 | Phase 215 | Complete |
+| PLAT-01 | Phase 216 | Complete |
+| PLAT-02 | Phase 216 | Complete |
+| PLAT-03 | Phase 216 | Complete |
+| HYG-01 | Phase 217 | Complete |
+| HYG-02 | Phase 217 | Complete |
+| HYG-03 | Phase 217 | Complete |
+| HYG-04 | Phase 217 | Complete |
+| ECON-01 | Phase 218 | Complete |
+| ECON-02 | Phase 218 | Complete |
+| ECON-03 | Phase 218 | Complete |
+| ECON-04 | Phase 218 | Complete |
+| ECON-05 | Phase 218 | Complete |
+| ECON-06 | Phase 218 | Complete |
+| ECON-07 | Phase 218 | Pending |
+| CACHE-01 | Phase 219 | Pending |
+| LANE-01 | Phase 220 | Pending |
+| DX-01 | Phase 221 | Pending |
+| SCOPE-01 | Phase 222 | Pending |
+
+**Coverage:**
+
+- v1.43 requirements: 24 total
+- Mapped to phases: 24
+- Unmapped: 0
+
+---
+*Requirements defined: 2026-09-26*
+*Last updated: 2026-09-26 after roadmap creation (Phases 214-222)*

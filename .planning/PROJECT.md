@@ -10,11 +10,67 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline shipped **v1.41 Green, Clean, and Honest** on 2026-09-24 (Phases 198–207, 153 plans, 53/54 requirements; GREEN-07 accepted-pending). The repository's quality gates are now real: Credo `--strict` runs full defaults, and Dialyzer, xref cycles and warnings-as-errors are enforced in `ci.all`. `mix test` went from 83 failures to 0 on CI once the hidden `search_path` reliance was fixed at the call sites. The suite passes with `.planning/` physically absent, and no planning vocabulary reaches HexDocs, the tarball or rendered HTML. **0.10.0 and 0.10.1 are live on hex.pm** (default `storage_schema` is `"public"`, so a 0.9.x upgrade is non-breaking). The milestone branch also carries installer and `gen.triggers` rerun fixes with a 0.10.2 CHANGELOG entry, not yet landed on `main` or released.
+Threadline shipped **v1.42 Capture Correctness for Real Table Shapes** on 2026-09-26 (Phases 208–213, 30 plans, 28/28 requirements) and released it as **0.11.0 on hex.pm**. Capture is now correct and collision-free for every primary-key shape (uuid, text, composite, INCLUDE, partitioned, schema-qualified, and no-PK tables via a `primary_key:` override), Postgres schema and name length. Unsupported shapes are refused at migrate time. `history`/`as_of` match the captured key exactly, backed by a shipped row-history index. `Threadline.Health.trigger_findings/1` detects broken capture, and `guides/upgrading-to-0.11.md` carries backfill SQL proven on real PostgreSQL. The 0.10.x shared-capture-function security issue is fixed and disclosed in the CHANGELOG.
 
-**Honest open state at close:** `origin/main` (at `v0.10.1`) is CI-green. The v1.41 branch is 513 commits ahead of it and still needs a squash-land via PR, which is GREEN-07's open clause. `verify-capture` and three `operator-stress.spec.ts` rows remain red by construction under D-39 (no Tier-A `page.*` baseline regeneration in v1.41). Paid critic scoring stays parked. The root package keeps Phoenix/LiveView optional, LLM calls stay out of CI, and external pilot/compliance expansion remains signal-gated.
+**Open state (updated 2026-09-26):**
+- Landed via squash PR #52. release-please shipped 0.11.0 (#53, run 36257162356) and the distribution sync merged (#54).
+- `main` CI is green, there are no open PRs, and origin has only `main`.
+- The operator UI stays parked until 1.0.0.
+- **v1.43 Supply Chain, CI Economy and Repo Hygiene** started 2026-09-26 (defining requirements).
 
-## Latest Milestone Shipped: v1.41 Green, Clean, and Honest (2026-09-24)
+
+## Current Milestone: v1.43 Supply Chain, CI Economy and Repo Hygiene
+
+**Goal:** Close the known dependency advisory behind a CI audit gate, make every CI job earn its runner minutes and read clearly, and keep the public repo free of local paths. Measure a baseline first, fix the lowest-risk waste first, and ship as a patch.
+
+**Baseline (measured 2026-09-26, `5e78b2f0` main green, 0 open PRs; re-measured 2026-09-26 in Phase 214, see `.planning/phases/214-baseline-measurement/214-BASELINE.md`):**
+- Flake Detection: 79 consecutive scheduled fast failures (under 10 min each), 06-26→09-12 (runs 28225855438 → 34679766829; the last failed on a broken main that CI already reported), then 12 cancellations at 51 repeats × ~165 s past the old 120-min timeout (09-13→09-24), then 2 green (98 and 137 min) under the current 180-min timeout. It has never classified a run as `flaky`, and its issue #36 posted 11 misleading "unknown" comments. About 3,000–4,100 runner-min/month.
+- `mix hex.audit` exits 1 on 2 advisories in the root `mix.lock`. mint 1.10.0 (MEDIUM, EEF-CVE-2026-82672 / GHSA-rj5m-69wp-cxq9, response smuggling) comes in through the optional runtime dependency req → finch → mint; fixed in 1.10.1. lazy_html 0.1.12 (LOW, test-only, EEF-CVE-2026-92106 / GHSA-8rqp-v692-v82q, mutation XSS) is fixed in 0.1.13. Both fixes are lockfile-only. `bench/mix.lock` has 8 advisories, 3 HIGH in bench (postgrex 0.22.0 ×1, plug 1.19.1 ×2), plus 3 MEDIUM and 2 LOW across decimal 2.3.0, postgrex and plug. `examples/threadline_phoenix/mix.lock` is clean (hex.audit exit 0). No audit gate in CI. Dependabot alerts are disabled on the repo.
+- CI wall time, p50 from `214-BASELINE.md` sections 2 and 5 (ci.yml n=20 per event; Browser-full successful runs since 2026-08-27, n=19 push and n=14 nightly): PR 10.5 min (run 34758417725), push 10.7 min (run 34755997103). Browser-full: 18.0 min on every push to main (run 35780709940) plus 14.5 min nightly (run 34932091760).
+- Machine-local paths: 387 tracked files at `e58aa067` match an absolute home path (a `Users` or `home` root) or a home-relative tilde-slash path, by `git grep -l -I -E` with both regexes (`.planning/phases/214-baseline-measurement/tools/measure-base02.sh paths`). That total is 383 under `.planning/`, 2 in `prompts/prior-art/` and 2 in `.github/workflows/` (the runner's Playwright cache path, not a maintainer path). Absolute paths alone: 303 files. origin/main `5e78b2f0`: 345 files (292 absolute).
+- Also found: CI's `otp-version: "27.0"` resolves to 27.0.1, `.tool-versions` was untracked, 3 actions still declare Node 20 (removed 2026-09-23), the min lane's `ubuntu-22.04` is deprecated, and the release PR is dispatched twice (9 SHA pairs).
+- `mix xref graph --format cycles --label compile-connected`: clean, and already gated by `verify.xref_cycles` (in `ci.all` and both test lanes). Without the label there are 5 runtime cycles of length 2, including `Capture.AuditTransaction`↔`Semantics.AuditAction`, which crosses the capture and semantics layers.
+
+**Target features:**
+- Supply chain: fix the advisories (root and bench), add a CI audit gate, set a dependency-freshness policy (not dependabot churn)
+- CI economy (measured first): a broken/costly Flake Detection lane fixed or re-scoped, duplicate proofs removed, the release-PR double dispatch, Browser-full re-running CI projects, a deps-only `_build` cache, and an uncached live-Dialyzer test (540 s timeout) that runs in both test lanes and in every flake iteration
+- CI DX: job names say what failed, and the fastest likely failure comes first
+- Platform currency: commit `.tool-versions`, exact OTP, Node 24 actions, a supported min-lane runner
+- One lane on the newest PostgreSQL/Elixir (spike first)
+- tmp_dir hygiene: leaking tests moved to `@tag :tmp_dir` (no temp-dir flake is recorded)
+- Repo hygiene: a PII/local-path CI guard, a forward scrub of tracked files (no history rewrite), and no runtime-cycle gate: the existing compile-connected `verify.xref_cycles` gate stays (0 compile-connected cycles), and the 5 runtime cycles of length 2 stay ungated (2 are Ecto schema pairs; 3 are module pairs in the operator-surface checker, `Threadline`↔`Investigation`, and the critic.measure task). The capture↔semantics edge is logged for the v1.45 API/architecture review.
+- SEED-006: change-aware lanes behind a tested fail-closed classifier (last phase, only after the cheap wins are measured)
+
+**Shipped so far (2026-09-27):** Phase 217 Repo Hygiene is complete (HYG-01..04 validated, re-verification 5/5): tracked tree scrubbed of machine-local paths (prefix-only, no history rewrite); `bin/verify-repo-hygiene` / `mix verify.repo_hygiene` guard in `ci.all` and the required `verify-repo-hygiene` job; leaking tests on `@tag :tmp_dir` with `mix verify.temp_leaks`; xref disposition recorded. Key decision: tracked planning prose is not exempt from the guard — machine-local path shapes are written with the placeholder forms in CONTRIBUTING.md `## Writing about machine-local paths` instead of allowlisting prose. Open for milestone close: 6 round-2 review findings in `217-REVIEW-DISPOSITION.md` (notably Linux-encoded project dirs undetected while CONTRIBUTING claims full coverage).
+
+**Deferred to v1.44:** v1.42 debt (gen.triggers `down` leaves an orphaned rerun per-table function; `mix threadline.gen.backfill`; health `--strict`).
+
+## Latest Milestone Shipped: v1.42 Capture Correctness for Real Table Shapes (2026-09-26)
+
+**Delivered:** correct, collision-free capture for every table shape, released as 0.11.0 (#52/#53/#54).
+
+- **Identifiers and collision-free emission (208, 209):**
+  - Deterministic handling of names longer than 63 bytes.
+  - One per-table capture function per table, which is the security fix.
+  - No CASCADE drops.
+- **PK-agnostic capture (210):**
+  - The key is resolved from `pg_index` at migrate time, with a `primary_key:` override.
+  - 0.10.x triggers keep working, and overhead stays within 1.07x of 0.10.2.
+- **Read-side agreement (211):**
+  - Exact key matching for `history`/`as_of`, and `RowKey` for composite and override keys.
+  - `audit_changes_row_history_idx` ships in install and in `mix threadline.gen.row_history_index`.
+- **Detection and adopter twins (212):**
+  - Five trigger health findings, gated by `verify_coverage` and shown in `health.coverage`.
+  - Safe under PgBouncer and for a zero-grant role.
+  - Every tricky shape is covered in the example app and the hex evaluator.
+- **Upgrade guide and 0.11.0 (213):**
+  - Backfill and rollback-cleanup SQL extracted from the guide and executed on real PostgreSQL.
+  - The release was cut through release-please.
+
+**Next milestone goals:** v1.43 Supply Chain, CI Economy and Repo Hygiene, the second rung of the ladder to 1.0.0 in `.planning/MILESTONE-GUIDE.txt` §7. Carried debt: `.planning/milestones/v1.42-MILESTONE-AUDIT.md`.
+
+## Prior shipped milestone: v1.41 Green, Clean, and Honest (2026-09-24)
+
 
 **Goal (achieved with one accepted-pending gap):** Get the repository into a genuinely clean, green, publishable state, then ratchet software quality wherever the improvement can be made mechanical and gated.
 
@@ -30,7 +86,7 @@ Threadline shipped **v1.41 Green, Clean, and Honest** on 2026-09-24 (Phases 198�
 
 **Archives:** `.planning/milestones/v1.41-ROADMAP.md`, `.planning/milestones/v1.41-REQUIREMENTS.md`, `.planning/milestones/v1.41-MILESTONE-AUDIT.md`, `.planning/milestones/v1.41-phases/`
 
-**Next milestone goals:** Define with `/gsd-new-milestone`. Land the v1.41 branch on `main` and let release-please cut 0.10.2 first. Other candidates from the tech-debt register: locked-dependency security advisories, the two `System.unique_integer` temp-dir flakes, and the 63-byte trigger-function name collision.
+**Next milestone goals:** v1.42 Capture Correctness for Real Table Shapes — first rung of the ladder to 1.0.0 in `.planning/MILESTONE-GUIDE.txt` §7.
 
 ## Prior shipped milestone: v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness (2026-08-27)
 
@@ -584,11 +640,13 @@ Threadline shipped **v1.41 Green, Clean, and Honest** on 2026-09-24 (Phases 198�
 - [x] **0.10.0 released (Phases 202, 205)** — 0.10.0 and 0.10.1 published with release-please-managed pins and a single publish path. Validated in v1.41 (2026-09-22).
 - [x] **Real quality gates (Phase 203)** — Credo full defaults as deltas, Dialyzer clean in `ci.all`, layer inversions and the Capture↔Semantics cycle resolved. Validated in v1.41 (2026-09-24).
 - [x] **Legible structure (Phase 204)** — `style.ex` split behind a byte-hash lock, render monsters extracted, shared test case templates enforced. Validated in v1.41 (2026-09-24).
-- [x] **Installer and trigger-migration correctness (Phases 206–207)** — distinct installer migration versions, working `gen.triggers` rerun migrations, `storage_schema` default documented truthfully. Validated in v1.41 (2026-09-24); release pending as 0.10.2.
+- [x] **Installer and trigger-migration correctness (Phases 206–207)** — distinct installer migration versions, working `gen.triggers` rerun migrations, `storage_schema` default documented truthfully. Validated in v1.41 (2026-09-24); released as 0.10.2 (2026-09-25).
+
+- [x] **Capture correctness for real table shapes (Phases 208–213)** — PK-agnostic, collision-free capture with exact read-side matching, trigger health findings, and a proven upgrade path. Validated in v1.42 (2026-09-26); released as 0.11.0.
 
 ### Active
 
-None yet. The next milestone defines them via `/gsd-new-milestone`.
+v1.43 Supply Chain, CI Economy and Repo Hygiene is in progress. See `## Current Milestone` above and `.planning/REQUIREMENTS.md`.
 
 ### Out of Scope
 
@@ -604,7 +662,7 @@ None yet. The next milestone defines them via `/gsd-new-milestone`.
 - **Multi-tenant / prefix-scoped capture beyond Ecto prefix support** — defer until basic capture is validated
 - **Forced `threadline_web` extraction before version-pressure exists** — out of scope for v1.19. The milestone should define objective extraction triggers first; a package split only makes sense once real adopters create version-matrix or release-cadence pressure.
 - **Unattended Hex publish from CI** — the release-please publish path runs in CI but behind the `production-hex` required-reviewer Environment (v1.41); a human approval stays on every publish
-- **Elixir/OTP version bumps in CI** — unless required for runner or dependency breakage
+- **Silently bumping the declared floor or the current lane's Elixir/OTP in CI** — only for runner or dependency breakage, or to make a lane's pin honest (2026-09-26: `otp-version: "27.0"` resolves to 27.0.1). An additive, exactly pinned newest-toolchain lane is in scope for v1.43, after a spike (guide §7). Raising the floor (Elixir 1.15 / PG 14, which reaches EOL 2026-11-12) is a v1.45 API-contract decision.
 
 ## Context
 
@@ -622,13 +680,13 @@ None yet. The next milestone defines them via `/gsd-new-milestone`.
 
 **First-hour config (2026-05-28):** `config :threadline, ecto_repos: [MyApp.Repo]` documented in getting-started §2 and production-checklist; doc-contract locked (v1.27 CFG-01–03).
 
-**Hex distribution (2026-07-01):** **threadline 0.9.0** is the current in-repo and hex.pm package line (tag `v0.9.0`, published 2026-06-03). v1.39 treats any remaining `~> 0.6` or 0.6-era adopter docs as a public trust bug unless the older pin is explicitly intentional.
+**Hex distribution (2026-09-26):** **threadline 0.11.0** is the current in-repo and hex.pm package line (released via release-please #53 after the v1.42 squash-land #52; 0.10.x adopters follow `guides/upgrading-to-0.11.md`). Default `storage_schema` is `"public"` since 0.10.0.
 
-**Path-to-done posture (2026-05-29):** **~92–95% done** for stated narrow audit-platform scope. v1.29 closed remaining first-hour doc footguns and verify/planning hygiene. **Default hold** — no adopter signal today; v1.28 only on sustained signal. Assessment: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`; roadmap: `.planning/MILESTONE-ARC.md` § Path to done.
+**Path-to-done posture (2026-09-25, supersedes the 2026-05-29 "default hold"):** ratchet the **base library** to diminishing returns, marked by the **1.0.0** release, via the ladder v1.42 Capture Correctness for Real Table Shapes → v1.43 Supply Chain, CI Economy and Repo Hygiene → v1.44 Behavioral Depth → v1.45 1.0 API Contract (est. 6–9 weeks, mid-Nov → early Dec 2026; re-estimated at each close). The operator/admin UI is parked until 1.0.0. Evidence-backed quality milestones need no adopter signal; new product scope still does. Guide: `.planning/MILESTONE-GUIDE.txt`; live ranking: `.planning/MILESTONE-ARC.md`.
 
 **Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/milestones/v1.0-phases/01-capture-foundation/gate-01-01.md` (archived with v1.0).
 
-**Storage-schema posture (2026-07-01):** Threadline already defaults its owned tables to the PostgreSQL schema `threadline`, with `public` available only by explicit choice. v1.39 is the confidence pass: custom non-default schemas, Ecto prefix precedence, generated migration quoting, and non-public host table assumptions must be proven or made honest before public adoption claims lean on the feature.
+**Storage-schema posture (2026-07-01, superseded 2026-09-22):** ~~defaults owned tables to `threadline`~~. Since 0.10.0 the default is `"public"` (Key Decision 202 D-01); custom schemas remain proven end to end (Phase 190).
 
 **CI/CD posture (2026-07-01):** The current CI topology is broad and valuable, but setup/cache/version-policy efficiency is not yet measured enough to optimize confidently. v1.39 should baseline first, then make boring low-risk improvements: precise BEAM caches, pinned service images, release serialization, branch-protection docs, and compatibility lanes only where they protect stated support.
 
@@ -703,14 +761,16 @@ None yet. The next milestone defines them via `/gsd-new-milestone`.
 | Critic must be validated against a golden set before driving any ratchet | An un-validated critic driving a ratchet optimizes toward a broken oracle; synthetic-twin oracle + Spearman-ρ ranking gate (not Krippendorff α — the critic compresses its scale) | ✓ Shipped (Phase 195, v1.40) |
 | Persona fan-out collapsed to 1 persona for hierarchy/density lenses | Probe proved P1–P5 unanimous on ranking (15/15); 5× cheaper with the oracle ρ as backstop | ✓ Shipped (Phase 197, v1.40) |
 | Paid critic loop PARKED at v1.40 close | Spend/value shortfall on PROOF-02 human-ratified; deterministic floor + guards remain in CI, paid scoring only on explicit un-park | ✓ Ratified (197-02, 2026-08-27) |
-| v1.41 publishes local `main` to `origin` and makes the public repo genuinely green | "Main green" is only true if the public repo is green. `origin/main` has been red since 2026-06-26 with the local tree 584 commits ahead; `.planning/` was already tracked and public up to that point, so publishing the remainder changes degree, not kind. Supersedes the local-only convention for `main` (milestone *tags* remain local). | ⚠️ Revisit — `origin/main` published and green (0.10.1), but the v1.41 branch is 513 commits ahead at close; GREEN-07 accepted-pending (v1.41) |
+| v1.41 publishes local `main` to `origin` and makes the public repo genuinely green | "Main green" is only true if the public repo is green. `origin/main` has been red since 2026-06-26 with the local tree 584 commits ahead; `.planning/` was already tracked and public up to that point, so publishing the remainder changes degree, not kind. Supersedes the local-only convention for `main` (milestone *tags* remain local). | ✓ Resolved — v1.41 squash-landed via PR #49 on 2026-09-25 and 0.10.2 released (#50/#51); main CI green |
 | The test suite must not read `.planning/` | Nine test files reached into the planning directory at runtime, two of them (`verify.mechanical`, `verify.critic_trust`) inside `ci.all` — so the library's gates depended on planning prose. Load-bearing datasets now live in `test/fixtures/`; `.planning/` stays tracked as history but load-bearing on nothing. Exact-HEAD proof runs the full aggregate with `.planning/` physically absent. | ✓ Validated (Phase 199, 2026-09-11) |
 | A quality gate that passes vacuously is worse than no gate | `.credo.exs` used `checks: %{enabled: [...]}`, which replaces Credo's defaults (verified in `config_file.ex:377-385` — `merge_checks/2` binds `checks_base` and never uses it). The result ran 2 checks on 253 files in 0.1s inside `ci.all` and always passed. Config must be expressed as `extra:`/`disabled:` deltas so a future Credo release cannot silently re-create the hole; any check that must stay off ships as a register row with an exact finding count. | ✓ Validated (Phase 203, v1.41) — `credo --strict` 0 issues on full defaults |
 | Carried "known red baselines" must be re-derived, not restated | The v1.39 R-C / v1.40 Seed #8 "stable 3-module red baseline" was carried unchanged for four phases while its membership drifted (`coverage_live` → `policy_redaction_live`) and one member became green. A baseline nobody re-measures becomes a blindfold; every register row asserting a measurement must record when it was last re-derived. | ✓ Validated (v1.41) — re-derivation disproved the "stale DB" diagnosis and found the real cause |
 | Planning vocabulary is a public-surface defect, not a cosmetic one | Phase numbers, decision/requirement identifiers, and milestone literals had reached rendered HTML, DOM attributes, CSS, public module docs, and the shipped package definition. The permanent package/docs surface must be clean before 0.10.0 publishes; rendered-output cleanup remains Phase 201's bounded follow-up. | ✓ Validated (Phases 200–201, v1.41) |
 | Public adoption procedures have exactly one runnable owner | Duplicated install, mount/auth, or local-Docker recipes drift independently and can separate safety warnings from their commands. README, the reference app, and secondary guides route to the canonical Getting Started, Operator Surface, and Local Docker guides; contract tests reject competing runnable copies. | ✓ Validated (Phase 200, 2026-09-13) |
 | Default `storage_schema` is `"public"` (202 D-01) | 0.10.0 introduced `Threadline.StorageSchema`; a `threadline` default would have split a 0.9.x adopter's reads from its trigger writes (empty timeline, no error). Flipping the default made the release non-breaking; rated one-way because hex.pm cannot unpublish past ~1 hour. Supersedes the earlier "defaults owned tables to `threadline`" posture. | ✓ Shipped (0.10.0, v1.41) |
+| Capture resolves the real primary key at migrate time; each table gets its own capture function (v1.42) | Hardcoded `id` silently mis-keyed every non-`id` table, and shared per-table functions let one table run under another table's redaction rules. The key comes from `pg_index` (or a validated `primary_key:` override) and is passed as trigger arguments; reads compare the whole text-encoded key map. Breaking for 0.10.x triggers, so an upgrade guide ships with backfill SQL proven on real PostgreSQL. | ✓ Shipped (0.11.0, v1.42) |
 | No Tier-A `page.*` baseline regeneration in v1.41 (D-39) | The only remedy for the red `verify-capture` lane and three stress rows was regenerating baselines, which would launder drift into evidence. Maintainer chose option-a: accept GREEN-07 pending rather than regenerate. | ⚠️ Revisit — unblock needs a milestone that authorizes regeneration and fixes the `scroll_cost` coupling |
+| Base library ratchets to diminishing returns, marked by 1.0.0; operator UI parked until then (2026-09-25) | A 2026-09-25 baseline found real capture defects the "hold at ~92–95%" posture missed: trigger SQL hardcodes the PK column `id`, per-table function names collide across schemas (redaction bypass), long names raise a misleading error. There are also no property tests, deferred dependency advisories, ~4,300 runner-min/month of signal-free flake runs, and ~100 unspecced public functions. The maintainer wants the library finished before re-engaging on UI/UX. PII: CI guard + forward scrub of tracked local paths, no history rewrite. | — Pending (ladder v1.42–v1.45 in `.planning/MILESTONE-GUIDE.txt` §7) |
 
 ## Evolution
 
@@ -732,4 +792,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-09-24 after v1.41 milestone*
+*Last updated: 2026-09-27 after Phase 217*

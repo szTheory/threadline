@@ -1,0 +1,132 @@
+{
+  "bench_advisory_count": 8,
+  "bench_advisory_packages": [
+    "decimal 2.3.0",
+    "plug 1.19.1",
+    "postgrex 0.22.0"
+  ],
+  "bench_high_count": 3,
+  "bench_severity_counts": {
+    "HIGH": 3,
+    "LOW": 2,
+    "MEDIUM": 3
+  },
+  "browser_full_push_p50_min": "18.0",
+  "browser_full_push_p50_run": 35780709940,
+  "browser_full_schedule_p50_min": "14.5",
+  "browser_full_schedule_p50_run": 34932091760,
+  "ci_wall_pr_p50_min": "10.5",
+  "ci_wall_pr_p50_run": 34758417725,
+  "ci_wall_pr_p50_s": 629,
+  "ci_wall_push_p50_min": "10.7",
+  "ci_wall_push_p50_run": 34755997103,
+  "ci_wall_push_p50_s": 640,
+  "commands": {
+    "bench_advisory_count": "cd bench && mix hex.audit -> raw/base02/hex-audit-bench.txt",
+    "bench_advisory_packages": "cd bench && mix hex.audit",
+    "bench_high_count": "cd bench && mix hex.audit (severity as printed by hex.audit)",
+    "bench_severity_counts": "cd bench && mix hex.audit",
+    "browser_full_push_p50_min": "successful wall row of: python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py workflow-cost --workflow browser-full.yml --event push --since 2026-08-27",
+    "browser_full_push_p50_run": "successful wall row of: python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py workflow-cost --workflow browser-full.yml --event push --since 2026-08-27",
+    "browser_full_schedule_p50_min": "successful wall row of: python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py workflow-cost --workflow browser-full.yml --event schedule --since 2026-08-27",
+    "browser_full_schedule_p50_run": "successful wall row of: python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py workflow-cost --workflow browser-full.yml --event schedule --since 2026-08-27",
+    "ci_wall_pr_p50_min": "fmt_min(629) of: python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py wall --workflow ci.yml --event pull_request",
+    "ci_wall_pr_p50_run": "python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py wall --workflow ci.yml --event pull_request",
+    "ci_wall_pr_p50_s": "python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py wall --workflow ci.yml --event pull_request",
+    "ci_wall_push_p50_min": "fmt_min(640) of: python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py wall --workflow ci.yml --event push",
+    "ci_wall_push_p50_run": "python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py wall --workflow ci.yml --event push",
+    "ci_wall_push_p50_s": "python3 .planning/phases/214-baseline-measurement/tools/summarize-ci.py wall --workflow ci.yml --event push",
+    "example_advisory_count": "cd examples/threadline_phoenix && mix hex.audit -> raw/base02/hex-audit-example.txt",
+    "flake_fast_fail_count": "longest contiguous (createdAt order) run of conclusion=failure with updatedAt-createdAt < 10 min, over: gh run list --repo szTheory/threadline --workflow flake-detection.yml --event schedule --limit 200 --json databaseId,createdAt,updatedAt,conclusion,status",
+    "flake_fast_fail_first": "longest contiguous (createdAt order) run of conclusion=failure with updatedAt-createdAt < 10 min, over: gh run list --repo szTheory/threadline --workflow flake-detection.yml --event schedule --limit 200 --json databaseId,createdAt,updatedAt,conclusion,status",
+    "flake_fast_fail_first_run": "longest contiguous (createdAt order) run of conclusion=failure with updatedAt-createdAt < 10 min, over: gh run list --repo szTheory/threadline --workflow flake-detection.yml --event schedule --limit 200 --json databaseId,createdAt,updatedAt,conclusion,status",
+    "flake_fast_fail_last": "longest contiguous (createdAt order) run of conclusion=failure with updatedAt-createdAt < 10 min, over: gh run list --repo szTheory/threadline --workflow flake-detection.yml --event schedule --limit 200 --json databaseId,createdAt,updatedAt,conclusion,status",
+    "flake_fast_fail_last_run": "longest contiguous (createdAt order) run of conclusion=failure with updatedAt-createdAt < 10 min, over: gh run list --repo szTheory/threadline --workflow flake-detection.yml --event schedule --limit 200 --json databaseId,createdAt,updatedAt,conclusion,status",
+    "flake_fast_fail_threshold_min": "fixed by 214-02-PLAN (fast failure = under 10 min)",
+    "flake_scheduled_runs_seen": "gh run list --repo szTheory/threadline --workflow flake-detection.yml --event schedule --limit 200 --json databaseId,createdAt,updatedAt,conclusion,status",
+    "flake_timeout_min": "awk verify-flake timeout-minutes .github/workflows/flake-detection.yml",
+    "hex_version": "mix hex.info",
+    "root_advisories": "mix hex.audit (repo root) + gh api /advisories/<GHSA> -> raw/base02/advisories.json",
+    "root_advisory_count": "mix hex.audit (repo root) -> raw/base02/hex-audit-root.txt",
+    "root_advisory_packages": "mix hex.audit (repo root)",
+    "tracked_path_files_head": "git grep -l -I -E <regex> <rev> -- . (union of the absolute and home-relative regexes in tracked_path_regexes) at HEAD -> raw/base02/tracked-paths-HEAD.txt",
+    "tracked_path_files_origin_main": "git fetch origin main; git grep -l -I -E <regex> <rev> -- . (union of the absolute and home-relative regexes in tracked_path_regexes) at origin/main -> raw/base02/tracked-paths-origin-main.txt",
+    "tracked_path_head_sha": "git rev-parse --short=8 HEAD",
+    "tracked_path_origin_main_sha": "git rev-parse --short=8 origin/main",
+    "tracked_path_prior_art_files": "git grep -l -I -E <regex> <rev> -- . (union of the absolute and home-relative regexes in tracked_path_regexes) at HEAD, files under prompts/prior-art/",
+    "wall_regenerate": "bash .planning/phases/214-baseline-measurement/tools/measure-base02.sh wall (offline; reads raw/ci)",
+    "xref_compile_connected_cycles": "mix xref graph --format cycles --label compile-connected -> raw/base02/xref-compile-connected.txt",
+    "xref_cross_layer_edge_present": "grep capture/audit_transaction.ex and semantics/audit_action.ex in raw/base02/xref-runtime.txt",
+    "xref_runtime_cycles": "mix xref graph --format cycles -> raw/base02/xref-runtime.txt"
+  },
+  "example_advisory_count": 0,
+  "flake_fast_fail_count": 79,
+  "flake_fast_fail_first": "06-26",
+  "flake_fast_fail_first_date": "2026-06-26",
+  "flake_fast_fail_first_run": 28225855438,
+  "flake_fast_fail_last": "09-12",
+  "flake_fast_fail_last_date": "2026-09-12",
+  "flake_fast_fail_last_run": 34679766829,
+  "flake_fast_fail_threshold_min": 10,
+  "flake_scheduled_runs_seen": 118,
+  "flake_timeout_min": 180,
+  "hex_version": "2.5.1",
+  "root_advisories": [
+    {
+      "ghsa": "GHSA-rj5m-69wp-cxq9",
+      "github_severity": null,
+      "id": "EEF-CVE-2026-82672",
+      "package": "mint",
+      "severity": "MEDIUM",
+      "version": "1.10.0"
+    },
+    {
+      "ghsa": "GHSA-8rqp-v692-v82q",
+      "github_severity": null,
+      "id": "EEF-CVE-2026-92106",
+      "package": "lazy_html",
+      "severity": "LOW",
+      "version": "0.1.12"
+    }
+  ],
+  "root_advisory_count": 2,
+  "root_advisory_packages": [
+    "mint 1.10.0",
+    "lazy_html 0.1.12"
+  ],
+  "tracked_path_by_dir": {
+    "HEAD": {
+      ".github": 2,
+      ".planning": 383,
+      "prompts/prior-art": 2
+    },
+    "origin/main": {
+      ".github": 2,
+      ".planning": 341,
+      "prompts/prior-art": 2
+    }
+  },
+  "tracked_path_files_head": 387,
+  "tracked_path_files_origin_main": 345,
+  "tracked_path_head_sha": "e58aa067",
+  "tracked_path_origin_main_sha": "5e78b2f0",
+  "tracked_path_pattern_counts": {
+    "HEAD": {
+      "absolute": 303,
+      "home_relative": 101
+    },
+    "origin/main": {
+      "absolute": 292,
+      "home_relative": 64
+    }
+  },
+  "tracked_path_prior_art_files": 2,
+  "tracked_path_prior_art_files_origin_main": 2,
+  "tracked_path_regexes": {
+    "absolute": "/(Users|home)/[^/[:space:]]+/",
+    "home_relative": "(^|[^[:alnum:]_.])~/"
+  },
+  "xref_compile_connected_cycles": 0,
+  "xref_cross_layer_edge_present": true,
+  "xref_runtime_cycles": 5
+}

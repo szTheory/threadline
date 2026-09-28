@@ -1,0 +1,54 @@
+{
+  "run_id": 35966939057,
+  "attempt": 1,
+  "head_sha": "471ebf6e67365e2ad16a1b8dbac991e5da1ec3b4",
+  "event": "schedule",
+  "created_at": "2026-09-24T06:56:07Z",
+  "conclusion": "success",
+  "workflow": "Environment Protection",
+  "jobs": [
+    {
+      "id": 107527534421,
+      "name": "Publish environment protection contract (production-hex)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-24T06:56:09Z",
+      "completed_at": "2026-09-24T06:56:15Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-24T06:56:10Z",
+          "completed_at": "2026-09-24T06:56:10Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-24T06:56:10Z",
+          "completed_at": "2026-09-24T06:56:12Z"
+        },
+        {
+          "name": "Assert the live publish gate still requires a reviewer",
+          "conclusion": "success",
+          "started_at": "2026-09-24T06:56:12Z",
+          "completed_at": "2026-09-24T06:56:13Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-24T06:56:13Z",
+          "completed_at": "2026-09-24T06:56:13Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-24T06:56:13Z",
+          "completed_at": "2026-09-24T06:56:13Z"
+        }
+      ]
+    }
+  ]
+}

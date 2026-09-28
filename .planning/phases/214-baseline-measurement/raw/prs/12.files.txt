@@ -1,0 +1,6 @@
+guides/operator-surface.md
+lib/threadline/operator_surface/live/actor_live.ex
+lib/threadline/operator_surface/live/timeline_live.ex
+lib/threadline/operator_surface/live/transaction_live.ex
+lib/threadline/operator_surface/script.ex
+test/threadline/operator_surface_doc_contract_test.exs

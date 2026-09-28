@@ -1,0 +1,365 @@
+{
+  "run_id": 35787338837,
+  "attempt": 1,
+  "head_sha": "3d148435ee4b03be7b48dee713a8e73f396c2b78",
+  "event": "push",
+  "created_at": "2026-09-22T21:33:13Z",
+  "conclusion": "success",
+  "workflow": "Release",
+  "jobs": [
+    {
+      "id": 106947225059,
+      "name": "Release Please",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-22T21:33:16Z",
+      "completed_at": "2026-09-22T21:33:30Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:16Z",
+          "completed_at": "2026-09-22T21:33:17Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:17Z",
+          "completed_at": "2026-09-22T21:33:19Z"
+        },
+        {
+          "name": "Detect already-tagged release PR",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:19Z",
+          "completed_at": "2026-09-22T21:33:19Z"
+        },
+        {
+          "name": "Run Release Please",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:19Z",
+          "completed_at": "2026-09-22T21:33:28Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:28Z",
+          "completed_at": "2026-09-22T21:33:28Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:28Z",
+          "completed_at": "2026-09-22T21:33:28Z"
+        }
+      ]
+    },
+    {
+      "id": 106947226520,
+      "name": "Bootstrap release ref (dispatch)",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T21:33:14Z",
+      "completed_at": "2026-09-22T21:33:14Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106947313287,
+      "name": "Select release ref",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-22T21:33:32Z",
+      "completed_at": "2026-09-22T21:33:36Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:33Z",
+          "completed_at": "2026-09-22T21:33:33Z"
+        },
+        {
+          "name": "Select outputs from active path",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:33Z",
+          "completed_at": "2026-09-22T21:33:34Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:34Z",
+          "completed_at": "2026-09-22T21:33:34Z"
+        }
+      ]
+    },
+    {
+      "id": 106947314681,
+      "name": "Sync install pins on Release PR",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T21:33:31Z",
+      "completed_at": "2026-09-22T21:33:30Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106947315814,
+      "name": "Bootstrap CI on Release PR",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T21:33:31Z",
+      "completed_at": "2026-09-22T21:33:30Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106947343851,
+      "name": "Verify CI is green on release SHA",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-22T21:33:38Z",
+      "completed_at": "2026-09-22T21:44:22Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:39Z",
+          "completed_at": "2026-09-22T21:33:40Z"
+        },
+        {
+          "name": "Wait for ci.yml success on release SHA",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:33:40Z",
+          "completed_at": "2026-09-22T21:44:20Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:44:20Z",
+          "completed_at": "2026-09-22T21:44:20Z"
+        }
+      ]
+    },
+    {
+      "id": 106950774912,
+      "name": "Publish to Hex.pm",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-22T21:45:18Z",
+      "completed_at": "2026-09-22T21:46:40Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:45:19Z",
+          "completed_at": "2026-09-22T21:45:20Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:45:20Z",
+          "completed_at": "2026-09-22T21:45:22Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:45:22Z",
+          "completed_at": "2026-09-22T21:45:29Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:45:29Z",
+          "completed_at": "2026-09-22T21:45:32Z"
+        },
+        {
+          "name": "Confirm tag matches mix.exs @version",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:45:32Z",
+          "completed_at": "2026-09-22T21:45:32Z"
+        },
+        {
+          "name": "Run release tarball preflight",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:45:32Z",
+          "completed_at": "2026-09-22T21:45:32Z"
+        },
+        {
+          "name": "Skip if version already on Hex",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:45:32Z",
+          "completed_at": "2026-09-22T21:45:33Z"
+        },
+        {
+          "name": "Publish to Hex.pm",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:45:33Z",
+          "completed_at": "2026-09-22T21:46:37Z"
+        },
+        {
+          "name": "Record publish state",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:46:37Z",
+          "completed_at": "2026-09-22T21:46:37Z"
+        },
+        {
+          "name": "Verify version on Hex.pm",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:46:37Z",
+          "completed_at": "2026-09-22T21:46:37Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:46:37Z",
+          "completed_at": "2026-09-22T21:46:37Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:46:37Z",
+          "completed_at": "2026-09-22T21:46:37Z"
+        }
+      ]
+    },
+    {
+      "id": 106951511254,
+      "name": "Smoke test the published release (threadline from hex.pm)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-22T21:46:42Z",
+      "completed_at": "2026-09-22T21:47:44Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:46:43Z",
+          "completed_at": "2026-09-22T21:46:44Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:46:44Z",
+          "completed_at": "2026-09-22T21:47:06Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:06Z",
+          "completed_at": "2026-09-22T21:47:09Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:09Z",
+          "completed_at": "2026-09-22T21:47:16Z"
+        },
+        {
+          "name": "Ensure hex_evaluator_test database exists",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:16Z",
+          "completed_at": "2026-09-22T21:47:16Z"
+        },
+        {
+          "name": "Verify the just-published threadline adopt path",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:16Z",
+          "completed_at": "2026-09-22T21:47:41Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:41Z",
+          "completed_at": "2026-09-22T21:47:41Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:41Z",
+          "completed_at": "2026-09-22T21:47:42Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:42Z",
+          "completed_at": "2026-09-22T21:47:42Z"
+        }
+      ]
+    },
+    {
+      "id": 106951842479,
+      "name": "Post-publish distribution sync",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-22T21:47:47Z",
+      "completed_at": "2026-09-22T21:48:00Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:48Z",
+          "completed_at": "2026-09-22T21:47:48Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:48Z",
+          "completed_at": "2026-09-22T21:47:52Z"
+        },
+        {
+          "name": "Wait for Hex registry before doc sync",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:52Z",
+          "completed_at": "2026-09-22T21:47:52Z"
+        },
+        {
+          "name": "Apply distribution doc sync",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:52Z",
+          "completed_at": "2026-09-22T21:47:52Z"
+        },
+        {
+          "name": "Create distribution sync PR",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:52Z",
+          "completed_at": "2026-09-22T21:47:58Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:58Z",
+          "completed_at": "2026-09-22T21:47:58Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T21:47:58Z",
+          "completed_at": "2026-09-22T21:47:58Z"
+        }
+      ]
+    }
+  ]
+}

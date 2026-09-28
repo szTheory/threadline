@@ -1,0 +1,61 @@
+# inert-allowlist.txt - provably inert paths for the Phase 214 merged-PR inert share (BASE-01).
+#
+# Format: one fnmatch glob per line (fnmatch "*" also matches "/"), then " # proof: " and the exact
+# command whose EMPTY output proves the entry inert. Run proofs from the repo root.
+#
+# Admission rule (all three, fail-closed; anything not matched here is NON-inert):
+#   (a) not matched by the Hex package `files:` list in mix.exs (lib priv/fonts guides brandbook/...
+#       .formatter.exs mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md) - the proof greps mix.exs too;
+#   (b) `git grep -n -F '<path or dir>' -- test .github mix.exs bin examples` prints nothing;
+#   (c) not under .github/ and not a Markdown file named in any doc-contract test.
+# Every entry is an exact file or one .planning/ subdirectory. There is no blanket `.planning/*`,
+# no `*.md` and no extension glob (see the rejected block at the end).
+# Proven at HEAD 84f5bb84 on 2026-09-26.
+.planning/ARCHIVE-REGISTER.md # proof: git grep -n -F '.planning/ARCHIVE-REGISTER.md' -- test .github mix.exs bin examples
+.planning/CRITIQUE.md # proof: git grep -n -F '.planning/CRITIQUE.md' -- test .github mix.exs bin examples
+.planning/MILESTONES.md # proof: git grep -n -F '.planning/MILESTONES.md' -- test .github mix.exs bin examples
+.planning/PROJECT.md # proof: git grep -n -F '.planning/PROJECT.md' -- test .github mix.exs bin examples
+.planning/REQUIREMENTS.md # proof: git grep -n -F '.planning/REQUIREMENTS.md' -- test .github mix.exs bin examples
+.planning/RETROSPECTIVE.md # proof: git grep -n -F '.planning/RETROSPECTIVE.md' -- test .github mix.exs bin examples
+.planning/ROADMAP.md # proof: git grep -n -E '\.planning/ROADMAP\.md([^.]|$)' -- test .github mix.exs bin examples
+.planning/STATE.md # proof: git grep -n -F '.planning/STATE.md' -- test .github mix.exs bin examples
+.planning/WINDOWS.md # proof: git grep -n -F '.planning/WINDOWS.md' -- test .github mix.exs bin examples
+.planning/config.json # proof: git grep -n -F '.planning/config.json' -- test .github mix.exs bin examples
+.planning/design-system-ledger.json # proof: git grep -n -F '.planning/design-system-ledger.json' -- test .github mix.exs bin examples
+.planning/critic-scores/* # proof: git grep -n -F '.planning/critic-scores' -- test .github mix.exs bin examples
+.planning/debug/* # proof: git grep -n -F '.planning/debug' -- test .github mix.exs bin examples
+.planning/golden/* # proof: git grep -n -F '.planning/golden' -- test .github mix.exs bin examples
+.planning/quick/* # proof: git grep -n -F '.planning/quick' -- test .github mix.exs bin examples
+.planning/refute/* # proof: git grep -n -F '.planning/refute' -- test .github mix.exs bin examples
+.planning/research/* # proof: git grep -n -F '.planning/research' -- test .github mix.exs bin examples
+.planning/scorecards/* # proof: git grep -n -F '.planning/scorecards' -- test .github mix.exs bin examples
+.planning/seeds/* # proof: git grep -n -F '.planning/seeds' -- test .github mix.exs bin examples
+.planning/threads/* # proof: git grep -n -F '.planning/threads' -- test .github mix.exs bin examples
+.planning/todos/* # proof: git grep -n -F '.planning/todos' -- test .github mix.exs bin examples
+.planning/ui-reviews/* # proof: git grep -n -F '.planning/ui-reviews' -- test .github mix.exs bin examples
+#
+# Notes on admitted entries:
+# - ROADMAP.md uses an -E proof because the -F form also matches the distinct removed path
+#   `.planning/ROADMAP.md.bak` (rejected below); the -E form excludes only that suffix.
+# - The planning-dependency detector regex in test/threadline/planning_dependency_contract_test.exs names
+#   ARCHIVE-REGISTER/REQUIREMENTS/ROADMAP/STATE. It scans test/, lib/mix/tasks/, workflow and mix.exs
+#   SOURCES for File.* calls on those paths and fails if one exists; it never reads the files themselves.
+# - The bare `.planning` references (rejected blanket entry below) were read line by line: they assert
+#   absence (release tarball, docs, test/e2e sources), move the whole directory aside
+#   (bin/verify-planning-independent, not run by any workflow), or are comments. None reads a child path.
+#
+# ---- Rejected candidates (every distinct top-level path and extension touched by merged PRs) ----
+# REJECTED .planning/*  (blanket): 39 hits for git grep -F '.planning'; test/threadline/removed_artifact_contract_test.exs fails if .planning/ROADMAP.md.bak or .planning/HANDOFF.json is tracked.
+# REJECTED .planning/ROADMAP.md.bak: named in removed_artifact_contract_test.exs (adding it turns the suite red).
+# REJECTED .planning/audits/*: 5 hits; bin/record-ci-attestation writes there, bin/verify-branch-protection and .github/workflows/branch-protection.yml cite it.
+# REJECTED .planning/phases/*: 10 hits (bin/verify-bump-rehearsal, test/fixtures/operator_surface/design-system-ledger.json evidence_ref, planning-dependency and zero-skips tests).
+# REJECTED .planning/milestones/*: 1 hit (removed_artifact_contract_test.exs line 173).
+# REJECTED test, lib, priv, bin, examples, config, bench: source or test code (hundreds of hits each; lib and priv/fonts ship in the package).
+# REJECTED guides, README.md, CHANGELOG.md, CONTRIBUTING.md, mix.exs, .formatter.exs: shipped in the Hex package `files:` list; Markdown among them is read by doc-contract tests.
+# REJECTED .github/*: excluded by rule (c); workflow files are CI itself.
+# REJECTED CHANGELOG-GENERATED.md (13 hits), DESIGN-SYSTEM.md (11), SECURITY.md (11), CODE_OF_CONDUCT.md (3), CLAUDE.md (2): named by tests or workflows (doc-contract / community-health).
+# REJECTED .release-please-manifest.json (3), release-please-config.json (10), mix.lock (31): release and dependency inputs read by tests, bin/ and CI.
+# REJECTED .credo.exs (7), .dialyzer_ignore.exs (4), .gitignore (2), .env.example (1), docker-compose.yml (2): read by lint/Dialyzer/tests or bin/demo-up.
+# REJECTED update_roadmap.rb (1), fix_tests.exs (6): named in removed_artifact_contract_test.exs (re-adding turns the suite red).
+# REJECTED .dockerignore: 0 grep hits, but docker build reads it implicitly through docker-compose.yml (bin/demo-up, local_docker_dx_contract_test); an implicit consumer cannot be ruled out by grep, so fail closed.
+# REJECTED extension globs *.md *.json *.exs *.ex *.yml *.ts *.png *.css *.lock *.sh *.txt *.csv *.woff2 *.sql *.rb *.sha256 *.bak: an extension says nothing about who reads a file; each of these also covers files touched by merged PRs that are shipped (lib, guides, priv/fonts), test inputs (test/fixtures) or removed-artifact paths (.planning/ROADMAP.md.bak). Markdown is never blanket-allowlisted.

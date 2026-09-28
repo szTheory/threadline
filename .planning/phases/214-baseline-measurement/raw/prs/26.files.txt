@@ -1,0 +1,9 @@
+.release-please-manifest.json
+CHANGELOG-GENERATED.md
+README.md
+guides/adoption-evidence-playbook.md
+guides/adoption-pilot-backlog.md
+guides/evaluating-threadline.md
+guides/getting-started-saas.md
+guides/operator-surface.md
+mix.exs

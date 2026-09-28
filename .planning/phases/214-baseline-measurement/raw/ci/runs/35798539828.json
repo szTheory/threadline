@@ -1,0 +1,54 @@
+{
+  "run_id": 35798539828,
+  "attempt": 1,
+  "head_sha": "270ac2aae5c32521ccf685f0c5639f342b9cfe60",
+  "event": "workflow_run",
+  "created_at": "2026-09-22T23:40:27Z",
+  "conclusion": "success",
+  "workflow": "Community Health",
+  "jobs": [
+    {
+      "id": 106983353226,
+      "name": "Community health surface (main)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-22T23:40:29Z",
+      "completed_at": "2026-09-22T23:40:39Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T23:40:30Z",
+          "completed_at": "2026-09-22T23:40:31Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T23:40:31Z",
+          "completed_at": "2026-09-22T23:40:34Z"
+        },
+        {
+          "name": "Assert the community-health surface",
+          "conclusion": "success",
+          "started_at": "2026-09-22T23:40:34Z",
+          "completed_at": "2026-09-22T23:40:37Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T23:40:37Z",
+          "completed_at": "2026-09-22T23:40:37Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T23:40:37Z",
+          "completed_at": "2026-09-22T23:40:37Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "command": "/usr/bin/time -p bash -c \"MIX_ENV=test mix test test/threadline/dialyzer_slice_contract_test.exs --only live_dialyzer\"",
+  "warm_s": 3.11,
+  "warm_exit": 0,
+  "cold_plt_s": 1.21,
+  "cold_plt_exit": 0,
+  "warmup_s": 3.20,
+  "warmup_exit": 0,
+  "raw_dialyzer_command": "MIX_ENV=dev mix dialyzer --no-check --format raw --ignore-exit-status",
+  "raw_dialyzer_warm_s": 2.18,
+  "raw_dialyzer_warm_exit": 0,
+  "raw_dialyzer_warm_warn_lines": 0,
+  "raw_dialyzer_cold_plt_s": 0.41,
+  "raw_dialyzer_cold_plt_exit": 0,
+  "raw_dialyzer_cold_plt_warn_lines": 0,
+  "plt_build_command": "MIX_ENV=dev mix dialyzer --plt",
+  "plt_build_cold_s": 32.99,
+  "plt_build_cold_exit": 0,
+  "labels": {
+    "warm_s": "warm PLT, warm dev compile: second consecutive run with .dialyzer present",
+    "cold_plt_s": "cold PLT, warm dev compile: .dialyzer moved aside for the run (any PLT built meanwhile is deleted and the warm one restored); _build/dev kept, unlike CI test lanes which also lack a warm dev _build"
+  },
+  "procedure": "warm-up run, timed warm run, timed raw Dialyzer command (warm); then mv .dialyzer .dialyzer.214-warm with an EXIT/INT/TERM trap, timed cold run, timed raw Dialyzer command (no PLT), timed mix dialyzer --plt (fresh PLT build), rm -rf .dialyzer, mv .dialyzer.214-warm .dialyzer",
+  "outputs": {
+    "warm": "raw/local/live-dialyzer-warm.txt",
+    "cold": "raw/local/live-dialyzer-cold.txt",
+    "warm_raw_dialyzer": "raw/local/live-dialyzer-warm-raw-dialyzer.txt",
+    "cold_raw_dialyzer": "raw/local/live-dialyzer-cold-raw-dialyzer.txt",
+    "plt_build_cold": "raw/local/dialyzer-plt-build-cold.txt"
+  },
+  "cold_plt_dialyzer_error": "Could not read PLT file .dialyzer/dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt: no_such_file",
+  "cold_plt_vacuous_pass": true,
+  "finding": "With no PLT the shelled command (--no-check skips the PLT build) fails with \"Could not read PLT file\", --ignore-exit-status turns that into exit 0 with no warning lines, and the :live_dialyzer test passes without analyzing anything. cold_plt_s is therefore NOT the cost of a cold-PLT Dialyzer analysis; plt_build_cold_s is the local cost of building the PLT."
+}

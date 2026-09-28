@@ -1,0 +1,13 @@
+Advisories:
+  mint 1.10.0 - EEF-CVE-2026-82672 (MEDIUM)
+    aka: CVE-2026-82672, GHSA-rj5m-69wp-cxq9
+    Unvalidated chunk-size line tail in Mint HTTP/1 client enables response smuggling against strict intermediaries on pooled connections
+    https://osv.dev/vulnerability/EEF-CVE-2026-82672
+
+  lazy_html 0.1.12 - EEF-CVE-2026-92106 (LOW)
+    aka: CVE-2026-92106, GHSA-8rqp-v692-v82q
+    lazy_html serializes SVG and MathML style and script text unescaped, allowing mutation XSS
+    https://osv.dev/vulnerability/EEF-CVE-2026-92106
+
+Found packages with security advisories
+exit_code: 1

@@ -1,0 +1,282 @@
+[
+  {
+    "changedFiles": 6,
+    "headRefName": "release/sync-0.6.0-26583473336",
+    "mergedAt": "2026-05-28T15:13:42Z",
+    "number": 1,
+    "title": "chore(release): sync distribution docs for 0.6.0"
+  },
+  {
+    "changedFiles": 4,
+    "headRefName": "release-please--branches--main",
+    "mergedAt": "2026-05-30T09:25:51Z",
+    "number": 2,
+    "title": "chore(main): release 0.7.0"
+  },
+  {
+    "changedFiles": 3,
+    "headRefName": "fix/operator-timeline-correlation-crash",
+    "mergedAt": "2026-05-30T01:25:47Z",
+    "number": 3,
+    "title": "fix: operator timeline crash on correlation_id filter (+ release-please changelog guard)"
+  },
+  {
+    "changedFiles": 3,
+    "headRefName": "fix/release-workflow-infra",
+    "mergedAt": "2026-05-30T09:15:54Z",
+    "number": 4,
+    "title": "ci(release): fix bootstrap CI dispatch + make post-publish doc sync version-agnostic"
+  },
+  {
+    "changedFiles": 1,
+    "headRefName": "release/sync-0.7.0-26680346145",
+    "mergedAt": "2026-05-30T09:41:05Z",
+    "number": 5,
+    "title": "chore(release): sync distribution docs for 0.7.0"
+  },
+  {
+    "changedFiles": 8,
+    "headRefName": "fix/test-determinism-known-flakes",
+    "mergedAt": "2026-05-30T11:52:29Z",
+    "number": 6,
+    "title": "test: make flaky/determinism-hostile tests deterministic"
+  },
+  {
+    "changedFiles": 3,
+    "headRefName": "ci/flake-detection-gate",
+    "mergedAt": "2026-05-30T12:03:12Z",
+    "number": 7,
+    "title": "ci: opt-in/nightly flake-detection gate + determinism guide"
+  },
+  {
+    "changedFiles": 2,
+    "headRefName": "chore/align-planning-0.7.0",
+    "mergedAt": "2026-05-30T12:19:09Z",
+    "number": 8,
+    "title": "chore(planning): align STATE/ROADMAP with 0.7.0 + post-v1.30 hardening"
+  },
+  {
+    "changedFiles": 62,
+    "headRefName": "ui/operator-surface-polish-pass",
+    "mergedAt": "2026-06-02T19:09:38Z",
+    "number": 9,
+    "title": "Operator surface: design-system dividends, underbuilt-screen polish, motion"
+  },
+  {
+    "changedFiles": 29,
+    "headRefName": "ui/operator-surface-pass-3",
+    "mergedAt": "2026-06-02T21:30:27Z",
+    "number": 10,
+    "title": "Operator surface pass-3: IA threading, design-system dividends, motion, seed + full automated gate"
+  },
+  {
+    "changedFiles": 4,
+    "headRefName": "ci/bump-node24-actions",
+    "mergedAt": "2026-06-02T21:41:05Z",
+    "number": 11,
+    "title": "ci: bump official actions to Node 24 majors"
+  },
+  {
+    "changedFiles": 6,
+    "headRefName": "docs/operator-surface-assets-csp",
+    "mergedAt": "2026-06-03T00:27:37Z",
+    "number": 12,
+    "title": "docs(operator-surface): asset embedding + CSP opt-outs; gate copy buttons"
+  },
+  {
+    "changedFiles": 4,
+    "headRefName": "release/0.8.0",
+    "mergedAt": "2026-06-03T00:47:00Z",
+    "number": 13,
+    "title": "chore(release): 0.8.0"
+  },
+  {
+    "changedFiles": 1,
+    "headRefName": "release/sync-0.8.0-26856995380",
+    "mergedAt": "2026-06-03T00:59:29Z",
+    "number": 15,
+    "title": "chore(release): sync distribution docs for 0.8.0"
+  },
+  {
+    "changedFiles": 12,
+    "headRefName": "feat/operator-surface-a11y-positioning",
+    "mergedAt": "2026-06-03T01:29:09Z",
+    "number": 16,
+    "title": "feat(operator-surface): first-class positioning + accessibility pass"
+  },
+  {
+    "changedFiles": 2,
+    "headRefName": "test/evidence-export-flake",
+    "mergedAt": "2026-06-03T15:04:21Z",
+    "number": 18,
+    "title": "test: deterministic evidence record_* export assertions"
+  },
+  {
+    "changedFiles": 1,
+    "headRefName": "chore/sync-docs-0.9.0",
+    "mergedAt": "2026-06-03T15:36:39Z",
+    "number": 19,
+    "title": "chore(release): prep distribution docs for 0.9.0"
+  },
+  {
+    "changedFiles": 3,
+    "headRefName": "release-please--branches--main",
+    "mergedAt": "2026-06-03T15:46:08Z",
+    "number": 20,
+    "title": "chore(main): release 0.9.0"
+  },
+  {
+    "changedFiles": 1,
+    "headRefName": "release/sync-0.9.0-26896082415",
+    "mergedAt": "2026-06-03T15:55:43Z",
+    "number": 21,
+    "title": "chore(release): sync distribution docs for 0.9.0"
+  },
+  {
+    "changedFiles": 5,
+    "headRefName": "chore/release-automation-extra-files",
+    "mergedAt": "2026-06-03T16:27:43Z",
+    "number": 22,
+    "title": "ci(release): auto-bump adoption-pilot SSOT line via release-please extra-files"
+  },
+  {
+    "changedFiles": 9,
+    "headRefName": "release-please--branches--main",
+    "mergedAt": "2026-09-22T21:33:11Z",
+    "number": 26,
+    "title": "chore(main): release 0.10.0"
+  },
+  {
+    "changedFiles": 1045,
+    "headRefName": "ci/v1_41-green-bringup",
+    "mergedAt": "2026-08-28T03:13:44Z",
+    "number": 27,
+    "title": "ci: aggregate required gate (198)"
+  },
+  {
+    "changedFiles": 998,
+    "headRefName": "phase-200/public-surface-integration",
+    "mergedAt": "2026-09-13T02:29:36Z",
+    "number": 35,
+    "title": "Phase 200: integrate public surface and accumulated v1.41 work"
+  },
+  {
+    "changedFiles": 67,
+    "headRefName": "phase-200/hosted-checkpoint",
+    "mergedAt": "2026-09-13T12:02:18Z",
+    "number": 37,
+    "title": "Phase 200 closeout, hardening, and advisory remediation"
+  },
+  {
+    "changedFiles": 2,
+    "headRefName": "fix/branch-protection-after-ci",
+    "mergedAt": "2026-09-13T12:15:17Z",
+    "number": 38,
+    "title": "Fix branch protection audit ordering"
+  },
+  {
+    "changedFiles": 2,
+    "headRefName": "fix/branch-protection-read-access",
+    "mergedAt": "2026-09-13T12:42:01Z",
+    "number": 39,
+    "title": "Fix branch protection audit read access"
+  },
+  {
+    "changedFiles": 2,
+    "headRefName": "fix/branch-protection-metadata-read",
+    "mergedAt": "2026-09-13T13:06:25Z",
+    "number": 40,
+    "title": "Inspect classic protection via branch metadata"
+  },
+  {
+    "changedFiles": 4,
+    "headRefName": "fix/branch-protection-actions-capability",
+    "mergedAt": "2026-09-13T13:59:39Z",
+    "number": 41,
+    "title": "Handle Actions branch-protection visibility honestly"
+  },
+  {
+    "changedFiles": 60,
+    "headRefName": "release-0.10.0-fixes",
+    "mergedAt": "2026-09-22T18:05:18Z",
+    "number": 43,
+    "title": "feat: land 0.10.0 release work, born-red fixes, and bump-rehearsal gate"
+  },
+  {
+    "changedFiles": 3,
+    "headRefName": "fix/rehearsal-upgrade-stand-in",
+    "mergedAt": "2026-09-22T20:30:13Z",
+    "number": 44,
+    "title": "fix(release): make the release PR green by construction on a minor bump"
+  },
+  {
+    "changedFiles": 1,
+    "headRefName": "release/sync-0.10.0-35787338837",
+    "mergedAt": "2026-09-22T21:59:46Z",
+    "number": 45,
+    "title": "chore(release): sync distribution docs for 0.10.0"
+  },
+  {
+    "changedFiles": 6,
+    "headRefName": "fix/install-hint-and-release-hardening",
+    "mergedAt": "2026-09-22T22:39:51Z",
+    "number": 46,
+    "title": "fix: correct the installer's storage-schema advice and the documented default"
+  },
+  {
+    "changedFiles": 5,
+    "headRefName": "release-please--branches--main",
+    "mergedAt": "2026-09-22T23:29:30Z",
+    "number": 47,
+    "title": "chore(main): release 0.10.1"
+  },
+  {
+    "changedFiles": 1,
+    "headRefName": "release/sync-0.10.1-35797666620",
+    "mergedAt": "2026-09-23T00:22:24Z",
+    "number": 48,
+    "title": "chore(release): sync distribution docs for 0.10.1"
+  },
+  {
+    "changedFiles": 651,
+    "headRefName": "land/v1.41",
+    "mergedAt": "2026-09-25T02:04:20Z",
+    "number": 49,
+    "title": "fix: give installer and gen.triggers rerun migrations distinct, applicable versions"
+  },
+  {
+    "changedFiles": 5,
+    "headRefName": "release-please--branches--main",
+    "mergedAt": "2026-09-25T02:15:43Z",
+    "number": 50,
+    "title": "chore(main): release 0.10.2"
+  },
+  {
+    "changedFiles": 1,
+    "headRefName": "release/sync-0.10.2-36085532676",
+    "mergedAt": "2026-09-25T02:43:08Z",
+    "number": 51,
+    "title": "chore(release): sync distribution docs for 0.10.2"
+  },
+  {
+    "changedFiles": 121,
+    "headRefName": "land/v1.42",
+    "mergedAt": "2026-09-26T16:39:24Z",
+    "number": 52,
+    "title": "feat!: capture every primary-key shape, read it back exactly, and detect broken capture"
+  },
+  {
+    "changedFiles": 9,
+    "headRefName": "release-please--branches--main",
+    "mergedAt": "2026-09-26T16:54:57Z",
+    "number": 53,
+    "title": "chore(main): release 0.11.0"
+  },
+  {
+    "changedFiles": 1,
+    "headRefName": "release/sync-0.11.0-36257162356",
+    "mergedAt": "2026-09-26T17:21:09Z",
+    "number": 54,
+    "title": "chore(release): sync distribution docs for 0.11.0"
+  }
+]

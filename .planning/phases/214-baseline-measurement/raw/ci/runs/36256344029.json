@@ -1,0 +1,1269 @@
+{
+  "run_id": 36256344029,
+  "attempt": 1,
+  "head_sha": "0745a341197cc6b49df1ce90162a23fc7126581a",
+  "event": "workflow_dispatch",
+  "created_at": "2026-09-26T16:41:17Z",
+  "conclusion": "success",
+  "workflow": "CI",
+  "jobs": [
+    {
+      "id": 108443738891,
+      "name": "Dialyzer (current toolchain)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:21Z",
+      "completed_at": "2026-09-26T16:43:25Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:22Z",
+          "completed_at": "2026-09-26T16:41:23Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:23Z",
+          "completed_at": "2026-09-26T16:41:26Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:26Z",
+          "completed_at": "2026-09-26T16:41:32Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:32Z",
+          "completed_at": "2026-09-26T16:41:35Z"
+        },
+        {
+          "name": "Restore Dialyzer PLT",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:35Z",
+          "completed_at": "2026-09-26T16:41:37Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:37Z",
+          "completed_at": "2026-09-26T16:41:38Z"
+        },
+        {
+          "name": "Compile full optional build",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:38Z",
+          "completed_at": "2026-09-26T16:42:41Z"
+        },
+        {
+          "name": "Build and measure Dialyzer PLT on cache miss",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:41Z",
+          "completed_at": "2026-09-26T16:43:12Z"
+        },
+        {
+          "name": "Save Dialyzer PLT",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:43:12Z",
+          "completed_at": "2026-09-26T16:43:13Z"
+        },
+        {
+          "name": "Report exact PLT cache hit",
+          "conclusion": "skipped",
+          "started_at": "2026-09-26T16:43:13Z",
+          "completed_at": "2026-09-26T16:43:13Z"
+        },
+        {
+          "name": "Analyze and measure with Dialyzer",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:43:13Z",
+          "completed_at": "2026-09-26T16:43:22Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:43:22Z",
+          "completed_at": "2026-09-26T16:43:22Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:43:22Z",
+          "completed_at": "2026-09-26T16:43:23Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:43:23Z",
+          "completed_at": "2026-09-26T16:43:23Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739014,
+      "name": "Run test suite (min)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:20Z",
+      "completed_at": "2026-09-26T16:47:19Z",
+      "labels": [
+        "ubuntu-22.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:22Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:22Z",
+          "completed_at": "2026-09-26T16:41:45Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:45Z",
+          "completed_at": "2026-09-26T16:41:48Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:48Z",
+          "completed_at": "2026-09-26T16:41:58Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:58Z",
+          "completed_at": "2026-09-26T16:41:59Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:59Z",
+          "completed_at": "2026-09-26T16:42:01Z"
+        },
+        {
+          "name": "Compile (warnings as errors)",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:01Z",
+          "completed_at": "2026-09-26T16:42:41Z"
+        },
+        {
+          "name": "Verify no compile-connected xref cycles",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:41Z",
+          "completed_at": "2026-09-26T16:42:42Z"
+        },
+        {
+          "name": "Run tests",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:42Z",
+          "completed_at": "2026-09-26T16:47:15Z"
+        },
+        {
+          "name": "Verify Threadline trigger coverage",
+          "conclusion": "skipped",
+          "started_at": "2026-09-26T16:47:15Z",
+          "completed_at": "2026-09-26T16:47:15Z"
+        },
+        {
+          "name": "Ensure threadline_phoenix_test database exists (threadline on search_path)",
+          "conclusion": "skipped",
+          "started_at": "2026-09-26T16:47:15Z",
+          "completed_at": "2026-09-26T16:47:15Z"
+        },
+        {
+          "name": "Verify Threadline Phoenix example",
+          "conclusion": "skipped",
+          "started_at": "2026-09-26T16:47:15Z",
+          "completed_at": "2026-09-26T16:47:15Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:47:15Z",
+          "completed_at": "2026-09-26T16:47:16Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:47:16Z",
+          "completed_at": "2026-09-26T16:47:17Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:47:17Z",
+          "completed_at": "2026-09-26T16:47:17Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:47:17Z",
+          "completed_at": "2026-09-26T16:47:17Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739017,
+      "name": "Check formatting",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:20Z",
+      "completed_at": "2026-09-26T16:41:35Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:21Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:24Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:24Z",
+          "completed_at": "2026-09-26T16:41:30Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:30Z",
+          "completed_at": "2026-09-26T16:41:30Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:30Z",
+          "completed_at": "2026-09-26T16:41:32Z"
+        },
+        {
+          "name": "Check formatting",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:32Z",
+          "completed_at": "2026-09-26T16:41:33Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:33Z",
+          "completed_at": "2026-09-26T16:41:33Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:33Z",
+          "completed_at": "2026-09-26T16:41:34Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:34Z",
+          "completed_at": "2026-09-26T16:41:34Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739023,
+      "name": "Example app browser E2E (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:21Z",
+      "completed_at": "2026-09-26T16:51:47Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:22Z",
+          "completed_at": "2026-09-26T16:41:23Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:23Z",
+          "completed_at": "2026-09-26T16:41:47Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:47Z",
+          "completed_at": "2026-09-26T16:41:49Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:49Z",
+          "completed_at": "2026-09-26T16:41:55Z"
+        },
+        {
+          "name": "Run actions/setup-node@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:55Z",
+          "completed_at": "2026-09-26T16:41:59Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:59Z",
+          "completed_at": "2026-09-26T16:42:00Z"
+        },
+        {
+          "name": "Cache Playwright browsers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:00Z",
+          "completed_at": "2026-09-26T16:42:03Z"
+        },
+        {
+          "name": "Install root dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:03Z",
+          "completed_at": "2026-09-26T16:42:05Z"
+        },
+        {
+          "name": "Ensure threadline_phoenix_test database exists",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:05Z",
+          "completed_at": "2026-09-26T16:42:05Z"
+        },
+        {
+          "name": "Run example Playwright suite",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:05Z",
+          "completed_at": "2026-09-26T16:51:43Z"
+        },
+        {
+          "name": "Upload Playwright traces and e2e boot log on failure",
+          "conclusion": "skipped",
+          "started_at": "2026-09-26T16:51:43Z",
+          "completed_at": "2026-09-26T16:51:43Z"
+        },
+        {
+          "name": "Post Cache Playwright browsers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:43Z",
+          "completed_at": "2026-09-26T16:51:43Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:43Z",
+          "completed_at": "2026-09-26T16:51:43Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:43Z",
+          "completed_at": "2026-09-26T16:51:44Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:44Z",
+          "completed_at": "2026-09-26T16:51:44Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:44Z",
+          "completed_at": "2026-09-26T16:51:44Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:44Z",
+          "completed_at": "2026-09-26T16:51:44Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739025,
+      "name": "Run test suite (current)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:21Z",
+      "completed_at": "2026-09-26T16:51:44Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:22Z",
+          "completed_at": "2026-09-26T16:41:23Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:23Z",
+          "completed_at": "2026-09-26T16:41:46Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:46Z",
+          "completed_at": "2026-09-26T16:41:49Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:49Z",
+          "completed_at": "2026-09-26T16:41:56Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:56Z",
+          "completed_at": "2026-09-26T16:41:58Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:58Z",
+          "completed_at": "2026-09-26T16:41:59Z"
+        },
+        {
+          "name": "Compile (warnings as errors)",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:59Z",
+          "completed_at": "2026-09-26T16:42:46Z"
+        },
+        {
+          "name": "Verify no compile-connected xref cycles",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:46Z",
+          "completed_at": "2026-09-26T16:42:47Z"
+        },
+        {
+          "name": "Run tests",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:47Z",
+          "completed_at": "2026-09-26T16:48:06Z"
+        },
+        {
+          "name": "Verify Threadline trigger coverage",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:06Z",
+          "completed_at": "2026-09-26T16:48:07Z"
+        },
+        {
+          "name": "Ensure threadline_phoenix_test database exists (threadline on search_path)",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:07Z",
+          "completed_at": "2026-09-26T16:48:07Z"
+        },
+        {
+          "name": "Verify Threadline Phoenix example",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:07Z",
+          "completed_at": "2026-09-26T16:51:40Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:40Z",
+          "completed_at": "2026-09-26T16:51:41Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:41Z",
+          "completed_at": "2026-09-26T16:51:41Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:41Z",
+          "completed_at": "2026-09-26T16:51:42Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:42Z",
+          "completed_at": "2026-09-26T16:51:42Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739043,
+      "name": "Run Credo (strict)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:21Z",
+      "completed_at": "2026-09-26T16:42:28Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:23Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:23Z",
+          "completed_at": "2026-09-26T16:41:27Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:27Z",
+          "completed_at": "2026-09-26T16:41:33Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:33Z",
+          "completed_at": "2026-09-26T16:41:34Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:34Z",
+          "completed_at": "2026-09-26T16:41:35Z"
+        },
+        {
+          "name": "Run Credo",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:35Z",
+          "completed_at": "2026-09-26T16:42:25Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:25Z",
+          "completed_at": "2026-09-26T16:42:25Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:25Z",
+          "completed_at": "2026-09-26T16:42:25Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:25Z",
+          "completed_at": "2026-09-26T16:42:25Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739046,
+      "name": "Mechanical checker (committed scorecards)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:20Z",
+      "completed_at": "2026-09-26T16:42:48Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:22Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:22Z",
+          "completed_at": "2026-09-26T16:41:45Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:45Z",
+          "completed_at": "2026-09-26T16:41:47Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:47Z",
+          "completed_at": "2026-09-26T16:41:53Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:53Z",
+          "completed_at": "2026-09-26T16:41:53Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:53Z",
+          "completed_at": "2026-09-26T16:41:55Z"
+        },
+        {
+          "name": "Run mechanical checker",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:55Z",
+          "completed_at": "2026-09-26T16:42:46Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:46Z",
+          "completed_at": "2026-09-26T16:42:46Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:46Z",
+          "completed_at": "2026-09-26T16:42:46Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:46Z",
+          "completed_at": "2026-09-26T16:42:46Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:46Z",
+          "completed_at": "2026-09-26T16:42:46Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739056,
+      "name": "Compile without optional deps",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:21Z",
+      "completed_at": "2026-09-26T16:42:26Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:22Z",
+          "completed_at": "2026-09-26T16:41:23Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:23Z",
+          "completed_at": "2026-09-26T16:41:26Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:26Z",
+          "completed_at": "2026-09-26T16:41:32Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:32Z",
+          "completed_at": "2026-09-26T16:41:34Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:34Z",
+          "completed_at": "2026-09-26T16:41:36Z"
+        },
+        {
+          "name": "Compile without optional deps (warnings-as-errors)",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:36Z",
+          "completed_at": "2026-09-26T16:42:23Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:23Z",
+          "completed_at": "2026-09-26T16:42:23Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:23Z",
+          "completed_at": "2026-09-26T16:42:23Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:23Z",
+          "completed_at": "2026-09-26T16:42:23Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739059,
+      "name": "Release metadata (version / changelog)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:20Z",
+      "completed_at": "2026-09-26T16:41:25Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:21Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:24Z"
+        },
+        {
+          "name": "Verify CHANGELOG and @version alignment",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:24Z",
+          "completed_at": "2026-09-26T16:41:24Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:24Z",
+          "completed_at": "2026-09-26T16:41:24Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:24Z",
+          "completed_at": "2026-09-26T16:41:24Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739070,
+      "name": "Hex package tarball",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:20Z",
+      "completed_at": "2026-09-26T16:41:37Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:21Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:24Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:24Z",
+          "completed_at": "2026-09-26T16:41:31Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:31Z",
+          "completed_at": "2026-09-26T16:41:32Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:32Z",
+          "completed_at": "2026-09-26T16:41:33Z"
+        },
+        {
+          "name": "Build and inspect Hex tarball",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:33Z",
+          "completed_at": "2026-09-26T16:41:34Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:34Z",
+          "completed_at": "2026-09-26T16:41:35Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:35Z",
+          "completed_at": "2026-09-26T16:41:35Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:35Z",
+          "completed_at": "2026-09-26T16:41:35Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739089,
+      "name": "Build ExDoc (dev)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:25Z",
+      "completed_at": "2026-09-26T16:42:40Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:26Z",
+          "completed_at": "2026-09-26T16:41:27Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:27Z",
+          "completed_at": "2026-09-26T16:41:28Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:28Z",
+          "completed_at": "2026-09-26T16:41:35Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:35Z",
+          "completed_at": "2026-09-26T16:41:35Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:35Z",
+          "completed_at": "2026-09-26T16:41:37Z"
+        },
+        {
+          "name": "Build docs",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:37Z",
+          "completed_at": "2026-09-26T16:42:38Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:38Z",
+          "completed_at": "2026-09-26T16:42:38Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:38Z",
+          "completed_at": "2026-09-26T16:42:38Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:38Z",
+          "completed_at": "2026-09-26T16:42:38Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739091,
+      "name": "PgBouncer transaction topology",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:20Z",
+      "completed_at": "2026-09-26T16:42:58Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:21Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:43Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:43Z",
+          "completed_at": "2026-09-26T16:41:45Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:45Z",
+          "completed_at": "2026-09-26T16:41:51Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:51Z",
+          "completed_at": "2026-09-26T16:41:51Z"
+        },
+        {
+          "name": "Wait for Postgres and PgBouncer",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:51Z",
+          "completed_at": "2026-09-26T16:42:03Z"
+        },
+        {
+          "name": "Bootstrap test DB (direct Postgres, bypass pooler)",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:03Z",
+          "completed_at": "2026-09-26T16:42:44Z"
+        },
+        {
+          "name": "Topology tests + verify_coverage through PgBouncer",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:44Z",
+          "completed_at": "2026-09-26T16:42:56Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:56Z",
+          "completed_at": "2026-09-26T16:42:56Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:56Z",
+          "completed_at": "2026-09-26T16:42:56Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:56Z",
+          "completed_at": "2026-09-26T16:42:56Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:56Z",
+          "completed_at": "2026-09-26T16:42:56Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739093,
+      "name": "Tier A capture lane (byte-stable evidence)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:21Z",
+      "completed_at": "2026-09-26T16:48:40Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:22Z",
+          "completed_at": "2026-09-26T16:41:23Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:23Z",
+          "completed_at": "2026-09-26T16:41:52Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:52Z",
+          "completed_at": "2026-09-26T16:41:55Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:55Z",
+          "completed_at": "2026-09-26T16:42:02Z"
+        },
+        {
+          "name": "Run actions/setup-node@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:02Z",
+          "completed_at": "2026-09-26T16:42:04Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:04Z",
+          "completed_at": "2026-09-26T16:42:06Z"
+        },
+        {
+          "name": "Cache Playwright browsers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:06Z",
+          "completed_at": "2026-09-26T16:42:11Z"
+        },
+        {
+          "name": "Install root dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:11Z",
+          "completed_at": "2026-09-26T16:42:12Z"
+        },
+        {
+          "name": "Ensure threadline_phoenix_test database exists (threadline on search_path)",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:12Z",
+          "completed_at": "2026-09-26T16:42:13Z"
+        },
+        {
+          "name": "Regenerate Tier A capture",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:13Z",
+          "completed_at": "2026-09-26T16:47:55Z"
+        },
+        {
+          "name": "Assert complete evidence bundle (non-empty, every aria.yml has a matching scorecard)",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:47:55Z",
+          "completed_at": "2026-09-26T16:47:55Z"
+        },
+        {
+          "name": "Assert byte-stable regeneration (no drift from committed evidence)",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:47:55Z",
+          "completed_at": "2026-09-26T16:47:55Z"
+        },
+        {
+          "name": "Assert mechanical checker clean over real evidence",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:47:55Z",
+          "completed_at": "2026-09-26T16:48:36Z"
+        },
+        {
+          "name": "Post Cache Playwright browsers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:36Z",
+          "completed_at": "2026-09-26T16:48:36Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:36Z",
+          "completed_at": "2026-09-26T16:48:36Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:36Z",
+          "completed_at": "2026-09-26T16:48:36Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:36Z",
+          "completed_at": "2026-09-26T16:48:36Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:36Z",
+          "completed_at": "2026-09-26T16:48:37Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:48:37Z",
+          "completed_at": "2026-09-26T16:48:37Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739118,
+      "name": "Hex evaluator smoke (threadline from hex.pm)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:21Z",
+      "completed_at": "2026-09-26T16:42:28Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:23Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:23Z",
+          "completed_at": "2026-09-26T16:41:44Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:44Z",
+          "completed_at": "2026-09-26T16:41:48Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:48Z",
+          "completed_at": "2026-09-26T16:41:55Z"
+        },
+        {
+          "name": "Ensure hex_evaluator_test database exists",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:55Z",
+          "completed_at": "2026-09-26T16:41:55Z"
+        },
+        {
+          "name": "Verify Hex-published threadline adopt path",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:55Z",
+          "completed_at": "2026-09-26T16:42:25Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:25Z",
+          "completed_at": "2026-09-26T16:42:25Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:25Z",
+          "completed_at": "2026-09-26T16:42:25Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:42:25Z",
+          "completed_at": "2026-09-26T16:42:25Z"
+        }
+      ]
+    },
+    {
+      "id": 108443739152,
+      "name": "Bump rehearsal (next minor)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:41:20Z",
+      "completed_at": "2026-09-26T16:44:02Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:21Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:21Z",
+          "completed_at": "2026-09-26T16:41:42Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:42Z",
+          "completed_at": "2026-09-26T16:41:44Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:44Z",
+          "completed_at": "2026-09-26T16:41:50Z"
+        },
+        {
+          "name": "Rehearse the next minor bump",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:41:50Z",
+          "completed_at": "2026-09-26T16:44:00Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:44:00Z",
+          "completed_at": "2026-09-26T16:44:00Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:44:00Z",
+          "completed_at": "2026-09-26T16:44:00Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:44:00Z",
+          "completed_at": "2026-09-26T16:44:00Z"
+        }
+      ]
+    },
+    {
+      "id": 108445486614,
+      "name": "CI required",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-26T16:51:48Z",
+      "completed_at": "2026-09-26T16:51:52Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:49Z",
+          "completed_at": "2026-09-26T16:51:50Z"
+        },
+        {
+          "name": "Decide whether all needed jobs succeeded",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:50Z",
+          "completed_at": "2026-09-26T16:51:50Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-26T16:51:50Z",
+          "completed_at": "2026-09-26T16:51:50Z"
+        }
+      ]
+    }
+  ]
+}

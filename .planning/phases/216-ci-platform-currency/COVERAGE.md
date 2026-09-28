@@ -1,0 +1,1 @@
+No external API integration: this phase re-pins GitHub Actions `uses:` refs, setup-beam inputs and runner labels in workflow YAML and adds offline ExUnit contract tests; it integrates no external API or SDK surface into the product, and the only network calls (`gh run view --log`, a one-shot `npx release-please --dry-run`) are read-only evidence collection outside `mix test`.

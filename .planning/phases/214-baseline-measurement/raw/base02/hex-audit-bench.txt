@@ -1,0 +1,43 @@
+Advisories:
+  decimal 2.3.0 - EEF-CVE-2026-32686 (MEDIUM)
+    aka: CVE-2026-32686, GHSA-rhv4-8758-jx7v
+    Unbounded exponent in decimal enables unauthenticated DoS
+    https://osv.dev/vulnerability/EEF-CVE-2026-32686
+
+  postgrex 0.22.0 - EEF-CVE-2026-66838 (MEDIUM)
+    aka: CVE-2026-66838, GHSA-3gww-3f36-2388
+    SQL injection via the :comment option in Postgrex.stream/4
+    https://osv.dev/vulnerability/EEF-CVE-2026-66838
+
+  postgrex 0.22.0 - EEF-CVE-2026-32687 (HIGH)
+    aka: CVE-2026-32687, GHSA-r73h-97w8-m54h
+    SQL injection via channel name in Postgrex.Notifications.listen/3 and unlisten/3
+    https://osv.dev/vulnerability/EEF-CVE-2026-32687
+
+  postgrex 0.22.0 - EEF-CVE-2026-58225 (LOW)
+    aka: CVE-2026-58225, GHSA-4mw9-4qgj-m97w
+    SQL injection via unescaped dollar-quote in Postgrex.Notifications reconnect replay causes notification denial of service
+    https://osv.dev/vulnerability/EEF-CVE-2026-58225
+
+  plug 1.19.1 - EEF-CVE-2026-54892 (HIGH)
+    aka: CVE-2026-54892, GHSA-j43x-5hjq-rgxf
+    Plug: quadratic-time decoding of nested query/body parameters enables denial of service
+    https://osv.dev/vulnerability/EEF-CVE-2026-54892
+
+  plug 1.19.1 - EEF-CVE-2026-8468 (HIGH)
+    aka: CVE-2026-8468, GHSA-468c-vq7p-gh64
+    Unbounded buffer accumulation in multipart header parsing causes denial of service in plug
+    https://osv.dev/vulnerability/EEF-CVE-2026-8468
+
+  plug 1.19.1 - EEF-CVE-2026-56813 (LOW)
+    aka: CVE-2026-56813, GHSA-wpmj-jh88-rpgm
+    Cookie attribute injection in Plug.Conn.Cookies.encode/2
+    https://osv.dev/vulnerability/EEF-CVE-2026-56813
+
+  plug 1.19.1 - EEF-CVE-2026-56814 (MEDIUM)
+    aka: CVE-2026-56814, GHSA-95qv-c9g9-rm63
+    Plug: multipart :length limit is not charged for part headers, enabling unbounded temp-file creation (denial of service)
+    https://osv.dev/vulnerability/EEF-CVE-2026-56814
+
+Found packages with security advisories
+exit_code: 1

@@ -1,0 +1,30 @@
+Finding suitable PLTs
+Checking PLT...
+[:asn1, :compiler, :crypto, :db_connection, :decimal, :ecto, :ecto_sql, :eex, :elixir, :ex_aws, :ex_aws_s3, :ex_unit, :finch, :hpax, :jason, :kernel, :logger, :mime, :mint, :mix, :nimble_csv, :nimble_options, :nimble_pool, :oban, :phoenix, :phoenix_html, :phoenix_live_view, :phoenix_pubsub, :phoenix_template, :plug, :plug_crypto, :postgrex, :public_key, :req, :ssl, :stdlib, :sweet_xml, :telemetry, :threadline, :websock, :websock_adapter, :xmerl]
+Looking up modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt
+Looking up modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Looking up modules in dialyxir_erlang-27.3.4.15.plt
+Finding applications for dialyxir_erlang-27.3.4.15.plt
+Finding modules for dialyxir_erlang-27.3.4.15.plt
+Creating dialyxir_erlang-27.3.4.15.plt
+Looking up modules in dialyxir_erlang-27.3.4.15.plt
+Removing 3 modules from dialyxir_erlang-27.3.4.15.plt
+Checking 19 modules in dialyxir_erlang-27.3.4.15.plt
+Adding 196 modules to dialyxir_erlang-27.3.4.15.plt
+done in 0m6.29s
+Finding applications for dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Finding modules for dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Copying dialyxir_erlang-27.3.4.15.plt to dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Looking up modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Checking 215 modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Adding 258 modules to dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+done in 0m4.98s
+Finding applications for dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt
+Finding modules for dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt
+Copying dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt to dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt
+Looking up modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt
+Checking 473 modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt
+Adding 1246 modules to dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt
+done in 0m18.84s
+ignore_warnings: .dialyzer_ignore.exs
+

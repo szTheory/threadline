@@ -1,0 +1,1 @@
+No external API integration: Phase 214 only reads GitHub Actions run, job and PR metadata via read-only `gh` CLI calls to measure CI cost; it adds no API client, endpoint or product capability to Threadline.

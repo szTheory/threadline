@@ -1,0 +1,2 @@
+No retired or security advisory packages found
+exit_code: 0

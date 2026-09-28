@@ -1,0 +1,2 @@
+bin/verify-branch-protection
+test/threadline/branch_protection_comparison_contract_test.exs

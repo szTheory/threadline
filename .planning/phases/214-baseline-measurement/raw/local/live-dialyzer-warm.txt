@@ -1,0 +1,7 @@
+Running ExUnit with seed: 803180, max_cases: 36
+Excluding tags: [:test, {:pgbouncer_topology, true}]
+Including tags: [:live_dialyzer]
+
+.
+Finished in 2.4 seconds (0.00s async, 2.4s sync)
+10 tests, 0 failures, 9 excluded
