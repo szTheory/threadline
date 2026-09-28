@@ -14,6 +14,16 @@ defmodule Threadline.BrowserFullProjectsContractTest do
   runs in neither lane is the silent coverage loss this guard exists to make
   impossible.
 
+  The partition is over `--project` flags. Playwright also runs a selected
+  project's declared `dependencies` first, so Browser-full can EXECUTE a ci.yml
+  project without selecting it. A declared `dependencies` edge is the only
+  allowed way that happens (`--list executed` minus `--list browser-full` must
+  be exactly the dependency closure), and every cross-project filesystem
+  prerequisite a spec states (`run the <project> lane first`) must be declared
+  as such an edge. Before 218-08, `refute-capture` needed the `tier-a-capture`
+  cell directories but declared nothing: it passed only while Browser-full ran
+  every project, and went red the moment the partition removed `tier-a-capture`.
+
   The test parses nothing itself: it runs the script against the live repo
   and against mutated copies under `tmp_dir` (`THREADLINE_BROWSER_FULL_ROOT`).
   Every mutation control first asserts the mutation changed its input, so a
@@ -31,9 +41,21 @@ defmodule Threadline.BrowserFullProjectsContractTest do
   @ci_rel ".github/workflows/ci.yml"
   @mix_rel "mix.exs"
   @browser_full Path.join(@repo_root, ".github/workflows/browser-full.yml")
+  @specs_dir Path.join(@repo_root, "examples/threadline_phoenix/e2e/tests")
+
+  # Cross-project filesystem prerequisites the specs state, keyed by the
+  # dependent project: {spec file that states it, prerequisite project}.
+  # operator-refute-capture.spec.ts only overwrites screenshot binaries inside
+  # the artifacts/tier-a cell directories that tier-a-capture creates in the
+  # same checkout, and fails with "run the tier-a-capture lane first" otherwise.
+  @stated_prerequisites %{
+    "refute-capture" => {"operator-refute-capture.spec.ts", "tier-a-capture"}
+  }
+  @stated_prerequisite ~r/run the ([a-z0-9-]+) lane first/
 
   @live_browser_full ~w(graded-capture refute-capture route-capture storybook-capture)
   @live_ci ~w(desktop-chromium mobile-chromium tier-a-capture tier-a-capture-light)
+  @live_deps ["refute-capture tier-a-capture"]
 
   defp run_script(args, root \\ @repo_root) do
     assert File.regular?(@script) and
@@ -72,6 +94,22 @@ defmodule Threadline.BrowserFullProjectsContractTest do
   end
 
   defp flags(names), do: Enum.map(names, &"--project=#{&1}")
+
+  # Every stated prerequisite of a Browser-full project that ci.yml owns must be
+  # a declared `dependencies` edge, or Browser-full runs the dependent without it.
+  defp prerequisite_violations(root) do
+    full = list!("browser-full", root)
+    deps = list!("deps", root)
+
+    for {project, {_spec, prerequisite}} <- @stated_prerequisites,
+        project in full,
+        prerequisite not in full,
+        "#{project} #{prerequisite}" not in deps do
+      "#{project} needs #{prerequisite} (stated in its spec) but does not declare " <>
+        "dependencies: [\"#{prerequisite}\"] in playwright.config.ts; Browser-full would " <>
+        "run it without the prerequisite"
+    end
+  end
 
   describe "live repo partition" do
     test "--list config is the eight default-config projects" do
@@ -114,8 +152,65 @@ defmodule Threadline.BrowserFullProjectsContractTest do
                "#{inspect(MapSet.to_list(both))}"
     end
 
+    test "--list deps is the declared dependencies edges" do
+      assert list!("deps") == @live_deps
+    end
+
+    test "Browser-full executes a ci.yml project only through a declared dependencies edge" do
+      full = list!("browser-full")
+      executed = list!("executed")
+      ci = list!("ci")
+      edges = for line <- list!("deps"), do: List.to_tuple(String.split(line, " "))
+
+      closure =
+        Stream.iterate(MapSet.new(full), fn set ->
+          Enum.reduce(edges, set, fn {from, to}, acc ->
+            if from in acc, do: MapSet.put(acc, to), else: acc
+          end)
+        end)
+        |> Stream.chunk_every(2, 1)
+        |> Enum.find_value(fn [a, b] -> if a == b, do: a end)
+
+      assert executed == Enum.sort(MapSet.to_list(closure)),
+             "--list executed must be the Browser-full projects plus their declared " <>
+               "dependency closure, nothing else"
+
+      pulled = MapSet.difference(MapSet.new(executed), MapSet.new(full))
+
+      assert MapSet.subset?(pulled, MapSet.new(ci)),
+             "a dependency pulls in a project that is in neither lane's flag set"
+
+      assert executed == Enum.sort(@live_browser_full ++ ["tier-a-capture"])
+    end
+
+    test "every stated cross-project filesystem prerequisite is in the table" do
+      stated =
+        for spec <- File.ls!(@specs_dir),
+            String.ends_with?(spec, ".spec.ts"),
+            [_, prerequisite] <-
+              Regex.scan(@stated_prerequisite, File.read!(Path.join(@specs_dir, spec))),
+            uniq: true,
+            do: {spec, prerequisite}
+
+      assert stated != [], "the prerequisite scan found nothing; it would pass vacuously"
+
+      assert Enum.sort(stated) == Enum.sort(Map.values(@stated_prerequisites)),
+             "a spec states a `run the <project> lane first` prerequisite that " <>
+               "@stated_prerequisites does not model (or the table names one no spec states)"
+    end
+
+    test "every stated prerequisite of a Browser-full project is a declared dependencies edge" do
+      assert prerequisite_violations(@repo_root) == []
+    end
+
     test "the env-gated light project is never output" do
-      for args <- [[], ["--list", "config"], ["--list", "ci"], ["--list", "browser-full"]] do
+      for args <- [
+            [],
+            ["--list", "config"],
+            ["--list", "ci"],
+            ["--list", "browser-full"],
+            ["--list", "executed"]
+          ] do
         assert {output, 0} = run_script(args)
         refute output =~ "desktop-chromium-light"
       end
@@ -210,6 +305,38 @@ defmodule Threadline.BrowserFullProjectsContractTest do
             &1,
             "--project=desktop-chromium --project=mobile-chromium",
             Enum.join(flags(["desktop-chromium", "mobile-chromium" | @live_browser_full]), " ")
+          )
+        )
+
+      assert {_output, status} = run_script([], root)
+      assert status != 0
+    end
+
+    test "removing refute-capture's dependencies declaration turns the contract red", %{
+      tmp_dir: tmp_dir
+    } do
+      root =
+        mutated_root(
+          tmp_dir,
+          @config_rel,
+          &Regex.replace(~r/\n\s*dependencies: \["tier-a-capture"\],/, &1, "")
+        )
+
+      assert list!("browser-full", root) == @live_browser_full
+      assert list!("deps", root) == []
+      assert [violation] = prerequisite_violations(root)
+      assert violation =~ "refute-capture needs tier-a-capture"
+    end
+
+    test "a dependency naming an unregistered project exits non-zero", %{tmp_dir: tmp_dir} do
+      root =
+        mutated_root(
+          tmp_dir,
+          @config_rel,
+          &String.replace(
+            &1,
+            ~s(dependencies: ["tier-a-capture"]),
+            ~s(dependencies: ["ghost-capture"])
           )
         )
 
