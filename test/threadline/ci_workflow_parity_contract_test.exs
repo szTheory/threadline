@@ -3455,8 +3455,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
           run: mix deps.compile
 
         - name: Remove own build (never cached, never reused)
+          env:
+            BUILD_KEY: ${{ steps.build-restore.outputs.cache-primary-key }}
+            BUILD_HIT: ${{ steps.build-restore.outputs.cache-hit }}
           run: |
-            echo "THREADLINE_BUILD_CACHE=${{ steps.build-restore.outputs.cache-hit == 'true' && 'hit' || 'miss' }} key=${{ steps.build-restore.outputs.cache-primary-key }}"
+            if [ "$BUILD_HIT" = "true" ]; then state=hit; else state=miss; fi
+            echo "THREADLINE_BUILD_CACHE=${state} key=${BUILD_KEY}"
             rm -rf "_build/${MIX_ENV:?}/lib/threadline"
 
   __SAVE__      - name: Compile (warnings as errors)
