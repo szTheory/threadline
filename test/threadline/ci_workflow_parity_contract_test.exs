@@ -400,6 +400,74 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
+  # --- Deps-only build cache contract (Phase 219, CACHE-01) --------------------
+  #
+  # One pure function, `build_cache_errors(yaml_by_path, contributing)`, owns
+  # every `_build` cache rule (D-20). It reads literal workflow text, so a rule
+  # is proven by feeding it text, not by trusting a pushed run.
+
+  # The root `_build` restore exactly as the cached jobs carry it (`<interfaces>`
+  # in 219-01-PLAN). Controls insert this literal step into jobs that must stay
+  # cache-free, so they never depend on cloning another job's text.
+  @root_build_restore_step ~S"""
+        - name: Restore deps-only build cache
+          id: build-restore
+          uses: actions/cache/restore@v5
+          with:
+            path: _build/${{ env.MIX_ENV }}
+            key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
+  """
+
+  describe "deps-only build cache contract" do
+    test "the D-17 security subset holds on every live workflow" do
+      errors = build_cache_security_errors(all_workflows())
+
+      assert errors == [],
+             "the build cache security rules must hold live, got:\n" <> Enum.join(errors, "\n")
+    end
+
+    test "security control: a cache step in release.yml publish-hex is red" do
+      live = all_workflows()
+      release = ".github/workflows/release.yml"
+
+      mutated =
+        Map.update!(
+          live,
+          release,
+          &insert_step_in_job(&1, "publish-hex", @root_build_restore_step)
+        )
+
+      refute mutated == live, "the release.yml control did not change the input"
+
+      errors = build_cache_security_errors(mutated)
+
+      assert Enum.any?(errors, &(&1 =~ "rule=release-cache" and &1 =~ release)),
+             "a cache step in publish-hex must fail with rule=release-cache, got #{inspect(errors)}"
+
+      assert Enum.any?(build_cache_errors(mutated, ""), &(&1 =~ "rule=release-cache")),
+             "build_cache_errors/2 must compose the security rules"
+    end
+
+    test "cache words in comments or `git diff --cached` are not cache steps" do
+      text = """
+      on:
+        push:
+          branches: [main]
+      jobs:
+        publish-hex:
+          steps:
+            # The toolchain lands in the runner tool cache; restore-keys: none.
+            - name: Stage
+              run: |
+                if git diff --cached --quiet; then echo clean; fi
+            - name: Poll
+              run: echo "${{ github.event.workflow_run.id }} data.workflow_runs"
+      """
+
+      assert build_cache_security_errors(%{".github/workflows/release.yml" => text}) == []
+    end
+  end
+
   # --- Toolchain pin contract -------------------------------------------------
   #
   # `.tool-versions` is the single source of the CI current-lane toolchain. Every
@@ -1322,4 +1390,192 @@ defmodule Threadline.CIWorkflowParityContractTest do
       beam_ordering_errors(path, job_id, block) ++
       Enum.flat_map(steps, &cache_key_errors(path, job_id, &1))
   end
+
+  # --- Deps-only build cache contract: rules (Phase 219, CACHE-01) -------------
+
+  @build_cache_release ".github/workflows/release.yml"
+
+  # Triggers that run with the default branch's cache scope and a write-capable
+  # token. A cache step there can poison entries every pull request reads (D-17).
+  @privileged_triggers ["pull_request_target", "workflow_run", "issue_comment"]
+
+  # The whole CACHE-01 contract over `%{repo_rel_path => workflow_text}` plus the
+  # CONTRIBUTING text. Returns one message per broken rule; `[]` means clean.
+  defp build_cache_errors(yaml_by_path, _contributing) do
+    build_cache_security_errors(yaml_by_path)
+  end
+
+  # D-17: the release path and default-branch-context workflows carry no cache,
+  # and the only built-in `cache:` input anywhere is `cache: npm` on setup-node.
+  # Key-anchored regexes over uncommented lines (Pitfall 4): release.yml says
+  # "runner tool cache", `git diff --cached` and `data.workflow_runs` in text
+  # that is not a cache step or a trigger.
+  defp build_cache_security_errors(yaml_by_path) do
+    Enum.flat_map(yaml_by_path, fn {path, yaml} ->
+      release_cache_errors(path, yaml) ++
+        privileged_trigger_cache_errors(path, yaml) ++ builtin_cache_errors(path, yaml)
+    end)
+  end
+
+  defp release_cache_errors(@build_cache_release = path, yaml) do
+    for {job, chunk} <- workflow_chunks(yaml), line <- lines_matching(chunk, &cache_line?/1) do
+      build_cache_error(
+        {path, job, step_label(chunk)},
+        "release-cache",
+        "release.yml carries `#{line}`",
+        "a published package must be built from source, never from a cache (D-17)",
+        "remove the cache step or cache input from release.yml"
+      )
+    end
+  end
+
+  defp release_cache_errors(_path, _yaml), do: []
+
+  defp privileged_trigger_cache_errors(path, yaml) do
+    case Enum.filter(workflow_triggers(yaml), &(&1 in @privileged_triggers)) do
+      [] ->
+        []
+
+      triggers ->
+        for {job, chunk} <- workflow_chunks(yaml),
+            line <- lines_matching(chunk, &cache_line?/1) do
+          build_cache_error(
+            {path, job, step_label(chunk)},
+            "privileged-trigger-cache",
+            "a workflow triggered by #{Enum.join(triggers, ", ")} carries `#{line}`",
+            "those triggers run in the default branch's cache scope, so a cache step " <>
+              "there can poison entries every pull request restores (D-17)",
+            "remove the cache step, or move the work to a pull_request/push workflow"
+          )
+        end
+    end
+  end
+
+  defp builtin_cache_errors(path, yaml) do
+    for {job, chunk} <- workflow_chunks(yaml),
+        line <- lines_matching(chunk, &builtin_cache_line?/1),
+        not (line == "cache: npm" and setup_node_step?(chunk)) do
+      build_cache_error(
+        {path, job, step_label(chunk)},
+        "builtin-cache",
+        "built-in cache input `#{line}`",
+        "an action's built-in cache hides its key and restore-keys from this contract (D-20)",
+        "use an explicit actions/cache/restore + save pair; only `cache: npm` on " <>
+          "actions/setup-node is allowed"
+      )
+    end
+  end
+
+  defp cache_line?(line), do: cache_step_line?(line) or cache_input_line?(line)
+
+  defp cache_step_line?(line), do: Regex.match?(~r/^\s*(?:-\s+)?uses:\s*actions\/cache/, line)
+
+  defp cache_input_line?(line),
+    do: Regex.match?(~r/^\s*(?:-\s+)?(?:cache|cache-dependency-path|restore-keys):/, line)
+
+  defp builtin_cache_line?(line), do: Regex.match?(~r/^\s*(?:-\s+)?cache:/, line)
+
+  defp setup_node_step?(chunk),
+    do: Regex.match?(~r/^\s*(?:-\s+)?uses:\s*actions\/setup-node@/m, strip_comment_lines(chunk))
+
+  # Trigger names from the `on:` block: an inline `on: [a, b]` / `on: a` value,
+  # or the two-space keys (or list items) under a block `on:`.
+  defp workflow_triggers(yaml) do
+    lines = yaml |> strip_comment_lines() |> String.split("\n")
+
+    case Enum.drop_while(lines, &(not Regex.match?(~r/^["']?on["']?:/, &1))) do
+      [] ->
+        []
+
+      [on_line | rest] ->
+        inline =
+          ~r/[a-z_]+/ |> Regex.scan(Regex.replace(~r/^[^:]+:/, on_line, "")) |> List.flatten()
+
+        block = Enum.take_while(rest, &(&1 == "" or String.starts_with?(&1, " ")))
+        inline ++ Enum.flat_map(block, &trigger_key/1)
+    end
+  end
+
+  defp trigger_key(line) do
+    case Regex.run(~r/^  (?:-\s+)?([a-z_]+)/, line) do
+      [_, trigger] -> [trigger]
+      nil -> []
+    end
+  end
+
+  # `{job_id, chunk}` for the text before `jobs:` (job "-"), each job header and
+  # each step, so a rule can name where a line sits.
+  defp workflow_chunks(yaml) do
+    head = yaml |> String.split(~r/^jobs:\n/m, parts: 2) |> hd()
+
+    [{"-", head}] ++
+      for {job_id, block} <- workflow_jobs(yaml),
+          chunk <- Regex.split(~r/^(?=      - )/m, block),
+          do: {job_id, chunk}
+  end
+
+  defp lines_matching(text, match?) do
+    text
+    |> strip_comment_lines()
+    |> String.split("\n")
+    |> Enum.filter(match?)
+    |> Enum.map(&String.trim/1)
+  end
+
+  # A step's `name:`, else its `uses:` target, else "-" (job headers, file head).
+  defp step_label(chunk) do
+    stripped = strip_comment_lines(chunk)
+
+    cond do
+      match = Regex.run(~r/^      (?:- |  )name:[ \t]*(.+?)[ \t]*$/m, stripped) ->
+        List.last(match)
+
+      match = Regex.run(~r/^      (?:- |  )uses:[ \t]*(\S+)/m, stripped) ->
+        "uses " <> List.last(match)
+
+      true ->
+        "-"
+    end
+  end
+
+  # D-20 message shape: where, a stable `rule=<id>` token, what, why and the fix.
+  defp build_cache_error({path, job, step}, rule, what, why, fix) do
+    step = if step == "-", do: "-", else: inspect(step)
+    "#{path} #{job} #{step} rule=#{rule}: #{what}. Why: #{why}. Fix: #{fix}"
+  end
+
+  # --- Deps-only build cache contract: text mutators for the controls ----------
+
+  # Inserts `step` directly after the first `    steps:` line of job `job_id`.
+  # Needles only on the job header line and that `steps:` line, which every
+  # workflow carries, so a control never depends on another step's text. Raises
+  # when either line is missing, so a vanished needle fails loudly instead of
+  # returning the input unchanged.
+  defp insert_step_in_job(text, job_id, step) do
+    lines = String.split(text, "\n")
+    at = job_line_index!(lines, job_id, "    steps:", &job_header_line?/1)
+    step_lines = step |> String.trim_trailing("\n") |> String.split("\n")
+    {before, rest} = Enum.split(lines, at + 1)
+    Enum.join(before ++ step_lines ++ rest, "\n")
+  end
+
+  # Index of the first line equal to `target` after the `  <job_id>:` header,
+  # searching only until `stop?` accepts a line.
+  defp job_line_index!(lines, job_id, target, stop?) do
+    header =
+      Enum.find_index(lines, &(&1 == "  #{job_id}:")) ||
+        raise ArgumentError, "no `  #{job_id}:` job header line"
+
+    offset =
+      lines
+      |> Enum.drop(header + 1)
+      |> Enum.take_while(&(not stop?.(&1)))
+      |> Enum.find_index(&(&1 == target))
+
+    if offset,
+      do: header + 1 + offset,
+      else: raise(ArgumentError, "job #{job_id} has no #{inspect(target)} line")
+  end
+
+  defp job_header_line?(line), do: Regex.match?(~r/^  [a-z][a-z0-9_-]*:\s*$/, line)
 end
