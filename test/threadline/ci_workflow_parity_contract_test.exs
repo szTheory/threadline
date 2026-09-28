@@ -2136,15 +2136,15 @@ defmodule Threadline.CIWorkflowParityContractTest do
     id = yaml_value(strip_comment_lines(restore), "id") || "<restore without id>"
 
     for {:save_build, ^project, save} <- job.steps,
-        {rule, what, why, fix} <- save_rule_failures(job, id, restore, save) do
+        {rule, what, why, fix} <- save_rule_failures(job, project, id, restore, save) do
       build_cache_error(where(job, save), rule, what, why, fix)
     end
   end
 
-  defp save_rule_failures(job, id, restore, save) do
+  defp save_rule_failures(job, project, id, restore, save) do
     stripped = strip_comment_lines(save)
     primary = "${{ steps.#{id}.outputs.cache-primary-key }}"
-    guards = cache_miss_guards(job.id, id)
+    guards = cache_miss_guards(job.id, project, id)
 
     [
       {String.contains?(stripped, "uses: actions/cache/save@v5"),
@@ -2169,16 +2169,24 @@ defmodule Threadline.CIWorkflowParityContractTest do
     |> Enum.map(&elem(&1, 1))
   end
 
-  defp cache_miss_guards("verify-test", id) do
+  # verify-test's example block runs on the current lane only: its restore is
+  # lane-skipped on the min lane, so a bare guard would be true there and
+  # compile or save an unfetched tree (IN-03, 219 review). Its root block runs
+  # on both lanes.
+  defp cache_miss_guards("verify-test", :example, id),
+    do: ["matrix.lane == 'current' && steps.#{id}.outputs.cache-hit != 'true'"]
+
+  defp cache_miss_guards("verify-test", :root, id) do
     base = "steps.#{id}.outputs.cache-hit != 'true'"
     [base, "matrix.lane == 'current' && " <> base]
   end
 
-  defp cache_miss_guards(_job_id, id), do: ["steps.#{id}.outputs.cache-hit != 'true'"]
+  defp cache_miss_guards(_job_id, _project, id),
+    do: ["steps.#{id}.outputs.cache-hit != 'true'"]
 
   defp compile_guard_errors(job, project, restore) do
     id = yaml_value(strip_comment_lines(restore), "id") || "<restore without id>"
-    guards = cache_miss_guards(job.id, id)
+    guards = cache_miss_guards(job.id, project, id)
 
     for {:deps_compile, ^project, step} <- job.steps,
         yaml_value(strip_comment_lines(step), "if") not in guards do
@@ -2731,10 +2739,11 @@ defmodule Threadline.CIWorkflowParityContractTest do
   @example_restore "Restore example deps and deps-only build cache"
   @example_rm "Remove example app's own build (never cached, never reused)"
   @example_save "Save example deps and deps-only build cache"
+  @example_deps_compile "Compile example dependencies on cache miss"
   @example_block_steps [
     @example_restore,
     "Install example dependencies",
-    "Compile example dependencies on cache miss",
+    @example_deps_compile,
     @example_rm,
     @example_save
   ]
@@ -2836,6 +2845,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     build_cache_order_controls(ctx) ++
       build_cache_count_controls(ctx) ++
       build_cache_step_env_controls(ctx) ++
+      build_cache_lane_guard_controls(ctx) ++
       build_cache_save_controls(ctx) ++
       build_cache_key_controls(ctx) ++
       build_cache_rm_controls(ctx) ++
@@ -2988,6 +2998,28 @@ defmodule Threadline.CIWorkflowParityContractTest do
             &add_line_after(&1, "      - name: ", override)
           )
         end
+      )
+    ]
+  end
+
+  # IN-03 (219 review): on the min lane the example block is lane-skipped, so a
+  # bare `cache-hit != 'true'` guard is true there and compiles or saves an
+  # unfetched example tree. verify-test's example guards must carry the lane.
+  defp build_cache_lane_guard_controls(ctx) do
+    lane = "matrix.lane == 'current' && "
+
+    [
+      ci_control(
+        ctx,
+        "verify-test example deps compile guard without the lane",
+        ~s("#{@example_deps_compile}" rule=compile-guard),
+        &replace_in_step(&1, "verify-test", @example_deps_compile, lane, "")
+      ),
+      ci_control(
+        ctx,
+        "verify-test example save guard without the lane",
+        ~s("#{@example_save}" rule=save-guard),
+        &replace_in_step(&1, "verify-test", @example_save, lane, "")
       )
     ]
   end
