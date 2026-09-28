@@ -247,7 +247,7 @@ Plans:
 - [x] 218-07-PLAN.md — ECON-04: `bin/browser-full-projects` derived difference, partition contract, nightly green-SHA skip, close on green (D-07)
 
 **Wave 8** *(blocked on Wave 7 completion)*
-- [ ] 218-08-PLAN.md — ECON-07: copied 214 tools, phase gate, maintainer push checkpoint, cited re-measurement vs BASE-01 (D-11)
+- [x] 218-08-PLAN.md — ECON-07: copied 214 tools, phase gate, maintainer push checkpoint, cited re-measurement vs BASE-01 (D-11)
 
 **Research**: Not needed (each change has file:line and a named dominating proof)
 
@@ -317,7 +317,7 @@ Plans:
 | 215. Supply Chain Gate | 6/6 | Complete    | 2026-09-26 |
 | 216. CI Platform Currency | 8/8 | Complete    | 2026-09-27 |
 | 217. Repo Hygiene | 7/7 | Complete    | 2026-09-27 |
-| 218. CI Economy: Remove Waste | 7/8 | In Progress | - |
+| 218. CI Economy: Remove Waste | 8/8 | In Progress | - |
 | 219. Deps-Only Build Cache | 0/TBD | Not started | - |
 | 220. Newest-Toolchain Lane | 0/TBD | Not started | - |
 | 221. CI Names and Order | 0/TBD | Not started | - |

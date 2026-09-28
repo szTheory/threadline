@@ -83,7 +83,7 @@
   - A contract test proves CI's projects plus Browser-full's cover the full Playwright config.
 - [x] **ECON-05**: The uncached `:live_dialyzer` test is excluded from default `mix test` and runs only in the PLT-cached `verify-dialyzer` job. test_helper, CONTRIBUTING and the topology test are updated together.
 - [x] **ECON-06**: Each dominated proof is removed with a written "still caught by job Y on trigger Z" line. That covers the `verify-mechanical` job (its alias stays), the capture lane's trailing mechanical step, and any duplicate docs or tarball proof the baseline shows is dominated.
-- [ ] **ECON-07**: Runner-minutes and critical path are re-measured after ECON-01..06, and the deltas are recorded against BASE-01.
+- [x] **ECON-07**: Runner-minutes and critical path are re-measured after ECON-01..06, and the deltas are recorded against BASE-01.
 
 ### Build cache
 
@@ -171,7 +171,7 @@
 | ECON-04 | Phase 218 | Complete |
 | ECON-05 | Phase 218 | Complete |
 | ECON-06 | Phase 218 | Complete |
-| ECON-07 | Phase 218 | Pending |
+| ECON-07 | Phase 218 | Complete |
 | CACHE-01 | Phase 219 | Pending |
 | LANE-01 | Phase 220 | Pending |
 | DX-01 | Phase 221 | Pending |

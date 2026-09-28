@@ -5,16 +5,16 @@ milestone_name: Supply Chain, CI Economy and Repo Hygiene
 current_phase: 218
 current_phase_name: "CI Economy: Remove Waste"
 status: executing
-stopped_at: Completed 218-07-PLAN.md
-last_updated: "2026-09-27T23:00:23.761Z"
-last_activity: 2026-09-27
-last_activity_desc: Completed 218-07 (ECON-04 derived Browser-full project partition, nightly green-SHA skip, ECON-02 close-on-green)
-state_head: 76e77c79285dfe628f925e32702e42d7151060ba
+stopped_at: Completed 218-08-PLAN.md
+last_updated: "2026-09-28T02:10:00.000Z"
+last_activity: 2026-09-28
+last_activity_desc: Completed 218-08 (ECON-07 cited re-measure vs BASE-01 on draft PR #60; #28/#36 closed)
+state_head: 3c9818a90206de359c9bbbf26440b7f986c64e51
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 33
-  completed_plans: 32
+  completed_plans: 33
   percent: 44
 ---
 
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-24 after v1.41 milestone)
 
 Phase: 218 (CI Economy: Remove Waste) — EXECUTING
 Plan: 8 of 8
-Status: Ready to execute
-Last activity: 2026-09-27 — Completed 218-07 (ECON-04 derived Browser-full project partition, nightly green-SHA skip, ECON-02 close-on-green)
+Status: All 8 plans complete — awaiting phase verification
+Last activity: 2026-09-28 — Completed 218-08 (ECON-07 cited re-measure vs BASE-01 on draft PR #60: per ci.yml run p50 46.3 -> 44.4 unrounded / 55 -> 53 billed, attributable 43.7 / 51; critical path 623 -> 643 s not credited; flake 45.7 min pass; Browser-full 6.4 min; #28/#36 closed)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -55,7 +55,7 @@ Last activity: 2026-09-27 — Completed 218-07 (ECON-04 derived Browser-full pro
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████░░░░░░] 4 of 9 v1.43 phases complete (214–222): 214 Baseline Measurement verified passed 32/32 on re-verification after gap closure 214-04; 215 Supply Chain Gate verified passed 7/7 on re-verification after gap closure 215-05/215-06 (CR-01 global hex.config refusal, WR-02 deps.get --check-locked); 216 CI Platform Currency verified passed 3/3 (43/43 truths) 2026-09-27 after gap closure 216-08 (release sparse-checkout regression), landed via squash #55 + #57, 0.11.1 released (#56, run 36323594205); OPEN: 216 review CR-01 (smoke-published write token + persisted credentials, pre-existing) awaiting maintainer decision, distribution-sync PR #59 unmerged; 217 Repo Hygiene verified passed 5/5 on re-verification 2026-09-27 after gap closure 217-06 (CR-01 family-6 single-segment encoded path, WR-01/WR-03/IN-01) + 217-07 (CONTRIBUTING machine-local path placeholder convention + guard hint, WR-02 colon-safe parsing); HYG-01..04 Complete; round-2 review 0 critical/4 warning/2 info recorded open in 217-REVIEW-DISPOSITION.md (triage before milestone close; R2-WR-04 Linux-encoded dirs vs CONTRIBUTING claim is the one to act on); 218 planned 2026-09-27 (8 plans, serialized waves 1–8; plan-check passed after 3 revision rounds + 1 targeted fix); 218 execution started 2026-09-27 (sequential, main tree); 218-01 complete 2026-09-27 (ECON-03 PAT-absence guard on bootstrap-release-pr-ci + contract mutation controls, 26/33 plans); 218-02 complete 2026-09-27 (ECON-02 script half: bin/upsert-ci-issue --close + deps-health close-on-clean; #28/#36 close refused by classifier, handed off to maintainer / 218-06/07 wiring, 27/33 plans); 218-03 complete 2026-09-27 (ECON-05: fail-closed Dialyzer slice verifier, :live_dialyzer excluded by default and run only in verify-dialyzer via mix verify.dialyzer_slice, ci.all dedup exemption, timeout 12; 28/33 plans); 218-04 complete 2026-09-27 (ECON-06: verify-mechanical, verify-docs and verify-hex-package removed plus verify-capture's duplicate mechanical step, ci-required 16 -> 13, still-caught-by bullets + dominance pins with mutation controls, branch protection read-only confirmed CI required only; 29/33 plans); 218-05 complete 2026-09-27 (ECON-01 core: Flake Detection weekly Monday 07:00 UTC + dispatch, 15 repeats under timeout(1) 55m / step 58 / job 70, inconclusive on budget expiry, bin/ci-sha-gate green-SHA skip (schedule only) + broken-upstream, fail open to run; issue text + close-on-pass follow in 218-06; 30/33 plans); 218-06 complete 2026-09-27 (ECON-01 closed + ECON-02 flake wiring: per-classification issue text driven by the classifier reason, inconclusive/broken-upstream arms, close-on-pass via upsert-ci-issue --close, OS-family cache-key guard over every workflow; 31/33 plans); 218-07 complete 2026-09-27 (ECON-04 + ECON-02 Browser-full wiring: bin/browser-full-projects derives config minus ci.yml projects, Browser-full runs only graded/refute/route/storybook-capture, partition contract + mutation/comment controls, nightly green-SHA skip via bin/ci-sha-gate, close-on-green via upsert-ci-issue --close; #28/#36 still open pending first green runs; 32/33 plans); v1.42 closed at 153/153 plans (198–207)
+Progress: [████░░░░░░] 4 of 9 v1.43 phases complete (214–222): 214 Baseline Measurement verified passed 32/32 on re-verification after gap closure 214-04; 215 Supply Chain Gate verified passed 7/7 on re-verification after gap closure 215-05/215-06 (CR-01 global hex.config refusal, WR-02 deps.get --check-locked); 216 CI Platform Currency verified passed 3/3 (43/43 truths) 2026-09-27 after gap closure 216-08 (release sparse-checkout regression), landed via squash #55 + #57, 0.11.1 released (#56, run 36323594205); OPEN: 216 review CR-01 (smoke-published write token + persisted credentials, pre-existing) awaiting maintainer decision, distribution-sync PR #59 unmerged; 217 Repo Hygiene verified passed 5/5 on re-verification 2026-09-27 after gap closure 217-06 (CR-01 family-6 single-segment encoded path, WR-01/WR-03/IN-01) + 217-07 (CONTRIBUTING machine-local path placeholder convention + guard hint, WR-02 colon-safe parsing); HYG-01..04 Complete; round-2 review 0 critical/4 warning/2 info recorded open in 217-REVIEW-DISPOSITION.md (triage before milestone close; R2-WR-04 Linux-encoded dirs vs CONTRIBUTING claim is the one to act on); 218 planned 2026-09-27 (8 plans, serialized waves 1–8; plan-check passed after 3 revision rounds + 1 targeted fix); 218 execution started 2026-09-27 (sequential, main tree); 218-01 complete 2026-09-27 (ECON-03 PAT-absence guard on bootstrap-release-pr-ci + contract mutation controls, 26/33 plans); 218-02 complete 2026-09-27 (ECON-02 script half: bin/upsert-ci-issue --close + deps-health close-on-clean; #28/#36 close refused by classifier, handed off to maintainer / 218-06/07 wiring, 27/33 plans); 218-03 complete 2026-09-27 (ECON-05: fail-closed Dialyzer slice verifier, :live_dialyzer excluded by default and run only in verify-dialyzer via mix verify.dialyzer_slice, ci.all dedup exemption, timeout 12; 28/33 plans); 218-04 complete 2026-09-27 (ECON-06: verify-mechanical, verify-docs and verify-hex-package removed plus verify-capture's duplicate mechanical step, ci-required 16 -> 13, still-caught-by bullets + dominance pins with mutation controls, branch protection read-only confirmed CI required only; 29/33 plans); 218-05 complete 2026-09-27 (ECON-01 core: Flake Detection weekly Monday 07:00 UTC + dispatch, 15 repeats under timeout(1) 55m / step 58 / job 70, inconclusive on budget expiry, bin/ci-sha-gate green-SHA skip (schedule only) + broken-upstream, fail open to run; issue text + close-on-pass follow in 218-06; 30/33 plans); 218-06 complete 2026-09-27 (ECON-01 closed + ECON-02 flake wiring: per-classification issue text driven by the classifier reason, inconclusive/broken-upstream arms, close-on-pass via upsert-ci-issue --close, OS-family cache-key guard over every workflow; 31/33 plans); 218-07 complete 2026-09-27 (ECON-04 + ECON-02 Browser-full wiring: bin/browser-full-projects derives config minus ci.yml projects, Browser-full runs only graded/refute/route/storybook-capture, partition contract + mutation/comment controls, nightly green-SHA skip via bin/ci-sha-gate, close-on-green via upsert-ci-issue --close; #28/#36 still open pending first green runs; 32/33 plans); 218-08 complete 2026-09-28 (ECON-07: copied 214 tools, phase gate green, maintainer landed branch land/v1.43-217-218 as draft PR #60 with 3 Rule-1 landing fixes (refute-capture declares tier-a-capture, published .planning snapshot scrubbed, flake lane resized 15 -> 12 repeats); 218-REMEASURE.md cites 39 run IDs: per ci.yml run p50 46.3 -> 44.4 unrounded / 55 -> 53 billed (attributable 43.7 / 51), critical path 623 -> 643 s not credited, verify-dialyzer +74 s from PLT-hit samples only, flake pass 45.7 min (run 36364688861), Browser-full 6.4 min (run 36363979144); #28 and #36 CLOSED by those green dispatch runs; ECON-05 literal slice line not in CI log (deferred); 33/33 plans); v1.42 closed at 153/153 plans (198–207)
 
 Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-218-06 and post-218-07): the `state.update-progress` handler overwrote this narrative line with a bare `[███░░░░░░░] 33%` on both occasions; restored per CLAUDE.md's documented handler-clobber caveat, with plan 217-04's and 217-05's completions folded into the narrative above (percent 33% is correct — 23/23 plans complete, unaffected by the restore).
 
@@ -877,8 +877,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-09-27T23:00:23.695Z
-**Stopped at:** Completed 218-07-PLAN.md
+**Last session:** 2026-09-28T02:10:00.000Z
+**Stopped at:** Completed 218-08-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
