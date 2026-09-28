@@ -51,7 +51,7 @@
 - [x] **Phase 216: CI Platform Currency** - CI runs the exact committed toolchain on Node 24 actions and supported runners (completed 2026-09-27)
 - [x] **Phase 217: Repo Hygiene** - No tracked machine-local paths, a CI guard that keeps it that way, scoped tmp_dir hygiene, and the xref disposition recorded (completed 2026-09-27)
 - [x] **Phase 218: CI Economy: Remove Waste** - Flake, release, Browser-full, live-Dialyzer and mechanical duplicates cut, each with a named dominating proof, and savings measured (completed 2026-09-27)
-- [ ] **Phase 219: Deps-Only Build Cache** - Test jobs restore exact-keyed deps-only `_build` and example-app caches, with the saving measured
+- [x] **Phase 219: Deps-Only Build Cache** - Test jobs restore exact-keyed deps-only `_build` and example-app caches, with the saving measured (completed 2026-09-28)
 - [ ] **Phase 220: Newest-Toolchain Lane** - Spike-gated voting lane on Elixir 1.20 / OTP 29 / PG 18, or recorded "not yet"
 - [ ] **Phase 221: CI Names and Order** - A red check's name says what failed, and YAML runs fastest-to-red first
 - [ ] **Phase 222: SEED-006 Change-Aware Lanes (conditional)** - Decided from measured data: a fail-closed classifier, or "measured, not worth it"
@@ -263,7 +263,7 @@ Plans:
   3. `verify-compile-no-optional` and the `release.yml` publish path contain no cache step, and the parity contract test asserts all of the above rules.
   4. A before/after measurement cites run IDs and records the per-job and critical-path delta against the Phase 214 baseline.
 
-**Plans**: 3 plans
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -332,7 +332,7 @@ Plans:
 | 216. CI Platform Currency | 8/8 | Complete    | 2026-09-27 |
 | 217. Repo Hygiene | 7/7 | Complete    | 2026-09-27 |
 | 218. CI Economy: Remove Waste | 8/8 | Complete    | 2026-09-27 |
-| 219. Deps-Only Build Cache | 3/3 | In Progress | - |
+| 219. Deps-Only Build Cache | 3/3 | Complete    | 2026-09-28 |
 | 220. Newest-Toolchain Lane | 0/TBD | Not started | - |
 | 221. CI Names and Order | 0/TBD | Not started | - |
 | 222. SEED-006 Change-Aware Lanes | 0/TBD | Not started | - |
