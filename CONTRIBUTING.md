@@ -737,6 +737,99 @@ bounded failure time. The exact-key hit
 saved 143.4 seconds of analyzer work (`162.64 - 9.42`) and 129 seconds of
 whole-job elapsed time (`252 - 123`) on this evidence pair.
 
+### Dependency build cache
+
+The test jobs restore a deps-only `_build` cache so they stop recompiling the
+same dependencies on every run. The root project caches `_build/$MIX_ENV`; the
+example app caches `examples/threadline_phoenix/_build/$MIX_ENV` together with
+its own `examples/threadline_phoenix/deps` (the root `deps/` keeps its existing
+`Cache deps` step). Each cache uses split `actions/cache/restore@v5` and
+`actions/cache/save@v5` steps, and the save runs only on a miss, after a
+successful `mix deps.compile`. No save uses `always()` or `continue-on-error`,
+so a failed or partial dependency build is never stored.
+
+| Job | Build cache | Saves on miss |
+| --- | --- | --- |
+| `verify-test` | root on both lanes; example on the current lane only | yes |
+| `verify-pgbouncer-topology` | root, restoring the current lane's key | no, restore only |
+| `verify-example-browser` | example | yes |
+| `verify-capture` | example | yes |
+
+Every key is exact. In order it carries: the runner label (`${{ matrix.runner }}`
+in `verify-test`, the literal `ubuntu-24.04` elsewhere), the OTP and Elixir that
+setup-beam resolved, the key version `build-v1`, the project (`root` or
+`example`), `MIX_ENV`, the `full` profile (the optional dependencies are
+compiled), then the hash of the project's own `mix.lock` and of its
+`config/**/*.exs`. The key deliberately leaves out `mix.exs` (a dependency change
+reaches the lock), `.tool-versions` (the resolved versions already name the
+toolchain) and the Hex and rebar3 versions.
+
+A `_build` cache never has `restore-keys`. A near-miss restore across a changed
+lock serves artifacts compiled against other dependency versions, which is how
+[CargoSense/setup-elixir-project#13](https://github.com/CargoSense/setup-elixir-project/issues/13)
+went wrong; a cold build is cheaper than a wrong one. The first-party apps are
+never cached either. After the deps compile and before the save and the
+compile, every cached job runs:
+
+```sh
+rm -rf "_build/${MIX_ENV:?}/lib/threadline"
+```
+
+and the example jobs run:
+
+```sh
+rm -rf "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline" \
+  "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline_phoenix"
+```
+
+That is `_build/$MIX_ENV/lib/threadline` in each project; `${MIX_ENV:?}` fails
+the step instead of deleting the wrong tree if `MIX_ENV` is ever unset. The
+removal runs on hit and miss alike, so the cache holds only dependencies and a
+restore can never serve a stale copy of the code under test.
+
+| Job or workflow | Why it has no build cache |
+| --- | --- |
+| `verify-format` | compiles nothing: it only runs the formatter check |
+| `verify-credo` | dev env, not a test job, and off the critical path |
+| `verify-dialyzer` | dev env, and it switches `MIX_ENV` mid-job, so one env-scoped key cannot describe it |
+| `verify-compile-no-optional` | the optional-deps proof builds from source with no cache step of any kind |
+| `verify-hex-evaluator` | its lock is gitignored and regenerated every run, so no exact key exists |
+| `verify-release-shape` | compiles nothing: it checks CHANGELOG and `@version` text |
+| `verify-bump-rehearsal` | builds inside a throwaway clone, so a restored `_build` would never be read |
+| `verify-deps-audit` | compiles nothing: it audits the lockfiles |
+| `verify-repo-hygiene` | compiles nothing: it scans tracked text |
+| `verify-flake` | in `flake-detection.yml`, off the pull-request path (weekly and on dispatch) |
+| `verify-example-browser-full` | in `browser-full.yml`, off the pull-request path (push to main and nightly) |
+| `publish-hex` | in `release.yml`: a published package is built from source, never from a cache |
+| `smoke-published` | in `release.yml`: the published-release smoke test proves hex.pm's package on a clean build |
+
+The stable log fields, printed by each cached job's removal step, are:
+
+- `THREADLINE_BUILD_CACHE`: exactly `hit` or `miss`, then ` key=<primary key>`.
+- `THREADLINE_EXAMPLE_BUILD_CACHE`: exactly `hit` or `miss`, then
+  ` key=<primary key>`. It appears only in job-lanes whose example restore ran,
+  so `Run test suite (min)` never prints it.
+
+`verify-test (current)`, `verify-example-browser` and `verify-capture` share one
+example key. On a cold run two of them can try to save it at once; the loser
+logs `Unable to reserve cache` as a warning, not a failure. There is no cleanup
+workflow: GitHub evicts entries unused for 7 days and trims the repository's
+10 GB budget oldest first.
+
+**Poisoned-cache runbook.** The symptom is a failure that disappears with a cold
+build (for example, a dependency error that a fresh checkout cannot reproduce).
+A pull request can only read its own scope and `main`'s, but a poisoned entry
+saved from `main` reaches every pull request, so act on it quickly:
+
+1. Find the entry: `gh cache list --key <key prefix> --ref <ref>`, taking the
+   key from the job's `THREADLINE_BUILD_CACHE` or
+   `THREADLINE_EXAMPLE_BUILD_CACHE` line.
+2. Delete it: `gh cache delete <key>`. This is a maintainer action: it needs a
+   token with `actions: write`, which CI itself does not have.
+3. Make the fix durable in a normal pull request: bump `build-v1` to `build-v2`
+   in every `_build` key in `.github/workflows/ci.yml` (and here), so no job can
+   read the old entries again.
+
 Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
 For running the test job locally with [nektos/act](https://github.com/nektos/act), see `scripts/ci/README.md`.

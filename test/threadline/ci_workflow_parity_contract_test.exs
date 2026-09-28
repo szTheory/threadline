@@ -380,7 +380,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   end
 
   describe "dependency cache contract" do
-    test "ci.yml caches deps + e2e lockfile and never caches _build" do
+    test "ci.yml caches deps and the e2e npm lockfile" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
       assert String.contains?(yaml, "actions/cache@v5"),
@@ -394,9 +394,6 @@ defmodule Threadline.CIWorkflowParityContractTest do
                "cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json"
              ),
              "ci.yml must key the e2e node cache off the example lockfile"
-
-      refute Regex.match?(~r/^\s*path:\s*_build\s*$/m, yaml),
-             "ci.yml must NOT cache _build (compile artifacts are not shared across matrix lanes)"
     end
   end
 
@@ -514,6 +511,34 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       assert errors == [],
              "the build cache security rules must hold live, got:\n" <> Enum.join(errors, "\n")
+    end
+
+    test "every live workflow and CONTRIBUTING satisfy the whole build cache contract" do
+      errors = build_cache_errors(all_workflows(), read_rel!(["CONTRIBUTING.md"]))
+
+      assert errors == [],
+             "the live tree must satisfy every build cache rule, got:\n" <>
+               Enum.join(errors, "\n")
+    end
+
+    test "control: every build cache fault is red on the live tree, each with its own rule" do
+      assert_build_cache_controls(all_workflows(), read_rel!(["CONTRIBUTING.md"]))
+    end
+
+    test "anti-drift: the text step splitter sees every parsed step of each cached job" do
+      parsed = YamlElixir.read_from_file!(Path.join(@repo_root, @ci_workflow))
+      live = all_workflows()
+
+      for {{path, job_id}, _entry} <- @build_cache_jobs do
+        yaml_steps = get_in(parsed, ["jobs", job_id, "steps"]) || []
+        text_steps = job_steps(workflow_job(live[path], job_id))
+
+        refute yaml_steps == [], "#{job_id} parsed with no steps"
+
+        assert length(yaml_steps) == length(text_steps),
+               "#{job_id}: YAML has #{length(yaml_steps)} steps, " <>
+                 "job_steps/1 split #{length(text_steps)}"
+      end
     end
 
     test "security control: a cache step in release.yml publish-hex is red" do
@@ -2709,9 +2734,26 @@ defmodule Threadline.CIWorkflowParityContractTest do
        String.replace(ctx.contributing, "gh cache delete", "gh cache remove"),
        "rule=doc-contributing"},
       {"CONTRIBUTING cached-job table without its verify-capture row", ctx.workflows,
-       Regex.replace(~r/^\| `verify-capture` \|[^\n]*\n/m, ctx.contributing, "", global: false),
+       remove_build_cache_section_row(ctx.contributing, "verify-capture"),
        "rule=doc-contributing"}
     ]
+  end
+
+  # Removes the first `| `<job_id>` |` row AFTER the `### Dependency build cache`
+  # heading. The live CONTRIBUTING has an earlier CI table with the same row
+  # prefix, so an unscoped replace would mutate the wrong table. A missing
+  # section leaves the text unchanged, which the control runner reports.
+  defp remove_build_cache_section_row(contributing, job_id) do
+    heading = "\n### Dependency build cache\n"
+
+    case String.split(contributing, heading, parts: 2) do
+      [head, section] ->
+        row = ~r/^\| `#{Regex.escape(job_id)}` \|[^\n]*\n/m
+        head <> heading <> Regex.replace(row, section, "", global: false)
+
+      [_] ->
+        contributing
+    end
   end
 
   defp ci_control(ctx, label, fragment, fun),
