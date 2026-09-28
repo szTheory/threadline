@@ -35,7 +35,6 @@ defmodule Mix.Tasks.Threadline.Incident do
       end
 
     if opts[:json] do
-      require Logger
       Logger.configure(level: :error)
     end
 

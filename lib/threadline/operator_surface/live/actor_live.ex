@@ -230,7 +230,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:actions>
             </UI.Data.empty_state>
           <% else %>
-            <%= if @has_ever_acted and Enum.empty?(@streams.transactions.inserts) do %>
+            <%= if Enum.empty?(@streams.transactions.inserts) do %>
               <UI.Data.empty_state variant="no_data" role="status" icon={:funnel}>
                 <:title>No actor activity in this window</:title>
                 No transactions or actions are linked to this actor in the selected time window.
