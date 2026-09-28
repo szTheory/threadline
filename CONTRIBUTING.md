@@ -880,7 +880,12 @@ Fill the canonical scaffolds in the [adoption pilot backlog](guides/adoption-pil
 
 ## Branch protection (maintainers)
 
-In GitHub repository settings, require these checks on `main` (names match the workflow `name:` fields or job summaries as shown in the PR UI):
+The only required status check on `main` is `CI required`, per `.github/rulesets/main.json`;
+`bin/verify-branch-protection` checks that live protection requires exactly that
+one context. Do not add the checks below as separate required contexts —
+that would turn the protection check red. `CI required` aggregates them, among
+every other `ci.yml` job, through its `needs:` list, so each of these still has to
+pass (names match the workflow `name:` fields or job summaries as shown in the PR UI):
 
 - Check formatting (`verify-format`)
 - Run Credo (strict) (`verify-credo`)
@@ -891,10 +896,6 @@ In GitHub repository settings, require these checks on `main` (names match the w
 - Release metadata (version / changelog) (`verify-release-shape`)
 
 Exact labels depend on GitHub’s UI; map them to the job keys above.
-
-The only required status check is `CI required`, per `.github/rulesets/main.json`;
-`bin/verify-branch-protection` checks that live protection requires exactly that
-one context.
 
 ## Backport policy (maintainers)
 
