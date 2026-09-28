@@ -445,7 +445,40 @@ defmodule Threadline.CIWorkflowParityContractTest do
       assert String.contains?(contributing, "Run test suite (latest)")
       assert String.contains?(contributing, "not a support floor")
       assert String.contains?(contributing, "Test-file warnings stay non-fatal on every lane")
-      assert String.contains?(job, ~s["Run test suite (latest)"])
+
+      assert "Run test suite (latest)" in composed_check_names(job),
+             "verify-test must compose the check name \"Run test suite (latest)\", got " <>
+               inspect(composed_check_names(job))
+
+      comment = ~s[    # "Run test suite (latest)". Keys carried only via `include`\n]
+      uncommented = String.replace(job, comment, "")
+
+      refute uncommented == job, "comment-removal positive control did not change the input"
+
+      assert "Run test suite (latest)" in composed_check_names(uncommented),
+             "the composed name must not depend on the YAML comment"
+
+      for {control, mutated} <- [
+            {"job name changed",
+             String.replace(job, "    name: Run test suite\n", "    name: Run tests\n")},
+            {"latest dropped from the lane axis",
+             String.replace(
+               job,
+               "        lane: [min, current, latest]\n",
+               "        lane: [min, current]\n"
+             )},
+            {"matrix expression in the job name",
+             String.replace(
+               job,
+               "    name: Run test suite\n",
+               "    name: Run test suite ${{ matrix.otp }}\n"
+             )}
+          ] do
+        refute mutated == job, "#{control} control did not change the input"
+
+        refute "Run test suite (latest)" in composed_check_names(mutated),
+               "#{control} mutation must stop composing \"Run test suite (latest)\""
+      end
     end
 
     test "CONTRIBUTING List 2 carries every composed required-check name" do
@@ -1764,6 +1797,33 @@ defmodule Threadline.CIWorkflowParityContractTest do
     case Regex.split(~r/^(?=      - )/m, block) do
       [_header | steps] -> steps
       [] -> []
+    end
+  end
+
+  # The check names GitHub posts for a matrix job: a static job `name:` gets the
+  # base-axis values appended as ` (value)`. A `${{ … }}` expression in the name
+  # switches that suffix off, so it composes nothing here. Comments are stripped
+  # first, so only live YAML counts.
+  defp composed_check_names(job) do
+    stripped = strip_comment_lines(job)
+    name = yaml_value_at(stripped, "    name:")
+    lanes = yaml_value_at(stripped, "        lane:")
+
+    with name when is_binary(name) <- name,
+         false <- String.contains?(name, "${{"),
+         [_, axis] <- lanes && Regex.run(~r/^\[(.*)\]$/, lanes) do
+      axis
+      |> String.split(",", trim: true)
+      |> Enum.map(&"#{name} (#{String.trim(&1)})")
+    else
+      _ -> []
+    end
+  end
+
+  defp yaml_value_at(text, prefix) do
+    case Regex.run(~r/^#{Regex.escape(prefix)}[ \t]*(.*?)[ \t]*$/m, text) do
+      [_, value] -> value
+      nil -> nil
     end
   end
 
