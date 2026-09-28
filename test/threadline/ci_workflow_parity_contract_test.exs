@@ -1935,18 +1935,57 @@ defmodule Threadline.CIWorkflowParityContractTest do
       restore_only_errors(job) ++ inline_errors(job) ++ job_env_errors(job, block)
   end
 
+  # The D-07 window starts at the first restore. Every restore (not just the
+  # first) meets the restore rules, and the count rule pins each job to one
+  # restore and at most one save per project, so no second restore or save can
+  # sit outside the window (WR-01, 219 review).
   defp project_cache_errors(job, project) do
     start = Enum.find_index(job.steps, &match?({:restore_build, ^project, _}, &1))
     {_class, _project, restore} = Enum.at(job.steps, start)
     expected = expected_sequence(project, job.mode)
     window = Enum.slice(job.steps, start, length(expected))
 
-    order_errors(job, project, restore, window, expected) ++
-      restore_errors(job, project, restore) ++
+    cache_count_errors(job, project) ++
+      order_errors(job, project, restore, window, expected) ++
+      Enum.flat_map(
+        for({:restore_build, ^project, step} <- job.steps, do: step),
+        &restore_errors(job, project, &1)
+      ) ++
       save_errors(job, project, restore) ++
       compile_guard_errors(job, project, restore) ++
       continue_on_error_errors(job, window) ++
       rm_errors(job, project) ++ cache_path_env_errors(job, project)
+  end
+
+  # Exactly one restore per project, and exactly one save in a saving job. A
+  # restore-only job's saves are reported by restore_only_errors/1 instead.
+  # Every step past the first is named, so the message points at the extra one.
+  defp cache_count_errors(job, project) do
+    [
+      {:restore_build, "restore", 1},
+      {:save_build, "save", if(job.mode == :save, do: 1, else: nil)}
+    ]
+    |> Enum.flat_map(fn {class, noun, allowed} ->
+      steps = for {^class, ^project, step} <- job.steps, do: step
+      cache_count_step_errors(job, project, noun, allowed, steps)
+    end)
+  end
+
+  defp cache_count_step_errors(_job, _project, _noun, nil, _steps), do: []
+
+  defp cache_count_step_errors(job, project, noun, allowed, steps) do
+    for step <- Enum.drop(steps, allowed) do
+      build_cache_error(
+        where(job, step),
+        "rule=cache-count",
+        "the job has #{length(steps)} #{project} `_build` #{noun} steps; exactly #{allowed} " <>
+          "is allowed, inside the D-07 block",
+        "a restore outside the block escapes the order rule and can serve a stale build; a " <>
+          "save after the compile archives first-party BEAMs whenever the first save fails " <>
+          "to reserve the key (CACHE-01, D-07)",
+        "remove the extra #{noun} step"
+      )
+    end
   end
 
   defp expected_sequence(project, :save), do: @build_cache_sequences[project]
@@ -2648,6 +2687,44 @@ defmodule Threadline.CIWorkflowParityContractTest do
     @example_save
   ]
 
+  @capture_consumer "Regenerate Tier A capture"
+
+  # WR-01 (219 review): the escaped mutations, as literal steps. Each would pass
+  # every per-step rule on its own; only the count and every-restore rules
+  # catch them once they sit outside the D-07 window.
+  @late_root_save_step ~S"""
+        - name: Save deps-only build cache again
+          if: steps.build-restore.outputs.cache-hit != 'true'
+          uses: actions/cache/save@v5
+          with:
+            path: _build/${{ env.MIX_ENV }}
+            key: ${{ steps.build-restore.outputs.cache-primary-key }}
+
+  """
+
+  @late_example_save_step ~S"""
+        - name: Save example build cache again
+          if: steps.example-build-restore.outputs.cache-hit != 'true'
+          uses: actions/cache/save@v5
+          with:
+            path: |
+              examples/threadline_phoenix/deps
+              examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+            key: ${{ steps.example-build-restore.outputs.cache-primary-key }}
+
+  """
+
+  @late_root_restore_step ~S"""
+        - name: Restore stale build cache
+          id: stale-build-restore
+          uses: actions/cache/restore@v5
+          with:
+            path: _build/${{ env.MIX_ENV }}
+            key: ubuntu-24.04-otp-x
+            restore-keys: ubuntu-24.04-
+
+  """
+
   @path_block_build_cache_step ~S"""
         - name: Cache deps and build
           uses: actions/cache@v5
@@ -2705,6 +2782,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     ctx = %{workflows: workflows, contributing: contributing}
 
     build_cache_order_controls(ctx) ++
+      build_cache_count_controls(ctx) ++
       build_cache_save_controls(ctx) ++
       build_cache_key_controls(ctx) ++
       build_cache_rm_controls(ctx) ++
@@ -2784,6 +2862,44 @@ defmodule Threadline.CIWorkflowParityContractTest do
         "root save moved after the compile",
         "rule=order",
         &move_step_after(&1, "verify-test", @root_save, @root_compile)
+      )
+    ]
+  end
+
+  # WR-01 (219 review): a second restore or save outside the D-07 window. Each
+  # names its own inserted step, so the fragment proves the rule reached THAT
+  # step and not the block's first restore.
+  defp build_cache_count_controls(ctx) do
+    [
+      ci_control(
+        ctx,
+        "second root save after the compile",
+        ~s("Save deps-only build cache again" rule=cache-count),
+        &insert_step_after(&1, "verify-test", @root_compile, @late_root_save_step)
+      ),
+      ci_control(
+        ctx,
+        "second example save after the capture",
+        ~s("Save example build cache again" rule=cache-count),
+        &insert_step_after(&1, "verify-capture", @capture_consumer, @late_example_save_step)
+      ),
+      ci_control(
+        ctx,
+        "second root restore with restore-keys after the compile",
+        ~s("Restore stale build cache" rule=restore-keys),
+        &insert_step_after(&1, "verify-test", @root_compile, @late_root_restore_step)
+      ),
+      ci_control(
+        ctx,
+        "second root restore with a non-exact key after the compile",
+        ~s("Restore stale build cache" rule=key-segment),
+        &insert_step_after(&1, "verify-test", @root_compile, @late_root_restore_step)
+      ),
+      ci_control(
+        ctx,
+        "second root restore after the compile",
+        ~s("Restore stale build cache" rule=cache-count),
+        &insert_step_after(&1, "verify-test", @root_compile, @late_root_restore_step)
       )
     ]
   end
