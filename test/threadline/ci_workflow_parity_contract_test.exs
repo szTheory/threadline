@@ -1916,7 +1916,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
   end
 
   # The verify-test `include:` rows: the min row pins the exact floor build the
-  # mix.exs `elixir:` requirement promises; the current row reads .tool-versions.
+  # mix.exs `elixir:` requirement promises; the current row reads .tool-versions;
+  # the latest row pins an exact release strictly newer than current
+  # (`latest_row_errors/2`).
   defp verify_test_matrix_errors(yaml, mix_exs, tool_versions) do
     rows = verify_test_rows(workflow_job(yaml, "verify-test"))
     by_lane = Map.new(rows, &{&1["lane"], &1})
