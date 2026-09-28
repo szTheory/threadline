@@ -80,8 +80,9 @@ jobs:
 
       # D-03/D-04: skip a scheduled run on a SHA this workflow already proved
       # green, and report `broken-upstream` instead of soaking a SHA whose CI is
-      # red. Only `schedule` honors the skip; dispatch always runs. Any API error
-      # fails open to `run`. Every heavy step below is gated on `run`.
+      # red. Only `schedule` honors the green-SHA skip; broken-upstream applies
+      # to every event, dispatch included (D-04). Any API error fails open to
+      # `run`. Every heavy step below is gated on `run`.
       - name: Decide whether this SHA needs a flake run
         id: gate
         env:

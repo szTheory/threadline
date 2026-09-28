@@ -214,4 +214,40 @@ defmodule Threadline.CiShaGateContractTest do
                out |> File.read!() |> String.split("\n", trim: true)
     end
   end
+
+  describe "the documented contract matches D-03/D-04 (218 review WR-03)" do
+    # D-03 locks the green-SHA skip (schedule only, in the script). D-04 locks
+    # "a red CI on the same SHA exits broken-upstream" with no event scope, so a
+    # dispatch on a red SHA reports broken-upstream too. The header and the
+    # workflow comment must not tell a maintainer that a dispatch always runs.
+    @workflow Path.expand("../../.github/workflows/flake-detection.yml", __DIR__)
+
+    defp header(script), do: script |> String.split("\nset -uo pipefail", parts: 2) |> hd()
+
+    test "the script header scopes 'never skip' to the green-SHA skip and states D-04 for every event" do
+      head = header(File.read!(@script))
+
+      refute head =~ ~r/workflow_dispatch and push never skip:/,
+             "the header must not claim a dispatch always runs: D-04 applies broken-upstream to every event"
+
+      assert head =~ "workflow_dispatch and push never take the green-SHA skip"
+      assert head =~ "`broken-upstream` is not event-scoped (D-04)"
+    end
+
+    test "the workflow's gate comment says the same" do
+      yaml = File.read!(@workflow)
+
+      [comment, _] =
+        String.split(yaml, "- name: Decide whether this SHA needs a flake run", parts: 2)
+
+      comment =
+        comment
+        |> String.split("\n\n")
+        |> List.last()
+        |> String.replace(~r/\n\s*#\s*/, " ")
+
+      refute comment =~ "dispatch always runs"
+      assert comment =~ "broken-upstream applies to every event, dispatch included (D-04)"
+    end
+  end
 end

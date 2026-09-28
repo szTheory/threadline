@@ -16,7 +16,7 @@
 #   event == schedule AND workflow F has a successful run with head_sha == S
 #                                                  -> skip (F already proved S green)
 #   --upstream U given AND U has a failed run on S AND no successful run on S
-#                                                  -> broken-upstream (CI is red on S
+#   (any event)                                    -> broken-upstream (CI is red on S
 #                                                     with no green re-run)
 #   anything else                                  -> run
 #   any gh error (403, network), malformed JSON, or a total_count that is not an
@@ -26,8 +26,13 @@
 # `run` is the default arm and the fail-open rule: an API failure must always mean
 # running the proof, because a skip on error would silently turn off the only flake
 # signal. `skip` is reachable ONLY through the explicit schedule + own-success check.
-# workflow_dispatch and push never skip: an explicit request (and the D-11 dispatch
-# measurement) must produce a real run.
+# workflow_dispatch and push never take the green-SHA skip (D-03): an explicit request
+# (and the D-11 dispatch measurement) re-runs a SHA this workflow already proved.
+#
+# `broken-upstream` is not event-scoped (D-04): D-04 locks "a red CI on the same SHA
+# exits broken-upstream" for every event, so a dispatch on a SHA whose U run is red
+# with no green re-run also reports broken-upstream and does not run the suite. To
+# soak such a SHA, re-run U until it is green (then this gate answers `run`).
 #
 # The gate filters by exact head_sha and status and reads total_count; it never looks
 # at "the newest run", so it does not depend on the API's sort order. A green run of a
