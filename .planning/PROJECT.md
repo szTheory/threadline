@@ -43,6 +43,8 @@ Threadline shipped **v1.42 Capture Correctness for Real Table Shapes** on 2026-0
 
 **Shipped so far (2026-09-27):** Phase 217 Repo Hygiene is complete (HYG-01..04 validated, re-verification 5/5): tracked tree scrubbed of machine-local paths (prefix-only, no history rewrite); `bin/verify-repo-hygiene` / `mix verify.repo_hygiene` guard in `ci.all` and the required `verify-repo-hygiene` job; leaking tests on `@tag :tmp_dir` with `mix verify.temp_leaks`; xref disposition recorded. Key decision: tracked planning prose is not exempt from the guard — machine-local path shapes are written with the placeholder forms in CONTRIBUTING.md `## Writing about machine-local paths` instead of allowlisting prose. Open for milestone close: 6 round-2 review findings in `217-REVIEW-DISPOSITION.md` (notably Linux-encoded project dirs undetected while CONTRIBUTING claims full coverage).
 
+**Shipped so far (2026-09-28):** Phase 218 CI Economy: Remove Waste is complete (ECON-01..07 validated, verification 12/12). Flake Detection runs weekly plus on dispatch, bounded at 12 repeats inside a 55-minute `timeout(1)` budget; the repeat count was resized from measured CI times and is pinned by a sizing contract. `bin/ci-sha-gate` skips SHAs the lane already proved and reports `broken-upstream`. Tracking issues close themselves on a green lane (`bin/upsert-ci-issue --close`). Release PRs get one CI run (the PAT-absence guard). `:live_dialyzer` runs only in `verify-dialyzer` and fails closed. Three dominated CI jobs were removed (`ci-required` 16 -> 13). Browser-full runs only the projects `ci.yml` does not (`bin/browser-full-projects`, with a declared-dependency exception). Measured against BASE-01: flake about 3,000-4,100 -> at most about 200 runner-min/month [inference]; Browser-full 18.0 -> 6.4 min per run; ci.yml p50 46.3 -> 44.4 runner-min; critical path flat (browser E2E still gates). Landed on draft PR #60.
+
 **Deferred to v1.44:** v1.42 debt (gen.triggers `down` leaves an orphaned rerun per-table function; `mix threadline.gen.backfill`; health `--strict`).
 
 ## Latest Milestone Shipped: v1.42 Capture Correctness for Real Table Shapes (2026-09-26)
@@ -771,6 +773,8 @@ v1.43 Supply Chain, CI Economy and Repo Hygiene is in progress. See `## Current 
 | Capture resolves the real primary key at migrate time; each table gets its own capture function (v1.42) | Hardcoded `id` silently mis-keyed every non-`id` table, and shared per-table functions let one table run under another table's redaction rules. The key comes from `pg_index` (or a validated `primary_key:` override) and is passed as trigger arguments; reads compare the whole text-encoded key map. Breaking for 0.10.x triggers, so an upgrade guide ships with backfill SQL proven on real PostgreSQL. | ✓ Shipped (0.11.0, v1.42) |
 | No Tier-A `page.*` baseline regeneration in v1.41 (D-39) | The only remedy for the red `verify-capture` lane and three stress rows was regenerating baselines, which would launder drift into evidence. Maintainer chose option-a: accept GREEN-07 pending rather than regenerate. | ⚠️ Revisit — unblock needs a milestone that authorizes regeneration and fixes the `scroll_cost` coupling |
 | Base library ratchets to diminishing returns, marked by 1.0.0; operator UI parked until then (2026-09-25) | A 2026-09-25 baseline found real capture defects the "hold at ~92–95%" posture missed: trigger SQL hardcodes the PK column `id`, per-table function names collide across schemas (redaction bypass), long names raise a misleading error. There are also no property tests, deferred dependency advisories, ~4,300 runner-min/month of signal-free flake runs, and ~100 unspecced public functions. The maintainer wants the library finished before re-engaging on UI/UX. PII: CI guard + forward scrub of tracked local paths, no history rewrite. | — Pending (ladder v1.42–v1.45 in `.planning/MILESTONE-GUIDE.txt` §7) |
+| Publish `.planning/` on main as the project's second brain; exclude only PII | Maintainer, 2026-09-27: planning is the open "second brain"; `bin/verify-repo-hygiene` plus username/email sweeps are the PII gate | ✓ PR #60 syncs the scrubbed record (218-08) |
+| Size CI budgets from measured runs, pinned by contract | 218-05 sized the flake lane from stale 214 figures (165 s/run vs 209 s measured), and every run went `inconclusive` | ✓ 12 repeats plus a sizing contract (218-08 deviation 3) |
 
 ## Evolution
 
@@ -792,4 +796,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-09-27 after Phase 217*
+*Last updated: 2026-09-28 after Phase 218*

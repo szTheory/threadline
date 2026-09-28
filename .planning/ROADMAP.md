@@ -50,7 +50,7 @@
 - [x] **Phase 215: Supply Chain Gate** - All three lockfiles audit clean, and CI fails any PR that introduces an advisory (completed 2026-09-26)
 - [x] **Phase 216: CI Platform Currency** - CI runs the exact committed toolchain on Node 24 actions and supported runners (completed 2026-09-27)
 - [x] **Phase 217: Repo Hygiene** - No tracked machine-local paths, a CI guard that keeps it that way, scoped tmp_dir hygiene, and the xref disposition recorded (completed 2026-09-27)
-- [ ] **Phase 218: CI Economy: Remove Waste** - Flake, release, Browser-full, live-Dialyzer and mechanical duplicates cut, each with a named dominating proof, and savings measured
+- [x] **Phase 218: CI Economy: Remove Waste** - Flake, release, Browser-full, live-Dialyzer and mechanical duplicates cut, each with a named dominating proof, and savings measured (completed 2026-09-27)
 - [ ] **Phase 219: Deps-Only Build Cache** - Test jobs restore exact-keyed deps-only `_build` and example-app caches, with the saving measured
 - [ ] **Phase 220: Newest-Toolchain Lane** - Spike-gated voting lane on Elixir 1.20 / OTP 29 / PG 18, or recorded "not yet"
 - [ ] **Phase 221: CI Names and Order** - A red check's name says what failed, and YAML runs fastest-to-red first
@@ -222,7 +222,7 @@ Plans:
   4. `:live_dialyzer` is excluded from default `mix test` and runs only in the PLT-cached `verify-dialyzer` job (test_helper, CONTRIBUTING and topology test changed together); `verify-mechanical` and the capture lane's trailing mechanical step are gone with the alias kept; each removal carries a written "still caught by job Y on trigger Z" line.
   5. A re-measurement doc records runner-minutes and critical-path deltas against the Phase 214 baseline, each figure citing run IDs.
 
-**Plans**: 8 plans (serialized waves 1-8; main checkout, no Elixir tests in worktrees)
+**Plans**: 8/8 plans complete (serialized waves 1-8; main checkout, no Elixir tests in worktrees)
 
 Plans:
 **Wave 1**
@@ -317,7 +317,7 @@ Plans:
 | 215. Supply Chain Gate | 6/6 | Complete    | 2026-09-26 |
 | 216. CI Platform Currency | 8/8 | Complete    | 2026-09-27 |
 | 217. Repo Hygiene | 7/7 | Complete    | 2026-09-27 |
-| 218. CI Economy: Remove Waste | 8/8 | In Progress | - |
+| 218. CI Economy: Remove Waste | 8/8 | Complete    | 2026-09-27 |
 | 219. Deps-Only Build Cache | 0/TBD | Not started | - |
 | 220. Newest-Toolchain Lane | 0/TBD | Not started | - |
 | 221. CI Names and Order | 0/TBD | Not started | - |
