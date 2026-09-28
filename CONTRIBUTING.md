@@ -525,7 +525,9 @@ green Browser-full run closes that issue.
 This table is not documentation-on-trust. Browser-full's project list is never
 hand-written: `bin/browser-full-projects` derives it as the default
 `playwright.config.ts` projects minus the ones `ci.yml` runs (its `--project`
-flags plus those behind `mix verify.capture`).
+flags plus those behind `mix verify.capture`). Only flags passed to a `mix` or
+`npx` command count, and the script refuses a flag in a step or job that carries
+an `if:`, because such a flag may never run on a pull request or push.
 `test/threadline/browser_full_projects_contract_test.exs` proves the two lanes
 partition the config, so a newly added project cannot end up running nowhere.
 `test/threadline/ci_coverage_doc_contract_test.exs` takes the project list from

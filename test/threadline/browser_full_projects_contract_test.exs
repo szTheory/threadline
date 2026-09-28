@@ -413,6 +413,107 @@ defmodule Threadline.BrowserFullProjectsContractTest do
     end
   end
 
+  describe "conditional and non-command controls (218 review WR-05)" do
+    # A --project flag counts as "CI runs it" only when it is an argument of a
+    # mix/npx command in an unconditional step of an unconditional job. A flag
+    # behind an if: (step or job) may never run on PR or push, so the script
+    # refuses rather than dropping the project from Browser-full into nowhere.
+    test "a step-level if: on the --project-bearing run step exits non-zero", %{
+      tmp_dir: tmp_dir
+    } do
+      root =
+        mutated_root(
+          tmp_dir,
+          @ci_rel,
+          &String.replace(
+            &1,
+            "      - name: Run example Playwright suite\n        timeout-minutes: 14\n",
+            "      - name: Run example Playwright suite\n" <>
+              "        if: github.event_name == 'schedule'\n        timeout-minutes: 14\n"
+          )
+        )
+
+      assert {output, status} = run_script([], root)
+      assert status == 1
+      assert output =~ "if:"
+      assert output =~ "desktop-chromium"
+    end
+
+    test "a job-level if: on a job whose run body reaches --project flags exits non-zero", %{
+      tmp_dir: tmp_dir
+    } do
+      root =
+        mutated_root(
+          tmp_dir,
+          @ci_rel,
+          &String.replace(
+            &1,
+            "  verify-capture:\n    name: ",
+            "  verify-capture:\n    if: github.event_name == 'schedule'\n    name: "
+          )
+        )
+
+      assert {output, status} = run_script([], root)
+      assert status == 1
+      assert output =~ "verify-capture"
+    end
+
+    test "an if: on a step with no --project flag leaves the output unchanged", %{
+      tmp_dir: tmp_dir
+    } do
+      root =
+        mutated_root(
+          tmp_dir,
+          @ci_rel,
+          &String.replace(
+            &1,
+            "      - name: Regenerate Tier A capture\n        run: mix verify.capture\n",
+            "      - name: Regenerate Tier A capture\n        run: mix verify.capture\n\n" <>
+              "      - name: Unrelated conditional step\n" <>
+              "        if: github.event_name == 'schedule'\n        run: mix verify.format\n"
+          )
+        )
+
+      assert {output, 0} = run_script([], root)
+      assert lines(output) == flags(@live_browser_full)
+    end
+
+    test "a --project flag inside echo text is not a CI run", %{tmp_dir: tmp_dir} do
+      root =
+        mutated_root(
+          tmp_dir,
+          @ci_rel,
+          &String.replace(
+            &1,
+            ~s(echo "Regenerate locally with 'mix verify.capture' and commit the result."),
+            ~s(echo "Regenerate locally with 'mix verify.capture --project=graded-capture' and commit the result.")
+          )
+        )
+
+      assert {output, 0} = run_script([], root)
+      assert lines(output) == flags(@live_browser_full)
+    end
+
+    test "a backslash-continued mix command still counts its --project flags", %{
+      tmp_dir: tmp_dir
+    } do
+      root =
+        mutated_root(
+          tmp_dir,
+          @ci_rel,
+          &String.replace(
+            &1,
+            "run: mix verify.example_browser --project=desktop-chromium --project=mobile-chromium\n",
+            "run: |\n          mix verify.example_browser \\\n" <>
+              "            --project=desktop-chromium --project=mobile-chromium\n"
+          )
+        )
+
+      assert {output, 0} = run_script([], root)
+      assert lines(output) == flags(@live_browser_full)
+    end
+  end
+
   describe "browser-full.yml wiring" do
     @gate_if "if: steps.gate.outputs.decision == 'run'"
     @close_if "if: success() && steps.gate.outputs.decision == 'run'"
