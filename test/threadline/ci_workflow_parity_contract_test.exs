@@ -1268,22 +1268,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # pins that. `merge_anchors: true` is deliberately not passed: in keyword mode
   # a jobs-level `<<` key then survives as `"<<N"` (mapper.ex, key_for/2), and
   # ci_order_errors/1 fails closed on it.
+  # One keyword-mode read serves both order and name rules (IN-04, 221 review).
   defp parsed_job_order(text) do
-    parsed =
-      try do
-        {:ok, YamlElixir.read_from_string!(text, maps_as_keywords: true)}
-      rescue
-        error -> {:error, Exception.message(error)}
-      catch
-        kind, reason -> {:error, inspect({kind, reason})}
-      end
-
-    with {:ok, doc} when is_list(doc) <- parsed,
-         [jobs] when is_list(jobs) <- for({k, v} <- doc, yaml_key(k) == "jobs", do: v) do
-      {:ok, jobs |> Enum.map(fn {k, _} -> yaml_key_string(k) end) |> Enum.reverse()}
-    else
-      {:error, message} -> {:error, "rule=yaml-parse: #{message}"}
-      _ -> {:error, "rule=yaml-parse: expected exactly one top-level `jobs` mapping"}
+    with {:ok, keyword_jobs} <- parsed_job_keywords(text) do
+      {:ok, keyword_jobs |> Enum.map(&elem(&1, 0)) |> Enum.reverse()}
     end
   end
 
