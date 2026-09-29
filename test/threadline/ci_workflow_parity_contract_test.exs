@@ -664,6 +664,48 @@ defmodule Threadline.CIWorkflowParityContractTest do
              "a ci.yml that does not parse must fail closed"
     end
 
+    test "CI required gate wiring cannot be made vacuous (SC-4)" do
+      workflows = all_workflows()
+
+      assert required_gate_errors(workflows) == []
+
+      gate_header = "    name: CI required\n    if: always()\n"
+      on_ci = fn edit -> &Map.update!(&1, @ci_path, edit) end
+
+      # Each mutation takes the whole %{path => text} map, so a control can
+      # edit ci.yml or add a second workflow file.
+      controls = [
+        {"delete if: always()",
+         on_ci.(&String.replace(&1, gate_header, "    name: CI required\n")), "rule=gate-if"}
+      ]
+
+      for {control, mutate, fragment} <- controls do
+        mutated = mutate.(workflows)
+
+        refute mutated == workflows, "#{control} control did not change the input"
+
+        errors = required_gate_errors(mutated)
+
+        refute Enum.any?(errors, &String.contains?(&1, "rule=yaml-parse")),
+               "#{control} mutation must stay valid YAML, got #{inspect(errors)}"
+
+        assert Enum.any?(errors, &String.contains?(&1, fragment)),
+               "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
+      end
+
+      expression =
+        Map.update!(
+          workflows,
+          @ci_path,
+          &String.replace(&1, gate_header, "    name: CI required\n    if: ${{ always() }}\n")
+        )
+
+      refute expression == workflows, "expression positive control did not change the input"
+
+      assert required_gate_errors(expression) == [],
+             "`if: ${{ always() }}` is the same gate and must stay green"
+    end
+
     test "no workflow or compose file runs a pre-release PostgreSQL (D-16)" do
       sources = image_sources()
 
@@ -966,6 +1008,157 @@ defmodule Threadline.CIWorkflowParityContractTest do
     parse_errors ++
       continue_errors ++
       allowed_failures_errors ++ needs_errors ++ every_lane_step_errors(ci_doc)
+  end
+
+  # SC-3 id pin (D-11): the 14 ci.yml job ids, frozen as a literal. Adding or
+  # renaming a job updates this literal on purpose in the same commit. It is not
+  # derived from any other attribute, so one edit can never move two pins.
+  # Phase 222's escape hatch (D-11) adds its new id here together with
+  # `@time_to_red_order`.
+  @ci_job_ids MapSet.new(~w(
+    ci-required
+    verify-bump-rehearsal
+    verify-capture
+    verify-compile-no-optional
+    verify-credo
+    verify-deps-audit
+    verify-dialyzer
+    verify-example-browser
+    verify-format
+    verify-hex-evaluator
+    verify-pgbouncer-topology
+    verify-release-shape
+    verify-repo-hygiene
+    verify-test
+  ))
+
+  defp gate_norm(value) when is_binary(value),
+    do: value |> String.replace(~r/\s+/, "") |> String.downcase()
+
+  defp gate_norm(_value), do: nil
+
+  # SC-4 (D-11): does the aggregate decide? `voting_lane_errors/1` asks whether
+  # each lane can fail; this asks whether `CI required`, the single required
+  # check, still turns a failed or skipped lane into a red check. It reads the
+  # parsed ci-required job: `if: always()` (so a failed lane cannot skip the
+  # gate to a neutral state), exactly one step that `uses:` alls-green at a
+  # full SHA with no `if`/`run`, a `with` allowlist of exactly `jobs` (so
+  # `allowed-skips`, `allowed-failures` or any future input fail in any
+  # spelling), `jobs: ${{ toJSON(needs) }}`, one job named `CI required` across
+  # every workflow, and the frozen `@ci_job_ids` set.
+  #
+  # D-12: `runs-on`, `timeout-minutes`, `permissions` and workflow-level
+  # `paths`/`branches-ignore`/`types` are deliberately not pinned here. Each
+  # fails closed: a bad value leaves the required check pending, never green.
+  defp required_gate_errors(yaml_by_path) do
+    ci_path = ".github/workflows/ci.yml"
+
+    case parse_yaml(Map.get(yaml_by_path, ci_path, "")) do
+      {:error, message} ->
+        [
+          "#{ci_path} rule=yaml-parse: the workflow does not parse as YAML, so the " <>
+            "CI required gate cannot be checked (#{message}) (SC-4)"
+        ]
+
+      {:ok, doc} ->
+        job = parsed_job(doc, "ci-required")
+
+        gate_if_errors(job) ++
+          gate_step_errors(job) ++
+          gate_name_errors(job, yaml_by_path, ci_path) ++ gate_job_id_errors(doc)
+    end
+  end
+
+  defp gate_if_errors(job) do
+    if_expr =
+      case gate_norm(yaml_get(job, "if")) do
+        nil -> nil
+        expr -> expr |> String.replace_prefix("${{", "") |> String.replace_suffix("}}", "")
+      end
+
+    if if_expr == "always()",
+      do: [],
+      else: ["rule=gate-if: ci-required must run `if: always()`, got #{inspect(if_expr)}"]
+  end
+
+  defp gate_step_errors(job) do
+    case yaml_get(job, "steps") do
+      [%{} = step] ->
+        uses = yaml_get(step, "uses")
+        with_ = yaml_get(step, "with")
+
+        keys =
+          case with_ do
+            %{} = map -> map |> Map.keys() |> Enum.map(&yaml_key/1) |> Enum.sort()
+            _ -> []
+          end
+
+        step_guard =
+          if yaml_field(step, "if") == :error and yaml_field(step, "run") == :error,
+            do: [],
+            else: ["rule=gate-step: the alls-green step must carry neither `if` nor `run`"]
+
+        uses_pin =
+          if is_binary(uses) and uses =~ ~r/^re-actors\/alls-green@[0-9a-f]{40}$/,
+            do: [],
+            else: [
+              "rule=gate-step: the step must `uses:` re-actors/alls-green at a full " <>
+                "commit SHA, got #{inspect(uses)}"
+            ]
+
+        inputs =
+          if keys == ["jobs"],
+            do: [],
+            else: [
+              "rule=gate-inputs: the alls-green `with` keys must be exactly " <>
+                "[\"jobs\"], got #{inspect(keys)}"
+            ]
+
+        jobs_input =
+          if gate_norm(yaml_get(with_, "jobs")) == "${{tojson(needs)}}",
+            do: [],
+            else: ["rule=gate-jobs-input: the `jobs` input must be ${{ toJSON(needs) }}"]
+
+        step_guard ++ uses_pin ++ inputs ++ jobs_input
+
+      _ ->
+        ["rule=gate-step: ci-required must have exactly one step (the alls-green decision)"]
+    end
+  end
+
+  defp gate_name_errors(job, yaml_by_path, ci_path) do
+    carriers =
+      for {path, text} <- Enum.sort(yaml_by_path),
+          {:ok, doc} <- [parse_yaml(text)],
+          {job_id, other} <- parsed_jobs(doc),
+          yaml_get(other, "name") == "CI required",
+          do: {path, job_id}
+
+    own =
+      if yaml_get(job, "name") === "CI required" and yaml_field(job, "strategy") == :error,
+        do: [],
+        else: ["rule=gate-name: ci-required must be named exactly `CI required`, with no matrix"]
+
+    unique =
+      if carriers == [{ci_path, "ci-required"}],
+        do: [],
+        else: [
+          "rule=gate-name: exactly one job in any workflow may be named `CI required`, " <>
+            "got #{inspect(carriers)}"
+        ]
+
+    own ++ unique
+  end
+
+  defp gate_job_id_errors(doc) do
+    ids = doc |> parsed_jobs() |> Enum.map(&elem(&1, 0)) |> MapSet.new()
+
+    if ids == @ci_job_ids,
+      do: [],
+      else: [
+        "rule=job-ids: ci.yml job ids drifted from @ci_job_ids: " <>
+          inspect(ids |> MapSet.symmetric_difference(@ci_job_ids) |> Enum.sort())
+      ]
   end
 
   # D-15 (WR-01, 220 review): the steps that make the `latest` lane (and every
