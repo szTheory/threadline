@@ -851,6 +851,15 @@ defmodule Threadline.CIWorkflowParityContractTest do
                &String.contains?(&1, "rule=yaml-parse")
              ),
              "a ci.yml that does not parse must fail the gate contract closed"
+
+      broken_sibling =
+        Map.put(workflows, ".github/workflows/zz-broken.yml", "jobs:\n  broken: [unclosed\n")
+
+      assert Enum.any?(
+               required_gate_errors(broken_sibling),
+               &String.contains?(&1, ".github/workflows/zz-broken.yml rule=yaml-parse")
+             ),
+             "a sibling workflow that does not parse must fail the gate contract closed (IN-02)"
     end
 
     test "no workflow or compose file runs a pre-release PostgreSQL (D-16)" do
@@ -1934,9 +1943,19 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # `<name> (<values>)`, which can never equal `CI required`, and verify-test's
   # name is pinned static by rule=name-static.
   defp gate_name_errors(job, yaml_by_path, ci_path) do
+    parsed = for {path, text} <- Enum.sort(yaml_by_path), do: {path, parse_yaml(text)}
+
+    # IN-02 (221 review): a sibling workflow that does not parse cannot be
+    # scanned for a `CI required` carrier, so it fails this contract closed on
+    # its own instead of relying on voting_lane_errors/1.
+    parse_errors =
+      for {path, {:error, message}} <- parsed do
+        "#{path} rule=yaml-parse: the workflow does not parse as YAML, so it cannot be " <>
+          "scanned for a `CI required` carrier (#{message}) (SC-4)"
+      end
+
     named =
-      for {path, text} <- Enum.sort(yaml_by_path),
-          {:ok, doc} <- [parse_yaml(text)],
+      for {path, {:ok, doc}} <- parsed,
           {job_id, other} <- parsed_jobs(doc),
           do: {path, job_id, yaml_get(other, "name")}
 
@@ -1963,7 +1982,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
             "got #{inspect(carriers)}"
         ]
 
-    own ++ unique ++ expression
+    parse_errors ++ own ++ unique ++ expression
   end
 
   defp gate_name?(name) when is_binary(name),
