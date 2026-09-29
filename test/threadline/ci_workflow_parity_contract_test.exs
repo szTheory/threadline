@@ -1779,9 +1779,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # `env`, a job `container` and a workflow-level `env`. So the whole shape is
   # pinned: ci-required's job keys and its one step's keys are allowlists read
   # through `yaml_key/1`, ci.yml carries no workflow-level `env` or `defaults`,
-  # and no workflow carries a `BASH_ENV` key at any depth. None of these keys
-  # exists today, so the allowlists cost nothing; widening one is a reviewed
-  # edit of the attribute below.
+  # and no workflow carries a literal `BASH_ENV` key at any depth. None of these
+  # keys exists today, so the allowlists cost nothing; widening one is a reviewed
+  # edit of the attribute below. Scope: this protects the gate job, which the
+  # allowlists above keep free of env. A lane can still reach `BASH_ENV` through
+  # an expression-valued `env:` or a `$GITHUB_ENV` write; that cannot touch the
+  # gate (env does not cross jobs) and is lane-contract territory, not this rule.
   #
   # D-12: `runs-on`, `timeout-minutes`, `permissions` and workflow-level
   # `paths`/`branches-ignore`/`types` are deliberately not pinned here. Each
@@ -1842,7 +1845,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for {path, text} <- Enum.sort(yaml_by_path),
         {:ok, doc} <- [parse_yaml(text)],
         yaml_key_anywhere?(doc, "bash_env") do
-      "#{path} rule=gate-bash-env: no workflow may set `BASH_ENV`, which bash sources " <>
+      "#{path} rule=gate-bash-env: no workflow may carry a literal `BASH_ENV` key, which bash sources " <>
         "before every `shell: bash` script, the alls-green decision included (VG-02)"
     end
   end
