@@ -1182,20 +1182,37 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       assert evaluator_doc_errors(docs) == []
 
-      mutated =
+      # WR-04 (221 review): the hard-wrapped and reworded spellings count too.
+      for {control, claim} <- [
+            {"one-line claim",
+             "\n- `mix verify.hex_evaluator` resolves threadline from hex.pm.\n"},
+            {"claim wrapped across lines",
+             "\n- `mix verify.hex_evaluator` resolves threadline\n  from hex.pm, not a path dep.\n"},
+            {"reworded claim in a wrapped paragraph",
+             "\nThe Hex evaluator installs threadline\nfrom the public Hex registry.\n"}
+          ] do
+        mutated = Map.update!(docs, "guides/evaluating-threadline.md", &(&1 <> claim))
+
+        refute mutated == docs, "#{control} control did not change the input"
+
+        assert Enum.any?(
+                 evaluator_doc_errors(mutated),
+                 &String.contains?(&1, "rule=evaluator-hexpm")
+               ),
+               "#{control}: naming the evaluator and hex.pm must report rule=evaluator-hexpm"
+      end
+
+      separate =
         Map.update!(
           docs,
           "guides/evaluating-threadline.md",
-          &(&1 <> "\n- `mix verify.hex_evaluator` resolves threadline from hex.pm.\n")
+          &(&1 <>
+              "\n- `mix verify.hex_evaluator` uses a local rehearsal registry.\n" <>
+              "- release.yml publishes to hex.pm.\n")
         )
 
-      refute mutated == docs, "evaluator control did not change the input"
-
-      assert Enum.any?(
-               evaluator_doc_errors(mutated),
-               &String.contains?(&1, "rule=evaluator-hexpm")
-             ),
-             "a guide line naming the evaluator and hex.pm must report rule=evaluator-hexpm"
+      assert evaluator_doc_errors(separate) == [],
+             "an evaluator bullet next to a separate hex.pm bullet is not a claim"
     end
   end
 
@@ -1561,14 +1578,42 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
     glob_errors ++
       for {path, text} <- Enum.sort(docs),
-          {line, n} <- Enum.with_index(String.split(text, "\n"), 1),
-          String.contains?(line, ["verify.hex_evaluator", "verify-hex-evaluator"]),
-          String.contains?(String.downcase(line), "hex.pm") do
+          {block, n} <- doc_blocks(text),
+          Regex.match?(~r/hex[ _.-]?evaluator/i, block),
+          Regex.match?(~r/hex\.?pm|public hex registry/i, block) do
         "#{path}:#{n} rule=evaluator-hexpm: the evaluator installs this tree's package from " <>
           "a local rehearsal registry; only release.yml's published mode resolves the public " <>
           "registry"
       end
   end
+
+  # WR-04 (221 review): Markdown here is hard-wrapped, so a claim is read per
+  # paragraph or list item, not per physical line. A block ends at a blank line
+  # or where the next bullet, numbered item, table row or heading starts.
+  # [{joined_text, first_line}].
+  defp doc_blocks(text) do
+    text
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.chunk_while([], &doc_block_step/2, &doc_block_done/1)
+    |> Enum.map(fn [{_, n} | _] = lines -> {Enum.map_join(lines, " ", &elem(&1, 0)), n} end)
+  end
+
+  defp doc_block_step({line, _n} = entry, acc) do
+    cond do
+      String.trim(line) == "" ->
+        doc_block_done(acc)
+
+      acc != [] and Regex.match?(~r/^\s*(?:[-*+|]|#+|\d+[.)])\s/, line) ->
+        {:cont, Enum.reverse(acc), [entry]}
+
+      true ->
+        {:cont, [entry | acc]}
+    end
+  end
+
+  defp doc_block_done([]), do: {:cont, []}
+  defp doc_block_done(acc), do: {:cont, Enum.reverse(acc), []}
 
   defp yaml_key_string(key) when is_binary(key), do: key
   defp yaml_key_string(key) when is_atom(key) or is_number(key), do: to_string(key)
