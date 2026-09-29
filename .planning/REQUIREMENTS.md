@@ -96,7 +96,7 @@
 
 ### Newest toolchain
 
-- [ ] **LANE-01**: A dispatch spike runs the suite on the newest stable toolchain (Elixir 1.20.x / OTP 29.x / PostgreSQL 18, exactly pinned) under `--warnings-as-errors`.
+- [x] **LANE-01**: A dispatch spike runs the suite on the newest stable toolchain (Elixir 1.20.x / OTP 29.x / PostgreSQL 18, exactly pinned) under `--warnings-as-errors`.
   - If green, it lands as a voting `lane: latest` in `verify-test`, with the roster and parity contracts updated.
   - Otherwise the findings are recorded as "not yet".
   - It never uses `continue-on-error` and never uses a beta PostgreSQL.
@@ -173,7 +173,7 @@
 | ECON-06 | Phase 218 | Complete |
 | ECON-07 | Phase 218 | Complete |
 | CACHE-01 | Phase 219 | Complete |
-| LANE-01 | Phase 220 | Pending |
+| LANE-01 | Phase 220 | Complete |
 | DX-01 | Phase 221 | Pending |
 | SCOPE-01 | Phase 222 | Pending |
 
