@@ -923,6 +923,79 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
+  describe "job order, check names and CI required (DX-01)" do
+    test "ci.yml jobs read in measured time-to-red order (SC-2)" do
+      assert ci_order_errors(all_workflows()[@ci_path]) == []
+    end
+
+    test "the ordered reader returns YAML order (D-09 guard 2)" do
+      assert parsed_job_order(~s(jobs:\n  a: {}\n  b: {}\n  "c": {}\n)) == {:ok, ["a", "b", "c"]}
+    end
+
+    test "moving or chaining jobs turns the order contract red (D-10)" do
+      ci = all_workflows()[@ci_path]
+
+      # Anchors are job ids and the verify-test `name:` line matched by shape,
+      # never a display name, so a rename cannot turn a control into a no-op.
+      test_name_line = ~r/^  verify-test:\n(?:    #[^\n]*\n)*    name: [^\n]*\n/m
+      on_verify_test = fn insert -> Regex.replace(test_name_line, ci, "\\0" <> insert) end
+
+      fmt = workflow_job(ci, "verify-format")
+      req = workflow_job(ci, "ci-required")
+
+      fmt_moved =
+        ci
+        |> String.replace(fmt, "")
+        |> String.replace("  ci-required:\n", fmt <> "  ci-required:\n")
+
+      req_moved =
+        ci
+        |> String.replace(req, "")
+        |> String.replace("  verify-repo-hygiene:\n", req <> "\n  verify-repo-hygiene:\n")
+
+      # Only the keyword reader can see order: both moves leave the map `==`.
+      for {control, moved} <- [
+            {"verify-format moved", fmt_moved},
+            {"ci-required moved", req_moved}
+          ] do
+        refute moved == ci, "#{control} control did not change the input"
+        assert parse_yaml(moved) == parse_yaml(ci), "#{control} must parse to the same map"
+      end
+
+      stub = "  \"verify-extra\":\n    runs-on: ubuntu-24.04\n    steps:\n      - run: true\n\n"
+      anchored = "  verify-extra: &stub\n    runs-on: ubuntu-24.04\n  <<: *stub\n\n"
+
+      controls = [
+        {"verify-format moved above ci-required", fmt_moved, ["rule=order:"]},
+        {"ci-required moved above verify-repo-hygiene", req_moved,
+         ["rule=order:", "rule=order-last"]},
+        {"block needs", on_verify_test.("    needs:\n      - verify-format\n"),
+         ["rule=order-needs"]},
+        {"flow needs", on_verify_test.("    needs: [verify-format]\n"), ["rule=order-needs"]},
+        {"quoted Needs", on_verify_test.(~s(    "Needs": verify-format\n)), ["rule=order-needs"]},
+        {"quoted stub job", String.replace(ci, "  ci-required:\n", stub <> "  ci-required:\n"),
+         ["rule=order-unknown"]},
+        {"jobs-level merge key",
+         String.replace(ci, "  ci-required:\n", anchored <> "  ci-required:\n"),
+         ["rule=order-merge-key"]}
+      ]
+
+      for {control, mutated, fragments} <- controls do
+        refute mutated == ci, "#{control} control did not change the input"
+
+        errors = ci_order_errors(mutated)
+
+        refute Enum.any?(errors, &String.contains?(&1, "rule=yaml-parse")),
+               "#{control} mutation must stay valid YAML, got #{inspect(errors)}"
+
+        for fragment <- fragments do
+          assert Enum.any?(errors, &String.contains?(&1, fragment)),
+                 "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
+        end
+      end
+    end
+  end
+
   # Structural reads of workflow and compose files go through the parsed YAML
   # (220 re-verification). Every text-regex reader of ci.yml was bypassed by
   # some valid spelling: a job header with a trailing comment or a quoted id, a
@@ -953,6 +1026,111 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       parsed ->
         parsed
+    end
+  end
+
+  # Job ids in YAML order. The map reader (parse_yaml/1) cannot see order:
+  # moving jobs leaves the parsed map `==`. yaml_elixir's keyword aggregator
+  # prepends each pair (deps/yaml_elixir/lib/yaml_elixir/mapper.ex,
+  # maps_aggregator/1), so the list comes back reversed; the a,b,c fixture test
+  # pins that. `merge_anchors: true` is deliberately not passed: in keyword mode
+  # a jobs-level `<<` key then survives as `"<<N"` (mapper.ex, key_for/2), and
+  # ci_order_errors/1 fails closed on it.
+  defp parsed_job_order(text) do
+    parsed =
+      try do
+        {:ok, YamlElixir.read_from_string!(text, maps_as_keywords: true)}
+      rescue
+        error -> {:error, Exception.message(error)}
+      catch
+        kind, reason -> {:error, inspect({kind, reason})}
+      end
+
+    with {:ok, doc} when is_list(doc) <- parsed,
+         [jobs] when is_list(jobs) <- for({k, v} <- doc, yaml_key(k) == "jobs", do: v) do
+      {:ok, jobs |> Enum.map(fn {k, _} -> yaml_key_string(k) end) |> Enum.reverse()}
+    else
+      {:error, message} -> {:error, "rule=yaml-parse: #{message}"}
+      _ -> {:error, "rule=yaml-parse: expected exactly one top-level `jobs` mapping"}
+    end
+  end
+
+  # SC-2 (221 D-06): ci.yml's jobs read top to bottom in measured time-to-red
+  # order, then ci-required last.
+  #
+  # Regenerate: python3 .planning/phases/221-ci-names-and-order/tools/time-to-red.py order
+  # Metric: successful-job duration (completed_at - started_at), nearest-rank p50
+  # (the 219 summarize-ci.py arithmetic), verify-test at its fastest lane; ties
+  # broken by max, then id.
+  # Runs: 36502353440 36501481301 36487483472 36467068660 36465241600
+  #       36457705448 36456537357 36455432448 36454272684 36453043277
+  # Re-derive only on a roster change or a milestone baseline re-measure, never
+  # for noise inside a tie band (D-06).
+  # Readability only: YAML order has no runtime effect (221 D-05).
+  @time_to_red_order ~w(verify-release-shape verify-repo-hygiene verify-format verify-deps-audit
+                        verify-compile-no-optional verify-hex-evaluator verify-pgbouncer-topology
+                        verify-credo verify-bump-rehearsal verify-dialyzer verify-test
+                        verify-capture verify-example-browser)
+
+  # D-10: pure over ci.yml text. Order is read through the keyword reader and
+  # cross-checked against the map reader, so a duplicate key, a merge key or a
+  # reader disagreement fails closed before any order rule runs.
+  defp ci_order_errors(text) do
+    case parsed_job_order(text) do
+      {:error, error} ->
+        [error]
+
+      {:ok, order} ->
+        doc = parsed_doc(text)
+        jobs = parsed_jobs(doc)
+
+        order_guard_errors(order, Enum.map(jobs, &elem(&1, 0))) ++
+          order_unknown_errors(order) ++
+          order_exact_errors(order) ++ order_last_errors(order) ++ order_needs_errors(jobs)
+    end
+  end
+
+  defp order_guard_errors(order, plain) do
+    cond do
+      Enum.any?(order, &String.starts_with?(&1, "<<")) ->
+        ["rule=order-merge-key: a jobs-level `<<` merge key hides job order"]
+
+      Enum.sort(order) != Enum.sort(plain) or order != Enum.uniq(order) ->
+        [
+          "rule=order-reader: keyword and map readings disagree (or a job id repeats): " <>
+            "#{inspect(order)} vs #{inspect(plain)}"
+        ]
+
+      true ->
+        []
+    end
+  end
+
+  defp order_unknown_errors(order) do
+    for id <- order, id != "ci-required", id not in @time_to_red_order do
+      "job=#{id} rule=order-unknown: place it by measured p50 (221 D-06)"
+    end
+  end
+
+  defp order_exact_errors(order) do
+    expected = @time_to_red_order ++ ["ci-required"]
+
+    if order == expected,
+      do: [],
+      else: ["rule=order: expected #{inspect(expected)}, got #{inspect(order)}"]
+  end
+
+  defp order_last_errors(order) do
+    if List.last(order) == "ci-required",
+      do: [],
+      else: ["rule=order-last: ci-required must be the last job"]
+  end
+
+  # D-07: no preflight `needs:` chain. Only ci-required may carry `needs`;
+  # yaml_field/2 case-folds and trims the key, so `Needs` or a quoted key count.
+  defp order_needs_errors(jobs) do
+    for {id, job} <- jobs, id != "ci-required", yaml_field(job, "needs") != :error do
+      "job=#{id} rule=order-needs: no preflight needs: chain (221 D-07)"
     end
   end
 
