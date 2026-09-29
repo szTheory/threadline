@@ -28,7 +28,7 @@ concurrency:
 jobs:
   # Job id is stable.
   deps-health:
-    name: Weekly hex.audit + hex.outdated (all lockfiles)
+    name: Weekly hex.audit + hex.outdated (Mix lockfiles)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
