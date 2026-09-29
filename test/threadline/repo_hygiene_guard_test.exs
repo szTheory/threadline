@@ -71,6 +71,9 @@ defmodule Threadline.RepoHygieneGuardTest do
   @placeholder_home "/" <> "home" <> "/" <> "<user>" <> "/"
   @regex_source_form "/" <> "Users" <> "/[A-Za-z]"
   @mid_word_prose_form "shell" <> "/" <> "home" <> "/" <> "timeline" <> "/coverage"
+  @fake_claude_dir_linux "-" <> "ho" <> "me" <> "-" <> "fixture-user" <> "-"
+  @placeholder_claude_dir_linux "-" <> "home" <> "-" <> "<user>" <> "-" <> "<project>"
+  @mid_word_claude_dir_linux "x" <> "self-" <> "home" <> "-page-title"
 
   # --- Tracer-carried coverage: single family, red vs green -------------------
 
@@ -167,6 +170,27 @@ defmodule Threadline.RepoHygieneGuardTest do
     allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
     assert {output, 1} = run_guard(root, allowlist: allowlist)
     assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 8 (Linux-encoded Claude project dir) produces exactly one HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => "x #{@fake_claude_dir_linux}proj\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "a Linux-encoded placeholder form gives no HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @placeholder_claude_dir_linux <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "clean"
+  end
+
+  test "a mid-word Linux home-word dash form gives no HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @mid_word_claude_dir_linux <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "clean"
   end
 
   # --- Boundary and placeholder negatives --------------------------------------
@@ -571,9 +595,9 @@ defmodule Threadline.RepoHygieneGuardTest do
 
   # --- --self-test mode --------------------------------------------------------
 
-  test "--self-test runs its six cases and exits 0" do
+  test "--self-test runs its seven cases and exits 0" do
     assert {output, 0} = System.cmd(@script, ["--self-test"], stderr_to_stdout: true)
-    assert output =~ "self-test: ok (6 cases)"
+    assert output =~ "self-test: ok (7 cases)"
   end
 
   # --- The real, seeded allowlist shape ----------------------------------------
@@ -623,6 +647,7 @@ defmodule Threadline.RepoHygieneGuardTest do
     prefixes = [
       "/" <> @users_word <> "/",
       "-" <> @users_word <> "-",
+      "-" <> @home_word <> "-",
       "\\" <> "/" <> @users_word <> "\\" <> "/",
       "\\" <> "/" <> @home_word <> "\\" <> "/",
       "/" <> "var" <> "/" <> "folders" <> "/",
@@ -646,6 +671,7 @@ defmodule Threadline.RepoHygieneGuardTest do
       "C:" <> "\\" <> @users_word <> "\\" <> user,
       "d:" <> "\\\\" <> @users_word <> "\\\\" <> user,
       "-" <> @users_word <> "-" <> user,
+      "-" <> @home_word <> "-" <> user,
       "\\" <> "/" <> @users_word <> "\\" <> "/" <> user,
       "\\" <> "/" <> @home_word <> "\\" <> "/" <> user,
       "/" <> "var" <> "/" <> "folders" <> "/" <> "ab" <> "/",

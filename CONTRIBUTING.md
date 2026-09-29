@@ -129,6 +129,7 @@ Use these forms:
 - `~/<path>`: a home-relative path
 - `/var/folders/<xx>/<path>`: the macOS per-user temp root
 - `-Users-<user>-<project>`: a Claude-encoded project directory name
+- `-home-<user>-<project>`: a Linux-encoded Claude project directory name
 - `<claude-projects-dir>/<encoded-project>/`: the Claude projects directory
 - `\/Users\/<user>\/<path>`: a JSON-escaped home directory
 <!-- repo-hygiene-placeholders:end -->

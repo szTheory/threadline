@@ -82,7 +82,10 @@
 #                              segment; the segment ends at `-`, `/`, any
 #                              byte outside [A-Za-z0-9._], or end of line)
 #   7. JSON-escaped home:      \/Users\/<name> or \/home\/<name>
-# Families 1, 2, 4, 5 and 7 require a preceding boundary byte (start of
+#   8. Linux-encoded Claude project: -home-<name>  (dash, home word, dash,
+#                              user segment; the segment ends at `-`, `/`, any
+#                              byte outside [A-Za-z0-9._], or end of line)
+# Families 1, 2, 4, 5, 7 and 8 require a preceding boundary byte (start of
 # line, or a byte outside [A-Za-z0-9._-]) — this is what keeps a mid-word
 # false positive like a `home` segment stuck onto a preceding word (e.g. a
 # prose sentence ending in ".../shell" immediately followed by a Linux-home
@@ -231,7 +234,23 @@ case "${1:-}" in
     [ "$status_f" -eq 1 ] || die "self-test (f): single-segment family-6 fixture did not exit 1: $out_f"
     printf '%s' "$out_f" | grep -q 'HIT family6.md' || die "self-test (f): missing family6 HIT: $out_f"
 
-    printf 'verify-repo-hygiene self-test: ok (6 cases)\n'
+    # (g') an anchored Linux-encoded Claude project dir (family 8) exits 1.
+    case_g_prime="$self_test_dir/case_g_prime"
+    make_repo "$case_g_prime"
+    st_fake_claude_linux="-${st_word_home}-self-test"
+    printf 'x %s-proj\n' "$st_fake_claude_linux" >"$case_g_prime/family8.md"
+    (cd "$case_g_prime" && git add -- family8.md)
+    allow_g_prime="$self_test_dir/allow_g_prime.tsv"
+    header_allowlist "$allow_g_prime"
+
+    set +e
+    out_g_prime="$(REPO_HYGIENE_ROOT="$case_g_prime" REPO_HYGIENE_ALLOWLIST="$allow_g_prime" "$0" 2>&1)"
+    status_g_prime=$?
+    set -e
+    [ "$status_g_prime" -eq 1 ] || die "self-test (g'): Linux-encoded family-8 fixture did not exit 1: $out_g_prime"
+    printf '%s' "$out_g_prime" | grep -q 'HIT family8.md' || die "self-test (g'): missing family8 HIT: $out_g_prime"
+
+    printf 'verify-repo-hygiene self-test: ok (7 cases)\n'
     exit 0
     ;;
   *) die "unknown argument: $1 (usage: verify-repo-hygiene [--self-test])" ;;
@@ -279,6 +298,7 @@ my @res = (
   qr{(?<![A-Za-z0-9._-])((?:/private)?/var/folders/[A-Za-z0-9_+-]{2}/)},
   qr{(-\Q$users\E-[A-Za-z0-9._]+)},
   qr{(?<![A-Za-z0-9._-])(\\/(?:\Q$users\E|\Q$home\E)\\/[A-Za-z0-9._-]+[A-Za-z0-9._\\/+-]*)},
+  qr{(?<![A-Za-z0-9._-])(-\Q$home\E-[A-Za-z0-9._]+)},
 );
 while (my $l = <STDIN>) {
   chomp $l;
