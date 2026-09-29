@@ -1360,7 +1360,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "verify-release-shape" => "CHANGELOG matches version",
     "verify-repo-hygiene" => "Repo hygiene (no machine-local paths)",
     "verify-format" => "Formatting",
-    "verify-deps-audit" => "Dependency audit (all lockfiles)",
+    "verify-deps-audit" => "Dependency audit (Mix lockfiles)",
     "verify-compile-no-optional" => "Compile without optional deps",
     "verify-hex-evaluator" => "Hex package install (rehearsal registry)",
     "verify-pgbouncer-topology" => "Tests through PgBouncer (transaction mode)",
@@ -1394,7 +1394,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "Bump rehearsal (next minor)",
     "Run test suite (min)",
     "Run test suite (current)",
-    "Run test suite (latest)"
+    "Run test suite (latest)",
+    # WR-06 (221 review): the job audits only the three Mix lockfiles (root,
+    # bench, example); the e2e npm lockfile is not audited.
+    "Dependency audit (all lockfiles)"
   ]
 
   # D-01 says names stay near 40 characters; the locked D-02 name

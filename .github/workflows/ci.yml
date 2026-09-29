@@ -159,7 +159,7 @@ jobs:
         run: mix verify.format
 
   verify-deps-audit:
-    name: Dependency audit (all lockfiles)
+    name: Dependency audit (Mix lockfiles)
     runs-on: ubuntu-24.04
     # Measured locally: `mix verify.deps_audit` ~13s + `bin/verify-deps-audit
     # --self-test` ~4s = ~17s combined wall time. 10 minutes is the repo's
