@@ -1,0 +1,11 @@
+{
+  "repo": "szTheory/threadline",
+  "fetched_at_utc": "2026-09-29T18:36:20Z",
+  "collection_date": "2026-09-29",
+  "pr_count": 49,
+  "commands": [
+    "gh pr list --repo szTheory/threadline --state merged --base main --limit 500 --json number,title,mergedAt,headRefName,changedFiles",
+    "gh pr list --repo szTheory/threadline --state merged --base main --limit 500 --json number,headRefOid",
+    "gh api --paginate repos/szTheory/threadline/pulls/<n>/files?per_page=100 --jq '.[].filename' | sort"
+  ]
+}

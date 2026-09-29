@@ -1,0 +1,3 @@
+.github/workflows/release.yml
+bin/verify-bump-rehearsal
+test/threadline/changelog_contract_test.exs

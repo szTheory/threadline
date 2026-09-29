@@ -111,13 +111,14 @@
 
 ### Change-aware lanes (conditional)
 
-- [ ] **SCOPE-01**: SEED-006 is decided from measured data. If BASE-01's inert-PR share, re-checked after ECON-07 and CACHE-01, is material, build:
+- [x] **SCOPE-01**: SEED-006 is decided from measured data. If BASE-01's inert-PR share, re-checked after ECON-07 and CACHE-01, is material, build:
   - a `verify-change-scope` job with a table-tested, fail-closed `bin/classify-ci-lanes` classifier (anything unknown runs the full matrix);
   - a dynamic `allowed-skips` only for skip-eligible jobs (never `verify-test` or the rehearsal);
   - an empty skip list on push and on dispatch;
   - a `ci-required` step that re-justifies each skip.
 
   Otherwise record "measured, not worth it" and close the seed.
+  Outcome: closed, measured, not worth it (222-DECISION.md: 0 of 28 inert).
 
 ## Future Requirements (deferred)
 
@@ -175,7 +176,7 @@
 | CACHE-01 | Phase 219 | Complete |
 | LANE-01 | Phase 220 | Complete |
 | DX-01 | Phase 221 | Complete |
-| SCOPE-01 | Phase 222 | Pending |
+| SCOPE-01 | Phase 222 | Complete |
 
 **Coverage:**
 

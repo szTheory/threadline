@@ -1,0 +1,2 @@
+.planning/ROADMAP.md
+.planning/STATE.md

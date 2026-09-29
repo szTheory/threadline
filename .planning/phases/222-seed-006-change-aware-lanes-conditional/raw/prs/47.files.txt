@@ -1,0 +1,5 @@
+.release-please-manifest.json
+CHANGELOG-GENERATED.md
+guides/adoption-pilot-backlog.md
+guides/evaluating-threadline.md
+mix.exs

@@ -129,6 +129,7 @@ Use these forms:
 - `~/<path>`: a home-relative path
 - `/var/folders/<xx>/<path>`: the macOS per-user temp root
 - `-Users-<user>-<project>`: a Claude-encoded project directory name
+- `-home-<user>-<project>`: a Linux-encoded Claude project directory name
 - `<claude-projects-dir>/<encoded-project>/`: the Claude projects directory
 - `\/Users\/<user>\/<path>`: a JSON-escaped home directory
 <!-- repo-hygiene-placeholders:end -->
@@ -138,7 +139,7 @@ string concatenation; see `test/threadline/repo_hygiene_guard_test.exs`.
 
 The allowlist (`.github/repo-hygiene-allowlist.tsv`) is only for runner, cache
 and tool-install paths that carry no username. It is never for prose, and no
-file or directory is exempt from the scan.
+file or directory is exempt from the scan other than the allowlist's own literal column.
 
 Run `bin/verify-repo-hygiene` before committing any doc or planning file.
 
@@ -986,6 +987,8 @@ The workflow creates tag **`v0.6.0`** on green `main` HEAD if the tag does not e
 
 1. Merge conventional commits to **`main`** — Release Please opens/updates a Release PR (`release-please-config.json`, manifest `.release-please-manifest.json`). The Release PR bumps `mix.exs`, `CHANGELOG-GENERATED.md`, **and** the adoption-pilot SSOT line together, so it is green on the doc contract without any manual prep. `CHANGELOG.md` is human-owned — Release Please never writes to it.
 2. Merge the Release PR when CI is green — Release Please tags, then the same publish + distribution sync chain runs.
+
+A landing PR that carries an adopter-facing `Security` or `Fixed` entry in `CHANGELOG.md` must merge under a releasable squash subject (`fix:`, `feat:`, `perf:` or `deps:`), or carry a `BEGIN_COMMIT_OVERRIDE` block in its PR body before merge — Release Please only parses the squash subject, and a `ci:` or `docs:` subject strands the fix unreleased.
 
 ### Upgrading the Release Please action
 

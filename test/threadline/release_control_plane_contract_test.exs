@@ -2,6 +2,22 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
   use ExUnit.Case, async: true
   @root File.cwd!()
 
+  # --- 216 CR-01: release.yml checkout credentials ----------------------------
+  #
+  # Default-deny (D-07): every `actions/checkout` step in release.yml must set
+  # `persist-credentials: false`, unless its job is one of the two reasoned
+  # exceptions below, each of which pushes with the persisted credential and
+  # runs no mix. The check runs per checkout STEP, not per job (D-08) — the
+  # sparse pin checkouts already set the flag, so a per-job count passes
+  # vacuously for a job whose OTHER (target-ref) checkout omits it, and that is
+  # how CR-01 escaped review.
+  @persisted_checkout_jobs %{
+    "dispatch-bootstrap" =>
+      "a bare `git push origin \"$tag\"` uses the persisted credential; the job runs no mix",
+    "distribution-sync" =>
+      "a bare `git push -u origin \"$BRANCH\"` uses the persisted credential; the job runs no mix"
+  }
+
   test "the sole publish command is inside the production environment job behind hard gates" do
     paths = Path.wildcard(Path.join(@root, ".github/workflows/*.{yml,yaml}"))
     publishers = Enum.filter(paths, &(File.read!(&1) =~ "mix hex.publish"))
@@ -140,25 +156,10 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
              "compiles every dependency, and a persisted token is readable by their " <>
              "compile-time code (202-REVIEW WR-01)."
 
-    checkout_count = fn job -> length(Regex.scan(~r/uses: actions\/checkout@/, job)) end
-    credential_free = fn job -> length(Regex.scan(~r/^\s+persist-credentials: false$/m, job)) end
-
-    assert checkout_count.(sync) == credential_free.(sync),
-           "every checkout in sync-release-pr-pins must set persist-credentials: false. The " <>
-             "job compiles every dependency, and one credential-bearing checkout is enough " <>
-             "for their compile-time code to read the token."
-
-    mutated =
-      String.replace(
-        sync,
-        "ref: release-please--branches--main\n          persist-credentials: false\n",
-        "ref: release-please--branches--main\n"
-      )
-
-    refute mutated == sync, "the credential-free checkout control did not change the input"
-
-    refute checkout_count.(mutated) == credential_free.(mutated),
-           "dropping the flag from the release-branch checkout must make the counts diverge"
+    # The per-job checkout-vs-flag count that used to live here was replaced by
+    # the per-STEP checkout-credential-free rule (D-08, D-10) and its D-11 case
+    # 3 mutation control, both below — a per-job count passes vacuously when a
+    # DIFFERENT checkout in the same job already sets the flag.
 
     assert sync =~ ~r/^    concurrency:\n      group: sync-release-pr-pins$/m,
            "sync-release-pr-pins must carry its own concurrency group, or two pushes to " <>
@@ -231,6 +232,108 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
            "adding a workflow-run query must turn the bootstrap guard contract red"
   end
 
+  test "every release.yml checkout is credential-free unless its job is allowlisted (216 CR-01)" do
+    yaml = release_workflow()
+    assert persisted_checkout_errors(yaml) == []
+
+    checked_count =
+      yaml
+      |> release_job_ids()
+      |> Enum.reject(&Map.has_key?(@persisted_checkout_jobs, &1))
+      |> Enum.flat_map(fn job_id ->
+        yaml |> job_block!(job_id) |> job_steps() |> Enum.filter(&checkout_step?/1)
+      end)
+      |> length()
+
+    assert checked_count >= 7,
+           "expected at least 7 non-allowlisted checkout steps (today's 9 minus the 2 " <>
+             "allowlisted jobs), found #{checked_count} — the parser may have stopped seeing steps"
+  end
+
+  test "mix_invocation?/1 matches mix at a shell command position, not inside prose" do
+    for positive <- [
+          "mix deps.get",
+          "run: mix hex.build",
+          "if mix hex.info x",
+          "a && mix b",
+          "x=$(mix y)",
+          "FOO=1 mix compile"
+        ] do
+      assert mix_invocation?(positive), "expected #{inspect(positive)} to fire"
+    end
+
+    for negative <- [
+          "Merge after CI (\\`mix verify.test\\`) is green on this PR.",
+          "mixed"
+        ] do
+      refute mix_invocation?(negative), "expected #{inspect(negative)} not to fire"
+    end
+  end
+
+  describe "mutation controls (D-11)" do
+    setup do
+      %{live: release_workflow()}
+    end
+
+    for {label, from, to, rule} <- [
+          {"strip the flag from the publish-hex target checkout",
+           "ref: ${{ needs.release-ref.outputs.checkout_ref }}\n" <>
+             "          persist-credentials: false\n\n      - name: Install dependencies\n",
+           "ref: ${{ needs.release-ref.outputs.checkout_ref }}\n\n      - name: Install dependencies\n",
+           "checkout-credential-free"},
+          {"strip the flag from the smoke-published target checkout",
+           "ref: ${{ needs.release-ref.outputs.checkout_ref }}\n" <>
+             "          persist-credentials: false\n\n      - name: Ensure hex_evaluator_test database exists\n",
+           "ref: ${{ needs.release-ref.outputs.checkout_ref }}\n\n      - name: Ensure hex_evaluator_test database exists\n",
+           "checkout-credential-free"},
+          {"strip the flag from the sync-release-pr-pins ref: checkout",
+           "ref: release-please--branches--main\n          persist-credentials: false\n",
+           "ref: release-please--branches--main\n", "checkout-credential-free"},
+          {"add a mix invocation to distribution-sync",
+           "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n\n" <>
+             "      - name: Wait for Hex registry before doc sync\n",
+           "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n\n" <>
+             "      - run: mix deps.get\n\n      - name: Wait for Hex registry before doc sync\n",
+           "allowlisted-job-runs-no-mix"},
+          {"rename an allowlisted job", "\n  distribution-sync:\n",
+           "\n  distribution-sync-renamed:\n", "stale-allowlist-entry"}
+        ] do
+      test "#{label} fires rule=#{rule}", %{live: live} do
+        from = unquote(from)
+        to = unquote(to)
+
+        assert length(String.split(live, from)) == 2,
+               "control anchor not found or not unique"
+
+        mutated = String.replace(live, from, to, global: false)
+        refute mutated == live, "the control did not change the input"
+
+        assert rule_fired?(persisted_checkout_errors(mutated), unquote(rule))
+      end
+    end
+
+    test "positive control: flagging an allowlisted job's checkout stays green", %{live: live} do
+      from =
+        "      - uses: actions/checkout@v5\n        with:\n" <>
+          "          fetch-depth: 0\n" <>
+          "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n\n" <>
+          "      - name: Resolve tag and create if missing\n"
+
+      to =
+        "      - uses: actions/checkout@v5\n        with:\n" <>
+          "          fetch-depth: 0\n" <>
+          "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n" <>
+          "          persist-credentials: false\n\n      - name: Resolve tag and create if missing\n"
+
+      assert length(String.split(live, from)) == 2, "control anchor not found or not unique"
+
+      mutated = String.replace(live, from, to, global: false)
+      refute mutated == live, "the control did not change the input"
+
+      assert persisted_checkout_errors(mutated) == []
+    end
+  end
+
   # Returns the failed ECON-03 bootstrap-guard properties as `{false, message}`
   # pairs; an empty list means the guard holds.
   defp bootstrap_guard_errors(block) do
@@ -268,5 +371,210 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
       _ ->
         flunk("could not find a \"  #{id}:\" job in .github/workflows/release.yml")
     end
+  end
+
+  # Job ids are the two-space keys after the top-level `jobs:` line. `on:` also
+  # has two-space keys (`push:`, `workflow_dispatch:`), so job ids are scanned
+  # only from the text after `\njobs:\n`.
+  defp release_job_ids(yaml) do
+    case String.split(yaml, "\njobs:\n", parts: 2) do
+      [_, body] ->
+        ~r/^  ([A-Za-z0-9_-]+):[ \t]*$/m
+        |> Regex.scan(body)
+        |> Enum.map(fn [_, id] -> id end)
+
+      _ ->
+        []
+    end
+  end
+
+  # A checkout step is any step whose `uses:` names actions/checkout, list-item
+  # dash included. `yaml_value(step, "uses")` (below) does not match this form:
+  # its `^\s*` anchor stops at the leading `- `.
+  defp checkout_step?(step) do
+    Regex.match?(~r/^\s*(?:- )?uses:[ \t]*actions\/checkout@/m, step)
+  end
+
+  # Copied verbatim from test/threadline/ci_workflow_parity_contract_test.exs
+  # (job_steps/1, ~:3153): step texts of a job block, split at every
+  # 6-space-indented list item. The leading chunk (job header up to the first
+  # step) is dropped.
+  defp job_steps(block) do
+    case Regex.split(~r/^(?=      - )/m, block) do
+      [_header | steps] -> steps
+      [] -> []
+    end
+  end
+
+  # Copied verbatim from test/threadline/ci_workflow_parity_contract_test.exs
+  # (yaml_value/2, ~:3691).
+  defp yaml_value(step, key) do
+    case Regex.run(~r/^\s*#{Regex.escape(key)}:[ \t]*(.*?)[ \t]*$/m, step) do
+      [_, value] -> value
+      nil -> nil
+    end
+  end
+
+  # Per-step (D-08), not per-job: every actions/checkout step outside
+  # @persisted_checkout_jobs must set persist-credentials: false. Returns
+  # `{ok?, message}` pairs, rejecting the ok ones, in the style of
+  # bootstrap_guard_errors/1 above.
+  defp checkout_credential_errors(yaml) do
+    present_ids = release_job_ids(yaml)
+
+    for job_id <- present_ids,
+        not Map.has_key?(@persisted_checkout_jobs, job_id),
+        {step, n} <-
+          yaml
+          |> job_block!(job_id)
+          |> job_steps()
+          |> Enum.filter(&checkout_step?/1)
+          |> Enum.with_index(1) do
+      {yaml_value(step, "persist-credentials") == "false",
+       "rule=checkout-credential-free job=#{job_id} checkout=#{n}: every actions/checkout " <>
+         "outside @persisted_checkout_jobs must set persist-credentials: false (216 CR-01)"}
+    end
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  # True when any error's message names the given rule.
+  defp rule_fired?(errors, rule) do
+    Enum.any?(errors, fn {_ok, message} -> String.contains?(message, "rule=#{rule}") end)
+  end
+
+  # No allowlisted job (one that keeps a persisted token) may invoke mix: a job
+  # that keeps a persisted token compiles no dependency code today, and this
+  # rule keeps it that way (D-09). A plain "contains `mix `" substring test
+  # would misfire on distribution-sync's own PR body, which mentions
+  # `mix verify.test` as prose inside an escaped-backtick string — it runs
+  # nothing. mix_invocation?/1 below is narrower: it requires `mix` to sit at a
+  # shell command position, not merely appear in the text.
+  defp allowlisted_job_run_errors(yaml) do
+    present_ids = release_job_ids(yaml)
+
+    for {job_id, _reason} <- @persisted_checkout_jobs,
+        job_id in present_ids,
+        step <- yaml |> job_block!(job_id) |> job_steps(),
+        script = run_scripts(step),
+        script not in [nil, ""] do
+      {not mix_invocation?(script),
+       "rule=allowlisted-job-runs-no-mix job=#{job_id}: a job that keeps a persisted token " <>
+         "must never run mix, or compile-time dependency code can read it (D-07)"}
+    end
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  # Every @persisted_checkout_jobs key must name a job that still exists in
+  # release.yml, or the allowlist silently widens to cover nothing (D-09).
+  defp stale_allowlist_errors(yaml) do
+    present_ids = release_job_ids(yaml)
+
+    for {job_id, _reason} <- @persisted_checkout_jobs, job_id not in present_ids do
+      {false,
+       "rule=stale-allowlist-entry job=#{job_id}: @persisted_checkout_jobs names no such " <>
+         "release.yml job"}
+    end
+  end
+
+  # All three 216 CR-01 rules combined: checkout-credential-free,
+  # allowlisted-job-runs-no-mix and stale-allowlist-entry. Each rule already
+  # rejects its own ok entries, so concatenating them is equivalent to
+  # filtering the union.
+  defp persisted_checkout_errors(yaml) do
+    checkout_credential_errors(yaml) ++
+      allowlisted_job_run_errors(yaml) ++ stale_allowlist_errors(yaml)
+  end
+
+  # The single-line value of a step's `run:` key, or, for a block scalar
+  # (`run: |` / `run: >`, chomping indicators included), every following line
+  # indented deeper than the `run:` key itself. Returns nil when the step has
+  # no `run:` key.
+  defp run_scripts(step) do
+    lines = String.split(step, "\n")
+
+    lines
+    |> Enum.with_index()
+    |> Enum.find(fn {line, _index} -> Regex.match?(~r/^\s*(?:- )?run:/, line) end)
+    |> case do
+      nil ->
+        nil
+
+      {line, index} ->
+        [key_prefix] = Regex.run(~r/^\s*(?:- )?run:/, line)
+        indent = String.length(key_prefix) - String.length("run:")
+        value = line |> String.replace(~r/^\s*(?:- )?run:[ \t]*/, "") |> String.trim_trailing()
+
+        if value == "" or Regex.match?(~r/^[|>][-+0-9]*$/, value) do
+          block_scalar_lines(lines, index, indent)
+        else
+          value
+        end
+    end
+  end
+
+  defp block_scalar_lines(lines, run_line_index, indent) do
+    lines
+    |> Enum.slice((run_line_index + 1)..-1//1)
+    |> Enum.take_while(&block_scalar_member?(&1, indent))
+    |> Enum.join("\n")
+  end
+
+  defp block_scalar_member?(line, indent) do
+    String.trim(line) == "" or
+      String.length(line) - String.length(String.trim_leading(line)) > indent
+  end
+
+  # Matches `mix` at a shell command position — never merely as a substring —
+  # so that prose such as an escaped-backtick `` \`mix verify.test\` `` inside
+  # a PR body, or the word `mixed`, does not misfire (D-09). Checked per line:
+  # `mix` must be followed by whitespace or end of line, and the text
+  # immediately before it (trimmed of trailing whitespace) must be one of:
+  # empty (line start), a command separator (`;`, `&&`, `||`, `|`), a
+  # subshell/YAML-key opener (`$(`, `:`), an unescaped backtick, a shell
+  # keyword (if/then/elif/else/do/while/until/!/exec/time/env), or one or more
+  # `NAME=value` assignment prefixes.
+  defp mix_invocation?(nil), do: false
+
+  defp mix_invocation?(script) do
+    script
+    |> String.split(~r/\r?\n/)
+    |> Enum.any?(&line_has_mix_invocation?/1)
+  end
+
+  defp line_has_mix_invocation?(line) do
+    ~r/mix(?=\s|$)/
+    |> Regex.scan(line, return: :index)
+    |> Enum.any?(fn [{start, _len}] ->
+      prefix = String.slice(line, 0, start)
+      mix_command_position?(prefix)
+    end)
+  end
+
+  defp mix_command_position?(prefix) do
+    trimmed = String.trim_trailing(prefix)
+
+    cond do
+      trimmed == "" ->
+        true
+
+      String.ends_with?(trimmed, [";", "&&", "||", "|", "$(", ":"]) ->
+        true
+
+      unescaped_backtick?(prefix) ->
+        true
+
+      Regex.match?(~r/(?:^|\s)(if|then|elif|else|do|while|until|!|exec|time|env)$/, trimmed) ->
+        true
+
+      Regex.match?(~r/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+$/, prefix) ->
+        true
+
+      true ->
+        false
+    end
+  end
+
+  defp unescaped_backtick?(prefix) do
+    String.ends_with?(prefix, "`") and not String.ends_with?(prefix, "\\`")
   end
 end

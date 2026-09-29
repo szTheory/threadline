@@ -1,0 +1,15 @@
+.github/workflows/ci.yml
+.github/workflows/deps-health.yml
+.planning/REQUIREMENTS.md
+.planning/ROADMAP.md
+.planning/STATE.md
+.planning/phases/221-ci-names-and-order/221-04-SUMMARY.md
+.planning/phases/221-ci-names-and-order/221-REVIEW-DISPOSITION.md
+.planning/phases/221-ci-names-and-order/221-REVIEW-FIX.md
+.planning/phases/221-ci-names-and-order/221-REVIEW.md
+.planning/phases/221-ci-names-and-order/221-UAT.md
+.planning/phases/221-ci-names-and-order/221-VERIFICATION.md
+.planning/phases/221-ci-names-and-order/tools/reorder-ci-jobs.py
+.planning/phases/221-ci-names-and-order/tools/time-to-red.py
+CONTRIBUTING.md
+test/threadline/ci_workflow_parity_contract_test.exs

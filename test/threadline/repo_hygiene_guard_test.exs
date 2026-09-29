@@ -71,6 +71,28 @@ defmodule Threadline.RepoHygieneGuardTest do
   @placeholder_home "/" <> "home" <> "/" <> "<user>" <> "/"
   @regex_source_form "/" <> "Users" <> "/[A-Za-z]"
   @mid_word_prose_form "shell" <> "/" <> "home" <> "/" <> "timeline" <> "/coverage"
+  @fake_claude_dir_linux "-" <> "ho" <> "me" <> "-" <> "fixture-user" <> "-"
+  @placeholder_claude_dir_linux "-" <> "home" <> "-" <> "<user>" <> "-" <> "<project>"
+  @mid_word_claude_dir_linux "x" <> "self-" <> "home" <> "-page-title"
+  @titlecase_claude_dir "Admin-" <> "Users" <> "-Guide"
+  @space_boundary_claude_dir "x " <> "-" <> "Users" <> "-fixture"
+  @slash_boundary_claude_dir "/foo/" <> "-" <> "Users" <> "-fixture/bar"
+  @drive_form_claude_dir "C-" <> "-" <> "Users" <> "-fixture-proj"
+  @start_of_line_claude_dir "-" <> "Users" <> "-fixture-startline"
+
+  # --- Too-broad allowlist literals (D-13, R2-WR-01) ---------------------------
+
+  @too_broad_root_slash "/"
+  @too_broad_backslash "\\"
+  @too_broad_tilde "~"
+  @too_broad_tilde_slash "~" <> "/"
+  @too_broad_var_folders "/" <> "var" <> "/" <> "folders"
+  @too_broad_users "/" <> "Users"
+  @too_broad_users_slash "/" <> "Users" <> "/"
+  @too_broad_home "/" <> "home"
+  @too_broad_home_slash "/" <> "home" <> "/"
+  @too_broad_json_users "\\" <> "/" <> "Users" <> "\\" <> "/"
+  @too_broad_dash_users "-" <> "Users" <> "-"
 
   # --- Tracer-carried coverage: single family, red vs green -------------------
 
@@ -162,11 +184,71 @@ defmodule Threadline.RepoHygieneGuardTest do
     assert output =~ "clean"
   end
 
+  # --- Family 6 left-anchor (D-14, R2-WR-02) -----------------------------------
+
+  test "a TitleCase kebab word with the users word between dashes gives no HIT", %{
+    tmp_dir: tmp_dir
+  } do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @titlecase_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "clean"
+  end
+
+  test "family 6 after a space is still a HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @space_boundary_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 6 after a slash is still a HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @slash_boundary_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 6 drive form (preceded by a letter and a dash) is still a HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @drive_form_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 6 at the start of a line is still a HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @start_of_line_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
   test "family 7 (JSON-escaped home) produces exactly one HIT", %{tmp_dir: tmp_dir} do
     root = fixture_repo!(tmp_dir, %{"a.md" => "x #{@fake_json_home}\n"})
     allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
     assert {output, 1} = run_guard(root, allowlist: allowlist)
     assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 8 (Linux-encoded Claude project dir) produces exactly one HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => "x #{@fake_claude_dir_linux}proj\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "a Linux-encoded placeholder form gives no HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @placeholder_claude_dir_linux <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "clean"
+  end
+
+  test "a mid-word Linux home-word dash form gives no HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @mid_word_claude_dir_linux <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "clean"
   end
 
   # --- Boundary and placeholder negatives --------------------------------------
@@ -396,6 +478,83 @@ defmodule Threadline.RepoHygieneGuardTest do
     assert output =~ "ALLOWLIST 1:"
   end
 
+  # --- literal_too_broad structural check (D-13, R2-WR-01) --------------------
+
+  @too_broad_literals [
+    {"a lone slash", @too_broad_root_slash},
+    {"a lone backslash", @too_broad_backslash},
+    {"a lone tilde", @too_broad_tilde},
+    {"tilde-slash", @too_broad_tilde_slash},
+    {"/var/folders (no trailing slash)", @too_broad_var_folders},
+    {"/Users (no trailing slash)", @too_broad_users},
+    {"/Users/ (trailing slash)", @too_broad_users_slash},
+    {"/home (no trailing slash)", @too_broad_home},
+    {"/home/ (trailing slash)", @too_broad_home_slash},
+    {"JSON-escaped \\/Users\\/ ", @too_broad_json_users},
+    {"-Users- (dash form)", @too_broad_dash_users}
+  ]
+
+  for {label, literal} <- @too_broad_literals do
+    test "too-broad allowlist literal #{label} exits 2 with literal_too_broad", %{
+      tmp_dir: tmp_dir
+    } do
+      root = fixture_repo!(tmp_dir, %{"a.md" => "clean\n"})
+
+      allowlist =
+        write_allowlist!(tmp_dir, [
+          ".\t#{unquote(literal)}\tA literal too broad for this family fixture"
+        ])
+
+      assert {output, 2} = run_guard(root, allowlist: allowlist)
+      assert output =~ "literal_too_broad"
+    end
+  end
+
+  test "a scoped tool-install cache literal with a matching hit exits 0", %{tmp_dir: tmp_dir} do
+    cache_literal = "~" <> "/" <> "." <> "cache"
+    root = fixture_repo!(tmp_dir, %{"a.md" => "x " <> cache_literal <> "/x\n"})
+
+    allowlist =
+      write_allowlist!(tmp_dir, [
+        ".\t#{cache_literal}/\tRunner cache path used across CI jobs, not too broad"
+      ])
+
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "1 allowlist entry used"
+  end
+
+  test "the runner home literal with a matching hit exits 0 with 1 allowlist entry used", %{
+    tmp_dir: tmp_dir
+  } do
+    root = fixture_repo!(tmp_dir, %{"a.md" => "x " <> @fake_linux_home_runner <> "/work\n"})
+
+    allowlist =
+      write_allowlist!(tmp_dir, [
+        ".\t#{@fake_linux_home_runner}/\tGitHub-hosted runner account in CI log receipts"
+      ])
+
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "1 allowlist entry used"
+  end
+
+  # --- Newline pre-scan (D-15, R2-WR-03) ---------------------------------------
+
+  test "a tracked path containing a newline exits 2 even with a phantom-scope allowlist entry",
+       %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{})
+    newline_name = "a" <> "\n" <> "b.md"
+    File.write!(Path.join(root, newline_name), "x #{@fake_macos_home}/code\n")
+    {_, 0} = System.cmd("git", ["add", "-A"], cd: root)
+
+    allowlist =
+      write_allowlist!(tmp_dir, [
+        "b.md\t#{@fake_macos_home}\tA phantom-scope entry that must never cover this HIT"
+      ])
+
+    assert {output, 2} = run_guard(root, allowlist: allowlist)
+    assert output =~ "newline"
+  end
+
   test "an allowlist comment containing a fake home path exits 1 with ALLOWLIST", %{
     tmp_dir: tmp_dir
   } do
@@ -571,9 +730,16 @@ defmodule Threadline.RepoHygieneGuardTest do
 
   # --- --self-test mode --------------------------------------------------------
 
-  test "--self-test runs its six cases and exits 0" do
+  test "--self-test runs its ten cases and exits 0" do
     assert {output, 0} = System.cmd(@script, ["--self-test"], stderr_to_stdout: true)
-    assert output =~ "self-test: ok (6 cases)"
+    assert output =~ "self-test: ok (10 cases)"
+  end
+
+  test "the self-test case count matches the number of distinct case labels in the script" do
+    script_text = File.read!(@script)
+    labels = Regex.scan(~r/^    # \(([a-z]'?)\) /m, script_text) |> Enum.map(&Enum.at(&1, 1))
+    assert Enum.uniq(labels) == labels, "duplicate self-test case labels: #{inspect(labels)}"
+    assert length(labels) == 10, "expected 10 case labels, got #{inspect(labels)}"
   end
 
   # --- The real, seeded allowlist shape ----------------------------------------
@@ -623,6 +789,7 @@ defmodule Threadline.RepoHygieneGuardTest do
     prefixes = [
       "/" <> @users_word <> "/",
       "-" <> @users_word <> "-",
+      "-" <> @home_word <> "-",
       "\\" <> "/" <> @users_word <> "\\" <> "/",
       "\\" <> "/" <> @home_word <> "\\" <> "/",
       "/" <> "var" <> "/" <> "folders" <> "/",
@@ -646,6 +813,7 @@ defmodule Threadline.RepoHygieneGuardTest do
       "C:" <> "\\" <> @users_word <> "\\" <> user,
       "d:" <> "\\\\" <> @users_word <> "\\\\" <> user,
       "-" <> @users_word <> "-" <> user,
+      "-" <> @home_word <> "-" <> user,
       "\\" <> "/" <> @users_word <> "\\" <> "/" <> user,
       "\\" <> "/" <> @home_word <> "\\" <> "/" <> user,
       "/" <> "var" <> "/" <> "folders" <> "/" <> "ab" <> "/",
