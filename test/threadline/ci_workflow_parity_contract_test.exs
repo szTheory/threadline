@@ -698,7 +698,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
          on_ci.(&String.replace(&1, gate_header, "    name: CI required\n")), "rule=gate-if"},
         {"step if: false",
          on_ci.(&String.replace(&1, gate_step, gate_step <> "        if: false\n")),
-         "rule=gate-step"},
+         "rule=gate-step-guard"},
         {"uses replaced by run",
          on_ci.(
            &Regex.replace(
@@ -706,7 +706,35 @@ defmodule Threadline.CIWorkflowParityContractTest do
              &1,
              "        run: echo ok\n"
            )
-         ), "rule=gate-step"},
+         ), "rule=gate-step-guard"},
+        # WR-03 (221 review): each gate sub-rule has a control that only it catches.
+        {"alls-green pinned to a mutable tag",
+         on_ci.(
+           &Regex.replace(
+             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40}\n/m,
+             &1,
+             "        uses: re-actors/alls-green@release/v1\n"
+           )
+         ), "rule=gate-pin"},
+        {"a different owner's alls-green at a full SHA",
+         on_ci.(
+           &Regex.replace(
+             ~r/^        uses: re-actors\/alls-green@([0-9a-f]{40})\n/m,
+             &1,
+             "        uses: evil/alls-green@\\1\n"
+           )
+         ), "rule=gate-pin"},
+        {"strategy added to ci-required",
+         on_ci.(
+           &String.replace(
+             &1,
+             gate_header,
+             gate_header <> "    strategy:\n      matrix:\n        x: [1]\n"
+           )
+         ), "rule=gate-name-own"},
+        {"ci-required renamed",
+         on_ci.(&String.replace(&1, gate_header, "    name: CI gate\n    if: always()\n")),
+         "rule=gate-name-own"},
         {"quoted allowed-skips",
          on_ci.(
            &String.replace(
@@ -718,7 +746,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"jobs input emptied", on_ci.(&String.replace(&1, gate_jobs, "          jobs: '{}'\n")),
          "rule=gate-jobs-input"},
         {"second CI required job", &Map.put(&1, ".github/workflows/zz-spoof.yml", spoof),
-         "rule=gate-name"},
+         "rule=gate-name-unique"},
         # VG-01 / WR-02 (221 verification and review): names GitHub evaluates.
         {"expression-literal CI required name",
          &Map.put(
@@ -741,7 +769,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
            &1,
            ".github/workflows/zz-spoof.yml",
            String.replace(spoof, "    name: CI required\n", ~s(    name: "ci  required"\n))
-         ), "rule=gate-name"},
+         ), "rule=gate-name-unique"},
         {"job id renamed everywhere", on_ci.(&String.replace(&1, "verify-format", "verify-fmt")),
          "rule=job-ids"}
       ]
@@ -1711,13 +1739,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
     guard =
       if yaml_field(step, "if") == :error and yaml_field(step, "run") == :error,
         do: [],
-        else: ["rule=gate-step: the alls-green step must carry neither `if` nor `run`"]
+        else: ["rule=gate-step-guard: the alls-green step must carry neither `if` nor `run`"]
 
     pin =
       if is_binary(uses) and uses =~ ~r/^re-actors\/alls-green@[0-9a-f]{40}$/,
         do: [],
         else: [
-          "rule=gate-step: the step must `uses:` re-actors/alls-green at a full " <>
+          "rule=gate-pin: the step must `uses:` re-actors/alls-green at a full " <>
             "commit SHA, got #{inspect(uses)}"
         ]
 
@@ -1773,13 +1801,15 @@ defmodule Threadline.CIWorkflowParityContractTest do
     own =
       if yaml_get(job, "name") === "CI required" and yaml_field(job, "strategy") == :error,
         do: [],
-        else: ["rule=gate-name: ci-required must be named exactly `CI required`, with no matrix"]
+        else: [
+          "rule=gate-name-own: ci-required must be named exactly `CI required`, with no matrix"
+        ]
 
     unique =
       if carriers == [{ci_path, "ci-required"}],
         do: [],
         else: [
-          "rule=gate-name: exactly one job in any workflow may be named `CI required`, " <>
+          "rule=gate-name-unique: exactly one job in any workflow may be named `CI required`, " <>
             "got #{inspect(carriers)}"
         ]
 
