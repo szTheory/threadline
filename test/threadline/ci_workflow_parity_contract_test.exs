@@ -1456,6 +1456,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end)
   end
 
+  # D-01's "no leading verb" is enforced as a denylist of the imperative verbs
+  # the pre-221 names used (`Run`, `Check`, `Verify`), not as a grammar check.
+  # The locked D-02 set keeps `Build and test` and `Compile without optional
+  # deps` on purpose: there `Build`/`Compile` read as subject nouns naming the
+  # proof (the build, the compile), and `name-exact` pins both byte-for-byte,
+  # so this rule only guards new or renamed names (IN-01, 221 review).
   defp name_verb_errors(id, name) do
     if String.starts_with?(name, ["Run ", "Check ", "Verify "]),
       do: ["job=#{id} rule=name-verb: #{inspect(name)} leads with a verb (221 D-01)"],
