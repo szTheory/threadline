@@ -4,7 +4,10 @@
 # Two halves, because a configuration assertion alone is not proof:
 #
 #   (a) the LIVE required-status-check contexts for `main` are exactly the
-#       singleton ["CI required"] — no more, no fewer, and never empty;
+#       singleton ["CI required"], pinned to the GitHub Actions app
+#       (integration_id 15368) — no more, no fewer, never empty, and never
+#       unpinned. An unpinned required check accepts that context from any app
+#       or any token that can write commit statuses;
 #   (b) the name `CI required` has ACTUALLY been emitted as a check run on
 #       `main`'s head. A context can be required in protection without CI ever
 #       emitting it, which blocks every pull request forever waiting on a check
@@ -23,6 +26,12 @@ cd "$ROOT"
 
 BRANCH="main"
 EXPECTED_CONTEXT="CI required"
+# The GitHub Actions app. Pinning the required check to it means only a check
+# run posted by an Actions workflow can satisfy it; the least-privilege token
+# contract (test/threadline/ci_token_permissions_contract_test.exs) keeps every
+# workflow but ci.yml's gate from posting it.
+EXPECTED_INTEGRATION_ID="15368"
+EXPECTED_PAIR="${EXPECTED_CONTEXT}@${EXPECTED_INTEGRATION_ID}"
 
 # RESEARCH A4 flagged `jq` on the runner image as an assumption. Guard it
 # explicitly rather than relying on the assumption.
@@ -48,7 +57,7 @@ if [[ -z "$REPO" ]]; then
   exit 1
 fi
 
-# --- Half (a): the live required-context list is exactly ["CI required"] -----
+# --- Half (a): the live required-context list is exactly ["CI required@15368"]
 #
 # Sorted exact string equality, not containment: a differing case, an extra
 # space, or an extra context must fail rather than fuzzily matching.
@@ -57,7 +66,7 @@ RULES_JSON=$(gh api "repos/${REPO}/rules/branches/${BRANCH}" \
 
 if [[ -z "$RULES_JSON" ]]; then
   echo "Could not read the effective rules for ${REPO}@${BRANCH}." >&2
-  echo "Expected a required-status-checks rule listing exactly [\"${EXPECTED_CONTEXT}\"]." >&2
+  echo "Expected a required-status-checks rule listing exactly [\"${EXPECTED_CONTEXT}\"] pinned to integration_id ${EXPECTED_INTEGRATION_ID}." >&2
   exit 1
 fi
 
@@ -68,8 +77,9 @@ fi
 # live protection purely to exercise a test is a production change with no operational
 # justification. Splitting the pure decision out is what closes it, and it is the same
 # shape as bin/classify-flake-run.
-if ! printf '%s' "$RULES_JSON" | "$(dirname "$0")/compare-required-contexts" "$EXPECTED_CONTEXT"; then
-  echo "FAIL (a): required status-check contexts for ${REPO}@${BRANCH} do not match (see above)." >&2
+if ! printf '%s' "$RULES_JSON" | "$(dirname "$0")/compare-required-contexts" "$EXPECTED_PAIR"; then
+  echo "FAIL (a): required status-check contexts for ${REPO}@${BRANCH} do not match [${EXPECTED_PAIR}] (see above)." >&2
+  echo "A missing integration_id reads as @ANY: apply .github/rulesets/main.json (CONTRIBUTING, Branch protection)." >&2
   exit 1
 fi
 
@@ -165,7 +175,7 @@ if [[ "$CLASSIC_STATUS" == "present" ]]; then
 fi
 
 if [[ "$CLASSIC_STATUS" == "unverified" ]]; then
-  echo "Branch protection PARTIAL for ${REPO}@${BRANCH}: required contexts are exactly [${EXPECTED_CONTEXT}] and that name has been emitted ${EMITTED_COUNT} time(s) on head ${HEAD_SHA}; classic protection was not visible to this token."
+  echo "Branch protection PARTIAL for ${REPO}@${BRANCH}: required contexts are exactly [${EXPECTED_PAIR}] and that name has been emitted ${EMITTED_COUNT} time(s) on head ${HEAD_SHA}; classic protection was not visible to this token."
 else
-  echo "Branch protection OK for ${REPO}@${BRANCH}: required contexts are exactly [${EXPECTED_CONTEXT}], that name has been emitted ${EMITTED_COUNT} time(s) on head ${HEAD_SHA}, and no classic protection is stacking."
+  echo "Branch protection OK for ${REPO}@${BRANCH}: required contexts are exactly [${EXPECTED_PAIR}], that name has been emitted ${EMITTED_COUNT} time(s) on head ${HEAD_SHA}, and no classic protection is stacking."
 fi

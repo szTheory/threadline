@@ -18,8 +18,16 @@
 # no token, and no mutation of live protection. This is the same shape as
 # `bin/classify-flake-run`, which `flake_classifier_contract_test.exs` drives directly.
 #
+# WHAT IS COMPARED
+#
+# Each required check is compared as a `context@integration_id` pair, not as a bare name.
+# A required check with no `integration_id` accepts that context from ANY app or any
+# token that can write commit statuses, so it reads as `context@ANY` and never equals a
+# pinned expectation such as `CI required@15368` (15368 is the GitHub Actions app). An
+# unpinned or wrongly pinned live check therefore fails exactly like a renamed one.
+#
 # USAGE
-#   compare-required-contexts <expected-context> [<expected-context>...] < rules.json
+#   compare-required-contexts <context@integration_id> [<context@integration_id>...] < rules.json
 #
 # stdin: the JSON body of `GET repos/{owner}/{repo}/rules/branches/{branch}`.
 # exit 0 — the live contexts are exactly the expected set.
@@ -30,7 +38,7 @@ set -euo pipefail
 
 die() { printf 'compare-required-contexts: %s\n' "$*" >&2; exit 2; }
 
-[ $# -ge 1 ] || die "usage: compare-required-contexts <expected-context>... < rules.json"
+[ $# -ge 1 ] || die "usage: compare-required-contexts <context@integration_id>... < rules.json"
 command -v jq >/dev/null 2>&1 || die "jq is required and was not found on PATH"
 
 RULES_JSON=$(cat)
@@ -46,13 +54,14 @@ printf '%s' "$RULES_JSON" | jq empty 2>/dev/null || {
   exit 1
 }
 
-# Sorted exact string equality, not containment: a differing case, an extra space, or an
-# extra context must fail rather than fuzzily matching.
+# Sorted exact string equality, not containment: a differing case, an extra space, an
+# extra context, or a missing or different integration_id must fail rather than fuzzily
+# matching.
 LIVE=$(printf '%s' "$RULES_JSON" | jq -r '
   [ .[]?
     | select(.type == "required_status_checks")
     | .parameters.required_status_checks[]?
-    | .context
+    | "\(.context)@\(if .integration_id == null then "ANY" else (.integration_id | tostring) end)"
   ] | sort | join("")')
 
 EXPECTED=$(printf '%s\n' "$@" | jq -Rrs 'split("\n") | map(select(length > 0)) | sort | join("")')

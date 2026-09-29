@@ -882,7 +882,15 @@ Fill the canonical scaffolds in the [adoption pilot backlog](guides/adoption-pil
 
 The only required status check on `main` is `CI required`, per `.github/rulesets/main.json`;
 `bin/verify-branch-protection` checks that live protection requires exactly that
-one context. Do not add the checks below as separate required contexts —
+one context. The check is pinned to GitHub Actions (app `15368`), so only a check
+run posted by an Actions workflow can satisfy it. To apply the committed ruleset,
+snapshot the effective rules before and after and diff them:
+
+```bash
+gh api repos/szTheory/threadline/rules/branches/main > before.json && gh api -X PUT repos/szTheory/threadline/rulesets/21702804 --input .github/rulesets/main.json && gh api repos/szTheory/threadline/rules/branches/main > after.json && diff <(jq -S . before.json) <(jq -S . after.json)
+```
+
+Do not add the checks below as separate required contexts —
 that would turn the protection check red. `CI required` aggregates them, among
 every other `ci.yml` job, through its `needs:` list, so each of these still has to
 pass. The posted check names, in `ci.yml` order:
