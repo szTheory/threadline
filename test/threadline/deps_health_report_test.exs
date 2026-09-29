@@ -58,6 +58,9 @@ defmodule Threadline.DepsHealthReportTest do
 
     case "$SUBCMD" in
       deps.get)
+        if [ -n "${FAKE_MIX_STDIN_LOG:-}" ]; then
+          cat >> "$FAKE_MIX_STDIN_LOG"
+        fi
         if should_match "${FAKE_LOCK_DRIFT:-}"; then
           case " $* " in
             *" --check-locked "*)
@@ -140,13 +143,28 @@ defmodule Threadline.DepsHealthReportTest do
     {output, status, calls}
   end
 
+  # Assertion message for every classification check: the script's own
+  # stdout/stderr plus the report body, so a future intermittent failure names
+  # the arm (suppression, missing dir, fetch exit) that fired.
+  defp diag(out_dir, output) do
+    report_path = Path.join(out_dir, "report.md")
+
+    body =
+      case File.read(report_path) do
+        {:ok, body} -> body
+        {:error, reason} -> "<could not read #{report_path}: #{inspect(reason)}>"
+      end
+
+    "script output:\n#{output}\nreport.md:\n#{body}"
+  end
+
   describe "classification behavior" do
     test "every command succeeds -> clean, exit 0" do
       out_dir = tmp_out_dir()
       {output, status, _calls} = run_report(out_dir)
 
       assert status == 0
-      assert output =~ "classification=clean"
+      assert output =~ "classification=clean", diag(out_dir, output)
     end
 
     test "hex.outdated fails in bench only -> outdated" do
@@ -156,7 +174,7 @@ defmodule Threadline.DepsHealthReportTest do
         run_report(out_dir, [{"FAKE_FAIL_HEX_OUTDATED", "bench"}])
 
       assert status == 0
-      assert output =~ "classification=outdated"
+      assert output =~ "classification=outdated", diag(out_dir, output)
     end
 
     test "hex.audit fails in the example -> advisory, even if outdated also fails there" do
@@ -169,7 +187,7 @@ defmodule Threadline.DepsHealthReportTest do
         ])
 
       assert status == 0
-      assert output =~ "classification=advisory"
+      assert output =~ "classification=advisory", diag(out_dir, output)
     end
 
     test "deps.get fails in root -> unknown, and no hex.audit/hex.outdated logged for root" do
@@ -179,7 +197,7 @@ defmodule Threadline.DepsHealthReportTest do
         run_report(out_dir, [{"FAKE_FAIL_DEPS_GET", "."}])
 
       assert status == 0
-      assert output =~ "classification=unknown"
+      assert output =~ "classification=unknown", diag(out_dir, output)
       refute calls =~ ". hex.audit"
       refute calls =~ ". hex.outdated"
       assert calls =~ "bench hex.audit"
@@ -196,7 +214,7 @@ defmodule Threadline.DepsHealthReportTest do
         ])
 
       assert status == 0
-      assert output =~ "classification=advisory"
+      assert output =~ "classification=advisory", diag(out_dir, output)
       refute calls =~ ". hex.audit"
 
       report_path = Path.join(out_dir, "report.md")
@@ -270,14 +288,14 @@ defmodule Threadline.DepsHealthReportTest do
       File.write!(output_path, "pre_existing=value\n")
       on_exit(fn -> File.rm(output_path) end)
 
-      {_output, status, _calls} =
+      {output, status, _calls} =
         run_report(out_dir, [{"GITHUB_OUTPUT", output_path}])
 
-      assert status == 0
+      assert status == 0, diag(out_dir, output)
 
       contents = File.read!(output_path)
       assert contents =~ "pre_existing=value"
-      assert contents =~ ~r/^classification=clean$/m
+      assert contents =~ ~r/^classification=clean$/m, diag(out_dir, output)
       assert contents =~ ~r/^report=.*report\.md$/m
     end
   end
@@ -292,7 +310,7 @@ defmodule Threadline.DepsHealthReportTest do
         ])
 
       assert status == 0
-      assert output =~ "classification=unknown"
+      assert output =~ "classification=unknown", diag(out_dir, output)
       refute calls =~ "deps.get"
       refute calls =~ "hex.audit"
       refute calls =~ "hex.outdated"
@@ -314,7 +332,7 @@ defmodule Threadline.DepsHealthReportTest do
         ])
 
       assert status == 0
-      assert output =~ "classification=unknown"
+      assert output =~ "classification=unknown", diag(out_dir, output)
       refute calls =~ "deps.get"
       refute calls =~ "hex.audit"
       refute calls =~ "hex.outdated"
@@ -329,7 +347,7 @@ defmodule Threadline.DepsHealthReportTest do
       {output, status, calls} = run_report(out_dir, [{"HEX_IGNORE_ADVISORIES", "x"}])
 
       assert status == 0
-      assert output =~ "classification=unknown"
+      assert output =~ "classification=unknown", diag(out_dir, output)
       refute calls =~ "deps.get"
       refute calls =~ "hex.audit"
       refute calls =~ "hex.outdated"
@@ -344,7 +362,7 @@ defmodule Threadline.DepsHealthReportTest do
       {output, status, calls} = run_report(out_dir, [{"HEX_IGNORE_RETIREMENTS", "x"}])
 
       assert status == 0
-      assert output =~ "classification=unknown"
+      assert output =~ "classification=unknown", diag(out_dir, output)
       refute calls =~ "deps.get"
       refute calls =~ "hex.audit"
       refute calls =~ "hex.outdated"
@@ -360,7 +378,7 @@ defmodule Threadline.DepsHealthReportTest do
         run_report(out_dir, [{"FAKE_HEX_CONFIG_IGNORE_ADVISORIES", "__NOOUTPUT__"}])
 
       assert status == 0
-      assert output =~ "classification=unknown"
+      assert output =~ "classification=unknown", diag(out_dir, output)
       refute calls =~ "deps.get"
 
       body = File.read!(Path.join(out_dir, "report.md"))
@@ -374,7 +392,7 @@ defmodule Threadline.DepsHealthReportTest do
         run_report(out_dir, [{"FAKE_HEX_CONFIG_EXIT", "1"}])
 
       assert status == 0
-      assert output =~ "classification=unknown"
+      assert output =~ "classification=unknown", diag(out_dir, output)
       refute calls =~ "deps.get"
 
       body = File.read!(Path.join(out_dir, "report.md"))
@@ -386,7 +404,7 @@ defmodule Threadline.DepsHealthReportTest do
       {output, status, _calls} = run_report(out_dir)
 
       assert status == 0
-      assert output =~ "classification=clean"
+      assert output =~ "classification=clean", diag(out_dir, output)
     end
 
     test "the suppression key literal is present in both bin/deps-health-report and bin/verify-deps-audit" do
@@ -405,11 +423,33 @@ defmodule Threadline.DepsHealthReportTest do
       {output, status, calls} = run_report(out_dir, [{"FAKE_LOCK_DRIFT", "bench"}])
 
       assert status == 0
-      assert output =~ "classification=unknown"
+      assert output =~ "classification=unknown", diag(out_dir, output)
       refute calls =~ "bench hex.audit"
       refute calls =~ "bench hex.outdated"
       assert calls =~ ". hex.audit"
       assert calls =~ "examples/threadline_phoenix hex.audit"
+    end
+
+    test "deps.get gets the `n` prompt answer on stdin, and no script pipes into $MIX_BIN" do
+      out_dir = tmp_out_dir()
+      stdin_log = tmp_log()
+
+      {output, status, _calls} = run_report(out_dir, [{"FAKE_MIX_STDIN_LOG", stdin_log}])
+
+      assert status == 0
+      assert output =~ "classification=clean", diag(out_dir, output)
+      assert File.read!(stdin_log) == "n\nn\nn\n"
+
+      # `printf 'n\n' | "$MIX_BIN" deps.get ...` under `set -o pipefail` also
+      # counts printf's status, which fails (EPIPE: BEAM-spawned children
+      # ignore SIGPIPE) whenever mix exits before printf writes. That race
+      # classified a clean run as `unknown`. Guard both scripts that shared it.
+      for script <- ["bin/deps-health-report", "bin/verify-deps-audit"] do
+        source = File.read!(Path.join(@repo_root, script))
+
+        refute source =~ ~r/\|\s*"\$MIX_BIN"/,
+               "#{script} must not pipe into $MIX_BIN (pipefail + EPIPE race)"
+      end
     end
 
     test "every fetch on a default run carries --check-locked" do

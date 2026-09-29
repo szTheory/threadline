@@ -52,7 +52,7 @@
 - [x] **Phase 217: Repo Hygiene** - No tracked machine-local paths, a CI guard that keeps it that way, scoped tmp_dir hygiene, and the xref disposition recorded (completed 2026-09-27)
 - [x] **Phase 218: CI Economy: Remove Waste** - Flake, release, Browser-full, live-Dialyzer and mechanical duplicates cut, each with a named dominating proof, and savings measured (completed 2026-09-27)
 - [x] **Phase 219: Deps-Only Build Cache** - Test jobs restore exact-keyed deps-only `_build` and example-app caches, with the saving measured (completed 2026-09-28)
-- [ ] **Phase 220: Newest-Toolchain Lane** - Spike-gated voting lane on Elixir 1.20 / OTP 29 / PG 18, or recorded "not yet"
+- [x] **Phase 220: Newest-Toolchain Lane** - Spike-gated voting lane on Elixir 1.20 / OTP 29 / PG 18, or recorded "not yet" (completed 2026-09-28)
 - [ ] **Phase 221: CI Names and Order** - A red check's name says what failed, and YAML runs fastest-to-red first
 - [ ] **Phase 222: SEED-006 Change-Aware Lanes (conditional)** - Decided from measured data: a fail-closed classifier, or "measured, not worth it"
 
@@ -291,7 +291,7 @@ Plans:
   2. If the spike is green, `lane: latest` is a voting entry in `verify-test` with roster and parity contract tests updated in the same commit; if not, a findings record states "not yet" with the specific failures.
   3. A contract test proves no voting lane uses `continue-on-error` and no lane uses a beta PostgreSQL image.
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -320,10 +320,28 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. Every CI job `name:` states what it proves, including the Hex evaluator name that is currently false on PRs, rewritten in one pass with CONTRIBUTING quotes updated in the same commit (doc-contract test).
-  2. Jobs in `ci.yml` are ordered by measured time-to-red with no `needs:` preflight chain added (topology contract test).
+  2. Jobs in `ci.yml` are ordered by measured time-to-red (job-duration p50 from cited runs) with no `needs:` preflight chain added (order contract test). This is for triage readability only, because YAML order has no runtime effect (221 D-05).
   3. Job `id:`s are unchanged and `CI required` is byte-exact (existing pins stay green).
+  4. A contract pins the `CI required` gate wiring itself: `if: always()`, the alls-green `jobs` input, and no `allowed-skips` in any spelling. Each has a mutation control. (Advisory from the 220 round-3 verification: today, deleting any of these leaves all 297 CI-contract tests green.)
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+
+- [x] 221-01-PLAN.md — Tracer + `CI required` gate-wiring contract with `@ci_job_ids` and controls (SC-3, SC-4); time-to-red tool, NAME_HISTORY and the 10 cited run JSONs
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 221-02-PLAN.md — Order contract red-first, the order-only ci.yml move with its three mechanical proofs, then the contract green (SC-2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 221-03-PLAN.md — One-pass rename: ci.yml names, truthful evaluator step and evaluator docs, CONTRIBUTING quotes and 15-check roster, test pins and the name doc-contract in one commit (SC-1)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 221-04-PLAN.md — NAME_HISTORY for the new names, then land on a new `land/v1.43-221` from origin/main under a named maintainer grant; verify the PR run posts the new names; record the era boundary
 **Research**: Not needed
 
 ### Phase 222: SEED-006 Change-Aware Lanes (conditional)
@@ -351,8 +369,8 @@ Plans:
 | 217. Repo Hygiene | 7/7 | Complete    | 2026-09-27 |
 | 218. CI Economy: Remove Waste | 8/8 | Complete    | 2026-09-27 |
 | 219. Deps-Only Build Cache | 3/3 | Complete    | 2026-09-28 |
-| 220. Newest-Toolchain Lane | 4/4 | In Progress | - |
-| 221. CI Names and Order | 0/TBD | Not started | - |
+| 220. Newest-Toolchain Lane | 4/4 | Complete    | 2026-09-28 |
+| 221. CI Names and Order | 3/4 | In Progress | - |
 | 222. SEED-006 Change-Aware Lanes | 0/TBD | Not started | - |
 
 ## Prior Milestones

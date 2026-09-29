@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   verify-example-browser-full:
-    name: Example app browser E2E — full project set
+    name: Example app browser E2E (all projects)
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     # A job-level block zeroes every unlisted scope. The actions read scope lets

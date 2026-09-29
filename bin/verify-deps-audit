@@ -322,8 +322,13 @@ for d in "${DIRS[@]}"; do
     continue
   fi
 
+  # The `n` answers any interactive Mix prompt. It is fed as a here-string,
+  # not `printf 'n\n' | mix ...`: under `set -o pipefail` that pipeline's
+  # status also counts printf, which fails (EPIPE, or SIGPIPE 141) whenever
+  # mix exits without reading stdin before printf writes. That race turned a
+  # successful fetch into a spurious non-zero status.
   set +e
-  deps_get_output="$(cd "$resolved" && printf 'n\n' | "$MIX_BIN" deps.get --check-locked 2>&1)"
+  deps_get_output="$(cd "$resolved" && "$MIX_BIN" deps.get --check-locked <<<'n' 2>&1)"
   deps_get_status=$?
   set -e
 

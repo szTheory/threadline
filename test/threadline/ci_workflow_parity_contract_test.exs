@@ -238,8 +238,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     test "ci.yml declares static name + lane axis [min, current, latest] (construction A)" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
-      assert Regex.match?(~r/^\s*name: Run test suite\s*$/m, yaml),
-             "verify-test must declare the static `name: Run test suite` (GitHub composes the lane suffix)"
+      assert Regex.match?(~r/^\s*name: Build and test\s*$/m, yaml),
+             "verify-test must declare the static `name: Build and test` (GitHub composes the lane suffix)"
 
       assert Regex.match?(~r/^\s*lane:\s*\[min,\s*current,\s*latest\]\s*$/m, yaml),
              "verify-test matrix must declare base axis `lane: [min, current, latest]`"
@@ -442,25 +442,25 @@ defmodule Threadline.CIWorkflowParityContractTest do
       assert String.contains?(readme, "not a new support floor")
       assert String.contains?(readme, "`latest` lane")
       assert String.contains?(mix_exs, "CI `latest` lane")
-      assert String.contains?(contributing, "Run test suite (latest)")
+      assert String.contains?(contributing, "Build and test (latest)")
       assert String.contains?(contributing, "not a support floor")
       assert String.contains?(contributing, "Test-file warnings stay non-fatal on every lane")
 
-      assert "Run test suite (latest)" in composed_check_names(job),
-             "verify-test must compose the check name \"Run test suite (latest)\", got " <>
+      assert "Build and test (latest)" in composed_check_names(job),
+             "verify-test must compose the check name \"Build and test (latest)\", got " <>
                inspect(composed_check_names(job))
 
-      comment = ~s[    # "Run test suite (latest)". Keys carried only via `include`\n]
+      comment = ~s[    # "Build and test (latest)". Keys carried only via `include`\n]
       uncommented = String.replace(job, comment, "")
 
       refute uncommented == job, "comment-removal positive control did not change the input"
 
-      assert "Run test suite (latest)" in composed_check_names(uncommented),
+      assert "Build and test (latest)" in composed_check_names(uncommented),
              "the composed name must not depend on the YAML comment"
 
       for {control, mutated} <- [
             {"job name changed",
-             String.replace(job, "    name: Run test suite\n", "    name: Run tests\n")},
+             String.replace(job, "    name: Build and test\n", "    name: Run tests\n")},
             {"latest dropped from the lane axis",
              String.replace(
                job,
@@ -470,23 +470,23 @@ defmodule Threadline.CIWorkflowParityContractTest do
             {"matrix expression in the job name",
              String.replace(
                job,
-               "    name: Run test suite\n",
-               "    name: Run test suite ${{ matrix.otp }}\n"
+               "    name: Build and test\n",
+               "    name: Build and test ${{ matrix.otp }}\n"
              )}
           ] do
         refute mutated == job, "#{control} control did not change the input"
 
-        refute "Run test suite (latest)" in composed_check_names(mutated),
-               "#{control} mutation must stop composing \"Run test suite (latest)\""
+        refute "Build and test (latest)" in composed_check_names(mutated),
+               "#{control} mutation must stop composing \"Build and test (latest)\""
       end
     end
 
     test "CONTRIBUTING List 2 carries every composed required-check name" do
       doc = read_rel!(["CONTRIBUTING.md"])
 
-      assert String.contains?(doc, "Run test suite (min)")
-      assert String.contains?(doc, "Run test suite (current)")
-      assert String.contains?(doc, "Run test suite (latest)")
+      assert String.contains?(doc, "Build and test (min)")
+      assert String.contains?(doc, "Build and test (current)")
+      assert String.contains?(doc, "Build and test (latest)")
     end
   end
 
@@ -501,7 +501,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       refute ci_required_needs(workflows[@ci_path]) == [],
              "ci-required's needs: list parsed empty — the needs-coverage check would be vacuous"
 
-      job_header = "    name: Run test suite\n"
+      job_header = "    name: Build and test\n"
       run_tests = "      - name: Run tests\n        run: mix verify.test\n"
       alls_green_jobs = "          jobs: ${{ toJSON(needs) }}\n"
 
@@ -576,7 +576,53 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"uppercase job id with continue-on-error",
          &(&1 <>
              "\n  VerifyExtra:\n    runs-on: ubuntu-24.04\n    continue-on-error: true\n"),
-         "job=VerifyExtra rule=continue-on-error"}
+         "job=VerifyExtra rule=continue-on-error"},
+        # 220 re-verification: spellings the parsed-YAML readers must also see.
+        {"job header with a trailing comment missing from ci-required needs",
+         &(&1 <> "\n  verify-extra: # new lane\n    runs-on: ubuntu-24.04\n"),
+         "rule=needs-coverage"},
+        {"quoted job id missing from ci-required needs",
+         &(&1 <> ~s(\n  "verify-extra":\n    runs-on: ubuntu-24.04\n)), "rule=needs-coverage"},
+        {"quoted if key on Run tests",
+         &String.replace(
+           &1,
+           run_tests,
+           ~s(      - name: Run tests\n        "if": matrix.lane != 'latest'\n) <>
+             "        run: mix verify.test\n"
+         ), "rule=lane-skip"},
+        {"if key with a space before the colon on Run tests",
+         &String.replace(
+           &1,
+           run_tests,
+           "      - name: Run tests\n        if : matrix.lane != 'latest'\n" <>
+             "        run: mix verify.test\n"
+         ), "rule=lane-skip"},
+        {"quoted if key on the Compile step",
+         &String.replace(
+           &1,
+           "      - name: Compile (warnings as errors)\n",
+           "      - name: Compile (warnings as errors)\n" <>
+             ~s(        'if': matrix.lane != 'latest'\n)
+         ), "rule=lane-skip"},
+        {"if key with a space before the colon on the xref step",
+         &String.replace(
+           &1,
+           "      - name: Verify no compile-connected xref cycles\n",
+           "      - name: Verify no compile-connected xref cycles\n" <>
+             "        if : matrix.lane != 'latest'\n"
+         ), "rule=lane-skip"},
+        {"shell override that makes Run tests a no-op",
+         &String.replace(
+           &1,
+           run_tests,
+           run_tests <> ~s(        shell: "true {0}"\n)
+         ), "rule=lane-shell"},
+        {"job-level defaults.run.shell override on verify-test",
+         &String.replace(
+           &1,
+           job_header,
+           job_header <> ~s(    defaults:\n      run:\n        shell: "true {0}"\n)
+         ), "rule=lane-shell"}
       ]
 
       for {control, mutate, fragment} <- controls do
@@ -585,6 +631,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
         refute mutated == workflows, "#{control} control did not change the input"
 
         errors = voting_lane_errors(mutated)
+
+        refute Enum.any?(errors, &String.contains?(&1, "rule=yaml-parse")),
+               "#{control} mutation must stay valid YAML, got #{inspect(errors)}"
 
         assert Enum.any?(errors, &String.contains?(&1, fragment)),
                "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
@@ -605,6 +654,114 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       assert voting_lane_errors(commented) == [],
              "the word continue-on-error inside a comment must not trip the contract"
+
+      unparseable = Map.update!(workflows, @ci_path, &(&1 <> "\n  broken: [unclosed\n"))
+
+      assert Enum.any?(
+               voting_lane_errors(unparseable),
+               &String.contains?(&1, "rule=yaml-parse")
+             ),
+             "a ci.yml that does not parse must fail closed"
+    end
+
+    test "CI required gate wiring cannot be made vacuous (SC-4)" do
+      workflows = all_workflows()
+
+      assert required_gate_errors(workflows) == []
+
+      gate_header = "    name: CI required\n    if: always()\n"
+      on_ci = fn edit -> &Map.update!(&1, @ci_path, edit) end
+      gate_step = "      - name: Decide whether all needed jobs succeeded\n"
+      gate_jobs = "          jobs: ${{ toJSON(needs) }}\n"
+
+      spoof = """
+      name: Spoof
+      on: push
+      jobs:
+        spoof:
+          name: CI required
+          runs-on: ubuntu-24.04
+          steps:
+            - run: true
+      """
+
+      # Each mutation takes the whole %{path => text} map, so a control can
+      # edit ci.yml or add a second workflow file.
+      controls = [
+        {"delete if: always()",
+         on_ci.(&String.replace(&1, gate_header, "    name: CI required\n")), "rule=gate-if"},
+        {"step if: false",
+         on_ci.(&String.replace(&1, gate_step, gate_step <> "        if: false\n")),
+         "rule=gate-step"},
+        {"uses replaced by run",
+         on_ci.(
+           &Regex.replace(
+             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40}\n/m,
+             &1,
+             "        run: echo ok\n"
+           )
+         ), "rule=gate-step"},
+        {"quoted allowed-skips",
+         on_ci.(
+           &String.replace(
+             &1,
+             gate_jobs,
+             gate_jobs <> ~s(          "allowed-skips": verify-test\n)
+           )
+         ), "rule=gate-inputs"},
+        {"jobs input emptied", on_ci.(&String.replace(&1, gate_jobs, "          jobs: '{}'\n")),
+         "rule=gate-jobs-input"},
+        {"second CI required job", &Map.put(&1, ".github/workflows/zz-spoof.yml", spoof),
+         "rule=gate-name"},
+        {"job id renamed everywhere", on_ci.(&String.replace(&1, "verify-format", "verify-fmt")),
+         "rule=job-ids"}
+      ]
+
+      for {control, mutate, fragment} <- controls do
+        mutated = mutate.(workflows)
+
+        refute mutated == workflows, "#{control} control did not change the input"
+
+        errors = required_gate_errors(mutated)
+
+        refute Enum.any?(errors, &String.contains?(&1, "rule=yaml-parse")),
+               "#{control} mutation must stay valid YAML, got #{inspect(errors)}"
+
+        assert Enum.any?(errors, &String.contains?(&1, fragment)),
+               "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
+      end
+
+      expression =
+        Map.update!(
+          workflows,
+          @ci_path,
+          &String.replace(&1, gate_header, "    name: CI required\n    if: ${{ always() }}\n")
+        )
+
+      refute expression == workflows, "expression positive control did not change the input"
+
+      assert required_gate_errors(expression) == [],
+             "`if: ${{ always() }}` is the same gate and must stay green"
+
+      commented =
+        Map.update!(
+          workflows,
+          @ci_path,
+          &String.replace(&1, gate_jobs, gate_jobs <> "          # allowed-skips: verify-test\n")
+        )
+
+      refute commented == workflows, "comment positive control did not change the input"
+
+      assert required_gate_errors(commented) == [],
+             "the word allowed-skips inside a comment must not trip the gate contract"
+
+      unparseable = Map.update!(workflows, @ci_path, &(&1 <> "\n  broken: [unclosed\n"))
+
+      assert Enum.any?(
+               required_gate_errors(unparseable),
+               &String.contains?(&1, "rule=yaml-parse")
+             ),
+             "a ci.yml that does not parse must fail the gate contract closed"
     end
 
     test "no workflow or compose file runs a pre-release PostgreSQL (D-16)" do
@@ -661,7 +818,49 @@ defmodule Threadline.CIWorkflowParityContractTest do
            "image: postgres@sha256:" <> String.duplicate("0", 64)
          ), "rule=pg-tag"},
         {"docker run of a beta image in release.yml", ".github/workflows/release.yml",
-         &(&1 <> "      - run: docker run --rm postgres:19beta1\n"), "rule=pg-tag"}
+         &(&1 <> "      - run: docker run --rm postgres:19beta1\n"), "rule=pg-tag"},
+        # 220 re-verification: prefixed images outside a block `image:` line.
+        {"prefixed beta image as a job container shorthand", @ci_path,
+         &String.replace(
+           &1,
+           "    name: Build and test\n",
+           "    name: Build and test\n    container: docker.io/library/postgres:19beta1\n"
+         ), "rule=pg-tag"},
+        {"flow-mapped service with a prefixed beta image", @ci_path,
+         &String.replace(
+           &1,
+           "    services:\n      postgres:\n        image: postgres:${{ matrix.pg }}\n",
+           "    services:\n" <>
+             ~s(      extra: { image: "ghcr.io/acme/postgres:19beta1", ports: ["5433:5432"] }\n) <>
+             "      postgres:\n        image: postgres:${{ matrix.pg }}\n"
+         ), "rule=pg-tag"},
+        {"quoted image key with a prefixed beta image", ".github/workflows/browser-full.yml",
+         &String.replace(
+           &1,
+           "image: postgres:16",
+           ~s("image": docker.io/library/postgres:19beta1)
+         ), "rule=pg-tag"},
+        {"folded-scalar image with a prefixed beta image",
+         ".github/workflows/flake-detection.yml",
+         &String.replace(
+           &1,
+           "        image: postgres:16\n",
+           "        image: >-\n          docker.io/library/postgres:19beta1\n"
+         ), "rule=pg-tag"},
+        {"docker run of a prefixed beta image in release.yml", ".github/workflows/release.yml",
+         &(&1 <> "      - run: docker run --rm docker.io/library/postgres:19beta1 true\n"),
+         "rule=pg-tag"},
+        {"docker step of a prefixed beta image in release.yml", ".github/workflows/release.yml",
+         &(&1 <> "      - uses: docker://ghcr.io/acme/postgres:19beta1\n"), "rule=pg-tag"},
+        {"compose interpolation defaulting to a beta image", "docker-compose.yml",
+         &String.replace(
+           &1,
+           "    image: postgres:16\n",
+           "    image: ${PG_IMAGE:-postgres:19beta1}\n"
+         ), "rule=pg-tag"},
+        {"compose interpolation with no default", "docker-compose.yml",
+         &String.replace(&1, "    image: postgres:16\n", "    image: ${PG_IMAGE}\n"),
+         "rule=pg-unresolved"}
       ]
 
       for {control, path, mutate, fragment} <- controls do
@@ -670,6 +869,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
         refute mutated == sources, "#{control} control did not change the input"
 
         errors = postgres_image_errors(mutated)
+
+        refute Enum.any?(errors, &String.contains?(&1, "rule=yaml-parse")),
+               "#{control} mutation must stay valid YAML, got #{inspect(errors)}"
 
         assert Enum.any?(errors, &String.contains?(&1, fragment)),
                "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
@@ -682,21 +884,28 @@ defmodule Threadline.CIWorkflowParityContractTest do
         Map.update!(
           sources,
           "docker-compose.yml",
-          &String.replace(&1, "    image: postgres:16\n", "    image: postgres:16\n" <> url_line)
+          &String.replace(
+            &1,
+            "    environment:\n      POSTGRES_USER: postgres\n",
+            "    environment:\n      POSTGRES_USER: postgres\n" <>
+              url_line <> ~s(      PG_SPEC: "user@postgres:5432"\n)
+          )
         )
 
       refute with_url == sources, "connection-URL positive control did not change the input"
       assert postgres_image_errors(with_url) == []
 
       assert postgres_image_tags(with_url) == tags,
-             "a postgres:// connection URL must not be read as an image reference"
+             "a postgres:// connection URL or host@postgres:<port> must not be read as an image"
 
       # Positive controls: a registry-prefixed, quoted or commented release tag
       # is still a release tag and must neither fail nor drop out of the scan.
       for {control, replacement} <- [
             {"registry-prefixed release tag", "    image: docker.io/library/postgres:16\n"},
             {"quoted release tag", ~s(    image: "postgres:16"\n)},
-            {"trailing comment", "    image: postgres:16 # pinned\n"}
+            {"trailing comment", "    image: postgres:16 # pinned\n"},
+            {"compose interpolation defaulting to a release tag",
+             "    image: ${PG_IMAGE:-postgres:16}\n"}
           ] do
         variant =
           Map.update!(
@@ -714,46 +923,641 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
-  # D-15: every lane that `ci-required` needs must be able to fail. A job- or
-  # step-level `continue-on-error:` (any value, including a `${{ matrix.* }}`
-  # expression), an `allowed-failures:` on the alls-green step, or a ci.yml job
-  # missing from `needs:` would each let a red lane report green. The key match
-  # also catches a quoted key (`"continue-on-error": true`) and a flow-mapped
-  # step (`- { name: x, continue-on-error: true }`), both valid YAML GitHub honours.
-  @continue_on_error_key ~r/(^|[\s{,])["']?continue-on-error["']?\s*:/m
-  @allowed_failures_key ~r/(^|[\s{,])["']?allowed-failures["']?\s*:/m
+  describe "job order, check names and CI required (DX-01)" do
+    test "ci.yml jobs read in measured time-to-red order (SC-2)" do
+      assert ci_order_errors(all_workflows()[@ci_path]) == []
+    end
 
-  defp voting_lane_errors(yaml_by_path) do
-    ci_path = ".github/workflows/ci.yml"
-    ci_yaml = Map.get(yaml_by_path, ci_path, "")
+    test "the ordered reader returns YAML order (D-09 guard 2)" do
+      assert parsed_job_order(~s(jobs:\n  a: {}\n  b: {}\n  "c": {}\n)) == {:ok, ["a", "b", "c"]}
+    end
 
-    continue_errors =
-      for {path, yaml} <- Enum.sort(yaml_by_path),
-          {job_id, block} <- workflow_jobs(yaml),
-          Regex.match?(@continue_on_error_key, strip_comment_lines(block)) do
-        "#{path} job=#{job_id} rule=continue-on-error: a voting job or step carries " <>
-          "`continue-on-error:`, so a red lane could report green (D-15)"
+    test "moving or chaining jobs turns the order contract red (D-10)" do
+      ci = all_workflows()[@ci_path]
+
+      # Anchors are job ids and the verify-test `name:` line matched by shape,
+      # never a display name, so a rename cannot turn a control into a no-op.
+      test_name_line = ~r/^  verify-test:\n(?:    #[^\n]*\n)*    name: [^\n]*\n/m
+      on_verify_test = fn insert -> Regex.replace(test_name_line, ci, "\\0" <> insert) end
+
+      fmt = workflow_job(ci, "verify-format")
+      req = workflow_job(ci, "ci-required")
+
+      fmt_moved =
+        ci
+        |> String.replace(fmt, "")
+        |> String.replace("  ci-required:\n", fmt <> "  ci-required:\n")
+
+      req_moved =
+        ci
+        |> String.replace(req, "")
+        |> String.replace("  verify-repo-hygiene:\n", req <> "\n  verify-repo-hygiene:\n")
+
+      # Only the keyword reader can see order: both moves leave the map `==`.
+      for {control, moved} <- [
+            {"verify-format moved", fmt_moved},
+            {"ci-required moved", req_moved}
+          ] do
+        refute moved == ci, "#{control} control did not change the input"
+        assert parse_yaml(moved) == parse_yaml(ci), "#{control} must parse to the same map"
       end
 
+      stub = "  \"verify-extra\":\n    runs-on: ubuntu-24.04\n    steps:\n      - run: true\n\n"
+      anchored = "  verify-extra: &stub\n    runs-on: ubuntu-24.04\n  <<: *stub\n\n"
+
+      controls = [
+        {"verify-format moved above ci-required", fmt_moved, ["rule=order:"]},
+        {"ci-required moved above verify-repo-hygiene", req_moved,
+         ["rule=order:", "rule=order-last"]},
+        {"block needs", on_verify_test.("    needs:\n      - verify-format\n"),
+         ["rule=order-needs"]},
+        {"flow needs", on_verify_test.("    needs: [verify-format]\n"), ["rule=order-needs"]},
+        {"quoted Needs", on_verify_test.(~s(    "Needs": verify-format\n)), ["rule=order-needs"]},
+        {"quoted stub job", String.replace(ci, "  ci-required:\n", stub <> "  ci-required:\n"),
+         ["rule=order-unknown"]},
+        {"jobs-level merge key",
+         String.replace(ci, "  ci-required:\n", anchored <> "  ci-required:\n"),
+         ["rule=order-merge-key"]}
+      ]
+
+      for {control, mutated, fragments} <- controls do
+        refute mutated == ci, "#{control} control did not change the input"
+
+        errors = ci_order_errors(mutated)
+
+        refute Enum.any?(errors, &String.contains?(&1, "rule=yaml-parse")),
+               "#{control} mutation must stay valid YAML, got #{inspect(errors)}"
+
+        for fragment <- fragments do
+          assert Enum.any?(errors, &String.contains?(&1, fragment)),
+                 "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
+        end
+      end
+    end
+
+    test "every check name says what it proves (SC-1, D-01..D-04)" do
+      workflows = all_workflows()
+
+      assert check_name_errors(workflows[@ci_path], read_rel!(["CONTRIBUTING.md"])) == []
+
+      browser_full = parsed_doc(workflows[".github/workflows/browser-full.yml"])
+
+      assert yaml_get(parsed_job(browser_full, "verify-example-browser-full"), "name") ==
+               "Example app browser E2E (all projects)"
+    end
+
+    test "renaming a check back or breaking the roster turns the name contract red" do
+      ci = all_workflows()[@ci_path]
+      contributing = read_rel!(["CONTRIBUTING.md"])
+
+      # Anchors are job ids plus the job's `name:` line matched by shape, so no
+      # control depends on the display name it is about to change.
+      rename = fn id, new_name ->
+        Regex.replace(
+          ~r/^(  #{Regex.escape(id)}:\n(?:    #[^\n]*\n)*)    name: [^\n]*\n/m,
+          ci,
+          "\\1    name: #{new_name}\n"
+        )
+      end
+
+      append_to_test_name =
+        Regex.replace(
+          ~r/^(  verify-test:\n(?:    #[^\n]*\n)*    name: [^\n]*)\n/m,
+          ci,
+          "\\1 ${{ matrix.lane }}\n"
+        )
+
+      timeout_first =
+        Regex.replace(
+          ~r/^(  verify-release-shape:\n)(    name: [^\n]*\n)(    runs-on: [^\n]*\n)    timeout-minutes: [^\n]*\n/m,
+          ci,
+          "\\1    timeout-minutes: 5\n\\2\\3"
+        )
+
+      dropped_bullet =
+        String.replace(contributing, "- Formatting (`verify-format`)\n", "", global: false)
+
+      retired_sentence =
+        String.replace(
+          contributing,
+          "## Branch protection (maintainers)\n",
+          "## Branch protection (maintainers)\n\nWatch `Run test suite (current)` first.\n"
+        )
+
+      controls = [
+        {"credo name restored to its pre-221 value",
+         rename.("verify-credo", "Run Credo (strict)"), contributing,
+         ["rule=name-exact", "rule=name-retired"]},
+        {"lane expression in the verify-test name", append_to_test_name, contributing,
+         ["rule=name-static"]},
+        {"leading verb", rename.("verify-credo", "Run Credo"), contributing, ["rule=name-verb"]},
+        {"49-character name", rename.("verify-format", String.duplicate("F", 49)), contributing,
+         ["rule=name-length"]},
+        {"Tier A in a name", rename.("verify-capture", "Tier A capture evidence"), contributing,
+         ["rule=name-jargon"]},
+        {"lane in a name", rename.("verify-capture", "Capture Lane evidence"), contributing,
+         ["rule=name-jargon"]},
+        {"timeout-minutes above name", timeout_first, contributing, ["rule=name-first-key"]},
+        {"roster bullet dropped", ci, dropped_bullet, ["rule=roster"]},
+        {"retired name in a CONTRIBUTING sentence", ci, retired_sentence, ["rule=name-retired"]}
+      ]
+
+      for {control, mutated_ci, mutated_doc, fragments} <- controls do
+        refute {mutated_ci, mutated_doc} == {ci, contributing},
+               "#{control} control did not change the input"
+
+        errors = check_name_errors(mutated_ci, mutated_doc)
+
+        refute Enum.any?(errors, &String.contains?(&1, "rule=yaml-parse")),
+               "#{control} mutation must stay valid YAML, got #{inspect(errors)}"
+
+        for fragment <- fragments do
+          assert Enum.any?(errors, &String.contains?(&1, fragment)),
+                 "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
+        end
+      end
+    end
+
+    test "evaluator docs never claim the public registry (D-03)" do
+      docs = evaluator_docs()
+
+      assert evaluator_doc_errors(docs) == []
+
+      mutated =
+        Map.update!(
+          docs,
+          "guides/evaluating-threadline.md",
+          &(&1 <> "\n- `mix verify.hex_evaluator` resolves threadline from hex.pm.\n")
+        )
+
+      refute mutated == docs, "evaluator control did not change the input"
+
+      assert Enum.any?(
+               evaluator_doc_errors(mutated),
+               &String.contains?(&1, "rule=evaluator-hexpm")
+             ),
+             "a guide line naming the evaluator and hex.pm must report rule=evaluator-hexpm"
+    end
+  end
+
+  # Structural reads of workflow and compose files go through the parsed YAML
+  # (220 re-verification). Every text-regex reader of ci.yml was bypassed by
+  # some valid spelling: a job header with a trailing comment or a quoted id, a
+  # quoted `"if":` or `if :` key, a flow mapping, a folded scalar. The parser
+  # normalises all of these, so rules that are about structure (job ids,
+  # `needs:`, `continue-on-error`, `allowed-failures`, step `if`/`run`/`shell`,
+  # image values) read the parsed document and cannot be spelled around.
+  # Comments never reach the parsed data. A file that does not parse fails
+  # closed (`rule=yaml-parse`). No rule here reads the trigger key, which YAML
+  # 1.1 parsers may read as boolean `true` for `on:`; job ids and other keys are
+  # stringified through `yaml_key_string/1` so such keys cannot crash a rule.
+  defp parse_yaml(text) do
+    memo_key = {__MODULE__, :parsed_yaml, :erlang.md5(text)}
+
+    case Process.get(memo_key) do
+      nil ->
+        parsed =
+          try do
+            {:ok, YamlElixir.read_from_string!(text, merge_anchors: true)}
+          rescue
+            error -> {:error, Exception.message(error)}
+          catch
+            kind, reason -> {:error, inspect({kind, reason})}
+          end
+
+        Process.put(memo_key, parsed)
+        parsed
+
+      parsed ->
+        parsed
+    end
+  end
+
+  # Job ids in YAML order. The map reader (parse_yaml/1) cannot see order:
+  # moving jobs leaves the parsed map `==`. yaml_elixir's keyword aggregator
+  # prepends each pair (deps/yaml_elixir/lib/yaml_elixir/mapper.ex,
+  # maps_aggregator/1), so the list comes back reversed; the a,b,c fixture test
+  # pins that. `merge_anchors: true` is deliberately not passed: in keyword mode
+  # a jobs-level `<<` key then survives as `"<<N"` (mapper.ex, key_for/2), and
+  # ci_order_errors/1 fails closed on it.
+  defp parsed_job_order(text) do
+    parsed =
+      try do
+        {:ok, YamlElixir.read_from_string!(text, maps_as_keywords: true)}
+      rescue
+        error -> {:error, Exception.message(error)}
+      catch
+        kind, reason -> {:error, inspect({kind, reason})}
+      end
+
+    with {:ok, doc} when is_list(doc) <- parsed,
+         [jobs] when is_list(jobs) <- for({k, v} <- doc, yaml_key(k) == "jobs", do: v) do
+      {:ok, jobs |> Enum.map(fn {k, _} -> yaml_key_string(k) end) |> Enum.reverse()}
+    else
+      {:error, message} -> {:error, "rule=yaml-parse: #{message}"}
+      _ -> {:error, "rule=yaml-parse: expected exactly one top-level `jobs` mapping"}
+    end
+  end
+
+  # SC-2 (221 D-06): ci.yml's jobs read top to bottom in measured time-to-red
+  # order, then ci-required last.
+  #
+  # Regenerate: python3 .planning/phases/221-ci-names-and-order/tools/time-to-red.py order
+  # Metric: successful-job duration (completed_at - started_at), nearest-rank p50
+  # (the 219 summarize-ci.py arithmetic), verify-test at its fastest lane; ties
+  # broken by max, then id.
+  # Runs: 36502353440 36501481301 36487483472 36467068660 36465241600
+  #       36457705448 36456537357 36455432448 36454272684 36453043277
+  # Re-derive only on a roster change or a milestone baseline re-measure, never
+  # for noise inside a tie band (D-06).
+  # Readability only: YAML order has no runtime effect (221 D-05).
+  @time_to_red_order ~w(verify-release-shape verify-repo-hygiene verify-format verify-deps-audit
+                        verify-compile-no-optional verify-hex-evaluator verify-pgbouncer-topology
+                        verify-credo verify-bump-rehearsal verify-dialyzer verify-test
+                        verify-capture verify-example-browser)
+
+  # D-10: pure over ci.yml text. Order is read through the keyword reader and
+  # cross-checked against the map reader, so a duplicate key, a merge key or a
+  # reader disagreement fails closed before any order rule runs.
+  defp ci_order_errors(text) do
+    case parsed_job_order(text) do
+      {:error, error} ->
+        [error]
+
+      {:ok, order} ->
+        doc = parsed_doc(text)
+        jobs = parsed_jobs(doc)
+
+        order_guard_errors(order, Enum.map(jobs, &elem(&1, 0))) ++
+          order_unknown_errors(order) ++
+          order_exact_errors(order) ++ order_last_errors(order) ++ order_needs_errors(jobs)
+    end
+  end
+
+  defp order_guard_errors(order, plain) do
+    cond do
+      Enum.any?(order, &String.starts_with?(&1, "<<")) ->
+        ["rule=order-merge-key: a jobs-level `<<` merge key hides job order"]
+
+      Enum.sort(order) != Enum.sort(plain) or order != Enum.uniq(order) ->
+        [
+          "rule=order-reader: keyword and map readings disagree (or a job id repeats): " <>
+            "#{inspect(order)} vs #{inspect(plain)}"
+        ]
+
+      true ->
+        []
+    end
+  end
+
+  defp order_unknown_errors(order) do
+    for id <- order, id != "ci-required", id not in @time_to_red_order do
+      "job=#{id} rule=order-unknown: place it by measured p50 (221 D-06)"
+    end
+  end
+
+  defp order_exact_errors(order) do
+    expected = @time_to_red_order ++ ["ci-required"]
+
+    if order == expected,
+      do: [],
+      else: ["rule=order: expected #{inspect(expected)}, got #{inspect(order)}"]
+  end
+
+  defp order_last_errors(order) do
+    if List.last(order) == "ci-required",
+      do: [],
+      else: ["rule=order-last: ci-required must be the last job"]
+  end
+
+  # D-07: no preflight `needs:` chain. Only ci-required may carry `needs`;
+  # yaml_field/2 case-folds and trims the key, so `Needs` or a quoted key count.
+  defp order_needs_errors(jobs) do
+    for {id, job} <- jobs, id != "ci-required", yaml_field(job, "needs") != :error do
+      "job=#{id} rule=order-needs: no preflight needs: chain (221 D-07)"
+    end
+  end
+
+  # SC-1 (221 D-02): each job's display name, by job id. verify-test's static
+  # name gets the ` (<lane>)` suffix from GitHub (D-04).
+  @ci_check_names %{
+    "verify-release-shape" => "CHANGELOG matches version",
+    "verify-repo-hygiene" => "Repo hygiene (no machine-local paths)",
+    "verify-format" => "Formatting",
+    "verify-deps-audit" => "Dependency audit (all lockfiles)",
+    "verify-compile-no-optional" => "Compile without optional deps",
+    "verify-hex-evaluator" => "Hex package install (rehearsal registry)",
+    "verify-pgbouncer-topology" => "Tests through PgBouncer (transaction mode)",
+    "verify-credo" => "Credo (strict)",
+    "verify-bump-rehearsal" => "Next-minor release rehearsal (docs + contracts)",
+    "verify-dialyzer" => "Dialyzer (full optional build)",
+    "verify-test" => "Build and test",
+    "verify-capture" => "Capture evidence byte-stable",
+    "verify-example-browser" => "Example app browser E2E (2 projects)",
+    "ci-required" => "CI required"
+  }
+
+  @verify_test_check_names [
+    "Build and test (min)",
+    "Build and test (current)",
+    "Build and test (latest)"
+  ]
+
+  # The pre-221 job names that changed (read from 27e4ac61:.github/workflows/ci.yml),
+  # plus the old verify-test lane names GitHub composed from them.
+  @retired_check_names [
+    "Check formatting",
+    "Run Credo (strict)",
+    "Dialyzer (current toolchain)",
+    "Run test suite",
+    "Hex evaluator smoke (threadline from hex.pm)",
+    "Example app browser E2E (Playwright)",
+    "Tier A capture lane (byte-stable evidence)",
+    "PgBouncer transaction topology",
+    "Release metadata (version / changelog)",
+    "Bump rehearsal (next minor)",
+    "Run test suite (min)",
+    "Run test suite (current)",
+    "Run test suite (latest)"
+  ]
+
+  # D-01 says names stay near 40 characters; the locked D-02 name
+  # `Next-minor release rehearsal (docs + contracts)` is 47 (221-RESEARCH
+  # correction 3), so the hard ceiling is 48.
+  @max_check_name_length 48
+
+  # SC-1 doc-contract: pure over ci.yml and CONTRIBUTING.md text.
+  defp check_name_errors(ci_text, contributing_text) do
+    case parsed_job_keywords(ci_text) do
+      {:error, error} ->
+        [error]
+
+      {:ok, keyword_jobs} ->
+        names = ci_job_names(ci_text)
+
+        name_exact_errors(names) ++
+          name_static_errors(ci_text, names) ++
+          name_shape_errors(names) ++
+          name_first_key_errors(keyword_jobs) ++
+          roster_errors(ci_text, keyword_jobs, contributing_text) ++
+          name_retired_errors(ci_text, names, contributing_text)
+    end
+  end
+
+  # [{id, name}] from the map reader, names stringified (nil when absent).
+  defp ci_job_names(ci_text) do
+    for {id, job} <- parsed_jobs(parsed_doc(ci_text)) do
+      name = yaml_get(job, "name")
+      {id, if(is_binary(name), do: name, else: inspect(name))}
+    end
+  end
+
+  defp name_exact_errors(names) do
+    for {id, name} <- names, Map.get(@ci_check_names, id) !== name do
+      "job=#{id} rule=name-exact: expected #{inspect(Map.get(@ci_check_names, id))}, " <>
+        "got #{inspect(name)} (221 D-02)"
+    end
+  end
+
+  defp name_static_errors(ci_text, names) do
+    name = Enum.find_value(names, fn {id, n} -> if id == "verify-test", do: n end) || ""
+    composed = composed_check_names(workflow_job(ci_text, "verify-test"))
+
+    if String.contains?(name, "${{") or composed != @verify_test_check_names,
+      do: [
+        "job=verify-test rule=name-static: expected the static name to compose " <>
+          "#{inspect(@verify_test_check_names)}, got #{inspect(composed)} (221 D-04)"
+      ],
+      else: []
+  end
+
+  defp name_shape_errors(names) do
+    Enum.flat_map(names, fn {id, name} ->
+      name_verb_errors(id, name) ++ name_length_errors(id, name) ++ name_jargon_errors(id, name)
+    end)
+  end
+
+  defp name_verb_errors(id, name) do
+    if String.starts_with?(name, ["Run ", "Check ", "Verify "]),
+      do: ["job=#{id} rule=name-verb: #{inspect(name)} leads with a verb (221 D-01)"],
+      else: []
+  end
+
+  defp name_length_errors(id, name) do
+    if String.length(name) > @max_check_name_length,
+      do: [
+        "job=#{id} rule=name-length: #{inspect(name)} is over #{@max_check_name_length} " <>
+          "characters (221 D-01)"
+      ],
+      else: []
+  end
+
+  defp name_jargon_errors(id, name) do
+    if String.contains?(name, "Tier A") or Regex.match?(~r/\blane\b/i, name),
+      do: ["job=#{id} rule=name-jargon: #{inspect(name)} uses internal jargon (221 D-01)"],
+      else: []
+  end
+
+  # The topology anchors and summarize-ci.py read `name:` as each job's first key.
+  defp name_first_key_errors(keyword_jobs) do
+    for {id, job} <- keyword_jobs, first_yaml_key(job) != "name" do
+      "job=#{id} rule=name-first-key: `name:` must be the job's first key"
+    end
+  end
+
+  defp first_yaml_key([_ | _] = job), do: job |> List.last() |> elem(0) |> yaml_key()
+  defp first_yaml_key(_job), do: nil
+
+  defp roster_errors(ci_text, keyword_jobs, contributing_text) do
+    expected =
+      for {id, _job} <- Enum.reverse(keyword_jobs),
+          id != "ci-required",
+          name <- posted_check_names(ci_text, id),
+          do: {name, id}
+
+    actual = contributing_roster(contributing_text)
+
+    if actual == expected,
+      do: [],
+      else: [
+        "CONTRIBUTING.md rule=roster: the branch-protection list must equal the posted " <>
+          "names in ci.yml order, expected #{inspect(expected)}, got #{inspect(actual)}"
+      ]
+  end
+
+  defp posted_check_names(ci_text, "verify-test"),
+    do: composed_check_names(workflow_job(ci_text, "verify-test"))
+
+  defp posted_check_names(ci_text, id) do
+    case yaml_get(parsed_job(parsed_doc(ci_text), id), "name") do
+      name when is_binary(name) -> [name]
+      _ -> []
+    end
+  end
+
+  defp contributing_roster(text) do
+    section =
+      case String.split(text, "## Branch protection (maintainers)\n", parts: 2) do
+        [_, rest] -> rest |> String.split(~r/^## /m, parts: 2) |> hd()
+        _ -> ""
+      end
+
+    for [_, name, id] <- Regex.scan(~r/^- (.+) \(`([a-z-]+)`/m, section), do: {name, id}
+  end
+
+  defp name_retired_errors(ci_text, names, contributing_text) do
+    comments =
+      ci_text
+      |> String.split("\n")
+      |> Enum.map(&String.trim/1)
+      |> Enum.filter(&String.starts_with?(&1, "#"))
+      |> Enum.join("\n")
+
+    for retired <- @retired_check_names,
+        {where, text} <- [
+          {"CONTRIBUTING.md", contributing_text},
+          {"ci.yml job name", Enum.map_join(names, "\n", &elem(&1, 1))},
+          {"ci.yml comment", comments}
+        ],
+        String.contains?(text, retired) do
+      "#{where} rule=name-retired: #{inspect(retired)} was renamed in phase 221"
+    end
+  end
+
+  # [{job_id, keyword_job}] in reverse YAML order (the keyword aggregator
+  # prepends), job values left as keyword lists in reverse key order.
+  defp parsed_job_keywords(text) do
+    parsed =
+      try do
+        {:ok, YamlElixir.read_from_string!(text, maps_as_keywords: true)}
+      rescue
+        error -> {:error, Exception.message(error)}
+      catch
+        kind, reason -> {:error, inspect({kind, reason})}
+      end
+
+    with {:ok, doc} when is_list(doc) <- parsed,
+         [jobs] when is_list(jobs) <- for({k, v} <- doc, yaml_key(k) == "jobs", do: v) do
+      {:ok, Enum.map(jobs, fn {k, v} -> {yaml_key_string(k), v} end)}
+    else
+      {:error, message} -> {:error, "rule=yaml-parse: #{message}"}
+      _ -> {:error, "rule=yaml-parse: expected exactly one top-level `jobs` mapping"}
+    end
+  end
+
+  # D-03 doc-contract inputs: README, every guide (the version_truth glob) and
+  # CONTRIBUTING, keyed by repo-relative path.
+  defp evaluator_docs do
+    guides = Path.wildcard(Path.join(@repo_root, "guides/**/*.md"))
+
+    (["README.md", "CONTRIBUTING.md"] ++ Enum.map(guides, &Path.relative_to(&1, @repo_root)))
+    |> Map.new(&{&1, read_rel!([&1])})
+  end
+
+  defp evaluator_doc_errors(docs) do
+    glob_errors =
+      if Enum.any?(Map.keys(docs), &String.starts_with?(&1, "guides/")),
+        do: [],
+        else: ["rule=evaluator-glob: guides/**/*.md matched no file"]
+
+    glob_errors ++
+      for {path, text} <- Enum.sort(docs),
+          {line, n} <- Enum.with_index(String.split(text, "\n"), 1),
+          String.contains?(line, ["verify.hex_evaluator", "verify-hex-evaluator"]),
+          String.contains?(String.downcase(line), "hex.pm") do
+        "#{path}:#{n} rule=evaluator-hexpm: the evaluator installs this tree's package from " <>
+          "a local rehearsal registry; only release.yml's published mode resolves the public " <>
+          "registry"
+      end
+  end
+
+  defp yaml_key_string(key) when is_binary(key), do: key
+  defp yaml_key_string(key) when is_atom(key) or is_number(key), do: to_string(key)
+  defp yaml_key_string(key), do: inspect(key)
+
+  # Keys compare trimmed and case-folded, so no case or spacing variant of a
+  # banned key (GitHub keys are case-sensitive, so this only over-reports).
+  defp yaml_key(key), do: key |> yaml_key_string() |> String.trim() |> String.downcase()
+
+  defp yaml_field(%{} = map, key) do
+    Enum.find_value(map, fn {k, v} -> if yaml_key(k) == key, do: {:ok, v} end) || :error
+  end
+
+  defp yaml_field(_data, _key), do: :error
+
+  defp yaml_get(data, key) do
+    case yaml_field(data, key) do
+      {:ok, value} -> value
+      :error -> nil
+    end
+  end
+
+  defp yaml_get_in(data, keys), do: Enum.reduce(keys, data, &yaml_get(&2, &1))
+
+  # [{job_id, job}] of a parsed workflow, sorted by job id.
+  defp parsed_jobs(doc) do
+    case yaml_get(doc, "jobs") do
+      %{} = jobs -> jobs |> Enum.map(fn {k, v} -> {yaml_key_string(k), v} end) |> Enum.sort()
+      _ -> []
+    end
+  end
+
+  defp parsed_job(doc, id) do
+    Enum.find_value(parsed_jobs(doc), fn {job_id, job} -> if job_id == id, do: job end)
+  end
+
+  defp parsed_doc(text) do
+    case parse_yaml(text) do
+      {:ok, doc} -> doc
+      {:error, _} -> nil
+    end
+  end
+
+  defp yaml_key_anywhere?(%{} = map, key),
+    do: Enum.any?(map, fn {k, v} -> yaml_key(k) == key or yaml_key_anywhere?(v, key) end)
+
+  defp yaml_key_anywhere?(list, key) when is_list(list),
+    do: Enum.any?(list, &yaml_key_anywhere?(&1, key))
+
+  defp yaml_key_anywhere?(_data, _key), do: false
+
+  # D-15: every lane that `ci-required` needs must be able to fail. A
+  # `continue-on-error` key at any depth of any job (job level, step level,
+  # flow-mapped, quoted, any value including a `${{ matrix.* }}` expression),
+  # an `allowed-failures` key anywhere in a ci.yml job, or a ci.yml job missing
+  # from `needs:` would each let a red lane report green. There is no allowed
+  # exception today; the deps-only cache contract bans the key on cache steps
+  # separately. All of it reads the parsed YAML, so a job header with a
+  # trailing comment or a quoted id is still a job.
+  defp voting_lane_errors(yaml_by_path) do
+    ci_path = ".github/workflows/ci.yml"
+    parsed = yaml_by_path |> Enum.sort() |> Enum.map(fn {path, t} -> {path, parse_yaml(t)} end)
+
+    parse_errors =
+      for {path, {:error, message}} <- parsed do
+        "#{path} rule=yaml-parse: the workflow does not parse as YAML, so no voting-lane " <>
+          "rule can be checked (#{message}) (D-15)"
+      end
+
+    continue_errors =
+      for {path, {:ok, doc}} <- parsed,
+          {job_id, job} <- parsed_jobs(doc),
+          yaml_key_anywhere?(job, "continue-on-error") do
+        "#{path} job=#{job_id} rule=continue-on-error: a voting job or step carries " <>
+          "`continue-on-error`, so a red lane could report green (D-15)"
+      end
+
+    ci_doc = parsed_doc(Map.get(yaml_by_path, ci_path, ""))
+    ci_jobs = parsed_jobs(ci_doc)
+
     allowed_failures_errors =
-      if Regex.match?(
-           @allowed_failures_key,
-           strip_comment_lines(workflow_job(ci_yaml, "ci-required"))
-         ),
-         do: [
-           "#{ci_path} job=ci-required rule=allowed-failures: the alls-green gate must not " <>
-             "tolerate any failed lane (D-15)"
-         ],
-         else: []
+      for {job_id, job} <- ci_jobs, yaml_key_anywhere?(job, "allowed-failures") do
+        "#{ci_path} job=#{job_id} rule=allowed-failures: the alls-green gate must not " <>
+          "tolerate any failed lane (D-15)"
+      end
 
-    needs = MapSet.new(ci_required_needs(ci_yaml))
-
-    jobs =
-      ci_yaml
-      |> workflow_jobs()
-      |> Enum.map(&elem(&1, 0))
-      |> MapSet.new()
-      |> MapSet.delete("ci-required")
+    needs = MapSet.new(parsed_needs(ci_doc))
+    jobs = ci_jobs |> Enum.map(&elem(&1, 0)) |> MapSet.new() |> MapSet.delete("ci-required")
 
     needs_errors =
       cond do
@@ -774,45 +1578,233 @@ defmodule Threadline.CIWorkflowParityContractTest do
           ]
       end
 
-    continue_errors ++ allowed_failures_errors ++ needs_errors ++ every_lane_step_errors(ci_yaml)
+    parse_errors ++
+      continue_errors ++
+      allowed_failures_errors ++ needs_errors ++ every_lane_step_errors(ci_doc)
+  end
+
+  # SC-3 id pin (D-11): the 14 ci.yml job ids, frozen as a literal. Adding or
+  # renaming a job updates this literal on purpose in the same commit. It is not
+  # derived from any other attribute, so one edit can never move two pins.
+  # Phase 222's escape hatch (D-11) adds its new id here together with
+  # `@time_to_red_order`.
+  @ci_job_ids MapSet.new(~w(
+    ci-required
+    verify-bump-rehearsal
+    verify-capture
+    verify-compile-no-optional
+    verify-credo
+    verify-deps-audit
+    verify-dialyzer
+    verify-example-browser
+    verify-format
+    verify-hex-evaluator
+    verify-pgbouncer-topology
+    verify-release-shape
+    verify-repo-hygiene
+    verify-test
+  ))
+
+  defp gate_norm(value) when is_binary(value),
+    do: value |> String.replace(~r/\s+/, "") |> String.downcase()
+
+  defp gate_norm(_value), do: nil
+
+  # SC-4 (D-11): does the aggregate decide? `voting_lane_errors/1` asks whether
+  # each lane can fail; this asks whether `CI required`, the single required
+  # check, still turns a failed or skipped lane into a red check. It reads the
+  # parsed ci-required job: `if: always()` (so a failed lane cannot skip the
+  # gate to a neutral state), exactly one step that `uses:` alls-green at a
+  # full SHA with no `if`/`run`, a `with` allowlist of exactly `jobs` (so
+  # `allowed-skips`, `allowed-failures` or any future input fail in any
+  # spelling), `jobs: ${{ toJSON(needs) }}`, one job named `CI required` across
+  # every workflow, and the frozen `@ci_job_ids` set.
+  #
+  # D-12: `runs-on`, `timeout-minutes`, `permissions` and workflow-level
+  # `paths`/`branches-ignore`/`types` are deliberately not pinned here. Each
+  # fails closed: a bad value leaves the required check pending, never green.
+  defp required_gate_errors(yaml_by_path) do
+    ci_path = ".github/workflows/ci.yml"
+
+    case parse_yaml(Map.get(yaml_by_path, ci_path, "")) do
+      {:error, message} ->
+        [
+          "#{ci_path} rule=yaml-parse: the workflow does not parse as YAML, so the " <>
+            "CI required gate cannot be checked (#{message}) (SC-4)"
+        ]
+
+      {:ok, doc} ->
+        job = parsed_job(doc, "ci-required")
+
+        gate_if_errors(job) ++
+          gate_step_errors(job) ++
+          gate_name_errors(job, yaml_by_path, ci_path) ++ gate_job_id_errors(doc)
+    end
+  end
+
+  defp gate_if_errors(job) do
+    if_expr =
+      case gate_norm(yaml_get(job, "if")) do
+        nil -> nil
+        expr -> expr |> String.replace_prefix("${{", "") |> String.replace_suffix("}}", "")
+      end
+
+    if if_expr == "always()",
+      do: [],
+      else: ["rule=gate-if: ci-required must run `if: always()`, got #{inspect(if_expr)}"]
+  end
+
+  defp gate_step_errors(job) do
+    case yaml_get(job, "steps") do
+      [%{} = step] ->
+        with_ = yaml_get(step, "with")
+
+        gate_step_shape_errors(step) ++ gate_input_errors(with_) ++ gate_jobs_input_errors(with_)
+
+      _ ->
+        ["rule=gate-step: ci-required must have exactly one step (the alls-green decision)"]
+    end
+  end
+
+  defp gate_step_shape_errors(step) do
+    uses = yaml_get(step, "uses")
+
+    guard =
+      if yaml_field(step, "if") == :error and yaml_field(step, "run") == :error,
+        do: [],
+        else: ["rule=gate-step: the alls-green step must carry neither `if` nor `run`"]
+
+    pin =
+      if is_binary(uses) and uses =~ ~r/^re-actors\/alls-green@[0-9a-f]{40}$/,
+        do: [],
+        else: [
+          "rule=gate-step: the step must `uses:` re-actors/alls-green at a full " <>
+            "commit SHA, got #{inspect(uses)}"
+        ]
+
+    guard ++ pin
+  end
+
+  defp gate_input_errors(with_) do
+    keys =
+      case with_ do
+        %{} = map -> map |> Map.keys() |> Enum.map(&yaml_key/1) |> Enum.sort()
+        _ -> []
+      end
+
+    if keys == ["jobs"],
+      do: [],
+      else: [
+        "rule=gate-inputs: the alls-green `with` keys must be exactly " <>
+          "[\"jobs\"], got #{inspect(keys)}"
+      ]
+  end
+
+  defp gate_jobs_input_errors(with_) do
+    if gate_norm(yaml_get(with_, "jobs")) == "${{tojson(needs)}}",
+      do: [],
+      else: ["rule=gate-jobs-input: the `jobs` input must be ${{ toJSON(needs) }}"]
+  end
+
+  defp gate_name_errors(job, yaml_by_path, ci_path) do
+    carriers =
+      for {path, text} <- Enum.sort(yaml_by_path),
+          {:ok, doc} <- [parse_yaml(text)],
+          {job_id, other} <- parsed_jobs(doc),
+          yaml_get(other, "name") == "CI required",
+          do: {path, job_id}
+
+    own =
+      if yaml_get(job, "name") === "CI required" and yaml_field(job, "strategy") == :error,
+        do: [],
+        else: ["rule=gate-name: ci-required must be named exactly `CI required`, with no matrix"]
+
+    unique =
+      if carriers == [{ci_path, "ci-required"}],
+        do: [],
+        else: [
+          "rule=gate-name: exactly one job in any workflow may be named `CI required`, " <>
+            "got #{inspect(carriers)}"
+        ]
+
+    own ++ unique
+  end
+
+  defp gate_job_id_errors(doc) do
+    ids = doc |> parsed_jobs() |> Enum.map(&elem(&1, 0)) |> MapSet.new()
+
+    if ids == @ci_job_ids,
+      do: [],
+      else: [
+        "rule=job-ids: ci.yml job ids drifted from @ci_job_ids: " <>
+          inspect(ids |> MapSet.symmetric_difference(@ci_job_ids) |> Enum.sort())
+      ]
   end
 
   # D-15 (WR-01, 220 review): the steps that make the `latest` lane (and every
   # other verify-test lane) prove something must run on every lane. A step
-  # `if:` (e.g. `matrix.lane != 'latest'`) would skip the step and leave the
-  # lane green; a changed `run:` (e.g. `mix verify.test || true`) would make it
-  # unable to fail. Each step must exist once, carry no `if:`, and run exactly
-  # the expected command.
+  # `if` (e.g. `matrix.lane != 'latest'`, however the key is spelled) would
+  # skip the step and leave the lane green; a changed `run` (e.g.
+  # `mix verify.test || true`) or a `shell` override (e.g. `true {0}`, at step,
+  # job or workflow `defaults.run` level) would make it unable to fail. Each
+  # step must exist once in the parsed steps list, carry no `if` key, run
+  # exactly the expected command, and use the default shell (`bash` or unset).
   @every_lane_steps [
     {"Compile (warnings as errors)", "mix compile --warnings-as-errors"},
     {"Verify no compile-connected xref cycles", "mix verify.xref_cycles"},
     {"Run tests", "mix verify.test"}
   ]
 
-  defp every_lane_step_errors(ci_yaml) do
-    steps = ci_yaml |> workflow_job("verify-test") |> strip_comment_lines() |> job_steps()
+  @default_shells [nil, "bash"]
 
-    for {name, cmd} <- @every_lane_steps,
-        error <- every_lane_step_error(steps, name, cmd),
-        do: ".github/workflows/ci.yml job=verify-test step=#{inspect(name)} " <> error
+  defp every_lane_step_errors(ci_doc) do
+    job = parsed_job(ci_doc, "verify-test")
+
+    steps =
+      case yaml_get(job, "steps") do
+        steps when is_list(steps) -> steps
+        _ -> []
+      end
+
+    default_shell_errors =
+      for {scope, data} <- [{"workflow", ci_doc}, {"job", job}],
+          shell <- [yaml_get_in(data, ["defaults", "run", "shell"])],
+          shell not in @default_shells do
+        ".github/workflows/ci.yml job=verify-test rule=lane-shell: #{scope}-level " <>
+          "defaults.run.shell #{inspect(shell)} replaces the shell every lane step runs " <>
+          "under (D-15)"
+      end
+
+    step_errors =
+      for {name, cmd} <- @every_lane_steps,
+          error <- every_lane_step_error(steps, name, cmd),
+          do: ".github/workflows/ci.yml job=verify-test step=#{inspect(name)} " <> error
+
+    default_shell_errors ++ step_errors
   end
 
   defp every_lane_step_error(steps, name, cmd) do
-    case Enum.filter(steps, &String.starts_with?(&1, "      - name: #{name}\n")) do
+    case Enum.filter(steps, &(step_name(&1) == name)) do
       [step] ->
-        lines = trimmed_lines(step)
-
         skip_errors =
-          if Enum.any?(lines, &String.starts_with?(&1, "if:")),
-            do: ["rule=lane-skip: the step carries `if:`, so a lane could skip it (D-15)"],
-            else: []
+          if yaml_field(step, "if") == :error,
+            do: [],
+            else: ["rule=lane-skip: the step carries `if`, so a lane could skip it (D-15)"]
 
         command_errors =
-          if "run: #{cmd}" in lines,
+          if lane_step_runs?(yaml_get(step, "run"), cmd),
             do: [],
             else: ["rule=lane-command: the step must run exactly `#{cmd}` (D-15)"]
 
-        skip_errors ++ command_errors
+        shell_errors =
+          if yaml_get(step, "shell") in @default_shells,
+            do: [],
+            else: [
+              "rule=lane-shell: the step overrides `shell`, which can turn it into a " <>
+                "no-op (D-15)"
+            ]
+
+        skip_errors ++ command_errors ++ shell_errors
 
       found ->
         [
@@ -821,40 +1813,56 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
-  # Parsed the same way ci_topology_contract_test.exs reads the roster.
-  defp ci_required_needs(ci_yaml) do
-    block = ci_yaml |> workflow_job("ci-required") |> strip_comment_lines()
+  defp lane_step_runs?(run, cmd) when is_binary(run), do: String.trim(run) == cmd
+  defp lane_step_runs?(_run, _cmd), do: false
 
-    case Regex.run(~r/    needs:\n((?:      - .+\n)+)/, block <> "\n") do
-      [_, list] ->
-        ~r/^      - (\S+)\s*$/m
-        |> Regex.scan(list)
-        |> Enum.map(fn [_, job] -> job end)
-
-      nil ->
-        []
+  defp step_name(step) do
+    case yaml_get(step, "name") do
+      name when is_binary(name) -> String.trim(name)
+      _ -> nil
     end
   end
+
+  defp parsed_needs(ci_doc) do
+    case yaml_get(parsed_job(ci_doc, "ci-required"), "needs") do
+      needs when is_list(needs) -> Enum.map(needs, &yaml_key_string/1)
+      need when is_binary(need) -> [need]
+      _ -> []
+    end
+  end
+
+  defp ci_required_needs(ci_yaml), do: ci_yaml |> parsed_doc() |> parsed_needs()
 
   defp image_sources do
     Map.put(all_workflows(), "docker-compose.yml", read_rel!(["docker-compose.yml"]))
   end
 
   # D-16: every PostgreSQL image in every workflow and docker-compose.yml must
-  # be a release tag (`18` or `18.6`). `${{ matrix.pg }}` resolves through the
-  # job's parsed `include` rows; anything unresolvable fails closed.
+  # be a release tag (`18` or `18.6`). The scan walks every string scalar (and
+  # string key) of the parsed file, so no key spelling (`"image":`), flow
+  # mapping, folded scalar or `container:` shorthand hides an image:
   #
-  # `image:` lines are parsed whole (WR-02, 220 review), so a registry or
-  # namespace prefix (`docker.io/library/postgres:…`), an untagged image
-  # (implicit `latest`), a digest pin, or text around a `${{ … }}` expression
-  # cannot slip past. Any image whose final path segment starts with
-  # `postgres` counts (fail closed). Every other line is scanned for bare
-  # `postgres:<tag>` tokens (a `docker run` or `container:` shorthand); there
-  # the lookbehind skips `postgres://…@postgres:5432` connection URLs.
-  @postgres_image_line ~r/^\s*image:\s*(.+?)\s*$/
-  @image_value ~r/^(?:[^\s\/]+\/)*(?<name>[A-Za-z0-9._-]+)(?<rest>.*)$/
-  @postgres_image_ref ~r/(?<![\w\/@:.-])postgres:(\$\{\{[^}]*\}\}|[A-Za-z0-9_.-]+)/
+  # * An `image` value, or a string `container` value, is read whole as an
+  #   image reference. Any registry or namespace prefix is skipped; if the final
+  #   path segment starts with `postgres` it must carry a release tag (an
+  #   untagged image is implicit `latest`; a digest pin hides the version). An
+  #   image name that is still a variable after interpolation fails closed.
+  # * Every other scalar (a `run:` script, an env value, a `docker://` step) is
+  #   scanned for `[registry/][namespace/]postgres…:<tag>` tokens, which covers
+  #   `docker run docker.io/library/postgres:…`. Connection URLs
+  #   (`postgres://…`, `postgresql://…`) are dropped first, and a token right
+  #   after `@` (`host@postgres:5432`) or inside a path is not an image. A bare
+  #   untagged `postgres` word in free text is the role name, not an image.
+  # * `${VAR:-default}` / `${VAR-default}` interpolation (compose, and the same
+  #   shell syntax in scripts) resolves to its default, which is then checked;
+  #   any other `${VAR…}` form fails closed as `pg-unresolved`.
+  # * `${{ matrix.pg }}` resolves through the job's parsed matrix (base axis
+  #   plus `include` rows); any other expression fails closed.
   @postgres_release_tag ~r/^\d+(\.\d+)?$/
+  @image_parts ~r/^(?<prefix>(?:[^\s\/]+\/)*)(?<name>[^\s\/:@]+)(?<rest>.*)$/s
+  @free_text_postgres_ref ~r/(?<![\w@\/:.$-])(?<prefix>(?:[A-Za-z0-9._-]+(?::\d+)?\/)*)(?<name>postgres[A-Za-z0-9._-]*)(?:(?::(?<tag>\$\{\{[^}]*\}\}[A-Za-z0-9_.-]*|\$\{?[A-Za-z0-9_]+\}?[A-Za-z0-9_.-]*|[A-Za-z0-9_.-]+))|(?<digest>@\S+))?/
+  @connection_url ~r/[A-Za-z][A-Za-z0-9+.-]*:\/\/\S*/
+  @shell_default_interpolation ~r/\$\{[A-Za-z_][A-Za-z0-9_]*:?-([^{}$]*)\}/
 
   defp postgres_image_errors(sources) do
     for {path, job_id, ref} <- postgres_image_refs(sources),
@@ -884,84 +1892,179 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
   defp postgres_ref_errors(path, job_id, {:unresolved, expr}) do
     [
-      "#{path} job=#{job_id} rule=pg-unresolved: postgres:#{expr} does not resolve to " <>
-        "include-row pg values, so its tag cannot be checked (D-16)"
+      "#{path} job=#{job_id} rule=pg-unresolved: #{expr} does not resolve to checkable " <>
+        "PostgreSQL image tags (D-16)"
     ]
   end
 
-  # [{path, job_id, {:ok, tag} | {:unresolved, expr} | {:invalid, image}}]
+  defp postgres_ref_errors(path, job_id, {:parse_error, message}) do
+    [
+      "#{path} job=#{job_id} rule=yaml-parse: the file does not parse as YAML, so its " <>
+        "images cannot be checked (#{message}) (D-16)"
+    ]
+  end
+
+  # [{path, job_id, {:ok, tag} | {:unresolved, expr} | {:invalid, image} | {:parse_error, msg}}]
   defp postgres_image_refs(sources) do
     for {path, text} <- Enum.sort(sources),
-        {job_id, block} <- image_scan_units(text),
-        line <- block |> strip_comment_lines() |> String.split("\n"),
-        resolved <- postgres_line_refs(line, block),
-        do: {path, job_id, resolved}
+        {unit, data, matrix} <- image_scan_units(text),
+        ref <- scan_postgres_node(data, matrix),
+        do: {path, unit, ref}
   end
 
-  defp postgres_line_refs(line, block) do
-    case Regex.run(@postgres_image_line, line) do
-      [_, value] ->
-        value |> strip_yaml_scalar() |> postgres_image_value_refs(block)
+  # A workflow is scanned per job (matrix expressions resolve per job), plus
+  # its non-job keys; a file with no `jobs` map (docker-compose.yml) is scanned
+  # whole.
+  defp image_scan_units(text) do
+    case parse_yaml(text) do
+      {:error, message} ->
+        [{"(file)", {:parse_error, message}, nil}]
+
+      {:ok, doc} ->
+        doc_scan_units(doc, parsed_jobs(doc))
+    end
+  end
+
+  defp doc_scan_units(doc, []), do: [{"(file)", doc, nil}]
+
+  defp doc_scan_units(doc, jobs) do
+    rest = doc |> Enum.reject(fn {k, _} -> yaml_key(k) == "jobs" end) |> Map.new()
+
+    [{"(workflow)", rest, nil}] ++
+      for {job_id, job} <- jobs, do: {job_id, job, yaml_get_in(job, ["strategy", "matrix"])}
+  end
+
+  defp scan_postgres_node({:parse_error, _} = error, _matrix), do: [error]
+
+  defp scan_postgres_node(%{} = map, matrix) do
+    Enum.flat_map(map, fn {key, value} ->
+      key_refs = if is_binary(key), do: free_text_postgres_refs(key, matrix), else: []
+      key_refs ++ scan_postgres_value(yaml_key(key), value, matrix)
+    end)
+  end
+
+  defp scan_postgres_node(list, matrix) when is_list(list),
+    do: Enum.flat_map(list, &scan_postgres_node(&1, matrix))
+
+  defp scan_postgres_node(text, matrix) when is_binary(text),
+    do: free_text_postgres_refs(text, matrix)
+
+  defp scan_postgres_node(_scalar, _matrix), do: []
+
+  defp scan_postgres_value(key, image, matrix)
+       when key in ["image", "container"] and is_binary(image),
+       do: image_value_refs(image, matrix)
+
+  defp scan_postgres_value(_key, value, matrix), do: scan_postgres_node(value, matrix)
+
+  defp image_value_refs(image, matrix) do
+    image = image |> String.trim() |> resolve_shell_defaults()
+
+    case Regex.named_captures(@image_parts, image) do
+      %{"name" => name, "rest" => rest} ->
+        cond do
+          String.starts_with?(String.downcase(name), "postgres") ->
+            image_rest_refs(image, rest, matrix)
+
+          String.contains?(name, "$") ->
+            [{:unresolved, "image #{image}"}]
+
+          true ->
+            []
+        end
 
       nil ->
-        for [_, ref] <- Regex.scan(@postgres_image_ref, line),
-            resolved <- resolve_postgres_ref(ref, block),
-            do: resolved
+        if String.contains?(image, "$"), do: [{:unresolved, "image #{image}"}], else: []
     end
   end
 
-  # Drops a trailing ` # comment` and one layer of surrounding quotes.
-  defp strip_yaml_scalar(value) do
-    value
-    |> String.replace(~r/\s+#.*$/, "")
-    |> String.trim()
-    |> String.replace(~r/^(["'])(.*)\1$/, "\\2")
+  defp image_rest_refs(_image, ":" <> tag, matrix), do: postgres_tag_refs(tag, matrix)
+  defp image_rest_refs(image, _rest, _matrix), do: [{:invalid, image}]
+
+  defp free_text_postgres_refs(text, matrix) do
+    cleaned =
+      text
+      |> resolve_shell_defaults()
+      |> String.replace("docker://", " ")
+      |> String.replace(@connection_url, " ")
+
+    for captures <- scan_named(@free_text_postgres_ref, cleaned),
+        ref <- free_text_ref(captures, matrix),
+        do: ref
   end
 
-  defp postgres_image_value_refs(image, block) do
-    with %{"name" => name, "rest" => rest} <- Regex.named_captures(@image_value, image),
-         true <- String.starts_with?(String.downcase(name), "postgres") do
-      postgres_image_rest_refs(image, rest, block)
+  defp scan_named(regex, text) do
+    names = Regex.names(regex)
+
+    for match <- Regex.scan(regex, text, capture: :all_names),
+        do: names |> Enum.zip(match) |> Map.new()
+  end
+
+  defp free_text_ref(%{"tag" => tag}, matrix) when tag != "", do: postgres_tag_refs(tag, matrix)
+
+  defp free_text_ref(%{"prefix" => prefix, "name" => name, "digest" => digest}, _matrix)
+       when digest != "",
+       do: [{:invalid, prefix <> name <> digest}]
+
+  # A namespace- or registry-prefixed `postgres` with no tag is an image
+  # pulled at implicit `latest`; unprefixed it is the role name.
+  defp free_text_ref(%{"prefix" => prefix, "name" => name}, _matrix)
+       when prefix != "" and name in ["postgres", "postgresql"],
+       do: [{:invalid, prefix <> name}]
+
+  defp free_text_ref(_captures, _matrix), do: []
+
+  defp postgres_tag_refs(tag, matrix) do
+    cond do
+      not String.contains?(tag, "$") -> [{:ok, tag}]
+      Regex.match?(~r/^\$\{\{\s*matrix\.pg\s*\}\}$/, tag) -> resolve_matrix_pg(matrix, tag)
+      true -> [{:unresolved, "postgres:#{tag}"}]
+    end
+  end
+
+  # `${{ matrix.pg }}` takes every base-axis `pg` value and every include-row
+  # `pg`. An include row without `pg` (when there is no base axis), a matrix
+  # built from an expression, or no value at all fails closed.
+  defp resolve_matrix_pg(%{} = matrix, expr) do
+    base = yaml_get(matrix, "pg")
+    include = yaml_get(matrix, "include")
+
+    with {:ok, base} <- matrix_values(base),
+         {:ok, rows} <- matrix_rows(include),
+         true <- base != [] or Enum.all?(rows, &(yaml_field(&1, "pg") != :error)),
+         {:ok, row_values} <- rows |> Enum.map(&yaml_get(&1, "pg")) |> matrix_values(),
+         values when values != [] <- base ++ row_values do
+      Enum.map(values, &{:ok, &1})
     else
-      _ -> []
+      _ -> [{:unresolved, "postgres:#{expr}"}]
     end
   end
 
-  defp postgres_image_rest_refs(_image, ":" <> tag, block) do
-    cond do
-      not String.contains?(tag, "${{") -> [{:ok, tag}]
-      Regex.match?(~r/^\$\{\{[^}]*\}\}$/, tag) -> resolve_postgres_ref(tag, block)
-      true -> [{:unresolved, tag}]
-    end
+  defp resolve_matrix_pg(_matrix, expr), do: [{:unresolved, "postgres:#{expr}"}]
+
+  defp matrix_values(nil), do: {:ok, []}
+
+  defp matrix_values(values) when is_list(values) do
+    values = Enum.reject(values, &is_nil/1)
+
+    if Enum.all?(values, &(is_binary(&1) or is_number(&1))),
+      do: {:ok, Enum.map(values, &to_string/1)},
+      else: :error
   end
 
-  defp postgres_image_rest_refs(image, _rest, _block), do: [{:invalid, image}]
+  defp matrix_values(_values), do: :error
 
-  # A workflow is scanned per job (matrix expressions resolve per job); a file
-  # with no `jobs:` section (docker-compose.yml) is scanned whole.
-  defp image_scan_units(text) do
-    case workflow_jobs(text) do
-      [] -> [{"(file)", text}]
-      jobs -> jobs
-    end
+  defp matrix_rows(nil), do: {:ok, []}
+
+  defp matrix_rows(rows) when is_list(rows),
+    do: if(Enum.all?(rows, &is_map/1), do: {:ok, rows}, else: :error)
+
+  defp matrix_rows(_rows), do: :error
+
+  defp resolve_shell_defaults(text) do
+    resolved = Regex.replace(@shell_default_interpolation, text, "\\1")
+    if resolved == text, do: text, else: resolve_shell_defaults(resolved)
   end
-
-  defp resolve_postgres_ref("${{" <> _ = expr, block) do
-    rows = verify_test_rows(block)
-
-    cond do
-      not Regex.match?(~r/^\$\{\{\s*matrix\.pg\s*\}\}$/, expr) ->
-        [{:unresolved, expr}]
-
-      rows == [] or Enum.any?(rows, &(not Map.has_key?(&1, "pg"))) ->
-        [{:unresolved, expr}]
-
-      true ->
-        Enum.map(rows, &{:ok, &1["pg"]})
-    end
-  end
-
-  defp resolve_postgres_ref(tag, _block), do: [{:ok, tag}]
 
   describe "dependency cache contract" do
     test "ci.yml caches deps and the e2e npm lockfile" do
@@ -4253,7 +5356,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_verify_test do
     ~S"""
       verify-test:
-        name: Run test suite
+        name: Build and test
         strategy:
           fail-fast: false
           matrix:
@@ -4325,7 +5428,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_pgbouncer do
     ~S"""
       verify-pgbouncer-topology:
-        name: PgBouncer transaction topology
+        name: Tests through PgBouncer (transaction mode)
         runs-on: ubuntu-24.04
         timeout-minutes: 20
         env:
@@ -4418,7 +5521,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_consumer_parts(:browser) do
     {~S"""
        verify-example-browser:
-         name: Example app browser E2E (Playwright)
+         name: Example app browser E2E (2 projects)
          runs-on: ubuntu-24.04
          timeout-minutes: 18
          env:
@@ -4448,7 +5551,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_consumer_parts(:capture) do
     {~S"""
        verify-capture:
-         name: Tier A capture lane (byte-stable evidence)
+         name: Capture evidence byte-stable
          runs-on: ubuntu-24.04
          timeout-minutes: 35
          env:
