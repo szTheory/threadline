@@ -69,7 +69,7 @@ ERA_BOUNDARY_RUN = 36586103573
 # became `Dependency audit (Mix lockfiles)` in the milestone-branch commit
 # `fix(221): WR-06 ...`. Set this to the first CI run that posts the new name
 # once that commit lands on main; until then no measured run carries it.
-DEPS_AUDIT_RENAME_ERA_RUN = None
+DEPS_AUDIT_RENAME_ERA_RUN = 36596785874
 
 AGGREGATE_ID = "ci-required"
 

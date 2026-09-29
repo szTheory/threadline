@@ -47,9 +47,18 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
     ])
   end
 
+  defp raw_rules(checks) do
+    Jason.encode!([
+      %{
+        "type" => "required_status_checks",
+        "parameters" => %{"required_status_checks" => checks}
+      }
+    ])
+  end
+
   # Feed stdin from a temp file rather than a Port: the script reads stdin to EOF either
   # way, and a file makes the redirect explicit and the test readable.
-  defp compare(tmp_dir, json, args \\ ["CI required"]) do
+  defp compare(tmp_dir, json, args \\ ["CI required@15368"]) do
     path = Path.join(tmp_dir, "rules_#{System.unique_integer([:positive])}.json")
     File.write!(path, json)
 
@@ -124,6 +133,35 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
     end
   end
 
+  describe "the check is pinned to the GitHub Actions app (integration_id 15368)" do
+    test "a pinned check passes", %{tmp_dir: tmp_dir} do
+      json = raw_rules([%{"context" => "CI required", "integration_id" => 15_368}])
+      assert {0, output} = compare(tmp_dir, json)
+      assert output =~ "CI required@15368"
+    end
+
+    test "an UNPINNED check fails and reads as @ANY", %{tmp_dir: tmp_dir} do
+      json = raw_rules([%{"context" => "CI required"}])
+      assert {1, output} = compare(tmp_dir, json)
+
+      assert output =~ "CI required@ANY",
+             "an unpinned required check accepts the context from any app or status " <>
+               "writer, so it must fail against a pinned expectation"
+    end
+
+    test "a check pinned to a different app fails", %{tmp_dir: tmp_dir} do
+      json = raw_rules([%{"context" => "CI required", "integration_id" => 12_345}])
+      assert {1, output} = compare(tmp_dir, json)
+      assert output =~ "CI required@12345"
+    end
+
+    test "a null integration_id is unpinned too", %{tmp_dir: tmp_dir} do
+      json = raw_rules([%{"context" => "CI required", "integration_id" => nil}])
+      assert {1, output} = compare(tmp_dir, json)
+      assert output =~ "CI required@ANY"
+    end
+  end
+
   describe "unreadable input never reads as passing" do
     test "empty stdin fails", %{tmp_dir: tmp_dir} do
       assert {1, output} = compare(tmp_dir, "")
@@ -152,6 +190,12 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
       assert workflow =~ "types: [completed]"
       assert workflow =~ "branches: [main]"
       refute Regex.match?(~r/^  push:/m, workflow)
+    end
+
+    test "bin/verify-branch-protection expects the pinned pair" do
+      source = File.read!("bin/verify-branch-protection")
+      assert source =~ ~s(EXPECTED_INTEGRATION_ID="15368")
+      assert source =~ ~s(compare-required-contexts" "$EXPECTED_PAIR")
     end
 
     test "bin/verify-branch-protection calls compare-required-contexts" do
@@ -200,7 +244,7 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
           """
           #!/usr/bin/env bash
           case "$*" in
-            *"rules/branches/main"*) printf '%s' '[{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"CI required"}]}}]' ;;
+            *"rules/branches/main"*) printf '%s' '[{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"CI required","integration_id":15368}]}}]' ;;
             *"commits/main"*) printf '%s' 'abc123' ;;
             *"check-runs"*) printf '%s' '{"check_runs":[{"name":"CI required"}]}' ;;
             *"branches/main/protection"*) printf 'HTTP/2.0 #{http_status} Test\\r\\n\\r\\n'; exit #{gh_exit} ;;
@@ -252,7 +296,7 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
           """
           #!/usr/bin/env bash
           case "$*" in
-            *"rules/branches/main"*) printf '%s' '[{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"CI required"}]}}]' ;;
+            *"rules/branches/main"*) printf '%s' '[{"type":"required_status_checks","parameters":{"required_status_checks":[{"context":"CI required","integration_id":15368}]}}]' ;;
             *"commits/main"*) printf '%s' 'abc123' ;;
             *"check-runs"*) printf '%s' '{"check_runs":[{"name":"CI required"}]}' ;;
             *"branches/main/protection"*) printf 'HTTP/2.0 403 Forbidden\\r\\n\\r\\n'; exit 1 ;;

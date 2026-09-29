@@ -1141,6 +1141,11 @@ defmodule Threadline.CiTopologyContractTest do
     end
   end
 
+  # 15368 is the GitHub Actions app. A required check without an integration_id
+  # accepts the context from any app or any token that can write commit statuses.
+  defp pinned_required_checks?(contexts),
+    do: contexts == [%{"context" => "CI required", "integration_id" => 15_368}]
+
   test "the ruleset's sole required status check is byte-exact with ci-required's emitted name" do
     ruleset =
       [".github", "rulesets", "main.json"]
@@ -1160,6 +1165,19 @@ defmodule Threadline.CiTopologyContractTest do
              ".github/rulesets/main.json, found #{length(contexts)}: #{inspect(contexts)}. " <>
              "A second required context reintroduces the enumeration hazard D-08 replaced " <>
              "with a single aggregate gate."
+
+    assert pinned_required_checks?(contexts),
+           "expected the ruleset's sole required check to be exactly " <>
+             ~s(%{"context" => "CI required", "integration_id" => 15368}, got ) <>
+             "#{inspect(contexts)}. 15368 is the GitHub Actions app: without the pin, any app " <>
+             "or any token that can write commit statuses can satisfy `CI required`."
+
+    # In-memory mutation control: stripping the pin must fail the same equality.
+    stripped = Enum.map(contexts, &Map.delete(&1, "integration_id"))
+    refute stripped == contexts, "the stripped-id control did not change the input"
+
+    refute pinned_required_checks?(stripped),
+           "an unpinned required check must not satisfy the pinned-ruleset assertion"
 
     [%{"context" => context}] = contexts
 
