@@ -1,291 +1,439 @@
-# Domain Pitfalls: Adversarial LLM-Critic UI/UX Iteration Loop (v1.40)
+# Pitfalls Research
 
-**Domain:** Automated, adversarial-LLM-critic-driven UI/UX evaluation with a forward-only (monotonic) improvement ratchet for the Threadline `/audit` operator surface.
-**Researched:** 2026-07-02
-**Overall confidence:** HIGH (well-documented failure-mode literature 2024–2026 + Threadline's own shipped stress-lab/ledger/pressure-test precedents to build on)
+**Domain:** Supply-chain gating, CI economy, and repo hygiene for a public Elixir Hex library (Threadline 0.11.0, milestone v1.43)
+**Researched:** 2026-09-26
+**Confidence:** HIGH for repo-observed facts (each was checked by running the command or reading the file in this repo today). MEDIUM for GitHub Actions and Mix behaviour described from documentation and experience. LOW for single-source web claims, which are marked where used.
 
-> **How to read this file.** Each pitfall has a concrete prevention and a suggested *owning phase archetype* (v1.40 phases are not yet defined; names are proposed so the roadmap can adopt them). The single most important meta-lesson: **Threadline already has the right skeleton** — the brand pressure-test's "self-assessment is banned, every score cites a mechanical output" rule (`brandbook/pressure-test.md`) and the stress-lab `design-system-ledger.json` per-fixture `ratchet_score`/`target_score`/`reserved_for_phase` model. v1.40's job is to *generalize and harden* those, not invent a new eval machine from scratch. Do not throw them away.
+Phase names below are thematic, because v1.43 has no REQUIREMENTS.md or phase numbers yet:
 
----
-
-## 1. Critic Reliability Pitfalls + Prevention
-
-An LLM design critic is itself an unreliable instrument. **You must validate the critic before you trust a single score it emits.** Treat the critic like a measurement device that needs calibration certificates.
-
-### CRIT-1 (Critical): Sycophancy / flattery — everything rates "good"
-**What goes wrong:** LLM judges systematically prefer answers that are stated assertively or that confirm framing, and rate their own or default-register outputs highly. Applied to design, a naive "rate this page 1–10" prompt drifts toward 7–8 on everything, so the ratchet never has room to climb and real problems never surface.
-**Why it happens:** RLHF-trained models are optimized to be agreeable; "does this look good?" is a leading question. Sycophancy is documented as the *hardest* of the three classic judge biases to mitigate.
-**Prevention:**
-- **Refute-framing over praise-framing.** Threadline already proved this works: the brand pressure-test's distinctiveness check is *"delete the motif and render — if what remains is a complete generic wordmark, the identity fails."* Every rubric dimension must be phrased as an adversarial pass/fail the critic tries to *break*, not a quality it tries to affirm. Ask "list the three worst things on this screen and why an operator would stumble," never "is this good?"
-- **Ban bare self-assessment; require mechanical evidence per score.** Port `pressure-test.md`'s rule verbatim: a score is only valid if it cites a measurable artifact (a measured pixel gap, a control count, a token violation, a specific element) or a direct render. "Looks clean, 8/10" is an automatic void.
-- **Force a critique quota.** Require N concrete defects per screen even on "good" screens; a critic that returns zero findings is treated as a failed run, not a pass.
-**Detection:** Score-distribution monitoring — if the critic's scores cluster >7 with low variance across deliberately-ugly fixtures, it is flattering.
-**Owning phase:** Critic Harness & Rubric Design.
-
-### CRIT-2 (Critical): Hallucinated issues
-**What goes wrong:** The critic invents defects that aren't in the rendered UI ("the button overlaps the header," "contrast is 2:1") — especially with vision inputs — causing wasted or actively harmful "fixes."
-**Why it happens:** VLMs confabulate spatial/layout facts they cannot actually perceive (see CRIT-5).
-**Prevention:**
-- **Every claimed defect must be locatable and reproducible.** Require the critic to cite a selector, coordinate region, or quoted text string. A defect that can't be pointed at is discarded.
-- **Ground with deterministic evidence, don't ask the model to measure.** Contrast ratios, element counts, token usage, DOM depth, scroll height, and touch-target sizes are computed by *code* (extend the existing `style_contract_test.exs` / Playwright accessibility-tree harness from v1.37), then *handed to* the critic. The critic reasons about salience/hierarchy; it never guesses a number a program can compute.
-- **Two-pass confirm.** A flagged defect is only actionable if it survives a second, independently-prompted verification pass (or a code check).
-**Owning phase:** Critic Harness & Rubric Design; Deterministic-Evidence Extractors.
-
-### CRIT-3 (High): Run-to-run inconsistency
-**What goes wrong:** The same screen scores 6 then 8 then 5 on identical input; the ratchet can't tell a real regression from noise.
-**Prevention:**
-- **Majority vote / ensemble.** Run each evaluation k≥3 times (and ideally across ≥2 model families) and take median + report variance. Only act on findings that recur.
-- **Temperature discipline + fixed rubric.** Low temperature for scoring passes; the rubric text is version-pinned and hashed so a score always names the rubric version that produced it (mirror the pressure-test's "a score is only as current as its evidence").
-- **Noise floor.** Compute the critic's own test-retest variance on a frozen fixture set; any score change smaller than that floor is *not* a regression and *not* an improvement — it's noise. The ratchet only moves on changes above the floor.
-**Owning phase:** Critic Harness & Rubric Design (ensemble + noise-floor).
-
-### CRIT-4 (High): Positional & verbosity bias
-**What goes wrong:** In A/B ("is the new version better than the old?") comparisons, the judge favors whichever candidate is shown first/last, and favors the longer/more-decorated option — which pushes the UI toward *more* chrome, the exact opposite of the operator-UI goal (see §5).
-**Prevention:**
-- **Randomize & swap order; average both orderings.** Standard positional-bias mitigation: evaluate (A,B) and (B,A), keep only verdicts stable under swap.
-- **Blind the critic to "which is new."** Never label a candidate "the improved version" — that triggers both sycophancy and positional priming.
-- **Explicitly penalize verbosity/chrome in the rubric** so the known verbosity bias is counter-weighted, not amplified (MLLMs are *more* vulnerable to verbosity bias than position bias).
-**Owning phase:** Critic Harness & Rubric Design.
-
-### CRIT-5 (Critical): Vision-model limits — misreading spacing, alignment, pixels
-**What goes wrong:** VLMs (GPT-4o class) are architecturally weak at precise spatial reasoning: patch-based encoders misread continuous coordinates, horizontal-distance and alignment tasks score lowest, and models fail to localize elements lacking textual identity. A visual critic will *confidently* mis-report spacing, alignment, and density.
-**Why it happens:** Vision transformers partition images into patches and interpret patch boundaries as coordinates — systematic, not random, error.
-**Prevention:**
-- **Do not ask the VLM to be a ruler.** Spacing, alignment, overflow, scroll height, control counts, contrast, and grid consistency are measured from the DOM/computed styles by code (Threadline already has the Playwright + `style.ex` source-contract lanes). The VLM judges *gestalt* questions it's actually good at: "does the visual hierarchy match the task priority? what does the eye land on first? does this read as one system or a patchwork?"
-- **Feed the VLM both the screenshot AND the extracted metrics** so its narrative is anchored to ground truth.
-- **Multi-viewport rendering is code's job** (375/768/1280 already exist in v1.31); the critic reviews each rendered breakpoint, it does not imagine responsiveness.
-**Owning phase:** Deterministic-Evidence Extractors (owns the measured facts); Visual-Critic Harness (owns gestalt judgment only).
-
-### CRIT-6 (Moderate): Model drift over time
-**What goes wrong:** The underlying model is updated by the vendor; scores shift; last month's "88" and this month's "88" aren't comparable, silently loosening or tightening the ratchet.
-**Prevention:**
-- **Pin the model version** in the ledger alongside the rubric version. A score record is `{score, model_id, rubric_hash, timestamp, evidence}`.
-- **Golden-anchor re-baseline on model change.** Keep a frozen golden set (see CRIT-7); when the model id changes, re-score the golden set and confirm the critic still ranks the known-good/known-bad anchors correctly before any live scores are trusted.
-**Owning phase:** Critic Validation & Golden Set.
-
-### CRIT-7 (Critical): Trusting the critic before validating it (meta-eval gap)
-**What goes wrong:** The whole system is built on the assumption the critic's judgment tracks reality — but that assumption is never tested, so the ratchet optimizes toward a broken oracle.
-**Why it happens:** Teams skip the boring step of validating the judge against humans. The literature is blunt: validate against a golden dataset to **75–90% agreement with human labels** *before* scaling; if the judge disagrees with experts >20% on clear-cut cases, fix the prompt, not the UI.
-**Prevention (this is the linchpin — do it in an early phase, gate everything else on it):**
-- **Build a golden set of Threadline screens with human labels.** Reuse the existing stress-lab fixtures: the ledger already encodes known footguns (`footgun.coverage-schema.card_declutter`=25, `footgun.transaction-page.left_push_desktop`=25) and known-good primitives. Hand-label a calibration set (30–50 states) with the maintainer's own good/bad/rank verdicts.
-- **Measure critic↔human agreement and inter-rater agreement.** If two humans agree <80% on a dimension, the *rubric* is ambiguous — fix the rubric, not the model (this is exactly the pressure-test's "cite a testable pass condition" discipline).
-- **Refute-tests the critic must pass:** it must (a) score the seeded footgun fixtures *low*, (b) score the polished v1.38 primitives *high*, (c) prefer the known-better of a curated A/B pair, (d) detect an injected regression (e.g., double the padding, add a nested card). A critic that fails these does not get to drive the ratchet.
-- **Never present LOW-confidence critic output as authoritative** — carry the confidence tier into the ledger.
-**Owning phase:** **Critic Validation & Golden Set (must precede the automated ratchet phase).**
+- **P-Baseline**: measure and record the baseline
+- **P-Supply**: advisory fix, audit gate, freshness policy
+- **P-Economy**: flake lane, duplicate proofs, release-PR dispatch, Browser-full, `_build` cache, live Dialyzer
+- **P-DX**: job names and ordering
+- **P-Newest**: newest PostgreSQL/Elixir lane
+- **P-TmpDir**: `@tag :tmp_dir` migration
+- **P-Hygiene**: PII/local-path guard, forward scrub, xref cycles guard
+- **P-Classifier**: SEED-006 change-aware lanes (last)
 
 ---
 
-## 2. Forward-Only / Ratchet Failure Modes + Prevention
+## Findings that change the milestone's own baseline
 
-The "only move forward" promise is where this class of system most often quietly breaks. Threadline already ships the right primitive — the JSON `design-system-ledger.json` with per-fixture `current_score`/`ratchet_score`/`target_score` — but a ratchet is only as honest as its re-evaluation discipline.
+Re-checking the baseline today turned up four facts that the `## Current Milestone` text does not reflect. Read these before any phase is planned.
 
-### FWD-1 (Critical): Whack-a-mole — fixing one page regresses another
-**What goes wrong:** An autofix improves the Timeline page but changes a shared primitive/token and silently regresses Coverage, Actor, and Export. This is Threadline's *documented* historical churn: v1.38 was a "page-by-page polish" milestone that still took **262 commits / 296 files / ~40k insertions** — shared-surface blast radius is real here.
-**Prevention:**
-- **Full-panel re-eval after every change — never per-page.** The ratchet advances only if *the whole scored set* is re-evaluated and no fixture's score dropped above the noise floor. A local win that lowers any other fixture is rejected. This is the single most important rule in the milestone.
-- **Score the shared substrate as first-class fixtures.** Because `style.ex` tokens and private primitives are shared, changes to them must trigger re-scoring of *every* page that consumes them (the ledger already links fixtures to `source`).
-- **Blast-radius gating.** A change touching a shared token/primitive requires a full-panel pass; a change touching one page's markup can run a narrower panel but still re-checks any fixture sharing its primitives.
-**Owning phase:** Ratchet Engine & Regression Guard.
-
-### FWD-2 (Critical): Goodharting the rubric — optimizing the score, not real quality
-**What goes wrong:** The loop learns to move the number without improving the UI. This is textbook reward hacking / Goodhart: *"when a measure becomes a target it ceases to be a good measure,"* and under optimization pressure the policy drifts into regions where "superficial correlates of quality dominate the score." Concretely: the fixer starts gaming whatever the critic keys on (adding buzzwords the copy-critic likes, padding to hit a whitespace heuristic, adding a hero element the salience-critic rewards).
-**Prevention:**
-- **Hold out a frozen "true-north" set the fixer never optimizes against.** Split fixtures: a *training* set the loop iterates on, and a *held-out* set scored only for validity monitoring. If training-set scores climb while held-out scores stall or fall, the loop is Goodharting — halt and revise the rubric.
-- **Rotate/refresh rubric probes** so the fixer can't memorize the exact triggers.
-- **Human spot-audit at milestone gates.** The score is a *proxy*; a human confirms the top-scored screens are genuinely better at a few checkpoints. Full automation of the *oracle* is a non-goal (see §4).
-- **Diversify the critic panel** (per-persona/JTBD + visual + brand) so no single taste function can be gamed in isolation; a change must satisfy *all* critics, and their disagreements are signal.
-**Owning phase:** Ratchet Engine & Regression Guard (held-out set); Critic Validation (rubric-probe rotation).
-
-### FWD-3 (High): Local optima / oscillation
-**What goes wrong:** The loop toggles a design decision back and forth (A improves critic-1, B improves critic-2), burning cost and commits without net progress; or it stalls in a mediocre local optimum it can't escape with small edits.
-**Prevention:**
-- **Monotonic ledger with a strict advance rule.** A candidate is accepted only if aggregate score strictly increases (above noise) *and no fixture regresses*. Rejected candidates are recorded so the loop doesn't retry the same oscillation (the ledger already carries per-fixture history).
-- **Change-budget / iteration cap per fixture per milestone** — after K non-improving attempts, escalate to human decision instead of thrashing.
-- **Allow explicit "accept sideways for a documented reason" only via human sign-off,** never automatically.
-**Owning phase:** Ratchet Engine & Regression Guard.
-
-### FWD-4 (Critical): The ratchet silently loosening
-**What goes wrong:** Baselines get "refreshed" to make red go green; a `target_score` is quietly lowered; a fixture is dropped from the panel. The ratchet still *looks* monotonic but the bar moved. Threadline has already felt adjacent pain: screenshot-regression baselines are "local/platform-sensitive" and flaky, and v1.37/v1.38 carried "screenshot-regression confidence" as a named residual.
-**Prevention:**
-- **Ledger is append-only and diffable in git;** score/target/panel-membership changes are reviewed changes, not silent edits. Adopt the pressure-test rule: *"a score is only as current as its evidence"* — refreshing a baseline requires the new render to have already passed the semantic guards (exactly the v1.37 adversarial-closeout rule: "update baselines only when the current rendered surface has already passed semantic guards").
-- **Guard the guards.** A contract test asserts no `target_score` decreased and no fixture left the panel without a recorded, human-approved reason.
-- **Separate "screenshot pixel diff" (flaky, advisory) from "semantic score" (authoritative).** Never let a pixel-diff refresh double as a quality-bar change.
-**Owning phase:** Ratchet Engine & Regression Guard; Closeout/Audit.
-
-### FWD-5 (Moderate): Over-fitting to one critic's taste
-**What goes wrong:** Converging on the aesthetic the dominant model happens to like, not what operators or the brand need.
-**Prevention:** Covered by the multi-critic panel (FWD-2) and the anti-homogenization anchors in §3; the brand-identity critic acts as a *veto* against drift away from Threadline's established dark-primary, designed-not-recolored system.
-**Owning phase:** Critic Harness (panel design); Award-Quality Anchoring.
+1. **There are two advisories, and one is not test-only.** `mix hex.audit` (Hex 2.5.1, exit 1) reports lazy_html 0.1.12 (EEF-CVE-2026-92106, LOW, `only: :test`) and **also mint 1.10.0 (EEF-CVE-2026-82672 / GHSA-rj5m-69wp-cxq9, MEDIUM, HTTP/1 response smuggling)**. mint arrives through `req` (optional runtime dependency, `mix.exs:99`) → finch → mint. Both have fixed releases: lazy_html 0.1.13 (2026-09-25) and mint 1.10.1 (2026-09-19). Calling the advisory set "test-only" is already wrong. [HIGH, observed]
+2. **The xref "no cycles" claim holds only for the labelled graph.** `mix xref graph --format cycles --label compile-connected` reports none. Unlabelled `mix xref graph --format cycles` reports **5 cycles**. Two are Ecto association pairs (AuditTransaction↔AuditChange), and three are not: `Threadline`↔`Investigation`, `CriticTrust.RepositoryBoundary`↔`Mix.Tasks.Critic.Measure`, `MechanicalChecker`↔`MechanicalChecker.Contrast`. A fourth pair, `Capture.AuditTransaction`↔`Semantics.AuditAction`, crosses layers, which is the Capture↔Semantics edge v1.41 said it had resolved. It was resolved at compile time only. MILESTONE-GUIDE §9a's line "`mix xref graph --format cycles` is clean as of 2026-09-26" is false as written. [HIGH, observed]
+3. **A compile-connected cycle gate already exists.** `verify.xref_cycles` (`--label compile-connected --fail-above 0`) runs in `ci.all` and in both `verify-test` lanes, and `ci_topology_contract_test.exs` guards it. "Add an xref cycles guard" means either nothing new or a *different* gate. [HIGH, observed]
+4. **The live-Dialyzer test is untagged in the default suite.** `test/threadline/dialyzer_slice_contract_test.exs` carries `@tag :live_dialyzer` with a 540 s timeout, and `test_helper.exs` excludes only `pgbouncer_topology`. So it runs cold, without the PLT cache, in `verify-test (min)`, `verify-test (current)`, local `ci.all`, and **all 51 iterations of Flake Detection**. [HIGH, observed]
 
 ---
 
-## 3. "Award-Winning" Subjectivity Traps
+## Critical Pitfalls
 
-"Award-winning / on-brand / tight design system" is the vaguest part of the goal and the easiest to Goodhart or homogenize. Research is clear that LLMs converge on a *"dominant, often Western-centric default aesthetic"* — identical gradients, glassmorphism, and the "competent, balanced, indistinguishable" register — and that exposure to AI suggestions *reduces* variety and originality.
+### Pitfall 1: An audit gate that goes red on a commit nobody changed
 
-### AWD-1 (Critical): Generic AI-slop convergence
-**Trap:** Left to its own taste, the loop drifts toward the homogenized "AI design aesthetic," which for an operator tool is both off-brand and often *worse* (decorative, low-density).
-**Prevention:**
-- **Anchor to concrete named reference systems, not adjectives.** The rubric must cite real operator/dev-tool exemplars (e.g., Linear, Vercel dashboard, Stripe dashboard, Datadog/Grafana density) as the calibration bar — "does this hold up beside Linear's information density?" is answerable; "is this award-winning?" is not. This mirrors the pressure-test's per-dimension *testable pass condition* approach.
-- **Anti-slop clauses in the rubric:** explicitly ban/penalize the tells (gratuitous gradients, glassmorphism-for-its-own-sake, hero cards on a data tool, decorative iconography, marketing-register microcopy). Threadline's brand book *already bans* several of these — reuse its misuse gallery and banned-vocabulary list as critic inputs.
-**Owning phase:** Award-Quality Anchoring & Reference Calibration.
+**What goes wrong:**
+`mix hex.audit` queries live advisory data. A new advisory published overnight turns an unchanged `main` red, blocks every unrelated PR, and can block the release-please PR that would ship the fix. Advisories are time-varying input, while every other gate in `ci-required` is a pure function of the commit.
 
-### AWD-2 (Critical): Brand-identity erosion
-**Trap:** Optimizing "beauty" quietly recolors/reshapes the UI away from the shipped identity — the exact thing the brand system was built to prevent.
-**Prevention:**
-- **Brand critic as a veto, gated on the existing mechanical brand suite.** The `brandbook/` pressure-test and `brandbook_token_parity_test.exs` already enforce dark/light token parity and "designed-not-recolored." Any candidate that changes a `--tl-*` token value, drifts from the token contract, or trips the brand gate is rejected *before* aesthetic scoring. Aesthetics may only move *within* the brand envelope.
-- **"Designed-not-recolored" is a first-class rule** — Threadline learned the "Grafana lesson" in v1.36 (data-viz surfaces must be *designed* per mode, not mechanically recolored). Encode it: the critic must flag any change that reads as a mechanical transform rather than a considered design.
-**Owning phase:** Brand-Guard Integration (wraps existing pressure-test/token-parity gates).
+**Why it happens:**
+The gate is treated like `mix format`. The baseline already shows the drift: the milestone text lists one advisory, and the same command today lists two.
 
-### AWD-3 (Moderate): Homogenizing toward the model's default across pages
-**Trap:** Every page converges to the same template, killing the earned per-surface affordances (record-first lookup, correlation paste/deep-link, row history) that v1.31 built.
-**Prevention:** Score *task-fit per persona/JTBD*, not just visual uniformity. Uniform *system* (tokens, primitives) is the goal; uniform *layout* is not. The per-persona critics protect surface-specific workflows from being flattened.
-**Owning phase:** Persona/JTBD Critic Panel.
+**How to avoid:**
+- Keep the gate in `ci-required`, fail-closed, but give it a documented, fast escape: `hex: [ignore_advisories: [...]]` in `mix.exs` (Hex 2.5.1+). Each entry carries a comment stating the reason, the reachability claim (test-only, or not reachable), and a review-by date.
+- Add a deterministic test that fails when an `ignore_advisories` entry is past its review-by date or no longer matches the lock. Hex only *warns* on a non-matching entry and exits 0, so the ignore list can rot silently.
+- Add a scheduled audit on `main` (nightly, same `bin/upsert-ci-issue` dedup pattern, its own label) so a new advisory shows up as an issue before it shows up as a blocked PR.
+- Audit **both** lockfiles: root and `examples/threadline_phoenix` (it has its own lock; clean today). `verify-hex-evaluator` and `verify-bump-rehearsal` resolve fresh, so they can pull advisory versions the committed locks never contain. Decide explicitly whether they are in scope.
+
+**Warning signs:**
+A red `CI required` on a docs-only PR whose only failing job is the audit. A growing `ignore_advisories` list. A "no match" warning in the gate log.
+
+**Phase to address:** P-Supply
 
 ---
 
-## 4. Scope & Cost Footguns
+### Pitfall 2: The audit gate behaves differently depending on the Hex version
 
-This is where the milestone most plausibly fails to deliver *value* even if every component "works."
+**What goes wrong:**
+Advisory data in `hex.audit` and `ignore_advisories` are recent Hex features. The Hex changelog puts `ignore_advisories` and `HEX_IGNORE_ADVISORIES` in 2.5.1 (2026-07-09), and advisory warnings in `deps.get` plus advisory-aware "dependency policies" in resolution in 2.5.0 [LOW, single web source; the `mix help hex.audit` text for 2.5.1 was confirmed locally]. A phase-198 CI log in `.planning/audits/` shows runners on **hex-2.4.2**. On an older Hex the ignore key is unknown config and is silently ignored, or advisories are not checked at all. The gate is then vacuous, or red for a reason that the local run does not reproduce.
 
-### SCOPE-1 (Critical): An elaborate eval machine that never drives real improvement
-**Trap:** Building the harness, ledger, critics, and dashboards becomes the deliverable; the actual `/audit` UI barely changes. Threadline's own v1.39 audit explicitly warns against this pattern — it *narrowed* scope and refused to "broaden into UI/product scope."
-**Prevention:**
-- **Ship UI improvements every phase, not just tooling.** Gate each phase on "≥N fixtures advanced toward `target_score` on the real surface," not "harness built." The ledger's `target_score: 90` per fixture is the deliverable, not the ledger itself.
-- **Timebox the machinery; the harness is the *thinnest* thing that can drive the ratchet.** Reuse v1.37's stress-lab, ledger, Playwright, and pressure-test infra rather than rebuilding.
-**Owning phase:** every phase (acceptance criterion); enforced at Closeout/Audit.
+**How to avoid:**
+- Run the audit in **one** dedicated job, on the current toolchain, not in every matrix lane. The min lane (Elixir 1.15) is not a supply-chain proof.
+- Pin and assert the Hex version in that job: install a known Hex, then fail if `mix hex.info` reports lower than 2.5.1. A gate that cannot parse its own allowlist must fail rather than pass.
+- Prove the gate is not vacuous (MILESTONE-GUIDE §8): a contract test runs the audit against a fixture lock containing a known-advisory version and asserts a non-zero exit. The gate is not done until that negative test exists.
+- Watch for Hex 2.5 "dependency policies" changing resolution between local (2.5.1) and CI (older Hex) → different `mix.lock` results on `deps.update`.
 
-### SCOPE-2 (Critical): LLM cost/nondeterminism making it unusable in CI
-**Trap:** Wiring nondeterministic, paid, rate-limited LLM calls into `mix ci.all` — which is Threadline's canonical, must-stay-green, path-filtered CI (per CLAUDE.md CI conventions). This would make CI flaky, slow, and expensive, violating the project's "honest default tests" and stable-CI DNA.
-**Prevention:**
-- **The LLM critic loop is an offline, dev/maintainer-run tool — NOT a CI gate.** CI keeps only the *deterministic* residue: the committed ledger, source-contract tests, token-parity, accessibility-tree snapshots, and screenshot guards (all of which already exist and are deterministic). The critic *produces* ledger updates offline; CI *verifies* the committed ledger is internally consistent and monotonic.
-- **Cache/record critic runs** (research-store pattern) so a given `{screen, rubric_hash, model_id}` isn't re-billed; make runs reproducible from recorded transcripts.
-- **Budget guardrails:** ensemble k and panel size are cost knobs; cap them.
-**Owning phase:** Harness/CI Boundary Design (early); enforced by CI-contract test.
+**Warning signs:**
+The gate passes in CI and fails locally, or the reverse. The gate log shows no "Ignored" section even though `mix.exs` has entries.
 
-### SCOPE-3 (High): Over-automation removing necessary human judgment
-**Trap:** Fully autonomous "critic → autofix → merge" convinces itself the UI is award-winning while a human would instantly see it's off. The oracle is a proxy; closing the human loop entirely is how Goodharting goes undetected.
-**Prevention:** **Keep a human at the milestone gates and at "accept sideways" decisions** (FWD-3) and golden-set drift checks (CRIT-7). The system *proposes and pre-filters*; the human *ratifies* score-bar changes and final acceptance. This matches Threadline's existing "human-judged tournament" and "user-approved live in both modes" precedents (v1.35 logo tournament, v1.36 retune).
-**Owning phase:** Ratchet Engine (human-in-the-loop checkpoints).
-
-### SCOPE-4 (High): Scope creep into redesigning everything at once
-**Trap:** "Award-winning" invites a big-bang redesign; Threadline's history shows big changes = big churn + new regressions (the stated problem this milestone exists to solve).
-**Prevention:**
-- **Reserved-for-phase, one-fixture-at-a-time ratcheting** — the ledger *already* does this (`reserved_for_phase`, `owner_phase`, `status: reserved`). Each footgun/fixture is owned by exactly one phase; you do not open a fixture out of turn (the ledger literally notes *"do not fix it in Phase 171"*). Carry this discipline into v1.40.
-- **No new routes, capabilities, dependencies, or public API** — v1.37/v1.38 held this line; v1.40 must too.
-**Owning phase:** Roadmap/phase decomposition; Ratchet Engine.
-
-### SCOPE-5 (Critical): Turning dev-only tooling into product surface or new runtime deps
-**Trap:** The critic harness leaks into the shipped library — a new runtime dependency, a public component API, a product-facing "eval" surface — violating Threadline's hard invariants (Phoenix optional; PhoenixStorybook example/dev-only; no public component API; not a SIEM; capture-only adopters stay Plug-only).
-**Prevention:**
-- **The eval harness lives exactly where the stress lab lives: internal, dev/test-only, fail-closed in prod.** The `/audit/__stress` route *raises* if used in prod and is omitted from the example prod build — replicate that pattern for anything new. No LLM/critic code ships in `lib/threadline/**` runtime paths; it lives in dev tooling / `.planning` / test support.
-- **Anti-feature list to encode:** no LLM SDK as a runtime dep, no public "design-eval" API, no product UI for critics, nothing that makes a capture-only adopter pull Phoenix or an HTTP client.
-**Owning phase:** Harness/CI Boundary Design; Closeout/Audit (invariant check).
+**Phase to address:** P-Supply
 
 ---
 
-## 5. Operator-UI Verbosity / Clunk Antipatterns (and how a critic reliably detects them)
+### Pitfall 3: "Fixing" the advisory by bumping public constraints adopters inherit
 
-Operator/admin UIs fail in a *specific* direction — toward too much, not too little. The verbosity bias of LLM critics (§CRIT-4) actively pushes the *wrong* way here, so these must be **explicit, measured, penalized** rubric dimensions, not left to the model's taste.
+**What goes wrong:**
+Threadline is a library, so its `mix.lock` is not shipped. Updating the lock fixes Threadline's own CI and nothing for adopters. The tempting overcorrection is to tighten `{:req, "~> 0.7", optional: true}` or add a mint floor so adopters "can't" get mint 1.10.0. That adds a public constraint for a transitive dependency Threadline does not call directly. It also risks raising the declared floor that the min lane (Elixir 1.15 / OTP 26 / PG 14) exists to prove.
 
-| Antipattern | What it looks like on `/audit` | How a critic reliably detects it |
-|---|---|---|
-| **Control overload** | Every filter/action shown at once; no progressive disclosure | *Code-measured*: count interactive controls per view above the fold; flag over a threshold. Critic judges whether the primary task's controls are visually primary. |
-| **Card-in-card nesting** | Panels inside panels inside panels (the ledger's `footgun.coverage-schema.card_declutter` is literally this) | *Code-measured*: DOM nesting depth of card/panel containers; flag depth > N. Critic confirms the nesting adds no information scent. |
-| **Excessive scroll / low density** | Data tool that scrolls forever; sparse rows; hero whitespace | *Code-measured*: scroll height ÷ viewport at each breakpoint; information-per-screen. Critic compares density to reference systems (Linear/Grafana). |
-| **Low information scent** | Operator can't tell what a screen does or where a link goes | Critic (gestalt): "state the page's primary task and next action in one sentence from the render alone" — if it can't, scent is low. Cross-checked vs. the persona/JTBD rubric. |
-| **Over-explanatory chrome** | Paragraphs of help text, redundant labels, marketing-register copy on a tool | *Code-measured*: prose word count per view, ratio of chrome-text to data. Critic flags explanatory copy that a competent operator doesn't need. Reuse the brand book's banned-vocabulary/voice rules. |
-| **Redundant / decorative affordance** | Icons, badges, gradients that carry no operator meaning | Critic + brand gate: any decorative element must justify an operator purpose or be flagged (anti-slop, §3). |
+**How to avoid:**
+- Fix with `mix deps.update lazy_html mint` (lock only). Leave the `mix.exs` requirements alone unless Threadline's own code needs the fixed behaviour.
+- Put the lock change through **both** `verify-test` lanes. Upgrades to a NIF package (lazy_html builds precompiled NIFs through `elixir_make`/`cc_precompiler`) are the classic way to break an older OTP.
+- Write the freshness policy as a small cadence ("`mix hex.outdated` reviewed at each milestone open; security advisories fixed within the milestone they appear in"), not Dependabot PR churn. That matches the milestone text and Out of Scope.
 
-**The key move:** these are **measured by deterministic extractors and only *interpreted* by the critic** (control counts, nesting depth, scroll ratio, word counts — the same "code computes the number, VLM judges the gestalt" split as CRIT-5). This makes clunk detection reproducible and immune to the critic's own verbosity bias. Density/clunk get their *own* ledger fixtures with `target_score`, so "tighten it" is a first-class, ratcheted goal — not a vibe.
-**Owning phase:** Deterministic-Evidence Extractors (the metrics); Operator-Clunk Rubric (interpretation + fixtures).
+**Warning signs:**
+A `mix.exs` diff in the advisory-fix commit. The min lane fails to compile a NIF.
 
----
-
-## 6. Lessons From Threadline's Prior UI Milestones
-
-Direct, repo-grounded lessons so v1.40 doesn't repeat prior churn.
-
-### What worked (keep / generalize)
-- **The stress-lab + JSON ledger (v1.37).** `design-system-ledger.json` with per-fixture `current_score`/`ratchet_score`/`target_score`/`reserved_for_phase`/`owner_phase`/`screenshot_baseline_refs` is *exactly* the monotonic ledger v1.40 needs. **Generalize it to hold LLM-critic scores per persona/dimension; do not rebuild it.**
-- **Reserved-for-phase discipline.** Footguns were catalogued at baseline (`card_declutter`=25, `transaction_page.left_push_desktop`=25) and *explicitly not fixed early* — each owned by one future phase. This prevented big-bang churn and is the antidote to SCOPE-4.
-- **The brand pressure-test method (`brandbook/pressure-test.md`).** 15 dimensions, each a *testable pass condition*, **"self-assessment is banned; every score cites a mechanical output or a direct render,"** rerun on any change. This is a *pre-built, proven anti-sycophancy protocol* — port it wholesale as the critic's evidence discipline (CRIT-1/CRIT-2).
-- **Adversarial closeout with a fixed lens set (v1.37 Phase 180 "D-12 lens review").** Eight named lenses (Aesthetics-vs-usability, Dependency/architecture weight, Host-integration friction, Inaccessible custom behavior, Generic-template drift, **Screenshot-only quality**, Route/API stability, Residual CI ownership). Reuse this as v1.40's closeout checklist; the "Generic-template drift" and "Screenshot-only quality" lenses are directly on-point.
-- **Mechanical brand gate + token parity test.** `brandbook_token_parity_test.exs` catches recolor drift automatically — the brand-guard veto (AWD-2) plugs straight into it.
-
-### What created churn / residuals (avoid)
-- **"Polish" milestones balloon.** v1.38 page-by-page polish = **262 commits, 296 files, ~40k insertions**; v1.31 = 35 plans/51 tasks. Shared tokens/primitives make every page-edit high-blast-radius. → **Full-panel re-eval (FWD-1) and blast-radius gating are mandatory, not optional.**
-- **Screenshot regression is flaky and confidence-eroding.** Repeatedly a named residual ("standalone screenshot regression," "screenshot-regression confidence," baselines "local/platform-sensitive"). → **Pixel-diff is advisory only; the authoritative bar is the semantic score + deterministic contracts** (FWD-4). Never let a baseline refresh loosen the quality bar.
-- **Accessibility tree ≠ real assistive tech.** v1.37 closeout's explicit caveat: Playwright's a11y tree "is not equivalent to NVDA/VoiceOver/JAWS." → Don't let a critic *overclaim* a11y or any human-only property; carry the bounded caveat forward.
-- **Inherited residual CI failures get parked.** v1.37/v1.38/v1.39 all carried demo-seed / example-app / local test-DB `search_path` failures classified as non-blocking. → Keep the critic loop **out of `ci.all`** (SCOPE-2) so it never adds to this pile, and classify residuals honestly with owner + reopen-trigger (the v1.39 risk-register pattern).
-- **v1.39 deliberately did NO UI scope.** v1.40 is a *deliberate re-opening* of UI iteration after a consolidation milestone — so it must be *tightly* scoped and evidence-first, or it re-introduces exactly the risk v1.39 just retired.
+**Phase to address:** P-Supply
 
 ---
 
-## Prevention Summary
+### Pitfall 4: A skipped job laundered to green through the aggregate
 
-| # | Pitfall | Severity | Prevention (one-liner) | Owning phase (archetype) |
-|---|---|---|---|---|
-| CRIT-1 | Sycophancy / everything "good" | Critical | Refute-framing + ban bare self-assessment (port pressure-test rule) + defect quota | Critic Harness & Rubric |
-| CRIT-2 | Hallucinated defects | Critical | Every defect locatable + measure with code, not the model | Critic Harness; Evidence Extractors |
-| CRIT-3 | Run-to-run inconsistency | High | Ensemble k≥3 (+cross-family), median, noise-floor gate | Critic Harness |
-| CRIT-4 | Positional/verbosity bias | High | Swap order, blind "which is new," penalize verbosity | Critic Harness |
-| CRIT-5 | Vision limits (spacing/pixels) | Critical | Code measures numbers; VLM judges gestalt only | Evidence Extractors; Visual Critic |
-| CRIT-6 | Model drift | Moderate | Pin model+rubric in ledger; re-anchor golden set on change | Critic Validation & Golden Set |
-| CRIT-7 | Trusting critic un-validated | Critical | Golden set, 75–90% human agreement, refute-tests before ratchet | **Critic Validation & Golden Set (gates all)** |
-| FWD-1 | Whack-a-mole regressions | Critical | Full-panel re-eval + blast-radius gating; no per-page advance | Ratchet Engine & Regression Guard |
-| FWD-2 | Goodharting the rubric | Critical | Held-out true-north set, multi-critic panel, human spot-audit | Ratchet Engine; Critic Validation |
-| FWD-3 | Oscillation / local optima | High | Strict monotonic advance, record rejects, iteration cap | Ratchet Engine |
-| FWD-4 | Ratchet silently loosening | Critical | Append-only diffable ledger; guard-the-guards; pixel-diff ≠ bar | Ratchet Engine; Closeout |
-| FWD-5 | Over-fit to one critic's taste | Moderate | Multi-critic panel + brand veto | Critic Harness; Award Anchoring |
-| AWD-1 | Generic AI-slop convergence | Critical | Anchor to named reference systems; anti-slop rubric clauses | Award-Quality Anchoring |
-| AWD-2 | Brand-identity erosion | Critical | Brand critic veto gated on existing token-parity/pressure-test | Brand-Guard Integration |
-| AWD-3 | Homogenized layouts | Moderate | Score task-fit per persona/JTBD, not layout uniformity | Persona/JTBD Critic Panel |
-| SCOPE-1 | Eval machine, no real improvement | Critical | Gate each phase on fixtures advanced on the real surface | All phases; Closeout |
-| SCOPE-2 | LLM cost/nondeterminism in CI | Critical | Critic loop is offline/dev-only; CI verifies committed ledger only | Harness/CI Boundary |
-| SCOPE-3 | Over-automation removes judgment | High | Human ratifies bar-changes + final acceptance | Ratchet Engine |
-| SCOPE-4 | Redesign-everything scope creep | High | Reserved-for-phase, one-fixture ratchet; no new routes/deps | Roadmap decomposition; Ratchet |
-| SCOPE-5 | Dev tooling leaks into product | Critical | Fail-closed dev/test-only harness (stress-lab pattern); no runtime LLM dep | Harness/CI Boundary; Closeout |
-| CLUNK | Verbosity/control-overload/nesting/scroll | High | Deterministic metrics + interpreting critic; own ledger fixtures | Evidence Extractors; Clunk Rubric |
+**What goes wrong:**
+`ci-required` uses `re-actors/alls-green` with `if: always()`, which is correct today because nothing is skip-listed. The first `allowed-skips` entry changes the threat model. `allowed-skips` is **static per job and blind to the reason for the skip**. A skip allowed "for docs-only PRs" is equally allowed when:
+- the job's `if:` references a misspelled output, so it evaluates `''` → false and the job never runs anywhere, permanently green;
+- the job skipped because an upstream in its own `needs:` failed, and that upstream is not in `ci-required`'s `needs:`;
+- the classifier job was cancelled or timed out.
 
-**Suggested phase-ordering implication:** *Critic Validation & Golden Set* must come **before** the automated ratchet — an un-validated critic driving a ratchet just optimizes toward a broken oracle (CRIT-7 + FWD-2). Build/validate the critic, then build the ratchet on top of the *existing* ledger + pressure-test + stress-lab infra, then iterate fixtures one owning-phase at a time.
+**Why it happens:**
+The skip decision and the skip permission live in two places that nothing links.
+
+**How to avoid:**
+- Write each conditional `if:` fail-closed. Skip only when the output is exactly `'false'`, never when it is not `'true'`: `if: needs.changes.outputs.lib != 'false' || github.event_name == 'push'`. An empty or missing output then runs the job.
+- The classifier job must be in `ci-required`'s `needs:` and **never** in `allowed-skips` (MILESTONE-GUIDE §9: "a skip is allowed only when the job deciding the skip is itself required and unskippable").
+- Add a step to `ci-required` that re-derives justification: for every `needs.*.result == 'skipped'`, assert the classifier's recorded output named that lane as skippable. A skip the classifier did not order fails the gate.
+- Contract test: every upstream of every skip-listed job is itself in `ci-required`'s `needs:`.
+- Extend `ci_topology_contract_test.exs` in the same commit as the first `allowed-skips` entry. Its header comment already demands this.
+
+**Warning signs:**
+A job with 0 runs in the last N `main` pushes. `allowed-skips` growing past the classifier-gated set.
+
+**Phase to address:** P-Classifier (P-Economy too, if any job becomes conditional earlier)
 
 ---
+
+### Pitfall 5: A change classifier that misreads what "docs-only" means in this repo
+
+**What goes wrong:**
+Generic path filters treat `*.md` as safe to skip. In Threadline, Markdown **is tested code**: doc-contract tests read `README.md`, `guides/`, `CONTRIBUTING.md` (the `## CI Coverage` roster and job list), and the adoption-pilot backlog markers. A README-only PR can break `verify-test`. Other non-obvious "code" includes `bin/` (verifier scripts shelled out by tests), `.github/` (the topology contract reads the workflows), `.github/rulesets/main.json`, `.tool-versions`, `priv/`, `config/`, `test/support`, `examples/**` (a path dependency on the library, with its own lock), `mix.exs`, and `mix.lock`.
+
+**Why it happens:**
+The classifier is written from intuition, not from the suite's actual file reads.
+
+**How to avoid:**
+- Classify with an **allowlist of provably inert paths** and send everything else, including unknown and new top-level paths, to the full matrix. Given the Phase-199 decoupling (`ci.all` passes with `.planning/` renamed away), `.planning/**` is realistically the only large inert class. Even there, the PII guard (Pitfall 9) must still run.
+- Derive the base robustly and fail closed on edge cases: `pull_request` → merge-base with base; `push` with an all-zero `before` or a force-push → full; `workflow_dispatch` (the release-PR bootstrap) → full; any `git diff` error → full. Count renames and deletions on both sides.
+- Put the classifier in a script (`bin/`) with fixture tests in ExUnit, in the same style as `bin/classify-flake-run`, including a mutation-style test that an unknown path yields "full".
+- Never skip on push to `main`. The ruleset has `strict_required_status_checks_policy: false`, so the PR run tested a merge ref that may be stale against the squash commit. The push-to-`main` run is the only proof of the real tree.
+- Never move the classifier to `pull_request_target` or `workflow_run` to get the diff. Fork PRs would then execute with a write token.
+
+**Warning signs:**
+`main` goes red after a PR whose run skipped `verify-test`. The classifier's fixture table has no row for a top-level directory that exists in the repo.
+
+**Phase to address:** P-Classifier
+
+---
+
+### Pitfall 6: Deleting a "duplicate" proof that catches a distinct failure class
+
+**What goes wrong:**
+Several apparent duplicates in `ci.yml` differ by input, environment, or trigger:
+
+| Looks duplicate | What actually differs |
+|---|---|
+| `verify-mechanical` vs the `verify.mechanical` step in `verify-capture` | committed scorecards vs freshly regenerated evidence |
+| `verify-dialyzer` vs the live-Dialyzer test in both test lanes | the job is the cached, measured gate; the test checks the sealed critic-tooling slice. The min lane's copy is the only Dialyzer run on OTP 26 (whether that is worth keeping is a decision, not an assumption) |
+| Browser-full's `desktop-chromium`/`mobile-chromium` vs the PR browser lane | on push to `main` it is a true duplicate (same SHA, same projects, via ci.yml's push run). Nightly on an unchanged `main` it is also a duplicate unless something time-varying (npm/Playwright cache restore-keys) enters |
+| `verify-test (min)` vs `(current)` | different floor promise; never merge them |
+| `verify-hex-evaluator` vs `verify-example` | Hex-published artifact vs path dependency |
+
+**Why it happens:**
+Duplicates are judged by name, not by writing down the failure class each copy uniquely catches (MILESTONE-GUIDE §8/§9).
+
+**How to avoid:**
+- Before each removal, write one line in the phase evidence: "failure class X is still caught by job Y on trigger Z". If you cannot fill in Y and Z, the job is not a duplicate.
+- For Browser-full, **do not replace the unrestricted run with a hand-maintained allowlist of the "other" projects**. A new Playwright project would then run in neither lane. Use a set difference (full config project list minus the PR lane's projects), and add a contract test that the PR lane plus Browser-full equals the Playwright config's project set. Update the CONTRIBUTING `## CI Coverage` row in the same commit (`ci_coverage_doc_contract_test.exs` enforces it).
+- Do not regenerate screenshot baselines as part of any browser-lane change. Locally, exactly 8 pre-existing failures are expected. A 9th is a real regression. CI (`CI=true`) is 318/0/26 by design.
+
+**Warning signs:**
+A removal PR with no "still caught by" line. The CONTRIBUTING roster edited without the topology contract test changing, or the reverse.
+
+**Phase to address:** P-Economy
+
+---
+
+### Pitfall 7: A `_build` cache that serves the wrong compiled artifacts
+
+**What goes wrong:**
+The CI cache-key contract in `ci.yml` (Phase 198 D-19) already names the main risks: no `restore-keys` for `_build`, and delete `_build/$MIX_ENV/lib/threadline` before compiling. Additional traps specific to this repo:
+
+- **Profile collision.** `verify-compile-no-optional` (`compile --no-optional-deps`), `verify-dialyzer` (`MIX_ENV=dev`), and `verify-test` (`MIX_ENV=test`) share one `mix.lock` but compile different dependency sets or environments. A key of runner+OTP+Elixir+lock lets the no-optional job restore a `_build` with Phoenix and LiveView compiled. That can false-green the "compiles without optional deps" proof. **Keep `verify-compile-no-optional` cache-free, and put `MIX_ENV` plus a job-profile segment in every `_build` key.**
+- **Floating OTP in the key.** Most jobs pass `otp-version: "27.0"`, the current test lane passes `"27"`, and the keys embed that literal. A local run showed OTP `27.3.4.15`. Whatever setup-beam resolves, the key does not record the actual patch version. Use the setup-beam step outputs (resolved versions) in `_build` and PLT keys, not the requested literal.
+- **deps/`_build` skew.** The `deps` cache has `restore-keys`, and `_build` must not. A near-miss `deps` restore paired with an exact `_build` hit is impossible by construction only if both keys hash the same lock. Keep them in lockstep.
+- **NIF artifacts.** lazy_html's precompiled NIF is downloaded to `~/.cache/elixir_make`, outside `_build`. A cache of it must carry the NIF/OTP version.
+- **Never add caches to `release.yml`'s publish path.** It is cache-free today. A cache written by any default-branch workflow can be restored into the publish job, which is the known cache-poisoning route into release artifacts.
+
+**Warning signs:**
+`verify-compile-no-optional` gets faster after the cache lands (it should not use it). "Module X is not available" or protocol-consolidation errors that clear on re-run. A cache hit on the first run after an OTP patch bump.
+
+**Phase to address:** P-Economy
+
+---
+
+### Pitfall 8: Re-scoping Flake Detection by only changing its timeout or repeat count
+
+**What goes wrong:**
+The baseline shows three regimes: 16 fast failures, 12 cancellations at about 120 min, and 2 greens at 117–136 min. The job now has `timeout-minutes: 180`. Any job-level timeout cancels the job and reports nothing useful. Each full repeat (about 165 s) re-runs deterministic, heavyweight tests: the live-Dialyzer test, file-string contract tests, and `git worktree` tests. They cannot be flaky in the way the lane is hunting, and they dominate cost.
+
+**Why it happens:**
+"Repeat the whole suite N times" is the default of `--repeat-until-failure`, and the lane's budget was sized from the flag instead of from the question it answers.
+
+**How to avoid:**
+- Decide what the lane is for. If it is intermittency in DB/async/tmp tests, run a **tagged or partitioned subset** (exclude `:live_dialyzer` and pure contract tests by tag) with a fixed repeat count sized from measured per-iteration time to finish in about 60 min.
+- Put a **step-level** `timeout-minutes` on the repeat step that is shorter than the job timeout, so the classify, upload, and issue steps always run. Teach `bin/classify-flake-run` a fourth outcome, `budget-exhausted-clean`, that files nothing and is not a failure.
+- Fix the 16 "broken" first-iteration failures as their own item. A lane that is deterministically red is not a flake lane.
+- Its deps cache key is `runner.os`-only, which the D-19 contract bans in `ci.yml`. The anti-regression grep only covers `ci.yml`. Fix the key and extend the grep to every workflow.
+- No automatic retries as a cure (PROJECT.md Out of Scope).
+
+**Warning signs:**
+Any run that ends `cancelled`. Iterations per run below the configured count. The same test named in consecutive "flaky" issues (that makes it a deterministic bug).
+
+**Phase to address:** P-Economy (P-TmpDir consumes its output)
+
+---
+
+### Pitfall 9: A PII/local-path guard that is noisy, leaky, or scans the wrong tree
+
+**What goes wrong (observed shapes in this repo):**
+- **Binary false positives.** A naive `<home>/` grep over tracked files matches PNG screenshot baselines and `priv/fonts/*.woff2`.
+- **Legitimate paths.** Runner paths like `/home/runner/work/_temp/...` in archived CI logs under `.planning/audits/`, `~/.cache/ms-playwright` in workflow cache paths, `$HOME` in `bin/with-rehearsal-registry`.
+- **The guard leaking the pattern.** Hard-coding the maintainer's username in the regex or in a test fixture commits exactly the PII the guard exists to keep out.
+- **Scanning the working tree.** About 1,066 untracked machine-local critic files under `.planning/` make a working-tree scan red locally and green in CI.
+- **Recurrence.** Agent tooling requires absolute paths, so GSD artifacts (STATE.md, research files, verification logs) re-introduce paths every session. A scrub without a local gate regresses within one phase.
+
+**How to avoid:**
+- Scan **tracked files only, text only**: `git grep -I -nE ...` (`-I` skips binaries), or `git ls-files` filtered by `git diff --numstat` binary detection.
+- Match on shape, not on a name: `/(Users|home)/[A-Za-z0-9._-]+/` with a short generic allowlist (`runner`, `user`, `<user>`, `example`). Add Windows `C:\Users\` for completeness. Build any positive-case fixture at runtime (string concatenation) so the committed test file never contains a real-looking home path.
+- Keep scope narrow and deterministic: local absolute home paths, plus optionally hostnames matching `*.local`. Names in `LICENSE` and `mix.exs` package metadata are intentional public attribution. Secrets scanning is a different tool, so don't grow this guard into gitleaks.
+- Provide a documented per-line escape (a marker comment) and per-path allowlist, and make the guard **fail on unused allowlist entries** so it cannot rot.
+- Run it as `mix verify.no_local_paths` (or similar) inside `ci.all` and as a fast CI job, and it must not depend on `.planning/` existing (`planning_independence_contract_test`).
+- Add the negative test: a synthetic tracked-file fixture containing a runtime-built home path must make the guard exit non-zero.
+
+**Warning signs:**
+The guard's own source or test contains a real username. Allowlist entries with no justification. The guard passes locally while `git ls-files | xargs grep` still finds hits.
+
+**Phase to address:** P-Hygiene
+
+---
+
+### Pitfall 10: A forward scrub that rewrites receipts, stages untracked files, or reports false completion
+
+**What goes wrong:**
+295 tracked `.planning/` files hold 978 home-path occurrences. Risks:
+- `git add .planning/` stages the 1,066 untracked critic files. That publishes machine-local data, the opposite of the goal.
+- A blanket regex rewrites content inside archived receipts, CI logs, and JSON (escaped `\/` forms). That breaks MILESTONE-GUIDE §8 ("do not rewrite historical receipts to look cleaner") and invalidates any recorded checksum over those files.
+- "No history rewrite" means the paths remain in git history. The scrub protects the tip of `main` only. That holds only while milestone branches land by **squash PR** and milestone tags stay local (existing rule). A direct push of the milestone branch would publish the unscrubbed history.
+- Executor subagents told "make the guard green" route around it: they add allowlist entries or move files (known behaviour).
+
+**How to avoid:**
+- Generate the file list with `git grep -l -I` on tracked files. Stage exactly that list (`git add -- <files>`). Assert before and after that `git status --porcelain` shows no new `A` entries outside the list.
+- Replace **only the path prefix**: repo root → repo-relative, other home paths → `<home>/...` or `<home>/...`. Never alter surrounding text. Add a short note in the scrub commit on what was normalized.
+- Check whether any tracked hash, lock, or evidence bundle covers a scrubbed file before rewriting it.
+- Scrub first, then land the guard in the same phase, so the guard starts green on a clean baseline and not with 295 allowlist entries.
+- Dispatch prompts must forbid touching the allowlist and the untracked critic tree, with a halt clause.
+
+**Warning signs:**
+Scrub diff lines that change more than a path prefix. The staged file count differs from the grep count. New `??` → `A` transitions under `.planning/`.
+
+**Phase to address:** P-Hygiene
+
+---
+
+### Pitfall 11: An xref "cycles" gate that is either duplicate or unpassable
+
+**What goes wrong:**
+Adding `mix xref graph --format cycles --fail-above 0` without a label fails immediately on the 5 runtime cycles. Two are Ecto `belongs_to`/`has_many` pairs, which are idiomatic and should not be contorted away. Adding another compile-connected gate duplicates `verify.xref_cycles`.
+
+**How to avoid:**
+- Keep `verify.xref_cycles` (compile-connected, 0) as is.
+- If an all-cycles guard is wanted, make it a **ratchet**: fail above the current count (5), or better, an explicit allowlist of cycle member sets where each entry has a reason ("Ecto association"). New cycles then fail while existing ones are named.
+- Treat `Capture.AuditTransaction`↔`Semantics.AuditAction` as a layer-direction finding (CLAUDE.md: capture must not depend on semantics), not as allowed noise. Either fix it or record it as v1.44 debt with a reason.
+- Correct MILESTONE-GUIDE §9a's "clean" claim in the same change.
+
+**Warning signs:**
+A requirement text saying "no cycles" without naming the label.
+
+**Phase to address:** P-Hygiene
+
+---
+
+### Pitfall 12: A newest-version lane that is red from day one or red for good
+
+**What goes wrong:**
+A floating "latest" lane changes under an unchanged commit. The repo compiles with `--warnings-as-errors`, and newer Elixir releases keep adding type-checker warnings, so a newest-Elixir lane is likely red on arrival. Newer PostgreSQL major images change defaults (auth method, data directory layout in the official image). The PgBouncer topology job pins an image and must not silently drift with the newest lane. If the lane is required, it blocks releases on upstream churn. If it is optional and nobody watches it, it becomes permanent red noise that teaches people to ignore red.
+
+**How to avoid:**
+- **Pin exact versions** in the "newest" lane and bump them deliberately in a dedicated commit. "Newest" means "newest we have verified", not "whatever is latest tonight".
+- Before wiring it in, run it once. If it is red, fix the findings or record each one. Do not land it red.
+- Make it one lane of the existing `verify-test` matrix only if it is green and pinned. Otherwise run it scheduled/non-required with the dedup-issue pattern. Either choice must be reflected in CONTRIBUTING `## CI Coverage` and the topology contract in the same commit.
+- Adding a matrix `lane` value changes the emitted check names (`Run test suite (<lane>)`). Branch protection uses only `CI required`, so this is safe, but the contract tests and CONTRIBUTING list the names.
+- PROJECT.md lists "Elixir/OTP version bumps in CI" as Out of Scope. The milestone's newest lane is an *added* lane, not a bump of `current`. Keep it that way.
+
+**Warning signs:**
+The lane's tracking issue stays open for more than one milestone. `continue-on-error: true` appears anywhere.
+
+**Phase to address:** P-Newest
+
+---
+
+### Pitfall 13: Migrating every temp-dir test to `@tag :tmp_dir`
+
+**What goes wrong:**
+There are 46 `System.tmp_dir` uses. ExUnit's `:tmp_dir` puts directories under `<project>/tmp/<module>/<test>`, **inside the git worktree** (`tmp/` is gitignored). Tests that rely on being *outside* the repository change meaning. `clean_checkout_contract_test` runs `git worktree add` into a temp path and then `git status --porcelain --untracked-files=all` at the repo root. Any test that runs `git` in a temp directory before `git init` would now walk up into the Threadline repo. Also, `:tmp_dir` wipes the directory at test *start*, not end. Long test names become long path components.
+
+**How to avoid:**
+- Migrate only tests the flake lane or CI history names as flaky, or that collide under `async: true`. Leave the git-isolation and "outside the repo" tests on `System.tmp_dir!()` plus `unique_integer` (they already use that).
+- For each migrated test, check it does not shell out to `git` or `mix` with the temp directory as the working directory without its own `git init` / `mix.exs`.
+- Tests that start listeners should keep their paths short (Unix socket path limit is about 104–108 bytes).
+
+**Warning signs:**
+A migrated test passes alone and fails in `ci.all`. `git status` in the repo shows unexpected entries after a test run.
+
+**Phase to address:** P-TmpDir
+
+---
+
+## Moderate Pitfalls
+
+### Release-PR double dispatch removed in the wrong direction
+`bootstrap-release-pr-ci` exists because a release-please PR opened with `GITHUB_TOKEN` triggers no `pull_request` CI. The double run appears when a PAT is configured (so `pull_request` fires) **and** the dispatch fires. Removing the dispatch unconditionally leaves the release PR with no CI when no PAT is present, which is exactly the silence its `always()` comment guards against. Make the dispatch conditional on the PAT's absence, or on no CI run already existing for the head SHA. The decision must key on head SHA, the same key `gate-ci-green` uses. **Phase:** P-Economy.
+
+### Live-Dialyzer fix that violates "honest default tests"
+Excluding `:live_dialyzer` in `test_helper.exs` to save minutes is the right *kind* of change, but CLAUDE.md requires updating `test_helper.exs` and docs together, and the check must still run once, in the PLT-cached `verify-dialyzer` job or an equivalent. The existing test "Dialyzer is one blocking local and current-lane CI path with an exact measured PLT cache" must be edited in the same commit. Decide consciously whether the OTP 26 Dialyzer run on the min lane is being dropped. **Phase:** P-Economy.
+
+### "Fastest likely failure first" implemented with `needs:` chains
+Chaining heavy jobs behind `verify-format` saves minutes but lengthens the critical path. It also hides test results behind a lint failure (two round trips for the contributor), and produces "skipped" heavy jobs that `alls-green` must treat as failures (it does, as long as they are not skip-listed). Prefer ordering steps within jobs (compile → xref → test is already right) and keep fast lint jobs parallel. Gate only the costliest browser and capture lanes behind compile, if measurement shows a win. **Phase:** P-DX.
+
+### Renaming jobs across contract surfaces
+Job `name:` may change and `id:` may not. But `ci_topology_contract_test.exs`, CONTRIBUTING's roster, the ruleset byte-exact check on `CI required`, and `verify-example-browser`'s "byte-identical name" comment all read names. Rename in one commit that touches all of them. Never rename `CI required`. **Phase:** P-DX.
+
+### Measuring the baseline once and optimizing against it forever
+v1.41 found a "never re-measured red baseline". Re-measure after each economy change (per-job durations, runner-minutes per PR and per push, critical path) and cite run IDs. Runner cost and wall-clock time are separate metrics (SEED-006 notes). **Phase:** P-Baseline, then every P-Economy change.
+
+---
+
+## Minor Pitfalls
+
+- **Stale local `public.threadline_capture_changes()` masks CI failures.** Any cache or `_build` change validated only locally can pass because of it. Reproduce CI-only results by renaming it away first. **Phase:** P-Economy.
+- **`ci.all` red at Dialyzer is usually a local PLT cache miss** (`mix dialyzer --plt`), not a regression caused by cache-key work. **Phase:** P-Economy.
+- **Never run Playwright directly.** Without an app server it produces about 45 spurious failures. Use `mix verify.example_browser`. **Phase:** P-Economy (Browser-full re-scope).
+- **`.tool-versions` must pin erlang and elixir**, or bare `mix` fails. The working tree currently has an untracked `.tool-versions`. Decide whether to track it, because the newest-lane work will want a local way to switch. **Phase:** P-Newest.
+- **Push and merge are classifier-blocked for agents.** A direct user grant unblocks `git push`. `gh pr merge` and the `production-hex` approval stay with the maintainer. Plan the release patch handoff accordingly. **Phase:** closeout.
+
+---
+
+## Technical Debt Patterns
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| `ignore_advisories` entry with no expiry | Unblocks CI today | Silent permanent acceptance of a vulnerability | Only with a reason, a reachability claim, and a review-by date enforced by a test |
+| `continue-on-error: true` on the newest lane | Lane can land red | Red becomes invisible noise | Never |
+| `_build` cache with `restore-keys` | More cache hits | Stale compiled artifacts, false greens | Never (already banned in ci.yml) |
+| Flake lane bounded only by job timeout | Simple | Cancelled runs report nothing | Never; use a step timeout plus a budget-exhausted classification |
+| Allowlisting the 295 files in the path guard instead of scrubbing | Guard lands green immediately | The allowlist becomes the policy | Never |
+| All-cycles xref gate at `--fail-above 5` without naming cycles | Ratchet in one line | A new cycle can replace a fixed one unnoticed | Short-term only; move to a named-cycle allowlist |
+
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Hex advisories | Assuming the runner's Hex matches local | Pin and assert Hex ≥ 2.5.1 in the audit job |
+| re-actors/alls-green | Adding `allowed-skips` without skip justification | Classifier required and never skipped; `ci-required` checks each skip against classifier output |
+| setup-beam | Cache keys from requested version literals | Keys from resolved-version step outputs |
+| actions/cache | Sharing `_build` across MIX_ENV or `--no-optional-deps` profiles | Profile and env segments in the key; no cache for no-optional |
+| GitHub `pull_request` trust | Using `pull_request_target`/`workflow_run` to get diff context | Plain `pull_request` with `git diff` against merge-base; fail to full |
+| release-please | Dispatching CI unconditionally when a PAT also triggers it | Dispatch only if no run exists for the head SHA |
+| ExUnit `:tmp_dir` | Assuming it is outside the repo | It is `<project>/tmp/...`; keep git-isolation tests on the system temp dir |
+
+## Performance Traps
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Deterministic heavy tests inside repeat-until-failure | 165 s per iteration, cancellations | Exclude by tag from the flake subset | Already broken (12 cancellations) |
+| Cold Dialyzer PLT in both test lanes | About 9-minute budget test inside a 20-minute job | Run once, in the PLT-cached job | Now; grows with deps |
+| Browser-full on every push plus nightly | About 17 min per push and 14 min per night for mostly duplicate projects | Set difference versus PR lane, contract-tested | Now |
+| Concurrent-job cap on a 15-job matrix | PR waits on queued jobs | Measure the queue time separately from the run time | When several PRs overlap |
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Treating mint 1.10.0 as "test-only" | Response-smuggling advisory in an optional runtime dependency path | Lock bump; document that adopters resolve their own mint |
+| Caches restored into the publish job | Cache poisoning into a Hex release | Keep `release.yml` publish path cache-free; add a contract assertion |
+| Guard test fixture containing a real home path | The guard leaks what it protects | Build fixtures at runtime |
+| Pushing the milestone branch rather than squash | Publishes unscrubbed `.planning/` history | Squash PR only; tags stay local |
+
+## UX Pitfalls (contributor DX)
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Audit gate named "Run hex audit" | Contributor can't tell it's not their change | Name it for the outcome, e.g. "Dependency advisories (hex.audit)", and print how to acknowledge an advisory |
+| Classifier-skipped jobs with no explanation | "Why didn't tests run?" | The classifier writes a step summary: changed paths → lanes selected → reason |
+| Flake issue says "flaky" for a budget timeout | False alarms | Separate `budget-exhausted-clean` outcome |
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **Audit gate:** negative test proves it fails on a known-advisory fixture; Hex version asserted; example lock audited.
+- [ ] **Advisory fix:** `mix hex.audit` exits 0 on root **and** example; mint fixed too, not only lazy_html; min lane green.
+- [ ] **`_build` cache:** `verify-compile-no-optional` does not restore it; keys include MIX_ENV and resolved OTP/Elixir; `rm -rf _build/$MIX_ENV/lib/threadline` present.
+- [ ] **Flake lane:** a run completes, not cancelled, with classification output; `runner.os` key fixed; anti-regression grep covers all workflows.
+- [ ] **Duplicate removal:** every removed proof has a "still caught by job/trigger" line; Playwright project union contract-tested.
+- [ ] **Path guard:** scans tracked text files only; no real username anywhere in the guard; unused allowlist entries fail; runs without `.planning/`.
+- [ ] **Scrub:** staged count equals grep count; zero `??` → `A` transitions; prefix-only diff.
+- [ ] **xref:** requirement names the label; §9a corrected; Capture↔Semantics runtime cycle dispositioned.
+- [ ] **Classifier:** fixture tests include unknown path → full, dispatch → full, zero-SHA push → full; `main` push never skips; `ci-required` verifies each skip.
+- [ ] **Every CI topology change:** CONTRIBUTING roster, `ci_topology_contract_test.exs`, and `ci-required` `needs:` changed in one commit.
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| New advisory blocks release | LOW | Add a dated `ignore_advisories` entry with reachability reason, ship, then fix in the next patch |
+| Poisoned `_build` cache | LOW | Bump a key version segment; delete caches with `gh cache delete` |
+| Laundered skip discovered | MEDIUM | Remove the `allowed-skips` entry (fail-closed), re-run `main`, audit runs since the change for untested merges |
+| Scrub staged untracked files | MEDIUM | Unstage before commit; if committed locally, amend before any push (tags and branch are local) |
+| Newest lane permanently red | LOW | Re-pin to the last green version, file the findings, bump deliberately later |
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Stale baseline (mint, xref, live Dialyzer) | P-Baseline | Baseline doc re-derived from commands with outputs cited |
+| Time-varying audit gate / ignore rot | P-Supply | Expiry test plus scheduled `main` audit with issue upsert |
+| Hex-version-dependent gate | P-Supply | Hex version assertion plus negative fixture test |
+| Public constraint overcorrection | P-Supply | Advisory commit touches `mix.lock` only; both lanes green |
+| Coverage laundering via duplicate removal | P-Economy | "Still caught by" lines; Playwright union contract |
+| `_build` cache poisoning or profile collision | P-Economy | No-optional job has no cache step (contract test); key grep |
+| Flake lane budget and design | P-Economy | One completed classified run; iterations = configured count |
+| Release-PR double dispatch | P-Economy | Release PR shows exactly one CI run per head SHA, with or without PAT |
+| Live Dialyzer duplication | P-Economy | Test excluded by tag with docs updated; runs once in the cached job |
+| Job naming and ordering | P-DX | Topology and ruleset contract tests green; no `needs:` chain added without measurement |
+| Newest lane noise | P-Newest | Pinned versions; landed green; CONTRIBUTING row present |
+| tmp_dir semantics | P-TmpDir | Only named flaky tests migrated; git-isolation tests untouched |
+| Path guard noise and leak | P-Hygiene | Negative test; `git grep -I` scope; no username in the repo |
+| Scrub staging and receipts | P-Hygiene | Staged = grep list; prefix-only diff |
+| xref gate shape | P-Hygiene | Named-cycle allowlist or ratchet; §9a corrected |
+| Skip laundering and misclassification | P-Classifier | Fixture-tested classifier; `ci-required` skip justification step |
 
 ## Sources
 
-LLM-as-judge bias & reliability:
-- [Self-Preference Bias in LLM-as-a-Judge (arXiv 2410.21819)](https://arxiv.org/html/2410.21819v2)
-- [Position Bias in LLM Judges: Measurement and Mitigation (Brenndoerfer)](https://mbrenndoerfer.com/writing/position-bias-in-llm-judges)
-- [LLM-as-a-Judge: Why Frontier Models Fail 50%+ Bias Tests (Adaline)](https://www.adaline.ai/blog/llm-as-a-judge-reliability-bias)
-- [What Is LLM-as-a-Judge Calibration? Power & Limits (Deepchecks)](https://deepchecks.com/llm-judge-calibration-automated-issues/)
-- [Breaking the Mirror: Activation-Based Mitigation of Self-Preference (arXiv 2509.03647)](https://arxiv.org/pdf/2509.03647)
+- Repo, observed 2026-09-26 [HIGH]: `.github/workflows/{ci,flake-detection,browser-full,release}.yml`, `.github/rulesets/main.json`, `mix.exs` aliases, `test/test_helper.exs`, `test/threadline/{ci_topology_contract,dialyzer_slice_contract,clean_checkout_contract}_test.exs`, `.gitignore`; command output from `mix hex.audit`, `mix hex.info lazy_html|mint`, `mix deps.tree`, `mix xref graph --format cycles` (with and without `--label compile-connected`), `git grep` path counts.
+- `mix help hex.audit` (Hex 2.5.1, local) [HIGH]: `ignore_advisories`/`ignore_retirements`; non-matching entries only warn.
+- Hex changelog (github.com/hexpm/hex CHANGELOG.md) [LOW, single source]: 2.5.0 advisory warnings in `deps.get` and dependency policies; 2.5.1 ignore configs.
+- hexdocs.pm/hex/Mix.Tasks.Hex.Audit.html; Elixir Forum "How do you use mix hex.audit in your CIs?" [LOW].
+- `.planning/PROJECT.md` (Current Milestone, Out of Scope), `.planning/MILESTONE-GUIDE.txt` §8, §9, §9a, §13, `.planning/seeds/SEED-006-ci-feedback-loop-cost-and-latency.md`.
+- Maintainer memory (project-specific gotchas): PLT cache miss, Playwright direct-run, 8 pre-existing screenshot failures, stale public capture function, executor precondition workarounds, push/merge classifier block, milestone tags stay local.
+- GitHub Actions behaviour (skipped required checks count as passing; cache scope by ref; `pull_request_target` trust) [MEDIUM, documentation plus the repo's own D-09/D-10 comments].
 
-Reward hacking / Goodhart / self-improvement loops:
-- [Specification gaming, Goodhart's law, and the metrics (explainx.ai)](https://explainx.ai/blog/specification-gaming-goodharts-law-ai-metrics)
-- [Reward Hacking in the Era of Large Models: Mechanisms, Emergent Misalignment (arXiv 2604.13602)](https://arxiv.org/html/2604.13602v1)
-- [Reward Shaping to Mitigate Reward Hacking in RLHF (arXiv 2502.18770)](https://arxiv.org/html/2502.18770v1)
-- [Defining and Characterizing Reward Hacking (arXiv 2209.13085)](https://arxiv.org/pdf/2209.13085)
-
-Vision-language model spatial limits:
-- [Can Vision-Language Models See Squares? Text-Recognition Mediates Spatial Reasoning (arXiv 2602.15950)](https://arxiv.org/html/2602.15950)
-- [SpatiaLab: Can Vision–Language Models Perform Spatial Reasoning in the Wild? (arXiv 2602.03916)](https://arxiv.org/html/2602.03916v1)
-- [Inherent limitations of GPT-4 regarding spatial information (arXiv 2312.03042)](https://arxiv.org/html/2312.03042v1)
-
-AI-slop / homogenization / anti-slop:
-- [Interrogating Design Homogenization in Web Vibe Coding (arXiv 2603.13036)](https://arxiv.org/html/2603.13036v1)
-- [The Homogenization Problem in LLMs: Towards Meaningful Diversity (arXiv 2601.06116)](https://arxiv.org/pdf/2601.06116)
-- [The AI design aesthetic: why AI content all looks the same (Kompozy)](https://kompozy.io/guides/the-ai-design-aesthetic)
-- [Diverse AI personas can mitigate the homogenization effect (ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S294988212600040X)
-
-Judge validation / golden set / calibration:
-- [LLM-as-a-Judge vs Human Evaluation (Galileo)](https://galileo.ai/blog/llm-as-a-judge-vs-human-evaluation)
-- [How to optimize your LLM Judge (Galtea)](https://www.galtea.ai/blog/llm-as-a-judge-evaluation)
-- [LLM-as-a-Judge: Build Reliable, Scalable Evaluation (Comet)](https://www.comet.com/site/blog/llm-as-a-judge/)
-
-Threadline internal (repo-grounded):
-- `brandbook/pressure-test.md` — 15-dimension, self-assessment-banned, mechanical-evidence pressure test (anti-sycophancy protocol to port)
-- `.planning/design-system-ledger.json` — per-fixture `current/ratchet/target_score`, `reserved_for_phase`, `owner_phase` (the monotonic ratchet to generalize)
-- `.planning/milestones/v1.37-phases/180-.../180-ADVERSARIAL-REVIEW.md` — D-12 8-lens adversarial closeout; screenshot-only-quality and generic-template-drift lenses; a11y-tree ≠ real AT caveat
-- `.planning/MILESTONES.md` (v1.31/v1.37/v1.38/v1.39) — churn stats and named residuals (screenshot-regression confidence, demo-seed/CI residuals)
-- `CLAUDE.md` — invariants (Phoenix optional, no public component API, dev/test-only harness, not a SIEM, no new runtime deps)
+---
+*Pitfalls research for: v1.43 Supply Chain, CI Economy and Repo Hygiene*
+*Researched: 2026-09-26*

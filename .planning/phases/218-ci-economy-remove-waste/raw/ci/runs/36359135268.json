@@ -1,0 +1,132 @@
+{
+  "run_id": 36359135268,
+  "attempt": 1,
+  "head_sha": "0d00078524c912ffccd8b789c63703097e628ea2",
+  "event": "workflow_dispatch",
+  "created_at": "2026-09-27T23:34:12Z",
+  "conclusion": "failure",
+  "workflow": "Flake Detection",
+  "jobs": [
+    {
+      "id": 108732671311,
+      "name": "Suite repeat-until-failure (broken vs flaky)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-09-27T23:34:15Z",
+      "completed_at": "2026-09-28T00:30:48Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:34:16Z",
+          "completed_at": "2026-09-27T23:34:17Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:34:17Z",
+          "completed_at": "2026-09-27T23:34:39Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:34:39Z",
+          "completed_at": "2026-09-27T23:34:42Z"
+        },
+        {
+          "name": "Decide whether this SHA needs a flake run",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:34:42Z",
+          "completed_at": "2026-09-27T23:34:43Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:34:43Z",
+          "completed_at": "2026-09-27T23:34:50Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:34:50Z",
+          "completed_at": "2026-09-27T23:34:51Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:34:51Z",
+          "completed_at": "2026-09-27T23:34:53Z"
+        },
+        {
+          "name": "Compile (warnings as errors)",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:34:53Z",
+          "completed_at": "2026-09-27T23:35:40Z"
+        },
+        {
+          "name": "Repeat the suite until failure",
+          "conclusion": "success",
+          "started_at": "2026-09-27T23:35:40Z",
+          "completed_at": "2026-09-28T00:30:40Z"
+        },
+        {
+          "name": "Classify broken vs flaky",
+          "conclusion": "success",
+          "started_at": "2026-09-28T00:30:40Z",
+          "completed_at": "2026-09-28T00:30:40Z"
+        },
+        {
+          "name": "Upload raw repeat-until-failure log",
+          "conclusion": "success",
+          "started_at": "2026-09-28T00:30:40Z",
+          "completed_at": "2026-09-28T00:30:41Z"
+        },
+        {
+          "name": "Open or update the flake tracking issue",
+          "conclusion": "success",
+          "started_at": "2026-09-28T00:30:41Z",
+          "completed_at": "2026-09-28T00:30:43Z"
+        },
+        {
+          "name": "Close the flake tracking issue on a passing run",
+          "conclusion": "skipped",
+          "started_at": "2026-09-28T00:30:43Z",
+          "completed_at": "2026-09-28T00:30:43Z"
+        },
+        {
+          "name": "Fail the job if the suite did not pass",
+          "conclusion": "failure",
+          "started_at": "2026-09-28T00:30:43Z",
+          "completed_at": "2026-09-28T00:30:43Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "skipped",
+          "started_at": "2026-09-28T00:30:43Z",
+          "completed_at": "2026-09-28T00:30:43Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-28T00:30:43Z",
+          "completed_at": "2026-09-28T00:30:43Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-28T00:30:43Z",
+          "completed_at": "2026-09-28T00:30:45Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-28T00:30:45Z",
+          "completed_at": "2026-09-28T00:30:45Z"
+        }
+      ]
+    }
+  ]
+}

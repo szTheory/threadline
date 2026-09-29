@@ -29,6 +29,8 @@ defmodule Threadline.DepsHealthDocContractTest do
 
   use ExUnit.Case, async: true
 
+  alias Threadline.Test.CiIssuePairing
+
   @repo_root File.cwd!()
   @deps_health_workflow Path.join([@repo_root, ".github", "workflows", "deps-health.yml"])
   @deps_health_report Path.join([@repo_root, "bin", "deps-health-report"])
@@ -195,6 +197,58 @@ defmodule Threadline.DepsHealthDocContractTest do
 
   test "deps-health.yml calls bin/upsert-ci-issue" do
     assert deps_health_yaml() =~ "bin/upsert-ci-issue"
+  end
+
+  test "deps-health.yml closes the tracking issue only on a clean classification" do
+    yaml = deps_health_yaml()
+
+    assert yaml =~ "upsert-ci-issue --close",
+           "deps-health.yml must close the ci-deps issue via bin/upsert-ci-issue --close (ECON-02)"
+
+    close_step =
+      case String.split(yaml, "- name: Close the dependency health issue on a clean run",
+             parts: 2
+           ) do
+        [_, tail] ->
+          tail |> String.split(~r/\n      - /, parts: 2) |> List.first()
+
+        _ ->
+          flunk("deps-health.yml has no `Close the dependency health issue on a clean run` step")
+      end
+
+    assert close_step =~ ~r/^\s*if: steps\.report\.outputs\.classification == 'clean'\s*$/m,
+           "the close step must run only when classification == 'clean' (never on outdated, " <>
+             "advisory, unknown, or an empty/crashed report)"
+
+    assert close_step =~ "upsert-ci-issue --close",
+           "the `clean` gate must sit on the step that runs upsert-ci-issue --close"
+  end
+
+  describe "close step targets the issue the open step files (218 review WR-06)" do
+    @open_step "Open or update the dependency health issue"
+    @close_step "Close the dependency health issue on a clean run"
+
+    test "the close step's TITLE_PREFIX and LABEL equal the open step's" do
+      assert CiIssuePairing.violations(deps_health_yaml(), @open_step, @close_step) == []
+    end
+
+    test "control: renaming only the open step's TITLE_PREFIX or LABEL is caught" do
+      yaml = deps_health_yaml()
+      [before_close, close_and_after] = String.split(yaml, "- name: " <> @close_step, parts: 2)
+
+      for {from, to} <- [
+            {~s(TITLE_PREFIX: "Dependency health"), ~s(TITLE_PREFIX: "Dependency report")},
+            {"LABEL: ci-deps\n", "LABEL: ci-dependencies\n"}
+          ] do
+        renamed_open =
+          String.replace(before_close, from, to) <> "- name: " <> @close_step <> close_and_after
+
+        refute renamed_open == yaml, "control did not change the input"
+
+        refute CiIssuePairing.violations(renamed_open, @open_step, @close_step) == [],
+               "renaming only the open step (#{to}) must fail the contract"
+      end
+    end
   end
 
   test "the ci-deps label is distinct from every other workflow's LABEL: value" do

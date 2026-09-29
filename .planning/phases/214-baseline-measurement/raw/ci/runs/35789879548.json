@@ -1,0 +1,156 @@
+{
+  "run_id": 35789879548,
+  "attempt": 1,
+  "head_sha": "53b5d71a84a483ae80bade03077ed49aacbf614c",
+  "event": "push",
+  "created_at": "2026-09-22T21:59:49Z",
+  "conclusion": "success",
+  "workflow": "Release",
+  "jobs": [
+    {
+      "id": 106955565410,
+      "name": "Release Please",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-22T22:00:26Z",
+      "completed_at": "2026-09-22T22:00:35Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T22:00:27Z",
+          "completed_at": "2026-09-22T22:00:28Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T22:00:28Z",
+          "completed_at": "2026-09-22T22:00:30Z"
+        },
+        {
+          "name": "Detect already-tagged release PR",
+          "conclusion": "success",
+          "started_at": "2026-09-22T22:00:30Z",
+          "completed_at": "2026-09-22T22:00:30Z"
+        },
+        {
+          "name": "Run Release Please",
+          "conclusion": "success",
+          "started_at": "2026-09-22T22:00:30Z",
+          "completed_at": "2026-09-22T22:00:34Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-22T22:00:34Z",
+          "completed_at": "2026-09-22T22:00:34Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-22T22:00:34Z",
+          "completed_at": "2026-09-22T22:00:34Z"
+        }
+      ]
+    },
+    {
+      "id": 106955567058,
+      "name": "Bootstrap release ref (dispatch)",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T21:59:49Z",
+      "completed_at": "2026-09-22T21:59:49Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106955813434,
+      "name": "Sync install pins on Release PR",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T22:00:36Z",
+      "completed_at": "2026-09-22T22:00:36Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106955813640,
+      "name": "Select release ref",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T22:00:36Z",
+      "completed_at": "2026-09-22T22:00:36Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106955814317,
+      "name": "Verify CI is green on release SHA",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T22:00:36Z",
+      "completed_at": "2026-09-22T22:00:36Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106955814339,
+      "name": "Bootstrap CI on Release PR",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T22:00:36Z",
+      "completed_at": "2026-09-22T22:00:36Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106955814760,
+      "name": "Publish to Hex.pm",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T22:00:36Z",
+      "completed_at": "2026-09-22T22:00:36Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106955816894,
+      "name": "Smoke test the published release (threadline from hex.pm)",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T22:00:37Z",
+      "completed_at": "2026-09-22T22:00:36Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    },
+    {
+      "id": 106955817336,
+      "name": "Post-publish distribution sync",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-09-22T22:00:37Z",
+      "completed_at": "2026-09-22T22:00:36Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": []
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 ## `oss-deep-research/`
 
-Files in this directory were copied from **`~/projects/scrypath/prompts/`** on 2026-04-22.
+Files in this directory were copied from **`<home>/projects/scrypath/prompts/`** on 2026-04-22.
 
 For these seven filenames, **SHA-256 matched** across scrypath, sigra, and lattice_stripe (where the file existed):
 

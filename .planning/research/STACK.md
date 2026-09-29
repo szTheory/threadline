@@ -1,221 +1,290 @@
-# Technology Stack — Automated Adversarial LLM UI/UX Critique & Forward-Only Iteration Harness
+# Stack Research: v1.43 Supply Chain, CI Economy and Repo Hygiene
 
-**Project:** Threadline v1.40 (operator surface `/audit`)
-**Researched:** 2026-07-02
-**Mode:** Ecosystem / STACK
-**Overall confidence:** HIGH on the Claude API surface and the capture pipeline (verified against repo + the bundled `claude-api` reference); MEDIUM on the LLM-as-visual-judge reliability numbers (recent-but-academic sources) and on exact third-party dep versions (verify at install).
+**Domain:** CI, supply-chain and repo-hygiene tooling for an Elixir Hex library (`threadline` 0.11.0)
+**Researched:** 2026-09-26
+**Confidence:** HIGH for versions, advisory facts and CI behaviour. These were checked against primary sources: hex.pm API, OSV API, `gh api` release and tag data, the Hex and Elixir source at tagged versions, local `mix` runs, and logs from the last green CI run. MEDIUM for the policy recommendations, which are my inference and are marked as such.
+
+**Scope note:** This file covers tooling only. The product itself is validated and was not re-researched. No repo files were modified, except that `mix hex.audit`, `mix hex.outdated`, `mix xref` and `mix deps.unlock --check-unused` were run read-only.
+
+**Confidence labels in this file:**
+- **[VERIFIED]** means checked against a primary source or command output.
+- **[WEB]** means a single web source that was not cross-checked.
+- **[INFERENCE]** means my reasoning from the verified facts.
 
 ---
 
-## TL;DR Recommendation
+## 0. Findings that change the milestone scope
 
-Build the critic loop as a **local/on-demand Node lane inside the existing `examples/threadline_phoenix/e2e/` toolchain**, not a new root dependency and not a blocking CI gate. Reuse the deterministic Playwright capture you already ship (screenshots × pages × states × breakpoints × themes), add DOM + accessibility-tree + design-token dumps to each captured "evidence bundle," and feed those bundles to **`claude-opus-4-8`** (vision) via the **`@anthropic-ai/sdk`** with **structured outputs (JSON-schema-constrained)**, **prompt caching** (stable rubric + few-shot anchors + tokens), and the **Message Batches API** for the full overnight matrix. One critic per persona/JTBD plus one dedicated graphic-design critic, each a versioned rubric. Aggregate N samples per bundle (self-consistency), write scored verdicts back into the **existing `.planning/design-system-ledger.json` ratchet**, and enforce forward-only via the existing `stress_ledger_test.exs`. Human confirms any score drop; the LLM never fails CI on its own.
+Read these first. Several of them correct the baseline in PROJECT.md.
 
-This mirrors exactly how the repo already treats the dark/`__light__` screenshot lanes: **local-only, evidence-producing, ratchet-guarded — never a born-red gate.**
+1. **There are now two advisories in the root lock, not one.** [VERIFIED, `mix hex.audit` exits 1]
+   - `lazy_html 0.1.12`: EEF-CVE-2026-92106 / GHSA-8rqp-v692-v82q, LOW. It is fixed in **0.1.13**, per OSV `fixed: 0.1.13`. 0.1.13 was released 2026-09-25 and requires `elixir: ~> 1.15`, so the min lane is fine.
+   - `mint 1.10.0`: **EEF-CVE-2026-82672** / GHSA-rj5m-69wp-cxq9, MEDIUM, an HTTP/1 response-smuggling issue. It is fixed in **1.10.1**, released 2026-09-19 with `elixir: ~> 1.15`. mint arrives transitively through `req -> finch -> mint`, where `req` is an optional runtime dep.
+   - Adopters resolve their own lock, so both fixes are lock-only (`mix deps.update lazy_html mint`). Neither needs a `mix.exs` change.
+   - **Inference:** a CHANGELOG line for mint is still worthwhile, because `req` is an optional runtime integration.
+2. **`bench/mix.lock` has 8 advisories, 3 of them HIGH.** [VERIFIED]
+   - The affected versions are postgrex 0.22.0 (×3, one HIGH), plug 1.19.1 (×4, two HIGH) and decimal 2.3.0.
+   - `bench/` is not audited by anything in CI.
+   - The audit gate has to cover all three tracked lockfiles: `mix.lock`, `examples/threadline_phoenix/mix.lock` (clean today) and `bench/mix.lock`.
+3. **CI does not run the OTP it claims to.** [VERIFIED from run logs, 2026-09-26]
+   - Every non-matrix job pins `otp-version: "27.0"`. With setup-beam's default `version-type: loose`, that resolves to **OTP-27.0.1**, a July 2024 build. This applies to the Dialyzer "current toolchain" job, Credo, format, browser, capture and others.
+   - The `current` test lane pins `"27"` and gets **OTP-27.3.4.18**.
+   - Local `.tool-versions` says `27.3.4.15`, and that file is **untracked** (`?? .tool-versions`).
+   - So the result is three different OTPs, and the Dialyzer PLT key (`otp27.0`) is honest only about the stale one.
+   - `test/threadline/ci_topology_contract_test.exs:396` *asserts* `otp-version: "27.0"`, which pins the drift in place.
+4. **Node 20 actions are past GitHub's removal date.** [VERIFIED]
+   - GitHub set Node 20 removal for **2026-09-23**. The pinned `actions/cache@v4`, `actions/upload-artifact@v4` and `googleapis/release-please-action@v4` all declare `using: node20`.
+   - They currently run because the runner forces them onto Node 24, which produces deprecation noise in logs. This is a latent break, not a hypothetical one.
+   - `test/threadline/ci_workflow_parity_contract_test.exs:255` asserts `actions/cache@v4`.
+5. **The `ubuntu-22.04` image entered deprecation on 2026-09-17.** [VERIFIED, actions/runner-images#14254]
+   - Brownouts run 2027-03-23 through 04-13, and the image is unsupported from **2027-04-17**.
+   - The min lane (`ubuntu-22.04`) should move to `ubuntu-24.04`. setup-beam supports OTP 24.3–29 on 24.04.
+6. **The xref-cycles gate already exists.** [VERIFIED]
+   - `verify.xref_cycles` (`--label compile-connected --fail-above 0`) is in `ci.all` and in both test lanes, and it is clean.
+   - `mix xref graph --format cycles` with **no label** finds **5 runtime cycles**, all of length 2:
+     - `audit_transaction <-> audit_change`
+     - `audit_transaction <-> semantics/audit_action`
+     - `investigation <-> threadline`
+     - `mechanical_checker <-> mechanical_checker/contrast`
+     - `critic_trust/repository_boundary <-> mix/tasks/critic.measure`
+   - `capture/audit_transaction <-> semantics/audit_action` crosses the Capture/Semantics layer boundary. **Inference:** this is most likely an Ecto association back-reference, but it needs a look under the "layers stay one-directional" rule (guide §9a).
+7. **Secret scanning and push protection are already enabled** on the repo (`security_and_analysis`). [VERIFIED] Dependabot security updates are disabled, `/vulnerability-alerts` returns 404 (alerts off), and there is no `.github/dependabot.yml`.
+8. **The local-path baseline has grown to 298 files, all under `.planning/`.** [VERIFIED, `git grep`, 0.15 s]
+   - Distinct prefixes: the maintainer home directory (978 hits), the GitHub runner home `home/runner/` (350 hits, which is CI log excerpts and not PII) and one `home/timeline/` false positive.
+   - 5 files contain macOS temp paths (`/private/var`, `/var/folders`, `/private/tmp`).
 
 ---
 
 ## Recommended Stack
 
-### Model (the critic brain)
+### Core tooling (adopt)
 
-| Technology | Version / ID | Purpose | Why |
-|------------|--------------|---------|-----|
-| **Claude Opus 4.8** | `claude-opus-4-8` | Vision-capable design/UX critic | Most capable Opus-tier model; native vision; **1M-token context** (fits the whole rubric + anchor set + tokens + DOM + a11y tree + several screenshots in one call); **structured outputs GA**; **prompt caching**; **Batch API** support. Non-negotiable default per the `claude-api` skill. |
-| (fallback for cost) | `claude-sonnet-4-6` | Cheaper pre-screen / triage pass | $3/$15 vs $5/$25 per MTok; use only if the matrix gets large and you want a coarse first pass. Keep the authoritative scoring on Opus 4.8 so ratchet numbers stay comparable across runs. |
+| Tool | Version | Purpose | Why recommended |
+|---|---|---|---|
+| **`mix hex.audit`** (built into Hex) | Hex **>= 2.5.0**. CI installs **2.5.1** today [VERIFIED from log `hex-2.5.1`] | The CI audit gate. It reports retired packages **and security advisories**, and exits 1 on either. | Advisory reporting landed in Hex 2.5.0 (hexpm/hex#1150, released 2026-06-28). Its source is the EEF CNA / OSV feed: the lazy_html advisory was flagged the day it was published. `ignore_advisories` / `ignore_retirements` (Hex 2.5.1) gives a reviewed escape hatch in `mix.exs :hex` that fails nothing and warns when an entry goes stale. It needs zero new dependencies. |
+| **`mix deps.unlock --check-unused`** | Elixir >= 1.15 (flag present in 1.15.8) [VERIFIED] | Fails if `mix.lock` carries entries no dep needs | Cheap and deterministic, and it currently passes (exit 0). It stops a lockfile from keeping a dropped, vulnerable dep that the audit would still flag. |
+| **`mix deps.get --check-locked`** | Elixir >= 1.15 (present in 1.15.8, absent in 1.14) [VERIFIED] | Fails if `mix.exs` and `mix.lock` disagree | This turns "someone edited a requirement but not the lock" into a named, fast failure. It can replace the plain `mix deps.get` in the audit job. |
+| **`erlef/setup-beam`** | **v1.24.1** (2026-06-28), `@v1`, node24 [VERIFIED] | BEAM toolchain in every job | Use `version-file: .tool-versions` with `version-type: strict` for every non-matrix job. The parser ignores the `nodejs` line and understands the `-otp-27` suffix [VERIFIED in `src/setup-beam.js`]. This needs `.tool-versions` to be **committed**. |
+| **`actions/cache`** | **v5** (v5.1.0) or v6 (v6.1.0). Use split `actions/cache/restore` + `actions/cache/save` [VERIFIED node24] | deps, deps-only `_build`, PLT, Playwright | v4 is node20 and past removal. v5 is the smallest step (a runtime bump only). v6 only migrates internals to ESM. **Pick v5** unless another reason to take v6 appears. |
+| **`actions/upload-artifact`** | **v7** (v7.0.1). v6 is the first major that *defaults* to node24 [VERIFIED] | flake log, Playwright traces | v5 still ran node20 by default. v7 adds an opt-in `archive: false` and is otherwise compatible. |
+| **`googleapis/release-please-action`** | **v5** (v5.0.0) [VERIFIED] | Release PRs | The only breaking change in v5.0.0 is node24 (plus release-please 17.3 -> 17.6). Treat it as its own commit, and rehearse it through the release runbook because the release lane is fragile. |
+| **Composite action** `.github/actions/setup-elixir/action.yml` | n/a (GitHub `using: composite`) | Dedupe the checkout-to-`deps.get` setup across about 14 jobs | This is a step-level dedupe that **keeps job IDs and check names unchanged**. See "What NOT to use" for why a reusable workflow is the wrong tool here. |
+| **`git grep`-based guard script** `bin/check-local-paths` + `mix verify.no_local_paths` | git (runner-provided) | PII / absolute-local-path guard | It scans only **tracked** files, so it never sees deps/, _build/ or node_modules. It runs in about 0.15 s across the whole repo, needs no install, runs identically locally and in CI, and can be unit-tested like `bin/classify-flake-run`. |
 
-**High-resolution vision matters here.** Opus 4.7+ raised the max image resolution to **2576px on the long edge** (up from 1568px), and returned coordinates map 1:1 to pixels — no scale-factor math. This is automatic on 4.8 (no beta header). It directly improves spacing-rhythm / alignment / typographic-scale judgments, which are exactly the graphic-design critic's job. Cost caveat: a full-res image can consume up to ~4784 image tokens (≈3× the old cap), so control image size deliberately (see Capture Pipeline).
+### Supporting additions
 
-**Determinism note (important):** on Opus 4.8 `temperature`, `top_p`, `top_k` are **removed** (they 400). You cannot "turn down temperature" for a more deterministic judge. Reproducibility therefore comes from: (1) JSON-schema-constrained output, (2) a frozen, versioned rubric + anchor prefix, (3) prompt caching keeping that prefix byte-identical, and (4) **self-consistency aggregation across N samples** rather than trusting a single call. See Reliability & Determinism.
+| Item | Version | Purpose | When to use |
+|---|---|---|---|
+| Hex `cooldown` config | Hex >= 2.5.0 [VERIFIED feature, from changelog] | Holds freshly published versions back for N days during resolution | Supply-chain hygiene against compromised releases. **Inference:** set `7d` for this repo's own resolution. It does not affect adopters. It bypasses cooldown for locked versions that carry advisories, so security fixes are never held back [VERIFIED, changelog]. *Verify where it is configured* (`mix.exs :hex` block vs `mix hex.config` vs `HEX_COOLDOWN`) before relying on it [MEDIUM]. |
+| `mix hex.outdated --within-requirements` | Hex 2.5.1 | Freshness signal. Exits 1 only if an in-range update exists [VERIFIED from help text] | The dependency-freshness policy (§Freshness). Today it would flag ex_doc, lazy_html, oban, phoenix and phoenix_live_view. `yaml_elixir` shows "Update not possible", which is correct because of the deliberate `~> 2.11.0` floor pin. |
+| ExUnit `@tag :tmp_dir` | Elixir >= 1.11, so the 1.15 min lane is fine [VERIFIED] | Replace ad-hoc `System.tmp_dir!()` + `unique_integer` dirs (40 test files use `System.tmp_dir`, and only 1 uses `:tmp_dir`) | Semantics are covered in §5. |
+| `mix test --repeat-until-failure N --max-failures 1` | Elixir >= **1.17** [VERIFIED, help text] | Flake lane budget | Only on the current or latest toolchain. The 1.15 min lane cannot run it. |
+| Dependabot **alerts** (a repo toggle, not a bot) | n/a | Async alerts for the **GitHub Actions** and **npm** (`examples/threadline_phoenix/e2e/package-lock.json`) ecosystems | This is a maintainer action (settings -> Code security). It is free on public repos and adds no PRs. |
+| `.github/dependabot.yml`, `github-actions` ecosystem only, `interval: monthly`, a single `groups:` entry | Dependabot v2 config | Keeps action SHAs and majors fresh with one PR per month | **Inference:** this is the only Dependabot *version-update* config worth adding. It fixes the class of rot behind finding 4. Do **not** add `package-ecosystem: mix` (churn). |
 
-### API features to use (all first-party Claude API)
+### Toolchain versions for the "newest" lane (as of 2026-09-26)
 
-| Feature | How | Why for this loop |
-|---------|-----|-------------------|
-| **Structured outputs** | `output_config: {format: {type:"json_schema", schema: RUBRIC_SCHEMA}}`, or `client.messages.parse()` with a Zod schema | Guarantees every critic returns the same machine-scorable shape (per-criterion score, evidence pointer, severity, suggested fix). GA on Opus 4.8. Eliminates parse/retry glue. Note: **incompatible with citations** and with assistant prefill — use system-prompt instructions, not prefill. |
-| **Prompt caching** | `cache_control: {type:"ephemeral"}` on the last stable block (rubric + anchors + `brandbook/tokens.json` + the `style.ex` token/BEM contract) | The rubric+anchors+tokens prefix is identical for every page/state/theme in the matrix. Cache it once; each bundle only pays for the volatile suffix (its own screenshots + DOM + a11y). ~0.1× read cost. Order: `tools → system → messages`; keep volatile per-bundle content after the breakpoint. |
-| **Message Batches** | `client.messages.batches.create([...])`, poll, key results by `custom_id` | The full matrix (11 pages × states × 2–3 breakpoints × 2 themes × N personas × N samples) is a large, non-latency-sensitive job — perfect for Batch (50% cheaper, runs async/overnight). Results are unordered → key by `custom_id = <bundle>__<persona>__<sample>`. |
-| **Adaptive thinking** | `thinking: {type:"adaptive"}` (optionally `display:"summarized"` to capture the critic's reasoning as evidence) | Lets the model reason about visual hierarchy before scoring. `display:"summarized"` gives you a human-readable rationale to store alongside the score. |
-| **Effort** | `output_config: {effort: "high"}` | A visual-judgment task is intelligence-sensitive; use `high` (or `xhigh` for the graphic-design critic). Don't default to `max` — diminishing returns and slower. |
+| Component | Newest stable | Status | Source |
+|---|---|---|---|
+| Elixir | **1.20.4** (2026-08-28) | 1.20 gets bug and security fixes. 1.16–1.19 get security fixes only. **1.15 is out of support** | [VERIFIED: gh releases, elixir.hexdocs.pm compatibility page] |
+| Erlang/OTP | **29.1.1** (2026-09-22). Also 28.5.0.7 and **27.3.4.18** | Elixir 1.20 supports OTP **27–29**. Elixir 1.17 supports 25–27 | [VERIFIED] |
+| PostgreSQL | **18.6** (`postgres:18`) | PG 19 is at **beta 4** (2026-09-24), with GA planned for October 2026. **PG 14 reaches EOL 2026-11-12**, the floor this repo's min lane proves | [VERIFIED: postgresql.org versioning and roadmap, Docker Hub tags up to `19beta4`] |
+| Playwright | 1.63.0 (lock has 1.60.0) | No change is needed for this milestone | [VERIFIED] |
+| Hex | 2.5.1 (2.5.2-dev adds SARIF) | | [VERIFIED] |
+| dialyxir / credo / ex_doc | 1.4.8 / 1.7.19 / 0.40.4 | | [VERIFIED hex.pm] |
 
-### Invocation runtime (example/dev-only — NOT a root dep)
+**Recommended newest lane:** add `latest` to the `verify-test` matrix with Elixir `1.20.4`, OTP `29.1`, `postgres:18` and `ubuntu-24.04`. It yields the check name `Run test suite (latest)`.
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| **`@anthropic-ai/sdk`** | latest `^0.9` (the release shipping `messages.parse` + `betaZodTool` + `scope_id`; ≥ 0.88) | TypeScript client for the critic runner | The `e2e/` lane is already Node/TypeScript. Reuse it. **Add it as a `devDependency` of `examples/threadline_phoenix/e2e/package.json` only** — never a root `mix.exs` dep; the root package must stay Phoenix-optional with no new runtime deps. Verify the exact current version at install. |
-| **`zod`** | `^3` | Typed critic schema (drives structured outputs) | Define the rubric response schema once in Zod; the SDK converts it to the API's json_schema. Client-side validation catches drift. |
-| **`@playwright/test`** | `^1.52.0` (already pinned) | Deterministic capture — already in the repo | No change. Reuse the existing `capture()` helper, projects, and `snapshotPathTemplate`. |
-| **Node** | ≥ 20 LTS | Runtime for the critic script | Already required by Playwright. |
-
-### Ledger / ratchet (already shipped — reuse, do not rebuild)
-
-| Artifact | Role in v1.40 |
-|----------|---------------|
-| `.planning/design-system-ledger.json` | Extend each entry with `critic_scores` (per-persona + graphic-design) and a `rubric_version`. `current_score`/`ratchet_score` become LLM-fed. |
-| `DESIGN-SYSTEM.md` | Stays the projected view; add critic columns. |
-| `test/threadline/operator_surface/stress_ledger_test.exs` | The forward-only enforcer — extend to assert critic scores never regress below `ratchet_score` (with a noise band; see below). |
-| `lib/threadline/operator_surface/live/stress_live.ex` + `stress_fixtures.ex` | The `/audit/__stress` fixtures are the **known-bad calibration anchors** (footguns already scored 25/35). Their target-90 fixed states are the **known-good anchors**. This is the single most valuable pre-existing asset for critic calibration. |
+- Use `postgres:18`, **not** `19beta4`. A beta image in a required lane means red builds from upstream churn. Revisit when PG 19 is GA and the next `postgres:19` tag exists.
+- **[INFERENCE, needs a spike]** Elixir 1.20's whole-body type inference will very likely emit new warnings. Under `compile --warnings-as-errors` those break the lane on day one. Measure it locally before deciding whether the lane blocks the build.
+- Keep the `current` lane pinned to the committed `.tool-versions`. It is the adopter-default proof, and the Dialyzer and PLT job must match it.
 
 ---
 
-## Critic Invocation & Integration
+## 1. Supply chain: `mix hex.audit` vs `mix_audit` vs GitHub tooling
 
-**Recommended: a hybrid, with a Node runner as the workhorse and Claude Code subagents as the interactive lane.**
+| Criterion | `mix hex.audit` (Hex 2.5.1) | `mix_audit` (`mix deps.audit`) | GitHub dependency-review-action |
+|---|---|---|---|
+| Advisory source | EEF CNA / OSV via hex.pm | `mirego/elixir-security-advisories`, synced from GHSA | GitHub Advisory DB, which needs dependency-graph data |
+| Has lazy_html advisory today | **Yes** (published 09-25, flagged) | **No**: `packages/lazy_html` is 404 in its DB [VERIFIED] | Only if Mix deps are submitted |
+| Has mint 2026 advisory | **Yes** | **No**: only the three older mint GHSAs are present [VERIFIED] | Same as above |
+| Retired packages | Yes | No | No |
+| Maintenance | Core Hex, active (commits 2026-09-22) | Last release **2.1.5 on 2025-06-09** [VERIFIED] | Active (v5.0.0, node24) |
+| New dependency | None | A Hex dev dep | Plus `erlef/mix-dependency-submission` (v1.3.4) with **`contents: write`** |
+| Ignore mechanism | `hex: [ignore_advisories: [...]]`, which warns when stale | A YAML ignore file | Config |
 
-### Primary — Node critic runner in `e2e/critic/`, wrapped by a `mix verify.*` alias
+**Recommendation: `mix hex.audit` only.** Gate it on every PR in a dedicated fast job, and also run it on a **weekly schedule on `main`**. The scheduled run catches advisories published against an unchanged lock, which PR gating cannot see.
+- Scheduled output goes to one tracking issue, reusing the flake lane's issue-upsert pattern.
+- Guard the Hex version inside the job: assert `mix hex.info` reports >= 2.5.0. An older Hex silently audits **retirements only**, which gives a false green.
 
-Structure:
+**Integration:**
+- `mix.exs` aliases:
+  - `"verify.deps_audit": ["deps.unlock --check-unused", "hex.audit"]`
+  - root, example app and bench, via `cmd --cd examples/threadline_phoenix mix hex.audit` and `cmd --cd bench mix hex.audit`, or a small `bin/` loop.
+- Add it to `ci.all` near the front: it is fast and fails early. **Caveat:** `hex.audit` calls `deps.loadpaths --no-compile` first [VERIFIED in the source], so deps must be *fetched* (not compiled), and it needs network access to hex.pm.
+- Add it to `preferred_envs` only if needed. It works in any env.
+- CI job `id: verify-deps-audit`, `name: "Audit dependencies (Hex advisories)"`. Add it to the `ci-required` aggregate `needs` and to the CONTRIBUTING job list in the same commit (guide §9).
 
+**Freshness policy (not Dependabot churn).** [INFERENCE, built on verified tool behaviour]
+- Hex `cooldown: "7d"` for this repo's resolution.
+- A monthly scheduled job runs `mix hex.outdated --within-requirements` across the three lockfiles. It reports into one tracking issue and **does not fail CI**, because freshness is advisory and security is a gate.
+- Batched updates happen once per release train: one `mix deps.update --all` commit, gated by the full suite and `hex.audit`.
+- Keep the deliberate floor pins (`yaml_elixir ~> 2.11.0`) documented as exceptions.
+
+## 2. CI economy stack
+
+**Deps-only `_build` cache.** [INFERENCE on the design, with verified constraints from the existing ci.yml contract comment, D-19]
+- Key: `<runner>-otp<exact>-elixir<exact>-<MIX_ENV>-<variant>-build-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}`. **No `restore-keys`**, which matches the rule already written into ci.yml.
+- `variant` separates `full` from `no-optional`: `compile --no-optional-deps` builds a different dep set.
+- Config is in the key because Mix recompiles a dep when its app config changes. That is inference, and being conservative here costs little.
+- Build the deps-only artifact with a split cache:
+  1. `actions/cache/restore`
+  2. `mix deps.get`
+  3. `mix deps.compile`
+  4. `actions/cache/save` (only on a miss, `if: steps.x.outputs.cache-hit != 'true'`)
+  5. then `rm -rf _build/$MIX_ENV/lib/threadline` and `mix compile --warnings-as-errors`
+- Saving before the project compiles is what makes the cache "deps-only". The project's own beams are never cached, so a stale Threadline beam can never be served.
+- Use **exact** OTP versions in keys, which follows from finding 3. With `version-file` and strict mode, read the version from `steps.beam.outputs.otp-version`.
+
+**Dialyzer PLT:** the current design is already correct (`restore-keys` allowed, `mix.exs` in the key, save on miss).
+- Change the key's OTP segment to the exact resolved `otp-version` output.
+- **Move the `@tag :live_dialyzer` test** (`test/threadline/dialyzer_slice_contract_test.exs`, 540 s timeout, no PLT cache in the test lanes) out of both test lanes: `ExUnit.configure(exclude: [live_dialyzer: true])`, then `mix test --only live_dialyzer` inside `verify-dialyzer`, which owns the PLT cache.
+- Per CLAUDE.md "honest default tests", `test/test_helper.exs`, CONTRIBUTING and the topology contract must change together.
+
+**Playwright:** keep caching `~/.cache/ms-playwright` (Chromium only, no `--with-deps`, which is correct on ubuntu-24.04).
+- Change the key from `hashFiles(package-lock.json)` to the resolved `@playwright/test` version, currently 1.60.0, read with `jq` from the lockfile in a prior step. Unrelated npm changes then stop busting the browser cache.
+- Drop `restore-keys`. A restored old revision is dead weight, because Playwright downloads the exact revision anyway.
+
+**Composite action vs reusable workflow:** use a **composite action** (see "What NOT to use").
+- Keep failing-prone steps (`mix compile`, `mix test`, `mix credo`) **outside** it, as named job steps. A failure inside a composite shows under the composite's single step name, which hurts CI DX (guide §9).
+
+**Flake budget:**
+- Measured cost: 288 s cold plus about 165 s per repeat, so 50 repeats is about 145 min [VERIFIED from workflow comments].
+- **[INFERENCE]** Run it weekly, not nightly, with `mix test --repeat-until-failure 15 --max-failures 1` and `timeout-minutes: 60`. That is about 45 min per week, or roughly 200 runner-min per month, versus about 3,600 today.
+- Exclude `:live_dialyzer` and any shell-out-to-example-app tests from the repeat set, since they are deterministic and expensive.
+- The 16 *fast* failures (08-28 to 09-12) are "broken", not "flaky". The lane must go green on repeat 1 before any budget is meaningful.
+
+## 3. Repo hygiene stack
+
+**PII / local-path guard: a `git grep` script. Not gitleaks, not trufflehog.**
+- `bin/check-local-paths`: `git grep -nIE -e '<pattern>' -- . ':!<allowlisted paths>'`. It exits 1 with `file:line` output.
+- Patterns: macOS user homes, Linux user homes, Windows `C:\Users\`, and macOS temp roots (`/private/var/folders`, `/var/folders`, `/private/tmp`).
+- **Explicitly allow** the GitHub runner home (`home/runner/`, 350 hits of CI log excerpts, not PII) and known false positives such as the `home/timeline/` route fragment.
+- Match on a path segment *after* the home root, so documentation of the pattern itself (for example `/Users/<name>/`) does not self-match.
+- Add a contract test that feeds fixtures through the script: a positive, a runner-path allow and a placeholder allow.
+- Alias `verify.no_local_paths`. It goes in `ci.all` and in the cheapest existing job, or its own 1-minute job. It runs **after** the forward scrub lands, so it starts green.
+- Why not **gitleaks** (v8.30.1, gitleaks-action v3.0.0 node24): its value is the secret ruleset, and GitHub **secret scanning plus push protection are already enabled** [VERIFIED]. A custom local-path rule in `.gitleaks.toml` just re-implements one regex. It adds a binary download, and the default `git` mode scans **history**, which would flag the pre-scrub commits that this milestone deliberately does not rewrite.
+- Why not **trufflehog** (v3.97.9): it is built for *verified* live credentials, calls out to providers, and duplicates secret scanning. Wrong tool for path and PII detection.
+- Also recommend (maintainer toggle) `secret_scanning_non_provider_patterns`, currently disabled. It covers generic high-entropy strings at zero CI cost. [WEB/INFERENCE; check the plan eligibility for a user-owned public repo]
+
+**xref cycles:**
+- Keep `verify.xref_cycles` (compile-connected, `--fail-above 0`) as is.
+- **[INFERENCE]** Add a ratchet for *all* cycles: `mix xref graph --format cycles --fail-above 5` as `verify.xref_cycles_all`. The count can only fall, and the layer-crossing capture/semantics pair gets a named decision.
+- Put it in `ci.all` and the current lane only. It is the same compile, so there is no extra cost.
+
+## 4. ExUnit `@tag :tmp_dir` semantics [VERIFIED from the source at v1.15.8 and v1.17.3, and the v1.20.4 docs]
+
+- The path is `Path.expand(Path.join(["tmp", escape(inspect(module)), "#{escape(test_name)}-#{short_hash}", extra]))`.
+- The path is **relative to the current working directory when the test starts**, so it lands in `<project>/tmp/...`, which is already covered by `.gitignore` `tmp/`.
+- It is unique per module and test (a short hash guards collisions), so it is **async-safe**.
+- `File.rm_rf!` runs **before** `mkdir_p!`, so each run starts empty. It is **not** deleted after the test, and it is left for debugging.
+- The escape set is `space ~ # % & * { } \ : < > ? / + | "`, each replaced with `-`.
+- Available since 1.11. The implementation is identical in 1.15.8 and 1.17.3, so the min lane is safe.
+- Use `@tag tmp_dir: "sub"` for a subpath. Also available: `@moduletag :tmp_dir` and `@describetag`.
+- **Footguns for this repo:**
+  - 43 test references to `File.cd` or `File.cwd` exist. A test that `cd`s before the tag is evaluated moves the root.
+  - Tests that **walk the working tree** (planning-independence, doc-contract and clean-checkout tests) or run the new local-path guard over untracked files will now see `tmp/`. The guard must use `git grep` on tracked files, and the tree-walkers must exclude `tmp/`.
+  - `tmp_dir` paths are absolute and contain the home directory. Never write them into committed fixtures, snapshots or evidence. That is the PII rule again.
+
+---
+
+## Installation / integration sketch
+
+```bash
+# Lock-only remediation (root). No mix.exs change needed.
+mix deps.update lazy_html mint
+(cd bench && mix deps.update --all)          # 8 advisories, 3 HIGH
+mix hex.audit && (cd examples/threadline_phoenix && mix hex.audit) && (cd bench && mix hex.audit)
+
+# Commit .tool-versions (currently untracked), bumped to the latest 27 patch:
+#   erlang 27.3.4.18 / elixir 1.17.3-otp-27 / nodejs 22.14.0
 ```
-examples/threadline_phoenix/e2e/
-  critic/
-    rubrics/
-      graphic-design.v1.json      # spacing rhythm, alignment, hierarchy,
-                                  # typographic scale, density, elegance,
-                                  # low-clunk/low-scroll, discoverability
-      persona-<jtbd>.v1.json      # one per user persona/JTBD
-    anchors/                      # few-shot known-good / known-bad bundles
-    run-critics.ts                # reads evidence bundles -> Claude -> verdicts.json
-    aggregate.ts                  # N-sample self-consistency -> scored ledger delta
+
+```elixir
+# mix.exs aliases (additions)
+"verify.deps_audit": ["deps.unlock --check-unused", "hex.audit",
+                      "cmd --cd examples/threadline_phoenix mix hex.audit",
+                      "cmd --cd bench mix hex.audit"],
+"verify.no_local_paths": ["cmd bin/check-local-paths"],
+"verify.xref_cycles_all": ["xref graph --format cycles --fail-above 5"],
+# mix.exs project/0 (only if an unfixable advisory ever appears; each entry needs a comment):
+# hex: [ignore_advisories: []]
 ```
 
-- `run-critics.ts` uses `@anthropic-ai/sdk`, loads the frozen rubric + anchors + `brandbook/tokens.json` + the `style.ex` token/BEM contract as a **prompt-cached system prefix**, then submits one Batch request per (bundle × persona × sample).
-- A thin alias — e.g. `mix verify.ui_critique` — shells out to the Node runner so it fits the project's "named entrypoints" DNA and is citable verbatim in docs. Per the OSS DNA, **document it as a local-only lane and explicitly keep it OUT of `mix ci.all`** (same posture as `mix verify.example_browser_light`). This preserves "honest default tests": nothing heavy or nondeterministic hides inside the default suite.
-- Output is committed as `verdicts.json` + a ledger delta; a human reviews and applies the ratchet bump.
-
-**Why a Node script and not a Mix task calling the API:** the capture pipeline, screenshot lanes, and a11y evidence are already Node/Playwright; the evidence bundles are produced there. Keeping the critic in the same process avoids a second HTTP client, a second auth path, and — critically — a **new Elixir runtime dependency in the root package.** An Elixir Mix task would force an HTTP/JSON client into a library that ships to Hex as Phoenix-optional. Reject that.
-
-### Secondary — Claude Code subagents / slash-command for interactive iteration
-
-For hands-on "improve this page now" loops, a Claude Code subagent can `Read` the committed PNGs (vision) + DOM + a11y JSON directly and critique against the same rubric files — zero infra, immediate feedback while editing `style.ex`/`ui.ex`. Use this for exploratory design passes; use the Node Batch runner for the reproducible, scored, ledger-updating matrix. Same rubric files feed both, so verdicts stay comparable.
-
-### Why LLM calls stay LOCAL / on-demand (not a blocking CI gate)
-
-1. **Nondeterminism.** No temperature control on Opus 4.8; even with schema + caching + aggregation there is residual variance. A born-red gate on a stochastic scorer produces flaky CI — the exact anti-pattern the repo's flake-detection DNA fights.
-2. **Cost.** Every push would spend real API tokens across a large image matrix. The repo already keeps the screenshot lanes local-only for analogous reasons.
-3. **Precedent.** The dark/`__light__` screenshot regression lanes are already local-only with committed baselines; the critic lane inherits that boundary cleanly.
-4. **The deterministic guard already exists.** `stress_ledger_test.exs` (pure, fast, offline) is what runs in CI and enforces the ratchet on the *committed* scores. The LLM produces evidence and proposed scores locally; the deterministic ratchet is the gate. This is the honest split: **CI verifies the ledger; the LLM feeds the ledger.**
-
----
-
-## Deterministic Capture Pipeline
-
-Build directly on the existing `operator-screenshots.spec.ts` / `operator-stress.spec.ts` / `operator-accessibility.spec.ts` lanes. The `capture()` helper already emits fullPage PNGs with `__default__`/`__light__` lane infixes and viewport suffixes (`1280`/`375`) into `OPERATOR_SCREENSHOT_DIR` — extend it to emit a **complete evidence bundle** per (page × state × breakpoint × theme):
-
-```
-<bundle-id>/
-  screenshot.png          # existing fullPage capture (or section crops — see below)
-  dom.html                # await page.content()  (rendered HTML)
-  a11y.json               # accessibility tree (see note)
-  tokens.json             # the resolved --tl-* values in scope (from brandbook/tokens.json)
-  meta.json               # url, viewport, theme, story_id, fixture_key, ledger id
+```yaml
+# .github/actions/setup-elixir/action.yml (composite). Setup only; no failing work inside.
+# steps: erlef/setup-beam@v1 (version-file: .tool-versions, version-type: strict, id: beam)
+#        actions/cache@v5 deps (restore-keys ok)
+#        actions/cache/restore@v5 _build deps-only (exact key, no restore-keys)
+#        mix deps.get --check-locked ; mix deps.compile ; actions/cache/save@v5 on miss
 ```
 
-Matrix dimensions (all already parameterized in the repo):
-- **Pages:** the 11 `/audit` pages + the `/audit/__stress` stories (footgun + component fixtures).
-- **States:** the ugly-data / empty / dense / permission-denied / stale / null-field states already enumerated in `stress_fixtures.ex` and the ledger.
-- **Breakpoints:** 375 (mobile) / 1280 (desktop); add 768 if the tablet flows need coverage.
-- **Themes:** dark (`__default__`) and `__light__` via the existing `desktop-chromium-light` project (`colorScheme: "light"`, `THREADLINE_E2E_THEME=system`).
+## Alternatives Considered
 
-**Accessibility-tree capture:** `page.accessibility.snapshot()` is deprecated in modern Playwright. Prefer **ARIA snapshots** (`await page.locator('body').ariaSnapshot()` / `toMatchAriaSnapshot`), which are stable and already the direction of the a11y specs. The a11y tree is cheap, high-signal text that materially improves discoverability/self-documenting and hierarchy judgments — feed it alongside the screenshot.
+| Recommended | Alternative | When to use the alternative |
+|---|---|---|
+| `mix hex.audit` | `mix_audit` 2.1.5 | Never here. Its DB lags the EEF CNA feed (verified missing both current advisories), and its last release was in 2025. |
+| `mix hex.audit` weekly on `main` | `erlef/mix-dependency-submission` v1.3.4 + Dependabot alerts for Hex + `dependency-review-action` v5 | Only if the maintainer wants GitHub-UI alerts for Hex. It costs a `contents: write` workflow, and native Hex dependency-graph support is not shipped (dependabot-core#15020 closed unmerged 2026-09-22, and Hex is absent from GitHub's supported-ecosystems table). |
+| Composite action | Reusable workflow (`workflow_call`) | For whole-job reuse *across repos*. Not here: see "What NOT to use". |
+| `git grep` path guard | gitleaks 8.30.1 with custom rules | If the repo ever loses GitHub secret scanning, or needs pre-commit secret rules offline. |
+| `postgres:18` newest lane | `postgres:19beta4` | A non-required, `continue-on-error` canary only. Revisit after PG 19 GA in October 2026. |
+| Split restore/save cache | `actions/cache` single step | Fine for `deps/`. Not for deps-only `_build`, which must save *before* the project compiles. |
+| Weekly bounded flake lane | Nightly with 50 repeats | Only after a real intermittent flake is being hunted, and as a temporary `workflow_dispatch` with an input count. |
 
-**Image-token control (do this deliberately):**
-- Full-page screenshots of long pages can be very tall → huge image-token cost and diluted focus. Two mitigations: (a) keep the fixed-viewport captures (375/1280) and let the critic score "above the fold" density/low-scroll explicitly; (b) additionally emit **per-section crops** (header, primary table, filters, detail panel) so the graphic-design critic gets focused evidence for alignment/spacing rhythm without a 4784-token full-page image each time.
-- Cap the long edge at ≤2576px; downsample above that (it's the model's max anyway).
+## What NOT to Use
 
-**Determinism knobs already in place to keep:** `reducedMotion: "reduce"`, `workers: 1`, `waitForLoadState("networkidle")`, deterministic seeds (`mix demo.seed`). These make the *inputs* reproducible so that run-to-run score variance is attributable to the model, not the capture.
+| Avoid | Why | Use instead |
+|---|---|---|
+| `mix_audit` / `mix deps.audit` | Stale release and a lagging advisory DB. It does not see lazy_html or mint today [VERIFIED]. | `mix hex.audit` (Hex >= 2.5.0) |
+| Hex older than 2.5.0 in the audit job | `hex.audit` then checks **retirements only**, which gives a false green | Assert the Hex version in the job |
+| `mix hex.audit --format sarif` | Only in 2.5.2-**dev** and requires OTP 27+ [VERIFIED changelog] | Plain text output. Revisit when 2.5.2 ships. |
+| Dependabot `package-ecosystem: mix` version updates | PR churn, which the guide explicitly rejects. Floor pins (`yaml_elixir ~> 2.11.0`) would generate perpetual PRs to be closed. | Monthly `hex.outdated` report plus a batched release-train update |
+| `actions/dependency-review-action` for Hex | No Hex dependency graph without a write-scoped submission workflow, and it duplicates `hex.audit` | `hex.audit` |
+| Reusable workflows for setup dedupe | Called-workflow jobs render as `caller / callee` check names. That breaks the single required aggregate, the stable-name contract and `ci_topology_contract_test`. They also cannot share `services:` shapes easily. | Composite action, with job IDs and names unchanged |
+| `_build` cache with `restore-keys` or including `_build/*/lib/threadline` | Stale compiled artifacts are the D-19 footgun already documented in ci.yml | Exact-key, deps-only `_build` cache plus `rm -rf _build/$MIX_ENV/lib/threadline` |
+| `otp-version: "27.0"` (loose) | Resolves to OTP 27.0.1 from 2024 [VERIFIED] | `version-file: .tool-versions` with `version-type: strict` |
+| `actions/cache@v4`, `upload-artifact@v4`, `release-please-action@v4` | node20, past the 2026-09-23 removal | v5 / v7 / v5 |
+| `ubuntu-22.04` min lane | Deprecated 2026-09-17, removed 2027-04-17 | `ubuntu-24.04`. The key already includes the runner label, so there is no cache collision. |
+| gitleaks / trufflehog for the path guard | Duplicates the enabled secret scanning. History mode flags the unrewritten past. Adds a binary and a network dependency. | `bin/check-local-paths` (git grep, tracked files only) |
+| `git filter-repo` / BFG history rewrite | Explicitly out of scope ("no history rewrite") | A forward scrub plus a guard |
+| `postgres:19beta*` in a required lane | Upstream beta churn turns into red builds | `postgres:18` |
+| `--repeat-until-failure` in the min lane | Needs Elixir 1.17+ | Current or latest lane only |
 
----
+## Version Compatibility
 
-## Prior Art / Tools (with tradeoffs)
-
-| Tool / Approach | What it does | Tradeoffs for Threadline |
-|-----------------|--------------|--------------------------|
-| **Playwright `toHaveScreenshot()`** (built-in) | Pixel-diff regression baselines | Already in use. Catches *unintended* pixel change; says nothing about *design quality*. Keep for regression; it is orthogonal to the critic. |
-| **BackstopJS** (OSS, MIT) | Pixel/perceptual visual regression | Free, no quality judgment, another runner to own. Skip — Playwright already covers this. |
-| **Lost Pixel** (OSS + cloud) | Visual regression, some AI triage | Adds a service dependency; regression not critique. Skip. |
-| **Applitools Visual AI** | Structure-aware ("Visual AI") diff, fewest false positives | Best-in-class *diff*, but it's a paid, closed, hosted regression product — not a rubric-scored design critic, and it adds vendor lock-in and per-snapshot cost. Not aligned with the source-first, self-hosted, OSS posture. |
-| **Percy AI Review Agent** | Pixel diff + separate AI layer flags likely-noise | Same category (regression triage), paid/hosted. Skip. |
-| **Chromatic** | Storybook-native pixel diff | The repo has a PhoenixStorybook example/dev lane, but Chromatic is JS-Storybook-oriented and pixel-only (no AI critique). Not worth the coupling. |
-| **Playwright MCP / Playwright Test Agents** | Let an LLM drive the browser + read DOM/a11y | Useful pattern for *agentic exploration* (exercise controls, observe state transitions — which the UX-judge research says is needed for behavior-aligned judgments). Consider for the persona critics' interactive lane later; not required for the static scored matrix. |
-| **MLLM-as-UI-Judge / rubric-guided eval (research)** | Prompt a vision LLM with per-instance visual rubrics | This is the core recommended approach. Rubric-guided eval raises agreement with UX experts to ~77–87% and anchors scores to verifiable checks rather than free-form vibes. Confirms: **rubrics + anchors, not open-ended "rate this UI."** |
-| **CritiqueCrew / multi-perspective critique (research)** | Orchestrate several persona critics | Validates the one-critic-per-persona + dedicated design-critic architecture the milestone envisions. |
-
-**Net:** the commercial visual-AI tools solve *regression triage*, which Playwright already covers for Threadline. None of them do rubric-scored, persona-driven *design critique* wired into a monotonic ratchet — that's bespoke, and the research literature says build it with rubric-guided multimodal prompting + evidence collection. Build, don't buy.
-
----
-
-## Reliability & Determinism Techniques
-
-Apply all of these; they compound:
-
-1. **JSON-schema-constrained output** (`output_config.format`). Every critic returns: `overall_score` (0–100), `criteria[]` each with `{name, score, weight, evidence, severity, suggested_fix}`, and `confidence`. No prose scores to parse.
-2. **Per-persona weighted rubrics, versioned.** The graphic-design rubric encodes the milestone's explicit dimensions (spacing rhythm, alignment, visual hierarchy, typographic scale, density, elegance-vs-accidental, low-clunk/low-scroll, discoverable/self-documenting). Persona rubrics encode each JTBD. Stamp every verdict with `rubric_version`; a rubric change resets comparability (record a ratchet reset with rationale, per the existing ledger rule).
-3. **Few-shot calibration anchors.** Use the stress harness: footgun fixtures (already scored 25/35) as **known-bad**, their target-90 fixed states as **known-good**. Include 1–2 of each in the cached prefix so the model's scale is pinned to Threadline's own artifacts, not an abstract 0–100. This is the highest-leverage reliability move and it's already sitting in `stress_fixtures.ex`.
-4. **Self-consistency / ensemble.** Run N=3–5 samples per bundle (adaptive thinking varies the reasoning path). Aggregate: **median** score, plus **agreement** (variance/IQR). High-variance items are flagged for human review, not auto-scored — the research explicitly warns MLLM judges are sensitive to position bias and single-shot noise.
-5. **Position-bias mitigation.** When comparing two states (e.g., before/after), randomize order across samples and/or score each independently rather than "which is better, A or B."
-6. **Evidence pointers, not just scores.** Require each criterion to cite concrete evidence (a selector, a token, a screenshot region). Forces grounded judgments and gives humans an auditable trail — matching the repo's "SQL-native / no opaque blobs" and audit-evidence ethos.
-7. **Prompt caching keeps the judge stable.** The rubric + anchors + tokens prefix must be byte-identical run to run (sort JSON keys, no timestamps in the prefix) or you both lose cache hits *and* perturb the judge. Verify `cache_read_input_tokens > 0`.
-8. **Monotonic ratchet with a noise band.** The ledger score may only rise. Because the judge is stochastic, only **ratchet up** when the new median exceeds the prior by more than the measured agreement band; **never auto-ratchet down** — a score drop opens a human review item (the LLM is advisory on regressions, the deterministic screenshot lane catches literal visual regressions).
-
----
-
-## Cost & Local-vs-CI Boundary
-
-- **Batch API = 50% discount** on the whole matrix; it's async, so run it overnight / on demand. This is the right tool because the matrix is large and not latency-sensitive.
-- **Prompt caching** collapses the dominant cost: the rubric+anchors+tokens prefix (potentially tens of thousands of tokens) is written once and read at ~0.1× for every bundle in the run.
-- **Image tokens dominate the variable cost** — control them via fixed viewports + section crops (above). Full-page 2576px images at ~4784 tokens each add up across hundreds of bundles.
-- **Boundary (explicit):**
-  - **Local / on-demand:** all Claude API calls, the Node critic runner, `mix verify.ui_critique`, verdict generation, proposed ledger deltas. Requires `ANTHROPIC_API_KEY`; gate it behind an env check so it no-ops without a key (like `OPERATOR_SCREENSHOT_DIR`).
-  - **CI (deterministic, offline, free):** `stress_ledger_test.exs` enforcing the ratchet on committed scores; the existing Playwright screenshot-regression + a11y-contract + `style_contract_test.exs` lanes. CI never calls the API.
-  - Keep `mix verify.ui_critique` **out of `mix ci.all`** and document it as local-only in CONTRIBUTING + the guide, honoring the "honest default tests / no hidden heavy suites" DNA.
-
----
-
-## Integration Points
-
-- **Capture:** extend `capture()` in `operator-screenshots.spec.ts` to emit the full evidence bundle (screenshot + `page.content()` DOM + `ariaSnapshot()` a11y + tokens + meta). Reuse `OPERATOR_SCREENSHOT_DIR`, the lane infixes, and viewport suffixes.
-- **Fixtures/anchors:** pull known-good/known-bad from `stress_fixtures.ex` via `/audit/__stress?story=...` (already the ledger's `stress_path`).
-- **Tokens:** feed `brandbook/tokens.json` and the `style.ex` token/BEM contract as the cached design-language reference so the critic scores against Threadline's actual system, not generic taste.
-- **Ledger:** write critic scores into `.planning/design-system-ledger.json` (`current_score`, `ratchet_score`, new `critic_scores`, `rubric_version`); reproject `DESIGN-SYSTEM.md`.
-- **Enforcement:** extend `stress_ledger_test.exs` to assert critic scores never fall below ratchet (with noise band).
-- **Named entrypoint:** add `mix verify.ui_critique` (local-only), documented under the doc-contract so README/guides/CONTRIBUTING stay aligned (per the doc-contract DNA), and explicitly excluded from `mix ci.all`.
-
----
-
-## What NOT to Add
-
-- **No new root (`mix.exs`) runtime dependency.** No Elixir HTTP/JSON/LLM client in the library. The Anthropic SDK lives only in `examples/threadline_phoenix/e2e/package.json` as a `devDependency`. Root stays Phoenix-optional.
-- **No public component API and no new operator-UI family** — v1.40 is evaluation/iteration tooling, not product surface. Storybook stays example/dev-only.
-- **No blocking CI gate on LLM output.** No born-red API-dependent job; no API key required to run the default suite or `mix ci.all`.
-- **No commercial visual-AI SaaS** (Applitools/Percy/Chromatic/Lost Pixel). Playwright already covers pixel regression; the critic is bespoke and self-hosted, matching the OSS/source-first posture.
-- **No second capture stack.** Do not introduce Puppeteer, a headless-shot microservice, or a separate DOM scraper — everything comes from the existing Playwright lanes.
-- **No unversioned rubric drift.** Never change a rubric without bumping `rubric_version` and recording a ratchet reset rationale; otherwise scores stop being comparable and the "monotonic" guarantee is a fiction.
-- **No single-shot scoring.** Do not ratchet on one API call; aggregate N samples and gate on the agreement band.
-- **No `temperature`/`top_p`/prefill** in the request (they 400 on Opus 4.8); no citations combined with structured outputs (400).
-
----
+| Package A | Compatible with | Notes |
+|---|---|---|
+| lazy_html 0.1.13 | Elixir ~> 1.15 | Keeps the min lane. It ships precompiled NIFs via cc_precompiler. **Verify in CI** that the OTP 26 / ubuntu-24.04 artifact exists after moving off 22.04 [MEDIUM]. |
+| mint 1.10.1 | Elixir ~> 1.15, finch ~> 0.21 range (`mint ~> 1.8`) | A lock-only bump |
+| Elixir 1.20.4 | OTP 27–29 | 1.20 cannot run on OTP 26. The latest lane pairs it with OTP 29. |
+| Elixir 1.17.3 | OTP 25–27 | Current lane. Bump OTP to 27.3.4.18. |
+| Elixir 1.15.x | OTP 24–26 | **Out of upstream support.** The floor decision belongs to v1.45 (1.0 API contract), not this milestone. |
+| PostgreSQL 14 | EOL 2026-11-12 | The min-lane floor goes EOL during the ladder. This is a v1.45 scope decision to flag, not an action for v1.43. |
+| setup-beam v1.24.1 + `.tool-versions` | strict mode required | It errors if both `version-file` and `otp-version` / `elixir-version` are given. Matrix jobs keep explicit inputs. |
+| `ci_topology_contract_test.exs:396`, `ci_workflow_parity_contract_test.exs:255` | Pin `"27.0"` and `actions/cache@v4` | These must change in the **same commit** as the workflow edits, or `mix verify.test` goes red. |
 
 ## Sources
 
-Repo (HIGH confidence — inspected directly):
-- `examples/threadline_phoenix/e2e/playwright.config.ts`, `tests/operator-screenshots.spec.ts`, `tests/operator-accessibility.spec.ts`, `tests/operator-stress.spec.ts`, `package.json`
-- `.planning/design-system-ledger.json`, `DESIGN-SYSTEM.md`, `test/threadline/operator_surface/stress_ledger_test.exs`, `lib/threadline/operator_surface/{style.ex,live/stress_live.ex,stress_fixtures.ex}`
-- `prompts/threadline-elixir-oss-dna.md`, `.planning/PROJECT.md`, `CLAUDE.md`
-
-Claude API (HIGH confidence — bundled `claude-api` skill reference, cached 2026-06-04):
-- Model IDs/pricing/context, structured outputs (`output_config.format`), prompt caching, Message Batches, adaptive thinking/effort, Opus 4.7+ high-resolution vision (2576px / ~4784 image tokens), removal of `temperature`/`top_p`/prefill on Opus 4.8.
-- Structured Outputs GA: https://platform.claude.com/docs/en/build-with-claude/structured-outputs ; https://tessl.io/blog/anthropic-brings-structured-outputs-to-claude-developer-platform-making-api-responses-more-reliable/
-
-LLM-as-visual-judge research (MEDIUM confidence — recent academic):
-- MLLM as a UI Judge: https://arxiv.org/html/2510.08783v1
-- Rubrics across the LLM landscape: https://arxiv.org/pdf/2606.08625
-- UXBench (actionability of LLM UX critiques): https://arxiv.org/pdf/2606.16262
-- CritiqueCrew (multi-perspective critique): https://arxiv.org/pdf/2602.01796
-- WebVR (human-aligned visual rubrics): https://arxiv.org/pdf/2603.13391
-
-Tooling landscape (MEDIUM confidence — verify versions/pricing at adoption):
-- Playwright Test Agents: https://playwright.dev/docs/test-agents
-- Playwright MCP visual testing: https://testdino.com/blog/playwright-mcp-visual-testing
-- Visual regression tools 2026 (Percy/Chromatic/Applitools/Lost Pixel/BackstopJS): https://percy.io/blog/visual-regression-testing-tools ; https://delta-qa.com/en/blog/chromatic-vs-percy-comparison-2026/ ; https://www.lost-pixel.com/
-- AI QA workflow for UI regressions: https://autonomyai.io/technology/building-a-qa-workflow-with-ai-agents-to-catch-ui-regressions/
+- hex.pm API: `/api/packages/{lazy_html,mint,mix_audit,plug,postgrex,dialyxir,credo,ex_doc,stream_data}` and release metadata for lazy_html 0.1.13 and mint 1.10.1 [VERIFIED]
+- OSV API: `EEF-CVE-2026-92106` (fixed 0.1.13) and `EEF-CVE-2026-82672` (fixed 1.10.1) [VERIFIED]
+- Hex CHANGELOG and `lib/mix/tasks/hex.audit.ex` at v2.5.1; commit history of the audit task (#1150 advisories, #1198 ignores, #1203 SARIF) [VERIFIED]
+- `mirego/elixir-security-advisories` contents via `gh api` (lazy_html missing, mint 2026 GHSA missing); `mirego/mix_audit` tags [VERIFIED]
+- `gh api` releases for erlef/setup-beam, actions/cache, actions/checkout, actions/setup-node, actions/upload-artifact, actions/dependency-review-action, gitleaks, gitleaks-action, trufflehog, elixir-lang/elixir, erlang/otp, microsoft/playwright, release-please-action, alls-green; `action.yml` `runs.using` per pinned ref [VERIFIED]
+- erlef/setup-beam README and `src/setup-beam.js` at v1.24.1 (`.tool-versions` parser) [VERIFIED]
+- Elixir source `lib/ex_unit/lib/ex_unit/runner.ex` at v1.15.8 and v1.17.3 (`create_tmp_dir!`); ExUnit.Case docs v1.20.4; `mix help test`, `mix help deps.unlock`, `mix help deps.get`; `deps.get.ex` at v1.14.5 and v1.15.8 [VERIFIED]
+- [Elixir compatibility and deprecations](https://hexdocs.pm/elixir/compatibility-and-deprecations.html) [VERIFIED]
+- [PostgreSQL versioning policy](https://www.postgresql.org/support/versioning/), [PostgreSQL roadmap](https://www.postgresql.org/developer/roadmap/), Docker Hub `library/postgres` tags [VERIFIED]
+- [Deprecation of Node 20 on GitHub Actions runners](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/) (removal 2026-09-23) [VERIFIED]
+- [actions/runner-images#14254](https://github.com/actions/runner-images/issues/14254) (ubuntu-22.04 deprecation) [VERIFIED]
+- [GitHub dependency graph supported ecosystems](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/dependency-graph-supported-package-ecosystems) (no Hex); [dependabot-core#15020](https://github.com/dependabot/dependabot-core/pull/15020) (closed unmerged); [erlef/mix-dependency-submission](https://github.com/erlef/mix-dependency-submission) [VERIFIED]
+- Local runs on 2026-09-26: `mix hex.audit` (root, example, bench), `mix hex.outdated`, `mix deps.unlock --check-unused`, `mix xref graph --format cycles` (with and without label), `git grep` path census; `gh run view` logs of the latest green CI run; `gh api repos/szTheory/threadline` security settings [VERIFIED]

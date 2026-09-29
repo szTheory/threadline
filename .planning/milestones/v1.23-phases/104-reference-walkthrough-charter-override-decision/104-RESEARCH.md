@@ -448,11 +448,11 @@ Step 2.6: SKIPPED (no external dependencies — docs-only phase, no tools, servi
 
 All findings sourced from direct file reads:
 
-- `/Users/jon/projects/threadline/.planning/PROJECT.md` — Key Decisions table (lines 322–350), Current Milestone block (lines 11–46), v1.6–v1.10 shipped blocks (lines 162–224)
-- `/Users/jon/projects/threadline/.planning/MILESTONE-ARC.md` — header (lines 1–5), strategic thesis (line 9), option-record table (lines 15–22), arc-order table (lines 26–34)
-- `/Users/jon/projects/threadline/.planning/REQUIREMENTS.md` — CHARTER-01/02/03 wording (lines 16–18)
-- `/Users/jon/projects/threadline/.planning/ROADMAP.md` — Phase 104–110 scope guards (lines 18–25, 67, 88–89, 112, 133, 155, 176)
-- `/Users/jon/projects/threadline/.planning/phases/104-reference-walkthrough-charter-override-decision/104-CONTEXT.md` — All five decisions (D-01 through D-05) and verbatim text
+- `/Users/<user>/projects/threadline/.planning/PROJECT.md` — Key Decisions table (lines 322–350), Current Milestone block (lines 11–46), v1.6–v1.10 shipped blocks (lines 162–224)
+- `/Users/<user>/projects/threadline/.planning/MILESTONE-ARC.md` — header (lines 1–5), strategic thesis (line 9), option-record table (lines 15–22), arc-order table (lines 26–34)
+- `/Users/<user>/projects/threadline/.planning/REQUIREMENTS.md` — CHARTER-01/02/03 wording (lines 16–18)
+- `/Users/<user>/projects/threadline/.planning/ROADMAP.md` — Phase 104–110 scope guards (lines 18–25, 67, 88–89, 112, 133, 155, 176)
+- `/Users/<user>/projects/threadline/.planning/phases/104-reference-walkthrough-charter-override-decision/104-CONTEXT.md` — All five decisions (D-01 through D-05) and verbatim text
 
 ---
 

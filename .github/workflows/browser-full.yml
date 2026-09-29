@@ -1,8 +1,15 @@
-# Full browser lane (Phase 198, D-17). The pull-request lane in ci.yml
-# (`verify-example-browser`) was reduced to `desktop-chromium` + `mobile-chromium`
-# so per-PR feedback stays inside a usable loop; THIS workflow runs the whole
-# Playwright project set — unrestricted, no per-project flags — on push-to-main
-# and on a nightly schedule.
+# Browser-full lane (Phase 198, D-17; reworked in Phase 218, ECON-04 / D-07).
+# ci.yml runs some Playwright projects on every pull request and push to main
+# (`verify-example-browser`: desktop-chromium + mobile-chromium; `verify-capture`:
+# the two tier-a projects through `mix verify.capture`). THIS workflow runs only
+# the default-config projects ci.yml does NOT run, derived by
+# bin/browser-full-projects, on push to main, nightly and on dispatch. The two
+# lanes partition the config (test/threadline/browser_full_projects_contract_test.exs),
+# so no project is run twice and none is run nowhere.
+#
+# The nightly is skipped when this workflow already succeeded on the same SHA
+# (bin/ci-sha-gate, schedule only): a re-run of a proven commit proves nothing
+# new. Push and dispatch always run.
 #
 # Job id is stable (relied on by docs/CI conventions); evolve `name:` freely.
 #
@@ -13,7 +20,8 @@
 #
 # A `schedule:` run emails nobody, so a nightly failure that only lives in the
 # Actions tab is the same as having no lane at all. The `if: failure()` step
-# below opens or updates ONE deduplicated tracking issue.
+# below opens or updates ONE deduplicated tracking issue, and a green run that
+# actually ran closes it.
 name: Browser (full project set)
 
 on:
@@ -37,10 +45,14 @@ jobs:
     name: Example app browser E2E — full project set
     runs-on: ubuntu-24.04
     timeout-minutes: 50
+    # A job-level block zeroes every unlisted scope. The actions read scope lets
+    # bin/ci-sha-gate query this workflow's own runs (without it the gate's API
+    # call would 403 and fail open to `run`, so the nightly skip would never
+    # happen). issues: write is only what the tracking-issue steps need
+    # (T-198-05-04); never the broad workflow default.
     permissions:
+      actions: read
       contents: read
-      # Only the issue-write scope the failure path actually needs (T-198-05-04);
-      # never the broad workflow default.
       issues: write
     env:
       DB_HOST: localhost
@@ -62,19 +74,33 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # D-03 green-SHA skip for the nightly: `skip` only on a schedule run when this
+      # workflow already succeeded on GITHUB_SHA; push and dispatch always `run`,
+      # and any API error fails open to `run`. No --upstream: ci.yml's browser
+      # lanes are the ones this workflow no longer repeats. Every heavy step
+      # below is gated on `run`.
+      - name: Decide whether this SHA needs a browser-full run
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bin/ci-sha-gate --workflow browser-full.yml --sha "$GITHUB_SHA" --event "$GITHUB_EVENT_NAME"
+
       - uses: erlef/setup-beam@v1
+        if: steps.gate.outputs.decision == 'run'
         id: beam
         with:
           version-file: .tool-versions
           version-type: strict
 
       - uses: actions/setup-node@v5
+        if: steps.gate.outputs.decision == 'run'
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: examples/threadline_phoenix/e2e/package-lock.json
 
       - name: Cache deps
+        if: steps.gate.outputs.decision == 'run'
         uses: actions/cache@v5
         with:
           path: deps
@@ -82,6 +108,7 @@ jobs:
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Cache Playwright browsers
+        if: steps.gate.outputs.decision == 'run'
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
@@ -89,20 +116,38 @@ jobs:
           restore-keys: ubuntu-24.04-playwright-
 
       - name: Install root dependencies
+        if: steps.gate.outputs.decision == 'run'
         run: mix deps.get
 
       - name: Ensure threadline_phoenix_test database exists
+        if: steps.gate.outputs.decision == 'run'
         env:
           PGPASSWORD: postgres
         run: |
           createdb -h "$DB_HOST" -U postgres threadline_phoenix_test 2>/dev/null || true
 
-      # Unrestricted (no per-project flags): the whole registered project set.
-      # Adding a flag here without adding the corresponding CONTRIBUTING.md
-      # "## CI Coverage" row turns ci_coverage_doc_contract_test.exs red.
-      - name: Run example Playwright suite (all projects)
+      # Runs ONLY the default-config projects ci.yml does not run (ECON-04, D-07).
+      # The set is derived by bin/browser-full-projects from playwright.config.ts,
+      # ci.yml and mix.exs, and test/threadline/browser_full_projects_contract_test.exs
+      # proves the two lanes partition the config. Do not add literal project flags
+      # here: a hand list silently drops a newly added project from both lanes.
+      #
+      # The script output is captured first (plain command substitution), so a
+      # script failure fails this step under `set -e`; an empty list is refused,
+      # because `mix verify.example_browser` with no flags runs every project.
+      - name: Run example Playwright suite (projects ci.yml does not run)
+        if: steps.gate.outputs.decision == 'run'
         timeout-minutes: 45
-        run: mix verify.example_browser
+        run: |
+          set -euo pipefail
+          project_flags="$(bin/browser-full-projects)"
+          mapfile -t projects <<< "$project_flags"
+          if [ "${#projects[@]}" -eq 0 ] || [ -z "${projects[0]}" ]; then
+            echo "::error::bin/browser-full-projects returned no projects; refusing an unrestricted run"
+            exit 1
+          fi
+          echo "::notice::Browser-full projects: ${projects[*]}"
+          mix verify.example_browser "${projects[@]}"
 
       - name: Upload Playwright traces and e2e boot log on failure
         if: failure()
@@ -131,17 +176,35 @@ jobs:
           body_file=$(mktemp)
           trap 'rm -f "$body_file"' EXIT
           cat > "$body_file" <<EOF
-          The full-project-set browser lane failed on \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME}).
+          The Browser-full lane failed on \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME}).
 
           Run: ${RUN_URL}
 
-          This lane is NOT a required check — it runs the Playwright projects that the
-          reduced pull-request lane (\`verify-example-browser\`) no longer runs. See
-          \"## CI Coverage\" in CONTRIBUTING.md for exactly which projects those are.
+          This lane is NOT a required check. It runs the default-config Playwright
+          projects that ci.yml does not run (derived by \`bin/browser-full-projects\`).
+          See \"## CI Coverage\" in CONTRIBUTING.md for exactly which projects those are.
           Diagnostics (traces + boot log) are attached to the run as
           \`browser-full-e2e-diagnostics\`.
           EOF
           bin/upsert-ci-issue --marker "$TITLE_PREFIX" --title "$TITLE_PREFIX" \
             --body-file "$body_file" --label "$LABEL" \
-            --label-description "Failures of the full-project-set browser lane (browser-full.yml)" \
+            --label-description "Failures of the Browser-full lane (browser-full.yml)" \
             --label-color B60205
+
+      # D-06 close-on-green. Only a run that actually ran and passed closes the
+      # issue: a gated-off nightly (decision skip) proves nothing on this run and
+      # never comments or closes. TITLE_PREFIX and LABEL must match the issue step
+      # above, or the close finds no issue (action=none).
+      - name: Close the browser-lane tracking issue on green
+        if: success() && steps.gate.outputs.decision == 'run'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE_PREFIX: "Browser (full project set) is failing"
+          LABEL: ci-browser-full
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          body_file=$(mktemp)
+          trap 'rm -f "$body_file"' EXIT
+          printf 'Browser-full passed on %s (%s): %s\n' "$GITHUB_SHA" "$GITHUB_EVENT_NAME" "$RUN_URL" > "$body_file"
+          bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file"

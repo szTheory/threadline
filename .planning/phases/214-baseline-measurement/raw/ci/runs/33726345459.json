@@ -1,0 +1,120 @@
+{
+  "run_id": 33726345459,
+  "attempt": 1,
+  "head_sha": "a97f527e375f4c1909236b7dbdd5fa3fd9b7d2f2",
+  "event": "schedule",
+  "created_at": "2026-09-03T07:05:21Z",
+  "conclusion": "failure",
+  "workflow": "Flake Detection",
+  "jobs": [
+    {
+      "id": 100556047867,
+      "name": "Suite repeat-until-failure (broken vs flaky)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-09-03T07:05:23Z",
+      "completed_at": "2026-09-03T07:09:17Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:05:24Z",
+          "completed_at": "2026-09-03T07:05:24Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:05:25Z",
+          "completed_at": "2026-09-03T07:05:47Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:05:47Z",
+          "completed_at": "2026-09-03T07:05:49Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:05:49Z",
+          "completed_at": "2026-09-03T07:05:55Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:05:55Z",
+          "completed_at": "2026-09-03T07:05:55Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:05:55Z",
+          "completed_at": "2026-09-03T07:05:57Z"
+        },
+        {
+          "name": "Compile (warnings as errors)",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:05:57Z",
+          "completed_at": "2026-09-03T07:06:48Z"
+        },
+        {
+          "name": "Repeat the suite until failure",
+          "conclusion": "failure",
+          "started_at": "2026-09-03T07:06:48Z",
+          "completed_at": "2026-09-03T07:09:14Z"
+        },
+        {
+          "name": "Classify broken vs flaky",
+          "conclusion": "skipped",
+          "started_at": "2026-09-03T07:09:14Z",
+          "completed_at": "2026-09-03T07:09:14Z"
+        },
+        {
+          "name": "Upload raw repeat-until-failure log",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:09:14Z",
+          "completed_at": "2026-09-03T07:09:15Z"
+        },
+        {
+          "name": "Open or update the flake tracking issue",
+          "conclusion": "skipped",
+          "started_at": "2026-09-03T07:09:15Z",
+          "completed_at": "2026-09-03T07:09:15Z"
+        },
+        {
+          "name": "Fail the job if the suite did not pass",
+          "conclusion": "skipped",
+          "started_at": "2026-09-03T07:09:15Z",
+          "completed_at": "2026-09-03T07:09:15Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "skipped",
+          "started_at": "2026-09-03T07:09:15Z",
+          "completed_at": "2026-09-03T07:09:15Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:09:15Z",
+          "completed_at": "2026-09-03T07:09:15Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:09:15Z",
+          "completed_at": "2026-09-03T07:09:16Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-03T07:09:16Z",
+          "completed_at": "2026-09-03T07:09:16Z"
+        }
+      ]
+    }
+  ]
+}

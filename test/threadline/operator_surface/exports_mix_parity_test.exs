@@ -40,6 +40,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     """
     use ExUnit.Case, async: false
 
+    @moduletag :tmp_dir
+
     import Phoenix.ConnTest
     import ExUnit.CaptureIO
     import Threadline.OperatorSurfaceCase, only: [start_endpoint!: 1]
@@ -67,7 +69,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       # Re-enable the Mix task so it can be invoked again in each test case.
       Mix.Task.reenable("threadline.export")
 
-      {:ok, conn: build_conn(), tmp_dir: System.tmp_dir!()}
+      {:ok, conn: build_conn()}
     end
 
     test "CSV: Mix task and controller produce byte-identical output",

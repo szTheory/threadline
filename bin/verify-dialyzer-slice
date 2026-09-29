@@ -15,6 +15,7 @@ defmodule Threadline.DialyzerSliceVerifier do
          {:ok, fixture} <- load_fixture(options.fixture),
          {:ok, contract} <- validate_fixture(fixture),
          {:ok, raw_output} <- raw_output(options),
+         :ok <- completed_run(raw_output),
          {:ok, live_warnings} <- parse_raw_output(raw_output),
          :ok <- verify_live_warnings(contract, live_warnings) do
       live_count = Enum.count(live_warnings, &(&1.path in contract.authorized_origins))
@@ -278,6 +279,38 @@ defmodule Threadline.DialyzerSliceVerifier do
          ) do
       {output, 0} -> {:ok, output}
       {output, status} -> {:error, "raw Dialyzer command exited #{status}: #{String.trim(output)}"}
+    end
+  end
+
+  # `--ignore-exit-status` turns a Dialyzer error (a missing or unreadable PLT, a
+  # crash) into exit 0 with zero warn lines, which previously read as
+  # "0 live warnings". The positive completion marker dialyxir prints after a
+  # finished analysis is the only proof the analysis ran, so require exactly one
+  # of them and reject any `:dialyzer.run error:` line, in live and
+  # `--raw-output` mode alike.
+  @ansi_escape ~r/\e\[[0-9;]*m/
+  @completion_marker ~r/^done \((passed successfully|warnings were emitted)\)$/
+
+  defp completed_run(output) do
+    lines =
+      output
+      |> String.replace(@ansi_escape, "")
+      |> String.split("\n")
+      |> Enum.map(&String.trim_trailing(&1, "\r"))
+
+    markers = Enum.count(lines, &Regex.match?(@completion_marker, &1))
+
+    cond do
+      error = Enum.find(lines, &String.contains?(&1, ":dialyzer.run error:")) ->
+        {:error, "Dialyzer did not complete: #{String.trim(error)}"}
+
+      markers != 1 ->
+        {:error,
+         "Dialyzer did not complete: expected exactly one completion marker " <>
+           "(done (passed successfully) or done (warnings were emitted)), found #{markers}"}
+
+      true ->
+        :ok
     end
   end
 

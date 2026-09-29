@@ -107,7 +107,7 @@ The main gaps are validation gaps, plus likely CSS/hierarchy retuning that shoul
 
 ## Project Constraints
 
-No root `./AGENTS.md` was present in `/Users/jon/projects/threadline`; the Phoenix example app has `examples/threadline_phoenix/AGENTS.md`, which applies when modifying files under that app. [VERIFIED: rg --files -g 'AGENTS.md'] [VERIFIED: examples/threadline_phoenix/AGENTS.md]
+No root `./AGENTS.md` was present in `/Users/<user>/projects/threadline`; the Phoenix example app has `examples/threadline_phoenix/AGENTS.md`, which applies when modifying files under that app. [VERIFIED: rg --files -g 'AGENTS.md'] [VERIFIED: examples/threadline_phoenix/AGENTS.md]
 
 Root project constraints from `CLAUDE.md` require preserving Threadline's capture/semantics/exploration split, optional Phoenix/LiveView posture, layered verification commands, and avoidance of dependency/API drift while keeping the example app as adoption proof. [VERIFIED: CLAUDE.md] [VERIFIED: prompts/threadline-elixir-oss-dna.md]
 

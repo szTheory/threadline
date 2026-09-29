@@ -1,0 +1,562 @@
+#!/usr/bin/env bash
+# verify-repo-hygiene: tracked-text machine-local path guard (HYG-02).
+#
+# Scans every tracked, non-binary file in a git work tree for a machine-local
+# path and fails if any is found and not covered by a reason-carrying
+# allowlist entry. The allowlist itself fails closed: every entry must be
+# used by at least one covered hit (the `.planning/` scope is the sole,
+# explicit exception — see below), so a stale entry cannot silently widen
+# the gate.
+#
+# Scan scope: `git grep -I` over tracked files only (via the current git
+# work tree's index) — never `deps/`, `_build/`, the gitignored `tmp/`, or
+# any untracked scratch file (including the untracked `.planning/` critic
+# scratch). Binary files (a NUL byte) are skipped by `-I`. Records come
+# NUL-delimited from `git grep -z` (translated to SOH, since a bash variable
+# cannot hold NUL), so a colon or other punctuation in a tracked path is
+# safe: it is scanned and scoped by its full path. Matching runs
+# under LC_ALL=C, byte-wise; the home-segment character class is ASCII
+# `[A-Za-z0-9._-]`. A home segment whose first byte is non-ASCII is outside
+# this guard's detection scope.
+#
+# Modes:
+#   bin/verify-repo-hygiene              # scan (no args)
+#   bin/verify-repo-hygiene --self-test  # self-test (added by a later task)
+# Any other argument exits 2 with a usage line — the gate cannot be
+# narrowed to a path/glob/directory from its caller.
+#
+# Exit codes:
+#   0  clean
+#   1  a finding: a HIT, an UNUSED allowlist entry, or an allowlist comment
+#      or reason that itself contains a pattern hit
+#   2  usage or config error: an unknown argument, not a git work tree, a
+#      malformed/duplicate allowlist line, a missing allowlist file, or a
+#      missing git
+#
+# Output lines, in stable order: `HIT <path>:<line>: <token>`, then
+# `UNUSED allowlist entry <scope> <literal>`, then `ALLOWLIST <n>: <problem>`.
+# On exit 0 the last line is:
+#   verify-repo-hygiene: <N> tracked text file(s) clean; <U> allowlist
+#   entr(y|ies) used, <I> inert[ (.planning/ absent)]
+# where the bracketed suffix is printed only when no `.planning/` file is
+# tracked (the public PR-branch case).
+# When any HIT is uncovered, one hint line on stderr points at CONTRIBUTING.md
+# "Writing about machine-local paths" (the placeholder convention for prose).
+#
+# Env seams, for tests and self-test only — never used by a real caller and
+# never referenced by any workflow file:
+#   REPO_HYGIENE_ROOT       git work tree to scan (default: this script's
+#                           own repo root, resolved from its own path)
+#   REPO_HYGIENE_ALLOWLIST  allowlist file path (default:
+#                           <root>/.github/repo-hygiene-allowlist.tsv)
+#
+# Allowlist line format: `<scope>\t<literal>\t<reason>`. `#` comment lines
+# and blank lines are allowed. `<scope>` is `.` (repo-wide), a repo-relative
+# directory ending in `/`, or a repo-relative file path — no leading `/`, no
+# glob characters. Every reason must be at least 20 characters. A malformed
+# line (not exactly 3 tab-separated fields), a duplicate scope+literal pair,
+# an invalid scope, or a too-short reason is a config error (exit 2). A
+# comment line or reason field that itself contains a pattern hit is a
+# finding (exit 1), not a config error. The allowlist file itself is
+# excluded from the main tree scan; its comment lines and reason fields are
+# scanned separately with the same patterns.
+#
+# Coverage: a hit is covered by an entry when (a) the entry's scope is `.`,
+# equals the hit's file path, or is a directory prefix (ends in `/` and the
+# hit path starts with it), AND (b) the hit token starts with the entry's
+# literal, and — only when the literal does not itself end in `/` — the
+# next token byte is `/` or end-of-token. Every covering entry is marked
+# used, regardless of order or overlap with other covering entries. After
+# the scan, any entry never marked used fails as `UNUSED allowlist entry
+# <scope> <literal>` — except an entry scoped to exactly `.planning/`,
+# which is reported as inert (not failed) when the tracked tree has no
+# `.planning/` file at all (the public PR-branch case).
+#
+# Pattern families:
+#   1. macOS user home:        /Users/<name>
+#   2. Linux user home:        /home/<name>
+#   3. Windows user home:      <drive>:\Users\<name>  (backslashes)
+#   4. Home-relative:          ~/<name>
+#   5. macOS per-user temp:    [/private]/var/folders/<2 chars>/
+#   6. Claude-encoded project: -Users-<name>  (dash, home word, dash, user
+#                              segment; the segment ends at `-`, `/`, any
+#                              byte outside [A-Za-z0-9._], or end of line)
+#   7. JSON-escaped home:      \/Users\/<name> or \/home\/<name>
+# Families 1, 2, 4, 5 and 7 require a preceding boundary byte (start of
+# line, or a byte outside [A-Za-z0-9._-]) — this is what keeps a mid-word
+# false positive like a `home` segment stuck onto a preceding word (e.g. a
+# prose sentence ending in ".../shell" immediately followed by a Linux-home
+# path) from matching. Families 3 and 6 need
+# no such boundary.
+#
+# Bash 3.2 compatible (macOS ships 3.2): no associative-array declarations;
+# parallel indexed arrays are used instead where state is needed. Every
+# pattern family's source regex is built by string concatenation, so this
+# script's own text never contains a literal it exists to catch.
+
+set -euo pipefail
+
+die() {
+  printf 'verify-repo-hygiene: %s\n' "$*" >&2
+  exit 2
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+export LC_ALL=C
+
+# Every mode, including --self-test, needs git; name a missing git
+# explicitly rather than letting it surface as "not a git work tree".
+command -v git >/dev/null 2>&1 || die "git not found on PATH"
+
+case "${1:-}" in
+  "") ;;
+  --self-test)
+    mkdir -p "$ROOT/tmp"
+    self_test_dir="$(mktemp -d "$ROOT/tmp/repo-hygiene-self-test.XXXXXX")"
+    cleanup_self_test() {
+      rm -rf "$self_test_dir"
+    }
+    trap cleanup_self_test EXIT
+
+    # Every fixture literal is built by concatenation, exactly like the
+    # matcher above, so this script's own text stays clean of the words it
+    # detects.
+    st_word_users="Us""ers"
+    st_word_home="ho""me"
+    st_fake_macos="/${st_word_users}/self-test-user"
+    st_fake_linux="/${st_word_home}/self-test-user"
+    st_fake_tilde="~""/""self-test-cache"
+
+    make_repo() {
+      mkdir -p "$1"
+      git init -q "$1"
+    }
+
+    header_allowlist() {
+      printf '# repo-hygiene self-test allowlist\n' >"$1"
+    }
+
+    # (a) a clean fixture exits 0.
+    case_a="$self_test_dir/case_a"
+    make_repo "$case_a"
+    printf 'nothing interesting here\n' >"$case_a/clean.md"
+    (cd "$case_a" && git add -- clean.md)
+    allow_a="$self_test_dir/allow_a.tsv"
+    header_allowlist "$allow_a"
+
+    set +e
+    out_a="$(REPO_HYGIENE_ROOT="$case_a" REPO_HYGIENE_ALLOWLIST="$allow_a" "$0" 2>&1)"
+    status_a=$?
+    set -e
+    [ "$status_a" -eq 0 ] || die "self-test (a): clean fixture did not exit 0: $out_a"
+
+    # (b) one hit per family 1, 2 and 4 exits 1, naming each fixture file.
+    case_b="$self_test_dir/case_b"
+    make_repo "$case_b"
+    printf 'x %s/code\n' "$st_fake_macos" >"$case_b/family1.md"
+    printf 'x %s/code\n' "$st_fake_linux" >"$case_b/family2.md"
+    printf 'x %s/code\n' "$st_fake_tilde" >"$case_b/family4.md"
+    (cd "$case_b" && git add -- family1.md family2.md family4.md)
+    allow_b="$self_test_dir/allow_b.tsv"
+    header_allowlist "$allow_b"
+
+    set +e
+    out_b="$(REPO_HYGIENE_ROOT="$case_b" REPO_HYGIENE_ALLOWLIST="$allow_b" "$0" 2>&1)"
+    status_b=$?
+    set -e
+    [ "$status_b" -eq 1 ] || die "self-test (b): three-family fixture did not exit 1: $out_b"
+    printf '%s' "$out_b" | grep -q 'HIT family1.md' || die "self-test (b): missing family1 HIT: $out_b"
+    printf '%s' "$out_b" | grep -q 'HIT family2.md' || die "self-test (b): missing family2 HIT: $out_b"
+    printf '%s' "$out_b" | grep -q 'HIT family4.md' || die "self-test (b): missing family4 HIT: $out_b"
+
+    # (c) an allowlist entry covering the hit exits 0.
+    case_c="$self_test_dir/case_c"
+    make_repo "$case_c"
+    printf 'x %s/code\n' "$st_fake_tilde" >"$case_c/a.md"
+    (cd "$case_c" && git add -- a.md)
+    allow_c="$self_test_dir/allow_c.tsv"
+    printf '.\t%s\tSelf-test cache path fixture with a long enough reason\n' "$st_fake_tilde" >"$allow_c"
+
+    set +e
+    out_c="$(REPO_HYGIENE_ROOT="$case_c" REPO_HYGIENE_ALLOWLIST="$allow_c" "$0" 2>&1)"
+    status_c=$?
+    set -e
+    [ "$status_c" -eq 0 ] || die "self-test (c): covered hit did not exit 0: $out_c"
+
+    # (d) an unused entry exits 1.
+    case_d="$self_test_dir/case_d"
+    make_repo "$case_d"
+    printf 'nothing interesting here\n' >"$case_d/clean.md"
+    (cd "$case_d" && git add -- clean.md)
+    allow_d="$self_test_dir/allow_d.tsv"
+    printf '.\t%s\tSelf-test cache path fixture that never appears here\n' "$st_fake_tilde" >"$allow_d"
+
+    set +e
+    out_d="$(REPO_HYGIENE_ROOT="$case_d" REPO_HYGIENE_ALLOWLIST="$allow_d" "$0" 2>&1)"
+    status_d=$?
+    set -e
+    [ "$status_d" -eq 1 ] || die "self-test (d): unused entry did not exit 1: $out_d"
+    printf '%s' "$out_d" | grep -q 'UNUSED allowlist entry' || die "self-test (d): missing UNUSED report: $out_d"
+
+    # (e) an untracked file with a hit exits 0.
+    case_e="$self_test_dir/case_e"
+    make_repo "$case_e"
+    printf 'nothing interesting here\n' >"$case_e/tracked.md"
+    (cd "$case_e" && git add -- tracked.md)
+    printf 'x %s/code\n' "$st_fake_macos" >"$case_e/untracked.md"
+    allow_e="$self_test_dir/allow_e.tsv"
+    header_allowlist "$allow_e"
+
+    set +e
+    out_e="$(REPO_HYGIENE_ROOT="$case_e" REPO_HYGIENE_ALLOWLIST="$allow_e" "$0" 2>&1)"
+    status_e=$?
+    set -e
+    [ "$status_e" -eq 0 ] || die "self-test (e): untracked hit did not exit 0: $out_e"
+
+    # (f) a single-segment Claude-encoded token (the user segment is the
+    # last component) exits 1 with a HIT (CR-01 regression).
+    case_f="$self_test_dir/case_f"
+    make_repo "$case_f"
+    st_fake_claude_single="-${st_word_users}-self-test"
+    printf 'x /foo/%s/bar\n' "$st_fake_claude_single" >"$case_f/family6.md"
+    (cd "$case_f" && git add -- family6.md)
+    allow_f="$self_test_dir/allow_f.tsv"
+    header_allowlist "$allow_f"
+
+    set +e
+    out_f="$(REPO_HYGIENE_ROOT="$case_f" REPO_HYGIENE_ALLOWLIST="$allow_f" "$0" 2>&1)"
+    status_f=$?
+    set -e
+    [ "$status_f" -eq 1 ] || die "self-test (f): single-segment family-6 fixture did not exit 1: $out_f"
+    printf '%s' "$out_f" | grep -q 'HIT family6.md' || die "self-test (f): missing family6 HIT: $out_f"
+
+    printf 'verify-repo-hygiene self-test: ok (6 cases)\n'
+    exit 0
+    ;;
+  *) die "unknown argument: $1 (usage: verify-repo-hygiene [--self-test])" ;;
+esac
+
+root="${REPO_HYGIENE_ROOT:-$ROOT}"
+
+git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
+  die "not a git work tree: $root"
+
+allowlist_path="${REPO_HYGIENE_ALLOWLIST:-$root/.github/repo-hygiene-allowlist.tsv}"
+[ -f "$allowlist_path" ] || die "missing allowlist file: $allowlist_path"
+
+# Repo-relative path of the allowlist, for the tree-scan exclude pathspec.
+# When the allowlist lives outside the scanned root (a test-only seam), it
+# cannot be part of the tracked tree in the first place, so no exclude
+# pathspec is needed — and one would error with "outside repository".
+EXCLUDE_PATHSPEC=()
+case "$allowlist_path" in
+  "$root"/*)
+    allowlist_rel="${allowlist_path#"$root"/}"
+    EXCLUDE_PATHSPEC=(":(exclude)${allowlist_rel}")
+    ;;
+  *)
+    allowlist_rel="$allowlist_path"
+    ;;
+esac
+
+# Build every pattern family's literal word by concatenation, so this
+# script's own source text never contains a matchable home-directory word.
+_word_users="Us""ers"
+_word_home="ho""me"
+
+# --- The matcher: one perl program reused for the tree scan and for the
+# --- allowlist's own comment/reason content scan. Reads SOH-delimited
+# --- "path<SOH>line<SOH>content" records on stdin and prints "HIT path:line: token" per finding.
+MATCHER_PROGRAM='
+my $users = "Us" . "ers";
+my $home  = "ho" . "me";
+my @res = (
+  qr{(?<![A-Za-z0-9._-])(/\Q$users\E/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)},
+  qr{(?<![A-Za-z0-9._-])(/\Q$home\E/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)},
+  qr{([A-Za-z]:\\+\Q$users\E\\+[A-Za-z0-9._-]+[A-Za-z0-9._\\+-]*)},
+  qr{(?<![A-Za-z0-9._-])(~/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)},
+  qr{(?<![A-Za-z0-9._-])((?:/private)?/var/folders/[A-Za-z0-9_+-]{2}/)},
+  qr{(-\Q$users\E-[A-Za-z0-9._]+)},
+  qr{(?<![A-Za-z0-9._-])(\\/(?:\Q$users\E|\Q$home\E)\\/[A-Za-z0-9._-]+[A-Za-z0-9._\\/+-]*)},
+);
+while (my $l = <STDIN>) {
+  chomp $l;
+  next unless $l =~ /^([^\x01]*)\x01([0-9]+)\x01(.*)$/s;
+  my ($file, $lineno, $content) = ($1, $2, $3);
+  my %seen_pos;
+  my @found;
+  for my $re (@res) {
+    while ($content =~ /$re/g) {
+      my $tok = $1;
+      my $pos = $-[1];
+      next if $seen_pos{$pos};
+      $seen_pos{$pos} = 1;
+      push @found, [$pos, $tok];
+    }
+  }
+  for my $pair (sort { $a->[0] <=> $b->[0] } @found) {
+    print "HIT $file:$lineno: $pair->[1]\n";
+  }
+}
+'
+
+# --- Structural allowlist validation (a config error here is exit 2, and
+# --- is checked BEFORE any tree scan runs) -----------------------------------
+
+ALLOWLIST_STRUCT_ERRORS=()
+ENTRY_SCOPE=()
+ENTRY_LITERAL=()
+ENTRY_REASON=()
+ENTRY_USED=()
+SEEN_KEYS=()
+COMMENT_LINES=()   # "lineno<TAB>text" for later content-hit scan
+REASON_FIELDS=()   # "lineno<TAB>text" for later content-hit scan
+
+line_no=0
+while IFS= read -r raw_line || [ -n "$raw_line" ]; do
+  line_no=$((line_no + 1))
+  line="$raw_line"
+  trimmed="$(printf '%s' "$line" | sed -E 's/^[[:space:]]+|[[:space:]]+$//g')"
+
+  if [ -z "$trimmed" ]; then
+    continue
+  fi
+
+  if [ "${trimmed:0:1}" = "#" ]; then
+    COMMENT_LINES+=("${line_no}"$'\t'"${line}")
+    continue
+  fi
+
+  tab_count="$(printf '%s' "$line" | tr -cd '\t' | wc -c | tr -d ' ')"
+  if [ "$tab_count" -ne 2 ]; then
+    ALLOWLIST_STRUCT_ERRORS+=("ALLOWLIST ${line_no}: malformed line (expected 3 tab-separated fields, found $((tab_count + 1)))")
+    continue
+  fi
+
+  scope="$(printf '%s' "$line" | cut -f1)"
+  literal="$(printf '%s' "$line" | cut -f2)"
+  reason="$(printf '%s' "$line" | cut -f3)"
+
+  problem=""
+  if [ -z "$scope" ]; then
+    problem="empty scope"
+  elif [ "${scope:0:1}" = "/" ]; then
+    problem="scope has a leading /"
+  elif case "$scope" in *['*?[]']*) true ;; *) false ;; esac; then
+    problem="scope contains a glob character"
+  elif [ -z "$literal" ]; then
+    problem="empty literal"
+  elif [ "${#reason}" -lt 20 ]; then
+    problem="reason is shorter than 20 characters"
+  fi
+
+  key="${scope}"$'\t'"${literal}"
+  if [ -z "$problem" ]; then
+    for seen in "${SEEN_KEYS[@]:-}"; do
+      if [ "$seen" = "$key" ]; then
+        problem="duplicate entry ${scope} ${literal}"
+        break
+      fi
+    done
+  fi
+
+  if [ -n "$problem" ]; then
+    ALLOWLIST_STRUCT_ERRORS+=("ALLOWLIST ${line_no}: ${problem}")
+    continue
+  fi
+
+  SEEN_KEYS+=("$key")
+  ENTRY_SCOPE+=("$scope")
+  ENTRY_LITERAL+=("$literal")
+  ENTRY_REASON+=("$reason")
+  ENTRY_USED+=(0)
+  REASON_FIELDS+=("${line_no}"$'\t'"${reason}")
+done <"$allowlist_path"
+
+if [ ${#ALLOWLIST_STRUCT_ERRORS[@]} -gt 0 ]; then
+  printf '%s\n' "${ALLOWLIST_STRUCT_ERRORS[@]}"
+  exit 2
+fi
+
+# --- Tree scan, excluding the allowlist file itself --------------------------
+
+coarse_pattern="(${_word_users}|${_word_home}|~/|var/folders)"
+
+set +e
+candidates="$(
+  git -C "$root" -c core.quotePath=false grep -z -n -I -E "$coarse_pattern" -- . "${EXCLUDE_PATHSPEC[@]}" | tr '\000' '\001'
+  exit "${PIPESTATUS[0]}"
+)"
+grep_status=$?
+set -e
+
+if [ "$grep_status" -gt 1 ]; then
+  die "git grep failed (exit $grep_status)"
+fi
+
+tree_hits="$(printf '%s\n' "$candidates" | perl -e "$MATCHER_PROGRAM")"
+tree_hits="$(printf '%s' "$tree_hits" | sed '/^$/d')"
+
+# --- Coverage: mark entries used, collect uncovered hits ---------------------
+
+scope_matches() {
+  local path="$1" scope="$2"
+  if [ "$scope" = "." ]; then
+    return 0
+  fi
+  if [ "$path" = "$scope" ]; then
+    return 0
+  fi
+  case "$scope" in
+    */)
+      case "$path" in
+        "$scope"*) return 0 ;;
+      esac
+      ;;
+  esac
+  return 1
+}
+
+token_covered_by_literal() {
+  local token="$1" literal="$2"
+  case "$literal" in
+    */)
+      case "$token" in
+        "$literal"*) return 0 ;;
+        *) return 1 ;;
+      esac
+      ;;
+    *)
+      case "$token" in
+        "$literal")
+          return 0
+          ;;
+        "$literal"/*)
+          return 0
+          ;;
+        *)
+          return 1
+          ;;
+      esac
+      ;;
+  esac
+}
+
+UNCOVERED_HITS=()
+
+if [ -n "$tree_hits" ]; then
+  while IFS= read -r hit_line; do
+    [ -n "$hit_line" ] || continue
+    # hit_line: "HIT <path>:<line>: <token>". Parsed right-anchored: a
+    # token never contains a space and a line number never contains a
+    # colon, so a colon inside <path> cannot shift the split.
+    rest="${hit_line#HIT }"
+    hit_token="${rest##*: }"
+    loc="${rest%: *}"
+    hit_path="${loc%:*}"
+
+    covered=false
+    i=0
+    n=${#ENTRY_SCOPE[@]}
+    while [ "$i" -lt "$n" ]; do
+      if scope_matches "$hit_path" "${ENTRY_SCOPE[$i]}" && token_covered_by_literal "$hit_token" "${ENTRY_LITERAL[$i]}"; then
+        ENTRY_USED[$i]=1
+        covered=true
+      fi
+      i=$((i + 1))
+    done
+
+    if [ "$covered" = false ]; then
+      UNCOVERED_HITS+=("$hit_line")
+    fi
+  done <<<"$tree_hits"
+fi
+
+# --- Allowlist content-hit scan (comments + reasons) -------------------------
+
+ALLOWLIST_CONTENT_HITS=()
+
+scan_allowlist_content() {
+  local kind="$1"
+  shift
+  local entries=("$@")
+  local entry lineno text result
+  for entry in "${entries[@]:-}"; do
+    [ -n "$entry" ] || continue
+    lineno="${entry%%$'\t'*}"
+    text="${entry#*$'\t'}"
+    result="$(printf '%s\001%s\001%s\n' "$allowlist_rel" "$lineno" "$text" | perl -e "$MATCHER_PROGRAM")"
+    result="$(printf '%s' "$result" | sed '/^$/d')"
+    if [ -n "$result" ]; then
+      while IFS= read -r r; do
+        [ -n "$r" ] || continue
+        token="${r##*: }"
+        ALLOWLIST_CONTENT_HITS+=("ALLOWLIST ${lineno}: ${kind} contains a pattern hit: ${token}")
+      done <<<"$result"
+    fi
+  done
+}
+
+scan_allowlist_content "comment" "${COMMENT_LINES[@]:-}"
+scan_allowlist_content "reason" "${REASON_FIELDS[@]:-}"
+
+# --- Unused / inert entries ---------------------------------------------------
+
+UNUSED_FINDINGS=()
+used_count=0
+inert_count=0
+
+planning_tracked="$(git -C "$root" ls-files -- .planning/ 2>/dev/null || true)"
+
+i=0
+n=${#ENTRY_SCOPE[@]}
+while [ "$i" -lt "$n" ]; do
+  if [ "${ENTRY_USED[$i]}" = "1" ]; then
+    used_count=$((used_count + 1))
+  else
+    if [ "${ENTRY_SCOPE[$i]}" = ".planning/" ] && [ -z "$planning_tracked" ]; then
+      inert_count=$((inert_count + 1))
+    else
+      UNUSED_FINDINGS+=("UNUSED allowlist entry ${ENTRY_SCOPE[$i]} ${ENTRY_LITERAL[$i]}")
+    fi
+  fi
+  i=$((i + 1))
+done
+
+# --- Final verdict -------------------------------------------------------------
+
+if [ ${#UNCOVERED_HITS[@]} -gt 0 ] || [ ${#UNUSED_FINDINGS[@]} -gt 0 ] || [ ${#ALLOWLIST_CONTENT_HITS[@]} -gt 0 ]; then
+  if [ ${#UNCOVERED_HITS[@]} -gt 0 ]; then
+    # Sort by path, then numeric line, keyed right-anchored so a colon in
+    # a path cannot shift the key.
+    printf '%s\n' "${UNCOVERED_HITS[@]}" | perl -e '
+      my @k = map { /^HIT (.*):([0-9]+): (\S+)$/ ? [$_, $1, $2] : [$_, $_, 0] } <STDIN>;
+      print map { $_->[0] } sort { $a->[1] cmp $b->[1] or $a->[2] <=> $b->[2] or $a->[0] cmp $b->[0] } @k;
+    ' 
+    printf '%s\n' 'verify-repo-hygiene: describing a path shape in prose? write the user segment as a placeholder, see CONTRIBUTING.md "Writing about machine-local paths"' >&2
+  fi
+  if [ ${#UNUSED_FINDINGS[@]} -gt 0 ]; then
+    printf '%s\n' "${UNUSED_FINDINGS[@]}"
+  fi
+  if [ ${#ALLOWLIST_CONTENT_HITS[@]} -gt 0 ]; then
+    printf '%s\n' "${ALLOWLIST_CONTENT_HITS[@]}"
+  fi
+  exit 1
+fi
+
+file_count="$(git -C "$root" ls-files | wc -l | tr -d ' ')"
+
+used_word="entries"
+if [ "$used_count" -eq 1 ]; then
+  used_word="entry"
+fi
+
+planning_note=""
+if [ -z "$planning_tracked" ]; then
+  planning_note=" (.planning/ absent)"
+fi
+
+printf 'verify-repo-hygiene: %s tracked text file(s) clean; %s allowlist %s used, %s inert%s\n' \
+  "$file_count" "$used_count" "$used_word" "$inert_count" "$planning_note"
+exit 0

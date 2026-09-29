@@ -114,7 +114,7 @@ unexplained."
 
 ### CORRECTION (2026-09-22, Task 1 rehearsal) — the flake mechanism IS proven
 
-status: acknowledged (v1.41 close, 2026-09-24)
+status: acknowledged
 
 The entry above is **wrong** where it rejects the leftover-scratch-tree hypothesis and
 concludes "not reproducible." Superseded by direct evidence.

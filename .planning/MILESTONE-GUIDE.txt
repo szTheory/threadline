@@ -1,0 +1,392 @@
+THREADLINE MILESTONE GUIDE
+Reusable intent for choosing, delivering, and closing future milestones
+
+Adopted: 2026-09-25 (after v1.41 close and the 0.10.2 release)
+Revised: 2026-09-26 (v1.43 start). Folded in the maintainer's new
+boilerplate lines: no dependabot-only milestones, CI DX, tautological
+tests, a performance baseline and ratchet, circular dependencies,
+JTBD/GOV.UK docs voice, and scanning for blind spots.
+Canonical: .planning/MILESTONE-GUIDE.txt (a read-only mirror may exist
+outside the repo; refresh it by copying this file, never edit the mirror).
+Update this guide at milestone close or when new evidence changes it.
+
+
+1. PURPOSE
+
+Read this guide together with the live GSD state (PROJECT.md, STATE.md,
+ROADMAP.md, MILESTONE-ARC.md, and REQUIREMENTS.md when a milestone is
+active) whenever you evaluate a new
+Threadline milestone. It records the lasting intent behind the maintainer's
+"ratchet" prompt, adapted to Threadline's product, evidence, and release
+model. It helps you decide. It does not authorize starting every candidate
+below, and it does not widen the product boundary.
+
+When this guide and current code or evidence disagree, the code and the
+evidence win. Fix the guide.
+
+
+2. CORE INTENT
+
+Make Threadline the audit library Elixir teams can trust without thinking
+about it. Every row mutation that matters is captured durably and linked to
+who did it and why, and the developer never has to remember to opt in.
+
+Push the base library forward until returns diminish: capture, semantics,
+query and exploration APIs, mix tasks and generators, retention, redaction,
+export, evidence, telemetry, CI, and docs. Each milestone should be a
+deliberate step that is backed by evidence. Spend effort where it changes an
+outcome for a real adopter, operator, security reviewer, or maintainer. Do
+not churn for activity's sake, to fill a checklist, or for theoretical
+completeness.
+
+The code should be a masterclass that people enjoy reading:
+- idiomatic, simple Elixir, Ecto, and PostgreSQL
+- self-documenting names and small cohesive modules
+- the three-layer architecture visible in the file tree
+- comments only where they carry real signal
+
+Before deciding anything nontrivial, fan out across the §4 lenses, weigh
+options and ecosystem precedent, and synthesize ONE recommendation (§6).
+Stop at the point of diminishing returns.
+
+
+3. PRODUCT BOUNDARIES
+
+- Three layers stay separate. Capture (triggers, transactions, changes)
+  does not own action naming or retention. Semantics (actor, intent,
+  context, correlation) does not own row capture. Exploration/operations
+  (timelines, diffs, as-of, export, retention, redaction, health) matures on
+  top of the other two.
+- Capture uses generated PostgreSQL triggers installed through host-owned
+  Ecto migrations. Keep that boundary unless an explicit public API decision
+  changes it.
+- SQL-native: operators query audit data with plain SQL, never opaque blobs.
+- The host owns auth, layouts, and product policy. Threadline owns the
+  wiring contract (ActorRef, AuditContext, Plug/Oban/LiveView seams).
+- Not a SIEM, not event sourcing, not a pgAudit replacement, not a data
+  warehouse. No compliance-pack, legal-hold, or immutable-archive work
+  without procurement pressure.
+- Phoenix/LiveView stay optional for the root package. LLM calls stay out
+  of CI.
+- Hex versions cannot be unpublished. Treat every public default and API
+  shape as one-way (see the storage_schema "public" decision).
+
+
+4. WHO WE SERVE (lenses, not feature lists)
+
+1. Adopter developer. Adds Threadline to an existing Phoenix/Ecto app and
+   needs install, migrations, trigger generation, and first captured
+   history in the first hour, with no silent gaps.
+2. Application architect. Needs stable boundaries, predictable Ecto and
+   Postgres behavior, clear upgrade paths, and no hidden infrastructure.
+3. Security / compliance reviewer. Needs capture that is hard to bypass,
+   redaction that never leaks, honest claims, and negative-path proof.
+4. Support engineer / operator. Needs to answer "who changed this, when,
+   and why" quickly, through the API, SQL, or the operator surface.
+5. DBA / SRE. Needs predictable trigger cost, sane identifiers within
+   PostgreSQL limits, retention that behaves at scale, PgBouncer safety, and
+   useful telemetry.
+6. Maintainer / release owner. Needs readable code, trustworthy fast CI,
+   bounded dependencies, reproducible evidence, and a tidy release train.
+
+Usage contexts: B2B and B2C SaaS, multi-tenant products, internal tools,
+and regulated or high-trust domains (health, finance, education). What they
+share is correct, low-friction capture on real table shapes. Real schemas
+have:
+- non-`id` and composite primary keys
+- uuid and string keys
+- multiple Postgres schemas, and long or colliding names
+- large tables, PgBouncer, and Oban jobs
+- (later, on demand) partitioned tables, RLS tenancy, multiple repos
+The digital twins should cover that common denominator so nobody hits a
+wall. Pursue a specialized need only when evidence and a scoped acceptance
+case justify it. Never imply certification or compliance from a test suite.
+
+
+5. OPERATING POSTURE (2026-09-25)
+
+The standing mode is: RATCHET THE BASE LIBRARY TO DIMINISHING RETURNS, THEN
+1.0.0. The operator/admin UI is PARKED until 1.0.0 ships. After that, the
+maintainer returns to UI/UX feedback.
+
+This replaces the older "hold without adopter signal" posture in one
+respect. A quality milestone is allowed without adopter signal when it
+fixes evidence-backed defects or measurable risk: correctness, security,
+supply chain, CI economy, test value, or API contract. New product scope,
+new domains, an external pilot, and compliance expansion still need real
+adopter signal.
+
+Marker for diminishing returns: the 1.0.0 release, when the ladder in §7
+is done and a fresh baseline shows no candidate that changes an adopter
+outcome. Re-estimate at each milestone close. If the evidence says we are
+done earlier, stop earlier.
+
+
+6. MILESTONE SELECTION LOOP
+
+1. Re-derive the baseline. Don't restate it. Check:
+   - the current branch and `git rev-list --count HEAD..origin/main`
+   - main CI on its exact SHA
+   - open PRs and branches
+   - release truth (hex.pm vs mix.exs vs CHANGELOG)
+   - the latest milestone audit tech_debt
+   - seeds and todos
+   Carried "known" baselines and register rows are hypotheses until
+   re-measured.
+2. Keep release-train maintenance separate from milestone work. A
+   patch-eligible fix can ship on its own.
+3. Generate candidates from demonstrated defects, adopter friction,
+   security findings, supply-chain advisories, CI measurements, and
+   repeated maintainer toil. Scan quality dimensions broadly:
+   - correctness, security, compatibility
+   - reliability, performance, operability
+   - testability, maintainability, API ergonomics
+   - documentation, dependency health, release integrity
+   Select only the ones tied to evidence and a measurable outcome.
+   Name your blind spots too. Scan the dimensions nobody asked about
+   (resource use, architecture, docs voice, CI DX) before you rank.
+4. Rank by user impact, risk reduction, frequency, evidence strength,
+   leverage, and cost. For each pick, state why it is next, what proves
+   success, what is out of scope, and what is deferred. Prefer a thin
+   vertical slice over scattered cleanup.
+5. Research first, then recommend. For option-style decisions, dispatch
+   parallel research and bring back one coherent recommendation. Escalate
+   to the maintainer only what changes product boundaries, public API
+   shape, security posture, one-way defaults, spend, or hard-to-reverse
+   strategy.
+   Never open a milestone that is only dependency bumps. Dependabot PRs
+   are release-train maintenance (step 2). A milestone must move an
+   adopter, operator, reviewer, or maintainer outcome substantially.
+6. If nothing clears the bar, choose sustainment or stop. There is no
+   quota.
+
+
+7. ROADMAP HORIZONS (provisional; refresh at every close)
+
+This section is the canonical scope sketch per rung. MILESTONE-ARC.md holds
+only the live rank order and status and points back here.
+
+Estimated on 2026-09-25. v1.41 was unusually heavy (153 plans in about 4
+weeks). The rungs below are narrower (about 3-5 phases, roughly 1-2 weeks
+each). The estimated arrival at diminishing returns / 1.0.0 is about 6-9
+weeks: mid-November to early December 2026.
+
+NEAR (the ladder to 1.0.0):
+
+v1.42 Capture Correctness for Real Table Shapes -> 0.11.0
+  - Primary-key-agnostic capture. Trigger SQL today hardcodes `'id'`, so
+    tables keyed any other way silently store {"id": null}. Composite
+    keys must work, which the AuditChange moduledoc already claims.
+  - Cross-schema per-table function-name collision. It is
+    security-relevant: one table can run another table's redaction.
+  - An explicit long-identifier policy (a hashed suffix or a clear raise),
+    and the misleading "storage schema" error for long table names.
+  - gen.triggers resolves the repo's migrations path.
+  - The adopter twin gains the table shapes listed above.
+  - The first targeted property tests (identifier/name derivation).
+  - An upgrade note for regenerating triggers.
+
+v1.43 Supply Chain, CI Economy, and Repo Hygiene -> patch
+  - Dependency advisories remediated, plus an audit gate in CI.
+  - CI economy, measured first, lowest risk first. Flake Detection alone
+    was about 4,300 runner-minutes a month with no signal. The work:
+    - an uncached live-Dialyzer test inside both test lanes
+    - duplicated mechanical, docs, and tarball proofs
+    - the release-PR double dispatch
+    - Browser-full re-running CI's projects
+    - a deps-only _build cache
+    - change-aware lanes only behind a fail-closed classifier (SEED-006)
+  - One lane on the newest PostgreSQL/Elixir.
+  - Temp-dir flakes moved to @tag :tmp_dir.
+  - A PII / local-path guard in CI, plus a forward scrub of tracked files
+    that contain absolute local paths. No history rewrite.
+
+v1.44 Behavioral Depth: Properties, Twins, Telemetry -> minor
+  - Property tests where the invariants live:
+    - cursor paging (pages joined == full list)
+    - as_of == replayed history
+    - ChangeDiff
+    - redaction never leaks
+    - retention cutoff boundaries
+    - export round-trips
+  - Rebalance toward behavior. Merge or cut guard tests that no longer
+    catch a distinct failure class.
+  - Telemetry for export, retention, query, and install.
+  - history/3 gets a limit and a deterministic tiebreak.
+
+v1.45 1.0 API Contract -> 1.0.0
+  - Complete @spec/@doc on the public surface.
+  - Consolidate overlapping entry points (history/row_history,
+    actor_history/actor_window) with deprecations.
+  - Consistent return shapes. Hide internal helpers.
+  - A supported-table-shapes guide and a redaction threat model.
+  - Review the Capture.AuditTransaction<->Semantics.AuditAction runtime
+    edge logged in 9a (an Ecto association edge, not gated); keep it or
+    break it deliberately as part of the API contract.
+  - Declare 1.0.0.
+
+MID (signal-gated, after 1.0.0):
+  - The operator/admin UI returns: page-by-page UX with maintainer feedback.
+    The paid critic loop stays parked unless explicitly un-parked.
+  - SEED-005 reconnect banner, if it wasn't absorbed earlier.
+
+LONG (only on sustained demand, clear ownership, bounded support cost):
+  - Post-hoc erasure/scrub of captured rows (GDPR)
+  - per-table retention
+  - partitioned tables and RLS tenancy
+  - multiple repos
+  - the external pilot (v1.28 posture)
+  - compliance packs
+
+Treat candidates as hypotheses with provenance and triggers. At each close,
+mark each one shipped, obsolete, deferred, or rejected. Never carry a stale
+list forward.
+
+
+8. QUALITY AND EVIDENCE BAR
+
+- Define outcomes by what an adopter, operator, reviewer, or maintainer can
+  demonstrably do afterwards.
+- Tests follow Pareto. Every test must catch a distinct failure class, or
+  it gets merged, streamlined, or deleted. Cover happy paths, error cases,
+  and boundary conditions. Use integration, e2e, smoke, and seam tests where
+  the seams really are.
+- Property-based tests are deliberate. Use them only where an invariant and
+  a large input space meet (identifiers, cursors, diffs, redaction,
+  retention, encoding). Keep them bounded in runtime.
+- Digital twins: the example host app and the hex evaluator act as adopter
+  twins. Grow them with the common-denominator table shapes (§4). Do not
+  add a twin without a concrete failure mode it would catch.
+- A quality gate that passes vacuously is worse than no gate. After a
+  review-fix round, re-run the gate itself (e.g. `mix verify.credo`); a
+  green `mix test` doesn't prove the gate passes.
+- Code:
+  - minimal, elegant, and self-documenting
+  - no GSD vocabulary, phase numbers, or plan IDs in product code, comments,
+    commit subjects that ship, HexDocs, or rendered HTML
+  - keep high-signal comments and don't churn them
+- Tests are never tautological. A test that restates the implementation,
+  or asserts that a file contains a string without any behavior behind it,
+  catches no failure class. Audit for these and cut them.
+- Docs are written for the job the reader came to do (JTBD), in plain
+  GOV.UK-style prose: short sentences, task-first headings, no AI slop,
+  no marketing filler. Agent review checks voice, as in §10.
+- Preserve provenance for important findings: source, date or revision,
+  observed behavior, disposition, acceptance evidence. Separate fact,
+  inference, and proposal. Do not rewrite historical receipts to look
+  cleaner.
+
+
+9. CI/CD ECONOMY
+
+- Measure before you optimize. Record a baseline (per-job durations, runner
+  minutes per PR and per push-to-main, critical path) and cite it.
+- The repo is public, so runner minutes cost no money, but latency and the
+  concurrent-job cap are real. Cut waste anyway: every job must prove a
+  distinct failure class.
+- Keep the single required aggregate check fail-closed. A skip is allowed
+  only when the job deciding the skip is itself required and unskippable.
+- No trigger-level path filters on the CI workflow. Expensive jobs still run
+  on main. Job `id:`s stay immutable; `name:`s may evolve. The CONTRIBUTING
+  job list and the CI topology contract test change in the same commit as
+  the aggregate's needs.
+- CI is developer experience, too. Job names say what failed in words a
+  contributor understands. The ordering puts the fastest, most likely
+  failure first, and the critical path is short. A red check tells you
+  where to look without opening the logs.
+- Audit the suite regularly, not only the workflow: slow tests, duplicate
+  proofs across lanes, and guard tests that no longer catch anything.
+- Shift-left onto CI only when a check has recurring value. One-shot probes
+  run locally and are recorded as evidence.
+
+
+9a. PERFORMANCE AND ARCHITECTURE
+
+- Performance is a quality dimension, not an afterthought, and there is no
+  premature optimization. Establish a baseline first: trigger overhead per
+  write, query/export/retention cost at scale, memory, DB connections,
+  disk, and IO. Fix the biggest measured bottleneck, then ratchet the
+  baseline so it cannot regress silently.
+- Architecture fundamentals hold: no circular dependencies
+  (compile-connected cycles are clean and gated by `verify.xref_cycles`;
+  the 5 runtime cycles as of 2026-09-26 are Ecto association edges by
+  design and are not gated; review the capture/semantics edge
+  AuditTransaction<->AuditAction at the v1.45 API contract), the three
+  layers stay one-directional, and module boundaries match the domain
+  language. Weigh each nontrivial choice across the §4 lenses, including
+  pros, cons, anti-patterns, footguns, and ecosystem precedent.
+
+
+10. ZERO HUMAN VERIFICATION BY DEFAULT
+
+The standing rule lives in PROJECT.md Constraints and CLAUDE.md. Automate the
+world with a DevOps mindset:
+- tests and CI gates where they keep paying off
+- agent review for judgment calls, recorded as `source: automated-review`
+- a /gsd-verify-work that runs itself
+Hand to the maintainer only secrets, spend, push/publish/merge, and scope
+decisions, batched once at the end of a step.
+
+
+11. RELEASE AND TIDY CLOSEOUT
+
+- Release aggressively when it is warranted. Any releasable fix, feat, or
+  perf commit landed on main should ship through release-please promptly.
+  Do not force empty or cosmetic releases. Ideally every milestone ends with
+  a release.
+- Land milestone branches as a squash with a clean conventional title (no
+  planning IDs), so the changelog stays honest and the version bump is
+  right.
+- Closeout checklist:
+  - main CI green on the exact released SHA
+  - release-please and distribution-sync PRs merged
+  - open PRs triaged (merged, closed, or dispositioned)
+  - stale branches and worktrees removed or archive-tagged
+  - no dirty working tree
+  - docs and CHANGELOG accurate
+  - re-pin latest to the newest Elixir/OTP patch and PG minor (verify-test latest row in ci.yml; builds.hex.pm and Docker Hub; Dependabot does not cover setup-beam)
+  - STATE.md reflects reality
+- Actual push, merge, and publish still require the maintainer's explicit
+  go. Milestone tags stay local.
+
+
+12. DURABLE MEMORY (.planning as second brain)
+
+- Record important signal in .planning with provenance. Replace outdated
+  statements rather than stacking contradictions. Keep a ledger of
+  decisions (PROJECT.md Key Decisions, MILESTONES.md, RETROSPECTIVE.md). Keep
+  everything discoverable from PROJECT.md and MILESTONE-ARC.md.
+- Fold lessons into the guide, PROJECT.md, or conventions, so no mistake
+  repeats.
+- Signal must survive /clear. Before recommending the next GSD command,
+  make sure STATE.md (and the relevant CONTEXT/PLAN files) carries
+  everything that command needs.
+- Never `git add .planning/` wholesale. Stage named files.
+
+
+13. 12-FACTOR AND PRIVACY
+
+- Config and secrets come from the environment, never from the repo.
+- Never commit PII: names, emails, local absolute paths such as home
+  directories, machine names, tokens. Use repo-relative paths. Where a
+  local comparison is needed, record SHAs or checksums, not contents.
+- .planning is tracked and public, and the same rules apply there.
+- The public git repo stays clean. v1.43 adds a CI guard for this and a
+  forward scrub of existing tracked local paths (no history rewrite).
+
+
+14. HOW TO USE THIS GUIDE
+
+At each /gsd-new-milestone, read this guide with PROJECT.md, STATE.md,
+MILESTONE-ARC.md, and the latest milestone audit. Reconcile against current
+code and evidence, then recommend one milestone with a rationale. At each
+/gsd-complete-milestone:
+- refresh §7 (mark rungs shipped, re-estimate the arrival date)
+- fold new lessons into §8-§13
+- keep MILESTONE-ARC.md as the concise live ranking
+
+Source and adaptation note: adapted 2026-09-25 from the maintainer's
+generic "milestone roadmap ratchet" prompt; structure follows sibling
+projects' milestone guides. The evidence baseline is summarized with file
+references in PROJECT.md Key Decisions (2026-09-25 row) and the
+MILESTONE-ARC.md strategic thesis.

@@ -1,0 +1,75 @@
+{
+  "repo": "szTheory/threadline",
+  "entries": {
+    "ci.yml:pull_request:any:since-2026-09-27": {
+      "workflow": "ci.yml",
+      "event": "pull_request",
+      "head_sha": null,
+      "status": "any",
+      "since": "2026-09-27",
+      "target": 0,
+      "run_ids": [
+        36364354586,
+        36363356238,
+        36362405054,
+        36359132030,
+        36324736224,
+        36322900211,
+        36321643422,
+        36320961627,
+        36320767247,
+        36320005987,
+        36319450266,
+        36318716184
+      ],
+      "list_command": "gh run list --repo szTheory/threadline --limit 200 --json databaseId,headSha,createdAt,event,attempt,conclusion,status,workflowName,displayTitle --workflow ci.yml --event pull_request --status completed --created '>=2026-09-27'",
+      "fetched_at_utc": "2026-09-28T01:58:28Z"
+    },
+    "ci.yml:workflow_dispatch:any:since-2026-09-27": {
+      "workflow": "ci.yml",
+      "event": "workflow_dispatch",
+      "head_sha": null,
+      "status": "any",
+      "since": "2026-09-27",
+      "target": 0,
+      "run_ids": [
+        36361003789,
+        36360336486,
+        36359795977,
+        36359171595,
+        36320837739,
+        36319472710
+      ],
+      "list_command": "gh run list --repo szTheory/threadline --limit 200 --json databaseId,headSha,createdAt,event,attempt,conclusion,status,workflowName,displayTitle --workflow ci.yml --event workflow_dispatch --status completed --created '>=2026-09-27'",
+      "fetched_at_utc": "2026-09-28T01:58:39Z"
+    },
+    "flake-detection.yml:workflow_dispatch:any:since-2026-09-27": {
+      "workflow": "flake-detection.yml",
+      "event": "workflow_dispatch",
+      "head_sha": null,
+      "status": "any",
+      "since": "2026-09-27",
+      "target": 0,
+      "run_ids": [
+        36364688861,
+        36359135268
+      ],
+      "list_command": "gh run list --repo szTheory/threadline --limit 200 --json databaseId,headSha,createdAt,event,attempt,conclusion,status,workflowName,displayTitle --workflow flake-detection.yml --event workflow_dispatch --status completed --created '>=2026-09-27'",
+      "fetched_at_utc": "2026-09-28T01:58:40Z"
+    },
+    "browser-full.yml:workflow_dispatch:any:since-2026-09-27": {
+      "workflow": "browser-full.yml",
+      "event": "workflow_dispatch",
+      "head_sha": null,
+      "status": "any",
+      "since": "2026-09-27",
+      "target": 0,
+      "run_ids": [
+        36363979144,
+        36359136941
+      ],
+      "list_command": "gh run list --repo szTheory/threadline --limit 200 --json databaseId,headSha,createdAt,event,attempt,conclusion,status,workflowName,displayTitle --workflow browser-full.yml --event workflow_dispatch --status completed --created '>=2026-09-27'",
+      "fetched_at_utc": "2026-09-28T01:58:42Z"
+    }
+  }
+}

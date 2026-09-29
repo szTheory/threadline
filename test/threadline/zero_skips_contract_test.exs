@@ -13,9 +13,14 @@ defmodule Threadline.ZeroSkipsContractTest do
   Two invariants:
 
     1. No file under `test/` carries a test-level or suite-level skip tag.
-    2. The ExUnit exclude configuration carries nothing beyond the single
-       PgBouncer topology tag, which is a genuine environment gate (those tests
-       require PgBouncer plus bootstrap DDL) rather than a retired failure.
+    2. The ExUnit exclude configuration (and the `:default_test_excludes`
+       app-env key `test/test_helper.exs` writes from the same binding) carries
+       exactly two sanctioned environment gates, each a genuine environment
+       requirement rather than a retired failure:
+       - `pgbouncer_topology`: those tests require PgBouncer plus bootstrap DDL;
+       - `live_dialyzer`: that test requires a restored Dialyzer PLT, and runs
+         only in the `verify-dialyzer` CI job via `mix verify.dialyzer_slice`.
+       A third tag is how a retired failure gets excluded, and is forbidden.
   """
 
   use ExUnit.Case, async: true
@@ -23,6 +28,7 @@ defmodule Threadline.ZeroSkipsContractTest do
   @test_glob "test/**/*_test.exs"
 
   @topology_tag :pgbouncer_topology
+  @live_dialyzer_tag :live_dialyzer
 
   # The needles below are assembled at runtime instead of written as literals
   # because THIS FILE is itself matched by the glob it scans. A literal skip tag
@@ -65,21 +71,30 @@ defmodule Threadline.ZeroSkipsContractTest do
              "the run to manufacture a green summary."
   end
 
-  test "the ExUnit exclude list carries nothing beyond the topology gate (D-05)" do
+  test "the ExUnit exclude list carries exactly the two environment gates (D-05)" do
     exclude = ExUnit.configuration()[:exclude]
 
-    # test/test_helper.exs drops the exclusion when the suite is deliberately run
-    # against a PgBouncer topology, so both shapes are legitimate. What is never
+    # test/test_helper.exs drops the topology exclusion when the suite is deliberately
+    # run against a PgBouncer topology, so both shapes are legitimate. What is never
     # legitimate is a third tag: that is how a retired failure gets excluded.
     expected =
       if System.get_env("THREADLINE_PGBOUNCER_TOPOLOGY") == "1",
-        do: [],
-        else: [{@topology_tag, true}]
+        do: [{@live_dialyzer_tag, true}],
+        else: [{@topology_tag, true}, {@live_dialyzer_tag, true}]
 
     assert exclude == expected,
            "unexpected ExUnit exclude configuration #{inspect(exclude)} (expected " <>
-             "#{inspect(expected)}). The only sanctioned exclusion is #{inspect(@topology_tag)}, " <>
-             "a real environment gate. Excluding a tag to retire a failing test is the " <>
+             "#{inspect(expected)}). The only sanctioned exclusions are " <>
+             "#{inspect(@topology_tag)} (PgBouncer plus bootstrap DDL) and " <>
+             "#{inspect(@live_dialyzer_tag)} (a restored Dialyzer PLT), both real " <>
+             "environment gates. Excluding a tag to retire a failing test is the " <>
              "laundering Phase 198 caps at zero."
+
+    default_excludes = Application.fetch_env!(:threadline, :default_test_excludes)
+
+    assert default_excludes == expected,
+           "the :default_test_excludes app-env key #{inspect(default_excludes)} drifted " <>
+             "from the sanctioned gates #{inspect(expected)}. test/test_helper.exs must " <>
+             "store the same binding it passes to ExUnit.configure/1."
   end
 end

@@ -114,7 +114,7 @@ Also copy the register's Verdict-section honesty stance (lines 88–93): rank by
 
 ### `lib/threadline/operator_surface/live/{actor,evidence,timeline}_live.ex` (LiveView page edits, PROOF-02)
 
-**Analog:** `git show c6f9355e` — the gate-ACCEPTED retention density edit (`retention_history_live.ex`). All candidate files exist in `/Users/jon/projects/threadline/lib/threadline/operator_surface/live/`.
+**Analog:** `git show c6f9355e` — the gate-ACCEPTED retention density edit (`retention_history_live.ex`). All candidate files exist in `/Users/<user>/projects/threadline/lib/threadline/operator_surface/live/`.
 
 **Core edit pattern** (from the c6f9355e diff) — remove chrome that restates signal owned elsewhere, and leave a rationale comment naming the phase, the lens, and where each removed duty now lives:
 ```heex

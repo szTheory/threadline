@@ -2,7 +2,7 @@
 
 **Gathered:** 2026-06-11
 **Status:** Ready for planning
-**Source:** Approved milestone plan (`~/.claude/plans/have-to-compare-it-lexical-shore.md`), user decisions locked at plan approval
+**Source:** Approved milestone plan (`<home>/.claude/plans/have-to-compare-it-lexical-shore.md`), user decisions locked at plan approval
 
 <domain>
 ## Phase Boundary

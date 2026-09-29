@@ -36,6 +36,14 @@ that merely share a major number. The pin names the lane CI runs, not the only v
 works: the supported floor (Elixir 1.15 / OTP 26) is proven separately by the CI
 min lane.
 
+CI also runs a `latest` lane, `Run test suite (latest)`, on the newest stable
+Elixir, OTP and PostgreSQL, exactly pinned in the `verify-test` matrix of
+`.github/workflows/ci.yml`. It compiles with `--warnings-as-errors`, checks xref
+cycles, runs the default suite, and votes through `CI required` on every run. It
+shows the suite works there; it is not a support floor and not a pin for your
+shell. Test-file warnings stay non-fatal on every lane, because `mix verify.test`
+is plain `mix test`. The pins are refreshed at each milestone close.
+
 If you work on another supported version, override the pin for your shell
 instead of editing the committed file. With asdf, set `ASDF_ERLANG_VERSION` and
 `ASDF_ELIXIR_VERSION` (for example `ASDF_ELIXIR_VERSION=1.15.8-otp-26`);
@@ -53,11 +61,23 @@ missing, so no manual `createdb` step is required.
 ## Running tests
 
 ```bash
-mix test test/path.exs   # single file
-mix verify.test          # full suite (needs PostgreSQL)
+mix test test/path.exs      # single file
+mix verify.test             # full suite (needs PostgreSQL)
+mix verify.dialyzer         # strict Dialyzer analysis (builds the dev PLT)
+mix verify.dialyzer_slice   # live Dialyzer slice proof (needs the dev PLT)
 ```
 
 Integration tests use a **real** database and triggers; they are not excluded from `mix test`.
+
+`test/test_helper.exs` excludes exactly two tags from default `mix test`, both
+environment gates rather than retired failures (`zero_skips_contract_test.exs`
+forbids a third):
+
+- `pgbouncer_topology`: those tests need PgBouncer plus bootstrap DDL; they run
+  under `mix verify.topology` (see [PgBouncer topology CI parity](#pgbouncer-topology-ci-parity)).
+- `live_dialyzer`: that test needs a restored `.dialyzer` PLT; it runs only via
+  `mix verify.dialyzer_slice`, in the `verify-dialyzer` job and in `mix ci.all`
+  right after `verify.dialyzer`.
 
 **Environment:** `DB_HOST` defaults to `localhost`; **`DB_PORT`** defaults to `5432` (see `config/test.exs`). Override if Postgres listens on another port (e.g. **`DB_PORT=5433`** with the default `docker-compose.yml` mapping).
 
@@ -70,8 +90,8 @@ mix ci.all
 ```
 
 This repository alias runs formatting, Credo, strict compiles, tests, trigger
-coverage, a dependency audit of all three lockfiles, documentation contracts,
-and Dialyzer in the test environment. If
+coverage, a dependency audit of all three lockfiles, a machine-local path
+check, documentation contracts, and Dialyzer in the test environment. If
 your local database uses a non-default port, set `DB_PORT` for the command as
 described in the [local database guide](guides/local-docker-dx.md#run-the-test-database).
 
@@ -84,6 +104,43 @@ against that database, or an older Compose volume is still in use. Follow the
 [local database reset and stale-state troubleshooting](guides/local-docker-dx.md#troubleshooting)
 for the canonical repair. Keep the lifecycle and cleanup commands in that guide
 so its volume-deletion warning stays attached to the procedure.
+
+## Writing about machine-local paths
+
+`bin/verify-repo-hygiene` scans every tracked text file, including any
+tracked planning docs. Any concrete user or machine segment in a home
+directory, a per-user temp root, or a Claude-encoded project path is a HIT,
+even an obviously fake name.
+
+When docs or planning prose (including agent-written code reviews,
+verification reports, plans and summaries) must describe a path shape, write
+the user- or machine-specific segment as an angle-bracket placeholder. Never
+paste a real path from tool output: rewrite its prefix to a placeholder first.
+The `<` character is outside every pattern's segment class, so these forms
+never match, while the guard stays strict for everything else.
+
+Use these forms:
+
+<!-- repo-hygiene-placeholders:start -->
+- `<home>/<path>`: any home directory, when the platform does not matter
+- `/Users/<user>/<path>`: a macOS home directory
+- `/home/<user>/<path>`: a Linux home directory
+- `C:\Users\<user>\<path>`: a Windows home directory
+- `~/<path>`: a home-relative path
+- `/var/folders/<xx>/<path>`: the macOS per-user temp root
+- `-Users-<user>-<project>`: a Claude-encoded project directory name
+- `<claude-projects-dir>/<encoded-project>/`: the Claude projects directory
+- `\/Users\/<user>\/<path>`: a JSON-escaped home directory
+<!-- repo-hygiene-placeholders:end -->
+
+Tests never write a fixture path literally. They build it at runtime by
+string concatenation; see `test/threadline/repo_hygiene_guard_test.exs`.
+
+The allowlist (`.github/repo-hygiene-allowlist.tsv`) is only for runner, cache
+and tool-install paths that carry no username. It is never for prose, and no
+file or directory is exempt from the scan.
+
+Run `bin/verify-repo-hygiene` before committing any doc or planning file.
 
 ## Pull requests
 
@@ -125,18 +182,33 @@ tables in `setup` (FK order). Keep DB-touching tests on that helper.
   events emitted by *any* concurrently-running test for the same event name.
 - **Don't assert on unordered query results positionally.** Add an explicit
   `order_by` when a test depends on row order.
+- **Scratch files use ExUnit `@tag :tmp_dir`, not `System.tmp_dir!()`.** A
+  per-test, per-module directory under the repo's gitignored `tmp/` is
+  async-safe and wiped before each run, so a raised assertion never leaves a
+  file behind in the real system temp dir. A test that must sit outside the
+  git worktree (e.g. it clones a checkout or shells `git`/`mix` in place)
+  keeps `System.tmp_dir!()`, with cleanup registered via `on_exit/1` so it
+  still runs on failure. `mix verify.temp_leaks` proves that a full `mix test`
+  run leaves nothing behind in the system temp dir.
 
 **Reproduce / prove determinism.** Run a test (or the suite) repeatedly:
 
 ```bash
 mix test test/path/to/flaky_test.exs --repeat-until-failure 200
 mix test --seed 0 --repeat-until-failure 20   # pin a specific ordering
-mix verify.flake                              # full suite, 50 repeats (fresh seed each)
+mix verify.flake                              # full suite, 12 repeats (fresh seed each)
 ```
 
-`mix verify.flake` is also run nightly (and on demand) by the **Flake Detection**
-workflow ([`.github/workflows/flake-detection.yml`](.github/workflows/flake-detection.yml));
-it is intentionally kept out of `mix ci.all` so per-PR CI stays fast.
+`mix verify.flake` is also run weekly (Monday 07:00 UTC) and on demand by the
+**Flake Detection** workflow
+([`.github/workflows/flake-detection.yml`](.github/workflows/flake-detection.yml)),
+inside a 55-minute time budget; it is intentionally kept out of `mix ci.all` so
+per-PR CI stays fast. A run that does not pass ends red with one of these outcomes:
+
+- **broken**: the suite failed on its first iteration, so it is a deterministic failure, not a flake.
+- **flaky**: the suite passed at least once, then failed on a later iteration.
+- **inconclusive**: the time budget ran out while every iteration so far was clean. That is not a proof, so the run stays red. A test failure printed before the budget ran out still counts as broken or flaky, and a kill well before the budget (such as an out-of-memory kill) is reported as unknown.
+- **broken-upstream**: CI is already red on the same commit with no green re-run, so the suite was not run.
 
 ## Local-only critic (verify.ui_critique)
 
@@ -412,35 +484,41 @@ git commit -m "chore: forward-only gate — <page> <lens> advanced, zero regress
 
 ## CI Coverage
 
-Browser coverage is **split** across two workflows. Pull requests run a reduced
-Playwright project set so per-PR feedback stays inside a usable loop; the full
-set runs on `main` and nightly. **This is a real trade, not a free speedup** —
-four projects that used to run on every pull request now run only after merge.
-They are named below.
+Browser coverage is **split** across two workflows, and the split is a
+**partition**: every default-config Playwright project runs in exactly one lane.
+Pull requests (and every push to `main`) run four projects through `ci.yml` so
+per-PR feedback stays inside a usable loop. Browser-full runs the other four.
+**This is a real trade, not a free speedup**: the four Browser-full projects do
+not run on pull requests. They are named below.
 
 | Playwright project | Pull request | `main` | Nightly | Runs via |
 |---|---|---|---|---|
-| `desktop-chromium` | **yes** | yes | yes | `verify-example-browser` (PR, **required**) + `verify-example-browser-full` |
-| `mobile-chromium` | **yes** | yes | yes | `verify-example-browser` (PR, **required**) + `verify-example-browser-full` |
-| `tier-a-capture` | **yes** | yes | yes | `verify-capture` (PR, `mix verify.capture`) + `verify-example-browser-full` |
-| `tier-a-capture-light` | **yes** | yes | yes | `verify-capture` (PR, `mix verify.capture`) + `verify-example-browser-full` |
-| `storybook-capture` | no | yes | yes | `verify-example-browser-full` only |
-| `graded-capture` | no | yes | yes | `verify-example-browser-full` only |
-| `refute-capture` | no | yes | yes | `verify-example-browser-full` only |
-| `route-capture` | no | yes | yes | `verify-example-browser-full` only |
+| `desktop-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
+| `mobile-chromium` | **yes** | yes | no | `verify-example-browser` (ci.yml, **required**) |
+| `tier-a-capture` | **yes** | yes | only as `refute-capture`'s dependency | `verify-capture` (ci.yml, `mix verify.capture`) |
+| `tier-a-capture-light` | **yes** | yes | no | `verify-capture` (ci.yml, `mix verify.capture`) |
+| `storybook-capture` | no | yes | yes | `verify-example-browser-full` |
+| `graded-capture` | no | yes | yes | `verify-example-browser-full` |
+| `refute-capture` | no | yes | yes | `verify-example-browser-full` |
+| `route-capture` | no | yes | yes | `verify-example-browser-full` |
 | `desktop-chromium-light` | no | no | no | Registered only under `THREADLINE_E2E_THEME=system`; run locally via `mix verify.example_browser_light`. Not wired into any CI job. |
 
-**The `main` and nightly columns are the same lane, not two lanes.** Job
+**Both lanes run on `main`; only Browser-full runs nightly.** `ci.yml` runs its
+four projects on every pull request and every push to `main`. Job
 `verify-example-browser-full` in
-[`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml)
-triggers on both push-to-`main` and a nightly `schedule`, plus manual dispatch.
-The pull-request set and the full set **overlap** — `desktop-chromium` and
-`mobile-chromium` run in both; the table is not a partition.
+[`.github/workflows/browser-full.yml`](.github/workflows/browser-full.yml) runs
+the other four on push to `main`, on a nightly `schedule`, and on manual
+dispatch. It never selects a project `ci.yml` already runs; the one exception to
+never *executing* one is a declared Playwright `dependencies` edge, so
+`tier-a-capture` also runs there first because `refute-capture` overwrites the
+cell directories it creates (`bin/browser-full-projects --list deps`). The nightly is
+skipped when Browser-full already passed on the same commit (`bin/ci-sha-gate`),
+because a re-run of a proven commit proves nothing new.
 
 **What does not run on pull requests:**
 
-- `storybook-capture`, `graded-capture`, `refute-capture`, and `route-capture` —
-  moved to `main` + nightly only.
+- `storybook-capture`, `graded-capture`, `refute-capture`, and `route-capture`:
+  they run on `main`, nightly and on dispatch only.
 - The bare `chromium` project was **deleted outright**, not moved. It was
   `Desktop Chrome` at 1280×720 with no scoped `testMatch`, and both
   snapshot-bearing specs already excluded it by name, so it carried zero
@@ -449,12 +527,20 @@ The pull-request set and the full set **overlap** — `desktop-chromium` and
 `verify-example-browser-full` is **not** a required check and does not block a
 pull request. Because a `schedule:` run notifies nobody, a failure of that lane
 opens (or comments on) a single deduplicated tracking issue labelled
-`ci-browser-full` — distinct from Flake Detection's own dedup stream.
+`ci-browser-full`, distinct from Flake Detection's own dedup stream. The next
+green Browser-full run closes that issue.
 
-This table is not documentation-on-trust:
-`test/threadline/ci_coverage_doc_contract_test.exs` derives the project list from
-the actual `--project` flags in the workflows and fails if a project a workflow
-really runs is missing from this table.
+This table is not documentation-on-trust. Browser-full's project list is never
+hand-written: `bin/browser-full-projects` derives it as the default
+`playwright.config.ts` projects minus the ones `ci.yml` runs (its `--project`
+flags plus those behind `mix verify.capture`). Only flags passed to a `mix` or
+`npx` command count, and the script refuses a flag in a step or job that carries
+an `if:`, because such a flag may never run on a pull request or push.
+`test/threadline/browser_full_projects_contract_test.exs` proves the two lanes
+partition the config, so a newly added project cannot end up running nowhere.
+`test/threadline/ci_coverage_doc_contract_test.exs` takes the project list from
+that script and fails if a project is missing from this table or its row names
+the wrong lane.
 
 ### `ci-required` needs: roster
 
@@ -474,14 +560,12 @@ without also failing a test.
 - `verify-test`
 - `verify-hex-evaluator`
 - `verify-example-browser`
-- `verify-mechanical`
 - `verify-capture`
 - `verify-pgbouncer-topology`
-- `verify-docs`
-- `verify-hex-package`
 - `verify-release-shape`
 - `verify-bump-rehearsal`
 - `verify-deps-audit`
+- `verify-repo-hygiene`
 
 No `allowed-skips` or `allowed-failures` entry is documented here today,
 because `.github/workflows/ci.yml`'s `alls-green` step carries neither — every
@@ -560,19 +644,30 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 |---------|---------|
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
-| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on the committed `.tool-versions` toolchain (Elixir 1.17.3 / OTP 27.3.4.15) with the exact PLT cache lifecycle below |
+| `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on the committed `.tool-versions` toolchain (Elixir 1.17.3 / OTP 27.3.4.15) with the exact PLT cache lifecycle below, then `mix verify.dialyzer_slice` (the fail-closed live Dialyzer slice proof, Postgres service) |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
-| `verify-mechanical` | `mix verify.mechanical`; deterministic MODE-A / MODE-B gate over the committed `test/fixtures/operator_surface/scorecards/*.json` |
 | `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
-| `verify-docs` | `MIX_ENV=dev` — `mix docs` (ExDoc + extras) |
-| `verify-hex-package` | `mix hex.build` + assert tarball contains `lib/` |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
 | `verify-bump-rehearsal` | `mix verify.bump_rehearsal` — simulates the next-minor release commit in a throwaway clone and runs every doc-contract test file it finds by filename (at least 30, or the gate fails), the changelog contract and `mix verify.release` against it, so a born-red release cause fails the pull request that introduces it rather than the publish gate |
 | `verify-deps-audit` | `mix verify.deps_audit` — asserts Hex >= 2.5.1 and runs `deps.unlock --check-unused` + `hex.audit` over `mix.lock`, `bench/mix.lock` and `examples/threadline_phoenix/mix.lock`; then `bin/verify-deps-audit --self-test` proves the gate goes red on a known-vulnerable fixture lock and on an old Hex |
+| `verify-repo-hygiene` | `bin/verify-repo-hygiene` (also `mix verify.repo_hygiene` in `ci.all`): scans tracked text files only for machine-local paths (user homes, home-relative paths, macOS temp roots) against the scoped, reason-carrying `.github/repo-hygiene-allowlist.tsv`, and fails on any unused allowlist entry; then `bin/verify-repo-hygiene --self-test` proves it goes red on runtime-built fixtures |
+
+### Removed CI proofs and what still catches them
+
+A CI proof is removed only when another job catches the same failure class on
+the same triggers (push to `main`, pull_request to `main`, workflow_dispatch)
+with no job-level `if:`. Each removal keeps its justification here, and
+`test/threadline/ci_topology_contract_test.exs` fails if a line goes missing or
+if the proof that still catches it stops running.
+
+- The capture lane's trailing `mix verify.mechanical` step (in `verify-capture`): failure class "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by `verify-capture`'s byte-stable regeneration step (regenerated evidence must equal the committed evidence) and by `verify-test` (every lane), which runs `mechanical_checker_test.exs` over the committed scorecard JSON, on pull_request, push to `main` and workflow_dispatch.
+- `verify-mechanical` (the job): failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/mechanical_checker_test.exs` in the default suite, on pull_request, push to `main` and workflow_dispatch. The `mix verify.mechanical` alias stays as a focused local command.
+- `verify-docs`: failure class "the ExDoc build fails" is still caught by `verify-bump-rehearsal`, whose `mix verify.release` gate runs `MIX_ENV=dev mix docs --warnings-as-errors` (stricter than the old plain `mix docs`), on pull_request, push to `main` and workflow_dispatch. Coupling: any future change that skips `verify-bump-rehearsal` also skips the ExDoc proof, and a docs break now shows as a red "Bump rehearsal (next minor)" job. The rehearsal chains its gates, so the docs build runs only after the doc-contract and changelog gates pass; one of those failing first hides a docs break until it is fixed. `test/threadline/ci_topology_contract_test.exs` pins that `bin/verify-bump-rehearsal` still runs `mix verify.release`.
+- `verify-hex-package`: failure class "`mix hex.build` fails or the tarball has no usable `lib/`" is still caught by `verify-bump-rehearsal` (`mix hex.build` in `mix verify.release`) and `verify-hex-evaluator` (builds this tree's tarball, resolves it from the rehearsal registry, then compiles and tests it), on pull_request, push to `main` and workflow_dispatch. `release.yml`'s own `hex.build` does not count: it runs only on release.
 
 ### Dialyzer PLT cache and measurement contract
 
@@ -590,6 +685,19 @@ fetches dependencies and compiles outside the timers, measures `mix dialyzer
 --plt`, saves the successfully built PLT, and only then measures `mix dialyzer
 --no-check`. On an exact-key hit, CI skips PLT construction and reports no
 synthetic PLT-build values.
+
+After the analysis step, the job runs `mix verify.dialyzer_slice` under
+`MIX_ENV=test` against a `postgres:16` service (the test helper starts the
+repo). That alias runs the one `live_dialyzer` test, which shells out to
+`bin/verify-dialyzer-slice` over the committed critic-tooling fixture. The
+verifier fails closed: `--ignore-exit-status` turns a Dialyzer error (a missing
+or unreadable PLT, a crash) into exit 0 with zero warn lines, so the verifier
+requires exactly one dialyxir completion marker (`done (passed successfully)`
+or `done (warnings were emitted)`) and rejects any `:dialyzer.run error:` line,
+reporting `Dialyzer did not complete`. `verify-dialyzer` is the only job that
+runs the tag. Removing the test from the `verify-test` lanes, `verify-test (min)`
+included, drops no real coverage: it passed vacuously there, because those
+lanes never had a PLT.
 
 The stable log fields are:
 
@@ -626,11 +734,114 @@ and
 | Whole job elapsed | 252 seconds (20:11:54Z–20:16:06Z) | 123 seconds (20:23:39Z–20:25:42Z) |
 
 The `verify-dialyzer` timeout is derived from the measured cold whole-job
-elapsed time, not just the analyzer subprocesses: `ceil(252 seconds × 2.0 / 60)
-= 9 minutes`. The 2.0 factor gives 100% headroom for dependency, runner, and
-PLT-build variance while keeping a bounded failure time. The exact-key hit
+elapsed time, not just the analyzer subprocesses, plus the live slice proof's
+added cost: the test-env compile (47 seconds) and Postgres service init
+(23 seconds) measured in the `Run test suite (current)` job of run
+[`36258719902`](https://github.com/szTheory/threadline/actions/runs/36258719902),
+and the live test itself (about 10 seconds, an estimate), 80 seconds in all:
+`ceil((252 + 80) seconds × 2.0 / 60) = 12 minutes`. The 2.0 factor gives 100%
+headroom for dependency, runner, and PLT-build variance while keeping a
+bounded failure time. The exact-key hit
 saved 143.4 seconds of analyzer work (`162.64 - 9.42`) and 129 seconds of
 whole-job elapsed time (`252 - 123`) on this evidence pair.
+
+### Dependency build cache
+
+The test jobs restore a deps-only `_build` cache so they stop recompiling the
+same dependencies on every run. The root project caches `_build/$MIX_ENV`; the
+example app caches `examples/threadline_phoenix/_build/$MIX_ENV` together with
+its own `examples/threadline_phoenix/deps` (the root `deps/` keeps its existing
+`Cache deps` step). Each cache uses split `actions/cache/restore@v5` and
+`actions/cache/save@v5` steps, and the save runs only on a miss, after a
+successful `mix deps.compile`. No save uses `always()` or `continue-on-error`,
+so a failed or partial dependency build is never stored.
+
+| Job | Build cache | Saves on miss |
+| --- | --- | --- |
+| `verify-test` | root on every lane; example on the current lane only | yes |
+| `verify-pgbouncer-topology` | root, restoring the current lane's key | no, restore only |
+| `verify-example-browser` | example | yes |
+| `verify-capture` | example | yes |
+
+That is four build keys across six job-lanes: a root key per verify-test lane plus the shared example key.
+
+Every key is exact. In order it carries: the runner label (`${{ matrix.runner }}`
+in `verify-test`, the literal `ubuntu-24.04` elsewhere), the OTP and Elixir that
+setup-beam resolved, the key version `build-v1`, the project (`root` or
+`example`), `MIX_ENV`, the `full` profile (the optional dependencies are
+compiled), then the hash of the project's own `mix.lock` and of its
+`config/**/*.exs`. The key deliberately leaves out `mix.exs` (a dependency change
+reaches the lock), `.tool-versions` (the resolved versions already name the
+toolchain) and the Hex and rebar3 versions.
+
+A `_build` cache never has `restore-keys`. A near-miss restore across a changed
+lock serves artifacts compiled against other dependency versions, which is how
+[CargoSense/setup-elixir-project#13](https://github.com/CargoSense/setup-elixir-project/issues/13)
+went wrong; a cold build is cheaper than a wrong one. The first-party apps are
+never cached either. After the deps compile and before the save and the
+compile, every cached job runs:
+
+```sh
+rm -rf "_build/${MIX_ENV:?}/lib/threadline"
+```
+
+and the example jobs run:
+
+```sh
+rm -rf "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline" \
+  "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline_phoenix"
+```
+
+That is `_build/$MIX_ENV/lib/threadline` in each project; `${MIX_ENV:?}` fails
+the step instead of deleting the wrong tree if `MIX_ENV` is ever unset. The
+removal runs on hit and miss alike, so the cache holds only dependencies and a
+restore can never serve a stale copy of the code under test.
+
+| Job or workflow | Why it has no build cache |
+| --- | --- |
+| `verify-format` | compiles nothing: it only runs the formatter check |
+| `verify-credo` | dev env, not a test job, and off the critical path |
+| `verify-dialyzer` | dev env, and it switches `MIX_ENV` mid-job, so one env-scoped key cannot describe it |
+| `verify-compile-no-optional` | the optional-deps proof builds from source with no cache step of any kind |
+| `verify-hex-evaluator` | its lock is gitignored and regenerated every run, so no exact key exists |
+| `verify-release-shape` | compiles nothing: it checks CHANGELOG and `@version` text |
+| `verify-bump-rehearsal` | builds inside a throwaway clone, so a restored `_build` would never be read |
+| `verify-deps-audit` | compiles nothing: it audits the lockfiles |
+| `verify-repo-hygiene` | compiles nothing: it scans tracked text |
+| `verify-flake` | in `flake-detection.yml`, off the pull-request path (weekly and on dispatch) |
+| `verify-example-browser-full` | in `browser-full.yml`, off the pull-request path (push to main and nightly) |
+| `publish-hex` | in `release.yml`: a published package is built from source, never from a cache |
+| `smoke-published` | in `release.yml`: the published-release smoke test proves hex.pm's package on a clean build |
+
+The stable log fields, printed by each cached job's removal step, are:
+
+- `THREADLINE_BUILD_CACHE`: exactly `hit` or `miss`, then ` key=<primary key>`.
+- `THREADLINE_EXAMPLE_BUILD_CACHE`: exactly `hit` or `miss`, then
+  ` key=<primary key>`. It appears only in job-lanes whose example restore ran,
+  so `Run test suite (min)` and `Run test suite (latest)` never print it.
+
+`verify-test (current)`, `verify-example-browser` and `verify-capture` share one
+example key. On a cold run two of them can try to save it at once; the loser
+logs `Unable to reserve cache` as a warning, not a failure. There is no cleanup
+workflow: GitHub evicts entries unused for 7 days and trims the repository's
+10 GB budget oldest first.
+
+**Poisoned-cache runbook.** The symptom is a failure that disappears with a cold
+build (for example, a dependency error that a fresh checkout cannot reproduce).
+A pull request can only read its own scope and `main`'s, but a poisoned entry
+saved from `main` reaches every pull request, so act on it quickly:
+
+1. Find the entry: `gh cache list --key <key prefix> --ref <ref>`, taking the
+   key from the job's `THREADLINE_BUILD_CACHE` or
+   `THREADLINE_EXAMPLE_BUILD_CACHE` line.
+2. Delete it: `gh cache delete <key>`. This is a maintainer action: it needs a
+   token with `actions: write`, which CI itself does not have.
+3. Make the fix durable in a normal pull request: bump `build-v1` to `build-v2`
+   in every `_build` key and in the CACHE KEY CONTRACT comment in
+   `.github/workflows/ci.yml`, in this section, and in `@build_key_version` in
+   `test/threadline/ci_workflow_parity_contract_test.exs`, so no job can read the
+   old entries again. The parity contract pins the version, so a bump that skips
+   any of these fails `Run test suite`.
 
 Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
@@ -669,15 +880,19 @@ Fill the canonical scaffolds in the [adoption pilot backlog](guides/adoption-pil
 
 ## Branch protection (maintainers)
 
-In GitHub repository settings, require these checks on `main` (names match the workflow `name:` fields or job summaries as shown in the PR UI):
+The only required status check on `main` is `CI required`, per `.github/rulesets/main.json`;
+`bin/verify-branch-protection` checks that live protection requires exactly that
+one context. Do not add the checks below as separate required contexts —
+that would turn the protection check red. `CI required` aggregates them, among
+every other `ci.yml` job, through its `needs:` list, so each of these still has to
+pass (names match the workflow `name:` fields or job summaries as shown in the PR UI):
 
 - Check formatting (`verify-format`)
 - Run Credo (strict) (`verify-credo`)
 - Run test suite (min) (`verify-test` min lane)
 - Run test suite (current) (`verify-test` current lane)
+- Run test suite (latest) (`verify-test` latest lane)
 - PgBouncer transaction topology (`verify-pgbouncer-topology`)
-- Build ExDoc (dev) (`verify-docs`)
-- Hex package tarball (`verify-hex-package`)
 - Release metadata (version / changelog) (`verify-release-shape`)
 
 Exact labels depend on GitHub’s UI; map them to the job keys above.

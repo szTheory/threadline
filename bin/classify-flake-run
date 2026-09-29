@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # GREEN-11 / D-35 / CR-01 / CR-02 (198-11): classify a `mix verify.flake`
-# (`test --repeat-until-failure 50`) run as pass/broken/flaky/unknown.
+# (`test --repeat-until-failure 12`) run as pass/broken/flaky/inconclusive/unknown.
 #
 # Extracted out of `.github/workflows/flake-detection.yml` so the logic is a
 # committed, directly executable, and unit-testable artifact rather than
-# inline workflow shell reachable only by a 120-minute nightly job nobody
+# inline workflow shell reachable only by a long scheduled job nobody
 # watches (the same idiom as bin/verify-release-shape and
 # bin/verify-branch-protection). A runbook is an assertion; a script is proof.
 #
@@ -29,10 +29,41 @@
 #                                                        original integer comparison against
 #                                                        an empty value fell through to the
 #                                                        flaky branch)
+#   exit code 124 or 137,     1+ headers             -> inconclusive (218-05 / D-04: the
+#                                                        timeout(1) budget expired, or its
+#                                                        kill-after grace ran out, while every
+#                                                        iteration so far was clean; not a
+#                                                        failure, not a proof)
+#   exit code 124 or 137,     1+ headers AND a        -> broken (1 header) or flaky (2+):
+#                             failure entry in the log     the test failed in the iteration the
+#                                                        budget cut off (218 review WR-02)
+#   exit code 124 or 137,     0 headers / NaN        -> unknown, reason "timed out before the
+#                                                        suite started"
+#   exit code 137, ELAPSED_S < BUDGET_S, or either    -> unknown: SIGKILL from another source
+#                  missing/non-numeric                     (OOM, runner), not a budget expiry
+#                                                        (218 review WR-02)
 #   exit code empty/non-numeric                       -> unknown (stated on stderr)
 #
-# `unknown` is the default arm of every branch below. `flaky` is reachable ONLY by the
-# explicit `headers -ge 2` check — never as a fall-through `else`.
+# The SHA gate (bin/ci-sha-gate, passed as GATE_DECISION) is checked BEFORE the exit
+# code, because on those paths the suite never ran and EXIT_CODE is empty:
+#   GATE_DECISION=broken-upstream                     -> broken-upstream (ci.yml is red on
+#                                                        this SHA with no green re-run)
+#   GATE_DECISION=skip                                -> skip (this workflow already proved
+#                                                        this SHA green)
+#   GATE_DECISION anything else / unset               -> the exit-code table above
+#
+# 124 is what `timeout(1)` returns when its budget expires; 137 is 128+SIGKILL, when
+# the process ignored SIGTERM past `--kill-after` (ELAPSED_S >= BUDGET_S), or was
+# killed by something else (an OOM kill; ELAPSED_S < BUDGET_S). `mix test` itself exits
+# 2 on a test failure, so a failure inside a cut-off iteration is found in the log.
+#
+# `unknown` is the default arm of every branch below. `flaky` is reachable ONLY by an
+# explicit `headers -ge 2` check (on a non-timeout exit, or on a budget expiry with a
+# failure entry in the log) — never as a fall-through `else`.
+#
+# Outputs: stdout is the bare classification token (callers capture it with $(...)).
+# With GITHUB_OUTPUT set, `classification=<token>` and `reason=<one line>` are appended,
+# so a report can state the true cause instead of a hard-coded guess.
 #
 # This script does not rely on the caller's `-e` (errexit) for correctness: every
 # comparison is guarded and explicitly branched, matching CR-01's fix (the calling
@@ -40,7 +71,7 @@
 set -uo pipefail
 
 usage() {
-  echo "Usage: EXIT_CODE=<n> $0 <log-file-path>" >&2
+  echo "Usage: [GATE_DECISION=<run|skip|broken-upstream>] EXIT_CODE=<n> [ELAPSED_S=<s> BUDGET_S=<s>] $0 <log-file-path>" >&2
 }
 
 if [ "$#" -ne 1 ]; then
@@ -60,11 +91,25 @@ is_integer() {
   esac
 }
 
-EXIT_CODE_RAW="${EXIT_CODE:-}"
+# An ExUnit failure entry ("  1) test ...", also doctest/property) or a summary
+# line with a non-zero failure or invalid count. "0 failures" never matches.
+FAILURE_EVIDENCE='^[[:space:]]+[0-9]+\) (test|doctest|property) |, [1-9][0-9]* (failures?|invalid)'
 
-if ! is_integer "$EXIT_CODE_RAW"; then
+EXIT_CODE_RAW="${EXIT_CODE:-}"
+GATE_DECISION_RAW="${GATE_DECISION:-}"
+classification="unknown"
+reason="no suite header found in the log"
+
+if [ "$GATE_DECISION_RAW" = "broken-upstream" ]; then
+  classification="broken-upstream"
+  reason="ci.yml is red on this SHA with no green re-run; the suite was not run"
+elif [ "$GATE_DECISION_RAW" = "skip" ]; then
+  classification="skip"
+  reason="this workflow already proved this SHA green; the suite was not re-run"
+elif ! is_integer "$EXIT_CODE_RAW"; then
   echo "classify-flake-run: EXIT_CODE is empty or non-numeric ('$EXIT_CODE_RAW') — cannot classify, reporting unknown" >&2
   classification="unknown"
+  reason="EXIT_CODE empty or non-numeric"
 else
   if [ -f "$LOG_FILE" ]; then
     headers_raw=$(grep -c 'Running ExUnit with seed:' "$LOG_FILE" 2>/dev/null || true)
@@ -72,28 +117,83 @@ else
     headers_raw=""
   fi
 
-  if [ "$EXIT_CODE_RAW" = "0" ]; then
-    classification="pass"
-  elif ! is_integer "$headers_raw"; then
-    # No parseable iteration count at all (missing/unreadable log, grep failed
-    # in a way `|| true` swallowed) — never guess. This is CR-02's fix: this
-    # branch used to fall through to `flaky`.
-    classification="unknown"
-  elif [ "$headers_raw" -eq 0 ]; then
-    classification="unknown"
-  elif [ "$headers_raw" -eq 1 ]; then
-    classification="broken"
-  elif [ "$headers_raw" -ge 2 ]; then
-    classification="flaky"
-  else
-    classification="unknown"
-  fi
+  case "$EXIT_CODE_RAW" in
+    124 | 137)
+      budget_kill=yes
+      if [ "$EXIT_CODE_RAW" = "137" ]; then
+        # 137 is SIGKILL from ANY source (an OOM-killed BEAM too), so it counts
+        # as timeout(1)'s kill-after only when the step's elapsed time reached
+        # the budget (218 review WR-02).
+        elapsed_raw="${ELAPSED_S:-}"
+        budget_raw="${BUDGET_S:-}"
+        if ! is_integer "$elapsed_raw" || ! is_integer "$budget_raw"; then
+          budget_kill=no
+          reason="killed (exit 137) with no elapsed-time evidence; cannot tell a budget kill from an OOM or external kill"
+        elif [ "$elapsed_raw" -lt "$budget_raw" ]; then
+          budget_kill=no
+          reason="killed (exit 137) after ${elapsed_raw} s, under the ${budget_raw} s budget: not a budget expiry (OOM or external kill)"
+        fi
+      fi
+
+      if [ "$budget_kill" = "no" ]; then
+        classification="unknown"
+      elif is_integer "$headers_raw" && [ "$headers_raw" -ge 1 ]; then
+        # ExUnit prints each failure as its test finishes, and
+        # --repeat-until-failure stops after a failing iteration, so any failure
+        # entry in the log belongs to the iteration the budget cut off
+        # (218 review WR-02). A failure there is evidence, not a sizing problem.
+        if grep -Eq "$FAILURE_EVIDENCE" "$LOG_FILE" 2>/dev/null; then
+          if [ "$headers_raw" -eq 1 ]; then
+            classification="broken"
+            reason="failed on the first iteration before the time budget cut it off"
+          else
+            classification="flaky"
+            reason="passed $((headers_raw - 1)) time(s) then failed on iteration ${headers_raw} before the time budget cut it off"
+          fi
+        else
+          # The iteration whose header printed last was cut off by the budget,
+          # so the clean count is one less than the header count.
+          classification="inconclusive"
+          reason="budget exhausted after $((headers_raw - 1)) clean iteration(s); iteration ${headers_raw} was cut off by the time budget"
+        fi
+      else
+        classification="unknown"
+        reason="timed out before the suite started"
+      fi
+      ;;
+    0)
+      classification="pass"
+      reason="suite passed"
+      ;;
+    *)
+      if ! is_integer "$headers_raw"; then
+        # No parseable iteration count at all (missing/unreadable log, grep failed
+        # in a way `|| true` swallowed) — never guess. This is CR-02's fix: this
+        # branch used to fall through to `flaky`.
+        classification="unknown"
+        reason="no parseable iteration count (log missing or unreadable)"
+      elif [ "$headers_raw" -eq 0 ]; then
+        classification="unknown"
+        reason="no suite header found in the log"
+      elif [ "$headers_raw" -eq 1 ]; then
+        classification="broken"
+        reason="failed on the first iteration"
+      elif [ "$headers_raw" -ge 2 ]; then
+        classification="flaky"
+        reason="passed $((headers_raw - 1)) time(s) then failed on iteration ${headers_raw}"
+      else
+        classification="unknown"
+        reason="no suite header found in the log"
+      fi
+      ;;
+  esac
 fi
 
 echo "$classification"
 
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
   echo "classification=$classification" >> "$GITHUB_OUTPUT"
+  echo "reason=$reason" >> "$GITHUB_OUTPUT"
 fi
 
 exit 0

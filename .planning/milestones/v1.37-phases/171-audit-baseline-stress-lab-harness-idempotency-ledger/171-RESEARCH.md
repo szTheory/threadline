@@ -75,7 +75,7 @@ Screenshot strategy should be a bounded ratchet, not a full visual matrix on day
 
 ## Project Constraints (from AGENTS.md)
 
-No root `AGENTS.md` exists in `/Users/jon/projects/threadline`; this was verified with `rg --files -g 'AGENTS.md'`. [VERIFIED: local command]  
+No root `AGENTS.md` exists in `/Users/<user>/projects/threadline`; this was verified with `rg --files -g 'AGENTS.md'`. [VERIFIED: local command]  
 `examples/threadline_phoenix/AGENTS.md` exists but applies to the nested example subtree, not the repository root; planners touching example-app files should read it before implementation. [VERIFIED: rg --files]
 
 ## Architectural Responsibility Map

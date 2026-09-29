@@ -573,7 +573,7 @@ RESEARCH §"Don't Hand-Roll" line 653 reinforces: validation centralized; defens
 - **Library `mix.exs` is the immovable boundary** — `:sigra` may appear ONLY in `examples/threadline_phoenix/mix.exs`. CI gate via `grep -E '\{:sigra' mix.exs`.
 
 ### File Created
-`/Users/jon/projects/threadline/.planning/phases/44-sigra-integration-adapter/44-PATTERNS.md`
+`/Users/<user>/projects/threadline/.planning/phases/44-sigra-integration-adapter/44-PATTERNS.md`
 
 ### Ready for Planning
 Pattern mapping complete. Planner can now reference analog patterns in PLAN.md files. RESEARCH-derived adjustments (API-token via `current_scope.auth_method`, posts_audit_path_test.exs assertion change, recommended `sigra_context_plug.ex` addition) are flagged for planner attention.

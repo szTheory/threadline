@@ -19,7 +19,7 @@ Verify the final brandbook artifacts after the last file change and close the mi
 | SVG XML parse | `find brandbook -name '*.svg' -print0 | xargs -0 xmllint --noout && echo 'svg XML OK'` | `svg XML OK` |
 | HTML parse exit | `xmllint --html --noout brandbook/index.html` | `xmllint-html-exit=0`; old parser logs HTML5 tag warnings for `aside`/`nav`, so browser rendering is the authoritative HTML check. |
 | Contrast | Node contrast script for representative pairs | All checked pairs AA: dark text 14.00, dark muted 8.54, dark accent button 5.91, light text 16.97, light muted 8.80, light accent link 6.31, warning dark text 13.13, error dark text 8.06. |
-| Browser open | `agent-browser --allow-file-access open file:///Users/jon/projects/threadline/brandbook/index.html` | Opened with title `Threadline Brandbook`. |
+| Browser open | `agent-browser --allow-file-access open file:///Users/<user>/projects/threadline/brandbook/index.html` | Opened with title `Threadline Brandbook`. |
 | Desktop screenshot | `agent-browser set viewport 1440 1000` and screenshot | Saved `/tmp/threadline-brandbook-v132-desktop-top.png`; inspected readable first viewport. |
 | Mobile screenshot | `agent-browser set viewport 390 844` and screenshot | Saved `/tmp/threadline-brandbook-v132-mobile-top.png`; inspected readable mobile first viewport. |
 | Image load state | `Array.from(document.images).map(...)` | 11/11 images complete with nonzero natural width and height. |

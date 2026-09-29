@@ -3,8 +3,18 @@ ExUnit.start()
 topology_pooler? = System.get_env("THREADLINE_PGBOUNCER_TOPOLOGY") == "1"
 
 # Topology tests need PgBouncer + bootstrap DDL; keep them out of default `mix test`.
-exclude = if(topology_pooler?, do: [], else: [pgbouncer_topology: true])
+# `:live_dialyzer` needs a restored `.dialyzer` PLT and runs only in the `verify-dialyzer`
+# CI job via `mix verify.dialyzer_slice`.
+exclude =
+  if(topology_pooler?,
+    do: [live_dialyzer: true],
+    else: [pgbouncer_topology: true, live_dialyzer: true]
+  )
+
 ExUnit.configure(exclude: exclude)
+# Contract tests read the default excludes from this key because Mix CLI filters (a
+# `file:LINE` path, `--only`) re-configure ExUnit's exclude list after this helper runs.
+Application.put_env(:threadline, :default_test_excludes, exclude)
 
 repo = Threadline.Test.Repo
 config = repo.config()

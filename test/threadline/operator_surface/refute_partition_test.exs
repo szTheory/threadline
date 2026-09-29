@@ -90,47 +90,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     # ── partition rule D-03 ───────────────────────────────────────────────────
 
-    test "gestalt flawed scorecards pass all mechanical gates (partition rule D-03)" do
+    @tag :tmp_dir
+    test "gestalt flawed scorecards pass all mechanical gates (partition rule D-03)", %{
+      tmp_dir: tmp_dir
+    } do
       # Copy gestalt flawed scorecards into a temp dir and run the full mechanical
       # checker over only those files. The refute entries have no floor entries in
       # mechanical_floors; only absolute ceilings apply (card_nesting_depth > 3,
       # distinct_accent_hue_count > 3). A violation here means the flaw bleeds into
       # mechanical territory — that would make it a mechanical test, not a critic test
       # (D-03 breach).
-      tmp_dir =
-        Path.join(System.tmp_dir!(), "refute-partition-#{System.unique_integer([:positive])}")
+      for item <- gestalt_items() do
+        flawed_prefix = item["flawed_cell_id"]
 
-      File.mkdir_p!(tmp_dir)
+        Path.wildcard(Path.join(@scorecard_dir, "#{flawed_prefix}__*.json"))
+        |> Enum.each(fn src ->
+          File.copy!(src, Path.join(tmp_dir, Path.basename(src)))
+        end)
+      end
 
-      try do
-        for item <- gestalt_items() do
-          flawed_prefix = item["flawed_cell_id"]
+      case MechanicalChecker.run(scorecard_dir: tmp_dir, mechanical_floors: %{}) do
+        {:ok, []} ->
+          :ok
 
-          Path.wildcard(Path.join(@scorecard_dir, "#{flawed_prefix}__*.json"))
-          |> Enum.each(fn src ->
-            File.copy!(src, Path.join(tmp_dir, Path.basename(src)))
-          end)
-        end
+        {:error, violations} ->
+          flunk(
+            "Gestalt flawed scorecards have mechanical violations — D-03 partition rule breach.\n" <>
+              "These flaws must pass all mechanical gates (they test what the critic catches, not mechanics).\n\n" <>
+              Enum.map_join(violations, "\n", fn v ->
+                v = if is_struct(v), do: Map.from_struct(v), else: v
 
-        case MechanicalChecker.run(scorecard_dir: tmp_dir, mechanical_floors: %{}) do
-          {:ok, []} ->
-            :ok
-
-          {:error, violations} ->
-            flunk(
-              "Gestalt flawed scorecards have mechanical violations — D-03 partition rule breach.\n" <>
-                "These flaws must pass all mechanical gates (they test what the critic catches, not mechanics).\n\n" <>
-                Enum.map_join(violations, "\n", fn v ->
-                  v = if is_struct(v), do: Map.from_struct(v), else: v
-
-                  "  #{v[:cell_id]}: MODE #{v[:mode]} #{v[:metric]} #{v[:selector]}\n" <>
-                    "    expected: #{v[:expected]}, got: #{v[:observed]}\n" <>
-                    "    fix: #{v[:fix]}"
-                end)
-            )
-        end
-      after
-        File.rm_rf!(tmp_dir)
+                "  #{v[:cell_id]}: MODE #{v[:mode]} #{v[:metric]} #{v[:selector]}\n" <>
+                  "    expected: #{v[:expected]}, got: #{v[:observed]}\n" <>
+                  "    fix: #{v[:fix]}"
+              end)
+          )
       end
     end
 

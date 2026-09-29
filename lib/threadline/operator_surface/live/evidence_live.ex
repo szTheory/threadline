@@ -435,7 +435,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         })
     end
 
-    defp maybe_put(params, _key, nil), do: params
     defp maybe_put(params, _key, ""), do: params
     defp maybe_put(params, key, value), do: Map.put(params, key, value)
 

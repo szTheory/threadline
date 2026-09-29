@@ -610,7 +610,7 @@ end
 | Node.js | Playwright E2E | yes | v22.14.0 | None needed. `[VERIFIED: node --version]` |
 | npm | Playwright E2E | yes | 11.1.0 | None needed. `[VERIFIED: npm --version]` |
 | `@playwright/test` | Browser smoke | yes | installed 1.60.0 | `run-e2e.sh` runs `npm ci`/`npm install` if needed. `[VERIFIED: npm --prefix examples/threadline_phoenix/e2e ls @playwright/test]` `[VERIFIED: examples/threadline_phoenix/e2e/run-e2e.sh]` |
-| Chromium browser | Browser smoke | partial | Playwright cached headless Chromium exists; system `/opt/homebrew/bin/chromium` is broken | Use Playwright-managed browser cache via `npx playwright install chromium`. `[VERIFIED: ls ~/Library/Caches/ms-playwright/chromium*]` `[VERIFIED: chromium --version]` |
+| Chromium browser | Browser smoke | partial | Playwright cached headless Chromium exists; system `/opt/homebrew/bin/chromium` is broken | Use Playwright-managed browser cache via `npx playwright install chromium`. `[VERIFIED: ls <home>/Library/Caches/ms-playwright/chromium*]` `[VERIFIED: chromium --version]` |
 
 **Missing dependencies with no fallback:** none identified. `[VERIFIED: environment probes 2026-06-26]`
 

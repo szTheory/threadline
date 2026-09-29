@@ -122,7 +122,7 @@ defmodule Threadline.UpgradePathDocContractTest do
     assert String.contains?(guide, "`examples/threadline_phoenix/README.md`")
     assert String.contains?(guide, "`verify-compile-no-optional`")
     assert String.contains?(guide, "`verify-test`")
-    assert String.contains?(guide, "`verify-docs`")
+    assert String.contains?(guide, "`verify-bump-rehearsal`")
   end
 
   test "upgrade-path guide locks the surface-only deprecation overlap policy" do

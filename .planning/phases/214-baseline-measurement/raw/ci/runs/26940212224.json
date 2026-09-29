@@ -1,0 +1,84 @@
+{
+  "run_id": 26940212224,
+  "attempt": 1,
+  "head_sha": "f0571afa81f77d9052a82fc5c1a66418abe33d96",
+  "event": "schedule",
+  "created_at": "2026-06-04T08:27:13Z",
+  "conclusion": "success",
+  "workflow": "Flake Detection",
+  "jobs": [
+    {
+      "id": 79479570892,
+      "name": "Suite repeat-until-failure",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-06-04T08:27:16Z",
+      "completed_at": "2026-06-04T08:35:07Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:27:17Z",
+          "completed_at": "2026-06-04T08:27:18Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:27:18Z",
+          "completed_at": "2026-06-04T08:27:46Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:27:46Z",
+          "completed_at": "2026-06-04T08:27:47Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:27:47Z",
+          "completed_at": "2026-06-04T08:27:52Z"
+        },
+        {
+          "name": "Install dependencies",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:27:52Z",
+          "completed_at": "2026-06-04T08:27:54Z"
+        },
+        {
+          "name": "Compile (warnings as errors)",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:27:54Z",
+          "completed_at": "2026-06-04T08:28:32Z"
+        },
+        {
+          "name": "Repeat the suite until failure",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:28:32Z",
+          "completed_at": "2026-06-04T08:35:03Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:35:03Z",
+          "completed_at": "2026-06-04T08:35:04Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:35:04Z",
+          "completed_at": "2026-06-04T08:35:04Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-06-04T08:35:04Z",
+          "completed_at": "2026-06-04T08:35:04Z"
+        }
+      ]
+    }
+  ]
+}

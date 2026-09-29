@@ -42,13 +42,13 @@ Output: one edited test file, one commit.
 </execution_context>
 
 <context>
-@/Users/jon/projects/threadline/CLAUDE.md
-@/Users/jon/projects/threadline/test/threadline/capture/trigger_rerun_test.exs
+@/Users/<user>/projects/threadline/CLAUDE.md
+@/Users/<user>/projects/threadline/test/threadline/capture/trigger_rerun_test.exs
 
 Precedent: `test/mix/tasks/threadline/gen_triggers_test.exs:6` and `test/mix/tasks/threadline/install_test.exs:6` already use `alias Mix.Tasks.Threadline.Gen.Triggers`. No other `Triggers` name exists in the target file, so the short alias does not collide.
 
 Env prefix for every mix command (bare `mix` dies without it):
-`bash -c 'cd /Users/jon/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix <cmd>'`
+`bash -c 'cd /Users/<user>/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix <cmd>'`
 </context>
 
 <tasks>
@@ -64,8 +64,8 @@ Env prefix for every mix command (bare `mix` dies without it):
 5. Commit ONLY the test file: `git add test/threadline/capture/trigger_rerun_test.exs` then commit with subject exactly `test: alias Gen.Triggers in trigger rerun test` (no planning IDs, phase numbers, or quick id in the subject/body), ending the message with the Co-Authored-By attribution line. Never `git add .planning/` or `git add .`.
   </action>
   <verify>
-    <automated>bash -c 'cd /Users/jon/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix credo --strict && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix verify.credo && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix format --check-formatted && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix test test/threadline/capture/trigger_rerun_test.exs'</automated>
-    <automated>bash -c 'cd /Users/jon/projects/threadline && test "$(grep -c "Mix.Tasks.Threadline.Gen.Triggers.run" test/threadline/capture/trigger_rerun_test.exs)" -eq 0 && test "$(grep -c "Triggers.run(" test/threadline/capture/trigger_rerun_test.exs)" -eq 2 && git log -1 --format=%s | grep -qx "test: alias Gen.Triggers in trigger rerun test" && git show --name-only --format= HEAD | grep -qx test/threadline/capture/trigger_rerun_test.exs && test "$(git show --name-only --format= HEAD | wc -l | tr -d " ")" -eq 1'</automated>
+    <automated>bash -c 'cd /Users/<user>/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix credo --strict && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix verify.credo && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix format --check-formatted && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix test test/threadline/capture/trigger_rerun_test.exs'</automated>
+    <automated>bash -c 'cd /Users/<user>/projects/threadline && test "$(grep -c "Mix.Tasks.Threadline.Gen.Triggers.run" test/threadline/capture/trigger_rerun_test.exs)" -eq 0 && test "$(grep -c "Triggers.run(" test/threadline/capture/trigger_rerun_test.exs)" -eq 2 && git log -1 --format=%s | grep -qx "test: alias Gen.Triggers in trigger rerun test" && git show --name-only --format= HEAD | grep -qx test/threadline/capture/trigger_rerun_test.exs && test "$(git show --name-only --format= HEAD | wc -l | tr -d " ")" -eq 1'</automated>
   </verify>
   <done>credo --strict and verify.credo exit 0; format check passes; the rerun test file passes with 0 failures; HEAD commit touches only the test file with the exact subject above.</done>
 </task>
@@ -95,5 +95,5 @@ Both automated verify commands in Task 1 exit 0.
 </success_criteria>
 
 <output>
-Create `/Users/jon/projects/threadline/.planning/quick/260924-taj-alias-gen-triggers-in-trigger-rerun-test/260924-taj-SUMMARY.md` when done (do not commit it with the test-file commit).
+Create `/Users/<user>/projects/threadline/.planning/quick/260924-taj-alias-gen-triggers-in-trigger-rerun-test/260924-taj-SUMMARY.md` when done (do not commit it with the test-file commit).
 </output>

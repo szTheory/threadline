@@ -228,7 +228,7 @@ defmodule Threadline.StgDocContractTest do
   end
 end
 ```
-Source: [test/threadline/stg_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/stg_doc_contract_test.exs:1) [VERIFIED: codebase grep]
+Source: [test/threadline/stg_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/stg_doc_contract_test.exs:1) [VERIFIED: codebase grep]
 
 ### Pattern 2: Fixture-Backed Docs Validation
 **What:** Put helper code in `test/support`, let `elixirc_paths(:test)` compile it, and call the helper from a doc-contract test. [VERIFIED: codebase grep]  
@@ -243,7 +243,7 @@ defmodule Threadline.ReadmeQuickstartFixtures do
   end
 end
 ```
-Source: [mix.exs](/Users/jon/projects/threadline/mix.exs:44) and [test/support/readme_quickstart_fixtures.ex](/Users/jon/projects/threadline/test/support/readme_quickstart_fixtures.ex:23) [VERIFIED: codebase grep]
+Source: [mix.exs](/Users/<user>/projects/threadline/mix.exs:44) and [test/support/readme_quickstart_fixtures.ex](/Users/<user>/projects/threadline/test/support/readme_quickstart_fixtures.ex:23) [VERIFIED: codebase grep]
 
 ### Pattern 3: Quickstart Anchored to Example Request Path
 **What:** Reuse the existing example app’s request path, correlation path, and README vocabulary to keep the new guide consistent with already-tested flows. [VERIFIED: codebase grep]  
@@ -256,7 +256,7 @@ pipeline :api do
   plug(Threadline.Plug, actor_fn: &Threadline.Integrations.Sigra.actor_ref_from_conn/1)
 end
 ```
-Source: [examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex:4) [VERIFIED: codebase grep]
+Source: [examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex:4) [VERIFIED: codebase grep]
 
 ### Anti-Patterns to Avoid
 
@@ -333,7 +333,7 @@ Repo.transaction(fn ->
 
       case Threadline.record_action(:post_created_via_api, opts) do
 ```
-Source: [examples/threadline_phoenix/lib/threadline_phoenix/blog.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix/blog.ex:32) [VERIFIED: codebase grep]
+Source: [examples/threadline_phoenix/lib/threadline_phoenix/blog.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix/blog.ex:32) [VERIFIED: codebase grep]
 
 ### ExDoc Extra Registration Pattern
 ```elixir
@@ -449,7 +449,7 @@ Resolved during planning:
 
 ### Primary (HIGH confidence)
 
-- Codebase inspection in `/Users/jon/projects/threadline` — `mix.exs`, `mix.lock`, `test/test_helper.exs`, `config/test.exs`, `test/threadline/*doc_contract*`, `test/support/readme_quickstart_fixtures.ex`, `examples/threadline_phoenix/*`, `guides/adoption-pilot-backlog.md`, `.planning/phases/47-saas-adopter-onramp/*`. [VERIFIED: codebase grep]
+- Codebase inspection in `/Users/<user>/projects/threadline` — `mix.exs`, `mix.lock`, `test/test_helper.exs`, `config/test.exs`, `test/threadline/*doc_contract*`, `test/support/readme_quickstart_fixtures.ex`, `examples/threadline_phoenix/*`, `guides/adoption-pilot-backlog.md`, `.planning/phases/47-saas-adopter-onramp/*`. [VERIFIED: codebase grep]
 - ExDoc official docs: https://hexdocs.pm/ex_doc/ExDoc.html — extras, grouping, and docs generation behavior. [CITED: https://hexdocs.pm/ex_doc/ExDoc.html]
 - ExUnit official docs: https://hexdocs.pm/ex_unit/ExUnit.html — `ExUnit.Case`, async usage, and `mix test` integration. [CITED: https://hexdocs.pm/ex_unit/ExUnit.html]
 - Hex package versions for ExDoc: https://hex.pm/packages/ex_doc/versions and local `mix hex.info ex_doc`. [CITED: https://hex.pm/packages/ex_doc/versions][VERIFIED: codebase grep]

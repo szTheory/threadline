@@ -1,11 +1,13 @@
 defmodule Threadline.GettingStartedFixturesTest do
   use ExUnit.Case, async: true
 
+  @moduletag :tmp_dir
+
   alias Threadline.GettingStartedFixtures
 
-  test "extracts the interior block and trims outer blank lines" do
+  test "extracts the interior block and trims outer blank lines", %{tmp_dir: tmp_dir} do
     path =
-      write_fixture!("""
+      write_fixture!(tmp_dir, """
       before
       # doc: start: sample
 
@@ -19,8 +21,8 @@ defmodule Threadline.GettingStartedFixturesTest do
     assert GettingStartedFixtures.extract!(path, "sample") == "  one\n  two"
   end
 
-  test "raises loudly when anchors are missing" do
-    path = write_fixture!("before\nafter\n")
+  test "raises loudly when anchors are missing", %{tmp_dir: tmp_dir} do
+    path = write_fixture!(tmp_dir, "before\nafter\n")
 
     assert_raise ArgumentError,
                  ~r/#{Regex.escape(path)} anchor "sample": missing start\/end markers/,
@@ -29,9 +31,9 @@ defmodule Threadline.GettingStartedFixturesTest do
                  end
   end
 
-  test "raises loudly when anchors are duplicated" do
+  test "raises loudly when anchors are duplicated", %{tmp_dir: tmp_dir} do
     path =
-      write_fixture!("""
+      write_fixture!(tmp_dir, """
       # doc: start: sample
       one
       # doc: end: sample
@@ -47,9 +49,9 @@ defmodule Threadline.GettingStartedFixturesTest do
                  end
   end
 
-  test "raises loudly when anchors are unbalanced" do
+  test "raises loudly when anchors are unbalanced", %{tmp_dir: tmp_dir} do
     path =
-      write_fixture!("""
+      write_fixture!(tmp_dir, """
       # doc: start: sample
       one
       """)
@@ -61,10 +63,10 @@ defmodule Threadline.GettingStartedFixturesTest do
                  end
   end
 
-  defp write_fixture!(contents) do
+  defp write_fixture!(tmp_dir, contents) do
     path =
       Path.join(
-        System.tmp_dir!(),
+        tmp_dir,
         "getting_started_fixture_#{System.unique_integer([:positive])}.txt"
       )
 

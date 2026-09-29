@@ -1168,8 +1168,53 @@ First-class light mode for the operator surface without disturbing the dark defa
 2. Decide early whether a red lane is fixable inside the milestone's constraints; if not, record the terminal disposition before spending CI rounds on it.
 3. `System.unique_integer` is per-VM; test temp dirs need run-unique names (two separate flakes had this cause).
 
+## Milestone: v1.42 — Capture Correctness for Real Table Shapes
+
+**Shipped:** 2026-09-26 (released as 0.11.0)  
+**Phases:** 6 (208–213) | **Plans:** 30
+
+### What was built
+
+- Capture that resolves the real primary key at migrate time. It covers uuid, text, composite, INCLUDE, partitioned, schema-qualified, and no-PK tables with a `primary_key:` override. Unsupported shapes are refused before any host write.
+- Collision-free per-table capture functions, which fixed the 0.10.x shared-function security issue, and names over 63 bytes cut deterministically.
+- Exact read-side matching for `history`/`as_of`, `RowKey` for composite keys, and a shipped row-history index.
+- Five trigger health findings wired into `verify_coverage` and `health.coverage`, with every tricky shape carried by both adopter twins.
+- An upgrade guide whose backfill and rollback SQL is extracted from the guide by tests and run on real PostgreSQL against a frozen 0.10.2 fixture.
+
+### What worked
+
+- Hard contract boundaries between phases: names, then the trigger signature, then the key encoding, then the read match. Each phase was verifiable on its own, and the milestone landed as one release, so reads never split.
+- Tests that execute the adopter-facing SQL straight from guide markers. Guide and proof cannot drift apart.
+- Landing within two days of the milestone opening. That avoided v1.41's long-lived-branch problem, and release-please produced exactly 0.11.0.
+- The auto-chained GSD loop ran from discuss to release with maintainer involvement only at push, merge and publish.
+
+### What was inefficient
+
+- A local `ci.all` green did not predict PR CI. A stale `public.threadline_capture_changes()` in the local test database masked an unqualified function reference, costing one CI round.
+- Executors twice stalled or idled on long gates (212-07, and 213-03 for about 50 minutes) and needed an orchestrator nudge or takeover.
+- The decision-coverage gate failed to parse `**D-NN title:**` bullets in two phases before they were normalized.
+- Verification timestamps went stale again once later commits touched phase files, which forced another override close.
+
+### Patterns established
+
+- Freeze historical fixtures byte-for-byte from the tagged release (`git show v0.10.2:...`). Never build a "0.10.x" fixture from current code; the code review caught one that had been.
+- When a new test renders trigger or function SQL, reproduce CI's fresh database locally by renaming stale functions to a stash name.
+- Rebuild the landing branch with git plumbing (a temporary index, then `write-tree` and `commit-tree`) and add follow-ups as extra commits, never force-pushing. The squash merge collapses them.
+
+### Key lessons
+
+1. A local green on a long-lived developer database is not a fresh-database green. New DDL-rendering tests need a fresh-schema check before the push.
+2. Give executors running 30–70 minute gates an explicit "poll to completion, do not end the turn" instruction.
+3. Some permissions can't be granted in chat: the production-deploy approval stayed blocked even with the maintainer's go. Route it to the maintainer as a one-line `!` command.
+
+### Cost observations
+
+- Model mix: opus planner, sonnet executors, reviewers and verifiers, haiku checkers, with orchestration on opus.
+- Notable: most wall-clock time went to `ci.all` and browser-lane gates on a shared, loaded machine (7 to 70 minutes per run).
+
 ## Cross-Milestone Trends
 
+- v1.42 shows the value of landing a milestone within days of finishing it: the release came out exactly as proposed, and PR CI (fresh database) caught what local gates could not.
 - v1.39 shows a non-feature "consolidation" milestone (quality audit → schema/docs/CI hardening → ranked residual register) can ship as a first-class milestone when surface area has outgrown its trust evidence.
 - Measure-before-optimize generalizes beyond UI: the CI baseline-first discipline mirrors the baseline-first UI lesson from v1.38.
 - Generated archive text (SUMMARY one-liners → MILESTONES accomplishments) has now needed editorial cleanup at v1.37, v1.38, and v1.39 closes — treat CLI-generated milestone prose as a draft, always review before it becomes durable history.

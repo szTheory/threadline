@@ -1,0 +1,132 @@
+{
+  "run_id": 35310102590,
+  "attempt": 1,
+  "head_sha": "86852f98423e58c4db4bbbfa94d52af359202256",
+  "event": "schedule",
+  "created_at": "2026-09-18T05:15:35Z",
+  "conclusion": "success",
+  "workflow": "Browser (full project set)",
+  "jobs": [
+    {
+      "id": 105490181652,
+      "name": "Example app browser E2E — full project set",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-18T05:15:38Z",
+      "completed_at": "2026-09-18T05:27:46Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:15:39Z",
+          "completed_at": "2026-09-18T05:15:40Z"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:15:40Z",
+          "completed_at": "2026-09-18T05:16:02Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:16:02Z",
+          "completed_at": "2026-09-18T05:16:04Z"
+        },
+        {
+          "name": "Run erlef/setup-beam@v1",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:16:04Z",
+          "completed_at": "2026-09-18T05:16:09Z"
+        },
+        {
+          "name": "Run actions/setup-node@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:16:09Z",
+          "completed_at": "2026-09-18T05:16:11Z"
+        },
+        {
+          "name": "Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:16:11Z",
+          "completed_at": "2026-09-18T05:16:12Z"
+        },
+        {
+          "name": "Cache Playwright browsers",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:16:12Z",
+          "completed_at": "2026-09-18T05:16:15Z"
+        },
+        {
+          "name": "Install root dependencies",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:16:15Z",
+          "completed_at": "2026-09-18T05:16:16Z"
+        },
+        {
+          "name": "Ensure threadline_phoenix_test database exists",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:16:16Z",
+          "completed_at": "2026-09-18T05:16:16Z"
+        },
+        {
+          "name": "Run example Playwright suite (all projects)",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:16:16Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        },
+        {
+          "name": "Upload Playwright traces and e2e boot log on failure",
+          "conclusion": "skipped",
+          "started_at": "2026-09-18T05:27:43Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        },
+        {
+          "name": "Open or update the nightly browser-lane tracking issue",
+          "conclusion": "skipped",
+          "started_at": "2026-09-18T05:27:43Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        },
+        {
+          "name": "Post Cache Playwright browsers",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:27:43Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        },
+        {
+          "name": "Post Cache deps",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:27:43Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:27:43Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:27:43Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:27:43Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-18T05:27:43Z",
+          "completed_at": "2026-09-18T05:27:43Z"
+        }
+      ]
+    }
+  ]
+}

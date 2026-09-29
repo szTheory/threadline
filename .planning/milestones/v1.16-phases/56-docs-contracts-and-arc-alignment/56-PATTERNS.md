@@ -26,7 +26,7 @@
 
 ### `README.md` (docs, request-response)
 
-**Analog:** [README.md](/Users/jon/projects/threadline/README.md:14)
+**Analog:** [README.md](/Users/<user>/projects/threadline/README.md:14)
 
 **Compact top-level doc shape** (lines 14-19):
 ```markdown
@@ -59,7 +59,7 @@ and continue with the returned `next_cursor` instead of offset pagination.
 
 ### `guides/domain-reference.md` (docs, request-response)
 
-**Analog:** [domain-reference.md](/Users/jon/projects/threadline/guides/domain-reference.md:177)
+**Analog:** [domain-reference.md](/Users/<user>/projects/threadline/guides/domain-reference.md:177)
 
 **Canonical routing-table pattern** (lines 177-190):
 ```markdown
@@ -95,7 +95,7 @@ authorization policy beyond that baseline.
 
 ### `guides/getting-started-saas.md` (docs, request-response)
 
-**Analog:** [getting-started-saas.md](/Users/jon/projects/threadline/guides/getting-started-saas.md:49)
+**Analog:** [getting-started-saas.md](/Users/<user>/projects/threadline/guides/getting-started-saas.md:49)
 
 **Snippet-driven walkthrough pattern** (lines 49-75):
 ````markdown
@@ -136,7 +136,7 @@ host app.
 
 ### `guides/incident-playbook.md` (docs, request-response)
 
-**Analog:** [incident-playbook.md](/Users/jon/projects/threadline/guides/incident-playbook.md:5)
+**Analog:** [incident-playbook.md](/Users/<user>/projects/threadline/guides/incident-playbook.md:5)
 
 **Top-of-file policy-boundary pattern** (lines 5-8):
 ```markdown
@@ -162,7 +162,7 @@ tenancy and policy rules on top.
 
 ### `guides/production-checklist.md` (docs, request-response)
 
-**Analog:** [production-checklist.md](/Users/jon/projects/threadline/guides/production-checklist.md:61)
+**Analog:** [production-checklist.md](/Users/<user>/projects/threadline/guides/production-checklist.md:61)
 
 **Downstream pointer-table pattern** (lines 61-79):
 ```markdown
@@ -185,7 +185,7 @@ see [`domain-reference.md` — Exploration API routing](domain-reference.md#expl
 
 ### `examples/threadline_phoenix/README.md` (docs, request-response)
 
-**Analog:** [README.md](/Users/jon/projects/threadline/examples/threadline_phoenix/README.md:87)
+**Analog:** [README.md](/Users/<user>/projects/threadline/examples/threadline_phoenix/README.md:87)
 
 **Direct host-wiring narrative** (lines 87-104):
 ```markdown
@@ -220,7 +220,7 @@ before exposing transaction drill-down in production.
 
 ### `test/threadline/readme_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [readme_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/readme_doc_contract_test.exs:15)
+**Analog:** [readme_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/readme_doc_contract_test.exs:15)
 
 **Focused literal-lock pattern** (lines 15-47):
 ```elixir
@@ -253,7 +253,7 @@ assert %Threadline.Query.TimelinePage{} =
 
 ### `test/threadline/exploration_routing_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [exploration_routing_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11)
+**Analog:** [exploration_routing_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11)
 
 **Section-anchor and order pattern** (lines 11-24):
 ```elixir
@@ -281,7 +281,7 @@ assert String.contains?(doc, "domain-reference.md#support-incident-queries")
 
 ### `test/threadline/getting_started_saas_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [getting_started_saas_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:14)
+**Analog:** [getting_started_saas_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:14)
 
 **Walkthrough checklist pattern** (lines 14-47):
 ```elixir
@@ -309,7 +309,7 @@ assert String.contains?(doc, "requires an authenticated actor before it serves")
 
 ### `test/threadline/incident_playbook_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [incident_playbook_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/incident_playbook_doc_contract_test.exs:11)
+**Analog:** [incident_playbook_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/incident_playbook_doc_contract_test.exs:11)
 
 **Boundary + scenario assertions** (lines 28-49):
 ```elixir
@@ -339,7 +339,7 @@ assert section_content =~ "### Recovery"
 
 ### `test/threadline/example_phoenix_readme_contract_test.exs` (test, request-response)
 
-**Analog:** [example_phoenix_readme_contract_test.exs](/Users/jon/projects/threadline/test/threadline/example_phoenix_readme_contract_test.exs:12)
+**Analog:** [example_phoenix_readme_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/example_phoenix_readme_contract_test.exs:12)
 
 **Cross-surface literal reuse** (lines 12-33):
 ```elixir
@@ -358,7 +358,7 @@ assert String.contains?(doc, "Hosts still need their own tenancy and policy chec
 
 ### `.planning/PROJECT.md` (config, transform)
 
-**Analog:** [PROJECT.md](/Users/jon/projects/threadline/.planning/PROJECT.md:21)
+**Analog:** [PROJECT.md](/Users/<user>/projects/threadline/.planning/PROJECT.md:21)
 
 **Pointer-style milestone summary** (lines 21-33):
 ```markdown
@@ -377,7 +377,7 @@ from a durable gameplan instead of a blank prompt.
 
 ### `.planning/STATE.md` (config, transform)
 
-**Analog:** [STATE.md](/Users/jon/projects/threadline/.planning/STATE.md:20)
+**Analog:** [STATE.md](/Users/<user>/projects/threadline/.planning/STATE.md:20)
 
 **Status-plus-pointer pattern** (lines 20-28):
 ```markdown
@@ -402,7 +402,7 @@ Status: Phase 55 shipped; Phase 56 is the next execution target in v1.16.
 ## Shared Patterns
 
 ### Canonical Investigation Hierarchy
-**Sources:** [README.md](/Users/jon/projects/threadline/README.md:79), [domain-reference.md](/Users/jon/projects/threadline/guides/domain-reference.md:177)
+**Sources:** [README.md](/Users/<user>/projects/threadline/README.md:79), [domain-reference.md](/Users/<user>/projects/threadline/guides/domain-reference.md:177)
 ```markdown
 Use `Threadline.timeline/2` for smaller eager slices.
 Switch to `Threadline.timeline_page/2` for large stable windows.
@@ -411,7 +411,7 @@ Use `Threadline.incident_bundle/2` as the default transaction drill-down story.
 ```
 
 ### Host-Owned Auth / Policy Boundary
-**Sources:** [getting-started-saas.md](/Users/jon/projects/threadline/guides/getting-started-saas.md:177), [incident-playbook.md](/Users/jon/projects/threadline/guides/incident-playbook.md:5), [examples/threadline_phoenix/README.md](/Users/jon/projects/threadline/examples/threadline_phoenix/README.md:110)
+**Sources:** [getting-started-saas.md](/Users/<user>/projects/threadline/guides/getting-started-saas.md:177), [incident-playbook.md](/Users/<user>/projects/threadline/guides/incident-playbook.md:5), [examples/threadline_phoenix/README.md](/Users/<user>/projects/threadline/examples/threadline_phoenix/README.md:110)
 ```markdown
 requires an authenticated actor before it serves ...
 Treat that as the minimum host shape ...
@@ -421,7 +421,7 @@ Hosts still need their own tenancy and policy checks ...
 Apply this wording consistently across all incident-facing docs. The library stays auth-agnostic; the example endpoint is only the minimum host proof.
 
 ### Narrow Doc-Contract Assertions
-**Sources:** [readme_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/readme_doc_contract_test.exs:15), [exploration_routing_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11), [getting_started_saas_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:14)
+**Sources:** [readme_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/readme_doc_contract_test.exs:15), [exploration_routing_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11), [getting_started_saas_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:14)
 ```elixir
 assert String.contains?(doc, "...")
 {idx_a, _} = :binary.match(doc, "...")
@@ -432,7 +432,7 @@ assert String.contains?(doc, router_block())
 Use literal locks, heading-order checks, and extracted source snippets. Avoid snapshots and broad paragraph assertions.
 
 ### Shipped Incident-Bundle Truth
-**Source:** [investigation_test.exs](/Users/jon/projects/threadline/test/threadline/investigation_test.exs:282)
+**Source:** [investigation_test.exs](/Users/<user>/projects/threadline/test/threadline/investigation_test.exs:282)
 ```elixir
 assert {:ok, %IncidentBundle{} = result} = Threadline.incident_bundle(txn.id, repo: @repo)
 assert result.transaction.id == txn.id
@@ -444,7 +444,7 @@ assert {:error, :not_found} = Threadline.incident_bundle(Ecto.UUID.generate(), r
 Docs should describe `incident_bundle/2` in terms that match this shipped behavior. Contract tests should lock the names and routing, not recreate the behavior suite.
 
 ### Planning Arc Pointer Discipline
-**Sources:** [PROJECT.md](/Users/jon/projects/threadline/.planning/PROJECT.md:33), [STATE.md](/Users/jon/projects/threadline/.planning/STATE.md:21), [MILESTONE-ARC.md](/Users/jon/projects/threadline/.planning/MILESTONE-ARC.md:16)
+**Sources:** [PROJECT.md](/Users/<user>/projects/threadline/.planning/PROJECT.md:33), [STATE.md](/Users/<user>/projects/threadline/.planning/STATE.md:21), [MILESTONE-ARC.md](/Users/<user>/projects/threadline/.planning/MILESTONE-ARC.md:16)
 ```markdown
 **Strategic arc:** `.planning/MILESTONE-ARC.md` now records the standing recommendation order ...
 See `.planning/MILESTONE-ARC.md` for the standing strategic order after this milestone.

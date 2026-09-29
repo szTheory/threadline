@@ -866,13 +866,13 @@ end
 
 ### Primary (HIGH confidence)
 - `claude-api skill (bundled)` — TypeScript SDK README and tool-use.md: messages.parse(), output_config.format, adaptive thinking display:"summarized", prompt caching cache_control, token usage fields, no detail parameter, ESM __dirname, error handling
-- `/Users/jon/projects/threadline/mix.exs` (lines 100-130) — verify.flake local-only pattern, ci.all list, verify_example_browser System.cmd pattern
-- `/Users/jon/projects/threadline/test/threadline/operator_surface/stress_ledger_test.exs` — pure-Elixir guard template for verify.critic_trust
-- `/Users/jon/projects/threadline/.planning/scorecards/page.actor.happy__dark-1280.json` — scorecard JSON schema
-- `/Users/jon/projects/threadline/.planning/design-system-ledger.json` — v2 cube structure, scores format
-- `/Users/jon/projects/threadline/lib/threadline/operator_surface/stress_fixtures.ex` — footgun.*/reserved_for_phase idiom
-- `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/tests/operator-tier-a-capture.spec.ts` — cell ID format, repoRoot convention
-- `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/playwright.config.ts` — e2e project structure, workers/timeout config
+- `/Users/<user>/projects/threadline/mix.exs` (lines 100-130) — verify.flake local-only pattern, ci.all list, verify_example_browser System.cmd pattern
+- `/Users/<user>/projects/threadline/test/threadline/operator_surface/stress_ledger_test.exs` — pure-Elixir guard template for verify.critic_trust
+- `/Users/<user>/projects/threadline/.planning/scorecards/page.actor.happy__dark-1280.json` — scorecard JSON schema
+- `/Users/<user>/projects/threadline/.planning/design-system-ledger.json` — v2 cube structure, scores format
+- `/Users/<user>/projects/threadline/lib/threadline/operator_surface/stress_fixtures.ex` — footgun.*/reserved_for_phase idiom
+- `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/tests/operator-tier-a-capture.spec.ts` — cell ID format, repoRoot convention
+- `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/playwright.config.ts` — e2e project structure, workers/timeout config
 - `npm view @anthropic-ai/sdk` — version 0.110.0, published 2026-07-02, 22.6M weekly downloads
 - `gsd_run query package-legitimacy check --ecosystem npm @anthropic-ai/sdk` — SUS (too-new version); manually resolved as official Anthropic SDK
 

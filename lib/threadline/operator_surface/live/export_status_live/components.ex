@@ -170,8 +170,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp timeline_search_path(base_path, _params), do: base_path
-
     defp download_link_attrs(%{base_path: base_path, job: job}) do
       [
         href: "#{base_path}/exports/download/#{job.id}",

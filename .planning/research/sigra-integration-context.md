@@ -4,7 +4,7 @@
 **Topic:** Optional integration with [Sigra](https://hex.pm/packages/sigra) auth library
 **Captured:** 2026-04-25
 **Status:** PRE-SPEC — input for a future spec/discuss/plan phase (see seed `sigra-integration-adapter`)
-**Author:** Captured from cross-codebase exploration of `/Users/jon/projects/threadline` and `/Users/jon/projects/sigra`
+**Author:** Captured from cross-codebase exploration of `/Users/<user>/projects/threadline` and `/Users/<user>/projects/sigra`
 
 ## Why this note exists
 
@@ -37,7 +37,7 @@ Threadline already exposes the right hook. No new core surface is needed for a T
 
 ## Sigra's public auth surface
 
-What an adapter would read from a Sigra-authenticated `conn`. All paths are within `/Users/jon/projects/sigra`.
+What an adapter would read from a Sigra-authenticated `conn`. All paths are within `/Users/<user>/projects/sigra`.
 
 ### Primary surfaces
 
@@ -143,6 +143,6 @@ When the future phase runs, it should pull from:
 - `prompts/threadline-elixir-oss-dna.md` (sections 4, 7, line 49)
 
 **Sigra (read-only — do not modify):**
-- `/Users/jon/projects/sigra/README.md` and `mix.exs`
+- `/Users/<user>/projects/sigra/README.md` and `mix.exs`
 - `Sigra.Plug.FetchSession`, `Sigra.Scope`, `Sigra.Session`
-- `/Users/jon/projects/sigra/.planning/decisions/001-defer-sigra-lockspire-glue-package.md`
+- `/Users/<user>/projects/sigra/.planning/decisions/001-defer-sigra-lockspire-glue-package.md`

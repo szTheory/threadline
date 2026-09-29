@@ -1,0 +1,3 @@
+bin/verify-release-shape
+examples/threadline_phoenix/e2e/tests/operator.spec.ts
+lib/threadline/operator_surface/exports/filter_params.ex

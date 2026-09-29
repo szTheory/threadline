@@ -15,7 +15,7 @@ Phase 153 reran final verification after the Phase 152 targeted brandbook cleanu
 - Fresh JSON parse evidence for `brandbook/tokens.json`.
 - Fresh SVG XML parse evidence for all committed `brandbook/*.svg` and `brandbook/examples/*.svg` assets.
 - HTML parser exit evidence for `brandbook/index.html`, with expected old-parser HTML5 tag warnings and exit 0.
-- Direct-open browser evidence for `file:///Users/jon/projects/threadline/brandbook/index.html`.
+- Direct-open browser evidence for `file:///Users/<user>/projects/threadline/brandbook/index.html`.
 - Desktop screenshot evidence at `/tmp/threadline-v133-brandbook-phase153-desktop.png`.
 - Mobile screenshot evidence at `/tmp/threadline-v133-brandbook-phase153-mobile.png`.
 - Historical-frame scan showing only expected CSS `::before` selector matches.

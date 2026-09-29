@@ -17,7 +17,7 @@ Out of scope: any fix requiring extracting a module or splitting a function (→
 ## Implementation Decisions
 
 ### Measured starting point (re-measured 2026-09-22, supersedes 198-01's 377)
-- **D-00:** Full-default Credo today = **484 findings** (198-01 measured 377; Phase 201 grew it). `AliasUsage` 356 (lib 24 / test 332). Excluding AliasUsage: 128 (lib 91 / test 37) = **82 mechanical + 46 structural** (30 `Refactor.Nesting`, 16 `Refactor.CyclomaticComplexity`, complexity 10–33, max at `Retention.Policy.resolve!`). Raw JSON: `/Users/jon/.claude/jobs/77cf1bdd/tmp/credo-now.json` (ephemeral — planner must re-measure with `mix credo --strict --config-file deps/credo/.credo.exs --format json`, never by editing `.credo.exs`).
+- **D-00:** Full-default Credo today = **484 findings** (198-01 measured 377; Phase 201 grew it). `AliasUsage` 356 (lib 24 / test 332). Excluding AliasUsage: 128 (lib 91 / test 37) = **82 mechanical + 46 structural** (30 `Refactor.Nesting`, 16 `Refactor.CyclomaticComplexity`, complexity 10–33, max at `Retention.Policy.resolve!`). Raw JSON: `/Users/<user>/.claude/jobs/77cf1bdd/tmp/credo-now.json` (ephemeral — planner must re-measure with `mix credo --strict --config-file deps/credo/.credo.exs --format json`, never by editing `.credo.exs`).
 - **D-00b:** **Dialyzer backlog is already drained**: `mix dialyzer --no-check` → `Total errors: 0`, `.dialyzer_ignore.exs` is `[]`. The "dialyzer backlog drained" goal clause is verify-only in this phase, not work — do not invent a dialyzer plan. Re-confirm at phase end after the refactors.
 
 ### Sizing-rule resolution

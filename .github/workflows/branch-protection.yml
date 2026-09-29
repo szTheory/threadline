@@ -28,7 +28,8 @@ on:
     types: [completed]
     branches: [main]
   schedule:
-    # 06:30 UTC daily, ahead of the nightly flake lane.
+    # 06:30 UTC daily; on Mondays it also runs ahead of the weekly flake lane
+    # (07:00 UTC).
     - cron: "30 6 * * *"
   workflow_dispatch:
 

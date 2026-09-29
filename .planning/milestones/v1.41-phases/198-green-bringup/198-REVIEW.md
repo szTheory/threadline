@@ -138,9 +138,9 @@ The submitted CI and evidence changes contain two failures that make the new req
 
 ### CR-01: Required test suite depends on an uninstalled developer-global GSD executable
 
-**File:** `/Users/jon/projects/threadline/test/threadline/phase198_zero_human_uat_contract_test.exs:58-75`
+**File:** `/Users/<user>/projects/threadline/test/threadline/phase198_zero_human_uat_contract_test.exs:58-75`
 
-**Issue:** `classifier_command!/0` requires either a `gsd-tools` executable on `PATH` or `~/.codex/gsd-core/bin/gsd-tools.cjs`. Neither artifact belongs to this repository or is installed by `verify-test` in `.github/workflows/ci.yml`. A clean GitHub-hosted runner therefore raises at line 71 before performing an assertion. Since this file is included by the ordinary `mix verify.test` alias, both required test-matrix jobs can fail based on a maintainer's local Codex installation rather than the submitted code. It also lets local results vary as the global GSD installation changes.
+**Issue:** `classifier_command!/0` requires either a `gsd-tools` executable on `PATH` or `<home>/.codex/gsd-core/bin/gsd-tools.cjs`. Neither artifact belongs to this repository or is installed by `verify-test` in `.github/workflows/ci.yml`. A clean GitHub-hosted runner therefore raises at line 71 before performing an assertion. Since this file is included by the ordinary `mix verify.test` alias, both required test-matrix jobs can fail based on a maintainer's local Codex installation rather than the submitted code. It also lets local results vary as the global GSD installation changes.
 
 **Fix:** Vendor the exact classifier implementation/version used by the contract into the repository and invoke that committed path, or replace this test with project-owned parsing logic. For example:
 
@@ -155,7 +155,7 @@ end
 
 ### CR-02: Archive-tag contract cannot pass under CI's shallow checkout
 
-**File:** `/Users/jon/projects/threadline/test/threadline/phase198_nyquist_contract_test.exs:88-103`
+**File:** `/Users/<user>/projects/threadline/test/threadline/phase198_nyquist_contract_test.exs:88-103`
 
 **Issue:** The test resolves every `archive/*` tag with `git rev-parse` and `git cat-file`, but every checkout in the required `verify-test` job uses the default `actions/checkout` depth. That default fetches a single commit and does not provide the repository's annotated tag objects. On a clean runner, the pattern match `{object, 0}` fails as soon as the first archive tag is absent, independently of whether the archive register is correct. Release jobs explicitly use `fetch-depth: 0`, demonstrating that the repository already accounts for this checkout behavior elsewhere, but the CI test matrix does not.
 
@@ -173,7 +173,7 @@ If the full history cost is unwanted, explicitly fetch the registered tag refs a
 
 ### WR-01: Operator preflight accepts a cross-origin redirect as a valid auth mount
 
-**File:** `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/run-e2e.sh:79-92`
+**File:** `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/run-e2e.sh:79-92`
 
 **Issue:** The 3xx branch checks only whether the raw `Location` value contains `/users/log_in`. A response such as `Location: https://unrelated.example/users/log_in` therefore passes, even though it proves neither the example application's auth pipeline nor a valid local login route. This weakens the fail-fast check precisely on the routing/misconfiguration path it was added to detect.
 
@@ -208,7 +208,7 @@ The Plan 64 artifact is narrowly scoped and its decoded-value mutation matrix pa
 ### CR-03: Placeholder text is persisted as the maintainer identity
 
 **Classification:** BLOCKER
-**File:** `/Users/jon/projects/threadline/.planning/audits/198-round14-security-disposition.json:6-7`
+**File:** `/Users/<user>/projects/threadline/.planning/audits/198-round14-security-disposition.json:6-7`
 
 **Issue:** The security disposition records `YOUR_NAME` as both the signer and the signer embedded in the verbatim response. `YOUR_NAME` is template text, not an identifiable maintainer identity. The test then hard-codes that same placeholder at `phase198_prohibition_resolution_contract_test.exs:11,57,403`, so it positively certifies the attribution defect instead of detecting it. This leaves Plan 64's high-severity spoofing threat unmitigated and makes the accepted-risk audit entry non-attributable.
 
@@ -217,7 +217,7 @@ The Plan 64 artifact is narrowly scoped and its decoded-value mutation matrix pa
 ### CR-04: Duplicate JSON members bypass the exact-schema boundary
 
 **Classification:** BLOCKER
-**File:** `/Users/jon/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:372-386`
+**File:** `/Users/<user>/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:372-386`
 
 **Issue:** `load_disposition!/0` decodes directly into a map before validation. Duplicate object members are therefore collapsed before the exact-key comparison runs. With the repository's Jason version, a document containing a canonical member followed by a conflicting duplicate can decode to the canonical first value and pass this suite; consumers with last-value semantics can observe the conflicting value instead. This permits parser-differential ambiguity for security-sensitive fields such as `decision`, `threat_id`, `accepted_scope`, and nested `green_07` while the contract claims an exact, fail-closed object shape.
 
@@ -228,7 +228,7 @@ The Plan 64 artifact is narrowly scoped and its decoded-value mutation matrix pa
 ### WR-02: Timestamp validation proves syntax but not decision-time provenance
 
 **Classification:** WARNING
-**File:** `/Users/jon/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:115-133`
+**File:** `/Users/<user>/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:115-133`
 
 **Issue:** The validator accepts any real seconds-resolution UTC timestamp. It does not prove that `decided_at` was recorded during Plan 64 execution, so a syntactically valid date from years before the decision or far in the future passes despite the plan's explicit execution-time requirement. The current value is plausible, but the contract cannot detect later timestamp substitution.
 
@@ -237,7 +237,7 @@ The Plan 64 artifact is narrowly scoped and its decoded-value mutation matrix pa
 ### WR-03: Substring checks do not prove Plan 63 remained immutable
 
 **Classification:** WARNING
-**File:** `/Users/jon/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:178-184`
+**File:** `/Users/<user>/projects/threadline/test/threadline/phase198_prohibition_resolution_contract_test.exs:178-184`
 
 **Issue:** The supersession test checks only that three substrings occur somewhere in the Plan 63 summary. A rewritten summary can retain `status: halted`, `coverage: []`, and the quoted response while altering attribution, scope, chronology, or other decision history, and the test will still pass. That is weaker than the claimed immutable-decision-supersession guarantee.
 
@@ -316,7 +316,7 @@ claimed fail-closed repair-summary boundary is therefore not established.
 ### CR-05: Duplicate Plan-66 frontmatter fields bypass the semantic boundary
 
 **Classification:** BLOCKER
-**File:** `/Users/jon/projects/threadline/test/threadline/phase198_zero_human_uat_contract_test.exs:527-536`
+**File:** `/Users/<user>/projects/threadline/test/threadline/phase198_zero_human_uat_contract_test.exs:527-536`
 
 **Issue:** Plan 66 cannot be content-hashed before its execution summary is
 created, so `validate_summary_semantics!/4` is the authorization boundary for

@@ -1,0 +1,54 @@
+{
+  "run_id": 36104666887,
+  "attempt": 1,
+  "head_sha": "b37d7bd408345780269f681645292a8232d7890a",
+  "event": "schedule",
+  "created_at": "2026-09-25T06:50:00Z",
+  "conclusion": "success",
+  "workflow": "Branch Protection",
+  "jobs": [
+    {
+      "id": 107974433280,
+      "name": "Branch protection contract (main)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-09-25T06:50:03Z",
+      "completed_at": "2026-09-25T06:50:10Z",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success",
+          "started_at": "2026-09-25T06:50:03Z",
+          "completed_at": "2026-09-25T06:50:04Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-25T06:50:04Z",
+          "completed_at": "2026-09-25T06:50:07Z"
+        },
+        {
+          "name": "Assert main's protection contract",
+          "conclusion": "success",
+          "started_at": "2026-09-25T06:50:07Z",
+          "completed_at": "2026-09-25T06:50:09Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "conclusion": "success",
+          "started_at": "2026-09-25T06:50:09Z",
+          "completed_at": "2026-09-25T06:50:09Z"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success",
+          "started_at": "2026-09-25T06:50:09Z",
+          "completed_at": "2026-09-25T06:50:09Z"
+        }
+      ]
+    }
+  ]
+}

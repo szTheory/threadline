@@ -650,16 +650,16 @@ The same results were reproduced on the local PostgreSQL 16.14 (port 5433). The 
 
 Confirmed this session. `mix test` of the four relevant files gave `29 tests, 0 failures` in 0.3 s with:
 ```bash
-bash -c 'cd /Users/jon/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/threadline/storage_schema_test.exs test/mix/tasks/threadline/install_test.exs test/threadline/capture/trigger_sql_storage_schema_test.exs test/threadline/capture/trigger_test.exs'
+bash -c 'cd /Users/<user>/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/threadline/storage_schema_test.exs test/mix/tasks/threadline/install_test.exs test/threadline/capture/trigger_sql_storage_schema_test.exs test/threadline/capture/trigger_test.exs'
 ```
 Local DB: container `threadline-postgres-1`, image `postgres:16`, `127.0.0.1:5433->5432`. Phase gate, taken verbatim from the 206 plans that passed:
 ```bash
-bash -c 'cd /Users/jon/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test'
-bash -c 'cd /Users/jon/projects/threadline && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix verify.format && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix verify.credo && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=dev mix verify.dialyzer && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix verify.xref_cycles && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=dev mix docs --warnings-as-errors'
+bash -c 'cd /Users/<user>/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test'
+bash -c 'cd /Users/<user>/projects/threadline && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix verify.format && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test mix verify.credo && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=dev mix verify.dialyzer && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix verify.xref_cycles && ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=dev mix docs --warnings-as-errors'
 ```
 Plus `mix compile --force --warnings-as-errors` after lib edits. The file-level repro used this session (useful as a manual probe):
 ```bash
-bash -c 'P=/tmp/207-probe; rm -rf "$P" && mkdir -p "$P" && cd /Users/jon/projects/threadline && MIX_ENV=test DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix run --no-start -e "Application.delete_env(:threadline, :storage_schema); File.cd!(\"$P\", fn -> Mix.Tasks.Threadline.Gen.Triggers.run([\"--tables\", \"posts\"]); Mix.Tasks.Threadline.Gen.Triggers.run([\"--tables\", \"posts\"]) end)" && ls $P/priv/repo/migrations'
+bash -c 'P=/tmp/207-probe; rm -rf "$P" && mkdir -p "$P" && cd /Users/<user>/projects/threadline && MIX_ENV=test DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix run --no-start -e "Application.delete_env(:threadline, :storage_schema); File.cd!(\"$P\", fn -> Mix.Tasks.Threadline.Gen.Triggers.run([\"--tables\", \"posts\"]); Mix.Tasks.Threadline.Gen.Triggers.run([\"--tables\", \"posts\"]) end)" && ls $P/priv/repo/migrations'
 ```
 Today this yields two `…_threadline_triggers_posts.exs` files, both `defmodule ThreadlineTriggersPosts`. After the fix, the second must be `…_threadline_triggers_posts_2.exs` / `ThreadlineTriggersPosts2`.
 
@@ -712,9 +712,9 @@ No missing dependencies.
 |----------|-------|
 | Framework | ExUnit (Elixir 1.17.3 local; 1.15 on CI min) |
 | Config file | `test/test_helper.exs` (excludes only `pgbouncer_topology`) |
-| Quick run command | `bash -c 'cd /Users/jon/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/mix/tasks/threadline/gen_triggers_test.exs test/threadline/capture/trigger_rerun_test.exs test/threadline/capture/trigger_sql_storage_schema_test.exs test/threadline/storage_schema_test.exs test/threadline/mix/'` |
+| Quick run command | `bash -c 'cd /Users/<user>/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/mix/tasks/threadline/gen_triggers_test.exs test/threadline/capture/trigger_rerun_test.exs test/threadline/capture/trigger_sql_storage_schema_test.exs test/threadline/storage_schema_test.exs test/threadline/mix/'` |
 | Contract batch | add `test/mix/tasks/threadline/install_test.exs test/threadline/changelog_contract_test.exs test/threadline/release_artifact_contract_test.exs test/threadline/public_surface_contract_test.exs test/threadline/code_walkthrough_doc_contract_test.exs test/threadline/how_threadline_works_doc_contract_test.exs test/threadline/audit_indexing_doc_contract_test.exs test/threadline/production_checklist_doc_contract_test.exs test/threadline/operator_surface/policy_show_doc_contract_test.exs test/threadline/guide_graph_contract_test.exs` |
-| Full suite command | `bash -c 'cd /Users/jon/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test'` |
+| Full suite command | `bash -c 'cd /Users/<user>/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test'` |
 
 ### Decision → Test Map
 | Decision | Behavior | Type | Test (file :: case) | RED today? | Exists? |

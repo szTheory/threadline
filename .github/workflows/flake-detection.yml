@@ -1,8 +1,13 @@
-# Opt-in / nightly flake detection. Re-runs the test suite under
+# Weekly / on-demand flake detection. Re-runs the test suite under
 # `--repeat-until-failure` (fresh seed each repeat) to surface intermittent
 # failures before they bite a release. Intentionally separate from ci.yml so
-# per-PR CI stays fast; trigger manually from the Actions tab or let the nightly
+# per-PR CI stays fast; trigger manually from the Actions tab or let the weekly
 # schedule run it on main.
+#
+# 218-05 (ECON-01, D-01/D-02): the lane used to run nightly with an unbounded
+# 50-repeat soak that outgrew its job timeout, so it was cancelled four nights
+# running and reported nothing. It now runs weekly with a bounded 12-repeat
+# budget, so every run ends with a classification a maintainer can act on.
 #
 # GREEN-11 / D-35. This lane classifies what it found BY NAME rather than filing
 # everything as "flaky":
@@ -11,14 +16,16 @@
 #   * output that does not match the expected shape is reported as UNKNOWN with
 #     the raw log attached — never silently downgraded to "flaky", which would
 #     let a broken suite be filed as an intermittent annoyance
-#   * no failure at all creates and updates nothing
+#   * a pass creates nothing and closes the open tracking issue, if any (D-06)
+#   * a budget expiry is INCONCLUSIVE and a red ci.yml is BROKEN-UPSTREAM (D-04)
 name: Flake Detection
 
 on:
   workflow_dispatch:
   schedule:
-    # 07:00 UTC nightly (after typical US/EU working hours).
-    - cron: "0 7 * * *"
+    # Monday 07:00 UTC, weekly (after typical US/EU working hours). Weekly plus
+    # on-demand dispatch gives a bounded signal instead of an unbounded nightly.
+    - cron: "0 7 * * 1"
 
 permissions:
   contents: read
@@ -28,18 +35,27 @@ jobs:
   verify-flake:
     name: Suite repeat-until-failure (broken vs flaky)
     runs-on: ubuntu-24.04
-    # `mix verify.flake` is `mix test --repeat-until-failure 50`, which MEASURED
-    # as 51 total suite runs (the initial run plus 50 repeats — verified locally,
-    # not inferred from the flag name).
+    # `mix verify.flake` is `mix test --repeat-until-failure 12`: 13 suite runs
+    # (the initial run plus 12 repeats).
     #
-    # Measured on the hosted runner (nightly run 35967937335, 2026-09-24, 1698
-    # tests): the first run took 288s cold, each repeat about 165s, and the job
-    # completed 42 green runs in 117 minutes before the old 120-minute bound
-    # cancelled it. It was cancelled four nights running without a failure, so
-    # it reported nothing. 51 runs need about 145 minutes; 180 leaves about 25%
-    # headroom. Re-measure and adjust if the suite grows by a lot.
-    timeout-minutes: 180
+    # Budget arithmetic (D-01), from dispatch run 36359135268 (2026-09-27, 2460
+    # tests): 268.3 s cold first run, repeats 206.2-213.5 s. At ceilings of
+    # 269 s + 12 x 214 s = 2,837 s, about 47 min, which leaves about 14%
+    # headroom. That run was sized at 15 repeats (from run 35967937335's older
+    # 288 s + 165 s figures) and hit the budget during iteration 16, so a pass
+    # was unreachable. The repeat step runs under a `timeout(1)` budget of
+    # 55 min, so a budget expiry writes exit 124 (137 if the suite ignores
+    # SIGTERM for 60 s) and is classified `inconclusive`, never `unknown` or
+    # `flaky`. The step timeout (58) sits above that budget and below the job
+    # timeout (70), so the classify, upload and issue steps always get to run.
+    # test/threadline/flake_classifier_contract_test.exs (Test 6) pins this
+    # sizing; re-measure and update both if the suite grows.
+    timeout-minutes: 70
+    # The actions scope (read) lets bin/ci-sha-gate query this and ci.yml's runs. A
+    # job-level block zeroes every unlisted scope, and without it the gate's
+    # API call would 403 and fail open to `run`, so the skip would never happen.
     permissions:
+      actions: read
       contents: read
       issues: write
     env:
@@ -62,7 +78,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # D-03/D-04: skip a scheduled run on a SHA this workflow already proved
+      # green, and report `broken-upstream` instead of soaking a SHA whose CI is
+      # red. Only `schedule` honors the green-SHA skip; broken-upstream applies
+      # to every event, dispatch included (D-04). Any API error fails open to
+      # `run`. Every heavy step below is gated on `run`.
+      - name: Decide whether this SHA needs a flake run
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bin/ci-sha-gate --workflow flake-detection.yml --sha "$GITHUB_SHA" --event "$GITHUB_EVENT_NAME" --upstream ci.yml
+
       - uses: erlef/setup-beam@v1
+        if: steps.gate.outputs.decision == 'run'
         id: beam
         with:
           version-file: .tool-versions
@@ -70,6 +98,7 @@ jobs:
 
       # Key shape follows the CACHE KEY CONTRACT in ci.yml.
       - name: Cache deps
+        if: steps.gate.outputs.decision == 'run'
         uses: actions/cache@v5
         with:
           path: deps
@@ -77,9 +106,11 @@ jobs:
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
 
       - name: Install dependencies
+        if: steps.gate.outputs.decision == 'run'
         run: mix deps.get
 
       - name: Compile (warnings as errors)
+        if: steps.gate.outputs.decision == 'run'
         run: mix compile --warnings-as-errors
 
       # errexit-independent by construction (CR-01): GitHub runs every `run:`
@@ -91,14 +122,24 @@ jobs:
       # failing suite cannot fail (and thus skip) this step. The job is still
       # failed deliberately, but only at the very end, after classification and
       # issue handling have both run.
+      #
+      # `timeout(1)` rather than only the step timeout: a GitHub step timeout
+      # kills the step before `exit_code` is written, which the classifier could
+      # only report as `unknown`. Under `timeout(1)` a budget expiry still writes
+      # `exit_code=124` (or 137 after the 60 s kill grace). `elapsed_s` lets the
+      # classifier tell that 137 from an OOM or other early SIGKILL (WR-02).
       - name: Repeat the suite until failure
         id: repeat
+        if: steps.gate.outputs.decision == 'run'
+        timeout-minutes: 58
         run: |
           set +e
           set -uo pipefail
-          mix verify.flake 2>&1 | tee flake-detection.log
+          SECONDS=0
+          timeout --signal=TERM --kill-after=60s 55m mix verify.flake 2>&1 | tee flake-detection.log
           exit_code="${PIPESTATUS[0]}"
           echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+          echo "elapsed_s=$SECONDS" >> "$GITHUB_OUTPUT"
           exit 0
 
       # `if: always()` is the CR-01 fix: without it this step defaults to
@@ -110,30 +151,40 @@ jobs:
       # Classification logic itself lives in bin/classify-flake-run (extracted
       # per CR-01/CR-02 so it is directly executable and unit-tested by
       # test/threadline/flake_classifier_contract_test.exs rather than reachable
-      # only via this 120-minute nightly job). This step just supplies the
+      # only via this weekly job). This step just supplies the
       # inputs and derives `iterations` for the issue body below — no
       # classification branching happens here.
       - name: Classify broken vs flaky
         id: classify
         if: always()
         env:
+          GATE_DECISION: ${{ steps.gate.outputs.decision }}
           EXIT_CODE: ${{ steps.repeat.outputs.exit_code }}
+          # WR-02: exit 137 is a budget kill only when the repeat step ran at
+          # least the timeout(1) budget (55m above = 3300 s); an earlier SIGKILL
+          # (OOM, runner) classifies unknown. The contract test pins 3300 to 55m.
+          ELAPSED_S: ${{ steps.repeat.outputs.elapsed_s }}
+          BUDGET_S: "3300"
         run: |
           set -uo pipefail
           classification=$(bin/classify-flake-run flake-detection.log)
 
-          iterations=$(grep -c 'Running ExUnit with seed:' flake-detection.log 2>/dev/null || echo 0)
-          if ! printf '%s' "$iterations" | grep -Eq '^[0-9]+$'; then
+          # `grep -c` prints 0 AND exits 1 on a zero-header log, so `|| echo 0`
+          # would add a second bare `0` line to GITHUB_OUTPUT (218 review WR-01).
+          # `|| true` keeps grep's own count; a missing log leaves it empty.
+          iterations=$(grep -c 'Running ExUnit with seed:' flake-detection.log 2>/dev/null) || true
+          iterations=${iterations:-0}
+          if ! [[ "$iterations" =~ ^[0-9]+$ ]]; then
             iterations=0
           fi
 
           echo "iterations=$iterations" >> "$GITHUB_OUTPUT"
           echo "::notice::Flake Detection classification: $classification (completed iterations: $iterations, exit: $EXIT_CODE)"
 
-      # Always uploaded: the UNKNOWN branch is only actionable with the raw log,
-      # and attaching it unconditionally means the link in the issue never 404s.
+      # Uploaded whenever the suite ran: the UNKNOWN branch is only actionable
+      # with the raw log. A gated-off run (skip / broken-upstream) has no log.
       - name: Upload raw repeat-until-failure log
-        if: always()
+        if: always() && steps.gate.outputs.decision == 'run'
         uses: actions/upload-artifact@v7
         with:
           name: flake-detection-log
@@ -142,7 +193,7 @@ jobs:
           retention-days: 14
 
       # Create-or-update ONE tracking issue, never a new issue per run. `schedule`
-      # runs notify nobody, so without this a nightly failure is invisible; with a
+      # runs notify nobody, so without this a scheduled failure is invisible; with a
       # create-per-run it would be invisible for the opposite reason.
       #
       # The label is deliberately distinct from browser-full.yml's `ci-browser-full`
@@ -155,19 +206,26 @@ jobs:
       # than the implicit success of everything before it (Task 2 item 4) —
       # so a future step inserted between `repeat` and here that changes the
       # default success chain cannot silently re-skip issue filing. Still does
-      # not fire when the classification is `pass`.
+      # not fire when the classification is `pass`, or `skip` (a skip is only
+      # reachable after a real pass on this SHA). `inconclusive` and
+      # `broken-upstream` DO end red and file: a green non-proof would count as
+      # success on this SHA and make every later scheduled run skip it.
       - name: Open or update the flake tracking issue
-        if: always() && steps.classify.outputs.classification != 'pass'
+        if: always() && steps.classify.outputs.classification != 'pass' && steps.classify.outputs.classification != 'skip'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TITLE_PREFIX: "Flake Detection: test suite"
           LABEL: ci-flake
           CLASSIFICATION: ${{ steps.classify.outputs.classification }}
           ITERATIONS: ${{ steps.classify.outputs.iterations }}
+          REASON: ${{ steps.classify.outputs.reason }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
+          # D-04: every arm states the cause the classifier actually found.
+          # REASON is one of bin/classify-flake-run's fixed reason strings.
+          log_note="The full \`mix verify.flake\` output is attached to the run as the \`flake-detection-log\` artifact."
           case "$CLASSIFICATION" in
             broken)
               headline="The suite is **broken**, not flaky — it failed on the FIRST iteration."
@@ -177,9 +235,18 @@ jobs:
               headline="The suite is **flaky** — it passed $((ITERATIONS - 1)) time(s), then failed on iteration ${ITERATIONS}."
               detail="First failing iteration: ${ITERATIONS}. Earlier iterations passed, so this is genuinely intermittent."
               ;;
+            inconclusive)
+              headline="The run is **inconclusive** — the time budget ran out after $((ITERATIONS > 0 ? ITERATIONS - 1 : 0)) clean iteration(s), with no failure seen."
+              detail="This is not a flake report. The weekly budget is stale for the suite's size: re-measure the per-iteration time and resize the repeat count or the budget."
+              ;;
+            broken-upstream)
+              headline="CI (ci.yml) is **red** on this SHA, so the flake suite was not run."
+              detail="Fix CI first. The next weekly or dispatched run re-checks this."
+              log_note="The suite did not run, so no \`flake-detection-log\` artifact was uploaded."
+              ;;
             *)
-              headline="Classification is **unknown** — the repeat-until-failure output did not match the expected shape."
-              detail="No \`Running ExUnit with seed:\` header was found, so the suite likely never started (dependency or compile failure), or ExUnit changed its banner. Deliberately NOT reported as flaky: guessing here is how a broken suite gets filed as an intermittent annoyance. Read the attached raw log."
+              headline="Classification is **unknown** (\`${CLASSIFICATION}\`)."
+              detail="Reason: ${REASON}. Deliberately NOT reported as flaky: guessing here is how a broken suite gets filed as an intermittent annoyance."
               ;;
           esac
 
@@ -191,27 +258,46 @@ jobs:
           ${detail}
 
           - Classification: \`${CLASSIFICATION}\`
-          - Completed iterations before failure: \`${ITERATIONS}\`
+          - Reason: ${REASON}
+          - Suite headers seen: \`${ITERATIONS}\`
           - Run: ${RUN_URL}
           - Commit: \`${GITHUB_SHA}\` (${GITHUB_EVENT_NAME})
 
-          The full \`mix verify.flake\` output is attached to the run as the
-          \`flake-detection-log\` artifact.
+          ${log_note}
 
           This issue is reused across runs — repeated failures accumulate here as
-          comments rather than opening a new issue each night.
+          comments rather than opening a new issue each run. A passing run closes it.
           EOF
           bin/upsert-ci-issue --marker "$TITLE_PREFIX" \
             --title "$TITLE_PREFIX reported ${CLASSIFICATION}" \
             --body-file "$body_file" --label "$LABEL" \
-            --label-description "Flake Detection lane: suite reported broken, flaky, or unknown" \
+            --label-description "Flake Detection lane: suite reported broken, flaky, inconclusive, broken-upstream or unknown" \
             --label-color D93F0B
+
+      # D-06 close-on-green. Green means PROVEN green: only `pass` closes. A skip,
+      # inconclusive, broken-upstream or unknown run never closes the issue, since
+      # closing on a non-proof would bury a live failure. TITLE_PREFIX and LABEL
+      # must match the issue step above, or the close finds no issue (action=none).
+      - name: Close the flake tracking issue on a passing run
+        if: always() && steps.classify.outputs.classification == 'pass'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE_PREFIX: "Flake Detection: test suite"
+          LABEL: ci-flake
+          ITERATIONS: ${{ steps.classify.outputs.iterations }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          body_file=$(mktemp)
+          trap 'rm -f "$body_file"' EXIT
+          printf 'Passed %s iteration(s) on %s (%s): %s\n' "$ITERATIONS" "$GITHUB_SHA" "$GITHUB_EVENT_NAME" "$RUN_URL" > "$body_file"
+          bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file"
 
       # The job must still be red when the suite failed. Classification and issue
       # filing above are reporting, not absolution. `always()` keeps this step
       # reachable even if an earlier reporting step were to fail outright.
       - name: Fail the job if the suite did not pass
-        if: always() && steps.classify.outputs.classification != 'pass'
+        if: always() && steps.classify.outputs.classification != 'pass' && steps.classify.outputs.classification != 'skip'
         run: |
           echo "::error::Flake Detection classified this run as '${{ steps.classify.outputs.classification }}' after ${{ steps.classify.outputs.iterations }} iteration(s)."
           exit 1

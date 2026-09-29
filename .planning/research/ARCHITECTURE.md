@@ -1,272 +1,334 @@
-# Architecture: Automated UI/UX Evaluation & Forward-Only Iteration Harness (v1.40)
+# Architecture Research
 
-**Domain:** Adversarial multi-lens LLM critique + monotonic (forward-only) design-iteration loop for the `/audit` operator LiveView surface
-**Researched:** 2026-07-02
-**Confidence:** HIGH on repo substrate (direct inspection); MEDIUM-HIGH on the LLM-judge determinism design (cross-checked against current LLM-as-judge literature)
+**Domain:** CI topology for an Elixir Hex library (Threadline v1.43: Supply Chain, CI Economy and Repo Hygiene)
+**Researched:** 2026-09-26
+**Confidence:** HIGH for integration points and contract-test impact. All are read from the tree, with file:line cited. Durations are measured from run `36258719902` (latest green push-to-main CI) plus the run history. MEDIUM for the dynamic `allowed-skips` mechanism. It rests on GitHub expression evaluation plus the alls-green README, and has not been exercised in this repo. MEDIUM for the Hex advisory feature version and the newest-toolchain versions (web sources).
 
-> Design goal: an example/dev-only harness that captures the current operator UI, runs an adversarial multi-lens Claude-vision critique, proposes a change, re-evaluates it, and lands the change **only if** the target score improves and **no** other page/persona/lens/accessibility/screenshot baseline regresses — all recorded in Threadline's existing scored ledger idiom. It must not touch capture/query/auth, must not add root runtime deps, must not create a public component API, and must keep LLM calls out of CI.
-
-This report reads the existing substrate as the load-bearing constraint. The single most important finding: **almost every mechanical piece already exists** (scored ledger with an enforced monotonic ratchet, `/audit/__stress` fixture harness, Playwright dark/light lanes with committed snapshots, accessibility-tree evidence, DESIGN-SYSTEM.md projection, storybook lane). v1.40 is overwhelmingly an **integration + a thin new critic runner**, not a greenfield build. The temptation to build a parallel evaluation system must be resisted; the ratchet already exists and is guarded by `stress_ledger_test.exs`.
+This file is about the **CI topology**. It covers where each new check lives, the job graph, the contracts that pin it, and the order in which to change it. The product's three-layer architecture is unchanged by v1.43.
 
 ---
 
-## Loop Components
+## Standard Architecture
 
-The loop is **capture → critique → propose → re-evaluate → guard**. Concrete components, with what runs where:
+### System Overview (current, measured)
 
-### 1. Capture (Node/Playwright, extends existing lanes)
-- **What:** Deterministic screenshots + accessibility-tree JSON + DOM/computed-style snapshots for every cell of the capture matrix (page × state × breakpoint × theme).
-- **Where it runs:** The existing Playwright harness in `examples/threadline_phoenix/e2e/`, driven by `run-e2e.sh` which already boots `mix phx.server` (MIX_ENV=test, seeded via `mix demo.reset`/`mix demo.seed`), waits for readiness, and runs `playwright test`.
-- **How:** Reuse `/audit/__stress?story=<id>&theme=<t>&viewport=<w>` — the `StressLive` surface already renders any ledger story deterministically with ugly-data fixtures (`stress_fixtures.ex`), masks dynamic content (`time`, `[data-dynamic="true"]`, `stress-run-id`), and runs with `reducedMotion: "reduce"`. Capture writes artifacts to a run directory (the existing `OPERATOR_STRESS_SCREENSHOT_DIR` env hook, `operator-stress.spec.ts:55`, is the exact pattern to generalize).
-- **Output:** A `capture manifest` (JSON) listing every artifact path keyed by `{ledger_id, theme, viewport}`, plus the raw PNGs and a11y-tree JSON.
+```
+.github/workflows/
+┌──────────────────────────────────────────────────────────────────────────┐
+│ ci.yml  (push main, pull_request main, workflow_dispatch; NO paths:)     │
+│                                                                          │
+│  no-BEAM      verify-release-shape            8s                         │
+│  BEAM/no-DB   verify-format 22s  verify-compile-no-optional 47s          │
+│               verify-credo 80s   verify-dialyzer 83s (PLT cache)         │
+│               verify-docs 77s    verify-hex-package 15s                  │
+│  DB           verify-test[min] 434s   verify-test[current] 600s          │
+│               verify-pgbouncer-topology 116s  verify-hex-evaluator 64s   │
+│               verify-mechanical 87s   verify-bump-rehearsal 164s         │
+│  browser      verify-example-browser 651s  <-- critical path             │
+│               verify-capture 529s                                        │
+│                         │ (all 14 fan in, if: always())                   │
+│                         ▼                                                │
+│               ci-required "CI required" (alls-green, pinned SHA)         │
+│               = the ONLY required status check (ruleset main-protection)  │
+└──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────┐ ┌───────────────────────┐ ┌──────────────────────┐
+│ browser-full.yml     │ │ flake-detection.yml   │ │ release.yml          │
+│ push main + 05:00    │ │ 07:00 nightly         │ │ release-please ->    │
+│ ALL Playwright       │ │ 51 full-suite runs    │ │ pin sync -> dispatch │
+│ projects, ~14-18 min │ │ 117-136 min when green│ │ CI -> gate-ci-green  │
+│ not required         │ │ not required          │ │ -> publish (env gate)│
+└──────────────────────┘ └───────────────────────┘ └──────────────────────┘
+```
 
-### 2. Critic runner (Node script calling Claude vision — NEW, the only substantial new code)
-- **What:** For each capture cell (or each page-level composite), sends the screenshot(s) + a **locked rubric** + the accessibility-tree evidence to Claude vision, once per **lens/persona**, and parses a **structured JSON scorecard** back.
-- **Where it runs:** `examples/threadline_phoenix/e2e/critic/` as a standalone Node/TypeScript script (sibling to `tests/`), invoked **locally / on-demand only** — never in CI (see Local-vs-CI Boundary). It reads the capture manifest, calls the Anthropic API, writes scorecards.
-- **Lenses (adversarial, multi-lens):** each lens is a distinct rubric+system-prompt pair, e.g. `visual-hierarchy`, `information-density`, `accessibility-contrast`, `operator-task-efficiency`, `brand-consistency`, `error-state-clarity`. Personas (`admin`, `support`) select which pages/states are in-scope and which rubric weights apply.
-- **Determinism controls (critical — see Ratchet Design):** temperature 0, locked/versioned rubric text, anchored scale (each 0–100 band has concrete evidence descriptors), **N-sample majority/median vote** per (cell × lens), and the model returns *evidence citations* (which DOM element / region drove the score), not just a number.
-- **Output:** `scorecard.json` per (cell × lens × persona) with `{score, band, findings[], evidence_refs[], severity}`.
+The critical path is the browser job. Its 610 s Playwright step compiles the example app cold. `verify-test (current)` is close behind at 600 s: 310 s of tests plus a 203 s `verify.example` step.
 
-### 3. Proposer (human-in-the-loop + Claude, operating on `style.ex`/`ui.ex`)
-- **What:** Turns ranked findings into a concrete source change. Because the design system is **source-first in `style.ex`** and guarded by `style_contract_test.exs`, proposals are edits to `style.ex`/`ui.ex`/presentation, not runtime tweaks.
-- **Where it runs:** In the developer's normal editing loop (Claude Code / the maintainer). The harness does **not** auto-commit source changes. This respects the invariant that a human signs off on the score bump.
-- **Output:** A working-tree diff to `lib/threadline/operator_surface/**`.
+### Target System Overview (end of v1.43)
 
-### 4. Re-evaluate (re-run Capture + Critic on the proposed tree)
-- **What:** Same capture + critic pipeline on the changed tree, producing `after` scorecards.
-- **Where:** Same lanes/scripts. Produces a `before/after` delta report.
+```
+ci.yml  (unchanged triggers; still NO trigger-level paths:)
 
-### 5. Guard / ratchet updater (Elixir `mix` task + ExUnit contract — extends existing ledger)
-- **What:** Compares `after` vs the committed ledger. Enforces: target score **improved**, and **no other** ledger entry, screenshot baseline, or accessibility assertion **regressed**. Only then does the maintainer bump `current_score`/`ratchet_score` in `.planning/design-system-ledger.json` (with the human sign-off note in `notes`).
-- **Where it runs:** The **existing** `stress_ledger_test.exs` already enforces the monotonic ratchet, locked IDs, and minimum scores in pure Elixir with no LLM. v1.40 extends it with a "score bump requires evidence" assertion (score bump entries must reference a committed scorecard artifact). The screenshot regression guard (`operator-screenshot-regression.spec.ts`, local-only, CI-skipped) and the CI stress-allowlist screenshots (`operator-stress.spec.ts` reading `screenshot_allowlist.ci`) are the pixel guards. `mix ci.all` runs the deterministic guards.
-- **Output:** Pass/fail; on pass, the maintainer commits the ledger bump + committed evidence artifacts as review evidence.
+ [P-last] verify-change-scope  "Classify changed files"  (required, no if:)
+             │ outputs.allowed_skips (empty on push/dispatch/unknown)
+             │ needs: only from skip-eligible jobs
+ ─────────────────────────────────────────────────────────────────────
+ Tier 0 no-BEAM, seconds   verify-repo-hygiene (NEW)  verify-release-shape
+ Tier 1 BEAM, no DB        verify-format  verify-deps-audit (NEW)
+                           verify-compile-no-optional  verify-credo
+                           verify-hex-package  verify-docs  verify-dialyzer
+ Tier 2 DB                 verify-test[min|current|latest (NEW lane)]
+                           verify-pgbouncer-topology  verify-hex-evaluator
+                           verify-bump-rehearsal
+ Tier 3 browser            verify-example-browser  verify-capture
+ REMOVED                   verify-mechanical (dominated, see below)
+                                   │
+                                   ▼
+            ci-required  alls-green  allowed-skips: ${{ classifier output }}
 
-**Loop summary table:**
+deps-health.yml (NEW, weekly + dispatch, not required):
+  mix hex.audit + mix hex.outdated -> bin/upsert-ci-issue (label ci-deps)
+browser-full.yml: push -> only the 4 projects ci.yml does not run;
+                  schedule/dispatch -> full set
+flake-detection.yml: bounded repeat count sized to a measured budget
+release.yml: bootstrap-release-pr-ci dispatches only when no PAT fan-out
+```
 
-| Stage | Runtime | Location | New or reuse |
+"Tier" is **YAML order and job design**, not `needs:` chaining. All tiers still start in parallel. See Pattern 3 for why no preflight gate is added.
+
+### Component Responsibilities
+
+| Component | Owns | Implementation | New / Modified |
 |---|---|---|---|
-| Capture | Node/Playwright | `e2e/` (extends `operator-stress.spec.ts`) | Reuse + generalize |
-| Critic | Node + Claude vision API | `e2e/critic/` (NEW) | **New (only substantial new code)** |
-| Propose | Human + Claude Code | `lib/.../operator_surface/**` (`style.ex`/`ui.ex`) | Reuse source-first system |
-| Re-evaluate | Node/Playwright + Claude | `e2e/` + `e2e/critic/` | Reuse |
-| Guard | Elixir ExUnit + `mix` + Playwright pixel guard | `stress_ledger_test.exs`, `mix ci.*`, screenshot specs | Reuse + thin extension |
+| `ci-required` (ci.yml:923-954) | The only branch-protection decision | `re-actors/alls-green` pinned at a SHA, `if: always()` | MODIFIED: roster edits; `allowed-skips` in the last phase only |
+| `verify-deps-audit` | Known-vulnerable or retired locked deps | `mix verify.audit`, which runs `mix hex.audit` | NEW job + NEW alias |
+| `verify-repo-hygiene` | No absolute local paths or PII in tracked files | `bin/verify-no-local-paths` (bash, `git ls-files -z`), no BEAM | NEW job + NEW bin + NEW alias `verify.hygiene` |
+| `verify-test` matrix (ci.yml:278-377) | Suite on floor, current and newest toolchains | New `lane: latest` include | MODIFIED |
+| `verify-mechanical` (ci.yml:529-569) | Scorecard gate | Dominated by `verify.test` in both lanes and by `verify-capture`'s last step | REMOVED (alias kept) |
+| `verify-capture` (ci.yml:577-684) | Byte-stable Tier A regeneration | Drop the trailing `mix verify.mechanical` step (ci.yml:683-684) | MODIFIED |
+| `browser-full.yml` (:99-104) | Projects PRs do not run | Event-conditional project args | MODIFIED |
+| `flake-detection.yml` | Intermittency signal | Bounded repeats, contract-compliant cache key | MODIFIED |
+| `release.yml` `bootstrap-release-pr-ci` (:171-188) | CI on the release PR when no PAT fan-out | Skip the dispatch when `RELEASE_PLEASE_TOKEN` is configured | MODIFIED |
+| `_build` deps cache | Warm dependency compile | `actions/cache@v4`, exact key, no `restore-keys`, `rm -rf _build/$MIX_ENV/lib/threadline` | NEW cache blocks (ci.yml:77-84 already specifies the rules) |
+| `deps-health.yml` | Freshness and new-advisory signal on an unchanged tree | Scheduled workflow, `bin/upsert-ci-issue` | NEW workflow |
+| `bin/classify-ci-lanes` | Changed paths to skip-eligible lanes, fail-closed | Pure script, table-tested (pattern: `bin/classify-flake-run`) | NEW (last phase) |
+| `verify-change-scope` | Run the classifier and expose the output | Job with no `if:`, member of `ci-required` | NEW (last phase) |
 
 ---
 
-## Placement vs Invariants
+## Recommended Project Structure (files touched)
 
-The invariants force a clean split. The organizing rule: **anything that calls an LLM, or is nondeterministic, lives in `examples/threadline_phoenix/e2e/` and is never in `mix ci.all`. Anything deterministic and committed can live in the root but must be dev/test-gated exactly like the existing `__stress` route.**
+```
+.github/workflows/
+├── ci.yml                 # roster, new jobs, matrix lane, _build cache, names/order, classifier
+├── browser-full.yml       # event-conditional project set
+├── flake-detection.yml    # bounded repeats + cache key fix
+├── release.yml            # no double dispatch
+└── deps-health.yml        # NEW: weekly audit + outdated -> tracking issue
+bin/
+├── verify-no-local-paths  # NEW: tracked-file PII/path guard (no BEAM)
+└── classify-ci-lanes      # NEW (last phase): fail-closed lane classifier
+mix.exs                    # aliases: verify.audit, verify.hygiene; ci.all entries;
+                           # verify.flake -> function alias; hex: [ignore_advisories: []]
+test/test_helper.exs       # exclude :live_dialyzer by default (honest-default rule)
+test/threadline/
+├── ci_topology_contract_test.exs        # roster, aliases, allowed-skips carve-out
+├── ci_workflow_parity_contract_test.exs # List 1 parity, matrix axis, _build rule
+├── ci_coverage_doc_contract_test.exs    # browser-full project flags
+├── release_control_plane_contract_test.exs  # allowed-skips + bootstrap wiring
+├── flake_classifier_contract_test.exs   # unchanged invariants, re-verified
+└── ci_lane_classifier_contract_test.exs # NEW: table + completeness tests
+CONTRIBUTING.md            # roster (:458-489), job table (:495-510), CI Coverage (:412-456),
+                           # Deterministic tests (:99-138), freshness policy
+```
 
-| Piece | Placement | Rationale (invariant) |
-|---|---|---|
-| Capture matrix runner | `examples/threadline_phoenix/e2e/tests/` (extend `operator-stress.spec.ts`) | Node/Playwright is already example/dev-only; no root dep. |
-| Critic runner (Claude vision) | `examples/threadline_phoenix/e2e/critic/` (NEW dir) | LLM calls must be local/on-demand, never CI, never a root dep. |
-| Rubric definitions | Committed JSON/MD under `e2e/critic/rubrics/` **and** mirrored into `.planning/` for review provenance | Rubrics are the "locked" determinism anchor; version them like the ledger. |
-| Scorecards / findings / before-after | Committed under `.planning/design-evidence/` (evidence idiom) | Committed review evidence, human-readable, matches ledger-projection pattern. |
-| The scored ledger | `.planning/design-system-ledger.json` (EXISTING) | Already the SSOT; do not fork it. |
-| Ratchet enforcement | `test/threadline/operator_surface/stress_ledger_test.exs` (EXISTING, extend) | Pure Elixir, deterministic, already in `mix test` → `ci.all`. |
-| `/audit/__stress` route | `lib/threadline/operator_surface/stress_router.ex` (EXISTING) | Already dev/test-gated: `:prod` → CompileError, `:omit` supported. **The precedent for any new dev-only route.** |
-| Stress fixtures | `lib/threadline/operator_surface/stress_fixtures.ex` (EXISTING, extend) | `@moduledoc false`, no public API; extend with new states/personas as private. |
-| A new `mix` task (e.g. `mix threadline.design.ratchet`) | Root `mix.exs` alias, **dev/test env only**, deterministic (reads ledger + artifacts, no LLM) | Named `verify.*`/`ci.*` entrypoint convention; must not require LLM. |
-| Claude API key / network | Only in `e2e/critic/` local runs | No network in CI guards; no secret in root. |
+### Structure Rationale
 
-**What is a `mix` task vs Node script vs committed artifact:**
-- **`mix` task (Elixir, deterministic):** ratchet verification, ledger↔fixture round-trip, DESIGN-SYSTEM.md projection freshness, "score bump has evidence" check. These join `mix verify.*` and run in `ci.all`.
-- **Node script (nondeterministic / LLM / browser):** capture, critic vision calls, before/after diffing. These are invoked via `run-e2e.sh`-style wrappers and a new **local-only** `mix verify.design_critique` alias that shells to Node (mirroring `verify.operator_stress`) but is **excluded from `ci.all`** (like `verify.flake`).
-- **Committed artifact:** the ledger, DESIGN-SYSTEM.md, rubric files, screenshot baselines, and the frozen scorecards/finding registers that justify each score bump.
-
----
-
-## Reuse Map
-
-Exact extension points — **reuse, do not reinvent**:
-
-### Scored ledger — `.planning/design-system-ledger.json`
-- Already has: `entries[]` with `current_score`/`target_score`/`ratchet_score`/`status`/`owner_phase`, a `ratchet` block (`locked_ids`, `minimum_scores`, `resets`), `ratchet_rule`, `required_inventory`, `screenshot_allowlist.{ci,local_review}`, `version`.
-- **Extend with:** per-entry `lens_scores` (a sub-object of lens→score so a page's composite score and per-lens scores both ratchet), and a `persona` tag on page entries. Add `evidence_ref` pointing at the committed scorecard that justifies the current score. Keep the existing top-level key contract test (`@top_level_keys`) updated in lockstep.
-
-### Ratchet enforcement — `test/threadline/operator_surface/stress_ledger_test.exs`
-- Already enforces: upward-only scores unless an explicit `ratchet.resets` entry + `reset_rationale`; locked IDs present; `minimum_scores` floors; fixture round-trip; DESIGN-SYSTEM.md freshness per row; screenshot allowlist integrity; banned-term hygiene (it **forbids** `Chromatic`, `Percy`, `Applitools`, `PhoenixStorybook`, `Tailwind`, `immutable ledger` in the ledger/markdown — the v1.40 harness must stay first-party and not name external SaaS visual-diff tools in committed ledger copy).
-- **Extend with:** (a) if `lens_scores` added, assert each lens is monotonic vs its ratchet; (b) assert any entry whose `current_score` rose since the prior commit carries an `evidence_ref` to a committed scorecard; (c) keep the `@forbidden_terms` list — do **not** introduce SaaS visual-diff tool names.
-
-### `/audit/__stress` harness — `stress_router.ex` + `live/stress_live.ex` + `stress_fixtures.ex`
-- Already: dev/test-gated macro (`:prod`→CompileError), URL-param driven (`story`, `theme`, `viewport`, `category`, `status`), renders any ledger story from fixtures, category/status/theme/viewport allowlists derived from `StressFixtures`.
-- **Reuse as the capture source of truth.** The critic captures `/audit/__stress?story=…` cells. No new rendering surface needed. Add new persona/state fixtures to `stress_fixtures.ex` (private) if lenses need states not yet represented.
-
-### Screenshot lanes — `operator-stress.spec.ts`, `operator-screenshot-regression.spec.ts`, `playwright.config.ts`
-- Already: dark projects (`chromium`, `desktop-chromium` 1280×900, `mobile-chromium`/Pixel5) + conditional `desktop-chromium-light` when `THREADLINE_E2E_THEME=system`; committed snapshots under `*-snapshots/`; `maxDiffPixelRatio` + dynamic masks; CI-skipped platform-sensitive regression guard; a CI-safe allowlist lane reading `screenshot_allowlist.ci` from the ledger; `OPERATOR_STRESS_SCREENSHOT_DIR` for local evidence capture.
-- **Reuse for capture + as the pixel regression guard.** The "no screenshot baseline regresses" half of the ratchet is *already implemented* — the critic just must not be allowed to land a change that fails these specs.
-
-### Accessibility-tree evidence — `operator-accessibility.spec.ts`
-- Already: a rendered-state coverage matrix (modal, drawer, dropdown, tabs, disclosure, combobox, error-summary, permission/unavailable/alert, stale/status, table/list, shell nav, mobile nav) exercised against `__stress` + live pages.
-- **Reuse as the accessibility lens's deterministic ground truth.** The a11y lens should *combine* the deterministic axe/tree assertions (guard) with the LLM contrast/hierarchy critique (advisory). The deterministic half is the regression floor.
-
-### DESIGN-SYSTEM.md projection
-- Already: a deterministic table projection of the ledger, freshness-tested per row. **Reuse as the human-facing scorecard index.** Extend the projection generator to add a lens-score column and a "latest critique" link.
-
-### PhoenixStorybook lane — `operator-storybook.spec.ts`, example router `/dev/storybook`
-- Already: example/dev-only stories for private components; a bounded storybook smoke in the light lane.
-- **Reuse as a secondary capture source** for component-level (not page-level) lenses. Optional; page/state cells via `__stress` are the primary matrix.
-
-### `brandbook/tokens.{json,css}` parity
-- Already: bidirectional parity test vs `style.ex` 45-token light lane. **Reuse as the brand-consistency lens's ground truth** — the LLM brand lens is advisory on top of the deterministic token parity guard.
-
-### Mix aliases — `mix.exs`
-- Already: `verify.operator_stress`, `verify.example_browser`, `verify.example_browser_light`, `verify.flake` (opt-in, excluded from `ci.all`), `verify.phase177_uat`. **The `verify.flake` pattern (defined, useful, deliberately not in `ci.all`) is the exact template** for a local-only `verify.design_critique`.
+- **Aliases stay the entrypoint.** Every new check is a `mix verify.*` alias that `ci.all` and CI both cite. The one exception is `verify-repo-hygiene`: it calls its `bin/` script directly so it runs in seconds without BEAM, as `verify-release-shape` already does (ci.yml:851-859). The alias wraps the same script for local use.
+- **Logic lives in `bin/`, not in YAML.** This is the precedent from `bin/classify-flake-run`. YAML can only be grep-tested. A script can be tested on behaviour with a table. The classifier and the path guard must be scripts.
+- **No composite action.** A local `.github/actions/setup-elixir` would remove the 14 copies of setup-beam plus cache. But the contract tests assert literal cache keys inside `ci.yml` job blocks (ci_topology_contract_test.exs:142, :405; ci_workflow_parity_contract_test.exs:252-270). Moving the text out would force a contract rewrite for no failure-class gain. Defer it.
 
 ---
 
-## Capture Matrix
+## Architectural Patterns
 
-Given the current inventory (from `required_inventory` in the ledger and the fixtures):
+### Pattern 1: Same-commit roster change (the existing contract, restated precisely)
 
-- **Pages (11):** `home`, `timeline`, `transaction`, `actor`, `row-history`, `coverage`, `redaction`, `retention`, `evidence`, `exports`, `shell`.
-- **States (7 core, per `page.*.<state>` ledger cells):** `happy`, `empty`, `loading`, `error`, `permission`, `advanced`(dense), `boundary`. Plus the richer `state.*` fixtures (`many`, `null-fields`, `mixed-severity`, `timezone-boundary`, `pagination-boundary`, `stale-reconnecting`, `unavailable-*`) for stress lenses.
-- **Breakpoints (5):** 320, 375, 768, 1024, 1440 (from `StressFixtures.viewports`; Playwright projects currently pin 1280/Pixel5 + 1024 snapshots).
-- **Themes (2 primary, 3 total):** `dark` (default/brand-primary), `light`, `system`. Dark + light are the evaluation lanes; `system` is affordance-only (per `playwright.config.ts` comment).
+**What:** Any add, remove or rename of a `verify-*` job id changes these in **one commit**:
+1. the `ci.yml` header roster comment (ci.yml:1-2), read by `ci_header_comment_keys` (parity test :140-148);
+2. the job key itself, read by `ci_job_keys` (parity test :126-137, regex `^  (verify-[a-z0-9-]+):`);
+3. CONTRIBUTING's "Job key | Purpose" table (:495-510), read by `contributing_list1_keys` (:151-164);
+4. `ci-required` `needs:` (ci.yml:926-940) and CONTRIBUTING's `### ci-required needs: roster` (:458-480), checked in both drift directions by ci_topology_contract_test.exs:558-600.
 
-**Full matrix = 11 × 7 × 5 × 2 ≈ 770 cells** — too large to LLM-critique every cell on every run. **Tiered strategy (mirrors the existing Tier A structural / Tier B sample / Tier C screenshot split already in the ledger notes):**
+**Consequence for naming:** the parity scan only sees ids that start with `verify-`. Name the classifier job `verify-change-scope`, not `changes` or `classify`. The existing three-way parity then covers it without a new scan. An id outside that prefix is invisible to the guard, which is how silent drift starts.
 
-| Tier | Scope | Cadence | Guard type |
+### Pattern 2: A skip is decided only by a required, unskippable job
+
+**What:** Only the classifier job decides skips. It has **no `if:`**, sits in `ci-required.needs`, and emits `allowed_skips`. `ci-required` passes that output straight to alls-green: `allowed-skips: ${{ needs.verify-change-scope.outputs.allowed_skips }}`. GitHub evaluates the expression before the action reads its comma-separated input.
+**Why it is fail-closed:**
+- If the classifier fails, every dependent job is skipped by the default `success()` rule. The output is also empty, so alls-green scores both the failure and the skips as red.
+- A job that ran and **failed** is never laundered, because `allowed-skips` only forgives `skipped`.
+- On `push` and `workflow_dispatch`, the script emits nothing. Main and the release SHA that `gate-ci-green` polls (release.yml:299-372) always get the full matrix.
+
+**Belt and braces:** each skip-eligible job's `if:` also carries `|| github.event_name != 'pull_request'`. This follows the ci.yml:21-27 comment, which already names this as the sanctioned mechanism.
+**Example:**
+```yaml
+verify-change-scope:
+  name: Classify changed files (lane selection)
+  outputs:
+    allowed_skips: ${{ steps.classify.outputs.allowed_skips }}
+    run_browser: ${{ steps.classify.outputs.run_browser }}
+  steps:
+    - uses: actions/checkout@v5
+      with: { fetch-depth: 0 }
+    - id: classify
+      env:
+        EVENT: ${{ github.event_name }}
+        BASE: ${{ github.event.pull_request.base.sha }}
+        HEAD: ${{ github.event.pull_request.head.sha }}
+      run: bin/classify-ci-lanes --event "$EVENT" --base "$BASE" --head "$HEAD" >> "$GITHUB_OUTPUT"
+
+verify-example-browser:
+  needs: verify-change-scope
+  if: needs.verify-change-scope.outputs.run_browser == 'true' || github.event_name != 'pull_request'
+```
+
+### Pattern 3: "Fastest likely failure first" means YAML order and step order, not a preflight gate
+
+**What:**
+- Order jobs in YAML, which is also the order of the checks list, by expected time-to-red: hygiene, release-shape, format, audit, compile-no-optional, credo, hex-package, docs, dialyzer, test lanes, pgbouncer, evaluator, rehearsal, capture, browser.
+- Inside a job, order steps cheap before costly. `verify-test` already does compile, then xref, then tests (ci.yml:348-355, pinned by ci_topology_contract_test.exs:204-230).
+
+**Why not `needs: [verify-format, ...]` before the heavy jobs:** it adds roughly 1-1.5 min (runner pickup plus BEAM setup) to every **green** run to save minutes on red runs. Runner minutes are free on a public repo, and latency is the metric §9 protects. Parallel fan-out with honest names already tells a contributor where to look.
+
+### Pattern 4: Move a unique assertion, then delete the dominated job
+
+**What:** Before removing a job, confirm that another required job runs the same command on the same inputs. Keep the mix alias as a maintainer command.
+**Applied:**
+- `verify-mechanical` runs `test/threadline/operator_surface/mechanical_checker_test.exs`. That file already runs inside `verify.test` in **both** lanes (mix.exs:148-153 says so), and a third time at the end of `verify-capture`.
+- The capture lane's trailing `mix verify.mechanical` (ci.yml:683-684) is also dominated. The byte-stable step before it asserts regenerated == committed, and `verify.test` already checks the committed JSON.
+
+---
+
+## Data Flow
+
+### PR run (target, before SEED-006)
+
+```
+pull_request ─► ci.yml (all jobs in parallel)
+                  └─► ci-required (alls-green over toJSON(needs)) ─► ruleset
+merge (squash) ─► push main ─► ci.yml full ─► release.yml gate-ci-green polls it
+                             └► browser-full.yml (4 non-PR projects only)
+nightly ─► browser-full (full set) · flake-detection (bounded) · weekly deps-health
+```
+
+### Release PR flow (the double-dispatch fix)
+
+Measured on the release branch (`gh run list --workflow ci.yml --branch release-please--branches--main`): every release head since 2026-09-22 got **two** CI runs on the same SHA, `pull_request` plus `workflow_dispatch`. Examples: `0745a341` at 16:41:13 and 16:41:17, and `43cf7b45` at 02:04:42 and 02:06:07.
+
+The cause: `RELEASE_PLEASE_TOKEN` is configured (secret created 2026-05-28). The PAT pushes from release-please and from `sync-release-pr-pins` (release.yml:153-169) therefore already fan out a `pull_request` run. `bootstrap-release-pr-ci` (release.yml:171-188) then dispatches another run anyway.
+
+**Fix:** keep the job, its `needs:` and its `if: always()` start. These are pinned by release_control_plane_contract_test.exs:122-160. Guard only the dispatch step: `HAS_PAT: ${{ secrets.RELEASE_PLEASE_TOKEN != '' }}`, and exit 0 with a notice when it is true. Do not make the dispatch "check whether a PR run exists". That is a race against GitHub's event latency. Extend the contract test to assert the guard.
+
+### Key data flows
+
+1. **Advisory signal.** Two paths:
+   - PR path: `mix.lock` goes to `mix hex.audit` in `verify-deps-audit`, which reds `ci-required`.
+   - Unchanged-tree path: weekly `deps-health.yml` upserts one `ci-deps` issue. Its label must stay distinct from `ci-flake` and `ci-browser-full`, the same dedup rule as browser-full.yml:118-120.
+2. **Classifier signal.** The PR diff goes to `bin/classify-ci-lanes`, then to `allowed_skips` and the `run_*` outputs, then to job `if:` and the alls-green input.
+
+---
+
+## Integration Points (per target change)
+
+| # | Change | Lives in | Alias | Files and lines | Contract tests affected | New/Mod |
+|---|---|---|---|---|---|---|
+| 1 | Baseline measurement | Local one-shot `gh run view --json jobs` over N runs. Record as evidence, not a CI job (§9: "one-shot probes run locally") | none | none | none | NEW evidence only |
+| 2 | Fix advisories | `mix.lock` (lazy_html test-only; **mint 1.10.0 via req→finch, optional**) | none | mix.exs:104, mix.lock:21, :26 | dependency-floor guard (min lane must still resolve) | MOD |
+| 3 | Audit gate | New job `verify-deps-audit` in `ci-required` | `verify.audit: ["hex.audit"]`, early in `ci.all` | ci.yml new job + :1-2 + :926-940; mix.exs:126-215; CONTRIBUTING :458-480, :495-510 | topology roster (:558), parity List 1 (:167), alias assertions (:48-62) | NEW |
+| 4 | Freshness policy | `deps-health.yml` weekly: `hex.audit` + `hex.outdated` into one issue; policy text in CONTRIBUTING | reuses `verify.audit` | new workflow; `bin/upsert-ci-issue` | parity `:latest` image guard (:199-207) applies automatically | NEW |
+| 5 | Flake Detection re-scope | flake-detection.yml:41, :70-75, :97 | `verify.flake` becomes a function alias (repeat count from env, default 50 locally) | mix.exs:177 | flake_classifier_contract_test.exs Tests 2-4 must stay green; the classifier is untouched | MOD |
+| 6 | Remove duplicate proofs | Delete `verify-mechanical`; drop ci.yml:683-684; exclude `:live_dialyzer` in test_helper.exs:6-7 | keep `verify.mechanical` | ci.yml:529-569, :683-684, :936; test_helper.exs; CONTRIBUTING :99-138, roster, List 1 | topology roster, parity List 1, header parity | MOD/REMOVE |
+| 7 | Release-PR double dispatch | release.yml:185-188 | none | release.yml | release_control_plane_contract_test.exs:122 (extend) | MOD |
+| 8 | Browser-full de-dup | browser-full.yml:99-104. Event-conditional `--project=` for push; none for schedule/dispatch | `verify.example_browser` | browser-full.yml; CONTRIBUTING CI Coverage :412-456 | ci_coverage_doc_contract_test.exs:73 derives projects from `--project` flags; the table's `main` column semantics change | MOD |
+| 9 | Deps-only `_build` cache | Every full-compile job: test lanes, dialyzer, credo, docs, compile-no-optional (separate key segment), browser/capture (plus the example app's own `_build`) | none | ci.yml:65-93 contract comment | **ci_workflow_parity_contract_test.exs:252-270 refutes `path: _build`. Rewrite it** to assert: exact key incl. MIX_ENV, no `restore-keys` on `_build` keys, and an `rm -rf _build/$MIX_ENV/lib/threadline` step before compile | NEW |
+| 10 | Newest PG/Elixir lane | `verify-test` matrix gains `lane: latest` (exact pins: Elixir 1.20.x / OTP 29 / PG 18, ubuntu-24.04). Runs compile, xref and tests only; the `current`-only steps stay gated | none | ci.yml:286-300 | parity :233-241 asserts `lane: [min, current]`; :243-249 asserts List 2 names. Both change. The roster is unchanged, because `verify-test` is already a need | MOD |
+| 11 | `@tag :tmp_dir` | Test files only (about 40 files call `System.tmp_dir`) | none | test/ | none. It raises the flake lane's signal-to-noise | MOD (tests) |
+| 12 | PII/local-path guard | New job `verify-repo-hygiene` (no BEAM) in `ci-required` | `verify.hygiene` wraps `bin/verify-no-local-paths`; add to `ci.all` | new bin, ci.yml, mix.exs, CONTRIBUTING | roster, List 1, header parity. Also planning_dependency_contract_test.exs:126: do not hardcode a `.planning` path read in CI sources | NEW |
+| 13 | Forward scrub | 295 tracked `.planning/` files: replace the home prefix only, no content edits | none | `.planning/**` | none | MOD |
+| 14 | xref cycles gate | **Already shipped.** `verify.xref_cycles` (mix.exs:171-173) runs in both test lanes (ci.yml:351-352) and `ci.all`, pinned by ci_topology_contract_test.exs:204-230 | existing | none | none | EXISTS |
+| 15 | CI DX names and order | `name:` fields and YAML order only; ids immutable | none | ci.yml; CONTRIBUTING quotes names | parity :243-249 (List 2 names). `CI required` must stay byte-exact (topology :669-708; `bin/observe-main-ci:88`) | MOD |
+| 16 | SEED-006 classifier | `verify-change-scope` + `bin/classify-ci-lanes` + dynamic `allowed-skips` | none | ci.yml; new bin | **release_control_plane_contract_test.exs:90-120 refutes any `allowed-skips:` line**, and topology :585-600 requires an `allowed-skips decision:` entry in CONTRIBUTING. Amend both deliberately with a recorded decision | NEW |
+
+### Findings that change scope (verified 2026-09-26)
+
+1. **A second advisory is open.** `mix hex.audit` (Hex 2.5.1) reports **mint 1.10.0, EEF-CVE-2026-82672 (MEDIUM, GHSA-rj5m-69wp-cxq9)** as well as lazy_html. The milestone baseline lists only lazy_html. Mint arrives via the optional `req` dependency (`req ~> 0.7 → finch → mint ~> 1.8`), so adopters who use the S3/Req export path can resolve it. Fix both before the gate lands, or the gate is born red.
+2. **The xref gate already exists, but the guide's claim is too broad.** `--label compile-connected` is clean. Plain `mix xref graph --format cycles` reports **5 runtime cycles**, including `capture/audit_transaction.ex ↔ semantics/audit_action.ex`, which crosses the capture and semantics layers. MILESTONE-GUIDE §9a says "`mix xref graph --format cycles` is clean", which holds only with the label. Scope decision: keep the compile-connected gate, which is Ecto association edges by design. Optionally add a ratchet that fails on any *new* runtime cycle. Correct the guide sentence either way.
+3. **`verify-hex-evaluator`'s name is wrong.** It says "threadline from hex.pm", but the PR job runs rehearsal mode against a local registry built from the PR tree (mix.exs:358-398). Fix the name in the DX phase.
+4. **Flake Detection's cache key breaks the cache-key contract.** `${{ runner.os }}-mix-deps-` (flake-detection.yml:74-75) is the exact shape ci.yml:65-75 bans. The anti-regression grep only scans ci.yml. Fix the key, and consider widening the grep to all workflows.
+5. **The live-Dialyzer test is a duplicate proof.** `dialyzer_slice_contract_test.exs:8-12` (`@tag :live_dialyzer`, 540 s timeout) shells out to a cold Dialyzer in both test lanes. It also runs in every Flake Detection iteration. `verify-dialyzer` already enforces zero warnings on the same toolchain with a cached PLT. Exclude it by default in `test/test_helper.exs` and document it in CONTRIBUTING in the same commit (honest-default rule). Keep it runnable with `--include live_dialyzer`.
+
+---
+
+## Suggested Build Order (phases continue from 214)
+
+Order: measurement first, then low-risk edits to existing lanes, then new required gates (each born green), then riskier cache and toolchain changes, then renames once the roster is stable, and the classifier last.
+
+| Phase | Scope | Depends on | Risk | Why here |
+|---|---|---|---|---|
+| **214 Baseline** | Per-job p50/p95 over ≥10 push and ≥10 PR runs, runner-min per PR and per push, critical path, Flake and Browser-full costs, plus the **PR diff-class distribution** (share of merged PRs touching only docs/test/.planning). Local one-shot, recorded as evidence | none | none | §9 "measure before you optimize". The diff-class number decides whether 221 is worth building |
+| **215 Supply chain** | Bump lazy_html and mint → `verify.audit` alias → `verify-deps-audit` job + roster/List 1/header in one commit → `deps-health.yml` → freshness policy text | 214 | Low | Headline defect. The gate lands green because the fix lands first. Adds one fast job, off the critical path |
+| **216 Repo hygiene** | Forward scrub (a separate commit, prefix-only replacement) → `bin/verify-no-local-paths` + `verify.hygiene` + `verify-repo-hygiene` in `ci-required` → xref decision (ratchet or doc correction) → `@tag :tmp_dir` migration | 214 | Low | Independent of CI economy. Scrub before guard or the guard is born red. tmp_dir first improves the signal that 217's Flake re-scope measures |
+| **217 CI economy: remove waste** | Release double dispatch · Browser-full push subset · drop `verify-mechanical` + capture's trailing mechanical step · exclude `:live_dialyzer` · Flake re-scope + cache key · docs/tarball overlap decision | 214 (numbers), 216 (tmp_dir) | Low-Med | Pure deletions and narrowing, each with a named dominating proof. Roster shrinks here, once |
+| **218 Deps-only `_build` cache** | Cache blocks per (runner, OTP, Elixir, MIX_ENV, mix.lock, optional-deps flag), no restore-keys, rm own app before compile. Example app `_build` separately. Rewrite parity :252-270 | 217 | Med | Stale-artifact risk, so isolate it and measure before/after against 214. Do after 217 so the job set being cached is final |
+| **219 Newest toolchain lane** | `lane: latest` in `verify-test`, exact pins, parity :233-249 + List 2 | 218 (key shape covers the new lane) | Med | Elixir 1.20's type inference can surface new warnings under `--warnings-as-errors`. Prove green on a branch before it votes. Never `continue-on-error` |
+| **220 CI DX** | `name:` rewrites ("says what failed"), YAML reorder by time-to-red, CONTRIBUTING name quotes, stale evaluator name | 215-219 (roster final) | Low | Rename once, after every job add, remove and lane change, so names and docs churn one time |
+| **221 SEED-006 classifier** | `bin/classify-ci-lanes` + `ci_lane_classifier_contract_test.exs` → `verify-change-scope` (roster) → `if:` on skip-eligible jobs → dynamic `allowed-skips` + amended release_control_plane :90 + CONTRIBUTING `allowed-skips decision:` | 214 diff-class data, 220 | High | Only one that weakens what a single PR proves. Build only if 214 shows a real share of skip-eligible PRs. Otherwise record "measured, not worth it" and close SEED-006 |
+
+### Classifier design constraints (for phase 221)
+
+- **Skip-eligible jobs only:** `verify-example-browser`, `verify-capture`, `verify-pgbouncer-topology`, and perhaps `verify-hex-evaluator`. **Never skip** `verify-test`, `verify-bump-rehearsal`, the Tier 0/1 jobs or the classifier. Doc-contract tests read README, guides, CONTRIBUTING and workflows inside `verify-test`, and the rehearsal runs every doc-contract file. A "docs-only" PR can still turn those red.
+- **Full matrix whenever any of these change:** `lib/`, `priv/`, `config/`, `assets/`, `examples/`, `mix.exs`, `mix.lock`, `.github/`, `bin/`, `.tool-versions`, or **any path not on an explicit allow-list**. A workflow edit changes the jobs themselves, so the SEED's "CI-only change" example must run everything.
+- **Also full matrix:** the event is not `pull_request`, `git diff` fails, or the base SHA is missing.
+- **Mechanical tests:**
+  - (a) a table of path sets mapped to expected outputs;
+  - (b) a completeness test: every `git ls-files` path classifies to a known category or to "unknown → full";
+  - (c) a test that every file a contract test reads maps to a category that runs `verify-test`;
+  - (d) a test that `push` and `workflow_dispatch` always yield an empty `allowed_skips`.
+
+---
+
+## Scaling Considerations
+
+| Concern | Now | After v1.43 | If the suite doubles |
 |---|---|---|---|
-| **Tier A — structural** | All 770 cells rendered; deterministic checks only (no overflow, a11y tree, token parity, DOM contract) | Every `ci.all` (deterministic, no LLM) | Hard guard |
-| **Tier B — LLM critique sample** | A curated per-page representative set: each page × {happy, one adverse state} × {dark, light} × {mobile 375, desktop 1024} ≈ 11×2×2×2 = 88 cells | Local/on-demand, per iteration | Advisory + score bump |
-| **Tier C — pixel baseline** | The `screenshot_allowlist.ci` set (currently 3, expandable) | CI (allowlist) + local regression guard | Hard guard |
-
-Start Tier B smaller: the existing `selectedTierCStressStories` (`page.home.happy`, `state.unavailable-down`, `state.permission-denied`, `state.pagination-boundary`) is the proven seed. Grow the LLM sample page-by-page as confidence in rubric stability grows.
-
----
-
-## Forward-Only Ratchet Design
-
-The ratchet **already exists and is enforced** (`stress_ledger_test.exs`): scores only rise unless an explicit `ratchet.resets` entry with `reset_rationale` is recorded; `locked_ids` can't vanish; `minimum_scores` are floors. v1.40 layers the *gate* on top.
-
-### Gate: a proposed change lands only if ALL hold
-1. **Target improves:** the targeted entry's `current_score` (and/or its targeted `lens_scores`) increases in the after-critique.
-2. **No score regression anywhere:** every other entry's after-score ≥ its committed `ratchet_score` (existing ratchet test enforces the committed side; the critic's before/after report must show no other cell dropped a band).
-3. **No pixel regression:** `operator-stress.spec.ts` allowlist screenshots + local `operator-screenshot-regression.spec.ts` pass.
-4. **No accessibility regression:** `operator-accessibility.spec.ts` coverage matrix + axe assertions pass.
-5. **Deterministic guards green:** `mix ci.all` (format, credo, `style_contract_test`, ledger test, doc-contract, example browser).
-6. **Human sign-off:** the maintainer commits the ledger score bump with the evidence reference — the LLM never writes the ledger.
-
-### Determinism strategy (LLM nondeterminism is the core risk)
-The literature is unambiguous here and matches the harness's needs:
-- **Temperature 0** for all scoring calls.
-- **Locked, versioned rubrics** with **anchored scoring bands** — each 0–100 band defined by concrete, checkable evidence descriptors (not vague adjectives). This is the RULERS/"locked rubric + evidence-anchored" pattern. Store rubric text as committed files; a rubric change is a `ratchet.resets`-style event requiring rationale.
-- **Evidence-grounded output:** the model must cite the region/DOM element driving each finding, so scores are auditable, not opaque.
-- **N-sample majority/median vote** per (cell × lens): query the judge k times (e.g. k=3–5), take the median score / majority band. Self-consistency across samples is the reliability signal; if variance across samples exceeds a threshold, flag the cell as "unstable — do not ratchet" rather than trusting a single number.
-- **Score bumps are quantized to bands** (e.g. 62→72→90 as the ledger already uses) not raw LLM integers, so sub-band LLM jitter never moves the ratchet.
-- **The LLM is advisory; deterministic tests are authoritative.** No score bump lands without the deterministic guards passing. The LLM can *propose* a bump; humans + deterministic guards *ratify* it. This is the single most important architectural stance: **the nondeterministic critic can never regress the deterministic floor.**
-
-This keeps the committed ledger a stable, monotonic, reviewable artifact even though an LLM informs it.
+| Concurrent-job cap (public repo) | 15 jobs per ci.yml run; PR + push + browser-full overlap | 16 jobs (+2 new, −1 removed, +1 matrix lane) | Consider the classifier, not sharding |
+| Critical path | Browser 651 s, current test lane 600 s | Browser ~ −(example compile) with the `_build` cache; current lane unchanged | Move `verify.example` (203 s) out of `verify-test (current)` into its own parallel job (measure first) |
+| Cache budget (10 GB per repo) | deps + PLT + Playwright | + `_build` per lane and env + example `_build` | Watch evictions. Exact keys only, no restore-keys fan-out |
+| Flake Detection | ~3,600 runner-min/month | Bounded, e.g. 10 repeats ≈ 30 min nightly, about 900/month (confirm against 214) | Re-derive repeat count from measured per-iteration time |
 
 ---
 
-## Evidence / Artifact Model
+## Anti-Patterns
 
-Expressed in Threadline's existing ledger/evidence idiom (append-only, provenance-tagged, human-readable, committed as review evidence — the same philosophy as `Threadline.Evidence` and the DESIGN-SYSTEM.md projection):
+### Anti-Pattern 1: Static `allowed-skips` or `continue-on-error` on a voting job
+**What people do:** list a flaky or new lane in `allowed-skips`/`allowed-failures`, or mark its step `continue-on-error`, to land it early.
+**Why it's wrong:** it launders a red job into a green `CI required`. release_control_plane_contract_test.exs:90-120 exists to catch exactly this.
+**Do this instead:** land the lane green on a branch first (219). Only the classifier's dynamic output may populate `allowed-skips` (221).
 
-| Artifact | Format | Location | Committed? |
-|---|---|---|---|
-| **Scorecard** (per cell × lens × persona) | JSON `{score, band, lens, persona, findings[], evidence_refs[], samples[], model, rubric_version}` | `.planning/design-evidence/<date>/scorecards/` | Yes (frozen review evidence) |
-| **Ranked findings register** | Markdown table (severity-ranked, page-grouped) | `.planning/design-evidence/<date>/FINDINGS.md` | Yes |
-| **Before/after screenshots** | PNG pairs | `.planning/design-evidence/<date>/before-after/` (or referenced from Playwright snapshots) | Yes for the sign-off set |
-| **Design-debt register** | Markdown, mirrors ledger `status: reserved`/low-score entries with owner + reopen trigger (same shape as the v1.39 residual-risk register) | `.planning/design-evidence/DESIGN-DEBT.md` | Yes |
-| **Scored ledger** | JSON | `.planning/design-system-ledger.json` (EXISTING) | Yes (SSOT) |
-| **DESIGN-SYSTEM.md projection** | Markdown table | root (EXISTING) | Yes |
-| **Rubrics** | JSON/MD, versioned | `e2e/critic/rubrics/` | Yes |
-| **Raw capture manifest + PNGs + a11y trees** | JSON + PNG | run dir under `OPERATOR_STRESS_SCREENSHOT_DIR` | Only the sign-off subset; bulk is gitignored |
+### Anti-Pattern 2: Trigger-level `paths:` / `paths-ignore:` on ci.yml
+**Why it's wrong:** the required check never reports and the PR waits forever (ci.yml:9-27). It also lets main diverge.
+**Do this instead:** job-level `if:` driven by a required classifier.
 
-Provenance on every scorecard (`model`, `rubric_version`, `sample count`, `timestamp`) mirrors `Threadline.Evidence`'s stable-provenance discipline. The **design-debt register** reuses the exact "owner + reopen-trigger per item" pattern from the v1.39 phase-193 residual-risk register — a proven, in-repo idiom.
+### Anti-Pattern 3: `_build` cache with `restore-keys`, or without removing the app's own build
+**Why it's wrong:** a partial restore across a changed `mix.lock` serves stale compiled deps. A restored `_build/*/lib/threadline` can mask the code under test.
+**Do this instead:** follow the rules in ci.yml:77-84 and pin them in the rewritten parity test.
 
----
+### Anti-Pattern 4: Floating toolchain tags for the newest lane
+**Why it's wrong:** `postgres:latest` is already banned (parity :199-207). An unpinned "latest Elixir" turns red on an upstream release, with no change in the repo.
+**Do this instead:** use exact versions and bump them on purpose.
 
-## Local-vs-CI Boundary
+### Anti-Pattern 5: A gate that passes on nothing
+**Why it's wrong:**
+- `mix hex.audit` only reports advisories on a Hex version that supports them. `ignore_advisories` is documented for Hex 2.5.1. An old Hex archive passes green while seeing nothing.
+- The path guard's own pattern and its fixtures can match themselves.
 
-This is the invariant-defining line. **LLM calls are local/on-demand; only deterministic guards run in CI.**
+**Do this instead:**
+- Assert a Hex version floor in the audit job, or keep a fixture lock pinned to a known-vulnerable version that must fail.
+- Build the path regex from parts, and run a table test with a seeded positive.
 
-### CI (`mix ci.all`, GitHub Actions) — deterministic only, no network, no LLM
-- `verify.format`, `verify.credo`, `verify.compile_no_optional`, `verify.test` (includes `stress_ledger_test.exs` → the ratchet), `verify.threadline`, `verify.example`, `verify.doc_contract`, `verify.example_browser` (the CI screenshot allowlist lane reading `screenshot_allowlist.ci`, plus a11y coverage).
-- **Add:** a deterministic `mix` verification that (a) ledger is monotonic + evidence-referenced, (b) DESIGN-SYSTEM.md fresh, (c) design-debt register consistent with ledger. Pure Elixir, no LLM.
-- Stable job IDs preserved; expensive jobs still run on `main` even under path filters (existing convention).
-
-### Local / on-demand only — never in CI
-- `e2e/critic/` Claude-vision runner (needs `ANTHROPIC_API_KEY`, network, nondeterministic).
-- A new `mix verify.design_critique` alias shelling to the Node critic — **defined but excluded from `ci.all`**, exactly like `verify.flake` and `verify.operator_stress`'s local-review posture.
-- `operator-screenshot-regression.spec.ts` (already `test.skip(!!process.env.CI, …)` — platform-sensitive pixels stay local).
-
-**The boundary in one sentence:** CI proves *nothing regressed* (pixels, a11y, ledger monotonicity, source contracts); the local LLM loop proposes *what to improve next* and produces the evidence that justifies a human-ratified score bump. CI never depends on an LLM being reachable or deterministic.
-
----
-
-## Suggested Build Order (dependency-ordered)
-
-Phase-shaped, with dependencies. Each phase is independently shippable and leaves the tree green.
-
-**Phase A — Ledger schema extension for lenses + evidence (foundation).**
-Extend `.planning/design-system-ledger.json` with `lens_scores`, `persona`, and `evidence_ref`; extend `stress_ledger_test.exs` to enforce lens monotonicity + "score bump needs evidence"; regenerate DESIGN-SYSTEM.md projection. Pure Elixir, deterministic, lands in `ci.all`.
-*Depends on:* nothing. *Risk:* low. *Unblocks:* everything downstream that writes scores.
-
-**Phase B — Capture matrix generalization (Node/Playwright).**
-Generalize `operator-stress.spec.ts` capture to emit a full capture manifest (Tier A structural cells + a configurable Tier B sample) with a11y trees, driven by the existing `OPERATOR_STRESS_SCREENSHOT_DIR` hook and `run-e2e.sh`. No LLM yet.
-*Depends on:* A (for cell IDs). *Risk:* low-med (matrix size / runtime — mitigate with tiering). *Unblocks:* C.
-
-**Phase C — Rubrics + critic runner (the new code).**
-Author locked, anchored, versioned rubrics per lens under `e2e/critic/rubrics/`; build the `e2e/critic/` Claude-vision runner with temperature 0, k-sample median vote, evidence-cited structured output, variance-flagging. Wire a local-only `mix verify.design_critique` (excluded from `ci.all`). Uses the current Claude vision model — **confirm exact model id / vision input format / pricing against the Claude API skill before coding, do not hardcode from memory.**
-*Depends on:* A, B. *Risk:* med-high (LLM determinism — mitigated by the ratchet stance: advisory only). *Unblocks:* D, E.
-
-**Phase D — Evidence & scorecard artifact model.**
-Scorecard/findings/design-debt writers in the ledger/evidence idiom; before/after diff report; commit the sign-off evidence set. Extend DESIGN-SYSTEM.md projection with lens columns + latest-critique links.
-*Depends on:* A, C. *Risk:* low. *Unblocks:* E.
-
-**Phase E — Full loop + gate wiring + one proven iteration.**
-Wire capture→critic→propose→re-evaluate→guard end to end; run one real iteration on the weakest page (lowest ledger score) to prove the gate: improve a target, show no regressions, ratify a human-signed score bump, land the evidence. Document the runbook.
-*Depends on:* A–D. *Risk:* med (integration). *Unblocks:* routine use.
-
-**Phase F — Coverage growth + closeout.**
-Grow the Tier B LLM sample page-by-page from the seed set; add pages to the CI screenshot allowlist as they stabilize; residual design-debt register + reopen triggers; adversarial review that the loop can't regress the deterministic floor.
-*Depends on:* E. *Risk:* low.
-
-Ordering rationale: the **deterministic ledger/guard spine (A)** must exist before any nondeterministic producer, so the LLM can never precede the guard. Capture (B) precedes critic (C) because the critic consumes captures. Evidence (D) precedes the full gate (E) because the gate references committed evidence. Coverage growth (F) is deliberately last so rubric stability is proven on a small set first.
-
----
-
-## Integration Risks
-
-| Risk | Severity | Mitigation |
-|---|---|---|
-| **LLM nondeterminism corrupts the monotonic ledger** | High | LLM is strictly advisory; deterministic `stress_ledger_test.exs` + pixel/a11y guards are authoritative; score bumps are band-quantized, human-ratified, evidence-referenced, temperature 0, k-sample median. |
-| **Capture matrix runtime explosion (770 cells × k samples × API cost)** | Med-High | Tiering: deterministic Tier A everywhere, LLM Tier B on a curated sample, pixel Tier C on the allowlist. Grow the sample incrementally. |
-| **Accidental root runtime dep / public API creep** | High | All LLM/Node code stays in `examples/.../e2e/`; new routes/fixtures stay `@moduledoc false` + dev/test-gated exactly like `stress_router.ex`; no component API exported. `verify.compile_no_optional` still guards Phoenix-optional. |
-| **CI depends on LLM/network** | High | `verify.design_critique` excluded from `ci.all` (the `verify.flake` precedent); CI screenshot lane reads only the committed `screenshot_allowlist.ci`. |
-| **Ledger banned-term guard rejects committed copy** | Low | The existing `@forbidden_terms` bans naming external SaaS visual-diff tools and `immutable ledger` in ledger/markdown — keep critique copy first-party and avoid those terms. |
-| **`style_contract_test.exs` / source-first design system fights proposals** | Med | Proposals edit `style.ex`/`ui.ex` source (the intended surface); the contract test is a *feature* here — it forces proposals through the guarded source, preventing runtime hacks. |
-| **Rubric drift silently changes scores over time** | Med | Version rubrics; treat a rubric change as a `ratchet.resets`-class event with rationale; store `rubric_version` on every scorecard. |
-| **`system` theme false-confidence** | Low | Follow the existing `playwright.config.ts` discipline: evaluate dark + light explicitly; treat `system` as affordance-only. |
-| **Screenshot baselines platform-sensitive** | Med | Reuse the existing pattern: local regression guard is CI-skipped; only the stable allowlist runs in CI; masks for dynamic content already defined. |
-
----
-
-## Key File References
-
-- Ratchet/ledger SSOT: `.planning/design-system-ledger.json` (entries, `ratchet.{locked_ids,minimum_scores,resets}`, `ratchet_rule`, `required_inventory`, `screenshot_allowlist.{ci,local_review}`, `version`)
-- Ratchet enforcement: `test/threadline/operator_surface/stress_ledger_test.exs` (monotonic scores, locked IDs, minimum scores, fixture round-trip, projection freshness, `@forbidden_terms`)
-- Projection: `DESIGN-SYSTEM.md`
-- Stress harness: `lib/threadline/operator_surface/stress_router.ex` (dev/test gate), `lib/threadline/operator_surface/live/stress_live.ex` (URL-param story/theme/viewport), `lib/threadline/operator_surface/stress_fixtures.ex` (fixtures, `@viewports`, `@theme_modes`, `@required_cases`)
-- Design-system source: `lib/threadline/operator_surface/style.ex` (+ `style_contract_test.exs`), `lib/threadline/operator_surface/ui.ex`, `presentation.ex`
-- Capture/guards: `examples/threadline_phoenix/e2e/playwright.config.ts` (dark projects + conditional light lane), `run-e2e.sh` (boot/seed/serve/run), `tests/operator-stress.spec.ts` (`OPERATOR_STRESS_SCREENSHOT_DIR`, ledger-driven allowlist, viewport list), `tests/operator-screenshot-regression.spec.ts` (CI-skipped pixel guard, masks), `tests/operator-accessibility.spec.ts` (rendered-state a11y coverage matrix), `tests/operator-storybook.spec.ts`
-- Storybook lane: `examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex` (`/dev/storybook`, `threadline_operator_surface_stress("/__stress", …)`)
-- Aliases: `mix.exs` (`verify.operator_stress`, `verify.example_browser{,_light}`, `verify.flake` [defined-but-excluded-from-`ci.all` precedent], `ci.all`)
-- Token parity: `brandbook/tokens.{json,css}`
-- Evidence-idiom precedents: `Threadline.Evidence` (append-only, provenance); v1.39 phase-193 residual-risk register (owner + reopen-trigger shape)
+### Anti-Pattern 6: The forward scrub rewrites historical receipts
+**Why it's wrong:** §8 says "do not rewrite historical receipts to look cleaner".
+**Do this instead:** replace the home-directory prefix only (with `~` or a repo-relative path), mechanically. Keep every other byte. Commit it separately from the guard so the diff can be reviewed as prefix-only.
 
 ---
 
 ## Sources
 
-- Repo inspection (HIGH confidence): all files above, read directly 2026-07-02.
-- LLM-as-judge determinism (MEDIUM-HIGH, cross-checked): locked/anchored rubrics, evidence-grounded scoring, temperature 0, self-consistency / k-sample majority-median vote.
-  - [Rulers: Locked Rubrics and Evidence-Anchored Scoring for Robust LLM Evaluation (arXiv)](https://arxiv.org/html/2601.08654v1)
-  - [Rubric-Based Evaluations & LLM-as-a-Judge — Methodologies, Biases, and Empirical Validation (Adnan Masood)](https://medium.com/@adnanmasood/rubric-based-evals-llm-as-a-judge-methodologies-and-empirical-validation-in-domain-context-71936b989e80)
-  - [Evaluating Scoring Bias in LLM-as-a-Judge (arXiv)](https://arxiv.org/html/2506.22316v2)
-  - [LLM-as-a-Judge: How to Build Reliable, Scalable Evaluation (Comet)](https://www.comet.com/site/blog/llm-as-a-judge/)
+- Repository (HIGH): `.github/workflows/{ci,browser-full,flake-detection,release}.yml`, `mix.exs`, `CONTRIBUTING.md`, `test/test_helper.exs`, `test/threadline/{ci_topology,ci_workflow_parity,ci_coverage_doc,release_control_plane,flake_classifier,dialyzer_slice}_contract_test.exs`, `bin/observe-main-ci`, `.planning/seeds/SEED-006-ci-feedback-loop-cost-and-latency.md`, `.planning/MILESTONE-GUIDE.txt` §7, §8, §9, §9a, §13
+- Measured (HIGH): CI run `36258719902` per-job and per-step durations; release-branch run list (duplicate `pull_request` + `workflow_dispatch` per SHA); `gh secret list` (RELEASE_PLEASE_TOKEN present); `mix hex.audit` output (Hex 2.5.1); `mix xref graph --format cycles` with and without `--label compile-connected`; `git ls-tree origin/main` (2190 `.planning/` files public)
+- [re-actors/alls-green README](https://github.com/re-actors/alls-green): `allowed-skips` is a comma-separated input (MEDIUM for dynamic expression use)
+- [mix hex.audit docs, Hex v2.5.1](https://hex.hexdocs.pm/Mix.Tasks.Hex.Audit.html): advisories, `ignore_advisories`, `HEX_IGNORE_ADVISORIES` (MEDIUM for which version introduced advisories)
+- [Elixir v1.20.0 release](https://github.com/elixir-lang/elixir/releases/tag/v1.20.0) and [changelog v1.20.4](https://hexdocs.pm/elixir/changelog.html): OTP 27+ required, OTP 29 compatible, stronger type inference (MEDIUM)
+
+---
+*Architecture research for: CI topology, v1.43*
+*Researched: 2026-09-26*

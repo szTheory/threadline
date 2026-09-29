@@ -86,7 +86,7 @@ Score: **5/5**
 
 ### GAP-1 (Minor): ROADMAP.md not updated to reflect Phase 3 completion
 
-- **File**: `/Users/jon/projects/threadline/.planning/ROADMAP.md`
+- **File**: `/Users/<user>/projects/threadline/.planning/ROADMAP.md`
 - **Location**: Lines 63–64 (plan checkboxes) and line 90 (phase progress row)
 - **Current state**: Plan checkboxes show `- [ ] 03-01` and `- [ ] 03-02`; progress table shows `0/2 Ready`
 - **Expected state**: Plan checkboxes should be `- [x]`; progress row should read `2/2 | Complete | 2026-04-23`
@@ -95,7 +95,7 @@ Score: **5/5**
 
 ### GAP-2 (Observation): Success criterion 4 arity mismatch between ROADMAP and implementation
 
-- **File**: `/Users/jon/projects/threadline/.planning/ROADMAP.md` line 58
+- **File**: `/Users/<user>/projects/threadline/.planning/ROADMAP.md` line 58
 - **Current ROADMAP wording**: `Threadline.Health.trigger_coverage/0`
 - **Actual implementation**: `Threadline.Health.trigger_coverage/1` (requires `repo:` keyword opt)
 - **Assessment**: Not a defect. The project-wide convention is "explicit repo: opt required — no Application.get_env lookup" (documented in 03-01-SUMMARY.md tech-stack patterns). The arity-0 wording in the ROADMAP predates the explicit-repo decision. The implementation is correct; the ROADMAP wording is slightly stale.
@@ -108,7 +108,7 @@ Score: **5/5**
 
 ### Fix 1: Update ROADMAP.md plan checkboxes and phase progress row
 
-In `/Users/jon/projects/threadline/.planning/ROADMAP.md`:
+In `/Users/<user>/projects/threadline/.planning/ROADMAP.md`:
 
 1. Change `- [ ] 03-01:` → `- [x] 03-01:`
 2. Change `- [ ] 03-02:` → `- [x] 03-02:`

@@ -1,0 +1,19 @@
+{
+  "async_s": 12.1,
+  "command": "MIX_ENV=test mix test --slowest 25",
+  "doctests": null,
+  "excluded": 2,
+  "exit_code": 0,
+  "exunit_finished_s": 129.3,
+  "failures": 0,
+  "max_cases": 1,
+  "note": "--slowest turns on ExUnit trace mode (max_cases: 1), so every test runs serially; wall_s is not the default parallel suite time",
+  "skipped": null,
+  "summary_line": "9 properties, 2207 tests, 0 failures, 2 excluded",
+  "sync_s": 117.1,
+  "tests": 2207,
+  "top25_entries_found": 25,
+  "top25_pct_of_total": 74.2,
+  "top25_total_s": 95.8,
+  "wall_s": 130.32
+}

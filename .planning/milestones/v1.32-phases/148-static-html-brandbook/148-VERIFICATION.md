@@ -25,7 +25,7 @@ Phase 148 created the direct-open HTML brandbook and SVG implementation specimen
 
 ## Acceptance Criteria
 
-- HTML opens from `file://`: `agent-browser --allow-file-access open file:///Users/jon/projects/threadline/brandbook/index.html`.
+- HTML opens from `file://`: `agent-browser --allow-file-access open file:///Users/<user>/projects/threadline/brandbook/index.html`.
 - Desktop and mobile first viewports are readable; screenshots saved under `/tmp/threadline-brandbook-v132-*.png`.
 - All image elements resolve to loaded dimensions; see Phase 149 image-load output.
 - Lower example section has no SVG text overflow at mobile width; inspected via `/tmp/threadline-brandbook-v132-examples-mobile.png`.

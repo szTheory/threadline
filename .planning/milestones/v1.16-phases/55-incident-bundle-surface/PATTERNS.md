@@ -22,7 +22,7 @@
 
 ### `lib/threadline.ex` (public bundle entrypoint)
 
-**Analog:** [lib/threadline.ex](/Users/jon/projects/threadline/lib/threadline.ex:132)
+**Analog:** [lib/threadline.ex](/Users/<user>/projects/threadline/lib/threadline.ex:132)
 
 **Public discovery pattern** (lines 132-179):
 ```elixir
@@ -53,7 +53,7 @@ Phase 55 should package `change_diff/2` at the bundle layer, not inline it in co
 
 ### `lib/threadline/investigation.ex` (incident bundle orchestration)
 
-**Analog:** [lib/threadline/investigation.ex](/Users/jon/projects/threadline/lib/threadline/investigation.ex:119)
+**Analog:** [lib/threadline/investigation.ex](/Users/<user>/projects/threadline/lib/threadline/investigation.ex:119)
 
 **Raw helper foundation pattern** (lines 119-138):
 ```elixir
@@ -104,7 +104,7 @@ Mirror this exact pattern for per-change incident wrappers: preload first, map o
 
 ### `lib/threadline/investigation/incident_bundle.ex` (new typed structs)
 
-**Analog:** [lib/threadline/investigation/linked_change.ex](/Users/jon/projects/threadline/lib/threadline/investigation/linked_change.ex:1)
+**Analog:** [lib/threadline/investigation/linked_change.ex](/Users/<user>/projects/threadline/lib/threadline/investigation/linked_change.ex:1)
 
 **Result-struct convention** (lines 1-35):
 ```elixir
@@ -135,12 +135,12 @@ Use separate incident-bundle modules rather than mutating `LinkedTransaction`.
 
 ### `lib/threadline/query.ex` (existence-aware singular lookup support)
 
-**Analog 1:** [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:452)
+**Analog 1:** [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:452)
 
 **Transaction drill-down primitive pattern** (lines 452-481 in current file):
 Use `audit_changes_for_transaction/2` as the ordering authority. Phase 55 should not fork transaction ordering logic; it should compose on top of this function or a sibling helper that preserves the same `captured_at DESC, id DESC` order.
 
-**Analog 2:** [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:353)
+**Analog 2:** [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:353)
 
 **Tagged singular lookup pattern** (lines 353-381):
 ```elixir
@@ -186,7 +186,7 @@ Keep repo resolution and preloading centralized in `Query`; do not reimplement r
 
 ### `test/threadline/investigation_test.exs` (bundle contract tests)
 
-**Analog:** [test/threadline/investigation_test.exs](/Users/jon/projects/threadline/test/threadline/investigation_test.exs:20)
+**Analog:** [test/threadline/investigation_test.exs](/Users/<user>/projects/threadline/test/threadline/investigation_test.exs:20)
 
 **Fixture helpers pattern** (lines 20-59):
 ```elixir
@@ -233,7 +233,7 @@ Mirror this structure for Phase 55, but invert the last assertions:
 
 ### `test/threadline/query_test.exs` (backward-compatibility guardrail)
 
-**Analog:** [test/threadline/query_test.exs](/Users/jon/projects/threadline/test/threadline/query_test.exs:714)
+**Analog:** [test/threadline/query_test.exs](/Users/<user>/projects/threadline/test/threadline/query_test.exs:714)
 
 **Compatibility block pattern** (lines 714-771):
 ```elixir
@@ -265,7 +265,7 @@ Use this to verify each bundled change carries a real diff map, not an opaque pl
 
 ### `examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex` (endpoint migration)
 
-**Analog:** [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:15)
+**Analog:** [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:15)
 
 **Auth + UUID gate pattern** (lines 15-43):
 ```elixir
@@ -312,7 +312,7 @@ This is the composition seam Phase 55 should delete. Controller should switch fr
 
 ### `examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_json.ex` (new renderer)
 
-**Analog:** [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_json.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_json.ex:1)
+**Analog:** [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_json.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_json.ex:1)
 
 **Curated render-module pattern** (lines 1-16):
 ```elixir
@@ -343,7 +343,7 @@ Phase 55 should add an `AuditTransactionJSON` module in this style:
 
 ### `examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs` (request-path proof)
 
-**Analog:** [examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs](/Users/jon/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs:6)
+**Analog:** [examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs](/Users/<user>/projects/threadline/examples/threadline_phoenix/test/threadline_phoenix_web/posts_incident_json_path_test.exs:6)
 
 **End-to-end contract test pattern** (lines 6-39):
 ```elixir
@@ -383,7 +383,7 @@ Add a sibling `404` case for authenticated requests where the transaction row is
 ## Shared Patterns
 
 ### Public API layering
-**Source:** [lib/threadline.ex](/Users/jon/projects/threadline/lib/threadline.ex:132), [lib/threadline/investigation.ex](/Users/jon/projects/threadline/lib/threadline/investigation.ex:119)
+**Source:** [lib/threadline.ex](/Users/<user>/projects/threadline/lib/threadline.ex:132), [lib/threadline/investigation.ex](/Users/<user>/projects/threadline/lib/threadline/investigation.ex:119)
 
 Apply to the new bundle API:
 - top-level `Threadline` is the discoverable facade
@@ -391,7 +391,7 @@ Apply to the new bundle API:
 - `Query` owns repo access, ordering, and preload helpers
 
 ### Typed wrapper contracts over raw structs
-**Source:** [lib/threadline/investigation/linked_change.ex](/Users/jon/projects/threadline/lib/threadline/investigation/linked_change.ex:1)
+**Source:** [lib/threadline/investigation/linked_change.ex](/Users/<user>/projects/threadline/lib/threadline/investigation/linked_change.ex:1)
 
 Apply to:
 - bundle parent struct
@@ -400,7 +400,7 @@ Apply to:
 Rule: keep raw `audit_change`, `transaction`, and `action` reachable on the bundle wrapper; add `change_diff` alongside them rather than replacing them.
 
 ### Explicit tagged outcomes for singular lookups
-**Source:** [lib/threadline/query.ex](/Users/jon/projects/threadline/lib/threadline/query.ex:353)
+**Source:** [lib/threadline/query.ex](/Users/<user>/projects/threadline/lib/threadline/query.ex:353)
 
 Apply to:
 - `Threadline.incident_bundle/2`
@@ -408,7 +408,7 @@ Apply to:
 Rule: return `{:ok, bundle}` or `{:error, :not_found}`. Do not overload `changes: []` to mean missing transaction.
 
 ### Phoenix controller/render split
-**Source:** [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_controller.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_controller.ex:23), [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_json.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_json.ex:1)
+**Source:** [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_controller.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_controller.ex:23), [examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_json.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/post_json.ex:1)
 
 Apply to the example migration:
 - controller handles auth, status codes, and library calls
@@ -416,7 +416,7 @@ Apply to the example migration:
 - keep error JSON inline or via `ErrorJSON`
 
 ### Compatibility-first regression coverage
-**Source:** [test/threadline/query_test.exs](/Users/jon/projects/threadline/test/threadline/query_test.exs:714), [test/threadline/investigation_test.exs](/Users/jon/projects/threadline/test/threadline/investigation_test.exs:241)
+**Source:** [test/threadline/query_test.exs](/Users/<user>/projects/threadline/test/threadline/query_test.exs:714), [test/threadline/investigation_test.exs](/Users/<user>/projects/threadline/test/threadline/investigation_test.exs:241)
 
 Apply to tests:
 - one suite for the new rich contract

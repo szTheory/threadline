@@ -713,7 +713,7 @@ Verified patterns. File paths are absolute; line citations are from the current 
 
 ### Threadline.Plug — `:actor_fn` consumption (already exists; do not modify)
 ```elixir
-# /Users/jon/projects/threadline/lib/threadline/plug.ex:65-78
+# /Users/<user>/projects/threadline/lib/threadline/plug.ex:65-78
 @impl Plug
 def call(conn, %{actor_fn: actor_fn}) do
   context = %AuditContext{
@@ -732,7 +732,7 @@ defp extract_actor(conn, fun) when is_function(fun, 1), do: fun.(conn)
 
 ### ActorRef.new/2 — validating constructor (use this, not direct struct literals)
 ```elixir
-# /Users/jon/projects/threadline/lib/threadline/semantics/actor_ref.ex:35-52
+# /Users/<user>/projects/threadline/lib/threadline/semantics/actor_ref.ex:35-52
 def new(type, id \\ nil)
 def new(type, _id) when type not in @types, do: {:error, :unknown_actor_type}
 def new(:anonymous, _id), do: {:ok, %__MODULE__{type: :anonymous, id: nil}}
@@ -742,7 +742,7 @@ def new(type, id) when is_binary(id), do: {:ok, %__MODULE__{type: type, id: id}}
 
 ### `mix.exs` `elixirc_paths(:test)` — already in place
 ```elixir
-# /Users/jon/projects/threadline/mix.exs:44-45
+# /Users/<user>/projects/threadline/mix.exs:44-45
 defp elixirc_paths(:test), do: ["lib", "test/support"]
 defp elixirc_paths(_), do: ["lib"]
 ```
@@ -758,7 +758,7 @@ end
 
 ### Doc-contract test pattern — copy this for `sigra_doc_contract_test.exs`
 ```elixir
-# /Users/jon/projects/threadline/test/threadline/stg_doc_contract_test.exs:1-27 (verbatim minus body)
+# /Users/<user>/projects/threadline/test/threadline/stg_doc_contract_test.exs:1-27 (verbatim minus body)
 defmodule Threadline.StgDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true

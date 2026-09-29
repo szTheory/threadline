@@ -118,12 +118,12 @@ The sha8 placeholder (`00000000`) is intentional — Plan 04's rubric-hash guard
 ## Self-Check: PASSED
 
 Files exist:
-- `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/hierarchy.md` FOUND
-- `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/density.md` FOUND
-- `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/rhythm.md` FOUND
-- `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/typography.md` FOUND
-- `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/color_contrast.md` FOUND
-- `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/brand_fidelity.md` FOUND
+- `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/hierarchy.md` FOUND
+- `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/density.md` FOUND
+- `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/rhythm.md` FOUND
+- `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/typography.md` FOUND
+- `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/color_contrast.md` FOUND
+- `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/critic/rubrics/brand_fidelity.md` FOUND
 
 Commits exist:
 - `d4457034` (hierarchy/density/rhythm) FOUND

@@ -147,6 +147,101 @@ defmodule Threadline.DialyzerSliceContractTest do
     assert output =~ "fixture is not valid JSON"
   end
 
+  # Fail-closed rows (D-08). The error prefix and the two completion markers are
+  # copied verbatim from dialyxir 1.4.8, deps/dialyxir/lib/dialyxir/dialyzer.ex:68
+  # (":dialyzer.run error: "), :120 ("done (passed successfully)") and :122
+  # ("done (warnings were emitted)"). The raw output is built at runtime inside
+  # tmp_dir; the maintainer's .dialyzer/ PLT is never touched.
+  @dialyzer_error_prefix ":dialyzer.run error: "
+  @passed_marker "done (passed successfully)"
+  @warnings_marker "done (warnings were emitted)"
+
+  @tag :tmp_dir
+  test "a Dialyzer run error with no completion marker fails closed", %{tmp_dir: tmp_dir} do
+    plt_path = ".dialyzer" <> "/" <> "x.plt"
+    raw = @dialyzer_error_prefix <> "Could not read PLT file " <> plt_path <> ": no_such_file\n"
+
+    refute raw =~ "done ("
+    assert {output, 1} = run_raw(tmp_dir, with_post_hash(committed_fixture(), raw), raw)
+    assert output =~ "Dialyzer did not complete"
+    assert output =~ "Could not read PLT file"
+  end
+
+  @tag :tmp_dir
+  test "empty raw output fails closed", %{tmp_dir: tmp_dir} do
+    raw = ""
+
+    refute raw =~ "done ("
+    assert {output, 1} = run_raw(tmp_dir, with_post_hash(committed_fixture(), raw), raw)
+    assert output =~ "Dialyzer did not complete"
+  end
+
+  @tag :tmp_dir
+  test "an error line wins over a completion marker", %{tmp_dir: tmp_dir} do
+    raw =
+      @dialyzer_error_prefix <>
+        "Analysis failed with error: badarg\n" <> @passed_marker <> "\n"
+
+    assert {output, 1} = run_raw(tmp_dir, with_post_hash(committed_fixture(), raw), raw)
+    assert output =~ "Dialyzer did not complete"
+  end
+
+  @tag :tmp_dir
+  test "an error line alongside stray warn lines fails closed", %{tmp_dir: tmp_dir} do
+    raw =
+      ~S|{:warn_unknown, {~c"lib/threadline/query.ex", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}|
+      |> Kernel.<>("\n")
+      |> Kernel.<>(
+        @dialyzer_error_prefix <>
+          "Could not read PLT file " <> ".dialyzer" <> "/x.plt: no_such_file\n"
+      )
+
+    refute raw =~ "done ("
+    assert {output, 1} = run_raw(tmp_dir, with_post_hash(committed_fixture(), raw), raw)
+    assert output =~ "Dialyzer did not complete"
+  end
+
+  @tag :tmp_dir
+  test "two completion markers fail closed", %{tmp_dir: tmp_dir} do
+    raw = @passed_marker <> "\n" <> @passed_marker <> "\n"
+
+    assert {output, 1} = run_raw(tmp_dir, with_post_hash(committed_fixture(), raw), raw)
+    assert output =~ "Dialyzer did not complete"
+  end
+
+  @tag :tmp_dir
+  test "an ANSI-wrapped passed marker is accepted", %{tmp_dir: tmp_dir} do
+    raw = "\e[32m" <> @passed_marker <> "\e[0m\n"
+
+    assert {output, 0} = run_raw(tmp_dir, with_post_hash(committed_fixture(), raw), raw)
+    assert output =~ "0 live warnings"
+  end
+
+  @tag :tmp_dir
+  test "the warnings-emitted marker is accepted as completion", %{tmp_dir: tmp_dir} do
+    raw =
+      ~S|{:warn_unknown, {~c"lib/threadline/query.ex", {53, 34}}, {:unknown_type, {Threadline.Capture.AuditChange, :t, 0}}}|
+      |> Kernel.<>("\n")
+      |> Kernel.<>("\e[33m" <> @warnings_marker <> "\e[0m\n")
+
+    assert {output, 0} = run_raw(tmp_dir, with_post_hash(committed_fixture(), raw), raw)
+    assert output =~ "0 live warnings"
+  end
+
+  defp run_raw(tmp_dir, fixture, raw) do
+    fixture_path = Path.join(tmp_dir, "slice.json")
+    raw_path = Path.join(tmp_dir, "dialyzer.raw")
+    File.write!(fixture_path, Jason.encode!(fixture))
+    File.write!(raw_path, raw)
+    assert File.read!(raw_path) == raw
+
+    System.cmd(
+      @script,
+      ["--fixture", fixture_path, "--raw-output", raw_path],
+      stderr_to_stdout: true
+    )
+  end
+
   defp committed_fixture do
     @fixture
     |> File.read!()
@@ -155,7 +250,14 @@ defmodule Threadline.DialyzerSliceContractTest do
 
   defp warning!(fixture, id), do: Enum.find(fixture["warnings"], &(&1["id"] == id))
 
-  defp run_fixture(fixture, raw) do
+  # Synthetic positives model a finished analysis, so the completion marker is
+  # appended by default. Rows that test the marker itself opt out (or use run_raw/3).
+  defp run_fixture(fixture, raw, opts \\ []) do
+    raw =
+      if Keyword.get(opts, :completion_marker, true),
+        do: raw <> @passed_marker <> "\n",
+        else: raw
+
     root = Path.dirname(Mix.Project.project_file())
 
     temp_root =

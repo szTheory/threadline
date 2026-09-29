@@ -11,9 +11,9 @@
 
 import module from "node:module";
 
-const E2E_DIR = "/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/";
+const E2E_DIR = "/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/";
 const PHASE_DIR =
-  "/Users/jon/projects/threadline/.planning/phases/160-glyph-outline-pipeline";
+  "/Users/<user>/projects/threadline/.planning/phases/160-glyph-outline-pipeline";
 const SPECIMEN = `${PHASE_DIR}/overlay-specimen.html`;
 const OUT = `${PHASE_DIR}/overlay-evidence-2x.png`;
 

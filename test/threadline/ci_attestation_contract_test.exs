@@ -28,9 +28,12 @@ defmodule Threadline.CiAttestationContractTest do
              """
     end
 
-    test "a render failure preserves an existing attestation and a valid render replaces it" do
+    @tag :tmp_dir
+    test "a render failure preserves an existing attestation and a valid render replaces it", %{
+      tmp_dir: tmp_dir
+    } do
       script = Path.expand("../../bin/record-ci-attestation", __DIR__)
-      root = Path.join(System.tmp_dir!(), "ci_attestation_#{System.unique_integer([:positive])}")
+      root = tmp_dir
       fake_bin = Path.join(root, "bin")
       out_dir = Path.join(root, "out")
       File.mkdir_p!(fake_bin)
@@ -74,8 +77,6 @@ defmodule Threadline.CiAttestationContractTest do
       assert status == 0
       assert Jason.decode!(File.read!(out_file))["run"]["id"] == 123
       assert Path.wildcard(Path.join(out_dir, ".ci-attestation-123.*")) == []
-
-      File.rm_rf!(root)
     end
   end
 end

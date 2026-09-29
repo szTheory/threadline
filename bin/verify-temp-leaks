@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# HYG-03: proves a `mix test` run leaves nothing behind in the system temp
+# directory. This is the leak check, not a leak *cleaner* — it never deletes
+# or ignores a leftover it finds; every leftover must be traced to its test
+# and fixed at the source (ExUnit `@tag :tmp_dir` for a scratch dir that can
+# live inside the repo's gitignored tmp/, or `on_exit` cleanup for a test that
+# genuinely needs to sit outside the git worktree).
+#
+# Why a private TMPDIR makes this deterministic rather than flaky: this
+# script creates its own throwaway directory via `mktemp -d` and points
+# TMPDIR at it before invoking `mix test`. `System.tmp_dir!/0` (Elixir/Erlang)
+# honors TMPDIR, so any test that calls it lands inside this private
+# directory instead of the real system temp root. Only this run's own
+# process tree ever writes into that private directory, so another process
+# on the same machine writing to /tmp at the same time can never produce a
+# false "leak" here — the check is isolated by construction, not by luck.
+#
+# ExUnit's `@tag :tmp_dir` / `@moduletag :tmp_dir` is unaffected by TMPDIR:
+# that per-test scratch directory always lives under the repo's own
+# gitignored `tmp/` (`<repo>/tmp/<Module>/<test-name>-<hash>/`), so migrating
+# a test to `:tmp_dir` takes it out of this check's scope entirely — which is
+# the point of the migration this check exists to prove.
+#
+# Arguments pass through unchanged to `mix test`, so a single file (or any
+# other mix test selector) can be checked in isolation:
+#   bin/verify-temp-leaks                          # full default suite
+#   bin/verify-temp-leaks test/threadline/foo_test.exs
+#
+# Exit status:
+#   - Any leftover entry in the private TMPDIR after the run -> exit 1,
+#     regardless of whether the tests themselves passed. Each leftover is
+#     printed as `LEAK <basename>`.
+#   - No leftover -> exits with the test run's own status (0 on a passing
+#     suite), after printing a one-line confirmation.
+#
+# Seam: MIX_BIN (default `mix`) lets tests substitute a fake `mix` binary to
+# exercise this script's behavior fully offline, mirroring bin/verify-deps-audit.
+
+set -euo pipefail
+
+die() {
+  printf 'verify-temp-leaks: %s\n' "$*" >&2
+  exit 2
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+MIX_BIN="${MIX_BIN:-mix}"
+
+# Strip a trailing slash from the base before building the mktemp template.
+# macOS sets TMPDIR to a path that already ends in "/" (e.g.
+# "/var/folders/.../T/"); concatenating another "/" here bakes a double slash
+# into every path under $private. `mktemp` and directory-listing code
+# (Path.wildcard, File.ls!) both collapse that to a single slash on output,
+# but code that starts from the raw System.tmp_dir!()/TMPDIR string (e.g.
+# `Path.join(System.tmp_dir!(), name)`, which only normalizes the join
+# boundary, not slashes already inside its first argument) does not — so a
+# test comparing a hand-built path against one derived from a directory
+# listing sees two different strings for the same file and fails. Not a
+# theoretical case: it broke gen_triggers_test.exs's `[^legacy, new_file]`
+# pin under this script before this fix.
+tmpdir_base="${TMPDIR:-/tmp}"
+tmpdir_base="${tmpdir_base%/}"
+private="$(mktemp -d "${tmpdir_base}/threadline-temp-leak-check.XXXXXX")" ||
+  die "could not create a private TMPDIR"
+
+cleanup_private() {
+  rm -rf "$private"
+}
+trap cleanup_private EXIT
+
+set +e
+(cd "$ROOT" && TMPDIR="$private" "$MIX_BIN" test "$@")
+test_status=$?
+set -e
+
+leftovers=()
+while IFS= read -r entry; do
+  [ -n "$entry" ] || continue
+  leftovers+=("$entry")
+done < <(find "$private" -mindepth 1 -maxdepth 1 -exec basename {} \; | LC_ALL=C sort)
+
+if [ "${#leftovers[@]}" -gt 0 ]; then
+  for entry in "${leftovers[@]}"; do
+    printf 'LEAK %s\n' "$entry"
+  done
+  exit 1
+fi
+
+printf 'verify-temp-leaks: 0 entries left in the private TMPDIR\n'
+exit "$test_status"

@@ -43,16 +43,19 @@ No separate `createdb` step: `test/test_helper.exs` ensures the test database ex
 
 ## Other jobs (`act`)
 
-Approximate **ExDoc** build (matches `verify-docs`):
+The **ExDoc** build (`--warnings-as-errors`) and the **Hex tarball** (`mix hex.build`)
+run inside `verify-bump-rehearsal`, through `mix verify.release` in a throwaway
+clone at the next minor. That job needs a Postgres service container (the
+rehearsal runs doc-contract tests, and `test/test_helper.exs` creates the test
+database), so `act` must support service containers:
 
 ```bash
-act -j verify-docs --container-architecture linux/amd64
+act -j verify-bump-rehearsal --container-architecture linux/amd64
 ```
 
-**Hex tarball** and **release-shape** jobs need no services:
+The **release-shape** job needs no services:
 
 ```bash
-act -j verify-hex-package --container-architecture linux/amd64
 act -j verify-release-shape --container-architecture linux/amd64
 ```
 

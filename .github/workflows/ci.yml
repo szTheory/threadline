@@ -1,5 +1,5 @@
 # Job id contract — stable YAML `jobs:` keys are relied on by docs and `act`:
-# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-mechanical, verify-capture, verify-docs, verify-hex-package, verify-release-shape, verify-bump-rehearsal, verify-deps-audit, ci-required
+# verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional, verify-test, verify-pgbouncer-topology, verify-hex-evaluator, verify-example-browser, verify-capture, verify-release-shape, verify-bump-rehearsal, verify-deps-audit, verify-repo-hygiene, ci-required
 #
 # `ci-required` (name: "CI required") is the SINGLE required status check on
 # `main` (D-08). Branch protection points at it and at nothing else. It is the
@@ -63,7 +63,7 @@ jobs:
           version-file: .tool-versions
           version-type: strict
 
-      # CACHE KEY CONTRACT (Phase 198, D-19) — read before adding any cache.
+      # CACHE KEY CONTRACT (Phase 198 D-19, Phase 219 CACHE-01) — read before adding any cache.
       #
       # Every key is composed of: runner label + OTP version + Elixir version +
       # lockfile hash. NEVER compose a key from the OS-family context value of
@@ -78,14 +78,21 @@ jobs:
       # what to install: the OTP and Elixir segments come from the same `beam`
       # step outputs, led by `${{ matrix.runner }}`.
       #
-      # There is currently NO `_build` cache in this workflow — only `deps` and
-      # the Playwright browser download. If one is ever added, two rules apply:
-      #   * it gets NO `restore-keys`. A partial restore across a changed
-      #     mix.lock is the stale-compiled-artifact footgun; a cold build is
-      #     cheaper than a wrong one.
-      #   * add `rm -rf _build/$MIX_ENV/lib/threadline` before the compile step,
-      #     so a restored cache can never serve a stale copy of the code under
-      #     test.
+      # The test jobs verify-test, verify-pgbouncer-topology,
+      # verify-example-browser and verify-capture restore deps-only `_build`
+      # caches with split actions/cache/restore + actions/cache/save steps
+      # (verify-pgbouncer-topology restores only, never saves). Their keys add
+      # `build-v1`, the project (`root` or `example`), MIX_ENV, the `full`
+      # profile, and the project's own lock and config hashes. Two rules hold:
+      #   * a `_build` cache has NO `restore-keys`. A partial restore across a
+      #     changed mix.lock is the stale-compiled-artifact footgun; a cold
+      #     build is cheaper than a wrong one.
+      #   * every cached job runs `rm -rf "_build/${MIX_ENV:?}/lib/threadline"`
+      #     (the example removes both of its own apps) after the deps compile
+      #     and before the save and the compile, so the cache holds only
+      #     dependencies and never serves a stale copy of the code under test.
+      # Keys, logs and the poisoned-cache runbook: CONTRIBUTING.md,
+      # `### Dependency build cache`.
       #
       # FORWARD REQUIREMENT FOR PHASE 199 (dialyzer PLT cache) — do not build a
       # key shape 199 has to redo. The PLT key must ADDITIONALLY include:
@@ -137,11 +144,31 @@ jobs:
   verify-dialyzer:
     name: Dialyzer (current toolchain)
     runs-on: ubuntu-24.04
-    # Plan 199-14 measured the cold job at 252 seconds. A 2x headroom factor,
-    # rounded up to the next whole minute, gives ceil(252 * 2 / 60) = 9.
-    timeout-minutes: 9
+    # Plan 199-14 measured the cold job at 252 seconds. The live Dialyzer slice
+    # proof (plan 218-03) adds a test-env compile (47 s), the Postgres service
+    # init (23 s), both from the "Run test suite (current)" job of run
+    # 36258719902, and the live test itself (about 10 s, an estimate): 80 s.
+    # A 2x headroom factor, rounded up to the next whole minute, gives
+    # ceil((252 + 80) * 2 / 60) = 12.
+    timeout-minutes: 12
     env:
       MIX_ENV: dev
+      DB_HOST: localhost
+      DB_PORT: 5432
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v5
 
@@ -256,6 +283,16 @@ jobs:
           echo "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=${max_rss_kb}"
           exit "$dialyzer_status"
 
+      # Runs after the PLT restore/build/save above, so the analysis it shells out
+      # to has a real PLT. bin/verify-dialyzer-slice fails closed when Dialyzer did
+      # not complete (a missing or unreadable PLT can no longer read as
+      # "0 live warnings"). This is the only job that runs the `live_dialyzer` tag;
+      # test/test_helper.exs excludes it from default `mix test`.
+      - name: Live Dialyzer slice proof (fails closed)
+        env:
+          MIX_ENV: test
+        run: mix verify.dialyzer_slice
+
   verify-compile-no-optional:
     name: Compile without optional deps
     runs-on: ubuntu-24.04
@@ -269,13 +306,6 @@ jobs:
           version-file: .tool-versions
           version-type: strict
 
-      - name: Cache deps
-        uses: actions/cache@v5
-        with:
-          path: deps
-          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
-
       - name: Install dependencies
         run: mix deps.get
 
@@ -284,20 +314,28 @@ jobs:
 
   verify-test:
     # Base axis `lane` drives the check-name suffix → GitHub posts exactly
-    # "Run test suite (min)" and "Run test suite (current)". Keys carried only
-    # via `include` (elixir/otp/pg/runner) do NOT append to that suffix, so the
-    # static `name:` yields the two documented required checks (D-15/D-19,
-    # RESEARCH M1 construction A). Min lane = Elixir 1.15.8 / OTP 26.2.5.21
-    # (exact floor build, strict) / pg14 on ubuntu-24.04 proving the declared
-    # floor; current lane = the committed .tool-versions build, the full
-    # payload. Each row sets exactly one toolchain source — the min row its
-    # explicit pins, the current row `version-file` — because setup-beam errors
-    # when both are set and an absent matrix key renders as an empty input.
+    # "Run test suite (min)", "Run test suite (current)" and
+    # "Run test suite (latest)". Keys carried only via `include`
+    # (elixir/otp/pg/runner) do NOT append to that suffix, so the static
+    # `name:` yields the three documented check names (D-15/D-19, RESEARCH
+    # M1 construction A). Min lane = Elixir 1.15.8 / OTP 26.2.5.21 (exact
+    # floor build, strict) / pg14 on ubuntu-24.04 proving the declared floor;
+    # current lane = the committed .tool-versions build, the full payload.
+    # Latest lane = the newest stable Elixir/OTP/PostgreSQL, exactly pinned
+    # with explicit `otp`/`elixir` (no `version-file`); it runs compile
+    # --warnings-as-errors, xref cycles and `mix verify.test` only (every
+    # current-only step guards on `matrix.lane == 'current'`), votes through
+    # `ci-required` on every run (Phase 220 D-07; Phase 222 may trim it), and
+    # is re-pinned at each milestone close. It is tested-on evidence, not a
+    # support floor. Each row sets exactly one toolchain source — the min and
+    # latest rows their explicit pins, the current row `version-file` —
+    # because setup-beam errors when both are set and an absent matrix key
+    # renders as an empty input.
     name: Run test suite
     strategy:
       fail-fast: false
       matrix:
-        lane: [min, current]
+        lane: [min, current, latest]
         include:
           - lane: min
             elixir: "1.15.8"
@@ -307,6 +345,11 @@ jobs:
           - lane: current
             version-file: ".tool-versions"
             pg: "16"
+            runner: "ubuntu-24.04"
+          - lane: latest
+            elixir: "1.20.4"
+            otp: "29.1.1"
+            pg: "18.6"
             runner: "ubuntu-24.04"
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
@@ -340,6 +383,13 @@ jobs:
           elixir-version: ${{ matrix.elixir }}
           version-type: strict
 
+      - name: Restore deps-only build cache
+        id: build-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ matrix.runner }}-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
+
       # THE bug this key shape fixes (D-19): an older key led with the
       # OS-family context value of the runner, which resolves to the literal
       # string `Linux` on every ubuntu image and carries no OTP or Elixir at
@@ -347,8 +397,9 @@ jobs:
       # therefore shared ONE cache entry — the min lane could be "verified"
       # against dependencies compiled for current, which is a false green on
       # the Elixir 1.15 floor promise, not merely a slow build. Today the key
-      # also carries the resolved OTP/Elixir, so the lanes cannot collide even
-      # on the same image.
+      # also carries the resolved OTP/Elixir, so the min, current and latest
+      # lanes cannot collide even on the same image: each lane restores and
+      # saves its own root key (four build keys across six job-lanes).
       - name: Cache deps
         uses: actions/cache@v5
         with:
@@ -358,6 +409,26 @@ jobs:
 
       - name: Install dependencies
         run: mix deps.get
+
+      - name: Compile dependencies on build cache miss
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Remove own build (never cached, never reused)
+        env:
+          BUILD_KEY: ${{ steps.build-restore.outputs.cache-primary-key }}
+          BUILD_HIT: ${{ steps.build-restore.outputs.cache-hit }}
+        run: |
+          if [ "$BUILD_HIT" = "true" ]; then state=hit; else state=miss; fi
+          echo "THREADLINE_BUILD_CACHE=${state} key=${BUILD_KEY}"
+          rm -rf "_build/${MIX_ENV:?}/lib/threadline"
+
+      - name: Save deps-only build cache
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ${{ steps.build-restore.outputs.cache-primary-key }}
 
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
@@ -385,6 +456,47 @@ jobs:
           # never applied to the root library's own `threadline_test` database.
           psql -h "$DB_HOST" -U postgres -d threadline_phoenix_test \
             -c "ALTER DATABASE threadline_phoenix_test SET search_path TO \"\$user\", public, threadline;"
+
+      - name: Restore example deps and deps-only build cache
+        id: example-build-restore
+        if: matrix.lane == 'current'
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            examples/threadline_phoenix/deps
+            examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+          key: ${{ matrix.runner }}-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-example-${{ env.MIX_ENV }}-full-${{ hashFiles('examples/threadline_phoenix/mix.lock') }}-${{ hashFiles('examples/threadline_phoenix/config/**/*.exs') }}
+
+      - name: Install example dependencies
+        if: matrix.lane == 'current'
+        working-directory: examples/threadline_phoenix
+        run: mix deps.get
+
+      - name: Compile example dependencies on cache miss
+        if: matrix.lane == 'current' && steps.example-build-restore.outputs.cache-hit != 'true'
+        working-directory: examples/threadline_phoenix
+        run: mix deps.compile --skip-local-deps
+
+      - name: Remove example app's own build (never cached, never reused)
+        env:
+          EXAMPLE_BUILD_KEY: ${{ steps.example-build-restore.outputs.cache-primary-key }}
+          EXAMPLE_BUILD_HIT: ${{ steps.example-build-restore.outputs.cache-hit }}
+        run: |
+          if [ -n "$EXAMPLE_BUILD_KEY" ]; then
+            if [ "$EXAMPLE_BUILD_HIT" = "true" ]; then state=hit; else state=miss; fi
+            echo "THREADLINE_EXAMPLE_BUILD_CACHE=${state} key=${EXAMPLE_BUILD_KEY}"
+          fi
+          rm -rf "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline" \
+            "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline_phoenix"
+
+      - name: Save example deps and deps-only build cache
+        if: matrix.lane == 'current' && steps.example-build-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            examples/threadline_phoenix/deps
+            examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+          key: ${{ steps.example-build-restore.outputs.cache-primary-key }}
 
       - name: Verify Threadline Phoenix example
         if: matrix.lane == 'current'
@@ -442,6 +554,7 @@ jobs:
     env:
       DB_HOST: localhost
       DB_PORT: 5432
+      MIX_ENV: test
     services:
       postgres:
         image: postgres:16
@@ -499,6 +612,45 @@ jobs:
           psql -h "$DB_HOST" -U postgres -d threadline_phoenix_test \
             -c "ALTER DATABASE threadline_phoenix_test SET search_path TO \"\$user\", public, threadline;"
 
+      - name: Restore example deps and deps-only build cache
+        id: example-build-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            examples/threadline_phoenix/deps
+            examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+          key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-example-${{ env.MIX_ENV }}-full-${{ hashFiles('examples/threadline_phoenix/mix.lock') }}-${{ hashFiles('examples/threadline_phoenix/config/**/*.exs') }}
+
+      - name: Install example dependencies
+        working-directory: examples/threadline_phoenix
+        run: mix deps.get
+
+      - name: Compile example dependencies on cache miss
+        if: steps.example-build-restore.outputs.cache-hit != 'true'
+        working-directory: examples/threadline_phoenix
+        run: mix deps.compile --skip-local-deps
+
+      - name: Remove example app's own build (never cached, never reused)
+        env:
+          EXAMPLE_BUILD_KEY: ${{ steps.example-build-restore.outputs.cache-primary-key }}
+          EXAMPLE_BUILD_HIT: ${{ steps.example-build-restore.outputs.cache-hit }}
+        run: |
+          if [ -n "$EXAMPLE_BUILD_KEY" ]; then
+            if [ "$EXAMPLE_BUILD_HIT" = "true" ]; then state=hit; else state=miss; fi
+            echo "THREADLINE_EXAMPLE_BUILD_CACHE=${state} key=${EXAMPLE_BUILD_KEY}"
+          fi
+          rm -rf "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline" \
+            "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline_phoenix"
+
+      - name: Save example deps and deps-only build cache
+        if: steps.example-build-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            examples/threadline_phoenix/deps
+            examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+          key: ${{ steps.example-build-restore.outputs.cache-primary-key }}
+
       # Reduced pull-request lane (Phase 198, D-17). Runs ONLY the two
       # interactive Chromium projects. The remaining projects (the capture
       # lanes) run on push-to-main and nightly in browser-full.yml, which is
@@ -535,62 +687,16 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # Deterministic mechanical gate over the committed Tier A evidence. Fast on
-  # every PR — no browser — and blocks a change if the committed
-  # test/fixtures/operator_surface/scorecards/*.json breach any MODE-A (WCAG / token conformance) or
-  # MODE-B (ratchet-floor) rule. The alias runs mechanical_checker_test.exs,
-  # whose real-evidence gate starts the application (and therefore the repo)
-  # to call MechanicalChecker.run/1 over the committed scorecards — it DOES
-  # need a database, unlike a purely arithmetic check.
-  verify-mechanical:
-    name: Mechanical checker (committed scorecards)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    env:
-      DB_HOST: localhost
-      DB_PORT: 5432
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: erlef/setup-beam@v1
-        id: beam
-        with:
-          version-file: .tool-versions
-          version-type: strict
-
-      - name: Cache deps
-        uses: actions/cache@v5
-        with:
-          path: deps
-          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
-
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Run mechanical checker
-        run: mix verify.mechanical
+  # Removed: verify-mechanical (mix verify.mechanical over the committed scorecards).
+  # Failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by
+  # verify-test (min and current lanes), which runs mechanical_checker_test.exs in
+  # the default suite, on push to main, pull_request and workflow_dispatch.
 
   # Heavy recurring gate: regenerate the Tier A capture from scratch against a
   # migrated example DB + real browser, and assert (1) the evidence bundle is
-  # non-empty and complete (every aria.yml has a matching scorecard JSON), (2)
-  # regeneration is byte-stable against the committed evidence (no drift), and
-  # (3) MechanicalChecker.run/1 is clean over it. This is the recurring proof
-  # of the two former human-UAT items (194-UAT.md).
+  # non-empty and complete (every aria.yml has a matching scorecard JSON) and
+  # (2) regeneration is byte-stable against the committed evidence (no drift).
+  # This is the recurring proof of the two former human-UAT items (194-UAT.md).
   verify-capture:
     name: Tier A capture lane (byte-stable evidence)
     runs-on: ubuntu-24.04
@@ -598,6 +704,7 @@ jobs:
     env:
       DB_HOST: localhost
       DB_PORT: 5432
+      MIX_ENV: test
     services:
       postgres:
         image: postgres:16
@@ -655,6 +762,45 @@ jobs:
           psql -h "$DB_HOST" -U postgres -d threadline_phoenix_test \
             -c "ALTER DATABASE threadline_phoenix_test SET search_path TO \"\$user\", public, threadline;"
 
+      - name: Restore example deps and deps-only build cache
+        id: example-build-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            examples/threadline_phoenix/deps
+            examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+          key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-example-${{ env.MIX_ENV }}-full-${{ hashFiles('examples/threadline_phoenix/mix.lock') }}-${{ hashFiles('examples/threadline_phoenix/config/**/*.exs') }}
+
+      - name: Install example dependencies
+        working-directory: examples/threadline_phoenix
+        run: mix deps.get
+
+      - name: Compile example dependencies on cache miss
+        if: steps.example-build-restore.outputs.cache-hit != 'true'
+        working-directory: examples/threadline_phoenix
+        run: mix deps.compile --skip-local-deps
+
+      - name: Remove example app's own build (never cached, never reused)
+        env:
+          EXAMPLE_BUILD_KEY: ${{ steps.example-build-restore.outputs.cache-primary-key }}
+          EXAMPLE_BUILD_HIT: ${{ steps.example-build-restore.outputs.cache-hit }}
+        run: |
+          if [ -n "$EXAMPLE_BUILD_KEY" ]; then
+            if [ "$EXAMPLE_BUILD_HIT" = "true" ]; then state=hit; else state=miss; fi
+            echo "THREADLINE_EXAMPLE_BUILD_CACHE=${state} key=${EXAMPLE_BUILD_KEY}"
+          fi
+          rm -rf "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline" \
+            "examples/threadline_phoenix/_build/${MIX_ENV:?}/lib/threadline_phoenix"
+
+      - name: Save example deps and deps-only build cache
+        if: steps.example-build-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            examples/threadline_phoenix/deps
+            examples/threadline_phoenix/_build/${{ env.MIX_ENV }}
+          key: ${{ steps.example-build-restore.outputs.cache-primary-key }}
+
       - name: Regenerate Tier A capture
         run: mix verify.capture
 
@@ -698,8 +844,11 @@ jobs:
           fi
           echo "Regeneration is byte-identical to the committed evidence."
 
-      - name: Assert mechanical checker clean over real evidence
-        run: mix verify.mechanical
+      # Removed: the trailing `mix verify.mechanical` step. Failure class
+      # "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by the
+      # byte-stable step above (regenerated == committed) plus verify-test running
+      # mechanical_checker_test.exs over the committed JSON, on push to main,
+      # pull_request and workflow_dispatch.
 
   verify-pgbouncer-topology:
     name: PgBouncer transaction topology
@@ -741,12 +890,38 @@ jobs:
           version-file: .tool-versions
           version-type: strict
 
+      - name: Restore deps-only build cache
+        id: build-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: _build/${{ env.MIX_ENV }}
+          key: ubuntu-24.04-otp-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-build-v1-root-${{ env.MIX_ENV }}-full-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}
+
       - name: Cache deps
         uses: actions/cache@v5
         with:
           path: deps
           key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
           restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile dependencies on build cache miss
+        if: steps.build-restore.outputs.cache-hit != 'true'
+        run: mix deps.compile
+
+      - name: Remove own build (never cached, never reused)
+        env:
+          BUILD_KEY: ${{ steps.build-restore.outputs.cache-primary-key }}
+          BUILD_HIT: ${{ steps.build-restore.outputs.cache-hit }}
+        run: |
+          if [ "$BUILD_HIT" = "true" ]; then state=hit; else state=miss; fi
+          echo "THREADLINE_BUILD_CACHE=${state} key=${BUILD_KEY}"
+          rm -rf "_build/${MIX_ENV:?}/lib/threadline"
+
+      - name: Compile (warnings as errors)
+        run: mix compile --warnings-as-errors
 
       - name: Wait for Postgres and PgBouncer
         env:
@@ -762,10 +937,7 @@ jobs:
           DB_HOST: localhost
           DB_PORT: "5432"
           THREADLINE_TOPOLOGY_BOOTSTRAP: "1"
-        run: |
-          mix deps.get
-          mix compile --warnings-as-errors
-          mix run priv/ci/topology_bootstrap.exs
+        run: mix run priv/ci/topology_bootstrap.exs
 
       - name: Topology tests + verify_coverage through PgBouncer
         env:
@@ -776,98 +948,17 @@ jobs:
           mix verify.topology
           mix verify.threadline
 
-  verify-docs:
-    name: Build ExDoc (dev)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    env:
-      MIX_ENV: dev
-    steps:
-      - uses: actions/checkout@v5
+  # Removed: verify-docs (plain `mix docs`). Failure class "the ExDoc build fails"
+  # is still caught by verify-bump-rehearsal, whose `mix verify.release` gate runs
+  # `MIX_ENV=dev mix docs --warnings-as-errors`, on push to main, pull_request and
+  # workflow_dispatch. A change that skips verify-bump-rehearsal skips this proof too.
 
-      - uses: erlef/setup-beam@v1
-        id: beam
-        with:
-          version-file: .tool-versions
-          version-type: strict
-
-      - name: Cache deps
-        uses: actions/cache@v5
-        with:
-          path: deps
-          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
-
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Build docs
-        run: mix docs
-
-  verify-hex-package:
-    name: Hex package tarball
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: erlef/setup-beam@v1
-        id: beam
-        with:
-          version-file: .tool-versions
-          version-type: strict
-
-      - name: Cache deps
-        uses: actions/cache@v5
-        with:
-          path: deps
-          key: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-${{ hashFiles('mix.lock') }}
-          restore-keys: ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-${{ steps.beam.outputs.elixir-version }}-mix-deps-
-
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Build and inspect Hex tarball
-        run: |
-          set -euo pipefail
-          mix hex.build
-          shopt -s nullglob
-          archives=(threadline-*.tar)
-          if [[ ${#archives[@]} -eq 0 ]]; then
-            echo "No threadline-*.tar produced" >&2
-            exit 1
-          fi
-          for t in "${archives[@]}"; do
-            # Hex wraps sources in contents.tar.gz inside the outer .tar
-            if tar tf "$t" | grep -q '^contents\.tar\.gz$'; then
-              tmp=$(mktemp -d)
-              tar xf "$t" -C "$tmp" contents.tar.gz
-              # grep -q can close the pipe early; without this, pipefail makes tar SIGPIPE fail the step
-              set +o pipefail
-              inner_ok=false
-              if tar tzf "$tmp/contents.tar.gz" | grep -qE '^lib/'; then inner_ok=true; fi
-              set -o pipefail
-              if [[ "$inner_ok" == true ]]; then
-                echo "OK: $t → contents.tar.gz contains lib/"
-              else
-                echo "contents.tar.gz missing lib/: $t" >&2
-                set +o pipefail
-                tar tzf "$tmp/contents.tar.gz" | head -40 >&2
-                set -o pipefail
-                rm -rf "$tmp"
-                exit 1
-              fi
-              rm -rf "$tmp"
-            elif tar tf "$t" | grep -qE '^lib/'; then
-              echo "OK: $t contains lib/ at archive root"
-            elif tar tf "$t" | grep -qE '^[^/]+/lib/'; then
-              echo "OK: $t contains */lib/"
-            else
-              echo "Tarball missing expected layout: $t" >&2
-              tar tf "$t" | head -40 >&2
-              exit 1
-            fi
-          done
+  # Removed: verify-hex-package (`mix hex.build` plus a lib/ check). Failure class
+  # "hex.build fails or the tarball has no usable lib/" is still caught by
+  # verify-bump-rehearsal (`mix hex.build` in `mix verify.release`) and
+  # verify-hex-evaluator (builds this tree's tarball, resolves it from the
+  # rehearsal registry, compiles and tests it), on push to main, pull_request and
+  # workflow_dispatch.
 
   verify-release-shape:
     name: Release metadata (version / changelog)
@@ -958,8 +1049,29 @@ jobs:
       - name: Prove the gate goes red (vulnerable lock, old Hex)
         run: bin/verify-deps-audit --self-test
 
+  verify-repo-hygiene:
+    name: Repo hygiene (no machine-local paths)
+    runs-on: ubuntu-24.04
+    # Measured locally: `bin/verify-repo-hygiene` ~1.5s + `bin/verify-repo-hygiene
+    # --self-test` ~1.4s = ~3s combined wall time. 10 minutes is the repo's
+    # timeout floor and gives enormous headroom on a slower hosted runner
+    # without hiding a hang.
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # Deliberately no erlef/setup-beam and no cache: the guard is pure git +
+      # bash + perl (see bin/verify-repo-hygiene), and `mix verify.repo_hygiene`
+      # shells to the identical script with no arguments, so CI and `ci.all`
+      # run identical logic without needing a BEAM toolchain in this job.
+      - name: Scan tracked text for machine-local paths
+        run: bin/verify-repo-hygiene
+
+      - name: Prove the guard goes red (runtime-built fixtures)
+        run: bin/verify-repo-hygiene --self-test
+
   # The single required status check on `main` (D-08). Collapses every job above
-  # into one pass/fail signal so branch protection names one context, not fifteen,
+  # into one pass/fail signal so branch protection names one context, not thirteen,
   # and so no required-check name carries a matrix axis that could rot.
   #
   # `if: always()` is load-bearing (D-09): a job that `needs:` a FAILED job is
@@ -981,14 +1093,12 @@ jobs:
       - verify-test
       - verify-hex-evaluator
       - verify-example-browser
-      - verify-mechanical
       - verify-capture
       - verify-pgbouncer-topology
-      - verify-docs
-      - verify-hex-package
       - verify-release-shape
       - verify-bump-rehearsal
       - verify-deps-audit
+      - verify-repo-hygiene
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -1001,5 +1111,5 @@ jobs:
           # Extension point: the first `needs:` job that becomes conditionally
           # skipped (a job-level `if:`) must be listed here via `allowed-skips`,
           # or this gate will correctly fail on its skip. Deliberately absent
-          # today — all fifteen jobs above run unconditionally, so neither
+          # today — all thirteen jobs above run unconditionally, so neither
           # `allowed-skips` nor `allowed-failures` applies yet.

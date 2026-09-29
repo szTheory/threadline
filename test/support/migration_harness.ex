@@ -13,8 +13,6 @@ defmodule Threadline.Test.MigrationHarness do
 
   import ExUnit.CaptureLog
 
-  require Logger
-
   alias Mix.Tasks.Threadline.Gen.Triggers
   alias Threadline.StorageSchema
   alias Threadline.Test.Repo

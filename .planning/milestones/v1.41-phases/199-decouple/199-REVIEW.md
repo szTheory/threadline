@@ -556,7 +556,7 @@ Iteration 3 preserved the original 526-file scope and independently inspected co
 
 #### CR-01: Route variants are omitted from the gate blast radius
 
-**File:** `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/gate.ts:188-192,216-264`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts:92-99`; `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/support/operator-surface-paths.test.ts:278-377`
+**File:** `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/critic/gate.ts:188-192,216-264`; `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts:92-99`; `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/support/operator-surface-paths.test.ts:278-377`
 
 **Issue:** `pageDarkCells/1` now requires the exact delimiter `${page}__`, so gating `route.timeline` includes `route.timeline__dark-1280` but excludes the generated `route.timeline.degraded__dark-1280` variant emitted by the same capture command. The pre-fix code deliberately used the page prefix, and the surrounding contract says the blast radius covers `${page}.*__dark-*` cells. A direct dry run with both scorecards present reported `0 changed of 1 scanned` and listed only the happy cell. A change that improves the happy timeline while regressing its degraded state can therefore be accepted without evaluating the degraded state, violating the gate's no-blocking-regression guarantee. The new end-to-end test creates only one route scorecard, so it cannot catch the omission.
 
@@ -564,7 +564,7 @@ Iteration 3 preserved the original 526-file scope and independently inspected co
 
 #### CR-02: Capture failure does not force the gate to VOID
 
-**File:** `/Users/jon/projects/threadline/examples/threadline_phoenix/e2e/critic/gate.ts:197-202,216-264,381-415,703-711,732-790`
+**File:** `/Users/<user>/projects/threadline/examples/threadline_phoenix/e2e/critic/gate.ts:197-202,216-264,381-415,703-711,732-790`
 
 **Issue:** When `npm run capture:pages` fails, `blastRadius/2` returns ordinary `changed`/`inScope` arrays and only places `Treat as VOID` in a human-readable note. `runGate/1` does not inspect capture success; with pre-existing scorecards it continues to the floor and LLM re-evaluation using stale evidence, and `verdict/4` has no blast-radius input. A direct run with a pre-existing generated route card and a fake failing `npm` printed `capture:pages failed ... Treat as VOID` but reached `[7/7] Verdict: REJECT`, proving the promised VOID state is not propagated. With an API key, model variance can make the stale-evidence re-evaluation satisfy the acceptance conditions, so a failed recapture can produce a false acceptance.
 

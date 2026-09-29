@@ -1,0 +1,211 @@
+{
+  "github_advisories": [
+    {
+      "ghsa_id": "GHSA-3gww-3f36-2388",
+      "lookup": "not found via gh api /advisories",
+      "severity": null
+    },
+    {
+      "cve_id": "CVE-2026-8468",
+      "ghsa_id": "GHSA-468c-vq7p-gh64",
+      "html_url": "https://github.com/advisories/GHSA-468c-vq7p-gh64",
+      "published_at": "2026-05-20T15:35:13Z",
+      "severity": "high",
+      "summary": "Plug: Unbounded buffer accumulation in multipart header parsing causes denial of service",
+      "vulnerabilities": [
+        {
+          "first_patched_version": "1.15.4",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.4.0, < 1.15.4"
+        },
+        {
+          "first_patched_version": "1.16.3",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.16.0, < 1.16.3"
+        },
+        {
+          "first_patched_version": "1.17.1",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.17.0, < 1.17.1"
+        },
+        {
+          "first_patched_version": "1.18.2",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.18.0, < 1.18.2"
+        },
+        {
+          "first_patched_version": "1.19.2",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.19.0, < 1.19.2"
+        }
+      ]
+    },
+    {
+      "ghsa_id": "GHSA-4mw9-4qgj-m97w",
+      "lookup": "not found via gh api /advisories",
+      "severity": null
+    },
+    {
+      "ghsa_id": "GHSA-8rqp-v692-v82q",
+      "lookup": "not found via gh api /advisories",
+      "severity": null
+    },
+    {
+      "ghsa_id": "GHSA-95qv-c9g9-rm63",
+      "lookup": "not found via gh api /advisories",
+      "severity": null
+    },
+    {
+      "cve_id": "CVE-2026-54892",
+      "ghsa_id": "GHSA-j43x-5hjq-rgxf",
+      "html_url": "https://github.com/advisories/GHSA-j43x-5hjq-rgxf",
+      "published_at": "2026-09-23T14:00:22Z",
+      "severity": "high",
+      "summary": " Plug: quadratic-time decoding of nested query/body parameters enables denial of service",
+      "vulnerabilities": [
+        {
+          "first_patched_version": "1.15.5",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.15.0, < 1.15.5"
+        },
+        {
+          "first_patched_version": "1.16.4",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.16.0, < 1.16.4"
+        },
+        {
+          "first_patched_version": "1.17.2",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.17.0, < 1.17.2"
+        },
+        {
+          "first_patched_version": "1.18.3",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.18.0, < 1.18.3"
+        },
+        {
+          "first_patched_version": "1.19.3",
+          "package": "plug",
+          "vulnerable_version_range": ">= 1.19.0, < 1.19.3"
+        }
+      ]
+    },
+    {
+      "cve_id": "CVE-2026-32687",
+      "ghsa_id": "GHSA-r73h-97w8-m54h",
+      "html_url": "https://github.com/advisories/GHSA-r73h-97w8-m54h",
+      "published_at": "2026-05-18T17:53:17Z",
+      "severity": "high",
+      "summary": "Postgrex: Channel-name SQL injection in `Postgrex.Notifications.listen/3`",
+      "vulnerabilities": [
+        {
+          "first_patched_version": "0.22.2",
+          "package": "postgrex",
+          "vulnerable_version_range": ">= 0.16.0, < 0.22.2"
+        }
+      ]
+    },
+    {
+      "cve_id": "CVE-2026-32686",
+      "ghsa_id": "GHSA-rhv4-8758-jx7v",
+      "html_url": "https://github.com/advisories/GHSA-rhv4-8758-jx7v",
+      "published_at": "2026-05-12T15:09:20Z",
+      "severity": "medium",
+      "summary": "Decimal: Unbounded exponent in `Decimal.new` enables unauthenticated DoS",
+      "vulnerabilities": [
+        {
+          "first_patched_version": "3.0.0",
+          "package": "decimal",
+          "vulnerable_version_range": ">= 0.1.0, < 3.0.0"
+        }
+      ]
+    },
+    {
+      "ghsa_id": "GHSA-rj5m-69wp-cxq9",
+      "lookup": "not found via gh api /advisories",
+      "severity": null
+    },
+    {
+      "ghsa_id": "GHSA-wpmj-jh88-rpgm",
+      "lookup": "not found via gh api /advisories",
+      "severity": null
+    }
+  ],
+  "hex_audit": {
+    "bench": [
+      {
+        "ghsa": "GHSA-rhv4-8758-jx7v",
+        "id": "EEF-CVE-2026-32686",
+        "package": "decimal",
+        "severity": "MEDIUM",
+        "version": "2.3.0"
+      },
+      {
+        "ghsa": "GHSA-3gww-3f36-2388",
+        "id": "EEF-CVE-2026-66838",
+        "package": "postgrex",
+        "severity": "MEDIUM",
+        "version": "0.22.0"
+      },
+      {
+        "ghsa": "GHSA-r73h-97w8-m54h",
+        "id": "EEF-CVE-2026-32687",
+        "package": "postgrex",
+        "severity": "HIGH",
+        "version": "0.22.0"
+      },
+      {
+        "ghsa": "GHSA-4mw9-4qgj-m97w",
+        "id": "EEF-CVE-2026-58225",
+        "package": "postgrex",
+        "severity": "LOW",
+        "version": "0.22.0"
+      },
+      {
+        "ghsa": "GHSA-j43x-5hjq-rgxf",
+        "id": "EEF-CVE-2026-54892",
+        "package": "plug",
+        "severity": "HIGH",
+        "version": "1.19.1"
+      },
+      {
+        "ghsa": "GHSA-468c-vq7p-gh64",
+        "id": "EEF-CVE-2026-8468",
+        "package": "plug",
+        "severity": "HIGH",
+        "version": "1.19.1"
+      },
+      {
+        "ghsa": "GHSA-wpmj-jh88-rpgm",
+        "id": "EEF-CVE-2026-56813",
+        "package": "plug",
+        "severity": "LOW",
+        "version": "1.19.1"
+      },
+      {
+        "ghsa": "GHSA-95qv-c9g9-rm63",
+        "id": "EEF-CVE-2026-56814",
+        "package": "plug",
+        "severity": "MEDIUM",
+        "version": "1.19.1"
+      }
+    ],
+    "example": [],
+    "root": [
+      {
+        "ghsa": "GHSA-rj5m-69wp-cxq9",
+        "id": "EEF-CVE-2026-82672",
+        "package": "mint",
+        "severity": "MEDIUM",
+        "version": "1.10.0"
+      },
+      {
+        "ghsa": "GHSA-8rqp-v692-v82q",
+        "id": "EEF-CVE-2026-92106",
+        "package": "lazy_html",
+        "severity": "LOW",
+        "version": "0.1.12"
+      }
+    ]
+  }
+}

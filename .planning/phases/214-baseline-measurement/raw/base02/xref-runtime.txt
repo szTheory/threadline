@@ -1,0 +1,27 @@
+5 cycles found. Showing them in decreasing size:
+
+Cycle of length 2:
+
+    lib/threadline/operator_surface/mechanical_checker/contrast.ex
+    lib/threadline/operator_surface/mechanical_checker.ex
+
+Cycle of length 2:
+
+    lib/threadline/investigation.ex
+    lib/threadline.ex
+
+Cycle of length 2:
+
+    lib/threadline/critic_trust/repository_boundary.ex
+    lib/mix/tasks/critic.measure.ex
+
+Cycle of length 2:
+
+    lib/threadline/capture/audit_transaction.ex
+    lib/threadline/semantics/audit_action.ex
+
+Cycle of length 2:
+
+    lib/threadline/capture/audit_transaction.ex
+    lib/threadline/capture/audit_change.ex
+

@@ -1,7 +1,7 @@
 ---
 phase: 203-real-gates
 fixed_at: 2026-09-23T00:00:00Z
-review_path: /Users/jon/projects/threadline/.planning/phases/203-real-gates/203-REVIEW.md
+review_path: /Users/<user>/projects/threadline/.planning/phases/203-real-gates/203-REVIEW.md
 iteration: 1
 findings_in_scope: 2
 fixed: 2
@@ -12,7 +12,7 @@ status: all_fixed
 # Phase 203: Code Review Fix Report
 
 **Fixed at:** 2026-09-23
-**Source review:** /Users/jon/projects/threadline/.planning/phases/203-real-gates/203-REVIEW.md
+**Source review:** /Users/<user>/projects/threadline/.planning/phases/203-real-gates/203-REVIEW.md
 **Iteration:** 1
 
 **Summary:**
@@ -20,7 +20,7 @@ status: all_fixed
 - Fixed: 2
 - Skipped: 0
 
-**Where verification ran:** in the main checkout (`/Users/jon/projects/threadline`), at the caller's instruction. No worktree was used.
+**Where verification ran:** in the main checkout (`/Users/<user>/projects/threadline`), at the caller's instruction. No worktree was used.
 
 ## Fixed Issues
 

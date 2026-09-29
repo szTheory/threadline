@@ -90,6 +90,26 @@ jobs:
             --label-description "Weekly deps-health lane: hex.audit advisories or hex.outdated findings" \
             --label-color FBCA04
 
+      # ECON-02 / D-06: a clean run closes the open dependency health issue,
+      # after first commenting with this run's URL and SHA so the closure is
+      # attributable. Gated on the classification VALUE 'clean' only: an
+      # empty/crashed report (classification '') and an `outdated` result
+      # (informational, still reported above) never close. With no open issue
+      # the script prints action=none and writes nothing.
+      - name: Close the dependency health issue on a clean run
+        if: steps.report.outputs.classification == 'clean'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE_PREFIX: "Dependency health"
+          LABEL: ci-deps
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          body_file=$(mktemp)
+          trap 'rm -f "$body_file"' EXIT
+          printf 'Clean on %s (%s): %s\n' "$GITHUB_SHA" "$GITHUB_EVENT_NAME" "$RUN_URL" > "$body_file"
+          bin/upsert-ci-issue --close --marker "$TITLE_PREFIX" --label "$LABEL" --body-file "$body_file"
+
       # The lane goes red on `advisory` (a hex.audit finding) or `unknown`
       # (a fetch failure that prevented an audit from running at all) —
       # never silently on empty output, which is why this exempts only the

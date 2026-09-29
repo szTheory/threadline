@@ -1,21 +1,21 @@
 ---
 gsd_state_version: "1.0"
-milestone: v1.41
-milestone_name: Green, Clean, and Honest
-status: Awaiting next milestone
-stopped_at: Phase 207 complete — all phases complete
-last_updated: "2026-09-25T01:27:20.136Z"
-last_activity: 2026-09-24
-last_activity_desc: Milestone v1.41 completed and archived
-state_head: d9e7b6598dcdf8b4341c4ba14c5f147953b4c746
+milestone: v1.43
+milestone_name: Supply Chain, CI Economy and Repo Hygiene
+current_phase: 220
+current_phase_name: Newest-Toolchain Lane
+status: executing
+stopped_at: Phase 220 planned
+last_updated: "2026-09-28T20:19:48.657Z"
+last_activity: 2026-09-28
+last_activity_desc: Phase 220 execution started
+state_head: 1934d82d3c210d9ca13cc675651418ae80355a37
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 153
-  completed_plans: 153
-  percent: 100
-current_phase: 207
-current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
+  total_phases: 9
+  completed_phases: 6
+  total_plans: 40
+  completed_plans: 36
+  percent: 67
 ---
 
 # Project State: Threadline
@@ -25,21 +25,14 @@ current_phase_name: Trigger Migration Rerun and Storage-Schema Default Docs
 See: `.planning/PROJECT.md` (updated 2026-09-24 after v1.41 milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Planning next milestone (v1.41 shipped 2026-09-24; start with `/gsd-new-milestone`)
+**Current focus:** Phase 220 — Newest-Toolchain Lane
 
 ## Current Position
 
-Phase: Milestone v1.41 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-09-24 — Milestone v1.41 completed and archived
-
-**Carried forward from the v1.41 close (2026-09-24), not recorded in git alone:**
-
-- The v1.41 work is on local branch `fix/branch-protection-actions-capability`, 513 commits ahead of and 0 behind `origin/main` (at `v0.10.1`). It still needs a squash-land through a PR to `main`; that is the GREEN-07 clause still open. The branch's own PR #41 is already merged and deleted on origin, so the landing needs a fresh branch and PR.
-- Unreleased on that branch: the installer (206) and `gen.triggers` rerun (207) fixes, with a 0.10.2 CHANGELOG entry. release-please cuts 0.10.2 only after they land on `main`. Four of those subjects leak planning IDs (`fix(207): CR-01 ...`), so squash-landing with a clean title avoids them in the changelog.
-- PR #42 (`auto/verification-debt-closeout`) is open; PR #34 is a DO-NOT-MERGE draft. Both need a disposition.
-- `.tool-versions` is deliberately untracked (see CONTRIBUTING).
+Phase: 220 (Newest-Toolchain Lane) — EXECUTING
+Plan: 4 of 4
+Status: Executing Phase 220
+Last activity: 2026-09-28 — Phase 220 execution started
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -62,11 +55,14 @@ Last activity: 2026-09-24 — Milestone v1.41 completed and archived
         decisions in `196-CONTEXT.md` [196-D1..D9]. ~85% of the phase is WIRING existing machinery.
 Last activity: 2026-08-27
 
-Progress: [████████████████████] 153/153 plans ([██████████] 100% of phases — 10 of 10 complete: 198–207; 207 Trigger Migration Rerun verified passed 16/16 (W1+W2 closed; 207-01 OR REPLACE trigger + non-cascading orphan drop: 1a9fbd53, 918103fa; 207-02 gen.triggers rerun name/module, orphan drop in up, per-table rollback: 1dc427aa, a12ebddf, a32d97c0; 207-03 public default in all guides + guard, rerun docs, CHANGELOG, e2e probe + gate 1839 tests/0 failures: 96f703c6, a69b0cc1); 206 Installer Migration Versions verified passed 15/15 (CR-01 closed; 206-REVIEW all 5 findings fixed: WR-01 7a154b8a, IN-01..04 68b8ec49..c0b4f4cf, REVIEW-FIX 34ede616); 205 Release Reconciliation closed audit gap F1 (merge 0d8ced0c); 199–203 carry stale verification)
+Progress: [███████░░░] 6 of 9 v1.43 phases complete (214–222): 214 Baseline Measurement verified passed 32/32 on re-verification after gap closure 214-04; 215 Supply Chain Gate verified passed 7/7 on re-verification after gap closure 215-05/215-06 (CR-01 global hex.config refusal, WR-02 deps.get --check-locked); 216 CI Platform Currency verified passed 3/3 (43/43 truths) 2026-09-27 after gap closure 216-08 (release sparse-checkout regression), landed via squash #55 + #57, 0.11.1 released (#56, run 36323594205); OPEN: 216 review CR-01 (smoke-published write token + persisted credentials, pre-existing) awaiting maintainer decision, distribution-sync PR #59 unmerged; 217 Repo Hygiene verified passed 5/5 on re-verification 2026-09-27 after gap closure 217-06 (CR-01 family-6 single-segment encoded path, WR-01/WR-03/IN-01) + 217-07 (CONTRIBUTING machine-local path placeholder convention + guard hint, WR-02 colon-safe parsing); HYG-01..04 Complete; round-2 review 0 critical/4 warning/2 info recorded open in 217-REVIEW-DISPOSITION.md (triage before milestone close; R2-WR-04 Linux-encoded dirs vs CONTRIBUTING claim is the one to act on); 218 planned 2026-09-27 (8 plans, serialized waves 1–8; plan-check passed after 3 revision rounds + 1 targeted fix); 218 execution started 2026-09-27 (sequential, main tree); 218-01 complete 2026-09-27 (ECON-03 PAT-absence guard on bootstrap-release-pr-ci + contract mutation controls, 26/33 plans); 218-02 complete 2026-09-27 (ECON-02 script half: bin/upsert-ci-issue --close + deps-health close-on-clean; #28/#36 close refused by classifier, handed off to maintainer / 218-06/07 wiring, 27/33 plans); 218-03 complete 2026-09-27 (ECON-05: fail-closed Dialyzer slice verifier, :live_dialyzer excluded by default and run only in verify-dialyzer via mix verify.dialyzer_slice, ci.all dedup exemption, timeout 12; 28/33 plans); 218-04 complete 2026-09-27 (ECON-06: verify-mechanical, verify-docs and verify-hex-package removed plus verify-capture's duplicate mechanical step, ci-required 16 -> 13, still-caught-by bullets + dominance pins with mutation controls, branch protection read-only confirmed CI required only; 29/33 plans); 218-05 complete 2026-09-27 (ECON-01 core: Flake Detection weekly Monday 07:00 UTC + dispatch, 15 repeats under timeout(1) 55m / step 58 / job 70, inconclusive on budget expiry, bin/ci-sha-gate green-SHA skip (schedule only) + broken-upstream, fail open to run; issue text + close-on-pass follow in 218-06; 30/33 plans); 218-06 complete 2026-09-27 (ECON-01 closed + ECON-02 flake wiring: per-classification issue text driven by the classifier reason, inconclusive/broken-upstream arms, close-on-pass via upsert-ci-issue --close, OS-family cache-key guard over every workflow; 31/33 plans); 218-07 complete 2026-09-27 (ECON-04 + ECON-02 Browser-full wiring: bin/browser-full-projects derives config minus ci.yml projects, Browser-full runs only graded/refute/route/storybook-capture, partition contract + mutation/comment controls, nightly green-SHA skip via bin/ci-sha-gate, close-on-green via upsert-ci-issue --close; #28/#36 still open pending first green runs; 32/33 plans); 218-08 complete 2026-09-28 (ECON-07: copied 214 tools, phase gate green, maintainer landed branch land/v1.43-217-218 as draft PR #60 with 3 Rule-1 landing fixes (refute-capture declares tier-a-capture, published .planning snapshot scrubbed, flake lane resized 15 -> 12 repeats); 218-REMEASURE.md cites 39 run IDs: per ci.yml run p50 46.3 -> 44.4 unrounded / 55 -> 53 billed (attributable 43.7 / 51), critical path 623 -> 643 s not credited, verify-dialyzer +74 s from PLT-hit samples only, flake pass 45.7 min (run 36364688861), Browser-full 6.4 min (run 36363979144); #28 and #36 CLOSED by those green dispatch runs; ECON-05 literal slice line not in CI log (deferred); 33/33 plans); v1.42 closed at 153/153 plans (198–207) 218 CI Economy: Remove Waste verified passed 12/12 2026-09-28 (ECON-01..07 Complete; landing draft PR #60 green incl. 3 landing deviations — refute-capture tier-a dependency, published .planning scrub+sync, flake 15->12 repeat resize — and review WR-01..06 fixed, WR-03 partial per D-04; next /gsd-plan-phase 219); 219 context gathered 2026-09-28 (research-then-recommend, 4 researchers, D-01..D-26 in 219-CONTEXT.md; maintainer approved measurement dispatch top-ups up to ~7 runner-h; 219 planned 2026-09-28 (3 plans, serialized waves 1–3: 01 contract-first build_cache_errors/2 + mutation controls, 02 atomic ci.yml/CONTRIBUTING/live-contract commit, 03 measurement with maintainer push/dispatch checkpoint; plan-check 3 revision rounds + 1 targeted fix, decision coverage 26/26; next /gsd-execute-phase 219); 219 execution started 2026-09-28 (sequential, main tree); 219-01 complete 2026-09-28 (CACHE-01 contract first: build_cache_errors/2 in ci_workflow_parity_contract_test.exs, D-17 security subset asserted live, fixture + hybrid proven clean, 65 mutation controls over 30 rule fragments, live-needle controls, docs parity; old _build refute untouched for plan 02; 4 test commits; 34/36 plans); 219-02 complete 2026-09-28 (CACHE-01 static half live: exact-keyed deps-only root and example _build caches in verify-test, verify-pgbouncer-topology (restore-only), verify-example-browser and verify-capture, no-optional deps cache removed, CONTRIBUTING ### Dependency build cache + runbook, build_cache_errors/2 + all controls + YamlElixir anti-drift asserted on the live tree; one ci commit cfa615a9; 35/36 plans; next 219-03 measurement behind a maintainer push/dispatch grant); 219 landing 2026-09-28: mint 1.11.0 advisory fix (1ee0e352, CHANGELOG Unreleased), 219 commits cherry-picked onto land/v1.43-217-218 / PR #60 (option a, maintainer-authorized push/PR/dispatch); first PR run 36446346094 green, cold (all root/example misses, current-lane example in-run hit); plan 03 collection pending. 219-03 complete 2026-09-28 (CACHE-01 measured: 10 ci.yml runs of the 219 code on PR #60 / land branch, 2 cold + 8 warm labelled from committed JSON; warm run 39.3 unrounded / 49 billed runner-min vs 44.4 / 53 post-218 and 46.3 / 55 BASE-01; critical path 643 -> 547 s; Test (current) -116 s, PgBouncer -42 s, Browser E2E -96 s, Capture noise-level, Test (min) job saving not demonstrated (suite slowdown); miss overhead <= 3 s; build-v1 78.8 MB; 219-REMEASURE.md cites 30 run IDs; 36/36 plans; next phase 219 verification); 219 Deps-Only Build Cache verified passed 4/4 2026-09-28 (CACHE-01 Complete; landed on PR #60 via option (a) with mint 1.11.0 advisory fix; 2 cold + 8 warm CI samples, critical path −76 s vs BASE-01 / −96 s vs 218, −6 billed runner-min/run vs BASE-01; review WR-01..03 + IN-01..04 all fixed, CI run 36465241600 green; next /gsd-discuss-phase 220); 220 context gathered 2026-09-28 (research-then-recommend, 3 researchers, D-01..D-18 in 220-CONTEXT.md; exact pins Elixir 1.20.4 / OTP 29.1.1 / PG 18.6; 6 known 1.20 lib warnings fixed pre-spike; spike = real landing commit on spike/220-latest via ci.yml dispatch; maintainer accepted +~6 billed runner-min/run, trim in 222; next /gsd-plan-phase 220).; 220 planned 2026-09-28 (4 plans, serialized waves 1–4: 01 tracer D-08 warning fixes + local 1.20.4/29.1.1/PG 18.6 pre-spike, 02 lane: latest row + latest_row_errors/2 + D-15 voting_lane_errors/1 + D-16 postgres_image_errors/1 + docs, 03 spike dispatch behind maintainer push/dispatch grant → 220-SPIKE.md GREEN|NOT YET, 04 land outcome behind landing grant; plan-check passed first pass, decision coverage 18/18; next /gsd-execute-phase 220). 220 execution started 2026-09-28 (sequential, main tree); 220-01 complete 2026-09-28 (six Elixir 1.20 dead-code warnings removed in 17a7faa5; pins re-checked live, still Elixir 1.20.4 / OTP 29.1.1 / PG 18.6; local pre-spike on 1.20.4/29.1.1 vs PG 18.6: 2509 passed, 0 failures; committed toolchain green); 220-02 complete 2026-09-28 (voting lane: latest row 1.20.4/29.1.1/PG 18.6 + latest_row_errors/2, voting_lane_errors/1, postgres_image_errors/1 with mutation controls + tested-on docs in commit A 77ff2392; re-pin closeout line in 5a037db2; ci.all green on re-run after environmental too_many_connections; next 220-03 spike under maintainer grant); 220-03 complete 2026-09-28 (spike GREEN: one dispatch, run 36484105399 on spike/220-latest tip 4a32cbf6, min/current/latest + CI required all success; latest lane OTP-29.1.1 / v1.20.4-otp-29 / postgres:18.6, 2513 passed; cold run 58 billed min, latest job 7; 1/2 pushes, 1/3 dispatches used; next 220-04 landing on PR #60 under maintainer grant); 220-04 complete 2026-09-28 (GREEN landed: land/v1.43-217-218 fast-forwarded fcb22e00 -> 4a32cbf6 by the orchestrator under maintainer authorization after the classifier blocked the delegated push; PR #60 run 36487483472 all 16 jobs success incl. CI required + Run test suite (latest), 53 billed min cold; remote spike branch deleted, worktree cleaned; 220-03 tree-equality proof corrected (zsh word-splitting made it vacuous; re-run under bash: only mix.exs @version differs, pre-existing 0.11.1 release bump); next phase 220 verification); 220 verification 2026-09-28: gaps_found 8/12 (SC1 + SC2 met, landed green on PR #60; SC3/D-15/D-16 fail-closed contracts bypassable per review WR-01..03 + IN-01, WR-04 CONTRIBUTING contradicts single CI required context; next /gsd-code-review 220 --fix then a landing push to PR #60 under a fresh maintainer grant, then re-verify).
+
+Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-218-06 and post-218-07): the `state.update-progress` handler overwrote this narrative line with a bare `[███░░░░░░░] 33%` on both occasions; restored per CLAUDE.md's documented handler-clobber caveat, with plan 217-04's and 217-05's completions folded into the narrative above (percent 33% is correct — 23/23 plans complete, unaffected by the restore).
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.41 — Green, Clean, and Honest (opened 2026-08-27; roadmap complete — Phases 198-204, coarse granularity, 53/53 requirements mapped, est. 26-33 plans)
+- **Active Milestone**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (opened 2026-09-26; roadmap created: Phases 214-222, 24 requirements; SEED-006 is conditional Phase 222)
+- **Previous Milestone**: v1.42 — Capture Correctness for Real Table Shapes (Phases 208-213, 28/28, released 0.11.0)
 - **Last Milestone Shipped**: v1.40 — Automated Operator-UI Critique & Forward-Only Iteration Harness (2026-08-27, Phases 194-197, 28/29 requirements; PROOF-02 ratified shortfall)
 - **Prior Milestone Shipped**: v1.39 — Quality Baseline, Schema Confidence, and CI Efficiency (2026-07-03, Phases 189-193, 15/15 requirements)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
@@ -175,11 +171,61 @@ Progress: [████████████████████] 153/153
 | Phase 207 P01 | 4min | 2 tasks | 3 files |
 | Phase 207 P02 | 6 min | 3 tasks | 5 files |
 | Phase 207 P03 | 7min | 3 tasks | 7 files |
+| Phase 208 P01 | 2 min | 2 tasks | 4 files |
+| Phase 208 P02 | 5min | 2 tasks | 4 files |
+| Phase 208 P03 | 5 min | 2 tasks | 6 files |
+| Phase 208 P04 | 6 min | 3 tasks | 3 files |
+| Phase 208 P05 | 12 min | 3 tasks | 6 files |
+| Phase 210 P01 | 19min | 3 tasks | 8 files |
+| Phase 210 P02 | 22min | 2 tasks | 2 files |
+| Phase 210 P03 | 30min | 3 tasks | 8 files |
+| Phase 210 P04 | 21min | 3 tasks | 8 files |
+| Phase 210 P05 | 30min | 3 tasks | 13 files |
+| Phase 211 P01 | 13min | 3 tasks | 5 files |
+| Phase 211 P02 | 55min | 3 tasks | 6 files |
+| Phase 211 P03 | 45min | 3 tasks | 11 files |
+| Phase 211 P04 | 55min | 3 tasks | 8 files |
+| Phase 212 P01 | ~1h | 3 tasks | 9 files |
+| Phase 212 P02 | ~1h30m | 3 tasks | 5 files |
+| Phase 212 P03 | ~1h | 3 tasks | 6 files |
+| Phase 212 P05 | 55min | 3 tasks | 8 files |
+| Phase 212 P04 | 45min | 2 tasks | 7 files |
+| Phase 212 P06 | ~10min | 2 tasks | 5 files |
+| Phase 213 P01 | 1h5min | 3 tasks | 11 files |
+| Phase 213 P02 | 55min | 3 tasks | 4 files |
+| Phase 213 P03 | 1h25min | 3 tasks | 3 files |
+| Phase 214 P01 | 14 min | 3 tasks | 242 files |
+| Phase 214 P02 | 17min | 3 tasks | 26 files |
+| Phase 214 P03 | 12 min | 3 tasks | 49 files |
+| Phase 215 P01 | 25min | 2 tasks | 4 files |
+| Phase 215 P03 | 20min | 2 tasks | 1 files |
+| Phase 215 P02 | 35min | 2 tasks | 9 files |
+| Phase 215 P04 | ~50min | 3 tasks | 5 files |
+| Phase 215 P05 | ~55min | 3 tasks | 5 files |
+| Phase 217 P01 | ~40min | 3 tasks | 3 files |
+| Phase 217 P02 | ~70min | 3 tasks | 13 files |
+| Phase 217 P03 | 12min | 2 tasks | 1 files |
+| Phase 217 P04 | ~35min | 2 tasks | 319 files |
+| Phase 217 P05 | ~50min | 2 tasks | 4 files |
+| Phase 217 P06 | ~10min | 2 tasks | 3 files |
+| Phase 217 P07 | ~25min | 3 tasks | 5 files |
+| Phase 218 P01 | 4min | 2 tasks | 2 files |
+| Phase 218 P02 | 5min | 2 tasks | 4 files |
+| Phase 218 P03 | 10 min | 2 tasks | 9 files |
+| Phase 218 P04 | 8 min | 3 tasks | 8 files |
+| Phase 218 P05 | 15min | 2 tasks | 9 files |
+| Phase 218 P06 | 10 min | 2 tasks | 3 files |
+| Phase 218 P07 | 10 min | 2 tasks | 5 files |
+| Phase 219 P01 | 36min | 4 tasks | 1 files |
+| Phase 219 P02 | 17min | 4 tasks | 3 files |
+| Phase 219 P03 | 160min | 4 tasks | 27 files |
 
 ## Deferred Items
 
 | Category | Item | Status |
 |----------|------|--------|
+| deferred_items (v1.42 close, 2026-09-26) | Phase 210 deferred-items: 210-04 format drift in legacy_trigger_pk_fallback_test (resolved in 210-05) | Acknowledged |
+| deferred_items (v1.42 close, 2026-09-26) | Phase 202 (v1.41 archive) deferred-items: flake mechanism CORRECTION (critic_trust_test unique_integer scratch-dir reuse) | Acknowledged, carried |
 | external-pilot | v1.28 pilot unblockers | **Deferred** until sustained real-adopter signal |
 | post-v1.29 | Hold mode | **Superseded** by v1.31 polish milestone (2026-06-03) |
 | v1.22 DEFER | COMPLIANCE-PACK, LEGAL-HOLD, IMMUTABLE-ARCHIVE | Deferred until procurement pressure |
@@ -322,6 +368,9 @@ Progress: [████████████████████] 153/153
 
 ### Roadmap Evolution
 
+- **v1.43 roadmap (2026-09-26):** Phases 214-222 from the research SUMMARY split, 24/24 requirements mapped. 214 Baseline, then 215 Supply chain / 216 Platform currency / 217 Repo hygiene (mutually independent), 218 Remove CI waste (ECON-07 re-measure), 219 deps-only `_build` cache, 220 newest lane (spike-gated), 221 names/order (rename once), 222 SEED-006 (conditional). Kept nine phases despite coarse granularity: each boundary is an ordering constraint (fix before gate, delete before cache, rename after roster changes, classifier after measured wins). Research flags: 220, 222, 219, parts of 216; 215 narrow (Hex cooldown only if adopted).
+- **v1.42 roadmap (2026-09-24):** Phases 208-213 from research SUMMARY split, adjusted for the four scope decisions. REL-01 (`bump-minor-pre-major`) lands in 208 before any releasable commit. CONF-01 is mapped to 210 (config key, validation, migrate-time enforcement) but completes only when 211 success criterion 3 (override read round-trip) passes. IDX-01 ships in 211 (install creates the index). Kept six phases despite coarse granularity: each boundary is a hard contract hand-off and the 209 security fix must not wait behind the PK rewrite. Research flags: 208 (hashed-name format), 210 (TG_ARGV spike), 211 (composite history API).
+
 - Phase 130.1 inserted after Phase 130: Address tech debt: planning metadata hygiene (URGENT)
 - Milestone v1.29 archived 2026-05-29
 - **Post-v1.30 direct-PR work (2026-05-30, no milestone):**
@@ -344,14 +393,14 @@ Progress: [████████████████████] 153/153
 - **Milestone v1.33 archived (2026-06-06):** Roadmap, requirements, audit, and phase history are archived under `.planning/milestones/`; fresh requirements are needed before public rollout work.
 - **Milestone v1.34 opened (2026-06-06):** Local Docker Admin UI DX focuses on helper-first `bin/demo-up`, localhost-bound dynamic ports, Compose project isolation, cache-friendly Docker behavior, printed `/audit` URLs, lifecycle commands, and docs. Traefik/subdomain routing is deferred; `.localhost` is the future-safe hostname family if proxy support is later added.
 - **v1.34 implementation complete (2026-06-06):** `bin/demo-up` now supports project-aware lifecycle commands, `--build`, no-build refreshes when a project image exists, port validation, optional public host, and clearer failure guidance. Compose/Dockerfile now support an overridable demo base image, bundled Dockerfile frontend, `ca-certificates`, localhost-bound ports, project-scoped volumes, and pinned PgBouncer. Docs cover helper-first DX, multi-stack ports, cleanup, cache behavior, and deferred proxy/subdomain routing.
-- **Milestone v1.35 roadmap created (2026-06-11):** Unified Logo & Brand Book v2 — phases 159–163 per the approved plan `~/.claude/plans/have-to-compare-it-lexical-shore.md`. 159 (audit+research) ∥ 160 (glyph pipeline) → 161 (tournament, human checkpoint rounds, user picks winner) → 162 (brand book v2 + UAT) → 163 (optional product rollout, decision-gated). 28/28 requirements mapped; operator surface `style.ex` frozen in all core phases.
+- **Milestone v1.35 roadmap created (2026-06-11):** Unified Logo & Brand Book v2 — phases 159–163 per the approved plan `<home>/.claude/plans/have-to-compare-it-lexical-shore.md`. 159 (audit+research) ∥ 160 (glyph pipeline) → 161 (tournament, human checkpoint rounds, user picks winner) → 162 (brand book v2 + UAT) → 163 (optional product rollout, decision-gated). 28/28 requirements mapped; operator surface `style.ex` frozen in all core phases.
 - **Milestone v1.35 shipped + archived (2026-06-12):** C13 topstitch-geist identity, brand book v2, product rollout, and light-mode strategy decision [165-01] (supersedes [136-01]; v1.36 seeded via SEED-004). Archives under `.planning/milestones/v1.35-*`.
-- **Milestone v1.37 roadmap created (2026-06-14):** Operator Surface Design-System Stress Test & Component System — phases 171-180 per the approved plan `~/.claude/plans/design-system-stress-test-fancy-gizmo.md`, continued numbering. Largely linear fractal sequence: 171 (harness: `/audit/__stress` + DESIGN-SYSTEM.md v2 + scored ratchet ledger + ugly-data fixtures) → 172 (foundations/tokens, parity-gated) → 173 (primitive + overlay/disclosure components) → 174 (form components + page adoption + contract tests) → 175 (shell/nav + runtime theme picker, THEME-TOGGLE-01) → 176 (data display, flatten card-in-card) → 177 (component groups) → 178 (per-page stress, all 11 pages, kill footguns) → 179 (microcopy + IA sweep) → 180 (WCAG 2.2 AA + guardrails + adversarial closeout). 33/33 requirements mapped. Carried-todo phase tags: `theme-picker-idiomatic-ui`→175, `coverage-schema-card-declutter`→176, `transaction-page-left-push-desktop`→178. Invariants held: no public component API, zero new runtime deps, inline assets, brand-token parity green, capture/semantics untouched, fail-closed auth.
+- **Milestone v1.37 roadmap created (2026-06-14):** Operator Surface Design-System Stress Test & Component System — phases 171-180 per the approved plan `<home>/.claude/plans/design-system-stress-test-fancy-gizmo.md`, continued numbering. Largely linear fractal sequence: 171 (harness: `/audit/__stress` + DESIGN-SYSTEM.md v2 + scored ratchet ledger + ugly-data fixtures) → 172 (foundations/tokens, parity-gated) → 173 (primitive + overlay/disclosure components) → 174 (form components + page adoption + contract tests) → 175 (shell/nav + runtime theme picker, THEME-TOGGLE-01) → 176 (data display, flatten card-in-card) → 177 (component groups) → 178 (per-page stress, all 11 pages, kill footguns) → 179 (microcopy + IA sweep) → 180 (WCAG 2.2 AA + guardrails + adversarial closeout). 33/33 requirements mapped. Carried-todo phase tags: `theme-picker-idiomatic-ui`→175, `coverage-schema-card-declutter`→176, `transaction-page-left-push-desktop`→178. Invariants held: no public component API, zero new runtime deps, inline assets, brand-token parity green, capture/semantics untouched, fail-closed auth.
 - **Milestone v1.36 roadmap created (2026-06-12):** Operator Surface Light Mode — phases 166–170 per the approved 165 recommendation's pre-decided breakdown: 166 (unfreeze + 45-token light lane + `data-tl-theme` mechanism, contract amended same-wave) → 167 (component retune, largest) → 168 (accessibility AA mirror) ∥ 169 (`__light__` screenshots + example + docs) → 170 (brand alignment + closeout). 15/15 requirements mapped. Human gates: light-lane design review after 166; end-of-milestone UAT after 170.
 - **Milestone v1.38 roadmap created (2026-06-26):** Operator UI Page-by-Page IA & Design-System Polish — phases 181-187. Order is baseline guard repair → PhoenixStorybook example/dev lane → shell/home → Timeline → Coverage → detail/governance/export → accessibility/motion/docs/adversarial closeout. 24/24 requirements mapped, with former post-close todo pressure absorbed into phases 183, 185, and prior demo-login polish.
 - **Milestone v1.38 archived (2026-06-30):** Operator UI Page-by-Page IA & Design-System Polish shipped with phases 181-188 complete, 24/24 requirements satisfied, and residual CI/screenshot/environment/Nyquist items explicitly classified in the archive audit.
 - **Milestone v1.39 roadmap created (2026-07-01):** Quality Baseline, Schema Confidence, and CI Efficiency — phases 189-193. Order is quality audit → storage-schema proof/fixes → release/version docs trust → CI/CD measurement and efficiency → closeout/next-step decision. 15/15 requirements mapped. Invariants held: no new operator product scope, no public component API, no compliance expansion, no synthetic external pilot, no runtime destructive redaction, no WAL/CDC backend, and no broad CI cleverness before measurement.
-- **Milestone v1.41 roadmap created (2026-08-27):** Green, Clean, and Honest — phases 198-204 per the approved plan `~/.claude/plans/so-i-don-t-really-have-quirky-wilkinson.md`, continued numbering. Order is green bringup → decouple (dialyxir lands here) → public surface → rendered output → **release 0.10.0 (deliberately mid-milestone: hex.pm has no undo, so publish once the permanent and rendered surfaces are clean, before the invisible internal work)** → real gates → structure. 53/53 requirements mapped, coarse granularity, est. 26-33 plans. Two workloads are deliberately unmeasured at roadmap time — the full-default Credo backlog (measured in 198 Plan 01) and the dialyzer finding count (measured in 199) — with a pre-committed sizing rule for Phase 203 (<150 → one phase; 150-600 → split mechanical from judgment; >600 or one dominating check → adopt defaults with that check as a counted register row plus a named successor milestone). Phase 201's cost depends on 198 Plan 01's mechanical-sensitivity probe. Highest-variance risk: the `min` CI lane (Elixir 1.15 / OTP 26 / pg14 / ubuntu-22.04) has never executed on origin. Invariants: no operator-UI design/IA/visual change, no Tier-A scorecard regeneration, paid critic scoring stays structurally untriggerable, `.planning/` stays tracked, no git history rewrite, no capture/query/auth semantic change, no version-floor bump; `git mv`/`git rm` for every move/removal, one file per commit where contract tests are involved.
+- **Milestone v1.41 roadmap created (2026-08-27):** Green, Clean, and Honest — phases 198-204 per the approved plan `<home>/.claude/plans/so-i-don-t-really-have-quirky-wilkinson.md`, continued numbering. Order is green bringup → decouple (dialyxir lands here) → public surface → rendered output → **release 0.10.0 (deliberately mid-milestone: hex.pm has no undo, so publish once the permanent and rendered surfaces are clean, before the invisible internal work)** → real gates → structure. 53/53 requirements mapped, coarse granularity, est. 26-33 plans. Two workloads are deliberately unmeasured at roadmap time — the full-default Credo backlog (measured in 198 Plan 01) and the dialyzer finding count (measured in 199) — with a pre-committed sizing rule for Phase 203 (<150 → one phase; 150-600 → split mechanical from judgment; >600 or one dominating check → adopt defaults with that check as a counted register row plus a named successor milestone). Phase 201's cost depends on 198 Plan 01's mechanical-sensitivity probe. Highest-variance risk: the `min` CI lane (Elixir 1.15 / OTP 26 / pg14 / ubuntu-22.04) has never executed on origin. Invariants: no operator-UI design/IA/visual change, no Tier-A scorecard regeneration, paid critic scoring stays structurally untriggerable, `.planning/` stays tracked, no git history rewrite, no capture/query/auth semantic change, no version-floor bump; `git mv`/`git rm` for every move/removal, one file per commit where contract tests are involved.
 - Phase 205 added (2026-09-24): Release Reconciliation — gap closure for the v1.41 milestone audit (`.planning/v1.41-MILESTONE-AUDIT.md`, status gaps_found, finding F1). The milestone branch is 433 ahead / 5 behind origin/main and never merged Phase 202's shipped release commits (#41, #43, #44, the 0.10.0 release commit, #45); RELEASE-02/05 hold on origin/main only.
 - Phase 206 added (2026-09-24): Installer Migration Versions — tech-debt closure from the v1.41 re-audit (status tech_debt, 48/54, F1 resolved). `mix threadline.install` stamps all three migrations with one second-resolution `timestamp()` (lib/mix/tasks/threadline.install.ex:65), so a fresh `mix ecto.migrate` raises a duplicate-version error; 205-REVIEW CR-01, shipped since v0.9.0 incl. 0.10.0/0.10.1.
 - Phase 207 added (2026-09-24): Trigger Migration Rerun and Storage-Schema Default Docs — tech-debt closure from the v1.41 second re-audit (fe896464; status tech_debt, 48/54, flows 5/5, CR-01 resolved by 206). W1: rerunning `mix threadline.gen.triggers` for the same tables writes a duplicate migration name (gen.triggers.ex:141), which Ecto rejects, and the drift guides prescribe that rerun. W2: audit-indexing.md:7 and production-checklist.md:14 state the storage_schema default as `threadline`; the code default is `public`.
@@ -761,6 +810,67 @@ Progress: [████████████████████] 153/153
 - [Phase 207]: 207-02: gen.triggers picks the first free numbered name AND module (_2, Posts2...) from a text-only scan of the migrations dir; rerun tables' down keeps capture on with an explanatory comment
 - [Phase 207]: Default-claim guard over guides/**/*.md + README.md compares every storage_schema default claim to StorageSchema.get([]), with positive controls and a non-vacuity floor
 - [Phase 207]: Rerun doc contract pins shared phrases across both drift guides, the gen.triggers moduledoc and the generated rerun down comment
+- [Phase 208]: REL-01: bump-minor-pre-major flipped true via ci(release) commit 28beadd9, first config-touching commit on milestone/v1.42 with no releasable commit before it
+- [Phase 208]: 208-02: validate!/1 delegates to validate_identifier!(v, :storage_schema); host schema/table errors name role, value and byte_size
+- [Phase 208]: 208-03: MigrationsPath.resolve/1 checks repeated --repo before --migrations-path short-circuits; install already honoured :priv, so only the flags and unknown-option rejection are new
+- [Phase 208]: 208-04: Capture.Naming frozen per D-01..D-06 (all 11 golden hashes matched shasum); P3 generator also biases one table under two schemas after a mutation check showed the gap; migration_name/2 requires a non-empty list
+- [Phase 208]: 208-05: gen.triggers uses MigrationsPath.resolve/1; trigger names via Naming.trigger_name/1 (default-mode overflow now cut to 63 bytes); per-table function overflow stays a :derived ArgumentError until Phase 209
+- [Phase 210]: Kept the changed_fields SELECT's own to_jsonb(NEW)/to_jsonb(OLD) calls byte-identical to the pre-phase text (not reusing v_row), because RedactionPresenter parses that statement by regex.
+- [Phase 210]: PrimaryKeySQL.create_trigger_block/3 does not yet raise for a table with no primary key; a PK-less table gets a zero-argument trigger and the legacy TG_NARGS=0 branch applies until Plan 03 (CAP-03) closes this intentional intermediate state.
+- [Phase 210]: PK-less tables, unsupported key types, and redacted key columns now refuse migrations at migrate time with actionable config/config.exs guidance (CAP-03, CAP-05 migrate-time halves closed)
+- [Phase 210]: validate_primary_key! rejects on the raw value before normalize_columns/1, so empty/NUL/whitespace/duplicate names cannot be silently absorbed
+- [Phase 211]: 211-02: normalize!/2 compares given vs resolved key sets as MapSets of strings, never atomizing caller input; struct rejection narrowed to is_struct(id, schema) so Date/NaiveDateTime scalar keys keep working
+- [Phase 211]: READ-04 guard reuses TimelineLive.Helpers.routeable_row_ref/1 rather than a page-local single-key rule, so the transaction page and timeline cannot drift on what counts as a routeable row identity
+- [Phase 212]: 212-01: trigger_coverage/1 excludes disabled (D) and replica-only (R) triggers from covered — CHANGELOG Breaking changes, HLTH-05 complete
+- [Phase 212]: 212-02: PrimaryKeySQL.override_index_key_set_sql/0 promoted to @doc false public (text unchanged) so health's override qualification reuses the migration's own SQL directly; a recorded column counts as :recorded_column_missing only when no live column matches it under any case, so a same-column case-mismatch reports :key_mismatch instead — the one comparison in the module that folds case, and only to pick a reason, never to decide equality. Key drift is checked against only the canonical trigger per {schema, table}, so a duplicate/extra trigger's own :duplicate_capture_trigger finding is never doubled up with a key finding. HLTH-02, HLTH-03, HLTH-04 complete.
+- [Phase 212]: 212-03: verify_coverage gates on gated error findings (positive-list intersection), health.coverage adds an additive findings JSON key and FINDINGS text section; malformed :trigger_capture config raises Mix.Error in both tasks before any findings check. HLTH-06 completes fully in 212-04 (CHANGELOG/guides/doc contract).
+- [Phase 212]: 212-05: shape_join primary_key: override and shape_twin mask: entries placed in config/test.exs (not config.exs), THREADLINE_E2E-guarded, per D-19
+- [Phase 212]: Local PgBouncer lane ran for real (Docker available) closing HLTH-01's remaining half; HLTH-06 CHANGELOG/guides/doc-contract obligations closed
+- [Phase 213]: 213-01: guide prose bumps Threadline via mix.exs prose, not a literal {:threadline, "~> 0.11"} pin, to avoid colliding with version-truth Family A and mix release.pins
+- [Phase 213]: 213-01: CHANGELOG Security section placed before Breaking changes in Unreleased, first such heading in this repo
+- [Phase 213]: 213-02: guide's SQL and upgrade procedure proven on real PostgreSQL, including rollback-all catalog proof (no orphan capture function, foreign triggers survive)
+- [Phase 213]: 213-03: local pre-land/release gates all green on final milestone tree; land/v1.42 built locally (112 cherry-picked commits, 1 ID-free feat! squash commit), ci.all green on it, never pushed; REL-03 stays Pending, maintainer hand-off recorded
+- [Phase 214]: 214-01: push-to-main unit = push + workflow_run runs on the pushed SHA (scheduled nightlies excluded); release cycle = non-scheduled runs on release-please PR commits + release merge + sync PR commits
+- [Phase 214]: 214-02: Flake Detection fast-failure streak is 79 runs 06-26→09-12 (full scheduled history), not 08-18; measured fact written to PROJECT.md
+- [Phase 214]: 214-02: :live_dialyzer passes vacuously without a PLT (--no-check + --ignore-exit-status); cold-PLT cost is mix dialyzer --plt 33.0 s locally
+- [Phase 214]: 214-02: tracked local-path count is 387 files at e58aa067 (union of absolute and home-relative regexes; 2 prompts/prior-art, 2 .github runner-cache)
+- [Phase 214]: 214-03: inert-path share is 1 of 40 merged PRs (all) and 0 of 20 (30d) under a fail-closed proven allowlist; release/sync PRs are not inert (guides ship and are doc-contract tested)
+- [Phase 214]: 214-03: CI test lanes most likely run :live_dialyzer vacuously (no .dialyzer restore); [inference], carried to the CI-economy phase
+- [Phase 215]: 215-01: bumped mint via deps.unlock+deps.get (not deps.update) to avoid an uninstructed hpax transitive bump — deps.update mint lazy_html also bumped hpax; deps.unlock+deps.get scoped the lockfile diff to exactly mint and lazy_html
+- [Phase 215]: 215-01: bench advisory required bumping ecto/ecto_sql/decimal/postgrex/plug together, not decimal alone — ecto 3.13.5's own package metadata constrains decimal to ~> 2.0, stalling it at the still-vulnerable 2.4.1; ecto 3.14.2 relaxes that constraint
+- [Phase 215]: SUP-03 convention: hex_audit_ignores/0 on a MixProject module, checked against resolved hex: [ignore_advisories: ...] config; ignore_retirements refused outright
+- [Phase 215]: 215-02: gate logic lives in bin/verify-deps-audit (bash + MIX_BIN seam), not a private mix.exs function, so the full behavior matrix is testable offline
+- [Phase 215]: 215-02: negative network proof is bin/verify-deps-audit --self-test run as a CI job step, not a tagged ExUnit test, keeping test/test_helper.exs untouched
+- [Phase 215]: Rank-based classification (bump()/RANK_NAMES) instead of a hand-written precedence table, so an advisory always outranks an unrelated fetch failure elsewhere by construction.
+- [Phase 215]: Discovered and fixed a set -e leak in bin/deps-health-report's per-directory loop that turned an intentional truncation SIGPIPE into a premature script abort (exit 141); fixed with an explicit set +e after the loop.
+- [Phase 217]: Seeded 3 tilde-dot-claude tool-install allowlist entries (gsd-core/, get-shit-done/, skills/) scoped to .planning/ as a deliberate, reversible interpretation; other tilde-dot-claude forms stay unallowlisted for plan 217-04 to scrub.
+- [Phase 217]: bin/verify-temp-leaks strips a trailing slash from TMPDIR before building its mktemp template (macOS TMPDIR trailing-slash bug broke a real path-equality assertion)
+- [Phase 217]: bin/verify-playwright-fail-fast redirects NODE_COMPILE_CACHE and PWTEST_CACHE_DIR into its own scratch dir to stop npm/Playwright leaking into the system temp dir
+- [Phase 217]: HYG-04 verified from live code; no code/CI change; one traceability bullet added to MILESTONE-GUIDE.txt SS7 v1.45 rung
+- [Phase 217]: Re-derived guard HIT lists fresh at execution time (P=2, L=316) rather than reusing 217-01's stale census; scrub is forward-only, prefix-only, and idempotent
+- [Phase 217]: HYG-02 CI job runs bin/verify-repo-hygiene with no erlef/setup-beam and no cache (matches verify-release-shape, not verify-deps-audit), keeping the setup-beam step count at 14
+- [Phase 217]: 217-06: family-6 matcher drops its mandatory trailing dash, so the user segment ends at the first byte outside [A-Za-z0-9._] or end of line (single-segment tokens are now a HIT; placeholders with `<` stay clean)
+- [Phase 217]: 217-07: path shapes in docs and planning prose use an angle-bracket placeholder for the user/machine segment (CONTRIBUTING `## Writing about machine-local paths`); no exemption, suppression marker or allowlist widening; the guard prints a stderr hint naming that section on any uncovered HIT
+- [Phase 217]: 217-07: git grep records travel NUL-delimited (tr to SOH) and HIT lines parse right-anchored, so colon-containing tracked filenames are scanned and scoped by full path (WR-02)
+- [Phase 217]: 217-06: the git-on-PATH check runs before argument parsing so --self-test also names a missing git; allowlist safety net forbids every detected home-prefix family except tilde forms and the runner account
+- [Phase 218]: ECON-03: bootstrap-release-pr-ci dispatches ci.yml only when RELEASE_PLEASE_TOKEN is absent (job-level boolean env RELEASE_PAT_CONFIGURED); wiring unchanged, never queries runs
+- [Phase 218]: 218-02: --close comments then closes on exactly one match; deps-health closes only on classification clean; #28/#36 close refused by classifier, handed off (218-06/07 wiring + 218-08 verify)
+- [Phase 218]: 218-03: bin/verify-dialyzer-slice fails closed: exactly one dialyxir completion marker required, any :dialyzer.run error: line rejects (ECON-05)
+- [Phase 218]: 218-03: :live_dialyzer excluded by default; runs only via mix verify.dialyzer_slice in verify-dialyzer (postgres:16, MIX_ENV=test) and ci.all; timeout ceil((252+80)*2/60)=12
+- [Phase 218]: 218-03: test_helper stores default excludes under :default_test_excludes app env; ci_all_dedup exempts only a single-file --only leaf over a default-excluded tag
+- [Phase 218]: 218-04 D-10 re-check: verify-docs DOMINATED by verify-bump-rehearsal; verify-hex-package DOMINATED by verify-bump-rehearsal + verify-hex-evaluator (same ci.yml triggers, no job-level if:); both removed with verify-mechanical, ci-required 16 -> 13
+- [Phase 218]: 218-04: removing verify-docs couples the ExDoc proof to verify-bump-rehearsal; a change-aware skip of that job (Phase 222/SEED-006) also skips docs + hex.build proofs
+- [Phase 218]: 218-05: verify.flake moves to 15 repeats; CI and local share one entrypoint
+- [Phase 218]: 218-05: only schedule honors the green-SHA skip; dispatch and push always run
+- [Phase 218]: 218-05: inconclusive and broken-upstream end red and file the issue; only pass and a post-pass skip end green
+- [Phase 218]: 218-06: only classification == pass closes the Flake Detection tracking issue; skip, inconclusive, broken-upstream and unknown never close it
+- [Phase 218]: 218-07: Browser-full runs the derived difference (bin/browser-full-projects: config minus ci.yml run: flags and mix alias flags) on every event; nightly gated by bin/ci-sha-gate without --upstream; close-on-green via upsert-ci-issue --close
+- [Phase 219]: 219-01: rule ids carry the literal rule=<id> token at their definition; the deps.compile guard is its own rule=compile-guard
+- [Phase 219]: 219-01: build_cache_errors/2 proven on a fixture plus a hybrid map (live workflows, fixture ci.yml); only the D-17 security subset is asserted live until plan 02
+- [Phase 219]: 219-02: the verify-capture row control is scoped to the Dependency build cache section, because live CONTRIBUTING has an earlier CI table with the same row prefix
+- [Phase 219]: 219-02: pgbouncer bootstrap split into install, deps compile, rm and compile steps; the bootstrap step runs only mix run priv/ci/topology_bootstrap.exs; the wait step runs after the compile
+- [Phase 219]: 219-03: Landing option (a) on PR #60 gave a PR scope and a dispatch scope, so 2 cold + 8 warm samples came without deleting caches
+- [Phase 219]: 219-03: warm ci.yml run 39.3 unrounded / 49 billed runner-min vs 44.4 / 53 post-218; critical path 643 -> 547 s; Test (min) job saving not demonstrated (suite slowdown), Capture noise-level, recorded not dropped
 
 ### Blockers
 
@@ -776,9 +886,9 @@ Progress: [████████████████████] 153/153
 
 ## Session Continuity
 
-**Last session:** 2026-09-24T21:24:44.037Z
-**Stopped at:** Phase 207 complete — all phases complete
-**Resume file:** None
+**Last session:** 2026-09-28T19:19:30.968Z
+**Stopped at:** Phase 220 context gathered
+**Resume file:** .planning/phases/220-newest-toolchain-lane/220-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
@@ -800,4 +910,4 @@ Progress: [████████████████████] 153/153
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 214 (Baseline Measurement) with /gsd-plan-phase 214

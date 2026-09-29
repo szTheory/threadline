@@ -2,19 +2,25 @@ defmodule Threadline.CiCoverageDocContractTest do
   @moduledoc """
   CI Coverage doc contract (Phase 198, D-23c / GREEN-07).
 
-  Phase 198 split the browser lane: pull requests run a reduced Playwright
-  project set, and the full set moved to `main` + nightly. The OSS DNA's
-  "honest default tests" rule says coverage may not move silently — so
-  `CONTRIBUTING.md` carries a `## CI Coverage` table stating verbatim which
-  projects run where, and this test asserts that table against the workflows
-  themselves.
+  Phase 198 split the browser lane, and Phase 218 (ECON-04) made the split a
+  partition: `ci.yml` runs some Playwright projects on every pull request and
+  push to `main`, and Browser-full runs the rest. The OSS DNA's "honest default
+  tests" rule says coverage may not move silently, so `CONTRIBUTING.md` carries
+  a `## CI Coverage` table stating which projects run where, and this test
+  asserts that table against the pipeline.
 
-  Two failures, deliberately distinct:
+  The project list is not scanned from workflow text here. It comes from
+  `bin/browser-full-projects` (`--list config`, `--list ci`,
+  `--list browser-full`), the same derivation Browser-full itself runs, which
+  `browser_full_projects_contract_test.exs` proves partitions the config.
 
-    * A project a workflow actually runs is **missing** from the table — the
-      table has drifted behind the pipeline.
-    * The scan finds **no** `--project` flags at all — the derive source is
-      broken (a moved workflow, a changed flag spelling), which would make this
+  Three failures, deliberately distinct:
+
+    * A default-config project is **missing** from the table, so the table has
+      drifted behind the pipeline.
+    * A row names the **wrong lane**: a Browser-full project whose row does not
+      name `verify-example-browser-full`, or a `ci.yml` project whose row does.
+    * The derive source returns **no** projects at all, which would make this
       guard pass vacuously while asserting nothing. That is the failure mode
       `version_truth_doc_contract_test.exs:59` exists to prevent, transplanted.
 
@@ -26,22 +32,29 @@ defmodule Threadline.CiCoverageDocContractTest do
 
   @repo_root File.cwd!()
 
-  # The two workflows that invoke Playwright with project flags. A glob would
-  # silently absorb a workflow being renamed away; naming them means a missing
-  # file is a hard `File.read!/1` failure, not a quiet shrink of the scan.
-  @workflow_paths [
-    Path.join([@repo_root, ".github", "workflows", "ci.yml"]),
-    Path.join([@repo_root, ".github", "workflows", "browser-full.yml"])
-  ]
+  @script Path.join(@repo_root, "bin/browser-full-projects")
 
   @contributing Path.join(@repo_root, "CONTRIBUTING.md")
   @coverage_heading "## CI Coverage"
+  @full_job "verify-example-browser-full"
 
-  defp projects_in_workflows do
-    for path <- @workflow_paths,
-        [_full, project] <- Regex.scan(~r/--project[= ]([a-z0-9-]+)/, File.read!(path)),
-        uniq: true,
-        do: project
+  defp list(kind) do
+    {output, status} = System.cmd(@script, ["--list", kind], stderr_to_stdout: true)
+
+    assert status == 0,
+           "bin/browser-full-projects --list #{kind} exited #{status}:\n#{output}"
+
+    String.split(output, "\n", trim: true)
+  end
+
+  # The default-config project set: every project ci.yml or Browser-full runs.
+  defp projects_in_workflows, do: list("config")
+
+  defp row(section, project) do
+    case Regex.run(~r/^\|\s*`#{Regex.escape(project)}`\s*\|.*$/m, section) do
+      [row] -> row
+      nil -> flunk("CONTRIBUTING.md `#{@coverage_heading}` has no table row for `#{project}`")
+    end
   end
 
   defp coverage_section do
@@ -60,17 +73,17 @@ defmodule Threadline.CiCoverageDocContractTest do
     |> List.first()
   end
 
-  test "the workflow scan finds Playwright project flags at all" do
+  test "the derive source finds Playwright projects at all" do
     projects = projects_in_workflows()
 
     assert projects != [],
-           "no `--project` flags found across #{inspect(@workflow_paths)} — the derive " <>
+           "bin/browser-full-projects --list config returned no projects — the derive " <>
              "source for the CI Coverage contract is broken. Without this assertion the " <>
              "test below would pass vacuously over an empty list while the CONTRIBUTING.md " <>
              "table drifted arbitrarily far from what CI actually runs."
   end
 
-  test "every Playwright project a workflow runs appears in the CONTRIBUTING.md CI Coverage table" do
+  test "every default-config Playwright project appears in the CONTRIBUTING.md CI Coverage table" do
     section = coverage_section()
 
     for project <- projects_in_workflows() do
@@ -82,10 +95,32 @@ defmodule Threadline.CiCoverageDocContractTest do
 
       assert Regex.match?(row_regex, section),
              "CONTRIBUTING.md's `#{@coverage_heading}` table has no row for the Playwright " <>
-               "project `#{project}`, which a workflow under .github/workflows/ actually " <>
-               "runs. Coverage that moves between the pull-request lane and the " <>
+               "project `#{project}`, which ci.yml or Browser-full actually runs. " <>
+               "Coverage that moves between the pull-request lane and the " <>
                "main/nightly lane must be stated verbatim in that table (D-23b/c) — a " <>
                "silent move is the quiet downgrade this phase exists to forbid."
+    end
+  end
+
+  test "each CI Coverage row names the lane that actually runs the project" do
+    section = coverage_section()
+    full = list("browser-full")
+    config = projects_in_workflows()
+    ci = Enum.filter(list("ci"), &(&1 in config))
+
+    assert full != [] and ci != [],
+           "the lane lists are empty; the lane check below would pass vacuously"
+
+    for project <- full do
+      assert row(section, project) =~ @full_job,
+             "`#{project}` runs only in Browser-full, but its CI Coverage row does not " <>
+               "name `#{@full_job}`."
+    end
+
+    for project <- ci do
+      refute row(section, project) =~ @full_job,
+             "`#{project}` runs in ci.yml and never in Browser-full, but its CI Coverage " <>
+               "row still names `#{@full_job}` (the old overlap wording)."
     end
   end
 end

@@ -62,7 +62,7 @@ The strongest plan is a layered proof model: broad contracts catch source and co
 
 ## Project Constraints
 
-- No top-level `AGENTS.md` was found in `/Users/jon/projects/threadline`; a nested Phoenix example `AGENTS.md` exists under `examples/threadline_phoenix` and is contextual guidance for that example app. [VERIFIED: AGENTS.md absence via filesystem audit] [VERIFIED: examples/threadline_phoenix/AGENTS.md]
+- No top-level `AGENTS.md` was found in `/Users/<user>/projects/threadline`; a nested Phoenix example `AGENTS.md` exists under `examples/threadline_phoenix` and is contextual guidance for that example app. [VERIFIED: AGENTS.md absence via filesystem audit] [VERIFIED: examples/threadline_phoenix/AGENTS.md]
 - Phase 180 must not add public component API surface, new runtime dependencies, or theme architecture changes because the v1.37 milestone locks those invariants. [VERIFIED: .planning/STATE.md] [VERIFIED: .planning/PROJECT.md]
 - The existing Phoenix example harness uses Mix aliases and Playwright scripts rather than a separate browser runner; `mix.exs` exposes `verify.example_browser`, `verify.example_browser_light`, `verify.operator_stress`, and `ci.all`. [VERIFIED: mix.exs]
 - Threadline brand guidance requires calm, non-hype copy and non-color-only signals for UI status; Phase 180 should verify those properties rather than rewriting copy. [VERIFIED: brandbook/brand-book.md]

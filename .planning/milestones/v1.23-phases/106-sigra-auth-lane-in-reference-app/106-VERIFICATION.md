@@ -82,7 +82,7 @@ Commands re-run during verification (2026-05-27):
 ```bash
 cd examples/threadline_phoenix && mix test
 cd examples/threadline_phoenix && mix ecto.migrate --quiet && mix run -e 'ThreadlinePhoenix.Repo.query!("SELECT 1 FROM users LIMIT 0")'
-cd /Users/jon/projects/threadline && mix verify.example
+cd /Users/<user>/projects/threadline && mix verify.example
 rg 'assign\(:current_user' examples/threadline_phoenix/test/
 ```
 

@@ -1,5 +1,59 @@
 # Project milestones: Threadline
 
+## v1.42 Capture Correctness for Real Table Shapes (Shipped: 2026-09-26)
+
+**Delivered:** Every audited table now gets correct, collision-free capture, whatever its primary-key shape, Postgres schema or name length, with no silent failure modes. Released as **0.11.0** on hex.pm: landing #52 `b0668e6d`, release #53 `8312290d`, release run `36257162356`, distribution sync #54 `5e78b2f0`. `main` is green and origin has only `main`. This is the first rung of the ladder to 1.0.0. There was no operator-UI design work.
+
+**Phases completed:** 6 phases (208-213), 30 plans, 53 tasks. Requirements: 28/28 satisfied.
+
+**Stats:** 227 commits from `v1.41` to the close; 127 non-planning files changed, +16,742 / -452.
+
+**Closeout type:** override_closeout. **Known verification overrides:** 2 newly acknowledged, 56 carried forward (see STATE.md Deferred Items).
+- The 2 new ones are the 210-04 format-drift item (already resolved in 210-05) and the phase 202 flake CORRECTION entry.
+- `init.manager` reports all six phase verifications as `stale` because files were touched after VERIFICATION.md. Every one reads `passed`, and the milestone audit re-checked them: requirements 28/28, integration 28/28, flows 3/3.
+
+**Key accomplishments:**
+
+- **Identifier foundation and collision-free emission (208, 209):**
+  - Names over 63 bytes are cut deterministically, and every table gets its own per-table capture function. This fixes the 0.10.x security issue where two tables could share one function, so captures ran under the other table's redaction rules and a rollback could drop the other table's trigger.
+  - Trigger migrations no longer drop functions with CASCADE.
+  - release-please proposes a minor bump for pre-1.0 breaking changes.
+- **PK-agnostic capture (210):**
+  - Triggers resolve the real primary key from `pg_index` at migrate time: uuid, text, composite, INCLUDE, partitioned and schema-qualified keys.
+  - A `primary_key:` override serves tables with no PK.
+  - Unsupported shapes are refused at migrate time before any host write.
+  - 0.10.x triggers keep working. Capture overhead stays within 1.07x of 0.10.2.
+- **Read-side agreement (211):**
+  - `history`/`as_of` match the captured key exactly (the text encoding, compared as a whole map).
+  - `RowKey` covers composite and override keys.
+  - `audit_changes_row_history_idx` ships in install plus `mix threadline.gen.row_history_index`, and an EXPLAIN test proves the reads use it.
+- **Detection and adopter twins (212):**
+  - `Threadline.Health.trigger_findings/1` reports five codes: disabled, duplicate, legacy no-PK-args, pk_drift and shared_capture_function.
+  - `verify_coverage` gates on errors, and `health.coverage` shows the findings (text and JSON).
+  - The check is PgBouncer- and zero-grant-safe.
+  - The example app and the hex evaluator carry every tricky table shape.
+- **Upgrade guide and release (213):**
+  - `guides/upgrading-to-0.11.md` has marker-wrapped backfill and rollback-cleanup SQL, which tests extract and run on real PostgreSQL against a frozen 0.10.2 fixture.
+  - A rollback-all catalog proof shows no orphaned function and no dropped foreign trigger.
+  - The CHANGELOG carries a Security note.
+  - The PR CI caught a test defect that a stale local `public.threadline_capture_changes()` had masked. It was fixed in `e87add68`.
+
+**Tech debt carried:** see `.planning/milestones/v1.42-MILESTONE-AUDIT.md` `tech_debt`:
+- The `gen.triggers` `down_body/2` orphan for an all-0.11 chain made of a first run and then a per-table rerun (a harmless leftover function).
+- The 209 SUMMARYs lack `requirements-completed` frontmatter.
+- Guide review items IN-01 and IN-02.
+- Deferred: a `gen.backfill` task, an unresolved-rows health finding, `--strict`, `:invalid_config` and `--all-schemas`.
+- All six VALIDATION.md files are still `draft`.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.42-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.42-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.42-MILESTONE-AUDIT.md`
+- Phases: `.planning/milestones/v1.42-phases/`
+
+---
+
 ## v1.41 Green, Clean, and Honest (Shipped: 2026-09-24)
 
 **Delivered:** A repo-hygiene and quality-ratchet milestone. It replaced a carried "stable red baseline" with measured causes, made every quality gate real (Credo, Dialyzer, xref, warnings-as-errors), shipped 0.10.0 and 0.10.1 to hex.pm, retired stale branches and worktrees, and fixed the installer and `gen.triggers` rerun defects found along the way. No operator-UI design work.

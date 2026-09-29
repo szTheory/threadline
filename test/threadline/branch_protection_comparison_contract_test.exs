@@ -31,6 +31,8 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
 
   use ExUnit.Case, async: true
 
+  @moduletag :tmp_dir
+
   @script Path.expand("../../bin/compare-required-contexts", __DIR__)
 
   defp rules(contexts) when is_list(contexts) do
@@ -47,40 +49,51 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
 
   # Feed stdin from a temp file rather than a Port: the script reads stdin to EOF either
   # way, and a file makes the redirect explicit and the test readable.
-  defp compare(json, args \\ ["CI required"]) do
-    path = Path.join(System.tmp_dir!(), "rules_#{System.unique_integer([:positive])}.json")
+  defp compare(tmp_dir, json, args \\ ["CI required"]) do
+    path = Path.join(tmp_dir, "rules_#{System.unique_integer([:positive])}.json")
     File.write!(path, json)
 
-    quoted = Enum.map_join(args, " ", &"'#{&1}'")
+    quoted = Enum.map_join(args, " ", &shell_quote/1)
 
     {output, status} =
-      System.cmd("bash", ["-c", "#{@script} #{quoted} < #{path}"], stderr_to_stdout: true)
+      System.cmd("bash", ["-c", "#{@script} #{quoted} < #{shell_quote(path)}"],
+        stderr_to_stdout: true
+      )
 
-    File.rm(path)
     {status, output}
   end
 
+  # Single-quote wrap with embedded-single-quote escaping, safe for any byte
+  # sequence a describe/test name (and therefore an ExUnit tmp_dir path) can
+  # contain — e.g. the apostrophe in "the comparison's four edges".
+  defp shell_quote(value) when is_binary(value) do
+    "'" <> String.replace(value, "'", "'\\''") <> "'"
+  end
+
   describe "the comparison's four edges" do
-    test "edge 1 — exactly the expected context passes" do
-      assert {0, output} = compare(rules(["CI required"]))
+    test "edge 1 — exactly the expected context passes", %{tmp_dir: tmp_dir} do
+      assert {0, output} = compare(tmp_dir, rules(["CI required"]))
       assert output =~ "OK"
     end
 
-    test "edge 2 — a MISSING context fails" do
-      assert {1, output} = compare(rules(["Some Other Check"]))
+    test "edge 2 — a MISSING context fails", %{tmp_dir: tmp_dir} do
+      assert {1, output} = compare(tmp_dir, rules(["Some Other Check"]))
       assert output =~ "do not match"
     end
 
-    test "edge 3 — ZERO required contexts fails, and says an unprotected branch is not a pass" do
-      assert {1, output} = compare(rules([]))
+    test "edge 3 — ZERO required contexts fails, and says an unprotected branch is not a pass",
+         %{tmp_dir: tmp_dir} do
+      assert {1, output} = compare(tmp_dir, rules([]))
       assert output =~ "ZERO required status-check contexts"
 
       assert output =~ "must not read as passing",
              "an unprotected branch reading as passing is the worst failure this script has"
     end
 
-    test "edge 4 — an EXTRA context fails (the case Phase 198 could not demonstrate)" do
-      assert {1, output} = compare(rules(["CI required", "Some Extra Gate"]))
+    test "edge 4 — an EXTRA context fails (the case Phase 198 could not demonstrate)", %{
+      tmp_dir: tmp_dir
+    } do
+      assert {1, output} = compare(tmp_dir, rules(["CI required", "Some Extra Gate"]))
 
       assert output =~ "do not match",
              """
@@ -98,32 +111,34 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
   end
 
   describe "matching is exact, not fuzzy" do
-    test "a case difference fails" do
-      assert {1, _} = compare(rules(["ci required"]))
+    test "a case difference fails", %{tmp_dir: tmp_dir} do
+      assert {1, _} = compare(tmp_dir, rules(["ci required"]))
     end
 
-    test "a trailing-space difference fails" do
-      assert {1, _} = compare(rules(["CI required "]))
+    test "a trailing-space difference fails", %{tmp_dir: tmp_dir} do
+      assert {1, _} = compare(tmp_dir, rules(["CI required "]))
     end
 
-    test "a superstring does not satisfy the expected context" do
-      assert {1, _} = compare(rules(["CI required (strict)"]))
+    test "a superstring does not satisfy the expected context", %{tmp_dir: tmp_dir} do
+      assert {1, _} = compare(tmp_dir, rules(["CI required (strict)"]))
     end
   end
 
   describe "unreadable input never reads as passing" do
-    test "empty stdin fails" do
-      assert {1, output} = compare("")
+    test "empty stdin fails", %{tmp_dir: tmp_dir} do
+      assert {1, output} = compare(tmp_dir, "")
       assert output =~ "no rules JSON"
     end
 
-    test "malformed JSON fails rather than being treated as zero contexts" do
-      assert {1, output} = compare("{not json")
+    test "malformed JSON fails rather than being treated as zero contexts", %{tmp_dir: tmp_dir} do
+      assert {1, output} = compare(tmp_dir, "{not json")
       assert output =~ "not valid JSON"
     end
 
-    test "rules with no required_status_checks rule at all fail as zero contexts" do
-      assert {1, output} = compare(Jason.encode!([%{"type" => "deletion"}]))
+    test "rules with no required_status_checks rule at all fail as zero contexts", %{
+      tmp_dir: tmp_dir
+    } do
+      assert {1, output} = compare(tmp_dir, Jason.encode!([%{"type" => "deletion"}]))
       assert output =~ "ZERO required status-check contexts"
     end
   end
@@ -160,7 +175,9 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
       end
     end
 
-    test "classic protection treats only HTTP 404 as absent and fails closed otherwise" do
+    test "classic protection treats only HTTP 404 as absent and fails closed otherwise", %{
+      tmp_dir: tmp_dir
+    } do
       verifier = Path.expand("../../bin/verify-branch-protection", __DIR__)
 
       for {http_status, gh_exit, expected_exit} <- [
@@ -171,8 +188,8 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
           ] do
         fake_bin =
           Path.join(
-            System.tmp_dir!(),
-            "branch_protection_#{http_status}_#{System.unique_integer([:positive])}"
+            tmp_dir,
+            "branch_protection_#{http_status}"
           )
 
         File.mkdir_p!(fake_bin)
@@ -203,12 +220,12 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
             stderr_to_stdout: true
           )
 
-        File.rm_rf!(fake_bin)
         assert exit_status == expected_exit, "HTTP #{http_status} produced exit #{exit_status}"
       end
     end
 
-    test "classic protection falls back to branch metadata when REST denies the Actions token" do
+    test "classic protection falls back to branch metadata when REST denies the Actions token",
+         %{tmp_dir: tmp_dir} do
       verifier = Path.expand("../../bin/verify-branch-protection", __DIR__)
 
       scenarios = [
@@ -223,8 +240,8 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
       for {scenario, branch_response, branch_exit, allow_unverified, expected_exit} <- scenarios do
         fake_bin =
           Path.join(
-            System.tmp_dir!(),
-            "branch_protection_metadata_#{scenario}_#{System.unique_integer([:positive])}"
+            tmp_dir,
+            "branch_protection_metadata_#{scenario}"
           )
 
         File.mkdir_p!(fake_bin)
@@ -257,7 +274,6 @@ defmodule Threadline.BranchProtectionComparisonContractTest do
             stderr_to_stdout: true
           )
 
-        File.rm_rf!(fake_bin)
         assert exit_status == expected_exit, "#{scenario} produced exit #{exit_status}"
       end
     end

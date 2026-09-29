@@ -1,0 +1,6 @@
+.planning/REQUIREMENTS.md
+.planning/ROADMAP.md
+.planning/STATE.md
+.planning/phases/122-release-distribution-truth/122-VERIFICATION.md
+guides/adoption-pilot-backlog.md
+guides/evaluating-threadline.md

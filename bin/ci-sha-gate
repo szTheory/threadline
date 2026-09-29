@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# ECON-01 / D-03 / D-04 (218-05): decide whether a scheduled proof lane needs to
+# run on this commit at all, BEFORE it spends runner minutes.
+#
+# Extracted as a committed, directly executable, table-tested script (the same
+# idiom as bin/classify-flake-run and bin/upsert-ci-issue) rather than inline
+# workflow shell, because the one thing it must never do is decide wrong
+# silently. test/threadline/ci_sha_gate_contract_test.exs drives every row below
+# through a fake `gh` (GH_BIN), so no row touches the network.
+#
+# Usage:
+#   bin/ci-sha-gate --workflow F --sha S --event E [--upstream U]
+#   env: GITHUB_REPOSITORY (required), GH_BIN (default gh), GITHUB_OUTPUT (optional)
+#
+# Behavior table (checked in this order):
+#   event == schedule AND workflow F has a successful run with head_sha == S
+#                                                  -> skip (F already proved S green)
+#   --upstream U given AND U has a failed run on S AND no successful run on S
+#   (any event)                                    -> broken-upstream (CI is red on S
+#                                                     with no green re-run)
+#   anything else                                  -> run
+#   any gh error (403, network), malformed JSON, or a total_count that is not an
+#   integer                                        -> treated as "no evidence", so the
+#                                                     decision falls through to run
+#
+# `run` is the default arm and the fail-open rule: an API failure must always mean
+# running the proof, because a skip on error would silently turn off the only flake
+# signal. `skip` is reachable ONLY through the explicit schedule + own-success check.
+# workflow_dispatch and push never take the green-SHA skip (D-03): an explicit request
+# (and the D-11 dispatch measurement) re-runs a SHA this workflow already proved.
+#
+# `broken-upstream` is not event-scoped (D-04): D-04 locks "a red CI on the same SHA
+# exits broken-upstream" for every event, so a dispatch on a SHA whose U run is red
+# with no green re-run also reports broken-upstream and does not run the suite. To
+# soak such a SHA, re-run U until it is green (then this gate answers `run`).
+#
+# The gate filters by exact head_sha and status and reads total_count; it never looks
+# at "the newest run", so it does not depend on the API's sort order. A green run of a
+# DIFFERENT workflow (e.g. ci.yml) never causes a skip by itself.
+#
+# Output: `decision=<run|skip|broken-upstream>` and `reason=<one line>` on stdout, and
+# appended to GITHUB_OUTPUT when it is set. Exit 0 on every decision; exit 2 only on a
+# usage error or an invalid --sha / --workflow value. Both are validated before any URL
+# is built, so no caller-supplied text reaches the request path unchecked.
+set -uo pipefail
+
+die() {
+  printf 'ci-sha-gate: %s\n' "$*" >&2
+  exit 2
+}
+
+GH_BIN=${GH_BIN:-gh}
+workflow="" sha="" event="" upstream=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --workflow | --sha | --event | --upstream)
+      [ "$#" -ge 2 ] || die "$1 needs a value"
+      case "$1" in
+        --workflow) workflow=$2 ;;
+        --sha) sha=$2 ;;
+        --event) event=$2 ;;
+        --upstream) upstream=$2 ;;
+      esac
+      shift 2
+      ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+valid_workflow() { printf '%s' "$1" | grep -Eq '^[A-Za-z0-9._-]+\.ya?ml$'; }
+
+[ -n "$workflow" ] || die "--workflow is required"
+[ -n "$event" ] || die "--event is required"
+valid_workflow "$workflow" || die "--workflow must be a workflow file name like ci.yml"
+printf '%s' "$sha" | grep -Eq '^[0-9a-f]{7,40}$' || die "--sha must be 7-40 lowercase hex characters"
+if [ -n "$upstream" ]; then
+  valid_workflow "$upstream" || die "--upstream must be a workflow file name like ci.yml"
+fi
+[ -n "${GITHUB_REPOSITORY:-}" ] || die "GITHUB_REPOSITORY is required"
+
+is_integer() {
+  case "$1" in
+    '' | *[!0-9]*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+# Prints the run count of workflow $1 on $sha with status $2, or nothing when the
+# query failed or answered with anything but an integer total_count.
+run_count() {
+  local out n
+  out=$("$GH_BIN" api "repos/$GITHUB_REPOSITORY/actions/workflows/$1/runs?head_sha=$sha&status=$2&per_page=1" 2>/dev/null) || out=""
+  n=$(printf '%s' "$out" | jq -r 'if (.total_count|type)=="number" then .total_count else empty end' 2>/dev/null) || n=""
+  if is_integer "$n"; then printf '%s' "$n"; fi
+}
+
+decision="run"
+reason="no prior proof of this SHA and no red upstream; running the suite"
+failed_queries=""
+
+if [ "$event" = "schedule" ]; then
+  own_success=$(run_count "$workflow" success)
+  if ! is_integer "$own_success"; then
+    failed_queries="$workflow success query failed"
+  elif [ "$own_success" -gt 0 ]; then
+    decision="skip"
+    reason="$workflow already has a successful run on $sha; nothing new to prove"
+  fi
+fi
+
+if [ "$decision" = "run" ] && [ -n "$upstream" ]; then
+  up_failure=$(run_count "$upstream" failure)
+  up_success=$(run_count "$upstream" success)
+  if ! is_integer "$up_failure" || ! is_integer "$up_success"; then
+    failed_queries="${failed_queries:+$failed_queries; }$upstream status query failed"
+  elif [ "$up_failure" -gt 0 ] && [ "$up_success" -eq 0 ]; then
+    decision="broken-upstream"
+    reason="$upstream is red on $sha with no green re-run; the suite was not run"
+  fi
+fi
+
+if [ "$decision" = "run" ] && [ -n "$failed_queries" ]; then
+  reason="$failed_queries (fail open); running the suite"
+fi
+
+printf 'decision=%s\nreason=%s\n' "$decision" "$reason"
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  printf 'decision=%s\nreason=%s\n' "$decision" "$reason" >> "$GITHUB_OUTPUT"
+fi
+exit 0

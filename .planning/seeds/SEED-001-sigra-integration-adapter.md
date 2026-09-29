@@ -86,7 +86,7 @@ unless adoption pressure has built up by trigger time.
 
 **Architectural constraints (locked, do not relitigate):**
 - `prompts/threadline-elixir-oss-dna.md:49` — "semantics layer should integrate with host auth without becoming an auth library"
-- `/Users/jon/projects/sigra/.planning/decisions/001-defer-sigra-lockspire-glue-package.md` — Sigra's own decision to not depend on third-party libraries
+- `/Users/<user>/projects/sigra/.planning/decisions/001-defer-sigra-lockspire-glue-package.md` — Sigra's own decision to not depend on third-party libraries
 
 **Sigra public auth surface (read-only — adapter consumes):**
 - `conn.assigns.current_scope` — host-generated struct with `:user`, `:active_organization`, `:membership`, `:impersonating_from`

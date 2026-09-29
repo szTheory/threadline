@@ -1,0 +1,16 @@
+ignore_warnings: .dialyzer_ignore.exs
+
+Starting Dialyzer
+[
+  check_plt: false,
+  init_plt: ~c".dialyzer/dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt",
+  files: [~c"<repo>/_build/dev/lib/threadline/ebin/Elixir.Threadline.OperatorSurface.Unsupported.beam",
+   ~c"<repo>/_build/dev/lib/threadline/ebin/Elixir.Threadline.Health.beam",
+   ~c"<repo>/_build/dev/lib/threadline/ebin/Elixir.Threadline.OperatorSurface.MechanicalChecker.RatchetMetrics.beam",
+   ~c"<repo>/_build/dev/lib/threadline/ebin/Elixir.Threadline.OperatorSurface.UI.Data.beam",
+   ~c"<repo>/_build/dev/lib/threadline/ebin/Elixir.Threadline.Audit.beam",
+   ...],
+  warnings: [:unmatched_returns, :extra_return, :unknown]
+]
+:dialyzer.run error: Could not read PLT file .dialyzer/dialyxir_erlang-27.3.4.15_elixir-1.17.3_deps-dev.plt: no_such_file
+

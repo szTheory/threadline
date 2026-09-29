@@ -58,7 +58,7 @@ coverage:
         ref: "test/threadline/mix/trigger_migration_test.exs#resolve_name/2, scan/1, MigrationVersion.existing/1"
         status: pass
       - kind: other
-        ref: "probe: two runs of --tables posts into /Users/jon/.claude/jobs/77cf1bdd/tmp/207-02-probe"
+        ref: "probe: two runs of --tables posts into /Users/<user>/.claude/jobs/77cf1bdd/tmp/207-02-probe"
         status: pass
     human_judgment: false
   - id: D2
@@ -124,7 +124,7 @@ Each task kept the test-first order, but RED and GREEN went into one commit per 
 
 ## RED proof
 
-All RED runs used unmodified lib code for that task's behaviour. The ANSI-stripped output is saved in `/Users/jon/.claude/jobs/77cf1bdd/tmp/`.
+All RED runs used unmodified lib code for that task's behaviour. The ANSI-stripped output is saved in `/Users/<user>/.claude/jobs/77cf1bdd/tmp/`.
 
 **Task 1** (`207-02-t1-red.txt`): `36 tests, 15 failures`
 - The first-run pins passed as designed: `first run keeps today's name and module`, and the `posts,org_memberships` and `AuditLog` variants.

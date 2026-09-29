@@ -1,0 +1,5 @@
+CONTRIBUTING.md
+bin/post-publish-distribution-sync
+guides/adoption-pilot-backlog.md
+release-please-config.json
+test/threadline/adoption_pilot_doc_contract_test.exs

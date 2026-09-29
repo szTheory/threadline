@@ -25,7 +25,7 @@
 
 ### `guides/getting-started-saas.md` (docs, request-response)
 
-**Analog:** [getting-started-saas.md](/Users/jon/projects/threadline/guides/getting-started-saas.md:49)
+**Analog:** [getting-started-saas.md](/Users/<user>/projects/threadline/guides/getting-started-saas.md:49)
 
 **Canonical router-wiring block** (lines 49-75):
 ````markdown
@@ -60,7 +60,7 @@ host app.
 
 ### `guides/integrations/sigra.md` (docs, request-response)
 
-**Analog:** [sigra.md](/Users/jon/projects/threadline/guides/integrations/sigra.md:17)
+**Analog:** [sigra.md](/Users/<user>/projects/threadline/guides/integrations/sigra.md:17)
 
 **Direct callback contract** (lines 17-41):
 ````markdown
@@ -95,7 +95,7 @@ request metadata when the baseline conn extraction has no value.
 
 ### `guides/domain-reference.md` (docs, request-response)
 
-**Analog:** [domain-reference.md](/Users/jon/projects/threadline/guides/domain-reference.md:211)
+**Analog:** [domain-reference.md](/Users/<user>/projects/threadline/guides/domain-reference.md:211)
 
 **Contract-marker block** (lines 211-223):
 ```markdown
@@ -127,7 +127,7 @@ authorization policy beyond that baseline.
 
 ### `guides/incident-playbook.md` (docs, request-response)
 
-**Analog:** [incident-playbook.md](/Users/jon/projects/threadline/guides/incident-playbook.md:5)
+**Analog:** [incident-playbook.md](/Users/<user>/projects/threadline/guides/incident-playbook.md:5)
 
 **Top-of-file auth boundary** (lines 5-8):
 ```markdown
@@ -152,7 +152,7 @@ tenancy and policy rules on top.
 
 ### `guides/adoption-pilot-backlog.md` (docs, request-response)
 
-**Analog:** [adoption-pilot-backlog.md](/Users/jon/projects/threadline/guides/adoption-pilot-backlog.md:54)
+**Analog:** [adoption-pilot-backlog.md](/Users/<user>/projects/threadline/guides/adoption-pilot-backlog.md:54)
 
 **Evidence-row contract** (lines 54-58):
 ```markdown
@@ -173,7 +173,7 @@ STG-AUDITED-PATH-RUBRIC
 
 ### `examples/threadline_phoenix/README.md` (docs, request-response)
 
-**Analog:** [README.md](/Users/jon/projects/threadline/examples/threadline_phoenix/README.md:87)
+**Analog:** [README.md](/Users/<user>/projects/threadline/examples/threadline_phoenix/README.md:87)
 
 **Runnable example wiring story** (lines 87-104):
 ```markdown
@@ -204,7 +204,7 @@ before exposing transaction drill-down in production.
 
 ### `test/threadline/integrations/sigra_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [sigra_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:5)
+**Analog:** [sigra_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:5)
 
 **Repo-root markdown loader** (lines 5-9):
 ```elixir
@@ -249,7 +249,7 @@ assert String.contains?(doc, "raises `ArgumentError` immediately")
 
 ### `test/threadline/getting_started_saas_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [getting_started_saas_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:14)
+**Analog:** [getting_started_saas_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/getting_started_saas_doc_contract_test.exs:14)
 
 **Walkthrough checklist assertion style** (lines 14-45):
 ```elixir
@@ -284,7 +284,7 @@ end
 
 ### `test/threadline/exploration_routing_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [exploration_routing_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11)
+**Analog:** [exploration_routing_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11)
 
 **Anchor + ordering pattern** (lines 11-23):
 ```elixir
@@ -311,7 +311,7 @@ assert String.contains?(doc, "requires an authenticated actor before it serves t
 
 ### `test/threadline/incident_playbook_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [incident_playbook_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/incident_playbook_doc_contract_test.exs:6)
+**Analog:** [incident_playbook_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/incident_playbook_doc_contract_test.exs:6)
 
 **Whole-file setup + boundary lock** (lines 6-34):
 ```elixir
@@ -343,7 +343,7 @@ assert section_content =~ "### Recovery"
 
 ### `test/threadline/stg_doc_contract_test.exs` (test, request-response)
 
-**Analog:** [stg_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/stg_doc_contract_test.exs:22)
+**Analog:** [stg_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/stg_doc_contract_test.exs:22)
 
 **Marker-preservation pattern** (lines 22-33):
 ```elixir
@@ -373,7 +373,7 @@ end
 
 ### `test/threadline/example_phoenix_readme_contract_test.exs` (test, request-response)
 
-**Analog:** [example_phoenix_readme_contract_test.exs](/Users/jon/projects/threadline/test/threadline/example_phoenix_readme_contract_test.exs:12)
+**Analog:** [example_phoenix_readme_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/example_phoenix_readme_contract_test.exs:12)
 
 **Small focused literal tests** (lines 12-33):
 ```elixir
@@ -399,7 +399,7 @@ end
 ## Shared Patterns
 
 ### Direct host-wiring vocabulary
-**Sources:** [router.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex:4), [sigra.md](/Users/jon/projects/threadline/guides/integrations/sigra.md:23)
+**Sources:** [router.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/router.ex:4), [sigra.md](/Users/<user>/projects/threadline/guides/integrations/sigra.md:23)
 
 Apply to: `guides/getting-started-saas.md`, `guides/integrations/sigra.md`, `examples/threadline_phoenix/README.md`, and the related contract tests.
 
@@ -417,7 +417,7 @@ end
 Rule to copy: always use the canonical callback names and direct `Threadline.Plug` wiring. Do not reintroduce example-local delegate seams.
 
 ### Additive-only override boundary
-**Source:** [sigra.md](/Users/jon/projects/threadline/guides/integrations/sigra.md:31), [getting-started-saas.md](/Users/jon/projects/threadline/guides/getting-started-saas.md:67)
+**Source:** [sigra.md](/Users/<user>/projects/threadline/guides/integrations/sigra.md:31), [getting-started-saas.md](/Users/<user>/projects/threadline/guides/getting-started-saas.md:67)
 
 Apply to: all adopter-facing docs and any doc-contract tests that lock the host-wiring story.
 
@@ -432,7 +432,7 @@ for additive `request_id` and `correlation_id` metadata only.
 Rule to copy: the docs should consistently say actor identity comes from `actor_fn`, while `context_overrides_fn` only fills missing request metadata.
 
 ### Normalized incident auth boundary
-**Sources:** [audit_transaction_controller.ex](/Users/jon/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:12), [incident-playbook.md](/Users/jon/projects/threadline/guides/incident-playbook.md:5), [domain-reference.md](/Users/jon/projects/threadline/guides/domain-reference.md:220), [README.md](/Users/jon/projects/threadline/examples/threadline_phoenix/README.md:110)
+**Sources:** [audit_transaction_controller.ex](/Users/<user>/projects/threadline/examples/threadline_phoenix/lib/threadline_phoenix_web/controllers/audit_transaction_controller.ex:12), [incident-playbook.md](/Users/<user>/projects/threadline/guides/incident-playbook.md:5), [domain-reference.md](/Users/<user>/projects/threadline/guides/domain-reference.md:220), [README.md](/Users/<user>/projects/threadline/examples/threadline_phoenix/README.md:110)
 
 Apply to: incident-facing docs and every contract test that mentions drill-down.
 
@@ -450,7 +450,7 @@ authorization policy beyond that baseline.
 Rule to copy: state the boundary in normalized Threadline terms first, then the host-owned follow-on policy. Avoid Sigra-private field names as the public contract.
 
 ### Doc-contract assertion posture
-**Sources:** [sigra_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:11), [exploration_routing_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11), [stg_doc_contract_test.exs](/Users/jon/projects/threadline/test/threadline/stg_doc_contract_test.exs:35)
+**Sources:** [sigra_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/integrations/sigra_doc_contract_test.exs:11), [exploration_routing_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/exploration_routing_doc_contract_test.exs:11), [stg_doc_contract_test.exs](/Users/<user>/projects/threadline/test/threadline/stg_doc_contract_test.exs:35)
 
 Apply to: all `test/threadline/*doc_contract*_test.exs` touched in this phase.
 

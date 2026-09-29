@@ -1,0 +1,47 @@
+{
+  "tag": "v0.10.2",
+  "published_at": "2026-09-25T02:15:53Z",
+  "release_pr": 50,
+  "sync_pr": 51,
+  "head_shas": [
+    "43cf7b45e677e41d62a3ab58f353fee4dd747cac",
+    "ee137e5156aac6fe6b3985a31e268f1e4c3fbbe4",
+    "9af1f33a63d713b4d33043b20442690dc2315a44"
+  ],
+  "sha_roles": [
+    {
+      "sha": "43cf7b45e677e41d62a3ab58f353fee4dd747cac",
+      "role": "release-please PR commit",
+      "pr": 50
+    },
+    {
+      "sha": "ee137e5156aac6fe6b3985a31e268f1e4c3fbbe4",
+      "role": "release merge commit on main",
+      "pr": 50
+    },
+    {
+      "sha": "9af1f33a63d713b4d33043b20442690dc2315a44",
+      "role": "distribution-sync PR commit",
+      "pr": 51
+    }
+  ],
+  "run_ids": [
+    36084754688,
+    36084856985,
+    36085532676,
+    36085532679,
+    36085532687,
+    36086249187,
+    36086249204,
+    36086249300,
+    36086466934
+  ],
+  "derivation": [
+    "gh release list --repo szTheory/threadline --limit 100 --json tagName,publishedAt",
+    "gh pr list --repo szTheory/threadline --state merged --search \"release 0.10.2 in:title\"",
+    "gh pr list --repo szTheory/threadline --state merged --search \"sync distribution docs for 0.10.2 in:title\"",
+    "gh pr view <n> --repo szTheory/threadline --json number,commits,mergeCommit",
+    "gh run list --repo szTheory/threadline --commit <sha> --status completed (per SHA, via --head-sha)"
+  ],
+  "fetched_at_utc": "2026-09-26T19:13:16Z"
+}

@@ -10,6 +10,8 @@ defmodule Threadline.CiTopologyContractTest do
   @resolved_plt_prefix "ubuntu-24.04-${{ steps.beam.outputs.otp-version }}-elixir-" <>
                          "${{ steps.beam.outputs.elixir-version }}-dialyzer-plt-"
 
+  @live_slice_step_name "Live Dialyzer slice proof (fails closed)"
+
   defp read_rel!(segments) when is_list(segments) do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
@@ -98,7 +100,7 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert Regex.match?(~r/^  verify-compile-no-optional:/m, yaml)
     assert Regex.match?(~r/^  verify-test:/m, yaml)
-    assert Regex.match?(~r/^  verify-docs:/m, yaml)
+    assert Regex.match?(~r/^  verify-bump-rehearsal:/m, yaml)
   end
 
   test "the sole required-check decision pins alls-green immutably" do
@@ -122,6 +124,8 @@ defmodule Threadline.CiTopologyContractTest do
     assert dialyzer_topology_errors(mix_exs, yaml, contributing) == []
 
     dialyzer_job = workflow_job(yaml, "verify-dialyzer")
+    live_slice_step = workflow_step(yaml, @live_slice_step_name)
+    assert live_slice_step != "", "the live Dialyzer slice step must exist"
 
     mutation_controls = [
       {"PLT timing command",
@@ -136,7 +140,7 @@ defmodule Threadline.CiTopologyContractTest do
          "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check",
          "mix dialyzer --no-check"
        )},
-      {"measured timeout", String.replace(yaml, "timeout-minutes: 9", "timeout-minutes: 8")},
+      {"measured timeout", String.replace(yaml, "timeout-minutes: 12", "timeout-minutes: 11")},
       {"fail-on-unparseable guard",
        String.replace(yaml, "Unable to parse GNU time output", "Timing unavailable")},
       {"build-before-save ordering",
@@ -158,6 +162,20 @@ defmodule Threadline.CiTopologyContractTest do
          yaml,
          "run: mix verify.compile_no_optional",
          "run: |\n          mix verify.compile_no_optional\n          mix dialyzer --no-check"
+       )},
+      {"live slice step deleted", String.replace(yaml, live_slice_step, "")},
+      {"live slice step before the analysis",
+       yaml
+       |> String.replace(live_slice_step, "")
+       |> String.replace(
+         "      - name: Analyze and measure with Dialyzer\n",
+         live_slice_step <> "      - name: Analyze and measure with Dialyzer\n"
+       )},
+      {"live slice alias added to verify-test",
+       String.replace(
+         yaml,
+         "run: mix verify.test",
+         "run: |\n          mix verify.test\n          mix verify.dialyzer_slice"
        )}
     ]
 
@@ -190,6 +208,14 @@ defmodule Threadline.CiTopologyContractTest do
 
     refute dialyzer_topology_errors(mix_exs, hit_with_fabricated_plt, contributing) == [],
            "the exact-key hit path must never fabricate a PLT-build measurement"
+
+    mix_without_slice =
+      String.replace(mix_exs, ~s(        "cmd env MIX_ENV=test mix verify.dialyzer_slice",\n), "")
+
+    refute mix_without_slice == mix_exs, "the ci.all live-slice entry must be present to mutate"
+
+    refute dialyzer_topology_errors(mix_without_slice, yaml, contributing) == [],
+           "dropping the ci.all live-slice entry must make the Dialyzer topology contract fail"
 
     evidence_without_cold_run =
       String.replace(contributing, "34642915672", "unlinked-cold-run")
@@ -386,7 +412,8 @@ defmodule Threadline.CiTopologyContractTest do
       position(job, "THREADLINE_DIALYZER_PLT_WALL_SECONDS="),
       position(job, "- name: Save Dialyzer PLT"),
       position(job, "/usr/bin/time -v -o \"$time_file\" mix dialyzer --no-check"),
-      position(job, "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=")
+      position(job, "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS="),
+      position(job, "run: mix verify.dialyzer_slice")
     ]
 
     [
@@ -405,9 +432,10 @@ defmodule Threadline.CiTopologyContractTest do
        "verify-dialyzer must run on ubuntu-24.04"},
       {committed_toolchain_step?(setup_beam_step),
        "verify-dialyzer must install exactly the committed .tool-versions build (version-file, strict)"},
-      {String.contains?(job, "timeout-minutes: 9") and
-         String.contains?(job, "ceil(252 * 2 / 60) = 9"),
-       "Dialyzer timeout must retain the documented cold-run derivation"},
+      {String.contains?(job, "timeout-minutes: 12") and
+         String.contains?(job, "ceil((252 + 80) * 2 / 60) = 12") and
+         String.contains?(job, "36258719902"),
+       "Dialyzer timeout must retain the documented cold-run plus live-slice derivation"},
       {String.contains?(job, "uses: actions/cache/restore@v5"),
        "Dialyzer PLT restore must be a separate cache action"},
       {String.contains?(job, "id: dialyzer-plt-restore"),
@@ -482,14 +510,57 @@ defmodule Threadline.CiTopologyContractTest do
            "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1023056",
            "THREADLINE_DIALYZER_ANALYSIS_WALL_SECONDS=9.42",
            "THREADLINE_DIALYZER_ANALYSIS_MAX_RSS_KB=1009288",
-           "ceil(252 seconds × 2.0 / 60)",
-           "= 9 minutes"
+           "36258719902",
+           "ceil((252 + 80) seconds × 2.0 / 60)",
+           "= 12 minutes",
+           "mix verify.dialyzer_slice",
+           "drops no real coverage"
          ],
          &String.contains?(contributing, &1)
        ), "CONTRIBUTING must link the immutable miss/hit evidence and timeout formula"}
     ]
+    |> Kernel.++(live_slice_checks(mix_exs, yaml, job))
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
+  end
+
+  # The live Dialyzer slice proof (plan 218-03): it runs only in verify-dialyzer, under
+  # MIX_ENV=test with a postgres:16 service, is excluded from default `mix test`, and
+  # ci.all runs it once, after the dev PLT exists.
+  defp live_slice_checks(mix_exs, yaml, job) do
+    live_slice_step = workflow_step(job, @live_slice_step_name)
+    test_helper = read_rel!(["test", "test_helper.exs"])
+    ci_all = ci_all_entries(mix_exs)
+    ci_all_dialyzer = Enum.find_index(ci_all, &(&1 == "cmd env MIX_ENV=dev mix verify.dialyzer"))
+
+    ci_all_slice =
+      Enum.find_index(ci_all, &(&1 == "cmd env MIX_ENV=test mix verify.dialyzer_slice"))
+
+    other_jobs_running_slice =
+      for id <- workflow_job_ids(yaml),
+          id != "verify-dialyzer",
+          body = workflow_job(yaml, id),
+          String.contains?(body, "verify.dialyzer_slice") or
+            String.contains?(body, "live_dialyzer"),
+          do: id
+
+    [
+      {live_slice_step != "" and
+         String.contains?(live_slice_step, "MIX_ENV: test") and
+         String.contains?(live_slice_step, "run: mix verify.dialyzer_slice"),
+       "verify-dialyzer must run mix verify.dialyzer_slice under MIX_ENV: test"},
+      {String.contains?(job, "    services:\n      postgres:\n        image: postgres:16\n"),
+       "verify-dialyzer must carry a postgres:16 service for the live slice proof"},
+      {other_jobs_running_slice == [],
+       "only verify-dialyzer may run the live_dialyzer tag or verify.dialyzer_slice, found: " <>
+         inspect(other_jobs_running_slice)},
+      {String.contains?(test_helper, "live_dialyzer: true"),
+       "test/test_helper.exs must exclude live_dialyzer from default mix test"},
+      {Enum.count(ci_all, &(&1 == "cmd env MIX_ENV=test mix verify.dialyzer_slice")) == 1 and
+         is_integer(ci_all_dialyzer) and is_integer(ci_all_slice) and
+         ci_all_slice > ci_all_dialyzer,
+       "ci.all must invoke the live slice proof exactly once, after the dev verify.dialyzer"}
+    ]
   end
 
   defp ci_all_entries(mix_exs) do
@@ -508,6 +579,13 @@ defmodule Threadline.CiTopologyContractTest do
 
       nil ->
         []
+    end
+  end
+
+  defp workflow_job_ids(yaml) do
+    case String.split(yaml, "\njobs:\n", parts: 2) do
+      [_, jobs] -> ~r/^  ([a-z][a-z0-9-]+):\n/m |> Regex.scan(jobs) |> Enum.map(&List.last/1)
+      _ -> []
     end
   end
 
@@ -695,6 +773,373 @@ defmodule Threadline.CiTopologyContractTest do
     refute String.contains?(ci_all_list, "\"verify.bump_rehearsal\""),
            "verify.bump_rehearsal was folded into ci.all. It is a release-lane check and " <>
              "follows verify.release's precedent of staying out of the per-change gate."
+  end
+
+  # --- Plan 218-04: removed CI proofs stay justified and dominated ---------
+  #
+  # A proof leaves CI only when another job catches its failure class on the same
+  # triggers. Each removal carries a "still caught by" bullet in CONTRIBUTING.md,
+  # and these pins keep the proof that still catches it from lapsing silently.
+  @removed_proofs_heading "### Removed CI proofs and what still catches them"
+  @byte_stable_step "Assert byte-stable regeneration (no drift from committed evidence)"
+  @mechanical_checker_test "test/threadline/operator_surface/mechanical_checker_test.exs"
+  @removed_job_ids ["verify-mechanical", "verify-docs", "verify-hex-package"]
+
+  defp removed_proof_bullets(contributing) do
+    case String.split(contributing, @removed_proofs_heading, parts: 2) do
+      [_, tail] ->
+        tail
+        |> String.split(~r/\n#+ /, parts: 2)
+        |> List.first()
+        |> String.split("\n")
+        |> Enum.filter(&String.starts_with?(&1, "- "))
+
+      _ ->
+        []
+    end
+  end
+
+  defp justified_removal?(contributing, needle) do
+    contributing
+    |> removed_proof_bullets()
+    |> Enum.any?(&(String.contains?(&1, "still caught by") and String.contains?(&1, needle)))
+  end
+
+  # Tags that `mix test` excludes by default, from the app-env copy test_helper
+  # writes, plus the two sanctioned gates by name so a broken read cannot pass.
+  defp default_excluded_tag_names do
+    :threadline
+    |> Application.get_env(:default_test_excludes, [])
+    |> Enum.map(fn
+      {tag, _value} -> tag
+      tag -> tag
+    end)
+    |> Kernel.++([:pgbouncer_topology, :live_dialyzer])
+    |> Enum.map(&Atom.to_string/1)
+    |> Enum.uniq()
+  end
+
+  defp header_roster(yaml) do
+    case Regex.run(~r/^# Job id contract[^\n]*\n# ([^\n]*)/m, yaml) do
+      [_, line] -> String.split(line, ", ")
+      nil -> []
+    end
+  end
+
+  # Each removed job id is gone from every roster (job keys, header, ci-required
+  # needs:) and leaves both a `# Removed:` comment in ci.yml and a "still caught
+  # by" bullet in CONTRIBUTING.md.
+  defp removed_job_checks(yaml, contributing) do
+    job_ids = workflow_job_ids(yaml)
+    header = header_roster(yaml)
+    needs = ci_required_needs_from(yaml)
+
+    Enum.flat_map(@removed_job_ids, fn id ->
+      [
+        {id not in job_ids and id not in header and id not in needs,
+         "#{id} was removed as a dominated proof but is back in ci.yml's job keys, " <>
+           "header roster or ci-required needs:"},
+        {String.contains?(yaml, "# Removed: #{id}"),
+         "ci.yml lost the `# Removed: #{id}` comment that says what still catches it"},
+        {justified_removal?(contributing, "`#{id}`"),
+         "CONTRIBUTING.md has no \"still caught by\" bullet naming `#{id}`, so its " <>
+           "removal no longer says which job catches its failure class"}
+      ]
+    end)
+  end
+
+  defp removed_proof_errors(yaml, contributing, checker_test) do
+    capture = workflow_job(yaml, "verify-capture")
+
+    excluded_tags_in_checker =
+      for tag <- default_excluded_tag_names(),
+          Regex.match?(~r/@(?:module)?tag\b[^\n]*\b#{tag}\b/, checker_test),
+          do: tag
+
+    [
+      {capture != "", "verify-capture is gone from ci.yml"},
+      {workflow_step(capture, @byte_stable_step) != "",
+       "verify-capture lost its byte-stable regeneration step. The capture lane's mechanical " <>
+         "step was removed because that step proves regenerated evidence equals the committed " <>
+         "evidence; without it a rule breach in regenerated evidence reaches main unseen"},
+      {not String.contains?(strip_comment_lines(capture), "mix verify.mechanical"),
+       "verify-capture runs mix verify.mechanical again, which duplicates what verify-test " <>
+         "already runs over the committed scorecard JSON"},
+      {excluded_tags_in_checker == [],
+       "#{@mechanical_checker_test} carries a default-excluded tag " <>
+         "#{inspect(excluded_tags_in_checker)}, so verify-test no longer runs it and a " <>
+         "committed scorecard that breaches MODE-A/MODE-B is caught by nothing"},
+      {String.contains?(contributing, @removed_proofs_heading),
+       "CONTRIBUTING.md lost the \"#{@removed_proofs_heading}\" section, so the removed " <>
+         "proofs no longer say what still catches their failure class"},
+      {justified_removal?(contributing, "capture"),
+       "CONTRIBUTING.md has no \"still caught by\" bullet for the capture lane's removed " <>
+         "mechanical step"}
+    ]
+    |> Kernel.++(removed_job_checks(yaml, contributing))
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp removed_job_bullet(contributing, needle) do
+    contributing
+    |> removed_proof_bullets()
+    |> Enum.find(
+      &(String.contains?(&1, "still caught by") and String.starts_with?(&1, "- " <> needle))
+    )
+  end
+
+  test "removed CI proofs stay justified and dominated" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+    contributing = read_rel!(["CONTRIBUTING.md"])
+    checker_test = read_rel!([@mechanical_checker_test])
+
+    assert removed_proof_errors(yaml, contributing, checker_test) == []
+
+    byte_stable_step = workflow_step(yaml, @byte_stable_step)
+    assert byte_stable_step != "", "the byte-stable step must exist to mutate"
+
+    capture_bullet =
+      contributing
+      |> removed_proof_bullets()
+      |> Enum.find(&(String.contains?(&1, "still caught by") and String.contains?(&1, "capture")))
+
+    assert is_binary(capture_bullet), "the capture bullet must exist to mutate"
+
+    yaml_controls = [
+      {"mechanical step re-added to verify-capture",
+       String.replace(
+         yaml,
+         byte_stable_step,
+         byte_stable_step <>
+           "      - name: Assert mechanical checker clean over real evidence\n" <>
+           "        run: mix verify.mechanical\n\n"
+       )},
+      {"byte-stable step deleted", String.replace(yaml, byte_stable_step, "")}
+    ]
+
+    for {control, mutated} <- yaml_controls do
+      refute mutated == yaml, "#{control} control did not change the input"
+
+      refute removed_proof_errors(mutated, contributing, checker_test) == [],
+             "#{control} mutation must make the removed-proof contract fail"
+    end
+
+    for {label, bullet} <- [
+          {"capture", capture_bullet},
+          {"verify-docs", removed_job_bullet(contributing, "`verify-docs`")},
+          {"verify-hex-package", removed_job_bullet(contributing, "`verify-hex-package`")},
+          {"verify-mechanical", removed_job_bullet(contributing, "`verify-mechanical`")}
+        ] do
+      assert is_binary(bullet), "the #{label} bullet must exist to mutate"
+      contributing_without_bullet = String.replace(contributing, bullet <> "\n", "")
+      refute contributing_without_bullet == contributing
+
+      refute removed_proof_errors(yaml, contributing_without_bullet, checker_test) == [],
+             "dropping the #{label} bullet must make the removed-proof contract fail"
+    end
+
+    readded =
+      String.replace(
+        yaml,
+        "      - verify-bump-rehearsal\n",
+        "      - verify-bump-rehearsal\n      - verify-docs\n"
+      )
+
+    refute readded == yaml
+
+    refute removed_proof_errors(readded, contributing, checker_test) == [],
+           "re-adding a removed job to ci-required needs: must make the contract fail"
+
+    uncommented = String.replace(yaml, "# Removed: verify-hex-package", "# verify-hex-package")
+    refute uncommented == yaml
+
+    refute removed_proof_errors(uncommented, contributing, checker_test) == [],
+           "dropping a `# Removed:` comment must make the contract fail"
+
+    excluded_checker =
+      String.replace(
+        checker_test,
+        "use ExUnit.Case, async: true\n",
+        "use ExUnit.Case, async: true\n  @moduletag :pgbouncer_topology\n",
+        global: false
+      )
+
+    refute excluded_checker == checker_test
+
+    refute removed_proof_errors(yaml, contributing, excluded_checker) == [],
+           "tagging the mechanical checker test out of the default suite must fail the contract"
+  end
+
+  # --- Plan 218-04: the proofs that dominate the removed jobs stay in force ---
+  #
+  # verify-docs and verify-hex-package left CI because verify-bump-rehearsal
+  # (through mix verify.release) and verify-hex-evaluator catch the same failure
+  # classes on the same triggers. These pins make that dominance impossible to
+  # lapse silently.
+  @dominators ["verify-bump-rehearsal", "verify-hex-evaluator"]
+
+  defp verify_release_body(mix_exs) do
+    case Regex.run(~r/  defp verify_release\(_args\) do\n([\s\S]*?)\n  end\n/, mix_exs) do
+      [_, body] -> body
+      nil -> ""
+    end
+  end
+
+  defp workflow_triggers(yaml) do
+    case Regex.run(~r/^on:\n((?:(?:  .*|\s*)\n)+?)(?=^\S)/m, yaml) do
+      [_, block] -> strip_comment_lines(block)
+      nil -> ""
+    end
+  end
+
+  defp dominance_errors(mix_exs, yaml, rehearsal) do
+    release = verify_release_body(mix_exs)
+    triggers = workflow_triggers(yaml)
+    needs = ci_required_needs_from(yaml)
+    skip_listed = allowed_skip_or_failure_items(yaml)
+
+    dominator_checks =
+      Enum.flat_map(@dominators, fn id ->
+        job = workflow_job(yaml, id)
+
+        [
+          {job != "" and id in needs and id not in skip_listed,
+           "#{id} must exist and sit in ci-required's needs: (never skip-listed). It is " <>
+             "what catches the failure classes of the removed verify-docs / " <>
+             "verify-hex-package jobs; outside the required gate those breaks merge unseen"},
+          {job != "" and not Regex.match?(~r/^    if:/m, job),
+           "#{id} acquired a job-level if:. A dominator that does not run on every " <>
+             "trigger the removed job ran on no longer dominates it"}
+        ]
+      end)
+
+    [
+      {String.contains?(release, ~s("MIX_ENV=dev mix docs --warnings-as-errors")),
+       "verify-docs was removed because verify.release builds ExDoc with " <>
+         "--warnings-as-errors; without it an ExDoc break reaches release unseen"},
+      {String.contains?(release, ~s("mix hex.build")),
+       "verify-hex-package was removed because verify.release runs mix hex.build; " <>
+         "without it a broken Hex package reaches release unseen"},
+      {String.contains?(
+         workflow_job(yaml, "verify-bump-rehearsal"),
+         "run: mix verify.bump_rehearsal"
+       ), "verify-bump-rehearsal must run mix verify.bump_rehearsal, which runs verify.release"},
+      {Regex.match?(~r/^\s*run_gate\s+"[^"]*"\s+mix verify\.release\b/m, rehearsal),
+       "bin/verify-bump-rehearsal must run an uncommented `run_gate ... mix verify.release` " <>
+         "gate; without it the ExDoc and hex.build proofs of the removed verify-docs / " <>
+         "verify-hex-package jobs leave per-PR CI while every other pin stays green"},
+      {String.contains?(
+         workflow_job(yaml, "verify-hex-evaluator"),
+         "run: mix verify.hex_evaluator"
+       ),
+       "verify-hex-evaluator must run mix verify.hex_evaluator, which builds, resolves, " <>
+         "compiles and tests the tarball from this tree"},
+      {String.contains?(
+         mix_exs,
+         ~s|System.get_env("THREADLINE_HEX_EVALUATOR_MODE", "rehearsal")|
+       ),
+       "verify.hex_evaluator must default to rehearsal mode; the published mode resolves " <>
+         "hex.pm instead of this tree, so a tarball without a usable lib/ goes unseen"},
+      {not String.contains?(yaml, "THREADLINE_HEX_EVALUATOR_MODE"),
+       "ci.yml must not set THREADLINE_HEX_EVALUATOR_MODE; the evaluator must test this " <>
+         "tree's tarball on every CI run"},
+      {String.contains?(triggers, "  push:\n    branches: [main]\n") and
+         String.contains?(triggers, "  pull_request:\n    branches: [main]\n") and
+         String.contains?(triggers, "  workflow_dispatch:") and
+         not String.contains?(triggers, "paths"),
+       "ci.yml must trigger on push to main, pull_request to main and workflow_dispatch " <>
+         "with no paths: filter; the removed jobs ran on exactly that set"}
+    ]
+    |> Kernel.++(dominator_checks)
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  test "dominating proofs for removed jobs stay in force" do
+    mix_exs = read_rel!(["mix.exs"])
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+    rehearsal = read_rel!(["bin", "verify-bump-rehearsal"])
+
+    assert dominance_errors(mix_exs, yaml, rehearsal) == []
+
+    mix_controls = [
+      {"ExDoc build dropped from verify.release",
+       String.replace(mix_exs, ~s("MIX_ENV=dev mix docs --warnings-as-errors",\n), "")},
+      {"hex.build dropped from verify.release",
+       String.replace(mix_exs, ~s(,\n      "mix hex.build"\n), "\n")},
+      {"evaluator default mode changed",
+       String.replace(
+         mix_exs,
+         ~s|System.get_env("THREADLINE_HEX_EVALUATOR_MODE", "rehearsal")|,
+         ~s|System.get_env("THREADLINE_HEX_EVALUATOR_MODE", "published")|
+       )}
+    ]
+
+    yaml_controls = [
+      {"verify-bump-rehearsal dropped from ci-required needs",
+       String.replace(yaml, "      - verify-bump-rehearsal\n", "")},
+      {"verify-hex-evaluator dropped from ci-required needs",
+       String.replace(yaml, "      - verify-hex-evaluator\n", "")},
+      {"job-level if on verify-hex-evaluator",
+       String.replace(
+         yaml,
+         "  verify-hex-evaluator:\n    name: ",
+         "  verify-hex-evaluator:\n    if: github.event_name == 'push'\n    name: "
+       )},
+      {"job-level if on verify-bump-rehearsal",
+       String.replace(
+         yaml,
+         "  verify-bump-rehearsal:\n    name: ",
+         "  verify-bump-rehearsal:\n    if: github.event_name == 'push'\n    name: "
+       )},
+      {"evaluator mode forced to published in ci.yml",
+       String.replace(
+         yaml,
+         "  verify-hex-evaluator:\n    name: Hex evaluator smoke (threadline from hex.pm)\n",
+         "  verify-hex-evaluator:\n    name: Hex evaluator smoke (threadline from hex.pm)\n" <>
+           "    env:\n      THREADLINE_HEX_EVALUATOR_MODE: published\n"
+       )},
+      {"pull_request trigger dropped",
+       String.replace(yaml, "  pull_request:\n    branches: [main]\n", "")}
+    ]
+
+    for {control, mutated} <- mix_controls do
+      refute mutated == mix_exs, "#{control} control did not change the input"
+
+      refute dominance_errors(mutated, yaml, rehearsal) == [],
+             "#{control} mutation must make the dominance contract fail"
+    end
+
+    for {control, mutated} <- yaml_controls do
+      refute mutated == yaml, "#{control} control did not change the input"
+
+      refute dominance_errors(mix_exs, mutated, rehearsal) == [],
+             "#{control} mutation must make the dominance contract fail"
+    end
+
+    # 218 review WR-04: the chain's third link (the rehearsal runs verify.release).
+    rehearsal_controls = [
+      {"verify.release gate removed from the rehearsal",
+       String.replace(
+         rehearsal,
+         ~s(  run_gate "mix verify.release at $NEXT" mix verify.release || true\n),
+         "  true\n"
+       )},
+      {"verify.release gate commented out",
+       String.replace(
+         rehearsal,
+         ~s(  run_gate "mix verify.release at $NEXT" mix verify.release || true\n),
+         ~s(  true # run_gate "mix verify.release at $NEXT" mix verify.release\n)
+       )}
+    ]
+
+    for {control, mutated} <- rehearsal_controls do
+      refute mutated == rehearsal, "#{control} control did not change the input"
+
+      refute dominance_errors(mix_exs, yaml, mutated) == [],
+             "#{control} mutation must make the dominance contract fail"
+    end
   end
 
   test "the ruleset's sole required status check is byte-exact with ci-required's emitted name" do

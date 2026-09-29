@@ -1,0 +1,4 @@
+.release-please-manifest.json
+CHANGELOG.md
+guides/adoption-pilot-backlog.md
+mix.exs

@@ -82,7 +82,7 @@ defmodule Threadline.CriticTrust.LedgerSplice do
 
   # Find the byte index of the `}` matching the `{` at `open`. String-literal aware.
   defp find_close(text, open) do
-    <<_::binary-size(open), rest::binary>> = text
+    rest = binary_part(text, open, byte_size(text) - open)
 
     case scan(rest, 0, 0, false, false) do
       {:ok, rel} -> {:ok, open + rel}

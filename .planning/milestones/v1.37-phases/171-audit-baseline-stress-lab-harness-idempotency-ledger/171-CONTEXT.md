@@ -61,7 +61,7 @@ The user explicitly asked for advisor-style research and a cohesive one-shot rec
 - `.planning/REQUIREMENTS.md` - DS-01 through DS-04 requirements and milestone invariants.
 - `.planning/PROJECT.md` - Current milestone description, product posture, and design-system stress-test goal.
 - `.planning/STATE.md` - Current phase state, deferred items, carried-todo mappings, and recent v1.36/v1.37 continuity.
-- `/Users/jon/.claude/plans/design-system-stress-test-fancy-gizmo.md` - Approved plan of record for v1.37; use as canonical if roadmap summary is ambiguous.
+- `/Users/<user>/.claude/plans/design-system-stress-test-fancy-gizmo.md` - Approved plan of record for v1.37; use as canonical if roadmap summary is ambiguous.
 
 ### Operator Surface Code
 - `lib/threadline/operator_surface/router.ex` - Current adopter-facing mount macro, route set, auth gating, export sibling routes, and `theme:` option.

@@ -1,55 +1,61 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-06-07 (milestone v1.34 shipped)
-**Active milestone:** **Hold**
-**Next ranked candidate:** **v1.28** when sustained real-adopter signal exists
+**Updated:** 2026-09-25 (v1.41 closed; squash-landed via PR #49; 0.10.2 released)
+**Active milestone:** v1.42 Capture Correctness for Real Table Shapes (defining)
+**Posture:** base-library ratchet to diminishing returns, marked by **1.0.0**; operator UI parked until then
+
+For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and near/mid/long horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
 
 ## Strategic thesis
 
-With v1.29 shipped, first-hour parity and verify/planning hygiene wedge is closed (README `ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125, SUMMARY SSOT). The library is **~92–95% done** for its stated narrow audit-platform scope (band: near-done / diminishing returns).
+The 2026-05-29 claim of "~92–95% done, default hold" measured the **adopter-facing docs and first-hour path**. It never measured whether capture behaves correctly on real table shapes. A re-derived baseline on 2026-09-25 found gaps that matter to any adopter:
 
-v1.34 was a local maintainer DX exception to the product hold posture: it hardened the Docker-backed `/audit` demo so multiple local admin UIs can run without port, cache, or cleanup friction. It did not reopen product scope, public brand rollout, compliance expansion, or external-pilot work.
+- trigger SQL hardcodes the PK column `id` (`trigger_sql.ex:183-409`), so tables keyed any other way silently store `{"id": null}`
+- per-table function names collide across Postgres schemas (redaction bypass)
+- long table names raise a misleading error
+- no property tests
+- deferred dependency advisories and no audit gate
+- nightly flake runs burn ~4,300 runner-min/month with no signal
+- ~100 public functions without `@spec`
 
-The v1.22 **real-adopter-first** rule re-engages on first sustained external signal (see PROJECT.md Key Decisions). **No adopter signal today** — do not open v1.28. Default: **hold**; stop building synthetic product milestones.
+These are quality defects, not new scope. Under the guide §5 they justify milestones without adopter signal. New product scope still needs signal.
 
-**Assessment thread:** `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
+## Ladder to 1.0.0 (estimated 2026-09-25: 6–9 weeks, mid-Nov → early Dec 2026)
 
-## Option record
+| Rank | Version | Theme | Release | Status |
+|------|---------|-------|---------|--------|
+| 1 | v1.42 | Capture Correctness for Real Table Shapes | 0.11.0 | defining |
+| 2 | v1.43 | Supply Chain, CI Economy and Repo Hygiene | patch | queued |
+| 3 | v1.44 | Behavioral Depth: Properties, Twins, Telemetry | minor | queued |
+| 4 | v1.45 | 1.0 API Contract | 1.0.0 | queued |
 
-| Rank | Option | Recommendation | Why |
-|------|--------|----------------|-----|
-| 1–9 | _(prior shipped)_ | **Shipped** | See arc order table |
-| 10 | Auth lane breadth (phx.gen.auth) | **Shipped (v1.26)** | Cookbook + root CI proof; four-lane matrix complete |
-| 11 | Distribution & first-hour finish | **Shipped (v1.27)** | Hex 0.6.0 publish + `ecto_repos` doc + v1.26 audit doc carry-forward |
-| 12 | External pilot | **When signal exists (v1.28)** | Pilot unblockers + STG host matrices — not synthetic scope |
-| 13 | Hex 0.6.0 publish | **Shipped (v1.27)** | hex.pm 0.6.0 aligned with in-repo semver |
-| 14 | First-hour parity & verify hygiene | **Shipped (v1.29)** | README `ecto_repos`, phx-gen-auth mount, WALKTHROUGH truth, Nyquist 125 — last synthetic pass before hold |
-| 15 | Adoption evidence automation | **In progress (v1.30)** | ConnCase §5, Track A golden path, Playwright gaps — automation debt on existing demo fiction |
-| 16 | Local Docker Admin UI DX | **Shipped (v1.34)** | Made the existing `/audit` demo easy to start, refresh, inspect, stop, and run beside other local Docker projects |
+Scope per rung: `.planning/MILESTONE-GUIDE.txt` §7 (canonical; don't duplicate it here).
 
-## Arc order
+After 1.0.0: operator UI returns (maintainer UI/UX feedback; paid critic stays parked unless un-parked).
 
-| Version | Status | Theme | Why now | Unlocks | Non-goals |
-|---------|--------|-------|---------|---------|-----------|
-| v1.26 | **shipped** | Auth Lane Breadth | Closed phx.gen.auth reach gap without second reference app. | Four-lane matrix; reduced integrator friction for majority Phoenix auth. | Second full reference app; Threadline-owned auth/RBAC. |
-| v1.27 | **shipped** | Distribution & First-Hour Finish | In-repo done ≠ adopter can install/evaluate; `ecto_repos` hole; Hex lag. | Honest "done for scope"; evaluator path from Hex 0.6.0. | External pilot; compliance expansion; new product surface. |
-| v1.28 | **queued (signal-gated)** | External Pilot | First sustained real-adopter signal. | Concrete host blockers; STG truth. | Synthetic walkthrough v2; compliance expansion. |
-| v1.29 | **shipped** | First-Hour Parity & Verify Hygiene | Last adopter-facing doc footguns post-v1.27. | README/quick-path parity; WALKTHROUGH truth; Nyquist 125. | New product surface; pilot pretense. |
-| v1.30 | **in progress** | Adoption Evidence Automation | Close WALKTHROUGH §5 + LiveView E2E gaps on existing demo. | Full §1–§5 CI proof; evaluator playbook. | Walkthrough v2; new domain; host STG pretense. |
-| v1.34 | **shipped** | Local Docker Admin UI DX | Multiple local Elixir library demos make port conflicts, stale containers, and rebuild costs painful. | One-command `/audit` demo; project-scoped stacks; printed routes; clearer cleanup; opt-in shared-proxy path. | Traefik default; product UI changes; public brand rollout. |
-
-## Path to done
-
-Sequence to diminishing returns (~95%+), then stop major milestones:
-
-1. **Now (~92–95%)** — v1.29 shipped; core JTBD + Hex 0.6.0 + first-hour spine + verify hygiene credible.
-2. **Hold** — default now; issue-driven maintenance only.
-3. **v1.28 on signal** — external pilot when sustained adopter signal fires.
-4. **Done (~95%+)** — stop building synthetic milestones; on-demand forks only (Pow/bearer, DEFER trio, `threadline_web` extraction).
+Signal-gated long horizon:
+- GDPR erasure of captured rows
+- per-table retention
+- partitioned tables and RLS
+- multiple repos
+- external pilot (v1.28)
+- compliance packs
 
 ## Activation rules
 
-- When `/gsd-new-milestone` runs without stronger context and **no adopter signal**, recommend **hold** from this file — **not v1.28**.
-- When sustained adopter signal exists, recommend **v1.28 pilot-first**.
+- At `/gsd-new-milestone`, recommend the next unshipped ladder rung after re-deriving its evidence (guide §6). Skip or merge a rung if its evidence has evaporated.
+- At each close, mark the rung shipped, re-estimate the 1.0.0 date, and refresh this table and guide §7.
 - **Do not** open compliance-pack / legal-hold / immutable-archive milestones without procurement pressure.
 - **Do not** open Pow/bearer auth lane or second reference app without explicit demand.
+- **Do not** start operator-UI design work before 1.0.0 unless the maintainer explicitly un-parks it.
+
+## History (condensed)
+
+| Range | Theme |
+|-------|-------|
+| v1.0–v1.29 | Capture, semantics, exploration, integrations, distribution, first-hour parity (Hex 0.6.0) |
+| v1.30–v1.34 | Adoption evidence automation, brand review, local Docker admin UI DX |
+| v1.35–v1.40 | Brand identity, light mode, operator design system, page-by-page UI polish, quality baseline + storage schema (0.9.0), automated UI critic (parked) |
+| v1.41 | Green, Clean, and Honest: real gates, 0.10.0–0.10.2 |
+
+Full per-milestone record: `.planning/MILESTONES.md`. The superseded "hold" arc (2026-06-07) is in git history.

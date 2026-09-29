@@ -33,7 +33,7 @@ score: 5/5 must-haves verified
 
 ## Verification Commands
 
-Validated in the isolated clean worktree at `/Users/jon/projects/threadline-release-verify`:
+Validated in the isolated clean worktree at `/Users/<user>/projects/threadline-release-verify`:
 
 - `mix deps.get`
 - `mix verify.release`
@@ -46,7 +46,7 @@ Supporting checks already run in the main workspace before promotion into the cl
 
 ## Notes
 
-- The main workspace at `/Users/jon/projects/threadline` remains intentionally dirty; the clean verification result comes from the isolated release candidate branch/worktree so the gate could evaluate a truly taggable snapshot.
+- The main workspace at `/Users/<user>/projects/threadline` remains intentionally dirty; the clean verification result comes from the isolated release candidate branch/worktree so the gate could evaluate a truly taggable snapshot.
 - `MIX_ENV=dev mix docs` still emits pre-existing documentation warnings outside this repair scope, but they do not fail the release gate.
 
 ## Result

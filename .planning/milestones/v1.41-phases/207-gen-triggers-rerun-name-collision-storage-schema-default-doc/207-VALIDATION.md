@@ -23,8 +23,8 @@ created: "2026-09-24"
 |----------|-------|
 | **Framework** | ExUnit (Elixir 1.17.3 local; 1.15 / PostgreSQL 14 on the CI min lane) |
 | **Config file** | `test/test_helper.exs` (excludes only `pgbouncer_topology`) |
-| **Quick run command** | `bash -c 'cd /Users/jon/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/mix/tasks/threadline/gen_triggers_test.exs test/threadline/capture/trigger_rerun_test.exs test/threadline/capture/trigger_sql_storage_schema_test.exs test/threadline/storage_schema_test.exs test/threadline/mix/'` |
-| **Full suite command** | `bash -c 'cd /Users/jon/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test'` |
+| **Quick run command** | `bash -c 'cd /Users/<user>/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test test/mix/tasks/threadline/gen_triggers_test.exs test/threadline/capture/trigger_rerun_test.exs test/threadline/capture/trigger_sql_storage_schema_test.exs test/threadline/storage_schema_test.exs test/threadline/mix/'` |
+| **Full suite command** | `bash -c 'cd /Users/<user>/projects/threadline && DB_PORT=5433 ASDF_ERLANG_VERSION=27.3 ASDF_ELIXIR_VERSION=1.17.3-otp-27 mix test'` |
 | **Estimated runtime** | ~20 s for the quick run; a few minutes for the full suite |
 
 ---

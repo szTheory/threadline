@@ -67,7 +67,7 @@ The planning risk is not framework choice; it is contract drift. [ASSUMED] Curre
 
 ## Project Constraints (from AGENTS.md)
 
-No `AGENTS.md` exists in `/Users/jon/projects/threadline`, verified with `test -f AGENTS.md`. [VERIFIED: shell]
+No `AGENTS.md` exists in `/Users/<user>/projects/threadline`, verified with `test -f AGENTS.md`. [VERIFIED: shell]
 
 ## Standard Stack
 
