@@ -771,7 +771,39 @@ defmodule Threadline.CIWorkflowParityContractTest do
            String.replace(spoof, "    name: CI required\n", ~s(    name: "ci  required"\n))
          ), "rule=gate-name-unique"},
         {"job id renamed everywhere", on_ci.(&String.replace(&1, "verify-format", "verify-fmt")),
-         "rule=job-ids"}
+         "rule=job-ids"},
+        # VG-02 (221 verification): shapes that short-circuit the decision step.
+        {"job env BASH_ENV on ci-required",
+         on_ci.(
+           &String.replace(
+             &1,
+             gate_header,
+             gate_header <> ~s[    env:\n      BASH_ENV: '$(echo /tmp/x)'\n]
+           )
+         ), "rule=gate-job-keys"},
+        {"job container on ci-required",
+         on_ci.(&String.replace(&1, gate_header, gate_header <> "    container: ubuntu:24.04\n")),
+         "rule=gate-job-keys"},
+        {"step env on the alls-green step",
+         on_ci.(&String.replace(&1, gate_step, gate_step <> "        env:\n          X: y\n")),
+         "rule=gate-step-keys"},
+        {"workflow-level env in ci.yml",
+         on_ci.(&String.replace(&1, "\njobs:\n", "\nenv:\n  X: y\n\njobs:\n")),
+         "rule=gate-workflow-keys"},
+        {"workflow-level defaults in ci.yml",
+         on_ci.(
+           &String.replace(&1, "\njobs:\n", "\ndefaults:\n  run:\n    shell: bash\n\njobs:\n")
+         ), "rule=gate-workflow-keys"},
+        {"BASH_ENV in a second workflow",
+         &Map.put(
+           &1,
+           ".github/workflows/zz-spoof.yml",
+           String.replace(
+             spoof,
+             "    name: CI required\n",
+             "    name: Other\n    env:\n      BASH_ENV: /tmp/x\n"
+           )
+         ), "rule=gate-bash-env"}
       ]
 
       for {control, mutate, fragment} <- controls do
@@ -1687,6 +1719,16 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # spelling), `jobs: ${{ toJSON(needs) }}`, one job named `CI required` across
   # every workflow, and the frozen `@ci_job_ids` set.
   #
+  # Shape allowlists (VG-02, 221 verification): point checks are a denylist,
+  # and a denylist missed `env: BASH_ENV` (bash sources it before the
+  # alls-green decision script, so the step exits 0 without deciding), a step
+  # `env`, a job `container` and a workflow-level `env`. So the whole shape is
+  # pinned: ci-required's job keys and its one step's keys are allowlists read
+  # through `yaml_key/1`, ci.yml carries no workflow-level `env` or `defaults`,
+  # and no workflow carries a `BASH_ENV` key at any depth. None of these keys
+  # exists today, so the allowlists cost nothing; widening one is a reviewed
+  # edit of the attribute below.
+  #
   # D-12: `runs-on`, `timeout-minutes`, `permissions` and workflow-level
   # `paths`/`branches-ignore`/`types` are deliberately not pinned here. Each
   # fails closed: a bad value leaves the required check pending, never green.
@@ -1704,8 +1746,50 @@ defmodule Threadline.CIWorkflowParityContractTest do
         job = parsed_job(doc, "ci-required")
 
         gate_if_errors(job) ++
+          gate_shape_errors(doc, job) ++
           gate_step_errors(job) ++
-          gate_name_errors(job, yaml_by_path, ci_path) ++ gate_job_id_errors(doc)
+          gate_name_errors(job, yaml_by_path, ci_path) ++
+          gate_bash_env_errors(yaml_by_path) ++ gate_job_id_errors(doc)
+    end
+  end
+
+  @gate_job_keys ~w(name if needs runs-on timeout-minutes steps)
+  @gate_step_keys ~w(name uses with)
+  @gate_banned_workflow_keys ~w(env defaults)
+
+  defp gate_shape_errors(doc, job) do
+    job_errors =
+      case extra_yaml_keys(job, @gate_job_keys) do
+        [] ->
+          []
+
+        extra ->
+          [
+            "rule=gate-job-keys: ci-required may carry only #{inspect(@gate_job_keys)}, " <>
+              "got extra #{inspect(extra)} (VG-02)"
+          ]
+      end
+
+    workflow_errors =
+      for key <- @gate_banned_workflow_keys, yaml_field(doc, key) != :error do
+        "rule=gate-workflow-keys: ci.yml must not carry a workflow-level `#{key}`, which " <>
+          "every job, the CI required gate included, inherits (VG-02)"
+      end
+
+    job_errors ++ workflow_errors
+  end
+
+  defp extra_yaml_keys(%{} = map, allowed),
+    do: map |> Map.keys() |> Enum.map(&yaml_key/1) |> Enum.reject(&(&1 in allowed)) |> Enum.sort()
+
+  defp extra_yaml_keys(_data, _allowed), do: []
+
+  defp gate_bash_env_errors(yaml_by_path) do
+    for {path, text} <- Enum.sort(yaml_by_path),
+        {:ok, doc} <- [parse_yaml(text)],
+        yaml_key_anywhere?(doc, "bash_env") do
+      "#{path} rule=gate-bash-env: no workflow may set `BASH_ENV`, which bash sources " <>
+        "before every `shell: bash` script, the alls-green decision included (VG-02)"
     end
   end
 
@@ -1749,7 +1833,19 @@ defmodule Threadline.CIWorkflowParityContractTest do
             "commit SHA, got #{inspect(uses)}"
         ]
 
-    guard ++ pin
+    keys =
+      case extra_yaml_keys(step, @gate_step_keys) do
+        [] ->
+          []
+
+        extra ->
+          [
+            "rule=gate-step-keys: the alls-green step may carry only " <>
+              "#{inspect(@gate_step_keys)}, got extra #{inspect(extra)} (VG-02)"
+          ]
+      end
+
+    guard ++ pin ++ keys
   end
 
   defp gate_input_errors(with_) do
