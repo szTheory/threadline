@@ -103,7 +103,7 @@
 
 ### CI developer experience
 
-- [ ] **DX-01**: A contributor can tell from a red check's name what failed, without opening logs.
+- [x] **DX-01**: A contributor can tell from a red check's name what failed, without opening logs.
   - `name:`s are rewritten once, after all roster changes. That includes the evaluator name, which is false on PRs.
   - YAML is ordered by time-to-red, with no `needs:` preflight chain.
   - Job ids and `CI required` stay unchanged.
@@ -174,7 +174,7 @@
 | ECON-07 | Phase 218 | Complete |
 | CACHE-01 | Phase 219 | Complete |
 | LANE-01 | Phase 220 | Complete |
-| DX-01 | Phase 221 | Pending |
+| DX-01 | Phase 221 | Complete |
 | SCOPE-01 | Phase 222 | Pending |
 
 **Coverage:**

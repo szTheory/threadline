@@ -890,7 +890,7 @@ pass. The posted check names, in `ci.yml` order:
 - CHANGELOG matches version (`verify-release-shape`)
 - Repo hygiene (no machine-local paths) (`verify-repo-hygiene`)
 - Formatting (`verify-format`)
-- Dependency audit (all lockfiles) (`verify-deps-audit`)
+- Dependency audit (Mix lockfiles) (`verify-deps-audit`)
 - Compile without optional deps (`verify-compile-no-optional`)
 - Hex package install (rehearsal registry) (`verify-hex-evaluator`)
 - Tests through PgBouncer (transaction mode) (`verify-pgbouncer-topology`)

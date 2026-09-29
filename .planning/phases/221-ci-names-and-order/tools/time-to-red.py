@@ -50,16 +50,26 @@ _spec.loader.exec_module(S)
 RUNS = [36502353440, 36501481301, 36487483472, 36467068660, 36465241600,
         36457705448, 36456537357, 36455432448, 36454272684, 36453043277]
 
-# Set by plan 04 at landing: the SHA of the 221 rename commit
+# Era-boundary anchors (D-13). MAIN_MERGE_SHA is the CANONICAL anchor: the
+# squash-merge commit on main (PR #63) that carries the rename, set by plan 04
+# at landing. It is the only one guaranteed to resolve forever.
+MAIN_MERGE_SHA = "67572c12d9fa6b312578a0a2a1cdde017ff5c433"
+# Informational only: the rename commit
 # (`ci(221): name every CI check for what it proves (DX-01)`) as cherry-picked
-# onto the land branch land/v1.43-221. It is a land-branch SHA: not the
-# milestone-branch SHA of that commit and not a commit on main.
-RENAME_SHA = None
+# onto the land branch land/v1.43-221. That branch was deleted after the merge,
+# so this SHA stops resolving once a clone prunes the stale remote ref and gcs
+# (IN-06, 221 review). Do not rely on it.
+RENAME_SHA = "327165f038d5a0c601cbbe996f9a47cacfdcfe13"
+# The same rename commit on the milestone branch (milestone/v1.43), a durable
+# secondary anchor while that branch's history is kept.
+MILESTONE_RENAME_SHA = "194eee6a78df0074f7e879c17f3b85ce99ae665c"
 # Set by plan 04 at landing: the first CI run that posts the new names (D-13).
-ERA_BOUNDARY_RUN = None
-# Set in the first planning sync after the maintainer squash-merges the 221
-# land PR: the squash-merge commit on main that carries the rename.
-MAIN_MERGE_SHA = None
+ERA_BOUNDARY_RUN = 36586103573
+# Second era boundary (WR-06, 221 review): `Dependency audit (all lockfiles)`
+# became `Dependency audit (Mix lockfiles)` in the milestone-branch commit
+# `fix(221): WR-06 ...`. Set this to the first CI run that posts the new name
+# once that commit lands on main; until then no measured run carries it.
+DEPS_AUDIT_RENAME_ERA_RUN = None
 
 AGGREGATE_ID = "ci-required"
 
@@ -86,9 +96,9 @@ NAME_HISTORY = {
     "Build ExDoc (dev)": "verify-docs",
     "Hex package tarball": "verify-hex-package",
     # post-221 (D-13), verbatim from the ci.yml `name:` lines. Each maps to the
-    # same id as its pre-221 name; the four unchanged names above
-    # (Compile without optional deps, Dependency audit (all lockfiles),
-    # Repo hygiene (no machine-local paths), CI required) serve both eras.
+    # same id as its pre-221 name; the three unchanged names above
+    # (Compile without optional deps, Repo hygiene (no machine-local paths),
+    # CI required) serve every era.
     "Formatting": "verify-format",
     "Credo (strict)": "verify-credo",
     "Dialyzer (full optional build)": "verify-dialyzer",
@@ -99,10 +109,17 @@ NAME_HISTORY = {
     "Tests through PgBouncer (transaction mode)": "verify-pgbouncer-topology",
     "CHANGELOG matches version": "verify-release-shape",
     "Next-minor release rehearsal (docs + contracts)": "verify-bump-rehearsal",
+    # 221 review fix WR-06: `Dependency audit (all lockfiles)` claimed npm
+    # coverage the job never had (it runs `mix hex.audit` over the root, bench
+    # and example Mix lockfiles only), so it was renamed after the 221 landing.
+    # Runs before that rename keep posting the old name above.
+    "Dependency audit (Mix lockfiles)": "verify-deps-audit",
 }
 
-# The names ci.yml posts after the 221 rename (the ten renamed names above).
+# The names ci.yml posts after the 221 rename: the ten renamed at landing,
+# plus the deps-audit name renamed by the 221 review fix (WR-06).
 POST_221_NAMES = (
+    "Dependency audit (Mix lockfiles)",
     "Formatting",
     "Credo (strict)",
     "Dialyzer (full optional build)",
@@ -134,8 +151,34 @@ def name_history_errors():
     return errors
 
 
+def ci_job_names():
+    """The job-level `name:` values of the live ci.yml (4-space indent under `jobs:`)."""
+    path = os.path.join(repo_root(), ".github", "workflows", "ci.yml")
+    with open(path, encoding="utf-8") as fh:
+        return re.findall(r"^    name: (.+?)\s*$", fh.read(), re.M)
+
+
+def live_name_errors(names):
+    """D-13 self-check: every name ci.yml posts today maps through NAME_HISTORY
+    and is a current-era name, so a rename that skips NAME_HISTORY is caught."""
+    current = set(POST_221_NAMES) | {
+        "Compile without optional deps",
+        "Repo hygiene (no machine-local paths)",
+        "CI required",
+    }
+    errors = []
+    for name in names:
+        if name not in NAME_HISTORY:
+            errors.append(f"live ci.yml name {name!r} has no NAME_HISTORY entry")
+        elif name not in current:
+            errors.append(f"live ci.yml name {name!r} is a retired-era name")
+    if not names:
+        errors.append("read no job `name:` from ci.yml; the live-name check would be vacuous")
+    return errors
+
+
 def assert_name_history():
-    errors = name_history_errors()
+    errors = name_history_errors() + live_name_errors(ci_job_names())
     if errors:
         print("time-to-red: NAME_HISTORY self-check failed:", file=sys.stderr)
         for err in errors:
@@ -143,12 +186,19 @@ def assert_name_history():
         sys.exit(1)
 
 
+# The only matrix job bases: GitHub posts them as "<base> (<lane>)". The lane
+# suffix fallback is limited to these (IN-05, 221 review), so a future job such
+# as "Formatting (docs)" maps to `?` and trips compute_order's exit-1 guard
+# instead of silently merging its samples into verify-format.
+MATRIX_BASES = ("Run test suite", "Build and test")
+
+
 def job_id(name):
     if name in NAME_HISTORY:
         return NAME_HISTORY[name]
-    for base, jid in NAME_HISTORY.items():
+    for base in MATRIX_BASES:
         if name.startswith(base + " ("):  # matrix lane suffix
-            return jid
+            return NAME_HISTORY[base]
     return "?"
 
 

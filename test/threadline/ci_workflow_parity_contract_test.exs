@@ -467,6 +467,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
                "        lane: [min, current, latest]\n",
                "        lane: [min, current]\n"
              )},
+            {"latest excluded from the matrix",
+             String.replace(
+               job,
+               "        lane: [min, current, latest]\n",
+               "        lane: [min, current, latest]\n        exclude:\n          - lane: latest\n"
+             )},
             {"matrix expression in the job name",
              String.replace(
                job,
@@ -692,7 +698,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
          on_ci.(&String.replace(&1, gate_header, "    name: CI required\n")), "rule=gate-if"},
         {"step if: false",
          on_ci.(&String.replace(&1, gate_step, gate_step <> "        if: false\n")),
-         "rule=gate-step"},
+         "rule=gate-step-guard"},
         {"uses replaced by run",
          on_ci.(
            &Regex.replace(
@@ -700,7 +706,35 @@ defmodule Threadline.CIWorkflowParityContractTest do
              &1,
              "        run: echo ok\n"
            )
-         ), "rule=gate-step"},
+         ), "rule=gate-step-guard"},
+        # WR-03 (221 review): each gate sub-rule has a control that only it catches.
+        {"alls-green pinned to a mutable tag",
+         on_ci.(
+           &Regex.replace(
+             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40}\n/m,
+             &1,
+             "        uses: re-actors/alls-green@release/v1\n"
+           )
+         ), "rule=gate-pin"},
+        {"a different owner's alls-green at a full SHA",
+         on_ci.(
+           &Regex.replace(
+             ~r/^        uses: re-actors\/alls-green@([0-9a-f]{40})\n/m,
+             &1,
+             "        uses: evil/alls-green@\\1\n"
+           )
+         ), "rule=gate-pin"},
+        {"strategy added to ci-required",
+         on_ci.(
+           &String.replace(
+             &1,
+             gate_header,
+             gate_header <> "    strategy:\n      matrix:\n        x: [1]\n"
+           )
+         ), "rule=gate-name-own"},
+        {"ci-required renamed",
+         on_ci.(&String.replace(&1, gate_header, "    name: CI gate\n    if: always()\n")),
+         "rule=gate-name-own"},
         {"quoted allowed-skips",
          on_ci.(
            &String.replace(
@@ -712,9 +746,64 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"jobs input emptied", on_ci.(&String.replace(&1, gate_jobs, "          jobs: '{}'\n")),
          "rule=gate-jobs-input"},
         {"second CI required job", &Map.put(&1, ".github/workflows/zz-spoof.yml", spoof),
-         "rule=gate-name"},
+         "rule=gate-name-unique"},
+        # VG-01 / WR-02 (221 verification and review): names GitHub evaluates.
+        {"expression-literal CI required name",
+         &Map.put(
+           &1,
+           ".github/workflows/zz-spoof.yml",
+           String.replace(spoof, "    name: CI required\n", "    name: ${{ 'CI required' }}\n")
+         ), "rule=gate-name-expression"},
+        {"matrix-valued CI required name",
+         &Map.put(
+           &1,
+           ".github/workflows/zz-spoof.yml",
+           String.replace(
+             spoof,
+             "    name: CI required\n",
+             "    name: ${{ matrix.n }}\n    strategy:\n      matrix:\n        n: [CI required]\n"
+           )
+         ), "rule=gate-name-expression"},
+        {"spaced, lower-case CI required name",
+         &Map.put(
+           &1,
+           ".github/workflows/zz-spoof.yml",
+           String.replace(spoof, "    name: CI required\n", ~s(    name: "ci  required"\n))
+         ), "rule=gate-name-unique"},
         {"job id renamed everywhere", on_ci.(&String.replace(&1, "verify-format", "verify-fmt")),
-         "rule=job-ids"}
+         "rule=job-ids"},
+        # VG-02 (221 verification): shapes that short-circuit the decision step.
+        {"job env BASH_ENV on ci-required",
+         on_ci.(
+           &String.replace(
+             &1,
+             gate_header,
+             gate_header <> ~s[    env:\n      BASH_ENV: '$(echo /tmp/x)'\n]
+           )
+         ), "rule=gate-job-keys"},
+        {"job container on ci-required",
+         on_ci.(&String.replace(&1, gate_header, gate_header <> "    container: ubuntu:24.04\n")),
+         "rule=gate-job-keys"},
+        {"step env on the alls-green step",
+         on_ci.(&String.replace(&1, gate_step, gate_step <> "        env:\n          X: y\n")),
+         "rule=gate-step-keys"},
+        {"workflow-level env in ci.yml",
+         on_ci.(&String.replace(&1, "\njobs:\n", "\nenv:\n  X: y\n\njobs:\n")),
+         "rule=gate-workflow-keys"},
+        {"workflow-level defaults in ci.yml",
+         on_ci.(
+           &String.replace(&1, "\njobs:\n", "\ndefaults:\n  run:\n    shell: bash\n\njobs:\n")
+         ), "rule=gate-workflow-keys"},
+        {"BASH_ENV in a second workflow",
+         &Map.put(
+           &1,
+           ".github/workflows/zz-spoof.yml",
+           String.replace(
+             spoof,
+             "    name: CI required\n",
+             "    name: Other\n    env:\n      BASH_ENV: /tmp/x\n"
+           )
+         ), "rule=gate-bash-env"}
       ]
 
       for {control, mutate, fragment} <- controls do
@@ -762,6 +851,15 @@ defmodule Threadline.CIWorkflowParityContractTest do
                &String.contains?(&1, "rule=yaml-parse")
              ),
              "a ci.yml that does not parse must fail the gate contract closed"
+
+      broken_sibling =
+        Map.put(workflows, ".github/workflows/zz-broken.yml", "jobs:\n  broken: [unclosed\n")
+
+      assert Enum.any?(
+               required_gate_errors(broken_sibling),
+               &String.contains?(&1, ".github/workflows/zz-broken.yml rule=yaml-parse")
+             ),
+             "a sibling workflow that does not parse must fail the gate contract closed (IN-02)"
     end
 
     test "no workflow or compose file runs a pre-release PostgreSQL (D-16)" do
@@ -977,7 +1075,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
          ["rule=order-unknown"]},
         {"jobs-level merge key",
          String.replace(ci, "  ci-required:\n", anchored <> "  ci-required:\n"),
-         ["rule=order-merge-key"]}
+         ["rule=order-merge-key"]},
+        # IN-03 (221 review): only the reader guard sees a repeated id as such.
+        {"duplicate job id", String.replace(ci, "  ci-required:\n", fmt <> "  ci-required:\n"),
+         ["rule=order-reader"]}
       ]
 
       for {control, mutated, fragments} <- controls do
@@ -1027,6 +1128,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
           "\\1 ${{ matrix.lane }}\n"
         )
 
+      # WR-01 (221 review): valid YAML that stops GitHub posting the latest lane.
+      exclude_latest =
+        String.replace(
+          ci,
+          "        lane: [min, current, latest]\n",
+          "        lane: [min, current, latest]\n        exclude:\n          - lane: latest\n"
+        )
+
       timeout_first =
         Regex.replace(
           ~r/^(  verify-release-shape:\n)(    name: [^\n]*\n)(    runs-on: [^\n]*\n)    timeout-minutes: [^\n]*\n/m,
@@ -1050,6 +1159,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
          ["rule=name-exact", "rule=name-retired"]},
         {"lane expression in the verify-test name", append_to_test_name, contributing,
          ["rule=name-static"]},
+        {"matrix exclude drops the latest lane", exclude_latest, contributing,
+         ["rule=name-static", "rule=roster"]},
         {"leading verb", rename.("verify-credo", "Run Credo"), contributing, ["rule=name-verb"]},
         {"49-character name", rename.("verify-format", String.duplicate("F", 49)), contributing,
          ["rule=name-length"]},
@@ -1083,20 +1194,37 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       assert evaluator_doc_errors(docs) == []
 
-      mutated =
+      # WR-04 (221 review): the hard-wrapped and reworded spellings count too.
+      for {control, claim} <- [
+            {"one-line claim",
+             "\n- `mix verify.hex_evaluator` resolves threadline from hex.pm.\n"},
+            {"claim wrapped across lines",
+             "\n- `mix verify.hex_evaluator` resolves threadline\n  from hex.pm, not a path dep.\n"},
+            {"reworded claim in a wrapped paragraph",
+             "\nThe Hex evaluator installs threadline\nfrom the public Hex registry.\n"}
+          ] do
+        mutated = Map.update!(docs, "guides/evaluating-threadline.md", &(&1 <> claim))
+
+        refute mutated == docs, "#{control} control did not change the input"
+
+        assert Enum.any?(
+                 evaluator_doc_errors(mutated),
+                 &String.contains?(&1, "rule=evaluator-hexpm")
+               ),
+               "#{control}: naming the evaluator and hex.pm must report rule=evaluator-hexpm"
+      end
+
+      separate =
         Map.update!(
           docs,
           "guides/evaluating-threadline.md",
-          &(&1 <> "\n- `mix verify.hex_evaluator` resolves threadline from hex.pm.\n")
+          &(&1 <>
+              "\n- `mix verify.hex_evaluator` uses a local rehearsal registry.\n" <>
+              "- release.yml publishes to hex.pm.\n")
         )
 
-      refute mutated == docs, "evaluator control did not change the input"
-
-      assert Enum.any?(
-               evaluator_doc_errors(mutated),
-               &String.contains?(&1, "rule=evaluator-hexpm")
-             ),
-             "a guide line naming the evaluator and hex.pm must report rule=evaluator-hexpm"
+      assert evaluator_doc_errors(separate) == [],
+             "an evaluator bullet next to a separate hex.pm bullet is not a claim"
     end
   end
 
@@ -1140,22 +1268,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # pins that. `merge_anchors: true` is deliberately not passed: in keyword mode
   # a jobs-level `<<` key then survives as `"<<N"` (mapper.ex, key_for/2), and
   # ci_order_errors/1 fails closed on it.
+  # One keyword-mode read serves both order and name rules (IN-04, 221 review).
   defp parsed_job_order(text) do
-    parsed =
-      try do
-        {:ok, YamlElixir.read_from_string!(text, maps_as_keywords: true)}
-      rescue
-        error -> {:error, Exception.message(error)}
-      catch
-        kind, reason -> {:error, inspect({kind, reason})}
-      end
-
-    with {:ok, doc} when is_list(doc) <- parsed,
-         [jobs] when is_list(jobs) <- for({k, v} <- doc, yaml_key(k) == "jobs", do: v) do
-      {:ok, jobs |> Enum.map(fn {k, _} -> yaml_key_string(k) end) |> Enum.reverse()}
-    else
-      {:error, message} -> {:error, "rule=yaml-parse: #{message}"}
-      _ -> {:error, "rule=yaml-parse: expected exactly one top-level `jobs` mapping"}
+    with {:ok, keyword_jobs} <- parsed_job_keywords(text) do
+      {:ok, keyword_jobs |> Enum.map(&elem(&1, 0)) |> Enum.reverse()}
     end
   end
 
@@ -1244,7 +1360,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "verify-release-shape" => "CHANGELOG matches version",
     "verify-repo-hygiene" => "Repo hygiene (no machine-local paths)",
     "verify-format" => "Formatting",
-    "verify-deps-audit" => "Dependency audit (all lockfiles)",
+    "verify-deps-audit" => "Dependency audit (Mix lockfiles)",
     "verify-compile-no-optional" => "Compile without optional deps",
     "verify-hex-evaluator" => "Hex package install (rehearsal registry)",
     "verify-pgbouncer-topology" => "Tests through PgBouncer (transaction mode)",
@@ -1278,7 +1394,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
     "Bump rehearsal (next minor)",
     "Run test suite (min)",
     "Run test suite (current)",
-    "Run test suite (latest)"
+    "Run test suite (latest)",
+    # WR-06 (221 review): the job audits only the three Mix lockfiles (root,
+    # bench, example); the e2e npm lockfile is not audited.
+    "Dependency audit (all lockfiles)"
   ]
 
   # D-01 says names stay near 40 characters; the locked D-02 name
@@ -1337,6 +1456,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end)
   end
 
+  # D-01's "no leading verb" is enforced as a denylist of the imperative verbs
+  # the pre-221 names used (`Run`, `Check`, `Verify`), not as a grammar check.
+  # The locked D-02 set keeps `Build and test` and `Compile without optional
+  # deps` on purpose: there `Build`/`Compile` read as subject nouns naming the
+  # proof (the build, the compile), and `name-exact` pins both byte-for-byte,
+  # so this rule only guards new or renamed names (IN-01, 221 review).
   defp name_verb_errors(id, name) do
     if String.starts_with?(name, ["Run ", "Check ", "Verify "]),
       do: ["job=#{id} rule=name-verb: #{inspect(name)} leads with a verb (221 D-01)"],
@@ -1462,14 +1587,42 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
     glob_errors ++
       for {path, text} <- Enum.sort(docs),
-          {line, n} <- Enum.with_index(String.split(text, "\n"), 1),
-          String.contains?(line, ["verify.hex_evaluator", "verify-hex-evaluator"]),
-          String.contains?(String.downcase(line), "hex.pm") do
+          {block, n} <- doc_blocks(text),
+          Regex.match?(~r/hex[ _.-]?evaluator/i, block),
+          Regex.match?(~r/hex\.?pm|public hex registry/i, block) do
         "#{path}:#{n} rule=evaluator-hexpm: the evaluator installs this tree's package from " <>
           "a local rehearsal registry; only release.yml's published mode resolves the public " <>
           "registry"
       end
   end
+
+  # WR-04 (221 review): Markdown here is hard-wrapped, so a claim is read per
+  # paragraph or list item, not per physical line. A block ends at a blank line
+  # or where the next bullet, numbered item, table row or heading starts.
+  # [{joined_text, first_line}].
+  defp doc_blocks(text) do
+    text
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.chunk_while([], &doc_block_step/2, &doc_block_done/1)
+    |> Enum.map(fn [{_, n} | _] = lines -> {Enum.map_join(lines, " ", &elem(&1, 0)), n} end)
+  end
+
+  defp doc_block_step({line, _n} = entry, acc) do
+    cond do
+      String.trim(line) == "" ->
+        doc_block_done(acc)
+
+      acc != [] and Regex.match?(~r/^\s*(?:[-*+|]|#+|\d+[.)])\s/, line) ->
+        {:cont, Enum.reverse(acc), [entry]}
+
+      true ->
+        {:cont, [entry | acc]}
+    end
+  end
+
+  defp doc_block_done([]), do: {:cont, []}
+  defp doc_block_done(acc), do: {:cont, Enum.reverse(acc), []}
 
   defp yaml_key_string(key) when is_binary(key), do: key
   defp yaml_key_string(key) when is_atom(key) or is_number(key), do: to_string(key)
@@ -1620,6 +1773,19 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # spelling), `jobs: ${{ toJSON(needs) }}`, one job named `CI required` across
   # every workflow, and the frozen `@ci_job_ids` set.
   #
+  # Shape allowlists (VG-02, 221 verification): point checks are a denylist,
+  # and a denylist missed `env: BASH_ENV` (bash sources it before the
+  # alls-green decision script, so the step exits 0 without deciding), a step
+  # `env`, a job `container` and a workflow-level `env`. So the whole shape is
+  # pinned: ci-required's job keys and its one step's keys are allowlists read
+  # through `yaml_key/1`, ci.yml carries no workflow-level `env` or `defaults`,
+  # and no workflow carries a literal `BASH_ENV` key at any depth. None of these
+  # keys exists today, so the allowlists cost nothing; widening one is a reviewed
+  # edit of the attribute below. Scope: this protects the gate job, which the
+  # allowlists above keep free of env. A lane can still reach `BASH_ENV` through
+  # an expression-valued `env:` or a `$GITHUB_ENV` write; that cannot touch the
+  # gate (env does not cross jobs) and is lane-contract territory, not this rule.
+  #
   # D-12: `runs-on`, `timeout-minutes`, `permissions` and workflow-level
   # `paths`/`branches-ignore`/`types` are deliberately not pinned here. Each
   # fails closed: a bad value leaves the required check pending, never green.
@@ -1637,8 +1803,50 @@ defmodule Threadline.CIWorkflowParityContractTest do
         job = parsed_job(doc, "ci-required")
 
         gate_if_errors(job) ++
+          gate_shape_errors(doc, job) ++
           gate_step_errors(job) ++
-          gate_name_errors(job, yaml_by_path, ci_path) ++ gate_job_id_errors(doc)
+          gate_name_errors(job, yaml_by_path, ci_path) ++
+          gate_bash_env_errors(yaml_by_path) ++ gate_job_id_errors(doc)
+    end
+  end
+
+  @gate_job_keys ~w(name if needs runs-on timeout-minutes steps)
+  @gate_step_keys ~w(name uses with)
+  @gate_banned_workflow_keys ~w(env defaults)
+
+  defp gate_shape_errors(doc, job) do
+    job_errors =
+      case extra_yaml_keys(job, @gate_job_keys) do
+        [] ->
+          []
+
+        extra ->
+          [
+            "rule=gate-job-keys: ci-required may carry only #{inspect(@gate_job_keys)}, " <>
+              "got extra #{inspect(extra)} (VG-02)"
+          ]
+      end
+
+    workflow_errors =
+      for key <- @gate_banned_workflow_keys, yaml_field(doc, key) != :error do
+        "rule=gate-workflow-keys: ci.yml must not carry a workflow-level `#{key}`, which " <>
+          "every job, the CI required gate included, inherits (VG-02)"
+      end
+
+    job_errors ++ workflow_errors
+  end
+
+  defp extra_yaml_keys(%{} = map, allowed),
+    do: map |> Map.keys() |> Enum.map(&yaml_key/1) |> Enum.reject(&(&1 in allowed)) |> Enum.sort()
+
+  defp extra_yaml_keys(_data, _allowed), do: []
+
+  defp gate_bash_env_errors(yaml_by_path) do
+    for {path, text} <- Enum.sort(yaml_by_path),
+        {:ok, doc} <- [parse_yaml(text)],
+        yaml_key_anywhere?(doc, "bash_env") do
+      "#{path} rule=gate-bash-env: no workflow may carry a literal `BASH_ENV` key, which bash sources " <>
+        "before every `shell: bash` script, the alls-green decision included (VG-02)"
     end
   end
 
@@ -1672,17 +1880,29 @@ defmodule Threadline.CIWorkflowParityContractTest do
     guard =
       if yaml_field(step, "if") == :error and yaml_field(step, "run") == :error,
         do: [],
-        else: ["rule=gate-step: the alls-green step must carry neither `if` nor `run`"]
+        else: ["rule=gate-step-guard: the alls-green step must carry neither `if` nor `run`"]
 
     pin =
       if is_binary(uses) and uses =~ ~r/^re-actors\/alls-green@[0-9a-f]{40}$/,
         do: [],
         else: [
-          "rule=gate-step: the step must `uses:` re-actors/alls-green at a full " <>
+          "rule=gate-pin: the step must `uses:` re-actors/alls-green at a full " <>
             "commit SHA, got #{inspect(uses)}"
         ]
 
-    guard ++ pin
+    keys =
+      case extra_yaml_keys(step, @gate_step_keys) do
+        [] ->
+          []
+
+        extra ->
+          [
+            "rule=gate-step-keys: the alls-green step may carry only " <>
+              "#{inspect(@gate_step_keys)}, got extra #{inspect(extra)} (VG-02)"
+          ]
+      end
+
+    guard ++ pin ++ keys
   end
 
   defp gate_input_errors(with_) do
@@ -1706,29 +1926,63 @@ defmodule Threadline.CIWorkflowParityContractTest do
       else: ["rule=gate-jobs-input: the `jobs` input must be ${{ toJSON(needs) }}"]
   end
 
+  # The ruleset requires the context `CI required` by name alone, so any job in
+  # any workflow that can post that name is a spoof. A literal name is compared
+  # trimmed, whitespace-collapsed and case-folded (this only over-reports). A
+  # name that is a `${{ … }}` expression is evaluated by GitHub, so
+  # `${{ 'CI required' }}`, `${{ format('CI {0}', 'required') }}` or
+  # `${{ matrix.n }}` with `n: [CI required]` can all post it; no workflow uses
+  # an expression-valued job name today, so every one is banned outright
+  # (VG-01 / WR-02, 221 review). A static name under a matrix posts
+  # `<name> (<values>)`, which can never equal `CI required`, and verify-test's
+  # name is pinned static by rule=name-static.
   defp gate_name_errors(job, yaml_by_path, ci_path) do
-    carriers =
-      for {path, text} <- Enum.sort(yaml_by_path),
-          {:ok, doc} <- [parse_yaml(text)],
+    parsed = for {path, text} <- Enum.sort(yaml_by_path), do: {path, parse_yaml(text)}
+
+    # IN-02 (221 review): a sibling workflow that does not parse cannot be
+    # scanned for a `CI required` carrier, so it fails this contract closed on
+    # its own instead of relying on voting_lane_errors/1.
+    parse_errors =
+      for {path, {:error, message}} <- parsed do
+        "#{path} rule=yaml-parse: the workflow does not parse as YAML, so it cannot be " <>
+          "scanned for a `CI required` carrier (#{message}) (SC-4)"
+      end
+
+    named =
+      for {path, {:ok, doc}} <- parsed,
           {job_id, other} <- parsed_jobs(doc),
-          yaml_get(other, "name") == "CI required",
-          do: {path, job_id}
+          do: {path, job_id, yaml_get(other, "name")}
+
+    carriers = for {path, job_id, name} <- named, gate_name?(name), do: {path, job_id}
+
+    expression =
+      for {path, job_id, name} <- named, is_binary(name), String.contains?(name, "${{") do
+        "#{path} job=#{job_id} rule=gate-name-expression: a job `name:` must not be a " <>
+          "`${{ }}` expression, which could post the required `CI required` context"
+      end
 
     own =
       if yaml_get(job, "name") === "CI required" and yaml_field(job, "strategy") == :error,
         do: [],
-        else: ["rule=gate-name: ci-required must be named exactly `CI required`, with no matrix"]
+        else: [
+          "rule=gate-name-own: ci-required must be named exactly `CI required`, with no matrix"
+        ]
 
     unique =
       if carriers == [{ci_path, "ci-required"}],
         do: [],
         else: [
-          "rule=gate-name: exactly one job in any workflow may be named `CI required`, " <>
+          "rule=gate-name-unique: exactly one job in any workflow may be named `CI required`, " <>
             "got #{inspect(carriers)}"
         ]
 
-    own ++ unique
+    parse_errors ++ own ++ unique ++ expression
   end
+
+  defp gate_name?(name) when is_binary(name),
+    do: name |> String.split() |> Enum.join(" ") |> String.downcase() == "ci required"
+
+  defp gate_name?(_name), do: false
 
   defp gate_job_id_errors(doc) do
     ids = doc |> parsed_jobs() |> Enum.map(&elem(&1, 0)) |> MapSet.new()
@@ -2903,32 +3157,62 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
-  # The check names GitHub posts for a matrix job: a static job `name:` gets the
-  # base-axis values appended as ` (value)`. A `${{ … }}` expression in the name
-  # switches that suffix off, so it composes nothing here. Comments are stripped
-  # first, so only live YAML counts.
-  defp composed_check_names(job) do
-    stripped = strip_comment_lines(job)
-    name = yaml_value_at(stripped, "    name:")
-    lanes = yaml_value_at(stripped, "        lane:")
-
-    with name when is_binary(name) <- name,
+  # The check names GitHub posts for a matrix job, read from the parsed job
+  # block (WR-01, 221 review): a static job `name:` gets each posted `lane`
+  # value appended as ` (value)`. `exclude` drops a lane before `include` runs,
+  # and an `include` row that only adds keys to a kept lane leaves the posted
+  # names alone. Any shape this does not model (a second axis, an `exclude` row
+  # keyed on anything but `lane`, an `include` row that would add a new
+  # combination, an expression-valued matrix) composes nothing, so every rule
+  # built on it fails closed. A `${{ … }}` expression in the name switches the
+  # suffix off, so it composes nothing too. Comments never reach parsed data.
+  defp composed_check_names(job_block) do
+    with {:ok, %{} = doc} <- parse_yaml(job_block),
+         [job] <- Map.values(doc),
+         name when is_binary(name) <- yaml_get(job, "name"),
          false <- String.contains?(name, "${{"),
-         [_, axis] <- lanes && Regex.run(~r/^\[(.*)\]$/, lanes) do
-      axis
-      |> String.split(",", trim: true)
-      |> Enum.map(&"#{name} (#{String.trim(&1)})")
+         {:ok, lanes} <- posted_lanes(yaml_get_in(job, ["strategy", "matrix"])) do
+      Enum.map(lanes, &"#{name} (#{&1})")
     else
       _ -> []
     end
   end
 
-  defp yaml_value_at(text, prefix) do
-    case Regex.run(~r/^#{Regex.escape(prefix)}[ \t]*(.*?)[ \t]*$/m, text) do
-      [_, value] -> value
-      nil -> nil
+  defp posted_lanes(%{} = matrix) do
+    axes = matrix |> Map.keys() |> Enum.map(&yaml_key/1) |> Kernel.--(["exclude", "include"])
+    lanes = yaml_get(matrix, "lane")
+
+    with ["lane"] <- axes,
+         true <- is_list(lanes) and Enum.all?(lanes, &is_binary/1),
+         {:ok, excluded} <- matrix_row_lanes(yaml_get(matrix, "exclude"), :exclude),
+         {:ok, included} <- matrix_row_lanes(yaml_get(matrix, "include"), :include),
+         kept = Enum.reject(lanes, &(&1 in excluded)),
+         true <- Enum.all?(included, &(&1 in kept)) do
+      {:ok, kept}
+    else
+      _ -> :error
     end
   end
+
+  defp posted_lanes(_matrix), do: :error
+
+  # The `lane` of each exclude/include row. An exclude row may name `lane` only;
+  # an include row must name a `lane` (it may add other keys). Anything else is
+  # a shape the composer does not model.
+  defp matrix_row_lanes(nil, _kind), do: {:ok, []}
+
+  defp matrix_row_lanes(rows, kind) when is_list(rows) do
+    lanes =
+      for %{} = row <- rows,
+          lane = yaml_get(row, "lane"),
+          is_binary(lane),
+          kind == :include or map_size(row) == 1,
+          do: lane
+
+    if length(lanes) == length(rows), do: {:ok, lanes}, else: :error
+  end
+
+  defp matrix_row_lanes(_rows, _kind), do: :error
 
   defp strip_comment_lines(block) do
     block

@@ -53,7 +53,7 @@
 - [x] **Phase 218: CI Economy: Remove Waste** - Flake, release, Browser-full, live-Dialyzer and mechanical duplicates cut, each with a named dominating proof, and savings measured (completed 2026-09-27)
 - [x] **Phase 219: Deps-Only Build Cache** - Test jobs restore exact-keyed deps-only `_build` and example-app caches, with the saving measured (completed 2026-09-28)
 - [x] **Phase 220: Newest-Toolchain Lane** - Spike-gated voting lane on Elixir 1.20 / OTP 29 / PG 18, or recorded "not yet" (completed 2026-09-28)
-- [ ] **Phase 221: CI Names and Order** - A red check's name says what failed, and YAML runs fastest-to-red first
+- [x] **Phase 221: CI Names and Order** - A red check's name says what failed, and YAML runs fastest-to-red first (completed 2026-09-29)
 - [ ] **Phase 222: SEED-006 Change-Aware Lanes (conditional)** - Decided from measured data: a fail-closed classifier, or "measured, not worth it"
 
 ## Phase Details
@@ -324,7 +324,7 @@ Plans:
   3. Job `id:`s are unchanged and `CI required` is byte-exact (existing pins stay green).
   4. A contract pins the `CI required` gate wiring itself: `if: always()`, the alls-green `jobs` input, and no `allowed-skips` in any spelling. Each has a mutation control. (Advisory from the 220 round-3 verification: today, deleting any of these leaves all 297 CI-contract tests green.)
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -341,7 +341,8 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 221-04-PLAN.md — NAME_HISTORY for the new names, then land on a new `land/v1.43-221` from origin/main under a named maintainer grant; verify the PR run posts the new names; record the era boundary
+- [x] 221-04-PLAN.md — NAME_HISTORY for the new names, then land on a new `land/v1.43-221` from origin/main under a named maintainer grant; verify the PR run posts the new names; record the era boundary
+
 **Research**: Not needed
 
 ### Phase 222: SEED-006 Change-Aware Lanes (conditional)
@@ -370,7 +371,7 @@ Plans:
 | 218. CI Economy: Remove Waste | 8/8 | Complete    | 2026-09-27 |
 | 219. Deps-Only Build Cache | 3/3 | Complete    | 2026-09-28 |
 | 220. Newest-Toolchain Lane | 4/4 | Complete    | 2026-09-28 |
-| 221. CI Names and Order | 3/4 | In Progress | - |
+| 221. CI Names and Order | 4/4 | Complete    | 2026-09-29 |
 | 222. SEED-006 Change-Aware Lanes | 0/TBD | Not started | - |
 
 ## Prior Milestones
