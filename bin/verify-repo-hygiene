@@ -14,10 +14,12 @@
 # scratch). Binary files (a NUL byte) are skipped by `-I`. Records come
 # NUL-delimited from `git grep -z` (translated to SOH, since a bash variable
 # cannot hold NUL), so a colon or other punctuation in a tracked path is
-# safe: it is scanned and scoped by its full path. Matching runs
-# under LC_ALL=C, byte-wise; the home-segment character class is ASCII
-# `[A-Za-z0-9._-]`. A home segment whose first byte is non-ASCII is outside
-# this guard's detection scope.
+# safe: it is scanned and scoped by its full path. A tracked path containing
+# a newline is refused with exit 2 before any scan runs (a newline would
+# mis-scope a HIT to a phantom post-newline fragment, letting an unrelated
+# allowlist entry cover it). Matching runs under LC_ALL=C, byte-wise; the
+# home-segment character class is ASCII `[A-Za-z0-9._-]`. A home segment
+# whose first byte is non-ASCII is outside this guard's detection scope.
 #
 # Modes:
 #   bin/verify-repo-hygiene              # scan (no args)
@@ -30,7 +32,8 @@
 #   1  a finding: a HIT, an UNUSED allowlist entry, or an allowlist comment
 #      or reason that itself contains a pattern hit
 #   2  usage or config error: an unknown argument, not a git work tree, a
-#      malformed/duplicate allowlist line, a missing allowlist file, or a
+#      malformed/duplicate allowlist line, a too-broad allowlist literal, a
+#      tracked path containing a newline, a missing allowlist file, or a
 #      missing git
 #
 # Output lines, in stable order: `HIT <path>:<line>: <token>`, then
@@ -267,7 +270,41 @@ case "${1:-}" in
     set -e
     [ "$status_g" -eq 0 ] || die "self-test (g): TitleCase kebab fixture did not exit 0: $out_g"
 
-    printf 'verify-repo-hygiene self-test: ok (8 cases)\n'
+    # (h) an allowlist literal that is a family root (here: a lone `/`) exits
+    # 2 with literal_too_broad, even on an otherwise-clean tree.
+    case_h="$self_test_dir/case_h"
+    make_repo "$case_h"
+    printf 'nothing interesting here\n' >"$case_h/clean.md"
+    (cd "$case_h" && git add -- clean.md)
+    allow_h="$self_test_dir/allow_h.tsv"
+    printf '.\t/\tA too-broad literal fixture with a long enough reason\n' >"$allow_h"
+
+    set +e
+    out_h="$(REPO_HYGIENE_ROOT="$case_h" REPO_HYGIENE_ALLOWLIST="$allow_h" "$0" 2>&1)"
+    status_h=$?
+    set -e
+    [ "$status_h" -eq 2 ] || die "self-test (h): too-broad literal did not exit 2: $out_h"
+    printf '%s' "$out_h" | grep -q 'literal_too_broad' || die "self-test (h): missing literal_too_broad: $out_h"
+
+    # (i) a tracked path with a real newline exits 2 with `newline`, even
+    # though an allowlist entry scoped to the post-newline phantom fragment
+    # would otherwise cover the mis-scoped HIT.
+    case_i="$self_test_dir/case_i"
+    make_repo "$case_i"
+    newline_name="$(printf 'a\nb.md')"
+    printf 'x %s/code\n' "$st_fake_macos" >"$case_i/$newline_name"
+    (cd "$case_i" && git add -A)
+    allow_i="$self_test_dir/allow_i.tsv"
+    printf 'b.md\t%s\tA phantom-scope entry that must never cover this hit\n' "$st_fake_macos" >"$allow_i"
+
+    set +e
+    out_i="$(REPO_HYGIENE_ROOT="$case_i" REPO_HYGIENE_ALLOWLIST="$allow_i" "$0" 2>&1)"
+    status_i=$?
+    set -e
+    [ "$status_i" -eq 2 ] || die "self-test (i): newline path did not exit 2: $out_i"
+    printf '%s' "$out_i" | grep -q 'newline' || die "self-test (i): missing newline reason: $out_i"
+
+    printf 'verify-repo-hygiene self-test: ok (10 cases)\n'
     exit 0
     ;;
   *) die "unknown argument: $1 (usage: verify-repo-hygiene [--self-test])" ;;
@@ -300,6 +337,34 @@ esac
 # script's own source text never contains a matchable home-directory word.
 _word_users="Us""ers"
 _word_home="ho""me"
+
+# --- D-13 (R2-WR-01): reject an allowlist literal broader than a pattern
+# --- family's root. Coverage rule: a literal not ending in `/` covers the
+# --- token itself AND `literal/...` (see token_covered_by_literal below), so
+# --- a one-character literal such as `/` would cover every path in that
+# --- family. The UNUSED rule never catches this: a literal that broad is
+# --- always "used" by the first hit it encounters. Every root is built by
+# --- concatenation, never as a literal, matching the matcher above.
+literal_too_broad() {
+  local literal="$1"
+  local root
+  for root in \
+    "/${_word_users}/" \
+    "/${_word_home}/" \
+    "\\/${_word_users}\\/" \
+    "\\/${_word_home}\\/" \
+    "-${_word_users}-" \
+    "-${_word_home}-" \
+    "~/" \
+    "/var/folders/" \
+    "/private/var/folders/"
+  do
+    case "$root" in
+      "$literal"*) return 0 ;;
+    esac
+  done
+  return 1
+}
 
 # --- The matcher: one perl program reused for the tree scan and for the
 # --- allowlist's own comment/reason content scan. Reads SOH-delimited
@@ -384,6 +449,8 @@ while IFS= read -r raw_line || [ -n "$raw_line" ]; do
     problem="scope contains a glob character"
   elif [ -z "$literal" ]; then
     problem="empty literal"
+  elif literal_too_broad "$literal"; then
+    problem="literal_too_broad: ${literal} is a prefix of a pattern-family root and would cover every path in that family"
   elif [ "${#reason}" -lt 20 ]; then
     problem="reason is shorter than 20 characters"
   fi
@@ -414,6 +481,19 @@ done <"$allowlist_path"
 if [ ${#ALLOWLIST_STRUCT_ERRORS[@]} -gt 0 ]; then
   printf '%s\n' "${ALLOWLIST_STRUCT_ERRORS[@]}"
   exit 2
+fi
+
+# --- D-15 (R2-WR-03): refuse a tracked path containing a newline before any
+# --- scan runs. A newline in a path mis-scopes a HIT: the coverage rule
+# --- above only ever sees the phantom fragment after the newline, so an
+# --- allowlist entry scoped to that fragment would silently cover a HIT
+# --- that scope was never meant to reach.
+set +e
+git -C "$root" ls-files -z | perl -0 -ne 'exit 1 if /\n/' >/dev/null 2>&1
+newline_status=$?
+set -e
+if [ "$newline_status" -ne 0 ]; then
+  die "a tracked path contains a newline; rename it (a newline mis-scopes a HIT and lets an allowlist scope cover it)"
 fi
 
 # --- Tree scan, excluding the allowlist file itself --------------------------
