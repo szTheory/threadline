@@ -74,6 +74,11 @@ defmodule Threadline.RepoHygieneGuardTest do
   @fake_claude_dir_linux "-" <> "ho" <> "me" <> "-" <> "fixture-user" <> "-"
   @placeholder_claude_dir_linux "-" <> "home" <> "-" <> "<user>" <> "-" <> "<project>"
   @mid_word_claude_dir_linux "x" <> "self-" <> "home" <> "-page-title"
+  @titlecase_claude_dir "Admin-" <> "Users" <> "-Guide"
+  @space_boundary_claude_dir "x " <> "-" <> "Users" <> "-fixture"
+  @slash_boundary_claude_dir "/foo/" <> "-" <> "Users" <> "-fixture/bar"
+  @drive_form_claude_dir "C-" <> "-" <> "Users" <> "-fixture-proj"
+  @start_of_line_claude_dir "-" <> "Users" <> "-fixture-startline"
 
   # --- Tracer-carried coverage: single family, red vs green -------------------
 
@@ -163,6 +168,45 @@ defmodule Threadline.RepoHygieneGuardTest do
     allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
     assert {output, 0} = run_guard(root, allowlist: allowlist)
     assert output =~ "clean"
+  end
+
+  # --- Family 6 left-anchor (D-14, R2-WR-02) -----------------------------------
+
+  test "a TitleCase kebab word with the users word between dashes gives no HIT", %{
+    tmp_dir: tmp_dir
+  } do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @titlecase_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 0} = run_guard(root, allowlist: allowlist)
+    assert output =~ "clean"
+  end
+
+  test "family 6 after a space is still a HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @space_boundary_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 6 after a slash is still a HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @slash_boundary_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 6 drive form (preceded by a letter and a dash) is still a HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @drive_form_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
+  end
+
+  test "family 6 at the start of a line is still a HIT", %{tmp_dir: tmp_dir} do
+    root = fixture_repo!(tmp_dir, %{"a.md" => @start_of_line_claude_dir <> "\n"})
+    allowlist = write_allowlist!(tmp_dir, @header_only_allowlist)
+    assert {output, 1} = run_guard(root, allowlist: allowlist)
+    assert output =~ "HIT a.md:1:"
   end
 
   test "family 7 (JSON-escaped home) produces exactly one HIT", %{tmp_dir: tmp_dir} do
@@ -595,9 +639,9 @@ defmodule Threadline.RepoHygieneGuardTest do
 
   # --- --self-test mode --------------------------------------------------------
 
-  test "--self-test runs its seven cases and exits 0" do
+  test "--self-test runs its eight cases and exits 0" do
     assert {output, 0} = System.cmd(@script, ["--self-test"], stderr_to_stdout: true)
-    assert output =~ "self-test: ok (7 cases)"
+    assert output =~ "self-test: ok (8 cases)"
   end
 
   # --- The real, seeded allowlist shape ----------------------------------------

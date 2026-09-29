@@ -89,8 +89,10 @@
 # line, or a byte outside [A-Za-z0-9._-]) — this is what keeps a mid-word
 # false positive like a `home` segment stuck onto a preceding word (e.g. a
 # prose sentence ending in ".../shell" immediately followed by a Linux-home
-# path) from matching. Families 3 and 6 need
-# no such boundary.
+# path) from matching. Family 6 requires that same boundary byte OR a
+# preceding <letter>-dash pair (the Windows drive form, where a drive
+# letter is immediately followed by a second dash before the token).
+# Only family 3 needs no boundary at all.
 #
 # Bash 3.2 compatible (macOS ships 3.2): no associative-array declarations;
 # parallel indexed arrays are used instead where state is needed. Every
@@ -250,7 +252,22 @@ case "${1:-}" in
     [ "$status_g_prime" -eq 1 ] || die "self-test (g'): Linux-encoded family-8 fixture did not exit 1: $out_g_prime"
     printf '%s' "$out_g_prime" | grep -q 'HIT family8.md' || die "self-test (g'): missing family8 HIT: $out_g_prime"
 
-    printf 'verify-repo-hygiene self-test: ok (7 cases)\n'
+    # (g) a TitleCase kebab word with the users word between dashes gives no
+    # HIT (the left-anchor proves it is not a mid-word false positive).
+    case_g="$self_test_dir/case_g"
+    make_repo "$case_g"
+    printf 'Admin-%s-Guide\n' "$st_word_users" >"$case_g/titlecase.md"
+    (cd "$case_g" && git add -- titlecase.md)
+    allow_g="$self_test_dir/allow_g.tsv"
+    header_allowlist "$allow_g"
+
+    set +e
+    out_g="$(REPO_HYGIENE_ROOT="$case_g" REPO_HYGIENE_ALLOWLIST="$allow_g" "$0" 2>&1)"
+    status_g=$?
+    set -e
+    [ "$status_g" -eq 0 ] || die "self-test (g): TitleCase kebab fixture did not exit 0: $out_g"
+
+    printf 'verify-repo-hygiene self-test: ok (8 cases)\n'
     exit 0
     ;;
   *) die "unknown argument: $1 (usage: verify-repo-hygiene [--self-test])" ;;
@@ -296,7 +313,7 @@ my @res = (
   qr{([A-Za-z]:\\+\Q$users\E\\+[A-Za-z0-9._-]+[A-Za-z0-9._\\+-]*)},
   qr{(?<![A-Za-z0-9._-])(~/[A-Za-z0-9._-]+[A-Za-z0-9._/+-]*)},
   qr{(?<![A-Za-z0-9._-])((?:/private)?/var/folders/[A-Za-z0-9_+-]{2}/)},
-  qr{(-\Q$users\E-[A-Za-z0-9._]+)},
+  qr{(?:(?<![A-Za-z0-9._-])|(?<=[A-Za-z]-))(-\Q$users\E-[A-Za-z0-9._]+)},
   qr{(?<![A-Za-z0-9._-])(\\/(?:\Q$users\E|\Q$home\E)\\/[A-Za-z0-9._-]+[A-Za-z0-9._\\/+-]*)},
   qr{(?<![A-Za-z0-9._-])(-\Q$home\E-[A-Za-z0-9._]+)},
 );
