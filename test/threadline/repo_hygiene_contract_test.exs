@@ -405,5 +405,34 @@ defmodule Threadline.RepoHygieneContractTest do
 
     assert String.contains?(contributing, @placeholder_heading),
            "CONTRIBUTING.md no longer has `#{@placeholder_heading}`"
+
+    # R2-IN-01/D-17: the phrase-only check above passes even if the phrase only
+    # ever appears in the script's header comment. Assert the stderr hint
+    # *line itself* — the `printf '%s\n' '...' >&2` line that actually names
+    # the section at failure time — not just the phrase anywhere in the file.
+    hint_line =
+      ~r/^[ \t]*printf '%s\\n' '[^'\n]*Writing about machine-local paths[^'\n]*' >&2[ \t]*$/m
+
+    assert Regex.match?(hint_line, script),
+           "bin/verify-repo-hygiene's stderr hint line itself (not a comment) must name " <>
+             "the `#{@placeholder_heading}` section"
+
+    # Non-vacuity control: the hint line must occur exactly once, and deleting
+    # it must turn this assertion red even though the bare phrase (which also
+    # lives in the header comment) still remains in the file.
+    assert length(Regex.scan(hint_line, script)) == 1,
+           "expected exactly one printf hint line matching #{inspect(hint_line)}"
+
+    mutated = Regex.replace(hint_line, script, "", global: false)
+
+    refute mutated == script,
+           "deleting the hint line did not change the script text"
+
+    refute Regex.match?(hint_line, mutated),
+           "the hint line still matches after its deletion mutation"
+
+    assert String.contains?(mutated, "Writing about machine-local paths"),
+           "the phrase must still be present elsewhere (the header comment) after deleting " <>
+             "only the hint line — this is exactly the vacuity R2-IN-01 named"
   end
 end
