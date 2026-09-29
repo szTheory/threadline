@@ -1,10 +1,21 @@
 ---
 id: SEED-006
-status: dormant
+status: closed
 planted: 2026-09-13
 planted_during: v1.41 Phase 201 planning, after Phase 200 closeout
-trigger_when: when relevant
 scope: unknown
+closed_on: 2026-09-29
+closed_during: v1.43 Phase 222
+closed_reason: >-
+  Measured, not worth it — 0 of 28 merged PRs strict-inert in the rolling 30
+  days, against a gate needing >=20% of PRs and >=10% of billed PR minutes.
+decision: .planning/phases/222-seed-006-change-aware-lanes-conditional/222-DECISION.md
+reopen_when: >-
+  strict inert share >= 5 of the last 20 merged PRs, by a freshly collected
+  snapshot run through `python3
+  .planning/phases/222-seed-006-change-aware-lanes-conditional/tools/inert-share.py
+  --last 20`, or a new required lane moves the ci.yml critical path past the
+  Browser E2E bound (about 550 s, run 36455432448)
 audit_acknowledged:
   milestone: v1.41
   at: 2026-09-25
@@ -57,3 +68,22 @@ test coverage across the current/minimum/browser/evidence lanes.
   fallback to the full matrix for unknown changes.
 - Do not solve latency by removing a lane from `CI required` without updating and
   reviewing the documented coverage contract in the same change.
+
+## Outcome
+
+**CLOSE.** Phase 222 re-measured the strict fail-closed inert-PR share on a fresh
+snapshot: 0 of 28 merged PRs in the rolling 30-day gate window. Both parts of the
+D-02 build gate failed at 0.0% (need >=20% of PRs and >=10% of billed PR
+runner-minutes) — see
+`.planning/phases/222-seed-006-change-aware-lanes-conditional/222-DECISION.md`
+for the full gate, the ceiling row, and the honesty note on the thresholds.
+
+This seed reopens only on a numeric trigger: strict inert share reaching >=5 of
+the last 20 merged PRs (re-measured with the 222 tooling's `--last 20` mode), or
+a new required lane pushing the `ci.yml` critical path past the Browser E2E
+bound. Absent one of those, the change-aware classifier and `verify-change-scope`
+job described above stay unbuilt.
+
+The nested `audit_acknowledged` block above is the historical v1.41 audit record
+(status `dormant` at that time) and is left unchanged; it intentionally differs
+from this seed's current top-level `status: closed`.

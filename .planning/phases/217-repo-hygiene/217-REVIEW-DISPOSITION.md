@@ -25,31 +25,31 @@ findings:
     title: "Documented \"missing git\" exit-2 case has no explicit check and reports the wrong reason"
   - id: R2-WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`forbidden_home_literal?/1` passes ancestor-prefix literals that blanket-cover every home directory"
   - id: R2-WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Widened family-6 regex has no left boundary and flags ordinary TitleCase kebab words"
   - id: R2-WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A newline in a tracked filename still mis-scopes the hit, and a phantom scope can cover it"
   - id: R2-WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "CONTRIBUTING claims every Claude-encoded project path is a HIT, but Linux-encoded dirs are not detected"
   - id: R2-IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The contract test for the failure hint passes even if the hint is deleted"
   - id: R2-IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "\"No file or directory is exempt from the scan\" contradicts the allowlist self-exclusion"
-open: 6
+open: 0
 total: 11
-recorded: 2026-09-27T19:00:38.181Z
+recorded: 2026-09-29T22:41:45.000Z
 ---
 
 # Phase 217: Code Review Disposition
@@ -63,12 +63,12 @@ Round 1 (`R1-*`) is the original review, whose findings were all fixed by gap cl
 | R1-WR-02 | warning | fixed | 217-07 Task 2 74279a7c |
 | R1-WR-03 | warning | fixed | 217-06 Task 2 ec5cdc2c |
 | R1-IN-01 | info | fixed | 217-06 Task 2 ec5cdc2c |
-| R2-WR-01 | warning | open | 217-REVIEW.md round 2 |
-| R2-WR-02 | warning | open | 217-REVIEW.md round 2 |
-| R2-WR-03 | warning | open | 217-REVIEW.md round 2 |
-| R2-WR-04 | warning | open | 217-REVIEW.md round 2 |
-| R2-IN-01 | info | open | 217-REVIEW.md round 2 |
-| R2-IN-02 | info | open | 217-REVIEW.md round 2 |
+| R2-WR-01 | warning | fixed | 223-02 Task 3 635de447 |
+| R2-WR-02 | warning | fixed | 223-02 Task 2 e99e172c |
+| R2-WR-03 | warning | fixed | 223-02 Task 3 635de447 |
+| R2-WR-04 | warning | fixed | 223-02 Task 1 354dde9a |
+| R2-IN-01 | info | fixed | 223-03 Task 1 f005358f |
+| R2-IN-02 | info | fixed | 223-03 Task 2 265d0624 |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.

@@ -58,6 +58,7 @@ The lane is additive. `.tool-versions` (1.17.3 / 27.3.4.15, current lane) and th
   - Expected cost is about +6 billed runner-minutes per run (warm p50 about 49 → about 55), about +40 s more on a cold miss. This exceeds 219's saving. Wall clock is unchanged, because the critical path is still Browser E2E at about 550 s.
   - Record the cost honestly in the phase record. Do **not** add a conditional `if:` now; it would also need `allowed-skips`.
   - Phase 222 (SEED-006 change-aware lanes) is where it gets trimmed.
+  - Superseded by 222 D-05: kept every-run; see 222-DECISION.md.
 
 ### Pre-spike remediation (known failures)
 - **D-08: Fix the 6 known compile warnings before the paid spike.**

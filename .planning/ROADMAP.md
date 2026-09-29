@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.43 Supply Chain, CI Economy and Repo Hygiene** - Phases 214-222 (in progress, opened 2026-09-26)
+- 🚧 **v1.43 Supply Chain, CI Economy and Repo Hygiene** - Phases 214-223 (in progress, opened 2026-09-26)
 - [x] **v1.42 Capture Correctness for Real Table Shapes** - Phases 208-213 (shipped 2026-09-26, released as 0.11.0). Archive: `.planning/milestones/v1.42-ROADMAP.md`
 - [x] **v1.41 Green, Clean, and Honest** - Phases 198-207 (shipped 2026-09-24). Archive: `.planning/milestones/v1.41-ROADMAP.md`
 - [x] **v1.40 Automated Operator-UI Critique & Forward-Only Iteration Harness** - Phases 194-197 (shipped 2026-08-27). Archive: `.planning/milestones/v1.40-ROADMAP.md`
@@ -54,7 +54,8 @@
 - [x] **Phase 219: Deps-Only Build Cache** - Test jobs restore exact-keyed deps-only `_build` and example-app caches, with the saving measured (completed 2026-09-28)
 - [x] **Phase 220: Newest-Toolchain Lane** - Spike-gated voting lane on Elixir 1.20 / OTP 29 / PG 18, or recorded "not yet" (completed 2026-09-28)
 - [x] **Phase 221: CI Names and Order** - A red check's name says what failed, and YAML runs fastest-to-red first (completed 2026-09-29)
-- [ ] **Phase 222: SEED-006 Change-Aware Lanes (conditional)** - Decided from measured data: a fail-closed classifier, or "measured, not worth it"
+- [x] **Phase 222: SEED-006 Change-Aware Lanes (conditional)** - Decided from measured data: a fail-closed classifier, or "measured, not worth it" (completed 2026-09-29: CLOSE, 0 of 28 strict-inert)
+- [ ] **Phase 223: Close v1.43 Audit Debt** - Release the mint 1.11.0 fix, stop persisting credentials on release checkouts, record every 217 round-2 disposition (from the v1.43 audit)
 
 ## Phase Details
 
@@ -357,8 +358,48 @@ Plans:
   3. If built: on `push` and `workflow_dispatch` the skip list is always empty, and a `ci-required` step re-justifies every skip (contract tests including `release_control_plane_contract_test.exs`).
   4. If not built: SEED-006 is marked closed with the "measured, not worth it" rationale and the numbers behind it.
 
-**Plans**: TBD
+**Plans**: 2/2 plans complete
+
+**Wave 1**
+
+- [x] 222-01-PLAN.md — Tracer: copy the 214 inert-share tool, re-collect merged PRs read-only and reproduce 214; minute gate and ceiling by command; phase gate script; halts for the maintainer unless the verdict is CLOSE
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 222-02-PLAN.md — 222-DECISION.md (cited, with the honesty note), close SEED-006 with a numeric reopen_when, SCOPE-01/PROJECT.md/220 D-07 pointer edits, `--close` gate and `mix ci.all`
+
 **Research**: Yes: dynamic `allowed-skips` through alls-green is unexercised in this repo; enumerate doc-contract test file reads
+
+### Phase 223: Close v1.43 Audit Debt
+
+**Goal**: The v1.43 audit's decision items are closed: the mint 1.11.0 advisory fix ships in a patch release, the release checkouts stop persisting credentials, and every phase-217 round-2 review finding has a recorded disposition
+**Depends on**: Phase 222 (milestone audit `.planning/v1.43-MILESTONE-AUDIT.md`, status tech_debt)
+**Requirements**: none new (tech-debt closure; SUP-01, HYG-02 stay satisfied)
+**Success Criteria** (what must be TRUE):
+
+  1. The mint 1.11.0 fix on `main` becomes releasable to release-please through a `BEGIN_COMMIT_OVERRIDE` `fix(deps):` line on merged PR #60 (amended 2026-09-29 in 223-CONTEXT D-02: no honest new diff exists), release-please opens a patch release PR for it, and the release runbook is followed through publish (maintainer push, merge and `production-hex` approval).
+  2. Every target-ref `actions/checkout` in `release.yml` that is followed by `mix` (`publish-hex`, `smoke-published`) sets `persist-credentials: false`, and a release-control-plane contract test with a mutation control fails when any such checkout omits it (216 CR-01 closed).
+  3. `217-REVIEW-DISPOSITION.md` has no `open` row: R2-WR-04 is fixed (CONTRIBUTING's Claude-encoded-path claim matches the guard, or the guard gains an anchored Linux variant with a self-test case), and R2-WR-01..03 and R2-IN-01..02 are each fixed or `deferred` with a reason.
+  4. `mix ci.all` and `bin/verify-repo-hygiene` stay green.
+
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+- [x] 223-01-PLAN.md — Stop persisting credentials on release.yml checkouts outside the two push jobs; per-step contract, 3 rules, 6 mutation controls (216 CR-01, D-07..D-12)
+- [x] 223-02-PLAN.md — Repo-hygiene guard fixes: anchored Linux-encoded family, left-anchored family 6, literal_too_broad, newline-path pre-scan, self-test at 10 cases (R2-WR-01..04, D-13..D-16, D-19)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 223-03-PLAN.md — Exact hint-line contract, CONTRIBUTING wording and releasable-subject sentence, 217 dispositions hand-recorded at 0 open, phase gate (R2-IN-01/02, D-06, D-17, D-18, D-20)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 223-04-PLAN.md — Land B+C as a `ci:` PR, append the D-01 override to #60, confirm `chore(main): release 0.11.2` opens (maintainer-granted)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 223-05-PLAN.md — Date the 0.11.2 CHANGELOG entry via a `docs(release):` PR, refresh the release PR to green (maintainer-granted)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 223-06-PLAN.md — Publish decision (one-way), merge with --match-head-commit, maintainer's production-hex approval, publish, smoke and distribution sync
 
 ## Progress
 
@@ -372,7 +413,8 @@ Plans:
 | 219. Deps-Only Build Cache | 3/3 | Complete    | 2026-09-28 |
 | 220. Newest-Toolchain Lane | 4/4 | Complete    | 2026-09-28 |
 | 221. CI Names and Order | 4/4 | Complete    | 2026-09-29 |
-| 222. SEED-006 Change-Aware Lanes | 0/TBD | Not started | - |
+| 222. SEED-006 Change-Aware Lanes | 2/2 | Complete    | 2026-09-29 |
+| 223. Close v1.43 Audit Debt | 3/6 | In Progress | - |
 
 ## Prior Milestones
 

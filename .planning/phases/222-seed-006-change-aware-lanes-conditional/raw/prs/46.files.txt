@@ -1,0 +1,6 @@
+.github/workflows/release.yml
+CHANGELOG.md
+guides/configuration-and-commands.md
+lib/mix/tasks/threadline.install.ex
+test/mix/tasks/threadline/install_test.exs
+test/threadline/storage_schema_test.exs
