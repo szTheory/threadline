@@ -1277,15 +1277,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
             else: ["rule=lane-skip: the step carries `if`, so a lane could skip it (D-15)"]
 
         command_errors =
-          case yaml_get(step, "run") do
-            run when is_binary(run) and run != "" ->
-              if String.trim(run) == cmd,
-                do: [],
-                else: ["rule=lane-command: the step must run exactly `#{cmd}` (D-15)"]
-
-            _ ->
-              ["rule=lane-command: the step must run exactly `#{cmd}` (D-15)"]
-          end
+          if lane_step_runs?(yaml_get(step, "run"), cmd),
+            do: [],
+            else: ["rule=lane-command: the step must run exactly `#{cmd}` (D-15)"]
 
         shell_errors =
           if yaml_get(step, "shell") in @default_shells,
@@ -1303,6 +1297,9 @@ defmodule Threadline.CIWorkflowParityContractTest do
         ]
     end
   end
+
+  defp lane_step_runs?(run, cmd) when is_binary(run), do: String.trim(run) == cmd
+  defp lane_step_runs?(_run, _cmd), do: false
 
   defp step_name(step) do
     case yaml_get(step, "name") do
@@ -1409,18 +1406,17 @@ defmodule Threadline.CIWorkflowParityContractTest do
         [{"(file)", {:parse_error, message}, nil}]
 
       {:ok, doc} ->
-        case parsed_jobs(doc) do
-          [] ->
-            [{"(file)", doc, nil}]
-
-          jobs ->
-            rest = doc |> Enum.reject(fn {k, _} -> yaml_key(k) == "jobs" end) |> Map.new()
-
-            [{"(workflow)", rest, nil}] ++
-              for {job_id, job} <- jobs,
-                  do: {job_id, job, yaml_get_in(job, ["strategy", "matrix"])}
-        end
+        doc_scan_units(doc, parsed_jobs(doc))
     end
+  end
+
+  defp doc_scan_units(doc, []), do: [{"(file)", doc, nil}]
+
+  defp doc_scan_units(doc, jobs) do
+    rest = doc |> Enum.reject(fn {k, _} -> yaml_key(k) == "jobs" end) |> Map.new()
+
+    [{"(workflow)", rest, nil}] ++
+      for {job_id, job} <- jobs, do: {job_id, job, yaml_get_in(job, ["strategy", "matrix"])}
   end
 
   defp scan_postgres_node({:parse_error, _} = error, _matrix), do: [error]
