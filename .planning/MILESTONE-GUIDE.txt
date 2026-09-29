@@ -344,6 +344,7 @@ decisions, batched once at the end of a step.
   - stale branches and worktrees removed or archive-tagged
   - no dirty working tree
   - docs and CHANGELOG accurate
+  - re-pin latest to the newest Elixir/OTP patch and PG minor (verify-test latest row in ci.yml; builds.hex.pm and Docker Hub; Dependabot does not cover setup-beam)
   - STATE.md reflects reality
 - Actual push, merge, and publish still require the maintainer's explicit
   go. Milestone tags stay local.

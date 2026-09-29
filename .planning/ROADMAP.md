@@ -291,7 +291,25 @@ Plans:
   2. If the spike is green, `lane: latest` is a voting entry in `verify-test` with roster and parity contract tests updated in the same commit; if not, a findings record states "not yet" with the specific failures.
   3. A contract test proves no voting lane uses `continue-on-error` and no lane uses a beta PostgreSQL image.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+
+- [x] 220-01-PLAN.md — Tracer + D-08: clear the six Elixir 1.20 warnings, local pre-spike on 1.20 / OTP 29 / PG 18.6 (wave 1)
+
+**Wave 2**
+
+- [x] 220-02-PLAN.md — Voting `lane: latest` row, roster/pin-shape parity, fail-closed continue-on-error and beta-PostgreSQL contracts, same-commit docs, re-pin process line (wave 2)
+
+**Wave 3**
+
+- [x] 220-03-PLAN.md — Spike branch from the landing branch, maintainer-granted dispatch, D-11 classification, 220-SPIKE.md with run IDs and measured cost (wave 3, checkpoint)
+
+**Wave 4**
+
+- [x] 220-04-PLAN.md — Land the outcome on PR #60: GREEN fast-forward, or NOT YET hold commit + findings, PROJECT.md row and SEED-007; cite the PR run and clean up (wave 4, checkpoint)
+
 **Research**: Yes: the Elixir 1.20 warning surface under `--warnings-as-errors` is unknown until spiked
 
 ### Phase 221: CI Names and Order
@@ -333,7 +351,7 @@ Plans:
 | 217. Repo Hygiene | 7/7 | Complete    | 2026-09-27 |
 | 218. CI Economy: Remove Waste | 8/8 | Complete    | 2026-09-27 |
 | 219. Deps-Only Build Cache | 3/3 | Complete    | 2026-09-28 |
-| 220. Newest-Toolchain Lane | 0/TBD | Not started | - |
+| 220. Newest-Toolchain Lane | 4/4 | In Progress | - |
 | 221. CI Names and Order | 0/TBD | Not started | - |
 | 222. SEED-006 Change-Aware Lanes | 0/TBD | Not started | - |
 
