@@ -467,6 +467,12 @@ defmodule Threadline.CIWorkflowParityContractTest do
                "        lane: [min, current, latest]\n",
                "        lane: [min, current]\n"
              )},
+            {"latest excluded from the matrix",
+             String.replace(
+               job,
+               "        lane: [min, current, latest]\n",
+               "        lane: [min, current, latest]\n        exclude:\n          - lane: latest\n"
+             )},
             {"matrix expression in the job name",
              String.replace(
                job,
@@ -1027,6 +1033,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
           "\\1 ${{ matrix.lane }}\n"
         )
 
+      # WR-01 (221 review): valid YAML that stops GitHub posting the latest lane.
+      exclude_latest =
+        String.replace(
+          ci,
+          "        lane: [min, current, latest]\n",
+          "        lane: [min, current, latest]\n        exclude:\n          - lane: latest\n"
+        )
+
       timeout_first =
         Regex.replace(
           ~r/^(  verify-release-shape:\n)(    name: [^\n]*\n)(    runs-on: [^\n]*\n)    timeout-minutes: [^\n]*\n/m,
@@ -1050,6 +1064,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
          ["rule=name-exact", "rule=name-retired"]},
         {"lane expression in the verify-test name", append_to_test_name, contributing,
          ["rule=name-static"]},
+        {"matrix exclude drops the latest lane", exclude_latest, contributing,
+         ["rule=name-static", "rule=roster"]},
         {"leading verb", rename.("verify-credo", "Run Credo"), contributing, ["rule=name-verb"]},
         {"49-character name", rename.("verify-format", String.duplicate("F", 49)), contributing,
          ["rule=name-length"]},
@@ -2903,32 +2919,62 @@ defmodule Threadline.CIWorkflowParityContractTest do
     end
   end
 
-  # The check names GitHub posts for a matrix job: a static job `name:` gets the
-  # base-axis values appended as ` (value)`. A `${{ … }}` expression in the name
-  # switches that suffix off, so it composes nothing here. Comments are stripped
-  # first, so only live YAML counts.
-  defp composed_check_names(job) do
-    stripped = strip_comment_lines(job)
-    name = yaml_value_at(stripped, "    name:")
-    lanes = yaml_value_at(stripped, "        lane:")
-
-    with name when is_binary(name) <- name,
+  # The check names GitHub posts for a matrix job, read from the parsed job
+  # block (WR-01, 221 review): a static job `name:` gets each posted `lane`
+  # value appended as ` (value)`. `exclude` drops a lane before `include` runs,
+  # and an `include` row that only adds keys to a kept lane leaves the posted
+  # names alone. Any shape this does not model (a second axis, an `exclude` row
+  # keyed on anything but `lane`, an `include` row that would add a new
+  # combination, an expression-valued matrix) composes nothing, so every rule
+  # built on it fails closed. A `${{ … }}` expression in the name switches the
+  # suffix off, so it composes nothing too. Comments never reach parsed data.
+  defp composed_check_names(job_block) do
+    with {:ok, %{} = doc} <- parse_yaml(job_block),
+         [job] <- Map.values(doc),
+         name when is_binary(name) <- yaml_get(job, "name"),
          false <- String.contains?(name, "${{"),
-         [_, axis] <- lanes && Regex.run(~r/^\[(.*)\]$/, lanes) do
-      axis
-      |> String.split(",", trim: true)
-      |> Enum.map(&"#{name} (#{String.trim(&1)})")
+         {:ok, lanes} <- posted_lanes(yaml_get_in(job, ["strategy", "matrix"])) do
+      Enum.map(lanes, &"#{name} (#{&1})")
     else
       _ -> []
     end
   end
 
-  defp yaml_value_at(text, prefix) do
-    case Regex.run(~r/^#{Regex.escape(prefix)}[ \t]*(.*?)[ \t]*$/m, text) do
-      [_, value] -> value
-      nil -> nil
+  defp posted_lanes(%{} = matrix) do
+    axes = matrix |> Map.keys() |> Enum.map(&yaml_key/1) |> Kernel.--(["exclude", "include"])
+    lanes = yaml_get(matrix, "lane")
+
+    with ["lane"] <- axes,
+         true <- is_list(lanes) and Enum.all?(lanes, &is_binary/1),
+         {:ok, excluded} <- matrix_row_lanes(yaml_get(matrix, "exclude"), :exclude),
+         {:ok, included} <- matrix_row_lanes(yaml_get(matrix, "include"), :include),
+         kept = Enum.reject(lanes, &(&1 in excluded)),
+         true <- Enum.all?(included, &(&1 in kept)) do
+      {:ok, kept}
+    else
+      _ -> :error
     end
   end
+
+  defp posted_lanes(_matrix), do: :error
+
+  # The `lane` of each exclude/include row. An exclude row may name `lane` only;
+  # an include row must name a `lane` (it may add other keys). Anything else is
+  # a shape the composer does not model.
+  defp matrix_row_lanes(nil, _kind), do: {:ok, []}
+
+  defp matrix_row_lanes(rows, kind) when is_list(rows) do
+    lanes =
+      for %{} = row <- rows,
+          lane = yaml_get(row, "lane"),
+          is_binary(lane),
+          kind == :include or map_size(row) == 1,
+          do: lane
+
+    if length(lanes) == length(rows), do: {:ok, lanes}, else: :error
+  end
+
+  defp matrix_row_lanes(_rows, _kind), do: :error
 
   defp strip_comment_lines(block) do
     block
