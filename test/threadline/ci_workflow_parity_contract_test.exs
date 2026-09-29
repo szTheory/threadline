@@ -719,6 +719,29 @@ defmodule Threadline.CIWorkflowParityContractTest do
          "rule=gate-jobs-input"},
         {"second CI required job", &Map.put(&1, ".github/workflows/zz-spoof.yml", spoof),
          "rule=gate-name"},
+        # VG-01 / WR-02 (221 verification and review): names GitHub evaluates.
+        {"expression-literal CI required name",
+         &Map.put(
+           &1,
+           ".github/workflows/zz-spoof.yml",
+           String.replace(spoof, "    name: CI required\n", "    name: ${{ 'CI required' }}\n")
+         ), "rule=gate-name-expression"},
+        {"matrix-valued CI required name",
+         &Map.put(
+           &1,
+           ".github/workflows/zz-spoof.yml",
+           String.replace(
+             spoof,
+             "    name: CI required\n",
+             "    name: ${{ matrix.n }}\n    strategy:\n      matrix:\n        n: [CI required]\n"
+           )
+         ), "rule=gate-name-expression"},
+        {"spaced, lower-case CI required name",
+         &Map.put(
+           &1,
+           ".github/workflows/zz-spoof.yml",
+           String.replace(spoof, "    name: CI required\n", ~s(    name: "ci  required"\n))
+         ), "rule=gate-name"},
         {"job id renamed everywhere", on_ci.(&String.replace(&1, "verify-format", "verify-fmt")),
          "rule=job-ids"}
       ]
@@ -1722,13 +1745,30 @@ defmodule Threadline.CIWorkflowParityContractTest do
       else: ["rule=gate-jobs-input: the `jobs` input must be ${{ toJSON(needs) }}"]
   end
 
+  # The ruleset requires the context `CI required` by name alone, so any job in
+  # any workflow that can post that name is a spoof. A literal name is compared
+  # trimmed, whitespace-collapsed and case-folded (this only over-reports). A
+  # name that is a `${{ … }}` expression is evaluated by GitHub, so
+  # `${{ 'CI required' }}`, `${{ format('CI {0}', 'required') }}` or
+  # `${{ matrix.n }}` with `n: [CI required]` can all post it; no workflow uses
+  # an expression-valued job name today, so every one is banned outright
+  # (VG-01 / WR-02, 221 review). A static name under a matrix posts
+  # `<name> (<values>)`, which can never equal `CI required`, and verify-test's
+  # name is pinned static by rule=name-static.
   defp gate_name_errors(job, yaml_by_path, ci_path) do
-    carriers =
+    named =
       for {path, text} <- Enum.sort(yaml_by_path),
           {:ok, doc} <- [parse_yaml(text)],
           {job_id, other} <- parsed_jobs(doc),
-          yaml_get(other, "name") == "CI required",
-          do: {path, job_id}
+          do: {path, job_id, yaml_get(other, "name")}
+
+    carriers = for {path, job_id, name} <- named, gate_name?(name), do: {path, job_id}
+
+    expression =
+      for {path, job_id, name} <- named, is_binary(name), String.contains?(name, "${{") do
+        "#{path} job=#{job_id} rule=gate-name-expression: a job `name:` must not be a " <>
+          "`${{ }}` expression, which could post the required `CI required` context"
+      end
 
     own =
       if yaml_get(job, "name") === "CI required" and yaml_field(job, "strategy") == :error,
@@ -1743,8 +1783,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
             "got #{inspect(carriers)}"
         ]
 
-    own ++ unique
+    own ++ unique ++ expression
   end
+
+  defp gate_name?(name) when is_binary(name),
+    do: name |> String.split() |> Enum.join(" ") |> String.downcase() == "ci required"
+
+  defp gate_name?(_name), do: false
 
   defp gate_job_id_errors(doc) do
     ids = doc |> parsed_jobs() |> Enum.map(&elem(&1, 0)) |> MapSet.new()
