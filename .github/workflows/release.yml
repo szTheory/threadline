@@ -31,10 +31,11 @@ on:
         type: boolean
         default: false
 
+# Read-only by default. Each job that writes states its own `permissions:` block,
+# which replaces this one wholesale, so a write grant reaches only the job that
+# calls the write API (pinned by test/threadline/ci_token_permissions_contract_test.exs).
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 # No workflow-level concurrency group: the frequent release-please bookkeeping job
 # must stay independent and never queue behind a long-running publish. Publish-race
@@ -46,6 +47,12 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    # Release Please pushes the release branch and tag (contents), opens and
+    # updates the release PR (pull-requests) and labels it (issues).
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created || 'false' }}
       tag_name: ${{ steps.release.outputs.tag_name || '' }}
@@ -226,6 +233,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    # Pushes the release tag when it is missing.
+    permissions:
+      contents: write
     outputs:
       checkout_ref: ${{ steps.bootstrap.outputs.checkout_ref }}
       release_sha: ${{ steps.bootstrap.outputs.release_sha }}
@@ -341,6 +351,10 @@ jobs:
     timeout-minutes: 45
     needs: release-ref
     if: always() && needs.release-ref.result == 'success'
+    # Reads ci.yml's workflow runs; writes nothing.
+    permissions:
+      actions: read
+      contents: read
     steps:
       - name: Wait for ci.yml success on release SHA
         uses: actions/github-script@v8
