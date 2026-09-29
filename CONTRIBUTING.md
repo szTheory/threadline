@@ -36,7 +36,7 @@ that merely share a major number. The pin names the lane CI runs, not the only v
 works: the supported floor (Elixir 1.15 / OTP 26) is proven separately by the CI
 min lane.
 
-CI also runs a `latest` lane, `Run test suite (latest)`, on the newest stable
+CI also runs a `latest` lane, `Build and test (latest)`, on the newest stable
 Elixir, OTP and PostgreSQL, exactly pinned in the `verify-test` matrix of
 `.github/workflows/ci.yml`. It compiles with `--warnings-as-errors`, checks xref
 cycles, runs the default suite, and votes through `CI required` on every run. It
@@ -648,7 +648,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
-| `verify-hex-evaluator` | `mix verify.hex_evaluator` — threadline resolved from hex.pm in a nested project |
+| `verify-hex-evaluator` | `mix verify.hex_evaluator` — installs this tree's `mix hex.build` package from a throwaway local registry (`bin/with-rehearsal-registry`) in a nested project, then compiles and tests it |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |
 | `verify-capture` | `mix verify.capture`; regenerates the Tier A evidence from scratch against a migrated example DB and a real browser, and asserts byte-stable regeneration against the committed evidence |
 | `verify-release-shape` | `bin/verify-release-shape` — `@version` / dated `CHANGELOG` for release versions |
@@ -666,7 +666,7 @@ if the proof that still catches it stops running.
 
 - The capture lane's trailing `mix verify.mechanical` step (in `verify-capture`): failure class "regenerated evidence breaches a MODE-A/MODE-B rule" is still caught by `verify-capture`'s byte-stable regeneration step (regenerated evidence must equal the committed evidence) and by `verify-test` (every lane), which runs `mechanical_checker_test.exs` over the committed scorecard JSON, on pull_request, push to `main` and workflow_dispatch.
 - `verify-mechanical` (the job): failure class "a committed scorecard breaches MODE-A/MODE-B" is still caught by `verify-test` (every lane), which runs `test/threadline/operator_surface/mechanical_checker_test.exs` in the default suite, on pull_request, push to `main` and workflow_dispatch. The `mix verify.mechanical` alias stays as a focused local command.
-- `verify-docs`: failure class "the ExDoc build fails" is still caught by `verify-bump-rehearsal`, whose `mix verify.release` gate runs `MIX_ENV=dev mix docs --warnings-as-errors` (stricter than the old plain `mix docs`), on pull_request, push to `main` and workflow_dispatch. Coupling: any future change that skips `verify-bump-rehearsal` also skips the ExDoc proof, and a docs break now shows as a red "Bump rehearsal (next minor)" job. The rehearsal chains its gates, so the docs build runs only after the doc-contract and changelog gates pass; one of those failing first hides a docs break until it is fixed. `test/threadline/ci_topology_contract_test.exs` pins that `bin/verify-bump-rehearsal` still runs `mix verify.release`.
+- `verify-docs`: failure class "the ExDoc build fails" is still caught by `verify-bump-rehearsal`, whose `mix verify.release` gate runs `MIX_ENV=dev mix docs --warnings-as-errors` (stricter than the old plain `mix docs`), on pull_request, push to `main` and workflow_dispatch. Coupling: any future change that skips `verify-bump-rehearsal` also skips the ExDoc proof, and a docs break now shows as a red "Next-minor release rehearsal (docs + contracts)" job. The rehearsal chains its gates, so the docs build runs only after the doc-contract and changelog gates pass; one of those failing first hides a docs break until it is fixed. `test/threadline/ci_topology_contract_test.exs` pins that `bin/verify-bump-rehearsal` still runs `mix verify.release`.
 - `verify-hex-package`: failure class "`mix hex.build` fails or the tarball has no usable `lib/`" is still caught by `verify-bump-rehearsal` (`mix hex.build` in `mix verify.release`) and `verify-hex-evaluator` (builds this tree's tarball, resolves it from the rehearsal registry, then compiles and tests it), on pull_request, push to `main` and workflow_dispatch. `release.yml`'s own `hex.build` does not count: it runs only on release.
 
 ### Dialyzer PLT cache and measurement contract
@@ -736,7 +736,7 @@ and
 The `verify-dialyzer` timeout is derived from the measured cold whole-job
 elapsed time, not just the analyzer subprocesses, plus the live slice proof's
 added cost: the test-env compile (47 seconds) and Postgres service init
-(23 seconds) measured in the `Run test suite (current)` job of run
+(23 seconds) measured in the current lane of the `verify-test` job of run
 [`36258719902`](https://github.com/szTheory/threadline/actions/runs/36258719902),
 and the live test itself (about 10 seconds, an estimate), 80 seconds in all:
 `ceil((252 + 80) seconds × 2.0 / 60) = 12 minutes`. The 2.0 factor gives 100%
@@ -818,7 +818,7 @@ The stable log fields, printed by each cached job's removal step, are:
 - `THREADLINE_BUILD_CACHE`: exactly `hit` or `miss`, then ` key=<primary key>`.
 - `THREADLINE_EXAMPLE_BUILD_CACHE`: exactly `hit` or `miss`, then
   ` key=<primary key>`. It appears only in job-lanes whose example restore ran,
-  so `Run test suite (min)` and `Run test suite (latest)` never print it.
+  so `Build and test (min)` and `Build and test (latest)` never print it.
 
 `verify-test (current)`, `verify-example-browser` and `verify-capture` share one
 example key. On a cold run two of them can try to save it at once; the loser
@@ -841,7 +841,7 @@ saved from `main` reaches every pull request, so act on it quickly:
    `.github/workflows/ci.yml`, in this section, and in `@build_key_version` in
    `test/threadline/ci_workflow_parity_contract_test.exs`, so no job can read the
    old entries again. The parity contract pins the version, so a bump that skips
-   any of these fails `Run test suite`.
+   any of these fails `Build and test`.
 
 Hex **publish** runs from **[`.github/workflows/release.yml`](.github/workflows/release.yml)** (canonical) using the **`HEX_API_KEY`** repository secret — see [Hex publish (maintainers)](#hex-publish-maintainers) below.
 
@@ -885,17 +885,26 @@ The only required status check on `main` is `CI required`, per `.github/rulesets
 one context. Do not add the checks below as separate required contexts —
 that would turn the protection check red. `CI required` aggregates them, among
 every other `ci.yml` job, through its `needs:` list, so each of these still has to
-pass (names match the workflow `name:` fields or job summaries as shown in the PR UI):
+pass. The posted check names, in `ci.yml` order:
 
-- Check formatting (`verify-format`)
-- Run Credo (strict) (`verify-credo`)
-- Run test suite (min) (`verify-test` min lane)
-- Run test suite (current) (`verify-test` current lane)
-- Run test suite (latest) (`verify-test` latest lane)
-- PgBouncer transaction topology (`verify-pgbouncer-topology`)
-- Release metadata (version / changelog) (`verify-release-shape`)
+- CHANGELOG matches version (`verify-release-shape`)
+- Repo hygiene (no machine-local paths) (`verify-repo-hygiene`)
+- Formatting (`verify-format`)
+- Dependency audit (all lockfiles) (`verify-deps-audit`)
+- Compile without optional deps (`verify-compile-no-optional`)
+- Hex package install (rehearsal registry) (`verify-hex-evaluator`)
+- Tests through PgBouncer (transaction mode) (`verify-pgbouncer-topology`)
+- Credo (strict) (`verify-credo`)
+- Next-minor release rehearsal (docs + contracts) (`verify-bump-rehearsal`)
+- Dialyzer (full optional build) (`verify-dialyzer`)
+- Build and test (min) (`verify-test` min lane)
+- Build and test (current) (`verify-test` current lane)
+- Build and test (latest) (`verify-test` latest lane)
+- Capture evidence byte-stable (`verify-capture`)
+- Example app browser E2E (2 projects) (`verify-example-browser`)
 
-Exact labels depend on GitHub’s UI; map them to the job keys above.
+`test/threadline/ci_workflow_parity_contract_test.exs` keeps this list equal to
+the names GitHub posts, so it cannot drift from the workflow.
 
 ## Backport policy (maintainers)
 

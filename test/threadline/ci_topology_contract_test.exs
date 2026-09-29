@@ -1096,9 +1096,8 @@ defmodule Threadline.CiTopologyContractTest do
       {"evaluator mode forced to published in ci.yml",
        String.replace(
          yaml,
-         "  verify-hex-evaluator:\n    name: Hex evaluator smoke (threadline from hex.pm)\n",
-         "  verify-hex-evaluator:\n    name: Hex evaluator smoke (threadline from hex.pm)\n" <>
-           "    env:\n      THREADLINE_HEX_EVALUATOR_MODE: published\n"
+         "  verify-hex-evaluator:\n    name: ",
+         "  verify-hex-evaluator:\n    env:\n      THREADLINE_HEX_EVALUATOR_MODE: published\n    name: "
        )},
       {"pull_request trigger dropped",
        String.replace(yaml, "  pull_request:\n    branches: [main]\n", "")}

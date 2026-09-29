@@ -63,7 +63,7 @@ jobs:
   # workflow_dispatch.
 
   verify-release-shape:
-    name: Release metadata (version / changelog)
+    name: CHANGELOG matches version
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -94,7 +94,7 @@ jobs:
         run: bin/verify-repo-hygiene --self-test
 
   verify-format:
-    name: Check formatting
+    name: Formatting
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -206,7 +206,7 @@ jobs:
         run: mix verify.compile_no_optional
 
   verify-hex-evaluator:
-    name: Hex evaluator smoke (threadline from hex.pm)
+    name: Hex package install (rehearsal registry)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -241,11 +241,11 @@ jobs:
         run: |
           createdb -h "$DB_HOST" -U postgres hex_evaluator_test 2>/dev/null || true
 
-      - name: Verify Hex-published threadline adopt path
+      - name: Install this tree's package from a local registry and test it
         run: mix verify.hex_evaluator
 
   verify-pgbouncer-topology:
-    name: PgBouncer transaction topology
+    name: Tests through PgBouncer (transaction mode)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -343,7 +343,7 @@ jobs:
           mix verify.threadline
 
   verify-credo:
-    name: Run Credo (strict)
+    name: Credo (strict)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -369,7 +369,7 @@ jobs:
         run: mix verify.credo
 
   verify-bump-rehearsal:
-    name: Bump rehearsal (next minor)
+    name: Next-minor release rehearsal (docs + contracts)
     runs-on: ubuntu-24.04
     # Measured at 66s wall locally (macOS, 295% CPU) for the full run: throwaway
     # clone, deps.get, mix release.pins, the doc-contract tests it derives by
@@ -420,11 +420,11 @@ jobs:
         run: mix verify.bump_rehearsal
 
   verify-dialyzer:
-    name: Dialyzer (current toolchain)
+    name: Dialyzer (full optional build)
     runs-on: ubuntu-24.04
     # Plan 199-14 measured the cold job at 252 seconds. The live Dialyzer slice
     # proof (plan 218-03) adds a test-env compile (47 s), the Postgres service
-    # init (23 s), both from the "Run test suite (current)" job of run
+    # init (23 s), both from the current lane of the verify-test job of run
     # 36258719902, and the live test itself (about 10 s, an estimate): 80 s.
     # A 2x headroom factor, rounded up to the next whole minute, gives
     # ceil((252 + 80) * 2 / 60) = 12.
@@ -573,8 +573,8 @@ jobs:
 
   verify-test:
     # Base axis `lane` drives the check-name suffix → GitHub posts exactly
-    # "Run test suite (min)", "Run test suite (current)" and
-    # "Run test suite (latest)". Keys carried only via `include`
+    # "Build and test (min)", "Build and test (current)" and
+    # "Build and test (latest)". Keys carried only via `include`
     # (elixir/otp/pg/runner) do NOT append to that suffix, so the static
     # `name:` yields the three documented check names (D-15/D-19, RESEARCH
     # M1 construction A). Min lane = Elixir 1.15.8 / OTP 26.2.5.21 (exact
@@ -590,7 +590,7 @@ jobs:
     # latest rows their explicit pins, the current row `version-file` —
     # because setup-beam errors when both are set and an absent matrix key
     # renders as an empty input.
-    name: Run test suite
+    name: Build and test
     strategy:
       fail-fast: false
       matrix:
@@ -772,7 +772,7 @@ jobs:
   # (2) regeneration is byte-stable against the committed evidence (no drift).
   # This is the recurring proof of the two former human-UAT items (194-UAT.md).
   verify-capture:
-    name: Tier A capture lane (byte-stable evidence)
+    name: Capture evidence byte-stable
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
@@ -925,7 +925,7 @@ jobs:
       # pull_request and workflow_dispatch.
 
   verify-example-browser:
-    name: Example app browser E2E (Playwright)
+    name: Example app browser E2E (2 projects)
     runs-on: ubuntu-24.04
     # 18 is a BUDGET (D-16), not a multiple of an observed green p95 — this lane
     # has no observed green duration to size against. Its two recorded runs are

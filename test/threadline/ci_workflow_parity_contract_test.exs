@@ -238,8 +238,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
     test "ci.yml declares static name + lane axis [min, current, latest] (construction A)" do
       yaml = read_rel!([".github", "workflows", "ci.yml"])
 
-      assert Regex.match?(~r/^\s*name: Run test suite\s*$/m, yaml),
-             "verify-test must declare the static `name: Run test suite` (GitHub composes the lane suffix)"
+      assert Regex.match?(~r/^\s*name: Build and test\s*$/m, yaml),
+             "verify-test must declare the static `name: Build and test` (GitHub composes the lane suffix)"
 
       assert Regex.match?(~r/^\s*lane:\s*\[min,\s*current,\s*latest\]\s*$/m, yaml),
              "verify-test matrix must declare base axis `lane: [min, current, latest]`"
@@ -442,25 +442,25 @@ defmodule Threadline.CIWorkflowParityContractTest do
       assert String.contains?(readme, "not a new support floor")
       assert String.contains?(readme, "`latest` lane")
       assert String.contains?(mix_exs, "CI `latest` lane")
-      assert String.contains?(contributing, "Run test suite (latest)")
+      assert String.contains?(contributing, "Build and test (latest)")
       assert String.contains?(contributing, "not a support floor")
       assert String.contains?(contributing, "Test-file warnings stay non-fatal on every lane")
 
-      assert "Run test suite (latest)" in composed_check_names(job),
-             "verify-test must compose the check name \"Run test suite (latest)\", got " <>
+      assert "Build and test (latest)" in composed_check_names(job),
+             "verify-test must compose the check name \"Build and test (latest)\", got " <>
                inspect(composed_check_names(job))
 
-      comment = ~s[    # "Run test suite (latest)". Keys carried only via `include`\n]
+      comment = ~s[    # "Build and test (latest)". Keys carried only via `include`\n]
       uncommented = String.replace(job, comment, "")
 
       refute uncommented == job, "comment-removal positive control did not change the input"
 
-      assert "Run test suite (latest)" in composed_check_names(uncommented),
+      assert "Build and test (latest)" in composed_check_names(uncommented),
              "the composed name must not depend on the YAML comment"
 
       for {control, mutated} <- [
             {"job name changed",
-             String.replace(job, "    name: Run test suite\n", "    name: Run tests\n")},
+             String.replace(job, "    name: Build and test\n", "    name: Run tests\n")},
             {"latest dropped from the lane axis",
              String.replace(
                job,
@@ -470,23 +470,23 @@ defmodule Threadline.CIWorkflowParityContractTest do
             {"matrix expression in the job name",
              String.replace(
                job,
-               "    name: Run test suite\n",
-               "    name: Run test suite ${{ matrix.otp }}\n"
+               "    name: Build and test\n",
+               "    name: Build and test ${{ matrix.otp }}\n"
              )}
           ] do
         refute mutated == job, "#{control} control did not change the input"
 
-        refute "Run test suite (latest)" in composed_check_names(mutated),
-               "#{control} mutation must stop composing \"Run test suite (latest)\""
+        refute "Build and test (latest)" in composed_check_names(mutated),
+               "#{control} mutation must stop composing \"Build and test (latest)\""
       end
     end
 
     test "CONTRIBUTING List 2 carries every composed required-check name" do
       doc = read_rel!(["CONTRIBUTING.md"])
 
-      assert String.contains?(doc, "Run test suite (min)")
-      assert String.contains?(doc, "Run test suite (current)")
-      assert String.contains?(doc, "Run test suite (latest)")
+      assert String.contains?(doc, "Build and test (min)")
+      assert String.contains?(doc, "Build and test (current)")
+      assert String.contains?(doc, "Build and test (latest)")
     end
   end
 
@@ -501,7 +501,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       refute ci_required_needs(workflows[@ci_path]) == [],
              "ci-required's needs: list parsed empty — the needs-coverage check would be vacuous"
 
-      job_header = "    name: Run test suite\n"
+      job_header = "    name: Build and test\n"
       run_tests = "      - name: Run tests\n        run: mix verify.test\n"
       alls_green_jobs = "          jobs: ${{ toJSON(needs) }}\n"
 
@@ -823,8 +823,8 @@ defmodule Threadline.CIWorkflowParityContractTest do
         {"prefixed beta image as a job container shorthand", @ci_path,
          &String.replace(
            &1,
-           "    name: Run test suite\n",
-           "    name: Run test suite\n    container: docker.io/library/postgres:19beta1\n"
+           "    name: Build and test\n",
+           "    name: Build and test\n    container: docker.io/library/postgres:19beta1\n"
          ), "rule=pg-tag"},
         {"flow-mapped service with a prefixed beta image", @ci_path,
          &String.replace(
@@ -994,6 +994,110 @@ defmodule Threadline.CIWorkflowParityContractTest do
         end
       end
     end
+
+    test "every check name says what it proves (SC-1, D-01..D-04)" do
+      workflows = all_workflows()
+
+      assert check_name_errors(workflows[@ci_path], read_rel!(["CONTRIBUTING.md"])) == []
+
+      browser_full = parsed_doc(workflows[".github/workflows/browser-full.yml"])
+
+      assert yaml_get(parsed_job(browser_full, "verify-example-browser-full"), "name") ==
+               "Example app browser E2E (all projects)"
+    end
+
+    test "renaming a check back or breaking the roster turns the name contract red" do
+      ci = all_workflows()[@ci_path]
+      contributing = read_rel!(["CONTRIBUTING.md"])
+
+      # Anchors are job ids plus the job's `name:` line matched by shape, so no
+      # control depends on the display name it is about to change.
+      rename = fn id, new_name ->
+        Regex.replace(
+          ~r/^(  #{Regex.escape(id)}:\n(?:    #[^\n]*\n)*)    name: [^\n]*\n/m,
+          ci,
+          "\\1    name: #{new_name}\n"
+        )
+      end
+
+      append_to_test_name =
+        Regex.replace(
+          ~r/^(  verify-test:\n(?:    #[^\n]*\n)*    name: [^\n]*)\n/m,
+          ci,
+          "\\1 ${{ matrix.lane }}\n"
+        )
+
+      timeout_first =
+        Regex.replace(
+          ~r/^(  verify-release-shape:\n)(    name: [^\n]*\n)(    runs-on: [^\n]*\n)    timeout-minutes: [^\n]*\n/m,
+          ci,
+          "\\1    timeout-minutes: 5\n\\2\\3"
+        )
+
+      dropped_bullet =
+        String.replace(contributing, "- Formatting (`verify-format`)\n", "", global: false)
+
+      retired_sentence =
+        String.replace(
+          contributing,
+          "## Branch protection (maintainers)\n",
+          "## Branch protection (maintainers)\n\nWatch `Run test suite (current)` first.\n"
+        )
+
+      controls = [
+        {"credo name restored to its pre-221 value",
+         rename.("verify-credo", "Run Credo (strict)"), contributing,
+         ["rule=name-exact", "rule=name-retired"]},
+        {"lane expression in the verify-test name", append_to_test_name, contributing,
+         ["rule=name-static"]},
+        {"leading verb", rename.("verify-credo", "Run Credo"), contributing, ["rule=name-verb"]},
+        {"49-character name", rename.("verify-format", String.duplicate("F", 49)), contributing,
+         ["rule=name-length"]},
+        {"Tier A in a name", rename.("verify-capture", "Tier A capture evidence"), contributing,
+         ["rule=name-jargon"]},
+        {"lane in a name", rename.("verify-capture", "Capture Lane evidence"), contributing,
+         ["rule=name-jargon"]},
+        {"timeout-minutes above name", timeout_first, contributing, ["rule=name-first-key"]},
+        {"roster bullet dropped", ci, dropped_bullet, ["rule=roster"]},
+        {"retired name in a CONTRIBUTING sentence", ci, retired_sentence, ["rule=name-retired"]}
+      ]
+
+      for {control, mutated_ci, mutated_doc, fragments} <- controls do
+        refute {mutated_ci, mutated_doc} == {ci, contributing},
+               "#{control} control did not change the input"
+
+        errors = check_name_errors(mutated_ci, mutated_doc)
+
+        refute Enum.any?(errors, &String.contains?(&1, "rule=yaml-parse")),
+               "#{control} mutation must stay valid YAML, got #{inspect(errors)}"
+
+        for fragment <- fragments do
+          assert Enum.any?(errors, &String.contains?(&1, fragment)),
+                 "#{control} mutation must report #{fragment}, got #{inspect(errors)}"
+        end
+      end
+    end
+
+    test "evaluator docs never claim the public registry (D-03)" do
+      docs = evaluator_docs()
+
+      assert evaluator_doc_errors(docs) == []
+
+      mutated =
+        Map.update!(
+          docs,
+          "guides/evaluating-threadline.md",
+          &(&1 <> "\n- `mix verify.hex_evaluator` resolves threadline from hex.pm.\n")
+        )
+
+      refute mutated == docs, "evaluator control did not change the input"
+
+      assert Enum.any?(
+               evaluator_doc_errors(mutated),
+               &String.contains?(&1, "rule=evaluator-hexpm")
+             ),
+             "a guide line naming the evaluator and hex.pm must report rule=evaluator-hexpm"
+    end
   end
 
   # Structural reads of workflow and compose files go through the parsed YAML
@@ -1132,6 +1236,239 @@ defmodule Threadline.CIWorkflowParityContractTest do
     for {id, job} <- jobs, id != "ci-required", yaml_field(job, "needs") != :error do
       "job=#{id} rule=order-needs: no preflight needs: chain (221 D-07)"
     end
+  end
+
+  # SC-1 (221 D-02): each job's display name, by job id. verify-test's static
+  # name gets the ` (<lane>)` suffix from GitHub (D-04).
+  @ci_check_names %{
+    "verify-release-shape" => "CHANGELOG matches version",
+    "verify-repo-hygiene" => "Repo hygiene (no machine-local paths)",
+    "verify-format" => "Formatting",
+    "verify-deps-audit" => "Dependency audit (all lockfiles)",
+    "verify-compile-no-optional" => "Compile without optional deps",
+    "verify-hex-evaluator" => "Hex package install (rehearsal registry)",
+    "verify-pgbouncer-topology" => "Tests through PgBouncer (transaction mode)",
+    "verify-credo" => "Credo (strict)",
+    "verify-bump-rehearsal" => "Next-minor release rehearsal (docs + contracts)",
+    "verify-dialyzer" => "Dialyzer (full optional build)",
+    "verify-test" => "Build and test",
+    "verify-capture" => "Capture evidence byte-stable",
+    "verify-example-browser" => "Example app browser E2E (2 projects)",
+    "ci-required" => "CI required"
+  }
+
+  @verify_test_check_names [
+    "Build and test (min)",
+    "Build and test (current)",
+    "Build and test (latest)"
+  ]
+
+  # The pre-221 job names that changed (read from 27e4ac61:.github/workflows/ci.yml),
+  # plus the old verify-test lane names GitHub composed from them.
+  @retired_check_names [
+    "Check formatting",
+    "Run Credo (strict)",
+    "Dialyzer (current toolchain)",
+    "Run test suite",
+    "Hex evaluator smoke (threadline from hex.pm)",
+    "Example app browser E2E (Playwright)",
+    "Tier A capture lane (byte-stable evidence)",
+    "PgBouncer transaction topology",
+    "Release metadata (version / changelog)",
+    "Bump rehearsal (next minor)",
+    "Run test suite (min)",
+    "Run test suite (current)",
+    "Run test suite (latest)"
+  ]
+
+  # D-01 says names stay near 40 characters; the locked D-02 name
+  # `Next-minor release rehearsal (docs + contracts)` is 47 (221-RESEARCH
+  # correction 3), so the hard ceiling is 48.
+  @max_check_name_length 48
+
+  # SC-1 doc-contract: pure over ci.yml and CONTRIBUTING.md text.
+  defp check_name_errors(ci_text, contributing_text) do
+    case parsed_job_keywords(ci_text) do
+      {:error, error} ->
+        [error]
+
+      {:ok, keyword_jobs} ->
+        names = ci_job_names(ci_text)
+
+        name_exact_errors(names) ++
+          name_static_errors(ci_text, names) ++
+          name_shape_errors(names) ++
+          name_first_key_errors(keyword_jobs) ++
+          roster_errors(ci_text, keyword_jobs, contributing_text) ++
+          name_retired_errors(ci_text, names, contributing_text)
+    end
+  end
+
+  # [{id, name}] from the map reader, names stringified (nil when absent).
+  defp ci_job_names(ci_text) do
+    for {id, job} <- parsed_jobs(parsed_doc(ci_text)) do
+      name = yaml_get(job, "name")
+      {id, if(is_binary(name), do: name, else: inspect(name))}
+    end
+  end
+
+  defp name_exact_errors(names) do
+    for {id, name} <- names, Map.get(@ci_check_names, id) !== name do
+      "job=#{id} rule=name-exact: expected #{inspect(Map.get(@ci_check_names, id))}, " <>
+        "got #{inspect(name)} (221 D-02)"
+    end
+  end
+
+  defp name_static_errors(ci_text, names) do
+    name = Enum.find_value(names, fn {id, n} -> if id == "verify-test", do: n end) || ""
+    composed = composed_check_names(workflow_job(ci_text, "verify-test"))
+
+    if String.contains?(name, "${{") or composed != @verify_test_check_names,
+      do: [
+        "job=verify-test rule=name-static: expected the static name to compose " <>
+          "#{inspect(@verify_test_check_names)}, got #{inspect(composed)} (221 D-04)"
+      ],
+      else: []
+  end
+
+  defp name_shape_errors(names) do
+    Enum.flat_map(names, fn {id, name} ->
+      name_verb_errors(id, name) ++ name_length_errors(id, name) ++ name_jargon_errors(id, name)
+    end)
+  end
+
+  defp name_verb_errors(id, name) do
+    if String.starts_with?(name, ["Run ", "Check ", "Verify "]),
+      do: ["job=#{id} rule=name-verb: #{inspect(name)} leads with a verb (221 D-01)"],
+      else: []
+  end
+
+  defp name_length_errors(id, name) do
+    if String.length(name) > @max_check_name_length,
+      do: [
+        "job=#{id} rule=name-length: #{inspect(name)} is over #{@max_check_name_length} " <>
+          "characters (221 D-01)"
+      ],
+      else: []
+  end
+
+  defp name_jargon_errors(id, name) do
+    if String.contains?(name, "Tier A") or Regex.match?(~r/\blane\b/i, name),
+      do: ["job=#{id} rule=name-jargon: #{inspect(name)} uses internal jargon (221 D-01)"],
+      else: []
+  end
+
+  # The topology anchors and summarize-ci.py read `name:` as each job's first key.
+  defp name_first_key_errors(keyword_jobs) do
+    for {id, job} <- keyword_jobs, first_yaml_key(job) != "name" do
+      "job=#{id} rule=name-first-key: `name:` must be the job's first key"
+    end
+  end
+
+  defp first_yaml_key([_ | _] = job), do: job |> List.last() |> elem(0) |> yaml_key()
+  defp first_yaml_key(_job), do: nil
+
+  defp roster_errors(ci_text, keyword_jobs, contributing_text) do
+    expected =
+      for {id, _job} <- Enum.reverse(keyword_jobs),
+          id != "ci-required",
+          name <- posted_check_names(ci_text, id),
+          do: {name, id}
+
+    actual = contributing_roster(contributing_text)
+
+    if actual == expected,
+      do: [],
+      else: [
+        "CONTRIBUTING.md rule=roster: the branch-protection list must equal the posted " <>
+          "names in ci.yml order, expected #{inspect(expected)}, got #{inspect(actual)}"
+      ]
+  end
+
+  defp posted_check_names(ci_text, "verify-test"),
+    do: composed_check_names(workflow_job(ci_text, "verify-test"))
+
+  defp posted_check_names(ci_text, id) do
+    case yaml_get(parsed_job(parsed_doc(ci_text), id), "name") do
+      name when is_binary(name) -> [name]
+      _ -> []
+    end
+  end
+
+  defp contributing_roster(text) do
+    section =
+      case String.split(text, "## Branch protection (maintainers)\n", parts: 2) do
+        [_, rest] -> rest |> String.split(~r/^## /m, parts: 2) |> hd()
+        _ -> ""
+      end
+
+    for [_, name, id] <- Regex.scan(~r/^- (.+) \(`([a-z-]+)`/m, section), do: {name, id}
+  end
+
+  defp name_retired_errors(ci_text, names, contributing_text) do
+    comments =
+      ci_text
+      |> String.split("\n")
+      |> Enum.map(&String.trim/1)
+      |> Enum.filter(&String.starts_with?(&1, "#"))
+      |> Enum.join("\n")
+
+    for retired <- @retired_check_names,
+        {where, text} <- [
+          {"CONTRIBUTING.md", contributing_text},
+          {"ci.yml job name", Enum.map_join(names, "\n", &elem(&1, 1))},
+          {"ci.yml comment", comments}
+        ],
+        String.contains?(text, retired) do
+      "#{where} rule=name-retired: #{inspect(retired)} was renamed in phase 221"
+    end
+  end
+
+  # [{job_id, keyword_job}] in reverse YAML order (the keyword aggregator
+  # prepends), job values left as keyword lists in reverse key order.
+  defp parsed_job_keywords(text) do
+    parsed =
+      try do
+        {:ok, YamlElixir.read_from_string!(text, maps_as_keywords: true)}
+      rescue
+        error -> {:error, Exception.message(error)}
+      catch
+        kind, reason -> {:error, inspect({kind, reason})}
+      end
+
+    with {:ok, doc} when is_list(doc) <- parsed,
+         [jobs] when is_list(jobs) <- for({k, v} <- doc, yaml_key(k) == "jobs", do: v) do
+      {:ok, Enum.map(jobs, fn {k, v} -> {yaml_key_string(k), v} end)}
+    else
+      {:error, message} -> {:error, "rule=yaml-parse: #{message}"}
+      _ -> {:error, "rule=yaml-parse: expected exactly one top-level `jobs` mapping"}
+    end
+  end
+
+  # D-03 doc-contract inputs: README, every guide (the version_truth glob) and
+  # CONTRIBUTING, keyed by repo-relative path.
+  defp evaluator_docs do
+    guides = Path.wildcard(Path.join(@repo_root, "guides/**/*.md"))
+
+    (["README.md", "CONTRIBUTING.md"] ++ Enum.map(guides, &Path.relative_to(&1, @repo_root)))
+    |> Map.new(&{&1, read_rel!([&1])})
+  end
+
+  defp evaluator_doc_errors(docs) do
+    glob_errors =
+      if Enum.any?(Map.keys(docs), &String.starts_with?(&1, "guides/")),
+        do: [],
+        else: ["rule=evaluator-glob: guides/**/*.md matched no file"]
+
+    glob_errors ++
+      for {path, text} <- Enum.sort(docs),
+          {line, n} <- Enum.with_index(String.split(text, "\n"), 1),
+          String.contains?(line, ["verify.hex_evaluator", "verify-hex-evaluator"]),
+          String.contains?(String.downcase(line), "hex.pm") do
+        "#{path}:#{n} rule=evaluator-hexpm: the evaluator installs this tree's package from " <>
+          "a local rehearsal registry; only release.yml's published mode resolves the public " <>
+          "registry"
+      end
   end
 
   defp yaml_key_string(key) when is_binary(key), do: key
@@ -5019,7 +5356,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_verify_test do
     ~S"""
       verify-test:
-        name: Run test suite
+        name: Build and test
         strategy:
           fail-fast: false
           matrix:
@@ -5091,7 +5428,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_pgbouncer do
     ~S"""
       verify-pgbouncer-topology:
-        name: PgBouncer transaction topology
+        name: Tests through PgBouncer (transaction mode)
         runs-on: ubuntu-24.04
         timeout-minutes: 20
         env:
@@ -5184,7 +5521,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_consumer_parts(:browser) do
     {~S"""
        verify-example-browser:
-         name: Example app browser E2E (Playwright)
+         name: Example app browser E2E (2 projects)
          runs-on: ubuntu-24.04
          timeout-minutes: 18
          env:
@@ -5214,7 +5551,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp fixture_consumer_parts(:capture) do
     {~S"""
        verify-capture:
-         name: Tier A capture lane (byte-stable evidence)
+         name: Capture evidence byte-stable
          runs-on: ubuntu-24.04
          timeout-minutes: 35
          env:
