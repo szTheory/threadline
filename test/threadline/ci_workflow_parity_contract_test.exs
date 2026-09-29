@@ -671,12 +671,50 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       gate_header = "    name: CI required\n    if: always()\n"
       on_ci = fn edit -> &Map.update!(&1, @ci_path, edit) end
+      gate_step = "      - name: Decide whether all needed jobs succeeded\n"
+      gate_jobs = "          jobs: ${{ toJSON(needs) }}\n"
+
+      spoof = """
+      name: Spoof
+      on: push
+      jobs:
+        spoof:
+          name: CI required
+          runs-on: ubuntu-24.04
+          steps:
+            - run: true
+      """
 
       # Each mutation takes the whole %{path => text} map, so a control can
       # edit ci.yml or add a second workflow file.
       controls = [
         {"delete if: always()",
-         on_ci.(&String.replace(&1, gate_header, "    name: CI required\n")), "rule=gate-if"}
+         on_ci.(&String.replace(&1, gate_header, "    name: CI required\n")), "rule=gate-if"},
+        {"step if: false",
+         on_ci.(&String.replace(&1, gate_step, gate_step <> "        if: false\n")),
+         "rule=gate-step"},
+        {"uses replaced by run",
+         on_ci.(
+           &Regex.replace(
+             ~r/^        uses: re-actors\/alls-green@[0-9a-f]{40}\n/m,
+             &1,
+             "        run: echo ok\n"
+           )
+         ), "rule=gate-step"},
+        {"quoted allowed-skips",
+         on_ci.(
+           &String.replace(
+             &1,
+             gate_jobs,
+             gate_jobs <> ~s(          "allowed-skips": verify-test\n)
+           )
+         ), "rule=gate-inputs"},
+        {"jobs input emptied", on_ci.(&String.replace(&1, gate_jobs, "          jobs: '{}'\n")),
+         "rule=gate-jobs-input"},
+        {"second CI required job", &Map.put(&1, ".github/workflows/zz-spoof.yml", spoof),
+         "rule=gate-name"},
+        {"job id renamed everywhere", on_ci.(&String.replace(&1, "verify-format", "verify-fmt")),
+         "rule=job-ids"}
       ]
 
       for {control, mutate, fragment} <- controls do
@@ -704,6 +742,26 @@ defmodule Threadline.CIWorkflowParityContractTest do
 
       assert required_gate_errors(expression) == [],
              "`if: ${{ always() }}` is the same gate and must stay green"
+
+      commented =
+        Map.update!(
+          workflows,
+          @ci_path,
+          &String.replace(&1, gate_jobs, gate_jobs <> "          # allowed-skips: verify-test\n")
+        )
+
+      refute commented == workflows, "comment positive control did not change the input"
+
+      assert required_gate_errors(commented) == [],
+             "the word allowed-skips inside a comment must not trip the gate contract"
+
+      unparseable = Map.update!(workflows, @ci_path, &(&1 <> "\n  broken: [unclosed\n"))
+
+      assert Enum.any?(
+               required_gate_errors(unparseable),
+               &String.contains?(&1, "rule=yaml-parse")
+             ),
+             "a ci.yml that does not parse must fail the gate contract closed"
     end
 
     test "no workflow or compose file runs a pre-release PostgreSQL (D-16)" do
@@ -1084,46 +1142,53 @@ defmodule Threadline.CIWorkflowParityContractTest do
   defp gate_step_errors(job) do
     case yaml_get(job, "steps") do
       [%{} = step] ->
-        uses = yaml_get(step, "uses")
         with_ = yaml_get(step, "with")
 
-        keys =
-          case with_ do
-            %{} = map -> map |> Map.keys() |> Enum.map(&yaml_key/1) |> Enum.sort()
-            _ -> []
-          end
-
-        step_guard =
-          if yaml_field(step, "if") == :error and yaml_field(step, "run") == :error,
-            do: [],
-            else: ["rule=gate-step: the alls-green step must carry neither `if` nor `run`"]
-
-        uses_pin =
-          if is_binary(uses) and uses =~ ~r/^re-actors\/alls-green@[0-9a-f]{40}$/,
-            do: [],
-            else: [
-              "rule=gate-step: the step must `uses:` re-actors/alls-green at a full " <>
-                "commit SHA, got #{inspect(uses)}"
-            ]
-
-        inputs =
-          if keys == ["jobs"],
-            do: [],
-            else: [
-              "rule=gate-inputs: the alls-green `with` keys must be exactly " <>
-                "[\"jobs\"], got #{inspect(keys)}"
-            ]
-
-        jobs_input =
-          if gate_norm(yaml_get(with_, "jobs")) == "${{tojson(needs)}}",
-            do: [],
-            else: ["rule=gate-jobs-input: the `jobs` input must be ${{ toJSON(needs) }}"]
-
-        step_guard ++ uses_pin ++ inputs ++ jobs_input
+        gate_step_shape_errors(step) ++ gate_input_errors(with_) ++ gate_jobs_input_errors(with_)
 
       _ ->
         ["rule=gate-step: ci-required must have exactly one step (the alls-green decision)"]
     end
+  end
+
+  defp gate_step_shape_errors(step) do
+    uses = yaml_get(step, "uses")
+
+    guard =
+      if yaml_field(step, "if") == :error and yaml_field(step, "run") == :error,
+        do: [],
+        else: ["rule=gate-step: the alls-green step must carry neither `if` nor `run`"]
+
+    pin =
+      if is_binary(uses) and uses =~ ~r/^re-actors\/alls-green@[0-9a-f]{40}$/,
+        do: [],
+        else: [
+          "rule=gate-step: the step must `uses:` re-actors/alls-green at a full " <>
+            "commit SHA, got #{inspect(uses)}"
+        ]
+
+    guard ++ pin
+  end
+
+  defp gate_input_errors(with_) do
+    keys =
+      case with_ do
+        %{} = map -> map |> Map.keys() |> Enum.map(&yaml_key/1) |> Enum.sort()
+        _ -> []
+      end
+
+    if keys == ["jobs"],
+      do: [],
+      else: [
+        "rule=gate-inputs: the alls-green `with` keys must be exactly " <>
+          "[\"jobs\"], got #{inspect(keys)}"
+      ]
+  end
+
+  defp gate_jobs_input_errors(with_) do
+    if gate_norm(yaml_get(with_, "jobs")) == "${{tojson(needs)}}",
+      do: [],
+      else: ["rule=gate-jobs-input: the `jobs` input must be ${{ toJSON(needs) }}"]
   end
 
   defp gate_name_errors(job, yaml_by_path, ci_path) do
