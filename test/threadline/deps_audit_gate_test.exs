@@ -385,7 +385,12 @@ defmodule Threadline.DepsAuditGateTest do
       refute pwd == d1
     end
 
-    assert Path.wildcard(Path.join(@real_root, "tmp/deps-audit-hex-config.*")) == []
+    # Check only this run's own neutral dir(s). A global
+    # `tmp/deps-audit-hex-config.*` wildcard also sees the live neutral dir of
+    # a sibling async test's concurrent bin/verify-deps-audit run.
+    for pwd <- Enum.uniq(config_pwds) do
+      refute File.exists?(pwd), "neutral hex.config dir #{pwd} was not removed"
+    end
   end
 
   test "a directory argument that does not exist is a non-zero exit naming it" do
