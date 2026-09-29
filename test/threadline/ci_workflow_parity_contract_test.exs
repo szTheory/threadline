@@ -1075,7 +1075,10 @@ defmodule Threadline.CIWorkflowParityContractTest do
          ["rule=order-unknown"]},
         {"jobs-level merge key",
          String.replace(ci, "  ci-required:\n", anchored <> "  ci-required:\n"),
-         ["rule=order-merge-key"]}
+         ["rule=order-merge-key"]},
+        # IN-03 (221 review): only the reader guard sees a repeated id as such.
+        {"duplicate job id", String.replace(ci, "  ci-required:\n", fmt <> "  ci-required:\n"),
+         ["rule=order-reader"]}
       ]
 
       for {control, mutated, fragments} <- controls do
