@@ -2,6 +2,22 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
   use ExUnit.Case, async: true
   @root File.cwd!()
 
+  # --- 216 CR-01: release.yml checkout credentials ----------------------------
+  #
+  # Default-deny (D-07): every `actions/checkout` step in release.yml must set
+  # `persist-credentials: false`, unless its job is one of the two reasoned
+  # exceptions below, each of which pushes with the persisted credential and
+  # runs no mix. The check runs per checkout STEP, not per job (D-08) — the
+  # sparse pin checkouts already set the flag, so a per-job count passes
+  # vacuously for a job whose OTHER (target-ref) checkout omits it, and that is
+  # how CR-01 escaped review.
+  @persisted_checkout_jobs %{
+    "dispatch-bootstrap" =>
+      "a bare `git push origin \"$tag\"` uses the persisted credential; the job runs no mix",
+    "distribution-sync" =>
+      "a bare `git push -u origin \"$BRANCH\"` uses the persisted credential; the job runs no mix"
+  }
+
   test "the sole publish command is inside the production environment job behind hard gates" do
     paths = Path.wildcard(Path.join(@root, ".github/workflows/*.{yml,yaml}"))
     publishers = Enum.filter(paths, &(File.read!(&1) =~ "mix hex.publish"))
@@ -231,6 +247,44 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
            "adding a workflow-run query must turn the bootstrap guard contract red"
   end
 
+  test "every release.yml checkout is credential-free unless its job is allowlisted (216 CR-01)" do
+    yaml = release_workflow()
+    assert checkout_credential_errors(yaml) == []
+
+    checked_count =
+      yaml
+      |> release_job_ids()
+      |> Enum.reject(&Map.has_key?(@persisted_checkout_jobs, &1))
+      |> Enum.flat_map(fn job_id ->
+        yaml |> job_block!(job_id) |> job_steps() |> Enum.filter(&checkout_step?/1)
+      end)
+      |> length()
+
+    assert checked_count >= 7,
+           "expected at least 7 non-allowlisted checkout steps (today's 9 minus the 2 " <>
+             "allowlisted jobs), found #{checked_count} — the parser may have stopped seeing steps"
+  end
+
+  test "stripping the publish-hex target checkout's flag fires checkout-credential-free" do
+    live = release_workflow()
+
+    anchor =
+      "ref: ${{ needs.release-ref.outputs.checkout_ref }}\n" <>
+        "          persist-credentials: false\n\n      - name: Install dependencies\n"
+
+    assert length(String.split(live, anchor)) == 2, "control anchor not found or not unique"
+
+    mutated =
+      String.replace(
+        live,
+        anchor,
+        "ref: ${{ needs.release-ref.outputs.checkout_ref }}\n\n      - name: Install dependencies\n"
+      )
+
+    refute mutated == live, "the control did not change the input"
+    assert rule_fired?(checkout_credential_errors(mutated), "checkout-credential-free")
+  end
+
   # Returns the failed ECON-03 bootstrap-guard properties as `{false, message}`
   # pairs; an empty list means the guard holds.
   defp bootstrap_guard_errors(block) do
@@ -268,5 +322,74 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
       _ ->
         flunk("could not find a \"  #{id}:\" job in .github/workflows/release.yml")
     end
+  end
+
+  # Job ids are the two-space keys after the top-level `jobs:` line. `on:` also
+  # has two-space keys (`push:`, `workflow_dispatch:`), so job ids are scanned
+  # only from the text after `\njobs:\n`.
+  defp release_job_ids(yaml) do
+    case String.split(yaml, "\njobs:\n", parts: 2) do
+      [_, body] ->
+        ~r/^  ([A-Za-z0-9_-]+):[ \t]*$/m
+        |> Regex.scan(body)
+        |> Enum.map(fn [_, id] -> id end)
+
+      _ ->
+        []
+    end
+  end
+
+  # A checkout step is any step whose `uses:` names actions/checkout, list-item
+  # dash included. `yaml_value(step, "uses")` (below) does not match this form:
+  # its `^\s*` anchor stops at the leading `- `.
+  defp checkout_step?(step) do
+    Regex.match?(~r/^\s*(?:- )?uses:[ \t]*actions\/checkout@/m, step)
+  end
+
+  # Copied verbatim from test/threadline/ci_workflow_parity_contract_test.exs
+  # (job_steps/1, ~:3153): step texts of a job block, split at every
+  # 6-space-indented list item. The leading chunk (job header up to the first
+  # step) is dropped.
+  defp job_steps(block) do
+    case Regex.split(~r/^(?=      - )/m, block) do
+      [_header | steps] -> steps
+      [] -> []
+    end
+  end
+
+  # Copied verbatim from test/threadline/ci_workflow_parity_contract_test.exs
+  # (yaml_value/2, ~:3691).
+  defp yaml_value(step, key) do
+    case Regex.run(~r/^\s*#{Regex.escape(key)}:[ \t]*(.*?)[ \t]*$/m, step) do
+      [_, value] -> value
+      nil -> nil
+    end
+  end
+
+  # Per-step (D-08), not per-job: every actions/checkout step outside
+  # @persisted_checkout_jobs must set persist-credentials: false. Returns
+  # `{ok?, message}` pairs, rejecting the ok ones, in the style of
+  # bootstrap_guard_errors/1 above.
+  defp checkout_credential_errors(yaml) do
+    present_ids = release_job_ids(yaml)
+
+    for job_id <- present_ids,
+        not Map.has_key?(@persisted_checkout_jobs, job_id),
+        {step, n} <-
+          yaml
+          |> job_block!(job_id)
+          |> job_steps()
+          |> Enum.filter(&checkout_step?/1)
+          |> Enum.with_index(1) do
+      {yaml_value(step, "persist-credentials") == "false",
+       "rule=checkout-credential-free job=#{job_id} checkout=#{n}: every actions/checkout " <>
+         "outside @persisted_checkout_jobs must set persist-credentials: false (216 CR-01)"}
+    end
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  # True when any error's message names the given rule.
+  defp rule_fired?(errors, rule) do
+    Enum.any?(errors, fn {_ok, message} -> String.contains?(message, "rule=#{rule}") end)
   end
 end

@@ -60,9 +60,12 @@ jobs:
       sha: ${{ steps.release.outputs.sha || '' }}
       prs_created: ${{ steps.release.outputs.prs_created || 'false' }}
     steps:
+      # 216 CR-01: this job needs no git auth. release-please-action authenticates
+      # with its own `token:` input, so the checkout itself must not persist one.
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Detect already-tagged release PR
         id: release-preflight
@@ -478,9 +481,12 @@ jobs:
           version-file: .toolchain-pin/.tool-versions
           version-type: strict
 
+      # 216 CR-01: the steps below compile third-party dependency code (`mix
+      # deps.get`), which could read a persisted token.
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.release-ref.outputs.checkout_ref }}
+          persist-credentials: false
 
       - name: Install dependencies
         run: mix deps.get
@@ -643,9 +649,12 @@ jobs:
           version-file: .toolchain-pin/.tool-versions
           version-type: strict
 
+      # 216 CR-01: the steps below compile third-party dependency code (`mix
+      # deps.get`), which could read a persisted token.
       - uses: actions/checkout@v5
         with:
           ref: ${{ needs.release-ref.outputs.checkout_ref }}
+          persist-credentials: false
 
       - name: Ensure hex_evaluator_test database exists
         env:
