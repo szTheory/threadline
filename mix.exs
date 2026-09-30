@@ -15,6 +15,7 @@ defmodule Threadline.MixProject do
         "verify.release": :dev,
         "verify.bump_rehearsal": :dev,
         "verify.test": :test,
+        "verify.test_partitioned": :test,
         # `test.reset` runs `ecto.drop -r Threadline.Test.Repo`, and that repo only
         # exists on the :test compile path (see elixirc_paths/1) — without this it
         # fails with `Could not load Threadline.Test.Repo, error: :nofile`.
@@ -141,6 +142,10 @@ defmodule Threadline.MixProject do
         "test test/threadline/dialyzer_slice_contract_test.exs --only live_dialyzer"
       ],
       "verify.test": ["test"],
+      # CI's partitioned test step (SUITE-02): runs bin/ci-test-partitions, N
+      # concurrent `mix test --partitions N` processes each on its own database.
+      # The local default stays whole and unpartitioned (`mix verify.test` above).
+      "verify.test_partitioned": &verify_test_partitioned/1,
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.release": &verify_release/1,
       # Simulate the NEXT MINOR release commit and run the release gates against
@@ -286,6 +291,13 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd("bin/verify-deps-audit") do
       0 -> :ok
       status -> Mix.raise("verify.deps_audit failed (#{status})")
+    end
+  end
+
+  defp verify_test_partitioned(_args) do
+    case Mix.shell().cmd("bin/ci-test-partitions") do
+      0 -> :ok
+      status -> Mix.raise("verify.test_partitioned failed (#{status})")
     end
   end
 

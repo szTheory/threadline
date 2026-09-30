@@ -63,6 +63,7 @@ missing, so no manual `createdb` step is required.
 ```bash
 mix test test/path.exs      # single file
 mix verify.test             # full suite (needs PostgreSQL)
+mix verify.test_partitioned # reproduces CI: N concurrent partitions, one database each
 mix verify.dialyzer         # strict Dialyzer analysis (builds the dev PLT)
 mix verify.dialyzer_slice   # live Dialyzer slice proof (needs the dev PLT)
 ```
@@ -165,6 +166,19 @@ as we learned, can block a release.
 and `SET LOCAL` GUCs operate at the DB level, outside sandbox awareness).
 The repository's data-case helper is therefore `async: false` and cleans audit
 tables in `setup` (FK order). Keep DB-touching tests on that helper.
+
+**CI runs the suite as N concurrent partitions.** `bin/ci-test-partitions`
+starts N concurrent `mix test --partitions N` processes, each on its own
+`threadline_test<i>` database (`config/test.exs` interpolates
+`MIX_TEST_PARTITION`). Local `mix test` stays whole and unpartitioned — the
+literal `threadline_test` database, `MIX_TEST_PARTITION` unset.
+`mix verify.test_partitioned` reproduces CI locally. A test that creates a
+cluster-wide Postgres object (a role — databases and advisory locks are
+already per-database, so they need no change) or writes a fixed path another
+module also writes must fold `System.get_env("MIX_TEST_PARTITION", "0")` into
+the name or path, the same way `config/test.exs`'s own database name does —
+otherwise two concurrent partitions can collide on the same cluster-wide
+object or file.
 
 **Rules of thumb:**
 
@@ -562,7 +576,11 @@ pull request merged to `main` proves each of the following jobs succeeded.
 drift direction — a job the aggregate requires but this list omits, or a job
 this list claims but the aggregate no longer requires (the silent-narrowing
 case) — so a future edit to `needs:` cannot shrink this guarantee
-without also failing a test.
+without also failing a test. `verify-test` fails when any one of its N
+partitions fails, killed, or never ran — proven by the `Prove the gate goes
+red (failing partition)` step (`bin/ci-test-partitions --self-test`, every
+lane) and by `test/threadline/ci_topology_contract_test.exs`'s partition
+topology mutation controls.
 
 - `verify-format`
 - `verify-credo`
@@ -657,7 +675,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-credo` | `mix verify.credo` |
 | `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on the committed `.tool-versions` toolchain (Elixir 1.17.3 / OTP 27.3.4.15) with the exact PLT cache lifecycle below, then `mix verify.dialyzer_slice` (the fail-closed live Dialyzer slice proof, Postgres service) |
 | `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView); then `mix verify.bench_compile` (the bench project compiles with a bare `mix compile`, `MIX_ENV` unset by the caller; `bench/mix.exs`'s own `preferred_envs` resolves it to `:test`) |
-| `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
+| `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `bin/ci-test-partitions --self-test` + `mix verify.test_partitioned` (N partitions, one database each, Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — installs this tree's `mix hex.build` package from a throwaway local registry (`bin/with-rehearsal-registry`) in a nested project, then compiles and tests it |
 | `verify-example-browser` | `mix verify.example_browser` — operator-surface Playwright e2e on the example app |

@@ -1,0 +1,395 @@
+#!/usr/bin/env bash
+# Fail-closed partitioned test runner (SUITE-02). Called by both the
+# `verify-test` CI step ("Run tests" -> `mix verify.test_partitioned`) and the
+# `mix verify.test_partitioned` alias, so CI and a local run always exercise
+# the exact same committed script.
+#
+# Compiles once, serially, then starts N concurrent `mix test --partitions N`
+# processes, each on its own `threadline_test<i>` database (config/test.exs,
+# D-04), each writing its own partition-<i>.log and partition-<i>.status.
+# Every background PID is recorded and waited on individually with
+# `wait "$pid" || fail=1` -- never a bare `wait` (always returns 0) and never
+# `a & b & wait` (returns only the last job's status). On any partition
+# failure, only the failing partitions' logs are printed, and the script
+# exits non-zero. An INT or TERM signal kills every recorded partition
+# process and exits non-zero, so a cancelled job leaves no orphan and never
+# reports success.
+#
+# A per-partition and whole-step timing/counts table is printed to stdout
+# and, when set, appended to $GITHUB_STEP_SUMMARY -- partition numbers, exit
+# codes, seconds and integer ExUnit counts only, never raw log text.
+#
+# Modes:
+#   bin/ci-test-partitions          # N defaults to 3 (225-BASELINE.md D-03:
+#                                    # median run T=137.0s, slowest module
+#                                    # M=28.8s, T/3=45.7s >= M, confirmed by
+#                                    # measurement)
+#   bin/ci-test-partitions N        # explicit partition count, 1-8
+#   bin/ci-test-partitions --self-test
+#   bin/ci-test-partitions -h
+#
+# Seams (both test-only, never used by real callers):
+#   MIX_BIN                       (default `mix`) lets --self-test substitute
+#                                  a fake `mix` binary to exercise this
+#                                  script's aggregation and flag-passing fully
+#                                  offline.
+#   CI_TEST_PARTITIONS_LOG_DIR    (default $ROOT/tmp/ci-test-partitions) lets
+#                                  --self-test redirect partition logs into a
+#                                  throwaway directory instead of the real one.
+#
+# --self-test proves the gate actually has teeth, in these cases: (a) every
+# partition passing exits 0; (b) one failing partition exits 1 and only that
+# partition's log is printed; (c) two failing partitions exit 1 with their
+# logs printed in ascending order; (d) an empty partition alongside a failing
+# one still exits 1; (e) an empty partition alongside passing ones still
+# exits 0 (an empty partition never masks or is mistaken for a failure); (f)
+# a killed partition exits non-zero; (g) the step summary lists partitions in
+# ascending order; (h) N of 0, -1, "abc" and "" each exit 2 with a usage
+# line. This is the runtime mutation control D-10 names -- it runs as the
+# unconditional CI step "Prove the gate goes red (failing partition)" before
+# "Run tests" on every lane.
+
+set -euo pipefail
+
+die() {
+  printf 'ci-test-partitions: %s\n' "$*" >&2
+  exit 2
+}
+
+usage() {
+  cat <<'EOF'
+Usage: bin/ci-test-partitions [N]
+       bin/ci-test-partitions --self-test
+       bin/ci-test-partitions -h
+
+N is a positive integer from 1 to 8. Omit it to use the default (3, per
+225-BASELINE.md D-03).
+EOF
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+MIX_BIN="${MIX_BIN:-mix}"
+
+# --- ExUnit counts parsing ----------------------------------------------------
+
+parse_counts() {
+  local log="$1" line tests failures
+  line="$(grep -E '[0-9]+ tests?, [0-9]+ failures?' "$log" 2>/dev/null | tail -1 || true)"
+
+  if [ -z "$line" ]; then
+    printf 'no tests'
+    return 0
+  fi
+
+  tests="$(printf '%s' "$line" | grep -oE '[0-9]+ tests?' | tail -1 | grep -oE '[0-9]+')"
+  failures="$(printf '%s' "$line" | grep -oE '[0-9]+ failures?' | tail -1 | grep -oE '[0-9]+')"
+  printf '%s tests, %s failures' "${tests:-0}" "${failures:-0}"
+}
+
+# --- Report ------------------------------------------------------------------
+
+report() {
+  local n="$1" log_dir="$2" step_seconds="$3"
+  local i status start end seconds counts body
+
+  body=""
+  for i in $(seq 1 "$n"); do
+    status="$(grep -oE 'status=[0-9-]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
+    start="$(grep -oE 'start=[0-9]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
+    end="$(grep -oE 'end=[0-9]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
+
+    if [ -n "$start" ] && [ -n "$end" ]; then
+      seconds=$((end - start))
+    else
+      seconds="unknown"
+    fi
+
+    counts="$(parse_counts "$log_dir/partition-$i.log")"
+    body="${body}| ${i} | ${status:-unknown} | ${seconds} | ${counts} |
+"
+  done
+
+  {
+    printf 'ci-test-partitions: partition report (N=%s)\n\n' "$n"
+    printf '| Partition | Exit | Seconds | Counts |\n'
+    printf '|---|---|---|---|\n'
+    printf '%s' "$body"
+    printf '| total | - | %s | - |\n' "$step_seconds"
+  } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
+}
+
+print_failing_logs() {
+  local n="$1" log_dir="$2" i status
+
+  for i in $(seq 1 "$n"); do
+    status="$(grep -oE 'status=[0-9-]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
+
+    if [ -n "$status" ] && [ "$status" != "0" ]; then
+      printf '===== partition %s failed (exit %s) =====\n' "$i" "$status"
+      cat "$log_dir/partition-$i.log" 2>/dev/null || true
+      printf '===== end partition %s =====\n' "$i"
+    fi
+  done
+}
+
+# --- Run N partitions ----------------------------------------------------------
+
+run_partitions() {
+  local n="$1"
+  local log_dir="${CI_TEST_PARTITIONS_LOG_DIR:-$ROOT/tmp/ci-test-partitions}"
+
+  rm -rf "$log_dir"
+  mkdir -p "$log_dir"
+
+  export MIX_ENV=test
+
+  local step_start step_end step_seconds
+  step_start="$(date +%s)"
+
+  printf 'ci-test-partitions: compiling once, serially\n'
+  if ! "$MIX_BIN" compile; then
+    die "serial compile failed"
+  fi
+
+  local pids=()
+  local i
+
+  for i in $(seq 1 "$n"); do
+    (
+      p_start="$(date +%s)"
+      set +e
+      MIX_TEST_PARTITION="$i" "$MIX_BIN" test --partitions "$n" --no-compile --no-deps-check \
+        >"$log_dir/partition-$i.log" 2>&1
+      p_status=$?
+      set -e
+      p_end="$(date +%s)"
+      printf 'status=%s start=%s end=%s\n' "$p_status" "$p_start" "$p_end" \
+        >"$log_dir/partition-$i.status"
+      exit "$p_status"
+    ) &
+    pids[i]="$!"
+  done
+
+  kill_all() {
+    local pid
+    for pid in "${pids[@]}"; do
+      kill -TERM "$pid" 2>/dev/null || true
+    done
+    wait 2>/dev/null || true
+    printf 'ci-test-partitions: interrupted, killed every partition process\n' >&2
+    exit 1
+  }
+  trap kill_all INT TERM
+
+  local fail=0
+  for i in $(seq 1 "$n"); do
+    wait "${pids[i]}" || fail=1
+  done
+
+  trap - INT TERM
+
+  step_end="$(date +%s)"
+  step_seconds=$((step_end - step_start))
+
+  report "$n" "$log_dir" "$step_seconds"
+
+  if [ "$fail" -ne 0 ]; then
+    print_failing_logs "$n" "$log_dir"
+    exit 1
+  fi
+
+  exit 0
+}
+
+# --- Fake mix for --self-test -------------------------------------------------
+
+write_fake_mix() {
+  local path="$1"
+  cat >"$path" <<'FAKE_MIX'
+#!/usr/bin/env bash
+# Test-only fake `mix` for bin/ci-test-partitions --self-test. Never used by
+# real callers.
+set -u
+
+case "${1:-}" in
+  compile)
+    exit 0
+    ;;
+  test)
+    shift
+    has_partitions=0
+    has_no_compile=0
+    has_no_deps_check=0
+    for a in "$@"; do
+      case "$a" in
+        --partitions) has_partitions=1 ;;
+        --no-compile) has_no_compile=1 ;;
+        --no-deps-check) has_no_deps_check=1 ;;
+      esac
+    done
+    if [ "$has_partitions" -ne 1 ] || [ "$has_no_compile" -ne 1 ] || [ "$has_no_deps_check" -ne 1 ]; then
+      echo "fake-mix: missing a required flag (got: $*)" >&2
+      exit 3
+    fi
+
+    idx="${MIX_TEST_PARTITION:-0}"
+    echo "FAKE_MIX_PARTITION_MARKER=$idx"
+
+    plan="${CI_TEST_PARTITIONS_FAKE_PLAN:-}"
+    behavior="$(printf '%s' "$plan" | cut -d, -f"$idx")"
+
+    case "$behavior" in
+      fail)
+        echo "Finished in 0.1 seconds (0.0s async, 0.1s sync)"
+        echo "1 test, 1 failure"
+        exit 1
+        ;;
+      empty)
+        echo "Finished in 0.0 seconds (0.0s async, 0.0s sync)"
+        echo "0 tests, 0 failures"
+        exit 0
+        ;;
+      killed)
+        kill -KILL $$
+        ;;
+      *)
+        echo "Finished in 0.1 seconds (0.0s async, 0.1s sync)"
+        echo "1 test, 0 failures"
+        exit 0
+        ;;
+    esac
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+FAKE_MIX
+  chmod +x "$path"
+}
+
+# --- --self-test ---------------------------------------------------------------
+
+run_self_test() {
+  mkdir -p "$ROOT/tmp"
+  self_test_dir="$(mktemp -d "$ROOT/tmp/ci-test-partitions-self-test.XXXXXX")"
+  cleanup_self_test() {
+    rm -rf "$self_test_dir"
+  }
+  trap cleanup_self_test EXIT
+
+  local fake_mix="$self_test_dir/fake-mix"
+  write_fake_mix "$fake_mix"
+
+  local case_n=0
+
+  run_case() {
+    case_n=$((case_n + 1))
+    local case_dir="$self_test_dir/case-$case_n"
+    mkdir -p "$case_dir"
+
+    set +e
+    output="$(
+      MIX_BIN="$fake_mix" \
+        CI_TEST_PARTITIONS_FAKE_PLAN="$2" \
+        CI_TEST_PARTITIONS_LOG_DIR="$case_dir/logs" \
+        GITHUB_STEP_SUMMARY="$case_dir/summary.md" \
+        "$0" 3 2>&1
+    )"
+    status=$?
+    set -e
+
+    printf '%s' "$output" >"$case_dir/output.log"
+    case_status="$status"
+    case_summary="$case_dir/summary.md"
+  }
+
+  # (a) all pass
+  run_case "all pass" "pass,pass,pass"
+  [ "$case_status" -eq 0 ] ||
+    die "self-test: all-pass case must exit 0, got $case_status: $output"
+
+  # (b) partition 2 fails
+  run_case "partition 2 fails" "pass,fail,pass"
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: partition-2-fails case must exit non-zero"
+  printf '%s' "$output" | grep -q 'partition 2 failed' ||
+    die "self-test: partition-2-fails case must print partition 2's log: $output"
+  printf '%s' "$output" | grep -q 'partition 1 failed' &&
+    die "self-test: partition-2-fails case must not print partition 1's log"
+  printf '%s' "$output" | grep -q 'partition 3 failed' &&
+    die "self-test: partition-2-fails case must not print partition 3's log"
+
+  # (c) partitions 1 and 3 fail, printed in ascending order
+  run_case "partitions 1 and 3 fail" "fail,pass,fail"
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: partitions-1-and-3-fail case must exit non-zero"
+  pos1="$(printf '%s' "$output" | grep -bo 'partition 1 failed' | head -1 | cut -d: -f1)"
+  pos3="$(printf '%s' "$output" | grep -bo 'partition 3 failed' | head -1 | cut -d: -f1)"
+  [ -n "$pos1" ] && [ -n "$pos3" ] && [ "$pos1" -lt "$pos3" ] ||
+    die "self-test: partition 1's log must print before partition 3's"
+
+  # (d) partition 1 empty, partition 2 fails
+  run_case "partition 1 empty plus partition 2 failing" "empty,fail,pass"
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: empty-plus-failing case must exit non-zero"
+
+  # (e) partition 1 empty, rest pass
+  run_case "partition 1 empty with the rest passing" "empty,pass,pass"
+  [ "$case_status" -eq 0 ] ||
+    die "self-test: empty-partition-only case must exit 0, got $case_status: $output"
+
+  # (f) a killed partition
+  run_case "a killed partition" "pass,killed,pass"
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: killed-partition case must exit non-zero"
+
+  # (g) the summary file lists partitions in ascending order
+  [ -f "$case_summary" ] || die "self-test: expected a step summary file at $case_summary"
+  s_pos1="$(grep -n '^| 1 |' "$case_summary" | head -1 | cut -d: -f1)"
+  s_pos2="$(grep -n '^| 2 |' "$case_summary" | head -1 | cut -d: -f1)"
+  s_pos3="$(grep -n '^| 3 |' "$case_summary" | head -1 | cut -d: -f1)"
+  [ -n "$s_pos1" ] && [ -n "$s_pos2" ] && [ -n "$s_pos3" ] &&
+    [ "$s_pos1" -lt "$s_pos2" ] && [ "$s_pos2" -lt "$s_pos3" ] ||
+    die "self-test: step summary must list partitions 1, 2, 3 in ascending order"
+
+  # (h) invalid N values each exit 2
+  for bad_n in 0 -1 abc ""; do
+    set +e
+    "$0" "$bad_n" >/dev/null 2>&1
+    bad_status=$?
+    set -e
+    [ "$bad_status" -eq 2 ] ||
+      die "self-test: N='$bad_n' must exit 2, got $bad_status"
+  done
+
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N)\n'
+}
+
+# --- Argument parsing ------------------------------------------------------------
+
+case "${1:-}" in
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  --self-test)
+    run_self_test
+    exit 0
+    ;;
+esac
+
+if [ $# -eq 0 ]; then
+  N=3
+else
+  N="$1"
+  case "$N" in
+    [1-8]) ;;
+    *)
+      usage >&2
+      die "N must be a positive integer from 1 to 8, got '$N'"
+      ;;
+  esac
+fi
+
+run_partitions "$N"

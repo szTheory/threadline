@@ -747,14 +747,15 @@ defmodule Threadline.FlakeClassifierContractTest do
   end
 
   describe "Test 6: the repeat count fits inside the timeout(1) budget (D-01/D-02)" do
-    # Per-run figures measured on Flake Detection dispatch run 36359135268
-    # (land/v1.43-217-218, 2026-09-27, 2460 tests): cold first run 268.3 s,
-    # repeats 206.2-213.5 s (median ~209 s). Each ceiling is the measurement
-    # rounded up to the next whole second. That run was sized at 15 repeats
-    # from older, faster figures and expired its budget during iteration 16,
-    # so it classified `inconclusive` and a `pass` was unreachable.
-    @cold_first_run_ceiling_s 269
-    @repeat_ceiling_s 214
+    # Per-run figures measured on Flake Detection dispatch run 36364688861
+    # (2026-09-28, 2583 tests): cold first run 255.9 s, repeats 197.4-201.2 s.
+    # Re-derived 225-03 (SUITE-02 D-11): each raw figure has the 5.1 s
+    # measured cost of the property test added since that run's head commit
+    # (224-EVIDENCE.md "Property test cost") added in, then rounded up to the
+    # next whole second (SUITE-03's telemetry async conversion is credited
+    # 0 s -- it can only shorten an iteration). 261 s cold, 207 s per repeat.
+    @cold_first_run_ceiling_s 261
+    @repeat_ceiling_s 207
     # Headroom kept free under the budget for runner variance and suite growth.
     @headroom_percent 10
 
@@ -805,7 +806,7 @@ defmodule Threadline.FlakeClassifierContractTest do
 
       assert yaml =~ "`mix test --repeat-until-failure #{repeats}`: #{repeats + 1} suite runs"
       assert yaml =~ "bounded #{repeats}-repeat"
-      assert yaml =~ "run 36359135268"
+      assert yaml =~ "run 36364688861"
 
       assert File.read!(@contributing_path) =~ "full suite, #{repeats} repeats (fresh seed each)"
       assert File.read!(@script) =~ "(`test --repeat-until-failure #{repeats}`)"

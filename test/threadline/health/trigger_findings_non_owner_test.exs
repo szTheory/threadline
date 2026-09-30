@@ -8,7 +8,13 @@ defmodule Threadline.Health.TriggerFindingsNonOwnerTest do
   @repo Threadline.Test.Repo
 
   test "a zero-grant NOLOGIN role reads the same findings as the owner" do
-    role = "threadline_findings_probe_#{System.unique_integer([:positive])}"
+    # CREATE ROLE is cluster-wide, but System.unique_integer/1 is scoped per-BEAM-VM
+    # and restarts near 0 in each concurrent partition process (SUITE-02, Pitfall 3).
+    # The partition suffix keeps concurrent partitions from colliding on the same
+    # role name (Postgres 42710 duplicate_object).
+    role =
+      "threadline_findings_probe_#{System.get_env("MIX_TEST_PARTITION", "0")}_#{System.unique_integer([:positive])}"
+
     quoted_role = ~s("#{role}")
 
     SQL.query!(@repo, "DROP SCHEMA IF EXISTS hlth_find_role CASCADE", [])

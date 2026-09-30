@@ -7,7 +7,7 @@ repo_base = [
   port: System.get_env("DB_PORT", "5432") |> String.to_integer(),
   username: "postgres",
   password: "postgres",
-  database: "threadline_test",
+  database: "threadline_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool_size: 2
 ]
 

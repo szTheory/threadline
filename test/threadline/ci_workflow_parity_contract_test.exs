@@ -508,7 +508,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
              "ci-required's needs: list parsed empty — the needs-coverage check would be vacuous"
 
       job_header = "    name: Build and test\n"
-      run_tests = "      - name: Run tests\n        run: mix verify.test\n"
+      run_tests = "      - name: Run tests\n        run: mix verify.test_partitioned\n"
       alls_green_jobs = "          jobs: ${{ toJSON(needs) }}\n"
 
       controls = [
@@ -520,7 +520,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
            &1,
            run_tests,
            "      - name: Run tests\n        continue-on-error: true\n" <>
-             "        run: mix verify.test\n"
+             "        run: mix verify.test_partitioned\n"
          ), "rule=continue-on-error"},
         {"matrix-expression continue-on-error",
          &String.replace(
@@ -556,13 +556,13 @@ defmodule Threadline.CIWorkflowParityContractTest do
            &1,
            run_tests,
            "      - name: Run tests\n        if: matrix.lane != 'latest'\n" <>
-             "        run: mix verify.test\n"
+             "        run: mix verify.test_partitioned\n"
          ), "rule=lane-skip"},
         {"Run tests made unable to fail",
          &String.replace(
            &1,
            run_tests,
-           "      - name: Run tests\n        run: mix verify.test || true\n"
+           "      - name: Run tests\n        run: mix verify.test_partitioned || true\n"
          ), "rule=lane-command"},
         {"Compile step skipped on the latest lane",
          &String.replace(
@@ -594,14 +594,14 @@ defmodule Threadline.CIWorkflowParityContractTest do
            &1,
            run_tests,
            ~s(      - name: Run tests\n        "if": matrix.lane != 'latest'\n) <>
-             "        run: mix verify.test\n"
+             "        run: mix verify.test_partitioned\n"
          ), "rule=lane-skip"},
         {"if key with a space before the colon on Run tests",
          &String.replace(
            &1,
            run_tests,
            "      - name: Run tests\n        if : matrix.lane != 'latest'\n" <>
-             "        run: mix verify.test\n"
+             "        run: mix verify.test_partitioned\n"
          ), "rule=lane-skip"},
         {"quoted if key on the Compile step",
          &String.replace(
@@ -1999,14 +1999,15 @@ defmodule Threadline.CIWorkflowParityContractTest do
   # other verify-test lane) prove something must run on every lane. A step
   # `if` (e.g. `matrix.lane != 'latest'`, however the key is spelled) would
   # skip the step and leave the lane green; a changed `run` (e.g.
-  # `mix verify.test || true`) or a `shell` override (e.g. `true {0}`, at step,
+  # `mix verify.test_partitioned || true`) or a `shell` override (e.g. `true {0}`, at step,
   # job or workflow `defaults.run` level) would make it unable to fail. Each
   # step must exist once in the parsed steps list, carry no `if` key, run
   # exactly the expected command, and use the default shell (`bash` or unset).
   @every_lane_steps [
     {"Compile (warnings as errors)", "mix compile --warnings-as-errors"},
     {"Verify no compile-connected xref cycles", "mix verify.xref_cycles"},
-    {"Run tests", "mix verify.test"}
+    {"Prove the gate goes red (failing partition)", "bin/ci-test-partitions --self-test"},
+    {"Run tests", "mix verify.test_partitioned"}
   ]
 
   @default_shells [nil, "bash"]
@@ -5686,7 +5687,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
               run: mix verify.xref_cycles
 
             - name: Run tests
-              run: mix verify.test
+              run: mix verify.test_partitioned
 
             - name: Verify Threadline trigger coverage
               if: matrix.lane == 'current'
