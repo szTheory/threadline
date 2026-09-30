@@ -13,8 +13,7 @@ Every row mutation that matters is captured durably and linked to who did it and
 Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-09-30 (Phases 214–223, 52 plans, 24/24 requirements) as two patch releases, **0.11.1** and **0.11.2**, on hex.pm. The current package line is **0.11.2**, which carries the mint 1.11.0 advisory fix. Dependency advisories are gated by a required `verify-deps-audit` job. The toolchain is pinned by a committed `.tool-versions`. A required `verify-repo-hygiene` guard keeps machine-local paths and PII out of the tracked tree, `.planning/` included. CI was measured before it was cut. The v1.44 decisions it feeds are recorded in `.planning/milestones/v1.43-MILESTONE-AUDIT.md` and the phase REMEASURE files.
 
 **Open state (updated 2026-09-30):**
-- Five phase-223 review-fix commits are on `milestone/v1.43` but not on `main`. They change only tests, CI scripts and comments, and are not releasable. Together with this close's planning archive, they need one squash landing PR under a maintainer push/PR/merge grant.
-- Stale remote `land/*` and `release/*` branches still need pruning. Milestone tag `v1.43` is local only.
+- The phase-223 review fixes and this close record landed via squash PR #70 (`dd780e68`, not releasable). origin has only `main` plus release-please's own branch. Milestone tag `v1.43` is local only.
 - The operator UI stays parked until 1.0.0.
 - Next: `/gsd-new-milestone`. The ladder says v1.44 Behavioral Depth: Properties, Twins, Telemetry (`.planning/MILESTONE-GUIDE.txt` §7).
 

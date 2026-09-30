@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.43
 milestone_name: Supply Chain, CI Economy and Repo Hygiene
 status: milestone_complete
-stopped_at: Milestone v1.43 closed and archived (tag v1.43 local); landing PR for the 5 phase-223 review-fix commits plus close archive awaits a maintainer grant; next /gsd-new-milestone (v1.44)
+stopped_at: Milestone v1.43 closed, archived (tag v1.43 local) and landed via #70 (dd780e68); next /gsd-new-milestone (v1.44)
 last_updated: "2026-09-30T12:47:39.340Z"
 last_activity: 2026-09-30
 last_activity_desc: Milestone v1.43 completed and archived
@@ -24,7 +24,7 @@ current_phase: 223
 See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.43 milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Planning the next milestone. The ladder rung is v1.44 Behavioral Depth: Properties, Twins, Telemetry (`.planning/MILESTONE-GUIDE.txt` §7). v1.43 is closed; its landing PR is pending.
+**Current focus:** Planning the next milestone. The ladder rung is v1.44 Behavioral Depth: Properties, Twins, Telemetry (`.planning/MILESTONE-GUIDE.txt` §7). v1.43 is closed and landed (#70).
 
 ## Current Position
 
@@ -39,12 +39,10 @@ Last activity: 2026-09-30 — Milestone v1.43 completed and archived
 - Tag `v1.43` is local only.
 - Closeout type: override_closeout. 10 items were newly acknowledged (1 todo, 9 deferred-item groups) and 57 carried forward (see Deferred Items).
 
-**Pending landing, which needs a maintainer grant:**
-- `milestone/v1.43` holds commits that are not on `main`: the phase-223 review fixes b59bb704, ac8b021b, 6b26b330, 6bada9ca and 5a9cc931, plus edd99259, which clears a credo nesting finding that WR-03 introduced. They change only tests, CI scripts and comments and are not releasable. The planning record of the review and this close is also unlanded.
-- The local branch `land/v1.43-close` is prebuilt from `origin/main`: the 6 fixes are cherry-picked and `.planning/` is synced. It passed the hygiene guard (clean, self-test 10 cases), format, compile with warnings as errors, repo-wide credo with no issues, and the 3 affected test files (101/0).
-- Land them as one squash PR from a `land/v1.43-close` branch cut from `origin/main`. Cherry-pick the 5 fixes, then sync `.planning/` from the milestone. Do not merge the milestone branch itself: it lacks the release commits for 0.11.1 and 0.11.2.
-- Use a `ci:` or `test:` subject so no release is cut.
-- After it merges, prune the stale remote branches (`land/v1.43-*`, `release/sync-0.11.1-*`, `docs/date-0.11.1-changelog`, `fix/release-toolchain-pin-path`) and the local `milestone/v1.42`.
+**Landed (2026-09-30):**
+- Squash PR #70 merged as `dd780e68`: `ci:` subject, not releasable, with 16/16 checks green including CI required. It carries the phase-223 review fixes (WR-01..05, plus the credo refactor edd99259) and the v1.43 close record.
+- The stale remote branches were already gone at prune time. origin has `main` and release-please's own `release-please--branches--main`, which was left alone.
+- Local `milestone/v1.42` is deleted; tag `v1.42` keeps its history.
 - Closeout checklist, re-pin `latest`: the pins Elixir 1.20.4 / OTP 29.1.1 / PG 18.6 were set 2026-09-28 in phase 220 and not re-checked at close. Re-check them in the landing PR.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
@@ -928,7 +926,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ## Session Continuity
 
 **Last session:** 2026-09-30
-**Stopped at:** v1.43 closed and archived (tag v1.43 local); landing PR pending a maintainer grant (see Current Position); next: /gsd-new-milestone (v1.44)
+**Stopped at:** v1.43 closed and landed (#70, dd780e68); next: /gsd-new-milestone (v1.44)
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
