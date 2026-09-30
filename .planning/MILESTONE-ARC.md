@@ -1,7 +1,7 @@
 # Milestone Arc: Threadline
 
 **Updated:** 2026-09-30 (v1.43 closed; 0.11.1 and 0.11.2 released)
-**Active milestone:** none. Next is v1.44 Behavioral Depth: Properties, Twins, Telemetry (run `/gsd-new-milestone`)
+**Active milestone:** v1.44 Behavioral Depth: Properties, Twins, Telemetry (phases 224-230, opened 2026-09-30)
 **Posture:** base-library ratchet to diminishing returns, marked by **1.0.0**; operator UI parked until then
 
 For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and near/mid/long horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
@@ -28,7 +28,7 @@ Re-estimate, 2026-09-30: two rungs remain. v1.42 took about 1 day and v1.43 took
 |------|---------|-------|---------|--------|
 | 1 | v1.42 | Capture Correctness for Real Table Shapes | 0.11.0 | shipped 2026-09-26 |
 | 2 | v1.43 | Supply Chain, CI Economy and Repo Hygiene | 0.11.1, 0.11.2 | shipped 2026-09-30 |
-| 3 | v1.44 | Behavioral Depth: Properties, Twins, Telemetry | minor | next |
+| 3 | v1.44 | Behavioral Depth: Properties, Twins, Telemetry | 0.12.0 | active |
 | 4 | v1.45 | 1.0 API Contract | 1.0.0 | queued |
 
 Scope per rung: `.planning/MILESTONE-GUIDE.txt` §7 (canonical; don't duplicate it here).
