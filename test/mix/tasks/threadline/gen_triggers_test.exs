@@ -30,6 +30,12 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
     "mix threadline.policy.show"
   ]
 
+  # Ties the first-run function-drop comment in every generated down to the
+  # moduledoc's "Rerunning" section: a full rollback removes a per-table
+  # function a later rerun added, even though the rerun's own down leaves the
+  # table alone (D-01/D-05/D-12).
+  @first_run_down_phrase "if this migration or a later rerun created one"
+
   setup do
     previous_shell = Mix.shell()
     previous_schema = Application.fetch_env(:threadline, :storage_schema)
@@ -447,7 +453,11 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
       assert byte_size(ecto_name(file)) <= 63
       assert [_function, create | _] = executes(file, :up)
       assert create =~ ~s|CREATE OR REPLACE TRIGGER "#{cut}"\n|
-      assert executes(file, :down) == [~s|DROP TRIGGER IF EXISTS "#{cut}" ON "public"."#{table}"|]
+
+      assert executes(file, :down) == [
+               ~s|DROP TRIGGER IF EXISTS "#{cut}" ON "public"."#{table}"|,
+               TriggerSQL.drop_function_if_unused(Naming.function_name(table))
+             ]
 
       output = run_triggers(tmp, ["--tables", table])
       assert output =~ "already have a Threadline trigger migration"
@@ -471,8 +481,16 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
 
       refute output =~ "already have a Threadline trigger migration"
       assert [_, b_file] = trigger_files(tmp)
-      assert executes(b_file, :down) == [TriggerSQL.drop_trigger(b)]
-      assert executes(b_file, :down) == [~s|DROP TRIGGER IF EXISTS "#{cut}" ON "public"."#{b}"|]
+
+      assert executes(b_file, :down) == [
+               TriggerSQL.drop_trigger(b),
+               TriggerSQL.drop_function_if_unused(Naming.function_name(b))
+             ]
+
+      assert executes(b_file, :down) == [
+               ~s|DROP TRIGGER IF EXISTS "#{cut}" ON "public"."#{b}"|,
+               TriggerSQL.drop_function_if_unused(Naming.function_name(b))
+             ]
     end
 
     test "public.a_b and a.b are not reruns of each other", %{tmp: tmp} do
@@ -483,7 +501,11 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
 
       refute output =~ "already have a Threadline trigger migration"
       assert [_, ab_file] = trigger_files(tmp)
-      assert executes(ab_file, :down) == [TriggerSQL.drop_trigger("a.b")]
+
+      assert executes(ab_file, :down) == [
+               TriggerSQL.drop_trigger("a.b"),
+               TriggerSQL.drop_function_if_unused(Naming.function_name("a.b"))
+             ]
     end
 
     test "a.b then public.a_b is not a rerun either", %{tmp: tmp} do
@@ -494,7 +516,11 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
 
       refute output =~ "already have a Threadline trigger migration"
       assert [_, a_b_file] = trigger_files(tmp)
-      assert executes(a_b_file, :down) == [TriggerSQL.drop_trigger("a_b")]
+
+      assert executes(a_b_file, :down) == [
+               TriggerSQL.drop_trigger("a_b"),
+               TriggerSQL.drop_function_if_unused(Naming.function_name("a_b"))
+             ]
     end
 
     test "the unqualified trigger of release 0.9.0 is a rerun of public.posts", %{tmp: tmp} do
@@ -784,13 +810,20 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
   end
 
   describe "down body" do
-    test "a first-run table keeps today's rollback", %{tmp: tmp} do
+    test "a first-run table drops its trigger, then its per-table function if unused",
+         %{tmp: tmp} do
       Application.delete_env(:threadline, :storage_schema)
       run_triggers(tmp, ["--tables", "posts"])
 
       [file] = trigger_files(tmp)
-      assert executes(file, :down) == [TriggerSQL.drop_trigger("posts")]
+
+      assert executes(file, :down) == [
+               TriggerSQL.drop_trigger("posts"),
+               TriggerSQL.drop_function_if_unused(Naming.function_name("posts"))
+             ]
+
       refute File.read!(file) =~ "does not restore the earlier capture policy"
+      assert File.read!(file) =~ @first_run_down_phrase
 
       per_table = Path.join(tmp, "per_table")
       File.mkdir_p!(per_table)
@@ -804,6 +837,7 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
              ]
 
       refute File.read!(file) =~ "does not restore the earlier capture policy"
+      assert File.read!(file) =~ @first_run_down_phrase
     end
 
     test "a rerun table's rollback leaves capture on", %{tmp: tmp} do
@@ -813,8 +847,13 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
 
       [first, rerun] = trigger_files(tmp)
 
-      assert executes(first, :down) == [TriggerSQL.drop_trigger("posts")]
+      assert executes(first, :down) == [
+               TriggerSQL.drop_trigger("posts"),
+               TriggerSQL.drop_function_if_unused(Naming.function_name("posts"))
+             ]
+
       assert executes(rerun, :down) == []
+      refute File.read!(rerun) =~ @first_run_down_phrase
 
       text = File.read!(rerun)
 
@@ -835,11 +874,29 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
 
       [_first, rerun] = trigger_files(tmp)
 
-      assert executes(rerun, :down) == [TriggerSQL.drop_trigger("comments")]
+      assert executes(rerun, :down) == [
+               TriggerSQL.drop_trigger("comments"),
+               TriggerSQL.drop_function_if_unused(Naming.function_name("comments"))
+             ]
 
       down_text = rerun |> File.read!() |> String.split("def down do") |> List.last()
       assert down_text =~ ~r/#[^\n]*\bposts\b/
-      refute down_text =~ ~r/#[^\n]*\bcomments\b/
+
+      # `comments` is a first-run table in THIS migration, so its own drop
+      # comment legitimately names it; strip that three-line comment before
+      # proving the *rerun* comment never names it.
+      rerun_comment_only =
+        down_text
+        |> String.split("\n")
+        |> Enum.reject(fn line ->
+          String.contains?(line, "capture function of") or
+            String.contains?(line, @first_run_down_phrase) or
+            String.contains?(line, "still uses it.")
+        end)
+        |> Enum.join("\n")
+
+      refute rerun_comment_only =~ ~r/#[^\n]*\bcomments\b/
+      assert down_text =~ ~r/#[^\n]*capture function of comments/
     end
 
     test "a rerun back to the default function names the function it retired",
@@ -949,6 +1006,28 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
         assert down_text =~ phrase,
                "the generated rerun rollback comment does not say #{inspect(phrase)}"
       end
+    end
+
+    test "the moduledoc and a generated first-run down share the function-drop phrase",
+         %{tmp: tmp} do
+      {:docs_v1, _, :elixir, _, %{"en" => moduledoc}, _, _} =
+        Code.fetch_docs(Mix.Tasks.Threadline.Gen.Triggers)
+
+      assert String.replace(moduledoc, ~r/\s+/, " ") =~ @first_run_down_phrase
+
+      Application.delete_env(:threadline, :storage_schema)
+      run_triggers(tmp, ["--tables", "posts"])
+
+      [file] = trigger_files(tmp)
+
+      down_text =
+        file
+        |> File.read!()
+        |> String.split("def down do")
+        |> List.last()
+        |> String.replace(~r/\s+/, " ")
+
+      assert down_text =~ @first_run_down_phrase
     end
   end
 

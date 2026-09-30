@@ -50,8 +50,34 @@ defmodule ThreadlineTriggersShapeCodeKeyedShapeComposiF2f800f9eb80 do
 
     execute "DROP TRIGGER IF EXISTS \"threadline_audit_shape_long_name_padded_to_prove_sixty_byte_ide\" ON \"public\".\"shape_long_name_padded_to_prove_sixty_byte_identifiers_work_ok\""
 
+    # Removes the per-table capture function of shape_code_keyed,
+    # if this migration or a later rerun created one, and only when no trigger
+    # still uses it.
+    execute "-- threadline: drop this capture function only if no trigger still uses it\nDO $$\nDECLARE\n  fn    regprocedure := to_regprocedure('\"threadline\".\"threadline_capture_changes_shape_code_keyed\"()');\n  users text;\nBEGIN\n  IF fn IS NULL THEN RETURN; END IF;\n  SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ' ORDER BY n.nspname, c.relname) INTO users\n    FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\n    JOIN pg_namespace n ON n.oid = c.relnamespace\n   WHERE t.tgfoid = fn AND t.tgparentid = 0;\n  IF users IS NULL THEN\n    EXECUTE format('DROP FUNCTION %s', fn);\n  ELSE\n    RAISE WARNING 'threadline: kept % because triggers on % still use it; regenerate triggers for those tables', fn, users;\n  END IF;\nEND $$;\n"
+
+    # Removes the per-table capture function of shape_composite,
+    # if this migration or a later rerun created one, and only when no trigger
+    # still uses it.
+    execute "-- threadline: drop this capture function only if no trigger still uses it\nDO $$\nDECLARE\n  fn    regprocedure := to_regprocedure('\"threadline\".\"threadline_capture_changes_shape_composite\"()');\n  users text;\nBEGIN\n  IF fn IS NULL THEN RETURN; END IF;\n  SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ' ORDER BY n.nspname, c.relname) INTO users\n    FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\n    JOIN pg_namespace n ON n.oid = c.relnamespace\n   WHERE t.tgfoid = fn AND t.tgparentid = 0;\n  IF users IS NULL THEN\n    EXECUTE format('DROP FUNCTION %s', fn);\n  ELSE\n    RAISE WARNING 'threadline: kept % because triggers on % still use it; regenerate triggers for those tables', fn, users;\n  END IF;\nEND $$;\n"
+
+    # Removes the per-table capture function of shape_join,
+    # if this migration or a later rerun created one, and only when no trigger
+    # still uses it.
+    execute "-- threadline: drop this capture function only if no trigger still uses it\nDO $$\nDECLARE\n  fn    regprocedure := to_regprocedure('\"threadline\".\"threadline_capture_changes_shape_join\"()');\n  users text;\nBEGIN\n  IF fn IS NULL THEN RETURN; END IF;\n  SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ' ORDER BY n.nspname, c.relname) INTO users\n    FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\n    JOIN pg_namespace n ON n.oid = c.relnamespace\n   WHERE t.tgfoid = fn AND t.tgparentid = 0;\n  IF users IS NULL THEN\n    EXECUTE format('DROP FUNCTION %s', fn);\n  ELSE\n    RAISE WARNING 'threadline: kept % because triggers on % still use it; regenerate triggers for those tables', fn, users;\n  END IF;\nEND $$;\n"
+
+    # Removes the per-table capture function of shape_twin,
+    # if this migration or a later rerun created one, and only when no trigger
+    # still uses it.
     execute "-- threadline: drop this capture function only if no trigger still uses it\nDO $$\nDECLARE\n  fn    regprocedure := to_regprocedure('\"threadline\".\"threadline_capture_changes_shape_twin\"()');\n  users text;\nBEGIN\n  IF fn IS NULL THEN RETURN; END IF;\n  SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ' ORDER BY n.nspname, c.relname) INTO users\n    FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\n    JOIN pg_namespace n ON n.oid = c.relnamespace\n   WHERE t.tgfoid = fn AND t.tgparentid = 0;\n  IF users IS NULL THEN\n    EXECUTE format('DROP FUNCTION %s', fn);\n  ELSE\n    RAISE WARNING 'threadline: kept % because triggers on % still use it; regenerate triggers for those tables', fn, users;\n  END IF;\nEND $$;\n"
 
+    # Removes the per-table capture function of shapes.shape_twin,
+    # if this migration or a later rerun created one, and only when no trigger
+    # still uses it.
     execute "-- threadline: drop this capture function only if no trigger still uses it\nDO $$\nDECLARE\n  fn    regprocedure := to_regprocedure('\"threadline\".\"threadline_capture_changes_shapes_shape_twin_c9a9dcb238e7\"()');\n  users text;\nBEGIN\n  IF fn IS NULL THEN RETURN; END IF;\n  SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ' ORDER BY n.nspname, c.relname) INTO users\n    FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\n    JOIN pg_namespace n ON n.oid = c.relnamespace\n   WHERE t.tgfoid = fn AND t.tgparentid = 0;\n  IF users IS NULL THEN\n    EXECUTE format('DROP FUNCTION %s', fn);\n  ELSE\n    RAISE WARNING 'threadline: kept % because triggers on % still use it; regenerate triggers for those tables', fn, users;\n  END IF;\nEND $$;\n"
+
+    # Removes the per-table capture function of shape_long_name_padded_to_prove_sixty_byte_identifiers_work_ok,
+    # if this migration or a later rerun created one, and only when no trigger
+    # still uses it.
+    execute "-- threadline: drop this capture function only if no trigger still uses it\nDO $$\nDECLARE\n  fn    regprocedure := to_regprocedure('\"threadline\".\"threadline_capture_changes_shape_long_name_padded__edab656ffa27\"()');\n  users text;\nBEGIN\n  IF fn IS NULL THEN RETURN; END IF;\n  SELECT string_agg(format('%I.%I', n.nspname, c.relname), ', ' ORDER BY n.nspname, c.relname) INTO users\n    FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid\n    JOIN pg_namespace n ON n.oid = c.relnamespace\n   WHERE t.tgfoid = fn AND t.tgparentid = 0;\n  IF users IS NULL THEN\n    EXECUTE format('DROP FUNCTION %s', fn);\n  ELSE\n    RAISE WARNING 'threadline: kept % because triggers on % still use it; regenerate triggers for those tables', fn, users;\n  END IF;\nEND $$;\n"
   end
 end
