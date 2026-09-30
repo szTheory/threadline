@@ -103,7 +103,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 225-01-PLAN.md — SUITE-01 baseline: `ci-job-timing.py` (step duration, runner-minutes proxy, inclusive verdict), copied `check-citations.py`, cited 225-BASELINE.md with local slowest rankings and the D-03 N check
+- [x] 225-01-PLAN.md — SUITE-01 baseline: `ci-job-timing.py` (step duration, runner-minutes proxy, inclusive verdict), copied `check-citations.py`, cited 225-BASELINE.md with local slowest rankings and the D-03 N check — complete 2026-09-30
 **Wave 2**
 - [ ] 225-02-PLAN.md — SUITE-03: `attach_telemetry!/1` emitting-process filter with its mutation control; the three operator-surface auth test files async; CONTRIBUTING rule; 200-repeat proof
 **Wave 3**
@@ -197,7 +197,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
-| 225. Suite Baseline and Partitioned CI | 0/TBD | Not started | - |
+| 225. Suite Baseline and Partitioned CI | 1/4 | In Progress | - |
 | 226. Pure Property Tests and Run Budget | 0/TBD | Not started | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
 | 228. Telemetry | 0/TBD | Not started | - |

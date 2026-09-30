@@ -5,16 +5,16 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 225
 current_phase_name: Suite Baseline and Partitioned CI
 status: executing
-stopped_at: Phase 225 planned (4 plans), ready to execute
-last_updated: "2026-09-30T21:15:39.325Z"
+stopped_at: Completed 225-01-PLAN.md
+last_updated: "2026-09-30T21:38:39.894Z"
 last_activity: 2026-09-30
-last_activity_desc: Phase 225 planned — 4 plans in 4 sequential waves, plan-checker passed
-state_head: 6e0e3bb2fb521b215e05738db19ea1612f257abf
+last_activity_desc: Phase 225 execution started
+state_head: 75dcd5a1cde70ce5089b365551d8f7e8a0517b71
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
   percent: 14
 ---
 
@@ -29,12 +29,12 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 ## Current Position
 
-Phase: 225 (Suite Baseline and Partitioned CI) — READY TO EXECUTE
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-09-30 — Phase 225 planned (4 plans, 4 sequential waves; plan-checker passed, 0 blockers)
+Phase: 225 (Suite Baseline and Partitioned CI) — EXECUTING
+Plan: 2 of 4
+Status: Executing Phase 225
+Last activity: 2026-09-30 — 225-01 complete (SUITE-01 baseline recorded and cited, commit 75dcd5a1)
 
-Progress: [█░░░░░░░░░] 1 of 7 v1.44 phases complete ([█░░░░░░░░░] 14%), 4/8 planned plans (phase 225: 4 plans ready, plan 04 gated on a maintainer push+dispatch grant; phase 224 verified passed 9/9 2026-09-30: CAPT-01/CAPT-02/SUITE-05/SUITE-06; review 0 critical/1 warning/1 info, both fixed (WR-01 199515b8, IN-01 220fb91a; 224-REVIEW-DISPOSITION.md open: 0); SUITE-06 CI "after" figure pending a maintainer push grant; phases 226-230 TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 225 (main checkout, strictly sequential; plan 04 stops for the grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [█░░░░░░░░░] 1 of 7 v1.44 phases complete ([█░░░░░░░░░] 14%), 5/8 planned plans (phase 225: 225-01 complete 2026-09-30 — SUITE-01 baseline: Run tests step 288/291/267 s and proxy 20 for run 36730596489, local slowest-modules/tests rankings, D-03 confirmed N=3 by measurement, citation gate green; 225-02..04 remaining, plan 04 gated on a maintainer push+dispatch grant; phase 224 verified passed 9/9 2026-09-30: CAPT-01/CAPT-02/SUITE-05/SUITE-06; review 0 critical/1 warning/1 info, both fixed (WR-01 199515b8, IN-01 220fb91a; 224-REVIEW-DISPOSITION.md open: 0); SUITE-06 CI "after" figure pending a maintainer push grant; phases 226-230 TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 225 (main checkout, strictly sequential; plan 04 stops for the grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 - Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
@@ -236,6 +236,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 224 P03 | ~35min | 2 tasks | 6 files |
 | Phase 224 P02 | ~30min | 2 tasks | 3 files |
 | Phase 224 P04 | ~50min | 2 tasks | 3 files |
+| Phase 225 P01 | ~45min | 2 tasks | 5 files |
 
 ## Deferred Items
 
@@ -913,6 +914,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 224]: Bundled Task 1 (tracer) + Task 2 code changes into one fix(bench) commit per the plan's own acceptance criteria; evidence committed separately
 - [Phase 224]: Reused the pinned rollback-cleanup SQL sweep for the pre-fix rerun-chain remediation (D-06) rather than adding a second snippet
 - [Phase 224]: Local SUITE-06 wall clock dominated by shared-machine load noise (high run-to-run variance both directions); CI run 36730596489 used as the reliable before citation, after recorded pending a maintainer push grant
+- [Phase 225]: D-03 confirmed N=3 by measurement (T/3=45.7s >= M=28.8s)
 
 ### Blockers
 
@@ -928,9 +930,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-09-30T20:40:21.349Z
-**Stopped at:** Phase 225 context gathered
-**Resume file:** .planning/phases/225-suite-baseline-and-partitioned-ci/225-CONTEXT.md
+**Last session:** 2026-09-30T21:38:39.864Z
+**Stopped at:** Completed 225-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

@@ -51,7 +51,7 @@
 
 ### Test suite economy
 
-- [ ] **SUITE-01**: A fresh suite timing baseline is recorded before any suite change: per-module slowest times, sync vs async seconds, and the CI test-step duration with run IDs.
+- [x] **SUITE-01**: A fresh suite timing baseline is recorded before any suite change: per-module slowest times, sync vs async seconds, and the CI test-step duration with run IDs.
 - [ ] **SUITE-02**: The CI test step runs the suite in parallel partitions, each with its own database, and the step's wall clock drops by at least 30% against SUITE-01.
   - Billed runner-minutes do not rise by more than 10%.
   - The Flake Detection budget is resized in the same change.
@@ -110,7 +110,7 @@
 | HLTH-02 | Phase 229 | Pending |
 | HLTH-03 | Phase 229 | Pending |
 | HLTH-04 | Phase 229 | Pending |
-| SUITE-01 | Phase 225 | Pending |
+| SUITE-01 | Phase 225 | Complete |
 | SUITE-02 | Phase 225 | Pending |
 | SUITE-03 | Phase 225 | Pending |
 | SUITE-04 | Phase 230 | Pending |
