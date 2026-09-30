@@ -112,6 +112,13 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   same in a comment. To stop capturing a table, write a migration that drops its
   trigger.
 
+  Rolling back the whole chain is different from rolling back just the rerun.
+  The first trigger migration's `down` drops its table's per-table capture
+  function if this migration or a later rerun created one, as long as no
+  trigger still uses it — even though the rerun's own `down` leaves the table
+  alone. So a full rollback of a default-then-rerun chain removes the
+  per-table function the rerun added, with no orphan left behind.
+
   ## Tables that shared a capture function
 
   Releases up to 0.10.2 could give two tables one capture function. For
@@ -594,15 +601,29 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
       end)
 
     function_downs =
-      first_run_specs
-      |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
-      |> Enum.map_join("\n\n", fn {t, _} ->
-        execute_line(TriggerSQL.drop_function_if_unused(Naming.function_name(t)))
+      Enum.map_join(first_run_specs, "\n\n", fn {t, _} ->
+        first_run_drop_comment(t) <>
+          "\n" <>
+          execute_line(TriggerSQL.drop_function_if_unused(Naming.function_name(t)))
       end)
 
     [rerun_rollback_comment(table_specs, rerun_tables), trigger_downs, function_downs]
     |> Enum.reject(&(&1 == ""))
     |> Enum.join("\n\n")
+  end
+
+  # Every first-run table's down drops its per-table capture function,
+  # whether or not this migration itself created one — a later rerun might
+  # have. The drop is usage-checked (TriggerSQL.drop_function_if_unused/2),
+  # so it is a no-op when no such function was ever created, and it keeps
+  # the function (with a WARNING) if another live trigger still uses it.
+  defp first_run_drop_comment(t) do
+    [
+      "Removes the per-table capture function of #{t},",
+      "if this migration or a later rerun created one, and only when no trigger",
+      "still uses it."
+    ]
+    |> Enum.map_join("\n", &("    # " <> &1))
   end
 
   # The whole SQL as an Elixir string literal. Plain inspect/1 cuts a string

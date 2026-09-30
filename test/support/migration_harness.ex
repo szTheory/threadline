@@ -216,6 +216,37 @@ defmodule Threadline.Test.MigrationHarness do
     definition
   end
 
+  @doc """
+  Sorted list of storage-schema `threadline_capture_changes_*` function names
+  with no live, non-partition trigger pointing at them. Structural: binds the
+  storage schema as a parameter and never relies on `search_path`, and does
+  not reuse any per-table function-name deriving code, so the check stays
+  independent of the code under test. Excludes the unsuffixed global
+  `threadline_capture_changes` function, which this pattern never matches.
+  """
+  def orphan_capture_functions do
+    %{rows: rows} =
+      Repo.query!(
+        """
+        SELECT p.proname
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = $1
+          AND p.proname LIKE 'threadline\\_capture\\_changes\\_%' ESCAPE '\\'
+          AND NOT EXISTS (
+            SELECT 1
+            FROM pg_trigger t
+            WHERE t.tgfoid = p.oid
+              AND t.tgparentid = 0
+          )
+        ORDER BY p.proname
+        """,
+        [StorageSchema.get()]
+      )
+
+    Enum.map(rows, fn [name] -> name end)
+  end
+
   defp regclass_text(schema, table),
     do: StorageSchema.quote_ident(schema) <> "." <> StorageSchema.quote_ident(table)
 end
