@@ -336,6 +336,44 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
 
       assert rule_fired?(checkout_credential_errors(mutated), "checkout-credential-free")
     end
+
+    test "WR-03: distribution-sync's external script carries the D-07 invariant comment and calls no mix",
+         %{live: live} do
+      assert live =~ "./bin/post-publish-distribution-sync",
+             "expected distribution-sync's run: text to still invoke the guarded script"
+
+      assert persisted_checkout_errors(live) == []
+
+      script_path = Path.join(@root, "bin/post-publish-distribution-sync")
+      source = File.read!(script_path)
+
+      assert source =~ "INVARIANT (D-07/WR-03)",
+             "bin/post-publish-distribution-sync should carry the D-07/WR-03 invariant comment " <>
+               "warning a future editor never to add a mix call here"
+
+      refute quoted_mix_invocation?(source),
+             "bin/post-publish-distribution-sync must never invoke mix (D-07/WR-03)"
+    end
+
+    test "WR-03 positive control: a mix invocation added to the external script is caught",
+         %{live: live} do
+      script_path = Path.join(@root, "bin/post-publish-distribution-sync")
+      original_source = File.read!(script_path)
+
+      mutated_source = original_source <> ~s(\nmix_cmd="mix")
+
+      refute quoted_mix_invocation?(original_source),
+             "the control did not change the input's mix-free baseline"
+
+      assert quoted_mix_invocation?(mutated_source)
+
+      overrides = %{"./bin/post-publish-distribution-sync" => mutated_source}
+
+      assert rule_fired?(
+               allowlisted_job_external_script_errors(live, overrides),
+               "allowlisted-job-external-script-runs-no-mix"
+             )
+    end
   end
 
   # Returns the failed ECON-03 bootstrap-guard properties as `{false, message}`
@@ -468,6 +506,75 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
     |> Enum.reject(fn {ok, _message} -> ok end)
   end
 
+  # WR-03: allowlisted_job_run_errors/1 can only see the literal `run:` text
+  # inside release.yml, so it is structurally blind to a persisted-credential
+  # job that shells out to an external script which later grows a mix call
+  # (distribution-sync -> ./bin/post-publish-distribution-sync today). This
+  # extends the D-07 guarantee to every `./bin/...` script invoked from an
+  # allowlisted job's run: text.
+  #
+  # The check is intentionally narrower than mix_invocation?/1: that matcher
+  # is tuned for shell `run:` text and false-positives on this real script,
+  # whose generated markdown documentation contains the backtick-quoted
+  # prose "`mix hex.info threadline`" (never executed). Instead this looks
+  # for "mix" as the first word of an actual quoted string literal — the
+  # shape a real subprocess invocation takes in any language — which the
+  # backtick-quoted prose above does not match (its opening delimiter is a
+  # backtick, not the `"` python-string quote).
+  # `overrides` (path => source) lets tests exercise a mutated script's
+  # content without writing to disk; production callers pass %{} and every
+  # path is read from disk as-is.
+  defp allowlisted_job_external_script_errors(yaml, overrides \\ %{}) do
+    present_ids = release_job_ids(yaml)
+
+    for {job_id, _reason} <- @persisted_checkout_jobs,
+        job_id in present_ids,
+        step <- yaml |> job_block!(job_id) |> job_steps(),
+        script = run_scripts(step),
+        script not in [nil, ""],
+        path <- external_script_paths(script) do
+      full_path = Path.join(@root, path)
+
+      cond do
+        Map.has_key?(overrides, path) ->
+          if quoted_mix_invocation?(Map.fetch!(overrides, path)) do
+            {false,
+             "rule=allowlisted-job-external-script-runs-no-mix job=#{job_id} script=#{path}: " <>
+               "a job that keeps a persisted token must never run mix, even indirectly via a " <>
+               "script it invokes (D-07/WR-03)"}
+          else
+            {true, nil}
+          end
+
+        not File.exists?(full_path) ->
+          {false,
+           "rule=allowlisted-job-external-script-missing job=#{job_id} script=#{path}: " <>
+             "run: invokes a script that does not exist on disk"}
+
+        quoted_mix_invocation?(File.read!(full_path)) ->
+          {false,
+           "rule=allowlisted-job-external-script-runs-no-mix job=#{job_id} script=#{path}: " <>
+             "a job that keeps a persisted token must never run mix, even indirectly via a " <>
+             "script it invokes (D-07/WR-03)"}
+
+        true ->
+          {true, nil}
+      end
+    end
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  defp external_script_paths(script) do
+    ~r{\./bin/[A-Za-z0-9_-]+}
+    |> Regex.scan(script)
+    |> Enum.map(fn [path] -> path end)
+    |> Enum.uniq()
+  end
+
+  defp quoted_mix_invocation?(source) do
+    Regex.match?(~r/(["'])mix(?=\s|\1)/, source)
+  end
+
   # Every @persisted_checkout_jobs key must name a job that still exists in
   # release.yml, or the allowlist silently widens to cover nothing (D-09).
   defp stale_allowlist_errors(yaml) do
@@ -486,7 +593,8 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
   # filtering the union.
   defp persisted_checkout_errors(yaml) do
     checkout_credential_errors(yaml) ++
-      allowlisted_job_run_errors(yaml) ++ stale_allowlist_errors(yaml)
+      allowlisted_job_run_errors(yaml) ++
+      allowlisted_job_external_script_errors(yaml) ++ stale_allowlist_errors(yaml)
   end
 
   # The single-line value of a step's `run:` key, or, for a block scalar

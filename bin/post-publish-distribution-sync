@@ -5,6 +5,13 @@
 # in the adoption-pilot Hex distribution row. Re-running with the same arguments
 # is a no-op.
 #
+# INVARIANT (D-07/WR-03): the distribution-sync job that calls this script keeps
+# a persisted git credential (`persist-credentials: false` is deliberately
+# omitted there — see release_control_plane_contract_test.exs). This script
+# must never invoke `mix`, or compile-time dependency code could read that
+# credential. release_control_plane_contract_test.exs pins this file's source
+# against that invariant; keep it true if you edit this script.
+#
 # Ownership split (see release-please-config.json `extra-files`):
 #   - The SSOT line ("Distribution preflight below reflects the **X** tree") is
 #     bumped by release-please IN THE RELEASE COMMIT via the `generic` updater
