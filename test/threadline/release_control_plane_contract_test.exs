@@ -312,25 +312,23 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
       end
     end
 
-    test "positive control: flagging an allowlisted job's checkout stays green", %{live: live} do
-      from =
-        "      - uses: actions/checkout@v5\n        with:\n" <>
-          "          fetch-depth: 0\n" <>
-          "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n\n" <>
-          "      - name: Resolve tag and create if missing\n"
-
-      to =
-        "      - uses: actions/checkout@v5\n        with:\n" <>
-          "          fetch-depth: 0\n" <>
-          "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n" <>
-          "          persist-credentials: false\n\n      - name: Resolve tag and create if missing\n"
+    test "positive control: the allowlist genuinely does the exempting (renaming the job un-exempts its bare checkout)",
+         %{live: live} do
+      # dispatch-bootstrap's checkout has no persist-credentials flag and is
+      # exempt only because "dispatch-bootstrap" is a @persisted_checkout_jobs
+      # key. Renaming just the job header (its checkout step is untouched)
+      # removes it from the allowlist map while leaving the bare checkout in
+      # place, so checkout-credential-free must now fire on that same step —
+      # proving the exclusion is keyed on job id, not vacuously always green.
+      from = "\n  dispatch-bootstrap:\n"
+      to = "\n  dispatch-bootstrap-control:\n"
 
       assert length(String.split(live, from)) == 2, "control anchor not found or not unique"
 
       mutated = String.replace(live, from, to, global: false)
       refute mutated == live, "the control did not change the input"
 
-      assert persisted_checkout_errors(mutated) == []
+      assert rule_fired?(checkout_credential_errors(mutated), "checkout-credential-free")
     end
   end
 
