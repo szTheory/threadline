@@ -6,10 +6,10 @@ current_phase: 224
 current_phase_name: Capture and Bench Fixes
 status: executing
 stopped_at: Phase 224 planned (4 plans, 3 waves)
-last_updated: "2026-09-30T16:33:51.317Z"
+last_updated: "2026-09-30T16:57:23.547Z"
 last_activity: 2026-09-30
-last_activity_desc: Phase 224 planned — research, patterns, 4 plans, checker passed
-state_head: 2e4acaea1b62dbb3d67dbfa042617e9624607284
+last_activity_desc: Phase 224 execution started
+state_head: a16fc1fbc681156475ecc00505d636ddfd01c68c
 progress:
   total_phases: 7
   completed_phases: 0
@@ -25,16 +25,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.44 Behavioral Depth: Properties, Twins, Telemetry, phases 224-230. Next is Phase 224 Capture and Bench Fixes.
+**Current focus:** Phase 224 — Capture and Bench Fixes
 
 ## Current Position
 
-Phase: 224 of 224-230 (Capture and Bench Fixes) — READY TO EXECUTE
-Plan: —
-Status: Ready to execute
-Last activity: 2026-09-30 — Phase 224 planned (research, pattern map, 4 plans in 3 waves; checker passed, 0 blockers; 18/18 decisions covered)
+Phase: 224 (Capture and Bench Fixes) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 224
+Last activity: 2026-09-30 — Phase 224 execution started
 
-Progress: [░░░░░░░░░░] 0 of 7 v1.44 phases complete (0%), 0/4 plans (phase 224 planned: 4 plans in 3 waves; later phases TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 224 (224-01 + 224-03 wave 1, 224-02 wave 2, 224-04 wave 3; checker passed, 18/18 decisions covered). Research flag: 225 opens with a fresh local `mix test --slowest 50` run before the partition count is chosen. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [░░░░░░░░░░] 0 of 7 v1.44 phases complete ([░░░░░░░░░░] 0%), 0/4 plans (phase 224 planned: 4 plans in 3 waves; later phases TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 224 (224-01 + 224-03 wave 1, 224-02 wave 2, 224-04 wave 3; checker passed, 18/18 decisions covered). Research flag: 225 opens with a fresh local `mix test --slowest 50` run before the partition count is chosen. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 - Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
