@@ -1,439 +1,353 @@
-# Pitfalls Research
+# Pitfalls Research — v1.44 Behavioral Depth: Properties, Twins, Telemetry
 
-**Domain:** Supply-chain gating, CI economy, and repo hygiene for a public Elixir Hex library (Threadline 0.11.0, milestone v1.43)
-**Researched:** 2026-09-26
-**Confidence:** HIGH for repo-observed facts (each was checked by running the command or reading the file in this repo today). MEDIUM for GitHub Actions and Mix behaviour described from documentation and experience. LOW for single-source web claims, which are marked where used.
-
-Phase names below are thematic, because v1.43 has no REQUIREMENTS.md or phase numbers yet:
-
-- **P-Baseline**: measure and record the baseline
-- **P-Supply**: advisory fix, audit gate, freshness policy
-- **P-Economy**: flake lane, duplicate proofs, release-PR dispatch, Browser-full, `_build` cache, live Dialyzer
-- **P-DX**: job names and ordering
-- **P-Newest**: newest PostgreSQL/Elixir lane
-- **P-TmpDir**: `@tag :tmp_dir` migration
-- **P-Hygiene**: PII/local-path guard, forward scrub, xref cycles guard
-- **P-Classifier**: SEED-006 change-aware lanes (last)
-
----
-
-## Findings that change the milestone's own baseline
-
-Re-checking the baseline today turned up four facts that the `## Current Milestone` text does not reflect. Read these before any phase is planned.
-
-1. **There are two advisories, and one is not test-only.** `mix hex.audit` (Hex 2.5.1, exit 1) reports lazy_html 0.1.12 (EEF-CVE-2026-92106, LOW, `only: :test`) and **also mint 1.10.0 (EEF-CVE-2026-82672 / GHSA-rj5m-69wp-cxq9, MEDIUM, HTTP/1 response smuggling)**. mint arrives through `req` (optional runtime dependency, `mix.exs:99`) → finch → mint. Both have fixed releases: lazy_html 0.1.13 (2026-09-25) and mint 1.10.1 (2026-09-19). Calling the advisory set "test-only" is already wrong. [HIGH, observed]
-2. **The xref "no cycles" claim holds only for the labelled graph.** `mix xref graph --format cycles --label compile-connected` reports none. Unlabelled `mix xref graph --format cycles` reports **5 cycles**. Two are Ecto association pairs (AuditTransaction↔AuditChange), and three are not: `Threadline`↔`Investigation`, `CriticTrust.RepositoryBoundary`↔`Mix.Tasks.Critic.Measure`, `MechanicalChecker`↔`MechanicalChecker.Contrast`. A fourth pair, `Capture.AuditTransaction`↔`Semantics.AuditAction`, crosses layers, which is the Capture↔Semantics edge v1.41 said it had resolved. It was resolved at compile time only. MILESTONE-GUIDE §9a's line "`mix xref graph --format cycles` is clean as of 2026-09-26" is false as written. [HIGH, observed]
-3. **A compile-connected cycle gate already exists.** `verify.xref_cycles` (`--label compile-connected --fail-above 0`) runs in `ci.all` and in both `verify-test` lanes, and `ci_topology_contract_test.exs` guards it. "Add an xref cycles guard" means either nothing new or a *different* gate. [HIGH, observed]
-4. **The live-Dialyzer test is untagged in the default suite.** `test/threadline/dialyzer_slice_contract_test.exs` carries `@tag :live_dialyzer` with a 540 s timeout, and `test_helper.exs` excludes only `pgbouncer_topology`. So it runs cold, without the PLT cache, in `verify-test (min)`, `verify-test (current)`, local `ci.all`, and **all 51 iterations of Flake Detection**. [HIGH, observed]
-
----
+**Domain:** Trigger-backed Postgres audit capture library (Elixir/Phoenix/Ecto), adding property tests, telemetry, a `history/3` limit, a test-suite rebalance/async cut, a `gen.triggers` down-orphan fix, and a bench compile fix, one minor release before the v1.45 API-contract milestone.
+**Researched:** 2026-09-30
+**Confidence:** HIGH for repo-specific claims (read from `lib/`, `test/`, `.planning/`); MEDIUM for ecosystem-precedent claims (StreamData/Carbonite/Oban/PaperTrail/Logidze docs and community reports, not independently re-verified against every version).
 
 ## Critical Pitfalls
 
-### Pitfall 1: An audit gate that goes red on a commit nobody changed
+### Pitfall 1: Properties that shrink against a live, shared, non-sandboxed database
 
 **What goes wrong:**
-`mix hex.audit` queries live advisory data. A new advisory published overnight turns an unchanged `main` red, blocks every unrelated PR, and can block the release-please PR that would ship the fix. Advisories are time-varying input, while every other gate in `ci-required` is a pure function of the commit.
+Threadline's suite has no `Ecto.Adapters.SQL.Sandbox` anywhere (trigger capture must see real committed transactions — `AuditTransaction`/`AuditChange` rows only exist after commit, so a rolled-back sandbox test never captures anything). 56 test files already run `async: false` for exactly this reason. StreamData's shrinker re-runs the property body dozens of times per failure, each iteration doing real INSERT/UPDATE/DELETE plus trigger execution and NOTIFY/foreign-key checks. Against a shared, non-transactional DB this means: (a) shrinking itself mutates state other properties or async processes can observe, (b) a shrink step that "fixes" a generated input by retrying can leave rows from earlier failed shrink candidates behind, corrupting the next property's row counts, and (c) two properties or `mix test` and a manually-open `psql` session touching the same tables at once produce lock contention that looks like a StreamData counter-example but is actually a schedule artifact.
 
 **Why it happens:**
-The gate is treated like `mix format`. The baseline already shows the drift: the milestone text lists one advisory, and the same command today lists two.
+Property tests are typically written and demoed against ExUnit's default in-memory or sandboxed setup (the Elixir docs and most StreamData tutorials assume `Ecto.Adapters.SQL.Sandbox`). Threadline can't use that pattern because triggers require committed rows, so anyone porting a "normal" StreamData/Ecto property recipe in will reach for sandbox checkouts that silently no-op the capture path, or skip cleanup and get a growing, cross-run-polluted dataset.
 
 **How to avoid:**
-- Keep the gate in `ci-required`, fail-closed, but give it a documented, fast escape: `hex: [ignore_advisories: [...]]` in `mix.exs` (Hex 2.5.1+). Each entry carries a comment stating the reason, the reachability claim (test-only, or not reachable), and a review-by date.
-- Add a deterministic test that fails when an `ignore_advisories` entry is past its review-by date or no longer matches the lock. Hex only *warns* on a non-matching entry and exits 0, so the ignore list can rot silently.
-- Add a scheduled audit on `main` (nightly, same `bin/upsert-ci-issue` dedup pattern, its own label) so a new advisory shows up as an issue before it shows up as a blocked PR.
-- Audit **both** lockfiles: root and `examples/threadline_phoenix` (it has its own lock; clean today). `verify-hex-evaluator` and `verify-bump-rehearsal` resolve fresh, so they can pull advisory versions the committed locks never contain. Decide explicitly whether they are in scope.
+- Every new property test must explicitly truncate/delete its own rows in `setup`/`on_exit`, scoped by a per-test-run unique key (table name suffix, actor id, or correlation id), never relying on transaction rollback.
+- Keep every new property `async: false` (matching the existing 56-file convention) unless the property module only touches an in-memory pure function (e.g. `ChangeDiff` on structs, not DB rows) — in that case make it explicitly `async: true` and never touch `Threadline.Test.Repo`.
+- Cap `max_runs`/`:max_shrinking_steps` explicitly per property (don't take StreamData's defaults) so a shrink storm against the DB has a bounded worst case.
+- Bound generators to the domain's edges (e.g. cursor pages over 1–200 rows, not 1–100k) — see Pitfall 2.
 
-**Warning signs:**
-A red `CI required` on a docs-only PR whose only failing job is the audit. A growing `ignore_advisories` list. A "no match" warning in the gate log.
+**Warning signs:** A property test passes solo but fails under `mix test` full-suite order; failure output shows a shrunk counter-example that doesn't reproduce when run alone; `mix verify.flake` flags a property file; CI shows different failures on reruns of the same commit.
 
-**Phase to address:** P-Supply
+**Phase to address:** The phase introducing property tests (cursor paging, `as_of`, ChangeDiff, redaction, retention, export). Acceptance check: each new property test file runs green 20x locally (`mix test --repeat-until-failure 20 path/to_test.exs` or equivalent) before merge, and is `async: false` unless proven pure.
 
 ---
 
-### Pitfall 2: The audit gate behaves differently depending on the Hex version
+### Pitfall 2: `captured_at`/`occurred_at` tie generators that don't match the real tiebreak
 
 **What goes wrong:**
-Advisory data in `hex.audit` and `ignore_advisories` are recent Hex features. The Hex changelog puts `ignore_advisories` and `HEX_IGNORE_ADVISORIES` in 2.5.1 (2026-07-09), and advisory warnings in `deps.get` plus advisory-aware "dependency policies" in resolution in 2.5.0 [LOW, single web source; the `mix help hex.audit` text for 2.5.1 was confirmed locally]. A phase-198 CI log in `.planning/audits/` shows runners on **hex-2.4.2**. On an older Hex the ignore key is unknown config and is silently ignored, or advisories are not checked at all. The gate is then vacuous, or red for a reason that the local run does not reproduce.
+The keyset cursor helpers (`Threadline.Query.Cursors`) order by `(occurred_at, id)` / `(captured_at, id)` pairs via a `(?, ?) < (?, ?)` row-comparison fragment. If a property test generates change rows with `StreamData.timestamp` variants that produce *distinct* timestamps for every row, it never exercises the tie path that the deterministic tiebreak (`captured_at desc, id desc`) exists to solve. A generator that instead constant-folds timestamps (e.g. `constant(DateTime.utc_now())` reused across a batch insert) will produce real ties but only ever with a single fixed value, hiding order-dependent bugs that appear only when ties are interleaved with non-ties.
+
+**Why it happens:** Postgres timestamp columns have microsecond resolution; a naive generator using `DateTime.utc_now()` per row "looks" like it produces ties because rows insert faster than the clock ticks in CI, and this is invisible until it isn't (a slower CI runner spreads them out, and the "tie" property silently stops testing what it claims to).
 
 **How to avoid:**
-- Run the audit in **one** dedicated job, on the current toolchain, not in every matrix lane. The min lane (Elixir 1.15) is not a supply-chain proof.
-- Pin and assert the Hex version in that job: install a known Hex, then fail if `mix hex.info` reports lower than 2.5.1. A gate that cannot parse its own allowlist must fail rather than pass.
-- Prove the gate is not vacuous (MILESTONE-GUIDE §8): a contract test runs the audit against a fixture lock containing a known-advisory version and asserts a non-zero exit. The gate is not done until that negative test exists.
-- Watch for Hex 2.5 "dependency policies" changing resolution between local (2.5.1) and CI (older Hex) → different `mix.lock` results on `deps.update`.
+Generate `captured_at` explicitly as a controlled list with deliberate duplicates (e.g. `StreamData.member_of([t0, t0, t0, t1, t1, t2])` interleaved with unique ids) rather than relying on wall-clock timing. Assert the invariant against the *generated* timestamp/id pairs, not against `DateTime.utc_now()` read back out — the property must know its own ground truth, not re-derive it from the DB.
 
-**Warning signs:**
-The gate passes in CI and fails locally, or the reverse. The gate log shows no "Ignored" section even though `mix.exs` has entries.
+**Warning signs:** A "duplicate captured_at" property that never fails even when the fragment ordering is deliberately reverted (mutation-test it: temporarily flip `desc, desc` to `desc, asc` and confirm the property catches it).
 
-**Phase to address:** P-Supply
+**Phase to address:** The cursor-paging and `as_of`/history property-test work. Acceptance check: mutation control — temporarily break the tiebreak order in a throwaway branch and confirm the new property goes red (same discipline v1.43 applied to CI contract rules per RETROSPECTIVE.md).
 
 ---
 
-### Pitfall 3: "Fixing" the advisory by bumping public constraints adopters inherit
+### Pitfall 3: Properties that restate the SQL instead of testing the invariant (tautological, Hypothesis/QuickCheck's classic trap)
 
 **What goes wrong:**
-Threadline is a library, so its `mix.lock` is not shipped. Updating the lock fixes Threadline's own CI and nothing for adopters. The tempting overcorrection is to tighten `{:req, "~> 0.7", optional: true}` or add a mint floor so adopters "can't" get mint 1.10.0. That adds a public constraint for a transitive dependency Threadline does not call directly. It also risks raising the declared floor that the min lane (Elixir 1.15 / OTP 26 / PG 14) exists to prove.
+A "property" that generates a list of changes, inserts them, calls `history/3`, and asserts the result equals `Enum.sort_by(inserted, & &1.captured_at, :desc)` computed the *same way the query does it* (same tiebreak, same ORDER BY logic reimplemented in Elixir) tests that two implementations of the same sort agree, not that the invariant (`as_of` == replayed history, `pages joined == full list`) actually holds against independent ground truth. This is the single most common QuickCheck/Hypothesis failure mode: model-based properties whose "model" is just the implementation copied into the test.
+
+**Why it happens:** It's the path of least resistance — the fastest way to get a passing property is to mirror the implementation's logic in the assertion. The MILESTONE-GUIDE.txt itself calls this out generally ("Tests are never tautological... restates the implementation"), and v1.41's retrospective explicitly names a credo-vacuous-gate regression from exactly this class of shortcut.
+
+**How to avoid:** For each invariant, write the test's ground truth using a *different* mechanism than the code under test: for cursor paging, assert `Enum.sort(joined_ids) == Enum.sort(full_list_ids)` (set equality, not an order replica) and separately assert no duplicate ids across pages and page count matches `ceil(n/limit)`; for `as_of`, replay changes with a hand-written fold over `AuditChange` structs (not by calling the same query function under test with different args) and compare final state field-by-field; for export round-trip, decode the export format with an independent decoder path (e.g. `Jason.decode!` against the raw NDJSON bytes) and compare to the source rows, not to `Export.encode/1`'s own output structure.
+
+**Warning signs:** Code review finds the property's expected-value computation imports or calls the same private helper the implementation uses; the property still passes after intentionally introducing an off-by-one in the code under test (this is the mutation-testing check — required before merge per the MILESTONE-GUIDE.txt quality bar).
+
+**Phase to address:** Every property-test requirement in this milestone. Acceptance check: each property PR includes one intentional-bug mutation run showing red, cited in the phase's VERIFICATION.md (mirrors the v1.43 pattern of "mutation controls on every contract rule").
+
+---
+
+### Pitfall 4: Property runtime creep silently eating the CI budget this milestone is trying to shrink
+
+**What goes wrong:** v1.44 explicitly exists partly to cut the suite's ~91% serial core (~191s of 209s per pass). Adding 6+ new property tests, each doing real DB round-trips per StreamData run (default 100 runs/property), at `async: false`, can easily add more serial wall-clock time than the async-conversion work removes — net-negative on the milestone's own goal. StreamData has no built-in per-test wall-clock budget; a generator with a wide size range (e.g. "cursor paging" testing lists up to 10,000 rows) turns a 100-run property into a multi-minute single test.
+
+**Why it happens:** Property-test defaults are tuned for pure, fast, in-memory code, not DB-round-tripping ones. Nobody caps `max_runs` explicitly and it silently stays at 100.
+
+**How to avoid:** Set an explicit, small `max_runs` per property (e.g. 20–30 for DB-touching properties, default 100 only for pure ones like `ChangeDiff`), bound generator sizes to realistic adopter scale (tens to low hundreds of rows, matching §4's "large tables" concern being a separate perf-baseline topic, not this milestone's), and measure each new property test's wall-clock cost before merge — cite it in VERIFICATION.md the way 214/218 cited runner-minutes. Consider `ExUnitProperties`'s `:initial_size`/`:max_run_time` options if the version in use exposes them.
+
+**Warning signs:** `mix test` total wall-clock goes up after the "rebalance toward behavior" phase; a single property test takes >5s.
+
+**Phase to address:** Both the property-test phase and the "cut the serial core" phase — they should be sequenced or measured together, not independently, since one adds serial DB tests and the other tries to remove serial time. Recommend measuring total suite wall-clock before and after each phase, not just at milestone end.
+
+---
+
+### Pitfall 5: Telemetry metadata leaking PII or raw row data (redaction bypass via the side door)
+
+**What goes wrong:** Threadline promises redaction never leaks (`--except-columns`, redaction is a named property-test target this milestone). Telemetry events for export/retention/query/install are a second, unaudited channel for the same data to leak through: an export-telemetry event that includes `metadata: %{file_path: path, row_count: n, query: sql}` looks harmless, but if a future or adopter-side handler logs metadata wholesale (a common Oban/Telemetry.Metrics pattern — attach a handler that does `Logger.info(inspect(metadata))`), and `sql` embeds literal `WHERE actor_id = 'user@example.com'` or export metadata embeds a redacted column's post-redaction value for debugging, PII exits through a code path redaction tests never look at. This is a known Oban footgun too — Oban's own telemetry docs warn against putting `args` (which can hold PII) directly into telemetry metadata for exactly this reason, and Oban Web had to add explicit scrubbing.
+
+**Why it happens:** Telemetry metadata is typically built by whoever writes the emit call, months after the redaction contract was designed, and nobody re-runs the redaction property tests against telemetry payloads because they're a different subsystem.
 
 **How to avoid:**
-- Fix with `mix deps.update lazy_html mint` (lock only). Leave the `mix.exs` requirements alone unless Threadline's own code needs the fixed behaviour.
-- Put the lock change through **both** `verify-test` lanes. Upgrades to a NIF package (lazy_html builds precompiled NIFs through `elixir_make`/`cc_precompiler`) are the classic way to break an older OTP.
-- Write the freshness policy as a small cadence ("`mix hex.outdated` reviewed at each milestone open; security advisories fixed within the milestone they appear in"), not Dependabot PR churn. That matches the milestone text and Out of Scope.
+- Telemetry metadata for export/retention/query events carries **counts, durations, table names, and status atoms** — never row values, actor emails, free-text reasons, or literal SQL/WHERE fragments. Follow the existing `[:threadline, :health, :checked]` pattern (`%{covered: int, uncovered: int}` — structural counts only) as the house style; do not regress from it.
+- Add one property or example test asserting that for every new telemetry event, `metadata` values are drawn only from an allowlisted type set (integers, atoms, short enumerated strings) — this can be a simple `Enum.all?(metadata, fn {_k, v} -> is_integer(v) or is_atom(v) or v in @allowed_strings end)` check exercised against representative event calls in the export/retention/query code paths.
+- Extend redaction's "never leaks" property (already scoped this milestone) to also assert telemetry handlers attached during the test never observe a redacted value — attach a test handler in the redaction property test itself and assert on what it captured.
 
-**Warning signs:**
-A `mix.exs` diff in the advisory-fix commit. The min lane fails to compile a NIF.
+**Warning signs:** Grep `Telemetry.execute` call sites this milestone adds; any metadata map literal that includes a variable sourced from row data, query params, or `reason:`/`context:` free text is a hit.
 
-**Phase to address:** P-Supply
+**Phase to address:** The telemetry phase (export/retention/query/install events), cross-checked against the redaction property-test phase. Acceptance check: a redaction-leak property test that also subscribes a telemetry handler and fails if it observes plaintext.
 
 ---
 
-### Pitfall 4: A skipped job laundered to green through the aggregate
+### Pitfall 6: Telemetry handler crashes silently detaching the handler (adopter loses observability with no signal)
 
-**What goes wrong:**
-`ci-required` uses `re-actors/alls-green` with `if: always()`, which is correct today because nothing is skip-listed. The first `allowed-skips` entry changes the threat model. `allowed-skips` is **static per job and blind to the reason for the skip**. A skip allowed "for docs-only PRs" is equally allowed when:
-- the job's `if:` references a misspelled output, so it evaluates `''` → false and the job never runs anywhere, permanently green;
-- the job skipped because an upstream in its own `needs:` failed, and that upstream is not in `ci-required`'s `needs:`;
-- the classifier job was cancelled or timed out.
+**What goes wrong:** `:telemetry.execute/3` runs attached handlers synchronously in the caller's process. If an adopter's handler raises (a very common integration bug — e.g. their `Logger`/Prometheus/StatsD client isn't started yet, or their handler pattern-matches a metadata shape that changes), `:telemetry` itself catches the error, logs it, and **detaches the handler**, but Threadline's own code path continues (the transaction still commits, the export still runs). The adopter now silently stops receiving telemetry for the rest of the process/app lifetime with no restart, and nothing in Threadline surfaces that — mirroring exactly the reasoning already written into `[:threadline, :health, :checked, :error]`'s moduledoc ("lets adopters alert on transient failure") for health, but this milestone adds four more event families without that same "what if the handler itself is broken" thought applied.
 
-**Why it happens:**
-The skip decision and the skip permission live in two places that nothing links.
+**Why it happens:** Library authors assume `:telemetry.execute` is fire-and-forget-safe because the *library's* code won't raise; they don't design for the handler side, which is entirely the adopter's code and out of Threadline's control.
+
+**How to avoid:** Document explicitly (in the telemetry moduledoc, following the existing docstring style) that handlers must not raise, that `:telemetry` detaches on error, and that adopters should wrap their own handler bodies. Optionally add a lightweight `Threadline.Telemetry.attach_default_logger/0` or similar safe reference handler for install/export/retention/query events (Oban and Ecto both ship a "here is a working example handler" precedent) so most adopters copy something already crash-safe rather than writing their first handler from scratch. Do not add automatic handler supervision/retry — that's out of scope and out of Threadline's control per `:telemetry`'s design.
+
+**Warning signs:** No test currently proves a raising handler doesn't break the emitting call site itself (should exist: attach a raising test handler, execute the event, assert the caller's own function still returns its normal value).
+
+**Phase to address:** The telemetry phase. Acceptance check: one test per new event family that attaches a deliberately-raising handler and asserts (a) the caller's function still completes normally and (b) the raise is at least logged, matching `:telemetry`'s documented behavior.
+
+---
+
+### Pitfall 7: Cardinality explosion in telemetry metadata/measurements (StatsD/Prometheus footgun via table or actor labels)
+
+**What goes wrong:** It's tempting to add `table: table_name` or `actor_id: id` to export/retention/query telemetry metadata "for debugging." If an adopter's handler forwards telemetry straight into a metrics backend with those fields as tags/labels (the default `Telemetry.Metrics` pattern), every distinct table name or actor id becomes a new metric series. For retention (runs per table) and query (potentially per-actor) events this is an unbounded-cardinality time series that can take down a Prometheus instance — a well-documented Oban/Broadway/Ecto telemetry mistake (Ecto's own telemetry docs explicitly warn against putting `:query` string or unbounded params into `Telemetry.Metrics` tags).
+
+**Why it happens:** Table names feel "bounded" (a real schema has dozens, not millions, of tables) so it looks safe, but actor ids, correlation ids, or job ids are not bounded and are easy to add alongside table name without noticing the difference.
+
+**How to avoid:** Metadata may include `table:` (bounded, schema-fixed cardinality) but must never include `actor_id`, `correlation_id`, `job_id`, row ids, or free-text reasons as metadata keys intended for tagging. If per-actor or per-correlation detail is genuinely needed, that's a query-API concern (`Threadline.Query`), not a telemetry-metadata concern — telemetry measurements/metadata should answer "how much/how long/success or failure," not "which specific row."
+
+**Warning signs:** Any telemetry metadata key whose value space grows with the size of the audited dataset rather than the schema.
+
+**Phase to address:** The telemetry phase. Acceptance check: telemetry moduledoc's documented metadata keys per event, reviewed once for cardinality the way health's `covered`/`uncovered` counts already model correctly.
+
+---
+
+### Pitfall 8: Double-emitting telemetry inside a DB transaction (event fires before commit is durable, or fires twice on retry)
+
+**What goes wrong:** Threadline already has a real instance of this shape: `emit_action_recorded/1` fires unconditionally in `Threadline.record_action/2` regardless of whether the underlying write actually committed, and the moduledoc for `transaction_committed/2` explicitly warns callers to call it manually "after a known DB transaction commit" for accuracy — i.e. the library already knows naive placement is wrong. Retention and export are both candidates for the same mistake in the new events: if `[:threadline, :retention, :purged]` or `[:threadline, :export, :completed]` is emitted *inside* an `Ecto.Multi`/`Repo.transaction` block before the outer transaction actually commits, a handler that reacts to the event (e.g. sending a notification, incrementing an external counter) can act on a purge/export that later rolls back on a downstream step or an Oban retry — and if the surrounding code retries the whole operation (Oban jobs are famously idempotent-by-retry, not exactly-once), the event fires twice for one logical purge/export.
+
+**Why it happens:** It's natural to call `:telemetry.execute` right where the "success" branch of the code is, which is often still inside the transaction function, especially in an `Ecto.Multi` step.
+
+**How to avoid:** Emit retention/export/query/install telemetry **after** the enclosing `Repo.transaction`/`Multi.transaction` returns `{:ok, _}`, never from inside the transaction function itself, matching the lesson already encoded in `transaction_committed/2`'s docstring. For retention/export specifically (both can be Oban-job-driven per the domain model), make the emit idempotent-safe or at least clearly scoped to one attempt (emit with the job/run id in the *span*, not as a side effect inside retried business logic) so a retried Oban job doesn't double-count in a naively-summing dashboard.
+
+**Warning signs:** Grep for `:telemetry.execute` calls that are lexically inside a `Repo.transaction(fn -> ... end)` block or an `Ecto.Multi.run/3` step body.
+
+**Phase to address:** The telemetry phase, specifically the export and retention sub-items (both are transactional, multi-step operations, unlike the simpler health checks that already exist). Acceptance check: a test that makes the enclosing transaction fail/rollback after the business logic "succeeds" and asserts no telemetry event fired.
+
+---
+
+### Pitfall 9: `:telemetry.span/3` swallowing or mis-tagging exceptions on export/retention
+
+**What goes wrong:** If the telemetry phase reaches for `:telemetry.span/3` (the idiomatic way to get paired `:start`/`:stop`/`:exception` events, which Oban, Broadway, and Ecto all use) for export or retention, a common mistake is wrapping only the "happy path" call and letting the `:exception` event's default metadata (kind, reason, stacktrace) be the *only* signal, while the function itself still needs to re-raise or return `{:error, reason}` through its normal contract. Two failure modes: (a) `:telemetry.span/3` re-raises by design, so if the surrounding mix task or context function was written to catch and convert exceptions to `{:error, _}` tuples, wrapping it in `span/3` changes the function's public contract from "returns error tuple" to "raises" — a **breaking API change** hiding inside what looks like an observability-only addition; (b) the stacktrace or exception message captured in `:exception` metadata can itself contain interpolated row data (Postgres errors sometimes echo the offending value), reintroducing Pitfall 5 through a different door.
+
+**Why it happens:** `:telemetry.span/3`'s contract (call the function, let exceptions propagate, always emit `:stop` or `:exception`) is exactly right for functions that already raise-to-fail, but Threadline's public API style (per the domain reference and existing `Threadline.Query`/`Threadline.Health` functions) is `{:ok, _} | {:error, _}` tuples, not exceptions.
+
+**How to avoid:** Do not use `:telemetry.span/3` around functions whose public contract is `{:ok, _} | {:error, reason}`. Instead, call `:telemetry.execute/3` explicitly on both branches (success and error) after computing the result, keeping the function's return contract unchanged. Reserve `span/3` only for genuinely exception-raising internal helpers, and scrub any stacktrace/exception metadata before including it (or omit stacktraces from telemetry metadata entirely — logs are the right place for those, not `:telemetry` metadata that adopters may forward to metrics backends).
+
+**Warning signs:** A public function's `@spec` or moduledoc return shape changes from `{:ok, _} | {:error, _}` to unguarded after a telemetry change; a test that used to assert on an `{:error, reason}` tuple starts needing `assert_raise`.
+
+**Phase to address:** The telemetry phase, and cross-checked by the v1.45 API-contract milestone (this is exactly the kind of "consistent return shapes" concern v1.45 is scoped to own — flag it now, fix contract drift there if any slips through).
+
+---
+
+### Pitfall 10: One-way telemetry event names and shapes (irreversible once an adopter attaches a handler)
+
+**What goes wrong:** MILESTONE-GUIDE.txt §3 states plainly: "Hex versions cannot be unpublished. Treat every public default and API shape as one-way." Telemetry event names (`[:threadline, :export, :completed]`) and their measurement/metadata key sets are exactly this kind of one-way public surface — once an adopter's `:telemetry.attach/4` pattern-matches a metadata shape, renaming a key, changing a measurement from a count to something else, or restructuring nested metadata is a breaking change with no deprecation window (unlike a function call, there's no compiler warning for a stale telemetry pattern match; it just silently stops matching or crashes the handler on the next line).
+
+**Why it happens:** Telemetry events feel like "just observability," lower-stakes than a public function signature, so less design care goes into naming/shape before shipping than into `Threadline.Query.history/3`'s signature.
+
+**How to avoid:** Name new events consistently with the existing five (`[:threadline, <subsystem>, <past-tense-verb>]`, e.g. `[:threadline, :export, :completed]`, `[:threadline, :retention, :purged]`, `[:threadline, :query, :executed]`, `[:threadline, :install, :completed]`), following the established `expected_uncovered`-is-additive precedent (new measurement/metadata keys are additive-only; never repurpose or remove an existing key without a major-version deprecation path). Document each new event's measurements/metadata in `Threadline.Telemetry`'s moduledoc with the same rigor as the existing five, since that moduledoc is effectively the contract. Treat this milestone's telemetry additions as pre-1.0 (last chance to get shapes right before the v1.45 API-contract freeze) rather than "add now, fix later."
+
+**Warning signs:** A telemetry event shipped in v1.44 needs a shape change during v1.45 — that's the signal this pitfall wasn't fully prevented; budget an explicit v1.45 telemetry-shape review line item as insurance regardless.
+
+**Phase to address:** The telemetry phase, with an explicit note carried into the v1.45 API-contract milestone's scope (MILESTONE-GUIDE.txt already tracks a similar carry-forward pattern for the AuditTransaction<->AuditAction edge).
+
+---
+
+### Pitfall 11: `history/3` gaining a default limit changes today's callers' return shape before the v1.45 contract exists to govern it
+
+**What goes wrong:** `Threadline.history/3` (delegating to `Threadline.Query.history/3`) currently has no limit — it's a "return everything" call. Adding a default limit (the milestone's explicit target) is a **behavior-breaking change disguised as a feature add**: any current adopter code relying on `history/3` returning the complete history (e.g. building a full audit report, or asserting `length(history) == n` in their own tests) silently gets truncated results with no compile error and no runtime error — it just returns fewer rows. This is precisely the kind of one-way default MILESTONE-GUIDE.txt §3 flags, and it's happening *before* v1.45's "consolidate overlapping entry points... consistent return shapes" work is scoped to formalize the contract, meaning it either needs its own careful versioning now or risks a second breaking change at v1.45 if the limit's shape (a plain list vs. a paginated/cursor-shaped return) doesn't match what v1.45 standardizes on.
+
+**Why it happens:** A limit sounds like a safety/performance improvement (bounding an unbounded query), so it's easy to treat as a non-breaking hardening change rather than a return-shape change.
 
 **How to avoid:**
-- Write each conditional `if:` fail-closed. Skip only when the output is exactly `'false'`, never when it is not `'true'`: `if: needs.changes.outputs.lib != 'false' || github.event_name == 'push'`. An empty or missing output then runs the job.
-- The classifier job must be in `ci-required`'s `needs:` and **never** in `allowed-skips` (MILESTONE-GUIDE §9: "a skip is allowed only when the job deciding the skip is itself required and unskippable").
-- Add a step to `ci-required` that re-derives justification: for every `needs.*.result == 'skipped'`, assert the classifier's recorded output named that lane as skippable. A skip the classifier did not order fails the gate.
-- Contract test: every upstream of every skip-listed job is itself in `ci-required`'s `needs:`.
-- Extend `ci_topology_contract_test.exs` in the same commit as the first `allowed-skips` entry. Its header comment already demands this.
+- Ship the limit as an **opt-in default that changes behavior only when the caller doesn't already pass a limit-equivalent option**, and make the default generous enough not to silently truncate realistic current usage (pick the default empirically — check the retention/export property-test work in this same milestone for realistic row-count scale, and document the chosen number with rationale, not a round guess).
+- Add a CHANGELOG entry with explicit "breaking behavior change" framing (not buried as a `feat:`), since Hex/release-please's automation won't know this `feat:` is semver-sensitive beyond the normal minor bump — this crosses into "silently changes existing callers' data" territory that deserves an explicit upgrade-guide note, the same way v1.42's PK-agnostic capture change got one.
+- Decide now whether `history/3`'s return shape with a limit stays a plain list (truncated, caller has no way to know more exist) or gains a `has_more`/cursor signal — and make that decision compatible with (ideally literally reusing) the cursor-paging property-test work landing in the same milestone, so v1.45 doesn't have to reconcile two different pagination idioms.
+- Add a test asserting the *old* unlimited-call shape (no limit passed) still returns a `list()`, not a tuple or map, unless the team explicitly decides to break that now (in which case it's a deliberate, documented decision, not an accident).
 
-**Warning signs:**
-A job with 0 runs in the last N `main` pushes. `allowed-skips` growing past the classifier-gated set.
+**Warning signs:** No upgrade-guide entry drafted alongside the `history/3` change; the default limit number has no cited rationale; existing tests that call `history/3` without a limit pass unchanged (which paradoxically is a *bad* sign if the fixture data happens to be smaller than the new default — the property tests for `as_of`/history should be the ones to catch a silent truncation, not the example-app smoke tests).
 
-**Phase to address:** P-Classifier (P-Economy too, if any job becomes conditional earlier)
+**Phase to address:** The `history/3` phase, explicitly. Acceptance check: upgrade-guide/CHANGELOG note discoverable before merge, plus a property test proving pages-joined-via-the-new-limit equals the full unlimited result for realistic sizes (ties into Pitfall 3's cursor-paging invariant).
 
 ---
 
-### Pitfall 5: A change classifier that misreads what "docs-only" means in this repo
+### Pitfall 12: Cutting "guard tests" that are actually load-bearing CI-topology/CONTRIBUTING contracts
 
-**What goes wrong:**
-Generic path filters treat `*.md` as safe to skip. In Threadline, Markdown **is tested code**: doc-contract tests read `README.md`, `guides/`, `CONTRIBUTING.md` (the `## CI Coverage` roster and job list), and the adoption-pilot backlog markers. A README-only PR can break `verify-test`. Other non-obvious "code" includes `bin/` (verifier scripts shelled out by tests), `.github/` (the topology contract reads the workflows), `.github/rulesets/main.json`, `.tool-versions`, `priv/`, `config/`, `test/support`, `examples/**` (a path dependency on the library, with its own lock), `mix.exs`, and `mix.lock`.
+**What goes wrong:** The milestone explicitly targets "merge or cut guard tests that no longer catch a distinct failure class." Threadline's CI-topology contract tests (the ones binding CONTRIBUTING's job roster to `ci.yml`'s `needs:` list and the required aggregate, hardened across v1.43 phases 216/218/220/221) look, superficially, like exactly the kind of "restates the implementation" tautological test this milestone is hunting for — a test that just re-lists job ids the workflow file also lists. But per v1.43's own audit and RETROSPECTIVE.md, these are the tests that were **specifically hardened this cycle** against being vacuous (moved from regex-over-YAML to parsed YAML, given named `rule=` fragments, given mutation controls) precisely because they catch a real, previously-missed failure class: a job silently dropped from the required aggregate, or CONTRIBUTING drifting from the actual roster. Cutting them now, mid-rebalance, would erase v1.43's own investment and reopen exactly the gap 220/221 closed.
 
-**Why it happens:**
-The classifier is written from intuition, not from the suite's actual file reads.
+**Why it happens:** "Rebalance toward behavior, cut guard tests" is a blunt instruction; without cross-referencing which guard tests were *just* proven load-bearing by a mutation control, a rebalance pass can't tell a genuinely-dead guard test from a recently-hardened one that happens to look similar (both assert "list X equals list Y").
+
+**How to avoid:** Before cutting or merging any guard test, check whether it has a documented mutation control (a "this fails when X breaks" proof) from a v1.42/v1.43 phase — if it does, it's provably load-bearing and out of scope for this rebalance; if it doesn't, that's the actual candidate list. Treat the CI-topology/CONTRIBUTING contract tests and the aggregate `needs:` binding as **explicitly out of scope** for this milestone's guard-test cut unless new evidence shows the mutation control itself was wrong. Cross-reference `.planning/milestones/v1.43-MILESTONE-AUDIT.md` tech_debt and `RETROSPECTIVE.md` "Patterns established" before finalizing the cut list.
+
+**Warning signs:** A cut guard test's name or file matches anything referenced in v1.43's 220/221 phase summaries or the CI job roster; `mix ci.all`'s required aggregate composition changes as a side effect of a "test rebalance" commit.
+
+**Phase to address:** The guard-test-rebalance phase. Acceptance check: the cut/merge list is reviewed against "does this test have a v1.42/v1.43 mutation control" before any deletion, and the CI-required aggregate's job count is diffed before/after the phase and must be unchanged unless explicitly decided otherwise.
+
+---
+
+### Pitfall 13: Converting serial tests to `async: true` breaks trigger-capture's real-commit dependency and the shared local PG connection limit
+
+**What goes wrong:** Threadline's capture mechanism fundamentally requires committed transactions (triggers fire on real commits; `AuditTransaction`/`AuditChange` rows are only visible after commit, and multiple related properties in this very milestone depend on that). `Ecto.Adapters.SQL.Sandbox`'s normal `async: true` mode wraps each test in a rolled-back transaction — which is exactly incompatible with observing trigger-captured rows, and is presumably *why* the suite has none today. "Cutting the serial core" therefore cannot mean "flip `async: true` broadly" for capture-adjacent tests; it can only mean (a) genuinely converting pure/non-DB tests that were serial for no reason, or (b) adopting sandbox's *non-transactional* async mode (checkout with `sandbox: false` equivalent, or per-test schema/savepoint isolation) which trades rollback-safety for real concurrent connections — and that reintroduces the second hazard: the local dev Postgres's `too_many_connections` (already a known-environmental issue per memory, seen during v1.43 landing). Naively parallelizing DB-touching tests without also raising `pool_size`/`max_connections` or partitioning by schema will produce connection-pool exhaustion failures that look like flakes but are actually a capacity ceiling.
+
+**Why it happens:** "Cut serial time" is a natural instinct to reach for `async: true`, and most Elixir/Ecto guidance defaults to recommending it without flagging that trigger-based audit capture is one of the documented exceptions (Carbonite's own docs note the audit-trigger-and-transaction coupling as a first-class design constraint, not an incidental one) where naive sandboxing breaks the thing under test.
 
 **How to avoid:**
-- Classify with an **allowlist of provably inert paths** and send everything else, including unknown and new top-level paths, to the full matrix. Given the Phase-199 decoupling (`ci.all` passes with `.planning/` renamed away), `.planning/**` is realistically the only large inert class. Even there, the PII guard (Pitfall 9) must still run.
-- Derive the base robustly and fail closed on edge cases: `pull_request` → merge-base with base; `push` with an all-zero `before` or a force-push → full; `workflow_dispatch` (the release-PR bootstrap) → full; any `git diff` error → full. Count renames and deletions on both sides.
-- Put the classifier in a script (`bin/`) with fixture tests in ExUnit, in the same style as `bin/classify-flake-run`, including a mutation-style test that an unknown path yields "full".
-- Never skip on push to `main`. The ruleset has `strict_required_status_checks_policy: false`, so the PR run tested a merge ref that may be stale against the squash commit. The push-to-`main` run is the only proof of the real tree.
-- Never move the classifier to `pull_request_target` or `workflow_run` to get the diff. Fork PRs would then execute with a write token.
+- Audit the ~91% serial figure by *cause*, not by blanket flag-flip: separate "serial because it does real trigger-capture and needs commit visibility" from "serial with no reason" (leftover default, copy-paste from an earlier serial test, or accidental shared global state like `Application.put_env` — see Pitfall 14).
+- For genuinely capture-dependent tests, look at test-isolation strategies that don't require sandbox rollback: unique per-test schema or table-name suffixes so concurrent tests don't collide on the same rows, keeping `async: true` viable without needing rollback. This is more work than a flag flip and should be scoped as its own explicit sub-item, not assumed free.
+- Before enabling more parallelism, check and if needed raise the local/CI Postgres `max_connections` and the test repo's `pool_size`, and re-derive whether the "shared local PG" `too_many_connections` issue (flagged as environmental in prior memory) recurs under the new concurrency — if so, that's now a real regression, not environmental noise, and needs a fix (e.g. a bounded pool_size cap in `config/test.exs`, or a CI-only higher `max_connections`).
+- Re-measure suite wall-clock time after each conversion batch, the same measure-first discipline v1.43 used for CI economy, rather than assuming async conversion helps by construction.
 
-**Warning signs:**
-`main` goes red after a PR whose run skipped `verify-test`. The classifier's fixture table has no row for a top-level directory that exists in the repo.
+**Warning signs:** New `too_many_connections` errors appear only after the async-conversion phase lands, on the same machine that was fine before; a converted "async" test starts asserting on `AuditChange` rows it didn't itself insert (cross-test pollution from real, uncommitted-by-sandbox concurrent writes).
 
-**Phase to address:** P-Classifier
+**Phase to address:** The "cut the suite's serial core" phase, explicitly gated on first classifying the 91% by cause. Acceptance check: a before/after wall-clock measurement (matching 214's baseline-then-measure pattern) plus zero new `too_many_connections` occurrences across 10 consecutive local/CI runs.
 
 ---
 
-### Pitfall 6: Deleting a "duplicate" proof that catches a distinct failure class
+### Pitfall 14: Global `Application.put_env`/module-attribute state races once tests parallelize
 
-**What goes wrong:**
-Several apparent duplicates in `ci.yml` differ by input, environment, or trigger:
+**What goes wrong:** `test/test_helper.exs` already uses `Application.put_env(:threadline, :default_test_excludes, exclude)` and the `Threadline.Test.NoticeGuard` attaches a *global* (VM-wide) notice listener with an `after_suite` verification callback. Any test that reads or mutates `Application.env` for `:threadline` config (e.g. a future telemetry-config toggle, a redaction column-list override used to test the property in different configs, or an `:invalid_config` health check candidate this milestone might include) is unsafe to run `async: true` if any other concurrent test also touches that same config key — classic global-mutable-state-under-parallelism, and Threadline already has at least one VM-global piece of test infrastructure (`NoticeGuard`) that assumes a single serialized pass.
 
-| Looks duplicate | What actually differs |
-|---|---|
-| `verify-mechanical` vs the `verify.mechanical` step in `verify-capture` | committed scorecards vs freshly regenerated evidence |
-| `verify-dialyzer` vs the live-Dialyzer test in both test lanes | the job is the cached, measured gate; the test checks the sealed critic-tooling slice. The min lane's copy is the only Dialyzer run on OTP 26 (whether that is worth keeping is a decision, not an assumption) |
-| Browser-full's `desktop-chromium`/`mobile-chromium` vs the PR browser lane | on push to `main` it is a true duplicate (same SHA, same projects, via ci.yml's push run). Nightly on an unchanged `main` it is also a duplicate unless something time-varying (npm/Playwright cache restore-keys) enters |
-| `verify-test (min)` vs `(current)` | different floor promise; never merge them |
-| `verify-hex-evaluator` vs `verify-example` | Hex-published artifact vs path dependency |
+**Why it happens:** Global app config is convenient for one-off test setup and works fine serially; the failure mode only appears once two tests touching the same key run concurrently, which won't happen until the async-conversion phase actually increases concurrency.
 
-**Why it happens:**
-Duplicates are judged by name, not by writing down the failure class each copy uniquely catches (MILESTONE-GUIDE §8/§9).
+**How to avoid:** Before marking any test `async: true`, grep its body and any helper it calls for `Application.put_env`/`Application.get_env` on `:threadline` keys, and for anything that depends on `Threadline.Test.NoticeGuard`'s global listener state; keep those `async: false` or refactor them to pass config explicitly as function/opts arguments instead of through global app env (the more durable fix, and one that also makes the affected code more testable under property tests that vary config per run).
+
+**Warning signs:** A newly-async test intermittently fails only when run alongside a specific other test file (order-dependent flake); `NoticeGuard`'s `after_suite` verification reports a truncated-identifier NOTICE that no single test's own migration should have produced.
+
+**Phase to address:** The async-conversion phase, as a required pre-check before flipping any given test file. Acceptance check: `mix verify.flake` (already exists per prior memory) run specifically against the newly-async set before merge.
+
+---
+
+### Pitfall 15: `gen.triggers --down` orphaning the per-table capture function is a correctness bug with a security echo, not cosmetic
+
+**What goes wrong:** The deferred v1.42 item states `gen.triggers`'s `down, all: true` after a per-table rerun "leaves a function behind." Given v1.42's central fix was collision-free *per-table* capture functions (replacing one shared function specifically because a shared function let one table's trigger run another table's redaction logic — a security fix, not just a naming one), an orphaned per-table function left behind by an incomplete `down` is a smaller instance of the same class of risk: a stale function that no longer has a corresponding trigger can still exist in the catalog, potentially get reattached by a future manual `CREATE TRIGGER`, or simply pollute `pg_proc` in a way that a future `gen.triggers` name-collision check (also from v1.42) doesn't expect to see. It's also an adopter-trust issue: `mix threadline.gen.triggers --down` is the documented rollback path, and rollback that doesn't fully roll back breaks the "correct by default" and "SQL-native, no opaque state" promises in CLAUDE.md's Key Design Constraints.
+
+**Why it happens:** `down` migrations for generated trigger code are easy to write against the "normal" case (one table, one generate-then-later-remove cycle) and miss the "regenerate the same table's trigger, then remove all" sequence where an older function name/hash from the earlier generation is still on disk in `pg_proc` under a name the newest `down` logic doesn't know to look for (especially relevant given v1.42's hashed-suffix policy for long identifiers — a regenerated table can get a *different* hashed function name than the one first installed).
+
+**How to avoid:** Reproduce exactly: generate triggers for a table, regenerate them (same table, e.g. after an `--except-columns` change), then run `down, all: true`, and assert via `pg_proc` (or `information_schema.routines`) that zero `threadline_capture_*` functions remain for that table — not just that triggers are gone. Add this as a migration-property or integration test (fits naturally next to the trigger-migration property test that already exists — `trigger_migration_property_test`). Fix likely needs `down` to enumerate functions by a stable naming prefix/schema query rather than by replaying only the specific names the current migration file's `up` believes it created.
+
+**Warning signs:** `SELECT proname FROM pg_proc WHERE proname LIKE 'threadline_capture_%'` after a full `down, all: true` returns any rows.
+
+**Phase to address:** The `gen.triggers` down-orphan phase. Acceptance check: the exact regenerate-then-down-all repro above, asserted against `pg_proc`, added to the existing trigger-migration property test family (naming it consistently, e.g. `trigger_migration_property_test.exs`) rather than as an isolated one-off unit test, since it's exactly the kind of invariant ("every trigger this library ever installed for a table is fully removable") property testing suits.
+
+---
+
+### Pitfall 16: Retention/backfill tasks writing to audit history undermines the "correct by default" and tamper-evidence claims
+
+**What goes wrong:** This milestone's scope brushes against `mix threadline.gen.backfill` (deferred from v1.42, "included, reshaped or deferred on research" this cycle) and ships retention property tests (cutoff boundaries) alongside retention telemetry. The structural risk both share: any code path that **mutates already-captured `AuditChange`/`AuditTransaction` rows** (as opposed to inserting new ones, or deleting whole rows under a documented retention policy) breaks the implicit tamper-evidence/integrity claim the capture layer exists to make — an audit trail where historical entries can be silently edited (not just pruned) is not an audit trail. A backfill task in particular is dangerous here: "backfill" naturally suggests filling in *missing* audit history for rows that existed before Threadline was installed, which requires synthesizing `AuditChange`/`AuditTransaction` records for events Threadline never actually observed — records that are indistinguishable, once written, from real trigger-captured ones unless deliberately marked. PaperTrail and Logidze (both prior-art audit/versioning libraries) draw a hard line here: versioning writes are additive-only by construction (new version rows), and any "backfill" or "reconcile" tooling in that ecosystem is understood as fundamentally different in trust level from trigger-captured rows, usually requiring an explicit `synthetic: true`-style marker or living in a completely separate table.
+
+**Why it happens:** "Backfill" is a familiar, low-drama word from ordinary data-migration work; it's easy to reach for the same mental model (write historical rows in) without registering that in *this specific domain*, writing plausible-looking historical audit rows is materially different from writing plausible-looking historical `orders` rows, because the whole point of `AuditChange` is "this is what the trigger actually saw."
 
 **How to avoid:**
-- Before each removal, write one line in the phase evidence: "failure class X is still caught by job Y on trigger Z". If you cannot fill in Y and Z, the job is not a duplicate.
-- For Browser-full, **do not replace the unrestricted run with a hand-maintained allowlist of the "other" projects**. A new Playwright project would then run in neither lane. Use a set difference (full config project list minus the PR lane's projects), and add a contract test that the PR lane plus Browser-full equals the Playwright config's project set. Update the CONTRIBUTING `## CI Coverage` row in the same commit (`ci_coverage_doc_contract_test.exs` enforces it).
-- Do not regenerate screenshot baselines as part of any browser-lane change. Locally, exactly 8 pre-existing failures are expected. A 9th is a real regression. CI (`CI=true`) is 318/0/26 by design.
+- If `gen.backfill` ships this milestone, any row it produces must be structurally distinguishable from trigger-captured rows — e.g. a `source: :backfill` (or similar) column/metadata value never set by the trigger path, and documentation stating plainly that backfilled rows are reconstructed, not observed, and should be excluded or clearly labeled in any export/report that claims completeness.
+- Retention's cutoff/purge logic must only ever **delete whole rows** past a cutoff, never edit surviving rows' content; the retention property test (cutoff boundaries) should assert this explicitly — generate a dataset, run purge at a cutoff, and assert every *surviving* row is byte-identical to its pre-purge self (not just "still present"), which also catches an accidental `UPDATE` sneaking into what should be a pure `DELETE` path.
+- If `gen.backfill` research this cycle concludes the honest answer is "defer again" (a legitimate outcome per MILESTONE-GUIDE.txt's "if nothing clears the bar, choose sustainment or stop"), that's preferable to shipping a backfill tool without this distinction solved.
 
-**Warning signs:**
-A removal PR with no "still caught by" line. The CONTRIBUTING roster edited without the topology contract test changing, or the reverse.
+**Warning signs:** A backfill-produced row has no way to tell it apart from a real capture; the retention purge property test only asserts row *counts* before/after, not surviving-row content equality.
 
-**Phase to address:** P-Economy
-
----
-
-### Pitfall 7: A `_build` cache that serves the wrong compiled artifacts
-
-**What goes wrong:**
-The CI cache-key contract in `ci.yml` (Phase 198 D-19) already names the main risks: no `restore-keys` for `_build`, and delete `_build/$MIX_ENV/lib/threadline` before compiling. Additional traps specific to this repo:
-
-- **Profile collision.** `verify-compile-no-optional` (`compile --no-optional-deps`), `verify-dialyzer` (`MIX_ENV=dev`), and `verify-test` (`MIX_ENV=test`) share one `mix.lock` but compile different dependency sets or environments. A key of runner+OTP+Elixir+lock lets the no-optional job restore a `_build` with Phoenix and LiveView compiled. That can false-green the "compiles without optional deps" proof. **Keep `verify-compile-no-optional` cache-free, and put `MIX_ENV` plus a job-profile segment in every `_build` key.**
-- **Floating OTP in the key.** Most jobs pass `otp-version: "27.0"`, the current test lane passes `"27"`, and the keys embed that literal. A local run showed OTP `27.3.4.15`. Whatever setup-beam resolves, the key does not record the actual patch version. Use the setup-beam step outputs (resolved versions) in `_build` and PLT keys, not the requested literal.
-- **deps/`_build` skew.** The `deps` cache has `restore-keys`, and `_build` must not. A near-miss `deps` restore paired with an exact `_build` hit is impossible by construction only if both keys hash the same lock. Keep them in lockstep.
-- **NIF artifacts.** lazy_html's precompiled NIF is downloaded to `~/.cache/elixir_make`, outside `_build`. A cache of it must carry the NIF/OTP version.
-- **Never add caches to `release.yml`'s publish path.** It is cache-free today. A cache written by any default-branch workflow can be restored into the publish job, which is the known cache-poisoning route into release artifacts.
-
-**Warning signs:**
-`verify-compile-no-optional` gets faster after the cache lands (it should not use it). "Module X is not available" or protocol-consolidation errors that clear on re-run. A cache hit on the first run after an OTP patch bump.
-
-**Phase to address:** P-Economy
+**Phase to address:** Whichever phase resolves the deferred `gen.backfill` item, plus the retention property-test phase for the surviving-row-integrity assertion. Acceptance check: retention property test includes a content-equality check on survivors, and (if backfill ships) a test asserting backfilled rows carry a distinguishing marker absent from trigger-captured rows.
 
 ---
 
-### Pitfall 8: Re-scoping Flake Detection by only changing its timeout or repeat count
+### Pitfall 17: CI exit-code or required-check changes silently breaking adopters' own pipelines that shell out to `mix`
 
-**What goes wrong:**
-The baseline shows three regimes: 16 fast failures, 12 cancellations at about 120 min, and 2 greens at 117–136 min. The job now has `timeout-minutes: 180`. Any job-level timeout cancels the job and reports nothing useful. Each full repeat (about 165 s) re-runs deterministic, heavyweight tests: the live-Dialyzer test, file-string contract tests, and `git worktree` tests. They cannot be flaky in the way the lane is hunting, and they dominate cost.
+**What goes wrong:** This milestone touches several CLI-adjacent surfaces that adopters' own CI could depend on: `history/3` gaining a limit (Pitfall 11, a runtime contract change, not a CI one, but adopters sometimes assert exit codes from scripts that call into Threadline's mix tasks), `mix threadline.gen.triggers` (the down-orphan fix changes its behavior), a possible `health --strict` mode (explicitly listed as a deferred candidate), and `:invalid_config` handling. If `health --strict` is added and adopters who already run `mix threadline.health` (non-strict) in their own CI pipelines see its *default* exit-code behavior change (e.g. warnings that previously exited 0 now exit non-zero because "strict" logic leaked into the default path, or vice versa a bug flips it), their pipelines go red or silently stop catching what they used to catch, with no compile-time signal — the mix-task equivalent of Pitfall 10's telemetry one-way-shape problem.
 
-**Why it happens:**
-"Repeat the whole suite N times" is the default of `--repeat-until-failure`, and the lane's budget was sized from the flag instead of from the question it answers.
+**Why it happens:** CLI exit codes are even less visible as "public API" than telemetry event shapes — there's no moduledoc convention forcing a documented contract, and it's easy for a `--strict` flag's implementation to accidentally share exit-code logic with the default path during refactor.
 
-**How to avoid:**
-- Decide what the lane is for. If it is intermittency in DB/async/tmp tests, run a **tagged or partitioned subset** (exclude `:live_dialyzer` and pure contract tests by tag) with a fixed repeat count sized from measured per-iteration time to finish in about 60 min.
-- Put a **step-level** `timeout-minutes` on the repeat step that is shorter than the job timeout, so the classify, upload, and issue steps always run. Teach `bin/classify-flake-run` a fourth outcome, `budget-exhausted-clean`, that files nothing and is not a failure.
-- Fix the 16 "broken" first-iteration failures as their own item. A lane that is deterministically red is not a flake lane.
-- Its deps cache key is `runner.os`-only, which the D-19 contract bans in `ci.yml`. The anti-regression grep only covers `ci.yml`. Fix the key and extend the grep to every workflow.
-- No automatic retries as a cure (PROJECT.md Out of Scope).
+**How to avoid:** If `health --strict` ships, keep its exit-code contract strictly additive: the non-strict default's exit code for every existing condition must be provably unchanged (a targeted test comparing exit codes before/after for each health-finding severity, not just "the task runs"), and `--strict`'s new stricter behavior must be opt-in only, gated behind the explicit flag with no default-path bleed. Document exit codes per finding severity in the task's `@moduledoc`/`--help` output, the same way the telemetry moduledoc documents event shapes, since that's the artifact adopters actually read before wiring a CI step to it.
 
-**Warning signs:**
-Any run that ends `cancelled`. Iterations per run below the configured count. The same test named in consecutive "flaky" issues (that makes it a deterministic bug).
+**Warning signs:** No existing test asserts specific exit codes per health-finding severity today (worth checking before assuming there is one); a `--strict` implementation shares a code path with the default rather than layering on top of it.
 
-**Phase to address:** P-Economy (P-TmpDir consumes its output)
-
----
-
-### Pitfall 9: A PII/local-path guard that is noisy, leaky, or scans the wrong tree
-
-**What goes wrong (observed shapes in this repo):**
-- **Binary false positives.** A naive `<home>/` grep over tracked files matches PNG screenshot baselines and `priv/fonts/*.woff2`.
-- **Legitimate paths.** Runner paths like `/home/runner/work/_temp/...` in archived CI logs under `.planning/audits/`, `~/.cache/ms-playwright` in workflow cache paths, `$HOME` in `bin/with-rehearsal-registry`.
-- **The guard leaking the pattern.** Hard-coding the maintainer's username in the regex or in a test fixture commits exactly the PII the guard exists to keep out.
-- **Scanning the working tree.** About 1,066 untracked machine-local critic files under `.planning/` make a working-tree scan red locally and green in CI.
-- **Recurrence.** Agent tooling requires absolute paths, so GSD artifacts (STATE.md, research files, verification logs) re-introduce paths every session. A scrub without a local gate regresses within one phase.
-
-**How to avoid:**
-- Scan **tracked files only, text only**: `git grep -I -nE ...` (`-I` skips binaries), or `git ls-files` filtered by `git diff --numstat` binary detection.
-- Match on shape, not on a name: `/(Users|home)/[A-Za-z0-9._-]+/` with a short generic allowlist (`runner`, `user`, `<user>`, `example`). Add Windows `C:\Users\` for completeness. Build any positive-case fixture at runtime (string concatenation) so the committed test file never contains a real-looking home path.
-- Keep scope narrow and deterministic: local absolute home paths, plus optionally hostnames matching `*.local`. Names in `LICENSE` and `mix.exs` package metadata are intentional public attribution. Secrets scanning is a different tool, so don't grow this guard into gitleaks.
-- Provide a documented per-line escape (a marker comment) and per-path allowlist, and make the guard **fail on unused allowlist entries** so it cannot rot.
-- Run it as `mix verify.no_local_paths` (or similar) inside `ci.all` and as a fast CI job, and it must not depend on `.planning/` existing (`planning_independence_contract_test`).
-- Add the negative test: a synthetic tracked-file fixture containing a runtime-built home path must make the guard exit non-zero.
-
-**Warning signs:**
-The guard's own source or test contains a real username. Allowlist entries with no justification. The guard passes locally while `git ls-files | xargs grep` still finds hits.
-
-**Phase to address:** P-Hygiene
-
----
-
-### Pitfall 10: A forward scrub that rewrites receipts, stages untracked files, or reports false completion
-
-**What goes wrong:**
-295 tracked `.planning/` files hold 978 home-path occurrences. Risks:
-- `git add .planning/` stages the 1,066 untracked critic files. That publishes machine-local data, the opposite of the goal.
-- A blanket regex rewrites content inside archived receipts, CI logs, and JSON (escaped `\/` forms). That breaks MILESTONE-GUIDE §8 ("do not rewrite historical receipts to look cleaner") and invalidates any recorded checksum over those files.
-- "No history rewrite" means the paths remain in git history. The scrub protects the tip of `main` only. That holds only while milestone branches land by **squash PR** and milestone tags stay local (existing rule). A direct push of the milestone branch would publish the unscrubbed history.
-- Executor subagents told "make the guard green" route around it: they add allowlist entries or move files (known behaviour).
-
-**How to avoid:**
-- Generate the file list with `git grep -l -I` on tracked files. Stage exactly that list (`git add -- <files>`). Assert before and after that `git status --porcelain` shows no new `A` entries outside the list.
-- Replace **only the path prefix**: repo root → repo-relative, other home paths → `<home>/...` or `<home>/...`. Never alter surrounding text. Add a short note in the scrub commit on what was normalized.
-- Check whether any tracked hash, lock, or evidence bundle covers a scrubbed file before rewriting it.
-- Scrub first, then land the guard in the same phase, so the guard starts green on a clean baseline and not with 295 allowlist entries.
-- Dispatch prompts must forbid touching the allowlist and the untracked critic tree, with a halt clause.
-
-**Warning signs:**
-Scrub diff lines that change more than a path prefix. The staged file count differs from the grep count. New `??` → `A` transitions under `.planning/`.
-
-**Phase to address:** P-Hygiene
-
----
-
-### Pitfall 11: An xref "cycles" gate that is either duplicate or unpassable
-
-**What goes wrong:**
-Adding `mix xref graph --format cycles --fail-above 0` without a label fails immediately on the 5 runtime cycles. Two are Ecto `belongs_to`/`has_many` pairs, which are idiomatic and should not be contorted away. Adding another compile-connected gate duplicates `verify.xref_cycles`.
-
-**How to avoid:**
-- Keep `verify.xref_cycles` (compile-connected, 0) as is.
-- If an all-cycles guard is wanted, make it a **ratchet**: fail above the current count (5), or better, an explicit allowlist of cycle member sets where each entry has a reason ("Ecto association"). New cycles then fail while existing ones are named.
-- Treat `Capture.AuditTransaction`↔`Semantics.AuditAction` as a layer-direction finding (CLAUDE.md: capture must not depend on semantics), not as allowed noise. Either fix it or record it as v1.44 debt with a reason.
-- Correct MILESTONE-GUIDE §9a's "clean" claim in the same change.
-
-**Warning signs:**
-A requirement text saying "no cycles" without naming the label.
-
-**Phase to address:** P-Hygiene
-
----
-
-### Pitfall 12: A newest-version lane that is red from day one or red for good
-
-**What goes wrong:**
-A floating "latest" lane changes under an unchanged commit. The repo compiles with `--warnings-as-errors`, and newer Elixir releases keep adding type-checker warnings, so a newest-Elixir lane is likely red on arrival. Newer PostgreSQL major images change defaults (auth method, data directory layout in the official image). The PgBouncer topology job pins an image and must not silently drift with the newest lane. If the lane is required, it blocks releases on upstream churn. If it is optional and nobody watches it, it becomes permanent red noise that teaches people to ignore red.
-
-**How to avoid:**
-- **Pin exact versions** in the "newest" lane and bump them deliberately in a dedicated commit. "Newest" means "newest we have verified", not "whatever is latest tonight".
-- Before wiring it in, run it once. If it is red, fix the findings or record each one. Do not land it red.
-- Make it one lane of the existing `verify-test` matrix only if it is green and pinned. Otherwise run it scheduled/non-required with the dedup-issue pattern. Either choice must be reflected in CONTRIBUTING `## CI Coverage` and the topology contract in the same commit.
-- Adding a matrix `lane` value changes the emitted check names (`Run test suite (<lane>)`). Branch protection uses only `CI required`, so this is safe, but the contract tests and CONTRIBUTING list the names.
-- PROJECT.md lists "Elixir/OTP version bumps in CI" as Out of Scope. The milestone's newest lane is an *added* lane, not a bump of `current`. Keep it that way.
-
-**Warning signs:**
-The lane's tracking issue stays open for more than one milestone. `continue-on-error: true` appears anywhere.
-
-**Phase to address:** P-Newest
-
----
-
-### Pitfall 13: Migrating every temp-dir test to `@tag :tmp_dir`
-
-**What goes wrong:**
-There are 46 `System.tmp_dir` uses. ExUnit's `:tmp_dir` puts directories under `<project>/tmp/<module>/<test>`, **inside the git worktree** (`tmp/` is gitignored). Tests that rely on being *outside* the repository change meaning. `clean_checkout_contract_test` runs `git worktree add` into a temp path and then `git status --porcelain --untracked-files=all` at the repo root. Any test that runs `git` in a temp directory before `git init` would now walk up into the Threadline repo. Also, `:tmp_dir` wipes the directory at test *start*, not end. Long test names become long path components.
-
-**How to avoid:**
-- Migrate only tests the flake lane or CI history names as flaky, or that collide under `async: true`. Leave the git-isolation and "outside the repo" tests on `System.tmp_dir!()` plus `unique_integer` (they already use that).
-- For each migrated test, check it does not shell out to `git` or `mix` with the temp directory as the working directory without its own `git init` / `mix.exs`.
-- Tests that start listeners should keep their paths short (Unix socket path limit is about 104–108 bytes).
-
-**Warning signs:**
-A migrated test passes alone and fails in `ci.all`. `git status` in the repo shows unexpected entries after a test run.
-
-**Phase to address:** P-TmpDir
-
----
-
-## Moderate Pitfalls
-
-### Release-PR double dispatch removed in the wrong direction
-`bootstrap-release-pr-ci` exists because a release-please PR opened with `GITHUB_TOKEN` triggers no `pull_request` CI. The double run appears when a PAT is configured (so `pull_request` fires) **and** the dispatch fires. Removing the dispatch unconditionally leaves the release PR with no CI when no PAT is present, which is exactly the silence its `always()` comment guards against. Make the dispatch conditional on the PAT's absence, or on no CI run already existing for the head SHA. The decision must key on head SHA, the same key `gate-ci-green` uses. **Phase:** P-Economy.
-
-### Live-Dialyzer fix that violates "honest default tests"
-Excluding `:live_dialyzer` in `test_helper.exs` to save minutes is the right *kind* of change, but CLAUDE.md requires updating `test_helper.exs` and docs together, and the check must still run once, in the PLT-cached `verify-dialyzer` job or an equivalent. The existing test "Dialyzer is one blocking local and current-lane CI path with an exact measured PLT cache" must be edited in the same commit. Decide consciously whether the OTP 26 Dialyzer run on the min lane is being dropped. **Phase:** P-Economy.
-
-### "Fastest likely failure first" implemented with `needs:` chains
-Chaining heavy jobs behind `verify-format` saves minutes but lengthens the critical path. It also hides test results behind a lint failure (two round trips for the contributor), and produces "skipped" heavy jobs that `alls-green` must treat as failures (it does, as long as they are not skip-listed). Prefer ordering steps within jobs (compile → xref → test is already right) and keep fast lint jobs parallel. Gate only the costliest browser and capture lanes behind compile, if measurement shows a win. **Phase:** P-DX.
-
-### Renaming jobs across contract surfaces
-Job `name:` may change and `id:` may not. But `ci_topology_contract_test.exs`, CONTRIBUTING's roster, the ruleset byte-exact check on `CI required`, and `verify-example-browser`'s "byte-identical name" comment all read names. Rename in one commit that touches all of them. Never rename `CI required`. **Phase:** P-DX.
-
-### Measuring the baseline once and optimizing against it forever
-v1.41 found a "never re-measured red baseline". Re-measure after each economy change (per-job durations, runner-minutes per PR and per push, critical path) and cite run IDs. Runner cost and wall-clock time are separate metrics (SEED-006 notes). **Phase:** P-Baseline, then every P-Economy change.
-
----
-
-## Minor Pitfalls
-
-- **Stale local `public.threadline_capture_changes()` masks CI failures.** Any cache or `_build` change validated only locally can pass because of it. Reproduce CI-only results by renaming it away first. **Phase:** P-Economy.
-- **`ci.all` red at Dialyzer is usually a local PLT cache miss** (`mix dialyzer --plt`), not a regression caused by cache-key work. **Phase:** P-Economy.
-- **Never run Playwright directly.** Without an app server it produces about 45 spurious failures. Use `mix verify.example_browser`. **Phase:** P-Economy (Browser-full re-scope).
-- **`.tool-versions` must pin erlang and elixir**, or bare `mix` fails. The working tree currently has an untracked `.tool-versions`. Decide whether to track it, because the newest-lane work will want a local way to switch. **Phase:** P-Newest.
-- **Push and merge are classifier-blocked for agents.** A direct user grant unblocks `git push`. `gh pr merge` and the `production-hex` approval stay with the maintainer. Plan the release patch handoff accordingly. **Phase:** closeout.
+**Phase to address:** Whichever phase resolves `health --strict`/`:invalid_config` (explicitly still "on research" per PROJECT.md). Acceptance check: an exit-code-contract test matrix (severity x strict/non-strict) added alongside the feature, not just a happy-path CLI smoke test.
 
 ---
 
 ## Technical Debt Patterns
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| `ignore_advisories` entry with no expiry | Unblocks CI today | Silent permanent acceptance of a vulnerability | Only with a reason, a reachability claim, and a review-by date enforced by a test |
-| `continue-on-error: true` on the newest lane | Lane can land red | Red becomes invisible noise | Never |
-| `_build` cache with `restore-keys` | More cache hits | Stale compiled artifacts, false greens | Never (already banned in ci.yml) |
-| Flake lane bounded only by job timeout | Simple | Cancelled runs report nothing | Never; use a step timeout plus a budget-exhausted classification |
-| Allowlisting the 295 files in the path guard instead of scrubbing | Guard lands green immediately | The allowlist becomes the policy | Never |
-| All-cycles xref gate at `--fail-above 5` without naming cycles | Ratchet in one line | A new cycle can replace a fixed one unnoticed | Short-term only; move to a named-cycle allowlist |
-
-## Integration Gotchas
-
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Hex advisories | Assuming the runner's Hex matches local | Pin and assert Hex ≥ 2.5.1 in the audit job |
-| re-actors/alls-green | Adding `allowed-skips` without skip justification | Classifier required and never skipped; `ci-required` checks each skip against classifier output |
-| setup-beam | Cache keys from requested version literals | Keys from resolved-version step outputs |
-| actions/cache | Sharing `_build` across MIX_ENV or `--no-optional-deps` profiles | Profile and env segments in the key; no cache for no-optional |
-| GitHub `pull_request` trust | Using `pull_request_target`/`workflow_run` to get diff context | Plain `pull_request` with `git diff` against merge-base; fail to full |
-| release-please | Dispatching CI unconditionally when a PAT also triggers it | Dispatch only if no run exists for the head SHA |
-| ExUnit `:tmp_dir` | Assuming it is outside the repo | It is `<project>/tmp/...`; keep git-isolation tests on the system temp dir |
+|----------|--------------------|-----------------|------------------|
+| Writing a property's expected value with the same sort/order logic as the code under test | Fast to write, passes immediately | Tautological — catches nothing (Pitfall 3) | Never |
+| Leaving StreamData `max_runs` at the 100 default for DB-touching properties | No tuning effort | Suite wall-clock creep, fights this milestone's own async-cut goal (Pitfall 4) | Only for pure, non-DB properties |
+| Flipping `async: true` on a test file without checking for trigger-capture or global `Application.env` dependence | Immediate parallelism | Flaky cross-test pollution, `too_many_connections` (Pitfalls 13, 14) | Never without the dependency check first |
+| Adding telemetry metadata fields "for debugging" (raw query, actor id, reason text) | Richer local debugging today | PII/redaction leak, unbounded cardinality, one-way contract lock-in (Pitfalls 5, 7, 10) | Never in emitted metadata; put it in `Logger.debug` instead, which isn't a public contract |
+| Backfill writing rows indistinguishable from trigger-captured ones | Simpler backfill implementation | Breaks tamper-evidence claim permanently for that dataset once shipped | Never, unless explicitly marked (Pitfall 16) |
+| Cutting a guard test because it "looks tautological" without checking for a v1.43 mutation control | Faster rebalance | Reopens a gap 220/221 just closed (Pitfall 12) | Never without the cross-check |
 
 ## Performance Traps
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Deterministic heavy tests inside repeat-until-failure | 165 s per iteration, cancellations | Exclude by tag from the flake subset | Already broken (12 cancellations) |
-| Cold Dialyzer PLT in both test lanes | About 9-minute budget test inside a 20-minute job | Run once, in the PLT-cached job | Now; grows with deps |
-| Browser-full on every push plus nightly | About 17 min per push and 14 min per night for mostly duplicate projects | Set difference versus PR lane, contract-tested | Now |
-| Concurrent-job cap on a 15-job matrix | PR waits on queued jobs | Measure the queue time separately from the run time | When several PRs overlap |
+| Unbounded `history/3` before the limit ships | Slow queries on tables with long-lived rows and heavy update rates | The limit itself is the fix; see Pitfall 11 for how not to break it | Already breaking for any adopter with a hot row updated thousands of times |
+| Property `max_runs` left at default against real DB writes | CI wall-clock grows every time a new property is added | Explicit small `max_runs` per DB-touching property (Pitfall 4) | As soon as 3-4 more properties land at default settings |
+| Async conversion without raising `pool_size`/`max_connections` | `too_many_connections` under concurrency | Measure connection ceiling before enabling more parallel DB tests (Pitfall 13) | As soon as concurrency exceeds the pool size, which is exactly what this phase intends to increase |
 
 ## Security Mistakes
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Treating mint 1.10.0 as "test-only" | Response-smuggling advisory in an optional runtime dependency path | Lock bump; document that adopters resolve their own mint |
-| Caches restored into the publish job | Cache poisoning into a Hex release | Keep `release.yml` publish path cache-free; add a contract assertion |
-| Guard test fixture containing a real home path | The guard leaks what it protects | Build fixtures at runtime |
-| Pushing the milestone branch rather than squash | Publishes unscrubbed `.planning/` history | Squash PR only; tags stay local |
-
-## UX Pitfalls (contributor DX)
-
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Audit gate named "Run hex audit" | Contributor can't tell it's not their change | Name it for the outcome, e.g. "Dependency advisories (hex.audit)", and print how to acknowledge an advisory |
-| Classifier-skipped jobs with no explanation | "Why didn't tests run?" | The classifier writes a step summary: changed paths → lanes selected → reason |
-| Flake issue says "flaky" for a budget timeout | False alarms | Separate `budget-exhausted-clean` outcome |
+| Telemetry metadata carrying row values, actor identifiers, or raw SQL | PII/secret leak to any attached handler, including third-party APM/metrics forwarders | Allowlist metadata value types; counts/durations/atoms only (Pitfall 5) |
+| `:telemetry.span/3` exception metadata echoing a Postgres error that contains a literal offending value | Same leak, via stacktrace/exception metadata instead of the happy path | Don't use `span/3` for tuple-returning functions; scrub exception metadata (Pitfall 9) |
+| Backfilled audit rows indistinguishable from real capture | An attacker (or a careless script) could insert synthetic "history" that reads as authoritative | Mark backfilled rows distinctly; never let backfill silently pass as capture (Pitfall 16) |
+| Orphaned per-table capture function left by an incomplete `down` | Residual trigger-adjacent function in `pg_proc`, echoing the v1.42 collision class of bug | Verify against `pg_proc`, not just trigger listings, after `down` (Pitfall 15) |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Audit gate:** negative test proves it fails on a known-advisory fixture; Hex version asserted; example lock audited.
-- [ ] **Advisory fix:** `mix hex.audit` exits 0 on root **and** example; mint fixed too, not only lazy_html; min lane green.
-- [ ] **`_build` cache:** `verify-compile-no-optional` does not restore it; keys include MIX_ENV and resolved OTP/Elixir; `rm -rf _build/$MIX_ENV/lib/threadline` present.
-- [ ] **Flake lane:** a run completes, not cancelled, with classification output; `runner.os` key fixed; anti-regression grep covers all workflows.
-- [ ] **Duplicate removal:** every removed proof has a "still caught by job/trigger" line; Playwright project union contract-tested.
-- [ ] **Path guard:** scans tracked text files only; no real username anywhere in the guard; unused allowlist entries fail; runs without `.planning/`.
-- [ ] **Scrub:** staged count equals grep count; zero `??` → `A` transitions; prefix-only diff.
-- [ ] **xref:** requirement names the label; §9a corrected; Capture↔Semantics runtime cycle dispositioned.
-- [ ] **Classifier:** fixture tests include unknown path → full, dispatch → full, zero-SHA push → full; `main` push never skips; `ci-required` verifies each skip.
-- [ ] **Every CI topology change:** CONTRIBUTING roster, `ci_topology_contract_test.exs`, and `ci-required` `needs:` changed in one commit.
+- [ ] **Property tests exist and pass:** Often missing a mutation control proving they'd fail on a real regression — verify by temporarily breaking the invariant in a throwaway commit and confirming red (Pitfall 3).
+- [ ] **Telemetry events for export/retention/query/install:** Often missing a raising-handler test and a PII-allowlist check on metadata — verify both exist per event (Pitfalls 5, 6).
+- [ ] **`history/3` limit shipped:** Often missing an upgrade-guide/CHANGELOG note and a truncation-detecting test against realistic fixture sizes — verify the note exists and the old no-limit call path is deliberately tested (Pitfall 11).
+- [ ] **Guard-test rebalance done:** Often accidentally includes CI-topology/CONTRIBUTING contract tests that have a v1.43 mutation control — verify the cut list was cross-checked against `.planning/milestones/v1.43-MILESTONE-AUDIT.md` (Pitfall 12).
+- [ ] **Serial-core cut / async conversion:** Often missing a wall-clock before/after measurement and a `too_many_connections` regression check across repeated runs — verify both (Pitfall 13).
+- [ ] **`gen.triggers` down-orphan fix:** Often verified only by "trigger is gone," not by "function is gone from `pg_proc`" — verify with a direct `pg_proc` query, not just the trigger listing (Pitfall 15).
+- [ ] **Bench ExUnitProperties compile fix:** Often fixed locally without a CI job actually exercising the bench project's compile step going forward — verify the fix is proven by a job that would have caught the original break, not just a one-time local `mix compile` run.
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| New advisory blocks release | LOW | Add a dated `ignore_advisories` entry with reachability reason, ship, then fix in the next patch |
-| Poisoned `_build` cache | LOW | Bump a key version segment; delete caches with `gh cache delete` |
-| Laundered skip discovered | MEDIUM | Remove the `allowed-skips` entry (fail-closed), re-run `main`, audit runs since the change for untested merges |
-| Scrub staged untracked files | MEDIUM | Unstage before commit; if committed locally, amend before any push (tags and branch are local) |
-| Newest lane permanently red | LOW | Re-pin to the last green version, file the findings, bump deliberately later |
+|---------|----------------|-----------------|
+| Tautological property shipped and later found | LOW | Rewrite the expected-value computation with an independent method; add the mutation control retroactively; no data-shape change needed |
+| Telemetry event shape needs to change post-release | HIGH | Requires an additive-only new event or a documented deprecation window at v1.45; cannot silently rename/remove a key once adopters may have attached handlers |
+| `history/3` default limit found to be wrong (too low/high) post-release | MEDIUM | Ship a follow-up `fix:`/`feat:` adjusting the default with a CHANGELOG note; still a behavior change for callers relying on the old default, so treat with the same care as the original change |
+| Async conversion caused `too_many_connections` in CI/shared local PG | LOW-MEDIUM | Revert the specific file(s) to `async: false`, or cap `pool_size`; re-measure before re-attempting |
+| Backfilled rows shipped without a distinguishing marker | HIGH | Requires a follow-up migration to retroactively tag or separate backfilled rows from captured ones, and a public erratum since any exports/reports already taken are now known-tainted for that window |
+| Guard test cut that was load-bearing (CI topology gap reopens) | MEDIUM | Restore the specific test/mutation control from git history; re-verify against the same repro that originally proved it load-bearing |
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Stale baseline (mint, xref, live Dialyzer) | P-Baseline | Baseline doc re-derived from commands with outputs cited |
-| Time-varying audit gate / ignore rot | P-Supply | Expiry test plus scheduled `main` audit with issue upsert |
-| Hex-version-dependent gate | P-Supply | Hex version assertion plus negative fixture test |
-| Public constraint overcorrection | P-Supply | Advisory commit touches `mix.lock` only; both lanes green |
-| Coverage laundering via duplicate removal | P-Economy | "Still caught by" lines; Playwright union contract |
-| `_build` cache poisoning or profile collision | P-Economy | No-optional job has no cache step (contract test); key grep |
-| Flake lane budget and design | P-Economy | One completed classified run; iterations = configured count |
-| Release-PR double dispatch | P-Economy | Release PR shows exactly one CI run per head SHA, with or without PAT |
-| Live Dialyzer duplication | P-Economy | Test excluded by tag with docs updated; runs once in the cached job |
-| Job naming and ordering | P-DX | Topology and ruleset contract tests green; no `needs:` chain added without measurement |
-| Newest lane noise | P-Newest | Pinned versions; landed green; CONTRIBUTING row present |
-| tmp_dir semantics | P-TmpDir | Only named flaky tests migrated; git-isolation tests untouched |
-| Path guard noise and leak | P-Hygiene | Negative test; `git grep -I` scope; no username in the repo |
-| Scrub staging and receipts | P-Hygiene | Staged = grep list; prefix-only diff |
-| xref gate shape | P-Hygiene | Named-cycle allowlist or ratchet; §9a corrected |
-| Skip laundering and misclassification | P-Classifier | Fixture-tested classifier; `ci-required` skip justification step |
+|---------|-------------------|---------------|
+| 1. Shrinking against a live shared DB | Property-test phase | 20x local repeat run green; `async: false` unless proven pure |
+| 2. Tie generators that don't match the real tiebreak | Cursor/history property-test phase | Mutation control: flip `desc, desc` to `desc, asc`, confirm red |
+| 3. Tautological properties | Every property-test phase | Mutation control cited per property in VERIFICATION.md |
+| 4. Property runtime creep | Property-test phase + serial-core-cut phase, sequenced together | Suite wall-clock measured before/after both phases |
+| 5. PII in telemetry metadata | Telemetry phase | Metadata-type allowlist test; redaction property test also asserts on telemetry |
+| 6. Handler crash silently detaches | Telemetry phase | Raising-handler test per new event family |
+| 7. Cardinality explosion | Telemetry phase | Documented metadata keys reviewed for boundedness |
+| 8. Double-emit inside transaction | Telemetry phase (export/retention) | Rollback test: no event fires if enclosing transaction fails |
+| 9. `span/3` breaking tuple-return contracts | Telemetry phase | Return-shape test unchanged after telemetry added |
+| 10. One-way event names/shapes | Telemetry phase, carried into v1.45 | Moduledoc documents every event; v1.45 scope note added |
+| 11. `history/3` limit breaking return shape/behavior | `history/3` phase | Upgrade-guide note + truncation-detecting property test |
+| 12. Cutting load-bearing guard tests | Guard-test-rebalance phase | Cut list cross-checked against v1.43 mutation controls; required-aggregate job count diffed |
+| 13. Async conversion vs. trigger-capture/connections | Serial-core-cut phase | Wall-clock + zero new `too_many_connections` over 10 runs |
+| 14. Global config state races under async | Serial-core-cut phase | `mix verify.flake` run against newly-async set |
+| 15. `gen.triggers` down orphan | `gen.triggers` down-orphan phase | Direct `pg_proc` query after regenerate-then-down-all repro |
+| 16. Backfill/retention mutating audit history | `gen.backfill` resolution phase + retention property-test phase | Survivor content-equality test; backfill marker test if shipped |
+| 17. CI/CLI exit-code contract breaks | `health --strict`/`:invalid_config` phase | Exit-code matrix test (severity x strict/non-strict) |
 
 ## Sources
 
-- Repo, observed 2026-09-26 [HIGH]: `.github/workflows/{ci,flake-detection,browser-full,release}.yml`, `.github/rulesets/main.json`, `mix.exs` aliases, `test/test_helper.exs`, `test/threadline/{ci_topology_contract,dialyzer_slice_contract,clean_checkout_contract}_test.exs`, `.gitignore`; command output from `mix hex.audit`, `mix hex.info lazy_html|mint`, `mix deps.tree`, `mix xref graph --format cycles` (with and without `--label compile-connected`), `git grep` path counts.
-- `mix help hex.audit` (Hex 2.5.1, local) [HIGH]: `ignore_advisories`/`ignore_retirements`; non-matching entries only warn.
-- Hex changelog (github.com/hexpm/hex CHANGELOG.md) [LOW, single source]: 2.5.0 advisory warnings in `deps.get` and dependency policies; 2.5.1 ignore configs.
-- hexdocs.pm/hex/Mix.Tasks.Hex.Audit.html; Elixir Forum "How do you use mix hex.audit in your CIs?" [LOW].
-- `.planning/PROJECT.md` (Current Milestone, Out of Scope), `.planning/MILESTONE-GUIDE.txt` §8, §9, §9a, §13, `.planning/seeds/SEED-006-ci-feedback-loop-cost-and-latency.md`.
-- Maintainer memory (project-specific gotchas): PLT cache miss, Playwright direct-run, 8 pre-existing screenshot failures, stale public capture function, executor precondition workarounds, push/merge classifier block, milestone tags stay local.
-- GitHub Actions behaviour (skipped required checks count as passing; cache scope by ref; `pull_request_target` trust) [MEDIUM, documentation plus the repo's own D-09/D-10 comments].
+- Repo-grounded (HIGH confidence): `.planning/PROJECT.md`, `.planning/MILESTONE-GUIDE.txt`, `.planning/RETROSPECTIVE.md` (v1.41–v1.43 sections), `.planning/milestones/v1.43-MILESTONE-AUDIT.md`, `CLAUDE.md`, `lib/threadline/telemetry.ex`, `lib/threadline/query/cursors.ex`, `lib/threadline.ex`, `lib/threadline/query.ex`, `lib/mix/tasks/threadline.gen.triggers.ex`, `test/test_helper.exs`, repo `grep` for `async: false` / `Ecto.Adapters.SQL.Sandbox` usage (56 files serial, no sandbox found).
+- [StreamData / property-based testing with Ecto — Elixir Forum: "Property-based testing slow when hitting the database"](https://elixirforum.com/t/property-based-testing-slow-when-hitting-the-database/58666)
+- [stream_data — GitHub (whatyouhide/stream_data)](https://github.com/whatyouhide/stream_data)
+- [8 Common Causes of Flaky Tests in Elixir — AppSignal blog](https://blog.appsignal.com/2021/12/21/eight-common-causes-of-flaky-tests-in-elixir.html)
+- [Carbonite — Audit trails for Elixir/PostgreSQL based on triggers (GitHub, bitcrowd/carbonite)](https://github.com/bitcrowd/carbonite)
+- [Carbonite API reference / README (hexdocs.pm/carbonite)](https://hexdocs.pm/carbonite/api-reference.html)
+- MEDIUM confidence, from general ecosystem knowledge (not independently re-fetched this session): `:telemetry`'s documented handler-crash-detaches behavior; Oban's telemetry/`args`-in-metadata PII guidance and Oban Web scrubbing; Ecto's `Telemetry.Metrics` tag-cardinality guidance against unbounded `:query`/param tags; PaperTrail/Logidze's additive-only versioning-row design as prior art for audit-trail mutation discipline; Hypothesis/QuickCheck's well-known "model equals implementation" tautological-property anti-pattern.
 
 ---
-*Pitfalls research for: v1.43 Supply Chain, CI Economy and Repo Hygiene*
-*Researched: 2026-09-26*
+*Pitfalls research for: Threadline v1.44 Behavioral Depth (Properties, Twins, Telemetry)*
+*Researched: 2026-09-30*

@@ -1,290 +1,211 @@
-# Stack Research: v1.43 Supply Chain, CI Economy and Repo Hygiene
+# Stack Research: v1.44 Behavioral Depth — Property Testing
 
-**Domain:** CI, supply-chain and repo-hygiene tooling for an Elixir Hex library (`threadline` 0.11.0)
-**Researched:** 2026-09-26
-**Confidence:** HIGH for versions, advisory facts and CI behaviour. These were checked against primary sources: hex.pm API, OSV API, `gh api` release and tag data, the Hex and Elixir source at tagged versions, local `mix` runs, and logs from the last green CI run. MEDIUM for the policy recommendations, which are my inference and are marked as such.
+**Domain:** Property-based testing strategy for an Elixir/Ecto/PostgreSQL audit library (`threadline` 0.11.2)
+**Researched:** 2026-09-30
+**Confidence:** HIGH for the bench compile fix and the DB-sandbox strategy (both reproduced locally against this repo). MEDIUM for ecosystem precedent (web sources, not exhaustively cross-checked) and for exact `max_runs` numbers, which are a judgment call bounded by the existing two property files' precedent.
 
-**Scope note:** This file covers tooling only. The product itself is validated and was not re-researched. No repo files were modified, except that `mix hex.audit`, `mix hex.outdated`, `mix xref` and `mix deps.unlock --check-unused` were run read-only.
-
-**Confidence labels in this file:**
-- **[VERIFIED]** means checked against a primary source or command output.
-- **[WEB]** means a single web source that was not cross-checked.
-- **[INFERENCE]** means my reasoning from the verified facts.
+**Confidence labels:**
+- **[VERIFIED]** — reproduced locally against this repo's code, or read directly from source.
+- **[WEB]** — a web source, not independently cross-checked against a second source.
+- **[INFERENCE]** — reasoning from the verified facts above it.
 
 ---
 
-## 0. Findings that change the milestone scope
+## 0. What already exists (read first)
 
-Read these first. Several of them correct the baseline in PROJECT.md.
-
-1. **There are now two advisories in the root lock, not one.** [VERIFIED, `mix hex.audit` exits 1]
-   - `lazy_html 0.1.12`: EEF-CVE-2026-92106 / GHSA-8rqp-v692-v82q, LOW. It is fixed in **0.1.13**, per OSV `fixed: 0.1.13`. 0.1.13 was released 2026-09-25 and requires `elixir: ~> 1.15`, so the min lane is fine.
-   - `mint 1.10.0`: **EEF-CVE-2026-82672** / GHSA-rj5m-69wp-cxq9, MEDIUM, an HTTP/1 response-smuggling issue. It is fixed in **1.10.1**, released 2026-09-19 with `elixir: ~> 1.15`. mint arrives transitively through `req -> finch -> mint`, where `req` is an optional runtime dep.
-   - Adopters resolve their own lock, so both fixes are lock-only (`mix deps.update lazy_html mint`). Neither needs a `mix.exs` change.
-   - **Inference:** a CHANGELOG line for mint is still worthwhile, because `req` is an optional runtime integration.
-2. **`bench/mix.lock` has 8 advisories, 3 of them HIGH.** [VERIFIED]
-   - The affected versions are postgrex 0.22.0 (×3, one HIGH), plug 1.19.1 (×4, two HIGH) and decimal 2.3.0.
-   - `bench/` is not audited by anything in CI.
-   - The audit gate has to cover all three tracked lockfiles: `mix.lock`, `examples/threadline_phoenix/mix.lock` (clean today) and `bench/mix.lock`.
-3. **CI does not run the OTP it claims to.** [VERIFIED from run logs, 2026-09-26]
-   - Every non-matrix job pins `otp-version: "27.0"`. With setup-beam's default `version-type: loose`, that resolves to **OTP-27.0.1**, a July 2024 build. This applies to the Dialyzer "current toolchain" job, Credo, format, browser, capture and others.
-   - The `current` test lane pins `"27"` and gets **OTP-27.3.4.18**.
-   - Local `.tool-versions` says `27.3.4.15`, and that file is **untracked** (`?? .tool-versions`).
-   - So the result is three different OTPs, and the Dialyzer PLT key (`otp27.0`) is honest only about the stale one.
-   - `test/threadline/ci_topology_contract_test.exs:396` *asserts* `otp-version: "27.0"`, which pins the drift in place.
-4. **Node 20 actions are past GitHub's removal date.** [VERIFIED]
-   - GitHub set Node 20 removal for **2026-09-23**. The pinned `actions/cache@v4`, `actions/upload-artifact@v4` and `googleapis/release-please-action@v4` all declare `using: node20`.
-   - They currently run because the runner forces them onto Node 24, which produces deprecation noise in logs. This is a latent break, not a hypothetical one.
-   - `test/threadline/ci_workflow_parity_contract_test.exs:255` asserts `actions/cache@v4`.
-5. **The `ubuntu-22.04` image entered deprecation on 2026-09-17.** [VERIFIED, actions/runner-images#14254]
-   - Brownouts run 2027-03-23 through 04-13, and the image is unsupported from **2027-04-17**.
-   - The min lane (`ubuntu-22.04`) should move to `ubuntu-24.04`. setup-beam supports OTP 24.3–29 on 24.04.
-6. **The xref-cycles gate already exists.** [VERIFIED]
-   - `verify.xref_cycles` (`--label compile-connected --fail-above 0`) is in `ci.all` and in both test lanes, and it is clean.
-   - `mix xref graph --format cycles` with **no label** finds **5 runtime cycles**, all of length 2:
-     - `audit_transaction <-> audit_change`
-     - `audit_transaction <-> semantics/audit_action`
-     - `investigation <-> threadline`
-     - `mechanical_checker <-> mechanical_checker/contrast`
-     - `critic_trust/repository_boundary <-> mix/tasks/critic.measure`
-   - `capture/audit_transaction <-> semantics/audit_action` crosses the Capture/Semantics layer boundary. **Inference:** this is most likely an Ecto association back-reference, but it needs a look under the "layers stay one-directional" rule (guide §9a).
-7. **Secret scanning and push protection are already enabled** on the repo (`security_and_analysis`). [VERIFIED] Dependabot security updates are disabled, `/vulnerability-alerts` returns 404 (alerts off), and there is no `.github/dependabot.yml`.
-8. **The local-path baseline has grown to 298 files, all under `.planning/`.** [VERIFIED, `git grep`, 0.15 s]
-   - Distinct prefixes: the maintainer home directory (978 hits), the GitHub runner home `home/runner/` (350 hits, which is CI log excerpts and not PII) and one `home/timeline/` false positive.
-   - 5 files contain macOS temp paths (`/private/var`, `/var/folders`, `/private/tmp`).
+- `{:stream_data, "~> 1.4", only: :test}` in `mix.exs:113-118`, pinned deliberately below the 1.15 Elixir floor. [VERIFIED]
+- Two property files, both **pure** (no DB), both `async: true`, both pass `max_runs:` explicitly (300, not StreamData's default 100): `test/threadline/capture/naming_property_test.exs`, `test/threadline/mix/trigger_migration_property_test.exs`. [VERIFIED]
+- `test/support/naming_generators.ex` is the one shared generator module (`use ExUnitProperties`, `pair_gen/0`, `ident/1`, `fixed_ident/1`, `pair_of_pairs_gen/0`), reused by both files via `import`. [VERIFIED]
+- `Threadline.DataCase` (`test/support/data_case.ex`): **no Ecto SQL Sandbox** — triggers fire at the DB level, outside sandbox awareness — so every DB-touching test cleans audit tables in `setup` and defaults to **`async: false`** so tests in one module never race the same DB. This is the established, load-bearing pattern for any DB work in this suite. [VERIFIED]
+- `Threadline.AsyncHelpers.assert_eventually/2` is the house pattern for polling instead of `Process.sleep`. [VERIFIED]
+- The suite is ~91% serial (per PROJECT.md); adding slow, serial, DB-touching properties directly taxes the number the milestone wants to *improve*, not just hold steady.
 
 ---
 
-## Recommended Stack
+## 1. Per-target verdicts
 
-### Core tooling (adopt)
+### 1. Cursor paging (`lib/threadline/query/cursors.ex`, `actor_history_page.ex`, `row_history_page`)
 
-| Tool | Version | Purpose | Why recommended |
-|---|---|---|---|
-| **`mix hex.audit`** (built into Hex) | Hex **>= 2.5.0**. CI installs **2.5.1** today [VERIFIED from log `hex-2.5.1`] | The CI audit gate. It reports retired packages **and security advisories**, and exits 1 on either. | Advisory reporting landed in Hex 2.5.0 (hexpm/hex#1150, released 2026-06-28). Its source is the EEF CNA / OSV feed: the lazy_html advisory was flagged the day it was published. `ignore_advisories` / `ignore_retirements` (Hex 2.5.1) gives a reviewed escape hatch in `mix.exs :hex` that fails nothing and warns when an entry goes stale. It needs zero new dependencies. |
-| **`mix deps.unlock --check-unused`** | Elixir >= 1.15 (flag present in 1.15.8) [VERIFIED] | Fails if `mix.lock` carries entries no dep needs | Cheap and deterministic, and it currently passes (exit 0). It stops a lockfile from keeping a dropped, vulnerable dep that the audit would still flag. |
-| **`mix deps.get --check-locked`** | Elixir >= 1.15 (present in 1.15.8, absent in 1.14) [VERIFIED] | Fails if `mix.exs` and `mix.lock` disagree | This turns "someone edited a requirement but not the lock" into a named, fast failure. It can replace the plain `mix deps.get` in the audit job. |
-| **`erlef/setup-beam`** | **v1.24.1** (2026-06-28), `@v1`, node24 [VERIFIED] | BEAM toolchain in every job | Use `version-file: .tool-versions` with `version-type: strict` for every non-matrix job. The parser ignores the `nodejs` line and understands the `-otp-27` suffix [VERIFIED in `src/setup-beam.js`]. This needs `.tool-versions` to be **committed**. |
-| **`actions/cache`** | **v5** (v5.1.0) or v6 (v6.1.0). Use split `actions/cache/restore` + `actions/cache/save` [VERIFIED node24] | deps, deps-only `_build`, PLT, Playwright | v4 is node20 and past removal. v5 is the smallest step (a runtime bump only). v6 only migrates internals to ESM. **Pick v5** unless another reason to take v6 appears. |
-| **`actions/upload-artifact`** | **v7** (v7.0.1). v6 is the first major that *defaults* to node24 [VERIFIED] | flake log, Playwright traces | v5 still ran node20 by default. v7 adds an opt-in `archive: false` and is otherwise compatible. |
-| **`googleapis/release-please-action`** | **v5** (v5.0.0) [VERIFIED] | Release PRs | The only breaking change in v5.0.0 is node24 (plus release-please 17.3 -> 17.6). Treat it as its own commit, and rehearse it through the release runbook because the release lane is fragile. |
-| **Composite action** `.github/actions/setup-elixir/action.yml` | n/a (GitHub `using: composite`) | Dedupe the checkout-to-`deps.get` setup across about 14 jobs | This is a step-level dedupe that **keeps job IDs and check names unchanged**. See "What NOT to use" for why a reusable workflow is the wrong tool here. |
-| **`git grep`-based guard script** `bin/check-local-paths` + `mix verify.no_local_paths` | git (runner-provided) | PII / absolute-local-path guard | It scans only **tracked** files, so it never sees deps/, _build/ or node_modules. It runs in about 0.15 s across the whole repo, needs no install, runs identically locally and in CI, and can be unit-tested like `bin/classify-flake-run`. |
+**Verdict: INCLUDE, as a pure property. No DB.**
 
-### Supporting additions
+`Cursors` is already a pure module over in-memory data: `actor_history_trim/3` (`cursors.ex:74-84`), `actor_history_cursor/2` (`:88-91`), `timeline_page_next_cursor/2` (`:157-162`), and the two validators. None of it queries the database — the DB only supplies the ordered list that these functions slice. That means the actual paging *invariant* (pages joined == full list, no dupes, no gaps, tie-heavy `captured_at`/`occurred_at` handled) can be tested by generating an already-sorted-by-tiebreak list of synthetic entries **in memory**, then driving `actor_history_trim/3` / `timeline_page_next_cursor/2` repeatedly with varying `limit`/`page_size`, exactly the way `row_history_page` (`lib/threadline/query.ex:81-101`) and `actor_history` (`query.ex:531-559`) drive them against real query results. This tests the real bug class (off-by-one at page boundaries, `has_more?`/`reverse?` interaction, `(occurred_at, id)` tuple-comparison ties) without touching PostgreSQL.
 
-| Item | Version | Purpose | When to use |
-|---|---|---|---|
-| Hex `cooldown` config | Hex >= 2.5.0 [VERIFIED feature, from changelog] | Holds freshly published versions back for N days during resolution | Supply-chain hygiene against compromised releases. **Inference:** set `7d` for this repo's own resolution. It does not affect adopters. It bypasses cooldown for locked versions that carry advisories, so security fixes are never held back [VERIFIED, changelog]. *Verify where it is configured* (`mix.exs :hex` block vs `mix hex.config` vs `HEX_COOLDOWN`) before relying on it [MEDIUM]. |
-| `mix hex.outdated --within-requirements` | Hex 2.5.1 | Freshness signal. Exits 1 only if an in-range update exists [VERIFIED from help text] | The dependency-freshness policy (§Freshness). Today it would flag ex_doc, lazy_html, oban, phoenix and phoenix_live_view. `yaml_elixir` shows "Update not possible", which is correct because of the deliberate `~> 2.11.0` floor pin. |
-| ExUnit `@tag :tmp_dir` | Elixir >= 1.11, so the 1.15 min lane is fine [VERIFIED] | Replace ad-hoc `System.tmp_dir!()` + `unique_integer` dirs (40 test files use `System.tmp_dir`, and only 1 uses `:tmp_dir`) | Semantics are covered in §5. |
-| `mix test --repeat-until-failure N --max-failures 1` | Elixir >= **1.17** [VERIFIED, help text] | Flake lane budget | Only on the current or latest toolchain. The 1.15 min lane cannot run it. |
-| Dependabot **alerts** (a repo toggle, not a bot) | n/a | Async alerts for the **GitHub Actions** and **npm** (`examples/threadline_phoenix/e2e/package-lock.json`) ecosystems | This is a maintainer action (settings -> Code security). It is free on public repos and adds no PRs. |
-| `.github/dependabot.yml`, `github-actions` ecosystem only, `interval: monthly`, a single `groups:` entry | Dependabot v2 config | Keeps action SHAs and majors fresh with one PR per month | **Inference:** this is the only Dependabot *version-update* config worth adding. It fixes the class of rot behind finding 4. Do **not** add `package-ecosystem: mix` (churn). |
+Invariants to assert:
+- `Enum.concat(pages) == original_list` when paging forward to exhaustion (dedup by `id`, since tie-heavy timestamps make `Enum.uniq/1` misleading — the same `captured_at` can legitimately repeat for two rows, only `id` is unique).
+- No `id` appears in two pages, and no `id` from `original_list` is missing from `Enum.concat(pages)`.
+- The generator must be biased toward **duplicate `captured_at`/`occurred_at` values** (the tie-heavy case named in the milestone) — e.g. `StreamData.frequency` weighted so ~40% of generated entries share a timestamp with the previous one. A uniform-random-timestamp generator would almost never exercise the tuple tiebreak and the property would pass vacuously.
+- `next_cursor`/`prev_cursor` correctness: paging with the returned cursor never re-yields an already-seen `id` and never skips the row immediately after/before the cursor.
+- The reverse-page path (`before:` cursor, `actor_history_window/3` at `cursors.ex:66-70`) reconstructs the same forward-order page as walking without a cursor to that offset.
 
-### Toolchain versions for the "newest" lane (as of 2026-09-26)
+One property test per page kind (actor-history and row/timeline-history share `Cursors` code but have different struct wrappers) is enough; do not fan out per field.
 
-| Component | Newest stable | Status | Source |
-|---|---|---|---|
-| Elixir | **1.20.4** (2026-08-28) | 1.20 gets bug and security fixes. 1.16–1.19 get security fixes only. **1.15 is out of support** | [VERIFIED: gh releases, elixir.hexdocs.pm compatibility page] |
-| Erlang/OTP | **29.1.1** (2026-09-22). Also 28.5.0.7 and **27.3.4.18** | Elixir 1.20 supports OTP **27–29**. Elixir 1.17 supports 25–27 | [VERIFIED] |
-| PostgreSQL | **18.6** (`postgres:18`) | PG 19 is at **beta 4** (2026-09-24), with GA planned for October 2026. **PG 14 reaches EOL 2026-11-12**, the floor this repo's min lane proves | [VERIFIED: postgresql.org versioning and roadmap, Docker Hub tags up to `19beta4`] |
-| Playwright | 1.63.0 (lock has 1.60.0) | No change is needed for this milestone | [VERIFIED] |
-| Hex | 2.5.1 (2.5.2-dev adds SARIF) | | [VERIFIED] |
-| dialyxir / credo / ex_doc | 1.4.8 / 1.7.19 / 0.40.4 | | [VERIFIED hex.pm] |
+### 2. `as_of` == replayed history (`lib/threadline/query.ex:467-508`)
 
-**Recommended newest lane:** add `latest` to the `verify-test` matrix with Elixir `1.20.4`, OTP `29.1`, `postgres:18` and `ubuntu-24.04`. It yields the check name `Run test suite (latest)`.
+**Verdict: INCLUDE, but DB-backed. This one cannot be pure.**
 
-- Use `postgres:18`, **not** `19beta4`. A beta image in a required lane means red builds from upstream churn. Revisit when PG 19 is GA and the next `postgres:19` tag exists.
-- **[INFERENCE, needs a spike]** Elixir 1.20's whole-body type inference will very likely emit new warnings. Under `compile --warnings-as-errors` those break the lane on day one. Measure it locally before deciding whether the lane blocks the build.
-- Keep the `current` lane pinned to the committed `.tool-versions`. It is the adopter-default proof, and the Dialyzer and PLT job must match it.
+Unlike cursors, `as_of/4` is genuinely a query (`as_of_query/4`, `query.ex:484-495`): `WHERE captured_at <= timestamp ORDER BY captured_at DESC, id DESC LIMIT 1`, then a case split on `op`. The invariant — "the row `as_of(t)` returns equals the row you'd get by replaying `history(schema, id)` up to `t` in order" — is a statement about the query's *interaction with real ordering and real data*, not a pure function over a list you already control. Faking `history/3`'s ordering in memory to avoid the DB would just re-implement `as_of_query`'s own `ORDER BY`/`LIMIT` logic and test that copy against itself — a vacuous property.
 
----
+Design: generate a **small** (5-20 entries) sequence of synthetic inserts/updates/deletes for one row with a `StreamData`-generated but monotonically-jittered `captured_at` (including some exact ties), insert them via `Threadline.Test.Repo` inside a `Threadline.DataCase` test (no sandbox, `async: false`, per §0), then for a StreamData-generated timestamp `t` drawn from the *same* range as the sequence (including exactly-on-a-boundary values), assert:
+- `Threadline.as_of(schema, id, t, repo: Repo)` returns `{:error, :before_audit_horizon}` iff no entry has `captured_at <= t`.
+- Otherwise it returns the `data_after` of `Enum.filter(history, & &1.captured_at <= t) |> Enum.max_by(&{&1.captured_at, &1.id})` computed from the very list you inserted (not re-derived some other way) — i.e. "replayed history" means "the last entry your test fixture inserted at or before `t`", which is a genuine independent check because it does not go through `as_of_query`'s SQL at all.
+- The delete case (`{:error, :deleted_record}`) is covered by biasing the generator so the last inserted op before some cut points is a delete.
 
-## 1. Supply chain: `mix hex.audit` vs `mix_audit` vs GitHub tooling
+Because this needs DB writes, keep `max_runs` low (see §3) and build the whole sequence of rows **once per check iteration**, not row-by-row with intermediate assertions — see §2 DB strategy below.
 
-| Criterion | `mix hex.audit` (Hex 2.5.1) | `mix_audit` (`mix deps.audit`) | GitHub dependency-review-action |
-|---|---|---|---|
-| Advisory source | EEF CNA / OSV via hex.pm | `mirego/elixir-security-advisories`, synced from GHSA | GitHub Advisory DB, which needs dependency-graph data |
-| Has lazy_html advisory today | **Yes** (published 09-25, flagged) | **No**: `packages/lazy_html` is 404 in its DB [VERIFIED] | Only if Mix deps are submitted |
-| Has mint 2026 advisory | **Yes** | **No**: only the three older mint GHSAs are present [VERIFIED] | Same as above |
-| Retired packages | Yes | No | No |
-| Maintenance | Core Hex, active (commits 2026-09-22) | Last release **2.1.5 on 2025-06-09** [VERIFIED] | Active (v5.0.0, node24) |
-| New dependency | None | A Hex dev dep | Plus `erlef/mix-dependency-submission` (v1.3.4) with **`contents: write`** |
-| Ignore mechanism | `hex: [ignore_advisories: [...]]`, which warns when stale | A YAML ignore file | Config |
+### 3. ChangeDiff (`lib/threadline/change_diff.ex`)
 
-**Recommendation: `mix hex.audit` only.** Gate it on every PR in a dedicated fast job, and also run it on a **weekly schedule on `main`**. The scheduled run catches advisories published against an unchanged lock, which PR gating cannot see.
-- Scheduled output goes to one tracking issue, reusing the flake lane's issue-upsert pattern.
-- Guard the Hex version inside the job: assert `mix hex.info` reports >= 2.5.0. An older Hex silently audits **retirements only**, which gives a false green.
+**Verdict: INCLUDE, pure, highest-value target in this list.**
 
-**Integration:**
-- `mix.exs` aliases:
-  - `"verify.deps_audit": ["deps.unlock --check-unused", "hex.audit"]`
-  - root, example app and bench, via `cmd --cd examples/threadline_phoenix mix hex.audit` and `cmd --cd bench mix hex.audit`, or a small `bin/` loop.
-- Add it to `ci.all` near the front: it is fast and fails early. **Caveat:** `hex.audit` calls `deps.loadpaths --no-compile` first [VERIFIED in the source], so deps must be *fetched* (not compiled), and it needs network access to hex.pm.
-- Add it to `preferred_envs` only if needed. It works in any env.
-- CI job `id: verify-deps-audit`, `name: "Audit dependencies (Hex advisories)"`. Add it to the `ci-required` aggregate `needs` and to the CONTRIBUTING job list in the same commit (guide §9).
+`Threadline.ChangeDiff.from_audit_change/2` is a pure projection over an `%AuditChange{}` struct (`change_diff.ex:85-91`) — no DB, no I/O, and it already has a precisely specified INSERT/UPDATE/DELETE × before_values matrix in its moduledoc (`:24-49`). This is exactly the profile the milestone guide asks for ("an invariant and a large input space meet"): a deterministic pure function, a rich combinatorial input space (op × changed_fields × changed_from presence/sparseness × key-type mismatches between atom/string), and existing prose invariants that are currently only asserted by hand-picked example tests.
 
-**Freshness policy (not Dependabot churn).** [INFERENCE, built on verified tool behaviour]
-- Hex `cooldown: "7d"` for this repo's resolution.
-- A monthly scheduled job runs `mix hex.outdated --within-requirements` across the three lockfiles. It reports into one tracking issue and **does not fail CI**, because freshness is advisory and security is a gate.
-- Batched updates happen once per release train: one `mix deps.update --all` commit, gated by the full suite and `hex.audit`.
-- Keep the deliberate floor pins (`yaml_elixir ~> 2.11.0`) documented as exceptions.
+Invariants to assert, generating `%AuditChange{}` fixtures (op, `data_after`, `changed_fields`, `changed_from`, JSON-safe scalar/nested values) with StreamData:
+- `"field_changes"` is always sorted ascending by `"name"` (`update_field_changes/1` sorts at `change_diff.ex:173`, `insert_field_changes/2` at `:152` — both should be checked, not just one).
+- UPDATE: every name in `field_changes` is present in `changed_fields`, and every name in `changed_fields` appears exactly once in `field_changes` (round-trip completeness — this is the "except_columns" invariant from the moduledoc, `:41-45`).
+- `before_values_signal(nil) == "none"` implies no field entry ever has a `"before"` or `"prior_state"` key; `"sparse"` implies every field entry has exactly one of `"before"` xor `"prior_state" => "omitted"`, never both, never neither (`build_update_field/4`, `:179-198`).
+- DELETE always yields `field_changes: []` and `data_after: nil` regardless of what `data_after`/`changed_fields` are set to in the fixture (proves the DELETE branch really ignores those fields rather than being coincidentally empty for the hand-picked test rows).
+- Atom-keyed vs string-keyed `changed_from`/`data_after` maps produce identical output (`map_has_field?/2`, `map_get/2` accept both) — generate both key shapes and assert the outputs are `==`.
+- `:export_compat` format (`export_compat_map/1`, `:93-106`) always has the same `data_after`/`changed_fields`/`changed_from` *values* as the primary format's top-level fields, for the same fixture — this is the moduledoc's cross-format authority claim (`:12-16`), currently undocumented as a test.
 
-## 2. CI economy stack
+This needs no `Threadline.Test.Repo`, no `DataCase`, no `async: false` — plain `async: true` `ExUnitProperties`, same shape as `naming_property_test.exs`.
 
-**Deps-only `_build` cache.** [INFERENCE on the design, with verified constraints from the existing ci.yml contract comment, D-19]
-- Key: `<runner>-otp<exact>-elixir<exact>-<MIX_ENV>-<variant>-build-${{ hashFiles('mix.lock') }}-${{ hashFiles('config/**/*.exs') }}`. **No `restore-keys`**, which matches the rule already written into ci.yml.
-- `variant` separates `full` from `no-optional`: `compile --no-optional-deps` builds a different dep set.
-- Config is in the key because Mix recompiles a dep when its app config changes. That is inference, and being conservative here costs little.
-- Build the deps-only artifact with a split cache:
-  1. `actions/cache/restore`
-  2. `mix deps.get`
-  3. `mix deps.compile`
-  4. `actions/cache/save` (only on a miss, `if: steps.x.outputs.cache-hit != 'true'`)
-  5. then `rm -rf _build/$MIX_ENV/lib/threadline` and `mix compile --warnings-as-errors`
-- Saving before the project compiles is what makes the cache "deps-only". The project's own beams are never cached, so a stale Threadline beam can never be served.
-- Use **exact** OTP versions in keys, which follows from finding 3. With `version-file` and strict mode, read the version from `steps.beam.outputs.otp-version`.
+### 4. Redaction never leaks (`lib/threadline/capture/redaction_policy.ex`, `trigger_sql.ex`, `export.ex`)
 
-**Dialyzer PLT:** the current design is already correct (`restore-keys` allowed, `mix.exs` in the key, save on miss).
-- Change the key's OTP segment to the exact resolved `otp-version` output.
-- **Move the `@tag :live_dialyzer` test** (`test/threadline/dialyzer_slice_contract_test.exs`, 540 s timeout, no PLT cache in the test lanes) out of both test lanes: `ExUnit.configure(exclude: [live_dialyzer: true])`, then `mix test --only live_dialyzer` inside `verify-dialyzer`, which owns the PLT cache.
-- Per CLAUDE.md "honest default tests", `test/test_helper.exs`, CONTRIBUTING and the topology contract must change together.
+**Verdict: RESHAPE. Split into a pure property (policy validation) and a bounded DB property (leak-proof at the SQL layer); do NOT attempt a pure property over generated SQL text.**
 
-**Playwright:** keep caching `~/.cache/ms-playwright` (Chromium only, no `--with-deps`, which is correct on ubuntu-24.04).
-- Change the key from `hashFiles(package-lock.json)` to the resolved `@playwright/test` version, currently 1.60.0, read with `jq` from the lockfile in a prior step. Unrelated npm changes then stop busting the browser cache.
-- Drop `restore-keys`. A restored old revision is dead weight, because Playwright downloads the exact revision anyway.
+Two genuinely different mechanisms share the word "redaction" here, and they need different test strategies:
 
-**Composite action vs reusable workflow:** use a **composite action** (see "What NOT to use").
-- Keep failing-prone steps (`mix compile`, `mix test`, `mix credo`) **outside** it, as named job steps. A failure inside a composite shows under the composite's single step name, which hurts CI DX (guide §9).
+- **`Threadline.Capture.RedactionPolicy.validate!/1`** (`redaction_policy.ex`) is pure: it rejects `exclude`/`mask` column-name overlap and validates the placeholder (empty, >200 bytes, control characters). **INCLUDE as a pure property**: generate random column-name lists with a forced non-empty intersection and assert `validate!/1` always raises `ArgumentError` mentioning both "exclude" and "mask"; generate placeholders containing a random control byte (`0..31`) and assert always-raise; generate disjoint exclude/mask sets and valid placeholders and assert always `:ok`. This is cheap, fast, and matches `naming_property_test.exs`'s shape exactly.
+- **The actual "never leaks" guarantee** is a property of the *generated trigger SQL executed against real PostgreSQL*: a masked/excluded column's raw value must never appear in `data_after` or `changed_from` for any row shape, any `changed_fields` combination, or any value (including values that happen to collide with the placeholder string, embedded NUL bytes rejected earlier by `validate_placeholder!/1`, or Unicode). This has to run against a live trigger-installed table, so it is DB-backed and expensive. **Do not generate SQL identifiers here** — that space is already exhaustively covered by `naming_property_test.exs`; this property's only job is *values*, not *names*. Bound the generator to a **fixed single test table** with a fixed 2–3 column shape (one masked, one excluded, one plain), and only vary the **inserted/updated values** (strings including near-placeholder collisions, NULLs, nested JSON, empty strings) across `check all` iterations. Reuse one migrated table across the whole property (`setup_all`, not `setup`), insert/update per iteration, then delete the rows the property itself created before the next iteration (or better: use unique PK values per iteration and read `WHERE table_pk = ...` to avoid any cross-iteration interference, which sidesteps needing a clean-slate truncate every run — see §2 strategy 3 below). Assert the masked column's raw value is byte-for-byte absent from `data_after`/`changed_from` JSON, and the excluded column is entirely absent as a key.
 
-**Flake budget:**
-- Measured cost: 288 s cold plus about 165 s per repeat, so 50 repeats is about 145 min [VERIFIED from workflow comments].
-- **[INFERENCE]** Run it weekly, not nightly, with `mix test --repeat-until-failure 15 --max-failures 1` and `timeout-minutes: 60`. That is about 45 min per week, or roughly 200 runner-min per month, versus about 3,600 today.
-- Exclude `:live_dialyzer` and any shell-out-to-example-app tests from the repeat set, since they are deterministic and expensive.
-- The 16 *fast* failures (08-28 to 09-12) are "broken", not "flaky". The lane must go green on repeat 1 before any budget is meaningful.
+Keep `max_runs` small here (10-20, see §3) — this is the one property in the set that is both DB-backed and adversarial-security-relevant, so a handful of well-chosen adversarial values (via `StreamData.frequency` biasing toward edge cases: the exact placeholder string, an empty string, a string containing the placeholder as a substring, `nil`) buys more than raw iteration count.
 
-## 3. Repo hygiene stack
+### 5. Retention cutoff boundaries (`lib/threadline/retention.ex`)
 
-**PII / local-path guard: a `git grep` script. Not gitleaks, not trufflehog.**
-- `bin/check-local-paths`: `git grep -nIE -e '<pattern>' -- . ':!<allowlisted paths>'`. It exits 1 with `file:line` output.
-- Patterns: macOS user homes, Linux user homes, Windows `C:\Users\`, and macOS temp roots (`/private/var/folders`, `/var/folders`, `/private/tmp`).
-- **Explicitly allow** the GitHub runner home (`home/runner/`, 350 hits of CI log excerpts, not PII) and known false positives such as the `home/timeline/` route fragment.
-- Match on a path segment *after* the home root, so documentation of the pattern itself (for example `/Users/<name>/`) does not self-match.
-- Add a contract test that feeds fixtures through the script: a positive, a runner-path allow and a placeholder allow.
-- Alias `verify.no_local_paths`. It goes in `ci.all` and in the cheapest existing job, or its own 1-minute job. It runs **after** the forward scrub lands, so it starts green.
-- Why not **gitleaks** (v8.30.1, gitleaks-action v3.0.0 node24): its value is the secret ruleset, and GitHub **secret scanning plus push protection are already enabled** [VERIFIED]. A custom local-path rule in `.gitleaks.toml` just re-implements one regex. It adds a binary download, and the default `git` mode scans **history**, which would flag the pre-scrub commits that this milestone deliberately does not rewrite.
-- Why not **trufflehog** (v3.97.9): it is built for *verified* live credentials, calls out to providers, and duplicates secret scanning. Wrong tool for path and PII detection.
-- Also recommend (maintainer toggle) `secret_scanning_non_provider_patterns`, currently disabled. It covers generic high-entropy strings at zero CI cost. [WEB/INFERENCE; check the plan eligibility for a user-owned public repo]
+**Verdict: RESHAPE into a narrow DB-backed boundary property; do not property-test the batching/looping machinery.**
 
-**xref cycles:**
-- Keep `verify.xref_cycles` (compile-connected, `--fail-above 0`) as is.
-- **[INFERENCE]** Add a ratchet for *all* cycles: `mix xref graph --format cycles --fail-above 5` as `verify.xref_cycles_all`. The count can only fall, and the layer-crossing capture/semantics pair gets a named decision.
-- Put it in `ci.all` and the current lane only. It is the same compile, so there is no extra cost.
+`Threadline.Retention.purge/1` is mostly orchestration (batch loop, `RetentionRun` bookkeeping, dry-run counting) around one real invariant: rows are partitioned by `captured_at < cutoff` (`delete_change_batch/3`, `retention.ex:203-217`, and the dry-run count at `:136-142`) — a **strict** `<`, not `<=`. That strictness at the exact cutoff instant is the boundary bug class worth a property (off-by-one on `<` vs `<=`, and microsecond-precision `DateTime` comparison, since the policy cutoff is computed with `Policy.cutoff_utc_datetime_usec!/0`).
 
-## 4. ExUnit `@tag :tmp_dir` semantics [VERIFIED from the source at v1.15.8 and v1.17.3, and the v1.20.4 docs]
+Property: generate a small set (5-15) of `AuditChange` rows with `captured_at` values clustered **tightly around** a chosen cutoff (some strictly before, some exactly equal to the microsecond, some strictly after — `StreamData.frequency` biased so ties at the cutoff are common, not rare), insert them, run `purge/1` with `dry_run: true` (no destructive writes needed to prove the boundary — `dry_run_result/4` at `:135-155` runs the identical `WHERE captured_at < cutoff` predicate), and assert `eligible_changes` count equals exactly the count of fixture rows with `captured_at < cutoff` (strict), with rows at exactly `cutoff` never counted. Also cover `resolve_cutoff/2`'s own invariant (`:118-126`): a caller-supplied `:cutoff` strictly after the policy cutoff always raises `ArgumentError`, at or before it always resolves to that value.
 
-- The path is `Path.expand(Path.join(["tmp", escape(inspect(module)), "#{escape(test_name)}-#{short_hash}", extra]))`.
-- The path is **relative to the current working directory when the test starts**, so it lands in `<project>/tmp/...`, which is already covered by `.gitignore` `tmp/`.
-- It is unique per module and test (a short hash guards collisions), so it is **async-safe**.
-- `File.rm_rf!` runs **before** `mkdir_p!`, so each run starts empty. It is **not** deleted after the test, and it is left for debugging.
-- The escape set is `space ~ # % & * { } \ : < > ? / + | "`, each replaced with `-`.
-- Available since 1.11. The implementation is identical in 1.15.8 and 1.17.3, so the min lane is safe.
-- Use `@tag tmp_dir: "sub"` for a subpath. Also available: `@moduletag :tmp_dir` and `@describetag`.
-- **Footguns for this repo:**
-  - 43 test references to `File.cd` or `File.cwd` exist. A test that `cd`s before the tag is evaluated moves the root.
-  - Tests that **walk the working tree** (planning-independence, doc-contract and clean-checkout tests) or run the new local-path guard over untracked files will now see `tmp/`. The guard must use `git grep` on tracked files, and the tree-walkers must exclude `tmp/`.
-  - `tmp_dir` paths are absolute and contain the home directory. Never write them into committed fixtures, snapshots or evidence. That is the PII rule again.
+Do **not** property-test `purge_loop/7`'s batch/`max_batches`/orphan-draining control flow — that is deterministic looping logic better covered by the existing example-based tests (a handful of fixed-size fixtures at 1x, exactly-`batch_size`, and `batch_size + 1` rows already exercises every branch; a property adds iteration count, not new failure classes). This keeps the DB property small and fast: one boundary check per run, `dry_run: true` (no deletes to clean up), against a handful of rows.
+
+### 6. Export round-trips (`lib/threadline/export.ex`)
+
+**Verdict: INCLUDE, and it should be pure — do not run it against the DB.**
+
+`csv_row/2` and `change_map/1` (`export.ex:387-451`) are plain functions over a **map**, not an `%AuditChange{}` struct or a live query result — the map shape returned by `export_changes_query/2`'s join (`row.id`, `row.table_pk`, `row.data_after`, `row.tx_occurred_at`, etc.). That means the round-trip property — "what export writes, export's own consumers can read back losslessly" — can be built entirely in memory: construct such row-maps with StreamData (JSON-safe `data_after`/`changed_from` values, `changed_fields` lists, `table_pk` maps, `DateTime`s, an `ActorRef` or `nil`), run them through `csv_row/2`, `dump_csv_to_iodata/1`/`NimbleCSV.RFC4180`, parse the CSV text back with `NimbleCSV.RFC4180.parse_string/1`, `Jason.decode!/1` each JSON-bearing column, and assert the decoded values equal the original fixture values (mod string-vs-atom key normalization, since JSON has no atoms). Do the same for `change_map/1` → `Jason.encode!/1` → `Jason.decode!/1`.
+
+Invariants:
+- CSV: `Jason.decode!(csv_field)` for `table_pk`/`data_after`/`changed_fields`/`changed_from`/`transaction_json` columns reconstructs the original map/list, for every generated value shape (nested maps, empty maps/lists, Unicode strings, large integers, floats, `nil`).
+- CSV escaping never corrupts a value: values containing commas, quotes, newlines, and the placeholder string round-trip byte-for-byte through NimbleCSV.
+- JSON (`:wrapped` and `:ndjson`): decoding reproduces the same `"id"`/`"transaction_id"` (string-coerced) and the same nested `"transaction"`/`"action"` shape as the input row-map, including the `aa_id`-present/absent branch (`:439-450`).
+- `ChangeDiff`'s `:export_compat` format and `Export`'s own `change_map/1` genuinely agree on field-for-field values for the same underlying data (this cross-checks target 3's cross-format claim from the export side, catching drift between the two modules if one changes without the other).
+
+No `Threadline.Test.Repo`, no `DataCase` — this is the second cheapest property in the set after ChangeDiff.
+
+**Net:** of the 6 named targets, **4 are pure** (cursors, ChangeDiff, redaction-policy-validation, export round-trip) and **3 touch the DB** (as_of, redaction-leak-at-the-SQL-layer, retention boundary — one of the 4 "pure" ones, redaction, splits into one pure + one DB-backed test). Lead with the pure ones; they are strictly cheaper and just as likely to catch the bug classes the milestone names.
 
 ---
 
-## Installation / integration sketch
+## 2. DB strategy without a SQL Sandbox
 
-```bash
-# Lock-only remediation (root). No mix.exs change needed.
-mix deps.update lazy_html mint
-(cd bench && mix deps.update --all)          # 8 advisories, 3 HIGH
-mix hex.audit && (cd examples/threadline_phoenix && mix hex.audit) && (cd bench && mix hex.audit)
+`Threadline.DataCase` already answers "how do DB tests work here" for the whole suite (no sandbox, `async: false`, clean-in-`setup`, per §0) [VERIFIED]. Property tests that touch the DB should be a **thin extension of that pattern**, not a parallel mechanism:
 
-# Commit .tool-versions (currently untracked), bumped to the latest 27 patch:
-#   erlang 27.3.4.18 / elixir 1.17.3-otp-27 / nodejs 22.14.0
-```
+1. **Reuse `Threadline.DataCase`, do not invent a second harness.** `use Threadline.DataCase` (default `async: false`) inside the property test module, `use ExUnitProperties` alongside it — this is exactly how `naming_property_test.exs` layers `use ExUnit.Case, async: true` with `use ExUnitProperties`; the DB properties just swap in `Threadline.DataCase` and drop `async: true`.
+2. **Generate the whole fixture in memory first, then do one bounded batch of inserts per `check all` iteration** — never insert row-by-row with an assertion in between. `Repo.insert_all/3` (or a small `Enum.each(&Repo.insert!/1)` for ≤15 rows) once per iteration keeps each iteration to a handful of round trips instead of one per generated value.
+3. **Uniquify by generated PK/id per iteration instead of truncating between iterations.** `DataCase`'s `setup` already truncates once per *test* (`clean_storage_schemas!/0`), but a property's `check all` runs the body many times inside **one** test. Re-truncating audit tables every iteration (a full `TRUNCATE`/`DELETE` round trip) is the single biggest cost driver for a DB property and is unnecessary if each iteration's fixture rows carry a fresh, StreamData-generated UUID/table_pk — then every assertion filters `WHERE table_pk = <this iteration's key>` (exactly how `as_of`/`history` already scope by `table_pk`, `query.ex:423-428`), so iterations never see each other's rows and cleanup can happen once, in the test's own `on_exit`, not per iteration. This is strictly cheaper than a per-property schema/table and does not require touching migrations or `Ecto.Adapters.SQL.Sandbox` (which triggers cannot see anyway, per `DataCase`'s own moduledoc).
+4. **Do not stand up a dedicated schema or table per property.** A separate schema per property (rejected): needs its own migration/trigger install per test run, multiplies DDL cost, and this repo's per-table capture-function model (v1.42) makes "spin up throwaway tables" a nontrivial fixed cost per property, not a cheap knob. Unique-PK-per-iteration against the **existing** `Threadline.Test.Repo` fixture tables (the ones `test/support` already migrates for other DB tests) gets the same isolation for near-zero marginal cost.
+5. **`sleep_ms`/`Process.sleep` has no place inside a property iteration.** If a DB-backed property ever needs to wait on something async (it shouldn't for these 3 targets — retention/as_of/redaction are all synchronous `Repo` calls), use `Threadline.AsyncHelpers.assert_eventually/2`, never a raw sleep, matching house convention.
+
+This gets all three DB-backed targets to "one test module, `Threadline.DataCase`, unique keys per iteration, no schema-per-property, no sandbox illusion" — consistent with how the rest of the suite already runs against a real, unsandboxed database.
+
+---
+
+## 3. Bounded runtime in CI
+
+The two existing property files already establish the pattern to extend, not replace: **explicit `max_runs:`, not StreamData's default of 100** [VERIFIED, both files pass `max_runs: 300`]. Recommendation, tiered by cost:
+
+| Target | Kind | Default `max_runs` (`mix test`) | Weekly/nightly scale-up |
+|---|---|---|---|
+| Cursors | pure | 200 | ×5 (1000) |
+| ChangeDiff | pure | 200 | ×5 |
+| Redaction policy validation | pure | 200 | ×5 |
+| Export round-trip | pure | 150 (larger generated maps) | ×5 |
+| `as_of` == replayed history | DB | **20** | ×3 (60) |
+| Redaction never leaks (SQL) | DB | **15** | ×3 |
+| Retention cutoff boundary | DB | **20** | ×3 |
+
+Rationale for the pure/DB split: pure properties are µs-scale per iteration, so 200 runs costs nothing measurable; DB properties are ms-to-tens-of-ms per iteration (one or a few round trips), so 15-20 runs already buys meaningfully more coverage than the current zero, without materially growing the "91% serial, ~191s of 209s" number the milestone is trying to *shrink*. A DB property at `max_runs: 200` would be the single most expensive thing in the suite for no proportionate return — adversarial value generation (biased `frequency`, not uniform-random) buys more per run than raw run count for these targets, per Hypothesis's own "shrink/report, don't just brute-force" lesson [WEB].
+
+**Mechanism for the scale-up lane**, adapting Hypothesis's CI-profile idea [WEB] to this repo's existing `@tag`/exclude convention (`test/test_helper.exs:5-16` already excludes `pgbouncer_topology`/`live_dialyzer` by default and the weekly Flake Detection lane un-excludes them):
+- Read `max_runs` from an env var with a small default, e.g. `@property_scale (System.get_env("THREADLINE_PROPERTY_SCALE") |> then(&(&1 && String.to_integer(&1))) || 1)`, defined once in a shared test-support helper (not per-file), and write `max_runs: 200 * @property_scale` (pure) / `max_runs: 20 * @property_scale` (DB) at each `check all`. Default `mix test` runs at scale 1 (the table above); the weekly Flake Detection workflow sets `THREADLINE_PROPERTY_SCALE=5` (or 3 for the DB-backed ones — two env vars, or one var and two multiplier constants, whichever reads more plainly) before invoking `mix test`.
+- **Seeds for reproducibility:** ExUnit's own `--seed` already flows into StreamData (StreamData seeds itself from `:rand` state, which ExUnit seeds per test) — a failing property already prints a seed and reproduction instructions on failure [WEB, stream_data's own `ExUnitProperties` docs describe this]. No extra plumbing is needed here; the ask in the milestone ("seeds for reproducibility") is met by *not* suppressing StreamData's default failure output and by keeping `mix test --seed <N>` in the contributor-facing failure message CONTRIBUTING.md already uses for flaky-test triage. Do not attempt to hand-roll a Hypothesis-style persistent example database — that is real added infrastructure for a benefit StreamData's built-in seed replay already covers at this scale.
+- **Promote real counterexamples to fixed tests**, per the Hypothesis/QuickCheck lesson of "a discovered failure becomes a permanent regression test" [WEB]: when a property finds a genuine bug, add the minimal failing input as a new `test` (not just leave it to the property to keep re-finding it), the same way a fixed `describe "boundary"` example-based test already exists alongside StreamData properties in well-run Elixir/Erlang suites [WEB].
+
+---
+
+## 4. The bench compile failure — root cause and fix
+
+**Root cause [VERIFIED, reproduced]:** `bench/mix.exs:22` declares `{:threadline, path: "..", env: :test}`. The `env: :test` option forces **only the `threadline` dependency** to compile in `:test` Mix env, which flips on `elixirc_paths(:test) == ["lib", "test/support"]` (root `mix.exs:83`) — pulling in `test/support/naming_generators.ex`, which does `use ExUnitProperties` (`naming_generators.ex:8`). But `env: :test` does **not** change **bench's own** Mix env. Plain `mix compile` (or `cd bench && mix compile --warnings-as-errors`, exactly the command the deferred-item note used) runs bench itself in the default `:dev` env. Whether an `only: :test` dependency (here, `stream_data`, declared `only: :test` in the *root* `mix.exs`) is pulled into the resolved dependency tree at all is decided by the **top-level project's** Mix env, not by a nested path-dependency's forced `env:` override. So under bare `mix compile`: bench resolves its dep tree for `:dev`, `stream_data` is excluded from that tree, but `threadline` is still compiled with `test/support` on its path (because of its own `env: :test` override) — and that file needs a module (`ExUnitProperties`) that was never fetched/compiled for this env. Confirmed by reproducing exactly this failure (`module ExUnitProperties is not loaded and could not be found` at `naming_generators.ex:8`) and by confirming `MIX_ENV=test mix compile` (forcing bench's own env to `:test` too) compiles cleanly with the identical, unmodified `bench/mix.lock`.
+
+This is not a version, lock, or missing-dependency problem — `bench/mix.lock` already resolves and fetches `stream_data 1.4.0` correctly once bench's own env is `:test`; deferred-item 215's note that it "reproduces identically before and after the 215-01 bench dependency bump" is consistent with this: the bump never touched the actual cause.
+
+**Fix [VERIFIED, tested locally then reverted — this research is read-only for code]:** add a `def cli/0` to `bench/mix.exs` that defaults `compile` (and `run`, since bench scripts execute via `mix run`) to the `:test` env, mirroring the pattern the **root** `mix.exs` already uses for its own env-sensitive tasks (`def cli do [preferred_envs: [...]] end`, root `mix.exs:8-27`):
 
 ```elixir
-# mix.exs aliases (additions)
-"verify.deps_audit": ["deps.unlock --check-unused", "hex.audit",
-                      "cmd --cd examples/threadline_phoenix mix hex.audit",
-                      "cmd --cd bench mix hex.audit"],
-"verify.no_local_paths": ["cmd bin/check-local-paths"],
-"verify.xref_cycles_all": ["xref graph --format cycles --fail-above 5"],
-# mix.exs project/0 (only if an unfixable advisory ever appears; each entry needs a comment):
-# hex: [ignore_advisories: []]
+def cli do
+  [preferred_envs: [compile: :test, run: :test]]
+end
 ```
 
-```yaml
-# .github/actions/setup-elixir/action.yml (composite). Setup only; no failing work inside.
-# steps: erlef/setup-beam@v1 (version-file: .tool-versions, version-type: strict, id: beam)
-#        actions/cache@v5 deps (restore-keys ok)
-#        actions/cache/restore@v5 _build deps-only (exact key, no restore-keys)
-#        mix deps.get --check-locked ; mix deps.compile ; actions/cache/save@v5 on miss
-```
+With this added, `cd bench && mix compile --warnings-as-errors` (no `MIX_ENV` prefix needed) compiles cleanly against the existing, unmodified `bench/mix.lock` — verified by a full `rm -rf deps _build && mix deps.get && mix compile --warnings-as-errors` cycle. This also matches `bench/bench_helper.exs`'s own existing assumption (`unless Mix.env() == :test do ... System.halt(1) end`, `bench_helper.exs:5-8`) — bench has always required `:test` env to actually *run*; this fix just makes that requirement hold for `compile` too, so a bare `mix compile` (what CI's `verify-deps-audit`/contributors are most likely to type) stops failing. **Do not** instead remove `env: :test` from the threadline path dependency — that would break `Threadline.Test.Repo` and other `test/support` fixtures bench genuinely needs at runtime (`bench_helper.exs` calls into `Threadline.Test.Repo`, `custom_priv_repo.ex`, etc.), so the dependency's own forced `:test` env is correct and load-bearing; the bug is only that bench's *own* env wasn't following it.
 
-## Alternatives Considered
+---
 
-| Recommended | Alternative | When to use the alternative |
-|---|---|---|
-| `mix hex.audit` | `mix_audit` 2.1.5 | Never here. Its DB lags the EEF CNA feed (verified missing both current advisories), and its last release was in 2025. |
-| `mix hex.audit` weekly on `main` | `erlef/mix-dependency-submission` v1.3.4 + Dependabot alerts for Hex + `dependency-review-action` v5 | Only if the maintainer wants GitHub-UI alerts for Hex. It costs a `contents: write` workflow, and native Hex dependency-graph support is not shipped (dependabot-core#15020 closed unmerged 2026-09-22, and Hex is absent from GitHub's supported-ecosystems table). |
-| Composite action | Reusable workflow (`workflow_call`) | For whole-job reuse *across repos*. Not here: see "What NOT to use". |
-| `git grep` path guard | gitleaks 8.30.1 with custom rules | If the repo ever loses GitHub secret scanning, or needs pre-commit secret rules offline. |
-| `postgres:18` newest lane | `postgres:19beta4` | A non-required, `continue-on-error` canary only. Revisit after PG 19 GA in October 2026. |
-| Split restore/save cache | `actions/cache` single step | Fine for `deps/`. Not for deps-only `_build`, which must save *before* the project compiles. |
-| Weekly bounded flake lane | Nightly with 50 repeats | Only after a real intermittent flake is being hunted, and as a temporary `workflow_dispatch` with an input count. |
+## 5. Ecosystem precedent
 
-## What NOT to Use
+**StreamData vs PropCheck [WEB]:** StreamData is Elixir-native (Elixir-lang.org-published), generator-first (generators double as plain Elixir streams usable outside property tests), and is what Ecto's own ecosystem and this repo already standardize on. PropCheck wraps Erlang's PropEr and adds **stateful/model-based testing** and persistent counterexample storage that StreamData lacks. **Recommendation: stay on StreamData for all 6 targets in this milestone** — none of them need PropEr's `statem` state-machine modeling; they are pre/postcondition-style invariants over generated inputs (cursors, diffs, redaction, retention, export), which is squarely StreamData's sweet spot and avoids adding a second property library (and PropEr as a transitive Erlang dependency) for a capability this milestone doesn't need.
 
-| Avoid | Why | Use instead |
-|---|---|---|
-| `mix_audit` / `mix deps.audit` | Stale release and a lagging advisory DB. It does not see lazy_html or mint today [VERIFIED]. | `mix hex.audit` (Hex >= 2.5.0) |
-| Hex older than 2.5.0 in the audit job | `hex.audit` then checks **retirements only**, which gives a false green | Assert the Hex version in the job |
-| `mix hex.audit --format sarif` | Only in 2.5.2-**dev** and requires OTP 27+ [VERIFIED changelog] | Plain text output. Revisit when 2.5.2 ships. |
-| Dependabot `package-ecosystem: mix` version updates | PR churn, which the guide explicitly rejects. Floor pins (`yaml_elixir ~> 2.11.0`) would generate perpetual PRs to be closed. | Monthly `hex.outdated` report plus a batched release-train update |
-| `actions/dependency-review-action` for Hex | No Hex dependency graph without a write-scoped submission workflow, and it duplicates `hex.audit` | `hex.audit` |
-| Reusable workflows for setup dedupe | Called-workflow jobs render as `caller / callee` check names. That breaks the single required aggregate, the stable-name contract and `ci_topology_contract_test`. They also cannot share `services:` shapes easily. | Composite action, with job IDs and names unchanged |
-| `_build` cache with `restore-keys` or including `_build/*/lib/threadline` | Stale compiled artifacts are the D-19 footgun already documented in ci.yml | Exact-key, deps-only `_build` cache plus `rm -rf _build/$MIX_ENV/lib/threadline` |
-| `otp-version: "27.0"` (loose) | Resolves to OTP 27.0.1 from 2024 [VERIFIED] | `version-file: .tool-versions` with `version-type: strict` |
-| `actions/cache@v4`, `upload-artifact@v4`, `release-please-action@v4` | node20, past the 2026-09-23 removal | v5 / v7 / v5 |
-| `ubuntu-22.04` min lane | Deprecated 2026-09-17, removed 2027-04-17 | `ubuntu-24.04`. The key already includes the runner label, so there is no cache collision. |
-| gitleaks / trufflehog for the path guard | Duplicates the enabled secret scanning. History mode flags the unrewritten past. Adds a binary and a network dependency. | `bin/check-local-paths` (git grep, tracked files only) |
-| `git filter-repo` / BFG history rewrite | Explicitly out of scope ("no history rewrite") | A forward scrub plus a guard |
-| `postgres:19beta*` in a required lane | Upstream beta churn turns into red builds | `postgres:18` |
-| `--repeat-until-failure` in the min lane | Needs Elixir 1.17+ | Current or latest lane only |
+**Should the capture → history pipeline get stateful/model-based testing (PropEr `statem`)?** [INFERENCE from the code + MILESTONE-GUIDE §8's "deliberate, bounded" instruction] **DEFER, explicitly, not silently.** A `statem` model of "insert/update/delete a row, then assert `history`/`as_of`/`row_history_page` agree with a pure in-memory model of the same sequence" is a real, high-value idea — it is structurally the generalization of target #2 (`as_of` == replayed history) to arbitrary sequences and arbitrary read APIs at once. But it is a materially bigger investment: a new dependency (`propcheck`, pulling in PropEr), a command/postcondition model to write and maintain, and — per this repo's no-sandbox DB constraint — a *sequence* of real DB writes per generated command list, which multiplies the DB-cost concern in §3 by whatever sequence length the model generates. Landing target #2 first (a bounded, non-stateful version of exactly this idea) is the right-sized step for this milestone; revisit `statem` only if #2 surfaces sequencing bugs that a single-snapshot `as_of` check cannot express (e.g. bugs specific to *interleavings* of writes across concurrent transactions, which single-writer sequential properties cannot reach anyway).
 
-## Version Compatibility
+**How Ecto/Postgrex/Oban/Phoenix/Plug/Jason use properties [WEB, general community pattern, not each library's own CI verified line-by-line]:** the common thread across the ecosystem is that DB-touching Ecto/Ecto-adjacent properties consistently pair StreamData with `Ecto.Adapters.SQL.Sandbox` in `async: true` mode to keep property iterations cheap and parallel-safe — which is exactly the affordance this repo's trigger-based capture layer cannot use (`DataCase`'s own moduledoc is explicit that triggers are invisible to the sandbox). This is the single biggest way threadline's property strategy must diverge from generic Ecto-app precedent: where a typical Ecto app leans on the sandbox to make DB properties cheap and parallel, this repo has to lean on unique-key-per-iteration + `async: false` instead (§2). Community guidance on Ecto+StreamData also converges on "generate the changeset/struct in memory, keep DB round trips to the minimum the property actually needs to prove," which is the same principle behind keeping targets #3 and #6 (ChangeDiff, export round-trip) pure rather than DB-backed even though their inputs originate from DB rows in production.
 
-| Package A | Compatible with | Notes |
-|---|---|---|
-| lazy_html 0.1.13 | Elixir ~> 1.15 | Keeps the min lane. It ships precompiled NIFs via cc_precompiler. **Verify in CI** that the OTP 26 / ubuntu-24.04 artifact exists after moving off 22.04 [MEDIUM]. |
-| mint 1.10.1 | Elixir ~> 1.15, finch ~> 0.21 range (`mint ~> 1.8`) | A lock-only bump |
-| Elixir 1.20.4 | OTP 27–29 | 1.20 cannot run on OTP 26. The latest lane pairs it with OTP 29. |
-| Elixir 1.17.3 | OTP 25–27 | Current lane. Bump OTP to 27.3.4.18. |
-| Elixir 1.15.x | OTP 24–26 | **Out of upstream support.** The floor decision belongs to v1.45 (1.0 API contract), not this milestone. |
-| PostgreSQL 14 | EOL 2026-11-12 | The min-lane floor goes EOL during the ladder. This is a v1.45 scope decision to flag, not an action for v1.43. |
-| setup-beam v1.24.1 + `.tool-versions` | strict mode required | It errors if both `version-file` and `otp-version` / `elixir-version` are given. Matrix jobs keep explicit inputs. |
-| `ci_topology_contract_test.exs:396`, `ci_workflow_parity_contract_test.exs:255` | Pin `"27.0"` and `actions/cache@v4` | These must change in the **same commit** as the workflow edits, or `mix verify.test` goes red. |
+**Hypothesis (Python) lessons applied here [WEB]:** (1) CI profiles that trade iteration count by lane (§3's `THREADLINE_PROPERTY_SCALE`); (2) shrinking to a minimal failing example is the debuggability payoff, not just "more inputs" — StreamData ships this natively, same as Hypothesis; (3) promote discovered counterexamples to permanent regression tests rather than relying on the property to keep re-finding them (§3). **QuickCheck/proptest** reinforce the same "generators are the real design work, not the property assertion" lesson — most of the effort in this milestone should go into writing generators biased toward the adversarial cases named in the milestone text itself (tie-heavy timestamps, near-placeholder-collision redaction values, exact-cutoff boundary times), not into maximizing `max_runs`.
+
+**Audit-library precedent (PaperTrail, Logidze, Carbonite, django-simple-history) [WEB, general survey, not each repo's test suite individually audited]:** these libraries' test suites are predominantly example-based, not property-based — property testing is not yet a common pattern in the audit-trail-library space specifically. That is *not* a reason to skip it here; it means threadline has no direct precedent to borrow test *shapes* from in this niche, only the general Ecto/StreamData guidance above. It does reinforce MILESTONE-GUIDE §8's instruction to keep property tests deliberate and scoped to genuine invariant/large-input-space intersections (the 6 named targets) rather than trying to property-test the whole capture pipeline just because the library category is "audit."
+
+---
+
+## 6. DX: generator reuse, shrinking readability, failure messages
+
+- **Extend `test/support/naming_generators.ex`'s pattern, do not fragment it.** Add new generator modules under `test/support/` per domain (`Threadline.Test.ChangeDiffGenerators`, `Threadline.Test.CursorGenerators`, etc.) rather than inlining `gen all` blocks inside each property test — this is the existing convention (`naming_generators.ex` is `import`ed by two separate test files today) and keeps a generator's adversarial bias (e.g. tie-heavy timestamps) documented and reused instead of redefined per file.
+- **Name generators for the bias they encode, not just the type.** `naming_generators.ex`'s own moduledoc already models this well ("StreamData generators for host table pairs, biased toward the pairs that break naive naming") — new generators should say what failure class they are biased toward in a `@moduledoc`, e.g. a `tie_heavy_timestamps/1` generator's doc should say *why* it clusters values instead of just "generates timestamps."
+- **Shrinking readability:** StreamData's default shrinker on structured generators (maps/lists via `gen all`) already produces reasonably minimal counterexamples; the main DX risk is if a generator wraps its output in an opaque struct before returning it (harder to read a shrunk `%AuditChange{}` than a shrunk plain map). Prefer generating **plain maps** and only building the target struct (`%AuditChange{}`, a row-map for `csv_row/2`) as the last step inside the property body, so a shrink failure prints the plain generated map, not a struct with `__struct__`/`__meta__` noise.
+- **Failure messages a contributor understands:** every `assert`/`refute` inside a property body should carry its own message when the default ExUnit diff would be uninformative (e.g. asserting a `MapSet` equality on `Enum.concat(pages)` vs `original_list` — a bare `assert` there produces a large, hard-to-read set diff; assert on `Enum.sort(ids_a) == Enum.sort(ids_b)` with a message naming which invariant failed, e.g. `"page union lost or duplicated ids"`). This matches `naming_property_test.exs`'s own restraint — it names *why* an assertion holds in a comment right above it, not just what it checks (e.g. the "no trigger-name injectivity" comment at the top of that file). Carry that same commenting discipline into the new files: state the invariant in English before the `check all`, the way `retention.ex`'s own moduledoc already states its cutoff semantics before the code.
+
+---
+
+## 7. What NOT to do
+
+- Do not add `propcheck`/PropEr this milestone (§5) — no target here needs stateful modeling; it is a real dependency-and-maintenance cost for a capability this milestone's 6 targets don't require.
+- Do not property-test SQL identifier generation again for the redaction-leak target — that space is `naming_property_test.exs`'s job; redaction's DB-backed property should vary **values**, not **names** (§1.4).
+- Do not stand up a dedicated schema, table, or `Ecto.Adapters.SQL.Sandbox` usage for DB-backed properties (§2) — both diverge from this repo's established no-sandbox `DataCase` convention for no measurable benefit here.
+- Do not run any DB-backed property at StreamData's default `max_runs: 100` in the default `mix test` lane (§3) — that materially grows the serial-suite-time number this milestone is separately trying to shrink.
+- Do not remove `env: :test` from `bench/mix.exs`'s `threadline` path dependency to "fix" the compile error (§4) — that breaks bench's genuine runtime need for `Threadline.Test.Repo` and other `test/support` fixtures; fix bench's own env instead.
+- Do not property-test `Retention.purge/1`'s batch-loop/orphan-draining control flow (§1.5) — that is deterministic branching better and more cheaply covered by a few fixed-size example tests; a property there adds run count, not new coverage.
+- Do not hand-roll a persistent counterexample database (à la Hypothesis's example DB) — StreamData's seed-based reproduction plus "promote a found bug to a fixed test" (§3) covers the same need at this project's scale without new infrastructure.
+
+---
 
 ## Sources
 
-- hex.pm API: `/api/packages/{lazy_html,mint,mix_audit,plug,postgrex,dialyxir,credo,ex_doc,stream_data}` and release metadata for lazy_html 0.1.13 and mint 1.10.1 [VERIFIED]
-- OSV API: `EEF-CVE-2026-92106` (fixed 0.1.13) and `EEF-CVE-2026-82672` (fixed 1.10.1) [VERIFIED]
-- Hex CHANGELOG and `lib/mix/tasks/hex.audit.ex` at v2.5.1; commit history of the audit task (#1150 advisories, #1198 ignores, #1203 SARIF) [VERIFIED]
-- `mirego/elixir-security-advisories` contents via `gh api` (lazy_html missing, mint 2026 GHSA missing); `mirego/mix_audit` tags [VERIFIED]
-- `gh api` releases for erlef/setup-beam, actions/cache, actions/checkout, actions/setup-node, actions/upload-artifact, actions/dependency-review-action, gitleaks, gitleaks-action, trufflehog, elixir-lang/elixir, erlang/otp, microsoft/playwright, release-please-action, alls-green; `action.yml` `runs.using` per pinned ref [VERIFIED]
-- erlef/setup-beam README and `src/setup-beam.js` at v1.24.1 (`.tool-versions` parser) [VERIFIED]
-- Elixir source `lib/ex_unit/lib/ex_unit/runner.ex` at v1.15.8 and v1.17.3 (`create_tmp_dir!`); ExUnit.Case docs v1.20.4; `mix help test`, `mix help deps.unlock`, `mix help deps.get`; `deps.get.ex` at v1.14.5 and v1.15.8 [VERIFIED]
-- [Elixir compatibility and deprecations](https://hexdocs.pm/elixir/compatibility-and-deprecations.html) [VERIFIED]
-- [PostgreSQL versioning policy](https://www.postgresql.org/support/versioning/), [PostgreSQL roadmap](https://www.postgresql.org/developer/roadmap/), Docker Hub `library/postgres` tags [VERIFIED]
-- [Deprecation of Node 20 on GitHub Actions runners](https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/) (removal 2026-09-23) [VERIFIED]
-- [actions/runner-images#14254](https://github.com/actions/runner-images/issues/14254) (ubuntu-22.04 deprecation) [VERIFIED]
-- [GitHub dependency graph supported ecosystems](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/dependency-graph-supported-package-ecosystems) (no Hex); [dependabot-core#15020](https://github.com/dependabot/dependabot-core/pull/15020) (closed unmerged); [erlef/mix-dependency-submission](https://github.com/erlef/mix-dependency-submission) [VERIFIED]
-- Local runs on 2026-09-26: `mix hex.audit` (root, example, bench), `mix hex.outdated`, `mix deps.unlock --check-unused`, `mix xref graph --format cycles` (with and without label), `git grep` path census; `gh run view` logs of the latest green CI run; `gh api repos/szTheory/threadline` security settings [VERIFIED]
+- [stream_data (whatyouhide/stream_data) — GitHub](https://github.com/whatyouhide/stream_data)
+- [PropCheck — Property based testing for Elixir (HexDocs)](https://hexdocs.pm/propcheck/readme.html)
+- [Elixir Community Tools: StreamData — Erlang Solutions](https://www.erlang-solutions.com/blog/elixir-community-tools-streamdata/)
+- [Property-based testing in Elixir using PropEr](https://jeffkreeftmeijer.com/mix-proper/)
+- [StreamData: Property-based testing and data generation — elixir-lang.org blog](https://elixir-lang.org/blog/2017/10/31/stream-data-property-based-testing-and-data-generation-for-elixir/)
+- [Property-Based Testing with StreamData — Allan MacGregor](https://allanmacgregor.com/posts/property-based-testing-with-streamdata)
+- [EctoStreamFactory — GitHub](https://github.com/ibarchenkov/ecto_stream_factory)
+- [Hypothesis: Property-Based Testing for Python — Hacker News discussion](https://news.ycombinator.com/item?id=45818562)
+- [In praise of property-based testing — Increment](https://increment.com/testing/in-praise-of-property-based-testing/)
+- Local, repo-internal: `mix.exs`, `bench/mix.exs`, `bench/bench_helper.exs`, `test/test_helper.exs`, `test/support/data_case.ex`, `test/support/async_helpers.ex`, `test/support/naming_generators.ex`, `test/threadline/capture/naming_property_test.exs`, `test/threadline/mix/trigger_migration_property_test.exs`, `lib/threadline/query/cursors.ex`, `lib/threadline/query.ex`, `lib/threadline/change_diff.ex`, `lib/threadline/capture/redaction_policy.ex`, `lib/threadline/capture/trigger_sql.ex`, `lib/threadline/retention.ex`, `lib/threadline/export.ex`.
