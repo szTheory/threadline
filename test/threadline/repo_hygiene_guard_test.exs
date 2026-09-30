@@ -93,6 +93,9 @@ defmodule Threadline.RepoHygieneGuardTest do
   @too_broad_home_slash "/" <> "home" <> "/"
   @too_broad_json_users "\\" <> "/" <> "Users" <> "\\" <> "/"
   @too_broad_dash_users "-" <> "Users" <> "-"
+  @too_broad_json_home "\\" <> "/" <> "home" <> "\\" <> "/"
+  @too_broad_dash_home "-" <> "home" <> "-"
+  @too_broad_private_var_folders "/" <> "private" <> "/" <> "var" <> "/" <> "folders"
 
   # --- Tracer-carried coverage: single family, red vs green -------------------
 
@@ -491,7 +494,10 @@ defmodule Threadline.RepoHygieneGuardTest do
     {"/home (no trailing slash)", @too_broad_home},
     {"/home/ (trailing slash)", @too_broad_home_slash},
     {"JSON-escaped \\/Users\\/ ", @too_broad_json_users},
-    {"-Users- (dash form)", @too_broad_dash_users}
+    {"-Users- (dash form)", @too_broad_dash_users},
+    {"JSON-escaped \\/home\\/ ", @too_broad_json_home},
+    {"-home- (dash form)", @too_broad_dash_home},
+    {"/private/var/folders (no trailing slash)", @too_broad_private_var_folders}
   ]
 
   for {label, literal} <- @too_broad_literals do
