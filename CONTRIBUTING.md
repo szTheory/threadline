@@ -178,9 +178,19 @@ tables in `setup` (FK order). Keep DB-touching tests on that helper.
   with the code under test on pool allocation.
 - **Stop singletons in `setup`.** For globally named Threadline workers, call
   `stop_named_process!/1` so a previous test can't leak work into the next.
-- **Telemetry tests are `async: false`.** `:telemetry` handlers are
-  process-global; an `async: true` module that attaches a handler will receive
-  events emitted by *any* concurrently-running test for the same event name.
+- **Telemetry tests may be `async: true` if they attach with
+  `attach_telemetry!/1`.** `:telemetry` handlers are process-global: an
+  `async: true` module that attaches a handler with `:telemetry.attach`/
+  `attach_many` directly will receive events emitted by *any*
+  concurrently-running test for the same event name. `attach_telemetry!/1`
+  (`test/support/telemetry_helpers.ex`) closes that gap by forwarding only
+  events emitted by the attaching test process or a process it lists in
+  `$callers` (a `Task` it started and awaited). A test may go `async: true`
+  when it uses this helper and the code under test emits telemetry
+  synchronously in the test process. Tests whose events are emitted by other
+  processes (a GenServer, a spawned worker, a pruner) still need
+  `async: false`, since the helper's filter can't see events from a process
+  that isn't a tracked caller.
 - **Don't assert on unordered query results positionally.** Add an explicit
   `order_by` when a test depends on row order.
 - **Scratch files use ExUnit `@tag :tmp_dir`, not `System.tmp_dir!()`.** A

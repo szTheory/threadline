@@ -1,56 +1,45 @@
 if Code.ensure_loaded?(Phoenix.Controller) do
   defmodule Threadline.OperatorSurface.ExportAuthPlugTest do
     @moduledoc false
-    # async: false — attaches a process-global :telemetry handler for
-    # [:threadline, :operator_surface, :authorize]; running concurrently with
-    # another emitter of that event (e.g. AuthTest) leaks foreign events into
-    # this test's mailbox.
-    use ExUnit.Case, async: false
+    use ExUnit.Case, async: true
 
     import Plug.Test, only: [conn: 2]
     import Plug.Conn, only: [get_resp_header: 2]
+    import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
 
     alias Threadline.OperatorSurface.ExportAuthPlug
 
     setup do
-      pid = self()
-      handler_id = "export_auth_plug_test_#{System.unique_integer()}"
-
-      :telemetry.attach(
-        handler_id,
-        [:threadline, :operator_surface, :authorize],
-        fn name, measurements, metadata, _config ->
-          send(pid, {:telemetry_event, name, measurements, metadata})
-        end,
-        nil
-      )
-
-      on_exit(fn -> :telemetry.detach(handler_id) end)
-      :ok
+      telemetry_ref = attach_telemetry!([[:threadline, :operator_surface, :authorize]])
+      {:ok, telemetry_ref: telemetry_ref}
     end
 
     describe "call/2 with `:authorize_fn` returning a granted result" do
-      test "case 1: :ok grants and does not halt" do
+      test "case 1: :ok grants and does not halt", %{telemetry_ref: telemetry_ref} do
         opts = [authorize_fn: fn _ -> :ok end]
         conn_in = conn(:get, "/audit/exports/changes.csv")
         conn_out = ExportAuthPlug.call(conn_in, ExportAuthPlug.init(opts))
 
         refute conn_out.halted
 
-        assert_received {:telemetry_event, [:threadline, :operator_surface, :authorize],
+        assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                          %{result: :granted}, _meta}
       end
 
-      test "case 2: true grants and does not halt" do
+      test "case 2: true grants and does not halt", %{telemetry_ref: telemetry_ref} do
         opts = [authorize_fn: fn _ -> true end]
         conn_in = conn(:get, "/audit/exports/changes.csv")
         conn_out = ExportAuthPlug.call(conn_in, ExportAuthPlug.init(opts))
 
         refute conn_out.halted
-        assert_received {:telemetry_event, _, %{result: :granted}, _meta}
+
+        assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
+                         %{result: :granted}, _meta}
       end
 
-      test "case 3: {:ok, scope} when scope is a map grants and assigns :threadline_scope" do
+      test "case 3: {:ok, scope} when scope is a map grants and assigns :threadline_scope", %{
+        telemetry_ref: telemetry_ref
+      } do
         scope = %{user_id: 42, role: :admin}
         opts = [authorize_fn: fn _ -> {:ok, scope} end]
         conn_in = conn(:get, "/audit/exports/changes.csv")
@@ -59,11 +48,15 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         refute conn_out.halted
         assert conn_out.assigns[:threadline_scope] == scope
 
-        assert_received {:telemetry_event, _, %{result: :granted}, %{scope_keys: scope_keys}}
+        assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
+                         %{result: :granted}, %{scope_keys: scope_keys}}
+
         assert scope_keys == [:role, :user_id]
       end
 
-      test "shared %{assigns: assigns} callback grants support scope through the mirror" do
+      test "shared %{assigns: assigns} callback grants support scope through the mirror", %{
+        telemetry_ref: telemetry_ref
+      } do
         opts = [
           authorize_fn: fn %{assigns: assigns} ->
             case assigns[:current_user] do
@@ -89,13 +82,15 @@ if Code.ensure_loaded?(Phoenix.Controller) do
                  organization_id: "org_123"
                }
 
-        assert_receive {:telemetry_event, _, %{result: :granted},
-                        %{scope_keys: [:access, :organization_id]}}
+        assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
+                        %{result: :granted}, %{scope_keys: [:access, :organization_id]}}
       end
     end
 
     describe "call/2 with `:authorize_fn` returning a denial / raising" do
-      test "case 4: false halts with 403 plain-text body and :denied telemetry" do
+      test "case 4: false halts with 403 plain-text body and :denied telemetry", %{
+        telemetry_ref: telemetry_ref
+      } do
         opts = [authorize_fn: fn _ -> false end]
         conn_in = conn(:get, "/audit/exports/changes.csv")
         conn_out = ExportAuthPlug.call(conn_in, ExportAuthPlug.init(opts))
@@ -104,17 +99,23 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         assert conn_out.status == 403
         assert conn_out.resp_body == "forbidden"
         assert get_resp_header(conn_out, "content-type") == ["text/plain; charset=utf-8"]
-        assert_received {:telemetry_event, _, %{result: :denied}, _meta}
+
+        assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
+                         %{result: :denied}, _meta}
       end
 
-      test "case 5: raise inside authorize_fn halts with 403 and :error telemetry" do
+      test "case 5: raise inside authorize_fn halts with 403 and :error telemetry", %{
+        telemetry_ref: telemetry_ref
+      } do
         opts = [authorize_fn: fn _ -> raise "boom" end]
         conn_in = conn(:get, "/audit/exports/changes.csv")
         conn_out = ExportAuthPlug.call(conn_in, ExportAuthPlug.init(opts))
 
         assert conn_out.halted
         assert conn_out.status == 403
-        assert_received {:telemetry_event, _, %{result: :error}, _meta}
+
+        assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
+                         %{result: :error}, _meta}
       end
     end
 
@@ -170,7 +171,9 @@ if Code.ensure_loaded?(Phoenix.Controller) do
                }
       end
 
-      test "case 6a3: export_authorize_fn denial takes precedence over authorize_fn grants" do
+      test "case 6a3: export_authorize_fn denial takes precedence over authorize_fn grants", %{
+        telemetry_ref: telemetry_ref
+      } do
         opts = [
           authorize_fn: fn _ -> :ok end,
           export_authorize_fn: fn %Plug.Conn{} -> {:error, :unauthorized} end
@@ -183,7 +186,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         assert conn_out.status == 403
         assert conn_out.resp_body == "forbidden"
 
-        assert_received {:telemetry_event, _, %{result: :denied}, _meta}
+        assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
+                         %{result: :denied}, _meta}
       end
 
       test "case 6b: when :export_authorize_fn is absent, :authorize_fn is called with the synthetic %{assigns: conn.assigns} mirror" do

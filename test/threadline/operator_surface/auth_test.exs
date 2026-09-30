@@ -1,10 +1,7 @@
 defmodule Threadline.OperatorSurface.AuthTest do
-  # async: false — this module attaches a process-global :telemetry handler for
-  # [:threadline, :operator_surface, :authorize] and asserts on the events it
-  # receives. Telemetry handlers fire for *every* emitter, so running
-  # concurrently with another module that emits the same event (e.g.
-  # ExportAuthPlugTest) leaks foreign events into this test's mailbox.
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
+
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
 
   alias Threadline.OperatorSurface.Auth
 
@@ -22,48 +19,14 @@ defmodule Threadline.OperatorSurface.AuthTest do
   end
 
   setup do
-    # Clear telemetry messages
-    pid = self()
-    handler_id = "auth_test_#{System.unique_integer()}"
+    telemetry_ref =
+      attach_telemetry!([
+        [:threadline, :operator_surface, :authorize],
+        [:threadline, :operator_surface, :actor_ref_mismatch],
+        [:threadline, :operator_surface, :export_authorize]
+      ])
 
-    :telemetry.attach(
-      handler_id,
-      [:threadline, :operator_surface, :authorize],
-      fn name, measurements, metadata, _config ->
-        send(pid, {:telemetry_event, name, measurements, metadata})
-      end,
-      nil
-    )
-
-    mismatch_handler_id = "auth_mismatch_test_#{System.unique_integer()}"
-
-    :telemetry.attach(
-      mismatch_handler_id,
-      [:threadline, :operator_surface, :actor_ref_mismatch],
-      fn name, measurements, metadata, _config ->
-        send(pid, {:mismatch_telemetry_event, name, measurements, metadata})
-      end,
-      nil
-    )
-
-    export_handler_id = "export_auth_test_#{System.unique_integer()}"
-
-    :telemetry.attach(
-      export_handler_id,
-      [:threadline, :operator_surface, :export_authorize],
-      fn name, measurements, metadata, _config ->
-        send(pid, {:export_telemetry_event, name, measurements, metadata})
-      end,
-      nil
-    )
-
-    on_exit(fn ->
-      :telemetry.detach(handler_id)
-      :telemetry.detach(mismatch_handler_id)
-      :telemetry.detach(export_handler_id)
-    end)
-
-    :ok
+    {:ok, telemetry_ref: telemetry_ref}
   end
 
   describe "on_mount/4 session extraction" do
@@ -113,7 +76,9 @@ defmodule Threadline.OperatorSurface.AuthTest do
                returned_socket.assigns.threadline_actor_ref
     end
 
-    test "keeps the session actor and emits telemetry when scope fallback disagrees" do
+    test "keeps the session actor and emits telemetry when scope fallback disagrees", %{
+      telemetry_ref: telemetry_ref
+    } do
       session = %{"threadline_actor_ref" => "{\"id\":\"user-1\",\"type\":\"user\"}"}
       scope = %{user_id: 456}
       opts = [authorize_fn: fn _socket -> {:ok, scope} end]
@@ -124,9 +89,8 @@ defmodule Threadline.OperatorSurface.AuthTest do
       assert %Threadline.Semantics.ActorRef{type: :user, id: "user-1"} =
                returned_socket.assigns.threadline_actor_ref
 
-      assert_receive {:mismatch_telemetry_event,
-                      [:threadline, :operator_surface, :actor_ref_mismatch], %{count: 1},
-                      metadata}
+      assert_receive {[:threadline, :operator_surface, :actor_ref_mismatch], ^telemetry_ref,
+                      %{count: 1}, metadata}
 
       assert metadata.session_actor_ref == %{"type" => "user", "id" => "user-1"}
       assert metadata.scope_actor_ref == %{"type" => "user", "id" => "456"}
@@ -134,7 +98,9 @@ defmodule Threadline.OperatorSurface.AuthTest do
   end
 
   describe "on_mount/4" do
-    test "export authorization exceptions fail closed and emit error telemetry" do
+    test "export authorization exceptions fail closed and emit error telemetry", %{
+      telemetry_ref: telemetry_ref
+    } do
       actor_ref = %Threadline.Semantics.ActorRef{type: :user, id: "user-1"}
 
       opts = [
@@ -147,12 +113,13 @@ defmodule Threadline.OperatorSurface.AuthTest do
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
       refute returned_socket.assigns.threadline_exports_enabled
 
-      assert_receive {:export_telemetry_event,
-                      [:threadline, :operator_surface, :export_authorize],
+      assert_receive {[:threadline, :operator_surface, :export_authorize], ^telemetry_ref,
                       %{result: :error, count: 1}, %{actor_ref: ^actor_ref}}
     end
 
-    test "Case 1: returns :ok -> connection continues, telemetry :granted emitted" do
+    test "Case 1: returns :ok -> connection continues, telemetry :granted emitted", %{
+      telemetry_ref: telemetry_ref
+    } do
       opts = [authorize_fn: fn _socket -> :ok end]
       socket = mock_socket()
 
@@ -160,11 +127,12 @@ defmodule Threadline.OperatorSurface.AuthTest do
       assert returned_socket.assigns.threadline_repo == nil
       assert returned_socket.assigns.threadline_schemas == %{}
 
-      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+      assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                       %{result: :granted}, _metadata}
     end
 
-    test "Case 2: returns {:ok, scope} -> connection continues, assigns scope, telemetry :granted emitted" do
+    test "Case 2: returns {:ok, scope} -> connection continues, assigns scope, telemetry :granted emitted",
+         %{telemetry_ref: telemetry_ref} do
       scope = %{user_id: 123, role: "admin"}
       opts = [authorize_fn: fn _socket -> {:ok, scope} end]
       socket = mock_socket()
@@ -172,13 +140,15 @@ defmodule Threadline.OperatorSurface.AuthTest do
       assert {:cont, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
       assert returned_socket.assigns.threadline_scope == scope
 
-      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+      assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                       %{result: :granted}, metadata}
 
       assert metadata.scope_keys == [:role, :user_id]
     end
 
-    test "shared %{assigns: assigns} callback can return an opaque support scope" do
+    test "shared %{assigns: assigns} callback can return an opaque support scope", %{
+      telemetry_ref: telemetry_ref
+    } do
       opts = [
         authorize_fn: fn %{assigns: assigns} ->
           case assigns[:current_user] do
@@ -200,13 +170,15 @@ defmodule Threadline.OperatorSurface.AuthTest do
                organization_id: "org_123"
              }
 
-      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+      assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                       %{result: :granted}, metadata}
 
       assert metadata.scope_keys == [:access, :organization_id]
     end
 
-    test "Case 3: returns true -> connection continues, telemetry :granted emitted" do
+    test "Case 3: returns true -> connection continues, telemetry :granted emitted", %{
+      telemetry_ref: telemetry_ref
+    } do
       opts = [authorize_fn: fn _socket -> true end]
       socket = mock_socket()
 
@@ -214,11 +186,13 @@ defmodule Threadline.OperatorSurface.AuthTest do
       assert returned_socket.assigns.threadline_repo == nil
       assert returned_socket.assigns.threadline_schemas == %{}
 
-      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+      assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                       %{result: :granted}, _metadata}
     end
 
-    test "Case 4: returns false -> connection halts with redirect, telemetry :denied emitted" do
+    test "Case 4: returns false -> connection halts with redirect, telemetry :denied emitted", %{
+      telemetry_ref: telemetry_ref
+    } do
       opts = [authorize_fn: fn _socket -> false end]
       socket = mock_socket()
 
@@ -226,39 +200,42 @@ defmodule Threadline.OperatorSurface.AuthTest do
       # Phoenix.LiveView.redirect adds a redirect instruction.
       assert {:redirect, %{to: "/"}} = returned_socket.redirected
 
-      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+      assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                       %{result: :denied}, _metadata}
     end
 
-    test "Case 4: returns nil -> connection halts with redirect, telemetry :denied emitted" do
+    test "Case 4: returns nil -> connection halts with redirect, telemetry :denied emitted", %{
+      telemetry_ref: telemetry_ref
+    } do
       opts = [authorize_fn: fn _socket -> nil end]
       socket = mock_socket()
 
       assert {:halt, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
       assert {:redirect, %{to: "/"}} = returned_socket.redirected
 
-      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+      assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                       %{result: :denied}, _metadata}
     end
 
-    test "Case 5: crashes -> handled gracefully, halts with redirect, telemetry :error emitted" do
+    test "Case 5: crashes -> handled gracefully, halts with redirect, telemetry :error emitted",
+         %{telemetry_ref: telemetry_ref} do
       opts = [authorize_fn: fn _socket -> raise "Boom!" end]
       socket = mock_socket()
 
       assert {:halt, returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
       assert {:redirect, %{to: "/"}} = returned_socket.redirected
 
-      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+      assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                       %{result: :error}, _metadata}
     end
 
-    test "defaults to true/ok if authorize_fn is missing" do
+    test "defaults to true/ok if authorize_fn is missing", %{telemetry_ref: telemetry_ref} do
       opts = []
       socket = mock_socket()
 
       assert {:cont, _returned_socket} = Auth.on_mount(opts, %{}, %{}, socket)
 
-      assert_receive {:telemetry_event, [:threadline, :operator_surface, :authorize],
+      assert_receive {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                       %{result: :granted}, _metadata}
     end
   end
