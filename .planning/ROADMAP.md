@@ -105,7 +105,7 @@ Plans:
 **Wave 1**
 - [x] 225-01-PLAN.md — SUITE-01 baseline: `ci-job-timing.py` (step duration, runner-minutes proxy, inclusive verdict), copied `check-citations.py`, cited 225-BASELINE.md with local slowest rankings and the D-03 N check — complete 2026-09-30
 **Wave 2**
-- [ ] 225-02-PLAN.md — SUITE-03: `attach_telemetry!/1` emitting-process filter with its mutation control; the three operator-surface auth test files async; CONTRIBUTING rule; 200-repeat proof
+- [x] 225-02-PLAN.md — SUITE-03: `attach_telemetry!/1` emitting-process filter with its mutation control; the three operator-surface auth test files async; CONTRIBUTING rule; 200-repeat proof — complete 2026-09-30
 **Wave 3**
 - [ ] 225-03-PLAN.md — SUITE-02 gate commit: `bin/ci-test-partitions` (+ `--self-test`), `mix verify.test_partitioned`, per-partition DB, CI step + self-test step + D-07 fix, topology/parity contracts, Flake Detection resize, CONTRIBUTING
 **Wave 4**
