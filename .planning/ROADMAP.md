@@ -72,7 +72,7 @@
   5. VERIFICATION.md reports suite wall clock before and after, measured against the milestone base `dd780e68`.
 
 **Plans**: TBD
-**Research**: Plan-phase review required for the down-orphan's two-sided ordering: both the rerun migration's `down` and the first-run migration's `down` emit the idempotent, usage-checked drop, wired through `TriggerMigration.covered_pairs/1`. Check that partial and full-chain rollback orders both hold before execution. No catalog sweep and no CASCADE.
+**Research**: Resolved in discuss-phase (224-CONTEXT D-01): the first-run migration's `down` unconditionally emits the idempotent, usage-checked drop for the table's deterministic per-table function name after its trigger drop; the rerun's `down` stays unchanged. The earlier two-sided/`covered_pairs/1` wiring is superseded (the first run is generated before any rerun exists, and a rerun-side drop never succeeds under reverse-order rollback). Plan-phase still checks partial and full-chain rollback orders against the regression and property tests. No catalog sweep and no CASCADE.
 
 ### Phase 225: Suite Baseline and Partitioned CI
 
