@@ -340,12 +340,13 @@ end
 
 **If this table is empty:** N/A — two low-risk, CONTEXT-acknowledged discretion items remain; no compliance/security/retention claims were assumed.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact wording split between the D-04 first-run comment and the existing `@generated_down_phrases`/`@rerun_doc_phrases` contract constants.**
    - What we know: the rerun-side comment wording is contract-pinned across `gen_triggers_test.exs`, `guides/production-checklist.md`, and `guides/domain-reference.md` (`test/mix/tasks/threadline/gen_triggers_test.exs:907-929`). The NEW first-run comment (D-04) is a different comment, on a different code path (first-run `down`, not rerun `down`), and CONTEXT does not ask for it to be added to those cross-doc contract constants.
    - What's unclear: whether the planner wants the new first-run comment ALSO doc-contract-pinned (i.e., extend `@rerun_doc_phrases`-style checking to it) or left as a plain generated comment with only the two direct assertions D-12 already calls for (L791-807/L814-817 exact-output tests).
    - Recommendation: keep it a plain generated comment verified only by the direct exact-output tests named in D-12; CONTEXT's wording ("The planner may edit it for project voice") suggests it is not meant to be as heavily contract-pinned as the rerun comment.
+   - RESOLVED: 224-01 Task 2 pins the first-run comment with a standalone `@first_run_down_phrase` in the direct exact-output tests and leaves `@rerun_doc_phrases`/`@generated_down_phrases` unchanged.
 
 ## Environment Availability
 

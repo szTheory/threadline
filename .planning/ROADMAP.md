@@ -74,10 +74,16 @@
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
 - [ ] 224-01-PLAN.md — First-run `down` drops the per-table function; regression test through `Ecto.Migrator` (partial + full chain); re-pinned outputs; regenerated example fixture (wave 1)
-- [ ] 224-02-PLAN.md — DB-backed rerun-sequence property (`@max_runs 20`) and recorded CAPT-02 mutation controls (wave 2)
 - [ ] 224-03-PLAN.md — Bench `preferred_envs`, `mix verify.bench_compile` in `ci.all` and the `verify-compile-no-optional` job, contract + mutation control (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 224-02-PLAN.md — DB-backed rerun-sequence property (`@max_runs 20`) and recorded CAPT-02 mutation controls (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 224-04-PLAN.md — Upgrade-guide remediation + CHANGELOG, SUITE-06 wall clock vs `dd780e68`, `mix ci.all` gate (wave 3)
+
 **Research**: Resolved in discuss-phase (224-CONTEXT D-01): the first-run migration's `down` unconditionally emits the idempotent, usage-checked drop for the table's deterministic per-table function name after its trigger drop; the rerun's `down` stays unchanged. The earlier two-sided/`covered_pairs/1` wiring is superseded (the first run is generated before any rerun exists, and a rerun-side drop never succeeds under reverse-order rollback). Plan-phase still checks partial and full-chain rollback orders against the regression and property tests. No catalog sweep and no CASCADE.
 
 ### Phase 225: Suite Baseline and Partitioned CI
