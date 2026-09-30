@@ -2,6 +2,7 @@
 created: 2026-09-28T01:30:00Z
 title: Cut CI wall clock by making the test suite less sync-bound
 area: ci
+resolves_phase: 225
 files:
   - test/test_helper.exs
   - .github/workflows/ci.yml
