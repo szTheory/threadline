@@ -76,7 +76,7 @@
 Plans:
 **Wave 1**
 - [x] 224-01-PLAN.md — First-run `down` drops the per-table function; regression test through `Ecto.Migrator` (partial + full chain); re-pinned outputs; regenerated example fixture (wave 1) — complete 2026-09-30
-- [ ] 224-03-PLAN.md — Bench `preferred_envs`, `mix verify.bench_compile` in `ci.all` and the `verify-compile-no-optional` job, contract + mutation control (wave 1)
+- [x] 224-03-PLAN.md — Bench `preferred_envs`, `mix verify.bench_compile` in `ci.all` and the `verify-compile-no-optional` job, contract + mutation control (wave 1) — complete 2026-09-30
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 224-02-PLAN.md — DB-backed rerun-sequence property (`@max_runs 20`) and recorded CAPT-02 mutation controls (wave 2)
@@ -186,7 +186,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 224. Capture and Bench Fixes | 1/4 | In Progress | - |
+| 224. Capture and Bench Fixes | 2/4 | In Progress | - |
 | 225. Suite Baseline and Partitioned CI | 0/TBD | Not started | - |
 | 226. Pure Property Tests and Run Budget | 0/TBD | Not started | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |

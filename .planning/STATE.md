@@ -5,16 +5,16 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 224
 current_phase_name: Capture and Bench Fixes
 status: executing
-stopped_at: Completed 224-01-PLAN.md
-last_updated: "2026-09-30T17:32:37.019Z"
+stopped_at: Completed 224-03-PLAN.md
+last_updated: "2026-09-30T17:44:09.117Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 224 execution started
-state_head: 544ac339404343ab3442ce3ec32995e22391ffbc
+state_head: 8c7af4ed652e16f9e7ba3cfda9bf6fe529b7b447
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 224 (Capture and Bench Fixes) — EXECUTING
-Plan: 2 of 4
-Status: Executing Phase 224 (224-01 complete)
-Last activity: 2026-09-30 — 224-01 complete (CAPT-01/CAPT-02 deterministic half: first-run down unconditionally drops the per-table function; Ecto.Migrator partial + full-chain rollback regression; re-pinned gen_triggers_test.exs; regenerated example shape fixture; commits 0bc83e3a/0e644dc3; mix test test/mix/tasks/threadline/gen_triggers_test.exs test/threadline/capture 7 properties/225 tests/0 failures; credo + format clean)
+Plan: 4 of 4
+Status: Executing Phase 224 (224-01, 224-03 complete; wave 1 done)
+Last activity: 2026-09-30 — 224-03 complete (SUITE-05: bench/mix.exs `def cli` preferred_envs compile/run :test; `verify.bench_compile` alias in ci.all after verify.compile_no_optional and a new step in the verify-compile-no-optional CI job; bench_compile_errors/3 contract with 6 mutation controls; local mutation control recorded in 224-EVIDENCE.md; commits 4ca8f8db/8c7af4ed; mix test test/threadline/ci_topology_contract_test.exs test/threadline/ci_workflow_parity_contract_test.exs test/threadline/ci_all_dedup_contract_test.exs 94 tests/0 failures; credo + format clean; bin/verify-repo-hygiene clean). Prior: 224-01 complete (CAPT-01/CAPT-02 deterministic half: first-run down unconditionally drops the per-table function; Ecto.Migrator partial + full-chain rollback regression; re-pinned gen_triggers_test.exs; regenerated example shape fixture; commits 0bc83e3a/0e644dc3; mix test test/mix/tasks/threadline/gen_triggers_test.exs test/threadline/capture 7 properties/225 tests/0 failures; credo + format clean)
 
-Progress: [░░░░░░░░░░] 0 of 7 v1.44 phases complete ([░░░░░░░░░░] 0%), 1/4 plans (phase 224: 4 plans in 3 waves, 224-01 complete wave 1; later phases TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: 224-03 (wave 1, bench compile fix), then 224-02 (wave 2, DB-backed property test), then 224-04 (wave 3, docs + SUITE-06 measurement). Research flag: 225 opens with a fresh local `mix test --slowest 50` run before the partition count is chosen. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [░░░░░░░░░░] 0 of 7 v1.44 phases complete ([░░░░░░░░░░] 0%), 2/4 plans (phase 224: 4 plans in 3 waves, 224-01 + 224-03 complete wave 1; later phases TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: 224-02 (wave 2, DB-backed property test), then 224-04 (wave 3, docs + SUITE-06 measurement). Research flag: 225 opens with a fresh local `mix test --slowest 50` run before the partition count is chosen. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 - Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
@@ -233,6 +233,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 223 P04 | ~15min | 3 tasks | 0 files |
 | Phase 223 P06 | ~10min | 3 tasks | 0 files |
 | Phase 224 P01 | ~40min | 2 tasks | 5 files |
+| Phase 224 P03 | ~35min | 2 tasks | 6 files |
 
 ## Deferred Items
 
@@ -907,6 +908,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 223]: 223-05: docs(release) dating PR landed on main (0.11.2 entry dated, three advisories preserved); release PR #67 regenerated itself already current, so the granted update-branch --rebase was correctly skipped as a verified no-op; release PR head e9f96e05 confirmed green (CHANGELOG matches version + CI required)
 - [Phase 223]: 0.11.2 published to hex.pm (run 36654382663), production-hex approval delegated to the orchestrator under the maintainer's explicit in-session authorization
 - [Phase 224]: D-01: emit the per-table function drop from the first-run migration only, unconditionally; the rerun migration's down stays untouched
+- [Phase 224]: Bundled Task 1 (tracer) + Task 2 code changes into one fix(bench) commit per the plan's own acceptance criteria; evidence committed separately
 
 ### Blockers
 
@@ -922,8 +924,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-09-30T17:32:36.988Z
-**Stopped at:** Completed 224-01-PLAN.md
+**Last session:** 2026-09-30T17:44:09.078Z
+**Stopped at:** Completed 224-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

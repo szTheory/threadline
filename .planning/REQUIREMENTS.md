@@ -60,7 +60,7 @@
 - [ ] **SUITE-04**: Guard tests that only compare prose to a hand-typed literal are merged or cut under the recorded keep/cut rubric.
   - Tests that derive from a live source, or that carry a v1.43 mutation control, are kept.
   - The required-check count is unchanged, and suite wall clock is reported before and after.
-- [ ] **SUITE-05**: The bench project compiles with a bare `mix compile` (via `preferred_envs`), and an existing CI lane proves it.
+- [x] **SUITE-05**: The bench project compiles with a bare `mix compile` (via `preferred_envs`), and an existing CI lane proves it.
 - [ ] **SUITE-06**: Each phase that adds or removes tests reports the suite wall clock before and after. Across the milestone, the net suite time does not regress against SUITE-01.
 
 ### Release
@@ -114,7 +114,7 @@
 | SUITE-02 | Phase 225 | Pending |
 | SUITE-03 | Phase 225 | Pending |
 | SUITE-04 | Phase 230 | Pending |
-| SUITE-05 | Phase 224 | Pending |
+| SUITE-05 | Phase 224 | Complete |
 | SUITE-06 | Phase 230 | Pending |
 | REL-01 | Phase 230 | Pending |
 
