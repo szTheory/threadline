@@ -7,6 +7,10 @@ files:
   - .github/workflows/ci.yml
   - .github/workflows/flake-detection.yml
   - .planning/seeds/SEED-006-ci-feedback-loop-cost-and-latency.md
+
+audit_acknowledged:
+  milestone: v1.43
+  at: 2026-09-30
 ---
 
 ## Problem

@@ -17,6 +17,7 @@ Out-of-scope discoveries recorded during phase 216. Nothing here is fixed in thi
    already fails on any cache key led by the OS-family runner value. That phase therefore does not add
    the first guard: it only adds its dedicated all-workflows anti-regression grep, or cites this
    classifier as satisfying it.
+  status: acknowledged
 
 ## From code review 216-REVIEW.md (recorded 2026-09-27 at phase close)
 
@@ -26,3 +27,4 @@ Out-of-scope discoveries recorded during phase 216. Nothing here is fixed in thi
   - widen the release_control_plane credential contract, with a mutation control, to every release.yml job that runs `mix`.
 - **WR-01:** CONTRIBUTING repeats the pin literals (27.3.4.15, 1.17.3, 22.14.0) with no contract binding them to `.tool-versions`.
 - **WR-02:** The runbook contract (`ci_action_runtime_contract_test.exs:124-158`) is a substring check: `@v5` also matches `@v50`, a stale `Last rehearsal` line still passes, and only the first action ref is checked.
+  status: acknowledged

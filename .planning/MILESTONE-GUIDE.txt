@@ -174,6 +174,8 @@ weeks: mid-November to early December 2026.
 NEAR (the ladder to 1.0.0):
 
 v1.42 Capture Correctness for Real Table Shapes -> 0.11.0
+  [SHIPPED 2026-09-26 as 0.11.0; carried: gen.triggers down orphan,
+   gen.backfill, health --strict -> v1.44 candidates]
   - Primary-key-agnostic capture. Trigger SQL today hardcodes `'id'`, so
     tables keyed any other way silently store {"id": null}. Composite
     keys must work, which the AuditChange moduledoc already claims.
@@ -187,6 +189,9 @@ v1.42 Capture Correctness for Real Table Shapes -> 0.11.0
   - An upgrade note for regenerating triggers.
 
 v1.43 Supply Chain, CI Economy, and Repo Hygiene -> patch
+  [SHIPPED 2026-09-30 as 0.11.1 + 0.11.2; every bullet below shipped;
+   change-aware lanes REJECTED on data (0 of 28 PRs inert, SEED-006
+   closed with reopen_when); carried CI/test debt in MILESTONES.md]
   - Dependency advisories remediated, plus an audit gate in CI.
   - CI economy, measured first, lowest risk first. Flake Detection alone
     was about 4,300 runner-minutes a month with no signal. The work:

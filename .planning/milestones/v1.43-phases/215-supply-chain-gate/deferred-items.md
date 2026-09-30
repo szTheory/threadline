@@ -1,7 +1,7 @@
 # Deferred Items
 
 - `cd bench && mix compile --warnings-as-errors` fails with `module ExUnitProperties is not loaded and could not be found` at `test/support/naming_generators.ex:8`
-  status: open
+  status: acknowledged
   **What:** reproduces identically on the base lock (before the 215-01 bench dependency bump) and after it — confirmed by running the same compile command before and after `mix deps.update ecto ecto_sql decimal postgrex plug`. Not caused by the bench refresh; not chased per plan 215-01's scope prohibition.
 
 - WR-01: any `hex.outdated` failure (network, registry, crash) is classified `outdated`, so the lane stays green

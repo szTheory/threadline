@@ -10,44 +10,52 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline shipped **v1.42 Capture Correctness for Real Table Shapes** on 2026-09-26 (Phases 208–213, 30 plans, 28/28 requirements) and released it as **0.11.0 on hex.pm**. Capture is now correct and collision-free for every primary-key shape (uuid, text, composite, INCLUDE, partitioned, schema-qualified, and no-PK tables via a `primary_key:` override), Postgres schema and name length. Unsupported shapes are refused at migrate time. `history`/`as_of` match the captured key exactly, backed by a shipped row-history index. `Threadline.Health.trigger_findings/1` detects broken capture, and `guides/upgrading-to-0.11.md` carries backfill SQL proven on real PostgreSQL. The 0.10.x shared-capture-function security issue is fixed and disclosed in the CHANGELOG.
+Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-09-30 (Phases 214–223, 52 plans, 24/24 requirements) as two patch releases, **0.11.1** and **0.11.2**, on hex.pm. The current package line is **0.11.2**, which carries the mint 1.11.0 advisory fix. Dependency advisories are gated by a required `verify-deps-audit` job. The toolchain is pinned by a committed `.tool-versions`. A required `verify-repo-hygiene` guard keeps machine-local paths and PII out of the tracked tree, `.planning/` included. CI was measured before it was cut. The v1.44 decisions it feeds are recorded in `.planning/milestones/v1.43-MILESTONE-AUDIT.md` and the phase REMEASURE files.
 
-**Open state (updated 2026-09-26):**
-- Landed via squash PR #52. release-please shipped 0.11.0 (#53, run 36257162356) and the distribution sync merged (#54).
-- `main` CI is green, there are no open PRs, and origin has only `main`.
+**Open state (updated 2026-09-30):**
+- Five phase-223 review-fix commits are on `milestone/v1.43` but not on `main`. They change only tests, CI scripts and comments, and are not releasable. Together with this close's planning archive, they need one squash landing PR under a maintainer push/PR/merge grant.
+- Stale remote `land/*` and `release/*` branches still need pruning. Milestone tag `v1.43` is local only.
 - The operator UI stays parked until 1.0.0.
-- **v1.43 Supply Chain, CI Economy and Repo Hygiene** started 2026-09-26 (defining requirements).
+- Next: `/gsd-new-milestone`. The ladder says v1.44 Behavioral Depth: Properties, Twins, Telemetry (`.planning/MILESTONE-GUIDE.txt` §7).
 
+## Latest Milestone Shipped: v1.43 Supply Chain, CI Economy and Repo Hygiene (2026-09-30)
 
-## Current Milestone: v1.43 Supply Chain, CI Economy and Repo Hygiene
+**Delivered:** a supply-chain gate, platform currency, a repo-hygiene guard and measured CI economy. Released as 0.11.1 (#55, #56, #59) and 0.11.2 (#66, #67, #68, #69).
 
-**Goal:** Close the known dependency advisory behind a CI audit gate, make every CI job earn its runner minutes and read clearly, and keep the public repo free of local paths. Measure a baseline first, fix the lowest-risk waste first, and ship as a patch.
+- **Supply chain (215):**
+  - Advisories cleared in all three lockfiles.
+  - A required Hex audit gate: Hex >= 2.5.1, `--check-locked`, and global ignores refused.
+  - Suppressions need a reason and a review-by date.
+  - A weekly `deps-health` issue lane.
+- **Platform currency (216):**
+  - Committed `.tool-versions` with an exact OTP pin, installed strictly everywhere.
+  - Node 24 actions and a supported min-lane runner.
+- **Repo hygiene (217, 223):**
+  - A required `bin/verify-repo-hygiene` guard (8 families, `--self-test`).
+  - A forward scrub of 319 files, with no history rewrite.
+  - `@tag :tmp_dir` plus `mix verify.temp_leaks`.
+- **CI economy (218, 219, 222):**
+  - A weekly flake lane.
+  - Duplicate jobs cut, and Browser-full limited to its own projects.
+  - Deps-only `_build` caches: a warm run costs 49 billed runner-min instead of 55 at BASE-01, and the critical path is 547 s instead of 623 s.
+  - SEED-006 closed on data.
+- **Newest toolchain and legibility (220, 221):**
+  - A voting `latest` lane on Elixir 1.20.4 / OTP 29.1.1 / PG 18.6.
+  - Subject-first check names and time-to-red order.
+  - `CI required` pinned to GitHub Actions, and least-privilege tokens.
+- **Audit debt (223):**
+  - Credential-free release checkouts.
+  - The mint fix released through a commit override.
+  - Round-2 hygiene findings fixed.
 
-**Baseline (measured 2026-09-26, `5e78b2f0` main green, 0 open PRs; re-measured 2026-09-26 in Phase 214, see `.planning/phases/214-baseline-measurement/214-BASELINE.md`):**
-- Flake Detection: 79 consecutive scheduled fast failures (under 10 min each), 06-26→09-12 (runs 28225855438 → 34679766829; the last failed on a broken main that CI already reported), then 12 cancellations at 51 repeats × ~165 s past the old 120-min timeout (09-13→09-24), then 2 green (98 and 137 min) under the current 180-min timeout. It has never classified a run as `flaky`, and its issue #36 posted 11 misleading "unknown" comments. About 3,000–4,100 runner-min/month.
-- `mix hex.audit` exits 1 on 2 advisories in the root `mix.lock`. mint 1.10.0 (MEDIUM, EEF-CVE-2026-82672 / GHSA-rj5m-69wp-cxq9, response smuggling) comes in through the optional runtime dependency req → finch → mint; fixed in 1.10.1. lazy_html 0.1.12 (LOW, test-only, EEF-CVE-2026-92106 / GHSA-8rqp-v692-v82q, mutation XSS) is fixed in 0.1.13. Both fixes are lockfile-only. `bench/mix.lock` has 8 advisories, 3 HIGH in bench (postgrex 0.22.0 ×1, plug 1.19.1 ×2), plus 3 MEDIUM and 2 LOW across decimal 2.3.0, postgrex and plug. `examples/threadline_phoenix/mix.lock` is clean (hex.audit exit 0). No audit gate in CI. Dependabot alerts are disabled on the repo.
-- CI wall time, p50 from `214-BASELINE.md` sections 2 and 5 (ci.yml n=20 per event; Browser-full successful runs since 2026-08-27, n=19 push and n=14 nightly): PR 10.5 min (run 34758417725), push 10.7 min (run 34755997103). Browser-full: 18.0 min on every push to main (run 35780709940) plus 14.5 min nightly (run 34932091760).
-- Machine-local paths: 387 tracked files at `e58aa067` match an absolute home path (a `Users` or `home` root) or a home-relative tilde-slash path, by `git grep -l -I -E` with both regexes (`.planning/phases/214-baseline-measurement/tools/measure-base02.sh paths`). That total is 383 under `.planning/`, 2 in `prompts/prior-art/` and 2 in `.github/workflows/` (the runner's Playwright cache path, not a maintainer path). Absolute paths alone: 303 files. origin/main `5e78b2f0`: 345 files (292 absolute).
-- Also found: CI's `otp-version: "27.0"` resolves to 27.0.1, `.tool-versions` was untracked, 3 actions still declare Node 20 (removed 2026-09-23), the min lane's `ubuntu-22.04` is deprecated, and the release PR is dispatched twice (9 SHA pairs).
-- `mix xref graph --format cycles --label compile-connected`: clean, and already gated by `verify.xref_cycles` (in `ci.all` and both test lanes). Without the label there are 5 runtime cycles of length 2, including `Capture.AuditTransaction`↔`Semantics.AuditAction`, which crosses the capture and semantics layers.
+**Carried debt:** `.planning/milestones/v1.43-MILESTONE-AUDIT.md` `tech_debt`, and the v1.43 rows in STATE.md Deferred Items (MILESTONES.md lists them).
 
-**Target features:**
-- Supply chain: fix the advisories (root and bench), add a CI audit gate, set a dependency-freshness policy (not dependabot churn)
-- CI economy (measured first): a broken/costly Flake Detection lane fixed or re-scoped, duplicate proofs removed, the release-PR double dispatch, Browser-full re-running CI projects, a deps-only `_build` cache, and an uncached live-Dialyzer test (540 s timeout) that runs in both test lanes and in every flake iteration
-- CI DX: job names say what failed, and the fastest likely failure comes first
-- Platform currency: commit `.tool-versions`, exact OTP, Node 24 actions, a supported min-lane runner
-- One lane on the newest PostgreSQL/Elixir (spike first)
-- tmp_dir hygiene: leaking tests moved to `@tag :tmp_dir` (no temp-dir flake is recorded)
-- Repo hygiene: a PII/local-path CI guard, a forward scrub of tracked files (no history rewrite), and no runtime-cycle gate: the existing compile-connected `verify.xref_cycles` gate stays (0 compile-connected cycles), and the 5 runtime cycles of length 2 stay ungated (2 are Ecto schema pairs; 3 are module pairs in the operator-surface checker, `Threadline`↔`Investigation`, and the critic.measure task). The capture↔semantics edge is logged for the v1.45 API/architecture review.
-- SEED-006: change-aware lanes — measured and closed in Phase 222 (0 of 28 merged PRs strict-inert in the rolling 30 days; not worth a classifier; see phases/222-seed-006-change-aware-lanes-conditional/222-DECISION.md)
+**Deferred to v1.44 (from v1.42):**
+- `gen.triggers` `down` leaves an orphaned per-table function on rerun.
+- `mix threadline.gen.backfill`.
+- health `--strict`.
 
-**Shipped so far (2026-09-27):** Phase 217 Repo Hygiene is complete (HYG-01..04 validated, re-verification 5/5): tracked tree scrubbed of machine-local paths (prefix-only, no history rewrite); `bin/verify-repo-hygiene` / `mix verify.repo_hygiene` guard in `ci.all` and the required `verify-repo-hygiene` job; leaking tests on `@tag :tmp_dir` with `mix verify.temp_leaks`; xref disposition recorded. Key decision: tracked planning prose is not exempt from the guard — machine-local path shapes are written with the placeholder forms in CONTRIBUTING.md `## Writing about machine-local paths` instead of allowlisting prose. Open for milestone close: 6 round-2 review findings in `217-REVIEW-DISPOSITION.md` (notably Linux-encoded project dirs undetected while CONTRIBUTING claims full coverage).
-
-**Shipped so far (2026-09-28):** Phase 218 CI Economy: Remove Waste is complete (ECON-01..07 validated, verification 12/12). Flake Detection runs weekly plus on dispatch, bounded at 12 repeats inside a 55-minute `timeout(1)` budget; the repeat count was resized from measured CI times and is pinned by a sizing contract. `bin/ci-sha-gate` skips SHAs the lane already proved and reports `broken-upstream`. Tracking issues close themselves on a green lane (`bin/upsert-ci-issue --close`). Release PRs get one CI run (the PAT-absence guard). `:live_dialyzer` runs only in `verify-dialyzer` and fails closed. Three dominated CI jobs were removed (`ci-required` 16 -> 13). Browser-full runs only the projects `ci.yml` does not (`bin/browser-full-projects`, with a declared-dependency exception). Measured against BASE-01: flake about 3,000-4,100 -> at most about 200 runner-min/month [inference]; Browser-full 18.0 -> 6.4 min per run; ci.yml p50 46.3 -> 44.4 runner-min; critical path flat (browser E2E still gates). Landed on draft PR #60.
-
-**Deferred to v1.44:** v1.42 debt (gen.triggers `down` leaves an orphaned rerun per-table function; `mix threadline.gen.backfill`; health `--strict`).
-
-## Latest Milestone Shipped: v1.42 Capture Correctness for Real Table Shapes (2026-09-26)
+## Prior shipped milestone: v1.42 Capture Correctness for Real Table Shapes (2026-09-26)
 
 **Delivered:** correct, collision-free capture for every table shape, released as 0.11.0 (#52/#53/#54).
 
@@ -645,10 +653,11 @@ Threadline shipped **v1.42 Capture Correctness for Real Table Shapes** on 2026-0
 - [x] **Installer and trigger-migration correctness (Phases 206–207)** — distinct installer migration versions, working `gen.triggers` rerun migrations, `storage_schema` default documented truthfully. Validated in v1.41 (2026-09-24); released as 0.10.2 (2026-09-25).
 
 - [x] **Capture correctness for real table shapes (Phases 208–213)** — PK-agnostic, collision-free capture with exact read-side matching, trigger health findings, and a proven upgrade path. Validated in v1.42 (2026-09-26); released as 0.11.0.
+- [x] **Supply chain, CI economy and repo hygiene (Phases 214–223)** — a required Hex audit gate, a committed exact toolchain pin, a required local-path/PII guard with a forward scrub, measured CI waste removal and caching, a voting newest-toolchain lane, and legible check names. Validated in v1.43 (2026-09-30); released as 0.11.1 and 0.11.2.
 
 ### Active
 
-v1.43 Supply Chain, CI Economy and Repo Hygiene is in progress. See `## Current Milestone` above and `.planning/REQUIREMENTS.md`.
+None. v1.43 is closed, and the next milestone (ladder: v1.44 Behavioral Depth: Properties, Twins, Telemetry) is defined by `/gsd-new-milestone`, which writes a fresh `.planning/REQUIREMENTS.md`.
 
 ### Out of Scope
 
@@ -664,7 +673,7 @@ v1.43 Supply Chain, CI Economy and Repo Hygiene is in progress. See `## Current 
 - **Multi-tenant / prefix-scoped capture beyond Ecto prefix support** — defer until basic capture is validated
 - **Forced `threadline_web` extraction before version-pressure exists** — out of scope for v1.19. The milestone should define objective extraction triggers first; a package split only makes sense once real adopters create version-matrix or release-cadence pressure.
 - **Unattended Hex publish from CI** — the release-please publish path runs in CI but behind the `production-hex` required-reviewer Environment (v1.41); a human approval stays on every publish
-- **Silently bumping the declared floor or the current lane's Elixir/OTP in CI** — only for runner or dependency breakage, or to make a lane's pin honest (2026-09-26: `otp-version: "27.0"` resolves to 27.0.1). An additive, exactly pinned newest-toolchain lane is in scope for v1.43, after a spike (guide §7). Raising the floor (Elixir 1.15 / PG 14, which reaches EOL 2026-11-12) is a v1.45 API-contract decision.
+- **Silently bumping the declared floor or the current lane's Elixir/OTP in CI** — only for runner or dependency breakage, or to make a lane's pin honest (2026-09-26: `otp-version: "27.0"` resolves to 27.0.1). An additive, exactly pinned newest-toolchain lane shipped in v1.43 (Phase 220, `lane: latest`). Raising the floor (Elixir 1.15 / PG 14, which reaches EOL 2026-11-12) is a v1.45 API-contract decision.
 
 ## Context
 
@@ -682,9 +691,9 @@ v1.43 Supply Chain, CI Economy and Repo Hygiene is in progress. See `## Current 
 
 **First-hour config (2026-05-28):** `config :threadline, ecto_repos: [MyApp.Repo]` documented in getting-started §2 and production-checklist; doc-contract locked (v1.27 CFG-01–03).
 
-**Hex distribution (2026-09-26):** **threadline 0.11.0** is the current in-repo and hex.pm package line (released via release-please #53 after the v1.42 squash-land #52; 0.10.x adopters follow `guides/upgrading-to-0.11.md`). Default `storage_schema` is `"public"` since 0.10.0.
+**Hex distribution (2026-09-30):** **threadline 0.11.2** is the current in-repo and hex.pm package line. 0.11.1 (2026-09-27) shipped the toolchain pin and advisory fixes. 0.11.2 (2026-09-30) shipped the mint 1.11.0 advisory fix. 0.10.x adopters follow `guides/upgrading-to-0.11.md`. The default `storage_schema` has been `"public"` since 0.10.0.
 
-**Path-to-done posture (2026-09-25, supersedes the 2026-05-29 "default hold"):** ratchet the **base library** to diminishing returns, marked by the **1.0.0** release, via the ladder v1.42 Capture Correctness for Real Table Shapes → v1.43 Supply Chain, CI Economy and Repo Hygiene → v1.44 Behavioral Depth → v1.45 1.0 API Contract (est. 6–9 weeks, mid-Nov → early Dec 2026; re-estimated at each close). The operator/admin UI is parked until 1.0.0. Evidence-backed quality milestones need no adopter signal; new product scope still does. Guide: `.planning/MILESTONE-GUIDE.txt`; live ranking: `.planning/MILESTONE-ARC.md`.
+**Path-to-done posture (2026-09-25, supersedes the 2026-05-29 "default hold"):** ratchet the **base library** to diminishing returns, marked by the **1.0.0** release, via the ladder v1.42 Capture Correctness for Real Table Shapes (shipped) → v1.43 Supply Chain, CI Economy and Repo Hygiene (shipped 2026-09-30) → v1.44 Behavioral Depth → v1.45 1.0 API Contract (est. 6–9 weeks, mid-Nov → early Dec 2026; re-estimated at each close). The operator/admin UI is parked until 1.0.0. Evidence-backed quality milestones need no adopter signal; new product scope still does. Guide: `.planning/MILESTONE-GUIDE.txt`; live ranking: `.planning/MILESTONE-ARC.md`.
 
 **Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/milestones/v1.0-phases/01-capture-foundation/gate-01-01.md` (archived with v1.0).
 
@@ -776,6 +785,8 @@ v1.43 Supply Chain, CI Economy and Repo Hygiene is in progress. See `## Current 
 | Publish `.planning/` on main as the project's second brain; exclude only PII | Maintainer, 2026-09-27: planning is the open "second brain"; `bin/verify-repo-hygiene` plus username/email sweeps are the PII gate | ✓ PR #60 syncs the scrubbed record (218-08) |
 | Size CI budgets from measured runs, pinned by contract | 218-05 sized the flake lane from stale 214 figures (165 s/run vs 209 s measured), and every run went `inconclusive` | ✓ 12 repeats plus a sizing contract (218-08 deviation 3) |
 | Change-aware lanes (SEED-006): closed, measured, not worth it (Phase 222) | 0 of 28 merged PRs strict-inert in the rolling 30 days against a ≥20% and ≥10%-of-billed-minutes gate; the latest lane stays every-run (222 D-05); see phases/222-seed-006-change-aware-lanes-conditional/222-DECISION.md | ✓ Closed: SEED-006 reopen_when (≥5 of the last 20 merged PRs strict-inert, or a new lane past the Browser E2E bound) |
+| A landing PR that carries an adopter-facing Security/Fixed entry uses a releasable squash subject or a `BEGIN_COMMIT_OVERRIDE` (223 D-06) | The mint 1.11.0 fix landed inside the `ci:` squash #60, so release-please saw nothing releasable and adopters got no release for 2 days | ✓ Shipped as 0.11.2 via override; documented in CONTRIBUTING (no CI guard, by deferral) |
+| Release checkouts are credential-free except for a reasoned push-only allowlist (223 D-07) | 216 CR-01: a persisted token sat in `.git/config` while third-party Hex code compiled | ✓ Pinned per checkout step with mutation controls; first live run was the 0.11.2 publish |
 
 ## Evolution
 
@@ -797,4 +808,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-09-28 after Phase 218*
+*Last updated: 2026-09-30 after v1.43 milestone*
