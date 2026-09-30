@@ -5,16 +5,16 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 225
 current_phase_name: Suite Baseline and Partitioned CI
 status: executing
-stopped_at: Completed 225-02-PLAN.md
-last_updated: "2026-09-30T21:55:23.256Z"
+stopped_at: Completed 225-03-PLAN.md
+last_updated: "2026-09-30T22:44:27.706Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 225 execution started
-state_head: b987059400dd8e96941fe99edc945549152941ff
+state_head: 699862217635f5b1765b4ee3e6877abc983587d8
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 14
 ---
 
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 225 (Suite Baseline and Partitioned CI) — EXECUTING
-Plan: 3 of 4
-Status: Executing Phase 225
-Last activity: 2026-09-30 — 225-02 complete (SUITE-03: three operator-surface auth telemetry files run async: true via attach_telemetry!/1, commits 3d2acef2/f6e3ba94)
+Plan: 4 of 4
+Status: 225-03 complete; 225-04 remaining (gated on a maintainer push+dispatch grant)
+Last activity: 2026-09-30 — 225-03 complete (SUITE-02 gate commit: bin/ci-test-partitions + --self-test, mix verify.test_partitioned, per-partition DB, D-07 fix, topology/parity contracts, Flake Detection resize, commits 2dd7a963/69986221)
 
-Progress: [█░░░░░░░░░] 1 of 7 v1.44 phases complete ([█░░░░░░░░░] 14%), 6/8 planned plans (phase 225: 225-01 complete 2026-09-30 — SUITE-01 baseline: Run tests step 288/291/267 s and proxy 20 for run 36730596489, local slowest-modules/tests rankings, D-03 confirmed N=3 by measurement, citation gate green; 225-02 complete 2026-09-30 — SUITE-03: attach_telemetry!/1 isolates :telemetry handlers by emitting-process identity ($callers), auth_test.exs/export_auth_plug_test.exs/theme_auth_plug_test.exs converted to async: true, D-17 mutation red/green + D-18 200-repeat (201 iterations, 0 failures) + D-20 local delta (133.0s vs baseline 137.0s) recorded in 225-EVIDENCE.md, SUITE-03 requirement stays Pending until sibling plans 225-03/225-04 (which also declare it) finish; 225-03..04 remaining, plan 04 gated on a maintainer push+dispatch grant; phase 224 verified passed 9/9 2026-09-30: CAPT-01/CAPT-02/SUITE-05/SUITE-06; review 0 critical/1 warning/1 info, both fixed (WR-01 199515b8, IN-01 220fb91a; 224-REVIEW-DISPOSITION.md open: 0); SUITE-06 CI "after" figure pending a maintainer push grant; phases 226-230 TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 225 (main checkout, strictly sequential; plan 04 stops for the grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [█░░░░░░░░░] 1 of 7 v1.44 phases complete ([█░░░░░░░░░] 14%), 7/8 planned plans (phase 225: 225-01 complete 2026-09-30 — SUITE-01 baseline: Run tests step 288/291/267 s and proxy 20 for run 36730596489, local slowest-modules/tests rankings, D-03 confirmed N=3 by measurement, citation gate green; 225-02 complete 2026-09-30 — SUITE-03: attach_telemetry!/1 isolates :telemetry handlers by emitting-process identity ($callers), auth_test.exs/export_auth_plug_test.exs/theme_auth_plug_test.exs converted to async: true, D-17 mutation red/green + D-18 200-repeat (201 iterations, 0 failures) + D-20 local delta (133.0s vs baseline 137.0s) recorded in 225-EVIDENCE.md; 225-03 complete 2026-09-30 — SUITE-02: bin/ci-test-partitions (fail-closed partition runner + --self-test, 8 cases) + mix verify.test_partitioned + per-partition threadline_test<i> database + D-07 fix (MIX_TEST_PARTITION=1 on the coverage step) + CREATE ROLE partition-suffix fix, landed as one D-12 gate commit (2dd7a963) with 13 topology mutation controls + updated parity pins; Flake Detection re-derived from run 36364688861 (repeat count unchanged at 12, ~17% headroom); local mix ci.all green (2588 tests/0 failures); one documented D-06 exception (.mix_test_failures write, no consumer in this repo); SUITE-02 and SUITE-03 requirements stay Pending until sibling plan 225-04 (which also declares both) finishes; 225-04 remaining, gated on a maintainer push+dispatch grant; phase 224 verified passed 9/9 2026-09-30: CAPT-01/CAPT-02/SUITE-05/SUITE-06; review 0 critical/1 warning/1 info, both fixed (WR-01 199515b8, IN-01 220fb91a; 224-REVIEW-DISPOSITION.md open: 0); SUITE-06 CI "after" figure pending a maintainer push grant; phases 226-230 TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 225 (main checkout, strictly sequential; plan 04 stops for the grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 - Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
@@ -238,6 +238,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 224 P04 | ~50min | 2 tasks | 3 files |
 | Phase 225 P01 | ~45min | 2 tasks | 5 files |
 | Phase 225 P02 | ~50min | 2 tasks | 7 files |
+| Phase 225 P03 | ~2h | 3 tasks | 11 files |
 
 ## Deferred Items
 
@@ -918,6 +919,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 225]: D-03 confirmed N=3 by measurement (T/3=45.7s >= M=28.8s)
 - [Phase 225]: attach_telemetry!/1 isolates :telemetry handlers by emitting-process identity ($callers), not by handler id or ref alone
 - [Phase 225]: Used :persistent_term (not a linked Agent) to prove on_exit detachment across ExUnit's separate on_exit-runner process
+- [Phase 225]: D-07 fixed via MIX_TEST_PARTITION=1 on the coverage step (RESEARCH option 1), not an extra create+migrate step
+- [Phase 225]: The .mix_test_failures write under _build/test is an accepted, documented D-06 exception (Mix's own manifest, no redirect flag, read-only crashes the suite, never read back via --failed)
+- [Phase 225]: Flake Detection repeat count stays 12 after re-deriving from run 36364688861 (headroom still ~17%); only the cited run and ceilings moved
 
 ### Blockers
 
@@ -933,8 +937,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-09-30T21:55:23.230Z
-**Stopped at:** Completed 225-02-PLAN.md
+**Last session:** 2026-09-30T22:44:27.681Z
+**Stopped at:** Completed 225-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

@@ -107,7 +107,7 @@ Plans:
 **Wave 2**
 - [x] 225-02-PLAN.md — SUITE-03: `attach_telemetry!/1` emitting-process filter with its mutation control; the three operator-surface auth test files async; CONTRIBUTING rule; 200-repeat proof — complete 2026-09-30
 **Wave 3**
-- [ ] 225-03-PLAN.md — SUITE-02 gate commit: `bin/ci-test-partitions` (+ `--self-test`), `mix verify.test_partitioned`, per-partition DB, CI step + self-test step + D-07 fix, topology/parity contracts, Flake Detection resize, CONTRIBUTING
+- [x] 225-03-PLAN.md — SUITE-02 gate commit: `bin/ci-test-partitions` (+ `--self-test`), `mix verify.test_partitioned`, per-partition DB, CI step + self-test step + D-07 fix, topology/parity contracts, Flake Detection resize, CONTRIBUTING — complete 2026-09-30
 **Wave 4**
 - [ ] 225-04-PLAN.md — Maintainer-granted push and dispatches; cited CI after runs, SUITE-02 verdict, Flake Detection run, SUITE-06 before/after report
 **Research**: Done (225-RESEARCH.md). Open with a fresh local `mix test --slowest 50` timing run (DB up) before choosing the partition count. Research cited 209 s / 191 s serial from older records, not a re-measurement. Check `pool_size` against the per-partition Postgres `max_connections` too (`too_many_connections` is a known local hazard).
