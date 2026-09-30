@@ -533,35 +533,36 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
         script = run_scripts(step),
         script not in [nil, ""],
         path <- external_script_paths(script) do
-      full_path = Path.join(@root, path)
-
-      cond do
-        Map.has_key?(overrides, path) ->
-          if quoted_mix_invocation?(Map.fetch!(overrides, path)) do
-            {false,
-             "rule=allowlisted-job-external-script-runs-no-mix job=#{job_id} script=#{path}: " <>
-               "a job that keeps a persisted token must never run mix, even indirectly via a " <>
-               "script it invokes (D-07/WR-03)"}
-          else
-            {true, nil}
-          end
-
-        not File.exists?(full_path) ->
-          {false,
-           "rule=allowlisted-job-external-script-missing job=#{job_id} script=#{path}: " <>
-             "run: invokes a script that does not exist on disk"}
-
-        quoted_mix_invocation?(File.read!(full_path)) ->
-          {false,
-           "rule=allowlisted-job-external-script-runs-no-mix job=#{job_id} script=#{path}: " <>
-             "a job that keeps a persisted token must never run mix, even indirectly via a " <>
-             "script it invokes (D-07/WR-03)"}
-
-        true ->
-          {true, nil}
-      end
+      external_script_error(job_id, path, overrides)
     end
     |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  defp external_script_error(job_id, path, overrides) do
+    full_path = Path.join(@root, path)
+
+    source =
+      cond do
+        Map.has_key?(overrides, path) -> Map.fetch!(overrides, path)
+        File.exists?(full_path) -> File.read!(full_path)
+        true -> nil
+      end
+
+    cond do
+      is_nil(source) ->
+        {false,
+         "rule=allowlisted-job-external-script-missing job=#{job_id} script=#{path}: " <>
+           "run: invokes a script that does not exist on disk"}
+
+      quoted_mix_invocation?(source) ->
+        {false,
+         "rule=allowlisted-job-external-script-runs-no-mix job=#{job_id} script=#{path}: " <>
+           "a job that keeps a persisted token must never run mix, even indirectly via a " <>
+           "script it invokes (D-07/WR-03)"}
+
+      true ->
+        {true, nil}
+    end
   end
 
   defp external_script_paths(script) do
