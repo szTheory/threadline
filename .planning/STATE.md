@@ -40,7 +40,8 @@ Last activity: 2026-09-30 — Milestone v1.43 completed and archived
 - Closeout type: override_closeout. 10 items were newly acknowledged (1 todo, 9 deferred-item groups) and 57 carried forward (see Deferred Items).
 
 **Pending landing, which needs a maintainer grant:**
-- `milestone/v1.43` holds commits that are not on `main`: the phase-223 review fixes b59bb704, ac8b021b, 6b26b330, 6bada9ca and 5a9cc931 (tests, CI scripts and comments; not releasable), plus the planning record of the review and this close.
+- `milestone/v1.43` holds commits that are not on `main`: the phase-223 review fixes b59bb704, ac8b021b, 6b26b330, 6bada9ca and 5a9cc931, plus edd99259, which clears a credo nesting finding that WR-03 introduced. They change only tests, CI scripts and comments and are not releasable. The planning record of the review and this close is also unlanded.
+- The local branch `land/v1.43-close` is prebuilt from `origin/main`: the 6 fixes are cherry-picked and `.planning/` is synced. It passed the hygiene guard (clean, self-test 10 cases), format, compile with warnings as errors, repo-wide credo with no issues, and the 3 affected test files (101/0).
 - Land them as one squash PR from a `land/v1.43-close` branch cut from `origin/main`. Cherry-pick the 5 fixes, then sync `.planning/` from the milestone. Do not merge the milestone branch itself: it lacks the release commits for 0.11.1 and 0.11.2.
 - Use a `ci:` or `test:` subject so no release is cut.
 - After it merges, prune the stale remote branches (`land/v1.43-*`, `release/sync-0.11.1-*`, `docs/date-0.11.1-changelog`, `fix/release-toolchain-pin-path`) and the local `milestone/v1.42`.
