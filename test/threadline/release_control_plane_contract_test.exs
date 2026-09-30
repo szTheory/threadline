@@ -257,7 +257,13 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
           "if mix hex.info x",
           "a && mix b",
           "x=$(mix y)",
-          "FOO=1 mix compile"
+          "FOO=1 mix compile",
+          "timeout 300 mix hex.publish",
+          "sudo mix compile",
+          "nohup mix test &",
+          "nice mix test",
+          "xargs -I{} mix build",
+          "x) mix compile ;;"
         ] do
       assert mix_invocation?(positive), "expected #{inspect(positive)} to fire"
     end
@@ -527,10 +533,13 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
   # a PR body, or the word `mixed`, does not misfire (D-09). Checked per line:
   # `mix` must be followed by whitespace or end of line, and the text
   # immediately before it (trimmed of trailing whitespace) must be one of:
-  # empty (line start), a command separator (`;`, `&&`, `||`, `|`), a
-  # subshell/YAML-key opener (`$(`, `:`), an unescaped backtick, a shell
-  # keyword (if/then/elif/else/do/while/until/!/exec/time/env), or one or more
-  # `NAME=value` assignment prefixes.
+  # empty (line start), a command separator (`;`, `&&`, `||`, `|`, `)` for a
+  # `case` branch), a subshell/YAML-key opener (`$(`, `:`), an unescaped
+  # backtick, a shell keyword or command wrapper (if/then/elif/else/do/while/
+  # until/!/exec/time/env/sudo/nohup/nice), a `timeout <N>` prefix, an `xargs`
+  # prefix, or one or more `NAME=value` assignment prefixes. (WR-02: broadened
+  # from the original keyword-only list, which missed these common wrapper
+  # idioms and would silently defeat the D-09 check.)
   defp mix_invocation?(nil), do: false
 
   defp mix_invocation?(script) do
@@ -555,13 +564,22 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
       trimmed == "" ->
         true
 
-      String.ends_with?(trimmed, [";", "&&", "||", "|", "$(", ":"]) ->
+      String.ends_with?(trimmed, [";", "&&", "||", "|", "$(", ":", ")"]) ->
         true
 
       unescaped_backtick?(prefix) ->
         true
 
-      Regex.match?(~r/(?:^|\s)(if|then|elif|else|do|while|until|!|exec|time|env)$/, trimmed) ->
+      Regex.match?(
+        ~r/(?:^|\s)(if|then|elif|else|do|while|until|!|exec|time|env|sudo|nohup|nice)$/,
+        trimmed
+      ) ->
+        true
+
+      Regex.match?(~r/(?:^|\s)timeout\s+\S+$/, trimmed) ->
+        true
+
+      Regex.match?(~r/(?:^|\s)xargs\b.*$/, trimmed) ->
         true
 
       Regex.match?(~r/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+$/, prefix) ->
