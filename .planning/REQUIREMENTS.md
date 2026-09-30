@@ -9,7 +9,7 @@
 ### Capture correctness (carried from v1.42)
 
 - [ ] **CAPT-01**: An adopter who runs `mix threadline.gen.triggers` for a table and then reruns it (adding a per-table function) can roll back with `mix ecto.rollback --all` and be left with no orphaned `threadline_capture_*` function in `pg_proc`. The down path uses the existing idempotent, usage-checked `TriggerSQL.drop_function_if_unused/2` and emits no CASCADE drop.
-- [ ] **CAPT-02**: A deterministic regression test pins the exact two-migration repro. A property over random rerun sequences (1–4 runs per table, applied for real) asserts that no orphaned capture function remains in `pg_proc` after a full rollback.
+- [x] **CAPT-02**: A deterministic regression test pins the exact two-migration repro. A property over random rerun sequences (1–4 runs per table, applied for real) asserts that no orphaned capture function remains in `pg_proc` after a full rollback.
 
 ### Property tests
 
@@ -91,7 +91,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CAPT-01 | Phase 224 | Pending |
-| CAPT-02 | Phase 224 | Pending |
+| CAPT-02 | Phase 224 | Complete |
 | PROP-01 | Phase 226 | Pending |
 | PROP-02 | Phase 226 | Pending |
 | PROP-03 | Phase 226 | Pending |

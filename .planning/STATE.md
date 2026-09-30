@@ -5,16 +5,16 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 224
 current_phase_name: Capture and Bench Fixes
 status: executing
-stopped_at: Completed 224-03-PLAN.md
-last_updated: "2026-09-30T17:44:09.117Z"
+stopped_at: Completed 224-02-PLAN.md
+last_updated: "2026-09-30T17:54:29.400Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 224 execution started
-state_head: 8c7af4ed652e16f9e7ba3cfda9bf6fe529b7b447
+state_head: c6974377ec25136087abf66546a45ab17a4e6acc
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 224 (Capture and Bench Fixes) — EXECUTING
-Plan: 3 of 4
-Status: Executing Phase 224 (224-01, 224-03 complete; wave 1 done)
-Last activity: 2026-09-30 — 224-03 complete (SUITE-05: bench/mix.exs `def cli` preferred_envs compile/run :test; `verify.bench_compile` alias in ci.all after verify.compile_no_optional and a new step in the verify-compile-no-optional CI job; bench_compile_errors/3 contract with 6 mutation controls; local mutation control recorded in 224-EVIDENCE.md; commits 4ca8f8db/8c7af4ed; mix test test/threadline/ci_topology_contract_test.exs test/threadline/ci_workflow_parity_contract_test.exs test/threadline/ci_all_dedup_contract_test.exs 94 tests/0 failures; credo + format clean; bin/verify-repo-hygiene clean). Prior: 224-01 complete (CAPT-01/CAPT-02 deterministic half: first-run down unconditionally drops the per-table function; Ecto.Migrator partial + full-chain rollback regression; re-pinned gen_triggers_test.exs; regenerated example shape fixture; commits 0bc83e3a/0e644dc3; mix test test/mix/tasks/threadline/gen_triggers_test.exs test/threadline/capture 7 properties/225 tests/0 failures; credo + format clean)
+Plan: 4 of 4
+Status: Ready to execute
+Last activity: 2026-09-30 — 224-02 complete (CAPT-02 property half: Threadline.Test.TriggerRunGenerators.run_sequence/0 size-independent generator; Threadline.Capture.TriggerRerunPropertyTest DB-backed property, max_runs 20, proves any 1-4-run rerun chain rolls back to zero orphaned capture functions; both CAPT-02 mutation controls recorded in 224-EVIDENCE.md with reproducible seed 554469; property's own 3-run cost recorded; commits 02c5c92d/063de72e; mix test test/threadline/capture test/mix/tasks/threadline/gen_triggers_test.exs 8 properties/225 tests/0 failures; credo + format clean; bin/verify-repo-hygiene clean). Prior: 224-03 complete (SUITE-05: bench/mix.exs `def cli` preferred_envs compile/run :test; `verify.bench_compile` alias in ci.all after verify.compile_no_optional and a new step in the verify-compile-no-optional CI job; bench_compile_errors/3 contract with 6 mutation controls; local mutation control recorded in 224-EVIDENCE.md; commits 4ca8f8db/8c7af4ed; mix test test/threadline/ci_topology_contract_test.exs test/threadline/ci_workflow_parity_contract_test.exs test/threadline/ci_all_dedup_contract_test.exs 94 tests/0 failures; credo + format clean; bin/verify-repo-hygiene clean). 224-01 complete (CAPT-01/CAPT-02 deterministic half: first-run down unconditionally drops the per-table function; Ecto.Migrator partial + full-chain rollback regression; re-pinned gen_triggers_test.exs; regenerated example shape fixture; commits 0bc83e3a/0e644dc3; mix test test/mix/tasks/threadline/gen_triggers_test.exs test/threadline/capture 7 properties/225 tests/0 failures; credo + format clean)
 
-Progress: [░░░░░░░░░░] 0 of 7 v1.44 phases complete ([░░░░░░░░░░] 0%), 2/4 plans (phase 224: 4 plans in 3 waves, 224-01 + 224-03 complete wave 1; later phases TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: 224-02 (wave 2, DB-backed property test), then 224-04 (wave 3, docs + SUITE-06 measurement). Research flag: 225 opens with a fresh local `mix test --slowest 50` run before the partition count is chosen. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [░░░░░░░░░░] 0 of 7 v1.44 phases complete ([░░░░░░░░░░] 0%), 3/4 plans (phase 224: 4 plans in 3 waves, 224-01 + 224-03 wave 1 complete, 224-02 wave 2 complete). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: 224-04 (wave 3, docs + SUITE-06 measurement). Research flag: 225 opens with a fresh local `mix test --slowest 50` run before the partition count is chosen. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 - Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
@@ -234,6 +234,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 223 P06 | ~10min | 3 tasks | 0 files |
 | Phase 224 P01 | ~40min | 2 tasks | 5 files |
 | Phase 224 P03 | ~35min | 2 tasks | 6 files |
+| Phase 224 P02 | ~30min | 2 tasks | 3 files |
 
 ## Deferred Items
 
@@ -924,8 +925,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-09-30T17:44:09.078Z
-**Stopped at:** Completed 224-03-PLAN.md
+**Last session:** 2026-09-30T17:54:29.349Z
+**Stopped at:** Completed 224-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

@@ -79,7 +79,7 @@ Plans:
 - [x] 224-03-PLAN.md — Bench `preferred_envs`, `mix verify.bench_compile` in `ci.all` and the `verify-compile-no-optional` job, contract + mutation control (wave 1) — complete 2026-09-30
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 224-02-PLAN.md — DB-backed rerun-sequence property (`@max_runs 20`) and recorded CAPT-02 mutation controls (wave 2)
+- [x] 224-02-PLAN.md — DB-backed rerun-sequence property (`@max_runs 20`) and recorded CAPT-02 mutation controls (wave 2) — complete 2026-09-30
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 224-04-PLAN.md — Upgrade-guide remediation + CHANGELOG, SUITE-06 wall clock vs `dd780e68`, `mix ci.all` gate (wave 3)
@@ -186,7 +186,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 224. Capture and Bench Fixes | 2/4 | In Progress | - |
+| 224. Capture and Bench Fixes | 3/4 | In Progress | - |
 | 225. Suite Baseline and Partitioned CI | 0/TBD | Not started | - |
 | 226. Pure Property Tests and Run Budget | 0/TBD | Not started | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
