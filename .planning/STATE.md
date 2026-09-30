@@ -25,7 +25,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 224 — Capture and Bench Fixes
+**Current focus:** Phase 225 — Suite Baseline and Partitioned CI
 
 ## Current Position
 
@@ -34,7 +34,7 @@ Plan: Not started
 Status: Ready to plan
 Last activity: 2026-09-30 — Phase 224 complete, transitioned to Phase 225
 
-Progress: [█░░░░░░░░░] 1 of 7 v1.44 phases complete ([█░░░░░░░░░] 14%), 4/4 planned plans (phase 224 verified passed 9/9 2026-09-30: CAPT-01/CAPT-02/SUITE-05/SUITE-06; review 0 critical/1 warning/1 info recorded open in 224-REVIEW-DISPOSITION.md; SUITE-06 CI "after" figure pending a maintainer push grant; later phases TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-discuss-phase 225. Research flag: 225 opens with a fresh local `mix test --slowest 50` run before the partition count is chosen. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [█░░░░░░░░░] 1 of 7 v1.44 phases complete ([█░░░░░░░░░] 14%), 4/4 planned plans (phase 224 verified passed 9/9 2026-09-30: CAPT-01/CAPT-02/SUITE-05/SUITE-06; review 0 critical/1 warning/1 info, both fixed (WR-01 199515b8, IN-01 220fb91a; 224-REVIEW-DISPOSITION.md open: 0); SUITE-06 CI "after" figure pending a maintainer push grant; later phases TBD until planned). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-discuss-phase 225. Research flag: 225 opens with a fresh local `mix test --slowest 50` run before the partition count is chosen. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 - Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
