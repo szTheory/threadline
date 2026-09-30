@@ -49,7 +49,7 @@
 ## Phases
 
 - [x] **Phase 224: Capture and Bench Fixes** - Full rollback after a `gen.triggers` rerun leaves no orphaned capture function, and the bench project compiles bare (completed 2026-09-30)
-- [ ] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async telemetry/named-process tests
+- [ ] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async operator-surface auth telemetry tests
 - [ ] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties
 - [ ] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds
 - [ ] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data
@@ -96,11 +96,21 @@ Plans:
   1. A baseline doc records per-module slowest times (a fresh local `mix test --slowest 50` with the DB up), sync versus async seconds, and the CI test-step duration with run IDs, all measured at the milestone base before any suite change. An automated check finds no uncited figure.
   2. The CI test step runs the suite in N parallel partitions (`MIX_TEST_PARTITION`), each with its own database. Over cited runs, the step's wall clock is at least 30% lower than the SUITE-01 figure and billed runner-minutes rise by no more than 10%.
   3. `CI required` fails when any single partition fails, proven by a contract-test mutation control. The contract test, CONTRIBUTING and the topology test change in the same commit, and the Flake Detection budget is resized in the same change.
-  4. The telemetry-handler and named-process test files run `async: true` with unique handler ids and process names, and one cited Flake Detection run shows no new flake.
+  4. The three operator-surface auth telemetry test files (`auth_test.exs`, `export_auth_plug_test.exs`, `theme_auth_plug_test.exs`) run `async: true`, isolated by the emitting process, and one cited Flake Detection run shows no new flake. The seven other telemetry or named-process files stay `async: false` because they write to the database without a sandbox or change global app env (225-CONTEXT D-15).
   5. Local `mix test` still runs the whole suite, `mix ci.all` is green, and VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: TBD
-**Research**: Needed. Open with a fresh local `mix test --slowest 50` timing run (DB up) before choosing the partition count. Research cited 209 s / 191 s serial from older records, not a re-measurement. Check `pool_size` against the per-partition Postgres `max_connections` too (`too_many_connections` is a known local hazard).
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+- [ ] 225-01-PLAN.md — SUITE-01 baseline: `ci-job-timing.py` (step duration, runner-minutes proxy, inclusive verdict), copied `check-citations.py`, cited 225-BASELINE.md with local slowest rankings and the D-03 N check
+**Wave 2**
+- [ ] 225-02-PLAN.md — SUITE-03: `attach_telemetry!/1` emitting-process filter with its mutation control; the three operator-surface auth test files async; CONTRIBUTING rule; 200-repeat proof
+**Wave 3**
+- [ ] 225-03-PLAN.md — SUITE-02 gate commit: `bin/ci-test-partitions` (+ `--self-test`), `mix verify.test_partitioned`, per-partition DB, CI step + self-test step + D-07 fix, topology/parity contracts, Flake Detection resize, CONTRIBUTING
+**Wave 4**
+- [ ] 225-04-PLAN.md — Maintainer-granted push and dispatches; cited CI after runs, SUITE-02 verdict, Flake Detection run, SUITE-06 before/after report
+**Research**: Done (225-RESEARCH.md). Open with a fresh local `mix test --slowest 50` timing run (DB up) before choosing the partition count. Research cited 209 s / 191 s serial from older records, not a re-measurement. Check `pool_size` against the per-partition Postgres `max_connections` too (`too_many_connections` is a known local hazard).
 
 ### Phase 226: Pure Property Tests and Run Budget
 

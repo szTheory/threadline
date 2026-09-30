@@ -44,17 +44,20 @@ created: "2026-09-30"
 
 Plans fill this table in. Every row must name one of the following:
 
-| Requirement | Behavior | Test Type | Automated Command |
-|-------------|----------|-----------|-------------------|
-| SUITE-01 | Every figure in the baseline doc is cited | script self-test + doc check | `python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/check-citations.py --self-test` and `... check-citations.py .planning/phases/225-suite-baseline-and-partitioned-ci/225-BASELINE.md` |
-| SUITE-02 | The partition gate fails closed (runtime) | script self-test | `bin/ci-test-partitions --self-test` |
-| SUITE-02 | The partition step's shape and its mutation controls | contract | `mix test test/threadline/ci_topology_contract_test.exs` |
-| SUITE-02 | Parity pins updated, with mutation inputs kept intact | contract | `mix test test/threadline/ci_workflow_parity_contract_test.exs` |
-| SUITE-02 | Flake Detection budget re-derived | contract | `mix test test/threadline/flake_classifier_contract_test.exs` |
-| SUITE-02 | The partitioned suite is green locally | integration | `mix verify.test_partitioned` |
-| SUITE-02 | CI shows ≥30% wall-clock gain and ≤10% more runner-minutes | CI evidence | `.planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.sh <run-id>` on the before and after runs |
-| SUITE-03 | The three files are async and isolated | unit + mutation control | `mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/export_auth_plug_test.exs test/threadline/operator_surface/theme_auth_plug_test.exs --repeat-until-failure 200` |
-| SUITE-06 | Suite wall clock before and after | measured | the median of 3 plain `mix test` runs, plus the timing script |
+| Task | Requirement | Behavior | Test Type | Automated Command | Status |
+|------|-------------|----------|-----------|-------------------|--------|
+| 225-01 T1 | SUITE-01 | Checker copied and widened; timing script formula and inclusive verdict | script self-tests | `python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/check-citations.py --self-test`; `python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py --self-test` | ⬜ |
+| 225-01 T1 | SUITE-01 | Before figures reproduced from run 36730596489 (288/291/267 s, proxy 20) | CI evidence | `python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36730596489` | ⬜ |
+| 225-01 T2 | SUITE-01 | Every figure in the baseline doc is cited | doc check | `python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/check-citations.py .planning/phases/225-suite-baseline-and-partitioned-ci/225-BASELINE.md` | ⬜ |
+| 225-02 T1 | SUITE-03 | Emitting-process filter; unrelated emitter dropped (D-17) | unit + mutation control | `mix test test/threadline/telemetry_helpers_test.exs test/threadline/operator_surface/theme_auth_plug_test.exs` | ⬜ |
+| 225-02 T2 | SUITE-03 | The three files are async and isolated, 200 repeats | unit, repeated | `mix test test/threadline/operator_surface/auth_test.exs test/threadline/operator_surface/export_auth_plug_test.exs test/threadline/operator_surface/theme_auth_plug_test.exs test/threadline/telemetry_helpers_test.exs --repeat-until-failure 200` | ⬜ |
+| 225-03 T1 | SUITE-02 | The partition gate fails closed (runtime) | script self-test | `bin/ci-test-partitions --self-test` | ⬜ |
+| 225-03 T1 | SUITE-02 | The partitioned suite is green locally | integration | `mix verify.test_partitioned` | ⬜ |
+| 225-03 T2 | SUITE-02 | Partition step shape, mutation controls, parity pins | contract | `mix test test/threadline/ci_topology_contract_test.exs test/threadline/ci_workflow_parity_contract_test.exs` | ⬜ |
+| 225-03 T3 | SUITE-02 | Flake Detection budget re-derived; full local gate | contract + gate | `mix test test/threadline/flake_classifier_contract_test.exs`; `mix ci.all` | ⬜ |
+| 225-04 T2-T3 | SUITE-02 | CI shows at least 30% step gain and at most 10% more billed minutes over at least 2 runs | CI evidence | `python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py --compare 36730596489 <after-1> <after-2>` | ⬜ |
+| 225-04 T3 | SUITE-03 | No new flake over a cited Flake Detection run | CI evidence | the dispatched Flake Detection run's classifier outcome | ⬜ |
+| 225-02, 225-03, 225-04 | SUITE-06 | Suite wall clock before and after | measured | median of 3 plain `mix test` runs, plus the timing script | ⬜ |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
