@@ -1,5 +1,82 @@
 # Project milestones: Threadline
 
+## v1.43 Supply Chain, CI Economy and Repo Hygiene (Shipped: 2026-09-30)
+
+**Delivered:** Dependency advisories are cleared and a required CI audit gate keeps them cleared. Every CI job was measured, and the ones that earned no signal were cut, deduplicated or cached. The public repo is scrubbed of machine-local paths, and a required guard keeps it that way. Shipped as two patch releases on hex.pm:
+- **0.11.1** (toolchain pin and advisory gate): #55 `ff346b1a`, #57, #58, release #56 `2a75a795`, sync #59.
+- **0.11.2** (mint 1.11.0, three advisories, one high): landing #66 `db8d5373`, #68, release #67 `4d7661b9`, publish run `36654382663`, sync #69 `fbfa8f1e`.
+
+CI-only landings were #60 `3c4ac9b1` (phases 217-220), #63, #64 and #65. There was no operator-UI design work and no product-code change beyond the lockfile bumps.
+
+**Phases completed:** 10 phases (214-223), 52 plans, 80 tasks. Requirements: 24/24 satisfied. Every phase VERIFICATION reads `passed`, and phase 223 closed the audit's three routed decision items (verified 4/4).
+
+**Stats:** 420 commits from `v1.42` to the close; 84 non-planning files changed, +16,938 / -963.
+
+**Closeout type:** override_closeout. **Known verification overrides:** 10 newly acknowledged, 57 carried forward (see STATE.md Deferred Items).
+- The 10 are 1 todo (CI suite sync-bound parallelism) and 9 deferred-item groups from phases 214, 215, 216, 218 and 221.
+- Four of those groups are already resolved in code:
+  - the 214 vacuous `:live_dialyzer` (the verifier fails closed since 218-03)
+  - 216 CR-01 (closed by 223-01)
+  - the 218 CONTRIBUTING branch-protection list (rewritten in 221)
+  - the 221 credo red (7ebb66ad)
+- The rest are listed under "Tech debt carried" below.
+- `init.manager` reports every phase verification as `stale` because files were touched after VERIFICATION.md. It does not parse this repo's bespoke progress block.
+
+**Key accomplishments:**
+
+- **Supply chain gate (215):**
+  - Every `mix hex.audit` advisory is cleared across the root, bench and example lockfiles.
+  - The required `verify-deps-audit` job enforces Hex >= 2.5.1, `deps.get --check-locked` and a refusal of global `hex.config` ignores.
+  - Every advisory suppression must carry a reason, a reachability claim and an unexpired review-by date.
+  - A weekly non-required `deps-health` lane upserts one `ci-deps` issue.
+- **CI platform currency (216):**
+  - `.tool-versions` is committed and every workflow installs it through strict `setup-beam` `version-file` (OTP 27.3.4.15 / Elixir 1.17.3, min lane 26.2.5.21 / 1.15.8, ubuntu-24.04).
+  - Cache keys name the resolved toolchain.
+  - release-please-action v5 has zero Node 20 annotations.
+- **Repo hygiene (217):**
+  - `bin/verify-repo-hygiene` has 8 pattern families, a scoped allowlist and `--self-test`.
+  - It is a required no-BEAM CI job and also scans tracked `.planning/`.
+  - A forward scrub of 319 files was done without rewriting history.
+  - Leaking tests moved to `@tag :tmp_dir`, proven by `mix verify.temp_leaks`.
+- **CI economy, measured (218, 219, 222):**
+  - Flake Detection went from nightly (98-137 min) to weekly (45.7 min).
+  - Browser-full runs only the Playwright projects that ci.yml does not (6.4 min instead of 18.0).
+  - Three duplicate jobs are gone.
+  - Deps-only `_build` caches take a warm ci.yml run to 39.3 unrounded / 49 billed runner-min, from 46.3 / 55 at BASE-01, and the critical path to 547 s, from 623 s. Every figure cites a run ID.
+  - SEED-006 (change-aware lanes) is CLOSED on data: 0 of 28 PRs were strict-inert. It has a numeric reopen trigger.
+- **Newest toolchain and legible CI (220, 221):**
+  - A voting `lane: latest` runs Elixir 1.20.4 / OTP 29.1.1 / PostgreSQL 18.6, with fail-closed contracts.
+  - Check names now say what each check proves, and ci.yml is ordered by time-to-red.
+  - `CI required` is pinned to GitHub Actions (integration 15368).
+  - Workflow tokens are least-privilege.
+- **Audit debt closed (223):**
+  - Release checkouts no longer persist credentials (216 CR-01).
+  - All six round-2 hygiene findings from 217 are fixed.
+  - The mint fix that had been stranded in a `ci:` squash was released as 0.11.2 through a `BEGIN_COMMIT_OVERRIDE`.
+  - The code review's WR-01..05 are fixed on the milestone branch. They are test and CI changes, not releasable.
+
+**Tech debt carried:** see `.planning/milestones/v1.43-MILESTONE-AUDIT.md` `tech_debt` and STATE.md Deferred Items:
+- 215 review WR-01/04/05/06/07/08 and IN-01..04 (deps-health classification, vacuous or restated contract checks, no Hex floor in the weekly lane, runtime `MIX_EXS`/`MIX_HOME` redirection), plus the bench compile failing on ExUnitProperties.
+- 216 WR-01 (CONTRIBUTING pin literals are not bound to `.tool-versions`) and WR-02 (runbook substring contract).
+- `setup-node` floats `22`, and third-party actions are not SHA-pinned.
+- ECON-03's one-CI-run-per-release-PR outcome is still unconfirmed from a release run.
+- The live Dialyzer slice line is not quotable from the CI log.
+- The `clean_checkout_contract_test.exs` temp-dir name collision.
+- Browser-full still depends on `tier-a-capture`.
+- HYG-03 has no continuous enforcement (`verify.temp_leaks` is opt-in).
+- The 221 BASH_ENV advisory.
+- 223 IN-01 (the CONTRIBUTING wording changes have no contract test).
+- The CI-suite sync-bound parallelism todo: the suite is about 91% serial.
+
+**Archives:**
+
+- Roadmap: `.planning/milestones/v1.43-ROADMAP.md`
+- Requirements: `.planning/milestones/v1.43-REQUIREMENTS.md`
+- Audit: `.planning/milestones/v1.43-MILESTONE-AUDIT.md`
+- Phases: `.planning/milestones/v1.43-phases/`
+
+---
+
 ## v1.42 Capture Correctness for Real Table Shapes (Shipped: 2026-09-26)
 
 **Delivered:** Every audited table now gets correct, collision-free capture, whatever its primary-key shape, Postgres schema or name length, with no silent failure modes. Released as **0.11.0** on hex.pm: landing #52 `b0668e6d`, release #53 `8312290d`, release run `36257162356`, distribution sync #54 `5e78b2f0`. `main` is green and origin has only `main`. This is the first rung of the ladder to 1.0.0. There was no operator-UI design work.

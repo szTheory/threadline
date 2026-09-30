@@ -18,6 +18,7 @@ Out-of-scope discoveries logged by plan executors. Not fixed in Phase 214 (measu
   `tools/measure-base02.sh` matches the Playwright cache `path:` in `.github/workflows/ci.yml` (2 hits) and
   `.github/workflows/browser-full.yml` (1 hit). These are runner paths, not maintainer paths. The Phase 217
   local-path guard needs an allowlist decision for them.
+  status: acknowledged
 
 ## From 214-03
 
@@ -27,3 +28,4 @@ Out-of-scope discoveries logged by plan executors. Not fixed in Phase 214 (measu
   verifier's output, so this stays an inference until the CI-economy phase captures the test's own output
   (for example with `--trace` on that one file) or makes the verifier fail closed on a Dialyzer run error.
   Recorded in 214-BASELINE.md section 8.
+  status: acknowledged

@@ -707,6 +707,11 @@ jobs:
           exit 1
 
       - name: Apply distribution doc sync
+        # INVARIANT (D-07/WR-03): this job keeps a persisted git credential
+        # (no persist-credentials: false on its checkout — see
+        # release_control_plane_contract_test.exs). Neither this step nor the
+        # script it calls may invoke mix. The contract test pins the script's
+        # source against that invariant; keep it true if you edit either side.
         env:
           RELEASE_VERSION: ${{ needs.release-ref.outputs.release_version }}
           RELEASE_TAG: ${{ needs.release-ref.outputs.release_tag }}

@@ -11,3 +11,4 @@
   `verify-credo` CI lane runs the same check.
 
   **RESOLVED 2026-09-29 in 7ebb66ad** (orchestrator): extracted `lane_step_runs?/2` and `doc_scan_units/2`; `mix verify.credo` clean, contract files 72/0. The landing must cherry-pick 7ebb66ad right after d7d44fd1.
+  status: acknowledged

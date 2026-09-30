@@ -490,8 +490,13 @@ fi
 # --- that scope was never meant to reach.
 set +e
 git -C "$root" ls-files -z | perl -0 -ne 'exit 1 if /\n/' >/dev/null 2>&1
-newline_status=$?
+newline_pipestatus=("${PIPESTATUS[@]}")
 set -e
+git_ls_status="${newline_pipestatus[0]}"
+newline_status="${newline_pipestatus[1]}"
+if [ "$git_ls_status" -ne 0 ]; then
+  die "git ls-files failed while pre-scanning for newline-containing tracked paths (exit $git_ls_status)"
+fi
 if [ "$newline_status" -ne 0 ]; then
   die "a tracked path contains a newline; rename it (a newline mis-scopes a HIT and lets an allowlist scope cover it)"
 fi

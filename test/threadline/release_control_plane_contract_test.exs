@@ -257,7 +257,13 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
           "if mix hex.info x",
           "a && mix b",
           "x=$(mix y)",
-          "FOO=1 mix compile"
+          "FOO=1 mix compile",
+          "timeout 300 mix hex.publish",
+          "sudo mix compile",
+          "nohup mix test &",
+          "nice mix test",
+          "xargs -I{} mix build",
+          "x) mix compile ;;"
         ] do
       assert mix_invocation?(positive), "expected #{inspect(positive)} to fire"
     end
@@ -312,25 +318,61 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
       end
     end
 
-    test "positive control: flagging an allowlisted job's checkout stays green", %{live: live} do
-      from =
-        "      - uses: actions/checkout@v5\n        with:\n" <>
-          "          fetch-depth: 0\n" <>
-          "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n\n" <>
-          "      - name: Resolve tag and create if missing\n"
-
-      to =
-        "      - uses: actions/checkout@v5\n        with:\n" <>
-          "          fetch-depth: 0\n" <>
-          "          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}\n" <>
-          "          persist-credentials: false\n\n      - name: Resolve tag and create if missing\n"
+    test "positive control: the allowlist genuinely does the exempting (renaming the job un-exempts its bare checkout)",
+         %{live: live} do
+      # dispatch-bootstrap's checkout has no persist-credentials flag and is
+      # exempt only because "dispatch-bootstrap" is a @persisted_checkout_jobs
+      # key. Renaming just the job header (its checkout step is untouched)
+      # removes it from the allowlist map while leaving the bare checkout in
+      # place, so checkout-credential-free must now fire on that same step —
+      # proving the exclusion is keyed on job id, not vacuously always green.
+      from = "\n  dispatch-bootstrap:\n"
+      to = "\n  dispatch-bootstrap-control:\n"
 
       assert length(String.split(live, from)) == 2, "control anchor not found or not unique"
 
       mutated = String.replace(live, from, to, global: false)
       refute mutated == live, "the control did not change the input"
 
-      assert persisted_checkout_errors(mutated) == []
+      assert rule_fired?(checkout_credential_errors(mutated), "checkout-credential-free")
+    end
+
+    test "WR-03: distribution-sync's external script carries the D-07 invariant comment and calls no mix",
+         %{live: live} do
+      assert live =~ "./bin/post-publish-distribution-sync",
+             "expected distribution-sync's run: text to still invoke the guarded script"
+
+      assert persisted_checkout_errors(live) == []
+
+      script_path = Path.join(@root, "bin/post-publish-distribution-sync")
+      source = File.read!(script_path)
+
+      assert source =~ "INVARIANT (D-07/WR-03)",
+             "bin/post-publish-distribution-sync should carry the D-07/WR-03 invariant comment " <>
+               "warning a future editor never to add a mix call here"
+
+      refute quoted_mix_invocation?(source),
+             "bin/post-publish-distribution-sync must never invoke mix (D-07/WR-03)"
+    end
+
+    test "WR-03 positive control: a mix invocation added to the external script is caught",
+         %{live: live} do
+      script_path = Path.join(@root, "bin/post-publish-distribution-sync")
+      original_source = File.read!(script_path)
+
+      mutated_source = original_source <> ~s(\nmix_cmd="mix")
+
+      refute quoted_mix_invocation?(original_source),
+             "the control did not change the input's mix-free baseline"
+
+      assert quoted_mix_invocation?(mutated_source)
+
+      overrides = %{"./bin/post-publish-distribution-sync" => mutated_source}
+
+      assert rule_fired?(
+               allowlisted_job_external_script_errors(live, overrides),
+               "allowlisted-job-external-script-runs-no-mix"
+             )
     end
   end
 
@@ -464,6 +506,76 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
     |> Enum.reject(fn {ok, _message} -> ok end)
   end
 
+  # WR-03: allowlisted_job_run_errors/1 can only see the literal `run:` text
+  # inside release.yml, so it is structurally blind to a persisted-credential
+  # job that shells out to an external script which later grows a mix call
+  # (distribution-sync -> ./bin/post-publish-distribution-sync today). This
+  # extends the D-07 guarantee to every `./bin/...` script invoked from an
+  # allowlisted job's run: text.
+  #
+  # The check is intentionally narrower than mix_invocation?/1: that matcher
+  # is tuned for shell `run:` text and false-positives on this real script,
+  # whose generated markdown documentation contains the backtick-quoted
+  # prose "`mix hex.info threadline`" (never executed). Instead this looks
+  # for "mix" as the first word of an actual quoted string literal — the
+  # shape a real subprocess invocation takes in any language — which the
+  # backtick-quoted prose above does not match (its opening delimiter is a
+  # backtick, not the `"` python-string quote).
+  # `overrides` (path => source) lets tests exercise a mutated script's
+  # content without writing to disk; production callers pass %{} and every
+  # path is read from disk as-is.
+  defp allowlisted_job_external_script_errors(yaml, overrides \\ %{}) do
+    present_ids = release_job_ids(yaml)
+
+    for {job_id, _reason} <- @persisted_checkout_jobs,
+        job_id in present_ids,
+        step <- yaml |> job_block!(job_id) |> job_steps(),
+        script = run_scripts(step),
+        script not in [nil, ""],
+        path <- external_script_paths(script) do
+      external_script_error(job_id, path, overrides)
+    end
+    |> Enum.reject(fn {ok, _message} -> ok end)
+  end
+
+  defp external_script_error(job_id, path, overrides) do
+    full_path = Path.join(@root, path)
+
+    source =
+      cond do
+        Map.has_key?(overrides, path) -> Map.fetch!(overrides, path)
+        File.exists?(full_path) -> File.read!(full_path)
+        true -> nil
+      end
+
+    cond do
+      is_nil(source) ->
+        {false,
+         "rule=allowlisted-job-external-script-missing job=#{job_id} script=#{path}: " <>
+           "run: invokes a script that does not exist on disk"}
+
+      quoted_mix_invocation?(source) ->
+        {false,
+         "rule=allowlisted-job-external-script-runs-no-mix job=#{job_id} script=#{path}: " <>
+           "a job that keeps a persisted token must never run mix, even indirectly via a " <>
+           "script it invokes (D-07/WR-03)"}
+
+      true ->
+        {true, nil}
+    end
+  end
+
+  defp external_script_paths(script) do
+    ~r{\./bin/[A-Za-z0-9_-]+}
+    |> Regex.scan(script)
+    |> Enum.map(fn [path] -> path end)
+    |> Enum.uniq()
+  end
+
+  defp quoted_mix_invocation?(source) do
+    Regex.match?(~r/(["'])mix(?=\s|\1)/, source)
+  end
+
   # Every @persisted_checkout_jobs key must name a job that still exists in
   # release.yml, or the allowlist silently widens to cover nothing (D-09).
   defp stale_allowlist_errors(yaml) do
@@ -482,7 +594,8 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
   # filtering the union.
   defp persisted_checkout_errors(yaml) do
     checkout_credential_errors(yaml) ++
-      allowlisted_job_run_errors(yaml) ++ stale_allowlist_errors(yaml)
+      allowlisted_job_run_errors(yaml) ++
+      allowlisted_job_external_script_errors(yaml) ++ stale_allowlist_errors(yaml)
   end
 
   # The single-line value of a step's `run:` key, or, for a block scalar
@@ -529,10 +642,13 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
   # a PR body, or the word `mixed`, does not misfire (D-09). Checked per line:
   # `mix` must be followed by whitespace or end of line, and the text
   # immediately before it (trimmed of trailing whitespace) must be one of:
-  # empty (line start), a command separator (`;`, `&&`, `||`, `|`), a
-  # subshell/YAML-key opener (`$(`, `:`), an unescaped backtick, a shell
-  # keyword (if/then/elif/else/do/while/until/!/exec/time/env), or one or more
-  # `NAME=value` assignment prefixes.
+  # empty (line start), a command separator (`;`, `&&`, `||`, `|`, `)` for a
+  # `case` branch), a subshell/YAML-key opener (`$(`, `:`), an unescaped
+  # backtick, a shell keyword or command wrapper (if/then/elif/else/do/while/
+  # until/!/exec/time/env/sudo/nohup/nice), a `timeout <N>` prefix, an `xargs`
+  # prefix, or one or more `NAME=value` assignment prefixes. (WR-02: broadened
+  # from the original keyword-only list, which missed these common wrapper
+  # idioms and would silently defeat the D-09 check.)
   defp mix_invocation?(nil), do: false
 
   defp mix_invocation?(script) do
@@ -557,13 +673,22 @@ defmodule Threadline.ReleaseControlPlaneContractTest do
       trimmed == "" ->
         true
 
-      String.ends_with?(trimmed, [";", "&&", "||", "|", "$(", ":"]) ->
+      String.ends_with?(trimmed, [";", "&&", "||", "|", "$(", ":", ")"]) ->
         true
 
       unescaped_backtick?(prefix) ->
         true
 
-      Regex.match?(~r/(?:^|\s)(if|then|elif|else|do|while|until|!|exec|time|env)$/, trimmed) ->
+      Regex.match?(
+        ~r/(?:^|\s)(if|then|elif|else|do|while|until|!|exec|time|env|sudo|nohup|nice)$/,
+        trimmed
+      ) ->
+        true
+
+      Regex.match?(~r/(?:^|\s)timeout\s+\S+$/, trimmed) ->
+        true
+
+      Regex.match?(~r/(?:^|\s)xargs\b.*$/, trimmed) ->
         true
 
       Regex.match?(~r/^(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)+$/, prefix) ->

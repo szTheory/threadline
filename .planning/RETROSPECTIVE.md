@@ -1212,8 +1212,58 @@ First-class light mode for the operator surface without disturbing the dark defa
 - Model mix: opus planner, sonnet executors, reviewers and verifiers, haiku checkers, with orchestration on opus.
 - Notable: most wall-clock time went to `ci.all` and browser-lane gates on a shared, loaded machine (7 to 70 minutes per run).
 
+## Milestone: v1.43 — Supply Chain, CI Economy and Repo Hygiene
+
+**Shipped:** 2026-09-30 (released as 0.11.1 and 0.11.2)  
+**Phases:** 10 (214–223) | **Plans:** 52
+
+### What was built
+
+- A required Hex audit gate across all three lockfiles, with suppression hygiene, global-ignore refusal and `--check-locked`, plus a weekly `deps-health` issue lane.
+- A committed exact toolchain pin that every workflow installs strictly, Node 24 actions and a supported min-lane runner.
+- A required local-path/PII guard that also scans `.planning/`, with a 319-file forward scrub, `@tag :tmp_dir` migrations and `mix verify.temp_leaks`.
+- Measured CI cuts:
+  - a weekly flake lane (was nightly)
+  - Browser-full limited to its own projects
+  - three duplicate jobs removed
+  - deps-only `_build` caches
+  - a voting newest-toolchain lane
+- Subject-first check names, time-to-red job order, `CI required` pinned to GitHub Actions and least-privilege tokens.
+
+### What worked
+
+- Measuring before cutting. Phase 214's baseline and every later REMEASURE cite run IDs. That let 218 decline credit for a critical path that did not move, and let 222 close SEED-006 on data (0 of 28 PRs inert) instead of building a classifier.
+- Mutation controls on every contract rule. The review rounds kept finding vacuous checks, and each fix came with a control proving the rule can go red.
+- Inserting a closure phase (223) for audit decision items, rather than accepting them as override debt, got the stranded mint fix released and closed 216 CR-01.
+
+### What was inefficient
+
+- A security fix landed inside a `ci:` squash (#60), so release-please saw nothing releasable, and adopters waited about 2 days for 0.11.2. It needed an override plus a dating PR to recover.
+- Many review rounds per phase (220 went to three rounds of re-verification) because contract tests parsed YAML with regexes until d7d44fd1 moved to parsed YAML.
+- Landing through cherry-picks onto `land/*` branches, while the milestone branch never merged, left behind stale remote branches and needed a planning-sync commit on every landing.
+- The classifier blocked delegated pushes, so the orchestrator had to take over pushes under an explicit grant (220-04).
+
+### Patterns established
+
+- A landing PR that carries an adopter-facing Security/Fixed entry uses a releasable subject or `BEGIN_COMMIT_OVERRIDE` (CONTRIBUTING, 223 D-06).
+- Contract tests read workflows as parsed YAML, and every rule has a named `rule=` fragment and a mutation control.
+- Size CI budgets from measured runs, pinned by a sizing contract (218-08).
+- Planning prose uses placeholder path shapes, because the hygiene guard scans `.planning/` too.
+
+### Key lessons
+
+1. Check the squash subject against the CHANGELOG, not just the diff: a `ci:` title can silently suppress a security release.
+2. A contract test is only as good as its parser. Regex-over-YAML contracts stayed bypassable until they read parsed YAML.
+3. Credit only what moved. Report unrounded and billed minutes separately, and don't claim a critical-path win the data doesn't show.
+
+### Cost observations
+
+- Model mix: opus for planning and orchestration. From 2026-09-28 the light-tier agents were pinned to sonnet through `model_overrides`.
+- Notable: about 7 paid runner-hours were approved for measurement top-ups in phase 219. Phase 222 avoided building a classifier by re-measuring first.
+
 ## Cross-Milestone Trends
 
+- v1.43 shows that measure-first also works as a way to decline work: the SEED-006 classifier was closed on data, and a phase that did not move the critical path took no credit for it. It also showed that release hygiene is part of shipping: a correct fix under a non-releasable squash subject never reaches adopters.
 - v1.42 shows the value of landing a milestone within days of finishing it: the release came out exactly as proposed, and PR CI (fresh database) caught what local gates could not.
 - v1.39 shows a non-feature "consolidation" milestone (quality audit → schema/docs/CI hardening → ranked residual register) can ship as a first-class milestone when surface area has outgrown its trust evidence.
 - Measure-before-optimize generalizes beyond UI: the CI baseline-first discipline mirrors the baseline-first UI lesson from v1.38.
