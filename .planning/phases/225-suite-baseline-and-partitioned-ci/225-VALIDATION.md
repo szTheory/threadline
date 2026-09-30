@@ -66,7 +66,7 @@ Plans fill this table in. Every row must name one of the following:
 ## Wave 0 Requirements
 
 - [ ] `bin/ci-test-partitions` (D-09), with `--self-test` (D-10)
-- [ ] `.planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.sh` (D-14a)
+- [ ] `.planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py` (D-14a)
 - [ ] `.planning/phases/225-suite-baseline-and-partitioned-ci/tools/check-citations.py` and `fixtures/`, copied from 222 with the phase range widened to cover 224–230 (D-14b)
 - [ ] `test/support/telemetry_helpers.ex`: `attach_telemetry!/1` (D-16)
 - No framework install is needed.

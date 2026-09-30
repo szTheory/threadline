@@ -650,9 +650,9 @@ processes.
 
 **If this table is empty:** N/A — see above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact partition count N.**
+1. **Exact partition count N.** RESOLVED: CONTEXT D-03; Plan 225-01 Task 2 measures and locks N.
    - What we know: CONTEXT D-03 sets a starting default of 3 (4 vCPU public-repo runner, 1 core
      reserved for Postgres + OS), to be confirmed by `mix test --slowest-modules 10` before locking.
    - What's unclear: Which specific module(s) are the long pole locally. This session did not run
@@ -668,7 +668,7 @@ processes.
    - Recommendation: run `mix test --slowest-modules 10` locally (Elixir 1.17.3 is available) before
      finalizing N; confirm no single module's time exceeds `serial_total / N` at N=3.
 
-2. **CI runner-minutes proxy "after" figures require a maintainer-granted push** (D-14c).
+2. **CI runner-minutes proxy "after" figures require a maintainer-granted push** (D-14c). RESOLVED: CONTEXT D-14c; Plan 225-04 Task 1 is the grant checkpoint.
    - What we know: the proxy formula (`ceil(job_seconds/60)` summed over the three `Build and test`
      jobs) is now concretely demonstrated against the authoritative "before" run, live-verified this
      session (see Sources below) — latest job 321s→6 min, min job 340s→6 min, current job 476s→8 min,
@@ -679,7 +679,7 @@ processes.
    - Recommendation: this is explicitly a maintainer handoff per D-14c; the plan must mark the push
      step as a checkpoint, not attempt to simulate it.
 
-3. **`test/support/telemetry_helpers.ex`'s exact `:telemetry.attach`/`attach_many` mechanics.**
+3. **`test/support/telemetry_helpers.ex`'s exact `:telemetry.attach`/`attach_many` mechanics.** RESOLVED: CONTEXT D-16; Plan 225-02 Task 1 uses `:telemetry.attach_many/4`.
    - What we know: D-16's functional contract (filter on `self() == test_pid` or `test_pid in
      Process.get(:"$callers", [])`, forward `{event, ref, measurements, metadata}`, return `ref`,
      register `on_exit` detach).
