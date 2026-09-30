@@ -205,6 +205,9 @@ jobs:
       - name: Compile without optional deps (warnings-as-errors)
         run: mix verify.compile_no_optional
 
+      - name: Compile bench project (bare mix compile)
+        run: mix verify.bench_compile
+
   verify-hex-evaluator:
     name: Hex package install (rehearsal registry)
     runs-on: ubuntu-24.04

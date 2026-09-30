@@ -178,6 +178,9 @@ defmodule Threadline.MixProject do
       "verify.operator_component_contracts": &verify_operator_component_contracts/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
+      # Per-PR proof that bench compiles bare (SUITE-05): unlike verify.bench above it
+      # runs no benchmark and is wired into ci.all right after verify.compile_no_optional.
+      "verify.bench_compile": &verify_bench_compile/1,
       # Per-PR supply-chain gate (SUP-02): asserts Hex >= 2.5.1, then runs
       # `deps.unlock --check-unused` + `hex.audit` over root, bench and the
       # example app's lockfiles via bin/verify-deps-audit. CLI args are
@@ -230,6 +233,7 @@ defmodule Threadline.MixProject do
         "compile --warnings-as-errors",
         "verify.xref_cycles",
         "verify.compile_no_optional",
+        "verify.bench_compile",
         "verify.test",
         "verify.threadline",
         "verify.example",
@@ -262,6 +266,19 @@ defmodule Threadline.MixProject do
     case Mix.shell().cmd(cmd) do
       0 -> :ok
       status -> Mix.raise("verify.bench failed (#{status})")
+    end
+  end
+
+  defp verify_bench_compile(_args) do
+    # `unset MIX_ENV` keeps this proof bare even when the maintainer runs
+    # `MIX_ENV=test mix ci.all` — the point is proving bare `mix compile` works via
+    # bench/mix.exs's own `preferred_envs`, not whatever the parent shell exports.
+    cmd =
+      "bash -lc 'set -euo pipefail && unset MIX_ENV && cd bench && mix deps.get && mix compile --warnings-as-errors'"
+
+    case Mix.shell().cmd(cmd) do
+      0 -> :ok
+      status -> Mix.raise("verify.bench_compile failed (#{status})")
     end
   end
 

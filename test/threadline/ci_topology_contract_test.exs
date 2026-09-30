@@ -1200,4 +1200,110 @@ defmodule Threadline.CiTopologyContractTest do
              "required checks on the exact emitted job name (D-08), so this mismatch would " <>
              "make the required check permanently unsatisfiable."
   end
+
+  # --- Plan 224-03: bench compiles bare via preferred_envs, proven in an existing
+  # per-PR CI job (SUITE-05, D-13..D-17) ---
+
+  defp bench_compile_errors(bench_mix, mix_exs, yaml) do
+    ci_all = ci_all_entries(mix_exs)
+    no_optional_idx = Enum.find_index(ci_all, &(&1 == "verify.compile_no_optional"))
+    bench_idx = Enum.find_index(ci_all, &(&1 == "verify.bench_compile"))
+    bench_count = Enum.count(ci_all, &(&1 == "verify.bench_compile"))
+
+    job = workflow_job(yaml, "verify-compile-no-optional")
+    no_optional_run_pos = position(job, "run: mix verify.compile_no_optional")
+    bench_run_pos = position(job, "run: mix verify.bench_compile")
+
+    other_jobs_with_bench_step =
+      for id <- workflow_job_ids(yaml),
+          id != "verify-compile-no-optional",
+          String.contains?(workflow_job(yaml, id), "mix verify.bench_compile"),
+          do: id
+
+    verify_bench_compile_def =
+      case Regex.run(~r/defp verify_bench_compile.*?\n  end\n/s, mix_exs) do
+        [def_text] -> strip_comment_lines(def_text)
+        nil -> ""
+      end
+
+    [
+      {String.contains?(bench_mix, "def cli") and
+         String.contains?(bench_mix, "preferred_envs: [compile: :test, run: :test]"),
+       "bench/mix.exs must define def cli with preferred_envs: [compile: :test, run: :test]"},
+      {bench_count == 1,
+       "ci.all must contain \"verify.bench_compile\" exactly once, found #{bench_count}"},
+      {not is_nil(no_optional_idx) and not is_nil(bench_idx) and
+         bench_idx == no_optional_idx + 1,
+       "\"verify.bench_compile\" must directly follow \"verify.compile_no_optional\" in ci.all"},
+      {job != "", "the verify-compile-no-optional job is missing from ci.yml"},
+      {not is_nil(no_optional_run_pos) and not is_nil(bench_run_pos) and
+         bench_run_pos > no_optional_run_pos,
+       "verify-compile-no-optional must run mix verify.bench_compile after " <>
+         "mix verify.compile_no_optional"},
+      {other_jobs_with_bench_step == [],
+       "mix verify.bench_compile must not run in any other job, found: " <>
+         inspect(other_jobs_with_bench_step)},
+      {verify_bench_compile_def != "", "verify_bench_compile/1 is missing from mix.exs"},
+      {String.contains?(verify_bench_compile_def, "unset MIX_ENV"),
+       "verify_bench_compile/1 must unset MIX_ENV"},
+      {not String.contains?(verify_bench_compile_def, "MIX_ENV="),
+       "verify_bench_compile/1 must not set MIX_ENV= anywhere in its command"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  test "bench compiles bare via preferred_envs and is proven in the no-optional CI job (SUITE-05)" do
+    bench_mix = read_rel!(["bench", "mix.exs"])
+    mix_exs = read_rel!(["mix.exs"])
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert bench_compile_errors(bench_mix, mix_exs, yaml) == []
+
+    other_job_anchor = "      - name: Ensure hex_evaluator_test database exists\n"
+    assert String.contains?(yaml, other_job_anchor), "the mutation anchor must exist to mutate"
+
+    mutation_controls = [
+      {"preferred_envs removed from bench/mix.exs",
+       String.replace(
+         bench_mix,
+         "def cli, do: [preferred_envs: [compile: :test, run: :test]]\n",
+         ""
+       ), mix_exs, yaml},
+      {"verify.bench_compile removed from ci.all", bench_mix,
+       String.replace(mix_exs, "\"verify.bench_compile\",\n", ""), yaml},
+      {"verify.bench_compile moved after verify.test in ci.all", bench_mix,
+       String.replace(
+         mix_exs,
+         "\"verify.bench_compile\",\n        \"verify.test\",\n",
+         "\"verify.test\",\n        \"verify.bench_compile\",\n"
+       ), yaml},
+      {"run: mix verify.bench_compile removed from the CI step", bench_mix, mix_exs,
+       String.replace(
+         yaml,
+         "      - name: Compile bench project (bare mix compile)\n        run: mix verify.bench_compile\n\n",
+         ""
+       )},
+      {"the bench compile step also runs in another job", bench_mix, mix_exs,
+       String.replace(
+         yaml,
+         other_job_anchor,
+         "      - name: Compile bench project (bare mix compile)\n        run: mix verify.bench_compile\n\n" <>
+           other_job_anchor
+       )},
+      {"MIX_ENV= appears in verify_bench_compile/1's command", bench_mix,
+       String.replace(mix_exs, "unset MIX_ENV", "MIX_ENV=dev"), yaml}
+    ]
+
+    for {control, bmix, mexs, y} <- mutation_controls do
+      refute {bmix, mexs, y} == {bench_mix, mix_exs, yaml},
+             "#{control} control did not change the input"
+
+      errors = bench_compile_errors(bmix, mexs, y)
+
+      assert errors != [],
+             "#{control} mutation must make the bench_compile_errors contract fail, got: " <>
+               inspect(errors)
+    end
+  end
 end

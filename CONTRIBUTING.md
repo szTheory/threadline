@@ -646,7 +646,7 @@ GitHub Actions workflow: `.github/workflows/ci.yml`. **Live runs (branch `main`)
 | `verify-format` | `mix verify.format` |
 | `verify-credo` | `mix verify.credo` |
 | `verify-dialyzer` | `mix verify.dialyzer`; strict full-build analysis on the committed `.tool-versions` toolchain (Elixir 1.17.3 / OTP 27.3.4.15) with the exact PLT cache lifecycle below, then `mix verify.dialyzer_slice` (the fail-closed live Dialyzer slice proof, Postgres service) |
-| `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView) |
+| `verify-compile-no-optional` | `mix verify.compile_no_optional` (compile without optional deps; gates against missing Phoenix/LiveView); then `mix verify.bench_compile` (the bench project compiles with a bare `mix compile`, no `MIX_ENV`) |
 | `verify-test` | compile `--warnings-as-errors` + `mix verify.xref_cycles` + `mix verify.test` (Postgres service) |
 | `verify-pgbouncer-topology` | Postgres + **PgBouncer (`POOL_MODE=transaction`)** — `priv/ci/topology_bootstrap.exs` on direct Postgres, then `mix verify.topology` + `mix verify.threadline` on the pooler port |
 | `verify-hex-evaluator` | `mix verify.hex_evaluator` — installs this tree's `mix hex.build` package from a throwaway local registry (`bin/with-rehearsal-registry`) in a nested project, then compiles and tests it |
