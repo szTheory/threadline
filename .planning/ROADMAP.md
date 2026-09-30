@@ -48,7 +48,7 @@
 
 ## Phases
 
-- [ ] **Phase 224: Capture and Bench Fixes** - Full rollback after a `gen.triggers` rerun leaves no orphaned capture function, and the bench project compiles bare
+- [x] **Phase 224: Capture and Bench Fixes** - Full rollback after a `gen.triggers` rerun leaves no orphaned capture function, and the bench project compiles bare (completed 2026-09-30)
 - [ ] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async telemetry/named-process tests
 - [ ] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties
 - [ ] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds
@@ -71,7 +71,7 @@
   4. `mix compile` in `bench/` succeeds with no `MIX_ENV` set (`preferred_envs`), an existing CI job runs that bare compile, and removing `preferred_envs` makes it fail (local mutation control).
   5. VERIFICATION.md reports suite wall clock before and after, measured against the milestone base `dd780e68`.
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -186,7 +186,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 224. Capture and Bench Fixes | 3/4 | In Progress | - |
+| 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 0/TBD | Not started | - |
 | 226. Pure Property Tests and Run Budget | 0/TBD | Not started | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
