@@ -15,7 +15,25 @@ Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-0
 **Open state (updated 2026-09-30):**
 - The phase-223 review fixes and this close record landed via squash PR #70 (`dd780e68`, not releasable). origin has only `main` plus release-please's own branch. Milestone tag `v1.43` is local only.
 - The operator UI stays parked until 1.0.0.
-- Next: `/gsd-new-milestone`. The ladder says v1.44 Behavioral Depth: Properties, Twins, Telemetry (`.planning/MILESTONE-GUIDE.txt` §7).
+- v1.44 opened 2026-09-30 on local branch `milestone/v1.44`, cut from origin/main `dd780e68` (see Current Milestone below).
+
+## Current Milestone: v1.44 Behavioral Depth: Properties, Twins, Telemetry
+
+**Goal:** Prove Threadline's behavioral invariants with bounded property tests, make its long-running operations observable, and make the test suite faster and more honest. Close the capture/CLI correctness debt carried from v1.42. Ships as a minor release.
+
+**Target features:**
+- Property tests where an invariant meets a large input space: cursor paging (pages joined == full list), `as_of` == replayed history, ChangeDiff, redaction never leaks, retention cutoff boundaries, export round-trips.
+- Telemetry for export, retention, query and install, consistent with the existing `[:threadline, ...]` events.
+- `history/3` gains a limit. Its deterministic tiebreak (`captured_at desc, id desc`) already exists.
+- Test rebalance toward behavior: merge or cut guard tests that no longer catch a distinct failure class, and cut the suite's serial core (about 91% serial: roughly 191 s of 209 s per pass).
+- The `gen.triggers` `down` orphan: `:down, all: true` after a per-table rerun leaves a function behind.
+- The bench project compiles with ExUnitProperties/StreamData.
+- The deferred v1.42 health and CLI items (`health --strict`, `:invalid_config`, `gen.backfill`), each included, reshaped or deferred on research.
+
+**Baseline (re-derived 2026-09-30):**
+- main is green at `dd780e68`, Hex is 0.11.2, and there are no open PRs.
+- The only property tests are `naming_property_test` and `trigger_migration_property_test`.
+- Telemetry covers transaction, action and health only.
 
 ## Latest Milestone Shipped: v1.43 Supply Chain, CI Economy and Repo Hygiene (2026-09-30)
 
@@ -656,7 +674,7 @@ Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-0
 
 ### Active
 
-None. v1.43 is closed, and the next milestone (ladder: v1.44 Behavioral Depth: Properties, Twins, Telemetry) is defined by `/gsd-new-milestone`, which writes a fresh `.planning/REQUIREMENTS.md`.
+v1.44 Behavioral Depth: Properties, Twins, Telemetry. The scoped requirements are in `.planning/REQUIREMENTS.md`, and the target features are under Current Milestone above.
 
 ### Out of Scope
 
@@ -807,4 +825,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-09-30 after v1.43 milestone*
+*Last updated: 2026-09-30 after v1.44 milestone start*

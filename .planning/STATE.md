@@ -1,49 +1,37 @@
 ---
 gsd_state_version: "1.0"
-milestone: v1.43
-milestone_name: Supply Chain, CI Economy and Repo Hygiene
-status: milestone_complete
-stopped_at: Milestone v1.43 closed, archived (tag v1.43 local) and landed via #70 (dd780e68); next /gsd-new-milestone (v1.44)
-last_updated: "2026-09-30T12:47:39.340Z"
+milestone: v1.44
+milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
+status: planning
+last_updated: "2026-09-30T14:54:48.044Z"
 last_activity: 2026-09-30
-last_activity_desc: Milestone v1.43 completed and archived
-state_head: b0f5278b0065721c7aec99b5fbbfae87d52a0782
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 52
-  completed_plans: 52
-  percent: 100
-current_phase: 223
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.43 milestone)
+See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 **Current focus:** Planning the next milestone. The ladder rung is v1.44 Behavioral Depth: Properties, Twins, Telemetry (`.planning/MILESTONE-GUIDE.txt` §7). v1.43 is closed and landed (#70).
 
 ## Current Position
 
-Phase: Milestone v1.43 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-09-30 — Milestone v1.43 completed and archived
+Status: Defining requirements
+Last activity: 2026-09-30 — Milestone v1.44 started
 
-**v1.43 close (2026-09-30):**
-- Archived to `.planning/milestones/v1.43-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md` and `v1.43-phases/`.
-- `REQUIREMENTS.md` removed. MILESTONES.md, PROJECT.md, MILESTONE-ARC.md and guide §7 are refreshed. RETROSPECTIVE.md has a v1.43 section.
-- Tag `v1.43` is local only.
-- Closeout type: override_closeout. 10 items were newly acknowledged (1 todo, 9 deferred-item groups) and 57 carried forward (see Deferred Items).
-
-**Landed (2026-09-30):**
-- Squash PR #70 merged as `dd780e68`: `ci:` subject, not releasable, with 16/16 checks green including CI required. It carries the phase-223 review fixes (WR-01..05, plus the credo refactor edd99259) and the v1.43 close record.
-- The stale remote branches were already gone at prune time. origin has `main` and release-please's own `release-please--branches--main`, which was left alone.
-- Local `milestone/v1.42` is deleted; tag `v1.42` keeps its history.
-- Closeout checklist, re-pin `latest`: the pins Elixir 1.20.4 / OTP 29.1.1 / PG 18.6 were set 2026-09-28 in phase 220 and not re-checked at close. Re-check them in the landing PR.
+**v1.44 start (2026-09-30):**
+- Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
+- Carried from the v1.43 closeout: re-check the `latest` lane pins (Elixir 1.20.4 / OTP 29.1.1 / PG 18.6, set 2026-09-28 in phase 220) against builds.hex.pm and Docker Hub in this milestone's landing PR.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
