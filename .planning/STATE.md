@@ -5,11 +5,11 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 225
 current_phase_name: Suite Baseline and Partitioned CI
 status: planning
-stopped_at: Phase 224 complete, ready to plan Phase 225
-last_updated: "2026-09-30T18:57:42.931Z"
+stopped_at: Phase 225 context gathered
+last_updated: "2026-09-30T20:40:21.389Z"
 last_activity: 2026-09-30
 last_activity_desc: Phase 224 complete, transitioned to Phase 225
-state_head: 185772dfc63b347e2e28ba82c5b33805dc0767b4
+state_head: 83a5ad00bb4cdd6897e70fb8918fd38e81b003b1
 progress:
   total_phases: 7
   completed_phases: 1
@@ -928,9 +928,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-09-30T18:36:57.159Z
-**Stopped at:** Phase 224 complete, ready to plan Phase 225
-**Resume file:** None
+**Last session:** 2026-09-30T20:40:21.349Z
+**Stopped at:** Phase 225 context gathered
+**Resume file:** .planning/phases/225-suite-baseline-and-partitioned-ci/225-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
