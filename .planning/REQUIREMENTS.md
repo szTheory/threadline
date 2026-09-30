@@ -90,12 +90,40 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (filled by roadmap) | | |
+| CAPT-01 | Phase 224 | Pending |
+| CAPT-02 | Phase 224 | Pending |
+| PROP-01 | Phase 226 | Pending |
+| PROP-02 | Phase 226 | Pending |
+| PROP-03 | Phase 226 | Pending |
+| PROP-04 | Phase 227 | Pending |
+| PROP-05 | Phase 226 | Pending |
+| PROP-06 | Phase 227 | Pending |
+| PROP-07 | Phase 227 | Pending |
+| PROP-08 | Phase 226 | Pending |
+| TELE-01 | Phase 228 | Pending |
+| TELE-02 | Phase 228 | Pending |
+| TELE-03 | Phase 228 | Pending |
+| TELE-04 | Phase 228 | Pending |
+| QRY-01 | Phase 229 | Pending |
+| QRY-02 | Phase 229 | Pending |
+| HLTH-01 | Phase 229 | Pending |
+| HLTH-02 | Phase 229 | Pending |
+| HLTH-03 | Phase 229 | Pending |
+| HLTH-04 | Phase 229 | Pending |
+| SUITE-01 | Phase 225 | Pending |
+| SUITE-02 | Phase 225 | Pending |
+| SUITE-03 | Phase 225 | Pending |
+| SUITE-04 | Phase 230 | Pending |
+| SUITE-05 | Phase 224 | Pending |
+| SUITE-06 | Phase 230 | Pending |
+| REL-01 | Phase 230 | Pending |
 
 **Coverage:**
 - v1.44 requirements: 27 total
-- Mapped to phases: 0 (pending roadmap)
+- Mapped to phases: 27
+- Unmapped: 0
+- SUITE-06 is cross-cutting: it maps to Phase 230 for the milestone net check, and every phase that adds or removes tests reports suite wall clock before and after
 
 ---
 *Requirements defined: 2026-09-30*
-*Last updated: 2026-09-30 after initial definition*
+*Last updated: 2026-09-30 after roadmap creation (phases 224-230)*
