@@ -9,11 +9,11 @@ findings:
     title: "`verify-compile-no-optional` CI job timeout not re-validated after adding a dependency-fetching step"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`CONTRIBUTING.md`'s \"no `MIX_ENV`\" phrasing is a little imprecise"
-open: 1
+open: 0
 total: 2
-recorded: 2026-09-30T19:06:42.577Z
+recorded: 2026-09-30T20:00:00.000Z
 ---
 
 # Phase 224: Code Review Disposition
@@ -21,7 +21,7 @@ recorded: 2026-09-30T19:06:42.577Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | WR-01 | warning | fixed | 224-REVIEW-FIX.md |
-| IN-01 | info | open | - |
+| IN-01 | info | fixed | 224-REVIEW-FIX.md |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
