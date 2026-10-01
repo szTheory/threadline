@@ -66,6 +66,14 @@ Out of scope:
     `test/partition_weights.txt` (refreshed with `bin/ci-test-partitions --write-weights`), async
     files weighted at 1/4, unweighted files at the median, and a run-time check that every test
     file is assigned exactly once. N stays 3; D-01, D-02 and D-04 to D-12 are unchanged.
+  - **D-03b amendment (2026-10-01):** CI runs on PR #71 showed two more things.
+    - Tests that share checkout state (a root-level sentinel write, a `git status` snapshot,
+      `mix hex.build --unpack`) must not overlap. They are listed together in
+      `test/partition_colocate.txt` and always share a partition.
+    - The stress router test's nested `MIX_ENV=prod` build is cold in CI and costs far more
+      than its local weight. `--write-weights` now measures it cold, but at N=3 its
+      partition still set the step time: the latest lane dropped 27% in CI run 36804809428.
+      N becomes 4, where its weight exceeds an even share and it runs alone.
 - **D-04:** **Per-partition database name.**
   - Change `config/test.exs:10` to `database: "threadline_test#{System.get_env("MIX_TEST_PARTITION")}"`.
     This is the Phoenix generator convention, and it resolves to the plain `threadline_test` when
