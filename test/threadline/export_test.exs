@@ -4,6 +4,7 @@ defmodule Threadline.ExportTest do
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Export
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.Test.StrictRFC4180
 
   @repo Threadline.Test.Repo
 
@@ -556,6 +557,105 @@ defmodule Threadline.ExportTest do
       assert_raise ArgumentError, ~r/unknown timeline filter/, fn ->
         Export.to_csv_iodata([repo: @repo, bad: 1], [])
       end
+    end
+  end
+
+  describe "D-17 bare CR" do
+    defp export_row(attrs) do
+      Map.merge(
+        %{
+          id: Ecto.UUID.generate(),
+          transaction_id: Ecto.UUID.generate(),
+          table_schema: "public",
+          table_name: "users",
+          op: "insert",
+          captured_at: ~U[2026-06-01 00:00:00.000000Z],
+          table_pk: %{"id" => "1"},
+          data_after: %{"x" => 1},
+          changed_fields: nil,
+          changed_from: nil,
+          tx_occurred_at: ~U[2026-06-01 00:00:00.000000Z],
+          tx_actor_ref: nil,
+          tx_source: nil,
+          aa_id: nil,
+          aa_correlation_id: nil
+        },
+        attrs
+      )
+    end
+
+    test "a bare CR in table_name is quoted, so the strict decoder still returns one record" do
+      row = export_row(%{table_name: "a\rb"})
+
+      body =
+        [row]
+        |> Export.format_changes_iodata(:csv, [])
+        |> IO.iodata_to_binary()
+
+      header = Export.csv_header([]) |> IO.iodata_to_binary()
+      full = header <> body
+
+      assert full =~ "\"a\rb\""
+
+      [_header_record, data_record] = StrictRFC4180.decode!(full)
+      assert Enum.at(data_record, 3) == "a\rb"
+    end
+
+    test "a bare CR in the correlation id is quoted with include_action_metadata: true" do
+      row =
+        export_row(%{
+          table_name: "users",
+          aa_id: Ecto.UUID.generate(),
+          aa_correlation_id: "x\ry"
+        })
+
+      body =
+        [row]
+        |> Export.format_changes_iodata(:csv, include_action_metadata: true)
+        |> IO.iodata_to_binary()
+
+      header = Export.csv_header(include_action_metadata: true) |> IO.iodata_to_binary()
+      full = header <> body
+
+      assert full =~ "\"x\ry\""
+
+      [_header_record, data_record] = StrictRFC4180.decode!(full)
+      assert Enum.at(data_record, -2) == "x\ry"
+    end
+
+    test "rows without a bare CR dump byte-identical to plain NimbleCSV.RFC4180" do
+      row = export_row(%{table_name: "users", data_after: %{"x" => 1}})
+
+      via_export =
+        [row]
+        |> Export.format_changes_iodata(:csv, [])
+        |> IO.iodata_to_binary()
+
+      csv_row = [
+        to_string(row.id),
+        to_string(row.transaction_id),
+        row.table_schema,
+        row.table_name,
+        row.op,
+        DateTime.to_iso8601(row.captured_at),
+        Jason.encode!(row.table_pk || %{}),
+        Jason.encode!(row.data_after || %{}),
+        Jason.encode!(row.changed_fields || []),
+        Jason.encode!(row.changed_from || %{}),
+        Jason.encode!(%{
+          "id" => to_string(row.transaction_id),
+          "occurred_at" => DateTime.to_iso8601(row.tx_occurred_at),
+          "actor_ref" => nil,
+          "source" => row.tx_source
+        })
+      ]
+
+      via_plain_nimble_csv =
+        [csv_row]
+        |> NimbleCSV.RFC4180.dump_to_iodata()
+        |> IO.iodata_to_binary()
+
+      assert via_export == via_plain_nimble_csv
     end
   end
 end

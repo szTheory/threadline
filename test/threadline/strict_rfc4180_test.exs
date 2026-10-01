@@ -13,7 +13,7 @@ defmodule Threadline.Test.StrictRFC4180Test do
     end
 
     test "quoted fields with a comma and a doubled escaped quote" do
-      assert StrictRFC4180.decode!("\"a,b\",\"c\"\"d\"\r\n") == [["a,b", "c\"d"]]
+      assert StrictRFC4180.decode!(~s("a,b","c""d"\r\n)) == [["a,b", "c\"d"]]
     end
 
     test "CRLF inside a quoted field is data, not a record break" do

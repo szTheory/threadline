@@ -47,7 +47,7 @@ defmodule Threadline.Export do
 
   import Ecto.Query
 
-  alias NimbleCSV.RFC4180, as: RFC4180
+  alias Threadline.Export.CSV
   alias Threadline.Query
   alias Threadline.Semantics.ActorRef
 
@@ -276,7 +276,7 @@ defmodule Threadline.Export do
 
   defp dump_csv_to_iodata(rows) do
     rows
-    |> RFC4180.dump_to_iodata()
+    |> CSV.dump_to_iodata()
     |> Enum.map(&IO.iodata_to_binary/1)
   end
 

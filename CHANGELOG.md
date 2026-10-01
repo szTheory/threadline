@@ -36,6 +36,12 @@ would be read as a release.
 
 ### Fixed
 
+- CSV export now quotes a field containing a lone carriage return (for
+  example a `table_name` or correlation id with an embedded `\r`), which
+  spreadsheet and Python CSV readers otherwise read as a line break,
+  splitting one audit row into two apparent records. Values unaffected by
+  this are byte-identical to before; for an RFC 4180-compliant reader, a
+  newly-quoted value round-trips unchanged.
 - Rolling back a whole `mix threadline.gen.triggers` chain whose rerun gave a
   table its own capture function (redaction, exclusions or
   `store_changed_from`) no longer leaves that function behind. The first
