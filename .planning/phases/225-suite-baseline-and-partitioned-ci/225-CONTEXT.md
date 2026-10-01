@@ -59,6 +59,13 @@ Out of scope:
     current lane.
   - Check that no single module exceeds `serial_total / N`. If one does, choose N accordingly and
     record why.
+  - **D-03a amendment (2026-09-30):** Mix's round-robin `--partitions` assignment measured badly
+    unbalanced on CI run 36792875477 (current-lane partition seconds 67/217/119), so `Run tests`
+    dropped only about 22-25% against the D-13 baseline. `bin/ci-test-partitions` now assigns test
+    files itself: greedy longest-first by measured per-file weight from the committed
+    `test/partition_weights.txt` (refreshed with `bin/ci-test-partitions --write-weights`), async
+    files weighted at 1/4, unweighted files at the median, and a run-time check that every test
+    file is assigned exactly once. N stays 3; D-01, D-02 and D-04 to D-12 are unchanged.
 - **D-04:** **Per-partition database name.**
   - Change `config/test.exs:10` to `database: "threadline_test#{System.get_env("MIX_TEST_PARTITION")}"`.
     This is the Phoenix generator convention, and it resolves to the plain `threadline_test` when
