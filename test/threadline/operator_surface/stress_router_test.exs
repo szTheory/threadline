@@ -120,11 +120,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.StressRouterTest do
     use ExUnit.Case, async: false
 
-    # Every test here renders the full operator surface, and one shells out to a
-    # cold `MIX_ENV=prod` compile. Sharing the CI runner with the other test
-    # partitions, single tests exceeded ExUnit's default 60s (CI runs
-    # 36799589565 and 36800563728), so the module carries the same kind of
-    # budget as the other nested-build contract tests.
+    # Every test here renders the full operator surface. Sharing the CI runner
+    # with the other test partitions, single tests exceeded ExUnit's default
+    # 60s (CI runs 36799589565 and 36800563728), so the module carries the same
+    # kind of budget as the nested-build contract tests. The cold prod-compile
+    # check lives in stress_router_prod_compile_test.exs so it can run in a
+    # different CI partition from these renders.
     @moduletag timeout: 180_000
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
@@ -283,18 +284,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       purge_modules(modules)
-    end
-
-    test "real prod Mix.env macro path fails closed without the stress_env hook" do
-      {output, status} =
-        System.cmd(
-          "bash",
-          ["-lc", "MIX_ENV=prod mix run --no-start test/support/stress_router_prod_compile.exs"],
-          stderr_to_stdout: true
-        )
-
-      assert status != 0
-      assert output =~ "Threadline stress surface is dev/test-only"
     end
 
     test "source keeps stress routing off the public operator macro option surface" do
