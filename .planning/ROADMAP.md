@@ -158,7 +158,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 226-06-PLAN.md — SC-4/SC-5 evidence, local wall clock, granted CI + scale-5 Flake Detection re-derivation (wave 5, maintainer grant)
+- [x] 226-06-PLAN.md — SC-4/SC-5 evidence, local wall clock, granted CI + scale-5 Flake Detection re-derivation (wave 5, maintainer grant)
 
 **Research**: Not needed. Property shapes are specified per target in `research/STACK.md` §1 and mirror the two existing property files.
 
@@ -232,7 +232,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
-| 226. Pure Property Tests and Run Budget | 5/6 | In Progress | - |
+| 226. Pure Property Tests and Run Budget | 6/6 | In Progress | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
