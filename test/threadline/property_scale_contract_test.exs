@@ -442,6 +442,109 @@ defmodule Threadline.PropertyScaleContractTest do
   end
 
   # ---------------------------------------------------------------------
+  # (c), D-06 extension — a DataCase property must resolve to PropertyRuns.db/1
+  # ---------------------------------------------------------------------
+
+  describe "mutation controls: a DataCase fixture using pure(150) is caught" do
+    @fixture_datacase_db20 """
+    defmodule FixtureDataCaseDb20 do
+      use Threadline.DataCase, async: false
+      use ExUnitProperties
+      alias Threadline.Test.PropertyRuns
+
+      property "p" do
+        check all(x <- gen(), max_runs: PropertyRuns.db(20)) do
+          :ok
+        end
+      end
+    end
+    """
+
+    @fixture_datacase_pure150 """
+    defmodule FixtureDataCasePure150 do
+      use Threadline.DataCase, async: false
+      use ExUnitProperties
+      alias Threadline.Test.PropertyRuns
+
+      property "p" do
+        check all(x <- gen(), max_runs: PropertyRuns.pure(150)) do
+          :ok
+        end
+      end
+    end
+    """
+
+    @fixture_datacase_attr_pure150 """
+    defmodule FixtureDataCaseAttrPure150 do
+      use Threadline.DataCase, async: false
+      use ExUnitProperties
+      alias Threadline.Test.PropertyRuns
+
+      @max_runs PropertyRuns.pure(150)
+
+      property "p" do
+        check all(x <- gen(), max_runs: @max_runs) do
+          :ok
+        end
+      end
+    end
+    """
+
+    @fixture_case_pure150 """
+    defmodule FixtureCasePure150 do
+      use ExUnit.Case, async: true
+      use ExUnitProperties
+      alias Threadline.Test.PropertyRuns
+
+      property "p" do
+        check all(x <- gen(), max_runs: PropertyRuns.pure(150)) do
+          :ok
+        end
+      end
+    end
+    """
+
+    test "a DataCase check all(...) using PropertyRuns.db/1 is valid" do
+      assert source_violations(%{"fixture_datacase_db20.exs" => @fixture_datacase_db20}) == []
+    end
+
+    test "a DataCase check all(...) using PropertyRuns.pure/1 directly is caught" do
+      refute @fixture_datacase_pure150 == @fixture_datacase_db20,
+             "control did not change the input"
+
+      violations =
+        source_violations(%{"fixture_datacase_pure150.exs" => @fixture_datacase_pure150})
+
+      assert violations != [], "a DataCase property using pure(150) must be a violation"
+      assert Enum.any?(violations, &(&1 =~ "DataCase")), "violation must name DataCase"
+      assert Enum.any?(violations, &(&1 =~ "PropertyRuns.db/1")), "violation must name db/1"
+    end
+
+    test "a DataCase check all(...) using PropertyRuns.pure/1 through @max_runs is caught" do
+      refute @fixture_datacase_attr_pure150 == @fixture_datacase_db20,
+             "control did not change the input"
+
+      violations =
+        source_violations(%{
+          "fixture_datacase_attr_pure150.exs" => @fixture_datacase_attr_pure150
+        })
+
+      assert violations != [],
+             "a DataCase property using pure(150) through @max_runs must be a violation"
+
+      assert Enum.any?(violations, &(&1 =~ "DataCase")), "violation must name DataCase"
+      assert Enum.any?(violations, &(&1 =~ "PropertyRuns.db/1")), "violation must name db/1"
+    end
+
+    test "a non-DataCase pure(150) property stays valid" do
+      refute @fixture_case_pure150 == @fixture_datacase_pure150,
+             "control did not change the input"
+
+      assert source_violations(%{"fixture_case_pure150.exs" => @fixture_case_pure150}) == []
+    end
+  end
+
+  # ---------------------------------------------------------------------
   # (d) CONTRIBUTING.md names the variable
   # ---------------------------------------------------------------------
 
