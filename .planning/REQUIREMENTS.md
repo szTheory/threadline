@@ -17,7 +17,7 @@
 - [x] **PROP-02**: A pure property proves ChangeDiff's documented INSERT/UPDATE/DELETE × before_values matrix against an independently derived expectation.
 - [x] **PROP-03**: A pure property proves that redaction-policy validation accepts exactly the valid policies and rejects the rest.
 - [ ] **PROP-04**: A DB-backed property varies captured values on a fixed table shape and proves that a redacted column's plaintext never appears in the stored audit change, its diff or its export output.
-- [ ] **PROP-05**: A pure property proves that export (CSV and JSON) round-trips generated change maps without loss.
+- [x] **PROP-05**: A pure property proves that export (CSV and JSON) round-trips generated change maps without loss.
 - [ ] **PROP-06**: A DB-backed property proves that `as_of` equals the state reconstructed by replaying the row's history in order.
 - [ ] **PROP-07**: A DB-backed property proves the retention cutoff boundary with `dry_run: true`: rows strictly older than the cutoff are selected and every row at or after it survives.
 - [ ] **PROP-08**: Property run time is bounded and tunable.
@@ -96,7 +96,7 @@
 | PROP-02 | Phase 226 | Complete |
 | PROP-03 | Phase 226 | Complete |
 | PROP-04 | Phase 227 | Pending |
-| PROP-05 | Phase 226 | Pending |
+| PROP-05 | Phase 226 | Complete |
 | PROP-06 | Phase 227 | Pending |
 | PROP-07 | Phase 227 | Pending |
 | PROP-08 | Phase 226 | In Progress |

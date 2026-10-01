@@ -150,7 +150,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 226-04-PLAN.md — PROP-05 export round-trip: strict RFC 4180 decoder, D-17 bare-CR fix, D-19 defaults pinned, two mutation controls (wave 3)
+- [x] 226-04-PLAN.md — PROP-05 export round-trip: strict RFC 4180 decoder, D-17 bare-CR fix, D-19 defaults pinned, two mutation controls (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -232,7 +232,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
-| 226. Pure Property Tests and Run Budget | 3/6 | In Progress | - |
+| 226. Pure Property Tests and Run Budget | 4/6 | In Progress | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
