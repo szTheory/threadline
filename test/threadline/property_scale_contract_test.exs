@@ -16,7 +16,12 @@ defmodule Threadline.PropertyScaleContractTest do
     (c) a source scan: every `check all(...)` in `test/**/*_property_test.exs`
         carries `max_runs:` that resolves (directly, or through an `@max_runs`
         attribute) to a `PropertyRuns.pure/1` call with a literal base in
-        150..200 or a `PropertyRuns.db/1` call with a literal base in 1..20;
+        150..200 or a `PropertyRuns.db/1` call with a literal base in 1..20 —
+        **and** (D-06) a file whose AST contains `use Threadline.DataCase`
+        must resolve specifically to `PropertyRuns.db/1`: a DataCase property
+        written as `pure(150)` would run ~150 live-DB iterations, far past
+        SC4's "DB properties run at most 20 base iterations" ceiling, even
+        though it passes the plain pure/db range check above;
     (d) `CONTRIBUTING.md` names the variable.
 
   Never mutates the OS environment variable this module reads: this file runs
@@ -261,6 +266,22 @@ defmodule Threadline.PropertyScaleContractTest do
   defp attribute_reference?({:@, _, [{:max_runs, _, nil}]}), do: true
   defp attribute_reference?(_ast), do: false
 
+  # D-06: detects `use Threadline.DataCase` anywhere in the file's AST, so
+  # `source_violations_for/2` can require `PropertyRuns.db/1` specifically
+  # for a DataCase property instead of accepting any pure/db value in range.
+  defp uses_data_case?(ast) do
+    {_ast, found?} =
+      Macro.prewalk(ast, false, fn
+        {:use, _, [{:__aliases__, _, [:Threadline, :DataCase]} | _]} = node, _acc ->
+          {node, true}
+
+        node, acc ->
+          {node, acc}
+      end)
+
+    found?
+  end
+
   defp collect_max_runs_attrs(ast) do
     {_ast, attrs} =
       Macro.prewalk(ast, [], fn
@@ -297,21 +318,32 @@ defmodule Threadline.PropertyScaleContractTest do
   # Resolves `value_ast` to a pure/db base (direct call, or through one level
   # of `@max_runs` indirection) and classifies it against the committed
   # ranges. `seen` guards against a self-referential `@max_runs` definition.
-  defp classify_max_runs(value_ast, attrs, seen \\ []) do
+  # `data_case?` (D-06) is threaded through so a `PropertyRuns.pure/1` value
+  # found in a `use Threadline.DataCase` file is rejected outright, rather
+  # than accepted merely because its literal base is in the pure range.
+  defp classify_max_runs(value_ast, attrs, data_case?, seen \\ []) do
     case property_runs_call_value(value_ast, :pure) do
-      {:ok, n} -> range_result(n, 150..200, "pure base")
-      :error -> classify_db_or_attribute(value_ast, attrs, seen)
+      {:ok, n} when data_case? ->
+        {:error,
+         "a Threadline.DataCase property must use PropertyRuns.db/1 (DB properties run " <>
+           "at most 20 base iterations), got pure(#{n})"}
+
+      {:ok, n} ->
+        range_result(n, 150..200, "pure base")
+
+      :error ->
+        classify_db_or_attribute(value_ast, attrs, data_case?, seen)
     end
   end
 
-  defp classify_db_or_attribute(value_ast, attrs, seen) do
+  defp classify_db_or_attribute(value_ast, attrs, data_case?, seen) do
     case property_runs_call_value(value_ast, :db) do
       {:ok, n} -> range_result(n, 1..20, "db base")
-      :error -> classify_attribute_reference(value_ast, attrs, seen)
+      :error -> classify_attribute_reference(value_ast, attrs, data_case?, seen)
     end
   end
 
-  defp classify_attribute_reference(value_ast, attrs, seen) do
+  defp classify_attribute_reference(value_ast, attrs, data_case?, seen) do
     cond do
       not attribute_reference?(value_ast) ->
         {:error,
@@ -324,13 +356,13 @@ defmodule Threadline.PropertyScaleContractTest do
         {:error, "max_runs: references @max_runs, but no @max_runs attribute was found"}
 
       true ->
-        resolve_any_attr(attrs, value_ast, seen)
+        resolve_any_attr(attrs, value_ast, data_case?, seen)
     end
   end
 
-  defp resolve_any_attr(attrs, value_ast, seen) do
+  defp resolve_any_attr(attrs, value_ast, data_case?, seen) do
     Enum.reduce_while(attrs, {:error, "no @max_runs definition resolved"}, fn attr, _acc ->
-      case classify_max_runs(attr, attrs, [value_ast | seen]) do
+      case classify_max_runs(attr, attrs, data_case?, [value_ast | seen]) do
         :ok -> {:halt, :ok}
         error -> {:cont, error}
       end
@@ -341,13 +373,13 @@ defmodule Threadline.PropertyScaleContractTest do
     if n in range, do: :ok, else: {:error, "#{label} #{n} is outside #{inspect(range)}"}
   end
 
-  defp check_violation(path, {line, args}, attrs) do
+  defp check_violation(path, {line, args}, attrs, data_case?) do
     case extract_max_runs(args) do
       :missing ->
         ["#{path}:#{line}: check all(...) has no max_runs:"]
 
       {:ok, value_ast} ->
-        case classify_max_runs(value_ast, attrs) do
+        case classify_max_runs(value_ast, attrs, data_case?) do
           :ok -> []
           {:error, reason} -> ["#{path}:#{line}: #{reason}"]
         end
@@ -358,7 +390,11 @@ defmodule Threadline.PropertyScaleContractTest do
     case Code.string_to_quoted(source) do
       {:ok, ast} ->
         attrs = collect_max_runs_attrs(ast)
-        ast |> collect_checks() |> Enum.flat_map(&check_violation(path, &1, attrs))
+        data_case? = uses_data_case?(ast)
+
+        ast
+        |> collect_checks()
+        |> Enum.flat_map(&check_violation(path, &1, attrs, data_case?))
 
       {:error, _loc, message} ->
         ["#{path}: could not parse as Elixir source (#{message})"]
