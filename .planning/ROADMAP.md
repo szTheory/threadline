@@ -49,7 +49,7 @@
 ## Phases
 
 - [x] **Phase 224: Capture and Bench Fixes** - Full rollback after a `gen.triggers` rerun leaves no orphaned capture function, and the bench project compiles bare (completed 2026-09-30)
-- [ ] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async operator-surface auth telemetry tests
+- [x] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async operator-surface auth telemetry tests (completed 2026-10-01)
 - [ ] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties
 - [ ] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds
 - [ ] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data
@@ -75,13 +75,16 @@
 
 Plans:
 **Wave 1**
+
 - [x] 224-01-PLAN.md — First-run `down` drops the per-table function; regression test through `Ecto.Migrator` (partial + full chain); re-pinned outputs; regenerated example fixture (wave 1) — complete 2026-09-30
 - [x] 224-03-PLAN.md — Bench `preferred_envs`, `mix verify.bench_compile` in `ci.all` and the `verify-compile-no-optional` job, contract + mutation control (wave 1) — complete 2026-09-30
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 224-02-PLAN.md — DB-backed rerun-sequence property (`@max_runs 20`) and recorded CAPT-02 mutation controls (wave 2) — complete 2026-09-30
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 224-04-PLAN.md — Upgrade-guide remediation + CHANGELOG, SUITE-06 wall clock vs `dd780e68`, `mix ci.all` gate (wave 3) — complete 2026-09-30
 
 **Research**: Resolved in discuss-phase (224-CONTEXT D-01): the first-run migration's `down` unconditionally emits the idempotent, usage-checked drop for the table's deterministic per-table function name after its trigger drop; the rerun's `down` stays unchanged. The earlier two-sided/`covered_pairs/1` wiring is superseded (the first run is generated before any rerun exists, and a rerun-side drop never succeeds under reverse-order rollback). Plan-phase still checks partial and full-chain rollback orders against the regression and property tests. No catalog sweep and no CASCADE.
@@ -103,13 +106,21 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 225-01-PLAN.md — SUITE-01 baseline: `ci-job-timing.py` (step duration, runner-minutes proxy, inclusive verdict), copied `check-citations.py`, cited 225-BASELINE.md with local slowest rankings and the D-03 N check — complete 2026-09-30
+
 **Wave 2**
+
 - [x] 225-02-PLAN.md — SUITE-03: `attach_telemetry!/1` emitting-process filter with its mutation control; the three operator-surface auth test files async; CONTRIBUTING rule; 200-repeat proof — complete 2026-09-30
+
 **Wave 3**
+
 - [x] 225-03-PLAN.md — SUITE-02 gate commit: `bin/ci-test-partitions` (+ `--self-test`), `mix verify.test_partitioned`, per-partition DB, CI step + self-test step + D-07 fix, topology/parity contracts, Flake Detection resize, CONTRIBUTING — complete 2026-09-30
+
 **Wave 4**
+
 - [x] 225-04-PLAN.md — Maintainer-granted push and dispatches; cited CI after runs, SUITE-02 verdict, Flake Detection run, SUITE-06 before/after report — complete 2026-10-01
+
 **Research**: Done (225-RESEARCH.md). Open with a fresh local `mix test --slowest 50` timing run (DB up) before choosing the partition count. Research cited 209 s / 191 s serial from older records, not a re-measurement. Check `pool_size` against the per-partition Postgres `max_connections` too (`too_many_connections` is a known local hazard).
 
 ### Phase 226: Pure Property Tests and Run Budget
@@ -197,7 +208,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
-| 225. Suite Baseline and Partitioned CI | 1/4 | In Progress | - |
+| 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 0/TBD | Not started | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
 | 228. Telemetry | 0/TBD | Not started | - |
