@@ -7,6 +7,7 @@ defmodule Threadline.Mix.TriggerMigrationPropertyTest do
 
   alias Threadline.Capture.{Naming, TriggerSQL}
   alias Threadline.Mix.TriggerMigration
+  alias Threadline.Test.PropertyRuns
 
   # The trigger statement exactly as the generator writes it into a migration
   # file. Built from the current SQL, so a change to the emitted form that the
@@ -20,13 +21,13 @@ defmodule Threadline.Mix.TriggerMigrationPropertyTest do
   end
 
   property "a table's own generated trigger migration is a rerun of it" do
-    check all(pair <- pair_gen(), max_runs: 300) do
+    check all(pair <- pair_gen(), max_runs: PropertyRuns.pure(200)) do
       assert TriggerMigration.rerun?(pair, [generated(pair)])
     end
   end
 
   property "another table's generated trigger migration is never a rerun" do
-    check all({p, q} <- pair_of_pairs_gen(), p != q, max_runs: 300) do
+    check all({p, q} <- pair_of_pairs_gen(), p != q, max_runs: PropertyRuns.pure(200)) do
       refute TriggerMigration.rerun?(q, [generated(p)])
       refute TriggerMigration.rerun?(p, [generated(q)])
     end

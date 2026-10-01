@@ -4,9 +4,9 @@ defmodule Threadline.Capture.TriggerRerunPropertyTest do
   `mix threadline.gen.triggers` runs -- any mix of default and per-table
   modes -- rolls back to zero orphaned capture functions. Every iteration
   applies real DDL through `Ecto.Migrator` against the live Postgres
-  catalog, so `max_runs` is capped at 20 rather than the hundreds a pure
-  property affords. `@max_runs` is a named attribute so a later phase's
-  environment-driven scale knob can swap it in one line.
+  catalog, so `max_runs` is a DB-backed base (at most 20) multiplied by
+  `THREADLINE_PROPERTY_SCALE` capped at x3 (`Threadline.Test.PropertyRuns.db/1`),
+  rather than the x10 a pure property affords.
   """
 
   use Threadline.DataCase, async: false
@@ -17,8 +17,9 @@ defmodule Threadline.Capture.TriggerRerunPropertyTest do
   alias Threadline.Capture.Naming
   alias Threadline.StorageSchema
   alias Threadline.Test.MigrationHarness, as: Harness
+  alias Threadline.Test.PropertyRuns
 
-  @max_runs 20
+  @max_runs PropertyRuns.db(20)
 
   property "a random chain of 1-4 runs rolls back to zero new orphaned capture functions" do
     check all(runs <- run_sequence(), max_runs: @max_runs) do
