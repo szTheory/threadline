@@ -90,6 +90,22 @@ defmodule Threadline.Query.Cursors do
 
   def actor_history_cursor(_more?, _entry), do: nil
 
+  # The whole post-fetch step for one actor-history page: trim the `limit + 1`
+  # fetch down to the page, work out which edges have more data, and build
+  # both edge cursors. Kept separate from the DB fetch so a property test can
+  # exercise exactly the code the product runs without a database.
+  def actor_history_page(raw, limit, reverse?, after_cursor) do
+    {entries, has_more?} = actor_history_trim(raw, limit, reverse?)
+
+    has_next? = if reverse?, do: true, else: has_more?
+    has_prev? = if reverse?, do: has_more?, else: after_cursor != nil
+
+    next_cursor = actor_history_cursor(has_next?, List.last(entries))
+    prev_cursor = actor_history_cursor(has_prev?, List.first(entries))
+
+    {entries, next_cursor, prev_cursor}
+  end
+
   def validate_actor_history_cursor!(nil), do: nil
 
   def validate_actor_history_cursor!(%{occurred_at: %DateTime{} = occurred_at, id: id})

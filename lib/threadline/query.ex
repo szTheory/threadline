@@ -549,13 +549,8 @@ defmodule Threadline.Query do
       |> limit(^(limit + 1))
       |> repo.all(storage_opts([], opts))
 
-    {entries, has_more?} = Cursors.actor_history_trim(entries_raw, limit, reverse?)
-
-    has_next? = if reverse?, do: true, else: has_more?
-    has_prev? = if reverse?, do: has_more?, else: after_cursor != nil
-
-    next_cursor = Cursors.actor_history_cursor(has_next?, List.last(entries))
-    prev_cursor = Cursors.actor_history_cursor(has_prev?, List.first(entries))
+    {entries, next_cursor, prev_cursor} =
+      Cursors.actor_history_page(entries_raw, limit, reverse?, after_cursor)
 
     %Threadline.Query.ActorHistoryPage{
       entries: entries,
