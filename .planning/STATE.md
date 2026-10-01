@@ -5,8 +5,8 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 226
 current_phase_name: Pure Property Tests and Run Budget
 status: planning
-stopped_at: Completed 225-04-PLAN.md
-last_updated: "2026-10-01T05:09:14.287Z"
+stopped_at: Phase 226 context gathered
+last_updated: "2026-10-01T11:05:47.046Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 225 complete, transitioned to Phase 226
 progress:
@@ -940,9 +940,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-01T04:58:13.820Z
-**Stopped at:** Completed 225-04-PLAN.md
-**Resume file:** None
+**Last session:** 2026-10-01T11:05:47.029Z
+**Stopped at:** Phase 226 context gathered
+**Resume file:** .planning/phases/226-pure-property-tests-and-run-budget/226-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
