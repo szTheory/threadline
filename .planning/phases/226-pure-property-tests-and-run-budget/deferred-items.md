@@ -11,3 +11,5 @@ changes).
   `gen all(...)` clause). Pre-existing from 226-01 — confirmed by checking
   `mix format --check-formatted` against the 226-01 commit before any 226-02
   change touched this file. Not touched by 226-02; left unfixed here.
+  **RESOLVED** in commit `b24ee66a` (226-01 follow-up `mix format` pass) — `mix
+  format --check-formatted` is clean across the whole repo as of 226-03.
