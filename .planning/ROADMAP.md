@@ -50,7 +50,7 @@
 
 - [x] **Phase 224: Capture and Bench Fixes** - Full rollback after a `gen.triggers` rerun leaves no orphaned capture function, and the bench project compiles bare (completed 2026-09-30)
 - [x] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async operator-surface auth telemetry tests (completed 2026-10-01)
-- [ ] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties
+- [x] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties (completed 2026-10-01)
 - [ ] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds
 - [ ] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data
 - [ ] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning
@@ -232,7 +232,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
-| 226. Pure Property Tests and Run Budget | 6/6 | In Progress | - |
+| 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
