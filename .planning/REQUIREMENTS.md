@@ -13,7 +13,7 @@
 
 ### Property tests
 
-- [ ] **PROP-01**: Cursor paging is proven by a pure property. For generated, tie-heavy ordered lists, concatenating every page equals the full list, with no duplicates and no gaps, for both the timeline and actor-history cursors.
+- [x] **PROP-01**: Cursor paging is proven by a pure property. For generated, tie-heavy ordered lists, concatenating every page equals the full list, with no duplicates and no gaps, for both the timeline and actor-history cursors.
 - [ ] **PROP-02**: A pure property proves ChangeDiff's documented INSERT/UPDATE/DELETE × before_values matrix against an independently derived expectation.
 - [x] **PROP-03**: A pure property proves that redaction-policy validation accepts exactly the valid policies and rejects the rest.
 - [ ] **PROP-04**: A DB-backed property varies captured values on a fixed table shape and proves that a redacted column's plaintext never appears in the stored audit change, its diff or its export output.
@@ -92,7 +92,7 @@
 |-------------|-------|--------|
 | CAPT-01 | Phase 224 | Complete |
 | CAPT-02 | Phase 224 | Complete |
-| PROP-01 | Phase 226 | Pending |
+| PROP-01 | Phase 226 | Complete |
 | PROP-02 | Phase 226 | Pending |
 | PROP-03 | Phase 226 | Complete |
 | PROP-04 | Phase 227 | Pending |
