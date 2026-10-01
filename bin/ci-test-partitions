@@ -255,6 +255,23 @@ parse_counts() {
   line="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | grep -E '[0-9]+ tests?, [0-9]+ failures?' | tail -1 || true)"
 
   if [ -z "$line" ]; then
+    # Newer ExUnit (1.19+) summarises as "Result: 1169 passed, 1 excluded" or
+    # "Result: 697/698 passed (2/2 properties, 695/696 tests)" plus a
+    # "Failed: 1 test" line.
+    local result failed
+    result="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | grep -E '^Result: ' | tail -1 || true)"
+    if [ -n "$result" ]; then
+      failed="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | grep -oE '^Failed: [0-9]+' | tail -1 | grep -oE '[0-9]+' || true)"
+      tests="$(printf '%s' "$result" | grep -oE '[0-9]+/[0-9]+ tests' | grep -oE '/[0-9]+' | tr -d '/' || true)"
+      if [ -z "$tests" ]; then
+        tests="$(printf '%s' "$result" | grep -oE '[0-9]+ tests' | grep -oE '[0-9]+' || true)"
+      fi
+      if [ -z "$tests" ]; then
+        tests="$(printf '%s' "$result" | grep -oE '[0-9]+(/[0-9]+)? passed' | grep -oE '[0-9]+' | tail -1 || true)"
+      fi
+      printf '%s tests, %s failures' "${tests:-0}" "${failed:-0}"
+      return 0
+    fi
     printf 'no tests'
     return 0
   fi
