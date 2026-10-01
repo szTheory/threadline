@@ -228,6 +228,17 @@ defmodule Threadline.Capture.TriggerCaptureConfigTest do
       assert error.message =~ "mask"
       assert error.message =~ "list"
     end
+
+    test "a non-list except_columns: raises ArgumentError naming the table, key, and list" do
+      error =
+        assert_raise ArgumentError, fn ->
+          TriggerCaptureConfig.load(tables: %{"users" => [except_columns: :ssn]})
+        end
+
+      assert error.message =~ ~s|"users"|
+      assert error.message =~ "except_columns"
+      assert error.message =~ "list"
+    end
   end
 
   describe "near-miss keys" do

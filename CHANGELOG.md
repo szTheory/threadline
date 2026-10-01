@@ -26,9 +26,9 @@ would be read as a release.
 
 ### Breaking changes
 
-- A non-list `exclude:`/`mask:` on a `:threadline, :trigger_capture` table
-  entry (for example `exclude: :ssn`) used to be ignored silently, so the
-  column was never redacted. It now raises `ArgumentError` at config load
+- A non-list `exclude:`/`mask:`/`except_columns:` on a
+  `:threadline, :trigger_capture` table entry (for example `exclude: :ssn`)
+  used to be ignored silently, so the column was never redacted or omitted. It now raises `ArgumentError` at config load
   and at trigger generation. Fix: wrap the column name in a list, e.g.
   `exclude: [:ssn]`. A non-string `mask_placeholder:` now raises
   `ArgumentError` instead of `FunctionClauseError`; no fix is needed beyond

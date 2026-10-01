@@ -65,6 +65,7 @@ defmodule Threadline.Capture.TriggerCaptureConfig do
     check_near_miss_keys!(table, entry)
     check_column_list!(table, :exclude, Keyword.get(entry, :exclude))
     check_column_list!(table, :mask, Keyword.get(entry, :mask))
+    check_column_list!(table, :except_columns, Keyword.get(entry, :except_columns))
 
     normalized =
       []
@@ -91,9 +92,9 @@ defmodule Threadline.Capture.TriggerCaptureConfig do
     []
   end
 
-  # A non-nil, non-list :exclude/:mask (e.g. exclude: :ssn) would otherwise
-  # be silently normalized to []: the column would never be redacted and
-  # nothing would warn the adopter. Reject it loudly here, before
+  # A non-nil, non-list :exclude/:mask/:except_columns (e.g. exclude: :ssn)
+  # would otherwise be silently normalized to []: the column would never be
+  # redacted or omitted and nothing would warn the adopter. Reject it loudly here, before
   # normalize_columns/1 ever runs, naming the table, the key, and that a
   # list of column names is expected.
   defp check_column_list!(_table, _key, nil), do: :ok
