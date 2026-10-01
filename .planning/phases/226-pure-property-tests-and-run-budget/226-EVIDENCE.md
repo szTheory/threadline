@@ -331,29 +331,147 @@ for the full restatement.
 
 ### CI
 
-pending (no grant). Exact commands, to be run once the maintainer grants
-the push and dispatch named in this plan's checkpoint task:
+The maintainer granted, in their own words, `git push origin milestone/v1.44`
+(incl. follow-ups), `gh workflow run ci.yml --ref milestone/v1.44`, and
+`gh workflow run flake-detection.yml --ref milestone/v1.44`; the push and both
+dispatches below were carried out under that grant.
 
-`git push origin milestone/v1.44`
+```text
+Before run selection (gh run list --workflow ci.yml --branch milestone/v1.44 --limit 20):
+run 36820084560 is the latest successful ci.yml run on milestone/v1.44
+before this phase's first commit. First 226 commit 679544d5 landed
+2026-10-01 08:06:47-04:00 = 12:06:47 UTC; run 36820084560 completed
+2026-10-01T05:30:21Z, which is before that.
 
-`gh workflow run ci.yml --ref milestone/v1.44`
+After run: run 36887218675 (ci.yml on commit b4200f44, dispatched under
+the grant above): conclusion success, all three lanes success.
+```
 
-`gh run list --workflow ci.yml --branch milestone/v1.44 --limit 20`
+`ci-job-timing.py`'s `--compare` mode needs two or more after runs: (`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py --compare 36820084560 36887218675`).
 
-`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py --compare <before-run-id> <after-run-id>`
+```text
+python3 .../ci-job-timing.py --compare 36820084560 36887218675 exits 1:
+"INSUFFICIENT (need at least 2 after runs)". This phase only dispatched
+one post-226 ci.yml run, so --compare's two-after-run design (built for
+225, which had two after samples) cannot run here. Single-run mode on
+each run id reads the same per-lane figures --compare would, so the
+before/after table below comes from two single-run invocations instead.
+```
+
+```
+python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36820084560 --cache-state
+
+## run 36820084560
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 217 | 4 | 170 | hit |
+| current | 299 | 5 | 131 | hit |
+| latest | 176 | 3 | 129 | hit |
+| **total** | | **12** | |
+
+python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36887218675 --cache-state
+
+## run 36887218675
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 201 | 4 | 143 | hit |
+| current | 314 | 6 | 143 | hit |
+| latest | 221 | 4 | 170 | hit |
+| **total** | | **14** | |
+```
+
+(`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36820084560 --cache-state`, `python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36887218675 --cache-state`)
+
+```text
+Per-lane Run tests delta, before (run 36820084560) -> after (run 36887218675):
+  min:     170s -> 143s  (-27s / -15.9%), build cache hit -> hit
+  current: 131s -> 143s  (+12s / +9.2%),  build cache hit -> hit
+  latest:  129s -> 170s  (+41s / +31.8%), build cache hit -> hit
+  proxy (min, total): 12 -> 14 (+2)
+
+Both runs are a full cache hit on every lane, so the deltas above are real
+suite-cost movement, not a cold-vs-warm-cache artifact. ci.yml never sets
+THREADLINE_PROPERTY_SCALE (that knob is Flake Detection's repeat step only,
+per D-09) -- the rise on current/latest is the new pure property files
+running at their unscaled max_runs on every PR, the expected SC-5 cost this
+phase adds to CI. It is small (well under a minute per lane) next to the
+local wall-clock figures above.
+```
 
 ### Flake Detection at scale 5 (D-12)
 
-pending (no grant). Exact command, to be run once the maintainer grants
-the dispatch named in this plan's checkpoint task, after the ci.yml dispatch above
-completes:
+Dispatched under the same grant, after the `ci.yml` run above completed, via
+`gh workflow run flake-detection.yml --ref milestone/v1.44`: `run 36888506162`
+on commit `b4200f44`.
 
-`gh workflow run flake-detection.yml --ref milestone/v1.44`
+Scale banner (`gh run view 36888506162 --log`): `THREADLINE_PROPERTY_SCALE=5: pure max_runs x5, DB x3`.
 
-Until a THREADLINE_PROPERTY_SCALE=5 run is cited (via `gh workflow run flake-detection.yml`), the flake-classifier sizing test's ceilings in
-`test/threadline/flake_classifier_contract_test.exs` and the budget
-comment in `.github/workflows/flake-detection.yml` remain unchanged from
-phase 225's measured values, so D-12's re-derivation at the scaled run count stays open.
+```text
+Classification (gh run view 36888506162 --log, read-only):
+"Flake Detection classification: inconclusive (completed iterations: 12,
+exit: 124)". The timeout(1) budget expired mid the 12th suite run (the
+11th repeat): ELAPSED_S 3300 equals BUDGET_S 3300. inconclusive is not a
+failure signal -- every one of the 11 iterations that finished reports
+"28 properties, 2649 tests, 0 failures, 3 excluded", and the 12th was
+still running, not failing, when the budget cut it off.
+```
+
+Every "Finished in" line (`gh run view 36888506162 --log`):
+
+```
+Finished in 345.1 seconds (95.4s async, 249.6s sync)   <- cold first run
+Finished in 289.0 seconds (86.5s async, 202.5s sync)
+Finished in 288.4 seconds (86.2s async, 202.1s sync)
+Finished in 291.8 seconds (89.1s async, 202.6s sync)
+Finished in 289.0 seconds (86.5s async, 202.4s sync)
+Finished in 286.8 seconds (83.5s async, 203.2s sync)
+Finished in 290.9 seconds (88.9s async, 202.0s sync)
+Finished in 293.5 seconds (91.3s async, 202.1s sync)
+Finished in 289.7 seconds (86.9s async, 202.8s sync)
+Finished in 287.8 seconds (85.6s async, 202.1s sync)
+Finished in 289.6 seconds (86.2s async, 203.4s sync)
+```
+
+```text
+Raw figures: cold 345.1s, repeats 286.8-293.5s (slowest repeat 293.5s). 12
+"Running ExUnit with seed:" headers were printed (the 12th iteration
+started before the budget cut it off), but only 11 "Finished in" lines
+(1 cold + 10 repeats) appear -- the then-committed 11-repeat count maps
+1:1 to "12 suite runs" (1 initial + 11 repeats) everywhere this plan
+touches, confirmed by this run: it started all 12 attempted suite runs
+and completed 11 of them before the budget ran out. So "N repeats" means
+the same thing in mix.exs, the workflow comment, CONTRIBUTING.md and
+bin/classify-flake-run: N repeats, 1 + N suite runs.
+```
+
+**D-12 re-derivation.** `@cold_first_run_ceiling_s` and `@repeat_ceiling_s` in `test/threadline/flake_classifier_contract_test.exs` Test 6 cite `run 36888506162`: (`mix test test/threadline/flake_classifier_contract_test.exs`).
+
+```text
+Ceilings: 345.1s cold and 293.5s slowest repeat, each rounded up with a 1s
+margin, give 346s cold / 295s per repeat. The workflow budget comment in
+.github/workflows/flake-detection.yml cites the same run, the same
+ceilings, and states they were measured with THREADLINE_PROPERTY_SCALE=5.
+
+At the then-committed 11 repeats: 346 + 11 x 295 = 3591s, over the 2970s
+usable (the 55-minute budget less 10% headroom). Dropping to 8 repeats:
+346 + 8 x 295 = 2706s, leaving about 9% headroom; 9 repeats would be
+346 + 9 x 295 = 3001s, still over budget. The repeat count in mix.exs
+"verify.flake" dropped from 11 to 8 (9 suite runs), with the same count
+mirrored in the workflow budget comment, CONTRIBUTING.md ("full suite,
+8 repeats (fresh seed each)") and bin/classify-flake-run's header
+comment -- all four pinned together by Test 6. The 55-minute
+"timeout --signal=TERM --kill-after=60s 55m mix verify.flake" budget
+itself is unchanged.
+
+This measuring run (36888506162) was itself inconclusive by budget, not
+by any failure -- the re-derivation above is sized so a confirmation run
+at the new 8-repeat count fits inside the 2970s usable window with
+margin to spare.
+```
+
+Confirmation run at the re-derived repeat count: pending (orchestrator dispatch).
 
 ## Partition weights (D-24)
 
