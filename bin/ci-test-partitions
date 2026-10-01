@@ -195,7 +195,12 @@ assign_files() {
         eff = $1 + 0; f = $2
         key = (f in group) ? group[f] : f
         if (!(key in gw)) { keys[++kn] = key }
-        gw[key] += eff
+        # A colocated file counts double for placement: these tests shell out
+        # to nested builds and git, which slow down far more than in-process
+        # tests while the other partitions compete for the runner CPUs
+        # (CI run 36802594485: the partition holding the group took 181 s against 116 s
+        # and 114 s for partitions of equal measured weight).
+        gw[key] += (f in group) ? 2 * eff : eff
         members[key] = members[key] f "\n"
         weight[f] = eff
       }
