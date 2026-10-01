@@ -315,9 +315,9 @@ defmodule Threadline.CiTopologyContractTest do
        "bin/ci-test-partitions must wait on each recorded PID individually, never a bare wait"},
       {String.contains?(
          script,
-         "\"$MIX_BIN\" test --no-compile --no-deps-check \"${files[@]}\""
+         "\"$MIX_BIN\" test --no-compile --no-deps-check --timeout=\"$PARTITION_TEST_TIMEOUT_MS\" \"${files[@]}\""
        ),
-       "bin/ci-test-partitions must run each partition on its assigned files with --no-compile and --no-deps-check"},
+       "bin/ci-test-partitions must run each partition on its assigned files with --no-compile, --no-deps-check and the partition test timeout"},
       {not Regex.match?(~r/"\$MIX_BIN" test[^\n]*--partitions/, script),
        "bin/ci-test-partitions must not fall back to Mix's round-robin --partitions (files are assigned by weight)"},
       {Regex.match?(
@@ -417,15 +417,17 @@ defmodule Threadline.CiTopologyContractTest do
       {"the runner flipped back to Mix's round-robin --partitions", yaml, mix_exs,
        String.replace(
          script,
-         "\"$MIX_BIN\" test --no-compile --no-deps-check \"${files[@]}\"",
+         "\"$MIX_BIN\" test --no-compile --no-deps-check --timeout=\"$PARTITION_TEST_TIMEOUT_MS\" \"${files[@]}\"",
          "\"$MIX_BIN\" test --partitions \"$n\" --no-compile --no-deps-check"
        )},
       {"--partitions added alongside the assigned files", yaml, mix_exs,
        String.replace(
          script,
-         "\"$MIX_BIN\" test --no-compile --no-deps-check \"${files[@]}\"",
+         "\"$MIX_BIN\" test --no-compile --no-deps-check --timeout=\"$PARTITION_TEST_TIMEOUT_MS\" \"${files[@]}\"",
          "\"$MIX_BIN\" test --no-compile --no-deps-check --partitions \"$n\" \"${files[@]}\""
        )},
+      {"the partition test timeout dropped", yaml, mix_exs,
+       String.replace(script, " --timeout=\"$PARTITION_TEST_TIMEOUT_MS\"", "")},
       {"the exactly-once assignment check dropped", yaml, mix_exs,
        String.replace(
          script,

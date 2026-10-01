@@ -122,6 +122,7 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
 WEIGHTS_REL="test/partition_weights.txt"
 COLOCATE_REL="test/partition_colocate.txt"
+PARTITION_TEST_TIMEOUT_MS=180000
 
 # --- Test file enumeration and weighted assignment -----------------------------
 
@@ -409,7 +410,12 @@ run_partitions() {
           >"$log_dir/partition-$i.log"
         p_status=0
       else
-        MIX_TEST_PARTITION="$i" "$MIX_BIN" test --no-compile --no-deps-check "${files[@]}" \
+        # A per-test budget of 180 s instead of ExUnit's 60 s default: with N
+        # partitions sharing the runner, nested builds and Node smokes run
+        # several times slower than in a lone `mix test` (CI runs 36799589565,
+        # 36800563728 and 36818463238 timed such tests out at 60 s). A plain
+        # local `mix test` keeps the default.
+        MIX_TEST_PARTITION="$i" "$MIX_BIN" test --no-compile --no-deps-check --timeout="$PARTITION_TEST_TIMEOUT_MS" "${files[@]}" \
           >"$log_dir/partition-$i.log" 2>&1
         p_status=$?
       fi
@@ -568,6 +574,7 @@ case "${1:-}" in
           ;;
         --no-compile) has_no_compile=1 ;;
         --no-deps-check) has_no_deps_check=1 ;;
+        --timeout=*) ;;
         -*)
           echo "fake-mix: unexpected flag $a" >&2
           exit 3
