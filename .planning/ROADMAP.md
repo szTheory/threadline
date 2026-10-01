@@ -141,7 +141,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 226-01-PLAN.md — Tracer: PropertyRuns + mutation-control runner on the redaction-policy property; full PROP-03; D-18 fail-loudly fixes (wave 1)
+- [x] 226-01-PLAN.md — Tracer: PropertyRuns + mutation-control runner on the redaction-policy property; full PROP-03; D-18 fail-loudly fixes (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -232,7 +232,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
-| 226. Pure Property Tests and Run Budget | 0/TBD | Not started | - |
+| 226. Pure Property Tests and Run Budget | 1/6 | In Progress | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
