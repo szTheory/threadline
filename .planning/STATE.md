@@ -4,17 +4,17 @@ milestone: v1.44
 milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 227
 current_phase_name: DB-Backed Property Tests
-status: executing
-stopped_at: Completed 227-04-PLAN.md
-last_updated: "2026-10-01T21:01:23.801Z"
+status: verifying
+stopped_at: Completed 227-05-PLAN.md
+last_updated: "2026-10-01T23:31:30.521Z"
 last_activity: 2026-10-01
-last_activity_desc: Phase 227 planned (5 plans, 5 sequential waves, checker passed); next /gsd-execute-phase 227
+last_activity_desc: Phase 227 executed (5/5 plans complete); next phase 227 verification
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 19
-  completed_plans: 18
-  percent: 43
+  completed_plans: 19
+  percent: 100
 state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
 ---
 
@@ -29,10 +29,10 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 ## Current Position
 
-Phase: 227 — DB-Backed Property Tests — EXECUTING
-Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-10-01 — Plan 227-04 complete (PROP-07 retention cutoff property, D-20 dry-run transaction under-count fix, five mutation controls killed 5/5; 503901c0/1d09091f/1436eeff/d2ee967c); next 227-05
+Phase: 227 — DB-Backed Property Tests — EXECUTED (awaiting verification)
+Plan: 5 of 5 — complete
+Status: Phase complete — ready for verification
+Last activity: 2026-10-01 — Plan 227-05 complete (SC4/SC5 evidence: 13 mutation controls cited in 227-EVIDENCE.md, local acceptance, CI run 36929234558 green under the maintainer's grant, Flake Detection run 36930385324 pass 9/9 at THREADLINE_PROPERTY_SCALE=5, Test 6 ceilings re-derived 370s/300s; commits d61f2fc6/d6ddaa1e); next phase 227 verification
 
 Progress: [████░░░░░░] 3 of 7 v1.44 phases complete ([████░░░░░░] 43%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phase 226 verified passed 6/6 (2026-10-01): pure StreamData properties for cursor paging (PROP-01, incl. Cursors.actor_history_page/4 and DB agreement tests), ChangeDiff (PROP-02), redaction-policy validation (PROP-03) and CSV/JSON/NDJSON export round-trip via an independent strict RFC 4180 decoder (PROP-05); seven mutation controls each killed 5/5 (226-EVIDENCE.md); Threadline.Test.PropertyRuns + THREADLINE_PROPERTY_SCALE (5 on the weekly Flake Detection lane only) with a pinning contract test and generator coverage floors (PROP-08); fixes: CSV bare-CR quoting, non-list exclude:/mask:/except_columns: and non-binary placeholders now raise (CHANGELOG Breaking changes); Flake Detection at scale 5: run 36888506162 inconclusive by budget (11 clean iterations), repeats lowered 11→8 and ceilings re-derived to 348 s cold / 295 s repeat, confirmation run 36897742852 pass 9/9; review 1 critical/2 warning/2 info — CR-01 (except_columns) and WR-02 fixed, WR-01 accepted; CI 36903609149 green on d58ef5e9. Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 227 (plan 05 stops at a maintainer push/dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
@@ -249,6 +249,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 227 P02 | 1h45m | 3 tasks | 11 files |
 | Phase 227 P03 | ~1h20m | 3 tasks | 12 files |
 | Phase 227 P04 | 1h45m | 3 tasks | 16 files |
+| Phase 227 P05 | ~2h | 3 tasks | 5 files |
 
 ## Deferred Items
 
@@ -946,6 +947,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase ?]: 227-03: StorageSchema.table/2 remains string-only (PLAN.md's atom-arg grep was stale); Postgrex jsonb params must bind the raw term, never a pre-encoded Jason string
 - [Phase ?]: 227-04: fixed Retention.purge dry-run transaction under-count (D-20) — dry run now counts transactions a completed purge itself would empty
 - [Phase ?]: 227-04: strengthened RetentionCutoffGenerators with a dedicated ~30% entirely-negative-offsets branch after a mutation control proved unreliable across seeds — generator gap, not control weakness
+- [Phase ?]: 227-05: ceilings re-derived from Flake Detection run 36930385324 (370s cold / 300s repeat), repeat count stays 8
 
 ### Blockers
 
@@ -961,8 +963,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-01T21:01:23.787Z
-**Stopped at:** Completed 227-04-PLAN.md
+**Last session:** 2026-10-01T23:12:21.181Z
+**Stopped at:** Completed 227-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

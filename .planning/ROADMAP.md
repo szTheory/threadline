@@ -196,7 +196,7 @@ Plans:
 
 **Wave 5**
 
-- [ ] 227-05-PLAN.md — Local acceptance, 227-EVIDENCE.md (SC4/SC5), maintainer-granted CI and scale-5 Flake Detection with Test 6 re-derivation (wave 5, checkpoint)
+- [x] 227-05-PLAN.md — Local acceptance, 227-EVIDENCE.md (SC4/SC5), maintainer-granted CI and scale-5 Flake Detection with Test 6 re-derivation (wave 5, checkpoint)
 
 **Research**: Not needed for the harness (`research/STACK.md` §1.2/§1.4/§1.5, PITFALLS Pitfall 1). Plan-phase should still review the retention survivor content-equality check carefully.
 
@@ -255,7 +255,7 @@ Plans:
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
-| 227. DB-Backed Property Tests | 4/5 | In Progress | - |
+| 227. DB-Backed Property Tests | 5/5 | Executed    | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
