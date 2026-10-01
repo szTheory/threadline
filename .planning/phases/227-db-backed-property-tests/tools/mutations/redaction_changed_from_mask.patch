@@ -1,0 +1,21 @@
+diff --git a/lib/threadline/capture/trigger_sql.ex b/lib/threadline/capture/trigger_sql.ex
+index 9c06d291..4c594791 100644
+--- a/lib/threadline/capture/trigger_sql.ex
++++ b/lib/threadline/capture/trigger_sql.ex
+@@ -580,14 +580,11 @@ defmodule Threadline.Capture.TriggerSQL do
+     """
+   end
+ 
+-  defp per_table_changed_from_sql(mask_array_sql, placeholder_expr) do
++  defp per_table_changed_from_sql(_mask_array_sql, _placeholder_expr) do
+     """
+           SELECT jsonb_object_agg(
+                    u.k,
+-                   CASE
+-                     WHEN u.k = ANY(#{mask_array_sql}) THEN #{placeholder_expr}
+-                     ELSE to_jsonb(OLD) -> u.k
+-                   END
++                   to_jsonb(OLD) -> u.k
+                  )
+           INTO v_changed_from
+           FROM unnest(v_changed_fields) AS u(k);

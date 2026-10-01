@@ -1,0 +1,12 @@
+diff --git a/lib/threadline/capture/trigger_sql.ex b/lib/threadline/capture/trigger_sql.ex
+index 9c06d291..cf12f3a8 100644
+--- a/lib/threadline/capture/trigger_sql.ex
++++ b/lib/threadline/capture/trigger_sql.ex
+@@ -452,7 +452,6 @@ defmodule Threadline.Capture.TriggerSQL do
+         v_row := to_jsonb(NEW);
+     #{PrimaryKeySQL.row_key_statements()}
+         v_data_after := v_row;
+-    #{redact_after_new}
+ 
+         SELECT array_agg(n.key ORDER BY n.key)
+         INTO   v_changed_fields

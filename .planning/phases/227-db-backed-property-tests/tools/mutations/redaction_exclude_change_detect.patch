@@ -1,0 +1,13 @@
+diff --git a/lib/threadline/capture/trigger_sql.ex b/lib/threadline/capture/trigger_sql.ex
+index 9c06d291..162b3239 100644
+--- a/lib/threadline/capture/trigger_sql.ex
++++ b/lib/threadline/capture/trigger_sql.ex
+@@ -398,7 +398,7 @@ defmodule Threadline.Capture.TriggerSQL do
+          store_changed_from,
+          opts
+        ) do
+-    except_sql = changed_fields_except_array_sql(except_columns, exclude)
++    except_sql = changed_fields_except_array_sql(except_columns, [])
+     fn_name = per_table_function_name(table_name, opts)
+     redact_after_new = data_after_redaction_statements("v_data_after", exclude, mask, placeholder)
+     mask_array_sql = mask_array_sql_fragment(mask)
