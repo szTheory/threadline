@@ -29,6 +29,7 @@ defmodule Threadline.PropertyGeneratorCoverageTest do
   alias Threadline.Test.ExportHostileValueGenerators
   alias Threadline.Test.RedactionLeakGenerators
   alias Threadline.Test.RedactionPolicyGenerators
+  alias Threadline.Test.RetentionCutoffGenerators
   alias Threadline.Test.RowHistoryGenerators
 
   @sample_size 1000
@@ -345,6 +346,62 @@ defmodule Threadline.PropertyGeneratorCoverageTest do
       assert Enum.any?(samples, &has_reinsert_after_delete?/1),
              "expected at least one sampled history with a write step immediately " <>
                "following a delete step (re-insert after delete)"
+    end
+  end
+
+  # ---------------------------------------------------------------------
+  # Retention cutoff fixtures (RetentionCutoffGenerators.fixture_gen/0)
+  # ---------------------------------------------------------------------
+
+  defp has_exact_cutoff_row?(fixture) do
+    Enum.any?(fixture.transactions, fn offsets -> 0 in offsets end)
+  end
+
+  defp has_mixed_survivor_transaction?(fixture) do
+    Enum.any?(fixture.transactions, fn offsets ->
+      offsets != [] and Enum.any?(offsets, &(&1 < 0)) and Enum.any?(offsets, &(&1 >= 0))
+    end)
+  end
+
+  defp has_empty_transaction?(fixture) do
+    Enum.any?(fixture.transactions, &(&1 == []))
+  end
+
+  describe "RetentionCutoffGenerators.fixture_gen/0 (cutoff-cluster bias)" do
+    test "an exact-cutoff row appears in >= 25% of sampled fixtures (D-26)" do
+      samples = sample_db(RetentionCutoffGenerators.fixture_gen())
+      count = Enum.count(samples, &has_exact_cutoff_row?/1)
+
+      assert count / length(samples) >= 0.25,
+             "expected >=25% of fixtures to contain an exact-cutoff row " <>
+               "(cutoff-cluster bias), got #{count}/#{length(samples)}"
+    end
+
+    test "a mixed-survivor transaction appears in >= 20% of sampled fixtures (D-26)" do
+      samples = sample_db(RetentionCutoffGenerators.fixture_gen())
+      count = Enum.count(samples, &has_mixed_survivor_transaction?/1)
+
+      assert count / length(samples) >= 0.20,
+             "expected >=20% of fixtures to contain a transaction with both a purged " <>
+               "and a surviving change (mixed-survivor bias), got #{count}/#{length(samples)}"
+    end
+
+    test "an empty transaction appears at least once (D-26)" do
+      samples = sample_db(RetentionCutoffGenerators.fixture_gen())
+
+      assert Enum.any?(samples, &has_empty_transaction?/1),
+             "expected at least one sampled fixture with an empty transaction " <>
+               "(pre-existing orphan bias)"
+    end
+
+    test "each batch_size in [1, 2, 3, 500] appears at least once (D-26)" do
+      samples = sample_db(RetentionCutoffGenerators.fixture_gen())
+      seen = samples |> Enum.map(& &1.batch_size) |> MapSet.new()
+      missing = Enum.reject([1, 2, 3, 500], &(&1 in seen))
+
+      assert missing == [],
+             "expected every batch_size in [1, 2, 3, 500] to be reached within " <>
+               "#{@sample_size} samples; missing: #{inspect(missing)}"
     end
   end
 end

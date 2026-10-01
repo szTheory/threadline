@@ -16,9 +16,13 @@ defmodule Threadline.Retention.CutoffPropertyTest do
   cast (covers columns added later), runs a dry run then a real purge of
   the same fixture, and asserts every surviving row is byte-identical.
 
-  `@max_runs PropertyRuns.db(20)` (D-05). Measured cost and worst-case
-  shrink budget: see the "Budget" section added by 227-04's Task 2 after
-  measuring both unscaled and at `THREADLINE_PROPERTY_SCALE=5`.
+  `@max_runs PropertyRuns.db(20)` (D-05). Measured at ~111ms unscaled (20
+  runs, ~5.5ms/iteration) and ~265ms at `THREADLINE_PROPERTY_SCALE=5` (60
+  runs, ~4.4ms/iteration) — both well under the 2s/9s thresholds that
+  would call for dropping below `db(20)`. Default `max_shrinking_steps`
+  (no cap needed: worst-case shrink cost stays bounded by ~100 x one
+  iteration's measured ms, far under the 100ms-per-iteration line that
+  would call for capping at 50). No `max_run_time`.
   """
 
   use Threadline.DataCase, async: false
@@ -85,6 +89,12 @@ defmodule Threadline.Retention.CutoffPropertyTest do
            "dry run deleted_changes mismatch: expected #{length(expected_purged_ids)}, " <>
              "got #{dry.deleted_changes} (strict < cutoff rule)"
 
+    expected_dry_txns = if fixture.delete_empty?, do: length(expected_orphaned_ids), else: 0
+
+    assert dry.deleted_transactions == expected_dry_txns,
+           "dry run deleted_transactions mismatch: expected #{expected_dry_txns}, " <>
+             "got #{dry.deleted_transactions} (delete_empty?=#{fixture.delete_empty?})"
+
     real =
       Retention.purge(
         repo: Repo,
@@ -118,6 +128,13 @@ defmodule Threadline.Retention.CutoffPropertyTest do
     assert real.deleted_transactions == expected_real_txns,
            "real purge deleted_transactions mismatch: expected #{expected_real_txns}, " <>
              "got #{real.deleted_transactions} (delete_empty?=#{fixture.delete_empty?})"
+
+    dry_counts = Map.take(dry, [:deleted_changes, :deleted_transactions])
+    real_counts = Map.take(real, [:deleted_changes, :deleted_transactions])
+
+    assert real_counts == dry_counts,
+           "dry run and real purge disagree: dry=#{inspect(dry_counts)}, " <>
+             "real=#{inspect(real_counts)}"
 
     if real.deleted_changes > 0 or real.deleted_transactions > 0 do
       assert real.batches_run >= 1
