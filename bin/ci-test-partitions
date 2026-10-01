@@ -711,11 +711,11 @@ run_self_test() {
   run_case "partition 2 fails" "pass,fail,pass"
   [ "$case_status" -ne 0 ] ||
     die "self-test: partition-2-fails case must exit non-zero"
-  printf '%s' "$output" | grep -q 'partition 2 failed' ||
+  grep -q 'partition 2 failed' <<<"$output" ||
     die "self-test: partition-2-fails case must print partition 2's log: $output"
-  printf '%s' "$output" | grep -q 'partition 1 failed' &&
+  grep -q 'partition 1 failed' <<<"$output" &&
     die "self-test: partition-2-fails case must not print partition 1's log"
-  printf '%s' "$output" | grep -q 'partition 3 failed' &&
+  grep -q 'partition 3 failed' <<<"$output" &&
     die "self-test: partition-2-fails case must not print partition 3's log"
 
   # (c) partitions 1 and 3 fail, printed in ascending order

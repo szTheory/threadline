@@ -174,9 +174,9 @@ case "${1:-}" in
     status_b=$?
     set -e
     [ "$status_b" -eq 1 ] || die "self-test (b): three-family fixture did not exit 1: $out_b"
-    printf '%s' "$out_b" | grep -q 'HIT family1.md' || die "self-test (b): missing family1 HIT: $out_b"
-    printf '%s' "$out_b" | grep -q 'HIT family2.md' || die "self-test (b): missing family2 HIT: $out_b"
-    printf '%s' "$out_b" | grep -q 'HIT family4.md' || die "self-test (b): missing family4 HIT: $out_b"
+    grep -q 'HIT family1.md' <<<"$out_b" || die "self-test (b): missing family1 HIT: $out_b"
+    grep -q 'HIT family2.md' <<<"$out_b" || die "self-test (b): missing family2 HIT: $out_b"
+    grep -q 'HIT family4.md' <<<"$out_b" || die "self-test (b): missing family4 HIT: $out_b"
 
     # (c) an allowlist entry covering the hit exits 0.
     case_c="$self_test_dir/case_c"
@@ -205,7 +205,7 @@ case "${1:-}" in
     status_d=$?
     set -e
     [ "$status_d" -eq 1 ] || die "self-test (d): unused entry did not exit 1: $out_d"
-    printf '%s' "$out_d" | grep -q 'UNUSED allowlist entry' || die "self-test (d): missing UNUSED report: $out_d"
+    grep -q 'UNUSED allowlist entry' <<<"$out_d" || die "self-test (d): missing UNUSED report: $out_d"
 
     # (e) an untracked file with a hit exits 0.
     case_e="$self_test_dir/case_e"
@@ -237,7 +237,7 @@ case "${1:-}" in
     status_f=$?
     set -e
     [ "$status_f" -eq 1 ] || die "self-test (f): single-segment family-6 fixture did not exit 1: $out_f"
-    printf '%s' "$out_f" | grep -q 'HIT family6.md' || die "self-test (f): missing family6 HIT: $out_f"
+    grep -q 'HIT family6.md' <<<"$out_f" || die "self-test (f): missing family6 HIT: $out_f"
 
     # (g') an anchored Linux-encoded Claude project dir (family 8) exits 1.
     case_g_prime="$self_test_dir/case_g_prime"
@@ -253,7 +253,7 @@ case "${1:-}" in
     status_g_prime=$?
     set -e
     [ "$status_g_prime" -eq 1 ] || die "self-test (g'): Linux-encoded family-8 fixture did not exit 1: $out_g_prime"
-    printf '%s' "$out_g_prime" | grep -q 'HIT family8.md' || die "self-test (g'): missing family8 HIT: $out_g_prime"
+    grep -q 'HIT family8.md' <<<"$out_g_prime" || die "self-test (g'): missing family8 HIT: $out_g_prime"
 
     # (g) a TitleCase kebab word with the users word between dashes gives no
     # HIT (the left-anchor proves it is not a mid-word false positive).
@@ -284,7 +284,7 @@ case "${1:-}" in
     status_h=$?
     set -e
     [ "$status_h" -eq 2 ] || die "self-test (h): too-broad literal did not exit 2: $out_h"
-    printf '%s' "$out_h" | grep -q 'literal_too_broad' || die "self-test (h): missing literal_too_broad: $out_h"
+    grep -q 'literal_too_broad' <<<"$out_h" || die "self-test (h): missing literal_too_broad: $out_h"
 
     # (i) a tracked path with a real newline exits 2 with `newline`, even
     # though an allowlist entry scoped to the post-newline phantom fragment
@@ -302,7 +302,7 @@ case "${1:-}" in
     status_i=$?
     set -e
     [ "$status_i" -eq 2 ] || die "self-test (i): newline path did not exit 2: $out_i"
-    printf '%s' "$out_i" | grep -q 'newline' || die "self-test (i): missing newline reason: $out_i"
+    grep -q 'newline' <<<"$out_i" || die "self-test (i): missing newline reason: $out_i"
 
     printf 'verify-repo-hygiene self-test: ok (10 cases)\n'
     exit 0

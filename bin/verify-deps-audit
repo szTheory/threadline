@@ -116,8 +116,8 @@ if [ "${1:-}" = "--self-test" ]; then
 
   [ "$vuln_status" -ne 0 ] ||
     die "gate stayed green on a known-vulnerable lock"
-  printf '%s' "$vuln_output" | grep -q 'Advisories:' &&
-    printf '%s' "$vuln_output" | grep -q 'plug 1.19.1' ||
+  grep -q 'Advisories:' <<<"$vuln_output" &&
+    grep -q 'plug 1.19.1' <<<"$vuln_output" ||
     die "gate went red for a reason other than an advisory (vacuous red): $vuln_output"
 
   # (b) A faked old Hex must be refused before any mix call runs beyond hex.info.
@@ -145,8 +145,8 @@ EOF
 
   [ "$old_hex_status" -ne 0 ] ||
     die "gate stayed green with a faked Hex 2.4.0"
-  printf '%s' "$old_hex_output" | grep -q 'requires Hex >= 2.5.1' &&
-    printf '%s' "$old_hex_output" | grep -q '2.4.0' ||
+  grep -q 'requires Hex >= 2.5.1' <<<"$old_hex_output" &&
+    grep -q '2.4.0' <<<"$old_hex_output" ||
     die "old-Hex case failed for a reason other than the version floor: $old_hex_output"
   [ ! -s "$fake_log" ] ||
     die "old-Hex case ran a mix subcommand beyond hex.info: $(cat "$fake_log")"
