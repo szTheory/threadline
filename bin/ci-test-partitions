@@ -47,11 +47,13 @@
 # codes, seconds and integer ExUnit counts only, never raw log text.
 #
 # Modes:
-#   bin/ci-test-partitions          # N defaults to 3 (225-BASELINE.md D-03:
-#                                    # median run T=137.0s, slowest module
-#                                    # M=28.8s, T/3=45.7s >= M, confirmed by
-#                                    # measurement; D-03a keeps N=3 with
-#                                    # weighted file assignment)
+#   bin/ci-test-partitions          # N defaults to 4 (225-CONTEXT.md D-03b:
+#                                    # at N=3 the stress router test, whose
+#                                    # cold nested prod build costs far more
+#                                    # in CI than locally, shared a partition
+#                                    # and set the step time (CI run
+#                                    # 36804809428); at N=4 its weight exceeds
+#                                    # an even share, so it runs alone)
 #   bin/ci-test-partitions N        # explicit partition count, 1-8
 #   bin/ci-test-partitions --write-weights
 #                                    # run the whole suite once, unpartitioned,
@@ -108,8 +110,8 @@ Usage: bin/ci-test-partitions [N]
        bin/ci-test-partitions --self-test
        bin/ci-test-partitions -h
 
-N is a positive integer from 1 to 8. Omit it to use the default (3, per
-225-BASELINE.md D-03). --write-weights refreshes test/partition_weights.txt
+N is a positive integer from 1 to 8. Omit it to use the default (4, per
+225-CONTEXT.md D-03b). --write-weights refreshes test/partition_weights.txt
 from one full local run.
 EOF
 }
@@ -883,7 +885,7 @@ case "${1:-}" in
 esac
 
 if [ $# -eq 0 ]; then
-  N=3
+  N=4
 else
   N="$1"
   case "$N" in
