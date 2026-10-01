@@ -50,18 +50,16 @@ jobs:
     # `mix verify.flake` is `mix test --repeat-until-failure 8`: 9 suite runs
     # (the initial run plus 8 repeats).
     #
-    # Budget arithmetic (D-01, re-derived for 226-06 D-12 at
-    # THREADLINE_PROPERTY_SCALE=5), from dispatch runs 36888506162 and
-    # 36897742852 (2026-10-01, 2649 tests, THREADLINE_PROPERTY_SCALE=5). The
-    # first measured 11 clean iterations before the 55-minute budget expired
-    # mid the 12th (classified inconclusive by budget, not a failure); the
-    # second, at 8 repeats, passed all 9 runs. Slowest cold first run 346.1 s,
-    # slowest repeat 293.5 s. Rounded up with a 1 s margin, the ceilings are
-    # 348 s cold / 295 s per repeat. At the prior 11 repeats: 348 + 11 x 295 =
-    # 3,593 s, well over the 2,970 s usable (the 55-minute budget less 10%
-    # headroom), so the count drops to 8: 348 + 8 x 295 = 2,708 s, about
-    # 45 min, leaving about 9% headroom (9 repeats would be 348 + 9 x 295 =
-    # 3,003 s, over budget). The
+    # Budget arithmetic (D-01, re-derived for 227-05 D-27 at
+    # THREADLINE_PROPERTY_SCALE=5, with phase 227's three new DB-backed
+    # properties included), from dispatch run 36930385324 (2026-10-01, 2672
+    # tests, THREADLINE_PROPERTY_SCALE=5): 8 repeats, all 9 runs green,
+    # classified pass. Slowest cold first run 368.7 s, slowest repeat
+    # 298.8 s. Rounded up with a 1 s margin, the ceilings are 370 s cold /
+    # 300 s per repeat. At the committed 8 repeats: 370 + 8 x 300 = 2,770 s,
+    # under the 2,970 s usable (the 55-minute budget less 10% headroom),
+    # leaving about 7% headroom (9 repeats would be 370 + 9 x 300 = 3,070 s,
+    # over budget, so the count stays at 8). The
     # repeat step runs under a `timeout(1)` budget of 55 min, so a budget
     # expiry writes exit 124 (137 if the suite ignores SIGTERM for 60 s) and
     # is classified `inconclusive`, never `unknown` or `flaky`. The step

@@ -779,24 +779,174 @@ restatement.
 
 ### CI
 
-pending (no grant) as of this section's authoring. See the task below for
-the grant and the dispatched runs, or the exact commands below if still
-pending:
+The maintainer granted, in their own words, `git push origin milestone/v1.44`
+(incl. follow-ups), `gh workflow run ci.yml --ref milestone/v1.44`, and
+`gh workflow run flake-detection.yml --ref milestone/v1.44` ("yes i grant it
+i authorize u", 2026-10-01); the push and both dispatches below were
+carried out under that grant.
 
 ```text
-gh workflow run ci.yml --ref milestone/v1.44
-gh run list --workflow ci.yml --branch milestone/v1.44 --limit 20
-python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py <run> --cache-state
+Before run selection (gh run list --workflow ci.yml --branch milestone/v1.44
+--limit 20): run 36903609149 is the latest successful ci.yml run on
+milestone/v1.44 before this phase's first commit. First 227 commit 2e1d9dd2
+landed 2026-10-01 15:28:21-04:00 = 19:28:21 UTC; run 36903609149 completed
+2026-10-01T18:00:30Z (headSha d58ef5e9, a prior 226 commit already on
+milestone/v1.44), which is before that.
+
+After run: run 36929234558 (ci.yml on commit d61f2fc6, dispatched under
+the grant above): conclusion success, all lanes success.
 ```
 
-### Flake Detection at scale 5
-
-pending (no grant) as of this section's authoring. See the task below for
-the grant and the dispatched run, or the exact command below if still pending:
+`ci-job-timing.py`'s `--compare` mode needs two or more after runs
+(`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py --compare 36903609149 36929234558`).
 
 ```text
-gh workflow run flake-detection.yml --ref milestone/v1.44
-gh run view <id> --log
+python3 .../ci-job-timing.py --compare 36903609149 36929234558 exits 1:
+"INSUFFICIENT (need at least 2 after runs)". This phase only dispatched one
+post-227 ci.yml run, so --compare's two-after-run design (built for 225,
+which had two after samples) cannot run here, exactly as 226 found. Single-
+run mode on each run id reads the same per-lane figures --compare would, so
+the before/after table below comes from two single-run invocations instead.
+```
+
+```
+python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36903609149 --cache-state
+
+## run 36903609149
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 227 | 4 | 176 | hit |
+| current | 344 | 6 | 170 | hit |
+| latest | 233 | 4 | 178 | hit |
+| **total** | | **14** | |
+
+python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36929234558 --cache-state
+
+## run 36929234558
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 226 | 4 | 177 | hit |
+| current | 302 | 6 | 133 | hit |
+| latest | 230 | 4 | 181 | hit |
+| **total** | | **14** | |
+```
+
+(`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36903609149 --cache-state`, `python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36929234558 --cache-state`)
+
+```text
+Per-lane Run tests delta, before (run 36903609149) -> after (run 36929234558):
+  min:     176s -> 177s  (+1s / +0.6%),    build cache hit -> hit
+  current: 170s -> 133s  (-37s / -21.8%),  build cache hit -> hit
+  latest:  178s -> 181s  (+3s / +1.7%),    build cache hit -> hit
+  proxy (min, total): 14 -> 14 (unchanged)
+
+Both runs are a full cache hit on every lane, so the deltas above are real
+suite-cost movement, not a cold-vs-warm-cache artifact. ci.yml never sets
+THREADLINE_PROPERTY_SCALE (that knob is Flake Detection's repeat step only,
+per D-09) -- the three new DB properties run at their unscaled db(20)
+max_runs on every PR, the expected SC-5 cost this phase adds to CI. It is
+small next to the local wall-clock figures above, and well within normal
+run-to-run variance on shared GitHub-hosted runners.
+```
+
+Reference figures against SUITE-01's baseline run and the phase 225
+partitioned runs
+(`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36730596489 --cache-state`,
+`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36808706517 --cache-state`,
+`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36810081717 --cache-state`):
+
+```
+## run 36730596489 (SUITE-01 baseline, pre-partitioning)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 340 | 6 | 288 | hit |
+| current | 476 | 8 | 291 | hit |
+| latest | 321 | 6 | 267 | hit |
+| **total** | | **20** | |
+
+## run 36808706517 (phase 225 partitioned)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 239 | 4 | 180 | hit |
+| current | 317 | 6 | 148 | hit |
+| latest | 211 | 4 | 155 | hit |
+| **total** | | **14** | |
+
+## run 36810081717 (phase 225 partitioned, cache miss)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 169 | 3 | 100 | miss |
+| current | 380 | 7 | 162 | miss |
+| latest | 170 | 3 | 104 | miss |
+| **total** | | **13** | |
+```
+
+```text
+Against SUITE-01's pre-partitioning baseline (proxy total 20), the phase
+227 after run's proxy total of 14 sits exactly where the phase 225
+partitioned runs landed (14 and 13), confirming the partitioned-CI gain
+225 established holds with the three new DB properties added -- this
+phase's cost shows up only as the per-lane Run tests seconds delta above,
+not as a regression back toward the pre-partitioning proxy total.
+```
+
+### Flake Detection at scale 5 (D-27)
+
+Dispatched under the same grant, after the `ci.yml` run above completed,
+via `gh workflow run flake-detection.yml --ref milestone/v1.44`: run 36930385324 on commit `d61f2fc6`.
+
+Scale banner (`gh run view 36930385324 --log`): `THREADLINE_PROPERTY_SCALE=5: pure max_runs x5, DB x3`.
+
+```text
+Classification (gh run view 36930385324 --log, read-only):
+"Flake Detection classification: pass (completed iterations: 9, exit: 0)".
+All 9 suite runs (1 cold + 8 repeats) completed inside the 55-minute
+timeout(1) budget and every one was green.
+```
+
+Every "Finished in" line (`gh run view 36930385324 --log`):
+
+```
+Finished in 368.7 seconds (102.4s async, 266.3s sync)   <- cold first run
+Finished in 296.0 seconds (88.8s async, 207.2s sync)
+Finished in 289.4 seconds (81.2s async, 208.1s sync)
+Finished in 294.0 seconds (85.7s async, 208.2s sync)
+Finished in 291.3 seconds (85.5s async, 205.8s sync)
+Finished in 297.1 seconds (90.5s async, 206.5s sync)
+Finished in 290.3 seconds (83.2s async, 207.1s sync)
+Finished in 295.0 seconds (88.9s async, 209.0s sync)
+Finished in 298.8 seconds (89.8s async, 209.0s sync)
+```
+
+```text
+Raw figures: cold 368.7s, repeats 289.4-298.8s (slowest repeat 298.8s).
+9 "Finished in" lines (1 cold + 8 repeats) appear, matching the committed
+8-repeat count: "N repeats" means 1 + N suite runs everywhere this plan
+touches, confirmed by this run completing all of them green.
+```
+
+**D-27 re-derivation.** `@cold_first_run_ceiling_s` and `@repeat_ceiling_s` in
+`test/threadline/flake_classifier_contract_test.exs`'s Test six cite run 36930385324: (`mix test test/threadline/flake_classifier_contract_test.exs`).
+
+```text
+Ceilings: 368.7s cold and 298.8s slowest repeat, each plus a 1s margin,
+rounded up, give 370s cold / 300s per repeat (the 226-06 rule: ceil(value +
+1)). The workflow budget comment in .github/workflows/flake-detection.yml
+cites the same run, the same ceilings, and states they were measured with
+THREADLINE_PROPERTY_SCALE=5 including phase 227's three new DB properties.
+
+At the committed 8 repeats: 370 + 8 x 300 = 2,770s, within the 2,970s
+usable (the 55-minute budget less 10% headroom), leaving about 7%
+headroom. 9 repeats would be 370 + 9 x 300 = 3,070s, over budget. The
+repeat count stays at 8 -- this run itself completed at 8 repeats with
+room to spare, so no sizing drop was needed. The 55-minute
+"timeout --signal=TERM --kill-after=60s 55m mix verify.flake" budget
+itself is unchanged.
 ```
 
 ## Partition weights
