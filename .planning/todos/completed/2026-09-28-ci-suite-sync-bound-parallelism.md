@@ -52,3 +52,14 @@ Candidate to fold into Phase 219's measurement, or as a new phase after 222 in
 v1.43 if the serial-core audit shows a large win. Otherwise it is a seed for the
 next milestone. Keep the "honest default tests" rule (CLAUDE.md): nothing
 leaves default `mix test` silently.
+
+## Resolution (2026-10-01)
+
+Phase 225 delivered levers 2 (partitioning, D-01..D-12/D-03a/D-03b) and 3
+(slowest-test report, D-14) and answered lever 1 (serial-core audit) for the
+telemetry/named-process class (D-15: three files converted, seven stay serial
+for DB-write or app-env reasons, each with its own recorded reason); the wider
+serial-core audit across the rest of the suite is deferred to a future seed
+(see 225-CONTEXT.md Deferred). See `.planning/phases/225-suite-baseline-and-partitioned-ci/225-EVIDENCE.md`
+for the cited CI proof (SUITE-02 verdict PASS over runs 36808706517 and
+36810081717 against baseline 36730596489).
