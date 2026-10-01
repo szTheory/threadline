@@ -1,19 +1,19 @@
 ---
-gsd_state_version: "1.0"
+gsd_state_version: 1.0
 milestone: v1.44
 milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 226
 current_phase_name: Pure Property Tests and Run Budget
 status: executing
-stopped_at: Completed 226-02-PLAN.md
-last_updated: "2026-10-01T13:19:26.168Z"
+stopped_at: Completed 226-03-PLAN.md
+last_updated: "2026-10-01T13:40:11.771Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 226 execution started — sequential, isolation none
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 14
-  completed_plans: 10
+  completed_plans: 11
   percent: 29
 state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
 ---
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 226 (Pure Property Tests and Run Budget) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-10-01 — Phase 226 execution started
 
-Progress: [███░░░░░░░] 2 of 7 v1.44 phases complete ([███░░░░░░░] 29%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 226 (226-06 needs a maintainer push + dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`. 226-01 complete 2026-10-01 (PROP-03 + PROP-08: Threadline.Test.PropertyRuns runtime-scaled max_runs, RedactionPolicyGenerators 6-tag valid/invalid ladder, PROP-03 property against the real RedactionPolicy.validate!/1, re-runnable tools/mutation-control.sh proven end-to-end on the tracer then reused for both PROP-03 mutation controls (5/5 each, evidence/), D-18 fixed on both the direct RedactionPolicy path and the TriggerCaptureConfig.load/1 config path with a CHANGELOG upgrade note; commits 679544d5/24c7af2e/00fd767c/d2064aa3; mix test 2600/0, credo clean; next 226-02). 226-02 complete 2026-10-01 (PROP-01 cursor paging: Cursors.actor_history_page/4 post-fetch refactor, CursorGenerators tie-heavy entries, KeysetModel independent keyset-SQL model driving the real Cursors functions, PROP-01 property for both actor-history and timeline cursors, D-05 DB agreement tests, both D-06 mutation controls 5/5; commits ccf57a6e/8313c268/6f1abf30/9965e921; mix test 2601/0, credo clean; next 226-03).
+Progress: [███░░░░░░░] 2 of 7 v1.44 phases complete ([███░░░░░░░] 29%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 226 (226-06 needs a maintainer push + dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`. 226-01 complete 2026-10-01 (PROP-03 + PROP-08: Threadline.Test.PropertyRuns runtime-scaled max_runs, RedactionPolicyGenerators 6-tag valid/invalid ladder, PROP-03 property against the real RedactionPolicy.validate!/1, re-runnable tools/mutation-control.sh proven end-to-end on the tracer then reused for both PROP-03 mutation controls (5/5 each, evidence/), D-18 fixed on both the direct RedactionPolicy path and the TriggerCaptureConfig.load/1 config path with a CHANGELOG upgrade note; commits 679544d5/24c7af2e/00fd767c/d2064aa3; mix test 2600/0, credo clean; next 226-02). 226-02 complete 2026-10-01 (PROP-01 cursor paging: Cursors.actor_history_page/4 post-fetch refactor, CursorGenerators tie-heavy entries, KeysetModel independent keyset-SQL model driving the real Cursors functions, PROP-01 property for both actor-history and timeline cursors, D-05 DB agreement tests, both D-06 mutation controls 5/5; commits ccf57a6e/8313c268/6f1abf30/9965e921; mix test 2601/0, credo clean; next 226-03). 226-03 complete 2026-10-01 (PROP-02 ChangeDiff: Threadline.Test.ChangeFactGenerators fact-first generator (fact_gen/0, to_audit_change/1, op_cells/0), PROP-02 oracle + structural + metamorphic + expand_insert_fields properties against the real ChangeDiff.from_audit_change/2, map_has_field?->map_get!=nil mutation control 5/5; commits 3d574a19/46bb13f1/0d479ce7/1f8e63af; mix test 2601/0, credo clean, format clean; next 226-04).
 
 **v1.44 start (2026-09-30):**
 
@@ -243,6 +243,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 225 P04 | ~50min | 2 tasks | 4 files |
 | Phase 226 P01 | ~1h | 3 tasks | 12 files |
 | Phase 226 P02 | 1h | 3 tasks | 8 files |
+| Phase 226 P03 | 45min | 2 tasks | 6 files |
 
 ## Deferred Items
 
@@ -932,6 +933,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase ?]: D-01's refactor was scoped to actor_history_page/4 only; timeline_page/2 and row_history_page/4 already delegate to the standalone pure Cursors.timeline_page_next_cursor/2
 - [Phase ?]: KeysetModel.walk_actor_history/2 routes both forward and backward legs through one shared private call site into Cursors.actor_history_page/4
 - [Phase ?]: D-05's actor-history DB test walks the public Threadline.actor_history/2 API directly, then compares both walks to KeysetModel.walk_actor_history/2 on the same fixture, pinning the model to the real SQL
+- [Phase ?]: Oracle reads only fact.fields/mode/extra_after for field_changes; ch's pass-through fields (id, table_*, data_after) are legitimate since ChangeDiff only forwards them unchanged
+- [Phase ?]: Field-name selection uses a fixed-length boolean mask over the 12-name pool, not uniq_list_of, avoiding StreamData's too-many-non-unique-elements guard (226-01 precedent)
 
 ### Blockers
 
@@ -947,8 +950,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-01T13:19:19.743Z
-**Stopped at:** Completed 226-02-PLAN.md
+**Last session:** 2026-10-01T13:40:11.738Z
+**Stopped at:** Completed 226-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

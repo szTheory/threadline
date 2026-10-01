@@ -146,7 +146,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 226-02-PLAN.md — PROP-01 cursor paging: Cursors.actor_history_page/4 refactor, tie-heavy property vs independent oracle, DB agreement tests, two mutation controls (wave 2)
-- [ ] 226-03-PLAN.md — PROP-02 ChangeDiff fact-first oracle, structural and metamorphic properties, mutation control (wave 2)
+- [x] 226-03-PLAN.md — PROP-02 ChangeDiff fact-first oracle, structural and metamorphic properties, mutation control (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -232,7 +232,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
-| 226. Pure Property Tests and Run Budget | 2/6 | In Progress | - |
+| 226. Pure Property Tests and Run Budget | 3/6 | In Progress | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
