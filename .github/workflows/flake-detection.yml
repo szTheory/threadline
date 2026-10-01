@@ -136,10 +136,14 @@ jobs:
       # only report as `unknown`. Under `timeout(1)` a budget expiry still writes
       # `exit_code=124` (or 137 after the 60 s kill grace). `elapsed_s` lets the
       # classifier tell that 137 from an OOM or other early SIGKILL (WR-02).
+      # PROP-08: scales every pure/DB property's max_runs on this weekly lane only
+      # (test/threadline/property_scale_contract_test.exs pins this step's env).
       - name: Repeat the suite until failure
         id: repeat
         if: steps.gate.outputs.decision == 'run'
         timeout-minutes: 58
+        env:
+          THREADLINE_PROPERTY_SCALE: "5"
         run: |
           set +e
           set -uo pipefail

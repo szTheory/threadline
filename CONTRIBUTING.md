@@ -245,6 +245,19 @@ per-PR CI stays fast. A run that does not pass ends red with one of these outcom
 - **inconclusive**: the time budget ran out while every iteration so far was clean. That is not a proof, so the run stays red. A test failure printed before the budget ran out still counts as broken or flaky, and a kill well before the budget (such as an out-of-memory kill) is reported as unknown.
 - **broken-upstream**: CI is already red on the same commit with no green re-run, so the suite was not run.
 
+**Property tests.** Properties run at their committed `max_runs` by default — the
+same number on every PR, no knob needed. `THREADLINE_PROPERTY_SCALE=5 mix test
+<file>` multiplies a property's run count for a deeper local check. Allowed
+values are the integers `1`..`10`; anything else aborts the run before any
+test executes (`Threadline.Test.PropertyRuns.parse_scale/1`). Pure properties
+scale by the value (`pure x scale`); DB-backed properties scale by at most 3
+(`DB x min(scale, 3)`), since every DB-property iteration runs real DDL or
+real queries, not just in-memory computation. The weekly Flake Detection lane
+(above) sets `THREADLINE_PROPERTY_SCALE=5` on its repeat step, so every
+property gets a deeper run there without slowing down per-PR CI. Run just the
+properties with `mix test --only property`. Replay a property failure with
+its printed seed: `mix test <file> --seed <seed>`.
+
 ## Local-only critic (verify.ui_critique)
 
 `mix verify.ui_critique` runs the adversarial critic runner against the
