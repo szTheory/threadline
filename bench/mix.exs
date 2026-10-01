@@ -1,6 +1,11 @@
 defmodule Bench.MixProject do
   use Mix.Project
 
+  # bench compiles and runs in :test because its `threadline` path dep is forced into
+  # :test (test/support needs stream_data / ExUnitProperties); a bare `mix compile`
+  # here would otherwise resolve :dev and fail with "module ExUnitProperties is not loaded".
+  def cli, do: [preferred_envs: [compile: :test, run: :test]]
+
   def project do
     [
       app: :bench,

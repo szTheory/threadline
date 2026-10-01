@@ -1,241 +1,431 @@
-# Feature Research
+# Feature Research — v1.44 Behavioral Depth: Properties, Twins, Telemetry
 
-**Domain:** CI/CD economy, supply chain and repo hygiene for a public Elixir Hex library (Threadline 0.11.0). Milestone v1.43 "Supply Chain, CI Economy and Repo Hygiene".
-**Researched:** 2026-09-26
-**Confidence:** HIGH for every measured number (each cites a GitHub Actions run ID or a file:line). MEDIUM for projected savings (arithmetic on measured numbers, labelled **[inference]**). LOW only where stated.
+**Domain:** Elixir/Ecto/PostgreSQL trigger-backed audit library — API/DX decisions for
+telemetry (export, retention, query, install), `history/3` limit, deferred v1.42 health
+CLI items, and the deferred backfill generator.
+**Researched:** 2026-09-30
+**Confidence:** HIGH (code citations verified against current `milestone/v1.44` tree at
+`ca032824`; ecosystem precedent — Ecto, Oban, Phoenix, Finch, Broadway, `telemetry_metrics`,
+OpenTelemetry semantic conventions, PaperTrail/Carbonite/Logidze — is well-established public
+convention, not a single fetched source)
 
-**Method.** `gh run list` over the 30 days 2026-08-27 → 2026-09-26 (280 runs), `gh run view --json jobs` for per-job and per-step durations, full job logs for the Flake Detection, CI and Browser runs cited, `mix hex.audit` / `mix hex.outdated` run locally against every tracked lockfile, `mix xref graph --format cycles`, and `git grep` over tracked files. Nothing in the repo was changed except this file.
+This file is a decision record for four milestone areas, not a competitor feature survey —
+adapted from the standard template because the milestone question is "what exact API shape,"
+not "what does the market expect." Table-stakes/differentiator framing is folded into each
+area's verdict instead of kept as a separate section.
 
 ---
 
-## 0. Corrections to the pre-milestone baseline
+## A. Telemetry for export, retention, query, and install
 
-Read these first. Four statements in PROJECT.md or the milestone guide are stale or wrong.
+### What exists today
 
-| Baseline statement | Measured today | Evidence |
+`lib/threadline/telemetry.ex:1-113` documents five events, all `:telemetry.execute/3`
+(none are spans):
+
+| Event | Measurements | Metadata |
 |---|---|---|
-| Flake Detection: "12 cancelled, 2 green (117–136 min)" | The timeout was already raised from 120 to 180 min (flake-detection.yml:41, comment cites run 35967937335). The two latest nightlies are green: **98.0 min** (36106137910) and **137.0 min** (36225676728). The fast-failure streak is longer than stated: it runs from **08-18 → 09-12** (at least 26 nightlies, e.g. 32110527200 … 34679766829), not 08-28 → 09-12. | `gh run list --workflow flake-detection.yml` |
-| Only advisory: lazy_html 0.1.12 (test-only) | **Two advisories in root `mix.lock`**: lazy_html 0.1.12 (EEF-CVE-2026-92106, LOW, fixed in 0.1.13, published 2026-09-25) **and mint 1.10.0** (EEF-CVE-2026-82672 / GHSA-rj5m-69wp-cxq9, MEDIUM, response smuggling, fixed in 1.10.1, published 2026-09-19). mint is a runtime transitive dep via the optional `:req` (mix.exs:99; mix.lock:26). The tracked **`bench/mix.lock` has 8 advisories**: plug 1.19.1 ×4 (two HIGH), postgrex 0.22.0 ×3 (one HIGH), decimal 2.3.0 ×1. `examples/threadline_phoenix/mix.lock` is clean. | `mix hex.audit` exit 1 in root and in `bench/`; osv.dev entries |
-| Guide §9a: "`mix xref graph --format cycles` is clean" | **5 runtime cycles of length 2** (e.g. `capture/audit_transaction.ex` ↔ `capture/audit_change.ex`, `investigation.ex` ↔ `threadline.ex`). **Compile-connected cycles: 0**, and that is **already gated** in CI: `mix verify.xref_cycles` (mix.exs, `--label compile-connected --fail-above 0`) runs in both test lanes (ci.yml:351-352). | local `mix xref graph --format cycles` |
-| "xref cycles guard" is a v1.43 target | It shipped already (see above). What is left is only a decision about runtime cycles, and gating those is an anti-feature (§ Anti-Features). | ci.yml:351-352 |
+| `[:threadline, :transaction, :committed]` | `%{table_count}` | `%{}` |
+| `[:threadline, :action, :recorded]` | `%{status}` | `%{}` |
+| `[:threadline, :health, :checked]` | `%{covered, uncovered, expected_uncovered}` | `%{}` |
+| `[:threadline, :health, :checked, :error]` | `%{}` | `%{error}` |
+| `[:threadline, :health, :findings_checked]` | `%{errors, warnings}` | `%{}` |
 
----
+Naming convention: `[:threadline, noun, verb_past_tense]`, with an occasional `.error`/`.error`-
+suffixed sibling event for the failure path (`health.checked` / `health.checked.error`) rather
+than a `status` field baked into one event. `action.recorded` breaks that pattern by putting
+`status` inside `measurements` — `:telemetry`'s own convention is that measurements are numeric
+(for `telemetry_metrics` `counter()`/`sum()`/`last_value()` to consume); an atom `status` there
+is a pre-existing footgun, not something to copy into new events.
 
-## 1. Baseline table (cite this)
+### Recommendation: keep execute-only as the default idiom; add exactly one span
 
-### 1a. CI workflow (`ci.yml`), per job
+Threadline's own precedent is uniform execute-first — introducing `:telemetry.span/3`
+everywhere would fragment the library's telemetry idiom for no adopter benefit. But one
+operation in this milestone is a genuine bounded "run" with a real start/stop and a real risk
+of mid-run exceptions: retention purge. That is the one place a span earns its keep, exactly
+the way Oban reserves `[:oban, :job, :start|:stop|:exception]` for the one thing that is
+actually a supervised unit of work, while everything else in Oban (`:oban, :engine, ...`,
+`:oban, :notifier, ...`) stays plain execute events. Ecto (`[:my_app, :repo, :query]`), Phoenix
+(`[:phoenix, :endpoint, :start|:stop]` around the whole request, but `[:phoenix, :router_dispatch, :start|:stop]` per route), Finch, and Broadway all follow the same rule: span the outer
+unit of work that can fail partway through, execute everything else.
 
-Samples: push-to-main 36258719902, 36257162368, 36256231845; PR 36255483521, 36258071425, 36256339043; release-PR dispatch 36256344029. All green. Durations are job start → end in seconds (step detail from 36258719902).
+**New events (all under existing `Threadline.Telemetry` naming convention):**
 
-| Job (`name:`) | id | Duration (s), 7 samples | Where the time goes (36258719902) |
-|---|---|---|---|
-| Example app browser E2E (Playwright) | verify-example-browser | 453–651 (typ. ~635) | 103 s setup (example-app deps.get + compile, both uncached) + 8.4 min Playwright, 344 tests, **`workers: 1`** (playwright.config.ts:142) |
-| Run test suite (current) | verify-test | 593–646 | compile 47 s, `mix test` 310 s (2,207 tests; 17.4 s async / 291.4 s sync), `verify.example` 203 s (109 s of example tests + example-app deps/compile) |
-| Tier A capture lane (byte-stable evidence) | verify-capture | 439–541 | `verify.capture` 439 s (2 × 2.9 min Playwright captures + setup), then **`verify.mechanical` again: 50 s** (ci.yml:683-684) |
-| Run test suite (min) | verify-test | 359–444 | compile 52 s, `mix test` 346 s |
-| Bump rehearsal (next minor) | verify-bump-rehearsal | 149–171 | 128 s rehearsal (throwaway clone, cold deps by design, ci.yml:901-907) |
-| PgBouncer transaction topology | verify-pgbouncer-topology | 98–125 | apt-get postgresql-client 13 s; compile 52 s |
-| Mechanical checker (committed scorecards) | verify-mechanical | 84–93 | 50 s: runs `test/threadline/operator_surface/mechanical_checker_test.exs` |
-| Dialyzer (current toolchain) | verify-dialyzer | 75–124 | compile 59 s; PLT hit → analysis ~8 s |
-| Build ExDoc (dev) | verify-docs | 65–80 | `mix docs` 63 s (no `--warnings-as-errors`) |
-| Run Credo (strict) | verify-credo | 55–80 | |
-| Hex evaluator smoke (threadline from hex.pm) | verify-hex-evaluator | 64–75 | |
-| Compile without optional deps | verify-compile-no-optional | 44–65 | |
-| Check formatting | verify-format | 15–22 | |
-| Hex package tarball | verify-hex-package | 15–17 | |
-| Release metadata (version / changelog) | verify-release-shape | 5–8 | |
-| CI required | ci-required | 2–5 | starts at +612 to +655 s |
-
-**Per-run totals.** Sum of job durations: **46.0–50.2 runner-min** per CI run (billed with per-job rounding: 56–60). Wall clock: PR median **10.4 min** (n=60), push median **10.8 min** (n=21) over 30 days.
-
-**Critical path.** All 14 jobs start within 36 s of each other (no `needs:` except the aggregate). The critical path is a near tie between **browser E2E (~10.6–10.9 min)** and **test suite current (~9.9–10.8 min)**, with Tier A capture (~8.7–9.0 min) close behind. Cutting wall time therefore needs *both* the browser job and the test-current job shortened; shortening only one moves the critical path by less than a minute. **[inference from the tie]**
-
-**Dialyzer PLT.** Cold PLT build 148.49 s (34731370786), near-miss restore ~30 s (36254623336, 36256344029), analysis 5.7–9.5 s.
-
-### 1b. Other workflows
-
-| Workflow | Trigger | Measured | Evidence |
-|---|---|---|---|
-| Browser (full project set) | push to main | median 18.1 min, max 24.4 (n=20). Playwright 350 tests, **324 passed / 26 skipped, 16.1 min** | 36258719891 |
-| Browser (full project set) | nightly 05:00 | 11.4–19.9 min when green (09-13 → 09-26); fast-failed 08-28 → 09-12 (median of 30 = 2.2 min) | 36220250465, 36097873196; issue #28 |
-| Flake Detection | nightly 07:00 | first iteration 288 s, then ~165 s per repeat (flake-detection.yml:35-37); 1,698 tests/iteration in 35967937335 | see §2 |
-| Release | push to main | 0.2–3 min when nothing to release; **~11 min of `gate-ci-green` polling** on a publishing push (643 s in 36257162356, 638 s in 35797666620) | |
-| Branch Protection / Community Health / Environment Protection | schedule + workflow_run | ~0.2 min each | |
-
-### 1c. Runner-minutes per unit of work
-
-| Unit | Runner-min | Composition |
-|---|---|---|
-| One PR CI run | **~48** | 14 jobs + aggregate (§1a) |
-| One push to main (no release) | **~69** | CI ~50 + Browser-full ~18 + Release 0.2 + 3 × workflow_run 0.6 |
-| One landed PR (PR run + squash-merge push) | **~117** | |
-| One release cycle (extra, on top of the landed PR) | **~200+** | release-please branch: 1 cancelled partial CI (e.g. 36256249852, 1.8 min wall) + **2 full CI runs on the same SHA** (~98) + pin sync 81 s + publish-push CI+Browser (~69) + gate poll ~11 + publish 80 s + smoke 61 s + distribution-sync PR CI (~46) **[inference: summed from 36256231909, 36256339043, 36256344029, 36257162356, 36258071425]** |
-
-### 1d. 30-day totals (2026-08-27 → 2026-09-26, wall minutes from `gh run list`)
-
-| Workflow / event | Runs | Wall-min | Runner-min (est.) |
-|---|---|---|---|
-| CI pull_request | 60 | 533 | ~2,450 **[inference: ×4.6 jobs-per-wall ratio from §1a]** |
-| CI push | 21 | 222 | ~1,020 **[inference]** |
-| CI workflow_dispatch (all release-PR bootstrap or manual) | 13 | 131 | ~600 **[inference]** |
-| Flake Detection | 31 | **1,740** | 1,740 (single job) |
-| Browser-full push | 20 | 343 | 343 |
-| Browser-full schedule | 30 | 248 | 248 |
-| Release push | 20 | 122 | ~122 |
-| Hygiene workflows | 85 | ~17 | ~17 |
-
-At the steady state now that Flake Detection completes (98–137 min per night), it costs **~3,000–4,100 runner-min/month** on its own. **[inference: 30 × measured range]** That would make it the single largest line item, bigger than all PR CI.
-
----
-
-## 2. Flake Detection: why it failed fast, then got cancelled
-
-**Phase A. Fast failures (08-18 → 09-12, 2.5–4.0 min each).** The scheduled run tests the default branch HEAD, which sat on `a97f527e` (and `67998e0b` before it) for weeks. That commit's suite was **deterministically broken**: run 34679766829 reports `1381 tests, 81 failures`, all `relation "threadline_saved_views" does not exist` / `relation "audit_changes" does not exist` (the unprefixed-storage-schema defect the maintainer memory records as fixed 08-30, and pushed to origin on 09-13). CI on push already showed that red, so the nightly **duplicated a failure class CI owns** and added no signal. No tracking issue was filed for any of these runs: issue #36 was first created 2026-09-13. The workflow's own comment (flake-detection.yml:83-91) describes an errexit defect that skipped classification. That this defect caused the missing issues is **[inference]**.
-
-**Phase B. Cancellations (09-13 → 09-24, 120.3–120.5 min each).** The suite grew to 1,698 tests (~165 s per repeat). `--repeat-until-failure 50` means 51 runs, about 145 min, against a 120-min timeout, so the job was killed while still green (45 `Running ExUnit with seed` headers in 35967937335). On cancellation the repeat step never writes `exit_code`, so `bin/classify-flake-run` gets an empty EXIT_CODE and reports `unknown`. The issue body then claims "No `Running ExUnit with seed:` header was found", which is **false** (45 headers). That produced **11 misleading comments on issue #36** (09-14 → 09-24).
-
-**Phase C. Green (09-25, 09-26)** after the timeout went to 180. Issue #36 is **still open** because `bin/upsert-ci-issue` has no close path (no `close` in the script). The same is true of Browser-full issue #28, open since 08-28 with 16 comments and green since 09-13.
-
-**Signal delivered, lifetime:** 0 `flaky` classifications. 0 Playwright retries/flaky in the sampled browser runs. The only real finding (broken main) duplicated CI.
-
-**Right-sized design (recommended):**
-1. **Weekly, not nightly** (e.g. Sunday), plus `workflow_dispatch`. Skip if HEAD equals the SHA of the last green flake run.
-2. **Bounded repeats:** `--repeat-until-failure 10`, about 288 + 10 × 165 s ≈ 32 min. Set the timeout to 2× that from measurement, not a guess.
-3. **Pre-check:** if the latest `ci.yml` push run on this SHA is red, exit early with classification `broken-upstream` (no suite run). A broken main is CI's finding, not the flake lane's.
-4. **Cancellation-aware classification:** a timeout is `inconclusive (timed out after N green iterations)`, never `unknown` with a false "no header" claim. Close the tracking issue on `pass`.
-5. **Optional PR-side cheap probe [differentiator]:** repeat only *changed* test files N times on PRs (`mix test <changed files> --repeat-until-failure 20`). This catches new flakes at their source for seconds of runner time.
-
-**Expected saving:** ~3,000–4,100 → ~140 runner-min/month (4.3 × ~32 min). That is **~95% of the lane**. **[inference]**
-
----
-
-## 3. Duplicate-proof inventory (same failure class, proven more than once)
-
-| # | Failure class | Proven by | Evidence | Verdict |
+| Event | Shape | When | Measurements | Metadata |
 |---|---|---|---|---|
-| D1 | Committed scorecards breach MODE-A/MODE-B | (a) `mix test` in **both** test lanes, (b) `verify-mechanical` job, (c) last step of `verify-capture` | mix.exs alias comment: "its test file already runs in `verify.test`"; ci.yml:683-684. In 30 days `verify-mechanical` failed 7 times, **always alongside a test-suite failure** (never a unique signal). | Delete the capture step (after the byte-stable assertion, regenerated evidence == committed evidence, so the check is identical). Fold or keep `verify-mechanical` only as a deliberate 90-s fast-signal job, and say so in its name. Saves 50 s on a near-critical job + ~87 runner-s/run. |
-| D2 | desktop/mobile Chromium E2E regressions | CI `verify-example-browser` **and** Browser-full on the **same push SHA** | 344 vs 350 tests; 318 identical passes (36258719902 vs 36258719891) | Browser-full on push re-runs ~8.4 min of identical Playwright. |
-| D3 | Tier A capture drift | CI `verify-capture` **and** Browser-full on the same push SHA | CONTRIBUTING.md:424-425; tier-a-capture 2.9 m + light 2.9 m in 36258719891 | ~5.8 min of identical Playwright per push. Browser-full has no byte-stability assertion, so its run is *weaker* than CI's. |
-| D4 | Browser-full nightly re-testing an unchanged SHA | Every nightly 09-13 → 09-26 (14 runs) ran on a SHA that had already passed Browser-full on push (18fe87f5, 86852f98 ×9, 471ebf6e ×2, b37d7bd4 ×2) | run list §1b | 100% same-SHA repeats. Playwright browsers are cached by lockfile, so not even Chromium drifts. |
-| D5 | Release PR CI | `pull_request` run (PAT-pushed pin commit) **and** `workflow_dispatch` run from `bootstrap-release-pr-ci` on the **same SHA** | Pairs: 0745a341 (36256339043 + 36256344029), 43cf7b45, 6ff12652, 2f5248b9, b4aa566e, 0d4c755b, ae7074a0, 560a470c, fc736ca1. `RELEASE_PLEASE_TOKEN` is configured (`gh secret list`), so the PAT push always fans out and the dispatch is redundant (release.yml:150-152, 171-188). 7 of the pairs were **double-red**. | ~49 runner-min per release-PR update, 13 dispatches in 30 days ≈ **~600 runner-min/month** and duplicate red checks. |
-| D6 | Live Dialyzer warnings | `verify-dialyzer` job (cached PLT) **and** `test/threadline/dialyzer_slice_contract_test.exs:8-18` (`@tag :live_dialyzer`, 540 s timeout) shelling out to `MIX_ENV=dev mix dialyzer` (bin/verify-dialyzer-slice:274) in **both** test lanes | The tag is excluded nowhere (test_helper.exs excludes only `pgbouncer_topology`). The test lanes cache only `deps` (ci.yml:338-343), so they get a cold dev compile + cold PLT. Cold PLT alone = 148 s (34731370786). | Cost per lane is **not yet isolated**. The best bound is flake-detection.yml:35-37 (first iteration 288 s vs ~165 s warm repeats, ≤ ~2 min, which also includes other first-run effects) **[inference, MEDIUM]**. Measure with `mix test --slowest 20` before and after. |
-| D7 | Tarball is buildable and contains `lib/` | `verify-hex-package` (hex.build + `lib/` grep), `verify-hex-evaluator` (builds this tree's tarball into a local rehearsal registry and **installs and runs** it, mix.exs:358-383), `verify-bump-rehearsal` (`mix hex.build` at next version, mix.exs:234-243) | | The evaluator is a strictly stronger proof than the `lib/` grep **[inference]**. `verify-hex-package` costs only 15 s, so this is a clarity win, not a minutes win. |
-| D8 | ExDoc builds | `verify-docs` (`mix docs`, **no** `--warnings-as-errors`) and bump rehearsal (`mix docs --warnings-as-errors`, mix.exs:240) | ci_topology_contract_test.exs:98 pins that the `verify-docs:` id exists | The rehearsal is the stronger gate. `verify-docs` is ~77 s of weaker proof. Removing it needs the topology test and CONTRIBUTING changed in the same commit. |
-| D9 | Suite broken on main | CI push run **and** nightly Flake Detection (Phase A, §2) **and** nightly Browser-full (fast-failed 08-28 → 09-12, issue #28) | | Handled by the §2 pre-check and D4 dedupe. |
+| `[:threadline, :export, :completed]` | execute | after `Threadline.Export.to_csv_iodata/2`, `to_json_document/2`, `format_changes_iodata/3`, and the async governance export job succeed | `%{duration: native_time, row_count: non_neg_integer(), truncated: 0 \| 1}` | `%{format: :csv \| :json \| :ndjson, table: String.t() \| nil}` |
+| `[:threadline, :export, :failed]` | execute | export raises or the governance job records `status: "failed"` | `%{}` | `%{format: ..., reason: String.t()}` (message only, never the failing row) |
+| `[:threadline, :retention, :purge, :start\|:stop\|:exception]` | `:telemetry.span/3` | wraps the whole `Threadline.Retention.purge/1` call | span-standard (`:stop` adds `duration`) | `%{dry_run: boolean()}` (start); `:stop` adds `%{deleted_changes, deleted_transactions, batches_run}` |
+| `[:threadline, :retention, :batch_purged]` | execute | once per batch loop iteration, nested inside the span | `%{deleted_changes: n, deleted_transactions: n, duration: native}` | `%{dry_run: boolean()}` |
 
-**Not duplicates, keep:**
-- The min lane caught **2 failures alone** (push 36084731591 on main, PR 36082981344), so it earns its minutes.
-- Bump rehearsal owns the version-moved failure class (ci_topology_contract_test.exs:622-640).
-- `verify.example` inside test-current is a different failure class.
-- The PgBouncer lane is the only pooler proof.
+**Query events: explicitly rejected (anti-feature).** Threadline calls the *host's* configured
+`Ecto.Repo`, which already emits `[<host_app>, :repo, :query]` for every SQL statement Threadline
+issues — same duration, same query text, same row-count-adjacent info, at the same or higher
+fidelity, for zero new code. A parallel `[:threadline, :query, ...]` event would duplicate that
+signal under a second name while adding real cardinality (`history`, `as_of`, `timeline`,
+`row_history`, `actor_window`, `correlation_bundle` are all separate call sites hitting
+`audit_changes`/`audit_transactions` repeatedly) with no new information. The correct answer is
+**docs, not code**: document, in the `Threadline.Telemetry` moduledoc and the new telemetry
+guide, how to filter the host's own `[:repo, :query]` handler by
+`metadata.source in ~w(audit_changes audit_transactions audit_actions)` to get
+Threadline-specific query observability today, with nothing to maintain. **Verdict: DEFER
+(reshaped into a documentation recipe, not an event).**
+
+**Install: DEFER — mix tasks stay silent on `:telemetry`.** `gen.triggers`, `gen.migration`, and
+`gen.row_history_index` write migration *files*; the DDL itself runs later inside
+`mix ecto.migrate`, in a process with no host-attached telemetry handlers (mix tasks call
+`Application.ensure_all_started(:ecto_sql)` and start the bare repo — see
+`lib/mix/tasks/threadline.health.coverage.ex:47-56` — not the host's own `Application.start/2`,
+so handlers the host attaches in its own `start/2` are not running). This matches the ecosystem:
+`mix ecto.migrate` and `mix oban.install` emit no telemetry either; CLI output is
+`Mix.shell().info`/`Mix.raise`, which is the correct observability layer for a one-shot,
+human/CI-driven command — precedent already established by
+`lib/mix/tasks/threadline.health.coverage.ex` and `threadline.verify_coverage.ex`.
+`mix threadline.retention.purge` and a future `mix threadline.export` are thin CLI wrappers
+around the library functions above (`lib/mix/tasks/threadline.retention.purge.ex:1-50`
+delegates to `Threadline.Retention.purge/1`) — when run inside a booted host app, or scripted
+via `mix run -e`, the span/execute events fire automatically because they live in the library
+function, not the task. No task-specific telemetry code is needed or wanted.
+
+**PII / redaction interaction.** No event above carries `data_after`, `data_before`,
+`changed_fields`, `table_pk`, `actor_ref`, `correlation_id`, or filter values (`from`/`to`).
+Only counts, durations, `table` (name only — low cardinality, matches Ecto's own `:source`
+metadata), and `format`/`dry_run` flags. This is deliberate: redaction (`RedactionPolicy`)
+enforces at capture time, inside the trigger-generated SQL; a telemetry handler runs in-process
+with no policy enforcement, so any temptation to attach a "sample row" to an event for debugging
+would silently bypass redaction's guarantee. Flag this explicitly in the telemetry guide as the
+one footgun to never introduce.
+
+**Cardinality.** `table`/`format`/`dry_run` are bounded-cardinality metadata, safe for
+dashboard grouping. `actor_ref`, `correlation_id`, and any UUID (job id, transaction id) must
+never be used as a `telemetry_metrics` tag — document this the way Phoenix's own guides warn
+against tagging on `request_id`.
+
+**Docs: moduledoc table + guide.** Extend the `Threadline.Telemetry` moduledoc's "five events"
+list to the new count, in the same table shape already used above. Add a new `guides/telemetry.md`
+with the same event table, one `:telemetry.attach_many/4` example per operation, and the
+`[:repo, :query]` filtering recipe for query observability — mirroring how `Oban.Telemetry`'s
+moduledoc plus the Oban telemetry guide are the two places adopters look. Cross-link it from
+`Threadline.Telemetry`'s moduledoc and the README's guide index.
+
+**Verdict: INCLUDE** export + retention telemetry (5 new events/spans total), **DEFER** query
+events (docs-only recipe) and install/mix-task telemetry (by design, not oversight). Semver-visible
+(new public events are additive, not one-way — adopters who don't attach handlers see nothing
+different) but the *event names and metadata shapes themselves* are one-way once published (Hex
+can't unpublish); get the shapes above right before 0.12.0 ships them.
 
 ---
 
-## Feature Landscape
+## B. `history/3` gets a `:limit`
 
-### Table Stakes (the milestone is incomplete without these)
+### What exists today
 
-| # | Feature | Why expected | Complexity | Measured saving / value | Notes |
-|---|---|---|---|---|---|
-| T1 | **Remediate advisories in every tracked lockfile** | Public library with a known MEDIUM (mint, runtime-transitive via optional `:req`) and LOW (lazy_html) advisory, plus 2 HIGH + more in `bench/mix.lock` | LOW | Clears 2 + 8 advisories | `mix deps.update lazy_html mint` (fixed: 0.1.13, 1.10.1). Refresh or regenerate `bench/mix.lock` (plug/postgrex/decimal). The example lock is clean today. |
-| T2 | **`mix hex.audit` CI gate over all tracked lockfiles** | No audit gate exists (no `hex.audit`/`deps.audit` in `.github` or mix.exs). Dependabot alerts are **disabled** (API 404) | LOW | Blocks new advisories at PR time | `mix hex.audit` natively reports advisories, exits 1, and supports `hex: [ignore_advisories: [...]]` with "Ignored" reporting (verified via `mix help hex.audit`). No `mix_audit` needed. Run it in root, `examples/threadline_phoenix`, and `bench`. **Pitfall:** a newly published advisory turns unrelated PRs red. Pair the PR gate with a weekly scheduled audit that files or updates one issue, and require a justification comment next to every `ignore_advisories` entry (the same pattern as `.dialyzer_ignore.exs`). |
-| T3 | **Right-size Flake Detection** (§2) | Largest single runner-minute line item. Zero `flaky` findings ever. 11 false-diagnosis comments | MEDIUM | ~3,000–4,100 → ~140 runner-min/month **[inference]** | Weekly + bounded repeats + skip-if-unchanged + a `broken-upstream` pre-check + timeout-aware classification + close-on-pass. Update `flake_classifier_contract_test.exs` together with it. |
-| T4 | **Kill the release-PR double dispatch** (D5) | 2 identical full CI runs per release-PR update; double red checks | LOW | ~49 runner-min per release-PR update, ~600/month at the observed cadence | Dispatch only when the pin sync pushed **nothing** or pushed with GITHUB_TOKEN (no PAT). An output from `sync-release-pr-pins` (`pushed_with_pat=true`) gates `bootstrap-release-pr-ci`. Keep the `always()` so a failed sync still produces a red run. Covered by `release_ci_gate_contract_test.exs`. |
-| T5 | **Browser-full stops re-running CI's projects** (D2, D3, D4) | ~14 of 16.1 Playwright minutes per push are identical to CI on the same SHA. Nightly runs are 100% same-SHA | LOW–MEDIUM | Push: ~18 → ~5 min (only storybook 9 s, graded 1.6 m, refute 6.5 s, route 6.4 s unique + ~2 min setup), ~260 runner-min/month. Nightly: skip when SHA already green on push, ~250–450/month | Change the `mix verify.example_browser` invocation to the 4 unique `--project` flags. Update the CONTRIBUTING "## CI Coverage" table and `ci_coverage_doc_contract_test.exs` in the same commit. Also consider weekly for these 4 critic-feeder capture lanes: the critic loop is parked and these specs carry 1–5 `expect(` each. |
-| T6 | **Remove the uncached live-Dialyzer test from default `mix test`** (D6) | Duplicates the `verify-dialyzer` failure class. Cold PLT in 2 lanes per run | LOW | ≤ ~2 min × 2 lanes per CI run (~4 runner-min/run, ~375/month) **[inference, measure first]** | Either exclude `:live_dialyzer` in test_helper.exs and run the slice check inside `verify-dialyzer` (warm PLT), or give the test lanes the PLT cache. CLAUDE.md "honest default tests": test_helper.exs and docs must change together. |
-| T7 | **Delete the mechanical-check duplicate** (D1) | Proven 3–4 times per run, never unique in 30 days | LOW | 50 s off verify-capture + ~87 runner-s/run if the job folds | Keep one fast signal and drop the rest. |
-| T8 | **Local-path / PII guard in CI + forward scrub** | 295 tracked files contain `/Users/<user>/` (~890 occurrences), **all under `.planning/`**, 101 of them in `milestones/v1.41-phases`. Also 2 files **outside** `.planning` use home-relative `<home>/projects…` paths (`prompts/prior-art/SOURCE-CANONICAL.md`, `prompts/prior-art/accrue-planning-notes.md`). `/home/runner/` (350 hits) is CI-log noise and must be allow-listed | LOW–MEDIUM | Public-repo privacy (§13 of the guide) | The guard is a `git grep -nIP` (PCRE, because it needs the negative lookahead) over tracked files for `/Users/[^/]+/`, `/home/(?!runner/)[^/]+/`, `<home>/(projects|Documents|Desktop)`, `C:\\Users\\`, and email shapes, with a small explicit allowlist. Wire it as a fast job or a step in verify-format. Scrub forward only (no history rewrite) by replacing with repo-relative paths. The scrub touches 295 `.planning` files, so the maintainer memory's "never `git add .planning/`" rule means the scrub must stage an explicit file list. |
-| T9 | **Honest, actionable job names (CI DX)** | "Hex evaluator smoke (threadline from hex.pm)" is **false** on PRs: it installs *this tree* from a local rehearsal registry (mix.exs:359-370). "Tier A capture lane (byte-stable evidence)" and "Mechanical checker (committed scorecards)" are internal jargon | LOW | Red check readable without logs (§9) | Rename via `name:` only (ids immutable). **Watch:** `ci-required`'s name is byte-pinned to the ruleset (ci_topology_contract_test.exs:669), and `verify-example-browser` name is deliberately byte-identical (ci.yml:495-497). |
-| T10 | **Tracking issues close themselves on green** | #36 and #28 are open while their lanes are green (#28 green since 09-13) | LOW | Removes false-alarm noise | Add a `--close-on-pass` mode to `bin/upsert-ci-issue` and call it on the success path. The script has no close path today. |
+`lib/threadline/query.ex:396-415` (`Threadline.history/3`, re-exported at
+`lib/threadline.ex:95`) has no limit or paging option — it returns every matching row, ordered
+`captured_at desc, id desc` (the tiebreak already exists at `query.ex:413-414`). A row with a
+large change history returns unbounded today; that's a live correctness/ops risk (unbounded
+memory, unbounded query time) for exactly the "large tables" case the milestone guide's §4 lens
+calls out (DBA/SRE).
 
-### Differentiators (valuable, not required for the milestone to count)
+A parallel, already-shipped path exists for the *same* underlying data:
+`Threadline.row_history_page/4` (`lib/threadline.ex:174`, `Investigation.row_history_page/4`,
+backed by `Query.row_history_query/3` at `query.ex:430-441`, which reuses `timeline_order/1` —
+the identical `captured_at desc, id desc` tiebreak) already does full keyset pagination with
+`:page_size` (default 1000, validated by `Cursors.timeline_page_size!/1`, `query.ex:121`,
+`is_integer and > 0`) and `:cursor`. `history/3` and `row_history`/`row_history_page` are two
+entry points over the same rows — exactly the overlap v1.45's "1.0 API Contract" is scoped to
+consolidate (`.planning/PROJECT.md` milestone_context; "Do not pre-empt that consolidation").
 
-| # | Feature | Value | Complexity | Expected saving | Notes |
-|---|---|---|---|---|---|
-| X1 | **Deps-only `_build` cache + example-app `deps`/`_build` cache** | Compile repeats in ~10 jobs (47–59 s each). The example app is compiled cold in 3 PR jobs (browser setup 103 s; `verify.example` ~90 s of its 203 s; capture) | MEDIUM | ~8–10 runner-min/run and ~1–1.5 min off **both** critical-path jobs **[inference, measure per job]** | Follow the CACHE KEY CONTRACT already written in ci.yml:65-93: runner + OTP + Elixir + lock hash, **no restore-keys**, `rm -rf _build/$MIX_ENV/lib/threadline` before compile. A separate key on `examples/threadline_phoenix/mix.lock`. |
-| X2 | **Newest-toolchain lane** | Current lane pins Elixir 1.17.3 / OTP 27.0 / PG 16. Newest GA: **Elixir 1.20** (June 2026), **OTP 28**, **PostgreSQL 18** (PG 19 is at Beta 4, released 2026-09-24, GA expected ~Oct) | MEDIUM | Catches next-version breakage early; costs ~7–10 runner-min/run if it is a full third `verify-test` entry | Tension: PROJECT.md "Out of Scope: Elixir/OTP version bumps in CI" is contradicted by the milestone's own target, so it needs an explicit scope note. Run a one-shot dispatch spike first: `--warnings-as-errors` on 1.20's type checker may be red on day one. Recommend a third matrix entry for `verify-test` only, `test` job only (not Dialyzer, docs or browser). Also flag: **PostgreSQL 14 (the min lane) reaches EOL in November 2026**. Decide the floor policy now. **[PG14 EOL date: from the PostgreSQL versioning policy, not re-fetched; MEDIUM]** |
-| X3 | **Pin third-party actions by SHA + move off Node 20 actions** | 51 of 52 `uses:` are mutable tags (only `re-actors/alls-green` is SHA-pinned). `actions/cache@v4` triggers the "Node.js 20 is deprecated … forced to run on Node.js 24" annotation in 12 jobs of 36258719902 | LOW | Supply-chain hardening. Removes annotation noise | A freshness policy (T-series) covers bumping. Dependabot `github-actions` updates would reintroduce churn (see anti-features), so do it on a quarterly cadence by hand or with a script. |
-| X4 | **Dependency-freshness policy** (not churn) | `mix hex.outdated`: 7 updatable (oban 2.22.1→2.24.1, phoenix 1.8.13→1.8.15, phoenix_live_view 1.2.11→1.2.12, ex_doc, credo, lazy_html, yaml_elixir blocked) | LOW | Predictable upkeep | Policy: advisories patch immediately (T2). Everything else in one batched update per release train, recorded in the CHANGELOG. Optionally turn on **Dependabot alerts only** (the dependency graph supports Hex, and GHSA includes Erlang/Elixir advisories) without version-update PRs. |
-| X5 | **Split `verify.example` out of the test-current job** | test-current is 590–646 s, of which `verify.example` is 203 s | LOW–MEDIUM | test-current → ~6.5 min. Only pays off once the browser job is also shortened (critical-path tie, §1a) | Adds one job (~1.5 min setup), so +runner-min, −latency. Do it only together with X1. |
-| X6 | **`mix test --slowest 25` in the current lane** | §9 "audit the suite regularly". Isolates D6 and the 94%-sync suite cost (291 of 309 s sync) | LOW | Measurement, not savings | The output doubles as the before/after proof for T6 and X1. |
-| X7 | **SEED-006 change-aware lanes behind a fail-closed classifier** | Doc-only or `.planning`-only PRs (e.g. every `release/sync-*` distribution PR, 36258071425, 46 runner-min) pay the full matrix | HIGH | Up to ~40 runner-min per docs-only PR **[inference]** | Last phase, only after T3–T7 and X1 are measured. Must be a required, unskippable classifier job + job-level `if:` + `|| github.ref == 'refs/heads/main'` + `allowed-skips` registered (ci.yml:21-27). `verify-bump-rehearsal` may never be skip-listed (ci_topology_contract_test.exs:622-640). |
-| X8 | **`@tag :tmp_dir` migration** | 40 test files hand-roll `System.tmp_dir!()` + unique names. 7 lack `on_exit` cleanup (they leak into `/tmp`). Only 1 file uses `@tag :tmp_dir` (playwright_fail_fast_contract_test.exs). One fixed name exists (`export/cleanup_test.exs:74`, async false, so safe today) | LOW–MEDIUM | Hygiene and isolation. **No recorded temp-dir flake**: 0 flaky classifications across ~100 green repeat iterations (36106137910, 36225676728) | Treat as hygiene, not a flake fix. `tmp/` is already gitignored (.gitignore:45). Batch it mechanically and keep behavior identical. |
-| X9 | **Fastest likely failure surfaced first** | Everything starts in parallel. Format fails in ~20 s but the check list is unordered | LOW | DX only | Do **not** gate expensive jobs behind cheap ones with `needs:` (it adds ~80 s to every green run). Instead order jobs in YAML and names so the cheap static checks read first, and keep the D1 fast mechanical signal if retained. |
-| X10 | **Release `gate-ci-green` idle polling** | ~11 runner-min of sleeping per publish (643 s, 638 s) | MEDIUM | ~11 runner-min per release | Low value vs. release-path risk. Defer. |
+### Recommendation
 
-### Anti-Features (tempting, but do not build)
+Give `history/3` a **simple cap**, not a second pagination system. Precedent: PaperTrail's
+`versions` association is an unbounded `has_many` an adopter limits with ordinary Ecto
+(`limit: n` on the query, or `Ecto.assoc/2` composition) — PaperTrail does not ship a bespoke
+limit option, it's just an Ecto query. Ash and Ecto both treat "cap a result set" and
+"keyset-paginate a result set" as different concerns with different options
+(`Ash.Query.limit/2` vs `Ash.Query.page/2`; Ecto's `limit/2` vs `Repo.stream/2` + cursors).
+Threadline already draws that same line between `timeline/2` (eager, bounded) and
+`timeline_page/2` (keyset) — `history/3` should gain the eager-bounded half of that pair, while
+`row_history_page/4` stays the keyset half. Do not fold cursoring into `history/3`; that is
+`row_history_page/4`'s job today and will be the thing v1.45 decides whether to merge.
 
-| Feature | Why requested | Why problematic | Alternative |
+**Exact shape:**
+
+```elixir
+Threadline.history(MyApp.User, 42, repo: MyApp.Repo, limit: 20)
+```
+
+- `:limit` — optional positive integer. **Default: `nil` (unbounded — identical to current
+  0.11.2 behavior).** Applied via `Ecto.Query.limit/2` after the existing
+  `order_by(captured_at desc) |> order_by(id desc)` in `history_query/3` (`query.ex:406-415`),
+  so the cap always lands on the deterministically-ordered result, never on an unordered one.
+- Validation mirrors the existing `Cursors.timeline_page_size!/1` pattern
+  (`query.ex:121-124`): `is_integer(limit) and limit > 0`, else `raise ArgumentError`. **Reject
+  `0` explicitly** rather than silently returning `[]` — `limit: 0` is far more likely a caller
+  mistake (e.g. a miscomputed page-size variable) than an intentional "give me nothing," and
+  Ecto's own `limit(query, 0)` would otherwise silently do exactly that with no signal.
+- Moduledoc note pointing to `row_history_page/4`: "`:limit` caps the result; it does not page.
+  For a row with more changes than you want in memory at once, use `row_history_page/4`."
+
+**Why default `nil`, not a bounded default (e.g. 500).** A bounded default is a **one-way,
+semver-visible, silently-breaking** decision: every existing caller of `history/3` — including
+production incident-response code that expects "give me everything for this row" — would start
+getting truncated results with no error, no warning, nothing in the return shape to signal
+truncation (unlike `Export`'s `truncated`/`returned_count`/`max_rows` triple at
+`lib/threadline/export.ex:31-34`, which *does* signal truncation because export was designed for
+it from day one). For a security/compliance-reviewer-facing function whose whole job is "show me
+every change," silently returning a subset is the worst kind of surprise this product can
+produce, and CLAUDE.md's "every public default is one-way" rule applies directly. Keeping the
+default unbounded costs nothing today (this is additive) and leaves the one-way call to v1.45,
+where it belongs next to the history/row_history consolidation decision — **flag explicitly for
+the roadmapper: v1.45 must decide, consciously, whether the consolidated entry point keeps an
+unbounded default or adopts a bounded one; v1.44 should not make that call implicitly by
+choosing a number now.**
+
+**Verdict: INCLUDE.** Semver-visible (new public option, additive) but **not** the one-way
+decision itself — the default choice (`nil`) is what defers the one-way risk to v1.45's contract
+work, where it belongs.
+
+---
+
+## C. `health --strict`, `:invalid_config`, `--all-schemas`
+
+### What exists today
+
+- `mix threadline.verify_coverage` (`lib/mix/tasks/threadline.verify_coverage.ex:1-40`) is
+  **already** the CI gate: exits 1 when an expected table (from a required, adopter-declared
+  `config :threadline, :verify_coverage, expected_tables: [...]` positive list) is missing,
+  uncovered, or has an `:error`-severity finding; `:warning` findings never fail it; an `:error`
+  finding for a table *not* in the positive list is printed but doesn't fail. This is the
+  established error-fails/warning-never-fails split.
+- `mix threadline.health.coverage` (`lib/mix/tasks/threadline.health.coverage.ex:1-40`) is
+  explicitly documented as a **viewer**: "ALWAYS exits 0, even when uncovered tables exist,"
+  scans every table (not a positive list), and requires no config.
+- `Threadline.Health.Finding` (`lib/threadline/health/finding.ex:1-64`) has five codes, all
+  `:error` or `:warning`, "never `:info`": `legacy_trigger_no_pk_args` (warning), `pk_drift`,
+  `shared_capture_function`, `duplicate_capture_trigger`, `capture_trigger_disabled` (all four
+  `:error`).
+- A malformed `config :threadline, :trigger_capture` **already** stops both mix tasks hard, via
+  `Mix.raise/1` wrapping `TriggerCaptureConfig.load/0`'s `ArgumentError`
+  (`threadline.health.coverage.ex:80-86`), **before** any findings are computed — not as a
+  finding, as an immediate task failure.
+- `trigger_findings/1` already scans **every** non-system schema by default when `:schema` is
+  omitted (`lib/threadline/health.ex` doc for `trigger_findings/1`); only `trigger_coverage/1`
+  (and therefore `health.coverage`'s coverage table) defaults to `"public"` alone, with
+  `--schema=NAME` selecting one schema at a time (validated against `pg_namespace` via
+  `CoverageSchemas`).
+
+### `--strict`: INCLUDE
+
+Give `mix threadline.health.coverage` a `--strict` flag: exit `1` if `trigger_findings/1`
+returns **any `:error`-severity finding** in the scanned scope (all tables, not a positive
+list); exit `0` on warning-only or clean. This is exactly `verify_coverage`'s existing
+error-fails/warning-never-fails rule, minus the positive-list requirement — a genuinely useful,
+additive shape for adopters who want "fail CI on any capture defect anywhere" without
+maintaining an `expected_tables` allowlist (the two gates serve different scopes: `verify_coverage`
+= "these specific tables must be covered"; `health.coverage --strict` = "nothing anywhere is
+broken"). Exit-code convention matches the project's own `credo --strict` /
+`mix format --check-formatted` / sobelow pattern already named in CLAUDE.md: warnings never
+gate, errors always do, `--strict` is the opt-in the *adopter's* CI chooses, not something
+Threadline's own `mix ci.all` runs against itself (Threadline's repo doesn't have arbitrary
+host-schema tables to scan). `--json --strict` stays composable — print the JSON, then exit
+nonzero, mirroring how sobelow/credo print full output before a nonzero exit.
+
+### `:invalid_config`: DEFER (reshape into documentation, not a new Finding code)
+
+Turning the already-hard `ArgumentError`/`Mix.raise` into a soft `:invalid_config` finding would
+be a **regression**, not an enhancement: a raise stops the task immediately and loudly; a finding
+only fails the task if `--strict` happens to be passed, and is otherwise just a row in a table an
+operator could miss. The existing behavior is already the stricter, safer one. The only thing
+missing is documentation making the existing raise-fast behavior explicit and intentional (add
+one line to the `Threadline.Health.Finding` moduledoc: "a malformed
+`config :threadline, :trigger_capture` raises before any finding is computed — this is
+deliberate fail-fast behavior, not an omitted finding code"). **Do not add `:invalid_config` to
+the `Finding.code()` union.**
+
+### `--all-schemas`: INCLUDE (reshaped: schema-keyed output, not a flat merge)
+
+`trigger_findings/1` already covers every schema by default; only the coverage table
+(`trigger_coverage/1` / `health.coverage`) is public-only. Add `--all-schemas` to
+`mix threadline.health.coverage`: enumerate every non-system schema (reuse `CoverageSchemas`'
+existing `pg_namespace` discovery/validation, the same helper `--schema=NAME` already uses) and
+render the report **per schema** rather than flattening — a `SCHEMA` column added to the default
+table output, and a schema-keyed JSON object (`{"public": {...}, "tenant_42": {...}}`) rather
+than a merged flat list, so `--json --all-schemas` output is unambiguous about which schema each
+row belongs to. `--schema=NAME` and `--all-schemas` are mutually exclusive; passing both is
+`Mix.raise`. This directly serves the milestone guide's §4 "multiple Postgres schemas" adopter
+shape (multi-tenant schema-per-tenant apps) with one command instead of a shell loop, and
+combines naturally with `--strict` for "fail CI if any tenant schema anywhere has a capture
+error."
+
+**Verdict: `--strict` INCLUDE, `:invalid_config` DEFER (documentation only, no new code),
+`--all-schemas` INCLUDE.** None of the three are one-way in the risky sense — `--strict` and
+`--all-schemas` are new opt-in flags (default behavior of `health.coverage` is unchanged), and
+declining to add `:invalid_config` leaves existing behavior untouched. The `Finding.code()`
+union itself, however, **is** worth flagging as a standing footgun independent of this
+milestone: any exhaustive `case f.code do ... end` a caller writes today will fail to compile —
+or silently miss cases at runtime for a non-exhaustive `case`/`cond` — against a future added
+code (this and any later milestone). Document "the code list may grow across minor releases;
+always include a catch-all clause" once, in the `Finding` moduledoc, rather than treating each
+future addition as its own one-way decision.
+
+---
+
+## D. `mix threadline.gen.backfill`
+
+### What exists today
+
+The backfill story for v1.42's `table_pk` change is **already shipped**, as a documented,
+adopter-owned SQL recipe rather than a generator:
+
+- `guides/upgrading-to-0.11.md:126-224` ("Step 6 (optional): Backfill unresolved primary keys")
+  has fully-written, marker-delimited (`<!-- threadline:backfill-sql:start/end -->`,
+  `...-composite:...`), parameterized `UPDATE ... WHERE id IN (SELECT ... LIMIT <batch_size>)`
+  SQL for both single-column and composite (2-column) keys, batched, idempotent (safe to rerun
+  and to run two overlapping copies), scoped to `op IN ('insert','update')` only, and explicit
+  about what it can never recover: DELETE rows (no pre-0.11 row image) and redacted key columns
+  (never written to `audit_changes` at all).
+- `test/threadline/upgrade_backfill_test.exs` and `test/threadline/upgrade_path_doc_contract_test.exs`
+  indicate this SQL is executed against real PostgreSQL and doc-contract-tested — matching
+  CLAUDE.md's "Doc contract tests" convention (README/guides stay aligned via test assertions).
+- The v1.42 audit (`.planning/milestones/v1.42-MILESTONE-AUDIT.md:22`) already flags the one real
+  gap: "3+ column composite-key backfill extension described, not shown" — the guide *describes*
+  how to extend the 2-column SQL to N columns (one more `jsonb_build_object` pair, one more `?&`
+  array entry, one more `IS NOT NULL` guard) but doesn't show a worked 3-column example.
+
+"Legacy rows" here means pre-0.11 `audit_changes` rows whose `table_pk` is `{"id": null}`
+(written before 0.11's PK-agnostic capture) or `{}` (written by 0.11 when a key couldn't be
+resolved at capture time) — i.e. rows a non-`id`-keyed or composite-keyed table's `history/3`
+call silently excludes today, because `where_row/2` (`query.ex:423-428`) matches `table_pk`
+exactly.
+
+### Recommendation: DEFER the generator; INCLUDE the missing health signal instead
+
+**Generator — DEFER, effectively a standing anti-feature.** Ecosystem precedent (Carbonite,
+PaperTrail, Logidze) is that backfill is documented SQL or a documented Ecto script, not a
+shipped generator — because backfill is a one-time, per-adopter, per-table operation whose
+parameters (schema, table, key columns — 1, 2, or N of them, in order — batch size, whether to
+dry-run) don't compress well into a generic Mix task without either being too rigid (breaks past
+2 columns without the very extension the v1.42 audit already flagged as unproven) or reinventing
+`mix ecto.gen.migration` badly. Oban's own precedent (`mix oban.install`) generates a fixed,
+well-known migration with no adopter-supplied parameters — a fundamentally simpler generation
+problem than "generate SQL parameterized by an arbitrary key-column list." The already-shipped
+path — `mix ecto.gen.migration backfill_<table>_pk`, paste the guide's SQL, substitute the
+documented placeholders, `mix ecto.migrate` — is two ordinary commands plus a copy-paste, is
+already host-owned (keeps the CLAUDE.md "host-owned migrations" boundary cleanly, no new
+Threadline-authored migration-generation code to maintain), and is already tested. Building a
+generator to save that one copy-paste is negative leverage for a rung the milestone guide says
+to push "until returns diminish." Only revisit if real adopter friction on 3+ column composite
+keys shows up (in which case a worked 3-column example in the guide, not a generator, is almost
+certainly still the right fix).
+
+**The health finding — INCLUDE, reshaped.** The one thing that's genuinely missing is
+*detectability*: nothing today tells an adopter, without hand-running a `count(*) ... WHERE
+table_pk = '{}'::jsonb` query, that they still have unresolved legacy rows, or for which tables.
+Add a new `Finding` code:
+
+- **`:unresolved_legacy_keys`**, severity `:warning` (this is optional cleanup, not a capture
+  defect — capture is working correctly today for these tables; it only affects reading
+  pre-upgrade history by key). Computed per `{table_schema, table_name}` as roughly
+  `SELECT table_schema, table_name, count(*) FROM audit_changes WHERE op IN ('insert','update')
+  AND (table_pk = '{"id": null}'::jsonb OR table_pk = '{}'::jsonb) GROUP BY 1, 2`, scoped by the
+  same `:schema` option other findings already take. `details` carries `%{"unresolved_count" =>
+  n}`. `message` points straight at the existing guide anchor: `"N unresolved legacy rows in
+  <schema>.<table>; see guides/upgrading-to-0.11.md#step-6-optional-backfill-unresolved-primary-keys."`
+- Because it's `:warning` severity, it does **not** fail `--strict` (area C) by default — correct,
+  since unresolved legacy rows are optional cleanup, not a live capture bug — while still
+  showing up in `mix threadline.health.coverage`'s FINDINGS section and `trigger_findings/1`'s
+  return value for adopters who want to track it.
+- This is additive to the `Finding.code()` typespec union (see the catch-all-clause footgun
+  flagged in area C) and does not touch capture, trigger generation, or any one-way default.
+
+**Verdict: generator DEFER (durable anti-feature, not just "later"); health finding INCLUDE
+(reshaped as a new warning-severity `Finding` code, not a generator, not a separate mix task).**
+Neither is one-way: the generator not existing is the status quo, and a new warning-severity
+finding is additive and silent-by-default under `--strict`.
+
+---
+
+## One coherent recommendation across A–D
+
+All four areas converge on the same posture, consistent with the existing
+`[:threadline, noun, verb_past_tense]` telemetry naming and the v1.45 contract work ahead:
+
+1. **Instrument the two genuinely long-running, genuinely failure-prone operations** (retention
+   purge as a span, export completion as execute events) and **say no to duplicating what Ecto
+   and the OS process boundary already give you for free** (query telemetry, mix-task telemetry).
+2. **Add options with `nil`/unbounded, backward-compatible defaults** (`history/3`'s `:limit`)
+   rather than take a one-way bounded-default decision this milestone doesn't need to take —
+   leave that call for v1.45's consolidation, where it belongs next to `history`/`row_history`
+   merging.
+3. **Extend the existing error/warning finding-and-gate machinery** (`--strict`, `--all-schemas`,
+   `:unresolved_legacy_keys`) rather than inventing new machinery, and **don't weaken an
+   already-stricter fail-fast behavior** into a softer, opt-in one (`:invalid_config`).
+4. **Prefer the documented, host-owned, already-tested path over a new generator** when the
+   generator would only reproduce what a copy-paste and `mix ecto.gen.migration` already do
+   cleanly — spend the generator's would-be effort on the one real gap (the health signal)
+   instead.
+
+### Requirement candidates for the roadmapper (exact names)
+
+| # | Requirement | Verdict | One-way? |
 |---|---|---|---|
-| Dependabot **version-update** PRs for mix / actions | "Automate freshness" | PR churn on a single-maintainer repo. Each PR costs ~117 runner-min (§1c). The milestone explicitly says "not dependabot churn" | T2 audit gate + X4 batched policy + (optionally) Dependabot *alerts* only |
-| Trigger-level `paths:` filters on ci.yml | Cheap docs PRs | Deadlocks the single required check (ci.yml:10-27) | X7 classifier with job-level `if:` |
-| Gate **runtime** xref cycles (`--format cycles` with no label) | The guide's §9a wording | 5 legitimate length-2 runtime cycles (Ecto associations such as AuditTransaction ↔ AuditChange; mix.exs says "runtime association edges are allowed") | Keep the existing compile-connected gate. Fix the guide text |
-| Flaky retries as a cure (ExUnit or more Playwright `retries`) | Green CI | Hides flakes. Playwright already has `retries: 1` on CI with 0 observed use | T3 PR-side changed-file repeat probe |
-| Playwright `workers > 1` or sharding now | The browser job is on the critical path | Shared seeded DB state (the suite is 94% sync by design, "no SQL Sandbox"). Parallelism without isolation manufactures flakes. §5 of the guide: "no broad sharding … unless the baseline proves" | X1 caches first. Revisit sharding only if the browser job is still the sole critical path afterwards |
-| Dropping the min lane | "Duplicate of current" | It caught 2 unique failures in 30 days (36084731591, 36082981344) | Keep |
-| Making Browser-full required | "Coverage" | Its unique content is 4 critic-feeder capture lanes for a parked loop | T5 |
-| Rewriting git history to purge local paths | "Clean repo" | Force-push on a public repo breaks clones, tags and PR references. The guide rules it out | T8 forward scrub + guard |
-| Nightly anything on an unchanged SHA | "Catches drift" | 14/14 recent nightlies were same-SHA repeats with cached browsers | Skip-if-unchanged or weekly |
-| Moving the test suite to SQL Sandbox to cut the 291 s sync time | Biggest test-lane cost | Architectural. Threadline's triggers need real committed transactions, and the no-sandbox decision is deliberate (maintainer memory) | Out of scope for v1.43 |
+| 1 | `[:threadline, :export, :completed]` / `[:threadline, :export, :failed]` execute events on `Threadline.Export.to_csv_iodata/2`, `to_json_document/2`, `format_changes_iodata/3`, and the governance export job | INCLUDE | Event shape is one-way once published; no default behavior change |
+| 2 | `:telemetry.span/3` around `Threadline.Retention.purge/1` as `[:threadline, :retention, :purge, :start\|:stop\|:exception]`, plus `[:threadline, :retention, :batch_purged]` execute per batch | INCLUDE | Event shape one-way; no default behavior change |
+| 3 | `[:threadline, :query, ...]` events | ANTI-FEATURE / DEFER | Document `[:repo, :query]` filtering by `source` instead |
+| 4 | Telemetry emitted from inside Mix task bodies (`gen.triggers`, `gen.migration`, `gen.row_history_index`, `retention.purge`, future `export`) | ANTI-FEATURE / DEFER | Library functions already emit for free when run inside a booted app |
+| 5 | `Threadline.history/3` gains `:limit` (optional positive integer, default `nil`/unbounded, `ArgumentError` on `0`/negative/non-integer) | INCLUDE | Additive option; default choice defers the one-way bounded-default call to v1.45 |
+| 6 | `mix threadline.health.coverage --strict` (exit 1 on any `:error` finding in scope, exit 0 otherwise; composable with `--json`) | INCLUDE | New opt-in flag; no default behavior change |
+| 7 | `Threadline.Health.Finding` code `:invalid_config` | DEFER / documentation-only | N/A — no new code; existing raise-fast stays |
+| 8 | `mix threadline.health.coverage --all-schemas` (schema-keyed table/JSON output, mutually exclusive with `--schema=NAME`) | INCLUDE | New opt-in flag; no default behavior change |
+| 9 | `mix threadline.gen.backfill` generator | DEFER (durable anti-feature) | N/A — status quo (guide SQL + `mix ecto.gen.migration`) stands |
+| 10 | New `Finding` code `:unresolved_legacy_keys` (`:warning`), counting pre-0.11 `table_pk = {"id": null}` / `{}` rows per table, message linking to the existing upgrade guide's Step 6 | INCLUDE | Additive `Finding.code()` union widening; silent under `--strict` by default |
 
----
+### Explicit anti-features (do not build)
 
-## Feature Dependencies
-
-```
-T1 advisory fix ──must precede──> T2 hex.audit gate (else the gate lands red)
-X6 --slowest measurement ──informs──> T6 live-Dialyzer, X1 caches, X5 split
-T6 (exclude :live_dialyzer) ──requires──> test_helper.exs + CONTRIBUTING change in same commit
-T5 Browser-full de-dup ──requires──> CONTRIBUTING "## CI Coverage" + ci_coverage_doc_contract_test.exs
-T7 / D8 removals ──require──> ci-required needs + CONTRIBUTING roster + ci_topology_contract_test.exs (same commit)
-T3 Flake right-size ──requires──> flake_classifier_contract_test.exs update; T10 close-on-pass shares bin/upsert-ci-issue
-T4 double dispatch ──requires──> release_ci_gate_contract_test.exs review
-T8 guard ──requires──> T8 forward scrub first (else the guard lands red); explicit-file staging (.planning rule)
-X1 caches ──enables──> X5 split (latency only pays once both critical-path jobs shrink)
-X2 newest lane ──requires──> one-shot dispatch spike + a scope note vs PROJECT.md "no Elixir/OTP bumps"
-X7 SEED-006 ──requires──> T3..T7 + X1 landed and re-measured (the baseline must be the post-cheap-wins one)
-```
-
-## Ranked candidate list (by measured saving × evidence strength ÷ risk)
-
-| Rank | Candidate | Runner-min saved / month (est.) | Latency effect | Evidence | Risk |
-|---|---|---|---|---|---|
-| 1 | T3 Flake Detection right-size | **~2,900–4,000** | none (scheduled) | HIGH (31 runs, logs) | LOW |
-| 2 | T1 + T2 advisories + audit gate | n/a (security) | +~20 s job | HIGH (hex.audit output) | LOW |
-| 3 | T4 release-PR double dispatch | **~600** | removes duplicate red | HIGH (9 SHA pairs) | LOW–MED (release path) |
-| 4 | T5 Browser-full de-dup (push + nightly) | **~500–700** | none on PR | HIGH (test counts, SHAs) | LOW |
-| 5 | T6 live-Dialyzer out of test lanes | ~375 **[inference]** | up to ~2 min off test-current | MEDIUM (cost not isolated) | LOW |
-| 6 | X1 `_build` + example caches | ~750–900 **[inference]** | ~1–1.5 min off both critical jobs | MEDIUM | MEDIUM (stale-artifact footgun; contract already written) |
-| 7 | T7 + D8 duplicate proofs | ~215 + ~140 | 50 s off capture | HIGH | LOW |
-| 8 | T8 path guard + scrub | n/a (privacy) | +few s | HIGH (git grep) | LOW |
-| 9 | T9 + T10 names + issue auto-close | n/a (DX) | none | HIGH | LOW |
-| 10 | X2 newest lane | −(~650) cost | none (parallel) | MEDIUM | MEDIUM (may be red on day one) |
-| 11 | X3, X4, X6, X8, X9 | small | small | varied | LOW |
-| 12 | X7 SEED-006 | up to ~40 per docs-only PR | large on docs PRs | LOW until re-measured | HIGH |
-
-**Projected steady state [inference]:** the ~5,500–6,500 runner-min/month forward rate (with Flake at 3,000–4,100) drops to roughly **1,900–2,300**. Per-PR CI drops from ~48 to ~38–40 runner-min. PR wall clock drops from ~10.4 to ~9 min with X1, and toward ~7 min only if X5 and a browser-job reduction also land.
-
-## MVP recommendation
-
-1. **Measure first:** add `--slowest 25` (X6) and record the §1 baseline as the phase-1 artifact.
-2. **Cheap, high-evidence wins:** T1 → T2, T3 (+T10), T4, T5, T6, T7.
-3. **Hygiene:** T8 scrub → guard, T9 names.
-4. **Cache and newest lane:** X1, then an X2 spike.
-5. **Last:** X7 SEED-006, only if the post-wins baseline still shows docs-only PRs as a material cost.
-
-Defer: X10 (release-path risk for ~11 min/release). Keep Playwright parallelism and SQL Sandbox out of v1.43.
+- A `[:threadline, :query, ...]` telemetry event duplicating the host's own `[:repo, :query]`.
+- Telemetry calls inside Mix task bodies.
+- A soft `:invalid_config` `Finding` replacing the existing hard `Mix.raise`/`ArgumentError`.
+- `mix threadline.gen.backfill` as a parameterized SQL-generating Mix task.
+- Any telemetry metadata carrying row data, `actor_ref`, `correlation_id`, or filter values —
+  counts, durations, table names, and format/flag atoms only.
+- A bounded default for `history/3`'s new `:limit` in this milestone (leave the number, if any,
+  to v1.45's contract work).
 
 ## Sources
 
-- GitHub Actions runs (HIGH, primary): 36258719902, 36257162368, 36256231845, 36255483521, 36258071425, 36256339043, 36256344029, 36256249852, 36258719891, 36220250465, 36257162356, 35797666620, 36256231909, 36225676728, 36106137910, 35967937335, 34679766829, 34731370786, 36254623336, 36084731591, 36082981344; issues #28 and #36.
-- Repo files (HIGH): `.github/workflows/{ci,flake-detection,browser-full,release}.yml`, `mix.exs` aliases, `test/test_helper.exs`, `test/threadline/dialyzer_slice_contract_test.exs`, `bin/verify-dialyzer-slice`, `bin/classify-flake-run`, `bin/upsert-ci-issue`, `examples/threadline_phoenix/e2e/playwright.config.ts`, `CONTRIBUTING.md` (## CI Coverage, roster), `test/threadline/ci_topology_contract_test.exs`, `.planning/seeds/SEED-006-ci-feedback-loop-cost-and-latency.md`.
-- Local tool output (HIGH): `mix hex.audit` (root, bench, example), `mix hex.outdated`, `mix help hex.audit`, `mix xref graph --format cycles`, `git grep`.
-- [osv.dev EEF-CVE-2026-82672 (mint)](https://osv.dev/vulnerability/EEF-CVE-2026-82672): fixed 1.10.1 (HIGH)
-- [osv.dev EEF-CVE-2026-92106 (lazy_html)](https://osv.dev/vulnerability/EEF-CVE-2026-92106): fixed 0.1.13 (HIGH)
-- [Elixir compatibility (v1.20.4 docs)](https://hexdocs.pm/elixir/compatibility-and-deprecations.html), [Elixir v1.19 release](https://elixir-lang.org/blog/2025/10/16/elixir-v1-19-0-released/) (MEDIUM, via search)
-- [PostgreSQL 19 Beta 4 released](https://www.postgresql.org/about/news/postgresql-19-beta-4-released-3386/) (MEDIUM, via search)
-- [GitHub Advisory Database includes Erlang/Elixir](https://github.blog/changelog/2022-06-27-github-advisory-database-now-includes-erlang-and-elixir-advisories/), [dependabot-core Hex dependency-graph PR #15020](https://github.com/dependabot/dependabot-core/pull/15020) (MEDIUM)
-
----
-*Feature research for: v1.43 Supply Chain, CI Economy and Repo Hygiene*
-*Researched: 2026-09-26*
+- Code: `lib/threadline/telemetry.ex:1-113`; `lib/threadline/query.ex:340-441` (tiebreak,
+  `history_query/3`, `row_history_query/3`, `Cursors.timeline_page_size!/1` at line 121);
+  `lib/threadline.ex:80-209`; `lib/threadline/export.ex:1-60` (moduledoc, `max_rows`,
+  streaming caveat); `lib/threadline/retention.ex:1-30`; `lib/mix/tasks/threadline.retention.purge.ex:1-50`;
+  `lib/threadline/health.ex` (moduledoc, `trigger_findings/1`/`trigger_coverage/1` schema-scope
+  docs); `lib/mix/tasks/threadline.health.coverage.ex:1-95` (viewer semantics, `--schema`
+  validation); `lib/mix/tasks/threadline.verify_coverage.ex:1-40` (gate semantics, exit-code
+  convention); `lib/threadline/health/finding.ex:1-64` (code union, severity contract);
+  `lib/threadline/capture/trigger_capture_config.ex` (existing raise-fast config validation);
+  `lib/threadline/governance/export_job.ex`, `lib/threadline/governance/retention_run.ex`
+  (durable governance-run rows, complementary to telemetry); `guides/upgrading-to-0.11.md:100-224`
+  (backfill SQL, marker-delimited, batching/idempotency guarantees, what cannot be recovered).
+- Project state: `.planning/PROJECT.md` (Current Milestone: v1.44, Deferred to v1.44 list,
+  v1.42 delivered summary); `.planning/milestones/v1.42-MILESTONE-AUDIT.md:22-26` (exact deferral
+  wording for `gen.backfill`, `--strict`, `:invalid_config`, `--all-schemas`, and the 3+ column
+  composite-key gap); `.planning/MILESTONE-GUIDE.txt` §3 (product boundaries, host-owned
+  migrations, one-way public defaults), §4 (adopter/DBA/SRE lenses, multi-schema adopter shape),
+  §8 (quality/evidence bar), §9 (CI economy), §9a (performance/architecture).
+- Ecosystem precedent (established public convention, general knowledge — not a single fetched
+  URL): Ecto (`[:my_app, :repo, :query]` per-query telemetry, `limit/2` vs `Repo.stream/2`
+  keyset pagination split); Oban (`[:oban, :job, :start|:stop|:exception]` span reserved for the
+  one supervised unit of work; `Oban.Migration`/`mix oban.install` generates a fixed migration
+  with no adopter-supplied parameters; no telemetry from the install task itself); Phoenix
+  (`[:phoenix, :endpoint, :start|:stop]`, `[:phoenix, :router_dispatch, :start|:stop]`); Finch
+  and Broadway (span around the unit of work that can fail partway through, execute for
+  finer-grained detail); `telemetry_metrics` conventions (numeric measurements, bounded-cardinality
+  metadata/tags — never IDs); OpenTelemetry semantic conventions (span for a bounded operation
+  with a real start/stop, event for a point-in-time occurrence); PaperTrail (`versions` is an
+  unbounded Ecto association, capped by ordinary `limit:`, no bespoke limit option); Ash
+  (`Ash.Query.limit/2` vs `Ash.Query.page/2` as separate concerns, mirroring `timeline/2` vs
+  `timeline_page/2`); Carbonite/PaperTrail/Logidze (backfill is documented SQL/Ecto scripts, not
+  a generator, because parameters vary too much per adopter/table); Credo `--strict` and Sobelow
+  (opt-in stricter gate, warnings vs. findings-that-fail, consistent with CLAUDE.md's cited
+  `mix format --check-formatted` / `mix verify.*` conventions).

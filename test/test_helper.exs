@@ -70,6 +70,16 @@ unless topology_pooler? do
 
   Ecto.Migrator.run(repo, :up, all: true)
 
+  # The :threadline application booted before this helper started the repo and
+  # migrated. Its export cleanup task reconciles as soon as the repo is up, so on
+  # a freshly created database (every CI partition database, threadline_test<N>)
+  # it can query threadline_export_jobs before the migration above created it,
+  # crash past the supervisor's restart limit, and take the export task
+  # supervisor down with it. Restart the application so every child boots
+  # against the migrated schema.
+  :ok = Application.stop(:threadline)
+  {:ok, _} = Application.ensure_all_started(:threadline)
+
   # Stale-database tripwire (Phase 198, D-03). A test database created before
   # priv/repo/migrations/20260607000000_threadline_storage_schema_default.exs still
   # carries the audit tables in `public`, and every capture test then fails with an

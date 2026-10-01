@@ -1,0 +1,909 @@
+#!/usr/bin/env bash
+# Fail-closed partitioned test runner (SUITE-02). Called by both the
+# `verify-test` CI step ("Run tests" -> `mix verify.test_partitioned`) and the
+# `mix verify.test_partitioned` alias, so CI and a local run always exercise
+# the exact same committed script.
+#
+# Compiles once, serially, then starts N concurrent `mix test <files...>`
+# processes, each on its own `threadline_test<i>` database (config/test.exs,
+# D-04), each writing its own partition-<i>.log and partition-<i>.status.
+# Every background PID is recorded and waited on individually with
+# `wait "$pid" || fail=1` -- never a bare `wait` (always returns 0) and never
+# `a & b & wait` (returns only the last job's status). On any partition
+# failure, only the failing partitions' logs are printed, and the script
+# exits non-zero. An INT or TERM signal kills every recorded partition
+# process and exits non-zero, so a cancelled job leaves no orphan and never
+# reports success.
+#
+# File assignment (D-03a). The script enumerates the test files exactly as
+# plain `mix test` would (mix.exs sets no test_paths/test_pattern, so Mix's
+# defaults: every `*_test.exs` under `test/`, hidden paths skipped) and
+# assigns each file to one partition by measured weight, read from the
+# committed test/partition_weights.txt (`<milliseconds> <test file>` per
+# line). Async files (the file contains `async: true`) count at 1/4 of their
+# measured time, because their measurement is traced (one case at a time)
+# while a real run overlaps them. A file with no weight gets the median
+# weight; a weight entry for a file that no longer exists is ignored.
+# Assignment is greedy longest-first into the least-loaded partition, ties
+# broken by path then by lowest partition number, so it is deterministic.
+# Mix's own `--partitions` flag is not used: it assigns files round-robin
+# over the sorted list, which measured badly unbalanced on CI run
+# 36792875477 (partition seconds 67/217/119).
+#
+# Files listed together on one line of test/partition_colocate.txt always
+# share a partition (tests that write into the shared checkout or snapshot
+# its `git status`, which must not overlap); a group is placed as one unit.
+#
+# Stale weights can only make the partitions less even, never drop or
+# duplicate a test: before anything runs, the script checks that the union
+# of all partitions' files equals the enumerated file set with no
+# duplicates, and exits 1 with the difference if it does not. A partition
+# that is assigned no files does not invoke mix at all (a bare `mix test`
+# would run the whole suite); it reports exit 0 with no tests, and can never
+# mask a sibling's failure.
+#
+# A per-partition and whole-step timing/counts table is printed to stdout
+# and, when set, appended to $GITHUB_STEP_SUMMARY -- partition numbers, exit
+# codes, seconds and integer ExUnit counts only, never raw log text.
+#
+# Modes:
+#   bin/ci-test-partitions          # N defaults to 4 (225-CONTEXT.md D-03b:
+#                                    # at N=3 the stress router test, whose
+#                                    # cold nested prod build costs far more
+#                                    # in CI than locally, shared a partition
+#                                    # and set the step time (CI run
+#                                    # 36804809428); at N=4 its weight exceeds
+#                                    # an even share, so it runs alone)
+#   bin/ci-test-partitions N        # explicit partition count, 1-8
+#   bin/ci-test-partitions --write-weights
+#                                    # run the whole suite once, unpartitioned,
+#                                    # with `mix test --slowest-modules 1000`
+#                                    # and rewrite test/partition_weights.txt
+#                                    # from its per-module timings (summed per
+#                                    # file). Needs Elixir >= 1.17 and the
+#                                    # local test database.
+#   bin/ci-test-partitions --self-test
+#   bin/ci-test-partitions -h
+#
+# Seams (both test-only, never used by real callers):
+#   MIX_BIN                       (default `mix`) lets --self-test substitute
+#                                  a fake `mix` binary to exercise this
+#                                  script's aggregation and flag-passing fully
+#                                  offline.
+#   CI_TEST_PARTITIONS_LOG_DIR    (default $ROOT/tmp/ci-test-partitions) lets
+#                                  --self-test redirect partition logs into a
+#                                  throwaway directory instead of the real one.
+#
+# --self-test runs a copy of this script inside a throwaway project (its own
+# test/ tree and weights file) with a fake `mix`, fully offline, and proves
+# the gate actually has teeth, in these cases: (a) every partition passing
+# exits 0; (b) one failing partition exits 1 and only that partition's log
+# is printed; (c) two failing partitions exit 1 with their logs printed in
+# ascending order; (d) an empty partition alongside a failing one still
+# exits 1; (e) an empty partition alongside passing ones still exits 0 (an
+# empty partition never masks or is mistaken for a failure); (f) a killed
+# partition exits non-zero; (g) the step summary lists partitions in
+# ascending order; (h) N of 0, -1, "abc" and "" each exit 2 with a usage
+# line; (i) every enumerated test file is handed to exactly one partition;
+# (j) a file with no weight still runs; (k) a stale weight entry is ignored;
+# (l) the assignment is identical across two runs; (m) the heaviest files
+# land in different partitions; (n) a partition assigned no files never
+# invokes mix, exits 0 on its own and does not mask a failing sibling; (o)
+# the exactly-once check rejects a duplicated, a dropped and an
+# out-of-range assignment; (p) --write-weights turns `--slowest-modules`
+# output into a sorted per-file weights file; (q) files grouped on one line
+# of a colocate file share a partition, still exactly once. This is the runtime mutation
+# control D-10 names -- it runs as the unconditional CI step "Prove the gate
+# goes red (failing partition)" before "Run tests" on every lane.
+
+set -euo pipefail
+
+die() {
+  printf 'ci-test-partitions: %s\n' "$*" >&2
+  exit 2
+}
+
+usage() {
+  cat <<'EOF'
+Usage: bin/ci-test-partitions [N]
+       bin/ci-test-partitions --write-weights
+       bin/ci-test-partitions --self-test
+       bin/ci-test-partitions -h
+
+N is a positive integer from 1 to 8. Omit it to use the default (4, per
+225-CONTEXT.md D-03b). --write-weights refreshes test/partition_weights.txt
+from one full local run.
+EOF
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+SCRIPT_PATH="$SCRIPT_DIR/$(basename "${BASH_SOURCE[0]}")"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+MIX_BIN="${MIX_BIN:-mix}"
+WEIGHTS_REL="test/partition_weights.txt"
+COLOCATE_REL="test/partition_colocate.txt"
+PARTITION_TEST_TIMEOUT_MS=180000
+
+# --- Test file enumeration and weighted assignment -----------------------------
+
+# The set plain `mix test` runs: mix.exs sets neither test_paths nor
+# test_pattern, so Mix uses `test` and `*_test.exs`; Path.wildcard skips
+# hidden files and directories, and so does this. Run from $ROOT.
+enumerate_test_files() {
+  find test -type f -name '*_test.exs' ! -path '*/.*' | LC_ALL=C sort
+}
+
+# Prints `<partition>\t<file>\t<effective weight>` for every enumerated file.
+# Args: N, weights file (may be missing), enumerated file list.
+assign_files() {
+  local n="$1" weights="$2" enumerated="$3" colocate="${4:-$COLOCATE_REL}"
+  local f flags
+
+  [ -f "$weights" ] || weights=/dev/null
+  [ -f "$colocate" ] || colocate=/dev/null
+
+  flags="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-flags.XXXXXX")"
+  while IFS= read -r f; do
+    if grep -qE '^[[:space:]]*use [A-Za-z0-9_.]+,.*async:[[:space:]]*true' "$f"; then
+      printf '%s\t1\n' "$f"
+    else
+      printf '%s\t0\n' "$f"
+    fi
+  done <"$enumerated" >"$flags"
+
+  awk -F'\t' -v wf="$weights" '
+    FILENAME == wf {
+      if ($0 ~ /^[ \t]*#/ || $0 ~ /^[ \t]*$/) next
+      c = split($0, p, /[ \t]+/)
+      if (c >= 2 && p[1] ~ /^[0-9]+$/) w[p[2]] += p[1]
+      next
+    }
+    { k++; path[k] = $1; async[k] = $2 }
+    END {
+      m = 0
+      for (i = 1; i <= k; i++) if (path[i] in w) vals[++m] = w[path[i]] + 0
+      for (i = 2; i <= m; i++) {
+        v = vals[i]; j = i - 1
+        while (j >= 1 && vals[j] > v) { vals[j + 1] = vals[j]; j-- }
+        vals[j + 1] = v
+      }
+      if (m == 0) med = 1000
+      else if (m % 2 == 1) med = vals[(m + 1) / 2]
+      else med = int((vals[m / 2] + vals[m / 2 + 1]) / 2)
+      for (i = 1; i <= k; i++) {
+        raw = (path[i] in w) ? w[path[i]] : med
+        eff = (async[i] == 1) ? int(raw / 4) : raw
+        if (eff < 1) eff = 1
+        printf "%d\t%s\n", eff, path[i]
+      }
+    }
+  ' "$weights" "$flags" |
+    awk -F'\t' -v n="$n" -v cf="$colocate" '
+      # Colocation groups: every file on one non-comment line of the colocate
+      # file shares a partition (tests that touch the shared checkout, which
+      # the old single serial run never overlapped). A group is placed as one
+      # unit; listed files that no longer exist are simply never seen below.
+      FILENAME == cf {
+        if ($0 ~ /^[ \t]*#/ || $0 ~ /^[ \t]*$/) next
+        c = split($0, p, /[ \t]+/)
+        key = ""
+        for (x = 1; x <= c; x++) {
+          if (p[x] == "") continue
+          if (key == "") key = p[x]
+          group[p[x]] = key
+        }
+        next
+      }
+      {
+        eff = $1 + 0; f = $2
+        key = (f in group) ? group[f] : f
+        if (!(key in gw)) { keys[++kn] = key }
+        gw[key] += eff
+        members[key] = members[key] f "\n"
+        weight[f] = eff
+      }
+      END {
+        # Heaviest group first, ties by key, so the result is deterministic.
+        for (i = 2; i <= kn; i++) {
+          v = keys[i]; j = i - 1
+          while (j >= 1 && (gw[keys[j]] < gw[v] || (gw[keys[j]] == gw[v] && keys[j] > v))) {
+            keys[j + 1] = keys[j]; j--
+          }
+          keys[j + 1] = v
+        }
+        for (b = 1; b <= n; b++) load[b] = 0
+        for (i = 1; i <= kn; i++) {
+          best = 1
+          for (b = 2; b <= n; b++) if (load[b] < load[best]) best = b
+          load[best] += gw[keys[i]]
+          m = split(members[keys[i]], mem, "\n")
+          for (x = 1; x <= m; x++) if (mem[x] != "") printf "%d\t%s\t%d\n", best, mem[x], weight[mem[x]]
+        }
+      }
+    ' "$colocate" -
+
+  rm -f "$flags"
+}
+
+# The correctness guard: every enumerated file assigned exactly once, to a
+# partition from 1 to N. Args: N, enumerated file list, assignment file.
+verify_assignment() {
+  local n="$1" enumerated="$2" assignment="$3" dups out_of_range
+
+  dups="$(cut -f2 "$assignment" | LC_ALL=C sort | uniq -d)"
+  if [ -n "$dups" ]; then
+    printf 'ci-test-partitions: these test files were assigned to more than one partition:\n%s\n' "$dups" >&2
+    return 1
+  fi
+
+  out_of_range="$(awk -F'\t' -v n="$n" '!($1 ~ /^[0-9]+$/) || $1 < 1 || $1 > n' "$assignment")"
+  if [ -n "$out_of_range" ]; then
+    printf 'ci-test-partitions: these assignments name a partition outside 1-%s:\n%s\n' "$n" "$out_of_range" >&2
+    return 1
+  fi
+
+  if ! cut -f2 "$assignment" | LC_ALL=C sort | cmp -s - "$enumerated"; then
+    printf 'ci-test-partitions: the partition assignment does not cover every test file exactly once (< enumerated, > assigned):\n' >&2
+    cut -f2 "$assignment" | LC_ALL=C sort | diff "$enumerated" - >&2 || true
+    return 1
+  fi
+}
+
+# --- ExUnit counts parsing ----------------------------------------------------
+
+parse_counts() {
+  local log="$1" line tests failures
+  # ExUnit may colour its summary line; strip ANSI escapes before matching so a
+  # coloured "N tests, M failures" still parses on every Elixir version.
+  line="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | grep -E '[0-9]+ tests?, [0-9]+ failures?' | tail -1 || true)"
+
+  if [ -z "$line" ]; then
+    # Newer ExUnit (1.19+) summarises as "Result: 1169 passed, 1 excluded" or
+    # "Result: 697/698 passed (2/2 properties, 695/696 tests)" plus a
+    # "Failed: 1 test" line.
+    local result failed
+    result="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | grep -E '^Result: ' | tail -1 || true)"
+    if [ -n "$result" ]; then
+      failed="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | grep -oE '^Failed: [0-9]+' | tail -1 | grep -oE '[0-9]+' || true)"
+      tests="$(printf '%s' "$result" | grep -oE '[0-9]+/[0-9]+ tests' | grep -oE '/[0-9]+' | tr -d '/' || true)"
+      if [ -z "$tests" ]; then
+        tests="$(printf '%s' "$result" | grep -oE '[0-9]+ tests' | grep -oE '[0-9]+' || true)"
+      fi
+      if [ -z "$tests" ]; then
+        tests="$(printf '%s' "$result" | grep -oE '[0-9]+(/[0-9]+)? passed' | grep -oE '[0-9]+' | tail -1 || true)"
+      fi
+      printf '%s tests, %s failures' "${tests:-0}" "${failed:-0}"
+      return 0
+    fi
+    printf 'no tests'
+    return 0
+  fi
+
+  tests="$(printf '%s' "$line" | grep -oE '[0-9]+ tests?' | tail -1 | grep -oE '[0-9]+')"
+  failures="$(printf '%s' "$line" | grep -oE '[0-9]+ failures?' | tail -1 | grep -oE '[0-9]+')"
+  printf '%s tests, %s failures' "${tests:-0}" "${failures:-0}"
+}
+
+# --- Report ------------------------------------------------------------------
+
+report() {
+  local n="$1" log_dir="$2" step_seconds="$3"
+  local i status start end seconds counts body
+
+  body=""
+  for i in $(seq 1 "$n"); do
+    status="$(grep -oE 'status=[0-9-]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
+    start="$(grep -oE 'start=[0-9]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
+    end="$(grep -oE 'end=[0-9]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
+
+    if [ -n "$start" ] && [ -n "$end" ]; then
+      seconds=$((end - start))
+    else
+      seconds="unknown"
+    fi
+
+    counts="$(parse_counts "$log_dir/partition-$i.log")"
+    if [ "$counts" = "no tests" ] && [ -s "$log_dir/partition-$i.files" ] && [ -s "$log_dir/partition-$i.log" ]; then
+      # Stdout only, never the step summary: show what the log ends with so an
+      # unrecognised ExUnit summary format is visible instead of silent.
+      printf 'ci-test-partitions: partition %s: no test count found; last log lines:\n' "$i"
+      tail -n 5 "$log_dir/partition-$i.log" | sed 's/^/  | /'
+    fi
+    body="${body}| ${i} | ${status:-unknown} | ${seconds} | ${counts} |
+"
+  done
+
+  {
+    printf 'ci-test-partitions: partition report (N=%s)\n\n' "$n"
+    printf '| Partition | Exit | Seconds | Counts |\n'
+    printf '|---|---|---|---|\n'
+    printf '%s' "$body"
+    printf '| total | - | %s | - |\n' "$step_seconds"
+  } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
+}
+
+print_failing_logs() {
+  local n="$1" log_dir="$2" i status
+
+  for i in $(seq 1 "$n"); do
+    status="$(grep -oE 'status=[0-9-]+' "$log_dir/partition-$i.status" 2>/dev/null | cut -d= -f2 || true)"
+
+    if [ -n "$status" ] && [ "$status" != "0" ]; then
+      printf '===== partition %s failed (exit %s) =====\n' "$i" "$status"
+      cat "$log_dir/partition-$i.log" 2>/dev/null || true
+      printf '===== end partition %s =====\n' "$i"
+    fi
+  done
+}
+
+# --- Run N partitions ----------------------------------------------------------
+
+run_partitions() {
+  local n="$1"
+  local log_dir="${CI_TEST_PARTITIONS_LOG_DIR:-$ROOT/tmp/ci-test-partitions}"
+
+  cd "$ROOT"
+  rm -rf "$log_dir"
+  mkdir -p "$log_dir"
+
+  export MIX_ENV=test
+
+  local step_start step_end step_seconds
+  step_start="$(date +%s)"
+
+  local enumerated="$log_dir/enumerated.txt"
+  local assignment="$log_dir/assignment.tsv"
+  enumerate_test_files >"$enumerated"
+  [ -s "$enumerated" ] || die "found no *_test.exs files under test/"
+
+  if [ ! -f "$WEIGHTS_REL" ]; then
+    printf 'ci-test-partitions: %s is missing; every file gets the same weight (run bin/ci-test-partitions --write-weights)\n' "$WEIGHTS_REL" >&2
+  fi
+
+  assign_files "$n" "$WEIGHTS_REL" "$enumerated" >"$assignment"
+  verify_assignment "$n" "$enumerated" "$assignment" || {
+    printf 'ci-test-partitions: refusing to run an assignment that would skip or repeat tests\n' >&2
+    exit 1
+  }
+
+  local i
+  printf 'ci-test-partitions: %s test files assigned to %s partitions by measured weight (%s)\n' \
+    "$(wc -l <"$enumerated" | tr -d ' ')" "$n" "$WEIGHTS_REL"
+  for i in $(seq 1 "$n"); do
+    awk -F'\t' -v i="$i" '$1 == i { print $2 }' "$assignment" >"$log_dir/partition-$i.files"
+    printf 'ci-test-partitions: partition %s: %s files, weight %s ms\n' "$i" \
+      "$(wc -l <"$log_dir/partition-$i.files" | tr -d ' ')" \
+      "$(awk -F'\t' -v i="$i" '$1 == i { s += $3 } END { print s + 0 }' "$assignment")"
+  done
+
+  printf 'ci-test-partitions: compiling once, serially\n'
+  if ! "$MIX_BIN" compile; then
+    die "serial compile failed"
+  fi
+
+  local pids=()
+
+  # Armed before the first fork, so a signal during forking still kills every
+  # partition already started (an empty pids list is a no-op).
+  kill_all() {
+    local pid
+    for pid in "${pids[@]}"; do
+      kill -TERM "$pid" 2>/dev/null || true
+    done
+    wait 2>/dev/null || true
+    printf 'ci-test-partitions: interrupted, killed every partition process\n' >&2
+    exit 1
+  }
+  trap kill_all INT TERM
+
+  for i in $(seq 1 "$n"); do
+    (
+      p_start="$(date +%s)"
+      files=()
+      while IFS= read -r f; do
+        files+=("$f")
+      done <"$log_dir/partition-$i.files"
+      set +e
+      if [ "${#files[@]}" -eq 0 ]; then
+        # Never call mix with no files: a bare `mix test` runs the whole suite.
+        printf 'ci-test-partitions: partition %s has no test files assigned\n' "$i" \
+          >"$log_dir/partition-$i.log"
+        p_status=0
+      else
+        # A per-test budget of 180 s instead of ExUnit's 60 s default: with N
+        # partitions sharing the runner, nested builds and Node smokes run
+        # several times slower than in a lone `mix test` (CI runs 36799589565,
+        # 36800563728 and 36818463238 timed such tests out at 60 s). A plain
+        # local `mix test` keeps the default.
+        MIX_TEST_PARTITION="$i" "$MIX_BIN" test --no-compile --no-deps-check --timeout="$PARTITION_TEST_TIMEOUT_MS" "${files[@]}" \
+          >"$log_dir/partition-$i.log" 2>&1
+        p_status=$?
+      fi
+      set -e
+      p_end="$(date +%s)"
+      printf 'status=%s start=%s end=%s\n' "$p_status" "$p_start" "$p_end" \
+        >"$log_dir/partition-$i.status"
+      exit "$p_status"
+    ) &
+    pids[i]="$!"
+  done
+
+  local fail=0
+  for i in $(seq 1 "$n"); do
+    wait "${pids[i]}" || fail=1
+  done
+
+  trap - INT TERM
+
+  step_end="$(date +%s)"
+  step_seconds=$((step_end - step_start))
+
+  report "$n" "$log_dir" "$step_seconds"
+
+  if [ "$fail" -ne 0 ]; then
+    print_failing_logs "$n" "$log_dir"
+    exit 1
+  fi
+
+  exit 0
+}
+
+# --- --write-weights -------------------------------------------------------------
+
+# Turns `mix test --slowest-modules` output into `<ms> <file>` lines, summed
+# per file and sorted by path.
+parse_slowest_modules() {
+  awk '
+    /^Top [0-9]+ slowest/ { on = 1; next }
+    !on { next }
+    /^[^ ].*\([0-9.]+ms\)$/ {
+      s = $0
+      sub(/ms\)$/, "", s)
+      sub(/.*\(/, "", s)
+      pending = s + 0
+      have = 1
+      next
+    }
+    have && /^ \[.*\]$/ {
+      f = $0
+      sub(/^ \[/, "", f)
+      sub(/\]$/, "", f)
+      t[f] += pending
+      have = 0
+      next
+    }
+    { have = 0 }
+    END { for (f in t) printf "%d %s\n", int(t[f] + 0.5), f }
+  ' "$1" | LC_ALL=C sort -k2,2
+}
+
+write_weights() {
+  local log_dir="${CI_TEST_PARTITIONS_LOG_DIR:-$ROOT/tmp/ci-test-partitions}"
+  local log tmp status count
+
+  cd "$ROOT"
+  mkdir -p "$log_dir"
+  log="$log_dir/write-weights.log"
+
+  # CI never has a warm nested prod build, so neither may the measurement:
+  # a test that shells out to `MIX_ENV=prod mix ...` is measured with the
+  # prod build cold, as it runs in every CI job. A warm local _build/prod
+  # once made such a test weigh a fraction of its CI cost and unbalanced the
+  # partitions (CI run 36803573797).
+  rm -rf "$ROOT/_build/prod"
+
+  printf 'ci-test-partitions: running the whole suite once with `mix test --slowest-modules 1000` (traced, so slower than a normal run)\n'
+  set +e
+  env -u MIX_TEST_PARTITION MIX_ENV=test "$MIX_BIN" test --slowest-modules 1000 >"$log" 2>&1
+  status=$?
+  set -e
+
+  if [ "$status" -ne 0 ]; then
+    tail -40 "$log" >&2 || true
+    printf 'ci-test-partitions: the timing run failed (exit %s); %s left unchanged (full log: %s)\n' \
+      "$status" "$WEIGHTS_REL" "$log" >&2
+    exit 1
+  fi
+
+  tmp="$(mktemp "$log_dir/partition-weights.XXXXXX")"
+  {
+    printf '# Measured test time per file, in milliseconds, used by bin/ci-test-partitions\n'
+    printf '# to balance the CI test partitions. One "<milliseconds> <test file>" per line,\n'
+    printf '# sorted by path.\n'
+    printf '# Regenerate with: bin/ci-test-partitions --write-weights\n'
+    printf '# A stale or missing entry only makes the partitions less even; every test file\n'
+    printf '# still runs exactly once.\n'
+    parse_slowest_modules "$log"
+  } >"$tmp"
+
+  count="$(grep -vc '^#' "$tmp" || true)"
+  if [ "${count:-0}" -eq 0 ]; then
+    rm -f "$tmp"
+    printf 'ci-test-partitions: found no per-module timings in the run output; %s left unchanged (full log: %s)\n' \
+      "$WEIGHTS_REL" "$log" >&2
+    exit 1
+  fi
+
+  mv "$tmp" "$WEIGHTS_REL"
+  printf 'ci-test-partitions: wrote %s weights to %s\n' "$count" "$WEIGHTS_REL"
+}
+
+# --- Fake mix for --self-test -------------------------------------------------
+
+write_fake_mix() {
+  local path="$1"
+  cat >"$path" <<'FAKE_MIX'
+#!/usr/bin/env bash
+# Test-only fake `mix` for bin/ci-test-partitions --self-test. Never used by
+# real callers.
+set -u
+
+case "${1:-}" in
+  compile)
+    exit 0
+    ;;
+  test)
+    shift
+
+    case " $* " in
+      *" --slowest-modules "*)
+        echo "Finished in 1.5 seconds (0.0s async, 1.5s sync)"
+        echo ""
+        echo "Top 3 slowest (1.5s), 100.0% of total time:"
+        echo ""
+        echo "Fake.OneTest (1500.4ms)"
+        echo " [test/one_test.exs]"
+        echo "Fake.TwoTest (10.2ms)"
+        echo " [test/a/two_test.exs]"
+        echo "Fake.TwoOtherTest (5.0ms)"
+        echo " [test/a/two_test.exs]"
+        echo ""
+        echo "3 tests, 0 failures"
+        exit 0
+        ;;
+    esac
+
+    has_no_compile=0
+    has_no_deps_check=0
+    files=()
+    for a in "$@"; do
+      case "$a" in
+        --partitions)
+          echo "fake-mix: --partitions must not be passed (files are assigned by weight)" >&2
+          exit 3
+          ;;
+        --no-compile) has_no_compile=1 ;;
+        --no-deps-check) has_no_deps_check=1 ;;
+        --timeout=*) ;;
+        -*)
+          echo "fake-mix: unexpected flag $a" >&2
+          exit 3
+          ;;
+        *) files+=("$a") ;;
+      esac
+    done
+    if [ "$has_no_compile" -ne 1 ] || [ "$has_no_deps_check" -ne 1 ]; then
+      echo "fake-mix: missing a required flag (got: $*)" >&2
+      exit 3
+    fi
+    if [ "${#files[@]}" -eq 0 ]; then
+      echo "fake-mix: called with no test files (a bare mix test runs the whole suite)" >&2
+      exit 3
+    fi
+    for f in "${files[@]}"; do
+      if [ ! -f "$f" ]; then
+        echo "fake-mix: no such test file: $f" >&2
+        exit 3
+      fi
+      echo "FAKE_MIX_FILE=$f"
+    done
+
+    idx="${MIX_TEST_PARTITION:-0}"
+    echo "FAKE_MIX_PARTITION_MARKER=$idx"
+
+    plan="${CI_TEST_PARTITIONS_FAKE_PLAN:-}"
+    behavior="$(printf '%s' "$plan" | cut -d, -f"$idx")"
+
+    case "$behavior" in
+      fail)
+        echo "Finished in 0.1 seconds (0.0s async, 0.1s sync)"
+        echo "1 test, 1 failure"
+        exit 1
+        ;;
+      empty)
+        echo "Finished in 0.0 seconds (0.0s async, 0.0s sync)"
+        echo "0 tests, 0 failures"
+        exit 0
+        ;;
+      killed)
+        kill -KILL $$
+        ;;
+      *)
+        echo "Finished in 0.1 seconds (0.0s async, 0.1s sync)"
+        echo "1 test, 0 failures"
+        exit 0
+        ;;
+    esac
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+FAKE_MIX
+  chmod +x "$path"
+}
+
+# A throwaway project: a copy of this script under bin/, a small test/ tree
+# and a weights file with three heavy files, an async file, an unweighted
+# file and a stale entry for a file that does not exist.
+write_sandbox_project() {
+  local proj="$1"
+
+  mkdir -p "$proj/bin" "$proj/test/a" "$proj/test/b" "$proj/test/.hidden"
+  cp "$SCRIPT_PATH" "$proj/bin/ci-test-partitions"
+  chmod +x "$proj/bin/ci-test-partitions"
+
+  local f
+  for f in a/heavy1_test.exs a/heavy2_test.exs b/heavy3_test.exs a/light1_test.exs \
+    b/light2_test.exs b/async_test.exs b/unweighted_test.exs; do
+    printf 'defmodule Sandbox.Test do\n  use ExUnit.Case\nend\n' >"$proj/test/$f"
+  done
+  printf 'defmodule Sandbox.AsyncTest do\n  use ExUnit.Case, async: true\nend\n' >"$proj/test/b/async_test.exs"
+  printf 'not a test file\n' >"$proj/test/b/helper.exs"
+  printf 'defmodule Hidden.Test do\nend\n' >"$proj/test/.hidden/skipped_test.exs"
+
+  cat >"$proj/test/partition_weights.txt" <<'WEIGHTS'
+# sandbox weights
+50000 test/a/heavy1_test.exs
+40000 test/a/heavy2_test.exs
+1000 test/a/light1_test.exs
+40000 test/b/async_test.exs
+30000 test/b/heavy3_test.exs
+2000 test/b/light2_test.exs
+999999 test/gone_test.exs
+WEIGHTS
+}
+
+# --- --self-test ---------------------------------------------------------------
+
+run_self_test() {
+  mkdir -p "$ROOT/tmp"
+  self_test_dir="$(mktemp -d "$ROOT/tmp/ci-test-partitions-self-test.XXXXXX")"
+  cleanup_self_test() {
+    rm -rf "$self_test_dir"
+  }
+  trap cleanup_self_test EXIT
+
+  local fake_mix="$self_test_dir/fake-mix"
+  write_fake_mix "$fake_mix"
+
+  local proj="$self_test_dir/proj"
+  write_sandbox_project "$proj"
+  local sandbox_script="$proj/bin/ci-test-partitions"
+  local expected_files="$self_test_dir/expected-files.txt"
+  (cd "$proj" && enumerate_test_files) >"$expected_files"
+  [ "$(wc -l <"$expected_files" | tr -d ' ')" -eq 7 ] ||
+    die "self-test: the sandbox must enumerate exactly 7 test files, got: $(cat "$expected_files")"
+
+  local case_n=0
+
+  # run_case <label> <fake plan> [N]
+  run_case() {
+    case_n=$((case_n + 1))
+    case_dir="$self_test_dir/case-$case_n"
+    mkdir -p "$case_dir"
+
+    set +e
+    output="$(
+      MIX_BIN="$fake_mix" \
+        CI_TEST_PARTITIONS_FAKE_PLAN="$2" \
+        CI_TEST_PARTITIONS_LOG_DIR="$case_dir/logs" \
+        GITHUB_STEP_SUMMARY="$case_dir/summary.md" \
+        "$sandbox_script" "${3:-3}" 2>&1
+    )"
+    status=$?
+    set -e
+
+    printf '%s' "$output" >"$case_dir/output.log"
+    case_status="$status"
+    case_summary="$case_dir/summary.md"
+    case_logs="$case_dir/logs"
+  }
+
+  # (a) all pass
+  run_case "all pass" "pass,pass,pass"
+  [ "$case_status" -eq 0 ] ||
+    die "self-test: all-pass case must exit 0, got $case_status: $output"
+  local all_pass_logs="$case_logs"
+
+  # (b) partition 2 fails
+  run_case "partition 2 fails" "pass,fail,pass"
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: partition-2-fails case must exit non-zero"
+  grep -q 'partition 2 failed' <<<"$output" ||
+    die "self-test: partition-2-fails case must print partition 2's log: $output"
+  grep -q 'partition 1 failed' <<<"$output" &&
+    die "self-test: partition-2-fails case must not print partition 1's log"
+  grep -q 'partition 3 failed' <<<"$output" &&
+    die "self-test: partition-2-fails case must not print partition 3's log"
+
+  # (c) partitions 1 and 3 fail, printed in ascending order
+  run_case "partitions 1 and 3 fail" "fail,pass,fail"
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: partitions-1-and-3-fail case must exit non-zero"
+  pos1="$(printf '%s' "$output" | grep -bo 'partition 1 failed' | head -1 | cut -d: -f1)"
+  pos3="$(printf '%s' "$output" | grep -bo 'partition 3 failed' | head -1 | cut -d: -f1)"
+  [ -n "$pos1" ] && [ -n "$pos3" ] && [ "$pos1" -lt "$pos3" ] ||
+    die "self-test: partition 1's log must print before partition 3's"
+
+  # (d) partition 1 empty, partition 2 fails
+  run_case "partition 1 empty plus partition 2 failing" "empty,fail,pass"
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: empty-plus-failing case must exit non-zero"
+
+  # (e) partition 1 empty, rest pass
+  run_case "partition 1 empty with the rest passing" "empty,pass,pass"
+  [ "$case_status" -eq 0 ] ||
+    die "self-test: empty-partition-only case must exit 0, got $case_status: $output"
+
+  # (f) a killed partition
+  run_case "a killed partition" "pass,killed,pass"
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: killed-partition case must exit non-zero"
+
+  # (g) the summary file lists partitions in ascending order
+  [ -f "$case_summary" ] || die "self-test: expected a step summary file at $case_summary"
+  s_pos1="$(grep -n '^| 1 |' "$case_summary" | head -1 | cut -d: -f1)"
+  s_pos2="$(grep -n '^| 2 |' "$case_summary" | head -1 | cut -d: -f1)"
+  s_pos3="$(grep -n '^| 3 |' "$case_summary" | head -1 | cut -d: -f1)"
+  [ -n "$s_pos1" ] && [ -n "$s_pos2" ] && [ -n "$s_pos3" ] &&
+    [ "$s_pos1" -lt "$s_pos2" ] && [ "$s_pos2" -lt "$s_pos3" ] ||
+    die "self-test: step summary must list partitions 1, 2, 3 in ascending order"
+
+  # (h) invalid N values each exit 2
+  for bad_n in 0 -1 abc ""; do
+    set +e
+    "$0" "$bad_n" >/dev/null 2>&1
+    bad_status=$?
+    set -e
+    [ "$bad_status" -eq 2 ] ||
+      die "self-test: N='$bad_n' must exit 2, got $bad_status"
+  done
+
+  # (i) every enumerated file was handed to exactly one partition (read back
+  # from what the fake mix actually received in the all-pass case)
+  local received="$self_test_dir/received.txt"
+  cat "$all_pass_logs"/partition-*.log | sed -n 's/^FAKE_MIX_FILE=//p' | LC_ALL=C sort >"$received"
+  [ -z "$(uniq -d <"$received")" ] ||
+    die "self-test: a test file was handed to more than one partition: $(uniq -d <"$received")"
+  cmp -s "$received" "$expected_files" ||
+    die "self-test: the partitions must receive every enumerated file exactly once; got: $(cat "$received")"
+
+  # (j) the unweighted file still ran
+  grep -qx 'test/b/unweighted_test.exs' "$received" ||
+    die "self-test: a file with no weight entry must still run"
+
+  # (k) the stale weight entry was ignored (never handed to mix, no failure)
+  grep -q 'gone_test.exs' "$received" &&
+    die "self-test: a stale weight entry must not be handed to mix"
+
+  # (l) the assignment is identical across two runs
+  local first_assignment="$self_test_dir/first-assignment.tsv"
+  cp "$all_pass_logs/assignment.tsv" "$first_assignment"
+  run_case "repeat all pass" "pass,pass,pass"
+  [ "$case_status" -eq 0 ] ||
+    die "self-test: repeated all-pass case must exit 0, got $case_status: $output"
+  cmp -s "$first_assignment" "$case_logs/assignment.tsv" ||
+    die "self-test: two runs must produce the same assignment"
+  for i in 1 2 3; do
+    cmp -s "$all_pass_logs/partition-$i.files" "$case_logs/partition-$i.files" ||
+      die "self-test: two runs must hand partition $i the same files"
+  done
+
+  # (m) the three heaviest files land in different partitions
+  local heavy_bins
+  heavy_bins="$(grep -lE '^FAKE_MIX_FILE=test/(a/heavy1|a/heavy2|b/heavy3)_test.exs$' \
+    "$all_pass_logs"/partition-*.log | wc -l | tr -d ' ')"
+  [ "$heavy_bins" -eq 3 ] ||
+    die "self-test: the three heaviest files must land in three different partitions, got $heavy_bins"
+  local i
+  for i in 1 2 3; do
+    [ "$(grep -cE '^FAKE_MIX_FILE=test/(a/heavy1|a/heavy2|b/heavy3)_test.exs$' "$all_pass_logs/partition-$i.log")" -eq 1 ] ||
+      die "self-test: partition $i must hold exactly one of the three heaviest files"
+  done
+
+  # (q) a colocation group shares one partition: pairing the two heaviest
+  # files (which (m) proves would otherwise split) puts them together, and
+  # every file is still assigned exactly once
+  local coloc_dir coloc_assign
+  coloc_dir="$self_test_dir/colocate"
+  mkdir -p "$coloc_dir"
+  printf '# sandbox group\ntest/a/heavy1_test.exs test/a/heavy2_test.exs test/gone_test.exs\n' >"$coloc_dir/colocate.txt"
+  (cd "$proj" && enumerate_test_files) >"$coloc_dir/enumerated.txt"
+  coloc_assign="$coloc_dir/assignment.tsv"
+  (cd "$proj" && assign_files 3 test/partition_weights.txt "$coloc_dir/enumerated.txt" "$coloc_dir/colocate.txt") >"$coloc_assign"
+  [ "$(awk -F'\t' '$2 == "test/a/heavy1_test.exs" || $2 == "test/a/heavy2_test.exs" { print $1 }' "$coloc_assign" | LC_ALL=C sort -u | wc -l | tr -d ' ')" -eq 1 ] ||
+    die "self-test: a colocation group must land in one partition, got: $(cat "$coloc_assign")"
+  verify_assignment 3 "$coloc_dir/enumerated.txt" "$coloc_assign" ||
+    die "self-test: a colocation group must keep every file assigned exactly once"
+
+  # (n) a partition assigned no files (8 partitions, 7 files) never invokes
+  # mix, exits 0 on its own, and does not mask a failing sibling
+  run_case "zero-file partition with the rest passing" "pass,pass,pass,pass,pass,pass,pass,pass" 8
+  [ "$case_status" -eq 0 ] ||
+    die "self-test: a zero-file partition alongside passing ones must exit 0, got $case_status: $output"
+  [ ! -s "$case_logs/partition-8.files" ] ||
+    die "self-test: partition 8 of 8 must be assigned no files over 7 test files"
+  grep -q 'has no test files assigned' "$case_logs/partition-8.log" ||
+    die "self-test: the zero-file partition must not invoke mix"
+  grep -q 'FAKE_MIX' "$case_logs/partition-8.log" &&
+    die "self-test: the zero-file partition must not invoke mix"
+  run_case "zero-file partition with a failing sibling" "fail,pass,pass,pass,pass,pass,pass,pass" 8
+  [ "$case_status" -ne 0 ] ||
+    die "self-test: a zero-file partition must not mask a failing sibling"
+
+  # (o) the exactly-once check has teeth
+  local bad="$self_test_dir/bad-assignment.tsv"
+  local good="$self_test_dir/good-assignment.tsv"
+  cp "$first_assignment" "$good"
+  verify_assignment 3 "$expected_files" "$good" 2>/dev/null ||
+    die "self-test: the exactly-once check must accept a correct assignment"
+  { cat "$good"; head -1 "$good" | awk -F'\t' -v OFS='\t' '{ $1 = ($1 % 3) + 1; print }'; } >"$bad"
+  verify_assignment 3 "$expected_files" "$bad" 2>/dev/null &&
+    die "self-test: the exactly-once check must reject a file assigned twice"
+  sed 1d "$good" >"$bad"
+  verify_assignment 3 "$expected_files" "$bad" 2>/dev/null &&
+    die "self-test: the exactly-once check must reject a dropped file"
+  { printf '4\ttest/a/heavy1_test.exs\t1\n'; grep -v 'heavy1' "$good"; } >"$bad"
+  verify_assignment 3 "$expected_files" "$bad" 2>/dev/null &&
+    die "self-test: the exactly-once check must reject a partition outside 1-N"
+
+  # (p) --write-weights turns --slowest-modules output into sorted per-file weights
+  set +e
+  output="$(
+    MIX_BIN="$fake_mix" CI_TEST_PARTITIONS_LOG_DIR="$self_test_dir/weights-logs" \
+      "$sandbox_script" --write-weights 2>&1
+  )"
+  status=$?
+  set -e
+  [ "$status" -eq 0 ] || die "self-test: --write-weights must exit 0, got $status: $output"
+  [ "$(grep -v '^#' "$proj/test/partition_weights.txt")" = "15 test/a/two_test.exs
+1500 test/one_test.exs" ] ||
+    die "self-test: --write-weights must sum per file and sort by path, got: $(cat "$proj/test/partition_weights.txt")"
+  grep -q '^# Regenerate with: bin/ci-test-partitions --write-weights$' "$proj/test/partition_weights.txt" ||
+    die "self-test: the weights file must say how to regenerate it"
+
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group)\n'
+}
+
+# --- Argument parsing ------------------------------------------------------------
+
+case "${1:-}" in
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  --self-test)
+    run_self_test
+    exit 0
+    ;;
+  --write-weights)
+    write_weights
+    exit 0
+    ;;
+esac
+
+if [ $# -eq 0 ]; then
+  N=4
+else
+  N="$1"
+  case "$N" in
+    [1-8]) ;;
+    *)
+      usage >&2
+      die "N must be a positive integer from 1 to 8, got '$N'"
+      ;;
+  esac
+fi
+
+run_partitions "$N"

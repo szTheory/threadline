@@ -189,7 +189,7 @@ jobs:
   verify-compile-no-optional:
     name: Compile without optional deps
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
 
@@ -204,6 +204,9 @@ jobs:
 
       - name: Compile without optional deps (warnings-as-errors)
         run: mix verify.compile_no_optional
+
+      - name: Compile bench project (bare mix compile)
+        run: mix verify.bench_compile
 
   verify-hex-evaluator:
     name: Hex package install (rehearsal registry)
@@ -582,7 +585,8 @@ jobs:
     # current lane = the committed .tool-versions build, the full payload.
     # Latest lane = the newest stable Elixir/OTP/PostgreSQL, exactly pinned
     # with explicit `otp`/`elixir` (no `version-file`); it runs compile
-    # --warnings-as-errors, xref cycles and `mix verify.test` only (every
+    # --warnings-as-errors, xref cycles and the partitioned `mix
+    # verify.test_partitioned` step only (every
     # current-only step guards on `matrix.lane == 'current'`), votes through
     # `ci-required` on every run (Phase 220 D-07; Phase 222 may trim it), and
     # is re-pinned at each milestone close. It is tested-on evidence, not a
@@ -695,11 +699,30 @@ jobs:
       - name: Verify no compile-connected xref cycles
         run: mix verify.xref_cycles
 
-      - name: Run tests
-        run: mix verify.test
+      # SUITE-02 runtime mutation control (D-10): proves the partitioned gate
+      # goes red on a failing partition, through the documented test-only
+      # seam in bin/ci-test-partitions. Unconditional on every lane, runs
+      # before the real "Run tests" step.
+      - name: Prove the gate goes red (failing partition)
+        run: bin/ci-test-partitions --self-test
 
+      # SUITE-02: N concurrent `mix test <files>` processes (test files split
+      # by measured weight, test/partition_weights.txt), each on its own
+      # threadline_test<i> database (config/test.exs), aggregated by
+      # bin/ci-test-partitions. The local default stays whole and
+      # unpartitioned (`mix verify.test`, CONTRIBUTING.md).
+      - name: Run tests
+        run: mix verify.test_partitioned
+
+      # The partitioned "Run tests" step above no longer migrates the
+      # unsuffixed threadline_test database (each partition only migrates its
+      # own threadline_test<i>). Pointing this step at partition 1's database
+      # reuses a database the test run already created and migrated, with no
+      # added wall-clock cost (D-07).
       - name: Verify Threadline trigger coverage
         if: matrix.lane == 'current'
+        env:
+          MIX_TEST_PARTITION: "1"
         run: mix verify.threadline
 
       - name: Ensure threadline_phoenix_test database exists (threadline on search_path)

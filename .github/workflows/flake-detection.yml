@@ -6,8 +6,13 @@
 #
 # 218-05 (ECON-01, D-01/D-02): the lane used to run nightly with an unbounded
 # 50-repeat soak that outgrew its job timeout, so it was cancelled four nights
-# running and reported nothing. It now runs weekly with a bounded 12-repeat
+# running and reported nothing. It now runs weekly with a bounded 11-repeat
 # budget, so every run ends with a classification a maintainer can act on.
+#
+# 225 (SUITE-02 D-11): re-derived from dispatch run 36810083586
+# (2026-10-01, the first run on the partitioned-CI head, every iteration run
+# to the end; an earlier sizing used run 36364688861), not partitioned -- every iteration still reshuffles the whole
+# suite, which is what catches order-dependent flakes.
 #
 # GREEN-11 / D-35. This lane classifies what it found BY NAME rather than filing
 # everything as "flaky":
@@ -35,19 +40,22 @@ jobs:
   verify-flake:
     name: Suite repeat-until-failure (broken vs flaky)
     runs-on: ubuntu-24.04
-    # `mix verify.flake` is `mix test --repeat-until-failure 12`: 13 suite runs
-    # (the initial run plus 12 repeats).
+    # `mix verify.flake` is `mix test --repeat-until-failure 11`: 12 suite runs
+    # (the initial run plus 11 repeats).
     #
-    # Budget arithmetic (D-01), from dispatch run 36359135268 (2026-09-27, 2460
-    # tests): 268.3 s cold first run, repeats 206.2-213.5 s. At ceilings of
-    # 269 s + 12 x 214 s = 2,837 s, about 47 min, which leaves about 14%
-    # headroom. That run was sized at 15 repeats (from run 35967937335's older
-    # 288 s + 165 s figures) and hit the budget during iteration 16, so a pass
-    # was unreachable. The repeat step runs under a `timeout(1)` budget of
-    # 55 min, so a budget expiry writes exit 124 (137 if the suite ignores
-    # SIGTERM for 60 s) and is classified `inconclusive`, never `unknown` or
-    # `flaky`. The step timeout (58) sits above that budget and below the job
-    # timeout (70), so the classify, upload and issue steps always get to run.
+    # Budget arithmetic (D-01, re-derived for SUITE-02 D-11), from dispatch run
+    # 36810083586 (2026-10-01, 2588 tests, classification pass after 13 suite
+    # runs): 286.3 s cold first run, repeats 223.8-227.2 s. Rounded up to whole
+    # seconds with a 1 s margin, the ceilings are 287 s cold / 228 s per
+    # repeat. At the earlier 12 repeats: 287 + 12 x 228 = 3,023 s, over the
+    # 2,970 s usable (the 55-minute budget less 10% headroom), so the count
+    # drops to 11: 287 + 11 x 228 = 2,795 s, about 47 min, leaving about 15%
+    # headroom. The
+    # repeat step runs under a `timeout(1)` budget of 55 min, so a budget
+    # expiry writes exit 124 (137 if the suite ignores SIGTERM for 60 s) and
+    # is classified `inconclusive`, never `unknown` or `flaky`. The step
+    # timeout (58) sits above that budget and below the job timeout (70), so
+    # the classify, upload and issue steps always get to run.
     # test/threadline/flake_classifier_contract_test.exs (Test 6) pins this
     # sizing; re-measure and update both if the suite grows.
     timeout-minutes: 70

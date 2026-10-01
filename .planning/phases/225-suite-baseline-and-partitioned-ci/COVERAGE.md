@@ -1,0 +1,1 @@
+No external API integration: the phase changes CI topology and test infrastructure; its only GitHub API use is a phase-local, read-only timing script that reads run and job timestamps for evidence, not a product integration.

@@ -11,8 +11,10 @@ defmodule Threadline.Capture.TriggerRerunTest do
   alias Mix.Tasks.Threadline.Gen.Triggers
   alias Threadline.Capture.{AuditChange, AuditTransaction, Naming, TriggerSQL}
   alias Threadline.StorageSchema
+  alias Threadline.Test.MigrationHarness, as: Harness
 
   @table "test_trigger_rerun_target"
+  @chain_table "test_trigger_rerun_chain"
 
   setup_all do
     Repo.query!("""
@@ -140,6 +142,117 @@ defmodule Threadline.Capture.TriggerRerunTest do
 
       assert warnings(result) == []
       assert trigger_function() == {StorageSchema.get(), "threadline_capture_changes"}
+    end
+  end
+
+  describe "rolling back a rerun chain" do
+    setup do
+      previous_shell = Mix.shell()
+      previous_capture = Application.fetch_env(:threadline, :trigger_capture)
+      Mix.shell(Mix.Shell.Process)
+
+      Repo.query!("""
+      CREATE TABLE IF NOT EXISTS #{@chain_table} (
+        id    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        name  text NOT NULL,
+        value integer
+      )
+      """)
+
+      tmp =
+        Path.join(
+          System.tmp_dir!(),
+          "threadline-trigger-rerun-chain-#{System.unique_integer([:positive])}"
+        )
+
+      File.mkdir_p!(tmp)
+
+      baseline = Harness.orphan_capture_functions()
+
+      on_exit(fn ->
+        Mix.shell(previous_shell)
+
+        case previous_capture do
+          {:ok, value} -> Application.put_env(:threadline, :trigger_capture, value)
+          :error -> Application.delete_env(:threadline, :trigger_capture)
+        end
+
+        Harness.cleanup!(Harness.migration_files(tmp))
+        Repo.query!("DROP TABLE IF EXISTS #{@chain_table} CASCADE")
+
+        Repo.query!(
+          "DROP FUNCTION IF EXISTS " <>
+            StorageSchema.function(Naming.function_name(@chain_table)) <> "()"
+        )
+
+        File.rm_rf!(tmp)
+      end)
+
+      %{tmp: tmp, baseline: baseline}
+    end
+
+    test "partial rollback keeps capture on the per-table function", %{
+      tmp: tmp,
+      baseline: baseline
+    } do
+      file1 = Harness.generate!(tmp, ["--tables", @chain_table])
+      assert {:ok, _log} = Harness.migrate_up(file1)
+
+      file2 = Harness.generate!(tmp, ["--tables", @chain_table, "--store-changed-from"])
+      assert {:ok, _log} = Harness.migrate_up(file2)
+
+      assert trigger_function(@chain_table) ==
+               {StorageSchema.get(), Naming.function_name(@chain_table)}
+
+      log = apply_down!(file2)
+      refute log =~ "threadline: kept"
+
+      assert trigger_function(@chain_table) ==
+               {StorageSchema.get(), Naming.function_name(@chain_table)}
+
+      assert Harness.function_exists?(Naming.function_name(@chain_table))
+      assert Harness.orphan_capture_functions() -- baseline == []
+    end
+
+    test "full-chain rollback leaves no orphaned capture function", %{
+      tmp: tmp,
+      baseline: baseline
+    } do
+      file1 = Harness.generate!(tmp, ["--tables", @chain_table])
+      assert {:ok, _log} = Harness.migrate_up(file1)
+
+      file2 = Harness.generate!(tmp, ["--tables", @chain_table, "--store-changed-from"])
+      assert {:ok, _log} = Harness.migrate_up(file2)
+
+      migrations_path = Path.join([tmp, "priv", "repo", "migrations"])
+      previous_compiler_opts = Code.compiler_options()
+      Code.compiler_options(ignore_module_conflict: true)
+
+      try do
+        Ecto.Migrator.run(Repo, migrations_path, :down, all: true, log: false)
+      after
+        Code.compiler_options(previous_compiler_opts)
+      end
+
+      assert Harness.threadline_triggers("public", @chain_table) == []
+      assert Harness.orphan_capture_functions() -- baseline == []
+      # Secondary check only — the orphan check above is the real proof (D-09).
+      refute Harness.function_exists?(Naming.function_name(@chain_table))
+    end
+
+    test "a single default run rolls back with no warning and no orphan", %{
+      tmp: tmp,
+      baseline: baseline
+    } do
+      file = Harness.generate!(tmp, ["--tables", @chain_table])
+      {:ok, up_log} = Harness.migrate_up(file)
+      refute up_log =~ "threadline: kept"
+
+      down_log = apply_down!(file)
+      refute down_log =~ "threadline: kept"
+
+      assert Harness.threadline_triggers("public", @chain_table) == []
+      assert Harness.orphan_capture_functions() -- baseline == []
     end
   end
 
@@ -347,6 +460,14 @@ defmodule Threadline.Capture.TriggerRerunTest do
       end)
 
     sqls |> Enum.reverse() |> Enum.each(&Repo.query!/1)
+  end
+
+  # Rolls the migration back for real through Ecto.Migrator (unlike apply_up!/1,
+  # which only replays extracted `execute` SQL) and returns what was logged at
+  # warning level or above.
+  defp apply_down!(file) do
+    {:ok, log} = Harness.migrate_down(file)
+    log
   end
 
   defp drop_if_unused, do: TriggerSQL.drop_function_if_unused(Naming.function_name(@table))

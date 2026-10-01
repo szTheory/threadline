@@ -174,8 +174,8 @@ defmodule Threadline.CiTopologyContractTest do
       {"live slice alias added to verify-test",
        String.replace(
          yaml,
-         "run: mix verify.test",
-         "run: |\n          mix verify.test\n          mix verify.dialyzer_slice"
+         "run: mix verify.test_partitioned\n",
+         "run: |\n          mix verify.test_partitioned\n          mix verify.dialyzer_slice\n"
        )}
     ]
 
@@ -228,7 +228,7 @@ defmodule Threadline.CiTopologyContractTest do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
     assert String.contains?(yaml, "- name: Run tests")
-    assert String.contains?(yaml, "run: mix verify.test")
+    assert String.contains?(yaml, "run: mix verify.test_partitioned")
     assert String.contains?(yaml, "- name: Verify Threadline trigger coverage")
     assert String.contains?(yaml, "run: mix verify.threadline")
     assert String.contains?(yaml, "- name: Verify Threadline Phoenix example")
@@ -261,9 +261,194 @@ defmodule Threadline.CiTopologyContractTest do
     assert ordered_positions?([
              position(block, "run: mix compile --warnings-as-errors"),
              position(block, "run: mix verify.xref_cycles"),
-             position(block, "run: mix verify.test")
+             position(block, "run: mix verify.test_partitioned")
            ]),
            "the xref cycle gate must run after compile and before the test suite"
+  end
+
+  defp partition_topology_errors(yaml, mix_exs, script) do
+    job = workflow_job(yaml, "verify-test")
+    run_tests_step = workflow_step(job, "Run tests")
+    self_test_step = workflow_step(job, "Prove the gate goes red (failing partition)")
+
+    verify_test_partitioned_def =
+      case Regex.run(~r/defp verify_test_partitioned.*?\n  end\n/s, mix_exs) do
+        [def_text] -> def_text
+        nil -> ""
+      end
+
+    [
+      {String.contains?(mix_exs, "\"verify.test_partitioned\": &verify_test_partitioned/1"),
+       "mix.exs must map verify.test_partitioned to a function alias"},
+      {verify_test_partitioned_def != "" and
+         String.contains?(verify_test_partitioned_def, "bin/ci-test-partitions"),
+       "verify_test_partitioned/1 must shell to bin/ci-test-partitions"},
+      {"verify.test" in ci_all_entries(mix_exs) and
+         "verify.test_partitioned" not in ci_all_entries(mix_exs),
+       "ci.all must keep running verify.test, not verify.test_partitioned"},
+      {run_tests_step != "", "the Run tests step is missing from verify-test"},
+      {run_tests_step =~ ~r/^        run: mix verify\.test_partitioned\s*$/m,
+       "Run tests must run exactly `mix verify.test_partitioned`"},
+      {not (run_tests_step =~ ~r/^        if:/m),
+       "the Run tests step must not carry an `if:` key"},
+      {not (run_tests_step =~ ~r/^        continue-on-error:/m),
+       "the Run tests step must not carry `continue-on-error:`"},
+      {self_test_step != "",
+       "a step named \"Prove the gate goes red (failing partition)\" is missing from verify-test"},
+      {self_test_step =~ ~r/^        run: bin\/ci-test-partitions --self-test\s*$/m,
+       "the self-test step must run exactly `bin/ci-test-partitions --self-test`"},
+      {not (self_test_step =~ ~r/^        if:/m),
+       "the self-test step must not carry an `if:` key"},
+      {not (self_test_step =~ ~r/^        continue-on-error:/m),
+       "the self-test step must not carry `continue-on-error:`"},
+      {ordered_positions?([
+         position(job, "run: mix compile --warnings-as-errors"),
+         position(job, "run: bin/ci-test-partitions --self-test"),
+         position(job, "run: mix verify.test_partitioned")
+       ]), "compile, then the self-test step, then Run tests must run in that order"},
+      {String.contains?(job, "MIX_TEST_PARTITION: \"1\""),
+       "the Verify Threadline trigger coverage step must set MIX_TEST_PARTITION: \"1\" (D-07)"},
+      {not String.contains?(yaml, "MIX_BIN"),
+       "MIX_BIN (the test-only seam) must never appear in ci.yml"},
+      {String.contains?(script, "|| fail=1") and
+         not Regex.match?(~r/^\s*wait\s*$/m, script),
+       "bin/ci-test-partitions must wait on each recorded PID individually, never a bare wait"},
+      {String.contains?(
+         script,
+         "\"$MIX_BIN\" test --no-compile --no-deps-check --timeout=\"$PARTITION_TEST_TIMEOUT_MS\" \"${files[@]}\""
+       ),
+       "bin/ci-test-partitions must run each partition on its assigned files with --no-compile, --no-deps-check and the partition test timeout"},
+      {not Regex.match?(~r/"\$MIX_BIN" test[^\n]*--partitions/, script),
+       "bin/ci-test-partitions must not fall back to Mix's round-robin --partitions (files are assigned by weight)"},
+      {Regex.match?(
+         ~r/^\s+verify_assignment "\$n" "\$enumerated" "\$assignment" \|\| \{$/m,
+         script
+       ),
+       "bin/ci-test-partitions must check that every test file is assigned exactly once before running"},
+      {String.contains?(script, "WEIGHTS_REL=\"test/partition_weights.txt\"") and
+         File.exists?(Path.join(@repo_root, "test/partition_weights.txt")),
+       "bin/ci-test-partitions must read the committed test/partition_weights.txt"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  test "verify-test runs the suite in fail-closed partitions after compile (SUITE-02)" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+    mix_exs = read_rel!(["mix.exs"])
+    script = read_rel!(["bin", "ci-test-partitions"])
+
+    assert partition_topology_errors(yaml, mix_exs, script) == []
+
+    run_tests_step_text = "      - name: Run tests\n        run: mix verify.test_partitioned\n"
+
+    self_test_step_text =
+      "      - name: Prove the gate goes red (failing partition)\n        run: bin/ci-test-partitions --self-test\n"
+
+    assert String.contains?(yaml, run_tests_step_text), "mutation anchor missing"
+    assert String.contains?(yaml, self_test_step_text), "mutation anchor missing"
+
+    mutation_controls = [
+      {"Run tests reverted to mix verify.test",
+       String.replace(
+         yaml,
+         "        run: mix verify.test_partitioned\n",
+         "        run: mix verify.test\n"
+       ), mix_exs, script},
+      {"Run tests replaced by inline background-and-wait shell",
+       String.replace(
+         yaml,
+         "        run: mix verify.test_partitioned\n",
+         "        run: |\n" <>
+           "          MIX_TEST_PARTITION=1 mix test --partitions 3 &\n" <>
+           "          MIX_TEST_PARTITION=2 mix test --partitions 3 &\n" <>
+           "          wait\n"
+       ), mix_exs, script},
+      {"Run tests moved before the compile step",
+       yaml
+       |> String.replace(run_tests_step_text, "")
+       |> String.replace(
+         "      - name: Compile (warnings as errors)\n",
+         run_tests_step_text <> "      - name: Compile (warnings as errors)\n"
+       ), mix_exs, script},
+      {"self-test step renamed",
+       String.replace(
+         yaml,
+         "Prove the gate goes red (failing partition)",
+         "Prove the gate goes red"
+       ), mix_exs, script},
+      {"self-test step deleted", String.replace(yaml, self_test_step_text, ""), mix_exs, script},
+      {"continue-on-error added to Run tests",
+       String.replace(
+         yaml,
+         run_tests_step_text,
+         "      - name: Run tests\n        continue-on-error: true\n        run: mix verify.test_partitioned\n"
+       ), mix_exs, script},
+      {"if added to Run tests",
+       String.replace(
+         yaml,
+         run_tests_step_text,
+         "      - name: Run tests\n        if: matrix.lane == 'current'\n        run: mix verify.test_partitioned\n"
+       ), mix_exs, script},
+      {"if added to the self-test step",
+       String.replace(
+         yaml,
+         self_test_step_text,
+         "      - name: Prove the gate goes red (failing partition)\n        if: matrix.lane == 'current'\n        run: bin/ci-test-partitions --self-test\n"
+       ), mix_exs, script},
+      {"MIX_BIN env added to verify-test",
+       String.replace(
+         yaml,
+         "  verify-test:\n",
+         "  verify-test:\n    env:\n      MIX_BIN: /bin/true\n"
+       ), mix_exs, script},
+      {"the D-07 env line removed",
+       String.replace(yaml, "          MIX_TEST_PARTITION: \"1\"\n", ""), mix_exs, script},
+      {"ci.all switched to the partitioned alias", yaml,
+       String.replace(mix_exs, "\"verify.test\",\n", "\"verify.test_partitioned\",\n"), script},
+      {"the script's per-PID wait replaced by a bare wait", yaml, mix_exs,
+       String.replace(
+         script,
+         "  local fail=0\n  for i in $(seq 1 \"$n\"); do\n    wait \"${pids[i]}\" || fail=1\n  done\n",
+         "  local fail=0\n  wait\n"
+       )},
+      {"--no-compile removed from the script", yaml, mix_exs,
+       String.replace(script, " --no-compile --no-deps-check", " --no-deps-check")},
+      {"the runner flipped back to Mix's round-robin --partitions", yaml, mix_exs,
+       String.replace(
+         script,
+         "\"$MIX_BIN\" test --no-compile --no-deps-check --timeout=\"$PARTITION_TEST_TIMEOUT_MS\" \"${files[@]}\"",
+         "\"$MIX_BIN\" test --partitions \"$n\" --no-compile --no-deps-check"
+       )},
+      {"--partitions added alongside the assigned files", yaml, mix_exs,
+       String.replace(
+         script,
+         "\"$MIX_BIN\" test --no-compile --no-deps-check --timeout=\"$PARTITION_TEST_TIMEOUT_MS\" \"${files[@]}\"",
+         "\"$MIX_BIN\" test --no-compile --no-deps-check --partitions \"$n\" \"${files[@]}\""
+       )},
+      {"the partition test timeout dropped", yaml, mix_exs,
+       String.replace(script, " --timeout=\"$PARTITION_TEST_TIMEOUT_MS\"", "")},
+      {"the exactly-once assignment check dropped", yaml, mix_exs,
+       String.replace(
+         script,
+         "  verify_assignment \"$n\" \"$enumerated\" \"$assignment\" || {\n",
+         "  true || {\n"
+       )},
+      {"the weights file path changed", yaml, mix_exs,
+       String.replace(
+         script,
+         "WEIGHTS_REL=\"test/partition_weights.txt\"",
+         "WEIGHTS_REL=\"test/missing_weights.txt\""
+       )}
+    ]
+
+    for {label, y, mexs, s} <- mutation_controls do
+      refute {y, mexs, s} == {yaml, mix_exs, script},
+             "#{label} control did not change the input"
+
+      assert partition_topology_errors(y, mexs, s) != [],
+             "#{label} mutation must make the partition topology contract fail"
+    end
   end
 
   test "verify-test checkout includes complete history and annotated tags" do
@@ -1199,5 +1384,111 @@ defmodule Threadline.CiTopologyContractTest do
              "ruleset's sole required context (#{inspect(context)}) — GitHub matches " <>
              "required checks on the exact emitted job name (D-08), so this mismatch would " <>
              "make the required check permanently unsatisfiable."
+  end
+
+  # --- Plan 224-03: bench compiles bare via preferred_envs, proven in an existing
+  # per-PR CI job (SUITE-05, D-13..D-17) ---
+
+  defp bench_compile_errors(bench_mix, mix_exs, yaml) do
+    ci_all = ci_all_entries(mix_exs)
+    no_optional_idx = Enum.find_index(ci_all, &(&1 == "verify.compile_no_optional"))
+    bench_idx = Enum.find_index(ci_all, &(&1 == "verify.bench_compile"))
+    bench_count = Enum.count(ci_all, &(&1 == "verify.bench_compile"))
+
+    job = workflow_job(yaml, "verify-compile-no-optional")
+    no_optional_run_pos = position(job, "run: mix verify.compile_no_optional")
+    bench_run_pos = position(job, "run: mix verify.bench_compile")
+
+    other_jobs_with_bench_step =
+      for id <- workflow_job_ids(yaml),
+          id != "verify-compile-no-optional",
+          String.contains?(workflow_job(yaml, id), "mix verify.bench_compile"),
+          do: id
+
+    verify_bench_compile_def =
+      case Regex.run(~r/defp verify_bench_compile.*?\n  end\n/s, mix_exs) do
+        [def_text] -> strip_comment_lines(def_text)
+        nil -> ""
+      end
+
+    [
+      {String.contains?(bench_mix, "def cli") and
+         String.contains?(bench_mix, "preferred_envs: [compile: :test, run: :test]"),
+       "bench/mix.exs must define def cli with preferred_envs: [compile: :test, run: :test]"},
+      {bench_count == 1,
+       "ci.all must contain \"verify.bench_compile\" exactly once, found #{bench_count}"},
+      {not is_nil(no_optional_idx) and not is_nil(bench_idx) and
+         bench_idx == no_optional_idx + 1,
+       "\"verify.bench_compile\" must directly follow \"verify.compile_no_optional\" in ci.all"},
+      {job != "", "the verify-compile-no-optional job is missing from ci.yml"},
+      {not is_nil(no_optional_run_pos) and not is_nil(bench_run_pos) and
+         bench_run_pos > no_optional_run_pos,
+       "verify-compile-no-optional must run mix verify.bench_compile after " <>
+         "mix verify.compile_no_optional"},
+      {other_jobs_with_bench_step == [],
+       "mix verify.bench_compile must not run in any other job, found: " <>
+         inspect(other_jobs_with_bench_step)},
+      {verify_bench_compile_def != "", "verify_bench_compile/1 is missing from mix.exs"},
+      {String.contains?(verify_bench_compile_def, "unset MIX_ENV"),
+       "verify_bench_compile/1 must unset MIX_ENV"},
+      {not String.contains?(verify_bench_compile_def, "MIX_ENV="),
+       "verify_bench_compile/1 must not set MIX_ENV= anywhere in its command"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  test "bench compiles bare via preferred_envs and is proven in the no-optional CI job (SUITE-05)" do
+    bench_mix = read_rel!(["bench", "mix.exs"])
+    mix_exs = read_rel!(["mix.exs"])
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert bench_compile_errors(bench_mix, mix_exs, yaml) == []
+
+    other_job_anchor = "      - name: Ensure hex_evaluator_test database exists\n"
+    assert String.contains?(yaml, other_job_anchor), "the mutation anchor must exist to mutate"
+
+    mutation_controls = [
+      {"preferred_envs removed from bench/mix.exs",
+       String.replace(
+         bench_mix,
+         "def cli, do: [preferred_envs: [compile: :test, run: :test]]\n",
+         ""
+       ), mix_exs, yaml},
+      {"verify.bench_compile removed from ci.all", bench_mix,
+       String.replace(mix_exs, "\"verify.bench_compile\",\n", ""), yaml},
+      {"verify.bench_compile moved after verify.test in ci.all", bench_mix,
+       String.replace(
+         mix_exs,
+         "\"verify.bench_compile\",\n        \"verify.test\",\n",
+         "\"verify.test\",\n        \"verify.bench_compile\",\n"
+       ), yaml},
+      {"run: mix verify.bench_compile removed from the CI step", bench_mix, mix_exs,
+       String.replace(
+         yaml,
+         "      - name: Compile bench project (bare mix compile)\n        run: mix verify.bench_compile\n\n",
+         ""
+       )},
+      {"the bench compile step also runs in another job", bench_mix, mix_exs,
+       String.replace(
+         yaml,
+         other_job_anchor,
+         "      - name: Compile bench project (bare mix compile)\n        run: mix verify.bench_compile\n\n" <>
+           other_job_anchor
+       )},
+      {"MIX_ENV= appears in verify_bench_compile/1's command", bench_mix,
+       String.replace(mix_exs, "unset MIX_ENV", "MIX_ENV=dev"), yaml}
+    ]
+
+    for {control, bmix, mexs, y} <- mutation_controls do
+      refute {bmix, mexs, y} == {bench_mix, mix_exs, yaml},
+             "#{control} control did not change the input"
+
+      errors = bench_compile_errors(bmix, mexs, y)
+
+      assert errors != [],
+             "#{control} mutation must make the bench_compile_errors contract fail, got: " <>
+               inspect(errors)
+    end
   end
 end

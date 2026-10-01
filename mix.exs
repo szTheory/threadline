@@ -15,6 +15,7 @@ defmodule Threadline.MixProject do
         "verify.release": :dev,
         "verify.bump_rehearsal": :dev,
         "verify.test": :test,
+        "verify.test_partitioned": :test,
         # `test.reset` runs `ecto.drop -r Threadline.Test.Repo`, and that repo only
         # exists on the :test compile path (see elixirc_paths/1) — without this it
         # fails with `Could not load Threadline.Test.Repo, error: :nofile`.
@@ -141,6 +142,11 @@ defmodule Threadline.MixProject do
         "test test/threadline/dialyzer_slice_contract_test.exs --only live_dialyzer"
       ],
       "verify.test": ["test"],
+      # CI's partitioned test step (SUITE-02): runs bin/ci-test-partitions, N
+      # concurrent `mix test <files>` processes (files split by measured weight,
+      # test/partition_weights.txt), each on its own database.
+      # The local default stays whole and unpartitioned (`mix verify.test` above).
+      "verify.test_partitioned": &verify_test_partitioned/1,
       "verify.threadline": ["threadline.verify_coverage"],
       "verify.release": &verify_release/1,
       # Simulate the NEXT MINOR release commit and run the release gates against
@@ -178,6 +184,9 @@ defmodule Threadline.MixProject do
       "verify.operator_component_contracts": &verify_operator_component_contracts/1,
       "verify.hex_evaluator": &verify_hex_evaluator/1,
       "verify.bench": &verify_bench/1,
+      # Per-PR proof that bench compiles bare (SUITE-05): unlike verify.bench above it
+      # runs no benchmark and is wired into ci.all right after verify.compile_no_optional.
+      "verify.bench_compile": &verify_bench_compile/1,
       # Per-PR supply-chain gate (SUP-02): asserts Hex >= 2.5.1, then runs
       # `deps.unlock --check-unused` + `hex.audit` over root, bench and the
       # example app's lockfiles via bin/verify-deps-audit. CLI args are
@@ -195,12 +204,12 @@ defmodule Threadline.MixProject do
         "xref graph --format cycles --label compile-connected --fail-above 0"
       ],
       # Flake detection: re-run the suite until a failure surfaces (each repeat
-      # uses a fresh seed): 12 repeats, 13 suite runs. Runs weekly plus on
+      # uses a fresh seed): 11 repeats, 12 suite runs. Runs weekly plus on
       # dispatch in the Flake Detection workflow, under a time budget; not part
       # of `ci.all` so per-PR CI stays fast. Longer local soaks use
       # `mix test --repeat-until-failure N`. See the "Deterministic tests"
       # section in CONTRIBUTING.md.
-      "verify.flake": ["test --repeat-until-failure 12"],
+      "verify.flake": ["test --repeat-until-failure 11"],
       # HYG-03: proves a full `mix test` run leaves nothing behind in the system
       # temp dir, via bin/verify-temp-leaks (private TMPDIR + leftover scan).
       # Opt-in / not in `ci.all`, same rationale as verify.flake above — it
@@ -230,6 +239,7 @@ defmodule Threadline.MixProject do
         "compile --warnings-as-errors",
         "verify.xref_cycles",
         "verify.compile_no_optional",
+        "verify.bench_compile",
         "verify.test",
         "verify.threadline",
         "verify.example",
@@ -265,10 +275,30 @@ defmodule Threadline.MixProject do
     end
   end
 
+  defp verify_bench_compile(_args) do
+    # `unset MIX_ENV` keeps this proof bare even when the maintainer runs
+    # `MIX_ENV=test mix ci.all` — the point is proving bare `mix compile` works via
+    # bench/mix.exs's own `preferred_envs`, not whatever the parent shell exports.
+    cmd =
+      "bash -lc 'set -euo pipefail && unset MIX_ENV && cd bench && mix deps.get && mix compile --warnings-as-errors'"
+
+    case Mix.shell().cmd(cmd) do
+      0 -> :ok
+      status -> Mix.raise("verify.bench_compile failed (#{status})")
+    end
+  end
+
   defp verify_deps_audit(_args) do
     case Mix.shell().cmd("bin/verify-deps-audit") do
       0 -> :ok
       status -> Mix.raise("verify.deps_audit failed (#{status})")
+    end
+  end
+
+  defp verify_test_partitioned(_args) do
+    case Mix.shell().cmd("bin/ci-test-partitions") do
+      0 -> :ok
+      status -> Mix.raise("verify.test_partitioned failed (#{status})")
     end
   end
 
