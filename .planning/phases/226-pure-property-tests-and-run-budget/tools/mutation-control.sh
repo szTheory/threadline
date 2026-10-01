@@ -120,13 +120,33 @@ extract_n() {
 }
 
 extract_counterexample() {
-  # Everything from "Failed with generated values" through the next blank
-  # line (StreamData's shrunk-counterexample block).
-  awk '/Failed with generated values/{flag=1} flag{print} flag && /^\s*$/{exit}' "$1"
+  # Everything from "Failed with generated values" through the whole
+  # shrunk-counterexample block: every "Clause: ..." line, every generated
+  # value underneath it (including multi-line pretty-printed values and the
+  # blank lines between clauses), stopping at the first non-blank line whose
+  # indentation is shallower than the first "Clause:" line's — the start of
+  # the assertion message. Uses POSIX `[[:space:]]` throughout, never the
+  # GNU-only `\s` escape, so this behaves the same under BWK awk (macOS) and
+  # GNU awk (Linux CI) — see D-23.
+  awk '
+    /Failed with generated values/ { flag = 1 }
+    flag {
+      if (!seen_clause && $0 ~ /Clause:/) {
+        match($0, /^[[:space:]]*/)
+        width = RLENGTH
+        seen_clause = 1
+      }
+      if (seen_clause && $0 !~ /^[[:space:]]*$/) {
+        match($0, /^[[:space:]]*/)
+        if (RLENGTH < width) exit
+      }
+      print
+    }
+  ' "$1"
 }
 
 extract_failure_headers() {
-  grep -E '^\s*[0-9]+\) ' "$1" || true
+  grep -E '^[[:space:]]*[0-9]+\) ' "$1" || true
 }
 
 SEED_RESULTS=()
@@ -250,6 +270,11 @@ REPORT="$(
     for line in "${SEED_RESULTS[@]}"; do
       echo "$line"
     done
+    echo "\`\`\`"
+    echo
+    echo "Shrunk counterexample (seed 1):"
+    echo "\`\`\`text"
+    echo "$FIRST_COUNTEREXAMPLE"
     echo "\`\`\`"
     echo
     echo "Kill rate: ${K}/${K}"
