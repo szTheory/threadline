@@ -154,7 +154,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 226-05-PLAN.md — PROP-08 wiring: fail-fast scale, Flake Detection scale 5, existing properties migrated, contract test, generator coverage floors (wave 4)
+- [x] 226-05-PLAN.md — PROP-08 wiring: fail-fast scale, Flake Detection scale 5, existing properties migrated, contract test, generator coverage floors (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -232,7 +232,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
-| 226. Pure Property Tests and Run Budget | 4/6 | In Progress | - |
+| 226. Pure Property Tests and Run Budget | 5/6 | In Progress | - |
 | 227. DB-Backed Property Tests | 0/TBD | Not started | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
