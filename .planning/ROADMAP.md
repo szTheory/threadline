@@ -136,7 +136,30 @@ Plans:
   4. VERIFICATION.md records a mutation control for each of the four properties: the invariant broken on purpose, the property red, and the failing seed.
   5. VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 226-01-PLAN.md — Tracer: PropertyRuns + mutation-control runner on the redaction-policy property; full PROP-03; D-18 fail-loudly fixes (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 226-02-PLAN.md — PROP-01 cursor paging: Cursors.actor_history_page/4 refactor, tie-heavy property vs independent oracle, DB agreement tests, two mutation controls (wave 2)
+- [ ] 226-03-PLAN.md — PROP-02 ChangeDiff fact-first oracle, structural and metamorphic properties, mutation control (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 226-04-PLAN.md — PROP-05 export round-trip: strict RFC 4180 decoder, D-17 bare-CR fix, D-19 defaults pinned, two mutation controls (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 226-05-PLAN.md — PROP-08 wiring: fail-fast scale, Flake Detection scale 5, existing properties migrated, contract test, generator coverage floors (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 226-06-PLAN.md — SC-4/SC-5 evidence, local wall clock, granted CI + scale-5 Flake Detection re-derivation (wave 5, maintainer grant)
+
 **Research**: Not needed. Property shapes are specified per target in `research/STACK.md` §1 and mirror the two existing property files.
 
 ### Phase 227: DB-Backed Property Tests

@@ -4,15 +4,15 @@ milestone: v1.44
 milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 226
 current_phase_name: Pure Property Tests and Run Budget
-status: planning
-stopped_at: Phase 226 context gathered
-last_updated: "2026-10-01T11:05:47.046Z"
+status: executing
+stopped_at: Phase 226 planned (6 plans, 5 waves)
+last_updated: "2026-10-01T11:51:15.467Z"
 last_activity: 2026-10-01
-last_activity_desc: Phase 225 complete, transitioned to Phase 226
+last_activity_desc: Phase 226 planned — 6 plans in 5 waves, checker passed (0 blockers)
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 8
+  total_plans: 14
   completed_plans: 8
   percent: 29
 state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 Phase: 226 — Pure Property Tests and Run Budget
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-01 — Phase 225 complete, transitioned to Phase 226
+Status: Ready to execute
+Last activity: 2026-10-01 — Phase 226 planned: 6 plans in 5 waves (research, patterns, checker 0 blockers / advisory warnings; 5/5 reqs, 24/24 decisions covered)
 
-Progress: [███░░░░░░░] 2 of 7 v1.44 phases complete ([███░░░░░░░] 29%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-discuss-phase 226. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [███░░░░░░░] 2 of 7 v1.44 phases complete ([███░░░░░░░] 29%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 226 (226-06 needs a maintainer push + dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 

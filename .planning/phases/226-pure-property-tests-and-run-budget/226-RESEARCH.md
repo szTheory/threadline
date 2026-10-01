@@ -354,7 +354,9 @@ This file's own moduledoc *already anticipates* D-07's scale knob ("a later phas
 
 **If this table is empty:** N/A — two low-risk assumptions remain, both already mitigated by CONTEXT.md's own design (D-16's example-test requirement, and the double-sourcing of the NimbleCSV claim).
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Resolved at planning: Q1 — `Query.row_history_page/4` exists (`query.ex:81`) and, like `timeline_page/2`, only calls the already-pure `Cursors.timeline_page_next_cursor/2`; D-01 extracts actor history only (226-02 Task 1). Q2 — 226-04 Task 2 uses option (b), a hidden `Threadline.Export.CSV` defined via `NimbleCSV.define/2` with `\r` reserved, because option (a)'s pre-wrapped quotes would be re-escaped by NimbleCSV.
 
 1. **Does the timeline/row-history path need any `Cursors` extraction at all (D-01's "if they have equivalent glue")?**
    - What we know: `timeline_page/2` (`query.ex:308-337`) already calls `Cursors.timeline_page_next_cursor/2` directly on `entries` with no interleaved trim/has-more logic — there is no "glue" comparable to `actor_history`'s.
