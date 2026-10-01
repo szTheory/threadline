@@ -249,7 +249,7 @@ per-PR CI stays fast. A run that does not pass ends red with one of these outcom
 same number on every PR, no knob needed. `THREADLINE_PROPERTY_SCALE=5 mix test
 <file>` multiplies a property's run count for a deeper local check. Allowed
 values are the integers `1`..`10`; anything else aborts the run before any
-test executes (`Threadline.Test.PropertyRuns.parse_scale/1`). Pure properties
+test executes (see `test/support/property_runs.ex`, `parse_scale/1`). Pure properties
 scale by the value (`pure x scale`); DB-backed properties scale by at most 3
 (`DB x min(scale, 3)`), since every DB-property iteration runs real DDL or
 real queries, not just in-memory computation. The weekly Flake Detection lane
