@@ -27,6 +27,7 @@ defmodule Threadline.PropertyGeneratorCoverageTest do
   alias Threadline.Test.ChangeFactGenerators
   alias Threadline.Test.CursorGenerators
   alias Threadline.Test.ExportHostileValueGenerators
+  alias Threadline.Test.RedactionLeakGenerators
   alias Threadline.Test.RedactionPolicyGenerators
 
   @sample_size 1000
@@ -36,6 +37,20 @@ defmodule Threadline.PropertyGeneratorCoverageTest do
     for i <- 1..n do
       gen
       |> StreamData.resize(rem(i, 100) + 1)
+      |> StreamData.seeded(i)
+      |> Enum.at(0)
+    end
+  end
+
+  @doc """
+  n independent, deterministic draws from a DB-backed generator, with a
+  1..20 size ramp (`rem(i, 20) + 1`) matching `PropertyRuns.db/1`'s max_runs
+  ceiling, rather than `sample/2`'s 1..100 ramp for pure properties (D-26).
+  """
+  def sample_db(gen, n \\ @sample_size) do
+    for i <- 1..n do
+      gen
+      |> StreamData.resize(rem(i, 20) + 1)
       |> StreamData.seeded(i)
       |> Enum.at(0)
     end
@@ -216,6 +231,81 @@ defmodule Threadline.PropertyGeneratorCoverageTest do
 
       assert Enum.any?(all_values, &is_nil/1),
              "expected a nil value (a none before_values column, or a JSON null leaf)"
+    end
+  end
+
+  # ---------------------------------------------------------------------
+  # Redaction leak op plans (RedactionLeakGenerators.op_plan_gen/0)
+  # ---------------------------------------------------------------------
+
+  defp redacted_written_values(plan) do
+    insert_values =
+      [:secret_excluded, :secret_masked, :profile_masked]
+      |> Enum.map(&RedactionLeakGenerators.value(Map.fetch!(plan.insert, &1)))
+
+    step_values =
+      Enum.flat_map(plan.steps, fn
+        %{kind: :touch_redacted, values: values} ->
+          values |> Map.values() |> Enum.map(&RedactionLeakGenerators.value/1)
+
+        _ ->
+          []
+      end)
+
+    insert_values ++ step_values
+  end
+
+  defp both_redacted_slots_touched?(plan) do
+    Enum.any?(plan.steps, fn
+      %{kind: :touch_redacted, values: values} ->
+        Map.has_key?(values, :secret_excluded) and Map.has_key?(values, :secret_masked)
+
+      _ ->
+        false
+    end)
+  end
+
+  defp multibyte?(value) when is_binary(value) do
+    value |> String.to_charlist() |> Enum.any?(&(&1 > 127))
+  end
+
+  defp multibyte?(_), do: false
+
+  describe "RedactionLeakGenerators.op_plan_gen/0 (canary and hostile-shape bias)" do
+    test "a touch_redacted step changing both secret_excluded and secret_masked appears in >= 40% of plans (D-26)" do
+      samples = sample_db(RedactionLeakGenerators.op_plan_gen())
+      count = Enum.count(samples, &both_redacted_slots_touched?/1)
+
+      assert count / length(samples) >= 0.40,
+             "expected >=40% of plans to have a touch_redacted step touching both " <>
+               "secret_excluded and secret_masked (protects the dual-mask/exclude " <>
+               "coverage floor), got #{count}/#{length(samples)}"
+    end
+
+    test "redacted values cover nil, empty string, exact placeholder, placeholder as substring, multibyte, and >1KB (D-26)" do
+      samples = sample_db(RedactionLeakGenerators.op_plan_gen())
+      values = Enum.flat_map(samples, &redacted_written_values/1)
+
+      assert Enum.any?(values, &is_nil/1),
+             "expected at least one nil redacted value (structural-check-only rung)"
+
+      assert Enum.any?(values, &(&1 == "")),
+             "expected at least one empty-string redacted value (structural-check-only rung)"
+
+      assert Enum.any?(values, &(&1 == "[REDACTED]")),
+             "expected at least one exact-placeholder redacted value (structural-check-only rung)"
+
+      assert Enum.any?(values, fn v ->
+               is_binary(v) and v != "[REDACTED]" and String.contains?(v, "[REDACTED]")
+             end),
+             "expected at least one redacted value containing the placeholder as a substring " <>
+               "without being the exact placeholder (hostile-wrapper bias)"
+
+      assert Enum.any?(values, &multibyte?/1),
+             "expected at least one multibyte redacted value (hostile-wrapper bias)"
+
+      assert Enum.any?(values, fn v -> is_binary(v) and byte_size(v) > 1024 end),
+             "expected at least one redacted value over 1 KB (padding bias)"
     end
   end
 end
