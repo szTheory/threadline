@@ -1,0 +1,15 @@
+diff --git a/lib/threadline/export.ex b/lib/threadline/export.ex
+index c5b7a6b7..91d17b40 100644
+--- a/lib/threadline/export.ex
++++ b/lib/threadline/export.ex
+@@ -275,9 +275,7 @@ defmodule Threadline.Export do
+   end
+ 
+   defp dump_csv_to_iodata(rows) do
+-    rows
+-    |> CSV.dump_to_iodata()
+-    |> Enum.map(&IO.iodata_to_binary/1)
++    Enum.map(rows, fn row -> Enum.join(Enum.map(row, &to_string/1), ",") <> "\r\n" end)
+   end
+ 
+   @doc """
