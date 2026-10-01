@@ -119,6 +119,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
   defmodule Threadline.OperatorSurface.StressRouterTest do
     use ExUnit.Case, async: false
+
+    # Every test here renders the full operator surface, and one shells out to a
+    # cold `MIX_ENV=prod` compile. Sharing the CI runner with the other test
+    # partitions, single tests exceeded ExUnit's default 60s (CI runs
+    # 36799589565 and 36800563728), so the module carries the same kind of
+    # budget as the other nested-build contract tests.
+    @moduletag timeout: 180_000
     import Phoenix.ConnTest
     import Phoenix.LiveViewTest
 
@@ -278,11 +285,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       purge_modules(modules)
     end
 
-    # A cold `MIX_ENV=prod` compile of the project and its deps. On the min CI
-    # lane, sharing the runner with the other test partitions, that exceeds
-    # ExUnit's default 60s (CI run 36799589565), so it gets the same generous
-    # budget as the other nested-build contract tests.
-    @tag timeout: 180_000
     test "real prod Mix.env macro path fails closed without the stress_env hook" do
       {output, status} =
         System.cmd(
