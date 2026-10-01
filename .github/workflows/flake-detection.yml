@@ -6,12 +6,12 @@
 #
 # 218-05 (ECON-01, D-01/D-02): the lane used to run nightly with an unbounded
 # 50-repeat soak that outgrew its job timeout, so it was cancelled four nights
-# running and reported nothing. It now runs weekly with a bounded 12-repeat
+# running and reported nothing. It now runs weekly with a bounded 11-repeat
 # budget, so every run ends with a classification a maintainer can act on.
 #
-# 225-03 (SUITE-02 D-11): re-derived from dispatch run 36364688861
-# (2026-09-28, the newest completed run whose repeat step ran every iteration
-# to the end), not partitioned -- every iteration still reshuffles the whole
+# 225 (SUITE-02 D-11): re-derived from dispatch run 36810083586
+# (2026-10-01, the first run on the partitioned-CI head, every iteration run
+# to the end; an earlier sizing used run 36364688861), not partitioned -- every iteration still reshuffles the whole
 # suite, which is what catches order-dependent flakes.
 #
 # GREEN-11 / D-35. This lane classifies what it found BY NAME rather than filing
@@ -40,18 +40,17 @@ jobs:
   verify-flake:
     name: Suite repeat-until-failure (broken vs flaky)
     runs-on: ubuntu-24.04
-    # `mix verify.flake` is `mix test --repeat-until-failure 12`: 13 suite runs
-    # (the initial run plus 12 repeats).
+    # `mix verify.flake` is `mix test --repeat-until-failure 11`: 12 suite runs
+    # (the initial run plus 11 repeats).
     #
-    # Budget arithmetic (D-01, re-derived 225-03 D-11), from dispatch run
-    # 36364688861 (2026-09-28, 2583 tests): 255.9 s cold first run, repeats
-    # 197.4-201.2 s. Adding the 5.1 s measured cost of the property test added
-    # since that run's head commit (224-EVIDENCE.md "Property test cost";
-    # SUITE-03's telemetry async conversion is credited 0 s -- it can only
-    # shorten an iteration) and rounding each up to whole seconds gives
-    # ceilings of 261 s cold / 207 s per repeat. At 12 repeats: 261 + 12 x 207
-    # = 2,745 s, about 46 min, leaving about 17% headroom under the 55-minute
-    # budget -- 12 repeats still fits, so the repeat count is unchanged. The
+    # Budget arithmetic (D-01, re-derived for SUITE-02 D-11), from dispatch run
+    # 36810083586 (2026-10-01, 2588 tests, classification pass after 13 suite
+    # runs): 286.3 s cold first run, repeats 223.8-227.2 s. Rounded up to whole
+    # seconds with a 1 s margin, the ceilings are 287 s cold / 228 s per
+    # repeat. At the earlier 12 repeats: 287 + 12 x 228 = 3,023 s, over the
+    # 2,970 s usable (the 55-minute budget less 10% headroom), so the count
+    # drops to 11: 287 + 11 x 228 = 2,795 s, about 47 min, leaving about 15%
+    # headroom. The
     # repeat step runs under a `timeout(1)` budget of 55 min, so a budget
     # expiry writes exit 124 (137 if the suite ignores SIGTERM for 60 s) and
     # is classified `inconclusive`, never `unknown` or `flaky`. The step

@@ -204,12 +204,12 @@ defmodule Threadline.MixProject do
         "xref graph --format cycles --label compile-connected --fail-above 0"
       ],
       # Flake detection: re-run the suite until a failure surfaces (each repeat
-      # uses a fresh seed): 12 repeats, 13 suite runs. Runs weekly plus on
+      # uses a fresh seed): 11 repeats, 12 suite runs. Runs weekly plus on
       # dispatch in the Flake Detection workflow, under a time budget; not part
       # of `ci.all` so per-PR CI stays fast. Longer local soaks use
       # `mix test --repeat-until-failure N`. See the "Deterministic tests"
       # section in CONTRIBUTING.md.
-      "verify.flake": ["test --repeat-until-failure 12"],
+      "verify.flake": ["test --repeat-until-failure 11"],
       # HYG-03: proves a full `mix test` run leaves nothing behind in the system
       # temp dir, via bin/verify-temp-leaks (private TMPDIR + leftover scan).
       # Opt-in / not in `ci.all`, same rationale as verify.flake above — it
