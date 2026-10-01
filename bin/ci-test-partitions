@@ -143,7 +143,7 @@ assign_files() {
 
   flags="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-flags.XXXXXX")"
   while IFS= read -r f; do
-    if grep -q 'async: true' "$f"; then
+    if grep -qE '^[[:space:]]*use [A-Za-z0-9_.]+,.*async:[[:space:]]*true' "$f"; then
       printf '%s\t1\n' "$f"
     else
       printf '%s\t0\n' "$f"
@@ -302,7 +302,7 @@ report() {
     fi
 
     counts="$(parse_counts "$log_dir/partition-$i.log")"
-    if [ "$counts" = "no tests" ] && [ -s "$log_dir/partition-$i.log" ]; then
+    if [ "$counts" = "no tests" ] && [ -s "$log_dir/partition-$i.files" ] && [ -s "$log_dir/partition-$i.log" ]; then
       # Stdout only, never the step summary: show what the log ends with so an
       # unrecognised ExUnit summary format is visible instead of silent.
       printf 'ci-test-partitions: partition %s: no test count found; last log lines:\n' "$i"
@@ -382,6 +382,19 @@ run_partitions() {
 
   local pids=()
 
+  # Armed before the first fork, so a signal during forking still kills every
+  # partition already started (an empty pids list is a no-op).
+  kill_all() {
+    local pid
+    for pid in "${pids[@]}"; do
+      kill -TERM "$pid" 2>/dev/null || true
+    done
+    wait 2>/dev/null || true
+    printf 'ci-test-partitions: interrupted, killed every partition process\n' >&2
+    exit 1
+  }
+  trap kill_all INT TERM
+
   for i in $(seq 1 "$n"); do
     (
       p_start="$(date +%s)"
@@ -408,17 +421,6 @@ run_partitions() {
     ) &
     pids[i]="$!"
   done
-
-  kill_all() {
-    local pid
-    for pid in "${pids[@]}"; do
-      kill -TERM "$pid" 2>/dev/null || true
-    done
-    wait 2>/dev/null || true
-    printf 'ci-test-partitions: interrupted, killed every partition process\n' >&2
-    exit 1
-  }
-  trap kill_all INT TERM
 
   local fail=0
   for i in $(seq 1 "$n"); do
