@@ -175,7 +175,7 @@ defmodule Threadline.RetentionTest do
       )
 
     assert result.deleted_changes == 1
-    assert result.deleted_transactions == 1
+    assert result.deleted_transactions == 2
     assert result.batches_run == 0
     assert result.dry_run == true
 
@@ -183,6 +183,51 @@ defmodule Threadline.RetentionTest do
     assert count_transactions("audit") == 2
     assert count_changes("threadline") == 2
     assert count_transactions("threadline") == 5
+  end
+
+  test "dry run counts the transactions a purge would empty, matching a completed real purge (D-20 regression)" do
+    cutoff = ~U[2001-06-01 00:00:00.000000Z]
+
+    t1 = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", t1, captured_at: DateTime.add(cutoff, -1, :microsecond))
+
+    t2 = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", t2, captured_at: cutoff)
+
+    t3 = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", t3, captured_at: DateTime.add(cutoff, -1, :second))
+    insert_change("threadline", t3, captured_at: DateTime.add(cutoff, 1, :second))
+
+    dry = Retention.purge(repo: Repo, cutoff: cutoff, dry_run: true)
+    assert dry.deleted_changes == 2
+    assert dry.deleted_transactions == 1
+
+    real =
+      Retention.purge(repo: Repo, cutoff: cutoff, batch_size: 10, max_batches: 5, sleep_ms: 0)
+
+    assert real.deleted_changes == 2
+    assert real.deleted_transactions == 1
+  end
+
+  test "cutoff newer than the policy cutoff raises ArgumentError naming retention" do
+    future = DateTime.add(DateTime.utc_now(:microsecond), 1, :day)
+
+    assert_raise ArgumentError, ~r/retention/, fn ->
+      Retention.purge(repo: Repo, cutoff: future, dry_run: true)
+    end
+  end
+
+  test "a precision-0 cutoff gives the same dry-run result as the equivalent microsecond cutoff" do
+    cutoff_usec = ~U[2001-06-01 00:00:00.000000Z]
+    cutoff_precision0 = DateTime.truncate(cutoff_usec, :second)
+
+    t1 = insert_transaction("threadline", occurred_at: cutoff_usec)
+    insert_change("threadline", t1, captured_at: DateTime.add(cutoff_usec, -1, :second))
+
+    dry_usec = Retention.purge(repo: Repo, cutoff: cutoff_usec, dry_run: true)
+    dry_precision0 = Retention.purge(repo: Repo, cutoff: cutoff_precision0, dry_run: true)
+
+    assert dry_precision0 == dry_usec
   end
 
   test "purge deletes selected storage rows and records the run in the selected schema" do

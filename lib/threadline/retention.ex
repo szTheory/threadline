@@ -39,7 +39,8 @@ defmodule Threadline.Retention do
     plus orphan draining (default `10_000`).
   - **`:dry_run`** — when `true`, no deletes; returns counts of rows that **would**
     match delete predicates (`:deleted_changes` / `:deleted_transactions` are
-    those counts, `:batches_run` is `0`).
+    those counts, `:batches_run` is `0`). The preview assumes the run completes;
+    a run cut short by `:max_batches` deletes fewer.
 
   Returns `{:error, :disabled}` when `:retention` → `enabled` is not `true`.
   Successful calls return a result map (see `purge_result/0`).
@@ -143,7 +144,9 @@ defmodule Threadline.Retention do
             where:
               not exists(
                 from(c in AuditChange,
-                  where: c.transaction_id == parent_as(:audit_transaction).id,
+                  where:
+                    c.transaction_id == parent_as(:audit_transaction).id and
+                      c.captured_at >= ^cutoff,
                   select: 1
                 )
               ),

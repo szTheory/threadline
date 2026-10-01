@@ -36,6 +36,10 @@ would be read as a release.
 
 ### Fixed
 
+- `Threadline.Retention.purge/1`'s dry run now counts the audit transactions
+  the purge itself would empty, so `deleted_transactions` matches what a
+  completed run deletes. It used to count only transactions that were
+  already empty before the run. No action needed.
 - CSV export now quotes a field containing a lone carriage return (for
   example a `table_name` or correlation id with an embedded `\r`), which
   spreadsheet and Python CSV readers otherwise read as a line break,
