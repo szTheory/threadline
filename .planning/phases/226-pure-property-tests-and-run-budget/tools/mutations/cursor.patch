@@ -1,0 +1,13 @@
+diff --git a/lib/threadline/query/cursors.ex b/lib/threadline/query/cursors.ex
+index 2f95a7ca..c000d7f9 100644
+--- a/lib/threadline/query/cursors.ex
++++ b/lib/threadline/query/cursors.ex
+@@ -77,7 +77,7 @@ defmodule Threadline.Query.Cursors do
+   end
+ 
+   defp trim_actor_history(entries, _limit, true, true),
+-    do: entries |> Enum.reverse() |> Enum.drop(1)
++    do: entries |> Enum.drop(1) |> Enum.reverse()
+ 
+   defp trim_actor_history(entries, limit, true, false), do: Enum.take(entries, limit)
+   defp trim_actor_history(entries, _limit, false, true), do: Enum.reverse(entries)
