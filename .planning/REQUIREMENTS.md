@@ -19,7 +19,7 @@
 - [x] **PROP-04**: A DB-backed property varies captured values on a fixed table shape and proves that a redacted column's plaintext never appears in the stored audit change, its diff or its export output.
 - [x] **PROP-05**: A pure property proves that export (CSV and JSON) round-trips generated change maps without loss.
 - [x] **PROP-06**: A DB-backed property proves that `as_of` equals the state reconstructed by replaying the row's history in order.
-- [ ] **PROP-07**: A DB-backed property proves the retention cutoff boundary with `dry_run: true`: rows strictly older than the cutoff are selected and every row at or after it survives.
+- [x] **PROP-07**: A DB-backed property proves the retention cutoff boundary with `dry_run: true`: rows strictly older than the cutoff are selected and every row at or after it survives.
 - [x] **PROP-08**: Property run time is bounded and tunable.
   - Pure properties run with an explicit `max_runs` of about 150–200.
   - DB-backed properties run with `max_runs` of at most 20.
@@ -98,7 +98,7 @@
 | PROP-04 | Phase 227 | Complete |
 | PROP-05 | Phase 226 | Complete |
 | PROP-06 | Phase 227 | Complete |
-| PROP-07 | Phase 227 | Pending |
+| PROP-07 | Phase 227 | Complete |
 | PROP-08 | Phase 226 | Complete |
 | TELE-01 | Phase 228 | Pending |
 | TELE-02 | Phase 228 | Pending |

@@ -192,7 +192,7 @@ Plans:
 
 **Wave 4**
 
-- [ ] 227-04-PLAN.md — PROP-07 retention cutoff property with byte-identical survivors, dry-run transaction count fix (`fix:` + CHANGELOG), D-22 examples, five mutation controls (wave 4)
+- [x] 227-04-PLAN.md — PROP-07 retention cutoff property with byte-identical survivors, dry-run transaction count fix (`fix:` + CHANGELOG), D-22 examples, five mutation controls (wave 4)
 
 **Wave 5**
 
@@ -255,7 +255,7 @@ Plans:
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
-| 227. DB-Backed Property Tests | 3/5 | In Progress | - |
+| 227. DB-Backed Property Tests | 4/5 | In Progress | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
