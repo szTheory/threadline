@@ -143,7 +143,8 @@ defmodule Threadline.MixProject do
       ],
       "verify.test": ["test"],
       # CI's partitioned test step (SUITE-02): runs bin/ci-test-partitions, N
-      # concurrent `mix test --partitions N` processes each on its own database.
+      # concurrent `mix test <files>` processes (files split by measured weight,
+      # test/partition_weights.txt), each on its own database.
       # The local default stays whole and unpartitioned (`mix verify.test` above).
       "verify.test_partitioned": &verify_test_partitioned/1,
       "verify.threadline": ["threadline.verify_coverage"],

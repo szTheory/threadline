@@ -706,8 +706,9 @@ jobs:
       - name: Prove the gate goes red (failing partition)
         run: bin/ci-test-partitions --self-test
 
-      # SUITE-02: N concurrent `mix test --partitions N` processes, each on
-      # its own threadline_test<i> database (config/test.exs), aggregated by
+      # SUITE-02: N concurrent `mix test <files>` processes (test files split
+      # by measured weight, test/partition_weights.txt), each on its own
+      # threadline_test<i> database (config/test.exs), aggregated by
       # bin/ci-test-partitions. The local default stays whole and
       # unpartitioned (`mix verify.test`, CONTRIBUTING.md).
       - name: Run tests

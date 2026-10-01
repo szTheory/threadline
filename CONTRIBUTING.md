@@ -168,11 +168,18 @@ The repository's data-case helper is therefore `async: false` and cleans audit
 tables in `setup` (FK order). Keep DB-touching tests on that helper.
 
 **CI runs the suite as N concurrent partitions.** `bin/ci-test-partitions`
-starts N concurrent `mix test --partitions N` processes, each on its own
+splits the test files into N groups of roughly equal measured run time and
+starts N concurrent `mix test <files>` processes, each on its own
 `threadline_test<i>` database (`config/test.exs` interpolates
-`MIX_TEST_PARTITION`). Local `mix test` stays whole and unpartitioned — the
-literal `threadline_test` database, `MIX_TEST_PARTITION` unset.
-`mix verify.test_partitioned` reproduces CI locally. A test that creates a
+`MIX_TEST_PARTITION`). The per-file times live in the committed
+`test/partition_weights.txt`; refresh it with
+`bin/ci-test-partitions --write-weights` (one full traced local run) when the
+partition times in a CI step summary drift far apart. A stale or missing
+entry only makes the split less even — every test file still runs exactly
+once, and the script refuses to run if it would not. Local `mix test` stays
+whole and unpartitioned — the literal `threadline_test` database,
+`MIX_TEST_PARTITION` unset. `mix verify.test_partitioned` reproduces CI
+locally. A test that creates a
 cluster-wide Postgres object (a role — databases and advisory locks are
 already per-database, so they need no change) or writes a fixed path another
 module also writes must fold `System.get_env("MIX_TEST_PARTITION", "0")` into

@@ -315,9 +315,19 @@ defmodule Threadline.CiTopologyContractTest do
        "bin/ci-test-partitions must wait on each recorded PID individually, never a bare wait"},
       {String.contains?(
          script,
-         "test --partitions \"$n\" --no-compile --no-deps-check"
+         "\"$MIX_BIN\" test --no-compile --no-deps-check \"${files[@]}\""
        ),
-       "bin/ci-test-partitions must run each partition with --partitions, --no-compile and --no-deps-check"}
+       "bin/ci-test-partitions must run each partition on its assigned files with --no-compile and --no-deps-check"},
+      {not Regex.match?(~r/"\$MIX_BIN" test[^\n]*--partitions/, script),
+       "bin/ci-test-partitions must not fall back to Mix's round-robin --partitions (files are assigned by weight)"},
+      {Regex.match?(
+         ~r/^\s+verify_assignment "\$n" "\$enumerated" "\$assignment" \|\| \{$/m,
+         script
+       ),
+       "bin/ci-test-partitions must check that every test file is assigned exactly once before running"},
+      {String.contains?(script, "WEIGHTS_REL=\"test/partition_weights.txt\"") and
+         File.exists?(Path.join(@repo_root, "test/partition_weights.txt")),
+       "bin/ci-test-partitions must read the committed test/partition_weights.txt"}
     ]
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
@@ -403,7 +413,31 @@ defmodule Threadline.CiTopologyContractTest do
          "  local fail=0\n  wait\n"
        )},
       {"--no-compile removed from the script", yaml, mix_exs,
-       String.replace(script, " --no-compile --no-deps-check", " --no-deps-check")}
+       String.replace(script, " --no-compile --no-deps-check", " --no-deps-check")},
+      {"the runner flipped back to Mix's round-robin --partitions", yaml, mix_exs,
+       String.replace(
+         script,
+         "\"$MIX_BIN\" test --no-compile --no-deps-check \"${files[@]}\"",
+         "\"$MIX_BIN\" test --partitions \"$n\" --no-compile --no-deps-check"
+       )},
+      {"--partitions added alongside the assigned files", yaml, mix_exs,
+       String.replace(
+         script,
+         "\"$MIX_BIN\" test --no-compile --no-deps-check \"${files[@]}\"",
+         "\"$MIX_BIN\" test --no-compile --no-deps-check --partitions \"$n\" \"${files[@]}\""
+       )},
+      {"the exactly-once assignment check dropped", yaml, mix_exs,
+       String.replace(
+         script,
+         "  verify_assignment \"$n\" \"$enumerated\" \"$assignment\" || {\n",
+         "  true || {\n"
+       )},
+      {"the weights file path changed", yaml, mix_exs,
+       String.replace(
+         script,
+         "WEIGHTS_REL=\"test/partition_weights.txt\"",
+         "WEIGHTS_REL=\"test/missing_weights.txt\""
+       )}
     ]
 
     for {label, y, mexs, s} <- mutation_controls do
