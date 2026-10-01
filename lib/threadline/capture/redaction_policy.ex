@@ -20,8 +20,9 @@ defmodule Threadline.Capture.RedactionPolicy do
     intersection = MapSet.intersection(MapSet.new(exclude), MapSet.new(mask))
 
     if MapSet.size(intersection) > 0 do
-      sample = intersection |> MapSet.to_list() |> List.first()
-      cols = intersection |> MapSet.to_list() |> Enum.sort() |> Enum.join(", ")
+      sorted = intersection |> MapSet.to_list() |> Enum.sort()
+      sample = List.first(sorted)
+      cols = Enum.join(sorted, ", ")
 
       raise ArgumentError,
             "exclude and mask overlap on columns: #{cols}. " <>
