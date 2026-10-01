@@ -42,7 +42,7 @@ findings:
   warning: 2
   info: 2
   total: 5
-status: issues_found
+status: resolved
 ---
 
 # Phase 226: Code Review Report
@@ -193,3 +193,14 @@ between the two call sites so a future key addition doesn't repeat the gap.
 _Reviewed: 2026-10-01T17:15:39Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
+
+## Resolution
+
+| Finding | Disposition | Commit |
+|---------|-------------|--------|
+| CR-01 | fixed — `except_columns:` gets the same non-list guard as `exclude:`/`mask:` on the config load path; regression test added; CHANGELOG Breaking-changes entry widened. The direct `TriggerSQL` path already raises on a non-list (`Enum.map_join/3` on an atom), so only the config path was silent. | 742c191b |
+| WR-01 | accepted — the 200 base cap is the locked run-budget decision (D-07, pinned by `property_scale_contract_test.exs`); the weekly Flake Detection lane runs these properties at scale 5 (1,000 runs), above the old 300. | — |
+| WR-02 | fixed — the overlap message's sample column now comes from the sorted list. | bea03cd5 |
+| IN-01, IN-02 | noted, no change — informational. | — |
+
+Full suite after fixes: 28 properties, 2650 tests, 0 failures; `mix verify.credo` clean.
