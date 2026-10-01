@@ -210,7 +210,9 @@ verify_assignment() {
 
 parse_counts() {
   local log="$1" line tests failures
-  line="$(grep -E '[0-9]+ tests?, [0-9]+ failures?' "$log" 2>/dev/null | tail -1 || true)"
+  # ExUnit may colour its summary line; strip ANSI escapes before matching so a
+  # coloured "N tests, M failures" still parses on every Elixir version.
+  line="$(sed 's/\x1b\[[0-9;]*m//g' "$log" 2>/dev/null | grep -E '[0-9]+ tests?, [0-9]+ failures?' | tail -1 || true)"
 
   if [ -z "$line" ]; then
     printf 'no tests'
