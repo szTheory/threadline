@@ -5,15 +5,15 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 227
 current_phase_name: DB-Backed Property Tests
 status: executing
-stopped_at: Completed 227-01-PLAN.md
-last_updated: "2026-10-01T19:43:37.977Z"
+stopped_at: Completed 227-02-PLAN.md
+last_updated: "2026-10-01T20:14:20.958Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 227 planned (5 plans, 5 sequential waves, checker passed); next /gsd-execute-phase 227
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 19
-  completed_plans: 15
+  completed_plans: 16
   percent: 43
 state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
 ---
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 227 — DB-Backed Property Tests — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-10-01 — Plan 227-01 complete (Threadline.Test.DbProperty harness, D-06 scale-contract rule, hardened mutation-control.sh; 2e1d9dd2/abb75590/6992ce24/daff1263); next 227-02
 
-Progress: [████░░░░░░] 3 of 7 v1.44 phases complete ([████░░░░░░] 43%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phase 226 verified passed 6/6 (2026-10-01): pure StreamData properties for cursor paging (PROP-01, incl. Cursors.actor_history_page/4 and DB agreement tests), ChangeDiff (PROP-02), redaction-policy validation (PROP-03) and CSV/JSON/NDJSON export round-trip via an independent strict RFC 4180 decoder (PROP-05); seven mutation controls each killed 5/5 (226-EVIDENCE.md); Threadline.Test.PropertyRuns + THREADLINE_PROPERTY_SCALE (5 on the weekly Flake Detection lane only) with a pinning contract test and generator coverage floors (PROP-08); fixes: CSV bare-CR quoting, non-list exclude:/mask:/except_columns: and non-binary placeholders now raise (CHANGELOG Breaking changes); Flake Detection at scale 5: run 36888506162 inconclusive by budget (11 clean iterations), repeats lowered 11→8 and ceilings re-derived to 348 s cold / 295 s repeat, confirmation run 36897742852 pass 9/9; review 1 critical/2 warning/2 info — CR-01 (except_columns) and WR-02 fixed, WR-01 accepted; CI 36903609149 green on d58ef5e9. Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 227 (plan 05 stops at a maintainer push/dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [████░░░░░░] 3 of 7 v1.44 phases complete ([████████░░] 84%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phase 226 verified passed 6/6 (2026-10-01): pure StreamData properties for cursor paging (PROP-01, incl. Cursors.actor_history_page/4 and DB agreement tests), ChangeDiff (PROP-02), redaction-policy validation (PROP-03) and CSV/JSON/NDJSON export round-trip via an independent strict RFC 4180 decoder (PROP-05); seven mutation controls each killed 5/5 (226-EVIDENCE.md); Threadline.Test.PropertyRuns + THREADLINE_PROPERTY_SCALE (5 on the weekly Flake Detection lane only) with a pinning contract test and generator coverage floors (PROP-08); fixes: CSV bare-CR quoting, non-list exclude:/mask:/except_columns: and non-binary placeholders now raise (CHANGELOG Breaking changes); Flake Detection at scale 5: run 36888506162 inconclusive by budget (11 clean iterations), repeats lowered 11→8 and ceilings re-derived to 348 s cold / 295 s repeat, confirmation run 36897742852 pass 9/9; review 1 critical/2 warning/2 info — CR-01 (except_columns) and WR-02 fixed, WR-01 accepted; CI 36903609149 green on d58ef5e9. Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 227 (plan 05 stops at a maintainer push/dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 
@@ -246,6 +246,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 226 P03 | 45min | 2 tasks | 6 files |
 | Phase 226 P05 | ~1h10min | 3 tasks | 8 files |
 | Phase 227 P01 | ~1h | 3 tasks | 4 files |
+| Phase 227 P02 | 1h45m | 3 tasks | 11 files |
 
 ## Deferred Items
 
@@ -938,6 +939,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase ?]: Oracle reads only fact.fields/mode/extra_after for field_changes; ch's pass-through fields (id, table_*, data_after) are legitimate since ChangeDiff only forwards them unchanged
 - [Phase ?]: Field-name selection uses a fixed-length boolean mask over the 12-name pool, not uniq_list_of, avoiding StreamData's too-many-non-unique-elements guard (226-01 precedent)
 - [Phase ?]: 227-01: DbProperty harness (per-iteration, no Sandbox), DataCase must use PropertyRuns.db/1, mutation-control.sh compares the whole shrunk counterexample
+- [Phase ?]: op-plan generator threads independent per-step action descriptors; property body folds them into the row's current state before each UPDATE
+- [Phase ?]: LeakOracle surfaces list stays open-ended (D-11) so phase 228 can append telemetry:<event> surfaces additively with no change to this module
 
 ### Blockers
 
@@ -953,8 +956,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-01T19:43:33.235Z
-**Stopped at:** Completed 227-01-PLAN.md
+**Last session:** 2026-10-01T20:14:20.943Z
+**Stopped at:** Completed 227-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

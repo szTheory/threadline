@@ -184,7 +184,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 227-02-PLAN.md — PROP-04 redaction-leak property (LeakOracle over storage, diff and every export surface), D-13 example gap, three mutation controls (wave 2)
+- [x] 227-02-PLAN.md — PROP-04 redaction-leak property (LeakOracle over storage, diff and every export surface), D-13 example gap, three mutation controls (wave 2)
 
 **Wave 3** *(sequential: shares the coverage-floor file and the single checkout's lib/ mutation runner)*
 
@@ -255,7 +255,7 @@ Plans:
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
-| 227. DB-Backed Property Tests | 0/TBD | Not started | - |
+| 227. DB-Backed Property Tests | 2/5 | In Progress | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
