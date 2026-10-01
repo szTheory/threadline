@@ -1,9 +1,9 @@
 diff --git a/lib/threadline/capture/redaction_policy.ex b/lib/threadline/capture/redaction_policy.ex
-index 360f5268..f1bffcd5 100644
+index f2d5a141..12f0371d 100644
 --- a/lib/threadline/capture/redaction_policy.ex
 +++ b/lib/threadline/capture/redaction_policy.ex
-@@ -64,7 +64,6 @@ defmodule Threadline.Capture.RedactionPolicy do
-   defp normalize_columns(list) when is_list(list) do
+@@ -76,7 +76,6 @@ defmodule Threadline.Capture.RedactionPolicy do
+   defp normalize_columns(list, _key) when is_list(list) do
      list
      |> Enum.map(&to_string/1)
 -    |> Enum.map(&String.trim/1)

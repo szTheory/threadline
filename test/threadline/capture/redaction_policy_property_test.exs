@@ -37,8 +37,33 @@ defmodule Threadline.Capture.RedactionPolicyPropertyTest do
 
           assert error.message =~ trimmed,
                  "overlap message must name the column #{inspect(trimmed)}: #{inspect(error.message)}"
+
+        {:invalid, :empty_placeholder, _tag, opts} ->
+          assert_invalid_matches(opts, ~r/empty/i)
+
+        {:invalid, :too_long, _tag, opts} ->
+          assert_invalid_matches(opts, ~r/max length/i)
+
+        {:invalid, :control_char, _tag, opts} ->
+          assert_invalid_matches(opts, ~r/control/i)
+
+        {:invalid, :non_list_columns, _which, opts} ->
+          assert_invalid_matches(opts, ~r/must be a list/i)
+
+        {:invalid, :non_binary_placeholder, _tag, opts} ->
+          assert_invalid_matches(opts, ~r/must be a string/i)
       end
     end
+  end
+
+  defp assert_invalid_matches(opts, regex) do
+    error =
+      assert_raise ArgumentError, fn ->
+        RedactionPolicy.validate!(opts)
+      end
+
+    assert error.message =~ regex,
+           "expected message #{inspect(error.message)} to match #{inspect(regex)}"
   end
 
   describe "D-18 regression examples" do
