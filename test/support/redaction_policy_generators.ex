@@ -142,7 +142,14 @@ defmodule Threadline.Test.RedactionPolicyGenerators do
 
   @doc "The full list of tags `invalid_policy_gen/0` can produce."
   def defect_tags do
-    [:overlap, :empty_placeholder, :too_long, :control_char, :non_list_columns, :non_binary_placeholder]
+    [
+      :overlap,
+      :empty_placeholder,
+      :too_long,
+      :control_char,
+      :non_list_columns,
+      :non_binary_placeholder
+    ]
   end
 
   # A disjoint-by-construction valid exclude/mask pair, for every invalid
@@ -197,11 +204,12 @@ defmodule Threadline.Test.RedactionPolicyGenerators do
 
   defp too_long_gen do
     gen all(
-          too_long <- member_of([
-            String.duplicate("a", 201),
-            String.duplicate("é", 201),
-            String.duplicate(combining_mark_grapheme(), 201)
-          ]),
+          too_long <-
+            member_of([
+              String.duplicate("a", 201),
+              String.duplicate("é", 201),
+              String.duplicate(combining_mark_grapheme(), 201)
+            ]),
           {exclude_entries, mask_entries, opts_shape} <- disjoint_entries_gen()
         ) do
       opts = build_opts(opts_shape, exclude_entries, mask_entries, {:present, too_long})
