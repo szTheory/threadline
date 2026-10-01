@@ -176,7 +176,10 @@ starts N concurrent `mix test <files>` processes, each on its own
 `bin/ci-test-partitions --write-weights` (one full traced local run) when the
 partition times in a CI step summary drift far apart. A stale or missing
 entry only makes the split less even — every test file still runs exactly
-once, and the script refuses to run if it would not. Local `mix test` stays
+once, and the script refuses to run if it would not. Tests that write into
+the shared checkout or snapshot its `git status` must not overlap another
+partition: list them together on one line of `test/partition_colocate.txt`
+so they always share a partition. Local `mix test` stays
 whole and unpartitioned — the literal `threadline_test` database,
 `MIX_TEST_PARTITION` unset. `mix verify.test_partitioned` reproduces CI
 locally. A test that creates a

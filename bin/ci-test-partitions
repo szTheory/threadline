@@ -30,6 +30,10 @@
 # over the sorted list, which measured badly unbalanced on CI run
 # 36792875477 (partition seconds 67/217/119).
 #
+# Files listed together on one line of test/partition_colocate.txt always
+# share a partition (tests that write into the shared checkout or snapshot
+# its `git status`, which must not overlap); a group is placed as one unit.
+#
 # Stale weights can only make the partitions less even, never drop or
 # duplicate a test: before anything runs, the script checks that the union
 # of all partitions' files equals the enumerated file set with no
@@ -85,7 +89,8 @@
 # invokes mix, exits 0 on its own and does not mask a failing sibling; (o)
 # the exactly-once check rejects a duplicated, a dropped and an
 # out-of-range assignment; (p) --write-weights turns `--slowest-modules`
-# output into a sorted per-file weights file. This is the runtime mutation
+# output into a sorted per-file weights file; (q) files grouped on one line
+# of a colocate file share a partition, still exactly once. This is the runtime mutation
 # control D-10 names -- it runs as the unconditional CI step "Prove the gate
 # goes red (failing partition)" before "Run tests" on every lane.
 
@@ -114,6 +119,7 @@ SCRIPT_PATH="$SCRIPT_DIR/$(basename "${BASH_SOURCE[0]}")"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 MIX_BIN="${MIX_BIN:-mix}"
 WEIGHTS_REL="test/partition_weights.txt"
+COLOCATE_REL="test/partition_colocate.txt"
 
 # --- Test file enumeration and weighted assignment -----------------------------
 
@@ -127,10 +133,11 @@ enumerate_test_files() {
 # Prints `<partition>\t<file>\t<effective weight>` for every enumerated file.
 # Args: N, weights file (may be missing), enumerated file list.
 assign_files() {
-  local n="$1" weights="$2" enumerated="$3"
+  local n="$1" weights="$2" enumerated="$3" colocate="${4:-$COLOCATE_REL}"
   local f flags
 
   [ -f "$weights" ] || weights=/dev/null
+  [ -f "$colocate" ] || colocate=/dev/null
 
   flags="$(mktemp "${TMPDIR:-/tmp}/ci-test-partitions-flags.XXXXXX")"
   while IFS= read -r f; do
@@ -168,16 +175,49 @@ assign_files() {
       }
     }
   ' "$weights" "$flags" |
-    LC_ALL=C sort -t "$(printf '\t')" -k1,1nr -k2,2 |
-    awk -F'\t' -v n="$n" '
-      BEGIN { for (b = 1; b <= n; b++) load[b] = 0 }
-      {
-        best = 1
-        for (b = 2; b <= n; b++) if (load[b] < load[best]) best = b
-        load[best] += $1
-        printf "%d\t%s\t%d\n", best, $2, $1
+    awk -F'\t' -v n="$n" -v cf="$colocate" '
+      # Colocation groups: every file on one non-comment line of the colocate
+      # file shares a partition (tests that touch the shared checkout, which
+      # the old single serial run never overlapped). A group is placed as one
+      # unit; listed files that no longer exist are simply never seen below.
+      FILENAME == cf {
+        if ($0 ~ /^[ \t]*#/ || $0 ~ /^[ \t]*$/) next
+        c = split($0, p, /[ \t]+/)
+        key = ""
+        for (x = 1; x <= c; x++) {
+          if (p[x] == "") continue
+          if (key == "") key = p[x]
+          group[p[x]] = key
+        }
+        next
       }
-    '
+      {
+        eff = $1 + 0; f = $2
+        key = (f in group) ? group[f] : f
+        if (!(key in gw)) { keys[++kn] = key }
+        gw[key] += eff
+        members[key] = members[key] f "\n"
+        weight[f] = eff
+      }
+      END {
+        # Heaviest group first, ties by key, so the result is deterministic.
+        for (i = 2; i <= kn; i++) {
+          v = keys[i]; j = i - 1
+          while (j >= 1 && (gw[keys[j]] < gw[v] || (gw[keys[j]] == gw[v] && keys[j] > v))) {
+            keys[j + 1] = keys[j]; j--
+          }
+          keys[j + 1] = v
+        }
+        for (b = 1; b <= n; b++) load[b] = 0
+        for (i = 1; i <= kn; i++) {
+          best = 1
+          for (b = 2; b <= n; b++) if (load[b] < load[best]) best = b
+          load[best] += gw[keys[i]]
+          m = split(members[keys[i]], mem, "\n")
+          for (x = 1; x <= m; x++) if (mem[x] != "") printf "%d\t%s\t%d\n", best, mem[x], weight[mem[x]]
+        }
+      }
+    ' "$colocate" -
 
   rm -f "$flags"
 }
@@ -737,6 +777,21 @@ run_self_test() {
       die "self-test: partition $i must hold exactly one of the three heaviest files"
   done
 
+  # (q) a colocation group shares one partition: pairing the two heaviest
+  # files (which (m) proves would otherwise split) puts them together, and
+  # every file is still assigned exactly once
+  local coloc_dir coloc_assign
+  coloc_dir="$self_test_dir/colocate"
+  mkdir -p "$coloc_dir"
+  printf '# sandbox group\ntest/a/heavy1_test.exs test/a/heavy2_test.exs test/gone_test.exs\n' >"$coloc_dir/colocate.txt"
+  (cd "$proj" && enumerate_test_files) >"$coloc_dir/enumerated.txt"
+  coloc_assign="$coloc_dir/assignment.tsv"
+  (cd "$proj" && assign_files 3 test/partition_weights.txt "$coloc_dir/enumerated.txt" "$coloc_dir/colocate.txt") >"$coloc_assign"
+  [ "$(awk -F'\t' '$2 == "test/a/heavy1_test.exs" || $2 == "test/a/heavy2_test.exs" { print $1 }' "$coloc_assign" | LC_ALL=C sort -u | wc -l | tr -d ' ')" -eq 1 ] ||
+    die "self-test: a colocation group must land in one partition, got: $(cat "$coloc_assign")"
+  verify_assignment 3 "$coloc_dir/enumerated.txt" "$coloc_assign" ||
+    die "self-test: a colocation group must keep every file assigned exactly once"
+
   # (n) a partition assigned no files (8 partitions, 7 files) never invokes
   # mix, exits 0 on its own, and does not mask a failing sibling
   run_case "zero-file partition with the rest passing" "pass,pass,pass,pass,pass,pass,pass,pass" 8
@@ -783,7 +838,7 @@ run_self_test() {
   grep -q '^# Regenerate with: bin/ci-test-partitions --write-weights$' "$proj/test/partition_weights.txt" ||
     die "self-test: the weights file must say how to regenerate it"
 
-  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights)\n'
+  printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group)\n'
 }
 
 # --- Argument parsing ------------------------------------------------------------
