@@ -1,0 +1,18 @@
+diff --git a/lib/threadline/retention.ex b/lib/threadline/retention.ex
+index 00d2d783..2f32a078 100644
+--- a/lib/threadline/retention.ex
++++ b/lib/threadline/retention.ex
+@@ -232,13 +232,6 @@ defmodule Threadline.Retention do
+     subq =
+       from(at in AuditTransaction,
+         as: :audit_transaction,
+-        where:
+-          not exists(
+-            from(c in AuditChange,
+-              where: c.transaction_id == parent_as(:audit_transaction).id,
+-              select: 1
+-            )
+-          ),
+         select: at.id,
+         limit: ^batch_size
+       )

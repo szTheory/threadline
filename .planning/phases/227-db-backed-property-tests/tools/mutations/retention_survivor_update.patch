@@ -1,0 +1,22 @@
+diff --git a/lib/threadline/retention.ex b/lib/threadline/retention.ex
+index 00d2d783..7bcc6ed3 100644
+--- a/lib/threadline/retention.ex
++++ b/lib/threadline/retention.ex
+@@ -171,6 +171,17 @@ defmodule Threadline.Retention do
+       Enum.reduce_while(1..max_batches, {0, 0, 0}, fn idx, {tc, tt, _} ->
+         n1 = delete_change_batch(repo, cutoff, batch_size, storage_opts)
+ 
++        repo.update_all(
++          from(ac in AuditChange,
++            where: ac.captured_at >= ^cutoff,
++            update: [
++              set: [captured_at: fragment("? + interval '1 microsecond'", ac.captured_at)]
++            ]
++          ),
++          [],
++          storage_opts
++        )
++
+         n2 =
+           if delete_empty? do
+             drain_orphan_batches(repo, batch_size, storage_opts)
