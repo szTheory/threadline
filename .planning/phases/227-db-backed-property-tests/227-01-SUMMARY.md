@@ -44,7 +44,12 @@ key-decisions:
 patterns-established:
   - "Threadline.Test.DbProperty: plain functions only, no __using__/setup, so it never grows into a second harness beside Threadline.DataCase"
 
-requirements-completed: [PROP-04, PROP-06, PROP-07]
+requirements-completed: []
+# NOTE: PLAN.md's frontmatter lists requirements: [PROP-04, PROP-06, PROP-07] because this
+# plan builds the shared harness all three properties depend on — but this plan does not
+# itself write any of the three properties (those land in 227-02..04). REQUIREMENTS.md's
+# PROP-04/06/07 rows are intentionally left Pending; do not mark them complete until the
+# plan that actually implements each property lands.
 
 coverage:
   - id: D1

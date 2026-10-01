@@ -180,7 +180,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 227-01-PLAN.md — Shared DB-property harness `Threadline.Test.DbProperty` with end-to-end self-test, the DataCase => `PropertyRuns.db/1` scale-contract rule, and the hardened mutation-control runner (wave 1)
+- [x] 227-01-PLAN.md — Shared DB-property harness `Threadline.Test.DbProperty` with end-to-end self-test, the DataCase => `PropertyRuns.db/1` scale-contract rule, and the hardened mutation-control runner (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
