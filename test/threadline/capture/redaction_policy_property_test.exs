@@ -40,4 +40,85 @@ defmodule Threadline.Capture.RedactionPolicyPropertyTest do
       end
     end
   end
+
+  describe "D-18 regression examples" do
+    test "a non-list exclude: raises ArgumentError naming exclude and list" do
+      error =
+        assert_raise ArgumentError, fn ->
+          RedactionPolicy.validate!(exclude: :ssn)
+        end
+
+      assert error.message =~ "exclude"
+      assert error.message =~ "list"
+    end
+
+    test "a non-list mask: raises ArgumentError naming mask and list" do
+      error =
+        assert_raise ArgumentError, fn ->
+          RedactionPolicy.validate!(mask: "ssn")
+        end
+
+      assert error.message =~ "mask"
+      assert error.message =~ "list"
+    end
+
+    test "a non-list exclude: on the string-keyed map path also raises" do
+      assert_raise ArgumentError, fn ->
+        RedactionPolicy.validate!(%{"exclude" => :ssn})
+      end
+    end
+
+    test "exclude: nil stays no columns, same as absent" do
+      assert RedactionPolicy.validate!(exclude: nil, mask: ["a"]) == :ok
+    end
+
+    test "a non-binary mask_placeholder raises ArgumentError, not FunctionClauseError" do
+      for placeholder <- [5, :x] do
+        error =
+          assert_raise ArgumentError, fn ->
+            RedactionPolicy.validate!(mask: ["a"], mask_placeholder: placeholder)
+          end
+
+        assert error.message =~ "placeholder"
+      end
+
+      error =
+        assert_raise ArgumentError, fn ->
+          RedactionPolicy.validate_placeholder!(5)
+        end
+
+      assert error.message =~ "placeholder"
+    end
+
+    test "mask_placeholder: false or nil fall back to the default placeholder" do
+      assert RedactionPolicy.validate!(mask: ["a"], mask_placeholder: false) == :ok
+      assert RedactionPolicy.validate!(mask: ["a"], mask_placeholder: nil) == :ok
+    end
+
+    test "when both :exclude and \"exclude\" are given, the atom key wins (no overlap)" do
+      assert RedactionPolicy.validate!(%{
+               :exclude => ["a"],
+               "exclude" => ["b"],
+               :mask => ["b"]
+             }) == :ok
+    end
+
+    test "a placeholder of exactly 200 multibyte graphemes is accepted" do
+      placeholder = String.duplicate("é", 200)
+      assert RedactionPolicy.validate_placeholder!(placeholder) == :ok
+    end
+
+    test "a placeholder of 201 ASCII graphemes is rejected" do
+      placeholder = String.duplicate("a", 201)
+
+      assert_raise ArgumentError, fn ->
+        RedactionPolicy.validate_placeholder!(placeholder)
+      end
+    end
+
+    test "a placeholder containing DEL (127) or U+0085 is accepted" do
+      assert RedactionPolicy.validate_placeholder!("del" <> <<127>> <> "end") == :ok
+      assert RedactionPolicy.validate_placeholder!("nel" <> <<0x85::utf8>> <> "end") == :ok
+    end
+  end
 end
