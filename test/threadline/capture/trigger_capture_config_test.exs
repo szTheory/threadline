@@ -206,6 +206,30 @@ defmodule Threadline.Capture.TriggerCaptureConfigTest do
     end
   end
 
+  describe "D-18 regression examples" do
+    test "a non-list exclude: raises ArgumentError naming the table, exclude, and list" do
+      error =
+        assert_raise ArgumentError, fn ->
+          TriggerCaptureConfig.load(tables: %{"users" => [exclude: :ssn]})
+        end
+
+      assert error.message =~ ~s|"users"|
+      assert error.message =~ "exclude"
+      assert error.message =~ "list"
+    end
+
+    test "a non-list mask: raises ArgumentError naming the table, mask, and list" do
+      error =
+        assert_raise ArgumentError, fn ->
+          TriggerCaptureConfig.load(tables: %{"users" => [mask: :ssn]})
+        end
+
+      assert error.message =~ ~s|"users"|
+      assert error.message =~ "mask"
+      assert error.message =~ "list"
+    end
+  end
+
   describe "near-miss keys" do
     test "pk:, primary_keys:, pkey: and primary: all raise, suggesting primary_key:" do
       for key <- [:pk, :primary_keys, :pkey, :primary] do
