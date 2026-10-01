@@ -195,12 +195,7 @@ assign_files() {
         eff = $1 + 0; f = $2
         key = (f in group) ? group[f] : f
         if (!(key in gw)) { keys[++kn] = key }
-        # A colocated file counts double for placement: these tests shell out
-        # to nested builds and git, which slow down far more than in-process
-        # tests while the other partitions compete for the runner CPUs
-        # (CI run 36802594485: the partition holding the group took 181 s against 116 s
-        # and 114 s for partitions of equal measured weight).
-        gw[key] += (f in group) ? 2 * eff : eff
+        gw[key] += eff
         members[key] = members[key] f "\n"
         weight[f] = eff
       }
@@ -479,6 +474,13 @@ write_weights() {
   cd "$ROOT"
   mkdir -p "$log_dir"
   log="$log_dir/write-weights.log"
+
+  # CI never has a warm nested prod build, so neither may the measurement:
+  # a test that shells out to `MIX_ENV=prod mix ...` is measured with the
+  # prod build cold, as it runs in every CI job. A warm local _build/prod
+  # once made such a test weigh a fraction of its CI cost and unbalanced the
+  # partitions (CI run 36803573797).
+  rm -rf "$ROOT/_build/prod"
 
   printf 'ci-test-partitions: running the whole suite once with `mix test --slowest-modules 1000` (traced, so slower than a normal run)\n'
   set +e
