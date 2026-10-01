@@ -52,11 +52,11 @@
 ### Test suite economy
 
 - [x] **SUITE-01**: A fresh suite timing baseline is recorded before any suite change: per-module slowest times, sync vs async seconds, and the CI test-step duration with run IDs.
-- [ ] **SUITE-02**: The CI test step runs the suite in parallel partitions, each with its own database, and the step's wall clock drops by at least 30% against SUITE-01.
+- [x] **SUITE-02**: The CI test step runs the suite in parallel partitions, each with its own database, and the step's wall clock drops by at least 30% against SUITE-01.
   - Billed runner-minutes do not rise by more than 10%.
   - The Flake Detection budget is resized in the same change.
   - The required aggregate stays fail-closed, and its contract test, CONTRIBUTING and the topology test change together.
-- [ ] **SUITE-03**: The three operator-surface auth telemetry test files (`auth_test.exs`, `export_auth_plug_test.exs`, `theme_auth_plug_test.exs`) run `async: true`, isolated by the emitting process, with no new flake over a Flake Detection run. The seven other telemetry or named-process files stay serial for database-write or app-env reasons (narrowed by 225-CONTEXT D-15).
+- [x] **SUITE-03**: The three operator-surface auth telemetry test files (`auth_test.exs`, `export_auth_plug_test.exs`, `theme_auth_plug_test.exs`) run `async: true`, isolated by the emitting process, with no new flake over a Flake Detection run. The seven other telemetry or named-process files stay serial for database-write or app-env reasons (narrowed by 225-CONTEXT D-15).
 - [ ] **SUITE-04**: Guard tests that only compare prose to a hand-typed literal are merged or cut under the recorded keep/cut rubric.
   - Tests that derive from a live source, or that carry a v1.43 mutation control, are kept.
   - The required-check count is unchanged, and suite wall clock is reported before and after.
@@ -111,8 +111,8 @@
 | HLTH-03 | Phase 229 | Pending |
 | HLTH-04 | Phase 229 | Pending |
 | SUITE-01 | Phase 225 | Complete |
-| SUITE-02 | Phase 225 | Pending |
-| SUITE-03 | Phase 225 | Pending |
+| SUITE-02 | Phase 225 | Complete |
+| SUITE-03 | Phase 225 | Complete |
 | SUITE-04 | Phase 230 | Pending |
 | SUITE-05 | Phase 224 | Complete |
 | SUITE-06 | Phase 230 | Complete |
