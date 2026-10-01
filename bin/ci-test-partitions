@@ -243,6 +243,12 @@ report() {
     fi
 
     counts="$(parse_counts "$log_dir/partition-$i.log")"
+    if [ "$counts" = "no tests" ] && [ -s "$log_dir/partition-$i.log" ]; then
+      # Stdout only, never the step summary: show what the log ends with so an
+      # unrecognised ExUnit summary format is visible instead of silent.
+      printf 'ci-test-partitions: partition %s: no test count found; last log lines:\n' "$i"
+      tail -n 5 "$log_dir/partition-$i.log" | sed 's/^/  | /'
+    fi
     body="${body}| ${i} | ${status:-unknown} | ${seconds} | ${counts} |
 "
   done

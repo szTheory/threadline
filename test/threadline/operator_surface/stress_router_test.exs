@@ -278,6 +278,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       purge_modules(modules)
     end
 
+    # A cold `MIX_ENV=prod` compile of the project and its deps. On the min CI
+    # lane, sharing the runner with the other test partitions, that exceeds
+    # ExUnit's default 60s (CI run 36799589565), so it gets the same generous
+    # budget as the other nested-build contract tests.
+    @tag timeout: 180_000
     test "real prod Mix.env macro path fails closed without the stress_env hook" do
       {output, status} =
         System.cmd(
