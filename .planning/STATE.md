@@ -4,15 +4,15 @@ milestone: v1.44
 milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 227
 current_phase_name: DB-Backed Property Tests
-status: planning
-stopped_at: Phase 227 context gathered
-last_updated: "2026-10-01T18:29:07.379Z"
+status: executing
+stopped_at: Phase 227 planned (5 plans, 5 waves)
+last_updated: "2026-10-01T19:06:07.333Z"
 last_activity: 2026-10-01
-last_activity_desc: Phase 227 context gathered (27 decisions); next /gsd-plan-phase 227
+last_activity_desc: Phase 227 planned (5 plans, 5 sequential waves, checker passed); next /gsd-execute-phase 227
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 14
+  total_plans: 19
   completed_plans: 14
   percent: 43
 state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 Phase: 227 — DB-Backed Property Tests
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-01 — Phase 226 complete, transitioned to Phase 227
+Status: Ready to execute
+Last activity: 2026-10-01 — Phase 227 planned (5 plans, 5 waves; checker passed, 27/27 decisions covered)
 
-Progress: [████░░░░░░] 3 of 7 v1.44 phases complete ([████░░░░░░] 43%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phase 226 verified passed 6/6 (2026-10-01): pure StreamData properties for cursor paging (PROP-01, incl. Cursors.actor_history_page/4 and DB agreement tests), ChangeDiff (PROP-02), redaction-policy validation (PROP-03) and CSV/JSON/NDJSON export round-trip via an independent strict RFC 4180 decoder (PROP-05); seven mutation controls each killed 5/5 (226-EVIDENCE.md); Threadline.Test.PropertyRuns + THREADLINE_PROPERTY_SCALE (5 on the weekly Flake Detection lane only) with a pinning contract test and generator coverage floors (PROP-08); fixes: CSV bare-CR quoting, non-list exclude:/mask:/except_columns: and non-binary placeholders now raise (CHANGELOG Breaking changes); Flake Detection at scale 5: run 36888506162 inconclusive by budget (11 clean iterations), repeats lowered 11→8 and ceilings re-derived to 348 s cold / 295 s repeat, confirmation run 36897742852 pass 9/9; review 1 critical/2 warning/2 info — CR-01 (except_columns) and WR-02 fixed, WR-01 accepted; CI 36903609149 green on d58ef5e9. Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-plan-phase 227 (reuses 226's PropertyRuns.db/1 and tools/mutation-control.sh). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [████░░░░░░] 3 of 7 v1.44 phases complete ([████░░░░░░] 43%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phase 226 verified passed 6/6 (2026-10-01): pure StreamData properties for cursor paging (PROP-01, incl. Cursors.actor_history_page/4 and DB agreement tests), ChangeDiff (PROP-02), redaction-policy validation (PROP-03) and CSV/JSON/NDJSON export round-trip via an independent strict RFC 4180 decoder (PROP-05); seven mutation controls each killed 5/5 (226-EVIDENCE.md); Threadline.Test.PropertyRuns + THREADLINE_PROPERTY_SCALE (5 on the weekly Flake Detection lane only) with a pinning contract test and generator coverage floors (PROP-08); fixes: CSV bare-CR quoting, non-list exclude:/mask:/except_columns: and non-binary placeholders now raise (CHANGELOG Breaking changes); Flake Detection at scale 5: run 36888506162 inconclusive by budget (11 clean iterations), repeats lowered 11→8 and ceilings re-derived to 348 s cold / 295 s repeat, confirmation run 36897742852 pass 9/9; review 1 critical/2 warning/2 info — CR-01 (except_columns) and WR-02 fixed, WR-01 accepted; CI 36903609149 green on d58ef5e9. Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 227 (plan 05 stops at a maintainer push/dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 

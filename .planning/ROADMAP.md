@@ -175,7 +175,29 @@ Plans:
   4. Each property uses `Threadline.DataCase` (`async: false`, no Sandbox), cleans up by a per-iteration unique key, runs with `max_runs` ≤ 20, and passes under partitioned CI and a scaled Flake Detection run. VERIFICATION.md records a mutation control and failing seed for each.
   5. VERIFICATION.md reports suite wall clock before and after, against both SUITE-01 and the partitioned figure from phase 225.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 227-01-PLAN.md — Shared DB-property harness `Threadline.Test.DbProperty` with end-to-end self-test, the DataCase => `PropertyRuns.db/1` scale-contract rule, and the hardened mutation-control runner (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 227-02-PLAN.md — PROP-04 redaction-leak property (LeakOracle over storage, diff and every export surface), D-13 example gap, three mutation controls (wave 2)
+
+**Wave 3** *(sequential: shares the coverage-floor file and the single checkout's lib/ mutation runner)*
+
+- [ ] 227-03-PLAN.md — PROP-06 `as_of` model-replay property, D-17 tie example, four mutation controls plus the recorded tiebreak survivor (wave 3)
+
+**Wave 4**
+
+- [ ] 227-04-PLAN.md — PROP-07 retention cutoff property with byte-identical survivors, dry-run transaction count fix (`fix:` + CHANGELOG), D-22 examples, five mutation controls (wave 4)
+
+**Wave 5**
+
+- [ ] 227-05-PLAN.md — Local acceptance, 227-EVIDENCE.md (SC4/SC5), maintainer-granted CI and scale-5 Flake Detection with Test 6 re-derivation (wave 5, checkpoint)
+
 **Research**: Not needed for the harness (`research/STACK.md` §1.2/§1.4/§1.5, PITFALLS Pitfall 1). Plan-phase should still review the retention survivor content-equality check carefully.
 
 ### Phase 228: Telemetry
