@@ -471,7 +471,22 @@ at the new 8-repeat count fits inside the 2970s usable window with
 margin to spare.
 ```
 
-Confirmation run at the re-derived repeat count: pending (orchestrator dispatch).
+**Confirmation run at 8 repeats.** Flake Detection run 36897742852 on `740d6005` (`gh run view 36897742852 --log`) passed.
+
+```text
+THREADLINE_PROPERTY_SCALE=5: pure max_runs x5, DB x3
+Finished in 346.1 seconds (cold)
+Finished in 284.3 / 285.8 / 285.3 / 287.5 / 284.7 / 279.6 / 284.6 / 284.3 seconds (repeats)
+28 properties, 2649 tests, 0 failures, 3 excluded (all 9 runs)
+Flake Detection classification: pass (completed iterations: 9, exit: 0)
+```
+
+**Ceiling correction.** The confirmation cold run (346.1s) exceeded the first-cut cold ceiling of 346s, which had also under-applied the stated rule (ceil(345.1 + 1) is 347, not 346). Re-applied over both runs (slowest cold 346.1s, slowest repeat 293.5s, each plus 1s, rounded up), `@cold_first_run_ceiling_s` is 348 and `@repeat_ceiling_s` stays 295 (`mix test test/threadline/flake_classifier_contract_test.exs`).
+
+```text
+348 + 8 x 295 = 2708s, within the 2970s usable window (about 9% headroom);
+9 repeats would be 348 + 9 x 295 = 3003s, over budget. Repeat count stays 8.
+```
 
 ## Partition weights (D-24)
 

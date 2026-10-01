@@ -51,16 +51,17 @@ jobs:
     # (the initial run plus 8 repeats).
     #
     # Budget arithmetic (D-01, re-derived for 226-06 D-12 at
-    # THREADLINE_PROPERTY_SCALE=5), from dispatch run 36888506162 (2026-10-01,
-    # 2649 tests, THREADLINE_PROPERTY_SCALE=5, classified inconclusive by
-    # budget after 11 completed clean iterations -- the budget expired mid the
-    # 12th, not a failure): 345.1 s cold first run, repeats 286.8-293.5 s.
-    # Rounded up to whole seconds with a 1 s margin, the ceilings are 346 s
-    # cold / 295 s per repeat. At the prior 11 repeats: 346 + 11 x 295 =
-    # 3,591 s, well over the 2,970 s usable (the 55-minute budget less 10%
-    # headroom), so the count drops to 8: 346 + 8 x 295 = 2,706 s, about
-    # 45 min, leaving about 9% headroom (9 repeats would be 346 + 9 x 295 =
-    # 3,001 s, over budget). The
+    # THREADLINE_PROPERTY_SCALE=5), from dispatch runs 36888506162 and
+    # 36897742852 (2026-10-01, 2649 tests, THREADLINE_PROPERTY_SCALE=5). The
+    # first measured 11 clean iterations before the 55-minute budget expired
+    # mid the 12th (classified inconclusive by budget, not a failure); the
+    # second, at 8 repeats, passed all 9 runs. Slowest cold first run 346.1 s,
+    # slowest repeat 293.5 s. Rounded up with a 1 s margin, the ceilings are
+    # 348 s cold / 295 s per repeat. At the prior 11 repeats: 348 + 11 x 295 =
+    # 3,593 s, well over the 2,970 s usable (the 55-minute budget less 10%
+    # headroom), so the count drops to 8: 348 + 8 x 295 = 2,708 s, about
+    # 45 min, leaving about 9% headroom (9 repeats would be 348 + 9 x 295 =
+    # 3,003 s, over budget). The
     # repeat step runs under a `timeout(1)` budget of 55 min, so a budget
     # expiry writes exit 124 (137 if the suite ignores SIGTERM for 60 s) and
     # is classified `inconclusive`, never `unknown` or `flaky`. The step
