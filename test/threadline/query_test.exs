@@ -6,6 +6,7 @@ defmodule Threadline.QueryTest do
   alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
   alias Threadline.Query.{ActorHistoryPage, TimelinePage}
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.Test.KeysetModel
 
   @repo Threadline.Test.Repo
 
@@ -118,35 +119,42 @@ defmodule Threadline.QueryTest do
     newest_time = DateTime.add(tie_time, 60, :second)
     txn = insert_transaction(%{occurred_at: newest_time})
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-1"},
-      captured_at: tie_time
-    })
+    c1 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-1"},
+        captured_at: tie_time
+      })
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-2"},
-      captured_at: tie_time
-    })
+    c2 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-2"},
+        captured_at: tie_time
+      })
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-3"},
-      captured_at: tie_time
-    })
+    c3 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-3"},
+        captured_at: tie_time
+      })
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-4"},
-      captured_at: older_time
-    })
+    c4 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-4"},
+        captured_at: older_time
+      })
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-5"},
-      captured_at: newest_time
-    })
+    c5 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-5"},
+        captured_at: newest_time
+      })
+
+    [c1, c2, c3, c4, c5]
   end
 
   defmodule FakeAsOfUser do
@@ -564,6 +572,74 @@ defmodule Threadline.QueryTest do
       assert length(page.entries) == 1
       assert hd(page.entries).id == txn_mid.id
     end
+
+    test "pages across occurred_at ties forward and backward without duplicates or skips" do
+      actor = actor!(:user, "ties-#{System.unique_integer([:positive])}")
+      actor_map = ActorRef.to_map(actor)
+
+      newest_tie = ~U[2026-07-01 12:00:00.000002Z]
+      middle_singleton = ~U[2026-07-01 12:00:00.000001Z]
+      oldest_tie = ~U[2026-07-01 12:00:00.000000Z]
+
+      txns =
+        for occurred_at <- [
+              newest_tie,
+              newest_tie,
+              newest_tie,
+              middle_singleton,
+              oldest_tie,
+              oldest_tie,
+              oldest_tie
+            ] do
+          insert_transaction(%{actor_ref: actor_map, occurred_at: occurred_at})
+        end
+
+      model_input =
+        Enum.map(txns, fn txn ->
+          %{ts_usec: DateTime.to_unix(txn.occurred_at, :microsecond), id: txn.id}
+        end)
+
+      expected_ids = KeysetModel.expected_order(model_input)
+
+      forward_result =
+        Enum.reduce_while(1..10, {[], nil, nil}, fn _i, {pages, after_cursor, _last_page} ->
+          page = Threadline.actor_history(actor, repo: @repo, limit: 2, after: after_cursor)
+          ids = Enum.map(page.entries, & &1.id)
+          new_pages = pages ++ [ids]
+
+          if page.next_cursor == nil do
+            {:halt, {:ok, new_pages, page}}
+          else
+            {:cont, {new_pages, page.next_cursor, page}}
+          end
+        end)
+
+      assert {:ok, forward_pages, last_page} = forward_result, "DB forward walk did not terminate"
+
+      forward_ids = List.flatten(forward_pages)
+      assert forward_ids == expected_ids, "DB disagrees with the keyset model"
+      assert length(forward_ids) == length(Enum.uniq(forward_ids))
+
+      backward_pages =
+        Enum.reduce_while(1..10, {[], last_page.prev_cursor}, fn _i, {pages, before_cursor} ->
+          if before_cursor == nil do
+            {:halt, {:ok, pages}}
+          else
+            page = Threadline.actor_history(actor, repo: @repo, limit: 2, before: before_cursor)
+            ids = Enum.map(page.entries, & &1.id)
+            new_pages = pages ++ [ids]
+            {:cont, {new_pages, page.prev_cursor}}
+          end
+        end)
+
+      assert {:ok, backward_pages} = backward_pages, "DB backward walk did not terminate"
+
+      assert {:ok, model_forward, model_backward} =
+               KeysetModel.walk_actor_history(model_input, 2)
+
+      assert forward_pages == model_forward, "DB disagrees with the keyset model"
+      assert backward_pages == model_backward, "DB disagrees with the keyset model"
+    end
   end
 
   # ── timeline/1 ────────────────────────────────────────────────────────────
@@ -818,7 +894,7 @@ defmodule Threadline.QueryTest do
 
     test "advances safely across captured_at ties without duplicates or skips" do
       tname = "timeline_ties_#{System.unique_integer([:positive])}"
-      timeline_page_fixture(tname)
+      changes = timeline_page_fixture(tname)
       filters = [repo: @repo, table: tname]
 
       eager_ids = Enum.map(Threadline.timeline(filters), & &1.id)
@@ -839,6 +915,23 @@ defmodule Threadline.QueryTest do
       assert length(all_ids) == length(Enum.uniq(all_ids))
       assert eager_ids == all_ids
       assert Enum.all?(first_page.entries, &match?(%AuditChange{}, &1))
+
+      model_input =
+        Enum.map(changes, fn c ->
+          %{ts_usec: DateTime.to_unix(c.captured_at, :microsecond), id: c.id}
+        end)
+
+      assert all_ids == KeysetModel.expected_order(model_input),
+             "DB disagrees with the keyset model"
+
+      assert {:ok, model_pages} = KeysetModel.walk_timeline(model_input, 2)
+
+      db_pages =
+        Enum.map([first_page, second_page, third_page], fn page ->
+          Enum.map(page.entries, & &1.id)
+        end)
+
+      assert db_pages == model_pages, "DB disagrees with the keyset model"
     end
   end
 

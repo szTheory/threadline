@@ -173,9 +173,11 @@ defmodule Threadline.Test.KeysetModel do
     Enum.filter(entries, &(key(&1) < ck))
   end
 
-  defp actor_row(entry), do: %{occurred_at: DateTime.from_unix!(entry.ts_usec, :microsecond), id: entry.id}
+  defp actor_row(entry),
+    do: %{occurred_at: DateTime.from_unix!(entry.ts_usec, :microsecond), id: entry.id}
 
-  defp timeline_row(entry), do: %{captured_at: DateTime.from_unix!(entry.ts_usec, :microsecond), id: entry.id}
+  defp timeline_row(entry),
+    do: %{captured_at: DateTime.from_unix!(entry.ts_usec, :microsecond), id: entry.id}
 
   # Generic bounded walker: calls `fetch_fun.(cursor)` repeatedly, collecting
   # whatever item it returns per step, following its returned continuation
