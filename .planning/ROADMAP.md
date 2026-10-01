@@ -188,7 +188,7 @@ Plans:
 
 **Wave 3** *(sequential: shares the coverage-floor file and the single checkout's lib/ mutation runner)*
 
-- [ ] 227-03-PLAN.md — PROP-06 `as_of` model-replay property, D-17 tie example, four mutation controls plus the recorded tiebreak survivor (wave 3)
+- [x] 227-03-PLAN.md — PROP-06 `as_of` model-replay property, D-17 tie example, four mutation controls plus the recorded tiebreak survivor (wave 3)
 
 **Wave 4**
 
@@ -255,7 +255,7 @@ Plans:
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
-| 227. DB-Backed Property Tests | 2/5 | In Progress | - |
+| 227. DB-Backed Property Tests | 3/5 | In Progress | - |
 | 228. Telemetry | 0/TBD | Not started | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |

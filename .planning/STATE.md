@@ -5,15 +5,15 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 227
 current_phase_name: DB-Backed Property Tests
 status: executing
-stopped_at: Completed 227-02-PLAN.md
-last_updated: "2026-10-01T20:14:20.958Z"
+stopped_at: Completed 227-03-PLAN.md
+last_updated: "2026-10-01T20:35:50.124Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 227 planned (5 plans, 5 sequential waves, checker passed); next /gsd-execute-phase 227
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 19
-  completed_plans: 16
+  completed_plans: 17
   percent: 43
 state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
 ---
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 227 — DB-Backed Property Tests — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-10-01 — Plan 227-01 complete (Threadline.Test.DbProperty harness, D-06 scale-contract rule, hardened mutation-control.sh; 2e1d9dd2/abb75590/6992ce24/daff1263); next 227-02
 
@@ -247,6 +247,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 226 P05 | ~1h10min | 3 tasks | 8 files |
 | Phase 227 P01 | ~1h | 3 tasks | 4 files |
 | Phase 227 P02 | 1h45m | 3 tasks | 11 files |
+| Phase 227 P03 | ~1h20m | 3 tasks | 12 files |
 
 ## Deferred Items
 
@@ -941,6 +942,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase ?]: 227-01: DbProperty harness (per-iteration, no Sandbox), DataCase must use PropertyRuns.db/1, mutation-control.sh compares the whole shrunk counterexample
 - [Phase ?]: op-plan generator threads independent per-step action descriptors; property body folds them into the row's current state before each UPDATE
 - [Phase ?]: LeakOracle surfaces list stays open-ended (D-11) so phase 228 can append telemetry:<event> surfaces additively with no change to this module
+- [Phase ?]: 227-03: StorageSchema.table/2 remains string-only (PLAN.md's atom-arg grep was stale); Postgrex jsonb params must bind the raw term, never a pre-encoded Jason string
 
 ### Blockers
 
@@ -956,8 +958,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-01T20:14:20.943Z
-**Stopped at:** Completed 227-02-PLAN.md
+**Last session:** 2026-10-01T20:35:50.108Z
+**Stopped at:** Completed 227-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
