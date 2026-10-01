@@ -6,6 +6,7 @@ defmodule Threadline.QueryTest do
   alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
   alias Threadline.Query.{ActorHistoryPage, TimelinePage}
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.Test.DbProperty
   alias Threadline.Test.KeysetModel
 
   @repo Threadline.Test.Repo
@@ -228,6 +229,54 @@ defmodule Threadline.QueryTest do
                )
 
       assert row == %{"id" => "u-scoped-asof", "name" => "Scoped Alpha"}
+    end
+
+    test "pins deterministic, not causal, tie behaviour: same captured_at resolves to the higher id" do
+      # PROP-06 D-17: real capture never ties (0 duplicate captured_at in
+      # 9,001 same-row captures, 38-46us minimum gap). The `desc: ac.id`
+      # tiebreak on an exact-tie is therefore deterministic, not causal --
+      # this example pins current behaviour with synthetic ties built from
+      # DbProperty.ordered_id/2, whose byte ordering guarantees the "higher
+      # id wins" outcome regardless of insertion order. Its mutation
+      # control is query.ex's `order_by([ac], desc: ac.id)` -> `asc:`.
+      tie_time = ~U[2026-10-01 10:00:00.000000Z]
+      n = System.unique_integer([:positive, :monotonic])
+      id_low = DbProperty.ordered_id(1, n)
+      id_high = DbProperty.ordered_id(2, n)
+
+      txn = insert_transaction(%{occurred_at: tie_time})
+
+      tie_defaults = %{
+        table_schema: "public",
+        table_name: "users",
+        table_pk: %{"id" => "u-tie"},
+        op: "insert",
+        changed_fields: ["id", "name"],
+        captured_at: tie_time,
+        transaction_id: txn.id
+      }
+
+      @repo.insert!(
+        AuditChange.changeset(
+          %AuditChange{id: id_low},
+          Map.put(tie_defaults, :data_after, %{"id" => "u-tie", "name" => "Low"})
+        ),
+        repo_opts()
+      )
+
+      @repo.insert!(
+        AuditChange.changeset(
+          %AuditChange{id: id_high},
+          Map.put(tie_defaults, :data_after, %{"id" => "u-tie", "name" => "High"})
+        ),
+        repo_opts()
+      )
+
+      assert {:ok, row1} = Threadline.as_of(fake_as_of_schema(), "u-tie", tie_time, repo: @repo)
+      assert {:ok, row2} = Threadline.as_of(fake_as_of_schema(), "u-tie", tie_time, repo: @repo)
+
+      assert row1 == %{"id" => "u-tie", "name" => "High"}
+      assert row1 == row2
     end
   end
 

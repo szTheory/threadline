@@ -29,6 +29,7 @@ defmodule Threadline.PropertyGeneratorCoverageTest do
   alias Threadline.Test.ExportHostileValueGenerators
   alias Threadline.Test.RedactionLeakGenerators
   alias Threadline.Test.RedactionPolicyGenerators
+  alias Threadline.Test.RowHistoryGenerators
 
   @sample_size 1000
 
@@ -306,6 +307,44 @@ defmodule Threadline.PropertyGeneratorCoverageTest do
 
       assert Enum.any?(values, fn v -> is_binary(v) and byte_size(v) > 1024 end),
              "expected at least one redacted value over 1 KB (padding bias)"
+    end
+  end
+
+  # ---------------------------------------------------------------------
+  # Row histories (RowHistoryGenerators.history_gen/0)
+  # ---------------------------------------------------------------------
+
+  defp flattened_steps(batches), do: List.flatten(batches)
+
+  defp has_delete?(batches) do
+    batches |> flattened_steps() |> Enum.any?(&(&1 == :delete))
+  end
+
+  defp has_reinsert_after_delete?(batches) do
+    batches
+    |> flattened_steps()
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.any?(fn
+      [:delete, {:write, _full_row, _subset}] -> true
+      _ -> false
+    end)
+  end
+
+  describe "RowHistoryGenerators.history_gen/0 (delete and re-insert bias)" do
+    test "a delete step appears in >= 20% of sampled histories (D-26)" do
+      samples = sample_db(RowHistoryGenerators.history_gen())
+      count = Enum.count(samples, &has_delete?/1)
+
+      assert count / length(samples) >= 0.20,
+             "expected >=20% of histories to contain a delete step, got #{count}/#{length(samples)}"
+    end
+
+    test "a write immediately after a delete (a re-insert) appears at least once (D-26)" do
+      samples = sample_db(RowHistoryGenerators.history_gen())
+
+      assert Enum.any?(samples, &has_reinsert_after_delete?/1),
+             "expected at least one sampled history with a write step immediately " <>
+               "following a delete step (re-insert after delete)"
     end
   end
 end
