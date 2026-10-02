@@ -748,6 +748,15 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
         end
       end
     end
+
+    test "stray positional arguments raise Mix.Error naming the stray argument, before any DB access (WR-01)" do
+      # A dropped leading `--` (e.g. typing `schema=public` instead of
+      # `--schema=public`) must not silently fall back to the default
+      # schema — it has to raise just like an unknown switch does.
+      assert_raise Mix.Error, ~r/unknown or invalid option.*schema=public/, fn ->
+        Coverage.run(["--strict", "schema=public"])
+      end
+    end
   end
 
   describe "legacy probe timeout hint (D-20)" do

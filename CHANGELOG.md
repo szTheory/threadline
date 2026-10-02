@@ -97,7 +97,11 @@ would be read as a release.
 - `mix threadline.health.coverage` now raises on unknown or misspelled
   options (for example `--stict`) instead of silently ignoring them. No
   action needed unless you were passing a typo'd flag and relying on it
-  being a no-op; fix the flag name.
+  being a no-op; fix the flag name. It also now raises on a stray
+  positional argument (for example a dropped leading `--`, as in
+  `schema=public` instead of `--schema=public`) instead of silently running
+  against the default `"public"` schema. No action needed unless you were
+  relying on a malformed argument being ignored; fix the argument.
 - `[:threadline, :operator_surface, :authorize]`'s `path` metadata now comes
   from the mount macro's own compile-time path argument instead of the live
   request path. If you mount `threadline_operator_surface/2` under a dynamic

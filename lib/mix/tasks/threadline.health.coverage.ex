@@ -57,8 +57,10 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
   AND exist in `pg_namespace`. Default `"public"`.
 
   An unknown or invalid switch (for example `--stict`, `--jsn`, or `--schema`
-  with no value) raises `Mix.raise/1` naming the offending switch, before the
-  repo starts.
+  with no value), or any stray positional argument (for example a dropped
+  leading `--`, as in `schema=public` instead of `--schema=public`), raises
+  `Mix.raise/1` naming the offending switch or argument, before the repo
+  starts.
 
   ## `--all-schemas`
 
@@ -108,16 +110,16 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
 
   @impl Mix.Task
   def run(argv) do
-    {opts, _, invalid} =
+    {opts, extra, invalid} =
       OptionParser.parse(argv,
         strict: [json: :boolean, schema: :string, strict: :boolean, all_schemas: :boolean]
       )
 
-    if invalid != [] do
-      invalid_names = Enum.map_join(invalid, ", ", fn {name, _value} -> name end)
+    if invalid != [] or extra != [] do
+      bad = Enum.map(invalid, fn {name, _value} -> name end) ++ extra
 
       Mix.raise(
-        "threadline.health.coverage: unknown or invalid option(s): #{invalid_names}. " <>
+        "threadline.health.coverage: unknown or invalid option(s): #{Enum.join(bad, ", ")}. " <>
           "Valid options: --json, --schema=NAME, --strict, --all-schemas."
       )
     end
