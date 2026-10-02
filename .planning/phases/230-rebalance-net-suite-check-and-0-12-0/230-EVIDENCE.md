@@ -132,3 +132,48 @@ The now-unused `@domain_reference_path` attribute was removed with its sole test
 `grep -rl -e operator_surface_doc_contract -e coverage_doc_contract -e policy_show_doc_contract .planning/milestones/v1.43-phases/`: 30+ files hit, but every hit is either (a) an incidental substring match on `ci_coverage_doc_contract_test.exs` (a different, unrelated file) or (b) a generic PR-files-changed listing or cross-phase pattern-reference with no mutation-control language naming an assertion this plan cuts. No hit names a mutation control defending a cut assertion.
 
 Governed-absence wording (per 230-RESEARCH.md): absence of a mutation-control mention in the v1.43 audit is not proof that no control exists; the KEEP verdicts above rest on live derivation (source reads, real task runs, structural/security invariants), not on the absence check alone.
+
+### Wall clock before and after
+
+REBAL_AFTER: 77cb5c861a186bfa7919950a08abd0e4705fbbb3 (Task 2's commit — the after figures below were measured at this tree state; the CONTRIBUTING.md rubric addition that follows touches no test file)
+
+**Before** (three runs at BASE, repeated from the SUITE-04 rebalance section above):
+
+| Run | real (s) | ExUnit summary |
+|---|---|---|
+| 1 | 137.44 | Finished in 136.8 seconds — 32 properties, 2768 tests, 0 failures, 3 excluded |
+| 2 | 138.38 | Finished in 137.7 seconds — 32 properties, 2768 tests, 0 failures, 3 excluded |
+| 3 | 134.07 | Finished in 133.5 seconds — 32 properties, 2768 tests, 0 failures, 3 excluded |
+
+Median real: 137.44s. Median Finished-in: 136.8s.
+
+**After** (three runs at REBAL_AFTER):
+
+| Run | real (s) | ExUnit summary |
+|---|---|---|
+| 1 | 133.60 | Finished in 133.1 seconds — 32 properties, 2734 tests, 0 failures, 3 excluded |
+| 2 | 151.59 | Finished in 151.0 seconds — 32 properties, 2734 tests, 0 failures, 3 excluded |
+| 3 | 172.11 | Finished in 171.2 seconds — 32 properties, 2734 tests, 0 failures, 3 excluded |
+
+Median real: 151.59s. Median Finished-in: 151.0s. All three runs: 0 failures.
+
+**Test-count delta:** 2768 -> 2734 = 34 fewer tests, exactly matching the 34 deleted tests from this plan's cuts (17 from the two whole-file cuts in Task 1 — 6 + 11 — plus 17 from the three line-item trims in Task 2 — 9 + 7 + 1).
+
+**Wall-clock delta:** median real went from 137.44s to 151.59s (+14.15s), despite removing 34 tests. This sits inside the repo's documented local-noise floor: phase 224's evidence doc recorded head-vs-base swings of about 52 and 56 seconds in opposite directions from unrelated concurrent processes on the same machine, an order of magnitude larger than this +14.15s delta. The after-run-3 figure (172.11s) in particular reflects that noise, not a real regression from removing tests. local, noisy: this local figure is read as context, not as the release gate — SUITE-06 (a later plan in this phase) uses CI step-sum wall clock as the actual comparator, per D-06/D-08.
+
+### ci-required roster
+
+13 jobs, unchanged before and after this plan's cuts:
+
+```
+verify-format, verify-credo, verify-dialyzer, verify-compile-no-optional,
+verify-test, verify-hex-evaluator, verify-example-browser, verify-capture,
+verify-pgbouncer-topology, verify-release-shape, verify-bump-rehearsal,
+verify-deps-audit, verify-repo-hygiene
+```
+
+`diff /tmp/230-ci-required-before.txt /tmp/230-ci-required-after.txt`: empty. `git diff BASE -- .github/workflows/`: empty. `test/threadline/ci_topology_contract_test.exs`: green (part of the 278/0 run above).
+
+### Rubric recorded
+
+`CONTRIBUTING.md` gained `### Writing a doc-contract or guard test` as the last subsection of `## Deterministic tests (no flakes)`, immediately before `## Local-only critic (verify.ui_critique)`. It states the three KEEP criteria, the CUT shape, and the one-sentence-moduledoc convention, in plain prose with no new tooling. Committed in the plan-metadata commit that follows this evidence entry.

@@ -258,6 +258,28 @@ property gets a deeper run there without slowing down per-PR CI. Run just the
 properties with `mix test --only property`. Replay a property failure with
 its printed seed: `mix test <file> --seed <seed>`.
 
+### Writing a doc-contract or guard test
+
+A guard test earns its place when it can fail on a real regression, not only
+on a reworded sentence.
+
+Keep an assertion when it:
+
+- Derives its expected value from a live source: code, generated output, a
+  real Mix task run, parsed YAML/JSON, or `git ls-files`.
+- Asserts a structural, CI-topology or security invariant with no other proof.
+- Locks a removed artifact against reintroduction, checked against the tracked
+  file set.
+
+Cut an assertion when it only checks that a prose file contains a hand-typed
+literal, so its only failure mode is a reworded sentence that ordinary doc
+review already catches, or it duplicates a better-derived check. Cut means
+delete — do not move it into another file. A file is removed only when every
+assertion in it is cut.
+
+The convention: every new `*_contract_test.exs` moduledoc names, in one
+sentence, which keep criterion above it satisfies.
+
 ## Local-only critic (verify.ui_critique)
 
 `mix verify.ui_critique` runs the adversarial critic runner against the
