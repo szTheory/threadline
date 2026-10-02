@@ -213,8 +213,30 @@ Plans:
   4. The `Threadline.Telemetry` moduledoc event table and the new `guides/telemetry.md` list every event. The guide includes the host-repo `[:my_app, :repo, :query]` recipe. A test derives the documented list from the emitted events rather than from a hand-typed literal.
   5. No query or Mix-task event is added. VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: TBD
+**Plans**: 6 plans
 **Research**: Not needed. Event shapes and mitigations are in `research/FEATURES.md` §A and PITFALLS Pitfalls 5-10: emit after commit, execute events on both branches, and a span only around retention purge.
+
+Plans:
+**Wave 1**
+
+- [ ] 228-01-PLAN.md — Event registry and helper-only emission; strip identity fields from the operator-surface and health-error events; runtime allowlist and static scan; CHANGELOG breaking entry (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 228-02-PLAN.md — Export `:completed`/`:failed` from the eager functions, the async orchestrator and the chunked download (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 228-03-PLAN.md — Retention purge span, per-batch `batch_purged`, forced exception path; all fourteen events registered (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 228-04-PLAN.md — PROP-04 telemetry observer, raising-handler test, two recorded mutation controls (wave 4)
+- [ ] 228-05-PLAN.md — Moduledoc event table, `guides/telemetry.md` with the repo-query recipe, doc-parity and recipe tests, CHANGELOG Added (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 228-06-PLAN.md — Local acceptance, SC1-SC5 evidence, wall clock before and after; CI behind a maintainer grant (wave 5)
 
 ### Phase 229: Adopter API and Health Additions
 

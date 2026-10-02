@@ -450,22 +450,25 @@ end
 | A3 | `:params` in Ecto's `[:repo, :query]` metadata are pre-redaction plaintext bind values (the "never log `:params`" warning) | Code Examples | Medium — if the guide's warning is wrong in detail, it under- or over-states a real risk to adopters; worth a quick confirmation against Ecto's own docs at plan/build time rather than shipping purely on training-knowledge framing |
 | A4 | `actor_ref_mismatch`'s stripped-down shape (losing `session_actor_ref`/`scope_actor_ref`) still has diagnostic value as a plain `count: 1` signal | Breaking-Change Blast Radius | Medium — if the maintainer disagrees, the event may need a non-identity diagnostic substitute (e.g. a boolean "actors differ" flag is already all `count: 1` conveys) rather than shipping a near-value-less event; flagged as an Open Question below, not silently assumed away |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `[:threadline, :operator_surface, :actor_ref_mismatch]` retain any value once both identity fields are stripped?**
    - What we know: D-17 explicitly includes this event in the strip list, keeping only `count: 1` (verified it's the only non-identity key currently emitted, `lib/threadline/operator_surface/auth.ex:160-169`).
    - What's unclear: whether a bare count-of-mismatches-this-process event is worth keeping at all, versus being folded into a boolean on the `authorize` event, or just removed.
    - Recommendation: keep it as specified (D-17 is a locked maintainer decision) but flag in the guide that the event is now a pure incidence counter with no diagnostic payload — don't pretend it still helps debug which actors disagreed.
+   - RESOLVED: kept as a pure incidence counter (D-17); 228-01.
 
 2. **`export_auth_plug_test.exs`'s 8 `assert_received` sites — exact subset needing edits.**
    - What we know: all 8 pattern-match on `[:threadline, :operator_surface, :authorize]`; most visibly destructure only `%{path: "..."}`, not `actor_ref`.
    - What's unclear: without reading every one of the 8 call sites' full context (not done exhaustively this session — time-boxed to the two most load-bearing ones), it's possible 1-2 more assert on `actor_ref` indirectly (e.g. via a bound variable from an earlier `{:ok, scope}` setup).
    - Recommendation: the planner's task for this file should re-grep `actor_ref` specifically within `export_auth_plug_test.exs` before editing, rather than assuming the two confirmed-safe patterns generalize to all 8.
+   - RESOLVED: 228-01 Task 3 re-greps `actor_ref` in the file before editing.
 
 3. **Does the Orchestrator's `row_count` accumulation (for `:completed`/`:failed`) need a new counter threaded through `write_temp_csv/3`, or can it be derived post-hoc?**
    - What we know: `write_temp_csv/3` streams via `Export.stream_export_rows/2 |> Stream.chunk_every(1000) |> Enum.each(...)` with no running count kept (`orchestrator.ex:85-93`).
    - What's unclear: whether to add an accumulator inside `Enum.each` (requires switching to `Enum.reduce` or a `Process` dictionary-free counter) or to count rows by re-reading the temp file's line count after the fact (CSV-specific, fragile).
    - Recommendation: switch `Enum.each` to `Enum.reduce(0, fn chunk, acc -> ...; acc + length(chunk) end)` — mechanical, no behavior change to the write path itself.
+   - RESOLVED: 228-02 Task 2 counts rows with `:counters` so the count survives a rollback or raise.
 
 ## Environment Availability
 
