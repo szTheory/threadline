@@ -53,7 +53,7 @@
 - [x] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties (completed 2026-10-01)
 - [x] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds (completed 2026-10-01)
 - [x] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data (completed 2026-10-02)
-- [ ] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning
+- [x] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning (completed 2026-10-02, awaiting verification)
 - [ ] **Phase 230: Rebalance, Net-Suite Check and 0.12.0** - Prose-only guard tests merged or cut, the net suite time proven not to regress, and 0.12.0 released
 
 ## Phase Details
@@ -269,7 +269,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 229-04-PLAN.md — `--all-schemas` (batched catalog helpers, shared classifier, envelope JSON, SCHEMA-column table, extension-schema exclusion), after wall clock, `mix ci.all` (wave 4)
+- [x] 229-04-PLAN.md — `--all-schemas` (batched catalog helpers, shared classifier, envelope JSON, SCHEMA-column table, extension-schema exclusion), after wall clock, `mix ci.all` (wave 4)
 
 ### Phase 230: Rebalance, Net-Suite Check and 0.12.0
 
@@ -296,7 +296,7 @@ Plans:
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
 | 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
-| 229. Adopter API and Health Additions | 0/4 | Planned | - |
+| 229. Adopter API and Health Additions | 4/4 | Awaiting verification | 2026-10-02 |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
 
 ## Prior Milestones
