@@ -177,3 +177,126 @@ verify-deps-audit, verify-repo-hygiene
 ### Rubric recorded
 
 `CONTRIBUTING.md` gained `### Writing a doc-contract or guard test` as the last subsection of `## Deterministic tests (no flakes)`, immediately before `## Local-only critic (verify.ui_critique)`. It states the three KEEP criteria, the CUT shape, and the one-sentence-moduledoc convention, in plain prose with no new tooling. Committed in the plan-metadata commit that follows this evidence entry.
+
+## SUITE-06 net suite time
+
+### Gate (D-06)
+
+**PASS** iff all three of the following hold on one fresh `ci.yml` run on the
+final pre-landing tree:
+
+1. All three lanes (`min`, `current`, `latest`) report `Build cache: hit`
+   (from `ci-job-timing.py <run> --cache-state`).
+2. The summed per-lane `Run tests` step seconds is **≤ 930.6** (SUITE-01's
+   846 s + 10%).
+3. Each lane's `Run tests` seconds is **≤** its own SUITE-01 figure: min ≤
+   288, current ≤ 291, latest ≤ 267.
+
+A value exactly equal to a ceiling (930.6, or a lane's own SUITE-01 figure)
+**passes** — these are `≤` comparisons, not `<`.
+
+**INVALID, not PASS/FAIL:** a lane with no `Run tests` step, no partition
+report, or a `Build cache: miss` makes the comparison **INVALID**. An
+INVALID result blocks landing exactly like a FAIL (D-10) — it is never
+silently treated as a pass. A phase that published no CI run at all is
+disclosed in the milestone table as local-only, never back-filled or
+interpolated.
+
+This formula is fixed here, before plan 04 takes the one fresh measurement
+it judges.
+
+### Method proof
+
+**Reproducing SUITE-01 (run 36730596489, the pinned baseline):**
+
+```
+## run 36730596489
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 340 | 6 | 288 | hit |
+| current | 476 | 8 | 291 | hit |
+| latest | 321 | 6 | 267 | hit |
+| **total** | | **20** | |
+
+Computed from `gh api repos/szTheory/threadline/actions/runs/36730596489/jobs --paginate`, run 36730596489.
+```
+
+`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36730596489 --cache-state` reproduces the SUITE-01 lane figures exactly: 288 / 291 / 267 (sum 846), all three lanes `Build cache: hit`. The comparator is proven against the figure it must judge future runs against.
+
+**228's after-run (37018812221), same tool, single-run mode:**
+
+```
+## run 37018812221
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 234 | 4 | 182 | hit |
+| current | 335 | 6 | 142 | hit |
+| latest | 220 | 4 | 173 | hit |
+| **total** | | **14** | |
+
+Computed from `gh api repos/szTheory/threadline/actions/runs/37018812221/jobs --paginate`, run 37018812221.
+```
+
+`ci-job-timing.py --compare` needs two or more after runs. This phase cites
+one existing after-run (228's) purely to prove the partition-extraction
+method, not to gate on it — following 227's INSUFFICIENT fallback: single-run
+mode on one run id reads the same per-lane figures `--compare` would, so this
+method-proof uses one single-run invocation rather than a two-run compare.
+
+**Partition report per lane, run 37018812221** (read-only `gh api
+repos/szTheory/threadline/actions/jobs/<job-id>/logs --allow-escape-sequences`,
+ANSI-stripped, lines between `ci-test-partitions: partition report` and the
+`| total |` row):
+
+`min` (job 110876289440):
+
+| Partition | Exit | Seconds | Counts |
+|---|---|---|---|
+| 1 | 0 | 118 | 677 tests, 0 failures |
+| 2 | 0 | 135 | 620 tests, 0 failures |
+| 3 | 0 | 168 | 640 tests, 0 failures |
+| 4 | 0 | 180 | 765 tests, 0 failures |
+| total | - | 181 | - |
+
+Per-partition Seconds sum (min lane): 118 + 135 + 168 + 180 = **601 s**
+
+`current` (job 110876289478):
+
+| Partition | Exit | Seconds | Counts |
+|---|---|---|---|
+| 1 | 0 | 112 | 677 tests, 0 failures |
+| 2 | 0 | 110 | 620 tests, 0 failures |
+| 3 | 0 | 125 | 640 tests, 0 failures |
+| 4 | 0 | 141 | 765 tests, 0 failures |
+| total | - | 142 | - |
+
+Per-partition Seconds sum (current lane): 112 + 110 + 125 + 141 = **488 s**
+
+`latest` (job 110876289375):
+
+| Partition | Exit | Seconds | Counts |
+|---|---|---|---|
+| 1 | 0 | 103 | 675 tests, 0 failures |
+| 2 | 0 | 122 | 620 tests, 0 failures |
+| 3 | 0 | 159 | 639 tests, 0 failures |
+| 4 | 0 | 171 | 765 tests, 0 failures |
+| total | - | 172 | - |
+
+Per-partition Seconds sum (latest lane): 103 + 122 + 159 + 171 = **555 s**
+
+**Total serial-equivalent work across all three lanes, run 37018812221:**
+601 + 488 + 555 = **1644 s**.
+
+Each lane's per-partition-Seconds sum (601 / 488 / 555) closely tracks that
+lane's step-level `Run tests` seconds (182 / 142 / 173) but is not identical
+— the per-partition Seconds figure includes each partition's own Mix boot
+time, so it slightly overstates pure ExUnit run time. ExUnit's own "Finished
+in" line is only printed to the partition log on a failed partition (the
+runner suppresses it on a clean partition to keep output small), so the
+Seconds column — already exposed by `bin/ci-test-partitions`' own `report()`
+step-summary table — is the serial-equivalent figure this evidence uses, per
+the Don't Hand-Roll decision (D-06): no echo was added to the runner.
+
+**No runner change:** `git diff 4a04e4f38ea5d36f313e1b1e7ffdfbdd4fc799dc -- bin/` is empty (BASE sha recorded by plan 01's `## SUITE-04 rebalance` section above) — this plan reads `bin/ci-test-partitions`' existing output only.
