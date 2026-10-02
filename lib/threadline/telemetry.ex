@@ -3,11 +3,15 @@ defmodule Threadline.Telemetry do
   Telemetry integration helpers for Threadline.
 
   Threadline emits the following `:telemetry` events. No event carries row
-  values, actor identifiers, correlation ids, or free-text reasons. See the
-  [Telemetry guide](guides/telemetry.md) for an `attach_many` example per
-  family, a `telemetry_metrics` example, handler-safety and cardinality
-  warnings, and a recipe for observing Threadline's own repo queries through
-  your host's `[:my_app, :repo, :query]` event.
+  values, actor identifiers, correlation ids, or free-text reasons — with one
+  narrow exception: `[:threadline, :retention, :purge, :exception]`'s
+  `reason`/`stacktrace` metadata, forwarded verbatim from a raised exception
+  for incident diagnosis (see the [Telemetry guide](guides/telemetry.md)'s
+  "Keep row data out of your handlers" section before logging it anywhere
+  durable). See the guide for an `attach_many` example per family, a
+  `telemetry_metrics` example, handler-safety and cardinality warnings, and a
+  recipe for observing Threadline's own repo queries through your host's
+  `[:my_app, :repo, :query]` event.
 
   | Event | Measurements | Metadata | When emitted |
   |---|---|---|---|
