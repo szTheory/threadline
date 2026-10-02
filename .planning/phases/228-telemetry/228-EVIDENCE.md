@@ -298,15 +298,116 @@ Before run selection
 (`gh run list --workflow ci.yml --branch milestone/v1.44 --limit 20`):
 
 ```text
-run 36903609149 remains the latest successful ci.yml run on
-milestone/v1.44 before this phase's first commit (confirmed unchanged
-since phase 227's evidence cited the same run as its own after run's
-before-run baseline).
+run 36929234558 (completed 2026-10-01T21:31:21Z, headSha d61f2fc6 -- phase
+227's own after run) is the latest successful ci.yml run on
+milestone/v1.44 before this phase's first commit (0ca7f135, landed
+2026-10-02T11:30:07Z UTC). The next-older successful run, 36903609149
+(completed 2026-10-01T18:00:30Z), is phase 227's own before-run baseline
+and is included below as a second reference point.
+```
+
+After run, dispatched under the grant via
+`gh workflow run ci.yml --ref milestone/v1.44`:
+
+```text
+run 37018812221, headSha 7dae7e49 (this plan's Task 1 commit): conclusion
+success. All three lanes (min, current, latest) and the CI required gate
+succeeded; no job failed or was skipped for a non-cache reason.
+```
+
+Before/after figures
+(`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 37018812221 --cache-state`,
+`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36929234558 --cache-state`,
+`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36903609149 --cache-state`):
+
+```
+## run 37018812221 (after, this plan's Task 1 commit)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 234 | 4 | 182 | hit |
+| current | 335 | 6 | 142 | hit |
+| latest | 220 | 4 | 173 | hit |
+| **total** | | **14** | |
+
+## run 36929234558 (before, phase 227's own after run)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 226 | 4 | 177 | hit |
+| current | 302 | 6 | 133 | hit |
+| latest | 230 | 4 | 181 | hit |
+| **total** | | **14** | |
+
+## run 36903609149 (phase 227's own before-run baseline)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 227 | 4 | 176 | hit |
+| current | 344 | 6 | 170 | hit |
+| latest | 233 | 4 | 178 | hit |
+| **total** | | **14** | |
 ```
 
 ```text
-See the Task 3 dispatch section below for the after run and the
-before/after table, filled in once the grant's ci.yml dispatch completes.
+Per-lane Run tests delta, before (run 36929234558) -> after (run
+37018812221):
+  min:     177s -> 182s (+5s),    build cache hit -> hit
+  current: 133s -> 142s (+9s),    build cache hit -> hit
+  latest:  181s -> 173s (-8s),    build cache hit -> hit
+  proxy (min, total): 14 -> 14 (unchanged)
+
+All three runs (before, after, and phase 227's own before-run baseline)
+are a full build-cache hit on every lane, so the deltas above are real
+suite-cost movement, not a cold-vs-warm-cache artifact. ci.yml never sets
+THREADLINE_PROPERTY_SCALE (Flake Detection's repeat step only), and this
+phase adds no new DB property or Mix-task event, so the small per-lane
+swing is consistent with normal run-to-run variance on shared
+GitHub-hosted runners rather than a structural cost this phase added.
+```
+
+Reference figures against SUITE-01's baseline run and the phase 225
+partitioned runs
+(`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36730596489 --cache-state`,
+`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36808706517 --cache-state`,
+`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 36810081717 --cache-state`):
+
+```
+## run 36730596489 (SUITE-01 baseline, pre-partitioning)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 340 | 6 | 288 | hit |
+| current | 476 | 8 | 291 | hit |
+| latest | 321 | 6 | 267 | hit |
+| **total** | | **20** | |
+
+## run 36808706517 (phase 225 partitioned)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 239 | 4 | 180 | hit |
+| current | 317 | 6 | 148 | hit |
+| latest | 211 | 4 | 155 | hit |
+| **total** | | **14** | |
+
+## run 36810081717 (phase 225 partitioned, cache miss)
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 169 | 3 | 100 | miss |
+| current | 380 | 7 | 162 | miss |
+| latest | 170 | 3 | 104 | miss |
+| **total** | | **13** | |
+```
+
+```text
+Against SUITE-01's pre-partitioning baseline (proxy total 20), this
+phase's after run's proxy total of 14 sits exactly where the phase 225
+partitioned runs landed (14 and 13) and where phase 227's own after run
+landed (14) -- confirming the partitioned-CI gain 225 established holds
+through phase 228, with no regression back toward the pre-partitioning
+proxy total.
 ```
 
 ### Flake Detection
