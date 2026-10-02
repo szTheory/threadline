@@ -214,6 +214,50 @@ queries](#observing-threadlines-queries) below) or a purge-exception's
 and never attach row data of your own onto a Threadline event's measurements
 or metadata before forwarding it downstream.
 
+## Observing Threadline's queries
+
+Threadline adds no query telemetry event of its own — every SQL statement it
+runs goes through your own repo, so it already shows up on your host repo's
+`[:my_app, :repo, :query]` event. Attach there and match
+`metadata.source in ~w(audit_changes audit_transactions audit_actions)` to
+isolate Threadline's own queries from the rest of your application's:
+
+```elixir
+:telemetry.attach(
+  "my-app-threadline-query-time",
+  [:my_app, :repo, :query],
+  fn _event, measurements, metadata, _config ->
+    if metadata.source in ~w(audit_changes audit_transactions audit_actions) do
+      MyApp.Metrics.record("threadline.query_time", measurements.query_time,
+        unit: {:native, :millisecond}
+      )
+    end
+  end,
+  nil
+)
+```
+
+The following caveats are proven by a dedicated test, not just asserted here:
+
+- `:source` is the bare table name with no storage-schema prefix — even when
+  Threadline is configured to store its tables outside the default
+  `threadline` schema, `metadata.source` stays `"audit_changes"`, never
+  `"other_schema.audit_changes"`.
+- `:source` is `nil` for raw SQL (`Repo.query!/2`) and for a query rooted in a
+  subquery (some of Threadline's own counts use one to cap expensive
+  aggregates) — queries in either shape are not attributable to a table
+  through `:source` at all.
+- Capture itself — the PostgreSQL trigger function writing
+  `audit_changes`/`audit_transactions` rows — runs entirely inside the
+  database as part of executing your application's own statement against the
+  audited table. It never appears as its own repo query event; only the
+  statement your application issued against the host table does.
+- Never log `metadata.params` from this event. It carries the literal bind
+  values of every query your repo runs, including the full row data of
+  whatever your application just wrote to an audited table — exactly the
+  leak [Keep row data out of your handlers](#keep-row-data-out-of-your-handlers)
+  warns about, through a channel Threadline does not control.
+
 ## Next steps
 
 - [Return to the mounted operator workflow](operator-surface.md).
