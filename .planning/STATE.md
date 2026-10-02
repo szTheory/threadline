@@ -5,16 +5,16 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 230
 current_phase_name: Rebalance, Net-Suite Check and 0.12.0
 status: executing
-stopped_at: Phase 230 planned (4 plans, 4 waves)
-last_updated: "2026-10-02T20:24:31.949Z"
+stopped_at: Completed 230-01-PLAN.md
+last_updated: "2026-10-02T20:51:36.457Z"
 last_activity: 2026-10-02
-last_activity_desc: Phase 230 planned — 4 plans in 4 waves, checker passed after 1 revision
-state_head: eb8d42580ec6d1376c47f6b0915e77025cc50b57
+last_activity_desc: Phase 230 execution started
+state_head: a3931f5de65a6186a115359403b99b57b3dfaa9a
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 33
-  completed_plans: 29
+  completed_plans: 30
   percent: 86
 ---
 
@@ -25,14 +25,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 229 — Adopter API and Health Additions
+**Current focus:** Phase 230 — Rebalance, Net-Suite Check and 0.12.0
 
 ## Current Position
 
-Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — READY TO EXECUTE
-Plan: 0 of 4 complete
+Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-10-02 — Phase 230 planned (4 plans, 4 waves; plan-checker passed after 1 revision)
+Last activity: 2026-10-02 — Phase 230 execution started
 
 Progress: [███████░░░] 6 of 7 v1.44 phases complete ([█████████░] 86%). Phase 229 verified passed 5/5 (2026-10-02): Threadline.history/3 takes a validated :limit (QRY-01/02, new Query.HistoryLimit); public Threadline.Health.legacy_key_findings/1 emits :unresolved_legacy_keys warnings (capped, statement_timeout-bounded per-table probe; HLTH-03); mix threadline.health.coverage gains --strict (exit 1 on in-scope :error findings, 12-cell matrix baseline; HLTH-01), --all-schemas (schema-keyed table + JSON envelope, extension schemas excluded via pg_depend; HLTH-02), unknown switches now raise; malformed :trigger_capture fail-fast documented (HLTH-04); local suite 2767/0, mix ci.all green, wall clock before/after in evidence/SC5-wallclock.md; review 0 critical/1 warning/1 info (WR-01 stray positional args ignored, IN-01 duplicated schema regex; advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 230 (plan 04 stops at a maintainer grant for push, PR, squash-merge, release-please PR merge, production-hex approval and the distribution-sync PR). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
@@ -260,6 +260,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 229 P02 | ~25min | 3 tasks | 10 files |
 | Phase 229 P03 | 25min | 3 tasks | 9 files |
 | Phase 229 P04 | ~1h45m | 6 tasks | 12 files |
+| Phase 230 P01 | ~1h40m | 3 tasks | 9 files |
 
 ## Deferred Items
 
@@ -974,6 +975,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase ?]: 229-03: 12-cell strict matrix generated at compile time from a module-attribute list rather than 12 hand-copied tests
 - [Phase 229]: 229-04: --all-schemas reports a schema when it has ≥1 coverage row or ≥1 finding — one predicate drives the JSON envelope, table renderer, and strict gate's union
 - [Phase 229]: 229-04: dropped an environment-dependent citext precondition test; fixed a pre-existing Dialyzer unmatched_returns finding in plan 02 code, confirmed not a PLT-cache-miss first
+- [Phase 230]: Route-literal cut left no deferred gap — git grep confirmed non-prose integration tests already exercise the operator routes
 
 ### Blockers
 
@@ -989,9 +991,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-02T19:48:08.942Z
-**Stopped at:** Phase 230 context gathered
-**Resume file:** .planning/phases/230-rebalance-net-suite-check-and-0-12-0/230-CONTEXT.md
+**Last session:** 2026-10-02T20:51:36.327Z
+**Stopped at:** Completed 230-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

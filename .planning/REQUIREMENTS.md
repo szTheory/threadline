@@ -57,7 +57,7 @@
   - The Flake Detection budget is resized in the same change.
   - The required aggregate stays fail-closed, and its contract test, CONTRIBUTING and the topology test change together.
 - [x] **SUITE-03**: The three operator-surface auth telemetry test files (`auth_test.exs`, `export_auth_plug_test.exs`, `theme_auth_plug_test.exs`) run `async: true`, isolated by the emitting process, with no new flake over a Flake Detection run. The seven other telemetry or named-process files stay serial for database-write or app-env reasons (narrowed by 225-CONTEXT D-15).
-- [ ] **SUITE-04**: Guard tests that only compare prose to a hand-typed literal are merged or cut under the recorded keep/cut rubric.
+- [x] **SUITE-04**: Guard tests that only compare prose to a hand-typed literal are merged or cut under the recorded keep/cut rubric.
   - Tests that derive from a live source, or that carry a v1.43 mutation control, are kept.
   - The required-check count is unchanged, and suite wall clock is reported before and after.
 - [x] **SUITE-05**: The bench project compiles with a bare `mix compile` (via `preferred_envs`), and an existing CI lane proves it.
@@ -113,7 +113,7 @@
 | SUITE-01 | Phase 225 | Complete |
 | SUITE-02 | Phase 225 | Complete |
 | SUITE-03 | Phase 225 | Complete |
-| SUITE-04 | Phase 230 | Pending |
+| SUITE-04 | Phase 230 | Complete |
 | SUITE-05 | Phase 224 | Complete |
 | SUITE-06 | Phase 230 | Complete |
 | REL-01 | Phase 230 | Pending |
