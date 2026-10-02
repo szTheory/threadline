@@ -16,6 +16,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
   use ExUnit.Case, async: false
 
   import ExUnit.CaptureIO
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
 
   alias Ecto.Adapters.SQL
   alias Mix.Tasks.Threadline.Health.Coverage
@@ -489,6 +490,264 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
                    fn ->
                      Coverage.run(["--all-schemas", "--schema=x"])
                    end
+    end
+  end
+
+  describe "--all-schemas (HLTH-02 edges)" do
+    @adj_a "hcov_adj_a"
+    @adj_b "hcov_adj_b"
+    @omit_schema "hcov_omit"
+    @union_schema "hcov_union"
+    @ext_schema "hcov_ext"
+    @mixed_schema "HcovMixed"
+    @many_prefix "hcov_many_"
+    @many_count 33
+
+    setup do
+      for schema <- [@adj_a, @adj_b, @omit_schema, @union_schema, @ext_schema] do
+        SQL.query!(@repo, "DROP SCHEMA IF EXISTS #{schema} CASCADE", [])
+        SQL.query!(@repo, "CREATE SCHEMA #{schema}", [])
+      end
+
+      SQL.query!(@repo, ~s|DROP SCHEMA IF EXISTS "#{@mixed_schema}" CASCADE|, [])
+      SQL.query!(@repo, ~s|CREATE SCHEMA "#{@mixed_schema}"|, [])
+
+      # Adjacency: two schemas each with a same-named, uncovered table.
+      SQL.query!(@repo, "CREATE TABLE #{@adj_a}.items (id bigserial PRIMARY KEY)", [])
+      SQL.query!(@repo, "CREATE TABLE #{@adj_b}.items (id bigserial PRIMARY KEY)", [])
+
+      # Omission: the schema's only table is an excluded audit-table name, no
+      # trigger, no finding — the schema must not appear in the output.
+      SQL.query!(
+        @repo,
+        "CREATE TABLE #{@omit_schema}.audit_changes (id bigserial PRIMARY KEY)",
+        []
+      )
+
+      # Union: the schema's only table is also an excluded audit-table name
+      # (so coverage classify/3 rejects it, leaving zero coverage rows), but
+      # it carries a disabled-trigger :error finding — the schema must still
+      # appear because a finding's schema is unioned in.
+      SQL.query!(
+        @repo,
+        "CREATE TABLE #{@union_schema}.audit_changes (id bigserial PRIMARY KEY)",
+        []
+      )
+
+      SQL.query!(@repo, TriggerSQL.create_trigger("#{@union_schema}.audit_changes"), [])
+
+      SQL.query!(
+        @repo,
+        "ALTER TABLE #{@union_schema}.audit_changes DISABLE TRIGGER threadline_audit_#{@union_schema}_audit_changes",
+        []
+      )
+
+      # Extension-member schema: must be excluded even though public also
+      # hosts an extension (citext), proving the pg_depend predicate — not
+      # pg_extension's own schema column — drives the exclusion.
+      SQL.query!(@repo, "CREATE TABLE #{@ext_schema}.t (id bigserial PRIMARY KEY)", [])
+      SQL.query!(@repo, "ALTER EXTENSION plpgsql ADD SCHEMA #{@ext_schema}", [])
+
+      # Encoding: a quoted mixed-case schema with one table.
+      SQL.query!(@repo, ~s|CREATE TABLE "#{@mixed_schema}".t (id bigserial PRIMARY KEY)|, [])
+
+      # Determinism: 33 extra schemas, one table each.
+      for i <- 0..(@many_count - 1) do
+        schema = "#{@many_prefix}#{String.pad_leading(Integer.to_string(i), 2, "0")}"
+        SQL.query!(@repo, "DROP SCHEMA IF EXISTS #{schema} CASCADE", [])
+        SQL.query!(@repo, "CREATE SCHEMA #{schema}", [])
+        SQL.query!(@repo, "CREATE TABLE #{schema}.t (id bigserial PRIMARY KEY)", [])
+      end
+
+      on_exit(fn ->
+        SQL.query!(@repo, "ALTER EXTENSION plpgsql DROP SCHEMA #{@ext_schema}", [])
+
+        for schema <- [@adj_a, @adj_b, @omit_schema, @union_schema, @ext_schema] do
+          SQL.query!(@repo, "DROP SCHEMA IF EXISTS #{schema} CASCADE", [])
+        end
+
+        SQL.query!(@repo, ~s|DROP SCHEMA IF EXISTS "#{@mixed_schema}" CASCADE|, [])
+
+        for i <- 0..(@many_count - 1) do
+          schema = "#{@many_prefix}#{String.pad_leading(Integer.to_string(i), 2, "0")}"
+          SQL.query!(@repo, "DROP SCHEMA IF EXISTS #{schema} CASCADE", [])
+        end
+      end)
+
+      :ok
+    end
+
+    test "precondition: public hosts an extension (citext) in the live catalog" do
+      %{rows: [[count]]} =
+        SQL.query!(
+          @repo,
+          "SELECT count(*) FROM pg_extension WHERE extnamespace = 'public'::regnamespace",
+          []
+        )
+
+      assert count >= 1
+    end
+
+    test "table format: SCHEMA-leading header, rollup, and the across-K-schemas summary" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas"])
+        end)
+
+      assert output =~ ~r/^SCHEMA\s+TABLE\s+STATUS\s+SOURCE/m
+      assert output =~ ~r/^SCHEMA\s+COVERED\s+UNCOVERED\s+EXPECTED\s+FINDINGS/m
+
+      assert output =~
+               ~r/Coverage: \d+ covered, \d+ uncovered, \d+ expected uncovered across \d+ schemas/
+
+      assert output =~ "FINDINGS"
+    end
+
+    test "adjacency: hcov_adj_a.items and hcov_adj_b.items each appear under their own schema" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas", "--json"])
+        end)
+
+      parsed = Jason.decode!(output)
+
+      assert parsed["schemas"][@adj_a]["uncovered"] == ["items"]
+      assert parsed["schemas"][@adj_b]["uncovered"] == ["items"]
+    end
+
+    test "omission: a schema with only an excluded audit-table name and no finding is absent" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas", "--json"])
+        end)
+
+      parsed = Jason.decode!(output)
+
+      refute Map.has_key?(parsed["schemas"], @omit_schema)
+      refute capture_io(fn -> Coverage.run(["--all-schemas"]) end) =~ @omit_schema
+      Mix.Task.reenable("threadline.health.coverage")
+    end
+
+    test "union: a schema with zero coverage rows but an :error finding still appears" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas", "--json"])
+        end)
+
+      parsed = Jason.decode!(output)
+
+      assert Map.has_key?(parsed["schemas"], @union_schema)
+      union_payload = parsed["schemas"][@union_schema]
+      assert union_payload["covered"] == []
+      assert union_payload["uncovered"] == []
+      assert [finding] = union_payload["findings"]
+      assert finding["code"] == "capture_trigger_disabled"
+    end
+
+    test "extension-member schema is excluded from both JSON and table output; public is present" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      json_output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas", "--json"])
+        end)
+
+      parsed = Jason.decode!(json_output)
+
+      refute Map.has_key?(parsed["schemas"], @ext_schema)
+      assert Map.has_key?(parsed["schemas"], "public")
+
+      Mix.Task.reenable("threadline.health.coverage")
+
+      table_output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas"])
+        end)
+
+      refute table_output =~ @ext_schema
+      assert table_output =~ "public"
+    end
+
+    test "encoding/ordering: a quoted mixed-case schema appears verbatim and keys stay sorted" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas", "--json"])
+        end)
+
+      decoded = Jason.decode!(output, objects: :ordered_objects)
+
+      {"schemas", %Jason.OrderedObject{values: schema_pairs}} =
+        List.keyfind(decoded.values, "schemas", 0)
+
+      keys = Enum.map(schema_pairs, &elem(&1, 0))
+
+      assert @mixed_schema in keys
+      assert keys == Enum.sort(keys)
+    end
+
+    test "determinism: two consecutive --all-schemas --json runs are byte-identical with sorted keys" do
+      Mix.Task.reenable("threadline.health.coverage")
+      first = capture_io(fn -> Coverage.run(["--all-schemas", "--json"]) end)
+
+      Mix.Task.reenable("threadline.health.coverage")
+      second = capture_io(fn -> Coverage.run(["--all-schemas", "--json"]) end)
+
+      assert first == second
+
+      decoded = Jason.decode!(first, objects: :ordered_objects)
+
+      {"schemas", %Jason.OrderedObject{values: schema_pairs}} =
+        List.keyfind(decoded.values, "schemas", 0)
+
+      keys = Enum.map(schema_pairs, &elem(&1, 0))
+      assert length(keys) >= @many_count
+      assert keys == Enum.sort(keys)
+    end
+
+    test "telemetry: --all-schemas emits exactly one [:threadline, :health, :checked] event with grand totals" do
+      ref = attach_telemetry!([[:threadline, :health, :checked]])
+
+      Mix.Task.reenable("threadline.health.coverage")
+
+      output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas", "--json"])
+        end)
+
+      parsed = Jason.decode!(output)
+      summary = parsed["summary"]
+
+      assert_receive {[:threadline, :health, :checked], ^ref, measurements, _meta}
+
+      assert measurements.covered == summary["covered"]
+      assert measurements.uncovered == summary["uncovered"]
+      assert measurements.expected_uncovered == summary["expected_uncovered"]
+
+      refute_receive {[:threadline, :health, :checked], ^ref, _measurements, _meta}, 50
+    end
+
+    test "strict union: --strict --all-schemas exits 1 when any reported schema has an :error finding" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      {{result, _stdout}, stderr} =
+        with_io(:stderr, fn ->
+          with_io(fn ->
+            run_catching_exit(fn -> Coverage.run(["--strict", "--all-schemas"]) end)
+          end)
+        end)
+
+      assert result == {:shutdown, 1}
+      assert stderr =~ ~r/strict: FAILED — \d+ error finding\(s\)/
     end
   end
 
