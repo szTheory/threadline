@@ -16,7 +16,7 @@ Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-0
 - The phase-223 review fixes and this close record landed via squash PR #70 (`dd780e68`, not releasable). origin has only `main` plus release-please's own branch. Milestone tag `v1.43` is local only.
 - The operator UI stays parked until 1.0.0.
 - v1.44 opened 2026-09-30 on local branch `milestone/v1.44`, cut from origin/main `dd780e68` (see Current Milestone below).
-- v1.44 progress (2026-10-01): Phases 224 and 225 landed on main (`fc47af60`, PR #71). Phase 226 Pure Property Tests and Run Budget complete and verified on pushed `milestone/v1.44` (PROP-01/02/03/05/08 validated; CI 36903609149 and scale-5 Flake Detection 36897742852 green), not yet landed on main. Phase 227 DB-Backed Property Tests complete and verified 5/5 on pushed `milestone/v1.44` (PROP-04/06/07 validated; fixed retention dry runs under-counting transactions a purge would empty; CI 36929234558 and scale-5 Flake Detection 36930385324 green), not yet landed on main. Next: Phase 228 Telemetry.
+- v1.44 progress (2026-10-01): Phases 224 and 225 landed on main (`fc47af60`, PR #71). Phase 226 Pure Property Tests and Run Budget complete and verified on pushed `milestone/v1.44` (PROP-01/02/03/05/08 validated; CI 36903609149 and scale-5 Flake Detection 36897742852 green), not yet landed on main. Phase 227 DB-Backed Property Tests complete and verified 5/5 on pushed `milestone/v1.44` (PROP-04/06/07 validated; fixed retention dry runs under-counting transactions a purge would empty; CI 36929234558 and scale-5 Flake Detection 36930385324 green), not yet landed on main. Phase 228 Telemetry complete and verified 7/7 on `milestone/v1.44` (TELE-01..04 validated; 14 documented events behind an internal registry with allowlist, static-scan and doc-parity tests; export and retention events added; actor ids stripped from operator-surface events and health error now carries only the exception module, listed as breaking for 0.12.0; new guides/telemetry.md; CI 37018812221 green), not yet landed on main. Next: Phase 229 Adopter API and Health Additions.
 
 ## Current Milestone: v1.44 Behavioral Depth: Properties, Twins, Telemetry
 
@@ -826,4 +826,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-01 after Phase 227 completion*
+*Last updated: 2026-10-02 after Phase 228 completion*
