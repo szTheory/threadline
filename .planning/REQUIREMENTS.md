@@ -29,7 +29,7 @@
 
 ### Telemetry
 
-- [ ] **TELE-01**: An operator can attach to `[:threadline, :export, :completed]` and `[:threadline, :export, :failed]`, which carry a row count, a duration and a format. Both are emitted after the export finishes, on both outcome branches.
+- [x] **TELE-01**: An operator can attach to `[:threadline, :export, :completed]` and `[:threadline, :export, :failed]`, which carry a row count, a duration and a format. Both are emitted after the export finishes, on both outcome branches.
 - [ ] **TELE-02**: An operator can observe retention purges through a `:telemetry.span/3` on `[:threadline, :retention, :purge, :start | :stop | :exception]`, plus a `[:threadline, :retention, :batch_purged]` event per batch that carries the rows deleted.
 - [x] **TELE-03**: No Threadline telemetry event carries row values, actor identifiers, correlation ids or free-text reasons.
   - An allowlist test pins every event's measurement and metadata keys.
@@ -100,7 +100,7 @@
 | PROP-06 | Phase 227 | Complete |
 | PROP-07 | Phase 227 | Complete |
 | PROP-08 | Phase 226 | Complete |
-| TELE-01 | Phase 228 | Pending |
+| TELE-01 | Phase 228 | Complete |
 | TELE-02 | Phase 228 | Pending |
 | TELE-03 | Phase 228 | Complete |
 | TELE-04 | Phase 228 | Pending |

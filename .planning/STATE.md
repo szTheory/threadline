@@ -5,15 +5,15 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 228
 current_phase_name: Telemetry
 status: executing
-stopped_at: Completed 228-01-PLAN.md
-last_updated: "2026-10-02T11:43:43.556Z"
+stopped_at: Completed 228-02-PLAN.md
+last_updated: "2026-10-02T12:01:27.702Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 228 execution started
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 25
-  completed_plans: 20
+  completed_plans: 21
   percent: 57
 state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
 ---
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 228 (Telemetry) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 228 execution started
 
-Progress: [██████░░░░] 4 of 7 v1.44 phases complete ([██████░░░░] 57%). Plan 228-01 complete 2026-10-02 (TELE-03 for existing events: Threadline.Telemetry.__events__/0 registry seeded with all eight events, emit_operator_surface_authorize/3 + emit_export_authorize_error/0 + emit_actor_ref_mismatch/0 helpers, exception-taking emit_health_checked_error/1, operator-surface/health-error identity strip per D-17, runtime allowlist + static scan in test/threadline/telemetry_registry_contract_test.exs; full mix test 2678/0; next 228-02). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phase 226 verified passed 6/6 (2026-10-01): pure StreamData properties for cursor paging (PROP-01, incl. Cursors.actor_history_page/4 and DB agreement tests), ChangeDiff (PROP-02), redaction-policy validation (PROP-03) and CSV/JSON/NDJSON export round-trip via an independent strict RFC 4180 decoder (PROP-05); seven mutation controls each killed 5/5 (226-EVIDENCE.md); Threadline.Test.PropertyRuns + THREADLINE_PROPERTY_SCALE (5 on the weekly Flake Detection lane only) with a pinning contract test and generator coverage floors (PROP-08); fixes: CSV bare-CR quoting, non-list exclude:/mask:/except_columns: and non-binary placeholders now raise (CHANGELOG Breaking changes); Flake Detection at scale 5: run 36888506162 inconclusive by budget (11 clean iterations), repeats lowered 11→8 and ceilings re-derived to 348 s cold / 295 s repeat, confirmation run 36897742852 pass 9/9; review 1 critical/2 warning/2 info — CR-01 (except_columns) and WR-02 fixed, WR-01 accepted; CI 36903609149 green on d58ef5e9. Phase 227 verified passed 5/5 (2026-10-01): DB-backed StreamData properties via Threadline.Test.DbProperty — redaction never reaches storage, ChangeDiff or CSV/JSON/NDJSON export (PROP-04), as_of equals an independent in-order replay (PROP-06), Retention.purge cutoff exact with dry-run/real agreement and byte-identical survivors (PROP-07); fix: dry runs now count transactions a purge would empty (CHANGELOG Fixed); 12 of 13 mutation controls killed 5/5, the 13th (as_of_tiebreak, unreachable by design) a recorded expected survivor in 227-EVIDENCE.md; CI 36929234558 green, Flake Detection 36930385324 pass 9/9 at scale 5, ceilings re-derived to 370 s cold / 300 s repeat; review 0 critical/2 warning/2 info (advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 228 (plan 06 stops at a maintainer push/dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [██████░░░░] 4 of 7 v1.44 phases complete ([██████░░░░] 57%). Plan 228-01 complete 2026-10-02 (TELE-03 for existing events: Threadline.Telemetry.__events__/0 registry seeded with all eight events, emit_operator_surface_authorize/3 + emit_export_authorize_error/0 + emit_actor_ref_mismatch/0 helpers, exception-taking emit_health_checked_error/1, operator-surface/health-error identity strip per D-17, runtime allowlist + static scan in test/threadline/telemetry_registry_contract_test.exs; full mix test 2678/0). Plan 228-02 complete 2026-10-02 (TELE-01: [:threadline, :export, :completed|:failed] emitted once per logical export across to_csv_iodata/2, to_json_document/2, Export.Orchestrator.run/2 and the chunked operator-surface download, closing error_kind over :exception | :client_closed | :storage_error | :transaction_failed with no reason string; new export_controller_telemetry_test.exs incl. a ClosedChunkAdapter proving the client-disconnect path; full mix test 2690/0; next 228-03). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landed on main as fc47af60 (squash of PR #71, main CI 36823059226 green; main merged back into milestone/v1.44 as 7f745c8a). Phase 226 verified passed 6/6 (2026-10-01): pure StreamData properties for cursor paging (PROP-01, incl. Cursors.actor_history_page/4 and DB agreement tests), ChangeDiff (PROP-02), redaction-policy validation (PROP-03) and CSV/JSON/NDJSON export round-trip via an independent strict RFC 4180 decoder (PROP-05); seven mutation controls each killed 5/5 (226-EVIDENCE.md); Threadline.Test.PropertyRuns + THREADLINE_PROPERTY_SCALE (5 on the weekly Flake Detection lane only) with a pinning contract test and generator coverage floors (PROP-08); fixes: CSV bare-CR quoting, non-list exclude:/mask:/except_columns: and non-binary placeholders now raise (CHANGELOG Breaking changes); Flake Detection at scale 5: run 36888506162 inconclusive by budget (11 clean iterations), repeats lowered 11→8 and ceilings re-derived to 348 s cold / 295 s repeat, confirmation run 36897742852 pass 9/9; review 1 critical/2 warning/2 info — CR-01 (except_columns) and WR-02 fixed, WR-01 accepted; CI 36903609149 green on d58ef5e9. Phase 227 verified passed 5/5 (2026-10-01): DB-backed StreamData properties via Threadline.Test.DbProperty — redaction never reaches storage, ChangeDiff or CSV/JSON/NDJSON export (PROP-04), as_of equals an independent in-order replay (PROP-06), Retention.purge cutoff exact with dry-run/real agreement and byte-identical survivors (PROP-07); fix: dry runs now count transactions a purge would empty (CHANGELOG Fixed); 12 of 13 mutation controls killed 5/5, the 13th (as_of_tiebreak, unreachable by design) a recorded expected survivor in 227-EVIDENCE.md; CI 36929234558 green, Flake Detection 36930385324 pass 9/9 at scale 5, ceilings re-derived to 370 s cold / 300 s repeat; review 0 critical/2 warning/2 info (advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 228 (plan 06 stops at a maintainer push/dispatch grant). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 
@@ -251,6 +251,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 227 P04 | 1h45m | 3 tasks | 16 files |
 | Phase 227 P05 | ~2h | 3 tasks | 5 files |
 | Phase 228 P01 | ~1h | 3 tasks | 12 files |
+| Phase 228 P02 | ~1h45m | 3 tasks | 7 files |
 
 ## Deferred Items
 
@@ -950,6 +951,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase ?]: 227-04: strengthened RetentionCutoffGenerators with a dedicated ~30% entirely-negative-offsets branch after a mutation control proved unreliable across seeds — generator gap, not control weakness
 - [Phase ?]: 227-05: ceilings re-derived from Flake Detection run 36930385324 (370s cold / 300s repeat), repeat count stays 8
 - [Phase ?]: D-17 strip now: operator-surface events and the health error event lose actor identity / free-text message (228-01)
+- [Phase ?]: error_kind mapping: :exception for any raise, :transaction_failed for a non-exception transaction/completion failure, :storage_error for temp-file read or storage put failure, :client_closed only for the chunked download's chunk write error
 
 ### Blockers
 
@@ -965,8 +967,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-02T11:43:43.541Z
-**Stopped at:** Completed 228-01-PLAN.md
+**Last session:** 2026-10-02T12:01:27.683Z
+**Stopped at:** Completed 228-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

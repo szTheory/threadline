@@ -223,7 +223,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 228-02-PLAN.md — Export `:completed`/`:failed` from the eager functions, the async orchestrator and the chunked download (wave 2)
+- [x] 228-02-PLAN.md — Export `:completed`/`:failed` from the eager functions, the async orchestrator and the chunked download (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -278,7 +278,7 @@ Plans:
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
-| 228. Telemetry | 1/6 | In Progress | - |
+| 228. Telemetry | 2/6 | In Progress | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
 
