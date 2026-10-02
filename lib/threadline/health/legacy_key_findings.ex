@@ -39,9 +39,10 @@ defmodule Threadline.Health.LegacyKeyFindings do
     else
       {:ok, findings} =
         repo.transaction(fn ->
-          SQL.query!(repo, "SELECT set_config('statement_timeout', $1, true)", [
-            Integer.to_string(statement_timeout_ms)
-          ])
+          _ =
+            SQL.query!(repo, "SELECT set_config('statement_timeout', $1, true)", [
+              Integer.to_string(statement_timeout_ms)
+            ])
 
           probes
           |> Enum.map(&probe(repo, &1, count_cap, opts))
