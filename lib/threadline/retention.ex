@@ -24,7 +24,8 @@ defmodule Threadline.Retention do
   @type purge_result :: %{
           deleted_changes: non_neg_integer(),
           deleted_transactions: non_neg_integer(),
-          batches_run: non_neg_integer()
+          batches_run: non_neg_integer(),
+          dry_run: boolean()
         }
 
   @doc """
@@ -202,7 +203,12 @@ defmodule Threadline.Retention do
         end
       end)
 
-    %{deleted_changes: total_changes, deleted_transactions: total_txns, batches_run: batches}
+    %{
+      deleted_changes: total_changes,
+      deleted_transactions: total_txns,
+      batches_run: batches,
+      dry_run: false
+    }
   end
 
   defp delete_change_batch(repo, cutoff, batch_size, storage_opts) do
