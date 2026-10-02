@@ -97,6 +97,20 @@ defmodule Threadline.Telemetry do
       measurements: [:count],
       metadata: [],
       when: "the session actor and the scope-derived actor disagree"
+    },
+    %{
+      name: [:threadline, :export, :completed],
+      measurements: [:duration, :row_count],
+      metadata: [:format, :truncated],
+      when:
+        "an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) finishes successfully"
+    },
+    %{
+      name: [:threadline, :export, :failed],
+      measurements: [:duration, :row_count],
+      metadata: [:format, :error_kind, :exception],
+      when:
+        "an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) fails"
     }
   ]
 
@@ -226,6 +240,55 @@ defmodule Threadline.Telemetry do
       [:threadline, :operator_surface, :actor_ref_mismatch],
       %{count: 1},
       %{}
+    )
+  end
+
+  @doc """
+  Emits the `[:threadline, :export, :completed]` event for one logical export
+  that finished successfully.
+
+  `format` is the user-facing export format (`:csv`, `:json`, or `:ndjson` —
+  the async orchestrator job is always `:csv`). `row_count` is the number of
+  rows returned or streamed. `truncated` is whether the export hit its row
+  cap. `started_at` is a `System.monotonic_time/0` value captured by the
+  caller before the export began; this helper computes `duration` from it.
+  """
+  def emit_export_completed(format, row_count, truncated, started_at)
+      when format in [:csv, :json, :ndjson] and is_integer(row_count) and row_count >= 0 and
+             is_boolean(truncated) and is_integer(started_at) do
+    duration = System.monotonic_time() - started_at
+
+    :telemetry.execute(
+      [:threadline, :export, :completed],
+      %{duration: duration, row_count: row_count},
+      %{format: format, truncated: truncated}
+    )
+  end
+
+  @doc """
+  Emits the `[:threadline, :export, :failed]` event for one logical export
+  that failed.
+
+  `row_count` is the number of rows written or streamed before the failure
+  (`0` for the eager functions, since they fail before returning anything).
+  `error_kind` is one of `:exception`, `:client_closed`, `:storage_error`, or
+  `:transaction_failed`. `exception` is the raised exception struct, or
+  `nil` when the failure was not a raise — only the struct's module is
+  forwarded, never its message, which can echo audited database values.
+  `started_at` is the same `System.monotonic_time/0` value passed to
+  `emit_export_completed/4`.
+  """
+  def emit_export_failed(format, row_count, error_kind, exception, started_at)
+      when format in [:csv, :json, :ndjson] and is_integer(row_count) and row_count >= 0 and
+             error_kind in [:exception, :client_closed, :storage_error, :transaction_failed] and
+             (is_nil(exception) or is_exception(exception)) and is_integer(started_at) do
+    duration = System.monotonic_time() - started_at
+    exception_module = if exception, do: exception.__struct__, else: nil
+
+    :telemetry.execute(
+      [:threadline, :export, :failed],
+      %{duration: duration, row_count: row_count},
+      %{format: format, error_kind: error_kind, exception: exception_module}
     )
   end
 end

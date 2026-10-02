@@ -69,37 +69,48 @@ defmodule Threadline.Export do
   """
   @spec to_csv_iodata(keyword(), keyword()) :: {:ok, map()}
   def to_csv_iodata(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    Query.validate_timeline_filters!(filters)
-    repo = Query.timeline_repo!(filters, opts)
-    max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
-    include_meta = Keyword.get(opts, :include_action_metadata, false)
-    limit = max_rows + 1
+    started_at = System.monotonic_time()
 
-    rows =
-      repo.all(
-        Query.export_changes_query(filters, opts) |> limit(^limit),
-        Query.storage_opts(filters, opts)
-      )
+    try do
+      Query.validate_timeline_filters!(filters)
+      repo = Query.timeline_repo!(filters, opts)
+      max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
+      include_meta = Keyword.get(opts, :include_action_metadata, false)
+      limit = max_rows + 1
 
-    {truncated, rows} = split_truncated(rows, max_rows)
+      rows =
+        repo.all(
+          Query.export_changes_query(filters, opts) |> limit(^limit),
+          Query.storage_opts(filters, opts)
+        )
 
-    header =
-      if include_meta do
-        @csv_header ++ ~w(correlation_id action_id)
-      else
-        @csv_header
-      end
+      {truncated, rows} = split_truncated(rows, max_rows)
 
-    data_rows = Enum.map(rows, &csv_row(&1, include_meta))
-    iodata = dump_csv_to_iodata([header | data_rows])
+      header =
+        if include_meta do
+          @csv_header ++ ~w(correlation_id action_id)
+        else
+          @csv_header
+        end
 
-    {:ok,
-     %{
-       data: iodata,
-       truncated: truncated,
-       returned_count: length(rows),
-       max_rows: max_rows
-     }}
+      data_rows = Enum.map(rows, &csv_row(&1, include_meta))
+      iodata = dump_csv_to_iodata([header | data_rows])
+      returned_count = length(rows)
+
+      Threadline.Telemetry.emit_export_completed(:csv, returned_count, truncated, started_at)
+
+      {:ok,
+       %{
+         data: iodata,
+         truncated: truncated,
+         returned_count: returned_count,
+         max_rows: max_rows
+       }}
+    rescue
+      e ->
+        Threadline.Telemetry.emit_export_failed(:csv, 0, :exception, e, started_at)
+        reraise e, __STACKTRACE__
+    end
   end
 
   @doc """
@@ -112,45 +123,63 @@ defmodule Threadline.Export do
   """
   @spec to_json_document(keyword(), keyword()) :: {:ok, map()}
   def to_json_document(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    Query.validate_timeline_filters!(filters)
-    repo = Query.timeline_repo!(filters, opts)
-    max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
+    started_at = System.monotonic_time()
     json_format = Keyword.get(opts, :json_format, :wrapped)
-    limit = max_rows + 1
+    emit_format = if json_format == :ndjson, do: :ndjson, else: :json
 
-    rows =
-      repo.all(
-        Query.export_changes_query(filters, opts) |> limit(^limit),
-        Query.storage_opts(filters, opts)
+    try do
+      Query.validate_timeline_filters!(filters)
+      repo = Query.timeline_repo!(filters, opts)
+      max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
+      limit = max_rows + 1
+
+      rows =
+        repo.all(
+          Query.export_changes_query(filters, opts) |> limit(^limit),
+          Query.storage_opts(filters, opts)
+        )
+
+      {truncated, rows} = split_truncated(rows, max_rows)
+      changes = Enum.map(rows, &change_map/1)
+
+      data =
+        case json_format do
+          :ndjson ->
+            changes
+            |> Enum.map(fn ch -> [Jason.encode!(ch), ?\n] end)
+            |> IO.iodata_to_binary()
+
+          :wrapped ->
+            doc = %{
+              "format_version" => 1,
+              "generated_at" => generated_at_iso(),
+              "changes" => changes
+            }
+
+            Jason.encode_to_iodata!(doc)
+        end
+
+      returned_count = length(rows)
+
+      Threadline.Telemetry.emit_export_completed(
+        emit_format,
+        returned_count,
+        truncated,
+        started_at
       )
 
-    {truncated, rows} = split_truncated(rows, max_rows)
-    changes = Enum.map(rows, &change_map/1)
-
-    data =
-      case json_format do
-        :ndjson ->
-          changes
-          |> Enum.map(fn ch -> [Jason.encode!(ch), ?\n] end)
-          |> IO.iodata_to_binary()
-
-        :wrapped ->
-          doc = %{
-            "format_version" => 1,
-            "generated_at" => generated_at_iso(),
-            "changes" => changes
-          }
-
-          Jason.encode_to_iodata!(doc)
-      end
-
-    {:ok,
-     %{
-       data: data,
-       truncated: truncated,
-       returned_count: length(rows),
-       max_rows: max_rows
-     }}
+      {:ok,
+       %{
+         data: data,
+         truncated: truncated,
+         returned_count: returned_count,
+         max_rows: max_rows
+       }}
+    rescue
+      e ->
+        Threadline.Telemetry.emit_export_failed(emit_format, 0, :exception, e, started_at)
+        reraise e, __STACKTRACE__
+    end
   end
 
   @doc """

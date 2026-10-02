@@ -1,6 +1,8 @@
 defmodule Threadline.ExportTest do
   use Threadline.DataCase
 
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
+
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Export
   alias Threadline.Semantics.{ActorRef, AuditAction}
@@ -155,6 +157,68 @@ defmodule Threadline.ExportTest do
     end
   end
 
+  describe "to_csv_iodata/2 telemetry (TELE-01)" do
+    test "emits exactly one :completed with the returned row count and format :csv, no :failed" do
+      tname = table_name("tele-csv-ok")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+      insert_change(txn, %{table_name: tname, table_pk: %{"id" => "2"}})
+
+      ref =
+        attach_telemetry!([[:threadline, :export, :completed], [:threadline, :export, :failed]])
+
+      assert {:ok, %{returned_count: 2, truncated: false}} =
+               Export.to_csv_iodata([repo: @repo, table: tname], [])
+
+      assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+      assert measurements.row_count == 2
+      assert is_integer(measurements.duration) and measurements.duration >= 0
+      assert metadata.format == :csv
+      assert metadata.truncated == false
+
+      refute_receive {[:threadline, :export, :failed], ^ref, _measurements, _metadata}
+    end
+
+    test "emits :completed with truncated: true when max_rows is smaller than the fixture" do
+      tname = table_name("tele-csv-trunc")
+      txn = insert_transaction()
+
+      for i <- 1..5 do
+        insert_change(txn, %{
+          table_name: tname,
+          table_pk: %{"id" => "r-#{i}"},
+          captured_at: DateTime.add(~U[2026-01-01 00:00:00.000000Z], i, :second)
+        })
+      end
+
+      ref = attach_telemetry!([[:threadline, :export, :completed]])
+
+      assert {:ok, %{truncated: true, returned_count: 3}} =
+               Export.to_csv_iodata([repo: @repo, table: tname], max_rows: 3)
+
+      assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+      assert measurements.row_count == 3
+      assert metadata.truncated == true
+    end
+
+    test "an invalid filter still raises and emits exactly one :failed with row_count 0" do
+      ref =
+        attach_telemetry!([[:threadline, :export, :completed], [:threadline, :export, :failed]])
+
+      assert_raise ArgumentError, fn ->
+        Export.to_csv_iodata([repo: @repo, oops: true], [])
+      end
+
+      assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+      assert measurements.row_count == 0
+      assert metadata.format == :csv
+      assert metadata.error_kind == :exception
+      assert metadata.exception == ArgumentError
+
+      refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
+    end
+  end
+
   describe "to_json_document/2" do
     test "storage_schema option exports only rows from the selected storage schema" do
       ensure_storage_schema!("audit")
@@ -246,6 +310,53 @@ defmodule Threadline.ExportTest do
                Export.to_json_document([repo: @repo, table: tname], [])
 
       assert Jason.decode!(IO.iodata_to_binary(data))["changes"] == []
+    end
+  end
+
+  describe "to_json_document/2 telemetry (TELE-01)" do
+    test "wrapped format emits :completed with format :json" do
+      tname = table_name("tele-json-wrapped")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+
+      ref = attach_telemetry!([[:threadline, :export, :completed]])
+
+      assert {:ok, %{}} = Export.to_json_document([repo: @repo, table: tname], [])
+
+      assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+      assert measurements.row_count == 1
+      assert metadata.format == :json
+    end
+
+    test "ndjson format emits :completed with format :ndjson" do
+      tname = table_name("tele-json-ndjson")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+
+      ref = attach_telemetry!([[:threadline, :export, :completed]])
+
+      assert {:ok, %{}} =
+               Export.to_json_document([repo: @repo, table: tname], json_format: :ndjson)
+
+      assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+      assert measurements.row_count == 1
+      assert metadata.format == :ndjson
+    end
+
+    test "an invalid filter still raises and emits exactly one :failed" do
+      ref =
+        attach_telemetry!([[:threadline, :export, :completed], [:threadline, :export, :failed]])
+
+      assert_raise ArgumentError, fn ->
+        Export.to_json_document([repo: @repo, oops: true], [])
+      end
+
+      assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+      assert measurements.row_count == 0
+      assert metadata.error_kind == :exception
+      assert metadata.exception == ArgumentError
+
+      refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
     end
   end
 

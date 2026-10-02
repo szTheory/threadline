@@ -20,6 +20,8 @@ defmodule Threadline.TelemetryRegistryContractTest do
   import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
   import Plug.Test, only: [conn: 2, init_test_session: 2]
 
+  alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Export
   alias Threadline.OperatorSurface.Auth
   alias Threadline.OperatorSurface.Coverage.OnMount, as: CoverageOnMount
   alias Threadline.OperatorSurface.ThemeAuthPlug
@@ -43,6 +45,8 @@ defmodule Threadline.TelemetryRegistryContractTest do
     drive_operator_surface_authorize!()
     drive_operator_surface_export_authorize!()
     drive_operator_surface_actor_ref_mismatch!()
+    drive_export_completed!()
+    drive_export_failed!()
   end
 
   defp drive_action_recorded_and_transaction_committed! do
@@ -91,6 +95,41 @@ defmodule Threadline.TelemetryRegistryContractTest do
     opts = [authorize_fn: fn _socket -> {:ok, scope} end]
 
     Auth.on_mount(opts, %{}, session, mock_socket())
+  end
+
+  defp drive_export_completed! do
+    tname = "registry_contract_export_#{System.unique_integer([:positive])}"
+
+    txn =
+      @repo.insert!(
+        AuditTransaction.changeset(%{
+          txid: System.unique_integer([:positive]),
+          occurred_at: DateTime.utc_now()
+        }),
+        repo_opts()
+      )
+
+    @repo.insert!(
+      AuditChange.changeset(%{
+        table_schema: "public",
+        table_name: tname,
+        table_pk: %{"id" => "1"},
+        op: "insert",
+        data_after: %{"x" => 1},
+        changed_fields: ["x"],
+        captured_at: DateTime.utc_now(),
+        transaction_id: txn.id
+      }),
+      repo_opts()
+    )
+
+    Export.to_csv_iodata([repo: @repo, table: tname], [])
+  end
+
+  defp drive_export_failed! do
+    assert_raise ArgumentError, fn ->
+      Export.to_csv_iodata([repo: @repo, not_a_real_filter: true], [])
+    end
   end
 
   test "every registry event fires with exactly its registered keys" do
