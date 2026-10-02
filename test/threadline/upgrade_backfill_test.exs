@@ -167,6 +167,15 @@ defmodule Threadline.UpgradeBackfillTest do
       file = Harness.generate!(tmp, ["--tables", @doc_table])
       assert {:ok, _log} = Harness.migrate_up(file)
 
+      pre_backfill_findings =
+        Health.legacy_key_findings(repo: Repo, schema: "public")
+        |> Enum.filter(&(&1.table == @doc_table))
+
+      assert [unresolved_legacy_keys_finding] = pre_backfill_findings
+      assert unresolved_legacy_keys_finding.code == :unresolved_legacy_keys
+      assert unresolved_legacy_keys_finding.details["unresolved_count"] == 5
+      assert unresolved_legacy_keys_finding.details["key_columns"] == ["doc_key"]
+
       Repo.query!(
         "UPDATE #{@doc_table} SET title = 'Live after regen' WHERE doc_key = 'doc-live'"
       )
@@ -204,6 +213,12 @@ defmodule Threadline.UpgradeBackfillTest do
       delete_change = change_for(storage, @doc_table, "delete")
       assert delete_change.table_pk == %{"id" => nil}
       assert delete_change.data_after == nil
+
+      post_backfill_findings =
+        Health.legacy_key_findings(repo: Repo, schema: "public")
+        |> Enum.filter(&(&1.table == @doc_table))
+
+      assert post_backfill_findings == []
 
       # Idempotency: a rerun returns 0 rows on its first iteration and leaves
       # every row unchanged.

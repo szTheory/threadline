@@ -26,7 +26,7 @@ defmodule Threadline.Health do
   """
 
   alias Ecto.Adapters.SQL
-  alias Threadline.Health.TriggerFindings
+  alias Threadline.Health.{LegacyKeyFindings, TriggerFindings}
 
   @audit_tables ~w(audit_transactions audit_changes audit_actions)
   @expected_uncovered_baseline ~w(schema_migrations)
@@ -63,6 +63,17 @@ defmodule Threadline.Health do
   """
   @spec trigger_findings(keyword()) :: [Threadline.Health.Finding.t()]
   def trigger_findings(opts), do: TriggerFindings.run(opts)
+
+  @doc """
+  Returns a list of `Threadline.Health.Finding` structs for audit rows
+  captured before their table's trigger was regenerated and still carrying
+  an unresolved primary key. See `:unresolved_legacy_keys` in
+  `Threadline.Health.Finding`.
+
+  Accepts the same `:repo`/`:schema` options as `trigger_findings/1`.
+  """
+  @spec legacy_key_findings(keyword()) :: [Threadline.Health.Finding.t()]
+  def legacy_key_findings(opts), do: LegacyKeyFindings.run(opts)
 
   @doc """
   Returns a list of tagged tuples indicating trigger coverage for all user

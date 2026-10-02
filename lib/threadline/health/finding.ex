@@ -50,6 +50,7 @@ defmodule Threadline.Health.Finding do
           | :shared_capture_function
           | :duplicate_capture_trigger
           | :capture_trigger_disabled
+          | :unresolved_legacy_keys
 
   @type t :: %__MODULE__{
           code: code(),
