@@ -39,8 +39,8 @@
 
 ### Query API
 
-- [ ] **QRY-01**: A developer can pass `limit: n` to `Threadline.history/3` to get at most `n` changes, newest first, with the existing `captured_at desc, id desc` tiebreak. The default is unbounded (`nil`). Zero, negative or non-integer values raise `ArgumentError`, and the docs point to `row_history_page/4` for paging.
-- [ ] **QRY-02**: A test proves that calling `history/3` without `:limit` returns the same list as before. The CHANGELOG entry states the option is additive and that the default is unchanged.
+- [x] **QRY-01**: A developer can pass `limit: n` to `Threadline.history/3` to get at most `n` changes, newest first, with the existing `captured_at desc, id desc` tiebreak. The default is unbounded (`nil`). Zero, negative or non-integer values raise `ArgumentError`, and the docs point to `row_history_page/4` for paging.
+- [x] **QRY-02**: A test proves that calling `history/3` without `:limit` returns the same list as before. The CHANGELOG entry states the option is additive and that the default is unchanged.
 
 ### Health and CLI (carried from v1.42)
 
@@ -104,8 +104,8 @@
 | TELE-02 | Phase 228 | Complete |
 | TELE-03 | Phase 228 | Complete |
 | TELE-04 | Phase 228 | Complete |
-| QRY-01 | Phase 229 | Pending |
-| QRY-02 | Phase 229 | Pending |
+| QRY-01 | Phase 229 | Complete |
+| QRY-02 | Phase 229 | Complete |
 | HLTH-01 | Phase 229 | Pending |
 | HLTH-02 | Phase 229 | Pending |
 | HLTH-03 | Phase 229 | Pending |

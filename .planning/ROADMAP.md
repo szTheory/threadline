@@ -257,7 +257,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 229-01-PLAN.md — Before wall clock; `history/3` `:limit` (validation, cap after scope, tie-aware tests, prefix property, docs, CHANGELOG) (wave 1)
+- [x] 229-01-PLAN.md — Before wall clock; `history/3` `:limit` (validation, cap after scope, tie-aware tests, prefix property, docs, CHANGELOG) (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
