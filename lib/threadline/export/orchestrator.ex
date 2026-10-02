@@ -10,6 +10,7 @@ defmodule Threadline.Export.Orchestrator do
   alias Threadline.Governance.ExportJob
   alias Threadline.Query.FilterParams
   alias Threadline.StorageSchema
+  alias Threadline.Telemetry
 
   @default_retention_ttl_hours 24 * 7
 
@@ -51,6 +52,8 @@ defmodule Threadline.Export.Orchestrator do
   # Load is done: stream the rows to a temp file inside the export
   # transaction, then persist. The rescue covers both steps, as before.
   defp run_job(job_id, job, ctx) do
+    ctx = Map.merge(ctx, %{started_at: System.monotonic_time(), rows: :counters.new(1, [])})
+
     temp_path =
       Path.join(
         System.tmp_dir!(),
@@ -69,6 +72,7 @@ defmodule Threadline.Export.Orchestrator do
       e ->
         remove_temp_file(temp_path)
         mark_failed(ctx.repo, job, Exception.message(e), ctx.storage_opts)
+        Telemetry.emit_export_failed(:csv, rows_sent(ctx), :exception, e, ctx.started_at)
         {:error, e}
     end
   end
@@ -90,6 +94,7 @@ defmodule Threadline.Export.Orchestrator do
       |> Enum.each(fn chunk ->
         iodata = Export.format_changes_iodata(chunk, :csv)
         IO.binwrite(file, iodata)
+        :counters.add(ctx.rows, 1, length(chunk))
       end)
     after
       close_temp_file(file, temp_path)
@@ -101,19 +106,12 @@ defmodule Threadline.Export.Orchestrator do
   defp handle_transaction_result({:ok, :written}, job, temp_path, ctx) do
     case File.read(temp_path) do
       {:ok, csv_content} ->
-        persist_export(
-          ctx.storage.put(csv_content),
-          ctx.repo,
-          job,
-          temp_path,
-          ctx.storage,
-          ctx.storage_opts,
-          ctx.completion_fn
-        )
+        persist_export(ctx.storage.put(csv_content), job, temp_path, ctx)
 
       {:error, reason} ->
         remove_temp_file(temp_path)
         mark_failed(ctx.repo, job, inspect({:temp_file_read_error, reason}), ctx.storage_opts)
+        Telemetry.emit_export_failed(:csv, rows_sent(ctx), :storage_error, nil, ctx.started_at)
         {:error, {:temp_file_read_error, reason}}
     end
   end
@@ -121,6 +119,7 @@ defmodule Threadline.Export.Orchestrator do
   defp handle_transaction_result({:error, reason}, job, temp_path, ctx) do
     remove_temp_file(temp_path)
     mark_failed(ctx.repo, job, inspect(reason), ctx.storage_opts)
+    Telemetry.emit_export_failed(:csv, rows_sent(ctx), :transaction_failed, nil, ctx.started_at)
     {:error, reason}
   end
 
@@ -134,34 +133,20 @@ defmodule Threadline.Export.Orchestrator do
       ctx.storage_opts
     )
 
+    Telemetry.emit_export_failed(:csv, rows_sent(ctx), :transaction_failed, nil, ctx.started_at)
     {:error, {:unexpected_transaction_result, other}}
   end
 
-  defp persist_export(
-         storage_result,
-         repo,
-         job,
-         temp_path,
-         storage,
-         storage_opts,
-         completion_fn
-       ) do
+  defp persist_export(storage_result, job, temp_path, ctx) do
     case storage_result do
       {:ok, file_path} ->
         remove_temp_file(temp_path)
-
-        finalize_stored_export(
-          repo,
-          job,
-          file_path,
-          storage,
-          storage_opts,
-          completion_fn
-        )
+        finalize_stored_export(job, file_path, ctx)
 
       {:error, reason} ->
         remove_temp_file(temp_path)
-        mark_failed(repo, job, inspect({:storage_error, reason}), storage_opts)
+        mark_failed(ctx.repo, job, inspect({:storage_error, reason}), ctx.storage_opts)
+        Telemetry.emit_export_failed(:csv, rows_sent(ctx), :storage_error, nil, ctx.started_at)
         {:error, {:storage_error, reason}}
     end
   end
@@ -215,44 +200,36 @@ defmodule Threadline.Export.Orchestrator do
     |> repo.update(storage_opts)
   end
 
-  defp finalize_stored_export(
-         repo,
-         job,
-         file_path,
-         storage,
-         storage_opts,
-         completion_fn
-       ) do
+  defp finalize_stored_export(job, file_path, ctx) do
     completion_result =
       try do
-        completion_fn.(repo, job, file_path, storage_opts)
+        ctx.completion_fn.(ctx.repo, job, file_path, ctx.storage_opts)
       rescue
         exception -> {:error, exception}
       end
 
     case completion_result do
       {:ok, _job} ->
+        Telemetry.emit_export_completed(:csv, rows_sent(ctx), false, ctx.started_at)
         :ok
 
       {:error, reason} ->
-        compensate_failed_finalization(repo, job, file_path, storage, storage_opts, reason)
+        compensate_failed_finalization(job, file_path, ctx, reason)
 
       other ->
         compensate_failed_finalization(
-          repo,
           job,
           file_path,
-          storage,
-          storage_opts,
+          ctx,
           {:unexpected_completion_result, other}
         )
     end
   end
 
-  defp compensate_failed_finalization(repo, job, file_path, storage, storage_opts, reason) do
-    case delete_stored_export(storage, file_path) do
+  defp compensate_failed_finalization(job, file_path, ctx, reason) do
+    case delete_stored_export(ctx.storage, file_path) do
       :ok ->
-        mark_failed(repo, job, inspect(reason), storage_opts)
+        mark_failed(ctx.repo, job, inspect(reason), ctx.storage_opts)
 
       {:error, delete_reason} ->
         Logger.warning(
@@ -260,16 +237,24 @@ defmodule Threadline.Export.Orchestrator do
         )
 
         mark_failed(
-          repo,
+          ctx.repo,
           job,
           "#{inspect(reason)}; compensation failed: #{inspect(delete_reason)}",
-          storage_opts,
+          ctx.storage_opts,
           file_path
         )
     end
 
+    if is_exception(reason) do
+      Telemetry.emit_export_failed(:csv, rows_sent(ctx), :exception, reason, ctx.started_at)
+    else
+      Telemetry.emit_export_failed(:csv, rows_sent(ctx), :transaction_failed, nil, ctx.started_at)
+    end
+
     {:error, reason}
   end
+
+  defp rows_sent(ctx), do: :counters.get(ctx.rows, 1)
 
   defp delete_stored_export(storage, file_path) do
     case storage.delete(file_path) do
