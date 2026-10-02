@@ -24,6 +24,14 @@ defmodule Threadline.Query.AsOfPropertyTest do
   `numeric` round-trips lossy through Jason, and `timestamptz` renders in
   the session timezone — either would fail this property on capture
   fidelity, not on `as_of` (CONTEXT.md D-14, Deferred).
+
+  A second property, the `:limit` prefix contract (QRY-01/QRY-02, D-04),
+  reuses this file's `asof_prop_rows` table, `AsOfPropRow` schema, and
+  `history_gen/0`: for every generated row history, it applies the same
+  batches as real SQL (ignoring the `as_of` probes), reads the unbounded
+  `Query.history/3` result once as `full`, then asserts
+  `Query.history(..., limit: n) == Enum.take(full, n)` for every `n` from 1
+  through `length(full) + 2`. No new generator or table is registered.
   """
 
   use Threadline.DataCase, async: false
@@ -87,6 +95,57 @@ defmodule Threadline.Query.AsOfPropertyTest do
         fn n -> run_history_and_probe(n, batches) end
       )
     end
+  end
+
+  property "history(limit: n) equals Enum.take(history(), n) for every n in 1..length+2" do
+    check all(batches <- history_gen(), max_runs: @max_runs) do
+      with_iteration(
+        fn n -> delete_iteration!(@t, [Integer.to_string(n)]) end,
+        fn n -> run_history_limit_prefix(n, batches) end
+      )
+    end
+  end
+
+  # ── Second property: apply the same batches, then prove the :limit prefix ──
+
+  defp run_history_limit_prefix(pk, batches) do
+    _final_model =
+      Enum.reduce(batches, nil, fn steps, model -> apply_batch_only(pk, steps, model) end)
+
+    full = Query.history(AsOfPropRow, pk, repo: Repo)
+
+    for n <- 1..(length(full) + 2) do
+      assert Query.history(AsOfPropRow, pk, repo: Repo, limit: n) == Enum.take(full, n)
+    end
+  end
+
+  defp apply_batch_only(pk, steps, model0) do
+    {:ok, model} =
+      Repo.transaction(fn ->
+        Enum.reduce(steps, model0, fn step, model1 -> apply_step_only(pk, step, model1) end)
+      end)
+
+    model
+  end
+
+  defp apply_step_only(pk, {:write, full_row, _subset}, nil) do
+    model = Map.put(full_row, "id", pk)
+    insert_row!(pk, full_row)
+    model
+  end
+
+  defp apply_step_only(pk, {:write, full_row, subset}, model) when is_map(model) do
+    changed = Map.take(full_row, Enum.map(subset, &Atom.to_string/1))
+    new_model = Map.merge(model, changed)
+    update_row!(pk, new_model)
+    new_model
+  end
+
+  defp apply_step_only(_pk, :delete, nil), do: nil
+
+  defp apply_step_only(pk, :delete, model) when is_map(model) do
+    delete_row!(pk)
+    nil
   end
 
   # ── Apply the generated history as real SQL, folding the model ─────────

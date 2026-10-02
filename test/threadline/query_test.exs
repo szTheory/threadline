@@ -169,6 +169,32 @@ defmodule Threadline.QueryTest do
 
   defp fake_as_of_schema, do: FakeAsOfUser
 
+  # Independent oracle for history/3 :limit (D-04): reads audit_changes
+  # directly via a plain SQL query (never through where_row/history_query),
+  # then sorts in Elixir by {captured_at desc, id desc} using DateTime.compare
+  # (not default term ordering, which does not compare %DateTime{} structs
+  # chronologically).
+  defp history_oracle_ids(table_name, table_pk, storage_schema \\ "threadline") do
+    qualified = Threadline.StorageSchema.table("audit_changes", storage_schema: storage_schema)
+
+    %{rows: rows} =
+      @repo.query!(
+        "SELECT id::text, captured_at FROM #{qualified} WHERE table_name = $1 AND table_pk = $2::jsonb",
+        [table_name, table_pk]
+      )
+
+    rows
+    |> Enum.map(fn [id, %DateTime{} = captured_at] -> {id, captured_at} end)
+    |> Enum.sort(fn {id_a, ts_a}, {id_b, ts_b} ->
+      case DateTime.compare(ts_a, ts_b) do
+        :gt -> true
+        :lt -> false
+        :eq -> id_a >= id_b
+      end
+    end)
+    |> Enum.map(fn {id, _captured_at} -> id end)
+  end
+
   # ── history/3 ─────────────────────────────────────────────────────────────
 
   describe "as_of/4 — ASOF-01/02/05" do
@@ -470,6 +496,187 @@ defmodule Threadline.QueryTest do
       assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
         Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 0)
       end
+    end
+
+    test "history/3 :limit against an independent oracle, boundary + tie adjacency (QRY-01/QRY-02)" do
+      defmodule FakeUserLimitMatrix do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      txn = insert_transaction()
+      tie_time = ~U[2026-10-02 10:00:00.000000Z]
+      earlier_time = DateTime.add(tie_time, -60, :second)
+      later_time = DateTime.add(tie_time, 60, :second)
+      table_pk = %{"id" => "u-limit-matrix"}
+
+      insert_change(txn, %{table_name: "users", table_pk: table_pk, captured_at: earlier_time})
+      # Two rows share the exact same captured_at (tie_time); id desc breaks the tie.
+      insert_change(txn, %{table_name: "users", table_pk: table_pk, captured_at: tie_time})
+      insert_change(txn, %{table_name: "users", table_pk: table_pk, captured_at: tie_time})
+      insert_change(txn, %{table_name: "users", table_pk: table_pk, captured_at: later_time})
+
+      oracle_ids = history_oracle_ids("users", table_pk)
+      assert length(oracle_ids) == 4
+
+      unbounded =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo),
+          & &1.id
+        )
+
+      assert unbounded == oracle_ids
+
+      # no limit == limit: nil == limit: count + 5
+      nil_limited =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: nil),
+          & &1.id
+        )
+
+      over_limited =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix",
+            repo: @repo,
+            limit: length(oracle_ids) + 5
+          ),
+          & &1.id
+        )
+
+      assert nil_limited == oracle_ids
+      assert over_limited == oracle_ids
+
+      # limit: count returns all
+      count_limited =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix",
+            repo: @repo,
+            limit: length(oracle_ids)
+          ),
+          & &1.id
+        )
+
+      assert count_limited == oracle_ids
+
+      # limit: 1 returns exactly the oracle head
+      [head_limited] =
+        Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 1)
+
+      assert head_limited.id == List.first(oracle_ids)
+
+      # a limit landing inside the tie group returns the higher-id members of
+      # that group: the head row plus the highest-id row of the tie pair.
+      [third_id | _] = Enum.drop(oracle_ids, 2)
+
+      tie_limited =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 3),
+          & &1.id
+        )
+
+      assert tie_limited == Enum.take(oracle_ids, 3)
+      assert List.last(tie_limited) == third_id
+    end
+
+    test "history/3 :limit plus scope: the cap counts only in-scope rows" do
+      support_time = ~U[2026-10-02 09:00:00.000000Z]
+      admin_time = DateTime.add(support_time, 60, :second)
+      table_pk = %{"id" => "u-limit-scope"}
+
+      support_txn = insert_transaction(%{occurred_at: support_time, source: "support"})
+      admin_txn = insert_transaction(%{occurred_at: admin_time, source: "admin"})
+
+      support_change =
+        insert_change(support_txn,
+          table_name: "users",
+          table_pk: table_pk,
+          data_after: %{"id" => "u-limit-scope", "name" => "Scoped Alpha"},
+          changed_fields: ["id", "name"],
+          captured_at: support_time
+        )
+
+      insert_change(admin_txn,
+        table_name: "users",
+        table_pk: table_pk,
+        data_after: %{"id" => "u-limit-scope", "name" => "Admin Beta"},
+        changed_fields: ["name"],
+        captured_at: admin_time
+      )
+
+      results =
+        Threadline.history(fake_as_of_schema(), "u-limit-scope",
+          repo: @repo,
+          scope: %{source: "support"},
+          scope_query_fn: &support_scope_query/3,
+          limit: 1
+        )
+
+      assert Enum.map(results, & &1.id) == [support_change.id]
+    end
+
+    test "history/3 :limit rejection cases raise with the exact message" do
+      defmodule FakeUserLimitReject do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 0)
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: -1", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: -1)
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: 1.0", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 1.0)
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: \"5\"", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: "5")
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: true", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: true)
+      end
+    end
+
+    test "history/3 :limit validation precedes row-key matching (garbage id + invalid limit)" do
+      defmodule FakeUserLimitPrecedence do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+        Threadline.history(FakeUserLimitPrecedence, nil, repo: @repo, limit: 0)
+      end
+    end
+
+    test "history/3 :limit on an empty history returns [] for no limit, nil, and limit: 1" do
+      defmodule FakeUserLimitEmpty do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo)
+      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: nil)
+      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: 1)
     end
   end
 
