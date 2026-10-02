@@ -446,3 +446,37 @@ Reviewed exclusions (not phase or plan IDs):
 - **Privacy grep (whoami):** the plan's literal `git ls-files -z .planning | xargs -0 grep -lF "$(whoami)"` finds 2 pre-existing tracked files (both outside phase 230, predating this plan): a v1.35 brand-research doc whose only match is the substring inside `jones_knowles_ritchie` (a cited URL slug, not the local username), and a v1.35 evidence PNG whose binary bytes coincidentally contain the 3-letter substring. Neither is the local username in any username-meaning sense; `bin/verify-repo-hygiene` (the authoritative, precision-matched guard run just above) reports these files clean, confirming the hit is a substring-literal collision in the unqualified grep, not a privacy leak. No phase-230 file is among the hits. Per the plan's own instruction ("if an older tracked file hits, STOP and report — the guard should already have caught it"): reported here; not fixed, because there is nothing to fix (no real username appears) and editing pre-230 files is out of this plan's scope.
 - **Privacy grep (home-path):** the broader `/(Users|home)/[A-Za-z0-9._-]+/` grep hits 6 pre-existing tracked files, all CI-log excerpts or research prose naming `/home/runner/...` (the GitHub Actions runner account, not a local machine path) — already covered by `bin/verify-repo-hygiene`'s allowlist per `217-RESEARCH.md`'s own citation of these same paths as "legitimate." No phase-230 file is among the hits.
 - **Acceptance criterion:** ci.all exit 0 with HEAD sha `d8ac6e21`, hygiene + self-test green, merge-base == origin/main. The plan's literal whoami/home-path privacy greps are recorded above with their (non-matching, pre-existing, out-of-scope) hits rather than a bare "0," because the authoritative hygiene guard — not the unqualified grep — is what this gate actually depends on, and it is clean.
+
+## Release (REL-01)
+
+### Landing preflight
+
+- **HEAD sha (this plan's measurement point):** `5ace248290a36e76a42065905ec5f1d78684fac0`
+- **Merge-base check (D-15):** `git fetch origin` then `git merge-base HEAD origin/main` == `git rev-parse origin/main` == `fc47af600721db1a0ebf105aae61c950b9bb7e29`. Main has not moved since plan 03's check; no merge was needed.
+- **CHANGELOG date:** `date -u +%Y-%m-%d` = `2026-10-02`; CHANGELOG.md already carries `## [0.12.0] - 2026-10-02` (set by plan 03's `73360d72`). No re-date commit was needed.
+- **D-08 tree-unchanged diff-stat:** `git diff --stat 77cb5c861a186bfa7919950a08abd0e4705fbbb3 HEAD -- test config mix.exs mix.lock` is empty — nothing under `test/`, `config/`, `mix.exs` or `mix.lock` has changed since plan 01's REBAL_AFTER commit, confirming the D-08 local figure (median 151.59s) still describes the landing tree.
+- **Release absence:** `gh release view v0.12.0` exits non-zero (no release exists). `gh pr list --state open --base main --json number,title` returns `[]` (no open release PR).
+- **Squash subject (D-12):**
+  ```
+  feat!: add export and retention telemetry, a history limit, and strict coverage checks
+  ```
+- **Squash body footers (D-12, verbatim, in order):**
+  ```
+  BREAKING CHANGE: Operator-surface authorize/export/actor_ref_mismatch telemetry no longer carries actor refs.
+  BREAKING CHANGE: The [:threadline, :health, :checked, :error] metadata is now %{exception: module}.
+  BREAKING CHANGE: A non-list exclude:/mask:/except_columns: raises ArgumentError.
+  ```
+  followed by `See CHANGELOG.md for upgrade steps.` and the session's Co-Authored-By trailer.
+- **Squash-message validation:** subject matches `^feat!: [a-z]` and is a single line (87 chars); body has exactly 3 `BREAKING CHANGE:` footers in D-12 order plus the upgrade-steps line; the ID/milestone-literal grep across `/tmp/230-squash-subject.txt`, `/tmp/230-squash-body.txt` and `/tmp/230-pr-body.md` returns 0 hits (the PR body's first draft named `v1.44` and `SUITE-06` and was reworded to "this release" / "net suite wall-clock time" to clear the gate).
+
+### Latest-lane pin re-check
+
+| Pin | ci.yml value | Newest stable found | Source URL | Verdict |
+|---|---|---|---|---|
+| Elixir | 1.20.4 (otp-29 build) | v1.20.4 (overall newest non-rc, 2026-08-28); v1.20.4-otp-29 (newest -otp-29 build, 2026-08-28) | https://builds.hex.pm/builds/elixir/builds.txt | current |
+| OTP | 29.1.1 | OTP-29.1.1 (newest non-rc overall and newest OTP-29.*, 2026-09-22) | https://builds.hex.pm/builds/otp/ubuntu-24.04/builds.txt | current |
+| PostgreSQL | 18.6 | 18.6 (newest plain `18.x` tag; no `19.x` tags exist yet — Docker Hub API `count: 0` for `name=19.`) | https://hub.docker.com/v2/repositories/library/postgres/tags?page_size=100&name=18. (and `name=19.`) | current |
+
+All three `latest`-lane pins are already the newest stable release available; no pin refresh is needed at this landing or at milestone close.
+
+Commit: `docs(230-04): record the landing preflight and pin re-check` (local, see Task Commits in the plan-04 summary once written).
