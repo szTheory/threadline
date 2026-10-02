@@ -7,10 +7,11 @@ defmodule Threadline.Health do
 
   ## Mix-task parity
 
-  See `mix threadline.health.coverage` for a viewer with `--json` and
-  `--schema=NAME` flags. The Mix task does not exit non-zero on uncovered
-  tables (it is a viewer, not a CI gate); use `mix threadline.verify_coverage`
-  for the positive-list CI gate.
+  See `mix threadline.health.coverage` for a viewer with `--json`,
+  `--schema=NAME`, and `--strict` flags. Viewer by default (exits 0);
+  `--strict` turns `:error`-severity findings into exit 1. The task does not
+  exit non-zero on uncovered tables even with `--strict`; use
+  `mix threadline.verify_coverage` for the positive-list CI gate.
 
   ## Telemetry
 

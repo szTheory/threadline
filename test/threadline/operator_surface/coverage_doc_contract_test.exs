@@ -252,6 +252,46 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
     end
   end
 
+  describe "--strict doc rewording (229-03 D-10): S1 viewer-by-default + S2 uncovered-not-gated" do
+    @s1 "Viewer by default (exits 0); `--strict` turns `:error`-severity findings into exit 1."
+    @s2 "Uncovered tables never fail `--strict`; use `mix threadline.verify_coverage` for the positive-list gate."
+
+    test "S1 appears in the task moduledoc source, domain-reference.md, operator-surface.md and configuration-and-commands.md" do
+      for path <- [
+            @mix_task_path,
+            "guides/domain-reference.md",
+            "guides/operator-surface.md",
+            "guides/configuration-and-commands.md"
+          ] do
+        src = File.read!(path)
+
+        assert String.contains?(src, @s1),
+               "expected S1 (viewer-by-default / --strict exit-1 sentence) in #{path}"
+      end
+    end
+
+    test "S2 appears in the task moduledoc source, domain-reference.md, operator-surface.md and production-checklist.md" do
+      for path <- [
+            @mix_task_path,
+            "guides/domain-reference.md",
+            "guides/operator-surface.md",
+            "guides/production-checklist.md"
+          ] do
+        src = File.read!(path)
+
+        assert String.contains?(src, @s2),
+               "expected S2 (uncovered tables never fail --strict sentence) in #{path}"
+      end
+    end
+
+    test "production-checklist.md carries the --strict CI snippet line" do
+      checklist = File.read!("guides/production-checklist.md")
+
+      assert String.contains?(checklist, "- run: mix threadline.health.coverage --strict"),
+             "expected the --strict CI snippet line in guides/production-checklist.md"
+    end
+  end
+
   describe "Mix-task --json output schema (D-34, D-35 #8, #9, #10)" do
     setup do
       Mix.Task.reenable("threadline.health.coverage")

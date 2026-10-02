@@ -106,7 +106,7 @@ configuration and dependencies.
 | `mix threadline.gen.triggers` | Generate an Ecto migration that installs capture triggers on selected host tables. | `Mix.Tasks.Threadline.Gen.Triggers` |
 | `mix threadline.gen.row_history_index` | Generate a non-blocking `CREATE INDEX CONCURRENTLY` migration that adds the row-history index to an install that predates it. | `Mix.Tasks.Threadline.Gen.RowHistoryIndex` |
 | `mix threadline.verify_coverage` | Fail a CI or deployment check when a table in `:verify_coverage` is missing, uncovered, or has an error-severity trigger finding. | `Mix.Tasks.Threadline.VerifyCoverage` |
-| `mix threadline.health.coverage` | View trigger coverage and findings, as a table or JSON, without turning uncovered tables or findings into a failing policy gate. | `Mix.Tasks.Threadline.Health.Coverage` |
+| `mix threadline.health.coverage` | View trigger coverage and findings, as a table or JSON. Viewer by default (exits 0); `--strict` turns `:error`-severity findings into exit 1. | `Mix.Tasks.Threadline.Health.Coverage` |
 | `mix threadline.continuity` | Inspect and establish the explicit starting boundary for capture in an existing database. | `Mix.Tasks.Threadline.Continuity` |
 | `mix threadline.retention.purge` | Preview or execute the configured batched retention purge. Preview before using `--execute`. | `Mix.Tasks.Threadline.Retention.Purge` |
 | `mix threadline.export` | Export captured audit rows to CSV or JSON using the same filter vocabulary as the timeline API. | `Mix.Tasks.Threadline.Export` |

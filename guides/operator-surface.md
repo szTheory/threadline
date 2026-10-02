@@ -409,8 +409,9 @@ Capture-only adopters who do not mount the surface get the same data via:
     mix threadline.health.coverage
     mix threadline.health.coverage --json
     mix threadline.health.coverage --schema=NAME
+    mix threadline.health.coverage --strict
 
-The Mix task is a viewer (always exits 0). The CI gate is the existing `mix threadline.verify_coverage` task, which now also accepts `--schema=NAME`.
+Viewer by default (exits 0); `--strict` turns `:error`-severity findings into exit 1. Uncovered tables never fail `--strict`; use `mix threadline.verify_coverage` for the positive-list gate. That is the existing CI gate task, which now also accepts `--schema=NAME`.
 
 ## Policy redaction drift
 

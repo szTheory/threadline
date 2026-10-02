@@ -73,9 +73,21 @@ would be read as a release.
   `:unresolved_legacy_keys` warning per table for audit rows captured before
   0.11 that `history/3` cannot find by key, with a link to the upgrade
   guide's backfill step; it is time-limited and capped.
+- `mix threadline.health.coverage --strict`: exit 1 via `exit({:shutdown, 1})`
+  when any `:error`-severity finding is present in the checked schema
+  (`trigger_findings/1` plus the new `legacy_key_findings/1`). Composes with
+  `--json` and `--schema`. Uncovered tables and `:warning` findings never
+  fail `--strict`; use `mix threadline.verify_coverage` for the
+  positive-list gate. A cancelled `:unresolved_legacy_keys` probe (typically
+  a missing row-history index) prints a stderr hint and never fails
+  `--strict`.
 
 ### Fixed
 
+- `mix threadline.health.coverage` now raises on unknown or misspelled
+  options (for example `--stict`) instead of silently ignoring them. No
+  action needed unless you were passing a typo'd flag and relying on it
+  being a no-op; fix the flag name.
 - `[:threadline, :operator_surface, :authorize]`'s `path` metadata now comes
   from the mount macro's own compile-time path argument instead of the live
   request path. If you mount `threadline_operator_surface/2` under a dynamic

@@ -5,15 +5,16 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
   Shows trigger coverage as reported by `Threadline.Health.trigger_coverage/1`,
   with a three-section table (default) or JSON output (`--json`).
 
-  Unlike `mix threadline.verify_coverage`, this task is a viewer — it ALWAYS
-  exits 0, even when uncovered tables exist. Use `mix threadline.verify_coverage`
-  for the positive-list CI gate.
+  Viewer by default (exits 0); `--strict` turns `:error`-severity findings into exit 1.
+  Uncovered tables never fail `--strict`; use `mix threadline.verify_coverage` for the positive-list gate.
 
   ## Usage
 
       mix threadline.health.coverage
       mix threadline.health.coverage --json
       mix threadline.health.coverage --schema=NAME
+      mix threadline.health.coverage --strict
+      mix threadline.health.coverage --strict --json
 
   Default output: a three-section TABLE / STATUS / SOURCE table followed by
   a `Coverage: N covered, M uncovered, K expected uncovered` summary line.
@@ -22,14 +23,28 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
   `findings`, `schema`, `uncovered`. The `expected_uncovered` value is a list of
   `{"table": ..., "source": "baseline" | "config"}` objects so adopters can
   filter via `jq '.expected_uncovered[] | select(.source == "config")'`.
-  `findings` is a list of `Threadline.Health.trigger_findings/1` results, each
-  with keys `code`, `severity`, `schema`, `table`, `message`, `details`
-  (`code` and `severity` as strings). This key is additive: every other key
-  keeps its existing shape.
+  `findings` is a list of `Threadline.Health.trigger_findings/1` plus
+  `Threadline.Health.legacy_key_findings/1` results, each with keys `code`,
+  `severity`, `schema`, `table`, `message`, `details` (`code` and `severity`
+  as strings). This key is additive: every other key keeps its existing
+  shape, and `--json` stdout stays exactly one pure JSON document — the
+  `--strict` status line below never reaches it.
 
   Default output also gains a `FINDINGS` section after the existing table,
-  with columns `SEVERITY`, `CODE`, `TABLE`, `MESSAGE`. This task always exits
-  0 regardless of what findings are present — it is a viewer, not a gate.
+  with columns `SEVERITY`, `CODE`, `TABLE`, `MESSAGE`.
+
+  `--strict` gates the `--schema` schema (default `"public"`); after the
+  normal output it prints one status line to stderr via
+  `Mix.shell().error/1` — `strict: FAILED — N error finding(s) ...` and
+  `exit({:shutdown, 1})` when any in-scope `:error` finding is present, or
+  `strict: passed (W warning(s) not gated)` otherwise. Uncovered tables and
+  `:warning` findings are never gated.
+
+  If the `:unresolved_legacy_keys` probe (from `legacy_key_findings/1`) times
+  out — typically a missing row-history index — the task prints a one-line
+  hint to stderr pointing at
+  [Step 4](upgrading-to-0.11.md#step-4-add-the-row-history-index) and
+  continues with the trigger findings only; a timeout never fails `--strict`.
 
   A malformed `config :threadline, :trigger_capture` stops the task with
   `Mix.raise/1` before any findings are checked.
@@ -38,6 +53,10 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
   and raises with `Mix.raise/1` on bad input. NAME must match
   `~r/\\A[a-z_][a-z0-9_]{0,62}\\z/` (PostgreSQL identifier, conservative subset)
   AND exist in `pg_namespace`. Default `"public"`.
+
+  An unknown or invalid switch (for example `--stict`, `--jsn`, or `--schema`
+  with no value) raises `Mix.raise/1` naming the offending switch, before the
+  repo starts.
   """
 
   use Mix.Task
