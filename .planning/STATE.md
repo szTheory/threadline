@@ -5,11 +5,11 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 229
 current_phase_name: Adopter API and Health Additions
 status: planning
-stopped_at: Phase 228 complete, ready to plan Phase 229
-last_updated: "2026-10-02T15:06:34.402Z"
+stopped_at: Phase 229 context gathered
+last_updated: "2026-10-02T15:17:29.530Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 228 complete, transitioned to Phase 229
-state_head: 2433ed9671749c8f3ed8caa95507b9d291d35041
+state_head: 366d29692c67ae614235fdcb3f720ac81232c4ba
 progress:
   total_phases: 7
   completed_phases: 5
@@ -977,9 +977,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-02T14:34:37.238Z
-**Stopped at:** Phase 228 complete, ready to plan Phase 229
-**Resume file:** None
+**Last session:** 2026-10-02T15:17:29.203Z
+**Stopped at:** Phase 229 context gathered
+**Resume file:** .planning/phases/229-adopter-api-and-health-additions/229-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
