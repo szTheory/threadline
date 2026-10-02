@@ -113,7 +113,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
                        %{result: :error}, %{path: "/audit/theme"}}
     end
 
-    test "path metadata is the plug's fixed :theme_path option, never the live request path (WR-02)",
+    test "path metadata is the plug's fixed :theme_path option, never the live request path",
          %{telemetry_ref: telemetry_ref} do
       # A host that nests this mount under a dynamic router segment (e.g.
       # `/accounts/:account_id/audit`) would have the actual account id

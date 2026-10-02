@@ -75,8 +75,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     # `path` is read from the plug's own `:theme_path` option — the macro's
     # compile-time mount-path literal (see router.ex) — never from
     # `conn.request_path`, so a host that nests this mount under a dynamic
-    # router segment never leaks the matched segment's real value here
-    # (WR-02).
+    # router segment never leaks the matched segment's real value here.
     defp emit_telemetry(result, opts, scope) do
       path = Keyword.get(opts, :theme_path)
       Threadline.Telemetry.emit_operator_surface_authorize(result, path, scope)

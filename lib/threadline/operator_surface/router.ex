@@ -108,7 +108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             # whatever real value the router matched for that segment. This
             # keeps the `:authorize` event's `path` metadata bounded to a
             # fixed, host-authored string regardless of how a request was
-            # routed (WR-02).
+            # routed.
             theme_plug_opts = Keyword.put(unquote(opts), :theme_path, unquote(path) <> "/theme")
             plug(Threadline.OperatorSurface.ThemeAuthPlug, theme_plug_opts)
           end
