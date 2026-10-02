@@ -4,7 +4,7 @@ defmodule Threadline.SupportPlaybookDocContractTest do
 
   @repo_root File.cwd!()
 
-  # Mirrors Threadline.StgDocContractTest — reads guide markdown from repo root for LOOP-04 anchors.
+  # Reads guide markdown from repo root for LOOP-04 anchors.
   defp read_rel!(segments) when is_list(segments) do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end

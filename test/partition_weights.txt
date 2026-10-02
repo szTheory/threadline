@@ -162,7 +162,6 @@
 0 test/threadline/operator_surface/surface_header_csp_test.exs
 1 test/threadline/operator_surface/surface_header_test.exs
 0 test/threadline/operator_surface/theme_auth_plug_test.exs
-1 test/threadline/operator_surface/theme_doc_contract_test.exs
 2 test/threadline/operator_surface/timeline_browse_doc_contract_test.exs
 58 test/threadline/operator_surface/transaction_live_test.exs
 19 test/threadline/operator_surface/ui_form_policy_contract_test.exs
@@ -207,7 +206,6 @@
 42 test/threadline/source_comment_location_contract_test.exs
 3 test/threadline/source_family_test.exs
 204 test/threadline/source_size_contract_test.exs
-0 test/threadline/stg_doc_contract_test.exs
 3 test/threadline/storage/local_test.exs
 4 test/threadline/storage/s3_test.exs
 98 test/threadline/storage_schema_call_site_contract_test.exs
