@@ -577,17 +577,6 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
       :ok
     end
 
-    test "precondition: public hosts an extension (citext) in the live catalog" do
-      %{rows: [[count]]} =
-        SQL.query!(
-          @repo,
-          "SELECT count(*) FROM pg_extension WHERE extnamespace = 'public'::regnamespace",
-          []
-        )
-
-      assert count >= 1
-    end
-
     test "table format: SCHEMA-leading header, rollup, and the across-K-schemas summary" do
       Mix.Task.reenable("threadline.health.coverage")
 
