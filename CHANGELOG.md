@@ -24,6 +24,16 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
+_Nothing yet for the next release._
+
+## [0.12.0] - 2026-10-02
+
+This release adds export and retention telemetry with a new telemetry guide, a
+`limit:` option for `Threadline.history/3`, `--strict` and `--all-schemas`
+flags for `mix threadline.health.coverage`, and a legacy-key health warning for
+audit rows captured before 0.11. It carries three breaking changes, each with
+a fix below.
+
 ### Breaking changes
 
 - A non-list `exclude:`/`mask:`/`except_columns:` on a
