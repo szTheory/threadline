@@ -428,6 +428,70 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     end
   end
 
+  describe "--all-schemas (HLTH-02 tracer)" do
+    test "the golden test: schemas.public from --all-schemas --json equals --schema=public --json" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      all_output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas", "--json"])
+        end)
+
+      Mix.Task.reenable("threadline.health.coverage")
+
+      public_output =
+        capture_io(fn ->
+          Coverage.run(["--schema=public", "--json"])
+        end)
+
+      all_parsed = Jason.decode!(all_output)
+      public_parsed = Jason.decode!(public_output)
+
+      assert all_parsed["schemas"]["public"] == public_parsed
+    end
+
+    test "the summary object has exactly the six locked keys" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      output =
+        capture_io(fn ->
+          Coverage.run(["--all-schemas", "--json"])
+        end)
+
+      parsed = Jason.decode!(output)
+
+      assert parsed |> Map.keys() |> Enum.sort() == ["schemas", "summary"]
+
+      assert parsed["summary"] |> Map.keys() |> Enum.sort() ==
+               [
+                 "covered",
+                 "error_findings",
+                 "expected_uncovered",
+                 "schemas",
+                 "uncovered",
+                 "warning_findings"
+               ]
+    end
+
+    test "--schema=public plus --all-schemas raises the exact mutual-exclusion message" do
+      assert_raise Mix.Error,
+                   "threadline.health.coverage: --schema and --all-schemas cannot be used together. " <>
+                     "Use --schema=NAME for one schema or --all-schemas for every schema.",
+                   fn ->
+                     Coverage.run(["--schema=public", "--all-schemas"])
+                   end
+    end
+
+    test "--all-schemas plus --schema=x (either flag order) raises the exact mutual-exclusion message" do
+      assert_raise Mix.Error,
+                   "threadline.health.coverage: --schema and --all-schemas cannot be used together. " <>
+                     "Use --schema=NAME for one schema or --all-schemas for every schema.",
+                   fn ->
+                     Coverage.run(["--all-schemas", "--schema=x"])
+                   end
+    end
+  end
+
   describe "unknown switches (D-16)" do
     test "unknown or invalid switches raise Mix.Error naming the switch, before any DB access" do
       for argv <- [["--stict"], ["--jsn"], ["--schema"]] do

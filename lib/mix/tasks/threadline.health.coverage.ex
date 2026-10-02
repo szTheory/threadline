@@ -67,14 +67,25 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
   @impl Mix.Task
   def run(argv) do
     {opts, _, invalid} =
-      OptionParser.parse(argv, strict: [json: :boolean, schema: :string, strict: :boolean])
+      OptionParser.parse(argv,
+        strict: [json: :boolean, schema: :string, strict: :boolean, all_schemas: :boolean]
+      )
 
     if invalid != [] do
       invalid_names = Enum.map_join(invalid, ", ", fn {name, _value} -> name end)
 
       Mix.raise(
         "threadline.health.coverage: unknown or invalid option(s): #{invalid_names}. " <>
-          "Valid options: --json, --schema=NAME, --strict."
+          "Valid options: --json, --schema=NAME, --strict, --all-schemas."
+      )
+    end
+
+    all_schemas? = Keyword.get(opts, :all_schemas, false)
+
+    if Keyword.has_key?(opts, :schema) and all_schemas? do
+      Mix.raise(
+        "threadline.health.coverage: --schema and --all-schemas cannot be used together. " <>
+          "Use --schema=NAME for one schema or --all-schemas for every schema."
       )
     end
 
@@ -90,9 +101,17 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
     repo = resolve_repo!()
     ensure_repo_started!(repo)
 
-    validate_schema!(repo, schema)
     _ = load_capture_config!()
 
+    if all_schemas? do
+      run_all_schemas(repo, json?, strict?)
+    else
+      validate_schema!(repo, schema)
+      run_single_schema(repo, schema, json?, strict?)
+    end
+  end
+
+  defp run_single_schema(repo, schema, json?, strict?) do
     coverage = Threadline.Health.trigger_coverage(repo: repo, schema: schema)
 
     findings =
@@ -111,6 +130,26 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
     # --strict turns any :error-severity finding into exit 1 here too, but
     # never gates on uncovered tables or warnings — that stays
     # verify_coverage's positive-list job.
+    if strict? do
+      apply_strict_gate(findings)
+    else
+      :ok
+    end
+  end
+
+  defp run_all_schemas(repo, json?, strict?) do
+    coverage_by_schema = Threadline.Health.coverage_by_schema(repo: repo)
+
+    findings =
+      (Threadline.Health.trigger_findings(repo: repo) ++ legacy_findings_or_hint(repo, []))
+      |> Enum.sort_by(&{&1.schema, &1.table, Atom.to_string(&1.code), &1.message})
+
+    if json? do
+      render_json_all_schemas(coverage_by_schema, findings)
+    else
+      render_table_all_schemas(coverage_by_schema, findings)
+    end
+
     if strict? do
       apply_strict_gate(findings)
     else
@@ -242,6 +281,113 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
     end
   end
 
+  # --all-schemas default (table) output: a leading SCHEMA column (kubectl
+  # -A style), a per-schema rollup, a grand total across every reported
+  # schema, then the unchanged FINDINGS section (print_finding_rows/1
+  # already prints "schema.table"). A schema is reported under the same
+  # rule as the JSON envelope: at least one coverage row or one finding.
+  defp render_table_all_schemas(coverage_by_schema, findings) do
+    findings_by_schema = Enum.group_by(findings, & &1.schema)
+
+    reported_schemas =
+      (Map.keys(coverage_by_schema) ++ Map.keys(findings_by_schema))
+      |> Enum.uniq()
+      |> Enum.filter(fn schema ->
+        Map.get(coverage_by_schema, schema, []) != [] or
+          Map.get(findings_by_schema, schema, []) != []
+      end)
+      |> Enum.sort()
+
+    schema_rows =
+      for schema <- reported_schemas,
+          {table, status, source} <-
+            Enum.sort_by(Map.get(coverage_by_schema, schema, []), &elem(&1, 1))
+            |> Enum.map(&row_for/1) do
+        {schema, table, status, source}
+      end
+
+    schema_w =
+      max(6, reported_schemas |> Enum.map(&byte_size/1) |> Enum.max(fn -> 6 end))
+
+    table_w =
+      max(24, schema_rows |> Enum.map(&byte_size(elem(&1, 1))) |> Enum.max(fn -> 5 end))
+
+    status_w = 12
+
+    header =
+      String.pad_trailing("SCHEMA", schema_w) <>
+        "  " <>
+        String.pad_trailing("TABLE", table_w) <>
+        "  " <> String.pad_trailing("STATUS", status_w) <> "  SOURCE"
+
+    rule = String.duplicate("-", String.length(header))
+
+    Mix.shell().info(header)
+    Mix.shell().info(rule)
+
+    for {schema, table, status, source} <- schema_rows do
+      Mix.shell().info(
+        String.pad_trailing(schema, schema_w) <>
+          "  " <>
+          String.pad_trailing(table, table_w) <>
+          "  " <> String.pad_trailing(status, status_w) <> "  " <> source
+      )
+    end
+
+    Mix.shell().info("")
+    render_rollup(reported_schemas, coverage_by_schema, findings_by_schema, schema_w)
+
+    Mix.shell().info("")
+    Mix.shell().info("FINDINGS")
+
+    if findings == [] do
+      Mix.shell().info("none")
+    else
+      print_finding_rows(findings)
+    end
+  end
+
+  defp render_rollup(reported_schemas, coverage_by_schema, findings_by_schema, schema_w) do
+    rollup_header =
+      String.pad_trailing("SCHEMA", schema_w) <>
+        "  COVERED  UNCOVERED  EXPECTED  FINDINGS"
+
+    Mix.shell().info(rollup_header)
+    Mix.shell().info(String.duplicate("-", String.length(rollup_header)))
+
+    totals =
+      for schema <- reported_schemas do
+        coverage = Map.get(coverage_by_schema, schema, [])
+        schema_findings = Map.get(findings_by_schema, schema, [])
+        covered = Enum.count(coverage, &match?({:covered, _}, &1))
+        uncovered = Enum.count(coverage, &match?({:uncovered, _}, &1))
+        expected = Enum.count(coverage, &match?({:expected_uncovered, _}, &1))
+
+        Mix.shell().info(
+          String.pad_trailing(schema, schema_w) <>
+            "  " <>
+            String.pad_trailing(Integer.to_string(covered), 7) <>
+            "  " <>
+            String.pad_trailing(Integer.to_string(uncovered), 9) <>
+            "  " <>
+            String.pad_trailing(Integer.to_string(expected), 8) <>
+            "  " <> Integer.to_string(length(schema_findings))
+        )
+
+        {covered, uncovered, expected}
+      end
+
+    {covered_total, uncovered_total, expected_total} =
+      Enum.reduce(totals, {0, 0, 0}, fn {c, u, e}, {ca, ua, ea} -> {ca + c, ua + u, ea + e} end)
+
+    Mix.shell().info("")
+
+    Mix.shell().info(
+      "Coverage: #{covered_total} covered, #{uncovered_total} uncovered, " <>
+        "#{expected_total} expected uncovered across #{length(reported_schemas)} schemas"
+    )
+  end
+
   defp print_finding_rows(findings) do
     rows =
       Enum.map(findings, fn f ->
@@ -275,6 +421,14 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
   end
 
   defp render_json(schema, coverage, findings) do
+    IO.puts(Jason.encode!(schema_payload(schema, coverage, findings)))
+  end
+
+  # Pure: builds the exact single-schema JSON payload. Called by the default
+  # --json path and, once per reported schema, by --all-schemas, so the two
+  # outputs are structurally guaranteed to agree (the --all-schemas golden
+  # test pins this).
+  defp schema_payload(schema, coverage, findings) do
     covered = for {:covered, t} <- coverage, do: t
     uncovered = for {:uncovered, t} <- coverage, do: t
 
@@ -283,15 +437,65 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
         %{"table" => t, "source" => source_for(t)}
       end
 
-    payload = %{
+    %{
       "schema" => schema,
       "covered" => Enum.sort(covered),
       "uncovered" => Enum.sort(uncovered),
       "expected_uncovered" => Enum.sort_by(expected_uncovered, & &1["table"]),
       "findings" => Enum.map(findings, &finding_json/1)
     }
+  end
+
+  # --all-schemas --json: one envelope keyed by schema (sorted, encoded with
+  # Jason.OrderedObject so the key order survives JSON encoding even past 32
+  # keys, where a plain map would fall back to hash order) plus a summary of
+  # grand totals. A schema is reported when it has at least one coverage row
+  # or at least one finding; a schema with only findings (no reportable
+  # tables) still appears, with an empty coverage payload.
+  defp render_json_all_schemas(coverage_by_schema, findings) do
+    findings_by_schema = Enum.group_by(findings, & &1.schema)
+
+    reported_schemas =
+      (Map.keys(coverage_by_schema) ++ Map.keys(findings_by_schema))
+      |> Enum.uniq()
+      |> Enum.filter(fn schema ->
+        Map.get(coverage_by_schema, schema, []) != [] or
+          Map.get(findings_by_schema, schema, []) != []
+      end)
+      |> Enum.sort()
+
+    entries =
+      for schema <- reported_schemas do
+        coverage = Map.get(coverage_by_schema, schema, [])
+        schema_findings = Map.get(findings_by_schema, schema, [])
+        {schema, schema_payload(schema, coverage, schema_findings), coverage, schema_findings}
+      end
+
+    payload = %{
+      "schemas" => Jason.OrderedObject.new(Enum.map(entries, fn {s, p, _, _} -> {s, p} end)),
+      "summary" => %{
+        "schemas" => length(entries),
+        "covered" => count_status(entries, :covered),
+        "uncovered" => count_status(entries, :uncovered),
+        "expected_uncovered" => count_status(entries, :expected_uncovered),
+        "error_findings" => count_severity(entries, :error),
+        "warning_findings" => count_severity(entries, :warning)
+      }
+    }
 
     IO.puts(Jason.encode!(payload))
+  end
+
+  defp count_status(entries, status) do
+    Enum.reduce(entries, 0, fn {_s, _p, coverage, _f}, acc ->
+      acc + Enum.count(coverage, &match?({^status, _}, &1))
+    end)
+  end
+
+  defp count_severity(entries, severity) do
+    Enum.reduce(entries, 0, fn {_s, _p, _c, schema_findings}, acc ->
+      acc + Enum.count(schema_findings, &(&1.severity == severity))
+    end)
   end
 
   defp finding_json(f) do

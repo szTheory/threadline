@@ -241,14 +241,14 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
              "expected literal `mix threadline.health.coverage --schema=NAME` in @moduledoc per D-34"
     end
 
-    test "threadline.health.coverage.ex declares the OptionParser strict spec [json: :boolean, schema: :string, strict: :boolean]" do
+    test "threadline.health.coverage.ex declares the OptionParser strict spec [json: :boolean, schema: :string, strict: :boolean, all_schemas: :boolean]" do
       src = File.read!(@mix_task_path)
 
       assert String.contains?(
                src,
-               "strict: [json: :boolean, schema: :string, strict: :boolean]"
+               "strict: [json: :boolean, schema: :string, strict: :boolean, all_schemas: :boolean]"
              ),
-             "expected `strict: [json: :boolean, schema: :string, strict: :boolean]` OptionParser spec in #{@mix_task_path}"
+             "expected `strict: [json: :boolean, schema: :string, strict: :boolean, all_schemas: :boolean]` OptionParser spec in #{@mix_task_path}"
     end
   end
 
