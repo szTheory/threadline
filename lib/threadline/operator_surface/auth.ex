@@ -149,15 +149,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp emit_actor_mismatch(session_actor_ref, scope_actor_ref) do
-      :telemetry.execute(
-        [:threadline, :operator_surface, :actor_ref_mismatch],
-        %{count: 1},
-        %{
-          session_actor_ref: ActorRef.to_map(session_actor_ref),
-          scope_actor_ref: ActorRef.to_map(scope_actor_ref)
-        }
-      )
+    defp emit_actor_mismatch(_session_actor_ref, _scope_actor_ref) do
+      Threadline.Telemetry.emit_actor_ref_mismatch()
     end
 
     defp maybe_assign_session_user(socket, session) do
@@ -205,16 +198,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     rescue
       _ ->
-        emit_export_authorize_error(socket)
+        emit_export_authorize_error()
         {false, nil}
     end
 
-    defp emit_export_authorize_error(socket) do
-      :telemetry.execute(
-        [:threadline, :operator_surface, :export_authorize],
-        %{result: :error, count: 1},
-        %{actor_ref: socket.assigns[:threadline_actor_ref]}
-      )
+    defp emit_export_authorize_error do
+      Threadline.Telemetry.emit_export_authorize_error()
     end
 
     defp assign_coverage_enabled(socket, opts) do

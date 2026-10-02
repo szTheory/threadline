@@ -20,9 +20,11 @@ defmodule Threadline.Telemetry do
     subscribers that destructure only `covered` and `uncovered` keep working).
 
   - `[:threadline, :health, :checked, :error]` — sibling event emitted when a
-    polled coverage check raises. Metadata: `%{error: message}`.
-    The dashboard keeps the last-good snapshot and reschedules the next poll;
-    this event lets adopters alert on transient or sustained failure.
+    polled coverage check raises. Metadata: `%{exception: module}`, the raised
+    exception's struct module. The exception message is intentionally not
+    forwarded — it can echo database values. The dashboard keeps the last-good
+    snapshot and reschedules the next poll; this event lets adopters alert on
+    transient or sustained failure.
 
   - `[:threadline, :health, :findings_checked]` — after
     `Threadline.Health.trigger_findings/1` returns. Measurements:
@@ -69,7 +71,7 @@ defmodule Threadline.Telemetry do
     %{
       name: [:threadline, :health, :checked, :error],
       measurements: [],
-      metadata: [:error],
+      metadata: [:exception],
       when: "a polled coverage check raises"
     },
     %{
@@ -150,12 +152,16 @@ defmodule Threadline.Telemetry do
   coverage check fails. The dashboard keeps the last-good snapshot and ALWAYS
   reschedules the next poll; this event lets adopters alert on transient or
   sustained failure.
+
+  Takes the raised exception struct itself, not a message. Metadata is
+  `%{exception: module}` — the exception's struct module only. The message is
+  intentionally not forwarded: exception messages can echo database values.
   """
-  def emit_health_checked_error(error_message) when is_binary(error_message) do
+  def emit_health_checked_error(exception) when is_exception(exception) do
     :telemetry.execute(
       [:threadline, :health, :checked, :error],
       %{},
-      %{error: error_message}
+      %{exception: exception.__struct__}
     )
   end
 
@@ -196,4 +202,30 @@ defmodule Threadline.Telemetry do
 
   defp authorize_path(%Plug.Conn{} = conn), do: conn.request_path || ""
   defp authorize_path(_conn_or_nil), do: ""
+
+  @doc """
+  Emits the `[:threadline, :operator_surface, :export_authorize]` event with
+  `%{result: :error, count: 1}` measurements and no metadata, for an
+  export-specific authorization callback that raised.
+  """
+  def emit_export_authorize_error do
+    :telemetry.execute(
+      [:threadline, :operator_surface, :export_authorize],
+      %{result: :error, count: 1},
+      %{}
+    )
+  end
+
+  @doc """
+  Emits the `[:threadline, :operator_surface, :actor_ref_mismatch]` event with
+  `%{count: 1}` measurements and no metadata, as a pure incidence counter when
+  the session actor and the scope-derived actor disagree.
+  """
+  def emit_actor_ref_mismatch do
+    :telemetry.execute(
+      [:threadline, :operator_surface, :actor_ref_mismatch],
+      %{count: 1},
+      %{}
+    )
+  end
 end

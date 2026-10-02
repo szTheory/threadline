@@ -394,7 +394,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       rescue
         e ->
           message = Exception.message(e)
-          Threadline.Telemetry.emit_health_checked_error(message)
+          Threadline.Telemetry.emit_health_checked_error(e)
 
           previous = socket.assigns[:coverage_for_schema]
           previous_schema = socket.assigns[:coverage_for_schema_name]
