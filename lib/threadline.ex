@@ -88,9 +88,17 @@ defmodule Threadline do
   key — the fallback cannot reproduce the database's stored blank-padding, so
   pass the value already padded to the original column width.
 
+  If `:scope_query_fn` is configured, it should only add predicates: any
+  limit it sets on the query is overridden by `:limit`'s final `LIMIT`, and
+  the cap counts only rows the scope predicate left in scope.
+
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
+  - `:limit` — optional positive integer. Returns at most n most recent changes
+    (`captured_at desc, id desc`). `:limit` caps, it does not page — use
+    `row_history_page/4` for keyset paging. `nil` (the default) is unbounded;
+    `0`, negative and non-integer values raise `ArgumentError`.
   """
   def history(schema_module, id, opts), do: Threadline.Query.history(schema_module, id, opts)
 

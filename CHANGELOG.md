@@ -49,6 +49,10 @@ would be read as a release.
 
 ### Added
 
+- `Threadline.history/3` accepts a new `limit: n` option, returning at most
+  the n most recent changes (`captured_at desc, id desc`). It is additive and
+  the default is unchanged (unbounded); use `row_history_page/4` for keyset
+  paging.
 - `[:threadline, :export, :completed]` and `[:threadline, :export, :failed]`
   telemetry events, firing once per logical export (eager CSV/JSON, the async
   export job, and the chunked operator-surface download) with `row_count`,
