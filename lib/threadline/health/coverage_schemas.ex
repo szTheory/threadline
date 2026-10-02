@@ -52,7 +52,7 @@ defmodule Threadline.Health.CoverageSchemas do
 
   @doc """
   Lists every `{schema, table}` pair for `mix threadline.health.coverage
-  --all-schemas`'s batched enumeration (HLTH-02).
+  --all-schemas`'s batched enumeration.
 
   Same non-system-schema predicate as `available/1`, plus one additional
   exclusion: schemas that are themselves a member of a PostgreSQL extension,

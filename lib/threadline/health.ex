@@ -174,7 +174,7 @@ defmodule Threadline.Health do
   end
 
   # Returns trigger coverage for every reportable schema in one batched
-  # catalog snapshot (HLTH-02). Task-only — reached only by
+  # catalog snapshot. Task-only — reached only by
   # `mix threadline.health.coverage --all-schemas`; a public multi-schema API
   # is a future decision.
   #

@@ -395,3 +395,43 @@ Commit `73360d72` dates the 0.12.0 CHANGELOG entry and adds the 0.11.x -> 0.12.x
   The rehearsal's own gates (35 doc-contract test files: 277 tests/0 failures; changelog contract: 9 tests/0 failures; `mix verify.release`: `Release shape OK for version 0.12.0`, 42 tests/0 failures) all passed at the rehearsed 0.12.0 state, and the real working tree was confirmed byte-identical afterward (30 files checksummed, no scratch branch or worktree survived).
 
 **Deviation note:** the plan's task-1 action lists "run verify commands, then commit" in that order; `mix verify.bump_rehearsal` clones `HEAD`, so running it before the content commit exists only sees the prior tree and (correctly) synthesises stand-ins. The content was committed first (`73360d72`, CHANGELOG.md + guides/upgrade-path.md only), then the rehearsal was re-run against that commit to get a real "nothing synthesised" proof — no code or test behavior changed, this is a verification-ordering fix (Rule 3).
+
+### SC5 ID sweep
+
+Command: `grep -rnE '\b([Pp]hase|[Pp]lan)[ _-]?[0-9]+|\bD-[0-9]{2,}\b|\b(T-)?[0-9]{2,3}-[0-9]{2}\b|\b(CAPT|PROP|TELE|QRY|HLTH|SUITE|REL|WR|IN|CR)-[0-9]{2}\b|\bv1\.4[2-4]\b' lib guides` plus the same pattern over `awk '/^## \[0\.12\.0\]/{f=1;next} /^## /{f=0} f' CHANGELOG.md`.
+
+- **Hit count before:** 45 lines (checked out at `8e77e244`, the commit immediately before this task's edits) — 9 real ID tokens + 36 date literals (`~U[...]`, `"2026-...-..."`, bare `2026-MM-DD`/`2024-MM-DD` strings).
+- **Hit count after:** 36 lines — the same 36 date literals, 0 ID tokens.
+- **CHANGELOG 0.12.0 block:** 0 hits before and after (the block never carried an ID).
+
+Scrubbed sites (file:line, token removed — each edit touched only the comment/`@doc` text, rewording minimally to keep the sentence readable):
+
+| File:Line | Token removed |
+|---|---|
+| `lib/threadline/health.ex:177` | `(HLTH-02)` |
+| `lib/threadline/health/coverage_schemas.ex:55` | `(HLTH-02)` |
+| `lib/threadline/operator_surface/ui/page.ex:157` | `mitigates T-175-09` (phrase removed, "below the cap" clause kept) |
+| `lib/threadline/operator_surface/stress_fixtures.ex:100` | `the 177-05 group precedent` (reworded to "no orphaned reserved id): each page subject...") |
+| `lib/threadline/operator_surface/live/transaction_live.ex:404` | `(T-211-14)` |
+| `lib/threadline/operator_surface/live/evidence_live.ex:77` | `196-06, ` (kept `signal-to-chrome`) |
+| `lib/threadline/operator_surface/live/evidence_live.ex:121` | `196-05, ` (kept `signal-to-chrome`) |
+| `lib/threadline/operator_surface/live/evidence_live.ex:145` | `196-06, ` (kept `signal-to-chrome`) |
+| `lib/threadline/operator_surface/live/coverage_live.ex:317` | `197-02, ` (kept `signal-to-chrome` and the full `"Selected schema readiness"` phrase) |
+
+`git show --stat 8e77e244..HEAD -- lib` (the task 2 commit, recorded below) touches exactly these 7 files, 12 insertions / 12 deletions — one comment line changed per hit (evidence_live.ex carries 3 of the 9 scrubbed lines, so 3 of its 6 changed lines).
+
+Reviewed exclusions (not phase or plan IDs):
+
+| Pattern | Example | Reason | Pinning test |
+|---|---|---|---|
+| Date/timestamp literals | `~U[2026-01-01 00:00:00Z]`, `"2026-07-01"`, bare `2024-03-15` in `guides/incident-playbook.md` | Not an ID — a calendar date in a doctest, stress fixture, or worked example | N/A (not a planning ID; out of SC5 scope) |
+| `STG-01` | `guides/adoption-pilot-backlog.md:19`, `production-checklist.md:5` | Legacy pre-v1.44 requirement-shaped contract anchor | `test/threadline/pgbouncer_topology_test.exs:36` names `STG-01 CI` |
+| `STG-02`, `STG-03` | `guides/adoption-pilot-backlog.md:31,41` | Legacy pre-v1.44 requirement-shaped anchor | `git grep -n 'STG-0[23]' -- test` returns nothing — **unpinned, candidate for later cleanup** |
+| `PERF-01`/`PERF-02`/`PERF-03` | `guides/performance.md:3-5` (HTML comment markers) | Legacy pre-v1.44 anchor | `test/threadline/performance_doc_contract_test.exs:14-16` asserts each `<!-- PERF-0N -->` marker |
+| `IDX-02` | `guides/audit-indexing.md:3` | Legacy pre-v1.44 anchor | `test/threadline/audit_indexing_doc_contract_test.exs:11,14` asserts the `IDX-02-AUDIT-INDEXING` marker |
+| `XPLO-03-API-ROUTING` | `guides/domain-reference.md:288` | Legacy pre-v1.44 anchor | `test/threadline/exploration_routing_doc_contract_test.exs:15` asserts this exact string |
+| `CAP-10` | `lib/threadline/health.ex:109`, `guides/domain-reference.md:253` | Legacy pre-v1.44 anchor | `git grep -n 'CAP-10' -- test` returns nothing — **unpinned, candidate for later cleanup** |
+| `CTX-05` | `lib/threadline/job.ex:6` | Legacy pre-v1.44 anchor | `test/threadline/job_test.exs:61` names a `"CTX-05: no process state"` describe block |
+| `(v1.17)`, `(v1.10+)` | `guides/operator-surface.md:238`, `guides/domain-reference.md:284` | Guide section headings naming the Threadline Hex minor the section shipped in, not a v1.4x milestone/phase/plan ID; `v1.4[2-4]` in the sweep regex does not match these | N/A (version-history heading, not a milestone ID) |
+
+`@banned_shapes` in `test/threadline/release_artifact_contract_test.exs` is necessary but not sufficient (230-RESEARCH.md "@banned_shapes ID-scan gap"): it scans only the Hex tarball, not tracked `lib/`/`guides/` source, and its regex does not cover the `HLTH-`/`T-`-prefixed shapes scrubbed here or the `v1.42`-`v1.44` range. This sweep is the source-tree complement; `release_artifact_contract_test.exs` remains the packaged-tarball complement, and neither alone would have caught all 9 hits.

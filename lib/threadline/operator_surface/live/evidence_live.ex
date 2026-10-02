@@ -74,7 +74,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <%= if @threadline_evidence_enabled do %>
             <%!-- Density: no lede in latest mode — the "Latest projection" Mode chip in the
             Evidence scope card already carries the projection semantics, so the prose
-            restatement is chrome (196-06, signal-to-chrome). History mode keeps its lede
+            restatement is chrome (signal-to-chrome). History mode keeps its lede
             because it disambiguates the drilled-in view. --%>
             <%= if @request.mode == :history do %>
               <UI.Page.page_header title="Evidence">
@@ -118,7 +118,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         </h4>
                         <%!-- Density: the section header already names the subject for every card in
                         the group (groups are keyed by subject), so it is not repeated as an inline
-                        label here — each fact renders once (196-05, signal-to-chrome). --%>
+                        label here — each fact renders once (signal-to-chrome). --%>
                         <div class="tl-record-card__meta">
                           <UI.Display.ref value={row.subject_ref} copy_label="Copy subject ref" />
                           <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
@@ -142,7 +142,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%!-- Density: groups are keyed by subject, so "Filter to subject" and the
                   support cross-link are identical for every card in the group. They render
                   once per group here instead of once per card — same targets, less chrome
-                  (196-06, signal-to-chrome). "Open proof history" stays per card because it
+                  (signal-to-chrome). "Open proof history" stays per card because it
                   is row-specific (subject_ref). --%>
                   <footer
                     :if={show_subject_link?(@request) or support_action(@base_path, group.title)}
