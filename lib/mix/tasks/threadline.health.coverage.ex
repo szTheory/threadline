@@ -75,7 +75,11 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
     _ = load_capture_config!()
 
     coverage = Threadline.Health.trigger_coverage(repo: repo, schema: schema)
-    findings = Threadline.Health.trigger_findings(repo: repo, schema: schema)
+
+    findings =
+      (Threadline.Health.trigger_findings(repo: repo, schema: schema) ++
+         legacy_findings_or_hint(repo, schema: schema))
+      |> Enum.sort_by(&{&1.schema, &1.table, Atom.to_string(&1.code), &1.message})
 
     if json? do
       render_json(schema, coverage, findings)
@@ -93,6 +97,29 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
     else
       :ok
     end
+  end
+
+  # Runs Threadline.Health.legacy_key_findings/1 and rescues only a
+  # cancelled-probe timeout (Postgrex.Error with postgres code
+  # :query_canceled, typically a missing row-history index): prints a hint
+  # to stderr and continues with [] rather than failing the whole task. Any
+  # other exception propagates unchanged. A timeout never fails --strict.
+  @doc false
+  def legacy_findings_or_hint(repo, opts) do
+    Threadline.Health.legacy_key_findings([repo: repo] ++ opts)
+  rescue
+    e in Postgrex.Error ->
+      if match?(%{postgres: %{code: :query_canceled}}, e) do
+        Mix.shell().error(
+          "threadline.health.coverage: the unresolved legacy key check timed out and was " <>
+            "skipped; add the row-history index: " <>
+            "guides/upgrading-to-0.11.md#step-4-add-the-row-history-index"
+        )
+
+        []
+      else
+        reraise e, __STACKTRACE__
+      end
   end
 
   defp apply_strict_gate(findings) do

@@ -1,13 +1,16 @@
 defmodule Threadline.OperatorSurface.CoverageMixTest do
   @moduledoc """
-  Integration tests for `mix threadline.health.coverage` (Plan 66-02).
+  Integration tests for `mix threadline.health.coverage` (Plan 66-02, 229-03).
 
-  Covers (per CONTEXT D-34 + D-35):
+  Covers (per CONTEXT D-34 + D-35, and 229-CONTEXT D-05..D-10, D-16, D-18, D-20):
   - default table format renders three sections + footer literal
   - --json output decodes to the locked schema (top-level keys + entry keys + source enum)
   - --schema=public passes; --schema=Public fails with regex error; --schema=nonexistent fails with pg_namespace error
-  - Mix task exits 0 even when uncovered tables exist (viewer, not gate)
+  - Mix task exits 0 without --strict even when uncovered tables exist (viewer, not gate)
   - --schema flag parity on mix threadline.verify_coverage (additive; default unchanged)
+  - --strict: the {clean, warning-only, error} x {non-strict, --strict} x {table, --json} matrix,
+    cross-schema isolation, uncovered-only is never gated, legacy-key wiring, the timeout hint,
+    and unknown/invalid switches raising before the repo starts
   """
 
   use ExUnit.Case, async: false
@@ -18,8 +21,20 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
   alias Mix.Tasks.Threadline.Health.Coverage
   alias Mix.Tasks.Threadline.VerifyCoverage
   alias Threadline.Capture.TriggerSQL
+  alias Threadline.StorageSchema
+  alias Threadline.Test.LegacyTriggerSQL
 
   @repo Threadline.Test.Repo
+
+  # Mix.Task.run/2 return values and exit/1 (e.g. --strict's gate) can't both
+  # be captured by ExUnit.Assertions.catch_exit/1, which raises when no exit
+  # happens. This normalizes both outcomes to a plain return value: the
+  # function's own return (:ok) or the caught exit reason.
+  defp run_catching_exit(fun) do
+    fun.()
+  catch
+    :exit, reason -> reason
+  end
 
   setup do
     # Re-enable both Mix tasks so each test case can re-invoke (Pitfall 8 — Mix.Task
@@ -50,7 +65,7 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
       assert output =~ "baseline"
     end
 
-    test "exits 0 even when uncovered tables exist (viewer, not gate)" do
+    test "exits 0 without --strict even when uncovered tables exist" do
       # No assertion on exit code — if it raised, the test would fail.
       # Just verify the task completes without an exception.
       output =
@@ -233,6 +248,262 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
       assert reason == {:shutdown, 1}
       assert stdout =~ "capture_trigger_disabled"
       assert stderr =~ "strict: FAILED — 1 error finding(s)"
+    end
+  end
+
+  describe "severity x strict x format matrix (D-09)" do
+    @clean_schema "hcov_matrix_clean"
+    @warning_schema "hcov_matrix_warning"
+    @error_schema "hcov_matrix_error"
+    @uncovered_schema "hcov_matrix_uncovered"
+
+    setup do
+      for schema <- [@clean_schema, @warning_schema, @error_schema, @uncovered_schema] do
+        SQL.query!(@repo, "DROP SCHEMA IF EXISTS #{schema} CASCADE", [])
+        SQL.query!(@repo, "CREATE SCHEMA #{schema}", [])
+      end
+
+      # Clean: one covered id-keyed table, no findings.
+      SQL.query!(@repo, "CREATE TABLE #{@clean_schema}.t (id bigserial PRIMARY KEY)", [])
+      SQL.query!(@repo, TriggerSQL.create_trigger("#{@clean_schema}.t"), [])
+
+      # Warning-only: a no-args legacy trigger (:legacy_trigger_no_pk_args) plus a
+      # regenerated-trigger table whose audit row is rewritten to an unresolved
+      # table_pk (:unresolved_legacy_keys).
+      SQL.query!(@repo, "CREATE TABLE #{@warning_schema}.t_noargs (id bigserial PRIMARY KEY)", [])
+
+      SQL.query!(
+        @repo,
+        LegacyTriggerSQL.v0_10_2_create_trigger(
+          @warning_schema,
+          "t_noargs",
+          StorageSchema.function("threadline_capture_changes") <> "()"
+        ),
+        []
+      )
+
+      SQL.query!(
+        @repo,
+        "CREATE TABLE #{@warning_schema}.t_unresolved (id bigserial PRIMARY KEY)",
+        []
+      )
+
+      SQL.query!(@repo, TriggerSQL.create_trigger("#{@warning_schema}.t_unresolved"), [])
+      SQL.query!(@repo, "INSERT INTO #{@warning_schema}.t_unresolved DEFAULT VALUES", [])
+      rewrite_table_pk!(@warning_schema, "t_unresolved", %{"id" => nil})
+
+      # Error: a disabled trigger.
+      SQL.query!(@repo, "CREATE TABLE #{@error_schema}.t (id bigserial PRIMARY KEY)", [])
+      SQL.query!(@repo, TriggerSQL.create_trigger("#{@error_schema}.t"), [])
+
+      SQL.query!(
+        @repo,
+        "ALTER TABLE #{@error_schema}.t DISABLE TRIGGER threadline_audit_#{@error_schema}_t",
+        []
+      )
+
+      # Uncovered-only: a table with no trigger at all.
+      SQL.query!(@repo, "CREATE TABLE #{@uncovered_schema}.t (id bigserial PRIMARY KEY)", [])
+
+      on_exit(fn ->
+        for schema <- [@clean_schema, @warning_schema, @error_schema, @uncovered_schema] do
+          SQL.query!(@repo, "DROP SCHEMA IF EXISTS #{schema} CASCADE", [])
+        end
+      end)
+
+      :ok
+    end
+
+    @matrix for schema_key <- [:clean, :warning, :error],
+                strict <- [[], ["--strict"]],
+                json <- [[], ["--json"]],
+                do: {schema_key, strict, json}
+
+    for {schema_key, strict_flag, json_flag} <- @matrix do
+      schema_name =
+        case schema_key do
+          :clean -> @clean_schema
+          :warning -> @warning_schema
+          :error -> @error_schema
+        end
+
+      strict? = strict_flag != []
+      expect_exit? = schema_key == :error and strict?
+
+      test "schema=#{schema_key} strict=#{strict?} json=#{json_flag != []} " <>
+             "outcome=#{if expect_exit?, do: "exit 1", else: "ok"}" do
+        schema_name = unquote(schema_name)
+        strict_flag = unquote(Macro.escape(strict_flag))
+        json_flag = unquote(Macro.escape(json_flag))
+        strict? = unquote(strict?)
+        expect_exit? = unquote(expect_exit?)
+
+        Mix.Task.reenable("threadline.health.coverage")
+
+        argv = ["--schema=#{schema_name}"] ++ strict_flag ++ json_flag
+
+        {{result, stdout}, stderr} =
+          with_io(:stderr, fn ->
+            with_io(fn -> run_catching_exit(fn -> Coverage.run(argv) end) end)
+          end)
+
+        if expect_exit? do
+          assert result == {:shutdown, 1}
+          assert stderr =~ ~r/strict: FAILED — \d+ error finding\(s\)/
+        else
+          assert result == :ok
+
+          if strict? do
+            assert stderr =~ ~r/strict: passed \(\d+ warning\(s\) not gated\)/
+          else
+            assert stderr == ""
+          end
+        end
+
+        if json_flag != [] do
+          parsed = Jason.decode!(stdout)
+
+          assert parsed |> Map.keys() |> Enum.sort() ==
+                   ["covered", "expected_uncovered", "findings", "schema", "uncovered"]
+        end
+      end
+    end
+
+    test "the warning schema's findings include unresolved_legacy_keys and --strict passes" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      {{result, stdout}, stderr} =
+        with_io(:stderr, fn ->
+          with_io(fn ->
+            run_catching_exit(fn ->
+              Coverage.run(["--strict", "--schema=#{@warning_schema}", "--json"])
+            end)
+          end)
+        end)
+
+      assert result == :ok
+      assert stderr =~ ~r/strict: passed \(\d+ warning\(s\) not gated\)/
+
+      parsed = Jason.decode!(stdout)
+      codes = Enum.map(parsed["findings"], & &1["code"])
+      assert "unresolved_legacy_keys" in codes
+      assert "legacy_trigger_no_pk_args" in codes
+      assert Enum.all?(parsed["findings"], &(&1["severity"] == "warning"))
+    end
+
+    test "uncovered-only schema with --strict returns :ok" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      {result, _stdout} =
+        with_io(fn ->
+          run_catching_exit(fn -> Coverage.run(["--strict", "--schema=#{@uncovered_schema}"]) end)
+        end)
+
+      assert result == :ok
+    end
+
+    test "an :error finding in another schema does not fail --strict --schema=<clean schema>" do
+      Mix.Task.reenable("threadline.health.coverage")
+
+      {result, _stdout} =
+        with_io(fn ->
+          run_catching_exit(fn -> Coverage.run(["--strict", "--schema=#{@clean_schema}"]) end)
+        end)
+
+      assert result == :ok
+    end
+
+    defp rewrite_table_pk!(schema, table, pk_term) do
+      storage = StorageSchema.get()
+
+      SQL.query!(
+        @repo,
+        """
+        UPDATE #{StorageSchema.qualify(storage, "audit_changes")}
+        SET table_pk = $1::jsonb
+        WHERE table_schema = $2 AND table_name = $3
+        """,
+        [pk_term, schema, table]
+      )
+    end
+  end
+
+  describe "unknown switches (D-16)" do
+    test "unknown or invalid switches raise Mix.Error naming the switch, before any DB access" do
+      for argv <- [["--stict"], ["--jsn"], ["--schema"]] do
+        assert_raise Mix.Error, ~r/unknown or invalid option/, fn ->
+          Coverage.run(argv)
+        end
+      end
+    end
+  end
+
+  describe "legacy probe timeout hint (D-20)" do
+    setup do
+      SQL.query!(@repo, "DROP SCHEMA IF EXISTS hcov_timeout CASCADE", [])
+      SQL.query!(@repo, "CREATE SCHEMA hcov_timeout", [])
+      SQL.query!(@repo, "CREATE TABLE hcov_timeout.t (id bigserial PRIMARY KEY)", [])
+      SQL.query!(@repo, TriggerSQL.create_trigger("hcov_timeout.t"), [])
+      SQL.query!(@repo, "INSERT INTO hcov_timeout.t DEFAULT VALUES", [])
+
+      storage = StorageSchema.get()
+
+      SQL.query!(
+        @repo,
+        """
+        UPDATE #{StorageSchema.qualify(storage, "audit_changes")}
+        SET table_pk = $1::jsonb
+        WHERE table_schema = $2 AND table_name = $3
+        """,
+        [%{"id" => nil}, "hcov_timeout", "t"]
+      )
+
+      on_exit(fn ->
+        SQL.query!(@repo, "DROP SCHEMA IF EXISTS hcov_timeout CASCADE", [])
+      end)
+
+      :ok
+    end
+
+    test "a cancelled probe prints the row-history-index hint and continues with []" do
+      test_pid = self()
+      storage = StorageSchema.get()
+
+      {:ok, lock_pid} =
+        Task.start(fn ->
+          @repo.transaction(fn ->
+            SQL.query!(
+              @repo,
+              "LOCK TABLE #{StorageSchema.qualify(storage, "audit_changes")} IN ACCESS EXCLUSIVE MODE",
+              []
+            )
+
+            send(test_pid, :locked)
+
+            receive do
+              :release -> :ok
+            after
+              5_000 -> :ok
+            end
+          end)
+        end)
+
+      assert_receive :locked, 2_000
+
+      {result, stderr} =
+        with_io(:stderr, fn ->
+          Coverage.legacy_findings_or_hint(@repo,
+            schema: "hcov_timeout",
+            statement_timeout: 200
+          )
+        end)
+
+      assert result == []
+      assert stderr =~ "step-4-add-the-row-history-index"
+
+      send(lock_pid, :release)
+      ref = Process.monitor(lock_pid)
+      assert_receive {:DOWN, ^ref, :process, ^lock_pid, _reason}, 2_000
     end
   end
 
