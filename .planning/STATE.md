@@ -4,16 +4,16 @@ milestone: v1.44
 milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 230
 current_phase_name: Rebalance, Net-Suite Check and 0.12.0
-status: planning
-stopped_at: Phase 230 context gathered
-last_updated: "2026-10-02T19:48:09.126Z"
+status: executing
+stopped_at: Phase 230 planned (4 plans, 4 waves)
+last_updated: "2026-10-02T20:24:31.949Z"
 last_activity: 2026-10-02
-last_activity_desc: Phase 229 complete, transitioned to Phase 230
-state_head: 8f16361eab1bba2385a3bfb899c7737fcf718c2e
+last_activity_desc: Phase 230 planned — 4 plans in 4 waves, checker passed after 1 revision
+state_head: eb8d42580ec6d1376c47f6b0915e77025cc50b57
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 29
+  total_plans: 33
   completed_plans: 29
   percent: 86
 ---
@@ -29,12 +29,12 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 ## Current Position
 
-Phase: 230 — Rebalance, Net-Suite Check and 0.12.0
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-02 — Phase 229 complete, transitioned to Phase 230
+Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — READY TO EXECUTE
+Plan: 0 of 4 complete
+Status: Ready to execute
+Last activity: 2026-10-02 — Phase 230 planned (4 plans, 4 waves; plan-checker passed after 1 revision)
 
-Progress: [███████░░░] 6 of 7 v1.44 phases complete ([█████████░] 86%). Phase 229 verified passed 5/5 (2026-10-02): Threadline.history/3 takes a validated :limit (QRY-01/02, new Query.HistoryLimit); public Threadline.Health.legacy_key_findings/1 emits :unresolved_legacy_keys warnings (capped, statement_timeout-bounded per-table probe; HLTH-03); mix threadline.health.coverage gains --strict (exit 1 on in-scope :error findings, 12-cell matrix baseline; HLTH-01), --all-schemas (schema-keyed table + JSON envelope, extension schemas excluded via pg_depend; HLTH-02), unknown switches now raise; malformed :trigger_capture fail-fast documented (HLTH-04); local suite 2767/0, mix ci.all green, wall clock before/after in evidence/SC5-wallclock.md; review 0 critical/1 warning/1 info (WR-01 stray positional args ignored, IN-01 duplicated schema regex; advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-discuss-phase 230. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [███████░░░] 6 of 7 v1.44 phases complete ([█████████░] 86%). Phase 229 verified passed 5/5 (2026-10-02): Threadline.history/3 takes a validated :limit (QRY-01/02, new Query.HistoryLimit); public Threadline.Health.legacy_key_findings/1 emits :unresolved_legacy_keys warnings (capped, statement_timeout-bounded per-table probe; HLTH-03); mix threadline.health.coverage gains --strict (exit 1 on in-scope :error findings, 12-cell matrix baseline; HLTH-01), --all-schemas (schema-keyed table + JSON envelope, extension schemas excluded via pg_depend; HLTH-02), unknown switches now raise; malformed :trigger_capture fail-fast documented (HLTH-04); local suite 2767/0, mix ci.all green, wall clock before/after in evidence/SC5-wallclock.md; review 0 critical/1 warning/1 info (WR-01 stray positional args ignored, IN-01 duplicated schema regex; advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 230 (plan 04 stops at a maintainer grant for push, PR, squash-merge, release-please PR merge, production-hex approval and the distribution-sync PR). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 

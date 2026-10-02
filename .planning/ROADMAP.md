@@ -284,7 +284,25 @@ Plans:
   4. The milestone lands on main as one squash with a clean conventional `feat:` title. release-please ships 0.12.0, hex.pm serves it, and the `latest` lane pins are re-checked against builds.hex.pm and Docker Hub, with the result cited.
   5. `mix ci.all` and `bin/verify-repo-hygiene` are green at close, and no phase or plan ID appears in `lib/`, guides or the 0.12.0 CHANGELOG.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+
+**Wave 1**
+
+- [ ] 230-01-PLAN.md — Rebalance: cut the two whole-file prose locks, line-item trim three mixed files, record the keep/cut rubric in CONTRIBUTING, before/after wall clock, ci-required roster unchanged (SUITE-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 230-02-PLAN.md — Net-suite table: prove the comparator, assemble the 224-229 suite-time table, disclose serial-equivalent work, local context; fresh-run row left for the landing PR (SUITE-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 230-03-PLAN.md — Pre-land gate: dated 0.12.0 CHANGELOG entry and 0.11.x → 0.12.x upgrade path, planning-ID sweep of lib/guides/CHANGELOG, `mix ci.all`, repo hygiene and privacy grep (REL-01, SC5)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 230-04-PLAN.md — Land and release: preflight and latest-lane pin re-check, one maintainer grant, PR CI as the SUITE-06 fresh-run gate, `feat!:` squash, release-please 0.12.0, production-hex, smoke, distribution sync (REL-01, SUITE-06)
 **Research**: Apply the rubric in `research/ARCHITECTURE.md` B.1 to `operator_surface/coverage_doc_contract_test.exs`, `operator_surface/policy_show_doc_contract_test.exs`, `storage_schema_migration_contract_test.exs` and `storage_schema_prefix_contract_test.exs` before building the cut list. Landing needs a maintainer grant naming the branch, push, PR, merge and `production-hex` approval.
 
 ## Progress
@@ -297,7 +315,7 @@ Plans:
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
 | 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
 | 229. Adopter API and Health Additions | 4/4 | Complete    | 2026-10-02 |
-| 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
+| 230. Rebalance, Net-Suite Check and 0.12.0 | 0/4 | Planned | - |
 
 ## Prior Milestones
 

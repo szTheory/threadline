@@ -546,15 +546,17 @@ specifies.
 
 **All other claims in this research were verified live against the repository this session or are locked decisions copied verbatim from CONTEXT.md — no further confirmation needed for those.**
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does the v1.43 mutation-control cross-check (D-05) need to search further than `v1.43-MILESTONE-AUDIT.md`?**
    - What we know: the named audit document has zero mentions of any of the six candidate files or the word "mutation."
    - What's unclear: whether a per-file mutation control exists in one of the many `*-REVIEW-DISPOSITION.md` or `evidence/*-mutation-*.md` files from earlier phases (218, 219, 220, 221, 222, 223) that actually touched these specific test files, which this research did not exhaustively search given the scope of "cross-check against `.planning/milestones/v1.43-MILESTONE-AUDIT.md`" as literally named in D-05.
    - Recommendation: the planner should treat D-05's instruction as satisfied by this research's documented zero-hit grep against the named file; the KEEP verdicts for the two storage-schema files do not depend on finding a v1.43 mutation control anyway (they satisfy B.1 criteria 1/2 independently, as shown above).
+   - RESOLVED: 230-01-PLAN.md Task 2, action D (records the D-05 cross-check result).
 
 2. **Does `bin/ci-test-partitions`'s CI log already expose per-partition timing?**
    - What we know: `mix verify.test_partitioned`'s local output format (captured in 226/227/229 evidence) already shows a per-partition `Seconds` column.
    - What's unclear: whether the *CI* step's log (not the local wrapper) prints the equivalent, which is what D-07 asks for as the "serial-equivalent work" disclosure source of first resort.
    - Recommendation: check a recent green `verify-test` job's raw log in the net-suite-measurement plan before deciding whether the one-line echo addition (Claude's Discretion) is needed.
+   - RESOLVED: 230-02-PLAN.md Task 1, action 3 (checks the CI log and decides on the echo addition).
 
