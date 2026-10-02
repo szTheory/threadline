@@ -32,8 +32,11 @@ defmodule Threadline.Capture.RedactionLeakPropertyTest do
   `ChangeDiff` in its default, `expand_insert_fields: true`, and
   `format: :export_compat` variants; `to_csv_iodata/2` (with a generated
   `include_action_metadata`), `to_json_document/2` in `:wrapped` and
-  `:ndjson`; and `stream_export_rows/2` piped through
-  `format_changes_iodata/3` for `:csv`, `:json_wrapped`, and `:ndjson`.
+  `:ndjson`; `stream_export_rows/2` piped through `format_changes_iodata/3`
+  for `:csv`, `:json_wrapped`, and `:ndjson`; and (D-14) one
+  `"telemetry:<event>"` surface per `Threadline.Telemetry` event observed
+  while the CSV/JSON/NDJSON exports above run — the inspected
+  measurements/metadata, not the export's own data.
   `format_changes_iodata/3` over a plain Ecto read of the audit changes
   schema is not viable here because it needs the join's `tx_*` fields —
   hence `stream_export_rows/2`.
@@ -44,6 +47,7 @@ defmodule Threadline.Capture.RedactionLeakPropertyTest do
 
   import Threadline.Test.DbProperty
   import Threadline.Test.RedactionLeakGenerators
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
 
   alias Threadline.Capture.TriggerSQL
   alias Threadline.ChangeDiff
@@ -88,7 +92,13 @@ defmodule Threadline.Capture.RedactionLeakPropertyTest do
     :ok
   end
 
-  property "no canary survives a redacted trigger/storage/diff/CSV/JSON/NDJSON round trip" do
+  setup do
+    event_names = Threadline.Telemetry.__events__() |> Enum.map(& &1.name)
+    %{telemetry_ref: attach_telemetry!(event_names)}
+  end
+
+  property "no canary survives a redacted trigger/storage/diff/CSV/JSON/NDJSON round trip",
+           %{telemetry_ref: telemetry_ref} do
     check all(plan <- op_plan_gen(), max_runs: @max_runs) do
       with_iteration(
         fn n -> delete_iteration!(@t, [row_id(n)]) end,
@@ -120,14 +130,29 @@ defmodule Threadline.Capture.RedactionLeakPropertyTest do
                  "expected one change per planned op (insert + #{length(plan.steps)} step(s)" <>
                    if(plan.delete?, do: " + delete)", else: ")")
 
-          surfaces =
-            build_surfaces(id, changes, plan.include_action_metadata, length(changes))
+          {surfaces, telemetry_surfaces} =
+            build_surfaces(
+              id,
+              changes,
+              plan.include_action_metadata,
+              length(changes),
+              telemetry_ref
+            )
 
           marker_surfaces =
-            Enum.reject(surfaces, fn {name, _} -> name == "stored:audit_transactions" end)
+            Enum.reject(surfaces, fn {name, _} ->
+              name == "stored:audit_transactions" or String.starts_with?(name, "telemetry:")
+            end)
 
           LeakOracle.refute_canaries!(surfaces, canaries(plan), context)
           LeakOracle.assert_markers!(marker_surfaces, markers(plan), context)
+
+          LeakOracle.refute_canaries!(
+            telemetry_surfaces,
+            canaries(plan) ++ markers(plan),
+            context
+          )
+
           LeakOracle.assert_structure!(changes, id, context)
         end
       )
@@ -230,7 +255,7 @@ defmodule Threadline.Capture.RedactionLeakPropertyTest do
 
   defp merge_step(current, %{kind: :noop_update}), do: current
 
-  defp build_surfaces(id, changes, include_meta, expected_count) do
+  defp build_surfaces(id, changes, include_meta, expected_count, telemetry_ref) do
     diff_default = Enum.map_join(changes, "\n", &Jason.encode!(ChangeDiff.from_audit_change(&1)))
 
     diff_expand =
@@ -245,6 +270,11 @@ defmodule Threadline.Capture.RedactionLeakPropertyTest do
 
     filters = [table: @t, repo: Threadline.Test.Repo]
 
+    # D-14: drain any stray pre-existing messages before the exports below
+    # run, so the post-drain only ever reflects events this iteration
+    # itself caused.
+    discard_telemetry(telemetry_ref)
+
     {:ok, csv} = Export.to_csv_iodata(filters, include_action_metadata: include_meta)
     {:ok, json_wrapped} = Export.to_json_document(filters, json_format: :wrapped)
     {:ok, json_ndjson} = Export.to_json_document(filters, json_format: :ndjson)
@@ -252,6 +282,16 @@ defmodule Threadline.Capture.RedactionLeakPropertyTest do
     assert csv.returned_count == expected_count
     assert json_wrapped.returned_count == expected_count
     assert json_ndjson.returned_count == expected_count
+
+    telemetry_events = drain_telemetry(telemetry_ref)
+    assert_export_telemetry_structure!(telemetry_events, expected_count)
+
+    telemetry_surfaces =
+      Enum.map(telemetry_events, fn {event, measurements, metadata} ->
+        {"telemetry:" <> Enum.map_join(event, ".", &Atom.to_string/1),
+         inspect(measurements, limit: :infinity, printable_limit: :infinity) <>
+           inspect(metadata, limit: :infinity, printable_limit: :infinity)}
+      end)
 
     stream_rows = filters |> Export.stream_export_rows() |> Enum.to_list()
 
@@ -261,17 +301,79 @@ defmodule Threadline.Capture.RedactionLeakPropertyTest do
     stream_json_wrapped = Export.format_changes_iodata(stream_rows, :json_wrapped)
     stream_ndjson = Export.format_changes_iodata(stream_rows, :ndjson)
 
-    LeakOracle.stored_surfaces(@t, id) ++
-      [
-        {"diff:default", diff_default},
-        {"diff:expand_insert_fields", diff_expand},
-        {"diff:export_compat", diff_export_compat},
-        {"export:csv", IO.iodata_to_binary(csv.data)},
-        {"export:json_wrapped", IO.iodata_to_binary(json_wrapped.data)},
-        {"export:ndjson", IO.iodata_to_binary(json_ndjson.data)},
-        {"stream:csv", IO.iodata_to_binary(stream_csv)},
-        {"stream:json_wrapped", IO.iodata_to_binary(stream_json_wrapped)},
-        {"stream:ndjson", IO.iodata_to_binary(stream_ndjson)}
-      ]
+    surfaces =
+      LeakOracle.stored_surfaces(@t, id) ++
+        [
+          {"diff:default", diff_default},
+          {"diff:expand_insert_fields", diff_expand},
+          {"diff:export_compat", diff_export_compat},
+          {"export:csv", IO.iodata_to_binary(csv.data)},
+          {"export:json_wrapped", IO.iodata_to_binary(json_wrapped.data)},
+          {"export:ndjson", IO.iodata_to_binary(json_ndjson.data)},
+          {"stream:csv", IO.iodata_to_binary(stream_csv)},
+          {"stream:json_wrapped", IO.iodata_to_binary(stream_json_wrapped)},
+          {"stream:ndjson", IO.iodata_to_binary(stream_ndjson)}
+        ] ++ telemetry_surfaces
+
+    {surfaces, telemetry_surfaces}
+  end
+
+  # D-14: drains every `{event, ^ref, measurements, metadata}` message
+  # currently queued for this test process, collecting each as
+  # `{event, measurements, metadata}`.
+  defp drain_telemetry(ref) do
+    receive do
+      {event, ^ref, measurements, metadata} ->
+        [{event, measurements, metadata} | drain_telemetry(ref)]
+    after
+      0 -> []
+    end
+  end
+
+  # Same mailbox walk as `drain_telemetry/1`, but discards instead of
+  # collecting (used to clear the mailbox before the step whose events we
+  # actually care about).
+  defp discard_telemetry(ref) do
+    receive do
+      {_event, ^ref, _measurements, _metadata} -> discard_telemetry(ref)
+    after
+      0 -> :ok
+    end
+  end
+
+  # Structural guard (D-14 / T-228-16): a detached or silently-no-op
+  # handler must not let this property pass vacuously. Requires at least
+  # one `[:threadline, :export, ...]` event, exactly three
+  # `[:threadline, :export, :completed]` events (csv/json/ndjson, each
+  # reporting the actual row count), and nothing else that would indicate a
+  # partially-wired observer.
+  defp assert_export_telemetry_structure!(telemetry_events, expected_count) do
+    assert Enum.any?(telemetry_events, fn {event, _measurements, _metadata} ->
+             Enum.take(event, 2) == [:threadline, :export]
+           end),
+           "no [:threadline, :export, ...] telemetry observed this iteration — a detached " <>
+             "handler would let this property pass vacuously"
+
+    completed =
+      Enum.filter(telemetry_events, fn {event, _measurements, _metadata} ->
+        event == [:threadline, :export, :completed]
+      end)
+
+    assert length(completed) == 3,
+           "expected exactly 3 [:threadline, :export, :completed] events (csv/json/ndjson), " <>
+             "got #{length(completed)}: #{inspect(completed)}"
+
+    formats =
+      completed
+      |> Enum.map(fn {_event, _measurements, metadata} -> metadata.format end)
+      |> Enum.sort()
+
+    assert formats == [:csv, :json, :ndjson],
+           "expected [:threadline, :export, :completed] formats [:csv, :json, :ndjson], got #{inspect(formats)}"
+
+    for {_event, measurements, _metadata} <- completed do
+      assert measurements.row_count == expected_count,
+             "expected row_count #{expected_count}, got #{measurements.row_count}"
+    end
   end
 end
