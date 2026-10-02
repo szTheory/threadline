@@ -53,7 +53,7 @@
 - [x] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties (completed 2026-10-01)
 - [x] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds (completed 2026-10-01)
 - [x] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data (completed 2026-10-02)
-- [x] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning (completed 2026-10-02, awaiting verification)
+- [x] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning (completed 2026-10-02)
 - [ ] **Phase 230: Rebalance, Net-Suite Check and 0.12.0** - Prose-only guard tests merged or cut, the net suite time proven not to regress, and 0.12.0 released
 
 ## Phase Details
@@ -251,7 +251,7 @@ Plans:
   4. `--all-schemas` produces a schema-keyed report in table and JSON output and is rejected alongside `--schema=NAME`. A pre-0.11 fixture produces an `:unresolved_legacy_keys` warning with per-table counts and a link to `guides/upgrading-to-0.11.md`, and `--strict` does not fail on it.
   5. The docs state that malformed `:trigger_capture` config raises rather than producing a finding. VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans complete
 **Research**: Not needed (`research/FEATURES.md` §B-§D). Plan-phase should confirm first that no existing test pins per-severity exit codes, so the matrix is built as the baseline rather than assumed.
 
 Plans:
@@ -296,7 +296,7 @@ Plans:
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
 | 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
-| 229. Adopter API and Health Additions | 4/4 | Awaiting verification | 2026-10-02 |
+| 229. Adopter API and Health Additions | 4/4 | Complete    | 2026-10-02 |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
 
 ## Prior Milestones
