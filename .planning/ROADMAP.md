@@ -231,7 +231,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 228-04-PLAN.md — PROP-04 telemetry observer, raising-handler test, two recorded mutation controls (wave 4)
+- [x] 228-04-PLAN.md — PROP-04 telemetry observer, raising-handler test, two recorded mutation controls (wave 4)
 - [ ] 228-05-PLAN.md — Moduledoc event table, `guides/telemetry.md` with the repo-query recipe, doc-parity and recipe tests, CHANGELOG Added (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
@@ -278,7 +278,7 @@ Plans:
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
-| 228. Telemetry | 3/6 | In Progress | - |
+| 228. Telemetry | 4/6 | In Progress | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
 
