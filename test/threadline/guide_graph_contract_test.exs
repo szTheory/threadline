@@ -25,7 +25,8 @@ defmodule Threadline.GuideGraphContractTest do
       "guides/incident-playbook.md",
       "guides/performance.md",
       "guides/audit-indexing.md",
-      "guides/adoption-evidence-playbook.md"
+      "guides/adoption-evidence-playbook.md",
+      "guides/telemetry.md"
     ],
     contribute: ["guides/adoption-pilot-backlog.md"]
   }
@@ -72,7 +73,7 @@ defmodule Threadline.GuideGraphContractTest do
   test "lane assignment is exact, disjoint, nonempty, and sentinel-backed" do
     assigned = Map.values(@lanes) |> List.flatten()
     assert Enum.all?(@lanes, fn {_lane, paths} -> paths != [] end)
-    assert length(assigned) == 19
+    assert length(assigned) == 20
 
     assert length(assigned) == MapSet.size(MapSet.new(assigned)),
            "guide belongs to multiple lanes"
@@ -100,7 +101,7 @@ defmodule Threadline.GuideGraphContractTest do
     outside = Path.wildcard("guides/**/*.md") |> MapSet.new() |> MapSet.difference(assigned)
 
     assert outside == MapSet.new(["guides/configuration-and-commands.md"]),
-           "the canonical config reference must be the only guide outside the 19-node graph"
+           "the canonical config reference must be the only guide outside the 20-node graph"
   end
 
   @tag :canonical_owner_tracer
@@ -175,7 +176,7 @@ defmodule Threadline.GuideGraphContractTest do
   @tag :guide_graph
   @tag :phase200_red
   @tag :phase200_aggregate
-  test "all 19 guides form one complete intent-led graph" do
+  test "all 20 guides form one complete intent-led graph" do
     Enum.each(Map.keys(@lanes), &assert_graph_slice!/1)
   end
 

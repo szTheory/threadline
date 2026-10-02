@@ -182,7 +182,7 @@ callback should return:
   narrowing contract.
 - any other value - Denied.
 
-Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with the outcome (`:granted`, `:denied`, or `:error`).
+Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with the outcome (`:granted`, `:denied`, or `:error`). See [Telemetry](telemetry.md) for every event and its keys.
 
 `live_session` and `on_mount` protect the LiveView pages only. They do not
 secure the sibling HTTP export controller routes. Export denials stay
@@ -483,7 +483,7 @@ server-posted form with CSRF, not a client-side storage or scripting feature.
 
 Disabling an embed never breaks a screen: fonts fall back to the system stack, and the copy affordance falls back to native text selection.
 
-`[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{error: message}`; alert on this for sustained drift.
+`[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{exception: module}`; alert on this for sustained drift.
 
 ## Operational paths
 

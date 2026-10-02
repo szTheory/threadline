@@ -593,6 +593,7 @@ defmodule Threadline.MixProject do
         "guides/evaluating-threadline.md",
         "guides/local-docker-dx.md",
         "guides/audit-indexing.md",
+        "guides/telemetry.md",
         "guides/integrations/sigra.md",
         "guides/integrations/phx-gen-auth.md",
         "guides/configuration-and-commands.md",
@@ -616,7 +617,7 @@ defmodule Threadline.MixProject do
         Adopt:
           ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|upgrading-to-0\.11|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
         Operate:
-          ~r{^guides/(operator-surface|incident-playbook|performance|audit-indexing|adoption-evidence-playbook)\.md$},
+          ~r{^guides/(operator-surface|incident-playbook|performance|audit-indexing|adoption-evidence-playbook|telemetry)\.md$},
         Contribute:
           ~r{^(CONTRIBUTING|CHANGELOG)\.md$|^guides/adoption-pilot-backlog\.md$|/DESIGN-SYSTEM\.md$}
       ],

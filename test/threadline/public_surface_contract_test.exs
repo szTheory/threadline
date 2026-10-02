@@ -70,7 +70,8 @@ defmodule Threadline.PublicSurfaceContractTest do
       "guides/operator-surface.md",
       "guides/incident-playbook.md",
       "guides/performance.md",
-      "guides/audit-indexing.md"
+      "guides/audit-indexing.md",
+      "guides/telemetry.md"
     ],
     public_doc_refs_evaluate: [
       "guides/adoption-evidence-playbook.md",
@@ -333,7 +334,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     extras = Threadline.MixProject.project()[:docs][:extras]
     {urls, local} = Enum.split_with(extras, &url_extra?/1)
     assert MapSet.new(local) == MapSet.new(local_extra_owner_paths()), local_extra_diff(local)
-    assert length(local) == 23 and length(urls) == 2
+    assert length(local) == 24 and length(urls) == 2
 
     external_targets = Enum.map(urls, &external_extra_target/1) |> MapSet.new()
 
