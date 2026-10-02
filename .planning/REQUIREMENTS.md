@@ -35,7 +35,7 @@
   - An allowlist test pins every event's measurement and metadata keys.
   - A test handler attached during the redaction property never observes plaintext.
   - A raising handler does not break the instrumented operation.
-- [ ] **TELE-04**: An adopter can find every event in one place: an event table in the `Threadline.Telemetry` moduledoc and a new `guides/telemetry.md`. The guide includes a recipe for observing Threadline's queries through the host repo's own `[:my_app, :repo, :query]` event instead of a duplicate query event.
+- [x] **TELE-04**: An adopter can find every event in one place: an event table in the `Threadline.Telemetry` moduledoc and a new `guides/telemetry.md`. The guide includes a recipe for observing Threadline's queries through the host repo's own `[:my_app, :repo, :query]` event instead of a duplicate query event.
 
 ### Query API
 
@@ -103,7 +103,7 @@
 | TELE-01 | Phase 228 | Complete |
 | TELE-02 | Phase 228 | Complete |
 | TELE-03 | Phase 228 | Complete |
-| TELE-04 | Phase 228 | Pending |
+| TELE-04 | Phase 228 | Complete |
 | QRY-01 | Phase 229 | Pending |
 | QRY-02 | Phase 229 | Pending |
 | HLTH-01 | Phase 229 | Pending |

@@ -232,7 +232,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 228-04-PLAN.md — PROP-04 telemetry observer, raising-handler test, two recorded mutation controls (wave 4)
-- [ ] 228-05-PLAN.md — Moduledoc event table, `guides/telemetry.md` with the repo-query recipe, doc-parity and recipe tests, CHANGELOG Added (wave 4)
+- [x] 228-05-PLAN.md — Moduledoc event table, `guides/telemetry.md` with the repo-query recipe, doc-parity and recipe tests, CHANGELOG Added (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
