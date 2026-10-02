@@ -265,7 +265,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 229-03-PLAN.md — `health.coverage --strict` gate + 12-cell matrix baseline, legacy findings wired into the task, unknown switches raise, doc rewording (wave 3)
+- [x] 229-03-PLAN.md — `health.coverage --strict` gate + 12-cell matrix baseline, legacy findings wired into the task, unknown switches raise, doc rewording (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 

@@ -44,7 +44,7 @@
 
 ### Health and CLI (carried from v1.42)
 
-- [ ] **HLTH-01**: A CI pipeline can run `mix threadline.health.coverage --strict` and get a nonzero exit on any `:error`-severity finding. The command composes with `--json`. Without `--strict`, the exit codes are unchanged, and a severity × strict/non-strict test matrix proves both.
+- [x] **HLTH-01**: A CI pipeline can run `mix threadline.health.coverage --strict` and get a nonzero exit on any `:error`-severity finding. The command composes with `--json`. Without `--strict`, the exit codes are unchanged, and a severity × strict/non-strict test matrix proves both.
 - [ ] **HLTH-02**: An adopter with several Postgres schemas can run `mix threadline.health.coverage --all-schemas` and get a report keyed by schema, in both table and JSON output. The option is mutually exclusive with `--schema=NAME`.
 - [x] **HLTH-03**: An adopter upgrading from before 0.11 sees an `:unresolved_legacy_keys` warning finding. It counts, per table, the rows whose `table_pk` was never resolved, and links to the backfill steps in `guides/upgrading-to-0.11.md`. It does not fail `--strict`.
 - [x] **HLTH-04**: The docs state that malformed `:trigger_capture` config fails fast (raises) rather than producing a finding.
@@ -106,7 +106,7 @@
 | TELE-04 | Phase 228 | Complete |
 | QRY-01 | Phase 229 | Complete |
 | QRY-02 | Phase 229 | Complete |
-| HLTH-01 | Phase 229 | Pending |
+| HLTH-01 | Phase 229 | Complete |
 | HLTH-02 | Phase 229 | Pending |
 | HLTH-03 | Phase 229 | Complete |
 | HLTH-04 | Phase 229 | Complete |
