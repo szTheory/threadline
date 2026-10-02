@@ -261,7 +261,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 229-02-PLAN.md — Public `Health.legacy_key_findings/1` and `:unresolved_legacy_keys` (capped, time-limited per-table probe; 0.10.2 fixture + focused tests); `:trigger_capture` fail-fast doc (wave 2)
+- [x] 229-02-PLAN.md — Public `Health.legacy_key_findings/1` and `:unresolved_legacy_keys` (capped, time-limited per-table probe; 0.10.2 fixture + focused tests); `:trigger_capture` fail-fast doc (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
