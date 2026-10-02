@@ -20,13 +20,20 @@ defmodule Threadline.Telemetry do
     subscribers that destructure only `covered` and `uncovered` keep working).
 
   - `[:threadline, :health, :checked, :error]` — sibling event emitted when a
-    polled coverage check raises . Metadata: `%{error: message}`.
+    polled coverage check raises. Metadata: `%{error: message}`.
     The dashboard keeps the last-good snapshot and reschedules the next poll;
     this event lets adopters alert on transient or sustained failure.
 
   - `[:threadline, :health, :findings_checked]` — after
     `Threadline.Health.trigger_findings/1` returns. Measurements:
     `%{errors: integer, warnings: integer}`, counted over the returned list.
+
+  Every emission in this library goes through a `@doc false` helper function
+  in this module; `:telemetry.execute/3` and `:telemetry.span/3` are called
+  only here. Every event this module can emit, along with its measurement
+  and metadata keys, is held in an internal registry exposed through
+  `__events__/0` (`@doc false`) — not a public `events/0` — for use by this
+  library's own test suite.
 
   ## Usage
 
@@ -39,6 +46,60 @@ defmodule Threadline.Telemetry do
         nil
       )
   """
+
+  @events [
+    %{
+      name: [:threadline, :transaction, :committed],
+      measurements: [:table_count],
+      metadata: [],
+      when: "an AuditTransaction is committed"
+    },
+    %{
+      name: [:threadline, :action, :recorded],
+      measurements: [:status],
+      metadata: [],
+      when: "Threadline.record_action/2 completes, whether it succeeds or fails"
+    },
+    %{
+      name: [:threadline, :health, :checked],
+      measurements: [:covered, :expected_uncovered, :uncovered],
+      metadata: [],
+      when: "Threadline.Health.trigger_coverage/1 returns"
+    },
+    %{
+      name: [:threadline, :health, :checked, :error],
+      measurements: [],
+      metadata: [:error],
+      when: "a polled coverage check raises"
+    },
+    %{
+      name: [:threadline, :health, :findings_checked],
+      measurements: [:errors, :warnings],
+      metadata: [],
+      when: "Threadline.Health.trigger_findings/1 returns"
+    },
+    %{
+      name: [:threadline, :operator_surface, :authorize],
+      measurements: [:result],
+      metadata: [:path, :scope_keys],
+      when: "an operator-surface mount or request is authorized, denied, or errors"
+    },
+    %{
+      name: [:threadline, :operator_surface, :export_authorize],
+      measurements: [:count, :result],
+      metadata: [],
+      when: "an export-specific authorization check raises"
+    },
+    %{
+      name: [:threadline, :operator_surface, :actor_ref_mismatch],
+      measurements: [:count],
+      metadata: [],
+      when: "the session actor and the scope-derived actor disagree"
+    }
+  ]
+
+  @doc false
+  def __events__, do: @events
 
   @doc """
   Emits `[:threadline, :transaction, :committed]` with the given table count.
@@ -86,9 +147,9 @@ defmodule Threadline.Telemetry do
 
   @doc """
   Emits the `[:threadline, :health, :checked, :error]` event when a polled
-  coverage check fails . The dashboard keeps the last-good
-  snapshot and ALWAYS reschedules the next poll; this event lets adopters
-  alert on transient or sustained failure.
+  coverage check fails. The dashboard keeps the last-good snapshot and ALWAYS
+  reschedules the next poll; this event lets adopters alert on transient or
+  sustained failure.
   """
   def emit_health_checked_error(error_message) when is_binary(error_message) do
     :telemetry.execute(
@@ -110,4 +171,29 @@ defmodule Threadline.Telemetry do
       %{}
     )
   end
+
+  @doc """
+  Emits the `[:threadline, :operator_surface, :authorize]` event.
+
+  `result` is the authorization outcome atom (`:granted`, `:denied`, or
+  `:error`). `conn_or_nil` is either a `%Plug.Conn{}`, from which the route
+  path is read, or `nil` when the caller has no conn (a LiveView mount).
+  `scope` is the host-returned scope map, or `nil`/anything else when there is
+  none. Metadata is `%{path: binary, scope_keys: [atom]}` — `scope_keys` holds
+  only the scope map's KEYS, sorted, never its values, so no identity data is
+  forwarded.
+  """
+  def emit_operator_surface_authorize(result, conn_or_nil, scope) when is_atom(result) do
+    path = authorize_path(conn_or_nil)
+    scope_keys = if is_map(scope), do: scope |> Map.keys() |> Enum.sort(), else: []
+
+    :telemetry.execute(
+      [:threadline, :operator_surface, :authorize],
+      %{result: result},
+      %{path: path, scope_keys: scope_keys}
+    )
+  end
+
+  defp authorize_path(%Plug.Conn{} = conn), do: conn.request_path || ""
+  defp authorize_path(_conn_or_nil), do: ""
 end

@@ -67,16 +67,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     defp emit_telemetry(result, _conn, scope) do
-      scope_keys = if is_map(scope), do: Map.keys(scope) |> Enum.sort(), else: []
-
-      actor_ref =
-        if is_map(scope), do: Map.get(scope, :actor_ref) || Map.get(scope, :user_id), else: nil
-
-      :telemetry.execute(
-        [:threadline, :operator_surface, :authorize],
-        %{result: result},
-        %{path: "", actor_ref: actor_ref, scope_keys: scope_keys}
-      )
+      Threadline.Telemetry.emit_operator_surface_authorize(result, nil, scope)
     end
   end
 end

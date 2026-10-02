@@ -89,16 +89,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:halt, redirect(socket, to: "/")}
     end
 
-    defp emit_telemetry(result, socket, scope) do
-      scope_keys = if is_map(scope), do: Map.keys(scope) |> Enum.sort(), else: []
-
-      actor_ref = Map.get(socket.assigns, :threadline_actor_ref)
-
-      :telemetry.execute(
-        [:threadline, :operator_surface, :authorize],
-        %{result: result},
-        %{path: "", actor_ref: actor_ref, scope_keys: scope_keys}
-      )
+    defp emit_telemetry(result, _socket, scope) do
+      Threadline.Telemetry.emit_operator_surface_authorize(result, nil, scope)
     end
 
     defp maybe_assign_session_actor(socket, session) when is_map(session) do
