@@ -294,7 +294,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 230-02-PLAN.md — Net-suite table: prove the comparator, assemble the 224-229 suite-time table, disclose serial-equivalent work, local context; fresh-run row left for the landing PR (SUITE-06)
+- [x] 230-02-PLAN.md — Net-suite table: prove the comparator, assemble the 224-229 suite-time table, disclose serial-equivalent work, local context; fresh-run row left for the landing PR (SUITE-06)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -315,7 +315,7 @@ Plans:
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
 | 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
 | 229. Adopter API and Health Additions | 4/4 | Complete    | 2026-10-02 |
-| 230. Rebalance, Net-Suite Check and 0.12.0 | 1/4 | In Progress | - |
+| 230. Rebalance, Net-Suite Check and 0.12.0 | 2/4 | In Progress | - |
 
 ## Prior Milestones
 

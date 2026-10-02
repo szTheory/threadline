@@ -5,16 +5,16 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 230
 current_phase_name: Rebalance, Net-Suite Check and 0.12.0
 status: executing
-stopped_at: Completed 230-01-PLAN.md
-last_updated: "2026-10-02T20:51:36.457Z"
+stopped_at: Completed 230-02-PLAN.md
+last_updated: "2026-10-02T21:02:11.294Z"
 last_activity: 2026-10-02
 last_activity_desc: Phase 230 execution started
-state_head: a3931f5de65a6186a115359403b99b57b3dfaa9a
+state_head: c27e679b9cebb7ae077d4e8dfa8fe518e663ab3f
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 33
-  completed_plans: 30
+  completed_plans: 31
   percent: 86
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-10-02 — Phase 230 execution started
 
@@ -261,6 +261,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 229 P03 | 25min | 3 tasks | 9 files |
 | Phase 229 P04 | ~1h45m | 6 tasks | 12 files |
 | Phase 230 P01 | ~1h40m | 3 tasks | 9 files |
+| Phase 230 P02 | ~1h | 2 tasks | 1 files |
 
 ## Deferred Items
 
@@ -976,6 +977,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 229]: 229-04: --all-schemas reports a schema when it has ≥1 coverage row or ≥1 finding — one predicate drives the JSON envelope, table renderer, and strict gate's union
 - [Phase 229]: 229-04: dropped an environment-dependent citext precondition test; fixed a pre-existing Dialyzer unmatched_returns finding in plan 02 code, confirmed not a PLT-cache-miss first
 - [Phase 230]: Route-literal cut left no deferred gap — git grep confirmed non-prose integration tests already exercise the operator routes
+- [Phase 230]: D-06 gate formula fixed before measurement; proven on real runs (SUITE-01 846s, 228's 37018812221 partition extraction)
+- [Phase 230]: D-09 milestone suite-time table assembled for phases 224-230; 224/229 marked local-only, 230/verdict pending plan 04's fresh pre-landing run
 
 ### Blockers
 
@@ -991,8 +994,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-02T20:51:36.327Z
-**Stopped at:** Completed 230-01-PLAN.md
+**Last session:** 2026-10-02T21:02:11.170Z
+**Stopped at:** Completed 230-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
