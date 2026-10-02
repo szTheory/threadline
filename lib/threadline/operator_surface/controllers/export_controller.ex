@@ -12,6 +12,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
+    alias Threadline.Telemetry
 
     @sync_threshold 5_000
     @max_rows 10_000
@@ -187,7 +188,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         if count <= @sync_threshold do
           send_iodata(conn, filters, format, scope_opts)
         else
-          send_chunked_stream(conn, filters, format, scope_opts)
+          send_chunked_stream(conn, filters, format, scope_opts, count)
         end
       else
         {:error, message} ->
@@ -227,32 +228,66 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     # Chunked path (count > 5_000): send_chunked + reduce_while.
+    #
+    # Emits exactly one export telemetry event after the reduce_while: one
+    # :completed (truncated when `count` exceeds @max_rows) or one :failed
+    # with error_kind :client_closed when a chunk write errors. `rows_sent`
+    # is tracked BOTH in the reduce_while accumulator (for the normal-path
+    # emit after the loop) and in a `:counters` ref (because the accumulator
+    # is not visible from the `rescue` clause below it).
+    defp send_chunked_stream(conn, filters, format, scope_opts, count) do
+      started_at = System.monotonic_time()
+      rows_sent_counter = :counters.new(1, [])
 
-    defp send_chunked_stream(conn, filters, format, scope_opts) do
       conn = send_chunked(conn, 200)
 
       # Emit per-format prefix (CSV header / JSON envelope open) as the FIRST chunk.
       conn = Encoding.emit_prefix(conn, format)
 
-      # Stream the bounded export-row maps (join-projected; same shape as
-      # to_csv_iodata/to_json_document consume internally).
-      {conn, _} =
-        filters
-        |> Export.stream_export_rows(Keyword.merge([page_size: @stream_page_size], scope_opts))
-        |> Stream.take(@max_rows)
-        |> Stream.chunk_every(@chunk_batch_size)
-        |> Enum.reduce_while({conn, _first_batch? = true}, fn rows, {conn, first_batch?} ->
-          batch_iodata = Encoding.format_batch(rows, format, first_batch?)
+      try do
+        # Stream the bounded export-row maps (join-projected; same shape as
+        # to_csv_iodata/to_json_document consume internally).
+        {conn, _first_batch?, sent_rows, outcome} =
+          filters
+          |> Export.stream_export_rows(Keyword.merge([page_size: @stream_page_size], scope_opts))
+          |> Stream.take(@max_rows)
+          |> Stream.chunk_every(@chunk_batch_size)
+          |> Enum.reduce_while({conn, _first_batch? = true, _sent_rows = 0, _outcome = :ok}, fn
+            rows, {conn, first_batch?, sent_rows, _outcome} ->
+              batch_iodata = Encoding.format_batch(rows, format, first_batch?)
 
-          case Plug.Conn.chunk(conn, batch_iodata) do
-            {:ok, conn} -> {:cont, {conn, false}}
-            {:error, :closed} -> {:halt, {conn, false}}
-            {:error, _other} -> {:halt, {conn, false}}
-          end
-        end)
+              case Plug.Conn.chunk(conn, batch_iodata) do
+                {:ok, conn} ->
+                  :counters.add(rows_sent_counter, 1, length(rows))
+                  {:cont, {conn, false, sent_rows + length(rows), :ok}}
 
-      # Emit per-format suffix (JSON envelope close) as the LAST chunk.
-      Encoding.emit_suffix(conn, format)
+                {:error, _reason} ->
+                  {:halt, {conn, false, sent_rows, :client_closed}}
+              end
+          end)
+
+        case outcome do
+          :ok ->
+            Telemetry.emit_export_completed(format, sent_rows, count > @max_rows, started_at)
+
+          :client_closed ->
+            Telemetry.emit_export_failed(format, sent_rows, :client_closed, nil, started_at)
+        end
+
+        # Emit per-format suffix (JSON envelope close) as the LAST chunk.
+        Encoding.emit_suffix(conn, format)
+      rescue
+        e ->
+          Telemetry.emit_export_failed(
+            format,
+            :counters.get(rows_sent_counter, 1),
+            :exception,
+            e,
+            started_at
+          )
+
+          reraise e, __STACKTRACE__
+      end
     end
 
     # Mirrors `TimelineLive.safe_validate/1`.
