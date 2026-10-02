@@ -1,0 +1,41 @@
+diff --git a/lib/threadline/export.ex b/lib/threadline/export.ex
+index a7d285fe..85603d4c 100644
+--- a/lib/threadline/export.ex
++++ b/lib/threadline/export.ex
+@@ -97,7 +97,13 @@ defmodule Threadline.Export do
+       iodata = dump_csv_to_iodata([header | data_rows])
+       returned_count = length(rows)
+ 
+-      Threadline.Telemetry.emit_export_completed(:csv, returned_count, truncated, started_at)
++      Threadline.Telemetry.emit_export_completed(
++        :csv,
++        returned_count,
++        truncated,
++        started_at,
++        IO.iodata_to_binary(iodata)
++      )
+ 
+       {:ok,
+        %{
+diff --git a/lib/threadline/telemetry.ex b/lib/threadline/telemetry.ex
+index 03995259..c0ef03f3 100644
+--- a/lib/threadline/telemetry.ex
++++ b/lib/threadline/telemetry.ex
+@@ -285,7 +285,7 @@ defmodule Threadline.Telemetry do
+   cap. `started_at` is a `System.monotonic_time/0` value captured by the
+   caller before the export began; this helper computes `duration` from it.
+   """
+-  def emit_export_completed(format, row_count, truncated, started_at)
++  def emit_export_completed(format, row_count, truncated, started_at, data \\ nil)
+       when format in [:csv, :json, :ndjson] and is_integer(row_count) and row_count >= 0 and
+              is_boolean(truncated) and is_integer(started_at) do
+     duration = System.monotonic_time() - started_at
+@@ -293,7 +293,7 @@ defmodule Threadline.Telemetry do
+     :telemetry.execute(
+       [:threadline, :export, :completed],
+       %{duration: duration, row_count: row_count},
+-      %{format: format, truncated: truncated}
++      %{format: format, truncated: truncated, data: data}
+     )
+   end
+ 
