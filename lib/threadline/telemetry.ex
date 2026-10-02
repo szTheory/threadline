@@ -2,33 +2,34 @@ defmodule Threadline.Telemetry do
   @moduledoc """
   Telemetry integration helpers for Threadline.
 
-  Threadline emits (among others):
+  Threadline emits the following `:telemetry` events. No event carries row
+  values, actor identifiers, correlation ids, or free-text reasons. See the
+  [Telemetry guide](guides/telemetry.md) for an `attach_many` example per
+  family, a `telemetry_metrics` example, handler-safety and cardinality
+  warnings, and a recipe for observing Threadline's own repo queries through
+  your host's `[:my_app, :repo, :query]` event.
 
-  - `[:threadline, :transaction, :committed]` — after an `AuditTransaction` is
-    committed. Automatically emitted (with `table_count: 0`) when
-    `Threadline.record_action/2` succeeds. For accurate per-transaction counts,
-    call `Threadline.Telemetry.transaction_committed/2` explicitly after a known
-    DB transaction commit.
+  | Event | Measurements | Metadata | When emitted |
+  |---|---|---|---|
+  | `[:threadline, :transaction, :committed]` | `table_count` | — | an AuditTransaction is committed |
+  | `[:threadline, :action, :recorded]` | `status` | — | Threadline.record_action/2 completes, whether it succeeds or fails |
+  | `[:threadline, :health, :checked]` | `covered`, `expected_uncovered`, `uncovered` | — | Threadline.Health.trigger_coverage/1 returns |
+  | `[:threadline, :health, :checked, :error]` | — | `exception` | a polled coverage check raises |
+  | `[:threadline, :health, :findings_checked]` | `errors`, `warnings` | — | Threadline.Health.trigger_findings/1 returns |
+  | `[:threadline, :operator_surface, :authorize]` | `result` | `path`, `scope_keys` | an operator-surface mount or request is authorized, denied, or errors |
+  | `[:threadline, :operator_surface, :export_authorize]` | `count`, `result` | — | an export-specific authorization check raises |
+  | `[:threadline, :operator_surface, :actor_ref_mismatch]` | `count` | — | the session actor and the scope-derived actor disagree |
+  | `[:threadline, :export, :completed]` | `duration`, `row_count` | `format`, `truncated` | an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) finishes successfully |
+  | `[:threadline, :export, :failed]` | `duration`, `row_count` | `format`, `error_kind`, `exception` | an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) fails |
+  | `[:threadline, :retention, :purge, :start]` | `monotonic_time`, `system_time` | `dry_run`, `telemetry_span_context` | after purge/1's input checks pass, when the purge work begins |
+  | `[:threadline, :retention, :purge, :stop]` | `batches_run`, `deleted_changes`, `deleted_transactions`, `duration`, `monotonic_time` | `dry_run`, `telemetry_span_context` | when the run or preview returns |
+  | `[:threadline, :retention, :purge, :exception]` | `duration`, `monotonic_time` | `dry_run`, `kind`, `reason`, `stacktrace`, `telemetry_span_context` | when the database raises mid-run |
+  | `[:threadline, :retention, :batch_purged]` | `deleted_changes`, `deleted_transactions`, `duration` | — | after a purge_loop step's change delete_all and full orphan drain both return, once per step including the terminating empty one |
 
-  - `[:threadline, :action, :recorded]` — after `Threadline.record_action/2`
-    completes (success or failure).
-
-  - `[:threadline, :health, :checked]` — after
-    `Threadline.Health.trigger_coverage/1` returns. Measurements:
-    `%{covered: integer, uncovered: integer, expected_uncovered: integer}`.
-    The `expected_uncovered` measurement is an additive —
-    subscribers that destructure only `covered` and `uncovered` keep working).
-
-  - `[:threadline, :health, :checked, :error]` — sibling event emitted when a
-    polled coverage check raises. Metadata: `%{exception: module}`, the raised
-    exception's struct module. The exception message is intentionally not
-    forwarded — it can echo database values. The dashboard keeps the last-good
-    snapshot and reschedules the next poll; this event lets adopters alert on
-    transient or sustained failure.
-
-  - `[:threadline, :health, :findings_checked]` — after
-    `Threadline.Health.trigger_findings/1` returns. Measurements:
-    `%{errors: integer, warnings: integer}`, counted over the returned list.
+  `[:threadline, :transaction, :committed]` is automatically emitted (with
+  `table_count: 0`) when `Threadline.record_action/2` succeeds. For accurate
+  per-transaction counts, call `Threadline.Telemetry.transaction_committed/2`
+  explicitly after a known DB transaction commit.
 
   Every emission in this library goes through a `@doc false` helper function
   in this module; `:telemetry.execute/3` and `:telemetry.span/3` are called

@@ -47,6 +47,25 @@ would be read as a release.
   in your handler; `Threadline.Telemetry.emit_health_checked_error/1` now
   takes the exception struct itself, not a string.
 
+### Added
+
+- `[:threadline, :export, :completed]` and `[:threadline, :export, :failed]`
+  telemetry events, firing once per logical export (eager CSV/JSON, the async
+  export job, and the chunked operator-surface download) with `row_count`,
+  `duration`, and `format` so you can alert on export failures and track
+  export volume without polling.
+- `[:threadline, :retention, :purge, :start/:stop/:exception]` span events and
+  a `[:threadline, :retention, :batch_purged]` event per purge batch, with
+  rows-deleted counts, so a scheduled retention purge is observable the same
+  way exports are.
+- The `Threadline.Telemetry` module documentation now lists every telemetry
+  event in one table (name, measurements, metadata, and when it fires),
+  replacing a partial prose list.
+- A new [Telemetry guide](guides/telemetry.md) with an `attach_many` example
+  per event family, a metrics-library example, handler-safety and
+  cardinality guidance, and a recipe for observing Threadline's own database
+  queries through your host repo's own `[:my_app, :repo, :query]` event.
+
 ### Fixed
 
 - `Threadline.Retention.purge/1`'s dry run now counts the audit transactions
