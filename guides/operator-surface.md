@@ -410,8 +410,11 @@ Capture-only adopters who do not mount the surface get the same data via:
     mix threadline.health.coverage --json
     mix threadline.health.coverage --schema=NAME
     mix threadline.health.coverage --strict
+    mix threadline.health.coverage --all-schemas
 
 Viewer by default (exits 0); `--strict` turns `:error`-severity findings into exit 1. Uncovered tables never fail `--strict`; use `mix threadline.verify_coverage` for the positive-list gate. That is the existing CI gate task, which now also accepts `--schema=NAME`.
+
+`--all-schemas` checks every reportable schema at once — a schema-keyed table (leading `SCHEMA` column plus a per-schema rollup) or, with `--json`, an envelope `{"schemas": {...}, "summary": {...}}` whose `schemas` values are each the exact `--schema=NAME --json` payload. It cannot be combined with `--schema`. A schema that is a member of a PostgreSQL extension is excluded; a schema with no reportable tables and no findings is omitted. `--strict --all-schemas` gates the union of every reported schema's `:error` findings.
 
 ## Policy redaction drift
 

@@ -292,6 +292,34 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
     end
   end
 
+  describe "--all-schemas docs (229-04 HLTH-02)" do
+    test "moduledoc states the --all-schemas usage lines" do
+      src = File.read!(@mix_task_path)
+
+      assert String.contains?(src, "mix threadline.health.coverage --all-schemas"),
+             "expected literal `mix threadline.health.coverage --all-schemas` in @moduledoc"
+
+      assert String.contains?(src, "mix threadline.health.coverage --all-schemas --json"),
+             "expected literal `mix threadline.health.coverage --all-schemas --json` in @moduledoc"
+    end
+
+    test "moduledoc states the mutual-exclusion sentence" do
+      src = File.read!(@mix_task_path)
+
+      assert String.contains?(src, "cannot be used together"),
+             "expected the --schema/--all-schemas mutual-exclusion sentence in @moduledoc"
+    end
+
+    test "domain-reference.md and operator-surface.md both document --all-schemas" do
+      for path <- ["guides/domain-reference.md", "guides/operator-surface.md"] do
+        guide = File.read!(path)
+
+        assert String.contains?(guide, "--all-schemas"),
+               "expected #{path} to document --all-schemas"
+      end
+    end
+  end
+
   describe "Mix-task --json output schema (D-34, D-35 #8, #9, #10)" do
     setup do
       Mix.Task.reenable("threadline.health.coverage")

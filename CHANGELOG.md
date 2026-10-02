@@ -81,6 +81,16 @@ would be read as a release.
   positive-list gate. A cancelled `:unresolved_legacy_keys` probe (typically
   a missing row-history index) prints a stderr hint and never fails
   `--strict`.
+- `mix threadline.health.coverage --all-schemas`: checks every reportable
+  schema in one batched catalog snapshot (never a per-schema loop) instead
+  of a single `--schema`, as a schema-keyed table or, with `--json`, an
+  envelope (`{"schemas": {"<name>": <single-schema payload>, ...},
+  "summary": {...}}`) whose `schemas` values are byte-identical to what
+  `--schema=NAME --json` prints for that schema. Cannot be combined with
+  `--schema`. A schema that is itself a member of a PostgreSQL extension is
+  excluded; a schema with no reportable tables and no findings is omitted.
+  `--strict --all-schemas` gates the union of every reported schema's
+  `:error` findings.
 
 ### Fixed
 

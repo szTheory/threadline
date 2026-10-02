@@ -15,6 +15,8 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
       mix threadline.health.coverage --schema=NAME
       mix threadline.health.coverage --strict
       mix threadline.health.coverage --strict --json
+      mix threadline.health.coverage --all-schemas
+      mix threadline.health.coverage --all-schemas --json
 
   Default output: a three-section TABLE / STATUS / SOURCE table followed by
   a `Coverage: N covered, M uncovered, K expected uncovered` summary line.
@@ -57,6 +59,46 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
   An unknown or invalid switch (for example `--stict`, `--jsn`, or `--schema`
   with no value) raises `Mix.raise/1` naming the offending switch, before the
   repo starts.
+
+  ## `--all-schemas`
+
+  `--all-schemas` checks every reportable schema in one batched catalog
+  snapshot instead of one `--schema`. It cannot be combined with `--schema`
+  (including an explicit `--schema=public`) — both raise `Mix.raise/1` with
+  "threadline.health.coverage: --schema and --all-schemas cannot be used
+  together. Use --schema=NAME for one schema or --all-schemas for every
+  schema." before the repo starts.
+
+  A schema is reportable when it is not `information_schema`, not a `pg_%`
+  system schema, and not itself a member of a PostgreSQL extension (for
+  example a schema attached with `ALTER EXTENSION ... ADD SCHEMA`) — the
+  storage schema stays included. A schema with zero reportable tables and
+  zero findings is omitted from the output entirely; a schema is still
+  reported if it has findings but no reportable tables, so a finding never
+  disappears.
+
+  Default (table) output gains a leading `SCHEMA` column on the main table,
+  then a per-schema rollup (`SCHEMA COVERED UNCOVERED EXPECTED FINDINGS`),
+  then a grand total `Coverage: N covered, M uncovered, K expected uncovered
+  across J schemas`, then the unchanged `FINDINGS` section.
+
+  `--all-schemas --json` emits an envelope instead of the single-schema
+  object: `{"schemas": {"<name>": <single-schema payload>, ...}, "summary":
+  {"schemas", "covered", "uncovered", "expected_uncovered", "error_findings",
+  "warning_findings"}}`. Each value under `"schemas"` is the exact same
+  object `--schema=NAME --json` would emit for that schema — `.schemas.public`
+  always equals `--schema=public --json`'s output. The `schemas` object keys
+  are in sorted order, encoded so the order survives JSON encoding past 32
+  keys (a plain map would fall back to hash order at that size). Output
+  without `--all-schemas` is completely unaffected: it keeps its exact
+  existing shape.
+
+  `--strict --all-schemas` gates the union of every reported schema: it
+  exits 1 if any reported schema has an `:error` finding, and never gates on
+  uncovered tables or warnings in any schema, same as `--strict` alone.
+  `--all-schemas` emits exactly one `[:threadline, :health, :checked]`
+  telemetry event per run, with grand totals across every reported schema —
+  never one event per schema.
   """
 
   use Mix.Task
