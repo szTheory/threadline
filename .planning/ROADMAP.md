@@ -219,7 +219,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 228-01-PLAN.md — Event registry and helper-only emission; strip identity fields from the operator-surface and health-error events; runtime allowlist and static scan; CHANGELOG breaking entry (wave 1)
+- [x] 228-01-PLAN.md — Event registry and helper-only emission; strip identity fields from the operator-surface and health-error events; runtime allowlist and static scan; CHANGELOG breaking entry (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -278,7 +278,7 @@ Plans:
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
-| 228. Telemetry | 0/TBD | Not started | - |
+| 228. Telemetry | 1/6 | In Progress | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
 
