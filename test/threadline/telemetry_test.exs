@@ -118,8 +118,8 @@ defmodule Threadline.TelemetryTest do
     end
   end
 
-  describe "Phase 66 — emit_health_checked_error/1 sibling event" do
-    test "emits :health, :checked, :error with %{error: message} metadata" do
+  describe "emit_health_checked_error/1 emits exception-module metadata" do
+    test "emits :health, :checked, :error with %{exception: module} metadata, no message" do
       :telemetry.attach(
         "test-health-checked-error",
         [:threadline, :health, :checked, :error],
@@ -131,9 +131,10 @@ defmodule Threadline.TelemetryTest do
 
       on_exit(fn -> :telemetry.detach("test-health-checked-error") end)
 
-      Threadline.Telemetry.emit_health_checked_error("connection refused")
+      Threadline.Telemetry.emit_health_checked_error(%RuntimeError{message: "connection refused"})
 
-      assert_receive {:health_error, %{}, %{error: "connection refused"}}
+      assert_receive {:health_error, %{}, %{exception: RuntimeError} = metadata}
+      refute Enum.any?(Map.values(metadata), &is_binary/1)
     end
   end
 end

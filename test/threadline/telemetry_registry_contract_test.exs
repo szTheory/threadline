@@ -135,7 +135,9 @@ defmodule Threadline.TelemetryRegistryContractTest do
         |> Enum.reject(&(&1 == @telemetry_file))
         |> Enum.filter(fn path ->
           src = File.read!(path)
-          String.contains?(src, ":telemetry.execute(") or String.contains?(src, ":telemetry.span(")
+
+          String.contains?(src, ":telemetry.execute(") or
+            String.contains?(src, ":telemetry.span(")
         end)
 
       assert offenders == [],

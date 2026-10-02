@@ -297,9 +297,15 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   # ---- EXPO-05: telemetry event reuse (D-20) ----
 
   describe "telemetry event reuse (D-20)" do
-    test "ExportAuthPlug emits the SAME [:threadline, :operator_surface, :authorize] event the LV emits (single auth telemetry stream)" do
-      src = File.read!(@plug_path)
-      assert String.contains?(src, "[:threadline, :operator_surface, :authorize]")
+    test "ExportAuthPlug and Auth share the Threadline.Telemetry.emit_operator_surface_authorize/3 helper (single auth telemetry stream)" do
+      plug_src = File.read!(@plug_path)
+      auth_path = "lib/threadline/operator_surface/auth.ex"
+      auth_src = File.read!(auth_path)
+      telemetry_src = File.read!("lib/threadline/telemetry.ex")
+
+      assert String.contains?(plug_src, "Threadline.Telemetry.emit_operator_surface_authorize")
+      assert String.contains?(auth_src, "Threadline.Telemetry.emit_operator_surface_authorize")
+      assert String.contains?(telemetry_src, "[:threadline, :operator_surface, :authorize]")
     end
 
     test "ExportAuthPlug uses the synthetic %{assigns: conn.assigns} mirror to call :authorize_fn (D-20 — v1.17 contract preserved verbatim)" do

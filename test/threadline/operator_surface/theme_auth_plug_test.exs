@@ -49,7 +49,9 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       assert conn_out.assigns.threadline_scope == %{actor_ref: "user:support"}
 
       assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
-                       %{result: :granted}, %{actor_ref: "user:support"}}
+                       %{result: :granted}, %{scope_keys: [:actor_ref]} = metadata}
+
+      refute Map.has_key?(metadata, :actor_ref)
     end
 
     test "denies when authorize_fn returns false", %{telemetry_ref: telemetry_ref} do

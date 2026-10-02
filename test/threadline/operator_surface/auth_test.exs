@@ -92,8 +92,7 @@ defmodule Threadline.OperatorSurface.AuthTest do
       assert_receive {[:threadline, :operator_surface, :actor_ref_mismatch], ^telemetry_ref,
                       %{count: 1}, metadata}
 
-      assert metadata.session_actor_ref == %{"type" => "user", "id" => "user-1"}
-      assert metadata.scope_actor_ref == %{"type" => "user", "id" => "456"}
+      assert metadata == %{}
     end
   end
 
@@ -114,7 +113,9 @@ defmodule Threadline.OperatorSurface.AuthTest do
       refute returned_socket.assigns.threadline_exports_enabled
 
       assert_receive {[:threadline, :operator_surface, :export_authorize], ^telemetry_ref,
-                      %{result: :error, count: 1}, %{actor_ref: ^actor_ref}}
+                      %{result: :error, count: 1}, metadata}
+
+      assert metadata == %{}
     end
 
     test "Case 1: returns :ok -> connection continues, telemetry :granted emitted", %{

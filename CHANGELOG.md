@@ -33,6 +33,19 @@ would be read as a release.
   `exclude: [:ssn]`. A non-string `mask_placeholder:` now raises
   `ArgumentError` instead of `FunctionClauseError`; no fix is needed beyond
   passing a string.
+- The `[:threadline, :operator_surface, :authorize]`, `[:threadline,
+  :operator_surface, :export_authorize]` and `[:threadline, :operator_surface,
+  :actor_ref_mismatch]` telemetry events no longer carry `actor_ref`,
+  `session_actor_ref` or `scope_actor_ref`, so telemetry never carries actor
+  identity. Fix: remove those keys from your handler's pattern matches and
+  read the actor from your own session or scope instead. `result`, `count`,
+  `path` and `scope_keys` are unchanged; `actor_ref_mismatch` is now a pure
+  incidence counter with no metadata.
+- The `[:threadline, :health, :checked, :error]` telemetry event's metadata is
+  now `%{exception: module}` instead of `%{error: message}`, because
+  exception messages can echo database values. Fix: match `%{exception: mod}`
+  in your handler; `Threadline.Telemetry.emit_health_checked_error/1` now
+  takes the exception struct itself, not a string.
 
 ### Fixed
 
