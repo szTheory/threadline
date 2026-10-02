@@ -1,13 +1,10 @@
 defmodule Threadline.OperatorSurface.CoverageDocContractTest do
   @moduledoc """
-  Phase 66 (COV-03) doc-contract — pure source-reading literal pin.
-
-  Mirrors BROWSE-04 and EXPO-05 patterns. Asserts that all locked literals
-  from CONTEXT.md D-35 / UI-SPEC §"Doc-Contract Test Literals" appear
-  verbatim in their source files. Includes one runtime test that invokes
-  `mix threadline.health.coverage --json` to assert the JSON output schema.
-
-  Drift between CONTEXT.md decisions and actual source fails CI explicitly.
+  KEEP 1/2: live `*.ex` source literals and router/on_mount ordering, the real
+  `mix threadline.health.coverage --json` run plus its schema checks, the
+  hardcoded-baseline guard, the atom-leak and SQL-injection refutes, and the
+  optional-deps file-scope gate checks — all derived from or asserted
+  directly against the live source, never from guide prose alone.
   """
 
   use ExUnit.Case, async: false
@@ -160,64 +157,6 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
       refute String.contains?(src, ~s|<datalist|)
       refute String.contains?(src, ~s|list="coverage-schema-options"|)
     end
-
-    test "operator guide documents selected-schema readiness, schema recovery, refresh, and row actions" do
-      guide = File.read!("guides/operator-surface.md")
-      coverage_section = guide_section(guide, "## Coverage and audit readiness")
-
-      for heading <- [
-            "## Coverage and audit readiness",
-            "### Selected schema readiness",
-            "### Schema selection",
-            "### Refresh and stale data",
-            "### Row actions and remediation",
-            "### Multi-schema adopters"
-          ] do
-        assert String.contains?(guide, heading), "missing operator guide heading #{heading}"
-      end
-
-      assert String.contains?(guide, "Selected schema readiness")
-      assert String.contains?(guide, "Use public schema")
-      assert String.contains?(guide, "last known results")
-      assert String.contains?(guide, "table_schema=NAME&table=TABLE")
-      assert String.contains?(guide, "mix threadline.verify_coverage --schema=NAME")
-
-      assert String.contains?(
-               guide,
-               "Can operators rely on audit history for the selected schema?"
-             )
-
-      refute String.contains?(coverage_section, "dashboard")
-      refute String.contains?(guide, "Which tables are covered right now?")
-    end
-
-    test "operator guide documents storage-schema plus support host-schema happy path" do
-      guide = File.read!("guides/operator-surface.md")
-
-      for literal <- [
-            ~s|storage_schema: "audit"|,
-            "mix threadline.install",
-            "mix threadline.gen.triggers --tables support.tickets",
-            "mix threadline.verify_coverage --schema=support",
-            "mix threadline.policy.show --schema=support",
-            "/audit/timeline?table_schema=support&table=tickets",
-            ~s|"support.tickets" => MyApp.Support.Ticket|,
-            ~s|bare `"tickets"` key is public-schema shorthand|
-          ] do
-        assert String.contains?(guide, literal),
-               "expected operator guide to document #{inspect(literal)}"
-      end
-    end
-
-    test "production checklist uses audit-readiness language instead of dashboard language" do
-      checklist = File.read!("guides/production-checklist.md")
-      coverage_section = guide_section(checklist, "## Coverage drift visibility")
-
-      assert String.contains?(checklist, "selected-schema audit readiness")
-      assert String.contains?(checklist, "one readiness verdict")
-      refute String.contains?(checklist, "Coverage dashboard responds")
-      refute String.contains?(coverage_section, "dashboard")
-    end
   end
 
   describe "Mix-task help text and flags (D-34, D-35 #6, #7)" do
@@ -252,46 +191,6 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
     end
   end
 
-  describe "--strict doc rewording (229-03 D-10): S1 viewer-by-default + S2 uncovered-not-gated" do
-    @s1 "Viewer by default (exits 0); `--strict` turns `:error`-severity findings into exit 1."
-    @s2 "Uncovered tables never fail `--strict`; use `mix threadline.verify_coverage` for the positive-list gate."
-
-    test "S1 appears in the task moduledoc source, domain-reference.md, operator-surface.md and configuration-and-commands.md" do
-      for path <- [
-            @mix_task_path,
-            "guides/domain-reference.md",
-            "guides/operator-surface.md",
-            "guides/configuration-and-commands.md"
-          ] do
-        src = File.read!(path)
-
-        assert String.contains?(src, @s1),
-               "expected S1 (viewer-by-default / --strict exit-1 sentence) in #{path}"
-      end
-    end
-
-    test "S2 appears in the task moduledoc source, domain-reference.md, operator-surface.md and production-checklist.md" do
-      for path <- [
-            @mix_task_path,
-            "guides/domain-reference.md",
-            "guides/operator-surface.md",
-            "guides/production-checklist.md"
-          ] do
-        src = File.read!(path)
-
-        assert String.contains?(src, @s2),
-               "expected S2 (uncovered tables never fail --strict sentence) in #{path}"
-      end
-    end
-
-    test "production-checklist.md carries the --strict CI snippet line" do
-      checklist = File.read!("guides/production-checklist.md")
-
-      assert String.contains?(checklist, "- run: mix threadline.health.coverage --strict"),
-             "expected the --strict CI snippet line in guides/production-checklist.md"
-    end
-  end
-
   describe "--all-schemas docs (229-04 HLTH-02)" do
     test "moduledoc states the --all-schemas usage lines" do
       src = File.read!(@mix_task_path)
@@ -308,15 +207,6 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
 
       assert String.contains?(src, "cannot be used together"),
              "expected the --schema/--all-schemas mutual-exclusion sentence in @moduledoc"
-    end
-
-    test "domain-reference.md and operator-surface.md both document --all-schemas" do
-      for path <- ["guides/domain-reference.md", "guides/operator-surface.md"] do
-        guide = File.read!(path)
-
-        assert String.contains?(guide, "--all-schemas"),
-               "expected #{path} to document --all-schemas"
-      end
     end
   end
 
@@ -478,13 +368,5 @@ defmodule Threadline.OperatorSurface.CoverageDocContractTest do
                "RowHistoryComponent should inherit the surface header via TransactionLive's render — see UI-SPEC §\"Out of scope for this UI contract\""
       end
     end
-  end
-
-  defp guide_section(markdown, heading) do
-    markdown
-    |> String.split(heading, parts: 2)
-    |> List.last()
-    |> String.split("\n## ", parts: 2)
-    |> List.first()
   end
 end
