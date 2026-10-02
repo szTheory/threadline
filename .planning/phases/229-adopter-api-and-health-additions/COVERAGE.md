@@ -1,0 +1,1 @@
+No external API integration: the phase extends Threadline's own public library surface (`Threadline.history/3` `:limit`) and its `mix threadline.health.coverage` task (`--strict`, `--all-schemas`, legacy-key finding) against the adopter's own PostgreSQL; the "API" in the phase name is the library's adopter-facing API, not an external service.

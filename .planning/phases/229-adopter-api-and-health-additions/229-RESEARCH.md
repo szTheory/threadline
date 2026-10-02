@@ -492,7 +492,7 @@ sense but not semver-breaking for any conforming caller).
 both already flagged by CONTEXT itself; this research did not discover new unverified claims
 beyond what CONTEXT already marked.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Where exactly should HLTH-04's sentence land, given the "Failure-mode cell" doesn't exist?**
    - What we know: `guides/configuration-and-commands.md`'s config table header is `Key | Purpose

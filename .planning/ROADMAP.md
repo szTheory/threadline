@@ -251,8 +251,25 @@ Plans:
   4. `--all-schemas` produces a schema-keyed report in table and JSON output and is rejected alongside `--schema=NAME`. A pre-0.11 fixture produces an `:unresolved_legacy_keys` warning with per-table counts and a link to `guides/upgrading-to-0.11.md`, and `--strict` does not fail on it.
   5. The docs state that malformed `:trigger_capture` config raises rather than producing a finding. VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: TBD
+**Plans**: 4 plans
 **Research**: Not needed (`research/FEATURES.md` §B-§D). Plan-phase should confirm first that no existing test pins per-severity exit codes, so the matrix is built as the baseline rather than assumed.
+
+Plans:
+**Wave 1**
+
+- [ ] 229-01-PLAN.md — Before wall clock; `history/3` `:limit` (validation, cap after scope, tie-aware tests, prefix property, docs, CHANGELOG) (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 229-02-PLAN.md — Public `Health.legacy_key_findings/1` and `:unresolved_legacy_keys` (capped, time-limited per-table probe; 0.10.2 fixture + focused tests); `:trigger_capture` fail-fast doc (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 229-03-PLAN.md — `health.coverage --strict` gate + 12-cell matrix baseline, legacy findings wired into the task, unknown switches raise, doc rewording (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 229-04-PLAN.md — `--all-schemas` (batched catalog helpers, shared classifier, envelope JSON, SCHEMA-column table, extension-schema exclusion), after wall clock, `mix ci.all` (wave 4)
 
 ### Phase 230: Rebalance, Net-Suite Check and 0.12.0
 
@@ -279,7 +296,7 @@ Plans:
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
 | 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
-| 229. Adopter API and Health Additions | 0/TBD | Not started | - |
+| 229. Adopter API and Health Additions | 0/4 | Planned | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
 
 ## Prior Milestones
