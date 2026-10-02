@@ -376,3 +376,22 @@ Against SUITE-01's local baseline of **137.0s** (median of three `mix test` runs
 | total | - | 62 | - |
 
 The four partitions are balanced within 49-61s (a ~12s spread across 4 partitions), confirming `test/partition_weights.txt`'s weight removal in plan 01 (2 dead lines for the deleted files) did not introduce a skew.
+
+## Pre-land gate
+
+### Release readiness
+
+Commit `73360d72` dates the 0.12.0 CHANGELOG entry and adds the 0.11.x -> 0.12.x upgrade-path coverage (D-16 step 3).
+
+- `grep -n '^## ' CHANGELOG.md | head -3` shows, in order: `## Unreleased — highlights`, `## [0.12.0] - 2026-10-02`, `## [0.11.2] - 2026-09-29`.
+- The three Breaking changes entries under `## [0.12.0]` each carry a `Fix:` sentence (D-13): the non-list `exclude:`/`mask:`/`except_columns:` entry ("Fix: wrap the column name in a list..."), the operator-surface actor-ref telemetry entry ("Fix: remove those keys from your handler's pattern matches..."), and the health-checked-error metadata entry ("Fix: match `%{exception: mod}`..."). `awk '/^## \[0\.12\.0\]/{f=1;next} /^## /{f=0} f' CHANGELOG.md | grep -c 'Fix:'` reports 3.
+- `guides/upgrade-path.md` gained the `0.11.x → 0.12.x` table row (`### At a glance, per minor`) and the matching bullet (`### Upgrade by Threadline minor`), each restating only the CHANGELOG's three Fix lines, plus an extended opening-narrative sentence naming 0.11.0 and 0.12.0. `grep -c '0.11.x → 0.12.x' guides/upgrade-path.md` reports 2.
+- No `guides/upgrading-to-0.12.md` was created (D-13): `test ! -e guides/upgrading-to-0.12.md` exits 0.
+- `mix test test/threadline/changelog_contract_test.exs test/threadline/version_truth_doc_contract_test.exs test/threadline/upgrade_path_doc_contract_test.exs test/threadline/release_artifact_contract_test.exs test/threadline/guide_graph_contract_test.exs` — 55 tests, 0 failures.
+- `bin/verify-release-shape` — `Release shape OK for version 0.11.2` (current @version; the rehearsal below proves the 0.12.0 shape separately).
+- `mix verify.bump_rehearsal`, run against commit `73360d72` (after the CHANGELOG/upgrade-path commit landed — the rehearsal clones HEAD, so it must run post-commit to see real content), printed both "nothing synthesised" lines verbatim:
+  - `CHANGELOG.md already carries a heading for 0.12.0 — nothing synthesised`
+  - `upgrade-path.md already covers 0.11.x -> 0.12.x — nothing synthesised`
+  The rehearsal's own gates (35 doc-contract test files: 277 tests/0 failures; changelog contract: 9 tests/0 failures; `mix verify.release`: `Release shape OK for version 0.12.0`, 42 tests/0 failures) all passed at the rehearsed 0.12.0 state, and the real working tree was confirmed byte-identical afterward (30 files checksummed, no scratch branch or worktree survived).
+
+**Deviation note:** the plan's task-1 action lists "run verify commands, then commit" in that order; `mix verify.bump_rehearsal` clones `HEAD`, so running it before the content commit exists only sees the prior tree and (correctly) synthesises stand-ins. The content was committed first (`73360d72`, CHANGELOG.md + guides/upgrade-path.md only), then the rehearsal was re-run against that commit to get a real "nothing synthesised" proof — no code or test behavior changed, this is a verification-ordering fix (Rule 3).
