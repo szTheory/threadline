@@ -52,7 +52,7 @@
 - [x] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async operator-surface auth telemetry tests (completed 2026-10-01)
 - [x] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties (completed 2026-10-01)
 - [x] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds (completed 2026-10-01)
-- [ ] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data
+- [x] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data (completed 2026-10-02)
 - [ ] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning
 - [ ] **Phase 230: Rebalance, Net-Suite Check and 0.12.0** - Prose-only guard tests merged or cut, the net suite time proven not to regress, and 0.12.0 released
 
@@ -213,7 +213,7 @@ Plans:
   4. The `Threadline.Telemetry` moduledoc event table and the new `guides/telemetry.md` list every event. The guide includes the host-repo `[:my_app, :repo, :query]` recipe. A test derives the documented list from the emitted events rather than from a hand-typed literal.
   5. No query or Mix-task event is added. VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: 6 plans
+**Plans**: 6/6 plans complete
 **Research**: Not needed. Event shapes and mitigations are in `research/FEATURES.md` §A and PITFALLS Pitfalls 5-10: emit after commit, execute events on both branches, and a span only around retention purge.
 
 Plans:
@@ -278,7 +278,7 @@ Plans:
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
-| 228. Telemetry | 6/6 | In Progress | - |
+| 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
 
