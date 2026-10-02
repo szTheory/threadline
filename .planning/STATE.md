@@ -5,16 +5,16 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 230
 current_phase_name: Rebalance, Net-Suite Check and 0.12.0
 status: executing
-stopped_at: Completed 230-02-PLAN.md
-last_updated: "2026-10-02T21:02:11.294Z"
+stopped_at: Completed 230-03-PLAN.md
+last_updated: "2026-10-02T21:24:17.451Z"
 last_activity: 2026-10-02
-last_activity_desc: Phase 230 execution started
-state_head: c27e679b9cebb7ae077d4e8dfa8fe518e663ab3f
+last_activity_desc: Phase 230 plan 03 complete (pre-land gate green); plan 04 (release) remains
+state_head: 243679a8b1550eafa8be0082dd7b5d9b7a34cc29
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 33
-  completed_plans: 31
+  completed_plans: 32
   percent: 86
 ---
 
@@ -30,9 +30,9 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 ## Current Position
 
 Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
-Last activity: 2026-10-02 — Phase 230 execution started
+Last activity: 2026-10-02 — Phase 230 plan 03 complete (pre-land gate green: mix ci.all 318/0/26, hygiene + self-test, SC5 sweep, dated 0.12.0 CHANGELOG + upgrade-path proven by mix verify.bump_rehearsal); plan 04 (release) remains
 
 Progress: [███████░░░] 6 of 7 v1.44 phases complete ([█████████░] 86%). Phase 229 verified passed 5/5 (2026-10-02): Threadline.history/3 takes a validated :limit (QRY-01/02, new Query.HistoryLimit); public Threadline.Health.legacy_key_findings/1 emits :unresolved_legacy_keys warnings (capped, statement_timeout-bounded per-table probe; HLTH-03); mix threadline.health.coverage gains --strict (exit 1 on in-scope :error findings, 12-cell matrix baseline; HLTH-01), --all-schemas (schema-keyed table + JSON envelope, extension schemas excluded via pg_depend; HLTH-02), unknown switches now raise; malformed :trigger_capture fail-fast documented (HLTH-04); local suite 2767/0, mix ci.all green, wall clock before/after in evidence/SC5-wallclock.md; review 0 critical/1 warning/1 info (WR-01 stray positional args ignored, IN-01 duplicated schema regex; advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 230 (plan 04 stops at a maintainer grant for push, PR, squash-merge, release-please PR merge, production-hex approval and the distribution-sync PR). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
@@ -262,6 +262,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 229 P04 | ~1h45m | 6 tasks | 12 files |
 | Phase 230 P01 | ~1h40m | 3 tasks | 9 files |
 | Phase 230 P02 | ~1h | 2 tasks | 1 files |
+| Phase 230 P03 | ~55min | 3 tasks | 9 files |
 
 ## Deferred Items
 
@@ -979,6 +980,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 230]: Route-literal cut left no deferred gap — git grep confirmed non-prose integration tests already exercise the operator routes
 - [Phase 230]: D-06 gate formula fixed before measurement; proven on real runs (SUITE-01 846s, 228's 37018812221 partition extraction)
 - [Phase 230]: D-09 milestone suite-time table assembled for phases 224-230; 224/229 marked local-only, 230/verdict pending plan 04's fresh pre-landing run
+- [Phase 230]: Plan 230-03: ran mix verify.bump_rehearsal after committing the CHANGELOG/upgrade-path content (not before, as literally ordered) because the rehearsal clones HEAD and cannot see uncommitted work.
+- [Phase 230]: Plan 230-03: treated the pre-land privacy-grep whoami/home-path false positives (pre-existing, out-of-scope files) as reviewed non-issues rather than a STOP, since bin/verify-repo-hygiene (the authoritative guard) reports the full tracked tree clean.
 
 ### Blockers
 
@@ -994,8 +997,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-02T21:02:11.170Z
-**Stopped at:** Completed 230-02-PLAN.md
+**Last session:** 2026-10-02T21:24:17.352Z
+**Stopped at:** Completed 230-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

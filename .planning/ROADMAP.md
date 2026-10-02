@@ -298,7 +298,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 230-03-PLAN.md — Pre-land gate: dated 0.12.0 CHANGELOG entry and 0.11.x → 0.12.x upgrade path, planning-ID sweep of lib/guides/CHANGELOG, `mix ci.all`, repo hygiene and privacy grep (REL-01, SC5)
+- [x] 230-03-PLAN.md — Pre-land gate: dated 0.12.0 CHANGELOG entry and 0.11.x → 0.12.x upgrade path, planning-ID sweep of lib/guides/CHANGELOG, `mix ci.all`, repo hygiene and privacy grep (REL-01, SC5)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -315,7 +315,7 @@ Plans:
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
 | 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
 | 229. Adopter API and Health Additions | 4/4 | Complete    | 2026-10-02 |
-| 230. Rebalance, Net-Suite Check and 0.12.0 | 2/4 | In Progress | - |
+| 230. Rebalance, Net-Suite Check and 0.12.0 | 3/4 | In Progress | - |
 
 ## Prior Milestones
 
