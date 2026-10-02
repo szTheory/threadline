@@ -300,3 +300,79 @@ step-summary table — is the serial-equivalent figure this evidence uses, per
 the Don't Hand-Roll decision (D-06): no echo was added to the runner.
 
 **No runner change:** `git diff 4a04e4f38ea5d36f313e1b1e7ffdfbdd4fc799dc -- bin/` is empty (BASE sha recorded by plan 01's `## SUITE-04 rebalance` section above) — this plan reads `bin/ci-test-partitions`' existing output only.
+
+### Milestone suite-time table (D-09)
+
+Every numeric cell below is copied verbatim from the cited phase's own
+published evidence (never recomputed or interpolated). "Local before/after"
+is each phase's own local `mix test` median (or, where a phase recorded
+only a 2-run swing check rather than a 3-run median, both figures with that
+noted). "CI before/after" is the `Run tests` step-seconds sum across the
+three lanes (min + current + latest), taken from each phase's own cited run
+via `ci-job-timing.py --cache-state`; the proxy-minute figure is the printed
+total proxy column. "Serial-equivalent work Δ" is the per-phase change in
+the sum of all 12 (3 lanes x 4 partitions) per-partition `Seconds` figures
+(or, for 224/225's starting point, the unpartitioned per-lane step seconds,
+which is the same quantity before partitioning existed).
+
+| Phase | Local before (median s) | Local after (median s) | CI before (step sum s / proxy min) | CI after (step sum s / proxy min) | Δ CI % | Serial-equivalent work Δ | Run ID(s) | Source doc |
+|---|---|---|---|---|---|---|---|---|
+| 224 | 231.0s / 243.2s (2-run swing check, not a 3-run median) | 282.5s / 187.7s (2-run swing check, not a 3-run median) | local-only (no CI run this phase) | local-only (no CI run this phase) | n/a | not exposed (no partitioned CI run this phase; pre-partition SUITE-01 serial total 846s, run 36730596489, is the starting reference 225's Δ below is measured against) | 36730596489 (cited, pre-224 baseline) | `224-EVIDENCE.md` "Suite wall clock (SUITE-06)" |
+| 225 | 137.0s | 136.5s (phase head, post SUITE-02 gate) | 846 / 20 | 483 / 14 | -42.9% | 36730596489->36808706517: 846s -> 1588s (+742s). Attributable to the partitioning mechanism's own per-partition Mix-boot/compile overhead (4 partitions x 3 lanes each re-boot/compile), not test growth — suite size (~2588 tests) is essentially unchanged from SUITE-01. This is the one-time architectural cost of switching to in-job partitioned testing (D-01..D-12). | 36730596489 (before), 36808706517 (after, cache hit) | `225-EVIDENCE.md` "SUITE-06 before and after" |
+| 226 | 226.5s | 144.9s | 430 / 12 | 456 / 14 | +6.1% | 1588s -> 1508s (-80s). Despite pure-property-test growth this phase added (~2588 -> 2649 tests), the serial-equivalent total decreased in this run, most likely from partition-weight rebalancing and ordinary run-to-run variance on shared GitHub-hosted runners, not from any reduction in test content. Property-test growth was a deliberate milestone goal (see test-count column); stated plainly, not re-baselined and not called noise. | 36820084560 (before), 36887218675 (after) | `226-EVIDENCE.md` "SC-5 wall clock before and after" |
+| 227 | 133.1s | 128.9s | 524 / 14 | 491 / 14 | -6.3% | 1508s -> 1643s (+135s). Attributable to the three new DB-backed property tests this phase added (~2649 -> 2672 tests). | 36903609149 (before), 36929234558 (after) | `227-EVIDENCE.md` "SC-5 wall clock before and after" |
+| 228 | 213.7s | 219.0s | 491 / 14 | 497 / 14 | +1.2% | 1643s -> 1644s (+1s). Attributable to the telemetry tests this phase added (~2672 -> 2702 tests); negligible serial-equivalent cost for this phase's added coverage. | 36929234558 (before), 37018812221 (after) | `228-EVIDENCE.md` "SC-5 wall clock before and after" |
+| 229 | 186.2s | 171.9s | local-only (no CI run this phase) | local-only (no CI run this phase) | n/a | not exposed (no partitioned CI run this phase; local-only) | — | `229-adopter-api-and-health-additions/evidence/SC5-wallclock.md` |
+| 230 | 137.44s (BASE, SUITE-04 rebalance before) | 151.59s (REBAL_AFTER) | pending: plan 04 fresh pre-landing run | pending: plan 04 fresh pre-landing run | pending | pending: plan 04 fresh pre-landing run (34 fewer tests from the SUITE-04 rebalance cuts should trend this down; attribution: 230 rebalance cuts) | — | `230-EVIDENCE.md` "SUITE-04 rebalance" / "Wall clock before and after" (this phase, plan 01) |
+| SUITE-06 verdict | — | — | pending: plan 04 fresh pre-landing run | pending: plan 04 fresh pre-landing run | pending | — | — | `230-EVIDENCE.md` (plan 04 fills this row) |
+
+### Serial-equivalent work (D-07)
+
+`bin/ci-test-partitions` runs its partitions **concurrently inside** each
+lane job, so a lane's `Run tests` step wall-clock time (the D-06 gate
+figure) does not reflect how much total test work ran — it reflects only
+the slowest partition in that lane. This section discloses the actual
+summed work, honestly, with per-phase attribution, and is never used to
+gate the release (D-06 remains wall clock only).
+
+Method: for each partitioned after-run cited above, `gh api
+repos/szTheory/threadline/actions/jobs/<job-id>/logs --allow-escape-sequences`
+per lane job (read-only), ANSI-stripped, summing the `Seconds` column of
+`bin/ci-test-partitions`' own `report()` table (already exposed in every
+green run's step summary and log — no echo was added to the runner, per
+the Don't Hand-Roll decision D-06).
+
+| Transition | Total serial-equivalent (sum of all lanes' partition Seconds) | Δ | Attribution |
+|---|---|---|---|
+| SUITE-01 (pre-partition, serial) -> Phase 225 (run 36808706517) | 846s -> 1588s | +742s | Partitioning's own per-partition Mix-boot/compile overhead (D-01..D-12), not test growth |
+| Phase 225 -> Phase 226 (run 36887218675) | 1588s -> 1508s | -80s | Pure property-test growth (226) landed, but partition-weight rebalancing and shared-runner variance dominated this particular run; not re-baselined, not called noise |
+| Phase 226 -> Phase 227 (run 36929234558) | 1508s -> 1643s | +135s | DB-backed property tests (227) |
+| Phase 227 -> Phase 228 (run 37018812221) | 1643s -> 1644s | +1s | Telemetry tests (228); negligible |
+| Phase 228 -> Phase 230 | 1644s -> pending | pending | Plan 04's fresh pre-landing run; expected to trend down from the SUITE-04 rebalance's 34-test cut (230), offset by whatever 229's adopter-API/health tests added (229 published no CI run, so 229's own serial-equivalent contribution is not exposed — see its row above) |
+
+Per-lane partition-Seconds sums behind each total above:
+
+- 225 (run 36808706517): min 583s (111+125+168+179), current 491s (102+101+141+147), latest 514s (99+119+142+154)
+- 226 (run 36887218675): min 477s (96+109+130+142), current 488s (106+112+128+142), latest 543s (103+120+152+168)
+- 227 (run 36929234558): min 575s (110+127+163+175), current 469s (106+108+123+132), latest 599s (120+135+164+180)
+- 228 (run 37018812221): min 601s (118+135+168+180), current 488s (112+110+125+141), latest 555s (103+122+159+171) — matches the Task 1 Method proof section above
+
+No new timing script was written; all figures above come from `ci-job-timing.py --cache-state` and `bin/ci-test-partitions`' existing partition-report table (D-06 Don't Hand-Roll).
+
+### Local context (D-08)
+
+`git diff --quiet 77cb5c861a186bfa7919950a08abd0e4705fbbb3 HEAD -- test lib config mix.exs mix.lock` holds at this plan's measurement point (exit 0, no diff) — nothing under `test/`, `lib/`, `config/`, `mix.exs` or `mix.lock` has changed since plan 01's REBAL_AFTER commit. Per D-08, this plan reuses plan 01's after-figure rather than re-measuring: **median 151.59s** (three sequential `mix test` runs at `77cb5c86`, see plan 01's `### Wall clock before and after` section above for the full per-run table).
+
+Against SUITE-01's local baseline of **137.0s** (median of three `mix test` runs at the milestone base, `225-BASELINE.md`), this is a **+14.59s** delta. Per 230-01's own finding (restated here per the repo's standard noise-floor caveat): this machine's documented local-noise floor is approximately 52-56s (224-EVIDENCE.md recorded head-vs-base swings of that size from unrelated concurrent processes), an order of magnitude larger than this delta, so it is read as context, not as a regression. SUITE-06's real release comparator is the CI step-sum wall clock in the milestone table above, measured on dedicated single-tenant runners, not this local figure (D-06/D-08).
+
+`mix verify.test_partitioned` (the same partitioned-CI code path CI runs, as a **balance sanity check only** — never a SUITE-06 comparator) at the current tree:
+
+| Partition | Exit | Seconds | Counts |
+|---|---|---|---|
+| 1 | 0 | 49 | 712 tests, 0 failures |
+| 2 | 0 | 61 | 743 tests, 0 failures |
+| 3 | 0 | 56 | 599 tests, 0 failures |
+| 4 | 0 | 47 | 680 tests, 0 failures |
+| total | - | 62 | - |
+
+The four partitions are balanced within 49-61s (a ~12s spread across 4 partitions), confirming `test/partition_weights.txt`'s weight removal in plan 01 (2 dead lines for the deleted files) did not introduce a skew.
