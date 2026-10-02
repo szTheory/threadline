@@ -51,6 +51,17 @@ defmodule Threadline.RetentionTest do
     Repo.aggregate(AuditTransaction, :count, :id, repo_opts(storage_schema))
   end
 
+  defp drain_batch_purged_events(ref) do
+    batch_event = @batch_purged_event
+
+    receive do
+      {^batch_event, ^ref, measurements, _metadata} ->
+        [measurements | drain_batch_purged_events(ref)]
+    after
+      0 -> []
+    end
+  end
+
   setup do
     prev = Application.get_env(:threadline, :retention)
 
@@ -139,6 +150,78 @@ defmodule Threadline.RetentionTest do
     again = Retention.purge(repo: Repo, batch_size: 2, max_batches: 10)
     assert again.deleted_changes == 0
     assert again.deleted_transactions == 0
+  end
+
+  test "purge/1 emits one batch_purged per purge_loop step, counts matching the returned totals (D-10)" do
+    cutoff = DateTime.utc_now(:microsecond)
+    past = DateTime.add(cutoff, -10, :day)
+
+    for _i <- 1..6 do
+      tx = insert_transaction("threadline", occurred_at: cutoff)
+      insert_change("threadline", tx, captured_at: past)
+    end
+
+    ref = attach_telemetry!([@batch_purged_event])
+
+    summary = Retention.purge(repo: Repo, batch_size: 2, max_batches: 20, sleep_ms: 0)
+
+    batch_events = drain_batch_purged_events(ref)
+
+    assert length(batch_events) == summary.batches_run
+
+    assert Enum.sum(Enum.map(batch_events, & &1.deleted_changes)) == summary.deleted_changes
+
+    assert Enum.sum(Enum.map(batch_events, & &1.deleted_transactions)) ==
+             summary.deleted_transactions
+
+    [last | _] = Enum.reverse(batch_events)
+    assert last.deleted_changes == 0
+    assert last.deleted_transactions == 0
+
+    for event <- batch_events do
+      assert is_integer(event.duration)
+      assert event.duration >= 0
+    end
+  end
+
+  test "dry run emits zero batch_purged events" do
+    cutoff = DateTime.utc_now(:microsecond)
+    past = DateTime.add(cutoff, -10, :day)
+
+    tx = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", tx, captured_at: past)
+
+    batch_event = @batch_purged_event
+    ref = attach_telemetry!([batch_event])
+
+    result = Retention.purge(repo: Repo, dry_run: true)
+    assert result.batches_run == 0
+
+    refute_received {^batch_event, ^ref, _measurements, _metadata}
+  end
+
+  test "purge against a missing storage schema emits :start then :exception, no :stop or batch_purged, and re-raises (D-11)" do
+    missing = "threadline_missing_#{System.unique_integer([:positive])}"
+    batch_event = @batch_purged_event
+
+    ref = attach_telemetry!(@purge_span_events ++ [batch_event])
+
+    assert_raise Postgrex.Error, fn ->
+      Retention.purge(repo: Repo, storage_schema: missing)
+    end
+
+    assert_receive {[:threadline, :retention, :purge, :start], ^ref, _start_measurements,
+                    %{dry_run: false}}
+
+    assert_receive {[:threadline, :retention, :purge, :exception], ^ref, exception_measurements,
+                    %{dry_run: false, kind: :error} = exception_metadata}
+
+    assert is_integer(exception_measurements.duration)
+    assert Map.has_key?(exception_metadata, :reason)
+    assert Map.has_key?(exception_metadata, :stacktrace)
+
+    refute_received {[:threadline, :retention, :purge, :stop], ^ref, _, _}
+    refute_received {^batch_event, ^ref, _, _}
   end
 
   test "purge/1 records a completed retention run" do

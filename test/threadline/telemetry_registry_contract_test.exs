@@ -22,9 +22,11 @@ defmodule Threadline.TelemetryRegistryContractTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Export
+  alias Threadline.Governance.RetentionRun
   alias Threadline.OperatorSurface.Auth
   alias Threadline.OperatorSurface.Coverage.OnMount, as: CoverageOnMount
   alias Threadline.OperatorSurface.ThemeAuthPlug
+  alias Threadline.Retention
   alias Threadline.Semantics.ActorRef
 
   @repo Threadline.Test.Repo
@@ -47,6 +49,7 @@ defmodule Threadline.TelemetryRegistryContractTest do
     drive_operator_surface_actor_ref_mismatch!()
     drive_export_completed!()
     drive_export_failed!()
+    drive_retention_purge!()
   end
 
   defp drive_action_recorded_and_transaction_committed! do
@@ -132,6 +135,34 @@ defmodule Threadline.TelemetryRegistryContractTest do
     end
   end
 
+  defp drive_retention_purge! do
+    prev = Application.get_env(:threadline, :retention)
+
+    ExUnit.Callbacks.on_exit(fn ->
+      Application.put_env(:threadline, :retention, prev)
+    end)
+
+    Application.put_env(:threadline, :retention,
+      enabled: true,
+      keep_days: 1,
+      delete_empty_transactions: false
+    )
+
+    cutoff = ~U[2000-01-01 00:00:00.000000Z]
+
+    # start, one empty batch_purged, stop
+    Retention.purge(repo: @repo, cutoff: cutoff)
+
+    missing = "threadline_missing_registry_#{System.unique_integer([:positive])}"
+
+    # start, exception
+    assert_raise Postgrex.Error, fn ->
+      Retention.purge(repo: @repo, storage_schema: missing, cutoff: cutoff)
+    end
+
+    @repo.delete_all(RetentionRun, repo_opts())
+  end
+
   test "every registry event fires with exactly its registered keys" do
     entries = Threadline.Telemetry.__events__()
     assert entries != [], "the registry is empty — Threadline.Telemetry.__events__/0 is broken"
@@ -151,8 +182,60 @@ defmodule Threadline.TelemetryRegistryContractTest do
       assert MapSet.new(Map.keys(metadata)) == MapSet.new(entry.metadata),
              "#{inspect(entry.name)} metadata keys #{inspect(Map.keys(metadata))} " <>
                "do not match registry #{inspect(entry.metadata)}"
+
+      assert_measurement_value_types!(entry, measurements)
+      assert_metadata_value_types!(entry, metadata)
     end
   end
+
+  # Every measurement value must be an integer or an atom — never a binary,
+  # map, or struct (a free-text or identity-carrying leak).
+  defp assert_measurement_value_types!(entry, measurements) do
+    for {key, value} <- measurements do
+      assert is_integer(value) or is_atom(value),
+             "#{inspect(entry.name)} measurement #{inspect(key)} => #{inspect(value)} " <>
+               "is neither an integer nor an atom"
+    end
+  end
+
+  # Every metadata value outside an entry's `exempt_metadata` (span-internal
+  # kind/reason/stacktrace) and the automatic `telemetry_span_context` must be
+  # an atom, boolean, integer, nil, reference, or a list of atoms — the single
+  # allowed exception is `:path` on `[:threadline, :operator_surface,
+  # :authorize]`, which is a request path string. Anything else is a free-text
+  # or identity leak this contract exists to catch.
+  defp assert_metadata_value_types!(entry, metadata) do
+    exempt = Map.get(entry, :exempt_metadata, [])
+
+    for {key, value} <- metadata do
+      cond do
+        key in exempt ->
+          :ok
+
+        key == :telemetry_span_context ->
+          :ok
+
+        entry.name == [:threadline, :operator_surface, :authorize] and key == :path ->
+          assert is_binary(value)
+
+        true ->
+          assert allowed_metadata_value?(value),
+                 "#{inspect(entry.name)} metadata #{inspect(key)} => #{inspect(value)} " <>
+                   "is not an allowed value type (atom, boolean, integer, nil, reference, " <>
+                   "or list of atoms)"
+      end
+    end
+  end
+
+  defp allowed_metadata_value?(value) when is_atom(value), do: true
+  defp allowed_metadata_value?(value) when is_integer(value), do: true
+  defp allowed_metadata_value?(value) when is_reference(value), do: true
+  defp allowed_metadata_value?(nil), do: true
+
+  defp allowed_metadata_value?(value) when is_list(value),
+    do: Enum.all?(value, &is_atom/1)
+
+  defp allowed_metadata_value?(_value), do: false
 
   describe "static scan" do
     @lib_glob "lib/**/*.ex"

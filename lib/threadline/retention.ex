@@ -70,20 +70,24 @@ defmodule Threadline.Retention do
       span_dry_run? = dry_run? not in [false, nil]
 
       Threadline.Telemetry.purge_span(span_dry_run?, fn ->
-        if dry_run? do
-          dry_run_result(repo, cutoff, policy, storage_opts)
-        else
-          run_with_tracking(
-            repo,
-            cutoff,
-            batch_size,
-            max_batches,
-            policy.delete_empty_transactions,
-            sleep_ms,
-            storage_opts
-          )
-        end
+        run_purge(dry_run?, repo, cutoff, batch_size, max_batches, policy, sleep_ms, storage_opts)
       end)
+    end
+  end
+
+  defp run_purge(dry_run?, repo, cutoff, batch_size, max_batches, policy, sleep_ms, storage_opts) do
+    if dry_run? do
+      dry_run_result(repo, cutoff, policy, storage_opts)
+    else
+      run_with_tracking(
+        repo,
+        cutoff,
+        batch_size,
+        max_batches,
+        policy.delete_empty_transactions,
+        sleep_ms,
+        storage_opts
+      )
     end
   end
 
@@ -177,6 +181,7 @@ defmodule Threadline.Retention do
   defp purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms, storage_opts) do
     {total_changes, total_txns, batches} =
       Enum.reduce_while(1..max_batches, {0, 0, 0}, fn idx, {tc, tt, _} ->
+        step_started_at = System.monotonic_time()
         n1 = delete_change_batch(repo, cutoff, batch_size, storage_opts)
 
         n2 =
@@ -185,6 +190,8 @@ defmodule Threadline.Retention do
           else
             0
           end
+
+        Threadline.Telemetry.emit_batch_purged(n1, n2, step_started_at)
 
         tc = tc + n1
         tt = tt + n2
