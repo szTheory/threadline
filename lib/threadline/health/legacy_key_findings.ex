@@ -104,12 +104,14 @@ defmodule Threadline.Health.LegacyKeyFindings do
     end
   end
 
-  # D-19's probe: per table, never a global GROUP BY. Capped at cap+1 so the
-  # result tells us whether the true count exceeds cap without scanning past
-  # it. Only INSERT/UPDATE rows whose table_pk is still unresolved and whose
-  # key columns are all present and non-null in data_after are counted — a
-  # DELETE row (no data_after) or a row with a redacted/missing key column
-  # never matches the `data_after ?& $3::text[]` + NOT EXISTS NULL guard.
+  # One capped-count probe per table, never a global GROUP BY over the whole
+  # audit_changes table (a seq scan plus detoasting data_after at scale).
+  # Capped at cap+1 so the result tells us whether the true count exceeds the
+  # cap without scanning past it. Only INSERT/UPDATE rows whose table_pk is
+  # still unresolved and whose key columns are all present and non-null in
+  # data_after are counted — a DELETE row (no data_after) or a row with a
+  # redacted/missing key column never matches the `data_after ?& $3::text[]`
+  # + NOT EXISTS NULL guard.
   defp probe(repo, %{schema: schema, table: table, args: args}, cap, opts) do
     qualified = StorageSchema.table("audit_changes", opts)
 

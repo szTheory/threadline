@@ -1,9 +1,12 @@
 defmodule Threadline.Health.Finding do
   @moduledoc """
-  One structured result from `Threadline.Health.trigger_findings/1`.
+  One structured result from `Threadline.Health.trigger_findings/1` or
+  `Threadline.Health.legacy_key_findings/1`.
 
   A finding names the host table it is about, the exact PostgreSQL fix, and a
   severity so callers can decide what blocks a CI gate and what only warns.
+  The code list may grow in any minor release; match on `code` with a
+  catch-all clause.
 
   ## Codes
 
@@ -24,6 +27,13 @@ defmodule Threadline.Health.Finding do
   - `:capture_trigger_disabled` (error) — a Threadline capture trigger is
     disabled, or fires only for replica sessions, so ordinary application
     writes to the table are not being captured at all.
+  - `:unresolved_legacy_keys` (warning) — audit rows were captured before the
+    table's trigger was regenerated to record its key columns, so their
+    `table_pk` is still unresolved. `history/3` cannot find them by their real
+    key. The fix runs the backfill in the upgrade guide's Step 6.
+
+  Malformed `:trigger_capture` configuration raises `ArgumentError`; it is
+  never reported as a finding.
 
   ## Fields
 

@@ -69,6 +69,10 @@ would be read as a release.
   per event family, a metrics-library example, handler-safety and
   cardinality guidance, and a recipe for observing Threadline's own database
   queries through your host repo's own `[:my_app, :repo, :query]` event.
+- `Threadline.Health.legacy_key_findings/1` reports a new
+  `:unresolved_legacy_keys` warning per table for audit rows captured before
+  0.11 that `history/3` cannot find by key, with a link to the upgrade
+  guide's backfill step; it is time-limited and capped.
 
 ### Fixed
 

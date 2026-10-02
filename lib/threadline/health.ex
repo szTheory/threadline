@@ -22,7 +22,7 @@ defmodule Threadline.Health do
 
   `trigger_findings/1` emits `[:threadline, :health, :findings_checked]` with
   measurements `%{errors: integer, warnings: integer}`, counted over the
-  findings list it returns.
+  findings list it returns. `legacy_key_findings/1` emits no telemetry event.
   """
 
   alias Ecto.Adapters.SQL
@@ -65,12 +65,37 @@ defmodule Threadline.Health do
   def trigger_findings(opts), do: TriggerFindings.run(opts)
 
   @doc """
-  Returns a list of `Threadline.Health.Finding` structs for audit rows
-  captured before their table's trigger was regenerated and still carrying
-  an unresolved primary key. See `:unresolved_legacy_keys` in
-  `Threadline.Health.Finding`.
+  Returns a list of `Threadline.Health.Finding` structs (`:unresolved_legacy_keys`)
+  for audit rows captured before their table's trigger was regenerated and
+  still carrying an unresolved primary key — rows `history/3` cannot find by
+  key. Unlike `trigger_findings/1`, which is catalog-only, this scans
+  `audit_changes` per table.
 
-  Accepts the same `:repo`/`:schema` options as `trigger_findings/1`.
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module.
+  - `:schema` — same as `trigger_findings/1`: a schema name string, or a list
+    of schema name strings. Omitting it covers every non-system schema.
+  - `:statement_timeout` — milliseconds, default `15_000`. Applied with a
+    transaction-local setting, so it is safe through PgBouncer transaction
+    pooling. When the timeout elapses — typically a missing row-history index —
+    this function raises `Postgrex.Error` with postgres code `:query_canceled`;
+    see [Step 4](upgrading-to-0.11.md#step-4-add-the-row-history-index).
+
+  Each table's probe is capped at 10,000 rows; a capped finding's
+  `details["unresolved_count"]` is `10000` and its message reads "at least
+  10000". DELETE rows, rows whose key columns were redacted or are otherwise
+  absent from `data_after`, and dropped tables are never counted — see
+  [What cannot be recovered](upgrading-to-0.11.md#what-cannot-be-recovered).
+  A finding's `details` map has string keys `"unresolved_count"` (integer),
+  `"capped"` (boolean), and `"key_columns"` (list of strings).
+
+  Emits no telemetry event.
+
+  ## Example
+
+      Threadline.Health.legacy_key_findings(repo: MyApp.Repo)
+      #=> [%Threadline.Health.Finding{code: :unresolved_legacy_keys, ...}]
   """
   @spec legacy_key_findings(keyword()) :: [Threadline.Health.Finding.t()]
   def legacy_key_findings(opts), do: LegacyKeyFindings.run(opts)
