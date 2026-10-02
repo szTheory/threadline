@@ -19,7 +19,10 @@ defmodule Threadline.Health.LegacyKeyFindings do
   def run(opts) do
     repo = Keyword.fetch!(opts, :repo)
     requested_schemas = normalize_schema(opts)
-    statement_timeout_ms = positive_integer_opt!(opts, :statement_timeout, @default_statement_timeout_ms)
+
+    statement_timeout_ms =
+      positive_integer_opt!(opts, :statement_timeout, @default_statement_timeout_ms)
+
     count_cap = positive_integer_opt!(opts, :count_cap, @default_count_cap)
 
     probes =
