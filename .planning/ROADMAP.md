@@ -227,7 +227,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 228-03-PLAN.md — Retention purge span, per-batch `batch_purged`, forced exception path; all fourteen events registered (wave 3)
+- [x] 228-03-PLAN.md — Retention purge span, per-batch `batch_purged`, forced exception path; all fourteen events registered (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -278,7 +278,7 @@ Plans:
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
 | 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
-| 228. Telemetry | 2/6 | In Progress | - |
+| 228. Telemetry | 3/6 | In Progress | - |
 | 229. Adopter API and Health Additions | 0/TBD | Not started | - |
 | 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
 
