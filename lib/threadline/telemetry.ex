@@ -2,7 +2,7 @@ defmodule Threadline.Telemetry do
   @moduledoc """
   Telemetry integration helpers for Threadline.
 
-  Threadline emits five telemetry events:
+  Threadline emits (among others):
 
   - `[:threadline, :transaction, :committed]` — after an `AuditTransaction` is
     committed. Automatically emitted (with `table_count: 0`) when
@@ -111,6 +111,38 @@ defmodule Threadline.Telemetry do
       metadata: [:format, :error_kind, :exception],
       when:
         "an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) fails"
+    },
+    %{
+      name: [:threadline, :retention, :purge, :start],
+      measurements: [:monotonic_time, :system_time],
+      metadata: [:dry_run, :telemetry_span_context],
+      when: "after purge/1's input checks pass, when the purge work begins"
+    },
+    %{
+      name: [:threadline, :retention, :purge, :stop],
+      measurements: [
+        :batches_run,
+        :deleted_changes,
+        :deleted_transactions,
+        :duration,
+        :monotonic_time
+      ],
+      metadata: [:dry_run, :telemetry_span_context],
+      when: "when the run or preview returns"
+    },
+    %{
+      name: [:threadline, :retention, :purge, :exception],
+      measurements: [:duration, :monotonic_time],
+      metadata: [:dry_run, :kind, :reason, :stacktrace, :telemetry_span_context],
+      exempt_metadata: [:kind, :reason, :stacktrace],
+      when: "when the database raises mid-run"
+    },
+    %{
+      name: [:threadline, :retention, :batch_purged],
+      measurements: [:deleted_changes, :deleted_transactions, :duration],
+      metadata: [],
+      when:
+        "after a purge_loop step's change delete_all and full orphan drain both return, once per step including the terminating empty one"
     }
   ]
 
@@ -289,6 +321,54 @@ defmodule Threadline.Telemetry do
       [:threadline, :export, :failed],
       %{duration: duration, row_count: row_count},
       %{format: format, error_kind: error_kind, exception: exception_module}
+    )
+  end
+
+  # Wraps a retention purge run (or dry-run preview) in a
+  # `[:threadline, :retention, :purge]` span.
+  #
+  # Call this only after `Threadline.Retention.purge/1`'s input checks have
+  # passed (`:repo` fetch, policy resolution, the disabled check, and cutoff
+  # resolution) — a disabled or misconfigured call must emit nothing. `fun`
+  # returns the purge result map (either `dry_run_result/4`'s preview or
+  # `run_with_tracking/7`'s real result); start and stop metadata are both
+  # `%{dry_run: dry_run?}` (`:telemetry` does not merge start metadata into
+  # stop, so it is passed again), and the deleted-row counts are lifted into
+  # stop measurements next to the automatic `duration`/`monotonic_time`. On a
+  # raise mid-run, `:telemetry.span/3` emits `[:threadline, :retention, :purge,
+  # :exception]` with `kind`/`reason`/`stacktrace` metadata and re-raises; the
+  # return contract of `fun` is otherwise unchanged.
+  @doc false
+  def purge_span(dry_run?, fun) when is_boolean(dry_run?) and is_function(fun, 0) do
+    :telemetry.span([:threadline, :retention, :purge], %{dry_run: dry_run?}, fn ->
+      result = fun.()
+
+      {result, Map.take(result, [:deleted_changes, :deleted_transactions, :batches_run]),
+       %{dry_run: dry_run?}}
+    end)
+  end
+
+  # Emits the `[:threadline, :retention, :batch_purged]` event for one
+  # `purge_loop/7` step, after that step's change `delete_all` and full orphan
+  # drain have both returned. `started_at` is a `System.monotonic_time/0`
+  # value captured at the top of the step; this helper computes `duration`
+  # from it. Fires for every step, including the terminating empty one, so
+  # the event count equals the run's `batches_run`.
+  @doc false
+  def emit_batch_purged(deleted_changes, deleted_transactions, started_at)
+      when is_integer(deleted_changes) and deleted_changes >= 0 and
+             is_integer(deleted_transactions) and deleted_transactions >= 0 and
+             is_integer(started_at) do
+    duration = System.monotonic_time() - started_at
+
+    :telemetry.execute(
+      [:threadline, :retention, :batch_purged],
+      %{
+        deleted_changes: deleted_changes,
+        deleted_transactions: deleted_transactions,
+        duration: duration
+      },
+      %{}
     )
   end
 end

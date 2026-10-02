@@ -67,19 +67,23 @@ defmodule Threadline.Retention do
       policy_cutoff = Policy.cutoff_utc_datetime_usec!()
       cutoff = resolve_cutoff(Keyword.get(opts, :cutoff), policy_cutoff)
 
-      if dry_run? do
-        dry_run_result(repo, cutoff, policy, storage_opts)
-      else
-        run_with_tracking(
-          repo,
-          cutoff,
-          batch_size,
-          max_batches,
-          policy.delete_empty_transactions,
-          sleep_ms,
-          storage_opts
-        )
-      end
+      span_dry_run? = dry_run? not in [false, nil]
+
+      Threadline.Telemetry.purge_span(span_dry_run?, fn ->
+        if dry_run? do
+          dry_run_result(repo, cutoff, policy, storage_opts)
+        else
+          run_with_tracking(
+            repo,
+            cutoff,
+            batch_size,
+            max_batches,
+            policy.delete_empty_transactions,
+            sleep_ms,
+            storage_opts
+          )
+        end
+      end)
     end
   end
 

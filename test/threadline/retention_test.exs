@@ -1,9 +1,18 @@
 defmodule Threadline.RetentionTest do
   use Threadline.DataCase
 
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
+
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Governance.RetentionRun
   alias Threadline.Retention
+
+  @purge_span_events [
+    [:threadline, :retention, :purge, :start],
+    [:threadline, :retention, :purge, :stop],
+    [:threadline, :retention, :purge, :exception]
+  ]
+  @batch_purged_event [:threadline, :retention, :batch_purged]
 
   defp insert_transaction(storage_schema, attrs) do
     defaults = %{
@@ -61,8 +70,14 @@ defmodule Threadline.RetentionTest do
   end
 
   test "purge/1 without repo raises KeyError" do
+    ref = attach_telemetry!(@purge_span_events)
+
     assert_raise KeyError, fn ->
       Retention.purge([])
+    end
+
+    for event <- @purge_span_events do
+      refute_received {^event, ^ref, _measurements, _metadata}
     end
   end
 
@@ -73,7 +88,13 @@ defmodule Threadline.RetentionTest do
       delete_empty_transactions: true
     )
 
+    ref = attach_telemetry!(@purge_span_events)
+
     assert Retention.purge(repo: Repo) == {:error, :disabled}
+
+    for event <- @purge_span_events do
+      refute_received {^event, ^ref, _measurements, _metadata}
+    end
   end
 
   # batch_size / max_batches: multi-batch purge deletes expired changes then empty parents.
@@ -89,6 +110,8 @@ defmodule Threadline.RetentionTest do
     assert count_changes("threadline") == 6
     assert count_transactions("threadline") == 6
 
+    ref = attach_telemetry!(@purge_span_events)
+
     summary =
       Retention.purge(repo: Repo, batch_size: 2, max_batches: 20)
 
@@ -98,6 +121,20 @@ defmodule Threadline.RetentionTest do
 
     assert count_changes("threadline") == 0
     assert count_transactions("threadline") == 0
+
+    assert_receive {[:threadline, :retention, :purge, :start], ^ref, _start_measurements,
+                    %{dry_run: false}}
+
+    assert_receive {[:threadline, :retention, :purge, :stop], ^ref, stop_measurements,
+                    %{dry_run: false}}
+
+    assert stop_measurements.deleted_changes == summary.deleted_changes
+    assert stop_measurements.deleted_transactions == summary.deleted_transactions
+    assert stop_measurements.batches_run == summary.batches_run
+    assert is_integer(stop_measurements.duration)
+    assert stop_measurements.duration >= 0
+
+    refute_received {[:threadline, :retention, :purge, :exception], ^ref, _, _}
 
     again = Retention.purge(repo: Repo, batch_size: 2, max_batches: 10)
     assert again.deleted_changes == 0
@@ -165,6 +202,8 @@ defmodule Threadline.RetentionTest do
       insert_transaction("threadline", occurred_at: cutoff)
     end
 
+    ref = attach_telemetry!(@purge_span_events)
+
     result =
       Retention.purge(
         repo: Repo,
@@ -178,6 +217,16 @@ defmodule Threadline.RetentionTest do
     assert result.deleted_transactions == 2
     assert result.batches_run == 0
     assert result.dry_run == true
+
+    assert_receive {[:threadline, :retention, :purge, :start], ^ref, _start_measurements,
+                    %{dry_run: true}}
+
+    assert_receive {[:threadline, :retention, :purge, :stop], ^ref, stop_measurements,
+                    %{dry_run: true}}
+
+    assert stop_measurements.deleted_changes == result.deleted_changes
+    assert stop_measurements.deleted_transactions == result.deleted_transactions
+    assert stop_measurements.batches_run == 0
 
     assert count_changes("audit") == 1
     assert count_transactions("audit") == 2
@@ -237,8 +286,14 @@ defmodule Threadline.RetentionTest do
   test "cutoff newer than the policy cutoff raises ArgumentError naming retention" do
     future = DateTime.add(DateTime.utc_now(:microsecond), 1, :day)
 
+    ref = attach_telemetry!(@purge_span_events)
+
     assert_raise ArgumentError, ~r/retention/, fn ->
       Retention.purge(repo: Repo, cutoff: future, dry_run: true)
+    end
+
+    for event <- @purge_span_events do
+      refute_received {^event, ^ref, _measurements, _metadata}
     end
   end
 
