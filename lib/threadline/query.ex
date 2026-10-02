@@ -367,12 +367,17 @@ defmodule Threadline.Query do
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
+  - `:limit` — optional positive integer. Returns at most n most recent changes
+    (`captured_at desc, id desc`). `:limit` caps, it does not page — use
+    `row_history_page/4` for keyset paging. `nil` (the default) is unbounded;
+    `0`, negative and non-integer values raise `ArgumentError`.
 
   ## Examples
 
       Threadline.history(MyApp.User, 42, repo: MyApp.Repo)
       Threadline.history(MyApp.LineItem, [tenant_id: 1, id: 5], repo: MyApp.Repo)
       Threadline.history(MyApp.LineItem, %{"tenant_id" => 1, "id" => 5}, repo: MyApp.Repo)
+      Threadline.history(MyApp.User, 42, repo: MyApp.Repo, limit: 20)
 
   Each `AuditChange` loads all table columns mapped on the schema, including
   `changed_from` when the database column is populated (no narrowing `select`).
@@ -383,9 +388,11 @@ defmodule Threadline.Query do
   loaded struct all raise `ArgumentError` (via the internal row-key
   normalizer).
 
-  If `:scope_query_fn` is configured, it receives `id` unchanged as
-  `context.params.id` — exactly what the caller passed, not the normalized
-  key list.
+  If `:scope_query_fn` is configured, it should only add predicates: it
+  receives `id` unchanged as `context.params.id` — exactly what the caller
+  passed, not the normalized key list — and any limit it sets on the query is
+  overridden by `:limit`'s final `LIMIT`. The cap counts only rows the scope
+  predicate left in scope.
 
   History for a table that has since been dropped or renamed keeps working:
   each key column's comparison type falls back to the schema field's Ecto
@@ -395,6 +402,7 @@ defmodule Threadline.Query do
   """
   def history(schema_module, id, opts) do
     repo = Keyword.fetch!(opts, :repo)
+    validate_history_limit!(Keyword.get(opts, :limit))
 
     schema_module
     |> history_query(id, Keyword.put(opts, :repo, repo))
@@ -412,7 +420,18 @@ defmodule Threadline.Query do
     |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
     |> order_by([ac], desc: ac.captured_at)
     |> order_by([ac], desc: ac.id)
+    |> maybe_limit(Keyword.get(opts, :limit))
   end
+
+  defp validate_history_limit!(nil), do: :ok
+  defp validate_history_limit!(value) when is_integer(value) and value > 0, do: :ok
+
+  defp validate_history_limit!(value) do
+    raise ArgumentError, ":limit must be a positive integer, got: #{inspect(value)}"
+  end
+
+  defp maybe_limit(query, nil), do: query
+  defp maybe_limit(query, n), do: limit(query, ^n)
 
   # Applies the three `where`s every read function in this module needs:
   # table_schema, table_name, and a whole-map equality match on table_pk

@@ -442,6 +442,35 @@ defmodule Threadline.QueryTest do
       assert Enum.map(results, & &1.id) == [support_change.id]
       assert Enum.all?(results, &(&1.transaction_id == support_txn.id))
     end
+
+    test "history/3 :limit caps to the n most recent changes and rejects invalid values" do
+      txn = insert_transaction()
+      t1 = DateTime.add(DateTime.utc_now(), -60, :second)
+      t2 = DateTime.add(DateTime.utc_now(), -30, :second)
+      t3 = DateTime.utc_now()
+
+      insert_change(txn, %{table_name: "users", table_pk: %{"id" => "u-limit"}, captured_at: t1})
+      insert_change(txn, %{table_name: "users", table_pk: %{"id" => "u-limit"}, captured_at: t2})
+      insert_change(txn, %{table_name: "users", table_pk: %{"id" => "u-limit"}, captured_at: t3})
+
+      defmodule FakeUserLimit do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      unbounded = Threadline.history(FakeUserLimit, "u-limit", repo: @repo)
+      capped = Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 2)
+
+      assert Enum.map(capped, & &1.id) == Enum.take(Enum.map(unbounded, & &1.id), 2)
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+        Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 0)
+      end
+    end
   end
 
   # ── audit_changes_for_transaction/2 — XPLO-02 ─────────────────────────────
