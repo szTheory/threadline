@@ -47,9 +47,21 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
 
   @impl Mix.Task
   def run(argv) do
-    {opts, _, _} = OptionParser.parse(argv, strict: [json: :boolean, schema: :string])
+    {opts, _, invalid} =
+      OptionParser.parse(argv, strict: [json: :boolean, schema: :string, strict: :boolean])
+
+    if invalid != [] do
+      invalid_names = Enum.map_join(invalid, ", ", fn {name, _value} -> name end)
+
+      Mix.raise(
+        "threadline.health.coverage: unknown or invalid option(s): #{invalid_names}. " <>
+          "Valid options: --json, --schema=NAME, --strict."
+      )
+    end
+
     json? = Keyword.get(opts, :json, false)
     schema = Keyword.get(opts, :schema, "public")
+    strict? = Keyword.get(opts, :strict, false)
 
     Mix.Task.run("app.config", [])
     {:ok, _} = Application.ensure_all_started(:ssl)
@@ -71,9 +83,32 @@ defmodule Mix.Tasks.Threadline.Health.Coverage do
       render_table(schema, coverage, findings)
     end
 
-    # Viewer semantics: report findings and return :ok. Use
+    # Viewer by default: report findings and return :ok. Use
     # mix threadline.verify_coverage when CI must fail on uncovered tables.
-    :ok
+    # --strict turns any :error-severity finding into exit 1 here too, but
+    # never gates on uncovered tables or warnings — that stays
+    # verify_coverage's positive-list job.
+    if strict? do
+      apply_strict_gate(findings)
+    else
+      :ok
+    end
+  end
+
+  defp apply_strict_gate(findings) do
+    {errors, warnings} = Enum.split_with(findings, &(&1.severity == :error))
+
+    if errors != [] do
+      Mix.shell().error(
+        "strict: FAILED — #{length(errors)} error finding(s) " <>
+          "(uncovered tables are not gated; use mix threadline.verify_coverage)"
+      )
+
+      exit({:shutdown, 1})
+    else
+      Mix.shell().error("strict: passed (#{length(warnings)} warning(s) not gated)")
+      :ok
+    end
   end
 
   # A malformed :trigger_capture config makes TriggerCaptureConfig.load/0

@@ -202,6 +202,40 @@ defmodule Threadline.OperatorSurface.CoverageMixTest do
     end
   end
 
+  describe "--strict (HLTH-01 tracer)" do
+    setup do
+      SQL.query!(@repo, "DROP SCHEMA IF EXISTS hcov_strict CASCADE", [])
+      SQL.query!(@repo, "CREATE SCHEMA hcov_strict", [])
+      SQL.query!(@repo, "CREATE TABLE hcov_strict.t (id bigserial PRIMARY KEY)", [])
+      SQL.query!(@repo, TriggerSQL.create_trigger("hcov_strict.t"), [])
+
+      SQL.query!(
+        @repo,
+        "ALTER TABLE hcov_strict.t DISABLE TRIGGER threadline_audit_hcov_strict_t",
+        []
+      )
+
+      on_exit(fn ->
+        SQL.query!(@repo, "DROP SCHEMA IF EXISTS hcov_strict CASCADE", [])
+      end)
+
+      :ok
+    end
+
+    test "a disabled trigger fails --strict end-to-end with exit 1 and the stderr status line" do
+      {{reason, stdout}, stderr} =
+        with_io(:stderr, fn ->
+          with_io(fn ->
+            catch_exit(Coverage.run(["--strict", "--schema=hcov_strict"]))
+          end)
+        end)
+
+      assert reason == {:shutdown, 1}
+      assert stdout =~ "capture_trigger_disabled"
+      assert stderr =~ "strict: FAILED — 1 error finding(s)"
+    end
+  end
+
   describe "health.coverage findings (HLTH-06/D-18)" do
     setup do
       SQL.query!(@repo, "DROP SCHEMA IF EXISTS hcov_findings CASCADE", [])
