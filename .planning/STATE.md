@@ -5,8 +5,8 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 228
 current_phase_name: Telemetry
 status: planning
-stopped_at: Phase 227 complete (verified 5/5)
-last_updated: "2026-10-02T00:03:18.612Z"
+stopped_at: Phase 228 context gathered
+last_updated: "2026-10-02T03:47:30.569Z"
 last_activity: 2026-10-01
 last_activity_desc: Phase 227 verified passed 5/5; next /gsd-discuss-phase 228
 progress:
@@ -963,9 +963,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-01T23:12:21.181Z
-**Stopped at:** Completed 227-05-PLAN.md
-**Resume file:** None
+**Last session:** 2026-10-02T03:47:30.550Z
+**Stopped at:** Phase 228 context gathered
+**Resume file:** .planning/phases/228-telemetry/228-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
