@@ -209,6 +209,31 @@ defmodule Threadline.RetentionTest do
     assert real.deleted_transactions == 1
   end
 
+  test "dry run ignores :batch_size and :max_batches (preview is a full-table count, not batched)" do
+    cutoff = ~U[2001-06-01 00:00:00.000000Z]
+
+    for _ <- 1..5 do
+      tx = insert_transaction("threadline", occurred_at: cutoff)
+      insert_change("threadline", tx, captured_at: DateTime.add(cutoff, -1, :second))
+    end
+
+    unbounded = Retention.purge(repo: Repo, cutoff: cutoff, dry_run: true)
+
+    bounded =
+      Retention.purge(
+        repo: Repo,
+        cutoff: cutoff,
+        dry_run: true,
+        batch_size: 1,
+        max_batches: 1
+      )
+
+    assert bounded == unbounded
+    assert bounded.deleted_changes == 5
+    assert bounded.deleted_transactions == 5
+    assert bounded.batches_run == 0
+  end
+
   test "cutoff newer than the policy cutoff raises ArgumentError naming retention" do
     future = DateTime.add(DateTime.utc_now(:microsecond), 1, :day)
 

@@ -41,7 +41,10 @@ defmodule Threadline.Retention do
   - **`:dry_run`** — when `true`, no deletes; returns counts of rows that **would**
     match delete predicates (`:deleted_changes` / `:deleted_transactions` are
     those counts, `:batches_run` is `0`). The preview assumes the run completes;
-    a run cut short by `:max_batches` deletes fewer.
+    a run cut short by `:max_batches` deletes fewer. **`:batch_size` and
+    `:max_batches` are ignored in dry-run mode** — the preview is a single
+    full-table count, not a batched simulation, so passing either alongside
+    `dry_run: true` has no effect on the returned counts.
 
   Returns `{:error, :disabled}` when `:retention` → `enabled` is not `true`.
   Successful calls return a result map (see `purge_result/0`).
