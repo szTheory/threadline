@@ -17,7 +17,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     test "grants when the session is fetched and authorize_fn returns :ok", %{
       telemetry_ref: telemetry_ref
     } do
-      opts = [authorize_fn: fn _ -> :ok end]
+      opts = [authorize_fn: fn _ -> :ok end, theme_path: "/audit/theme"]
 
       conn_out =
         conn(:post, "/audit/theme")
@@ -55,7 +55,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     test "denies when authorize_fn returns false", %{telemetry_ref: telemetry_ref} do
-      opts = [authorize_fn: fn _ -> false end]
+      opts = [authorize_fn: fn _ -> false end, theme_path: "/audit/theme"]
 
       conn_out =
         conn(:post, "/audit/theme")
@@ -81,7 +81,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         authorize_fn: fn _ ->
           send(pid, {ref, :called})
           :ok
-        end
+        end,
+        theme_path: "/audit/theme"
       ]
 
       conn_out =
@@ -98,7 +99,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     end
 
     test "fails closed when authorize_fn raises", %{telemetry_ref: telemetry_ref} do
-      opts = [authorize_fn: fn _ -> raise "boom" end]
+      opts = [authorize_fn: fn _ -> raise "boom" end, theme_path: "/audit/theme"]
 
       conn_out =
         conn(:post, "/audit/theme")
@@ -110,6 +111,30 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
       assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
                        %{result: :error}, %{path: "/audit/theme"}}
+    end
+
+    test "path metadata is the plug's fixed :theme_path option, never the live request path (WR-02)",
+         %{telemetry_ref: telemetry_ref} do
+      # A host that nests this mount under a dynamic router segment (e.g.
+      # `/accounts/:account_id/audit`) would have the actual account id
+      # substituted into `conn.request_path` at request time. `:theme_path`
+      # is set by the router macro from its own compile-time path argument —
+      # the un-substituted route template — so the emitted `path` metadata
+      # must carry the template, never the live "42" segment below.
+      opts = [authorize_fn: fn _ -> :ok end, theme_path: "/accounts/:account_id/audit/theme"]
+
+      conn_out =
+        conn(:post, "/accounts/42/audit/theme")
+        |> init_test_session(operator_id: "support")
+        |> ThemeAuthPlug.call(ThemeAuthPlug.init(opts))
+
+      refute conn_out.halted
+
+      assert_received {[:threadline, :operator_surface, :authorize], ^telemetry_ref,
+                       %{result: :granted}, %{path: path}}
+
+      assert path == "/accounts/:account_id/audit/theme"
+      refute path =~ "42"
     end
   end
 end

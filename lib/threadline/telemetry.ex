@@ -233,15 +233,21 @@ defmodule Threadline.Telemetry do
   Emits the `[:threadline, :operator_surface, :authorize]` event.
 
   `result` is the authorization outcome atom (`:granted`, `:denied`, or
-  `:error`). `conn_or_nil` is either a `%Plug.Conn{}`, from which the route
-  path is read, or `nil` when the caller has no conn (a LiveView mount).
+  `:error`). `path_or_nil` is a fixed, caller-supplied path string (the
+  mount's own compile-time route template, not a live request path), or
+  `nil` when the caller has none to offer (a LiveView mount, or an HTTP auth
+  plug that chooses not to forward one). Callers must never derive this value
+  from a live `conn.request_path`/similar — doing so could forward a
+  dynamic, possibly-identifying route segment (e.g. a tenant id a host
+  nested the mount under); see the Telemetry guide's cardinality warning.
   `scope` is the host-returned scope map, or `nil`/anything else when there is
   none. Metadata is `%{path: binary, scope_keys: [atom]}` — `scope_keys` holds
   only the scope map's KEYS, sorted, never its values, so no identity data is
   forwarded.
   """
-  def emit_operator_surface_authorize(result, conn_or_nil, scope) when is_atom(result) do
-    path = authorize_path(conn_or_nil)
+  def emit_operator_surface_authorize(result, path_or_nil, scope)
+      when is_atom(result) and (is_nil(path_or_nil) or is_binary(path_or_nil)) do
+    path = path_or_nil || ""
     scope_keys = if is_map(scope), do: scope |> Map.keys() |> Enum.sort(), else: []
 
     :telemetry.execute(
@@ -250,9 +256,6 @@ defmodule Threadline.Telemetry do
       %{path: path, scope_keys: scope_keys}
     )
   end
-
-  defp authorize_path(%Plug.Conn{} = conn), do: conn.request_path || ""
-  defp authorize_path(_conn_or_nil), do: ""
 
   @doc """
   Emits the `[:threadline, :operator_surface, :export_authorize]` event with

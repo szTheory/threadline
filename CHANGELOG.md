@@ -68,6 +68,14 @@ would be read as a release.
 
 ### Fixed
 
+- `[:threadline, :operator_surface, :authorize]`'s `path` metadata now comes
+  from the mount macro's own compile-time path argument instead of the live
+  request path. If you mount `threadline_operator_surface/2` under a dynamic
+  router segment (for example `/accounts/:account_id/audit`), `path` now
+  reports the un-substituted route template (`"/accounts/:account_id/audit/theme"`)
+  instead of the real segment value matched for that request. No action
+  needed unless you mount under a dynamic segment and pattern-match `path`'s
+  exact value.
 - `Threadline.Retention.purge/1`'s dry run now counts the audit transactions
   the purge itself would empty, so `deleted_transactions` matches what a
   completed run deletes. It used to count only transactions that were

@@ -202,6 +202,13 @@ identity-shaped values as map keys (unusual, but not forbidden), tagging on
 door. Tag on `format`, `error_kind`, `dry_run`, or other low-cardinality
 enums instead.
 
+`path` on `[:threadline, :operator_surface, :authorize]` is the mount's own
+compile-time route template (e.g. `"/audit/theme"`) — not the live request
+path. If your router nests the Threadline mount under a dynamic segment (for
+example `threadline_operator_surface("/accounts/:account_id/audit")`), `path`
+still carries the un-substituted `":account_id"` placeholder, never a real
+account id, so it is always safe to tag on.
+
 ## Keep row data out of your handlers
 
 Threadline's own events never carry row values, actor identifiers,

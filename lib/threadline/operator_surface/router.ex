@@ -100,7 +100,17 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         if Code.ensure_loaded?(Phoenix.Controller) do
           pipeline :threadline_theme do
-            plug(Threadline.OperatorSurface.ThemeAuthPlug, unquote(opts))
+            # `:theme_path` is the macro's own compile-time mount-path argument
+            # (the router's literal path template, e.g. "/audit/theme" or, for
+            # a host that nests the mount under a dynamic segment,
+            # "/accounts/:account_id/audit/theme" with the param name left
+            # un-substituted) — never `conn.request_path`, which would carry
+            # whatever real value the router matched for that segment. This
+            # keeps the `:authorize` event's `path` metadata bounded to a
+            # fixed, host-authored string regardless of how a request was
+            # routed (WR-02).
+            theme_plug_opts = Keyword.put(unquote(opts), :theme_path, unquote(path) <> "/theme")
+            plug(Threadline.OperatorSurface.ThemeAuthPlug, theme_plug_opts)
           end
 
           scope unquote(path), as: false do

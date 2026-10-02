@@ -202,8 +202,9 @@ defmodule Threadline.TelemetryRegistryContractTest do
   # kind/reason/stacktrace) and the automatic `telemetry_span_context` must be
   # an atom, boolean, integer, nil, reference, or a list of atoms — the single
   # allowed exception is `:path` on `[:threadline, :operator_surface,
-  # :authorize]`, which is a request path string. Anything else is a free-text
-  # or identity leak this contract exists to catch.
+  # :authorize]`, which is a fixed mount route-template string (the macro's
+  # own compile-time path argument, never a live request path). Anything else
+  # is a free-text or identity leak this contract exists to catch.
   defp assert_metadata_value_types!(entry, metadata) do
     exempt = Map.get(entry, :exempt_metadata, [])
 
