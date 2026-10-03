@@ -189,7 +189,7 @@ invent a policy DSL around it.
 Note that the `:surface` value a `scope_query_fn` matches on is not always
 one-to-one with a single read path: `:row_history` is the default for both
 the bounded `Threadline.row_history/3` read and the deprecated, unbounded
-`Threadline.history/3` read, since both route through the same scoping
+row-history read it replaces, since both route through the same scoping
 helper. A `scope_query_fn` that needs to treat capped and uncapped row-history
 traffic differently (for example, defense-in-depth rate limiting) should pass
 an explicit `:surface` override at the call site rather than relying on the
