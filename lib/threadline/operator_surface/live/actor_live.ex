@@ -338,7 +338,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          socket
          |> assign(:actor_summaries, actor_summaries)
          |> assign(:next_cursor, page.cursor)
-         |> assign(:prev_cursor, newer_boundary_cursor(page.entries))
          |> Phoenix.Component.update(:shown_count, &(&1 + length(page.entries)))
          |> stream(:transactions, page.entries, at: -1)}
       else
@@ -422,14 +421,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:shown_count, length(page.entries))
        |> stream(:transactions, page.entries, reset: true)}
     end
-
-    # The "newer" boundary after a forward (older-ward) page load is the key
-    # of the newly-fetched page's own first (newest) entry — walking
-    # {:before, that key} resumes exactly where this page started.
-    defp newer_boundary_cursor([]), do: nil
-
-    defp newer_boundary_cursor([%{occurred_at: occurred_at, id: id} | _]),
-      do: %{occurred_at: occurred_at, id: id}
 
     defp prev_cursor_from_page({:before, cursor}), do: cursor
     defp prev_cursor_from_page(nil), do: nil
