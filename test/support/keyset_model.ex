@@ -111,24 +111,7 @@ defmodule Threadline.Test.KeysetModel do
     end
 
     with {:ok, forward_pages} <- step(bound, nil, forward_fetch) do
-      # Walking backward from the very first (and, here, only) forward page
-      # would re-fetch nothing older than itself — there is no earlier page
-      # to reproduce. Only start the backward leg when a second forward page
-      # proves an earlier boundary exists.
-      backward_start =
-        case forward_pages do
-          [_single] ->
-            nil
-
-          _multiple ->
-            case List.last(forward_pages) do
-              %{first_entry: %{occurred_at: occurred_at, id: id}} ->
-                {:before, %{occurred_at: occurred_at, id: id}}
-
-              _ ->
-                nil
-            end
-        end
+      backward_start = actor_history_backward_start(forward_pages)
 
       backward_fetch = fn {:before, cursor_map} ->
         page = actor_history_page(entries, limit, :backward, cursor_map, nil)
@@ -147,6 +130,22 @@ defmodule Threadline.Test.KeysetModel do
   defp actor_history_page(entries, limit, direction, before, after_cursor) do
     {raw, _reverse?} = actor_history_fetch(entries, limit, before, after_cursor)
     Cursors.actor_history_page(raw, limit, direction)
+  end
+
+  # Walking backward from the very first (and, here, only) forward page
+  # would re-fetch nothing older than itself — there is no earlier page to
+  # reproduce. Only start the backward leg when a second forward page proves
+  # an earlier boundary exists.
+  defp actor_history_backward_start([_single]), do: nil
+
+  defp actor_history_backward_start(forward_pages) do
+    case List.last(forward_pages) do
+      %{first_entry: %{occurred_at: occurred_at, id: id}} ->
+        {:before, %{occurred_at: occurred_at, id: id}}
+
+      _ ->
+        nil
+    end
   end
 
   @doc """

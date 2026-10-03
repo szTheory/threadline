@@ -28,7 +28,6 @@ defmodule Threadline.PublicSurfaceContractTest do
   # modules stay visible and stay grouped under "Data Types" — only the two
   # parent modules move to @moduledoc false.
   @hidden_module_child_structs [
-    Threadline.Query.ActorHistoryPage,
     Threadline.Investigation.IncidentBundle,
     Threadline.Investigation.IncidentChange,
     Threadline.Investigation.LinkedChange,
@@ -43,7 +42,8 @@ defmodule Threadline.PublicSurfaceContractTest do
   @renamed_modules %{
     Threadline.OperatorSurface.Exports.FilterParams => Threadline.Query.FilterParams,
     Threadline.OperatorSurface.Scope => Threadline.Query.Scope,
-    Threadline.Query.TimelinePage => Threadline.Page
+    Threadline.Query.TimelinePage => Threadline.Page,
+    Threadline.Query.ActorHistoryPage => Threadline.Page
   }
   # The same history rule for Mix aliases that were deleted after release: a retired
   # alias is accepted as a reference in CHANGELOG.md only, and the register is itself

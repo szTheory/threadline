@@ -191,6 +191,37 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(lv, "next-page", %{})
     end
 
+    test "Case 5: next-page loads the older page on canonical options with no deprecation warning",
+         %{conn: conn} do
+      actor_map = %{"type" => "user", "id" => "paging_51"}
+      base_time = DateTime.utc_now()
+
+      for i <- 1..51 do
+        insert_transaction(%{
+          occurred_at: DateTime.add(base_time, -i, :second),
+          actor_ref: actor_map
+        })
+      end
+
+      assert {:ok, lv, html} = live(conn, "/audit/actors/user/paging_51")
+      assert count_transaction_rows(html) == 50
+
+      ref = make_ref()
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          send(self(), {ref, render_hook(lv, "next-page", %{})})
+        end)
+
+      assert_receive {^ref, html_after_next}
+      assert count_transaction_rows(html_after_next) == 51
+      assert stderr == ""
+    end
+
+    defp count_transaction_rows(html) do
+      Regex.scan(~r/data-testid="actor-transaction-row"/, html) |> length()
+    end
+
     test "forged actor-window values are rejected without terminating the LiveView", %{conn: conn} do
       assert {:ok, lv, _html} = live(conn, "/audit/actors/user/window-validation")
 

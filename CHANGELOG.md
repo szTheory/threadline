@@ -50,6 +50,13 @@ and `Threadline.incident_bundle/2`.
   `cursor: :start` or omit `:cursor`. Required action: pattern-match
   `%Threadline.Page{}` and read `.cursor` / `.has_more`.
 
+- `Threadline.Query.ActorHistoryPage` is removed. `Threadline.actor_history/2`
+  returns `%Threadline.Page{entries, cursor, has_more}`: `next_cursor` and
+  `prev_cursor` are replaced by one `cursor` for the direction walked
+  (`{:before, %{occurred_at, id}}` when walking newer) plus exact `has_more`.
+  Required action: pattern-match `%Threadline.Page{}` and read `.cursor` /
+  `.has_more`.
+
 ### Deprecations
 
 - Passing `:action` (or `transaction: :action`) in the `:preload` option of
@@ -57,6 +64,11 @@ and `Threadline.incident_bundle/2`.
   `Threadline.Query.audit_changes_for_transaction/2` still works and still
   returns a hydrated `.action` — it now emits one deprecation warning per call.
   Removal is no earlier than Threadline 2.0.
+
+- `Threadline.actor_history/2`'s `:after`, `:before` and `:limit` options
+  still work and each still emits one deprecation warning per call. They are
+  replaced by `cursor:` (a map, or `{:before, map}` to walk newer) and
+  `page_size:`. Removal is no earlier than Threadline 2.0.
 
 ## [0.12.0] - 2026-10-02
 

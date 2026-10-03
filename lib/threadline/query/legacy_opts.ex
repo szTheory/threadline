@@ -30,45 +30,53 @@ defmodule Threadline.Query.LegacyOpts do
   """
   @spec actor_history(keyword()) :: {:start | map() | {:before, map()}, pos_integer()}
   def actor_history(opts) when is_list(opts) do
-    has_cursor? = Keyword.has_key?(opts, :cursor)
-    has_after? = Keyword.has_key?(opts, :after)
-    has_before? = Keyword.has_key?(opts, :before)
-    has_page_size? = Keyword.has_key?(opts, :page_size)
-    has_limit? = Keyword.has_key?(opts, :limit)
+    flags = actor_history_flags(opts)
 
-    if has_cursor? and (has_after? or has_before?) do
-      raise ArgumentError,
-            "actor_history/2 cannot combine :cursor with :after or :before — pass the cursor " <>
-              "as cursor: alone."
-    end
+    actor_history_check_conflicts!(flags)
+    actor_history_warn_legacy(flags)
 
-    if has_page_size? and has_limit? do
-      raise ArgumentError,
-            "actor_history/2 cannot combine :page_size with :limit — pass the page size as " <>
-              "page_size: alone."
-    end
-
-    if has_after?, do: warn_legacy_actor_history_option(:after, "cursor:")
-    if has_before?, do: warn_legacy_actor_history_option(:before, "cursor:")
-    if has_limit?, do: warn_legacy_actor_history_option(:limit, "page_size:")
-
-    cursor =
-      cond do
-        has_cursor? -> Keyword.get(opts, :cursor, :start)
-        has_before? -> {:before, Keyword.get(opts, :before)}
-        has_after? -> Keyword.get(opts, :after)
-        true -> :start
-      end
-
-    page_size =
-      cond do
-        has_page_size? -> Keyword.get(opts, :page_size)
-        has_limit? -> Keyword.get(opts, :limit)
-        true -> 50
-      end
-
-    {cursor, page_size}
+    {actor_history_cursor(opts, flags), actor_history_page_size(opts, flags)}
   end
+
+  defp actor_history_flags(opts) do
+    %{
+      cursor: Keyword.has_key?(opts, :cursor),
+      after: Keyword.has_key?(opts, :after),
+      before: Keyword.has_key?(opts, :before),
+      page_size: Keyword.has_key?(opts, :page_size),
+      limit: Keyword.has_key?(opts, :limit)
+    }
+  end
+
+  defp actor_history_check_conflicts!(%{cursor: true, after: has_after?, before: has_before?})
+       when has_after? or has_before? do
+    raise ArgumentError,
+          "actor_history/2 cannot combine :cursor with :after or :before — pass the cursor " <>
+            "as cursor: alone."
+  end
+
+  defp actor_history_check_conflicts!(%{page_size: true, limit: true}) do
+    raise ArgumentError,
+          "actor_history/2 cannot combine :page_size with :limit — pass the page size as " <>
+            "page_size: alone."
+  end
+
+  defp actor_history_check_conflicts!(_flags), do: :ok
+
+  defp actor_history_warn_legacy(flags) do
+    if flags.after, do: warn_legacy_actor_history_option(:after, "cursor:")
+    if flags.before, do: warn_legacy_actor_history_option(:before, "cursor:")
+    if flags.limit, do: warn_legacy_actor_history_option(:limit, "page_size:")
+  end
+
+  defp actor_history_cursor(opts, %{cursor: true}), do: Keyword.get(opts, :cursor, :start)
+  defp actor_history_cursor(opts, %{before: true}), do: {:before, Keyword.get(opts, :before)}
+  defp actor_history_cursor(opts, %{after: true}), do: Keyword.get(opts, :after)
+  defp actor_history_cursor(_opts, _flags), do: :start
+
+  defp actor_history_page_size(opts, %{page_size: true}), do: Keyword.get(opts, :page_size)
+  defp actor_history_page_size(opts, %{limit: true}), do: Keyword.get(opts, :limit)
+  defp actor_history_page_size(_opts, _flags), do: 50
 
   defp warn_legacy_actor_history_option(option, replacement) do
     IO.warn(
