@@ -44,8 +44,6 @@ defmodule Threadline.Semantics.AuditAction do
     field(:request_id, :string)
     field(:job_id, :string)
 
-    has_many(:transactions, Threadline.Capture.AuditTransaction, foreign_key: :action_id)
-
     timestamps(inserted_at: :inserted_at, updated_at: false, type: :utc_datetime_usec)
   end
 

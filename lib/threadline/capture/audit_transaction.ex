@@ -27,8 +27,14 @@ defmodule Threadline.Capture.AuditTransaction do
 
   - `has_many :changes, Threadline.Capture.AuditChange` — the row mutations
     captured in this transaction.
-  - `belongs_to :action, Threadline.Semantics.AuditAction` — optional
-    semantic label for this transaction.
+  - `:action_id` — optional foreign key to an `audit_actions` row. The
+    capture schema does not declare an Ecto association to
+    `Threadline.Semantics.AuditAction` (capture must not own semantics-layer
+    concerns). The virtual `:action` field is filled by Threadline's read
+    functions (`Threadline.transaction_context/2`, `Threadline.incident_bundle/2`,
+    and the other investigation helpers) via a hidden batched hydrate step —
+    it is `nil` until one of those functions hydrates it, never an Ecto
+    association.
 
   ## Setup
 
@@ -59,7 +65,8 @@ defmodule Threadline.Capture.AuditTransaction do
     # without either.
     field(:actor_ref, Threadline.Semantics.ActorRef)
 
-    belongs_to(:action, Threadline.Semantics.AuditAction)
+    field(:action_id, :binary_id)
+    field(:action, :any, virtual: true, default: nil)
 
     has_many(:changes, Threadline.Capture.AuditChange, foreign_key: :transaction_id)
   end

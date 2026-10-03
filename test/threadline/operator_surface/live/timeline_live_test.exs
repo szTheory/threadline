@@ -1200,8 +1200,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert source =~ "preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))"
       assert source =~ "defp preload_visible_context(%{entries: entries} = page, repo, opts)"
 
-      assert source =~
-               "repo.preload(entries, [transaction: :action], StorageSchema.repo_opts(opts))"
+      assert source =~ "repo.preload([:transaction], StorageSchema.repo_opts(opts))"
+      assert source =~ "Threadline.Query.hydrate_actions(repo, opts)"
     end
 
     test "configured storage Timeline rows preload actor context and ignore default sentinels", %{

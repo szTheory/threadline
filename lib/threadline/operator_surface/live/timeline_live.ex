@@ -549,7 +549,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp preload_visible_context(%{entries: entries} = page, repo, opts) do
       %{
         page
-        | entries: repo.preload(entries, [transaction: :action], StorageSchema.repo_opts(opts))
+        | entries:
+            entries
+            |> repo.preload([:transaction], StorageSchema.repo_opts(opts))
+            |> Threadline.Query.hydrate_actions(repo, opts)
       }
     end
 

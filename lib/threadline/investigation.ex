@@ -128,11 +128,15 @@ defmodule Threadline.Investigation do
   and optional action metadata.
   """
   def transaction_context(transaction_id, opts \\ []) do
+    repo = Keyword.fetch!(opts, :repo)
+    internal_opts = Keyword.delete(opts, :preload)
+
     changes =
       Query.audit_changes_for_transaction(
         transaction_id,
-        Keyword.put(opts, :preload, transaction: :action)
+        Keyword.put(internal_opts, :preload, [:transaction])
       )
+      |> Query.hydrate_actions(repo, internal_opts)
 
     linked_changes = to_linked_changes(changes)
     transaction = linked_transaction(linked_changes)
@@ -149,9 +153,11 @@ defmodule Threadline.Investigation do
   packaged diffs.
   """
   def incident_bundle(transaction_id, opts \\ []) do
+    repo = Keyword.fetch!(opts, :repo)
+    internal_opts = Keyword.delete(opts, :preload)
+
     transaction_opts =
-      opts
-      |> Keyword.put(:preload, :action)
+      internal_opts
       |> Keyword.put(:surface, :transaction_header)
       |> Keyword.put(:params, %{transaction_id: transaction_id})
 
@@ -160,14 +166,17 @@ defmodule Threadline.Investigation do
         {:error, :not_found}
 
       transaction ->
+        transaction = Query.hydrate_actions(transaction, repo, internal_opts)
+
         changes =
           Query.audit_changes_for_transaction(
             transaction_id,
-            opts
-            |> Keyword.put(:preload, transaction: :action)
+            internal_opts
+            |> Keyword.put(:preload, [:transaction])
             |> Keyword.put(:surface, :transaction)
             |> Keyword.put(:params, %{transaction_id: transaction_id})
           )
+          |> Query.hydrate_actions(repo, internal_opts)
 
         linked_changes = to_linked_changes(changes)
 
