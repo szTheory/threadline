@@ -5,7 +5,7 @@ defmodule Threadline.Query do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Capture.AuditTransaction
-  alias Threadline.Query.{ActionHydration, Cursors, HistoryLimit, RowKey, Scope}
+  alias Threadline.Query.{ActionHydration, Cursors, HistoryLimit, LegacyOpts, RowKey, Scope}
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -484,8 +484,8 @@ defmodule Threadline.Query do
   end
 
   @doc """
-  Returns a keyset page of `AuditTransaction` records for a given actor, ordered by
-  `occurred_at` descending, then `id` descending.
+  Returns a `%Threadline.Page{}` of `AuditTransaction` records for a given actor,
+  ordered by `occurred_at` descending, then `id` descending.
 
   For an anonymous actor, returns every transaction whose actor identity is absent.
   Anonymous transactions intentionally have no finer-grained actor distinction, so
@@ -494,22 +494,42 @@ defmodule Threadline.Query do
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
-  - `:limit` — integer, maximum number of records to return (default 50)
-  - `:after` — cursor to fetch older records
-  - `:before` — cursor to fetch newer records
+  - `:cursor` — `:start` (or omitted) begins a walk; a prior page's `cursor` to
+    continue it older; `{:before, cursor}` to continue it newer. `cursor: nil`
+    raises `ArgumentError`.
+  - `:page_size` — positive integer, defaults to 50
   - `:from` — inclusive lower bound on `occurred_at`
   - `:to` — inclusive upper bound on `occurred_at`
+
+  ## Deprecated options
+
+  - `:after` — use `:cursor` instead
+  - `:before` — use `cursor: {:before, cursor}` instead
+  - `:limit` — use `:page_size` instead
+
+  Each still works, and each emits one deprecation warning per call. Removal
+  is no earlier than Threadline 2.0. `:cursor` combined with `:after` or
+  `:before` raises `ArgumentError`, as does `:page_size` combined with
+  `:limit`.
 
   ## Example
 
       Threadline.actor_history(actor_ref, repo: MyApp.Repo)
   """
+  @spec actor_history(ActorRef.t(), keyword()) :: Threadline.Page.t(AuditTransaction.t())
   def actor_history(%ActorRef{} = actor_ref, opts) do
     repo = Keyword.fetch!(opts, :repo)
     actor_map = ActorRef.to_map(actor_ref)
-    limit = Keyword.get(opts, :limit, 50)
-    after_cursor = Cursors.validate_actor_history_cursor!(Keyword.get(opts, :after))
-    before_cursor = Cursors.validate_actor_history_cursor!(Keyword.get(opts, :before))
+
+    {raw_cursor, raw_page_size} = LegacyOpts.actor_history(opts)
+    page_size = Cursors.timeline_page_size!(raw_page_size)
+    {cursor_map, direction} = Cursors.validate_actor_history_page_cursor!(raw_cursor)
+
+    {before_cursor, after_cursor} =
+      case direction do
+        :forward -> {nil, cursor_map}
+        :backward -> {cursor_map, nil}
+      end
 
     base_query =
       AuditTransaction
@@ -518,21 +538,14 @@ defmodule Threadline.Query do
       |> Cursors.actor_history_filter_to(Keyword.get(opts, :to))
       |> maybe_apply_scope(actor_history_scope_opts(actor_ref, opts))
 
-    {query, reverse?} = Cursors.actor_history_window(base_query, before_cursor, after_cursor)
+    {query, _reverse?} = Cursors.actor_history_window(base_query, before_cursor, after_cursor)
 
     entries_raw =
       query
-      |> limit(^(limit + 1))
+      |> limit(^(page_size + 1))
       |> repo.all(storage_opts([], opts))
 
-    {entries, next_cursor, prev_cursor} =
-      Cursors.actor_history_page(entries_raw, limit, reverse?, after_cursor)
-
-    %Threadline.Query.ActorHistoryPage{
-      entries: entries,
-      next_cursor: next_cursor,
-      prev_cursor: prev_cursor
-    }
+    Cursors.actor_history_page(entries_raw, page_size, direction)
   end
 
   @doc """
