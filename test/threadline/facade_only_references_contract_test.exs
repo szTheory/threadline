@@ -73,18 +73,15 @@ defmodule Threadline.FacadeOnlyReferencesContractTest do
     |> String.split("\n")
     |> Enum.with_index(1)
     |> Enum.flat_map(fn {line, line_no} ->
-      case Regex.scan(@bare_alias_regex, line) do
-        [] -> []
-        matches -> Enum.map(matches, fn [full | _] -> {label, line_no, full} end)
-      end
+      Regex.scan(@bare_alias_regex, line)
+      |> Enum.map(fn [full | _] -> {label, line_no, full} end)
     end)
   end
 
   defp format_offenders(offenders) do
     offenders
     |> Enum.sort_by(fn {label, line_no, _full} -> {label, line_no} end)
-    |> Enum.map(fn {label, line_no, full} -> "#{label}:#{line_no} #{full}" end)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", fn {label, line_no, full} -> "#{label}:#{line_no} #{full}" end)
   end
 
   describe "self-test (fixture, non-vacuous)" do
