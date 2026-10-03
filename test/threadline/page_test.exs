@@ -14,7 +14,7 @@ defmodule Threadline.PageTest do
     )
   end
 
-  defp insert_change(transaction, attrs \\ %{}) do
+  defp insert_change(transaction, attrs) do
     defaults = %{
       table_schema: "public",
       table_name: "users",
@@ -165,7 +165,8 @@ defmodule Threadline.PageTest do
       first = Threadline.timeline_page(filters, page_size: 1)
       upcased_cursor = %{first.cursor | id: String.upcase(first.cursor.id)}
 
-      assert %Threadline.Page{} = Threadline.timeline_page(filters, page_size: 1, cursor: upcased_cursor)
+      assert %Threadline.Page{} =
+               Threadline.timeline_page(filters, page_size: 1, cursor: upcased_cursor)
 
       assert_raise ArgumentError, ~r/UUID/, fn ->
         Threadline.timeline_page(filters,

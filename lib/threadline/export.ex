@@ -328,18 +328,16 @@ defmodule Threadline.Export do
         :done ->
           {:halt, :done}
 
-        state ->
-          cursor = if state == :start, do: nil, else: state
-
+        cursor ->
           case Query.timeline_page(filters, Keyword.put(opts, :cursor, cursor)) do
-            %Query.TimelinePage{entries: []} ->
+            %Threadline.Page{entries: [], has_more: false} ->
               {:halt, :done}
 
-            %Query.TimelinePage{entries: rows, next_cursor: nil} ->
+            %Threadline.Page{entries: rows, has_more: false} ->
               {rows, :done}
 
-            %Query.TimelinePage{entries: rows, next_cursor: next_cursor} ->
-              {rows, next_cursor}
+            %Threadline.Page{entries: rows, cursor: cursor} ->
+              {rows, cursor}
           end
       end,
       fn _ -> :ok end

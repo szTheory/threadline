@@ -290,9 +290,10 @@ defmodule Threadline.Query do
   Paging controls live in `opts`:
 
   - `:page_size` — positive integer, defaults to `#{@default_timeline_page_size}`
-  - `:cursor` — `%{captured_at: %DateTime{}, id: binary}` or `nil`
+  - `:cursor` — `:start` (or omitted) begins a walk; a prior page's `cursor` to
+    continue. `cursor: nil` raises `ArgumentError`.
   """
-  @spec timeline_page(keyword(), keyword()) :: TimelinePage.t()
+  @spec timeline_page(keyword(), keyword()) :: Threadline.Page.t(AuditChange.t())
   def timeline_page(filters \\ [], opts \\ []) when is_list(filters) and is_list(opts) do
     validate_timeline_filters!(filters)
     repo = timeline_repo!(filters, opts)
@@ -300,14 +301,14 @@ defmodule Threadline.Query do
     page_size =
       Cursors.timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
 
-    cursor = Cursors.validate_timeline_cursor!(Keyword.get(opts, :cursor))
+    cursor = Cursors.validate_page_cursor!(Keyword.get(opts, :cursor, :start))
 
     q =
       filters
       |> timeline_query()
       |> maybe_apply_scope(opts)
       |> maybe_after_timeline_cursor(cursor)
-      |> limit(^page_size)
+      |> limit(^(page_size + 1))
 
     q =
       case Keyword.get(filters, :correlation_id) do
@@ -317,10 +318,7 @@ defmodule Threadline.Query do
 
     entries = repo.all(q, storage_opts(filters, opts))
 
-    %TimelinePage{
-      entries: entries,
-      next_cursor: Cursors.timeline_page_next_cursor(entries, page_size)
-    }
+    Cursors.change_page(entries, page_size)
   end
 
   defp timeline_base_query(filters) do
@@ -726,7 +724,8 @@ defmodule Threadline.Query do
   end
 
   @doc false
-  @spec maybe_after_timeline_cursor(Ecto.Query.t(), TimelinePage.cursor() | nil) :: Ecto.Query.t()
+  @spec maybe_after_timeline_cursor(Ecto.Query.t(), Threadline.Page.change_cursor() | nil) ::
+          Ecto.Query.t()
   def maybe_after_timeline_cursor(query, nil), do: query
 
   def maybe_after_timeline_cursor(query, %{captured_at: %DateTime{} = captured_at, id: id}) do

@@ -176,4 +176,42 @@ defmodule Threadline.Query.Cursors do
     last = List.last(entries)
     %{captured_at: last.captured_at, id: last.id}
   end
+
+  # D-08: `raw` is a fetch of up to `page_size + 1` rows in descending keyset
+  # order. The extra row (if present) only signals that more rows exist; it
+  # is dropped from `entries`. `has_more` is therefore exact: a page that is
+  # exactly full never falsely reports a cursor.
+  @doc """
+  Builds a `%Threadline.Page{}` from a `page_size + 1` fetch.
+  """
+  @spec change_page([Threadline.Capture.AuditChange.t()], pos_integer()) :: Threadline.Page.t()
+  def change_page(raw, page_size) when is_list(raw) and is_integer(page_size) do
+    has_more? = length(raw) > page_size
+    entries = Enum.take(raw, page_size)
+
+    cursor =
+      case {has_more?, List.last(entries)} do
+        {true, %{captured_at: captured_at, id: id}} -> %{captured_at: captured_at, id: id}
+        _ -> nil
+      end
+
+    %Threadline.Page{entries: entries, cursor: cursor, has_more: has_more?}
+  end
+
+  @doc """
+  Validates the `:cursor` option for an always-paged read (`timeline_page/2`,
+  `actor_history/2`). `:start` (or an absent key, mapped to `:start` by the
+  caller) begins a walk; `nil` raises; a cursor map is validated by
+  `validate_timeline_cursor!/1`.
+  """
+  @spec validate_page_cursor!(:start | nil | map()) :: nil | map()
+  def validate_page_cursor!(:start), do: nil
+
+  def validate_page_cursor!(nil) do
+    raise ArgumentError,
+          ":cursor must not be nil — pass cursor: :start to begin a walk, or the previous " <>
+            "page's cursor to continue; a page with has_more: false has no cursor."
+  end
+
+  def validate_page_cursor!(%{} = cursor), do: validate_timeline_cursor!(cursor)
 end

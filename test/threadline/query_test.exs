@@ -4,7 +4,7 @@ defmodule Threadline.QueryTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
-  alias Threadline.Query.{ActorHistoryPage, TimelinePage}
+  alias Threadline.Query.ActorHistoryPage
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.Test.DbProperty
   alias Threadline.Test.KeysetModel
@@ -1125,7 +1125,7 @@ defmodule Threadline.QueryTest do
       query_page = Threadline.Query.timeline_page(filters, page_size: 2)
 
       assert public_page == query_page
-      assert match?(%Threadline.Query.TimelinePage{}, public_page)
+      assert match?(%Threadline.Page{}, public_page)
       assert is_list(Threadline.timeline(filters))
       assert Enum.all?(Threadline.timeline(filters), &match?(%AuditChange{}, &1))
     end
@@ -1162,12 +1162,15 @@ defmodule Threadline.QueryTest do
       eager_ids = Enum.map(Threadline.timeline(filters), & &1.id)
 
       first_page = Threadline.timeline_page(filters, page_size: 2)
+      assert first_page.has_more == true
 
       second_page =
-        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.next_cursor)
+        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.cursor)
+
+      assert second_page.has_more == true
 
       third_page =
-        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.next_cursor)
+        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.cursor)
 
       paged_ids =
         Enum.flat_map([first_page, second_page, third_page], fn page ->
@@ -1175,7 +1178,8 @@ defmodule Threadline.QueryTest do
         end)
 
       assert eager_ids == paged_ids
-      assert third_page.next_cursor == nil
+      assert third_page.has_more == false
+      assert third_page.cursor == nil
     end
 
     test "advances safely across captured_at ties without duplicates or skips" do
@@ -1188,10 +1192,10 @@ defmodule Threadline.QueryTest do
       first_page = Threadline.timeline_page(filters, page_size: 2)
 
       second_page =
-        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.next_cursor)
+        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.cursor)
 
       third_page =
-        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.next_cursor)
+        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.cursor)
 
       all_ids =
         Enum.flat_map([first_page, second_page, third_page], fn page ->
@@ -1383,7 +1387,7 @@ defmodule Threadline.QueryTest do
       %ActorHistoryPage{entries: [actor_txn]} = Threadline.actor_history(actor, repo: @repo)
       [timeline_change] = Threadline.timeline(actor_ref: actor, repo: @repo)
 
-      %TimelinePage{entries: [paged_change], next_cursor: nil} =
+      %Threadline.Page{entries: [paged_change], cursor: nil, has_more: false} =
         Threadline.timeline_page([actor_ref: actor, repo: @repo], page_size: 5)
 
       [transaction_change] = Threadline.audit_changes_for_transaction(txn.id, repo: @repo)
