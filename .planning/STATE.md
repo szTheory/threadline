@@ -5,16 +5,16 @@ milestone_name: 1.0 API Contract
 current_phase: 232
 current_phase_name: Consolidated Reads, Deprecations and the Bounded Default
 status: executing
-stopped_at: Completed 232-01-PLAN.md
-last_updated: "2026-10-03T17:38:05.491Z"
+stopped_at: Completed 232-02-PLAN.md
+last_updated: "2026-10-03T19:09:47.013Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 232 execution started
-state_head: c2f72d155929b054123166893c3a195b8cc63da9
+state_head: a84054cb3d1b71a56006294063dc14f7c6757fee
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 9
-  completed_plans: 4
+  completed_plans: 5
   percent: 14
 ---
 
@@ -30,8 +30,8 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 231)
 ## Current Position
 
 Phase: 232 (Consolidated Reads, Deprecations and the Bounded Default) — EXECUTING
-Plan: 2 of 6
-Status: Executing Phase 232
+Plan: 3 of 6
+Status: Ready to execute
 Last activity: 2026-10-03 — 232-01 complete (Threadline.Page, exact has_more, TimelinePage deleted)
 
 v1.45 Progress: [█░░░░░░░░░] 1 of 7 v1.45 phases complete (14%) (231-237; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
@@ -262,6 +262,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 231 P02 | 55min | 3 tasks | 13 files |
 | Phase 231 P03 | 190 | 2 tasks | 4 files |
 | Phase 232 P01 | 65min | 3 tasks | 19 files |
+| Phase 232 P02 | 70min | 3 tasks | 13 files |
 
 ## Deferred Items
 
@@ -987,6 +988,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 231]: Internal readers (Investigation.transaction_context/2, incident_bundle/2) call Query.hydrate_actions/3 directly instead of routing through the deprecated public :preload shim, so internal reads never trip the deprecation warning
 - [Phase 231]: Split lib/threadline/query.ex into Threadline.Query.ActionHydration (defdelegate-preserved) to clear the 800-line source-size gate tripped by 231-01's growth
 - [Phase 232]: Registered Threadline.Query.TimelinePage => Threadline.Page in the @renamed_modules historical-reference register instead of new infrastructure
+- [Phase 232]: actor_history/2 LiveView params map keys renamed after:/before: -> cursor: (unused by any code, but matched the plan's own verify-grep ban)
 
 ### Blockers
 
@@ -1002,8 +1004,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-03T17:38:05.421Z
-**Stopped at:** Completed 232-01-PLAN.md
+**Last session:** 2026-10-03T19:09:38.335Z
+**Stopped at:** Completed 232-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

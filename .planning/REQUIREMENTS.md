@@ -27,7 +27,7 @@
   - Hitting the cap emits `[:threadline, :row_history, :truncated]`, which carries no row values or actor ids and is added to the telemetry allowlist.
   - Export and `as_of` stay unbounded, proven by a test.
   - v1.44 properties that read history are updated explicitly to pass `limit: :infinity` or walk the cursor.
-- [ ] **API-02**: An adopter can tell `actor_history/2` (transactions) from `actor_window/3` (cross-table changes). Each `@doc` states its return type first and cross-links the other function, and a doc-contract test pins both.
+- [x] **API-02**: An adopter can tell `actor_history/2` (transactions) from `actor_window/3` (cross-table changes). Each `@doc` states its return type first and cross-links the other function, and a doc-contract test pins both.
 - [ ] **API-03**: Every paged read returns the same `%Threadline.Page{entries, cursor, has_more}` struct, which replaces `TimelinePage` and `ActorHistoryPage`. `timeline/2` and `timeline_page/2` remain the only deliberate pair of names; no third naming pattern exists on the facade.
 - [x] **API-04**: The adopter's docs contain one read API.
   - `Threadline.Query` and `Threadline.Investigation` are `@moduledoc false`.
@@ -142,7 +142,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | API-01 | Phase 232 | Pending |
-| API-02 | Phase 232 | Pending |
+| API-02 | Phase 232 | Complete |
 | API-03 | Phase 232 | Pending |
 | API-04 | Phase 231 | Complete |
 | API-05 | Phase 232 | Pending |
