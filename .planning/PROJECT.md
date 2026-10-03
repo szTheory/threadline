@@ -17,18 +17,23 @@ Threadline shipped **v1.44 Behavioral Depth: Properties, Twins, Telemetry** on 2
 - Local branch `milestone/v1.44` carries the post-landing planning commits and this close record, which are not on main yet. Milestone tag `v1.44` is local only.
 - The operator UI stays parked until 1.0.0.
 
-## Next Milestone Goals: v1.45 1.0 API Contract → 1.0.0
+## Current Milestone: v1.45 1.0 API Contract
 
-The last rung of the ladder in `.planning/MILESTONE-GUIDE.txt` §7 (canonical scope; re-check it at `/gsd-new-milestone`):
-- Complete `@spec`/`@doc` on the public surface. Hide internal helpers.
-- Consolidate overlapping entry points (`history`/`row_history`, `actor_history`/`actor_window`) with deprecations, including the deferred bounded default limit for `history/3`.
-- Consistent return shapes.
+**Goal:** Lock down a public API that adopters can depend on for all of 1.x (typespecs, docs, one obvious entry point per job, consistent return shapes, a deliberate support floor), then declare **1.0.0**.
+
+**Opened:** 2026-10-02 on local branch `milestone/v1.44` (phases continue from 231). The canonical rung scope is in `.planning/MILESTONE-GUIDE.txt` §7.
+
+**Baseline re-derived 2026-10-02:** about 129 of 169 public functions in non-hidden modules have no `@spec`, including all 17 on the `Threadline` facade. The history read paths overlap: `history/3`, `row_history/4` and `row_history_page/4`, plus `actor_history/2` and `actor_window/3`, are each exposed through `Threadline`, `Threadline.Query` and `Threadline.Investigation`. PG 14 reaches end of life on 2026-11-12. Main CI is green at 0.12.0.
+
+**Target features:**
+- Complete `@spec`/`@doc` on the public surface. Hide internal helpers. Add a gate so coverage can't regress.
+- Consolidate the overlapping entry points with deprecations, including the deferred bounded default limit for `history/3`.
+- Consistent return shapes across the public API.
 - A supported-table-shapes guide and a redaction threat model.
-- Decide the `Capture.AuditTransaction` ↔ `Semantics.AuditAction` runtime edge deliberately.
-- The Elixir 1.15 / PG 14 floor decision (PG 14 reaches EOL 2026-11-12).
-- Declare 1.0.0.
-
-Carried from v1.44: refresh `test/partition_weights.txt` (`bin/ci-test-partitions --write-weights`); async for pure-read `DataCase` tests is a candidate now that partition data exists.
+- A deliberate decision on the `Capture.AuditTransaction` ↔ `Semantics.AuditAction` runtime edge.
+- The Elixir 1.15 / PG 14 support floor decision.
+- Carried from v1.44: refresh `test/partition_weights.txt`; async for pure-read `DataCase` tests if cheap.
+- Declare 1.0.0 through release-please.
 
 ## Latest Milestone Shipped: v1.44 Behavioral Depth: Properties, Twins, Telemetry (2026-10-02)
 
@@ -694,7 +699,7 @@ Carried from v1.44: refresh `test/partition_weights.txt` (`bin/ci-test-partition
 
 ### Active
 
-None yet. The next milestone (v1.45 1.0 API Contract) defines fresh requirements through `/gsd-new-milestone`; see Next Milestone Goals above.
+Defined in `.planning/REQUIREMENTS.md` for v1.45 1.0 API Contract (see Current Milestone above).
 
 ### Out of Scope
 
@@ -850,4 +855,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-02 after v1.44 milestone*
+*Last updated: 2026-10-02 after v1.45 milestone start*

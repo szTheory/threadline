@@ -1,20 +1,16 @@
 ---
 gsd_state_version: "1.0"
-milestone: v1.44
-milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
-status: Awaiting next milestone
-stopped_at: Milestone v1.44 complete — archived, tag v1.44 local
-last_updated: "2026-10-03T02:13:21.688Z"
+milestone: v1.45
+milestone_name: 1.0 API Contract
+status: planning
+last_updated: "2026-10-03T02:37:48.430Z"
 last_activity: 2026-10-02
-last_activity_desc: Milestone v1.44 completed and archived
-state_head: f78f9b9c9d3d1111b370203e9f12b6743f629bc2
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 33
-  completed_plans: 33
-  percent: 100
-current_phase: 230
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Threadline
@@ -24,22 +20,14 @@ current_phase: 230
 See: `.planning/PROJECT.md` (updated 2026-10-02 after v1.44 milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Planning the next milestone (v1.45; read `.planning/MILESTONE-GUIDE.txt` first)
+**Current focus:** v1.45 1.0 API Contract — defining requirements (research → requirements → roadmap; phases from 231)
 
 ## Current Position
 
-Phase: Milestone v1.44 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-10-02 — Milestone v1.44 completed and archived
-
-**v1.44 close (2026-10-02):**
-
-- 27/27 requirements, 7/7 phases (224-230), 33 plans. Audit status tech_debt (`.planning/milestones/v1.44-MILESTONE-AUDIT.md`).
-- Closeout type: override_closeout. `init.manager` reports 224, 225, 228 and 229 verification as `stale` (covered files changed after the verifier ran, through review-fix passes and later phases). `lib/` and `test/` on the milestone branch are byte-identical to origin/main, so all of it passed PR #73's CI and shipped as 0.12.0.
-- Landed as squash #73 `67090195`; released 0.12.0 (#74, Release run 37084163662, sync #75).
-- Local `milestone/v1.44` carries the post-landing planning commits and the archive; they are not on main yet. Tag `v1.44` is local only.
-- Carried debt: refresh `test/partition_weights.txt` with `bin/ci-test-partitions --write-weights` (10 property-test files unweighted). Nyquist VALIDATION.md is draft for all 7 phases.
+Status: Defining requirements
+Last activity: 2026-10-02 — Milestone v1.45 started
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -1017,8 +1005,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
 - **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
 - **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
-- **Last Action**: Milestone v1.44 closed and archived (2026-10-02); tag `v1.44` local; 0.12.0 on hex.pm.
-- **Next Step**: `/gsd-new-milestone` for v1.45 1.0 API Contract (see PROJECT.md "Next Milestone Goals" and `.planning/MILESTONE-GUIDE.txt` §7).
+- **Last Action**: Milestone v1.45 1.0 API Contract started (2026-10-02); PROJECT.md `## Current Milestone` written. v1.44 is closed (tag `v1.44` local, 0.12.0 on hex.pm).
+- **Next Step**: finish `/gsd-new-milestone` for v1.45: research (`.planning/research/`), then REQUIREMENTS.md, then ROADMAP.md (phases from 231).
 - **Resume file**: `.planning/PROJECT.md`
 
 ## Operator Next Steps
