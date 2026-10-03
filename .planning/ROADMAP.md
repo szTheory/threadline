@@ -49,7 +49,7 @@
 ## Phases
 
 - [x] **Phase 231: Facade Topology and the Capture/Semantics Edge** - `Threadline` is the one documented read API, and the capture schemas no longer declare an association to the semantics schema
-- [ ] **Phase 232: Consolidated Reads, Deprecations and the Bounded Default** - One `row_history/3`, one `Threadline.Page`, a 200-row default with truncation telemetry, and a warning-only path off every retired name
+- [x] **Phase 232: Consolidated Reads, Deprecations and the Bounded Default** - One `row_history/3`, one `Threadline.Page`, a 200-row default with truncation telemetry, and a warning-only path off every retired name (completed 2026-10-03)
 - [ ] **Phase 233: Lookup Return Shapes** - Single-subject lookups return `{:ok, _}` / `{:error, :not_found}` with raising `!` siblings
 - [ ] **Phase 234: Typespec and Doc Completion Gate** - Every public function has an informative `@spec` and a `@doc`, enforced by a test, and the facade page is grouped by job
 - [ ] **Phase 235: Stability Contract and Adopter Guides** - The 1.x promise is written down and pinned by tests, with the supported-table-shapes guide and the redaction threat model
@@ -75,12 +75,15 @@
 
 Plans:
 **Wave 1**
+
 - [x] 231-01-PLAN.md — API-07: drop the AuditTransaction/AuditAction associations, hidden `hydrate_actions/3` helper, rewired internal call sites, deprecated `:preload :action` shim, CHANGELOG (wave 1) — complete 2026-10-03
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 231-02-PLAN.md — API-04: hide `Threadline.Query`/`Threadline.Investigation`, name the `timeline_query/1` escape hatch, facade-only lib docs and guides, strict docs gate green (wave 2) — complete 2026-10-03
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 231-03-PLAN.md — facade-only doc-contract scanner, example script on the facade, mutation controls, full `mix ci.all` gate (wave 3) — complete 2026-10-03
 
 ### Phase 232: Consolidated Reads, Deprecations and the Bounded Default
@@ -100,21 +103,27 @@ Plans:
 
 Plans:
 **Wave 1**
+
 - [x] 232-01-PLAN.md — API-03: `Threadline.Page` with exact `has_more`, `cursor: :start`/nil rules, timeline/row/investigation pagers + export walk on Page, `TimelinePage` deleted (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 232-02-PLAN.md — API-02, API-03: `actor_history/2` on Page with `cursor:`/`page_size:` and warning legacy options, actor LiveView forced edit, `ActorHistoryPage` deleted, actor read doc contract (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
+
 - [x] 232-03-PLAN.md — API-01: `row_history/3` with the 200 default, `limit:`/`cursor:` modes, cursor mode on `actor_window/3`/`correlation_bundle/3`, deprecated `row_history/4` arity split, truncation telemetry, drawer opt-out (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 232-04-PLAN.md — API-08: every retired name a one-line `@deprecated` delegate with spec + parity test, exact deprecation inventory, `lib/` warnings-as-errors clean, CHANGELOG Deprecations (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 232-05-PLAN.md — API-08, API-01: all `test/` and example-app callers migrated off retired names (`Threadline.Test.RowHistory`, unbounded v1.44 property baseline), warnings-as-errors clean for `test/` and the example (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 232-06-PLAN.md — API-05: `emit_*`/`export_changes_query` hidden, scanners for hidden and retired names (no guide exemption), guides/README rewritten incl. upgrade guides, facade-naming contract, `mix ci.all` phase gate (wave 6)
 
 ### Phase 233: Lookup Return Shapes
@@ -205,7 +214,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
-| 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Awaiting verification | - |
+| 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
 | 233. Lookup Return Shapes | 0/TBD | Not started | - |
 | 234. Typespec and Doc Completion Gate | 0/TBD | Not started | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
