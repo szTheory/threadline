@@ -323,8 +323,8 @@ which is the same quantity before partitioning existed).
 | 227 | 133.1s | 128.9s | 524 / 14 | 491 / 14 | -6.3% | 1508s -> 1643s (+135s). Attributable to the three new DB-backed property tests this phase added (~2649 -> 2672 tests). | 36903609149 (before), 36929234558 (after) | `227-EVIDENCE.md` "SC-5 wall clock before and after" |
 | 228 | 213.7s | 219.0s | 491 / 14 | 497 / 14 | +1.2% | 1643s -> 1644s (+1s). Attributable to the telemetry tests this phase added (~2672 -> 2702 tests); negligible serial-equivalent cost for this phase's added coverage. | 36929234558 (before), 37018812221 (after) | `228-EVIDENCE.md` "SC-5 wall clock before and after" |
 | 229 | 186.2s | 171.9s | local-only (no CI run this phase) | local-only (no CI run this phase) | n/a | not exposed (no partitioned CI run this phase; local-only) | — | `229-adopter-api-and-health-additions/evidence/SC5-wallclock.md` |
-| 230 | 137.44s (BASE, SUITE-04 rebalance before) | 151.59s (REBAL_AFTER) | pending: plan 04 fresh pre-landing run | pending: plan 04 fresh pre-landing run | pending | pending: plan 04 fresh pre-landing run (34 fewer tests from the SUITE-04 rebalance cuts should trend this down; attribution: 230 rebalance cuts) | — | `230-EVIDENCE.md` "SUITE-04 rebalance" / "Wall clock before and after" (this phase, plan 01) |
-| SUITE-06 verdict | — | — | pending: plan 04 fresh pre-landing run | pending: plan 04 fresh pre-landing run | pending | — | — | `230-EVIDENCE.md` (plan 04 fills this row) |
+| 230 | 137.44s (BASE, SUITE-04 rebalance before) | 151.59s (REBAL_AFTER) | 497 / 14 (last cited CI run, 228 after) | 507 / 14 | +2.0% vs 497 s; -40.1% vs SUITE-01's 846 s | 1644s -> 1668s (+24s). Partition counts on this run total 2734 tests per lane (min/current; latest 2731), up from 2702 at 228: 229's added tests (local-only phase, no CI run of its own) outweigh the 34 tests this phase's rebalance cut, so the +24s is attributed to 229's added coverage net of 230's cuts; stated plainly, not re-baselined. | 37018812221 (before, cited), 37082623361 (after, landing PR #73's own pull_request run, cache hit on all lanes) | `230-EVIDENCE.md` "Fresh pre-landing run (D-06)" |
+| SUITE-06 verdict | — | — | 846 / 20 (SUITE-01, run 36730596489) | 507 / 14 (run 37082623361) | -40.1% | — | 36730596489 vs 37082623361 | **PASS** — all three lanes `Build cache: hit`; Σ Run tests 507 s ≤ 930.6 s; per lane min 167 ≤ 288, current 179 ≤ 291, latest 161 ≤ 267 (`230-EVIDENCE.md` "Fresh pre-landing run (D-06)") |
 
 ### Serial-equivalent work (D-07)
 
@@ -480,3 +480,56 @@ Reviewed exclusions (not phase or plan IDs):
 All three `latest`-lane pins are already the newest stable release available; no pin refresh is needed at this landing or at milestone close.
 
 Commit: `docs(230-04): record the landing preflight and pin re-check` (local, see Task Commits in the plan-04 summary once written).
+
+### Maintainer grant
+
+The first reply, "yes i authorize u for that" (2026-10-02), pointed back at the six-item list without naming the actions. The `git push` it would have covered was refused by the session's permission check, and nothing ran.
+
+The grant that covers this landing and release, quoted verbatim (2026-10-02):
+
+> push milestone/v1.44 and open the PR to main, squash merge it if CI is green and the suite-time gate passes, then merge the release-please 0.12.0 PR, publish to hex by approving production-hex, and merge the distribution sync PR — i authorize u
+
+It names all six D-17 actions: push, PR, the conditional squash merge, the release PR merge, the `production-hex` approval, and the distribution-sync PR merge. The pins were current, so there was no hold-or-refresh question to answer.
+
+- Push: `4742e691..980faa01  milestone/v1.44 -> milestone/v1.44`
+- PR: #73 (head `980faa015e320e14b5f0aa67f54188e031da3e48`)
+- The PR's own `ci.yml` pull_request run: `37082623361` (headSha equals the PR head)
+
+### Fresh pre-landing run (D-06)
+
+Run `37082623361` is landing PR #73's own `ci.yml` pull_request run. Its head is `980faa015e320e14b5f0aa67f54188e031da3e48`, the same as the PR head, and its conclusion is `success`. `CI required` passed.
+
+`python3 .planning/phases/225-suite-baseline-and-partitioned-ci/tools/ci-job-timing.py 37082623361 --cache-state`:
+
+| Lane | Job seconds | Proxy (min) | Run tests seconds | Build cache |
+|---|---|---|---|---|
+| min | 220 | 4 | 167 | hit |
+| current | 360 | 6 | 179 | hit |
+| latest | 216 | 4 | 161 | hit |
+| **total** | | **14** | |
+
+Per-lane partition reports were read with `gh api --allow-escape-sequences repos/szTheory/threadline/actions/jobs/<job-id>/logs`, ANSI-stripped, using the same method as plan 02:
+
+| Lane (job id) | P1 s | P2 s | P3 s | P4 s | Σ partition s | Report total | Counts |
+|---|---|---|---|---|---|---|---|
+| min (111086229545) | 109 | 126 | 157 | 166 | 558 | 167 | 712/743/599/680 tests, 0 failures |
+| current (111086229420) | 111 | 125 | 166 | 177 | 579 | 178 | 712/743/599/680 tests, 0 failures |
+| latest (111086229428) | 100 | 123 | 148 | 160 | 531 | 161 | 712/743/596/680 tests, 0 failures |
+
+Serial-equivalent work is 558 + 579 + 531 = **1668 s**, against 1644 s on run 37018812221.
+
+The gate formula fixed above (Gate, D-06) was applied as written:
+- Every lane reports `Build cache: hit`.
+- Every lane has a `Run tests` step and a partition report.
+- Σ `Run tests` is 167 + 179 + 161 = 507 s, which is ≤ 930.6 s.
+- Each lane is within its own ceiling: min 167 ≤ 288, current 179 ≤ 291, latest 161 ≤ 267.
+
+**Verdict: PASS.** The squash merge was gated on this result.
+
+### Landing
+
+- PR #73 was squash-merged with `--match-head-commit 980faa015e320e14b5f0aa67f54188e031da3e48`, after the merge base was re-checked (`origin/main` was still `fc47af60`).
+- The merge commit on main is `6709019502fdd70d097a7ae285ba9936462a79e2`.
+- `git log -1 --format=%s origin/main`: `feat!: add export and retention telemetry, a history limit, and strict coverage checks (#73)`.
+- The body carries exactly 3 `BREAKING CHANGE:` footers.
+- The branch was not deleted.
