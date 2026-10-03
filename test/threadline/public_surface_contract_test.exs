@@ -10,7 +10,30 @@ defmodule Threadline.PublicSurfaceContractTest do
     Threadline.CriticTrust.KrippendorffAlpha,
     Threadline.CriticTrust.RepositoryBoundary,
     Mix.Tasks.Critic.Measure,
-    Mix.Tasks.Critic.Synth
+    Mix.Tasks.Critic.Synth,
+    Threadline.Query,
+    Threadline.Investigation
+  ]
+  # D-02/API-04: the single supported Ecto-composition escape hatch, named in
+  # the Threadline moduledoc as inline code once Query/Investigation are hidden.
+  @escape_hatch_reference "Threadline.Query.timeline_query/1"
+  # D-01: ExDoc's documented mechanism for referencing a function in a hidden
+  # module without triggering an "documentation references ... hidden" warning.
+  @skip_code_autolink_to [@escape_hatch_reference]
+  # Released CHANGELOG history keeps its three historical hidden-module
+  # references; this is the only file the undefined-reference warning is
+  # suppressed for.
+  @skip_undefined_reference_warnings_on ["CHANGELOG.md"]
+  # D-08/D-09: child struct modules of the newly-hidden Query/Investigation
+  # modules stay visible and stay grouped under "Data Types" — only the two
+  # parent modules move to @moduledoc false.
+  @hidden_module_child_structs [
+    Threadline.Query.TimelinePage,
+    Threadline.Query.ActorHistoryPage,
+    Threadline.Investigation.IncidentBundle,
+    Threadline.Investigation.IncidentChange,
+    Threadline.Investigation.LinkedChange,
+    Threadline.Investigation.LinkedTransaction
   ]
   # Released CHANGELOG entries are history and are never rewritten, so a module
   # renamed after release stays named there under its old name. Each rename is
@@ -224,6 +247,42 @@ defmodule Threadline.PublicSurfaceContractTest do
              "expected #{inspect(module)} to have @moduledoc false, got #{inspect(docs_visibility(module))}"
 
       refute module in grouped, "hidden module #{inspect(module)} appears in groups_for_modules"
+    end
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "the Threadline moduledoc names Threadline.Query.timeline_query/1 as the one escape hatch" do
+    {:docs_v1, _, _, _, moduledoc, _, _} = Code.fetch_docs(Threadline)
+    text = Map.fetch!(moduledoc, "en")
+
+    assert String.contains?(text, @escape_hatch_reference),
+           "expected the Threadline moduledoc to name #{@escape_hatch_reference}"
+
+    Code.ensure_loaded!(Threadline)
+
+    refute function_exported?(Threadline, :timeline_query, 1),
+           "Threadline must not export a timeline_query/1 delegate (D-04)"
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "the docs skip lists are pinned to exactly their documented entries" do
+    docs = Threadline.MixProject.project()[:docs]
+
+    assert Keyword.fetch!(docs, :skip_code_autolink_to) == @skip_code_autolink_to
+    assert Keyword.fetch!(docs, :skip_undefined_reference_warnings_on) == @skip_undefined_reference_warnings_on
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "child struct modules of the newly-hidden modules stay visible" do
+    for module <- @hidden_module_child_structs do
+      assert docs_visibility(module) == :visible,
+             "expected #{inspect(module)} to stay visible, got #{inspect(docs_visibility(module))}"
+
+      assert module in grouped_modules(),
+             "expected #{inspect(module)} to stay grouped under Data Types"
     end
   end
 
