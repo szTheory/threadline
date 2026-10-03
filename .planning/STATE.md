@@ -2,9 +2,14 @@
 gsd_state_version: "1.0"
 milestone: v1.45
 milestone_name: 1.0 API Contract
+current_phase: 231
+current_phase_name: Facade Topology and the Capture/Semantics Edge
 status: planning
-last_updated: "2026-10-03T12:00:00.000Z"
+stopped_at: Phase 231 context gathered
+last_updated: "2026-10-03T13:21:49.296Z"
 last_activity: 2026-10-03
+last_activity_desc: Phase 231 context gathered (4 advisor areas, 13 decisions)
+state_head: 1059931bb39d31e40c1608e6743ea77e61afeb13
 progress:
   total_phases: 7
   completed_phases: 0
@@ -990,9 +995,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-02T21:24:17.352Z
-**Stopped at:** v1.45 roadmap created (phases 231-237), awaiting orchestrator approval and commit
-**Resume file:** None
+**Last session:** 2026-10-03T13:21:49.271Z
+**Stopped at:** Phase 231 context gathered
+**Resume file:** .planning/phases/231-facade-topology-and-the-capture-semantics-edge/231-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
