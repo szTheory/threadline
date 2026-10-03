@@ -25,6 +25,10 @@ handlers to build metrics, alerts, and dashboards on top of this contract.
 | `[:threadline, :retention, :purge, :stop]` | `batches_run`, `deleted_changes`, `deleted_transactions`, `duration`, `monotonic_time` | `dry_run`, `telemetry_span_context` | when the run or preview returns |
 | `[:threadline, :retention, :purge, :exception]` | `duration`, `monotonic_time` | `dry_run`, `kind`, `reason`, `stacktrace`, `telemetry_span_context` | when the database raises mid-run |
 | `[:threadline, :retention, :batch_purged]` | `deleted_changes`, `deleted_transactions`, `duration` | — | after a purge_loop step's change delete_all and full orphan drain both return, once per step including the terminating empty one |
+| `[:threadline, :row_history, :truncated]` | `limit` | `schema` | Threadline.row_history/3's default 200-row cap dropped older changes |
+
+Pass `limit: :infinity` or walk `cursor:` on `Threadline.row_history/3` to
+read the whole history instead of the default 200-row cap.
 
 ## Attaching handlers
 

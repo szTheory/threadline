@@ -29,6 +29,7 @@ defmodule Threadline.Telemetry do
   | `[:threadline, :retention, :purge, :stop]` | `batches_run`, `deleted_changes`, `deleted_transactions`, `duration`, `monotonic_time` | `dry_run`, `telemetry_span_context` | when the run or preview returns |
   | `[:threadline, :retention, :purge, :exception]` | `duration`, `monotonic_time` | `dry_run`, `kind`, `reason`, `stacktrace`, `telemetry_span_context` | when the database raises mid-run |
   | `[:threadline, :retention, :batch_purged]` | `deleted_changes`, `deleted_transactions`, `duration` | — | after a purge_loop step's change delete_all and full orphan drain both return, once per step including the terminating empty one |
+  | `[:threadline, :row_history, :truncated]` | `limit` | `schema` | Threadline.row_history/3's default 200-row cap dropped older changes |
 
   `[:threadline, :transaction, :committed]` is automatically emitted (with
   `table_count: 0`) when `Threadline.record_action/2` succeeds. For accurate
@@ -148,6 +149,12 @@ defmodule Threadline.Telemetry do
       metadata: [],
       when:
         "after a purge_loop step's change delete_all and full orphan drain both return, once per step including the terminating empty one"
+    },
+    %{
+      name: [:threadline, :row_history, :truncated],
+      measurements: [:limit],
+      metadata: [:schema],
+      when: "Threadline.row_history/3's default 200-row cap dropped older changes"
     }
   ]
 
@@ -354,6 +361,20 @@ defmodule Threadline.Telemetry do
       {result, Map.take(result, [:deleted_changes, :deleted_transactions, :batches_run]),
        %{dry_run: dry_run?}}
     end)
+  end
+
+  # Emits `[:threadline, :row_history, :truncated]` only when
+  # `Threadline.row_history/3`'s implicit 200-row default actually dropped
+  # older changes. Metadata carries the schema module atom only — never a
+  # table name string, primary-key value, or actor data.
+  @doc false
+  def emit_row_history_truncated(limit, schema_module)
+      when is_integer(limit) and is_atom(schema_module) do
+    :telemetry.execute(
+      [:threadline, :row_history, :truncated],
+      %{limit: limit},
+      %{schema: schema_module}
+    )
   end
 
   # Emits the `[:threadline, :retention, :batch_purged]` event for one

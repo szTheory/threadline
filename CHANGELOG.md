@@ -57,6 +57,17 @@ and `Threadline.incident_bundle/2`.
   Required action: pattern-match `%Threadline.Page{}` and read `.cursor` /
   `.has_more`.
 
+- `Threadline.row_history/2,3` now take one keyword opts list (filters and
+  paging options together) and return at most 200 changes by default,
+  newest first. Pass `limit: :infinity` for the whole history, or `cursor:
+  :start` (with optional `page_size:`) to page through it as a
+  `%Threadline.Page{}`. `:limit` combined with `:cursor`, or `:page_size`
+  without `:cursor`, raises `ArgumentError`. `actor_window/3` and
+  `correlation_bundle/3` gain the same `cursor:`/`page_size:` paging option
+  while keeping their existing `(subject, filters, opts)` shape. Required
+  action: pass `limit: :infinity` if you relied on the previous unbounded
+  default.
+
 ### Deprecations
 
 - Passing `:action` (or `transaction: :action`) in the `:preload` option of
@@ -65,10 +76,20 @@ and `Threadline.incident_bundle/2`.
   returns a hydrated `.action` — it now emits one deprecation warning per call.
   Removal is no earlier than Threadline 2.0.
 
+- `Threadline.row_history/4` (the retired `(schema, id, filters, opts)`
+  shape) still works and keeps its previous unbounded default. It emits one
+  compiler deprecation warning naming `row_history/3`. Removal is no earlier
+  than Threadline 2.0.
+
 - `Threadline.actor_history/2`'s `:after`, `:before` and `:limit` options
   still work and each still emits one deprecation warning per call. They are
   replaced by `cursor:` (a map, or `{:before, map}` to walk newer) and
   `page_size:`. Removal is no earlier than Threadline 2.0.
+
+### Added
+
+- `[:threadline, :row_history, :truncated]` telemetry fires when
+  `Threadline.row_history/3`'s default 200-row cap drops older changes.
 
 ## [0.12.0] - 2026-10-02
 

@@ -80,12 +80,17 @@ defmodule Threadline.Query.RowReads do
     |> Query.maybe_apply_scope(Query.row_history_scope_opts(schema_module, id, opts))
   end
 
-  defp fetch_default(query, _schema_module, repo, opts) do
+  defp fetch_default(query, schema_module, repo, opts) do
     rows =
       query
       |> limit(^(@default_limit + 1))
       |> repo.all(Query.storage_opts([], opts))
 
-    Enum.take(rows, @default_limit)
+    if length(rows) > @default_limit do
+      Threadline.Telemetry.emit_row_history_truncated(@default_limit, schema_module)
+      Enum.take(rows, @default_limit)
+    else
+      rows
+    end
   end
 end

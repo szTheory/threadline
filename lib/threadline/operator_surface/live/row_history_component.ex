@@ -27,11 +27,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         opts = [
           repo: assigns.repo,
           scope: assigns[:scope],
-          scope_query_fn: assigns[:scope_query_fn]
+          scope_query_fn: assigns[:scope_query_fn],
+          limit: :infinity
         ]
 
         try do
-          history = Threadline.history(schema_module, assigns.record_id, opts)
+          history =
+            schema_module
+            |> Threadline.row_history(assigns.record_id, opts)
+            |> Enum.map(& &1.audit_change)
 
           as_of_dt =
             assigns.as_of ||
