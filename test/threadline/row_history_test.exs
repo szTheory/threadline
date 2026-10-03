@@ -162,8 +162,8 @@ defmodule Threadline.RowHistoryTest do
       table_pk = %{"id" => "row-deprecated-unbounded"}
       insert_n_changes(txn, table_pk, 250)
 
-      # credo:disable-for-next-line Credo.Check.Refactor.Apply
-      results = apply(Threadline, :row_history, [FakeUser, "row-deprecated-unbounded", [], [repo: @repo]])
+      deprecated_row_history_args = [FakeUser, "row-deprecated-unbounded", [], [repo: @repo]]
+      results = apply(Threadline, :row_history, deprecated_row_history_args)
 
       assert length(results) == 250
       assert Enum.all?(results, &match?(%LinkedChange{}, &1))
