@@ -22,10 +22,10 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-02 after v1.44 milestone)
+See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 231)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 231 — Facade Topology and the Capture/Semantics Edge
+**Current focus:** Phase 232 — Consolidated Reads, Deprecations and the Bounded Default (next: /gsd-discuss-phase 232)
 
 ## Current Position
 

@@ -595,6 +595,7 @@ Threadline shipped **v1.44 Behavioral Depth: Properties, Twins, Telemetry** on 2
 
 ### Validated
 
+- [x] **API-04 and API-07 (Phase 231)** — `Threadline` is the one documented read API (`Threadline.Query`/`Threadline.Investigation` hidden, `Threadline.Query.timeline_query/1` the single escape hatch, facade-only doc-contract scanner); the capture schemas no longer declare an Ecto association to the semantics schema, with `transaction.action` hydrated by a hidden batched helper so every reader keeps the same shape.
 - [x] **SURFACE-01 through SURFACE-11 (Phase 200)** — Removed internal planning vocabulary from published module docs and the Hex archive, reconciled public/private module visibility and native ExDoc grouping, established an exact navigable guide graph with one runnable owner per adoption procedure, documented supported configuration and repair paths, and shipped recognized GitHub community/security intake. Validated in Phase 200 (2026-09-13).
 - [x] **DECOUPLE-01 through DECOUPLE-08 (Phase 199)** — Moved all five load-bearing evidence datasets to tracked `test/fixtures/`, removed dead planning/root executables with recovery receipts, proved clean-clone and formatter ownership, and made strict full-app Dialyzer a measured blocking gate with a zero ignore ceiling. The exact-HEAD aggregate passes with `.planning/` physically absent. Validated in Phase 199 (2026-09-11).
 - [x] **Automated operator-UI critique & forward-only iteration harness (Phases 194–197)** — `page × persona × lens` scorecard-cube ledger with per-lens monotonic ratchet + evidence-referenced bumps; deterministic mechanical checkers (`mix verify.mechanical`) and Tier A/B/C evidence capture inside `mix ci.all`; golden-set-validated local-only Claude-vision critic panel (`mix verify.ui_critique`, e2e devDependency only); forward-only net-positive gate with Goodhart/guard-the-guards protections; first human-ratified improvements landed; adversarial closeout + design-debt register. 28/29 requirements (LEDGER-01–05, MECH-01–05, CRITIC-01–05, RUNNER-01–05, GATE-01–05, PROOF-01/03/04; **PROOF-02 ratified shortfall** — paid loop parked on spend/value). Validated in v1.40 (2026-08-27).
@@ -834,6 +835,8 @@ Defined in `.planning/REQUIREMENTS.md` for v1.45 1.0 API Contract (see Current M
 | Telemetry metadata never carries audited data, actor identity or free text (v1.44) | Telemetry handlers ship to third-party sinks. A single-owner registry, a runtime allowlist and a static scan enforce it. Stripping actor ids from operator-surface events was breaking | ✓ Shipped (228, 0.12.0 BREAKING) |
 | CI test step runs as weighted `--partitions`, not more matrix lanes (v1.44) | The suite was about 91% serial. Weighted partitions with one database each cut the step 40.1% net while billed minutes fell | ✓ Shipped (225, 230); ⚠️ weights need a refresh for the new property files |
 | Guard tests are kept or cut by a written rubric (v1.44) | Prose-to-literal assertions catch no distinct failure class; tests derived from a live source or carrying a mutation control stay | ✓ Rubric in CONTRIBUTING (230) |
+| Capture/semantics edge cut with a hidden hydrate helper, not a join (Phase 231) | Dropping `belongs_to :action`/`has_many :transactions` removes the compile-time capture→semantics dependency; `Threadline.Query.ActionHydration.hydrate_actions/3` batches one `WHERE id IN` query so `.action` keeps its shape. The public `:preload` of `:action` survives as a deprecation shim | ✓ Good (verified 5/5, 2026-10-03) |
+| Facade-only docs; `timeline_query/1` is the one escape hatch (Phase 231) | One documented read API for 1.0; hidden modules keep their code but leave ExDoc, guarded by a mutation-controlled doc-contract scanner. Open review notes: the scanner misses bare module-name mentions (WR-01), and the moduledoc lists 8 of ~16 facade functions (WR-02) | ✓ Good (WR-01/WR-02 open in 231-REVIEW-DISPOSITION.md) |
 
 ## Evolution
 
@@ -855,4 +858,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-02 after v1.45 milestone start*
+*Last updated: 2026-10-03 after Phase 231*
