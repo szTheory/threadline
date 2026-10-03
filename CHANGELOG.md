@@ -24,7 +24,31 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
-_Nothing yet for the next release._
+`Threadline.Capture.AuditTransaction` and `Threadline.Semantics.AuditAction` no
+longer declare a direct Ecto association to each other, enforcing this
+project's capture/semantics layer boundary at the schema level. Reading the
+linked action still works the same way through `Threadline.transaction_context/2`
+and `Threadline.incident_bundle/2`.
+
+### Breaking changes
+
+- An un-hydrated `AuditTransaction.action` is now `nil` instead of
+  `%Ecto.Association.NotLoaded{}`. `AuditTransaction` no longer declares
+  `belongs_to :action, Threadline.Semantics.AuditAction` and `AuditAction` no
+  longer declares `has_many :transactions, Threadline.Capture.AuditTransaction`,
+  so a bare `Repo.preload(transaction, :action)` in adopter code now raises.
+  Required action: read the linked action through
+  `Threadline.transaction_context/2` or `Threadline.incident_bundle/2`, or
+  query `audit_actions` directly by `action_id`. The `action_id` column and its
+  foreign key are unchanged.
+
+### Deprecations
+
+- Passing `:action` (or `transaction: :action`) in the `:preload` option of
+  `Threadline.Query.audit_transaction/2` and
+  `Threadline.Query.audit_changes_for_transaction/2` still works and still
+  returns a hydrated `.action` — it now emits one deprecation warning per call.
+  Removal is no earlier than Threadline 2.0.
 
 ## [0.12.0] - 2026-10-02
 
