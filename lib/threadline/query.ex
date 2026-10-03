@@ -1,32 +1,5 @@
 defmodule Threadline.Query do
-  @moduledoc """
-  Ecto query implementations for the Threadline public API.
-
-  All functions require an explicit `:repo` option and return plain lists of
-  Ecto structs. Database errors propagate as exceptions, matching normal Ecto
-  repository query behavior.
-
-  ## Timeline filters
-
-  `timeline/2`, `timeline_query/1`, and `Threadline.Export` accept the same
-  filter keyword list. Only these keys are allowed: `:repo`, `:table_schema`,
-  `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`.
-  Unknown keys raise `ArgumentError` (breaking vs
-  pre-1.0 callers that relied on silent ignores — see CHANGELOG when upgrading).
-
-  When `:correlation_id` is set to a non-empty string (after trimming), results are
-  limited to changes whose transaction is linked to an `audit_actions` row with that
-  `correlation_id` (strict inner-join semantics; see CHANGELOG). Omit the key to leave
-  correlation out of the filter.
-
-  Use `timeline_repo!/2` to resolve `:repo` from filters and opts with the same
-  messages as export entrypoints.
-
-  ## See also
-
-  - `Threadline.Export` — CSV / JSON export using the same filter vocabulary.
-  - `audit_changes_for_transaction/2` — all changes for one `audit_transactions.id` (transaction drill-down vs `timeline/2` slices).
-  """
+  @moduledoc false
 
   import Ecto.Query
 

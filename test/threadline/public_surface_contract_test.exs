@@ -271,7 +271,9 @@ defmodule Threadline.PublicSurfaceContractTest do
     docs = Threadline.MixProject.project()[:docs]
 
     assert Keyword.fetch!(docs, :skip_code_autolink_to) == @skip_code_autolink_to
-    assert Keyword.fetch!(docs, :skip_undefined_reference_warnings_on) == @skip_undefined_reference_warnings_on
+
+    assert Keyword.fetch!(docs, :skip_undefined_reference_warnings_on) ==
+             @skip_undefined_reference_warnings_on
   end
 
   @tag :module_visibility_tracer

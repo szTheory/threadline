@@ -1,10 +1,5 @@
 defmodule Threadline.Investigation do
-  @moduledoc """
-  Higher-level investigation helpers layered on top of Threadline query primitives.
-
-  Use these helpers when you want the canonical operator questions as one public
-  entrypoint instead of assembling low-level filter lists manually.
-  """
+  @moduledoc false
 
   alias Threadline.Query
   alias Threadline.Query.TimelinePage

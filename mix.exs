@@ -621,6 +621,15 @@ defmodule Threadline.MixProject do
         Contribute:
           ~r{^(CONTRIBUTING|CHANGELOG)\.md$|^guides/adoption-pilot-backlog\.md$|/DESIGN-SYSTEM\.md$}
       ],
+      # ExDoc's documented mechanism for mentioning a function living in a
+      # @moduledoc false module without emitting a "documentation references a
+      # hidden module" warning. Kept to exactly this one entry — the escape
+      # hatch named in the Threadline moduledoc for composing a custom query.
+      skip_code_autolink_to: ["Threadline.Query.timeline_query/1"],
+      # Released CHANGELOG history names Threadline.Query / Threadline.Investigation
+      # directly; that history is never rewritten, so only this one extra's
+      # undefined-reference warnings are suppressed.
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"],
       groups_for_modules: [
         "Core API": [
           Threadline,
@@ -630,10 +639,8 @@ defmodule Threadline.MixProject do
           Threadline.Evidence,
           Threadline.Export,
           Threadline.Health,
-          Threadline.Investigation,
           Threadline.Job,
           Threadline.Plug,
-          Threadline.Query,
           Threadline.Retention,
           Threadline.Telemetry
         ],

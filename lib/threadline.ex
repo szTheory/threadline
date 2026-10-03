@@ -4,6 +4,23 @@ defmodule Threadline do
 
   Threadline combines trigger-backed row-change capture, rich action semantics
   (actor/intent/context), and operator-grade exploration.
+
+  ## Reading audit data
+
+  The functions on this module are the supported read API: `timeline/2`,
+  `history/3`, `row_history/4`, `actor_window/3`, `incident_bundle/2`,
+  `audit_changes_for_transaction/2`, `export_csv/2`, and `export_json/2`. Build
+  on these rather than on the internal modules behind them.
+
+  ## Composing your own Ecto query
+
+  `Threadline.Query.timeline_query/1` is the one supported escape hatch for
+  composing your own Ecto query on top of the timeline. It returns the
+  unexecuted `AuditChange` `Ecto.Query` behind `timeline/2` — same filters,
+  same `captured_at` descending, `id` descending order — so you can add your
+  own `where`/`select`/pagination before calling `Repo`. Unlike `timeline/2`,
+  it does not validate filter keys, so pass only the documented `timeline/2`
+  filter keys.
   """
 
   alias Threadline.Investigation
