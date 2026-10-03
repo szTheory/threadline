@@ -61,6 +61,12 @@ defmodule Threadline.Query.RowReads do
         repo.all(query, Query.storage_opts([], opts))
 
       {:ok, n} when is_integer(n) and n > 0 ->
+        # An explicit `limit: n` never fires the truncation telemetry, even
+        # when the true row count also exceeds `n` — only the implicit
+        # default cap below does. This is intentional: the truncation event
+        # is hardcoded to the default cap's measurement, not the caller's
+        # `n`, so a symmetric emit here would misreport the limit that was
+        # actually hit. Do not add one.
         query
         |> limit(^n)
         |> repo.all(Query.storage_opts([], opts))
