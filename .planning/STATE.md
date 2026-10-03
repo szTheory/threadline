@@ -4,16 +4,16 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 232
 current_phase_name: Consolidated Reads, Deprecations and the Bounded Default
-status: planning
-stopped_at: Phase 232 context gathered
-last_updated: "2026-10-03T16:26:27.607Z"
+status: ready_to_execute
+stopped_at: Phase 232 planned (6 plans, 6 waves)
+last_updated: "2026-10-03T17:07:20.682Z"
 last_activity: 2026-10-03
-last_activity_desc: Phase 231 complete, transitioned to Phase 232
-state_head: bb6911ca6f1dd8ebd1a112d9ca9145f517b9ff50
+last_activity_desc: Phase 232 planned — 6 plans, checker passed
+state_head: 12de2ff82da5d62bf67d674a1f0c3e400ac91f61
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
+  total_plans: 9
   completed_plans: 3
   percent: 14
 ---
@@ -29,10 +29,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 231)
 
 ## Current Position
 
-Phase: 232 of 231-237 (Consolidated Reads, Deprecations and the Bounded Default)
+Phase: 232 (Consolidated Reads, Deprecations and the Bounded Default) — READY TO EXECUTE
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-03 — Phase 231 complete, transitioned to Phase 232
+Status: Ready to execute
+Last activity: 2026-10-03 — Phase 232 planned (6 plans in 6 sequential waves; plan-checker passed after 1 revision)
 
 v1.45 Progress: [█░░░░░░░░░] 1 of 7 v1.45 phases complete (14%) (231-237; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 

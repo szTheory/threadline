@@ -324,17 +324,19 @@ end
 
 **If this table is empty:** N/A — three low/medium-risk layout assumptions are listed above; `232-CONTEXT.md`'s own decisions (D-01..D-19) are themselves either maintainer-ratified or explicitly marked Claude's Discretion, so none of the substantive API/behavior decisions are flagged `[ASSUMED]` here.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `Threadline.Page`'s `cursor` field replace `next_cursor` on every paged read, including `actor_history/2`'s bidirectional (`next_cursor`/`prev_cursor`) shape?**
    - What we know: D-05 says `Threadline.Page{entries, cursor, has_more}` replaces both `TimelinePage` (single `next_cursor`) and `ActorHistoryPage` (`next_cursor` + `prev_cursor`). D-09 says `actor_history/2`'s canonical options become `cursor:` + `page_size:`, with legacy `:after`/`:before` kept working, and "for a backward walk, `page.cursor` is the cursor for continuing in the direction walked" — implying a single `cursor` field serves both directions depending on which way the caller is walking.
    - What's unclear: Whether `actor_history/2` needs a second field (e.g. still exposing the *other* direction's cursor) or whether D-09's single-`cursor`-in-the-walked-direction design fully replaces the old bidirectional two-cursor shape with no loss of capability for a caller who wants to walk both ways from one page.
    - Recommendation: The planner should read `232-CONTEXT.md` D-09's exact wording as authoritative (single `cursor`, direction-dependent) and write a test exercising both forward and backward walks through `actor_history/2` early in the phase to confirm no capability gap, rather than treating this as settled.
+   - **RESOLVED:** D-09 governs — a single direction-dependent `cursor` (backward pages return `{:before, map}`); 232-02 tests both forward and backward walks.
 
 2. **Where does the row_history-specific 200-default limiter live relative to `HistoryLimit`?**
    - What we know: `HistoryLimit` (`lib/threadline/query/history_limit.ex`) today validates/applies `history/3`'s unbounded-by-default `:limit`. D-03 needs a different default (200, not unbounded) plus an `:infinity` sentinel for the *new* `row_history/3`.
    - What's unclear: Whether `HistoryLimit` should grow a second entry point for the new default, or whether a sibling module avoids conflating two different default policies in one module's public API.
    - Recommendation: Left to planner discretion per `232-CONTEXT.md`; either choice is low-risk as long as `history/3`'s existing unbounded-by-default behavior (needed for D-04's deprecated-name parity) is not accidentally changed.
+   - **RESOLVED:** planner discretion — a sibling hidden module `Threadline.Query.RowReads` owns the 200 default and `:infinity`; `HistoryLimit` is unchanged (232-03).
 
 ## Environment Availability
 
