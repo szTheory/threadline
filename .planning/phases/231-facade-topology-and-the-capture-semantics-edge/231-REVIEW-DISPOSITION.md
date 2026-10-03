@@ -5,27 +5,27 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`guides/audit-indexing.md` still names the hidden `Threadline.Query` module, undetected by the new facade-only guard"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`Threadline` moduledoc's \"supported read API\" list omits most of the module's actual public read functions"
   - id: IN-01
     severity: info
     disposition: open
     title: "`incident_replay.exs` duplicates `audit_transactions` table access via raw SQL instead of a facade helper"
-open: 3
+open: 1
 total: 3
-recorded: 2026-10-03T15:41:37.335Z
+recorded: 2026-10-03T16:05:00.833Z
 ---
 
 # Phase 231: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
+| WR-01 | warning | fixed | 231-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 231-REVIEW-FIX.md |
 | IN-01 | info | open | - |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
