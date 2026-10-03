@@ -1,9 +1,9 @@
 defmodule Threadline.Query.LegacyOpts do
   @moduledoc false
 
-  # D-11: the 0.12 `*_page` helpers treated an absent or `nil` `:cursor` as
-  # "first page". The new always-paged functions raise on `cursor: nil`
-  # (D-07) — this maps the old first-page call onto the new `:start` so the
+  # The 0.12 `*_page` helpers treated an absent or `nil` `:cursor` as "first
+  # page". The newer always-paged functions raise on `cursor: nil` instead —
+  # this maps the old first-page call onto the new `:start` so the
   # soon-retired `*_page` helpers keep working unchanged while every other
   # paged read enforces the stricter rule.
   @doc """

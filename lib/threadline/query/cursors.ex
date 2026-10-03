@@ -170,7 +170,7 @@ defmodule Threadline.Query.Cursors do
           ":cursor must be nil or %{captured_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
   end
 
-  # D-08: `raw` is a fetch of up to `page_size + 1` rows in descending keyset
+  # `raw` is a fetch of up to `page_size + 1` rows in descending keyset
   # order. The extra row (if present) only signals that more rows exist; it
   # is dropped from `entries`. `has_more` is therefore exact: a page that is
   # exactly full never falsely reports a cursor.
