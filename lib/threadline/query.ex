@@ -85,7 +85,7 @@ defmodule Threadline.Query do
   end
 
   @doc false
-  # D-08: hidden, batched replacement for the removed capture/semantics Ecto
+  # Hidden, batched replacement for the removed capture/semantics Ecto
   # associations. Accepts nil, a single AuditTransaction or AuditChange, or a
   # list of either. AuditChange elements must already have `:transaction`
   # preloaded (an Ecto.Association.NotLoaded transaction raises). Dedupes the
@@ -706,7 +706,7 @@ defmodule Threadline.Query do
     end
   end
 
-  # D-10: pulls a bare `:action` (audit_transaction/2) out of a :preload
+  # Pulls a bare `:action` (audit_transaction/2) out of a :preload
   # value before it ever reaches `repo.preload/3` — AuditTransaction no
   # longer declares that association, so passing it straight through would
   # raise a raw Ecto error instead of this project's own ArgumentError. A

@@ -5,7 +5,10 @@
 **Found during:** Task 1 (231-02), running the full verify command
 `mix test test/threadline/public_surface_contract_test.exs test/threadline/release_artifact_contract_test.exs`.
 
-**Status:** Out of scope — pre-existing, not caused by 231-02's changes.
+**Status:** Resolved in 231-02 (Rule 3 — blocking fix). The pre-existing failures blocked this
+task's own `<verify>` command (which runs `release_artifact_contract_test.exs` together with
+`public_surface_contract_test.exs`), and the fix was a one-line, no-behavior-change rewording of
+two comments in a file this task was already touching, so it was fixed rather than merely logged.
 
 **Evidence:** Confirmed via `git stash` (reverting all 231-02 working-tree changes) that the
 same 3 failures reproduce identically on top of 231-01's commit (`c382a937`):
@@ -23,13 +26,9 @@ same 3 failures reproduce identically on top of 231-01's commit (`c382a937`):
 - `test source_vocab_core_query_policy is an exact nonempty archive source owner`
 - `test the entire readable archive is free of planning vocabulary`
 
-**Why not fixed here:** 231-02's tasks scope is hiding `Threadline.Query`/`Threadline.Investigation`
-docs and rewriting guides (API-04). Rewriting 231-01's `D-08`/`D-10` source comments to durable
-prose is unrelated to this plan's files_modified list and risks touching behavior 231-01 already
-verified. Per the executor scope boundary, this is logged rather than auto-fixed.
-
-**Recommended fix:** rewrite the two comments in `lib/threadline/query.ex` (lines ~88 and ~709)
-to describe the same rationale without the `D-\d{2,}` decision-id token, mirroring how this plan's
-own `skip_code_autolink_to`/`skip_undefined_reference_warnings_on` comments in `mix.exs` were
-phrased without decision IDs. A good owner is 231-03 (shares `lib/threadline/query.ex` in its
-files_modified) or a dedicated follow-up commit before phase 231 verification.
+**Fix applied:** reworded the two comments in `lib/threadline/query.ex` to drop the `D-\d{2,}`
+decision-id prefix while keeping the exact same rationale text, mirroring how this plan's own
+`skip_code_autolink_to`/`skip_undefined_reference_warnings_on` comments in `mix.exs` were phrased
+without decision IDs (Task 1's GREEN commit). No behavior change; `mix test
+test/threadline/public_surface_contract_test.exs test/threadline/release_artifact_contract_test.exs`
+now exits 0 (60 tests, 0 failures) and `mix verify.credo` stays clean.
