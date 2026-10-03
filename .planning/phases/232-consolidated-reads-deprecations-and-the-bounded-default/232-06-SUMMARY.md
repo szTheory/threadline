@@ -253,6 +253,12 @@ None - no external service configuration required.
 - `Threadline.Telemetry`'s internal emitters and `Query.export_changes_query/1,2` are hidden from ExDoc; the facade-only scanner now guards both hidden and retired names with no exemption, across every guide including the two upgrade guides.
 - No blockers for phase 232 verification or the next phase (233, API-06: lookup return shapes for `audit_transaction/2` and `transaction_context/2`).
 
+## Self-Check: PASSED
+
+- `test/threadline/facade_naming_contract_test.exs` exists on disk
+- `.planning/phases/232-consolidated-reads-deprecations-and-the-bounded-default/232-06-SUMMARY.md` exists on disk
+- All 9 commit hashes cited above (`7509b48c`, `b711d78f`, `83d45581`, `50b8b4b6`, `07cf2990`, `745eb524`, `91febdbe`, `dfe4ac46`) plus this SUMMARY's own commit are present in `git log`
+
 ---
 *Phase: 232-consolidated-reads-deprecations-and-the-bounded-default*
 *Completed: 2026-10-03*
