@@ -29,6 +29,7 @@ defmodule Threadline do
 
   alias Threadline.Investigation
   alias Threadline.Query.LegacyOpts
+  alias Threadline.Query.RowReads
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -84,9 +85,17 @@ defmodule Threadline do
     result
   end
 
+  @deprecated "Use Threadline.row_history/3 instead."
   @doc """
   Returns `AuditChange` records for a given schema record, ordered by
   `captured_at` descending.
+
+  Deprecated: use `row_history/3` instead — pass `limit: :infinity` for the
+  same unbounded read. This function keeps returning plain `%AuditChange{}`
+  structs (the one deliberate exception to "a deprecated delegate's spec
+  matches its replacement's", because the replacement returns
+  `%Threadline.Investigation.LinkedChange{}`); map `.audit_change` on a
+  `row_history/3` result to recover the same struct this function returns.
 
   Structs include `:changed_from` when present in the row (sparse prior values on
   UPDATE under an opt-in per-table capture function; `nil` when disabled or on
@@ -117,12 +126,14 @@ defmodule Threadline do
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
-  - `:limit` — optional positive integer. Returns at most n most recent changes
-    (`captured_at desc, id desc`). `:limit` caps, it does not page — use
-    `row_history_page/4` for keyset paging. `nil` (the default) is unbounded;
-    `0`, negative and non-integer values raise `ArgumentError`.
+  - `:limit` — optional positive integer, or `:infinity`. Returns at most n
+    most recent changes (`captured_at desc, id desc`). `:limit` caps, it does
+    not page. `nil` (the default) is unbounded; `0`, negative and
+    non-integer values (other than `:infinity`) raise `ArgumentError`.
   """
-  def history(schema_module, id, opts), do: Threadline.Query.history(schema_module, id, opts)
+  @spec history(module(), term(), keyword()) :: [Threadline.Capture.AuditChange.t()]
+  def history(schema_module, id, opts),
+    do: RowReads.audit_changes(schema_module, id, LegacyOpts.history(opts))
 
   @doc """
   Returns the row snapshot for a schema record at a point in time.

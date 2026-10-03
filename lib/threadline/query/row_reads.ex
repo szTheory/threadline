@@ -12,9 +12,29 @@ defmodule Threadline.Query.RowReads do
   alias Threadline.Capture.AuditChange
   alias Threadline.Query
   alias Threadline.Query.Cursors
+  alias Threadline.Query.HistoryLimit
 
   @default_limit 200
   @default_page_size 1000
+
+  @doc """
+  Returns `AuditChange` rows for one schema row, unbounded by default — the
+  raw read behind the deprecated `Threadline.history/3` and
+  `Threadline.Query.history/3`, which keep their 0.12 return shape (bare
+  `AuditChange`, not `LinkedChange`) and unbounded default.
+
+  `:limit` resolution mirrors `HistoryLimit`: `nil` or `:infinity` is
+  unbounded; a positive integer caps; anything else raises `ArgumentError`.
+  """
+  @spec audit_changes(module(), term(), keyword()) :: [AuditChange.t()]
+  def audit_changes(schema_module, id, opts) when is_list(opts) do
+    repo = Keyword.fetch!(opts, :repo)
+    HistoryLimit.validate!(Keyword.get(opts, :limit))
+
+    schema_module
+    |> Query.history_query(id, Keyword.put(opts, :repo, repo))
+    |> repo.all(Query.storage_opts([], opts))
+  end
 
   @doc """
   Returns at most `@default_limit` `AuditChange` rows for one schema row,

@@ -5,6 +5,7 @@ defmodule Threadline.Query do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Capture.AuditTransaction
+
   alias Threadline.Query.{
     ActionHydration,
     Cursors,
@@ -14,6 +15,7 @@ defmodule Threadline.Query do
     RowReads,
     Scope
   }
+
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -332,52 +334,20 @@ defmodule Threadline.Query do
     |> order_by([ac], desc: ac.id)
   end
 
+  @deprecated "Use Threadline.row_history/3 instead."
   @doc """
-  Returns `AuditChange` records for a given schema record, ordered by
-  `captured_at` descending.
+  Returns `AuditChange` records for a given schema record, unbounded by
+  default.
 
-  ## Options
-
-  - `:repo` — required `Ecto.Repo` module
-  - `:limit` — optional positive integer, caps to the n most recent changes
-    (`captured_at desc, id desc`); it does not page — use `row_history_page/4`.
-    `nil` (default) is unbounded; invalid values raise `ArgumentError`.
-
-  ## Examples
-
-      Threadline.history(MyApp.User, 42, repo: MyApp.Repo)
-      Threadline.history(MyApp.LineItem, [tenant_id: 1, id: 5], repo: MyApp.Repo)
-      Threadline.history(MyApp.LineItem, %{"tenant_id" => 1, "id" => 5}, repo: MyApp.Repo)
-      Threadline.history(MyApp.User, 42, repo: MyApp.Repo, limit: 20)
-
-  Each `AuditChange` loads all table columns mapped on the schema, including
-  `changed_from` when the database column is populated (no narrowing `select`).
-
-  `id` names every key field: the schema's field names, or a `primary_key:`
-  override's declared columns when one is configured for the table. A missing,
-  extra, or misnamed key, a `nil` value, a scalar for a composite table, or a
-  loaded struct all raise `ArgumentError` (via the internal row-key
-  normalizer).
-
-  If `:scope_query_fn` is configured, it should only add predicates: it
-  receives `id` unchanged as `context.params.id` — exactly what the caller
-  passed, not the normalized key list — and a limit it sets is overridden by
-  `:limit`'s final `LIMIT`; the cap counts only rows the scope predicate left
-  in scope.
-
-  History for a table that has since been dropped or renamed keeps working:
-  each key column's comparison type falls back to the schema field's Ecto
-  type when the catalog no longer has a live entry. The one inexact case is a
-  fixed-width `char(n)` key, whose stored blank-padding the fallback cannot
-  reproduce — pass the value already padded to the original column width.
+  Deprecated: use `Threadline.row_history/3` instead — pass
+  `limit: :infinity` to keep this function's unbounded behavior. Note the
+  replacement's elements are `%Threadline.Investigation.LinkedChange{}`, not
+  bare `AuditChange`; map `.audit_change` to recover the same struct this
+  function returns.
   """
+  @spec history(module(), term(), keyword()) :: [AuditChange.t()]
   def history(schema_module, id, opts) do
-    repo = Keyword.fetch!(opts, :repo)
-    HistoryLimit.validate!(Keyword.get(opts, :limit))
-
-    schema_module
-    |> history_query(id, Keyword.put(opts, :repo, repo))
-    |> repo.all(storage_opts([], opts))
+    RowReads.audit_changes(schema_module, id, LegacyOpts.history(opts))
   end
 
   @doc false

@@ -101,4 +101,21 @@ defmodule Threadline.Query.LegacyOpts do
     Query.validate_row_history_filters!(filters)
     Keyword.put_new(filters ++ opts, :limit, :infinity)
   end
+
+  # The retired `history/3` shape keeps its 0.12 unbounded default: an
+  # absent or `nil` `:limit` becomes `:infinity`. Any other value (including
+  # `0`, which `HistoryLimit.validate!/1` still rejects) passes through
+  # unchanged.
+  @doc """
+  Maps the retired `history/3` shape's absent or `nil` `:limit` to
+  `:infinity`, preserving the unbounded 0.12 default. Any other value
+  passes through unchanged.
+  """
+  @spec history(keyword()) :: keyword()
+  def history(opts) when is_list(opts) do
+    case Keyword.get(opts, :limit) do
+      nil -> Keyword.put(opts, :limit, :infinity)
+      _ -> opts
+    end
+  end
 end
