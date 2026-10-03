@@ -668,6 +668,12 @@ defmodule Threadline.Query do
     ]
   end
 
+  # This default `:surface` is shared by both the bounded `row_history/3`
+  # read path and the deprecated, unbounded `history/3` read path (both
+  # route through here). A `scope_query_fn` keyed on `surface: :row_history`
+  # cannot distinguish the two. See guides/integration-contracts.md's
+  # `scope_query_fn` section for the caller-facing note; callers who need to
+  # tell them apart should pass an explicit `:surface` override.
   @doc false
   def row_history_scope_opts(schema_module, id, opts) do
     [
