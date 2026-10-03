@@ -55,7 +55,7 @@ read [guides/domain-reference.md](guides/domain-reference.md).
 
 - **Capture:** trigger-backed row-change history in PostgreSQL with `Threadline.Plug`.
 - **Semantics:** `Threadline.Audit.transaction/3` as the recommended audited write path (actor, intent, correlation, and request context); `Threadline.record_action/2` is the semantic primitive the helper wraps.
-- **Exploration:** timelines and history with `Threadline.timeline/2`, `Threadline.timeline_page/2`, and `Threadline.history/3`.
+- **Exploration:** timelines and history with `Threadline.timeline/2`, `Threadline.timeline_page/2`, and `Threadline.row_history/3`.
 - **Operations:** exports, snapshots, coverage checks, retention, redaction, and health tooling via `Threadline.export_json/2` and `Threadline.as_of/4`.
 
 The broader public surface includes `Threadline.Plug`, `Threadline.record_action/2`, and `Threadline.incident_bundle/2`; the [domain reference](guides/domain-reference.md) maps each job to the API to use first.

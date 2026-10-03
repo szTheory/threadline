@@ -60,7 +60,7 @@ Each subsection below uses a **“Tables & modules”** box naming the entry poi
 
 ### Row history lookups
 
-`Threadline.history/3` and `Threadline.as_of/4` match the full stored `table_pk`
+`Threadline.row_history/3` and `Threadline.as_of/4` match the full stored `table_pk`
 with `=` (never a per-key predicate), which `audit_changes_row_history_idx` on
 `(table_schema, table_name, table_pk, captured_at DESC, id DESC)` serves
 directly. Installs created before this release do not have this index; run

@@ -97,7 +97,7 @@ Pre-launch: confirm operators can answer the five canonical support questions (s
 
 | Question (1-line) | API / Mix | SQL |
 |-------------------|-----------|-----|
-| 1. Row history — PK in a time window | `Threadline.history/3`, `Threadline.timeline/2` | [Golden query](domain-reference.md#1-row-history-pk-changes-in-a-time-window) in domain reference |
+| 1. Row history — PK in a time window | `Threadline.row_history/3`, `Threadline.timeline/2` | [Golden query](domain-reference.md#1-row-history-pk-changes-in-a-time-window) in domain reference |
 | 2. Actor window — one actor across tables | `Threadline.actor_history/2`, `timeline/2` + `:actor_ref` | [Golden query](domain-reference.md#2-actor-window-one-actor-across-tables) |
 | 3. Correlation bundle — shared `correlation_id` | `timeline/2`, `mix threadline.export` + `:correlation_id` | [Inner-join SQL + strict semantics](domain-reference.md#3-correlation-bundle-shared-correlation_id) |
 | 4. Export parity — same filters as timeline | `Threadline.Export`, `mix threadline.export` | [Filter vocabulary](domain-reference.md#4-export-parity-timeline-and-export-filters-agree) |

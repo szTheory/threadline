@@ -218,7 +218,7 @@ Omitting `:action`, or setting `capture_only: true`, keeps physical capture but 
 
 Public query helpers return captured Ecto structs or higher-level investigation structures:
 
-- `Threadline.history/3` and `Threadline.row_history/4` follow one application row.
+- `Threadline.row_history/3` follows one application row.
 - `Threadline.timeline/2` reads a bounded eager slice; `Threadline.timeline_page/2` uses keyset pages ordered by `(captured_at, id)`.
 - `Threadline.actor_window/3` and `Threadline.correlation_bundle/3` add linked context.
 - `Threadline.incident_bundle/2` packages one transaction, its optional action, all changes, and deterministic diffs.

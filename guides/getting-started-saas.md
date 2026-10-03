@@ -290,7 +290,7 @@ paths:
 - `mix threadline.export --dry-run` is the direct export fallback. When the denied route can safely derive the current `table` / `from` / `to` state, it appends those exact flags instead of showing a fake example.
 - `mix threadline.health.coverage` answers the same coverage question as the mounted dashboard.
 - `mix threadline.policy.show` answers the same policy-drift question as the mounted redaction page.
-- `Threadline.history/3` and `Threadline.as_of/4` are the direct row-history and point-in-time fallbacks.
+- `Threadline.row_history/3` and `Threadline.as_of/4` are the direct row-history and point-in-time fallbacks.
 - `Threadline.as_of/4` reconstructs what the row looked like at a chosen point in time.
 
 ## 9. Mount the operator surface and open `/audit`
@@ -370,7 +370,7 @@ timeline, transaction drill-down, row history / point-in-time reconstruction,
 coverage dashboard, and read-only redaction policy view inside the host app you
 already operate. Treat row history and point-in-time reconstruction as mounted
 support-lane tools on the canonical scoped `/audit` recipe; the direct APIs
-(`Threadline.history/3` and `Threadline.as_of/4`) remain the same underlying
+(`Threadline.row_history/3` and `Threadline.as_of/4`) remain the same underlying
 fallback transport.
 
 The same policy-drift facts are available without Phoenix via

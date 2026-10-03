@@ -21,7 +21,7 @@ defmodule Threadline.ReadmeDocContractTest do
     assert String.contains?(readme, "Threadline.Plug")
     assert String.contains?(readme, "Threadline.Audit.transaction")
     assert String.contains?(readme, "Threadline.record_action/2")
-    assert String.contains?(readme, "Threadline.history/3")
+    assert String.contains?(readme, "Threadline.row_history/3")
     assert String.contains?(readme, "Threadline.timeline/2")
     assert String.contains?(readme, "Threadline.timeline_page/2")
     assert String.contains?(readme, "Threadline.incident_bundle/2")
