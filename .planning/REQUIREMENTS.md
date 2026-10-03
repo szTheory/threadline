@@ -19,7 +19,7 @@
 
 ### API: one public surface
 
-- [ ] **API-01**: An adopter calls one function, `Threadline.row_history/3`, to read a row's changes, with filters passed as keyword opts.
+- [x] **API-01**: An adopter calls one function, `Threadline.row_history/3`, to read a row's changes, with filters passed as keyword opts.
   - Without options it returns at most 200 changes, newest first, as a bare list.
   - `limit: n` and `limit: :infinity` override the cap.
   - `cursor:` with `page_size:` returns a `%Threadline.Page{}`. Walking it until `has_more: false` yields exactly the full history.
@@ -141,7 +141,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| API-01 | Phase 232 | Pending |
+| API-01 | Phase 232 | Complete |
 | API-02 | Phase 232 | Complete |
 | API-03 | Phase 232 | Pending |
 | API-04 | Phase 231 | Complete |

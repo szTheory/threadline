@@ -112,7 +112,7 @@ Plans:
 - [x] 232-04-PLAN.md — API-08: every retired name a one-line `@deprecated` delegate with spec + parity test, exact deprecation inventory, `lib/` warnings-as-errors clean, CHANGELOG Deprecations (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 232-05-PLAN.md — API-08, API-01: all `test/` and example-app callers migrated off retired names (`Threadline.Test.RowHistory`, unbounded v1.44 property baseline), warnings-as-errors clean for `test/` and the example (wave 5)
+- [x] 232-05-PLAN.md — API-08, API-01: all `test/` and example-app callers migrated off retired names (`Threadline.Test.RowHistory`, unbounded v1.44 property baseline), warnings-as-errors clean for `test/` and the example (wave 5)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 232-06-PLAN.md — API-05: `emit_*`/`export_changes_query` hidden, scanners for hidden and retired names (no guide exemption), guides/README rewritten incl. upgrade guides, facade-naming contract, `mix ci.all` phase gate (wave 6)
@@ -205,7 +205,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
-| 232. Consolidated Reads, Deprecations and the Bounded Default | 4/6 | In Progress | - |
+| 232. Consolidated Reads, Deprecations and the Bounded Default | 5/6 | In Progress | - |
 | 233. Lookup Return Shapes | 0/TBD | Not started | - |
 | 234. Typespec and Doc Completion Gate | 0/TBD | Not started | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
