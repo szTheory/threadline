@@ -7,10 +7,14 @@ defmodule Threadline do
 
   ## Reading audit data
 
-  The functions on this module are the supported read API: `timeline/2`,
-  `history/3`, `row_history/4`, `actor_window/3`, `incident_bundle/2`,
-  `audit_changes_for_transaction/2`, `export_csv/2`, and `export_json/2`. Build
-  on these rather than on the internal modules behind them.
+  The functions on this module (see the function list below) are the
+  supported read API — including `timeline/2`, `timeline_page/2`,
+  `history/3`, `as_of/4`, `actor_history/2`, `row_history/4`,
+  `row_history_page/4`, `actor_window/3`, `actor_window_page/3`,
+  `correlation_bundle/3`, `correlation_bundle_page/3`,
+  `transaction_context/2`, `incident_bundle/2`,
+  `audit_changes_for_transaction/2`, `export_csv/2`, and `export_json/2`.
+  Build on these rather than on the internal modules behind them.
 
   ## Composing your own Ecto query
 
