@@ -22,7 +22,7 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 231)
+See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
 **Current focus:** Phase 232 — Consolidated Reads, Deprecations and the Bounded Default
