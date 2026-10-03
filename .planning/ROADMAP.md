@@ -71,7 +71,7 @@
   4. Every existing assertion on `transaction.action` passes unchanged through the exploration-layer hydrate helper. The `action_id` column and its foreign key are unchanged: no migration or trigger SQL in the diff touches them.
   5. `mix compile --warnings-as-errors` is clean for `lib/`, `test/` and the example app, and `mix ci.all` is green.
 
-**Plans**: 3 plans
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -185,7 +185,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete | 2026-10-03 |
+| 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 0/TBD | Not started | - |
 | 233. Lookup Return Shapes | 0/TBD | Not started | - |
 | 234. Typespec and Doc Completion Gate | 0/TBD | Not started | - |
