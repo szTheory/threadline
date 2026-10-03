@@ -214,20 +214,20 @@ defmodule Threadline.Query do
     |> timeline_order()
   end
 
-  @doc """
-  Query returning one row per matching change with change + transaction columns
-  for export (`Threadline.Export`).
-
-  Validates filters, then builds the same predicate stack as `timeline/2`, adds an
-  optional `LEFT JOIN` to `audit_actions` when `:correlation_id` is absent (so JSON
-  can surface linked action metadata without changing filter semantics), and selects
-  export column maps.
-  """
+  # Query returning one row per matching change with change + transaction columns
+  # for export (`Threadline.Export`).
+  #
+  # Validates filters, then builds the same predicate stack as `timeline/2`, adds an
+  # optional `LEFT JOIN` to `audit_actions` when `:correlation_id` is absent (so JSON
+  # can surface linked action metadata without changing filter semantics), and selects
+  # export column maps.
+  @doc false
   @spec export_changes_query(keyword()) :: Ecto.Query.t()
   def export_changes_query(filters) when is_list(filters) do
     export_changes_query(filters, [])
   end
 
+  @doc false
   @spec export_changes_query(keyword(), keyword()) :: Ecto.Query.t()
   def export_changes_query(filters, opts) when is_list(filters) and is_list(opts) do
     validate_timeline_filters!(filters)

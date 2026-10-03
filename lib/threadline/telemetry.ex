@@ -189,14 +189,13 @@ defmodule Threadline.Telemetry do
     :telemetry.execute([:threadline, :transaction, :committed], %{table_count: 0}, %{})
   end
 
-  @doc """
-  Emits the `[:threadline, :health, :checked]` event with covered / uncovered /
-  expected_uncovered measurements.
-
-  The `expected_uncovered` measurement key is (additive). External
-  subscribers that destructure only `%{covered: c, uncovered: u}` continue to
-  work unchanged.
-  """
+  # Emits the `[:threadline, :health, :checked]` event with covered / uncovered /
+  # expected_uncovered measurements.
+  #
+  # The `expected_uncovered` measurement key is (additive). External
+  # subscribers that destructure only `%{covered: c, uncovered: u}` continue to
+  # work unchanged.
+  @doc false
   def emit_health_checked(covered, uncovered, expected_uncovered) do
     :telemetry.execute(
       [:threadline, :health, :checked],
@@ -205,16 +204,15 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :health, :checked, :error]` event when a polled
-  coverage check fails. The dashboard keeps the last-good snapshot and ALWAYS
-  reschedules the next poll; this event lets adopters alert on transient or
-  sustained failure.
-
-  Takes the raised exception struct itself, not a message. Metadata is
-  `%{exception: module}` — the exception's struct module only. The message is
-  intentionally not forwarded: exception messages can echo database values.
-  """
+  # Emits the `[:threadline, :health, :checked, :error]` event when a polled
+  # coverage check fails. The dashboard keeps the last-good snapshot and ALWAYS
+  # reschedules the next poll; this event lets adopters alert on transient or
+  # sustained failure.
+  #
+  # Takes the raised exception struct itself, not a message. Metadata is
+  # `%{exception: module}` — the exception's struct module only. The message is
+  # intentionally not forwarded: exception messages can echo database values.
+  @doc false
   def emit_health_checked_error(exception) when is_exception(exception) do
     :telemetry.execute(
       [:threadline, :health, :checked, :error],
@@ -223,11 +221,10 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :health, :findings_checked]` event with error and
-  warning counts, measured over the list `Threadline.Health.trigger_findings/1`
-  is about to return.
-  """
+  # Emits the `[:threadline, :health, :findings_checked]` event with error and
+  # warning counts, measured over the list `Threadline.Health.trigger_findings/1`
+  # is about to return.
+  @doc false
   def emit_findings_checked(errors, warnings) do
     :telemetry.execute(
       [:threadline, :health, :findings_checked],
@@ -236,22 +233,21 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :operator_surface, :authorize]` event.
-
-  `result` is the authorization outcome atom (`:granted`, `:denied`, or
-  `:error`). `path_or_nil` is a fixed, caller-supplied path string (the
-  mount's own compile-time route template, not a live request path), or
-  `nil` when the caller has none to offer (a LiveView mount, or an HTTP auth
-  plug that chooses not to forward one). Callers must never derive this value
-  from a live `conn.request_path`/similar — doing so could forward a
-  dynamic, possibly-identifying route segment (e.g. a tenant id a host
-  nested the mount under); see the Telemetry guide's cardinality warning.
-  `scope` is the host-returned scope map, or `nil`/anything else when there is
-  none. Metadata is `%{path: binary, scope_keys: [atom]}` — `scope_keys` holds
-  only the scope map's KEYS, sorted, never its values, so no identity data is
-  forwarded.
-  """
+  # Emits the `[:threadline, :operator_surface, :authorize]` event.
+  #
+  # `result` is the authorization outcome atom (`:granted`, `:denied`, or
+  # `:error`). `path_or_nil` is a fixed, caller-supplied path string (the
+  # mount's own compile-time route template, not a live request path), or
+  # `nil` when the caller has none to offer (a LiveView mount, or an HTTP auth
+  # plug that chooses not to forward one). Callers must never derive this value
+  # from a live `conn.request_path`/similar — doing so could forward a
+  # dynamic, possibly-identifying route segment (e.g. a tenant id a host
+  # nested the mount under); see the Telemetry guide's cardinality warning.
+  # `scope` is the host-returned scope map, or `nil`/anything else when there is
+  # none. Metadata is `%{path: binary, scope_keys: [atom]}` — `scope_keys` holds
+  # only the scope map's KEYS, sorted, never its values, so no identity data is
+  # forwarded.
+  @doc false
   def emit_operator_surface_authorize(result, path_or_nil, scope)
       when is_atom(result) and (is_nil(path_or_nil) or is_binary(path_or_nil)) do
     path = path_or_nil || ""
@@ -264,11 +260,10 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :operator_surface, :export_authorize]` event with
-  `%{result: :error, count: 1}` measurements and no metadata, for an
-  export-specific authorization callback that raised.
-  """
+  # Emits the `[:threadline, :operator_surface, :export_authorize]` event with
+  # `%{result: :error, count: 1}` measurements and no metadata, for an
+  # export-specific authorization callback that raised.
+  @doc false
   def emit_export_authorize_error do
     :telemetry.execute(
       [:threadline, :operator_surface, :export_authorize],
@@ -277,11 +272,10 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :operator_surface, :actor_ref_mismatch]` event with
-  `%{count: 1}` measurements and no metadata, as a pure incidence counter when
-  the session actor and the scope-derived actor disagree.
-  """
+  # Emits the `[:threadline, :operator_surface, :actor_ref_mismatch]` event with
+  # `%{count: 1}` measurements and no metadata, as a pure incidence counter when
+  # the session actor and the scope-derived actor disagree.
+  @doc false
   def emit_actor_ref_mismatch do
     :telemetry.execute(
       [:threadline, :operator_surface, :actor_ref_mismatch],
@@ -290,16 +284,15 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :export, :completed]` event for one logical export
-  that finished successfully.
-
-  `format` is the user-facing export format (`:csv`, `:json`, or `:ndjson` —
-  the async orchestrator job is always `:csv`). `row_count` is the number of
-  rows returned or streamed. `truncated` is whether the export hit its row
-  cap. `started_at` is a `System.monotonic_time/0` value captured by the
-  caller before the export began; this helper computes `duration` from it.
-  """
+  # Emits the `[:threadline, :export, :completed]` event for one logical export
+  # that finished successfully.
+  #
+  # `format` is the user-facing export format (`:csv`, `:json`, or `:ndjson` —
+  # the async orchestrator job is always `:csv`). `row_count` is the number of
+  # rows returned or streamed. `truncated` is whether the export hit its row
+  # cap. `started_at` is a `System.monotonic_time/0` value captured by the
+  # caller before the export began; this helper computes `duration` from it.
+  @doc false
   def emit_export_completed(format, row_count, truncated, started_at)
       when format in [:csv, :json, :ndjson] and is_integer(row_count) and row_count >= 0 and
              is_boolean(truncated) and is_integer(started_at) do
@@ -312,19 +305,18 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :export, :failed]` event for one logical export
-  that failed.
-
-  `row_count` is the number of rows written or streamed before the failure
-  (`0` for the eager functions, since they fail before returning anything).
-  `error_kind` is one of `:exception`, `:client_closed`, `:storage_error`, or
-  `:transaction_failed`. `exception` is the raised exception struct, or
-  `nil` when the failure was not a raise — only the struct's module is
-  forwarded, never its message, which can echo audited database values.
-  `started_at` is the same `System.monotonic_time/0` value passed to
-  `emit_export_completed/4`.
-  """
+  # Emits the `[:threadline, :export, :failed]` event for one logical export
+  # that failed.
+  #
+  # `row_count` is the number of rows written or streamed before the failure
+  # (`0` for the eager functions, since they fail before returning anything).
+  # `error_kind` is one of `:exception`, `:client_closed`, `:storage_error`, or
+  # `:transaction_failed`. `exception` is the raised exception struct, or
+  # `nil` when the failure was not a raise — only the struct's module is
+  # forwarded, never its message, which can echo audited database values.
+  # `started_at` is the same `System.monotonic_time/0` value passed to
+  # `emit_export_completed/4`.
+  @doc false
   def emit_export_failed(format, row_count, error_kind, exception, started_at)
       when format in [:csv, :json, :ndjson] and is_integer(row_count) and row_count >= 0 and
              error_kind in [:exception, :client_closed, :storage_error, :transaction_failed] and
