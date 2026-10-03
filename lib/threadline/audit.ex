@@ -31,7 +31,7 @@ defmodule Threadline.Audit do
   | present   | correlation-ready — `action_id` linked   |
   | absent    | capture-only — strict filters won't match |
 
-  See `Threadline.Query.timeline/2` for strict `:correlation_id` semantics.
+  See `Threadline.timeline/2` for strict `:correlation_id` semantics.
 
   ## Callback contract
 

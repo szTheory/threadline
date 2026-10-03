@@ -4,12 +4,11 @@ defmodule Threadline.Export do
   @moduledoc """
   CSV and JSON export for audited row changes.
 
-  Uses the **same** `filters` and `opts` as `Threadline.Query.timeline/2`, including
+  Uses the **same** `filters` and `opts` as `Threadline.timeline/2`, including
   `:repo` resolution: `Keyword.get(opts, :repo) || Keyword.fetch!(filters, :repo)`.
 
-  Filter keys are validated via `Threadline.Query.validate_timeline_filters!/1`
-  (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`). Unknown keys
-  raise `ArgumentError`.
+  Only these filter keys are allowed: `:repo`, `:table`, `:actor_ref`, `:from`, `:to`,
+  `:correlation_id`. Unknown keys raise `ArgumentError`.
 
   ## CSV columns
 
@@ -185,7 +184,7 @@ defmodule Threadline.Export do
   @doc """
   Counts changes matching `filters` without loading row payloads.
 
-  Same validation and join semantics as `Threadline.Query.timeline/2`.
+  Same validation and join semantics as `Threadline.timeline/2`.
 
   ## Options
 
@@ -356,7 +355,7 @@ defmodule Threadline.Export do
   `:table_schema`, `:table_name`, `:op`, `:captured_at`, `:table_pk`,
   `:data_after`, `:changed_fields`, `:changed_from`, `:tx_occurred_at`,
   `:tx_actor_ref`, `:tx_source`, `:aa_id`, `:aa_correlation_id` — exactly the
-  projection from `Threadline.Query.export_changes_query/1`. This matches what
+  projection the export query builds. This matches what
   `format_changes_iodata/3` expects, so the operator-surface export
   controller's chunked path produces byte-identical output to the iodata path.
 

@@ -150,12 +150,15 @@ defmodule Threadline do
 
   @doc """
   Returns `AuditChange` records across tables, filtered by the given options,
-  ordered by `captured_at` descending, then `id` descending (same total order as
-  `Threadline.Query.audit_changes_for_transaction/2`; see `Threadline.Query.timeline/2`).
+  ordered by `captured_at` descending, then `id` descending (the same total
+  order `audit_changes_for_transaction/2` uses).
 
   Use `timeline/2` for eager, bounded slices where returning a full list is still
   the simple path. Use `timeline_page/2` for larger investigation windows where
   stable keyset traversal matters.
+
+  Only `:repo`, `:table_schema`, `:table`, `:actor_ref`, `:from`, `:to`, and
+  `:correlation_id` are allowed; an unknown key raises `ArgumentError`.
 
   ## Options
 
@@ -164,8 +167,10 @@ defmodule Threadline do
   - `:actor_ref` — `%ActorRef{}`; filters by actor via a JOIN to `audit_transactions`
   - `:from` — `DateTime`; inclusive lower bound on `captured_at`
   - `:to` — `DateTime`; inclusive upper bound on `captured_at`
-  - `:correlation_id` — non-empty binary; only changes whose transaction is linked to an
-    `audit_actions` row with that correlation id (strict semantics — see `Threadline.Query`).
+  - `:correlation_id` — non-empty binary (after trimming). When set, results are limited
+    to changes whose transaction is linked to an `audit_actions` row with that
+    correlation id (strict inner-join semantics). Omit the key to leave correlation
+    out of the filter.
   - `:repo` — required `Ecto.Repo` module
   - `:storage_schema` — optional Threadline storage schema override
   """
@@ -247,25 +252,37 @@ defmodule Threadline do
   @doc """
   Returns every `%Threadline.Capture.AuditChange{}` for a single `audit_transactions.id`.
 
-  Delegates to `Threadline.Query.audit_changes_for_transaction/2`. Pass **`repo:`**
-  (required). Optional **`preload:`** (e.g. `[:transaction]`) is forwarded when
-  non-empty — see the Query function for ordering and UUID rules.
+  `transaction_id` is `audit_transactions.id`. Accepts UUID strings or 16-byte
+  binaries; raises `ArgumentError` when the id is not a valid UUID. Returns `[]`
+  when the UUID is well-formed but no matching rows exist. Ordered by
+  `captured_at` descending, then `id` descending — the same total order as
+  `timeline/2`.
+
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module.
+  - `:preload` — optional association list, e.g. `[:transaction]`, forwarded to
+    `repo.preload/3` when non-empty. Preloading `:action` under `:transaction`
+    (`transaction: :action` / `transaction: [:action, ...]`) is deprecated: it
+    still hydrates `transaction.action`, but emits one warning per call and will
+    be removed no earlier than Threadline 2.0. Prefer `transaction_context/2`.
   """
   def audit_changes_for_transaction(transaction_id, opts),
     do: Threadline.Query.audit_changes_for_transaction(transaction_id, opts)
 
   @doc """
-  Exports matching audit changes as CSV (same `filters` / `opts` as `Threadline.Query.timeline/2`).
+  Exports matching audit changes as CSV using the same `filters` / `opts` vocabulary
+  as `timeline/2`.
 
-  See `Threadline.Export` and `Threadline.Query.timeline/2`.
+  See `Threadline.Export`.
   """
   def export_csv(filters \\ [], opts \\ []), do: Threadline.Export.to_csv_iodata(filters, opts)
 
   @doc """
-  Exports matching audit changes as JSON (same `filters` / `opts` as `Threadline.Query.timeline/2`).
+  Exports matching audit changes as JSON using the same `filters` / `opts` vocabulary
+  as `timeline/2`.
 
-  Pass `json_format: :ndjson` in `opts` for newline-delimited objects. See `Threadline.Export`
-  and `Threadline.Query.timeline/2`.
+  Pass `json_format: :ndjson` in `opts` for newline-delimited objects. See `Threadline.Export`.
   """
   def export_json(filters \\ [], opts \\ []),
     do: Threadline.Export.to_json_document(filters, opts)

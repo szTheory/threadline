@@ -4,7 +4,7 @@ defmodule Threadline.Retention do
 
   Requires **`config :threadline, :retention`** with **`enabled: true`** before any
   destructive run (see `Threadline.Retention.Policy`). Callers must pass **`repo:`**
-  explicitly, matching `Threadline.Query` conventions.
+  explicitly, matching the `Threadline` read functions.
 
   Cutoff is derived from `Threadline.Retention.Policy.cutoff_utc_datetime_usec!/0`
   unless you pass **`cutoff:`** (UTC `DateTime`, microsecond) for a stricter window
