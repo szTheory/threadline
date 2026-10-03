@@ -221,6 +221,11 @@ None - no external service configuration required.
 - `lib/threadline/capture/migration.ex`, `lib/threadline/semantics/migration.ex`, `lib/threadline/capture/trigger_sql.ex`, and `priv/` are untouched (verified via `git diff --quiet` against the phase base `0e5eda11`), so Plan 02/03 (API-04: hiding `Threadline.Query`/`Threadline.Investigation` from docs) can proceed without any capture/semantics schema conflict.
 - Ready for 231-02.
 
+## Self-Check: PASSED
+
+- All key-files (created + modified) verified present on disk with `[ -f ]`
+- All 6 task commits + the SUMMARY commit verified present via `git log --oneline --all`
+
 ---
 *Phase: 231-facade-topology-and-the-capture-semantics-edge*
 *Completed: 2026-10-03*
