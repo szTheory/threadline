@@ -4,17 +4,17 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 231
 current_phase_name: Facade Topology and the Capture/Semantics Edge
-status: executing
-stopped_at: Completed 231-02-PLAN.md
-last_updated: "2026-10-03T16:05:00.000Z"
+status: verifying
+stopped_at: Completed 231-03-PLAN.md
+last_updated: "2026-10-03T15:32:38.616Z"
 last_activity: 2026-10-03
-last_activity_desc: Phase 231 execution started
-state_head: d43e630d809f2c1bde9591dbaed2d0a65e70598e
+last_activity_desc: Phase 231 execution complete (3/3 plans); ready for verification
+state_head: 82a7c5160e273bf71444195a13439e30ebd09aa3
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -29,12 +29,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-02 after v1.44 milestone)
 
 ## Current Position
 
-Phase: 231 of 231-237 (Facade Topology and the Capture/Semantics Edge) — EXECUTING
+Phase: 231 of 231-237 (Facade Topology and the Capture/Semantics Edge) — READY FOR VERIFICATION
 Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-10-03 — 231-02 complete
+Status: Phase complete — ready for verification
+Last activity: 2026-10-03 — 231-03 complete (all 3 plans done)
 
-v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; 2/3 plans in phase 231 so far — 231-01 complete: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02 complete: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; plan counts set at each /gsd-plan-phase)
+v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; phase 231 all 3/3 plans complete — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -260,6 +260,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 230 P03 | ~55min | 3 tasks | 9 files |
 | Phase 231 P01 | 70min | 3 tasks | 11 files |
 | Phase 231 P02 | 55min | 3 tasks | 13 files |
+| Phase 231 P03 | 190 | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -983,6 +984,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 230]: Plan 230-03: ran mix verify.bump_rehearsal after committing the CHANGELOG/upgrade-path content (not before, as literally ordered) because the rehearsal clones HEAD and cannot see uncommitted work.
 - [Phase 230]: Plan 230-03: treated the pre-land privacy-grep whoami/home-path false positives (pre-existing, out-of-scope files) as reviewed non-issues rather than a STOP, since bin/verify-repo-hygiene (the authoritative guard) reports the full tracked tree clean.
 - [Phase 231]: Internal readers (Investigation.transaction_context/2, incident_bundle/2) call Query.hydrate_actions/3 directly instead of routing through the deprecated public :preload shim, so internal reads never trip the deprecation warning
+- [Phase 231]: Split lib/threadline/query.ex into Threadline.Query.ActionHydration (defdelegate-preserved) to clear the 800-line source-size gate tripped by 231-01's growth
 
 ### Blockers
 
@@ -998,8 +1000,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-03T14:09:34.654Z
-**Stopped at:** Completed 231-01-PLAN.md
+**Last session:** 2026-10-03T15:32:38.583Z
+**Stopped at:** Completed 231-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1016,9 +1018,10 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
 - **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
 - **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
-- **Last Action**: v1.45 1.0 API Contract roadmap created (2026-10-03): 7 phases (231-237), 25/25 requirements mapped in REQUIREMENTS.md Traceability. v1.44 is closed (tag `v1.44` local, 0.12.0 on hex.pm).
-- **Next Step**: `/gsd-discuss-phase 231`
-- **Resume file**: `.planning/ROADMAP.md`
+- **Last Action**: v1.45 1.0 API Contract roadmap created (2026-10-02): 7 phases (231-237), 25/25 requirements mapped in REQUIREMENTS.md Traceability. v1.44 is closed (tag `v1.44` local, 0.12.0 on hex.pm).
+- **231-03 (2026-10-03, FINAL plan of phase 231):** Facade-only doc-contract scanner (D-12, mutation-controlled: 11 tests over guides/README/example-app, exact-match `timeline_query` allowlist, bare-alias "extend the scanner" guard) + last example-script facade move (D-11: `incident_replay.exs` onto `Threadline.history/3`). Discovered and fixed a 231-01 regression while running the phase gate: `lib/threadline/query.ex` had grown to 950 lines (over the 800-line source-size contract limit, no exception) — split into a new hidden `Threadline.Query.ActionHydration` submodule via `defdelegate` (zero call-site changes outside `query.ex`); `query.ex` now 799 lines. Full `mix ci.all` green (2769 unit tests, 130 example tests, 318 browser tests/26 skipped matching baseline, Dialyzer 0 errors). API-04 and API-07 both marked Complete in REQUIREMENTS.md. Phase 231 complete (3/3 plans). Commits `fa8a24bc`, `6e58912e`, `3de91c13`, `82a7c516`.
+- **Next Step**: `/gsd-verify-work 231`, then `/gsd-plan-phase 232`
+- **Resume file**: None
 
 ## Operator Next Steps
 

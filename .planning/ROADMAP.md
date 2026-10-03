@@ -48,7 +48,7 @@
 
 ## Phases
 
-- [ ] **Phase 231: Facade Topology and the Capture/Semantics Edge** - `Threadline` is the one documented read API, and the capture schemas no longer declare an association to the semantics schema
+- [x] **Phase 231: Facade Topology and the Capture/Semantics Edge** - `Threadline` is the one documented read API, and the capture schemas no longer declare an association to the semantics schema
 - [ ] **Phase 232: Consolidated Reads, Deprecations and the Bounded Default** - One `row_history/3`, one `Threadline.Page`, a 200-row default with truncation telemetry, and a warning-only path off every retired name
 - [ ] **Phase 233: Lookup Return Shapes** - Single-subject lookups return `{:ok, _}` / `{:error, :not_found}` with raising `!` siblings
 - [ ] **Phase 234: Typespec and Doc Completion Gate** - Every public function has an informative `@spec` and a `@doc`, enforced by a test, and the facade page is grouped by job
@@ -81,7 +81,7 @@ Plans:
 - [x] 231-02-PLAN.md — API-04: hide `Threadline.Query`/`Threadline.Investigation`, name the `timeline_query/1` escape hatch, facade-only lib docs and guides, strict docs gate green (wave 2) — complete 2026-10-03
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 231-03-PLAN.md — facade-only doc-contract scanner, example script on the facade, mutation controls, full `mix ci.all` gate (wave 3)
+- [x] 231-03-PLAN.md — facade-only doc-contract scanner, example script on the facade, mutation controls, full `mix ci.all` gate (wave 3) — complete 2026-10-03
 
 ### Phase 232: Consolidated Reads, Deprecations and the Bounded Default
 
@@ -185,7 +185,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 231. Facade Topology and the Capture/Semantics Edge | 2/3 | In Progress | - |
+| 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 0/TBD | Not started | - |
 | 233. Lookup Return Shapes | 0/TBD | Not started | - |
 | 234. Typespec and Doc Completion Gate | 0/TBD | Not started | - |

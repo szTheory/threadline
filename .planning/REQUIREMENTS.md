@@ -29,14 +29,14 @@
   - v1.44 properties that read history are updated explicitly to pass `limit: :infinity` or walk the cursor.
 - [ ] **API-02**: An adopter can tell `actor_history/2` (transactions) from `actor_window/3` (cross-table changes). Each `@doc` states its return type first and cross-links the other function, and a doc-contract test pins both.
 - [ ] **API-03**: Every paged read returns the same `%Threadline.Page{entries, cursor, has_more}` struct, which replaces `TimelinePage` and `ActorHistoryPage`. `timeline/2` and `timeline_page/2` remain the only deliberate pair of names; no third naming pattern exists on the facade.
-- [ ] **API-04**: The adopter's docs contain one read API.
+- [x] **API-04**: The adopter's docs contain one read API.
   - `Threadline.Query` and `Threadline.Investigation` are `@moduledoc false`.
   - `Threadline.Query.timeline_query/1` is the one documented escape hatch, linked from the `Threadline` moduledoc.
   - The three guides that call the hidden modules (`audit-indexing`, `how-threadline-works`, `code-walkthrough`) call `Threadline.*` instead.
   - `public_surface_contract_test.exs` pins the hidden set.
 - [ ] **API-05**: Internal helpers no longer appear in the adopter's docs. This covers the `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and any module without a moduledoc, such as `Threadline.Export.CSV`. Before hiding a name, guides, the README and the example app are grepped for it, and every hit is rewritten in the same change.
 - [ ] **API-06**: Single-subject lookups behave the same way everywhere. `audit_transaction/2` and `transaction_context/2` return `{:ok, _}` or `{:error, :not_found}`, matching `incident_bundle/2`. New siblings `audit_transaction!/2` and `transaction_context!/2` raise. Not-found and present cases are tested for all four.
-- [ ] **API-07**: The capture layer no longer depends on the semantics layer at compile time.
+- [x] **API-07**: The capture layer no longer depends on the semantics layer at compile time.
   - `AuditTransaction` drops `belongs_to :action` and `AuditAction` drops `has_many :transactions`.
   - An exploration-layer helper hydrates `transaction.action`, so every existing call-site assertion on `.action` passes unchanged.
   - The `action_id` column and its foreign key are untouched.
@@ -144,10 +144,10 @@
 | API-01 | Phase 232 | Pending |
 | API-02 | Phase 232 | Pending |
 | API-03 | Phase 232 | Pending |
-| API-04 | Phase 231 | Pending |
+| API-04 | Phase 231 | Complete |
 | API-05 | Phase 232 | Pending |
 | API-06 | Phase 233 | Pending |
-| API-07 | Phase 231 | Pending |
+| API-07 | Phase 231 | Complete |
 | API-08 | Phase 232 | Pending |
 | SPEC-01 | Phase 234 | Pending |
 | SPEC-02 | Phase 234 | Pending |
