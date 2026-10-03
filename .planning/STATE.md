@@ -5,16 +5,16 @@ milestone_name: 1.0 API Contract
 current_phase: 232
 current_phase_name: Consolidated Reads, Deprecations and the Bounded Default
 status: executing
-stopped_at: Completed 232-02-PLAN.md
-last_updated: "2026-10-03T19:09:47.013Z"
+stopped_at: Completed 232-03-PLAN.md
+last_updated: "2026-10-03T19:46:20.117Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 232 execution started
-state_head: a84054cb3d1b71a56006294063dc14f7c6757fee
+state_head: 6cbeae4f451b44cff3cafab9a75183b9d9fedcf2
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 9
-  completed_plans: 5
+  completed_plans: 6
   percent: 14
 ---
 
@@ -30,9 +30,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 231)
 ## Current Position
 
 Phase: 232 (Consolidated Reads, Deprecations and the Bounded Default) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
-Last activity: 2026-10-03 — 232-01 complete (Threadline.Page, exact has_more, TimelinePage deleted)
+Last activity: 2026-10-03 — 232-03 complete (Threadline.row_history/3 — 200-row bounded default, limit:/cursor: overrides, exact truncation telemetry, D-12 arity-split deprecation on row_history/4, cursor: paging on actor_window/3 and correlation_bundle/3, unbounded export/as_of/drawer proof). Prior: 232-01 (Threadline.Page, exact has_more, TimelinePage deleted), 232-02 (actor_history/2 Page + legacy-option deprecation, API-02 doc contract).
 
 v1.45 Progress: [█░░░░░░░░░] 1 of 7 v1.45 phases complete (14%) (231-237; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -263,6 +263,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 231 P03 | 190 | 2 tasks | 4 files |
 | Phase 232 P01 | 65min | 3 tasks | 19 files |
 | Phase 232 P02 | 70min | 3 tasks | 13 files |
+| Phase 232 P03 | ~3h | 3 tasks | 14 files |
 
 ## Deferred Items
 
@@ -989,6 +990,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 231]: Split lib/threadline/query.ex into Threadline.Query.ActionHydration (defdelegate-preserved) to clear the 800-line source-size gate tripped by 231-01's growth
 - [Phase 232]: Registered Threadline.Query.TimelinePage => Threadline.Page in the @renamed_modules historical-reference register instead of new infrastructure
 - [Phase 232]: actor_history/2 LiveView params map keys renamed after:/before: -> cursor: (unused by any code, but matched the plan's own verify-grep ban)
+- [Phase 232]: 232-03: row_history_scope_opts/3 made @doc false public on Query so RowReads reuses the exact support-scope shape row_history_page/4 already had
+- [Phase 232]: 232-03: row_history_page/4, actor_window_page/3, correlation_bundle_page/3 delegate onto their canonical function with LegacyOpts.cursor(opts) instead of a separate lower-level Query function, leaving Query.row_history_page/4 as dead code for Plan 04 to deprecate
 
 ### Blockers
 
@@ -1004,8 +1007,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-03T19:09:38.335Z
-**Stopped at:** Completed 232-02-PLAN.md
+**Last session:** 2026-10-03T19:46:20.086Z
+**Stopped at:** Completed 232-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

@@ -106,7 +106,7 @@ Plans:
 - [x] 232-02-PLAN.md — API-02, API-03: `actor_history/2` on Page with `cursor:`/`page_size:` and warning legacy options, actor LiveView forced edit, `ActorHistoryPage` deleted, actor read doc contract (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 232-03-PLAN.md — API-01: `row_history/3` with the 200 default, `limit:`/`cursor:` modes, cursor mode on `actor_window/3`/`correlation_bundle/3`, deprecated `row_history/4` arity split, truncation telemetry, drawer opt-out (wave 3)
+- [x] 232-03-PLAN.md — API-01: `row_history/3` with the 200 default, `limit:`/`cursor:` modes, cursor mode on `actor_window/3`/`correlation_bundle/3`, deprecated `row_history/4` arity split, truncation telemetry, drawer opt-out (wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 232-04-PLAN.md — API-08: every retired name a one-line `@deprecated` delegate with spec + parity test, exact deprecation inventory, `lib/` warnings-as-errors clean, CHANGELOG Deprecations (wave 4)
@@ -205,7 +205,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
-| 232. Consolidated Reads, Deprecations and the Bounded Default | 2/6 | In Progress | - |
+| 232. Consolidated Reads, Deprecations and the Bounded Default | 3/6 | In Progress | - |
 | 233. Lookup Return Shapes | 0/TBD | Not started | - |
 | 234. Typespec and Doc Completion Gate | 0/TBD | Not started | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
