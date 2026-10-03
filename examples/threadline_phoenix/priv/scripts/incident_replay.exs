@@ -114,7 +114,8 @@ defmodule IncidentReplay do
       |> Repo.update()
 
     # Read back audit log
-    changes = Threadline.row_history(Post, to_string(updated_post.id), repo: Repo, limit: :infinity)
+    changes =
+      Threadline.row_history(Post, to_string(updated_post.id), repo: Repo, limit: :infinity)
 
     IO.puts(
       format_json(:success, "Scenario completed",
