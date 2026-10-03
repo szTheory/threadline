@@ -5,8 +5,8 @@ milestone_name: 1.0 API Contract
 current_phase: 231
 current_phase_name: Facade Topology and the Capture/Semantics Edge
 status: executing
-stopped_at: Completed 231-01-PLAN.md
-last_updated: "2026-10-03T14:09:34.693Z"
+stopped_at: Completed 231-02-PLAN.md
+last_updated: "2026-10-03T16:05:00.000Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 231 execution started
 state_head: d43e630d809f2c1bde9591dbaed2d0a65e70598e
@@ -14,7 +14,7 @@ progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-02 after v1.44 milestone)
 ## Current Position
 
 Phase: 231 of 231-237 (Facade Topology and the Capture/Semantics Edge) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-10-03 — Phase 231 execution started
+Last activity: 2026-10-03 — 231-02 complete
 
-v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; 1/3 plans in phase 231 so far — 231-01 complete: API-07 association removal + hydrate_actions/3 + deprecation shim; plan counts set at each /gsd-plan-phase)
+v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; 2/3 plans in phase 231 so far — 231-01 complete: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02 complete: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; plan counts set at each /gsd-plan-phase)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -259,6 +259,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 230 P02 | ~1h | 2 tasks | 1 files |
 | Phase 230 P03 | ~55min | 3 tasks | 9 files |
 | Phase 231 P01 | 70min | 3 tasks | 11 files |
+| Phase 231 P02 | 55min | 3 tasks | 13 files |
 
 ## Deferred Items
 

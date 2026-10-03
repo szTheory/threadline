@@ -78,7 +78,7 @@ Plans:
 - [x] 231-01-PLAN.md — API-07: drop the AuditTransaction/AuditAction associations, hidden `hydrate_actions/3` helper, rewired internal call sites, deprecated `:preload :action` shim, CHANGELOG (wave 1) — complete 2026-10-03
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 231-02-PLAN.md — API-04: hide `Threadline.Query`/`Threadline.Investigation`, name the `timeline_query/1` escape hatch, facade-only lib docs and guides, strict docs gate green (wave 2)
+- [x] 231-02-PLAN.md — API-04: hide `Threadline.Query`/`Threadline.Investigation`, name the `timeline_query/1` escape hatch, facade-only lib docs and guides, strict docs gate green (wave 2) — complete 2026-10-03
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 231-03-PLAN.md — facade-only doc-contract scanner, example script on the facade, mutation controls, full `mix ci.all` gate (wave 3)
@@ -185,7 +185,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 231. Facade Topology and the Capture/Semantics Edge | 1/3 | In Progress | - |
+| 231. Facade Topology and the Capture/Semantics Edge | 2/3 | In Progress | - |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 0/TBD | Not started | - |
 | 233. Lookup Return Shapes | 0/TBD | Not started | - |
 | 234. Typespec and Doc Completion Gate | 0/TBD | Not started | - |
