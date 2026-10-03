@@ -48,6 +48,17 @@ defmodule Threadline.FacadeOnlyReferencesContractTest do
   # match "timeline_query" — this is membership, never a prefix check.
   @allowed_functions ["timeline_query"]
 
+  # D-18: internal names that must never appear in adopter-facing docs — the
+  # Telemetry emitters, the raw export query builder, and the deleted paged
+  # structs. No per-file exemption; every scope file is checked.
+  @hidden_name_regex ~r/Threadline\.Telemetry\.emit_\w+|\bexport_changes_query\b|\bTimelinePage\b|\bActorHistoryPage\b/
+
+  # D-18: retired facade names (all arities), with or without the
+  # `Threadline.` prefix, backticked or bare. `\bhistory/3` must not match
+  # `actor_history/3`-style names, because `_` is a word character and `\b`
+  # requires a non-word boundary immediately before the match.
+  @retired_name_regex ~r/Threadline\.history\(|\bhistory\/3\b|\brow_history\/4\b|\brow_history_page\/\d+\b|\bactor_window_page\/\d+\b|\bcorrelation_bundle_page\/\d+\b/
+
   defp scope_files do
     @scope_globs
     |> Enum.flat_map(fn glob -> Path.wildcard(Path.join(@repo_root, glob)) end)
@@ -106,6 +117,32 @@ defmodule Threadline.FacadeOnlyReferencesContractTest do
     offenders
     |> Enum.sort_by(fn {label, line_no, _full} -> {label, line_no} end)
     |> Enum.map_join("\n", fn {label, line_no, full} -> "#{label}:#{line_no} #{full}" end)
+  end
+
+  # Given a label and its content, returns {label, line_number, matched_text}
+  # for every hidden-internal-name reference (emit_*, export_changes_query,
+  # TimelinePage, ActorHistoryPage).
+  defp hidden_name_offenders(label, content) do
+    content
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.flat_map(fn {line, line_no} ->
+      Regex.scan(@hidden_name_regex, line)
+      |> Enum.map(fn [full | _] -> {label, line_no, full} end)
+    end)
+  end
+
+  # Given a label and its content, returns {label, line_number, matched_text}
+  # for every retired-facade-name reference (history/3, row_history/4,
+  # row_history_page, actor_window_page, correlation_bundle_page).
+  defp retired_name_offenders(label, content) do
+    content
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.flat_map(fn {line, line_no} ->
+      Regex.scan(@retired_name_regex, line)
+      |> Enum.map(fn [full | _] -> {label, line_no, full} end)
+    end)
   end
 
   describe "self-test (fixture, non-vacuous)" do
@@ -255,6 +292,90 @@ defmodule Threadline.FacadeOnlyReferencesContractTest do
         "alias Threadline.Investigation.{IncidentBundle, IncidentChange, LinkedChange}\n"
 
       assert bare_module_mentions("fixture", fixture) == []
+    end
+  end
+
+  describe "self-test (hidden/retired name fixture, non-vacuous)" do
+    test "the fixture yields exactly the seven hidden/retired offenders" do
+      fixture = """
+      Threadline.Telemetry.emit_export_completed(...)
+      Query.export_changes_query(f)
+      %Threadline.Query.TimelinePage{}
+      ActorHistoryPage
+      Threadline.history(MyApp.User, 1, repo: R)
+      `Threadline.row_history/4`
+      `row_history_page/4`
+      """
+
+      hidden = hidden_name_offenders("fixture", fixture)
+      retired = retired_name_offenders("fixture", fixture)
+
+      assert length(hidden) == 4, "expected 4 hidden-name offenders, got: #{inspect(hidden)}"
+      assert length(retired) == 3, "expected 3 retired-name offenders, got: #{inspect(retired)}"
+
+      hidden_texts = Enum.map(hidden, fn {_label, _line, full} -> full end)
+      retired_texts = Enum.map(retired, fn {_label, _line, full} -> full end)
+
+      assert Enum.any?(hidden_texts, &(&1 == "Threadline.Telemetry.emit_export_completed"))
+      assert Enum.any?(hidden_texts, &(&1 == "export_changes_query"))
+      assert Enum.any?(hidden_texts, &(&1 == "TimelinePage"))
+      assert Enum.any?(hidden_texts, &(&1 == "ActorHistoryPage"))
+
+      assert Enum.any?(retired_texts, &(&1 == "Threadline.history("))
+      assert Enum.any?(retired_texts, &(&1 == "row_history/4"))
+      assert Enum.any?(retired_texts, &(&1 == "row_history_page/4"))
+    end
+
+    test "near-miss names yield no hidden/retired offenders" do
+      fixture = """
+      Threadline.Telemetry.transaction_committed(t)
+      actor_history/2
+      row_history/3
+      Threadline.Page
+      """
+
+      assert hidden_name_offenders("fixture", fixture) == []
+      assert retired_name_offenders("fixture", fixture) == []
+    end
+  end
+
+  describe "the real scope (hidden/retired names, D-18)" do
+    test "reports zero hidden internal-name offenders" do
+      found =
+        scope_files()
+        |> Enum.flat_map(fn path -> hidden_name_offenders(relative(path), File.read!(path)) end)
+        |> Enum.sort_by(fn {label, line_no, _full} -> {label, line_no} end)
+
+      assert found == [], """
+      Found a hidden internal name (Threadline.Telemetry.emit_*, \
+      export_changes_query, TimelinePage, or ActorHistoryPage) in adopter-facing \
+      scope:
+
+      #{format_offenders(found)}
+      """
+    end
+
+    test "reports zero retired-facade-name offenders, and the scan covers both upgrade guides" do
+      scanned = scope_files() |> Enum.map(&relative/1)
+
+      assert "guides/upgrading-to-0.11.md" in scanned,
+             "expected guides/upgrading-to-0.11.md in the scanned file list"
+
+      assert "guides/upgrade-path.md" in scanned,
+             "expected guides/upgrade-path.md in the scanned file list"
+
+      found =
+        scope_files()
+        |> Enum.flat_map(fn path -> retired_name_offenders(relative(path), File.read!(path)) end)
+        |> Enum.sort_by(fn {label, line_no, _full} -> {label, line_no} end)
+
+      assert found == [], """
+      Found a retired facade name (Threadline.history/3, row_history/4, \
+      row_history_page, actor_window_page, or correlation_bundle_page) in \
+      adopter-facing scope — rewrite to the current replacement name:
+
+      #{format_offenders(found)}
+      """
     end
   end
 end
