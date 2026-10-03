@@ -158,6 +158,32 @@ defmodule Threadline.RowHistoryTest do
 
       assert length(results) == 2
     end
+
+    test "two changes sharing one captured_at are ordered id desc, and a cursor taken at microsecond precision from a returned entry resumes exactly after it" do
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-tie-break"}
+      tie_time = ~U[2026-03-01 00:00:00.123456Z]
+
+      tied =
+        for _ <- 1..2 do
+          insert_change(txn, %{table_pk: table_pk, captured_at: tie_time})
+        end
+
+      older = insert_change(txn, %{table_pk: table_pk, captured_at: DateTime.add(tie_time, -1, :second)})
+
+      [first, second, third] = Threadline.row_history(FakeUser, "row-tie-break", repo: @repo)
+
+      tied_ids = Enum.map(tied, & &1.id) |> Enum.sort(:desc)
+      assert [first.audit_change.id, second.audit_change.id] == tied_ids
+      assert third.audit_change.id == older.id
+
+      cursor = %{captured_at: first.audit_change.captured_at, id: first.audit_change.id}
+
+      resumed =
+        Threadline.row_history(FakeUser, "row-tie-break", repo: @repo, cursor: cursor)
+
+      assert Enum.map(resumed.entries, & &1.audit_change.id) == [second.audit_change.id, older.id]
+    end
   end
 
   describe "row_history/4 (deprecated, unbounded)" do
