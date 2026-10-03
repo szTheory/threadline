@@ -218,9 +218,9 @@ Omitting `:action`, or setting `capture_only: true`, keeps physical capture but 
 
 Public query helpers return captured Ecto structs or higher-level investigation structures:
 
-- `Threadline.history/3` and `Threadline.Investigation.row_history/4` follow one application row.
+- `Threadline.history/3` and `Threadline.row_history/4` follow one application row.
 - `Threadline.timeline/2` reads a bounded eager slice; `Threadline.timeline_page/2` uses keyset pages ordered by `(captured_at, id)`.
-- `Threadline.Investigation.actor_window/3` and `correlation_bundle/3` add linked context.
+- `Threadline.actor_window/3` and `Threadline.correlation_bundle/3` add linked context.
 - `Threadline.incident_bundle/2` packages one transaction, its optional action, all changes, and deterministic diffs.
 - `Threadline.as_of/4` returns the latest stored snapshot, `:deleted_record`, or `:before_audit_horizon`; it does not invent history before capture began.
 - `Threadline.export_csv/2` and `Threadline.export_json/2` reuse the timeline filter vocabulary.
@@ -288,7 +288,7 @@ No audit library can protect a value that was captured before its redaction poli
 
 ### Query, investigation, and optional UI
 
-`Threadline.Query` owns filter validation, joins, total ordering, cursors, and host scope application. `Threadline.Investigation` composes those primitives into operator questions and linked diffs. The optional `threadline_operator_surface/2` macro mounts LiveViews and export routes inside the host router, where the host supplies pipelines and authorization callbacks.
+An internal query layer owns filter validation, joins, total ordering, cursors, and host scope application. An internal investigation layer composes those primitives into operator questions and linked diffs. Both are reached only through the `Threadline` facade. The optional `threadline_operator_surface/2` macro mounts LiveViews and export routes inside the host router, where the host supplies pipelines and authorization callbacks.
 
 Coverage, policy, and evidence capabilities have separate fail-closed gates. A host scope is opaque to Threadline: the configured three-argument callback receives the Ecto query, scope value, and a surface/params context, then returns the narrowed query.
 
@@ -317,8 +317,8 @@ Ecto, Postgrex, Jason, NimbleCSV, Plug, and telemetry support the core. Phoenix,
 | How does identity enter the write? | `Threadline.Semantics.ActorRef`, `Threadline.Semantics.AuditContext`, `Threadline.Plug`, `Threadline.Job` |
 | What is the supported audited-write boundary? | `Threadline.Audit` |
 | How are physical and semantic facts linked? | `Threadline.Semantics.AuditAction`, `Threadline.Capture.AuditTransaction` |
-| How do filters, pages, and host scopes work? | `Threadline.Query`, `Threadline.OperatorSurface.Router` |
-| How is an incident assembled? | `Threadline.Investigation`, `Threadline.ChangeDiff` |
+| How do filters, pages, and host scopes work? | `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.OperatorSurface.Router` |
+| How is an incident assembled? | `Threadline.incident_bundle/2`, `Threadline.ChangeDiff` |
 | How is the UI mounted securely? | `Threadline.OperatorSurface.Router`, `Threadline.OperatorSurface.Auth` |
 | How do large exports leave the process? | `Threadline.Export`, `Threadline.ExportQueue`, `Threadline.Storage`, `Threadline.Export.Orchestrator` |
 | How are lifecycle and attestations represented? | `Threadline.Retention`, `Threadline.Evidence` |
@@ -327,9 +327,9 @@ Ecto, Postgrex, Jason, NimbleCSV, Plug, and telemetry support the core. Phoenix,
 
 Choose a route based on the question you are answering:
 
-1. **Audited write:** `Threadline.Plug` → `Threadline.Audit` → the returned capture structs → `Threadline.Investigation`.
+1. **Audited write:** `Threadline.Plug` → `Threadline.Audit` → the returned capture structs → `Threadline.incident_bundle/2`.
 2. **Capture policy:** `Threadline.StorageSchema` → `Mix.Tasks.Threadline.Install` and `Mix.Tasks.Threadline.Gen.Triggers` → generated migration SQL → `Threadline.Health`.
-3. **Operator security:** `Threadline.OperatorSurface.Router` → `Threadline.OperatorSurface.Auth` → `Threadline.Query` with the host scope callback.
+3. **Operator security:** `Threadline.OperatorSurface.Router` → `Threadline.OperatorSurface.Auth` → `Threadline.timeline/2` with the host scope callback.
 4. **Operational lifecycle:** `Threadline.Export` and its queue/storage behaviours → `Threadline.Export.Orchestrator`; then `Threadline.Retention` and `Threadline.Evidence`.
 
 The [Code walkthrough](code-walkthrough.md) follows these routes with short excerpts from the implementation and names the tests that prove each seam.

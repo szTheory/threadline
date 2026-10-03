@@ -298,7 +298,7 @@ Do not flatten these into a single “audit event” mentally. Their cardinaliti
 
 ### 11. Timeline correlation is an inner join, not a header search
 
-Source: public query composition and its internal correlation filter in `Threadline.Query`.
+Source: public query composition and its internal correlation filter in `lib/threadline/query.ex` (internal — reached through the `Threadline` facade).
 
 Base predicates always join changes to their capture transaction. A correlation ID adds an inner join through the linked action.
 
@@ -331,7 +331,7 @@ That invariant is why `AuditContext.correlation_id` alone is insufficient. The w
 
 ### 12. Keyset pagination has a total order
 
-Source: `Threadline.Query`.
+Source: `lib/threadline/query.ex` (internal — reached through the `Threadline` facade).
 
 The timestamp is the primary sort key and the UUID is the stable tiebreaker. The cursor uses the same tuple comparison, preventing duplicate or skipped rows when timestamps tie.
 
@@ -365,9 +365,9 @@ Any change to ordering must update both halves together and retain tests with ti
 
 ### 13. An incident bundle adds linked context and deterministic diffs
 
-Source: public `Threadline.Investigation.incident_bundle/2` and its internal mapper.
+Source: public `Threadline.incident_bundle/2` and its internal mapper.
 
-The higher-level API loads the transaction header, applies host scope to both reads, loads linked actions, and packages each change with `Threadline.change_diff/1`.
+The higher-level API loads the transaction header, applies host scope to both reads, preloads each change's transaction, then hydrates linked actions through the hidden batched helper, and packages each change with `Threadline.change_diff/1`.
 
 ```elixir
 def incident_bundle(transaction_id, opts \\ []) do
@@ -377,14 +377,17 @@ def incident_bundle(transaction_id, opts \\ []) do
       {:error, :not_found}
 
     transaction ->
+      transaction = Query.hydrate_actions(transaction, repo, internal_opts)
+
       changes =
         Query.audit_changes_for_transaction(
           transaction_id,
-          opts
-          |> Keyword.put(:preload, transaction: :action)
+          internal_opts
+          |> Keyword.put(:preload, [:transaction])
           |> Keyword.put(:surface, :transaction)
           |> Keyword.put(:params, %{transaction_id: transaction_id})
         )
+        |> Query.hydrate_actions(repo, internal_opts)
 
       linked_changes = to_linked_changes(changes)
 
