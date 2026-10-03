@@ -8,9 +8,12 @@ defmodule Threadline.RowHistoryTest do
 
   use Threadline.DataCase
   import Ecto.Query
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Investigation.LinkedChange
+
+  @truncated_event [:threadline, :row_history, :truncated]
 
   @repo Threadline.Test.Repo
 
@@ -345,5 +348,86 @@ defmodule Threadline.RowHistoryTest do
     end
 
     defp scope_by_source(query, _scope, _context), do: query
+  end
+
+  describe "[:threadline, :row_history, :truncated] telemetry" do
+    test "201 changes, no :limit: exactly one event with %{limit: 200} and %{schema: FakeUser}" do
+      ref = attach_telemetry!([@truncated_event])
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-telemetry-201"}
+      insert_n_changes(txn, table_pk, 201)
+
+      Threadline.row_history(FakeUser, "row-telemetry-201", repo: @repo)
+
+      assert_receive {@truncated_event, ^ref, %{limit: 200}, %{schema: FakeUser}}
+      refute_receive {@truncated_event, ^ref, _, _}
+    end
+
+    test "exactly 200 changes, no :limit: no event" do
+      ref = attach_telemetry!([@truncated_event])
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-telemetry-200"}
+      insert_n_changes(txn, table_pk, 200)
+
+      Threadline.row_history(FakeUser, "row-telemetry-200", repo: @repo)
+
+      refute_receive {@truncated_event, ^ref, _, _}
+    end
+
+    test "250 changes with limit: 5, limit: :infinity, or cursor: :start: no event" do
+      ref = attach_telemetry!([@truncated_event])
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-telemetry-250"}
+      insert_n_changes(txn, table_pk, 250)
+
+      Threadline.row_history(FakeUser, "row-telemetry-250", repo: @repo, limit: 5)
+      Threadline.row_history(FakeUser, "row-telemetry-250", repo: @repo, limit: :infinity)
+      Threadline.row_history(FakeUser, "row-telemetry-250", repo: @repo, cursor: :start)
+
+      refute_receive {@truncated_event, ^ref, _, _}
+    end
+  end
+
+  describe "export/as_of stay unbounded past the row_history default" do
+    test "export_json over a 250-change row's table yields 250 changes" do
+      tname = "row_history_export_#{System.unique_integer([:positive])}"
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-export-250"}
+
+      for i <- 1..250 do
+        insert_change(txn, %{
+          table_name: tname,
+          table_pk: table_pk,
+          captured_at: DateTime.add(~U[2026-01-01 00:00:00.000000Z], i, :microsecond)
+        })
+      end
+
+      assert {:ok, %{returned_count: 250, truncated: false}} =
+               Threadline.export_json([table: tname, repo: @repo], [])
+    end
+
+    test "as_of/4 resolves a snapshot older than the newest 200 changes" do
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-as-of-250"}
+      base = ~U[2026-01-01 00:00:00.000000Z]
+
+      changes =
+        for i <- 1..250 do
+          insert_change(txn, %{
+            table_pk: table_pk,
+            data_after: %{"name" => "state-#{i}"},
+            captured_at: DateTime.add(base, i, :microsecond)
+          })
+        end
+
+      # The 10th-oldest change sits well outside row_history/3's default
+      # 200-row window (only the newest 200 of 250 are in it).
+      tenth_oldest = Enum.at(changes, 9)
+
+      assert {:ok, snapshot} =
+               Threadline.as_of(FakeUser, "row-as-of-250", tenth_oldest.captured_at, repo: @repo)
+
+      assert snapshot["name"] == "state-10"
+    end
   end
 end
