@@ -3,19 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.44
 milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 230
-current_phase_name: Rebalance, Net-Suite Check and 0.12.0
-status: executing
-stopped_at: Completed 230-04-PLAN.md
-last_updated: "2026-10-02T21:24:17.451Z"
+status: completed
+stopped_at: Phase 230 complete — all phases complete
+last_updated: "2026-10-03T01:31:48.199Z"
 last_activity: 2026-10-02
-last_activity_desc: Phase 230 plan 04 complete — landed #73 (SUITE-06 PASS), 0.12.0 published to hex.pm; phase verification next
-state_head: 243679a8b1550eafa8be0082dd7b5d9b7a34cc29
+last_activity_desc: Phase 230 complete — verified 5/5, 0.12.0 on hex.pm; next milestone audit
+state_head: 5fcf1042579ee61dd1348f19e9c4e341f043e20e
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 33
   completed_plans: 33
-  percent: 86
+  percent: 100
 ---
 
 # Project State: Threadline
@@ -29,12 +28,12 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 ## Current Position
 
-Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — EXECUTING
-Plan: 4 of 4
-Status: Plans complete — phase verification next
-Last activity: 2026-10-03 — Phase 230 plan 04 complete: milestone squash-landed as #73 (67090195) after its own CI run passed the SUITE-06 gate (507 s ≤ 930.6 s, all lanes cache hit); release PR #74 merged, production-hex approved, threadline 0.12.0 live on hex.pm (Release run 37084163662), distribution-sync PR #75 merged
+Phase: 230
+Plan: Not started
+Status: All phases complete
+Last activity: 2026-10-03 — Phase 230 complete (verified 5/5; 0.12.0 released)
 
-Progress: [███████░░░] 6 of 7 v1.44 phases complete ([█████████░] 86%). Phase 229 verified passed 5/5 (2026-10-02): Threadline.history/3 takes a validated :limit (QRY-01/02, new Query.HistoryLimit); public Threadline.Health.legacy_key_findings/1 emits :unresolved_legacy_keys warnings (capped, statement_timeout-bounded per-table probe; HLTH-03); mix threadline.health.coverage gains --strict (exit 1 on in-scope :error findings, 12-cell matrix baseline; HLTH-01), --all-schemas (schema-keyed table + JSON envelope, extension schemas excluded via pg_depend; HLTH-02), unknown switches now raise; malformed :trigger_capture fail-fast documented (HLTH-04); local suite 2767/0, mix ci.all green, wall clock before/after in evidence/SC5-wallclock.md; review 0 critical/1 warning/1 info (WR-01 stray positional args ignored, IN-01 duplicated schema regex; advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 230 (plan 04 stops at a maintainer grant for push, PR, squash-merge, release-please PR merge, production-hex approval and the distribution-sync PR). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [██████████] 7 of 7 v1.44 phases complete (100%). Phase 230 verified passed 5/5 (2026-10-03): SUITE-04 rebalance (2 prose-lock files cut, 3 mixed files trimmed, keep/cut rubric in CONTRIBUTING, ci-required roster unchanged at 13); SUITE-06 net suite time PASS on the landing PR's own CI run 37082623361 (Run tests step sum 507 s vs SUITE-01 846 s, all lanes cache hit; local median 137.44 s -> 151.59 s recorded as context only per D-08); REL-01 landed as one feat! squash #73 (67090195) with 3 BREAKING CHANGE footers, release PR #74 merged, production-hex approved under the maintainer's named grant, threadline 0.12.0 live on hex.pm (Release run 37084163662), distribution-sync PR #75 merged; latest-lane pins re-checked current. Code review 0/0/1 (IN-01 style nit open). Local milestone/v1.44 carries post-landing evidence commits not yet on main (milestone close carries them). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-audit-milestone v1.44, then /gsd-complete-milestone (D-14). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 
@@ -998,7 +997,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ## Session Continuity
 
 **Last session:** 2026-10-02T21:24:17.352Z
-**Stopped at:** Completed 230-03-PLAN.md
+**Stopped at:** Phase 230 complete — all phases complete
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

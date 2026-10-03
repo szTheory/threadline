@@ -54,7 +54,7 @@
 - [x] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds (completed 2026-10-01)
 - [x] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data (completed 2026-10-02)
 - [x] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning (completed 2026-10-02)
-- [ ] **Phase 230: Rebalance, Net-Suite Check and 0.12.0** - Prose-only guard tests merged or cut, the net suite time proven not to regress, and 0.12.0 released
+- [x] **Phase 230: Rebalance, Net-Suite Check and 0.12.0** - Prose-only guard tests merged or cut, the net suite time proven not to regress, and 0.12.0 released (completed 2026-10-02)
 
 ## Phase Details
 
@@ -284,7 +284,7 @@ Plans:
   4. The milestone lands on main as one squash with a clean conventional `feat:` title. release-please ships 0.12.0, hex.pm serves it, and the `latest` lane pins are re-checked against builds.hex.pm and Docker Hub, with the result cited.
   5. `mix ci.all` and `bin/verify-repo-hygiene` are green at close, and no phase or plan ID appears in `lib/`, guides or the 0.12.0 CHANGELOG.
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans complete
 
 Plans:
 
@@ -303,6 +303,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 230-04-PLAN.md — Land and release: preflight and latest-lane pin re-check, one maintainer grant, PR CI as the SUITE-06 fresh-run gate, `feat!:` squash, release-please 0.12.0, production-hex, smoke, distribution sync (REL-01, SUITE-06)
+
 **Research**: Apply the rubric in `research/ARCHITECTURE.md` B.1 to `operator_surface/coverage_doc_contract_test.exs`, `operator_surface/policy_show_doc_contract_test.exs`, `storage_schema_migration_contract_test.exs` and `storage_schema_prefix_contract_test.exs` before building the cut list. Landing needs a maintainer grant naming the branch, push, PR, merge and `production-hex` approval.
 
 ## Progress
@@ -315,7 +316,7 @@ Plans:
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
 | 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
 | 229. Adopter API and Health Additions | 4/4 | Complete    | 2026-10-02 |
-| 230. Rebalance, Net-Suite Check and 0.12.0 | 4/4 | In Progress | - |
+| 230. Rebalance, Net-Suite Check and 0.12.0 | 4/4 | Complete    | 2026-10-02 |
 
 ## Prior Milestones
 
