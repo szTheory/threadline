@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.12.0](https://github.com/szTheory/threadline/compare/v0.11.2...v0.12.0) (2026-10-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* Operator-surface authorize/export/actor_ref_mismatch telemetry no longer carries actor refs. The [:threadline, :health, :checked, :error] metadata is now %{exception: module}. A non-list exclude:/mask:/except_columns: raises ArgumentError.
+
+### Features
+
+* add export and retention telemetry, a history limit, and strict coverage checks ([#73](https://github.com/szTheory/threadline/issues/73)) ([6709019](https://github.com/szTheory/threadline/commit/6709019502fdd70d097a7ae285ba9936462a79e2))
+
 ## [0.11.2](https://github.com/szTheory/threadline/compare/v0.11.1...v0.11.2) (2026-09-30)
 
 
