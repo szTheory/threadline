@@ -84,7 +84,7 @@ defmodule Threadline.InvestigationTest do
   defp page_entry_ids(%Threadline.Page{entries: entries}),
     do: Enum.map(entries, & &1.audit_change.id)
 
-  describe "row_history/4 and row_history_page/4" do
+  describe "row_history/3 and its cursor: paging" do
     test "constrains history to one row instead of all rows from the table" do
       txn = insert_transaction()
       older = ~U[2026-08-01 10:00:00.000000Z]
@@ -122,13 +122,12 @@ defmodule Threadline.InvestigationTest do
         |> Enum.map(& &1.audit_change.id)
 
       first_page =
-        Threadline.row_history_page(FakeUser, "row-paged", [], repo: @repo, page_size: 2)
+        Threadline.row_history(FakeUser, "row-paged", repo: @repo, page_size: 2, cursor: :start)
 
       second_page =
-        Threadline.row_history_page(
+        Threadline.row_history(
           FakeUser,
           "row-paged",
-          [],
           repo: @repo,
           page_size: 2,
           cursor: first_page.cursor
@@ -176,7 +175,7 @@ defmodule Threadline.InvestigationTest do
       assert Enum.all?(results, &(&1.transaction.source == "support"))
     end
 
-    test "row_history_page/4 applies support scope" do
+    test "row_history/3 with cursor: :start applies support scope" do
       support_time = ~U[2026-10-02 11:00:00.000000Z]
       admin_time = DateTime.add(support_time, 60, :second)
 
@@ -201,11 +200,12 @@ defmodule Threadline.InvestigationTest do
       })
 
       page =
-        Threadline.row_history_page(FakeUser, "row-scoped-page", [],
+        Threadline.row_history(FakeUser, "row-scoped-page",
           repo: @repo,
           page_size: 5,
           scope: %{source: "support"},
-          scope_query_fn: &support_scope_query/3
+          scope_query_fn: &support_scope_query/3,
+          cursor: :start
         )
 
       assert Enum.map(page.entries, & &1.audit_change.id) == [support_change.id]
@@ -215,7 +215,7 @@ defmodule Threadline.InvestigationTest do
     end
   end
 
-  describe "actor_window/3 and actor_window_page/3" do
+  describe "actor_window/3 and its cursor: paging" do
     test "returns change rows across tables for one actor" do
       actor = actor!(:user, "actor-window")
       actor_map = ActorRef.to_map(actor)
@@ -267,10 +267,11 @@ defmodule Threadline.InvestigationTest do
       eager_ids =
         Threadline.actor_window(actor, [], repo: @repo) |> Enum.map(& &1.audit_change.id)
 
-      first_page = Threadline.actor_window_page(actor, [], repo: @repo, page_size: 2)
+      first_page =
+        Threadline.actor_window(actor, [], repo: @repo, page_size: 2, cursor: :start)
 
       second_page =
-        Threadline.actor_window_page(actor, [],
+        Threadline.actor_window(actor, [],
           repo: @repo,
           page_size: 2,
           cursor: first_page.cursor
@@ -318,7 +319,7 @@ defmodule Threadline.InvestigationTest do
     end
   end
 
-  describe "correlation_bundle/3 and correlation_bundle_page/3" do
+  describe "correlation_bundle/3 and its cursor: paging" do
     test "preserves strict inner-join correlation semantics" do
       matching_action = insert_action(%{correlation_id: "corr-match"})
       other_action = insert_action(%{correlation_id: "corr-other"})
@@ -356,10 +357,10 @@ defmodule Threadline.InvestigationTest do
         |> Enum.map(& &1.audit_change.id)
 
       first_page =
-        Threadline.correlation_bundle_page("corr-paged", [], repo: @repo, page_size: 2)
+        Threadline.correlation_bundle("corr-paged", [], repo: @repo, page_size: 2, cursor: :start)
 
       second_page =
-        Threadline.correlation_bundle_page(
+        Threadline.correlation_bundle(
           "corr-paged",
           [],
           repo: @repo,

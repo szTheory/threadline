@@ -7,6 +7,7 @@ defmodule Threadline.QueryTest do
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.Test.DbProperty
   alias Threadline.Test.KeysetModel
+  alias Threadline.Test.RowHistory
 
   @repo Threadline.Test.Repo
 
@@ -397,7 +398,7 @@ defmodule Threadline.QueryTest do
     end
   end
 
-  describe "history/3 — QUERY-01" do
+  describe "row_history/3 (QUERY-01, migrated off the deprecated history/3)" do
     test "returns AuditChange records for the given schema/id, ordered by captured_at desc" do
       txn = insert_transaction()
       t1 = DateTime.add(DateTime.utc_now(), -60, :second)
@@ -414,7 +415,7 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      results = Threadline.history(FakeUser, "u-1", repo: @repo)
+      results = RowHistory.changes(FakeUser, "u-1", repo: @repo)
       assert length(results) == 2
       [first | _] = results
       assert DateTime.compare(first.captured_at, t2) in [:eq, :gt]
@@ -430,7 +431,7 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert [] = Threadline.history(FakeUser2, "nonexistent", repo: @repo)
+      assert [] = RowHistory.changes(FakeUser2, "nonexistent", repo: @repo)
     end
 
     test "only returns records for the specified table" do
@@ -447,11 +448,11 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      results = Threadline.history(FakeUser3, "u-1", repo: @repo)
+      results = RowHistory.changes(FakeUser3, "u-1", repo: @repo)
       assert Enum.all?(results, &(&1.table_name == "users"))
     end
 
-    test "history/3 returns changed_from when the column is populated (BVAL-02)" do
+    test "row_history/3 returns changed_from when the column is populated (BVAL-02)" do
       txn = insert_transaction()
 
       insert_change(txn, %{
@@ -469,11 +470,11 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      [row] = Threadline.history(FakeUserBval, "u-bval", repo: @repo)
+      [row] = RowHistory.changes(FakeUserBval, "u-bval", repo: @repo)
       assert row.changed_from == %{"status" => "pending"}
     end
 
-    test "history/3 applies support scope" do
+    test "row_history/3 applies support scope" do
       support_time = ~U[2026-10-01 08:00:00.000000Z]
       admin_time = DateTime.add(support_time, 60, :second)
 
@@ -498,7 +499,7 @@ defmodule Threadline.QueryTest do
       )
 
       results =
-        Threadline.history(fake_as_of_schema(), "u-scoped-history",
+        RowHistory.changes(fake_as_of_schema(), "u-scoped-history",
           repo: @repo,
           scope: %{source: "support"},
           scope_query_fn: &support_scope_query/3
@@ -508,7 +509,7 @@ defmodule Threadline.QueryTest do
       assert Enum.all?(results, &(&1.transaction_id == support_txn.id))
     end
 
-    test "history/3 :limit caps to the n most recent changes and rejects invalid values" do
+    test "row_history/3 :limit caps to the n most recent changes and rejects invalid values" do
       txn = insert_transaction()
       t1 = DateTime.add(DateTime.utc_now(), -60, :second)
       t2 = DateTime.add(DateTime.utc_now(), -30, :second)
@@ -527,17 +528,17 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      unbounded = Threadline.history(FakeUserLimit, "u-limit", repo: @repo)
-      capped = Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 2)
+      unbounded = RowHistory.changes(FakeUserLimit, "u-limit", repo: @repo)
+      capped = RowHistory.changes(FakeUserLimit, "u-limit", repo: @repo, limit: 2)
 
       assert Enum.map(capped, & &1.id) == Enum.take(Enum.map(unbounded, & &1.id), 2)
 
       assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 0", fn ->
-        Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 0)
+        RowHistory.changes(FakeUserLimit, "u-limit", repo: @repo, limit: 0)
       end
     end
 
-    test "history/3 :limit against an independent oracle, boundary + tie adjacency (QRY-01/QRY-02)" do
+    test "row_history/3 :limit against an independent oracle, boundary + tie adjacency (QRY-01/QRY-02)" do
       defmodule FakeUserLimitMatrix do
         use Ecto.Schema
 
@@ -564,35 +565,36 @@ defmodule Threadline.QueryTest do
 
       unbounded =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo),
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo),
           & &1.id
         )
 
       assert unbounded == oracle_ids
 
-      # no limit == limit: nil == limit: count + 5
-      nil_limited =
+      # no limit == limit: :infinity == limit: count + 5 (row_history/3: limit:
+      # nil now raises, D-04/D-13 -- unlike the deprecated history/3)
+      infinity_limited =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: nil),
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: :infinity),
           & &1.id
         )
 
       over_limited =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix",
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix",
             repo: @repo,
             limit: length(oracle_ids) + 5
           ),
           & &1.id
         )
 
-      assert nil_limited == oracle_ids
+      assert infinity_limited == oracle_ids
       assert over_limited == oracle_ids
 
       # limit: count returns all
       count_limited =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix",
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix",
             repo: @repo,
             limit: length(oracle_ids)
           ),
@@ -603,7 +605,7 @@ defmodule Threadline.QueryTest do
 
       # limit: 1 returns exactly the oracle head
       [head_limited] =
-        Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 1)
+        RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 1)
 
       assert head_limited.id == List.first(oracle_ids)
 
@@ -613,7 +615,7 @@ defmodule Threadline.QueryTest do
 
       tie_limited =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 3),
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 3),
           & &1.id
         )
 
@@ -621,7 +623,7 @@ defmodule Threadline.QueryTest do
       assert List.last(tie_limited) == third_id
     end
 
-    test "history/3 :limit plus scope: the cap counts only in-scope rows" do
+    test "row_history/3 :limit plus scope: the cap counts only in-scope rows" do
       support_time = ~U[2026-10-02 09:00:00.000000Z]
       admin_time = DateTime.add(support_time, 60, :second)
       table_pk = %{"id" => "u-limit-scope"}
@@ -647,7 +649,7 @@ defmodule Threadline.QueryTest do
       )
 
       results =
-        Threadline.history(fake_as_of_schema(), "u-limit-scope",
+        RowHistory.changes(fake_as_of_schema(), "u-limit-scope",
           repo: @repo,
           scope: %{source: "support"},
           scope_query_fn: &support_scope_query/3,
@@ -657,7 +659,7 @@ defmodule Threadline.QueryTest do
       assert Enum.map(results, & &1.id) == [support_change.id]
     end
 
-    test "history/3 :limit rejection cases raise with the exact message" do
+    test "row_history/3 :limit rejection cases raise with the exact message" do
       defmodule FakeUserLimitReject do
         use Ecto.Schema
 
@@ -668,27 +670,42 @@ defmodule Threadline.QueryTest do
       end
 
       assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 0", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 0)
+        RowHistory.changes(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 0)
       end
 
       assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: -1", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: -1)
+        RowHistory.changes(FakeUserLimitReject, "nonexistent", repo: @repo, limit: -1)
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 1.0", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 1.0)
-      end
+      assert_raise ArgumentError,
+                   ":limit must be a positive integer or :infinity, got: 1.0",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitReject, "nonexistent",
+                       repo: @repo,
+                       limit: 1.0
+                     )
+                   end
 
-      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: \"5\"", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: "5")
-      end
+      assert_raise ArgumentError,
+                   ":limit must be a positive integer or :infinity, got: \"5\"",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitReject, "nonexistent",
+                       repo: @repo,
+                       limit: "5"
+                     )
+                   end
 
-      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: true", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: true)
-      end
+      assert_raise ArgumentError,
+                   ":limit must be a positive integer or :infinity, got: true",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitReject, "nonexistent",
+                       repo: @repo,
+                       limit: true
+                     )
+                   end
     end
 
-    test "history/3 :limit validation precedes row-key matching (garbage id + invalid limit)" do
+    test "row_history/3 row-key matching precedes :limit validation (garbage id + invalid limit; order differs from the deprecated history/3, D-04/D-13)" do
       defmodule FakeUserLimitPrecedence do
         use Ecto.Schema
 
@@ -698,12 +715,18 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 0", fn ->
-        Threadline.history(FakeUserLimitPrecedence, nil, repo: @repo, limit: 0)
-      end
+      # The deprecated history/3 validates :limit before building the
+      # row-key query (deprecation_parity_test.exs covers that order).
+      # row_history/3 builds the row-key query first, so a garbage row key
+      # raises before :limit is ever inspected.
+      assert_raise ArgumentError,
+                   "expected a value for key field :id of Threadline.QueryTest.FakeUserLimitPrecedence, got nil",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitPrecedence, nil, repo: @repo, limit: 0)
+                   end
     end
 
-    test "history/3 :limit on an empty history returns [] for no limit, nil, and limit: 1" do
+    test "row_history/3 :limit on an empty history returns [] for no limit and limit: 1, and raises for limit: nil (D-04/D-13)" do
       defmodule FakeUserLimitEmpty do
         use Ecto.Schema
 
@@ -713,9 +736,18 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo)
-      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: nil)
-      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: 1)
+      assert [] = RowHistory.changes(FakeUserLimitEmpty, "u-limit-empty", repo: @repo)
+
+      assert_raise ArgumentError,
+                   ":limit must be a positive integer or :infinity, got: nil",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitEmpty, "u-limit-empty",
+                       repo: @repo,
+                       limit: nil
+                     )
+                   end
+
+      assert [] = RowHistory.changes(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: 1)
     end
   end
 
@@ -1104,7 +1136,8 @@ defmodule Threadline.QueryTest do
         end)
 
       canonical_page =
-        Threadline.actor_history(actor, repo: @repo,
+        Threadline.actor_history(actor,
+          repo: @repo,
           page_size: 2,
           cursor: {:before, before_cursor}
         )
@@ -1446,8 +1479,8 @@ defmodule Threadline.QueryTest do
   # ── QUERY-04: repo option ─────────────────────────────────────────────────
 
   describe "QUERY-04: repo option" do
-    test "history/3 accepts explicit repo" do
-      assert is_list(Threadline.history(AuditChange, Ecto.UUID.generate(), repo: @repo))
+    test "row_history/3 accepts explicit repo" do
+      assert is_list(RowHistory.changes(AuditChange, Ecto.UUID.generate(), repo: @repo))
     end
 
     test "actor_history/2 accepts explicit repo" do
@@ -1530,7 +1563,7 @@ defmodule Threadline.QueryTest do
   end
 
   describe "QUERY-05: results are plain Ecto structs" do
-    test "history/3 returns AuditChange structs" do
+    test "row_history/3 returns AuditChange structs" do
       txn = insert_transaction()
       insert_change(txn, %{table_name: "users", table_pk: %{"id" => "s-1"}})
 
@@ -1543,7 +1576,7 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      [result] = Threadline.history(FakeUser4, "s-1", repo: @repo)
+      [result] = RowHistory.changes(FakeUser4, "s-1", repo: @repo)
       assert %AuditChange{} = result
     end
 
@@ -1574,7 +1607,7 @@ defmodule Threadline.QueryTest do
       end
     end
 
-    test "history/3, actor_history/2, timeline/2, timeline_page/2, and audit_changes_for_transaction/2 stay raw while transaction_context/2 and incident_bundle/2 are richer" do
+    test "row_history/3, actor_history/2, timeline/2, timeline_page/2, and audit_changes_for_transaction/2 stay raw while transaction_context/2 and incident_bundle/2 are richer" do
       actor = actor!(:user, "compat-actor")
 
       action =
@@ -1601,7 +1634,7 @@ defmodule Threadline.QueryTest do
         captured_at: ~U[2026-09-05 10:00:00.000000Z]
       })
 
-      [history_change] = Threadline.history(FakeCompatibilityUser, "compat-1", repo: @repo)
+      [history_change] = RowHistory.changes(FakeCompatibilityUser, "compat-1", repo: @repo)
       %Threadline.Page{entries: [actor_txn]} = Threadline.actor_history(actor, repo: @repo)
       [timeline_change] = Threadline.timeline(actor_ref: actor, repo: @repo)
 

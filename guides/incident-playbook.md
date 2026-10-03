@@ -25,7 +25,8 @@ When a specific record looks incorrect, the first question is usually who touche
 window_start = ~U[2024-03-15 10:00:00Z]
 window_end = ~U[2024-03-15 11:00:00Z]
 
-Threadline.history(MyApp.User, user_id, repo: MyApp.Repo)
+Threadline.row_history(MyApp.User, user_id, repo: MyApp.Repo, limit: :infinity)
+|> Enum.map(& &1.audit_change)
 |> Enum.filter(fn change ->
   DateTime.compare(change.captured_at, window_start) != :lt and
     DateTime.compare(change.captured_at, window_end) != :gt

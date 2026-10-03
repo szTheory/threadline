@@ -29,9 +29,11 @@ defmodule Threadline.Query.AsOfPropertyTest do
   reuses this file's `asof_prop_rows` table, `AsOfPropRow` schema, and
   `history_gen/0`: for every generated row history, it applies the same
   batches as real SQL (ignoring the `as_of` probes), reads the unbounded
-  `Query.history/3` result once as `full`, then asserts
-  `Query.history(..., limit: n) == Enum.take(full, n)` for every `n` from 1
-  through `length(full) + 2`. No new generator or table is registered.
+  `Threadline.Query.RowReads.audit_changes/3` result once as `full` (passing
+  `limit: :infinity` explicitly, D-13 -- this is the plain-`AuditChange`
+  baseline the deprecated `Query.history/3` used to provide), then asserts
+  `RowReads.audit_changes(..., limit: n) == Enum.take(full, n)` for every `n`
+  from 1 through `length(full) + 2`. No new generator or table is registered.
   """
 
   use Threadline.DataCase, async: false
@@ -42,6 +44,7 @@ defmodule Threadline.Query.AsOfPropertyTest do
 
   alias Threadline.Capture.TriggerSQL
   alias Threadline.Query
+  alias Threadline.Query.RowReads
   alias Threadline.StorageSchema
   alias Threadline.Test.PropertyRuns
 
@@ -97,7 +100,7 @@ defmodule Threadline.Query.AsOfPropertyTest do
     end
   end
 
-  property "history(limit: n) equals Enum.take(history(), n) for every n in 1..length+2" do
+  property "RowReads.audit_changes(limit: n) equals Enum.take(audit_changes(), n) for every n in 1..length+2" do
     check all(batches <- history_gen(), max_runs: @max_runs) do
       with_iteration(
         fn n -> delete_iteration!(@t, [Integer.to_string(n)]) end,
@@ -112,10 +115,10 @@ defmodule Threadline.Query.AsOfPropertyTest do
     _final_model =
       Enum.reduce(batches, nil, fn steps, model -> apply_batch_only(pk, steps, model) end)
 
-    full = Query.history(AsOfPropRow, pk, repo: Repo)
+    full = RowReads.audit_changes(AsOfPropRow, pk, repo: Repo, limit: :infinity)
 
     for n <- 1..(length(full) + 2) do
-      assert Query.history(AsOfPropRow, pk, repo: Repo, limit: n) == Enum.take(full, n)
+      assert RowReads.audit_changes(AsOfPropRow, pk, repo: Repo, limit: n) == Enum.take(full, n)
     end
   end
 

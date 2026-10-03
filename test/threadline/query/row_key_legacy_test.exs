@@ -1,12 +1,12 @@
 defmodule Threadline.Query.RowKeyLegacyTest do
   @moduledoc """
-  Proves READ-03: one `Threadline.history/3` call returns both a row captured
+  Proves READ-03: one `Threadline.row_history/3` call returns both a row captured
   by the frozen 0.10.2 trigger SQL and a row captured after the trigger is
   regenerated, for the same record — because both eras store the same
   `->>`-text shape for an `id` key (D-07, no separate legacy branch needed).
 
   Also proves that `{}` and `{"id": null}` rows, hand-inserted directly, are
-  never returned by any lookup, and that `history/3` results stay stable
+  never returned by any lookup, and that `row_history/3` results stay stable
   under equal `captured_at` (ordering edge).
   """
 
@@ -16,6 +16,7 @@ defmodule Threadline.Query.RowKeyLegacyTest do
   alias Threadline.StorageSchema
   alias Threadline.Test.LegacyTriggerSQL
   alias Threadline.Test.MigrationHarness, as: Harness
+  alias Threadline.Test.RowHistory
 
   @table "rk_legacy_items"
   @legacy_function "rk_legacy_capture_v0_10_2"
@@ -68,7 +69,7 @@ defmodule Threadline.Query.RowKeyLegacyTest do
   end
 
   describe "regenerating a table with a frozen 0.10.2 trigger" do
-    test "one history/3 call returns both eras' changes, byte-identical table_pk", %{
+    test "one row_history/3 call returns both eras' changes, byte-identical table_pk", %{
       tmp: tmp,
       storage: storage
     } do
@@ -103,7 +104,7 @@ defmodule Threadline.Query.RowKeyLegacyTest do
 
       Repo.query!("UPDATE #{@table} SET name = 'b' WHERE id = $1", [id])
 
-      rows = Threadline.history(RkLegacyItem, id, repo: Repo)
+      rows = RowHistory.changes(RkLegacyItem, id, repo: Repo)
 
       assert length(rows) == 2
       assert Enum.map(rows, & &1.op) == ["update", "insert"]
@@ -131,12 +132,12 @@ defmodule Threadline.Query.RowKeyLegacyTest do
       insert_change!(transaction, %{table_pk: %{}})
       insert_change!(transaction, %{table_pk: %{"id" => nil}})
 
-      rows = Threadline.history(RkLegacyItem, id, repo: Repo)
+      rows = RowHistory.changes(RkLegacyItem, id, repo: Repo)
       assert rows == []
     end
   end
 
-  describe "history/3 ordering under equal captured_at" do
+  describe "row_history/3 ordering under equal captured_at" do
     test "two changes sharing captured_at come back stably, id DESC" do
       Repo.query!("""
       CREATE TABLE #{@table} (
@@ -173,7 +174,7 @@ defmodule Threadline.Query.RowKeyLegacyTest do
         |> Enum.sort(:desc)
 
       for _ <- 1..3 do
-        rows = Threadline.history(RkLegacyItem, id, repo: Repo)
+        rows = RowHistory.changes(RkLegacyItem, id, repo: Repo)
         assert Enum.map(rows, & &1.id) == expected_ids
       end
     end
