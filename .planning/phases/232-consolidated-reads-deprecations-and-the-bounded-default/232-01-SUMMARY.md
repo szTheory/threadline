@@ -211,6 +211,12 @@ None - no external service configuration required.
 - API-03 stays open in REQUIREMENTS.md: it is shared with 232-02/03/06 (`requirements.ready-ids` reported 0/1 ready) and will flip to Complete when the last of those plans finishes.
 - No blockers for 232-02.
 
+## Self-Check: PASSED
+
+- Created files verified on disk: `lib/threadline/page.ex`, `lib/threadline/query/legacy_opts.ex`, `test/threadline/page_test.exs`, this SUMMARY.
+- Commits verified in `git log`: `96644d30`, `4b636efa`, `30879d29`, `4a0ad7a3`, `4ac08337`, `c38f8358`.
+- Re-ran the plan's `<verification>` block: `mix test test/threadline/page_test.exs test/threadline/query_test.exs test/threadline/export_test.exs test/threadline/investigation_test.exs test/threadline/query/cursors_property_test.exs` (123 tests + 2 properties, 0 failures), `mix test test/threadline/source_size_contract_test.exs` (18/0), `mix compile --warnings-as-errors`, `mix verify.credo`, `MIX_ENV=dev mix docs --warnings-as-errors` — all exit 0.
+
 ---
 *Phase: 232-consolidated-reads-deprecations-and-the-bounded-default*
 *Completed: 2026-10-03*
