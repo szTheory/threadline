@@ -342,7 +342,7 @@ defmodule Threadline.Query.ActionHydrationTest do
 
       {_history, history_stderr} =
         capture_with_result(fn ->
-          Threadline.row_history(FakeUser, "user-1", [], repo: @repo)
+          Threadline.row_history(FakeUser, "user-1", repo: @repo)
         end)
 
       assert warning_count(history_stderr) == 0

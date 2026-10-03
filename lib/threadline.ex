@@ -9,7 +9,7 @@ defmodule Threadline do
 
   The functions on this module (see the function list below) are the
   supported read API — including `timeline/2`, `timeline_page/2`,
-  `history/3`, `as_of/4`, `actor_history/2`, `row_history/4`,
+  `history/3`, `as_of/4`, `actor_history/2`, `row_history/3`,
   `row_history_page/4`, `actor_window/3`, `actor_window_page/3`,
   `correlation_bundle/3`, `correlation_bundle_page/3`,
   `transaction_context/2`, `incident_bundle/2`,
@@ -28,6 +28,7 @@ defmodule Threadline do
   """
 
   alias Threadline.Investigation
+  alias Threadline.Query.LegacyOpts
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -215,13 +216,52 @@ defmodule Threadline do
   def timeline_page(filters \\ [], opts \\ []), do: Threadline.Query.timeline_page(filters, opts)
 
   @doc """
-  Returns the investigation slice for one schema row.
+  Returns row history for one schema row — the discoverable helper for
+  operators who want one row's changes without assembling table and
+  primary-key predicates manually.
 
-  This is the discoverable row-history helper for operators who want one row's
-  changes without assembling table and primary-key predicates manually.
+  Returns a list of `%Threadline.Investigation.LinkedChange{}`, newest first,
+  capped at 200 entries by default. Pass `limit: n` or `limit: :infinity` to
+  override the cap, or `cursor:` (with optional `page_size:`) to page through
+  the full history as a `%Threadline.Page{}`.
+
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module
+  - `:from` — inclusive lower bound on `captured_at`
+  - `:to` — inclusive upper bound on `captured_at`
+  - `:limit` — positive integer, or `:infinity`. Defaults to 200 most recent
+    changes (`captured_at desc, id desc`). `:limit` together with `:cursor`
+    raises `ArgumentError`.
+  - `:cursor` — `:start` begins a walk; a prior page's `cursor` continues it.
+    `cursor: nil` raises `ArgumentError`. Returns `%Threadline.Page{}` instead
+    of a bare list.
+  - `:page_size` — positive integer, defaults to `1000`; only valid with
+    `:cursor`.
+
+  Unknown option keys raise `ArgumentError` naming the allowed keys.
   """
-  def row_history(schema_module, id, filters \\ [], opts \\ []),
-    do: Investigation.row_history(schema_module, id, filters, opts)
+  @doc since: "1.0.0"
+  @spec row_history(module(), term(), keyword()) ::
+          [Threadline.Investigation.LinkedChange.t()]
+          | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
+  def row_history(schema_module, id, opts \\ []) when is_list(opts),
+    do: Investigation.row_history(schema_module, id, opts)
+
+  @deprecated "Use Threadline.row_history/3 instead."
+  @doc """
+  Returns row history for one schema row using the retired `(filters, opts)`
+  shape, with 0.12's unbounded default.
+
+  Deprecated: use `row_history/3` instead — pass `limit: :infinity` to keep
+  this function's unbounded behavior.
+  """
+  @spec row_history(module(), term(), keyword(), keyword()) ::
+          [Threadline.Investigation.LinkedChange.t()]
+  def row_history(schema_module, id, filters, opts)
+      when is_list(filters) and is_list(opts) do
+    row_history(schema_module, id, LegacyOpts.row_history(filters, opts))
+  end
 
   @doc """
   Returns one keyset page of row history for a single schema row.

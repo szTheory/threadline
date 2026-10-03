@@ -95,7 +95,7 @@ defmodule Threadline.InvestigationTest do
       insert_change(txn, %{table_name: "users", table_pk: %{"id" => "row-2"}, captured_at: newer})
       insert_change(txn, %{table_name: "posts", table_pk: %{"id" => "row-1"}, captured_at: newer})
 
-      results = Threadline.row_history(FakeUser, "row-1", [], repo: @repo)
+      results = Threadline.row_history(FakeUser, "row-1", repo: @repo)
 
       assert Enum.map(results, & &1.audit_change.table_pk["id"]) == ["row-1", "row-1"]
       assert Enum.all?(results, &match?(%LinkedChange{}, &1))
@@ -118,7 +118,7 @@ defmodule Threadline.InvestigationTest do
       insert_change(txn, %{table_name: "users", table_pk: %{"id" => "row-paged"}, captured_at: t3})
 
       eager_ids =
-        Threadline.row_history(FakeUser, "row-paged", [], repo: @repo)
+        Threadline.row_history(FakeUser, "row-paged", repo: @repo)
         |> Enum.map(& &1.audit_change.id)
 
       first_page =
@@ -166,7 +166,7 @@ defmodule Threadline.InvestigationTest do
       })
 
       results =
-        Threadline.row_history(FakeUser, "row-scoped", [],
+        Threadline.row_history(FakeUser, "row-scoped",
           repo: @repo,
           scope: %{source: "support"},
           scope_query_fn: &support_scope_query/3

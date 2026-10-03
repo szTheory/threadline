@@ -1,6 +1,8 @@
 defmodule Threadline.Query.LegacyOpts do
   @moduledoc false
 
+  alias Threadline.Query
+
   # The 0.12 `*_page` helpers treated an absent or `nil` `:cursor` as "first
   # page". The newer always-paged functions raise on `cursor: nil` instead —
   # this maps the old first-page call onto the new `:start` so the
@@ -83,5 +85,20 @@ defmodule Threadline.Query.LegacyOpts do
       "Threadline: actor_history/2's :#{option} option is deprecated and will be removed " <>
         "no earlier than Threadline 2.0. Pass it as #{replacement} instead."
     )
+  end
+
+  # The retired `row_history/4` shape (filters, opts) keeps its 0.12 unbounded
+  # default: validate the old filter-key vocabulary, then merge filters into
+  # opts and default :limit to :infinity unless the caller already supplied
+  # one, so a 0.12 caller never notices the newer bounded default.
+  @doc """
+  Validates `filters` against the retired `row_history/4` filter-key
+  vocabulary, then merges `filters` into `opts` and defaults `:limit` to
+  `:infinity` unless `opts` already supplies one.
+  """
+  @spec row_history(keyword(), keyword()) :: keyword()
+  def row_history(filters, opts) when is_list(filters) and is_list(opts) do
+    Query.validate_row_history_filters!(filters)
+    Keyword.put_new(filters ++ opts, :limit, :infinity)
   end
 end

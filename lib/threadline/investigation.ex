@@ -3,6 +3,7 @@ defmodule Threadline.Investigation do
 
   alias Threadline.Query
   alias Threadline.Query.LegacyOpts
+  alias Threadline.Query.RowReads
 
   alias Threadline.Investigation.{
     IncidentBundle,
@@ -16,21 +17,32 @@ defmodule Threadline.Investigation do
   @allowed_row_history_filter_keys ~w(from to repo)a
   @allowed_actor_window_filter_keys ~w(table from to correlation_id repo)a
   @allowed_correlation_bundle_filter_keys ~w(table actor_ref from to repo)a
+  @row_history_opt_keys ~w(repo from to limit cursor page_size scope scope_query_fn surface storage_schema)a
 
   @doc """
-  Returns change history for one schema row, ordered by `captured_at` descending,
-  then `id` descending.
+  Returns row history for one schema row, ordered by `captured_at`
+  descending, then `id` descending.
 
-  `filters` accepts only `:from`, `:to`, and optional `:repo` parity with the
-  lower-level timeline APIs. Pass paging controls in `opts` only when using
-  `row_history_page/4`.
+  Returns a bare list of `LinkedChange`, capped at 200 entries by default.
+  Pass `limit: n` or `limit: :infinity` to override the cap, or `cursor:` to
+  page through the full history.
   """
-  def row_history(schema_module, id, filters \\ [], opts \\ []) do
-    filters = validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history)
+  def row_history(schema_module, id, opts \\ []) when is_list(opts) do
+    validate_row_history_opts!(opts)
 
     schema_module
-    |> Query.row_history(id, filters, opts)
+    |> RowReads.list(id, opts)
     |> linked_changes(opts)
+  end
+
+  @deprecated "Use Threadline.Investigation.row_history/3 instead."
+  @doc """
+  Returns row history for one schema row using the retired `(filters, opts)`
+  shape, with 0.12's unbounded default.
+  """
+  def row_history(schema_module, id, filters, opts)
+      when is_list(filters) and is_list(opts) do
+    row_history(schema_module, id, LegacyOpts.row_history(filters, opts))
   end
 
   @doc """
@@ -182,6 +194,17 @@ defmodule Threadline.Investigation do
            changes: Enum.map(linked_changes, &to_incident_change/1)
          }}
     end
+  end
+
+  defp validate_row_history_opts!(opts) do
+    Enum.each(opts, fn {key, _value} ->
+      if key not in @row_history_opt_keys do
+        allowed = Enum.map_join(@row_history_opt_keys, ", ", &inspect/1)
+
+        raise ArgumentError,
+              "unknown row_history option key #{inspect(key)}. Allowed: #{allowed}"
+      end
+    end)
   end
 
   defp validate_helper_filters!(filters, allowed_keys, helper_name) when is_list(filters) do

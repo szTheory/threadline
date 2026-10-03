@@ -5,7 +5,15 @@ defmodule Threadline.Query do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Capture.AuditTransaction
-  alias Threadline.Query.{ActionHydration, Cursors, HistoryLimit, LegacyOpts, RowKey, Scope}
+  alias Threadline.Query.{
+    ActionHydration,
+    Cursors,
+    HistoryLimit,
+    LegacyOpts,
+    RowKey,
+    RowReads,
+    Scope
+  }
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -15,21 +23,17 @@ defmodule Threadline.Query do
   @default_timeline_page_size 1000
 
   @doc """
-  Returns `AuditChange` records for one schema row using timeline ordering.
+  Returns `AuditChange` records for one schema row using timeline ordering,
+  with 0.12's unbounded default.
 
-  The helper matches the row's full stored key internally so callers do not
-  need to construct low-level row predicates.
+  Deprecated: use `Threadline.row_history/3` instead — this delegates onto
+  the hidden raw-read function that backs it, merging `filters` into `opts`
+  and defaulting `:limit` to `:infinity` so 0.12 callers stay unbounded.
   """
   @spec row_history(module(), term(), keyword(), keyword()) :: [AuditChange.t()]
   def row_history(schema_module, id, filters \\ [], opts \\ [])
       when is_list(filters) and is_list(opts) do
-    validate_row_history_filters!(filters)
-    repo = timeline_repo!(filters, opts)
-
-    schema_module
-    |> row_history_query(id, Keyword.put(filters, :repo, repo))
-    |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
-    |> repo.all(storage_opts(filters, opts))
+    RowReads.list(schema_module, id, LegacyOpts.row_history(filters, opts))
   end
 
   @doc """
@@ -701,7 +705,8 @@ defmodule Threadline.Query do
     ]
   end
 
-  defp row_history_scope_opts(schema_module, id, opts) do
+  @doc false
+  def row_history_scope_opts(schema_module, id, opts) do
     [
       scope: Keyword.get(opts, :scope),
       scope_query_fn: Keyword.get(opts, :scope_query_fn),
