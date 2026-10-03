@@ -17,6 +17,15 @@ defmodule Threadline.Query.ActionHydrationTest do
   @repo Repo
   @query_event Keyword.fetch!(Repo.config(), :telemetry_prefix) ++ [:query]
 
+  defmodule FakeUser do
+    use Ecto.Schema
+
+    @primary_key {:id, :string, autogenerate: false}
+    schema "users" do
+      field(:name, :string)
+    end
+  end
+
   defp insert_transaction(attrs, storage_schema \\ "threadline") do
     defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 
@@ -187,6 +196,188 @@ defmodule Threadline.Query.ActionHydrationTest do
 
       hydrated_without_prefix = Query.hydrate_actions(fake_transaction, @repo, [])
       assert hydrated_without_prefix.action == nil
+    end
+  end
+
+  describe "deprecated :action preload" do
+    import ExUnit.CaptureIO
+
+    defp warning_count(stderr) do
+      stderr
+      |> String.split("\n")
+      |> Enum.count(&String.contains?(&1, "preloading :action is deprecated"))
+    end
+
+    test "audit_transaction/2 with preload: :action hydrates .action and warns exactly once" do
+      action = insert_action(%{name: "shim.bare", correlation_id: "corr-shim-bare"})
+      txn = insert_transaction(%{action_id: action.id})
+
+      {hydrated, stderr} =
+        capture_with_result(fn ->
+          Query.audit_transaction(txn.id, repo: @repo, preload: :action)
+        end)
+
+      assert hydrated.action.id == action.id
+      assert warning_count(stderr) == 1
+    end
+
+    test "audit_transaction/2 with preload: [:action, :changes] hydrates .action, loads :changes, warns once" do
+      action = insert_action(%{name: "shim.list", correlation_id: "corr-shim-list"})
+      txn = insert_transaction(%{action_id: action.id})
+      insert_change(txn, %{table_pk: %{"id" => "shim-list-1"}})
+
+      {hydrated, stderr} =
+        capture_with_result(fn ->
+          Query.audit_transaction(txn.id, repo: @repo, preload: [:action, :changes])
+        end)
+
+      assert hydrated.action.id == action.id
+      assert is_list(hydrated.changes)
+      assert length(hydrated.changes) == 1
+      assert warning_count(stderr) == 1
+    end
+
+    test "audit_changes_for_transaction/2 with preload: [transaction: :action] hydrates transaction.action, warns once" do
+      action = insert_action(%{name: "shim.changes.bare", correlation_id: "corr-shim-cb"})
+      txn = insert_transaction(%{action_id: action.id})
+      insert_change(txn, %{table_pk: %{"id" => "shim-cb-1"}})
+
+      {[change], stderr} =
+        capture_with_result(fn ->
+          Query.audit_changes_for_transaction(txn.id,
+            repo: @repo,
+            preload: [transaction: :action]
+          )
+        end)
+
+      assert change.transaction.action.id == action.id
+      assert warning_count(stderr) == 1
+    end
+
+    test "audit_changes_for_transaction/2 with preload: [transaction: [:action, :changes]] hydrates action and loads transaction.changes, warns once" do
+      action = insert_action(%{name: "shim.changes.list", correlation_id: "corr-shim-cl"})
+      txn = insert_transaction(%{action_id: action.id})
+      insert_change(txn, %{table_pk: %{"id" => "shim-cl-1"}})
+
+      {[change], stderr} =
+        capture_with_result(fn ->
+          Query.audit_changes_for_transaction(txn.id,
+            repo: @repo,
+            preload: [transaction: [:action, :changes]]
+          )
+        end)
+
+      assert change.transaction.action.id == action.id
+      assert is_list(change.transaction.changes)
+      assert warning_count(stderr) == 1
+    end
+
+    test "audit_transaction/2 with preload: [action: :anything] raises ArgumentError naming :action, no warning" do
+      txn = insert_transaction(%{})
+
+      {result, stderr} =
+        capture_with_result(fn ->
+          try do
+            Query.audit_transaction(txn.id, repo: @repo, preload: [action: :anything])
+          rescue
+            e in ArgumentError -> {:raised, Exception.message(e)}
+          end
+        end)
+
+      assert {:raised, message} = result
+      assert message =~ ":action"
+      assert warning_count(stderr) == 0
+    end
+
+    test "audit_changes_for_transaction/2 with preload: [transaction: [action: :anything]] raises ArgumentError naming :action, no warning" do
+      txn = insert_transaction(%{})
+
+      {result, stderr} =
+        capture_with_result(fn ->
+          try do
+            Query.audit_changes_for_transaction(txn.id,
+              repo: @repo,
+              preload: [transaction: [action: :anything]]
+            )
+          rescue
+            e in ArgumentError -> {:raised, Exception.message(e)}
+          end
+        end)
+
+      assert {:raised, message} = result
+      assert message =~ ":action"
+      assert warning_count(stderr) == 0
+    end
+
+    test "preload: [:transaction] with no :action behaves as before, no warning" do
+      txn = insert_transaction(%{})
+      change = insert_change(txn, %{table_pk: %{"id" => "shim-plain-1"}})
+
+      {[hydrated_change], stderr} =
+        capture_with_result(fn ->
+          Query.audit_changes_for_transaction(txn.id, repo: @repo, preload: [:transaction])
+        end)
+
+      assert hydrated_change.id == change.id
+      assert hydrated_change.transaction.id == txn.id
+      assert warning_count(stderr) == 0
+    end
+
+    test "internal call paths emit no deprecation warning while still hydrating .action" do
+      action = insert_action(%{name: "shim.internal", correlation_id: "corr-shim-internal"})
+      txn = insert_transaction(%{action_id: action.id})
+      insert_change(txn, %{table_pk: %{"id" => "shim-internal-1"}})
+
+      {{:ok, bundle}, stderr} =
+        capture_with_result(fn -> Threadline.incident_bundle(txn.id, repo: @repo) end)
+
+      assert bundle.action.id == action.id
+      assert warning_count(stderr) == 0
+
+      {context, context_stderr} =
+        capture_with_result(fn -> Threadline.transaction_context(txn.id, repo: @repo) end)
+
+      assert context.action.id == action.id
+      assert warning_count(context_stderr) == 0
+
+      {_history, history_stderr} =
+        capture_with_result(fn ->
+          Threadline.row_history(FakeUser, "user-1", [], repo: @repo)
+        end)
+
+      assert warning_count(history_stderr) == 0
+
+      {{:ok, _tl_bundle}, tl_stderr} =
+        capture_with_result(fn ->
+          Threadline.incident_bundle(txn.id,
+            repo: @repo,
+            scope: nil,
+            scope_query_fn: nil,
+            surface: :transaction,
+            params: %{transaction_id: txn.id}
+          )
+        end)
+
+      assert warning_count(tl_stderr) == 0
+    end
+
+    test "audit_transaction/2 with a nonexistent id and preload: :action returns nil" do
+      assert Query.audit_transaction(Ecto.UUID.generate(), repo: @repo, preload: :action) == nil
+    end
+
+    defp capture_with_result(fun) do
+      ref = make_ref()
+
+      stderr =
+        capture_io(:stderr, fn ->
+          send(self(), {ref, fun.()})
+        end)
+
+      receive do
+        {^ref, result} -> {result, stderr}
+      after
+        0 -> flunk("capture_with_result/1 did not receive a result")
+      end
     end
   end
 end
