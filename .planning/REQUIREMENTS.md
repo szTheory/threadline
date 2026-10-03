@@ -141,12 +141,39 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| API-01 | Phase 232 | Pending |
+| API-02 | Phase 232 | Pending |
+| API-03 | Phase 232 | Pending |
+| API-04 | Phase 231 | Pending |
+| API-05 | Phase 232 | Pending |
+| API-06 | Phase 233 | Pending |
+| API-07 | Phase 231 | Pending |
+| API-08 | Phase 232 | Pending |
+| SPEC-01 | Phase 234 | Pending |
+| SPEC-02 | Phase 234 | Pending |
+| SPEC-03 | Phase 234 | Pending |
+| CONTRACT-01 | Phase 235 | Pending |
+| CONTRACT-02 | Phase 235 | Pending |
+| CONTRACT-03 | Phase 235 | Pending |
+| CONTRACT-04 | Phase 235 | Pending |
+| CONTRACT-05 | Phase 235 | Pending |
+| DOCS-01 | Phase 235 | Pending |
+| DOCS-02 | Phase 235 | Pending |
+| DOCS-03 | Phase 237 | Pending |
+| FLOOR-01 | Phase 236 | Pending |
+| FLOOR-02 | Phase 236 | Pending |
+| CI-01 | Phase 236 | Pending |
+| REL-01 | Phase 237 | Pending |
+| REL-02 | Phase 237 | Pending |
+| REL-03 | Phase 237 | Pending |
 
 **Coverage:**
 
 - v1.45 requirements: 25 total
-- Mapped to phases: 0 (filled by the roadmap)
+- Mapped to phases: 25
+- Unmapped: 0
+- Per phase: 231 (2), 232 (5), 233 (1), 234 (3), 235 (7), 236 (3), 237 (4)
 
 ---
 *Requirements defined: 2026-10-02*
-*Last updated: 2026-10-02 after research synthesis and maintainer decisions*
+*Last updated: 2026-10-03 after roadmap creation (phases 231-237, 25/25 mapped)*

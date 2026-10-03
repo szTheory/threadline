@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v1.45
 milestone_name: 1.0 API Contract
 status: planning
-last_updated: "2026-10-03T02:37:48.430Z"
-last_activity: 2026-10-02
+last_updated: "2026-10-03T12:00:00.000Z"
+last_activity: 2026-10-03
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-02 after v1.44 milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.45 1.0 API Contract — defining requirements (research → requirements → roadmap; phases from 231)
+**Current focus:** v1.45 1.0 API Contract — roadmap created (phases 231-237, 25/25 requirements mapped); next Phase 231 Facade Topology and the Capture/Semantics Edge
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 231 of 231-237 (Facade Topology and the Capture/Semantics Edge) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-10-02 — Milestone v1.45 started
+Status: Ready to discuss (roadmap created, no plans yet)
+Last activity: 2026-10-03 — v1.45 roadmap created (7 phases, 231-237; 25/25 requirements mapped)
+
+v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; 0/0 plans; plan counts set at each /gsd-plan-phase)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -56,9 +58,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.44 Behavioral Depth: Properties, Twins, Telemetry (7 phases, 224-230, 27 requirements)
-- **Last Milestone Shipped**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (2026-09-30, Phases 214-223, 52 plans, 24/24, released 0.11.1 + 0.11.2)
-- **Prior Milestone Shipped**: v1.42 — Capture Correctness for Real Table Shapes (2026-09-26, Phases 208-213, 28/28, released 0.11.0)
+- **Active Milestone**: v1.45 1.0 API Contract (7 phases, 231-237, 25 requirements; ships 1.0.0)
+- **Last Milestone Shipped**: v1.44 — Behavioral Depth: Properties, Twins, Telemetry (2026-10-02, Phases 224-230, 33 plans, 27/27, released 0.12.0)
+- **Prior Milestone Shipped**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (2026-09-30, Phases 214-223, 52 plans, 24/24, released 0.11.1 + 0.11.2)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.11.2** (published 2026-09-30; 0.11.1 2026-09-27; 0.11.0 2026-09-26)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
@@ -412,6 +414,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ### Roadmap Evolution
 
+- **v1.45 roadmap (2026-10-03):** Phases 231-237 from the research SUMMARY "Implications for Roadmap" split, 25/25 requirements mapped. 231 facade topology + association edge (API-04, API-07), 232 consolidation/deprecation/bounded default (API-01/02/03/05/08), 233 return shapes (API-06), 234 specs + gate (SPEC-01..03), 235 stability contract + guides (CONTRACT-01..05, DOCS-01/02), 236 PG 15 floor + partition weights (FLOOR-01/02, CI-01), 237 upgrade guide + 1.0.0 (DOCS-03, REL-01..03). Kept seven phases despite coarse granularity: each boundary is an ordering constraint (topology before delegates, return shapes before specs, specs before the contract pins, test churn before the weight refresh, floor before release). 233 is single-requirement and could fold into 232; kept separate so specs follow final lookup signatures. Cross-cutting rule: each breaking change gets its CHANGELOG entry and `BREAKING CHANGE:` footer in the phase that makes it, so REL-02 cross-checks rather than reconstructs. No research flags; 231 and 232 carry the one-way calls and need careful discuss passes.
 - **Phase 223 added (2026-09-29):** Close v1.43 Audit Debt, from `.planning/v1.43-MILESTONE-AUDIT.md` (status tech_debt, 24/24 requirements, integration 15/15, flows 8/8). Scope: release the mint 1.11.0 advisory fix (on main, but in the `ci:` squash #60, so release-please has nothing to release), `persist-credentials: false` on the release.yml target-ref checkouts plus a contract (216 CR-01 remainder), and a disposition for each of the six open 217 round-2 findings (R2-WR-04 is the one to fix).
 - **v1.43 roadmap (2026-09-26):** Phases 214-222 from the research SUMMARY split, 24/24 requirements mapped. 214 Baseline, then 215 Supply chain / 216 Platform currency / 217 Repo hygiene (mutually independent), 218 Remove CI waste (ECON-07 re-measure), 219 deps-only `_build` cache, 220 newest lane (spike-gated), 221 names/order (rename once), 222 SEED-006 (conditional). Kept nine phases despite coarse granularity: each boundary is an ordering constraint (fix before gate, delete before cache, rename after roster changes, classifier after measured wins). Research flags: 220, 222, 219, parts of 216; 215 narrow (Hex cooldown only if adopted).
 - **v1.42 roadmap (2026-09-24):** Phases 208-213 from research SUMMARY split, adjusted for the four scope decisions. REL-01 (`bump-minor-pre-major`) lands in 208 before any releasable commit. CONF-01 is mapped to 210 (config key, validation, migrate-time enforcement) but completes only when 211 success criterion 3 (override read round-trip) passes. IDX-01 ships in 211 (install creates the index). Kept six phases despite coarse granularity: each boundary is a hard contract hand-off and the 209 security fix must not wait behind the PK rewrite. Research flags: 208 (hashed-name format), 210 (TG_ARGV spike), 211 (composite history API).
@@ -988,7 +991,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ## Session Continuity
 
 **Last session:** 2026-10-02T21:24:17.352Z
-**Stopped at:** Milestone v1.44 complete — archived, tag v1.44 local
+**Stopped at:** v1.45 roadmap created (phases 231-237), awaiting orchestrator approval and commit
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1005,10 +1008,10 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
 - **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
 - **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
-- **Last Action**: Milestone v1.45 1.0 API Contract started (2026-10-02); PROJECT.md `## Current Milestone` written. v1.44 is closed (tag `v1.44` local, 0.12.0 on hex.pm).
-- **Next Step**: finish `/gsd-new-milestone` for v1.45: research (`.planning/research/`), then REQUIREMENTS.md, then ROADMAP.md (phases from 231).
-- **Resume file**: `.planning/PROJECT.md`
+- **Last Action**: v1.45 1.0 API Contract roadmap created (2026-10-03): 7 phases (231-237), 25/25 requirements mapped in REQUIREMENTS.md Traceability. v1.44 is closed (tag `v1.44` local, 0.12.0 on hex.pm).
+- **Next Step**: `/gsd-discuss-phase 231`
+- **Resume file**: `.planning/ROADMAP.md`
 
 ## Operator Next Steps
 
-- Start the next milestone with `/gsd-new-milestone` (v1.45 1.0 API Contract → 1.0.0).
+- Discuss the first v1.45 phase with `/gsd-discuss-phase 231` (Facade Topology and the Capture/Semantics Edge).
