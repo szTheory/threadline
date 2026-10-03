@@ -4,6 +4,7 @@ defmodule Threadline.ContinuityBrownfieldTest do
   import Ecto.Query
 
   alias Threadline.Capture.TriggerSQL
+  alias Threadline.Test.RowHistory
 
   defmodule Row do
     use Ecto.Schema
@@ -102,7 +103,7 @@ defmodule Threadline.ContinuityBrownfieldTest do
         )
       )
 
-    assert Threadline.history(Row, id, repo: Repo) == []
+    assert RowHistory.changes(Row, id, repo: Repo) == []
 
     {1, _} =
       Repo.update_all(from(r in Row, where: r.id == ^id), set: [name: "after_trigger"])
