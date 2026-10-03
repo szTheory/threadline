@@ -106,7 +106,96 @@ defmodule Threadline.Query do
   @spec preload_investigation_context([AuditChange.t()], module(), keyword()) :: [AuditChange.t()]
   def preload_investigation_context(changes, repo, opts \\ [])
       when is_list(changes) and is_atom(repo) and is_list(opts) do
-    repo.preload(changes, [transaction: :action], storage_opts([], opts))
+    changes
+    |> repo.preload([:transaction], storage_opts([], opts))
+    |> hydrate_actions(repo, opts)
+  end
+
+  @doc false
+  # D-08: hidden, batched replacement for the removed capture/semantics Ecto
+  # associations. Accepts nil, a single AuditTransaction or AuditChange, or a
+  # list of either. AuditChange elements must already have `:transaction`
+  # preloaded (an Ecto.Association.NotLoaded transaction raises). Dedupes the
+  # non-nil `action_id`s and issues exactly one `WHERE id IN ^ids` query
+  # against `audit_actions`, threading `storage_opts/2` exactly like the
+  # `repo.preload` calls this helper replaces.
+  @spec hydrate_actions(
+          nil
+          | AuditTransaction.t()
+          | AuditChange.t()
+          | [AuditTransaction.t() | AuditChange.t()],
+          module(),
+          keyword()
+        ) ::
+          nil
+          | AuditTransaction.t()
+          | AuditChange.t()
+          | [AuditTransaction.t() | AuditChange.t()]
+  def hydrate_actions(items, repo, opts \\ [])
+
+  def hydrate_actions(nil, _repo, _opts), do: nil
+
+  def hydrate_actions(items, repo, opts) when is_list(items) do
+    transactions = Enum.map(items, &hydrate_target_transaction/1)
+
+    action_ids =
+      transactions
+      |> Enum.map(&(&1 && &1.action_id))
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq()
+
+    actions_by_id = fetch_actions_by_id(action_ids, repo, opts)
+
+    items
+    |> Enum.zip(transactions)
+    |> Enum.map(fn {item, transaction} ->
+      apply_hydrated_action(item, transaction, actions_by_id)
+    end)
+  end
+
+  def hydrate_actions(%AuditTransaction{} = transaction, repo, opts) do
+    [hydrated] = hydrate_actions([transaction], repo, opts)
+    hydrated
+  end
+
+  def hydrate_actions(%AuditChange{} = change, repo, opts) do
+    [hydrated] = hydrate_actions([change], repo, opts)
+    hydrated
+  end
+
+  defp hydrate_target_transaction(%AuditTransaction{} = transaction), do: transaction
+
+  defp hydrate_target_transaction(
+         %AuditChange{transaction: %Ecto.Association.NotLoaded{}} = change
+       ) do
+    raise ArgumentError,
+          "hydrate_actions/3 requires AuditChange :transaction to be preloaded, got: #{inspect(change)}"
+  end
+
+  defp hydrate_target_transaction(%AuditChange{transaction: transaction}), do: transaction
+
+  defp fetch_actions_by_id([], _repo, _opts), do: %{}
+
+  defp fetch_actions_by_id(ids, repo, opts) do
+    AuditAction
+    |> where([a], a.id in ^ids)
+    |> repo.all(storage_opts([], opts))
+    |> Map.new(&{&1.id, &1})
+  end
+
+  defp apply_hydrated_action(%AuditTransaction{} = transaction, _transaction, actions_by_id) do
+    %{transaction | action: Map.get(actions_by_id, transaction.action_id)}
+  end
+
+  defp apply_hydrated_action(%AuditChange{} = change, nil, _actions_by_id), do: change
+
+  defp apply_hydrated_action(
+         %AuditChange{} = change,
+         %AuditTransaction{} = transaction,
+         actions_by_id
+       ) do
+    hydrated_transaction = %{transaction | action: Map.get(actions_by_id, transaction.action_id)}
+    %{change | transaction: hydrated_transaction}
   end
 
   @doc """
