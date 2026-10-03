@@ -181,16 +181,21 @@ defmodule Threadline do
   def timeline(filters \\ [], opts \\ []), do: Threadline.Query.timeline(filters, opts)
 
   @doc """
-  Returns one explicit keyset page of timeline results without changing `timeline/2`.
+  Returns a `%Threadline.Page{}` of `AuditChange` records in timeline order,
+  without changing `timeline/2`.
 
   Uses the same filter vocabulary as `timeline/2`, but returns a page struct so
   large investigation windows can be traversed incrementally while `timeline/2`
   stays eager for existing callers. Paging controls live in `opts`:
 
   - `:page_size` — positive integer, defaults to `1000`
-  - `:cursor` — `%{captured_at: %DateTime{}, id: uuid}` from a prior page's `next_cursor`
+  - `:cursor` — `:start` (or omitted) for the first page, or a prior page's
+    `cursor` to continue. `cursor: nil` raises `ArgumentError`. Stop walking
+    when `has_more` is `false`.
   - `:repo` — required `Ecto.Repo` module
   """
+  @spec timeline_page(keyword(), keyword()) ::
+          Threadline.Page.t(Threadline.Capture.AuditChange.t())
   def timeline_page(filters \\ [], opts \\ []), do: Threadline.Query.timeline_page(filters, opts)
 
   @doc """

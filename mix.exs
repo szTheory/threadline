@@ -655,8 +655,8 @@ defmodule Threadline.MixProject do
           Threadline.Investigation.IncidentChange,
           Threadline.Investigation.LinkedChange,
           Threadline.Investigation.LinkedTransaction,
+          Threadline.Page,
           Threadline.Query.ActorHistoryPage,
-          Threadline.Query.TimelinePage,
           Threadline.Semantics.ActorRef,
           Threadline.Semantics.AuditAction,
           Threadline.Semantics.AuditContext

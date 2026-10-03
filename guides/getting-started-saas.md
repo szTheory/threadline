@@ -283,7 +283,7 @@ That sequence gives you the first-hour operator questions and their fallback
 paths:
 
 - `Threadline.timeline/2` shows which rows moved in the request.
-- `Threadline.timeline_page/2` is the same investigation path when the window is too large to read eagerly at once; continue with `first_page.next_cursor` instead of offsets.
+- `Threadline.timeline_page/2` is the same investigation path when the window is too large to read eagerly at once; continue with `first_page.cursor` while `first_page.has_more` is true, instead of offsets.
 - `Threadline.actor_history/2` gives you the actor-scoped window when the operator question is "what did this actor drive recently?"
 - `Threadline.incident_bundle/2` gives you the default single-transaction incident view, including the linked context and packaged change diffs in `bundle`.
 - `mix threadline.incident <audit_transaction_id>` is the direct fallback for that incident drill-down.

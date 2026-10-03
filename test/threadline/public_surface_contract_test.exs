@@ -28,7 +28,6 @@ defmodule Threadline.PublicSurfaceContractTest do
   # modules stay visible and stay grouped under "Data Types" — only the two
   # parent modules move to @moduledoc false.
   @hidden_module_child_structs [
-    Threadline.Query.TimelinePage,
     Threadline.Query.ActorHistoryPage,
     Threadline.Investigation.IncidentBundle,
     Threadline.Investigation.IncidentChange,
@@ -43,7 +42,8 @@ defmodule Threadline.PublicSurfaceContractTest do
   @changelog_subject "CHANGELOG.md"
   @renamed_modules %{
     Threadline.OperatorSurface.Exports.FilterParams => Threadline.Query.FilterParams,
-    Threadline.OperatorSurface.Scope => Threadline.Query.Scope
+    Threadline.OperatorSurface.Scope => Threadline.Query.Scope,
+    Threadline.Query.TimelinePage => Threadline.Page
   }
   # The same history rule for Mix aliases that were deleted after release: a retired
   # alias is accepted as a reference in CHANGELOG.md only, and the register is itself
@@ -286,6 +286,16 @@ defmodule Threadline.PublicSurfaceContractTest do
       assert module in grouped_modules(),
              "expected #{inspect(module)} to stay grouped under Data Types"
     end
+  end
+
+  test "Threadline.Page is visible, grouped, and carries since 1.0.0" do
+    assert docs_visibility(Threadline.Page) == :visible
+
+    assert Threadline.Page in grouped_modules(),
+           "expected Threadline.Page to be grouped under Data Types"
+
+    assert {:docs_v1, _, _, _, %{"en" => _}, %{since: "1.0.0"}, _} =
+             Code.fetch_docs(Threadline.Page)
   end
 
   for tag <- @module_owner_tags do

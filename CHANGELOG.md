@@ -42,6 +42,14 @@ and `Threadline.incident_bundle/2`.
   query `audit_actions` directly by `action_id`. The `action_id` column and its
   foreign key are unchanged.
 
+- `Threadline.Query.TimelinePage` is removed. `Threadline.timeline_page/2`
+  (and the row-history, actor-window and correlation-bundle pagers) return
+  `%Threadline.Page{entries, cursor, has_more}`; `next_cursor` is now
+  `cursor`; `has_more` is exact, so a final full page no longer returns a
+  cursor; passing `cursor: nil` raises `ArgumentError` — start a walk with
+  `cursor: :start` or omit `:cursor`. Required action: pattern-match
+  `%Threadline.Page{}` and read `.cursor` / `.has_more`.
+
 ### Deprecations
 
 - Passing `:action` (or `transaction: :action`) in the `:preload` option of
