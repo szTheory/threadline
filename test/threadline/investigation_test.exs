@@ -11,7 +11,6 @@ defmodule Threadline.InvestigationTest do
     LinkedTransaction
   }
 
-  alias Threadline.Query.TimelinePage
   alias Threadline.Semantics.{ActorRef, AuditAction}
 
   @repo Threadline.Test.Repo
@@ -82,7 +81,7 @@ defmodule Threadline.InvestigationTest do
 
   defp support_scope_query(query, _scope, _context), do: query
 
-  defp page_entry_ids(%TimelinePage{entries: entries}),
+  defp page_entry_ids(%Threadline.Page{entries: entries}),
     do: Enum.map(entries, & &1.audit_change.id)
 
   describe "row_history/4 and row_history_page/4" do
@@ -106,7 +105,7 @@ defmodule Threadline.InvestigationTest do
       assert Enum.all?(results, &is_nil(&1.action))
     end
 
-    test "paged row history concatenates back to eager order and keeps next_cursor semantics" do
+    test "paged row history concatenates back to eager order and keeps cursor/has_more semantics" do
       txn = insert_transaction()
       t1 = ~U[2026-08-01 10:00:00.000000Z]
       t2 = DateTime.add(t1, 60, :second)
@@ -132,12 +131,14 @@ defmodule Threadline.InvestigationTest do
           [],
           repo: @repo,
           page_size: 2,
-          cursor: first_page.next_cursor
+          cursor: first_page.cursor
         )
 
       assert eager_ids == page_entry_ids(first_page) ++ page_entry_ids(second_page)
-      assert first_page.next_cursor != nil
-      assert second_page.next_cursor == nil
+      assert first_page.has_more == true
+      assert first_page.cursor != nil
+      assert second_page.has_more == false
+      assert second_page.cursor == nil
     end
 
     test "row_history/4 applies support scope" do
@@ -208,7 +209,8 @@ defmodule Threadline.InvestigationTest do
         )
 
       assert Enum.map(page.entries, & &1.audit_change.id) == [support_change.id]
-      assert page.next_cursor == nil
+      assert page.has_more == false
+      assert page.cursor == nil
       assert Enum.all?(page.entries, &(&1.transaction.source == "support"))
     end
   end
@@ -271,14 +273,15 @@ defmodule Threadline.InvestigationTest do
         Threadline.actor_window_page(actor, [],
           repo: @repo,
           page_size: 2,
-          cursor: first_page.next_cursor
+          cursor: first_page.cursor
         )
 
       paged_ids = page_entry_ids(first_page) ++ page_entry_ids(second_page)
 
       assert eager_ids == paged_ids
       assert length(paged_ids) == length(Enum.uniq(paged_ids))
-      assert second_page.next_cursor == nil
+      assert second_page.has_more == false
+      assert second_page.cursor == nil
     end
   end
 
@@ -328,12 +331,14 @@ defmodule Threadline.InvestigationTest do
           [],
           repo: @repo,
           page_size: 2,
-          cursor: first_page.next_cursor
+          cursor: first_page.cursor
         )
 
       assert eager_ids == page_entry_ids(first_page) ++ page_entry_ids(second_page)
-      assert first_page.next_cursor != nil
-      assert second_page.next_cursor == nil
+      assert first_page.has_more == true
+      assert first_page.cursor != nil
+      assert second_page.has_more == false
+      assert second_page.cursor == nil
     end
   end
 

@@ -2,7 +2,7 @@ defmodule Threadline.Investigation do
   @moduledoc false
 
   alias Threadline.Query
-  alias Threadline.Query.TimelinePage
+  alias Threadline.Query.LegacyOpts
 
   alias Threadline.Investigation.{
     IncidentBundle,
@@ -43,7 +43,7 @@ defmodule Threadline.Investigation do
       validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history_page)
 
     schema_module
-    |> Query.row_history_page(id, filters, opts)
+    |> Query.row_history_page(id, filters, LegacyOpts.cursor(opts))
     |> linked_page(opts)
   end
 
@@ -75,7 +75,7 @@ defmodule Threadline.Investigation do
       |> Keyword.put(:actor_ref, actor_ref)
 
     filters
-    |> Query.timeline_page(opts)
+    |> Query.timeline_page(LegacyOpts.cursor(opts))
     |> linked_page(opts)
   end
 
@@ -114,7 +114,7 @@ defmodule Threadline.Investigation do
       |> Keyword.put(:correlation_id, correlation_id)
 
     filters
-    |> Query.timeline_page(opts)
+    |> Query.timeline_page(LegacyOpts.cursor(opts))
     |> linked_page(opts)
   end
 
@@ -197,8 +197,8 @@ defmodule Threadline.Investigation do
     filters
   end
 
-  defp linked_page(%TimelinePage{} = page, opts) do
-    %TimelinePage{page | entries: linked_changes(page.entries, opts)}
+  defp linked_page(%Threadline.Page{} = page, opts) do
+    %Threadline.Page{page | entries: linked_changes(page.entries, opts)}
   end
 
   defp linked_changes(changes, opts) when is_list(changes) do

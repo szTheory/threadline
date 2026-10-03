@@ -182,13 +182,14 @@ defmodule Threadline.Query.RowKeyReadTest do
         Threadline.row_history_page(RkBigserialUser, id, [], repo: Repo, page_size: 1)
 
       assert length(page1.entries) == 1
-      assert page1.next_cursor
+      assert page1.has_more == true
+      assert page1.cursor
 
       page2 =
         Threadline.row_history_page(RkBigserialUser, id, [],
           repo: Repo,
           page_size: 1,
-          cursor: page1.next_cursor
+          cursor: page1.cursor
         )
 
       assert length(page2.entries) == 1

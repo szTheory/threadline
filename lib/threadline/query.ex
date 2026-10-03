@@ -14,21 +14,6 @@ defmodule Threadline.Query do
   @allowed_row_history_filter_keys ~w(repo from to)a
   @default_timeline_page_size 1000
 
-  defmodule TimelinePage do
-    @moduledoc """
-    One keyset page from the timeline query layer.
-    """
-
-    @enforce_keys [:entries]
-    defstruct [:entries, :next_cursor]
-
-    @type cursor :: %{captured_at: DateTime.t(), id: Ecto.UUID.t()}
-    @type t :: %__MODULE__{
-            entries: [%AuditChange{}],
-            next_cursor: cursor() | nil
-          }
-  end
-
   @doc """
   Returns `AuditChange` records for one schema row using timeline ordering.
 
@@ -50,7 +35,8 @@ defmodule Threadline.Query do
   @doc """
   Returns one keyset page of row history for a single schema row.
   """
-  @spec row_history_page(module(), term(), keyword(), keyword()) :: TimelinePage.t()
+  @spec row_history_page(module(), term(), keyword(), keyword()) ::
+          Threadline.Page.t(AuditChange.t())
   def row_history_page(schema_module, id, filters \\ [], opts \\ [])
       when is_list(filters) and is_list(opts) do
     validate_row_history_filters!(filters)
@@ -59,20 +45,17 @@ defmodule Threadline.Query do
     page_size =
       Cursors.timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
 
-    cursor = Cursors.validate_timeline_cursor!(Keyword.get(opts, :cursor))
+    cursor = Cursors.validate_page_cursor!(Keyword.get(opts, :cursor, :start))
 
     entries =
       schema_module
       |> row_history_query(id, Keyword.put(filters, :repo, repo))
       |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
       |> maybe_after_timeline_cursor(cursor)
-      |> limit(^page_size)
+      |> limit(^(page_size + 1))
       |> repo.all(storage_opts(filters, opts))
 
-    %TimelinePage{
-      entries: entries,
-      next_cursor: Cursors.timeline_page_next_cursor(entries, page_size)
-    }
+    Cursors.change_page(entries, page_size)
   end
 
   @doc false

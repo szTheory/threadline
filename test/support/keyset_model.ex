@@ -11,8 +11,8 @@ defmodule Threadline.Test.KeysetModel do
   `timeline_fetch/3` model the DB-side window/order/limit for each cursor;
   `walk_actor_history/2` and `walk_timeline/2` drive the real
   `Threadline.Query.Cursors` paging functions (`actor_history_page/4`,
-  `timeline_page_next_cursor/2`) against this in-memory fetch, so the walk
-  exercises the real post-fetch code, not a copy of it.
+  `change_page/2`) against this in-memory fetch, so the walk exercises the
+  real post-fetch code, not a copy of it.
   """
 
   alias Threadline.Query.Cursors
@@ -77,7 +77,8 @@ defmodule Threadline.Test.KeysetModel do
 
   @doc """
   Models `maybe_after_timeline_cursor/2` + `timeline_order/1` +
-  `limit(page_size)`.
+  `limit(page_size + 1)` — the D-08 extra-row fetch `Cursors.change_page/2`
+  trims.
   """
   @spec timeline_fetch([entry()], pos_integer(), map() | nil) ::
           [%{captured_at: DateTime.t(), id: String.t()}]
@@ -85,7 +86,7 @@ defmodule Threadline.Test.KeysetModel do
     entries
     |> maybe_filter_after(cursor)
     |> Enum.sort_by(&key/1, :desc)
-    |> Enum.take(page_size)
+    |> Enum.take(page_size + 1)
     |> Enum.map(&timeline_row/1)
   end
 
@@ -138,8 +139,8 @@ defmodule Threadline.Test.KeysetModel do
   end
 
   @doc """
-  Walks the timeline cursor forward via `Cursors.timeline_page_next_cursor/2`
-  to exhaustion. Returns `{:ok, pages}`, each page a list of ids, or
+  Walks the timeline cursor forward via `Cursors.change_page/2` to
+  exhaustion. Returns `{:ok, pages}`, each page a list of ids, or
   `{:error, "cursor did not advance"}` past `length(entries) + 2` steps.
   """
   @spec walk_timeline([entry()], pos_integer()) :: {:ok, [[String.t()]]} | {:error, String.t()}
@@ -147,9 +148,9 @@ defmodule Threadline.Test.KeysetModel do
     bound = length(entries) + 2
 
     fetch = fn cursor ->
-      rows = timeline_fetch(entries, page_size, cursor)
-      next_cursor = Cursors.timeline_page_next_cursor(rows, page_size)
-      {Enum.map(rows, & &1.id), next_cursor}
+      raw = timeline_fetch(entries, page_size, cursor)
+      page = Cursors.change_page(raw, page_size)
+      {Enum.map(page.entries, & &1.id), page.cursor}
     end
 
     step(bound, nil, fetch)

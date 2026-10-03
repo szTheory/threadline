@@ -174,7 +174,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> assign(:shown_count, length(page.entries))
       |> assign(:filter_query, filter_query)
       |> stream(:changes, page.entries, reset: true)
-      |> assign(:cursor, page.next_cursor)
+      |> assign(:cursor, page.cursor)
     end
 
     def handle_event("save-view", %{"name" => name}, socket) do
@@ -338,7 +338,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:noreply,
          socket
-         |> assign(:cursor, page.next_cursor)
+         |> assign(:cursor, page.cursor)
          |> Phoenix.Component.update(:shown_count, &(&1 + length(page.entries)))
          |> stream(:changes, page.entries, at: -1)}
       else

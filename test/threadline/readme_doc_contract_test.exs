@@ -221,7 +221,7 @@ defmodule Threadline.ReadmeDocContractTest do
 
     assert {:ok, _} = Threadline.ReadmeQuickstartFixtures.record_action_call(Repo)
 
-    assert %Threadline.Query.TimelinePage{} =
+    assert %Threadline.Page{} =
              Threadline.ReadmeQuickstartFixtures.timeline_page_call(Repo)
 
     cov = Threadline.ReadmeQuickstartFixtures.trigger_coverage_call()
