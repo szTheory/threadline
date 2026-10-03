@@ -138,18 +138,34 @@ defmodule Threadline do
     do: Threadline.Query.as_of(schema_module, id, timestamp, opts)
 
   @doc """
-  Returns a keyset page of `AuditTransaction` records for a given actor, ordered by
-  `occurred_at` descending, then `id` descending.
+  Returns a `%Threadline.Page{}` of `Threadline.Capture.AuditTransaction` records for one
+  actor — one row per database transaction, newest first (`occurred_at` desc, `id` desc).
+
+  For the row changes an actor made across tables, use `actor_window/3`.
 
   ## Options
 
   - `:repo` — required `Ecto.Repo` module
-  - `:limit` — integer, maximum number of records to return (default 50)
-  - `:after` — cursor to fetch older records
-  - `:before` — cursor to fetch newer records
+  - `:cursor` — `:start` (or omitted) begins a walk; a prior page's `cursor` to
+    continue it older; `{:before, cursor}` to continue it newer. `cursor: nil`
+    raises `ArgumentError`.
+  - `:page_size` — positive integer, defaults to 50
   - `:from` — inclusive lower bound on `occurred_at`
   - `:to` — inclusive upper bound on `occurred_at`
+
+  ## Deprecated options
+
+  - `:after` — use `:cursor` instead
+  - `:before` — use `cursor: {:before, cursor}` instead
+  - `:limit` — use `:page_size` instead
+
+  Each still works, and each emits one deprecation warning per call. Removal
+  is no earlier than Threadline 2.0. `:cursor` combined with `:after` or
+  `:before` raises `ArgumentError`, as does `:page_size` combined with
+  `:limit`.
   """
+  @spec actor_history(ActorRef.t(), keyword()) ::
+          Threadline.Page.t(Threadline.Capture.AuditTransaction.t())
   def actor_history(actor_ref, opts), do: Threadline.Query.actor_history(actor_ref, opts)
 
   @doc """
@@ -214,7 +230,11 @@ defmodule Threadline do
     do: Investigation.row_history_page(schema_module, id, filters, opts)
 
   @doc """
-  Returns change rows across tables for one actor.
+  Returns a list of `%Threadline.Investigation.LinkedChange{}` — the change rows one
+  actor made across audited tables, each with its transaction and linked action,
+  newest first.
+
+  For one row per transaction instead, use `actor_history/2`.
   """
   def actor_window(actor_ref, filters \\ [], opts \\ []),
     do: Investigation.actor_window(actor_ref, filters, opts)
