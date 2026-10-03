@@ -5,16 +5,16 @@ milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
 current_phase: 230
 current_phase_name: Rebalance, Net-Suite Check and 0.12.0
 status: executing
-stopped_at: Completed 230-03-PLAN.md
+stopped_at: Completed 230-04-PLAN.md
 last_updated: "2026-10-02T21:24:17.451Z"
 last_activity: 2026-10-02
-last_activity_desc: Phase 230 plan 03 complete (pre-land gate green); plan 04 (release) remains
+last_activity_desc: Phase 230 plan 04 complete — landed #73 (SUITE-06 PASS), 0.12.0 published to hex.pm; phase verification next
 state_head: 243679a8b1550eafa8be0082dd7b5d9b7a34cc29
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 33
-  completed_plans: 32
+  completed_plans: 33
   percent: 86
 ---
 
@@ -31,8 +31,8 @@ See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
-Last activity: 2026-10-02 — Phase 230 plan 03 complete (pre-land gate green: mix ci.all 318/0/26, hygiene + self-test, SC5 sweep, dated 0.12.0 CHANGELOG + upgrade-path proven by mix verify.bump_rehearsal); plan 04 (release) remains
+Status: Plans complete — phase verification next
+Last activity: 2026-10-03 — Phase 230 plan 04 complete: milestone squash-landed as #73 (67090195) after its own CI run passed the SUITE-06 gate (507 s ≤ 930.6 s, all lanes cache hit); release PR #74 merged, production-hex approved, threadline 0.12.0 live on hex.pm (Release run 37084163662), distribution-sync PR #75 merged
 
 Progress: [███████░░░] 6 of 7 v1.44 phases complete ([█████████░] 86%). Phase 229 verified passed 5/5 (2026-10-02): Threadline.history/3 takes a validated :limit (QRY-01/02, new Query.HistoryLimit); public Threadline.Health.legacy_key_findings/1 emits :unresolved_legacy_keys warnings (capped, statement_timeout-bounded per-table probe; HLTH-03); mix threadline.health.coverage gains --strict (exit 1 on in-scope :error findings, 12-cell matrix baseline; HLTH-01), --all-schemas (schema-keyed table + JSON envelope, extension schemas excluded via pg_depend; HLTH-02), unknown switches now raise; malformed :trigger_capture fail-fast documented (HLTH-04); local suite 2767/0, mix ci.all green, wall clock before/after in evidence/SC5-wallclock.md; review 0 critical/1 warning/1 info (WR-01 stray positional args ignored, IN-01 duplicated schema regex; advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 230 (plan 04 stops at a maintainer grant for push, PR, squash-merge, release-please PR merge, production-hex approval and the distribution-sync PR). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 

@@ -65,7 +65,7 @@
 
 ### Release
 
-- [ ] **REL-01**: The milestone lands on main as a squash with a clean conventional `feat:` title and ships as a minor release (0.12.0) through release-please. The `latest` lane's pins are re-checked against builds.hex.pm and Docker Hub at landing.
+- [x] **REL-01**: The milestone lands on main as a squash with a clean conventional `feat:` title and ships as a minor release (0.12.0) through release-please. The `latest` lane's pins are re-checked against builds.hex.pm and Docker Hub at landing.
 
 ## Future Requirements (deferred)
 
@@ -116,7 +116,7 @@
 | SUITE-04 | Phase 230 | Complete |
 | SUITE-05 | Phase 224 | Complete |
 | SUITE-06 | Phase 230 | Complete |
-| REL-01 | Phase 230 | Pending |
+| REL-01 | Phase 230 | Complete |
 
 **Coverage:**
 

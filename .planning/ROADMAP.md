@@ -302,7 +302,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 230-04-PLAN.md — Land and release: preflight and latest-lane pin re-check, one maintainer grant, PR CI as the SUITE-06 fresh-run gate, `feat!:` squash, release-please 0.12.0, production-hex, smoke, distribution sync (REL-01, SUITE-06)
+- [x] 230-04-PLAN.md — Land and release: preflight and latest-lane pin re-check, one maintainer grant, PR CI as the SUITE-06 fresh-run gate, `feat!:` squash, release-please 0.12.0, production-hex, smoke, distribution sync (REL-01, SUITE-06)
 **Research**: Apply the rubric in `research/ARCHITECTURE.md` B.1 to `operator_surface/coverage_doc_contract_test.exs`, `operator_surface/policy_show_doc_contract_test.exs`, `storage_schema_migration_contract_test.exs` and `storage_schema_prefix_contract_test.exs` before building the cut list. Landing needs a maintainer grant naming the branch, push, PR, merge and `production-hex` approval.
 
 ## Progress
@@ -315,7 +315,7 @@ Plans:
 | 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
 | 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
 | 229. Adopter API and Health Additions | 4/4 | Complete    | 2026-10-02 |
-| 230. Rebalance, Net-Suite Check and 0.12.0 | 3/4 | In Progress | - |
+| 230. Rebalance, Net-Suite Check and 0.12.0 | 4/4 | In Progress | - |
 
 ## Prior Milestones
 
