@@ -9,12 +9,13 @@ defmodule Threadline do
 
   The functions on this module (see the function list below) are the
   supported read API — including `timeline/2`, `timeline_page/2`,
-  `history/3`, `as_of/4`, `actor_history/2`, `row_history/3`,
-  `row_history_page/4`, `actor_window/3`, `actor_window_page/3`,
-  `correlation_bundle/3`, `correlation_bundle_page/3`,
-  `transaction_context/2`, `incident_bundle/2`,
+  `row_history/3`, `as_of/4`, `actor_history/2`, `actor_window/3`,
+  `correlation_bundle/3`, `transaction_context/2`, `incident_bundle/2`,
   `audit_changes_for_transaction/2`, `export_csv/2`, and `export_json/2`.
-  Build on these rather than on the internal modules behind them.
+  Build on these rather than on the internal modules behind them. Older
+  names (`history/3`, `row_history/4`, `row_history_page/4`,
+  `actor_window_page/3`, `correlation_bundle_page/3`) remain as deprecated
+  delegates through Threadline 1.x.
 
   ## Composing your own Ecto query
 
@@ -276,11 +277,23 @@ defmodule Threadline do
     row_history(schema_module, id, LegacyOpts.row_history(filters, opts))
   end
 
+  @deprecated "Use Threadline.row_history/3 instead."
   @doc """
   Returns one keyset page of row history for a single schema row.
+
+  Deprecated: use `row_history/3` instead — pass `cursor: :start` (with
+  optional `page_size:`) for the same keyset paging. An absent or `nil`
+  `:cursor` here still means "first page"; `row_history/3` itself raises on
+  `cursor: nil`.
   """
+  @spec row_history_page(module(), term()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
+  @spec row_history_page(module(), term(), keyword()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
+  @spec row_history_page(module(), term(), keyword(), keyword()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def row_history_page(schema_module, id, filters \\ [], opts \\ []),
-    do: Investigation.row_history_page(schema_module, id, filters, opts)
+    do: row_history(schema_module, id, LegacyOpts.row_history_page(filters, opts))
 
   @doc """
   Returns a list of `%Threadline.Investigation.LinkedChange{}` — the change rows one
@@ -299,11 +312,22 @@ defmodule Threadline do
   def actor_window(actor_ref, filters \\ [], opts \\ []),
     do: Investigation.actor_window(actor_ref, filters, opts)
 
+  @deprecated "Use Threadline.actor_window/3 instead."
   @doc """
   Returns one keyset page of change rows across tables for one actor.
+
+  Deprecated: use `actor_window/3` instead — pass `cursor: :start` (with
+  optional `page_size:`) for the same keyset paging. An absent or `nil`
+  `:cursor` here still means "first page".
   """
+  @spec actor_window_page(ActorRef.t()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
+  @spec actor_window_page(ActorRef.t(), keyword()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
+  @spec actor_window_page(ActorRef.t(), keyword(), keyword()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def actor_window_page(actor_ref, filters \\ [], opts \\ []),
-    do: Investigation.actor_window_page(actor_ref, filters, opts)
+    do: actor_window(actor_ref, filters, LegacyOpts.cursor(opts))
 
   @doc """
   Returns change rows linked to one `correlation_id` with strict correlation
@@ -319,11 +343,22 @@ defmodule Threadline do
   def correlation_bundle(correlation_id, filters \\ [], opts \\ []),
     do: Investigation.correlation_bundle(correlation_id, filters, opts)
 
+  @deprecated "Use Threadline.correlation_bundle/3 instead."
   @doc """
   Returns one keyset page of changes linked to one `correlation_id`.
+
+  Deprecated: use `correlation_bundle/3` instead — pass `cursor: :start`
+  (with optional `page_size:`) for the same keyset paging. An absent or
+  `nil` `:cursor` here still means "first page".
   """
+  @spec correlation_bundle_page(String.t()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
+  @spec correlation_bundle_page(String.t(), keyword()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
+  @spec correlation_bundle_page(String.t(), keyword(), keyword()) ::
+          Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def correlation_bundle_page(correlation_id, filters \\ [], opts \\ []),
-    do: Investigation.correlation_bundle_page(correlation_id, filters, opts)
+    do: correlation_bundle(correlation_id, filters, LegacyOpts.cursor(opts))
 
   @doc """
   Returns one transaction-oriented investigation slice with linked transaction

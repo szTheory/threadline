@@ -506,22 +506,34 @@ defmodule Threadline.DeprecationParityTest do
       {:docs_v1, _anno, _lang, _fmt, _moduledoc, _meta, docs} = Code.fetch_docs(Threadline)
 
       for {{name, arity}, _message} <- @threadline_deprecated do
-        entry =
-          Enum.find(docs, fn
-            {{:function, ^name, ^arity}, _anno, _sig, _doc, _meta} -> true
-            _ -> false
-          end)
-
-        assert entry, "expected a docs_v1 entry for Threadline.#{name}/#{arity}"
-        {_, _anno, _sig, doc, meta} = entry
-
-        assert doc != :hidden,
-               "Threadline.#{name}/#{arity}'s @doc must be visible (not @doc false) so " <>
-                 "ExDoc shows the deprecation badge"
-
-        assert Map.has_key?(meta, :deprecated),
-               "Threadline.#{name}/#{arity}'s docs metadata is missing :deprecated"
+        assert_deprecated_doc_entry!(docs, "Threadline", name, arity)
       end
     end
+  end
+
+  # A function defined with `\\` defaults gets exactly ONE docs_v1 entry, keyed
+  # at its highest arity, whose `defaults` metadata count says how many lower
+  # arities it also covers (Code.fetch_docs/1 never emits a separate entry per
+  # arity) — so a lookup for a lower arity must search entries at or above it,
+  # not an exact-arity match.
+  defp assert_deprecated_doc_entry!(docs, mod_label, name, arity) do
+    entry =
+      Enum.find(docs, fn
+        {{:function, ^name, entry_arity}, _anno, _sig, _doc, meta} ->
+          entry_arity >= arity and entry_arity - Map.get(meta, :defaults, 0) <= arity
+
+        _ ->
+          false
+      end)
+
+    assert entry, "expected a docs_v1 entry covering #{mod_label}.#{name}/#{arity}"
+    {_, _anno, _sig, doc, meta} = entry
+
+    assert doc != :hidden,
+           "#{mod_label}.#{name}/#{arity}'s @doc must be visible (not @doc false) so " <>
+             "ExDoc shows the deprecation badge"
+
+    assert Map.has_key?(meta, :deprecated),
+           "#{mod_label}.#{name}/#{arity}'s docs metadata is missing :deprecated"
   end
 end

@@ -81,6 +81,29 @@ and `Threadline.incident_bundle/2`.
   compiler deprecation warning naming `row_history/3`. Removal is no earlier
   than Threadline 2.0.
 
+- `Threadline.history/3` still works and keeps its previous unbounded default
+  and its plain `%AuditChange{}` return shape. It emits one compiler
+  deprecation warning naming `row_history/3` — pass `limit: :infinity` for
+  the same unbounded read; map `.audit_change` on a `row_history/3` result to
+  recover the same struct this function returns. Removal is no earlier than
+  Threadline 2.0.
+
+- `Threadline.row_history_page/2,3,4` still works and keeps its previous
+  "absent or `nil` `:cursor` means first page" convention. It emits one
+  compiler deprecation warning naming `row_history/3` — pass `cursor: :start`
+  (with optional `page_size:`) instead. Removal is no earlier than
+  Threadline 2.0.
+
+- `Threadline.actor_window_page/1,2,3` still works the same way. It emits one
+  compiler deprecation warning naming `actor_window/3` — pass `cursor: :start`
+  (with optional `page_size:`) instead. Removal is no earlier than
+  Threadline 2.0.
+
+- `Threadline.correlation_bundle_page/1,2,3` still works the same way. It
+  emits one compiler deprecation warning naming `correlation_bundle/3` — pass
+  `cursor: :start` (with optional `page_size:`) instead. Removal is no
+  earlier than Threadline 2.0.
+
 - `Threadline.actor_history/2`'s `:after`, `:before` and `:limit` options
   still work and each still emits one deprecation warning per call. They are
   replaced by `cursor:` (a map, or `{:before, map}` to walk newer) and

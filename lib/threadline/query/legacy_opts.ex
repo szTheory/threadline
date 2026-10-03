@@ -118,4 +118,20 @@ defmodule Threadline.Query.LegacyOpts do
       _ -> opts
     end
   end
+
+  # The retired `row_history_page/4` shape (filters, opts) keeps its 0.12
+  # first-page convention: validate the old filter-key vocabulary, merge
+  # filters into opts, and map an absent or `nil` `:cursor` to `:start`
+  # (via `cursor/1`) so a 0.12 caller's first-page call keeps working
+  # unchanged against the always-paged `cursor: nil` rule.
+  @doc """
+  Validates `filters` against the retired `row_history_page/4` filter-key
+  vocabulary, merges `filters` into `opts`, then maps an absent or `nil`
+  `:cursor` to `:start`.
+  """
+  @spec row_history_page(keyword(), keyword()) :: keyword()
+  def row_history_page(filters, opts) when is_list(filters) and is_list(opts) do
+    Query.validate_row_history_filters!(filters)
+    cursor(filters ++ opts)
+  end
 end

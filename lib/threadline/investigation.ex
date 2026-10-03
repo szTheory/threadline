@@ -42,21 +42,27 @@ defmodule Threadline.Investigation do
     end
   end
 
-  @deprecated "Use Threadline.Investigation.row_history/3 instead."
+  @deprecated "Use Threadline.row_history/3 instead."
   @doc """
   Returns row history for one schema row using the retired `(filters, opts)`
   shape, with 0.12's unbounded default.
   """
+  @spec row_history(module(), term(), keyword(), keyword()) :: [LinkedChange.t()]
   def row_history(schema_module, id, filters, opts)
       when is_list(filters) and is_list(opts) do
     row_history(schema_module, id, LegacyOpts.row_history(filters, opts))
   end
 
+  @deprecated "Use Threadline.row_history/3 instead."
   @doc """
   Returns one keyset page of row history for a single schema row.
 
   Uses the same `(captured_at, id)` keyset rules as `Threadline.timeline_page/2`.
   """
+  @spec row_history_page(module(), term()) :: Threadline.Page.t(LinkedChange.t())
+  @spec row_history_page(module(), term(), keyword()) :: Threadline.Page.t(LinkedChange.t())
+  @spec row_history_page(module(), term(), keyword(), keyword()) ::
+          Threadline.Page.t(LinkedChange.t())
   def row_history_page(schema_module, id, filters \\ [], opts \\ []) do
     filters =
       validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history_page)
@@ -92,9 +98,14 @@ defmodule Threadline.Investigation do
     end
   end
 
+  @deprecated "Use Threadline.actor_window/3 instead."
   @doc """
   Returns one keyset page of change rows across tables for one actor.
   """
+  @spec actor_window_page(ActorRef.t()) :: Threadline.Page.t(LinkedChange.t())
+  @spec actor_window_page(ActorRef.t(), keyword()) :: Threadline.Page.t(LinkedChange.t())
+  @spec actor_window_page(ActorRef.t(), keyword(), keyword()) ::
+          Threadline.Page.t(LinkedChange.t())
   def actor_window_page(%ActorRef{} = actor_ref, filters \\ [], opts \\ []) do
     actor_window(actor_ref, filters, LegacyOpts.cursor(opts))
   end
@@ -130,9 +141,14 @@ defmodule Threadline.Investigation do
     end
   end
 
+  @deprecated "Use Threadline.correlation_bundle/3 instead."
   @doc """
   Returns one keyset page of changes linked to one `correlation_id`.
   """
+  @spec correlation_bundle_page(String.t()) :: Threadline.Page.t(LinkedChange.t())
+  @spec correlation_bundle_page(String.t(), keyword()) :: Threadline.Page.t(LinkedChange.t())
+  @spec correlation_bundle_page(String.t(), keyword(), keyword()) ::
+          Threadline.Page.t(LinkedChange.t())
   def correlation_bundle_page(correlation_id, filters \\ [], opts \\ [])
       when is_binary(correlation_id) do
     correlation_bundle(correlation_id, filters, LegacyOpts.cursor(opts))

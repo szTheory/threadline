@@ -532,7 +532,7 @@ defmodule Threadline.QueryTest do
 
       assert Enum.map(capped, & &1.id) == Enum.take(Enum.map(unbounded, & &1.id), 2)
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 0", fn ->
         Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 0)
       end
     end
@@ -667,23 +667,23 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 0", fn ->
         Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 0)
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: -1", fn ->
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: -1", fn ->
         Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: -1)
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: 1.0", fn ->
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 1.0", fn ->
         Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 1.0)
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: \"5\"", fn ->
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: \"5\"", fn ->
         Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: "5")
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: true", fn ->
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: true", fn ->
         Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: true)
       end
     end
@@ -698,7 +698,7 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 0", fn ->
         Threadline.history(FakeUserLimitPrecedence, nil, repo: @repo, limit: 0)
       end
     end

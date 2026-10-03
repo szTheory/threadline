@@ -24,6 +24,7 @@ defmodule Threadline.Query do
   @allowed_row_history_filter_keys ~w(repo from to)a
   @default_timeline_page_size 1000
 
+  @deprecated "Use Threadline.row_history/3 instead."
   @doc """
   Returns `AuditChange` records for one schema row using timeline ordering,
   with 0.12's unbounded default.
@@ -32,36 +33,28 @@ defmodule Threadline.Query do
   the hidden raw-read function that backs it, merging `filters` into `opts`
   and defaulting `:limit` to `:infinity` so 0.12 callers stay unbounded.
   """
+  @spec row_history(module(), term()) :: [AuditChange.t()]
+  @spec row_history(module(), term(), keyword()) :: [AuditChange.t()]
   @spec row_history(module(), term(), keyword(), keyword()) :: [AuditChange.t()]
   def row_history(schema_module, id, filters \\ [], opts \\ [])
       when is_list(filters) and is_list(opts) do
     RowReads.list(schema_module, id, LegacyOpts.row_history(filters, opts))
   end
 
+  @deprecated "Use Threadline.row_history/3 instead."
   @doc """
   Returns one keyset page of row history for a single schema row.
+
+  Deprecated: use `Threadline.row_history/3` instead — pass `cursor: :start`
+  (with optional `page_size:`) for the same keyset paging.
   """
+  @spec row_history_page(module(), term()) :: Threadline.Page.t(AuditChange.t())
+  @spec row_history_page(module(), term(), keyword()) :: Threadline.Page.t(AuditChange.t())
   @spec row_history_page(module(), term(), keyword(), keyword()) ::
           Threadline.Page.t(AuditChange.t())
   def row_history_page(schema_module, id, filters \\ [], opts \\ [])
       when is_list(filters) and is_list(opts) do
-    validate_row_history_filters!(filters)
-    repo = timeline_repo!(filters, opts)
-
-    page_size =
-      Cursors.timeline_page_size!(Keyword.get(opts, :page_size, @default_timeline_page_size))
-
-    cursor = Cursors.validate_page_cursor!(Keyword.get(opts, :cursor, :start))
-
-    entries =
-      schema_module
-      |> row_history_query(id, Keyword.put(filters, :repo, repo))
-      |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
-      |> maybe_after_timeline_cursor(cursor)
-      |> limit(^(page_size + 1))
-      |> repo.all(storage_opts(filters, opts))
-
-    Cursors.change_page(entries, page_size)
+    RowReads.page(schema_module, id, LegacyOpts.row_history_page(filters, opts))
   end
 
   @doc false
