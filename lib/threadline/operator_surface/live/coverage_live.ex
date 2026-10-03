@@ -314,7 +314,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp coverage_verdict(assigns) do
       ~H"""
       <section class={["tl-coverage-verdict", "tl-coverage-verdict--#{verdict_status(@snapshot)}"]} aria-label="Selected schema readiness">
-        <%!-- Density (197-02, signal-to-chrome): no "Selected schema readiness" eyebrow
+        <%!-- Density (signal-to-chrome): no "Selected schema readiness" eyebrow
         and no "selected schema: … · Checked …" meta line here. The section is already
         marked by its aria-label and status chip, the verdict heading names the schema
         and readiness, and the page-header meta above owns schema + last-checked —
@@ -394,7 +394,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       rescue
         e ->
           message = Exception.message(e)
-          Threadline.Telemetry.emit_health_checked_error(message)
+          Threadline.Telemetry.emit_health_checked_error(e)
 
           previous = socket.assigns[:coverage_for_schema]
           previous_schema = socket.assigns[:coverage_for_schema_name]

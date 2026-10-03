@@ -400,9 +400,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
 
-    # Reuses the timeline's single-key guard so the two surfaces cannot drift
-    # (T-211-14): a composite table_pk, `{}`, or `{"id" => nil}` is not
-    # routeable and yields no link rather than a link to the wrong row.
+    # Reuses the timeline's single-key guard so the two surfaces cannot drift:
+    # a composite table_pk, `{}`, or `{"id" => nil}` is not routeable and
+    # yields no link rather than a link to the wrong row.
     defp change_history_path(base_path, change) do
       case Helpers.routeable_row_ref(change) do
         nil ->

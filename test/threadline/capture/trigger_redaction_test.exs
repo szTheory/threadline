@@ -91,6 +91,11 @@ defmodule Threadline.Capture.TriggerRedactionTest do
 
       assert is_map(change.changed_from)
       assert Map.get(change.changed_from, "email") == "[REDACTED]"
+
+      # D-13: an excluded column must never enter changed_fields or
+      # changed_from, even though its value changed too.
+      refute "password" in change.changed_fields
+      refute Map.has_key?(change.changed_from, "password")
     end
 
     test "DELETE audit row does not leak raw secrets in JSON" do

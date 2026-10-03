@@ -97,8 +97,8 @@ defmodule Threadline.OperatorSurface.StressFixtures do
   # Each of the 11 operator pages is audited across the 7 audit
   # paths (happy/empty/loading/error/permission/boundary/advanced) via deterministic
   # DB-free static fixtures on /audit/__stress. The 11 prior `page.<x>.reserved`
-  # baselines are CONVERTED here (no orphaned reserved id — the 177-05 group
-  # precedent): each page subject becomes 7 fixture-backed CURRENT path stories, and
+  # baselines are CONVERTED here (no orphaned reserved id): each page subject
+  # becomes 7 fixture-backed CURRENT path stories, and
   # the two pre-existing baselines (page.home.happy, page.timeline.empty) are
   # absorbed as the home/happy and timeline/empty cells.
   #

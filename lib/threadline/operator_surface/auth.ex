@@ -89,16 +89,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:halt, redirect(socket, to: "/")}
     end
 
-    defp emit_telemetry(result, socket, scope) do
-      scope_keys = if is_map(scope), do: Map.keys(scope) |> Enum.sort(), else: []
-
-      actor_ref = Map.get(socket.assigns, :threadline_actor_ref)
-
-      :telemetry.execute(
-        [:threadline, :operator_surface, :authorize],
-        %{result: result},
-        %{path: "", actor_ref: actor_ref, scope_keys: scope_keys}
-      )
+    defp emit_telemetry(result, _socket, scope) do
+      Threadline.Telemetry.emit_operator_surface_authorize(result, nil, scope)
     end
 
     defp maybe_assign_session_actor(socket, session) when is_map(session) do
@@ -157,15 +149,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp emit_actor_mismatch(session_actor_ref, scope_actor_ref) do
-      :telemetry.execute(
-        [:threadline, :operator_surface, :actor_ref_mismatch],
-        %{count: 1},
-        %{
-          session_actor_ref: ActorRef.to_map(session_actor_ref),
-          scope_actor_ref: ActorRef.to_map(scope_actor_ref)
-        }
-      )
+    defp emit_actor_mismatch(_session_actor_ref, _scope_actor_ref) do
+      Threadline.Telemetry.emit_actor_ref_mismatch()
     end
 
     defp maybe_assign_session_user(socket, session) do
@@ -213,16 +198,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     rescue
       _ ->
-        emit_export_authorize_error(socket)
+        emit_export_authorize_error()
         {false, nil}
     end
 
-    defp emit_export_authorize_error(socket) do
-      :telemetry.execute(
-        [:threadline, :operator_surface, :export_authorize],
-        %{result: :error, count: 1},
-        %{actor_ref: socket.assigns[:threadline_actor_ref]}
-      )
+    defp emit_export_authorize_error do
+      Threadline.Telemetry.emit_export_authorize_error()
     end
 
     defp assign_coverage_enabled(socket, opts) do

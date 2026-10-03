@@ -63,6 +63,9 @@ defmodule Threadline.Capture.TriggerCaptureConfig do
 
   defp normalize_table_entry(table, entry) when is_list(entry) do
     check_near_miss_keys!(table, entry)
+    check_column_list!(table, :exclude, Keyword.get(entry, :exclude))
+    check_column_list!(table, :mask, Keyword.get(entry, :mask))
+    check_column_list!(table, :except_columns, Keyword.get(entry, :except_columns))
 
     normalized =
       []
@@ -87,6 +90,19 @@ defmodule Threadline.Capture.TriggerCaptureConfig do
   defp normalize_table_entry(_table, _other) do
     RedactionPolicy.validate!([])
     []
+  end
+
+  # A non-nil, non-list :exclude/:mask/:except_columns (e.g. exclude: :ssn)
+  # would otherwise be silently normalized to []: the column would never be
+  # redacted or omitted and nothing would warn the adopter. Reject it loudly here, before
+  # normalize_columns/1 ever runs, naming the table, the key, and that a
+  # list of column names is expected.
+  defp check_column_list!(_table, _key, nil), do: :ok
+  defp check_column_list!(_table, _key, value) when is_list(value), do: :ok
+
+  defp check_column_list!(table, key, value) do
+    raise ArgumentError,
+          "tables #{inspect(table)}: #{key} must be a list of column names, got: #{inspect(value)}"
   end
 
   # A near-miss key, such as :pk or :primary_keys, is rejected loudly rather

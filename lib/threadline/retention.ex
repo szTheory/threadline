@@ -24,7 +24,8 @@ defmodule Threadline.Retention do
   @type purge_result :: %{
           deleted_changes: non_neg_integer(),
           deleted_transactions: non_neg_integer(),
-          batches_run: non_neg_integer()
+          batches_run: non_neg_integer(),
+          dry_run: boolean()
         }
 
   @doc """
@@ -39,7 +40,11 @@ defmodule Threadline.Retention do
     plus orphan draining (default `10_000`).
   - **`:dry_run`** — when `true`, no deletes; returns counts of rows that **would**
     match delete predicates (`:deleted_changes` / `:deleted_transactions` are
-    those counts, `:batches_run` is `0`).
+    those counts, `:batches_run` is `0`). The preview assumes the run completes;
+    a run cut short by `:max_batches` deletes fewer. **`:batch_size` and
+    `:max_batches` are ignored in dry-run mode** — the preview is a single
+    full-table count, not a batched simulation, so passing either alongside
+    `dry_run: true` has no effect on the returned counts.
 
   Returns `{:error, :disabled}` when `:retention` → `enabled` is not `true`.
   Successful calls return a result map (see `purge_result/0`).
@@ -62,19 +67,27 @@ defmodule Threadline.Retention do
       policy_cutoff = Policy.cutoff_utc_datetime_usec!()
       cutoff = resolve_cutoff(Keyword.get(opts, :cutoff), policy_cutoff)
 
-      if dry_run? do
-        dry_run_result(repo, cutoff, policy, storage_opts)
-      else
-        run_with_tracking(
-          repo,
-          cutoff,
-          batch_size,
-          max_batches,
-          policy.delete_empty_transactions,
-          sleep_ms,
-          storage_opts
-        )
-      end
+      span_dry_run? = dry_run? not in [false, nil]
+
+      Threadline.Telemetry.purge_span(span_dry_run?, fn ->
+        run_purge(dry_run?, repo, cutoff, batch_size, max_batches, policy, sleep_ms, storage_opts)
+      end)
+    end
+  end
+
+  defp run_purge(dry_run?, repo, cutoff, batch_size, max_batches, policy, sleep_ms, storage_opts) do
+    if dry_run? do
+      dry_run_result(repo, cutoff, policy, storage_opts)
+    else
+      run_with_tracking(
+        repo,
+        cutoff,
+        batch_size,
+        max_batches,
+        policy.delete_empty_transactions,
+        sleep_ms,
+        storage_opts
+      )
     end
   end
 
@@ -143,7 +156,9 @@ defmodule Threadline.Retention do
             where:
               not exists(
                 from(c in AuditChange,
-                  where: c.transaction_id == parent_as(:audit_transaction).id,
+                  where:
+                    c.transaction_id == parent_as(:audit_transaction).id and
+                      c.captured_at >= ^cutoff,
                   select: 1
                 )
               ),
@@ -166,6 +181,7 @@ defmodule Threadline.Retention do
   defp purge_loop(repo, cutoff, batch_size, max_batches, delete_empty?, sleep_ms, storage_opts) do
     {total_changes, total_txns, batches} =
       Enum.reduce_while(1..max_batches, {0, 0, 0}, fn idx, {tc, tt, _} ->
+        step_started_at = System.monotonic_time()
         n1 = delete_change_batch(repo, cutoff, batch_size, storage_opts)
 
         n2 =
@@ -174,6 +190,8 @@ defmodule Threadline.Retention do
           else
             0
           end
+
+        Threadline.Telemetry.emit_batch_purged(n1, n2, step_started_at)
 
         tc = tc + n1
         tt = tt + n2
@@ -199,7 +217,12 @@ defmodule Threadline.Retention do
         end
       end)
 
-    %{deleted_changes: total_changes, deleted_transactions: total_txns, batches_run: batches}
+    %{
+      deleted_changes: total_changes,
+      deleted_transactions: total_txns,
+      batches_run: batches,
+      dry_run: false
+    }
   end
 
   defp delete_change_batch(repo, cutoff, batch_size, storage_opts) do

@@ -80,7 +80,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       rescue
         e ->
           message = Exception.message(e)
-          Threadline.Telemetry.emit_health_checked_error(message)
+          Threadline.Telemetry.emit_health_checked_error(e)
 
           socket
           |> Phoenix.Component.assign(:threadline_coverage, Snapshot.empty(now))
@@ -102,7 +102,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       rescue
         e ->
           message = Exception.message(e)
-          Threadline.Telemetry.emit_health_checked_error(message)
+          Threadline.Telemetry.emit_health_checked_error(e)
 
           # Keep the previous :threadline_coverage assign untouched (last-good).
           # Set the error so the badge can render a "stale" indicator.

@@ -14,7 +14,7 @@ defmodule Threadline.BrandbookTokenParityTest do
   # pressure-test.md dual-mode addendum + mechanical parity gate line, so the brand
   # documentation cannot silently regress away from the shipped truth.
   #
-  # House style mirrors operator_surface_doc_contract_test.exs / theme_doc_contract_test.exs:
+  # House style mirrors operator_surface_doc_contract_test.exs:
   # File.read! at the top of each test, one concern per test block, custom failure
   # messages, async: true (pure filesystem reads, no shared state). No token COUNT is
   # asserted anywhere — only value-equality on the named intersection.

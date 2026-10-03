@@ -154,7 +154,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     # Honest range total: at/above the keyset cap (10_001) show "10,000+" (never an exact
-    # deep total — mitigates T-175-09); below the cap show the exact integer with separators.
+    # deep total); below the cap show the exact integer with separators.
     defp pager_total(count) when is_integer(count) and count >= 10_001, do: "10,000+"
 
     defp pager_total(count) when is_integer(count) do

@@ -15,13 +15,14 @@ defmodule Threadline.Capture.RedactionPolicy do
   def validate!(opts) when is_list(opts), do: validate!(Map.new(opts))
 
   def validate!(opts) when is_map(opts) do
-    exclude = normalize_columns(Map.get(opts, :exclude, Map.get(opts, "exclude", [])))
-    mask = normalize_columns(Map.get(opts, :mask, Map.get(opts, "mask", [])))
+    exclude = normalize_columns(Map.get(opts, :exclude, Map.get(opts, "exclude", [])), "exclude")
+    mask = normalize_columns(Map.get(opts, :mask, Map.get(opts, "mask", [])), "mask")
     intersection = MapSet.intersection(MapSet.new(exclude), MapSet.new(mask))
 
     if MapSet.size(intersection) > 0 do
-      sample = intersection |> MapSet.to_list() |> List.first()
-      cols = intersection |> MapSet.to_list() |> Enum.sort() |> Enum.join(", ")
+      sorted = intersection |> MapSet.to_list() |> Enum.sort()
+      sample = List.first(sorted)
+      cols = Enum.join(sorted, ", ")
 
       raise ArgumentError,
             "exclude and mask overlap on columns: #{cols}. " <>
@@ -40,8 +41,14 @@ defmodule Threadline.Capture.RedactionPolicy do
   @doc """
   Validates a mask placeholder string for static SQL embedding.
 
-  Raises if empty, longer than #{@max_placeholder_length}, or contains ASCII
-  control characters (message contains `"placeholder"`).
+  Raises if empty, longer than #{@max_placeholder_length} graphemes, or
+  contains ASCII control bytes 0..31 (message contains `"placeholder"`).
+
+  DEL (127) and C1 control code points (U+0080..U+009F) are deliberately
+  accepted: this check only guards static SQL string embedding against the
+  bytes PostgreSQL's string-literal syntax cannot represent unescaped
+  (0..31). The placeholder is always emitted as a quoted SQL literal, so
+  DEL and C1 bytes are safe to embed and are not rejected here.
   """
   def validate_placeholder!(placeholder) when is_binary(placeholder) do
     if placeholder == "" do
@@ -50,7 +57,7 @@ defmodule Threadline.Capture.RedactionPolicy do
 
     if String.length(placeholder) > @max_placeholder_length do
       raise ArgumentError,
-            "placeholder exceeds max length (#{@max_placeholder_length})"
+            "placeholder exceeds max length (#{@max_placeholder_length} graphemes)"
     end
 
     if String.contains?(placeholder, <<0>>) or
@@ -61,12 +68,21 @@ defmodule Threadline.Capture.RedactionPolicy do
     :ok
   end
 
-  defp normalize_columns(list) when is_list(list) do
+  def validate_placeholder!(placeholder) do
+    raise ArgumentError, "placeholder must be a string, got: #{inspect(placeholder)}"
+  end
+
+  defp normalize_columns(nil, _key), do: []
+
+  defp normalize_columns(list, _key) when is_list(list) do
     list
     |> Enum.map(&to_string/1)
     |> Enum.map(&String.trim/1)
     |> Enum.reject(&(&1 == ""))
   end
 
-  defp normalize_columns(_), do: []
+  defp normalize_columns(other, key) do
+    raise ArgumentError,
+          "#{key} must be a list of column names, got: #{inspect(other)}"
+  end
 end

@@ -1,0 +1,13 @@
+diff --git a/lib/threadline/query.ex b/lib/threadline/query.ex
+index 94ba11f1..0a730233 100644
+--- a/lib/threadline/query.ex
++++ b/lib/threadline/query.ex
+@@ -487,7 +487,7 @@ defmodule Threadline.Query do
+ 
+     AuditChange
+     |> where_row(matched)
+-    |> where([ac], ac.captured_at <= ^timestamp)
++    |> where([ac], ac.captured_at < ^timestamp)
+     |> maybe_apply_scope(row_history_scope_opts(schema_module, id, opts))
+     |> order_by([ac], desc: ac.captured_at)
+     |> order_by([ac], desc: ac.id)

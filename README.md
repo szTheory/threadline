@@ -142,6 +142,7 @@ Quick destinations: [Evaluate](guides/evaluating-threadline.md) ·
 - [Performance](guides/performance.md)
 - [Audit indexing](guides/audit-indexing.md)
 - [Adoption evidence playbook](guides/adoption-evidence-playbook.md)
+- [Telemetry](guides/telemetry.md)
 
 **Integrations**
 

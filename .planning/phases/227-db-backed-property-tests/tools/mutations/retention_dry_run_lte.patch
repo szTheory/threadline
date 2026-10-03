@@ -1,0 +1,13 @@
+diff --git a/lib/threadline/retention.ex b/lib/threadline/retention.ex
+index 00d2d783..35ffb628 100644
+--- a/lib/threadline/retention.ex
++++ b/lib/threadline/retention.ex
+@@ -132,7 +132,7 @@ defmodule Threadline.Retention do
+   defp dry_run_result(repo, cutoff, policy, storage_opts) do
+     eligible_changes =
+       repo.one(
+-        from(ac in AuditChange, where: ac.captured_at < ^cutoff, select: count(ac.id)),
++        from(ac in AuditChange, where: ac.captured_at <= ^cutoff, select: count(ac.id)),
+         storage_opts
+       )
+ 

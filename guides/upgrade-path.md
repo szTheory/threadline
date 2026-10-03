@@ -2,7 +2,7 @@
 
 This guide is the canonical support-matrix and lifecycle reference for Threadline's named adoption lanes. `guides/integration-contracts.md` defines the reusable seams, and `guides/operator-surface.md` covers mount, auth, and screens. This guide answers a different set of questions: which lane you are on, what compatibility is actually supported, and how surface-only changes move between Threadline minors.
 
-Threadline **0.6.0** landed Evidence, `Audit.transaction/3`, and aligned operator surfaces in-repo after **0.5.0**; the later minors (`0.7.0` through `0.9.0`) added surface, DX, and proof-lane work only. **0.10.0** is the first bump in that run with adopter actions attached — see the `0.9.x → 0.10.x` bullet below. Upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
+Threadline **0.6.0** landed Evidence, `Audit.transaction/3`, and aligned operator surfaces in-repo after **0.5.0**; the later minors (`0.7.0` through `0.9.0`) added surface, DX, and proof-lane work only. **0.10.0** is the first bump in that run with adopter actions attached — see the `0.9.x → 0.10.x` bullet below. **0.11.0** regenerated triggers to resolve real primary keys (see the `0.10.x → 0.11.x` bullet), and **0.12.0** carries three breaking telemetry/config changes (see the `0.11.x → 0.12.x` bullet). Upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
 ## Who this guide is for
 
@@ -100,6 +100,7 @@ Every adopter-visible change from 0.6.x through 0.9.x fell into one of four them
 | 0.8.x → 0.9.x | No | None | None | Nothing required — operator-surface positioning + accessibility only. |
 | 0.9.x → 0.10.x | No | None | Optional — `storage_schema` is a new opt-in whose default is what you already have | **Not** nothing required: four adopter actions (S3 export dependencies, two new operator-surface routes, a narrowed `Storage` callback, 25 newly undocumented modules). |
 | 0.10.x → 0.11.x | Yes | Regenerate triggers + add the row-history index | Optional — a `primary_key:` override, only for a table with no usable primary key | **Not** nothing required: regenerate every audited table's trigger, then add the row-history index. Full procedure: [Upgrading to 0.11](upgrading-to-0.11.md). |
+| 0.11.x → 0.12.x | Yes | None | Only if a capture table entry passes a bare atom to exclude:, mask: or except_columns: — wrap it in a list | **Not** nothing required: three adopter actions (telemetry handlers matching actor-ref keys, health-checked error metadata, non-list capture options). |
 
 Current guidance by minor:
 
@@ -121,6 +122,12 @@ Current guidance by minor:
   - Optional: backfill the real key for rows captured before you regenerated, using the SQL in the upgrade guide.
 
   See `CHANGELOG.md` `[0.11.0]`. Full procedure: [Upgrading to 0.11](upgrading-to-0.11.md).
+- **0.11.x → 0.12.x**: Export and retention telemetry, a `Threadline.history/3` `limit:` option, `--strict` and `--all-schemas` flags for `mix threadline.health.coverage`, and a legacy-key health warning. Breaking changes: **Yes**. Required migration: **None**. Config changes: **Only if** a capture table entry passes a bare atom to `exclude:`, `mask:` or `except_columns:` — wrap it in a list.
+  - **Operator-surface telemetry consumers** whose handlers match on `actor_ref`, `session_actor_ref` or `scope_actor_ref` in the `[:threadline, :operator_surface, :authorize]`, `[:threadline, :operator_surface, :export_authorize]` or `[:threadline, :operator_surface, :actor_ref_mismatch]` events must remove those keys from their pattern matches and read the actor from their own session or scope instead.
+  - **Health-telemetry consumers** whose handlers match the `[:threadline, :health, :checked, :error]` event's `%{error: message}` metadata must match `%{exception: mod}` instead.
+  - **Capture config authors** passing a non-list `exclude:`/`mask:`/`except_columns:` (for example `exclude: :ssn`) on a `:threadline, :trigger_capture` table entry must wrap the column name in a list (`exclude: [:ssn]`); this now raises `ArgumentError` at config load and at trigger generation instead of silently skipping the redaction.
+
+  See `CHANGELOG.md` `[0.12.0]`.
 - `0.3.x -> 0.4.x`: the operator surface became an official optional dependency lane. `capture-only` adopters keep the no-optional-deps path. `phoenix-surface` adopters must align with the declared `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` ranges and re-check their router mount/auth setup after upgrade. `sigra-reference` adopters should also re-check the current example app and Sigra guide before treating that path as unchanged.
 - future minor upgrades: do not infer support from ecosystem norms or upstream release notes alone. Re-check this guide, the declared optional dependency ranges, the current example-app proof path, and the current changelog entry for the target Threadline minor.
 

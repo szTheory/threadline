@@ -1,10 +1,14 @@
 defmodule Threadline.Export.OrchestratorTest do
   use Threadline.DataCase
 
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
+
   alias Threadline.Export.Orchestrator
   alias Threadline.Governance.ExportJob
   alias Threadline.Storage.Local
   alias Threadline.Test.Repo
+
+  @export_events [[:threadline, :export, :completed], [:threadline, :export, :failed]]
 
   @test_priv "priv/threadline_exports"
 
@@ -105,6 +109,31 @@ defmodule Threadline.Export.OrchestratorTest do
     end
   end
 
+  defmodule PutFailStorage do
+    @behaviour Threadline.Storage
+
+    alias Threadline.Storage.Local
+
+    @impl true
+    def init(_opts), do: :ok
+
+    @impl true
+    def put(_content, _opts \\ []), do: {:error, :forced_put_failure}
+
+    @impl true
+    def get(file_id), do: Local.get(file_id)
+
+    @impl true
+    def path(file_id), do: Local.path(file_id)
+
+    @impl true
+    def download_url(file_id, opts \\ []),
+      do: Local.download_url(file_id, opts)
+
+    @impl true
+    def delete(file_id), do: Local.delete(file_id)
+  end
+
   defmodule RemoteRecordingStorage do
     @behaviour Threadline.Storage
 
@@ -161,6 +190,8 @@ defmodule Threadline.Export.OrchestratorTest do
 
   test "marks job as running, streams to file, stores via Threadline.Storage, and marks completed",
        %{job: job} do
+    ref = attach_telemetry!(@export_events)
+
     assert :ok = Orchestrator.run(job.id, repo: Repo)
 
     updated_job = Repo.get!(ExportJob, job.id, repo_opts())
@@ -173,9 +204,18 @@ defmodule Threadline.Export.OrchestratorTest do
 
     # Verify the file is in local storage
     assert {:ok, _content} = Local.get(updated_job.file_path)
+
+    assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+    assert measurements.row_count == 0
+    assert metadata.format == :csv
+    assert metadata.truncated == false
+
+    refute_receive {[:threadline, :export, :failed], ^ref, _measurements, _metadata}
   end
 
   test "only one concurrent worker atomically claims a pending export", %{job: job} do
+    ref = attach_telemetry!(@export_events)
+
     tasks =
       for _ <- 1..2 do
         Task.async(fn -> Orchestrator.run(job.id, repo: Repo) end)
@@ -188,6 +228,12 @@ defmodule Threadline.Export.OrchestratorTest do
     updated_job = Repo.get!(ExportJob, job.id, repo_opts())
     assert updated_job.status == "completed"
     assert {:ok, _content} = Local.get(updated_job.file_path)
+
+    # The losing worker's :not_claimable branch never reaches run_job/3, so it
+    # emits no export event at all; only the winner's single :completed fires.
+    assert_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
+    refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
+    refute_receive {[:threadline, :export, :failed], ^ref, _measurements, _metadata}
   end
 
   test "replays persisted string date params and stores only rows inside the requested window" do
@@ -218,6 +264,8 @@ defmodule Threadline.Export.OrchestratorTest do
   end
 
   test "invalid persisted datetime params fail closed with parser detail", %{job: _job} do
+    ref = attach_telemetry!(@export_events)
+
     bad_job =
       insert_job!(%{
         status: "pending",
@@ -233,6 +281,13 @@ defmodule Threadline.Export.OrchestratorTest do
     assert %DateTime{} = updated_job.expires_at
     assert is_nil(updated_job.completed_at)
     assert updated_job.error_message =~ "invalid datetime: not-a-date"
+
+    assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+    assert measurements.row_count == 0
+    assert metadata.error_kind == :exception
+    assert metadata.exception == ArgumentError
+
+    refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
   end
 
   test "worker source does not mint atoms from persisted query params" do
@@ -327,6 +382,7 @@ defmodule Threadline.Export.OrchestratorTest do
 
   test "a transaction commit failure never stores an export object", %{job: job} do
     Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+    ref = attach_telemetry!(@export_events)
 
     transaction_fn = fn transaction_body, transaction_opts ->
       Repo.transaction(
@@ -349,10 +405,18 @@ defmodule Threadline.Export.OrchestratorTest do
     updated_job = Repo.get!(ExportJob, job.id, repo_opts())
     assert updated_job.status == "failed"
     assert is_nil(updated_job.file_path)
+
+    assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+    assert measurements.row_count == 0
+    assert metadata.error_kind == :transaction_failed
+    assert metadata.exception == nil
+
+    refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
   end
 
   test "a completion update failure compensates by deleting the stored object", %{job: job} do
     Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+    ref = attach_telemetry!(@export_events)
 
     completion_fn = fn _repo, _job, _file_path, _storage_opts ->
       {:error, :forced_completion_update_failure}
@@ -372,6 +436,63 @@ defmodule Threadline.Export.OrchestratorTest do
     updated_job = Repo.get!(ExportJob, job.id, repo_opts())
     assert updated_job.status == "failed"
     assert is_nil(updated_job.file_path)
+
+    assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+    assert measurements.row_count == 0
+    assert metadata.error_kind == :transaction_failed
+    assert metadata.exception == nil
+
+    refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
+  end
+
+  test "a storage put failure marks the job failed with error_kind :storage_error", %{job: job} do
+    ref = attach_telemetry!(@export_events)
+
+    assert {:error, {:storage_error, :forced_put_failure}} =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: PutFailStorage
+             )
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "failed"
+    assert is_nil(updated_job.file_path)
+
+    assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+    assert measurements.row_count == 0
+    assert metadata.error_kind == :storage_error
+    assert metadata.exception == nil
+
+    refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
+  end
+
+  test "a completion_fn that raises marks the job failed with error_kind :exception", %{job: job} do
+    Application.put_env(:threadline, :test_orchestrator_notify_pid, self())
+    ref = attach_telemetry!(@export_events)
+
+    completion_fn = fn _repo, _job, _file_path, _storage_opts ->
+      raise RuntimeError, "completion_fn exploded"
+    end
+
+    assert {:error, %RuntimeError{}} =
+             Orchestrator.run(job.id,
+               repo: Repo,
+               storage_adapter: RecordingStorage,
+               completion_fn: completion_fn
+             )
+
+    assert_receive {:storage_put, {:ok, file_id}}
+    assert_receive {:storage_delete, ^file_id}
+
+    updated_job = Repo.get!(ExportJob, job.id, repo_opts())
+    assert updated_job.status == "failed"
+
+    assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+    assert measurements.row_count == 0
+    assert metadata.error_kind == :exception
+    assert metadata.exception == RuntimeError
+
+    refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
   end
 
   test "a failed compensation retains the object identifier for cleanup retry", %{job: job} do

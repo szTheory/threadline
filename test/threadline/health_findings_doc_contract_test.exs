@@ -8,7 +8,7 @@ defmodule Threadline.HealthFindingsDocContractTest do
 
   use ExUnit.Case, async: true
 
-  alias Threadline.Health.{Finding, TriggerFindings}
+  alias Threadline.Health.{Finding, LegacyKeyFindings, TriggerFindings}
 
   @domain_reference_path "guides/domain-reference.md"
   @production_checklist_path "guides/production-checklist.md"
@@ -25,19 +25,19 @@ defmodule Threadline.HealthFindingsDocContractTest do
     end
   end
 
-  test "TriggerFindings.codes/0 is non-empty" do
-    codes = TriggerFindings.codes()
+  test "TriggerFindings.codes/0 ++ LegacyKeyFindings.codes/0 is non-empty" do
+    codes = TriggerFindings.codes() ++ LegacyKeyFindings.codes()
 
     assert codes != [],
-           "Threadline.Health.TriggerFindings.codes/0 must not be empty " <>
-             "(a vacuous list would make every check below pass trivially)"
+           "Threadline.Health.TriggerFindings.codes/0 ++ LegacyKeyFindings.codes/0 must not be " <>
+             "empty (a vacuous list would make every check below pass trivially)"
   end
 
   test "every code appears in domain-reference.md and the Finding moduledoc" do
     domain_reference = read_rel!(@domain_reference_path)
     finding_moduledoc = moduledoc!(Finding)
 
-    for code <- TriggerFindings.codes() do
+    for code <- TriggerFindings.codes() ++ LegacyKeyFindings.codes() do
       literal = inspect(code)
 
       assert String.contains?(domain_reference, literal),
@@ -46,6 +46,21 @@ defmodule Threadline.HealthFindingsDocContractTest do
       assert String.contains?(finding_moduledoc, literal),
              "missing #{literal} in the Threadline.Health.Finding moduledoc"
     end
+  end
+
+  test "the Finding moduledoc documents the catch-all and fail-fast rules" do
+    finding_moduledoc = moduledoc!(Finding)
+
+    assert finding_moduledoc =~ "catch-all clause"
+    assert finding_moduledoc =~ "never reported as a finding"
+  end
+
+  test "configuration-and-commands.md states the HLTH-04 fail-fast sentence" do
+    guide = read_rel!(@configuration_and_commands_path)
+
+    assert guide =~
+             "Malformed configuration raises `ArgumentError` (the health and coverage tasks " <>
+               "stop with `Mix.raise`); it is never reported as a health finding."
   end
 
   test "[:threadline, :health, :findings_checked] appears in domain-reference.md and the Telemetry moduledoc" do

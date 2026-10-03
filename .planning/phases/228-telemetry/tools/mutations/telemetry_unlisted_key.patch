@@ -1,0 +1,13 @@
+diff --git a/lib/threadline/telemetry.ex b/lib/threadline/telemetry.ex
+index 03995259..c160452e 100644
+--- a/lib/threadline/telemetry.ex
++++ b/lib/threadline/telemetry.ex
+@@ -271,7 +271,7 @@ defmodule Threadline.Telemetry do
+     :telemetry.execute(
+       [:threadline, :operator_surface, :actor_ref_mismatch],
+       %{count: 1},
+-      %{}
++      %{extra: 1}
+     )
+   end
+ 

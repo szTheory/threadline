@@ -1,0 +1,13 @@
+diff --git a/lib/threadline/change_diff.ex b/lib/threadline/change_diff.ex
+index b78ba545..e22534ba 100644
+--- a/lib/threadline/change_diff.ex
++++ b/lib/threadline/change_diff.ex
+@@ -187,7 +187,7 @@ defmodule Threadline.ChangeDiff do
+         base
+ 
+       is_map(cf) ->
+-        if map_has_field?(cf, name) do
++        if map_get(cf, name) != nil do
+           Map.put(base, "before", map_get(cf, name))
+         else
+           Map.put(base, "prior_state", "omitted")

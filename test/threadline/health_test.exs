@@ -212,6 +212,53 @@ defmodule Threadline.HealthTest do
     end
   end
 
+  describe "classify/3 — extracted per-table classifier (HLTH-02)" do
+    test "audit tables are rejected regardless of covered/expected status" do
+      result =
+        Threadline.Health.classify(
+          ["audit_transactions", "audit_changes", "audit_actions", "users"],
+          ["audit_transactions", "users"],
+          ["audit_changes"]
+        )
+
+      assert result == [{:covered, "users"}]
+    end
+
+    test "covered beats expected_uncovered when a table is in both sets" do
+      result = Threadline.Health.classify(["users"], ["users"], ["users"])
+      assert result == [{:covered, "users"}]
+    end
+
+    test "expected_uncovered beats uncovered when a table is only in the expected set" do
+      result = Threadline.Health.classify(["schema_migrations"], [], ["schema_migrations"])
+      assert result == [{:expected_uncovered, "schema_migrations"}]
+    end
+
+    test "a table in neither set is uncovered" do
+      result = Threadline.Health.classify(["orphan"], [], [])
+      assert result == [{:uncovered, "orphan"}]
+    end
+  end
+
+  describe "trigger_coverage/1 result for public is unchanged after the classify/3 extraction" do
+    test "matches the pre-extraction three-bucket result" do
+      result = Threadline.Health.trigger_coverage(repo: @repo, schema: "public")
+
+      for item <- result do
+        assert match?({:covered, name} when is_binary(name), item) or
+                 match?({:uncovered, name} when is_binary(name), item) or
+                 match?({:expected_uncovered, name} when is_binary(name), item)
+      end
+
+      refute Enum.any?(result, fn {_status, name} ->
+               name in ~w(audit_transactions audit_changes audit_actions)
+             end)
+
+      assert {:covered, "threadline_ci_coverage_canary"} in result
+      assert {:expected_uncovered, "schema_migrations"} in result
+    end
+  end
+
   describe "trigger_coverage/1 - disabled and replica-only triggers" do
     setup do
       SQL.query!(@repo, "DROP SCHEMA IF EXISTS hlth_cov_state CASCADE", [])

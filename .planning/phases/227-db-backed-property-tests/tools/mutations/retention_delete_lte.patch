@@ -1,0 +1,13 @@
+diff --git a/lib/threadline/retention.ex b/lib/threadline/retention.ex
+index 00d2d783..c4097e62 100644
+--- a/lib/threadline/retention.ex
++++ b/lib/threadline/retention.ex
+@@ -208,7 +208,7 @@ defmodule Threadline.Retention do
+   defp delete_change_batch(repo, cutoff, batch_size, storage_opts) do
+     subq =
+       from(ac in AuditChange,
+-        where: ac.captured_at < ^cutoff,
++        where: ac.captured_at <= ^cutoff,
+         select: ac.id,
+         limit: ^batch_size
+       )

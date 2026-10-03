@@ -50,10 +50,10 @@
 
 - [x] **Phase 224: Capture and Bench Fixes** - Full rollback after a `gen.triggers` rerun leaves no orphaned capture function, and the bench project compiles bare (completed 2026-09-30)
 - [x] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async operator-surface auth telemetry tests (completed 2026-10-01)
-- [ ] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties
-- [ ] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds
-- [ ] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data
-- [ ] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning
+- [x] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties (completed 2026-10-01)
+- [x] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds (completed 2026-10-01)
+- [x] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data (completed 2026-10-02)
+- [x] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning (completed 2026-10-02)
 - [ ] **Phase 230: Rebalance, Net-Suite Check and 0.12.0** - Prose-only guard tests merged or cut, the net suite time proven not to regress, and 0.12.0 released
 
 ## Phase Details
@@ -136,7 +136,30 @@ Plans:
   4. VERIFICATION.md records a mutation control for each of the four properties: the invariant broken on purpose, the property red, and the failing seed.
   5. VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [x] 226-01-PLAN.md — Tracer: PropertyRuns + mutation-control runner on the redaction-policy property; full PROP-03; D-18 fail-loudly fixes (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 226-02-PLAN.md — PROP-01 cursor paging: Cursors.actor_history_page/4 refactor, tie-heavy property vs independent oracle, DB agreement tests, two mutation controls (wave 2)
+- [x] 226-03-PLAN.md — PROP-02 ChangeDiff fact-first oracle, structural and metamorphic properties, mutation control (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 226-04-PLAN.md — PROP-05 export round-trip: strict RFC 4180 decoder, D-17 bare-CR fix, D-19 defaults pinned, two mutation controls (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 226-05-PLAN.md — PROP-08 wiring: fail-fast scale, Flake Detection scale 5, existing properties migrated, contract test, generator coverage floors (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 226-06-PLAN.md — SC-4/SC-5 evidence, local wall clock, granted CI + scale-5 Flake Detection re-derivation (wave 5, maintainer grant)
+
 **Research**: Not needed. Property shapes are specified per target in `research/STACK.md` §1 and mirror the two existing property files.
 
 ### Phase 227: DB-Backed Property Tests
@@ -152,7 +175,29 @@ Plans:
   4. Each property uses `Threadline.DataCase` (`async: false`, no Sandbox), cleans up by a per-iteration unique key, runs with `max_runs` ≤ 20, and passes under partitioned CI and a scaled Flake Detection run. VERIFICATION.md records a mutation control and failing seed for each.
   5. VERIFICATION.md reports suite wall clock before and after, against both SUITE-01 and the partitioned figure from phase 225.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+**Wave 1**
+
+- [x] 227-01-PLAN.md — Shared DB-property harness `Threadline.Test.DbProperty` with end-to-end self-test, the DataCase => `PropertyRuns.db/1` scale-contract rule, and the hardened mutation-control runner (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 227-02-PLAN.md — PROP-04 redaction-leak property (LeakOracle over storage, diff and every export surface), D-13 example gap, three mutation controls (wave 2)
+
+**Wave 3** *(sequential: shares the coverage-floor file and the single checkout's lib/ mutation runner)*
+
+- [x] 227-03-PLAN.md — PROP-06 `as_of` model-replay property, D-17 tie example, four mutation controls plus the recorded tiebreak survivor (wave 3)
+
+**Wave 4**
+
+- [x] 227-04-PLAN.md — PROP-07 retention cutoff property with byte-identical survivors, dry-run transaction count fix (`fix:` + CHANGELOG), D-22 examples, five mutation controls (wave 4)
+
+**Wave 5**
+
+- [x] 227-05-PLAN.md — Local acceptance, 227-EVIDENCE.md (SC4/SC5), maintainer-granted CI and scale-5 Flake Detection with Test 6 re-derivation (wave 5, checkpoint)
+
 **Research**: Not needed for the harness (`research/STACK.md` §1.2/§1.4/§1.5, PITFALLS Pitfall 1). Plan-phase should still review the retention survivor content-equality check carefully.
 
 ### Phase 228: Telemetry
@@ -168,8 +213,30 @@ Plans:
   4. The `Threadline.Telemetry` moduledoc event table and the new `guides/telemetry.md` list every event. The guide includes the host-repo `[:my_app, :repo, :query]` recipe. A test derives the documented list from the emitted events rather than from a hand-typed literal.
   5. No query or Mix-task event is added. VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: TBD
+**Plans**: 6/6 plans complete
 **Research**: Not needed. Event shapes and mitigations are in `research/FEATURES.md` §A and PITFALLS Pitfalls 5-10: emit after commit, execute events on both branches, and a span only around retention purge.
+
+Plans:
+**Wave 1**
+
+- [x] 228-01-PLAN.md — Event registry and helper-only emission; strip identity fields from the operator-surface and health-error events; runtime allowlist and static scan; CHANGELOG breaking entry (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 228-02-PLAN.md — Export `:completed`/`:failed` from the eager functions, the async orchestrator and the chunked download (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 228-03-PLAN.md — Retention purge span, per-batch `batch_purged`, forced exception path; all fourteen events registered (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 228-04-PLAN.md — PROP-04 telemetry observer, raising-handler test, two recorded mutation controls (wave 4)
+- [x] 228-05-PLAN.md — Moduledoc event table, `guides/telemetry.md` with the repo-query recipe, doc-parity and recipe tests, CHANGELOG Added (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 228-06-PLAN.md — Local acceptance, SC1-SC5 evidence, wall clock before and after; CI behind a maintainer grant (wave 5)
 
 ### Phase 229: Adopter API and Health Additions
 
@@ -184,8 +251,25 @@ Plans:
   4. `--all-schemas` produces a schema-keyed report in table and JSON output and is rejected alongside `--schema=NAME`. A pre-0.11 fixture produces an `:unresolved_legacy_keys` warning with per-table counts and a link to `guides/upgrading-to-0.11.md`, and `--strict` does not fail on it.
   5. The docs state that malformed `:trigger_capture` config raises rather than producing a finding. VERIFICATION.md reports suite wall clock before and after.
 
-**Plans**: TBD
+**Plans**: 4/4 plans complete
 **Research**: Not needed (`research/FEATURES.md` §B-§D). Plan-phase should confirm first that no existing test pins per-severity exit codes, so the matrix is built as the baseline rather than assumed.
+
+Plans:
+**Wave 1**
+
+- [x] 229-01-PLAN.md — Before wall clock; `history/3` `:limit` (validation, cap after scope, tie-aware tests, prefix property, docs, CHANGELOG) (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 229-02-PLAN.md — Public `Health.legacy_key_findings/1` and `:unresolved_legacy_keys` (capped, time-limited per-table probe; 0.10.2 fixture + focused tests); `:trigger_capture` fail-fast doc (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 229-03-PLAN.md — `health.coverage --strict` gate + 12-cell matrix baseline, legacy findings wired into the task, unknown switches raise, doc rewording (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 229-04-PLAN.md — `--all-schemas` (batched catalog helpers, shared classifier, envelope JSON, SCHEMA-column table, extension-schema exclusion), after wall clock, `mix ci.all` (wave 4)
 
 ### Phase 230: Rebalance, Net-Suite Check and 0.12.0
 
@@ -200,7 +284,25 @@ Plans:
   4. The milestone lands on main as one squash with a clean conventional `feat:` title. release-please ships 0.12.0, hex.pm serves it, and the `latest` lane pins are re-checked against builds.hex.pm and Docker Hub, with the result cited.
   5. `mix ci.all` and `bin/verify-repo-hygiene` are green at close, and no phase or plan ID appears in `lib/`, guides or the 0.12.0 CHANGELOG.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+
+**Wave 1**
+
+- [x] 230-01-PLAN.md — Rebalance: cut the two whole-file prose locks, line-item trim three mixed files, record the keep/cut rubric in CONTRIBUTING, before/after wall clock, ci-required roster unchanged (SUITE-04)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 230-02-PLAN.md — Net-suite table: prove the comparator, assemble the 224-229 suite-time table, disclose serial-equivalent work, local context; fresh-run row left for the landing PR (SUITE-06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 230-03-PLAN.md — Pre-land gate: dated 0.12.0 CHANGELOG entry and 0.11.x → 0.12.x upgrade path, planning-ID sweep of lib/guides/CHANGELOG, `mix ci.all`, repo hygiene and privacy grep (REL-01, SC5)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 230-04-PLAN.md — Land and release: preflight and latest-lane pin re-check, one maintainer grant, PR CI as the SUITE-06 fresh-run gate, `feat!:` squash, release-please 0.12.0, production-hex, smoke, distribution sync (REL-01, SUITE-06)
 **Research**: Apply the rubric in `research/ARCHITECTURE.md` B.1 to `operator_surface/coverage_doc_contract_test.exs`, `operator_surface/policy_show_doc_contract_test.exs`, `storage_schema_migration_contract_test.exs` and `storage_schema_prefix_contract_test.exs` before building the cut list. Landing needs a maintainer grant naming the branch, push, PR, merge and `production-hex` approval.
 
 ## Progress
@@ -209,11 +311,11 @@ Plans:
 |-------|----------------|--------|-----------|
 | 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
 | 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
-| 226. Pure Property Tests and Run Budget | 0/TBD | Not started | - |
-| 227. DB-Backed Property Tests | 0/TBD | Not started | - |
-| 228. Telemetry | 0/TBD | Not started | - |
-| 229. Adopter API and Health Additions | 0/TBD | Not started | - |
-| 230. Rebalance, Net-Suite Check and 0.12.0 | 0/TBD | Not started | - |
+| 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
+| 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
+| 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
+| 229. Adopter API and Health Additions | 4/4 | Complete    | 2026-10-02 |
+| 230. Rebalance, Net-Suite Check and 0.12.0 | 3/4 | In Progress | - |
 
 ## Prior Milestones
 

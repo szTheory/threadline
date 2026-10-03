@@ -2,9 +2,9 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
   @moduledoc """
   Phase 67 (REDN-05) doc-contract — pure source-reading literal pin.
 
-  Locks the route literal, LiveView and Mix-task status copy, JSON status enums,
-  rerun guidance, ordering/parity invariants, optional-Phoenix gating posture,
-  and no-sample-values guardrails for the redaction drift surface.
+  KEEP 1/2: locks the route literal, LiveView and Mix-task status copy derived
+  from live source, the real `Show.run(["--json"])` round trip, ordering/parity
+  invariants, optional-Phoenix gating posture, and no-secret-leak refutes.
   """
 
   use ExUnit.Case, async: false
@@ -17,7 +17,6 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
   @live_view_path "lib/threadline/operator_surface/live/policy_redaction_live.ex"
   @mix_task_path "lib/mix/tasks/threadline.policy.show.ex"
   @presenter_path "lib/threadline/policy/redaction_presenter.ex"
-  @domain_reference_path "guides/domain-reference.md"
 
   describe "route literal" do
     test "router wires the policy redaction LiveView route" do
@@ -71,20 +70,6 @@ defmodule Threadline.OperatorSurface.PolicyShowDocContractTest do
                src,
                "Default output prints one summary line, one aligned table, and detail blocks"
              )
-    end
-
-    test "domain reference documents policy.show --schema as host schema, not storage schema" do
-      src = File.read!(@domain_reference_path)
-
-      for literal <- [
-            "mix threadline.policy.show --schema=NAME",
-            "mix threadline.policy.show --schema=support",
-            "`--schema=NAME` selects the audited host schema",
-            "does not change Threadline's storage schema"
-          ] do
-        assert String.contains?(src, literal),
-               "expected #{@domain_reference_path} to document #{inspect(literal)}"
-      end
     end
 
     test "shared presenter carries the rerun hint and Mix task renders shared hints" do

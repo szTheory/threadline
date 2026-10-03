@@ -1,26 +1,17 @@
 defmodule Threadline.OperatorSurfaceDocContractTest do
+  # KEEP 1: the install pin derives from Mix.Tasks.Release.Pins, the designated
+  # sole writer of every documented install pin. KEEP 2: the remaining
+  # sentences pin the auth / fail-closed / export-auth security boundary — a
+  # security exception to the ordinary CUT shape (prose-to-literal checks are
+  # cut everywhere else in this file).
   @moduledoc false
   use ExUnit.Case, async: true
 
   alias Mix.Tasks.Release.Pins
 
-  test "README routes the operator surface mount macro to its canonical owner" do
-    readme = File.read!("README.md")
-    assert String.contains?(readme, "threadline_operator_surface")
-  end
-
-  test "README documents fail-closed posture and links guide" do
+  test "README states the fail-closed security posture" do
     readme = File.read!("README.md")
     assert String.contains?(readme, "fail-closed")
-    assert String.contains?(readme, "guides/operator-surface.md")
-  end
-
-  test "operator surface guide declares route literals" do
-    guide = File.read!("guides/operator-surface.md")
-
-    assert String.contains?(guide, "/audit/transactions/:id")
-    assert String.contains?(guide, "/audit/actors/:kind/:id")
-    assert String.contains?(guide, "/audit/rows/:table/:pk")
   end
 
   test "operator surface guide details fail-closed security and auth options" do
@@ -31,105 +22,27 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
     assert String.contains?(guide, ":adopter_acknowledges_unauthenticated: true")
   end
 
-  test "operator surface guide locks the canonical admin and support recipes" do
+  test "operator surface guide's mount recipe keeps its auth and export-auth gates" do
     guide = File.read!("guides/operator-surface.md")
 
     assert String.contains?(guide, "pipe_through [:browser, :admin_auth]")
-    assert String.contains?(guide, "support-read-only variation")
     assert String.contains?(guide, "export_authorize_fn")
-    assert String.contains?(guide, "organization_id")
-    refute String.contains?(guide, "support_roles =")
-    refute String.contains?(guide, "permissions_dsl")
-    assert length(:binary.matches(guide, "schemas: %")) >= 2
   end
 
-  test "operator surface guide documents :schemas for row history reification (DOC-03)" do
+  test "operator surface guide's install pin is derived from mix release.pins" do
     guide = File.read!("guides/operator-surface.md")
 
-    assert String.contains?(guide, "schemas:")
-    assert String.contains?(guide, "#### Row history reification (:schemas)")
-    assert String.contains?(guide, "Configure :schemas in the auth plug")
-    assert String.contains?(guide, "table_name")
-  end
-
-  test "operator surface guide links the canonical upgrade-path guide and stays scoped" do
-    guide = File.read!("guides/operator-surface.md")
-
-    assert String.contains?(guide, "[upgrade\npath](upgrade-path.md)")
-    assert String.contains?(guide, "[integration contracts](integration-contracts.md)")
     # Derived from `mix release.pins`, the designated sole writer of every
     # documented install pin, rather than hardcoded. A literal here goes red the
-    # moment that writer does its job at a version bump — the born-red shape
-    # Plan 202-09 removed from release_artifact_contract_test.exs (which carries
-    # the full rationale) and the bump rehearsal found four more copies of.
+    # moment that writer does its job at a version bump.
     assert String.contains?(
              guide,
              ~s({:threadline, "~> #{Pins.target_pin_version()}"})
            )
-
-    refute String.contains?(guide, "{:threadline, \"~> 0.5\"}")
-    refute String.contains?(guide, "{:threadline, \"~> 0.3.0\"}")
-    refute String.contains?(guide, "{:phoenix, \"~> 1.7\"}")
-    assert String.contains?(guide, "This guide stays focused on mount, auth, and screens.")
-    refute String.contains?(guide, "## Supported compatibility matrix")
-    refute String.contains?(guide, "## Surface-only deprecation and removal policy")
   end
 
-  test "operator surface owns procedures and routes exhaustive configuration to one reference" do
+  test "operator surface guide states that LiveView auth does not cover HTTP routes" do
     guide = File.read!("guides/operator-surface.md")
-
-    assert String.contains?(
-             guide,
-             "canonical owner for operator capabilities, mounting,\nauthorization, and mount-specific configuration"
-           )
-
-    assert String.contains?(
-             guide,
-             "[complete configuration and command\nreference](configuration-and-commands.md)"
-           )
-
-    assert String.contains?(guide, "threadline_operator_surface \"/\"")
-    assert String.contains?(guide, "## Security and Authorization (Fail-Closed Default)")
-    refute String.contains?(guide, "## Runtime configuration")
-    refute String.contains?(guide, "## Commands available to host projects")
-  end
-
-  test "operator surface leads with the production mount before advanced operation links" do
-    guide = File.read!("guides/operator-surface.md")
-
-    {mount_index, _} = :binary.match(guide, "## 1-Minute Mount")
-    {auth_index, _} = :binary.match(guide, "## Security and Authorization")
-    {operations_index, _} = :binary.match(guide, "## Operational paths")
-
-    assert mount_index < auth_index
-    assert auth_index < operations_index
-
-    assert String.contains?(
-             guide,
-             "[Measure capture and query cost before tuning](performance.md)"
-           )
-
-    assert String.contains?(guide, "[Review every supported key, adapter seam, and command]")
-  end
-
-  test "operator surface guide locks callback shape and export fallback wording" do
-    guide = File.read!("guides/operator-surface.md")
-
-    assert String.contains?(
-             guide,
-             "The `:authorize_fn` callback is invoked directly as a 1-arity function."
-           )
-
-    assert String.contains?(guide, "`%{assigns: assigns}`")
-    assert String.contains?(guide, "it receives the socket-shaped value")
-
-    assert String.contains?(
-             guide,
-             "they call it with a synthetic `%{assigns: conn.assigns}` mirror."
-           )
-
-    assert String.contains?(guide, "`{:ok, scope}` - Allowed.")
-    assert String.contains?(guide, "host-owned and opaque")
 
     assert String.contains?(
              guide,
@@ -137,85 +50,6 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
            )
 
     assert String.contains?(guide, "plain-text `403`")
-    assert String.contains?(guide, "evidence_authorize_fn")
-    assert String.contains?(guide, "coverage_authorize_fn")
-    assert String.contains?(guide, "policy_authorize_fn")
-    assert String.contains?(guide, "Unsupported View")
-    refute String.contains?(guide, "{:cont, socket}")
-    refute String.contains?(guide, "{:ok, socket}")
-    refute String.contains?(guide, "{:ok, conn}")
-  end
-
-  test "operator surface guide documents asset embedding and CSP opt-outs" do
-    guide = File.read!("guides/operator-surface.md")
-
-    assert String.contains?(guide, "## Assets and Content-Security-Policy")
-    assert String.contains?(guide, "operator_surface_embed_fonts: false")
-    assert String.contains?(guide, "operator_surface_embed_scripts: false")
-    assert String.contains?(guide, "style-src 'unsafe-inline'")
-    assert String.contains?(guide, "font-src data:")
-    assert String.contains?(guide, "script-src 'unsafe-inline'")
-
-    assert String.contains?(
-             guide,
-             "The theme picker does not require `script-src 'unsafe-inline'`"
-           )
-  end
-
-  test "operator surface guide locks the default actor handoff story" do
-    guide = File.read!("guides/operator-surface.md")
-
-    assert String.contains?(guide, "installs Threadline's session bridge")
-    assert String.contains?(guide, "No extra manual plug is required")
-    assert String.contains?(guide, "Session actor data stays authoritative")
-    assert String.contains?(guide, "non-standard router or transport shape")
-  end
-
-  test "operator surface guide keeps Storybook out of adopter install guidance" do
-    guide = File.read!("guides/operator-surface.md")
-
-    assert String.contains?(
-             guide,
-             "PhoenixStorybook is maintainer-only component documentation in `examples/threadline_phoenix`"
-           )
-
-    assert String.contains?(
-             guide,
-             "example-app dev/test maintainer tooling"
-           )
-
-    assert String.contains?(
-             guide,
-             "not a root `threadline` dependency"
-           )
-
-    assert String.contains?(
-             guide,
-             "`/audit/__stress` remains the authenticated operator-flow stress harness"
-           )
-
-    assert String.contains?(
-             guide,
-             "`/audit/__stress` is not a production route or public component gallery"
-           )
-
-    assert String.contains?(
-             guide,
-             "`/dev/storybook` is not a production route and is not part of the mounted `/audit` operator surface"
-           )
-
-    assert String.contains?(
-             guide,
-             "Adopters do not add `phoenix_storybook` to host apps to use Threadline"
-           )
-
-    assert String.contains?(
-             guide,
-             "The operator components remain private and are not a public component API"
-           )
-
-    refute String.contains?(guide, "{:phoenix_storybook")
-    refute String.contains?(guide, "live_storybook")
   end
 
   test "operator surface guide documents direct export route authorization boundary" do
@@ -228,34 +62,5 @@ defmodule Threadline.OperatorSurfaceDocContractTest do
 
     assert String.contains?(guide, "LiveView hides affordances")
     assert String.contains?(guide, "HTTP export auth remains authoritative")
-  end
-
-  test "operator surface guide locks mounted parity table and rejects overclaiming" do
-    guide = File.read!("guides/operator-surface.md")
-
-    assert String.contains?(guide, "## Mounted workflow parity")
-    assert String.contains?(guide, "mix threadline.incident <transaction_id>")
-    assert String.contains?(guide, "mix threadline.export --dry-run")
-    assert String.contains?(guide, "exact `--table` / `--from` / `--to` flags")
-    assert String.contains?(guide, "mix threadline.health.coverage")
-    assert String.contains?(guide, "mix threadline.policy.show")
-    assert String.contains?(guide, "Threadline.actor_history/2")
-    assert String.contains?(guide, "Threadline.history/3")
-    assert String.contains?(guide, "Threadline.as_of/4")
-    assert String.contains?(guide, "mix threadline.evidence.show")
-    assert String.contains?(guide, "/audit/evidence")
-
-    assert String.contains?(
-             guide,
-             "support-scoped row history / as-of is proven on the current tree"
-           )
-
-    assert String.contains?(
-             guide,
-             "named support-lane claim now includes support-scoped row-history / as-of proof"
-           )
-
-    refute String.contains?(guide, "every page is blocked for support")
-    refute String.contains?(guide, "universal scope narrowing")
   end
 end

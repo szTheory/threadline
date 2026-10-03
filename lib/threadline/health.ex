@@ -7,10 +7,11 @@ defmodule Threadline.Health do
 
   ## Mix-task parity
 
-  See `mix threadline.health.coverage` for a viewer with `--json` and
-  `--schema=NAME` flags. The Mix task does not exit non-zero on uncovered
-  tables (it is a viewer, not a CI gate); use `mix threadline.verify_coverage`
-  for the positive-list CI gate.
+  See `mix threadline.health.coverage` for a viewer with `--json`,
+  `--schema=NAME`, and `--strict` flags. Viewer by default (exits 0);
+  `--strict` turns `:error`-severity findings into exit 1. The task does not
+  exit non-zero on uncovered tables even with `--strict`; use
+  `mix threadline.verify_coverage` for the positive-list CI gate.
 
   ## Telemetry
 
@@ -22,11 +23,11 @@ defmodule Threadline.Health do
 
   `trigger_findings/1` emits `[:threadline, :health, :findings_checked]` with
   measurements `%{errors: integer, warnings: integer}`, counted over the
-  findings list it returns.
+  findings list it returns. `legacy_key_findings/1` emits no telemetry event.
   """
 
   alias Ecto.Adapters.SQL
-  alias Threadline.Health.TriggerFindings
+  alias Threadline.Health.{CoverageSchemas, LegacyKeyFindings, TriggerFindings}
 
   @audit_tables ~w(audit_transactions audit_changes audit_actions)
   @expected_uncovered_baseline ~w(schema_migrations)
@@ -65,6 +66,42 @@ defmodule Threadline.Health do
   def trigger_findings(opts), do: TriggerFindings.run(opts)
 
   @doc """
+  Returns a list of `Threadline.Health.Finding` structs (`:unresolved_legacy_keys`)
+  for audit rows captured before their table's trigger was regenerated and
+  still carrying an unresolved primary key — rows `history/3` cannot find by
+  key. Unlike `trigger_findings/1`, which is catalog-only, this scans
+  `audit_changes` per table.
+
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module.
+  - `:schema` — same as `trigger_findings/1`: a schema name string, or a list
+    of schema name strings. Omitting it covers every non-system schema.
+  - `:statement_timeout` — milliseconds, default `15_000`. Applied with a
+    transaction-local setting, so it is safe through PgBouncer transaction
+    pooling. When the timeout elapses — typically a missing row-history index —
+    this function raises `Postgrex.Error` with postgres code `:query_canceled`;
+    see [Step 4](upgrading-to-0.11.md#step-4-add-the-row-history-index).
+
+  Each table's probe is capped at 10,000 rows; a capped finding's
+  `details["unresolved_count"]` is `10000` and its message reads "at least
+  10000". DELETE rows, rows whose key columns were redacted or are otherwise
+  absent from `data_after`, and dropped tables are never counted — see
+  [What cannot be recovered](upgrading-to-0.11.md#what-cannot-be-recovered).
+  A finding's `details` map has string keys `"unresolved_count"` (integer),
+  `"capped"` (boolean), and `"key_columns"` (list of strings).
+
+  Emits no telemetry event.
+
+  ## Example
+
+      Threadline.Health.legacy_key_findings(repo: MyApp.Repo)
+      #=> [%Threadline.Health.Finding{code: :unresolved_legacy_keys, ...}]
+  """
+  @spec legacy_key_findings(keyword()) :: [Threadline.Health.Finding.t()]
+  def legacy_key_findings(opts), do: LegacyKeyFindings.run(opts)
+
+  @doc """
   Returns a list of tagged tuples indicating trigger coverage for all user
   tables in the given schema (default `"public"`).
 
@@ -100,26 +137,84 @@ defmodule Threadline.Health do
     schema = Keyword.get(opts, :schema, "public")
 
     all_tables = fetch_all_user_tables(repo, schema)
-    covered_tables = fetch_threadline_covered_tables(repo, schema)
+    covered_tables = repo |> fetch_threadline_covered_tables([schema]) |> Enum.map(&elem(&1, 1))
     expected_uncovered = compute_expected_uncovered()
 
-    covered_set = MapSet.new(covered_tables)
-    expected_set = MapSet.new(expected_uncovered)
-
-    result =
-      all_tables
-      |> Enum.reject(&(&1 in @audit_tables))
-      |> Enum.map(fn table ->
-        cond do
-          MapSet.member?(covered_set, table) -> {:covered, table}
-          MapSet.member?(expected_set, table) -> {:expected_uncovered, table}
-          true -> {:uncovered, table}
-        end
-      end)
+    result = classify(all_tables, covered_tables, expected_uncovered)
 
     covered_count = Enum.count(result, &match?({:covered, _}, &1))
     uncovered_count = Enum.count(result, &match?({:uncovered, _}, &1))
     expected_uncovered_count = Enum.count(result, &match?({:expected_uncovered, _}, &1))
+
+    Threadline.Telemetry.emit_health_checked(
+      covered_count,
+      uncovered_count,
+      expected_uncovered_count
+    )
+
+    result
+  end
+
+  @doc false
+  @spec classify([String.t()], [String.t()], [String.t()]) ::
+          [{:covered | :uncovered | :expected_uncovered, String.t()}]
+  def classify(all_tables, covered_tables, expected_uncovered) do
+    covered_set = MapSet.new(covered_tables)
+    expected_set = MapSet.new(expected_uncovered)
+
+    all_tables
+    |> Enum.reject(&(&1 in @audit_tables))
+    |> Enum.map(fn table ->
+      cond do
+        MapSet.member?(covered_set, table) -> {:covered, table}
+        MapSet.member?(expected_set, table) -> {:expected_uncovered, table}
+        true -> {:uncovered, table}
+      end
+    end)
+  end
+
+  # Returns trigger coverage for every reportable schema in one batched
+  # catalog snapshot. Task-only — reached only by
+  # `mix threadline.health.coverage --all-schemas`; a public multi-schema API
+  # is a future decision.
+  #
+  # Runs exactly two catalog queries total (one for tables via
+  # Threadline.Health.CoverageSchemas.all_tables/1, one for covering
+  # triggers), never a per-schema loop, and classifies every table through
+  # the same classify/3 trigger_coverage/1 itself calls, so the two paths
+  # agree by construction. Emits [:threadline, :health, :checked] exactly
+  # once, with grand totals across every schema in the result.
+  #
+  # :repo is required. Returns %{schema => [{:covered | :uncovered |
+  # :expected_uncovered, table}]}, one entry per schema with at least one
+  # reportable table. Schemas with no reportable tables are absent — a caller
+  # wanting a finding's schema represented even with no rows unions it in
+  # separately.
+  @doc false
+  @spec coverage_by_schema(keyword()) :: %{
+          String.t() => [{:covered | :uncovered | :expected_uncovered, String.t()}]
+        }
+  def coverage_by_schema(opts) do
+    repo = Keyword.fetch!(opts, :repo)
+
+    all_rows = CoverageSchemas.all_tables(repo)
+    schemas = all_rows |> Enum.map(&elem(&1, 0)) |> Enum.uniq()
+    covered_rows = fetch_threadline_covered_tables(repo, schemas)
+    expected_uncovered = compute_expected_uncovered()
+
+    tables_by_schema = Enum.group_by(all_rows, &elem(&1, 0), &elem(&1, 1))
+    covered_by_schema = Enum.group_by(covered_rows, &elem(&1, 0), &elem(&1, 1))
+
+    result =
+      Map.new(tables_by_schema, fn {schema, tables} ->
+        covered = Map.get(covered_by_schema, schema, [])
+        {schema, classify(tables, covered, expected_uncovered)}
+      end)
+
+    all_tuples = result |> Map.values() |> List.flatten()
+    covered_count = Enum.count(all_tuples, &match?({:covered, _}, &1))
+    uncovered_count = Enum.count(all_tuples, &match?({:uncovered, _}, &1))
+    expected_uncovered_count = Enum.count(all_tuples, &match?({:expected_uncovered, _}, &1))
 
     Threadline.Telemetry.emit_health_checked(
       covered_count,
@@ -136,19 +231,22 @@ defmodule Threadline.Health do
     List.flatten(rows)
   end
 
-  defp fetch_threadline_covered_tables(repo, schema) do
+  # Batched across one or more schemas: callers pass a single-element list
+  # for the :schema-scoped path and the full schema list for
+  # coverage_by_schema/1, so the two paths share one query shape.
+  defp fetch_threadline_covered_tables(repo, schemas) do
     sql = """
-    SELECT DISTINCT c.relname
+    SELECT n.nspname, c.relname
     FROM pg_trigger t
     JOIN pg_class c ON t.tgrelid = c.oid
     JOIN pg_namespace n ON c.relnamespace = n.oid
     WHERE t.tgname LIKE 'threadline_audit_%'
-      AND n.nspname = $1
+      AND n.nspname = ANY($1::text[])
       AND t.tgenabled NOT IN ('D', 'R')
     """
 
-    %{rows: rows} = SQL.query!(repo, sql, [schema])
-    List.flatten(rows)
+    %{rows: rows} = SQL.query!(repo, sql, [schemas])
+    Enum.map(rows, fn [schema, table] -> {schema, table} end)
   end
 
   defp compute_expected_uncovered do

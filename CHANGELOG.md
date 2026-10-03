@@ -24,12 +24,112 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
+_Nothing yet for the next release._
+
+## [0.12.0] - 2026-10-02
+
+This release adds export and retention telemetry with a new telemetry guide, a
+`limit:` option for `Threadline.history/3`, `--strict` and `--all-schemas`
+flags for `mix threadline.health.coverage`, and a legacy-key health warning for
+audit rows captured before 0.11. It carries three breaking changes, each with
+a fix below.
+
 ### Breaking changes
 
-None.
+- A non-list `exclude:`/`mask:`/`except_columns:` on a
+  `:threadline, :trigger_capture` table entry (for example `exclude: :ssn`)
+  used to be ignored silently, so the column was never redacted or omitted. It now raises `ArgumentError` at config load
+  and at trigger generation. Fix: wrap the column name in a list, e.g.
+  `exclude: [:ssn]`. A non-string `mask_placeholder:` now raises
+  `ArgumentError` instead of `FunctionClauseError`; no fix is needed beyond
+  passing a string.
+- The `[:threadline, :operator_surface, :authorize]`, `[:threadline,
+  :operator_surface, :export_authorize]` and `[:threadline, :operator_surface,
+  :actor_ref_mismatch]` telemetry events no longer carry `actor_ref`,
+  `session_actor_ref` or `scope_actor_ref`, so telemetry never carries actor
+  identity. Fix: remove those keys from your handler's pattern matches and
+  read the actor from your own session or scope instead. `result`, `count`,
+  `path` and `scope_keys` are unchanged; `actor_ref_mismatch` is now a pure
+  incidence counter with no metadata.
+- The `[:threadline, :health, :checked, :error]` telemetry event's metadata is
+  now `%{exception: module}` instead of `%{error: message}`, because
+  exception messages can echo database values. Fix: match `%{exception: mod}`
+  in your handler; `Threadline.Telemetry.emit_health_checked_error/1` now
+  takes the exception struct itself, not a string.
+
+### Added
+
+- `Threadline.history/3` accepts a new `limit: n` option, returning at most
+  the n most recent changes (`captured_at desc, id desc`). It is additive and
+  the default is unchanged (unbounded); use `row_history_page/4` for keyset
+  paging.
+- `[:threadline, :export, :completed]` and `[:threadline, :export, :failed]`
+  telemetry events, firing once per logical export (eager CSV/JSON, the async
+  export job, and the chunked operator-surface download) with `row_count`,
+  `duration`, and `format` so you can alert on export failures and track
+  export volume without polling.
+- `[:threadline, :retention, :purge, :start/:stop/:exception]` span events and
+  a `[:threadline, :retention, :batch_purged]` event per purge batch, with
+  rows-deleted counts, so a scheduled retention purge is observable the same
+  way exports are.
+- The `Threadline.Telemetry` module documentation now lists every telemetry
+  event in one table (name, measurements, metadata, and when it fires),
+  replacing a partial prose list.
+- A new [Telemetry guide](guides/telemetry.md) with an `attach_many` example
+  per event family, a metrics-library example, handler-safety and
+  cardinality guidance, and a recipe for observing Threadline's own database
+  queries through your host repo's own `[:my_app, :repo, :query]` event.
+- `Threadline.Health.legacy_key_findings/1` reports a new
+  `:unresolved_legacy_keys` warning per table for audit rows captured before
+  0.11 that `history/3` cannot find by key, with a link to the upgrade
+  guide's backfill step; it is time-limited and capped.
+- `mix threadline.health.coverage --strict`: exit 1 via `exit({:shutdown, 1})`
+  when any `:error`-severity finding is present in the checked schema
+  (`trigger_findings/1` plus the new `legacy_key_findings/1`). Composes with
+  `--json` and `--schema`. Uncovered tables and `:warning` findings never
+  fail `--strict`; use `mix threadline.verify_coverage` for the
+  positive-list gate. A cancelled `:unresolved_legacy_keys` probe (typically
+  a missing row-history index) prints a stderr hint and never fails
+  `--strict`.
+- `mix threadline.health.coverage --all-schemas`: checks every reportable
+  schema in one batched catalog snapshot (never a per-schema loop) instead
+  of a single `--schema`, as a schema-keyed table or, with `--json`, an
+  envelope (`{"schemas": {"<name>": <single-schema payload>, ...},
+  "summary": {...}}`) whose `schemas` values are byte-identical to what
+  `--schema=NAME --json` prints for that schema. Cannot be combined with
+  `--schema`. A schema that is itself a member of a PostgreSQL extension is
+  excluded; a schema with no reportable tables and no findings is omitted.
+  `--strict --all-schemas` gates the union of every reported schema's
+  `:error` findings.
 
 ### Fixed
 
+- `mix threadline.health.coverage` now raises on unknown or misspelled
+  options (for example `--stict`) instead of silently ignoring them. No
+  action needed unless you were passing a typo'd flag and relying on it
+  being a no-op; fix the flag name. It also now raises on a stray
+  positional argument (for example a dropped leading `--`, as in
+  `schema=public` instead of `--schema=public`) instead of silently running
+  against the default `"public"` schema. No action needed unless you were
+  relying on a malformed argument being ignored; fix the argument.
+- `[:threadline, :operator_surface, :authorize]`'s `path` metadata now comes
+  from the mount macro's own compile-time path argument instead of the live
+  request path. If you mount `threadline_operator_surface/2` under a dynamic
+  router segment (for example `/accounts/:account_id/audit`), `path` now
+  reports the un-substituted route template (`"/accounts/:account_id/audit/theme"`)
+  instead of the real segment value matched for that request. No action
+  needed unless you mount under a dynamic segment and pattern-match `path`'s
+  exact value.
+- `Threadline.Retention.purge/1`'s dry run now counts the audit transactions
+  the purge itself would empty, so `deleted_transactions` matches what a
+  completed run deletes. It used to count only transactions that were
+  already empty before the run. No action needed.
+- CSV export now quotes a field containing a lone carriage return (for
+  example a `table_name` or correlation id with an embedded `\r`), which
+  spreadsheet and Python CSV readers otherwise read as a line break,
+  splitting one audit row into two apparent records. Values unaffected by
+  this are byte-identical to before; for an RFC 4180-compliant reader, a
+  newly-quoted value round-trips unchanged.
 - Rolling back a whole `mix threadline.gen.triggers` chain whose rerun gave a
   table its own capture function (redaction, exclusions or
   `store_changed_from`) no longer leaves that function behind. The first
@@ -38,6 +138,15 @@ None.
   migration was generated by 0.11.2 or earlier, see the
   [Rolling back](guides/upgrading-to-0.11.md#rolling-back) section of the
   upgrade guide for the cleanup step.
+- `Threadline.Retention.purge/1` now returns a `dry_run` key on every result
+  map: `false` for a real purge (previously absent) and `true` for a dry run
+  (unchanged), and its success type documents it. No action needed unless you
+  match the real-purge result map exactly; a pattern on a subset of keys is
+  unaffected. The `:dry_run` option
+  doc now also states explicitly that `:batch_size` and `:max_batches` are
+  ignored when `dry_run: true`: the preview was always a single full-table
+  count rather than a batched simulation, so passing either alongside
+  `dry_run: true` was already a no-op. No action needed.
 
 ## [0.11.2] - 2026-09-29
 

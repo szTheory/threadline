@@ -1,0 +1,40 @@
+diff --git a/lib/threadline/query.ex b/lib/threadline/query.ex
+index 94ba11f1..b273902f 100644
+--- a/lib/threadline/query.ex
++++ b/lib/threadline/query.ex
+@@ -357,7 +357,7 @@ defmodule Threadline.Query do
+   defp timeline_order(query) do
+     query
+     |> order_by([ac], desc: ac.captured_at)
+-    |> order_by([ac], desc: ac.id)
++    |> order_by([ac], asc: ac.id)
+   end
+ 
+   @doc """
+diff --git a/lib/threadline/query/cursors.ex b/lib/threadline/query/cursors.ex
+index 2f95a7ca..c312cc40 100644
+--- a/lib/threadline/query/cursors.ex
++++ b/lib/threadline/query/cursors.ex
+@@ -54,19 +54,19 @@ defmodule Threadline.Query.Cursors do
+   # cursor pages toward newer records, so it reads ascending and the caller
+   # reverses the page; it wins over an `after` cursor when both are given.
+   def actor_history_window(query, nil, nil) do
+-    {order_by(query, [at], desc: at.occurred_at, desc: at.id), false}
++    {order_by(query, [at], desc: at.occurred_at, asc: at.id), false}
+   end
+ 
+   def actor_history_window(query, nil, after_cursor) do
+     {query
+      |> actor_history_after_cursor(after_cursor)
+-     |> order_by([at], desc: at.occurred_at, desc: at.id), false}
++     |> order_by([at], desc: at.occurred_at, asc: at.id), false}
+   end
+ 
+   def actor_history_window(query, before_cursor, _after_cursor) do
+     {query
+      |> actor_history_before_cursor(before_cursor)
+-     |> order_by([at], asc: at.occurred_at, asc: at.id), true}
++     |> order_by([at], asc: at.occurred_at, desc: at.id), true}
+   end
+ 
+   # The query fetched `limit + 1` rows; the extra row only signals that more

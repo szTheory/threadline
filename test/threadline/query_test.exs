@@ -6,6 +6,8 @@ defmodule Threadline.QueryTest do
   alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
   alias Threadline.Query.{ActorHistoryPage, TimelinePage}
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.Test.DbProperty
+  alias Threadline.Test.KeysetModel
 
   @repo Threadline.Test.Repo
 
@@ -118,35 +120,42 @@ defmodule Threadline.QueryTest do
     newest_time = DateTime.add(tie_time, 60, :second)
     txn = insert_transaction(%{occurred_at: newest_time})
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-1"},
-      captured_at: tie_time
-    })
+    c1 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-1"},
+        captured_at: tie_time
+      })
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-2"},
-      captured_at: tie_time
-    })
+    c2 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-2"},
+        captured_at: tie_time
+      })
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-3"},
-      captured_at: tie_time
-    })
+    c3 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-3"},
+        captured_at: tie_time
+      })
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-4"},
-      captured_at: older_time
-    })
+    c4 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-4"},
+        captured_at: older_time
+      })
 
-    insert_change(txn, %{
-      table_name: table_name,
-      table_pk: %{"id" => "tp-5"},
-      captured_at: newest_time
-    })
+    c5 =
+      insert_change(txn, %{
+        table_name: table_name,
+        table_pk: %{"id" => "tp-5"},
+        captured_at: newest_time
+      })
+
+    [c1, c2, c3, c4, c5]
   end
 
   defmodule FakeAsOfUser do
@@ -159,6 +168,32 @@ defmodule Threadline.QueryTest do
   end
 
   defp fake_as_of_schema, do: FakeAsOfUser
+
+  # Independent oracle for history/3 :limit (D-04): reads audit_changes
+  # directly via a plain SQL query (never through where_row/history_query),
+  # then sorts in Elixir by {captured_at desc, id desc} using DateTime.compare
+  # (not default term ordering, which does not compare %DateTime{} structs
+  # chronologically).
+  defp history_oracle_ids(table_name, table_pk, storage_schema \\ "threadline") do
+    qualified = Threadline.StorageSchema.table("audit_changes", storage_schema: storage_schema)
+
+    %{rows: rows} =
+      @repo.query!(
+        "SELECT id::text, captured_at FROM #{qualified} WHERE table_name = $1 AND table_pk = $2::jsonb",
+        [table_name, table_pk]
+      )
+
+    rows
+    |> Enum.map(fn [id, %DateTime{} = captured_at] -> {id, captured_at} end)
+    |> Enum.sort(fn {id_a, ts_a}, {id_b, ts_b} ->
+      case DateTime.compare(ts_a, ts_b) do
+        :gt -> true
+        :lt -> false
+        :eq -> id_a >= id_b
+      end
+    end)
+    |> Enum.map(fn {id, _captured_at} -> id end)
+  end
 
   # ── history/3 ─────────────────────────────────────────────────────────────
 
@@ -220,6 +255,54 @@ defmodule Threadline.QueryTest do
                )
 
       assert row == %{"id" => "u-scoped-asof", "name" => "Scoped Alpha"}
+    end
+
+    test "pins deterministic, not causal, tie behaviour: same captured_at resolves to the higher id" do
+      # PROP-06 D-17: real capture never ties (0 duplicate captured_at in
+      # 9,001 same-row captures, 38-46us minimum gap). The `desc: ac.id`
+      # tiebreak on an exact-tie is therefore deterministic, not causal --
+      # this example pins current behaviour with synthetic ties built from
+      # DbProperty.ordered_id/2, whose byte ordering guarantees the "higher
+      # id wins" outcome regardless of insertion order. Its mutation
+      # control is query.ex's `order_by([ac], desc: ac.id)` -> `asc:`.
+      tie_time = ~U[2026-10-01 10:00:00.000000Z]
+      n = System.unique_integer([:positive, :monotonic])
+      id_low = DbProperty.ordered_id(1, n)
+      id_high = DbProperty.ordered_id(2, n)
+
+      txn = insert_transaction(%{occurred_at: tie_time})
+
+      tie_defaults = %{
+        table_schema: "public",
+        table_name: "users",
+        table_pk: %{"id" => "u-tie"},
+        op: "insert",
+        changed_fields: ["id", "name"],
+        captured_at: tie_time,
+        transaction_id: txn.id
+      }
+
+      @repo.insert!(
+        AuditChange.changeset(
+          %AuditChange{id: id_low},
+          Map.put(tie_defaults, :data_after, %{"id" => "u-tie", "name" => "Low"})
+        ),
+        repo_opts()
+      )
+
+      @repo.insert!(
+        AuditChange.changeset(
+          %AuditChange{id: id_high},
+          Map.put(tie_defaults, :data_after, %{"id" => "u-tie", "name" => "High"})
+        ),
+        repo_opts()
+      )
+
+      assert {:ok, row1} = Threadline.as_of(fake_as_of_schema(), "u-tie", tie_time, repo: @repo)
+      assert {:ok, row2} = Threadline.as_of(fake_as_of_schema(), "u-tie", tie_time, repo: @repo)
+
+      assert row1 == %{"id" => "u-tie", "name" => "High"}
+      assert row1 == row2
     end
   end
 
@@ -384,6 +467,216 @@ defmodule Threadline.QueryTest do
 
       assert Enum.map(results, & &1.id) == [support_change.id]
       assert Enum.all?(results, &(&1.transaction_id == support_txn.id))
+    end
+
+    test "history/3 :limit caps to the n most recent changes and rejects invalid values" do
+      txn = insert_transaction()
+      t1 = DateTime.add(DateTime.utc_now(), -60, :second)
+      t2 = DateTime.add(DateTime.utc_now(), -30, :second)
+      t3 = DateTime.utc_now()
+
+      insert_change(txn, %{table_name: "users", table_pk: %{"id" => "u-limit"}, captured_at: t1})
+      insert_change(txn, %{table_name: "users", table_pk: %{"id" => "u-limit"}, captured_at: t2})
+      insert_change(txn, %{table_name: "users", table_pk: %{"id" => "u-limit"}, captured_at: t3})
+
+      defmodule FakeUserLimit do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      unbounded = Threadline.history(FakeUserLimit, "u-limit", repo: @repo)
+      capped = Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 2)
+
+      assert Enum.map(capped, & &1.id) == Enum.take(Enum.map(unbounded, & &1.id), 2)
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+        Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 0)
+      end
+    end
+
+    test "history/3 :limit against an independent oracle, boundary + tie adjacency (QRY-01/QRY-02)" do
+      defmodule FakeUserLimitMatrix do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      txn = insert_transaction()
+      tie_time = ~U[2026-10-02 10:00:00.000000Z]
+      earlier_time = DateTime.add(tie_time, -60, :second)
+      later_time = DateTime.add(tie_time, 60, :second)
+      table_pk = %{"id" => "u-limit-matrix"}
+
+      insert_change(txn, %{table_name: "users", table_pk: table_pk, captured_at: earlier_time})
+      # Two rows share the exact same captured_at (tie_time); id desc breaks the tie.
+      insert_change(txn, %{table_name: "users", table_pk: table_pk, captured_at: tie_time})
+      insert_change(txn, %{table_name: "users", table_pk: table_pk, captured_at: tie_time})
+      insert_change(txn, %{table_name: "users", table_pk: table_pk, captured_at: later_time})
+
+      oracle_ids = history_oracle_ids("users", table_pk)
+      assert length(oracle_ids) == 4
+
+      unbounded =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo),
+          & &1.id
+        )
+
+      assert unbounded == oracle_ids
+
+      # no limit == limit: nil == limit: count + 5
+      nil_limited =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: nil),
+          & &1.id
+        )
+
+      over_limited =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix",
+            repo: @repo,
+            limit: length(oracle_ids) + 5
+          ),
+          & &1.id
+        )
+
+      assert nil_limited == oracle_ids
+      assert over_limited == oracle_ids
+
+      # limit: count returns all
+      count_limited =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix",
+            repo: @repo,
+            limit: length(oracle_ids)
+          ),
+          & &1.id
+        )
+
+      assert count_limited == oracle_ids
+
+      # limit: 1 returns exactly the oracle head
+      [head_limited] =
+        Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 1)
+
+      assert head_limited.id == List.first(oracle_ids)
+
+      # a limit landing inside the tie group returns the higher-id members of
+      # that group: the head row plus the highest-id row of the tie pair.
+      [third_id | _] = Enum.drop(oracle_ids, 2)
+
+      tie_limited =
+        Enum.map(
+          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 3),
+          & &1.id
+        )
+
+      assert tie_limited == Enum.take(oracle_ids, 3)
+      assert List.last(tie_limited) == third_id
+    end
+
+    test "history/3 :limit plus scope: the cap counts only in-scope rows" do
+      support_time = ~U[2026-10-02 09:00:00.000000Z]
+      admin_time = DateTime.add(support_time, 60, :second)
+      table_pk = %{"id" => "u-limit-scope"}
+
+      support_txn = insert_transaction(%{occurred_at: support_time, source: "support"})
+      admin_txn = insert_transaction(%{occurred_at: admin_time, source: "admin"})
+
+      support_change =
+        insert_change(support_txn,
+          table_name: "users",
+          table_pk: table_pk,
+          data_after: %{"id" => "u-limit-scope", "name" => "Scoped Alpha"},
+          changed_fields: ["id", "name"],
+          captured_at: support_time
+        )
+
+      insert_change(admin_txn,
+        table_name: "users",
+        table_pk: table_pk,
+        data_after: %{"id" => "u-limit-scope", "name" => "Admin Beta"},
+        changed_fields: ["name"],
+        captured_at: admin_time
+      )
+
+      results =
+        Threadline.history(fake_as_of_schema(), "u-limit-scope",
+          repo: @repo,
+          scope: %{source: "support"},
+          scope_query_fn: &support_scope_query/3,
+          limit: 1
+        )
+
+      assert Enum.map(results, & &1.id) == [support_change.id]
+    end
+
+    test "history/3 :limit rejection cases raise with the exact message" do
+      defmodule FakeUserLimitReject do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 0)
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: -1", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: -1)
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: 1.0", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 1.0)
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: \"5\"", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: "5")
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: true", fn ->
+        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: true)
+      end
+    end
+
+    test "history/3 :limit validation precedes row-key matching (garbage id + invalid limit)" do
+      defmodule FakeUserLimitPrecedence do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
+        Threadline.history(FakeUserLimitPrecedence, nil, repo: @repo, limit: 0)
+      end
+    end
+
+    test "history/3 :limit on an empty history returns [] for no limit, nil, and limit: 1" do
+      defmodule FakeUserLimitEmpty do
+        use Ecto.Schema
+
+        @primary_key {:id, :string, autogenerate: false}
+        schema "users" do
+          field(:name, :string)
+        end
+      end
+
+      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo)
+      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: nil)
+      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: 1)
     end
   end
 
@@ -563,6 +856,74 @@ defmodule Threadline.QueryTest do
       page = Threadline.actor_history(actor, repo: @repo, from: from, to: to)
       assert length(page.entries) == 1
       assert hd(page.entries).id == txn_mid.id
+    end
+
+    test "pages across occurred_at ties forward and backward without duplicates or skips" do
+      actor = actor!(:user, "ties-#{System.unique_integer([:positive])}")
+      actor_map = ActorRef.to_map(actor)
+
+      newest_tie = ~U[2026-07-01 12:00:00.000002Z]
+      middle_singleton = ~U[2026-07-01 12:00:00.000001Z]
+      oldest_tie = ~U[2026-07-01 12:00:00.000000Z]
+
+      txns =
+        for occurred_at <- [
+              newest_tie,
+              newest_tie,
+              newest_tie,
+              middle_singleton,
+              oldest_tie,
+              oldest_tie,
+              oldest_tie
+            ] do
+          insert_transaction(%{actor_ref: actor_map, occurred_at: occurred_at})
+        end
+
+      model_input =
+        Enum.map(txns, fn txn ->
+          %{ts_usec: DateTime.to_unix(txn.occurred_at, :microsecond), id: txn.id}
+        end)
+
+      expected_ids = KeysetModel.expected_order(model_input)
+
+      forward_result =
+        Enum.reduce_while(1..10, {[], nil, nil}, fn _i, {pages, after_cursor, _last_page} ->
+          page = Threadline.actor_history(actor, repo: @repo, limit: 2, after: after_cursor)
+          ids = Enum.map(page.entries, & &1.id)
+          new_pages = pages ++ [ids]
+
+          if page.next_cursor == nil do
+            {:halt, {:ok, new_pages, page}}
+          else
+            {:cont, {new_pages, page.next_cursor, page}}
+          end
+        end)
+
+      assert {:ok, forward_pages, last_page} = forward_result, "DB forward walk did not terminate"
+
+      forward_ids = List.flatten(forward_pages)
+      assert forward_ids == expected_ids, "DB disagrees with the keyset model"
+      assert length(forward_ids) == length(Enum.uniq(forward_ids))
+
+      backward_pages =
+        Enum.reduce_while(1..10, {[], last_page.prev_cursor}, fn _i, {pages, before_cursor} ->
+          if before_cursor == nil do
+            {:halt, {:ok, pages}}
+          else
+            page = Threadline.actor_history(actor, repo: @repo, limit: 2, before: before_cursor)
+            ids = Enum.map(page.entries, & &1.id)
+            new_pages = pages ++ [ids]
+            {:cont, {new_pages, page.prev_cursor}}
+          end
+        end)
+
+      assert {:ok, backward_pages} = backward_pages, "DB backward walk did not terminate"
+
+      assert {:ok, model_forward, model_backward} =
+               KeysetModel.walk_actor_history(model_input, 2)
+
+      assert forward_pages == model_forward, "DB disagrees with the keyset model"
+      assert backward_pages == model_backward, "DB disagrees with the keyset model"
     end
   end
 
@@ -818,7 +1179,7 @@ defmodule Threadline.QueryTest do
 
     test "advances safely across captured_at ties without duplicates or skips" do
       tname = "timeline_ties_#{System.unique_integer([:positive])}"
-      timeline_page_fixture(tname)
+      changes = timeline_page_fixture(tname)
       filters = [repo: @repo, table: tname]
 
       eager_ids = Enum.map(Threadline.timeline(filters), & &1.id)
@@ -839,6 +1200,23 @@ defmodule Threadline.QueryTest do
       assert length(all_ids) == length(Enum.uniq(all_ids))
       assert eager_ids == all_ids
       assert Enum.all?(first_page.entries, &match?(%AuditChange{}, &1))
+
+      model_input =
+        Enum.map(changes, fn c ->
+          %{ts_usec: DateTime.to_unix(c.captured_at, :microsecond), id: c.id}
+        end)
+
+      assert all_ids == KeysetModel.expected_order(model_input),
+             "DB disagrees with the keyset model"
+
+      assert {:ok, model_pages} = KeysetModel.walk_timeline(model_input, 2)
+
+      db_pages =
+        Enum.map([first_page, second_page, third_page], fn page ->
+          Enum.map(page.entries, & &1.id)
+        end)
+
+      assert db_pages == model_pages, "DB disagrees with the keyset model"
     end
   end
 

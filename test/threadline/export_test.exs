@@ -1,9 +1,12 @@
 defmodule Threadline.ExportTest do
   use Threadline.DataCase
 
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
+
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Export
   alias Threadline.Semantics.{ActorRef, AuditAction}
+  alias Threadline.Test.StrictRFC4180
 
   @repo Threadline.Test.Repo
 
@@ -154,6 +157,68 @@ defmodule Threadline.ExportTest do
     end
   end
 
+  describe "to_csv_iodata/2 telemetry (TELE-01)" do
+    test "emits exactly one :completed with the returned row count and format :csv, no :failed" do
+      tname = table_name("tele-csv-ok")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+      insert_change(txn, %{table_name: tname, table_pk: %{"id" => "2"}})
+
+      ref =
+        attach_telemetry!([[:threadline, :export, :completed], [:threadline, :export, :failed]])
+
+      assert {:ok, %{returned_count: 2, truncated: false}} =
+               Export.to_csv_iodata([repo: @repo, table: tname], [])
+
+      assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+      assert measurements.row_count == 2
+      assert is_integer(measurements.duration) and measurements.duration >= 0
+      assert metadata.format == :csv
+      assert metadata.truncated == false
+
+      refute_receive {[:threadline, :export, :failed], ^ref, _measurements, _metadata}
+    end
+
+    test "emits :completed with truncated: true when max_rows is smaller than the fixture" do
+      tname = table_name("tele-csv-trunc")
+      txn = insert_transaction()
+
+      for i <- 1..5 do
+        insert_change(txn, %{
+          table_name: tname,
+          table_pk: %{"id" => "r-#{i}"},
+          captured_at: DateTime.add(~U[2026-01-01 00:00:00.000000Z], i, :second)
+        })
+      end
+
+      ref = attach_telemetry!([[:threadline, :export, :completed]])
+
+      assert {:ok, %{truncated: true, returned_count: 3}} =
+               Export.to_csv_iodata([repo: @repo, table: tname], max_rows: 3)
+
+      assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+      assert measurements.row_count == 3
+      assert metadata.truncated == true
+    end
+
+    test "an invalid filter still raises and emits exactly one :failed with row_count 0" do
+      ref =
+        attach_telemetry!([[:threadline, :export, :completed], [:threadline, :export, :failed]])
+
+      assert_raise ArgumentError, fn ->
+        Export.to_csv_iodata([repo: @repo, oops: true], [])
+      end
+
+      assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+      assert measurements.row_count == 0
+      assert metadata.format == :csv
+      assert metadata.error_kind == :exception
+      assert metadata.exception == ArgumentError
+
+      refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
+    end
+  end
+
   describe "to_json_document/2" do
     test "storage_schema option exports only rows from the selected storage schema" do
       ensure_storage_schema!("audit")
@@ -245,6 +310,53 @@ defmodule Threadline.ExportTest do
                Export.to_json_document([repo: @repo, table: tname], [])
 
       assert Jason.decode!(IO.iodata_to_binary(data))["changes"] == []
+    end
+  end
+
+  describe "to_json_document/2 telemetry (TELE-01)" do
+    test "wrapped format emits :completed with format :json" do
+      tname = table_name("tele-json-wrapped")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+
+      ref = attach_telemetry!([[:threadline, :export, :completed]])
+
+      assert {:ok, %{}} = Export.to_json_document([repo: @repo, table: tname], [])
+
+      assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+      assert measurements.row_count == 1
+      assert metadata.format == :json
+    end
+
+    test "ndjson format emits :completed with format :ndjson" do
+      tname = table_name("tele-json-ndjson")
+      txn = insert_transaction()
+      insert_change(txn, %{table_name: tname})
+
+      ref = attach_telemetry!([[:threadline, :export, :completed]])
+
+      assert {:ok, %{}} =
+               Export.to_json_document([repo: @repo, table: tname], json_format: :ndjson)
+
+      assert_receive {[:threadline, :export, :completed], ^ref, measurements, metadata}
+      assert measurements.row_count == 1
+      assert metadata.format == :ndjson
+    end
+
+    test "an invalid filter still raises and emits exactly one :failed" do
+      ref =
+        attach_telemetry!([[:threadline, :export, :completed], [:threadline, :export, :failed]])
+
+      assert_raise ArgumentError, fn ->
+        Export.to_json_document([repo: @repo, oops: true], [])
+      end
+
+      assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+      assert measurements.row_count == 0
+      assert metadata.error_kind == :exception
+      assert metadata.exception == ArgumentError
+
+      refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
     end
   end
 
@@ -556,6 +668,105 @@ defmodule Threadline.ExportTest do
       assert_raise ArgumentError, ~r/unknown timeline filter/, fn ->
         Export.to_csv_iodata([repo: @repo, bad: 1], [])
       end
+    end
+  end
+
+  describe "D-17 bare CR" do
+    defp export_row(attrs) do
+      Map.merge(
+        %{
+          id: Ecto.UUID.generate(),
+          transaction_id: Ecto.UUID.generate(),
+          table_schema: "public",
+          table_name: "users",
+          op: "insert",
+          captured_at: ~U[2026-06-01 00:00:00.000000Z],
+          table_pk: %{"id" => "1"},
+          data_after: %{"x" => 1},
+          changed_fields: nil,
+          changed_from: nil,
+          tx_occurred_at: ~U[2026-06-01 00:00:00.000000Z],
+          tx_actor_ref: nil,
+          tx_source: nil,
+          aa_id: nil,
+          aa_correlation_id: nil
+        },
+        attrs
+      )
+    end
+
+    test "a bare CR in table_name is quoted, so the strict decoder still returns one record" do
+      row = export_row(%{table_name: "a\rb"})
+
+      body =
+        [row]
+        |> Export.format_changes_iodata(:csv, [])
+        |> IO.iodata_to_binary()
+
+      header = Export.csv_header([]) |> IO.iodata_to_binary()
+      full = header <> body
+
+      assert full =~ "\"a\rb\""
+
+      [_header_record, data_record] = StrictRFC4180.decode!(full)
+      assert Enum.at(data_record, 3) == "a\rb"
+    end
+
+    test "a bare CR in the correlation id is quoted with include_action_metadata: true" do
+      row =
+        export_row(%{
+          table_name: "users",
+          aa_id: Ecto.UUID.generate(),
+          aa_correlation_id: "x\ry"
+        })
+
+      body =
+        [row]
+        |> Export.format_changes_iodata(:csv, include_action_metadata: true)
+        |> IO.iodata_to_binary()
+
+      header = Export.csv_header(include_action_metadata: true) |> IO.iodata_to_binary()
+      full = header <> body
+
+      assert full =~ "\"x\ry\""
+
+      [_header_record, data_record] = StrictRFC4180.decode!(full)
+      assert Enum.at(data_record, -2) == "x\ry"
+    end
+
+    test "rows without a bare CR dump byte-identical to plain NimbleCSV.RFC4180" do
+      row = export_row(%{table_name: "users", data_after: %{"x" => 1}})
+
+      via_export =
+        [row]
+        |> Export.format_changes_iodata(:csv, [])
+        |> IO.iodata_to_binary()
+
+      csv_row = [
+        to_string(row.id),
+        to_string(row.transaction_id),
+        row.table_schema,
+        row.table_name,
+        row.op,
+        DateTime.to_iso8601(row.captured_at),
+        Jason.encode!(row.table_pk || %{}),
+        Jason.encode!(row.data_after || %{}),
+        Jason.encode!(row.changed_fields || []),
+        Jason.encode!(row.changed_from || %{}),
+        Jason.encode!(%{
+          "id" => to_string(row.transaction_id),
+          "occurred_at" => DateTime.to_iso8601(row.tx_occurred_at),
+          "actor_ref" => nil,
+          "source" => row.tx_source
+        })
+      ]
+
+      via_plain_nimble_csv =
+        [csv_row]
+        |> NimbleCSV.RFC4180.dump_to_iodata()
+        |> IO.iodata_to_binary()
+
+      assert via_export == via_plain_nimble_csv
     end
   end
 end

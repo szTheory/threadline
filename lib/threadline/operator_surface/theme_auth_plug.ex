@@ -12,17 +12,17 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     @impl Plug
     def call(conn, opts) do
       conn
-      |> ensure_session_fetched()
+      |> ensure_session_fetched(opts)
       |> authorize(opts)
     end
 
-    defp ensure_session_fetched(%Plug.Conn{halted: true} = conn), do: conn
+    defp ensure_session_fetched(%Plug.Conn{halted: true} = conn, _opts), do: conn
 
-    defp ensure_session_fetched(conn) do
+    defp ensure_session_fetched(conn, opts) do
       if session_fetched?(conn) do
         conn
       else
-        halt_unauthorized(conn, :denied)
+        halt_unauthorized(conn, :denied, opts)
       end
     end
 
@@ -36,26 +36,26 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
         case authorize_fn.(mirror) do
           :ok ->
-            emit_telemetry(:granted, conn, nil)
+            emit_telemetry(:granted, opts, nil)
             conn
 
           true ->
-            emit_telemetry(:granted, conn, nil)
+            emit_telemetry(:granted, opts, nil)
             conn
 
           {:ok, scope} when is_map(scope) ->
-            emit_telemetry(:granted, conn, scope)
+            emit_telemetry(:granted, opts, scope)
             assign(conn, :threadline_scope, scope)
 
           {:ok, scope} ->
-            emit_telemetry(:granted, conn, nil)
+            emit_telemetry(:granted, opts, nil)
             assign(conn, :threadline_scope, scope)
 
           _ ->
-            halt_unauthorized(conn, :denied)
+            halt_unauthorized(conn, :denied, opts)
         end
       rescue
-        _ -> halt_unauthorized(conn, :error)
+        _ -> halt_unauthorized(conn, :error, opts)
       end
     end
 
@@ -63,8 +63,8 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       conn.private[:plug_session_fetch] == :done and is_map(conn.private[:plug_session])
     end
 
-    defp halt_unauthorized(conn, result) do
-      emit_telemetry(result, conn, nil)
+    defp halt_unauthorized(conn, result, opts) do
+      emit_telemetry(result, opts, nil)
 
       conn
       |> put_resp_content_type("text/plain")
@@ -72,17 +72,13 @@ if Code.ensure_loaded?(Phoenix.Controller) do
       |> halt()
     end
 
-    defp emit_telemetry(result, conn, scope) do
-      scope_keys = if is_map(scope), do: Map.keys(scope) |> Enum.sort(), else: []
-
-      actor_ref =
-        if is_map(scope), do: Map.get(scope, :actor_ref) || Map.get(scope, :user_id), else: nil
-
-      :telemetry.execute(
-        [:threadline, :operator_surface, :authorize],
-        %{result: result},
-        %{path: conn.request_path || "", actor_ref: actor_ref, scope_keys: scope_keys}
-      )
+    # `path` is read from the plug's own `:theme_path` option — the macro's
+    # compile-time mount-path literal (see router.ex) — never from
+    # `conn.request_path`, so a host that nests this mount under a dynamic
+    # router segment never leaks the matched segment's real value here.
+    defp emit_telemetry(result, opts, scope) do
+      path = Keyword.get(opts, :theme_path)
+      Threadline.Telemetry.emit_operator_surface_authorize(result, path, scope)
     end
   end
 end

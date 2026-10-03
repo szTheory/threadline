@@ -1,0 +1,13 @@
+diff --git a/lib/threadline/capture/redaction_policy.ex b/lib/threadline/capture/redaction_policy.ex
+index f2d5a141..a1bf88eb 100644
+--- a/lib/threadline/capture/redaction_policy.ex
++++ b/lib/threadline/capture/redaction_policy.ex
+@@ -54,7 +54,7 @@ defmodule Threadline.Capture.RedactionPolicy do
+       raise ArgumentError, "placeholder must not be empty"
+     end
+ 
+-    if String.length(placeholder) > @max_placeholder_length do
++    if String.length(placeholder) >= @max_placeholder_length do
+       raise ArgumentError,
+             "placeholder exceeds max length (#{@max_placeholder_length} graphemes)"
+     end

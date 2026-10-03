@@ -182,7 +182,7 @@ callback should return:
   narrowing contract.
 - any other value - Denied.
 
-Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with the outcome (`:granted`, `:denied`, or `:error`).
+Telemetry event `[:threadline, :operator_surface, :authorize]` is emitted with the outcome (`:granted`, `:denied`, or `:error`). See [Telemetry](telemetry.md) for every event and its keys.
 
 `live_session` and `on_mount` protect the LiveView pages only. They do not
 secure the sibling HTTP export controller routes. Export denials stay
@@ -409,8 +409,12 @@ Capture-only adopters who do not mount the surface get the same data via:
     mix threadline.health.coverage
     mix threadline.health.coverage --json
     mix threadline.health.coverage --schema=NAME
+    mix threadline.health.coverage --strict
+    mix threadline.health.coverage --all-schemas
 
-The Mix task is a viewer (always exits 0). The CI gate is the existing `mix threadline.verify_coverage` task, which now also accepts `--schema=NAME`.
+Viewer by default (exits 0); `--strict` turns `:error`-severity findings into exit 1. Uncovered tables never fail `--strict`; use `mix threadline.verify_coverage` for the positive-list gate. That is the existing CI gate task, which now also accepts `--schema=NAME`.
+
+`--all-schemas` checks every reportable schema at once — a schema-keyed table (leading `SCHEMA` column plus a per-schema rollup) or, with `--json`, an envelope `{"schemas": {...}, "summary": {...}}` whose `schemas` values are each the exact `--schema=NAME --json` payload. It cannot be combined with `--schema`. A schema that is a member of a PostgreSQL extension is excluded; a schema with no reportable tables and no findings is omitted. `--strict --all-schemas` gates the union of every reported schema's `:error` findings.
 
 ## Policy redaction drift
 
@@ -483,7 +487,7 @@ server-posted form with CSRF, not a client-side storage or scripting feature.
 
 Disabling an embed never breaks a screen: fonts fall back to the system stack, and the copy affordance falls back to native text selection.
 
-`[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{error: message}`; alert on this for sustained drift.
+`[:threadline, :health, :checked, :error]` fires on poll failure with metadata `%{exception: module}`; alert on this for sustained drift.
 
 ## Operational paths
 

@@ -1,5 +1,20 @@
 ExUnit.start()
 
+# PROP-08 (D-08): read the scale knob once, right after ExUnit.start(), so an
+# invalid THREADLINE_PROPERTY_SCALE raises and aborts the run before any test
+# executes, rather than failing mid-suite the first time a property reads it.
+# When the scale is not 1, print one line naming it — this line never appears
+# on a plain `mix test` run, and bin/classify-flake-run's header-count check
+# (Threadline.FlakeClassifierContractTest) is unaffected by it either way.
+property_scale = Threadline.Test.PropertyRuns.scale()
+
+if property_scale != 1 do
+  IO.puts(
+    "THREADLINE_PROPERTY_SCALE=#{property_scale}: pure max_runs x#{property_scale}, " <>
+      "DB x#{min(property_scale, 3)}"
+  )
+end
+
 topology_pooler? = System.get_env("THREADLINE_PGBOUNCER_TOPOLOGY") == "1"
 
 # Topology tests need PgBouncer + bootstrap DDL; keep them out of default `mix test`.

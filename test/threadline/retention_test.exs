@@ -1,9 +1,18 @@
 defmodule Threadline.RetentionTest do
   use Threadline.DataCase
 
+  import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
+
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Governance.RetentionRun
   alias Threadline.Retention
+
+  @purge_span_events [
+    [:threadline, :retention, :purge, :start],
+    [:threadline, :retention, :purge, :stop],
+    [:threadline, :retention, :purge, :exception]
+  ]
+  @batch_purged_event [:threadline, :retention, :batch_purged]
 
   defp insert_transaction(storage_schema, attrs) do
     defaults = %{
@@ -42,6 +51,17 @@ defmodule Threadline.RetentionTest do
     Repo.aggregate(AuditTransaction, :count, :id, repo_opts(storage_schema))
   end
 
+  defp drain_batch_purged_events(ref) do
+    batch_event = @batch_purged_event
+
+    receive do
+      {^batch_event, ^ref, measurements, _metadata} ->
+        [measurements | drain_batch_purged_events(ref)]
+    after
+      0 -> []
+    end
+  end
+
   setup do
     prev = Application.get_env(:threadline, :retention)
 
@@ -61,8 +81,14 @@ defmodule Threadline.RetentionTest do
   end
 
   test "purge/1 without repo raises KeyError" do
+    ref = attach_telemetry!(@purge_span_events)
+
     assert_raise KeyError, fn ->
       Retention.purge([])
+    end
+
+    for event <- @purge_span_events do
+      refute_received {^event, ^ref, _measurements, _metadata}
     end
   end
 
@@ -73,7 +99,13 @@ defmodule Threadline.RetentionTest do
       delete_empty_transactions: true
     )
 
+    ref = attach_telemetry!(@purge_span_events)
+
     assert Retention.purge(repo: Repo) == {:error, :disabled}
+
+    for event <- @purge_span_events do
+      refute_received {^event, ^ref, _measurements, _metadata}
+    end
   end
 
   # batch_size / max_batches: multi-batch purge deletes expired changes then empty parents.
@@ -89,6 +121,8 @@ defmodule Threadline.RetentionTest do
     assert count_changes("threadline") == 6
     assert count_transactions("threadline") == 6
 
+    ref = attach_telemetry!(@purge_span_events)
+
     summary =
       Retention.purge(repo: Repo, batch_size: 2, max_batches: 20)
 
@@ -99,9 +133,95 @@ defmodule Threadline.RetentionTest do
     assert count_changes("threadline") == 0
     assert count_transactions("threadline") == 0
 
+    assert_receive {[:threadline, :retention, :purge, :start], ^ref, _start_measurements,
+                    %{dry_run: false}}
+
+    assert_receive {[:threadline, :retention, :purge, :stop], ^ref, stop_measurements,
+                    %{dry_run: false}}
+
+    assert stop_measurements.deleted_changes == summary.deleted_changes
+    assert stop_measurements.deleted_transactions == summary.deleted_transactions
+    assert stop_measurements.batches_run == summary.batches_run
+    assert is_integer(stop_measurements.duration)
+    assert stop_measurements.duration >= 0
+
+    refute_received {[:threadline, :retention, :purge, :exception], ^ref, _, _}
+
     again = Retention.purge(repo: Repo, batch_size: 2, max_batches: 10)
     assert again.deleted_changes == 0
     assert again.deleted_transactions == 0
+  end
+
+  test "purge/1 emits one batch_purged per purge_loop step, counts matching the returned totals (D-10)" do
+    cutoff = DateTime.utc_now(:microsecond)
+    past = DateTime.add(cutoff, -10, :day)
+
+    for _i <- 1..6 do
+      tx = insert_transaction("threadline", occurred_at: cutoff)
+      insert_change("threadline", tx, captured_at: past)
+    end
+
+    ref = attach_telemetry!([@batch_purged_event])
+
+    summary = Retention.purge(repo: Repo, batch_size: 2, max_batches: 20, sleep_ms: 0)
+
+    batch_events = drain_batch_purged_events(ref)
+
+    assert length(batch_events) == summary.batches_run
+
+    assert Enum.sum(Enum.map(batch_events, & &1.deleted_changes)) == summary.deleted_changes
+
+    assert Enum.sum(Enum.map(batch_events, & &1.deleted_transactions)) ==
+             summary.deleted_transactions
+
+    [last | _] = Enum.reverse(batch_events)
+    assert last.deleted_changes == 0
+    assert last.deleted_transactions == 0
+
+    for event <- batch_events do
+      assert is_integer(event.duration)
+      assert event.duration >= 0
+    end
+  end
+
+  test "dry run emits zero batch_purged events" do
+    cutoff = DateTime.utc_now(:microsecond)
+    past = DateTime.add(cutoff, -10, :day)
+
+    tx = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", tx, captured_at: past)
+
+    batch_event = @batch_purged_event
+    ref = attach_telemetry!([batch_event])
+
+    result = Retention.purge(repo: Repo, dry_run: true)
+    assert result.batches_run == 0
+
+    refute_received {^batch_event, ^ref, _measurements, _metadata}
+  end
+
+  test "purge against a missing storage schema emits :start then :exception, no :stop or batch_purged, and re-raises (D-11)" do
+    missing = "threadline_missing_#{System.unique_integer([:positive])}"
+    batch_event = @batch_purged_event
+
+    ref = attach_telemetry!(@purge_span_events ++ [batch_event])
+
+    assert_raise Postgrex.Error, fn ->
+      Retention.purge(repo: Repo, storage_schema: missing)
+    end
+
+    assert_receive {[:threadline, :retention, :purge, :start], ^ref, _start_measurements,
+                    %{dry_run: false}}
+
+    assert_receive {[:threadline, :retention, :purge, :exception], ^ref, exception_measurements,
+                    %{dry_run: false, kind: :error} = exception_metadata}
+
+    assert is_integer(exception_measurements.duration)
+    assert Map.has_key?(exception_metadata, :reason)
+    assert Map.has_key?(exception_metadata, :stacktrace)
+
+    refute_received {[:threadline, :retention, :purge, :stop], ^ref, _, _}
+    refute_received {^batch_event, ^ref, _, _}
   end
 
   test "purge/1 records a completed retention run" do
@@ -165,6 +285,8 @@ defmodule Threadline.RetentionTest do
       insert_transaction("threadline", occurred_at: cutoff)
     end
 
+    ref = attach_telemetry!(@purge_span_events)
+
     result =
       Retention.purge(
         repo: Repo,
@@ -175,14 +297,100 @@ defmodule Threadline.RetentionTest do
       )
 
     assert result.deleted_changes == 1
-    assert result.deleted_transactions == 1
+    assert result.deleted_transactions == 2
     assert result.batches_run == 0
     assert result.dry_run == true
+
+    assert_receive {[:threadline, :retention, :purge, :start], ^ref, _start_measurements,
+                    %{dry_run: true}}
+
+    assert_receive {[:threadline, :retention, :purge, :stop], ^ref, stop_measurements,
+                    %{dry_run: true}}
+
+    assert stop_measurements.deleted_changes == result.deleted_changes
+    assert stop_measurements.deleted_transactions == result.deleted_transactions
+    assert stop_measurements.batches_run == 0
 
     assert count_changes("audit") == 1
     assert count_transactions("audit") == 2
     assert count_changes("threadline") == 2
     assert count_transactions("threadline") == 5
+  end
+
+  test "dry run counts the transactions a purge would empty, matching a completed real purge (D-20 regression)" do
+    cutoff = ~U[2001-06-01 00:00:00.000000Z]
+
+    t1 = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", t1, captured_at: DateTime.add(cutoff, -1, :microsecond))
+
+    t2 = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", t2, captured_at: cutoff)
+
+    t3 = insert_transaction("threadline", occurred_at: cutoff)
+    insert_change("threadline", t3, captured_at: DateTime.add(cutoff, -1, :second))
+    insert_change("threadline", t3, captured_at: DateTime.add(cutoff, 1, :second))
+
+    dry = Retention.purge(repo: Repo, cutoff: cutoff, dry_run: true)
+    assert dry.deleted_changes == 2
+    assert dry.deleted_transactions == 1
+
+    real =
+      Retention.purge(repo: Repo, cutoff: cutoff, batch_size: 10, max_batches: 5, sleep_ms: 0)
+
+    assert real.deleted_changes == 2
+    assert real.deleted_transactions == 1
+  end
+
+  test "dry run ignores :batch_size and :max_batches (preview is a full-table count, not batched)" do
+    cutoff = ~U[2001-06-01 00:00:00.000000Z]
+
+    for _ <- 1..5 do
+      tx = insert_transaction("threadline", occurred_at: cutoff)
+      insert_change("threadline", tx, captured_at: DateTime.add(cutoff, -1, :second))
+    end
+
+    unbounded = Retention.purge(repo: Repo, cutoff: cutoff, dry_run: true)
+
+    bounded =
+      Retention.purge(
+        repo: Repo,
+        cutoff: cutoff,
+        dry_run: true,
+        batch_size: 1,
+        max_batches: 1
+      )
+
+    assert bounded == unbounded
+    assert bounded.deleted_changes == 5
+    assert bounded.deleted_transactions == 5
+    assert bounded.batches_run == 0
+  end
+
+  test "cutoff newer than the policy cutoff raises ArgumentError naming retention" do
+    future = DateTime.add(DateTime.utc_now(:microsecond), 1, :day)
+
+    ref = attach_telemetry!(@purge_span_events)
+
+    assert_raise ArgumentError, ~r/retention/, fn ->
+      Retention.purge(repo: Repo, cutoff: future, dry_run: true)
+    end
+
+    for event <- @purge_span_events do
+      refute_received {^event, ^ref, _measurements, _metadata}
+    end
+  end
+
+  test "a precision-0 cutoff gives the same dry-run result as the equivalent microsecond cutoff" do
+    cutoff_usec = ~U[2001-06-01 00:00:00.000000Z]
+    cutoff_precision0 = DateTime.truncate(cutoff_usec, :second)
+
+    t1 = insert_transaction("threadline", occurred_at: cutoff_usec)
+    insert_change("threadline", t1, captured_at: DateTime.add(cutoff_usec, -1, :second))
+
+    dry_usec = Retention.purge(repo: Repo, cutoff: cutoff_usec, dry_run: true)
+    dry_precision0 = Retention.purge(repo: Repo, cutoff: cutoff_precision0, dry_run: true)
+
+    assert dry_precision0 == dry_usec
   end
 
   test "purge deletes selected storage rows and records the run in the selected schema" do

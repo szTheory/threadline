@@ -1,0 +1,12 @@
+diff --git a/lib/threadline/query.ex b/lib/threadline/query.ex
+index 94ba11f1..8c69c25b 100644
+--- a/lib/threadline/query.ex
++++ b/lib/threadline/query.ex
+@@ -473,7 +473,6 @@ defmodule Threadline.Query do
+       |> repo.one(storage_opts([], opts))
+ 
+     case snapshot do
+-      %AuditChange{op: "delete"} -> {:error, :deleted_record}
+       %AuditChange{data_after: data_after} -> load_as_of_snapshot(schema_module, data_after, opts)
+       nil -> {:error, :before_audit_horizon}
+     end

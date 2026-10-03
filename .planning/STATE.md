@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.44
 milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
-current_phase: 226
-current_phase_name: Pure Property Tests and Run Budget
-status: planning
-stopped_at: Completed 225-04-PLAN.md
-last_updated: "2026-10-01T05:09:14.287Z"
-last_activity: 2026-10-01
-last_activity_desc: Phase 225 complete, transitioned to Phase 226
+current_phase: 230
+current_phase_name: Rebalance, Net-Suite Check and 0.12.0
+status: executing
+stopped_at: Completed 230-03-PLAN.md
+last_updated: "2026-10-02T21:24:17.451Z"
+last_activity: 2026-10-02
+last_activity_desc: Phase 230 plan 03 complete (pre-land gate green); plan 04 (release) remains
+state_head: 243679a8b1550eafa8be0082dd7b5d9b7a34cc29
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 29
-state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
+  completed_phases: 6
+  total_plans: 33
+  completed_plans: 32
+  percent: 86
 ---
 
 # Project State: Threadline
@@ -25,16 +25,16 @@ state_head: 9b5dd58bf0d3c3329f3b18ab34f0f6220e2a9db6
 See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 225 — Suite Baseline and Partitioned CI
+**Current focus:** Phase 230 — Rebalance, Net-Suite Check and 0.12.0
 
 ## Current Position
 
-Phase: 226 — Pure Property Tests and Run Budget
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-01 — Phase 225 complete, transitioned to Phase 226
+Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — EXECUTING
+Plan: 4 of 4
+Status: Ready to execute
+Last activity: 2026-10-02 — Phase 230 plan 03 complete (pre-land gate green: mix ci.all 318/0/26, hygiene + self-test, SC5 sweep, dated 0.12.0 CHANGELOG + upgrade-path proven by mix verify.bump_rehearsal); plan 04 (release) remains
 
-Progress: [███░░░░░░░] 2 of 7 v1.44 phases complete ([███░░░░░░░] 29%). Phase 224 verified passed 9/9 (2026-09-30). Phase 225 verified passed 5/5 (2026-10-01): partitioned CI test step (bin/ci-test-partitions, weighted file assignment, N=4, colocation groups), Run tests 37.5-65.3% faster with runner-minute proxy down 12.5-50% over CI runs 36808706517 and 36810081717 vs baseline 36730596489; telemetry auth tests async via attach_telemetry!/1; Flake Detection run 36810083586 pass (resized to 11 repeats); review 0 critical/3 warning/1 info, warnings fixed cd20d3fa; landing via PR #71. Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-discuss-phase 226. SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+Progress: [███████░░░] 6 of 7 v1.44 phases complete ([█████████░] 86%). Phase 229 verified passed 5/5 (2026-10-02): Threadline.history/3 takes a validated :limit (QRY-01/02, new Query.HistoryLimit); public Threadline.Health.legacy_key_findings/1 emits :unresolved_legacy_keys warnings (capped, statement_timeout-bounded per-table probe; HLTH-03); mix threadline.health.coverage gains --strict (exit 1 on in-scope :error findings, 12-cell matrix baseline; HLTH-01), --all-schemas (schema-keyed table + JSON envelope, extension schemas excluded via pg_depend; HLTH-02), unknown switches now raise; malformed :trigger_capture fail-fast documented (HLTH-04); local suite 2767/0, mix ci.all green, wall clock before/after in evidence/SC5-wallclock.md; review 0 critical/1 warning/1 info (WR-01 stray positional args ignored, IN-01 duplicated schema regex; advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 230 (plan 04 stops at a maintainer grant for push, PR, squash-merge, release-please PR merge, production-hex approval and the distribution-sync PR). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
 
 **v1.44 start (2026-09-30):**
 
@@ -241,6 +241,28 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 225 P02 | ~50min | 2 tasks | 7 files |
 | Phase 225 P03 | ~2h | 3 tasks | 11 files |
 | Phase 225 P04 | ~50min | 2 tasks | 4 files |
+| Phase 226 P01 | ~1h | 3 tasks | 12 files |
+| Phase 226 P02 | 1h | 3 tasks | 8 files |
+| Phase 226 P03 | 45min | 2 tasks | 6 files |
+| Phase 226 P05 | ~1h10min | 3 tasks | 8 files |
+| Phase 227 P01 | ~1h | 3 tasks | 4 files |
+| Phase 227 P02 | 1h45m | 3 tasks | 11 files |
+| Phase 227 P03 | ~1h20m | 3 tasks | 12 files |
+| Phase 227 P04 | 1h45m | 3 tasks | 16 files |
+| Phase 227 P05 | ~2h | 3 tasks | 5 files |
+| Phase 228 P01 | ~1h | 3 tasks | 12 files |
+| Phase 228 P02 | ~1h45m | 3 tasks | 7 files |
+| Phase 228 P03 | ~35m | 2 tasks | 4 files |
+| Phase 228 P04 | ~1h45m | 3 tasks | 7 files |
+| Phase 228 P05 | ~1h10m | 3 tasks | 10 files |
+| Phase 228 P06 | ~1h45m | 3 tasks | 2 files |
+| Phase 229 P01 | 29min | 3 tasks | 7 files |
+| Phase 229 P02 | ~25min | 3 tasks | 10 files |
+| Phase 229 P03 | 25min | 3 tasks | 9 files |
+| Phase 229 P04 | ~1h45m | 6 tasks | 12 files |
+| Phase 230 P01 | ~1h40m | 3 tasks | 9 files |
+| Phase 230 P02 | ~1h | 2 tasks | 1 files |
+| Phase 230 P03 | ~55min | 3 tasks | 9 files |
 
 ## Deferred Items
 
@@ -925,6 +947,41 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 225]: The .mix_test_failures write under _build/test is an accepted, documented D-06 exception (Mix's own manifest, no redirect flag, read-only crashes the suite, never read back via --failed)
 - [Phase 225]: Flake Detection repeat count stays 12 after re-deriving from run 36364688861 (headroom still ~17%); only the cited run and ceilings moved
 - [Phase 225]: 225-04: cited CI runs 36808706517/36810081717 vs baseline 36730596489 -> SUITE-02 OVERALL PASS; Flake Detection run 36810083586 pass, raw figures exceeded Plan-03 ceilings, orchestrator-authorized resize (6c4da13f, 287s/228s @ 11 repeats) fits; 225-EVIDENCE.md made fully citation-clean; SUITE-02/SUITE-03 marked Complete
+- [Phase ?]: D-18 fix comments must avoid citing plan decision IDs in lib/ source (release-artifact contract bans packaged planning vocabulary)
+- [Phase ?]: StreamData uniq_list_of/2 on small fixed pools hits the too-many-non-unique-elements guard; use list_of/2 + Enum.uniq/1 instead
+- [Phase ?]: D-01's refactor was scoped to actor_history_page/4 only; timeline_page/2 and row_history_page/4 already delegate to the standalone pure Cursors.timeline_page_next_cursor/2
+- [Phase ?]: KeysetModel.walk_actor_history/2 routes both forward and backward legs through one shared private call site into Cursors.actor_history_page/4
+- [Phase ?]: D-05's actor-history DB test walks the public Threadline.actor_history/2 API directly, then compares both walks to KeysetModel.walk_actor_history/2 on the same fixture, pinning the model to the real SQL
+- [Phase ?]: Oracle reads only fact.fields/mode/extra_after for field_changes; ch's pass-through fields (id, table_*, data_after) are legitimate since ChangeDiff only forwards them unchanged
+- [Phase ?]: Field-name selection uses a fixed-length boolean mask over the 12-name pool, not uniq_list_of, avoiding StreamData's too-many-non-unique-elements guard (226-01 precedent)
+- [Phase ?]: 227-01: DbProperty harness (per-iteration, no Sandbox), DataCase must use PropertyRuns.db/1, mutation-control.sh compares the whole shrunk counterexample
+- [Phase ?]: op-plan generator threads independent per-step action descriptors; property body folds them into the row's current state before each UPDATE
+- [Phase ?]: LeakOracle surfaces list stays open-ended (D-11) so phase 228 can append telemetry:<event> surfaces additively with no change to this module
+- [Phase ?]: 227-03: StorageSchema.table/2 remains string-only (PLAN.md's atom-arg grep was stale); Postgrex jsonb params must bind the raw term, never a pre-encoded Jason string
+- [Phase ?]: 227-04: fixed Retention.purge dry-run transaction under-count (D-20) — dry run now counts transactions a completed purge itself would empty
+- [Phase ?]: 227-04: strengthened RetentionCutoffGenerators with a dedicated ~30% entirely-negative-offsets branch after a mutation control proved unreliable across seeds — generator gap, not control weakness
+- [Phase ?]: 227-05: ceilings re-derived from Flake Detection run 36930385324 (370s cold / 300s repeat), repeat count stays 8
+- [Phase ?]: D-17 strip now: operator-surface events and the health error event lose actor identity / free-text message (228-01)
+- [Phase ?]: error_kind mapping: :exception for any raise, :transaction_failed for a non-exception transaction/completion failure, :storage_error for temp-file read or storage put failure, :client_closed only for the chunked download's chunk write error
+- [Phase ?]: D-08/D-09/D-10/D-11 implemented verbatim: retention purge span opens only after input checks, batch_purged fires per purge_loop step including the terminating empty one, exception path proven against a missing storage schema on the real database
+- [Phase ?]: 228-04: one attach_many across all four D-13 events for the export-side raising-handler case, matching :telemetry 1.4.2's documented all-events-detach-on-failure behavior
+- [Phase ?]: 228-04: the leak mutant's shrunk counterexample surfaces a plain marker (bio), not a canary, since CSV output is already masked/excluded before the mutant forwards it into telemetry
+- [Phase ?]: Repo-query recipe test proves source nil via Repo.insert_all/3 for the host-table case (not raw SQL), since Ecto only attaches :source to Ecto.Query-compiled queries
+- [Phase 228]: 228-06: CI before-run is phase 227's own after run (36929234558), not its before-run baseline (36903609149) -- the strictly-latest successful ci.yml run before this phase's first commit.
+- [Phase 228]: 228-06: Flake Detection not dispatched -- added own cost ~3.4s stays well under the 15s/200s thresholds; Test 6 ceilings left exactly as phase 227 re-derived them.
+- [Phase ?]: history/3 :limit validated before any DB access; nil unbounded; cap applied as the final LIMIT after order_by and scope (229-01)
+- [Phase ?]: Extracted validate!/1 + apply/2 into Threadline.Query.HistoryLimit to keep lib/threadline/query.ex at the repo's 800-line ceiling (229-01)
+- [Phase ?]: D-20 discretion: a cancelled legacy-key probe raises Postgrex.Error (:query_canceled) unchanged out of repo.transaction/1 rather than returning a sentinel
+- [Phase ?]: D-19 dedup: one trigger per {schema, table} picked by the trigger whose name sorts first (Enum.min_by)
+- [Phase ?]: 229-03: legacy_findings_or_hint/2 rescues only Postgrex.Error :query_canceled (D-20 discretion), reraising anything else
+- [Phase ?]: 229-03: 12-cell strict matrix generated at compile time from a module-attribute list rather than 12 hand-copied tests
+- [Phase 229]: 229-04: --all-schemas reports a schema when it has ≥1 coverage row or ≥1 finding — one predicate drives the JSON envelope, table renderer, and strict gate's union
+- [Phase 229]: 229-04: dropped an environment-dependent citext precondition test; fixed a pre-existing Dialyzer unmatched_returns finding in plan 02 code, confirmed not a PLT-cache-miss first
+- [Phase 230]: Route-literal cut left no deferred gap — git grep confirmed non-prose integration tests already exercise the operator routes
+- [Phase 230]: D-06 gate formula fixed before measurement; proven on real runs (SUITE-01 846s, 228's 37018812221 partition extraction)
+- [Phase 230]: D-09 milestone suite-time table assembled for phases 224-230; 224/229 marked local-only, 230/verdict pending plan 04's fresh pre-landing run
+- [Phase 230]: Plan 230-03: ran mix verify.bump_rehearsal after committing the CHANGELOG/upgrade-path content (not before, as literally ordered) because the rehearsal clones HEAD and cannot see uncommitted work.
+- [Phase 230]: Plan 230-03: treated the pre-land privacy-grep whoami/home-path false positives (pre-existing, out-of-scope files) as reviewed non-issues rather than a STOP, since bin/verify-repo-hygiene (the authoritative guard) reports the full tracked tree clean.
 
 ### Blockers
 
@@ -940,8 +997,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-01T04:58:13.820Z
-**Stopped at:** Completed 225-04-PLAN.md
+**Last session:** 2026-10-02T21:24:17.352Z
+**Stopped at:** Completed 230-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
