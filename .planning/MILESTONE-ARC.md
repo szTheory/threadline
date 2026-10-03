@@ -22,6 +22,8 @@ These are quality defects, not new scope. Under the guide §5 they justify miles
 
 ## Ladder to 1.0.0 (estimated 2026-09-25: 6–9 weeks, mid-Nov → early Dec 2026; re-estimated 2026-09-30)
 
+Re-estimate, 2026-10-02: one rung remains (v1.44 took 3 days); v1.45 budgets about 1–2 weeks, so 1.0.0 lands around mid-to-late October 2026.
+
 Re-estimate, 2026-09-30: two rungs remain. v1.42 took about 1 day and v1.43 took 4 days (10 phases). v1.44 and v1.45 carry more product-code work, so we budget about 1–2 weeks each. That puts 1.0.0 around mid-to-late October 2026, and mid-November is now the conservative upper bound.
 
 | Rank | Version | Theme | Release | Status |

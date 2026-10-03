@@ -166,6 +166,11 @@ done earlier, stop earlier.
 This section is the canonical scope sketch per rung. MILESTONE-ARC.md holds
 only the live rank order and status and points back here.
 
+Re-estimate, 2026-10-02 (v1.44 close): one rung remains. v1.43 took 4
+days and v1.44 took 3 (7 phases). v1.45 is the API-contract rung (specs,
+consolidation with deprecations, guides), so budget about 1-2 weeks. That
+puts 1.0.0 around mid-to-late October 2026.
+
 Estimated on 2026-09-25. v1.41 was unusually heavy (153 plans in about 4
 weeks). The rungs below are narrower (about 3-5 phases, roughly 1-2 weeks
 each). The estimated arrival at diminishing returns / 1.0.0 is about 6-9
@@ -207,6 +212,12 @@ v1.43 Supply Chain, CI Economy, and Repo Hygiene -> patch
     that contain absolute local paths. No history rewrite.
 
 v1.44 Behavioral Depth: Properties, Twins, Telemetry -> minor
+  [SHIPPED 2026-10-02 as 0.12.0 in 3 days; properties, telemetry,
+   history/3 :limit, health --strict/--all-schemas and partitioned CI
+   shipped (-40.1% net test step). REJECTED on research: gen.backfill,
+   :invalid_config finding, query telemetry, telemetry from mix tasks.
+   DEFERRED to v1.45: bounded default limit for history/3. Carried:
+   partition-weight refresh; see milestones/v1.44-MILESTONE-AUDIT.md]
   - Property tests where the invariants live:
     - cursor paging (pages joined == full list)
     - as_of == replayed history
@@ -258,7 +269,11 @@ list forward.
   the seams really are.
 - Property-based tests are deliberate. Use them only where an invariant and
   a large input space meet (identifiers, cursors, diffs, redaction,
-  retention, encoding). Keep them bounded in runtime.
+  retention, encoding). Keep them bounded in runtime. Each one ships with a
+  recorded mutation control (v1.44: they found 3 real defects).
+- Derived test data drifts silently. When a phase adds or cuts test files,
+  it refreshes partition weights and re-runs the verifier after review
+  fixes, in the same phase (v1.44 lesson).
 - Digital twins: the example host app and the hex evaluator act as adopter
   twins. Grow them with the common-denominator table shapes (§4). Do not
   add a twin without a concrete failure mode it would catch.
