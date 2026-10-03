@@ -533,3 +533,48 @@ The gate formula fixed above (Gate, D-06) was applied as written:
 - `git log -1 --format=%s origin/main`: `feat!: add export and retention telemetry, a history limit, and strict coverage checks (#73)`.
 - The body carries exactly 3 `BREAKING CHANGE:` footers.
 - The branch was not deleted.
+
+### Release
+
+Release PR #74 (`chore(main): release 0.12.0`)
+- Head preflighted read-only: `52074af522f1585ccb984699ebe58f12214f1ca7`.
+  - `mix.exs` has `@version "0.12.0"`.
+  - `.release-please-manifest.json` has `".": "0.12.0"`.
+  - CHANGELOG.md has `## [0.12.0] - 2026-10-02`.
+  - The new 0.12.0 section of CHANGELOG-GENERATED.md has a `### ⚠ BREAKING CHANGES` heading.
+  - The planning-ID / milestone-literal grep over the generated section returned 0 hits.
+- `CI required` passed (pull_request run `37083473866`).
+- Merged with `--match-head-commit 52074af5…`; merge commit on main is `79dd190f742d1691db000c7c265524bd43f65954`.
+
+Release run `37084163662` (push on `79dd190f`), job conclusions:
+- Release Please: success
+- Select release ref: success
+- Verify CI is green on release SHA: success
+- Publish to Hex.pm: success
+- Smoke test the published release (threadline from hex.pm): success
+- Post-publish distribution sync: success
+- Bootstrap/sync-pins jobs: skipped (expected for a release-PR merge whose pins already synced)
+
+`production-hex` approval
+- Approved by the orchestrator under the maintainer's named grant (item 5, "publish to hex by approving production-hex").
+- Call: `gh api -X POST …/actions/runs/37084163662/pending_deployments -F 'environment_ids[]=20753768806' -f state=approved`.
+- The approving account is the maintainer's `gh` identity.
+
+Published artifacts
+- hex.pm: `GET https://hex.pm/api/packages/threadline/releases/0.12.0` returns `"version":"0.12.0"`, inserted `2026-10-03T01:08:48Z`. The package's `latest_stable_version` is `0.12.0`.
+- GitHub release: `gh release view v0.12.0` returns tag `v0.12.0`, published `2026-10-03T00:57:10Z`.
+
+Distribution sync PR #75 (`chore(release): sync distribution docs for 0.12.0`)
+- `CI required` passed.
+- Merged with `--match-head-commit 1c206e3c…` and `--delete-branch`; merge commit on main is `0d6f36f1a7f6d014d415518a4fa2d235b66a9cf8`.
+- `gh pr view 75 --json state` returns `MERGED`. The plan's `gh pr list --state merged --search …` check returned 0 right after the merge because GitHub's search index hadn't caught up yet. `gh pr view` is the direct read.
+
+REL-01 pin evidence
+- See "Latest-lane pin re-check" above.
+- Elixir 1.20.4, OTP 29.1.1 and PostgreSQL 18.6 were each re-checked against builds.hex.pm and Docker Hub at landing, and all were current.
+
+Deviations, recorded honestly:
+1. **Breaking-change notes merged into one bullet.** The generated 0.12.0 notes (CHANGELOG-GENERATED.md and the GitHub release) list the three breaking changes as ONE bullet under `### ⚠ BREAKING CHANGES`, not three. Release Please collapses every `BREAKING CHANGE:` footer of a single commit into one note. All three changes are named, verbatim, in that bullet. The hand-written CHANGELOG.md keeps them as three separate entries, each with its `Fix:` line. Plan 04 Task 3 step 2 expected "three items". The orchestrator judged this a presentation difference, not missing content, and merged under the grant rather than stopping a granted release over it.
+2. **Release dates differ between the two changelogs.** CHANGELOG.md's heading is dated `2026-10-02`, the maintainer's local date and the UTC date at the pre-push re-date check. Release Please dated the generated section `2026-10-03`, because UTC rolled over a few minutes after the push. No contract test failed: the release PR's CI was green.
+
+No milestone tag was created, and `/gsd-audit-milestone` and `/gsd-complete-milestone` were not run (D-14).
