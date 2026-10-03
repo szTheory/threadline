@@ -34,6 +34,16 @@ defmodule Threadline.FacadeOnlyReferencesContractTest do
   # by a dot and must never trip this guard.
   @bare_alias_regex ~r/alias\s+Threadline\.(?:Query|Investigation)\b(?!\.)/
 
+  # Bare module mention: a heading or prose sentence that just names the
+  # hidden module with no following `.function(...)` call, no backtick
+  # `Module.fun/N` reference, and no `alias` keyword — e.g.
+  # `## Timeline and Threadline.Query`. Excludes a following `.word` (a
+  # dotted call/reference, handled by @backtick_regex / @call_regex), a
+  # following `.{` (a struct-group alias such as
+  # `alias Threadline.Investigation.{IncidentBundle, ...}`), and a following
+  # `(` (a call with no dot, defensive).
+  @bare_module_mention_regex ~r/\bThreadline\.(?:Query|Investigation)\b(?!\.\w|\.\{|\s*\()/
+
   # Exact-match allowlist. "timeline_query_x" or "timeline_query2" must NOT
   # match "timeline_query" — this is membership, never a prefix check.
   @allowed_functions ["timeline_query"]
@@ -74,6 +84,20 @@ defmodule Threadline.FacadeOnlyReferencesContractTest do
     |> Enum.with_index(1)
     |> Enum.flat_map(fn {line, line_no} ->
       Regex.scan(@bare_alias_regex, line)
+      |> Enum.map(fn [full | _] -> {label, line_no, full} end)
+    end)
+  end
+
+  # Given a label and its content, returns {label, line_number, matched_text}
+  # for every bare module mention of the hidden modules (dotted calls,
+  # backtick references, struct-group aliases, and `alias` statements
+  # excluded — those are handled by the other three detectors).
+  defp bare_module_mentions(label, content) do
+    content
+    |> String.split("\n")
+    |> Enum.with_index(1)
+    |> Enum.flat_map(fn {line, line_no} ->
+      Regex.scan(@bare_module_mention_regex, line)
       |> Enum.map(fn [full | _] -> {label, line_no, full} end)
     end)
   end
@@ -121,6 +145,33 @@ defmodule Threadline.FacadeOnlyReferencesContractTest do
                {"a.md", 2, "Threadline.Investigation.row_history("},
                {"b.md", 1, "`Threadline.Query.timeline_a/2`"}
              ]
+    end
+  end
+
+  describe "self-test (bare module mention fixture, non-vacuous)" do
+    test "flags a bare heading mention but not a dotted call, backtick ref, or struct-group alias" do
+      fixture = """
+      ## Timeline and Threadline.Query
+
+      See `Threadline.Investigation.row_history/4` for the full history.
+      changes = Threadline.Query.timeline(recent)
+      alias Threadline.Investigation.{IncidentBundle, IncidentChange, LinkedChange}
+      alias Threadline.Query
+      """
+
+      found = bare_module_mentions("fixture", fixture)
+      matched_texts = Enum.map(found, fn {_label, _line, full} -> full end)
+
+      assert "Threadline.Query" in matched_texts
+
+      # The bare `alias Threadline.Query` line has no following dot/paren
+      # either, so it also matches this detector — that's fine, it's a
+      # second independent signal on the same line already caught by
+      # @bare_alias_regex via bare_aliases/2, not a false positive.
+      assert length(found) == 2
+
+      refute Enum.any?(matched_texts, &(&1 == "Threadline.Investigation.row_history"))
+      refute Enum.any?(matched_texts, &String.contains?(&1, "Investigation.{"))
     end
   end
 
@@ -179,6 +230,31 @@ defmodule Threadline.FacadeOnlyReferencesContractTest do
       fixture = "alias Threadline.Query\n"
 
       assert [{"fixture", 1, "alias Threadline.Query"}] = bare_aliases("fixture", fixture)
+    end
+
+    test "has zero bare module mentions of the hidden modules (extend the scanner otherwise)" do
+      found =
+        scope_files()
+        |> Enum.flat_map(fn path ->
+          bare_module_mentions(relative(path), File.read!(path))
+        end)
+        |> Enum.sort_by(fn {label, line_no, _full} -> {label, line_no} end)
+
+      assert found == [], """
+      Found a bare mention of a hidden module (Threadline.Query or \
+      Threadline.Investigation) with no following call/backtick/alias form \
+      (e.g. a heading or prose sentence naming the module directly) — rewrite \
+      to name the Threadline facade function instead:
+
+      #{format_offenders(found)}
+      """
+    end
+
+    test "the bare-module-mention guard does not flag a struct-group alias fixture" do
+      fixture =
+        "alias Threadline.Investigation.{IncidentBundle, IncidentChange, LinkedChange}\n"
+
+      assert bare_module_mentions("fixture", fixture) == []
     end
   end
 end

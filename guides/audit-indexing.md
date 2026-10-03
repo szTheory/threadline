@@ -41,7 +41,7 @@ Primary keys: `audit_transactions.id`, `audit_changes.id`, `audit_actions.id`. F
 
 Each subsection below uses a **“Tables & modules”** box naming the entry points that must stay aligned with physical tuning.
 
-## Timeline and Threadline.Query
+## Timeline and Threadline.timeline/2
 
 **Tables & modules**
 
