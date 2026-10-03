@@ -4,16 +4,16 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 231
 current_phase_name: Facade Topology and the Capture/Semantics Edge
-status: planning
-stopped_at: Phase 231 context gathered
-last_updated: "2026-10-03T13:21:49.296Z"
+status: ready_to_execute
+stopped_at: Phase 231 planned (3 plans, 3 waves)
+last_updated: "2026-10-03T13:48:01.633Z"
 last_activity: 2026-10-03
-last_activity_desc: Phase 231 context gathered (4 advisor areas, 13 decisions)
-state_head: 1059931bb39d31e40c1608e6743ea77e61afeb13
+last_activity_desc: Phase 231 planned (3 plans in 3 sequential waves; checker 0 blockers)
+state_head: 0e5eda11fbd208b5e24e9f6a1c7fc353ae20c097
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
   percent: 0
 ---
@@ -25,16 +25,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-02 after v1.44 milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** v1.45 1.0 API Contract — roadmap created (phases 231-237, 25/25 requirements mapped); next Phase 231 Facade Topology and the Capture/Semantics Edge
+**Current focus:** v1.45 1.0 API Contract — Phase 231 planned (3 plans); next execute Phase 231 Facade Topology and the Capture/Semantics Edge
 
 ## Current Position
 
-Phase: 231 of 231-237 (Facade Topology and the Capture/Semantics Edge) — not started
-Plan: —
-Status: Ready to discuss (roadmap created, no plans yet)
-Last activity: 2026-10-03 — v1.45 roadmap created (7 phases, 231-237; 25/25 requirements mapped)
+Phase: 231 of 231-237 (Facade Topology and the Capture/Semantics Edge) — READY TO EXECUTE
+Plan: 0 of 3
+Status: Ready to execute (3 plans, 3 sequential waves)
+Last activity: 2026-10-03 — Phase 231 planned (research, pattern map, 3 plans, checker passed with 3 advisory warnings)
 
-v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; 0/0 plans; plan counts set at each /gsd-plan-phase)
+v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; 0/3 plans so far; plan counts set at each /gsd-plan-phase)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 

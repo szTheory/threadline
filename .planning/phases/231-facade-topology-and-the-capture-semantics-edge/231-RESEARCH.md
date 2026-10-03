@@ -362,12 +362,13 @@ defmodule Threadline.AuditIndexingDocContractTest do
 
 **If this table is empty:** N/A — two low-risk organizational assumptions remain; neither affects correctness of SC1–SC5.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact name and location of the hydrate helper function**
    - What we know: D-08 specifies its contract (accepts transaction/list/changes-with-transaction, dedupes, one `IN` query, threads storage opts) and leaves "stays inside `query.ex` or becomes a hidden submodule" to Claude's discretion.
    - What's unclear: The literal function name/arity isn't fixed by CONTEXT.md.
    - Recommendation: Planner should name it something like `hydrate_action/2` or `hydrate_actions/2` inside `Threadline.Query`, `@doc false`, and have `preload_investigation_context/3` (currently at `query.ex:106-110`) call it, since that function already has the exact `[transaction: :action]` shape and is the natural first caller to convert.
+   - RESOLVED: `Threadline.Query.hydrate_actions/3` (hidden, inside `query.ex`), called first from `preload_investigation_context/3` — see 231-01-PLAN.md Task 1.
 
 ## Environment Availability
 
