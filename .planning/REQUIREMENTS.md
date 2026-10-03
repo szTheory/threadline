@@ -28,20 +28,20 @@
   - Export and `as_of` stay unbounded, proven by a test.
   - v1.44 properties that read history are updated explicitly to pass `limit: :infinity` or walk the cursor.
 - [x] **API-02**: An adopter can tell `actor_history/2` (transactions) from `actor_window/3` (cross-table changes). Each `@doc` states its return type first and cross-links the other function, and a doc-contract test pins both.
-- [ ] **API-03**: Every paged read returns the same `%Threadline.Page{entries, cursor, has_more}` struct, which replaces `TimelinePage` and `ActorHistoryPage`. `timeline/2` and `timeline_page/2` remain the only deliberate pair of names; no third naming pattern exists on the facade.
+- [x] **API-03**: Every paged read returns the same `%Threadline.Page{entries, cursor, has_more}` struct, which replaces `TimelinePage` and `ActorHistoryPage`. `timeline/2` and `timeline_page/2` remain the only deliberate pair of names; no third naming pattern exists on the facade.
 - [x] **API-04**: The adopter's docs contain one read API.
   - `Threadline.Query` and `Threadline.Investigation` are `@moduledoc false`.
   - `Threadline.Query.timeline_query/1` is the one documented escape hatch, linked from the `Threadline` moduledoc.
   - The three guides that call the hidden modules (`audit-indexing`, `how-threadline-works`, `code-walkthrough`) call `Threadline.*` instead.
   - `public_surface_contract_test.exs` pins the hidden set.
-- [ ] **API-05**: Internal helpers no longer appear in the adopter's docs. This covers the `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and any module without a moduledoc, such as `Threadline.Export.CSV`. Before hiding a name, guides, the README and the example app are grepped for it, and every hit is rewritten in the same change.
+- [x] **API-05**: Internal helpers no longer appear in the adopter's docs. This covers the `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and any module without a moduledoc, such as `Threadline.Export.CSV`. Before hiding a name, guides, the README and the example app are grepped for it, and every hit is rewritten in the same change.
 - [ ] **API-06**: Single-subject lookups behave the same way everywhere. `audit_transaction/2` and `transaction_context/2` return `{:ok, _}` or `{:error, :not_found}`, matching `incident_bundle/2`. New siblings `audit_transaction!/2` and `transaction_context!/2` raise. Not-found and present cases are tested for all four.
 - [x] **API-07**: The capture layer no longer depends on the semantics layer at compile time.
   - `AuditTransaction` drops `belongs_to :action` and `AuditAction` drops `has_many :transactions`.
   - An exploration-layer helper hydrates `transaction.action`, so every existing call-site assertion on `.action` passes unchanged.
   - The `action_id` column and its foreign key are untouched.
   - A test asserts that neither schema declares an association to the other.
-- [ ] **API-08**: An adopter on a retired name gets a working call and one compiler warning naming the replacement.
+- [x] **API-08**: An adopter on a retired name gets a working call and one compiler warning naming the replacement.
   - Each retired entry point (`history/3`, `row_history/4`, `row_history_page/4`, and the filters-as-positional-argument shapes, on every module that exposed them) is a pure one-line `@deprecated` delegate.
   - Each has a parity test against its replacement and a spec that matches the replacement's (not `term()`).
   - `@doc since: "1.0.0"` marks the replacements.
@@ -143,12 +143,12 @@
 |-------------|-------|--------|
 | API-01 | Phase 232 | Complete |
 | API-02 | Phase 232 | Complete |
-| API-03 | Phase 232 | Pending |
+| API-03 | Phase 232 | Complete |
 | API-04 | Phase 231 | Complete |
-| API-05 | Phase 232 | Pending |
+| API-05 | Phase 232 | Complete |
 | API-06 | Phase 233 | Pending |
 | API-07 | Phase 231 | Complete |
-| API-08 | Phase 232 | Pending |
+| API-08 | Phase 232 | Complete |
 | SPEC-01 | Phase 234 | Pending |
 | SPEC-02 | Phase 234 | Pending |
 | SPEC-03 | Phase 234 | Pending |

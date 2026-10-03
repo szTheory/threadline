@@ -4,17 +4,17 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 232
 current_phase_name: Consolidated Reads, Deprecations and the Bounded Default
-status: executing
-stopped_at: Completed 232-05-PLAN.md
-last_updated: "2026-10-03T20:57:44.387Z"
+status: verifying
+stopped_at: Completed 232-06-PLAN.md
+last_updated: "2026-10-03T21:30:07.193Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 232 execution started
-state_head: b1c01a6d3dbe6a4e57036f9f2be084d393550b55
+state_head: acd0389a3ada5e194213a848f4fee55d48bcf6f4
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 14
 ---
 
@@ -29,10 +29,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 231)
 
 ## Current Position
 
-Phase: 232 (Consolidated Reads, Deprecations and the Bounded Default) — EXECUTING
+Phase: 232 (Consolidated Reads, Deprecations and the Bounded Default) — READY FOR VERIFICATION
 Plan: 6 of 6
-Status: Ready to execute
-Last activity: 2026-10-03 — 232-05 complete (every test/ and example-app caller of history/3, Query.history/3, row_history_page/actor_window_page/correlation_bundle_page migrated onto row_history/3, RowReads.audit_changes/3, or cursor: paging on the base function, via new Threadline.Test.RowHistory helper; as_of_property_test.exs's :limit-prefix property reads an explicit limit: :infinity baseline; full mix test --warnings-as-errors and mix verify.example both clean; API-01 marked Complete, API-08 stays blocked on 232-06). Prior: 232-04 (every retired read entry point — history/3, row_history/4, row_history_page/2,3,4, actor_window_page/1,2,3, correlation_bundle_page/1,2,3 — across Threadline, Threadline.Query and Threadline.Investigation is now a specced, documented, one-line @deprecated delegate onto its canonical replacement; deprecation_parity_test.exs pins the exact __info__(:deprecated) inventory + spec/doc presence on all three modules; lib/ and test/support compile clean under --warnings-as-errors; full mix test and mix verify.example stay green), 232-03 (Threadline.row_history/3 — 200-row bounded default, limit:/cursor: overrides, exact truncation telemetry, D-12 arity-split deprecation on row_history/4, cursor: paging on actor_window/3 and correlation_bundle/3, unbounded export/as_of/drawer proof), 232-01 (Threadline.Page, exact has_more, TimelinePage deleted), 232-02 (actor_history/2 Page + legacy-option deprecation, API-02 doc contract).
+Status: Phase complete — ready for verification
+Last activity: 2026-10-03 — 232-06 complete (every Threadline.Telemetry.emit_* function and Threadline.Query.export_changes_query/1,2 moved to @doc false, pinned by public_surface_contract_test.exs alongside a general no-:none-moduledoc rule; facade_only_references_contract_test.exs widened with @hidden_name_regex/@retired_name_regex detectors and fixture self-tests, no per-file exemption; README.md and seven guides — including both upgrade guides, upgrading-to-0.11.md and upgrade-path.md, kept historically truthful without spelling the retired name — rewritten onto Threadline.row_history/3; new facade_naming_contract_test.exs pins timeline/timeline_page as the only paired base/_page name (D-19/SC3) plus since 1.0.0 / :deprecated metadata (D-11), mutation-control verified live; partition weights + CHANGELOG entry added; resolved the 232-01 deferred audit-indexing heading mismatch; 2 Rule-3 pre-existing formatting fixes (row_history_test.exs, incident_replay.exs); full mix ci.all green (317 passed/1 flaky-retried/26 skipped browser lane matching the 318/0/26 baseline). API-05, API-03, API-08 marked Complete; phase 232 fully executed, awaiting verification). Prior: 232-05 (every test/ and example-app caller of history/3, Query.history/3, row_history_page/actor_window_page/correlation_bundle_page migrated onto row_history/3, RowReads.audit_changes/3, or cursor: paging on the base function, via new Threadline.Test.RowHistory helper; as_of_property_test.exs's :limit-prefix property reads an explicit limit: :infinity baseline; full mix test --warnings-as-errors and mix verify.example both clean; API-01 marked Complete). 232-04 (every retired read entry point — history/3, row_history/4, row_history_page/2,3,4, actor_window_page/1,2,3, correlation_bundle_page/1,2,3 — across Threadline, Threadline.Query and Threadline.Investigation is now a specced, documented, one-line @deprecated delegate onto its canonical replacement; deprecation_parity_test.exs pins the exact __info__(:deprecated) inventory + spec/doc presence on all three modules; lib/ and test/support compile clean under --warnings-as-errors; full mix test and mix verify.example stay green), 232-03 (Threadline.row_history/3 — 200-row bounded default, limit:/cursor: overrides, exact truncation telemetry, D-12 arity-split deprecation on row_history/4, cursor: paging on actor_window/3 and correlation_bundle/3, unbounded export/as_of/drawer proof), 232-01 (Threadline.Page, exact has_more, TimelinePage deleted), 232-02 (actor_history/2 Page + legacy-option deprecation, API-02 doc contract).
 
 v1.45 Progress: [█░░░░░░░░░] 1 of 7 v1.45 phases complete (14%) (231-237; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -266,6 +266,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 232 P03 | ~3h | 3 tasks | 14 files |
 | Phase 232 P04 | ~1h10min | 2 tasks | 10 files |
 | Phase 232 P05 | ~55min | 3 tasks | 14 files |
+| Phase 232 P06 | ~31min | 3 tasks | 22 files |
 
 ## Deferred Items
 
@@ -997,6 +998,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 232]: Investigation.row_history/4 deprecation message corrected to name Threadline.row_history/3 (not the hidden module's own name), matching the uniform D-11 message rule
 - [Phase 232]: Facade *_page deprecated delegates reroute through the facade's own base function (row_history/3, actor_window/3, correlation_bundle/3) instead of the now-deprecated Investigation *_page, avoiding a deprecated-calling-deprecated chain
 - [Phase 232]: query_test.exs's three history/3-specific :limit assertions were rewritten against row_history/3's actual (different) behavior: limit: nil now raises, and row-key matching precedes :limit validation (reverse of history/3's order); history/3's own behavior stays pinned by Plan 04's deprecation_parity_test.exs
+- [Phase 232]: 232-06: hid Telemetry emit_* and Query.export_changes_query from docs; widened the facade-only scanner with hidden/retired-name detectors (no exemption); rewrote guides/README/upgrade guides onto row_history/3; facade_naming_contract_test.exs pins timeline/timeline_page as the sole paired name; mix ci.all green
 
 ### Blockers
 
@@ -1012,8 +1014,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-03T20:57:44.350Z
-**Stopped at:** Completed 232-05-PLAN.md
+**Last session:** 2026-10-03T21:30:07.144Z
+**Stopped at:** Completed 232-06-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
