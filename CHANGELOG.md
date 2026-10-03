@@ -68,6 +68,12 @@ and `Threadline.incident_bundle/2`.
   action: pass `limit: :infinity` if you relied on the previous unbounded
   default.
 
+- The `Threadline.Telemetry` `emit_*` functions and
+  `Threadline.Query.export_changes_query/1,2` no longer appear in the
+  generated docs. They were internal helpers, not part of the supported API,
+  and remain callable but unsupported. Required action: none for adopters
+  using the documented API.
+
 ### Deprecations
 
 - Passing `:action` (or `transaction: :action`) in the `:preload` option of

@@ -10,6 +10,7 @@
 64 test/mix/tasks/threadline/gen_row_history_index_test.exs
 116 test/mix/tasks/threadline/gen_triggers_test.exs
 31 test/mix/tasks/threadline/install_test.exs
+10 test/threadline/actor_reads_doc_contract_test.exs
 0 test/threadline/adoption_evidence_playbook_doc_contract_test.exs
 0 test/threadline/adoption_pilot_doc_contract_test.exs
 0 test/threadline/application_test.exs
@@ -63,6 +64,7 @@
 1 test/threadline/critic_trust/ledger_splice_test.exs
 29 test/threadline/critic_trust/measure_test.exs
 29 test/threadline/dep_floor_guard_test.exs
+1800 test/threadline/deprecation_parity_test.exs
 6 test/threadline/deps_audit_contract_test.exs
 4412 test/threadline/deps_audit_gate_test.exs
 2 test/threadline/deps_health_doc_contract_test.exs
@@ -83,6 +85,7 @@
 6 test/threadline/export_queue/oban_test.exs
 57 test/threadline/export_queue/task_adapter_test.exs
 186 test/threadline/export_test.exs
+20 test/threadline/facade_naming_contract_test.exs
 303 test/threadline/flake_classifier_contract_test.exs
 287 test/threadline/formatter_topology_contract_test.exs
 2 test/threadline/getting_started_fixtures_test.exs
@@ -169,6 +172,7 @@
 22 test/threadline/operator_surface/ui_test.exs
 1 test/threadline/operator_surface_doc_contract_test.exs
 36 test/threadline/optional_deps_contract_test.exs
+200 test/threadline/page_test.exs
 0 test/threadline/performance_doc_contract_test.exs
 0 test/threadline/persona_routing_doc_contract_test.exs
 19 test/threadline/planning_dependency_contract_test.exs
@@ -200,6 +204,7 @@
 55 test/threadline/retention/pruner_test.exs
 329 test/threadline/retention_test.exs
 177 test/threadline/row_history_focus_evidence_contract_test.exs
+1800 test/threadline/row_history_test.exs
 0 test/threadline/semantics/actor_ref_test.exs
 71 test/threadline/semantics/audit_action_test.exs
 0 test/threadline/semver_adopter_doc_contract_test.exs
