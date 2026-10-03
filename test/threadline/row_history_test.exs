@@ -169,7 +169,8 @@ defmodule Threadline.RowHistoryTest do
           insert_change(txn, %{table_pk: table_pk, captured_at: tie_time})
         end
 
-      older = insert_change(txn, %{table_pk: table_pk, captured_at: DateTime.add(tie_time, -1, :second)})
+      older =
+        insert_change(txn, %{table_pk: table_pk, captured_at: DateTime.add(tie_time, -1, :second)})
 
       [first, second, third] = Threadline.row_history(FakeUser, "row-tie-break", repo: @repo)
 
@@ -195,7 +196,11 @@ defmodule Threadline.RowHistoryTest do
       deprecated_row_history_args = [FakeUser, "row-deprecated-unbounded", [], [repo: @repo]]
       results = apply(Threadline, :row_history, deprecated_row_history_args)
 
-      unbounded = Threadline.row_history(FakeUser, "row-deprecated-unbounded", repo: @repo, limit: :infinity)
+      unbounded =
+        Threadline.row_history(FakeUser, "row-deprecated-unbounded",
+          repo: @repo,
+          limit: :infinity
+        )
 
       assert length(results) == 250
       assert Enum.map(results, & &1.audit_change.id) == Enum.map(unbounded, & &1.audit_change.id)
@@ -209,9 +214,12 @@ defmodule Threadline.RowHistoryTest do
 
       deprecated_args = [FakeUser, "row-api08-empty-compare", [], [repo: @repo]]
       via_deprecated = apply(Threadline, :row_history, deprecated_args)
-      via_new = Threadline.row_history(FakeUser, "row-api08-empty-compare", limit: :infinity, repo: @repo)
 
-      assert Enum.map(via_deprecated, & &1.audit_change.id) == Enum.map(via_new, & &1.audit_change.id)
+      via_new =
+        Threadline.row_history(FakeUser, "row-api08-empty-compare", limit: :infinity, repo: @repo)
+
+      assert Enum.map(via_deprecated, & &1.audit_change.id) ==
+               Enum.map(via_new, & &1.audit_change.id)
 
       no_history_args = [FakeUser, "row-api08-no-history-at-all", [], [repo: @repo]]
       assert apply(Threadline, :row_history, no_history_args) == []
@@ -310,7 +318,12 @@ defmodule Threadline.RowHistoryTest do
       page_count = page_count + 1
 
       if page.has_more do
-        walk_counting_pages(schema_module, id, Keyword.put(opts, :cursor, page.cursor), page_count)
+        walk_counting_pages(
+          schema_module,
+          id,
+          Keyword.put(opts, :cursor, page.cursor),
+          page_count
+        )
       else
         {page_count, page}
       end
