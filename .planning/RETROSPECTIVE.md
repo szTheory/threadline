@@ -1261,8 +1261,56 @@ First-class light mode for the operator surface without disturbing the dark defa
 - Model mix: opus for planning and orchestration. From 2026-09-28 the light-tier agents were pinned to sonnet through `model_overrides`.
 - Notable: about 7 paid runner-hours were approved for measurement top-ups in phase 219. Phase 222 avoided building a classifier by re-measuring first.
 
+## Milestone: v1.44 — Behavioral Depth: Properties, Twins, Telemetry
+
+**Shipped:** 2026-10-02 (released as 0.12.0)  
+**Phases:** 7 (224–230) | **Plans:** 33
+
+### What was built
+
+- The capture rollback fix: a `gen.triggers` rerun chain leaves a clean `pg_proc`, proven by a DB-backed property. The bench project now compiles bare.
+- Weighted partitioned CI (`bin/ci-test-partitions`): the test step sum fell from 846 s to 507 s (-40.1%), net of every test the milestone added.
+- Pure properties: cursor paging, ChangeDiff, redaction policy and export round-trip. DB-backed properties: no redaction leak, exact `as_of`, and retention cutoff and dry-run agreement, run through `Threadline.Test.DbProperty`. All are mutation-controlled and run under the `PropertyRuns` budget.
+- A leak-checked 14-event `Threadline.Telemetry` registry with `guides/telemetry.md`.
+- `history/3` `:limit`, `Health.legacy_key_findings/1`, and `health.coverage --strict`/`--all-schemas`.
+- A KEEP/CUT rubric for guard tests, under which 34 prose-to-literal assertions were cut.
+
+### What worked
+
+- Property tests found real bugs, not just coverage: a bare-CR CSV defect, a retention dry-run under-count, and silent redaction misconfiguration. The PROP-07 under-count surfaced in the research probes before the assertion was even switched on.
+- Mutation controls again kept each new property honest. 13 of them for PROP-04/06/07 alone are cited in one evidence document.
+- One `feat!:` squash landing (#73), gated on its own CI run's SUITE-06 check, replaced v1.43's cherry-pick `land/*` branches. Release, publish and sync all went through on first try under a named grant.
+- Research-led scope cuts held: `gen.backfill`, `:invalid_config` and query telemetry were each declined with a recorded reason, not quietly dropped.
+
+### What was inefficient
+
+- Phase 225's partitioned CI took 15 PR runs to go green, through checkout-sharing contention, the partition timeout, SIGPIPE under `pipefail`, and the ExUnit 1.19 summary format.
+- The partition weight table was never regenerated after 13 property-test files landed, so 10 of them run on the median-weight fallback. Phase 230 trimmed dead lines but did not re-run `--write-weights`.
+- Review-fix passes landing after VERIFICATION.md left 4 of 7 phase digests `stale` at close. The code was unchanged from what passed CI, but the readiness check needed an override.
+- The local suite wall clock rose (137 s to 151 s) even as CI time fell. Local timing is too noisy to gate on.
+
+### Patterns established
+
+- Every property ships with a mutation control and a bounded run budget. Scale goes up only on the weekly Flake Detection lane.
+- DB properties isolate per iteration without the SQL Sandbox, because triggers need committed transactions.
+- Telemetry metadata goes through one registry with an allowlist, a static scan and a doc-parity test derived from `__events__/0`.
+- Guard tests are kept or cut by a written rubric in CONTRIBUTING.
+
+### Key lessons
+
+1. When tests are added, refresh any derived test-balance data (partition weights) in the same phase. A fallback default hides the drift.
+2. Re-run the verifier after a review-fix pass, or record the digest refresh, so close-time readiness reads `passed` instead of `stale`.
+3. A property's research probes are themselves a bug-finding tool. Run them before switching on the agreement assertion.
+
+### Cost observations
+
+- Model mix: Opus for planning, orchestration and execution. Light-tier agents (integration checker, plan checker, Nyquist auditor, mappers) were pinned to Sonnet.
+- Timeline: 3 days (2026-09-30 → 2026-10-02) for 7 phases and 260 commits, the fastest product-code rung so far.
+- Notable: Flake Detection was sized from measured scale-5 runs: the repeat count went from 11 to 8 to fit the unchanged 55-minute budget.
+
 ## Cross-Milestone Trends
 
+- v1.44 shows property tests paying for themselves on their first milestone: three real defects were found and fixed, each guarded by a mutation control. It also shows that derived test data (partition weights) and verification digests drift silently unless the phase that invalidates them refreshes them.
 - v1.43 shows that measure-first also works as a way to decline work: the SEED-006 classifier was closed on data, and a phase that did not move the critical path took no credit for it. It also showed that release hygiene is part of shipping: a correct fix under a non-releasable squash subject never reaches adopters.
 - v1.42 shows the value of landing a milestone within days of finishing it: the release came out exactly as proposed, and PR CI (fresh database) caught what local gates could not.
 - v1.39 shows a non-feature "consolidation" milestone (quality audit → schema/docs/CI hardening → ranked residual register) can ship as a first-class milestone when surface area has outgrown its trust evidence.
