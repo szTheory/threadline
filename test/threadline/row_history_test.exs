@@ -195,8 +195,26 @@ defmodule Threadline.RowHistoryTest do
       deprecated_row_history_args = [FakeUser, "row-deprecated-unbounded", [], [repo: @repo]]
       results = apply(Threadline, :row_history, deprecated_row_history_args)
 
+      unbounded = Threadline.row_history(FakeUser, "row-deprecated-unbounded", repo: @repo, limit: :infinity)
+
       assert length(results) == 250
+      assert Enum.map(results, & &1.audit_change.id) == Enum.map(unbounded, & &1.audit_change.id)
       assert Enum.all?(results, &match?(%LinkedChange{}, &1))
+    end
+
+    test "row_history/4 with filters [] equals row_history/3 with limit: :infinity; a row with no history returns []" do
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-api08-empty-compare"}
+      insert_n_changes(txn, table_pk, 3)
+
+      deprecated_args = [FakeUser, "row-api08-empty-compare", [], [repo: @repo]]
+      via_deprecated = apply(Threadline, :row_history, deprecated_args)
+      via_new = Threadline.row_history(FakeUser, "row-api08-empty-compare", limit: :infinity, repo: @repo)
+
+      assert Enum.map(via_deprecated, & &1.audit_change.id) == Enum.map(via_new, & &1.audit_change.id)
+
+      no_history_args = [FakeUser, "row-api08-no-history-at-all", [], [repo: @repo]]
+      assert apply(Threadline, :row_history, no_history_args) == []
     end
 
     test "Threadline.__info__(:deprecated) contains {:row_history, 4} and not {:row_history, 2} or {:row_history, 3}" do
