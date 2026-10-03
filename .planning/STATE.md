@@ -5,11 +5,11 @@ milestone_name: 1.0 API Contract
 current_phase: 232
 current_phase_name: Consolidated Reads, Deprecations and the Bounded Default
 status: planning
-stopped_at: Phase 231 complete, ready to plan Phase 232
-last_updated: "2026-10-03T15:50:03.841Z"
+stopped_at: Phase 232 context gathered
+last_updated: "2026-10-03T16:26:27.607Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 231 complete, transitioned to Phase 232
-state_head: 43f0d081f8fd9c182aada7b5f057b456c05b399e
+state_head: bb6911ca6f1dd8ebd1a112d9ca9145f517b9ff50
 progress:
   total_phases: 7
   completed_phases: 1
@@ -1000,9 +1000,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-03T15:32:38.583Z
-**Stopped at:** Phase 231 complete, ready to plan Phase 232
-**Resume file:** None
+**Last session:** 2026-10-03T16:26:27.574Z
+**Stopped at:** Phase 232 context gathered
+**Resume file:** .planning/phases/232-consolidated-reads-deprecations-and-the-bounded-default/232-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
