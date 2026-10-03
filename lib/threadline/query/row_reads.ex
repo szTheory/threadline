@@ -11,8 +11,10 @@ defmodule Threadline.Query.RowReads do
 
   alias Threadline.Capture.AuditChange
   alias Threadline.Query
+  alias Threadline.Query.Cursors
 
   @default_limit 200
+  @default_page_size 1000
 
   @doc """
   Returns at most `@default_limit` `AuditChange` rows for one schema row,
@@ -47,6 +49,29 @@ defmodule Threadline.Query.RowReads do
         raise ArgumentError,
               ":limit must be a positive integer or :infinity, got: #{inspect(other)}"
     end
+  end
+
+  @doc """
+  Returns one keyset page of `AuditChange` rows for one schema row.
+
+  `opts` must carry `:cursor` (`:start` to begin a walk, or a prior page's
+  `cursor` to continue it) and may carry `:page_size` (positive integer,
+  defaults to #{@default_page_size}).
+  """
+  @spec page(module(), term(), keyword()) :: Threadline.Page.t(AuditChange.t())
+  def page(schema_module, id, opts) when is_list(opts) do
+    repo = Query.timeline_repo!([], opts)
+    page_size = Cursors.timeline_page_size!(Keyword.get(opts, :page_size, @default_page_size))
+    cursor = Cursors.validate_page_cursor!(Keyword.fetch!(opts, :cursor))
+
+    entries =
+      schema_module
+      |> base_query(id, opts)
+      |> Query.maybe_after_timeline_cursor(cursor)
+      |> limit(^(page_size + 1))
+      |> repo.all(Query.storage_opts([], opts))
+
+    Cursors.change_page(entries, page_size)
   end
 
   defp base_query(schema_module, id, opts) do

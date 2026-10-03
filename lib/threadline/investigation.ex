@@ -25,14 +25,21 @@ defmodule Threadline.Investigation do
 
   Returns a bare list of `LinkedChange`, capped at 200 entries by default.
   Pass `limit: n` or `limit: :infinity` to override the cap, or `cursor:` to
-  page through the full history.
+  page through the full history as a `%Threadline.Page{}`.
   """
   def row_history(schema_module, id, opts \\ []) when is_list(opts) do
     validate_row_history_opts!(opts)
+    validate_row_history_mode!(opts)
 
-    schema_module
-    |> RowReads.list(id, opts)
-    |> linked_changes(opts)
+    if Keyword.has_key?(opts, :cursor) do
+      schema_module
+      |> RowReads.page(id, opts)
+      |> linked_page(opts)
+    else
+      schema_module
+      |> RowReads.list(id, opts)
+      |> linked_changes(opts)
+    end
   end
 
   @deprecated "Use Threadline.Investigation.row_history/3 instead."
@@ -54,14 +61,16 @@ defmodule Threadline.Investigation do
     filters =
       validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history_page)
 
-    schema_module
-    |> Query.row_history_page(id, filters, LegacyOpts.cursor(opts))
-    |> linked_page(opts)
+    row_history(schema_module, id, LegacyOpts.cursor(filters ++ opts))
   end
 
   @doc """
   Returns change rows across tables for one actor, ordered by `captured_at`
   descending, then `id` descending.
+
+  Returns a bare list of `LinkedChange` by default. Pass `cursor:` (with
+  optional `page_size:`) to page through the results as a
+  `%Threadline.Page{}` instead.
 
   `filters` accepts timeline filters except `:actor_ref`, which is fixed by the
   helper argument.
@@ -72,27 +81,30 @@ defmodule Threadline.Investigation do
       |> validate_helper_filters!(@allowed_actor_window_filter_keys, :actor_window)
       |> Keyword.put(:actor_ref, actor_ref)
 
-    filters
-    |> Query.timeline(opts)
-    |> linked_changes(opts)
+    if Keyword.has_key?(opts, :cursor) do
+      filters
+      |> Query.timeline_page(opts)
+      |> linked_page(opts)
+    else
+      filters
+      |> Query.timeline(opts)
+      |> linked_changes(opts)
+    end
   end
 
   @doc """
   Returns one keyset page of change rows across tables for one actor.
   """
   def actor_window_page(%ActorRef{} = actor_ref, filters \\ [], opts \\ []) do
-    filters =
-      filters
-      |> validate_helper_filters!(@allowed_actor_window_filter_keys, :actor_window_page)
-      |> Keyword.put(:actor_ref, actor_ref)
-
-    filters
-    |> Query.timeline_page(LegacyOpts.cursor(opts))
-    |> linked_page(opts)
+    actor_window(actor_ref, filters, LegacyOpts.cursor(opts))
   end
 
   @doc """
   Returns change rows linked to one `correlation_id` with strict inner-join semantics.
+
+  Returns a bare list of `LinkedChange` by default. Pass `cursor:` (with
+  optional `page_size:`) to page through the results as a
+  `%Threadline.Page{}` instead.
 
   `filters` accepts timeline filters except `:correlation_id`, which is fixed by
   the helper argument.
@@ -107,9 +119,15 @@ defmodule Threadline.Investigation do
       )
       |> Keyword.put(:correlation_id, correlation_id)
 
-    filters
-    |> Query.timeline(opts)
-    |> linked_changes(opts)
+    if Keyword.has_key?(opts, :cursor) do
+      filters
+      |> Query.timeline_page(opts)
+      |> linked_page(opts)
+    else
+      filters
+      |> Query.timeline(opts)
+      |> linked_changes(opts)
+    end
   end
 
   @doc """
@@ -117,17 +135,7 @@ defmodule Threadline.Investigation do
   """
   def correlation_bundle_page(correlation_id, filters \\ [], opts \\ [])
       when is_binary(correlation_id) do
-    filters =
-      filters
-      |> validate_helper_filters!(
-        @allowed_correlation_bundle_filter_keys,
-        :correlation_bundle_page
-      )
-      |> Keyword.put(:correlation_id, correlation_id)
-
-    filters
-    |> Query.timeline_page(LegacyOpts.cursor(opts))
-    |> linked_page(opts)
+    correlation_bundle(correlation_id, filters, LegacyOpts.cursor(opts))
   end
 
   @doc """
@@ -205,6 +213,23 @@ defmodule Threadline.Investigation do
               "unknown row_history option key #{inspect(key)}. Allowed: #{allowed}"
       end
     end)
+  end
+
+  defp validate_row_history_mode!(opts) do
+    cond do
+      Keyword.has_key?(opts, :limit) and Keyword.has_key?(opts, :cursor) ->
+        raise ArgumentError,
+              "row_history/3 cannot combine :limit with :cursor — pass either :limit " <>
+                "(bare list) or :cursor (Page), not both"
+
+      Keyword.has_key?(opts, :page_size) and not Keyword.has_key?(opts, :cursor) ->
+        raise ArgumentError,
+              "row_history/3's :page_size only applies with :cursor — pass cursor: :start " <>
+                "to page"
+
+      true ->
+        :ok
+    end
   end
 
   defp validate_helper_filters!(filters, allowed_keys, helper_name) when is_list(filters) do

@@ -239,7 +239,9 @@ defmodule Threadline do
   - `:page_size` — positive integer, defaults to `1000`; only valid with
     `:cursor`.
 
-  Unknown option keys raise `ArgumentError` naming the allowed keys.
+  Unknown option keys raise `ArgumentError` naming the allowed keys. The
+  200-row default is not a completeness check — walk `cursor:` or pass
+  `limit: :infinity` to prove the full history was read.
   """
   @doc since: "1.0.0"
   @spec row_history(module(), term(), keyword()) ::
@@ -274,8 +276,15 @@ defmodule Threadline do
   actor made across audited tables, each with its transaction and linked action,
   newest first.
 
+  Pass `cursor:` (with optional `page_size:`) in `opts` to page through the
+  results as a `%Threadline.Page{}` instead of a bare list.
+
   For one row per transaction instead, use `actor_history/2`.
   """
+  @doc since: "1.0.0"
+  @spec actor_window(ActorRef.t(), keyword(), keyword()) ::
+          [Threadline.Investigation.LinkedChange.t()]
+          | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def actor_window(actor_ref, filters \\ [], opts \\ []),
     do: Investigation.actor_window(actor_ref, filters, opts)
 
@@ -286,8 +295,16 @@ defmodule Threadline do
     do: Investigation.actor_window_page(actor_ref, filters, opts)
 
   @doc """
-  Returns change rows linked to one `correlation_id` with strict correlation semantics.
+  Returns change rows linked to one `correlation_id` with strict correlation
+  semantics.
+
+  Pass `cursor:` (with optional `page_size:`) in `opts` to page through the
+  results as a `%Threadline.Page{}` instead of a bare list.
   """
+  @doc since: "1.0.0"
+  @spec correlation_bundle(String.t(), keyword(), keyword()) ::
+          [Threadline.Investigation.LinkedChange.t()]
+          | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def correlation_bundle(correlation_id, filters \\ [], opts \\ []),
     do: Investigation.correlation_bundle(correlation_id, filters, opts)
 
