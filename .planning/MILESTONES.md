@@ -1,5 +1,54 @@
 # Project milestones: Threadline
 
+## v1.44 Behavioral Depth: Properties, Twins, Telemetry (Shipped: 2026-10-02)
+
+**Delivered:** Property tests now cover the library's core contracts, from pure ones (cursor paging, ChangeDiff, redaction policy, export round-trip) to DB-backed ones (no redaction leak, exact `as_of`, retention cutoff and dry-run agreement). Each property has a recorded mutation control, and they found and fixed three real defects. Export and retention runs emit a documented, leak-checked set of 14 `[:threadline, ...]` events. `history/3` gains a non-breaking limit, and `mix threadline.health.coverage` gains `--strict` and `--all-schemas`. The CI test step runs as weighted partitions, 40.1% faster net of every test this milestone added. Shipped as **0.12.0** on hex.pm: landing #73 `67090195` (`feat!:`, 3 BREAKING CHANGE footers), release #74 (Release run 37084163662), sync #75.
+
+**Phases completed:** 7 phases (224-230), 33 plans, 86 tasks. Requirements: 27/27 satisfied. All seven VERIFICATION reports read `passed`. Integration is 11/11 and E2E flows are 6/6.
+
+**Stats:** 260 commits on `milestone/v1.44` from the milestone start (`ca032824`) to the close; 121 non-planning files changed from `dd780e68` to `67090195`, +12,642 / -1,189 (`lib/` +1,384 / -315, `test/` +9,555 / -767).
+
+**Closeout type:** override_closeout. **Known verification overrides:** 1 newly acknowledged, 66 carried forward (see STATE.md Deferred Items).
+- The 1 is the 226-02 `mix format` drift note, already resolved in `b24ee66a`.
+- `init.manager` reports 224, 225, 228 and 229 as `stale` because covered files changed after the verifier ran, through review-fix passes and later phases. `lib/` and `test/` at close are byte-identical to origin/main, so every line passed PR #73's CI.
+
+**Key accomplishments:**
+
+- **Capture rollback and bench fixes (224):**
+  - A default-then-rerun `gen.triggers` chain rolls back to zero orphaned `pg_proc` functions. A DB-backed property over 1-4-run chains proves it.
+  - `bench/` compiles with a bare `mix compile`, guarded by `verify.bench_compile`.
+- **Partitioned CI (225):**
+  - SUITE-01 baseline: 846 s `Run tests` step sum (run 36730596489).
+  - `bin/ci-test-partitions` runs N concurrent `mix test --partitions N` processes on weighted partitions, one database each, behind a self-test mutation control.
+  - SUITE-02 PASS: step drop 37.5-65.3% and billed proxy down on every lane. SUITE-03: no new flakes.
+- **Pure property tests and run budget (226):**
+  - PROP-01 cursor paging against an independent keyset-SQL model; PROP-02 a ChangeDiff fact-first oracle; PROP-03 the redaction policy (silent misconfiguration now raises); PROP-05 the CSV/JSON export round-trip (fixed a bare-CR CSV defect).
+  - The `PropertyRuns` budget helper, with `THREADLINE_PROPERTY_SCALE` 5 on the weekly Flake Detection lane only, pinned by an AST contract.
+- **DB-backed property tests (227):**
+  - `Threadline.Test.DbProperty` gives per-iteration isolation without the SQL Sandbox.
+  - PROP-04: no redacted plaintext in stored changes, any diff, or any export. PROP-06: `as_of` is exact at every point in a row's history. PROP-07: the retention cutoff is exact and a dry run matches the real purge, which fixed a dry-run under-count.
+  - 13 mutation controls cited in one evidence document.
+- **Telemetry (228):**
+  - The `Threadline.Telemetry` single-owner registry holds 14 events: export `:completed`/`:failed` once per logical export across all three paths, and a retention purge span plus `batch_purged`.
+  - Actor identity and free text are stripped from emitters. A runtime allowlist, a static scan and the PROP-04 observer prove no audited data leaks.
+  - `guides/telemetry.md` with a doc-parity test derived from `__events__/0`.
+- **Adopter API and health (229):**
+  - `history/3` `:limit` via `Threadline.Query.HistoryLimit`, validated before any DB access.
+  - `Threadline.Health.legacy_key_findings/1`.
+  - `--strict` exits 1 only on `:error` findings and unknown switches raise. `--all-schemas` takes a batched catalog snapshot whose JSON envelope is byte-identical per schema.
+- **Rebalance, net suite check and 0.12.0 (230):**
+  - Cut 34 prose-to-literal assertions under a KEEP/CUT rubric recorded in CONTRIBUTING.
+  - SUITE-06 PASS on the landing PR's own CI run 37082623361: a 507 s step sum against 846 s.
+  - 0.12.0 released.
+
+**Tech debt carried:** see `.planning/milestones/v1.44-MILESTONE-AUDIT.md` `tech_debt`:
+- `test/partition_weights.txt` has no entry for 10 of the 13 new property-test files, so they fall back to the median weight. Refresh with `bin/ci-test-partitions --write-weights`.
+- Info-level review items remain open: 227 IN-01/02, 228 IN-01, 229 IN-01 (duplicated schema-identifier regex), 230 IN-01.
+- The local suite wall clock went from 137.44 s to 151.59 s (noise floor; the CI gate fell 40.1%).
+- Nyquist VALIDATION.md is draft for all 7 phases.
+
+---
+
 ## v1.43 Supply Chain, CI Economy and Repo Hygiene (Shipped: 2026-09-30)
 
 **Delivered:** Dependency advisories are cleared and a required CI audit gate keeps them cleared. Every CI job was measured, and the ones that earned no signal were cut, deduplicated or cached. The public repo is scrubbed of machine-local paths, and a required guard keeps it that way. Shipped as two patch releases on hex.pm:

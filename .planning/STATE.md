@@ -2,43 +2,44 @@
 gsd_state_version: "1.0"
 milestone: v1.44
 milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
-current_phase: 230
-status: completed
-stopped_at: Phase 230 complete — all phases complete
-last_updated: "2026-10-03T01:31:48.199Z"
+status: Awaiting next milestone
+stopped_at: Milestone v1.44 complete — archived, tag v1.44 local
+last_updated: "2026-10-03T02:13:21.688Z"
 last_activity: 2026-10-02
-last_activity_desc: Phase 230 complete — verified 5/5, 0.12.0 on hex.pm; next milestone audit
-state_head: 5fcf1042579ee61dd1348f19e9c4e341f043e20e
+last_activity_desc: Milestone v1.44 completed and archived
+state_head: f78f9b9c9d3d1111b370203e9f12b6743f629bc2
 progress:
   total_phases: 7
   completed_phases: 7
   total_plans: 33
   completed_plans: 33
   percent: 100
+current_phase: 230
 ---
 
 # Project State: Threadline
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
+See: `.planning/PROJECT.md` (updated 2026-10-02 after v1.44 milestone)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 230 — Rebalance, Net-Suite Check and 0.12.0
+**Current focus:** Planning the next milestone (v1.45; read `.planning/MILESTONE-GUIDE.txt` first)
 
 ## Current Position
 
-Phase: 230
-Plan: Not started
-Status: All phases complete
-Last activity: 2026-10-03 — Phase 230 complete (verified 5/5; 0.12.0 released)
+Phase: Milestone v1.44 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-10-02 — Milestone v1.44 completed and archived
 
-Progress: [██████████] 7 of 7 v1.44 phases complete (100%). Phase 230 verified passed 5/5 (2026-10-03): SUITE-04 rebalance (2 prose-lock files cut, 3 mixed files trimmed, keep/cut rubric in CONTRIBUTING, ci-required roster unchanged at 13); SUITE-06 net suite time PASS on the landing PR's own CI run 37082623361 (Run tests step sum 507 s vs SUITE-01 846 s, all lanes cache hit; local median 137.44 s -> 151.59 s recorded as context only per D-08); REL-01 landed as one feat! squash #73 (67090195) with 3 BREAKING CHANGE footers, release PR #74 merged, production-hex approved under the maintainer's named grant, threadline 0.12.0 live on hex.pm (Release run 37084163662), distribution-sync PR #75 merged; latest-lane pins re-checked current. Code review 0/0/1 (IN-01 style nit open). Local milestone/v1.44 carries post-landing evidence commits not yet on main (milestone close carries them). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-audit-milestone v1.44, then /gsd-complete-milestone (D-14). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
+**v1.44 close (2026-10-02):**
 
-**v1.44 start (2026-09-30):**
-
-- Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
-- Carried from the v1.43 closeout: re-check the `latest` lane pins (Elixir 1.20.4 / OTP 29.1.1 / PG 18.6, set 2026-09-28 in phase 220) against builds.hex.pm and Docker Hub in this milestone's landing PR.
+- 27/27 requirements, 7/7 phases (224-230), 33 plans. Audit status tech_debt (`.planning/milestones/v1.44-MILESTONE-AUDIT.md`).
+- Closeout type: override_closeout. `init.manager` reports 224, 225, 228 and 229 verification as `stale` (covered files changed after the verifier ran, through review-fix passes and later phases). `lib/` and `test/` on the milestone branch are byte-identical to origin/main, so all of it passed PR #73's CI and shipped as 0.12.0.
+- Landed as squash #73 `67090195`; released 0.12.0 (#74, Release run 37084163662, sync #75).
+- Local `milestone/v1.44` carries the post-landing planning commits and the archive; they are not on main yet. Tag `v1.44` is local only.
+- Carried debt: refresh `test/partition_weights.txt` with `bin/ci-test-partitions --write-weights` (10 property-test files unweighted). Nyquist VALIDATION.md is draft for all 7 phases.
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -267,7 +268,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 | Category | Item | Status |
 |----------|------|--------|
-| todos (v1.43 close, 2026-09-30) | 2026-09-28-ci-suite-sync-bound-parallelism | Acknowledged, still pending (v1.44 candidate) |
+| deferred_items (v1.44 close, 2026-10-02) | 226/deferred-items.md: 226-02, redaction_policy_generators.ex mix format drift | Acknowledged; resolved (b24ee66a) |
+| todos (v1.43 close, 2026-09-30) | 2026-09-28-ci-suite-sync-bound-parallelism | Resolved in v1.44 (phase 225 partitioned CI); no longer pending |
 | deferred_items (v1.43 close, 2026-09-30) | 214/deferred-items.md: from 214-02, vacuous :live_dialyzer without a PLT; runner cache path in the local-path regex | Acknowledged; resolved (verifier fails closed since 218-03; the guard shipped in 217) |
 | deferred_items (v1.43 close, 2026-09-30) | 214/deferred-items.md: from 214-03, CI test lanes take the vacuous :live_dialyzer path | Acknowledged; resolved (:live_dialyzer runs only in verify-dialyzer, fail-closed, 218-03) |
 | deferred_items (v1.43 close, 2026-09-30) | 215/deferred-items.md: bench ExUnitProperties compile; review WR-01/03/04/05/06/07/08, IN-01..04; runtime MIX_EXS/MIX_HOME | Acknowledged, carried (WR-03 mitigated) |
@@ -416,7 +418,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ### Pending Todos
 
-- `.planning/todos/pending/2026-09-28-ci-suite-sync-bound-parallelism.md` is acknowledged at the v1.43 close and still pending. The suite is about 91% synchronous (191 of 209 s). Candidate for v1.44's test rebalancing.
+- No pending todos. The v1.43 sync-bound-parallelism todo was resolved by v1.44 phase 225 (partitioned CI).
+- Candidate quick task for v1.45: regenerate `test/partition_weights.txt` (`bin/ci-test-partitions --write-weights`).
 - The next milestone should preserve the standing no-regression rule for operator routes, data-testids, feature gates, capture/query/auth semantics, optional Phoenix dependencies, and host-app-friendly theming unless fresh requirements explicitly change it.
 
 ### Roadmap Evolution
@@ -997,7 +1000,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ## Session Continuity
 
 **Last session:** 2026-10-02T21:24:17.352Z
-**Stopped at:** Phase 230 complete — all phases complete
+**Stopped at:** Milestone v1.44 complete — archived, tag v1.44 local
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

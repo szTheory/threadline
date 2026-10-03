@@ -28,7 +28,7 @@ Re-estimate, 2026-09-30: two rungs remain. v1.42 took about 1 day and v1.43 took
 |------|---------|-------|---------|--------|
 | 1 | v1.42 | Capture Correctness for Real Table Shapes | 0.11.0 | shipped 2026-09-26 |
 | 2 | v1.43 | Supply Chain, CI Economy and Repo Hygiene | 0.11.1, 0.11.2 | shipped 2026-09-30 |
-| 3 | v1.44 | Behavioral Depth: Properties, Twins, Telemetry | 0.12.0 | active |
+| 3 | v1.44 | Behavioral Depth: Properties, Twins, Telemetry | 0.12.0 | shipped 2026-10-02 |
 | 4 | v1.45 | 1.0 API Contract | 1.0.0 | queued |
 
 Scope per rung: `.planning/MILESTONE-GUIDE.txt` §7 (canonical; don't duplicate it here).
