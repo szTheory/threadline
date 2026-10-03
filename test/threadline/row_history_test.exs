@@ -7,6 +7,7 @@ defmodule Threadline.RowHistoryTest do
   """
 
   use Threadline.DataCase
+  import Ecto.Query
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Investigation.LinkedChange
@@ -213,5 +214,136 @@ defmodule Threadline.RowHistoryTest do
       refute Enum.any?(messages, &String.contains?(&1, "row_history/2 is deprecated"))
       refute Enum.any?(messages, &String.contains?(&1, "row_history/3 is deprecated"))
     end
+  end
+
+  describe "row_history/3 cursor mode" do
+    defp walk_row_history(schema_module, id, opts, acc \\ []) do
+      opts = Keyword.put_new(opts, :cursor, :start)
+      page = Threadline.row_history(schema_module, id, opts)
+      acc = acc ++ page.entries
+
+      if page.has_more do
+        walk_row_history(schema_module, id, Keyword.put(opts, :cursor, page.cursor), acc)
+      else
+        {acc, page}
+      end
+    end
+
+    test "walking cursor: :start with page_size: 60 over 250 rows concatenates to limit: :infinity" do
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-cursor-walk"}
+      insert_n_changes(txn, table_pk, 250)
+
+      {walked, _last_page} =
+        walk_row_history(FakeUser, "row-cursor-walk", repo: @repo, page_size: 60)
+
+      unbounded =
+        Threadline.row_history(FakeUser, "row-cursor-walk", repo: @repo, limit: :infinity)
+
+      assert Enum.map(walked, & &1.audit_change.id) == Enum.map(unbounded, & &1.audit_change.id)
+      assert Enum.all?(walked, &match?(%Threadline.Investigation.LinkedChange{}, &1))
+    end
+
+    test "walking cursor: :start with page_size: 60 over an exact multiple (240 rows) yields four pages, the last with has_more: false and cursor: nil" do
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-cursor-exact-multiple"}
+      insert_n_changes(txn, table_pk, 240)
+
+      {pages, final_page} =
+        walk_counting_pages(FakeUser, "row-cursor-exact-multiple", repo: @repo, page_size: 60)
+
+      assert pages == 4
+      assert final_page.has_more == false
+      assert final_page.cursor == nil
+    end
+
+    defp walk_counting_pages(schema_module, id, opts, page_count \\ 0) do
+      opts = Keyword.put_new(opts, :cursor, :start)
+      page = Threadline.row_history(schema_module, id, opts)
+      page_count = page_count + 1
+
+      if page.has_more do
+        walk_counting_pages(schema_module, id, Keyword.put(opts, :cursor, page.cursor), page_count)
+      else
+        {page_count, page}
+      end
+    end
+
+    test "every Page entry is a LinkedChange" do
+      txn = insert_transaction()
+      table_pk = %{"id" => "row-cursor-entries"}
+      insert_n_changes(txn, table_pk, 5)
+
+      page = Threadline.row_history(FakeUser, "row-cursor-entries", repo: @repo, cursor: :start)
+
+      assert %Threadline.Page{} = page
+      assert Enum.all?(page.entries, &match?(%Threadline.Investigation.LinkedChange{}, &1))
+    end
+
+    test ":limit combined with :cursor raises ArgumentError" do
+      txn = insert_transaction()
+      insert_change(txn, %{table_pk: %{"id" => "row-limit-and-cursor"}})
+
+      assert_raise ArgumentError, fn ->
+        Threadline.row_history(FakeUser, "row-limit-and-cursor",
+          repo: @repo,
+          limit: 5,
+          cursor: :start
+        )
+      end
+    end
+
+    test ":page_size without :cursor raises ArgumentError" do
+      txn = insert_transaction()
+      insert_change(txn, %{table_pk: %{"id" => "row-page-size-no-cursor"}})
+
+      assert_raise ArgumentError, fn ->
+        Threadline.row_history(FakeUser, "row-page-size-no-cursor", repo: @repo, page_size: 10)
+      end
+    end
+
+    test "cursor: nil raises ArgumentError naming :start" do
+      txn = insert_transaction()
+      insert_change(txn, %{table_pk: %{"id" => "row-cursor-nil"}})
+
+      assert_raise ArgumentError, ~r/:start/, fn ->
+        Threadline.row_history(FakeUser, "row-cursor-nil", repo: @repo, cursor: nil)
+      end
+    end
+
+    test "support scope (scope_query_fn) applies in cursor mode as in bare-list mode" do
+      support_time = ~U[2026-10-02 10:00:00.000000Z]
+      admin_time = DateTime.add(support_time, 60, :second)
+
+      support_txn = insert_transaction(%{occurred_at: support_time, source: "support"})
+      admin_txn = insert_transaction(%{occurred_at: admin_time, source: "admin"})
+
+      table_pk = %{"id" => "row-cursor-scoped"}
+
+      support_change =
+        insert_change(support_txn, %{table_pk: table_pk, captured_at: support_time})
+
+      insert_change(admin_txn, %{table_pk: table_pk, captured_at: admin_time})
+
+      page =
+        Threadline.row_history(FakeUser, "row-cursor-scoped",
+          repo: @repo,
+          cursor: :start,
+          scope: %{source: "support"},
+          scope_query_fn: &scope_by_source/3
+        )
+
+      assert Enum.map(page.entries, & &1.audit_change.id) == [support_change.id]
+      assert Enum.all?(page.entries, &(&1.transaction.source == "support"))
+    end
+
+    defp scope_by_source(query, %{source: source}, %{surface: :row_history}) do
+      source_txn_ids =
+        from(at in AuditTransaction, where: at.source == ^source, select: at.id)
+
+      from(ac in query, where: ac.transaction_id in subquery(source_txn_ids))
+    end
+
+    defp scope_by_source(query, _scope, _context), do: query
   end
 end

@@ -283,6 +283,39 @@ defmodule Threadline.InvestigationTest do
       assert second_page.has_more == false
       assert second_page.cursor == nil
     end
+
+    test "actor_window/3 with cursor: :start returns a Page whose full walk equals the eager list" do
+      actor = actor!(:user, "actor-cursor-walk")
+      txn = insert_transaction(%{actor_ref: ActorRef.to_map(actor)})
+      t1 = ~U[2026-09-01 09:00:00.000000Z]
+
+      for i <- 1..5 do
+        insert_change(txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "actor-cursor-#{i}"},
+          captured_at: DateTime.add(t1, i, :microsecond)
+        })
+      end
+
+      eager_ids =
+        Threadline.actor_window(actor, [], repo: @repo) |> Enum.map(& &1.audit_change.id)
+
+      walked_ids = walk_actor_window(actor, repo: @repo, page_size: 2)
+
+      assert eager_ids == walked_ids
+    end
+  end
+
+  defp walk_actor_window(actor, opts, acc \\ []) do
+    opts = Keyword.put_new(opts, :cursor, :start)
+    page = Threadline.actor_window(actor, [], opts)
+    acc = acc ++ Enum.map(page.entries, & &1.audit_change.id)
+
+    if page.has_more do
+      walk_actor_window(actor, Keyword.put(opts, :cursor, page.cursor), acc)
+    else
+      acc
+    end
   end
 
   describe "correlation_bundle/3 and correlation_bundle_page/3" do
@@ -339,6 +372,40 @@ defmodule Threadline.InvestigationTest do
       assert first_page.cursor != nil
       assert second_page.has_more == false
       assert second_page.cursor == nil
+    end
+
+    test "correlation_bundle/3 with cursor: :start returns a Page whose full walk equals the eager list" do
+      action = insert_action(%{correlation_id: "corr-cursor-walk"})
+      txn = insert_transaction(%{action_id: action.id})
+      t1 = ~U[2026-09-03 09:00:00.000000Z]
+
+      for i <- 1..5 do
+        insert_change(txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "corr-cursor-#{i}"},
+          captured_at: DateTime.add(t1, i, :microsecond)
+        })
+      end
+
+      eager_ids =
+        Threadline.correlation_bundle("corr-cursor-walk", [], repo: @repo)
+        |> Enum.map(& &1.audit_change.id)
+
+      walked_ids = walk_correlation_bundle("corr-cursor-walk", repo: @repo, page_size: 2)
+
+      assert eager_ids == walked_ids
+    end
+  end
+
+  defp walk_correlation_bundle(correlation_id, opts, acc \\ []) do
+    opts = Keyword.put_new(opts, :cursor, :start)
+    page = Threadline.correlation_bundle(correlation_id, [], opts)
+    acc = acc ++ Enum.map(page.entries, & &1.audit_change.id)
+
+    if page.has_more do
+      walk_correlation_bundle(correlation_id, Keyword.put(opts, :cursor, page.cursor), acc)
+    else
+      acc
     end
   end
 
