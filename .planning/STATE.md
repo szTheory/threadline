@@ -5,16 +5,16 @@ milestone_name: 1.0 API Contract
 current_phase: 231
 current_phase_name: Facade Topology and the Capture/Semantics Edge
 status: executing
-stopped_at: Phase 231 planned (3 plans, 3 waves)
-last_updated: "2026-10-03T13:53:50.194Z"
+stopped_at: Completed 231-01-PLAN.md
+last_updated: "2026-10-03T14:09:34.693Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 231 execution started
-state_head: 1849d2d5f8c2946f7fa350f7c5ccd9c0401b30bf
+state_head: d43e630d809f2c1bde9591dbaed2d0a65e70598e
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-02 after v1.44 milestone)
 ## Current Position
 
 Phase: 231 of 231-237 (Facade Topology and the Capture/Semantics Edge) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 231 (3 plans, 3 sequential waves)
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-10-03 — Phase 231 execution started
 
-v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; 0/3 plans so far; plan counts set at each /gsd-plan-phase)
+v1.45 Progress: [░░░░░░░░░░] 0 of 7 v1.45 phases complete (0%) (231-237; 1/3 plans in phase 231 so far — 231-01 complete: API-07 association removal + hydrate_actions/3 + deprecation shim; plan counts set at each /gsd-plan-phase)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -258,6 +258,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 230 P01 | ~1h40m | 3 tasks | 9 files |
 | Phase 230 P02 | ~1h | 2 tasks | 1 files |
 | Phase 230 P03 | ~55min | 3 tasks | 9 files |
+| Phase 231 P01 | 70min | 3 tasks | 11 files |
 
 ## Deferred Items
 
@@ -980,6 +981,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 230]: D-09 milestone suite-time table assembled for phases 224-230; 224/229 marked local-only, 230/verdict pending plan 04's fresh pre-landing run
 - [Phase 230]: Plan 230-03: ran mix verify.bump_rehearsal after committing the CHANGELOG/upgrade-path content (not before, as literally ordered) because the rehearsal clones HEAD and cannot see uncommitted work.
 - [Phase 230]: Plan 230-03: treated the pre-land privacy-grep whoami/home-path false positives (pre-existing, out-of-scope files) as reviewed non-issues rather than a STOP, since bin/verify-repo-hygiene (the authoritative guard) reports the full tracked tree clean.
+- [Phase 231]: Internal readers (Investigation.transaction_context/2, incident_bundle/2) call Query.hydrate_actions/3 directly instead of routing through the deprecated public :preload shim, so internal reads never trip the deprecation warning
 
 ### Blockers
 
@@ -995,9 +997,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-03T13:21:49.271Z
-**Stopped at:** Phase 231 context gathered
-**Resume file:** .planning/phases/231-facade-topology-and-the-capture-semantics-edge/231-CONTEXT.md
+**Last session:** 2026-10-03T14:09:34.654Z
+**Stopped at:** Completed 231-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
