@@ -149,6 +149,13 @@ defmodule Threadline do
   for a composite key), with the same `ArgumentError` cases and the same
   dropped-table/renamed-column fallback behavior.
 
+  Returns `{:ok, snapshot}`, `{:error, :deleted_record}` when the latest
+  snapshot at or before `timestamp` was a delete, or
+  `{:error, :before_audit_horizon}` when the row has no snapshot at or before
+  the requested timestamp. These are outcomes callers branch on, not a lookup
+  miss — a deleted or pre-horizon row is not "absence is a bug" — so
+  `as_of/4` has no `!` sibling.
+
   ## Options
 
   - `:repo` — required `Ecto.Repo` module

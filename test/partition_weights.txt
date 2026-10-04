@@ -111,6 +111,7 @@
 1 test/threadline/job_test.exs
 6 test/threadline/layer_boundary_contract_test.exs
 9 test/threadline/local_docker_dx_contract_test.exs
+30 test/threadline/lookup_return_shapes_contract_test.exs
 1294 test/threadline/main_ci_observer_contract_test.exs
 7 test/threadline/mix/migration_version_test.exs
 3 test/threadline/mix/migrations_path_test.exs
