@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.45
 milestone_name: 1.0 API Contract
-current_phase: 233
-current_phase_name: Lookup Return Shapes
-status: executing
-stopped_at: Completed 233-04-PLAN.md
-last_updated: "2026-10-04T02:16:40.643Z"
+current_phase: 234
+current_phase_name: Typespec and Doc Completion Gate
+status: planning
+stopped_at: Phase 233 complete, ready to plan Phase 234
+last_updated: "2026-10-04T03:31:31.501Z"
 last_activity: 2026-10-04
-last_activity_desc: Phase 233 plan 04 complete (fail-closed Scope.apply/2, D-20/D-22, phase gate green)
-state_head: b5038cb0a20fb72d2ed2f0dd43260da3971007eb
+last_activity_desc: Phase 233 complete, transitioned to Phase 234
+state_head: 3229737b4610bdb32f9a56f68ab3af3301f21dde
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
   completed_plans: 13
-  percent: 29
+  percent: 43
 ---
 
 # Project State: Threadline
@@ -29,12 +29,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 
 ## Current Position
 
-Phase: 233 (Lookup Return Shapes) — EXECUTED, awaiting verification
-Plan: 4 of 4 — all plans complete
-Status: Phase 233 execution complete (4/4 plans); ready for /gsd-verify-work 233
-Last activity: 2026-10-04 — Phase 233 plan 04 complete (fail-closed Scope.apply/2 across every scoped read and both operator-surface transports, D-20/D-22, reference app catch-all tightened to deny-all, guide + CHANGELOG updated, mix ci.all green; see 233-04-SUMMARY.md)
+Phase: 234 — Typespec and Doc Completion Gate
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-03 — Phase 233 complete, transitioned to Phase 234
 
-v1.45 Progress: [███░░░░░░░] 2 of 7 v1.45 phases complete (29%) (231-237; phase 233 EXECUTED 2026-10-04, 4/4 plans, awaiting verification — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
+v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -1021,7 +1021,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ## Session Continuity
 
 **Last session:** 2026-10-04T02:16:40.612Z
-**Stopped at:** Completed 233-04-PLAN.md
+**Stopped at:** Phase 233 complete, ready to plan Phase 234
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1041,7 +1041,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **Last Action**: v1.45 1.0 API Contract roadmap created (2026-10-02): 7 phases (231-237), 25/25 requirements mapped in REQUIREMENTS.md Traceability. v1.44 is closed (tag `v1.44` local, 0.12.0 on hex.pm).
 - **231-03 (2026-10-03, FINAL plan of phase 231):** Facade-only doc-contract scanner (D-12, mutation-controlled: 11 tests over guides/README/example-app, exact-match `timeline_query` allowlist, bare-alias "extend the scanner" guard) + last example-script facade move (D-11: `incident_replay.exs` onto `Threadline.history/3`). Discovered and fixed a 231-01 regression while running the phase gate: `lib/threadline/query.ex` had grown to 950 lines (over the 800-line source-size contract limit, no exception) — split into a new hidden `Threadline.Query.ActionHydration` submodule via `defdelegate` (zero call-site changes outside `query.ex`); `query.ex` now 799 lines. Full `mix ci.all` green (2769 unit tests, 130 example tests, 318 browser tests/26 skipped matching baseline, Dialyzer 0 errors). API-04 and API-07 both marked Complete in REQUIREMENTS.md. Phase 231 complete (3/3 plans). Commits `fa8a24bc`, `6e58912e`, `3de91c13`, `82a7c516`.
 - **233-04 (2026-10-04, FINAL plan of phase 233):** Threadline.Query.Scope.apply/2 fails closed (D-20): a non-nil :scope without a 3-arity :scope_query_fn, or any non-3-arity fn, now raises ArgumentError (never echoing the scope value) instead of silently reading unscoped; a nil scope remains the host's explicit unscoped path. Proven across every scoped read (timeline, timeline_page, row_history list/cursor, actor_history, actor_window, correlation_bundle, audit_changes_for_transaction, audit_transaction, transaction_context, incident_bundle, export_csv, export_json) and both operator-surface transports (LiveView mount crash via catch_exit/1, export controller raise-not-200), plus the three bangs raising ArgumentError not NotFoundError. Example app's scope_operator_query/3 catch-all tightened to deny-all (where(query, [], false)); guides/integration-contracts.md gained "Scope surfaces and fail-closed rules" naming :transaction_header's [at] binding; CHANGELOG Breaking changes bullet added. Phase-close gate mix ci.all green (2952 ExUnit tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. Phase 233 complete (4/4 plans). Commits `5469f8de`, `b22cd02a`, `5432f72e`, `b5038cb0`.
-- **Next Step**: `/gsd-verify-work 233`, then `/gsd-plan-phase 234`
+- **Next Step**: `/gsd-discuss-phase 234` (Typespec and Doc Completion Gate)
 - **Resume file**: None
 
 ## Operator Next Steps
