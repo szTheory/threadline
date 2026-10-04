@@ -29,7 +29,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         from_time = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
         page =
-          Threadline.actor_history(
+          Threadline.Query.actor_history(
             actor_ref,
             [
               repo: repo,
@@ -306,7 +306,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("next-page", _, socket) do
       if socket.assigns.next_cursor do
         page =
-          Threadline.actor_history(
+          Threadline.Query.actor_history(
             socket.assigns.actor_ref,
             [
               repo: socket.assigns.repo,
@@ -348,7 +348,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("prev-page", _, socket) do
       if socket.assigns.prev_cursor do
         page =
-          Threadline.actor_history(
+          Threadline.Query.actor_history(
             socket.assigns.actor_ref,
             [
               repo: socket.assigns.repo,
@@ -391,7 +391,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       from_time = DateTime.utc_now() |> DateTime.add(-hours, :hour)
 
       page =
-        Threadline.actor_history(
+        Threadline.Query.actor_history(
           socket.assigns.actor_ref,
           [
             repo: socket.assigns.repo,
@@ -428,7 +428,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     # An empty window still needs to tell "never acted" apart from "acted
     # outside this window", so look up the latest activity at any time.
     defp activity_presence([], actor_ref, repo, socket) do
-      case Threadline.actor_history(
+      case Threadline.Query.actor_history(
              actor_ref,
              [
                repo: repo,
