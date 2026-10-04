@@ -5,12 +5,14 @@
 **Research:** `.planning/research/SUMMARY.md`, built on STACK, FEATURES, ARCHITECTURE, PITFALLS and CONTRACT. It reconciles five cross-file conflicts.
 
 **Maintainer decisions (2026-10-02, the one-way calls; all four research recommendations accepted):**
+
 1. `row_history` defaults to a 200-row cap. The return stays a bare list. The cursor path returning `Threadline.Page` is documented as the only read that proves completeness. `limit: :infinity` opts out, and a truncation telemetry event fires when the cap is hit.
 2. The PostgreSQL floor rises to 15 at the 1.0.0 cut, as a breaking change.
 3. The `AuditTransaction` ↔ `AuditAction` Ecto association is decoupled (Option C). The DB foreign key and the `.action` key shape that callers see are unchanged.
 4. `Threadline` becomes the single public read facade. `Threadline.Query` and `Threadline.Investigation` are hidden. `Threadline.Query.timeline_query/1` remains the one Ecto-composition escape hatch.
 
 **Settled by research without escalation:**
+
 - **Deprecation policy:** "Deprecated in 1.0.0. Kept as a functioning, fully-specced delegate for the rest of the 1.x line. Removed no earlier than 2.0.0, which is not currently planned."
 - **Return shapes:** collection reads return bare values. Single-subject lookups return `{:ok, _}` or `{:error, :not_found}` and have `!` siblings. Bad options raise `ArgumentError`. No NimbleOptions.
 - **Floors and support:** Elixir stays `~> 1.15` on OTP 26. 0.12.x gets a 6-month security and correctness backport window.
@@ -35,7 +37,7 @@
   - The three guides that call the hidden modules (`audit-indexing`, `how-threadline-works`, `code-walkthrough`) call `Threadline.*` instead.
   - `public_surface_contract_test.exs` pins the hidden set.
 - [x] **API-05**: Internal helpers no longer appear in the adopter's docs. This covers the `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and any module without a moduledoc, such as `Threadline.Export.CSV`. Before hiding a name, guides, the README and the example app are grepped for it, and every hit is rewritten in the same change.
-- [ ] **API-06**: Single-subject lookups behave the same way everywhere. `audit_transaction/2` and `transaction_context/2` return `{:ok, _}` or `{:error, :not_found}`, matching `incident_bundle/2`. New siblings `audit_transaction!/2` and `transaction_context!/2` raise. Not-found and present cases are tested for all four.
+- [x] **API-06**: Single-subject lookups behave the same way everywhere. `audit_transaction/2` and `transaction_context/2` return `{:ok, _}` or `{:error, :not_found}`, matching `incident_bundle/2`. New siblings `audit_transaction!/2` and `transaction_context!/2` raise. Not-found and present cases are tested for all four.
 - [x] **API-07**: The capture layer no longer depends on the semantics layer at compile time.
   - `AuditTransaction` drops `belongs_to :action` and `AuditAction` drops `has_many :transactions`.
   - An exploration-layer helper hydrates `transaction.action`, so every existing call-site assertion on `.action` passes unchanged.
@@ -146,7 +148,7 @@
 | API-03 | Phase 232 | Complete |
 | API-04 | Phase 231 | Complete |
 | API-05 | Phase 232 | Complete |
-| API-06 | Phase 233 | Pending |
+| API-06 | Phase 233 | Complete |
 | API-07 | Phase 231 | Complete |
 | API-08 | Phase 232 | Complete |
 | SPEC-01 | Phase 234 | Pending |

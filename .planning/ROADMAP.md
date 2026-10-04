@@ -154,7 +154,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 233-04-PLAN.md — fail-closed `Scope.apply/2` on every scoped read, example catch-all, integration-contracts guide, phase-close `mix ci.all` (wave 4)
+- [x] 233-04-PLAN.md — fail-closed `Scope.apply/2` on every scoped read, example catch-all, integration-contracts guide, phase-close `mix ci.all` (wave 4)
 
 ### Phase 234: Typespec and Doc Completion Gate
 
@@ -232,7 +232,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
-| 233. Lookup Return Shapes | 3/4 | In Progress | - |
+| 233. Lookup Return Shapes | 4/4 | In Progress | - |
 | 234. Typespec and Doc Completion Gate | 0/TBD | Not started | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
 | 236. Support Floor and Partition Weights | 0/TBD | Not started | - |

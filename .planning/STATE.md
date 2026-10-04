@@ -5,17 +5,17 @@ milestone_name: 1.0 API Contract
 current_phase: 233
 current_phase_name: Lookup Return Shapes
 status: executing
-stopped_at: Completed 233-03-PLAN.md
-last_updated: "2026-10-04T01:39:51.000Z"
-last_activity: 2026-10-03
-last_activity_desc: Phase 233 plan 03 complete (continuation after a mid-task stall)
-state_head: 1dc0fc1d87bbd7d12f238c0ba7d8a166a5a8e417
+stopped_at: Completed 233-04-PLAN.md
+last_updated: "2026-10-04T02:16:40.643Z"
+last_activity: 2026-10-04
+last_activity_desc: Phase 233 plan 04 complete (fail-closed Scope.apply/2, D-20/D-22, phase gate green)
+state_head: b5038cb0a20fb72d2ed2f0dd43260da3971007eb
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 12
-  percent: 31
+  completed_plans: 13
+  percent: 29
 ---
 
 # Project State: Threadline
@@ -29,12 +29,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 
 ## Current Position
 
-Phase: 233 (Lookup Return Shapes) — EXECUTING
-Plan: 4 of 4
-Status: Plan 03 complete; ready to execute 233-04
-Last activity: 2026-10-03 — Phase 233 plan 03 complete (continuation after a mid-task stall; see 233-03-SUMMARY.md)
+Phase: 233 (Lookup Return Shapes) — EXECUTED, awaiting verification
+Plan: 4 of 4 — all plans complete
+Status: Phase 233 execution complete (4/4 plans); ready for /gsd-verify-work 233
+Last activity: 2026-10-04 — Phase 233 plan 04 complete (fail-closed Scope.apply/2 across every scoped read and both operator-surface transports, D-20/D-22, reference app catch-all tightened to deny-all, guide + CHANGELOG updated, mix ci.all green; see 233-04-SUMMARY.md)
 
-v1.45 Progress: [███░░░░░░░] 2 of 7 v1.45 phases complete (29%) (231-237; phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
+v1.45 Progress: [███░░░░░░░] 2 of 7 v1.45 phases complete (29%) (231-237; phase 233 EXECUTED 2026-10-04, 4/4 plans, awaiting verification — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -269,6 +269,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 232 P06 | ~31min | 3 tasks | 22 files |
 | Phase 233 P01 | 55min | 2 tasks | 8 files |
 | Phase 233 P02 | 35min | 3 tasks | 10 files |
+| Phase 233 P04 | ~55min | 3 tasks | 8 files |
 
 ## Deferred Items
 
@@ -1003,6 +1004,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 232]: 232-06: hid Telemetry emit_* and Query.export_changes_query from docs; widened the facade-only scanner with hidden/retired-name detectors (no exemption); rewrote guides/README/upgrade guides onto row_history/3; facade_naming_contract_test.exs pins timeline/timeline_page as the sole paired name; mix ci.all green
 - [Phase 233]: Shared hidden existence fetch Threadline.Query.TransactionLookup.fetch_row/2 hardcodes surface: :transaction_header and params internally (never read from opts), so :surface/:params are rejectable by the option allowlist without weakening the scope contract.
 - [Phase 233]: 233-02: transaction_context/2 and incident_bundle/2 share one row-first fetch (Threadline.Query.TransactionLookup.fetch/2); transaction_context/2 changed to {:ok,_}|{:error,:not_found}; both gained bang siblings raising Threadline.NotFoundError.
+- [Phase 233]: 233-04: Scope.apply/2's cond checks wrong-arity scope_query_fn before nil-scope, so a malformed fn always raises regardless of whether this call's scope happens to be nil; nil scope stays the only branch returning the query unchanged (host's explicit unscoped authorization).
 
 ### Blockers
 
@@ -1018,8 +1020,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-04T00:30:46.173Z
-**Stopped at:** Completed 233-02-PLAN.md
+**Last session:** 2026-10-04T02:16:40.612Z
+**Stopped at:** Completed 233-04-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1038,7 +1040,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
 - **Last Action**: v1.45 1.0 API Contract roadmap created (2026-10-02): 7 phases (231-237), 25/25 requirements mapped in REQUIREMENTS.md Traceability. v1.44 is closed (tag `v1.44` local, 0.12.0 on hex.pm).
 - **231-03 (2026-10-03, FINAL plan of phase 231):** Facade-only doc-contract scanner (D-12, mutation-controlled: 11 tests over guides/README/example-app, exact-match `timeline_query` allowlist, bare-alias "extend the scanner" guard) + last example-script facade move (D-11: `incident_replay.exs` onto `Threadline.history/3`). Discovered and fixed a 231-01 regression while running the phase gate: `lib/threadline/query.ex` had grown to 950 lines (over the 800-line source-size contract limit, no exception) — split into a new hidden `Threadline.Query.ActionHydration` submodule via `defdelegate` (zero call-site changes outside `query.ex`); `query.ex` now 799 lines. Full `mix ci.all` green (2769 unit tests, 130 example tests, 318 browser tests/26 skipped matching baseline, Dialyzer 0 errors). API-04 and API-07 both marked Complete in REQUIREMENTS.md. Phase 231 complete (3/3 plans). Commits `fa8a24bc`, `6e58912e`, `3de91c13`, `82a7c516`.
-- **Next Step**: `/gsd-verify-work 231`, then `/gsd-plan-phase 232`
+- **233-04 (2026-10-04, FINAL plan of phase 233):** Threadline.Query.Scope.apply/2 fails closed (D-20): a non-nil :scope without a 3-arity :scope_query_fn, or any non-3-arity fn, now raises ArgumentError (never echoing the scope value) instead of silently reading unscoped; a nil scope remains the host's explicit unscoped path. Proven across every scoped read (timeline, timeline_page, row_history list/cursor, actor_history, actor_window, correlation_bundle, audit_changes_for_transaction, audit_transaction, transaction_context, incident_bundle, export_csv, export_json) and both operator-surface transports (LiveView mount crash via catch_exit/1, export controller raise-not-200), plus the three bangs raising ArgumentError not NotFoundError. Example app's scope_operator_query/3 catch-all tightened to deny-all (where(query, [], false)); guides/integration-contracts.md gained "Scope surfaces and fail-closed rules" naming :transaction_header's [at] binding; CHANGELOG Breaking changes bullet added. Phase-close gate mix ci.all green (2952 ExUnit tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. Phase 233 complete (4/4 plans). Commits `5469f8de`, `b22cd02a`, `5432f72e`, `b5038cb0`.
+- **Next Step**: `/gsd-verify-work 233`, then `/gsd-plan-phase 234`
 - **Resume file**: None
 
 ## Operator Next Steps
