@@ -13,7 +13,8 @@ defmodule Threadline.Query do
     LegacyOpts,
     RowKey,
     RowReads,
-    Scope
+    Scope,
+    TransactionLookup
   }
 
   alias Threadline.Semantics.ActorRef
@@ -69,10 +70,14 @@ defmodule Threadline.Query do
   @doc false
   defdelegate hydrate_actions(items, repo, opts \\ []), to: ActionHydration
 
+  @deprecated "Use Threadline.audit_transaction/2 instead."
   @doc """
   Returns one `AuditTransaction` by id or `nil` when the row does not exist.
 
   Raises `ArgumentError` when `transaction_id` is not a valid UUID.
+
+  Deprecated: use `Threadline.audit_transaction/2`, which returns
+  `{:ok, transaction}` or `{:error, :not_found}`.
   """
   @spec audit_transaction(term(), keyword()) :: AuditTransaction.t() | nil
   def audit_transaction(transaction_id, opts) do
@@ -80,10 +85,12 @@ defmodule Threadline.Query do
     uuid = validate_audit_transaction_id!(transaction_id)
 
     transaction =
-      AuditTransaction
-      |> where([at], at.id == ^uuid)
-      |> maybe_apply_scope(transaction_scope_opts(transaction_id, opts))
-      |> repo.one(storage_opts([], opts))
+      TransactionLookup.scoped_row(
+        uuid,
+        transaction_id,
+        Keyword.get(opts, :surface, :transaction),
+        opts
+      )
 
     case Keyword.get(opts, :preload) do
       preloads when preloads in [nil, []] ->

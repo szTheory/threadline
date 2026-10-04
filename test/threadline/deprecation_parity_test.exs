@@ -37,6 +37,7 @@ defmodule Threadline.DeprecationParityTest do
   ]
 
   @query_deprecated [
+    {{:audit_transaction, 2}, "Use Threadline.audit_transaction/2 instead."},
     {{:history, 3}, "Use Threadline.row_history/3 instead."},
     {{:row_history, 2}, "Use Threadline.row_history/3 instead."},
     {{:row_history, 3}, "Use Threadline.row_history/3 instead."},
@@ -456,6 +457,65 @@ defmodule Threadline.DeprecationParityTest do
       inv_page = apply(Threadline.Investigation, :correlation_bundle_page, inv_args)
 
       assert page_ids_lc(inv_page) == page_ids_lc(facade_page)
+    end
+  end
+
+  describe "Threadline.Query.audit_transaction/2 parity (D-06)" do
+    import ExUnit.CaptureIO
+
+    test "a missing id: apply(Threadline.Query, :audit_transaction, ...) is nil, Threadline.audit_transaction/2 is {:error, :not_found}" do
+      missing_uuid = Ecto.UUID.generate()
+      args = [missing_uuid, [repo: @repo]]
+
+      assert apply(Threadline.Query, :audit_transaction, args) == nil
+      assert Threadline.audit_transaction(missing_uuid, repo: @repo) == {:error, :not_found}
+    end
+
+    test "an existing transaction: the deprecated call returns the bare struct, the facade returns {:ok, struct}, same id" do
+      txn = insert_transaction()
+      args = [txn.id, [repo: @repo]]
+
+      deprecated_result = apply(Threadline.Query, :audit_transaction, args)
+
+      assert %AuditTransaction{id: id} = deprecated_result
+      assert id == txn.id
+
+      assert Threadline.audit_transaction(txn.id, repo: @repo) == {:ok, deprecated_result}
+    end
+
+    test "preload: :action: deprecated call's .action.id equals the facade's .action.id, exactly one deprecation warning on stderr" do
+      action = insert_action(%{name: "parity.preload", correlation_id: "corr-parity-preload"})
+      txn = insert_transaction(%{action_id: action.id})
+      args = [txn.id, [repo: @repo, preload: :action]]
+
+      {deprecated_result, stderr} =
+        capture_io(:stderr, fn ->
+          send(self(), {:deprecated_result, apply(Threadline.Query, :audit_transaction, args)})
+        end)
+        |> then(fn stderr ->
+          receive do
+            {:deprecated_result, result} -> {result, stderr}
+          end
+        end)
+
+      {:ok, facade_result} = Threadline.audit_transaction(txn.id, repo: @repo)
+
+      assert deprecated_result.action.id == facade_result.action.id
+
+      warning_lines =
+        stderr
+        |> String.split("\n")
+        |> Enum.count(&String.contains?(&1, "preloading :action is deprecated"))
+
+      assert warning_lines == 1
+    end
+
+    test "a malformed binary id still raises ArgumentError (0.12 behavior kept)" do
+      args = ["garbage", [repo: @repo]]
+
+      assert_raise ArgumentError, fn ->
+        apply(Threadline.Query, :audit_transaction, args)
+      end
     end
   end
 

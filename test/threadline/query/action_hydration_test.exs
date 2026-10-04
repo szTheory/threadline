@@ -211,10 +211,11 @@ defmodule Threadline.Query.ActionHydrationTest do
     test "audit_transaction/2 with preload: :action hydrates .action and warns exactly once" do
       action = insert_action(%{name: "shim.bare", correlation_id: "corr-shim-bare"})
       txn = insert_transaction(%{action_id: action.id})
+      args = [txn.id, [repo: @repo, preload: :action]]
 
       {hydrated, stderr} =
         capture_with_result(fn ->
-          Query.audit_transaction(txn.id, repo: @repo, preload: :action)
+          apply(Query, :audit_transaction, args)
         end)
 
       assert hydrated.action.id == action.id
@@ -225,10 +226,11 @@ defmodule Threadline.Query.ActionHydrationTest do
       action = insert_action(%{name: "shim.list", correlation_id: "corr-shim-list"})
       txn = insert_transaction(%{action_id: action.id})
       insert_change(txn, %{table_pk: %{"id" => "shim-list-1"}})
+      args = [txn.id, [repo: @repo, preload: [:action, :changes]]]
 
       {hydrated, stderr} =
         capture_with_result(fn ->
-          Query.audit_transaction(txn.id, repo: @repo, preload: [:action, :changes])
+          apply(Query, :audit_transaction, args)
         end)
 
       assert hydrated.action.id == action.id
@@ -274,11 +276,12 @@ defmodule Threadline.Query.ActionHydrationTest do
 
     test "audit_transaction/2 with preload: [action: :anything] raises ArgumentError naming :action, no warning" do
       txn = insert_transaction(%{})
+      args = [txn.id, [repo: @repo, preload: [action: :anything]]]
 
       {result, stderr} =
         capture_with_result(fn ->
           try do
-            Query.audit_transaction(txn.id, repo: @repo, preload: [action: :anything])
+            apply(Query, :audit_transaction, args)
           rescue
             e in ArgumentError -> {:raised, Exception.message(e)}
           end
@@ -360,7 +363,9 @@ defmodule Threadline.Query.ActionHydrationTest do
     end
 
     test "audit_transaction/2 with a nonexistent id and preload: :action returns nil" do
-      assert Query.audit_transaction(Ecto.UUID.generate(), repo: @repo, preload: :action) == nil
+      args = [Ecto.UUID.generate(), [repo: @repo, preload: :action]]
+
+      assert apply(Query, :audit_transaction, args) == nil
     end
 
     defp capture_with_result(fun) do

@@ -59,15 +59,39 @@ defmodule Threadline.Query.TransactionLookup do
   end
 
   @doc false
-  # The one hidden existence fetch every single-subject transaction lookup
-  # shares: the row first. Scoped with a hardcoded `surface: :transaction_header`
-  # (single `[at]` binding) and `params: %{transaction_id: id}` — never read
-  # from `opts`, so a caller cannot relabel the binding shape. A scope
-  # rejection of the row and a missing row both resolve to `:not_found`, so
-  # existence never leaks across tenants. Always hydrates `.action`: 0
-  # extra queries when `action_id` is nil, 1 otherwise. No `rescue` around the
+  # The shared scoped row read behind every lookup that needs the bare
+  # `audit_transactions` row under a caller-chosen `surface`. `fetch_row/2`
+  # below always calls this with the hardcoded `:transaction_header` surface
+  # (single `[at]` binding); the deprecated `Threadline.Query.audit_transaction/2`
+  # delegate calls it with its own 0.12 surface default/override instead, so an
+  # adopter scope fn written against 0.12 keeps seeing exactly what it saw
+  # before. `raw_id` (not the resolved `uuid`) is threaded into `params` so a
+  # scope fn sees the same value a caller passed in. No `rescue` around the
   # repo call — a misconfigured `:storage_schema` stays loud rather than being
-  # mistaken for absence. No telemetry on a miss; callers instrument their own
+  # mistaken for absence.
+  @spec scoped_row(Ecto.UUID.t(), term(), atom(), keyword()) :: AuditTransaction.t() | nil
+  def scoped_row(uuid, raw_id, surface, opts) when is_list(opts) do
+    repo = Keyword.fetch!(opts, :repo)
+
+    AuditTransaction
+    |> where([at], at.id == ^uuid)
+    |> Query.maybe_apply_scope(
+      scope: Keyword.get(opts, :scope),
+      scope_query_fn: Keyword.get(opts, :scope_query_fn),
+      surface: surface,
+      params: %{transaction_id: raw_id}
+    )
+    |> repo.one(Query.storage_opts([], opts))
+  end
+
+  @doc false
+  # The one hidden existence fetch every single-subject transaction lookup
+  # shares: the row first, read via `scoped_row/4` with a hardcoded
+  # `surface: :transaction_header` — never read from `opts`, so a caller
+  # cannot relabel the binding shape. A scope rejection of the row and a
+  # missing row both resolve to `:not_found`, so existence never leaks across
+  # tenants. Always hydrates `.action`: 0 extra queries when `action_id` is
+  # nil, 1 otherwise. No telemetry on a miss; callers instrument their own
   # lookups. Does NOT call `validate_opts!/2` itself — callers validate with
   # their own function name before calling this.
   @spec fetch_row(term(), keyword()) :: {:ok, AuditTransaction.t()} | :not_found
@@ -79,18 +103,7 @@ defmodule Threadline.Query.TransactionLookup do
       {:ok, uuid} ->
         repo = Keyword.fetch!(opts, :repo)
 
-        row =
-          AuditTransaction
-          |> where([at], at.id == ^uuid)
-          |> Query.maybe_apply_scope(
-            scope: Keyword.get(opts, :scope),
-            scope_query_fn: Keyword.get(opts, :scope_query_fn),
-            surface: :transaction_header,
-            params: %{transaction_id: id}
-          )
-          |> repo.one(Query.storage_opts([], opts))
-
-        case row do
+        case scoped_row(uuid, id, :transaction_header, opts) do
           nil -> :not_found
           %AuditTransaction{} = row -> {:ok, Query.hydrate_actions(row, repo, opts)}
         end
