@@ -85,6 +85,60 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       router: Threadline.OperatorSurface.TimelineLiveTest.SchemaRouter
   end
 
+  # Router/endpoint for the D-20 fail-closed matrix (233-04 Task 2) — the
+  # authorize_fn returns a non-nil scope but the mount configures no
+  # scope_query_fn at all, so the first scoped read must raise instead of
+  # silently reading unscoped.
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopeNoFnRouter do
+    use Threadline.OperatorSurfaceTest.Router
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_scope_no_fn",
+        authorize_fn: &__MODULE__.auth/1
+      )
+    end
+
+    def auth(_socket), do: {:ok, %{organization_id: "org_123"}}
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopeNoFnEndpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.ScopeNoFnRouter
+  end
+
+  # Router/endpoint for the D-20 nil-scope matrix (233-04 Task 2) — the
+  # authorize_fn returns :ok (admin, unscoped) but a scope_query_fn is still
+  # configured at mount. The nil scope stays unscoped and the fn is never
+  # called (it would reject everything if it were).
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.NilScopeWithFnRouter do
+    use Threadline.OperatorSurfaceTest.Router
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_nil_scope_with_fn",
+        authorize_fn: &__MODULE__.auth/1,
+        scope_query_fn: &__MODULE__.deny_all/3
+      )
+    end
+
+    def auth(_socket), do: :ok
+
+    # Would deny everything if ever called — proves the nil-scope path never
+    # calls the fn.
+    def deny_all(query, _scope, _context) do
+      import Ecto.Query
+      where(query, [_ac, _at], false)
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.NilScopeWithFnEndpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.NilScopeWithFnRouter
+  end
+
   # Scoped endpoint/router for Case 10 — mounts the surface with an authorize_fn
   # that returns {:ok, %{tenant: "t1"}} so :threadline_scope is populated on the socket.
   defmodule Threadline.OperatorSurface.TimelineLiveTest.ScopedRouter do
@@ -1739,6 +1793,105 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       render_click(lv, "request_background_export", %{})
       assert Repo.all(Threadline.Governance.ExportJob, repo_opts()) == []
+    end
+  end
+end
+
+if Code.ensure_loaded?(Phoenix.LiveView) do
+  defmodule Threadline.OperatorSurface.Live.TimelineLiveScopeFailClosedTest do
+    @moduledoc """
+    D-20 fail-closed matrix (233-04 Task 2): a mount whose authorize_fn
+    returns a non-nil scope but has no scope_query_fn configured must fail
+    the first scoped read rather than silently rendering unscoped rows.
+    """
+
+    use Threadline.DataCase, async: false
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.ScopeNoFnEndpoint
+
+    setup_all do
+      start_endpoint!(@endpoint)
+      :ok
+    end
+
+    setup do
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    test "a scope without a scope_query_fn crashes the mount instead of reading unscoped", %{
+      conn: conn
+    } do
+      Process.flag(:trap_exit, true)
+
+      {:error, {:live_redirect, %{to: path}}} = live(conn, "/audit_scope_no_fn/timeline")
+
+      reason = catch_exit(live(conn, path))
+
+      assert {{%ArgumentError{message: message}, _stacktrace}, _task_info} = reason
+      assert message =~ ":scope_query_fn"
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.Live.TimelineLiveNilScopeWithFnTest do
+    @moduledoc """
+    D-20 (233-04 Task 2): authorize_fn returning `:ok` keeps the scope nil
+    even when a `scope_query_fn` is configured at mount — the nil scope
+    reads unscoped and the fn (which would deny everything) is never
+    called.
+    """
+
+    use Threadline.DataCase, async: false
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.NilScopeWithFnEndpoint
+
+    setup_all do
+      start_endpoint!(@endpoint)
+      :ok
+    end
+
+    setup do
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    test "authorize_fn :ok with a scope_query_fn configured renders unscoped rows", %{
+      conn: conn
+    } do
+      repo = Threadline.Test.Repo
+      storage_opts = repo_opts()
+
+      txn =
+        repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            source: "support"
+          }),
+          storage_opts
+        )
+
+      repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "nil_scope_posts",
+          table_pk: %{"id" => "1"},
+          op: "insert",
+          data_after: %{"title" => "x"},
+          changed_fields: nil,
+          captured_at: DateTime.utc_now()
+        }),
+        storage_opts
+      )
+
+      {:ok, _lv, html} =
+        case live(conn, "/audit_nil_scope_with_fn/timeline?table=nil_scope_posts") do
+          {:ok, _, _} = ok -> ok
+          {:error, {:live_redirect, %{to: path}}} -> live(conn, path)
+        end
+
+      assert html =~ "nil_scope_posts"
     end
   end
 end

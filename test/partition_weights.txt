@@ -193,6 +193,7 @@
 129 test/threadline/query/row_key_read_test.exs
 343 test/threadline/query/row_key_types_test.exs
 8 test/threadline/query/row_key_validation_test.exs
+200 test/threadline/query/scope_fail_closed_test.exs
 341 test/threadline/query_test.exs
 119 test/threadline/readme_doc_contract_test.exs
 4398 test/threadline/release_artifact_contract_test.exs

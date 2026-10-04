@@ -9,9 +9,274 @@ defmodule Threadline.Query.ScopeFailClosedTest do
   use Threadline.DataCase
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.Test.Repo
 
   @repo Repo
+
+  defmodule FakeUser do
+    use Ecto.Schema
+
+    @primary_key {:id, :string, autogenerate: false}
+    schema "users" do
+      field(:name, :string)
+    end
+  end
+
+  # A 3-arity fn that never gets called when it shouldn't — proves the
+  # fail-closed matrix reaches the fn at all when scope is nil, and never
+  # silently widens when the scope is non-nil and misconfigured.
+  defp unscoped_marker_fn do
+    test_pid = self()
+
+    fn query, scope, context ->
+      send(test_pid, {:scope_fn_called, scope, context})
+      query
+    end
+  end
+
+  defp bad_scope, do: %{org: "tenant-secret-7"}
+
+  describe "every scoped read fails closed (D-20/D-22)" do
+    setup do
+      actor = actor!(:user, "investigator")
+      actor_ref = ActorRef.to_map(actor)
+      transaction = insert_transaction(%{actor_ref: actor_ref})
+
+      action =
+        @repo.insert!(
+          AuditAction.changeset(%AuditAction{}, %{
+            name: "scope_fail_closed.test",
+            actor_ref: actor_ref,
+            status: :ok,
+            correlation_id: "scope-fail-closed-corr-1"
+          }),
+          repo_opts()
+        )
+
+      @repo.update!(Ecto.Changeset.change(transaction, action_id: action.id), repo_opts())
+      transaction = @repo.get!(AuditTransaction, transaction.id, repo_opts())
+
+      insert_change(transaction, %{table_pk: %{"id" => "user-1"}})
+
+      %{transaction: transaction, actor: actor, correlation_id: "scope-fail-closed-corr-1"}
+    end
+
+    test "timeline_page/2", %{} do
+      assert_raise ArgumentError, fn ->
+        Threadline.timeline_page([repo: @repo], scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+      page = Threadline.timeline_page([repo: @repo], scope: nil, scope_query_fn: marker_fn)
+      assert length(page.entries) == 1
+      refute_received {:scope_fn_called, _, _}
+    end
+
+    test "row_history/3 list", %{} do
+      assert_raise ArgumentError, fn ->
+        Threadline.row_history(FakeUser, "user-1", repo: @repo, scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      entries =
+        Threadline.row_history(FakeUser, "user-1",
+          repo: @repo,
+          scope: nil,
+          scope_query_fn: marker_fn
+        )
+
+      assert length(entries) == 1
+      refute_received {:scope_fn_called, _, _}
+    end
+
+    test "row_history/3 cursor: :start", %{} do
+      assert_raise ArgumentError, fn ->
+        Threadline.row_history(FakeUser, "user-1",
+          repo: @repo,
+          cursor: :start,
+          scope: bad_scope()
+        )
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      page =
+        Threadline.row_history(FakeUser, "user-1",
+          repo: @repo,
+          cursor: :start,
+          scope: nil,
+          scope_query_fn: marker_fn
+        )
+
+      assert length(page.entries) == 1
+      refute_received {:scope_fn_called, _, _}
+    end
+
+    test "actor_history/2", %{actor: actor} do
+      assert_raise ArgumentError, fn ->
+        Threadline.actor_history(actor, repo: @repo, scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+      page = Threadline.actor_history(actor, repo: @repo, scope: nil, scope_query_fn: marker_fn)
+      assert length(page.entries) == 1
+      refute_received {:scope_fn_called, _, _}
+    end
+
+    test "actor_window/3", %{actor: actor} do
+      assert_raise ArgumentError, fn ->
+        Threadline.actor_window(actor, [], repo: @repo, scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      entries =
+        Threadline.actor_window(actor, [], repo: @repo, scope: nil, scope_query_fn: marker_fn)
+
+      assert length(entries) == 1
+      refute_received {:scope_fn_called, _, _}
+    end
+
+    test "correlation_bundle/3", %{correlation_id: correlation_id} do
+      assert_raise ArgumentError, fn ->
+        Threadline.correlation_bundle(correlation_id, [], repo: @repo, scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      entries =
+        Threadline.correlation_bundle(correlation_id, [],
+          repo: @repo,
+          scope: nil,
+          scope_query_fn: marker_fn
+        )
+
+      assert length(entries) == 1
+      refute_received {:scope_fn_called, _, _}
+    end
+
+    test "audit_changes_for_transaction/2", %{transaction: transaction} do
+      assert_raise ArgumentError, fn ->
+        Threadline.audit_changes_for_transaction(transaction.id, repo: @repo, scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      changes =
+        Threadline.audit_changes_for_transaction(transaction.id,
+          repo: @repo,
+          scope: nil,
+          scope_query_fn: marker_fn
+        )
+
+      assert length(changes) == 1
+      refute_received {:scope_fn_called, _, _}
+    end
+
+    test "audit_transaction/2", %{transaction: transaction} do
+      assert_raise ArgumentError, fn ->
+        Threadline.audit_transaction(transaction.id, repo: @repo, scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      assert {:ok, _} =
+               Threadline.audit_transaction(transaction.id,
+                 repo: @repo,
+                 scope: nil,
+                 scope_query_fn: marker_fn
+               )
+    end
+
+    test "transaction_context/2", %{transaction: transaction} do
+      assert_raise ArgumentError, fn ->
+        Threadline.transaction_context(transaction.id, repo: @repo, scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      assert {:ok, _} =
+               Threadline.transaction_context(transaction.id,
+                 repo: @repo,
+                 scope: nil,
+                 scope_query_fn: marker_fn
+               )
+    end
+
+    test "incident_bundle/2", %{transaction: transaction} do
+      assert_raise ArgumentError, fn ->
+        Threadline.incident_bundle(transaction.id, repo: @repo, scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      assert {:ok, _} =
+               Threadline.incident_bundle(transaction.id,
+                 repo: @repo,
+                 scope: nil,
+                 scope_query_fn: marker_fn
+               )
+    end
+
+    test "export_csv/2", %{} do
+      assert_raise ArgumentError, fn ->
+        Threadline.export_csv([repo: @repo], scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      assert {:ok, _} =
+               Threadline.export_csv([repo: @repo], scope: nil, scope_query_fn: marker_fn)
+    end
+
+    test "export_json/2", %{} do
+      assert_raise ArgumentError, fn ->
+        Threadline.export_json([repo: @repo], scope: bad_scope())
+      end
+
+      marker_fn = unscoped_marker_fn()
+
+      assert {:ok, _} =
+               Threadline.export_json([repo: @repo], scope: nil, scope_query_fn: marker_fn)
+    end
+
+    test "audit_transaction!/2 raises ArgumentError (not NotFoundError) for a misconfigured scope",
+         %{transaction: transaction} do
+      error =
+        assert_raise ArgumentError, fn ->
+          Threadline.audit_transaction!(transaction.id, repo: @repo, scope: bad_scope())
+        end
+
+      assert error.message =~ ":scope_query_fn"
+    end
+
+    test "transaction_context!/2 raises ArgumentError (not NotFoundError) for a misconfigured scope",
+         %{transaction: transaction} do
+      error =
+        assert_raise ArgumentError, fn ->
+          Threadline.transaction_context!(transaction.id, repo: @repo, scope: bad_scope())
+        end
+
+      assert error.message =~ ":scope_query_fn"
+    end
+
+    test "incident_bundle!/2 raises ArgumentError (not NotFoundError) for a misconfigured scope",
+         %{transaction: transaction} do
+      error =
+        assert_raise ArgumentError, fn ->
+          Threadline.incident_bundle!(transaction.id, repo: @repo, scope: bad_scope())
+        end
+
+      assert error.message =~ ":scope_query_fn"
+    end
+  end
+
+  defp actor!(type, id) do
+    {:ok, ref} = ActorRef.new(type, id)
+    ref
+  end
 
   defp insert_transaction(attrs \\ %{}, storage_schema \\ "threadline") do
     defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}

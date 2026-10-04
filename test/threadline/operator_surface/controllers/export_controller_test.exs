@@ -33,6 +33,30 @@ if Code.ensure_loaded?(Phoenix.Controller) do
     def scope_operator_query(query, _scope, _context), do: query
   end
 
+  # D-20 fail-closed matrix (233-04 Task 2): a non-nil scope with no
+  # scope_query_fn configured at all — the export controller must not
+  # stream unscoped rows.
+  defmodule Threadline.OperatorSurface.ExportControllerTest.ScopeNoFnRouter do
+    use Threadline.OperatorSurfaceTest.Router, accepts: ["html", "csv", "json"]
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_export_scope_no_fn",
+        authorize_fn: &__MODULE__.auth/1
+      )
+    end
+
+    def auth(_mirror), do: {:ok, %{source: "support"}}
+  end
+
+  defmodule Threadline.OperatorSurface.ExportControllerTest.ScopeNoFnEndpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.ExportControllerTest.ScopeNoFnRouter,
+      parsers: [:urlencoded, :json],
+      json_decoder: Jason
+  end
+
   defmodule Threadline.OperatorSurface.ExportControllerTest.DeniedRouter do
     use Threadline.OperatorSurfaceTest.Router, accepts: ["html", "csv", "json"]
 
@@ -883,6 +907,69 @@ if Code.ensure_loaded?(Phoenix.Controller) do
             captured_at: now
           }),
           repo_opts()
+        )
+      end
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.ExportControllerScopeNoFnTest do
+    @moduledoc """
+    D-20 fail-closed matrix (233-04 Task 2): an export mount whose
+    authorize_fn returns a non-nil scope with no scope_query_fn configured
+    must never stream unscoped rows — it raises instead of returning 200.
+    """
+
+    use ExUnit.Case, async: false
+
+    import Phoenix.ConnTest
+    import Threadline.OperatorSurfaceCase, only: [start_endpoint!: 1]
+    import Threadline.StorageSchemaCase
+
+    alias Threadline.Capture.{AuditChange, AuditTransaction}
+
+    @endpoint Threadline.OperatorSurface.ExportControllerTest.ScopeNoFnEndpoint
+    @repo Threadline.Test.Repo
+
+    setup_all do
+      start_endpoint!(@endpoint)
+      :ok
+    end
+
+    setup do
+      clean_storage_schemas!()
+      {:ok, conn: build_conn()}
+    end
+
+    test "a scope without a scope_query_fn raises instead of streaming unscoped rows", %{
+      conn: conn
+    } do
+      txn =
+        @repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            source: "support"
+          }),
+          repo_opts()
+        )
+
+      @repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "support_posts",
+          table_pk: %{"id" => "1"},
+          op: "insert",
+          data_after: %{"i" => 1},
+          captured_at: DateTime.utc_now()
+        }),
+        repo_opts()
+      )
+
+      assert_raise ArgumentError, ~r/:scope_query_fn/, fn ->
+        get(
+          conn,
+          "/audit_export_scope_no_fn/exports/changes.csv?from=2020-01-01T00:00&to=2099-01-01T00:00"
         )
       end
     end
