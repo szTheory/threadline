@@ -139,4 +139,17 @@ defmodule Threadline.OptionAllowlistTest do
     assert Threadline.__filter_keys__(:export_csv) == @timeline_filter_keys
     assert Threadline.__filter_keys__(:export_json) == @timeline_filter_keys
   end
+
+  test "Export.to_csv_iodata rejects internal and unknown option keys before reading" do
+    for key <- [:surface, :params, :limitt] do
+      assert_raise ArgumentError,
+                   ~r/unknown to_csv_iodata option key #{inspect(key)}.*Allowed:/,
+                   fn ->
+                     Threadline.Export.to_csv_iodata([], [{key, true}])
+                   end
+    end
+
+    assert Threadline.Export.__option_keys__(:to_csv_iodata) ==
+             Threadline.__option_keys__(:export_csv)
+  end
 end

@@ -64,7 +64,15 @@ defmodule Threadline.Query.OptionKeys do
       :max_rows,
       :include_action_metadata
     ],
-    :export_json => [:repo, :storage_schema, :scope, :scope_query_fn, :max_rows, :json_format]
+    :export_json => [:repo, :storage_schema, :scope, :scope_query_fn, :max_rows, :json_format],
+    :to_csv_iodata => [
+      :repo,
+      :storage_schema,
+      :scope,
+      :scope_query_fn,
+      :max_rows,
+      :include_action_metadata
+    ]
   }
 
   @filter_keys %{

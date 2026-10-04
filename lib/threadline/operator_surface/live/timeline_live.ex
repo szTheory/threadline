@@ -10,7 +10,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Ecto.Query
 
-    alias Threadline.Export
     alias Threadline.Governance.ExportJob
     alias Threadline.Governance.SavedView
     alias Threadline.OperatorSurface.Live.TimelineLive.Filters
@@ -18,6 +17,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.Query
+    alias Threadline.Query.ExportReads
     alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
@@ -145,7 +145,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       count_task =
         Task.async(fn ->
-          Export.count_matching(filters, count_opts(socket, 10_001))
+          ExportReads.count_matching(filters, count_opts(socket, 10_001))
         end)
 
       page_opts = scope_aware_opts(socket)
@@ -563,7 +563,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, %{count: count}} =
           filters
           |> Keyword.drop([:from, :to])
-          |> Export.count_matching(count_opts(socket, 1))
+          |> ExportReads.count_matching(count_opts(socket, 1))
 
         count > 0
       else
