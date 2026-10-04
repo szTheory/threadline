@@ -33,12 +33,27 @@ defmodule Threadline.Query.OptionKeys do
       :after,
       :before,
       :limit
-    ]
+    ],
+    :actor_window => [:repo, :storage_schema, :scope, :scope_query_fn, :cursor, :page_size],
+    :correlation_bundle => [:repo, :storage_schema, :scope, :scope_query_fn, :cursor, :page_size],
+    :export_csv => [
+      :repo,
+      :storage_schema,
+      :scope,
+      :scope_query_fn,
+      :max_rows,
+      :include_action_metadata
+    ],
+    :export_json => [:repo, :storage_schema, :scope, :scope_query_fn, :max_rows, :json_format]
   }
 
   @filter_keys %{
     :timeline => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id],
-    :timeline_page => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id]
+    :timeline_page => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id],
+    :actor_window => [:table, :from, :to, :correlation_id, :repo],
+    :correlation_bundle => [:table, :actor_ref, :from, :to, :repo],
+    :export_csv => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id],
+    :export_json => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id]
   }
 
   @spec allowed(atom()) :: [atom()] | :not_closed

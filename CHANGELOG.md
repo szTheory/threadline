@@ -33,7 +33,9 @@ and `Threadline.incident_bundle/2`.
 ### Breaking changes
 
 - `Threadline.timeline/2`, `Threadline.timeline_page/2`, and
-  `Threadline.actor_history/2` now raise `ArgumentError` for unknown filter or
+  `Threadline.actor_history/2`, `Threadline.actor_window/3`,
+  `Threadline.correlation_bundle/3`, `Threadline.export_csv/2`, and
+  `Threadline.export_json/2` now raise `ArgumentError` for unknown filter or
   option keys; `:surface` and `:params` are not accepted. Required action:
   remove unknown keys from calls to these functions.
 

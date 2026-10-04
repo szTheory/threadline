@@ -17,8 +17,6 @@ defmodule Threadline.Investigation do
   alias Threadline.Semantics.ActorRef
 
   @allowed_row_history_filter_keys ~w(from to repo)a
-  @allowed_actor_window_filter_keys ~w(table from to correlation_id repo)a
-  @allowed_correlation_bundle_filter_keys ~w(table actor_ref from to repo)a
 
   @doc """
   Returns row history for one schema row, ordered by `captured_at`
@@ -83,10 +81,8 @@ defmodule Threadline.Investigation do
   helper argument.
   """
   def actor_window(%ActorRef{} = actor_ref, filters \\ [], opts \\ []) do
-    filters =
-      filters
-      |> validate_helper_filters!(@allowed_actor_window_filter_keys, :actor_window)
-      |> Keyword.put(:actor_ref, actor_ref)
+    OptionKeys.validate_filters!(filters, :actor_window)
+    filters = Keyword.put(filters, :actor_ref, actor_ref)
 
     if Keyword.has_key?(opts, :cursor) do
       filters
@@ -123,13 +119,8 @@ defmodule Threadline.Investigation do
   """
   def correlation_bundle(correlation_id, filters \\ [], opts \\ [])
       when is_binary(correlation_id) do
-    filters =
-      filters
-      |> validate_helper_filters!(
-        @allowed_correlation_bundle_filter_keys,
-        :correlation_bundle
-      )
-      |> Keyword.put(:correlation_id, correlation_id)
+    OptionKeys.validate_filters!(filters, :correlation_bundle)
+    filters = Keyword.put(filters, :correlation_id, correlation_id)
 
     if Keyword.has_key?(opts, :cursor) do
       filters

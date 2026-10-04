@@ -29,6 +29,11 @@ defmodule Threadline.OptionAllowlistTest do
   @timeline_page_option_keys @query_option_keys ++ [:page_size, :cursor]
   @actor_history_keys @query_option_keys ++
                         [:from, :to, :cursor, :page_size, :after, :before, :limit]
+  @window_option_keys @query_option_keys ++ [:cursor, :page_size]
+  @actor_window_filter_keys [:table, :from, :to, :correlation_id, :repo]
+  @correlation_bundle_filter_keys [:table, :actor_ref, :from, :to, :repo]
+  @export_csv_option_keys @query_option_keys ++ [:max_rows, :include_action_metadata]
+  @export_json_option_keys @query_option_keys ++ [:max_rows, :json_format]
 
   test "row_history rejects internal and unknown option keys before reading" do
     assert_raise ArgumentError, ~r/unknown row_history option key :surface/, fn ->
@@ -84,5 +89,54 @@ defmodule Threadline.OptionAllowlistTest do
     assert Threadline.__filter_keys__(:timeline) == @timeline_filter_keys
     assert Threadline.__filter_keys__(:timeline_page) == @timeline_filter_keys
     assert Threadline.__filter_keys__(:actor_history) == :not_closed
+  end
+
+  test "Investigation and export facade functions reject internal and unknown option keys" do
+    {:ok, actor_ref} = ActorRef.new(:user, "option-allowlist")
+
+    calls = [
+      {:actor_window, fn opts -> Threadline.actor_window(actor_ref, [], opts) end},
+      {:correlation_bundle, fn opts -> Threadline.correlation_bundle("corr-1", [], opts) end},
+      {:export_csv, fn opts -> Threadline.export_csv([], opts) end},
+      {:export_json, fn opts -> Threadline.export_json([], opts) end}
+    ]
+
+    for {name, call} <- calls, key <- [:surface, :params, :limitt] do
+      assert_raise ArgumentError, ~r/unknown #{name} option key #{inspect(key)}/, fn ->
+        call.([{key, true}])
+      end
+    end
+  end
+
+  test "Investigation and export facade functions reject unknown filter keys" do
+    {:ok, actor_ref} = ActorRef.new(:user, "option-allowlist")
+
+    assert_raise ArgumentError, ~r/unknown actor_window filter key :limitt/, fn ->
+      Threadline.actor_window(actor_ref, limitt: true)
+    end
+
+    assert_raise ArgumentError, ~r/unknown correlation_bundle filter key :limitt/, fn ->
+      Threadline.correlation_bundle("corr-1", limitt: true)
+    end
+
+    for export <- [&Threadline.export_csv/2, &Threadline.export_json/2] do
+      assert_raise ArgumentError, ~r/unknown timeline filter key :limitt/, fn ->
+        export.([limitt: true], [])
+      end
+    end
+  end
+
+  test "Investigation and export facade functions expose exact allowlists" do
+    assert Threadline.__option_keys__(:actor_window) == @window_option_keys
+    assert Threadline.__option_keys__(:correlation_bundle) == @window_option_keys
+    assert Threadline.__option_keys__(:export_csv) == @export_csv_option_keys
+    assert Threadline.__option_keys__(:export_json) == @export_json_option_keys
+    assert Threadline.__filter_keys__(:actor_window) == @actor_window_filter_keys
+
+    assert Threadline.__filter_keys__(:correlation_bundle) ==
+             @correlation_bundle_filter_keys
+
+    assert Threadline.__filter_keys__(:export_csv) == @timeline_filter_keys
+    assert Threadline.__filter_keys__(:export_json) == @timeline_filter_keys
   end
 end

@@ -125,6 +125,46 @@ defmodule Threadline do
           | {:before, Threadline.Page.actor_cursor()}
           | {:limit, pos_integer()}
 
+  @typedoc "A filter for changes made by one actor."
+  @type actor_window_filter ::
+          {:table, atom() | String.t()}
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | {:correlation_id, String.t()}
+          | repo_opt()
+
+  @typedoc "A filter for changes linked to one correlation id."
+  @type correlation_bundle_filter ::
+          {:table, atom() | String.t()}
+          | {:actor_ref, ActorRef.t()}
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | repo_opt()
+
+  @typedoc "An option accepted by `actor_window/3` and `correlation_bundle/3`."
+  @type window_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | scope_opt()
+          | {:cursor, :start | Threadline.Page.change_cursor()}
+          | {:page_size, pos_integer()}
+
+  @typedoc "An option accepted by `export_csv/2`."
+  @type export_csv_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | scope_opt()
+          | {:max_rows, non_neg_integer()}
+          | {:include_action_metadata, boolean()}
+
+  @typedoc "An option accepted by `export_json/2`."
+  @type export_json_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | scope_opt()
+          | {:max_rows, non_neg_integer()}
+          | {:json_format, :wrapped | :ndjson}
+
   @doc false
   @spec __option_keys__(atom()) :: [atom()] | :not_closed
   def __option_keys__(name), do: OptionKeys.allowed(name)
@@ -475,21 +515,49 @@ defmodule Threadline do
     do: row_history(schema_module, id, LegacyOpts.row_history_page(filters, opts))
 
   @doc """
-  Returns a list of `%Threadline.Investigation.LinkedChange{}` — the change rows one
-  actor made across audited tables, each with its transaction and linked action,
-  newest first.
+  Returns linked change rows made by one actor across audited tables, newest
+  first, as a list or `%Threadline.Page{}`.
 
-  Pass `cursor:` (with optional `page_size:`) in `opts` to page through the
-  results as a `%Threadline.Page{}` instead of a bare list.
+  Use `actor_history/2` for one row per transaction. Pass `:cursor` to walk the
+  changes in keyset pages.
 
-  For one row per transaction instead, use `actor_history/2`.
+  ## Filters
+
+  - `:table` — string or atom. Optional. Matches `table_name`.
+  - `:from` — `DateTime`. Optional. Inclusive lower bound on `captured_at`.
+  - `:to` — `DateTime`. Optional. Inclusive upper bound on `captured_at`.
+  - `:correlation_id` — non-empty string. Optional. Matches linked action correlation.
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds the caller's scope predicates to the read.
+  - `:cursor` — `:start` or a prior page cursor. Optional. Returns a page instead of a list.
+  - `:page_size` — positive integer. Defaults to `1000`; applies when `:cursor` is set.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A list of `%Threadline.Investigation.LinkedChange{}` rows, or a `%Threadline.Page{}` when `:cursor` is set.
+  - Raises `ArgumentError` for invalid filters, cursor values, or a missing `:repo`.
+
+  ## Examples
+
+      Threadline.actor_window(actor_ref, [table: "members"], repo: MyApp.Repo)
   """
   @doc since: "1.0.0"
-  @spec actor_window(ActorRef.t(), keyword(), keyword()) ::
+  @spec actor_window(ActorRef.t(), [actor_window_filter()], [window_opt()]) ::
           [Threadline.Investigation.LinkedChange.t()]
           | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
-  def actor_window(actor_ref, filters \\ [], opts \\ []),
-    do: Investigation.actor_window(actor_ref, filters, opts)
+  def actor_window(actor_ref, filters \\ [], opts \\ []) do
+    OptionKeys.validate_filters!(filters, :actor_window)
+    OptionKeys.validate!(opts, :actor_window)
+    Investigation.actor_window(actor_ref, filters, opts)
+  end
 
   @deprecated "Use Threadline.actor_window/3 instead."
   @doc """
@@ -509,18 +577,49 @@ defmodule Threadline do
     do: actor_window(actor_ref, filters, LegacyOpts.cursor(opts))
 
   @doc """
-  Returns change rows linked to one `correlation_id` with strict correlation
-  semantics.
+  Returns linked change rows for one `correlation_id`, newest first, as a list
+  or `%Threadline.Page{}`. Correlation uses strict inner-join semantics.
 
-  Pass `cursor:` (with optional `page_size:`) in `opts` to page through the
-  results as a `%Threadline.Page{}` instead of a bare list.
+  Use `actor_window/3` to read changes for one actor across tables. Pass
+  `:cursor` to walk correlation results in keyset pages.
+
+  ## Filters
+
+  - `:table` — string or atom. Optional. Matches `table_name`.
+  - `:actor_ref` — `%ActorRef{}`. Optional. Matches the transaction actor.
+  - `:from` — `DateTime`. Optional. Inclusive lower bound on `captured_at`.
+  - `:to` — `DateTime`. Optional. Inclusive upper bound on `captured_at`.
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds the caller's scope predicates to the read.
+  - `:cursor` — `:start` or a prior page cursor. Optional. Returns a page instead of a list.
+  - `:page_size` — positive integer. Defaults to `1000`; applies when `:cursor` is set.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A list of `%Threadline.Investigation.LinkedChange{}` rows, or a `%Threadline.Page{}` when `:cursor` is set.
+  - Raises `ArgumentError` for invalid filters, cursor values, or a missing `:repo`.
+
+  ## Examples
+
+      Threadline.correlation_bundle("member-42", [table: "members"], repo: MyApp.Repo)
   """
   @doc since: "1.0.0"
-  @spec correlation_bundle(String.t(), keyword(), keyword()) ::
+  @spec correlation_bundle(String.t(), [correlation_bundle_filter()], [window_opt()]) ::
           [Threadline.Investigation.LinkedChange.t()]
           | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
-  def correlation_bundle(correlation_id, filters \\ [], opts \\ []),
-    do: Investigation.correlation_bundle(correlation_id, filters, opts)
+  def correlation_bundle(correlation_id, filters \\ [], opts \\ []) do
+    OptionKeys.validate_filters!(filters, :correlation_bundle)
+    OptionKeys.validate!(opts, :correlation_bundle)
+    Investigation.correlation_bundle(correlation_id, filters, opts)
+  end
 
   @deprecated "Use Threadline.correlation_bundle/3 instead."
   @doc """
@@ -786,21 +885,110 @@ defmodule Threadline do
     do: Threadline.Query.audit_changes_for_transaction(transaction_id, opts)
 
   @doc """
-  Exports matching audit changes as CSV using the same `filters` / `opts` vocabulary
-  as `timeline/2`.
+  Returns CSV iodata and truncation metadata for matching captured changes.
 
-  See `Threadline.Export`.
+  Use `export_json/2` when consumers need JSON; both functions share the
+  timeline filter vocabulary and bounded export behavior.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+  - `:table` — string or atom. Optional. Matches `table_name`.
+  - `:table_schema` — string or atom. Optional. Matches the captured host schema.
+  - `:actor_ref` — `%ActorRef{}`. Optional. Matches the transaction actor.
+  - `:from` — `DateTime`. Optional. Inclusive lower bound on `captured_at`.
+  - `:to` — `DateTime`. Optional. Inclusive upper bound on `captured_at`.
+  - `:correlation_id` — non-empty string. Optional. Matches linked action correlation with strict inner-join semantics.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds the caller's scope predicates to the export read.
+  - `:max_rows` — non-negative integer. Defaults to `10_000`; controls truncation.
+  - `:include_action_metadata` — boolean. Defaults to `false`; appends action columns when true.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - `{:ok, %{data: iodata, truncated: boolean, returned_count: non_neg_integer, max_rows: non_neg_integer}}` — CSV output and export counts.
+  - Raises `ArgumentError` for invalid filters or missing `:repo`; repository errors are reraised.
+
+  ## Examples
+
+      Threadline.export_csv([table: "members"], repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  def export_csv(filters \\ [], opts \\ []), do: Threadline.Export.to_csv_iodata(filters, opts)
+  @spec export_csv([timeline_filter()], [export_csv_opt()]) ::
+          {:ok,
+           %{
+             data: iodata(),
+             truncated: boolean(),
+             returned_count: non_neg_integer(),
+             max_rows: non_neg_integer()
+           }}
+  def export_csv(filters \\ [], opts \\ []) do
+    OptionKeys.validate_filters!(filters, :timeline)
+    OptionKeys.validate!(opts, :export_csv)
+    Threadline.Export.to_csv_iodata(filters, opts)
+  end
 
   @doc """
-  Exports matching audit changes as JSON using the same `filters` / `opts` vocabulary
-  as `timeline/2`.
+  Returns JSON iodata and truncation metadata for matching captured changes.
 
-  Pass `json_format: :ndjson` in `opts` for newline-delimited objects. See `Threadline.Export`.
+  Use `export_csv/2` when consumers need CSV; both functions share the
+  timeline filter vocabulary and bounded export behavior.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+  - `:table` — string or atom. Optional. Matches `table_name`.
+  - `:table_schema` — string or atom. Optional. Matches the captured host schema.
+  - `:actor_ref` — `%ActorRef{}`. Optional. Matches the transaction actor.
+  - `:from` — `DateTime`. Optional. Inclusive lower bound on `captured_at`.
+  - `:to` — `DateTime`. Optional. Inclusive upper bound on `captured_at`.
+  - `:correlation_id` — non-empty string. Optional. Matches linked action correlation with strict inner-join semantics.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds the caller's scope predicates to the export read.
+  - `:max_rows` — non-negative integer. Defaults to `10_000`; controls truncation.
+  - `:json_format` — `:wrapped` or `:ndjson`. Defaults to `:wrapped`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - `{:ok, %{data: iodata, truncated: boolean, returned_count: non_neg_integer, max_rows: non_neg_integer}}` — JSON output and export counts.
+  - Raises `ArgumentError` for invalid filters or missing `:repo`, `CaseClauseError` for an unsupported format, and reraises repository errors.
+
+  ## Examples
+
+      Threadline.export_json([table: "members"], repo: MyApp.Repo, json_format: :ndjson)
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  def export_json(filters \\ [], opts \\ []),
-    do: Threadline.Export.to_json_document(filters, opts)
+  @spec export_json([timeline_filter()], [export_json_opt()]) ::
+          {:ok,
+           %{
+             data: iodata(),
+             truncated: boolean(),
+             returned_count: non_neg_integer(),
+             max_rows: non_neg_integer()
+           }}
+  def export_json(filters \\ [], opts \\ []) do
+    OptionKeys.validate_filters!(filters, :timeline)
+    OptionKeys.validate!(opts, :export_json)
+    Threadline.Export.to_json_document(filters, opts)
+  end
 
   @doc """
   Projects a single `%Threadline.Capture.AuditChange{}` into deterministic, JSON-friendly maps.

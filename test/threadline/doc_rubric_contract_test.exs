@@ -68,9 +68,7 @@ defmodule Threadline.DocRubricContractTest do
     {Threadline.Storage.S3, :module, :moduledoc, 0, {:unparseable_indented_block, 2}}
   ]
   @bare_type_ratchet [
-    {{Threadline, :spec, :actor_window, 3}, [:keyword, :keyword]},
     {{Threadline, :spec, :actor_window_page, 3}, [:keyword, :keyword]},
-    {{Threadline, :spec, :correlation_bundle, 3}, [:keyword, :keyword]},
     {{Threadline, :spec, :correlation_bundle_page, 3}, [:keyword, :keyword]},
     {{Threadline, :spec, :history, 3}, [:keyword, :term]},
     {{Threadline, :spec, :row_history, 4}, [:keyword, :keyword, :term]},
