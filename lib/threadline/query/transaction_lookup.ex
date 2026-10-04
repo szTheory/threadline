@@ -96,13 +96,13 @@ defmodule Threadline.Query.TransactionLookup do
   # their own function name before calling this.
   @spec fetch_row(term(), keyword()) :: {:ok, AuditTransaction.t()} | :not_found
   def fetch_row(id, opts) when is_list(opts) do
+    repo = Keyword.fetch!(opts, :repo)
+
     case resolve_id(id) do
       :not_found ->
         :not_found
 
       {:ok, uuid} ->
-        repo = Keyword.fetch!(opts, :repo)
-
         case scoped_row(uuid, id, :transaction_header, opts) do
           nil -> :not_found
           %AuditTransaction{} = row -> {:ok, Query.hydrate_actions(row, repo, opts)}
@@ -122,13 +122,13 @@ defmodule Threadline.Query.TransactionLookup do
   @spec fetch(term(), keyword()) ::
           {:ok, AuditTransaction.t(), [AuditChange.t()]} | :not_found
   def fetch(id, opts) when is_list(opts) do
+    repo = Keyword.fetch!(opts, :repo)
+
     case fetch_row(id, opts) do
       :not_found ->
         :not_found
 
       {:ok, row} ->
-        repo = Keyword.fetch!(opts, :repo)
-
         changes =
           AuditChange
           |> where([ac], ac.transaction_id == ^row.id)

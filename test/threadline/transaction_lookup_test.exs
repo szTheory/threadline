@@ -104,6 +104,12 @@ defmodule Threadline.TransactionLookupTest do
     where(query, [ac, _at], false)
   end
 
+  test "single-subject lookups require :repo before resolving a malformed id" do
+    assert_raise KeyError, fn -> Threadline.audit_transaction("garbage") end
+    assert_raise KeyError, fn -> Threadline.transaction_context("garbage") end
+    assert_raise KeyError, fn -> Threadline.incident_bundle("garbage") end
+  end
+
   describe "audit_transaction/2" do
     test "existing transaction with an action returns {:ok, txn} with action hydrated" do
       action = insert_action(%{name: "lookup.with_action", correlation_id: "corr-lookup-1"})

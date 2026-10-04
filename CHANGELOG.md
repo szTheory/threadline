@@ -66,9 +66,10 @@ and `Threadline.incident_bundle/2`.
   of raising `ArgumentError`; a non-binary id still raises. A
   `scope_query_fn` configured for these three now sees the transaction row
   under `surface: :transaction_header` with a single `[at]` binding, and its
-  changes under `surface: :transaction`. Required action: drop those option
-  keys from calls to these three lookups; give your `scope_query_fn` a
-  `:transaction_header` clause.
+  changes under `surface: :transaction`. Missing `:repo` raises `KeyError`
+  before the id is checked, regardless of the id shape. Required action: drop
+  those option keys from calls to these three lookups; give your
+  `scope_query_fn` a `:transaction_header` clause.
 
 - An un-hydrated `AuditTransaction.action` is now `nil` instead of
   `%Ecto.Association.NotLoaded{}`. `AuditTransaction` no longer declares
