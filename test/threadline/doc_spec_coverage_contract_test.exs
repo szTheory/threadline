@@ -5,10 +5,6 @@ defmodule Threadline.DocSpecCoverageContractTest do
   alias Threadline.DocContract
 
   @gap_ratchet [
-    {Threadline, :as_of, 4, :missing_spec},
-    {Threadline, :audit_changes_for_transaction, 2, :missing_spec},
-    {Threadline, :change_diff, 2, :missing_spec},
-    {Threadline, :record_action, 2, :missing_spec},
     {Threadline.Audit, :action_opt, 0, :missing_typedoc},
     {Threadline.Continuity, :assert_capture_ready!, 2, :missing_spec},
     {Threadline.Continuity, :explain_cutover, 1, :missing_spec},
@@ -185,8 +181,8 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 71
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 50
+      assert length(actual) == 67
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 46
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_doc end) == 6
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 15
     end

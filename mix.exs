@@ -105,7 +105,7 @@ defmodule Threadline.MixProject do
       {:sweet_xml, "~> 0.7", optional: true},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:lazy_html, "~> 0.1.0", only: :test},
       # Test-only. Powers ExUnitProperties property tests for generated
       # identifier names. Never reaches consumers of the published package.

@@ -13,6 +13,17 @@ defmodule Threadline.Query.OptionKeys do
       :scope_query_fn,
       :storage_schema
     ],
+    :row_history_page => [
+      :repo,
+      :from,
+      :to,
+      :limit,
+      :cursor,
+      :page_size,
+      :scope,
+      :scope_query_fn,
+      :storage_schema
+    ],
     :audit_transaction => [:repo, :storage_schema, :scope, :scope_query_fn],
     :audit_transaction! => [:repo, :storage_schema, :scope, :scope_query_fn],
     :transaction_context => [:repo, :storage_schema, :scope, :scope_query_fn],
@@ -35,7 +46,16 @@ defmodule Threadline.Query.OptionKeys do
       :limit
     ],
     :actor_window => [:repo, :storage_schema, :scope, :scope_query_fn, :cursor, :page_size],
+    :actor_window_page => [:repo, :storage_schema, :scope, :scope_query_fn, :cursor, :page_size],
     :correlation_bundle => [:repo, :storage_schema, :scope, :scope_query_fn, :cursor, :page_size],
+    :correlation_bundle_page => [
+      :repo,
+      :storage_schema,
+      :scope,
+      :scope_query_fn,
+      :cursor,
+      :page_size
+    ],
     :export_csv => [
       :repo,
       :storage_schema,
@@ -50,8 +70,12 @@ defmodule Threadline.Query.OptionKeys do
   @filter_keys %{
     :timeline => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id],
     :timeline_page => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id],
+    :row_history => [:repo, :from, :to],
+    :row_history_page => [:repo, :from, :to],
     :actor_window => [:table, :from, :to, :correlation_id, :repo],
+    :actor_window_page => [:table, :from, :to, :correlation_id, :repo],
     :correlation_bundle => [:table, :actor_ref, :from, :to, :repo],
+    :correlation_bundle_page => [:table, :actor_ref, :from, :to, :repo],
     :export_csv => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id],
     :export_json => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id]
   }

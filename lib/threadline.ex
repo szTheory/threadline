@@ -5,16 +5,14 @@ defmodule Threadline do
   Threadline combines trigger-backed row-change capture, rich action semantics
   (actor/intent/context), and operator-grade exploration.
 
-  ## Reading audit data
+  ## Jobs
 
-  The functions on this module (see the function list below) are the
-  supported read API — including `timeline/2`, `timeline_page/2`,
-  `row_history/3`, `as_of/4`, `actor_history/2`, `actor_window/3`,
-  `correlation_bundle/3`, `audit_transaction/2`, `transaction_context/2`,
-  `incident_bundle/2`, `audit_changes_for_transaction/2`, `export_csv/2`, and
-  `export_json/2`.
-  Build on these rather than on the internal modules behind them. Older
-  names (`history/3`, `row_history/4`, `row_history_page/4`,
+  - **Capture & Transactions**: read a captured transaction with `audit_transaction/2`, `transaction_context/2`, or `incident_bundle/2`.
+  - **Querying & Timelines**: inspect all changes with `timeline/2`, page through them with `timeline_page/2`, or reconstruct a row with `row_history/3`.
+  - **Actions & Context**: record semantic intent with `record_action/2`, follow an actor with `actor_history/2`, or inspect a correlation with `correlation_bundle/3`.
+  - **Operations**: export captured changes with `export_csv/2` or `export_json/2`; retention, health and coverage live in their dedicated modules and tasks.
+
+  The older names (`history/3`, `row_history/4`, `row_history_page/4`,
   `actor_window_page/3`, `correlation_bundle_page/3`) remain as deprecated
   delegates through Threadline 1.x.
 
@@ -32,6 +30,29 @@ defmodule Threadline do
   it does not validate filter keys, so pass only the documented `timeline/2`
   filter keys.
   """
+
+  @moduledoc groups: [
+               %{
+                 title: "Capture & Transactions",
+                 description:
+                   "Capture is installed by the triggers your migrations generate with `mix threadline.gen.triggers`; these functions read one captured AuditTransaction by id."
+               },
+               %{
+                 title: "Querying & Timelines",
+                 description:
+                   "Read captured changes across tables, follow a row through time, or inspect its state at a point in time."
+               },
+               %{
+                 title: "Actions & Context",
+                 description:
+                   "Record semantic actions and connect captured changes to actors, requests, jobs, and correlations."
+               },
+               %{
+                 title: "Operations",
+                 description:
+                   "Export captured changes; retention, health, and coverage live in Threadline.Retention, Threadline.Health, and mix threadline.verify_coverage."
+               }
+             ]
 
   alias Threadline.Investigation
   alias Threadline.Query.LegacyOpts
@@ -165,6 +186,73 @@ defmodule Threadline do
           | {:max_rows, non_neg_integer()}
           | {:json_format, :wrapped | :ndjson}
 
+  @typedoc "An option accepted by `record_action/2`; supply either `:actor` or `:actor_ref` and a repository."
+  @type record_action_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | {:actor, ActorRef.t()}
+          | {:actor_ref, ActorRef.t()}
+          | {:status, :ok | :error}
+          | {:verb, atom() | String.t()}
+          | {:category, atom() | String.t()}
+          | {:reason, atom() | String.t()}
+          | {:comment, String.t()}
+          | {:correlation_id, String.t()}
+          | {:request_id, String.t()}
+          | {:job_id, String.t()}
+
+  @typedoc "An option accepted by `as_of/4`."
+  @type as_of_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | scope_opt()
+          | {:cast, boolean()}
+
+  @typedoc "An option accepted by `audit_changes_for_transaction/2`."
+  @type audit_changes_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | scope_opt()
+          | {:preload, [atom() | {atom(), atom() | [atom()]}] | nil}
+
+  @typedoc "An option accepted by `change_diff/2`."
+  @type change_diff_opt ::
+          {:format, :primary | :export_compat}
+          | {:expand_insert_fields, boolean()}
+
+  @typedoc "An option accepted by the legacy unbounded history read."
+  @type history_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | scope_opt()
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | {:limit, pos_integer() | :infinity | nil}
+
+  @typedoc "A row-history filter accepted by the legacy filters-and-options shapes."
+  @type row_history_filter ::
+          repo_opt()
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+
+  @typedoc "An option accepted by the legacy row-history read shape."
+  @type row_history_legacy_opt :: row_history_opt()
+
+  @typedoc "An option accepted by the legacy paged row-history read shape."
+  @type row_history_page_opt :: row_history_opt()
+
+  @typedoc "A filter accepted by the legacy paged actor-window shape."
+  @type actor_window_page_filter :: actor_window_filter()
+
+  @typedoc "An option accepted by the legacy paged actor-window shape."
+  @type actor_window_page_opt :: window_opt()
+
+  @typedoc "A filter accepted by the legacy paged correlation-bundle shape."
+  @type correlation_bundle_page_filter :: correlation_bundle_filter()
+
+  @typedoc "An option accepted by the legacy paged correlation-bundle shape."
+  @type correlation_bundle_page_opt :: window_opt()
+
   @doc false
   @spec __option_keys__(atom()) :: [atom()] | :not_closed
   def __option_keys__(name), do: OptionKeys.allowed(name)
@@ -174,23 +262,24 @@ defmodule Threadline do
   def __filter_keys__(name), do: OptionKeys.filters(name)
 
   @doc """
-  Records a semantic audit action.
+  Records an `%AuditAction{}` that names the application event associated with a database transaction.
 
-  ## Required options
+  Use `actor_history/2` or `correlation_bundle/3` to explore captured changes associated with the actor or correlation after recording the action.
 
-  - `:actor` or `:actor_ref` — `%ActorRef{}` identifying who performed the action
-  - `:repo` — the `Ecto.Repo` module to use for insertion
+  ## Options
 
-  ## Optional options
-
-  - `:status` — `:ok` or `:error` (default: `:ok`)
-  - `:verb` — string or atom (e.g., `"update"`)
-  - `:category` — string or atom (e.g., `"membership"`)
-  - `:reason` — atom (e.g., `:insufficient_permissions`)
-  - `:comment` — free-text string explanation
-  - `:correlation_id` — cross-boundary correlation ID string
-  - `:request_id` — request ID string (from `Plug.RequestId` / `x-request-id`)
-  - `:job_id` — Oban job ID string
+  - `:actor` — `%ActorRef{}` identifying who performed the action. Required unless `:actor_ref` is supplied.
+  - `:actor_ref` — `%ActorRef{}` identifying who performed the action. Required unless `:actor` is supplied.
+  - `:repo` — `Ecto.Repo` module used for insertion. Required.
+  - `:storage_schema` — Threadline storage schema override. Optional.
+  - `:status` — `:ok` or `:error`. Optional; defaults to `:ok`.
+  - `:verb` — string or atom describing the operation, such as `"update"`. Optional.
+  - `:category` — string or atom grouping the action, such as `"membership"`. Optional.
+  - `:reason` — string or atom explaining the action. Optional.
+  - `:comment` — free-text explanation. Optional.
+  - `:correlation_id` — string connecting work across boundaries. Optional.
+  - `:request_id` — request ID, such as one from `Plug.RequestId`. Optional.
+  - `:job_id` — Oban job ID. Optional.
 
   ## Returns
 
@@ -199,7 +288,22 @@ defmodule Threadline do
   - `{:error, :missing_actor}` if no actor was provided
   - `{:error, :invalid_actor_ref}` if the actor fails ActorRef validation
   - `{:error, :missing_repo}` if `:repo` is not provided
+
+  ## Examples
+
+      Threadline.record_action(:member_role_changed,
+        actor: %Threadline.Semantics.ActorRef{type: "user", id: "u-42"},
+        repo: MyApp.Repo,
+        category: "membership",
+        verb: "update",
+        correlation_id: "request-8f2"
+      )
   """
+  @doc group: "Actions & Context"
+  @spec record_action(atom(), [record_action_opt()]) ::
+          {:ok, AuditAction.t()}
+          | {:error, Ecto.Changeset.t()}
+          | {:error, :missing_actor | :invalid_actor_ref | :missing_repo}
   def record_action(name, opts \\ []) when is_atom(name) do
     repo = Keyword.get(opts, :repo)
     actor_ref = Keyword.get(opts, :actor) || Keyword.get(opts, :actor_ref)
@@ -226,15 +330,9 @@ defmodule Threadline do
 
   @deprecated "Use Threadline.row_history/3 instead."
   @doc """
-  Returns `AuditChange` records for a given schema record, ordered by
-  `captured_at` descending.
+  Returns a list of `%Threadline.Capture.AuditChange{}` rows for one schema record, newest first.
 
-  Deprecated: use `row_history/3` instead — pass `limit: :infinity` for the
-  same unbounded read. This function keeps returning plain `%AuditChange{}`
-  structs (the one deliberate exception to "a deprecated delegate's spec
-  matches its replacement's", because the replacement returns
-  `%Threadline.Investigation.LinkedChange{}`); map `.audit_change` on a
-  `row_history/3` result to recover the same struct this function returns.
+  Use `row_history/3` for linked change records and cursor paging. This deprecated function keeps its unbounded default and returns plain `%AuditChange{}` structs; map `.audit_change` over a `row_history/3` result to obtain the same row type.
 
   Structs include `:changed_from` when present in the row (sparse prior values on
   UPDATE under an opt-in per-table capture function; `nil` when disabled or on
@@ -264,34 +362,70 @@ defmodule Threadline do
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
-  - `:limit` — optional positive integer, or `:infinity`. Returns at most n
-    most recent changes (`captured_at desc, id desc`). `:limit` caps, it does
-    not page. `nil` (the default) is unbounded; `0`, negative and
-    non-integer values (other than `:infinity`) raise `ArgumentError`.
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — storage schema override. Optional.
+  - `:scope` — caller-owned scope value. Optional and opaque to Threadline.
+  - `:scope_query_fn` — callback that adds caller scope predicates. Optional.
+  - `:from` — inclusive lower bound on `captured_at`. Optional.
+  - `:to` — inclusive upper bound on `captured_at`. Optional.
+  - `:limit` — positive integer or `:infinity`. Optional; absent or `nil` keeps the unbounded legacy default. This caps rows and does not page.
+
+  ## Returns
+
+  - A list of `%Threadline.Capture.AuditChange{}` rows ordered by `captured_at` and `id` descending.
+  - Raises `ArgumentError` for an invalid row key or limit, and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.history(MyApp.User, 42, repo: MyApp.Repo)
+      Threadline.history(MyApp.LineItem, [tenant_id: 1, id: 5], repo: MyApp.Repo)
+
+  Results contain captured values; redaction is applied when triggers are
+  generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec history(module(), term(), keyword()) :: [Threadline.Capture.AuditChange.t()]
+  @doc group: "Querying & Timelines"
+  @spec history(module(), row_id(), [history_opt()]) :: [Threadline.Capture.AuditChange.t()]
   def history(schema_module, id, opts),
     do: RowReads.audit_changes(schema_module, id, LegacyOpts.history(opts))
 
   @doc """
-  Returns the row snapshot for a schema record at a point in time.
+  Returns the row snapshot at a timestamp as a string-keyed map or loaded schema struct.
 
-  Accepts the same `id` shapes as `history/3` (bare scalar, or map/keyword list
-  for a composite key), with the same `ArgumentError` cases and the same
-  dropped-table/renamed-column fallback behavior.
+  Use `row_history/3` to inspect the captured changes that produced the snapshot. `id` uses the `row_id()` scalar or composite-key shapes; invalid key shapes raise `ArgumentError`.
 
   Returns `{:ok, snapshot}`, `{:error, :deleted_record}` when the latest
   snapshot at or before `timestamp` was a delete, or
   `{:error, :before_audit_horizon}` when the row has no snapshot at or before
   the requested timestamp. These are outcomes callers branch on, not a lookup
   miss — a deleted or pre-horizon row is not "absence is a bug" — so
-  `as_of/4` has no `!` sibling.
+  There is no bang sibling because deletion and the audit horizon are expected results.
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — storage schema override. Optional.
+  - `:scope` — caller-owned scope value. Optional and opaque to Threadline.
+  - `:scope_query_fn` — callback that adds caller scope predicates. Optional.
+  - `:cast` — load the captured map into the schema struct. Optional; defaults to `false`.
+
+  ## Returns
+
+  - `{:ok, snapshot}` — the latest captured row state at or before `timestamp`.
+  - `{:error, :deleted_record}` — the latest change at that time is a delete.
+  - `{:error, :before_audit_horizon}` — no captured state exists at or before the timestamp.
+  - `{:error, {:cast_error, message}}` — schema loading failed with `cast: true`.
+  - Raises `ArgumentError` for an invalid row key and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.as_of(MyApp.User, 42, ~U[2026-01-01 00:00:00Z], repo: MyApp.Repo)
+      Threadline.as_of(MyApp.LineItem, [tenant_id: 1, id: 5], timestamp, repo: MyApp.Repo)
   """
+  @doc group: "Querying & Timelines"
+  @spec as_of(module(), row_id(), DateTime.t(), [as_of_opt()]) ::
+          {:ok, json_map() | struct()}
+          | {:error, :deleted_record | :before_audit_horizon}
+          | {:error, {:cast_error, String.t()}}
   def as_of(schema_module, id, timestamp, opts),
     do: Threadline.Query.as_of(schema_module, id, timestamp, opts)
 
@@ -335,6 +469,7 @@ defmodule Threadline do
 
       Threadline.actor_history(actor_ref, repo: MyApp.Repo)
   """
+  @doc group: "Actions & Context"
   @spec actor_history(ActorRef.t(), [actor_history_opt()]) ::
           Threadline.Page.t(Threadline.Capture.AuditTransaction.t())
   def actor_history(actor_ref, opts) do
@@ -379,6 +514,7 @@ defmodule Threadline do
   Results contain column values as captured; redaction is applied when triggers
   are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
+  @doc group: "Querying & Timelines"
   @spec timeline([timeline_filter()], [timeline_opt()]) ::
           [Threadline.Capture.AuditChange.t()]
   def timeline(filters \\ [], opts \\ []) do
@@ -429,6 +565,7 @@ defmodule Threadline do
       first = Threadline.timeline_page([table: "users"], repo: MyApp.Repo)
       Threadline.timeline_page([table: "users"], repo: MyApp.Repo, cursor: first.cursor)
   """
+  @doc group: "Querying & Timelines"
   @spec timeline_page([timeline_filter()], [timeline_page_opt()]) ::
           Threadline.Page.t(Threadline.Capture.AuditChange.t())
   def timeline_page(filters \\ [], opts \\ []) do
@@ -474,7 +611,7 @@ defmodule Threadline do
   Results contain column values as captured; redaction is applied when triggers
   are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @doc since: "1.0.0"
+  @doc since: "1.0.0", group: "Querying & Timelines"
   @spec row_history(module(), row_id(), [row_history_opt()]) ::
           [Threadline.Investigation.LinkedChange.t()]
           | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
@@ -483,13 +620,44 @@ defmodule Threadline do
 
   @deprecated "Use Threadline.row_history/3 instead."
   @doc """
-  Returns row history for one schema row using the retired `(filters, opts)`
-  shape, with 0.12's unbounded default.
+  Returns a list of linked changes for one schema row using the retired `(filters, opts)` shape and its unbounded default.
 
-  Deprecated: use `row_history/3` instead — pass `limit: :infinity` to keep
-  this function's unbounded behavior.
+  Use `row_history/3` and pass `limit: :infinity` to keep the unbounded behavior. The `filters` argument accepts only row-history filters; options are merged after filters and take precedence for duplicate keys.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+  - `:from` — inclusive lower bound on `captured_at`. Optional.
+  - `:to` — inclusive upper bound on `captured_at`. Optional.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — storage schema override. Optional.
+  - `:scope` — caller-owned scope value. Optional and opaque to Threadline.
+  - `:scope_query_fn` — callback that adds caller scope predicates. Optional.
+  - `:from` — inclusive lower bound on `captured_at`. Optional.
+  - `:to` — inclusive upper bound on `captured_at`. Optional.
+  - `:limit` — positive integer or `:infinity`. Optional; defaults to `:infinity` for this deprecated shape.
+  - `:cursor` — `:start` or a prior row-history cursor. Optional; returns a page.
+  - `:page_size` — positive integer. Optional; applies with `:cursor`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A list of `%Threadline.Investigation.LinkedChange{}` rows.
+  - Raises `ArgumentError` for invalid filters, options, or row keys, and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.row_history(MyApp.User, 42, [from: start_time], repo: MyApp.Repo)
+
+  Results contain captured values; redaction is applied when triggers are
+  generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec row_history(module(), term(), keyword(), keyword()) ::
+  @doc group: "Querying & Timelines"
+  @spec row_history(module(), row_id(), [row_history_filter()], [row_history_legacy_opt()]) ::
           [Threadline.Investigation.LinkedChange.t()]
   def row_history(schema_module, id, filters, opts)
       when is_list(filters) and is_list(opts) do
@@ -498,18 +666,53 @@ defmodule Threadline do
 
   @deprecated "Use Threadline.row_history/3 instead."
   @doc """
-  Returns one keyset page of row history for a single schema row.
+  Returns a `%Threadline.Page{}` of linked changes for one schema row using the retired first-page convention.
 
-  Deprecated: use `row_history/3` instead — pass `cursor: :start` (with
-  optional `page_size:`) for the same keyset paging. An absent or `nil`
-  `:cursor` here still means "first page"; `row_history/3` itself raises on
-  `cursor: nil`.
+  Use `row_history/3` with `cursor: :start` and optional `page_size:`. An absent or `nil` cursor here still begins the first page.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+  - `:from` — inclusive lower bound on `captured_at`. Optional.
+  - `:to` — inclusive upper bound on `captured_at`. Optional.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — storage schema override. Optional.
+  - `:scope` — caller-owned scope value. Optional and opaque to Threadline.
+  - `:scope_query_fn` — callback that adds caller scope predicates. Optional.
+  - `:from` — inclusive lower bound on `captured_at`. Optional.
+  - `:to` — inclusive upper bound on `captured_at`. Optional.
+  - `:limit` — positive integer or `:infinity`. Optional.
+  - `:cursor` — `:start` or a prior row-history cursor. Optional; an absent or `nil` value begins the first page.
+  - `:page_size` — positive integer. Optional; defaults to `1000`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A `%Threadline.Page{}` of matching linked changes.
+  - Raises `ArgumentError` for invalid filters, options, cursor, or row keys, and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.row_history_page(MyApp.User, 42, [from: start_time], repo: MyApp.Repo)
+
+  Results contain captured values; redaction is applied when triggers are
+  generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec row_history_page(module(), term()) ::
+  @doc group: "Querying & Timelines"
+  @spec row_history_page(module(), row_id()) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
-  @spec row_history_page(module(), term(), keyword()) ::
+  @spec row_history_page(module(), row_id(), [row_history_filter()]) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
-  @spec row_history_page(module(), term(), keyword(), keyword()) ::
+  @spec row_history_page(
+          module(),
+          row_id(),
+          [row_history_filter()],
+          [row_history_page_opt()]
+        ) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def row_history_page(schema_module, id, filters \\ [], opts \\ []),
     do: row_history(schema_module, id, LegacyOpts.row_history_page(filters, opts))
@@ -549,7 +752,7 @@ defmodule Threadline do
 
       Threadline.actor_window(actor_ref, [table: "members"], repo: MyApp.Repo)
   """
-  @doc since: "1.0.0"
+  @doc since: "1.0.0", group: "Actions & Context"
   @spec actor_window(ActorRef.t(), [actor_window_filter()], [window_opt()]) ::
           [Threadline.Investigation.LinkedChange.t()]
           | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
@@ -561,17 +764,48 @@ defmodule Threadline do
 
   @deprecated "Use Threadline.actor_window/3 instead."
   @doc """
-  Returns one keyset page of change rows across tables for one actor.
+  Returns a `%Threadline.Page{}` of linked changes made by one actor using the retired first-page convention.
 
-  Deprecated: use `actor_window/3` instead — pass `cursor: :start` (with
-  optional `page_size:`) for the same keyset paging. An absent or `nil`
-  `:cursor` here still means "first page".
+  Use `actor_window/3` with `cursor: :start` and optional `page_size:`. An absent or `nil` cursor here still begins the first page.
+
+  ## Filters
+
+  - `:table` — string or atom. Optional; matches `table_name`.
+  - `:from` — inclusive lower bound on `captured_at`. Optional.
+  - `:to` — inclusive upper bound on `captured_at`. Optional.
+  - `:correlation_id` — string. Optional; matches the linked action correlation.
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — storage schema override. Optional.
+  - `:scope` — caller-owned scope value. Optional and opaque to Threadline.
+  - `:scope_query_fn` — callback that adds caller scope predicates. Optional.
+  - `:cursor` — `:start` or a prior change cursor. Optional; an absent or `nil` value begins the first page.
+  - `:page_size` — positive integer. Optional; defaults to `1000`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A `%Threadline.Page{}` of matching linked changes.
+  - Raises `ArgumentError` for invalid filters, options, or cursor, and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.actor_window_page(actor_ref, [table: "members"], repo: MyApp.Repo)
   """
+  @doc group: "Actions & Context"
   @spec actor_window_page(ActorRef.t()) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
-  @spec actor_window_page(ActorRef.t(), keyword()) ::
+  @spec actor_window_page(ActorRef.t(), [actor_window_page_filter()]) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
-  @spec actor_window_page(ActorRef.t(), keyword(), keyword()) ::
+  @spec actor_window_page(
+          ActorRef.t(),
+          [actor_window_page_filter()],
+          [actor_window_page_opt()]
+        ) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def actor_window_page(actor_ref, filters \\ [], opts \\ []),
     do: actor_window(actor_ref, filters, LegacyOpts.cursor(opts))
@@ -611,7 +845,7 @@ defmodule Threadline do
 
       Threadline.correlation_bundle("member-42", [table: "members"], repo: MyApp.Repo)
   """
-  @doc since: "1.0.0"
+  @doc since: "1.0.0", group: "Actions & Context"
   @spec correlation_bundle(String.t(), [correlation_bundle_filter()], [window_opt()]) ::
           [Threadline.Investigation.LinkedChange.t()]
           | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
@@ -623,17 +857,48 @@ defmodule Threadline do
 
   @deprecated "Use Threadline.correlation_bundle/3 instead."
   @doc """
-  Returns one keyset page of changes linked to one `correlation_id`.
+  Returns a `%Threadline.Page{}` of linked changes for one correlation using the retired first-page convention.
 
-  Deprecated: use `correlation_bundle/3` instead — pass `cursor: :start`
-  (with optional `page_size:`) for the same keyset paging. An absent or
-  `nil` `:cursor` here still means "first page".
+  Use `correlation_bundle/3` with `cursor: :start` and optional `page_size:`. An absent or `nil` cursor here still begins the first page.
+
+  ## Filters
+
+  - `:table` — string or atom. Optional; matches `table_name`.
+  - `:actor_ref` — `%ActorRef{}`. Optional; matches the transaction actor.
+  - `:from` — inclusive lower bound on `captured_at`. Optional.
+  - `:to` — inclusive upper bound on `captured_at`. Optional.
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — storage schema override. Optional.
+  - `:scope` — caller-owned scope value. Optional and opaque to Threadline.
+  - `:scope_query_fn` — callback that adds caller scope predicates. Optional.
+  - `:cursor` — `:start` or a prior change cursor. Optional; an absent or `nil` value begins the first page.
+  - `:page_size` — positive integer. Optional; defaults to `1000`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A `%Threadline.Page{}` of matching linked changes.
+  - Raises `ArgumentError` for invalid filters, options, or cursor, and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.correlation_bundle_page("member-42", [table: "members"], repo: MyApp.Repo)
   """
+  @doc group: "Actions & Context"
   @spec correlation_bundle_page(String.t()) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
-  @spec correlation_bundle_page(String.t(), keyword()) ::
+  @spec correlation_bundle_page(String.t(), [correlation_bundle_page_filter()]) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
-  @spec correlation_bundle_page(String.t(), keyword(), keyword()) ::
+  @spec correlation_bundle_page(
+          String.t(),
+          [correlation_bundle_page_filter()],
+          [correlation_bundle_page_opt()]
+        ) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def correlation_bundle_page(correlation_id, filters \\ [], opts \\ []),
     do: correlation_bundle(correlation_id, filters, LegacyOpts.cursor(opts))
@@ -664,7 +929,7 @@ defmodule Threadline do
 
       Threadline.audit_transaction(transaction_id, repo: MyApp.Repo)
   """
-  @doc since: "1.0.0"
+  @doc since: "1.0.0", group: "Capture & Transactions"
   @spec audit_transaction(Ecto.UUID.t(), [lookup_opt()]) ::
           {:ok, Threadline.Capture.AuditTransaction.t()} | {:error, :not_found}
   def audit_transaction(transaction_id, opts \\ []) do
@@ -702,7 +967,7 @@ defmodule Threadline do
 
       Threadline.audit_transaction!(transaction_id, repo: MyApp.Repo)
   """
-  @doc since: "1.0.0"
+  @doc since: "1.0.0", group: "Capture & Transactions"
   @spec audit_transaction!(Ecto.UUID.t(), [lookup_opt()]) ::
           Threadline.Capture.AuditTransaction.t()
   def audit_transaction!(transaction_id, opts \\ []) do
@@ -742,6 +1007,7 @@ defmodule Threadline do
 
       Threadline.transaction_context(transaction_id, repo: MyApp.Repo)
   """
+  @doc group: "Capture & Transactions"
   @spec transaction_context(Ecto.UUID.t(), [lookup_opt()]) ::
           {:ok, Threadline.Investigation.LinkedTransaction.t()} | {:error, :not_found}
   def transaction_context(transaction_id, opts \\ []),
@@ -773,7 +1039,7 @@ defmodule Threadline do
 
       Threadline.transaction_context!(transaction_id, repo: MyApp.Repo)
   """
-  @doc since: "1.0.0"
+  @doc since: "1.0.0", group: "Capture & Transactions"
   @spec transaction_context!(Ecto.UUID.t(), [lookup_opt()]) ::
           Threadline.Investigation.LinkedTransaction.t()
   def transaction_context!(transaction_id, opts \\ []) do
@@ -816,6 +1082,7 @@ defmodule Threadline do
   Results contain column values as captured; redaction is applied when triggers
   are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
+  @doc group: "Capture & Transactions"
   @spec incident_bundle(Ecto.UUID.t(), [lookup_opt()]) ::
           {:ok, Threadline.Investigation.IncidentBundle.t()} | {:error, :not_found}
   def incident_bundle(transaction_id, opts \\ []),
@@ -850,7 +1117,7 @@ defmodule Threadline do
   Results contain column values as captured; redaction is applied when triggers
   are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @doc since: "1.0.0"
+  @doc since: "1.0.0", group: "Capture & Transactions"
   @spec incident_bundle!(Ecto.UUID.t(), [lookup_opt()]) ::
           Threadline.Investigation.IncidentBundle.t()
   def incident_bundle!(transaction_id, opts \\ []) do
@@ -866,6 +1133,8 @@ defmodule Threadline do
   @doc """
   Returns every `%Threadline.Capture.AuditChange{}` for a single `audit_transactions.id`.
 
+  Use `transaction_context/2` when the transaction, action, and linked changes belong in one result. The query applies the transaction visibility predicate supplied through `:scope_query_fn`.
+
   `transaction_id` is `audit_transactions.id`. Accepts UUID strings or 16-byte
   binaries; raises `ArgumentError` when the id is not a valid UUID. Returns `[]`
   when the UUID is well-formed but no matching rows exist. Ordered by
@@ -874,13 +1143,31 @@ defmodule Threadline do
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module.
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — storage schema override. Optional.
+  - `:scope` — caller-owned scope value. Optional and opaque to Threadline.
+  - `:scope_query_fn` — callback that adds caller scope predicates. Optional.
   - `:preload` — optional association list, e.g. `[:transaction]`, forwarded to
     `repo.preload/3` when non-empty. Preloading `:action` under `:transaction`
     (`transaction: :action` / `transaction: [:action, ...]`) is deprecated: it
     still hydrates `transaction.action`, but emits one warning per call and will
     be removed no earlier than Threadline 2.0. Prefer `transaction_context/2`.
+
+  ## Returns
+
+  - A list of `%Threadline.Capture.AuditChange{}` rows ordered by `captured_at` and `id` descending.
+  - Raises `ArgumentError` for an invalid UUID or preload value, and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.audit_changes_for_transaction(transaction_id, repo: MyApp.Repo)
+
+  Results contain captured values; redaction is applied when triggers are
+  generated, not on read. Authorize reads with `:scope_query_fn`.
   """
+  @doc group: "Capture & Transactions"
+  @spec audit_changes_for_transaction(Ecto.UUID.t(), [audit_changes_opt()]) ::
+          [Threadline.Capture.AuditChange.t()]
   def audit_changes_for_transaction(transaction_id, opts),
     do: Threadline.Query.audit_changes_for_transaction(transaction_id, opts)
 
@@ -923,6 +1210,7 @@ defmodule Threadline do
   Results contain column values as captured; redaction is applied when triggers
   are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
+  @doc group: "Operations"
   @spec export_csv([timeline_filter()], [export_csv_opt()]) ::
           {:ok,
            %{
@@ -976,6 +1264,7 @@ defmodule Threadline do
   Results contain column values as captured; redaction is applied when triggers
   are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
+  @doc group: "Operations"
   @spec export_json([timeline_filter()], [export_json_opt()]) ::
           {:ok,
            %{
@@ -991,11 +1280,30 @@ defmodule Threadline do
   end
 
   @doc """
-  Projects a single `%Threadline.Capture.AuditChange{}` into deterministic, JSON-friendly maps.
+  Projects a captured `%Threadline.Capture.AuditChange{}` into a deterministic string-keyed map.
 
-  Delegates to `Threadline.ChangeDiff.from_audit_change/2`. See that module for `:format`
-  (including `:export_compat`) and `:expand_insert_fields`.
+  Use `Threadline.row_history/3` to obtain linked changes before projecting them. This function delegates to `Threadline.ChangeDiff.from_audit_change/2`; its default output includes schema and before-value metadata, while `format: :export_compat` returns the export-compatible field set.
+
+  ## Options
+
+  - `:format` — `:primary` or `:export_compat`. Optional; defaults to `:primary`.
+  - `:expand_insert_fields` — boolean. Optional; defaults to `false` and derives field rows for INSERT changes from `data_after`.
+
+  ## Returns
+
+  - A string-keyed map describing the captured change, with field-level changes and captured values.
+
+  ## Examples
+
+      Threadline.change_diff(audit_change)
+      Threadline.change_diff(audit_change, format: :export_compat)
+
+  The projection uses captured values as stored; redaction is applied when
+  triggers are generated, not on read.
   """
+  @doc group: "Querying & Timelines"
+  @spec change_diff(Threadline.Capture.AuditChange.t()) :: json_map()
+  @spec change_diff(Threadline.Capture.AuditChange.t(), [change_diff_opt()]) :: json_map()
   defdelegate change_diff(audit_change, opts \\ []),
     to: Threadline.ChangeDiff,
     as: :from_audit_change

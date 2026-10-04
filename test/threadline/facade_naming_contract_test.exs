@@ -37,32 +37,6 @@ defmodule Threadline.FacadeNamingContractTest do
     {:export_json, 2} => "Operations"
   }
 
-  @ungrouped_ratchet [
-    {:actor_history, 2},
-    {:actor_window, 3},
-    {:actor_window_page, 3},
-    {:as_of, 4},
-    {:audit_changes_for_transaction, 2},
-    {:audit_transaction, 2},
-    {:audit_transaction!, 2},
-    {:change_diff, 2},
-    {:correlation_bundle, 3},
-    {:correlation_bundle_page, 3},
-    {:export_csv, 2},
-    {:export_json, 2},
-    {:history, 3},
-    {:incident_bundle, 2},
-    {:incident_bundle!, 2},
-    {:record_action, 2},
-    {:row_history, 3},
-    {:row_history, 4},
-    {:row_history_page, 4},
-    {:timeline, 2},
-    {:timeline_page, 2},
-    {:transaction_context, 2},
-    {:transaction_context!, 2}
-  ]
-
   # D-19/SC3: among the Threadline facade's visible, non-deprecated
   # functions, timeline/2 + timeline_page/2 is the only paired base/_page
   # name. Every other `_page` sibling retired into a `cursor:` option on its
@@ -125,56 +99,37 @@ defmodule Threadline.FacadeNamingContractTest do
       assert length(visible_keys) == 23
     end
 
-    test "every visible function is grouped or remains in the exact ungrouped ratchet" do
+    test "every visible function is grouped in the ordered module groups and Jobs list" do
       {:docs_v1, _, _, _, _, module_metadata, docs} = Code.fetch_docs(Threadline)
       visible = visible_facade_entries(docs)
-      actual_ungrouped = DocContract.ungrouped(docs, @group_titles)
-
-      actual_ungrouped_keys =
-        Enum.map(actual_ungrouped, fn {name, arity, _group} -> {name, arity} end)
-
-      assert Enum.sort(Map.keys(@facade_groups)) == Enum.sort(@ungrouped_ratchet)
-
-      assert Enum.sort(actual_ungrouped_keys) == Enum.sort(@ungrouped_ratchet),
-             "ungrouped facade entries changed: #{inspect(actual_ungrouped)}"
 
       for {{name, arity}, group} <- visible do
-        if group do
-          assert @facade_groups[{name, arity}] == group,
-                 "Threadline.#{name}/#{arity} belongs to #{inspect(@facade_groups[{name, arity}])}, got #{inspect(group)}"
-        else
-          assert {name, arity} in @ungrouped_ratchet
-        end
+        assert @facade_groups[{name, arity}] == group,
+               "Threadline.#{name}/#{arity} belongs to #{inspect(@facade_groups[{name, arity}])}, got #{inspect(group)}"
       end
 
       groups = Map.get(module_metadata, :groups, [])
+      assert group_titles(groups) == @group_titles
 
-      if Enum.sort(actual_ungrouped_keys) == Enum.sort(Map.keys(@facade_groups)) do
-        assert groups == [],
-               "module group metadata is stale while every function remains ungrouped"
-      else
-        assert group_titles(groups) == @group_titles
+      for title <- @group_titles do
+        assert Enum.any?(visible, fn {_key, group} -> group == title end),
+               "facade group #{inspect(title)} has no visible function"
+      end
 
-        for title <- @group_titles do
-          assert Enum.any?(visible, fn {_key, group} -> group == title end),
-                 "facade group #{inspect(title)} has no visible function"
-        end
+      {:docs_v1, _, _, _, %{"en" => moduledoc}, _, _} = Code.fetch_docs(Threadline)
 
-        {:docs_v1, _, _, _, %{"en" => moduledoc}, _, _} = Code.fetch_docs(Threadline)
+      jobs = jobs_bullets(moduledoc)
 
-        jobs = jobs_bullets(moduledoc)
+      assert Enum.map(jobs, &elem(&1, 0)) == @group_titles,
+             "the ## Jobs bullets must appear once in group order"
 
-        assert Enum.map(jobs, &elem(&1, 0)) == @group_titles,
-               "the ## Jobs bullets must appear once in group order"
+      for {title, names} <- jobs do
+        assert length(names) in 2..3,
+               "the #{title} Jobs bullet should name two or three entry points"
 
-        for {title, names} <- jobs do
-          assert length(names) in 2..3,
-                 "the #{title} Jobs bullet should name two or three entry points"
-
-          for {name, arity} <- names do
-            assert @facade_groups[{name, arity}] == title,
-                   "Jobs names Threadline.#{name}/#{arity} under the wrong group"
-          end
+        for {name, arity} <- names do
+          assert @facade_groups[{name, arity}] == title,
+                 "Jobs names Threadline.#{name}/#{arity} under the wrong group"
         end
       end
     end
@@ -219,7 +174,11 @@ defmodule Threadline.FacadeNamingContractTest do
       [_before, body] ->
         section = body |> String.split(~r/^## /m, parts: 2) |> hd()
 
-        Regex.scan(~r/^- \*\*([^*]+)\*\*:(.*?)(?=^- \*\*|\z)/ms, section, capture: :all_but_first)
+        Regex.scan(
+          ~r/^- \*\*([^*]+)\*\*:(.*?)(?=\n- \*\*|\n\n|\z)/ms,
+          section,
+          capture: :all_but_first
+        )
         |> Enum.map(fn [title, bullet] ->
           {title, bullet_names(bullet)}
         end)
@@ -238,8 +197,12 @@ defmodule Threadline.FacadeNamingContractTest do
     {:docs_v1, _, _, _, _, _, docs} = Code.fetch_docs(module)
 
     docs
-    |> Enum.filter(fn {{:function, _name, _arity}, _anno, _sig, doc, metadata} ->
-      doc != :hidden and not Map.has_key?(metadata, :deprecated)
+    |> Enum.filter(fn
+      {{:function, _name, _arity}, _anno, _sig, doc, metadata} ->
+        doc != :hidden and not Map.has_key?(metadata, :deprecated)
+
+      _entry ->
+        false
     end)
     |> Enum.map(fn {{:function, name, _arity}, _anno, _sig, _doc, _metadata} -> name end)
     |> MapSet.new()

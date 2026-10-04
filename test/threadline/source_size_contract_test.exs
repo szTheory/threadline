@@ -50,7 +50,7 @@ defmodule Threadline.SourceSizeContractTest do
 
   @file_exceptions %{
     "lib/threadline.ex" =>
-      {1028, "single adopter-facing facade; length is @doc/@type prose, not logic"},
+      {1336, "single adopter-facing facade; length is @doc/@type prose, not logic"},
     "lib/threadline/operator_surface/stress_fixtures.ex" =>
       {980,
        "declarative fixture data tables; excluded from the Hex package (mix.exs exclude_patterns)"}
