@@ -447,7 +447,8 @@ defmodule Threadline.InvestigationTest do
           "audit"
         )
 
-      result = Threadline.transaction_context(txn.id, repo: @repo, storage_schema: "audit")
+      assert {:ok, result} =
+               Threadline.transaction_context(txn.id, repo: @repo, storage_schema: "audit")
 
       assert result.transaction.id == txn.id
       assert result.action.id == action.id
@@ -456,7 +457,7 @@ defmodule Threadline.InvestigationTest do
       assert linked_change.transaction.id == txn.id
       assert linked_change.action.id == action.id
 
-      assert Threadline.transaction_context(txn.id, repo: @repo).transaction == nil
+      assert {:error, :not_found} = Threadline.transaction_context(txn.id, repo: @repo)
     end
 
     test "packages one transaction drill-down with linked change, transaction, and action context" do
@@ -471,7 +472,7 @@ defmodule Threadline.InvestigationTest do
           captured_at: captured_at
         })
 
-      result = Threadline.transaction_context(txn.id, repo: @repo)
+      assert {:ok, result} = Threadline.transaction_context(txn.id, repo: @repo)
 
       assert %LinkedTransaction{} = result
       assert result.transaction.id == txn.id
@@ -484,13 +485,9 @@ defmodule Threadline.InvestigationTest do
       refute Map.has_key?(linked_change, :change_diff)
     end
 
-    test "returns an empty linked transaction when the transaction has no captured changes" do
-      result = Threadline.transaction_context(Ecto.UUID.generate(), repo: @repo)
-
-      assert %LinkedTransaction{} = result
-      assert result.transaction == nil
-      assert result.action == nil
-      assert result.changes == []
+    test "returns {:error, :not_found} for a missing transaction" do
+      assert {:error, :not_found} =
+               Threadline.transaction_context(Ecto.UUID.generate(), repo: @repo)
     end
   end
 

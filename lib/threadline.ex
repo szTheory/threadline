@@ -416,14 +416,56 @@ defmodule Threadline do
   end
 
   @doc """
-  Returns one transaction-oriented investigation slice with linked transaction
-  and optional action metadata.
+  Returns `{:ok, %Threadline.Investigation.LinkedTransaction{}}` when the
+  transaction row exists and is visible under the scope, or
+  `{:error, :not_found}`.
 
-  This packages the existing transaction drill-down primitive into a reusable
-  helper contract without adding diff or incident-bundle rendering.
+  An existing transaction with no visible changes returns `changes: []`. The
+  row and its changes are read by two independent queries, each point-in-time
+  under READ COMMITTED.
+
+  A binary that is not a valid UUID returns `{:error, :not_found}`; a
+  non-binary id raises `ArgumentError`.
+
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module
+  - `:storage_schema` — optional Threadline storage schema override
+  - `:scope` — opaque scope term passed to `:scope_query_fn`
+  - `:scope_query_fn` — `(query, scope, context) -> query`; sees
+    `context.surface == :transaction_header` with a single `[at]` binding for
+    the row read, and `context.surface == :transaction` with an `[ac, at]`
+    binding for the changes read — both with
+    `context.params == %{transaction_id: transaction_id}`
+
+  Unknown option keys raise `ArgumentError`.
+
+  Use `transaction_context!/2` when absence is a bug.
   """
+  @spec transaction_context(Ecto.UUID.t(), keyword()) ::
+          {:ok, Threadline.Investigation.LinkedTransaction.t()} | {:error, :not_found}
   def transaction_context(transaction_id, opts \\ []),
     do: Investigation.transaction_context(transaction_id, opts)
+
+  @doc """
+  Returns the `%Threadline.Investigation.LinkedTransaction{}` or raises
+  `Threadline.NotFoundError`.
+
+  See `transaction_context/2` for the option list and the missing/scope-filtered
+  semantics this raises on.
+  """
+  @doc since: "1.0.0"
+  @spec transaction_context!(Ecto.UUID.t(), keyword()) ::
+          Threadline.Investigation.LinkedTransaction.t()
+  def transaction_context!(transaction_id, opts \\ []) do
+    case transaction_context(transaction_id, opts) do
+      {:ok, result} ->
+        result
+
+      {:error, :not_found} ->
+        raise Threadline.NotFoundError, resource: :audit_transaction, id: transaction_id
+    end
+  end
 
   @doc """
   Returns one transaction-focused incident bundle with linked transaction/action

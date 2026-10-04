@@ -4,6 +4,7 @@ defmodule Threadline.Investigation do
   alias Threadline.Query
   alias Threadline.Query.LegacyOpts
   alias Threadline.Query.RowReads
+  alias Threadline.Query.TransactionLookup
 
   alias Threadline.Investigation.{
     IncidentBundle,
@@ -158,25 +159,23 @@ defmodule Threadline.Investigation do
   Returns one transaction-oriented investigation slice with linked transaction
   and optional action metadata.
   """
+  @spec transaction_context(Ecto.UUID.t(), keyword()) ::
+          {:ok, LinkedTransaction.t()} | {:error, :not_found}
   def transaction_context(transaction_id, opts \\ []) do
-    repo = Keyword.fetch!(opts, :repo)
-    internal_opts = Keyword.delete(opts, :preload)
+    TransactionLookup.validate_opts!(opts, "transaction_context")
 
-    changes =
-      Query.audit_changes_for_transaction(
-        transaction_id,
-        Keyword.put(internal_opts, :preload, [:transaction])
-      )
-      |> Query.hydrate_actions(repo, internal_opts)
+    case TransactionLookup.fetch(transaction_id, opts) do
+      :not_found ->
+        {:error, :not_found}
 
-    linked_changes = to_linked_changes(changes)
-    transaction = linked_transaction(linked_changes)
-
-    %LinkedTransaction{
-      transaction: transaction,
-      action: linked_action(transaction),
-      changes: linked_changes
-    }
+      {:ok, row, changes} ->
+        {:ok,
+         %LinkedTransaction{
+           transaction: row,
+           action: linked_action(row),
+           changes: to_linked_changes(changes)
+         }}
+    end
   end
 
   @doc """
@@ -291,9 +290,6 @@ defmodule Threadline.Investigation do
       change_diff: Threadline.change_diff(linked_change.audit_change)
     }
   end
-
-  defp linked_transaction([%LinkedChange{transaction: transaction} | _]), do: transaction
-  defp linked_transaction([]), do: nil
 
   defp linked_action(nil), do: nil
   defp linked_action(transaction), do: Map.get(transaction, :action)

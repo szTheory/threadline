@@ -1,15 +1,16 @@
 defmodule Threadline.TransactionLookupTest do
   @moduledoc """
-  Covers `Threadline.audit_transaction/2` (D-01, D-08..D-10, D-13..D-19) — the
-  facade lookup built on the hidden shared existence fetch
-  `Threadline.Query.TransactionLookup.fetch_row/2`.
+  Covers `Threadline.audit_transaction/2`, `Threadline.transaction_context/2`,
+  and their `!` siblings (D-01, D-07..D-19) — the facade lookups built on the
+  hidden shared existence fetch `Threadline.Query.TransactionLookup`.
   """
 
   use Threadline.DataCase
 
   import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
 
-  alias Threadline.Capture.AuditTransaction
+  alias Threadline.Capture.{AuditChange, AuditTransaction}
+  alias Threadline.Investigation.{LinkedChange, LinkedTransaction}
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.Test.Repo
 
@@ -20,6 +21,24 @@ defmodule Threadline.TransactionLookupTest do
 
     @repo.insert!(
       AuditTransaction.changeset(Map.merge(defaults, attrs)),
+      repo_opts(storage_schema)
+    )
+  end
+
+  defp insert_change(transaction, attrs, storage_schema \\ "threadline") do
+    defaults = %{
+      table_schema: "public",
+      table_name: "users",
+      table_pk: %{"id" => "user-1"},
+      op: "insert",
+      data_after: %{"name" => "Alice"},
+      changed_fields: ["name"],
+      captured_at: DateTime.utc_now(),
+      transaction_id: transaction.id
+    }
+
+    @repo.insert!(
+      AuditChange.changeset(Map.merge(defaults, Map.new(attrs))),
       repo_opts(storage_schema)
     )
   end
@@ -51,6 +70,28 @@ defmodule Threadline.TransactionLookupTest do
 
   defp scope_query(_query, _scope, _context) do
     raise "scope_query/3 catch-all hit — this test scope fn only handles :transaction_header"
+  end
+
+  # Admits the row ([at] binding) but rejects every change ([ac, at] binding) —
+  # covers the D-22 scope-parity shape: an existing-but-invisible-changes
+  # transaction still returns {:ok, %LinkedTransaction{changes: []}}.
+  defp row_visible_changes_hidden_scope_query(query, _scope, %{surface: :transaction_header}) do
+    query
+  end
+
+  defp row_visible_changes_hidden_scope_query(query, _scope, %{surface: :transaction}) do
+    where(query, [ac, _at], false)
+  end
+
+  # Rejects the row itself — both surfaces resolve the same way so
+  # transaction_context/2 reports :not_found regardless of which query runs
+  # first.
+  defp row_hidden_scope_query(query, _scope, %{surface: :transaction_header}) do
+    where(query, [at], false)
+  end
+
+  defp row_hidden_scope_query(query, _scope, %{surface: :transaction}) do
+    where(query, [ac, _at], false)
   end
 
   describe "audit_transaction/2" do
@@ -281,6 +322,135 @@ defmodule Threadline.TransactionLookupTest do
       missing_row_message = Exception.message(missing_row_message)
 
       assert scope_rejected_message == missing_row_message
+    end
+  end
+
+  describe "transaction_context/2 and transaction_context!/2" do
+    test "existing transaction with action and one change returns {:ok, %LinkedTransaction{}} with each change's transaction the same hydrated row" do
+      action = insert_action(%{correlation_id: "corr-tc-1", name: "tc.with_change"})
+      txn = insert_transaction(%{action_id: action.id})
+      change = insert_change(txn, %{table_pk: %{"id" => "tc-1"}})
+
+      assert {:ok, %LinkedTransaction{} = result} =
+               Threadline.transaction_context(txn.id, repo: @repo)
+
+      assert result.transaction.id == txn.id
+      assert result.action.id == action.id
+      assert [%LinkedChange{} = linked_change] = result.changes
+      assert linked_change.audit_change.id == change.id
+      assert linked_change.transaction == result.transaction
+      assert linked_change.action.id == action.id
+    end
+
+    test "existing transaction with zero changes returns {:ok, %LinkedTransaction{changes: []}}" do
+      action = insert_action(%{correlation_id: "corr-tc-2", name: "tc.no_changes"})
+      txn = insert_transaction(%{action_id: action.id})
+
+      assert {:ok, %LinkedTransaction{} = result} =
+               Threadline.transaction_context(txn.id, repo: @repo)
+
+      assert result.transaction.id == txn.id
+      assert result.action.id == action.id
+      assert result.changes == []
+    end
+
+    test "a well-formed but missing UUID and a non-UUID binary return {:error, :not_found}; nil and 123 raise ArgumentError" do
+      assert {:error, :not_found} =
+               Threadline.transaction_context(Ecto.UUID.generate(), repo: @repo)
+
+      assert {:error, :not_found} = Threadline.transaction_context("garbage", repo: @repo)
+
+      assert_raise ArgumentError, ~r/invalid audit transaction id/, fn ->
+        Threadline.transaction_context(nil, repo: @repo)
+      end
+
+      assert_raise ArgumentError, ~r/invalid audit transaction id/, fn ->
+        Threadline.transaction_context(123, repo: @repo)
+      end
+    end
+
+    test "transaction_context!/2 returns the bare struct for an existing id" do
+      txn = insert_transaction(%{action_id: nil})
+
+      assert %LinkedTransaction{} = result = Threadline.transaction_context!(txn.id, repo: @repo)
+      assert result.transaction.id == txn.id
+    end
+
+    test "transaction_context!/2 raises NotFoundError resource :audit_transaction for a missing UUID and for \"garbage\"; raises ArgumentError for nil" do
+      missing_id = Ecto.UUID.generate()
+
+      error =
+        assert_raise Threadline.NotFoundError, fn ->
+          Threadline.transaction_context!(missing_id, repo: @repo)
+        end
+
+      assert error.resource == :audit_transaction
+      assert error.id == missing_id
+
+      assert_raise Threadline.NotFoundError, fn ->
+        Threadline.transaction_context!("garbage", repo: @repo)
+      end
+
+      assert_raise ArgumentError, fn ->
+        Threadline.transaction_context!(nil, repo: @repo)
+      end
+    end
+
+    test "opts containing :surface, :params, or :preload raise ArgumentError from both the plain and bang form" do
+      txn = insert_transaction(%{action_id: nil})
+
+      assert_raise ArgumentError, ~r/unknown transaction_context option key :surface/, fn ->
+        Threadline.transaction_context(txn.id, repo: @repo, surface: :transaction_header)
+      end
+
+      assert_raise ArgumentError, ~r/unknown transaction_context option key :params/, fn ->
+        Threadline.transaction_context(txn.id, repo: @repo, params: %{})
+      end
+
+      assert_raise ArgumentError, ~r/unknown transaction_context option key :preload/, fn ->
+        Threadline.transaction_context(txn.id, repo: @repo, preload: [:transaction])
+      end
+
+      assert_raise ArgumentError, ~r/unknown transaction_context option key :surface/, fn ->
+        Threadline.transaction_context!(txn.id, repo: @repo, surface: :transaction_header)
+      end
+    end
+
+    test "storage_schema: \"audit\" finds an audit-schema transaction; the same id without storage_schema is {:error, :not_found}" do
+      ensure_storage_schema!("audit")
+      txn = insert_transaction(%{action_id: nil}, "audit")
+
+      assert {:ok, result} =
+               Threadline.transaction_context(txn.id, repo: @repo, storage_schema: "audit")
+
+      assert result.transaction.id == txn.id
+      assert {:error, :not_found} = Threadline.transaction_context(txn.id, repo: @repo)
+    end
+
+    test "a scope fn admitting the row but rejecting every change returns {:ok, %LinkedTransaction{changes: []}}" do
+      txn = insert_transaction(%{action_id: nil})
+      insert_change(txn, %{table_pk: %{"id" => "tc-scope-hidden"}})
+
+      assert {:ok, %LinkedTransaction{} = result} =
+               Threadline.transaction_context(txn.id,
+                 repo: @repo,
+                 scope: :pass,
+                 scope_query_fn: &row_visible_changes_hidden_scope_query/3
+               )
+
+      assert result.transaction.id == txn.id
+      assert result.changes == []
+    end
+
+    test "a scope fn rejecting the row returns {:error, :not_found}" do
+      txn = insert_transaction(%{action_id: nil})
+
+      assert {:error, :not_found} =
+               Threadline.transaction_context(txn.id,
+                 repo: @repo,
+                 scope: :pass,
+                 scope_query_fn: &row_hidden_scope_query/3
+               )
     end
   end
 end

@@ -1643,7 +1643,7 @@ defmodule Threadline.QueryTest do
 
       [transaction_change] = Threadline.audit_changes_for_transaction(txn.id, repo: @repo)
 
-      %LinkedTransaction{changes: [%LinkedChange{} = linked_change]} =
+      {:ok, %LinkedTransaction{changes: [%LinkedChange{} = linked_change]}} =
         Threadline.transaction_context(txn.id, repo: @repo)
 
       {:ok, %IncidentBundle{changes: [incident_change]}} =

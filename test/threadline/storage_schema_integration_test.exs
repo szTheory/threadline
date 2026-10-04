@@ -117,7 +117,7 @@ defmodule Threadline.StorageSchemaIntegrationTest do
       assert change.table_name == "tickets"
       assert change.table_pk == %{"id" => "ticket-action-link"}
 
-      context =
+      {:ok, context} =
         Threadline.transaction_context(audit_transaction_id,
           repo: Repo,
           storage_schema: "audit"

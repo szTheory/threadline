@@ -334,7 +334,7 @@ defmodule Threadline.Query.ActionHydrationTest do
       assert bundle.action.id == action.id
       assert warning_count(stderr) == 0
 
-      {context, context_stderr} =
+      {{:ok, context}, context_stderr} =
         capture_with_result(fn -> Threadline.transaction_context(txn.id, repo: @repo) end)
 
       assert context.action.id == action.id
