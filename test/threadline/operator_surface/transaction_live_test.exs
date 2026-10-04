@@ -110,6 +110,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Transaction Not Found"
     end
 
+    test "renders the not-found state for a malformed transaction id", %{conn: conn} do
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/not-a-uuid")
+
+      assert_single_h1(html, "Transaction")
+      assert html =~ "Transaction not found"
+    end
+
     test "Case 2: Renders bundle header details (actor, action) for valid transaction ID", %{
       conn: conn
     } do
