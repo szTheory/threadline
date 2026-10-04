@@ -5,16 +5,16 @@ milestone_name: 1.0 API Contract
 current_phase: 233
 current_phase_name: Lookup Return Shapes
 status: executing
-stopped_at: Completed 233-01-PLAN.md
-last_updated: "2026-10-04T00:14:13.144Z"
+stopped_at: Completed 233-02-PLAN.md
+last_updated: "2026-10-04T00:30:46.203Z"
 last_activity: 2026-10-03
 last_activity_desc: Phase 233 execution started
-state_head: daa1b360ed6bcd7645af996c793b486681f5a4fb
+state_head: 224554d62993a77dadd18d72813d7f566ca2b3da
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 29
 ---
 
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 ## Current Position
 
 Phase: 233 (Lookup Return Shapes) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-10-03 — Phase 233 execution started
 
@@ -268,6 +268,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 232 P05 | ~55min | 3 tasks | 14 files |
 | Phase 232 P06 | ~31min | 3 tasks | 22 files |
 | Phase 233 P01 | 55min | 2 tasks | 8 files |
+| Phase 233 P02 | 35min | 3 tasks | 10 files |
 
 ## Deferred Items
 
@@ -1001,6 +1002,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 232]: query_test.exs's three history/3-specific :limit assertions were rewritten against row_history/3's actual (different) behavior: limit: nil now raises, and row-key matching precedes :limit validation (reverse of history/3's order); history/3's own behavior stays pinned by Plan 04's deprecation_parity_test.exs
 - [Phase 232]: 232-06: hid Telemetry emit_* and Query.export_changes_query from docs; widened the facade-only scanner with hidden/retired-name detectors (no exemption); rewrote guides/README/upgrade guides onto row_history/3; facade_naming_contract_test.exs pins timeline/timeline_page as the sole paired name; mix ci.all green
 - [Phase 233]: Shared hidden existence fetch Threadline.Query.TransactionLookup.fetch_row/2 hardcodes surface: :transaction_header and params internally (never read from opts), so :surface/:params are rejectable by the option allowlist without weakening the scope contract.
+- [Phase 233]: 233-02: transaction_context/2 and incident_bundle/2 share one row-first fetch (Threadline.Query.TransactionLookup.fetch/2); transaction_context/2 changed to {:ok,_}|{:error,:not_found}; both gained bang siblings raising Threadline.NotFoundError.
 
 ### Blockers
 
@@ -1016,8 +1018,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-04T00:14:13.102Z
-**Stopped at:** Completed 233-01-PLAN.md
+**Last session:** 2026-10-04T00:30:46.173Z
+**Stopped at:** Completed 233-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
