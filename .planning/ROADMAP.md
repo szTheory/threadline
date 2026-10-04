@@ -168,7 +168,32 @@ Plans:
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 234-01-PLAN.md — SPEC-01/02/03 gates as exact ratchets: doc/spec coverage gate with fixture mutation control, hidden pin, option parity, M-checks, bare-type lint, facade-groups ratchet, D-27 grep contracts, frozen 234-SPEC-RUBRIC.md (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 234-02-PLAN.md — SPEC-02/03 facade: named option/filter/row-key types, `Threadline.Query.OptionKeys`, closed facade allowlists after moving the actor LiveView off the facade, four job groups + `## Jobs`, rubric doc rewrites, size pin, ExDoc `~> 0.40`, WR-01 test-first (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 234-03-PLAN.md — SPEC-01/02 Evidence: 20 gaps documented and specced, `EvidenceRecord.t`, two Proof helpers hidden with CHANGELOG record (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 234-04-PLAN.md — SPEC-01/02 operations: Export closed and typed via hidden `ExportReads` (export controller + timeline count moved), ChangeDiff/Storage/Orchestrator/TaskAdapter, StorageSchema (hide 6, spec 5) and the small modules (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 234-05-PLAN.md — SPEC-01/02 data types: every schema and result struct field hand-typed, `AuditAction.t`, precise `ActorRef.t`, Page cursor typedoc, `Audit.transaction/3` type variable (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 234-06-PLAN.md — SPEC-02 close: five strict Dialyzer flags with every finding fixed and zero ignores, ratchets deleted (gates assert zero), live mutation recorded, CHANGELOG/CONTRIBUTING/baseline notes, review input, `mix ci.all` (wave 6)
 
 ### Phase 235: Stability Contract and Adopter Guides
 
