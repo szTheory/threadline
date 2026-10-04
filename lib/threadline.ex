@@ -35,11 +35,67 @@ defmodule Threadline do
 
   alias Threadline.Investigation
   alias Threadline.Query.LegacyOpts
+  alias Threadline.Query.OptionKeys
   alias Threadline.Query.RowReads
   alias Threadline.Query.TransactionLookup
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
+
+  @typedoc "An option that selects the Ecto repository used for a read."
+  @type repo_opt :: {:repo, module()}
+
+  @typedoc "An option that selects a Threadline storage schema override."
+  @type storage_schema_opt :: {:storage_schema, String.t()}
+
+  @typedoc "A query callback that applies the caller's scope; the scope value is opaque to Threadline."
+  @type scope_query_fn ::
+          (Ecto.Query.t(), term(), %{surface: atom(), params: map()} -> Ecto.Query.t())
+
+  @typedoc "A caller-owned scope value or callback; the scope value is opaque to Threadline."
+  @type scope_opt :: {:scope, term()} | {:scope_query_fn, scope_query_fn()}
+
+  @typedoc "A scalar host-table key value supported by Ecto."
+  @type row_key_scalar ::
+          String.t()
+          | integer()
+          | float()
+          | boolean()
+          | Date.t()
+          | DateTime.t()
+          | NaiveDateTime.t()
+          | Decimal.t()
+
+  @typedoc "A single host key or every field of a composite key as a map or keyword list."
+  @type row_id ::
+          row_key_scalar()
+          | %{optional(atom() | String.t()) => row_key_scalar()}
+          | [{atom() | String.t(), row_key_scalar()}]
+
+  @typedoc "A JSON value supported in a captured or exported JSON map."
+  @type json_value :: nil | boolean() | number() | String.t() | [json_value()] | json_map()
+
+  @typedoc "A string-keyed JSON map decoded from jsonb or bound for JSON encoding; owning types list guaranteed keys and new keys may be added."
+  @type json_map :: %{optional(String.t()) => json_value()}
+
+  @typedoc "An option accepted by `row_history/3`."
+  @type row_history_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | scope_opt()
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | {:limit, pos_integer() | :infinity}
+          | {:cursor, :start | Threadline.Page.change_cursor()}
+          | {:page_size, pos_integer()}
+
+  @doc false
+  @spec __option_keys__(atom()) :: [atom()] | :not_closed
+  def __option_keys__(name), do: OptionKeys.allowed(name)
+
+  @doc false
+  @spec __filter_keys__(atom()) :: [atom()] | :not_closed
+  def __filter_keys__(name), do: OptionKeys.filters(name)
 
   @doc """
   Records a semantic audit action.
@@ -241,35 +297,44 @@ defmodule Threadline do
   def timeline_page(filters \\ [], opts \\ []), do: Threadline.Query.timeline_page(filters, opts)
 
   @doc """
-  Returns row history for one schema row — the discoverable helper for
-  operators who want one row's changes without assembling table and
-  primary-key predicates manually.
+  Returns a list of `%Threadline.Investigation.LinkedChange{}` or a
+  `%Threadline.Page{}` for one schema row, ordered newest first.
 
-  Returns a list of `%Threadline.Investigation.LinkedChange{}`, newest first,
-  capped at 200 entries by default. Pass `limit: n` or `limit: :infinity` to
-  override the cap, or `cursor:` (with optional `page_size:`) to page through
-  the full history as a `%Threadline.Page{}`.
+  Use `timeline/2` to inspect changes across rows. A list is capped at 200
+  entries by default; use `cursor:` to walk the full history page by page.
+  `limit:` caps a list and cannot be combined with `cursor:`.
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
-  - `:from` — inclusive lower bound on `captured_at`
-  - `:to` — inclusive upper bound on `captured_at`
-  - `:limit` — positive integer, or `:infinity`. Defaults to 200 most recent
-    changes (`captured_at desc, id desc`). `:limit` together with `:cursor`
-    raises `ArgumentError`.
-  - `:cursor` — `:start` begins a walk; a prior page's `cursor` continues it.
-    `cursor: nil` raises `ArgumentError`. Returns `%Threadline.Page{}` instead
-    of a bare list.
-  - `:page_size` — positive integer, defaults to `1000`; only valid with
-    `:cursor`.
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds the caller's scope predicates to the read.
+  - `:from` — `DateTime`. Optional. Inclusive lower bound on `captured_at`.
+  - `:to` — `DateTime`. Optional. Inclusive upper bound on `captured_at`.
+  - `:limit` — positive integer or `:infinity`. Defaults to 200 most recent changes; cannot be combined with `:cursor`.
+  - `:cursor` — `:start` or a prior page cursor. Optional. Returns a page instead of a list; `nil` raises `ArgumentError`.
+  - `:page_size` — positive integer. Defaults to `1000`; only applies with `:cursor`.
 
-  Unknown option keys raise `ArgumentError` naming the allowed keys. The
-  200-row default is not a completeness check — walk `cursor:` or pass
-  `limit: :infinity` to prove the full history was read.
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A list of linked changes, capped at 200 by default, or a `%Threadline.Page{}` when `:cursor` is set.
+  - Raises `ArgumentError` for an unknown option, an invalid key shape, or incompatible paging options.
+
+  ## Examples
+
+      Threadline.row_history(MyApp.LineItem, [tenant_id: 7, id: 42], repo: MyApp.Repo)
+
+      first = Threadline.row_history(MyApp.LineItem, 42, repo: MyApp.Repo, cursor: :start)
+      Threadline.row_history(MyApp.LineItem, 42, repo: MyApp.Repo, cursor: first.cursor)
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc since: "1.0.0"
-  @spec row_history(module(), term(), keyword()) ::
+  @spec row_history(module(), row_id(), [row_history_opt()]) ::
           [Threadline.Investigation.LinkedChange.t()]
           | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def row_history(schema_module, id, opts \\ []) when is_list(opts),

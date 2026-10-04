@@ -3,6 +3,7 @@ defmodule Threadline.Investigation do
 
   alias Threadline.Query
   alias Threadline.Query.LegacyOpts
+  alias Threadline.Query.OptionKeys
   alias Threadline.Query.RowReads
   alias Threadline.Query.TransactionLookup
 
@@ -18,7 +19,6 @@ defmodule Threadline.Investigation do
   @allowed_row_history_filter_keys ~w(from to repo)a
   @allowed_actor_window_filter_keys ~w(table from to correlation_id repo)a
   @allowed_correlation_bundle_filter_keys ~w(table actor_ref from to repo)a
-  @row_history_opt_keys ~w(repo from to limit cursor page_size scope scope_query_fn surface storage_schema)a
 
   @doc """
   Returns row history for one schema row, ordered by `captured_at`
@@ -202,14 +202,7 @@ defmodule Threadline.Investigation do
   end
 
   defp validate_row_history_opts!(opts) do
-    Enum.each(opts, fn {key, _value} ->
-      if key not in @row_history_opt_keys do
-        allowed = Enum.map_join(@row_history_opt_keys, ", ", &inspect/1)
-
-        raise ArgumentError,
-              "unknown row_history option key #{inspect(key)}. Allowed: #{allowed}"
-      end
-    end)
+    OptionKeys.validate!(opts, :row_history)
   end
 
   defp validate_row_history_mode!(opts) do

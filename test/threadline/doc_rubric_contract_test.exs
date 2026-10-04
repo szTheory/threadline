@@ -16,7 +16,6 @@ defmodule Threadline.DocRubricContractTest do
     {:options_untyped, Threadline, :audit_transaction, 2, "Options"},
     {:options_untyped, Threadline, :history, 3, "Options"},
     {:options_untyped, Threadline, :incident_bundle, 2, "Options"},
-    {:options_untyped, Threadline, :row_history, 3, "Options"},
     {:options_untyped, Threadline, :timeline, 2, "Options"},
     {:options_untyped, Threadline, :transaction_context, 2, "Options"},
     {:options_untyped, Threadline.Continuity, :assert_capture_ready!, 2, "Options"},
@@ -84,7 +83,6 @@ defmodule Threadline.DocRubricContractTest do
     {{Threadline, :spec, :history, 3}, [:keyword, :term]},
     {{Threadline, :spec, :incident_bundle!, 2}, [:keyword]},
     {{Threadline, :spec, :incident_bundle, 2}, [:keyword]},
-    {{Threadline, :spec, :row_history, 3}, [:keyword, :term]},
     {{Threadline, :spec, :row_history, 4}, [:keyword, :keyword, :term]},
     {{Threadline, :spec, :row_history_page, 4}, [:keyword, :keyword, :term]},
     {{Threadline, :spec, :timeline_page, 2}, [:keyword, :keyword]},
@@ -219,6 +217,9 @@ defmodule Threadline.DocRubricContractTest do
   ]
 
   @permanent_bare_allowlist %{
+    {Threadline, :type, :scope_opt, 0} => "R1: the caller's scope value is opaque to Threadline",
+    {Threadline, :type, :scope_query_fn, 0} =>
+      "R1: the callback receives an opaque scope and open surface-specific context params",
     {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1} =>
       "R2: predicate accepts arbitrary input and reports whether it identifies an actor",
     {Threadline.Storage, :type, :options, 0} =>
@@ -275,7 +276,7 @@ defmodule Threadline.DocRubricContractTest do
            "M8 code-block findings changed: #{inspect(actual, limit: :infinity)}"
   end
 
-  test "bare types match the exact ratchet and the three reasoned permanent cases" do
+  test "bare types match the exact ratchet and the reasoned permanent cases" do
     actual = bare_type_findings()
 
     assert actual == @bare_type_ratchet,
@@ -285,6 +286,8 @@ defmodule Threadline.DocRubricContractTest do
 
     assert Map.keys(@permanent_bare_allowlist) |> Enum.sort() ==
              [
+               {Threadline, :type, :scope_opt, 0},
+               {Threadline, :type, :scope_query_fn, 0},
                {Threadline.Page, :type, :t, 0},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
                {Threadline.Storage, :type, :options, 0}

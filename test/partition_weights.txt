@@ -175,6 +175,7 @@
 0 test/threadline/operator_surface/ui_stress_test.exs
 22 test/threadline/operator_surface/ui_test.exs
 1 test/threadline/operator_surface_doc_contract_test.exs
+20 test/threadline/option_allowlist_test.exs
 36 test/threadline/optional_deps_contract_test.exs
 200 test/threadline/page_test.exs
 0 test/threadline/performance_doc_contract_test.exs
