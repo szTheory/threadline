@@ -72,7 +72,20 @@ defmodule Threadline.Query.OptionKeys do
       :scope_query_fn,
       :max_rows,
       :include_action_metadata
-    ]
+    ],
+    :to_json_document => [
+      :repo,
+      :storage_schema,
+      :scope,
+      :scope_query_fn,
+      :max_rows,
+      :json_format
+    ],
+    :count_matching => [:repo, :storage_schema, :scope, :scope_query_fn, :cap],
+    :csv_header => [:include_action_metadata],
+    :format_changes_iodata => [:include_action_metadata],
+    :stream_changes => [:repo, :storage_schema, :scope, :scope_query_fn, :page_size],
+    :stream_export_rows => [:repo, :storage_schema, :scope, :scope_query_fn, :page_size]
   }
 
   @filter_keys %{
