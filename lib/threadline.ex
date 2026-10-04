@@ -10,8 +10,9 @@ defmodule Threadline do
   The functions on this module (see the function list below) are the
   supported read API — including `timeline/2`, `timeline_page/2`,
   `row_history/3`, `as_of/4`, `actor_history/2`, `actor_window/3`,
-  `correlation_bundle/3`, `transaction_context/2`, `incident_bundle/2`,
-  `audit_changes_for_transaction/2`, `export_csv/2`, and `export_json/2`.
+  `correlation_bundle/3`, `audit_transaction/2`, `transaction_context/2`,
+  `incident_bundle/2`, `audit_changes_for_transaction/2`, `export_csv/2`, and
+  `export_json/2`.
   Build on these rather than on the internal modules behind them. Older
   names (`history/3`, `row_history/4`, `row_history_page/4`,
   `actor_window_page/3`, `correlation_bundle_page/3`) remain as deprecated
@@ -31,6 +32,7 @@ defmodule Threadline do
   alias Threadline.Investigation
   alias Threadline.Query.LegacyOpts
   alias Threadline.Query.RowReads
+  alias Threadline.Query.TransactionLookup
   alias Threadline.Semantics.ActorRef
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
@@ -359,6 +361,39 @@ defmodule Threadline do
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def correlation_bundle_page(correlation_id, filters \\ [], opts \\ []),
     do: correlation_bundle(correlation_id, filters, LegacyOpts.cursor(opts))
+
+  @doc """
+  Returns `{:ok, %Threadline.Capture.AuditTransaction{}}` when the row exists and is
+  visible under the scope, or `{:error, :not_found}`.
+
+  `.action` is always hydrated — 0 extra queries when the transaction has no
+  linked action, 1 otherwise. A binary that is not a valid UUID returns
+  `{:error, :not_found}`; a non-binary id raises `ArgumentError`.
+
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module
+  - `:storage_schema` — optional Threadline storage schema override
+  - `:scope` — opaque scope term passed to `:scope_query_fn`
+  - `:scope_query_fn` — `(query, scope, context) -> query`; sees
+    `context.surface == :transaction_header` with a single `[at]` binding and
+    `context.params == %{transaction_id: transaction_id}`
+
+  Unknown option keys raise `ArgumentError`.
+
+  Use `audit_transaction!/2` when absence is a bug.
+  """
+  @doc since: "1.0.0"
+  @spec audit_transaction(Ecto.UUID.t(), keyword()) ::
+          {:ok, Threadline.Capture.AuditTransaction.t()} | {:error, :not_found}
+  def audit_transaction(transaction_id, opts \\ []) do
+    TransactionLookup.validate_opts!(opts, "audit_transaction")
+
+    case TransactionLookup.fetch_row(transaction_id, opts) do
+      {:ok, transaction} -> {:ok, transaction}
+      :not_found -> {:error, :not_found}
+    end
+  end
 
   @doc """
   Returns one transaction-oriented investigation slice with linked transaction
