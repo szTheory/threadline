@@ -60,6 +60,12 @@ defmodule Threadline.DocContract do
     |> Enum.join("\n")
   end
 
+  @spec explicitly_hidden(module(), tuple()) :: [{module(), atom(), non_neg_integer()}]
+  def explicitly_hidden(_module, _docs_v1), do: []
+
+  @spec ungrouped([tuple()], [String.t()]) :: [{atom(), non_neg_integer(), String.t() | nil}]
+  def ungrouped(_entries, _allowed_titles), do: []
+
   defp missing_entry_gaps(:macro, _name, _arity, doc, _specs), do: doc_gap(doc)
 
   defp missing_entry_gaps(:function, name, arity, doc, specs) do

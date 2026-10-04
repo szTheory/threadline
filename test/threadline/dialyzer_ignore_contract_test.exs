@@ -74,6 +74,29 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     assert Keyword.fetch!(dialyzer, :list_unused_filters)
   end
 
+  test "no lib module carries an @dialyzer attribute" do
+    source_files = Path.wildcard(Path.join(@root, "lib/**/*.ex"))
+
+    assert source_files != [], "the lib scan found no Elixir source files"
+
+    offenders =
+      Enum.filter(source_files, fn path ->
+        path |> File.read!() |> String.contains?("@dialyzer")
+      end)
+
+    assert offenders == [],
+           "Dialyzer suppressions are forbidden under lib/: #{inspect(offenders)}"
+  end
+
+  test "no :no_* Dialyzer flag is configured" do
+    flags = Threadline.MixProject.project() |> Keyword.fetch!(:dialyzer) |> Keyword.fetch!(:flags)
+
+    refute Enum.any?(flags, fn flag ->
+             String.starts_with?(Atom.to_string(flag), "no_")
+           end),
+           "no_* flags suppress warnings instead of checking them"
+  end
+
   test "fixture documentation preserves provenance, update commands, and the zero ceiling" do
     readme = File.read!(@readme_path)
 
