@@ -32,7 +32,23 @@ defmodule Threadline.DocContract do
   end
 
   @spec gaps(module(), tuple(), {:ok, list()} | list()) :: [gap()]
-  def gaps(_module, _docs_v1, _specs_result), do: []
+  def gaps(module, docs_v1, specs_result) do
+    specs = normalize_specs(specs_result)
+
+    function_gaps =
+      for {kind, name, arity, doc, _metadata} <- checked_entries(docs_v1),
+          missing <- missing_entry_gaps(kind, name, arity, doc, specs),
+          do: {module, name, arity, missing}
+
+    type_gaps =
+      for {{kind, name, arity}, _anno, _signature, doc, _metadata} <- docs_entries(docs_v1),
+          kind in [:type, :opaque],
+          doc != :hidden,
+          doc == :none,
+          do: {module, name, arity, :missing_typedoc}
+
+    Enum.sort_by(function_gaps ++ type_gaps, &gap_sort_key/1)
+  end
 
   @spec format_gaps([gap()]) :: String.t()
   def format_gaps(gaps) do
