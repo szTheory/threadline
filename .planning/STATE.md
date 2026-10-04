@@ -5,17 +5,17 @@ milestone_name: 1.0 API Contract
 current_phase: 233
 current_phase_name: Lookup Return Shapes
 status: executing
-stopped_at: Completed 233-02-PLAN.md
-last_updated: "2026-10-04T00:30:46.203Z"
+stopped_at: Completed 233-03-PLAN.md
+last_updated: "2026-10-04T01:39:51.000Z"
 last_activity: 2026-10-03
-last_activity_desc: Phase 233 execution started
-state_head: 224554d62993a77dadd18d72813d7f566ca2b3da
+last_activity_desc: Phase 233 plan 03 complete (continuation after a mid-task stall)
+state_head: 1dc0fc1d87bbd7d12f238c0ba7d8a166a5a8e417
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
-  percent: 29
+  completed_plans: 12
+  percent: 31
 ---
 
 # Project State: Threadline
@@ -30,9 +30,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 ## Current Position
 
 Phase: 233 (Lookup Return Shapes) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
-Last activity: 2026-10-03 — Phase 233 execution started
+Plan: 4 of 4
+Status: Plan 03 complete; ready to execute 233-04
+Last activity: 2026-10-03 — Phase 233 plan 03 complete (continuation after a mid-task stall; see 233-03-SUMMARY.md)
 
 v1.45 Progress: [███░░░░░░░] 2 of 7 v1.45 phases complete (29%) (231-237; phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
