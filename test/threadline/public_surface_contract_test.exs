@@ -303,6 +303,18 @@ defmodule Threadline.PublicSurfaceContractTest do
              Code.fetch_docs(Threadline.Page)
   end
 
+  test "Threadline.NotFoundError is visible, grouped, and carries since 1.0.0" do
+    assert docs_visibility(Threadline.NotFoundError) == :visible
+
+    assert Threadline.NotFoundError in grouped_modules(),
+           "expected Threadline.NotFoundError to be grouped under Core API"
+
+    assert {:docs_v1, _, _, _, %{"en" => _}, %{since: "1.0.0"}, _} =
+             Code.fetch_docs(Threadline.NotFoundError)
+
+    assert Plug.Exception.impl_for(%Threadline.NotFoundError{}) != nil
+  end
+
   @tag :module_visibility_tracer
   @tag :phase200_red
   test "every Telemetry emit_* function is hidden from docs; transaction_committed stays visible" do

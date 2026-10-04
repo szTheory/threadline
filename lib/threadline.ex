@@ -396,6 +396,26 @@ defmodule Threadline do
   end
 
   @doc """
+  Returns the `%Threadline.Capture.AuditTransaction{}` or raises
+  `Threadline.NotFoundError`.
+
+  See `audit_transaction/2` for the option list and the missing/scope-filtered
+  semantics this raises on.
+  """
+  @doc since: "1.0.0"
+  @spec audit_transaction!(Ecto.UUID.t(), keyword()) ::
+          Threadline.Capture.AuditTransaction.t()
+  def audit_transaction!(transaction_id, opts \\ []) do
+    case audit_transaction(transaction_id, opts) do
+      {:ok, transaction} ->
+        transaction
+
+      {:error, :not_found} ->
+        raise Threadline.NotFoundError, resource: :audit_transaction, id: transaction_id
+    end
+  end
+
+  @doc """
   Returns one transaction-oriented investigation slice with linked transaction
   and optional action metadata.
 

@@ -117,6 +117,7 @@
 167 test/threadline/mix/trigger_migration_property_test.exs
 14 test/threadline/mix/trigger_migration_test.exs
 5 test/threadline/no_warn_undefined_contract_test.exs
+4 test/threadline/not_found_error_test.exs
 0 test/threadline/operator_surface/auth_test.exs
 5 test/threadline/operator_surface/breadcrumb_test.exs
 36 test/threadline/operator_surface/card_nesting_regression_test.exs
@@ -223,6 +224,7 @@
 49 test/threadline/telemetry_test.exs
 957 test/threadline/temp_leak_check_test.exs
 25 test/threadline/test_structure_contract_test.exs
+300 test/threadline/transaction_lookup_test.exs
 150 test/threadline/upgrade_backfill_test.exs
 1 test/threadline/upgrade_path_doc_contract_test.exs
 233 test/threadline/upgrade_rollback_test.exs

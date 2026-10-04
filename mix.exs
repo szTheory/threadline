@@ -640,6 +640,7 @@ defmodule Threadline.MixProject do
           Threadline.Export,
           Threadline.Health,
           Threadline.Job,
+          Threadline.NotFoundError,
           Threadline.Plug,
           Threadline.Retention,
           Threadline.Telemetry

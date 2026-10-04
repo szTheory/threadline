@@ -207,4 +207,80 @@ defmodule Threadline.TransactionLookupTest do
       end
     end
   end
+
+  describe "audit_transaction!/2" do
+    test "returns the bare %AuditTransaction{} for an existing id" do
+      txn = insert_transaction(%{action_id: nil})
+
+      assert %AuditTransaction{} = result = Threadline.audit_transaction!(txn.id, repo: @repo)
+      assert result.id == txn.id
+    end
+
+    test "raises NotFoundError with resource :audit_transaction and the passed id for a missing UUID" do
+      missing_id = Ecto.UUID.generate()
+
+      error =
+        assert_raise Threadline.NotFoundError, fn ->
+          Threadline.audit_transaction!(missing_id, repo: @repo)
+        end
+
+      assert error.resource == :audit_transaction
+      assert error.id == missing_id
+    end
+
+    test "raises NotFoundError (not ArgumentError) for \"garbage\"; raises ArgumentError for nil" do
+      assert_raise Threadline.NotFoundError, fn ->
+        Threadline.audit_transaction!("garbage", repo: @repo)
+      end
+
+      assert_raise ArgumentError, fn ->
+        Threadline.audit_transaction!(nil, repo: @repo)
+      end
+    end
+
+    test "preload: raises ArgumentError (allowlist applies to the bang too)" do
+      assert_raise ArgumentError, ~r/unknown audit_transaction option key :preload/, fn ->
+        Threadline.audit_transaction!(Ecto.UUID.generate(), repo: @repo, preload: [:changes])
+      end
+    end
+
+    test "a scope-rejected row's bang message leaks nothing and is byte-equal to the missing-row message" do
+      distinctive_actor_id = "secret-actor-9f3"
+      {:ok, actor} = ActorRef.new(:user, distinctive_actor_id)
+
+      txn =
+        insert_transaction(%{
+          action_id: nil,
+          actor_ref: ActorRef.to_map(actor),
+          meta: %{"organization_id" => "org-1"}
+        })
+
+      scope_rejected_message =
+        assert_raise Threadline.NotFoundError, fn ->
+          Threadline.audit_transaction!(txn.id,
+            repo: @repo,
+            scope: %{organization_id: "org-2"},
+            scope_query_fn: &scope_query/3
+          )
+        end
+
+      scope_rejected_message = Exception.message(scope_rejected_message)
+
+      refute scope_rejected_message =~ distinctive_actor_id
+      refute scope_rejected_message =~ "org-"
+      refute scope_rejected_message =~ "scope"
+      assert scope_rejected_message =~ txn.id
+
+      @repo.delete!(txn, repo_opts("threadline"))
+
+      missing_row_message =
+        assert_raise Threadline.NotFoundError, fn ->
+          Threadline.audit_transaction!(txn.id, repo: @repo)
+        end
+
+      missing_row_message = Exception.message(missing_row_message)
+
+      assert scope_rejected_message == missing_row_message
+    end
+  end
 end
