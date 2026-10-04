@@ -181,7 +181,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 234-03-PLAN.md — SPEC-01/02 Evidence: 20 gaps documented and specced, `EvidenceRecord.t`, two Proof helpers hidden with CHANGELOG record (wave 3)
+- [x] 234-03-PLAN.md — SPEC-01/02 Evidence: 20 gaps documented and specced, `EvidenceRecord.t`, two Proof helpers hidden with CHANGELOG record (wave 3) — completed 2026-10-04
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
