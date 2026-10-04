@@ -137,7 +137,24 @@ Plans:
   2. `audit_transaction!/2` and `transaction_context!/2` return the bare value for an existing id and raise for a missing one. Tests cover both cases for each.
   3. Every internal caller in `lib/`, the operator surface, the example app and the guides uses the new shapes. The CHANGELOG `Unreleased` breaking-changes section records the change, and `mix ci.all` is green.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 233-01-PLAN.md — shared scoped row fetch (`TransactionLookup`), facade `audit_transaction/2` + `!`, public `Threadline.NotFoundError` (Plug 404) (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 233-02-PLAN.md — `transaction_context/2` to the tuple shape and `incident_bundle/2` on the shared fetch, both `!` siblings, ≤3-query bundle, TransactionLive call site (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 233-03-PLAN.md — deprecate `Threadline.Query.audit_transaction/2` with parity, lookup-family doc contract (`as_of/4` exempt), CHANGELOG and guides (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 233-04-PLAN.md — fail-closed `Scope.apply/2` on every scoped read, example catch-all, integration-contracts guide, phase-close `mix ci.all` (wave 4)
 
 ### Phase 234: Typespec and Doc Completion Gate
 

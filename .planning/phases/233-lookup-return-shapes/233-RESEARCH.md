@@ -530,7 +530,7 @@ end
 notes, not load-bearing unverified claims; no user confirmation checkpoint is required beyond
 what CONTEXT.md already resolved.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Where should the shared hidden fetch live — `Query` or `Investigation`?**
    - What we know: CONTEXT.md leaves this to Claude's discretion. `Query` currently owns
@@ -543,6 +543,7 @@ what CONTEXT.md already resolved.
      `Query.fetch_transaction_with_changes/2`), since `Query.audit_transaction/2`'s deprecated
      delegate also needs to call it directly, and `Query` is already the lower layer
      `Investigation` depends on (avoids a new `Investigation -> Query -> Investigation` cycle).
+   - RESOLVED: a new hidden module `Threadline.Query.TransactionLookup` (Plan 233-01); `query.ex` is near the 800-line source-size cap.
 
 2. **Does the new facade `audit_transaction/2`'s `@doc` need to warn that it hydrates `.action`
    unconditionally (D-14), given the deprecated `Query.audit_transaction/2` only hydrates on
@@ -556,6 +557,7 @@ what CONTEXT.md already resolved.
      facade name (not a changed existing one), so its always-hydrate behavior is simply what the
      new function documents from day one; D-06's merged Deprecations entry for the *old*
      `Query.audit_transaction/2` already covers the `:preload :action` compat path.
+   - RESOLVED: no separate CHANGELOG line; the new name documents always-hydrate from day one (Plan 233-03).
 
 ## Environment Availability
 
