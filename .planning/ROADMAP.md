@@ -177,7 +177,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 234-02-PLAN.md — SPEC-02/03 facade: named option/filter/row-key types, `Threadline.Query.OptionKeys`, closed facade allowlists after moving the actor LiveView off the facade, four job groups + `## Jobs`, rubric doc rewrites, size pin, ExDoc `~> 0.40`, WR-01 test-first (wave 2)
+- [x] 234-02-PLAN.md — SPEC-02/03 facade: named option/filter/row-key types, `Threadline.Query.OptionKeys`, closed facade allowlists after moving the actor LiveView off the facade, four job groups + `## Jobs`, rubric doc rewrites, size pin, ExDoc `~> 0.40`, WR-01 test-first (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
