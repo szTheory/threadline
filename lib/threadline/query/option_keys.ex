@@ -2,7 +2,7 @@ defmodule Threadline.Query.OptionKeys do
   @moduledoc false
 
   @option_keys %{
-    row_history: [
+    :row_history => [
       :repo,
       :from,
       :to,
@@ -12,7 +12,13 @@ defmodule Threadline.Query.OptionKeys do
       :scope,
       :scope_query_fn,
       :storage_schema
-    ]
+    ],
+    :audit_transaction => [:repo, :storage_schema, :scope, :scope_query_fn],
+    :audit_transaction! => [:repo, :storage_schema, :scope, :scope_query_fn],
+    :transaction_context => [:repo, :storage_schema, :scope, :scope_query_fn],
+    :transaction_context! => [:repo, :storage_schema, :scope, :scope_query_fn],
+    :incident_bundle => [:repo, :storage_schema, :scope, :scope_query_fn],
+    :incident_bundle! => [:repo, :storage_schema, :scope, :scope_query_fn]
   }
 
   @filter_keys %{}
@@ -28,6 +34,11 @@ defmodule Threadline.Query.OptionKeys do
     validate_keys!(opts, allowed(name), name, "option")
   end
 
+  def validate!(opts, name) when is_atom(name) do
+    raise ArgumentError,
+          "#{name} options must be a keyword list, got: #{inspect(opts)}"
+  end
+
   @spec validate_filters!([tuple()], atom()) :: :ok
   def validate_filters!(entries, name) when is_list(entries) and is_atom(name) do
     validate_keys!(entries, filters(name), name, "filter")
@@ -37,13 +48,18 @@ defmodule Threadline.Query.OptionKeys do
   defp validate_keys!(_entries, :not_closed, _name, _kind), do: :ok
 
   defp validate_keys!(entries, allowed, name, kind) do
-    Enum.each(entries, fn {key, _value} ->
-      if key not in allowed do
-        allowed_keys = Enum.map_join(allowed, ", ", &inspect/1)
+    Enum.each(entries, fn
+      {key, _value} ->
+        if key not in allowed do
+          allowed_keys = Enum.map_join(allowed, ", ", &inspect/1)
 
+          raise ArgumentError,
+                "unknown #{name} #{kind} key #{inspect(key)}. Allowed: #{allowed_keys}"
+        end
+
+      other ->
         raise ArgumentError,
-              "unknown #{name} #{kind} key #{inspect(key)}. Allowed: #{allowed_keys}"
-      end
+              "#{name} options must be a keyword list, got entry: #{inspect(other)}"
     end)
 
     :ok

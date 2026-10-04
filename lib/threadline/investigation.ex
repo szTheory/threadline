@@ -162,7 +162,7 @@ defmodule Threadline.Investigation do
   @spec transaction_context(Ecto.UUID.t(), keyword()) ::
           {:ok, LinkedTransaction.t()} | {:error, :not_found}
   def transaction_context(transaction_id, opts \\ []) do
-    TransactionLookup.validate_opts!(opts, "transaction_context")
+    OptionKeys.validate!(opts, :transaction_context)
 
     case TransactionLookup.fetch(transaction_id, opts) do
       :not_found ->
@@ -185,7 +185,7 @@ defmodule Threadline.Investigation do
   @spec incident_bundle(Ecto.UUID.t(), keyword()) ::
           {:ok, IncidentBundle.t()} | {:error, :not_found}
   def incident_bundle(transaction_id, opts \\ []) do
-    TransactionLookup.validate_opts!(opts, "incident_bundle")
+    OptionKeys.validate!(opts, :incident_bundle)
 
     case TransactionLookup.fetch(transaction_id, opts) do
       :not_found ->

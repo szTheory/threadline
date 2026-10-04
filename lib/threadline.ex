@@ -89,6 +89,9 @@ defmodule Threadline do
           | {:cursor, :start | Threadline.Page.change_cursor()}
           | {:page_size, pos_integer()}
 
+  @typedoc "An option accepted by the single-transaction lookup functions."
+  @type lookup_opt :: repo_opt() | storage_schema_opt() | scope_opt()
+
   @doc false
   @spec __option_keys__(atom()) :: [atom()] | :not_closed
   def __option_keys__(name), do: OptionKeys.allowed(name)
@@ -439,31 +442,36 @@ defmodule Threadline do
     do: correlation_bundle(correlation_id, filters, LegacyOpts.cursor(opts))
 
   @doc """
-  Returns `{:ok, %Threadline.Capture.AuditTransaction{}}` when the row exists and is
-  visible under the scope, or `{:error, :not_found}`.
+  Returns `{:ok, %Threadline.Capture.AuditTransaction{}}` for one visible
+  transaction, or `{:error, :not_found}` when it is absent or out of scope.
 
-  `.action` is always hydrated — 0 extra queries when the transaction has no
-  linked action, 1 otherwise. A binary that is not a valid UUID returns
-  `{:error, :not_found}`; a non-binary id raises `ArgumentError`.
+  Use `audit_transaction!/2` when absence is a bug. The linked action is
+  hydrated when present; a malformed UUID string is treated as not found.
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
-  - `:storage_schema` — optional Threadline storage schema override
-  - `:scope` — opaque scope term passed to `:scope_query_fn`
-  - `:scope_query_fn` — `(query, scope, context) -> query`; sees
-    `context.surface == :transaction_header` with a single `[at]` binding and
-    `context.params == %{transaction_id: transaction_id}`
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Receives the transaction header query and context.
 
-  Unknown option keys raise `ArgumentError`.
+  Unknown keys raise `ArgumentError` naming the allowed keys.
 
-  Use `audit_transaction!/2` when absence is a bug.
+  ## Returns
+
+  - `{:ok, %Threadline.Capture.AuditTransaction{}}` — the visible transaction, with its action hydrated when present.
+  - `{:error, :not_found}` — no visible transaction matches the UUID.
+  - Raises `ArgumentError` for a non-binary id and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.audit_transaction(transaction_id, repo: MyApp.Repo)
   """
   @doc since: "1.0.0"
-  @spec audit_transaction(Ecto.UUID.t(), keyword()) ::
+  @spec audit_transaction(Ecto.UUID.t(), [lookup_opt()]) ::
           {:ok, Threadline.Capture.AuditTransaction.t()} | {:error, :not_found}
   def audit_transaction(transaction_id, opts \\ []) do
-    TransactionLookup.validate_opts!(opts, "audit_transaction")
+    OptionKeys.validate!(opts, :audit_transaction)
 
     case TransactionLookup.fetch_row(transaction_id, opts) do
       {:ok, transaction} -> {:ok, transaction}
@@ -472,14 +480,33 @@ defmodule Threadline do
   end
 
   @doc """
-  Returns the `%Threadline.Capture.AuditTransaction{}` or raises
-  `Threadline.NotFoundError`.
+  Returns the visible `%Threadline.Capture.AuditTransaction{}` or raises
+  `Threadline.NotFoundError` when the transaction is absent or out of scope.
 
-  See `audit_transaction/2` for the option list and the missing/scope-filtered
-  semantics this raises on.
+  Use `audit_transaction/2` when absence should be returned as
+  `{:error, :not_found}`. Options and UUID handling follow that function.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Receives the transaction header query and context.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - `%Threadline.Capture.AuditTransaction{}` — the visible transaction.
+  - Raises `Threadline.NotFoundError` when no visible transaction matches the UUID.
+  - Raises `ArgumentError` for a non-binary id and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.audit_transaction!(transaction_id, repo: MyApp.Repo)
   """
   @doc since: "1.0.0"
-  @spec audit_transaction!(Ecto.UUID.t(), keyword()) ::
+  @spec audit_transaction!(Ecto.UUID.t(), [lookup_opt()]) ::
           Threadline.Capture.AuditTransaction.t()
   def audit_transaction!(transaction_id, opts \\ []) do
     case audit_transaction(transaction_id, opts) do
@@ -492,46 +519,65 @@ defmodule Threadline do
   end
 
   @doc """
-  Returns `{:ok, %Threadline.Investigation.LinkedTransaction{}}` when the
-  transaction row exists and is visible under the scope, or
-  `{:error, :not_found}`.
+  Returns `{:ok, %Threadline.Investigation.LinkedTransaction{}}` for one
+  visible transaction and its visible changes, or `{:error, :not_found}`.
 
-  An existing transaction with no visible changes returns `changes: []`. The
-  row and its changes are read by two independent queries, each point-in-time
-  under READ COMMITTED.
-
-  A binary that is not a valid UUID returns `{:error, :not_found}`; a
-  non-binary id raises `ArgumentError`.
+  Use `transaction_context!/2` when absence is a bug. The transaction and its
+  changes are read by two independent queries; an existing transaction with
+  no visible changes returns `changes: []`.
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
-  - `:storage_schema` — optional Threadline storage schema override
-  - `:scope` — opaque scope term passed to `:scope_query_fn`
-  - `:scope_query_fn` — `(query, scope, context) -> query`; sees
-    `context.surface == :transaction_header` with a single `[at]` binding for
-    the row read, and `context.surface == :transaction` with an `[ac, at]`
-    binding for the changes read — both with
-    `context.params == %{transaction_id: transaction_id}`
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Applies predicates to both the transaction and changes queries.
 
-  Unknown option keys raise `ArgumentError`.
+  Unknown keys raise `ArgumentError` naming the allowed keys.
 
-  Use `transaction_context!/2` when absence is a bug.
+  ## Returns
+
+  - `{:ok, %Threadline.Investigation.LinkedTransaction{}}` — the transaction and visible changes.
+  - `{:error, :not_found}` — no visible transaction matches the UUID.
+  - Raises `ArgumentError` for a non-binary id and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.transaction_context(transaction_id, repo: MyApp.Repo)
   """
-  @spec transaction_context(Ecto.UUID.t(), keyword()) ::
+  @spec transaction_context(Ecto.UUID.t(), [lookup_opt()]) ::
           {:ok, Threadline.Investigation.LinkedTransaction.t()} | {:error, :not_found}
   def transaction_context(transaction_id, opts \\ []),
     do: Investigation.transaction_context(transaction_id, opts)
 
   @doc """
-  Returns the `%Threadline.Investigation.LinkedTransaction{}` or raises
-  `Threadline.NotFoundError`.
+  Returns the visible `%Threadline.Investigation.LinkedTransaction{}` or raises
+  `Threadline.NotFoundError` when the transaction is absent or out of scope.
 
-  See `transaction_context/2` for the option list and the missing/scope-filtered
-  semantics this raises on.
+  Use `transaction_context/2` when absence should be returned as
+  `{:error, :not_found}`. Options and UUID handling follow that function.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Applies predicates to both read queries.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - `%Threadline.Investigation.LinkedTransaction{}` — the transaction and visible changes.
+  - Raises `Threadline.NotFoundError` when no visible transaction matches the UUID.
+  - Raises `ArgumentError` for a non-binary id and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.transaction_context!(transaction_id, repo: MyApp.Repo)
   """
   @doc since: "1.0.0"
-  @spec transaction_context!(Ecto.UUID.t(), keyword()) ::
+  @spec transaction_context!(Ecto.UUID.t(), [lookup_opt()]) ::
           Threadline.Investigation.LinkedTransaction.t()
   def transaction_context!(transaction_id, opts \\ []) do
     case transaction_context(transaction_id, opts) do
@@ -544,47 +590,71 @@ defmodule Threadline do
   end
 
   @doc """
-  Returns `{:ok, %Threadline.Investigation.IncidentBundle{}}` when the
-  transaction row exists and is visible under the scope, or
-  `{:error, :not_found}`.
+  Returns `{:ok, %Threadline.Investigation.IncidentBundle{}}` with linked
+  transaction/action context and ordered changes, or `{:error, :not_found}`.
 
-  The bundle carries linked transaction/action context and ordered changes
-  (newest first) packaged as JSON-ready diffs. An existing transaction with no
-  visible changes returns `changes: []`. The row and its changes are read by
-  two independent queries, each point-in-time under READ COMMITTED.
-
-  A binary that is not a valid UUID returns `{:error, :not_found}`; a
-  non-binary id raises `ArgumentError`.
+  Use `incident_bundle!/2` when absence is a bug. An existing transaction with
+  no visible changes returns `changes: []`; its row and changes come from two
+  independent queries.
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
-  - `:storage_schema` — optional Threadline storage schema override
-  - `:scope` — opaque scope term passed to `:scope_query_fn`
-  - `:scope_query_fn` — `(query, scope, context) -> query`; sees
-    `context.surface == :transaction_header` with a single `[at]` binding for
-    the row read, and `context.surface == :transaction` with an `[ac, at]`
-    binding for the changes read — both with
-    `context.params == %{transaction_id: transaction_id}`
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Applies predicates to both read queries.
 
-  Unknown option keys raise `ArgumentError`.
+  Unknown keys raise `ArgumentError` naming the allowed keys.
 
-  Use `incident_bundle!/2` when absence is a bug.
+  ## Returns
+
+  - `{:ok, %Threadline.Investigation.IncidentBundle{}}` — the transaction, action context, and visible changes.
+  - `{:error, :not_found}` — no visible transaction matches the UUID.
+  - Raises `ArgumentError` for a non-binary id and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.incident_bundle(transaction_id, repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec incident_bundle(Ecto.UUID.t(), keyword()) ::
+  @spec incident_bundle(Ecto.UUID.t(), [lookup_opt()]) ::
           {:ok, Threadline.Investigation.IncidentBundle.t()} | {:error, :not_found}
   def incident_bundle(transaction_id, opts \\ []),
     do: Investigation.incident_bundle(transaction_id, opts)
 
   @doc """
-  Returns the `%Threadline.Investigation.IncidentBundle{}` or raises
-  `Threadline.NotFoundError`.
+  Returns the visible `%Threadline.Investigation.IncidentBundle{}` or raises
+  `Threadline.NotFoundError` when the transaction is absent or out of scope.
 
-  See `incident_bundle/2` for the option list and the missing/scope-filtered
-  semantics this raises on.
+  Use `incident_bundle/2` when absence should be returned as
+  `{:error, :not_found}`. Options and UUID handling follow that function.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Applies predicates to both read queries.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - `%Threadline.Investigation.IncidentBundle{}` — the transaction, action context, and visible changes.
+  - Raises `Threadline.NotFoundError` when no visible transaction matches the UUID.
+  - Raises `ArgumentError` for a non-binary id and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.incident_bundle!(transaction_id, repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc since: "1.0.0"
-  @spec incident_bundle!(Ecto.UUID.t(), keyword()) ::
+  @spec incident_bundle!(Ecto.UUID.t(), [lookup_opt()]) ::
           Threadline.Investigation.IncidentBundle.t()
   def incident_bundle!(transaction_id, opts \\ []) do
     case incident_bundle(transaction_id, opts) do
