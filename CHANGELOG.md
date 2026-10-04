@@ -112,6 +112,22 @@ and `Threadline.incident_bundle/2`.
   and remain callable but unsupported. Required action: none for adopters
   using the documented API.
 
+- Passing a non-nil `:scope` without a 3-arity `:scope_query_fn`, or a
+  `:scope_query_fn` that is not 3-arity, now raises `ArgumentError` on every
+  scoped read — `timeline/2`, `timeline_page/2`, `row_history/3`,
+  `actor_history/2`, `actor_window/3`, `correlation_bundle/3`,
+  `audit_changes_for_transaction/2`, `audit_transaction/2`,
+  `transaction_context/2`, `incident_bundle/2`, `export_csv/2`,
+  `export_json/2`, and both operator-surface transports (LiveView mounts and
+  the HTTP export controller) — instead of silently reading every tenant's
+  rows. `scope: nil` with a `scope_query_fn` configured still reads unscoped
+  (the host's explicit unscoped authorization, for example an
+  `authorize_fn` that returns `:ok` for admins). Required action: pair every
+  non-nil `:scope` with a 3-arity `scope_query_fn`, or pass `scope: nil` for
+  an intentionally unscoped read; end your `scope_query_fn` with a deny-all
+  clause (`where(query, false)`) rather than a catch-all that returns the
+  query unchanged.
+
 ### Deprecations
 
 - `Threadline.Query.audit_transaction/2` is deprecated in favor of
