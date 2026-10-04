@@ -18,7 +18,6 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Evidence, :list_subject_ref_history, 3, :missing_spec},
     {Threadline.Evidence, :list_subject_ref_history, 4, :missing_spec},
     {Threadline.Evidence, :record_export_delivery, 3, :missing_spec},
-    {Threadline.Evidence, :record_redaction_policy, 3, :missing_spec},
     {Threadline.Evidence, :record_retention_policy, 3, :missing_spec},
     {Threadline.Evidence, :record_retention_run, 3, :missing_spec},
     {Threadline.Evidence, :record_support_scope_posture, 3, :missing_spec},
@@ -181,8 +180,8 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 67
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 46
+      assert length(actual) == 66
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 45
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_doc end) == 6
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 15
     end

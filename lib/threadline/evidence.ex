@@ -10,6 +10,7 @@ defmodule Threadline.Evidence do
 
   alias Threadline.Evidence.Subject
   alias Threadline.Governance.EvidenceRecord
+  alias Threadline.Semantics.ActorRef
   alias Threadline.StorageSchema
 
   @schema_version 1
@@ -17,9 +18,80 @@ defmodule Threadline.Evidence do
   @allowed_subject_ref_history_filter_keys ~w(repo from to limit)a
   @allowed_latest_filter_keys ~w(repo from to limit)a
 
+  @typedoc "A subject reference represented with atom or string keys and JSON-compatible values."
+  @type subject_ref_value ::
+          Threadline.json_value()
+          | atom()
+          | %{optional(atom() | String.t()) => subject_ref_value()}
+
+  @typedoc "A subject reference accepted by an Evidence writer. Atom keys and values are normalized to strings."
+  @type subject_ref :: %{optional(atom() | String.t()) => subject_ref_value()}
+
+  @typedoc "Options accepted by Evidence record writers."
+  @type record_opt :: Threadline.repo_opt() | Threadline.storage_schema_opt()
+
+  @typedoc "Values accepted for redaction-policy evidence fields cast by the record changeset."
+  @type redaction_policy_attr_value ::
+          String.t()
+          | DateTime.t()
+          | NaiveDateTime.t()
+          | ActorRef.t()
+          | subject_ref()
+          | pos_integer()
+          | nil
+
+  @typedoc "Caller attrs for `summary_status`, `recorded_at`, `actor_ref`, `provenance`, `detail`, or `schema_version`; Threadline supplies `subject`, `subject_ref`, and defaults."
+  @type redaction_policy_attrs :: %{
+          optional(atom() | String.t()) => redaction_policy_attr_value()
+        }
+
+  @typedoc "A top-level atom or string key in redaction-policy evidence attrs."
+  @type redaction_policy_attr_key :: atom() | String.t()
+
+  @typedoc "Redaction-policy attrs as a map or keyword list."
+  @type redaction_policy_attrs_input ::
+          redaction_policy_attrs()
+          | [{redaction_policy_attr_key(), redaction_policy_attr_value()}]
+
+  @typedoc "Result returned by an Evidence record writer."
+  @type record_result ::
+          {:ok, EvidenceRecord.t()}
+          | {:error, Ecto.Changeset.t()}
+          | {:error, :missing_repo}
+          | {:error, {:invalid_subject_ref, invalid_subject_ref()}}
+
+  @typedoc "A non-map value rejected as an Evidence subject reference."
+  @type invalid_subject_ref ::
+          atom()
+          | bitstring()
+          | number()
+          | tuple()
+          | list()
+          | pid()
+          | port()
+          | reference()
+          | function()
+
   @doc """
-  Records redaction policy posture evidence.
+  Records a redaction-policy evidence snapshot for `subject_ref` and returns `{:ok, record}` when it is persisted.
+
+  Evidence records are append-only snapshots. The caller supplies the policy
+  status and optional actor, source context, and details.
+
+  ## Options
+
+  - `:repo` — the Ecto repository used to persist the record (required).
+  - `:storage_schema` — the Threadline storage schema override.
+
+  ## Returns
+
+  Returns `{:ok, %Threadline.Governance.EvidenceRecord{}}` when persisted,
+  `{:error, changeset}` when record validation fails, `{:error, :missing_repo}`
+  when `:repo` is omitted, or `{:error, {:invalid_subject_ref, value}}` when
+  `subject_ref` is not a map.
   """
+  @spec record_redaction_policy(subject_ref(), redaction_policy_attrs_input(), [record_opt()]) ::
+          record_result()
   def record_redaction_policy(subject_ref, attrs, opts \\ []) do
     record_subject("redaction_policy", subject_ref, attrs, opts)
   end

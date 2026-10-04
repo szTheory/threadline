@@ -51,7 +51,7 @@ defmodule Threadline.DocRubricContractTest do
   @deprecated_reference_ratchet [
     {Threadline.Continuity, :module, :moduledoc, 0, {Threadline, :history, 3}}
   ]
-  @voice_ratchet [{Threadline.Governance.EvidenceRecord, :module, :moduledoc, 0, "governance"}]
+  @voice_ratchet []
   @since_ratchet []
   @code_block_ratchet [
     {Mix.Tasks.Threadline.Gen.RowHistoryIndex, :module, :moduledoc, 0,
