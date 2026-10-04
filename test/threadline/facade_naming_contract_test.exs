@@ -221,16 +221,17 @@ defmodule Threadline.FacadeNamingContractTest do
 
         Regex.scan(~r/^- \*\*([^*]+)\*\*:(.*?)(?=^- \*\*|\z)/ms, section, capture: :all_but_first)
         |> Enum.map(fn [title, bullet] ->
-          names =
-            Regex.scan(~r/`([[:alpha:]_!?]+)\/([0-9]+)`/, bullet, capture: :all_but_first)
-            |> Enum.map(fn [name, arity] -> {String.to_atom(name), String.to_integer(arity)} end)
-
-          {title, names}
+          {title, bullet_names(bullet)}
         end)
 
       _no_jobs_section ->
         []
     end
+  end
+
+  defp bullet_names(bullet) do
+    Regex.scan(~r/`([[:alpha:]_!?]+)\/([0-9]+)`/, bullet, capture: :all_but_first)
+    |> Enum.map(fn [name, arity] -> {String.to_atom(name), String.to_integer(arity)} end)
   end
 
   defp visible_non_deprecated_names(module) do

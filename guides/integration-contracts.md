@@ -215,8 +215,7 @@ instead:
 def scope_operator_query(query, _scope, _context), do: where(query, false)
 ```
 
-The fail-closed rules `Threadline.Query.Scope.apply/2` enforces on every one
-of the surfaces above:
+Threadline applies these fail-closed rules to every surface above:
 
 - no `:scope` and no `:scope_query_fn` stays unscoped — scoping is opt-in.
 - `:scope` set to `nil` with a `scope_query_fn` configured still stays
