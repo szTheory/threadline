@@ -173,7 +173,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 234-01-PLAN.md — SPEC-01/02/03 gates as exact ratchets: doc/spec coverage gate with fixture mutation control, hidden pin, option parity, M-checks, bare-type lint, facade-groups ratchet, D-27 grep contracts, frozen 234-SPEC-RUBRIC.md (wave 1)
+- [x] 234-01-PLAN.md — SPEC-01/02/03 gates as exact ratchets: doc/spec coverage gate with fixture mutation control, hidden pin, option parity, M-checks, bare-type lint, facade-groups ratchet, D-27 grep contracts, frozen 234-SPEC-RUBRIC.md (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
