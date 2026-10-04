@@ -8,30 +8,6 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Audit, :action_opt, 0, :missing_typedoc},
     {Threadline.Continuity, :assert_capture_ready!, 2, :missing_spec},
     {Threadline.Continuity, :explain_cutover, 1, :missing_spec},
-    {Threadline.Evidence, :get_latest_subject_ref, 3, :missing_spec},
-    {Threadline.Evidence, :list_history, 2, :missing_spec},
-    {Threadline.Evidence, :list_latest_subject_refs, 2, :missing_doc},
-    {Threadline.Evidence, :list_latest_subject_refs, 2, :missing_spec},
-    {Threadline.Evidence, :list_latest_subject_refs, 3, :missing_spec},
-    {Threadline.Evidence, :list_overview, 2, :missing_spec},
-    {Threadline.Evidence, :list_subject_ref_history, 3, :missing_doc},
-    {Threadline.Evidence, :list_subject_ref_history, 3, :missing_spec},
-    {Threadline.Evidence, :list_subject_ref_history, 4, :missing_spec},
-    {Threadline.Evidence, :record_export_delivery, 3, :missing_spec},
-    {Threadline.Evidence, :record_retention_policy, 3, :missing_spec},
-    {Threadline.Evidence, :record_retention_run, 3, :missing_spec},
-    {Threadline.Evidence, :record_support_scope_posture, 3, :missing_spec},
-    {Threadline.Evidence, :record_trigger_coverage, 3, :missing_spec},
-    {Threadline.Evidence.Proof, :present_record, 1, :missing_doc},
-    {Threadline.Evidence.Proof, :present_record, 1, :missing_spec},
-    {Threadline.Evidence.Proof, :proof_document, 2, :missing_spec},
-    {Threadline.Evidence.Proof, :record_claim_assessment, 1, :missing_doc},
-    {Threadline.Evidence.Proof, :record_claim_assessment, 1, :missing_spec},
-    {Threadline.Evidence.Proof, :render_human, 1, :missing_spec},
-    {Threadline.Evidence.Proof, :render_json, 1, :missing_spec},
-    {Threadline.Evidence.Proof, :to_json_iodata, 2, :missing_spec},
-    {Threadline.Evidence.Subject, :subject_descriptor, 0, :missing_typedoc},
-    {Threadline.Evidence.Subject, :supported_subjects, 0, :missing_spec},
     {Threadline.Export.Orchestrator, :run, 2, :missing_spec},
     {Threadline.ExportQueue, :job_id, 0, :missing_typedoc},
     {Threadline.ExportQueue.TaskAdapter, :enqueue, 2, :missing_spec},
@@ -157,8 +133,8 @@ defmodule Threadline.DocSpecCoverageContractTest do
             {kind, name, arity, _doc, _metadata} <- DocContract.checked_entries(docs_v1),
             do: {module, kind, name, arity}
 
-      assert length(checked) >= 90,
-             "expected at least 90 visible entries, got #{length(checked)}"
+      assert length(checked) >= 88,
+             "expected at least 88 visible entries, got #{length(checked)}"
 
       assert {Threadline, :function, :timeline, 2} in checked,
              "expected the facade timeline/2 entry to be part of the scanned universe"
@@ -180,10 +156,10 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 66
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 45
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_doc end) == 6
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 15
+      assert length(actual) == 42
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 26
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_doc end) == 2
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 14
     end
   end
 

@@ -32,6 +32,11 @@ and `Threadline.incident_bundle/2`.
 
 ### Breaking changes
 
+- These functions are no longer part of the documented API; they are still
+  callable and may change in 1.x:
+  - `Threadline.Evidence.Proof.present_record/1`
+  - `Threadline.Evidence.Proof.record_claim_assessment/1`
+
 - `Threadline.timeline/2`, `Threadline.timeline_page/2`, and
   `Threadline.actor_history/2`, `Threadline.actor_window/3`,
   `Threadline.correlation_bundle/3`, `Threadline.export_csv/2`, and

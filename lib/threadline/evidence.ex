@@ -1,9 +1,11 @@
 defmodule Threadline.Evidence do
   @moduledoc """
-  Public create/read boundary for Threadline-owned evidence records.
+  Threadline evidence records snapshot a subject's status and details at a point in time.
 
-  Evidence helpers stay Phoenix-optional, require explicit `repo:` handling, and
-  keep the closed subject inventory enforced through subject-focused entrypoints.
+  Use `record_*` functions to append posture snapshots. Use `list_history/2` or
+  `list_subject_ref_history/4` to inspect history, `list_latest_subject_refs/3`
+  or `list_overview/2` to inspect current snapshots, and
+  `get_latest_subject_ref/3` for one subject reference.
   """
 
   import Ecto.Query
@@ -40,10 +42,13 @@ defmodule Threadline.Evidence do
           | pos_integer()
           | nil
 
-  @typedoc "Caller attrs for `summary_status`, `recorded_at`, `actor_ref`, `provenance`, `detail`, or `schema_version`; Threadline supplies `subject`, `subject_ref`, and defaults."
+  @typedoc "Caller fields accepted by the changeset: `:summary_status`, `:recorded_at`, `:actor_ref`, `:provenance`, `:detail`, and `:schema_version`. Threadline supplies `:subject`, `:subject_ref`, and defaults."
   @type redaction_policy_attrs :: %{
           optional(atom() | String.t()) => redaction_policy_attr_value()
         }
+
+  @typedoc "Common caller fields cast by Evidence record changesets: `:summary_status`, `:recorded_at`, `:actor_ref`, `:provenance`, `:detail`, and `:schema_version`. Threadline supplies the subject fields and defaults."
+  @type record_attrs :: redaction_policy_attrs()
 
   @typedoc "A top-level atom or string key in redaction-policy evidence attrs."
   @type redaction_policy_attr_key :: atom() | String.t()
@@ -52,6 +57,69 @@ defmodule Threadline.Evidence do
   @type redaction_policy_attrs_input ::
           redaction_policy_attrs()
           | [{redaction_policy_attr_key(), redaction_policy_attr_value()}]
+
+  @typedoc "Caller fields for a trigger-coverage snapshot as a map or keyword list. See `record_attrs/0` for the accepted keys."
+  @type trigger_coverage_attrs ::
+          record_attrs()
+          | [{redaction_policy_attr_key(), redaction_policy_attr_value()}]
+
+  @typedoc "Caller fields for a retention-run snapshot as a map or keyword list. See `record_attrs/0` for the accepted keys."
+  @type retention_run_attrs ::
+          record_attrs()
+          | [{redaction_policy_attr_key(), redaction_policy_attr_value()}]
+
+  @typedoc "Caller fields for a retention-policy snapshot as a map or keyword list. See `record_attrs/0` for the accepted keys."
+  @type retention_policy_attrs ::
+          record_attrs()
+          | [{redaction_policy_attr_key(), redaction_policy_attr_value()}]
+
+  @typedoc "Caller fields for an export-delivery snapshot as a map or keyword list. See `record_attrs/0` for the accepted keys."
+  @type export_delivery_attrs ::
+          record_attrs()
+          | [{redaction_policy_attr_key(), redaction_policy_attr_value()}]
+
+  @typedoc "Caller fields for a support-scope snapshot as a map or keyword list. See `record_attrs/0` for the accepted keys."
+  @type support_scope_posture_attrs ::
+          record_attrs()
+          | [{redaction_policy_attr_key(), redaction_policy_attr_value()}]
+
+  @typedoc "A history filter accepted by `list_history/2`."
+  @type history_filter ::
+          Threadline.repo_opt()
+          | {:subject, Subject.subject_descriptor()}
+          | {:subject_ref, subject_ref()}
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | {:limit, pos_integer()}
+
+  @typedoc "A subject-reference history filter accepted by `list_subject_ref_history/4`."
+  @type subject_ref_history_filter ::
+          Threadline.repo_opt()
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | {:limit, pos_integer()}
+
+  @typedoc "A latest-snapshot filter accepted by latest-read functions."
+  @type latest_filter ::
+          Threadline.repo_opt()
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | {:limit, pos_integer()}
+
+  @typedoc "Options accepted by `list_history/2`."
+  @type list_history_opt :: record_opt()
+
+  @typedoc "Options accepted by `list_subject_ref_history/4`."
+  @type list_subject_ref_history_opt :: record_opt()
+
+  @typedoc "Options accepted by `list_latest_subject_refs/3`."
+  @type list_latest_subject_refs_opt :: record_opt()
+
+  @typedoc "Options accepted by `list_overview/2`."
+  @type list_overview_opt :: record_opt()
+
+  @typedoc "Options accepted by `get_latest_subject_ref/3`."
+  @type get_latest_subject_ref_opt :: record_opt()
 
   @typedoc "Result returned by an Evidence record writer."
   @type record_result ::
@@ -72,8 +140,19 @@ defmodule Threadline.Evidence do
           | reference()
           | function()
 
+  @doc false
+  @spec __filter_keys__(atom()) :: [atom()] | :not_closed
+  def __filter_keys__(:list_history), do: @allowed_history_filter_keys
+
+  def __filter_keys__(:list_subject_ref_history),
+    do: @allowed_subject_ref_history_filter_keys
+
+  def __filter_keys__(:list_latest_subject_refs), do: @allowed_latest_filter_keys
+  def __filter_keys__(:list_overview), do: @allowed_latest_filter_keys
+  def __filter_keys__(_name), do: :not_closed
+
   @doc """
-  Records a redaction-policy evidence snapshot for `subject_ref` and returns `{:ok, record}` when it is persisted.
+  Records a redaction-policy evidence snapshot for `subject_ref` and returns `{:ok, record}` after persistence.
 
   Evidence records are append-only snapshots. The caller supplies the policy
   status and optional actor, source context, and details.
@@ -81,7 +160,7 @@ defmodule Threadline.Evidence do
   ## Options
 
   - `:repo` — the Ecto repository used to persist the record (required).
-  - `:storage_schema` — the Threadline storage schema override.
+  - `:storage_schema` — string storage schema override.
 
   ## Returns
 
@@ -89,6 +168,7 @@ defmodule Threadline.Evidence do
   `{:error, changeset}` when record validation fails, `{:error, :missing_repo}`
   when `:repo` is omitted, or `{:error, {:invalid_subject_ref, value}}` when
   `subject_ref` is not a map.
+  Raises `ArgumentError` for an invalid storage schema.
   """
   @spec record_redaction_policy(subject_ref(), redaction_policy_attrs_input(), [record_opt()]) ::
           record_result()
@@ -97,43 +177,155 @@ defmodule Threadline.Evidence do
   end
 
   @doc """
-  Records trigger coverage posture evidence.
+  Records a trigger-coverage evidence snapshot for `subject_ref` and returns `{:ok, record}` after persistence.
+
+  Evidence records are append-only snapshots. The caller supplies the coverage
+  status and optional actor, source context, and details.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns `{:ok, record}` when persisted, `{:error, changeset}` when record
+  validation fails, `{:error, :missing_repo}` when `:repo` is omitted, or
+  `{:error, {:invalid_subject_ref, value}}` when `subject_ref` is not a map.
+  Raises `ArgumentError` for an invalid storage schema.
   """
+  @spec record_trigger_coverage(subject_ref(), trigger_coverage_attrs(), [record_opt()]) ::
+          record_result()
   def record_trigger_coverage(subject_ref, attrs, opts \\ []) do
     record_subject("trigger_coverage", subject_ref, attrs, opts)
   end
 
   @doc """
-  Records retention-run evidence.
+  Records a retention-run evidence snapshot for `subject_ref` and returns `{:ok, record}` after persistence.
+
+  Evidence records are append-only snapshots. The caller supplies the run
+  status and optional actor, source context, and details.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns `{:ok, record}` when persisted, `{:error, changeset}` when record
+  validation fails, `{:error, :missing_repo}` when `:repo` is omitted, or
+  `{:error, {:invalid_subject_ref, value}}` when `subject_ref` is not a map.
+  Raises `ArgumentError` for an invalid storage schema.
   """
+  @spec record_retention_run(subject_ref(), retention_run_attrs(), [record_opt()]) ::
+          record_result()
   def record_retention_run(subject_ref, attrs, opts \\ []) do
     record_subject("retention_run", subject_ref, attrs, opts)
   end
 
   @doc """
-  Records retention-policy posture evidence.
+  Records a retention-policy evidence snapshot for `subject_ref` and returns `{:ok, record}` after persistence.
+
+  Evidence records are append-only snapshots. The caller supplies the policy
+  status and optional actor, source context, and details.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns `{:ok, record}` when persisted, `{:error, changeset}` when record
+  validation fails, `{:error, :missing_repo}` when `:repo` is omitted, or
+  `{:error, {:invalid_subject_ref, value}}` when `subject_ref` is not a map.
+  Raises `ArgumentError` for an invalid storage schema.
   """
+  @spec record_retention_policy(subject_ref(), retention_policy_attrs(), [record_opt()]) ::
+          record_result()
   def record_retention_policy(subject_ref, attrs, opts \\ []) do
     record_subject("retention_policy", subject_ref, attrs, opts)
   end
 
   @doc """
-  Records export-delivery evidence.
+  Records an export-delivery evidence snapshot for `subject_ref` and returns `{:ok, record}` after persistence.
+
+  Evidence records are append-only snapshots. The caller supplies the delivery
+  status and optional actor, source context, and details.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns `{:ok, record}` when persisted, `{:error, changeset}` when record
+  validation fails, `{:error, :missing_repo}` when `:repo` is omitted, or
+  `{:error, {:invalid_subject_ref, value}}` when `subject_ref` is not a map.
+  Raises `ArgumentError` for an invalid storage schema.
   """
+  @spec record_export_delivery(subject_ref(), export_delivery_attrs(), [record_opt()]) ::
+          record_result()
   def record_export_delivery(subject_ref, attrs, opts \\ []) do
     record_subject("export_delivery", subject_ref, attrs, opts)
   end
 
   @doc """
-  Records support-scope posture evidence.
+  Records a support-scope evidence snapshot for `subject_ref` and returns `{:ok, record}` after persistence.
+
+  Evidence records are append-only snapshots. The caller supplies the scope
+  status and optional actor, source context, and details.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns `{:ok, record}` when persisted, `{:error, changeset}` when record
+  validation fails, `{:error, :missing_repo}` when `:repo` is omitted, or
+  `{:error, {:invalid_subject_ref, value}}` when `subject_ref` is not a map.
+  Raises `ArgumentError` for an invalid storage schema.
   """
+  @spec record_support_scope_posture(subject_ref(), support_scope_posture_attrs(), [record_opt()]) ::
+          record_result()
   def record_support_scope_posture(subject_ref, attrs, opts \\ []) do
     record_subject("support_scope_posture", subject_ref, attrs, opts)
   end
 
   @doc """
-  Returns append-only evidence history ordered by newest first.
+  Returns matching `EvidenceRecord` snapshots ordered newest first by recorded time and ID.
+
+  Use `list_subject_ref_history/4` to read one subject reference's history.
+  This function can combine multiple subjects and references; `:from` and
+  `:to` are inclusive, and `:limit` caps the returned list.
+
+  ## Filters
+
+  - `:repo` — Ecto repository module. Optional when supplied in options.
+  - `:subject` — supported subject name, atom, or descriptor. Optional.
+  - `:subject_ref` — subject reference map. Optional.
+  - `:from` — `DateTime`. Optional; inclusive lower bound on `recorded_at`.
+  - `:to` — `DateTime`. Optional; inclusive upper bound on `recorded_at`.
+  - `:limit` — positive integer. Optional; caps the result list.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required in filters or options; the option takes precedence.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns a list of `%Threadline.Governance.EvidenceRecord{}` rows, including
+  an empty list when no records match. Raises `ArgumentError` for invalid
+  filters, a missing repository, or an invalid storage schema.
   """
+  @spec list_history([history_filter()], [list_history_opt()]) :: [EvidenceRecord.t()]
   def list_history(filters, opts \\ []) when is_list(filters) and is_list(opts) do
     filters = validate_filters!(filters, @allowed_history_filter_keys, :history)
     repo = evidence_repo!(filters, opts)
@@ -149,9 +341,45 @@ defmodule Threadline.Evidence do
   end
 
   @doc """
-  Returns append-only history for one subject and one subject reference.
+  Returns `EvidenceRecord` snapshots for one subject and subject reference, newest first by recorded time and ID.
+
+  Use `list_history/2` to combine multiple subjects or references. The supplied
+  filters add inclusive time bounds and a result limit to the fixed subject and
+  reference.
+
+  ## Filters
+
+  - `:repo` — Ecto repository module. Optional when supplied in options.
+  - `:from` — `DateTime`. Optional; inclusive lower bound on `recorded_at`.
+  - `:to` — `DateTime`. Optional; inclusive upper bound on `recorded_at`.
+  - `:limit` — positive integer. Optional; caps the result list.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required in filters or options; the option takes precedence.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns a list of matching `%Threadline.Governance.EvidenceRecord{}` rows,
+  including an empty list when none match. Raises `ArgumentError` for an
+  unsupported subject, invalid subject reference or filter, a missing
+  repository, or an invalid storage schema.
   """
-  def list_subject_ref_history(subject, subject_ref, filters, opts)
+  @spec list_subject_ref_history(
+          Subject.subject_descriptor(),
+          subject_ref(),
+          [subject_ref_history_filter()],
+          [list_subject_ref_history_opt()]
+        ) :: [EvidenceRecord.t()]
+  @spec list_subject_ref_history(
+          Subject.subject_descriptor(),
+          subject_ref(),
+          [list_subject_ref_history_opt()]
+        ) :: [EvidenceRecord.t()]
+  def list_subject_ref_history(subject, subject_ref, filters \\ [], opts)
       when is_list(filters) and is_list(opts) do
     filters =
       filters
@@ -162,15 +390,42 @@ defmodule Threadline.Evidence do
     list_history(filters, opts)
   end
 
-  def list_subject_ref_history(subject, subject_ref, opts)
-      when is_list(opts) do
-    list_subject_ref_history(subject, subject_ref, [], opts)
-  end
-
   @doc """
-  Returns the newest row for each subject reference for one subject family.
+  Returns the newest `EvidenceRecord` for each reference in one subject family, newest first.
+
+  Use `list_history/2` to inspect every snapshot in the family. The date bounds
+  apply before the newest row per reference is selected.
+
+  ## Filters
+
+  - `:repo` — Ecto repository module. Optional when supplied in options.
+  - `:from` — `DateTime`. Optional; inclusive lower bound on `recorded_at`.
+  - `:to` — `DateTime`. Optional; inclusive upper bound on `recorded_at`.
+  - `:limit` — positive integer. Optional; caps the result list.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required in filters or options; the option takes precedence.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns a list with at most one row per subject reference, or an empty list
+  when no records match. Raises `ArgumentError` for an unsupported subject, an
+  invalid filter, a missing repository, or an invalid storage schema.
   """
-  def list_latest_subject_refs(subject, filters, opts)
+  @spec list_latest_subject_refs(
+          Subject.subject_descriptor(),
+          [latest_filter()],
+          [list_latest_subject_refs_opt()]
+        ) :: [EvidenceRecord.t()]
+  @spec list_latest_subject_refs(
+          Subject.subject_descriptor(),
+          [list_latest_subject_refs_opt()]
+        ) :: [EvidenceRecord.t()]
+  def list_latest_subject_refs(subject, filters \\ [], opts)
       when is_list(filters) and is_list(opts) do
     filters = validate_filters!(filters, @allowed_latest_filter_keys, :latest_subject_refs)
     repo = evidence_repo!(filters, opts)
@@ -190,14 +445,33 @@ defmodule Threadline.Evidence do
     )
   end
 
-  def list_latest_subject_refs(subject, opts) when is_list(opts) do
-    list_latest_subject_refs(subject, [], opts)
-  end
-
   @doc """
-  Returns the newest row per subject reference across the closed subject
-  inventory, newest first.
+  Returns the newest `EvidenceRecord` for each subject reference across all supported subjects, newest first.
+
+  Use `list_latest_subject_refs/3` when the read should cover one subject
+  family. Inclusive date bounds apply before each latest row is selected.
+
+  ## Filters
+
+  - `:repo` — Ecto repository module. Optional when supplied in options.
+  - `:from` — `DateTime`. Optional; inclusive lower bound on `recorded_at`.
+  - `:to` — `DateTime`. Optional; inclusive upper bound on `recorded_at`.
+  - `:limit` — positive integer. Optional; caps the combined result list.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required in filters or options; the option takes precedence.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns a list with at most one row per subject reference, or an empty list
+  when no records match. Raises `ArgumentError` for an invalid filter, a
+  missing repository, or an invalid storage schema.
   """
+  @spec list_overview([latest_filter()], [list_overview_opt()]) :: [EvidenceRecord.t()]
   def list_overview(filters, opts \\ []) when is_list(filters) and is_list(opts) do
     filters = validate_filters!(filters, @allowed_latest_filter_keys, :overview)
     repo = evidence_repo!(filters, opts)
@@ -217,8 +491,28 @@ defmodule Threadline.Evidence do
   end
 
   @doc """
-  Returns the newest row for one subject and one subject reference, or `nil`.
+  Returns the newest `EvidenceRecord` for one subject and subject reference, or `nil` when none exists.
+
+  Use `list_subject_ref_history/4` when every snapshot for the reference is
+  needed. This lookup uses the full subject reference and does not apply date
+  bounds or a result limit.
+
+  ## Options
+
+  - `:repo` — Ecto repository module. Required.
+  - `:storage_schema` — string storage schema override. Optional.
+
+  ## Returns
+
+  Returns the newest `%Threadline.Governance.EvidenceRecord{}` or `nil` when no
+  row matches. Raises `ArgumentError` for an unsupported subject, an invalid
+  subject reference, a missing repository, or an invalid storage schema.
   """
+  @spec get_latest_subject_ref(
+          Subject.subject_descriptor(),
+          subject_ref(),
+          [get_latest_subject_ref_opt()]
+        ) :: EvidenceRecord.t() | nil
   def get_latest_subject_ref(subject, subject_ref, opts) when is_list(opts) do
     repo = evidence_repo!([], opts)
     normalized_subject = validate_subject!(subject)

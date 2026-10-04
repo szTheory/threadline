@@ -26,11 +26,6 @@ defmodule Threadline.DocRubricContractTest do
   ]
   @first_paragraph_ratchet [
     {Threadline.Audit, :type, :action_opt, 0, :empty_first_paragraph},
-    {Threadline.Evidence, :function, :list_latest_subject_refs, 2, :empty_first_paragraph},
-    {Threadline.Evidence, :function, :list_subject_ref_history, 3, :empty_first_paragraph},
-    {Threadline.Evidence.Proof, :function, :present_record, 1, :empty_first_paragraph},
-    {Threadline.Evidence.Proof, :function, :record_claim_assessment, 1, :empty_first_paragraph},
-    {Threadline.Evidence.Subject, :type, :subject_descriptor, 0, :empty_first_paragraph},
     {Threadline.ExportQueue, :type, :job_id, 0, :empty_first_paragraph},
     {Threadline.Health.Finding, :type, :code, 0, :empty_first_paragraph},
     {Threadline.Health.Finding, :type, :severity, 0, :empty_first_paragraph},
@@ -488,7 +483,7 @@ defmodule Threadline.DocRubricContractTest do
          :not_closed,
          findings
        ) do
-    if String.contains?(markdown, @unknown_key_sentence) do
+    if String.contains?(section_markdown(markdown, heading), @unknown_key_sentence) do
       [{:unexpected_unknown_key_sentence, module, name, arity, heading} | findings]
     else
       findings
@@ -505,6 +500,15 @@ defmodule Threadline.DocRubricContractTest do
        ) do
     runtime_key_findings(entry, runtime_keys, type_keys, active_keys) ++
       unknown_key_sentence_findings(entry, markdown) ++ findings
+  end
+
+  defp section_markdown(markdown, heading) do
+    pattern = ~r/^## #{Regex.escape(heading)}[ \t]*\r?\n(.*?)(?=^## |\z)/ms
+
+    case Regex.run(pattern, markdown, capture: :all_but_first) do
+      [section] -> section
+      _missing_section -> ""
+    end
   end
 
   defp runtime_key_findings({module, name, arity, heading}, runtime_keys, type_keys, doc_keys) do

@@ -1,10 +1,9 @@
 defmodule Threadline.Evidence.Subject do
   @moduledoc """
-  Closed subject inventory for Threadline-owned evidence records.
+  The closed set of subject names accepted by Threadline evidence records.
 
-  This boundary is kept intentionally narrow so later evidence APIs and
-  surfaces cannot silently expand into host-owned auth, tenancy, or compliance
-  workflow semantics.
+  Use `supported_subjects/0` to inspect the names, `validate/1` to check a
+  subject or descriptor, and `supported?/1` when a boolean result is enough.
   """
 
   @supported_subjects [
@@ -16,6 +15,7 @@ defmodule Threadline.Evidence.Subject do
     "support_scope_posture"
   ]
 
+  @typedoc "A subject name or a map descriptor using the `:subject` or `:name` key."
   @type subject_descriptor ::
           atom()
           | String.t()
@@ -25,8 +25,9 @@ defmodule Threadline.Evidence.Subject do
             }
 
   @doc """
-  Returns the closed supported subject inventory.
+  Returns the six subject names accepted by Evidence record writers.
   """
+  @spec supported_subjects() :: [String.t()]
   def supported_subjects, do: @supported_subjects
 
   @doc """
