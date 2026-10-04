@@ -32,6 +32,44 @@ and `Threadline.incident_bundle/2`.
 
 ### Breaking changes
 
+- `Threadline.transaction_context/2` now returns `{:ok, %Threadline.Investigation.LinkedTransaction{}}`
+  or `{:error, :not_found}` instead of a bare struct. Before:
+
+  ```elixir
+  ctx = Threadline.transaction_context(id, repo: Repo)
+  if ctx.transaction, do: render(ctx)
+  ```
+
+  After:
+
+  ```elixir
+  case Threadline.transaction_context(id, repo: Repo) do
+    {:ok, ctx} -> render(ctx)
+    {:error, :not_found} -> :not_found
+  end
+  ```
+
+  The 0.12 idiom of matching `%LinkedTransaction{transaction: nil}` for a
+  missing transaction no longer happens — a missing id and an id filtered out
+  by the scope both now return `{:error, :not_found}`, and an existing
+  transaction with no visible changes now returns
+  `{:ok, %LinkedTransaction{changes: []}}` with its transaction set. Required
+  action: use `Threadline.transaction_context!/2` when absence is a bug, or
+  `case` on the tuple.
+
+- `Threadline.audit_transaction/2`, `transaction_context/2` and
+  `incident_bundle/2`, and their `!` siblings, accept only `:repo`,
+  `:storage_schema`, `:scope` and `:scope_query_fn` — `:surface`, `:params`
+  and `:preload` now raise `ArgumentError` (previously silently dropped or
+  honored). A binary id that is not a valid UUID now returns
+  `{:error, :not_found}` (the bangs raise `Threadline.NotFoundError`) instead
+  of raising `ArgumentError`; a non-binary id still raises. A
+  `scope_query_fn` configured for these three now sees the transaction row
+  under `surface: :transaction_header` with a single `[at]` binding, and its
+  changes under `surface: :transaction`. Required action: drop those option
+  keys from calls to these three lookups; give your `scope_query_fn` a
+  `:transaction_header` clause.
+
 - An un-hydrated `AuditTransaction.action` is now `nil` instead of
   `%Ecto.Association.NotLoaded{}`. `AuditTransaction` no longer declares
   `belongs_to :action, Threadline.Semantics.AuditAction` and `AuditAction` no
@@ -76,8 +114,15 @@ and `Threadline.incident_bundle/2`.
 
 ### Deprecations
 
+- `Threadline.Query.audit_transaction/2` is deprecated in favor of
+  `Threadline.audit_transaction/2`. It still returns the transaction or
+  `nil`, still raises `ArgumentError` on a malformed id, and its `:preload`
+  option — including passing `:action` (or `transaction: :action`), which
+  still returns a hydrated `.action` and still emits one deprecation warning
+  per call — still works. It emits one compiler deprecation warning naming
+  `Threadline.audit_transaction/2`. Removal is no earlier than Threadline 2.0.
+
 - Passing `:action` (or `transaction: :action`) in the `:preload` option of
-  `Threadline.Query.audit_transaction/2` and
   `Threadline.Query.audit_changes_for_transaction/2` still works and still
   returns a hydrated `.action` — it now emits one deprecation warning per call.
   Removal is no earlier than Threadline 2.0.
@@ -117,6 +162,11 @@ and `Threadline.incident_bundle/2`.
 
 ### Added
 
+- `Threadline.audit_transaction/2`, and `audit_transaction!/2`,
+  `transaction_context!/2`, `incident_bundle!/2`, which raise
+  `Threadline.NotFoundError` when the id is missing or filtered out by the
+  scope. `Threadline.NotFoundError` implements `Plug.Exception` with status
+  404.
 - `[:threadline, :row_history, :truncated]` telemetry fires when
   `Threadline.row_history/3`'s default 200-row cap drops older changes.
 

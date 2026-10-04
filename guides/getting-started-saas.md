@@ -277,7 +277,9 @@ drill-down from the terminal.
 
 If you need to build a custom incident view instead of using the bundled default,
 drop to `Threadline.audit_changes_for_transaction/2`, `Threadline.transaction_context/2`,
-or `Threadline.change_diff/2` as advanced building blocks.
+or `Threadline.change_diff/2` as advanced building blocks. `Threadline.transaction_context/2`
+returns `{:ok, context}` or `{:error, :not_found}` (bang: `transaction_context!/2`); reach
+for `Threadline.audit_transaction/2` when you only need the bare transaction row.
 
 That sequence gives you the first-hour operator questions and their fallback
 paths:

@@ -367,35 +367,26 @@ Any change to ordering must update both halves together and retain tests with ti
 
 Source: public `Threadline.incident_bundle/2` and its internal mapper.
 
-The higher-level API loads the transaction header, applies host scope to both reads, preloads each change's transaction, then hydrates linked actions through the hidden batched helper, and packages each change with `Threadline.change_diff/1`.
+The higher-level API reads the transaction row first, under the host scope's
+`:transaction_header` surface; then its changes under `:transaction`. Both
+reads share one existence check (`TransactionLookup.fetch/2`), and each
+returned change reuses the already-hydrated row instead of a second preload,
+before each change is packaged with `Threadline.change_diff/1`.
 
 ```elixir
 def incident_bundle(transaction_id, opts \\ []) do
-  # ...
-  case Query.audit_transaction(transaction_id, transaction_opts) do
-    nil ->
+  TransactionLookup.validate_opts!(opts, "incident_bundle")
+
+  case TransactionLookup.fetch(transaction_id, opts) do
+    :not_found ->
       {:error, :not_found}
 
-    transaction ->
-      transaction = Query.hydrate_actions(transaction, repo, internal_opts)
-
-      changes =
-        Query.audit_changes_for_transaction(
-          transaction_id,
-          internal_opts
-          |> Keyword.put(:preload, [:transaction])
-          |> Keyword.put(:surface, :transaction)
-          |> Keyword.put(:params, %{transaction_id: transaction_id})
-        )
-        |> Query.hydrate_actions(repo, internal_opts)
-
-      linked_changes = to_linked_changes(changes)
-
+    {:ok, row, changes} ->
       {:ok,
        %IncidentBundle{
-         transaction: transaction,
-         action: linked_action(transaction),
-         changes: Enum.map(linked_changes, &to_incident_change/1)
+         transaction: row,
+         action: linked_action(row),
+         changes: changes |> to_linked_changes() |> Enum.map(&to_incident_change/1)
        }}
   end
 end
@@ -410,7 +401,7 @@ defp to_incident_change(%LinkedChange{} = linked_change) do
 end
 ```
 
-The public investigation layer is the better extension point for operator questions; callers do not need to reproduce preload and diff assembly.
+The public investigation layer is the better extension point for operator questions; callers do not need to reproduce the fetch and diff assembly.
 
 ## Optional surfaces compose outward
 

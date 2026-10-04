@@ -330,8 +330,10 @@ canonical bundled incident path on top of the table above:
 If you need a custom projection instead of the bundled default, the lower-level
 building blocks remain public: **`Threadline.audit_changes_for_transaction/2`**
 preserves the ordering contract, **`Threadline.transaction_context/2`** exposes
-the linked context directly, and **`Threadline.change_diff/2`** lets you shape
-per-row diffs yourself.
+the linked context directly (returning `{:ok, context}` or `{:error, :not_found}`,
+bang: `transaction_context!/2`), and **`Threadline.change_diff/2`** lets you shape
+per-row diffs yourself. For the bare transaction row alone, use
+**`Threadline.audit_transaction/2`**.
 
 CI covers the round-trip in **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**.
 The reference app requires an authenticated actor before it serves the
