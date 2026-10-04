@@ -10,11 +10,9 @@ defmodule Threadline.DocRubricContractTest do
   @option_parity_ratchet [
     {:empty_section, Threadline.Export, :format_changes_iodata, 3, "Options"},
     {:empty_section, Threadline.Retention, :purge, 1, "Options"},
-    {:options_untyped, Threadline, :actor_history, 2, "Options"},
     {:options_untyped, Threadline, :as_of, 4, "Options"},
     {:options_untyped, Threadline, :audit_changes_for_transaction, 2, "Options"},
     {:options_untyped, Threadline, :history, 3, "Options"},
-    {:options_untyped, Threadline, :timeline, 2, "Options"},
     {:options_untyped, Threadline.Continuity, :assert_capture_ready!, 2, "Options"},
     {:options_untyped, Threadline.Continuity, :explain_cutover, 1, "Options"},
     {:options_untyped, Threadline.Export, :count_matching, 2, "Options"},
@@ -70,7 +68,6 @@ defmodule Threadline.DocRubricContractTest do
     {Threadline.Storage.S3, :module, :moduledoc, 0, {:unparseable_indented_block, 2}}
   ]
   @bare_type_ratchet [
-    {{Threadline, :spec, :actor_history, 2}, [:keyword]},
     {{Threadline, :spec, :actor_window, 3}, [:keyword, :keyword]},
     {{Threadline, :spec, :actor_window_page, 3}, [:keyword, :keyword]},
     {{Threadline, :spec, :correlation_bundle, 3}, [:keyword, :keyword]},
@@ -78,7 +75,6 @@ defmodule Threadline.DocRubricContractTest do
     {{Threadline, :spec, :history, 3}, [:keyword, :term]},
     {{Threadline, :spec, :row_history, 4}, [:keyword, :keyword, :term]},
     {{Threadline, :spec, :row_history_page, 4}, [:keyword, :keyword, :term]},
-    {{Threadline, :spec, :timeline_page, 2}, [:keyword, :keyword]},
     {{Threadline.Audit, :spec, :transaction, 3}, [:keyword, :term, :term, :term]},
     {{Threadline.Audit, :type, :action_opt, 0}, [:keyword]},
     {{Threadline.Capture.AuditChange, :type, :t, 0},
@@ -439,7 +435,13 @@ defmodule Threadline.DocRubricContractTest do
     heading = if section == :options, do: "Options", else: "Filters"
 
     if heading?(markdown, heading) do
-      active_keys = DocContract.doc_bullet_keys(markdown, heading)
+      active_keys =
+        DocContract.doc_bullet_keys(markdown, heading) ++
+          if(heading == "Options",
+            do: DocContract.doc_bullet_keys(markdown, "Deprecated options"),
+            else: []
+          )
+
       type_ref = specs |> Enum.map(&argument_type_for(&1, section)) |> List.first(:untyped)
       type_keys = if type_ref == :untyped, do: [], else: DocContract.type_keys(types, type_ref)
       runtime_keys = runtime_keys(module, name, section)

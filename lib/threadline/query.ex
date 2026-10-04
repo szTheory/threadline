@@ -11,6 +11,7 @@ defmodule Threadline.Query do
     Cursors,
     HistoryLimit,
     LegacyOpts,
+    OptionKeys,
     RowKey,
     RowReads,
     Scope,
@@ -21,7 +22,6 @@ defmodule Threadline.Query do
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
 
-  @allowed_timeline_filter_keys ~w(repo table table_schema actor_ref from to correlation_id)a
   @allowed_row_history_filter_keys ~w(repo from to)a
   @default_timeline_page_size 1000
 
@@ -124,20 +124,12 @@ defmodule Threadline.Query do
   """
   @spec validate_timeline_filters!(keyword()) :: :ok
   def validate_timeline_filters!(filters) when is_list(filters) do
-    for {key, value} <- filters do
-      cond do
-        key not in @allowed_timeline_filter_keys ->
-          raise ArgumentError,
-                "unknown timeline filter key #{inspect(key)}. Allowed: :repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id. " <>
-                  "See `Threadline.Query` and `Threadline.Export`."
+    OptionKeys.validate_filters!(filters, :timeline)
 
-        key == :correlation_id ->
-          validate_correlation_id_filter!(value)
-
-        true ->
-          :ok
-      end
-    end
+    Enum.each(filters, fn
+      {:correlation_id, value} -> validate_correlation_id_filter!(value)
+      _filter -> :ok
+    end)
 
     :ok
   end

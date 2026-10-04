@@ -92,6 +92,39 @@ defmodule Threadline do
   @typedoc "An option accepted by the single-transaction lookup functions."
   @type lookup_opt :: repo_opt() | storage_schema_opt() | scope_opt()
 
+  @typedoc "A timeline filter for captured changes."
+  @type timeline_filter ::
+          repo_opt()
+          | {:table, atom() | String.t()}
+          | {:table_schema, atom() | String.t()}
+          | {:actor_ref, ActorRef.t()}
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | {:correlation_id, String.t()}
+
+  @typedoc "An option accepted by `timeline/2`."
+  @type timeline_opt :: repo_opt() | storage_schema_opt() | scope_opt()
+
+  @typedoc "An option accepted by `timeline_page/2`."
+  @type timeline_page_opt ::
+          timeline_opt()
+          | {:page_size, pos_integer()}
+          | {:cursor, :start | Threadline.Page.change_cursor()}
+
+  @typedoc "An option accepted by `actor_history/2`; `:after`, `:before`, and `:limit` are deprecated aliases."
+  @type actor_history_opt ::
+          repo_opt()
+          | storage_schema_opt()
+          | scope_opt()
+          | {:from, DateTime.t()}
+          | {:to, DateTime.t()}
+          | {:cursor,
+             :start | Threadline.Page.actor_cursor() | {:before, Threadline.Page.actor_cursor()}}
+          | {:page_size, pos_integer()}
+          | {:after, Threadline.Page.actor_cursor()}
+          | {:before, Threadline.Page.actor_cursor()}
+          | {:limit, pos_integer()}
+
   @doc false
   @spec __option_keys__(atom()) :: [atom()] | :not_closed
   def __option_keys__(name), do: OptionKeys.allowed(name)
@@ -223,81 +256,146 @@ defmodule Threadline do
     do: Threadline.Query.as_of(schema_module, id, timestamp, opts)
 
   @doc """
-  Returns a `%Threadline.Page{}` of `Threadline.Capture.AuditTransaction` records for one
-  actor — one row per database transaction, newest first (`occurred_at` desc, `id` desc).
+  Returns a `%Threadline.Page{}` of `AuditTransaction` rows for one actor,
+  newest first by `occurred_at` and `id`.
 
-  For the row changes an actor made across tables, use `actor_window/3`.
+  Use `actor_window/3` for the change rows made by an actor across tables.
+  Walk pages with `:cursor`; stop when `has_more` is `false`.
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
-  - `:cursor` — `:start` (or omitted) begins a walk; a prior page's `cursor` to
-    continue it older; `{:before, cursor}` to continue it newer. `cursor: nil`
-    raises `ArgumentError`.
-  - `:page_size` — positive integer, defaults to 50
-  - `:from` — inclusive lower bound on `occurred_at`
-  - `:to` — inclusive upper bound on `occurred_at`
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds the caller's scope predicates to the read.
+  - `:from` — `DateTime`. Optional. Inclusive lower bound on `occurred_at`.
+  - `:to` — `DateTime`. Optional. Inclusive upper bound on `occurred_at`.
+  - `:cursor` — `:start` or an actor-history cursor. Optional. `nil` raises `ArgumentError`.
+  - `:page_size` — positive integer. Defaults to `50`.
 
   ## Deprecated options
 
-  - `:after` — use `:cursor` instead
-  - `:before` — use `cursor: {:before, cursor}` instead
-  - `:limit` — use `:page_size` instead
+  - `:after` — actor-history cursor. Deprecated; use `:cursor` instead.
+  - `:before` — actor-history cursor. Deprecated; use `cursor: {:before, cursor}` instead.
+  - `:limit` — positive integer. Deprecated; use `:page_size` instead.
 
   Each still works, and each emits one deprecation warning per call. Removal
   is no earlier than Threadline 2.0. `:cursor` combined with `:after` or
   `:before` raises `ArgumentError`, as does `:page_size` combined with
   `:limit`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A `%Threadline.Page{}` of matching transactions.
+  - Raises `ArgumentError` for an invalid cursor or conflicting pagination options, and `KeyError` when `:repo` is missing.
+
+  ## Examples
+
+      Threadline.actor_history(actor_ref, repo: MyApp.Repo)
   """
-  @spec actor_history(ActorRef.t(), keyword()) ::
+  @spec actor_history(ActorRef.t(), [actor_history_opt()]) ::
           Threadline.Page.t(Threadline.Capture.AuditTransaction.t())
-  def actor_history(actor_ref, opts), do: Threadline.Query.actor_history(actor_ref, opts)
+  def actor_history(actor_ref, opts) do
+    OptionKeys.validate!(opts, :actor_history)
+    Threadline.Query.actor_history(actor_ref, opts)
+  end
 
   @doc """
-  Returns `AuditChange` records across tables, filtered by the given options,
-  ordered by `captured_at` descending, then `id` descending (the same total
-  order `audit_changes_for_transaction/2` uses).
+  Returns captured `AuditChange` rows across tables in descending capture order.
 
-  Use `timeline/2` for eager, bounded slices where returning a full list is still
-  the simple path. Use `timeline_page/2` for larger investigation windows where
-  stable keyset traversal matters.
+  Use `timeline_page/2` when a large investigation window needs stable keyset
+  traversal. `timeline/2` reads the matching rows as one list.
 
-  Only `:repo`, `:table_schema`, `:table`, `:actor_ref`, `:from`, `:to`, and
-  `:correlation_id` are allowed; an unknown key raises `ArgumentError`.
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+  - `:table` — string or atom. Optional. Matches `table_name`.
+  - `:table_schema` — string or atom. Optional. Matches the captured host schema.
+  - `:actor_ref` — `%ActorRef{}`. Optional. Matches the transaction actor.
+  - `:from` — `DateTime`. Optional. Inclusive lower bound on `captured_at`.
+  - `:to` — `DateTime`. Optional. Inclusive upper bound on `captured_at`.
+  - `:correlation_id` — non-empty string. Optional. Matches linked action correlation with strict inner-join semantics.
 
   ## Options
 
-  - `:table` — string or atom; filters by `table_name`
-  - `:table_schema` — string or atom; filters by captured host table schema
-  - `:actor_ref` — `%ActorRef{}`; filters by actor via a JOIN to `audit_transactions`
-  - `:from` — `DateTime`; inclusive lower bound on `captured_at`
-  - `:to` — `DateTime`; inclusive upper bound on `captured_at`
-  - `:correlation_id` — non-empty binary (after trimming). When set, results are limited
-    to changes whose transaction is linked to an `audit_actions` row with that
-    correlation id (strict inner-join semantics). Omit the key to leave correlation
-    out of the filter.
-  - `:repo` — required `Ecto.Repo` module
-  - `:storage_schema` — optional Threadline storage schema override
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds the caller's scope predicates to the read.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A list of matching `%Threadline.Capture.AuditChange{}` rows.
+  - Raises `ArgumentError` for invalid filters or repository options.
+
+  ## Examples
+
+      Threadline.timeline([table: "users"], repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  def timeline(filters \\ [], opts \\ []), do: Threadline.Query.timeline(filters, opts)
+  @spec timeline([timeline_filter()], [timeline_opt()]) ::
+          [Threadline.Capture.AuditChange.t()]
+  def timeline(filters \\ [], opts \\ []) do
+    OptionKeys.validate_filters!(filters, :timeline)
+    OptionKeys.validate!(opts, :timeline)
+    Threadline.Query.timeline(filters, opts)
+  end
 
   @doc """
-  Returns a `%Threadline.Page{}` of `AuditChange` records in timeline order,
-  without changing `timeline/2`.
+  Returns a `%Threadline.Page{}` of captured `AuditChange` rows in timeline
+  order, using the same filters as `timeline/2`.
 
-  Uses the same filter vocabulary as `timeline/2`, but returns a page struct so
-  large investigation windows can be traversed incrementally while `timeline/2`
-  stays eager for existing callers. Paging controls live in `opts`:
+  Use `timeline/2` when one eager list is the simpler read. A cursor walk gives
+  large investigation windows stable keyset traversal; stop when `has_more` is
+  `false`.
 
-  - `:page_size` — positive integer, defaults to `1000`
-  - `:cursor` — `:start` (or omitted) for the first page, or a prior page's
-    `cursor` to continue. `cursor: nil` raises `ArgumentError`. Stop walking
-    when `has_more` is `false`.
-  - `:repo` — required `Ecto.Repo` module
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Optional when supplied in `opts`.
+  - `:table` — string or atom. Optional. Matches `table_name`.
+  - `:table_schema` — string or atom. Optional. Matches the captured host schema.
+  - `:actor_ref` — `%ActorRef{}`. Optional. Matches the transaction actor.
+  - `:from` — `DateTime`. Optional. Inclusive lower bound on `captured_at`.
+  - `:to` — `DateTime`. Optional. Inclusive upper bound on `captured_at`.
+  - `:correlation_id` — non-empty string. Optional. Matches linked action correlation with strict inner-join semantics.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects a Threadline storage schema override.
+  - `:scope` — caller-owned value. Optional. Opaque to Threadline and passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds the caller's scope predicates to the read.
+  - `:page_size` — positive integer. Defaults to `1000`.
+  - `:cursor` — `:start` or a prior page cursor. Optional. `nil` raises `ArgumentError`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A `%Threadline.Page{}` of matching changes.
+  - Raises `ArgumentError` for invalid filters, repository options, or cursor, and `KeyError` when `:repo` is missing.
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
+
+  ## Examples
+
+      first = Threadline.timeline_page([table: "users"], repo: MyApp.Repo)
+      Threadline.timeline_page([table: "users"], repo: MyApp.Repo, cursor: first.cursor)
   """
-  @spec timeline_page(keyword(), keyword()) ::
+  @spec timeline_page([timeline_filter()], [timeline_page_opt()]) ::
           Threadline.Page.t(Threadline.Capture.AuditChange.t())
-  def timeline_page(filters \\ [], opts \\ []), do: Threadline.Query.timeline_page(filters, opts)
+  def timeline_page(filters \\ [], opts \\ []) do
+    OptionKeys.validate_filters!(filters, :timeline)
+    OptionKeys.validate!(opts, :timeline_page)
+    Threadline.Query.timeline_page(filters, opts)
+  end
 
   @doc """
   Returns a list of `%Threadline.Investigation.LinkedChange{}` or a

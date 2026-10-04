@@ -18,10 +18,28 @@ defmodule Threadline.Query.OptionKeys do
     :transaction_context => [:repo, :storage_schema, :scope, :scope_query_fn],
     :transaction_context! => [:repo, :storage_schema, :scope, :scope_query_fn],
     :incident_bundle => [:repo, :storage_schema, :scope, :scope_query_fn],
-    :incident_bundle! => [:repo, :storage_schema, :scope, :scope_query_fn]
+    :incident_bundle! => [:repo, :storage_schema, :scope, :scope_query_fn],
+    :timeline => [:repo, :storage_schema, :scope, :scope_query_fn],
+    :timeline_page => [:repo, :storage_schema, :scope, :scope_query_fn, :page_size, :cursor],
+    :actor_history => [
+      :repo,
+      :storage_schema,
+      :scope,
+      :scope_query_fn,
+      :from,
+      :to,
+      :cursor,
+      :page_size,
+      :after,
+      :before,
+      :limit
+    ]
   }
 
-  @filter_keys %{}
+  @filter_keys %{
+    :timeline => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id],
+    :timeline_page => [:repo, :table_schema, :table, :actor_ref, :from, :to, :correlation_id]
+  }
 
   @spec allowed(atom()) :: [atom()] | :not_closed
   def allowed(name), do: Map.get(@option_keys, name, :not_closed)
@@ -31,7 +49,7 @@ defmodule Threadline.Query.OptionKeys do
 
   @spec validate!([tuple()], atom()) :: :ok
   def validate!(opts, name) when is_list(opts) and is_atom(name) do
-    validate_keys!(opts, allowed(name), name, "option")
+    validate_keys!(opts, allowed(name), name, "option", "")
   end
 
   def validate!(opts, name) when is_atom(name) do
@@ -41,20 +59,20 @@ defmodule Threadline.Query.OptionKeys do
 
   @spec validate_filters!([tuple()], atom()) :: :ok
   def validate_filters!(entries, name) when is_list(entries) and is_atom(name) do
-    validate_keys!(entries, filters(name), name, "filter")
+    validate_keys!(entries, filters(name), name, "filter", filter_suffix(name))
   end
 
-  @spec validate_keys!([tuple()], [atom()] | :not_closed, atom(), String.t()) :: :ok
-  defp validate_keys!(_entries, :not_closed, _name, _kind), do: :ok
+  @spec validate_keys!([tuple()], [atom()] | :not_closed, atom(), String.t(), String.t()) :: :ok
+  defp validate_keys!(_entries, :not_closed, _name, _kind, _suffix), do: :ok
 
-  defp validate_keys!(entries, allowed, name, kind) do
+  defp validate_keys!(entries, allowed, name, kind, suffix) do
     Enum.each(entries, fn
       {key, _value} ->
         if key not in allowed do
           allowed_keys = Enum.map_join(allowed, ", ", &inspect/1)
 
           raise ArgumentError,
-                "unknown #{name} #{kind} key #{inspect(key)}. Allowed: #{allowed_keys}"
+                "unknown #{name} #{kind} key #{inspect(key)}. Allowed: #{allowed_keys}#{suffix}"
         end
 
       other ->
@@ -64,4 +82,9 @@ defmodule Threadline.Query.OptionKeys do
 
     :ok
   end
+
+  defp filter_suffix(name) when name in [:timeline, :timeline_page],
+    do: " See `Threadline.Query` and `Threadline.Export`."
+
+  defp filter_suffix(_name), do: ""
 end

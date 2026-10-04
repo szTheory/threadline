@@ -32,6 +32,11 @@ and `Threadline.incident_bundle/2`.
 
 ### Breaking changes
 
+- `Threadline.timeline/2`, `Threadline.timeline_page/2`, and
+  `Threadline.actor_history/2` now raise `ArgumentError` for unknown filter or
+  option keys; `:surface` and `:params` are not accepted. Required action:
+  remove unknown keys from calls to these functions.
+
 - `Threadline.transaction_context/2` now returns `{:ok, %Threadline.Investigation.LinkedTransaction{}}`
   or `{:error, :not_found}` instead of a bare struct. Before:
 
