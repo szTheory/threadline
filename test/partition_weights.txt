@@ -69,6 +69,7 @@
 4412 test/threadline/deps_audit_gate_test.exs
 2 test/threadline/deps_health_doc_contract_test.exs
 3906 test/threadline/deps_health_report_test.exs
+30 test/threadline/doc_rubric_contract_test.exs
 30 test/threadline/doc_spec_coverage_contract_test.exs
 5 test/threadline/dialyzer_ignore_contract_test.exs
 4900 test/threadline/dialyzer_slice_contract_test.exs
