@@ -5,16 +5,16 @@ milestone_name: 1.0 API Contract
 current_phase: 233
 current_phase_name: Lookup Return Shapes
 status: executing
-stopped_at: Phase 233 planned (4 plans, 4 waves)
-last_updated: "2026-10-04T00:00:55.200Z"
+stopped_at: Completed 233-01-PLAN.md
+last_updated: "2026-10-04T00:14:13.144Z"
 last_activity: 2026-10-03
-last_activity_desc: Phase 233 planned — 4 plans, checker passed
-state_head: 2c89453796981277fb70703b694966cf4d31da31
+last_activity_desc: Phase 233 execution started
+state_head: daa1b360ed6bcd7645af996c793b486681f5a4fb
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 29
 ---
 
@@ -25,14 +25,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 232 — Consolidated Reads, Deprecations and the Bounded Default
+**Current focus:** Phase 233 — Lookup Return Shapes
 
 ## Current Position
 
-Phase: 233 — Lookup Return Shapes — READY TO EXECUTE
-Plan: Not started
+Phase: 233 (Lookup Return Shapes) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-10-03 — Phase 233 planned (4 plans in 4 sequential waves; research + patterns + checker passed)
+Last activity: 2026-10-03 — Phase 233 execution started
 
 v1.45 Progress: [███░░░░░░░] 2 of 7 v1.45 phases complete (29%) (231-237; phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -267,6 +267,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 232 P04 | ~1h10min | 2 tasks | 10 files |
 | Phase 232 P05 | ~55min | 3 tasks | 14 files |
 | Phase 232 P06 | ~31min | 3 tasks | 22 files |
+| Phase 233 P01 | 55min | 2 tasks | 8 files |
 
 ## Deferred Items
 
@@ -999,6 +1000,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 232]: Facade *_page deprecated delegates reroute through the facade's own base function (row_history/3, actor_window/3, correlation_bundle/3) instead of the now-deprecated Investigation *_page, avoiding a deprecated-calling-deprecated chain
 - [Phase 232]: query_test.exs's three history/3-specific :limit assertions were rewritten against row_history/3's actual (different) behavior: limit: nil now raises, and row-key matching precedes :limit validation (reverse of history/3's order); history/3's own behavior stays pinned by Plan 04's deprecation_parity_test.exs
 - [Phase 232]: 232-06: hid Telemetry emit_* and Query.export_changes_query from docs; widened the facade-only scanner with hidden/retired-name detectors (no exemption); rewrote guides/README/upgrade guides onto row_history/3; facade_naming_contract_test.exs pins timeline/timeline_page as the sole paired name; mix ci.all green
+- [Phase 233]: Shared hidden existence fetch Threadline.Query.TransactionLookup.fetch_row/2 hardcodes surface: :transaction_header and params internally (never read from opts), so :surface/:params are rejectable by the option allowlist without weakening the scope contract.
 
 ### Blockers
 
@@ -1014,9 +1016,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-03T23:34:34.900Z
-**Stopped at:** Phase 233 context gathered
-**Resume file:** .planning/phases/233-lookup-return-shapes/233-CONTEXT.md
+**Last session:** 2026-10-04T00:14:13.102Z
+**Stopped at:** Completed 233-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

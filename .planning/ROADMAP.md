@@ -142,7 +142,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 233-01-PLAN.md — shared scoped row fetch (`TransactionLookup`), facade `audit_transaction/2` + `!`, public `Threadline.NotFoundError` (Plug 404) (wave 1)
+- [x] 233-01-PLAN.md — shared scoped row fetch (`TransactionLookup`), facade `audit_transaction/2` + `!`, public `Threadline.NotFoundError` (Plug 404) (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -232,7 +232,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
-| 233. Lookup Return Shapes | 0/TBD | Not started | - |
+| 233. Lookup Return Shapes | 1/4 | In Progress | - |
 | 234. Typespec and Doc Completion Gate | 0/TBD | Not started | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
 | 236. Support Floor and Partition Weights | 0/TBD | Not started | - |
