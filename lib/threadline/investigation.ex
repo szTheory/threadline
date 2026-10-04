@@ -182,39 +182,21 @@ defmodule Threadline.Investigation do
   Returns one transaction-focused incident bundle with linked context and
   packaged diffs.
   """
+  @spec incident_bundle(Ecto.UUID.t(), keyword()) ::
+          {:ok, IncidentBundle.t()} | {:error, :not_found}
   def incident_bundle(transaction_id, opts \\ []) do
-    repo = Keyword.fetch!(opts, :repo)
-    internal_opts = Keyword.delete(opts, :preload)
+    TransactionLookup.validate_opts!(opts, "incident_bundle")
 
-    transaction_opts =
-      internal_opts
-      |> Keyword.put(:surface, :transaction_header)
-      |> Keyword.put(:params, %{transaction_id: transaction_id})
-
-    case Query.audit_transaction(transaction_id, transaction_opts) do
-      nil ->
+    case TransactionLookup.fetch(transaction_id, opts) do
+      :not_found ->
         {:error, :not_found}
 
-      transaction ->
-        transaction = Query.hydrate_actions(transaction, repo, internal_opts)
-
-        changes =
-          Query.audit_changes_for_transaction(
-            transaction_id,
-            internal_opts
-            |> Keyword.put(:preload, [:transaction])
-            |> Keyword.put(:surface, :transaction)
-            |> Keyword.put(:params, %{transaction_id: transaction_id})
-          )
-          |> Query.hydrate_actions(repo, internal_opts)
-
-        linked_changes = to_linked_changes(changes)
-
+      {:ok, row, changes} ->
         {:ok,
          %IncidentBundle{
-           transaction: transaction,
-           action: linked_action(transaction),
-           changes: Enum.map(linked_changes, &to_incident_change/1)
+           transaction: row,
+           action: linked_action(row),
+           changes: changes |> to_linked_changes() |> Enum.map(&to_incident_change/1)
          }}
     end
   end

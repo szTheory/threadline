@@ -18,6 +18,10 @@ defmodule Threadline do
   `actor_window_page/3`, `correlation_bundle_page/3`) remain as deprecated
   delegates through Threadline 1.x.
 
+  Each single-subject lookup (`audit_transaction/2`, `transaction_context/2`,
+  `incident_bundle/2`) returns `{:ok, value}` or `{:error, :not_found}` and
+  has a `!` sibling that raises `Threadline.NotFoundError`.
+
   ## Composing your own Ecto query
 
   `Threadline.Query.timeline_query/1` is the one supported escape hatch for
@@ -468,15 +472,57 @@ defmodule Threadline do
   end
 
   @doc """
-  Returns one transaction-focused incident bundle with linked transaction/action
-  context and packaged JSON-ready diffs.
+  Returns `{:ok, %Threadline.Investigation.IncidentBundle{}}` when the
+  transaction row exists and is visible under the scope, or
+  `{:error, :not_found}`.
 
-  Returns `{:ok, bundle}` when the parent `AuditTransaction` exists, even if it
-  has no captured changes. Returns `{:error, :not_found}` when the transaction
-  row does not exist.
+  The bundle carries linked transaction/action context and ordered changes
+  (newest first) packaged as JSON-ready diffs. An existing transaction with no
+  visible changes returns `changes: []`. The row and its changes are read by
+  two independent queries, each point-in-time under READ COMMITTED.
+
+  A binary that is not a valid UUID returns `{:error, :not_found}`; a
+  non-binary id raises `ArgumentError`.
+
+  ## Options
+
+  - `:repo` — required `Ecto.Repo` module
+  - `:storage_schema` — optional Threadline storage schema override
+  - `:scope` — opaque scope term passed to `:scope_query_fn`
+  - `:scope_query_fn` — `(query, scope, context) -> query`; sees
+    `context.surface == :transaction_header` with a single `[at]` binding for
+    the row read, and `context.surface == :transaction` with an `[ac, at]`
+    binding for the changes read — both with
+    `context.params == %{transaction_id: transaction_id}`
+
+  Unknown option keys raise `ArgumentError`.
+
+  Use `incident_bundle!/2` when absence is a bug.
   """
+  @spec incident_bundle(Ecto.UUID.t(), keyword()) ::
+          {:ok, Threadline.Investigation.IncidentBundle.t()} | {:error, :not_found}
   def incident_bundle(transaction_id, opts \\ []),
     do: Investigation.incident_bundle(transaction_id, opts)
+
+  @doc """
+  Returns the `%Threadline.Investigation.IncidentBundle{}` or raises
+  `Threadline.NotFoundError`.
+
+  See `incident_bundle/2` for the option list and the missing/scope-filtered
+  semantics this raises on.
+  """
+  @doc since: "1.0.0"
+  @spec incident_bundle!(Ecto.UUID.t(), keyword()) ::
+          Threadline.Investigation.IncidentBundle.t()
+  def incident_bundle!(transaction_id, opts \\ []) do
+    case incident_bundle(transaction_id, opts) do
+      {:ok, result} ->
+        result
+
+      {:error, :not_found} ->
+        raise Threadline.NotFoundError, resource: :audit_transaction, id: transaction_id
+    end
+  end
 
   @doc """
   Returns every `%Threadline.Capture.AuditChange{}` for a single `audit_transactions.id`.

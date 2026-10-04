@@ -10,11 +10,13 @@ defmodule Threadline.TransactionLookupTest do
   import Threadline.TelemetryHelpers, only: [attach_telemetry!: 1]
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
-  alias Threadline.Investigation.{LinkedChange, LinkedTransaction}
+  alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
+  alias Threadline.Retention
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.Test.Repo
 
   @repo Repo
+  @query_event Keyword.fetch!(Repo.config(), :telemetry_prefix) ++ [:query]
 
   defp insert_transaction(attrs, storage_schema \\ "threadline") do
     defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
@@ -62,6 +64,14 @@ defmodule Threadline.TransactionLookupTest do
   defp actor!(type, id) do
     {:ok, ref} = ActorRef.new(type, id)
     ref
+  end
+
+  defp count_query_events(ref, acc \\ 0) do
+    receive do
+      {@query_event, ^ref, _measurements, _metadata} -> count_query_events(ref, acc + 1)
+    after
+      100 -> acc
+    end
   end
 
   defp scope_query(query, %{organization_id: org_id}, %{surface: :transaction_header}) do
@@ -451,6 +461,224 @@ defmodule Threadline.TransactionLookupTest do
                  scope: :pass,
                  scope_query_fn: &row_hidden_scope_query/3
                )
+    end
+  end
+
+  describe "incident_bundle/2 and incident_bundle!/2" do
+    test "incident_bundle!/2 returns the bare struct for an existing id" do
+      txn = insert_transaction(%{action_id: nil})
+
+      assert %IncidentBundle{} = result = Threadline.incident_bundle!(txn.id, repo: @repo)
+      assert result.transaction.id == txn.id
+    end
+
+    test "incident_bundle!/2 raises NotFoundError resource :audit_transaction for a missing UUID and for \"garbage\"; raises ArgumentError for nil and 123" do
+      missing_id = Ecto.UUID.generate()
+
+      error =
+        assert_raise Threadline.NotFoundError, fn ->
+          Threadline.incident_bundle!(missing_id, repo: @repo)
+        end
+
+      assert error.resource == :audit_transaction
+      assert error.id == missing_id
+
+      assert_raise Threadline.NotFoundError, fn ->
+        Threadline.incident_bundle!("garbage", repo: @repo)
+      end
+
+      assert_raise ArgumentError, fn ->
+        Threadline.incident_bundle!(nil, repo: @repo)
+      end
+
+      assert_raise ArgumentError, fn ->
+        Threadline.incident_bundle!(123, repo: @repo)
+      end
+    end
+
+    test "opts containing :surface, :params, or :preload raise ArgumentError from both the plain and bang form" do
+      txn = insert_transaction(%{action_id: nil})
+
+      assert_raise ArgumentError, ~r/unknown incident_bundle option key :surface/, fn ->
+        Threadline.incident_bundle(txn.id, repo: @repo, surface: :transaction)
+      end
+
+      assert_raise ArgumentError, ~r/unknown incident_bundle option key :params/, fn ->
+        Threadline.incident_bundle(txn.id, repo: @repo, params: %{})
+      end
+
+      assert_raise ArgumentError, ~r/unknown incident_bundle option key :preload/, fn ->
+        Threadline.incident_bundle(txn.id, repo: @repo, preload: [:transaction])
+      end
+
+      assert_raise ArgumentError, ~r/unknown incident_bundle option key :surface/, fn ->
+        Threadline.incident_bundle!(txn.id, repo: @repo, surface: :transaction)
+      end
+    end
+  end
+
+  describe "query count" do
+    test "incident_bundle/2 issues at most 3 repo query events for a transaction with an action and two changes" do
+      action = insert_action(%{correlation_id: "corr-qc-1", name: "qc.with_action"})
+      txn = insert_transaction(%{action_id: action.id})
+      insert_change(txn, %{table_pk: %{"id" => "qc-1"}})
+      insert_change(txn, %{table_pk: %{"id" => "qc-2"}})
+
+      ref = attach_telemetry!([@query_event])
+      assert {:ok, _bundle} = Threadline.incident_bundle(txn.id, repo: @repo)
+      assert count_query_events(ref) <= 3
+    end
+
+    test "incident_bundle/2 issues at most 2 repo query events when action_id is nil" do
+      txn = insert_transaction(%{action_id: nil})
+      insert_change(txn, %{table_pk: %{"id" => "qc-3"}})
+
+      ref = attach_telemetry!([@query_event])
+      assert {:ok, _bundle} = Threadline.incident_bundle(txn.id, repo: @repo)
+      assert count_query_events(ref) <= 2
+    end
+  end
+
+  describe "zero-change transactions via retention" do
+    setup do
+      prev = Application.get_env(:threadline, :retention)
+      on_exit(fn -> Application.put_env(:threadline, :retention, prev) end)
+      :ok
+    end
+
+    test "a transaction whose only change is purged with delete_empty_transactions: false still exists for audit_transaction/2, transaction_context/2, and incident_bundle/2" do
+      Application.put_env(:threadline, :retention,
+        enabled: true,
+        keep_days: 1,
+        delete_empty_transactions: false
+      )
+
+      action = insert_action(%{correlation_id: "corr-retention", name: "retention.purged"})
+      cutoff = DateTime.utc_now(:microsecond)
+      past = DateTime.add(cutoff, -10, :day)
+      txn = insert_transaction(%{action_id: action.id, occurred_at: cutoff})
+
+      @repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "retention-victim"},
+          op: "insert",
+          data_after: %{},
+          captured_at: past
+        }),
+        repo_opts("threadline")
+      )
+
+      assert %{deleted_changes: 1, deleted_transactions: 0} =
+               Retention.purge(repo: @repo, batch_size: 10, max_batches: 5)
+
+      assert {:ok, %AuditTransaction{} = row} = Threadline.audit_transaction(txn.id, repo: @repo)
+      assert row.id == txn.id
+
+      assert {:ok, %LinkedTransaction{changes: []}} =
+               Threadline.transaction_context(txn.id, repo: @repo)
+
+      assert {:ok, %IncidentBundle{changes: []}} =
+               Threadline.incident_bundle(txn.id, repo: @repo)
+    end
+  end
+
+  describe "scope parity across lookups" do
+    test "a row-rejecting scope fn returns {:error, :not_found} from all three lookups; bang messages are byte-equal to the post-delete messages" do
+      txn = insert_transaction(%{action_id: nil})
+
+      assert {:error, :not_found} =
+               Threadline.audit_transaction(txn.id,
+                 repo: @repo,
+                 scope: :pass,
+                 scope_query_fn: &row_hidden_scope_query/3
+               )
+
+      assert {:error, :not_found} =
+               Threadline.transaction_context(txn.id,
+                 repo: @repo,
+                 scope: :pass,
+                 scope_query_fn: &row_hidden_scope_query/3
+               )
+
+      assert {:error, :not_found} =
+               Threadline.incident_bundle(txn.id,
+                 repo: @repo,
+                 scope: :pass,
+                 scope_query_fn: &row_hidden_scope_query/3
+               )
+
+      audit_transaction_scope_rejected =
+        assert_raise(Threadline.NotFoundError, fn ->
+          Threadline.audit_transaction!(txn.id,
+            repo: @repo,
+            scope: :pass,
+            scope_query_fn: &row_hidden_scope_query/3
+          )
+        end)
+        |> Exception.message()
+
+      transaction_context_scope_rejected =
+        assert_raise(Threadline.NotFoundError, fn ->
+          Threadline.transaction_context!(txn.id,
+            repo: @repo,
+            scope: :pass,
+            scope_query_fn: &row_hidden_scope_query/3
+          )
+        end)
+        |> Exception.message()
+
+      incident_bundle_scope_rejected =
+        assert_raise(Threadline.NotFoundError, fn ->
+          Threadline.incident_bundle!(txn.id,
+            repo: @repo,
+            scope: :pass,
+            scope_query_fn: &row_hidden_scope_query/3
+          )
+        end)
+        |> Exception.message()
+
+      @repo.delete!(txn, repo_opts("threadline"))
+
+      audit_transaction_missing =
+        assert_raise(Threadline.NotFoundError, fn ->
+          Threadline.audit_transaction!(txn.id, repo: @repo)
+        end)
+        |> Exception.message()
+
+      transaction_context_missing =
+        assert_raise(Threadline.NotFoundError, fn ->
+          Threadline.transaction_context!(txn.id, repo: @repo)
+        end)
+        |> Exception.message()
+
+      incident_bundle_missing =
+        assert_raise(Threadline.NotFoundError, fn ->
+          Threadline.incident_bundle!(txn.id, repo: @repo)
+        end)
+        |> Exception.message()
+
+      assert audit_transaction_scope_rejected == audit_transaction_missing
+      assert transaction_context_scope_rejected == transaction_context_missing
+      assert incident_bundle_scope_rejected == incident_bundle_missing
+    end
+
+    test "existing ordering (newer change first, ties by id desc) still holds for incident_bundle/2" do
+      action = insert_action(%{correlation_id: "corr-order", name: "order.check"})
+      txn = insert_transaction(%{action_id: action.id})
+      older = ~U[2026-09-04 09:00:00.000000Z]
+      newer = DateTime.add(older, 60, :second)
+
+      older_change = insert_change(txn, %{table_pk: %{"id" => "order-older"}, captured_at: older})
+      newer_change = insert_change(txn, %{table_pk: %{"id" => "order-newer"}, captured_at: newer})
+
+      assert {:ok, %IncidentBundle{changes: [first, second]}} =
+               Threadline.incident_bundle(txn.id, repo: @repo)
+
+      assert first.linked_change.audit_change.id == newer_change.id
+      assert second.linked_change.audit_change.id == older_change.id
     end
   end
 end

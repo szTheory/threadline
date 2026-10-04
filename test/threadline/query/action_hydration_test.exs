@@ -352,9 +352,7 @@ defmodule Threadline.Query.ActionHydrationTest do
           Threadline.incident_bundle(txn.id,
             repo: @repo,
             scope: nil,
-            scope_query_fn: nil,
-            surface: :transaction,
-            params: %{transaction_id: txn.id}
+            scope_query_fn: nil
           )
         end)
 

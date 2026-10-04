@@ -20,9 +20,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       case Threadline.incident_bundle(id,
              repo: repo,
              scope: socket.assigns[:threadline_scope],
-             scope_query_fn: socket.assigns[:threadline_scope_query_fn],
-             surface: :transaction,
-             params: %{transaction_id: id}
+             scope_query_fn: socket.assigns[:threadline_scope_query_fn]
            ) do
         {:error, :not_found} ->
           {:ok, assign(socket, :not_found, true)}
