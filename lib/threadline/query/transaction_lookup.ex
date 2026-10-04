@@ -64,12 +64,12 @@ defmodule Threadline.Query.TransactionLookup do
   # (single `[at]` binding) and `params: %{transaction_id: id}` — never read
   # from `opts`, so a caller cannot relabel the binding shape. A scope
   # rejection of the row and a missing row both resolve to `:not_found`, so
-  # existence never leaks across tenants. Always hydrates `.action` (D-14): 0
+  # existence never leaks across tenants. Always hydrates `.action`: 0
   # extra queries when `action_id` is nil, 1 otherwise. No `rescue` around the
-  # repo call — a misconfigured `:storage_schema` stays loud (D-15). No
-  # telemetry on a miss (D-19); callers instrument their own lookups. Does
-  # NOT call `validate_opts!/2` itself — callers validate with their own
-  # function name before calling this.
+  # repo call — a misconfigured `:storage_schema` stays loud rather than being
+  # mistaken for absence. No telemetry on a miss; callers instrument their own
+  # lookups. Does NOT call `validate_opts!/2` itself — callers validate with
+  # their own function name before calling this.
   @spec fetch_row(term(), keyword()) :: {:ok, AuditTransaction.t()} | :not_found
   def fetch_row(id, opts) when is_list(opts) do
     case resolve_id(id) do
