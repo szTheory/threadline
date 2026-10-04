@@ -61,10 +61,47 @@ defmodule Threadline.DocContract do
   end
 
   @spec explicitly_hidden(module(), tuple()) :: [{module(), atom(), non_neg_integer()}]
-  def explicitly_hidden(_module, _docs_v1), do: []
+  def explicitly_hidden(module, docs_v1) do
+    callbacks = behaviour_callbacks(module)
+
+    docs_v1
+    |> docs_entries()
+    |> Enum.flat_map(fn
+      {{kind, name, arity}, _anno, _signature, :hidden, _metadata}
+      when kind in [:function, :macro] ->
+        if internal_name?(name) or MapSet.member?(callbacks, {name, arity}) do
+          []
+        else
+          [{module, name, arity}]
+        end
+
+      _other ->
+        []
+    end)
+    |> Enum.sort_by(fn {hidden_module, name, arity} ->
+      {inspect(hidden_module), Atom.to_string(name), arity}
+    end)
+  end
 
   @spec ungrouped([tuple()], [String.t()]) :: [{atom(), non_neg_integer(), String.t() | nil}]
-  def ungrouped(_entries, _allowed_titles), do: []
+  def ungrouped(entries, allowed_titles) do
+    entries
+    |> Enum.flat_map(fn
+      {{kind, name, arity}, _anno, _signature, doc, metadata}
+      when kind in [:function, :macro] and doc != :hidden ->
+        group = Map.get(metadata, :group)
+
+        if internal_name?(name) or group in allowed_titles do
+          []
+        else
+          [{name, arity, group}]
+        end
+
+      _other ->
+        []
+    end)
+    |> Enum.sort_by(fn {name, arity, _group} -> {Atom.to_string(name), arity} end)
+  end
 
   defp missing_entry_gaps(:macro, _name, _arity, doc, _specs), do: doc_gap(doc)
 
@@ -109,6 +146,19 @@ defmodule Threadline.DocContract do
   defp source_under_test?(module) do
     source = module.module_info(:compile)[:source] |> List.to_string()
     "test" in Path.split(source)
+  end
+
+  defp behaviour_callbacks(module) do
+    module.module_info(:attributes)
+    |> Keyword.get(:behaviour, [])
+    |> Enum.flat_map(fn behaviour ->
+      if Code.ensure_loaded?(behaviour) and function_exported?(behaviour, :behaviour_info, 1) do
+        behaviour.behaviour_info(:callbacks)
+      else
+        []
+      end
+    end)
+    |> MapSet.new()
   end
 
   defp internal_name?(name) do
