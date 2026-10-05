@@ -99,7 +99,7 @@ Plans:
   4. Each retired entry point (`history/3`, `row_history/4`, `row_history_page/4` and the filters-as-positional-argument shapes, on every module that exposed them) is a one-line `@deprecated` delegate. Each has a parity test against its replacement and a spec matching the replacement's. The replacements carry `@doc since: "1.0.0"`. `mix compile --warnings-as-errors` is clean for `lib/`, `test/` and the example app.
   5. The `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and moduledoc-less modules such as `Threadline.Export.CSV` are absent from `Code.fetch_docs/1` output. A grep test finds no reference to any hidden name in guides, the README or the example app.
 
-**Plans**: 6 plans
+**Plans**: 15 plans
 
 Plans:
 **Wave 1**
@@ -193,7 +193,30 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 234-06-PLAN.md — SPEC-02 close: five strict Dialyzer flags with every measured finding fixed and zero ignores, ratchets deleted (gates assert zero), live mutation recorded, CHANGELOG/CONTRIBUTING/baseline notes, review input, `mix ci.all` (wave 6). Tasks completed; phase verification remains gaps_found: D-28 exported `RepositoryBoundary.task_error!/3` `no_return()` spec, D-46 WR-01/02 blockers plus WR-03–07 warnings, and high security threat T-234-01. Next: `$gsd-plan-phase 234 --gaps`.
+- [ ] 234-06-PLAN.md — SPEC-02 close: five strict Dialyzer flags with every measured finding fixed and zero ignores, ratchets deleted (gates assert zero), live mutation recorded, CHANGELOG/CONTRIBUTING/baseline notes, review input, `mix ci.all` (wave 6). Tasks ran, but execution halted on unresolved D-28/D-46/security evidence; gap-closure plans below address those findings.
+
+**Gap closure — Wave 1**
+
+- [ ] 234-07-PLAN.md — ActorRef, Subject, and Retention policy type and documentation corrections
+- [ ] 234-08-PLAN.md — Storage and ExportQueue callback option, error, and return contracts
+- [ ] 234-09-PLAN.md — Audit, Retention, Continuity, and Health return-contract documentation
+- [ ] 234-10-PLAN.md — Captured-data notes and facade/ChangeDiff documentation corrections
+- [ ] 234-11-PLAN.md — EvidenceRecord, investigation entities, LinkedChange, and Sigra module openings
+- [ ] 234-12-PLAN.md — Enforce the approved checked-entry floor and remove the exported no-return spec
+
+**Gap closure — Wave 2** *(blocked on 234-11)*
+
+- [ ] 234-14-PLAN.md — Complete remaining NotFoundError, Page, Telemetry, IncidentChange, and LinkedTransaction module openings
+
+**Gap closure — Wave 3** *(blocked on 234-07 through 234-12 and 234-14)*
+
+- [ ] 234-13-PLAN.md — Regenerate the review input and obtain an evidence-validated independent D-46 verdict
+
+**Gap closure — Wave 4** *(blocked on a validated PASS from 234-13)*
+
+- [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
+
+**Execution note**: Gap-closure plans 234-07 through 234-15 passed the plan checker. Gap-only execution is in progress.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
