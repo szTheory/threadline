@@ -29,9 +29,15 @@ defmodule Threadline.Retention.Policy do
           | {:keep_days, pos_integer()}
           | {:max_age_seconds, pos_integer()}
 
-  @typedoc "A map form accepted by validation; recognized keys may use atom or string spelling."
+  @typedoc "A map with optional retention keys; atom spellings are finite, string keys are documented below."
   @type config_map ::
-          %{optional(atom() | String.t()) => boolean() | String.t() | pos_integer()}
+          %{
+            optional(:enabled) => boolean() | String.t(),
+            optional(:delete_empty_transactions) => boolean() | String.t(),
+            optional(:keep_days) => pos_integer(),
+            optional(:max_age_seconds) => pos_integer()
+          }
+          | %{optional(String.t()) => boolean() | String.t() | pos_integer()}
 
   @typedoc "The keyword-list or map form accepted by retention policy validation and resolution."
   @type config :: [config_opt()] | config_map()
@@ -42,10 +48,11 @@ defmodule Threadline.Retention.Policy do
   defstruct [:enabled, :delete_empty_transactions, :window_seconds]
 
   @doc """
-  Validates retention config from `Application.get_env(:threadline, :retention)`.
+  Returns `:ok` when retention config from `Application.get_env(:threadline, :retention)` is valid.
 
-  Raises `ArgumentError` with a message containing `"retention"` when the shape
-  is invalid, keys conflict, or the window is not positive.
+  Raises `ArgumentError` with a message containing `"retention"` when either boolean option is
+  not a boolean or its string spelling, when both window keys are set, or when a window is
+  non-positive or missing outside the test environment.
 
   In `:test`, missing `:keep_days` / `:max_age_seconds` is allowed only when the
   caller passes a non-empty map/list that still fails other checks — for empty
