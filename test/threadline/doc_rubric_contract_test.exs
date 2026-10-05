@@ -11,9 +11,6 @@ defmodule Threadline.DocRubricContractTest do
     {:empty_section, Threadline.Retention, :purge, 1, "Options"},
     {:options_untyped, Threadline.Continuity, :assert_capture_ready!, 2, "Options"},
     {:options_untyped, Threadline.Continuity, :explain_cutover, 1, "Options"},
-    {:options_untyped, Threadline.Health, :legacy_key_findings, 1, "Options"},
-    {:options_untyped, Threadline.Health, :trigger_coverage, 1, "Options"},
-    {:options_untyped, Threadline.Health, :trigger_findings, 1, "Options"},
     {:options_untyped, Threadline.Retention, :purge, 1, "Options"}
   ]
   @first_paragraph_ratchet [
@@ -55,8 +52,6 @@ defmodule Threadline.DocRubricContractTest do
     {{Threadline.Capture.AuditTransaction, :type, :t, 0},
      [:term, :term, :term, :term, :term, :term, :term, :term, :term, :term]},
     {{Threadline.Evidence.Subject, :spec, :validate, 1}, [:term]},
-    {{Threadline.Health, :spec, :legacy_key_findings, 1}, [:keyword]},
-    {{Threadline.Health, :spec, :trigger_findings, 1}, [:keyword]},
     {{Threadline.Health.Finding, :type, :t, 0}, [:map]},
     {{Threadline.Investigation.IncidentBundle, :type, :t, 0},
      [

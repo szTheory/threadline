@@ -9,11 +9,9 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Continuity, :assert_capture_ready!, 2, :missing_spec},
     {Threadline.Continuity, :explain_cutover, 1, :missing_spec},
     {Threadline.ExportQueue, :job_id, 0, :missing_typedoc},
-    {Threadline.Health, :trigger_coverage, 1, :missing_spec},
     {Threadline.Health.Finding, :code, 0, :missing_typedoc},
     {Threadline.Health.Finding, :severity, 0, :missing_typedoc},
     {Threadline.Health.Finding, :t, 0, :missing_typedoc},
-    {Threadline.Health.Policy, :validate!, 1, :missing_spec},
     {Threadline.Integrations.Sigra, :audit_overrides, 0, :missing_typedoc},
     {Threadline.Investigation.IncidentBundle, :t, 0, :missing_typedoc},
     {Threadline.Investigation.IncidentChange, :t, 0, :missing_typedoc},
@@ -28,9 +26,7 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Semantics.ActorRef, :from_map, 1, :missing_spec},
     {Threadline.Semantics.ActorRef, :new, 2, :missing_spec},
     {Threadline.Semantics.ActorRef, :to_map, 1, :missing_spec},
-    {Threadline.Telemetry, :transaction_committed, 2, :missing_spec},
-    {Threadline.Verify.CoveragePolicy, :summary_counts, 2, :missing_spec},
-    {Threadline.Verify.CoveragePolicy, :violations, 2, :missing_spec}
+    {Threadline.Telemetry, :transaction_committed, 2, :missing_spec}
   ]
 
   @newly_hidden_keys [
@@ -140,8 +136,8 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 26
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 13
+      assert length(actual) == 22
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 9
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_doc end) == 2
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 11
     end

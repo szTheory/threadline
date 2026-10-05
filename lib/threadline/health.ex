@@ -1,6 +1,10 @@
 defmodule Threadline.Health do
   @moduledoc """
-  Health checks for Threadline infrastructure.
+  Reports capture health and trigger coverage for Threadline installations.
+
+  `trigger_findings/1` and `legacy_key_findings/1` return health findings,
+  while `trigger_coverage/1` lists covered, uncovered, and expected-uncovered
+  user tables.
 
   Queries the PostgreSQL system catalog to verify trigger installation status
   for all user tables.
@@ -29,6 +33,27 @@ defmodule Threadline.Health do
   alias Ecto.Adapters.SQL
   alias Threadline.Health.{CoverageSchemas, LegacyKeyFindings, TriggerFindings}
 
+  @typedoc "A status assigned to a host table by trigger coverage."
+  @type coverage_status :: :covered | :uncovered | :expected_uncovered
+
+  @typedoc "A host table name paired with its trigger coverage status."
+  @type coverage_entry :: {coverage_status(), String.t()}
+
+  @typedoc "A schema name or list of schema names used to select health findings."
+  @type schema_filter :: String.t() | [String.t()]
+
+  @typedoc "An option accepted by `trigger_findings/1`."
+  @type trigger_findings_opt :: Threadline.repo_opt() | {:schema, schema_filter()}
+
+  @typedoc "An option accepted by `legacy_key_findings/1`."
+  @type legacy_key_findings_opt ::
+          Threadline.repo_opt()
+          | {:schema, schema_filter()}
+          | {:statement_timeout, pos_integer()}
+
+  @typedoc "An option accepted by `trigger_coverage/1`."
+  @type trigger_coverage_opt :: Threadline.repo_opt() | {:schema, String.t()}
+
   @audit_tables ~w(audit_transactions audit_changes audit_actions)
   @expected_uncovered_baseline ~w(schema_migrations)
 
@@ -39,8 +64,8 @@ defmodule Threadline.Health do
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module.
-  - `:schema` — a schema name string, or a list of schema name strings.
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:schema` — schema name string or list of strings. Optional.
     Omitting it covers every non-system schema (excludes `pg_catalog`,
     `information_schema`, `pg_toast*`, `pg_temp*`, and the configured
     Threadline storage schema's own tables). This is deliberately different
@@ -57,27 +82,28 @@ defmodule Threadline.Health do
   tie-break, so two consecutive calls return identical lists. One table may
   produce more than one finding; there is no short-circuit.
 
+  Unknown option keys are ignored.
+
   ## Example
 
       Threadline.Health.trigger_findings(repo: MyApp.Repo)
       #=> [%Threadline.Health.Finding{code: :capture_trigger_disabled, ...}]
   """
-  @spec trigger_findings(keyword()) :: [Threadline.Health.Finding.t()]
+  @spec trigger_findings([trigger_findings_opt()]) :: [Threadline.Health.Finding.t()]
   def trigger_findings(opts), do: TriggerFindings.run(opts)
 
   @doc """
   Returns a list of `Threadline.Health.Finding` structs (`:unresolved_legacy_keys`)
   for audit rows captured before their table's trigger was regenerated and
-  still carrying an unresolved primary key — rows `history/3` cannot find by
-  key. Unlike `trigger_findings/1`, which is catalog-only, this scans
+  still carrying an unresolved primary key that a key-based row lookup cannot
+  resolve. Unlike `trigger_findings/1`, which is catalog-only, this scans
   `audit_changes` per table.
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module.
-  - `:schema` — same as `trigger_findings/1`: a schema name string, or a list
-    of schema name strings. Omitting it covers every non-system schema.
-  - `:statement_timeout` — milliseconds, default `15_000`. Applied with a
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:schema` — schema name string or list of strings. Optional. Omitting it covers every non-system schema.
+  - `:statement_timeout` — milliseconds. Defaults to `15_000`. Applied with a
     transaction-local setting, so it is safe through PgBouncer transaction
     pooling. When the timeout elapses — typically a missing row-history index —
     this function raises `Postgrex.Error` with postgres code `:query_canceled`;
@@ -93,17 +119,18 @@ defmodule Threadline.Health do
 
   Emits no telemetry event.
 
+  Unknown option keys are ignored.
+
   ## Example
 
       Threadline.Health.legacy_key_findings(repo: MyApp.Repo)
       #=> [%Threadline.Health.Finding{code: :unresolved_legacy_keys, ...}]
   """
-  @spec legacy_key_findings(keyword()) :: [Threadline.Health.Finding.t()]
+  @spec legacy_key_findings([legacy_key_findings_opt()]) :: [Threadline.Health.Finding.t()]
   def legacy_key_findings(opts), do: LegacyKeyFindings.run(opts)
 
   @doc """
-  Returns a list of tagged tuples indicating trigger coverage for all user
-  tables in the given schema (default `"public"`).
+  Returns trigger coverage entries for user tables in a schema, defaulting to `"public"`.
 
   Audit tables (`audit_transactions`, `audit_changes`, `audit_actions`) are
   excluded from the result — they are not expected to have triggers (CAP-10).
@@ -116,8 +143,8 @@ defmodule Threadline.Health do
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
-  - `:schema` — optional schema name string (default `"public"`). Programmatic
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:schema` — schema name string. Defaults to `"public"`. Programmatic
     callers are responsible for sanitizing or trusting their own input —
     this function does NOT validate `:schema` against `pg_namespace`. Surfaces
     that take untrusted input (LV / Mix task) MUST validate at the edge.
@@ -125,13 +152,19 @@ defmodule Threadline.Health do
   A disabled or replica-only trigger no longer counts as covered — see
   `trigger_findings/1`, which reports it as `:capture_trigger_disabled`.
 
-  Returns `[{:covered | :uncovered | :expected_uncovered, table_name}]`.
+  Other option keys are ignored.
+
+  ## Returns
+
+  - A list of `coverage_entry()` values in table-name order.
+  - Raises `KeyError` when `:repo` is missing; repository errors are reraised.
 
   ## Example
 
-      Threadline.Health.trigger_coverage(repo: MyApp.Repo)
-      #=> [{:covered, "users"}, {:expected_uncovered, "schema_migrations"}, {:uncovered, "orders"}]
+  Threadline.Health.trigger_coverage(repo: MyApp.Repo)
+  #=> [{:covered, "users"}, {:expected_uncovered, "schema_migrations"}, {:uncovered, "orders"}]
   """
+  @spec trigger_coverage([trigger_coverage_opt()]) :: [coverage_entry()]
   def trigger_coverage(opts) do
     repo = Keyword.fetch!(opts, :repo)
     schema = Keyword.get(opts, :schema, "public")
