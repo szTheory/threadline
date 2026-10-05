@@ -9,8 +9,6 @@ defmodule Threadline.DocRubricContractTest do
 
   @option_parity_ratchet [
     {:empty_section, Threadline.Retention, :purge, 1, "Options"},
-    {:options_untyped, Threadline.Continuity, :assert_capture_ready!, 2, "Options"},
-    {:options_untyped, Threadline.Continuity, :explain_cutover, 1, "Options"},
     {:options_untyped, Threadline.Retention, :purge, 1, "Options"}
   ]
   @first_paragraph_ratchet [
@@ -29,9 +27,7 @@ defmodule Threadline.DocRubricContractTest do
     {Threadline.OperatorSurface.Router, :macro, :threadline_operator_surface, 2,
      :empty_first_paragraph}
   ]
-  @deprecated_reference_ratchet [
-    {Threadline.Continuity, :module, :moduledoc, 0, {Threadline, :history, 3}}
-  ]
+  @deprecated_reference_ratchet []
   @voice_ratchet []
   @since_ratchet []
   @code_block_ratchet [
@@ -175,6 +171,8 @@ defmodule Threadline.DocRubricContractTest do
       "R1: the repository, storage adapter, and injected callbacks own failure reasons",
     {Threadline.ExportQueue.TaskAdapter, :type, :enqueue_result, 0} =>
       "R1: the task supervisor owns its error reason and the adapter passes it through",
+    {Threadline.Telemetry, :type, :completed_transaction, 0} =>
+      "R1: the caller owns and confirms the committed transaction result; telemetry does not inspect it",
     {Threadline.Page, :type, :t, 0} =>
       "R1: the producer chooses the page entry type; callers should prefer t(entry)"
   }
@@ -243,7 +241,8 @@ defmodule Threadline.DocRubricContractTest do
                {Threadline.ExportQueue.TaskAdapter, :type, :enqueue_result, 0},
                {Threadline.Page, :type, :t, 0},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
-               {Threadline.Storage, :type, :options, 0}
+               {Threadline.Storage, :type, :options, 0},
+               {Threadline.Telemetry, :type, :completed_transaction, 0}
              ]
 
     for {key, reason} <- @permanent_bare_allowlist do
