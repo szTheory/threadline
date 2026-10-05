@@ -68,7 +68,10 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     dialyzer = Keyword.fetch!(project, :dialyzer)
 
     assert Enum.sort(Keyword.fetch!(dialyzer, :plt_add_apps)) == Enum.sort(@required_plt_apps)
-    assert Enum.sort(Keyword.fetch!(dialyzer, :flags)) == [:extra_return, :unmatched_returns]
+
+    assert Enum.sort(Keyword.fetch!(dialyzer, :flags)) ==
+             [:error_handling, :extra_return, :missing_return, :underspecs, :unmatched_returns]
+
     refute :unknown in Keyword.get(dialyzer, :remove_defaults, [])
     assert Keyword.fetch!(dialyzer, :ignore_warnings) == ".dialyzer_ignore.exs"
     assert Keyword.fetch!(dialyzer, :list_unused_filters)
