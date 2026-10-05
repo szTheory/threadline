@@ -2,6 +2,10 @@ defmodule Threadline.Storage do
   @moduledoc """
   Stores and retrieves export files and other persistent artifacts.
 
+  `init/1` validates adapter configuration, `put/2` and `get/1` write and read
+  content, `path/1` exposes a local file when available, `download_url/2`
+  supports remote delivery, and `delete/1` removes a stored object.
+
   Threadline uses `Threadline.Storage.Local` by default. Select another built-in
   or custom adapter in your host application's configuration:
 
@@ -31,8 +35,13 @@ defmodule Threadline.Storage do
   `Threadline.Storage.S3` for optional S3-compatible object storage.
   """
 
+  @typedoc "An opaque identifier returned by a storage adapter for a stored file."
   @type file_id :: String.t()
+
+  @typedoc "Binary content passed to or returned from a storage adapter."
   @type content :: binary()
+
+  @typedoc "Adapter-defined keyword options that Threadline passes through without interpreting their keys."
   @type options :: keyword()
 
   @doc """
@@ -41,7 +50,7 @@ defmodule Threadline.Storage do
   Threadline calls this during application startup. Return `{:error, reason}`
   for invalid configuration or unavailable dependencies.
   """
-  @callback init(keyword()) :: :ok | {:error, term()}
+  @callback init(options()) :: :ok | {:error, term()}
 
   @doc """
   Stores binary content.

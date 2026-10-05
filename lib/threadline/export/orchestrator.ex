@@ -1,6 +1,6 @@
 defmodule Threadline.Export.Orchestrator do
   @moduledoc """
-  Executes asynchronous export jobs safely by streaming directly to disk.
+  Runs asynchronous export jobs by streaming captured rows to temporary files and storage.
   """
 
   require Logger
@@ -14,10 +14,41 @@ defmodule Threadline.Export.Orchestrator do
 
   @default_retention_ttl_hours 24 * 7
 
+  @typedoc "An option accepted by `run/2`."
+  @type run_opt ::
+          Threadline.repo_opt()
+          | Threadline.storage_schema_opt()
+          | {:storage_adapter, module()}
+          | {:transaction_fn, function()}
+          | {:completion_fn, function()}
+
+  @typedoc "The result of running an export job; error reasons are produced by the repository or storage adapter."
+  @type run_result :: :ok | {:error, term()}
+
   @doc """
-  Runs an export job by `job_id`. Streams records directly to a temporary file
-  and then persists it via `Threadline.Storage`.
+  Runs an export job and returns `:ok` after storing its CSV, or `{:error, reason}` on failure.
+
+  A custom `Threadline.ExportQueue` adapter can call this from its worker to
+  execute a claimed job. The orchestrator streams projected rows to a temporary
+  file, persists the file through `Threadline.Storage`, and records the terminal
+  job state.
+
+  ## Options
+
+  - `:repo` — `Ecto.Repo` module. Defaults to the first configured Threadline repository.
+  - `:storage_schema` — string. Defaults to the configured Threadline storage schema.
+  - `:storage_adapter` — storage adapter module. Defaults to the configured adapter.
+  - `:transaction_fn` — function. Defaults to `repo.transaction/2`; accepts the work function and transaction options.
+  - `:completion_fn` — function. Defaults to the callback that marks the export job completed.
+
+  Other option keys are ignored.
+
+  ## Returns
+
+  - `:ok` — the stored export was recorded as completed.
+  - `{:error, reason}` — the job could not be claimed, generated, stored, or finalized.
   """
+  @spec run(String.t(), [run_opt()]) :: run_result()
   def run(job_id, opts \\ []) do
     repo = Keyword.get(opts, :repo) || default_repo()
     storage_schema = StorageSchema.get(opts)

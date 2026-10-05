@@ -30,10 +30,7 @@ defmodule Threadline.DocRubricContractTest do
     {Threadline.NotFoundError, :type, :t, 0, :empty_first_paragraph},
     {Threadline.OperatorSurface.Auth, :function, :on_mount, 4, :empty_first_paragraph},
     {Threadline.OperatorSurface.Router, :macro, :threadline_operator_surface, 2,
-     :empty_first_paragraph},
-    {Threadline.Storage, :type, :content, 0, :empty_first_paragraph},
-    {Threadline.Storage, :type, :file_id, 0, :empty_first_paragraph},
-    {Threadline.Storage, :type, :options, 0, :empty_first_paragraph}
+     :empty_first_paragraph}
   ]
   @deprecated_reference_ratchet [
     {Threadline.Continuity, :module, :moduledoc, 0, {Threadline, :history, 3}}
@@ -179,6 +176,10 @@ defmodule Threadline.DocRubricContractTest do
       "R2: predicate accepts arbitrary input and reports whether it identifies an actor",
     {Threadline.Storage, :type, :options, 0} =>
       "R4: storage options are defined by the adapter contract",
+    {Threadline.Export.Orchestrator, :type, :run_result, 0} =>
+      "R1: the repository, storage adapter, and injected callbacks own failure reasons",
+    {Threadline.ExportQueue.TaskAdapter, :type, :enqueue_result, 0} =>
+      "R1: the task supervisor owns its error reason and the adapter passes it through",
     {Threadline.Page, :type, :t, 0} =>
       "R1: the producer chooses the page entry type; callers should prefer t(entry)"
   }
@@ -243,6 +244,8 @@ defmodule Threadline.DocRubricContractTest do
              [
                {Threadline, :type, :scope_opt, 0},
                {Threadline, :type, :scope_query_fn, 0},
+               {Threadline.Export.Orchestrator, :type, :run_result, 0},
+               {Threadline.ExportQueue.TaskAdapter, :type, :enqueue_result, 0},
                {Threadline.Page, :type, :t, 0},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
                {Threadline.Storage, :type, :options, 0}

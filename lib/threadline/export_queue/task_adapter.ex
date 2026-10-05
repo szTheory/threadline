@@ -20,13 +20,36 @@ defmodule Threadline.ExportQueue.TaskAdapter do
 
   @behaviour Threadline.ExportQueue
 
+  @typedoc "An option accepted by `enqueue/2`."
+  @type enqueue_opt :: Threadline.storage_schema_opt() | {:supervisor, pid() | atom() | tuple()}
+
+  @typedoc "The result of starting an export task; error reasons come from the task supervisor."
+  @type enqueue_result :: :ok | {:error, term()}
+
   @impl true
   def init(_opts), do: :ok
 
   @doc """
-  Enqueues the export job by spawning a supervised task.
+  Enqueues an export job by spawning a supervised task and returns `:ok` when accepted.
+
+  Use this in-process adapter for single-node work; use the Oban adapter when
+  jobs must survive process restarts or run across nodes. The task calls
+  `Threadline.Export.Orchestrator.run/2` with the selected storage schema.
+
+  ## Options
+
+  - `:storage_schema` — string. Defaults to the configured Threadline storage schema.
+  - `:supervisor` — process or registered supervisor name. Defaults to `Threadline.Export.TaskSupervisor`.
+
+  Other option keys are ignored.
+
+  ## Returns
+
+  - `:ok` — the supervised task was started.
+  - `{:error, reason}` — the supervisor rejected the child or is not started.
   """
   @impl true
+  @spec enqueue(String.t(), [enqueue_opt()]) :: enqueue_result()
   def enqueue(job_id, opts \\ []) do
     supervisor = Keyword.get(opts, :supervisor, Threadline.Export.TaskSupervisor)
     storage_schema = Threadline.StorageSchema.get(opts)

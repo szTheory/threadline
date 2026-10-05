@@ -8,9 +8,7 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Audit, :action_opt, 0, :missing_typedoc},
     {Threadline.Continuity, :assert_capture_ready!, 2, :missing_spec},
     {Threadline.Continuity, :explain_cutover, 1, :missing_spec},
-    {Threadline.Export.Orchestrator, :run, 2, :missing_spec},
     {Threadline.ExportQueue, :job_id, 0, :missing_typedoc},
-    {Threadline.ExportQueue.TaskAdapter, :enqueue, 2, :missing_spec},
     {Threadline.Health, :trigger_coverage, 1, :missing_spec},
     {Threadline.Health.Finding, :code, 0, :missing_typedoc},
     {Threadline.Health.Finding, :severity, 0, :missing_typedoc},
@@ -30,9 +28,6 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Semantics.ActorRef, :from_map, 1, :missing_spec},
     {Threadline.Semantics.ActorRef, :new, 2, :missing_spec},
     {Threadline.Semantics.ActorRef, :to_map, 1, :missing_spec},
-    {Threadline.Storage, :content, 0, :missing_typedoc},
-    {Threadline.Storage, :file_id, 0, :missing_typedoc},
-    {Threadline.Storage, :options, 0, :missing_typedoc},
     {Threadline.StorageSchema, :function, 2, :missing_spec},
     {Threadline.StorageSchema, :get, 1, :missing_spec},
     {Threadline.StorageSchema, :host_table_suffix, 1, :missing_spec},
@@ -156,10 +151,10 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 42
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 26
+      assert length(actual) == 37
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 24
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_doc end) == 2
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 14
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 11
     end
   end
 
