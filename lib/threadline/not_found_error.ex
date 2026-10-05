@@ -1,7 +1,8 @@
 defmodule Threadline.NotFoundError do
   @moduledoc """
-  Raised by the `!` sibling of a single-subject lookup when the subject does
-  not exist, or is not visible under the caller's scope.
+  `Threadline.NotFoundError` is raised by the `!` sibling of a single-subject
+  lookup when the subject does not exist or is not visible under the caller's
+  scope.
 
   The message carries only the id the caller passed in — never row data,
   scope terms, or wording that distinguishes an existing-but-scope-filtered

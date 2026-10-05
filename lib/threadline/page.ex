@@ -1,7 +1,7 @@
 defmodule Threadline.Page do
   @moduledoc since: "1.0.0"
   @moduledoc """
-  One page of a Threadline paged read.
+  `Threadline.Page` represents one page of a Threadline paged read.
 
   Every paged Threadline read — `Threadline.timeline_page/2`, the row-history,
   actor-window and correlation-bundle pagers, and `Threadline.actor_history/2`
