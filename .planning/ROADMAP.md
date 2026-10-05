@@ -202,7 +202,7 @@ Plans:
 - [x] 234-09-PLAN.md — Audit, Retention, Continuity, and Health return-contract documentation (completed 2026-10-05)
 - [x] 234-10-PLAN.md — Captured-data notes and facade/ChangeDiff documentation corrections (completed 2026-10-05)
 - [x] 234-11-PLAN.md — EvidenceRecord, investigation entities, LinkedChange, and Sigra module openings (completed 2026-10-05)
-- [ ] 234-12-PLAN.md — Finish D-28 by privatizing raise-only helpers and proving privacy plus all four exact Mix task error paths; the D-55 floor correction is already committed
+- [x] 234-12-PLAN.md — Finish D-28: private raise-only helpers, compiled privacy probe, and exact-message integration coverage for all four Mix task error paths (completed 2026-10-05)
 
 **Gap closure — Wave 2** *(blocked on 234-11)*
 
@@ -216,7 +216,7 @@ Plans:
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-only execution is in progress; 234-11 is complete, and 234-12 is current. D-55 supersedes only the earlier D-11/D-54 90-entry threshold: the final floor is >=82 D-03 visible function/macro entries after D-07 deliberately hid eight internal helpers. Plan 12's coverage fix is committed as 789b5bf4. Its original spec-removal attempt triggered a strict Dialyzer warning and was restored; the revised D-28 task privatizes the raise-only helpers while preserving all four Mix task errors. The independent plan check passed after adding explicit helper-privacy and exact-message evidence. Continue sequentially in the main tree: Plan 12, Plan 14, Plan 13, then Plan 15. Plan 13's PASS verifier requires the exact evidence schema, distinct reviewer/executor IDs, and a fresh independent-review statement naming both IDs.
+**Execution note**: Gap-only execution is in progress; Plans 07–12 are complete, and Plan 14 is next. D-55 supersedes only the earlier D-11/D-54 90-entry threshold: the final floor is >=82 D-03 visible function/macro entries after D-07 deliberately hid eight internal helpers. Plan 12's coverage fix is committed as 789b5bf4; its D-28 fix (`daac60bc`) keeps raise-only helpers private and preserves all four Mix task errors. Focused tests passed 42/0, the compiled privacy probe passed, strict Dialyzer reported zero warnings, and docs built with warnings-as-errors. Continue sequentially in the main tree: Plan 14, Plan 13, then Plan 15. Plan 13's PASS verifier requires the exact evidence schema, distinct reviewer/executor IDs, and a fresh independent-review statement naming both IDs.
 
 ### Phase 235: Stability Contract and Adopter Guides
 

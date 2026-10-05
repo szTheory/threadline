@@ -4,18 +4,18 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
-current_plan: 12
+current_plan: 14
 status: executing
-stopped_at: "234-12 D-28 helper task passed independent plan check and is ready to execute"
-last_updated: "2026-10-05T23:43:34.000Z"
+stopped_at: "234-12 complete; 234-14 is next in the serialized gap-closure sequence"
+last_updated: "2026-10-05T23:54:52.000Z"
 last_activity: 2026-10-05
-last_activity_desc: Plan 234-12 D-55 coverage message fix committed; revised D-28 helper task passed plan check with privacy and four-path error evidence
-state_head: 789b5bf4ed77147ede58f6a9f40a298671fe2cb9
+last_activity_desc: Plan 234-12 D-28 private helper correction passed focused tests, compiled probe, Dialyzer, and docs; Plan 14 is next
+state_head: daac60bc7283772c3d672c8c9919e5c7330a8b2d
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 28
-  completed_plans: 24
+  completed_plans: 25
   percent: 43
 ---
 
@@ -31,7 +31,7 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 ## Current Position
 
 Phase: 234 (Typespec and Doc Completion Gate) — EXECUTING
-Current Plan: 12
+Current Plan: 14
 Total Plans in Phase: 15
 Status: Ready to execute
 Last activity: 2026-10-05 — 234-11 complete; 234-12 ready to execute
