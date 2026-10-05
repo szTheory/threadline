@@ -1,6 +1,6 @@
 defmodule Threadline.Semantics.AuditContext do
   @moduledoc """
-  Execution context for an audited request or job.
+  An `AuditContext` carries request or job details into a semantic audit action.
 
   Plain struct — not an Ecto schema. Populated by `Threadline.Plug` for HTTP
   requests and by the caller for Oban jobs. Passed explicitly to
@@ -16,4 +16,12 @@ defmodule Threadline.Semantics.AuditContext do
 
   @enforce_keys []
   defstruct [:actor_ref, :request_id, :correlation_id, :remote_ip]
+
+  @typedoc "Request or job context attached to a semantic audit action."
+  @type t :: %__MODULE__{
+          actor_ref: Threadline.Semantics.ActorRef.t() | nil,
+          request_id: String.t() | nil,
+          correlation_id: String.t() | nil,
+          remote_ip: String.t() | nil
+        }
 end

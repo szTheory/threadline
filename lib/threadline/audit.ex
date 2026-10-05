@@ -1,7 +1,7 @@
 defmodule Threadline.Audit do
   @moduledoc """
-  Audited write-path helper — one call for transaction-local actor GUC, domain
-  writes, optional semantic action linkage, and `audit_transaction_id` on success.
+  Threadline.Audit runs a domain write inside one database transaction and
+  optionally links the write to a semantic action.
 
   Call from Phoenix context modules (or Oban workers) after `Threadline.Plug` /
   `Threadline.Job` have resolved `%Threadline.Semantics.AuditContext{}` and
@@ -43,6 +43,16 @@ defmodule Threadline.Audit do
   `Threadline.record_action/2`, and nested `Repo.transaction/1` (breaks GUC and
   `txid_current()` linkage).
 
+  ## Example
+
+      Threadline.Audit.transaction(MyApp.Repo, [
+        actor_ref: actor_ref,
+        action: :post_created,
+        transaction_meta: %{"organization_id" => organization_id}
+      ], fn ->
+        MyApp.Repo.insert!(Post.changeset(%Post{}, attrs))
+      end)
+
   ## Return shape
 
   On success, returns `{:ok, result}` where `result` is the callback return with
@@ -63,7 +73,21 @@ defmodule Threadline.Audit do
   alias Threadline.Semantics.{ActorRef, AuditAction, AuditContext}
   alias Threadline.StorageSchema
 
-  @type action_opt :: atom() | {atom(), keyword()}
+  @typedoc "An action name passed to `Threadline.record_action/2`, optionally paired with its typed options."
+  @type action_opt :: atom() | {atom(), [Threadline.record_action_opt()]}
+
+  @typedoc "An option accepted by `transaction/3`."
+  @type transaction_opt ::
+          {:actor_ref, ActorRef.t() | nil}
+          | {:audit_context, AuditContext.t() | nil}
+          | {:action, action_opt() | nil}
+          | {:capture_only, boolean()}
+          | {:allow_missing_actor, boolean()}
+          | {:transaction_meta, Threadline.json_map() | nil}
+          | {:correlation_id, String.t() | nil}
+          | {:request_id, String.t() | nil}
+          | {:job_id, String.t() | nil}
+          | Threadline.storage_schema_opt()
 
   @doc """
   Runs `fun` inside `repo.transaction/1` after setting the transaction-local
@@ -71,8 +95,9 @@ defmodule Threadline.Audit do
 
   See module doc for options, callback rules, and return envelope.
   """
-  @spec transaction(module(), keyword(), (-> term())) ::
-          {:ok, term()} | {:error, term()}
+  @spec transaction(module(), [transaction_opt()], (-> result)) ::
+          {:ok, result} | {:error, term()}
+        when result: term()
   def transaction(repo, opts, fun) when is_function(fun, 0) do
     resolved = resolve_opts(opts)
 

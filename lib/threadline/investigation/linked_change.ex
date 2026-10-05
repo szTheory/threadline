@@ -9,10 +9,11 @@ defmodule Threadline.Investigation.LinkedChange do
   @enforce_keys [:audit_change, :transaction]
   defstruct [:audit_change, :transaction, :action]
 
+  @typedoc "A captured row change linked to its transaction and optional semantic action."
   @type t :: %__MODULE__{
-          audit_change: %AuditChange{},
-          transaction: %AuditTransaction{},
-          action: %AuditAction{} | nil
+          audit_change: AuditChange.t(),
+          transaction: AuditTransaction.t(),
+          action: AuditAction.t() | nil
         }
 end
 
@@ -27,9 +28,10 @@ defmodule Threadline.Investigation.LinkedTransaction do
 
   defstruct [:transaction, :action, changes: []]
 
+  @typedoc "A transaction-centered investigation result with linked changes and optional action."
   @type t :: %__MODULE__{
-          transaction: %AuditTransaction{} | nil,
-          action: %AuditAction{} | nil,
+          transaction: AuditTransaction.t() | nil,
+          action: AuditAction.t() | nil,
           changes: [LinkedChange.t()]
         }
 end

@@ -9,17 +9,8 @@ defmodule Threadline.DocRubricContractTest do
 
   @option_parity_ratchet []
   @first_paragraph_ratchet [
-    {Threadline.Audit, :type, :action_opt, 0, :empty_first_paragraph},
     {Threadline.ExportQueue, :type, :job_id, 0, :empty_first_paragraph},
-    {Threadline.Health.Finding, :type, :code, 0, :empty_first_paragraph},
-    {Threadline.Health.Finding, :type, :severity, 0, :empty_first_paragraph},
-    {Threadline.Health.Finding, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.Integrations.Sigra, :type, :audit_overrides, 0, :empty_first_paragraph},
-    {Threadline.Investigation.IncidentBundle, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.Investigation.IncidentChange, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.Investigation.LinkedChange, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.Investigation.LinkedTransaction, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.NotFoundError, :type, :t, 0, :empty_first_paragraph}
+    {Threadline.Integrations.Sigra, :type, :audit_overrides, 0, :empty_first_paragraph}
   ]
   @deprecated_reference_ratchet []
   @voice_ratchet []
@@ -35,107 +26,7 @@ defmodule Threadline.DocRubricContractTest do
     {Threadline.Storage.S3, :module, :moduledoc, 0, {:unparseable_indented_block, 2}}
   ]
   @bare_type_ratchet [
-    {{Threadline.Audit, :spec, :transaction, 3}, [:keyword, :term, :term, :term]},
-    {{Threadline.Audit, :type, :action_opt, 0}, [:keyword]},
-    {{Threadline.Capture.AuditChange, :type, :t, 0},
-     [:term, :term, :term, :term, :term, :term, :term, :term, :term, :term, :term, :term]},
-    {{Threadline.Capture.AuditTransaction, :type, :t, 0},
-     [:term, :term, :term, :term, :term, :term, :term, :term, :term, :term]},
-    {{Threadline.Evidence.Subject, :spec, :validate, 1}, [:term]},
-    {{Threadline.Health.Finding, :type, :t, 0}, [:map]},
-    {{Threadline.Investigation.IncidentBundle, :type, :t, 0},
-     [
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term
-     ]},
-    {{Threadline.Investigation.IncidentChange, :type, :t, 0}, [:map]},
-    {{Threadline.Investigation.LinkedChange, :type, :t, 0},
-     [
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term
-     ]},
-    {{Threadline.Investigation.LinkedTransaction, :type, :t, 0},
-     [
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term
-     ]},
-    {{Threadline.NotFoundError, :type, :t, 0}, [:term]},
-    {{Threadline.Semantics.ActorRef, :type, :t, 0}, [:term, :term]}
+    {{Threadline.Evidence.Subject, :spec, :validate, 1}, [:term]}
   ]
   @private_type_reference_ratchet []
 
@@ -150,11 +41,15 @@ defmodule Threadline.DocRubricContractTest do
   ]
 
   @permanent_bare_allowlist %{
+    {Threadline.Audit, :spec, :transaction, 3} =>
+      "R1: callback results and caller-owned rollback reasons remain opaque",
     {Threadline, :type, :scope_opt, 0} => "R1: the caller's scope value is opaque to Threadline",
     {Threadline, :type, :scope_query_fn, 0} =>
       "R1: the callback receives an opaque scope and open surface-specific context params",
     {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1} =>
       "R2: predicate accepts arbitrary input and reports whether it identifies an actor",
+    {Threadline.Semantics.ActorRef, :spec, :from_map, 1} =>
+      "R2: validator accepts arbitrary input and reports when it is not an ActorRef JSON map",
     {Threadline.Storage, :type, :options, 0} =>
       "R4: storage options are defined by the adapter contract",
     {Threadline.Page, :type, :t, 0} =>
@@ -221,7 +116,9 @@ defmodule Threadline.DocRubricContractTest do
              [
                {Threadline, :type, :scope_opt, 0},
                {Threadline, :type, :scope_query_fn, 0},
+               {Threadline.Audit, :spec, :transaction, 3},
                {Threadline.Page, :type, :t, 0},
+               {Threadline.Semantics.ActorRef, :spec, :from_map, 1},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
                {Threadline.Storage, :type, :options, 0}
              ]

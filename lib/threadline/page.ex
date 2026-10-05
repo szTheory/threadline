@@ -27,9 +27,9 @@ defmodule Threadline.Page do
   @type change_cursor :: %{captured_at: DateTime.t(), id: Ecto.UUID.t()}
 
   @typedoc """
-  A cursor for a paged actor-transaction read (`actor_history/2`,
-  `actor_window/3`). `occurred_at` is microsecond precision
-  (`utc_datetime_usec`), matching `AuditTransaction.occurred_at`.
+  A cursor for a paged actor-transaction read (`actor_history/2`).
+  `occurred_at` is microsecond precision (`utc_datetime_usec`), matching
+  `AuditTransaction.occurred_at`.
   """
   @type actor_cursor :: %{occurred_at: DateTime.t(), id: Ecto.UUID.t()}
 
