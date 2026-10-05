@@ -6,10 +6,10 @@ current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
 current_plan: 6
 status: executing
-stopped_at: Plan 234-06 halted before edits by its off-plan scope guard; awaiting maintainer scope decision
-last_updated: "2026-10-05T13:54:10.000Z"
+stopped_at: Maintainer approved adding the five spec-only findings to Plan 234-06; plan amended and execution resuming
+last_updated: "2026-10-05T14:10:45.000Z"
 last_activity: 2026-10-05
-last_activity_desc: Plan 234-06 strict Dialyzer baseline found five findings outside its fixed file scope; recorded in 234-06-EXECUTION-HALT.md
+last_activity_desc: Plan 234-06 expanded to include five approved spec-only Dialyzer fixes; resuming final plan
 state_head: 43849f2a4d43acb15257e27e58cf3745bb620ec0
 progress:
   total_phases: 7
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 Phase: 234 (Typespec and Doc Completion Gate) — EXECUTING
 Current Plan: 6
 Total Plans in Phase: 6
-Status: Plan 6 of 6 halted before edits at the scope guard; awaiting maintainer decision
-Last activity: 2026-10-05 — five off-plan strict Dialyzer findings recorded in 234-06-EXECUTION-HALT.md
+Status: Resuming Plan 6 of 6 after approved scope amendment
+Last activity: 2026-10-05 — Plan 234-06 expanded to include five spec-only Dialyzer fixes
 
 v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -1046,9 +1046,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **233-04 (2026-10-04, FINAL plan of phase 233):** Threadline.Query.Scope.apply/2 fails closed (D-20): a non-nil :scope without a 3-arity :scope_query_fn, or any non-3-arity fn, now raises ArgumentError (never echoing the scope value) instead of silently reading unscoped; a nil scope remains the host's explicit unscoped path. Proven across every scoped read (timeline, timeline_page, row_history list/cursor, actor_history, actor_window, correlation_bundle, audit_changes_for_transaction, audit_transaction, transaction_context, incident_bundle, export_csv, export_json) and both operator-surface transports (LiveView mount crash via catch_exit/1, export controller raise-not-200), plus the three bangs raising ArgumentError not NotFoundError. Example app's scope_operator_query/3 catch-all tightened to deny-all (where(query, [], false)); guides/integration-contracts.md gained "Scope surfaces and fail-closed rules" naming :transaction_header's [at] binding; CHANGELOG Breaking changes bullet added. Phase-close gate mix ci.all green (2952 ExUnit tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. Phase 233 complete (4/4 plans). Commits `5469f8de`, `b22cd02a`, `5432f72e`, `b5038cb0`.
 - **234-03 (2026-10-04):** Completed the Evidence typespec/doc gate: full `EvidenceRecord.t()`, named writer/filter/option types, parity-backed `__filter_keys__/1`, documented Evidence/Subject/Proof entry points, and two internal Proof helpers hidden with an Unreleased breaking-change entry. Fixed the rubric check to scope unknown-option assertions to their own heading. Focused suites (47/0 and 78/0), example suite (130/0), format, Credo, warning-free compile, docs, and Dialyzer (0 errors) passed. Commits `a7b2efad`, `bc404584`.
 - **234-04 (2026-10-04):** Completed the Export and operations API typing/documentation gate. Post-merge reconciliation fixed four doc-contract mismatches and seven Evidence proof Dialyzer findings; the full suite passed (2,986 tests, 0 failures, 3 excluded), example suite passed (130/0), and formatting, Credo, warning-free compile, docs, and Dialyzer passed. Plan summary: `234-04-SUMMARY.md`.
-- **Next Step**: Resolve the Plan 234-06 scope decision. If expanding scope, amend Plan 234-06 before resuming with `$gsd-execute-phase 234`; Plans 234-01 through 234-05 are complete.
+- **Next Step**: Resume the amended final plan with `$gsd-execute-phase 234`; Plans 234-01 through 234-05 are complete.
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Resolve the Plan 234-06 scope decision using `.planning/phases/234-typespec-and-doc-completion-gate/234-06-EXECUTION-HALT.md`; then amend the plan if approved and resume with `$gsd-execute-phase 234`.
+- Resume the amended Plan 234-06 with `$gsd-execute-phase 234`; scope approval and the five added files are recorded in `.planning/phases/234-typespec-and-doc-completion-gate/234-06-EXECUTION-HALT.md`.

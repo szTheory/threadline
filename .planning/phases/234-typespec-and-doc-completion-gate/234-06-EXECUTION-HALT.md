@@ -1,7 +1,7 @@
 # Plan 234-06 Execution Halt
 
 **Date:** 2026-10-05
-**Status:** Halted before edits; awaiting maintainer scope decision.
+**Status:** Scope decision resolved; the five spec-only findings are now included in Plan 234-06.
 
 ## Trigger
 
@@ -21,15 +21,14 @@ outside this plan's `files_modified` list:
 | `lib/threadline/storage_schema.ex:117` | `no_return` | private `invalid_identifier!/3` |
 
 The findings appear spec-only; no runtime or public API change is indicated.
-Plan 234-06's executor halt clause requires a scope decision when more than two
-off-plan files need changes. No source files were edited and no Plan 234-06 task
-commits were made.
+The maintainer approved including all five fixes in Plan 234-06 on 2026-10-05.
+The amended plan assigns `evidence/proof.ex` to Task 2 and the four private
+raise-only helper files to Task 3, keeping each strict-flag cohort at no more
+than six files. No source files were edited before the amendment.
 
 ## Resume
 
-Decide whether to include these five spec-only findings in the Phase 234 close
-scope or defer them. If the scope is expanded, amend Plan 234-06's fixed file
-scope and halt clause before resuming its execution. Then run:
+Resume the amended final plan with:
 
 `$gsd-execute-phase 234`
 
