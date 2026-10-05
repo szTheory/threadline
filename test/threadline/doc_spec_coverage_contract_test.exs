@@ -125,8 +125,8 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 14
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 3
+      assert length(actual) == 11
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 0
       refute Enum.any?(actual, fn {_, _, _, kind} -> kind == :missing_doc end)
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 11
     end

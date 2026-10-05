@@ -154,6 +154,8 @@ defmodule Threadline.DocRubricContractTest do
       "R1: the callback receives an opaque scope and open surface-specific context params",
     {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1} =>
       "R2: predicate accepts arbitrary input and reports whether it identifies an actor",
+    {Threadline.Semantics.ActorRef, :spec, :from_map, 1} =>
+      "R2: validator accepts arbitrary input and reports when it is not an ActorRef JSON map",
     {Threadline.Storage, :type, :options, 0} =>
       "R4: storage options are defined by the adapter contract",
     {Threadline.Page, :type, :t, 0} =>
@@ -221,6 +223,7 @@ defmodule Threadline.DocRubricContractTest do
                {Threadline, :type, :scope_opt, 0},
                {Threadline, :type, :scope_query_fn, 0},
                {Threadline.Page, :type, :t, 0},
+               {Threadline.Semantics.ActorRef, :spec, :from_map, 1},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
                {Threadline.Storage, :type, :options, 0}
              ]
