@@ -4,18 +4,18 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
-current_plan: 9
+current_plan: 10
 status: executing
-stopped_at: Completed 234-08-PLAN.md
-last_updated: "2026-10-05T21:42:04.383Z"
+stopped_at: Completed 234-09-PLAN.md
+last_updated: "2026-10-05T21:50:25.297Z"
 last_activity: 2026-10-05
 last_activity_desc: Plan 234-08 complete; 234-09 ready to execute
-state_head: a4f4cc7c706337bd123293e8e91cbe2b506063d6
+state_head: a07fcb7fed3805fc6bf7f8cd8b50b179a700c4fc
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 28
-  completed_plans: 21
+  completed_plans: 22
   percent: 43
 ---
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 ## Current Position
 
 Phase: 234 (Typespec and Doc Completion Gate) — EXECUTING
-Current Plan: 9
+Current Plan: 10
 Total Plans in Phase: 15
 Status: Ready to execute
-Last activity: 2026-10-05 — 234-08 complete; 234-09 ready to execute
+Last activity: 2026-10-05 — 234-09 complete; 234-10 ready to execute
 
 v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -276,6 +276,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 234 P06 | 71min | 6 tasks | 29 files |
 | Phase 234 P07 | 10min | 3 tasks | 3 files |
 | Phase 234 P8 | 9min | 2 tasks | 2 files |
+| Phase 234 P09 | 7min | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -1016,6 +1017,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 234]: Elixir 1.17 cannot express literal string keys in map typespecs; typedocs preserve the exact finite runtime key guarantees.
 - [Phase 234]: ExportQueue.options/0 reuses Storage.options/0 for the shared adapter-defined keyword boundary.
 - [Phase 234]: Opaque adapter error reasons use the recursive all-Elixir-values type pattern.
+- [Phase 234]: Documented operation return/error envelopes in first paragraphs; runtime and detailed options remain unchanged.
+- [Phase 234]: Kept the documentation coverage sentinel at its measured threshold of 82 entries.
 
 ### Blockers
 
@@ -1032,8 +1035,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-05T21:40:54.479Z
-**Stopped at:** Completed 234-08-PLAN.md
+**Last session:** 2026-10-05T21:50:25.254Z
+**Stopped at:** Completed 234-09-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
