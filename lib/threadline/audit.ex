@@ -55,7 +55,9 @@ defmodule Threadline.Audit do
 
   ## Return shape
 
-  On success, returns `{:ok, result}` where `result` is the callback return with
+  Returns `{:ok, result} | {:error, reason}`. `result` is the callback result,
+  treated as caller-owned and opaque to Threadline. On success, it is the
+  callback return with
   `:audit_transaction_id` merged when capture produced an `audit_transactions` row
   (map callback) or wrapped as `%{result: value, audit_transaction_id: id}` for
   non-map returns. On failure, `{:error, reason}` (`:missing_actor`,

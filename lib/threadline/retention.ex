@@ -1,6 +1,7 @@
 defmodule Threadline.Retention do
   @moduledoc """
-  Batched retention purge for `audit_changes` and empty `audit_transactions`.
+  `Threadline.Retention` batches expiry of `AuditChange` rows and optionally
+  removes empty `AuditTransaction` rows.
 
   Requires **`config :threadline, :retention`** with **`enabled: true`** before any
   destructive run (see `Threadline.Retention.Policy`). Callers must pass **`repo:`**
@@ -39,7 +40,10 @@ defmodule Threadline.Retention do
           | {:cutoff, DateTime.t()}
 
   @doc """
-  Deletes expired `AuditChange` rows in batches and optionally removes empty `AuditTransaction` rows.
+  Returns `purge_result()` after deleting expired `AuditChange` rows, or
+  `{:error, :disabled}` when retention is disabled. Raises `ArgumentError` for
+  invalid policy or a cutoff newer than the policy cutoff; repository errors
+  are reraised.
 
   The cutoff comes from `Threadline.Retention.Policy`; an explicit cutoff must
   be older than or equal to that policy cutoff.
