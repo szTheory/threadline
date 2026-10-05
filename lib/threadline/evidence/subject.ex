@@ -15,14 +15,25 @@ defmodule Threadline.Evidence.Subject do
     "support_scope_posture"
   ]
 
-  @typedoc "A subject name or a map descriptor using the `:subject` or `:name` key."
+  @typedoc "A subject name or descriptor using only `:subject`, `:name`, `\"subject\"`, or `\"name\"` keys."
   @type subject_descriptor ::
           atom()
           | String.t()
           | %{optional(:subject) => atom() | String.t(), optional(:name) => atom() | String.t()}
-          | %{
-              optional(String.t()) => atom() | String.t()
-            }
+          | %{optional(String.t()) => atom() | String.t()}
+
+  @typedoc "Any value accepted by the subject validator and predicate."
+  @type subject_input ::
+          atom()
+          | bitstring()
+          | number()
+          | %{optional(subject_input()) => subject_input()}
+          | tuple()
+          | list()
+          | pid()
+          | port()
+          | reference()
+          | function()
 
   @doc """
   Returns the six subject names accepted by Evidence record writers.
@@ -31,9 +42,12 @@ defmodule Threadline.Evidence.Subject do
   def supported_subjects, do: @supported_subjects
 
   @doc """
-  Validates a subject or subject descriptor against the closed inventory.
+  Returns `:ok` for a supported subject or `{:error, {:unsupported_subject, value}}` otherwise.
+
+  The unsupported value is the normalized subject for recognized descriptors and the original
+  input for values that cannot be normalized. The inventory is closed to `supported_subjects/0`.
   """
-  @spec validate(subject_descriptor()) :: :ok | {:error, {:unsupported_subject, term()}}
+  @spec validate(subject_input()) :: :ok | {:error, {:unsupported_subject, term()}}
   def validate(subject) do
     case normalize(subject) do
       value when value in @supported_subjects -> :ok
@@ -42,9 +56,10 @@ defmodule Threadline.Evidence.Subject do
   end
 
   @doc """
-  Returns whether a subject or subject descriptor is supported.
+  Returns `true` when a subject or subject descriptor is supported, and `false` for every other
+  input.
   """
-  @spec supported?(subject_descriptor()) :: boolean()
+  @spec supported?(subject_input()) :: boolean()
   def supported?(subject), do: validate(subject) == :ok
 
   defp normalize(%{subject: subject}), do: normalize(subject)
