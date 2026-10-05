@@ -185,7 +185,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 234-04-PLAN.md — SPEC-01/02 operations: Export closed and typed via hidden `ExportReads` (export controller + timeline count moved), ChangeDiff/Storage/Orchestrator/TaskAdapter, StorageSchema (hide 6, spec 5) and the small modules (wave 4)
+- [x] 234-04-PLAN.md — SPEC-01/02 operations: Export closed and typed via hidden `ExportReads` (export controller + timeline count moved), ChangeDiff/Storage/Orchestrator/TaskAdapter, StorageSchema (hide 6, spec 5) and the small modules (wave 4) — completed 2026-10-04
 
 **Wave 5** *(blocked on Wave 4 completion)*
 

@@ -4,17 +4,18 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
+current_plan: 5
 status: executing
-stopped_at: Completed 234-03-PLAN.md; continuing with 234-04-PLAN.md
-last_updated: "2026-10-04T23:03:19Z"
+stopped_at: Completed 234-04-PLAN.md; continuing with 234-05-PLAN.md
+last_updated: "2026-10-05T01:56:46.615Z"
 last_activity: 2026-10-04
-last_activity_desc: Completed Phase 234 Plan 03; continuing with Plan 04 of 6
-state_head: bc4045843dc62c9a02d513910c8eae2dee63999b
+last_activity_desc: Completed Phase 234 Plan 04; continuing with Plan 05 of 6
+state_head: 79382ea33e6b68e05ed0718cb2fc88c0f33057d7
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 19
-  completed_plans: 16
+  completed_plans: 17
   percent: 43
 ---
 
@@ -30,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 ## Current Position
 
 Phase: 234 (Typespec and Doc Completion Gate) — EXECUTING
-Current Plan: 4
+Current Plan: 5
 Total Plans in Phase: 6
-Status: Executing Plan 4 of 6
-Last activity: 2026-10-04 — Plan 234-03 complete; continuing with 234-04
+Status: Executing Plan 5 of 6
+Last activity: 2026-10-04 — Plan 234-04 complete; continuing with 234-05
 
 v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -1022,8 +1023,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-04T23:03:19Z
-**Stopped at:** Completed 234-03-PLAN.md; continuing with 234-04-PLAN.md
+**Last session:** 2026-10-05T01:55:14Z
+**Stopped at:** Completed 234-04-PLAN.md; continuing with 234-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1044,9 +1045,10 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **231-03 (2026-10-03, FINAL plan of phase 231):** Facade-only doc-contract scanner (D-12, mutation-controlled: 11 tests over guides/README/example-app, exact-match `timeline_query` allowlist, bare-alias "extend the scanner" guard) + last example-script facade move (D-11: `incident_replay.exs` onto `Threadline.history/3`). Discovered and fixed a 231-01 regression while running the phase gate: `lib/threadline/query.ex` had grown to 950 lines (over the 800-line source-size contract limit, no exception) — split into a new hidden `Threadline.Query.ActionHydration` submodule via `defdelegate` (zero call-site changes outside `query.ex`); `query.ex` now 799 lines. Full `mix ci.all` green (2769 unit tests, 130 example tests, 318 browser tests/26 skipped matching baseline, Dialyzer 0 errors). API-04 and API-07 both marked Complete in REQUIREMENTS.md. Phase 231 complete (3/3 plans). Commits `fa8a24bc`, `6e58912e`, `3de91c13`, `82a7c516`.
 - **233-04 (2026-10-04, FINAL plan of phase 233):** Threadline.Query.Scope.apply/2 fails closed (D-20): a non-nil :scope without a 3-arity :scope_query_fn, or any non-3-arity fn, now raises ArgumentError (never echoing the scope value) instead of silently reading unscoped; a nil scope remains the host's explicit unscoped path. Proven across every scoped read (timeline, timeline_page, row_history list/cursor, actor_history, actor_window, correlation_bundle, audit_changes_for_transaction, audit_transaction, transaction_context, incident_bundle, export_csv, export_json) and both operator-surface transports (LiveView mount crash via catch_exit/1, export controller raise-not-200), plus the three bangs raising ArgumentError not NotFoundError. Example app's scope_operator_query/3 catch-all tightened to deny-all (where(query, [], false)); guides/integration-contracts.md gained "Scope surfaces and fail-closed rules" naming :transaction_header's [at] binding; CHANGELOG Breaking changes bullet added. Phase-close gate mix ci.all green (2952 ExUnit tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. Phase 233 complete (4/4 plans). Commits `5469f8de`, `b22cd02a`, `5432f72e`, `b5038cb0`.
 - **234-03 (2026-10-04):** Completed the Evidence typespec/doc gate: full `EvidenceRecord.t()`, named writer/filter/option types, parity-backed `__filter_keys__/1`, documented Evidence/Subject/Proof entry points, and two internal Proof helpers hidden with an Unreleased breaking-change entry. Fixed the rubric check to scope unknown-option assertions to their own heading. Focused suites (47/0 and 78/0), example suite (130/0), format, Credo, warning-free compile, docs, and Dialyzer (0 errors) passed. Commits `a7b2efad`, `bc404584`.
-- **Next Step**: `$gsd-execute-phase 234` (resume at Plan 234-04; Plans 234-01 through 234-03 are complete)
+- **234-04 (2026-10-04):** Completed the Export and operations API typing/documentation gate. Post-merge reconciliation fixed four doc-contract mismatches and seven Evidence proof Dialyzer findings; the full suite passed (2,986 tests, 0 failures, 3 excluded), example suite passed (130/0), and formatting, Credo, warning-free compile, docs, and Dialyzer passed. Plan summary: `234-04-SUMMARY.md`.
+- **Next Step**: `$gsd-execute-phase 234` (continue with Plan 234-05; Plans 234-01 through 234-04 are complete)
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Continue Phase 234 at Plan 234-04 with `$gsd-execute-phase 234`.
+- Continue Phase 234 at Plan 234-05 with `$gsd-execute-phase 234`.

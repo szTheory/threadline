@@ -117,7 +117,7 @@ coverage:
     human_judgment: false
 duration: 81min
 completed: 2026-10-04
-status: halted
+status: complete
 ---
 
 # Phase 234 Plan 04: Typespec and Doc Completion Gate Summary
@@ -207,10 +207,17 @@ status: halted
 
 ## Issues Encountered
 
-- `mix verify.example` could not persist the Hex registry cache outside the writable workspace (`:eaccess`). The dependency sources were already present; the cache-fetch step was not retried.
-- `MIX_ENV=dev mix verify.dialyzer` required a PLT. After building it with `mix dialyzer --plt`, Dialyzer reported 7 findings in unchanged `lib/threadline/evidence/proof.ex` paths and their Evidence calls. These files are outside this plan's task scope.
-- `mix verify.test` ran 2,986 tests and reported 7 failures: four pre-existing docs/filter contract mismatches (`LookupReturnShapes`, export/timeline filter-key location, and `ActorReads` wording), two clean-checkout tests blocked by writes to shared Git/Hex paths outside the worktree, and one Playwright fail-fast test blocked by the external npm cache.
-- `mix compile --warnings-as-errors`, the focused plan contract suite (137 tests), the Task 7 suite (99 tests), `mix verify.credo`, and `MIX_ENV=dev mix docs --warnings-as-errors` passed.
+- The initial worktree verification could not write shared Git, Hex, and npm caches and reported seven failures. The post-merge full run with the required shared cache access completed successfully.
+- The first post-merge full run exposed four documentation contract mismatches: two stale filter-allowlist source checks, the `actor_window/3` return type wording, and the `as_of/4` no-bang wording. The checks now read the canonical runtime filter list, and the API docs name the actual return shape and exception. The final full run passed: 2,986 tests, 0 failures, 3 excluded.
+- The first strict Dialyzer run found seven findings in the Evidence proof path. The Evidence read/write functions now pass only storage-schema options to `StorageSchema.repo_opts/1`, and proof request extraction and repository validation have explicit types. `MIX_ENV=dev mix verify.dialyzer` now passes with zero findings.
+- `mix verify.example` initially could not write the shared Hex cache from the worktree. Retried after merge with cache access; the example suite passed 130 tests with 0 failures.
+- Final close checks passed: `mix compile --warnings-as-errors`, `mix verify.format`, `mix verify.credo`, `MIX_ENV=dev mix docs --warnings-as-errors`, the focused contract/proof suite (68 tests), and the full `mix verify.test` suite.
+
+### Post-merge gate fixes
+
+- Updated timeline and export filter-parity contracts to use `Threadline.Query.OptionKeys.filters(:timeline)` rather than an obsolete source literal.
+- Clarified the documented `actor_window/3` linked-change return type and the `as_of/4` bang-function exemption.
+- Narrowed Evidence storage options before calling `StorageSchema.repo_opts/1`, and made proof repository/request extraction contracts explicit. These fixes were required to make the plan's strict Dialyzer gate pass.
 
 ## User Setup Required
 
@@ -218,7 +225,7 @@ None — no external service configuration is required.
 
 ## Next Phase Readiness
 
-All seven production tasks are committed. This plan is halted at the verification gate: the full test suite, example verification, and strict Dialyzer are not green for the issues listed above. The orchestrator should keep phase requirements pending until those environment and pre-existing contract failures are resolved and the close checks are rerun.
+All seven production tasks are committed and the post-merge build, test, example, documentation, Credo, formatting, and strict Dialyzer gates pass. Plan 234-05 is now unblocked; plan 234-06 remains dependent on 234-05.
 
 ## Self-Check: PASSED
 
