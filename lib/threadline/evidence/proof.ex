@@ -205,7 +205,8 @@ defmodule Threadline.Evidence.Proof do
   defp request_subject([{:subject, subject} | _rest]), do: subject
   defp request_subject([_entry | rest]), do: request_subject(rest)
 
-  @spec request_subject_ref(proof_request()) :: Evidence.subject_ref() | nil
+  @spec request_subject_ref(proof_request()) ::
+          Evidence.subject_ref() | Evidence.subject_ref_value() | nil
   defp request_subject_ref([]), do: nil
   defp request_subject_ref([{:subject_ref, subject_ref} | _rest]), do: subject_ref
   defp request_subject_ref([_entry | rest]), do: request_subject_ref(rest)
