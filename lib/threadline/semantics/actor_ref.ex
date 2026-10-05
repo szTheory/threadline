@@ -28,7 +28,7 @@ defmodule Threadline.Semantics.ActorRef do
   @type t :: %__MODULE__{type: actor_type(), id: String.t() | nil}
 
   @typedoc "A JSON object with a required string `type` key and an optional string `id` key."
-  @type actor_map :: %{"type" => String.t(), optional("id") => String.t()}
+  @type actor_map :: %{required(String.t()) => String.t()}
 
   @enforce_keys [:type]
   defstruct [:type, :id]
