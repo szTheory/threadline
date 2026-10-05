@@ -1,7 +1,6 @@
 defmodule Threadline do
   @moduledoc """
-  Audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL.
-
+  Threadline is an audit platform that captures database row changes and links them to application actions and execution context.
   Threadline combines trigger-backed row-change capture, rich action semantics
   (actor/intent/context), and operator-grade exploration.
 
@@ -262,8 +261,7 @@ defmodule Threadline do
   def __filter_keys__(name), do: OptionKeys.filters(name)
 
   @doc """
-  Records an `%AuditAction{}` that names the application event associated with a database transaction.
-
+  Records an `%AuditAction{}` that names the application event associated with a database transaction and returns `{:ok, AuditAction}` on success or `{:error, reason}` for a changeset failure, missing actor, invalid actor reference, or missing repository.
   Use `actor_history/2` or `correlation_bundle/3` to explore captured changes associated with the actor or correlation after recording the action.
 
   ## Options
@@ -380,8 +378,7 @@ defmodule Threadline do
       Threadline.history(MyApp.User, 42, repo: MyApp.Repo)
       Threadline.history(MyApp.LineItem, [tenant_id: 1, id: 5], repo: MyApp.Repo)
 
-  Results contain captured values; redaction is applied when triggers are
-  generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Querying & Timelines"
   @spec history(module(), row_id(), [history_opt()]) :: [Threadline.Capture.AuditChange.t()]
@@ -420,6 +417,8 @@ defmodule Threadline do
 
       Threadline.as_of(MyApp.User, 42, ~U[2026-01-01 00:00:00Z], repo: MyApp.Repo)
       Threadline.as_of(MyApp.LineItem, [tenant_id: 1, id: 5], timestamp, repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Querying & Timelines"
   @spec as_of(module(), row_id(), DateTime.t(), [as_of_opt()]) ::
@@ -511,8 +510,7 @@ defmodule Threadline do
 
       Threadline.timeline([table: "users"], repo: MyApp.Repo)
 
-  Results contain column values as captured; redaction is applied when triggers
-  are generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Querying & Timelines"
   @spec timeline([timeline_filter()], [timeline_opt()]) ::
@@ -557,8 +555,7 @@ defmodule Threadline do
   - A `%Threadline.Page{}` of matching changes.
   - Raises `ArgumentError` for invalid filters, repository options, or cursor, and `KeyError` when `:repo` is missing.
 
-  Results contain column values as captured; redaction is applied when triggers
-  are generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
   ## Examples
 
@@ -608,8 +605,7 @@ defmodule Threadline do
       first = Threadline.row_history(MyApp.LineItem, 42, repo: MyApp.Repo, cursor: :start)
       Threadline.row_history(MyApp.LineItem, 42, repo: MyApp.Repo, cursor: first.cursor)
 
-  Results contain column values as captured; redaction is applied when triggers
-  are generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc since: "1.0.0", group: "Querying & Timelines"
   @spec row_history(module(), row_id(), [row_history_opt()]) ::
@@ -653,8 +649,7 @@ defmodule Threadline do
 
       Threadline.row_history(MyApp.User, 42, [from: start_time], repo: MyApp.Repo)
 
-  Results contain captured values; redaction is applied when triggers are
-  generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Querying & Timelines"
   @spec row_history(module(), row_id(), [row_history_filter()], [row_history_legacy_opt()]) ::
@@ -700,8 +695,7 @@ defmodule Threadline do
 
       Threadline.row_history_page(MyApp.User, 42, [from: start_time], repo: MyApp.Repo)
 
-  Results contain captured values; redaction is applied when triggers are
-  generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Querying & Timelines"
   @spec row_history_page(module(), row_id()) ::
@@ -758,6 +752,8 @@ defmodule Threadline do
   ## Examples
 
       Threadline.actor_window(actor_ref, [table: "members"], repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc since: "1.0.0", group: "Actions & Context"
   @spec actor_window(ActorRef.t(), [actor_window_filter()], [window_opt()]) ::
@@ -802,6 +798,8 @@ defmodule Threadline do
   ## Examples
 
       Threadline.actor_window_page(actor_ref, [table: "members"], repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Actions & Context"
   @spec actor_window_page(ActorRef.t()) ::
@@ -853,6 +851,8 @@ defmodule Threadline do
   ## Examples
 
       Threadline.correlation_bundle("member-42", [table: "members"], repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc since: "1.0.0", group: "Actions & Context"
   @spec correlation_bundle(String.t(), [correlation_bundle_filter()], [window_opt()]) ::
@@ -897,6 +897,8 @@ defmodule Threadline do
   ## Examples
 
       Threadline.correlation_bundle_page("member-42", [table: "members"], repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Actions & Context"
   @spec correlation_bundle_page(String.t()) ::
@@ -1021,6 +1023,8 @@ defmodule Threadline do
   ## Examples
 
       Threadline.transaction_context(transaction_id, repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Capture & Transactions"
   @spec transaction_context(Ecto.UUID.t(), [lookup_opt()]) ::
@@ -1053,6 +1057,8 @@ defmodule Threadline do
   ## Examples
 
       Threadline.transaction_context!(transaction_id, repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc since: "1.0.0", group: "Capture & Transactions"
   @spec transaction_context!(Ecto.UUID.t(), [lookup_opt()]) ::
@@ -1094,8 +1100,7 @@ defmodule Threadline do
 
       Threadline.incident_bundle(transaction_id, repo: MyApp.Repo)
 
-  Results contain column values as captured; redaction is applied when triggers
-  are generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Capture & Transactions"
   @spec incident_bundle(Ecto.UUID.t(), [lookup_opt()]) ::
@@ -1129,8 +1134,7 @@ defmodule Threadline do
 
       Threadline.incident_bundle!(transaction_id, repo: MyApp.Repo)
 
-  Results contain column values as captured; redaction is applied when triggers
-  are generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc since: "1.0.0", group: "Capture & Transactions"
   @spec incident_bundle!(Ecto.UUID.t(), [lookup_opt()]) ::
@@ -1177,8 +1181,7 @@ defmodule Threadline do
 
       Threadline.audit_changes_for_transaction(transaction_id, repo: MyApp.Repo)
 
-  Results contain captured values; redaction is applied when triggers are
-  generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Capture & Transactions"
   @spec audit_changes_for_transaction(Ecto.UUID.t(), [audit_changes_opt()]) ::
@@ -1222,8 +1225,7 @@ defmodule Threadline do
 
       Threadline.export_csv([table: "members"], repo: MyApp.Repo)
 
-  Results contain column values as captured; redaction is applied when triggers
-  are generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Operations"
   @spec export_csv([timeline_filter()], [export_csv_opt()]) ::
@@ -1276,8 +1278,7 @@ defmodule Threadline do
 
       Threadline.export_json([table: "members"], repo: MyApp.Repo, json_format: :ndjson)
 
-  Results contain column values as captured; redaction is applied when triggers
-  are generated, not on read. Authorize reads with `:scope_query_fn`.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Operations"
   @spec export_json([timeline_filter()], [export_json_opt()]) ::
@@ -1313,8 +1314,7 @@ defmodule Threadline do
       Threadline.change_diff(audit_change)
       Threadline.change_diff(audit_change, format: :export_compat)
 
-  The projection uses captured values as stored; redaction is applied when
-  triggers are generated, not on read.
+  Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
   @doc group: "Querying & Timelines"
   @spec change_diff(Threadline.Capture.AuditChange.t()) :: json_map()
