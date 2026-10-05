@@ -1,6 +1,7 @@
 defmodule Threadline.Continuity do
   @moduledoc """
-  Brownfield cutover helpers for honest **T₀** semantics with Threadline capture.
+  `Threadline.Continuity` documents the post-install capture boundary that
+  starts each table's audit history at its first trigger-fired mutation.
 
   **T₀** means there are no `AuditChange` rows for a table until the first
   real trigger-fired mutation **after** capture is installed. There is **no
@@ -28,7 +29,9 @@ defmodule Threadline.Continuity do
   @type assert_capture_ready_opt :: Threadline.repo_opt() | {:schema, String.t()}
 
   @doc """
-  Returns a human-readable explanation of brownfield cutover steps (read-only).
+  Returns `{:ok, iodata()}` containing a human-readable, read-only explanation
+  of brownfield cutover steps. Raises `KeyError` when the required `:repo`
+  option is missing.
 
   ## Options
 
@@ -61,7 +64,9 @@ defmodule Threadline.Continuity do
   end
 
   @doc """
-  Asserts that `table_name` exists and has a Threadline capture trigger.
+  Returns `:ok` when `table_name` exists and has a Threadline capture trigger;
+  raises `ArgumentError` when the table, schema, or trigger is missing, and
+  `KeyError` when the required `:repo` option is missing.
 
   Bare table names resolve to the public host schema by default. Pass
   `schema: "support"` for a selected host schema, or pass a schema-qualified

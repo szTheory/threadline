@@ -33,7 +33,8 @@ defmodule Threadline.Health.Policy do
             }
 
   @doc """
-  Validates `:expected_uncovered_tables` and `:audit_anyway` config.
+  Returns `:ok` after validating `:expected_uncovered_tables` and `:audit_anyway`
+  config, or raises `ArgumentError` when the config is invalid.
 
   Accepts a keyword list or a map, matching the dual-form intake used by
   capture-time redaction validation.
