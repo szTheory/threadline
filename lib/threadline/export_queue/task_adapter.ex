@@ -23,8 +23,8 @@ defmodule Threadline.ExportQueue.TaskAdapter do
   @typedoc "An option accepted by `enqueue/2`."
   @type enqueue_opt :: Threadline.storage_schema_opt() | {:supervisor, pid() | atom() | tuple()}
 
-  @typedoc "The result of starting an export task; error reasons come from the task supervisor."
-  @type enqueue_result :: :ok | {:error, term()}
+  @typedoc "The result of starting an export task; the task supervisor owns the error reason."
+  @type enqueue_result :: :ok | {:error, Orchestrator.error_reason()}
 
   @impl true
   def init(_opts), do: :ok

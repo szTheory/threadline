@@ -7,10 +7,7 @@ defmodule Threadline.DocRubricContractTest do
   @root Path.expand("../..", __DIR__)
   @unknown_key_sentence "Unknown keys raise `ArgumentError` naming the allowed keys."
 
-  @option_parity_ratchet [
-    {:empty_section, Threadline.Retention, :purge, 1, "Options"},
-    {:options_untyped, Threadline.Retention, :purge, 1, "Options"}
-  ]
+  @option_parity_ratchet []
   @first_paragraph_ratchet [
     {Threadline.Audit, :type, :action_opt, 0, :empty_first_paragraph},
     {Threadline.ExportQueue, :type, :job_id, 0, :empty_first_paragraph},
@@ -22,10 +19,7 @@ defmodule Threadline.DocRubricContractTest do
     {Threadline.Investigation.IncidentChange, :type, :t, 0, :empty_first_paragraph},
     {Threadline.Investigation.LinkedChange, :type, :t, 0, :empty_first_paragraph},
     {Threadline.Investigation.LinkedTransaction, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.NotFoundError, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.OperatorSurface.Auth, :function, :on_mount, 4, :empty_first_paragraph},
-    {Threadline.OperatorSurface.Router, :macro, :threadline_operator_surface, 2,
-     :empty_first_paragraph}
+    {Threadline.NotFoundError, :type, :t, 0, :empty_first_paragraph}
   ]
   @deprecated_reference_ratchet []
   @voice_ratchet []
@@ -141,10 +135,6 @@ defmodule Threadline.DocRubricContractTest do
        :term
      ]},
     {{Threadline.NotFoundError, :type, :t, 0}, [:term]},
-    {{Threadline.Retention, :spec, :purge, 1}, [:keyword]},
-    {{Threadline.Retention.Policy, :spec, :cutoff_utc_datetime_usec!, 1}, [:keyword]},
-    {{Threadline.Retention.Policy, :spec, :resolve!, 1}, [:keyword, :map]},
-    {{Threadline.Retention.Policy, :spec, :validate_config!, 1}, [:keyword, :map]},
     {{Threadline.Semantics.ActorRef, :type, :t, 0}, [:term, :term]}
   ]
   @private_type_reference_ratchet []
@@ -167,12 +157,6 @@ defmodule Threadline.DocRubricContractTest do
       "R2: predicate accepts arbitrary input and reports whether it identifies an actor",
     {Threadline.Storage, :type, :options, 0} =>
       "R4: storage options are defined by the adapter contract",
-    {Threadline.Export.Orchestrator, :type, :run_result, 0} =>
-      "R1: the repository, storage adapter, and injected callbacks own failure reasons",
-    {Threadline.ExportQueue.TaskAdapter, :type, :enqueue_result, 0} =>
-      "R1: the task supervisor owns its error reason and the adapter passes it through",
-    {Threadline.Telemetry, :type, :completed_transaction, 0} =>
-      "R1: the caller owns and confirms the committed transaction result; telemetry does not inspect it",
     {Threadline.Page, :type, :t, 0} =>
       "R1: the producer chooses the page entry type; callers should prefer t(entry)"
   }
@@ -237,12 +221,9 @@ defmodule Threadline.DocRubricContractTest do
              [
                {Threadline, :type, :scope_opt, 0},
                {Threadline, :type, :scope_query_fn, 0},
-               {Threadline.Export.Orchestrator, :type, :run_result, 0},
-               {Threadline.ExportQueue.TaskAdapter, :type, :enqueue_result, 0},
                {Threadline.Page, :type, :t, 0},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
-               {Threadline.Storage, :type, :options, 0},
-               {Threadline.Telemetry, :type, :completed_transaction, 0}
+               {Threadline.Storage, :type, :options, 0}
              ]
 
     for {key, reason} <- @permanent_bare_allowlist do

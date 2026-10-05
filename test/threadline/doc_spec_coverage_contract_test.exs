@@ -16,9 +16,6 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Investigation.LinkedChange, :t, 0, :missing_typedoc},
     {Threadline.Investigation.LinkedTransaction, :t, 0, :missing_typedoc},
     {Threadline.NotFoundError, :t, 0, :missing_typedoc},
-    {Threadline.OperatorSurface.Auth, :on_mount, 4, :missing_doc},
-    {Threadline.OperatorSurface.Auth, :on_mount, 4, :missing_spec},
-    {Threadline.OperatorSurface.Router, :threadline_operator_surface, 2, :missing_doc},
     {Threadline.Semantics.ActorRef, :from_map, 1, :missing_spec},
     {Threadline.Semantics.ActorRef, :new, 2, :missing_spec},
     {Threadline.Semantics.ActorRef, :to_map, 1, :missing_spec}
@@ -131,9 +128,9 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 17
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 4
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_doc end) == 2
+      assert length(actual) == 14
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 3
+      refute Enum.any?(actual, fn {_, _, _, kind} -> kind == :missing_doc end)
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 11
     end
   end

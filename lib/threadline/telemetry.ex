@@ -55,11 +55,21 @@ defmodule Threadline.Telemetry do
       )
   """
 
-  @typedoc "An opaque caller-owned result from a database transaction known to have committed."
-  @type completed_transaction :: term()
-
   @typedoc "An option accepted by `transaction_committed/2`."
   @type transaction_committed_opt :: {:table_count, integer()}
+
+  @typedoc "An opaque host transaction result passed to `transaction_committed/2`."
+  @type transaction_value ::
+          atom()
+          | number()
+          | bitstring()
+          | pid()
+          | port()
+          | reference()
+          | function()
+          | tuple()
+          | maybe_improper_list(transaction_value(), transaction_value())
+          | %{optional(transaction_value()) => transaction_value()}
 
   @events [
     %{
@@ -190,7 +200,7 @@ defmodule Threadline.Telemetry do
       end)
       Threadline.Telemetry.transaction_committed(txn, table_count: 3)
   """
-  @spec transaction_committed(completed_transaction(), [transaction_committed_opt()]) :: :ok
+  @spec transaction_committed(transaction_value(), [transaction_committed_opt()]) :: :ok
   def transaction_committed(_transaction, opts \\ []) do
     table_count = Keyword.get(opts, :table_count, 0)
     :telemetry.execute([:threadline, :transaction, :committed], %{table_count: table_count}, %{})

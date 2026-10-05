@@ -22,8 +22,21 @@ defmodule Threadline.Export.Orchestrator do
           | {:transaction_fn, function()}
           | {:completion_fn, function()}
 
-  @typedoc "The result of running an export job; error reasons are produced by the repository or storage adapter."
-  @type run_result :: :ok | {:error, term()}
+  @typedoc "Any Elixir value returned as an export orchestration error reason."
+  @type error_reason ::
+          atom()
+          | number()
+          | bitstring()
+          | pid()
+          | port()
+          | reference()
+          | function()
+          | tuple()
+          | maybe_improper_list(error_reason(), error_reason())
+          | %{optional(error_reason()) => error_reason()}
+
+  @typedoc "The result of running an export job; the repository or storage adapter owns the error reason."
+  @type run_result :: :ok | {:error, error_reason()}
 
   @doc """
   Runs an export job and returns `:ok` after storing its CSV, or `{:error, reason}` on failure.

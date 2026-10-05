@@ -10,6 +10,9 @@ defmodule Threadline.Retention.Policy do
 
   Per-table and per-tenant overrides are not supported; this module validates
   the global policy shape only.
+
+  `validate_config!/1` checks configuration, `resolve!/1` returns normalized
+  policy values, and `cutoff_utc_datetime_usec!/1` computes the expiry cutoff.
   """
 
   @typedoc "Normalized retention options as returned by `resolve/1`."
@@ -18,6 +21,23 @@ defmodule Threadline.Retention.Policy do
           delete_empty_transactions: boolean(),
           window_seconds: pos_integer()
         }
+
+  @typedoc "An atom-keyed option in the retention policy configuration."
+  @type config_opt ::
+          {:enabled, boolean() | String.t()}
+          | {:delete_empty_transactions, boolean() | String.t()}
+          | {:keep_days, pos_integer()}
+          | {:max_age_seconds, pos_integer()}
+
+  @typedoc "A map form accepted by validation; recognized keys may use atom or string spelling."
+  @type config_map ::
+          %{optional(atom() | String.t()) => boolean() | String.t() | pos_integer()}
+
+  @typedoc "The keyword-list or map form accepted by retention policy validation and resolution."
+  @type config :: [config_opt()] | config_map()
+
+  @typedoc "An option accepted by `cutoff_utc_datetime_usec!/1`."
+  @type cutoff_opt :: {:policy, t()}
 
   defstruct [:enabled, :delete_empty_transactions, :window_seconds]
 
@@ -31,7 +51,7 @@ defmodule Threadline.Retention.Policy do
   caller passes a non-empty map/list that still fails other checks — for empty
   config in test, hosts should set explicit values in `config/test.exs`.
   """
-  @spec validate_config!(keyword() | map()) :: :ok
+  @spec validate_config!(config()) :: :ok
   def validate_config!(opts) when is_list(opts), do: validate_config!(Map.new(opts))
 
   def validate_config!(opts) when is_map(opts) do
@@ -42,7 +62,7 @@ defmodule Threadline.Retention.Policy do
   @doc """
   Resolves config into a struct or raises like `validate_config!/1`.
   """
-  @spec resolve!(keyword() | map()) :: t()
+  @spec resolve!(config()) :: t()
   def resolve!(opts) when is_list(opts), do: resolve!(Map.new(opts))
 
   def resolve!(opts) when is_map(opts) do
@@ -114,8 +134,18 @@ defmodule Threadline.Retention.Policy do
   are considered expired for purge (i.e. delete rows with `captured_at < cutoff`).
 
   Uses `DateTime.add/3` in microsecond mode for consistency with `:utc_datetime_usec`.
+
+  ## Options
+
+  - `:policy` — normalized retention policy. Optional. Defaults to the configured policy.
+
+  ## Returns
+
+  - The UTC cutoff timestamp.
+
+  Other option keys are ignored.
   """
-  @spec cutoff_utc_datetime_usec!(keyword()) :: DateTime.t()
+  @spec cutoff_utc_datetime_usec!([cutoff_opt()]) :: DateTime.t()
   def cutoff_utc_datetime_usec!(opts \\ []) do
     policy =
       case Keyword.get(opts, :policy) do
