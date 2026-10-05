@@ -23,13 +23,13 @@
 
 **Fix:** Spell the accepted keys explicitly, including atom and string key variants where supported. Give `actor_map/0` a typedoc stating its guaranteed keys and any additive-key promise, or use a named JSON type where the contract is intentionally open.
 
-### WR-03 — WARNING: Adapter callbacks expose untyped options and error reasons
+### WR-03 — WARNING: Adapter callbacks have broad types and incomplete return contracts
 
 **Files:** `lib/threadline/export_queue.ex:39-47`, `lib/threadline/storage.ex:44-90`
 
-The visible `Threadline.ExportQueue.init/1` and `enqueue/2` behavior callbacks use bare `keyword()`; no named option type and typedoc establishes that these are adapter-defined passthrough options as R-4 requires. Both queue and storage callbacks also expose bare `term()` error payloads without a named typedoc declaring the adapter-owned values opaque to Threadline (R-1).
+The visible `Threadline.ExportQueue.init/1` and `enqueue/2` behavior callbacks use bare `keyword()`; no named option type and typedoc establishes that these are adapter-defined passthrough options as R-4 requires. Queue and storage callbacks also expose bare `term()` error payloads without a named typedoc declaring the adapter-owned values opaque to Threadline (R-1). Several callback summaries omit the success return entirely (`Storage.init/1`, `put/2`, `get/1`, `download_url/2`, `delete/1`, `ExportQueue.init/1`), and several omit declared error outcomes (D-2/D-6).
 
-**Fix:** Define and document an adapter-defined options type and an adapter-owned opaque error-reason type, then use those names in the callback signatures.
+**Fix:** Define and document an adapter-defined options type and an adapter-owned opaque error-reason type, then use those names in the callback signatures. State the complete success and error tuple shapes in each callback's opening contract.
 
 ### WR-04 — WARNING: Several captured-row APIs omit or weaken the required data note
 
@@ -57,19 +57,11 @@ The module has four public functions, but its moduledoc describes the struct and
 
 ### WR-07 — WARNING: Touched moduledocs begin with fragments
 
-**Files:** `lib/mix/tasks/threadline.continuity.ex:1-4`, `lib/threadline.ex:2-4`, `lib/threadline/continuity.ex:1-4`, `lib/threadline/change_diff.ex:1-3`, `lib/threadline/governance/evidence_record.ex:1-3`, `lib/threadline/investigation/incident_bundle.ex:1-3`, `lib/threadline/investigation/linked_change.ex:1-3`, `lib/threadline/integrations/sigra.ex:1-3`, `lib/threadline/not_found_error.ex:1-3`, `lib/threadline/operator_surface.ex:3-5`, `lib/threadline/page.ex:1-3`, `lib/threadline/retention.ex:1-4`, `lib/threadline/telemetry.ex:1-3`
+**Files:** `lib/threadline.ex:2-4`, `lib/threadline/continuity.ex:1-4`, `lib/threadline/change_diff.ex:1-3`, `lib/threadline/governance/evidence_record.ex:1-3`, `lib/threadline/investigation/incident_bundle.ex:1-3`, `lib/threadline/investigation/linked_change.ex:1-3`, `lib/threadline/integrations/sigra.ex:1-3`, `lib/threadline/not_found_error.ex:1-3`, `lib/threadline/page.ex:1-3`, `lib/threadline/retention.ex:1-4`, `lib/threadline/telemetry.ex:1-3`
 
 These touched module summaries are noun or participle fragments rather than one-sentence domain summaries, failing M-1. The per-module table marks each affected moduledoc.
 
 **Fix:** Rewrite each opening as a complete declarative sentence that names the module's domain entity or behavior.
-
-### WR-08 — WARNING: Public type documentation contains an avoid-list term and one public type is undocumented
-
-**File:** `lib/threadline/evidence.ex:45-51`
-
-The Evidence typedocs use the rubric's avoid-list term `provenance` in narrative descriptions (D-8). `Threadline.StorageSchema.role/0` is explicitly hidden with `@typedoc false` and only appears in hidden specs, so it is excluded under R-5 and is not a finding.
-
-**Fix:** Replace the narrative field name with “source context” while retaining literal API field references where necessary.
 
 ## Broad-type inventory
 
@@ -77,18 +69,26 @@ The R-rule column records the allowance for every visible broad `term()`, `map()
 
 | Surface | Occurrence | R-rule | Assessment |
 |---|---|---|---|
-| `Threadline.scope_opt/0` | `term()` in `{:scope, term()}` | R1 | Typedoc states caller-owned and opaque to Threadline. |
-| `Threadline.scope_query_fn/0` | `term()` scope argument; `map()` for open `params` context | R1 | Typedoc describes opaque scope and open surface-specific params. |
-| `Threadline.Audit.transaction/3` | callback result `result: term()`; `{:error, term()}` | R1 | Callback result and rollback reason are caller-owned/opaque. |
-| `Threadline.Evidence.Subject.validate/1` | return payload `term()` | R2 | Validator echoes rejected subject value. Input spec is separately too narrow; see WR-01. |
-| `Threadline.Semantics.ActorRef.from_map/1` | argument `term()` | R2 | Arbitrary JSON-decoded input validator. |
-| `Threadline.Semantics.ActorRef.identifiable?/1` | argument `term()` | R2 | Predicate accepts arbitrary input. |
-| `Threadline.Page.t/0` | entry parameter `term()` | R1 | Generic producer-selected entry type; `t(entry)` is preferred. |
-| `Threadline.Storage.options/0` | `keyword()` | R4 | Named type and typedoc explicitly say adapter-defined. |
+| `Threadline.scope_opt/0` | floor | R1 | Typedoc states caller-owned and opaque to Threadline. |
+| `Threadline.scope_query_fn/0` | F | R1 | Typedoc describes opaque scope and open surface-specific params. |
+| `Threadline.json_map/0` and its JSON-bound users | `map()`-shaped captured values (`meta`, `table_pk`, `data_after`, `changed_from`, evidence JSON fields, proof/change-diff output) | R3 | Named JSON type documents string keys, owning-type guaranteed keys, and additive-key compatibility. |
+| `Threadline.Audit.transaction/3` | F | R1 | Callback result and rollback reason are caller-owned/opaque. |
+| `Threadline.Evidence.Subject.validate/1` | floor | R2 | Validator echoes rejected subject value. Input spec is separately too narrow; see WR-01. |
+| `Threadline.Semantics.ActorRef.from_map/1` | floor | R2 | Arbitrary JSON-decoded input validator. |
+| `Threadline.Semantics.ActorRef.identifiable?/1` | floor | R2 | Predicate accepts arbitrary input. |
+| `Threadline.Page.t/0` | floor | R1 | Generic producer-selected entry type; `t(entry)` is preferred. |
+| `Threadline.Storage.options/0` | F | R4 | Named type and typedoc explicitly say adapter-defined. |
 | `Threadline.Storage` callbacks `init/1`, `put/2`, `get/1`, `path/1`, `download_url/2`, `delete/1` | `term()` error payloads | R1 | Adapter owns the opaque error reason, but the typedoc-backed named type is missing. |
 | `Threadline.ExportQueue.init/1`, `enqueue/2` | bare `keyword()` arguments; `term()` error payloads | R4 options; R1 errors | Adapter-defined behavior inputs lack a named type/typedoc; opaque adapter error reason types are also missing. |
+| `Threadline.Semantics.ActorRef.new/2` (required correction) | current spec is too narrow; runtime accepts arbitrary unsupported values | R2 | Not a surviving `term()` occurrence: validator input should widen to match the error branch, per WR-01. |
+| `Threadline.Evidence.Subject.supported?/1` (required correction) | current spec is too narrow; runtime accepts arbitrary values | R2 | Not a surviving `term()` occurrence: predicate input should widen to match false results, per matrix. |
+| `Threadline.OperatorSurface.Router` public moduledoc callbacks | `map()` callback context and `map()` for `assigns` | R1 | Host-owned assigns and callback context are open extension maps; the prose treats scope as opaque. |
+| `Threadline.CriticTrust.LedgerSplice.replace/2`, `replace_provenance/2`, `render_block/1`, `render_provenance/1` | `map()` arguments | R5 | Hidden utility-module specs. |
+| `Threadline.Health.LegacyKeyFindings.run/1`, `invalid_schema!/1` | `keyword()` options; `term()` invalid schema input | R5 | Hidden health implementation specs. |
+| `Threadline.Health.TriggerFindings.run/1`, `invalid_schema!/1` | `keyword()` options; `term()` invalid schema input | R5 | Hidden health implementation specs. |
+| `Threadline.OperatorSurface.Presentation.human_time/2`, `short_id/2`, `truncate_middle/2-3`, `ref/2`, `query_pairs/1`, `export_summary/1`, `export_readiness/*`, `export_downloadable?/2`, `export_action_label/2`, `export_status_label/2`, `secondary_ref/2`, `value_token/1`, `change_value_token/2`, `coverage_remediation/2`, `actor_transaction_summary/1` | `term()` display inputs, `map()` view-model inputs, `keyword()` display options | R5 | Hidden presentation-helper specs; the presentation module is not a public documentation surface. |
 | `Threadline.StorageSchema.validate_identifier!/3`, `invalid_identifier!/3` | `term()` argument | R5 | Hidden implementation specs, outside public SPEC-02 surface. |
-| `Threadline.Health.coverage_by_schema/1` | `keyword()` | R5 | Hidden internal helper. |
+| `Threadline.Health.coverage_by_schema/1` | F | R5 | Hidden internal helper. |
 | `Threadline.Investigation` read delegates (`row_history/*`, pagers, window/bundle pagers, transaction and incident lookups) | `term()` ids / `keyword()` options | R5 | Hidden helper module/specs; facade entries use named public types. |
 | `Threadline.Query` read/query helpers (`row_history/*`, pagers, preload, timeline, history, as_of, actor-history, transaction reads) | `term()` ids / `keyword()` filters and options | R5 | Hidden query implementation specs. |
 | `Threadline.Query.TransactionLookup` `scoped_row/4`, `fetch_row/2`, `fetch/2` | `term()` id/scope / `keyword()` options | R5 | Hidden implementation specs. |
@@ -123,12 +123,12 @@ One row is included for each visible function, macro, public type, and touched m
 | `Threadline.transaction_context/2` | F | D-10 | Returns linked captured changes without the required captured-data note. |
 | `Threadline.transaction_context!/2` | F | D-10 | Returns linked captured changes without the required captured-data note. |
 | `Threadline.correlation_bundle_page_opt/0` | floor | — | Pass |
-| `Threadline.correlation_bundle_page_filter/0` | floor | — | Pass |
+| `Threadline.correlation_bundle_page_filter/0` | F | — | Pass |
 | `Threadline.actor_window_page_opt/0` | floor | — | Pass |
-| `Threadline.actor_window_page_filter/0` | floor | — | Pass |
+| `Threadline.actor_window_page_filter/0` | F | — | Pass |
 | `Threadline.row_history_page_opt/0` | floor | — | Pass |
 | `Threadline.row_history_legacy_opt/0` | floor | — | Pass |
-| `Threadline.row_history_filter/0` | floor | — | Pass |
+| `Threadline.row_history_filter/0` | F | — | Pass |
 | `Threadline.history_opt/0` | floor | — | Pass |
 | `Threadline.change_diff_opt/0` | floor | — | Pass |
 | `Threadline.audit_changes_opt/0` | floor | — | Pass |
@@ -137,20 +137,20 @@ One row is included for each visible function, macro, public type, and touched m
 | `Threadline.export_json_opt/0` | floor | — | Pass |
 | `Threadline.export_csv_opt/0` | floor | — | Pass |
 | `Threadline.window_opt/0` | floor | — | Pass |
-| `Threadline.correlation_bundle_filter/0` | floor | — | Pass |
-| `Threadline.actor_window_filter/0` | floor | — | Pass |
+| `Threadline.correlation_bundle_filter/0` | F | — | Pass |
+| `Threadline.actor_window_filter/0` | F | — | Pass |
 | `Threadline.actor_history_opt/0` | floor | — | Pass |
 | `Threadline.timeline_page_opt/0` | floor | — | Pass |
 | `Threadline.timeline_opt/0` | floor | — | Pass |
-| `Threadline.timeline_filter/0` | floor | — | Pass |
+| `Threadline.timeline_filter/0` | F | — | Pass |
 | `Threadline.lookup_opt/0` | floor | — | Pass |
 | `Threadline.row_history_opt/0` | floor | — | Pass |
-| `Threadline.json_map/0` | floor | — | Pass |
-| `Threadline.json_value/0` | floor | — | Pass |
-| `Threadline.row_id/0` | floor | — | Pass |
-| `Threadline.row_key_scalar/0` | floor | — | Pass |
+| `Threadline.json_map/0` | F | — | Pass |
+| `Threadline.json_value/0` | F | — | Pass |
+| `Threadline.row_id/0` | F | — | Pass |
+| `Threadline.row_key_scalar/0` | F | — | Pass |
 | `Threadline.scope_opt/0` | floor | — | Pass |
-| `Threadline.scope_query_fn/0` | floor | — | Pass |
+| `Threadline.scope_query_fn/0` | F | — | Pass |
 | `Threadline.storage_schema_opt/0` | floor | — | Pass |
 | `Threadline.repo_opt/0` | floor | — | Pass |
 | `Threadline.Audit.transaction/3` | F | D-2 | First paragraph omits the {:ok, result}/{:error, reason} return envelope. |
@@ -175,46 +175,46 @@ One row is included for each visible function, macro, public type, and touched m
 | `Threadline.Evidence.record_retention_run/3` | F | — | Pass |
 | `Threadline.Evidence.record_support_scope_posture/3` | F | — | Pass |
 | `Threadline.Evidence.record_trigger_coverage/3` | F | — | Pass |
-| `Threadline.Evidence.invalid_subject_ref/0` | floor | — | Pass |
+| `Threadline.Evidence.invalid_subject_ref/0` | F | — | Pass |
 | `Threadline.Evidence.record_result/0` | floor | — | Pass |
 | `Threadline.Evidence.get_latest_subject_ref_opt/0` | floor | — | Pass |
 | `Threadline.Evidence.list_overview_opt/0` | floor | — | Pass |
 | `Threadline.Evidence.list_latest_subject_refs_opt/0` | floor | — | Pass |
 | `Threadline.Evidence.list_subject_ref_history_opt/0` | floor | — | Pass |
 | `Threadline.Evidence.list_history_opt/0` | floor | — | Pass |
-| `Threadline.Evidence.latest_filter/0` | floor | — | Pass |
-| `Threadline.Evidence.subject_ref_history_filter/0` | floor | — | Pass |
-| `Threadline.Evidence.history_filter/0` | floor | — | Pass |
-| `Threadline.Evidence.support_scope_posture_attrs/0` | floor | — | Pass |
-| `Threadline.Evidence.export_delivery_attrs/0` | floor | — | Pass |
-| `Threadline.Evidence.retention_policy_attrs/0` | floor | — | Pass |
-| `Threadline.Evidence.retention_run_attrs/0` | floor | — | Pass |
-| `Threadline.Evidence.trigger_coverage_attrs/0` | floor | — | Pass |
+| `Threadline.Evidence.latest_filter/0` | F | — | Pass |
+| `Threadline.Evidence.subject_ref_history_filter/0` | F | — | Pass |
+| `Threadline.Evidence.history_filter/0` | F | — | Pass |
+| `Threadline.Evidence.support_scope_posture_attrs/0` | F | — | Pass |
+| `Threadline.Evidence.export_delivery_attrs/0` | F | — | Pass |
+| `Threadline.Evidence.retention_policy_attrs/0` | F | — | Pass |
+| `Threadline.Evidence.retention_run_attrs/0` | F | — | Pass |
+| `Threadline.Evidence.trigger_coverage_attrs/0` | F | — | Pass |
 | `Threadline.Evidence.redaction_policy_attrs_input/0` | floor | — | Pass |
-| `Threadline.Evidence.redaction_policy_attr_key/0` | floor | — | Pass |
-| `Threadline.Evidence.record_attrs/0` | floor | D-8 | Typedoc uses the avoid-list term “provenance” for the field; use a plain-language description or refer to the literal field outside narrative prose. |
-| `Threadline.Evidence.redaction_policy_attrs/0` | floor | D-8 | Typedoc uses the avoid-list term “provenance” for the field; use a plain-language description or refer to the literal field outside narrative prose. |
-| `Threadline.Evidence.redaction_policy_attr_value/0` | floor | — | Pass |
+| `Threadline.Evidence.redaction_policy_attr_key/0` | F | — | Pass |
+| `Threadline.Evidence.record_attrs/0` | F | — | The `:provenance` token is a literal API field name in code formatting. |
+| `Threadline.Evidence.redaction_policy_attrs/0` | F | — | The `:provenance` token is a literal API field name in code formatting. |
+| `Threadline.Evidence.redaction_policy_attr_value/0` | F | — | Pass |
 | `Threadline.Evidence.record_opt/0` | floor | — | Pass |
-| `Threadline.Evidence.subject_ref/0` | floor | — | Pass |
-| `Threadline.Evidence.subject_ref_value/0` | floor | — | Pass |
+| `Threadline.Evidence.subject_ref/0` | F | — | Pass |
+| `Threadline.Evidence.subject_ref_value/0` | F | — | Pass |
 | `Threadline.Evidence.Proof.proof_document/2` | F | — | Pass |
-| `Threadline.Evidence.Proof.render_human/1` | F | — | Pass |
-| `Threadline.Evidence.Proof.render_json/1` | F | — | Pass |
+| `Threadline.Evidence.Proof.render_human/1` | floor | — | Pass |
+| `Threadline.Evidence.Proof.render_json/1` | floor | — | Pass |
 | `Threadline.Evidence.Proof.to_json_iodata/2` | F | — | Pass |
-| `Threadline.Evidence.Proof.presented_record/0` | floor | — | Pass |
+| `Threadline.Evidence.Proof.presented_record/0` | F | — | Pass |
 | `Threadline.Evidence.Proof.evidence_record_input/0` | floor | — | Pass |
 | `Threadline.Evidence.Proof.proof_document/0` | floor | — | Pass |
-| `Threadline.Evidence.Proof.claim_kind/0` | floor | — | Pass |
-| `Threadline.Evidence.Proof.claim_status/0` | floor | — | Pass |
+| `Threadline.Evidence.Proof.claim_kind/0` | F | — | Pass |
+| `Threadline.Evidence.Proof.claim_status/0` | F | — | Pass |
 | `Threadline.Evidence.Proof.proof_opt/0` | floor | — | Pass |
-| `Threadline.Evidence.Proof.proof_filter/0` | floor | — | Pass |
-| `Threadline.Evidence.Proof.proof_mode/0` | floor | — | Pass |
+| `Threadline.Evidence.Proof.proof_filter/0` | F | — | Pass |
+| `Threadline.Evidence.Proof.proof_mode/0` | F | — | Pass |
 | `Threadline.Evidence.Proof.proof_request/0` | floor | — | Pass |
 | `Threadline.Evidence.Proof.proof_request_opt/0` | floor | — | Pass |
-| `Threadline.Evidence.Subject.supported?/1` | F | S-4 | The predicate handles arbitrary values and returns false for them, but its input spec is limited to `subject_descriptor()` (R2). |
-| `Threadline.Evidence.Subject.supported_subjects/0` | F | — | Pass |
-| `Threadline.Evidence.Subject.validate/1` | F | D-2, S-2, S-4 | Docs omit the :ok/error shape; the spec excludes arbitrary invalid input accepted by this validator (R2). |
+| `Threadline.Evidence.Subject.supported?/1` | floor | S-4 | The predicate handles arbitrary values and returns false for them, but its input spec is limited to `subject_descriptor()` (R2). |
+| `Threadline.Evidence.Subject.supported_subjects/0` | floor | — | Pass |
+| `Threadline.Evidence.Subject.validate/1` | floor | D-2, S-2, S-4 | Docs omit the :ok/error shape; the spec excludes arbitrary invalid input accepted by this validator (R2). |
 | `Threadline.Evidence.Subject.subject_descriptor/0` | floor | S-4 | The string-keyed map arm accepts every string key although only "subject" and "name" are supported. |
 | `Threadline.Export.count_matching/2` | F | — | Pass |
 | `Threadline.Export.csv_header/1` | F | — | Pass |
@@ -228,14 +228,14 @@ One row is included for each visible function, macro, public type, and touched m
 | `Threadline.Export.format_changes_opt/0` | floor | — | Pass |
 | `Threadline.Export.csv_header_opt/0` | floor | — | Pass |
 | `Threadline.Export.count_matching_opt/0` | floor | — | Pass |
-| `Threadline.Export.export_row/0` | floor | — | Pass |
+| `Threadline.Export.export_row/0` | F | — | Pass |
 | `Threadline.Export.count_result/0` | floor | — | Pass |
 | `Threadline.Export.export_result/0` | floor | — | Pass |
 | `Threadline.Export.Orchestrator.run/2` | F | — | Pass |
 | `Threadline.Export.Orchestrator.run_result/0` | floor | — | Pass |
-| `Threadline.Export.Orchestrator.error_reason/0` | floor | — | Pass |
+| `Threadline.Export.Orchestrator.error_reason/0` | F | — | Pass |
 | `Threadline.Export.Orchestrator.run_opt/0` | floor | — | Pass |
-| `Threadline.ExportQueue.job_id/0` | floor | — | Pass |
+| `Threadline.ExportQueue.job_id/0` | F | — | Pass |
 | `Threadline.ExportQueue.TaskAdapter.enqueue/2` | F | — | Pass |
 | `Threadline.ExportQueue.TaskAdapter.enqueue_result/0` | floor | — | Pass |
 | `Threadline.ExportQueue.TaskAdapter.enqueue_opt/0` | floor | — | Pass |
@@ -246,94 +246,94 @@ One row is included for each visible function, macro, public type, and touched m
 | `Threadline.Health.trigger_coverage_opt/0` | floor | — | Pass |
 | `Threadline.Health.legacy_key_findings_opt/0` | floor | — | Pass |
 | `Threadline.Health.trigger_findings_opt/0` | floor | — | Pass |
-| `Threadline.Health.schema_filter/0` | floor | — | Pass |
-| `Threadline.Health.coverage_entry/0` | floor | — | Pass |
-| `Threadline.Health.coverage_status/0` | floor | — | Pass |
+| `Threadline.Health.schema_filter/0` | F | — | Pass |
+| `Threadline.Health.coverage_entry/0` | F | — | Pass |
+| `Threadline.Health.coverage_status/0` | F | — | Pass |
 | `Threadline.Health.Finding.t/0` | floor | — | Pass |
-| `Threadline.Health.Finding.details/0` | floor | — | Pass |
-| `Threadline.Health.Finding.code/0` | floor | — | Pass |
-| `Threadline.Health.Finding.severity/0` | floor | — | Pass |
-| `Threadline.Health.Policy.validate!/1` | F | D-2, S-2 | Docs omit the :ok success result stated by its spec. |
+| `Threadline.Health.Finding.details/0` | F | — | Pass |
+| `Threadline.Health.Finding.code/0` | F | — | Pass |
+| `Threadline.Health.Finding.severity/0` | F | — | Pass |
+| `Threadline.Health.Policy.validate!/1` | floor | D-2, S-2 | Docs omit the :ok success result stated by its spec. |
 | `Threadline.Health.Policy.config/0` | floor | — | Pass |
 | `Threadline.Health.Policy.config_opt/0` | floor | — | Pass |
-| `Threadline.Integrations.Sigra.actor_fn/0` | F | — | Pass |
-| `Threadline.Integrations.Sigra.actor_ref_from_conn/1` | F | — | Pass |
-| `Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1` | F | — | Pass |
+| `Threadline.Integrations.Sigra.actor_fn/0` | floor | — | Pass |
+| `Threadline.Integrations.Sigra.actor_ref_from_conn/1` | floor | — | Pass |
+| `Threadline.Integrations.Sigra.audit_context_overrides_from_conn/1` | floor | — | Pass |
 | `Threadline.Integrations.Sigra.audit_overrides/0` | floor | — | Pass |
 | `Threadline.Investigation.IncidentBundle.t/0` | floor | — | Pass |
 | `Threadline.Investigation.IncidentChange.t/0` | floor | — | Pass |
 | `Threadline.Investigation.LinkedChange.t/0` | floor | — | Pass |
 | `Threadline.Investigation.LinkedTransaction.t/0` | floor | — | Pass |
-| `Threadline.Job.actor_ref_from_args/1` | F | — | Pass |
+| `Threadline.Job.actor_ref_from_args/1` | floor | — | Pass |
 | `Threadline.Job.context_opts/2` | F | — | Pass |
 | `Threadline.Job.context_opts_result/0` | floor | — | Pass |
 | `Threadline.Job.context_opt/0` | floor | — | Pass |
 | `Threadline.Job.actor_ref_result/0` | floor | — | Pass |
-| `Threadline.Job.actor_ref_error/0` | floor | — | Pass |
-| `Threadline.Job.job_args/0` | floor | — | Pass |
+| `Threadline.Job.actor_ref_error/0` | F | — | Pass |
+| `Threadline.Job.job_args/0` | F | — | Pass |
 | `Threadline.NotFoundError.t/0` | floor | — | Pass |
 | `Threadline.OperatorSurface.Auth.on_mount/4` | F | — | Pass |
-| `Threadline.OperatorSurface.Auth.on_mount_session/0` | floor | — | Pass |
-| `Threadline.OperatorSurface.Auth.on_mount_session_value/0` | floor | — | Pass |
-| `Threadline.OperatorSurface.Auth.on_mount_params/0` | floor | — | Pass |
+| `Threadline.OperatorSurface.Auth.on_mount_session/0` | F | — | Pass |
+| `Threadline.OperatorSurface.Auth.on_mount_session_value/0` | F | — | Pass |
+| `Threadline.OperatorSurface.Auth.on_mount_params/0` | F | — | Pass |
 | `Threadline.OperatorSurface.Auth.on_mount_opt/0` | floor | — | Pass |
 | `Threadline.OperatorSurface.Router.threadline_operator_surface/2` | F | — | Pass |
 | `Threadline.Page.t/0` | floor | — | Pass |
-| `Threadline.Page.t/1` | floor | — | Pass |
-| `Threadline.Page.cursor/0` | floor | — | Pass |
-| `Threadline.Page.actor_cursor/0` | floor | — | Pass |
-| `Threadline.Page.change_cursor/0` | floor | — | Pass |
+| `Threadline.Page.t/1` | F | — | Pass |
+| `Threadline.Page.cursor/0` | F | — | Pass |
+| `Threadline.Page.actor_cursor/0` | F | — | Pass |
+| `Threadline.Page.change_cursor/0` | F | — | Pass |
 | `Threadline.Retention.purge/1` | F | D-2 | First paragraph describes deletion but omits the purge_result/error return shape. |
 | `Threadline.Retention.purge_opt/0` | floor | — | Pass |
 | `Threadline.Retention.purge_result/0` | floor | — | Pass |
 | `Threadline.Retention.Policy.cutoff_utc_datetime_usec!/1` | F | — | Pass |
-| `Threadline.Retention.Policy.resolve!/1` | F | — | Pass |
-| `Threadline.Retention.Policy.validate_config!/1` | F | D-2, S-2 | Docs omit the :ok success result stated by its spec. |
+| `Threadline.Retention.Policy.resolve!/1` | floor | — | Pass |
+| `Threadline.Retention.Policy.validate_config!/1` | floor | D-2, S-2 | Docs omit the :ok success result stated by its spec. |
 | `Threadline.Retention.Policy.cutoff_opt/0` | floor | — | Pass |
-| `Threadline.Retention.Policy.config/0` | floor | — | Pass |
-| `Threadline.Retention.Policy.config_map/0` | floor | S-4 | The config has a fixed four-key inventory, but this type accepts arbitrary atom/string keys and conflates per-key value types. |
+| `Threadline.Retention.Policy.config/0` | F | — | Pass |
+| `Threadline.Retention.Policy.config_map/0` | F | S-4 | The config has a fixed four-key inventory, but this type accepts arbitrary atom/string keys and conflates per-key value types. |
 | `Threadline.Retention.Policy.config_opt/0` | floor | — | Pass |
 | `Threadline.Retention.Policy.t/0` | floor | — | Pass |
-| `Threadline.Semantics.ActorRef.from_map/1` | F | — | Pass |
-| `Threadline.Semantics.ActorRef.identifiable?/1` | F | — | Pass |
-| `Threadline.Semantics.ActorRef.new/2` | F | S-2, S-4 | Implementation returns :unknown_actor_type for unsupported values, but the spec restricts input to actor_type() and makes that error unreachable (R2). |
-| `Threadline.Semantics.ActorRef.to_map/1` | F | — | Pass |
+| `Threadline.Semantics.ActorRef.from_map/1` | floor | — | Pass |
+| `Threadline.Semantics.ActorRef.identifiable?/1` | floor | — | Pass |
+| `Threadline.Semantics.ActorRef.new/2` | floor | S-2, S-4 | Implementation returns :unknown_actor_type for unsupported values, but the spec restricts input to actor_type() and makes that error unreachable (R2). |
+| `Threadline.Semantics.ActorRef.to_map/1` | floor | — | Pass |
 | `Threadline.Semantics.ActorRef.actor_map/0` | floor | S-4 | String.t() keys permit arbitrary keys and do not encode required "type" / optional "id" keys; the typedoc also fails to state this shape. |
 | `Threadline.Semantics.ActorRef.t/0` | floor | — | Pass |
 | `Threadline.Semantics.ActorRef.actor_type/0` | floor | — | Pass |
 | `Threadline.Semantics.AuditAction.t/0` | floor | — | Pass |
 | `Threadline.Semantics.AuditContext.t/0` | floor | — | Pass |
-| `Threadline.Storage.options/0` | floor | — | Pass |
+| `Threadline.Storage.options/0` | F | — | Pass |
 | `Threadline.Storage.content/0` | floor | — | Pass |
-| `Threadline.Storage.file_id/0` | floor | — | Pass |
+| `Threadline.Storage.file_id/0` | F | — | Pass |
 | `Threadline.StorageSchema.get/1` | F | — | Pass |
 | `Threadline.StorageSchema.repo_opts/1` | F | — | Pass |
 | `Threadline.StorageSchema.table/2` | F | — | Pass |
-| `Threadline.StorageSchema.threadline_table?/1` | F | — | Pass |
-| `Threadline.StorageSchema.validate!/1` | F | — | Pass |
-| `Threadline.StorageSchema.role/0` | floor | — | `@typedoc false`; it is internal and used only by hidden specs (R5). |
+| `Threadline.StorageSchema.threadline_table?/1` | floor | — | Pass |
+| `Threadline.StorageSchema.validate!/1` | floor | — | Pass |
+| `Threadline.StorageSchema.role/0` | F | — | `@typedoc false`; it is internal and used only by hidden specs (R5). |
 | `Threadline.StorageSchema.repo_opts_result/0` | floor | — | Pass |
-| `Threadline.StorageSchema.parsed_table_identifier/0` | floor | — | Pass |
+| `Threadline.StorageSchema.parsed_table_identifier/0` | F | — | Pass |
 | `Threadline.StorageSchema.identifier_input/0` | floor | — | Pass |
 | `Threadline.Telemetry.transaction_committed/2` | F | — | Pass |
-| `Threadline.Telemetry.transaction_value/0` | floor | — | Pass |
+| `Threadline.Telemetry.transaction_value/0` | F | — | Pass |
 | `Threadline.Telemetry.transaction_committed_opt/0` | floor | — | Pass |
-| `Threadline.Verify.CoveragePolicy.partition_findings/2` | F | — | Pass |
-| `Threadline.Verify.CoveragePolicy.summary_counts/2` | F | — | Pass |
-| `Threadline.Verify.CoveragePolicy.violations/2` | F | — | Pass |
+| `Threadline.Verify.CoveragePolicy.partition_findings/2` | floor | — | Pass |
+| `Threadline.Verify.CoveragePolicy.summary_counts/2` | floor | — | Pass |
+| `Threadline.Verify.CoveragePolicy.violations/2` | floor | — | Pass |
 | `Threadline.Verify.CoveragePolicy.partitioned_findings/0` | floor | — | Pass |
 | `Threadline.Verify.CoveragePolicy.summary_result/0` | floor | — | Pass |
 | `Threadline.Verify.CoveragePolicy.violation/0` | floor | — | Pass |
 | `Threadline.Verify.CoveragePolicy.coverage_entry/0` | floor | — | Pass |
-| `Threadline.Storage.init/1` | F | S-4 | See WR-03; callback option/error contracts need named adapter-defined types. |
-| `Threadline.Storage.put/2` | F | S-4 | See WR-03; callback option/error contracts need named adapter-defined types. |
-| `Threadline.Storage.get/1` | F | S-4 | See WR-03; adapter-owned error reason is bare term(). |
-| `Threadline.Storage.path/1` | F | S-4 | See WR-03; adapter-owned error reason is bare term(). |
-| `Threadline.Storage.download_url/2` | F | S-4 | See WR-03; callback option/error contracts need named adapter-defined types. |
-| `Threadline.Storage.delete/1` | F | S-4 | See WR-03; adapter-owned error reason is bare term(). |
-| `Threadline.ExportQueue.init/1` | F | S-4 | See WR-03; bare keyword() and term() callback boundaries lack named R-4/R-1 types. |
-| `Threadline.ExportQueue.enqueue/2` | F | S-4 | See WR-03; bare keyword() and term() callback boundaries lack named R-4/R-1 types. |
-| `Mix.Tasks.Threadline.Continuity.moduledoc` | F | M-1 | The opening is a noun-phrase fragment, not a complete sentence. |
+| `Threadline.Storage.init/1` | F | D-2, S-4 | See WR-03; success `:ok` is absent from the summary and adapter error reason lacks a named opaque type. |
+| `Threadline.Storage.put/2` | F | D-2, D-6, S-4 | See WR-03; summary omits return and declared error tuple; adapter error reason lacks a named opaque type. |
+| `Threadline.Storage.get/1` | F | D-2, D-6, S-4 | See WR-03; summary omits return and declared error tuple; adapter error reason lacks a named opaque type. |
+| `Threadline.Storage.path/1` | F | D-6, S-4 | See WR-03; adapter error reason beyond `:not_local` lacks documentation and a named opaque type. |
+| `Threadline.Storage.download_url/2` | F | D-2, S-4 | See WR-03; summary omits return and adapter error shape; callback option/error types need named forms. |
+| `Threadline.Storage.delete/1` | F | D-2, D-6, S-4 | See WR-03; summary omits return and declared error tuple; adapter error reason lacks a named opaque type. |
+| `Threadline.ExportQueue.init/1` | F | D-2, S-4 | See WR-03; success `:ok` is absent from the summary and bare keyword()/term() boundaries lack named types. |
+| `Threadline.ExportQueue.enqueue/2` | F | D-6, S-4 | See WR-03; the declared error tuple and bare keyword()/term() boundaries lack named types. |
+| `Mix.Tasks.Threadline.Continuity.moduledoc` | F | — | Present in generated input but the task module was unchanged in the phase diff. |
 | `Mix.Tasks.Threadline.Evidence.Show.moduledoc` | F | — | Pass |
 | `Mix.Tasks.Threadline.Export.moduledoc` | F | — | Pass |
 | `Mix.Tasks.Threadline.Gen.RowHistoryIndex.moduledoc` | F | — | Pass |
@@ -369,7 +369,7 @@ One row is included for each visible function, macro, public type, and touched m
 | `Threadline.Investigation.LinkedTransaction.moduledoc` | F | M-1 | The opening is a noun/participle fragment, not a complete one-sentence domain summary. |
 | `Threadline.Job.moduledoc` | F | — | Pass |
 | `Threadline.NotFoundError.moduledoc` | F | M-1 | The opening is a noun/participle fragment, not a complete one-sentence domain summary. |
-| `Threadline.OperatorSurface.moduledoc` | F | M-1 | The opening is a noun/participle fragment, not a complete one-sentence domain summary. |
+| `Threadline.OperatorSurface.moduledoc` | F | — | Present in generated input but its source file was unchanged in the phase diff. |
 | `Threadline.OperatorSurface.Auth.moduledoc` | F | — | Pass |
 | `Threadline.OperatorSurface.Router.moduledoc` | F | — | Pass |
 | `Threadline.Page.moduledoc` | F | M-1 | The opening is a noun/participle fragment, not a complete one-sentence domain summary. |
