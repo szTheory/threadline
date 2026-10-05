@@ -117,9 +117,9 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
       assert length(actual) == 2
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 0
+      refute Enum.any?(actual, fn {_, _, _, kind} -> kind == :missing_spec end)
       refute Enum.any?(actual, fn {_, _, _, kind} -> kind == :missing_doc end)
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 2
+      assert Enum.all?(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end)
     end
   end
 

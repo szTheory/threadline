@@ -19,7 +19,8 @@ defmodule Threadline.NotFoundError do
 
   defexception [:resource, :id]
 
-  @type t :: %__MODULE__{resource: atom(), id: term()}
+  @typedoc "A missing audit transaction identified by its caller-supplied UUID."
+  @type t :: %__MODULE__{resource: :audit_transaction, id: Ecto.UUID.t()}
 
   @impl true
   def message(%{resource: resource, id: id}) do

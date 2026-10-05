@@ -41,6 +41,8 @@ defmodule Threadline.DocRubricContractTest do
   ]
 
   @permanent_bare_allowlist %{
+    {Threadline.Audit, :spec, :transaction, 3} =>
+      "R1: callback results and caller-owned rollback reasons remain opaque",
     {Threadline, :type, :scope_opt, 0} => "R1: the caller's scope value is opaque to Threadline",
     {Threadline, :type, :scope_query_fn, 0} =>
       "R1: the callback receives an opaque scope and open surface-specific context params",
@@ -114,6 +116,7 @@ defmodule Threadline.DocRubricContractTest do
              [
                {Threadline, :type, :scope_opt, 0},
                {Threadline, :type, :scope_query_fn, 0},
+               {Threadline.Audit, :spec, :transaction, 3},
                {Threadline.Page, :type, :t, 0},
                {Threadline.Semantics.ActorRef, :spec, :from_map, 1},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
