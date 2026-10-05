@@ -168,7 +168,7 @@ Plans:
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: 6 plans
+**Plans**: 15 plans
 
 Plans:
 **Wave 1**
@@ -197,7 +197,7 @@ Plans:
 
 **Gap closure — Wave 1**
 
-- [ ] 234-07-PLAN.md — ActorRef, Subject, and Retention policy type and documentation corrections
+- [x] 234-07-PLAN.md — ActorRef, Subject, and Retention policy type and documentation corrections (completed 2026-10-05)
 - [ ] 234-08-PLAN.md — Storage and ExportQueue callback option, error, and return contracts
 - [ ] 234-09-PLAN.md — Audit, Retention, Continuity, and Health return-contract documentation
 - [ ] 234-10-PLAN.md — Captured-data notes and facade/ChangeDiff documentation corrections
