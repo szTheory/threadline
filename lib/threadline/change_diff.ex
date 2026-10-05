@@ -1,6 +1,6 @@
 defmodule Threadline.ChangeDiff do
   @moduledoc """
-  Pure projection of a single captured row change into deterministic, JSON-friendly maps.
+  Threadline.ChangeDiff projects one captured row change into deterministic, JSON-friendly maps.
 
   ## Authority
 
