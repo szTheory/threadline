@@ -28,17 +28,6 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Semantics.ActorRef, :from_map, 1, :missing_spec},
     {Threadline.Semantics.ActorRef, :new, 2, :missing_spec},
     {Threadline.Semantics.ActorRef, :to_map, 1, :missing_spec},
-    {Threadline.StorageSchema, :function, 2, :missing_spec},
-    {Threadline.StorageSchema, :get, 1, :missing_spec},
-    {Threadline.StorageSchema, :host_table_suffix, 1, :missing_spec},
-    {Threadline.StorageSchema, :parse_table_identifier, 1, :missing_spec},
-    {Threadline.StorageSchema, :qualified_host_table, 1, :missing_spec},
-    {Threadline.StorageSchema, :qualify, 2, :missing_spec},
-    {Threadline.StorageSchema, :quote_ident, 1, :missing_spec},
-    {Threadline.StorageSchema, :repo_opts, 1, :missing_spec},
-    {Threadline.StorageSchema, :table, 2, :missing_spec},
-    {Threadline.StorageSchema, :threadline_table?, 1, :missing_spec},
-    {Threadline.StorageSchema, :validate!, 1, :missing_spec},
     {Threadline.Telemetry, :transaction_committed, 2, :missing_spec},
     {Threadline.Verify.CoveragePolicy, :summary_counts, 2, :missing_spec},
     {Threadline.Verify.CoveragePolicy, :violations, 2, :missing_spec}
@@ -128,7 +117,7 @@ defmodule Threadline.DocSpecCoverageContractTest do
             {kind, name, arity, _doc, _metadata} <- DocContract.checked_entries(docs_v1),
             do: {module, kind, name, arity}
 
-      assert length(checked) >= 88,
+      assert length(checked) >= 82,
              "expected at least 88 visible entries, got #{length(checked)}"
 
       assert {Threadline, :function, :timeline, 2} in checked,
@@ -151,8 +140,8 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 37
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 24
+      assert length(actual) == 26
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 13
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_doc end) == 2
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 11
     end

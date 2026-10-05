@@ -36,6 +36,12 @@ and `Threadline.incident_bundle/2`.
   callable and may change in 1.x:
   - `Threadline.Evidence.Proof.present_record/1`
   - `Threadline.Evidence.Proof.record_claim_assessment/1`
+  - `Threadline.StorageSchema.quote_ident/1`
+  - `Threadline.StorageSchema.qualify/2`
+  - `Threadline.StorageSchema.function/2`
+  - `Threadline.StorageSchema.parse_table_identifier/1`
+  - `Threadline.StorageSchema.qualified_host_table/1`
+  - `Threadline.StorageSchema.host_table_suffix/1`
 
 - `Threadline.timeline/2`, `Threadline.timeline_page/2`, and
   `Threadline.actor_history/2`, `Threadline.actor_window/3`,

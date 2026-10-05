@@ -39,7 +39,7 @@ defmodule Threadline.ExportQueue.TaskAdapter do
   ## Options
 
   - `:storage_schema` — string. Defaults to the configured Threadline storage schema.
-  - `:supervisor` — process or registered supervisor name. Defaults to `Threadline.Export.TaskSupervisor`.
+  - `:supervisor` — process or registered supervisor name. Defaults to the application export task supervisor.
 
   Other option keys are ignored.
 
