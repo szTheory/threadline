@@ -6,11 +6,11 @@ current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
 current_plan: 12
 status: executing
-stopped_at: Completed 234-11-PLAN.md
-last_updated: "2026-10-05T22:30:03.676Z"
+stopped_at: "234-12 D-28 helper task passed independent plan check and is ready to execute"
+last_updated: "2026-10-05T23:43:34.000Z"
 last_activity: 2026-10-05
-last_activity_desc: Plan 234-11 complete; 234-12 ready to execute
-state_head: 2b6e2888f7439d4498f9c2e44959a76f3dedcd34
+last_activity_desc: Plan 234-12 D-55 coverage message fix committed; revised D-28 helper task passed plan check with privacy and four-path error evidence
+state_head: 789b5bf4ed77147ede58f6a9f40a298671fe2cb9
 progress:
   total_phases: 7
   completed_phases: 3
@@ -1021,7 +1021,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 234]: Opaque adapter error reasons use the recursive all-Elixir-values type pattern.
 - [Phase 234]: Documented operation return/error envelopes in first paragraphs; runtime and detailed options remain unchanged.
 - [Phase 234]: Kept the documentation coverage sentinel at its measured threshold of 82 entries.
-- [Phase 234]: Kept the checked-entry floor at the measured 82; the 90-entry D-54 conflict remains for Plan 12.
+- [Phase 234]: D-55 set the final D-11/D-54 checked-entry floor to 82; Plan 234-12 Task 1 committed the matching failure text as 789b5bf4 after measuring 52 modules / 82 visible entries.
+- [Phase 234]: Plan 234-12's first D-28 approach exposed the conflict between an exported raise-only helper and strict Dialyzer; the failed spec-removal attempt was restored, and the remaining plan now privatizes the helpers without changing CLI error behavior.
 - [Phase 234]: Document the existing domain behavior without changing fields, return claims, or the Phase 235 stability boundary.
 
 ### Blockers
@@ -1029,8 +1030,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 -
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
-- Plan 234-06 execution is incomplete: D-28 requires no_return() only on private raise-only helpers, but the pre-existing exported Threadline.CriticTrust.RepositoryBoundary.task_error!/3 spec is outside the amended files_modified scope. No authorized edit can resolve this; maintainer scope resolution is required before marking SPEC-02 or Phase 234 complete.
-- D-54 coverage threshold conflict: live checked-entry count is 82 while Plan 12 requires at least 90. Reconcile within Plan 12 without changing D-11 or broadening Plan 12 scope.
+- Plan 234-06 remains open on D-28; the active owner is the single remaining task in Plan 234-12. It makes RepositoryBoundary.task_error!/3 private and replaces the four Critic.Measure cross-module calls with a private local helper preserving the same error text.
+- Plan 234-12 Task 1 is complete in commit 789b5bf4. The attempted removal of the exported no_return() spec failed strict Dialyzer and was restored; only the revised D-28 helper-privacy task remains, pending the plan checker and execution.
 
 ### Quick Tasks Completed
 
@@ -1040,8 +1041,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-05T22:30:03.637Z
-**Stopped at:** Completed 234-11-PLAN.md
+**Last session:** 2026-10-05T23:24:22.000Z
+**Stopped at:** Plan 234-12 coverage task committed; revised D-28 helper task awaits independent plan check
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
