@@ -51,13 +51,13 @@
 
 ### SPEC: typespecs and docs
 
-- [ ] **SPEC-01**: Every public function in every documented module under `lib/` has a `@doc` and a `@spec`. Baseline is 129 of 169 missing (remeasured at the 233 close: 54 of 92 visible entries across 52 documented modules; the 129/169 figure predates phases 231–233). A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` fails on any gap, so coverage cannot regress.
+- [x] **SPEC-01**: Every public function in every documented module under `lib/` has a `@doc` and a `@spec`. Baseline is 129 of 169 missing (remeasured at the 233 close: 54 of 92 visible entries across 52 documented modules; the 129/169 figure predates phases 231–233). A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` fails on any gap, so coverage cannot regress.
 - [ ] **SPEC-02**: The specs give adopters real information.
   - No public spec uses bare `term()` or `any()` where a real shape exists.
   - Option arguments use named `@type` option lists rather than bare `keyword()`.
   - Reviewed in phase verification by agent review against a written rubric.
   - Strict Dialyzer stays green with zero ignores.
-- [ ] **SPEC-03**: The `Threadline` facade page in ExDoc groups functions by job using `@doc group:`: Capture & Transactions, Querying & Timelines, Actions & Context, Operations. A test asserts that every facade function has a group.
+- [x] **SPEC-03**: The `Threadline` facade page in ExDoc groups functions by job using `@doc group:`: Capture & Transactions, Querying & Timelines, Actions & Context, Operations. A test asserts that every facade function has a group.
 
 ### CONTRACT: the 1.x stability promise, enforced by tests
 
@@ -151,9 +151,9 @@
 | API-06 | Phase 233 | Complete |
 | API-07 | Phase 231 | Complete |
 | API-08 | Phase 232 | Complete |
-| SPEC-01 | Phase 234 | Pending |
+| SPEC-01 | Phase 234 | Complete |
 | SPEC-02 | Phase 234 | Pending |
-| SPEC-03 | Phase 234 | Pending |
+| SPEC-03 | Phase 234 | Complete |
 | CONTRACT-01 | Phase 235 | Pending |
 | CONTRACT-02 | Phase 235 | Pending |
 | CONTRACT-03 | Phase 235 | Pending |
