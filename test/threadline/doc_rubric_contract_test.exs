@@ -37,10 +37,6 @@ defmodule Threadline.DocRubricContractTest do
   @bare_type_ratchet [
     {{Threadline.Audit, :spec, :transaction, 3}, [:keyword, :term, :term, :term]},
     {{Threadline.Audit, :type, :action_opt, 0}, [:keyword]},
-    {{Threadline.Capture.AuditChange, :type, :t, 0},
-     [:term, :term, :term, :term, :term, :term, :term, :term, :term, :term, :term, :term]},
-    {{Threadline.Capture.AuditTransaction, :type, :t, 0},
-     [:term, :term, :term, :term, :term, :term, :term, :term, :term, :term]},
     {{Threadline.Evidence.Subject, :spec, :validate, 1}, [:term]},
     {{Threadline.Health.Finding, :type, :t, 0}, [:map]},
     {{Threadline.Investigation.IncidentBundle, :type, :t, 0},
