@@ -201,7 +201,7 @@ Plans:
 - [x] 234-08-PLAN.md — Storage and ExportQueue callback option, error, and return contracts (completed 2026-10-05)
 - [x] 234-09-PLAN.md — Audit, Retention, Continuity, and Health return-contract documentation (completed 2026-10-05)
 - [x] 234-10-PLAN.md — Captured-data notes and facade/ChangeDiff documentation corrections (completed 2026-10-05)
-- [ ] 234-11-PLAN.md — EvidenceRecord, investigation entities, LinkedChange, and Sigra module openings
+- [x] 234-11-PLAN.md — EvidenceRecord, investigation entities, LinkedChange, and Sigra module openings (completed 2026-10-05)
 - [ ] 234-12-PLAN.md — Enforce the approved checked-entry floor and remove the exported no-return spec
 
 **Gap closure — Wave 2** *(blocked on 234-11)*
@@ -216,7 +216,7 @@ Plans:
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-closure plans 234-07 through 234-15 passed the plan checker. Gap-only execution is in progress; 234-10 is complete, and 234-11 is next. Plan 12 must reconcile the live 82-entry count with its 90-entry floor without changing D-11 or widening its scope.
+**Execution note**: Gap-closure plans 234-07 through 234-15 passed the plan checker. Gap-only execution is in progress; 234-11 is complete, and 234-12 is next runnable. Plan 12 must reconcile the live 82-entry count with its 90-entry floor without changing D-11 or widening its scope.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
