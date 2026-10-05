@@ -1,6 +1,6 @@
 defmodule Threadline.Semantics.AuditAction do
   @moduledoc """
-  Ecto schema for the `audit_actions` table.
+  An `AuditAction` is an application-level event that records who did what and why.
 
   An `AuditAction` represents a semantic application-level event — who did
   what and why. It is distinct from `AuditTransaction` (which groups DB-level

@@ -1,6 +1,6 @@
 defmodule Threadline.Capture.AuditTransaction do
   @moduledoc """
-  Ecto schema for the `audit_transactions` table.
+  An `AuditTransaction` groups row changes from one database transaction; it is not a request or an action.
 
   An `AuditTransaction` groups every row mutation that occurred within a single
   PostgreSQL transaction. Records are created automatically by the capture
@@ -47,8 +47,23 @@ defmodule Threadline.Capture.AuditTransaction do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @typedoc "The row changes captured from one PostgreSQL database transaction."
-  @type t :: %__MODULE__{}
+  @typedoc """
+  A database transaction that groups captured row changes.
+
+  The virtual `:action` is a hydrated `Threadline.Semantics.AuditAction`; nil until hydrated.
+  """
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t() | nil,
+          txid: integer(),
+          occurred_at: DateTime.t(),
+          source: String.t() | nil,
+          meta: Threadline.json_map() | nil,
+          actor_ref: Threadline.Semantics.ActorRef.t() | nil,
+          action_id: Ecto.UUID.t() | nil,
+          action: struct() | nil,
+          changes: [Threadline.Capture.AuditChange.t()] | Ecto.Association.NotLoaded.t(),
+          __meta__: Ecto.Schema.Metadata.t()
+        }
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

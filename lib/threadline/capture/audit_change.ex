@@ -1,6 +1,6 @@
 defmodule Threadline.Capture.AuditChange do
   @moduledoc """
-  Ecto schema for the `audit_changes` table.
+  An `AuditChange` is one row mutation in one audited table.
 
   An `AuditChange` records a single row-level mutation (`INSERT`, `UPDATE`,
   or `DELETE`) on an audited table. Records are created automatically by
@@ -40,8 +40,25 @@ defmodule Threadline.Capture.AuditChange do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @typedoc "One row mutation (`INSERT`, `UPDATE`, or `DELETE`) in one audited table."
-  @type t :: %__MODULE__{}
+  @typedoc """
+  One persisted row mutation with its captured table, row key, operation, and JSON snapshots.
+
+  `:data_after` is nil for deletes, and `:changed_fields` is nil when no update fields were captured.
+  """
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t() | nil,
+          transaction_id: Ecto.UUID.t() | nil,
+          transaction: Threadline.Capture.AuditTransaction.t() | Ecto.Association.NotLoaded.t(),
+          table_schema: String.t(),
+          table_name: String.t(),
+          table_pk: Threadline.json_map(),
+          op: String.t(),
+          data_after: Threadline.json_map() | nil,
+          changed_fields: [String.t()] | nil,
+          changed_from: Threadline.json_map() | nil,
+          captured_at: DateTime.t(),
+          __meta__: Ecto.Schema.Metadata.t()
+        }
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
