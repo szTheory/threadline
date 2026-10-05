@@ -27,8 +27,8 @@ defmodule Threadline.Semantics.ActorRef do
   @typedoc "A stable actor reference with a supported type and an optional string identifier."
   @type t :: %__MODULE__{type: actor_type(), id: String.t() | nil}
 
-  @typedoc "A JSON object with a required string `type` key and an optional string `id` key."
-  @type actor_map :: %{required(String.t()) => String.t()}
+  @typedoc "A non-empty map with string keys and string or nil values used to store an ActorRef."
+  @type actor_map :: %{required(String.t()) => String.t() | nil}
 
   @enforce_keys [:type]
   defstruct [:type, :id]
@@ -70,7 +70,12 @@ defmodule Threadline.Semantics.ActorRef do
 
   def identifiable?(_actor_ref), do: false
 
-  @doc "Returns the string-keyed JSON object used to store an ActorRef."
+  @doc """
+  Returns the string-keyed JSON object used to store an ActorRef.
+
+  The `"type"` key is always present. Anonymous actors have no `"id"` key; other actor types
+  include an `"id"` key.
+  """
   @spec to_map(t()) :: actor_map()
   def to_map(%__MODULE__{type: :anonymous}) do
     %{"type" => "anonymous"}
