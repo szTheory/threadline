@@ -198,7 +198,7 @@ Plans:
 **Gap closure — Wave 1**
 
 - [x] 234-07-PLAN.md — ActorRef, Subject, and Retention policy type and documentation corrections (completed 2026-10-05)
-- [ ] 234-08-PLAN.md — Storage and ExportQueue callback option, error, and return contracts
+- [x] 234-08-PLAN.md — Storage and ExportQueue callback option, error, and return contracts (completed 2026-10-05)
 - [ ] 234-09-PLAN.md — Audit, Retention, Continuity, and Health return-contract documentation
 - [ ] 234-10-PLAN.md — Captured-data notes and facade/ChangeDiff documentation corrections
 - [ ] 234-11-PLAN.md — EvidenceRecord, investigation entities, LinkedChange, and Sigra module openings
@@ -216,7 +216,7 @@ Plans:
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-closure plans 234-07 through 234-15 passed the plan checker. Gap-only execution is in progress.
+**Execution note**: Gap-closure plans 234-07 through 234-15 passed the plan checker. Gap-only execution is in progress; 234-08 is complete, and 234-09 is next.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
