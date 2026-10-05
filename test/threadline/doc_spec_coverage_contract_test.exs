@@ -15,10 +15,7 @@ defmodule Threadline.DocSpecCoverageContractTest do
     {Threadline.Investigation.IncidentChange, :t, 0, :missing_typedoc},
     {Threadline.Investigation.LinkedChange, :t, 0, :missing_typedoc},
     {Threadline.Investigation.LinkedTransaction, :t, 0, :missing_typedoc},
-    {Threadline.NotFoundError, :t, 0, :missing_typedoc},
-    {Threadline.Semantics.ActorRef, :from_map, 1, :missing_spec},
-    {Threadline.Semantics.ActorRef, :new, 2, :missing_spec},
-    {Threadline.Semantics.ActorRef, :to_map, 1, :missing_spec}
+    {Threadline.NotFoundError, :t, 0, :missing_typedoc}
   ]
 
   @newly_hidden_keys [

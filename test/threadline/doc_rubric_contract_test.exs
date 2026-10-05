@@ -134,8 +134,7 @@ defmodule Threadline.DocRubricContractTest do
        :term,
        :term
      ]},
-    {{Threadline.NotFoundError, :type, :t, 0}, [:term]},
-    {{Threadline.Semantics.ActorRef, :type, :t, 0}, [:term, :term]}
+    {{Threadline.NotFoundError, :type, :t, 0}, [:term]}
   ]
   @private_type_reference_ratchet []
 
