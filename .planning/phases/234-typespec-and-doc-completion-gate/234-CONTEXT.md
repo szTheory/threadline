@@ -388,6 +388,7 @@ They read `prompts/`, `brandbook/brand-book.md`, 231–233 CONTEXT, ExDoc 0.40.1
   The researcher flagged this as the one policy call with no clear winner. Ecosystem practice leans toward minor/patch; it is recorded here for 235 to write.
 - **D-52:** **234 → 236:** 234 adds weight lines for its new test files. 236 regenerates the weights (CI-01) and owns the permanent missing-weight check.
 - **D-53:** **234 → 237:** the upgrade guide takes the D-08 hidden functions and the D-15 closed allowlists as part of the facade-collapse step. The D-49 Dialyzer note goes in an unnumbered "Notes" item.
+- **D-54 (2026-10-05 gap-closure scope amendment):** The maintainer approved one narrow exception to D-48's gate/pin edit prohibition. A Phase 234 gap-closure plan may edit only `test/threadline/doc_spec_coverage_contract_test.exs` to raise the existing checked-entry vacuity sentinel from `>= 82` to `>= 90` (and correct its matching failure message), satisfying the already locked D-11 floor and T-234-01. This permits no other gate or pin edit; every other D-48 restriction remains unchanged.
 
 ### Claude's Discretion
 - Exact wording of the group descriptions beyond D-30, and of the doc prose.
