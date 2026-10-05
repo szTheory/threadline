@@ -4,6 +4,157 @@ defmodule Threadline.DocContract do
   @type gap ::
           {module(), atom(), non_neg_integer(), :missing_doc | :missing_spec | :missing_typedoc}
 
+  @review_hidden_pin %{
+    {Mix.Tasks.Threadline.Health.Coverage, :legacy_findings_or_hint, 2} =>
+      "Builds the internal fallback when a coverage report is empty.",
+    {Threadline.Capture.AuditChange, :changeset, 2} =>
+      "Validates an internal captured-row persistence record.",
+    {Threadline.Capture.AuditTransaction, :changeset, 2} =>
+      "Validates an internal transaction persistence record.",
+    {Threadline.Governance.EvidenceRecord, :changeset, 2} =>
+      "Validates an internal evidence persistence record.",
+    {Threadline.Health, :classify, 3} =>
+      "Classifies captured tables for the internal health report.",
+    {Threadline.Health, :coverage_by_schema, 1} =>
+      "Groups internal coverage rows by storage schema.",
+    {Threadline.Semantics.AuditAction, :changeset, 2} =>
+      "Validates an internal action persistence record.",
+    {Threadline.Storage.S3, :delete, 2} =>
+      "Deletes an object through the internal S3 adapter contract.",
+    {Threadline.Storage.S3, :get, 2} =>
+      "Reads an object through the internal S3 adapter contract.",
+    {Threadline.StorageSchema, :validate_identifier!, 3} =>
+      "Validates identifiers for internal schema-owned SQL statements.",
+    {Threadline.Telemetry, :emit_action_recorded, 1} =>
+      "Emits the internal action-recorded event.",
+    {Threadline.Telemetry, :emit_actor_ref_mismatch, 0} =>
+      "Emits the internal actor-reference mismatch event.",
+    {Threadline.Telemetry, :emit_batch_purged, 3} => "Emits the internal retention batch event.",
+    {Threadline.Telemetry, :emit_export_authorize_error, 0} =>
+      "Emits the internal export authorization error event.",
+    {Threadline.Telemetry, :emit_export_completed, 4} =>
+      "Emits the internal export completion event.",
+    {Threadline.Telemetry, :emit_export_failed, 5} => "Emits the internal export failure event.",
+    {Threadline.Telemetry, :emit_findings_checked, 2} =>
+      "Emits the internal health findings event.",
+    {Threadline.Telemetry, :emit_health_checked, 3} => "Emits the internal coverage check event.",
+    {Threadline.Telemetry, :emit_health_checked_error, 1} =>
+      "Emits the internal coverage check error event.",
+    {Threadline.Telemetry, :emit_operator_surface_authorize, 3} =>
+      "Emits the internal operator authorization event.",
+    {Threadline.Telemetry, :emit_row_history_truncated, 2} =>
+      "Emits the internal row-history truncation event.",
+    {Threadline.Telemetry, :emit_transaction_committed_proxy, 0} =>
+      "Emits the internal transaction-committed proxy event.",
+    {Threadline.Telemetry, :purge_span, 2} => "Measures an internal retention purge span.",
+    {Threadline.Evidence.Proof, :present_record, 1} =>
+      "newly hidden for 1.0: renders an evidence record for the operator surface.",
+    {Threadline.Evidence.Proof, :record_claim_assessment, 1} =>
+      "newly hidden for 1.0: builds a claim assessment for the operator surface.",
+    {Threadline.StorageSchema, :quote_ident, 1} =>
+      "newly hidden for 1.0: quotes an identifier for internal generated SQL.",
+    {Threadline.StorageSchema, :qualify, 2} =>
+      "newly hidden for 1.0: qualifies an identifier with its storage schema.",
+    {Threadline.StorageSchema, :function, 2} =>
+      "newly hidden for 1.0: builds an internal storage function name.",
+    {Threadline.StorageSchema, :parse_table_identifier, 1} =>
+      "newly hidden for 1.0: parses a table identifier for internal SQL.",
+    {Threadline.StorageSchema, :qualified_host_table, 1} =>
+      "newly hidden for 1.0: resolves a host table to a qualified identifier.",
+    {Threadline.StorageSchema, :host_table_suffix, 1} =>
+      "newly hidden for 1.0: derives the internal host-table suffix."
+  }
+
+  @review_bare_allowlist %{
+    {Threadline.Audit, :spec, :transaction, 3} =>
+      "R1: callback results and caller-owned rollback reasons remain opaque",
+    {Threadline, :type, :scope_opt, 0} => "R1: the caller's scope value is opaque to Threadline",
+    {Threadline, :type, :scope_query_fn, 0} =>
+      "R1: the callback receives an opaque scope and open surface-specific context params",
+    {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1} =>
+      "R2: predicate accepts arbitrary input and reports whether it identifies an actor",
+    {Threadline.Semantics.ActorRef, :spec, :from_map, 1} =>
+      "R2: validator accepts arbitrary input and reports when it is not an ActorRef JSON map",
+    {Threadline.Evidence.Subject, :spec, :validate, 1} =>
+      "R2: validator accepts arbitrary input and includes the unsupported value in its error",
+    {Threadline.Storage, :type, :options, 0} =>
+      "R4: storage options are defined by the adapter contract",
+    {Threadline.Page, :type, :t, 0} =>
+      "R1: the producer chooses the page entry type; callers should prefer t(entry)"
+  }
+
+  @spec review_hidden_pin() :: %{{module(), atom(), non_neg_integer()} => String.t()}
+  def review_hidden_pin, do: @review_hidden_pin
+
+  @spec review_bare_allowlist() :: %{
+          {module(), :spec | :type, atom(), non_neg_integer()} => String.t()
+        }
+  def review_bare_allowlist, do: @review_bare_allowlist
+
+  @spec review_dump() :: String.t()
+  def review_dump do
+    module_sections =
+      Enum.map(universe(), fn {module, docs_v1, specs_result} ->
+        specs = normalize_specs(specs_result)
+        {:docs_v1, _, _, _, moduledoc, _, entries} = docs_v1
+
+        function_sections =
+          checked_entries(docs_v1)
+          |> Enum.map(fn {kind, name, arity, doc, _metadata} ->
+            spec_text = review_specs(specs, name, arity)
+
+            [
+              "### #{inspect(module)}.#{name}/#{arity} (#{kind})",
+              "\n\n```text\n",
+              docs_text(doc),
+              "\n```\n\n**Specs**\n\n```elixir\n",
+              spec_text,
+              "\n```"
+            ]
+          end)
+
+        type_sections = review_types(module, entries)
+
+        [
+          "## #{inspect(module)}",
+          "\n\n",
+          first_paragraph(docs_text(moduledoc)),
+          "\n\n",
+          Enum.intersperse(function_sections ++ type_sections, "\n\n")
+        ]
+        |> IO.iodata_to_binary()
+      end)
+
+    hidden_section =
+      @review_hidden_pin
+      |> Enum.sort_by(fn {{module, name, arity}, _reason} ->
+        {inspect(module), Atom.to_string(name), arity}
+      end)
+      |> Enum.map_join("\n", fn {{module, name, arity}, reason} ->
+        "- `#{inspect(module)}.#{name}/#{arity}` — #{reason}"
+      end)
+
+    bare_section =
+      @review_bare_allowlist
+      |> Enum.sort_by(fn {{module, kind, name, arity}, _rule} ->
+        {inspect(module), Atom.to_string(kind), Atom.to_string(name), arity}
+      end)
+      |> Enum.map_join("\n", fn {{module, kind, name, arity}, rule} ->
+        "- `#{inspect(module)} #{kind} #{name}/#{arity}` — #{rule}"
+      end)
+
+    [
+      "# Documentation and Typespec Review Input\n\n",
+      Enum.intersperse(module_sections, "\n\n"),
+      "\n\n## Hidden entries and reasons\n\n",
+      hidden_section,
+      "\n\n## Permanent broad-type allowances and rules\n\n",
+      bare_section,
+      "\n"
+    ]
+    |> IO.iodata_to_binary()
+  end
+
   @spec universe() :: [{module(), tuple(), list()}]
   def universe do
     {:ok, modules} = :application.get_key(:threadline, :modules)
@@ -203,6 +354,71 @@ defmodule Threadline.DocContract do
       _error -> []
     end
   end
+
+  defp review_specs(specs, name, arity) do
+    specs
+    |> Enum.flat_map(fn
+      {{^name, ^arity}, clauses} -> clauses
+      _other -> []
+    end)
+    |> Enum.map_join("\n", fn clause ->
+      clause
+      |> then(&Code.Typespec.spec_to_quoted(name, &1))
+      |> Macro.to_string()
+    end)
+  end
+
+  defp review_types(module, docs_entries) do
+    case Code.Typespec.fetch_types(module) do
+      {:ok, types} ->
+        types
+        |> Enum.flat_map(fn
+          {kind, {name, type_ast, args}}
+          when kind in [:type, :opaque] ->
+            doc = type_doc(docs_entries, name, length(args))
+
+            declaration =
+              {name, type_ast, args}
+              |> Code.Typespec.type_to_quoted()
+              |> Macro.to_string()
+
+            [
+              "### #{inspect(module)}.#{name}/#{length(args)} (@#{kind})",
+              "\n\n",
+              docs_text(doc),
+              "\n\n```elixir\n",
+              declaration,
+              "\n```"
+            ]
+
+          _private_or_unknown ->
+            []
+        end)
+
+      _no_types ->
+        []
+    end
+  end
+
+  defp type_doc(docs_entries, name, arity) do
+    Enum.find_value(docs_entries, :none, fn
+      {{doc_kind, ^name, ^arity}, _anno, _signature, typedoc, _metadata}
+      when doc_kind in [:type, :opaque] ->
+        typedoc
+
+      _other ->
+        nil
+    end)
+  end
+
+  defp docs_text(doc) when is_binary(doc), do: doc
+
+  defp docs_text(doc) when is_map(doc) do
+    Map.get(doc, "en") ||
+      Enum.find_value(doc, "", fn {_locale, text} -> if is_binary(text), do: text end)
+  end
+
+  defp docs_text(_missing), do: ""
 
   defp fetch_docs!(module) do
     case Code.fetch_docs(module) do

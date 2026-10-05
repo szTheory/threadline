@@ -71,8 +71,8 @@ No new dependencies. This phase is pure stdlib (`Code`, `Code.Typespec`, `:beam_
 
 | Library | Version (verified in mix.lock) | Purpose |
 |---------|---------|---------|
-| `ex_doc` | `0.40.1` installed; `mix.exs:108` currently pins `"~> 0.34"` — D-34 raises it to `"~> 0.40"` | ExDoc grouping (`:group` metadata arrived in 0.36) [VERIFIED: /Users/jon/projects/threadline/mix.lock:15 — `"ex_doc": {:hex, :ex_doc, "0.40.1", ...}`] |
-| `dialyxir` | `1.4.8` [VERIFIED: /Users/jon/projects/threadline/mix.lock:7] | Dialyzer wrapper, `mix dialyzer` |
+| `ex_doc` | `0.40.1` installed; `mix.exs:108` currently pins `"~> 0.34"` — D-34 raises it to `"~> 0.40"` | ExDoc grouping (`:group` metadata arrived in 0.36) [VERIFIED: `mix.lock:15` — `"ex_doc": {:hex, :ex_doc, "0.40.1", ...}`] |
+| `dialyxir` | `1.4.8` [VERIFIED: `mix.lock:7`] | Dialyzer wrapper, `mix dialyzer` |
 | Elixir | `1.17.3` on OTP 27 [VERIFIED: ran `elixir --version` this session] | `~> 1.15` floor unchanged in `mix.exs:46` |
 
 **Installation:** none — no new packages. This phase only edits `mix.exs`'s `{:ex_doc, ...}` version constraint string and the `dialyzer:` keyword list, both already dependencies.
@@ -153,7 +153,7 @@ test/threadline/
 **Example (adapted from the `source_size_contract_test.exs` exact-pin exception pattern, confirmed present at the cited lines):**
 ```elixir
 # Source: existing pattern read directly this session —
-# /Users/jon/projects/threadline/test/threadline/source_size_contract_test.exs:51-63
+# test/threadline/source_size_contract_test.exs:51-63
 @file_exceptions %{
   "lib/threadline/operator_surface/stress_fixtures.ex" =>
     {980, "declarative fixture data tables; excluded from the Hex package (mix.exs exclude_patterns)"}
@@ -259,11 +259,11 @@ This confirms D-10's mutation-control design is correct as specified: the in-tes
 ### ExDoc group resolution — confirmed against the vendored `deps/ex_doc` source this session
 
 ```elixir
-# Source: /Users/jon/projects/threadline/deps/ex_doc/lib/ex_doc/config.ex:7
+# Source: deps/ex_doc/lib/ex_doc/config.ex:7
 def default_group_for_doc(metadata), do: metadata[:group]
 ```
 ```elixir
-# Source: /Users/jon/projects/threadline/deps/ex_doc/lib/ex_doc/retriever.ex:142-150
+# Source: deps/ex_doc/lib/ex_doc/retriever.ex:142-150
 moduledoc_groups = Map.get(metadata, :groups, [])
 docs_groups =
   get_docs_groups(
@@ -278,7 +278,7 @@ Confirms D-29's ordering claim: `@moduledoc groups:` entries are consulted ahead
 ### Ecto's `@moduledoc groups:` precedent — confirmed present at the cited line
 
 ```elixir
-# Source: /Users/jon/projects/threadline/deps/ecto/lib/ecto/repo.ex:223 (grepped this session)
+# Source: deps/ecto/lib/ecto/repo.ex:223 (grepped this session)
 @moduledoc groups: [
   # ... (groups list; line 250 shows the per-function form: @doc group: "Process API")
 ]
@@ -288,7 +288,7 @@ Confirms D-29's ordering claim: `@moduledoc groups:` entries are consulted ahead
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|---------------|--------|
-| `mix.exs` `dialyzer: [flags: [:unmatched_returns, :extra_return], ...]` | Adds `:missing_return, :underspecs, :error_handling` | This phase (D-26) | 22 new warnings surface, all fixable in-code/spec per CONTEXT's own prior measurement; confirmed current flag list is exactly `[:unmatched_returns, :extra_return]` today [VERIFIED: /Users/jon/projects/threadline/mix.exs:72 read directly this session] |
+| `mix.exs` `dialyzer: [flags: [:unmatched_returns, :extra_return], ...]` | Adds `:missing_return, :underspecs, :error_handling` | This phase (D-26) | 22 new warnings surface, all fixable in-code/spec per CONTEXT's own prior measurement; confirmed current flag list is exactly `[:unmatched_returns, :extra_return]` today [VERIFIED: `mix.exs:72` read directly this session] |
 | `{:ex_doc, "~> 0.34", only: :dev, runtime: false}` | `{:ex_doc, "~> 0.40", ...}` | This phase (D-34) | `:group` metadata (needed for SPEC-03) arrived in ExDoc 0.36; 0.40.1 is already the resolved/installed version in `mix.lock`, so this is a constraint-string fix, not a real upgrade |
 | Hand-written "Reading audit data" function list in the `Threadline` moduledoc | Short `## Jobs` section, one bullet per group | This phase (D-32) | The only group signal ExDoc's Markdown/`llms.txt` output preserves, per D-32 |
 
@@ -378,21 +378,21 @@ None blocking. CONTEXT.md's 53 decisions cover every architectural and mechanica
 ## Sources
 
 ### Primary (HIGH confidence — read directly this session)
-- `/Users/jon/projects/threadline/mix.exs` — current `dialyzer:` flags (`:unmatched_returns`, `:extra_return` only), `{:ex_doc, "~> 0.34"}` pin, `docs()` function (no `groups_for_docs`)
-- `/Users/jon/projects/threadline/mix.lock` — `ex_doc` 0.40.1, `dialyxir` 1.4.8 resolved versions
-- `/Users/jon/projects/threadline/.dialyzer_ignore.exs` — confirmed `[]`
-- `/Users/jon/projects/threadline/test/threadline/dialyzer_ignore_contract_test.exs` — confirmed current flags assertion `[:extra_return, :unmatched_returns]`
-- `/Users/jon/projects/threadline/test/threadline/public_surface_contract_test.exs` — confirmed `@hidden_modules`/`@hidden_functions` structure
-- `/Users/jon/projects/threadline/test/threadline/facade_naming_contract_test.exs` — confirmed existing `async: true`, `since`/`deprecated` metadata assertion pattern
-- `/Users/jon/projects/threadline/test/threadline/source_size_contract_test.exs` — confirmed `@file_exceptions` exact-pin pattern at lines 51-63, `@file_limit 800`
-- `/Users/jon/projects/threadline/lib/threadline/investigation.ex:21` — confirmed `@row_history_opt_keys` includes `surface`
-- `/Users/jon/projects/threadline/lib/threadline/query/transaction_lookup.ex:15,97-134` — confirmed `@lookup_opt_keys`, `fetch_row/2`/`fetch/2` WR-01 bug shape (resolve_id checked before `Keyword.fetch!(opts, :repo)`)
-- `/Users/jon/projects/threadline/lib/threadline/operator_surface/live/actor_live.ex:32,39,309,317-318,351,359-360,394,401-402,431,438-439` — confirmed D-17 call sites (`surface: :actor_history, params: %{...}`)
-- `/Users/jon/projects/threadline/lib/threadline/operator_surface/controllers/export_controller.ex:178-179` — confirmed D-17 call site (`surface: :export, params: %{filters: filters}`)
-- `/Users/jon/projects/threadline/deps/ex_doc/lib/ex_doc/config.ex:7,116-124` — confirmed `default_group_for_doc/1` and `groups_for_docs` precedence
-- `/Users/jon/projects/threadline/deps/ex_doc/lib/ex_doc/retriever.ex:140-150,260-265` — confirmed group-ordering logic
-- `/Users/jon/projects/threadline/deps/ecto/lib/ecto/repo.ex:223,250` — confirmed `@moduledoc groups:`/`@doc group:` precedent
-- `/Users/jon/projects/threadline/test/partition_weights.txt`, `/Users/jon/projects/threadline/bin/ci-test-partitions` — confirmed format and `--write-weights` regeneration mechanism
+- `mix.exs` — current `dialyzer:` flags (`:unmatched_returns`, `:extra_return` only), `{:ex_doc, "~> 0.34"}` pin, `docs()` function (no `groups_for_docs`)
+- `mix.lock` — `ex_doc` 0.40.1, `dialyxir` 1.4.8 resolved versions
+- `.dialyzer_ignore.exs` — confirmed `[]`
+- `test/threadline/dialyzer_ignore_contract_test.exs` — confirmed current flags assertion `[:extra_return, :unmatched_returns]`
+- `test/threadline/public_surface_contract_test.exs` — confirmed `@hidden_modules`/`@hidden_functions` structure
+- `test/threadline/facade_naming_contract_test.exs` — confirmed existing `async: true`, `since`/`deprecated` metadata assertion pattern
+- `test/threadline/source_size_contract_test.exs` — confirmed `@file_exceptions` exact-pin pattern at lines 51-63, `@file_limit 800`
+- `lib/threadline/investigation.ex:21` — confirmed `@row_history_opt_keys` includes `surface`
+- `lib/threadline/query/transaction_lookup.ex:15,97-134` — confirmed `@lookup_opt_keys`, `fetch_row/2`/`fetch/2` WR-01 bug shape (resolve_id checked before `Keyword.fetch!(opts, :repo)`)
+- `lib/threadline/operator_surface/live/actor_live.ex:32,39,309,317-318,351,359-360,394,401-402,431,438-439` — confirmed D-17 call sites (`surface: :actor_history, params: %{...}`)
+- `lib/threadline/operator_surface/controllers/export_controller.ex:178-179` — confirmed D-17 call site (`surface: :export, params: %{filters: filters}`)
+- `deps/ex_doc/lib/ex_doc/config.ex:7,116-124` — confirmed `default_group_for_doc/1` and `groups_for_docs` precedence
+- `deps/ex_doc/lib/ex_doc/retriever.ex:140-150,260-265` — confirmed group-ordering logic
+- `deps/ecto/lib/ecto/repo.ex:223,250` — confirmed `@moduledoc groups:`/`@doc group:` precedent
+- `test/partition_weights.txt`, `bin/ci-test-partitions` — confirmed format and `--write-weights` regeneration mechanism
 - Live measurement this session (`MIX_ENV=test mix run <scratch script>`, deleted after use): enumerated the real 52-documented-module / 92-checked-entry / 54-gap universe against the real compiled `threadline` app, matching CONTEXT D-01/D-07 exactly, including the precise 8 D-07 hide candidates (`StorageSchema.quote_ident/1` etc., `Evidence.Proof.present_record/1`/`record_claim_assessment/1`)
 - Live measurement this session: confirmed `Code.fetch_docs/1` returns `{:error, :module_not_found}` for a `Code.compile_string`-produced module, validating D-10's binary-read mutation-control design
 
