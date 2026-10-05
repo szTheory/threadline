@@ -6,16 +6,16 @@ defmodule Mix.Tasks.Threadline.Install do
 
   ## Usage
 
-      mix threadline.install
-      mix threadline.install --migrations-path priv/audit/migrations
-      mix threadline.install --repo MyApp.AuditRepo
+  ```sh
+  mix threadline.install
+  mix threadline.install --migrations-path priv/audit/migrations
+  mix threadline.install --repo MyApp.AuditRepo
+  ```
 
   ## Options
 
-    * `--migrations-path PATH` - write the migrations to `PATH`, used as given
-      and relative to the current directory. The repo is not loaded.
-    * `--repo REPO` / `-r REPO` - the Ecto repo whose migrations directory to
-      use. Give it once: Threadline's audit tables live in one repo.
+  - `--migrations-path PATH` — write the migrations to `PATH`, used as given and relative to the current directory. The repo is not loaded.
+  - `--repo REPO` / `-r REPO` — the Ecto repo whose migrations directory to use. Give it once: Threadline's audit tables live in one repo.
 
   Without either option the directory is the first repo in your app's
   `:ecto_repos`: its `:priv` setting joined with `migrations`, or

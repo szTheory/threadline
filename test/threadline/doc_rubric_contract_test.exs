@@ -7,29 +7,6 @@ defmodule Threadline.DocRubricContractTest do
   @root Path.expand("../..", __DIR__)
   @unknown_key_sentence "Unknown keys raise `ArgumentError` naming the allowed keys."
 
-  @option_parity_ratchet []
-  @first_paragraph_ratchet [
-    {Threadline.ExportQueue, :type, :job_id, 0, :empty_first_paragraph},
-    {Threadline.Integrations.Sigra, :type, :audit_overrides, 0, :empty_first_paragraph}
-  ]
-  @deprecated_reference_ratchet []
-  @voice_ratchet []
-  @since_ratchet []
-  @code_block_ratchet [
-    {Mix.Tasks.Threadline.Gen.RowHistoryIndex, :module, :moduledoc, 0,
-     {:unparseable_indented_block, 2}},
-    {Mix.Tasks.Threadline.Gen.RowHistoryIndex, :module, :moduledoc, 0,
-     {:unparseable_indented_block, 3}},
-    {Mix.Tasks.Threadline.Incident, :module, :moduledoc, 0, {:unparseable_indented_block, 1}},
-    {Mix.Tasks.Threadline.Install, :module, :moduledoc, 0, {:unparseable_indented_block, 2}},
-    {Mix.Tasks.Threadline.Install, :module, :moduledoc, 0, {:unparseable_indented_block, 3}},
-    {Threadline.Storage.S3, :module, :moduledoc, 0, {:unparseable_indented_block, 2}}
-  ]
-  @bare_type_ratchet [
-    {{Threadline.Evidence.Subject, :spec, :validate, 1}, [:term]}
-  ]
-  @private_type_reference_ratchet []
-
   @new_in_1_0 [
     {Threadline, :actor_window, 3},
     {Threadline, :audit_transaction!, 2},
@@ -50,38 +27,36 @@ defmodule Threadline.DocRubricContractTest do
       "R2: predicate accepts arbitrary input and reports whether it identifies an actor",
     {Threadline.Semantics.ActorRef, :spec, :from_map, 1} =>
       "R2: validator accepts arbitrary input and reports when it is not an ActorRef JSON map",
+    {Threadline.Evidence.Subject, :spec, :validate, 1} =>
+      "R2: validator accepts arbitrary input and includes the unsupported value in its error",
     {Threadline.Storage, :type, :options, 0} =>
       "R4: storage options are defined by the adapter contract",
     {Threadline.Page, :type, :t, 0} =>
       "R1: the producer chooses the page entry type; callers should prefer t(entry)"
   }
 
-  test "option and filter docs, types, and runtime allowlists match their exact ratchet" do
+  test "option and filter docs, types, and runtime allowlists have no gaps" do
     actual = option_parity_findings()
 
-    assert actual == @option_parity_ratchet,
-           "option parity changed; measured findings: #{inspect(actual, limit: :infinity)}"
+    assert actual == [], "option parity findings: #{inspect(actual, limit: :infinity)}"
   end
 
-  test "first paragraphs and placeholders match the exact M2 ratchet" do
+  test "first paragraphs and placeholders have no M2 findings" do
     actual = first_paragraph_findings()
 
-    assert actual == @first_paragraph_ratchet,
-           "M2 first-paragraph findings changed: #{inspect(actual, limit: :infinity)}"
+    assert actual == [], "M2 first-paragraph findings: #{inspect(actual, limit: :infinity)}"
   end
 
-  test "docs do not point to deprecated entries outside the exact M4 ratchet" do
+  test "docs do not point to deprecated entries" do
     actual = deprecated_reference_findings()
 
-    assert actual == @deprecated_reference_ratchet,
-           "M4 deprecated references changed: #{inspect(actual, limit: :infinity)}"
+    assert actual == [], "M4 deprecated references: #{inspect(actual, limit: :infinity)}"
   end
 
-  test "voice and sentence endings match the exact M6 ratchet" do
+  test "voice and sentence endings have no M6 findings" do
     actual = voice_findings()
 
-    assert actual == @voice_ratchet,
-           "M6 voice findings changed: #{inspect(actual, limit: :infinity)}"
+    assert actual == [], "M6 voice findings: #{inspect(actual, limit: :infinity)}"
   end
 
   test "since metadata is limited to the pinned 1.0 names" do
@@ -94,21 +69,19 @@ defmodule Threadline.DocRubricContractTest do
     assert actual == expected,
            "@doc since metadata changed; measured: #{inspect(actual, limit: :infinity)}"
 
-    assert since_findings() == @since_ratchet
+    assert since_findings() == []
   end
 
-  test "indented examples parse and iex prompts match the exact M8 ratchet" do
+  test "indented examples parse and have no unsupported iex prompts" do
     actual = code_block_findings()
 
-    assert actual == @code_block_ratchet,
-           "M8 code-block findings changed: #{inspect(actual, limit: :infinity)}"
+    assert actual == [], "M8 code-block findings: #{inspect(actual, limit: :infinity)}"
   end
 
-  test "bare types match the exact ratchet and the reasoned permanent cases" do
+  test "bare types use only the reasoned permanent cases" do
     actual = bare_type_findings()
 
-    assert actual == @bare_type_ratchet,
-           "bare-type findings changed; added: #{inspect(actual -- @bare_type_ratchet, limit: :infinity)}; removed: #{inspect(@bare_type_ratchet -- actual, limit: :infinity)}"
+    assert actual == [], "bare-type findings: #{inspect(actual, limit: :infinity)}"
 
     measured = all_bare_type_occurrences()
 
@@ -117,6 +90,7 @@ defmodule Threadline.DocRubricContractTest do
                {Threadline, :type, :scope_opt, 0},
                {Threadline, :type, :scope_query_fn, 0},
                {Threadline.Audit, :spec, :transaction, 3},
+               {Threadline.Evidence.Subject, :spec, :validate, 1},
                {Threadline.Page, :type, :t, 0},
                {Threadline.Semantics.ActorRef, :spec, :from_map, 1},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
@@ -134,8 +108,7 @@ defmodule Threadline.DocRubricContractTest do
   test "public specs do not reference hidden modules or private types" do
     actual = private_type_reference_findings()
 
-    assert actual == @private_type_reference_ratchet,
-           "hidden/private type references changed: #{inspect(actual, limit: :infinity)}"
+    assert actual == [], "hidden/private type references: #{inspect(actual, limit: :infinity)}"
   end
 
   test "type_keys follows tagged unions and local types, with an extra-key mutation control" do

@@ -4,11 +4,6 @@ defmodule Threadline.DocSpecCoverageContractTest do
 
   alias Threadline.DocContract
 
-  @gap_ratchet [
-    {Threadline.ExportQueue, :job_id, 0, :missing_typedoc},
-    {Threadline.Integrations.Sigra, :audit_overrides, 0, :missing_typedoc}
-  ]
-
   @newly_hidden_keys [
     {Threadline.StorageSchema, :quote_ident, 1},
     {Threadline.StorageSchema, :qualify, 2},
@@ -100,26 +95,17 @@ defmodule Threadline.DocSpecCoverageContractTest do
              "expected the facade timeline/2 entry to be part of the scanned universe"
     end
 
-    test "all live gaps match the baseline ratchet exactly" do
+    test "all live entries have documentation and specs" do
       actual =
         DocContract.universe()
         |> Enum.flat_map(fn {module, docs_v1, specs} ->
           DocContract.gaps(module, docs_v1, specs)
         end)
 
-      new_gaps = actual -- @gap_ratchet
-      fixed_but_still_pinned = @gap_ratchet -- actual
-
-      assert actual == @gap_ratchet,
+      assert actual == [],
              "documentation/specification coverage changed.\n" <>
-               "new gap(s):\n#{DocContract.format_gaps(new_gaps)}\n" <>
-               "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
+               "gap(s):\n#{DocContract.format_gaps(actual)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
-
-      assert length(actual) == 2
-      refute Enum.any?(actual, fn {_, _, _, kind} -> kind == :missing_spec end)
-      refute Enum.any?(actual, fn {_, _, _, kind} -> kind == :missing_doc end)
-      assert Enum.all?(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end)
     end
   end
 
@@ -171,19 +157,14 @@ defmodule Threadline.DocSpecCoverageContractTest do
         if key in @newly_hidden_keys do
           assert String.starts_with?(reason, "newly hidden for 1.0:"),
                  "transition pin #{inspect(key)} must carry its 1.0 reason"
+        end
 
-          if doc == :hidden do
-            assert unreleased =~ "#{inspect(module)}.#{name}/#{arity}",
-                   "newly hidden #{inspect(module)}.#{name}/#{arity} is missing from the Unreleased changelog"
-          else
-            assert Enum.any?(@gap_ratchet, fn {gap_module, gap_name, gap_arity, _kind} ->
-                     {gap_module, gap_name, gap_arity} == key
-                   end),
-                   "visible transition pin #{inspect(key)} must still be in the gap ratchet"
-          end
-        else
-          assert doc == :hidden,
-                 "existing hidden pin #{inspect(key)} is visible and has no transition allowance"
+        assert doc == :hidden,
+               "hidden pin #{inspect(key)} is visible"
+
+        if key in @newly_hidden_keys do
+          assert unreleased =~ "#{inspect(module)}.#{name}/#{arity}",
+                 "newly hidden #{inspect(module)}.#{name}/#{arity} is missing from the Unreleased changelog"
         end
       end
     end

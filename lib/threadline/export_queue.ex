@@ -27,6 +27,7 @@ defmodule Threadline.ExportQueue do
   `Threadline.ExportQueue.Oban` for durable, multi-node execution.
   """
 
+  @typedoc "The identifier of an existing export job passed to the configured queue adapter."
   @type job_id :: String.t() | binary()
 
   @doc """

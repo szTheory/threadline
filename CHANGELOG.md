@@ -199,6 +199,10 @@ and `Threadline.incident_bundle/2`.
   replaced by `cursor:` (a map, or `{:before, map}` to walk newer) and
   `page_size:`. Removal is no earlier than Threadline 2.0.
 
+### Changed
+
+- Options and results now have named types. Dialyzer users may see new warnings on calls Threadline already rejects at runtime.
+
 ### Added
 
 - `Threadline.audit_transaction/2`, and `audit_transaction!/2`,

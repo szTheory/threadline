@@ -9,6 +9,7 @@ defmodule Threadline.Integrations.Sigra do
 
   alias Threadline.Semantics.ActorRef
 
+  @typedoc "Additive audit context values derived from Sigra request state."
   @type audit_overrides :: %{optional(:correlation_id) => String.t()}
 
   @doc """

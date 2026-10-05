@@ -26,7 +26,9 @@ defmodule Mix.Tasks.Threadline.Gen.RowHistoryIndex do
   present and skips it on a retry, so the fix and a retry look like nothing
   happened. Drop the invalid index first, then rerun `mix ecto.migrate`:
 
-      DROP INDEX CONCURRENTLY IF EXISTS <storage_schema>.audit_changes_row_history_idx;
+  ```sql
+  DROP INDEX CONCURRENTLY IF EXISTS <storage_schema>.audit_changes_row_history_idx;
+  ```
 
   Rolling back the generated migration drops the index the same
   non-blocking way, with `DROP INDEX CONCURRENTLY IF EXISTS`.
@@ -35,9 +37,11 @@ defmodule Mix.Tasks.Threadline.Gen.RowHistoryIndex do
 
   The raw SQL, run against your configured storage schema, is the fallback:
 
-      CREATE INDEX CONCURRENTLY IF NOT EXISTS audit_changes_row_history_idx
-        ON <storage_schema>.audit_changes
-        (table_schema, table_name, table_pk, captured_at DESC, id DESC);
+  ```sql
+  CREATE INDEX CONCURRENTLY IF NOT EXISTS audit_changes_row_history_idx
+    ON <storage_schema>.audit_changes
+    (table_schema, table_name, table_pk, captured_at DESC, id DESC);
+  ```
 
   ## Options
 

@@ -51,7 +51,7 @@
 
 ### SPEC: typespecs and docs
 
-- [ ] **SPEC-01**: Every public function in every documented module under `lib/` has a `@doc` and a `@spec`. Baseline is 129 of 169 missing. A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` fails on any gap, so coverage cannot regress.
+- [ ] **SPEC-01**: Every public function in every documented module under `lib/` has a `@doc` and a `@spec`. Baseline is 129 of 169 missing (remeasured at the 233 close: 54 of 92 visible entries across 52 documented modules; the 129/169 figure predates phases 231–233). A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` fails on any gap, so coverage cannot regress.
 - [ ] **SPEC-02**: The specs give adopters real information.
   - No public spec uses bare `term()` or `any()` where a real shape exists.
   - Option arguments use named `@type` option lists rather than bare `keyword()`.

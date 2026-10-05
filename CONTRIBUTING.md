@@ -68,6 +68,8 @@ mix verify.dialyzer         # strict Dialyzer analysis (builds the dev PLT)
 mix verify.dialyzer_slice   # live Dialyzer slice proof (needs the dev PLT)
 ```
 
+`mix verify.test` and `mix ci.all` run `test/threadline/doc_spec_coverage_contract_test.exs` and `test/threadline/doc_rubric_contract_test.exs` as the documentation and spec gates.
+
 Integration tests use a **real** database and triggers; they are not excluded from `mix test`.
 
 `test/test_helper.exs` excludes exactly two tags from default `mix test`, both

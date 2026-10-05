@@ -163,7 +163,7 @@ Plans:
 **Requirements**: SPEC-01, SPEC-02, SPEC-03
 **Success Criteria** (what must be TRUE):
 
-  1. A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` reports zero public functions missing a `@doc` or `@spec` across every documented module under `lib/`, down from a baseline of 129 of 169 missing. Adding an undocumented or unspecced public function turns it red (mutation control recorded).
+  1. A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` reports zero public functions missing a `@doc` or `@spec` across every documented module under `lib/`, down from a baseline of 129 of 169 missing (remeasured at the 233 close: 54 of 92 visible entries across 52 documented modules; the 129/169 figure predates phases 231–233). Adding an undocumented or unspecced public function turns it red (mutation control recorded).
   2. No public spec uses bare `term()` or `any()` where a real shape exists, and option arguments use named `@type` option lists rather than bare `keyword()`. Agent review against a written rubric records a pass in VERIFICATION.md.
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
