@@ -2,7 +2,7 @@
 phase: "234"
 slug: "typespec-and-doc-completion-gate"
 status: draft
-threats_open: 1
+threats_open: 4
 asvs_level: 1
 created: "2026-10-05"
 ---
@@ -36,7 +36,7 @@ created: "2026-10-05"
 
 | Threat ID | Category | Component | Severity | Disposition | Mitigation | Status |
 |-----------|----------|-----------|----------|-------------|------------|--------|
-| T-234-01 | Tampering | Doc/spec coverage sentinel | high | mitigate | Raise the checked-entry sentinel to the approved >=90 floor; preserve module, facade-entry, and Docs-chunk checks. | open |
+| T-234-01 | Tampering | Doc/spec coverage sentinel | high | mitigate | Keep the D-55-approved >=82 visible function/macro entry floor and correct its failure message; preserve module, facade-entry, Docs-chunk, and D-07 hidden-pin checks. | open |
 | T-234-02 | Repudiation | Ratchet pins | medium | mitigate | Exact-set pins and zero-gap gates; ratchet machinery retired in Plan 06. | closed |
 | T-234-03 | Information disclosure | Public facade options | high | mitigate | Closed per-function allowlists exclude internal scope labels; contract tests cover facade functions. | closed |
 | T-234-04 | Denial of service | Actor LiveView after API closure | medium | mitigate | Call sites use the supported query API and scoped LiveView tests pass. | closed |
@@ -58,6 +58,11 @@ created: "2026-10-05"
 | T-234-15 | Repudiation | Self-review of documentation quality | medium | mitigate | A fresh agent reviewed the complete generated surface against the frozen rubric; report records its findings. | closed |
 | T-234-16 | Denial of service | Cold PLT rebuild | low | accept | Plan 06 accepts one bounded cold PLT rebuild of about nine minutes. | closed — accepted |
 | T-234-SC (Plan 06) | Tampering | Package installation, Plan 06 | low | accept | Plan 06 records no package installation. | closed — accepted |
+| T-234-22 | Tampering | Coverage vacuity floor, Plan 12 | high | mitigate | Retain the D-55 >=82 D-03 visible function/macro assertion, align its failure message, and prove the module, facade timeline, Docs-chunk, and D-07 hidden-pin checks with Plan 12's focused gate and measured inventory. | open |
+| T-234-23 | Tampering | RepositoryBoundary public typespec, Plan 12 | medium | mitigate | Remove the exported bang helper's no_return spec; require the compiled-spec probe, focused caller test, and strict Dialyzer evidence from Plan 12. | open — below high threshold |
+| T-234-24 | Repudiation | Independent D-46 review, Plan 13 | high | mitigate | Require a fresh independent reviewer, a dated report tied to the regenerated input hash, complete positive surface inventory, WR-01 through WR-07 evidence, and the validated PASS-only handoff; a valid FAIL blocks Plan 15. | open |
+| T-234-25 | Repudiation | Error, page, telemetry, and investigation module summaries, Plan 14 | low | mitigate | Apply frozen M-1/M-2 criteria and require the independent D-46 reviewer to inspect all five current moduledocs, including IncidentChange and LinkedTransaction. | open — below high threshold |
+| T-234-26 | Repudiation | Security and SPEC-02 sign-off, Plan 15 | high | mitigate | Revalidate the current D-46 PASS, strict Dialyzer, D-28 compiled-spec probe, D-55 coverage gate, and source-backed closure of every open high threat before setting threats_open: 0 or status: verified. | open |
 
 *Status: open · closed · open — below high threshold (non-blocking) · closed — accepted*
 *Only open threats at or above workflow.security_block_on count toward threats_open.*
@@ -83,6 +88,7 @@ created: "2026-10-05"
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-10-05 | 22 | 18 | 4 | gsd-security-auditor; independent D-46 reviewer |
+| 2026-10-05 | 27 | 18 | 9 | planning reconciliation of active Plans 12–15 |
 
 ---
 

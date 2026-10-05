@@ -216,7 +216,7 @@ Plans:
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-closure plans 234-07 through 234-15 passed the plan checker. Gap-only execution is in progress; 234-11 is complete, and 234-12 is next runnable. Plan 12 must reconcile the live 82-entry count with its 90-entry floor without changing D-11 or widening its scope.
+**Execution note**: Gap-only execution is in progress; 234-11 is complete, and 234-12 is next runnable. D-55 supersedes only the earlier D-11/D-54 90-entry threshold: the final floor is >=82 D-03 visible function/macro entries after D-07 deliberately hid eight internal helpers. Plan 12 corrects the stale failure message and the RepositoryBoundary spec without adding or exposing public APIs; the revised plans passed the independent phase-wide check (55/55 decisions covered, no active-plan blockers).
 
 ### Phase 235: Stability Contract and Adopter Guides
 
