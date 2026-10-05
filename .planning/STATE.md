@@ -6,10 +6,10 @@ current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
 current_plan: 6
 status: blocked
-stopped_at: Blocked at D-28 in 234-06; all six tasks and verification complete, scope resolution required
-last_updated: "2026-10-05T15:46:00.898Z"
+stopped_at: Phase 234 verification found D-28, D-46, and security gaps; plan gap closure before re-execution
+last_updated: "2026-10-05T17:27:19Z"
 last_activity: 2026-10-05
-last_activity_desc: Plan 234-06 tasks and verification complete; blocked on D-28 scope resolution
+last_activity_desc: Plan 234-06 and phase verification complete; gaps found in D-28, D-46, and T-234-01; next plan 234 gaps
 state_head: 4fc4941b23ae9b190bea8971c551ab558f9a748e
 progress:
   total_phases: 7
@@ -33,8 +33,8 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 Phase: 234 (Typespec and Doc Completion Gate) — BLOCKED
 Current Plan: 6
 Total Plans in Phase: 6
-Status: Plan 6 tasks and verification complete; D-28 acceptance unresolved pending scope resolution
-Last activity: 2026-10-05 — 234-06 blocked on pre-existing RepositoryBoundary.task_error!/3 scope conflict
+Status: Plan 6 tasks complete; phase verification found D-28, D-46, and T-234-01 gaps
+Last activity: 2026-10-05 — 234 verification gaps_found; next `$gsd-plan-phase 234 --gaps`
 
 v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 

@@ -225,7 +225,7 @@ Phase 237 API-contract handoff (D-53): the eight newly hidden functions are `Thr
 
 ## Next Phase Readiness
 
-The D-46 review input is ready for fresh-agent review, and phase 235 can use the D-51 stability-policy handoff. All six tasks and their verification ran, but this plan remains **incomplete** because its plan-wide D-28 criterion is unresolved: the pre-existing exported bang-function spec is outside the amended file scope. Do not advance SPEC-02 or mark this plan complete until the maintainer resolves that scope conflict. The orchestrator should restore the temporary `workflow.use_worktrees=false` setting and dispatch-isolation sentinel to their prior values after execution.
+All six tasks ran, but this plan remains **incomplete** because D-28 is unresolved: the pre-existing exported bang-function spec is outside the amended file scope. The subsequent Phase 234 verification also found the independent D-46 review's two blockers and five warnings, plus the high security threat T-234-01; see `234-VERIFICATION.md`, `234-D46-REVIEW.md`, and `234-SECURITY.md`. Under Plan 234-06's D-48 scope rule, plan those gaps before implementation. Do not advance SPEC-02 or Phase 235 yet. The temporary `workflow.use_worktrees` setting and dispatch-isolation sentinel have been restored. Next command: `$gsd-plan-phase 234 --gaps`.
 
 ## Self-Check: PASSED
 

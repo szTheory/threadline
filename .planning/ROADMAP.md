@@ -193,7 +193,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 234-06-PLAN.md — SPEC-02 close: five strict Dialyzer flags with every measured finding fixed and zero ignores, ratchets deleted (gates assert zero), live mutation recorded, CHANGELOG/CONTRIBUTING/baseline notes, review input, `mix ci.all` (wave 6). Tasks and verification completed; acceptance remains blocked by the pre-existing exported `RepositoryBoundary.task_error!/3` `no_return()` spec outside the amended scope (D-28).
+- [ ] 234-06-PLAN.md — SPEC-02 close: five strict Dialyzer flags with every measured finding fixed and zero ignores, ratchets deleted (gates assert zero), live mutation recorded, CHANGELOG/CONTRIBUTING/baseline notes, review input, `mix ci.all` (wave 6). Tasks completed; phase verification remains gaps_found: D-28 exported `RepositoryBoundary.task_error!/3` `no_return()` spec, D-46 WR-01/02 blockers plus WR-03–07 warnings, and high security threat T-234-01. Next: `$gsd-plan-phase 234 --gaps`.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
