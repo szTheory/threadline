@@ -9,17 +9,8 @@ defmodule Threadline.DocRubricContractTest do
 
   @option_parity_ratchet []
   @first_paragraph_ratchet [
-    {Threadline.Audit, :type, :action_opt, 0, :empty_first_paragraph},
     {Threadline.ExportQueue, :type, :job_id, 0, :empty_first_paragraph},
-    {Threadline.Health.Finding, :type, :code, 0, :empty_first_paragraph},
-    {Threadline.Health.Finding, :type, :severity, 0, :empty_first_paragraph},
-    {Threadline.Health.Finding, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.Integrations.Sigra, :type, :audit_overrides, 0, :empty_first_paragraph},
-    {Threadline.Investigation.IncidentBundle, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.Investigation.IncidentChange, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.Investigation.LinkedChange, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.Investigation.LinkedTransaction, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.NotFoundError, :type, :t, 0, :empty_first_paragraph}
+    {Threadline.Integrations.Sigra, :type, :audit_overrides, 0, :empty_first_paragraph}
   ]
   @deprecated_reference_ratchet []
   @voice_ratchet []
@@ -35,102 +26,7 @@ defmodule Threadline.DocRubricContractTest do
     {Threadline.Storage.S3, :module, :moduledoc, 0, {:unparseable_indented_block, 2}}
   ]
   @bare_type_ratchet [
-    {{Threadline.Audit, :spec, :transaction, 3}, [:keyword, :term, :term, :term]},
-    {{Threadline.Audit, :type, :action_opt, 0}, [:keyword]},
-    {{Threadline.Evidence.Subject, :spec, :validate, 1}, [:term]},
-    {{Threadline.Health.Finding, :type, :t, 0}, [:map]},
-    {{Threadline.Investigation.IncidentBundle, :type, :t, 0},
-     [
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term
-     ]},
-    {{Threadline.Investigation.IncidentChange, :type, :t, 0}, [:map]},
-    {{Threadline.Investigation.LinkedChange, :type, :t, 0},
-     [
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term
-     ]},
-    {{Threadline.Investigation.LinkedTransaction, :type, :t, 0},
-     [
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term,
-       :term
-     ]},
-    {{Threadline.NotFoundError, :type, :t, 0}, [:term]}
+    {{Threadline.Evidence.Subject, :spec, :validate, 1}, [:term]}
   ]
   @private_type_reference_ratchet []
 

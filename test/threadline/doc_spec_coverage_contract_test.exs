@@ -5,17 +5,8 @@ defmodule Threadline.DocSpecCoverageContractTest do
   alias Threadline.DocContract
 
   @gap_ratchet [
-    {Threadline.Audit, :action_opt, 0, :missing_typedoc},
     {Threadline.ExportQueue, :job_id, 0, :missing_typedoc},
-    {Threadline.Health.Finding, :code, 0, :missing_typedoc},
-    {Threadline.Health.Finding, :severity, 0, :missing_typedoc},
-    {Threadline.Health.Finding, :t, 0, :missing_typedoc},
-    {Threadline.Integrations.Sigra, :audit_overrides, 0, :missing_typedoc},
-    {Threadline.Investigation.IncidentBundle, :t, 0, :missing_typedoc},
-    {Threadline.Investigation.IncidentChange, :t, 0, :missing_typedoc},
-    {Threadline.Investigation.LinkedChange, :t, 0, :missing_typedoc},
-    {Threadline.Investigation.LinkedTransaction, :t, 0, :missing_typedoc},
-    {Threadline.NotFoundError, :t, 0, :missing_typedoc}
+    {Threadline.Integrations.Sigra, :audit_overrides, 0, :missing_typedoc}
   ]
 
   @newly_hidden_keys [
@@ -125,10 +116,10 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "fixed but still pinned:\n#{DocContract.format_gaps(fixed_but_still_pinned)}\n" <>
                "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
 
-      assert length(actual) == 11
+      assert length(actual) == 2
       assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_spec end) == 0
       refute Enum.any?(actual, fn {_, _, _, kind} -> kind == :missing_doc end)
-      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 11
+      assert Enum.count(actual, fn {_, _, _, kind} -> kind == :missing_typedoc end) == 2
     end
   end
 
