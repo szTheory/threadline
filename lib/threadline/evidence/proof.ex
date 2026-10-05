@@ -30,6 +30,12 @@ defmodule Threadline.Evidence.Proof do
   @typedoc "A keyword list selecting the evidence included in a proof document."
   @type proof_request :: [proof_request_opt()]
 
+  @typedoc "A supported proof read mode."
+  @type proof_mode :: :latest | :history
+
+  @typedoc "A filter accepted by a proof read."
+  @type proof_filter :: {:from, DateTime.t()} | {:to, DateTime.t()} | {:limit, pos_integer()}
+
   @typedoc "An option accepted by proof document reads."
   @type proof_opt :: Threadline.repo_opt() | {:generated_at, DateTime.t()}
 
@@ -87,11 +93,11 @@ defmodule Threadline.Evidence.Proof do
   """
   @spec proof_document(proof_request(), [proof_opt()]) :: proof_document()
   def proof_document(request, opts) when is_list(request) and is_list(opts) do
-    repo = Keyword.fetch!(opts, :repo)
+    repo = repo_option(opts)
     generated_at = Keyword.get(opts, :generated_at, DateTime.utc_now(:microsecond))
 
     subject = request_subject(request)
-    subject_ref = Keyword.get(request, :subject_ref)
+    subject_ref = request_subject_ref(request)
     mode = Keyword.get(request, :mode, :latest)
     filters = request_filters(request)
     records = fetch_records(subject, subject_ref, mode, filters, repo)
@@ -194,16 +200,41 @@ defmodule Threadline.Evidence.Proof do
     record_verdict(record)
   end
 
-  defp request_subject(request), do: Keyword.get(request, :subject)
+  @spec request_subject(proof_request()) :: Subject.subject_descriptor() | nil
+  defp request_subject([]), do: nil
+  defp request_subject([{:subject, subject} | _rest]), do: subject
+  defp request_subject([_entry | rest]), do: request_subject(rest)
 
+  @spec request_subject_ref(proof_request()) :: Evidence.subject_ref() | nil
+  defp request_subject_ref([]), do: nil
+  defp request_subject_ref([{:subject_ref, subject_ref} | _rest]), do: subject_ref
+  defp request_subject_ref([_entry | rest]), do: request_subject_ref(rest)
+
+  @spec request_filters(proof_request()) :: [proof_filter()]
   defp request_filters(request) do
     request
     |> Keyword.take([:from, :to, :limit])
   end
 
+  @spec repo_option([proof_opt()]) :: module()
+  defp repo_option(opts) do
+    case Keyword.fetch!(opts, :repo) do
+      repo when is_atom(repo) -> repo
+      other -> raise ArgumentError, "expected :repo to be a module, got: #{inspect(other)}"
+    end
+  end
+
+  @spec subject_label(Subject.subject_descriptor() | nil) :: Threadline.json_value()
   defp subject_label(nil), do: "overview"
   defp subject_label(subject), do: subject
 
+  @spec fetch_records(
+          Subject.subject_descriptor() | nil,
+          Evidence.subject_ref() | nil,
+          proof_mode(),
+          [proof_filter()],
+          module()
+        ) :: [EvidenceRecord.t()]
   defp fetch_records(nil, nil, :latest, filters, repo),
     do: Evidence.list_overview(filters, repo: repo)
 
@@ -319,6 +350,7 @@ defmodule Threadline.Evidence.Proof do
       hd(verdicts)
   end
 
+  @spec json_filters(Evidence.subject_ref() | nil, [proof_filter()]) :: Threadline.json_map()
   defp json_filters(subject_ref, filters) do
     filters
     |> Enum.into(%{}, fn {key, value} -> {Atom.to_string(key), filter_value(value)} end)

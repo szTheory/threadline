@@ -337,7 +337,7 @@ defmodule Threadline.Evidence do
     |> maybe_filter_to(Keyword.get(filters, :to))
     |> order_by([record], desc: record.recorded_at, desc: record.id)
     |> maybe_limit(Keyword.get(filters, :limit))
-    |> repo.all(StorageSchema.repo_opts(filters ++ opts))
+    |> repo.all(StorageSchema.repo_opts(storage_opts(opts)))
   end
 
   @doc """
@@ -438,7 +438,7 @@ defmodule Threadline.Evidence do
     |> distinct([record], record.subject_ref)
     |> order_by([record], asc: record.subject_ref, desc: record.recorded_at, desc: record.id)
     |> maybe_limit(Keyword.get(filters, :limit))
-    |> repo.all(StorageSchema.repo_opts(filters ++ opts))
+    |> repo.all(StorageSchema.repo_opts(storage_opts(opts)))
     |> Enum.sort_by(
       fn record -> {DateTime.to_unix(record.recorded_at, :microsecond), record.id} end,
       :desc
@@ -523,7 +523,7 @@ defmodule Threadline.Evidence do
     |> where([record], record.subject_ref == ^normalized_subject_ref)
     |> order_by([record], desc: record.recorded_at, desc: record.id)
     |> limit(1)
-    |> repo.one(StorageSchema.repo_opts(opts))
+    |> repo.one(StorageSchema.repo_opts(storage_opts(opts)))
   end
 
   defp record_subject(subject, subject_ref, attrs, opts) do
@@ -537,7 +537,7 @@ defmodule Threadline.Evidence do
 
       %EvidenceRecord{}
       |> EvidenceRecord.changeset(attrs)
-      |> Keyword.fetch!(opts, :repo).insert(StorageSchema.repo_opts(opts))
+      |> Keyword.fetch!(opts, :repo).insert(StorageSchema.repo_opts(storage_opts(opts)))
     end
   end
 
@@ -648,6 +648,9 @@ defmodule Threadline.Evidence do
               "evidence :repo must be an Ecto.Repo module (atom), got: #{inspect(other)}"
     end
   end
+
+  @spec storage_opts([record_opt()]) :: [Threadline.storage_schema_opt()]
+  defp storage_opts(opts), do: Keyword.take(opts, [:storage_schema])
 
   defp validate_subject!(subject) do
     normalized_subject = normalize_subject!(subject)

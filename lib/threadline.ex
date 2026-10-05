@@ -398,7 +398,7 @@ defmodule Threadline do
   `{:error, :before_audit_horizon}` when the row has no snapshot at or before
   the requested timestamp. These are outcomes callers branch on, not a lookup
   miss — a deleted or pre-horizon row is not "absence is a bug" — so
-  There is no bang sibling because deletion and the audit horizon are expected results.
+  There is no `!` sibling because deletion and the audit horizon are expected results.
 
   ## Options
 
@@ -718,8 +718,8 @@ defmodule Threadline do
     do: row_history(schema_module, id, LegacyOpts.row_history_page(filters, opts))
 
   @doc """
-  Returns linked change rows made by one actor across audited tables, newest
-  first, as a list or `%Threadline.Page{}`.
+  Returns `%Threadline.Investigation.LinkedChange{}` rows made by one actor
+  across audited tables, newest first, as a list or `%Threadline.Page{}`.
 
   Use `actor_history/2` for one row per transaction. Pass `:cursor` to walk the
   changes in keyset pages.

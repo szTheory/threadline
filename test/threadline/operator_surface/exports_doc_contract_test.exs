@@ -3,6 +3,7 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   use ExUnit.Case, async: true
 
   alias Threadline.OperatorSurface.Exports.Filename
+  alias Threadline.Query.OptionKeys
   alias Threadline.Test.SourceFamily
 
   @router_path "lib/threadline/operator_surface/router.ex"
@@ -11,7 +12,6 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
   @plug_path "lib/threadline/operator_surface/export_auth_plug.ex"
   @filename_path "lib/threadline/operator_surface/exports/filename.ex"
   @filter_params_path "lib/threadline/query/filter_params.ex"
-  @query_path "lib/threadline/query.ex"
 
   # ---- EXPO-05: button-label literals (D-22 + D-26) ----
 
@@ -128,15 +128,9 @@ defmodule Threadline.OperatorSurface.ExportsDocContractTest do
 
   describe "filter-key parity (D-26)" do
     test "controller filter-param parsing covers the same allowlist as Threadline.Query (parity guarantee)" do
-      query_src = File.read!(@query_path)
-
-      [_, allowlist_block] =
-        Regex.run(~r/@allowed_timeline_filter_keys\s+~w\(([^)]+)\)a/, query_src) ||
-          flunk("could not find @allowed_timeline_filter_keys in #{@query_path}")
-
       lib_keys =
-        allowlist_block
-        |> String.split()
+        OptionKeys.filters(:timeline)
+        |> Enum.map(&Atom.to_string/1)
         |> MapSet.new()
         |> MapSet.delete("repo")
 
