@@ -659,6 +659,7 @@ defmodule Threadline do
   @doc group: "Querying & Timelines"
   @spec row_history(module(), row_id(), [row_history_filter()], [row_history_legacy_opt()]) ::
           [Threadline.Investigation.LinkedChange.t()]
+          | Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def row_history(schema_module, id, filters, opts)
       when is_list(filters) and is_list(opts) do
     row_history(schema_module, id, LegacyOpts.row_history(filters, opts))
@@ -715,7 +716,13 @@ defmodule Threadline do
         ) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def row_history_page(schema_module, id, filters \\ [], opts \\ []),
-    do: row_history(schema_module, id, LegacyOpts.row_history_page(filters, opts))
+    do:
+      %Threadline.Page{} =
+        Investigation.row_history(
+          schema_module,
+          id,
+          LegacyOpts.row_history_page(filters, opts)
+        )
 
   @doc """
   Returns `%Threadline.Investigation.LinkedChange{}` rows made by one actor
@@ -808,7 +815,9 @@ defmodule Threadline do
         ) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def actor_window_page(actor_ref, filters \\ [], opts \\ []),
-    do: actor_window(actor_ref, filters, LegacyOpts.cursor(opts))
+    do:
+      %Threadline.Page{} =
+        Investigation.actor_window(actor_ref, filters, LegacyOpts.cursor(opts))
 
   @doc """
   Returns linked change rows for one `correlation_id`, newest first, as a list
@@ -901,7 +910,13 @@ defmodule Threadline do
         ) ::
           Threadline.Page.t(Threadline.Investigation.LinkedChange.t())
   def correlation_bundle_page(correlation_id, filters \\ [], opts \\ []),
-    do: correlation_bundle(correlation_id, filters, LegacyOpts.cursor(opts))
+    do:
+      %Threadline.Page{} =
+        Investigation.correlation_bundle(
+          correlation_id,
+          filters,
+          LegacyOpts.cursor(opts)
+        )
 
   @doc """
   Returns `{:ok, %Threadline.Capture.AuditTransaction{}}` for one visible

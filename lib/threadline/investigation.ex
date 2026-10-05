@@ -46,7 +46,8 @@ defmodule Threadline.Investigation do
   Returns row history for one schema row using the retired `(filters, opts)`
   shape, with 0.12's unbounded default.
   """
-  @spec row_history(module(), term(), keyword(), keyword()) :: [LinkedChange.t()]
+  @spec row_history(module(), term(), keyword(), keyword()) ::
+          [LinkedChange.t()] | Threadline.Page.t(LinkedChange.t())
   def row_history(schema_module, id, filters, opts)
       when is_list(filters) and is_list(opts) do
     row_history(schema_module, id, LegacyOpts.row_history(filters, opts))
@@ -66,7 +67,13 @@ defmodule Threadline.Investigation do
     filters =
       validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history_page)
 
-    row_history(schema_module, id, LegacyOpts.cursor(filters ++ opts))
+    opts = LegacyOpts.row_history_page(filters, opts)
+    validate_row_history_opts!(opts)
+    validate_row_history_mode!(opts)
+
+    schema_module
+    |> RowReads.page(id, opts)
+    |> linked_page(opts)
   end
 
   @doc """
@@ -104,7 +111,13 @@ defmodule Threadline.Investigation do
   @spec actor_window_page(ActorRef.t(), keyword(), keyword()) ::
           Threadline.Page.t(LinkedChange.t())
   def actor_window_page(%ActorRef{} = actor_ref, filters \\ [], opts \\ []) do
-    actor_window(actor_ref, filters, LegacyOpts.cursor(opts))
+    OptionKeys.validate_filters!(filters, :actor_window)
+    filters = Keyword.put(filters, :actor_ref, actor_ref)
+    opts = LegacyOpts.cursor(opts)
+
+    filters
+    |> Query.timeline_page(opts)
+    |> linked_page(opts)
   end
 
   @doc """
@@ -143,7 +156,13 @@ defmodule Threadline.Investigation do
           Threadline.Page.t(LinkedChange.t())
   def correlation_bundle_page(correlation_id, filters \\ [], opts \\ [])
       when is_binary(correlation_id) do
-    correlation_bundle(correlation_id, filters, LegacyOpts.cursor(opts))
+    OptionKeys.validate_filters!(filters, :correlation_bundle)
+    filters = Keyword.put(filters, :correlation_id, correlation_id)
+    opts = LegacyOpts.cursor(opts)
+
+    filters
+    |> Query.timeline_page(opts)
+    |> linked_page(opts)
   end
 
   @doc """

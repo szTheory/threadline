@@ -124,8 +124,12 @@ defmodule Threadline.Query.Cursors do
   walk after it; `{:before, map}` walks backward from it. Returns
   `{cursor_map_or_nil, direction}`.
   """
-  @spec validate_actor_history_page_cursor!(:start | nil | map() | {:before, map()}) ::
-          {map() | nil, :forward | :backward}
+  @spec validate_actor_history_page_cursor!(
+          :start
+          | Threadline.Page.actor_cursor()
+          | {:before, Threadline.Page.actor_cursor()}
+        ) ::
+          {Threadline.Page.actor_cursor() | nil, :forward | :backward}
   def validate_actor_history_page_cursor!(:start), do: {nil, :forward}
 
   def validate_actor_history_page_cursor!(nil) do
@@ -239,7 +243,8 @@ defmodule Threadline.Query.Cursors do
   caller) begins a walk; `nil` raises; a cursor map is validated by
   `validate_timeline_cursor!/1`.
   """
-  @spec validate_page_cursor!(:start | nil | map()) :: nil | map()
+  @spec validate_page_cursor!(:start | Threadline.Page.change_cursor() | nil) ::
+          Threadline.Page.change_cursor() | nil
   def validate_page_cursor!(:start), do: nil
 
   def validate_page_cursor!(nil) do

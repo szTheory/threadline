@@ -65,6 +65,7 @@ defmodule Threadline.Query do
     changes
     |> repo.preload([:transaction], storage_opts([], opts))
     |> hydrate_actions(repo, opts)
+    |> Enum.map(fn %AuditChange{} = change -> change end)
   end
 
   @doc false
