@@ -89,7 +89,7 @@ defmodule Threadline.DocSpecCoverageContractTest do
             do: {module, kind, name, arity}
 
       assert length(checked) >= 82,
-             "expected at least 88 visible entries, got #{length(checked)}"
+             "expected at least 82 visible entries, got #{length(checked)}"
 
       assert {Threadline, :function, :timeline, 2} in checked,
              "expected the facade timeline/2 entry to be part of the scanned universe"
