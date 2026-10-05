@@ -206,7 +206,7 @@ Plans:
 
 **Gap closure — Wave 2** *(blocked on 234-11)*
 
-- [ ] 234-14-PLAN.md — Complete remaining NotFoundError, Page, Telemetry, IncidentChange, and LinkedTransaction module openings
+- [x] 234-14-PLAN.md — Complete remaining NotFoundError, Page, Telemetry, IncidentChange, and LinkedTransaction module openings; Telemetry M-2 entry points named (completed 2026-10-05)
 
 **Gap closure — Wave 3** *(blocked on 234-07 through 234-12 and 234-14)*
 
@@ -216,7 +216,7 @@ Plans:
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-only execution is in progress; Plans 07–12 are complete, and Plan 14 is next. D-55 supersedes only the earlier D-11/D-54 90-entry threshold: the final floor is >=82 D-03 visible function/macro entries after D-07 deliberately hid eight internal helpers. Plan 12's coverage fix is committed as 789b5bf4; its D-28 fix (`daac60bc`) keeps raise-only helpers private and preserves all four Mix task errors. Focused tests passed 42/0, the compiled privacy probe passed, strict Dialyzer reported zero warnings, and docs built with warnings-as-errors. Continue sequentially in the main tree: Plan 14, Plan 13, then Plan 15. Plan 13's PASS verifier requires the exact evidence schema, distinct reviewer/executor IDs, and a fresh independent-review statement naming both IDs.
+**Execution note**: Gap-only execution is in progress; Plans 07–12 and 14 are complete, and Plan 13 is next. D-55 supersedes only the earlier D-11/D-54 90-entry threshold: the final floor is >=82 D-03 visible function/macro entries after D-07 deliberately hid eight internal helpers. Plan 12's coverage fix is committed as 789b5bf4; its D-28 fix (`daac60bc`) keeps raise-only helpers private and preserves all four Mix task errors. Plan 14's five M-1 summaries and Telemetry M-2 entry points passed focused tests, docs, and Dialyzer. Continue sequentially in the main tree: Plan 13, then Plan 15. Plan 13's PASS verifier requires the exact evidence schema, distinct reviewer/executor IDs, and a fresh independent-review statement naming both IDs.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
