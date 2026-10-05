@@ -60,7 +60,7 @@ defmodule Threadline.Capture.AuditTransaction do
           meta: Threadline.json_map() | nil,
           actor_ref: Threadline.Semantics.ActorRef.t() | nil,
           action_id: Ecto.UUID.t() | nil,
-          action: struct() | nil,
+          action: Threadline.Semantics.AuditAction.t() | nil,
           changes: [Threadline.Capture.AuditChange.t()] | Ecto.Association.NotLoaded.t(),
           __meta__: Ecto.Schema.Metadata.t()
         }
