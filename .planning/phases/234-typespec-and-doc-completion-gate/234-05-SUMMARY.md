@@ -46,6 +46,9 @@ key-decisions:
   - "ActorRef.from_map/1 remains an R2 arbitrary-input validator; its term() boundary is documented and pinned."
   - "Audit.transaction/3 keeps callback results and caller-owned rollback reasons opaque under R1."
   - "This plan adds no field-stability promise; Phase 235 owns stability and may only add fields to t."
+patterns-established:
+  - "Hand-written public struct types enumerate persisted and virtual fields instead of relying on partial struct types."
+  - "Broad caller-owned inputs remain explicit, reasoned R1/R2 exceptions in the typespec rubric."
 requirements-completed: [SPEC-01, SPEC-02]
 coverage:
   - id: D1
