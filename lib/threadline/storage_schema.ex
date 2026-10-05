@@ -114,6 +114,7 @@ defmodule Threadline.StorageSchema do
 
   def validate_identifier!(value, role, input), do: invalid_identifier!(value, role, input)
 
+  @spec invalid_identifier!(term(), role(), String.t() | nil) :: no_return()
   defp invalid_identifier!(value, :storage_schema, _input) do
     raise ArgumentError,
           "Threadline storage schema must be a non-empty PostgreSQL identifier " <>
