@@ -1,6 +1,10 @@
 defmodule Threadline.Integrations.Sigra do
   @moduledoc """
-  Soft-dependency adapter for deriving Threadline audit context from Sigra state.
+  The Sigra integration derives Threadline audit context from optional Sigra request state.
+
+  Use `actor_ref_from_conn/1` to resolve the request actor and
+  `audit_context_overrides_from_conn/1` to derive additive context values; use
+  `actor_fn/0` when configuring the actor callback for `Threadline.Plug`.
 
   The adapter reads Sigra-shaped request data when `Sigra.Session` is available
   and otherwise returns neutral defaults so Threadline itself does not require

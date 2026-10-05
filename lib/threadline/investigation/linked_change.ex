@@ -1,6 +1,6 @@
 defmodule Threadline.Investigation.LinkedChange do
   @moduledoc """
-  One investigation change row with linked transaction and optional action context.
+  A LinkedChange connects one captured row mutation to its transaction and optional action.
   """
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
