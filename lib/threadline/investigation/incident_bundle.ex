@@ -17,7 +17,7 @@ end
 
 defmodule Threadline.Investigation.IncidentBundle do
   @moduledoc """
-  One transaction-focused incident bundle with linked context and packaged diffs.
+  An IncidentBundle groups one captured transaction with its linked action and change diffs.
   """
 
   alias Threadline.Capture.AuditTransaction

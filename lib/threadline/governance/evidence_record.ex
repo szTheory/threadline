@@ -1,6 +1,6 @@
 defmodule Threadline.Governance.EvidenceRecord do
   @moduledoc """
-  An append-only snapshot of a Threadline subject at a point in time.
+  An EvidenceRecord is an append-only snapshot of a Threadline subject at a point in time.
 
   Each record keeps the subject reference, status, actor, source context, and
   details needed to explain the snapshot.
