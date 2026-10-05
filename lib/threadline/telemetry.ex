@@ -1,6 +1,7 @@
 defmodule Threadline.Telemetry do
   @moduledoc """
-  Telemetry integration helpers for Threadline.
+  `Threadline.Telemetry` defines Threadline's emitted event contract and lets
+  hosts record accurate transaction table counts.
 
   Threadline emits the following `:telemetry` events. No event carries row
   values, actor identifiers, correlation ids, or free-text reasons — with one
@@ -42,6 +43,21 @@ defmodule Threadline.Telemetry do
   and metadata keys, is held in an internal registry exposed through
   `__events__/0` (`@doc false`) — not a public `events/0` — for use by this
   library's own test suite.
+
+  ## Entry points
+
+  - `transaction_committed/2` — call after a host database transaction commits
+    when its audited table count is known.
+  - `emit_action_recorded/1`, `emit_transaction_committed_proxy/0`,
+    `emit_health_checked/3`, `emit_health_checked_error/1`,
+    `emit_findings_checked/2`, `emit_operator_surface_authorize/3`,
+    `emit_export_authorize_error/0`, `emit_actor_ref_mismatch/0`,
+    `emit_export_completed/4`, `emit_export_failed/5`, `purge_span/2`,
+    `emit_row_history_truncated/2`, and `emit_batch_purged/3` — internal
+    `@doc false` hooks called by Threadline at the matching event sites; host
+    applications should subscribe to the events instead of calling these.
+  - `__events__/0` — the internal registry used by the library's contract
+    tests, not an adopter entry point.
 
   ## Usage
 
