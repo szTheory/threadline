@@ -19,7 +19,8 @@ end
 
 defmodule Threadline.Investigation.LinkedTransaction do
   @moduledoc """
-  One transaction-oriented investigation slice with optional action metadata.
+  A linked transaction groups its audit changes and optional action into one
+  investigation slice.
   """
 
   alias Threadline.Capture.AuditTransaction

@@ -1,6 +1,7 @@
 defmodule Threadline.Investigation.IncidentChange do
   @moduledoc """
-  One bundled incident change with raw linked structs and a packaged diff.
+  An incident change pairs a linked audit change with its JSON diff for
+  investigation review.
   """
 
   alias Threadline.Investigation.LinkedChange
