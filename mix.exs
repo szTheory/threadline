@@ -69,7 +69,7 @@ defmodule Threadline.MixProject do
           :req,
           :sweet_xml
         ],
-        flags: [:unmatched_returns, :extra_return],
+        flags: [:unmatched_returns, :extra_return, :missing_return, :underspecs, :error_handling],
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true
       ]
