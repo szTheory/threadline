@@ -14,6 +14,10 @@ defmodule Threadline.Semantics.ActorRef do
   - `:job` — background job with a non-empty id
   - `:system` — system process with a non-empty id
   - `:anonymous` — unauthenticated actor; id is nil
+
+  Use `new/2` to construct a validated reference, `from_map/1` to validate a decoded JSON map,
+  `identifiable?/1` to check whether the reference has a stable identity, and `to_map/1` to encode
+  it for JSON storage.
   """
 
   use Ecto.ParameterizedType
@@ -24,11 +28,24 @@ defmodule Threadline.Semantics.ActorRef do
   @type actor_type ::
           unquote(Enum.reduce(@types, fn actor_type, acc -> {:|, [], [actor_type, acc]} end))
 
+  @typedoc "Any value accepted by `new/2`; unsupported values return `:unknown_actor_type`."
+  @type actor_type_input ::
+          atom()
+          | bitstring()
+          | number()
+          | %{optional(actor_type_input()) => actor_type_input()}
+          | tuple()
+          | list()
+          | pid()
+          | port()
+          | reference()
+          | function()
+
   @typedoc "A stable actor reference with a supported type and an optional string identifier."
   @type t :: %__MODULE__{type: actor_type(), id: String.t() | nil}
 
-  @typedoc "A non-empty map with string keys and string or nil values used to store an ActorRef."
-  @type actor_map :: %{required(String.t()) => String.t() | nil}
+  @typedoc "A JSON map produced by `to_map/1`; it has a `\"type\"` string and may have an `\"id\"` string."
+  @type actor_map :: %{required(String.t()) => String.t()}
 
   @enforce_keys [:type]
   defstruct [:type, :id]
@@ -41,7 +58,7 @@ defmodule Threadline.Semantics.ActorRef do
   Returns `{:ok, actor_ref}` or `{:error, reason}` where the reason is `:unknown_actor_type` for an
   unsupported type or `:missing_actor_id` for a missing or empty identifier.
   """
-  @spec new(actor_type(), String.t() | nil) ::
+  @spec new(actor_type_input(), String.t() | nil) ::
           {:ok, t()} | {:error, :unknown_actor_type | :missing_actor_id}
   def new(type, id \\ nil)
 
@@ -90,6 +107,9 @@ defmodule Threadline.Semantics.ActorRef do
 
   Accepts any input so callers can validate decoded JSON. An anonymous object has no `"id"` key;
   every other supported type requires a non-empty string identifier.
+
+  Decoding tolerates extra map keys; `to_map/1` emits only the guaranteed `"type"` key and, for
+  identified actors, the optional `"id"` key.
 
   Returns `{:ok, actor_ref}` or `{:error, reason}` for `:invalid_actor_ref_map`,
   `:unknown_actor_type`, or `:missing_actor_id`.
