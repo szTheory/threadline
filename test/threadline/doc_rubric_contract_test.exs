@@ -7,23 +7,7 @@ defmodule Threadline.DocRubricContractTest do
   @root Path.expand("../..", __DIR__)
   @unknown_key_sentence "Unknown keys raise `ArgumentError` naming the allowed keys."
 
-  @option_parity_ratchet [
-    {:empty_section, Threadline.Export, :format_changes_iodata, 3, "Options"},
-    {:empty_section, Threadline.Retention, :purge, 1, "Options"},
-    {:options_untyped, Threadline.Continuity, :assert_capture_ready!, 2, "Options"},
-    {:options_untyped, Threadline.Continuity, :explain_cutover, 1, "Options"},
-    {:options_untyped, Threadline.Export, :count_matching, 2, "Options"},
-    {:options_untyped, Threadline.Export, :csv_header, 1, "Options"},
-    {:options_untyped, Threadline.Export, :format_changes_iodata, 3, "Options"},
-    {:options_untyped, Threadline.Export, :stream_changes, 2, "Options"},
-    {:options_untyped, Threadline.Export, :stream_export_rows, 2, "Options"},
-    {:options_untyped, Threadline.Export, :to_csv_iodata, 2, "Options"},
-    {:options_untyped, Threadline.Export, :to_json_document, 2, "Options"},
-    {:options_untyped, Threadline.Health, :legacy_key_findings, 1, "Options"},
-    {:options_untyped, Threadline.Health, :trigger_coverage, 1, "Options"},
-    {:options_untyped, Threadline.Health, :trigger_findings, 1, "Options"},
-    {:options_untyped, Threadline.Retention, :purge, 1, "Options"}
-  ]
+  @option_parity_ratchet []
   @first_paragraph_ratchet [
     {Threadline.Audit, :type, :action_opt, 0, :empty_first_paragraph},
     {Threadline.ExportQueue, :type, :job_id, 0, :empty_first_paragraph},
@@ -35,17 +19,9 @@ defmodule Threadline.DocRubricContractTest do
     {Threadline.Investigation.IncidentChange, :type, :t, 0, :empty_first_paragraph},
     {Threadline.Investigation.LinkedChange, :type, :t, 0, :empty_first_paragraph},
     {Threadline.Investigation.LinkedTransaction, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.NotFoundError, :type, :t, 0, :empty_first_paragraph},
-    {Threadline.OperatorSurface.Auth, :function, :on_mount, 4, :empty_first_paragraph},
-    {Threadline.OperatorSurface.Router, :macro, :threadline_operator_surface, 2,
-     :empty_first_paragraph},
-    {Threadline.Storage, :type, :content, 0, :empty_first_paragraph},
-    {Threadline.Storage, :type, :file_id, 0, :empty_first_paragraph},
-    {Threadline.Storage, :type, :options, 0, :empty_first_paragraph}
+    {Threadline.NotFoundError, :type, :t, 0, :empty_first_paragraph}
   ]
-  @deprecated_reference_ratchet [
-    {Threadline.Continuity, :module, :moduledoc, 0, {Threadline, :history, 3}}
-  ]
+  @deprecated_reference_ratchet []
   @voice_ratchet []
   @since_ratchet []
   @code_block_ratchet [
@@ -65,17 +41,7 @@ defmodule Threadline.DocRubricContractTest do
      [:term, :term, :term, :term, :term, :term, :term, :term, :term, :term, :term, :term]},
     {{Threadline.Capture.AuditTransaction, :type, :t, 0},
      [:term, :term, :term, :term, :term, :term, :term, :term, :term, :term]},
-    {{Threadline.ChangeDiff, :spec, :from_audit_change, 2}, [:keyword, :map]},
     {{Threadline.Evidence.Subject, :spec, :validate, 1}, [:term]},
-    {{Threadline.Export, :spec, :count_matching, 2}, [:keyword, :keyword]},
-    {{Threadline.Export, :spec, :csv_header, 1}, [:keyword]},
-    {{Threadline.Export, :spec, :format_changes_iodata, 3}, [:keyword]},
-    {{Threadline.Export, :spec, :stream_changes, 2}, [:keyword, :keyword]},
-    {{Threadline.Export, :spec, :stream_export_rows, 2}, [:keyword, :keyword]},
-    {{Threadline.Export, :spec, :to_csv_iodata, 2}, [:keyword, :keyword, :map]},
-    {{Threadline.Export, :spec, :to_json_document, 2}, [:keyword, :keyword, :map]},
-    {{Threadline.Health, :spec, :legacy_key_findings, 1}, [:keyword]},
-    {{Threadline.Health, :spec, :trigger_findings, 1}, [:keyword]},
     {{Threadline.Health.Finding, :type, :t, 0}, [:map]},
     {{Threadline.Investigation.IncidentBundle, :type, :t, 0},
      [
@@ -169,10 +135,6 @@ defmodule Threadline.DocRubricContractTest do
        :term
      ]},
     {{Threadline.NotFoundError, :type, :t, 0}, [:term]},
-    {{Threadline.Retention, :spec, :purge, 1}, [:keyword]},
-    {{Threadline.Retention.Policy, :spec, :cutoff_utc_datetime_usec!, 1}, [:keyword]},
-    {{Threadline.Retention.Policy, :spec, :resolve!, 1}, [:keyword, :map]},
-    {{Threadline.Retention.Policy, :spec, :validate_config!, 1}, [:keyword, :map]},
     {{Threadline.Semantics.ActorRef, :type, :t, 0}, [:term, :term]}
   ]
   @private_type_reference_ratchet []

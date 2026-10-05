@@ -36,13 +36,23 @@ and `Threadline.incident_bundle/2`.
   callable and may change in 1.x:
   - `Threadline.Evidence.Proof.present_record/1`
   - `Threadline.Evidence.Proof.record_claim_assessment/1`
+  - `Threadline.StorageSchema.quote_ident/1`
+  - `Threadline.StorageSchema.qualify/2`
+  - `Threadline.StorageSchema.function/2`
+  - `Threadline.StorageSchema.parse_table_identifier/1`
+  - `Threadline.StorageSchema.qualified_host_table/1`
+  - `Threadline.StorageSchema.host_table_suffix/1`
 
 - `Threadline.timeline/2`, `Threadline.timeline_page/2`, and
   `Threadline.actor_history/2`, `Threadline.actor_window/3`,
   `Threadline.correlation_bundle/3`, `Threadline.export_csv/2`, and
   `Threadline.export_json/2` now raise `ArgumentError` for unknown filter or
   option keys; `:surface` and `:params` are not accepted. Required action:
-  remove unknown keys from calls to these functions.
+  remove unknown keys from calls to these functions. The direct
+  `Threadline.Export.to_csv_iodata/2`, `to_json_document/2`,
+  `count_matching/2`, `csv_header/1`, `format_changes_iodata/3`,
+  `stream_changes/2`, and `stream_export_rows/2` functions also reject unknown
+  option keys, including `:surface` and `:params`.
 
 - `Threadline.transaction_context/2` now returns `{:ok, %Threadline.Investigation.LinkedTransaction{}}`
   or `{:error, :not_found}` instead of a bare struct. Before:

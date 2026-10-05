@@ -461,7 +461,7 @@ The default implementations are sufficient for a single-node process. Persistent
 ```elixir
 @type job_id :: String.t() | binary()
 
-@callback init(keyword()) :: :ok | {:error, term()}
+@callback init(options()) :: :ok | {:error, term()}
 @callback enqueue(job_id(), keyword()) :: :ok | {:error, term()}
 
 # ...

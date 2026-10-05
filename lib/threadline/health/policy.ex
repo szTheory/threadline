@@ -19,6 +19,19 @@ defmodule Threadline.Health.Policy do
 
   @known_keys ~w(expected_uncovered_tables audit_anyway)a
 
+  @typedoc "A health policy configuration entry containing a list of table names."
+  @type config_opt ::
+          {:expected_uncovered_tables, [String.t()]}
+          | {:audit_anyway, [String.t()]}
+
+  @typedoc "The keyword-list or map form accepted by `validate!/1`."
+  @type config ::
+          [config_opt()]
+          | %{
+              optional(:expected_uncovered_tables) => [String.t()],
+              optional(:audit_anyway) => [String.t()]
+            }
+
   @doc """
   Validates `:expected_uncovered_tables` and `:audit_anyway` config.
 
@@ -31,6 +44,7 @@ defmodule Threadline.Health.Policy do
   - unknown top-level keys
   - non-keyword / non-map input shape
   """
+  @spec validate!(config()) :: :ok
   def validate!(opts) when is_list(opts) do
     if Keyword.keyword?(opts) do
       validate!(Map.new(opts))

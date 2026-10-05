@@ -34,6 +34,10 @@ defmodule Threadline.OptionAllowlistTest do
   @correlation_bundle_filter_keys [:table, :actor_ref, :from, :to, :repo]
   @export_csv_option_keys @query_option_keys ++ [:max_rows, :include_action_metadata]
   @export_json_option_keys @query_option_keys ++ [:max_rows, :json_format]
+  @export_count_option_keys @query_option_keys ++ [:cap]
+  @export_stream_option_keys @query_option_keys ++ [:page_size]
+  @export_stream_rows_option_keys @query_option_keys ++ [:page_size]
+  @export_format_option_keys [:include_action_metadata]
 
   test "row_history rejects internal and unknown option keys before reading" do
     assert_raise ArgumentError, ~r/unknown row_history option key :surface/, fn ->
@@ -138,5 +142,45 @@ defmodule Threadline.OptionAllowlistTest do
 
     assert Threadline.__filter_keys__(:export_csv) == @timeline_filter_keys
     assert Threadline.__filter_keys__(:export_json) == @timeline_filter_keys
+  end
+
+  test "Export.to_csv_iodata rejects internal and unknown option keys before reading" do
+    for key <- [:surface, :params, :limitt] do
+      assert_raise ArgumentError,
+                   ~r/unknown to_csv_iodata option key #{inspect(key)}.*Allowed:/,
+                   fn ->
+                     Threadline.Export.to_csv_iodata([], [{key, true}])
+                   end
+    end
+
+    assert Threadline.Export.__option_keys__(:to_csv_iodata) ==
+             Threadline.__option_keys__(:export_csv)
+  end
+
+  test "remaining Export functions reject unknown options and expose exact allowlists" do
+    calls = [
+      {:to_json_document, fn opts -> Threadline.Export.to_json_document([], opts) end},
+      {:count_matching, fn opts -> Threadline.Export.count_matching([], opts) end},
+      {:csv_header, fn opts -> Threadline.Export.csv_header(opts) end},
+      {:format_changes_iodata,
+       fn opts -> Threadline.Export.format_changes_iodata([], :csv, opts) end},
+      {:stream_changes, fn opts -> Threadline.Export.stream_changes([], opts) end},
+      {:stream_export_rows, fn opts -> Threadline.Export.stream_export_rows([], opts) end}
+    ]
+
+    for {name, call} <- calls, key <- [:surface, :params, :limitt] do
+      assert_raise ArgumentError, ~r/unknown #{name} option key #{inspect(key)}.*Allowed:/, fn ->
+        call.([{key, true}])
+      end
+    end
+
+    assert Threadline.Export.__option_keys__(:to_json_document) == @export_json_option_keys
+    assert Threadline.Export.__option_keys__(:count_matching) == @export_count_option_keys
+    assert Threadline.Export.__option_keys__(:csv_header) == @export_format_option_keys
+    assert Threadline.Export.__option_keys__(:format_changes_iodata) == @export_format_option_keys
+    assert Threadline.Export.__option_keys__(:stream_changes) == @export_stream_option_keys
+
+    assert Threadline.Export.__option_keys__(:stream_export_rows) ==
+             @export_stream_rows_option_keys
   end
 end

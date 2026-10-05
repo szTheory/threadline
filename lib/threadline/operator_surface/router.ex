@@ -21,38 +21,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     `on_mount` callbacks do not apply to controller routes. Route helper names
     and the host router's alias namespace remain untouched.
 
-    ## Options
-
-    - `:exports` (boolean, default `true`) — set to `false` to suppress the
-      sibling export-controller scope (rare LV-only adopters).
-    - `:scope_query_fn` (`(Ecto.Query.t(), scope, %{surface: atom(), params: map()} -> Ecto.Query.t())`,
-      optional) — host-owned query transform used when `:authorize_fn` returns
-      `{:ok, scope}`. Threadline treats `scope` as opaque data and calls this
-      function for timeline, actor-history, transaction, and export flows.
-    - `:export_authorize_fn` (`(Plug.Conn.t() -> :ok | true | {:ok, scope} | _)`,
-      default delegates to `:authorize_fn` via a synthetic
-      `%{assigns: conn.assigns}` mirror) — Conn-shaped authorize callback for
-      HTTP requests. Use a separate callback when HTTP authorization needs
-      more than the assigns inspected by the LiveView callback; the synthetic
-      mirror is sufficient when authorization only reads values such as
-      `assigns.current_user`.
-    - `:coverage_authorize_fn` (`(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`,
-      optional) — explicitly gates the coverage dashboard and related badge.
-      Defaults to fail closed.
-    - `:policy_authorize_fn` (`(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`,
-      optional) — explicitly gates policy/retention surfaces. Defaults to fail
-      closed.
-    - `:evidence_authorize_fn` (`(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`,
-      optional) — explicitly gates the mounted evidence surface. Defaults to
-      fail closed.
-    - `:theme` (`:dark | :light | :system`, default `:dark`) — selects the
-      default server-rendered operator-surface theme lane. `:system` follows the
-      visitor's OS preference through scoped CSS only. A runtime dark/light/system
-      theme picker is available in the shell (session-backed and resolved
-      server-side; a response cookie mirrors the choice); Threadline adds no
-      JavaScript and no local storage.
     """
 
+    @doc """
+    Adds the Threadline operator LiveView and sibling HTTP routes to the host router.
+
+    The macro requires a secure enclosing pipeline, `:authorize_fn`, or an
+    explicit acknowledgement that the mount is unauthenticated.
+
+    ## Mount options
+
+    - `:exports` — boolean; defaults to `true`. Set to `false` to suppress the
+      sibling export-controller scope (rare LV-only adopters).
+    - `:scope_query_fn` — `(Ecto.Query.t(), scope, %{surface: atom(), params: map()} -> Ecto.Query.t())`; optional. This host-owned query transform is used when `:authorize_fn` returns `{:ok, scope}`. Threadline treats `scope` as opaque data and calls this function for timeline, actor-history, transaction, and export flows.
+    - `:export_authorize_fn` — `(Plug.Conn.t() -> :ok | true | {:ok, scope} | _)`; defaults to delegating to `:authorize_fn` via a synthetic `%{assigns: conn.assigns}` mirror. Use a separate callback when HTTP authorization needs more than the assigns inspected by the LiveView callback; the synthetic mirror is sufficient when authorization only reads values such as `assigns.current_user`.
+    - `:coverage_authorize_fn` — `(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`; optional. Explicitly gates the coverage dashboard and related badge, and defaults to fail closed.
+    - `:policy_authorize_fn` — `(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`; optional. Explicitly gates policy and retention surfaces, and defaults to fail closed.
+    - `:evidence_authorize_fn` — `(%{assigns: map()} -> boolean | :ok | {:ok, scope} | _)`; optional. Explicitly gates the mounted evidence surface, and defaults to fail closed.
+    - `:theme` — `:dark | :light | :system`; defaults to `:dark`. Selects the default server-rendered operator-surface theme lane. `:system` follows the visitor's OS preference through scoped CSS only. A runtime dark/light/system theme picker is available in the shell (session-backed and resolved server-side; a response cookie mirrors the choice); Threadline adds no JavaScript and no local storage.
+    """
     defmacro threadline_operator_surface(path, opts \\ []) do
       has_auth_fn? = Keyword.has_key?(opts, :authorize_fn)
       has_actor_fn? = Keyword.has_key?(opts, :actor_fn)

@@ -55,6 +55,22 @@ defmodule Threadline.Telemetry do
       )
   """
 
+  @typedoc "An option accepted by `transaction_committed/2`."
+  @type transaction_committed_opt :: {:table_count, integer()}
+
+  @typedoc "An opaque host transaction result passed to `transaction_committed/2`."
+  @type transaction_value ::
+          atom()
+          | number()
+          | bitstring()
+          | pid()
+          | port()
+          | reference()
+          | function()
+          | tuple()
+          | maybe_improper_list(transaction_value(), transaction_value())
+          | %{optional(transaction_value()) => transaction_value()}
+
   @events [
     %{
       name: [:threadline, :transaction, :committed],
@@ -167,6 +183,16 @@ defmodule Threadline.Telemetry do
   Call this after a DB transaction that you know produced `AuditTransaction`
   records, when you need accurate `table_count` measurements.
 
+  ## Options
+
+  - `:table_count` — integer. Defaults to `0`; reports the number of audited tables in the transaction.
+
+  Other option keys are ignored.
+
+  ## Returns
+
+  - `:ok` after the telemetry event is emitted.
+
   ## Example
 
       {:ok, txn} = MyApp.Repo.transaction(fn ->
@@ -174,6 +200,7 @@ defmodule Threadline.Telemetry do
       end)
       Threadline.Telemetry.transaction_committed(txn, table_count: 3)
   """
+  @spec transaction_committed(transaction_value(), [transaction_committed_opt()]) :: :ok
   def transaction_committed(_transaction, opts \\ []) do
     table_count = Keyword.get(opts, :table_count, 0)
     :telemetry.execute([:threadline, :transaction, :committed], %{table_count: table_count}, %{})
