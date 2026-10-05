@@ -83,7 +83,7 @@ defmodule Threadline.Export do
           changed_from: Threadline.json_map() | nil,
           tx_occurred_at: DateTime.t(),
           tx_actor_ref: Threadline.Semantics.ActorRef.t() | nil,
-          tx_source: String.t(),
+          tx_source: String.t() | nil,
           aa_id: Ecto.UUID.t() | nil,
           aa_correlation_id: String.t() | nil
         }
