@@ -303,7 +303,7 @@ Plans:
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
 | 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
-| 234. Typespec and Doc Completion Gate | 18/21 | In Progress | - |
+| 234. Typespec and Doc Completion Gate | 20/22 | In Progress | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
 | 236. Support Floor and Partition Weights | 0/TBD | Not started | - |
 | 237. Upgrade Guide and 1.0.0 | 0/TBD | Not started | - |
