@@ -1,8 +1,8 @@
 ---
 phase: "234"
 slug: "typespec-and-doc-completion-gate"
-status: draft
-threats_open: 1
+status: verified
+threats_open: 0
 asvs_level: 1
 created: "2026-10-05"
 ---
@@ -45,14 +45,14 @@ created: "2026-10-05"
 | T-234-06 | Information disclosure | Captured-data documentation | medium | mitigate | The fresh D-46 WR-04 PASS and source spot-check confirm the D-38 note on required facade reads/exports and current ChangeDiff and Export entries: values are captured as written, trigger-time redaction is distinct from read-time access control, and callers authorize reads with :scope_query_fn. | closed — 234-D46-REVIEW.md WR-04; lib/threadline.ex; lib/threadline/change_diff.ex; lib/threadline/export.ex |
 | T-234-SC (Plan 01) | Tampering | Package installation, Plan 01 | low | accept | Plan 01 records no package installation or changes. | closed — accepted |
 | T-234-07 | Repudiation | Hidden Proof helpers | low | mitigate | Keep helpers callable, document the change in CHANGELOG, and include the breaking-change footer. | closed |
-| T-234-08 | Tampering | Evidence attrs types | low | mitigate | Rechecked against lib/threadline/evidence.ex and test/threadline/evidence_test.exs; the broad caller map remains a low-severity contract area because accepted attrs are changeset-validated. Keep open below the blocking threshold pending a separately scoped narrowing decision. | open — below high threshold |
+| T-234-08 | Tampering | Evidence attrs types | low | mitigate | Rechecked against lib/threadline/evidence.ex and test/threadline/evidence_test.exs; Plan 15's evidence contract test passed. The broad caller map remains a low-severity contract area because accepted attrs are changeset-validated. Keep open below the blocking threshold pending a separately scoped narrowing decision. | open — below high threshold |
 | T-234-SC (Plan 02) | Tampering | Package installation, Plan 02 | low | accept | Plan 02 records no package installation or lockfile changes. | closed — accepted |
 | T-234-09 | Information disclosure | Export scope options | high | mitigate | Closed allowlists reject caller-supplied internal labels; operators use hidden ExportReads. | closed |
 | T-234-10 | Tampering | SQL identifier validation | medium | mitigate | Validate identifiers before quoting and document the closed table-name set. | closed |
 | T-234-11 | Denial of service | Export and timeline call sites | medium | mitigate | Move callers with the API closure and rerun controller/LiveView coverage. | closed |
 | T-234-SC (Plan 03) | Tampering | Package installation, Plan 03 | low | accept | Plan 03 records no package installation. | closed — accepted |
 | T-234-12 | Tampering | Capture and semantics struct types | medium | mitigate | Hand-write field types and verify with Dialyzer; keep the layer boundary explicit. | closed |
-| T-234-13 | Tampering | Capture-to-semantics type dependency | low | mitigate | Rechecked lib/threadline/capture/audit_transaction.ex and test/threadline/capture_semantics_boundary_test.exs: hydrated actions remain generic at the capture boundary and layer-boundary coverage passes. Keep open below the blocking threshold for continued boundary surveillance. | open — below high threshold |
+| T-234-13 | Tampering | Capture-to-semantics type dependency | low | mitigate | Rechecked lib/threadline/capture/audit_transaction.ex and test/threadline/capture_semantics_boundary_test.exs: hydrated actions remain generic at the capture boundary and Plan 15's layer-boundary test passed. Keep open below the blocking threshold for continued boundary surveillance. | open — below high threshold |
 | T-234-SC (Plan 04) | Tampering | Package installation, Plan 04 | low | accept | Plan 04 records no package installation. | closed — accepted |
 | T-234-SC (Plan 05) | Tampering | Package installation, Plan 05 | low | accept | Plan 05 records no package installation. | closed — accepted |
 | T-234-14 | Tampering | Dialyzer ignore bypasses | high | mitigate | Exact five-flag contract, empty ignore file, no @dialyzer attributes, and no :no_* flags. | closed |
@@ -60,10 +60,10 @@ created: "2026-10-05"
 | T-234-16 | Denial of service | Cold PLT rebuild | low | accept | Plan 06 accepts one bounded cold PLT rebuild of about nine minutes. | closed — accepted |
 | T-234-SC (Plan 06) | Tampering | Package installation, Plan 06 | low | accept | Plan 06 records no package installation. | closed — accepted |
 | T-234-22 | Tampering | Coverage vacuity floor, Plan 12 | high | mitigate | Plan 12 preserves the D-55 >=82 D-03 visible function/macro assertion, corrected failure message, module/facade timeline/Docs-chunk checks, and D-07 hidden pins; Plan 13 measured 82 entries and 52 moduledocs in the fresh inventory. | closed — 234-12-SUMMARY.md; 234-13-SUMMARY.md; 234-D46-REVIEW.md |
-| T-234-23 | Tampering | RepositoryBoundary and Critic.Measure raise helpers, Plan 12 | medium | mitigate | Plan 12 records both task_error!/3 helpers private with truthful private no_return() specs and all four exact caller messages; this run's compiled probe found neither helper exported nor any public bang no_return spec, and the focused test passed 31 tests. | closed — 234-12-SUMMARY.md; D-28 probe; test/threadline/operator_surface/critic_trust_test.exs |
+| T-234-23 | Tampering | RepositoryBoundary and Critic.Measure raise helpers, Plan 12 | medium | mitigate | Plan 12 records both task_error!/3 helpers private with truthful private no_return() specs and all four exact caller messages; Plan 15's compiled probe found neither helper exported nor any public bang no_return spec, strict Dialyzer reported zero errors, and the focused test passed 31 tests. | closed — 234-12-SUMMARY.md; Plan 15 D-28 probe; test/threadline/operator_surface/critic_trust_test.exs; mix verify.dialyzer |
 | T-234-24 | Repudiation | Independent D-46 review, Plan 13 | high | mitigate | The fresh independent PASS is tied to the regenerated input SHA-256, counts all required surfaces, records WR-01 through WR-07, and passes the full Plan 13 report-integrity verifier. | closed — 234-13-SUMMARY.md; 234-D46-REVIEW.md |
 | T-234-25 | Repudiation | Error, page, telemetry, and investigation module summaries, Plan 14 | low | mitigate | All five current moduledocs passed frozen M-1/M-2 review; the report explicitly covers IncidentChange and LinkedTransaction. | closed — 234-14-SUMMARY.md; 234-D46-REVIEW.md WR-07 |
-| T-234-26 | Repudiation | Security and SPEC-02 sign-off, Plan 15 | high | mitigate | Plan 19 resolved the example dependency-audit blocker: the accountable-ignore and reachability contracts pass, and `mix verify.deps_audit` is clean. Keep this final sign-off open until Plan 15 reruns a fresh full `mix ci.all`, reconciles its deferred evidence, and confirms SPEC-02; phase status remains draft. | open — Plan 15 final verification pending |
+| T-234-26 | Repudiation | Security and SPEC-02 sign-off, Plan 15 | high | mitigate | After Plan 19, Plan 15 reran the reachability and accountable-ignore contracts (19/19), `mix verify.deps_audit` (all three lockfiles clean), and a fresh canonical `mix ci.all` (root tests 3006/0; example tests 130/0; strict Dialyzer 0 errors; live Dialyzer slice 17/0; npm audit 0 vulnerabilities; Playwright 318 passed, 26 intentionally skipped). The current independent D-46 report has exactly one PASS and passes Plan 13's full input/report integrity verifier. Plan 15's focused coverage/evidence/layer tests (73/0), D-28 compiled-spec probe, four-path caller-message test (31/0), and strict Dialyzer (0 errors) also pass; SPEC-02 is now evidence-gated for completion. | closed — 234-15-SUMMARY.md; 234-19-SUMMARY.md; 234-D46-REVIEW.md; mix ci.all; Plan 15 focused gates |
 | T-234-27 | Tampering | ActorRef, Subject, and Retention map contracts, Plan 16 | medium | mitigate | Existing ActorRef/Subject/Retention compatibility tests passed in the 73-test focused evidence suite; fresh independent WR-02 review accepted D-56's three narrow alias exceptions. | closed — 234-16-SUMMARY.md; 234-D46-REVIEW.md WR-02 |
 | T-234-28 | Repudiation | Audit.transaction/3 return summary, Plan 16 | medium | mitigate | Audit.transaction/3 documents the success/error tuple and conditional audit-ID merge/wrap in its opening paragraph; the fresh independent WR-05 source review passed and strict docs build passed in Plan 13. | closed — 234-16-SUMMARY.md; 234-D46-REVIEW.md WR-05 |
 | T-234-29 | Tampering | Subject and Retention public type contracts, Plan 17 | medium | mitigate | 234-17-SUMMARY.md records `mix test test/threadline/evidence/subject_test.exs`, `mix test test/threadline/retention/policy_test.exs`, `mix compile --warnings-as-errors`, `mix verify.dialyzer`, and `MIX_ENV=dev mix docs --warnings-as-errors`; 234-D46-REVIEW.md WR-02 PASS reviewed the current types and behavior. | closed — 234-17-SUMMARY.md; 234-D46-REVIEW.md WR-02 |
@@ -99,6 +99,7 @@ created: "2026-10-05"
 | 2026-10-06 | 31 | 28 | 3 | Plan 15 evidence reconciliation; final mix ci.all gate failed |
 | 2026-10-06 | 33 | 28 | 5 | D-58 added separate high CTR and medium PBKDF2 findings before Plan 19 execution |
 | 2026-10-06 | 33 | 30 | 3 | Plan 19 live reachability contracts and canonical dependency audit passed |
+| 2026-10-06 | 33 | 31 | 2 | Plan 15 fresh full CI and evidence-gated sign-off; two below-threshold low findings remain open |
 
 ---
 
@@ -106,7 +107,7 @@ created: "2026-10-05"
 
 - [x] All threats have a disposition (mitigate / accept / transfer)
 - [x] Accepted risks documented in Accepted Risks Log
-- [ ] `threats_open: 0` confirmed
-- [ ] `status: verified` set in frontmatter
+- [x] `threats_open: 0` confirmed; only T-234-08 and T-234-13 remain open, both below the high-threat threshold
+- [x] `status: verified` set in frontmatter
 
-**Approval:** pending — Plan 19 closed T-234-31 and T-234-32 from reachability and audit evidence; T-234-26 remains open until Plan 15 passes a fresh full `mix ci.all` and confirms SPEC-02.
+**Approval:** Verified — Plan 15 passed the post-Plan-19 full CI and all evidence gates; T-234-26 is closed and SPEC-02 is ready for its matching validation/requirements update.
