@@ -7,7 +7,7 @@ status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: "2026-10-04"
-validated: "2026-10-05"
+validated: "2026-10-06"
 ---
 
 # Phase 234 — Validation Strategy
@@ -64,7 +64,36 @@ validated: "2026-10-05"
 | 234-06-T5 | 06 | 6 | SPEC-01, SPEC-02, SPEC-03 | T-234-01/T-234-02 | Zero-gap doc/spec gate, live mutation record, size pin, and handoff notes stay enforced | unit + docs | `mix test test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs test/threadline/facade_naming_contract_test.exs test/threadline/source_size_contract_test.exs test/threadline/changelog_contract_test.exs test/threadline/public_surface_contract_test.exs` | ✅ | ✅ green |
 | 234-06-T6 | 06 | 6 | SPEC-01, SPEC-02, SPEC-03 | T-234-15 | Docs build, example, CI aggregate, and D-46 review input are complete | integration | `MIX_ENV=dev mix docs --warnings-as-errors`; `mix verify.example`; `mix ci.all` | ✅ | ✅ green |
 
-Plan and summary artifacts provide the recorded task-level pass evidence. In this audit, the six central contract suites passed (70 tests, 0 failures, 1 excluded), `mix verify.dialyzer` passed with 0 errors, and `MIX_ENV=dev mix docs --warnings-as-errors` passed. Plan 234-06 records its earlier `mix ci.all` pass (2,986 root tests, 130 example tests, 0 failures; strict Dialyzer 0 errors). Plan 15's fresh post-Plan-19 `mix ci.all` also passed: 3,006 root tests and 130 example tests with 0 failures, strict Dialyzer with 0 errors, live Dialyzer slice 17/0, npm audit with 0 vulnerabilities, and Playwright 318 passed / 26 intentionally skipped across desktop and mobile Chromium.
+| 234-07-T1 | 07 | 1 | SPEC-02 | — | ActorRef accepted inputs and JSON map docs/types match behavior | unit + docs | `mix test test/threadline/semantics/actor_ref_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
+| 234-07-T2 | 07 | 1 | SPEC-02 | — | Subject validator inputs, descriptor keys, and results remain accurate | integration + docs | `mix test test/threadline/evidence/subject_test.exs test/threadline/evidence_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
+| 234-07-T3 | 07 | 1 | SPEC-02 | — | Retention config key/value types and validation result docs stay aligned | unit + docs | `mix test test/threadline/retention/policy_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
+| 234-08-T1 | 08 | 1 | SPEC-02 | — | Storage callback options, errors, and results match adapter behavior | integration + docs | `mix test test/threadline/storage/local_test.exs test/threadline/storage/s3_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
+| 234-08-T2 | 08 | 1 | SPEC-02 | — | ExportQueue callback options, errors, and results match adapter behavior | integration + docs | `mix test test/threadline/export_queue/task_adapter_test.exs test/threadline/export_queue/oban_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
+| 234-09-T1 | 09 | 1 | SPEC-02 | — | Audit transaction and retention purge openings describe result/error contracts | integration + docs | `mix test test/threadline/audit_doc_contract_test.exs test/threadline/retention_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
+| 234-09-T2 | 09 | 1 | SPEC-02 | — | Continuity and health policy docs match successful and missing-repo behavior | integration + docs | `mix test test/threadline/continuity_brownfield_test.exs test/threadline/health/policy_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
+| 234-10-T1 | 10 | 1 | SPEC-02 | — | Facade read and action summaries preserve result contracts and source pin | integration + docs | `mix test test/threadline/actor_reads_doc_contract_test.exs test/threadline/lookup_return_shapes_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs test/threadline/source_size_contract_test.exs` | ✅ | ✅ green |
+| 234-10-T2 | 10 | 1 | SPEC-02 | — | ChangeDiff module and captured-data docs remain accurate | integration + docs | `mix test test/threadline/change_diff_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
+| 234-11-T1 | 11 | 1 | SPEC-02 | — | EvidenceRecord and IncidentBundle domain summaries preserve tested contracts | integration + docs | `mix test test/threadline/evidence_test.exs test/threadline/investigation_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ | ✅ green |
+| 234-11-T2 | 11 | 1 | SPEC-02 | — | LinkedChange and Sigra summaries and entry points match behavior | integration + docs | `mix test test/threadline/investigation_test.exs test/threadline/integrations/sigra_doc_contract_test.exs test/threadline/integrations/sigra_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ | ✅ green |
+| 234-12-T1 | 12 | 1 | SPEC-02 | T-234-28 | Raise-only task helpers are private; caller-visible errors and public specs are verified | static + integration | Plan 12 recorded exported-spec probe; `mix test test/threadline/critic_trust/measure_test.exs test/threadline/operator_surface/critic_trust_test.exs`; `mix verify.dialyzer`; `MIX_ENV=dev mix docs --warnings-as-errors` | ✅ | ✅ green |
+| 234-13-T1 | 13 | 5 | SPEC-02 | — | Fresh independent D-46 review covers current generated inventory and rubric | independent review + integrity | Plan 13 Task 1 report-integrity verifier; fresh D-46 verdict PASS; review-input SHA-256 bound in `234-13-SUMMARY.md` | ✅ | ✅ green |
+| 234-13-T2 | 13 | 5 | SPEC-02 | — | Only a validated PASS report is accepted for the Plan 15 handoff | static contract | Plan 13 Task 2 PASS-only handoff verifier; result recorded in `234-13-SUMMARY.md` | ✅ | ✅ green |
+| 234-14-T1 | 14 | 2 | SPEC-02 | — | NotFoundError and Page domain openings retain tested behavior | unit + docs | `mix test test/threadline/not_found_error_test.exs test/threadline/page_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ | ✅ green |
+| 234-14-T2 | 14 | 2 | SPEC-02 | — | Telemetry entry points and event docs match runtime contract | integration + docs | `mix test test/threadline/telemetry_doc_contract_test.exs test/threadline/telemetry_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ | ✅ green |
+| 234-14-T3 | 14 | 2 | SPEC-02 | — | IncidentChange and LinkedTransaction summaries preserve tested contracts | integration + docs | `mix test test/threadline/investigation_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ | ✅ green |
+| 234-15-T1 | 15 | 7 | SPEC-02 | T-234-26 | Final evidence reconciliation follows fresh CI, D-46, and security gates | full integration + static | `mix ci.all`; Plan 15 focused evidence suites; `mix verify.dialyzer`; D-46 integrity and security status checks | ✅ | ✅ green |
+| 234-15-T2 | 15 | 7 | SPEC-02 | T-234-26 | SPEC-02 and Nyquist sign-off are recorded only after required evidence passes | static + docs | Plan 15 validation/SPEC-02 status checks; `mix verify.dialyzer`; `mix ci.all` | ✅ | ✅ green |
+| 234-16-T1 | 16 | 2 | SPEC-02 | — | ActorRef encode/decode string-map behavior is pinned | unit + docs | `mix test test/threadline/semantics/actor_ref_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ | ✅ green |
+| 234-16-T2 | 16 | 2 | SPEC-02 | — | Subject descriptor key precedence and ignored extras are pinned | unit + docs | `mix test test/threadline/evidence/subject_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ | ✅ green |
+| 234-16-T3 | 16 | 2 | SPEC-02 | — | Retention fallback precedence and transaction result summary remain accurate | unit + docs | `mix test test/threadline/retention/policy_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/doc_spec_coverage_contract_test.exs`; `MIX_ENV=dev mix docs --warnings-as-errors`; `mix verify.dialyzer` | ✅ | ✅ green |
+| 234-17-T1 | 17 | 3 | SPEC-02 | — | Nested Subject descriptors accepted at runtime are represented in public types | unit + compile | `mix test test/threadline/evidence/subject_test.exs`; `mix compile --warnings-as-errors` | ✅ | ✅ green |
+| 234-17-T2 | 17 | 3 | SPEC-02 | — | Retention nil/false window fallbacks accepted at runtime are represented in public types | unit + compile | `mix test test/threadline/retention/policy_test.exs`; `mix compile --warnings-as-errors` | ✅ | ✅ green |
+| 234-18-T1 | 18 | 4 | SPEC-02 | — | StorageSchema.role/0 typedoc explains all five existing roles | compiled-doc + static | `mix compile --warnings-as-errors`; Plan 18 compiled-doc check; `MIX_ENV=dev mix docs --warnings-as-errors`; `mix verify.dialyzer` | ✅ | ✅ green |
+| 234-19-T1 | 19 | 6 | SPEC-02 | T-234-31/T-234-32 | Example remains GCM/Binary-only with no CTR/PBKDF2 reachability or historical ciphertext path | unit + source/history | `mix test test/threadline/cloak_advisory_reachability_contract_test.exs`; Plan 19 tracked-origin and history scans | ✅ | ✅ green |
+| 234-19-T2 | 19 | 6 | SPEC-02 | T-234-31/T-234-32 | Only accountable, review-dated advisory acknowledgements are accepted; dependencies remain unchanged | unit + integration | `mix test test/threadline/ignore_advisories_contract_test.exs test/threadline/cloak_advisory_reachability_contract_test.exs`; `mix verify.deps_audit`; lockfile and deps/0 comparisons | ✅ | ✅ green |
+| 234-19-T3 | 19 | 6 | SPEC-02 | T-234-31/T-234-32 | Threat dispositions cite passing evidence while Plan 15 sign-off stays open | static contract | Plan 19 security status/count check; result recorded in `234-19-SUMMARY.md` | ✅ | ✅ green |
+
+Plan and summary artifacts provide the recorded task-level pass evidence. The prior focused audit recorded six central contract suites passing (70 tests, 0 failures, 1 excluded), `mix verify.dialyzer` passing with 0 errors, and `MIX_ENV=dev mix docs --warnings-as-errors` passing. Plan 234-06 records its earlier `mix ci.all` pass (2,986 root tests, 130 example tests, 0 failures; strict Dialyzer 0 errors). Plan 15's fresh post-Plan-19 `mix ci.all` also passed: 3,006 root tests and 130 example tests with 0 failures, strict Dialyzer with 0 errors, live Dialyzer slice 17/0, npm audit with 0 vulnerabilities, and Playwright 318 passed / 26 intentionally skipped across desktop and mobile Chromium.
 
 ### Resolved escalated gap
 
@@ -95,7 +124,7 @@ Plan and summary artifacts provide the recorded task-level pass evidence. In thi
 
 **Approval:** Validation gates passed on 2026-10-06; the normal Phase 234 verifier must still regenerate `VERIFICATION.md`. No human UAT requested.
 
-## Validation Audit 2026-10-05
+## Validation Audit 2026-10-05 (historical snapshot before Plans 07–19)
 
 | Metric | Count |
 |--------|-------|
@@ -106,3 +135,16 @@ Plan and summary artifacts provide the recorded task-level pass evidence. In thi
 | Behavioral/runtime gaps | 0 |
 | Spec-contract gaps escalated | 1 |
 | New permanent tests added | 0 |
+
+
+## Validation Audit 2026-10-06
+
+The original map covered Plans 01–06 (28 tasks). This audit reconciled all 28 previously unlisted tasks from Plans 07–19 against each plan's task verify block, its completed summary, and the post-Plan-19 Plan 15 full-suite run. The omissions were map bookkeeping; no uncovered runtime behavior was found. Plan 13's two review/handoff tasks are supported by its fresh independent D-46 PASS and recorded machine integrity/handoff checks. Plan 19's three advisory tasks are supported by the reachability, accountable-ignore, dependency audit, history, and status checks. The accepted visible function/macro floor remains 82, with the eight D-07 hidden functions unchanged.
+
+| Metric | Count |
+|--------|-------|
+| Tasks audited | 56 |
+| Tasks with green recorded automated or independent-review evidence | 56 |
+| Confirmed open gaps | 0 |
+| Behavioral/runtime gaps | 0 |
+| New permanent tests required by this audit | 0 |
