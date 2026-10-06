@@ -168,7 +168,7 @@ Plans:
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: 19 plans
+**Plans**: 20 plans
 
 Plans:
 **Wave 1**
@@ -229,7 +229,11 @@ Plans:
 
 - [x] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 only after Plan 19 and a fresh full `mix ci.all` pass (completed 2026-10-06)
 
-**Execution note**: All active gap plans have summaries; Plan 234-15 passed the final CI and evidence gates on 2026-10-06. The original Plan 234-06 remains recorded as halted, while later gap closures resolved its outstanding D-28, D-46, security, and SPEC-02 gates. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Plan 13's current independent D-46 PASS and input-integrity evidence are recorded in its report and summary; Plan 19's GCM-only/Binary reachability contract, two accountable D-58 acknowledgements, and three-lockfile audit passed. Plan 15's fresh `mix ci.all` passed with 3,006 root tests, 130 example tests, zero strict Dialyzer errors, and 318 desktop/mobile Playwright passes (26 intentional skips). Security is verified with zero open high threats; SPEC-02 is Complete and validation is Nyquist-compliant. Phase verification and the regression gate are next; Phase 234 remains In Progress until they pass. Execution was sequential in the main tree.
+**Gap closure — Wave 8** *(blocked on 234-15; opened by fresh phase verification)*
+
+- [ ] 234-20-PLAN.md — Correct the record_action/2 and Job.context_opts/2 public docs, restore the D-22/231 D-05 capture type boundary with executable assertions, then refresh D-46 evidence before SPEC-02 closes (wave 8)
+
+**Execution note**: Plan 234-15 passed its CI and evidence gates on 2026-10-06. The subsequent phase verifier found two false public doc claims and the AuditTransaction.action type-boundary violation, so SPEC-02 is Pending again and Plan 20 owns these repairs. The original Plan 234-06 remains recorded as halted; the prior D-28 and high-severity security gaps were closed by later plans. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Plan 13's independent D-46 PASS and Plan 15's `mix ci.all` are historical evidence for their then-current source; Plan 20 requires fresh review and gates after its edits. Security remains verified with zero open high threats, and the already validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 remains In Progress until Plan 20 executes and the phase verifier passes.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
