@@ -219,13 +219,13 @@ Plans:
 
 **Gap closure — Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 234-13-PLAN.md — Regenerate the review input after Plan 18 and obtain a fresh evidence-validated independent D-46 verdict
+- [x] 234-13-PLAN.md — Regenerate the review input after Plan 18 and obtain a fresh evidence-validated independent D-46 verdict (completed 2026-10-06)
 
 **Gap closure — Wave 6** *(blocked on a validated PASS from 234-13)*
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-only execution is in progress; Plans 07–12, 14, 16, 17, and 18 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. The pre-Plan-18 independent D-46 report was FAIL solely on WR-02/S-4(e): exported `Threadline.StorageSchema.role/0` had `@typedoc false`. D-57 authorized Plan 18 to document its five existing roles without changing the union or runtime behavior; Plan 18 has now passed its source, compiled-doc, compile, docs, and Dialyzer checks. Preserve the prior D-46 input/report as historical evidence while Plan 13 regenerates input and seeks a fresh independent verdict. A valid FAIL reaches Plan 13's blocking-human scope checkpoint and creates no successful Plan 13 SUMMARY. Plan 15 runs only after a validated PASS-only Plan 13 handoff and reconciles every Plan 12–18 threat, including T-234-30. SPEC-02 and security sign-off remain Pending, and execution remains sequential in the main tree.
+**Execution note**: Gap-only execution is in progress; Plans 07–14, 16–18 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. The pre-Plan-18 D-46 report was FAIL solely on WR-02/S-4(e): exported `Threadline.StorageSchema.role/0` had `@typedoc false`. Plan 18 documented the five existing roles without changing the union or runtime behavior. Plan 13 regenerated the review input and obtained a fresh independent PASS after reviewing all visible entries, moduledocs, public types, callbacks, and broad-type allowances against the D-56-amended rubric; its input hash and exact inventory are recorded in the report and Plan 13 summary. Plan 15 may now run its own PASS recheck and reconcile every Plan 12–18 threat, including T-234-30. SPEC-02 and security sign-off remain Pending until Plan 15 completes its gates, and execution remains sequential in the main tree.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
