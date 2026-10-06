@@ -44,8 +44,8 @@ defmodule Threadline.Semantics.ActorRef do
   @typedoc "A stable actor reference with a supported type and an optional string identifier."
   @type t :: %__MODULE__{type: actor_type(), id: String.t() | nil}
 
-  @typedoc "A JSON map produced by `to_map/1`; it has a `\"type\"` string and may have an `\"id\"` string."
-  @type actor_map :: %{required(String.t()) => String.t()}
+  @typedoc "A string-keyed map emitted by `to_map/1`. It always contains `\"type\"`; non-anonymous refs also contain `\"id\"`. `to_map/1` adds no other keys. Its string-key arm allows the extra keys tolerated by `from_map/1`, which recognizes only string `\"type\"` and `\"id\"`, ignores additional string or atom keys, and gives those string keys precedence in mixed maps. An atom-only type key is not recognized and returns `{:error, :invalid_actor_ref_map}`. Anonymous refs ignore `\"id\"`. `new/2` and `from_map/1` produce validated refs with nil id only for anonymous refs, but a directly constructed non-anonymous `%ActorRef{}` with nil id emits `\"id\" => nil`."
+  @type actor_map :: %{required(String.t()) => String.t() | nil}
 
   @enforce_keys [:type]
   defstruct [:type, :id]
@@ -90,8 +90,9 @@ defmodule Threadline.Semantics.ActorRef do
   @doc """
   Returns the string-keyed JSON object used to store an ActorRef.
 
-  The `"type"` key is always present. Anonymous actors have no `"id"` key; other actor types
-  include an `"id"` key.
+  It always emits the string `"type"` key and no extra keys. Anonymous actors omit `"id"`; other
+  actor types include it. Validated non-anonymous refs have a non-empty string id, while a directly
+  constructed non-anonymous struct with a nil id emits `"id" => nil`.
   """
   @spec to_map(t()) :: actor_map()
   def to_map(%__MODULE__{type: :anonymous}) do
@@ -106,10 +107,13 @@ defmodule Threadline.Semantics.ActorRef do
   Returns an ActorRef decoded from a string-keyed JSON object.
 
   Accepts any input so callers can validate decoded JSON. An anonymous object has no `"id"` key;
-  every other supported type requires a non-empty string identifier.
+  its `"id"` value is ignored if present. Every other supported type requires a non-empty string
+  identifier.
 
-  Decoding tolerates extra map keys; `to_map/1` emits only the guaranteed `"type"` key and, for
-  identified actors, the optional `"id"` key.
+  Decoding recognizes only string `"type"` and `"id"` keys and ignores additional string or atom
+  keys. The recognized string keys take precedence over atom keys in mixed maps. An atom-only
+  `:type` key is not recognized and returns `{:error, :invalid_actor_ref_map}`. `to_map/1` emits
+  only `"type"` and, for non-anonymous actors, `"id"`.
 
   Returns `{:ok, actor_ref}` or `{:error, reason}` for `:invalid_actor_ref_map`,
   `:unknown_actor_type`, or `:missing_actor_id`.
