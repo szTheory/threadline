@@ -1,4 +1,3 @@
-Compiling 1 file (.ex)
 # Documentation and Typespec Review Input
 
 ## Mix.Tasks.Threadline.Continuity
@@ -78,7 +77,9 @@ triggers installed, using the same catalog queries as `Threadline.Health.trigger
 
 ## Threadline
 
-Audit platform for Elixir teams using Phoenix, Ecto, and PostgreSQL.
+Threadline is an audit platform that captures database row changes and links them to application actions and execution context.
+Threadline combines trigger-backed row-change capture, rich action semantics
+(actor/intent/context), and operator-grade exploration.
 
 ### Threadline.actor_history/2 (function)
 
@@ -168,6 +169,8 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.actor_window(actor_ref, [table: "members"], repo: MyApp.Repo)
 
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
+
 ```
 
 **Specs**
@@ -212,6 +215,8 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 ## Examples
 
     Threadline.actor_window_page(actor_ref, [table: "members"], repo: MyApp.Repo)
+
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -258,6 +263,8 @@ There is no `!` sibling because deletion and the audit horizon are expected resu
     Threadline.as_of(MyApp.User, 42, ~U[2026-01-01 00:00:00Z], repo: MyApp.Repo)
     Threadline.as_of(MyApp.LineItem, [tenant_id: 1, id: 5], timestamp, repo: MyApp.Repo)
 
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
+
 ```
 
 **Specs**
@@ -303,8 +310,7 @@ when the UUID is well-formed but no matching rows exist. Ordered by
 
     Threadline.audit_changes_for_transaction(transaction_id, repo: MyApp.Repo)
 
-Results contain captured values; redaction is applied when triggers are
-generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -410,8 +416,7 @@ Use `Threadline.row_history/3` to obtain linked changes before projecting them. 
     Threadline.change_diff(audit_change)
     Threadline.change_diff(audit_change, format: :export_compat)
 
-The projection uses captured values as stored; redaction is applied when
-triggers are generated, not on read.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -458,6 +463,8 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.correlation_bundle("member-42", [table: "members"], repo: MyApp.Repo)
 
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
+
 ```
 
 **Specs**
@@ -502,6 +509,8 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 ## Examples
 
     Threadline.correlation_bundle_page("member-42", [table: "members"], repo: MyApp.Repo)
+
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -551,8 +560,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.export_csv([table: "members"], repo: MyApp.Repo)
 
-Results contain column values as captured; redaction is applied when triggers
-are generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -607,8 +615,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.export_json([table: "members"], repo: MyApp.Repo, json_format: :ndjson)
 
-Results contain column values as captured; redaction is applied when triggers
-are generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -678,8 +685,7 @@ the cap counts only rows the scope predicate left in scope.
     Threadline.history(MyApp.User, 42, repo: MyApp.Repo)
     Threadline.history(MyApp.LineItem, [tenant_id: 1, id: 5], repo: MyApp.Repo)
 
-Results contain captured values; redaction is applied when triggers are
-generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -718,8 +724,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.incident_bundle(transaction_id, repo: MyApp.Repo)
 
-Results contain column values as captured; redaction is applied when triggers
-are generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -758,8 +763,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.incident_bundle!(transaction_id, repo: MyApp.Repo)
 
-Results contain column values as captured; redaction is applied when triggers
-are generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -772,8 +776,7 @@ incident_bundle!(Ecto.UUID.t(), [lookup_opt()]) :: Threadline.Investigation.Inci
 ### Threadline.record_action/2 (function)
 
 ```text
-Records an `%AuditAction{}` that names the application event associated with a database transaction.
-
+Records an `%AuditAction{}` that names the application event associated with a database transaction and returns `{:ok, AuditAction}` on success or `{:error, reason}` for a changeset failure, missing actor, invalid actor reference, or missing repository.
 Use `actor_history/2` or `correlation_bundle/3` to explore captured changes associated with the actor or correlation after recording the action.
 
 ## Options
@@ -856,8 +859,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
     first = Threadline.row_history(MyApp.LineItem, 42, repo: MyApp.Repo, cursor: :start)
     Threadline.row_history(MyApp.LineItem, 42, repo: MyApp.Repo, cursor: first.cursor)
 
-Results contain column values as captured; redaction is applied when triggers
-are generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -905,8 +907,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.row_history(MyApp.User, 42, [from: start_time], repo: MyApp.Repo)
 
-Results contain captured values; redaction is applied when triggers are
-generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -954,8 +955,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.row_history_page(MyApp.User, 42, [from: start_time], repo: MyApp.Repo)
 
-Results contain captured values; redaction is applied when triggers are
-generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -1002,8 +1002,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.timeline([table: "users"], repo: MyApp.Repo)
 
-Results contain column values as captured; redaction is applied when triggers
-are generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -1049,8 +1048,7 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 - A `%Threadline.Page{}` of matching changes.
 - Raises `ArgumentError` for invalid filters, repository options, or cursor, and `KeyError` when `:repo` is missing.
 
-Results contain column values as captured; redaction is applied when triggers
-are generated, not on read. Authorize reads with `:scope_query_fn`.
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ## Examples
 
@@ -1095,6 +1093,8 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 
     Threadline.transaction_context(transaction_id, repo: MyApp.Repo)
 
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
+
 ```
 
 **Specs**
@@ -1131,6 +1131,8 @@ Unknown keys raise `ArgumentError` naming the allowed keys.
 ## Examples
 
     Threadline.transaction_context!(transaction_id, repo: MyApp.Repo)
+
+Results contain column values as captured; redaction is applied when triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
 
 ```
 
@@ -1913,7 +1915,7 @@ The virtual `:action` is a hydrated `Threadline.Semantics.AuditAction`; nil unti
 
 t() :: %Threadline.Capture.AuditTransaction{
   __meta__: Ecto.Schema.Metadata.t(),
-  action: struct() | nil,
+  action: Threadline.Semantics.AuditAction.t() | nil,
   action_id: Ecto.UUID.t() | nil,
   actor_ref: Threadline.Semantics.ActorRef.t() | nil,
   changes: [Threadline.Capture.AuditChange.t()] | Ecto.Association.NotLoaded.t(),
@@ -1929,7 +1931,7 @@ t() :: %Threadline.Capture.AuditTransaction{
 
 ## Threadline.ChangeDiff
 
-Pure projection of a single captured row change into deterministic, JSON-friendly maps.
+Threadline.ChangeDiff projects one captured row change into deterministic, JSON-friendly maps.
 
 ### Threadline.ChangeDiff.from_audit_change/2 (function)
 
@@ -2005,12 +2007,15 @@ change_diff_result() :: Threadline.json_map()
 
 ## Threadline.Continuity
 
-Brownfield cutover helpers for honest **T₀** semantics with Threadline capture.
+`Threadline.Continuity` documents the post-install capture boundary that
+starts each table's audit history at its first trigger-fired mutation.
 
 ### Threadline.Continuity.assert_capture_ready!/2 (function)
 
 ```text
-Asserts that `table_name` exists and has a Threadline capture trigger.
+Returns `:ok` when `table_name` exists and has a Threadline capture trigger;
+raises `ArgumentError` when the table, schema, or trigger is missing, and
+`KeyError` when the required `:repo` option is missing.
 
 Bare table names resolve to the public host schema by default. Pass
 `schema: "support"` for a selected host schema, or pass a schema-qualified
@@ -2039,7 +2044,9 @@ assert_capture_ready!(String.t(), [assert_capture_ready_opt()]) :: :ok
 ### Threadline.Continuity.explain_cutover/1 (function)
 
 ```text
-Returns a human-readable explanation of brownfield cutover steps (read-only).
+Returns `{:ok, iodata()}` containing a human-readable, read-only explanation
+of brownfield cutover steps. Raises `KeyError` when the required `:repo`
+option is missing.
 
 ## Options
 
@@ -3212,14 +3219,15 @@ The closed set of subject names accepted by Threadline evidence records.
 ### Threadline.Evidence.Subject.supported?/1 (function)
 
 ```text
-Returns whether a subject or subject descriptor is supported.
+Returns `true` when a subject or subject descriptor is supported, and `false` for every other
+input.
 
 ```
 
 **Specs**
 
 ```elixir
-supported?(subject_descriptor()) :: boolean()
+supported?(subject_input()) :: boolean()
 ```
 
 ### Threadline.Evidence.Subject.supported_subjects/0 (function)
@@ -3238,14 +3246,45 @@ supported_subjects() :: [String.t()]
 ### Threadline.Evidence.Subject.validate/1 (function)
 
 ```text
-Validates a subject or subject descriptor against the closed inventory.
+Returns `:ok` for a supported subject or `{:error, {:unsupported_subject, value}}` otherwise.
+
+The unsupported value is the normalized subject for recognized descriptors and the original
+input for values that cannot be normalized. The inventory is closed to `supported_subjects/0`.
 
 ```
 
 **Specs**
 
 ```elixir
-validate(subject_descriptor()) :: :ok | {:error, {:unsupported_subject, term()}}
+validate(subject_input()) :: :ok | {:error, {:unsupported_subject, term()}}
+```
+
+### Threadline.Evidence.Subject.subject_input/0 (@type)
+
+
+
+
+
+Any value accepted by the subject validator and predicate.
+
+
+
+```elixir
+
+
+subject_input() ::
+  atom()
+  | bitstring()
+  | number()
+  | %{optional(subject_input()) => subject_input()}
+  | tuple()
+  | list()
+  | pid()
+  | port()
+  | reference()
+  | function()
+
+
 ```
 
 ### Threadline.Evidence.Subject.subject_descriptor/0 (@type)
@@ -3254,7 +3293,7 @@ validate(subject_descriptor()) :: :ok | {:error, {:unsupported_subject, term()}}
 
 
 
-A subject name or a map descriptor using the `:subject` or `:name` key.
+A subject name or descriptor using only `:subject`, `:name`, `"subject"`, or `"name"` keys.
 
 
 
@@ -3695,7 +3734,7 @@ export_row() :: %{
   changed_from: Threadline.json_map() | nil,
   tx_occurred_at: DateTime.t(),
   tx_actor_ref: Threadline.Semantics.ActorRef.t() | nil,
-  tx_source: String.t(),
+  tx_source: String.t() | nil,
   aa_id: Ecto.UUID.t() | nil,
   aa_correlation_id: String.t() | nil
 }
@@ -3854,6 +3893,52 @@ run_opt() ::
 
 Enqueues Threadline export jobs for asynchronous processing.
 
+### Threadline.ExportQueue.error_reason/0 (@type)
+
+
+
+
+
+Any Elixir value returned by an adapter as an error reason; Threadline treats it as opaque.
+
+
+
+```elixir
+
+
+error_reason() ::
+  atom()
+  | number()
+  | bitstring()
+  | pid()
+  | port()
+  | reference()
+  | function()
+  | tuple()
+  | maybe_improper_list(error_reason(), error_reason())
+  | %{optional(error_reason()) => error_reason()}
+
+
+```
+
+### Threadline.ExportQueue.options/0 (@type)
+
+
+
+
+
+Adapter-defined keyword options that Threadline passes through without interpreting their keys.
+
+
+
+```elixir
+
+
+options() :: Threadline.Storage.options()
+
+
+```
+
 ### Threadline.ExportQueue.job_id/0 (@type)
 
 
@@ -3949,7 +4034,7 @@ enqueue_opt() :: Threadline.storage_schema_opt() | {:supervisor, pid() | atom() 
 
 ## Threadline.Governance.EvidenceRecord
 
-An append-only snapshot of a Threadline subject at a point in time.
+An EvidenceRecord is an append-only snapshot of a Threadline subject at a point in time.
 
 ### Threadline.Governance.EvidenceRecord.t/0 (@type)
 
@@ -4322,7 +4407,8 @@ for `Threadline.Health.trigger_coverage/1`'s third bucket.
 ### Threadline.Health.Policy.validate!/1 (function)
 
 ```text
-Validates `:expected_uncovered_tables` and `:audit_anyway` config.
+Returns `:ok` after validating `:expected_uncovered_tables` and `:audit_anyway`
+config, or raises `ArgumentError` when the config is invalid.
 
 Accepts a keyword list or a map, matching the dual-form intake used by
 capture-time redaction validation.
@@ -4384,7 +4470,7 @@ config_opt() :: {:expected_uncovered_tables, [String.t()]} | {:audit_anyway, [St
 
 ## Threadline.Integrations.Sigra
 
-Soft-dependency adapter for deriving Threadline audit context from Sigra state.
+The Sigra integration derives Threadline audit context from optional Sigra request state.
 
 ### Threadline.Integrations.Sigra.actor_fn/0 (function)
 
@@ -4446,7 +4532,7 @@ audit_overrides() :: %{optional(:correlation_id) => String.t()}
 
 ## Threadline.Investigation.IncidentBundle
 
-One transaction-focused incident bundle with linked context and packaged diffs.
+An IncidentBundle groups one captured transaction with its linked action and change diffs.
 
 ### Threadline.Investigation.IncidentBundle.t/0 (@type)
 
@@ -4472,7 +4558,8 @@ t() :: %Threadline.Investigation.IncidentBundle{
 
 ## Threadline.Investigation.IncidentChange
 
-One bundled incident change with raw linked structs and a packaged diff.
+An incident change pairs a linked audit change with its JSON diff for
+investigation review.
 
 ### Threadline.Investigation.IncidentChange.t/0 (@type)
 
@@ -4497,7 +4584,7 @@ t() :: %Threadline.Investigation.IncidentChange{
 
 ## Threadline.Investigation.LinkedChange
 
-One investigation change row with linked transaction and optional action context.
+A LinkedChange connects one captured row mutation to its transaction and optional action.
 
 ### Threadline.Investigation.LinkedChange.t/0 (@type)
 
@@ -4523,7 +4610,8 @@ t() :: %Threadline.Investigation.LinkedChange{
 
 ## Threadline.Investigation.LinkedTransaction
 
-One transaction-oriented investigation slice with optional action metadata.
+A linked transaction groups its audit changes and optional action into one
+investigation slice.
 
 ### Threadline.Investigation.LinkedTransaction.t/0 (@type)
 
@@ -4711,8 +4799,9 @@ job_args() :: Threadline.json_map()
 
 ## Threadline.NotFoundError
 
-Raised by the `!` sibling of a single-subject lookup when the subject does
-not exist, or is not visible under the caller's scope.
+`Threadline.NotFoundError` is raised by the `!` sibling of a single-subject
+lookup when the subject does not exist or is not visible under the caller's
+scope.
 
 ### Threadline.NotFoundError.t/0 (@type)
 
@@ -4916,7 +5005,7 @@ explicit acknowledgement that the mount is unauthenticated.
 
 ## Threadline.Page
 
-One page of a Threadline paged read.
+`Threadline.Page` represents one page of a Threadline paged read.
 
 ### Threadline.Page.t/0 (@type)
 
@@ -5026,12 +5115,16 @@ Plug that extracts `AuditContext` from a `Plug.Conn` and stores it in
 
 ## Threadline.Retention
 
-Batched retention purge for `audit_changes` and empty `audit_transactions`.
+`Threadline.Retention` batches expiry of `AuditChange` rows and optionally
+removes empty `AuditTransaction` rows.
 
 ### Threadline.Retention.purge/1 (function)
 
 ```text
-Deletes expired `AuditChange` rows in batches and optionally removes empty `AuditTransaction` rows.
+Returns `purge_result()` after deleting expired `AuditChange` rows, or
+`{:error, :disabled}` when retention is disabled. Raises `ArgumentError` for
+invalid policy or a cutoff newer than the policy cutoff; repository errors
+are reraised.
 
 The cutoff comes from `Threadline.Retention.Policy`; an explicit cutoff must
 be older than or equal to that policy cutoff.
@@ -5162,10 +5255,11 @@ resolve!(config()) :: t()
 ### Threadline.Retention.Policy.validate_config!/1 (function)
 
 ```text
-Validates retention config from `Application.get_env(:threadline, :retention)`.
+Returns `:ok` when retention config from `Application.get_env(:threadline, :retention)` is valid.
 
-Raises `ArgumentError` with a message containing `"retention"` when the shape
-is invalid, keys conflict, or the window is not positive.
+Raises `ArgumentError` with a message containing `"retention"` when either boolean option is
+not a boolean or its string spelling, when both window keys are set, or when a window is
+non-positive or missing outside the test environment.
 
 In `:test`, missing `:keep_days` / `:max_age_seconds` is allowed only when the
 caller passes a non-empty map/list that still fails other checks — for empty
@@ -5221,14 +5315,21 @@ config() :: [config_opt()] | config_map()
 
 
 
-A map form accepted by validation; recognized keys may use atom or string spelling.
+A map with optional retention keys; atom spellings are finite, string keys are documented below.
 
 
 
 ```elixir
 
 
-config_map() :: %{optional(atom() | String.t()) => boolean() | String.t() | pos_integer()}
+config_map() ::
+  %{
+    optional(:enabled) => boolean() | String.t(),
+    optional(:delete_empty_transactions) => boolean() | String.t(),
+    optional(:keep_days) => pos_integer(),
+    optional(:max_age_seconds) => pos_integer()
+  }
+  | %{optional(String.t()) => boolean() | String.t() | pos_integer()}
 
 
 ```
@@ -5289,6 +5390,9 @@ Returns an ActorRef decoded from a string-keyed JSON object.
 Accepts any input so callers can validate decoded JSON. An anonymous object has no `"id"` key;
 every other supported type requires a non-empty string identifier.
 
+Decoding tolerates extra map keys; `to_map/1` emits only the guaranteed `"type"` key and, for
+identified actors, the optional `"id"` key.
+
 Returns `{:ok, actor_ref}` or `{:error, reason}` for `:invalid_actor_ref_map`,
 `:unknown_actor_type`, or `:missing_actor_id`.
 
@@ -5328,7 +5432,7 @@ unsupported type or `:missing_actor_id` for a missing or empty identifier.
 **Specs**
 
 ```elixir
-new(actor_type(), String.t() | nil) ::
+new(actor_type_input(), String.t() | nil) ::
   {:ok, t()} | {:error, :unknown_actor_type | :missing_actor_id}
 ```
 
@@ -5336,6 +5440,10 @@ new(actor_type(), String.t() | nil) ::
 
 ```text
 Returns the string-keyed JSON object used to store an ActorRef.
+
+The `"type"` key is always present. Anonymous actors have no `"id"` key; other actor types
+include an `"id"` key.
+
 ```
 
 **Specs**
@@ -5350,14 +5458,14 @@ to_map(t()) :: actor_map()
 
 
 
-A JSON object with a required string `type` key and an optional string `id` key.
+A JSON map produced by `to_map/1`; it has a `"type"` string and may have an `"id"` string.
 
 
 
 ```elixir
 
 
-actor_map() :: %{optional(String.t()) => String.t() | nil}
+actor_map() :: %{required(String.t()) => String.t()}
 
 
 ```
@@ -5376,6 +5484,34 @@ A stable actor reference with a supported type and an optional string identifier
 
 
 t() :: %Threadline.Semantics.ActorRef{id: String.t() | nil, type: actor_type()}
+
+
+```
+
+### Threadline.Semantics.ActorRef.actor_type_input/0 (@type)
+
+
+
+
+
+Any value accepted by `new/2`; unsupported values return `:unknown_actor_type`.
+
+
+
+```elixir
+
+
+actor_type_input() ::
+  atom()
+  | bitstring()
+  | number()
+  | %{optional(actor_type_input()) => actor_type_input()}
+  | tuple()
+  | list()
+  | pid()
+  | port()
+  | reference()
+  | function()
 
 
 ```
@@ -5464,6 +5600,34 @@ t() :: %Threadline.Semantics.AuditContext{
 ## Threadline.Storage
 
 Stores and retrieves export files and other persistent artifacts.
+
+### Threadline.Storage.error_reason/0 (@type)
+
+
+
+
+
+Any Elixir value returned by an adapter as an error reason; Threadline treats it as opaque.
+
+
+
+```elixir
+
+
+error_reason() ::
+  atom()
+  | number()
+  | bitstring()
+  | pid()
+  | port()
+  | reference()
+  | function()
+  | tuple()
+  | maybe_improper_list(error_reason(), error_reason())
+  | %{optional(error_reason()) => error_reason()}
+
+
+```
 
 ### Threadline.Storage.options/0 (@type)
 
@@ -5714,7 +5878,8 @@ identifier_input() :: String.t() | atom()
 
 ## Threadline.Telemetry
 
-Telemetry integration helpers for Threadline.
+`Threadline.Telemetry` defines Threadline's emitted event contract and lets
+hosts record accurate transaction table counts.
 
 ### Threadline.Telemetry.transaction_committed/2 (function)
 
