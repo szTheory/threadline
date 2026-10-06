@@ -15,7 +15,7 @@ actuals:
   tasks: 3
   commits: 3
 plan_head_before: f6944d4987d58e8c3ea165c9609821701cc6f8f3
-plan_head_after: 13a9b8155dff36b8232b12884d53be693b9275fd
+plan_head_after: 4b7e26a4f906a65ea474e51ddea9da068f892db7
 tech-stack:
   added: []
   patterns:
@@ -101,6 +101,8 @@ Each task was committed atomically:
 2. **Task 2: Pin Subject descriptor key precedence and ignored extras** — `c0aa5968` (fix)
 3. **Task 3: Pin retention map precedence and correct transaction return summary** — `13a9b815` (fix)
 
+Follow-up repository-hygiene correction for machine-local GSD paths in Phase 234 planning files — `78484e89` (docs).
+
 ## Files Created/Modified
 
 - `lib/threadline/semantics/actor_ref.ex` and `test/threadline/semantics/actor_ref_test.exs` — ActorRef map types, docs, and compatibility coverage.
@@ -115,7 +117,7 @@ Each task was committed atomically:
 
 ## Deviations from Plan
 
-None — plan scope and runtime behavior were preserved.
+`mix ci.all` exposed concrete home-relative GSD paths in the Phase 234 plan files. Replaced those path prefixes with the repository's `<home>` placeholder convention in commit `78484e89`; no runtime/API scope changed. The first full-suite attempt also hit sandbox restrictions on the local npm/Hex caches and disposable Git worktree; rerunning with isolated caches and the required test permissions passed.
 
 ## Verification
 
@@ -125,6 +127,8 @@ None — plan scope and runtime behavior were preserved.
 - Plan-level focused contract suite: 57 tests, 0 failures.
 - `MIX_ENV=dev mix docs --warnings-as-errors`: passed.
 - `mix verify.dialyzer`: passed, 0 errors.
+- `mix verify.repo_hygiene`: passed; 4,605 tracked text files clean, 8 allowlist entries used.
+- `mix ci.all`: passed; 3,002 core tests (0 failures, 3 excluded), 130 example tests (0 failures), Dialyzer (0 errors), and 318 browser tests passed with 26 existing skips.
 - Stub scan found no placeholder implementation patterns in the seven changed source and test files.
 - Threat surface scan found no new network, auth, file-access, or schema boundary.
 
