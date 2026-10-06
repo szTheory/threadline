@@ -26,27 +26,28 @@ defmodule Threadline.Retention.Policy do
   @type config_opt ::
           {:enabled, boolean() | String.t()}
           | {:delete_empty_transactions, boolean() | String.t()}
-          | {:keep_days, pos_integer()}
-          | {:max_age_seconds, pos_integer()}
+          | {:keep_days, pos_integer() | nil | false}
+          | {:max_age_seconds, pos_integer() | nil | false}
 
   @typedoc ~S"""
   A retention config map. Recognized keys are atom or string spellings of `:enabled`,
   `:delete_empty_transactions`, `:keep_days`, and `:max_age_seconds`. The boolean keys accept
-  booleans or the strings `"true"` and `"false"`; each window key accepts a positive integer.
+  booleans or the strings `"true"` and `"false"`; window values accept positive integers.
   Other keys are ignored, and the string-key map arm represents extra keys and mixed atom/string
   maps.
 
   For boolean keys, a present atom key wins over its string spelling even when its value is
-  invalid. For window keys, `atom_value || string_value` is used, so nil or false falls back to
-  the string key while 0 or another truthy invalid value does not. Positive window values remain
-  mutually exclusive; when both are absent, the test environment uses a one-day default.
+  invalid. For window keys, `atom_value || string_value` is used, so atom nil or false falls back
+  to the matching string key while 0 or another truthy invalid atom value keeps its validation
+  error. Positive window values remain mutually exclusive; when both are absent, the test
+  environment uses a one-day default.
   """
   @type config_map ::
           %{
             optional(:enabled) => boolean() | String.t(),
             optional(:delete_empty_transactions) => boolean() | String.t(),
-            optional(:keep_days) => pos_integer(),
-            optional(:max_age_seconds) => pos_integer()
+            optional(:keep_days) => pos_integer() | nil | false,
+            optional(:max_age_seconds) => pos_integer() | nil | false
           }
           | %{optional(String.t()) => boolean() | String.t() | pos_integer()}
 
