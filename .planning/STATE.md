@@ -4,17 +4,17 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
-current_plan: 13
+current_plan: 17
 status: executing
 stopped_at: Completed 234-16-PLAN.md
-last_updated: "2026-10-06T01:14:05.881Z"
-last_activity: 2026-10-05
+last_updated: "2026-10-06T02:52:02.879Z"
+last_activity: 2026-10-06
 last_activity_desc: Plan 234-16 completed; Plan 234-13 is next for fresh independent review
-state_head: 13a9b8155dff36b8232b12884d53be693b9275fd
+state_head: b2ddbd6c4172536117e3fe1893db36c80ff7f587
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 29
+  total_plans: 30
   completed_plans: 27
   percent: 43
 ---
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 
 ## Current Position
 
-Phase: 234 (Typespec and Doc Completion Gate) — EXECUTING
-Current Plan: 13
-Total Plans in Phase: 16
-Status: Plan 234-13 is next (Wave 3)
+Phase: 234 (Typespec and Doc Completion Gate) — READY TO EXECUTE
+Current Plan: 17
+Total Plans in Phase: 17
+Status: Ready to execute
 Plan 13 Task 1 committed fresh D-46 evidence in `729f35e9`: 82 visible entries, 52 moduledocs, 149 public types, 8 callbacks; WR-02 has three finite-map type findings and WR-05 has one `Audit.transaction/3` summary finding. Its report-integrity verifier passes. The maintainer approved D-56 to preserve runtime key acceptance under a narrow D-25/S-4 exception, add executable contract coverage, and retain the Plan 234-09 summary correction. Plan 234-16 is complete with focused compatibility contracts, warning-free docs, and clean Dialyzer; Plan 13 Task 2 still requires a fresh PASS, SPEC-02 remains Pending, T-234-24 is open, and Plan 15 is unready.
 Last activity: 2026-10-06 — Plan 234-16 complete; Plan 13 is next
 

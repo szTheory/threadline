@@ -168,7 +168,7 @@ Plans:
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: 16 plans
+**Plans**: 17 plans
 
 Plans:
 **Wave 1**
@@ -204,20 +204,24 @@ Plans:
 - [x] 234-11-PLAN.md — EvidenceRecord, investigation entities, LinkedChange, and Sigra module openings (completed 2026-10-05)
 - [x] 234-12-PLAN.md — Finish D-28: private raise-only helpers, compiled privacy probe, and exact-message integration coverage for all four Mix task error paths (completed 2026-10-05)
 
-**Gap closure — Wave 2** *(blocked on 234-11)*
+**Gap closure — Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 234-14-PLAN.md — Complete remaining NotFoundError, Page, Telemetry, IncidentChange, and LinkedTransaction module openings; Telemetry M-2 entry points named (completed 2026-10-05)
 - [x] 234-16-PLAN.md — D-56 map alias/typedoc compatibility contracts and the Audit.transaction/3 opening envelope (completed 2026-10-06)
 
-**Gap closure — Wave 3** *(blocked on 234-07 through 234-12, 234-14, and 234-16)*
+**Gap closure — Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 234-13-PLAN.md — Regenerate the review input and obtain an evidence-validated independent D-46 verdict
+- [ ] 234-17-PLAN.md — Align Subject nested-descriptor and Retention nil/false fallback types with existing behavior
 
-**Gap closure — Wave 4** *(blocked on a validated PASS from 234-13)*
+**Gap closure — Wave 4** *(blocked on 234-17 completion)*
+
+- [ ] 234-13-PLAN.md — Regenerate the review input after Plan 17 and obtain a fresh evidence-validated independent D-46 verdict
+
+**Gap closure — Wave 5** *(blocked on a validated PASS from 234-13)*
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-only execution is in progress; Plans 07–12, 14, and 16 are complete. D-55 supersedes only the earlier D-11/D-54 90-entry threshold: the final floor is >=82 D-03 visible function/macro entries after D-07 deliberately hid eight internal helpers. Plan 12's coverage fix is committed as 789b5bf4; its D-28 fix (`daac60bc`) keeps raise-only helpers private and preserves all four Mix task errors. Plan 14's five M-1 summaries and Telemetry M-2 entry points passed focused tests, docs, and Dialyzer. Plan 13 Task 1 is committed as `729f35e9` with an integrity-validated fresh D-46 FAIL: WR-02 has three finite-map findings and WR-05 has one `Audit.transaction/3` summary finding. Plan 16 closed those findings under the maintainer-approved narrow D-56 exception, preserving runtime acceptance and adding executable compatibility coverage. Plan 13 is next to regenerate input and obtain a fresh independent review; Plan 15 consumes only its PASS summary. SPEC-02 remains Pending, security sign-off remains pending, no Plan 13 SUMMARY exists, and Plan 15 is unready; execution remains sequential in the main tree.
+**Execution note**: Gap-only execution is in progress; Plans 07–12, 14, and 16 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. Plan 17 closes only the two current WR-02 type mismatches: nested Subject descriptors and Retention atom-window nil/false fallback values; existing focused tests already pin both runtime behaviors. The current D-46 report and review input predate Plan 17 and are stale for sign-off. Plan 13 must regenerate review input and obtain a fresh independent D-46 verdict after Plan 17; Plan 15 remains downstream of a validated PASS-only Plan 13 handoff. SPEC-02 and security sign-off remain Pending, no successful Plan 13 SUMMARY exists, and execution remains sequential in the main tree.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
