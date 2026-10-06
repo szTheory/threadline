@@ -1796,7 +1796,10 @@ optionally links the write to a semantic action.
 
 ```text
 Runs `fun` inside `repo.transaction/1` after setting the transaction-local
-`threadline.actor_ref` GUC and optionally recording a semantic action.
+`threadline.actor_ref` GUC and optionally recording a semantic action, then returns
+`{:ok, result}` or `{:error, reason}`. On success, `result` may include an
+`:audit_transaction_id` when capture creates an `audit_transactions` row: Threadline merges the
+id into map results and wraps non-map results as `%{result: value, audit_transaction_id: id}`.
 
 See module doc for options, callback rules, and return envelope.
 
@@ -3293,7 +3296,14 @@ subject_input() ::
 
 
 
-A subject name or descriptor using only `:subject`, `:name`, `"subject"`, or `"name"` keys.
+A subject name or descriptor. Recognized keys, in precedence order, are atom `:subject`, atom
+`:name`, string `"subject"`, and string `"name"`. Each recognized value may be an atom or
+string, and a value that is itself a descriptor is normalized recursively.
+
+When a recognized key is present, other keys are ignored. If a map has no recognized key, it is
+returned unchanged as the unsupported value. The string-key map arm also represents extra keys
+and mixed atom/string maps.
+
 
 
 
@@ -5315,7 +5325,17 @@ config() :: [config_opt()] | config_map()
 
 
 
-A map with optional retention keys; atom spellings are finite, string keys are documented below.
+A retention config map. Recognized keys are atom or string spellings of `:enabled`,
+`:delete_empty_transactions`, `:keep_days`, and `:max_age_seconds`. The boolean keys accept
+booleans or the strings `"true"` and `"false"`; each window key accepts a positive integer.
+Other keys are ignored, and the string-key map arm represents extra keys and mixed atom/string
+maps.
+
+For boolean keys, a present atom key wins over its string spelling even when its value is
+invalid. For window keys, `atom_value || string_value` is used, so nil or false falls back to
+the string key while 0 or another truthy invalid value does not. Positive window values remain
+mutually exclusive; when both are absent, the test environment uses a one-day default.
+
 
 
 
@@ -5388,10 +5408,13 @@ An actor reference identifies who performed an audited operation, including when
 Returns an ActorRef decoded from a string-keyed JSON object.
 
 Accepts any input so callers can validate decoded JSON. An anonymous object has no `"id"` key;
-every other supported type requires a non-empty string identifier.
+its `"id"` value is ignored if present. Every other supported type requires a non-empty string
+identifier.
 
-Decoding tolerates extra map keys; `to_map/1` emits only the guaranteed `"type"` key and, for
-identified actors, the optional `"id"` key.
+Decoding recognizes only string `"type"` and `"id"` keys and ignores additional string or atom
+keys. The recognized string keys take precedence over atom keys in mixed maps. An atom-only
+`:type` key is not recognized and returns `{:error, :invalid_actor_ref_map}`. `to_map/1` emits
+only `"type"` and, for non-anonymous actors, `"id"`.
 
 Returns `{:ok, actor_ref}` or `{:error, reason}` for `:invalid_actor_ref_map`,
 `:unknown_actor_type`, or `:missing_actor_id`.
@@ -5441,8 +5464,9 @@ new(actor_type_input(), String.t() | nil) ::
 ```text
 Returns the string-keyed JSON object used to store an ActorRef.
 
-The `"type"` key is always present. Anonymous actors have no `"id"` key; other actor types
-include an `"id"` key.
+It always emits the string `"type"` key and no extra keys. Anonymous actors omit `"id"`; other
+actor types include it. Validated non-anonymous refs have a non-empty string id, while a directly
+constructed non-anonymous struct with a nil id emits `"id" => nil`.
 
 ```
 
@@ -5458,14 +5482,22 @@ to_map(t()) :: actor_map()
 
 
 
-A JSON map produced by `to_map/1`; it has a `"type"` string and may have an `"id"` string.
+A string-keyed map emitted by `to_map/1`. It always contains `"type"`; non-anonymous refs
+also contain `"id"`, and no other keys are emitted.
+
+`from_map/1` recognizes only string `"type"` and `"id"` keys. It ignores additional string or
+atom keys, and recognized string keys take precedence in mixed maps. An atom-only type key is
+not recognized and returns `{:error, :invalid_actor_ref_map}`. Anonymous refs ignore `"id"`.
+`new/2` and `from_map/1` produce validated refs with nil id only for anonymous refs, but a
+directly constructed non-anonymous `%ActorRef{}` with nil id emits `"id" => nil`.
+
 
 
 
 ```elixir
 
 
-actor_map() :: %{required(String.t()) => String.t()}
+actor_map() :: %{required(String.t()) => String.t() | nil}
 
 
 ```
