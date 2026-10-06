@@ -4,18 +4,18 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
-current_plan: 17
+current_plan: 13
 status: executing
-stopped_at: Planned 234-17-PLAN.md; ready for gap-only execution
-last_updated: "2026-10-06T08:29:01.188Z"
+stopped_at: Completed 234-17-PLAN.md
+last_updated: "2026-10-06T09:28:33.807Z"
 last_activity: 2026-10-06
-last_activity_desc: Plan 234-17 finalized after clean plan review; execute gap-closure waves next
-state_head: cfc4c43032d08c7624cd83664901c0f03452368c
+last_activity_desc: Plan 234-17 completed; fresh D-46 review is next
+state_head: d5fda8696afb796c2afcc3325eabd4ab79564211
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 30
-  completed_plans: 27
+  completed_plans: 28
   percent: 43
 ---
 
@@ -30,12 +30,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 
 ## Current Position
 
-Phase: 234 (Typespec and Doc Completion Gate) — READY TO EXECUTE
-Current Plan: 17
+Phase: 234 (Typespec and Doc Completion Gate) — EXECUTING
+Current Plan: 13
 Total Plans in Phase: 17
-Status: Ready to execute
-Plan 234-13 previously measured 82 visible function/macro entries, 52 moduledocs, 149 public types, and 8 callbacks; that report predates Plan 17 and must be regenerated before sign-off. Plans 234-01 through 234-12, 234-14, and 234-16 are complete. Plan 234-17 closes only the two residual WR-02 type mismatches (recursive Subject descriptors and Retention nil/false fallbacks) while preserving runtime behavior, D-55's >=82 floor, and D-07's hidden pin. Independent plan review passed with zero blockers and warnings; decision coverage passed 56/56 and post-planning coverage passed 59/59. Execute gap-closure plans in dependency order: Plan 17, then Plan 13 for a fresh independent D-46 review, then Plan 15 only after a validated PASS. SPEC-02 and security sign-off remain Pending.
-Last activity: 2026-10-06 — Plan 234-17 finalized after clean plan review; gap-only execution is next
+Status: Executing Phase 234
+Plan 234-17 is complete: Subject nested-descriptor and Retention nil/false fallback types now match existing runtime behavior; focused tests, strict compile, D-55/D-07 contracts, Dialyzer, and strict docs generation passed. Plan 13's prior review input predates Plan 17 and must be regenerated before sign-off. Plans 234-01 through 234-12, 234-14, 234-16, and 234-17 are complete. Execute remaining gap-closure plans in dependency order: Plan 13 for a fresh independent D-46 review, then Plan 15 only after a validated PASS. SPEC-02 and security sign-off remain Pending.
+Last activity: 2026-10-06 — Plan 234-17 completed; fresh D-46 review is next
 
 v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -281,6 +281,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 234 P10 | 25min | 2 tasks | 2 files |
 | Phase 234 P11 | 12min | 2 tasks | 4 files |
 | Phase 234 P16 | 10min | 3 tasks | 7 files |
+| Phase 234 P17 | 37min | 2 tasks | 2 files |
 
 ## Deferred Items
 
@@ -1027,6 +1028,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 234]: Plan 234-12's first D-28 approach exposed the conflict between an exported raise-only helper and strict Dialyzer; the failed spec-removal attempt was restored, and the remaining plan now privatizes the helpers without changing CLI error behavior.
 - [Phase 234]: Document the existing domain behavior without changing fields, return claims, or the Phase 235 stability boundary.
 - [Phase 234]: Preserved runtime map acceptance and mixed-key behavior under the approved narrow D-56 exception.
+- [Phase 234]: Preserved runtime behavior while aligning Subject and Retention public types with accepted values.
+- [Phase 234]: Kept SPEC-02 pending until Plan 13's fresh D-46 review and Plan 15 reconciliation pass.
 
 ### Blockers
 
@@ -1044,9 +1047,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-06T08:29:04.000Z
-**Stopped at:** Plan 234-17 planned; ready for gap-only execution
-**Resume file:** `$gsd-execute-phase 234 --gaps-only` (Plan 17 → fresh Plan 13 review → gated Plan 15)
+**Last session:** 2026-10-06T09:28:33.761Z
+**Stopped at:** Completed 234-17-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).

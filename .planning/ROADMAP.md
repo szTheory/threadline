@@ -211,9 +211,9 @@ Plans:
 
 **Gap closure — Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 234-17-PLAN.md — Align Subject nested-descriptor and Retention nil/false fallback types with existing behavior
+- [x] 234-17-PLAN.md — Align Subject nested-descriptor and Retention nil/false fallback types with existing behavior (completed 2026-10-06)
 
-**Gap closure — Wave 4** *(blocked on 234-17 completion)*
+**Gap closure — Wave 4**
 
 - [ ] 234-13-PLAN.md — Regenerate the review input after Plan 17 and obtain a fresh evidence-validated independent D-46 verdict
 
@@ -221,7 +221,7 @@ Plans:
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-only execution is in progress; Plans 07–12, 14, and 16 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. Plan 17 closes only the two current WR-02 type mismatches: nested Subject descriptors and Retention atom-window nil/false fallback values; existing focused tests already pin both runtime behaviors. The current D-46 report and review input predate Plan 17 and are stale for sign-off. Plan 13 must regenerate review input and obtain a fresh independent D-46 verdict after Plan 17; Plan 15 remains downstream of a validated PASS-only Plan 13 handoff. SPEC-02 and security sign-off remain Pending, no successful Plan 13 SUMMARY exists, and execution remains sequential in the main tree.
+**Execution note**: Gap-only execution is in progress; Plans 07–12, 14, 16, and 17 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. Plan 17 closed only the two current WR-02 type mismatches: nested Subject descriptors and Retention atom-window nil/false fallback values; focused tests pin both runtime behaviors. The current D-46 report and review input predate Plan 17 and are stale for sign-off. Plan 13 must regenerate review input and obtain a fresh independent D-46 verdict after Plan 17; Plan 15 remains downstream of a validated PASS-only Plan 13 handoff. SPEC-02 and security sign-off remain Pending, no successful Plan 13 SUMMARY exists, and execution remains sequential in the main tree.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
