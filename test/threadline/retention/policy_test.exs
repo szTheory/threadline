@@ -81,7 +81,9 @@ defmodule Threadline.Retention.PolicyTest do
   test "nil and false atom window values fall back to their string spellings" do
     for fallback <- [nil, false] do
       assert Policy.resolve!(%{"keep_days" => 3, keep_days: fallback}).window_seconds == 259_200
-      assert Policy.resolve!(%{"max_age_seconds" => 5, max_age_seconds: fallback}).window_seconds == 5
+
+      assert Policy.resolve!(%{"max_age_seconds" => 5, max_age_seconds: fallback}).window_seconds ==
+               5
     end
   end
 

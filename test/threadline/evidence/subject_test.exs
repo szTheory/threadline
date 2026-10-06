@@ -57,7 +57,7 @@ defmodule Threadline.Evidence.SubjectTest do
              Subject.validate(%{
                "subject" => "retention_policy",
                "name" => "export_delivery",
-               name: "retention_run",
+               name: "retention_run"
              })
 
     assert :ok =
