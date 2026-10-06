@@ -1048,8 +1048,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 -
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
-- Plan 234-06 remains open on D-28; the active owner is the single remaining task in Plan 234-12. It makes RepositoryBoundary.task_error!/3 private and replaces the four Critic.Measure cross-module calls with a private local helper preserving the same error text.
-- Plan 234-12 Task 1 is complete in commit 789b5bf4. The attempted removal of the exported no_return() spec failed strict Dialyzer and was restored; only the revised D-28 helper-privacy task remains, pending the plan checker and execution.
+- Phase 234-06 remains recorded as halted; its D-28 work was later closed by Plan 234-12. The current-source verifier found two SPEC-02 gaps, both assigned to ready-to-execute Plan 234-22. SPEC-02 remains Pending until Plan 22's gates and phase re-verification pass.
 
 ### Quick Tasks Completed
 
