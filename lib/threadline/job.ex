@@ -94,7 +94,8 @@ defmodule Threadline.Job do
   - `:request_id` — string. Optional. Passed through to `record_action/2`.
   - `:job_id` — string or `nil`. Optional. Read from `args`, then overridden by `extra` when supplied.
 
-  Other option keys are retained and validated by `record_action/2` when used.
+  `context_opt()` describes the supported record-action options. Other keys in
+  `extra` are retained by this helper and ignored by `record_action/2`.
 
   ## Returns
 

@@ -13,10 +13,13 @@ defmodule Threadline.Semantics.AuditActionTest do
   describe "record_action/2 — SEM-01: basic persistence" do
     test "documented ActorRef construction succeeds and compiled docs show validation" do
       {:ok, actor} = ActorRef.new(:user, "u-42")
-      opts = Threadline.Job.context_opts(%{"correlation_id" => "request-8f2"}, tenant_id: "tenant-1")
+
+      opts =
+        Threadline.Job.context_opts(%{"correlation_id" => "request-8f2"}, tenant_id: "tenant-1")
 
       assert {:ok, action} =
-               Threadline.record_action(:member_role_changed,
+               Threadline.record_action(
+                 :member_role_changed,
                  [actor: actor, repo: @repo, category: "membership", verb: "update"] ++ opts
                )
 
