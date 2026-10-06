@@ -1,10 +1,14 @@
 # Threadline documentation and typespec rubric
 
-Frozen at plan 234-01; any later edit is a review finding.
+Frozen at plan 234-01; later changes require an explicit, narrowly scoped maintainer-approved amendment.
 
 This rubric is binary. The reviewer applies it to every visible function,
 macro, public type, and moduledoc in scope. A surviving broad type must name
 the rule that permits it.
+
+## Approved amendments
+
+- **D-56 (2026-10-05):** D-25(a)/S-4 has one narrow exception for literal string-key arms of `Threadline.Semantics.ActorRef.actor_map/0`, `Threadline.Evidence.Subject.subject_descriptor/0`, and `Threadline.Retention.Policy.config_map/0`. Elixir 1.17 typespecs cannot encode literal binary keys. Preserve current runtime acceptance, including extra string keys and supported mixed atom/string maps; document each alias's recognized keys, per-key values, unknown-key behavior, and mixed-key precedence, and pin that behavior with executable contract tests. Atom-key alternatives and every other type remain subject to the original rubric.
 
 ## Spec rubric: broad types
 
