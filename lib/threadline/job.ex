@@ -45,14 +45,19 @@ defmodule Threadline.Job do
   @typedoc "The decoded actor reference or its known decoding failure."
   @type actor_ref_result :: {:ok, ActorRef.t()} | {:error, actor_ref_error()}
 
-  @typedoc "An option passed through to `Threadline.record_action/2` or extracted from job arguments."
+  @typedoc "An allowed extra option for `context_opts/2`, including integer context ID overrides."
   @type context_opt ::
           Threadline.record_action_opt()
-          | {:correlation_id, String.t() | nil}
-          | {:job_id, String.t() | nil}
+          | {:correlation_id, String.t() | integer() | nil}
+          | {:job_id, String.t() | integer() | nil}
 
   @typedoc "The record-action options returned from `context_opts/2`."
-  @type context_opts_result :: [context_opt()]
+  @type context_opts_result ::
+          [
+            Threadline.record_action_opt()
+            | {:correlation_id, String.t() | nil}
+            | {:job_id, String.t() | nil}
+          ]
 
   @doc """
   Returns the `ActorRef` serialized in a job argument map.
@@ -75,9 +80,11 @@ defmodule Threadline.Job do
   @doc """
   Builds `record_action/2` keyword opts from job args.
 
-  Extracts `:correlation_id` and `:job_id` from the args map. Pass these opts
-  (merged with `:actor` and `:repo`) to `Threadline.record_action/2`. Values
-  supplied in `extra` override the values extracted from `args`.
+  Extracts `:correlation_id` and `:job_id` from the args map. Integer IDs are
+  converted to strings; strings and `nil` are preserved. Pass these opts
+  (merged with `:actor` and `:repo`) to `Threadline.record_action/2`. Allowed
+  values supplied in `extra` override the values extracted from `args` and
+  integer ID overrides are converted the same way.
 
   ## Options
 
@@ -90,12 +97,14 @@ defmodule Threadline.Job do
   - `:category` — atom or string. Optional. Passed through to `record_action/2`.
   - `:reason` — atom or string. Optional. Passed through to `record_action/2`.
   - `:comment` — string. Optional. Passed through to `record_action/2`.
-  - `:correlation_id` — string or `nil`. Optional. Read from `args`, then overridden by `extra` when supplied.
+  - `:correlation_id` — string or `nil` in the returned options. Optional. Read from `args`, then overridden by `extra` when supplied; integer input is converted to a string.
   - `:request_id` — string. Optional. Passed through to `record_action/2`.
-  - `:job_id` — string or `nil`. Optional. Read from `args`, then overridden by `extra` when supplied.
+  - `:job_id` — string or `nil` in the returned options. Optional. Read from `args`, then overridden by `extra` when supplied; integer input is converted to a string.
 
-  `context_opt()` describes the supported record-action options. Other keys in
-  `extra` are retained by this helper and ignored by `record_action/2`.
+  `extra` must be a keyword list of `context_opt()` values, which are the
+  documented `Threadline.record_action/2` options plus integer ID overrides.
+  Unsupported keys, malformed IDs, non-keyword extras, and option values
+  outside that domain raise `ArgumentError`.
 
   ## Returns
 
@@ -108,11 +117,51 @@ defmodule Threadline.Job do
   """
   @spec context_opts(job_args(), [context_opt()]) :: context_opts_result()
   def context_opts(args, extra \\ []) when is_map(args) do
+    unless Keyword.keyword?(extra) and Enum.all?(extra, &valid_context_opt?/1) do
+      raise ArgumentError,
+            "extra must contain only supported Threadline.record_action/2 options and valid context IDs"
+    end
+
     base = [
-      correlation_id: Map.get(args, "correlation_id"),
-      job_id: Map.get(args, "job_id")
+      correlation_id: normalize_id!(Map.get(args, "correlation_id"), :correlation_id),
+      job_id: normalize_id!(Map.get(args, "job_id"), :job_id)
     ]
 
-    Keyword.merge(base, extra)
+    normalized_extra =
+      Enum.map(extra, fn
+        {key, value} when key in [:correlation_id, :job_id] ->
+          {key, normalize_id!(value, key)}
+
+        option ->
+          option
+      end)
+
+    Keyword.merge(base, normalized_extra)
   end
+
+  defp normalize_id!(nil, _key), do: nil
+  defp normalize_id!(value, _key) when is_binary(value), do: value
+  defp normalize_id!(value, _key) when is_integer(value), do: Integer.to_string(value)
+
+  defp normalize_id!(_value, key) do
+    raise ArgumentError, "#{inspect(key)} must be a string, integer, or nil"
+  end
+
+  defp valid_context_opt?({:repo, value}), do: is_atom(value)
+  defp valid_context_opt?({:storage_schema, value}), do: is_binary(value)
+  defp valid_context_opt?({:actor, %ActorRef{}}), do: true
+  defp valid_context_opt?({:actor_ref, %ActorRef{}}), do: true
+  defp valid_context_opt?({:status, value}), do: value in [:ok, :error]
+
+  defp valid_context_opt?({key, value}) when key in [:verb, :category, :reason],
+    do: is_atom(value) or is_binary(value)
+
+  defp valid_context_opt?({:comment, value}), do: is_binary(value)
+  defp valid_context_opt?({:request_id, value}), do: is_binary(value)
+
+  defp valid_context_opt?({key, value}) when key in [:correlation_id, :job_id] do
+    is_nil(value) or is_binary(value) or is_integer(value)
+  end
+
+  defp valid_context_opt?(_option), do: false
 end

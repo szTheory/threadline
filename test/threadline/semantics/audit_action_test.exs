@@ -15,7 +15,7 @@ defmodule Threadline.Semantics.AuditActionTest do
       {:ok, actor} = ActorRef.new(:user, "u-42")
 
       opts =
-        Threadline.Job.context_opts(%{"correlation_id" => "request-8f2"}, tenant_id: "tenant-1")
+        Threadline.Job.context_opts(%{"correlation_id" => 42, "job_id" => 817})
 
       assert {:ok, action} =
                Threadline.record_action(
@@ -24,7 +24,8 @@ defmodule Threadline.Semantics.AuditActionTest do
                )
 
       assert action.actor_ref == actor
-      assert action.correlation_id == "request-8f2"
+      assert action.correlation_id == "42"
+      assert action.job_id == "817"
 
       assert function_doc_text(Threadline, :record_action, 2) =~
                "ActorRef.new(:user, \"u-42\")"

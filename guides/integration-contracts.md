@@ -92,7 +92,12 @@ The job-path contract is:
 - `Threadline.Job.actor_ref_from_args/1` reads that serialized map back into an
   `ActorRef`.
 - `Threadline.Job.context_opts/2` extracts stable context keys from the args
-  map, currently `"correlation_id"` and `"job_id"`.
+  map, currently `"correlation_id"` and `"job_id"`. Integer IDs become
+  strings; existing strings and `nil` retain their values.
+- `context_opts/2` accepts only `Threadline.record_action/2` options plus
+  `:correlation_id` and `:job_id` overrides. Integer overrides are converted
+  to strings. Unsupported keys, malformed IDs, non-keyword extras, and values
+  outside the supported option types raise `ArgumentError`.
 - Any broader worker-framework integration belongs in an adapter module if the
   pattern repeats; it is not standardized in core today.
 

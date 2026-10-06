@@ -32,6 +32,11 @@ and `Threadline.incident_bundle/2`.
 
 ### Breaking changes
 
+- `Threadline.Job.context_opts/2` now rejects unsupported `extra` keys and
+  malformed context IDs with `ArgumentError`; integer `:job_id` and
+  `:correlation_id` values are converted to strings. Required action: remove
+  unsupported extras and provide string, integer, or `nil` context IDs.
+
 - These functions are no longer part of the documented API; they are still
   callable and may change in 1.x:
   - `Threadline.Evidence.Proof.present_record/1`
