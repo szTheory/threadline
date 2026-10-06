@@ -227,9 +227,9 @@ Plans:
 
 **Gap closure — Wave 7** *(blocked on 234-19 evidence and a fresh full CI gate)*
 
-- [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 only after Plan 19 and a fresh full `mix ci.all` pass
+- [x] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 only after Plan 19 and a fresh full `mix ci.all` pass (completed 2026-10-06)
 
-**Execution note**: Gap-only execution is in progress; Plans 07–14, 16–19 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. The pre-Plan-18 D-46 report was FAIL solely on WR-02/S-4(e): exported `Threadline.StorageSchema.role/0` had `@typedoc false`. Plan 18 documented the five existing roles without changing the union or runtime behavior. Plan 13 regenerated the review input and obtained a fresh independent PASS after reviewing all visible entries, moduledocs, public types, callbacks, and broad-type allowances against the D-56-amended rubric; its input hash and exact inventory are recorded in the report and Plan 13 summary. Plan 19 completed 2026-10-06: the live GCM-only/Binary reachability contract passed, exactly two D-58 Hex acknowledgements were added, and `mix verify.deps_audit` passed across all three lockfiles. Plan 15 is next and remains the downstream final sign-off; it must recheck the D-46 PASS and Plan 19 evidence and run a fresh full `mix ci.all` before closing T-234-26 or SPEC-02. Execution remains sequential in the main tree.
+**Execution note**: All active gap plans have summaries; Plan 234-15 passed the final CI and evidence gates on 2026-10-06. The original Plan 234-06 remains recorded as halted, while later gap closures resolved its outstanding D-28, D-46, security, and SPEC-02 gates. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Plan 13's current independent D-46 PASS and input-integrity evidence are recorded in its report and summary; Plan 19's GCM-only/Binary reachability contract, two accountable D-58 acknowledgements, and three-lockfile audit passed. Plan 15's fresh `mix ci.all` passed with 3,006 root tests, 130 example tests, zero strict Dialyzer errors, and 318 desktop/mobile Playwright passes (26 intentional skips). Security is verified with zero open high threats; SPEC-02 is Complete and validation is Nyquist-compliant. Phase verification and the regression gate are next; Phase 234 remains In Progress until they pass. Execution was sequential in the main tree.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
@@ -294,7 +294,7 @@ Plans:
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
 | 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
-| 234. Typespec and Doc Completion Gate | 5/6 | In Progress | - |
+| 234. Typespec and Doc Completion Gate | 18/19 | In Progress | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
 | 236. Support Floor and Partition Weights | 0/TBD | Not started | - |
 | 237. Upgrade Guide and 1.0.0 | 0/TBD | Not started | - |
