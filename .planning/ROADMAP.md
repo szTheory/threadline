@@ -223,13 +223,13 @@ Plans:
 
 **Gap closure — Wave 6** *(blocked on a validated PASS from 234-13)*
 
-- [ ] 234-19-PLAN.md — D-58: prove example GCM-only/Binary reachability, record only two accountable Hex advisory acknowledgements, and pass dependency audit
+- [x] 234-19-PLAN.md — D-58: prove example GCM-only/Binary reachability, record only two accountable Hex advisory acknowledgements, and pass dependency audit (completed 2026-10-06)
 
 **Gap closure — Wave 7** *(blocked on 234-19 evidence and a fresh full CI gate)*
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 only after Plan 19 and a fresh full `mix ci.all` pass
 
-**Execution note**: Gap-only execution is in progress; Plans 07–14, 16–18 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. The pre-Plan-18 D-46 report was FAIL solely on WR-02/S-4(e): exported `Threadline.StorageSchema.role/0` had `@typedoc false`. Plan 18 documented the five existing roles without changing the union or runtime behavior. Plan 13 regenerated the review input and obtained a fresh independent PASS after reviewing all visible entries, moduledocs, public types, callbacks, and broad-type allowances against the D-56-amended rubric; its input hash and exact inventory are recorded in the report and Plan 13 summary. Plan 15's attempted full `mix ci.all` then failed on two locked example dependency advisories. D-58 authorizes Plan 19 to acknowledge only those two findings after proving their vulnerable code paths are unreachable and the canonical dependency audit passes. Plan 15 remains the downstream final sign-off; it must recheck the D-46 PASS, Plan 19 evidence, and a fresh full `mix ci.all` before closing security or SPEC-02. Execution remains sequential in the main tree.
+**Execution note**: Gap-only execution is in progress; Plans 07–14, 16–19 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. The pre-Plan-18 D-46 report was FAIL solely on WR-02/S-4(e): exported `Threadline.StorageSchema.role/0` had `@typedoc false`. Plan 18 documented the five existing roles without changing the union or runtime behavior. Plan 13 regenerated the review input and obtained a fresh independent PASS after reviewing all visible entries, moduledocs, public types, callbacks, and broad-type allowances against the D-56-amended rubric; its input hash and exact inventory are recorded in the report and Plan 13 summary. Plan 19 completed 2026-10-06: the live GCM-only/Binary reachability contract passed, exactly two D-58 Hex acknowledgements were added, and `mix verify.deps_audit` passed across all three lockfiles. Plan 15 is next and remains the downstream final sign-off; it must recheck the D-46 PASS and Plan 19 evidence and run a fresh full `mix ci.all` before closing T-234-26 or SPEC-02. Execution remains sequential in the main tree.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
