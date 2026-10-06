@@ -15,7 +15,15 @@ defmodule Threadline.Evidence.Subject do
     "support_scope_posture"
   ]
 
-  @typedoc "A subject name or descriptor. Recognized keys, in precedence order, are atom `:subject`, atom `:name`, string `\"subject\"`, and string `\"name\"`; each value may be an atom or string, and a recognized value that is itself a descriptor is normalized recursively. When a recognized key is present, other keys are ignored. If a map has no recognized key, it is returned unchanged as the unsupported value. The string-key map arm also represents extra keys and mixed atom/string maps."
+  @typedoc ~S"""
+  A subject name or descriptor. Recognized keys, in precedence order, are atom `:subject`, atom
+  `:name`, string `"subject"`, and string `"name"`. Each recognized value may be an atom or
+  string, and a value that is itself a descriptor is normalized recursively.
+
+  When a recognized key is present, other keys are ignored. If a map has no recognized key, it is
+  returned unchanged as the unsupported value. The string-key map arm also represents extra keys
+  and mixed atom/string maps.
+  """
   @type subject_descriptor ::
           atom()
           | String.t()

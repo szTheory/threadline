@@ -44,7 +44,16 @@ defmodule Threadline.Semantics.ActorRef do
   @typedoc "A stable actor reference with a supported type and an optional string identifier."
   @type t :: %__MODULE__{type: actor_type(), id: String.t() | nil}
 
-  @typedoc "A string-keyed map emitted by `to_map/1`. It always contains `\"type\"`; non-anonymous refs also contain `\"id\"`. `to_map/1` adds no other keys. Its string-key arm allows the extra keys tolerated by `from_map/1`, which recognizes only string `\"type\"` and `\"id\"`, ignores additional string or atom keys, and gives those string keys precedence in mixed maps. An atom-only type key is not recognized and returns `{:error, :invalid_actor_ref_map}`. Anonymous refs ignore `\"id\"`. `new/2` and `from_map/1` produce validated refs with nil id only for anonymous refs, but a directly constructed non-anonymous `%ActorRef{}` with nil id emits `\"id\" => nil`."
+  @typedoc ~S"""
+  A string-keyed map emitted by `to_map/1`. It always contains `"type"`; non-anonymous refs
+  also contain `"id"`, and no other keys are emitted.
+
+  `from_map/1` recognizes only string `"type"` and `"id"` keys. It ignores additional string or
+  atom keys, and recognized string keys take precedence in mixed maps. An atom-only type key is
+  not recognized and returns `{:error, :invalid_actor_ref_map}`. Anonymous refs ignore `"id"`.
+  `new/2` and `from_map/1` produce validated refs with nil id only for anonymous refs, but a
+  directly constructed non-anonymous `%ActorRef{}` with nil id emits `"id" => nil`.
+  """
   @type actor_map :: %{required(String.t()) => String.t() | nil}
 
   @enforce_keys [:type]
