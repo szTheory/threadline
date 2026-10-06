@@ -804,11 +804,11 @@ Use `actor_history/2` or `correlation_bundle/3` to explore captured changes asso
 
 ## Examples
 
+    {:ok, actor} = Threadline.Semantics.ActorRef.new(:user, "u-42")
+
     Threadline.record_action(:member_role_changed,
-      actor: %Threadline.Semantics.ActorRef{type: "user", id: "u-42"},
-      repo: MyApp.Repo,
-      category: "membership",
-      verb: "update",
+      actor: actor, repo: MyApp.Repo,
+      category: "membership", verb: "update",
       correlation_id: "request-8f2"
     )
 
@@ -1918,7 +1918,7 @@ The virtual `:action` is a hydrated `Threadline.Semantics.AuditAction`; nil unti
 
 t() :: %Threadline.Capture.AuditTransaction{
   __meta__: Ecto.Schema.Metadata.t(),
-  action: Threadline.Semantics.AuditAction.t() | nil,
+  action: struct() | nil,
   action_id: Ecto.UUID.t() | nil,
   actor_ref: Threadline.Semantics.ActorRef.t() | nil,
   changes: [Threadline.Capture.AuditChange.t()] | Ecto.Association.NotLoaded.t(),
@@ -4699,7 +4699,8 @@ supplied in `extra` override the values extracted from `args`.
 - `:request_id` — string. Optional. Passed through to `record_action/2`.
 - `:job_id` — string or `nil`. Optional. Read from `args`, then overridden by `extra` when supplied.
 
-Other option keys are retained and validated by `record_action/2` when used.
+`context_opt()` describes the supported record-action options. Other keys in
+`extra` are retained by this helper and ignored by `record_action/2`.
 
 ## Returns
 

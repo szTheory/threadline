@@ -1,5 +1,11 @@
 # Deferred Items — Phase 234 Plan 15
 
+## Plan 20: CI closeout gate remains open
+
+- **Evidence:** On 2026-10-06, `mix ci.all` ran with writable Git metadata and isolated Hex/npm caches. All lanes passed except `verify.example_browser`: Playwright reported 313 passed, 26 skipped, 4 flaky, and 1 failed. The sole failure was `examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts:323`; its “Show Drawer” click timed out twice because the open modal intercepted the click.
+- **Scope:** This E2E failure is in an unrelated example browser test and outside Plan 20's declared source scope. It was not changed.
+- **Disposition:** Plan 20 does not close SPEC-02. Keep its checkbox and traceability row Pending until the canonical CI gate passes. D-46 fresh review and report integrity passed; focused tests, strict Dialyzer, and warning-free dev docs passed. `mix ci.all` exited 1, so no successful Plan 20 summary is justified.
+
 ## Resolved: required full verification
 
 - **Initial sandbox run:** `mix ci.all` reached the test/browser lanes but exited non-zero because sandbox permissions blocked a temporary linked worktree under `.git/worktrees`, writes to Hex/npm caches, and Playwright's browser cache lock. The earlier dependency advisory findings were resolved by Plan 19's source-guarded, accountable acknowledgements; the dependency graph and lockfiles remain unchanged.
