@@ -168,7 +168,7 @@ Plans:
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: 21 plans
+**Plans**: 22 plans
 
 Plans:
 **Wave 1**
@@ -234,7 +234,11 @@ Plans:
 - [x] 234-20-PLAN.md — Correct the record_action/2 and Job.context_opts/2 public docs, restore the D-22/231 D-05 capture type boundary with executable assertions, refresh D-46 evidence, and close SPEC-02 after all gates passed (completed 2026-10-06)
 - [x] 234-21-PLAN.md — Repair the Pixel 5 reduced-motion toast/modal test obstruction; focused mobile Playwright and canonical `mix ci.all` passed (completed 2026-10-06)
 
-**Execution note**: Plan 234-15 passed its CI and evidence gates on 2026-10-06. A subsequent phase verifier found two false public doc claims and the AuditTransaction.action type-boundary violation, so Plan 20 corrected them and obtained a fresh independent D-46 PASS. Its first canonical `mix ci.all` stopped at the pre-existing mobile browser obstruction; Plan 20 was truthfully recorded as halted with SPEC-02 Pending. Plan 21 repaired the Pixel 5 reduced-motion flow, passed the focused mobile test (7/7), and passed canonical `mix ci.all` (3,010 root tests, 130 example tests, Dialyzer clean, browser 318/26); the D-46 input hash stayed unchanged. Plan 20 is now re-summarized complete, and SPEC-02 is Complete under its evidence-gated contract. The original Plan 234-06 remains recorded as halted; later plans closed its D-28 and high-severity security gaps. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Security remains verified with zero open high threats, and the validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 remains In Progress until the phase verifier passes.
+**Gap closure — Wave 9** *(blocked on completed Plans 20 and 21; opened by current-source verification)*
+
+- [ ] 234-22-PLAN.md — Correct Job.context_opts/2's ID and extra-option type boundary, emit exactly one eager export failure event for facade/direct validation raises, align telemetry tables, rerun canonical gates and independent D-46 review (wave 9)
+
+**Execution note**: Plans 20 and 21 remain complete: Plan 20 corrected the earlier public-doc and capture-boundary findings, and Plan 21 repaired the Pixel 5 reduced-motion test and passed canonical `mix ci.all` (3,010 root tests, 130 example tests, Dialyzer clean, browser 318/26). The current Phase 234 verifier then found two remaining SPEC-02 failures in live source: Job.context_opts/2 can return values excluded by its public type, and facade eager-export validation raises without the documented :failed telemetry event. SPEC-02 is reopened as Pending until Plan 22 executes and phase verification passes. The original Plan 234-06 remains recorded as halted; later plans closed its D-28 and high-severity security gaps. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Security remains verified with zero open high threats, and validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 remains In Progress.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
