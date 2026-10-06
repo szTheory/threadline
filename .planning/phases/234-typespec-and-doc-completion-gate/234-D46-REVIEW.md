@@ -1,55 +1,108 @@
 # D-46 Documentation and Typespec Review — 2026-10-06
 
-**Verdict:** FAIL
+**Verdict:** PASS
 
-Input reviewed: `.planning/phases/234-typespec-and-doc-completion-gate/234-REVIEW-INPUT.md`  
-SHA-256: `20a108be78b8d0c05256674f10e8dab14e7633a869ed0e972d91d7b0f3230ff2`
+Input reviewed: .planning/phases/234-typespec-and-doc-completion-gate/234-REVIEW-INPUT.md
+SHA-256: ae61fb69695e63e419940bcfb9b251527a26f4ad62a0dbdff798e33952442574
 
 ## Review coverage
 
-I independently read the regenerated review dump and frozen rubric, then cross-checked the relevant current declarations, documentation, and executable contracts in `lib/` and `test/`. The dump has 82 complete visible function/macro headings, 52 complete moduledoc headings, and 149 public type headings. I counted each heading from the regenerated file, including the `Threadline.StorageSchema.role/0` type heading that has no rendered typedoc. The public callback inventory was recomputed from every `lib/**/*.ex` file and each declaration, shared type, and callback doc was inspected.
+I counted the complete generated headings in the regenerated input, then reviewed each visible entry, moduledoc, and public type against the D-56-amended rubric. I checked current source for contracts where the generated dump could be stale, including the D-56 aliases, Audit.transaction/3, and the newly visible Threadline.StorageSchema.role/0. I independently enumerated every @callback in lib/**/*.ex and checked its signature and defining documentation. I compared every broad-type allowance in the generated ledger with its source annotation and rationale, and checked for public broad forms outside that ledger.
 
-| Surface | Inventory | How checked |
+| Surface | Inventory | Review method |
 |---|---:|---|
-| Visible entries | 82 | Counted all complete generated function/macro headings; reviewed the generated entry summaries, full templates, options/filters, returns, examples, and specs against D-1–D-12 and S-1–S-5, cross-checking current source for the WR-specific contracts. |
-| Moduledocs | 52 | Counted every generated moduledoc heading; checked the current ActorRef, IncidentChange, LinkedChange, LinkedTransaction, and other D-46 moduledoc source for M-1–M-3 and the entry-point/domain-summary rules. |
-| Public types | 149 | Counted every complete generated type heading; checked declarations and typedocs against S-4/R1–R5 and S-5, including every D-56 alias and atom-key alternative. One public type heading violates S-4(e); see WR-02. |
-| Public callbacks | 8 | Independently enumerated all `@callback` declarations: six in `lib/threadline/storage.ex`, two in `lib/threadline/export_queue.ex`. Read every callback signature and its source documentation. |
-| Broad-type occurrences | 8 permanent allowances | Compared every generated ledger item with its current source declaration and typedoc: `scope_opt/0`, `scope_query_fn/0`, `Audit.transaction/3`, `Subject.validate/1`, `Page.t/0`, `ActorRef.from_map/1`, `ActorRef.identifiable?/1`, and `Storage.options/0`. Checked each against its R1, R2, or R4 basis and searched current `lib/` annotations for broad forms outside the ledger; remaining occurrences are private/hidden implementation contracts or documented JSON/adapter-owned forms under the rubric. |
+| Visible entries | 82 | Counted all generated function/macro headings; reviewed the entry summaries, templates, options and filters, returns, examples, specs, and relevant D-1–D-12/S-1–S-5 criteria. Cross-checked current source for findings and contracts that required implementation evidence. |
+| Moduledocs | 52 | Counted every generated moduledoc heading; reviewed the opening summaries, entry-point coverage, domain terms, voice, and stability claims against M-1–M-3. Cross-checked current source, including ActorRef and the investigation structs. |
+| Public types | 149 | Counted every generated type heading; checked source declarations and typedocs against S-4/R1–R5 and public spec references against S-5. This includes the three D-56 aliases and each atom-key alternative. |
+| Public callbacks | 8 | Enumerated all source callback declarations: six in lib/threadline/storage.ex and two in lib/threadline/export_queue.ex; inspected each callback's signature and doc. |
+| Broad-type occurrences | 8 listed allowances | Checked each generated allowance against its live declaration and R1, R2, or R4 rationale; reviewed the other public broad forms and the hidden/private ledger against R5 and the rubric's explicit JSON/adapter allowances. |
 
 ## Focused source checks
 
-- **D-56 aliases:** `ActorRef.actor_map/0`, `Subject.subject_descriptor/0`, and `Retention.Policy.config_map/0` all retain the narrowly allowed string-key map arm. Their typedocs name recognized keys and values, unknown-key handling, and mixed-key precedence/behavior. Current source matches those descriptions. The executable contracts in `test/threadline/semantics/actor_ref_test.exs`, `test/threadline/evidence/subject_test.exs`, and `test/threadline/retention/policy_test.exs` cover extra keys, mixed maps, precedence, and the relevant unknown/unrecognized cases. Subject's nested descriptor type and retention's `nil`/`false` atom window fallbacks now agree with their runtime contracts.
-- **`Audit.transaction/3`:** The opening paragraph in `lib/threadline/audit.ex` states the `{:ok, result} | {:error, reason}` envelope and conditional audit-ID behavior. `attach_audit_transaction_id/3` leaves the result unchanged when no transaction ID exists; `envelope/2` merges the ID into maps and wraps non-map values. The type-variable spec preserves the caller-owned callback result and agrees with the opening contract.
-- **Callbacks:** `Storage` documents success/error behavior for init, put, get, optional path, download URL, and delete. `ExportQueue` documents init and enqueue. `Storage.options/0` is explicitly adapter-defined as R4 requires.
-- **Captured-data note:** the required exact note is present on captured-data-returning facade docs in `lib/threadline.ex`; current ChangeDiff and Export docs were also checked in `lib/threadline/change_diff.ex` and `lib/threadline/export.ex`.
-- **Moduledocs:** ActorRef names all four adopter entry points and their uses. The D-46 struct moduledocs begin with domain summaries; in particular IncidentChange, LinkedChange, and LinkedTransaction each state what domain result they represent.
+- **D-56 aliases:** ActorRef.actor_map/0, Subject.subject_descriptor/0, and Retention.Policy.config_map/0 retain the narrow string-key map arms. Their typedocs identify recognized keys and value domains, ignored/unknown-key behavior, and mixed-key precedence. Current implementations agree: ActorRef decodes only string "type"/"id" and ignores extras; Subject normalizes in atom :subject, atom :name, string "subject", string "name" order; Retention uses atom-first boolean lookup and atom_value || string_value for windows. The existing focused tests pin extra and mixed keys, recognized-key precedence, Subject's nested and unknown-only cases, ActorRef's anonymous id and emitted key set, and Retention's nil/false, invalid, and conflict behavior. The atom-key type alternatives remain subject to the original S-4 review.
+- **Audit.transaction/3:** Its opening @doc states the {:ok, result} | {:error, reason} envelope and the conditional successful audit-ID merge/wrap. In lib/threadline/audit.ex, attach_audit_transaction_id/3 returns the original result for a nil id; envelope/2 merges into maps and wraps non-map values. The type-variable callback result remains caller-owned and opaque under R1.
+- **Threadline.StorageSchema.role/0:** The regenerated input now renders a non-empty typedoc. Current source has @typedoc immediately above the unchanged public five-role union, naming :storage_schema, :host_schema, :host_table, :derived, and :primary_key_column with their meanings. This satisfies S-4(e); the prior WR-02 finding is resolved.
+- **Callbacks and R4:** The eight callbacks document their success/error results and relevant optional behavior. Storage.options/0 and the ExportQueue alias explicitly identify their options as adapter-defined and passed through without Threadline interpreting their keys.
+- **D-10:** The exact captured-data note is present on the required facade reads and exports and on the current ChangeDiff and Export entries.
+- **M-1/M-2:** ActorRef names new/2, from_map/1, identifiable?/1, and to_map/1 with their uses. The IncidentChange, LinkedChange, and LinkedTransaction summaries use domain nouns and begin with one-sentence summaries; the other reviewed struct moduledocs meet the same summary requirement.
 
 ## WR dispositions
 
-| WR | Status | Rubric | Evidence | Source paths |
-|---|---|---|---|---|
-| WR-01 | PASS | R2 | `ActorRef.from_map/1`, `ActorRef.identifiable?/1`, and `Subject.validate/1` accept arbitrary validator/predicate input; their public specs and docs describe validation/predicate behavior and the unsupported-value error. | `lib/threadline/semantics/actor_ref.ex`, `lib/threadline/evidence/subject.ex` |
-| WR-02 | FAIL | S-4 | The regenerated dump contains `Threadline.StorageSchema.role/0` as a public type heading, while its source is declared with `@typedoc false`. This is an exported `@type`, not `@typep`, and therefore has no public typedoc as required by S-4(e). | `lib/threadline/storage_schema.ex` |
-| WR-03 | PASS | R4 | `Storage.options/0` explicitly says adapter-defined; the six Storage and two ExportQueue callbacks each document their success/error contract in the defining behaviour module. | `lib/threadline/storage.ex`, `lib/threadline/export_queue.ex` |
-| WR-04 | PASS | D-10 | The exact captured-data note appears on the required facade read/export entries and the current ChangeDiff and Export docs. | `lib/threadline.ex`, `lib/threadline/change_diff.ex`, `lib/threadline/export.ex` |
-| WR-05 | PASS | D-2 | `Audit.transaction/3` opens with its success/error return and explains the conditional audit-ID merge for map values and wrapping for non-map values; the implementation has the corresponding unchanged/no-ID path. | `lib/threadline/audit.ex` |
-| WR-06 | PASS | M-2 | ActorRef's moduledoc names `new/2`, `from_map/1`, `identifiable?/1`, and `to_map/1` and says when each is used. | `lib/threadline/semantics/actor_ref.ex` |
-| WR-07 | PASS | M-1 | The IncidentChange, LinkedChange, and LinkedTransaction moduledocs begin with one-sentence summaries in domain language; the other reviewed D-46 struct summaries do as well. | `lib/threadline/investigation/incident_bundle.ex`, `lib/threadline/investigation/linked_change.ex` |
+| WR | Status | Rubric | Source evidence |
+|---|---|---|---|
+| WR-01 | PASS | R2 | ActorRef.from_map/1, ActorRef.identifiable?/1, and Subject.validate/1 accept arbitrary validation/predicate inputs; their public specs and docs describe the validator/predicate results and offending-value behavior. | lib/threadline/semantics/actor_ref.ex, lib/threadline/evidence/subject.ex |
+| WR-02 | PASS | S-4 | Threadline.StorageSchema.role/0 is public and now has a non-empty @typedoc naming all five roles; the current @type role union is unchanged. | lib/threadline/storage_schema.ex |
+| WR-03 | PASS | R4 | Storage.options/0 says options are adapter-defined and uninterpreted by Threadline; all six Storage and two ExportQueue callbacks document their result contracts. | lib/threadline/storage.ex, lib/threadline/export_queue.ex |
+| WR-04 | PASS | D-10 | The captured-data note is present on the required facade family and the current ChangeDiff and Export documentation. | lib/threadline.ex, lib/threadline/change_diff.ex, lib/threadline/export.ex |
+| WR-05 | PASS | D-2 | The Audit.transaction/3 opening paragraph names the success/error envelope and conditional audit-ID merge or wrap; current source implements the documented nil-id unchanged path. | lib/threadline/audit.ex |
+| WR-06 | PASS | M-2 | ActorRef's moduledoc names all four public entry points and states when to use them. | lib/threadline/semantics/actor_ref.ex |
+| WR-07 | PASS | M-1 | The IncidentChange, LinkedChange, and LinkedTransaction moduledocs begin with one-sentence domain summaries. | lib/threadline/investigation/incident_bundle.ex, lib/threadline/investigation/linked_change.ex |
 
-## Residual findings
+SPEC-02 remains Pending in .planning/REQUIREMENTS.md. Security sign-off remains pending in .planning/phases/234-typespec-and-doc-completion-gate/234-SECURITY.md; this review does not close either status.
 
-- WR IDs: WR-02 | Rubric: S-4 | Path: lib/threadline/storage_schema.ex:82 | Evidence: the regenerated inventory exposes `Threadline.StorageSchema.role/0` as a public type, but source line 82 marks its only typedoc `false` and line 83 declares it with `@type`; this exported public type has no `@typedoc` content, violating S-4(e).
-
-SPEC-02 remains Pending in `.planning/REQUIREMENTS.md`. Security sign-off remains pending in `.planning/phases/234-typespec-and-doc-completion-gate/234-SECURITY.md` (`status: draft`, `Approval: pending`).
-
-## D-48 work constraints preserved
-
-- never edit gate or pin files except to delete entries the plan fixed;
-- never add `@doc false` outside D-07 without halting and reporting;
-- never touch `.dialyzer_ignore.exs` or add `@dialyzer`;
-- no `--no-verify` or `core.hooksPath`;
-- never run `npx` for `@opengsd`;
-- leave no background shells or poll loops;
-- never `git add .planning/` wholesale;
-- before committing planning prose, use the placeholder path forms and grep for the username.
+<!-- d46-pass-evidence:start -->
+{
+  "review_date": "2026-10-06",
+  "reviewer_agent_id": "/root/execute_234_13_fresh_d46/independent_d46_234",
+  "executor_agent_id": "/root/execute_234_13_fresh_d46",
+  "independence_evidence": "Fresh independent dispatch: reviewer /root/execute_234_13_fresh_d46/independent_d46_234 separately reviewed the regenerated input and current source, independent of executor /root/execute_234_13_fresh_d46.",
+  "review_input_sha256": "ae61fb69695e63e419940bcfb9b251527a26f4ad62a0dbdff798e33952442574",
+  "reviewed_surfaces": [
+    "visible_entries",
+    "moduledocs",
+    "public_types",
+    "public_callbacks",
+    "broad_type_occurrences"
+  ],
+  "inventory": {
+    "visible_entries": 82,
+    "moduledocs": 52,
+    "public_types": 149,
+    "public_callbacks": 8
+  },
+  "wr_dispositions": {
+    "WR-01": {
+      "status": "PASS",
+      "evidence": "ActorRef.from_map/1, ActorRef.identifiable?/1, and Subject.validate/1 accept arbitrary validator or predicate input; their source specs and docs describe the result and unsupported-input behavior.",
+      "rubric_items": ["R2"],
+      "paths": ["lib/threadline/semantics/actor_ref.ex", "lib/threadline/evidence/subject.ex"]
+    },
+    "WR-02": {
+      "status": "PASS",
+      "evidence": "Threadline.StorageSchema.role/0 now has a non-empty @typedoc naming all five identifier roles, and the live public five-atom @type union is unchanged.",
+      "rubric_items": ["S-4"],
+      "paths": ["lib/threadline/storage_schema.ex"]
+    },
+    "WR-03": {
+      "status": "PASS",
+      "evidence": "Storage.options/0 explicitly says adapter-defined and uninterpreted; all six Storage and two ExportQueue callback docs describe their success/error result contracts.",
+      "rubric_items": ["R4"],
+      "paths": ["lib/threadline/storage.ex", "lib/threadline/export_queue.ex"]
+    },
+    "WR-04": {
+      "status": "PASS",
+      "evidence": "The required captured-data note appears in the facade captured-row reads/exports and in the current ChangeDiff and Export documentation.",
+      "rubric_items": ["D-10"],
+      "paths": ["lib/threadline.ex", "lib/threadline/change_diff.ex", "lib/threadline/export.ex"]
+    },
+    "WR-05": {
+      "status": "PASS",
+      "evidence": "Audit.transaction/3 opens with the {:ok, result} | {:error, reason} envelope and conditional audit_transaction_id merge/wrap; live helpers preserve results when no id exists and merge maps or wrap non-maps when an id exists.",
+      "rubric_items": ["D-2"],
+      "paths": ["lib/threadline/audit.ex"]
+    },
+    "WR-06": {
+      "status": "PASS",
+      "evidence": "ActorRef's moduledoc names new/2, from_map/1, identifiable?/1, and to_map/1 and describes each entry point's use.",
+      "rubric_items": ["M-2"],
+      "paths": ["lib/threadline/semantics/actor_ref.ex"]
+    },
+    "WR-07": {
+      "status": "PASS",
+      "evidence": "IncidentChange, LinkedChange, and LinkedTransaction each have a one-sentence domain-language moduledoc summary at the start of the current source doc.",
+      "rubric_items": ["M-1"],
+      "paths": ["lib/threadline/investigation/incident_bundle.ex", "lib/threadline/investigation/linked_change.ex"]
+    }
+  }
+}
+<!-- d46-pass-evidence:end -->

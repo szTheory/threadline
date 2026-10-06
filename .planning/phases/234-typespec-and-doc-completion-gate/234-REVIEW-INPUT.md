@@ -5848,7 +5848,7 @@ validate!(identifier_input()) :: String.t()
 
 
 
-
+Selects the identifier-validation context: `:storage_schema` (storage schema), `:host_schema` (host schema), `:host_table` (host table), `:derived` (derived identifier), or `:primary_key_column` (primary key column).
 
 
 
