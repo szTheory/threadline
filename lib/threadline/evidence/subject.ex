@@ -17,8 +17,10 @@ defmodule Threadline.Evidence.Subject do
 
   @typedoc ~S"""
   A subject name or descriptor. Recognized keys, in precedence order, are atom `:subject`, atom
-  `:name`, string `"subject"`, and string `"name"`. Each recognized value may be an atom or
-  string, and a value that is itself a descriptor is normalized recursively.
+  `:name`, string `"subject"`, and string `"name"`. Each recognized value may be an atom, string,
+  or another descriptor, and nested recognized descriptors are normalized recursively. Key
+  precedence applies at each nested level; unknown-only maps remain unchanged as unsupported
+  values.
 
   When a recognized key is present, other keys are ignored. If a map has no recognized key, it is
   returned unchanged as the unsupported value. The string-key map arm also represents extra keys
@@ -27,8 +29,11 @@ defmodule Threadline.Evidence.Subject do
   @type subject_descriptor ::
           atom()
           | String.t()
-          | %{optional(:subject) => atom() | String.t(), optional(:name) => atom() | String.t()}
-          | %{optional(String.t()) => atom() | String.t()}
+          | %{
+              optional(:subject) => atom() | String.t() | subject_descriptor(),
+              optional(:name) => atom() | String.t() | subject_descriptor()
+            }
+          | %{optional(String.t()) => atom() | String.t() | subject_descriptor()}
 
   @typedoc "Any value accepted by the subject validator and predicate."
   @type subject_input ::
