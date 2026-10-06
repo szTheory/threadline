@@ -52,10 +52,26 @@ defmodule Threadline.JobTest do
 
     test "extra opts override base opts" do
       args = %{"job_id" => "from-args"}
-      opts = Threadline.Job.context_opts(args, job_id: "override")
+      opts = Threadline.Job.context_opts(args, job_id: "override", tenant_id: "tenant-1")
 
       assert opts[:job_id] == "override"
+      assert opts[:tenant_id] == "tenant-1"
     end
+
+    test "compiled docs describe pass-through and ignored unknown keys" do
+      assert function_doc_text(:context_opts, 2) =~ "retained"
+      assert function_doc_text(:context_opts, 2) =~ "ignored"
+      refute function_doc_text(:context_opts, 2) =~ "validated by `record_action/2`"
+    end
+  end
+
+  defp function_doc_text(name, arity) do
+    {:docs_v1, _, _, _, _, _, docs} = Code.fetch_docs(Threadline.Job)
+
+    Enum.find_value(docs, "", fn
+      {{:function, ^name, ^arity}, _, _, %{"en" => text}, _} -> text
+      _ -> false
+    end)
   end
 
   describe "CTX-05: no process state" do
