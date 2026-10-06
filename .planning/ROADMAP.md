@@ -236,9 +236,9 @@ Plans:
 
 **Gap closure — Wave 9** *(blocked on completed Plans 20 and 21; opened by current-source verification)*
 
-- [ ] 234-22-PLAN.md — Correct Job.context_opts/2's ID and extra-option type boundary, emit exactly one eager export failure event for facade/direct validation raises, align telemetry tables, rerun canonical gates and independent D-46 review (wave 9)
+- [x] 234-22-PLAN.md — Correct Job.context_opts/2's ID and extra-option type boundary, emit exactly one eager export failure event for facade/direct validation raises, align telemetry tables, and pass canonical gates plus a fresh independent D-46 review (completed 2026-10-06; wave 9)
 
-**Execution note**: Plans 20 and 21 remain complete: Plan 20 corrected the earlier public-doc and capture-boundary findings, and Plan 21 repaired the Pixel 5 reduced-motion test and passed canonical `mix ci.all` (3,010 root tests, 130 example tests, Dialyzer clean, browser 318/26). The current Phase 234 verifier then found two remaining SPEC-02 failures in live source: Job.context_opts/2 can return values excluded by its public type, and facade eager-export validation raises without the documented :failed telemetry event. SPEC-02 is reopened as Pending until Plan 22 executes and phase verification passes. The original Plan 234-06 remains recorded as halted; later plans closed its D-28 and high-severity security gaps. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Security remains verified with zero open high threats, and validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 remains In Progress.
+**Execution note**: Plans 20 and 21 remain complete: Plan 20 corrected the earlier public-doc and capture-boundary findings, and Plan 21 repaired the Pixel 5 reduced-motion test and passed canonical `mix ci.all`. Plan 22 aligned job context runtime and compiled types, added exactly-once eager export validation telemetry, and aligned public telemetry docs. A fresh independent D-46 PASS is bound to the regenerated review input; final `mix ci.all` passed with 3,016 root tests, 130 example tests, Dialyzer clean, npm audit clean, and browser 318/26. Plan 22 also corrected the D-56 string-key type for ignored extra values found in independent review. SPEC-02 remains Pending until phase re-verification passes. The original Plan 234-06 remains recorded as halted; later plans closed its D-28 and high-severity security gaps. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Security remains verified with zero open high threats, and validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 remains In Progress.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
@@ -303,7 +303,7 @@ Plans:
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
 | 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
-| 234. Typespec and Doc Completion Gate | 20/22 | In Progress | - |
+| 234. Typespec and Doc Completion Gate | 21/22 | In Progress | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
 | 236. Support Floor and Partition Weights | 0/TBD | Not started | - |
 | 237. Upgrade Guide and 1.0.0 | 0/TBD | Not started | - |

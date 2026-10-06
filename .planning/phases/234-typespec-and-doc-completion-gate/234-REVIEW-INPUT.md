@@ -4680,9 +4680,11 @@ actor_ref_from_args(job_args()) :: actor_ref_result()
 ```text
 Builds `record_action/2` keyword opts from job args.
 
-Extracts `:correlation_id` and `:job_id` from the args map. Pass these opts
-(merged with `:actor` and `:repo`) to `Threadline.record_action/2`. Values
-supplied in `extra` override the values extracted from `args`.
+Extracts `:correlation_id` and `:job_id` from the args map. Integer IDs are
+converted to strings; strings and `nil` are preserved. Pass these opts
+(merged with `:actor` and `:repo`) to `Threadline.record_action/2`. Allowed
+values supplied in `extra` override the values extracted from `args` and
+integer ID overrides are converted the same way.
 
 ## Options
 
@@ -4695,12 +4697,14 @@ supplied in `extra` override the values extracted from `args`.
 - `:category` — atom or string. Optional. Passed through to `record_action/2`.
 - `:reason` — atom or string. Optional. Passed through to `record_action/2`.
 - `:comment` — string. Optional. Passed through to `record_action/2`.
-- `:correlation_id` — string or `nil`. Optional. Read from `args`, then overridden by `extra` when supplied.
+- `:correlation_id` — string or `nil` in the returned options. Optional. Read from `args`, then overridden by `extra` when supplied; integer input is converted to a string.
 - `:request_id` — string. Optional. Passed through to `record_action/2`.
-- `:job_id` — string or `nil`. Optional. Read from `args`, then overridden by `extra` when supplied.
+- `:job_id` — string or `nil` in the returned options. Optional. Read from `args`, then overridden by `extra` when supplied; integer input is converted to a string.
 
-`context_opt()` describes the supported record-action options. Other keys in
-`extra` are retained by this helper and ignored by `record_action/2`.
+`extra` must be a keyword list of `context_opt()` values, which are the
+documented `Threadline.record_action/2` options plus integer ID overrides.
+Unsupported keys, malformed IDs, non-keyword extras, and option values
+outside that domain raise `ArgumentError`.
 
 ## Returns
 
@@ -4732,7 +4736,11 @@ The record-action options returned from `context_opts/2`.
 ```elixir
 
 
-context_opts_result() :: [context_opt()]
+context_opts_result() :: [
+  Threadline.record_action_opt()
+  | {:correlation_id, String.t() | nil}
+  | {:job_id, String.t() | nil}
+]
 
 
 ```
@@ -4743,7 +4751,7 @@ context_opts_result() :: [context_opt()]
 
 
 
-An option passed through to `Threadline.record_action/2` or extracted from job arguments.
+An allowed extra option for `context_opts/2`, including integer context ID overrides.
 
 
 
@@ -4752,8 +4760,8 @@ An option passed through to `Threadline.record_action/2` or extracted from job a
 
 context_opt() ::
   Threadline.record_action_opt()
-  | {:correlation_id, String.t() | nil}
-  | {:job_id, String.t() | nil}
+  | {:correlation_id, String.t() | integer() | nil}
+  | {:job_id, String.t() | integer() | nil}
 
 
 ```
@@ -5356,7 +5364,7 @@ config_map() ::
     optional(:keep_days) => pos_integer() | nil | false,
     optional(:max_age_seconds) => pos_integer() | nil | false
   }
-  | %{optional(String.t()) => boolean() | String.t() | pos_integer()}
+  | %{optional(String.t()) => term()}
 
 
 ```
