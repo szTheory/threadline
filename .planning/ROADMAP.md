@@ -207,7 +207,7 @@ Plans:
 **Gap closure — Wave 2** *(blocked on 234-11)*
 
 - [x] 234-14-PLAN.md — Complete remaining NotFoundError, Page, Telemetry, IncidentChange, and LinkedTransaction module openings; Telemetry M-2 entry points named (completed 2026-10-05)
-- [ ] 234-16-PLAN.md — D-56 map alias/typedoc compatibility contracts and the Audit.transaction/3 opening envelope (blocked on completed 234-07 and 234-09)
+- [x] 234-16-PLAN.md — D-56 map alias/typedoc compatibility contracts and the Audit.transaction/3 opening envelope (completed 2026-10-06)
 
 **Gap closure — Wave 3** *(blocked on 234-07 through 234-12, 234-14, and 234-16)*
 
@@ -217,7 +217,7 @@ Plans:
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-only execution is in progress; Plans 07–12 and 14 are complete. D-55 supersedes only the earlier D-11/D-54 90-entry threshold: the final floor is >=82 D-03 visible function/macro entries after D-07 deliberately hid eight internal helpers. Plan 12's coverage fix is committed as 789b5bf4; its D-28 fix (`daac60bc`) keeps raise-only helpers private and preserves all four Mix task errors. Plan 14's five M-1 summaries and Telemetry M-2 entry points passed focused tests, docs, and Dialyzer. Plan 13 Task 1 is committed as `729f35e9` with an integrity-validated fresh D-46 FAIL: WR-02 has three finite-map findings and WR-05 has one `Audit.transaction/3` summary finding. The maintainer approved D-56's narrowly scoped D-25/S-4 exception to preserve existing runtime acceptance, with executable behavior coverage; Plan 16 implements those three aliases and the Audit.transaction/3 first-paragraph correction. Plan 13 then regenerates input and obtains a fresh independent review; Plan 15 consumes only its PASS summary. SPEC-02 remains Pending, security sign-off remains pending, no Plan 13 SUMMARY exists, and Plan 15 is unready; execution remains sequential in the main tree.
+**Execution note**: Gap-only execution is in progress; Plans 07–12, 14, and 16 are complete. D-55 supersedes only the earlier D-11/D-54 90-entry threshold: the final floor is >=82 D-03 visible function/macro entries after D-07 deliberately hid eight internal helpers. Plan 12's coverage fix is committed as 789b5bf4; its D-28 fix (`daac60bc`) keeps raise-only helpers private and preserves all four Mix task errors. Plan 14's five M-1 summaries and Telemetry M-2 entry points passed focused tests, docs, and Dialyzer. Plan 13 Task 1 is committed as `729f35e9` with an integrity-validated fresh D-46 FAIL: WR-02 has three finite-map findings and WR-05 has one `Audit.transaction/3` summary finding. Plan 16 closed those findings under the maintainer-approved narrow D-56 exception, preserving runtime acceptance and adding executable compatibility coverage. Plan 13 is next to regenerate input and obtain a fresh independent review; Plan 15 consumes only its PASS summary. SPEC-02 remains Pending, security sign-off remains pending, no Plan 13 SUMMARY exists, and Plan 15 is unready; execution remains sequential in the main tree.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
