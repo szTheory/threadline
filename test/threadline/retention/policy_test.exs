@@ -39,6 +39,31 @@ defmodule Threadline.Retention.PolicyTest do
     assert policy.window_seconds == 172_800
   end
 
+  test "config_map/0 admits arbitrary values for ignored string keys" do
+    assert {:ok, types} = Code.Typespec.fetch_types(Policy)
+
+    {:type, {:config_map, {:type, _, :union, arms}, []}} =
+      Enum.find(types, fn
+        {:type, {:config_map, _, []}} -> true
+        _other -> false
+      end)
+
+    assert Enum.any?(arms, fn
+             {:type, _, :map,
+              [
+                {:type, _, :map_field_assoc,
+                 [
+                   {:remote_type, _, [{:atom, _, String}, {:atom, _, :t}, []]},
+                   {:type, _, :term, []}
+                 ]}
+              ]} ->
+               true
+
+             _other ->
+               false
+           end)
+  end
+
   test "atom boolean keys take precedence over their string spellings" do
     policy =
       Policy.resolve!(%{

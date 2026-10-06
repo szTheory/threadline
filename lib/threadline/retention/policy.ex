@@ -49,7 +49,7 @@ defmodule Threadline.Retention.Policy do
             optional(:keep_days) => pos_integer() | nil | false,
             optional(:max_age_seconds) => pos_integer() | nil | false
           }
-          | %{optional(String.t()) => boolean() | String.t() | pos_integer()}
+          | %{optional(String.t()) => term()}
 
   @typedoc "The keyword-list or map form accepted by retention policy validation and resolution."
   @type config :: [config_opt()] | config_map()

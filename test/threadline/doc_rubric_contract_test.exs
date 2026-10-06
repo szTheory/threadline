@@ -27,6 +27,8 @@ defmodule Threadline.DocRubricContractTest do
       "R2: predicate accepts arbitrary input and reports whether it identifies an actor",
     {Threadline.Semantics.ActorRef, :spec, :from_map, 1} =>
       "R2: validator accepts arbitrary input and reports when it is not an ActorRef JSON map",
+    {Threadline.Retention.Policy, :type, :config_map, 0} =>
+      "D-56: literal string-key map arm admits arbitrary values for ignored extra keys",
     {Threadline.Evidence.Subject, :spec, :validate, 1} =>
       "R2: validator accepts arbitrary input and includes the unsupported value in its error",
     {Threadline.Storage, :type, :options, 0} =>
@@ -92,13 +94,14 @@ defmodule Threadline.DocRubricContractTest do
                {Threadline.Audit, :spec, :transaction, 3},
                {Threadline.Evidence.Subject, :spec, :validate, 1},
                {Threadline.Page, :type, :t, 0},
+               {Threadline.Retention.Policy, :type, :config_map, 0},
                {Threadline.Semantics.ActorRef, :spec, :from_map, 1},
                {Threadline.Semantics.ActorRef, :spec, :identifiable?, 1},
                {Threadline.Storage, :type, :options, 0}
              ]
 
     for {key, reason} <- @permanent_bare_allowlist do
-      assert is_binary(reason) and Regex.match?(~r/^R[1-4]: /, reason)
+      assert is_binary(reason) and Regex.match?(~r/^(?:R[1-4]|D-56): /, reason)
 
       assert Map.has_key?(measured, key),
              "permanent bare-type allowance #{inspect(key)} went stale"
