@@ -292,10 +292,8 @@ defmodule Threadline do
       {:ok, actor} = Threadline.Semantics.ActorRef.new(:user, "u-42")
 
       Threadline.record_action(:member_role_changed,
-        actor: actor,
-        repo: MyApp.Repo,
-        category: "membership",
-        verb: "update",
+        actor: actor, repo: MyApp.Repo,
+        category: "membership", verb: "update",
         correlation_id: "request-8f2"
       )
   """
