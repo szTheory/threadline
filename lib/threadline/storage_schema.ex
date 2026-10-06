@@ -79,7 +79,7 @@ defmodule Threadline.StorageSchema do
     primary_key_column: "primary key column"
   }
 
-  @typedoc false
+  @typedoc "Selects the identifier-validation context: `:storage_schema` (storage schema), `:host_schema` (host schema), `:host_table` (host table), `:derived` (derived identifier), or `:primary_key_column` (primary key column)."
   @type role :: :storage_schema | :host_schema | :host_table | :derived | :primary_key_column
 
   @doc "Validates a PostgreSQL identifier and returns its trimmed name; raises `ArgumentError` for an invalid identifier."
