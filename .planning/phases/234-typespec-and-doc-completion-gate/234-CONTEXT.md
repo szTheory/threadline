@@ -399,6 +399,8 @@ They read `prompts/`, `brandbook/brand-book.md`, 231–233 CONTEXT, ExDoc 0.40.1
 - Whether the `Evidence` list-function arities collapse into defaults (D-47, 234-03).
 - How each of the 22 Dialyzer findings is fixed: code versus spec, as long as nothing is ignored and the result stays honest.
 
+- **D-57 (2026-10-06 StorageSchema role type documentation):** After the fresh Plan 13 review found that exported `Threadline.StorageSchema.role/0` has `@typedoc false`, the maintainer approves one narrow gap-closure plan to replace the suppressed typedoc with a concise description of its five identifier-validation role labels. Preserve the existing exported `@type` union and all runtime behavior; do not change D-55's `>= 82` checked-entry floor or D-07's hidden-function pin. Plan 13 must regenerate its review input and obtain a fresh independent D-46 verdict after this correction.
+
 </decisions>
 
 <canonical_refs>

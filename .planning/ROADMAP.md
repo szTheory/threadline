@@ -168,7 +168,7 @@ Plans:
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: 17 plans
+**Plans**: 18 plans
 
 Plans:
 **Wave 1**
@@ -213,15 +213,19 @@ Plans:
 
 - [x] 234-17-PLAN.md — Align Subject nested-descriptor and Retention nil/false fallback types with existing behavior (completed 2026-10-06)
 
-**Gap closure — Wave 4**
+**Gap closure — Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 234-13-PLAN.md — Regenerate the review input after Plan 17 and obtain a fresh evidence-validated independent D-46 verdict
+- [ ] 234-18-PLAN.md — Document the exported StorageSchema.role/0 type's five identifier-validation roles under D-57/S-4(e)
 
-**Gap closure — Wave 5** *(blocked on a validated PASS from 234-13)*
+**Gap closure — Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 234-13-PLAN.md — Regenerate the review input after Plan 18 and obtain a fresh evidence-validated independent D-46 verdict
+
+**Gap closure — Wave 6** *(blocked on a validated PASS from 234-13)*
 
 - [ ] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 if its gates pass
 
-**Execution note**: Gap-only execution is in progress; Plans 07–12, 14, 16, and 17 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. Plan 17 closed only the two current WR-02 type mismatches: nested Subject descriptors and Retention atom-window nil/false fallback values; focused tests pin both runtime behaviors. The current D-46 report and review input predate Plan 17 and are stale for sign-off. Plan 13 must regenerate review input and obtain a fresh independent D-46 verdict after Plan 17; Plan 15 remains downstream of a validated PASS-only Plan 13 handoff. SPEC-02 and security sign-off remain Pending, no successful Plan 13 SUMMARY exists, and execution remains sequential in the main tree.
+**Execution note**: Gap-only execution is in progress; Plans 07–12, 14, 16, and 17 are complete. D-55 keeps the final coverage floor at >=82 D-03 visible function/macro entries with D-07's eight hidden helpers unchanged. The 2026-10-06 independent D-46 report is FAIL solely on WR-02/S-4(e): exported `Threadline.StorageSchema.role/0` has `@typedoc false`. D-57 authorizes Plan 18 to document its five existing roles without changing the union or runtime behavior. Preserve the current D-46 input/report as evidence until Plan 18 finishes. Plan 13 then regenerates the input and seeks a fresh independent verdict; a valid FAIL reaches its blocking-human scope checkpoint and creates no successful Plan 13 SUMMARY. Plan 15 runs only after a validated PASS-only Plan 13 handoff and reconciles every Plan 12–18 threat, including T-234-30. SPEC-02 and security sign-off remain Pending, and execution remains sequential in the main tree.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
