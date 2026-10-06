@@ -4,17 +4,17 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
-current_plan: 15
+current_plan: 19
 status: executing
-stopped_at: Completed 234-13-PLAN.md; Plan 15 D-46 recheck is next
-last_updated: "2026-10-06T14:30:31.557Z"
+stopped_at: Plan 234-15 checkpointed on the example dependency audit; Plan 19 is next
+last_updated: "2026-10-06T15:04:56Z"
 last_activity: 2026-10-06
-last_activity_desc: Plan 234-13 recorded the fresh independent D-46 PASS handoff; Plan 234-15 is next
-state_head: 8da167b4300ca7e926c12609932d2f6c041f22b7
+last_activity_desc: Planned 234-19 D-58 advisory scope before Plan 15 final CI and sign-off
+state_head: 0f218cb6ff6b90954d4b8f1244d6cc2d8511966b
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 31
+  total_plans: 32
   completed_plans: 30
   percent: 43
 ---
@@ -31,11 +31,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 ## Current Position
 
 Phase: 234 (Typespec and Doc Completion Gate) — READY TO EXECUTE
-Current Plan: 15
-Total Plans in Phase: 18
+Current Plan: 19
+Total Plans in Phase: 19
 Status: Ready to execute
-Plan 234-18 is complete: StorageSchema.role/0 documents all five existing identifier-validation roles without changing its union or runtime behavior. Plan 234-13 regenerated the D-46 input and obtained a fresh independent PASS, validated against the input hash and complete inventory. Plan 234-15 is next for its own PASS recheck and evidence gates. SPEC-02 and security sign-off remain Pending.
-Last activity: 2026-10-06 — Plan 234-13 recorded the fresh independent D-46 PASS handoff; Plan 15 is next
+Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 is now the next gap plan: it will guard the approved D-58 GCM-only/Binary reachability conditions and add only two review-dated example audit acknowledgements. Plan 234-15 follows Plan 19 and remains blocked until its D-46 evidence recheck and a fresh full mix ci.all pass; SPEC-02 and security sign-off remain Pending.
+Last activity: 2026-10-06 — Plan 234-19 planned and independently checked; Plan 15 remains downstream of its evidence and fresh CI
 
 v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -1052,8 +1052,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-06T14:30:31.504Z
-**Stopped at:** Completed 234-13-PLAN.md; Plan 15 D-46 recheck is next
+**Last session:** 2026-10-06T15:04:56Z
+**Stopped at:** Plan 234-15 checkpointed when the example dependency audit found two Cloak advisories; Plan 19 is planned to resolve the approved scoped disposition
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1075,9 +1075,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **233-04 (2026-10-04, FINAL plan of phase 233):** Threadline.Query.Scope.apply/2 fails closed (D-20): a non-nil :scope without a 3-arity :scope_query_fn, or any non-3-arity fn, now raises ArgumentError (never echoing the scope value) instead of silently reading unscoped; a nil scope remains the host's explicit unscoped path. Proven across every scoped read (timeline, timeline_page, row_history list/cursor, actor_history, actor_window, correlation_bundle, audit_changes_for_transaction, audit_transaction, transaction_context, incident_bundle, export_csv, export_json) and both operator-surface transports (LiveView mount crash via catch_exit/1, export controller raise-not-200), plus the three bangs raising ArgumentError not NotFoundError. Example app's scope_operator_query/3 catch-all tightened to deny-all (where(query, [], false)); guides/integration-contracts.md gained "Scope surfaces and fail-closed rules" naming :transaction_header's [at] binding; CHANGELOG Breaking changes bullet added. Phase-close gate mix ci.all green (2952 ExUnit tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. Phase 233 complete (4/4 plans). Commits `5469f8de`, `b22cd02a`, `5432f72e`, `b5038cb0`.
 - **234-03 (2026-10-04):** Completed the Evidence typespec/doc gate: full `EvidenceRecord.t()`, named writer/filter/option types, parity-backed `__filter_keys__/1`, documented Evidence/Subject/Proof entry points, and two internal Proof helpers hidden with an Unreleased breaking-change entry. Fixed the rubric check to scope unknown-option assertions to their own heading. Focused suites (47/0 and 78/0), example suite (130/0), format, Credo, warning-free compile, docs, and Dialyzer (0 errors) passed. Commits `a7b2efad`, `bc404584`.
 - **234-04 (2026-10-04):** Completed the Export and operations API typing/documentation gate. Post-merge reconciliation fixed four doc-contract mismatches and seven Evidence proof Dialyzer findings; the full suite passed (2,986 tests, 0 failures, 3 excluded), example suite passed (130/0), and formatting, Credo, warning-free compile, docs, and Dialyzer passed. Plan summary: `234-04-SUMMARY.md`.
-- **Next Step**: Resume the amended final plan with `$gsd-execute-phase 234`; Plans 234-01 through 234-05 are complete.
+- **Next Step**: Execute the remaining gap-closure plans with `$gsd-execute-phase 234 --gaps-only`; Plan 19 precedes Plan 15.
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Resume the amended Plan 234-06 with `$gsd-execute-phase 234`; scope approval and the five added files are recorded in `.planning/phases/234-typespec-and-doc-completion-gate/234-06-EXECUTION-HALT.md`.
+- Run `$gsd-execute-phase 234 --gaps-only`; Plan 19 handles the approved D-58 audit scope, then Plan 15 reruns the final CI and sign-off gates.
