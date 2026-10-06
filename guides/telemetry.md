@@ -20,7 +20,7 @@ handlers to build metrics, alerts, and dashboards on top of this contract.
 | `[:threadline, :operator_surface, :export_authorize]` | `count`, `result` | — | an export-specific authorization check raises |
 | `[:threadline, :operator_surface, :actor_ref_mismatch]` | `count` | — | the session actor and the scope-derived actor disagree |
 | `[:threadline, :export, :completed]` | `duration`, `row_count` | `format`, `truncated` | an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) finishes successfully |
-| `[:threadline, :export, :failed]` | `duration`, `row_count` | `format`, `error_kind`, `exception` | an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) fails |
+| `[:threadline, :export, :failed]` | `duration`, `row_count` | `format`, `error_kind`, `exception` | an eager facade filter/option or direct Export option validation raises; or an eager CSV/JSON read, async orchestrator job, or chunked operator-surface download fails |
 | `[:threadline, :retention, :purge, :start]` | `monotonic_time`, `system_time` | `dry_run`, `telemetry_span_context` | after purge/1's input checks pass, when the purge work begins |
 | `[:threadline, :retention, :purge, :stop]` | `batches_run`, `deleted_changes`, `deleted_transactions`, `duration`, `monotonic_time` | `dry_run`, `telemetry_span_context` | when the run or preview returns |
 | `[:threadline, :retention, :purge, :exception]` | `duration`, `monotonic_time` | `dry_run`, `kind`, `reason`, `stacktrace`, `telemetry_span_context` | when the database raises mid-run |
@@ -67,9 +67,12 @@ individually in tests.
 ```
 
 **Export** — `[:threadline, :export, :completed]` and `[:threadline, :export,
-:failed]` fire once per logical export, from `Threadline.Export.to_csv_iodata/2`,
-`to_json_document/2`, the async `Threadline.Export.Orchestrator` job, and the
-chunked operator-surface download. If your host builds its own export flow on
+:failed]` fire once per logical export. Eager read outcomes come from
+`Threadline.Export.to_csv_iodata/2` and `to_json_document/2`, while facade
+filter/option validation raises and direct eager option validation raises
+emit their own single failure before delegation. The async
+`Threadline.Export.Orchestrator` job and chunked operator-surface download
+also emit one event each. If your host builds its own export flow on
 top of the lower-level stream primitives instead of these four entry points,
 your code owns emitting its own completion/failure events for that unit of
 work — Threadline does not emit on your behalf there.

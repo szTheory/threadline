@@ -25,7 +25,7 @@ defmodule Threadline.Telemetry do
   | `[:threadline, :operator_surface, :export_authorize]` | `count`, `result` | — | an export-specific authorization check raises |
   | `[:threadline, :operator_surface, :actor_ref_mismatch]` | `count` | — | the session actor and the scope-derived actor disagree |
   | `[:threadline, :export, :completed]` | `duration`, `row_count` | `format`, `truncated` | an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) finishes successfully |
-  | `[:threadline, :export, :failed]` | `duration`, `row_count` | `format`, `error_kind`, `exception` | an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) fails |
+  | `[:threadline, :export, :failed]` | `duration`, `row_count` | `format`, `error_kind`, `exception` | an eager facade filter/option or direct Export option validation raises; or an eager CSV/JSON read, async orchestrator job, or chunked operator-surface download fails |
   | `[:threadline, :retention, :purge, :start]` | `monotonic_time`, `system_time` | `dry_run`, `telemetry_span_context` | after purge/1's input checks pass, when the purge work begins |
   | `[:threadline, :retention, :purge, :stop]` | `batches_run`, `deleted_changes`, `deleted_transactions`, `duration`, `monotonic_time` | `dry_run`, `telemetry_span_context` | when the run or preview returns |
   | `[:threadline, :retention, :purge, :exception]` | `duration`, `monotonic_time` | `dry_run`, `kind`, `reason`, `stacktrace`, `telemetry_span_context` | when the database raises mid-run |
@@ -148,7 +148,7 @@ defmodule Threadline.Telemetry do
       measurements: [:duration, :row_count],
       metadata: [:format, :error_kind, :exception],
       when:
-        "an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) fails"
+        "an eager facade filter/option or direct Export option validation raises; or an eager CSV/JSON read, async orchestrator job, or chunked operator-surface download fails"
     },
     %{
       name: [:threadline, :retention, :purge, :start],
