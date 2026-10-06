@@ -2,7 +2,7 @@
 phase: "234"
 slug: "typespec-and-doc-completion-gate"
 status: draft
-threats_open: 2
+threats_open: 1
 asvs_level: 1
 created: "2026-10-05"
 ---
@@ -63,13 +63,13 @@ created: "2026-10-05"
 | T-234-23 | Tampering | RepositoryBoundary and Critic.Measure raise helpers, Plan 12 | medium | mitigate | Plan 12 records both task_error!/3 helpers private with truthful private no_return() specs and all four exact caller messages; this run's compiled probe found neither helper exported nor any public bang no_return spec, and the focused test passed 31 tests. | closed — 234-12-SUMMARY.md; D-28 probe; test/threadline/operator_surface/critic_trust_test.exs |
 | T-234-24 | Repudiation | Independent D-46 review, Plan 13 | high | mitigate | The fresh independent PASS is tied to the regenerated input SHA-256, counts all required surfaces, records WR-01 through WR-07, and passes the full Plan 13 report-integrity verifier. | closed — 234-13-SUMMARY.md; 234-D46-REVIEW.md |
 | T-234-25 | Repudiation | Error, page, telemetry, and investigation module summaries, Plan 14 | low | mitigate | All five current moduledocs passed frozen M-1/M-2 review; the report explicitly covers IncidentChange and LinkedTransaction. | closed — 234-14-SUMMARY.md; 234-D46-REVIEW.md WR-07 |
-| T-234-26 | Repudiation | Security and SPEC-02 sign-off, Plan 15 | high | mitigate | Keep sign-off open until all gates pass. The fresh D-46 PASS/integrity, focused coverage suite, strict Dialyzer, D-28 compiled-spec probe, four-path caller-message test, and other high-threat closures pass; required `mix ci.all` is blocked by the dependency audit failure recorded in deferred-items.md. | open — final Plan 15 verification failed |
+| T-234-26 | Repudiation | Security and SPEC-02 sign-off, Plan 15 | high | mitigate | Plan 19 resolved the example dependency-audit blocker: the accountable-ignore and reachability contracts pass, and `mix verify.deps_audit` is clean. Keep this final sign-off open until Plan 15 reruns a fresh full `mix ci.all`, reconciles its deferred evidence, and confirms SPEC-02; phase status remains draft. | open — Plan 15 final verification pending |
 | T-234-27 | Tampering | ActorRef, Subject, and Retention map contracts, Plan 16 | medium | mitigate | Existing ActorRef/Subject/Retention compatibility tests passed in the 73-test focused evidence suite; fresh independent WR-02 review accepted D-56's three narrow alias exceptions. | closed — 234-16-SUMMARY.md; 234-D46-REVIEW.md WR-02 |
 | T-234-28 | Repudiation | Audit.transaction/3 return summary, Plan 16 | medium | mitigate | Audit.transaction/3 documents the success/error tuple and conditional audit-ID merge/wrap in its opening paragraph; the fresh independent WR-05 source review passed and strict docs build passed in Plan 13. | closed — 234-16-SUMMARY.md; 234-D46-REVIEW.md WR-05 |
 | T-234-29 | Tampering | Subject and Retention public type contracts, Plan 17 | medium | mitigate | 234-17-SUMMARY.md records `mix test test/threadline/evidence/subject_test.exs`, `mix test test/threadline/retention/policy_test.exs`, `mix compile --warnings-as-errors`, `mix verify.dialyzer`, and `MIX_ENV=dev mix docs --warnings-as-errors`; 234-D46-REVIEW.md WR-02 PASS reviewed the current types and behavior. | closed — 234-17-SUMMARY.md; 234-D46-REVIEW.md WR-02 |
 | T-234-30 | Repudiation | StorageSchema.role/0 public type documentation, Plan 18 | medium | mitigate | 234-18-SUMMARY.md records the one-`@typedoc` source change in `lib/threadline/storage_schema.ex`, the unchanged five-role `Threadline.StorageSchema.role/0` union, compiled-doc visibility for all five roles, `mix compile --warnings-as-errors`, `MIX_ENV=dev mix docs --warnings-as-errors`, and `mix verify.dialyzer`; 234-D46-REVIEW.md WR-02/S-4(e) PASS names the same type and source. | closed — 234-18-SUMMARY.md; lib/threadline/storage_schema.ex; 234-D46-REVIEW.md WR-02 |
-| T-234-31 | Tampering | `cloak 1.1.4` AES-CTR ciphertext authentication, EEF-CVE-2026-95105 | high | mitigate | D-58/Plan 19 must prove GCM-only current and initial vault configuration, no CTR/deprecated-CTR reader or legacy CTR ciphertext, then add only this exact accountable Hex ID and pass the live source contract plus `mix verify.deps_audit`. | open — Plan 19 evidence pending |
-| T-234-32 | Tampering | `cloak_ecto 1.3.0` PBKDF2 iteration count, EEF-CVE-2026-94206 | medium | mitigate | D-58/Plan 19 must prove `Cloak.Ecto.Binary` is used without `Cloak.Ecto.PBKDF2`, then add only this exact accountable Hex ID and pass the live source contract plus `mix verify.deps_audit`. | open — Plan 19 evidence pending, below high threshold |
+| T-234-31 | Tampering | `cloak 1.1.4` AES-CTR ciphertext authentication, EEF-CVE-2026-95105 | high | mitigate | Plan 234-19 `cloak_advisory_reachability_contract_test.exs` parses the live vault and proves exactly one `Cloak.Ciphers.AES.GCM` default with tag `AES.GCM.V1`; `git show b50e51e4:examples/threadline_phoenix/lib/threadline_phoenix/vault.ex` proves GCM was present at the tracked initial revision, and the Plan 19 history scan found no tracked CTR tag/reader path. The exact EEF-CVE-2026-95105 entry has separate rationale, reachability, and review-by metadata; the accountable-ignore and reachability contracts pass 19/19, and `mix verify.deps_audit` is clean across all three lockfiles. | closed — 234-19-SUMMARY.md; live reachability contract; tracked initial-vault/history proof; canonical dependency audit |
+| T-234-32 | Tampering | `cloak_ecto 1.3.0` PBKDF2 iteration count, EEF-CVE-2026-94206 | medium | mitigate | Plan 234-19 `cloak_advisory_reachability_contract_test.exs` parses the live field and proves `Cloak.Ecto.Binary` uses `ThreadlinePhoenix.Vault`, while scanning example lib/config/priv sources for `Cloak.Ecto.PBKDF2`. The exact EEF-CVE-2026-94206 entry has separate rationale, reachability, and review-by metadata; the accountable-ignore and reachability contracts pass 19/19, and `mix verify.deps_audit` is clean across all three lockfiles. | closed — 234-19-SUMMARY.md; live reachability contract; canonical dependency audit |
 
 *Status: open · closed · open — below high threshold (non-blocking) · closed — accepted*
 *Only open threats at or above workflow.security_block_on count toward threats_open.*
@@ -98,6 +98,7 @@ created: "2026-10-05"
 | 2026-10-05 | 27 | 18 | 9 | planning reconciliation of active Plans 12–15 |
 | 2026-10-06 | 31 | 28 | 3 | Plan 15 evidence reconciliation; final mix ci.all gate failed |
 | 2026-10-06 | 33 | 28 | 5 | D-58 added separate high CTR and medium PBKDF2 findings before Plan 19 execution |
+| 2026-10-06 | 33 | 30 | 3 | Plan 19 live reachability contracts and canonical dependency audit passed |
 
 ---
 
@@ -108,4 +109,4 @@ created: "2026-10-05"
 - [ ] `threats_open: 0` confirmed
 - [ ] `status: verified` set in frontmatter
 
-**Approval:** pending — T-234-31 and T-234-32 require Plan 19 reachability and audit evidence; T-234-26 closes last only after a fresh full `mix ci.all` passes.
+**Approval:** pending — Plan 19 closed T-234-31 and T-234-32 from reachability and audit evidence; T-234-26 remains open until Plan 15 passes a fresh full `mix ci.all` and confirms SPEC-02.
