@@ -93,7 +93,10 @@ defmodule Threadline.Audit do
 
   @doc """
   Runs `fun` inside `repo.transaction/1` after setting the transaction-local
-  `threadline.actor_ref` GUC and optionally recording a semantic action.
+  `threadline.actor_ref` GUC and optionally recording a semantic action, then returns
+  `{:ok, result}` or `{:error, reason}`. On success, `result` may include an
+  `:audit_transaction_id` when capture creates an `audit_transactions` row: Threadline merges the
+  id into map results and wraps non-map results as `%{result: value, audit_transaction_id: id}`.
 
   See module doc for options, callback rules, and return envelope.
   """
