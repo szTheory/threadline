@@ -168,7 +168,7 @@ Plans:
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: 20 plans
+**Plans**: 21 plans
 
 Plans:
 **Wave 1**
@@ -232,8 +232,9 @@ Plans:
 **Gap closure — Wave 8** *(blocked on 234-15; opened by fresh phase verification)*
 
 - [ ] 234-20-PLAN.md — Correct the record_action/2 and Job.context_opts/2 public docs, restore the D-22/231 D-05 capture type boundary with executable assertions, then refresh D-46 evidence before SPEC-02 closes (wave 8)
+- [ ] 234-21-PLAN.md — Repair the pre-existing Pixel 5 reduced-motion toast/modal test obstruction, then run focused mobile Playwright and canonical `mix ci.all` (wave 8; dispatch requires safe-resume recovery for partial Plan 20)
 
-**Execution note**: Plan 234-15 passed its CI and evidence gates on 2026-10-06. The subsequent phase verifier found two false public doc claims and the AuditTransaction.action type-boundary violation, so SPEC-02 is Pending again and Plan 20 owns these repairs. The original Plan 234-06 remains recorded as halted; the prior D-28 and high-severity security gaps were closed by later plans. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Plan 13's independent D-46 PASS and Plan 15's `mix ci.all` are historical evidence for their then-current source; Plan 20 requires fresh review and gates after its edits. Security remains verified with zero open high threats, and the already validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 remains In Progress until Plan 20 executes and the phase verifier passes.
+**Execution note**: Plan 234-15 passed its CI and evidence gates on 2026-10-06. The subsequent phase verifier found two false public doc claims and the AuditTransaction.action type-boundary violation, so SPEC-02 is Pending again and Plan 20 owns these repairs. Plan 20's source repairs and fresh independent D-46 PASS are committed, but its required `mix ci.all` failed in a pre-existing mobile browser test, so it has no summary. Plan 21 covers only that diagnosed test obstruction. The standard execute-phase safe-resume gate selects incomplete Plan 20 before wave dispatch and halts on its existing commits; Plan 21 is planned but cannot yet be dispatched through that workflow. Resolve the partial-plan resume state without replaying completed work or writing an early Plan 20 summary, then run Plan 21's focused/full gates and complete Plan 20's explicit closeout contract. The original Plan 234-06 remains recorded as halted; the prior D-28 and high-severity security gaps were closed by later plans. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Security remains verified with zero open high threats, and the already validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 remains In Progress until the gates, Plan 20 closeout, and the phase verifier pass.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
@@ -298,7 +299,7 @@ Plans:
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
 | 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
-| 234. Typespec and Doc Completion Gate | 18/19 | In Progress | - |
+| 234. Typespec and Doc Completion Gate | 18/21 | In Progress | - |
 | 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
 | 236. Support Floor and Partition Weights | 0/TBD | Not started | - |
 | 237. Upgrade Guide and 1.0.0 | 0/TBD | Not started | - |

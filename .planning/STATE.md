@@ -4,17 +4,17 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
-current_plan: 16
+current_plan: 20
 status: executing
-stopped_at: Completed 234-15-PLAN.md; Phase 234 verifier next
-last_updated: "2026-10-06T15:56:51.596Z"
+stopped_at: Plan 234-20 CI gate blocked by mobile browser test; Plan 234-21 planned, safe-resume recovery required
+last_updated: "2026-10-06T18:30:01Z"
 last_activity: 2026-10-06
-last_activity_desc: "Completed 234-15: fresh CI and SPEC-02/security evidence passed; Phase 234 verifier and regression gate are next"
-state_head: 3b354585576f084de668d9ed9d809745af7f080b
+last_activity_desc: Planned 234-21 for the mobile browser gate; Plan 20 closeout remains blocked
+state_head: 051f95de9d731575b0523bed8a7946d9d2be4181
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 32
+  total_plans: 34
   completed_plans: 32
   percent: 43
 ---
@@ -30,12 +30,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 
 ## Current Position
 
-Phase: 234 (Typespec and Doc Completion Gate) — PHASE VERIFICATION PENDING
-Current Plan: 16
-Total Plans in Phase: 19
-Status: Plan 234-15 is complete; all active gap-plan summaries are present and the phase verifier/regression gate is next. Plan 234-06 remains historically halted; later gap plans closed its outstanding evidence and sign-off gates.
-Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 proved the approved D-58 GCM-only/Binary reachability conditions, added only the two review-dated example audit acknowledgements, and passed the canonical dependency audit. Plan 234-15 then passed a fresh post-Plan-19 `mix ci.all`, reconciled all Plan 12–19 security evidence, set security to verified with zero open high threats, marked SPEC-02 Complete, and set validation Nyquist-compliant. Phase 234 is not complete until its verifier and regression gate pass.
-Last activity: 2026-10-06 — Plan 234-15 completed; phase verifier/regression gate is next
+Phase: 234 (Typespec and Doc Completion Gate) — EXECUTING
+Current Plan: 20
+Total Plans in Phase: 21
+Status: Executing Phase 234; Plan 21 is planned for the mobile browser gate, pending safe-resume recovery for incomplete Plan 20.
+Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 proved the approved D-58 GCM-only/Binary reachability conditions and passed the canonical dependency audit. Plan 234-15 passed a post-Plan-19 `mix ci.all`, reconciled security and validation evidence, and marked SPEC-02 Complete. A later phase verification reopened SPEC-02. Plan 234-20 committed its doc/type corrections and a fresh independent D-46 PASS bound to input SHA-256 e341c89282ceca06f738754985c2aaff4af24e2c9b2ed7efb792a8dc70fd6cb8; its required `mix ci.all` failed only in the pre-existing mobile motion E2E case, so it has no summary and SPEC-02 remains Pending. Plan 234-21 is planned for that narrow test repair. Standard execute-phase safe-resume stops on the incomplete Plan 20 before wave dispatch; execution requires a supported recovery path. Phase verification follows successful Plan 20 closeout.
+Last activity: 2026-10-06 — Plan 234-21 written for the mobile browser gate; Plan 20 safe-resume recovery remains prerequisite
 
 v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -1060,7 +1060,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ## Session Continuity
 
 **Last session:** 2026-10-06T15:56:51.539Z
-**Stopped at:** Completed 234-15-PLAN.md; Phase 234 verifier next
+**Stopped at:** Plan 234-20 canonical CI gate blocked by the mobile browser case; Plan 234-21 planned, safe-resume recovery required
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
