@@ -6,22 +6,18 @@ findings:
   - id: WR-01
     severity: warning
     disposition: open
-    title: "The `record_action/2` example constructs an invalid ActorRef"
+    title: "context_opts/2 returns options excluded by its public type"
   - id: WR-02
     severity: warning
     disposition: open
-    title: "Row history rejects its formerly documented `:surface` scope option"
+    title: "Job context IDs are returned without the type promised by the spec"
   - id: WR-03
     severity: warning
     disposition: open
-    title: "Eager export validation failures skip the documented failure event"
-  - id: WR-04
-    severity: warning
-    disposition: open
-    title: "`Threadline.Job.context_opts/2` claims unknown options are validated"
-open: 4
-total: 4
-recorded: 2026-10-06T16:21:46Z
+    title: "Eager export validation raises without emitting the failure event"
+open: 3
+total: 3
+recorded: 2026-10-06T19:35:00Z
 ---
 
 # Phase 234: Code Review Disposition
@@ -31,6 +27,5 @@ recorded: 2026-10-06T16:21:46Z
 | WR-01 | warning | open | - |
 | WR-02 | warning | open | - |
 | WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
