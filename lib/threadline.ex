@@ -1237,8 +1237,17 @@ defmodule Threadline do
              max_rows: non_neg_integer()
            }}
   def export_csv(filters \\ [], opts \\ []) do
-    OptionKeys.validate_filters!(filters, :timeline)
-    OptionKeys.validate!(opts, :export_csv)
+    started_at = System.monotonic_time()
+
+    try do
+      OptionKeys.validate_filters!(filters, :timeline)
+      OptionKeys.validate!(opts, :export_csv)
+    rescue
+      exception ->
+        Threadline.Telemetry.emit_export_failed(:csv, 0, :exception, exception, started_at)
+        reraise exception, __STACKTRACE__
+    end
+
     Threadline.Export.to_csv_iodata(filters, opts)
   end
 
@@ -1290,8 +1299,22 @@ defmodule Threadline do
              max_rows: non_neg_integer()
            }}
   def export_json(filters \\ [], opts \\ []) do
-    OptionKeys.validate_filters!(filters, :timeline)
-    OptionKeys.validate!(opts, :export_json)
+    started_at = System.monotonic_time()
+
+    format =
+      if Keyword.keyword?(opts) and Keyword.get(opts, :json_format) == :ndjson,
+        do: :ndjson,
+        else: :json
+
+    try do
+      OptionKeys.validate_filters!(filters, :timeline)
+      OptionKeys.validate!(opts, :export_json)
+    rescue
+      exception ->
+        Threadline.Telemetry.emit_export_failed(format, 0, :exception, exception, started_at)
+        reraise exception, __STACKTRACE__
+    end
+
     Threadline.Export.to_json_document(filters, opts)
   end
 

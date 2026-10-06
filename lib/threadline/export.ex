@@ -149,7 +149,16 @@ defmodule Threadline.Export do
   @spec to_csv_iodata([Threadline.timeline_filter()], [Threadline.export_csv_opt()]) ::
           {:ok, export_result()}
   def to_csv_iodata(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    OptionKeys.validate!(opts, :to_csv_iodata)
+    started_at = System.monotonic_time()
+
+    try do
+      OptionKeys.validate!(opts, :to_csv_iodata)
+    rescue
+      exception ->
+        Threadline.Telemetry.emit_export_failed(:csv, 0, :exception, exception, started_at)
+        reraise exception, __STACKTRACE__
+    end
+
     ExportReads.to_csv_iodata(filters, opts)
   end
 
@@ -193,7 +202,21 @@ defmodule Threadline.Export do
   @spec to_json_document([Threadline.timeline_filter()], [Threadline.export_json_opt()]) ::
           {:ok, export_result()}
   def to_json_document(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    OptionKeys.validate!(opts, :to_json_document)
+    started_at = System.monotonic_time()
+
+    format =
+      if Keyword.keyword?(opts) and Keyword.get(opts, :json_format) == :ndjson,
+        do: :ndjson,
+        else: :json
+
+    try do
+      OptionKeys.validate!(opts, :to_json_document)
+    rescue
+      exception ->
+        Threadline.Telemetry.emit_export_failed(format, 0, :exception, exception, started_at)
+        reraise exception, __STACKTRACE__
+    end
+
     ExportReads.to_json_document(filters, opts)
   end
 
