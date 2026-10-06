@@ -215,7 +215,7 @@ Plans:
 
 **Gap closure — Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 234-18-PLAN.md — Document the exported StorageSchema.role/0 type's five identifier-validation roles under D-57/S-4(e)
+- [x] 234-18-PLAN.md — Document the exported StorageSchema.role/0 type's five identifier-validation roles under D-57/S-4(e) (completed 2026-10-06)
 
 **Gap closure — Wave 5** *(blocked on Wave 4 completion)*
 
