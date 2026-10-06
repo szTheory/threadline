@@ -70,6 +70,7 @@ created: "2026-10-05"
 | T-234-30 | Repudiation | StorageSchema.role/0 public type documentation, Plan 18 | medium | mitigate | 234-18-SUMMARY.md records the one-`@typedoc` source change in `lib/threadline/storage_schema.ex`, the unchanged five-role `Threadline.StorageSchema.role/0` union, compiled-doc visibility for all five roles, `mix compile --warnings-as-errors`, `MIX_ENV=dev mix docs --warnings-as-errors`, and `mix verify.dialyzer`; 234-D46-REVIEW.md WR-02/S-4(e) PASS names the same type and source. | closed — 234-18-SUMMARY.md; lib/threadline/storage_schema.ex; 234-D46-REVIEW.md WR-02 |
 | T-234-31 | Tampering | `cloak 1.1.4` AES-CTR ciphertext authentication, EEF-CVE-2026-95105 | high | mitigate | Plan 234-19 `cloak_advisory_reachability_contract_test.exs` parses the live vault and proves exactly one `Cloak.Ciphers.AES.GCM` default with tag `AES.GCM.V1`; `git show b50e51e4:examples/threadline_phoenix/lib/threadline_phoenix/vault.ex` proves GCM was present at the tracked initial revision, and the Plan 19 history scan found no tracked CTR tag/reader path. The exact EEF-CVE-2026-95105 entry has separate rationale, reachability, and review-by metadata; the accountable-ignore and reachability contracts pass 19/19, and `mix verify.deps_audit` is clean across all three lockfiles. | closed — 234-19-SUMMARY.md; live reachability contract; tracked initial-vault/history proof; canonical dependency audit |
 | T-234-32 | Tampering | `cloak_ecto 1.3.0` PBKDF2 iteration count, EEF-CVE-2026-94206 | medium | mitigate | Plan 234-19 `cloak_advisory_reachability_contract_test.exs` parses the live field and proves `Cloak.Ecto.Binary` uses `ThreadlinePhoenix.Vault`, while scanning example lib/config/priv sources for `Cloak.Ecto.PBKDF2`. The exact EEF-CVE-2026-94206 entry has separate rationale, reachability, and review-by metadata; the accountable-ignore and reachability contracts pass 19/19, and `mix verify.deps_audit` is clean across all three lockfiles. | closed — 234-19-SUMMARY.md; live reachability contract; canonical dependency audit |
+| T-234-33 | Denial of service | Mobile reduced-motion E2E case | low | mitigate | Plan 21 closes `#stress-toast` through its visible control, observes both the toast and modal hidden, then requires an ordinary Show Drawer click; focused mobile Playwright and canonical CI pass. | closed — 234-21-SUMMARY.md; operator-motion.spec.ts; focused mobile gate; mix ci.all |
 
 *Status: open · closed · open — below high threshold (non-blocking) · closed — accepted*
 *Only open threats at or above workflow.security_block_on count toward threats_open.*
@@ -110,4 +111,12 @@ created: "2026-10-05"
 - [x] `threats_open: 0` confirmed; only T-234-08 and T-234-13 remain open, both below the high-threat threshold
 - [x] `status: verified` set in frontmatter
 
-**Approval:** Verified — Plan 15 passed the post-Plan-19 full CI and all evidence gates; T-234-26 is closed and SPEC-02 is ready for its matching validation/requirements update.
+**Approval:** Verified — Plan 20/21 passed the final full CI and evidence gates; T-234-26 and T-234-33 are closed, and SPEC-02 is Complete.
+
+## Security Audit 2026-10-06
+
+| Metric | Count |
+|---|---|
+| Threats found | 34 |
+| Closed | 32 |
+| Open | 2 |
