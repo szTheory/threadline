@@ -4,7 +4,7 @@ slug: "typespec-and-doc-completion-gate"
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
 status: validated
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: true
 created: "2026-10-04"
 validated: "2026-10-05"
@@ -12,7 +12,7 @@ validated: "2026-10-05"
 
 # Phase 234 — Validation Strategy
 
-> Phase 234 is validated as partial. Automated gates cover the six plans; the audit found one confirmed D-28 contract violation outside the approved implementation scope.
+> The D-28 spec-contract violation was fixed in Plan 12 and reconfirmed by Plan 15's compiled public-spec probe, strict Dialyzer, focused caller-message test, and independent D-46 PASS. Plan 19's advisory reachability and accountable-ignore gates passed, followed by a fresh full `mix ci.all` pass in Plan 15. Validation gates are green; the normal phase verifier still regenerates `VERIFICATION.md`.
 
 ## Test Infrastructure
 
@@ -28,7 +28,7 @@ validated: "2026-10-05"
 
 - After each plan task, run its focused ExUnit command from that plan's `<automated>` verify block.
 - After each plan, run `mix verify.dialyzer` and `MIX_ENV=dev mix docs --warnings-as-errors` where specified.
-- Before phase verification, run `mix ci.all`; latest recorded run passed in the Plan 234-06 summary.
+- Before phase verification, run `mix ci.all`; Plan 15's fresh post-Plan-19 run passed on 2026-10-06.
 - Max feedback latency observed in this audit: ~13 seconds for the focused contract suite.
 
 ## Per-Task Verification Map
@@ -59,18 +59,18 @@ validated: "2026-10-05"
 | 234-05-T3 | 05 | 5 | SPEC-01, SPEC-02 | — | Page, error, findings, and transaction result shapes remain accurate | integration | `mix test test/threadline/page_test.exs test/threadline/not_found_error_test.exs test/threadline/health_findings_doc_contract_test.exs test/threadline/audit_doc_contract_test.exs test/threadline/health_test.exs test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs` | ✅ | ✅ green |
 | 234-06-T1 | 06 | 6 | SPEC-01, SPEC-02 | — | Strict Dialyzer findings in facade/query cohort are fixed | static + integration | `MIX_ENV=dev mix dialyzer --no-check --missing_return --underspecs --error_handling`; `mix verify.dialyzer` | ✅ | ✅ green |
 | 234-06-T2 | 06 | 6 | SPEC-01, SPEC-02 | — | Lookup/export/proof result specs match behavior under strict flags | static + integration | `MIX_ENV=dev mix dialyzer --no-check --missing_return --underspecs --error_handling`; `mix verify.dialyzer` | ✅ | ✅ green |
-| 234-06-T3 | 06 | 6 | SPEC-01, SPEC-02 | — | Raise-only helpers use `no_return()` only when private | static contract | Focused ExUnit probe for exported bang specs (recorded below) | ✅ | ⚠️ escalated: one exported bang violates D-28 |
+| 234-06-T3 | 06 | 6 | SPEC-01, SPEC-02 | — | Raise-only helpers use `no_return()` only when private | static contract | Focused ExUnit probe for exported bang specs; Plan 15 reran compiled probe and exact caller-message test | ✅ | ✅ resolved in Plan 12; reconfirmed in Plan 15 |
 | 234-06-T4 | 06 | 6 | SPEC-01, SPEC-02 | T-234-14 | Exact strict flags and zero-ignore policy stay pinned | unit + static | `mix test test/threadline/dialyzer_ignore_contract_test.exs test/threadline/dialyzer_slice_contract_test.exs`; `mix verify.dialyzer`; `mix verify.dialyzer_slice` | ✅ | ✅ green |
 | 234-06-T5 | 06 | 6 | SPEC-01, SPEC-02, SPEC-03 | T-234-01/T-234-02 | Zero-gap doc/spec gate, live mutation record, size pin, and handoff notes stay enforced | unit + docs | `mix test test/threadline/doc_spec_coverage_contract_test.exs test/threadline/doc_rubric_contract_test.exs test/threadline/facade_naming_contract_test.exs test/threadline/source_size_contract_test.exs test/threadline/changelog_contract_test.exs test/threadline/public_surface_contract_test.exs` | ✅ | ✅ green |
 | 234-06-T6 | 06 | 6 | SPEC-01, SPEC-02, SPEC-03 | T-234-15 | Docs build, example, CI aggregate, and D-46 review input are complete | integration | `MIX_ENV=dev mix docs --warnings-as-errors`; `mix verify.example`; `mix ci.all` | ✅ | ✅ green |
 
-Plan and summary artifacts provide the recorded task-level pass evidence. In this audit, the six central contract suites passed (70 tests, 0 failures, 1 excluded), `mix verify.dialyzer` passed with 0 errors, and `MIX_ENV=dev mix docs --warnings-as-errors` passed. Plan 234-06 records `mix ci.all` passing (2,986 root tests, 130 example tests, 0 failures; strict Dialyzer 0 errors).
+Plan and summary artifacts provide the recorded task-level pass evidence. In this audit, the six central contract suites passed (70 tests, 0 failures, 1 excluded), `mix verify.dialyzer` passed with 0 errors, and `MIX_ENV=dev mix docs --warnings-as-errors` passed. Plan 234-06 records its earlier `mix ci.all` pass (2,986 root tests, 130 example tests, 0 failures; strict Dialyzer 0 errors). Plan 15's fresh post-Plan-19 `mix ci.all` also passed: 3,006 root tests and 130 example tests with 0 failures, strict Dialyzer with 0 errors, live Dialyzer slice 17/0, npm audit with 0 vulnerabilities, and Playwright 318 passed / 26 intentionally skipped across desktop and mobile Chromium.
 
-### Escalated gap
+### Resolved escalated gap
 
 | Task ID | Requirement | Finding | Probe result | Disposition |
 |----------|-------------|---------|--------------|-------------|
-| 234-06-T3 | SPEC-02 / D-28 | `Threadline.CriticTrust.RepositoryBoundary.task_error!/3` is exported but its spec returns `no_return()`, contrary to D-28. | A focused ExUnit contract probe failed once with `[task_error!: 3]` (1 test, 1 failure). This is a spec-contract failure, not a runtime failure. No implementation edit was made. The temporary red probe was removed so the repository test suite remains green. | ESCALATED; the function was explicitly outside Plan 234-06's amended file scope. Requires the scope decision already called out in `234-06-SUMMARY.md`. |
+| 234-06-T3 | SPEC-02 / D-28 | `Threadline.CriticTrust.RepositoryBoundary.task_error!/3` was exported with a `no_return()` spec, contrary to D-28. | The initial focused ExUnit contract probe failed once with `[task_error!: 3]` (1 test, 1 failure), identifying a spec-contract failure rather than a runtime failure. Plan 12 made both task helpers private and preserved all four messages. Plan 15's compiled probe confirmed neither helper is exported and no exported bang spec in either module returns `no_return()`; the focused test passed all four caller-visible error paths (31 tests, 0 failures). Strict Dialyzer passed with zero errors, and the fresh independent D-46 report records a PASS. | RESOLVED in Plan 12; reconfirmed in Plan 15 after fresh D-46 PASS. |
 
 ## Wave 0 Requirements
 
@@ -91,9 +91,9 @@ Plan and summary artifacts provide the recorded task-level pass evidence. In thi
 - [x] Wave 0 covers the documented validation dependencies.
 - [x] No watch-mode flags.
 - [x] Focused feedback latency is under 15 seconds.
-- [ ] `nyquist_compliant: true` — D-28 gap remains escalated; D-46 independent review is still due.
+- [x] `nyquist_compliant: true` — Plan 15's focused evidence tests, D-28 compiled probe and four-path test, strict Dialyzer, current independent D-46 PASS/integrity check, and fresh post-Plan-19 full `mix ci.all` all pass.
 
-**Approval:** pending phase verification; no human UAT requested.
+**Approval:** Validation gates passed on 2026-10-06; the normal Phase 234 verifier must still regenerate `VERIFICATION.md`. No human UAT requested.
 
 ## Validation Audit 2026-10-05
 
