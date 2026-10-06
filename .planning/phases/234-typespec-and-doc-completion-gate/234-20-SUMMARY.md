@@ -13,7 +13,7 @@ provides:
 affects: [phase-234-verification, phase-235-stability-guide]
 actuals:
   tokens: 7836
-  tasks: 2
+  tasks: 3
   commits: 6
   plan_head_before: 051f95de9d731575b0523bed8a7946d9d2be4181
   plan_head_after: 2814e3429d34a6ab7154f41cca2aa60430e8c978
@@ -34,12 +34,13 @@ key-files:
     - .planning/phases/234-typespec-and-doc-completion-gate/234-REVIEW-INPUT.md
     - .planning/phases/234-typespec-and-doc-completion-gate/234-D46-REVIEW.md
     - .planning/phases/234-typespec-and-doc-completion-gate/deferred-items.md
+    - .planning/REQUIREMENTS.md
 key-decisions:
-  - "Kept SPEC-02 Pending because the required canonical mix ci.all gate did not pass."
-  - "Recorded the unrelated mobile browser obstruction as a designed halt; Plan 21 owns its repair."
+  - "Marked SPEC-02 Complete only after the fresh D-46 PASS, focused tests, strict Dialyzer, warning-free docs build, canonical mix ci.all, and report-integrity gate all passed."
+  - "Plan 21 repaired the mobile browser obstruction without changing Plan 20's reviewed input; the D-46 hash remains unchanged."
   - "Preserved D-55's >=82 visible-entry floor and D-07's eight exact hidden pins."
 patterns-established: []
-requirements-completed: []
+requirements-completed: [SPEC-02]
 coverage:
   - id: D1
     description: The public action example and job helper documentation match executable behavior.
@@ -58,7 +59,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: Current-source D-46 review and static/documentation gates pass, but the canonical CI closeout is blocked by the mobile browser test.
+    description: Current-source D-46 review, static/documentation gates, and canonical CI all pass; Plan 21 repaired the mobile browser obstruction.
     requirement: SPEC-02
     verification:
       - kind: other
@@ -68,25 +69,25 @@ coverage:
         ref: "mix verify.dialyzer; MIX_ENV=dev mix docs --warnings-as-errors"
         status: pass
       - kind: e2e
-        ref: "mix ci.all on 2026-10-06: verify.example_browser reported 313 passed, 26 skipped, 4 flaky, 1 failed at operator-motion.spec.ts:323"
-        status: fail
+        ref: "mix ci.all after Plan 21 repair on 2026-10-06: 3,010 root tests and 130 example tests passed; Dialyzer 0 errors; browser 318 passed/26 skipped"
+        status: pass
     human_judgment: false
 duration: 49min (first-to-last scoped commit; executor start was not separately recorded)
 completed: 2026-10-06
-status: halted
+status: complete
 ---
 
 # Phase 234 Plan 20 Summary
 
-**Public documentation and capture-type corrections are committed with a fresh D-46 PASS; canonical CI stopped at the pre-existing mobile motion browser obstruction.**
+**Public documentation and capture-type corrections are committed with a fresh D-46 PASS, and the required canonical CI gate now passes after Plan 21 repaired the mobile motion browser obstruction.**
 
 ## Performance
 
-- **Duration:** 49 minutes from the first scoped task commit to the final evidence commit; executor start was not separately recorded.
+- **Duration:** 49 minutes for Plan 20's scoped implementation and review work; Plan 21 later supplied the required canonical CI pass.
 - **Started:** 2026-10-06T13:16:38-04:00 (first scoped task commit)
-- **Halted:** 2026-10-06; last Plan 20 evidence commit at 2026-10-06T14:05:29-04:00
-- **Tasks:** 2/3 completed. Task 3 completed its D-46 review and other gates, but not the required full CI gate.
-- **Files modified:** 9
+- **Completed:** 2026-10-06; canonical CI passed after Plan 21's mobile repair.
+- **Tasks:** 3/3 completed. Task 3's remaining canonical CI gate passed after Plan 21 repaired the mobile test.
+- **Files modified:** 10
 
 ## Accomplishments
 
@@ -99,25 +100,25 @@ status: halted
 
 1. **Task 1: Prove the documented job-to-action path with a validated actor** — `f8631499` (test), `9a13e97a` (docs and behavior assertions), `d4636e15` (facade source-size pin correction).
 2. **Task 2: Reinstate and pin the capture-to-semantics typespec boundary** — `5f14d7da` (test), `01698e43` (typespec).
-3. **Task 3: Re-review the corrected public surface and close SPEC-02 from current evidence** — `2814e342` records the fresh review and blocked closeout evidence. The task remains incomplete because `mix ci.all` failed.
+3. **Task 3: Re-review the corrected public surface and close SPEC-02 from current evidence** — `2814e342` records the fresh independent review; its final canonical CI gate passed after Plan 21's repair.
 
 ## Files Created/Modified
 
 - `lib/threadline.ex`, `lib/threadline/job.ex` — corrected public examples and option behavior docs.
 - `lib/threadline/capture/audit_transaction.ex` — generic hydrated action field type.
 - `test/threadline/semantics/audit_action_test.exs`, `test/threadline/job_test.exs`, `test/threadline/capture_semantics_boundary_test.exs` — executable behavior and type-boundary contracts.
-- `234-REVIEW-INPUT.md`, `234-D46-REVIEW.md`, `deferred-items.md` — current review evidence and the CI residual.
+- `234-REVIEW-INPUT.md`, `234-D46-REVIEW.md`, `deferred-items.md`, `REQUIREMENTS.md` — current review evidence, completed CI closeout, and SPEC-02 status.
 
 ## Decisions Made
 
-- Kept both SPEC-02 markers Pending. The independent review does not override Plan 20's explicit full-gate requirement.
-- Closed this partial execution as `halted` so the standard safe-resume gate will not repeat the already committed tasks. Plan 21 owns the remaining mobile browser obstruction; after its focused test and canonical CI pass, Plan 20 must be re-summarized as complete before phase verification.
+- Marked both SPEC-02 markers Complete only after all Plan 20 gates passed, including Plan 21's canonical CI rerun and the unchanged D-46 input hash.
+- Reused Plan 21's focused mobile and canonical CI evidence to finish Plan 20's previously halted Task 3 without repeating committed source, tests, docs, or independent review.
 
 ## Issues Encountered
 
-- `mix ci.all` exited nonzero only in `verify.example_browser`: 313 passed, 26 skipped, 4 flaky, and 1 failed. The Pixel 5 reduced-motion scenario timed out clicking “Show Drawer” at `operator-motion.spec.ts:323`.
-- Retained Playwright logs show the modal intercepted the first two click probes, then the persistent `#stress-toast` intercepted approximately 228/229 retries. The retry screenshot shows the toast covering the button. The same viewport-sensitive failure is documented in earlier phases; Plan 20 does not change the browser fixture.
-- Plan 21 will dismiss the toast, wait for the modal to hide, use a normal click, rerun the focused mobile scenario, and rerun `mix ci.all`.
+- The first `mix ci.all` stopped in `verify.example_browser`: 313 passed, 26 skipped, 4 flaky, and 1 failed. The Pixel 5 reduced-motion scenario timed out clicking “Show Drawer” at `operator-motion.spec.ts:323` because overlays obscured the control.
+- Plan 21 dismissed the toast, waited for the modal to hide, and retained a normal drawer click. Its focused mobile run passed 7/7, and the subsequent canonical CI passed with 318 browser tests and 26 skips.
+- Plan 21's canonical gate initially exposed two machine-specific GSD paths in its plan document. Those references were normalized to the repository's `<home>` convention before the successful full rerun.
 
 ## User Setup Required
 
@@ -125,8 +126,8 @@ None.
 
 ## Next Phase Readiness
 
-Phase 234 is not ready to verify yet. Plan 21 can now run without repeating Plan 20's committed tasks. After its canonical CI gate passes, re-summarize Plan 20 as complete while keeping SPEC-02 Pending until the phase verifier passes.
+Plan 20 is complete and SPEC-02 is Complete under its evidence-gated contract. Phase 234 is ready for its phase verifier; the phase remains In Progress until that verifier passes.
 
 ---
 *Phase: 234-typespec-and-doc-completion-gate*
-*Completed: 2026-10-06 (halted)*
+*Completed: 2026-10-06*
