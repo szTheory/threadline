@@ -6,11 +6,11 @@ current_phase: 234
 current_phase_name: Typespec and Doc Completion Gate
 current_plan: 13
 status: executing
-stopped_at: "234-14 complete; 234-13 is ready for the independent D-46 review"
-last_updated: "2026-10-05T23:58:05.000Z"
+stopped_at: "234-13 Task 1 recorded a valid D-46 FAIL; awaiting maintainer scope decision"
+last_updated: "2026-10-06T00:12:43.000Z"
 last_activity: 2026-10-05
-last_activity_desc: Plan 234-14's five moduledoc and M-2 updates passed focused tests, docs, and Dialyzer; Plan 13 is ready
-state_head: a7fd082ef59b8a80a309c04ec74e31938bfb66ba
+last_activity_desc: Plan 234-13 Task 1 regenerated the review input and committed an integrity-validated D-46 FAIL; SPEC-02 remains pending and Plan 15 is unready pending the maintainer's scope decision
+state_head: 729f35e9
 progress:
   total_phases: 7
   completed_phases: 3
@@ -33,8 +33,9 @@ See: `.planning/PROJECT.md` (updated 2026-10-03 after Phase 232)
 Phase: 234 (Typespec and Doc Completion Gate) — EXECUTING
 Current Plan: 13
 Total Plans in Phase: 15
-Status: Ready to execute
-Last activity: 2026-10-05 — 234-11 complete; 234-12 ready to execute
+Status: Awaiting maintainer scope decision after Plan 13 Task 1
+Plan 13 Task 1 committed fresh D-46 evidence in `729f35e9`: 82 visible entries, 52 moduledocs, 149 public types, 8 callbacks; WR-02 has three finite-map type findings and WR-05 has one `Audit.transaction/3` summary finding. Task 1's report-integrity verifier passes. Plan 13 Task 2 requires a PASS, so no Plan 13 SUMMARY exists; SPEC-02 remains Pending, T-234-24 is open, and Plan 15 remains unready.
+Last activity: 2026-10-05 — 234-13 Task 1 report-integrity check passed; awaiting scope decision
 
 v1.45 Progress: [████░░░░░░] 3 of 7 v1.45 phases complete (43%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
