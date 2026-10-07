@@ -1,6 +1,6 @@
 defmodule Threadline.Capture.AuditChange do
   @moduledoc """
-  Ecto schema for the `audit_changes` table.
+  An `AuditChange` is one row mutation in one audited table.
 
   An `AuditChange` records a single row-level mutation (`INSERT`, `UPDATE`,
   or `DELETE`) on an audited table. Records are created automatically by
@@ -23,6 +23,18 @@ defmodule Threadline.Capture.AuditChange do
     per-table opt-in capture function is installed; otherwise nil.
   - `:captured_at` — trigger execution timestamp (microsecond precision).
 
+  ## Stable 1.x fields
+
+  The stable struct fields for 1.x are `id`, `transaction_id`, `table_schema`,
+  `table_name`, `table_pk`, `op`, `data_after`, `changed_fields`,
+  `changed_from`, and `captured_at`. The `t()` type may gain fields; this list
+  does not make every current schema field or virtual relationship a promise.
+
+  `data_after` and `changed_from` are additive JSONB maps: keys and shapes may
+  be added in 1.x. `changed_fields` is an additive list of text column names.
+  These promises do not guarantee byte-stable JSON serialization or key order,
+  and existing rows are not rewritten when a shape grows.
+
   ## Relationships
 
   - `belongs_to :transaction, Threadline.Capture.AuditTransaction` — the DB
@@ -40,8 +52,25 @@ defmodule Threadline.Capture.AuditChange do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @typedoc "One row mutation (`INSERT`, `UPDATE`, or `DELETE`) in one audited table."
-  @type t :: %__MODULE__{}
+  @typedoc """
+  One persisted row mutation with its captured table, row key, operation, and JSON snapshots.
+
+  `:data_after` is nil for deletes, and `:changed_fields` is nil when no update fields were captured.
+  """
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t() | nil,
+          transaction_id: Ecto.UUID.t() | nil,
+          transaction: Threadline.Capture.AuditTransaction.t() | Ecto.Association.NotLoaded.t(),
+          table_schema: String.t(),
+          table_name: String.t(),
+          table_pk: Threadline.json_map(),
+          op: String.t(),
+          data_after: Threadline.json_map() | nil,
+          changed_fields: [String.t()] | nil,
+          changed_from: Threadline.json_map() | nil,
+          captured_at: DateTime.t(),
+          __meta__: Ecto.Schema.Metadata.t()
+        }
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

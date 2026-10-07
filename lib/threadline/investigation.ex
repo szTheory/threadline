@@ -1,13 +1,11 @@
 defmodule Threadline.Investigation do
-  @moduledoc """
-  Higher-level investigation helpers layered on top of Threadline query primitives.
-
-  Use these helpers when you want the canonical operator questions as one public
-  entrypoint instead of assembling low-level filter lists manually.
-  """
+  @moduledoc false
 
   alias Threadline.Query
-  alias Threadline.Query.TimelinePage
+  alias Threadline.Query.LegacyOpts
+  alias Threadline.Query.OptionKeys
+  alias Threadline.Query.RowReads
+  alias Threadline.Query.TransactionLookup
 
   alias Threadline.Investigation.{
     IncidentBundle,
@@ -19,36 +17,62 @@ defmodule Threadline.Investigation do
   alias Threadline.Semantics.ActorRef
 
   @allowed_row_history_filter_keys ~w(from to repo)a
-  @allowed_actor_window_filter_keys ~w(table from to correlation_id repo)a
-  @allowed_correlation_bundle_filter_keys ~w(table actor_ref from to repo)a
 
   @doc """
-  Returns change history for one schema row, ordered by `captured_at` descending,
-  then `id` descending.
+  Returns row history for one schema row, ordered by `captured_at`
+  descending, then `id` descending.
 
-  `filters` accepts only `:from`, `:to`, and optional `:repo` parity with the
-  lower-level timeline APIs. Pass paging controls in `opts` only when using
-  `row_history_page/4`.
+  Returns a bare list of `LinkedChange`, capped at 200 entries by default.
+  Pass `limit: n` or `limit: :infinity` to override the cap, or `cursor:` to
+  page through the full history as a `%Threadline.Page{}`.
   """
-  def row_history(schema_module, id, filters \\ [], opts \\ []) do
-    filters = validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history)
+  def row_history(schema_module, id, opts \\ []) when is_list(opts) do
+    validate_row_history_opts!(opts)
+    validate_row_history_mode!(opts)
 
-    schema_module
-    |> Query.row_history(id, filters, opts)
-    |> linked_changes(opts)
+    if Keyword.has_key?(opts, :cursor) do
+      schema_module
+      |> RowReads.page(id, opts)
+      |> linked_page(opts)
+    else
+      schema_module
+      |> RowReads.list(id, opts)
+      |> linked_changes(opts)
+    end
   end
 
+  @deprecated "Use Threadline.row_history/3 instead."
+  @doc """
+  Returns row history for one schema row using the retired `(filters, opts)`
+  shape, with 0.12's unbounded default.
+  """
+  @spec row_history(module(), term(), keyword(), keyword()) ::
+          [LinkedChange.t()] | Threadline.Page.t(LinkedChange.t())
+  def row_history(schema_module, id, filters, opts)
+      when is_list(filters) and is_list(opts) do
+    row_history(schema_module, id, LegacyOpts.row_history(filters, opts))
+  end
+
+  @deprecated "Use Threadline.row_history/3 instead."
   @doc """
   Returns one keyset page of row history for a single schema row.
 
   Uses the same `(captured_at, id)` keyset rules as `Threadline.timeline_page/2`.
   """
+  @spec row_history_page(module(), term()) :: Threadline.Page.t(LinkedChange.t())
+  @spec row_history_page(module(), term(), keyword()) :: Threadline.Page.t(LinkedChange.t())
+  @spec row_history_page(module(), term(), keyword(), keyword()) ::
+          Threadline.Page.t(LinkedChange.t())
   def row_history_page(schema_module, id, filters \\ [], opts \\ []) do
     filters =
       validate_helper_filters!(filters, @allowed_row_history_filter_keys, :row_history_page)
 
+    opts = LegacyOpts.row_history_page(filters, opts)
+    validate_row_history_opts!(opts)
+    validate_row_history_mode!(opts)
+
     schema_module
-    |> Query.row_history_page(id, filters, opts)
+    |> RowReads.page(id, opts)
     |> linked_page(opts)
   end
 
@@ -56,28 +80,40 @@ defmodule Threadline.Investigation do
   Returns change rows across tables for one actor, ordered by `captured_at`
   descending, then `id` descending.
 
+  Returns a bare list of `LinkedChange` by default. Pass `cursor:` (with
+  optional `page_size:`) to page through the results as a
+  `%Threadline.Page{}` instead.
+
   `filters` accepts timeline filters except `:actor_ref`, which is fixed by the
   helper argument.
   """
   def actor_window(%ActorRef{} = actor_ref, filters \\ [], opts \\ []) do
-    filters =
-      filters
-      |> validate_helper_filters!(@allowed_actor_window_filter_keys, :actor_window)
-      |> Keyword.put(:actor_ref, actor_ref)
+    OptionKeys.validate_filters!(filters, :actor_window)
+    filters = Keyword.put(filters, :actor_ref, actor_ref)
 
-    filters
-    |> Query.timeline(opts)
-    |> linked_changes(opts)
+    if Keyword.has_key?(opts, :cursor) do
+      filters
+      |> Query.timeline_page(opts)
+      |> linked_page(opts)
+    else
+      filters
+      |> Query.timeline(opts)
+      |> linked_changes(opts)
+    end
   end
 
+  @deprecated "Use Threadline.actor_window/3 instead."
   @doc """
   Returns one keyset page of change rows across tables for one actor.
   """
+  @spec actor_window_page(ActorRef.t()) :: Threadline.Page.t(LinkedChange.t())
+  @spec actor_window_page(ActorRef.t(), keyword()) :: Threadline.Page.t(LinkedChange.t())
+  @spec actor_window_page(ActorRef.t(), keyword(), keyword()) ::
+          Threadline.Page.t(LinkedChange.t())
   def actor_window_page(%ActorRef{} = actor_ref, filters \\ [], opts \\ []) do
-    filters =
-      filters
-      |> validate_helper_filters!(@allowed_actor_window_filter_keys, :actor_window_page)
-      |> Keyword.put(:actor_ref, actor_ref)
+    OptionKeys.validate_filters!(filters, :actor_window)
+    filters = Keyword.put(filters, :actor_ref, actor_ref)
+    opts = LegacyOpts.cursor(opts)
 
     filters
     |> Query.timeline_page(opts)
@@ -87,36 +123,42 @@ defmodule Threadline.Investigation do
   @doc """
   Returns change rows linked to one `correlation_id` with strict inner-join semantics.
 
+  Returns a bare list of `LinkedChange` by default. Pass `cursor:` (with
+  optional `page_size:`) to page through the results as a
+  `%Threadline.Page{}` instead.
+
   `filters` accepts timeline filters except `:correlation_id`, which is fixed by
   the helper argument.
   """
   def correlation_bundle(correlation_id, filters \\ [], opts \\ [])
       when is_binary(correlation_id) do
-    filters =
-      filters
-      |> validate_helper_filters!(
-        @allowed_correlation_bundle_filter_keys,
-        :correlation_bundle
-      )
-      |> Keyword.put(:correlation_id, correlation_id)
+    OptionKeys.validate_filters!(filters, :correlation_bundle)
+    filters = Keyword.put(filters, :correlation_id, correlation_id)
 
-    filters
-    |> Query.timeline(opts)
-    |> linked_changes(opts)
+    if Keyword.has_key?(opts, :cursor) do
+      filters
+      |> Query.timeline_page(opts)
+      |> linked_page(opts)
+    else
+      filters
+      |> Query.timeline(opts)
+      |> linked_changes(opts)
+    end
   end
 
+  @deprecated "Use Threadline.correlation_bundle/3 instead."
   @doc """
   Returns one keyset page of changes linked to one `correlation_id`.
   """
+  @spec correlation_bundle_page(String.t()) :: Threadline.Page.t(LinkedChange.t())
+  @spec correlation_bundle_page(String.t(), keyword()) :: Threadline.Page.t(LinkedChange.t())
+  @spec correlation_bundle_page(String.t(), keyword(), keyword()) ::
+          Threadline.Page.t(LinkedChange.t())
   def correlation_bundle_page(correlation_id, filters \\ [], opts \\ [])
       when is_binary(correlation_id) do
-    filters =
-      filters
-      |> validate_helper_filters!(
-        @allowed_correlation_bundle_filter_keys,
-        :correlation_bundle_page
-      )
-      |> Keyword.put(:correlation_id, correlation_id)
+    OptionKeys.validate_filters!(filters, :correlation_bundle)
+    filters = Keyword.put(filters, :correlation_id, correlation_id)
+    opts = LegacyOpts.cursor(opts)
 
     filters
     |> Query.timeline_page(opts)
@@ -127,56 +169,66 @@ defmodule Threadline.Investigation do
   Returns one transaction-oriented investigation slice with linked transaction
   and optional action metadata.
   """
+  @spec transaction_context(Ecto.UUID.t(), keyword()) ::
+          {:ok, LinkedTransaction.t()} | {:error, :not_found}
   def transaction_context(transaction_id, opts \\ []) do
-    changes =
-      Query.audit_changes_for_transaction(
-        transaction_id,
-        Keyword.put(opts, :preload, transaction: :action)
-      )
+    OptionKeys.validate!(opts, :transaction_context)
 
-    linked_changes = to_linked_changes(changes)
-    transaction = linked_transaction(linked_changes)
+    case TransactionLookup.fetch(transaction_id, opts) do
+      :not_found ->
+        {:error, :not_found}
 
-    %LinkedTransaction{
-      transaction: transaction,
-      action: linked_action(transaction),
-      changes: linked_changes
-    }
+      {:ok, row, changes} ->
+        {:ok,
+         %LinkedTransaction{
+           transaction: row,
+           action: linked_action(row),
+           changes: to_linked_changes(changes)
+         }}
+    end
   end
 
   @doc """
   Returns one transaction-focused incident bundle with linked context and
   packaged diffs.
   """
+  @spec incident_bundle(Ecto.UUID.t(), keyword()) ::
+          {:ok, IncidentBundle.t()} | {:error, :not_found}
   def incident_bundle(transaction_id, opts \\ []) do
-    transaction_opts =
-      opts
-      |> Keyword.put(:preload, :action)
-      |> Keyword.put(:surface, :transaction_header)
-      |> Keyword.put(:params, %{transaction_id: transaction_id})
+    OptionKeys.validate!(opts, :incident_bundle)
 
-    case Query.audit_transaction(transaction_id, transaction_opts) do
-      nil ->
+    case TransactionLookup.fetch(transaction_id, opts) do
+      :not_found ->
         {:error, :not_found}
 
-      transaction ->
-        changes =
-          Query.audit_changes_for_transaction(
-            transaction_id,
-            opts
-            |> Keyword.put(:preload, transaction: :action)
-            |> Keyword.put(:surface, :transaction)
-            |> Keyword.put(:params, %{transaction_id: transaction_id})
-          )
-
-        linked_changes = to_linked_changes(changes)
-
+      {:ok, row, changes} ->
         {:ok,
          %IncidentBundle{
-           transaction: transaction,
-           action: linked_action(transaction),
-           changes: Enum.map(linked_changes, &to_incident_change/1)
+           transaction: row,
+           action: linked_action(row),
+           changes: changes |> to_linked_changes() |> Enum.map(&to_incident_change/1)
          }}
+    end
+  end
+
+  defp validate_row_history_opts!(opts) do
+    OptionKeys.validate!(opts, :row_history)
+  end
+
+  defp validate_row_history_mode!(opts) do
+    cond do
+      Keyword.has_key?(opts, :limit) and Keyword.has_key?(opts, :cursor) ->
+        raise ArgumentError,
+              "row_history/3 cannot combine :limit with :cursor — pass either :limit " <>
+                "(bare list) or :cursor (Page), not both"
+
+      Keyword.has_key?(opts, :page_size) and not Keyword.has_key?(opts, :cursor) ->
+        raise ArgumentError,
+              "row_history/3's :page_size only applies with :cursor — pass cursor: :start " <>
+                "to page"
+
+      true ->
+        :ok
     end
   end
 
@@ -193,8 +245,8 @@ defmodule Threadline.Investigation do
     filters
   end
 
-  defp linked_page(%TimelinePage{} = page, opts) do
-    %TimelinePage{page | entries: linked_changes(page.entries, opts)}
+  defp linked_page(%Threadline.Page{} = page, opts) do
+    %Threadline.Page{page | entries: linked_changes(page.entries, opts)}
   end
 
   defp linked_changes(changes, opts) when is_list(changes) do
@@ -223,9 +275,6 @@ defmodule Threadline.Investigation do
       change_diff: Threadline.change_diff(linked_change.audit_change)
     }
   end
-
-  defp linked_transaction([%LinkedChange{transaction: transaction} | _]), do: transaction
-  defp linked_transaction([]), do: nil
 
   defp linked_action(nil), do: nil
   defp linked_action(transaction), do: Map.get(transaction, :action)

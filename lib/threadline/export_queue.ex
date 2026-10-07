@@ -27,21 +27,40 @@ defmodule Threadline.ExportQueue do
   `Threadline.ExportQueue.Oban` for durable, multi-node execution.
   """
 
+  @typedoc "The identifier of an existing export job passed to the configured queue adapter."
   @type job_id :: String.t() | binary()
 
+  @typedoc "Adapter-defined keyword options that Threadline passes through without interpreting their keys."
+  @type options :: Threadline.Storage.options()
+
+  @typedoc "Any Elixir value returned by an adapter as an error reason; Threadline treats it as opaque."
+  @type error_reason ::
+          atom()
+          | number()
+          | bitstring()
+          | pid()
+          | port()
+          | reference()
+          | function()
+          | tuple()
+          | maybe_improper_list(error_reason(), error_reason())
+          | %{optional(error_reason()) => error_reason()}
+
   @doc """
-  Initializes the adapter from its module-keyed configuration.
+  Initializes the adapter from its module-keyed configuration, returning `:ok`
+  when ready or `{:error, reason}` when initialization fails.
 
   Return `{:error, reason}` for invalid configuration or unavailable optional
   dependencies.
   """
-  @callback init(keyword()) :: :ok | {:error, term()}
+  @callback init(options()) :: :ok | {:error, error_reason()}
 
   @doc """
-  Enqueues an export job for background processing.
+  Enqueues an export job for background processing, returning `:ok` after the
+  queue accepts responsibility or `{:error, reason}` when it cannot.
 
   Takes the ID of the `threadline_export_jobs` record to process. Return `:ok`
   only after the queue has accepted responsibility for running it.
   """
-  @callback enqueue(job_id(), keyword()) :: :ok | {:error, term()}
+  @callback enqueue(job_id(), options()) :: :ok | {:error, error_reason()}
 end

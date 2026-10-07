@@ -16,7 +16,11 @@ defmodule Threadline.GuideGraphContractTest do
       "guides/integration-contracts.md",
       "guides/local-docker-dx.md",
       "guides/upgrade-path.md",
+      "guides/redaction.md",
+      "guides/stability.md",
+      "guides/supported-tables.md",
       "guides/upgrading-to-0.11.md",
+      "guides/upgrading-to-1.0.md",
       "guides/integrations/sigra.md",
       "guides/integrations/phx-gen-auth.md"
     ],
@@ -53,11 +57,20 @@ defmodule Threadline.GuideGraphContractTest do
 
   test "the Markdown resolver reports missing paths and normalized anchors" do
     files = %{
-      "guides/source.md" => "# Source\n[valid](target.md#target-heading)\n[bad](missing.md)",
-      "guides/target.md" => "# Target heading\n"
+      "guides/source.md" =>
+        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[code](target.md#code-only)\n[indented](target.md#indented-code-only)\n[inline](target.md#inline-code-only)\n[multiline](target.md#multiline-code-only)\n[escaped](target.md#escaped-backtick-anchor)\n[after-tab](target.md#after-tab-fence)\n[bad](missing.md)",
+      "guides/target.md" =>
+        "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n```html\n<a id=\"code-only\"></a>\n```\n    <a id=\"indented-code-only\"></a>\n`<a id=\"inline-code-only\"></a>`\n`<a id=\"multiline-code-only\"></a>\ncontinued code span`\n\\`<a id=\"escaped-backtick-anchor\"></a>\n`active inline code span`\n\t```html\n<a id=\"after-tab-fence\"></a>\n"
     }
 
     assert validate_links("guides/source.md", files["guides/source.md"], files) == [
+             {:missing_anchor, "guides/source.md", "target.md#code-only", "code-only"},
+             {:missing_anchor, "guides/source.md", "target.md#indented-code-only",
+              "indented-code-only"},
+             {:missing_anchor, "guides/source.md", "target.md#inline-code-only",
+              "inline-code-only"},
+             {:missing_anchor, "guides/source.md", "target.md#multiline-code-only",
+              "multiline-code-only"},
              {:missing_path, "guides/source.md", "missing.md", "guides/missing.md"}
            ]
 
@@ -73,7 +86,7 @@ defmodule Threadline.GuideGraphContractTest do
   test "lane assignment is exact, disjoint, nonempty, and sentinel-backed" do
     assigned = Map.values(@lanes) |> List.flatten()
     assert Enum.all?(@lanes, fn {_lane, paths} -> paths != [] end)
-    assert length(assigned) == 20
+    assert length(assigned) == 24
 
     assert length(assigned) == MapSet.size(MapSet.new(assigned)),
            "guide belongs to multiple lanes"
@@ -176,13 +189,16 @@ defmodule Threadline.GuideGraphContractTest do
   @tag :guide_graph
   @tag :phase200_red
   @tag :phase200_aggregate
-  test "all 20 guides form one complete intent-led graph" do
+  test "all 24 guides form one complete intent-led graph" do
     Enum.each(Map.keys(@lanes), &assert_graph_slice!/1)
   end
 
   defp assert_graph_slice!(lane) do
     assert_graph_nodes!(Map.fetch!(@lanes, lane))
   end
+
+  defp route_to_node("guides/upgrading-to-1.0.md", _landing), do: "guides/upgrade-path.md"
+  defp route_to_node(_node, landing), do: landing
 
   defp assert_graph_nodes!(nodes) do
     files = public_markdown_files()
@@ -206,8 +222,10 @@ defmodule Threadline.GuideGraphContractTest do
       assert outbound != [], "#{node} has no outbound guide edge"
 
       if node != landing do
-        assert link_target?(landing, Map.fetch!(files, landing), node),
-               "#{landing} does not route its #{lane} lane to #{node}"
+        route = route_to_node(node, landing)
+
+        assert link_target?(route, Map.fetch!(files, route), node),
+               "#{route} does not route its #{lane} lane to #{node}"
 
         content = Map.fetch!(files, node)
 
@@ -313,22 +331,86 @@ defmodule Threadline.GuideGraphContractTest do
   end
 
   defp heading_anchors(content) do
-    content
-    |> String.split("\n")
-    |> Enum.filter(&Regex.match?(~r/^\#{1,6}\s+/, &1))
-    |> Enum.map(fn heading ->
-      heading
-      |> String.replace(~r/^\#{1,6}\s+/, "")
-      |> String.replace(~r/`([^`]*)`/, "\\1")
-      |> String.downcase()
-      # GitHub/ExDoc heading ids preserve underscores in identifiers such as
-      # `correlation_id`; strip punctuation without collapsing identifier text.
-      |> String.replace(~r/[^\p{L}\p{N}_\s-]/u, "")
-      |> String.trim()
-      |> String.replace(~r/\s+/, "-")
-      |> String.replace(~r/-+/, "-")
-    end)
-    |> MapSet.new()
+    content = strip_fenced_code_blocks(content)
+
+    heading_anchors =
+      content
+      |> String.split("\n")
+      |> Enum.filter(&Regex.match?(~r/^\#{1,6}\s+/, &1))
+      |> Enum.map(fn heading ->
+        heading
+        |> String.replace(~r/^\#{1,6}\s+/, "")
+        |> String.replace(~r/`([^`]*)`/, "\\1")
+        |> String.downcase()
+        # GitHub/ExDoc heading ids preserve underscores in identifiers such as
+        # `correlation_id`; strip punctuation without collapsing identifier text.
+        |> String.replace(~r/[^\p{L}\p{N}_\s-]/u, "")
+        |> String.trim()
+        |> String.replace(~r/\s+/, "-")
+        |> String.replace(~r/-+/, "-")
+      end)
+
+    explicit_anchors =
+      content
+      |> strip_inline_code_spans()
+      |> then(fn markdown ->
+        Regex.scan(~r/<a\s+id=["']([^"']+)["']\s*><\/a>/i, markdown, capture: :all_but_first)
+      end)
+      |> List.flatten()
+
+    MapSet.new(heading_anchors ++ explicit_anchors)
+  end
+
+  defp strip_fenced_code_blocks(content) do
+    {_, lines} =
+      content
+      |> String.split("\n")
+      |> Enum.reduce({nil, []}, &reduce_markdown_line/2)
+
+    lines |> Enum.reverse() |> Enum.join("\n")
+  end
+
+  defp reduce_markdown_line(line, {nil, lines}) do
+    case opening_fence(line) do
+      nil -> append_markdown_line(line, lines)
+      opening -> {opening, lines}
+    end
+  end
+
+  defp reduce_markdown_line(line, {opening, lines}) do
+    if closing_fence?(line, opening), do: {nil, lines}, else: {opening, lines}
+  end
+
+  defp append_markdown_line(line, lines) do
+    if indented_code_line?(line), do: {nil, lines}, else: {nil, [line | lines]}
+  end
+
+  defp opening_fence(line) do
+    case Regex.run(~r/^ {0,3}(`{3,}|~{3,})/, line, capture: :all_but_first) do
+      [opening] -> opening
+      _ -> nil
+    end
+  end
+
+  defp closing_fence?(line, opening) do
+    case Regex.run(~r/^ {0,3}(`+|~+) *$/, line, capture: :all_but_first) do
+      [closing] ->
+        String.first(opening) == String.first(closing) and
+          byte_size(closing) >= byte_size(opening)
+
+      _ ->
+        false
+    end
+  end
+
+  defp indented_code_line?(line), do: Regex.match?(~r/^(?: {4,}|\t)/, line)
+
+  defp strip_inline_code_spans(content) do
+    Regex.replace(
+      ~r/(?<!\\)(?:\\\\)*(?<!`)(`+)(?!`).*?(?<!\\)(?:\\\\)*(?<!`)\1(?!`)/s,
+      content,
+      ""
+    )
   end
 
   defp external_or_asset?(target) do

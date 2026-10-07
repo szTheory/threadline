@@ -2,14 +2,16 @@ defmodule Threadline.Export do
   @default_max_rows 10_000
 
   @moduledoc """
-  CSV and JSON export for audited row changes.
+  Exports captured row changes as bounded CSV or JSON data and lazy streams.
 
-  Uses the **same** `filters` and `opts` as `Threadline.Query.timeline/2`, including
-  `:repo` resolution: `Keyword.get(opts, :repo) || Keyword.fetch!(filters, :repo)`.
+  Use `to_csv_iodata/2` or `to_json_document/2` for bounded documents,
+  `stream_changes/2` for paged `AuditChange` records, and
+  `stream_export_rows/2` for the join-projected rows consumed by the chunked
+  export path. `count_matching/2` returns a count without loading row payloads.
 
-  Filter keys are validated via `Threadline.Query.validate_timeline_filters!/1`
-  (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`). Unknown keys
-  raise `ArgumentError`.
+  Filters use the timeline vocabulary, while each function accepts its own
+  option list. The CSV and JSON functions raise `ArgumentError` for unknown
+  filter or option keys.
 
   ## CSV columns
 
@@ -45,10 +47,10 @@ defmodule Threadline.Export do
   Database errors from `Ecto.Repo` raise like `timeline/2`.
   """
 
-  import Ecto.Query
-
   alias Threadline.Export.CSV
   alias Threadline.Query
+  alias Threadline.Query.ExportReads
+  alias Threadline.Query.OptionKeys
   alias Threadline.Semantics.ActorRef
 
   @csv_header ~w(
@@ -56,198 +58,226 @@ defmodule Threadline.Export do
     table_pk data_after changed_fields changed_from transaction_json
   )
 
-  @doc """
-  Returns CSV as iodata plus truncation metadata.
+  @typedoc "A bounded CSV or JSON result with encoded data and row-limit metadata."
+  @type export_result :: %{
+          data: iodata(),
+          truncated: boolean(),
+          returned_count: non_neg_integer(),
+          max_rows: non_neg_integer()
+        }
 
-  See module documentation for `filters`, `opts`, and column layout.
+  @typedoc "The count returned by `count_matching/2`."
+  @type count_result :: %{count: non_neg_integer()}
+
+  @typedoc "The join-projected fields used to encode one captured row in an export stream."
+  @type export_row :: %{
+          id: Ecto.UUID.t(),
+          transaction_id: Ecto.UUID.t(),
+          table_schema: String.t(),
+          table_name: String.t(),
+          op: String.t(),
+          captured_at: DateTime.t(),
+          table_pk: Threadline.json_map() | nil,
+          data_after: Threadline.json_map() | nil,
+          changed_fields: [String.t()] | nil,
+          changed_from: Threadline.json_map() | nil,
+          tx_occurred_at: DateTime.t(),
+          tx_actor_ref: Threadline.Semantics.ActorRef.t() | nil,
+          tx_source: String.t() | nil,
+          aa_id: Ecto.UUID.t() | nil,
+          aa_correlation_id: String.t() | nil
+        }
+
+  @typedoc "An option accepted by `count_matching/2`."
+  @type count_matching_opt ::
+          Threadline.timeline_opt()
+          | {:cap, pos_integer() | nil}
+
+  @typedoc "An option accepted by `csv_header/1`."
+  @type csv_header_opt :: {:include_action_metadata, boolean()}
+
+  @typedoc "An option accepted by `format_changes_iodata/3`."
+  @type format_changes_opt :: {:include_action_metadata, boolean()}
+
+  @typedoc "An option accepted by `stream_export_rows/2`."
+  @type stream_export_rows_opt :: Threadline.timeline_opt() | {:page_size, pos_integer()}
+
+  @typedoc "An option accepted by `stream_changes/2`."
+  @type stream_changes_opt :: Threadline.timeline_opt() | {:page_size, pos_integer()}
+
+  @doc """
+  Returns CSV iodata and truncation metadata for matching captured changes.
+
+  Use `stream_changes/2` when the caller needs to process every matching
+  `AuditChange` without a row cap. CSV columns retain the order described in
+  the module documentation; the default header does not include action metadata.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Required here or in options.
+  - `:table_schema` — atom or string. Optional. Limits the storage schema.
+  - `:table` — atom or string. Optional. Limits the captured table.
+  - `:actor_ref` — `Threadline.Semantics.ActorRef`. Optional. Limits the actor.
+  - `:from` — `DateTime`. Optional. Includes changes at or after this time.
+  - `:to` — `DateTime`. Optional. Includes changes at or before this time.
+  - `:correlation_id` — string. Optional. Limits the linked action correlation.
 
   ## Options
 
-  - `:repo` — optional if `:repo` is present in `filters`
-  - `:max_rows` — defaults to `#{@default_max_rows}`
-  - `:include_action_metadata` — when `true`, append `correlation_id` and `action_id` columns
+  - `:repo` — `Ecto.Repo` module. Required unless supplied in filters.
+  - `:storage_schema` — string. Optional. Selects a storage schema override.
+  - `:scope` — caller-owned value. Optional. Passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds caller-owned scope predicates.
+  - `:max_rows` — non-negative integer. Defaults to `#{@default_max_rows}`.
+  - `:include_action_metadata` — boolean. Defaults to `false`; appends action columns when true.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - `{:ok, export_result()}` — CSV iodata and row-limit metadata.
+  - Raises `ArgumentError` for invalid filters, missing `:repo`, or unknown options.
+  - Repository errors are reraised.
+
+  ## Examples
+
+      Threadline.Export.to_csv_iodata([table: "members"], repo: MyApp.Repo)
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec to_csv_iodata(keyword(), keyword()) :: {:ok, map()}
+  @spec to_csv_iodata([Threadline.timeline_filter()], [Threadline.export_csv_opt()]) ::
+          {:ok, export_result()}
   def to_csv_iodata(filters, opts \\ []) when is_list(filters) and is_list(opts) do
     started_at = System.monotonic_time()
 
     try do
-      Query.validate_timeline_filters!(filters)
-      repo = Query.timeline_repo!(filters, opts)
-      max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
-      include_meta = Keyword.get(opts, :include_action_metadata, false)
-      limit = max_rows + 1
-
-      rows =
-        repo.all(
-          Query.export_changes_query(filters, opts) |> limit(^limit),
-          Query.storage_opts(filters, opts)
-        )
-
-      {truncated, rows} = split_truncated(rows, max_rows)
-
-      header =
-        if include_meta do
-          @csv_header ++ ~w(correlation_id action_id)
-        else
-          @csv_header
-        end
-
-      data_rows = Enum.map(rows, &csv_row(&1, include_meta))
-      iodata = dump_csv_to_iodata([header | data_rows])
-      returned_count = length(rows)
-
-      Threadline.Telemetry.emit_export_completed(:csv, returned_count, truncated, started_at)
-
-      {:ok,
-       %{
-         data: iodata,
-         truncated: truncated,
-         returned_count: returned_count,
-         max_rows: max_rows
-       }}
+      OptionKeys.validate!(opts, :to_csv_iodata)
     rescue
-      e ->
-        Threadline.Telemetry.emit_export_failed(:csv, 0, :exception, e, started_at)
-        reraise e, __STACKTRACE__
+      exception ->
+        Threadline.Telemetry.emit_export_failed(:csv, 0, :exception, exception, started_at)
+        reraise exception, __STACKTRACE__
     end
+
+    ExportReads.to_csv_iodata(filters, opts)
   end
 
   @doc """
-  Returns JSON (wrapped object or NDJSON lines) as iodata plus truncation metadata.
+  Returns JSON iodata and truncation metadata for matching captured changes.
+
+  Use `to_csv_iodata/2` when consumers need CSV; both functions use the same
+  timeline filter vocabulary and bounded row behavior. Use `stream_changes/2`
+  when the caller needs an uncapped stream of `AuditChange` records.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Required here or in options.
+  - `:table_schema` — atom or string. Optional. Limits the storage schema.
+  - `:table` — atom or string. Optional. Limits the captured table.
+  - `:actor_ref` — `Threadline.Semantics.ActorRef`. Optional. Limits the actor.
+  - `:from` — `DateTime`. Optional. Includes changes at or after this time.
+  - `:to` — `DateTime`. Optional. Includes changes at or before this time.
+  - `:correlation_id` — string. Optional. Limits the linked action correlation.
 
   ## Options
 
-  - `:repo`, `:max_rows` — same as `to_csv_iodata/2`
-  - `:json_format` — `:wrapped` (default) or `:ndjson`
+  - `:repo` — `Ecto.Repo` module. Required unless supplied in filters.
+  - `:storage_schema` — string. Optional. Selects a storage schema override.
+  - `:scope` — caller-owned value. Optional. Passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds caller-owned scope predicates.
+  - `:max_rows` — non-negative integer. Defaults to `#{@default_max_rows}`.
+  - `:json_format` — `:wrapped` or `:ndjson`. Defaults to `:wrapped`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - `{:ok, export_result()}` — wrapped JSON or NDJSON iodata and row-limit metadata.
+  - Raises `ArgumentError` for invalid filters, missing `:repo`, or unknown options.
+  - Raises `CaseClauseError` for an unsupported JSON format; repository errors are reraised.
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec to_json_document(keyword(), keyword()) :: {:ok, map()}
+  @spec to_json_document([Threadline.timeline_filter()], [Threadline.export_json_opt()]) ::
+          {:ok, export_result()}
   def to_json_document(filters, opts \\ []) when is_list(filters) and is_list(opts) do
     started_at = System.monotonic_time()
-    json_format = Keyword.get(opts, :json_format, :wrapped)
-    emit_format = if json_format == :ndjson, do: :ndjson, else: :json
+
+    format =
+      if Keyword.keyword?(opts) and Keyword.get(opts, :json_format) == :ndjson,
+        do: :ndjson,
+        else: :json
 
     try do
-      Query.validate_timeline_filters!(filters)
-      repo = Query.timeline_repo!(filters, opts)
-      max_rows = Keyword.get(opts, :max_rows, @default_max_rows)
-      limit = max_rows + 1
-
-      rows =
-        repo.all(
-          Query.export_changes_query(filters, opts) |> limit(^limit),
-          Query.storage_opts(filters, opts)
-        )
-
-      {truncated, rows} = split_truncated(rows, max_rows)
-      changes = Enum.map(rows, &change_map/1)
-
-      data =
-        case json_format do
-          :ndjson ->
-            changes
-            |> Enum.map(fn ch -> [Jason.encode!(ch), ?\n] end)
-            |> IO.iodata_to_binary()
-
-          :wrapped ->
-            doc = %{
-              "format_version" => 1,
-              "generated_at" => generated_at_iso(),
-              "changes" => changes
-            }
-
-            Jason.encode_to_iodata!(doc)
-        end
-
-      returned_count = length(rows)
-
-      Threadline.Telemetry.emit_export_completed(
-        emit_format,
-        returned_count,
-        truncated,
-        started_at
-      )
-
-      {:ok,
-       %{
-         data: data,
-         truncated: truncated,
-         returned_count: returned_count,
-         max_rows: max_rows
-       }}
+      OptionKeys.validate!(opts, :to_json_document)
     rescue
-      e ->
-        Threadline.Telemetry.emit_export_failed(emit_format, 0, :exception, e, started_at)
-        reraise e, __STACKTRACE__
+      exception ->
+        Threadline.Telemetry.emit_export_failed(format, 0, :exception, exception, started_at)
+        reraise exception, __STACKTRACE__
     end
+
+    ExportReads.to_json_document(filters, opts)
   end
 
   @doc """
-  Counts changes matching `filters` without loading row payloads.
+  Returns the count of changes matching `filters` without loading row payloads.
 
-  Same validation and join semantics as `Threadline.Query.timeline/2`.
+  Use `to_csv_iodata/2` or `to_json_document/2` to retrieve bounded export
+  data after checking the match count.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Required here or in options.
+  - `:table_schema` — atom or string. Optional. Limits the storage schema.
+  - `:table` — atom or string. Optional. Limits the captured table.
+  - `:actor_ref` — `Threadline.Semantics.ActorRef`. Optional. Limits the actor.
+  - `:from` — `DateTime`. Optional. Includes changes at or after this time.
+  - `:to` — `DateTime`. Optional. Includes changes at or before this time.
+  - `:correlation_id` — string. Optional. Limits the linked action correlation.
 
   ## Options
 
-  - `:repo` — optional if `:repo` is present in `filters`
-  - `:cap` — when set to a positive integer, the count short-circuits at that
-    value via a windowed subquery (`SELECT count(*) FROM (... LIMIT ^cap)`),
-    so multi-million-row tables return immediately at the cap rather than
-    waiting for a full aggregate scan. The default (`nil`) preserves the
-    existing unbounded behavior. The Mix task `mix threadline.export` does
-    NOT pass `:cap` and is unaffected; the operator timeline and export
-    controller pass `cap: 10_001` so the LiveView can render
-    "10,000+ matches" without hitting `statement_timeout`.
+  - `:repo` — `Ecto.Repo` module. Required unless supplied in filters.
+  - `:storage_schema` — string. Optional. Selects a storage schema override.
+  - `:scope` — caller-owned value. Optional. Passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds caller-owned scope predicates.
+  - `:cap` — positive integer or `nil`. Optional. Stops counting at this value; `nil` keeps the full count.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - `{:ok, count_result()}` — a count of matching changes, capped when requested.
+  - Raises `ArgumentError` for invalid filters or unknown options; repository errors are reraised.
   """
-  @spec count_matching(keyword(), keyword()) :: {:ok, %{count: non_neg_integer()}}
+  @spec count_matching([Threadline.timeline_filter()], [count_matching_opt()]) ::
+          {:ok, count_result()}
   def count_matching(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    Query.validate_timeline_filters!(filters)
-    repo = Query.timeline_repo!(filters, opts)
-    cap = Keyword.get(opts, :cap)
-
-    base_query =
-      case Keyword.get(filters, :correlation_id) do
-        nil ->
-          filters
-          |> Query.timeline_query()
-          |> Query.maybe_apply_scope(opts)
-          |> select([ac, _at], ac.id)
-
-        _ ->
-          filters
-          |> Query.timeline_query()
-          |> Query.maybe_apply_scope(opts)
-          |> select([ac, _at, _aa], ac.id)
-      end
-
-    count =
-      if is_integer(cap) and cap > 0 do
-        capped = base_query |> limit(^cap)
-
-        from(sub in subquery(capped), select: count())
-        |> repo.one(Query.storage_opts(filters, opts))
-      else
-        repo.aggregate(base_query, :count, :id, Query.storage_opts(filters, opts))
-      end
-
-    {:ok, %{count: count}}
+    OptionKeys.validate!(opts, :count_matching)
+    ExportReads.count_matching(filters, opts)
   end
 
   @doc """
-  Returns the canonical CSV header row (one line ending in `\\r\\n`) for the
-  operator-surface export controller's chunked path.
+  Returns the CSV header row as iodata, ending in `\\r\\n`.
 
-  Same column order as `to_csv_iodata/2`. The chunked path emits this as the
-  first chunk before streaming data rows so the byte-equality parity test
-  holds against the iodata path.
+  Use `to_csv_iodata/2` when the caller wants a bounded document with its
+  header included. The header uses the same column order as that function.
 
   ## Options
 
-  - `:include_action_metadata` — when `true`, append `correlation_id` and
-    `action_id` columns (same shape as `to_csv_iodata/2`).
+  - `:include_action_metadata` — boolean. Defaults to `false`; appends `correlation_id` and `action_id` when true.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A list of binary chunks containing one CSV header row.
+  - Raises `ArgumentError` for unknown options.
   """
-  @spec csv_header(keyword()) :: [binary()]
+  @spec csv_header([csv_header_opt()]) :: [binary()]
   def csv_header(opts \\ []) when is_list(opts) do
+    OptionKeys.validate!(opts, :csv_header)
     include_meta = Keyword.get(opts, :include_action_metadata, false)
 
     header =
@@ -261,13 +291,11 @@ defmodule Threadline.Export do
   end
 
   @doc """
-  Formats a pre-fetched list of `%AuditChange{}` structs into iodata for the
-  requested format.
+  Returns formatted export-row chunks for a pre-fetched batch and format.
 
-  Used by the operator-surface export controller to format streamed batches;
-  CSV header and JSON envelopes are NOT emitted by this function and remain
-  the caller's responsibility (the chunked path emits the header / envelope
-  as its first / last chunk).
+  Use `to_csv_iodata/2` or `to_json_document/2` for a complete bounded
+  document. This function formats rows only; callers add the CSV header or
+  JSON envelope and separators.
 
   - `:csv` — CSV data rows (each terminated by `\\r\\n` per RFC 4180); the
     caller MUST emit `csv_header/1` as the first chunk.
@@ -280,12 +308,23 @@ defmodule Threadline.Export do
 
   ## Options
 
-  - `:include_action_metadata` (default `false`) — same shape as `to_csv_iodata/2`.
+  - `:include_action_metadata` — boolean. Defaults to `false`; adds action columns in CSV output.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A list of binary chunks formatted for the requested export format.
+  - Raises `ArgumentError` for unknown options.
+  - Raises `FunctionClauseError` for an unsupported format.
   """
-  @spec format_changes_iodata([struct()], :csv | :json_wrapped | :ndjson, keyword()) ::
+  @spec format_changes_iodata([export_row()], :csv | :json_wrapped | :ndjson, [
+          format_changes_opt()
+        ]) ::
           [binary()]
   def format_changes_iodata(rows, format, opts \\ [])
       when is_list(rows) and is_list(opts) and format in [:csv, :json_wrapped, :ndjson] do
+    OptionKeys.validate!(opts, :format_changes_iodata)
     do_format_changes_iodata(rows, format, opts)
   end
 
@@ -310,17 +349,43 @@ defmodule Threadline.Export do
   end
 
   @doc """
-  Lazily enumerates `AuditChange` structs in timeline order using keyset pages.
+  Lazily enumerates matching `AuditChange` records in timeline order using keyset pages.
 
-  Does **not** enforce `max_rows` — combine with `Stream.take/2` if needed.
+  Use `to_csv_iodata/2` or `to_json_document/2` for bounded output. This stream
+  does not apply `max_rows`; combine it with `Stream.take/2` when needed.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Required here or in options.
+  - `:table_schema` — atom or string. Optional. Limits the storage schema.
+  - `:table` — atom or string. Optional. Limits the captured table.
+  - `:actor_ref` — `Threadline.Semantics.ActorRef`. Optional. Limits the actor.
+  - `:from` — `DateTime`. Optional. Includes changes at or after this time.
+  - `:to` — `DateTime`. Optional. Includes changes at or before this time.
+  - `:correlation_id` — string. Optional. Limits the linked action correlation.
 
   ## Options
 
-  - `:repo` — optional if present in `filters`
-  - `:page_size` — defaults to `1000`
+  - `:repo` — `Ecto.Repo` module. Required unless supplied in filters.
+  - `:storage_schema` — string. Optional. Selects a storage schema override.
+  - `:scope` — caller-owned value. Optional. Passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds caller-owned scope predicates.
+  - `:page_size` — positive integer. Defaults to `1000`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A lazy enumerable of `%Threadline.Capture.AuditChange{}` records.
+  - Raises `ArgumentError` for invalid filters or unknown options; repository errors are reraised when enumerated.
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec stream_changes(keyword(), keyword()) :: Enumerable.t()
+  @spec stream_changes([Threadline.timeline_filter()], [stream_changes_opt()]) ::
+          Enumerable.t()
   def stream_changes(filters, opts \\ []) when is_list(filters) and is_list(opts) do
+    OptionKeys.validate!(opts, :stream_changes)
     Query.validate_timeline_filters!(filters)
 
     Stream.resource(
@@ -329,18 +394,16 @@ defmodule Threadline.Export do
         :done ->
           {:halt, :done}
 
-        state ->
-          cursor = if state == :start, do: nil, else: state
-
+        cursor ->
           case Query.timeline_page(filters, Keyword.put(opts, :cursor, cursor)) do
-            %Query.TimelinePage{entries: []} ->
+            %Threadline.Page{entries: [], has_more: false} ->
               {:halt, :done}
 
-            %Query.TimelinePage{entries: rows, next_cursor: nil} ->
+            %Threadline.Page{entries: rows, has_more: false} ->
               {rows, :done}
 
-            %Query.TimelinePage{entries: rows, next_cursor: next_cursor} ->
-              {rows, next_cursor}
+            %Threadline.Page{entries: rows, cursor: cursor} ->
+              {rows, cursor}
           end
       end,
       fn _ -> :ok end
@@ -348,69 +411,53 @@ defmodule Threadline.Export do
   end
 
   @doc """
-  Lazily enumerates the join-projected export-row maps (same shape as
-  `to_csv_iodata/2` / `to_json_document/2` consume) in timeline order using
-  keyset pages.
+  Lazily enumerates the join-projected export rows used by the chunked
+  controller in timeline order using keyset pages.
 
   Each emitted item is a map with the keys `:id`, `:transaction_id`,
   `:table_schema`, `:table_name`, `:op`, `:captured_at`, `:table_pk`,
   `:data_after`, `:changed_fields`, `:changed_from`, `:tx_occurred_at`,
   `:tx_actor_ref`, `:tx_source`, `:aa_id`, `:aa_correlation_id` — exactly the
-  projection from `Threadline.Query.export_changes_query/1`. This matches what
+  projection the export query builds. This matches what
   `format_changes_iodata/3` expects, so the operator-surface export
   controller's chunked path produces byte-identical output to the iodata path.
 
-  Does **not** enforce `max_rows` — combine with `Stream.take/2` if needed.
+  Use `to_csv_iodata/2` or `to_json_document/2` for bounded output. This stream
+  does not apply `max_rows`; combine it with `Stream.take/2` when needed.
+
+  ## Filters
+
+  - `:repo` — `Ecto.Repo` module. Required here or in options.
+  - `:table_schema` — atom or string. Optional. Limits the storage schema.
+  - `:table` — atom or string. Optional. Limits the captured table.
+  - `:actor_ref` — `Threadline.Semantics.ActorRef`. Optional. Limits the actor.
+  - `:from` — `DateTime`. Optional. Includes changes at or after this time.
+  - `:to` — `DateTime`. Optional. Includes changes at or before this time.
+  - `:correlation_id` — string. Optional. Limits the linked action correlation.
 
   ## Options
 
-  - `:repo` — optional if present in `filters`
-  - `:page_size` — defaults to `1000`
+  - `:repo` — `Ecto.Repo` module. Required unless supplied in filters.
+  - `:storage_schema` — string. Optional. Selects a storage schema override.
+  - `:scope` — caller-owned value. Optional. Passed to `:scope_query_fn`.
+  - `:scope_query_fn` — function. Optional. Adds caller-owned scope predicates.
+  - `:page_size` — positive integer. Defaults to `1000`.
+
+  Unknown keys raise `ArgumentError` naming the allowed keys.
+
+  ## Returns
+
+  - A lazy enumerable of join-projected `export_row()` maps.
+  - Raises `ArgumentError` for invalid filters, missing `:repo`, or unknown options; repository errors are reraised when enumerated.
+
+  Results contain column values as captured; redaction is applied when triggers
+  are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec stream_export_rows(keyword(), keyword()) :: Enumerable.t()
+  @spec stream_export_rows([Threadline.timeline_filter()], [stream_export_rows_opt()]) ::
+          Enumerable.t()
   def stream_export_rows(filters, opts \\ []) when is_list(filters) and is_list(opts) do
-    Query.validate_timeline_filters!(filters)
-    repo = Query.timeline_repo!(filters, opts)
-    page_size = Keyword.get(opts, :page_size, 1_000)
-
-    Stream.resource(
-      fn -> :start end,
-      fn
-        :done ->
-          {:halt, :done}
-
-        state ->
-          cursor = if state == :start, do: nil, else: state
-
-          q =
-            filters
-            |> Query.export_changes_query(opts)
-            |> Query.maybe_after_timeline_cursor(cursor)
-            |> limit(^page_size)
-
-          case repo.all(q, Query.storage_opts(filters, opts)) do
-            [] ->
-              {:halt, :done}
-
-            rows when length(rows) < page_size ->
-              {rows, :done}
-
-            rows ->
-              last = List.last(rows)
-              next_cursor = %{captured_at: last.captured_at, id: last.id}
-              {rows, next_cursor}
-          end
-      end,
-      fn _ -> :ok end
-    )
-  end
-
-  defp split_truncated(rows, max_rows) do
-    if length(rows) > max_rows do
-      {true, Enum.take(rows, max_rows)}
-    else
-      {false, rows}
-    end
+    OptionKeys.validate!(opts, :stream_export_rows)
+    ExportReads.stream_export_rows(filters, opts)
   end
 
   defp csv_row(row, include_meta) do
@@ -485,7 +532,7 @@ defmodule Threadline.Export do
   defp datetime_iso(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
   defp datetime_iso(nil), do: nil
 
-  defp generated_at_iso do
-    DateTime.utc_now() |> DateTime.truncate(:microsecond) |> DateTime.to_iso8601()
-  end
+  @doc false
+  @spec __option_keys__(atom()) :: [atom()] | :not_closed
+  def __option_keys__(name), do: OptionKeys.allowed(name)
 end

@@ -54,17 +54,13 @@ defmodule Threadline.Query.CursorsPropertyTest do
       assert length(ids) == length(Enum.uniq(ids)),
              "no id may appear twice across pages"
 
-      empty_page_count = Enum.count(pages, &(&1 == []))
+      if n > 0 do
+        assert Enum.all?(pages, &(&1 != [])),
+               "D-08: has_more is exact, so no page is empty when there are rows left to page through"
 
-      assert empty_page_count <= 1,
-             "at most one trailing page may be empty (timeline_page fetches page_size rows, not limit + 1)"
-
-      if empty_page_count == 1 do
-        assert n == 0 or rem(n, k) == 0,
-               "an empty trailing page only occurs when n == 0 or the entries divide evenly by the page size"
-      end
-
-      if n == 0 do
+        assert length(pages) == div(n + k - 1, k),
+               "page count must be ceil(n / page_size) when has_more is exact"
+      else
         assert pages == [[]],
                "zero entries must yield exactly one empty page"
       end

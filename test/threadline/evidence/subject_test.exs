@@ -38,4 +38,51 @@ defmodule Threadline.Evidence.SubjectTest do
     assert {:error, {:unsupported_subject, "rbac_policy"}} =
              Subject.validate(%{"subject" => "rbac_policy"})
   end
+
+  test "recognized descriptors ignore extra string and atom keys" do
+    assert :ok = Subject.validate(%{"other" => true, subject: "retention_run", extra: :ignored})
+    assert :ok = Subject.validate(%{"name" => :export_delivery, extra_atom: :ignored})
+  end
+
+  test "descriptor keys use the documented atom then string precedence" do
+    assert :ok =
+             Subject.validate(%{
+               "subject" => "retention_policy",
+               "name" => "export_delivery",
+               subject: "trigger_coverage",
+               name: "retention_run"
+             })
+
+    assert :ok =
+             Subject.validate(%{
+               "subject" => "retention_policy",
+               "name" => "export_delivery",
+               name: "retention_run"
+             })
+
+    assert :ok =
+             Subject.validate(%{"subject" => "retention_policy", "name" => "export_delivery"})
+  end
+
+  test "a present higher-priority key wins even when its value is unsupported" do
+    descriptor = %{
+      "subject" => "export_delivery",
+      subject: "not_supported",
+      name: "retention_run"
+    }
+
+    assert {:error, {:unsupported_subject, "not_supported"}} = Subject.validate(descriptor)
+    refute Subject.supported?(descriptor)
+  end
+
+  test "recognized values recursively normalize nested descriptors" do
+    assert :ok = Subject.validate(%{subject: %{"name" => :retention_run}})
+  end
+
+  test "unknown-only maps remain unchanged in the error and unsupported predicate" do
+    unknown = %{"extra" => "value", extra_atom: :ignored}
+
+    assert {:error, {:unsupported_subject, ^unknown}} = Subject.validate(unknown)
+    refute Subject.supported?(unknown)
+  end
 end

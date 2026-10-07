@@ -1,7 +1,10 @@
 defmodule Threadline.Verify.CoveragePolicy do
   @moduledoc """
-  Pure policy for comparing `Threadline.Health.trigger_coverage/1` output with
-  host-configured expected audited table names.
+  Compares health coverage entries with the host's expected audited tables.
+
+  `violations/2` finds missing or uncovered expected tables,
+  `summary_counts/2` totals coverage, and `partition_findings/2` separates
+  gated findings from the rest.
 
   **Intersection semantics:** Only tables listed in `expected_tables` are
   evaluated. Each must appear in the coverage list as `{:covered, name}`.
@@ -21,13 +24,37 @@ defmodule Threadline.Verify.CoveragePolicy do
   only, and `:warning` findings never fail the task regardless of table.
   """
 
+  @typedoc "A coverage entry accepted from `Threadline.Health.trigger_coverage/1`."
+  @type coverage_entry :: Threadline.Health.coverage_entry()
+
+  @typedoc "A violation kind and the expected table name that caused it."
+  @type violation :: {:missing | :uncovered, String.t()}
+
+  @typedoc "Counts of expected, covered, and violated table names."
+  @type summary_result :: %{
+          expected: non_neg_integer(),
+          covered: non_neg_integer(),
+          violated: non_neg_integer()
+        }
+
+  @typedoc "Findings divided into gated errors, other errors, and warnings."
+  @type partitioned_findings :: %{
+          gated: [Threadline.Health.Finding.t()],
+          not_gated: [Threadline.Health.Finding.t()],
+          warnings: [Threadline.Health.Finding.t()]
+        }
+
   @doc """
   Returns a sorted list of violations for tables the host expects to be covered.
 
-  `coverage` is `[{:covered | :uncovered, String.t()}]` from
-  `Threadline.Health.trigger_coverage/1`. `expected_tables` is a list of
-  unique public table name strings.
+  `coverage` contains entries from `Threadline.Health.trigger_coverage/1`.
+  `expected_tables` is a list of table-name strings; duplicates are ignored.
+
+  ## Returns
+
+  - A sorted list of `violation()` values. Missing and uncovered tables are included.
   """
+  @spec violations([coverage_entry()], [String.t()]) :: [violation()]
   def violations(coverage, expected_tables)
       when is_list(coverage) and is_list(expected_tables) do
     by_table = Map.new(coverage, fn {status, name} -> {name, status} end)
@@ -61,11 +88,8 @@ defmodule Threadline.Verify.CoveragePolicy do
   Each bucket keeps the input list's order. Pure; does not read the database
   or call `Mix.raise`.
   """
-  @spec partition_findings([Threadline.Health.Finding.t()], [String.t()]) :: %{
-          gated: [Threadline.Health.Finding.t()],
-          not_gated: [Threadline.Health.Finding.t()],
-          warnings: [Threadline.Health.Finding.t()]
-        }
+  @spec partition_findings([Threadline.Health.Finding.t()], [String.t()]) ::
+          partitioned_findings()
   def partition_findings(findings, expected_tables)
       when is_list(findings) and is_list(expected_tables) do
     expected = MapSet.new(Enum.uniq(expected_tables))
@@ -84,8 +108,13 @@ defmodule Threadline.Verify.CoveragePolicy do
   end
 
   @doc """
-  Counts expected tables vs how many are fully covered (no violation row).
+  Returns counts of unique expected tables, tables without violations, and violations.
+
+  ## Returns
+
+  - A `summary_result()` with the expected, covered, and violated counts.
   """
+  @spec summary_counts([coverage_entry()], [String.t()]) :: summary_result()
   def summary_counts(coverage, expected_tables) do
     expected = expected_tables |> Enum.uniq()
     total = length(expected)

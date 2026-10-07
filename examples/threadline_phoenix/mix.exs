@@ -10,7 +10,29 @@ defmodule ThreadlinePhoenix.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      hex: [ignore_advisories: Enum.map(hex_audit_ignores(), & &1.id)]
+    ]
+  end
+
+  def hex_audit_ignores do
+    [
+      %{
+        id: "EEF-CVE-2026-95105",
+        reason:
+          "cloak 1.1.4 AES-CTR does not authenticate ciphertext, so bit-flipped ciphertext can be accepted. The example stores secrets with AES-GCM and has no CTR reader or legacy CTR data.",
+        reachability:
+          "test/threadline/cloak_advisory_reachability_contract_test.exs proves the live vault has exactly one AES-GCM cipher with tag AES.GCM.V1 and scans example lib/config/priv sources for CTR readers or legacy ciphertext; the tracked initial vault at b50e51e4 also used GCM.",
+        review_by: ~D[2027-01-06]
+      },
+      %{
+        id: "EEF-CVE-2026-94206",
+        reason:
+          "cloak_ecto 1.3.0 PBKDF2 uses an iteration count that no longer meets the advisory's security guidance. The example's encrypted field uses Cloak.Ecto.Binary and does not derive keys with PBKDF2.",
+        reachability:
+          "test/threadline/cloak_advisory_reachability_contract_test.exs proves the live encrypted field uses Cloak.Ecto.Binary with ThreadlinePhoenix.Vault and scans example lib/config/priv sources for Cloak.Ecto.PBKDF2.",
+        review_by: ~D[2027-01-06]
+      }
     ]
   end
 

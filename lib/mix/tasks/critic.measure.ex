@@ -37,7 +37,7 @@ defmodule Mix.Tasks.Critic.Measure do
       Mix.shell().info("git diff -- #{paths.ledger}")
     else
       {:error, reason} ->
-        RepositoryBoundary.task_error!(
+        task_error!(
           "could not splice ledger block (#{inspect(reason)})",
           paths.ledger,
           RepositoryBoundary.restore_command(paths.ledger)
@@ -94,7 +94,7 @@ defmodule Mix.Tasks.Critic.Measure do
          }}
 
       {_opts, args, invalid} ->
-        RepositoryBoundary.task_error!(
+        task_error!(
           "command arguments are invalid: #{inspect(args ++ invalid)}",
           project_root,
           "mix help critic.measure"
@@ -106,7 +106,7 @@ defmodule Mix.Tasks.Critic.Measure do
   defp source!("synthetic", _path), do: :synthetic
 
   defp source!(source, path) do
-    RepositoryBoundary.task_error!(
+    task_error!(
       "unknown --source #{inspect(source)}",
       path,
       "mix help critic.measure"
@@ -193,7 +193,7 @@ defmodule Mix.Tasks.Critic.Measure do
             "#{lens}@#{semver}+#{sha8}"
 
           _ ->
-            RepositoryBoundary.task_error!(
+            task_error!(
               "critic rubric is invalid",
               path,
               RepositoryBoundary.restore_command(path)
@@ -231,6 +231,16 @@ defmodule Mix.Tasks.Critic.Measure do
     Mix.shell().info(
       "\nReview and commit only the golden set and design-system-ledger.json. " <>
         "Generated critic scores and reports remain local and ignored. This task never commits."
+    )
+  end
+
+  @spec task_error!(String.t(), Path.t(), String.t()) :: no_return()
+  defp task_error!(message, path, recovery) do
+    Mix.raise(
+      "critic.measure: #{message}\n" <>
+        "resolved path: #{Path.expand(path)}\n" <>
+        "repository-only: true\n" <>
+        "next: #{recovery}"
     )
   end
 

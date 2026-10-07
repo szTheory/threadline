@@ -80,6 +80,17 @@ gates where they keep paying off, and agent review for judgment calls such as pr
 clarity). Hand the maintainer only secrets, spend, push/publish, and scope decisions.
 Full rule: `.planning/PROJECT.md` → Constraints → "Zero human verification by default".
 
+**Research, then recommend — never a blind option menu.** Any GSD step that would
+offer architectural, API, UX, scope or dependency options (discuss-phase included)
+first fans out parallel researchers, one per decision cluster. Each covers pros/cons,
+idiomatic Elixir/Plug/Ecto/Phoenix practice, prior art and footguns from peer libraries
+(cross-language where instructive), DX and least surprise, and the expert lenses
+(architecture, SRE, security, semver). Each reads `prompts/` and names the sibling
+decisions it must cohere with. Also enumerate angles the roadmap did not name, up to
+the point of diminishing returns. Return ONE coherent recommendation set with a single
+confirm. Ask the maintainer only about major architect-level decisions where research
+found no clear winner. Research depth does not follow the advisor calibration tier.
+
 **Milestone guide.** Before choosing or closing a milestone, read `.planning/MILESTONE-GUIDE.txt`
 (intent, lenses, selection loop, quality/CI/release bar, roadmap ladder to 1.0.0) with
 `.planning/MILESTONE-ARC.md`. Operator-UI design work is parked until 1.0.0.

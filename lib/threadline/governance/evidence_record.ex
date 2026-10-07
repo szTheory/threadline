@@ -1,9 +1,9 @@
 defmodule Threadline.Governance.EvidenceRecord do
   @moduledoc """
-  Ecto schema for the `threadline_evidence_records` table.
+  An EvidenceRecord is an append-only snapshot of a Threadline subject at a point in time.
 
-  Evidence rows are append-only snapshots about Threadline-owned governance
-  subjects.
+  Each record keeps the subject reference, status, actor, source context, and
+  details needed to explain the snapshot.
   """
 
   use Ecto.Schema
@@ -23,6 +23,21 @@ defmodule Threadline.Governance.EvidenceRecord do
     field(:schema_version, :integer)
     field(:inserted_at, :utc_datetime_usec)
   end
+
+  @typedoc "A persisted snapshot of a Threadline subject."
+  @type t :: %__MODULE__{
+          __meta__: Ecto.Schema.Metadata.t(),
+          id: Ecto.UUID.t() | nil,
+          subject: String.t() | nil,
+          subject_ref: Threadline.json_map() | nil,
+          summary_status: String.t() | nil,
+          recorded_at: DateTime.t() | nil,
+          actor_ref: Threadline.Semantics.ActorRef.t() | nil,
+          provenance: Threadline.json_map() | nil,
+          detail: Threadline.json_map() | nil,
+          schema_version: pos_integer() | nil,
+          inserted_at: DateTime.t() | nil
+        }
 
   @required_fields ~w(
     subject

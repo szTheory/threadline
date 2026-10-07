@@ -1,6 +1,6 @@
 defmodule Threadline.Capture.AuditTransaction do
   @moduledoc """
-  Ecto schema for the `audit_transactions` table.
+  An `AuditTransaction` groups row changes from one database transaction; it is not a request or an action.
 
   An `AuditTransaction` groups every row mutation that occurred within a single
   PostgreSQL transaction. Records are created automatically by the capture
@@ -23,12 +23,25 @@ defmodule Threadline.Capture.AuditTransaction do
   - `:source` — free-form string identifying the application subsystem, for
     example `"web"` or `"oban"`.
 
+  ## Stable 1.x fields
+
+  The stable struct fields for 1.x are `id`, `txid`, `occurred_at`,
+  `actor_ref`, `action_id`, and `source`. The `t()` type may gain fields; this
+  list does not make every current schema field or virtual relationship a
+  promise.
+
   ## Relationships
 
   - `has_many :changes, Threadline.Capture.AuditChange` — the row mutations
     captured in this transaction.
-  - `belongs_to :action, Threadline.Semantics.AuditAction` — optional
-    semantic label for this transaction.
+  - `:action_id` — optional foreign key to an `audit_actions` row. The
+    capture schema does not declare an Ecto association to
+    `Threadline.Semantics.AuditAction` (capture must not own semantics-layer
+    concerns). The virtual `:action` field is filled by Threadline's read
+    functions (`Threadline.transaction_context/2`, `Threadline.incident_bundle/2`,
+    and the other investigation helpers) via a hidden batched hydrate step —
+    it is `nil` until one of those functions hydrates it, never an Ecto
+    association.
 
   ## Setup
 
@@ -41,8 +54,23 @@ defmodule Threadline.Capture.AuditTransaction do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @typedoc "The row changes captured from one PostgreSQL database transaction."
-  @type t :: %__MODULE__{}
+  @typedoc """
+  A database transaction that groups captured row changes.
+
+  The virtual `:action` is a hydrated `Threadline.Semantics.AuditAction`; nil until hydrated.
+  """
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t() | nil,
+          txid: integer(),
+          occurred_at: DateTime.t(),
+          source: String.t() | nil,
+          meta: Threadline.json_map() | nil,
+          actor_ref: Threadline.Semantics.ActorRef.t() | nil,
+          action_id: Ecto.UUID.t() | nil,
+          action: struct() | nil,
+          changes: [Threadline.Capture.AuditChange.t()] | Ecto.Association.NotLoaded.t(),
+          __meta__: Ecto.Schema.Metadata.t()
+        }
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -59,7 +87,8 @@ defmodule Threadline.Capture.AuditTransaction do
     # without either.
     field(:actor_ref, Threadline.Semantics.ActorRef)
 
-    belongs_to(:action, Threadline.Semantics.AuditAction)
+    field(:action_id, :binary_id)
+    field(:action, :any, virtual: true, default: nil)
 
     has_many(:changes, Threadline.Capture.AuditChange, foreign_key: :transaction_id)
   end

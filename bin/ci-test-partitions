@@ -511,8 +511,8 @@ write_weights() {
     printf '# to balance the CI test partitions. One "<milliseconds> <test file>" per line,\n'
     printf '# sorted by path.\n'
     printf '# Regenerate with: bin/ci-test-partitions --write-weights\n'
-    printf '# A stale or missing entry only makes the partitions less even; every test file\n'
-    printf '# still runs exactly once.\n'
+    printf '# The runner tolerates stale or missing weights for assignment; every discovered test\n'
+    printf '# still runs exactly once. The committed-inventory CI contract rejects either condition.\n'
     parse_slowest_modules "$log"
   } >"$tmp"
 
@@ -872,6 +872,9 @@ run_self_test() {
     die "self-test: --write-weights must sum per file and sort by path, got: $(cat "$proj/test/partition_weights.txt")"
   grep -q '^# Regenerate with: bin/ci-test-partitions --write-weights$' "$proj/test/partition_weights.txt" ||
     die "self-test: the weights file must say how to regenerate it"
+  grep -q '^# The runner tolerates stale or missing weights for assignment; every discovered test$' "$proj/test/partition_weights.txt" &&
+    grep -q '^# still runs exactly once. The committed-inventory CI contract rejects either condition\.$' "$proj/test/partition_weights.txt" ||
+    die "self-test: regenerated weights must distinguish assignment tolerance from committed-inventory rejection"
 
   printf 'ci-test-partitions self-test: ok (all pass, partition 2 fails, partitions 1+3 fail, partition-1-empty+2-fails, partition-1-empty+rest-pass, killed partition, summary order, invalid N, every file exactly once, unweighted file runs, stale weight ignored, deterministic assignment, heaviest files spread, zero-file partition, exactly-once check rejects bad assignments, write-weights, colocation group)\n'
 }

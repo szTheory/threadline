@@ -17,7 +17,13 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
 
   @public_tables ~w(
     posts_tags
+    pk_invalid_mask
+    pk_invalid_exclude
     pk_masked_code
+    pk_override_bad_mask
+    pk_override_bad_exclude
+    redaction_valid_detected
+    redaction_valid_override
     pk_masked_composite
     pk_quoted_col
     pk_type_tstz
@@ -71,6 +77,19 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
   end
 
   defp drop_fixtures! do
+    for table <-
+          ~w(
+            pk_invalid_mask
+            pk_invalid_exclude
+            pk_override_bad_mask
+            pk_override_bad_exclude
+            redaction_valid_detected
+            redaction_valid_override
+          ) do
+      function = Threadline.StorageSchema.function(Naming.function_name(table))
+      Repo.query!("DROP FUNCTION IF EXISTS #{function} CASCADE")
+    end
+
     for table <- @public_tables do
       Repo.query!("DROP TABLE IF EXISTS #{table} CASCADE")
     end
@@ -477,6 +496,145 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
   end
 
   describe "a detected primary key column listed in mask or exclude" do
+    test "mask refuses a configured column that does not exist before installing anything", %{
+      tmp: tmp
+    } do
+      Repo.query!("CREATE TABLE pk_invalid_mask (id integer PRIMARY KEY, email text)")
+      function = Threadline.StorageSchema.function(Naming.function_name("pk_invalid_mask"))
+      Repo.query!("DROP FUNCTION IF EXISTS #{function} CASCADE")
+
+      Application.put_env(:threadline, :trigger_capture,
+        tables: %{"pk_invalid_mask" => [mask: ["missing_name"]]}
+      )
+
+      file = Harness.generate!(tmp, ["--tables", "pk_invalid_mask"])
+      error = assert_raise(Postgrex.Error, fn -> Harness.migrate_up(file) end)
+
+      assert error.postgres.message =~ "public.pk_invalid_mask"
+      assert error.postgres.message =~ "mask"
+      assert error.postgres.message =~ "missing_name"
+      assert Harness.threadline_triggers("public", "pk_invalid_mask") == []
+      refute Harness.function_exists?(Naming.function_name("pk_invalid_mask"))
+      refute_schema_migrations_row(file)
+
+      Repo.query!("INSERT INTO pk_invalid_mask (id, email) VALUES (1, 'a@example.com')")
+      assert capture_rows("public", "pk_invalid_mask") == []
+    end
+
+    test "exclude refuses an absent column on the detected-key path with complete rollback", %{
+      tmp: tmp
+    } do
+      Repo.query!("CREATE TABLE pk_invalid_exclude (id integer PRIMARY KEY, email text)")
+
+      Application.put_env(:threadline, :trigger_capture,
+        tables: %{"pk_invalid_exclude" => [exclude: ["missing_name"]]}
+      )
+
+      file = Harness.generate!(tmp, ["--tables", "pk_invalid_exclude"])
+      error = assert_raise(Postgrex.Error, fn -> Harness.migrate_up(file) end)
+
+      assert error.postgres.message =~ "exclude:"
+      assert error.postgres.message =~ "missing_name"
+      assert error.postgres.message =~ "public.pk_invalid_exclude"
+      assert Harness.threadline_triggers("public", "pk_invalid_exclude") == []
+      refute Harness.function_exists?(Naming.function_name("pk_invalid_exclude"))
+      refute_schema_migrations_row(file)
+
+      Repo.query!("INSERT INTO pk_invalid_exclude (id, email) VALUES (1, 'plain@example.com')")
+      assert capture_rows("public", "pk_invalid_exclude") == []
+    end
+
+    test "mask refuses an absent column on a primary_key override path with complete rollback", %{
+      tmp: tmp
+    } do
+      Repo.query!("CREATE TABLE pk_override_bad_mask (id integer NOT NULL, email text)")
+      Repo.query!("CREATE UNIQUE INDEX pk_override_bad_mask_id ON pk_override_bad_mask (id)")
+
+      Application.put_env(:threadline, :trigger_capture,
+        tables: %{"pk_override_bad_mask" => [primary_key: ["id"], mask: ["missing_name"]]}
+      )
+
+      file = Harness.generate!(tmp, ["--tables", "pk_override_bad_mask"])
+      error = assert_raise(Postgrex.Error, fn -> Harness.migrate_up(file) end)
+
+      assert error.postgres.message =~ "mask:"
+      assert error.postgres.message =~ "missing_name"
+      assert error.postgres.message =~ "public.pk_override_bad_mask"
+      assert Harness.threadline_triggers("public", "pk_override_bad_mask") == []
+      refute Harness.function_exists?(Naming.function_name("pk_override_bad_mask"))
+      refute_schema_migrations_row(file)
+
+      Repo.query!("INSERT INTO pk_override_bad_mask (id, email) VALUES (1, 'plain@example.com')")
+      assert capture_rows("public", "pk_override_bad_mask") == []
+    end
+
+    test "exclude refuses an absent column on a primary_key override path with complete rollback",
+         %{
+           tmp: tmp
+         } do
+      Repo.query!("CREATE TABLE pk_override_bad_exclude (id integer NOT NULL, email text)")
+
+      Repo.query!(
+        "CREATE UNIQUE INDEX pk_override_bad_exclude_id ON pk_override_bad_exclude (id)"
+      )
+
+      Application.put_env(:threadline, :trigger_capture,
+        tables: %{
+          "pk_override_bad_exclude" => [primary_key: ["id"], exclude: ["missing_name"]]
+        }
+      )
+
+      file = Harness.generate!(tmp, ["--tables", "pk_override_bad_exclude"])
+      error = assert_raise(Postgrex.Error, fn -> Harness.migrate_up(file) end)
+
+      assert error.postgres.message =~ "exclude:"
+      assert error.postgres.message =~ "missing_name"
+      assert error.postgres.message =~ "public.pk_override_bad_exclude"
+      assert Harness.threadline_triggers("public", "pk_override_bad_exclude") == []
+      refute Harness.function_exists?(Naming.function_name("pk_override_bad_exclude"))
+      refute_schema_migrations_row(file)
+
+      Repo.query!(
+        "INSERT INTO pk_override_bad_exclude (id, email) VALUES (1, 'plain@example.com')"
+      )
+
+      assert capture_rows("public", "pk_override_bad_exclude") == []
+    end
+
+    test "valid mask and exclude columns install detected and primary_key override triggers", %{
+      tmp: tmp
+    } do
+      cases = [
+        {"redaction_valid_detected", [mask: ["email"], exclude: ["notes"]]},
+        {"redaction_valid_override", [primary_key: ["id"], mask: ["email"], exclude: ["notes"]]}
+      ]
+
+      for {table, options} <- cases do
+        Repo.query!("CREATE TABLE #{table} (id integer NOT NULL, email text, notes text)")
+
+        if Keyword.has_key?(options, :primary_key) do
+          Repo.query!("CREATE UNIQUE INDEX #{table}_id ON #{table} (id)")
+        else
+          Repo.query!("ALTER TABLE #{table} ADD PRIMARY KEY (id)")
+        end
+
+        Application.put_env(:threadline, :trigger_capture, tables: %{table => options})
+
+        file = Harness.generate!(tmp, ["--tables", table])
+        assert {:ok, _} = Harness.migrate_up(file)
+        assert Harness.threadline_triggers("public", table) != []
+        assert Harness.function_exists?(Naming.function_name(table))
+
+        Repo.query!(
+          "INSERT INTO #{table} (id, email, notes) VALUES (1, 'secret@example.com', 'private')"
+        )
+
+        [row] = capture_rows("public", table)
+        assert row.data_after["email"] == "[REDACTED]"
+        refute Map.has_key?(row.data_after, "notes")
+      end
+    end
+
     test "mask refuses, naming the column", %{tmp: tmp} do
       Repo.query!("CREATE TABLE pk_masked_code (code text PRIMARY KEY, email text)")
 
@@ -523,7 +681,7 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
       assert row.table_pk == %{"code" => "c1"}
     end
 
-    test "comparison is exact and case-sensitive: mask: [\"Code\"] does not match column code", %{
+    test "comparison is exact and case-sensitive: mask: [\"Code\"] is rejected", %{
       tmp: tmp
     } do
       Repo.query!("CREATE TABLE pk_masked_code (code text PRIMARY KEY, email text)")
@@ -533,12 +691,9 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
       )
 
       file = Harness.generate!(tmp, ["--tables", "pk_masked_code"])
-      assert {:ok, _} = Harness.migrate_up(file)
-
-      Repo.query!("INSERT INTO pk_masked_code (code, email) VALUES ('c1', 'a@example.com')")
-
-      [row] = capture_rows("public", "pk_masked_code")
-      assert row.table_pk == %{"code" => "c1"}
+      error = assert_raise(Postgrex.Error, fn -> Harness.migrate_up(file) end)
+      assert error.postgres.message =~ "Code"
+      assert error.postgres.message =~ "public.pk_masked_code"
     end
 
     # WR-01 (210-REVIEW.md): the redaction-overlap refusal claims to name

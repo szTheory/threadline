@@ -6,9 +6,9 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     import Plug.Conn
 
-    alias Threadline.Export
     alias Threadline.Governance.ExportJob
     alias Threadline.OperatorSurface.Controllers.ExportController.Encoding
+    alias Threadline.Query.ExportReads
     alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
@@ -180,7 +180,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         ]
 
         {:ok, %{count: count}} =
-          Export.count_matching(filters, Keyword.merge([cap: @max_rows + 1], scope_opts))
+          ExportReads.count_matching(filters, Keyword.merge([cap: @max_rows + 1], scope_opts))
 
         # Plug requires response headers to be set before send_chunked/2.
         conn = Encoding.put_headers(conn, format)
@@ -202,14 +202,14 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     defp send_iodata(conn, filters, :csv, scope_opts) do
       {:ok, %{data: iodata}} =
-        Export.to_csv_iodata(filters, Keyword.merge([max_rows: @max_rows], scope_opts))
+        ExportReads.to_csv_iodata(filters, Keyword.merge([max_rows: @max_rows], scope_opts))
 
       send_resp(conn, 200, iodata)
     end
 
     defp send_iodata(conn, filters, :json, scope_opts) do
       {:ok, %{data: iodata}} =
-        Export.to_json_document(
+        ExportReads.to_json_document(
           filters,
           Keyword.merge([max_rows: @max_rows, json_format: :wrapped], scope_opts)
         )
@@ -219,7 +219,7 @@ if Code.ensure_loaded?(Phoenix.Controller) do
 
     defp send_iodata(conn, filters, :ndjson, scope_opts) do
       {:ok, %{data: iodata}} =
-        Export.to_json_document(
+        ExportReads.to_json_document(
           filters,
           Keyword.merge([max_rows: @max_rows, json_format: :ndjson], scope_opts)
         )
@@ -249,7 +249,9 @@ if Code.ensure_loaded?(Phoenix.Controller) do
         # to_csv_iodata/to_json_document consume internally).
         {conn, _first_batch?, sent_rows, outcome} =
           filters
-          |> Export.stream_export_rows(Keyword.merge([page_size: @stream_page_size], scope_opts))
+          |> ExportReads.stream_export_rows(
+            Keyword.merge([page_size: @stream_page_size], scope_opts)
+          )
           |> Stream.take(@max_rows)
           |> Stream.chunk_every(@chunk_batch_size)
           |> Enum.reduce_while({conn, _first_batch? = true, _sent_rows = 0, _outcome = :ok}, fn

@@ -37,6 +37,11 @@ defmodule Threadline.JobTest do
       assert opts[:job_id] == "job-42"
     end
 
+    test "normalizes integer job and correlation IDs from Oban args" do
+      assert Threadline.Job.context_opts(%{"correlation_id" => 42, "job_id" => 123}) ==
+               [correlation_id: "42", job_id: "123"]
+    end
+
     test "returns nil values when keys are absent" do
       opts = Threadline.Job.context_opts(%{})
 
@@ -52,10 +57,74 @@ defmodule Threadline.JobTest do
 
     test "extra opts override base opts" do
       args = %{"job_id" => "from-args"}
-      opts = Threadline.Job.context_opts(args, job_id: "override")
+      opts = Threadline.Job.context_opts(args, job_id: 123, correlation_id: 42)
 
-      assert opts[:job_id] == "override"
+      assert opts[:job_id] == "123"
+      assert opts[:correlation_id] == "42"
     end
+
+    test "preserves nil and string IDs while rejecting malformed IDs and extras" do
+      assert Threadline.Job.context_opts(%{"job_id" => nil, "correlation_id" => "corr"}) ==
+               [correlation_id: "corr", job_id: nil]
+
+      for bad_id <- [true, 1.5, %{}, []] do
+        assert_raise ArgumentError, fn ->
+          Threadline.Job.context_opts(%{"job_id" => bad_id})
+        end
+
+        assert_raise ArgumentError, fn ->
+          Threadline.Job.context_opts(%{}, job_id: bad_id)
+        end
+      end
+
+      assert_raise ArgumentError, fn -> Threadline.Job.context_opts(%{}, tenant_id: "tenant") end
+      assert_raise ArgumentError, fn -> Threadline.Job.context_opts(%{}, [:repo]) end
+    end
+
+    test "compiled types describe supported IDs without a generic escape hatch" do
+      {:ok, types} = Code.Typespec.fetch_types(Threadline.Job)
+
+      type_text =
+        Enum.map_join(types, " ", fn {_, type} ->
+          Macro.to_string(Code.Typespec.type_to_quoted(type))
+        end)
+
+      {:ok, specs} = Code.Typespec.fetch_specs(Threadline.Job)
+
+      context_spec =
+        Enum.find_value(specs, fn
+          {{:context_opts, 2}, [spec]} ->
+            Code.Typespec.spec_to_quoted(:context_opts, spec) |> Macro.to_string()
+
+          _ ->
+            nil
+        end)
+
+      assert type_text =~ "context_opt"
+      assert type_text =~ "integer()"
+      refute type_text =~ "any()"
+      refute type_text =~ "term()"
+      assert context_spec =~ "context_opts_result"
+      refute context_spec =~ "any()"
+      refute context_spec =~ "term()"
+    end
+
+    test "compiled docs describe conversion, supported extras, and errors" do
+      doc = function_doc_text(:context_opts, 2)
+      assert doc =~ "integer"
+      assert doc =~ "ArgumentError"
+      assert doc =~ "Unsupported"
+      refute doc =~ "ignored by `record_action/2`"
+    end
+  end
+
+  defp function_doc_text(name, arity) do
+    {:docs_v1, _, _, _, _, _, docs} = Code.fetch_docs(Threadline.Job)
+
+    Enum.find_value(docs, "", fn
+      {{:function, ^name, ^arity}, _, _, %{"en" => text}, _} -> text
+      _ -> false
+    end)
   end
 
   describe "CTX-05: no process state" do

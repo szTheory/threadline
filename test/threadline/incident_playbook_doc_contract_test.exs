@@ -36,7 +36,7 @@ defmodule Threadline.IncidentPlaybookDocContractTest do
     end
 
     test "uses the shipped Threadline public surface", %{content: content} do
-      assert content =~ "Threadline.history("
+      assert content =~ "Threadline.row_history("
       assert content =~ "Threadline.actor_history("
       assert content =~ "Threadline.audit_changes_for_transaction("
       assert content =~ "Threadline.incident_bundle("

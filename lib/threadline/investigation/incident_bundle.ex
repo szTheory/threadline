@@ -1,6 +1,7 @@
 defmodule Threadline.Investigation.IncidentChange do
   @moduledoc """
-  One bundled incident change with raw linked structs and a packaged diff.
+  An incident change pairs a linked audit change with its JSON diff for
+  investigation review.
   """
 
   alias Threadline.Investigation.LinkedChange
@@ -8,15 +9,16 @@ defmodule Threadline.Investigation.IncidentChange do
   @enforce_keys [:linked_change, :change_diff]
   defstruct [:linked_change, :change_diff]
 
+  @typedoc "A linked incident change and its JSON change diff."
   @type t :: %__MODULE__{
           linked_change: LinkedChange.t(),
-          change_diff: map()
+          change_diff: Threadline.json_map()
         }
 end
 
 defmodule Threadline.Investigation.IncidentBundle do
   @moduledoc """
-  One transaction-focused incident bundle with linked context and packaged diffs.
+  An IncidentBundle groups one captured transaction with its linked action and change diffs.
   """
 
   alias Threadline.Capture.AuditTransaction
@@ -26,9 +28,10 @@ defmodule Threadline.Investigation.IncidentBundle do
   @enforce_keys [:transaction]
   defstruct [:transaction, :action, changes: []]
 
+  @typedoc "A captured transaction with its optional action and bundled incident changes."
   @type t :: %__MODULE__{
-          transaction: %AuditTransaction{},
-          action: %AuditAction{} | nil,
+          transaction: AuditTransaction.t(),
+          action: AuditAction.t() | nil,
           changes: [IncidentChange.t()]
         }
 end

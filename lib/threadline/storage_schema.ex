@@ -1,6 +1,10 @@
 defmodule Threadline.StorageSchema do
   @moduledoc """
-  Resolves and validates the PostgreSQL schema that stores Threadline-owned data.
+  Resolves storage schema names and builds validated SQL references to Threadline-owned tables.
+
+  `get/1` and `repo_opts/1` apply schema configuration, `table/2` names a
+  Threadline table, `validate!/1` checks an identifier, and `threadline_table?/1`
+  recognizes Threadline table names.
 
   Threadline defaults to the host's `public` schema — the schema every install
   that predates this module already uses. Threadline cannot detect where an
@@ -33,13 +37,34 @@ defmodule Threadline.StorageSchema do
     threadline_evidence_records
   )
 
+  @typedoc "An identifier accepted for schema validation; booleans and malformed names raise."
+  @type identifier_input :: String.t() | atom()
+
+  @typedoc "A parsed host table identifier with validated schema and table names."
+  @type parsed_table_identifier :: %{schema: String.t(), table: String.t()}
+
+  @typedoc "Repository options targeting the Threadline storage schema."
+  @type repo_opts_result :: [{:prefix, String.t()}]
+
   @doc """
   Returns the configured storage schema, defaulting to the host's `public` schema.
 
   A dedicated schema is opted into with
   `config :threadline, storage_schema: "threadline"`, or per-call via the
   `:storage_schema` option.
+
+  ## Options
+
+  - `:storage_schema` — string. Optional. Overrides the application setting.
+
+  ## Returns
+
+  - The validated storage schema name.
+  - Raises `ArgumentError` when the configured name is invalid.
+
+  Other option keys are ignored.
   """
+  @spec get([Threadline.storage_schema_opt()]) :: String.t()
   def get(opts \\ []) when is_list(opts) do
     opts
     |> Keyword.get(:storage_schema, Application.get_env(:threadline, :storage_schema, @default))
@@ -54,10 +79,11 @@ defmodule Threadline.StorageSchema do
     primary_key_column: "primary key column"
   }
 
-  @typedoc false
+  @typedoc "Selects the identifier-validation context: `:storage_schema` (storage schema), `:host_schema` (host schema), `:host_table` (host table), `:derived` (derived identifier), or `:primary_key_column` (primary key column)."
   @type role :: :storage_schema | :host_schema | :host_table | :derived | :primary_key_column
 
-  @doc "Validates a PostgreSQL identifier used as a schema, table, or function name."
+  @doc "Validates a PostgreSQL identifier and returns its trimmed name; raises `ArgumentError` for an invalid identifier."
+  @spec validate!(identifier_input()) :: String.t()
   def validate!(value), do: validate_identifier!(value, :storage_schema)
 
   @doc false
@@ -88,6 +114,7 @@ defmodule Threadline.StorageSchema do
 
   def validate_identifier!(value, role, input), do: invalid_identifier!(value, role, input)
 
+  @spec invalid_identifier!(term(), role(), String.t() | nil) :: no_return()
   defp invalid_identifier!(value, :storage_schema, _input) do
     raise ArgumentError,
           "Threadline storage schema must be a non-empty PostgreSQL identifier " <>
@@ -111,30 +138,63 @@ defmodule Threadline.StorageSchema do
     raise ArgumentError, "Threadline #{label} #{inspect(value)}#{from}#{detail}#{rule}"
   end
 
-  @doc "Returns a safely double-quoted PostgreSQL identifier."
+  @doc false
+  @spec quote_ident(identifier_input()) :: String.t()
   def quote_ident(identifier), do: ~s("#{validate!(identifier)}")
 
-  @doc "Returns a schema-qualified SQL identifier."
+  @doc false
+  @spec qualify(identifier_input(), identifier_input()) :: String.t()
   def qualify(schema, name), do: "#{quote_ident(schema)}.#{quote_ident(name)}"
 
-  @doc "Returns a Threadline-owned table qualified with the configured storage schema."
+  @doc """
+  Returns a schema-qualified SQL name for one of Threadline's storage tables.
+
+  The accepted names are `audit_transactions`, `audit_changes`,
+  `audit_actions`, `threadline_export_jobs`, `threadline_retention_runs`,
+  `threadline_saved_views`, and `threadline_evidence_records`.
+
+  ## Options
+
+  - `:storage_schema` — string. Optional. Selects the configured storage schema.
+
+  ## Returns
+
+  - The quoted, schema-qualified table name.
+  - Raises `FunctionClauseError` when `name` is not one of the Threadline tables.
+  - Raises `ArgumentError` when the selected storage schema is invalid.
+
+  Other option keys are ignored.
+  """
+  @spec table(String.t(), [Threadline.storage_schema_opt()]) :: String.t()
   def table(name, opts \\ []) when name in @threadline_tables do
     qualify(get(opts), name)
   end
 
-  @doc "Returns repo options that target Threadline-owned storage."
+  @doc """
+  Returns Ecto repository options that target Threadline-owned storage.
+
+  ## Options
+
+  - `:storage_schema` — string. Optional. Selects the configured storage schema.
+
+  ## Returns
+
+  - A `:prefix` option containing the validated Threadline storage schema.
+  - Raises `ArgumentError` when the selected storage schema is invalid.
+
+  Other option keys are ignored.
+  """
+  @spec repo_opts([Threadline.storage_schema_opt()]) :: repo_opts_result()
   def repo_opts(opts \\ []), do: [prefix: get(opts)]
 
-  @doc "Returns a Threadline-owned function qualified with the configured storage schema."
+  @doc false
+  @spec function(String.t() | atom(), [Threadline.storage_schema_opt()]) :: String.t()
   def function(name, opts \\ []) do
     qualify(get(opts), name)
   end
 
-  @doc """
-  Parses a host table identifier.
-
-  Plain names resolve to `public`. Qualified names must be `schema.table`.
-  """
+  @doc false
+  @spec parse_table_identifier(String.t()) :: parsed_table_identifier()
   def parse_table_identifier(value) when is_binary(value) do
     value = String.trim(value)
 
@@ -153,16 +213,15 @@ defmodule Threadline.StorageSchema do
     end
   end
 
-  @doc "Returns a quoted host table identifier."
+  @doc false
+  @spec qualified_host_table(String.t()) :: String.t()
   def qualified_host_table(value) do
     %{schema: schema, table: table} = parse_table_identifier(value)
     qualify(schema, table)
   end
 
-  @doc """
-  Returns the legacy suffix used in 0.10.x trigger and function names derived
-  from a host table: the table name for `public`, `schema_table` otherwise.
-  """
+  @doc false
+  @spec host_table_suffix(String.t()) :: String.t()
   def host_table_suffix(value) do
     %{schema: schema, table: table} = parse_table_identifier(value)
 
@@ -173,7 +232,8 @@ defmodule Threadline.StorageSchema do
     end
   end
 
-  @doc "Returns whether the name is one of Threadline's storage tables."
+  @doc "Returns whether a valid host table identifier names one of Threadline's storage tables; raises `ArgumentError` for malformed identifiers."
+  @spec threadline_table?(String.t()) :: boolean()
   def threadline_table?(value) do
     %{table: table} = parse_table_identifier(value)
     table in @threadline_tables

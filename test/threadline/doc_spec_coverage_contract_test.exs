@@ -1,0 +1,287 @@
+defmodule Threadline.DocSpecCoverageContractTest do
+  @moduledoc false
+  # Code.compiler_options/1 affects all processes in the VM; keep its fixture
+  # compilation serialized with the other docs contract module.
+  use ExUnit.Case, async: false
+
+  alias Threadline.DocContract
+
+  @newly_hidden_keys [
+    {Threadline.StorageSchema, :quote_ident, 1},
+    {Threadline.StorageSchema, :qualify, 2},
+    {Threadline.StorageSchema, :function, 2},
+    {Threadline.StorageSchema, :parse_table_identifier, 1},
+    {Threadline.StorageSchema, :qualified_host_table, 1},
+    {Threadline.StorageSchema, :host_table_suffix, 1},
+    {Threadline.Evidence.Proof, :present_record, 1},
+    {Threadline.Evidence.Proof, :record_claim_assessment, 1}
+  ]
+
+  @hidden_pin %{
+    {Mix.Tasks.Threadline.Health.Coverage, :legacy_findings_or_hint, 2} =>
+      "Builds the internal fallback when a coverage report is empty.",
+    {Threadline.Capture.AuditChange, :changeset, 2} =>
+      "Validates an internal captured-row persistence record.",
+    {Threadline.Capture.AuditTransaction, :changeset, 2} =>
+      "Validates an internal transaction persistence record.",
+    {Threadline.Governance.EvidenceRecord, :changeset, 2} =>
+      "Validates an internal evidence persistence record.",
+    {Threadline.Health, :classify, 3} =>
+      "Classifies captured tables for the internal health report.",
+    {Threadline.Health, :coverage_by_schema, 1} =>
+      "Groups internal coverage rows by storage schema.",
+    {Threadline.Semantics.AuditAction, :changeset, 2} =>
+      "Validates an internal action persistence record.",
+    {Threadline.Storage.S3, :delete, 2} =>
+      "Deletes an object through the internal S3 adapter contract.",
+    {Threadline.Storage.S3, :get, 2} =>
+      "Reads an object through the internal S3 adapter contract.",
+    {Threadline.StorageSchema, :validate_identifier!, 3} =>
+      "Validates identifiers for internal schema-owned SQL statements.",
+    {Threadline.Telemetry, :emit_action_recorded, 1} =>
+      "Emits the internal action-recorded event.",
+    {Threadline.Telemetry, :emit_actor_ref_mismatch, 0} =>
+      "Emits the internal actor-reference mismatch event.",
+    {Threadline.Telemetry, :emit_batch_purged, 3} => "Emits the internal retention batch event.",
+    {Threadline.Telemetry, :emit_export_authorize_error, 0} =>
+      "Emits the internal export authorization error event.",
+    {Threadline.Telemetry, :emit_export_completed, 4} =>
+      "Emits the internal export completion event.",
+    {Threadline.Telemetry, :emit_export_failed, 5} => "Emits the internal export failure event.",
+    {Threadline.Telemetry, :emit_findings_checked, 2} =>
+      "Emits the internal health findings event.",
+    {Threadline.Telemetry, :emit_health_checked, 3} => "Emits the internal coverage check event.",
+    {Threadline.Telemetry, :emit_health_checked_error, 1} =>
+      "Emits the internal coverage check error event.",
+    {Threadline.Telemetry, :emit_operator_surface_authorize, 3} =>
+      "Emits the internal operator authorization event.",
+    {Threadline.Telemetry, :emit_row_history_truncated, 2} =>
+      "Emits the internal row-history truncation event.",
+    {Threadline.Telemetry, :emit_transaction_committed_proxy, 0} =>
+      "Emits the internal transaction-committed proxy event.",
+    {Threadline.Telemetry, :purge_span, 2} => "Measures an internal retention purge span.",
+    {Threadline.Evidence.Proof, :present_record, 1} =>
+      "newly hidden for 1.0: renders an evidence record for the operator surface.",
+    {Threadline.Evidence.Proof, :record_claim_assessment, 1} =>
+      "newly hidden for 1.0: builds a claim assessment for the operator surface.",
+    {Threadline.StorageSchema, :quote_ident, 1} =>
+      "newly hidden for 1.0: quotes an identifier for internal generated SQL.",
+    {Threadline.StorageSchema, :qualify, 2} =>
+      "newly hidden for 1.0: qualifies an identifier with its storage schema.",
+    {Threadline.StorageSchema, :function, 2} =>
+      "newly hidden for 1.0: builds an internal storage function name.",
+    {Threadline.StorageSchema, :parse_table_identifier, 1} =>
+      "newly hidden for 1.0: parses a table identifier for internal SQL.",
+    {Threadline.StorageSchema, :qualified_host_table, 1} =>
+      "newly hidden for 1.0: resolves a host table to a qualified identifier.",
+    {Threadline.StorageSchema, :host_table_suffix, 1} =>
+      "newly hidden for 1.0: derives the internal host-table suffix."
+  }
+
+  describe "coverage at rest" do
+    test "the live universe and checked entries are non-vacuous" do
+      universe = DocContract.universe()
+
+      assert length(universe) >= 50,
+             "expected at least 50 documented modules, got #{length(universe)}"
+
+      checked =
+        for {module, docs_v1, _specs} <- universe,
+            {kind, name, arity, _doc, _metadata} <- DocContract.checked_entries(docs_v1),
+            do: {module, kind, name, arity}
+
+      assert length(checked) >= 82,
+             "expected at least 82 visible entries, got #{length(checked)}"
+
+      assert {Threadline, :function, :timeline, 2} in checked,
+             "expected the facade timeline/2 entry to be part of the scanned universe"
+    end
+
+    test "all live entries have documentation and specs" do
+      actual =
+        DocContract.universe()
+        |> Enum.flat_map(fn {module, docs_v1, specs} ->
+          DocContract.gaps(module, docs_v1, specs)
+        end)
+
+      assert actual == [],
+             "documentation/specification coverage changed.\n" <>
+               "gap(s):\n#{DocContract.format_gaps(actual)}\n" <>
+               "add @doc/@spec, or @doc false plus a reasoned entry in the hidden pin"
+    end
+  end
+
+  describe "hidden surface at rest" do
+    test "explicitly hidden functions match the reviewed pin and transition rules" do
+      universe = DocContract.universe()
+
+      actual_hidden =
+        Enum.flat_map(universe, fn {module, docs_v1, _specs} ->
+          DocContract.explicitly_hidden(module, docs_v1)
+        end)
+
+      pin_keys = Map.keys(@hidden_pin)
+      baseline_keys = pin_keys -- @newly_hidden_keys
+
+      assert length(baseline_keys) == 23,
+             "the measured baseline has 23 existing explicit hidden entries before the eight transitions"
+
+      assert length(@newly_hidden_keys) == 8
+      assert map_size(@hidden_pin) == 31
+
+      pinned_hidden =
+        Enum.filter(pin_keys, fn key ->
+          case documentation_entry(universe, key) do
+            {_kind, :hidden, _metadata} -> true
+            _visible_or_missing -> false
+          end
+        end)
+
+      assert MapSet.new(actual_hidden) == MapSet.new(pinned_hidden),
+             "explicitly hidden functions changed; unpinned: #{inspect(actual_hidden -- pinned_hidden)}, " <>
+               "stale: #{inspect(pinned_hidden -- actual_hidden)}"
+
+      changelog = File.read!(Path.expand("../../CHANGELOG.md", __DIR__))
+
+      release_1_0 =
+        changelog
+        |> String.split(~r/^## \[1\.0\.0\] - \d{4}-\d{2}-\d{2}\s*$/m, parts: 2)
+        |> case do
+          [_, section] -> section
+          _ -> ""
+        end
+        |> String.split(~r/^## /m, parts: 2)
+        |> hd()
+
+      for key = {module, name, arity} <- pin_keys do
+        assert {:function, doc, _metadata} = documentation_entry(universe, key),
+               "hidden pin #{inspect(key)} no longer names a function entry"
+
+        reason = Map.fetch!(@hidden_pin, key)
+
+        if key in @newly_hidden_keys do
+          assert String.starts_with?(reason, "newly hidden for 1.0:"),
+                 "transition pin #{inspect(key)} must carry its 1.0 reason"
+        end
+
+        assert doc == :hidden,
+               "hidden pin #{inspect(key)} is visible"
+
+        if key in @newly_hidden_keys do
+          assert release_1_0 =~ "#{inspect(module)}.#{name}/#{arity}",
+                 "newly hidden #{inspect(module)}.#{name}/#{arity} is missing from the dated 1.0.0 changelog"
+        end
+      end
+    end
+  end
+
+  describe "checker mutation control" do
+    test "reads Docs and specs from the compiled fixture binary and applies the arity rules" do
+      suffix = System.unique_integer([:positive])
+      behaviour = Module.concat(Threadline, "DocContractFixtureBehaviour#{suffix}")
+      fixture = Module.concat(Threadline, "DocContractFixture#{suffix}")
+
+      source = """
+      defmodule #{inspect(behaviour)} do
+        @callback impl() :: :ok
+      end
+
+      defmodule #{inspect(fixture)} do
+        @moduledoc "A checker fixture."
+
+        @type no_typedoc :: term()
+
+        def undocumented, do: :ok
+
+        @doc "Documented, but deliberately unspecced."
+        def documented_unspecced, do: :ok
+
+        @doc false
+        def hidden, do: :ok
+
+        @doc "The maximum docs arity is the only entry that needs a spec."
+        @spec defaults(integer(), integer()) :: integer()
+        def defaults(left, right \\\\ 1), do: left + right
+
+        @doc "A macro needs documentation, but not a spec."
+        defmacro documented_macro, do: quote(do: :ok)
+
+        @deprecated "fixture"
+        @doc "Deprecated entries still need specs."
+        def deprecated_unspecced, do: :ok
+
+        @behaviour #{inspect(behaviour)}
+        @impl true
+        def impl, do: :ok
+      end
+      """
+
+      previous_compiler_options = Code.compiler_options()
+
+      compiled =
+        try do
+          Code.compiler_options(docs: true, debug_info: true)
+          Code.compile_string(source)
+        after
+          Code.compiler_options(previous_compiler_options)
+        end
+
+      on_exit(fn ->
+        Enum.each(compiled, fn {module, _bin} ->
+          :code.purge(module)
+          :code.delete(module)
+        end)
+      end)
+
+      {_module, binary} = Enum.find(compiled, fn {module, _bin} -> module == fixture end)
+
+      assert {:ok, {^fixture, [{~c"Docs", docs_binary}]}} =
+               :beam_lib.chunks(binary, [~c"Docs"])
+
+      docs_v1 = :erlang.binary_to_term(docs_binary)
+      assert {:ok, specs} = Code.Typespec.fetch_specs(binary)
+
+      assert DocContract.gaps(fixture, docs_v1, {:ok, specs}) == [
+               {fixture, :deprecated_unspecced, 0, :missing_spec},
+               {fixture, :documented_unspecced, 0, :missing_spec},
+               {fixture, :no_typedoc, 0, :missing_typedoc},
+               {fixture, :undocumented, 0, :missing_doc},
+               {fixture, :undocumented, 0, :missing_spec}
+             ]
+
+      checked = DocContract.checked_entries(docs_v1)
+      checked_keys = Enum.map(checked, fn {_kind, name, arity, _doc, _meta} -> {name, arity} end)
+
+      refute {:hidden, 0} in checked_keys
+      refute {:impl, 0} in checked_keys
+      assert {:documented_macro, 0} in checked_keys
+      assert {:defaults, 2} in checked_keys
+      refute {:defaults, 1} in checked_keys
+    end
+
+    test "gap formatting is stable, sorted, and labels each missing annotation" do
+      gaps = [
+        {Threadline.Query, :zeta, 1, :missing_spec},
+        {Threadline, :alpha, 2, :missing_doc},
+        {Threadline, :alpha, 2, :missing_spec}
+      ]
+
+      assert DocContract.format_gaps(gaps) ==
+               "Threadline.alpha/2  missing @doc\n" <>
+                 "Threadline.alpha/2  missing @spec\n" <>
+                 "Threadline.Query.zeta/1  missing @spec"
+    end
+  end
+
+  defp documentation_entry(universe, {module, name, arity}) do
+    with {^module, {:docs_v1, _, _, _, _, _, entries}, _specs} <-
+           Enum.find(universe, fn {candidate, _docs, _specs} -> candidate == module end),
+         {{kind, ^name, ^arity}, _anno, _signature, doc, metadata} <-
+           Enum.find(entries, fn
+             {{_kind, ^name, ^arity}, _anno, _signature, _doc, _metadata} -> true
+             _other -> false
+           end) do
+      {kind, doc, metadata}
+    end
+  end
+end

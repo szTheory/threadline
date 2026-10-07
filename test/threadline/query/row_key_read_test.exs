@@ -1,8 +1,8 @@
 defmodule Threadline.Query.RowKeyReadTest do
   @moduledoc """
-  Proves `Threadline.history/3` returns rows captured by a generated trigger
-  on a default Ecto bigserial table (READ-01), for integer, string, and
-  keyword-list id arguments, and that the old jsonb-containment-operator
+  Proves `Threadline.row_history/3` returns rows captured by a generated
+  trigger on a default Ecto bigserial table (READ-01), for integer, string,
+  and keyword-list id arguments, and that the old jsonb-containment-operator
   predicate (0.10.2's `history/3`, verified via `git show v0.10.2`) does not
   match the same rows under an integer id — proving this test would fail on
   the pre-211 query code.
@@ -14,6 +14,7 @@ defmodule Threadline.Query.RowKeyReadTest do
 
   alias Threadline.Capture.{AuditChange, TriggerSQL}
   alias Threadline.Test.MigrationHarness, as: Harness
+  alias Threadline.Test.RowHistory
 
   @table "rk_bigserial_users"
 
@@ -80,7 +81,7 @@ defmodule Threadline.Query.RowKeyReadTest do
     end
   end
 
-  describe "history/3 on a default Ecto bigserial table (READ-01)" do
+  describe "row_history/3 on a default Ecto bigserial table (READ-01)" do
     test "integer, string, and keyword-list ids all return the same captured rows", %{tmp: tmp} do
       Repo.query!("""
       CREATE TABLE #{@table} (
@@ -97,9 +98,9 @@ defmodule Threadline.Query.RowKeyReadTest do
 
       Repo.query!("UPDATE #{@table} SET name = 'b' WHERE id = $1", [id])
 
-      by_integer = Threadline.history(RkBigserialUser, id, repo: Repo)
-      by_string = Threadline.history(RkBigserialUser, to_string(id), repo: Repo)
-      by_keyword = Threadline.history(RkBigserialUser, [id: id], repo: Repo)
+      by_integer = RowHistory.changes(RkBigserialUser, id, repo: Repo)
+      by_string = RowHistory.changes(RkBigserialUser, to_string(id), repo: Repo)
+      by_keyword = RowHistory.changes(RkBigserialUser, [id: id], repo: Repo)
 
       assert length(by_integer) == 2
       assert Enum.map(by_integer, & &1.id) == Enum.map(by_string, & &1.id)
@@ -126,7 +127,7 @@ defmodule Threadline.Query.RowKeyReadTest do
         Repo.query!("INSERT INTO #{@table} (name) VALUES ('a') RETURNING id")
 
       # Sanity: the fixed query does return rows for this id.
-      assert Threadline.history(RkBigserialUser, id, repo: Repo) != []
+      assert RowHistory.changes(RkBigserialUser, id, repo: Repo) != []
 
       # Regression proof: 0.10.2's `history/3` predicate, verbatim
       # (`git show v0.10.2:lib/threadline/query.ex`), with an Elixir integer
@@ -146,12 +147,12 @@ defmodule Threadline.Query.RowKeyReadTest do
 
     test "raises ArgumentError before any query runs when id is nil" do
       assert_raise ArgumentError, ~r/got nil/, fn ->
-        Threadline.history(RkBigserialUser, nil, repo: Repo)
+        RowHistory.changes(RkBigserialUser, nil, repo: Repo)
       end
     end
   end
 
-  describe "row_history_query/3, row_history_page/4, and as_of/4 on the same table" do
+  describe "row_history_query/3, row_history/3 cursor: paging, and as_of/4 on the same table" do
     setup %{tmp: tmp} do
       Repo.query!("""
       CREATE TABLE #{@table} (
@@ -177,18 +178,21 @@ defmodule Threadline.Query.RowKeyReadTest do
       assert length(Repo.all(query, repo_opts())) == 2
     end
 
-    test "row_history_page/4 pages one entry at a time, in stable order", %{id: id} do
+    test "row_history/3 with cursor: paging pages one entry at a time, in stable order", %{
+      id: id
+    } do
       page1 =
-        Threadline.row_history_page(RkBigserialUser, id, [], repo: Repo, page_size: 1)
+        Threadline.row_history(RkBigserialUser, id, repo: Repo, page_size: 1, cursor: :start)
 
       assert length(page1.entries) == 1
-      assert page1.next_cursor
+      assert page1.has_more == true
+      assert page1.cursor
 
       page2 =
-        Threadline.row_history_page(RkBigserialUser, id, [],
+        Threadline.row_history(RkBigserialUser, id,
           repo: Repo,
           page_size: 1,
-          cursor: page1.next_cursor
+          cursor: page1.cursor
         )
 
       assert length(page2.entries) == 1
@@ -207,15 +211,15 @@ defmodule Threadline.Query.RowKeyReadTest do
                Threadline.as_of(RkBigserialUser, id, DateTime.utc_now(), repo: Repo)
     end
 
-    test "history/3 raises ArgumentError naming :id and the schema for an uncastable id" do
+    test "row_history/3 raises ArgumentError naming :id and the schema for an uncastable id" do
       assert_raise ArgumentError, ~r/:id/, fn ->
-        Threadline.history(RkBigserialUser, "not-a-number", repo: Repo)
+        RowHistory.changes(RkBigserialUser, "not-a-number", repo: Repo)
       end
     end
   end
 
-  describe "history of a dropped host table (fallback type map)" do
-    test "stays readable for history/3 and as_of/4 after DROP TABLE", %{tmp: tmp} do
+  describe "row_history/3 of a dropped host table (fallback type map)" do
+    test "stays readable for row_history/3 and as_of/4 after DROP TABLE", %{tmp: tmp} do
       table = "rk_dropped_users"
 
       Repo.query!("""
@@ -231,12 +235,12 @@ defmodule Threadline.Query.RowKeyReadTest do
       %{rows: [[id]]} = Repo.query!("INSERT INTO #{table} (name) VALUES ('a') RETURNING id")
       Repo.query!("UPDATE #{table} SET name = 'b' WHERE id = $1", [id])
 
-      before_drop = Threadline.history(RkDroppedUser, id, repo: Repo)
+      before_drop = RowHistory.changes(RkDroppedUser, id, repo: Repo)
       assert length(before_drop) == 2
 
       Repo.query!("DROP TABLE #{table}")
 
-      after_drop = Threadline.history(RkDroppedUser, id, repo: Repo)
+      after_drop = RowHistory.changes(RkDroppedUser, id, repo: Repo)
       assert Enum.map(after_drop, & &1.id) == Enum.map(before_drop, & &1.id)
 
       assert {:ok, %{"name" => "b"}} =
@@ -249,7 +253,7 @@ defmodule Threadline.Query.RowKeyReadTest do
       assert_raise ArgumentError,
                    ~r/:code.*RkMoneyCustomType.*public\.rk_unmappable_users/s,
                    fn ->
-                     Threadline.history(RkUnmappableUser, "x", repo: Repo)
+                     RowHistory.changes(RkUnmappableUser, "x", repo: Repo)
                    end
     end
   end

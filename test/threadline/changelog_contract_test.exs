@@ -270,15 +270,14 @@ defmodule Threadline.ChangelogContractTest do
     end
   end
 
-  test "pre-1.0 breaking changes propose a minor release, not 1.0.0" do
+  test "1.0 landing config disables pre-major minor bumps explicitly" do
     parsed = @release_please_config |> read!() |> Jason.decode!()
 
-    assert parsed["bump-minor-pre-major"] == true,
+    assert parsed["bump-minor-pre-major"] == false,
            "#{@release_please_config} sets `bump-minor-pre-major` to " <>
-             "#{inspect(parsed["bump-minor-pre-major"])}, not true. While the version is below " <>
-             "1.0.0, a BREAKING CHANGE must propose a minor bump. With this key off, the first " <>
-             "breaking commit makes release-please propose 1.0.0, a stability promise the " <>
-             "project has not decided to make."
+             "#{inspect(parsed["bump-minor-pre-major"])}, not false. The 1.0 landing explicitly " <>
+             "disables the pre-major minor bump; the committed Release-As footer and local " <>
+             "candidate rehearsal select the 1.0.0 target."
 
     assert parsed["bump-patch-for-minor-pre-major"] == false,
            "#{@release_please_config} sets `bump-patch-for-minor-pre-major` to " <>

@@ -83,27 +83,73 @@ defmodule Threadline.Query.Cursors do
   defp trim_actor_history(entries, _limit, false, true), do: Enum.reverse(entries)
   defp trim_actor_history(entries, _limit, false, false), do: entries
 
-  # The cursor at one edge of the page, or nil when that direction has no more
-  # records or the page is empty.
-  def actor_history_cursor(true, %{occurred_at: occurred_at, id: id}),
+  # The whole post-fetch step for one actor-history page: trim the
+  # `page_size + 1` fetch down to the page and build the one cursor for
+  # continuing in the direction walked. Kept separate from the DB fetch so a
+  # property test can exercise exactly the code the product runs without a
+  # database.
+  @doc """
+  Builds a `%Threadline.Page{}` from a `page_size + 1` actor-history fetch.
+  `direction` is the direction `raw` was fetched and ordered in; `:forward`
+  reads newer-to-older, `:backward` reads older-to-newer (and is reversed to
+  display order by `actor_history_trim/3`). The returned `cursor` continues
+  the walk in the same direction: a bare map for `:forward`, `{:before, map}`
+  for `:backward`.
+  """
+  @spec actor_history_page(
+          [Threadline.Capture.AuditTransaction.t()],
+          pos_integer(),
+          :forward | :backward
+        ) :: Threadline.Page.t()
+  def actor_history_page(raw, page_size, direction) when direction in [:forward, :backward] do
+    reverse? = direction == :backward
+    {entries, has_more?} = actor_history_trim(raw, page_size, reverse?)
+
+    cursor =
+      case {has_more?, direction} do
+        {false, _} -> nil
+        {true, :forward} -> actor_history_edge_cursor(List.last(entries))
+        {true, :backward} -> {:before, actor_history_edge_cursor(List.first(entries))}
+      end
+
+    %Threadline.Page{entries: entries, cursor: cursor, has_more: has_more?}
+  end
+
+  defp actor_history_edge_cursor(%{occurred_at: occurred_at, id: id}),
     do: %{occurred_at: occurred_at, id: id}
 
-  def actor_history_cursor(_more?, _entry), do: nil
+  @doc """
+  Validates the `:cursor` option for `actor_history/2`. `:start` begins a
+  forward walk; `nil` raises (naming `:start`); a map continues a forward
+  walk after it; `{:before, map}` walks backward from it. Returns
+  `{cursor_map_or_nil, direction}`.
+  """
+  @spec validate_actor_history_page_cursor!(
+          :start
+          | Threadline.Page.actor_cursor()
+          | {:before, Threadline.Page.actor_cursor()}
+        ) ::
+          {Threadline.Page.actor_cursor() | nil, :forward | :backward}
+  def validate_actor_history_page_cursor!(:start), do: {nil, :forward}
 
-  # The whole post-fetch step for one actor-history page: trim the `limit + 1`
-  # fetch down to the page, work out which edges have more data, and build
-  # both edge cursors. Kept separate from the DB fetch so a property test can
-  # exercise exactly the code the product runs without a database.
-  def actor_history_page(raw, limit, reverse?, after_cursor) do
-    {entries, has_more?} = actor_history_trim(raw, limit, reverse?)
+  def validate_actor_history_page_cursor!(nil) do
+    raise ArgumentError,
+          ":cursor must not be nil — pass cursor: :start to begin a walk, or the previous " <>
+            "page's cursor to continue; a page with has_more: false has no cursor."
+  end
 
-    has_next? = if reverse?, do: true, else: has_more?
-    has_prev? = if reverse?, do: has_more?, else: after_cursor != nil
+  def validate_actor_history_page_cursor!({:before, %{} = cursor}) do
+    {validate_actor_history_cursor!(cursor), :backward}
+  end
 
-    next_cursor = actor_history_cursor(has_next?, List.last(entries))
-    prev_cursor = actor_history_cursor(has_prev?, List.first(entries))
+  def validate_actor_history_page_cursor!(%{} = cursor) do
+    {validate_actor_history_cursor!(cursor), :forward}
+  end
 
-    {entries, next_cursor, prev_cursor}
+  def validate_actor_history_page_cursor!(cursor) do
+    raise ArgumentError,
+          ":cursor must be :start, %{occurred_at: %DateTime{}, id: uuid}, or " <>
+            "{:before, %{occurred_at: %DateTime{}, id: uuid}}, got: #{inspect(cursor)}"
   end
 
   def validate_actor_history_cursor!(nil), do: nil
@@ -170,10 +216,42 @@ defmodule Threadline.Query.Cursors do
           ":cursor must be nil or %{captured_at: %DateTime{}, id: uuid}, got: #{inspect(cursor)}"
   end
 
-  def timeline_page_next_cursor(entries, page_size) when length(entries) < page_size, do: nil
+  # `raw` is a fetch of up to `page_size + 1` rows in descending keyset
+  # order. The extra row (if present) only signals that more rows exist; it
+  # is dropped from `entries`. `has_more` is therefore exact: a page that is
+  # exactly full never falsely reports a cursor.
+  @doc """
+  Builds a `%Threadline.Page{}` from a `page_size + 1` fetch.
+  """
+  @spec change_page([Threadline.Capture.AuditChange.t()], pos_integer()) :: Threadline.Page.t()
+  def change_page(raw, page_size) when is_list(raw) and is_integer(page_size) do
+    has_more? = length(raw) > page_size
+    entries = Enum.take(raw, page_size)
 
-  def timeline_page_next_cursor(entries, _page_size) do
-    last = List.last(entries)
-    %{captured_at: last.captured_at, id: last.id}
+    cursor =
+      case {has_more?, List.last(entries)} do
+        {true, %{captured_at: captured_at, id: id}} -> %{captured_at: captured_at, id: id}
+        _ -> nil
+      end
+
+    %Threadline.Page{entries: entries, cursor: cursor, has_more: has_more?}
   end
+
+  @doc """
+  Validates the `:cursor` option for an always-paged read (`timeline_page/2`,
+  `actor_history/2`). `:start` (or an absent key, mapped to `:start` by the
+  caller) begins a walk; `nil` raises; a cursor map is validated by
+  `validate_timeline_cursor!/1`.
+  """
+  @spec validate_page_cursor!(:start | Threadline.Page.change_cursor() | nil) ::
+          Threadline.Page.change_cursor() | nil
+  def validate_page_cursor!(:start), do: nil
+
+  def validate_page_cursor!(nil) do
+    raise ArgumentError,
+          ":cursor must not be nil — pass cursor: :start to begin a walk, or the previous " <>
+            "page's cursor to continue; a page with has_more: false has no cursor."
+  end
+
+  def validate_page_cursor!(%{} = cursor), do: validate_timeline_cursor!(cursor)
 end

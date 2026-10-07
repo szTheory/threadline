@@ -11,6 +11,26 @@ defmodule Threadline.Semantics.AuditActionTest do
   end
 
   describe "record_action/2 — SEM-01: basic persistence" do
+    test "documented ActorRef construction succeeds and compiled docs show validation" do
+      {:ok, actor} = ActorRef.new(:user, "u-42")
+
+      opts =
+        Threadline.Job.context_opts(%{"correlation_id" => 42, "job_id" => 817})
+
+      assert {:ok, action} =
+               Threadline.record_action(
+                 :member_role_changed,
+                 [actor: actor, repo: @repo, category: "membership", verb: "update"] ++ opts
+               )
+
+      assert action.actor_ref == actor
+      assert action.correlation_id == "42"
+      assert action.job_id == "817"
+
+      assert function_doc_text(Threadline, :record_action, 2) =~
+               "ActorRef.new(:user, \"u-42\")"
+    end
+
     test "inserts an AuditAction with required fields" do
       assert {:ok, action} =
                Threadline.record_action(:member_role_changed,
@@ -35,6 +55,15 @@ defmodule Threadline.Semantics.AuditActionTest do
       found = @repo.get!(AuditAction, action.id, repo_opts())
       assert found.name == "test_action"
     end
+  end
+
+  defp function_doc_text(module, name, arity) do
+    {:docs_v1, _, _, _, _, _, docs} = Code.fetch_docs(module)
+
+    Enum.find_value(docs, "", fn
+      {{:function, ^name, ^arity}, _, _, %{"en" => text}, _} -> text
+      _ -> false
+    end)
   end
 
   describe "record_action/2 — storage_schema option" do

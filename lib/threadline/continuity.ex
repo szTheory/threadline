@@ -1,13 +1,14 @@
 defmodule Threadline.Continuity do
   @moduledoc """
-  Brownfield cutover helpers for honest **T₀** semantics with Threadline capture.
+  `Threadline.Continuity` documents the post-install capture boundary that
+  starts each table's audit history at its first trigger-fired mutation.
 
   **T₀** means there are no `AuditChange` rows for a table until the first
   real trigger-fired mutation **after** capture is installed. There is **no
   pre-trigger history** — operators must not expect retroactive audit rows for
   data that existed before triggers were live.
 
-  Consequently, `Threadline.history/3` returns **`[]`** for a primary key until
+  Consequently, `Threadline.row_history/3` returns **`[]`** for a primary key until
   that first post-install mutation produces an `audit_changes` row.
 
   Coverage checks reuse `Threadline.Health.trigger_coverage/1` (catalog queries
@@ -21,14 +22,28 @@ defmodule Threadline.Continuity do
   alias Threadline.Health.CoverageSchemas
   alias Threadline.StorageSchema
 
+  @typedoc "An option accepted by `explain_cutover/1`."
+  @type explain_cutover_opt :: Threadline.repo_opt()
+
+  @typedoc "An option accepted by `assert_capture_ready!/2`."
+  @type assert_capture_ready_opt :: Threadline.repo_opt() | {:schema, String.t()}
+
   @doc """
-  Returns a human-readable explanation of brownfield cutover steps (read-only).
+  Returns `{:ok, iodata()}` containing a human-readable, read-only explanation
+  of brownfield cutover steps. Raises `KeyError` when the required `:repo`
+  option is missing.
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module (used only when future steps need DB
-    metadata; today the explanation is static).
+  - `:repo` — `Ecto.Repo` module. Required for compatibility with continuity checks.
+
+  ## Returns
+
+  - `{:ok, iodata()}` — the cutover checklist as newline-separated text.
+
+  Other option keys are ignored.
   """
+  @spec explain_cutover([explain_cutover_opt()]) :: {:ok, iodata()}
   def explain_cutover(opts) do
     _repo = Keyword.fetch!(opts, :repo)
 
@@ -42,14 +57,16 @@ defmodule Threadline.Continuity do
         "4. Optionally run `mix threadline.continuity --dry-run` (or with `--table`) before cutover.",
         "",
         "Until the first audited write after triggers exist, `audit_changes` stays empty —",
-        "there is no pre-trigger history; `Threadline.history/3` may return `[]` for existing PKs."
+        "there is no pre-trigger history; `Threadline.row_history/3` may return `[]` for existing PKs."
       ]
 
     {:ok, Enum.intersperse(lines, ?\n)}
   end
 
   @doc """
-  Asserts that `table_name` exists and has a Threadline capture trigger.
+  Returns `:ok` when `table_name` exists and has a Threadline capture trigger;
+  raises `ArgumentError` when the table, schema, or trigger is missing, and
+  `KeyError` when the required `:repo` option is missing.
 
   Bare table names resolve to the public host schema by default. Pass
   `schema: "support"` for a selected host schema, or pass a schema-qualified
@@ -57,11 +74,17 @@ defmodule Threadline.Continuity do
 
   ## Options
 
-  - `:repo` — required `Ecto.Repo` module
-  - `:schema` — optional selected host schema for bare table names
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:schema` — host schema string. Optional. Selects the schema for a bare table name.
 
-  Raises `ArgumentError` if the table is unknown or not covered.
+  ## Returns
+
+  - `:ok` — the table exists and has an enabled Threadline capture trigger.
+  - Raises `ArgumentError` when the table or schema is unknown or the trigger is absent.
+
+  Other option keys are ignored.
   """
+  @spec assert_capture_ready!(String.t(), [assert_capture_ready_opt()]) :: :ok
   def assert_capture_ready!(table_name, opts) when is_binary(table_name) do
     repo = Keyword.fetch!(opts, :repo)
     parsed = StorageSchema.parse_table_identifier(table_name)

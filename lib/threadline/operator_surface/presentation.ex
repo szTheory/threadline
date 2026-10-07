@@ -82,7 +82,10 @@ defmodule Threadline.OperatorSurface.Presentation do
   # had not yet been referenced at runtime (e.g. :correlation, :arn, :actor, :email).
   @ref_kinds [:uuid, :correlation, :arn, :actor, :hash, :path, :email, :url, :timestamp]
 
-  @spec kinds() :: [atom()]
+  @type ref_kind ::
+          :uuid | :correlation | :arn | :actor | :hash | :path | :email | :url | :timestamp
+
+  @spec kinds() :: nonempty_list(ref_kind())
   def kinds, do: @ref_kinds
 
   @spec kind_from_string(String.t() | nil) :: atom() | nil
@@ -309,7 +312,7 @@ defmodule Threadline.OperatorSurface.Presentation do
     end
   end
 
-  @spec export_readiness_rank(map(), keyword()) :: non_neg_integer()
+  @spec export_readiness_rank(map(), keyword()) :: 0 | 1 | 2 | 3
   def export_readiness_rank(job, opts \\ []) do
     case export_readiness(job, opts) do
       :ready -> 0

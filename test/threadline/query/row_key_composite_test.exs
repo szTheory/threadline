@@ -1,6 +1,7 @@
 defmodule Threadline.Query.RowKeyCompositeTest do
   @moduledoc """
-  Proves `Threadline.history/3`, `row_history_page/4`, and `as_of/4` return
+  Proves `Threadline.row_history/3` (bare and with `cursor: :start`) and
+  `as_of/4` return
   captured rows for a composite-key table, through every accepted id-argument
   shape (keyword list, atom-keyed map, string-keyed map), and that a
   composite lookup never returns a sibling key's rows.
@@ -14,6 +15,7 @@ defmodule Threadline.Query.RowKeyCompositeTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction, TriggerSQL}
   alias Threadline.Test.MigrationHarness, as: Harness
+  alias Threadline.Test.RowHistory
 
   @line_items "rk_line_items"
   @dropped_pairs "rk_dropped_pairs"
@@ -93,11 +95,11 @@ defmodule Threadline.Query.RowKeyCompositeTest do
     end
 
     test "keyword list, atom-keyed map, and string-keyed map all return the (1,5) history" do
-      by_keyword = Threadline.history(RkLineItem, [tenant_id: 1, id: 5], repo: Repo)
-      by_atom_map = Threadline.history(RkLineItem, %{id: 5, tenant_id: 1}, repo: Repo)
+      by_keyword = RowHistory.changes(RkLineItem, [tenant_id: 1, id: 5], repo: Repo)
+      by_atom_map = RowHistory.changes(RkLineItem, %{id: 5, tenant_id: 1}, repo: Repo)
 
       by_string_map =
-        Threadline.history(RkLineItem, %{"tenant_id" => "1", "id" => "5"}, repo: Repo)
+        RowHistory.changes(RkLineItem, %{"tenant_id" => "1", "id" => "5"}, repo: Repo)
 
       for rows <- [by_keyword, by_atom_map, by_string_map] do
         assert length(rows) == 2
@@ -114,16 +116,16 @@ defmodule Threadline.Query.RowKeyCompositeTest do
     end
 
     test "(2,5) returns only its own insert, never the (1,5) rows" do
-      rows = Threadline.history(RkLineItem, [tenant_id: 2, id: 5], repo: Repo)
+      rows = RowHistory.changes(RkLineItem, [tenant_id: 2, id: 5], repo: Repo)
 
       assert length(rows) == 1
       assert hd(rows).op == "insert"
       assert hd(rows).table_pk == %{"tenant_id" => "2", "id" => "5"}
     end
 
-    test "row_history_page/4 and as_of/4 agree for (1,5)" do
+    test "row_history/3 with cursor: :start and as_of/4 agree for (1,5)" do
       page =
-        Threadline.row_history_page(RkLineItem, [tenant_id: 1, id: 5], [], repo: Repo)
+        Threadline.row_history(RkLineItem, [tenant_id: 1, id: 5], repo: Repo, cursor: :start)
 
       assert length(page.entries) == 2
 
@@ -154,10 +156,10 @@ defmodule Threadline.Query.RowKeyCompositeTest do
         repo_opts()
       )
 
-      rows = Threadline.history(RkLineItem, [tenant_id: 1, id: 5], repo: Repo)
+      rows = RowHistory.changes(RkLineItem, [tenant_id: 1, id: 5], repo: Repo)
       assert Enum.all?(rows, &(&1.table_pk != %{"id" => "5"}))
 
-      rows2 = Threadline.history(RkLineItem, [tenant_id: 2, id: 5], repo: Repo)
+      rows2 = RowHistory.changes(RkLineItem, [tenant_id: 2, id: 5], repo: Repo)
       assert Enum.all?(rows2, &(&1.table_pk != %{"id" => "5"}))
     end
   end
@@ -188,12 +190,12 @@ defmodule Threadline.Query.RowKeyCompositeTest do
         [Ecto.UUID.dump!(token)]
       )
 
-      before_drop = Threadline.history(RkDroppedPair, [account_id: 1, token: token], repo: Repo)
+      before_drop = RowHistory.changes(RkDroppedPair, [account_id: 1, token: token], repo: Repo)
       assert length(before_drop) == 2
 
       Repo.query!("DROP TABLE #{@dropped_pairs}")
 
-      after_drop = Threadline.history(RkDroppedPair, [account_id: 1, token: token], repo: Repo)
+      after_drop = RowHistory.changes(RkDroppedPair, [account_id: 1, token: token], repo: Repo)
       assert Enum.map(after_drop, & &1.id) == Enum.map(before_drop, & &1.id)
 
       assert {:ok, %{"note" => "b"}} =

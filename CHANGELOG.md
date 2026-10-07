@@ -24,7 +24,225 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
-_Nothing yet for the next release._
+## [1.0.0] - 2026-10-07
+
+`Threadline.Capture.AuditTransaction` and `Threadline.Semantics.AuditAction` no
+longer declare a direct Ecto association to each other, enforcing this
+project's capture/semantics layer boundary at the schema level. Reading the
+linked action still works the same way through `Threadline.transaction_context/2`
+and `Threadline.incident_bundle/2`.
+
+### Breaking changes
+
+- PostgreSQL 15 is the supported minimum. PostgreSQL 14 adopters must upgrade
+  their database before upgrading Threadline.
+  <!-- threadline:upgrade:1.0:pg-floor -->
+
+- `Threadline.Job.context_opts/2` now rejects unsupported `extra` keys and
+  malformed context IDs with `ArgumentError`; integer `:job_id` and
+  `:correlation_id` values are converted to strings. Required action: remove
+  unsupported extras and provide string, integer, or `nil` context IDs.
+  <!-- threadline:upgrade:1.0:job-context -->
+
+- These functions are no longer part of the documented API; they are still
+  callable and may change in 1.x:
+  - `Threadline.Evidence.Proof.present_record/1`
+  - `Threadline.Evidence.Proof.record_claim_assessment/1`
+  - `Threadline.StorageSchema.quote_ident/1`
+  - `Threadline.StorageSchema.qualify/2`
+  - `Threadline.StorageSchema.function/2`
+  - `Threadline.StorageSchema.parse_table_identifier/1`
+  - `Threadline.StorageSchema.qualified_host_table/1`
+  - `Threadline.StorageSchema.host_table_suffix/1`
+  <!-- threadline:upgrade:1.0:hidden-apis -->
+
+- `Threadline.timeline/2`, `Threadline.timeline_page/2`, and
+  `Threadline.actor_history/2`, `Threadline.actor_window/3`,
+  `Threadline.correlation_bundle/3`, `Threadline.export_csv/2`, and
+  `Threadline.export_json/2` now raise `ArgumentError` for unknown filter or
+  option keys; `:surface` and `:params` are not accepted. Required action:
+  remove unknown keys from calls to these functions. The direct
+  `Threadline.Export.to_csv_iodata/2`, `to_json_document/2`,
+  `count_matching/2`, `csv_header/1`, `format_changes_iodata/3`,
+  `stream_changes/2`, and `stream_export_rows/2` functions also reject unknown
+  option keys, including `:surface` and `:params`.
+  <!-- threadline:upgrade:1.0:strict-options -->
+
+- `Threadline.transaction_context/2` now returns `{:ok, %Threadline.Investigation.LinkedTransaction{}}`
+  or `{:error, :not_found}` instead of a bare struct. Before:
+
+  ```elixir
+  ctx = Threadline.transaction_context(id, repo: Repo)
+  if ctx.transaction, do: render(ctx)
+  ```
+
+  After:
+
+  ```elixir
+  case Threadline.transaction_context(id, repo: Repo) do
+    {:ok, ctx} -> render(ctx)
+    {:error, :not_found} -> :not_found
+  end
+  ```
+
+  The 0.12 idiom of matching `%LinkedTransaction{transaction: nil}` for a
+  missing transaction no longer happens — a missing id and an id filtered out
+  by the scope both now return `{:error, :not_found}`, and an existing
+  transaction with no visible changes now returns
+  `{:ok, %LinkedTransaction{changes: []}}` with its transaction set. Required
+  action: use `Threadline.transaction_context!/2` when absence is a bug, or
+  `case` on the tuple.
+  <!-- threadline:upgrade:1.0:linked-lookup-shape -->
+
+- `Threadline.audit_transaction/2`, `transaction_context/2` and
+  `incident_bundle/2`, and their `!` siblings, accept only `:repo`,
+  `:storage_schema`, `:scope` and `:scope_query_fn` — `:surface`, `:params`
+  and `:preload` now raise `ArgumentError` (previously silently dropped or
+  honored). A binary id that is not a valid UUID now returns
+  `{:error, :not_found}` (the bangs raise `Threadline.NotFoundError`) instead
+  of raising `ArgumentError`; a non-binary id still raises. A
+  `scope_query_fn` configured for these three now sees the transaction row
+  under `surface: :transaction_header` with a single `[at]` binding, and its
+  changes under `surface: :transaction`. Missing `:repo` raises `KeyError`
+  before the id is checked, regardless of the id shape. Required action: drop
+  those option keys from calls to these three lookups; give your
+  `scope_query_fn` a `:transaction_header` clause.
+  <!-- threadline:upgrade:1.0:transaction-lookup-options -->
+
+- An un-hydrated `AuditTransaction.action` is now `nil` instead of
+  `%Ecto.Association.NotLoaded{}`. `AuditTransaction` no longer declares
+  `belongs_to :action, Threadline.Semantics.AuditAction` and `AuditAction` no
+  longer declares `has_many :transactions, Threadline.Capture.AuditTransaction`,
+  so a bare `Repo.preload(transaction, :action)` in adopter code now raises.
+  Required action: read the linked action through
+  `Threadline.transaction_context/2` or `Threadline.incident_bundle/2`, or
+  query `audit_actions` directly by `action_id`. The `action_id` column and its
+  foreign key are unchanged.
+  <!-- threadline:upgrade:1.0:association-hydration -->
+
+- `Threadline.Query.TimelinePage` is removed. `Threadline.timeline_page/2`
+  (and the row-history, actor-window and correlation-bundle pagers) return
+  `%Threadline.Page{entries, cursor, has_more}`; `next_cursor` is now
+  `cursor`; `has_more` is exact, so a final full page no longer returns a
+  cursor; passing `cursor: nil` raises `ArgumentError` — start a walk with
+  `cursor: :start` or omit `:cursor`. Required action: pattern-match
+  `%Threadline.Page{}` and read `.cursor` / `.has_more`.
+  <!-- threadline:upgrade:1.0:timeline-page -->
+
+- `Threadline.Query.ActorHistoryPage` is removed. `Threadline.actor_history/2`
+  returns `%Threadline.Page{entries, cursor, has_more}`: `next_cursor` and
+  `prev_cursor` are replaced by one `cursor` for the direction walked
+  (`{:before, %{occurred_at, id}}` when walking newer) plus exact `has_more`.
+  Required action: pattern-match `%Threadline.Page{}` and read `.cursor` /
+  `.has_more`.
+  <!-- threadline:upgrade:1.0:actor-history-page -->
+
+- `Threadline.row_history/2,3` now take one keyword opts list (filters and
+  paging options together) and return at most 200 changes by default,
+  newest first. Pass `limit: :infinity` for the whole history, or `cursor:
+  :start` (with optional `page_size:`) to page through it as a
+  `%Threadline.Page{}`. `:limit` combined with `:cursor`, or `:page_size`
+  without `:cursor`, raises `ArgumentError`. `actor_window/3` and
+  `correlation_bundle/3` gain the same `cursor:`/`page_size:` paging option
+  while keeping their existing `(subject, filters, opts)` shape. Required
+  action: pass `limit: :infinity` if you relied on the previous unbounded
+  default.
+  <!-- threadline:upgrade:1.0:bounded-row-history -->
+
+- The `Threadline.Telemetry` `emit_*` functions and
+  `Threadline.Query.export_changes_query/1,2` no longer appear in the
+  generated docs. They were internal helpers, not part of the supported API,
+  and remain callable but unsupported. Required action: none for adopters
+  using the documented API.
+  <!-- threadline:upgrade:1.0:hidden-helpers -->
+
+- Passing a non-nil `:scope` without a 3-arity `:scope_query_fn`, or a
+  `:scope_query_fn` that is not 3-arity, now raises `ArgumentError` on every
+  scoped read — `timeline/2`, `timeline_page/2`, `row_history/3`,
+  `actor_history/2`, `actor_window/3`, `correlation_bundle/3`,
+  `audit_changes_for_transaction/2`, `audit_transaction/2`,
+  `transaction_context/2`, `incident_bundle/2`, `export_csv/2`,
+  `export_json/2`, and both operator-surface transports (LiveView mounts and
+  the HTTP export controller) — instead of silently reading every tenant's
+  rows. `scope: nil` with a `scope_query_fn` configured still reads unscoped
+  (the host's explicit unscoped authorization, for example an
+  `authorize_fn` that returns `:ok` for admins). Required action: pair every
+  non-nil `:scope` with a 3-arity `scope_query_fn`, or pass `scope: nil` for
+  an intentionally unscoped read; end your `scope_query_fn` with a deny-all
+  clause (`where(query, false)`) rather than a catch-all that returns the
+  query unchanged.
+  <!-- threadline:upgrade:1.0:fail-closed-scope -->
+
+### Deprecations
+
+- `Threadline.Query.audit_transaction/2` is deprecated in favor of
+  `Threadline.audit_transaction/2`. It still returns the transaction or
+  `nil`, still raises `ArgumentError` on a malformed id, and its `:preload`
+  option — including passing `:action` (or `transaction: :action`), which
+  still returns a hydrated `.action` and still emits one deprecation warning
+  per call — still works. It emits one compiler deprecation warning naming
+  `Threadline.audit_transaction/2`. Removal is no earlier than Threadline 2.0.
+  <!-- threadline:upgrade:1.0:deprecated-query-audit-transaction -->
+
+- Passing `:action` (or `transaction: :action`) in the `:preload` option of
+  `Threadline.Query.audit_changes_for_transaction/2` still works and still
+  returns a hydrated `.action` — it now emits one deprecation warning per call.
+  Removal is no earlier than Threadline 2.0.
+  <!-- threadline:upgrade:1.0:deprecated-preload-action -->
+
+- `Threadline.row_history/4` (the retired `(schema, id, filters, opts)`
+  shape) still works and keeps its previous unbounded default. It emits one
+  compiler deprecation warning naming `row_history/3`. Removal is no earlier
+  than Threadline 2.0.
+  <!-- threadline:upgrade:1.0:deprecated-row-history-4 -->
+
+- `Threadline.history/3` still works and keeps its previous unbounded default
+  and its plain `%AuditChange{}` return shape. It emits one compiler
+  deprecation warning naming `row_history/3` — pass `limit: :infinity` for
+  the same unbounded read; map `.audit_change` on a `row_history/3` result to
+  recover the same struct this function returns. Removal is no earlier than
+  Threadline 2.0.
+
+  <!-- threadline:upgrade:1.0:deprecated-history-3 -->
+
+- `Threadline.row_history_page/2,3,4` still works and keeps its previous
+  "absent or `nil` `:cursor` means first page" convention. It emits one
+  compiler deprecation warning naming `row_history/3` — pass `cursor: :start`
+  (with optional `page_size:`) instead. Removal is no earlier than
+  Threadline 2.0.
+  <!-- threadline:upgrade:1.0:deprecated-row-history-page -->
+
+- `Threadline.actor_window_page/1,2,3` still works the same way. It emits one
+  compiler deprecation warning naming `actor_window/3` — pass `cursor: :start`
+  (with optional `page_size:`) instead. Removal is no earlier than
+  Threadline 2.0.
+  <!-- threadline:upgrade:1.0:deprecated-actor-window-page -->
+
+- `Threadline.correlation_bundle_page/1,2,3` still works the same way. It
+  emits one compiler deprecation warning naming `correlation_bundle/3` — pass
+  `cursor: :start` (with optional `page_size:`) instead. Removal is no
+  earlier than Threadline 2.0.
+  <!-- threadline:upgrade:1.0:deprecated-correlation-bundle-page -->
+
+- `Threadline.actor_history/2`'s `:after`, `:before` and `:limit` options
+  still work and each still emits one deprecation warning per call. They are
+  replaced by `cursor:` (a map, or `{:before, map}` to walk newer) and
+  `page_size:`. Removal is no earlier than Threadline 2.0.
+  <!-- threadline:upgrade:1.0:deprecated-actor-history-options -->
+
+### Changed
+
+- Options and results now have named types. Dialyzer users may see new warnings on calls Threadline already rejects at runtime.
+
+### Added
+
+- `Threadline.audit_transaction/2`, and `audit_transaction!/2`,
+  `transaction_context!/2`, `incident_bundle!/2`, which raise
+  `Threadline.NotFoundError` when the id is missing or filtered out by the
+  scope. `Threadline.NotFoundError` implements `Plug.Exception` with status
+  404.
+- `[:threadline, :row_history, :truncated]` telemetry fires when
+  `Threadline.row_history/3`'s default 200-row cap drops older changes.
 
 ## [0.12.0] - 2026-10-02
 
@@ -33,6 +251,8 @@ This release adds export and retention telemetry with a new telemetry guide, a
 flags for `mix threadline.health.coverage`, and a legacy-key health warning for
 audit rows captured before 0.11. It carries three breaking changes, each with
 a fix below.
+
+<a id="breaking-changes-0-12-0"></a>
 
 ### Breaking changes
 
@@ -43,6 +263,7 @@ a fix below.
   `exclude: [:ssn]`. A non-string `mask_placeholder:` now raises
   `ArgumentError` instead of `FunctionClauseError`; no fix is needed beyond
   passing a string.
+  <!-- threadline:upgrade:0.12:config-shape -->
 - The `[:threadline, :operator_surface, :authorize]`, `[:threadline,
   :operator_surface, :export_authorize]` and `[:threadline, :operator_surface,
   :actor_ref_mismatch]` telemetry events no longer carry `actor_ref`,
@@ -51,11 +272,13 @@ a fix below.
   read the actor from your own session or scope instead. `result`, `count`,
   `path` and `scope_keys` are unchanged; `actor_ref_mismatch` is now a pure
   incidence counter with no metadata.
+  <!-- threadline:upgrade:0.12:telemetry-actor -->
 - The `[:threadline, :health, :checked, :error]` telemetry event's metadata is
   now `%{exception: module}` instead of `%{error: message}`, because
   exception messages can echo database values. Fix: match `%{exception: mod}`
   in your handler; `Threadline.Telemetry.emit_health_checked_error/1` now
   takes the exception struct itself, not a string.
+  <!-- threadline:upgrade:0.12:health-error -->
 
 ### Added
 

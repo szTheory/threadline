@@ -68,10 +68,36 @@ defmodule Threadline.DialyzerIgnoreContractTest do
     dialyzer = Keyword.fetch!(project, :dialyzer)
 
     assert Enum.sort(Keyword.fetch!(dialyzer, :plt_add_apps)) == Enum.sort(@required_plt_apps)
-    assert Enum.sort(Keyword.fetch!(dialyzer, :flags)) == [:extra_return, :unmatched_returns]
+
+    assert Enum.sort(Keyword.fetch!(dialyzer, :flags)) ==
+             [:error_handling, :extra_return, :missing_return, :underspecs, :unmatched_returns]
+
     refute :unknown in Keyword.get(dialyzer, :remove_defaults, [])
     assert Keyword.fetch!(dialyzer, :ignore_warnings) == ".dialyzer_ignore.exs"
     assert Keyword.fetch!(dialyzer, :list_unused_filters)
+  end
+
+  test "no lib module carries an @dialyzer attribute" do
+    source_files = Path.wildcard(Path.join(@root, "lib/**/*.ex"))
+
+    assert source_files != [], "the lib scan found no Elixir source files"
+
+    offenders =
+      Enum.filter(source_files, fn path ->
+        path |> File.read!() |> String.contains?("@dialyzer")
+      end)
+
+    assert offenders == [],
+           "Dialyzer suppressions are forbidden under lib/: #{inspect(offenders)}"
+  end
+
+  test "no :no_* Dialyzer flag is configured" do
+    flags = Threadline.MixProject.project() |> Keyword.fetch!(:dialyzer) |> Keyword.fetch!(:flags)
+
+    refute Enum.any?(flags, fn flag ->
+             String.starts_with?(Atom.to_string(flag), "no_")
+           end),
+           "no_* flags suppress warnings instead of checking them"
   end
 
   test "fixture documentation preserves provenance, update commands, and the zero ceiling" do

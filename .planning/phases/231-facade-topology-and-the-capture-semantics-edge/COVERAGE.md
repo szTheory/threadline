@@ -1,0 +1,1 @@
+No external API integration: Phase 231 is an in-repo refactor of Threadline's own Elixir modules, Ecto schemas, ExDoc configuration, guides and tests — the "API" it touches is Threadline's own public read API, not any external service, SDK or endpoint.

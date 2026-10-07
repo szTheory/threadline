@@ -18,7 +18,7 @@ defmodule Threadline.AuditIndexingDocContractTest do
           "### audit_transactions",
           "### audit_changes",
           "### audit_actions",
-          "## Timeline and Threadline.Query",
+          "## Timeline and Threadline.timeline/2",
           "## Export and Threadline.Export",
           "## Correlation filtering",
           "## Retention and Threadline.Retention",
