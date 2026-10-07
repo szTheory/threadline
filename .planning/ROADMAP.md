@@ -290,7 +290,14 @@ Plans:
   3. `bin/ci-test-partitions --write-weights` has regenerated `test/partition_weights.txt`, so the 10 unweighted v1.44 property files and every test added in 231-235 are weighted. A permanent check fails when any test file is missing from the weights file, and a deliberately unweighted file turns it red (mutation control recorded).
   4. `mix ci.all` is green.
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+**Wave 1**
+- [ ] 236-01-PLAN.md — Source-checked support policy and PostgreSQL 15 floor
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 236-02-PLAN.md — Complete partition weights and PostgreSQL 15 gate proof
 
 ### Phase 237: Upgrade Guide and 1.0.0
 
@@ -315,7 +322,7 @@ Plans:
 | 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
 | 234. Typespec and Doc Completion Gate | 22/22 | Complete    | 2026-10-06 |
 | 235. Stability Contract and Adopter Guides | 5/5 | Complete    | 2026-10-06 |
-| 236. Support Floor and Partition Weights | 0/TBD | Not started | - |
+| 236. Support Floor and Partition Weights | 0/2 | Planned | - |
 | 237. Upgrade Guide and 1.0.0 | 0/TBD | Not started | - |
 
 ## Prior Milestones
