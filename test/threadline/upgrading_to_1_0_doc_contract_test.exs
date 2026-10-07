@@ -187,7 +187,24 @@ defmodule Threadline.UpgradingTo100DocContractTest do
   end
 
   test "the guide is registered in ExDoc and the Adopt guide graph" do
-    assert String.contains?(File.read!("mix.exs"), "\"guides/upgrading-to-1.0.md\"")
+    mix = File.read!("mix.exs")
+    assert String.contains?(mix, "\"guides/upgrading-to-1.0.md\"")
+
+    adopt_group =
+      mix
+      |> String.split("Adopt:", parts: 2)
+      |> List.last()
+      |> String.split("Operate:", parts: 2)
+      |> hd()
+
+    assert String.contains?(adopt_group, "upgrading-to-1\\.0")
+
+    guide = File.read!(@guide_path)
+    assert String.contains?(guide, "timeline_page/2")
+    assert String.contains?(guide, "actor_history/2")
+    assert String.contains?(guide, "actor_window/3")
+    assert String.contains?(guide, "correlation_bundle/3")
+
     graph = File.read!("test/threadline/guide_graph_contract_test.exs")
     assert String.contains?(graph, "\"guides/upgrading-to-1.0.md\"")
   end

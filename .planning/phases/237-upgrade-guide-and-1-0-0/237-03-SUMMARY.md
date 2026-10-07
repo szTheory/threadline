@@ -41,7 +41,7 @@ key-decisions:
 patterns-established:
   - "Record release proofs against immutable source, base, and candidate SHAs."
   - "Use task-local caches for isolated release rehearsals and browser verification."
-requirements-completed: [REL-01, REL-02, REL-03]
+requirements-completed: [REL-01, REL-02]
 coverage:
   - id: D1
     description: Exact milestone breaking-footer audit reconciled with the human 1.0 changelog and upgrade guide.

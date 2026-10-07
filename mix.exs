@@ -619,7 +619,7 @@ defmodule Threadline.MixProject do
         Evaluate:
           ~r{^guides/(evaluating-threadline|how-threadline-works|code-walkthrough|domain-reference)\.md$},
         Adopt:
-          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|redaction|stability|supported-tables|upgrading-to-0\.11|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
+          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|redaction|stability|supported-tables|upgrading-to-0\.11|upgrading-to-1\.0|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
         Operate:
           ~r{^guides/(operator-surface|incident-playbook|performance|audit-indexing|adoption-evidence-playbook|telemetry)\.md$},
         Contribute:

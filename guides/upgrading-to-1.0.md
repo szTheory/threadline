@@ -55,8 +55,10 @@ with a deny-all clause such as `where(query, false)`.
 
 ## Step 3: Use the shared Page shape
 
-Timeline and actor-history paging return `%Threadline.Page{entries, cursor,
-has_more}`. Replace page-specific result matches with `Threadline.Page`; read
+`timeline_page/2` and `actor_history/2` return
+`%Threadline.Page{entries, cursor, has_more}`. Passing `cursor:` to
+`row_history/3`, `actor_window/3`, or `correlation_bundle/3` returns the same
+shape. Replace page-specific result matches with `Threadline.Page`; read
 `.cursor` and `.has_more`. A final full page has no cursor, and a first-page
 request should omit `:cursor` or use `cursor: :start`, not `cursor: nil`.
 

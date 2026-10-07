@@ -32,7 +32,7 @@ key-decisions:
   - "Local candidate artifact simulation reports SOURCE_SHA and explicitly makes no live Release Please claim."
 patterns-established:
   - "Candidate validation is a pure shell helper so fixture controls can prove fail-closed metadata checks without cloning or fetching dependencies."
-requirements-completed: [REL-01, REL-03]
+requirements-completed: [REL-01]
 coverage:
   - id: D1
     description: "Strict candidate mode binds local artifact simulation to one committed feat! candidate with an exact 1.0.0 footer and explicit JSON false setting."
@@ -50,7 +50,7 @@ coverage:
     human_judgment: false
   - id: D2
     description: "Parser mutation fixtures reject invalid candidate metadata while required routine CI remains connected to generic rehearsal mode."
-    requirement: REL-03
+    requirement: REL-01
     verification:
       - kind: unit
         ref: "test/threadline/ci_topology_contract_test.exs"
