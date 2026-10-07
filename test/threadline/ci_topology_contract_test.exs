@@ -16,6 +16,118 @@ defmodule Threadline.CiTopologyContractTest do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
 
+  defp enumerated_test_files! do
+    {output, status} =
+      System.cmd(
+        "find",
+        ["test", "-type", "f", "-name", "*_test.exs", "!", "-path", "*/.*"],
+        cd: @repo_root,
+        stderr_to_stdout: true
+      )
+
+    if status == 0 do
+      output |> String.split("\n", trim: true) |> Enum.sort()
+    else
+      raise "test inventory command failed with status #{status}: #{output}"
+    end
+  end
+
+  defp partition_weight_inventory_errors(inventory, weights_content) do
+    parsed_rows =
+      weights_content
+      |> String.split("\n")
+      |> Enum.with_index(1)
+      |> Enum.reject(fn {line, _line_number} ->
+        trimmed = String.trim_leading(line)
+        String.trim(line) == "" or String.starts_with?(trimmed, "#")
+      end)
+      |> Enum.map(fn {line, line_number} ->
+        case Regex.run(~r/^\s*([0-9]+)[ \t]+(test\/[^ \t]+)\s*$/, line) do
+          [_, _milliseconds, path] -> {:ok, path}
+          _ -> {:error, "malformed weight row at line #{line_number}: #{inspect(line)}"}
+        end
+      end)
+
+    row_errors = for {:error, error} <- parsed_rows, do: error
+    paths = for {:ok, path} <- parsed_rows, do: path
+    inventory_set = MapSet.new(inventory)
+    weight_set = MapSet.new(paths)
+
+    duplicate_errors =
+      paths
+      |> Enum.frequencies()
+      |> Enum.filter(fn {_path, count} -> count > 1 end)
+      |> Enum.map(fn {path, _count} -> "duplicate weight path #{path}" end)
+
+    missing_errors =
+      inventory
+      |> Enum.uniq()
+      |> Enum.reject(&MapSet.member?(weight_set, &1))
+      |> Enum.sort()
+      |> Enum.map(&"missing weight for #{&1}")
+
+    stale_errors =
+      paths
+      |> Enum.uniq()
+      |> Enum.reject(&MapSet.member?(inventory_set, &1))
+      |> Enum.sort()
+      |> Enum.map(&"weight path is not a discovered test file: #{&1}")
+
+    sorted_errors =
+      if paths == Enum.sort(paths), do: [], else: ["weight rows must be sorted by path"]
+
+    empty_errors = if paths == [], do: ["weight inventory must not be empty"], else: []
+
+    row_errors ++
+      duplicate_errors ++ sorted_errors ++ missing_errors ++ stale_errors ++ empty_errors
+  end
+
+  test "committed partition weights cover the complete test inventory" do
+    inventory = enumerated_test_files!()
+    weights_content = read_rel!(["test", "partition_weights.txt"])
+
+    errors = partition_weight_inventory_errors(inventory, weights_content)
+
+    assert errors == [],
+           "partition weight inventory is incomplete or invalid: #{Enum.join(errors, "; ")}"
+
+    omitted_path = List.first(inventory)
+    assert omitted_path, "the test inventory must not be empty"
+
+    omitted_weights =
+      weights_content
+      |> String.split("\n")
+      |> Enum.reject(fn line ->
+        case Regex.run(~r/^\s*[0-9]+[ \t]+(test\/[^ \t]+)\s*$/, line) do
+          [_, ^omitted_path] -> true
+          _ -> false
+        end
+      end)
+      |> Enum.join("\n")
+
+    omitted_errors = partition_weight_inventory_errors(inventory, omitted_weights)
+
+    assert "missing weight for #{omitted_path}" in omitted_errors,
+           "omitting a real test file must name it in the inventory error"
+
+    assert partition_weight_inventory_errors(["test/a_test.exs"], "1 test/a_test.exs\n") == []
+
+    assert "malformed weight row at line 1: \"not-a-weight test/a_test.exs\"" in partition_weight_inventory_errors(
+             ["test/a_test.exs"],
+             "not-a-weight test/a_test.exs\n"
+           )
+
+    assert "duplicate weight path test/a_test.exs" in partition_weight_inventory_errors(
+             ["test/a_test.exs"],
+             "1 test/a_test.exs\n2 test/a_test.exs\n"
+           )
+
+    assert "weight rows must be sorted by path" in partition_weight_inventory_errors(
+             ["test/a_test.exs", "test/b_test.exs"],
+             "2 test/b_test.exs\n1 test/a_test.exs\n"
+           )
+  end
+
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
