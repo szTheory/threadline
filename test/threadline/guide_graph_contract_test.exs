@@ -58,13 +58,15 @@ defmodule Threadline.GuideGraphContractTest do
   test "the Markdown resolver reports missing paths and normalized anchors" do
     files = %{
       "guides/source.md" =>
-        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[code](target.md#code-only)\n[bad](missing.md)",
+        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[code](target.md#code-only)\n[indented](target.md#indented-code-only)\n[bad](missing.md)",
       "guides/target.md" =>
-        "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n```html\n<a id=\"code-only\"></a>\n```\n"
+        "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n```html\n<a id=\"code-only\"></a>\n```\n    <a id=\"indented-code-only\"></a>\n"
     }
 
     assert validate_links("guides/source.md", files["guides/source.md"], files) == [
              {:missing_anchor, "guides/source.md", "target.md#code-only", "code-only"},
+             {:missing_anchor, "guides/source.md", "target.md#indented-code-only",
+              "indented-code-only"},
              {:missing_path, "guides/source.md", "missing.md", "guides/missing.md"}
            ]
 
@@ -359,8 +361,15 @@ defmodule Threadline.GuideGraphContractTest do
         case fence do
           nil ->
             case Regex.run(~r/^\s{0,3}(`{3,}|~{3,})/, line, capture: :all_but_first) do
-              [opening] -> {opening, lines}
-              _ -> {nil, [line | lines]}
+              [opening] ->
+                {opening, lines}
+
+              _ ->
+                if Regex.match?(~r/^(?: {4,}|\t)/, line) do
+                  {nil, lines}
+                else
+                  {nil, [line | lines]}
+                end
             end
 
           opening ->
