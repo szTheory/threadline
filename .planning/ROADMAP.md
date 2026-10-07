@@ -311,7 +311,14 @@ Plans:
   3. `release-please-config.json` has `bump-minor-pre-major` off in the landing change. `mix verify.bump_rehearsal`, run on committed HEAD, shows 1.0.0 and not 0.13.0 before merge. The squash commit carries a `Release-As: 1.0.0` footer.
   4. The milestone lands on main as one squash with a conventional `feat!:` title. `CI required` is green, including the `min` lane on PostgreSQL 15 and the `latest` lane with re-checked pins. hex.pm serves threadline 1.0.0. Push, merge and the `production-hex` publish each run under an explicit maintainer grant.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 237-01-PLAN.md — Publish the complete 1.0 upgrade path and exact changelog contract
+- [ ] 237-02-PLAN.md — Bind the local release rehearsal to a committed 1.0.0 candidate
+- [ ] 237-03-PLAN.md — Audit milestone footers and prove the isolated candidate locally
+- [ ] 237-04-PLAN.md — Push and land the milestone under separate grants
+- [ ] 237-05-PLAN.md — Merge the Release PR and publish Hex under separate grants
 
 ## Progress
 
