@@ -6,7 +6,7 @@ are already on 0.12.x, skip the preflight and continue with Step 1.
 ## Before you upgrade from 0.11.x
 
 Complete these three changes from 0.12.0 before moving to 1.0.0. The full
-source notes are in the [0.12.0 breaking changes](../CHANGELOG.md#breaking-changes)
+source notes are in the [0.12.0 breaking changes](../CHANGELOG.md#breaking-changes-0-12-0)
 and their adopter route is in the [upgrade path](upgrade-path.md).
 
 - Use lists for `exclude:`, `mask:`, and `except_columns:` table options, and
@@ -114,7 +114,7 @@ earlier than 2.0. Move to the listed replacement before then:
 - Replace the legacy positional row-history call with `row_history/3`, using
   one keyword options list.
   <!-- threadline:upgrade:1.0:deprecated-row-history-4 -->
-- Replace the removed unbounded history call with `row_history/3`. Pass
+- Replace the deprecated `Threadline.history/3` call with `row_history/3`. Pass
   `limit: :infinity` for its prior unbounded behavior and map `.audit_change`
   when callers need the old `%AuditChange{}` result.
   <!-- threadline:upgrade:1.0:deprecated-history-3 -->

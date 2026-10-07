@@ -252,6 +252,8 @@ flags for `mix threadline.health.coverage`, and a legacy-key health warning for
 audit rows captured before 0.11. It carries three breaking changes, each with
 a fix below.
 
+<a id="breaking-changes-0-12-0"></a>
+
 ### Breaking changes
 
 - A non-list `exclude:`/`mask:`/`except_columns:` on a

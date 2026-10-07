@@ -128,8 +128,8 @@ defmodule Threadline.UpgradingTo100DocContractTest do
   end
 
   test "the 0.11-only preflight maps the three 0.12.0 breaking changes exactly" do
-    source =
-      changelog_scope!(changelog(), "0.12") |> subsection!("Breaking changes", @changelog_path)
+    release_012 = changelog_scope!(changelog(), "0.12")
+    source = subsection!(release_012, "Breaking changes", @changelog_path)
 
     source_ids = bullet_ids!(source, "0.12", @changelog_path)
 
@@ -146,6 +146,8 @@ defmodule Threadline.UpgradingTo100DocContractTest do
     assert String.contains?(preflight, "0.11.x")
     assert String.contains?(preflight, "upgrade-path.md")
     assert String.contains?(preflight, "CHANGELOG.md")
+    assert String.contains?(preflight, "CHANGELOG.md#breaking-changes-0-12-0")
+    assert String.contains?(release_012, "<a id=\"breaking-changes-0-12-0\"></a>")
     assert_exact_ids!(source_ids, guide_ids, "0.12")
   end
 
@@ -184,6 +186,7 @@ defmodule Threadline.UpgradingTo100DocContractTest do
     assert String.contains?(content, "AuditAction")
     assert String.contains?(content, "action_id")
     assert String.contains?(content, "PostgreSQL 15")
+    assert String.contains?(content, "deprecated `Threadline.history/3` call")
   end
 
   test "the guide is registered in ExDoc and the Adopt guide graph" do
