@@ -99,7 +99,7 @@ Plans:
   4. Each retired entry point (`history/3`, `row_history/4`, `row_history_page/4` and the filters-as-positional-argument shapes, on every module that exposed them) is a one-line `@deprecated` delegate. Each has a parity test against its replacement and a spec matching the replacement's. The replacements carry `@doc since: "1.0.0"`. `mix compile --warnings-as-errors` is clean for `lib/`, `test/` and the example app.
   5. The `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and moduledoc-less modules such as `Threadline.Export.CSV` are absent from `Code.fetch_docs/1` output. A grep test finds no reference to any hidden name in guides, the README or the example app.
 
-**Plans**: 15 plans
+**Plans**: 6/6 plans complete
 
 Plans:
 **Wave 1**

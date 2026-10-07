@@ -6,11 +6,11 @@ current_phase: 236
 current_phase_name: Support Floor and Partition Weights
 current_plan: Not started
 status: planning
-stopped_at: Phase 235 complete, ready to plan Phase 236
-last_updated: "2026-10-07T02:58:51.689Z"
+stopped_at: Phase 232 re-verified; ready to plan Phase 236
+last_updated: "2026-10-07T13:20:52.702Z"
 last_activity: 2026-10-07
-last_activity_desc: Phase 235 complete, transitioned to Phase 236
-state_head: 591e0eb6b904202f7ad6375f390373fe3737648d
+last_activity_desc: Phase 232 re-verified against current source; Phase 236 remains next
+state_head: e34f66909f1f88cba1fb3c0908cb5a409bd63afb
 progress:
   total_phases: 7
   completed_phases: 5
@@ -40,9 +40,10 @@ Plan 234-18 documented StorageSchema.role/0 without changing its union or runtim
 235-03 added live catalog pins for audit storage columns and indexes, plus literal actor-GUC/function-name contracts and source-use mutation controls. Both focused suites and format passed. Commits: `fd99af78`, `cf9f5525`; summary `235-03-SUMMARY.md`. CONTRACT-02 and CONTRACT-03 are Complete. Phase 235 is now complete.
 235-04 added observed export and Finding-code pins plus literal Threadline task flags, operator options, and mount routes. Both focused suites passed (7 tests, 0 failures) and format passed. Commits: `1bfd52f0`, `ccf2e468`; summary `235-04-SUMMARY.md`. CONTRACT-04 is Complete.
 235-05 documented stable field subsets for AuditChange, AuditTransaction, and AuditAction, plus additive captured-data shapes and schema/document removal controls. Focused contracts passed (10 tests, 0 failures), format passed, and warning-free docs passed. Commits: `fcdd2cd2`, `6f42507c`; summary `235-05-SUMMARY.md`. CONTRACT-05 is Complete. Final `mix ci.all` passed after the five plan references were made portable: root 3,047/0, example 130/0, Dialyzer clean, and browser 318/26. Repository hygiene found 4,651 tracked text files clean.
-Last activity: 2026-10-07 — Phase 235 verified and complete, transitioned to Phase 236
+232 re-verification on 2026-10-07 passed all 62 plan must-haves and five roadmap criteria. Corrected the retired row_history/4 documentation to preserve the approved filters-first precedence (81287560); runtime unchanged. Current mix ci.all and strict warning gate passed: 3,047 root tests plus 32 properties, example 132 tests, Dialyzer clean, browser 318 passed/26 skipped. Code review is clean; all 19 planned threats are closed; Nyquist validation is compliant. Read-only probes resolved cursor precision, UTF-8 scanner matching, and diagnostic ordering. Completion reported six legacy-summary path warnings (command strings, a brace glob, the intentionally deleted ActorHistoryPage, and an example-relative script path); current artifact verification passed 15/15, so these are metadata warnings, not missing deliverables. Phase 236 remains next.
+Last activity: 2026-10-07 — Phase 232 re-verified against current source; Phase 236 remains ready to plan
 
-v1.45 Progress: [███████░░░] 5 of 7 v1.45 phases complete (71%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase; Phase 235 verified 5/5 with final CI green and zero open code-review findings, while five judgment-tier groups remain unverified; next is Phase 236)
+v1.45 Progress: [███████░░░] 5 of 7 v1.45 phases complete (71%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + re-verified 62/62 plan must-haves and 5/5 roadmap criteria 2026-10-07, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase; Phase 235 verified 5/5 with final CI green and zero open code-review findings, while five judgment-tier groups remain unverified; next is Phase 236)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -1078,8 +1079,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-07T02:58:51.689Z
-**Stopped at:** Phase 235 complete, ready to plan Phase 236
+**Last session:** 2026-10-07T13:20:52.702Z
+**Stopped at:** Phase 232 re-verified; ready to plan Phase 236
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
