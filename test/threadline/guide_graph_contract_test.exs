@@ -58,9 +58,9 @@ defmodule Threadline.GuideGraphContractTest do
   test "the Markdown resolver reports missing paths and normalized anchors" do
     files = %{
       "guides/source.md" =>
-        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[code](target.md#code-only)\n[indented](target.md#indented-code-only)\n[inline](target.md#inline-code-only)\n[multiline](target.md#multiline-code-only)\n[bad](missing.md)",
+        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[code](target.md#code-only)\n[indented](target.md#indented-code-only)\n[inline](target.md#inline-code-only)\n[multiline](target.md#multiline-code-only)\n[escaped](target.md#escaped-backtick-anchor)\n[bad](missing.md)",
       "guides/target.md" =>
-        "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n```html\n<a id=\"code-only\"></a>\n```\n    <a id=\"indented-code-only\"></a>\n`<a id=\"inline-code-only\"></a>`\n`<a id=\"multiline-code-only\"></a>\ncontinued code span`\n"
+        "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n```html\n<a id=\"code-only\"></a>\n```\n    <a id=\"indented-code-only\"></a>\n`<a id=\"inline-code-only\"></a>`\n`<a id=\"multiline-code-only\"></a>\ncontinued code span`\n\\`<a id=\"escaped-backtick-anchor\"></a>\n`active inline code span`\n"
     }
 
     assert validate_links("guides/source.md", files["guides/source.md"], files) == [
@@ -400,7 +400,11 @@ defmodule Threadline.GuideGraphContractTest do
   end
 
   defp strip_inline_code_spans(content) do
-    Regex.replace(~r/(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)/s, content, "")
+    Regex.replace(
+      ~r/(?<!\\)(?:\\\\)*(?<!`)(`+)(?!`).*?(?<!\\)(?:\\\\)*(?<!`)\1(?!`)/s,
+      content,
+      ""
+    )
   end
 
   defp external_or_asset?(target) do
