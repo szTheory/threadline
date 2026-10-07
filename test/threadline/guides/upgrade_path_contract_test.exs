@@ -171,7 +171,7 @@ defmodule Threadline.UpgradePathContractTest do
       {length(Regex.scan(~r/^#{Regex.escape(@guide_heading)}\s*$/m, guide)) == 1,
        "guides/upgrade-path.md must contain exactly one `#{@guide_heading}` section"},
       {rows != [], "the toolchain support-policy table must have nonempty lane rows"},
-      {Enum.count(rows, &(cell(&1, 0) == "Lane")) == 0,
+      {not Enum.any?(rows, &(cell(&1, 0) == "Lane")),
        "toolchain support-policy rows must be distinct from the table header"},
       {Enum.count(
          String.split(section, "\n"),
@@ -269,7 +269,7 @@ defmodule Threadline.UpgradePathContractTest do
        "README current support summary must not retain the PostgreSQL 14 floor"},
       {String.contains?(bullet || "", "guides/upgrade-path.md#toolchain-support-policy"),
        "README current support summary must link to the guide's toolchain support table"},
-      {length(Regex.scan(~r/^### Breaking changes\s*$/m, changelog)) >= 1,
+      {Enum.any?(Regex.scan(~r/^### Breaking changes\s*$/m, changelog)),
        "CHANGELOG.md must contain an Unreleased Breaking changes section"},
       {breaking_section != "", "CHANGELOG Unreleased Breaking changes section is missing"},
       {String.contains?(breaking_section, "PostgreSQL 15 is the supported minimum"),
