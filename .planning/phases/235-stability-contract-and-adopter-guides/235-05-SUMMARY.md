@@ -116,7 +116,8 @@ None - plan executed as written.
 ## Issues Encountered
 
 - The first focused test run exposed a line-wrap-sensitive phrase assertion in the new test. The assertion now normalizes whitespace; the focused suite passes.
-- The phase-level `mix ci.all` run failed at `verify.repo_hygiene` because all five existing Phase 235 plan files contain machine-local home-directory `.codex/gsd-core` references. Those plan inputs are outside this plan's implementation scope; the finding is recorded in `deferred-items.md` for phase-level resolution.
+- The initial phase-level gate found machine-local `.codex/gsd-core` paths in all five plan files. Phase closeout changed them to portable `$HOME`-relative paths, and `mix verify.repo_hygiene` passed.
+- The first complete `mix ci.all` run was sandbox-limited: it denied Hex/npm/Playwright cache and temporary Git worktree writes. The canonical gate was rerun with those permissions and passed; one desktop browser test was flaky on its first attempt and passed on retry.
 
 ## User Setup Required
 
@@ -124,7 +125,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-The Phase 235 implementation plans are complete. Focused contracts, formatting, and warning-free documentation pass. Phase verification must first clear the repository-hygiene finding in the existing plan files and rerun `mix ci.all`.
+The Phase 235 implementation plans are complete. Focused contracts, formatting, warning-free documentation, and the final `mix ci.all` gate pass. The regenerated goal report passes all five must-haves and retains the five judgment-tier prohibition groups as unverified.
 
 ---
 *Phase: 235-stability-contract-and-adopter-guides*
@@ -136,4 +137,19 @@ The Phase 235 implementation plans are complete. Focused contracts, formatting, 
 - Task commits `fcdd2cd2` and `6f42507c` are ancestors of HEAD and the plan evaluation scope resolves both commits.
 - Coverage classification passed for both deliverables; focused tests, formatting, and warning-free docs build passed.
 - Stub scan found no placeholder patterns in the plan's changed files.
-- The requested phase-level `mix ci.all` was run and its `verify.repo_hygiene` failure is recorded under Issues Encountered.
+- The repository-hygiene finding was resolved and the final canonical `mix ci.all` passed.
+
+## Post-verification gap closure
+
+- The goal verifier found two assertion gaps: stability coverage did not pin all additive database object kinds and the exact `0.12.x` backport window; redaction coverage did not reject unscoped `all`/`prevents` language or bind each guarantee to evidence in the same row.
+- The stability contract now pins tables, columns, indexes, and the six-month interval after `0.12.0`. The redaction contract now rejects those absolute terms and checks each guarantee against its own named test or policy command.
+- Credo prompted the SQL contract's nested `TriggerSQL` reference to move to the module alias list.
+- The final gate exposed a flaky docs fixture: `Code.compiler_options/1` affects the whole VM, but two contract modules temporarily changed it while running asynchronously. Both modules now run synchronously; their focused suite passed (17 tests, 0 failures).
+- Final `mix ci.all`: root 3,047 tests, 0 failures, 3 excluded; example 130 tests, 0 failures; Dialyzer passed; Dialyzer slice 17 tests, 0 failures, 16 excluded; browser lane 318 passed, 26 skipped. Repository hygiene reported 4,651 tracked text files clean, with 8 allowlist entries used and 0 inert.
+- A read-only, non-authoritative review found no current violation among the five grouped judgment topics. These judgment-tier prohibitions remain explicitly flagged as unverified in the regenerated goal report; the review is not treated as an automated guarantee.
+
+## Final review and verification gate
+
+- The redaction contract now evaluates complete sentences against exact bounded claims, validates each evidence link against the repository identity and local file, and rejects the absolute-language, destination, negation, compound, and numeric guarantee forms found during adversarial review. The exact bounded guide sentences are explicitly allowlisted; the final independent code review found 0 open findings.
+- Final `mix ci.all` after these changes passed: repository hygiene found 4,651 tracked text files clean (8 allowlist entries used, 0 inert); root suite 3,047 tests, 0 failures, 3 excluded; example suite 130 tests, 0 failures; Dialyzer passed; Dialyzer slice 17 tests, 0 failures, 16 excluded; browser lane 318 passed, 26 skipped.
+- Final `mix verify.format`, `mix verify.credo`, and the focused redaction/stability contract suite passed. No UI implementation changed; UI review is not applicable.

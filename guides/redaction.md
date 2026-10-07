@@ -8,10 +8,10 @@ establish that every copy of a value is redacted.
 
 | Claim | Evidence and scope |
 | --- | --- |
-| A generated per-table trigger omits excluded values and masks configured values in persisted audit changes, diffs, and CSV, JSON, and NDJSON exports. | [`Threadline.Capture.RedactionLeakPropertyTest`](https://github.com/szTheory/threadline/blob/main/test/threadline/capture/redaction_leak_property_test.exs) runs against a real generated per-table trigger and checks stored `audit_changes` and `audit_transactions`, `ChangeDiff`, and export output. |
-| Redaction policy shape is validated, including overlap rules. | [`Threadline.Capture.RedactionPolicyPropertyTest`](https://github.com/szTheory/threadline/blob/main/test/threadline/capture/redaction_policy_property_test.exs) checks the policy value contract. |
-| A generated host migration rejects an absent configured `mask:` or `exclude:` column before trigger installation and rolls back. | [`Threadline.Capture.TriggerMigrateTimeErrorsTest`](https://github.com/szTheory/threadline/blob/main/test/threadline/capture/trigger_migrate_time_errors_test.exs) runs the migration against PostgreSQL and checks trigger, table function, migration row, and host-write behavior. |
-| The configured/deployed policy view compares policy descriptions. | [`Threadline.Policy.RedactionPresenterTest`](https://github.com/szTheory/threadline/blob/main/test/threadline/policy/redaction_presenter_test.exs) and `mix threadline.policy.show` compare configured policy with deployed trigger SQL; they do not validate column existence and do not create a column-existence health finding. |
+| A generated per-table trigger omits excluded values and masks configured values in persisted audit changes, diffs, and CSV, JSON, and NDJSON exports. | The [redaction output regression test](https://github.com/szTheory/threadline/blob/main/test/threadline/capture/redaction_leak_property_test.exs) runs against a real generated per-table trigger and checks stored `audit_changes` and `audit_transactions`, `ChangeDiff`, and export output. |
+| Redaction policy shape is validated, including overlap rules. | The [policy validation test](https://github.com/szTheory/threadline/blob/main/test/threadline/capture/redaction_policy_property_test.exs) checks the policy value contract. |
+| A generated host migration rejects an absent configured `mask:` or `exclude:` column before trigger installation and rolls back. | The [migration-time error test](https://github.com/szTheory/threadline/blob/main/test/threadline/capture/trigger_migrate_time_errors_test.exs) runs the migration against PostgreSQL and checks trigger, table function, migration row, and host-write behavior. |
+| The configured/deployed policy view compares policy descriptions. | The [policy presentation test](https://github.com/szTheory/threadline/blob/main/test/threadline/policy/redaction_presenter_test.exs) and `mix threadline.policy.show` compare configured policy with deployed trigger SQL; they do not validate column existence and do not create a column-existence health finding. |
 
 The generated-migration check uses the selected table's PostgreSQL catalog and
 checks `pg_attribute.attname`, `attnum > 0`, and `NOT attisdropped`. A value
@@ -30,9 +30,9 @@ those rows under the host's retention and incident procedures.
 
 ## Where plaintext may remain
 
-Redaction of generated per-table audit output does not remove the source value
-or control every copy around PostgreSQL and the host application. Plaintext may
-remain in:
+Redaction of generated per-table audit output does not remove the source value.
+Threadline cannot control every copy around PostgreSQL and the host application.
+Plaintext may remain in:
 
 - host source tables;
 - PostgreSQL WAL, logical decoding output, and replication slots;

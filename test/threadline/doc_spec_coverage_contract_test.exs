@@ -1,6 +1,8 @@
 defmodule Threadline.DocSpecCoverageContractTest do
   @moduledoc false
-  use ExUnit.Case, async: true
+  # Code.compiler_options/1 affects all processes in the VM; keep its fixture
+  # compilation serialized with the other docs contract module.
+  use ExUnit.Case, async: false
 
   alias Threadline.DocContract
 

@@ -1,9 +1,9 @@
 ---
 phase: "235"
 slug: "stability-contract-and-adopter-guides"
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-10-06"
 ---
 
@@ -38,16 +38,16 @@ created: "2026-10-06"
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 235-01-01 | 235-01 | 1 | DOCS-02 | T-235-01 | Generated mask guard reaches a real host migration, refuses a nonexistent column, rolls back fully, and the initial guide is in ExDoc. | PostgreSQL migration + guide graph | `mix verify.test test/threadline/capture/trigger_migrate_time_errors_test.exs test/threadline/guide_graph_contract_test.exs` | ✅ existing | ⬜ pending |
-| 235-01-02 | 235-01 | 1 | DOCS-02 | T-235-01, T-235-02 | Both invalid options and both key branches fail before DDL; a valid control captures, and the threat guide has bounded proof. | PostgreSQL + doc contract | `mix verify.test test/threadline/capture/trigger_migrate_time_errors_test.exs test/threadline/guides/redaction_contract_test.exs test/threadline/guide_graph_contract_test.exs` | ❌ guide test planned | ⬜ pending |
-| 235-02-01 | 235-02 | 2 | CONTRACT-01 | T-235-03 | Stability claims and Phase 234 spec policy match the settled 1.x contract. | doc contract | `mix verify.test test/threadline/guides/stability_contract_test.exs test/threadline/guide_graph_contract_test.exs` | ❌ planned | ⬜ pending |
-| 235-02-02 | 235-02 | 2 | DOCS-01 | T-235-04 | An evidence-linked matrix states all install conditions and operational caveats. | doc contract | `mix verify.test test/threadline/guides/table_shapes_contract_test.exs test/threadline/guide_graph_contract_test.exs` | ❌ planned | ⬜ pending |
-| 235-03-01 | 235-03 | 2 | CONTRACT-02 | T-235-05 | Live PostgreSQL facts pin required audit columns, types, nullability, and indexes. | PostgreSQL catalog | `mix verify.test test/threadline/storage_catalog_contract_test.exs` | ❌ planned | ⬜ pending |
-| 235-03-02 | 235-03 | 2 | CONTRACT-03 | T-235-06 | Literal GUC and function names remain deliberate public contracts. | source/runtime contract | `mix verify.test test/threadline/capture/public_sql_contract_test.exs` | ❌ planned | ⬜ pending |
-| 235-04-01 | 235-04 | 2 | CONTRACT-04 | T-235-07 | Export modes and health codes match independent literal pins. | output/set contract | `mix verify.test test/threadline/export_public_contract_test.exs` | ❌ planned | ⬜ pending |
-| 235-04-02 | 235-04 | 2 | CONTRACT-04 | T-235-08 | Every Mix-task flag, router option, and documented route is explicitly pinned. | source/set contract | `mix verify.test test/threadline/public_options_contract_test.exs` | ❌ planned | ⬜ pending |
-| 235-05-01 | 235-05 | 2 | CONTRACT-05 | T-235-09, T-235-10 | Capture schemas document chosen stable subsets and additive captured-data shapes. | schema/doc contract | `mix verify.test test/threadline/schema_fields_contract_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ❌ schema test planned | ⬜ pending |
-| 235-05-02 | 235-05 | 2 | CONTRACT-05 | T-235-09 | Semantic AuditAction subset is checked against its Ecto schema. | schema/doc contract | `mix verify.test test/threadline/schema_fields_contract_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ❌ schema test planned | ⬜ pending |
+| 235-01-01 | 235-01 | 1 | DOCS-02 | T-235-01 | Generated mask guard reaches a real host migration, refuses a nonexistent column, rolls back fully, and the initial guide is in ExDoc. | PostgreSQL migration + guide graph | `mix verify.test test/threadline/capture/trigger_migrate_time_errors_test.exs test/threadline/guide_graph_contract_test.exs` | ✅ existing | ✅ green |
+| 235-01-02 | 235-01 | 1 | DOCS-02 | T-235-01, T-235-02 | Every redaction guarantee stays paired with named evidence; unscoped `all`, `prevents`, and other absolute terms fail the guide contract. | PostgreSQL + doc contract | `mix verify.test test/threadline/capture/trigger_migrate_time_errors_test.exs test/threadline/guides/redaction_contract_test.exs test/threadline/guide_graph_contract_test.exs` | ✅ existing | ✅ green |
+| 235-02-01 | 235-02 | 2 | CONTRACT-01 | T-235-03 | Stability contract pins additive tables, columns, and indexes plus the 0.12.x six-month window after 0.12.0. | doc contract | `mix verify.test test/threadline/guides/stability_contract_test.exs test/threadline/guide_graph_contract_test.exs` | ✅ existing | ✅ green |
+| 235-02-02 | 235-02 | 2 | DOCS-01 | T-235-04 | An evidence-linked matrix states all install conditions and operational caveats. | doc contract | `mix verify.test test/threadline/guides/table_shapes_contract_test.exs test/threadline/guide_graph_contract_test.exs` | ✅ existing | ✅ green |
+| 235-03-01 | 235-03 | 2 | CONTRACT-02 | T-235-05 | Live PostgreSQL facts pin required audit columns, types, nullability, and indexes. | PostgreSQL catalog | `mix verify.test test/threadline/storage_catalog_contract_test.exs` | ✅ existing | ✅ green |
+| 235-03-02 | 235-03 | 2 | CONTRACT-03 | T-235-06 | Literal GUC and function names remain deliberate public contracts. | source/runtime contract | `mix verify.test test/threadline/capture/public_sql_contract_test.exs` | ✅ existing | ✅ green |
+| 235-04-01 | 235-04 | 2 | CONTRACT-04 | T-235-07 | Export modes and health codes match independent literal pins. | output/set contract | `mix verify.test test/threadline/export_public_contract_test.exs` | ✅ existing | ✅ green |
+| 235-04-02 | 235-04 | 2 | CONTRACT-04 | T-235-08 | Every Mix-task flag, router option, and documented route is explicitly pinned. | source/set contract | `mix verify.test test/threadline/public_options_contract_test.exs` | ✅ existing | ✅ green |
+| 235-05-01 | 235-05 | 2 | CONTRACT-05 | T-235-09, T-235-10 | Capture schemas document chosen stable subsets and additive captured-data shapes. | schema/doc contract | `mix verify.test test/threadline/schema_fields_contract_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ existing | ✅ green |
+| 235-05-02 | 235-05 | 2 | CONTRACT-05 | T-235-09 | Semantic AuditAction subset is checked against its Ecto schema. | schema/doc contract | `mix verify.test test/threadline/schema_fields_contract_test.exs test/threadline/doc_spec_coverage_contract_test.exs` | ✅ existing | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -55,8 +55,8 @@ created: "2026-10-06"
 
 ## Wave 0 Requirements
 
-- [ ] In each plan's first affected task, write the named new ExUnit file and a failing claim/assertion before completing its implementation; the established test helper, DataCase, and PostgreSQL migration harness are available.
-- [ ] Reuse the existing PostgreSQL migration harness for redaction guard regressions; no new framework or dependency is expected.
+- [x] In each plan's first affected task, write the named new ExUnit file and a failing claim/assertion before completing its implementation; the established test helper, DataCase, and PostgreSQL migration harness are available.
+- [x] Reuse the existing PostgreSQL migration harness for redaction guard regressions; no new framework or dependency is expected.
 
 ---
 
@@ -70,18 +70,18 @@ created: "2026-10-06"
 
 ## Validation Sign-Off
 
-- [ ] Every planned task has an `<automated>` verification or a Wave 0 dependency.
-- [ ] Sampling continuity: no three consecutive tasks without automated verification.
-- [ ] Wave 0 covers missing test files and fixtures.
-- [ ] No watch-mode flags.
-- [ ] Focused feedback latency is at most 60 seconds.
-- [ ] `nyquist_compliant: true` set in frontmatter after validation.
+- [x] Every planned task has an `<automated>` verification or a Wave 0 dependency.
+- [x] Sampling continuity: no three consecutive tasks without automated verification.
+- [x] Wave 0 covers missing test files and fixtures.
+- [x] No watch-mode flags.
+- [x] Focused feedback latency is at most 60 seconds.
+- [x] `nyquist_compliant: true` set in frontmatter after validation.
 
-**Approval:** pending execution evidence; plan task mapping complete. Keep `status: draft` and `nyquist_compliant: false` until the focused checks and final `mix ci.all` pass.
+**Approval:** Validation evidence is complete: all ten task rows map to existing green contracts, the phase-wide root and example suites pass, and the canonical CI gate passes.
 
 ## Spec-less probe fallback
 
-All 13 edge rows from the shared probe are assigned in the five PLAN.md `<edge_probe>` sections. CONTRACT-03, CONTRACT-05, and DOCS-02 remain explicitly unclassified/unresolved. The other flagged assumptions are CONTRACT-01 precision/concurrency, CONTRACT-02 encoding, and CONTRACT-04 adjacency. The remaining rows become plan-specific acceptance truths. No generic probe item expands the product scope.
+All 13 edge rows from the shared probe are assigned in the five PLAN.md `<edge_probe>` sections. The three rows left unclassified during planning—CONTRACT-03, CONTRACT-05, and DOCS-02—are covered by the public SQL, schema-field, and redaction contracts added during execution. The other flagged assumptions are CONTRACT-01 precision/concurrency, CONTRACT-02 encoding, and CONTRACT-04 adjacency. The remaining rows became plan-specific acceptance truths. No generic probe item expands the product scope.
 
 The prohibition recall pass over-produced for each requirement, then removed routine correctness/hygiene candidates. The table records the raw themes; only the values/privacy/safety/transparency items in the PLAN.md `must_haves.prohibitions` remain, all descriptor-less and flagged unverified.
 
@@ -96,3 +96,23 @@ The prohibition recall pass over-produced for each requirement, then removed rou
 | DOCS-02 | claim prior rows repaired; imply all paths covered; omit WAL; omit host source; omit backups; omit downstream copies; miss invalid mask; miss invalid exclude; leak error row value; stale test link | Keep over-broad privacy and bypass claims; migration regressions and named plaintext locations are acceptance. |
 
 SQL injection and generic data-retention compliance surfaced in recall are canon security/compliance items; the threat model and `$gsd-secure-phase` own them, so they were not minted as bespoke prohibitions.
+
+## Validation Audit 2026-10-07
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+## Verifier Gap Closure Audit 2026-10-07
+
+| Metric | Count |
+|---|---|
+| Gaps found | 2 |
+| Resolved | 2 |
+| Escalated | 0 |
+
+## Final Redaction Review Audit 2026-10-07
+
+The independent review found additional claim-scope and absolute-language variants that the initial contract did not reject. The scanner now evaluates complete sentences against an exact bounded-sentence allowlist and includes regression controls for the reported guarantee, destination, numeric, negation, and compound-word forms. The guide's bounded sentences match that allowlist. The final independent review found no remaining material issue; focused redaction and stability contracts pass.

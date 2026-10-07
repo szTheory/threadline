@@ -6,7 +6,7 @@ defmodule Threadline.Capture.PublicSQLContractTest do
 
   use ExUnit.Case, async: true
 
-  alias Threadline.Capture.Naming
+  alias Threadline.Capture.{Naming, TriggerSQL}
 
   @actor_guc "threadline.actor_ref"
   @function_name_call_sites %{
@@ -93,8 +93,8 @@ defmodule Threadline.Capture.PublicSQLContractTest do
            "Threadline.Plug must not set the actor GUC outside the audited transaction"
 
     for sql <- [
-          Threadline.Capture.TriggerSQL.install_function(),
-          Threadline.Capture.TriggerSQL.install_function_for_table("posts",
+          TriggerSQL.install_function(),
+          TriggerSQL.install_function_for_table("posts",
             store_changed_from: true,
             except_columns: []
           )

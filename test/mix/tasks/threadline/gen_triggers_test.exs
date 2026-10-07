@@ -548,7 +548,9 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
 
       assert sqls == [
                TriggerSQL.install_function(),
-               TriggerSQL.create_trigger("posts"),
+               TriggerSQL.create_trigger("posts", :default,
+                 configured_redaction_columns: [exclude: [], mask: []]
+               ),
                TriggerSQL.drop_function_if_unused("threadline_capture_changes_posts")
              ]
 
@@ -580,9 +582,12 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
                TriggerSQL.install_function(),
                TriggerSQL.install_function_for_table("test_redaction_users", per_table_opts),
                TriggerSQL.create_trigger("test_redaction_users", :per_table,
-                 redacted_columns: ["password", "email"]
+                 redacted_columns: ["password", "email"],
+                 configured_redaction_columns: [exclude: ["password"], mask: ["email"]]
                ),
-               TriggerSQL.create_trigger("posts"),
+               TriggerSQL.create_trigger("posts", :default,
+                 configured_redaction_columns: [exclude: [], mask: []]
+               ),
                TriggerSQL.function_owner_guard("test_redaction_users"),
                TriggerSQL.drop_function_if_unused("threadline_capture_changes_posts")
              ]
@@ -641,7 +646,8 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
                  mask: ["secret"]
                ),
                TriggerSQL.create_trigger("billing.invoices", :per_table,
-                 redacted_columns: ["secret"]
+                 redacted_columns: ["secret"],
+                 configured_redaction_columns: [exclude: [], mask: ["secret"]]
                ),
                TriggerSQL.function_owner_guard("billing.invoices"),
                TriggerSQL.drop_function_if_unused("threadline_capture_changes_billing_invoices")
@@ -1089,7 +1095,10 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
       assert function == masked_posts_function("public.posts")
 
       assert trigger ==
-               TriggerSQL.create_trigger("public.posts", :per_table, redacted_columns: ["secret"])
+               TriggerSQL.create_trigger("public.posts", :per_table,
+                 redacted_columns: ["secret"],
+                 configured_redaction_columns: [exclude: [], mask: ["secret"]]
+               )
     end
 
     test "--tables posts finds config keyed public.posts", %{tmp: tmp} do
@@ -1105,7 +1114,10 @@ defmodule Mix.Tasks.Threadline.GenTriggersTest do
       assert function == masked_posts_function("posts")
 
       assert trigger ==
-               TriggerSQL.create_trigger("posts", :per_table, redacted_columns: ["secret"])
+               TriggerSQL.create_trigger("posts", :per_table,
+                 redacted_columns: ["secret"],
+                 configured_redaction_columns: [exclude: [], mask: ["secret"]]
+               )
     end
 
     test "one table under two config keys stops the task", %{tmp: tmp} do

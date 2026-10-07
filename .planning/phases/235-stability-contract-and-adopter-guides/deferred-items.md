@@ -1,5 +1,5 @@
 ## Deferred Items
 
-- `mix ci.all` stops at `verify.repo_hygiene` because all five existing Phase 235 plan files contain machine-local home-directory `.codex/gsd-core` references. These planning inputs predate the 235-05 implementation and are outside its declared implementation files.
-  status: open
-  **What:** Replace the machine-local references with repository-safe placeholder forms and rerun the phase-level gate before Phase 235 verification.
+- The Phase 235 plan files originally contained machine-local home-directory `.codex/gsd-core` references. They were changed to `$HOME`-relative references; `mix verify.repo_hygiene` and the final canonical CI gate pass.
+  status: resolved
+  **Resolution:** Replaced the five machine-local paths with portable `$HOME`-relative paths, updated stale contract expectations and the generated example fixture, and reran canonical `mix ci.all` successfully.

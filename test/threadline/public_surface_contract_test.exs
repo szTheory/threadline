@@ -92,7 +92,10 @@ defmodule Threadline.PublicSurfaceContractTest do
       "guides/production-checklist.md",
       "guides/local-docker-dx.md",
       "guides/upgrade-path.md",
-      "guides/upgrading-to-0.11.md"
+      "guides/upgrading-to-0.11.md",
+      "guides/redaction.md",
+      "guides/stability.md",
+      "guides/supported-tables.md"
     ],
     public_doc_refs_operate: [
       "guides/operator-surface.md",
@@ -514,7 +517,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     extras = Threadline.MixProject.project()[:docs][:extras]
     {urls, local} = Enum.split_with(extras, &url_extra?/1)
     assert MapSet.new(local) == MapSet.new(local_extra_owner_paths()), local_extra_diff(local)
-    assert length(local) == 24 and length(urls) == 2
+    assert length(local) == 27 and length(urls) == 2
 
     external_targets = Enum.map(urls, &external_extra_target/1) |> MapSet.new()
 

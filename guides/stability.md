@@ -35,8 +35,8 @@ Public option `@type` names are stable and option lists are additive. A spec
 change that does not change runtime behavior may ship in a minor or patch
 release, with a `CHANGELOG.md` note. If a narrower type can cause Dialyzer
 warnings for existing callers, the release notes will call that out.
-See the Phase 234 D-51 policy in
-`.planning/phases/234-typespec-and-doc-completion-gate/234-CONTEXT.md`.
+This policy keeps caller-facing option types dependable while allowing
+compatible additions and runtime-neutral improvements within 1.x.
 
 ## Operator implementation boundary
 
