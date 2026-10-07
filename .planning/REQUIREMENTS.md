@@ -75,7 +75,7 @@
   - the `Health.Finding` code set
   - each mix task's accepted flags
   - the `threadline_operator_surface/2` option keys and documented mount routes
-- [ ] **CONTRACT-05**: Each of `AuditChange`, `AuditTransaction` and `AuditAction` documents its stable field subset in its moduledoc. The `data_after`, `changed_fields` and `changed_from` jsonb columns carry an additive key/shape promise, not a byte-stable serialization promise. A test pins the stable field lists against the schema.
+- [x] **CONTRACT-05**: Each of `AuditChange`, `AuditTransaction` and `AuditAction` documents its stable field subset in its moduledoc. The `data_after`, `changed_fields` and `changed_from` jsonb columns carry an additive key/shape promise, not a byte-stable serialization promise. A test pins the stable field lists against the schema.
 
 ### DOCS: adopter guides
 
@@ -160,7 +160,7 @@
 | CONTRACT-02 | Phase 235 | Complete |
 | CONTRACT-03 | Phase 235 | Complete |
 | CONTRACT-04 | Phase 235 | Complete |
-| CONTRACT-05 | Phase 235 | Pending |
+| CONTRACT-05 | Phase 235 | Complete |
 | DOCS-01 | Phase 235 | Complete |
 | DOCS-02 | Phase 235 | Complete |
 | DOCS-03 | Phase 237 | Pending |

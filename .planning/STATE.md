@@ -5,17 +5,17 @@ milestone_name: 1.0 API Contract
 current_phase: 235
 current_phase_name: Stability Contract and Adopter Guides
 current_plan: 5
-status: executing
-stopped_at: Completed 235-04-PLAN.md
-last_updated: "2026-10-07T00:59:49.975Z"
+status: verifying
+stopped_at: Completed 235-05-PLAN.md
+last_updated: "2026-10-07T01:04:22.986Z"
 last_activity: 2026-10-07
-last_activity_desc: 235-04 completed; export, Finding, task-flag, and operator-route contracts passed
-state_head: ccf2e4681df06835838ad1c396b17232c2fd34ff
+last_activity_desc: 235-05 completed; stable schema field and additive captured-data contracts passed
+state_head: 6f42507ca0a32fc1fd167ce97ecac5bb9f2f9054
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 40
-  completed_plans: 39
+  completed_plans: 40
   percent: 57
 ---
 
@@ -30,16 +30,17 @@ See: `.planning/PROJECT.md` (updated 2026-10-06 after Phase 234)
 
 ## Current Position
 
-Phase: 235 (Stability Contract and Adopter Guides) — EXECUTING
+Phase: 235 (Stability Contract and Adopter Guides) — implementation complete, ready for verification
 Current Plan: 5
 Total Plans in Phase: 5
-Status: Ready to execute
-Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 proved the approved D-58 GCM-only/Binary reachability conditions and passed the canonical dependency audit. Plan 234-15 passed a post-Plan-19 `mix ci.all`, reconciled security and validation evidence, and marked SPEC-02 Complete; a later phase verification reopened it. Plan 234-20 corrected two public doc claims and the capture/semantics type boundary, passed focused checks, strict Dialyzer, warning-free docs build, fresh independent D-46 review and integrity check, then closed its remaining CI gate using Plan 21's evidence. Plan 21 repaired the mobile reduced-motion E2E case; canonical `mix ci.all` passed with 3,010 root tests, 130 example tests, Dialyzer clean, and browser 318 passed/26 skipped. Plan 22 resolved the current-source Job.context_opts/2 type/runtime gaps and eager export validation telemetry issue, corrected the D-56 retention string-key value type surfaced during independent review, and passed fresh D-46 integrity plus canonical `mix ci.all` (3,016 root tests, 130 example tests, Dialyzer clean, browser 318/26). Phase 234 verification passed at 12/12 must-haves on 2026-10-06; SPEC-01, SPEC-02, and SPEC-03 are Complete. D-55's >=82 visible-entry floor and D-07's eight exact hidden pins remain unchanged. Phase 234 is complete; Phase 235 has five reviewed plans and is in progress.
+Status: Phase complete — ready for verification
+Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 proved the approved D-58 GCM-only/Binary reachability conditions and passed the canonical dependency audit. Plan 234-15 passed a post-Plan-19 `mix ci.all`, reconciled security and validation evidence, and marked SPEC-02 Complete; a later phase verification reopened it. Plan 234-20 corrected two public doc claims and the capture/semantics type boundary, passed focused checks, strict Dialyzer, warning-free docs build, fresh independent D-46 review and integrity check, then closed its remaining CI gate using Plan 21's evidence. Plan 21 repaired the mobile reduced-motion E2E case; canonical `mix ci.all` passed with 3,010 root tests, 130 example tests, Dialyzer clean, and browser 318 passed/26 skipped. Plan 22 resolved the current-source Job.context_opts/2 type/runtime gaps and eager export validation telemetry issue, corrected the D-56 retention string-key value type surfaced during independent review, and passed fresh D-46 integrity plus canonical `mix ci.all` (3,016 root tests, 130 example tests, Dialyzer clean, browser 318/26). Phase 234 verification passed at 12/12 must-haves on 2026-10-06; SPEC-01, SPEC-02, and SPEC-03 are Complete. D-55's >=82 visible-entry floor and D-07's eight exact hidden pins remain unchanged. Phase 234 is complete; all five Phase 235 plans have summaries and phase verification is pending.
 235-01 added migration-time validation for configured mask/exclude columns and the redaction threat guide. The focused migration, guide-contract, and graph tests passed (41/0); format and warning-free docs passed. Commits: `57dc67f2`, `5cb3b592`, `7638817a`. DOCS-02 is Complete. Phase 235 has five reviewed plans.
 235-02 published the stability policy and supported-table matrix with claim-level contracts. The combined guide and graph contracts passed (14/0), format passed, and warning-free ExDoc passed. Commits: `922758ef`, `686afe14`. CONTRACT-01 and DOCS-01 are Complete.
 235-03 added live catalog pins for audit storage columns and indexes, plus literal actor-GUC/function-name contracts and source-use mutation controls. Both focused suites and format passed. Commits: `fd99af78`, `cf9f5525`; summary `235-03-SUMMARY.md`. CONTRACT-02 and CONTRACT-03 are Complete. Continue with plan 04.
-235-04 added observed export and Finding-code pins plus literal Threadline task flags, operator options, and mount routes. Both focused suites passed (7 tests, 0 failures) and format passed. Commits: `1bfd52f0`, `ccf2e468`; summary `235-04-SUMMARY.md`. CONTRACT-04 is Complete. Continue with plan 05.
-Last activity: 2026-10-07 — 235-04 complete; plan 05 ready
+235-04 added observed export and Finding-code pins plus literal Threadline task flags, operator options, and mount routes. Both focused suites passed (7 tests, 0 failures) and format passed. Commits: `1bfd52f0`, `ccf2e468`; summary `235-04-SUMMARY.md`. CONTRACT-04 is Complete.
+235-05 documented stable field subsets for AuditChange, AuditTransaction, and AuditAction, plus additive captured-data shapes and schema/document removal controls. Focused contracts passed (10 tests, 0 failures), format passed, and warning-free docs passed. Commits: `fcdd2cd2`, `6f42507c`; summary `235-05-SUMMARY.md`. CONTRACT-05 is Complete. All phase plans are implemented; phase verification is next.
+Last activity: 2026-10-07 — 235-05 complete; phase verification ready
 
 v1.45 Progress: [██████░░░░] 4 of 7 v1.45 phases complete (57%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -295,6 +296,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 235 P02 | 7min | 2 tasks | 7 files |
 | Phase 235 P03 | 3min | 2 tasks | 2 files |
 | Phase 235 P4 | 3min | 2 tasks | 2 files |
+| Phase 235 P05 | 4 min | 2 tasks | 4 files |
 
 ## Deferred Items
 
@@ -1061,6 +1063,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 235]: Resolve catalog relations through the configured storage schema and pin every current column and index in PostgreSQL.
 - [Phase 235]: JSON action keys depend on linked AuditAction presence; CSV appends action columns only when requested.
 - [Phase 235]: Operator route pins distinguish LiveView route identities from sibling HTTP method routes.
+- [Phase 235]: Keep the documented stable schema field subsets narrower than current Ecto schemas.
+- [Phase 235]: Describe captured JSONB compatibility as additive keys and shapes, without byte or ordering guarantees.
 
 ### Blockers
 
@@ -1074,8 +1078,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-07T00:59:49.866Z
-**Stopped at:** Completed 235-04-PLAN.md
+**Last session:** 2026-10-07T01:04:22.874Z
+**Stopped at:** Completed 235-05-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.

@@ -276,7 +276,7 @@ Plans:
 - [x] 235-02-PLAN.md — Stability policy and supported-table eligibility guides (completed 2026-10-06)
 - [x] 235-03-PLAN.md — Live storage catalog and literal public SQL contracts (completed 2026-10-07)
 - [x] 235-04-PLAN.md — Export, health, Mix-task, and router public-set contracts (completed 2026-10-07)
-- [ ] 235-05-PLAN.md — Stable Ecto field subsets and additive captured-data contract
+- [x] 235-05-PLAN.md — Stable Ecto field subsets and additive captured-data contract (completed 2026-10-07)
 
 ### Phase 236: Support Floor and Partition Weights
 
