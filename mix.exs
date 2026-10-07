@@ -587,6 +587,7 @@ defmodule Threadline.MixProject do
         "guides/stability.md",
         "guides/supported-tables.md",
         "guides/upgrading-to-0.11.md",
+        "guides/upgrading-to-1.0.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
         "guides/incident-playbook.md",

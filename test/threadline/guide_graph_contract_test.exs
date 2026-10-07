@@ -20,6 +20,7 @@ defmodule Threadline.GuideGraphContractTest do
       "guides/stability.md",
       "guides/supported-tables.md",
       "guides/upgrading-to-0.11.md",
+      "guides/upgrading-to-1.0.md",
       "guides/integrations/sigra.md",
       "guides/integrations/phx-gen-auth.md"
     ],
@@ -76,7 +77,7 @@ defmodule Threadline.GuideGraphContractTest do
   test "lane assignment is exact, disjoint, nonempty, and sentinel-backed" do
     assigned = Map.values(@lanes) |> List.flatten()
     assert Enum.all?(@lanes, fn {_lane, paths} -> paths != [] end)
-    assert length(assigned) == 23
+    assert length(assigned) == 24
 
     assert length(assigned) == MapSet.size(MapSet.new(assigned)),
            "guide belongs to multiple lanes"
@@ -179,7 +180,7 @@ defmodule Threadline.GuideGraphContractTest do
   @tag :guide_graph
   @tag :phase200_red
   @tag :phase200_aggregate
-  test "all 23 guides form one complete intent-led graph" do
+  test "all 24 guides form one complete intent-led graph" do
     Enum.each(Map.keys(@lanes), &assert_graph_slice!/1)
   end
 
@@ -209,8 +210,11 @@ defmodule Threadline.GuideGraphContractTest do
       assert outbound != [], "#{node} has no outbound guide edge"
 
       if node != landing do
-        assert link_target?(landing, Map.fetch!(files, landing), node),
-               "#{landing} does not route its #{lane} lane to #{node}"
+        route =
+          if node == "guides/upgrading-to-1.0.md", do: "guides/upgrade-path.md", else: landing
+
+        assert link_target?(route, Map.fetch!(files, route), node),
+               "#{route} does not route its #{lane} lane to #{node}"
 
         content = Map.fetch!(files, node)
 

@@ -4,6 +4,10 @@ This guide is the canonical support-matrix and lifecycle reference for Threadlin
 
 Threadline **0.6.0** landed Evidence, `Audit.transaction/3`, and aligned operator surfaces in-repo after **0.5.0**; the later minors (`0.7.0` through `0.9.0`) added surface, DX, and proof-lane work only. **0.10.0** is the first bump in that run with adopter actions attached — see the `0.9.x → 0.10.x` bullet below. **0.11.0** regenerated triggers to resolve real primary keys (see the `0.10.x → 0.11.x` bullet), and **0.12.0** carries three breaking telemetry/config changes (see the `0.11.x → 0.12.x` bullet). Upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
+For the full procedure from **0.11.x or 0.12.x to 1.0.0**, follow
+[Upgrading to 1.0](upgrading-to-1.0.md). The guide gives 0.11.x adopters a
+conditional 0.12.0 preflight; 0.12.x adopters can skip it.
+
 ## Who this guide is for
 
 Use this guide if you are:
