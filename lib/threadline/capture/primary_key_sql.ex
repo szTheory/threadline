@@ -123,6 +123,7 @@ defmodule Threadline.Capture.PrimaryKeySQL do
     config_key = Naming.table_token(table_name)
     statement = create_trigger_statement(table_name, function_literal)
     redacted_columns = Keyword.get(opts, :redacted_columns, [])
+    configured_column_check = configured_column_check_sql(qualified, redacted_columns)
     redaction_check = redaction_check_sql(qualified, redacted_columns)
 
     """
@@ -136,10 +137,13 @@ defmodule Threadline.Capture.PrimaryKeySQL do
       col      text;
       coltype  text;
       args     text;
+      missing_redaction_column text;
     BEGIN
       IF tbl IS NULL THEN
         RAISE EXCEPTION 'threadline: table #{qualified} does not exist';
       END IF;
+
+    #{configured_column_check}
 
       SELECT array_agg(a.attname::text ORDER BY k.ord)
         INTO keys
@@ -211,6 +215,7 @@ defmodule Threadline.Capture.PrimaryKeySQL do
     host_table = StorageSchema.qualified_host_table(table_name)
     statement = create_trigger_statement(table_name, function_literal)
     redacted_columns = Keyword.get(opts, :redacted_columns, [])
+    configured_column_check = configured_column_check_sql(qualified, redacted_columns)
     redaction_check = redaction_check_sql(qualified, redacted_columns)
     declared_literal = text_array_sql(declared)
 
@@ -228,10 +233,13 @@ defmodule Threadline.Capture.PrimaryKeySQL do
       col        text;
       coltype    text;
       args       text;
+      missing_redaction_column text;
     BEGIN
       IF tbl IS NULL THEN
         RAISE EXCEPTION 'threadline: table #{qualified} does not exist';
       END IF;
+
+    #{configured_column_check}
 
       SELECT string_agg(a.attname::text, ', ' ORDER BY k.ord)
         INTO discovered
@@ -418,6 +426,27 @@ defmodule Threadline.Capture.PrimaryKeySQL do
         IF col IS NOT NULL THEN
           RAISE EXCEPTION 'threadline: primary key column % of #{qualified} is listed in mask or exclude', col
             USING HINT = 'Remove ' || col || ' from this table''s :mask or :exclude in config/config.exs; redacting a key column would erase row identity from the audit trail.';
+        END IF;
+    """
+  end
+
+  defp configured_column_check_sql(_qualified, []), do: ""
+
+  defp configured_column_check_sql(qualified, columns) do
+    array_literal = text_array_sql(columns)
+
+    """
+
+        SELECT d
+          INTO missing_redaction_column
+          FROM unnest(#{array_literal}) AS d
+         WHERE NOT EXISTS (
+               SELECT 1 FROM pg_attribute a
+                WHERE a.attrelid = tbl AND a.attname = d AND a.attnum > 0 AND NOT a.attisdropped
+             )
+         LIMIT 1;
+        IF missing_redaction_column IS NOT NULL THEN
+          RAISE EXCEPTION 'threadline: configured mask or exclude column % of #{qualified} does not exist', missing_redaction_column;
         END IF;
     """
   end

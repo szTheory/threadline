@@ -17,6 +17,7 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
 
   @public_tables ~w(
     posts_tags
+    pk_invalid_mask
     pk_masked_code
     pk_masked_composite
     pk_quoted_col
@@ -480,24 +481,26 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
     test "mask refuses a configured column that does not exist before installing anything", %{
       tmp: tmp
     } do
-      Repo.query!("CREATE TABLE pk_masked_code (code text PRIMARY KEY, email text)")
+      Repo.query!("CREATE TABLE pk_invalid_mask (id integer PRIMARY KEY, email text)")
+      function = Threadline.StorageSchema.function(Naming.function_name("pk_invalid_mask"))
+      Repo.query!("DROP FUNCTION IF EXISTS #{function} CASCADE")
 
       Application.put_env(:threadline, :trigger_capture,
-        tables: %{"pk_masked_code" => [mask: ["missing_name"]]}
+        tables: %{"pk_invalid_mask" => [mask: ["missing_name"]]}
       )
 
-      file = Harness.generate!(tmp, ["--tables", "pk_masked_code"])
+      file = Harness.generate!(tmp, ["--tables", "pk_invalid_mask"])
       error = assert_raise(Postgrex.Error, fn -> Harness.migrate_up(file) end)
 
-      assert error.postgres.message =~ "public.pk_masked_code"
+      assert error.postgres.message =~ "public.pk_invalid_mask"
       assert error.postgres.message =~ "mask"
       assert error.postgres.message =~ "missing_name"
-      assert Harness.threadline_triggers("public", "pk_masked_code") == []
-      refute Harness.function_exists?(Naming.function_name("pk_masked_code"))
+      assert Harness.threadline_triggers("public", "pk_invalid_mask") == []
+      refute Harness.function_exists?(Naming.function_name("pk_invalid_mask"))
       refute_schema_migrations_row(file)
 
-      Repo.query!("INSERT INTO pk_masked_code (code, email) VALUES ('c1', 'a@example.com')")
-      assert capture_rows("public", "pk_masked_code") == []
+      Repo.query!("INSERT INTO pk_invalid_mask (id, email) VALUES (1, 'a@example.com')")
+      assert capture_rows("public", "pk_invalid_mask") == []
     end
 
     test "mask refuses, naming the column", %{tmp: tmp} do
@@ -546,7 +549,7 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
       assert row.table_pk == %{"code" => "c1"}
     end
 
-    test "comparison is exact and case-sensitive: mask: [\"Code\"] does not match column code", %{
+    test "comparison is exact and case-sensitive: mask: [\"Code\"] is rejected", %{
       tmp: tmp
     } do
       Repo.query!("CREATE TABLE pk_masked_code (code text PRIMARY KEY, email text)")
@@ -556,12 +559,9 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
       )
 
       file = Harness.generate!(tmp, ["--tables", "pk_masked_code"])
-      assert {:ok, _} = Harness.migrate_up(file)
-
-      Repo.query!("INSERT INTO pk_masked_code (code, email) VALUES ('c1', 'a@example.com')")
-
-      [row] = capture_rows("public", "pk_masked_code")
-      assert row.table_pk == %{"code" => "c1"}
+      error = assert_raise(Postgrex.Error, fn -> Harness.migrate_up(file) end)
+      assert error.postgres.message =~ "Code"
+      assert error.postgres.message =~ "public.pk_masked_code"
     end
 
     # WR-01 (210-REVIEW.md): the redaction-overlap refusal claims to name
