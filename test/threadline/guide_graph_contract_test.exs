@@ -365,39 +365,45 @@ defmodule Threadline.GuideGraphContractTest do
     {_, lines} =
       content
       |> String.split("\n")
-      |> Enum.reduce({nil, []}, fn line, {fence, lines} ->
-        case fence do
-          nil ->
-            case Regex.run(~r/^\s{0,3}(`{3,}|~{3,})/, line, capture: :all_but_first) do
-              [opening] ->
-                {opening, lines}
-
-              _ ->
-                if Regex.match?(~r/^(?: {4,}|\t)/, line) do
-                  {nil, lines}
-                else
-                  {nil, [line | lines]}
-                end
-            end
-
-          opening ->
-            case Regex.run(~r/^\s{0,3}(`+|~+)\s*$/, line, capture: :all_but_first) do
-              [closing] ->
-                if String.first(opening) == String.first(closing) and
-                     byte_size(closing) >= byte_size(opening) do
-                  {nil, lines}
-                else
-                  {opening, lines}
-                end
-
-              _ ->
-                {opening, lines}
-            end
-        end
-      end)
+      |> Enum.reduce({nil, []}, &reduce_markdown_line/2)
 
     lines |> Enum.reverse() |> Enum.join("\n")
   end
+
+  defp reduce_markdown_line(line, {nil, lines}) do
+    case opening_fence(line) do
+      nil -> append_markdown_line(line, lines)
+      opening -> {opening, lines}
+    end
+  end
+
+  defp reduce_markdown_line(line, {opening, lines}) do
+    if closing_fence?(line, opening), do: {nil, lines}, else: {opening, lines}
+  end
+
+  defp append_markdown_line(line, lines) do
+    if indented_code_line?(line), do: {nil, lines}, else: {nil, [line | lines]}
+  end
+
+  defp opening_fence(line) do
+    case Regex.run(~r/^\s{0,3}(`{3,}|~{3,})/, line, capture: :all_but_first) do
+      [opening] -> opening
+      _ -> nil
+    end
+  end
+
+  defp closing_fence?(line, opening) do
+    case Regex.run(~r/^\s{0,3}(`+|~+)\s*$/, line, capture: :all_but_first) do
+      [closing] ->
+        String.first(opening) == String.first(closing) and
+          byte_size(closing) >= byte_size(opening)
+
+      _ ->
+        false
+    end
+  end
+
+  defp indented_code_line?(line), do: Regex.match?(~r/^(?: {4,}|\t)/, line)
 
   defp strip_inline_code_spans(content) do
     Regex.replace(
