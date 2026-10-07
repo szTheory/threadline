@@ -51,7 +51,7 @@
 - [x] **Phase 231: Facade Topology and the Capture/Semantics Edge** - `Threadline` is the one documented read API, and the capture schemas no longer declare an association to the semantics schema
 - [x] **Phase 232: Consolidated Reads, Deprecations and the Bounded Default** - One `row_history/3`, one `Threadline.Page`, a 200-row default with truncation telemetry, and a warning-only path off every retired name (completed 2026-10-03)
 - [x] **Phase 233: Lookup Return Shapes** - Single-subject lookups return `{:ok, _}` / `{:error, :not_found}` with raising `!` siblings (completed 2026-10-03)
-- [ ] **Phase 234: Typespec and Doc Completion Gate** - Every public function has an informative `@spec` and a `@doc`, enforced by a test, and the facade page is grouped by job
+- [x] **Phase 234: Typespec and Doc Completion Gate** - Every public function has an informative `@spec` and a `@doc`, enforced by a test, and the facade page is grouped by job (completed 2026-10-06)
 - [ ] **Phase 235: Stability Contract and Adopter Guides** - The 1.x promise is written down and pinned by tests, with the supported-table-shapes guide and the redaction threat model
 - [ ] **Phase 236: Support Floor and Partition Weights** - PostgreSQL 15 is the tested minimum, the support policy has one table, and every test file is weighted
 - [ ] **Phase 237: Upgrade Guide and 1.0.0** - A 0.11/0.12 adopter can follow one guide to 1.0, and hex.pm serves threadline 1.0.0
@@ -168,7 +168,7 @@ Plans:
   3. Strict Dialyzer is green with zero ignore entries.
   4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: 22 plans
+**Plans**: 22/22 plans complete
 
 Plans:
 **Wave 1**
@@ -193,7 +193,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 234-06-PLAN.md — SPEC-02 close: five strict Dialyzer flags with every measured finding fixed and zero ignores, ratchets deleted (gates assert zero), live mutation recorded, CHANGELOG/CONTRIBUTING/baseline notes, review input, `mix ci.all` (wave 6). Tasks ran, but execution halted on unresolved D-28/D-46/security evidence; gap-closure plans below address those findings.
+- [x] 234-06-PLAN.md — SPEC-02 close: five strict Dialyzer flags with every measured finding fixed and zero ignores, ratchets deleted (gates assert zero), live mutation recorded, CHANGELOG/CONTRIBUTING/baseline notes, review input, `mix ci.all` (wave 6). Tasks ran, but execution halted on unresolved D-28/D-46/security evidence; gap-closure plans below address those findings.
 
 **Gap closure — Wave 1**
 
@@ -238,7 +238,7 @@ Plans:
 
 - [x] 234-22-PLAN.md — Correct Job.context_opts/2's ID and extra-option type boundary, emit exactly one eager export failure event for facade/direct validation raises, align telemetry tables, and pass canonical gates plus a fresh independent D-46 review (completed 2026-10-06; wave 9)
 
-**Execution note**: Plans 20 and 21 remain complete: Plan 20 corrected the earlier public-doc and capture-boundary findings, and Plan 21 repaired the Pixel 5 reduced-motion test and passed canonical `mix ci.all`. Plan 22 aligned job context runtime and compiled types, added exactly-once eager export validation telemetry, and aligned public telemetry docs. A fresh independent D-46 PASS is bound to the regenerated review input; final `mix ci.all` passed with 3,016 root tests, 130 example tests, Dialyzer clean, npm audit clean, and browser 318/26. Plan 22 also corrected the D-56 string-key type for ignored extra values found in independent review. SPEC-02 remains Pending until phase re-verification passes. The original Plan 234-06 remains recorded as halted; later plans closed its D-28 and high-severity security gaps. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Security remains verified with zero open high threats, and validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 remains In Progress.
+**Execution note**: Plans 20 and 21 remain complete: Plan 20 corrected the earlier public-doc and capture-boundary findings, and Plan 21 repaired the Pixel 5 reduced-motion test and passed canonical `mix ci.all`. Plan 22 aligned job context runtime and compiled types, added exactly-once eager export validation telemetry, and aligned public telemetry docs. A fresh independent D-46 PASS is bound to the regenerated review input; final `mix ci.all` passed with 3,016 root tests, 130 example tests, Dialyzer clean, npm audit clean, and browser 318/26. Plan 22 also corrected the D-56 string-key type for ignored extra values found in independent review. Phase verification passed 12/12 must-haves on 2026-10-06; SPEC-01, SPEC-02 and SPEC-03 are Complete. The original Plan 234-06 remains recorded as halted; later plans closed its D-28 and high-severity security gaps. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Security remains verified with zero open high threats, and validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 is complete.
 
 ### Phase 235: Stability Contract and Adopter Guides
 
@@ -266,7 +266,17 @@ Plans:
      - The supported-table-shapes guide covers composite and non-`id` keys, `primary_key:`, cross-schema tables, long identifiers, `char(n)`, and partitioned/unlogged tables and views. Its test checks every cited option and name against the code.
      - In the redaction threat model, every guarantee names its proving property test or health check, and the guide lists where plaintext can still exist. Its test rejects unscoped absolutes.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+**Wave 1**
+- [x] 235-01-PLAN.md — Generated redaction-column migration guard and evidence-linked threat guide (completed 2026-10-06)
+
+**Wave 2**
+- [x] 235-02-PLAN.md — Stability policy and supported-table eligibility guides (completed 2026-10-06)
+- [ ] 235-03-PLAN.md — Live storage catalog and literal public SQL contracts
+- [ ] 235-04-PLAN.md — Export, health, Mix-task, and router public-set contracts
+- [ ] 235-05-PLAN.md — Stable Ecto field subsets and additive captured-data contract
 
 ### Phase 236: Support Floor and Partition Weights
 
@@ -303,8 +313,8 @@ Plans:
 | 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
 | 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
-| 234. Typespec and Doc Completion Gate | 21/22 | In Progress | - |
-| 235. Stability Contract and Adopter Guides | 0/TBD | Not started | - |
+| 234. Typespec and Doc Completion Gate | 22/22 | Complete    | 2026-10-06 |
+| 235. Stability Contract and Adopter Guides | 2/5 | In Progress | - |
 | 236. Support Floor and Partition Weights | 0/TBD | Not started | - |
 | 237. Upgrade Guide and 1.0.0 | 0/TBD | Not started | - |
 

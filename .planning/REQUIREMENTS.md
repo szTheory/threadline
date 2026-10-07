@@ -52,7 +52,7 @@
 ### SPEC: typespecs and docs
 
 - [x] **SPEC-01**: Every public function in every documented module under `lib/` has a `@doc` and a `@spec`. Baseline is 129 of 169 missing (remeasured at the 233 close: 54 of 92 visible entries across 52 documented modules; the 129/169 figure predates phases 231–233). A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` fails on any gap, so coverage cannot regress.
-- [ ] **SPEC-02**: The specs give adopters real information.
+- [x] **SPEC-02**: The specs give adopters real information.
   - No public spec uses bare `term()` or `any()` where a real shape exists.
   - Option arguments use named `@type` option lists rather than bare `keyword()`.
   - Reviewed in phase verification by agent review against a written rubric.
@@ -61,7 +61,7 @@
 
 ### CONTRACT: the 1.x stability promise, enforced by tests
 
-- [ ] **CONTRACT-01**: An adopter can read `guides/stability.md` to learn what 1.x promises.
+- [x] **CONTRACT-01**: An adopter can read `guides/stability.md` to learn what 1.x promises.
   - **Elixir API tier:** Hex semver, with the deprecation policy above.
   - **Database Contract tier:** additive-only for tables, columns, indexes, the trigger-function naming scheme and the GUC name.
   - **Named exception class:** only security- or correctness-critical fixes may require trigger regeneration in a 1.x minor.
@@ -79,12 +79,14 @@
 
 ### DOCS: adopter guides
 
-- [ ] **DOCS-01**: A supported-table-shapes guide lets an adopter check, before installing, whether their tables are supported.
+- [x] **DOCS-01**: A supported-table-shapes guide lets an adopter check, before installing, whether their tables are supported.
   - Covers composite and non-`id` keys, the `primary_key:` override, cross-schema tables, long identifiers and `char(n)`.
   - States explicitly what happens with partitioned tables, unlogged tables and views.
   - A doc-contract test checks the option and table names it cites against the real code.
-- [ ] **DOCS-02**: A redaction threat model tells a security reviewer exactly what redaction guarantees and what it does not.
+- [x] **DOCS-02**: A redaction threat model tells a security reviewer exactly what redaction guarantees and what it does not.
   - Every guarantee names the property test or health check that proves it.
+  - Generated trigger migrations fail before installing a trigger when any `mask:` or `exclude:` column name is absent from the selected table; tests cover both options and preserve a valid-column control. This closes the fail-open typo path for migrations that include the validation.
+  - The guide states that already-installed triggers and previously captured rows are not changed by this validation; adopters must regenerate and run the host-owned trigger migration for the affected table.
   - It states where plaintext can still exist: WAL and logical decoding, replication slots, backups, superuser access, rows captured before a rule changed, and host logs.
   - A doc-contract test rejects unscoped absolutes ("all", "never", "guarantees", "prevents" with no qualifier).
 - [ ] **DOCS-03**: `guides/upgrading-to-1.0.md` takes a 0.11 or 0.12 adopter to 1.0, with one numbered step per breaking change in this milestone:
@@ -152,15 +154,15 @@
 | API-07 | Phase 231 | Complete |
 | API-08 | Phase 232 | Complete |
 | SPEC-01 | Phase 234 | Complete |
-| SPEC-02 | Phase 234 | Pending |
+| SPEC-02 | Phase 234 | Complete |
 | SPEC-03 | Phase 234 | Complete |
-| CONTRACT-01 | Phase 235 | Pending |
+| CONTRACT-01 | Phase 235 | Complete |
 | CONTRACT-02 | Phase 235 | Pending |
 | CONTRACT-03 | Phase 235 | Pending |
 | CONTRACT-04 | Phase 235 | Pending |
 | CONTRACT-05 | Phase 235 | Pending |
-| DOCS-01 | Phase 235 | Pending |
-| DOCS-02 | Phase 235 | Pending |
+| DOCS-01 | Phase 235 | Complete |
+| DOCS-02 | Phase 235 | Complete |
 | DOCS-03 | Phase 237 | Pending |
 | FLOOR-01 | Phase 236 | Pending |
 | FLOOR-02 | Phase 236 | Pending |

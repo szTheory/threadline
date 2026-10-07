@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 59
+open_count: 60
 waived_count: 0
 fixed_count: 4
-total_count: 63
-last_updated: 2026-09-25T21:32:40.953Z
+total_count: 64
+last_updated: 2026-10-07T00:50:08.368Z
 ---
 
 # Broken Windows Ledger
@@ -78,6 +78,7 @@ last_updated: 2026-09-25T21:32:40.953Z
 | 61 | 200 | unrun-verify | lib/threadline/operator_surface/mechanical_checker.ex | 729 | Repository-wide verify.format is blocked by a pre-existing formatting defect from Plan 200-16; Plan 200-13 owned files pass format checks | open |  | 2026-09-12T12:02:55.570Z |  |
 | 62 | 201 | deviation | examples/threadline_phoenix/e2e/tests/operator-screenshot-regression.spec.ts | 108 | Plan 201-05 gate amendment: the browser lane's 8 screenshot-regression failures (cases 108 dense-Timeline, 115 row-history, 136 Exports, 145 Retention, each on desktop-chromium and mobile-chromium) are PROVEN pre-existing, not a Phase 201 regression. Measured both ways: at phase HEAD the lane is 82 passed / 8 failed, and with Phase 201's five LiveView modules reverted to fecfe684 the identical 8 fail and the same 2 Home cases pass. Phase 201's entire production delta is 21 deleted data-earned-flow/data-persona/data-jtbd attribute lines and nothing else, which cannot alter raster output. Baselines last written in 180-04 (799c7d6e) and left byte-identical (hashes sealed in .planning/audits/201-rendered-output-evidence.md). The plan's original verify clause demanded a fully green lane, unsatisfiable without the baseline regeneration the same plan prohibits; it is amended to an exact non-regression gate pinning this 8-failure set, Home passing, immutable PNG hashes, and all 82 behavior/a11y/responsive cases green. Supersedes nothing; complements open entries 8, 14, 15. Also corrected: the clause invoked `playwright test` directly, which starts no app server and yields 45 spurious ~50ms invalid-URL failures; the lane must run via mix verify.example_browser / run-e2e.sh. | open |  | 2026-09-21T00:00:00.000Z |  |
 | 63 | 202 | unrun-verify | .planning/phases/202-release-0-10-0/202-05-PLAN.md |  | Plan 202-05 holds at Task 1: mix ci.all and mix verify.release both RED at 0.9.0; three born-red causes (dialyzer MixProject unknown_function, 29 mix docs warnings, hardcoded ~> 0.9.0 in release_artifact_contract_test.exs:345) block the publish | open |  | 2026-09-22T15:39:03.519Z |  |
+| 64 | 235 | deviation | guides/getting-started-saas.md |  | Adopt landing links added to route the stability and supported-table guides into the tested guide graph. | open |  | 2026-10-07T00:50:08.368Z |  |
 
 ````json
 [
@@ -874,6 +875,19 @@ last_updated: 2026-09-25T21:32:40.953Z
     "recorded_at": "2026-09-22T15:39:03.519Z",
     "resolved_at": null,
     "milestone": "v1.41"
+  },
+  {
+    "id": 64,
+    "kind": "deviation",
+    "phase": "235",
+    "file": "guides/getting-started-saas.md",
+    "line": null,
+    "description": "Adopt landing links added to route the stability and supported-table guides into the tested guide graph.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-07T00:50:08.368Z",
+    "resolved_at": null,
+    "milestone": "v1.45"
   }
 ]
 ````
