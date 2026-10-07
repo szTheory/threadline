@@ -114,9 +114,9 @@ earlier than 2.0. Move to the listed replacement before then:
 - Replace the legacy positional row-history call with `row_history/3`, using
   one keyword options list.
   <!-- threadline:upgrade:1.0:deprecated-row-history-4 -->
-- Replace the deprecated `Threadline.history/3` call with `row_history/3`. Pass
-  `limit: :infinity` for its prior unbounded behavior and map `.audit_change`
-  when callers need the old `%AuditChange{}` result.
+- Replace the deprecated unbounded history read with `row_history/3`. Pass
+  `limit: :infinity` for its prior behavior and map `.audit_change` when callers
+  need the old `%AuditChange{}` result.
   <!-- threadline:upgrade:1.0:deprecated-history-3 -->
 - Replace the legacy row-history page helpers with `row_history/3`, starting
   with `cursor: :start`.

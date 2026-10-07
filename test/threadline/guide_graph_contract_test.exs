@@ -57,8 +57,9 @@ defmodule Threadline.GuideGraphContractTest do
 
   test "the Markdown resolver reports missing paths and normalized anchors" do
     files = %{
-      "guides/source.md" => "# Source\n[valid](target.md#target-heading)\n[bad](missing.md)",
-      "guides/target.md" => "# Target heading\n"
+      "guides/source.md" =>
+        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[bad](missing.md)",
+      "guides/target.md" => "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n"
     }
 
     assert validate_links("guides/source.md", files["guides/source.md"], files) == [
@@ -322,22 +323,28 @@ defmodule Threadline.GuideGraphContractTest do
   end
 
   defp heading_anchors(content) do
-    content
-    |> String.split("\n")
-    |> Enum.filter(&Regex.match?(~r/^\#{1,6}\s+/, &1))
-    |> Enum.map(fn heading ->
-      heading
-      |> String.replace(~r/^\#{1,6}\s+/, "")
-      |> String.replace(~r/`([^`]*)`/, "\\1")
-      |> String.downcase()
-      # GitHub/ExDoc heading ids preserve underscores in identifiers such as
-      # `correlation_id`; strip punctuation without collapsing identifier text.
-      |> String.replace(~r/[^\p{L}\p{N}_\s-]/u, "")
-      |> String.trim()
-      |> String.replace(~r/\s+/, "-")
-      |> String.replace(~r/-+/, "-")
-    end)
-    |> MapSet.new()
+    heading_anchors =
+      content
+      |> String.split("\n")
+      |> Enum.filter(&Regex.match?(~r/^\#{1,6}\s+/, &1))
+      |> Enum.map(fn heading ->
+        heading
+        |> String.replace(~r/^\#{1,6}\s+/, "")
+        |> String.replace(~r/`([^`]*)`/, "\\1")
+        |> String.downcase()
+        # GitHub/ExDoc heading ids preserve underscores in identifiers such as
+        # `correlation_id`; strip punctuation without collapsing identifier text.
+        |> String.replace(~r/[^\p{L}\p{N}_\s-]/u, "")
+        |> String.trim()
+        |> String.replace(~r/\s+/, "-")
+        |> String.replace(~r/-+/, "-")
+      end)
+
+    explicit_anchors =
+      Regex.scan(~r/<a\s+id=["']([^"']+)["']\s*><\/a>/i, content, capture: :all_but_first)
+      |> List.flatten()
+
+    MapSet.new(heading_anchors ++ explicit_anchors)
   end
 
   defp external_or_asset?(target) do
