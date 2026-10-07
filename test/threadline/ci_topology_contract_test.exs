@@ -220,6 +220,16 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert minimum_postgres_errors(yaml) == []
 
+    contract_reference =
+      "# The PostgreSQL 15 support floor is pinned by " <>
+        "test/threadline/ci_topology_contract_test.exs.\n"
+
+    unlinked_yaml = String.replace(yaml, contract_reference, "")
+
+    assert "verify-test min row must identify its PostgreSQL support-floor contract" in minimum_postgres_errors(
+             unlinked_yaml
+           )
+
     for pg <- ["14", "16"] do
       mutated_yaml = replace_minimum_postgres(yaml, pg)
       refute mutated_yaml == yaml, "the min-lane PostgreSQL #{pg} mutation must change ci.yml"
@@ -485,6 +495,12 @@ defmodule Threadline.CiTopologyContractTest do
       {job != "", "verify-test job is missing"},
       {length(min_headers) == 1, "verify-test must define exactly one min matrix row"},
       {length(min_blocks) == 1, "verify-test min row must have one parseable matrix block"},
+      {length(min_blocks) == 1 and
+         String.contains?(
+           List.first(min_blocks),
+           "# The PostgreSQL 15 support floor is pinned by " <>
+             "test/threadline/ci_topology_contract_test.exs."
+         ), "verify-test min row must identify its PostgreSQL support-floor contract"},
       {pg_values == ["15"],
        "verify-test min row must set pg to the exact token \"15\", found #{inspect(pg_values)}"}
     ]

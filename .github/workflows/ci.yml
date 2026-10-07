@@ -603,6 +603,7 @@ jobs:
           - lane: min
             elixir: "1.15.8"
             otp: "26.2.5.21"
+            # The PostgreSQL 15 support floor is pinned by test/threadline/ci_topology_contract_test.exs.
             pg: "15"
             runner: "ubuntu-24.04"
           - lane: current
