@@ -477,6 +477,29 @@ defmodule Threadline.Capture.TriggerMigrateTimeErrorsTest do
   end
 
   describe "a detected primary key column listed in mask or exclude" do
+    test "mask refuses a configured column that does not exist before installing anything", %{
+      tmp: tmp
+    } do
+      Repo.query!("CREATE TABLE pk_masked_code (code text PRIMARY KEY, email text)")
+
+      Application.put_env(:threadline, :trigger_capture,
+        tables: %{"pk_masked_code" => [mask: ["missing_name"]]}
+      )
+
+      file = Harness.generate!(tmp, ["--tables", "pk_masked_code"])
+      error = assert_raise(Postgrex.Error, fn -> Harness.migrate_up(file) end)
+
+      assert error.postgres.message =~ "public.pk_masked_code"
+      assert error.postgres.message =~ "mask"
+      assert error.postgres.message =~ "missing_name"
+      assert Harness.threadline_triggers("public", "pk_masked_code") == []
+      refute Harness.function_exists?(Naming.function_name("pk_masked_code"))
+      refute_schema_migrations_row(file)
+
+      Repo.query!("INSERT INTO pk_masked_code (code, email) VALUES ('c1', 'a@example.com')")
+      assert capture_rows("public", "pk_masked_code") == []
+    end
+
     test "mask refuses, naming the column", %{tmp: tmp} do
       Repo.query!("CREATE TABLE pk_masked_code (code text PRIMARY KEY, email text)")
 
