@@ -4,18 +4,18 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 237
 current_phase_name: Upgrade Guide and 1.0.0
-current_plan: Not started
+current_plan: 2
 status: executing
-stopped_at: Phase 237 plans verified
-last_updated: "2026-10-07T20:03:56"
+stopped_at: Completed 237-01-PLAN.md
+last_updated: "2026-10-07T20:19:53.960Z"
 last_activity: 2026-10-07
-last_activity_desc: Phase 237 plans verified; ready to execute
-state_head: d7c7f3272f9a2bbe7a208760832f509e592746b4
+last_activity_desc: Phase 237 Plan 237-01 complete; Plan 237-02 is next
+state_head: 8dc5556dec2ed89e1ae6372175724c670e018780
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 47
-  completed_plans: 42
+  completed_plans: 43
   percent: 86
 ---
 
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-07 after Phase 236)
 
 ## Current Position
 
-Phase: 237 (Upgrade Guide and 1.0.0) — READY TO EXECUTE
-Current Plan: Not started
+Phase: 237 (Upgrade Guide and 1.0.0) — EXECUTING
+Current Plan: 2
 Total Plans in Phase: 5
-Status: Ready to execute
+Status: In Progress
 Phase 237 has five independently verified plans in four dependency-aware waves and is ready to execute. The phase covers the adopter guide, candidate-bound local release rehearsal, milestone audit, and separately granted live release steps.
 Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 proved the approved D-58 GCM-only/Binary reachability conditions and passed the canonical dependency audit. Plan 234-15 passed a post-Plan-19 `mix ci.all`, reconciled security and validation evidence, and marked SPEC-02 Complete; a later phase verification reopened it. Plan 234-20 corrected two public doc claims and the capture/semantics type boundary, passed focused checks, strict Dialyzer, warning-free docs build, fresh independent D-46 review and integrity check, then closed its remaining CI gate using Plan 21's evidence. Plan 21 repaired the mobile reduced-motion E2E case; canonical `mix ci.all` passed with 3,010 root tests, 130 example tests, Dialyzer clean, and browser 318 passed/26 skipped. Plan 22 resolved the current-source Job.context_opts/2 type/runtime gaps and eager export validation telemetry issue, corrected the D-56 retention string-key value type surfaced during independent review, and passed fresh D-46 integrity plus canonical `mix ci.all` (3,016 root tests, 130 example tests, Dialyzer clean, browser 318/26). Phase 234 verification passed at 12/12 must-haves on 2026-10-06; SPEC-01, SPEC-02, and SPEC-03 are Complete. D-55's >=82 visible-entry floor and D-07's eight exact hidden pins remain unchanged. Phase 235 verification passed 5/5 on 2026-10-07. Final CI passed with root 3,047/0, example 130/0, Dialyzer clean, and browser 318/26; code review is clean. Five judgment-tier prohibition groups remain flagged as unverified. Phase 235 was complete; Phase 236 was next at that point.
 235-01 added migration-time validation for configured mask/exclude columns and the redaction threat guide. The focused migration, guide-contract, and graph tests passed (41/0); format and warning-free docs passed. Commits: `57dc67f2`, `5cb3b592`, `7638817a`. DOCS-02 is Complete. Phase 235 has five reviewed plans.
@@ -301,6 +301,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 235 P05 | 4 min | 2 tasks | 4 files |
 | Phase 236 P01 | 30 min | 2 tasks | 7 files |
 | Phase 236 P02 | 62 min | 2 tasks | 7 files |
+| Phase 237 P01 | 10min | 2 tasks | 7 files |
 
 ## Deferred Items
 
@@ -1069,6 +1070,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 235]: Operator route pins distinguish LiveView route identities from sibling HTTP method routes.
 - [Phase 235]: Keep the documented stable schema field subsets narrower than current Ecto schemas.
 - [Phase 235]: Describe captured JSONB compatibility as additive keys and shapes, without byte or ordering guarantees.
+- [Phase 237]: Keep the 0.11.x preflight separate from the seven shared 1.0 upgrade steps.
+- [Phase 237]: Select the Unreleased changelog block during staging and the dated 1.0.0 block after release preparation.
 
 ### Blockers
 
@@ -1082,9 +1085,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-07T19:32:24.888Z
-**Stopped at:** Phase 237 context gathered
-**Resume file:** .planning/phases/237-upgrade-guide-and-1-0-0/237-CONTEXT.md
+**Last session:** 2026-10-07T20:19:53.865Z
+**Stopped at:** Completed 237-01-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
@@ -1107,9 +1110,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **234-04 (2026-10-04):** Completed the Export and operations API typing/documentation gate. Post-merge reconciliation fixed four doc-contract mismatches and seven Evidence proof Dialyzer findings; the full suite passed (2,986 tests, 0 failures, 3 excluded), example suite passed (130/0), and formatting, Credo, warning-free compile, docs, and Dialyzer passed. Plan summary: `234-04-SUMMARY.md`.
 - **235-01 (2026-10-06):** Generated migration redaction-column guard and evidence-linked threat guide; focused tests 41/0, format and warning-free ExDoc passed. Commits `57dc67f2`, `5cb3b592`, `7638817a`. See `.planning/phases/235-stability-contract-and-adopter-guides/235-01-SUMMARY.md`.
 - **235-02 (2026-10-06):** Published the 1.x stability and supported-table guides, added deletion/eligibility contracts, and registered both in the Adopt guide graph; focused combined contracts 14/0, format and warning-free ExDoc passed. Commits `922758ef`, `686afe14`. See `.planning/phases/235-stability-contract-and-adopter-guides/235-02-SUMMARY.md`.
-- **Next Step**: Discuss Phase 237 — Upgrade Guide and 1.0.0.
+- **Next Step**: Execute Phase 237 Plan 237-02 — Bind the local release rehearsal to a committed 1.0.0 candidate.
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Discuss Phase 237 — Upgrade Guide and 1.0.0.
+- Execute Phase 237 Plan 237-02 — Bind the local release rehearsal to a committed 1.0.0 candidate.

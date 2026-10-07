@@ -315,7 +315,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 237-01-PLAN.md — Publish the complete 1.0 upgrade path and exact changelog contract
+- [x] 237-01-PLAN.md — Publish the complete 1.0 upgrade path and exact changelog contract (completed 2026-10-07)
 - [ ] 237-02-PLAN.md — Bind the local release rehearsal to a committed 1.0.0 candidate
 
 **Wave 2** *(blocked on Wave 1 completion)*

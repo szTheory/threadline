@@ -89,7 +89,7 @@
   - The guide states that already-installed triggers and previously captured rows are not changed by this validation; adopters must regenerate and run the host-owned trigger migration for the affected table.
   - It states where plaintext can still exist: WAL and logical decoding, replication slots, backups, superuser access, rows captured before a rule changed, and host logs.
   - A doc-contract test rejects unscoped absolutes ("all", "never", "guarantees", "prevents" with no qualifier).
-- [ ] **DOCS-03**: `guides/upgrading-to-1.0.md` takes a 0.11 or 0.12 adopter to 1.0, with one numbered step per breaking change in this milestone:
+- [x] **DOCS-03**: `guides/upgrading-to-1.0.md` takes a 0.11 or 0.12 adopter to 1.0, with one numbered step per breaking change in this milestone:
   - the facade collapse
   - the history default
   - the `Page` struct
@@ -163,7 +163,7 @@
 | CONTRACT-05 | Phase 235 | Complete |
 | DOCS-01 | Phase 235 | Complete |
 | DOCS-02 | Phase 235 | Complete |
-| DOCS-03 | Phase 237 | Pending |
+| DOCS-03 | Phase 237 | Complete |
 | FLOOR-01 | Phase 236 | Complete |
 | FLOOR-02 | Phase 236 | Complete |
 | CI-01 | Phase 236 | Complete |
