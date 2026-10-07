@@ -230,25 +230,37 @@ defmodule Threadline.UpgradePathContractTest do
     |> Enum.filter(&String.starts_with?(&1, "- **Supported versions:**"))
   end
 
-  defp unreleased_breaking_section(changelog) do
-    unreleased =
-      case Regex.run(
-             ~r/^## Unreleased — highlights\n([\s\S]*?)(?=^## |\z)/m,
-             changelog,
-             capture: :all_but_first
-           ) do
-        [section] -> section
-        _ -> ""
-      end
-
-    case Regex.run(
-           ~r/^### Breaking changes\n([\s\S]*?)(?=^### |\z)/m,
-           unreleased,
-           capture: :all_but_first
-         ) do
+  defp section_body(changelog, heading_regex) do
+    case Regex.run(heading_regex, changelog, capture: :all_but_first) do
       [section] -> section
       _ -> ""
     end
+  end
+
+  defp breaking_section(section) do
+    case Regex.run(
+           ~r/^### Breaking changes\n([\s\S]*?)(?=^### |\z)/m,
+           section,
+           capture: :all_but_first
+         ) do
+      [breaking] -> breaking
+      _ -> ""
+    end
+  end
+
+  defp current_support_breaking_section(changelog) do
+    [
+      ~r/^## Unreleased — highlights\n([\s\S]*?)(?=^## |\z)/m,
+      ~r/^## \[1\.0\.0\][^\n]*\n([\s\S]*?)(?=^## |\z)/m
+    ]
+    |> Enum.map(&section_body(changelog, &1))
+    |> Enum.map(&breaking_section/1)
+    |> Enum.find("", fn breaking ->
+      normalized = String.replace(breaking, ~r/\s+/, " ")
+
+      String.contains?(normalized, "PostgreSQL 15 is the supported minimum") and
+        String.contains?(normalized, "PostgreSQL 14 adopters must upgrade their database")
+    end)
   end
 
   defp current_support_errors(readme, changelog) do
@@ -257,7 +269,7 @@ defmodule Threadline.UpgradePathContractTest do
 
     breaking_section =
       changelog
-      |> unreleased_breaking_section()
+      |> current_support_breaking_section()
       |> String.replace(~r/\s+/, " ")
 
     [
@@ -269,16 +281,14 @@ defmodule Threadline.UpgradePathContractTest do
        "README current support summary must not retain the PostgreSQL 14 floor"},
       {String.contains?(bullet || "", "guides/upgrade-path.md#toolchain-support-policy"),
        "README current support summary must link to the guide's toolchain support table"},
-      {Enum.any?(Regex.scan(~r/^### Breaking changes\s*$/m, changelog)),
-       "CHANGELOG.md must contain an Unreleased Breaking changes section"},
-      {breaking_section != "", "CHANGELOG Unreleased Breaking changes section is missing"},
+      {breaking_section != "", "CHANGELOG current support Breaking changes section is missing"},
       {String.contains?(breaking_section, "PostgreSQL 15 is the supported minimum"),
-       "CHANGELOG Unreleased must state that PostgreSQL 15 is the supported minimum"},
+       "CHANGELOG current support section must state that PostgreSQL 15 is the supported minimum"},
       {String.contains?(
          breaking_section,
          "PostgreSQL 14 adopters must upgrade their database before upgrading Threadline"
        ),
-       "CHANGELOG Unreleased must tell PostgreSQL 14 adopters to upgrade their database before Threadline"}
+       "CHANGELOG current support section must tell PostgreSQL 14 adopters to upgrade their database before Threadline"}
     ]
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
@@ -327,7 +337,7 @@ defmodule Threadline.UpgradePathContractTest do
     end
   end
 
-  test "README and Unreleased changelog state the PostgreSQL 15 floor and adopter action" do
+  test "README and current changelog state the PostgreSQL 15 floor and adopter action" do
     readme = read_rel!(["README.md"])
     changelog = read_rel!(["CHANGELOG.md"])
 
@@ -353,14 +363,14 @@ defmodule Threadline.UpgradePathContractTest do
           "[toolchain support policy table](guides/upgrade-path.md#toolchain-support-policy)",
           "the upgrade guide"
         ), changelog}},
-      {"the Unreleased floor changed back to PostgreSQL 14",
+      {"the current changelog floor changed back to PostgreSQL 14",
        {readme,
         String.replace(
           changelog,
           "PostgreSQL 15 is the supported minimum",
           "PostgreSQL 14 is the supported minimum"
         )}},
-      {"the Unreleased PostgreSQL 14 adopter action deleted",
+      {"the current changelog PostgreSQL 14 adopter action deleted",
        {readme,
         Regex.replace(
           ~r/PostgreSQL 14 adopters must upgrade\s+their database before upgrading Threadline\./,

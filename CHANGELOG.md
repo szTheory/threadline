@@ -24,6 +24,8 @@ dated release heading at release time. The heading is deliberately unbracketed:
 a bracketed form collides with release automation's version-header pattern and
 would be read as a release.
 
+## [1.0.0] - 2026-10-07
+
 `Threadline.Capture.AuditTransaction` and `Threadline.Semantics.AuditAction` no
 longer declare a direct Ecto association to each other, enforcing this
 project's capture/semantics layer boundary at the schema level. Reading the
