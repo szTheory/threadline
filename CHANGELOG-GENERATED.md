@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/szTheory/threadline/compare/v0.12.0...v1.0.0) (2026-10-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* land Threadline 1.0 API contract
+
+### Features
+
+* land Threadline 1.0 API contract ([371ce3a](https://github.com/szTheory/threadline/commit/371ce3acfa753ea5747f9478ef1bdcfa92c226f3))
+
 ## [0.12.0](https://github.com/szTheory/threadline/compare/v0.11.2...v0.12.0) (2026-10-03)
 
 
