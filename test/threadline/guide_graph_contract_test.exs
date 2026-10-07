@@ -58,11 +58,13 @@ defmodule Threadline.GuideGraphContractTest do
   test "the Markdown resolver reports missing paths and normalized anchors" do
     files = %{
       "guides/source.md" =>
-        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[bad](missing.md)",
-      "guides/target.md" => "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n"
+        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[code](target.md#code-only)\n[bad](missing.md)",
+      "guides/target.md" =>
+        "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n```html\n<a id=\"code-only\"></a>\n```\n"
     }
 
     assert validate_links("guides/source.md", files["guides/source.md"], files) == [
+             {:missing_anchor, "guides/source.md", "target.md#code-only", "code-only"},
              {:missing_path, "guides/source.md", "missing.md", "guides/missing.md"}
            ]
 
@@ -323,6 +325,8 @@ defmodule Threadline.GuideGraphContractTest do
   end
 
   defp heading_anchors(content) do
+    content = strip_fenced_code_blocks(content)
+
     heading_anchors =
       content
       |> String.split("\n")
@@ -345,6 +349,37 @@ defmodule Threadline.GuideGraphContractTest do
       |> List.flatten()
 
     MapSet.new(heading_anchors ++ explicit_anchors)
+  end
+
+  defp strip_fenced_code_blocks(content) do
+    {_, lines} =
+      content
+      |> String.split("\n")
+      |> Enum.reduce({nil, []}, fn line, {fence, lines} ->
+        case fence do
+          nil ->
+            case Regex.run(~r/^\s{0,3}(`{3,}|~{3,})/, line, capture: :all_but_first) do
+              [opening] -> {opening, lines}
+              _ -> {nil, [line | lines]}
+            end
+
+          opening ->
+            case Regex.run(~r/^\s{0,3}(`+|~+)\s*$/, line, capture: :all_but_first) do
+              [closing] ->
+                if String.first(opening) == String.first(closing) and
+                     byte_size(closing) >= byte_size(opening) do
+                  {nil, lines}
+                else
+                  {opening, lines}
+                end
+
+              _ ->
+                {opening, lines}
+            end
+        end
+      end)
+
+    lines |> Enum.reverse() |> Enum.join("\n")
   end
 
   defp external_or_asset?(target) do

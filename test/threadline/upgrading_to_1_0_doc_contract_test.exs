@@ -186,7 +186,8 @@ defmodule Threadline.UpgradingTo100DocContractTest do
     assert String.contains?(content, "AuditAction")
     assert String.contains?(content, "action_id")
     assert String.contains?(content, "PostgreSQL 15")
-    assert String.contains?(content, "deprecated `Threadline.history/3` call")
+    assert String.contains?(content, "deprecated unbounded history read")
+    refute String.contains?(content, "Threadline.history/3")
   end
 
   test "the guide is registered in ExDoc and the Adopt guide graph" do
