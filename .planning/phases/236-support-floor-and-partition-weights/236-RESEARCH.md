@@ -1,7 +1,7 @@
 # Phase 236: Support Floor and Partition Weights - Research
 
-**Researched:** 2026-10-07  
-**Domain:** PostgreSQL compatibility floor, CI topology contracts, measured ExUnit partition weights  
+**Researched:** 2026-10-07
+**Domain:** PostgreSQL compatibility floor, CI topology contracts, measured ExUnit partition weights
 **Confidence:** HIGH for repository state and implementation seams; MEDIUM for local environment coverage
 
 ## Summary
@@ -109,10 +109,10 @@ These are implementation recommendations based on current seams, not description
 
 The following existing values were opened directly in their source files; preserve these values while changing the PostgreSQL floor. [VERIFIED: `mix.exs:39-46`; `.github/workflows/ci.yml:600-616`]
 
-> `elixir: "~> 1.15"`  
-> `lane: [min, current, latest]`  
-> `elixir: "1.15.8"` / `otp: "26.2.5.21"` / `pg: "14"`  
-> `version-file: ".tool-versions"` / `erlang 27.3.4.15` / `elixir 1.17.3-otp-27` / `pg: "16"`  
+> `elixir: "~> 1.15"`
+> `lane: [min, current, latest]`
+> `elixir: "1.15.8"` / `otp: "26.2.5.21"` / `pg: "14"`
+> `version-file: ".tool-versions"` / `erlang 27.3.4.15` / `elixir 1.17.3-otp-27` / `pg: "16"`
 > `elixir: "1.20.4"` / `otp: "29.1.1"` / `pg: "18.6"`
 
 The required new PG floor is stated verbatim in the source requirement: > “The CI `min` lane runs on PG 15.” [VERIFIED: `.planning/REQUIREMENTS.md:104-107`]
@@ -129,23 +129,23 @@ The required new PG floor is stated verbatim in the source requirement: > “The
 
 ### Keep support statements aligned
 
-**What goes wrong:** An adopter-facing table says PostgreSQL 15 while the workflow’s `min` row or package support comment still says PostgreSQL 14.  
-**Why it happens:** The same claim currently lives in `mix.exs`, CI, and prose.  
-**How to avoid:** Pin the `min` lane in the topology contract and make the guide’s contract compare against both `mix.exs` and `ci.yml`, as FLOOR-02 requires. Keep current/latest described as tested-on coverage rather than new floor promises.  
+**What goes wrong:** An adopter-facing table says PostgreSQL 15 while the workflow’s `min` row or package support comment still says PostgreSQL 14.
+**Why it happens:** The same claim currently lives in `mix.exs`, CI, and prose.
+**How to avoid:** Pin the `min` lane in the topology contract and make the guide’s contract compare against both `mix.exs` and `ci.yml`, as FLOOR-02 requires. Keep current/latest described as tested-on coverage rather than new floor promises.
 **Warning signs:** Different PG values in the changelog, mix comment, guide, or workflow.
 
 ### Do not mistake assignment for weights coverage
 
-**What goes wrong:** CI stays green while newly added tests use fallback median weights, leaving partitions less balanced.  
-**Why it happens:** The script explicitly assigns the median to a file with no weight and verifies only that each discovered test runs exactly once.  
-**How to avoid:** Have a contract compare the complete discovered test path set with paths in the weight file, plus a mutation control; regenerate after all file churn.  
+**What goes wrong:** CI stays green while newly added tests use fallback median weights, leaving partitions less balanced.
+**Why it happens:** The script explicitly assigns the median to a file with no weight and verifies only that each discovered test runs exactly once.
+**How to avoid:** Have a contract compare the complete discovered test path set with paths in the weight file, plus a mutation control; regenerate after all file churn.
 **Warning signs:** More `*_test.exs` files than non-comment weight rows; currently 264 versus 234.
 
 ### Preserve full floor-lane execution
 
-**What goes wrong:** The workflow calls PG 15 the supported floor but a filtered, partial, or skipped suite supplies the evidence.  
-**Why it happens:** CI job topology evolves separately from lane values.  
-**How to avoid:** Keep the existing `verify-test` job and full partitioned test step on every matrix row. Its runner self-test proves that failure propagation is not swallowed; the actual min-lane test step proves application behavior.  
+**What goes wrong:** The workflow calls PG 15 the supported floor but a filtered, partial, or skipped suite supplies the evidence.
+**Why it happens:** CI job topology evolves separately from lane values.
+**How to avoid:** Keep the existing `verify-test` job and full partitioned test step on every matrix row. Its runner self-test proves that failure propagation is not swallowed; the actual min-lane test step proves application behavior.
 **Warning signs:** A new `if:` condition on `Run tests`, a missing job from `ci-required`, or a local run against PG 14 being presented as floor proof.
 
 PostgreSQL 15's official release notes identify compatibility-affecting changes, including changes to default `public` schema privileges. Check that test database provisioning and migration assumptions continue to work on a fresh PostgreSQL 15 service; do not infer compatibility solely from the PG 14 suite. [CITED: [PostgreSQL 15 release notes](https://www.postgresql.org/docs/release/15.0/)]
@@ -282,5 +282,5 @@ None that block planning. The implementation should preserve existing CI lanes a
 - Architecture: HIGH — topology and weighting seams are already implemented; recommendations are narrowly scoped.
 - Pitfalls: HIGH — current drift and missing weight counts were measured from the repository; PostgreSQL behavior caveat is cited to official release notes.
 
-**Research date:** 2026-10-07  
+**Research date:** 2026-10-07
 **Valid until:** 2026-11-06; recheck the live CI matrix, test inventory, and official PostgreSQL lifecycle before execution if delayed.
