@@ -1,6 +1,6 @@
 ---
 phase: 236-support-floor-and-partition-weights
-reviewed: 2026-10-07T18:10:10Z
+reviewed: 2026-10-07T18:33:56Z
 depth: standard
 files_reviewed: 10
 files_reviewed_list:
@@ -24,19 +24,19 @@ status: clean
 
 # Phase 236: Code Review Report
 
-**Reviewed:** 2026-10-07T18:10:10Z
+**Reviewed:** 2026-10-07T18:33:56Z
 **Depth:** standard
 **Files Reviewed:** 10
 **Status:** clean
 
 ## Summary
 
-Reviewed the support-floor changes, source-derived policy contracts, complete weight inventory, and partition runner. The canonical writer emits the same two clarification lines as the checked-in weight header (`bin/ci-test-partitions:514-515`, `test/partition_weights.txt:5-6`), and the runner self-test asserts both lines after regeneration (`bin/ci-test-partitions:875-877`). `bin/ci-test-partitions --self-test` passed. No correctness, security, or maintainability issues found.
+Reviewed all ten scoped files, including commit `5895d39d`. The new CI comment is inside the `verify-test` minimum matrix row, and `minimum_postgres_errors/1` checks for that pointer and the exact PostgreSQL 15 value. Its test removes the comment and confirms the contract reports a failure. The partition-weight inventory and writer agree on the clarification that assignment tolerates missing/stale entries while the committed-inventory contract rejects them. No correctness, security, or maintainability issues found.
 
 All reviewed files meet quality standards. No issues found.
 
 ---
 
-_Reviewed: 2026-10-07T18:10:10Z_
+_Reviewed: 2026-10-07T18:33:56Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
