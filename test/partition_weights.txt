@@ -2,8 +2,9 @@
 # to balance the CI test partitions. One "<milliseconds> <test file>" per line,
 # sorted by path.
 # Regenerate with: bin/ci-test-partitions --write-weights
-# A stale or missing entry only makes the partitions less even; every test file
-# still runs exactly once.
+# The runner tolerates stale or missing weights when assigning tests, so every
+# discovered test still runs exactly once. The committed-inventory CI contract
+# rejects stale or missing entries.
 258 test/mix/tasks/threadline.evidence_show_test.exs
 105 test/mix/tasks/threadline.incident_test.exs
 53 test/mix/tasks/threadline/export_test.exs
