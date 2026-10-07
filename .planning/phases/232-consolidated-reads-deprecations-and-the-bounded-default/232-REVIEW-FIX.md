@@ -3,10 +3,11 @@ phase: 232-consolidated-reads-deprecations-and-the-bounded-default
 fixed_at: 2026-10-03T21:44:31Z
 review_path: .planning/phases/232-consolidated-reads-deprecations-and-the-bounded-default/232-REVIEW.md
 iteration: 1
-findings_in_scope: 3
-fixed: 3
+findings_in_scope: 4
+fixed: 4
 skipped: 1
 status: partial
+reverified: "2026-10-07"
 ---
 
 # Phase 232: Code Review Fix Report
@@ -16,8 +17,8 @@ status: partial
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 3 (CR-01, WR-01, WR-02); IN-01 was explicitly excluded from scope per the orchestrator's `fix_scope`
-- Fixed: 3
+- Findings in scope: 4 (CR-01, WR-01, WR-02, WR-03); IN-01 was explicitly excluded from the original fix scope
+- Fixed: 4 (three on 2026-10-03, WR-03 on 2026-10-07)
 - Skipped: 1 (IN-01, out of scope by request, not attempted)
 
 ## Fixed Issues
@@ -39,6 +40,18 @@ status: partial
 **Files modified:** `lib/threadline/query.ex`, `guides/integration-contracts.md`
 **Commit:** `949b24a3`
 **Applied fix:** Chose the documentation-only option the review itself offered (not the riskier "give the deprecated path a distinct `:surface` value" option, which would be an undocumented, unlocked behavior change affecting any existing `scope_query_fn` that already filters on `surface: :row_history` for both paths). Added a comment at `row_history_scope_opts/3`'s definition explaining that its default `:surface` is shared by the bounded `row_history/3` read and the deprecated, unbounded `history/3` read, and that callers needing to distinguish them should pass an explicit `:surface` override. Added a matching caller-facing paragraph to `guides/integration-contracts.md`'s `scope_query_fn` section. `mix test test/threadline/integration_contracts_doc_contract_test.exs` (8 tests) still passes with the new prose.
+
+### WR-03: Deprecated row_history/4 documentation reverses legacy filter precedence
+
+- **Re-verification:** 2026-10-07. The refreshed review found that the public docs
+  promised options-first precedence, while the approved Phase 232 plans and
+  `LegacyOpts.row_history/2` preserve `filters ++ opts` and filters-first lookup.
+- **Fix:** Corrected `lib/threadline.ex` to state that duplicate `:repo`, `:from`
+  and `:to` values in filters take precedence. Runtime behavior is unchanged.
+- **Commit:** `81287560`.
+- **Verification:** Deprecation parity, facade naming and public-surface contracts
+  passed (85 tests, 0 failures); `mix verify.format` and warning-free ExDoc passed.
+  Independent reviewer confirmed the correction and returned a clean report.
 
 ## Skipped Issues
 

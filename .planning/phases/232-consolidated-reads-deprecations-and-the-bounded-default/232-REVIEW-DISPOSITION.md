@@ -10,28 +10,33 @@ findings:
   - id: WR-01
     severity: warning
     disposition: fixed
-    title: "`RowReads.list/3`'s explicit `limit: n` path silently returns fewer than `n` rows with no truncation signal, by design — but this is easy to misread as a bug fix target"
+    title: "`RowReads.list/3`'s explicit `limit: n` path silently returns fewer rows than `n` with no truncation signal, by design"
   - id: WR-02
     severity: warning
     disposition: fixed
-    title: "`Threadline.Query.row_history_scope_opts/3`'s `:surface` default of `:row_history` is shared between the bounded (`row_history/3`) and unbounded-legacy (`history/3`, deprecated `row_history/4`) read paths"
+    title: "`row_history_scope_opts/3`'s shared `:surface` default between the bounded and deprecated-unbounded read paths"
   - id: IN-01
     severity: info
     disposition: skipped
-    title: "`Threadline.Investigation.row_history_page/4`'s doc references the retired `cursor: nil` first-page convention without flagging that it diverges from every other paged read in the same module"
+    title: "`Investigation.row_history_page/4`'s doc caveat is not cross-linked across its `_page` siblings"
+  - id: WR-03
+    severity: warning
+    disposition: fixed
+    title: "Deprecated row_history/4 documentation reverses legacy filter precedence"
 open: 0
-total: 4
-recorded: 2026-10-03T21:50:00.551Z
+total: 5
+recorded: 2026-10-07T12:56:46.326Z
 ---
 
 # Phase 232: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-01 | critical | fixed | 232-REVIEW-FIX.md |
-| WR-01 | warning | fixed | 232-REVIEW-FIX.md (39d9da9b) |
-| WR-02 | warning | fixed | 232-REVIEW-FIX.md (949b24a3; guide wording corrected in 3127d344) |
-| IN-01 | info | skipped | info-level doc dedup, outside the critical+warning fix scope |
+| CR-01 | critical | fixed | 232-REVIEW-FIX.md (not in the current review) |
+| WR-01 | warning | fixed | 232-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 232-REVIEW-FIX.md (not in the current review) |
+| IN-01 | info | skipped | 232-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 232-REVIEW-FIX.md (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
