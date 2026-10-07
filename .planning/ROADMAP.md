@@ -319,7 +319,7 @@ Plans:
 - [x] 237-02-PLAN.md — Bind the local release rehearsal to a committed 1.0.0 candidate (completed 2026-10-07)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 237-03-PLAN.md — Audit milestone footers and prove the isolated candidate locally
+- [x] 237-03-PLAN.md — Audit milestone footers and prove the isolated candidate locally (completed 2026-10-07)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 237-04-PLAN.md — Push and land the milestone under separate grants
@@ -337,7 +337,7 @@ Plans:
 | 234. Typespec and Doc Completion Gate | 22/22 | Complete    | 2026-10-06 |
 | 235. Stability Contract and Adopter Guides | 5/5 | Complete    | 2026-10-06 |
 | 236. Support Floor and Partition Weights | 2/2 | Complete    | 2026-10-07 |
-| 237. Upgrade Guide and 1.0.0 | 2/5 | In Progress | - |
+| 237. Upgrade Guide and 1.0.0 | 3/5 | In Progress | - |
 
 ## Prior Milestones
 

@@ -117,7 +117,7 @@
   - `bump-minor-pre-major` is flipped off in `release-please-config.json` in the landing change.
   - A `Release-As: 1.0.0` footer goes on the squash commit.
   - `verify.bump_rehearsal`, or an equivalent dry run, shows 1.0.0 and not 0.13.0 before merge.
-- [ ] **REL-02**: The 1.0.0 CHANGELOG lists every breaking change and deprecation in the milestone. It is cross-checked against `git log --grep="BREAKING CHANGE"` for the milestone range, and the generated release notes are not trusted to carry the footers.
+- [x] **REL-02**: The 1.0.0 CHANGELOG lists every breaking change and deprecation in the milestone. It is cross-checked against `git log --grep="BREAKING CHANGE"` for the milestone range, and the generated release notes are not trusted to carry the footers.
 - [x] **REL-03**: The milestone lands on main as one squash with a conventional `feat!:` title and ships **1.0.0** to hex.pm through release-please. The pins on the `latest` lane are re-checked at landing. Push, merge and the production-hex publish each need an explicit maintainer grant.
 
 ## Future Requirements (deferred)
@@ -168,7 +168,7 @@
 | FLOOR-02 | Phase 236 | Complete |
 | CI-01 | Phase 236 | Complete |
 | REL-01 | Phase 237 | Complete |
-| REL-02 | Phase 237 | Pending |
+| REL-02 | Phase 237 | Complete |
 | REL-03 | Phase 237 | Complete |
 
 **Coverage:**

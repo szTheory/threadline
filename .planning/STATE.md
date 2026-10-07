@@ -4,18 +4,18 @@ milestone: v1.45
 milestone_name: 1.0 API Contract
 current_phase: 237
 current_phase_name: Upgrade Guide and 1.0.0
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 237-02-PLAN.md
-last_updated: "2026-10-07T20:26:58.269Z"
+stopped_at: Completed 237-03-PLAN.md
+last_updated: "2026-10-07T21:36:53.612Z"
 last_activity: 2026-10-07
-last_activity_desc: Phase 237 Plan 237-02 complete; Plan 237-03 is next
-state_head: 3ca8420a287808357ca204c2c778b8a1bedc897a
+last_activity_desc: Phase 237 Plan 237-03 complete; Plan 237-04 requires a separate grant
+state_head: 04a7fac979719d466c7c3f5fae4cae232d4aeeaa
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 47
-  completed_plans: 44
+  completed_plans: 45
   percent: 86
 ---
 
@@ -31,10 +31,10 @@ See: `.planning/PROJECT.md` (updated 2026-10-07 after Phase 236)
 ## Current Position
 
 Phase: 237 (Upgrade Guide and 1.0.0) — EXECUTING
-Current Plan: 3
+Current Plan: 4
 Total Plans in Phase: 5
-Status: In Progress
-Phase 237 has five independently verified plans in four dependency-aware waves. It covers the adopter guide, candidate-bound local release rehearsal, milestone audit, and separately granted live release steps; Plans 237-01 and 237-02 are complete, with Plan 237-03 next.
+Status: Awaiting separately granted Plan 237-04
+Phase 237 has five independently verified plans in four dependency-aware waves. It covers the adopter guide, candidate-bound local release rehearsal, milestone audit, and separately granted live release steps; Plans 237-01, 237-02, and 237-03 are complete. The isolated candidate remains local pending a separate grant for Plan 237-04.
 Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 proved the approved D-58 GCM-only/Binary reachability conditions and passed the canonical dependency audit. Plan 234-15 passed a post-Plan-19 `mix ci.all`, reconciled security and validation evidence, and marked SPEC-02 Complete; a later phase verification reopened it. Plan 234-20 corrected two public doc claims and the capture/semantics type boundary, passed focused checks, strict Dialyzer, warning-free docs build, fresh independent D-46 review and integrity check, then closed its remaining CI gate using Plan 21's evidence. Plan 21 repaired the mobile reduced-motion E2E case; canonical `mix ci.all` passed with 3,010 root tests, 130 example tests, Dialyzer clean, and browser 318 passed/26 skipped. Plan 22 resolved the current-source Job.context_opts/2 type/runtime gaps and eager export validation telemetry issue, corrected the D-56 retention string-key value type surfaced during independent review, and passed fresh D-46 integrity plus canonical `mix ci.all` (3,016 root tests, 130 example tests, Dialyzer clean, browser 318/26). Phase 234 verification passed at 12/12 must-haves on 2026-10-06; SPEC-01, SPEC-02, and SPEC-03 are Complete. D-55's >=82 visible-entry floor and D-07's eight exact hidden pins remain unchanged. Phase 235 verification passed 5/5 on 2026-10-07. Final CI passed with root 3,047/0, example 130/0, Dialyzer clean, and browser 318/26; code review is clean. Five judgment-tier prohibition groups remain flagged as unverified. Phase 235 was complete; Phase 236 was next at that point.
 235-01 added migration-time validation for configured mask/exclude columns and the redaction threat guide. The focused migration, guide-contract, and graph tests passed (41/0); format and warning-free docs passed. Commits: `57dc67f2`, `5cb3b592`, `7638817a`. DOCS-02 is Complete. Phase 235 has five reviewed plans.
 235-02 published the stability policy and supported-table matrix with claim-level contracts. The combined guide and graph contracts passed (14/0), format passed, and warning-free ExDoc passed. Commits: `922758ef`, `686afe14`. CONTRACT-01 and DOCS-01 are Complete.
@@ -42,8 +42,9 @@ Plan 234-18 documented StorageSchema.role/0 without changing its union or runtim
 235-04 added observed export and Finding-code pins plus literal Threadline task flags, operator options, and mount routes. Both focused suites passed (7 tests, 0 failures) and format passed. Commits: `1bfd52f0`, `ccf2e468`; summary `235-04-SUMMARY.md`. CONTRACT-04 is Complete.
 235-05 documented stable field subsets for AuditChange, AuditTransaction, and AuditAction, plus additive captured-data shapes and schema/document removal controls. Focused contracts passed (10 tests, 0 failures), format passed, and warning-free docs passed. Commits: `fcdd2cd2`, `6f42507c`; summary `235-05-SUMMARY.md`. CONTRACT-05 is Complete. Final `mix ci.all` passed after the five plan references were made portable: root 3,047/0, example 130/0, Dialyzer clean, and browser 318/26. Repository hygiene found 4,651 tracked text files clean.
 232 re-verification on 2026-10-07 passed all 62 plan must-haves and five roadmap criteria. Corrected the retired row_history/4 documentation to preserve the approved filters-first precedence (81287560); runtime unchanged. Current mix ci.all and strict warning gate passed: 3,047 root tests plus 32 properties, example 132 tests, Dialyzer clean, browser 318 passed/26 skipped. Code review is clean; all 19 planned threats are closed; Nyquist validation is compliant. Read-only probes resolved cursor precision, UTF-8 scanner matching, and diagnostic ordering. Completion reported six legacy-summary path warnings (command strings, a brace glob, the intentionally deleted ActorHistoryPage, and an example-relative script path); current artifact verification passed 15/15, so these are metadata warnings, not missing deliverables. Phase 236 was next after this re-verification.
-237-02 added the opt-in committed-candidate release rehearsal, exact `feat!`/`Release-As: 1.0.0`/JSON-false preflight, clone target assertions, truthful local report, and parser mutation controls. Focused contracts passed (35/0), changelog contract passed (9/0), shell syntax and format passed. Commits `94008b56`, `3ca8420a`; next is Plan 237-03.
-Last activity: 2026-10-07 — Phase 237 Plan 237-02 complete; Plan 237-03 is next
+237-02 added the opt-in committed-candidate release rehearsal, exact `feat!`/`Release-As: 1.0.0`/JSON-false preflight, clone target assertions, truthful local report, and parser mutation controls. Focused contracts passed (35/0), changelog contract passed (9/0), shell syntax and format passed. Commits `94008b56`, `3ca8420a`.
+237-03 closed the human 1.0.0 changelog, audited all 11 `BREAKING CHANGE` commits from the exact v1.44 base to source tip, and built candidate `0b2095d9` on separately fetched main `0d6f36f1`. Strict rehearsal passed with a matching 34-file artifact tree; `mix ci.all` passed with 3,058 root tests, 132 example tests, clean Dialyzer/live slice, and browser 318/26. Summary and immutable evidence are in `.planning/phases/237-upgrade-guide-and-1-0-0/237-03-SUMMARY.md` and `237-VERIFICATION.md`; source commits `27902915`, `e18c9a9a`, `1cef0367`, `8321d1aa`, `04a7fac9`.
+Last activity: 2026-10-07 — Phase 237 Plan 237-03 complete; Plan 237-04 requires a separate grant
 
 v1.45 Progress: [█████████░] 6 of 7 v1.45 phases complete (86%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + re-verified 62/62 plan must-haves and 5/5 roadmap criteria 2026-10-07, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase; Phase 235 verified 5/5 with final CI green and zero open code-review findings, while five judgment-tier groups remain unverified; Phase 236 is complete and verified 6/6 (PostgreSQL 15.18 floor, source-checked support table, all 265 test files weighted, final mix ci.all green); next is Phase 237)
 
@@ -304,6 +305,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 236 P02 | 62 min | 2 tasks | 7 files |
 | Phase 237 P01 | 10min | 2 tasks | 7 files |
 | Phase 237 P02 | 5min | 2 tasks | 4 files |
+| Phase 237 P03 | 1h 2m | 2 tasks | 12 files |
 
 ## Deferred Items
 
@@ -1076,6 +1078,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 237]: Select the Unreleased changelog block during staging and the dated 1.0.0 block after release preparation.
 - [Phase 237]: Candidate mode is opt-in; ordinary CI keeps the generic next-minor rehearsal as its default.
 - [Phase 237]: Local candidate artifact simulation reports SOURCE_SHA and explicitly makes no live Release Please claim.
+- [Phase 237]: Keep the complete human-authored 1.0.0 changelog dated 2026-10-07, with a fresh Unreleased staging heading above it.
+- [Phase 237]: Use v1.44 only for the milestone range audit; build the isolated candidate on the separately fetched GitHub main SHA.
+- [Phase 237]: Treat strict candidate rehearsal and ci.all as local evidence only; no external release action is granted.
 
 ### Blockers
 
@@ -1089,8 +1094,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-07T20:26:58.156Z
-**Stopped at:** Completed 237-02-PLAN.md
+**Last session:** 2026-10-07T21:36:53.513Z
+**Stopped at:** Completed 237-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1114,9 +1119,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **234-04 (2026-10-04):** Completed the Export and operations API typing/documentation gate. Post-merge reconciliation fixed four doc-contract mismatches and seven Evidence proof Dialyzer findings; the full suite passed (2,986 tests, 0 failures, 3 excluded), example suite passed (130/0), and formatting, Credo, warning-free compile, docs, and Dialyzer passed. Plan summary: `234-04-SUMMARY.md`.
 - **235-01 (2026-10-06):** Generated migration redaction-column guard and evidence-linked threat guide; focused tests 41/0, format and warning-free ExDoc passed. Commits `57dc67f2`, `5cb3b592`, `7638817a`. See `.planning/phases/235-stability-contract-and-adopter-guides/235-01-SUMMARY.md`.
 - **235-02 (2026-10-06):** Published the 1.x stability and supported-table guides, added deletion/eligibility contracts, and registered both in the Adopt guide graph; focused combined contracts 14/0, format and warning-free ExDoc passed. Commits `922758ef`, `686afe14`. See `.planning/phases/235-stability-contract-and-adopter-guides/235-02-SUMMARY.md`.
-- **Next Step**: Execute Phase 237 Plan 237-03 — Audit milestone footers and prove the isolated candidate locally.
+- **Next Step**: Plan 237-03 is complete. Plan 237-04 (push and land the candidate) requires a separate maintainer grant.
 - **Resume file**: None
 
 ## Operator Next Steps
 
-- Execute Phase 237 Plan 237-03 — Audit milestone footers and prove the isolated candidate locally.
+- Plan 237-03 is complete; separately authorize Plan 237-04 before any push or landing action.
