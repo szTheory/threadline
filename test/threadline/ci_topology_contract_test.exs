@@ -1219,6 +1219,12 @@ defmodule Threadline.CiTopologyContractTest do
         false
       },
       {
+        "Release-As-looking body prose before later text",
+        "feat!: establish the 1.0 API contract",
+        "Candidate notes.\n\nRelease-As: 1.0.0\n\nThis is more body prose, not a trailer.",
+        false
+      },
+      {
         "0.13.0 target",
         "feat!: establish the 1.0 API contract",
         "Release-As: 0.13.0",

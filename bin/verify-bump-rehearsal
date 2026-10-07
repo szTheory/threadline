@@ -129,24 +129,29 @@ step() { printf '\n==> %s\n' "$*"; }
 # This pure helper is also exercised by the topology contract without cloning.
 candidate_release_target() {
   local subject="$1" message_body="$2" config="$3"
-  local candidate_lines candidate_count candidate_footer
+  local candidate_trailers candidate_lines candidate_count candidate_footer
 
   if [[ ! "$subject" =~ ^feat(\([^()]+\))?!:\ .+ ]]; then
     printf 'candidate subject must be a conventional feat!: commit, got %q\n' "$subject" >&2
     return 1
   fi
 
-  candidate_lines="$(printf '%s\n' "$message_body" | grep -E '^[[:space:]]*Release-As([[:space:]]|:|$)' || true)"
+  if ! candidate_trailers="$(printf '%s\n' "$message_body" | git interpret-trailers --parse)"; then
+    printf 'could not parse candidate commit trailers\n' >&2
+    return 1
+  fi
+
+  candidate_lines="$(printf '%s\n' "$candidate_trailers" | grep -E '^Release-As([[:space:]]|:|$)' || true)"
   candidate_count="$(printf '%s\n' "$candidate_lines" | sed '/^$/d' | wc -l | tr -d ' ')"
   if [[ "$candidate_count" != "1" ]]; then
-    printf 'candidate commit must contain exactly one Release-As footer; found %s\n' \
+    printf 'candidate commit must contain exactly one parsed Release-As trailer; found %s\n' \
       "$candidate_count" >&2
     return 1
   fi
 
   candidate_footer="$(printf '%s\n' "$candidate_lines" | sed -n '1p')"
   if [[ "$candidate_footer" != 'Release-As: 1.0.0' ]]; then
-    printf 'candidate footer must be exactly "Release-As: 1.0.0", got %q\n' \
+    printf 'candidate trailer must be exactly "Release-As: 1.0.0", got %q\n' \
       "$candidate_footer" >&2
     return 1
   fi
