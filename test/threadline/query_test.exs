@@ -4,10 +4,10 @@ defmodule Threadline.QueryTest do
 
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Investigation.{IncidentBundle, LinkedChange, LinkedTransaction}
-  alias Threadline.Query.{ActorHistoryPage, TimelinePage}
   alias Threadline.Semantics.{ActorRef, AuditAction}
   alias Threadline.Test.DbProperty
   alias Threadline.Test.KeysetModel
+  alias Threadline.Test.RowHistory
 
   @repo Threadline.Test.Repo
 
@@ -59,6 +59,46 @@ defmodule Threadline.QueryTest do
   defp actor!(type, id) do
     {:ok, ref} = ActorRef.new(type, id)
     ref
+  end
+
+  # Walks actor_history/2 forward with cursor:/page_size: until has_more is
+  # false. Returns {pages, last_page} where pages is a list of id lists.
+  defp walk_actor_history_forward(actor, page_size) do
+    Enum.reduce_while(1..20, {[], :start, nil}, fn _i, {pages, cursor, _last} ->
+      page = Threadline.actor_history(actor, repo: @repo, page_size: page_size, cursor: cursor)
+      ids = Enum.map(page.entries, & &1.id)
+      new_pages = pages ++ [ids]
+
+      if page.has_more do
+        {:cont, {new_pages, page.cursor, page}}
+      else
+        {:halt, {:ok, new_pages, page}}
+      end
+    end)
+    |> case do
+      {:ok, pages, last_page} -> {pages, last_page}
+    end
+  end
+
+  # Walks actor_history/2 backward from `cursor` (a {:before, map} tuple, or
+  # nil meaning "nothing to walk") until has_more is false.
+  defp walk_actor_history_backward(_actor, _page_size, nil), do: []
+
+  defp walk_actor_history_backward(actor, page_size, cursor) do
+    Enum.reduce_while(1..20, {[], cursor}, fn _i, {pages, cursor} ->
+      page = Threadline.actor_history(actor, repo: @repo, page_size: page_size, cursor: cursor)
+      ids = Enum.map(page.entries, & &1.id)
+      new_pages = pages ++ [ids]
+
+      if page.has_more do
+        {:cont, {new_pages, page.cursor}}
+      else
+        {:halt, {:ok, new_pages}}
+      end
+    end)
+    |> case do
+      {:ok, pages} -> pages
+    end
   end
 
   defp support_scope_query(query, %{source: source}, %{surface: :row_history}) do
@@ -358,7 +398,7 @@ defmodule Threadline.QueryTest do
     end
   end
 
-  describe "history/3 — QUERY-01" do
+  describe "row_history/3 (QUERY-01, migrated off the deprecated history/3)" do
     test "returns AuditChange records for the given schema/id, ordered by captured_at desc" do
       txn = insert_transaction()
       t1 = DateTime.add(DateTime.utc_now(), -60, :second)
@@ -375,7 +415,7 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      results = Threadline.history(FakeUser, "u-1", repo: @repo)
+      results = RowHistory.changes(FakeUser, "u-1", repo: @repo)
       assert length(results) == 2
       [first | _] = results
       assert DateTime.compare(first.captured_at, t2) in [:eq, :gt]
@@ -391,7 +431,7 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert [] = Threadline.history(FakeUser2, "nonexistent", repo: @repo)
+      assert [] = RowHistory.changes(FakeUser2, "nonexistent", repo: @repo)
     end
 
     test "only returns records for the specified table" do
@@ -408,11 +448,11 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      results = Threadline.history(FakeUser3, "u-1", repo: @repo)
+      results = RowHistory.changes(FakeUser3, "u-1", repo: @repo)
       assert Enum.all?(results, &(&1.table_name == "users"))
     end
 
-    test "history/3 returns changed_from when the column is populated (BVAL-02)" do
+    test "row_history/3 returns changed_from when the column is populated (BVAL-02)" do
       txn = insert_transaction()
 
       insert_change(txn, %{
@@ -430,11 +470,11 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      [row] = Threadline.history(FakeUserBval, "u-bval", repo: @repo)
+      [row] = RowHistory.changes(FakeUserBval, "u-bval", repo: @repo)
       assert row.changed_from == %{"status" => "pending"}
     end
 
-    test "history/3 applies support scope" do
+    test "row_history/3 applies support scope" do
       support_time = ~U[2026-10-01 08:00:00.000000Z]
       admin_time = DateTime.add(support_time, 60, :second)
 
@@ -459,7 +499,7 @@ defmodule Threadline.QueryTest do
       )
 
       results =
-        Threadline.history(fake_as_of_schema(), "u-scoped-history",
+        RowHistory.changes(fake_as_of_schema(), "u-scoped-history",
           repo: @repo,
           scope: %{source: "support"},
           scope_query_fn: &support_scope_query/3
@@ -469,7 +509,7 @@ defmodule Threadline.QueryTest do
       assert Enum.all?(results, &(&1.transaction_id == support_txn.id))
     end
 
-    test "history/3 :limit caps to the n most recent changes and rejects invalid values" do
+    test "row_history/3 :limit caps to the n most recent changes and rejects invalid values" do
       txn = insert_transaction()
       t1 = DateTime.add(DateTime.utc_now(), -60, :second)
       t2 = DateTime.add(DateTime.utc_now(), -30, :second)
@@ -488,17 +528,17 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      unbounded = Threadline.history(FakeUserLimit, "u-limit", repo: @repo)
-      capped = Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 2)
+      unbounded = RowHistory.changes(FakeUserLimit, "u-limit", repo: @repo)
+      capped = RowHistory.changes(FakeUserLimit, "u-limit", repo: @repo, limit: 2)
 
       assert Enum.map(capped, & &1.id) == Enum.take(Enum.map(unbounded, & &1.id), 2)
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
-        Threadline.history(FakeUserLimit, "u-limit", repo: @repo, limit: 0)
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 0", fn ->
+        RowHistory.changes(FakeUserLimit, "u-limit", repo: @repo, limit: 0)
       end
     end
 
-    test "history/3 :limit against an independent oracle, boundary + tie adjacency (QRY-01/QRY-02)" do
+    test "row_history/3 :limit against an independent oracle, boundary + tie adjacency (QRY-01/QRY-02)" do
       defmodule FakeUserLimitMatrix do
         use Ecto.Schema
 
@@ -525,35 +565,36 @@ defmodule Threadline.QueryTest do
 
       unbounded =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo),
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo),
           & &1.id
         )
 
       assert unbounded == oracle_ids
 
-      # no limit == limit: nil == limit: count + 5
-      nil_limited =
+      # no limit == limit: :infinity == limit: count + 5 (row_history/3: limit:
+      # nil now raises, D-04/D-13 -- unlike the deprecated history/3)
+      infinity_limited =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: nil),
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: :infinity),
           & &1.id
         )
 
       over_limited =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix",
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix",
             repo: @repo,
             limit: length(oracle_ids) + 5
           ),
           & &1.id
         )
 
-      assert nil_limited == oracle_ids
+      assert infinity_limited == oracle_ids
       assert over_limited == oracle_ids
 
       # limit: count returns all
       count_limited =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix",
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix",
             repo: @repo,
             limit: length(oracle_ids)
           ),
@@ -564,7 +605,7 @@ defmodule Threadline.QueryTest do
 
       # limit: 1 returns exactly the oracle head
       [head_limited] =
-        Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 1)
+        RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 1)
 
       assert head_limited.id == List.first(oracle_ids)
 
@@ -574,7 +615,7 @@ defmodule Threadline.QueryTest do
 
       tie_limited =
         Enum.map(
-          Threadline.history(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 3),
+          RowHistory.changes(FakeUserLimitMatrix, "u-limit-matrix", repo: @repo, limit: 3),
           & &1.id
         )
 
@@ -582,7 +623,7 @@ defmodule Threadline.QueryTest do
       assert List.last(tie_limited) == third_id
     end
 
-    test "history/3 :limit plus scope: the cap counts only in-scope rows" do
+    test "row_history/3 :limit plus scope: the cap counts only in-scope rows" do
       support_time = ~U[2026-10-02 09:00:00.000000Z]
       admin_time = DateTime.add(support_time, 60, :second)
       table_pk = %{"id" => "u-limit-scope"}
@@ -608,7 +649,7 @@ defmodule Threadline.QueryTest do
       )
 
       results =
-        Threadline.history(fake_as_of_schema(), "u-limit-scope",
+        RowHistory.changes(fake_as_of_schema(), "u-limit-scope",
           repo: @repo,
           scope: %{source: "support"},
           scope_query_fn: &support_scope_query/3,
@@ -618,7 +659,7 @@ defmodule Threadline.QueryTest do
       assert Enum.map(results, & &1.id) == [support_change.id]
     end
 
-    test "history/3 :limit rejection cases raise with the exact message" do
+    test "row_history/3 :limit rejection cases raise with the exact message" do
       defmodule FakeUserLimitReject do
         use Ecto.Schema
 
@@ -628,28 +669,43 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 0)
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: 0", fn ->
+        RowHistory.changes(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 0)
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: -1", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: -1)
+      assert_raise ArgumentError, ":limit must be a positive integer or :infinity, got: -1", fn ->
+        RowHistory.changes(FakeUserLimitReject, "nonexistent", repo: @repo, limit: -1)
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: 1.0", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: 1.0)
-      end
+      assert_raise ArgumentError,
+                   ":limit must be a positive integer or :infinity, got: 1.0",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitReject, "nonexistent",
+                       repo: @repo,
+                       limit: 1.0
+                     )
+                   end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: \"5\"", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: "5")
-      end
+      assert_raise ArgumentError,
+                   ":limit must be a positive integer or :infinity, got: \"5\"",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitReject, "nonexistent",
+                       repo: @repo,
+                       limit: "5"
+                     )
+                   end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: true", fn ->
-        Threadline.history(FakeUserLimitReject, "nonexistent", repo: @repo, limit: true)
-      end
+      assert_raise ArgumentError,
+                   ":limit must be a positive integer or :infinity, got: true",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitReject, "nonexistent",
+                       repo: @repo,
+                       limit: true
+                     )
+                   end
     end
 
-    test "history/3 :limit validation precedes row-key matching (garbage id + invalid limit)" do
+    test "row_history/3 row-key matching precedes :limit validation (garbage id + invalid limit; order differs from the deprecated history/3, D-04/D-13)" do
       defmodule FakeUserLimitPrecedence do
         use Ecto.Schema
 
@@ -659,12 +715,18 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert_raise ArgumentError, ":limit must be a positive integer, got: 0", fn ->
-        Threadline.history(FakeUserLimitPrecedence, nil, repo: @repo, limit: 0)
-      end
+      # The deprecated history/3 validates :limit before building the
+      # row-key query (deprecation_parity_test.exs covers that order).
+      # row_history/3 builds the row-key query first, so a garbage row key
+      # raises before :limit is ever inspected.
+      assert_raise ArgumentError,
+                   "expected a value for key field :id of Threadline.QueryTest.FakeUserLimitPrecedence, got nil",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitPrecedence, nil, repo: @repo, limit: 0)
+                   end
     end
 
-    test "history/3 :limit on an empty history returns [] for no limit, nil, and limit: 1" do
+    test "row_history/3 :limit on an empty history returns [] for no limit and limit: 1, and raises for limit: nil (D-04/D-13)" do
       defmodule FakeUserLimitEmpty do
         use Ecto.Schema
 
@@ -674,9 +736,18 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo)
-      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: nil)
-      assert [] = Threadline.history(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: 1)
+      assert [] = RowHistory.changes(FakeUserLimitEmpty, "u-limit-empty", repo: @repo)
+
+      assert_raise ArgumentError,
+                   ":limit must be a positive integer or :infinity, got: nil",
+                   fn ->
+                     RowHistory.changes(FakeUserLimitEmpty, "u-limit-empty",
+                       repo: @repo,
+                       limit: nil
+                     )
+                   end
+
+      assert [] = RowHistory.changes(FakeUserLimitEmpty, "u-limit-empty", repo: @repo, limit: 1)
     end
   end
 
@@ -760,7 +831,7 @@ defmodule Threadline.QueryTest do
   # ── actor_history/2 ───────────────────────────────────────────────────────
 
   describe "actor_history/2 — QUERY-02" do
-    test "returns ActorHistoryPage struct with properly sorted entries" do
+    test "returns a %Threadline.Page{} with properly sorted entries" do
       actor = actor!(:user, "u-42")
       actor_map = ActorRef.to_map(actor)
 
@@ -772,17 +843,17 @@ defmodule Threadline.QueryTest do
       insert_transaction(%{actor_ref: ActorRef.to_map(actor!(:user, "other"))})
 
       page = Threadline.actor_history(actor, repo: @repo)
-      assert %ActorHistoryPage{} = page
+      assert %Threadline.Page{} = page
       assert length(page.entries) == 2
       assert Enum.map(page.entries, & &1.id) == [txn2.id, txn1.id]
-      assert page.next_cursor == nil
-      assert page.prev_cursor == nil
+      assert page.cursor == nil
+      assert page.has_more == false
     end
 
-    test "returns empty entries list when no transactions exist for the actor" do
+    test "returns empty entries, nil cursor and has_more false when no transactions exist for the actor" do
       actor = actor!(:service_account, "svc-999")
       page = Threadline.actor_history(actor, repo: @repo)
-      assert %ActorHistoryPage{entries: []} = page
+      assert %Threadline.Page{entries: [], cursor: nil, has_more: false} = page
     end
 
     test "anonymous actor returns all anonymous transactions" do
@@ -796,7 +867,7 @@ defmodule Threadline.QueryTest do
       assert length(page.entries) == 2
     end
 
-    test "supports cursor-based pagination with limit" do
+    test "forward walk with page_size: 2 over 5 transactions yields 2, 2, 1 with exact has_more" do
       actor = actor!(:user, "u-page")
       actor_map = ActorRef.to_map(actor)
 
@@ -813,28 +884,87 @@ defmodule Threadline.QueryTest do
       # Reverse order so they are sorted by occurred_at desc
       sorted_ids = Enum.reverse(txns) |> Enum.map(& &1.id)
 
-      # First page
-      page1 = Threadline.actor_history(actor, repo: @repo, limit: 2)
+      page1 = Threadline.actor_history(actor, repo: @repo, page_size: 2)
       assert length(page1.entries) == 2
       assert Enum.map(page1.entries, & &1.id) == Enum.take(sorted_ids, 2)
-      assert page1.next_cursor != nil
-      assert page1.prev_cursor == nil
+      assert page1.has_more == true
+      assert page1.cursor != nil
 
-      # Second page (after cursor)
-      page2 = Threadline.actor_history(actor, repo: @repo, limit: 2, after: page1.next_cursor)
+      page2 = Threadline.actor_history(actor, repo: @repo, page_size: 2, cursor: page1.cursor)
       assert length(page2.entries) == 2
       assert Enum.map(page2.entries, & &1.id) == Enum.slice(sorted_ids, 2, 2)
-      assert page2.next_cursor != nil
-      assert page2.prev_cursor != nil
+      assert page2.has_more == true
+      assert page2.cursor != nil
 
-      # Fetch previous page (before cursor)
-      page1_again =
-        Threadline.actor_history(actor, repo: @repo, limit: 2, before: page2.prev_cursor)
+      page3 = Threadline.actor_history(actor, repo: @repo, page_size: 2, cursor: page2.cursor)
+      assert length(page3.entries) == 1
+      assert Enum.map(page3.entries, & &1.id) == Enum.slice(sorted_ids, 4, 1)
+      assert page3.has_more == false
+      assert page3.cursor == nil
+    end
 
-      assert length(page1_again.entries) == 2
-      assert Enum.map(page1_again.entries, & &1.id) == Enum.take(sorted_ids, 2)
-      assert page1_again.next_cursor != nil
-      assert page1_again.prev_cursor == nil
+    test "4 transactions at page_size 2: second page has_more is false on the exact boundary" do
+      actor = actor!(:user, "u-exact")
+      actor_map = ActorRef.to_map(actor)
+      base_time = DateTime.utc_now()
+
+      for i <- 1..4 do
+        insert_transaction(%{
+          actor_ref: actor_map,
+          occurred_at: DateTime.add(base_time, i * 10, :second)
+        })
+      end
+
+      page1 = Threadline.actor_history(actor, repo: @repo, page_size: 2)
+      assert page1.has_more == true
+
+      page2 = Threadline.actor_history(actor, repo: @repo, page_size: 2, cursor: page1.cursor)
+      assert length(page2.entries) == 2
+      assert page2.has_more == false
+      assert page2.cursor == nil
+    end
+
+    test "walking {:before, first-entry key} back from the last forward page reproduces earlier pages in reverse order" do
+      actor = actor!(:user, "u-backward")
+      actor_map = ActorRef.to_map(actor)
+      base_time = DateTime.utc_now()
+
+      for i <- 1..5 do
+        insert_transaction(%{
+          actor_ref: actor_map,
+          occurred_at: DateTime.add(base_time, i * 10, :second)
+        })
+      end
+
+      {forward_pages, last_page} = walk_actor_history_forward(actor, 2)
+
+      first_entry = List.first(last_page.entries)
+
+      back_cursor =
+        {:before, %{occurred_at: first_entry.occurred_at, id: first_entry.id}}
+
+      backward_pages = walk_actor_history_backward(actor, 2, back_cursor)
+
+      expected_backward = forward_pages |> Enum.reverse() |> Enum.drop(1)
+      assert backward_pages == expected_backward
+    end
+
+    test "cursor: nil raises ArgumentError naming :start" do
+      actor = actor!(:user, "u-nil-cursor")
+
+      assert_raise ArgumentError, ~r/:start/, fn ->
+        Threadline.actor_history(actor, repo: @repo, cursor: nil)
+      end
+    end
+
+    test "cursor: :start is equivalent to omitting :cursor" do
+      actor = actor!(:user, "u-start-omit")
+      insert_transaction(%{actor_ref: ActorRef.to_map(actor)})
+
+      page_omitted = Threadline.actor_history(actor, repo: @repo)
+      page_explicit = Threadline.actor_history(actor, repo: @repo, cursor: :start)
+
+      assert Enum.map(page_omitted.entries, & &1.id) == Enum.map(page_explicit.entries, & &1.id)
     end
 
     test "supports from and to DateTime bounds" do
@@ -886,44 +1016,165 @@ defmodule Threadline.QueryTest do
 
       expected_ids = KeysetModel.expected_order(model_input)
 
-      forward_result =
-        Enum.reduce_while(1..10, {[], nil, nil}, fn _i, {pages, after_cursor, _last_page} ->
-          page = Threadline.actor_history(actor, repo: @repo, limit: 2, after: after_cursor)
-          ids = Enum.map(page.entries, & &1.id)
-          new_pages = pages ++ [ids]
-
-          if page.next_cursor == nil do
-            {:halt, {:ok, new_pages, page}}
-          else
-            {:cont, {new_pages, page.next_cursor, page}}
-          end
-        end)
-
-      assert {:ok, forward_pages, last_page} = forward_result, "DB forward walk did not terminate"
+      {forward_pages, last_page} = walk_actor_history_forward(actor, 2)
 
       forward_ids = List.flatten(forward_pages)
       assert forward_ids == expected_ids, "DB disagrees with the keyset model"
       assert length(forward_ids) == length(Enum.uniq(forward_ids))
 
-      backward_pages =
-        Enum.reduce_while(1..10, {[], last_page.prev_cursor}, fn _i, {pages, before_cursor} ->
-          if before_cursor == nil do
-            {:halt, {:ok, pages}}
-          else
-            page = Threadline.actor_history(actor, repo: @repo, limit: 2, before: before_cursor)
-            ids = Enum.map(page.entries, & &1.id)
-            new_pages = pages ++ [ids]
-            {:cont, {new_pages, page.prev_cursor}}
-          end
-        end)
+      back_cursor =
+        case last_page.entries do
+          [] ->
+            nil
 
-      assert {:ok, backward_pages} = backward_pages, "DB backward walk did not terminate"
+          entries ->
+            first_entry = List.first(entries)
+            {:before, %{occurred_at: first_entry.occurred_at, id: first_entry.id}}
+        end
 
-      assert {:ok, model_forward, model_backward} =
+      backward_pages = walk_actor_history_backward(actor, 2, back_cursor)
+
+      assert {:ok, model_forward, _model_backward} =
                KeysetModel.walk_actor_history(model_input, 2)
 
       assert forward_pages == model_forward, "DB disagrees with the keyset model"
-      assert backward_pages == model_backward, "DB disagrees with the keyset model"
+
+      expected_backward = forward_pages |> Enum.reverse() |> Enum.drop(1)
+      assert backward_pages == expected_backward
+    end
+  end
+
+  describe "actor_history/2 legacy options" do
+    import ExUnit.CaptureIO
+
+    defp capture_with_result(fun) do
+      ref = make_ref()
+
+      stderr =
+        capture_io(:stderr, fn ->
+          send(self(), {ref, fun.()})
+        end)
+
+      receive do
+        {^ref, result} -> {result, stderr}
+      after
+        0 -> flunk("capture_with_result/1 did not receive a result")
+      end
+    end
+
+    test "legacy :limit still returns the equivalent page and warns once naming page_size:" do
+      actor = actor!(:user, "u-legacy-limit")
+      actor_map = ActorRef.to_map(actor)
+      base_time = DateTime.utc_now()
+
+      for i <- 1..5 do
+        insert_transaction(%{
+          actor_ref: actor_map,
+          occurred_at: DateTime.add(base_time, i * 10, :second)
+        })
+      end
+
+      {legacy_page, stderr} =
+        capture_with_result(fn -> Threadline.actor_history(actor, repo: @repo, limit: 2) end)
+
+      canonical_page = Threadline.actor_history(actor, repo: @repo, page_size: 2)
+
+      assert Enum.map(legacy_page.entries, & &1.id) == Enum.map(canonical_page.entries, & &1.id)
+      assert legacy_page.has_more == canonical_page.has_more
+      assert stderr =~ "page_size:"
+      assert warning_line_count(stderr) == 1
+    end
+
+    test "legacy :after still returns the equivalent page and warns once naming cursor:" do
+      actor = actor!(:user, "u-legacy-after")
+      actor_map = ActorRef.to_map(actor)
+      base_time = DateTime.utc_now()
+
+      for i <- 1..5 do
+        insert_transaction(%{
+          actor_ref: actor_map,
+          occurred_at: DateTime.add(base_time, i * 10, :second)
+        })
+      end
+
+      first_page = Threadline.actor_history(actor, repo: @repo, page_size: 2)
+
+      {legacy_page, stderr} =
+        capture_with_result(fn ->
+          Threadline.actor_history(actor, repo: @repo, page_size: 2, after: first_page.cursor)
+        end)
+
+      canonical_page =
+        Threadline.actor_history(actor, repo: @repo, page_size: 2, cursor: first_page.cursor)
+
+      assert Enum.map(legacy_page.entries, & &1.id) == Enum.map(canonical_page.entries, & &1.id)
+      assert stderr =~ "cursor:"
+      assert warning_line_count(stderr) == 1
+    end
+
+    test "legacy :before still returns the equivalent page and warns once naming cursor:" do
+      actor = actor!(:user, "u-legacy-before")
+      actor_map = ActorRef.to_map(actor)
+      base_time = DateTime.utc_now()
+
+      for i <- 1..5 do
+        insert_transaction(%{
+          actor_ref: actor_map,
+          occurred_at: DateTime.add(base_time, i * 10, :second)
+        })
+      end
+
+      {forward_pages, last_page} = walk_actor_history_forward(actor, 2)
+      assert length(forward_pages) == 3
+
+      first_entry = List.first(last_page.entries)
+      before_cursor = %{occurred_at: first_entry.occurred_at, id: first_entry.id}
+
+      {legacy_page, stderr} =
+        capture_with_result(fn ->
+          Threadline.actor_history(actor, repo: @repo, page_size: 2, before: before_cursor)
+        end)
+
+      canonical_page =
+        Threadline.actor_history(actor,
+          repo: @repo,
+          page_size: 2,
+          cursor: {:before, before_cursor}
+        )
+
+      assert Enum.map(legacy_page.entries, & &1.id) == Enum.map(canonical_page.entries, & &1.id)
+      assert stderr =~ "cursor:"
+      assert warning_line_count(stderr) == 1
+    end
+
+    test "cursor: combined with :after raises ArgumentError" do
+      actor = actor!(:user, "u-conflict-after")
+
+      assert_raise ArgumentError, fn ->
+        Threadline.actor_history(actor, repo: @repo, cursor: :start, after: %{})
+      end
+    end
+
+    test "cursor: combined with :before raises ArgumentError" do
+      actor = actor!(:user, "u-conflict-before")
+
+      assert_raise ArgumentError, fn ->
+        Threadline.actor_history(actor, repo: @repo, cursor: :start, before: %{})
+      end
+    end
+
+    test "page_size: combined with :limit raises ArgumentError" do
+      actor = actor!(:user, "u-conflict-limit")
+
+      assert_raise ArgumentError, fn ->
+        Threadline.actor_history(actor, repo: @repo, page_size: 2, limit: 2)
+      end
+    end
+
+    defp warning_line_count(stderr) do
+      stderr
+      |> String.split("\n")
+      |> Enum.count(&String.contains?(&1, "deprecated"))
     end
   end
 
@@ -980,7 +1231,8 @@ defmodule Threadline.QueryTest do
     test "query preload call sites pass resolved storage options" do
       source = File.read!("lib/threadline/query.ex")
 
-      assert source =~ "repo.preload(changes, [transaction: :action], storage_opts([], opts))"
+      assert source =~ "repo.preload([:transaction], storage_opts([], opts))"
+      assert source =~ "hydrate_actions("
       assert source =~ "repo.preload(transaction, preloads, storage_opts([], opts))"
       assert source =~ "repo.preload(results, preloads, storage_opts([], opts))"
     end
@@ -1124,7 +1376,7 @@ defmodule Threadline.QueryTest do
       query_page = Threadline.Query.timeline_page(filters, page_size: 2)
 
       assert public_page == query_page
-      assert match?(%Threadline.Query.TimelinePage{}, public_page)
+      assert match?(%Threadline.Page{}, public_page)
       assert is_list(Threadline.timeline(filters))
       assert Enum.all?(Threadline.timeline(filters), &match?(%AuditChange{}, &1))
     end
@@ -1161,12 +1413,15 @@ defmodule Threadline.QueryTest do
       eager_ids = Enum.map(Threadline.timeline(filters), & &1.id)
 
       first_page = Threadline.timeline_page(filters, page_size: 2)
+      assert first_page.has_more == true
 
       second_page =
-        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.next_cursor)
+        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.cursor)
+
+      assert second_page.has_more == true
 
       third_page =
-        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.next_cursor)
+        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.cursor)
 
       paged_ids =
         Enum.flat_map([first_page, second_page, third_page], fn page ->
@@ -1174,7 +1429,8 @@ defmodule Threadline.QueryTest do
         end)
 
       assert eager_ids == paged_ids
-      assert third_page.next_cursor == nil
+      assert third_page.has_more == false
+      assert third_page.cursor == nil
     end
 
     test "advances safely across captured_at ties without duplicates or skips" do
@@ -1187,10 +1443,10 @@ defmodule Threadline.QueryTest do
       first_page = Threadline.timeline_page(filters, page_size: 2)
 
       second_page =
-        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.next_cursor)
+        Threadline.timeline_page(filters, page_size: 2, cursor: first_page.cursor)
 
       third_page =
-        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.next_cursor)
+        Threadline.timeline_page(filters, page_size: 2, cursor: second_page.cursor)
 
       all_ids =
         Enum.flat_map([first_page, second_page, third_page], fn page ->
@@ -1223,15 +1479,15 @@ defmodule Threadline.QueryTest do
   # ── QUERY-04: repo option ─────────────────────────────────────────────────
 
   describe "QUERY-04: repo option" do
-    test "history/3 accepts explicit repo" do
-      assert is_list(Threadline.history(AuditChange, Ecto.UUID.generate(), repo: @repo))
+    test "row_history/3 accepts explicit repo" do
+      assert is_list(RowHistory.changes(AuditChange, Ecto.UUID.generate(), repo: @repo))
     end
 
     test "actor_history/2 accepts explicit repo" do
       actor = actor!(:system, "sys-1")
 
       assert match?(
-               %Threadline.Query.ActorHistoryPage{},
+               %Threadline.Page{},
                Threadline.actor_history(actor, repo: @repo)
              )
     end
@@ -1307,7 +1563,7 @@ defmodule Threadline.QueryTest do
   end
 
   describe "QUERY-05: results are plain Ecto structs" do
-    test "history/3 returns AuditChange structs" do
+    test "row_history/3 returns AuditChange structs" do
       txn = insert_transaction()
       insert_change(txn, %{table_name: "users", table_pk: %{"id" => "s-1"}})
 
@@ -1320,7 +1576,7 @@ defmodule Threadline.QueryTest do
         end
       end
 
-      [result] = Threadline.history(FakeUser4, "s-1", repo: @repo)
+      [result] = RowHistory.changes(FakeUser4, "s-1", repo: @repo)
       assert %AuditChange{} = result
     end
 
@@ -1351,7 +1607,7 @@ defmodule Threadline.QueryTest do
       end
     end
 
-    test "history/3, actor_history/2, timeline/2, timeline_page/2, and audit_changes_for_transaction/2 stay raw while transaction_context/2 and incident_bundle/2 are richer" do
+    test "row_history/3, actor_history/2, timeline/2, timeline_page/2, and audit_changes_for_transaction/2 stay raw while transaction_context/2 and incident_bundle/2 are richer" do
       actor = actor!(:user, "compat-actor")
 
       action =
@@ -1378,16 +1634,16 @@ defmodule Threadline.QueryTest do
         captured_at: ~U[2026-09-05 10:00:00.000000Z]
       })
 
-      [history_change] = Threadline.history(FakeCompatibilityUser, "compat-1", repo: @repo)
-      %ActorHistoryPage{entries: [actor_txn]} = Threadline.actor_history(actor, repo: @repo)
+      [history_change] = RowHistory.changes(FakeCompatibilityUser, "compat-1", repo: @repo)
+      %Threadline.Page{entries: [actor_txn]} = Threadline.actor_history(actor, repo: @repo)
       [timeline_change] = Threadline.timeline(actor_ref: actor, repo: @repo)
 
-      %TimelinePage{entries: [paged_change], next_cursor: nil} =
+      %Threadline.Page{entries: [paged_change], cursor: nil, has_more: false} =
         Threadline.timeline_page([actor_ref: actor, repo: @repo], page_size: 5)
 
       [transaction_change] = Threadline.audit_changes_for_transaction(txn.id, repo: @repo)
 
-      %LinkedTransaction{changes: [%LinkedChange{} = linked_change]} =
+      {:ok, %LinkedTransaction{changes: [%LinkedChange{} = linked_change]}} =
         Threadline.transaction_context(txn.id, repo: @repo)
 
       {:ok, %IncidentBundle{changes: [incident_change]}} =

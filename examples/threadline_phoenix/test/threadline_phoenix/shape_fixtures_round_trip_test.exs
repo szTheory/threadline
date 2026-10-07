@@ -1,6 +1,6 @@
 defmodule ThreadlinePhoenix.ShapeFixturesRoundTripTest do
   @moduledoc """
-  TWIN-01: every fixture table shape round-trips through `Threadline.history/3`,
+  TWIN-01: every fixture table shape round-trips through `Threadline.row_history/3`,
   and `Threadline.Health.trigger_findings/1` reports nothing for them.
 
   These fixtures exist only in the ExUnit lane (see
@@ -35,7 +35,9 @@ defmodule ThreadlinePhoenix.ShapeFixturesRoundTripTest do
 
       Repo.delete!(composite)
 
-      history = Threadline.history(Composite, id, repo: Repo)
+      history =
+        Threadline.row_history(Composite, id, repo: Repo, limit: :infinity)
+        |> Enum.map(& &1.audit_change)
 
       assert ops(history) == ["delete", "update", "insert"]
     end
@@ -45,7 +47,12 @@ defmodule ThreadlinePhoenix.ShapeFixturesRoundTripTest do
 
       Repo.insert!(%Composite{tenant_id: big, line_no: 2, qty: 1})
 
-      [insert_change] = Threadline.history(Composite, [tenant_id: big, line_no: 2], repo: Repo)
+      [insert_change] =
+        Threadline.row_history(Composite, [tenant_id: big, line_no: 2],
+          repo: Repo,
+          limit: :infinity
+        )
+        |> Enum.map(& &1.audit_change)
 
       assert insert_change.data_after["tenant_id"] == big
     end
@@ -63,13 +70,16 @@ defmodule ThreadlinePhoenix.ShapeFixturesRoundTripTest do
 
       Repo.delete!(row)
 
-      history = Threadline.history(CodeKeyed, code, repo: Repo)
+      history =
+        Threadline.row_history(CodeKeyed, code, repo: Repo, limit: :infinity)
+        |> Enum.map(& &1.audit_change)
 
       assert ops(history) == ["delete", "update", "insert"]
     end
 
     test "empty edge: history for a key that was never written returns []" do
-      assert Threadline.history(CodeKeyed, "never-written", repo: Repo) == []
+      assert Threadline.row_history(CodeKeyed, "never-written", repo: Repo, limit: :infinity)
+             |> Enum.map(& &1.audit_change) == []
     end
   end
 
@@ -84,10 +94,14 @@ defmodule ThreadlinePhoenix.ShapeFixturesRoundTripTest do
 
       Repo.delete_all(from(j in Join, where: j.left_id == 1 and j.right_id == 2))
 
-      history = Threadline.history(Join, [left_id: 1, right_id: 2], repo: Repo)
+      history =
+        Threadline.row_history(Join, [left_id: 1, right_id: 2], repo: Repo, limit: :infinity)
+        |> Enum.map(& &1.audit_change)
+
       assert ops(history) == ["delete", "update", "insert"]
 
-      assert Threadline.history(Join, [left_id: 2, right_id: 1], repo: Repo) == []
+      assert Threadline.row_history(Join, [left_id: 2, right_id: 1], repo: Repo, limit: :infinity)
+             |> Enum.map(& &1.audit_change) == []
     end
   end
 
@@ -96,8 +110,13 @@ defmodule ThreadlinePhoenix.ShapeFixturesRoundTripTest do
       Repo.insert!(%TwinPublic{id: 7, note: "public-plaintext"})
       Repo.insert!(%TwinShapes{id: 7, note: "shapes-plaintext"})
 
-      public_history = Threadline.history(TwinPublic, 7, repo: Repo)
-      shapes_history = Threadline.history(TwinShapes, 7, repo: Repo)
+      public_history =
+        Threadline.row_history(TwinPublic, 7, repo: Repo, limit: :infinity)
+        |> Enum.map(& &1.audit_change)
+
+      shapes_history =
+        Threadline.row_history(TwinShapes, 7, repo: Repo, limit: :infinity)
+        |> Enum.map(& &1.audit_change)
 
       assert length(public_history) == 1
       assert length(shapes_history) == 1
@@ -151,7 +170,10 @@ defmodule ThreadlinePhoenix.ShapeFixturesRoundTripTest do
 
       Repo.delete!(row)
 
-      history = Threadline.history(LongName, row.id, repo: Repo)
+      history =
+        Threadline.row_history(LongName, row.id, repo: Repo, limit: :infinity)
+        |> Enum.map(& &1.audit_change)
+
       assert ops(history) == ["delete", "update", "insert"]
     end
   end

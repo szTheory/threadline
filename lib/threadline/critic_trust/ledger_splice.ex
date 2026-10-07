@@ -8,7 +8,8 @@ defmodule Threadline.CriticTrust.LedgerSplice do
 
   Returns `{:ok, new_text}` or `{:error, reason}` when the key/object cannot be located.
   """
-  @spec replace(binary(), map()) :: {:ok, binary()} | {:error, atom()}
+  @spec replace(binary(), map()) ::
+          {:ok, binary()} | {:error, :object_key_not_found | :unbalanced_braces}
   def replace(ledger_text, block) when is_binary(ledger_text) and is_map(block) do
     splice_object(ledger_text, ~s("critic_trust":), render_block(block))
   end
@@ -19,7 +20,8 @@ defmodule Threadline.CriticTrust.LedgerSplice do
   sibling of `critic_trust` (seeded once in the committed ledger) so the byte-stable
   splice has a target; keys not in `provenance` are dropped, so pass the full map.
   """
-  @spec replace_provenance(binary(), map()) :: {:ok, binary()} | {:error, atom()}
+  @spec replace_provenance(binary(), map()) ::
+          {:ok, binary()} | {:error, :object_key_not_found | :unbalanced_braces}
   def replace_provenance(ledger_text, provenance)
       when is_binary(ledger_text) and is_map(provenance) do
     splice_object(ledger_text, ~s("critic_trust_provenance":), render_provenance(provenance))

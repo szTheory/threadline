@@ -1,20 +1,21 @@
 ---
 gsd_state_version: "1.0"
-milestone: v1.44
-milestone_name: "Behavioral Depth: Properties, Twins, Telemetry"
-current_phase: 230
-current_phase_name: Rebalance, Net-Suite Check and 0.12.0
+milestone: v1.45
+milestone_name: 1.0 API Contract
+current_phase: 237
+current_phase_name: Upgrade Guide and 1.0.0
+current_plan: 4
 status: executing
-stopped_at: Completed 230-03-PLAN.md
-last_updated: "2026-10-02T21:24:17.451Z"
-last_activity: 2026-10-02
-last_activity_desc: Phase 230 plan 03 complete (pre-land gate green); plan 04 (release) remains
-state_head: 243679a8b1550eafa8be0082dd7b5d9b7a34cc29
+stopped_at: Completed 237-03-PLAN.md
+last_updated: "2026-10-07T21:36:53.612Z"
+last_activity: 2026-10-07
+last_activity_desc: Phase 237 Plan 237-03 complete; Plan 237-04 requires a separate grant
+state_head: 04a7fac979719d466c7c3f5fae4cae232d4aeeaa
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 33
-  completed_plans: 32
+  total_plans: 47
+  completed_plans: 45
   percent: 86
 ---
 
@@ -22,24 +23,30 @@ progress:
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-09-30 after v1.44 milestone start)
+See: `.planning/PROJECT.md` (updated 2026-10-07 after Phase 236)
 
 **Core value:** Every row mutation that matters is captured durably and linked to who did it and why — without the developer having to remember to opt in.
-**Current focus:** Phase 230 — Rebalance, Net-Suite Check and 0.12.0
+**Current focus:** Phase 237 — Upgrade Guide and 1.0.0
 
 ## Current Position
 
-Phase: 230 (Rebalance, Net-Suite Check and 0.12.0) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
-Last activity: 2026-10-02 — Phase 230 plan 03 complete (pre-land gate green: mix ci.all 318/0/26, hygiene + self-test, SC5 sweep, dated 0.12.0 CHANGELOG + upgrade-path proven by mix verify.bump_rehearsal); plan 04 (release) remains
+Phase: 237 (Upgrade Guide and 1.0.0) — EXECUTING
+Current Plan: 4
+Total Plans in Phase: 5
+Status: Awaiting separately granted Plan 237-04
+Phase 237 has five independently verified plans in four dependency-aware waves. It covers the adopter guide, candidate-bound local release rehearsal, milestone audit, and separately granted live release steps; Plans 237-01, 237-02, and 237-03 are complete. The isolated candidate remains local pending a separate grant for Plan 237-04.
+Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 proved the approved D-58 GCM-only/Binary reachability conditions and passed the canonical dependency audit. Plan 234-15 passed a post-Plan-19 `mix ci.all`, reconciled security and validation evidence, and marked SPEC-02 Complete; a later phase verification reopened it. Plan 234-20 corrected two public doc claims and the capture/semantics type boundary, passed focused checks, strict Dialyzer, warning-free docs build, fresh independent D-46 review and integrity check, then closed its remaining CI gate using Plan 21's evidence. Plan 21 repaired the mobile reduced-motion E2E case; canonical `mix ci.all` passed with 3,010 root tests, 130 example tests, Dialyzer clean, and browser 318 passed/26 skipped. Plan 22 resolved the current-source Job.context_opts/2 type/runtime gaps and eager export validation telemetry issue, corrected the D-56 retention string-key value type surfaced during independent review, and passed fresh D-46 integrity plus canonical `mix ci.all` (3,016 root tests, 130 example tests, Dialyzer clean, browser 318/26). Phase 234 verification passed at 12/12 must-haves on 2026-10-06; SPEC-01, SPEC-02, and SPEC-03 are Complete. D-55's >=82 visible-entry floor and D-07's eight exact hidden pins remain unchanged. Phase 235 verification passed 5/5 on 2026-10-07. Final CI passed with root 3,047/0, example 130/0, Dialyzer clean, and browser 318/26; code review is clean. Five judgment-tier prohibition groups remain flagged as unverified. Phase 235 was complete; Phase 236 was next at that point.
+235-01 added migration-time validation for configured mask/exclude columns and the redaction threat guide. The focused migration, guide-contract, and graph tests passed (41/0); format and warning-free docs passed. Commits: `57dc67f2`, `5cb3b592`, `7638817a`. DOCS-02 is Complete. Phase 235 has five reviewed plans.
+235-02 published the stability policy and supported-table matrix with claim-level contracts. The combined guide and graph contracts passed (14/0), format passed, and warning-free ExDoc passed. Commits: `922758ef`, `686afe14`. CONTRACT-01 and DOCS-01 are Complete.
+235-03 added live catalog pins for audit storage columns and indexes, plus literal actor-GUC/function-name contracts and source-use mutation controls. Both focused suites and format passed. Commits: `fd99af78`, `cf9f5525`; summary `235-03-SUMMARY.md`. CONTRACT-02 and CONTRACT-03 are Complete. Phase 235 is now complete.
+235-04 added observed export and Finding-code pins plus literal Threadline task flags, operator options, and mount routes. Both focused suites passed (7 tests, 0 failures) and format passed. Commits: `1bfd52f0`, `ccf2e468`; summary `235-04-SUMMARY.md`. CONTRACT-04 is Complete.
+235-05 documented stable field subsets for AuditChange, AuditTransaction, and AuditAction, plus additive captured-data shapes and schema/document removal controls. Focused contracts passed (10 tests, 0 failures), format passed, and warning-free docs passed. Commits: `fcdd2cd2`, `6f42507c`; summary `235-05-SUMMARY.md`. CONTRACT-05 is Complete. Final `mix ci.all` passed after the five plan references were made portable: root 3,047/0, example 130/0, Dialyzer clean, and browser 318/26. Repository hygiene found 4,651 tracked text files clean.
+232 re-verification on 2026-10-07 passed all 62 plan must-haves and five roadmap criteria. Corrected the retired row_history/4 documentation to preserve the approved filters-first precedence (81287560); runtime unchanged. Current mix ci.all and strict warning gate passed: 3,047 root tests plus 32 properties, example 132 tests, Dialyzer clean, browser 318 passed/26 skipped. Code review is clean; all 19 planned threats are closed; Nyquist validation is compliant. Read-only probes resolved cursor precision, UTF-8 scanner matching, and diagnostic ordering. Completion reported six legacy-summary path warnings (command strings, a brace glob, the intentionally deleted ActorHistoryPage, and an example-relative script path); current artifact verification passed 15/15, so these are metadata warnings, not missing deliverables. Phase 236 was next after this re-verification.
+237-02 added the opt-in committed-candidate release rehearsal, exact `feat!`/`Release-As: 1.0.0`/JSON-false preflight, clone target assertions, truthful local report, and parser mutation controls. Focused contracts passed (35/0), changelog contract passed (9/0), shell syntax and format passed. Commits `94008b56`, `3ca8420a`.
+237-03 closed the human 1.0.0 changelog, audited all 11 `BREAKING CHANGE` commits from the exact v1.44 base to source tip, and built candidate `0b2095d9` on separately fetched main `0d6f36f1`. Strict rehearsal passed with a matching 34-file artifact tree; `mix ci.all` passed with 3,058 root tests, 132 example tests, clean Dialyzer/live slice, and browser 318/26. Summary and immutable evidence are in `.planning/phases/237-upgrade-guide-and-1-0-0/237-03-SUMMARY.md` and `237-VERIFICATION.md`; source commits `27902915`, `e18c9a9a`, `1cef0367`, `8321d1aa`, `04a7fac9`.
+Last activity: 2026-10-07 — Phase 237 Plan 237-03 complete; Plan 237-04 requires a separate grant
 
-Progress: [███████░░░] 6 of 7 v1.44 phases complete ([█████████░] 86%). Phase 229 verified passed 5/5 (2026-10-02): Threadline.history/3 takes a validated :limit (QRY-01/02, new Query.HistoryLimit); public Threadline.Health.legacy_key_findings/1 emits :unresolved_legacy_keys warnings (capped, statement_timeout-bounded per-table probe; HLTH-03); mix threadline.health.coverage gains --strict (exit 1 on in-scope :error findings, 12-cell matrix baseline; HLTH-01), --all-schemas (schema-keyed table + JSON envelope, extension schemas excluded via pg_depend; HLTH-02), unknown switches now raise; malformed :trigger_capture fail-fast documented (HLTH-04); local suite 2767/0, mix ci.all green, wall clock before/after in evidence/SC5-wallclock.md; review 0 critical/1 warning/1 info (WR-01 stray positional args ignored, IN-01 duplicated schema regex; advisory, unfixed). Phases: 224 Capture and Bench Fixes, 225 Suite Baseline and Partitioned CI, 226 Pure Property Tests and Run Budget, 227 DB-Backed Property Tests, 228 Telemetry, 229 Adopter API and Health Additions, 230 Rebalance, Net-Suite Check and 0.12.0. Next: /gsd-execute-phase 230 (plan 04 stops at a maintainer grant for push, PR, squash-merge, release-please PR merge, production-hex approval and the distribution-sync PR). SUITE-01's baseline is pinned to the milestone base `dd780e68`.
-
-**v1.44 start (2026-09-30):**
-
-- Branch `milestone/v1.44` was cut from origin/main `dd780e68` (the v1.43 landing, #70). It has no upstream, and the milestone tag `v1.43` is local only.
-- Carried from the v1.43 closeout: re-check the `latest` lane pins (Elixir 1.20.4 / OTP 29.1.1 / PG 18.6, set 2026-09-28 in phase 220) against builds.hex.pm and Docker Hub in this milestone's landing PR.
+v1.45 Progress: [█████████░] 6 of 7 v1.45 phases complete (86%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + re-verified 62/62 plan must-haves and 5/5 roadmap criteria 2026-10-07, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase; Phase 235 verified 5/5 with final CI green and zero open code-review findings, while five judgment-tier groups remain unverified; Phase 236 is complete and verified 6/6 (PostgreSQL 15.18 floor, source-checked support table, all 265 test files weighted, final mix ci.all green); next is Phase 237)
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -68,9 +75,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.44 Behavioral Depth: Properties, Twins, Telemetry (7 phases, 224-230, 27 requirements)
-- **Last Milestone Shipped**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (2026-09-30, Phases 214-223, 52 plans, 24/24, released 0.11.1 + 0.11.2)
-- **Prior Milestone Shipped**: v1.42 — Capture Correctness for Real Table Shapes (2026-09-26, Phases 208-213, 28/28, released 0.11.0)
+- **Active Milestone**: v1.45 1.0 API Contract (7 phases, 231-237, 25 requirements; ships 1.0.0)
+- **Last Milestone Shipped**: v1.44 — Behavioral Depth: Properties, Twins, Telemetry (2026-10-02, Phases 224-230, 33 plans, 27/27, released 0.12.0)
+- **Prior Milestone Shipped**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (2026-09-30, Phases 214-223, 52 plans, 24/24, released 0.11.1 + 0.11.2)
 - **Scope completion (assessment)**: **~92–95%** for stated narrow audit-platform scope (band: near-done)
 - **Hex distribution**: in-repo and hex.pm latest **0.11.2** (published 2026-09-30; 0.11.1 2026-09-27; 0.11.0 2026-09-26)
 - **Path-to-done thread**: `.planning/threads/2026-05-28-milestone-next-step-post-v1.27.md`
@@ -263,12 +270,49 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 230 P01 | ~1h40m | 3 tasks | 9 files |
 | Phase 230 P02 | ~1h | 2 tasks | 1 files |
 | Phase 230 P03 | ~55min | 3 tasks | 9 files |
+| Phase 231 P01 | 70min | 3 tasks | 11 files |
+| Phase 231 P02 | 55min | 3 tasks | 13 files |
+| Phase 231 P03 | 190 | 2 tasks | 4 files |
+| Phase 232 P01 | 65min | 3 tasks | 19 files |
+| Phase 232 P02 | 70min | 3 tasks | 13 files |
+| Phase 232 P03 | ~3h | 3 tasks | 14 files |
+| Phase 232 P04 | ~1h10min | 2 tasks | 10 files |
+| Phase 232 P05 | ~55min | 3 tasks | 14 files |
+| Phase 232 P06 | ~31min | 3 tasks | 22 files |
+| Phase 233 P01 | 55min | 2 tasks | 8 files |
+| Phase 233 P02 | 35min | 3 tasks | 10 files |
+| Phase 233 P04 | ~55min | 3 tasks | 8 files |
+| Phase 234 P01 | 3h 7m | 3 tasks | 8 files |
+| Phase 234 P06 | 71min | 6 tasks | 29 files |
+| Phase 234 P07 | 10min | 3 tasks | 3 files |
+| Phase 234 P8 | 9min | 2 tasks | 2 files |
+| Phase 234 P09 | 7min | 2 tasks | 4 files |
+| Phase 234 P10 | 25min | 2 tasks | 2 files |
+| Phase 234 P11 | 12min | 2 tasks | 4 files |
+| Phase 234 P16 | 10min | 3 tasks | 7 files |
+| Phase 234 P17 | 37min | 2 tasks | 2 files |
+| Phase 234 P18 | 2min | 1 tasks | 1 files |
+| Phase 234 P13 | 9min | 2 tasks | 2 files |
+| Phase 234 P19 | 18 min | 3 tasks | 3 files |
+| Phase 234 P15 | 29min | 2 tasks | 4 files |
+| Phase 234 P22 | 30min | 3 tasks | 17 files |
+| Phase 235 P01 | 13m | 2 tasks | 8 files |
+| Phase 235 P02 | 7min | 2 tasks | 7 files |
+| Phase 235 P03 | 3min | 2 tasks | 2 files |
+| Phase 235 P4 | 3min | 2 tasks | 2 files |
+| Phase 235 P05 | 4 min | 2 tasks | 4 files |
+| Phase 236 P01 | 30 min | 2 tasks | 7 files |
+| Phase 236 P02 | 62 min | 2 tasks | 7 files |
+| Phase 237 P01 | 10min | 2 tasks | 7 files |
+| Phase 237 P02 | 5min | 2 tasks | 4 files |
+| Phase 237 P03 | 1h 2m | 2 tasks | 12 files |
 
 ## Deferred Items
 
 | Category | Item | Status |
 |----------|------|--------|
-| todos (v1.43 close, 2026-09-30) | 2026-09-28-ci-suite-sync-bound-parallelism | Acknowledged, still pending (v1.44 candidate) |
+| deferred_items (v1.44 close, 2026-10-02) | 226/deferred-items.md: 226-02, redaction_policy_generators.ex mix format drift | Acknowledged; resolved (b24ee66a) |
+| todos (v1.43 close, 2026-09-30) | 2026-09-28-ci-suite-sync-bound-parallelism | Resolved in v1.44 (phase 225 partitioned CI); no longer pending |
 | deferred_items (v1.43 close, 2026-09-30) | 214/deferred-items.md: from 214-02, vacuous :live_dialyzer without a PLT; runner cache path in the local-path regex | Acknowledged; resolved (verifier fails closed since 218-03; the guard shipped in 217) |
 | deferred_items (v1.43 close, 2026-09-30) | 214/deferred-items.md: from 214-03, CI test lanes take the vacuous :live_dialyzer path | Acknowledged; resolved (:live_dialyzer runs only in verify-dialyzer, fail-closed, 218-03) |
 | deferred_items (v1.43 close, 2026-09-30) | 215/deferred-items.md: bench ExUnitProperties compile; review WR-01/03/04/05/06/07/08, IN-01..04; runtime MIX_EXS/MIX_HOME | Acknowledged, carried (WR-03 mitigated) |
@@ -417,11 +461,13 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ### Pending Todos
 
-- `.planning/todos/pending/2026-09-28-ci-suite-sync-bound-parallelism.md` is acknowledged at the v1.43 close and still pending. The suite is about 91% synchronous (191 of 209 s). Candidate for v1.44's test rebalancing.
+- No pending todos. The v1.43 sync-bound-parallelism todo was resolved by v1.44 phase 225 (partitioned CI).
+- Candidate quick task for v1.45: regenerate `test/partition_weights.txt` (`bin/ci-test-partitions --write-weights`).
 - The next milestone should preserve the standing no-regression rule for operator routes, data-testids, feature gates, capture/query/auth semantics, optional Phoenix dependencies, and host-app-friendly theming unless fresh requirements explicitly change it.
 
 ### Roadmap Evolution
 
+- **v1.45 roadmap (2026-10-03):** Phases 231-237 from the research SUMMARY "Implications for Roadmap" split, 25/25 requirements mapped. 231 facade topology + association edge (API-04, API-07), 232 consolidation/deprecation/bounded default (API-01/02/03/05/08), 233 return shapes (API-06), 234 specs + gate (SPEC-01..03), 235 stability contract + guides (CONTRACT-01..05, DOCS-01/02), 236 PG 15 floor + partition weights (FLOOR-01/02, CI-01), 237 upgrade guide + 1.0.0 (DOCS-03, REL-01..03). Kept seven phases despite coarse granularity: each boundary is an ordering constraint (topology before delegates, return shapes before specs, specs before the contract pins, test churn before the weight refresh, floor before release). 233 is single-requirement and could fold into 232; kept separate so specs follow final lookup signatures. Cross-cutting rule: each breaking change gets its CHANGELOG entry and `BREAKING CHANGE:` footer in the phase that makes it, so REL-02 cross-checks rather than reconstructs. No research flags; 231 and 232 carry the one-way calls and need careful discuss passes.
 - **Phase 223 added (2026-09-29):** Close v1.43 Audit Debt, from `.planning/v1.43-MILESTONE-AUDIT.md` (status tech_debt, 24/24 requirements, integration 15/15, flows 8/8). Scope: release the mint 1.11.0 advisory fix (on main, but in the `ci:` squash #60, so release-please has nothing to release), `persist-credentials: false` on the release.yml target-ref checkouts plus a contract (216 CR-01 remainder), and a disposition for each of the six open 217 round-2 findings (R2-WR-04 is the one to fix).
 - **v1.43 roadmap (2026-09-26):** Phases 214-222 from the research SUMMARY split, 24/24 requirements mapped. 214 Baseline, then 215 Supply chain / 216 Platform currency / 217 Repo hygiene (mutually independent), 218 Remove CI waste (ECON-07 re-measure), 219 deps-only `_build` cache, 220 newest lane (spike-gated), 221 names/order (rename once), 222 SEED-006 (conditional). Kept nine phases despite coarse granularity: each boundary is an ordering constraint (fix before gate, delete before cache, rename after roster changes, classifier after measured wins). Research flags: 220, 222, 219, parts of 216; 215 narrow (Hex cooldown only if adopted).
 - **v1.42 roadmap (2026-09-24):** Phases 208-213 from research SUMMARY split, adjusted for the four scope decisions. REL-01 (`bump-minor-pre-major`) lands in 208 before any releasable commit. CONF-01 is mapped to 210 (config key, validation, migrate-time enforcement) but completes only when 211 success criterion 3 (override read round-trip) passes. IDX-01 ships in 211 (install creates the index). Kept six phases despite coarse granularity: each boundary is a hard contract hand-off and the 209 security fix must not wait behind the PK rewrite. Research flags: 208 (hashed-name format), 210 (TG_ARGV spike), 211 (composite history API).
@@ -982,10 +1028,61 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 230]: D-09 milestone suite-time table assembled for phases 224-230; 224/229 marked local-only, 230/verdict pending plan 04's fresh pre-landing run
 - [Phase 230]: Plan 230-03: ran mix verify.bump_rehearsal after committing the CHANGELOG/upgrade-path content (not before, as literally ordered) because the rehearsal clones HEAD and cannot see uncommitted work.
 - [Phase 230]: Plan 230-03: treated the pre-land privacy-grep whoami/home-path false positives (pre-existing, out-of-scope files) as reviewed non-issues rather than a STOP, since bin/verify-repo-hygiene (the authoritative guard) reports the full tracked tree clean.
+- [Phase 231]: Internal readers (Investigation.transaction_context/2, incident_bundle/2) call Query.hydrate_actions/3 directly instead of routing through the deprecated public :preload shim, so internal reads never trip the deprecation warning
+- [Phase 231]: Split lib/threadline/query.ex into Threadline.Query.ActionHydration (defdelegate-preserved) to clear the 800-line source-size gate tripped by 231-01's growth
+- [Phase 232]: Registered Threadline.Query.TimelinePage => Threadline.Page in the @renamed_modules historical-reference register instead of new infrastructure
+- [Phase 232]: actor_history/2 LiveView params map keys renamed after:/before: -> cursor: (unused by any code, but matched the plan's own verify-grep ban)
+- [Phase 232]: 232-03: row_history_scope_opts/3 made @doc false public on Query so RowReads reuses the exact support-scope shape row_history_page/4 already had
+- [Phase 232]: 232-03: row_history_page/4, actor_window_page/3, correlation_bundle_page/3 delegate onto their canonical function with LegacyOpts.cursor(opts) instead of a separate lower-level Query function, leaving Query.row_history_page/4 as dead code for Plan 04 to deprecate
+- [Phase 232]: Investigation.row_history/4 deprecation message corrected to name Threadline.row_history/3 (not the hidden module's own name), matching the uniform D-11 message rule
+- [Phase 232]: Facade *_page deprecated delegates reroute through the facade's own base function (row_history/3, actor_window/3, correlation_bundle/3) instead of the now-deprecated Investigation *_page, avoiding a deprecated-calling-deprecated chain
+- [Phase 232]: query_test.exs's three history/3-specific :limit assertions were rewritten against row_history/3's actual (different) behavior: limit: nil now raises, and row-key matching precedes :limit validation (reverse of history/3's order); history/3's own behavior stays pinned by Plan 04's deprecation_parity_test.exs
+- [Phase 232]: 232-06: hid Telemetry emit_* and Query.export_changes_query from docs; widened the facade-only scanner with hidden/retired-name detectors (no exemption); rewrote guides/README/upgrade guides onto row_history/3; facade_naming_contract_test.exs pins timeline/timeline_page as the sole paired name; mix ci.all green
+- [Phase 233]: Shared hidden existence fetch Threadline.Query.TransactionLookup.fetch_row/2 hardcodes surface: :transaction_header and params internally (never read from opts), so :surface/:params are rejectable by the option allowlist without weakening the scope contract.
+- [Phase 233]: 233-02: transaction_context/2 and incident_bundle/2 share one row-first fetch (Threadline.Query.TransactionLookup.fetch/2); transaction_context/2 changed to {:ok,_}|{:error,:not_found}; both gained bang siblings raising Threadline.NotFoundError.
+- [Phase 233]: 233-04: Scope.apply/2's cond checks wrong-arity scope_query_fn before nil-scope, so a malformed fn always raises regardless of whether this call's scope happens to be nil; nil scope stays the only branch returning the query unchanged (host's explicit unscoped authorization).
+- [Phase 234]: Enabled the exact five strict Dialyzer flags and fixed measured findings without ignores; retained D-28 scope limitation for the pre-existing exported bang function.
+- [Phase 234]: Named recursive input types cover arbitrary runtime values without bare broad types rejected by the frozen doc rubric.
+- [Phase 234]: Elixir 1.17 cannot express literal string keys in map typespecs; typedocs preserve the exact finite runtime key guarantees.
+- [Phase 234]: ExportQueue.options/0 reuses Storage.options/0 for the shared adapter-defined keyword boundary.
+- [Phase 234]: Opaque adapter error reasons use the recursive all-Elixir-values type pattern.
+- [Phase 234]: Documented operation return/error envelopes in first paragraphs; runtime and detailed options remain unchanged.
+- [Phase 234]: Kept the documentation coverage sentinel at its measured threshold of 82 entries.
+- [Phase 234]: D-55 set the final D-11/D-54 checked-entry floor to 82; Plan 234-12 Task 1 committed the matching failure text as 789b5bf4 after measuring 52 modules / 82 visible entries.
+- [Phase 234]: Plan 234-12's first D-28 approach exposed the conflict between an exported raise-only helper and strict Dialyzer; the failed spec-removal attempt was restored, and the remaining plan now privatizes the helpers without changing CLI error behavior.
+- [Phase 234]: Document the existing domain behavior without changing fields, return claims, or the Phase 235 stability boundary.
+- [Phase 234]: Preserved runtime map acceptance and mixed-key behavior under the approved narrow D-56 exception.
+- [Phase 234]: Preserved runtime behavior while aligning Subject and Retention public types with accepted values.
+- [Phase 234]: Kept SPEC-02 pending until Plan 13's fresh D-46 review and Plan 15 reconciliation pass.
+- [Phase 234]: Documented StorageSchema.role/0's existing five identifier-validation roles without changing its union or runtime behavior; SPEC-02 remains pending Plans 13 and 15.
+- [Phase 234]: Plan 234-13 required a fresh independent D-46 PASS before recording the handoff.
+- [Phase 234]: SPEC-02 and security sign-off remain Pending until Plan 15 independently rechecks the PASS and completes its evidence gates.
+- [Phase 234]: D-58: acknowledge only EEF-CVE-2026-95105 and EEF-CVE-2026-94206 in the example project, with live/historical reachability evidence and review by 2027-01-06; do not change dependency declarations or lockfiles.
+- [Phase 234]: Plan 15 retains final ownership of T-234-26, SPEC-02, and Phase 234 sign-off until a fresh full mix ci.all and evidence reconciliation pass.
+- [Phase 234]: Preserved the approved D-55 >=82 visible function/macro floor and D-07's eight hidden pins.
+- [Phase 234]: Kept T-234-08 and T-234-13 open below the high-threat threshold while closing all high threats with evidence.
+- [Phase 234]: The normal phase verifier passed 12/12 must-haves; SPEC-01, SPEC-02, and SPEC-03 are complete.
+- [Phase 234]: Preserved D-55's >=82 visible-entry floor and D-07's eight exact hidden pins through phase close.
+- [Phase 234]: D-56 string-key map arms may admit arbitrary ignored values where runtime accepts them.
+- [Phase 235]: Keep configured mask and exclude names separate so migration errors identify the exact option.
+- [Phase 235]: Scope redaction guarantees to generated per-table capture; document global and direct-trigger gaps separately.
+- [Phase 235]: Pin the settled 1.x API, database, operator-surface, and backport claims in a focused contract.
+- [Phase 235]: State table eligibility with its full prerequisites and operational caveat in one pre-install matrix.
+- [Phase 235]: Keep installed database facts and public SQL names in separate, literal test contracts.
+- [Phase 235]: Resolve catalog relations through the configured storage schema and pin every current column and index in PostgreSQL.
+- [Phase 235]: JSON action keys depend on linked AuditAction presence; CSV appends action columns only when requested.
+- [Phase 235]: Operator route pins distinguish LiveView route identities from sibling HTTP method routes.
+- [Phase 235]: Keep the documented stable schema field subsets narrower than current Ecto schemas.
+- [Phase 235]: Describe captured JSONB compatibility as additive keys and shapes, without byte or ordering guarantees.
+- [Phase 237]: Keep the 0.11.x preflight separate from the seven shared 1.0 upgrade steps.
+- [Phase 237]: Select the Unreleased changelog block during staging and the dated 1.0.0 block after release preparation.
+- [Phase 237]: Candidate mode is opt-in; ordinary CI keeps the generic next-minor rehearsal as its default.
+- [Phase 237]: Local candidate artifact simulation reports SOURCE_SHA and explicitly makes no live Release Please claim.
+- [Phase 237]: Keep the complete human-authored 1.0.0 changelog dated 2026-10-07, with a fresh Unreleased staging heading above it.
+- [Phase 237]: Use v1.44 only for the milestone range audit; build the isolated candidate on the separately fetched GitHub main SHA.
+- [Phase 237]: Treat strict candidate rehearsal and ci.all as local evidence only; no external release action is granted.
 
 ### Blockers
-
--
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
 
@@ -997,8 +1094,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-02T21:24:17.352Z
-**Stopped at:** Completed 230-03-PLAN.md
+**Last session:** 2026-10-07T21:36:53.513Z
+**Stopped at:** Completed 237-03-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
@@ -1015,10 +1112,16 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - **177-03 (2026-06-18):** Meta-components + breadcrumb truncation. Shipped `UI.data_panel/1` (state-coordinating shell composing the existing state family; stale-above-data; focus delegated; pager only :ok), `UI.toolbar/1` (disabled-coordination on cluster, Pitfall 6 contract), and `UI.detail_header/1` (`<h2>` + kv + actions cluster); reconciled breadcrumbs by keeping the list attr (D-14) + `clamp()` current-crumb truncation. Self-caught + fixed a phase-141/142 StyleContractTest governance regression (new `@media` literal + a `~1ms` comment) within the plan. All 7 component RED scaffolds GREEN; full suite 1071/2 (2 = Plan-04 overlay/offline RED-by-design, identical to baseline); compile/format/credo clean. Commits `1f4d6d7`, `2b082f8`, `19ef009`.
 - **177-04 (2026-06-18):** Overlay motion + reconnect/offline group. Defined the previously-missing overlay JS-transition utility CLASS selectors (`.tl-fade-in/out`, `.tl-rise-in/out`, `.tl-slide-in/out-right`, `.opacity-0/100`, `.translate-y-0/4`, `.translate-x-0/full`, `.hidden`) + the modal/drawer/toast SHELLS (all were absent from style.ex) so overlay enter/exit motion is real; synced every overlay `JS.show/hide` to explicit `time: 180` (= `--tl-motion-base`, Pitfall 3) and added a toast fade-up entrance via `show_toast/2`. Built the reconnect/offline group keyed off the LiveView ROOT `.threadline-ui.phx-loading/.phx-error` (NOT body, NEVER the legacy disconnected class — Pitfall 1): warning-tinted `role=status` reconnect banner + `[data-tl-mutating]` pointer-events/opacity disable; added `UI.reconnect_banner/1` documenting the mutating-link `aria-disabled`/`tabindex=-1` contract (Pitfall 6). Self-caught + fixed a `.phx-disconnected` literal in a CSS comment that reddened the offline refute (comments are scanned, same gotcha class as Plan 03's `\d+ms`). Both Plan-01 style_contract RED scaffolds GREEN; full suite 1071/0; compile/format/credo(2115)/brand-parity clean. Zero new keyframes/tokens/deps; no public API; no inline `on*=`; capture/semantics untouched. GROUP-01/02 NOT closed (Plan 05). Commits `da4a36d`, `f1695a1`.
 - **177-05 (2026-06-18):** GROUP-01 12-config stress mapping + ledger/projection parity (FINAL plan of phase 177). Remapped `@group_stories` from the 6 reserved baselines to the 12 GROUP-01 configurations as `status:current`/`owner_phase:177` via a `group_story/4` builder carrying a `surface` tag (`:live`|`:reference`) in both data + metadata (D-07; 10 live + 2 reference-only). Absorbed all 6 prior reserved baselines (action-bar/filter-bar/kv-list/pagination/status-strip/timeline-list) — zero orphaned `*.reserved` group ids. Synced `design-system-ledger.json` (12 current group entries 62/62/90, surface in `notes` — no new `@entry_keys`; reconciled `locked_ids`/`minimum_scores`/`required_inventory.groups`) + the DESIGN-SYSTEM.md Groups projection in lockstep; ledger parity GREEN. Added a `stress_router_test` assertion rendering all 12 group ids across 320/375/768/1024/1440 × dark/light/system. Marked GROUP-01 + GROUP-02 complete in REQUIREMENTS.md. Full library suite **1074/0** (1 excluded); verify.format/credo(2129)/compile-warnings-as-errors all clean; zero new dep, no public API, capture/semantics untouched. The only `mix ci.all` failure is a **pre-existing** example-app demo-seed 60s setup timeout (proven unrelated to plan 05 via stashed-baseline run; logged to `deferred-items.md`). Commits `8987793`, `8f62d25`, `9ca8453`, `313e52c`, `2a81604`.
-- **Last Action**: Completed Phase 190 with 10/10 plans, passed verification, and recorded storage-schema confidence evidence (2026-07-02).
-- **Next Step**: Discuss or plan Phase 191.
-- **Resume file**: `.planning/ROADMAP.md`
+- **Last Action**: v1.45 1.0 API Contract roadmap created (2026-10-02): 7 phases (231-237), 25/25 requirements mapped in REQUIREMENTS.md Traceability. v1.44 is closed (tag `v1.44` local, 0.12.0 on hex.pm).
+- **231-03 (2026-10-03, FINAL plan of phase 231):** Facade-only doc-contract scanner (D-12, mutation-controlled: 11 tests over guides/README/example-app, exact-match `timeline_query` allowlist, bare-alias "extend the scanner" guard) + last example-script facade move (D-11: `incident_replay.exs` onto `Threadline.history/3`). Discovered and fixed a 231-01 regression while running the phase gate: `lib/threadline/query.ex` had grown to 950 lines (over the 800-line source-size contract limit, no exception) — split into a new hidden `Threadline.Query.ActionHydration` submodule via `defdelegate` (zero call-site changes outside `query.ex`); `query.ex` now 799 lines. Full `mix ci.all` green (2769 unit tests, 130 example tests, 318 browser tests/26 skipped matching baseline, Dialyzer 0 errors). API-04 and API-07 both marked Complete in REQUIREMENTS.md. Phase 231 complete (3/3 plans). Commits `fa8a24bc`, `6e58912e`, `3de91c13`, `82a7c516`.
+- **233-04 (2026-10-04, FINAL plan of phase 233):** Threadline.Query.Scope.apply/2 fails closed (D-20): a non-nil :scope without a 3-arity :scope_query_fn, or any non-3-arity fn, now raises ArgumentError (never echoing the scope value) instead of silently reading unscoped; a nil scope remains the host's explicit unscoped path. Proven across every scoped read (timeline, timeline_page, row_history list/cursor, actor_history, actor_window, correlation_bundle, audit_changes_for_transaction, audit_transaction, transaction_context, incident_bundle, export_csv, export_json) and both operator-surface transports (LiveView mount crash via catch_exit/1, export controller raise-not-200), plus the three bangs raising ArgumentError not NotFoundError. Example app's scope_operator_query/3 catch-all tightened to deny-all (where(query, [], false)); guides/integration-contracts.md gained "Scope surfaces and fail-closed rules" naming :transaction_header's [at] binding; CHANGELOG Breaking changes bullet added. Phase-close gate mix ci.all green (2952 ExUnit tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. Phase 233 complete (4/4 plans). Commits `5469f8de`, `b22cd02a`, `5432f72e`, `b5038cb0`.
+- **234-03 (2026-10-04):** Completed the Evidence typespec/doc gate: full `EvidenceRecord.t()`, named writer/filter/option types, parity-backed `__filter_keys__/1`, documented Evidence/Subject/Proof entry points, and two internal Proof helpers hidden with an Unreleased breaking-change entry. Fixed the rubric check to scope unknown-option assertions to their own heading. Focused suites (47/0 and 78/0), example suite (130/0), format, Credo, warning-free compile, docs, and Dialyzer (0 errors) passed. Commits `a7b2efad`, `bc404584`.
+- **234-04 (2026-10-04):** Completed the Export and operations API typing/documentation gate. Post-merge reconciliation fixed four doc-contract mismatches and seven Evidence proof Dialyzer findings; the full suite passed (2,986 tests, 0 failures, 3 excluded), example suite passed (130/0), and formatting, Credo, warning-free compile, docs, and Dialyzer passed. Plan summary: `234-04-SUMMARY.md`.
+- **235-01 (2026-10-06):** Generated migration redaction-column guard and evidence-linked threat guide; focused tests 41/0, format and warning-free ExDoc passed. Commits `57dc67f2`, `5cb3b592`, `7638817a`. See `.planning/phases/235-stability-contract-and-adopter-guides/235-01-SUMMARY.md`.
+- **235-02 (2026-10-06):** Published the 1.x stability and supported-table guides, added deletion/eligibility contracts, and registered both in the Adopt guide graph; focused combined contracts 14/0, format and warning-free ExDoc passed. Commits `922758ef`, `686afe14`. See `.planning/phases/235-stability-contract-and-adopter-guides/235-02-SUMMARY.md`.
+- **Next Step**: Plan 237-03 is complete. Plan 237-04 (push and land the candidate) requires a separate maintainer grant.
+- **Resume file**: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan 237-03 is complete; separately authorize Plan 237-04 before any push or landing action.

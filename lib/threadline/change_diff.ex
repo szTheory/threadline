@@ -1,6 +1,6 @@
 defmodule Threadline.ChangeDiff do
   @moduledoc """
-  Pure projection of a single captured row change into deterministic, JSON-friendly maps.
+  Threadline.ChangeDiff projects one captured row change into deterministic, JSON-friendly maps.
 
   ## Authority
 
@@ -60,8 +60,18 @@ defmodule Threadline.ChangeDiff do
 
   @schema_version 1
 
+  @typedoc """
+  A JSON-bound row-change projection. The primary form includes `schema_version`,
+  `before_values`, `op`, `id`, `transaction_id`, `table_schema`, `table_name`,
+  `table_pk`, `captured_at`, `data_after`, and `field_changes`. The
+  `:export_compat` form includes `id`, `transaction_id`, `table_schema`,
+  `table_name`, `op`, `captured_at`, `table_pk`, `data_after`,
+  `changed_fields`, and `changed_from`. Future additive keys are allowed.
+  """
+  @type change_diff_result :: Threadline.json_map()
+
   @doc """
-  Builds a deterministic map for `audit_change`.
+  Returns a deterministic string-keyed JSON projection for one `audit_change`.
 
   ## Primary format (default)
 
@@ -80,8 +90,25 @@ defmodule Threadline.ChangeDiff do
   with `to_string/1`; `table_pk` defaults to `%{}`, `changed_fields` to `[]`,
   `changed_from` to `%{}` when nil. Nested `"transaction"` and `"action"` are **not**
   included unless future versions add optional preload parameters.
+
+  ## Options
+
+  - `:format` — `:primary` or `:export_compat`. Defaults to `:primary`.
+  - `:expand_insert_fields` — boolean. Defaults to `false`; adds presentation-only field rows for INSERT changes.
+
+  Unknown option keys are ignored.
+
+  ## Returns
+
+  - `change_diff_result()` — a string-keyed map in the selected format.
+  - Raises `ArgumentError` when the captured operation is unsupported.
+  - Raises `FunctionClauseError` when `audit_change` is not an `%AuditChange{}`.
+
+  Results contain column values as captured; redaction is applied when
+  triggers are generated, not on read. Authorize reads with `:scope_query_fn`.
   """
-  @spec from_audit_change(AuditChange.t(), keyword()) :: map()
+  @spec from_audit_change(AuditChange.t(), [Threadline.change_diff_opt()]) ::
+          change_diff_result()
   def from_audit_change(%AuditChange{} = ch, opts \\ []) do
     if Keyword.get(opts, :format) == :export_compat do
       export_compat_map(ch)

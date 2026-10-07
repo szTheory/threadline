@@ -24,21 +24,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         end)
 
       if schema_module do
-        opts = [
+        row_history_opts = [
+          repo: assigns.repo,
+          scope: assigns[:scope],
+          scope_query_fn: assigns[:scope_query_fn],
+          limit: :infinity
+        ]
+
+        as_of_opts = [
           repo: assigns.repo,
           scope: assigns[:scope],
           scope_query_fn: assigns[:scope_query_fn]
         ]
 
         try do
-          history = Threadline.history(schema_module, assigns.record_id, opts)
+          history =
+            schema_module
+            |> Threadline.row_history(assigns.record_id, row_history_opts)
+            |> Enum.map(& &1.audit_change)
 
           as_of_dt =
             assigns.as_of ||
               if history != [], do: hd(history).captured_at, else: DateTime.utc_now()
 
           snapshot_result =
-            Threadline.as_of(schema_module, assigns.record_id, as_of_dt, opts)
+            Threadline.as_of(schema_module, assigns.record_id, as_of_dt, as_of_opts)
 
           {:ok,
            socket

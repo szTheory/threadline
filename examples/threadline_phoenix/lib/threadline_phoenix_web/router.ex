@@ -165,7 +165,9 @@ defmodule ThreadlinePhoenixWeb.Router do
     where(query, [_ac, at], fragment("?->>'organization_id' = ?", at.meta, ^org_id))
   end
 
-  def scope_operator_query(query, _scope, _context), do: query
+  # A scope the clauses above don't recognize must read nothing, never
+  # everything — the catch-all denies instead of falling through unscoped.
+  def scope_operator_query(query, _scope, _context), do: where(query, [], false)
 
   pipeline :api do
     plug(:fetch_session)

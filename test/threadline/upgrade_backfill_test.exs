@@ -25,6 +25,7 @@ defmodule Threadline.UpgradeBackfillTest do
   alias Threadline.StorageSchema
   alias Threadline.Test.LegacyTriggerSQL
   alias Threadline.Test.MigrationHarness, as: Harness
+  alias Threadline.Test.RowHistory
 
   @guide_path "guides/upgrading-to-0.11.md"
 
@@ -204,8 +205,8 @@ defmodule Threadline.UpgradeBackfillTest do
       live_backfilled_pk = table_pk_for(storage, @doc_table, "doc-live", "insert")
       assert live_backfilled_pk == %{"doc_key" => "doc-live"}
 
-      # history/3 for the live row returns both eras.
-      history_rows = Threadline.history(UpgDocument, "doc-live", repo: Repo)
+      # row_history/3 for the live row returns both eras.
+      history_rows = RowHistory.changes(UpgDocument, "doc-live", repo: Repo)
       assert length(history_rows) == 2
       assert Enum.map(history_rows, & &1.op) |> Enum.sort() == ["insert", "update"]
 
@@ -573,11 +574,11 @@ defmodule Threadline.UpgradeBackfillTest do
 
       run_batched!(composite_sql)
 
-      composite_rows = Threadline.history(UpgTag, [post_id: 1, tag_id: 5], repo: Repo)
+      composite_rows = RowHistory.changes(UpgTag, [post_id: 1, tag_id: 5], repo: Repo)
       assert length(composite_rows) == 2
       assert Enum.all?(composite_rows, &(&1.table_pk == %{"post_id" => "1", "tag_id" => "5"}))
 
-      other_composite_row = Threadline.history(UpgTag, [post_id: 1, tag_id: 6], repo: Repo)
+      other_composite_row = RowHistory.changes(UpgTag, [post_id: 1, tag_id: 6], repo: Repo)
       assert length(other_composite_row) == 1
       assert hd(other_composite_row).table_pk == %{"post_id" => "1", "tag_id" => "6"}
 

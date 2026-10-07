@@ -20,7 +20,8 @@ defmodule Threadline.VersionTruthDocContractTest do
       carry an `x-release-please-version` marker; pin lines belong to
       `mix release.pins` alone.
     * Family C — upgrade coverage. `guides/upgrade-path.md` must document the
-      current-minor bump `0.(minor-1).x -> 0.minor.x` (ASCII or U+2192 arrow).
+      latest earlier release minor -> the current release minor (ASCII or
+      U+2192 arrow), including the first stable release after 0.x.
   """
   use ExUnit.Case, async: true
 
@@ -31,11 +32,6 @@ defmodule Threadline.VersionTruthDocContractTest do
   # "0.9.0"; a tight `.0` derivation keeps patch releases green by construction
   # because `~> 0.9.0` covers all of 0.9.x.
   @expected_pin_version "#{@parsed.major}.#{@parsed.minor}.0"
-
-  # Current-minor upgrade coverage: 0.(minor-1).x -> 0.minor.x.
-  @prev_minor @parsed.minor - 1
-  @coverage_from "0.#{@prev_minor}.x"
-  @coverage_to "0.#{@parsed.minor}.x"
 
   @release_please_config "release-please-config.json"
 
@@ -140,18 +136,42 @@ defmodule Threadline.VersionTruthDocContractTest do
 
   # Family C ---------------------------------------------------------------
 
-  test "upgrade-path.md documents the current-minor coverage #{@coverage_from} -> #{@coverage_to}" do
+  defp previous_release_minor! do
+    releases =
+      File.read!("CHANGELOG.md")
+      |> then(&Regex.scan(~r/^## \[(\d+\.\d+\.\d+)\]/m, &1, capture: :all_but_first))
+      |> Enum.map(fn [version] -> Version.parse!(version) end)
+
+    previous_minor =
+      Enum.reduce(releases, nil, fn version, best ->
+        same_minor? = {version.major, version.minor} == {@parsed.major, @parsed.minor}
+
+        if not same_minor? and Version.compare(version, @parsed) == :lt and
+             (is_nil(best) or Version.compare(version, best) == :gt) do
+          version
+        else
+          best
+        end
+      end)
+
+    previous_minor || flunk("CHANGELOG.md has no earlier release minor before #{@version}")
+  end
+
+  test "upgrade-path.md documents the previous-release-minor coverage for #{@version}" do
     guide = File.read!("guides/upgrade-path.md")
+    previous = previous_release_minor!()
+    coverage_from = "#{previous.major}.#{previous.minor}.x"
+    coverage_to = "#{@parsed.major}.#{@parsed.minor}.x"
 
     # Accept either the ASCII `->` or the Unicode U+2192 arrow between segments.
     coverage_regex =
-      ~r/#{Regex.escape(@coverage_from)}\s*(->|\x{2192})\s*#{Regex.escape(@coverage_to)}/u
+      ~r/#{Regex.escape(coverage_from)}\s*(->|\x{2192})\s*#{Regex.escape(coverage_to)}/u
 
     assert Regex.match?(coverage_regex, guide),
            "guides/upgrade-path.md is missing the current-minor upgrade coverage " <>
-             "`#{@coverage_from} -> #{@coverage_to}` derived from @version #{@version}. Every " <>
-             "minor bump must have a covered upgrade path so an adopter crossing #{@coverage_from} " <>
-             "to #{@coverage_to} finds the action (or 'nothing required') for their jump. Add the " <>
+             "`#{coverage_from} -> #{coverage_to}` derived from @version #{@version} and the " <>
+             "latest earlier release in CHANGELOG.md. Every minor or major transition must have " <>
+             "a covered upgrade path so adopters find the action (or 'nothing required'). Add the " <>
              "coverage row/bullet (structural theme checks stay in upgrade_path_doc_contract_test)."
   end
 end

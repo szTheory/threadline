@@ -1,12 +1,80 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.Auth do
     @moduledoc """
-    Authentication contract for the Threadline operator surface.
+    Uses host authorization callbacks to admit or halt Threadline operator LiveView mounts.
     """
 
     import Phoenix.LiveView
 
     alias Threadline.Semantics.ActorRef
+
+    @typedoc "An option read by the operator LiveView authorization hook."
+    @type on_mount_opt ::
+            {:authorize_fn, function()}
+            | {:scope_query_fn, function()}
+            | Threadline.repo_opt()
+            | {:schemas, %{optional(String.t() | atom()) => module()}}
+            | {:theme, :dark | :light | :system | String.t()}
+            | {:exports, boolean()}
+            | {:export_authorize_fn, function()}
+            | {:coverage_authorize_fn, function()}
+            | {:policy_authorize_fn, function()}
+            | {:evidence_authorize_fn, function()}
+
+    @typedoc "String-keyed route parameters passed to an operator LiveView mount."
+    @type on_mount_params :: %{optional(String.t()) => String.t()}
+
+    @typedoc "An opaque host-defined value carried in the LiveView session."
+    @type on_mount_session_value ::
+            atom()
+            | number()
+            | bitstring()
+            | pid()
+            | port()
+            | reference()
+            | function()
+            | tuple()
+            | maybe_improper_list(on_mount_session_value(), on_mount_session_value())
+            | %{optional(on_mount_session_value()) => on_mount_session_value()}
+
+    @typedoc "String- or atom-keyed session values passed to an operator LiveView mount."
+    @type on_mount_session :: %{
+            optional(String.t() | atom()) => on_mount_session_value()
+          }
+
+    @doc """
+    Allows or halts an operator LiveView mount using the host authorization callback.
+
+    The callback receives the socket-shaped value and may return `:ok`, `true`,
+    or `{:ok, scope}` to continue. Other results or callback exceptions halt the
+    mount and redirect to `/`.
+
+    ## Mount options
+
+    - `:authorize_fn` — function. Optional here; the router macro requires a secure pipeline, this callback, or explicit acknowledgement.
+    - `:scope_query_fn` — function. Optional. Applies host-owned query scoping.
+    - `:repo` — `Ecto.Repo` module. Optional. Assigned to the LiveView socket.
+    - `:schemas` — map from host table names to Ecto schema modules. Optional.
+    - `:theme` — `:dark`, `:light`, or `:system`. Defaults to `:dark`.
+    - `:exports` — boolean. Defaults to `true`; enables or disables export affordances.
+    - `:export_authorize_fn` — function. Optional. Applies export-specific authorization.
+    - `:coverage_authorize_fn` — function. Optional. Defaults to deny access to coverage.
+    - `:policy_authorize_fn` — function. Optional. Defaults to deny access to policy views.
+    - `:evidence_authorize_fn` — function. Optional. Defaults to deny access to evidence.
+
+    Other mount options are consumed by the router macro or companion hooks.
+
+    ## Returns
+
+    - `{:cont, socket}` — authorization allows the mount.
+    - `{:halt, socket}` — authorization denies or errors; the socket is redirected.
+    """
+    @spec on_mount(
+            [on_mount_opt()],
+            on_mount_params(),
+            on_mount_session(),
+            Phoenix.LiveView.Socket.t()
+          ) :: {:cont, Phoenix.LiveView.Socket.t()} | {:halt, Phoenix.LiveView.Socket.t()}
 
     def on_mount(opts, _params, session, socket) do
       authorize_fn = Keyword.get(opts, :authorize_fn, fn _socket -> true end)

@@ -1,6 +1,7 @@
 defmodule Threadline.Telemetry do
   @moduledoc """
-  Telemetry integration helpers for Threadline.
+  `Threadline.Telemetry` defines Threadline's emitted event contract and lets
+  hosts record accurate transaction table counts.
 
   Threadline emits the following `:telemetry` events. No event carries row
   values, actor identifiers, correlation ids, or free-text reasons — with one
@@ -24,11 +25,12 @@ defmodule Threadline.Telemetry do
   | `[:threadline, :operator_surface, :export_authorize]` | `count`, `result` | — | an export-specific authorization check raises |
   | `[:threadline, :operator_surface, :actor_ref_mismatch]` | `count` | — | the session actor and the scope-derived actor disagree |
   | `[:threadline, :export, :completed]` | `duration`, `row_count` | `format`, `truncated` | an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) finishes successfully |
-  | `[:threadline, :export, :failed]` | `duration`, `row_count` | `format`, `error_kind`, `exception` | an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) fails |
+  | `[:threadline, :export, :failed]` | `duration`, `row_count` | `format`, `error_kind`, `exception` | an eager facade filter/option or direct Export option validation raises; or an eager CSV/JSON read, async orchestrator job, or chunked operator-surface download fails |
   | `[:threadline, :retention, :purge, :start]` | `monotonic_time`, `system_time` | `dry_run`, `telemetry_span_context` | after purge/1's input checks pass, when the purge work begins |
   | `[:threadline, :retention, :purge, :stop]` | `batches_run`, `deleted_changes`, `deleted_transactions`, `duration`, `monotonic_time` | `dry_run`, `telemetry_span_context` | when the run or preview returns |
   | `[:threadline, :retention, :purge, :exception]` | `duration`, `monotonic_time` | `dry_run`, `kind`, `reason`, `stacktrace`, `telemetry_span_context` | when the database raises mid-run |
   | `[:threadline, :retention, :batch_purged]` | `deleted_changes`, `deleted_transactions`, `duration` | — | after a purge_loop step's change delete_all and full orphan drain both return, once per step including the terminating empty one |
+  | `[:threadline, :row_history, :truncated]` | `limit` | `schema` | Threadline.row_history/3's default 200-row cap dropped older changes |
 
   `[:threadline, :transaction, :committed]` is automatically emitted (with
   `table_count: 0`) when `Threadline.record_action/2` succeeds. For accurate
@@ -42,6 +44,21 @@ defmodule Threadline.Telemetry do
   `__events__/0` (`@doc false`) — not a public `events/0` — for use by this
   library's own test suite.
 
+  ## Entry points
+
+  - `transaction_committed/2` — call after a host database transaction commits
+    when its audited table count is known.
+  - `emit_action_recorded/1`, `emit_transaction_committed_proxy/0`,
+    `emit_health_checked/3`, `emit_health_checked_error/1`,
+    `emit_findings_checked/2`, `emit_operator_surface_authorize/3`,
+    `emit_export_authorize_error/0`, `emit_actor_ref_mismatch/0`,
+    `emit_export_completed/4`, `emit_export_failed/5`, `purge_span/2`,
+    `emit_row_history_truncated/2`, and `emit_batch_purged/3` — internal
+    `@doc false` hooks called by Threadline at the matching event sites; host
+    applications should subscribe to the events instead of calling these.
+  - `__events__/0` — the internal registry used by the library's contract
+    tests, not an adopter entry point.
+
   ## Usage
 
   Attach handlers in your application's `start/2` callback:
@@ -53,6 +70,22 @@ defmodule Threadline.Telemetry do
         nil
       )
   """
+
+  @typedoc "An option accepted by `transaction_committed/2`."
+  @type transaction_committed_opt :: {:table_count, integer()}
+
+  @typedoc "An opaque host transaction result passed to `transaction_committed/2`."
+  @type transaction_value ::
+          atom()
+          | number()
+          | bitstring()
+          | pid()
+          | port()
+          | reference()
+          | function()
+          | tuple()
+          | maybe_improper_list(transaction_value(), transaction_value())
+          | %{optional(transaction_value()) => transaction_value()}
 
   @events [
     %{
@@ -115,7 +148,7 @@ defmodule Threadline.Telemetry do
       measurements: [:duration, :row_count],
       metadata: [:format, :error_kind, :exception],
       when:
-        "an export (eager CSV/JSON, the async orchestrator job, or the chunked operator-surface download) fails"
+        "an eager facade filter/option or direct Export option validation raises; or an eager CSV/JSON read, async orchestrator job, or chunked operator-surface download fails"
     },
     %{
       name: [:threadline, :retention, :purge, :start],
@@ -148,6 +181,12 @@ defmodule Threadline.Telemetry do
       metadata: [],
       when:
         "after a purge_loop step's change delete_all and full orphan drain both return, once per step including the terminating empty one"
+    },
+    %{
+      name: [:threadline, :row_history, :truncated],
+      measurements: [:limit],
+      metadata: [:schema],
+      when: "Threadline.row_history/3's default 200-row cap dropped older changes"
     }
   ]
 
@@ -160,6 +199,16 @@ defmodule Threadline.Telemetry do
   Call this after a DB transaction that you know produced `AuditTransaction`
   records, when you need accurate `table_count` measurements.
 
+  ## Options
+
+  - `:table_count` — integer. Defaults to `0`; reports the number of audited tables in the transaction.
+
+  Other option keys are ignored.
+
+  ## Returns
+
+  - `:ok` after the telemetry event is emitted.
+
   ## Example
 
       {:ok, txn} = MyApp.Repo.transaction(fn ->
@@ -167,6 +216,7 @@ defmodule Threadline.Telemetry do
       end)
       Threadline.Telemetry.transaction_committed(txn, table_count: 3)
   """
+  @spec transaction_committed(transaction_value(), [transaction_committed_opt()]) :: :ok
   def transaction_committed(_transaction, opts \\ []) do
     table_count = Keyword.get(opts, :table_count, 0)
     :telemetry.execute([:threadline, :transaction, :committed], %{table_count: table_count}, %{})
@@ -182,14 +232,13 @@ defmodule Threadline.Telemetry do
     :telemetry.execute([:threadline, :transaction, :committed], %{table_count: 0}, %{})
   end
 
-  @doc """
-  Emits the `[:threadline, :health, :checked]` event with covered / uncovered /
-  expected_uncovered measurements.
-
-  The `expected_uncovered` measurement key is (additive). External
-  subscribers that destructure only `%{covered: c, uncovered: u}` continue to
-  work unchanged.
-  """
+  # Emits the `[:threadline, :health, :checked]` event with covered / uncovered /
+  # expected_uncovered measurements.
+  #
+  # The `expected_uncovered` measurement key is (additive). External
+  # subscribers that destructure only `%{covered: c, uncovered: u}` continue to
+  # work unchanged.
+  @doc false
   def emit_health_checked(covered, uncovered, expected_uncovered) do
     :telemetry.execute(
       [:threadline, :health, :checked],
@@ -198,16 +247,15 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :health, :checked, :error]` event when a polled
-  coverage check fails. The dashboard keeps the last-good snapshot and ALWAYS
-  reschedules the next poll; this event lets adopters alert on transient or
-  sustained failure.
-
-  Takes the raised exception struct itself, not a message. Metadata is
-  `%{exception: module}` — the exception's struct module only. The message is
-  intentionally not forwarded: exception messages can echo database values.
-  """
+  # Emits the `[:threadline, :health, :checked, :error]` event when a polled
+  # coverage check fails. The dashboard keeps the last-good snapshot and ALWAYS
+  # reschedules the next poll; this event lets adopters alert on transient or
+  # sustained failure.
+  #
+  # Takes the raised exception struct itself, not a message. Metadata is
+  # `%{exception: module}` — the exception's struct module only. The message is
+  # intentionally not forwarded: exception messages can echo database values.
+  @doc false
   def emit_health_checked_error(exception) when is_exception(exception) do
     :telemetry.execute(
       [:threadline, :health, :checked, :error],
@@ -216,11 +264,10 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :health, :findings_checked]` event with error and
-  warning counts, measured over the list `Threadline.Health.trigger_findings/1`
-  is about to return.
-  """
+  # Emits the `[:threadline, :health, :findings_checked]` event with error and
+  # warning counts, measured over the list `Threadline.Health.trigger_findings/1`
+  # is about to return.
+  @doc false
   def emit_findings_checked(errors, warnings) do
     :telemetry.execute(
       [:threadline, :health, :findings_checked],
@@ -229,22 +276,21 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :operator_surface, :authorize]` event.
-
-  `result` is the authorization outcome atom (`:granted`, `:denied`, or
-  `:error`). `path_or_nil` is a fixed, caller-supplied path string (the
-  mount's own compile-time route template, not a live request path), or
-  `nil` when the caller has none to offer (a LiveView mount, or an HTTP auth
-  plug that chooses not to forward one). Callers must never derive this value
-  from a live `conn.request_path`/similar — doing so could forward a
-  dynamic, possibly-identifying route segment (e.g. a tenant id a host
-  nested the mount under); see the Telemetry guide's cardinality warning.
-  `scope` is the host-returned scope map, or `nil`/anything else when there is
-  none. Metadata is `%{path: binary, scope_keys: [atom]}` — `scope_keys` holds
-  only the scope map's KEYS, sorted, never its values, so no identity data is
-  forwarded.
-  """
+  # Emits the `[:threadline, :operator_surface, :authorize]` event.
+  #
+  # `result` is the authorization outcome atom (`:granted`, `:denied`, or
+  # `:error`). `path_or_nil` is a fixed, caller-supplied path string (the
+  # mount's own compile-time route template, not a live request path), or
+  # `nil` when the caller has none to offer (a LiveView mount, or an HTTP auth
+  # plug that chooses not to forward one). Callers must never derive this value
+  # from a live `conn.request_path`/similar — doing so could forward a
+  # dynamic, possibly-identifying route segment (e.g. a tenant id a host
+  # nested the mount under); see the Telemetry guide's cardinality warning.
+  # `scope` is the host-returned scope map, or `nil`/anything else when there is
+  # none. Metadata is `%{path: binary, scope_keys: [atom]}` — `scope_keys` holds
+  # only the scope map's KEYS, sorted, never its values, so no identity data is
+  # forwarded.
+  @doc false
   def emit_operator_surface_authorize(result, path_or_nil, scope)
       when is_atom(result) and (is_nil(path_or_nil) or is_binary(path_or_nil)) do
     path = path_or_nil || ""
@@ -257,11 +303,10 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :operator_surface, :export_authorize]` event with
-  `%{result: :error, count: 1}` measurements and no metadata, for an
-  export-specific authorization callback that raised.
-  """
+  # Emits the `[:threadline, :operator_surface, :export_authorize]` event with
+  # `%{result: :error, count: 1}` measurements and no metadata, for an
+  # export-specific authorization callback that raised.
+  @doc false
   def emit_export_authorize_error do
     :telemetry.execute(
       [:threadline, :operator_surface, :export_authorize],
@@ -270,11 +315,10 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :operator_surface, :actor_ref_mismatch]` event with
-  `%{count: 1}` measurements and no metadata, as a pure incidence counter when
-  the session actor and the scope-derived actor disagree.
-  """
+  # Emits the `[:threadline, :operator_surface, :actor_ref_mismatch]` event with
+  # `%{count: 1}` measurements and no metadata, as a pure incidence counter when
+  # the session actor and the scope-derived actor disagree.
+  @doc false
   def emit_actor_ref_mismatch do
     :telemetry.execute(
       [:threadline, :operator_surface, :actor_ref_mismatch],
@@ -283,16 +327,15 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :export, :completed]` event for one logical export
-  that finished successfully.
-
-  `format` is the user-facing export format (`:csv`, `:json`, or `:ndjson` —
-  the async orchestrator job is always `:csv`). `row_count` is the number of
-  rows returned or streamed. `truncated` is whether the export hit its row
-  cap. `started_at` is a `System.monotonic_time/0` value captured by the
-  caller before the export began; this helper computes `duration` from it.
-  """
+  # Emits the `[:threadline, :export, :completed]` event for one logical export
+  # that finished successfully.
+  #
+  # `format` is the user-facing export format (`:csv`, `:json`, or `:ndjson` —
+  # the async orchestrator job is always `:csv`). `row_count` is the number of
+  # rows returned or streamed. `truncated` is whether the export hit its row
+  # cap. `started_at` is a `System.monotonic_time/0` value captured by the
+  # caller before the export began; this helper computes `duration` from it.
+  @doc false
   def emit_export_completed(format, row_count, truncated, started_at)
       when format in [:csv, :json, :ndjson] and is_integer(row_count) and row_count >= 0 and
              is_boolean(truncated) and is_integer(started_at) do
@@ -305,19 +348,18 @@ defmodule Threadline.Telemetry do
     )
   end
 
-  @doc """
-  Emits the `[:threadline, :export, :failed]` event for one logical export
-  that failed.
-
-  `row_count` is the number of rows written or streamed before the failure
-  (`0` for the eager functions, since they fail before returning anything).
-  `error_kind` is one of `:exception`, `:client_closed`, `:storage_error`, or
-  `:transaction_failed`. `exception` is the raised exception struct, or
-  `nil` when the failure was not a raise — only the struct's module is
-  forwarded, never its message, which can echo audited database values.
-  `started_at` is the same `System.monotonic_time/0` value passed to
-  `emit_export_completed/4`.
-  """
+  # Emits the `[:threadline, :export, :failed]` event for one logical export
+  # that failed.
+  #
+  # `row_count` is the number of rows written or streamed before the failure
+  # (`0` for the eager functions, since they fail before returning anything).
+  # `error_kind` is one of `:exception`, `:client_closed`, `:storage_error`, or
+  # `:transaction_failed`. `exception` is the raised exception struct, or
+  # `nil` when the failure was not a raise — only the struct's module is
+  # forwarded, never its message, which can echo audited database values.
+  # `started_at` is the same `System.monotonic_time/0` value passed to
+  # `emit_export_completed/4`.
+  @doc false
   def emit_export_failed(format, row_count, error_kind, exception, started_at)
       when format in [:csv, :json, :ndjson] and is_integer(row_count) and row_count >= 0 and
              error_kind in [:exception, :client_closed, :storage_error, :transaction_failed] and
@@ -354,6 +396,20 @@ defmodule Threadline.Telemetry do
       {result, Map.take(result, [:deleted_changes, :deleted_transactions, :batches_run]),
        %{dry_run: dry_run?}}
     end)
+  end
+
+  # Emits `[:threadline, :row_history, :truncated]` only when
+  # `Threadline.row_history/3`'s implicit 200-row default actually dropped
+  # older changes. Metadata carries the schema module atom only — never a
+  # table name string, primary-key value, or actor data.
+  @doc false
+  def emit_row_history_truncated(limit, schema_module)
+      when is_integer(limit) and is_atom(schema_module) do
+    :telemetry.execute(
+      [:threadline, :row_history, :truncated],
+      %{limit: limit},
+      %{schema: schema_module}
+    )
   end
 
   # Emits the `[:threadline, :retention, :batch_purged]` event for one

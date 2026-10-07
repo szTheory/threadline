@@ -2,11 +2,11 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
   @moduledoc false
   use ExUnit.Case, async: true
 
+  alias Threadline.Query.OptionKeys
   alias Threadline.Test.SourceFamily
 
   @router_path "lib/threadline/operator_surface/router.ex"
   @lv_path "lib/threadline/operator_surface/live/timeline_live.ex"
-  @query_path "lib/threadline/query.ex"
   @transaction_lv_path "lib/threadline/operator_surface/live/transaction_live.ex"
   @actor_lv_path "lib/threadline/operator_surface/live/actor_live.ex"
 
@@ -59,16 +59,10 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
 
   test "filter form key list matches Threadline.Query allowlist exactly (BROWSE-04 parity guarantee)" do
     live_src = SourceFamily.read!(@lv_path)
-    query_src = File.read!(@query_path)
-
-    # Extract @allowed_timeline_filter_keys literal from query.ex source
-    [_, allowlist_block] =
-      Regex.run(~r/@allowed_timeline_filter_keys\s+~w\(([^)]+)\)a/, query_src) ||
-        flunk("could not find @allowed_timeline_filter_keys in #{@query_path}")
 
     lib_keys =
-      allowlist_block
-      |> String.split()
+      OptionKeys.filters(:timeline)
+      |> Enum.map(&Atom.to_string/1)
       |> MapSet.new()
       # :repo is socket-injected, not URL-supplied
       |> MapSet.delete("repo")
@@ -91,7 +85,7 @@ defmodule Threadline.OperatorSurface.TimelineBrowseDocContractTest do
            Filter form keys diverged from Threadline.Query allowlist.
            Form (after actor_kind+actor_id→actor_ref collapse): #{inspect(MapSet.to_list(form_keys_collapsed) |> Enum.sort())}
            Lib  (allowlist minus :repo):                        #{inspect(MapSet.to_list(lib_keys) |> Enum.sort())}
-           Update either lib/threadline/query.ex (line with @allowed_timeline_filter_keys) OR the
+           Update the canonical Threadline.Query.OptionKeys filter list or the
            form's name="filter[…]" inputs so they agree.
            """
 

@@ -74,7 +74,7 @@ See also `guides/operator-surface.md` §"Coverage and audit readiness".
 
 Confirm [Host repo wiring (prerequisite)](#host-repo-wiring-prerequisite) before running export or evidence Mix tasks in CI.
 
-- [ ] Exports use the same filter keys as `Threadline.timeline/2` (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id` only). Unknown keys raise `ArgumentError` with a message pointing at `Threadline.Query`.
+- [ ] Exports use the same filter keys as `Threadline.timeline/2` (`:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id` only). Unknown keys raise `ArgumentError` with a message listing those allowed keys.
 - [ ] Large exports: respect default `max_rows` and `truncated` metadata, or use `Threadline.Export.stream_changes/2` with `Stream.take/2` intentionally.
 - [ ] **Retention vs filters:** `Threadline.timeline/2`, **`mix threadline.export`**, and correlation-heavy playbooks only return rows that **still exist** after your purge windows — align **`:from` / `:to`**, **`max_rows`**, streaming (`Threadline.Export.stream_changes/2`), and **`:correlation_id`** investigations with the policy in **[§4 Retention and purge](#4-retention-and-purge)**; export behavior details live in **[`domain-reference.md` — Export](domain-reference.md#export)**.
 - [ ] **Operator Surface:** If you mount the LiveView operator UI, ensure it is protected behind an authenticated admin pipeline with a strict `:authorize_fn` policy. See the [Operator Surface guide](operator-surface.md) for fail-closed requirements.
@@ -97,7 +97,7 @@ Pre-launch: confirm operators can answer the five canonical support questions (s
 
 | Question (1-line) | API / Mix | SQL |
 |-------------------|-----------|-----|
-| 1. Row history — PK in a time window | `Threadline.history/3`, `Threadline.Query.timeline/2` | [Golden query](domain-reference.md#1-row-history-pk-changes-in-a-time-window) in domain reference |
+| 1. Row history — PK in a time window | `Threadline.row_history/3`, `Threadline.timeline/2` | [Golden query](domain-reference.md#1-row-history-pk-changes-in-a-time-window) in domain reference |
 | 2. Actor window — one actor across tables | `Threadline.actor_history/2`, `timeline/2` + `:actor_ref` | [Golden query](domain-reference.md#2-actor-window-one-actor-across-tables) |
 | 3. Correlation bundle — shared `correlation_id` | `timeline/2`, `mix threadline.export` + `:correlation_id` | [Inner-join SQL + strict semantics](domain-reference.md#3-correlation-bundle-shared-correlation_id) |
 | 4. Export parity — same filters as timeline | `Threadline.Export`, `mix threadline.export` | [Filter vocabulary](domain-reference.md#4-export-parity-timeline-and-export-filters-agree) |
@@ -107,7 +107,7 @@ Pre-launch: confirm operators can answer the five canonical support questions (s
 - [ ] **Q1 — Row history:** Read [row history playbook](domain-reference.md#1-row-history-pk-changes-in-a-time-window) (`audit_changes`, `audit_transactions`, bounded `captured_at`).
 - [ ] **Q2 — Actor window:** Read [actor window playbook](domain-reference.md#2-actor-window-one-actor-across-tables) (`actor_ref` JSON, time bounds).
 - [ ] **Q3 — Correlation:** Read [correlation bundle playbook](domain-reference.md#3-correlation-bundle-shared-correlation_id) — with `:correlation_id`, timeline/export return only changes whose transaction **inner-joins** an `audit_actions` row with that correlation (no orphan capture rows).
-- [ ] **Q4 — Export parity:** Read [export parity notes](domain-reference.md#4-export-parity-timeline-and-export-filters-agree) — same keys as `Threadline.Query.timeline/2`.
+- [ ] **Q4 — Export parity:** Read [export parity notes](domain-reference.md#4-export-parity-timeline-and-export-filters-agree) — same keys as `Threadline.timeline/2`.
 - [ ] **Q5 — Action ↔ capture:** Read [action/capture join](domain-reference.md#5-action-and-capture-link-semantic-actions-to-changes) (`audit_actions`, `action_id`, `audit_changes`).
 - [ ] **Q6 — Single transaction incident drill-down:** Start with [exploration routing](domain-reference.md#exploration-api-routing-v110), then follow the bundled incident path in [incident-playbook.md](incident-playbook.md#scenario-single-transaction-drilldown).
 
@@ -115,7 +115,7 @@ Pre-launch: confirm operators can answer the five canonical support questions (s
 
 - [Adoption pilot backlog](adoption-pilot-backlog.md) — matrix to run this checklist in a real environment and file issues with evidence.
 - [Domain reference](domain-reference.md) — schema, retention semantics, export behavior.
-- [HexDocs](https://hexdocs.pm/threadline) — `Threadline`, `Threadline.Export`, `Threadline.Retention`, `Threadline.Query`.
+- [HexDocs](https://hexdocs.pm/threadline) — `Threadline`, `Threadline.Export`, `Threadline.Retention`.
 
 ## Next steps
 

@@ -4,6 +4,10 @@ This guide is the canonical support-matrix and lifecycle reference for Threadlin
 
 Threadline **0.6.0** landed Evidence, `Audit.transaction/3`, and aligned operator surfaces in-repo after **0.5.0**; the later minors (`0.7.0` through `0.9.0`) added surface, DX, and proof-lane work only. **0.10.0** is the first bump in that run with adopter actions attached — see the `0.9.x → 0.10.x` bullet below. **0.11.0** regenerated triggers to resolve real primary keys (see the `0.10.x → 0.11.x` bullet), and **0.12.0** carries three breaking telemetry/config changes (see the `0.11.x → 0.12.x` bullet). Upgrade steps are semver-scoped in `CHANGELOG.md` and this guide.
 
+For the full procedure from **0.11.x or 0.12.x to 1.0.0**, follow
+[Upgrading to 1.0](upgrading-to-1.0.md). The guide gives 0.11.x adopters a
+conditional 0.12.0 preflight; 0.12.x adopters can skip it.
+
 ## Who this guide is for
 
 Use this guide if you are:
@@ -65,6 +69,16 @@ Support claims in this table come from current in-repo proof only:
 
 Threadline does not claim support for Phoenix, LiveView, HTML, PubSub, or Sigra combinations outside these named proofs. The `{:sigra, "~> 0.2", optional: true}` declaration is a host install shape, not a blanket promise covering every Sigra `0.2.x` host. If your lockfile resolves to different versions within the declared ranges, or your host auth/layout differs from the reference path, treat that as your responsibility to verify locally unless and until the Threadline repo updates its own declared ranges, lock resolution references, docs, and CI coverage accordingly.
 
+## Toolchain support policy
+
+The Elixir requirement in `mix.exs` is `~> 1.15`. The `min` lane is the supported floor; `current` and `latest` show versions exercised by CI and are tested-on evidence, not additional support promises.
+
+| Lane | Elixir | OTP | PostgreSQL | Meaning |
+| --- | --- | --- | --- | --- |
+| `min` | `~> 1.15` (CI pin `1.15.8`) | `26.2.5.21` | `15` | Supported floor |
+| `current` | `1.17.3-otp-27` | `27.3.4.15` | `16` | Tested-on only; not a support promise |
+| `latest` | `1.20.4` | `29.1.1` | `18.6` | Tested-on only; not a support promise |
+
 **Backport policy.** Security and critical fixes are backported as patch releases on the current minor (e.g. `0.9.1`), which any `~> 0.9.0`-style three-segment pin picks up automatically; crossing a minor stays a deliberate, changelog-reading act. This is why a tight three-segment pin never strands an install-once audit adopter on an unpatched line.
 
 ## Upgrade by Threadline minor
@@ -101,6 +115,7 @@ Every adopter-visible change from 0.6.x through 0.9.x fell into one of four them
 | 0.9.x → 0.10.x | No | None | Optional — `storage_schema` is a new opt-in whose default is what you already have | **Not** nothing required: four adopter actions (S3 export dependencies, two new operator-surface routes, a narrowed `Storage` callback, 25 newly undocumented modules). |
 | 0.10.x → 0.11.x | Yes | Regenerate triggers + add the row-history index | Optional — a `primary_key:` override, only for a table with no usable primary key | **Not** nothing required: regenerate every audited table's trigger, then add the row-history index. Full procedure: [Upgrading to 0.11](upgrading-to-0.11.md). |
 | 0.11.x → 0.12.x | Yes | None | Only if a capture table entry passes a bare atom to exclude:, mask: or except_columns: — wrap it in a list | **Not** nothing required: three adopter actions (telemetry handlers matching actor-ref keys, health-checked error metadata, non-list capture options). |
+| 0.12.x → 1.0.x | Yes | Upgrade PostgreSQL to 15+ if currently below it; no trigger regeneration | None | **Not** nothing required: follow [Upgrading to 1.0](upgrading-to-1.0.md) for the API changes, bounded history, lookup shapes, and deprecations. |
 
 Current guidance by minor:
 
@@ -115,19 +130,20 @@ Current guidance by minor:
   - **Callers of implementation modules** — 25 implementation modules became `@moduledoc false`. They remain callable for Threadline's own composition, but they are no longer a supported surface.
 
   Per lane: `capture-only` adopters can be touched by the S3-export and implementation-module items only; `phoenix-surface` adopters should also re-check the two new routes against whatever sits in front of their `/audit` mount. See `CHANGELOG.md` `[0.10.0]`.
-- **0.10.x → 0.11.x**: Threadline capture triggers now resolve and record a table's real primary key instead of always assuming a column named `id`, `Threadline.history/3` and `Threadline.as_of/4` raise `ArgumentError` on a bad key instead of silently returning nothing, and `trigger_coverage/1` no longer counts a disabled or replica-only trigger as covered. Breaking changes: **Yes** — see the bullets above. Required migration: **Yes** — regenerate every audited table's trigger (`mix threadline.gen.triggers`) and add the row-history index (`mix threadline.gen.row_history_index`), then migrate. Config changes: **Optional** — a `primary_key:` override under `config :threadline, :trigger_capture` is only needed for a table with no usable primary key.
+- **0.10.x → 0.11.x**: Threadline capture triggers now resolve and record a table's real primary key instead of always assuming a column named `id`, the row-history read (`Threadline.row_history/3` as of 1.0) and `Threadline.as_of/4` raise `ArgumentError` on a bad key instead of silently returning nothing, and `trigger_coverage/1` no longer counts a disabled or replica-only trigger as covered. Breaking changes: **Yes** — see the bullets above. Required migration: **Yes** — regenerate every audited table's trigger (`mix threadline.gen.triggers`) and add the row-history index (`mix threadline.gen.row_history_index`), then migrate. Config changes: **Optional** — a `primary_key:` override under `config :threadline, :trigger_capture` is only needed for a table with no usable primary key.
   - **Every adopter** regenerates triggers and adds the row-history index; a table whose primary-key type is outside the supported set keeps its legacy trigger until you widen that support.
   - **Adopters with per-table capture settings** (redaction or `store_changed_from`) check whether two of their tables ever shared one capture function before regenerating — see the CHANGELOG Security note.
   - **Callers matching `table_pk` directly**, such as `{"id": null}`, should match `{}` too after regenerating.
   - Optional: backfill the real key for rows captured before you regenerated, using the SQL in the upgrade guide.
 
   See `CHANGELOG.md` `[0.11.0]`. Full procedure: [Upgrading to 0.11](upgrading-to-0.11.md).
-- **0.11.x → 0.12.x**: Export and retention telemetry, a `Threadline.history/3` `limit:` option, `--strict` and `--all-schemas` flags for `mix threadline.health.coverage`, and a legacy-key health warning. Breaking changes: **Yes**. Required migration: **None**. Config changes: **Only if** a capture table entry passes a bare atom to `exclude:`, `mask:` or `except_columns:` — wrap it in a list.
+- **0.11.x → 0.12.x**: Export and retention telemetry, a `limit:` option on the row-history read (now `Threadline.row_history/3`), `--strict` and `--all-schemas` flags for `mix threadline.health.coverage`, and a legacy-key health warning. Breaking changes: **Yes**. Required migration: **None**. Config changes: **Only if** a capture table entry passes a bare atom to `exclude:`, `mask:` or `except_columns:` — wrap it in a list.
   - **Operator-surface telemetry consumers** whose handlers match on `actor_ref`, `session_actor_ref` or `scope_actor_ref` in the `[:threadline, :operator_surface, :authorize]`, `[:threadline, :operator_surface, :export_authorize]` or `[:threadline, :operator_surface, :actor_ref_mismatch]` events must remove those keys from their pattern matches and read the actor from their own session or scope instead.
   - **Health-telemetry consumers** whose handlers match the `[:threadline, :health, :checked, :error]` event's `%{error: message}` metadata must match `%{exception: mod}` instead.
   - **Capture config authors** passing a non-list `exclude:`/`mask:`/`except_columns:` (for example `exclude: :ssn`) on a `:threadline, :trigger_capture` table entry must wrap the column name in a list (`exclude: [:ssn]`); this now raises `ArgumentError` at config load and at trigger generation instead of silently skipping the redaction.
 
   See `CHANGELOG.md` `[0.12.0]`.
+- **0.12.x → 1.0.x**: The supported facade and query shapes are tightened, row history is bounded by default, and deprecations have replacements. Breaking changes: **Yes**. Required database upgrade: **Only if** the host is below PostgreSQL 15. Trigger regeneration: **No**. Config changes: **None**. Follow [Upgrading to 1.0](upgrading-to-1.0.md) for the seven-step procedure.
 - `0.3.x -> 0.4.x`: the operator surface became an official optional dependency lane. `capture-only` adopters keep the no-optional-deps path. `phoenix-surface` adopters must align with the declared `phoenix`, `phoenix_live_view`, `phoenix_html`, and `phoenix_pubsub` ranges and re-check their router mount/auth setup after upgrade. `sigra-reference` adopters should also re-check the current example app and Sigra guide before treating that path as unchanged.
 - future minor upgrades: do not infer support from ecosystem norms or upstream release notes alone. Re-check this guide, the declared optional dependency ranges, the current example-app proof path, and the current changelog entry for the target Threadline minor.
 

@@ -1,6 +1,6 @@
 defmodule Threadline.Query.RowKeyTypesTest do
   @moduledoc """
-  Proves every allowlisted key type round-trips capture -> `Threadline.history/3`:
+  Proves every allowlisted key type round-trips capture -> `Threadline.row_history/3`:
   bigint, uuid, text, date, a fractional-second timestamp, char(n) padding, a
   PostgreSQL enum (given as an atom and as a string), and a domain over
   integer. Each case is also proven inside a transaction with
@@ -12,6 +12,7 @@ defmodule Threadline.Query.RowKeyTypesTest do
 
   alias Threadline.Capture.TriggerSQL
   alias Threadline.Test.MigrationHarness, as: Harness
+  alias Threadline.Test.RowHistory
 
   @tables ~w(rk_t_bigint rk_t_uuid rk_t_text rk_t_date rk_t_ts rk_t_char rk_t_enum rk_t_domain
              rk_t_enum_quoted)
@@ -175,7 +176,7 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_bigint (id, name) VALUES (42, 'a')")
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTBigint, "42", repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTBigint, "42", repo: Repo)) == 1
     end)
   end
 
@@ -184,7 +185,7 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_uuid (id, name) VALUES ($1, 'a')", [Ecto.UUID.dump!(uuid)])
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTUuid, uuid, repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTUuid, uuid, repo: Repo)) == 1
     end)
   end
 
@@ -192,8 +193,8 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_text (id, name) VALUES ('Abc', 'a')")
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTText, "Abc", repo: Repo)) == 1
-      assert Threadline.history(RkTText, "abc", repo: Repo) == []
+      assert length(RowHistory.changes(RkTText, "Abc", repo: Repo)) == 1
+      assert RowHistory.changes(RkTText, "abc", repo: Repo) == []
     end)
   end
 
@@ -201,7 +202,7 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_date (id, name) VALUES ('2026-09-25', 'a')")
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTDate, ~D[2026-09-25], repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTDate, ~D[2026-09-25], repo: Repo)) == 1
     end)
   end
 
@@ -209,7 +210,7 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_ts (id, name) VALUES ('2026-09-25 12:00:00.5', 'a')")
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTTimestamp, ~N[2026-09-25 12:00:00.500000], repo: Repo)) ==
+      assert length(RowHistory.changes(RkTTimestamp, ~N[2026-09-25 12:00:00.500000], repo: Repo)) ==
                1
     end)
   end
@@ -218,7 +219,7 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_char (id, name) VALUES ('ab', 'a')")
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTChar, "ab", repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTChar, "ab", repo: Repo)) == 1
     end)
   end
 
@@ -226,8 +227,8 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_enum (id, name) VALUES ('active', 'a')")
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTEnum, :active, repo: Repo)) == 1
-      assert length(Threadline.history(RkTEnum, "active", repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTEnum, :active, repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTEnum, "active", repo: Repo)) == 1
     end)
   end
 
@@ -235,7 +236,7 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_domain (id, name) VALUES (7, 'a')")
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTDomain, 7, repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTDomain, 7, repo: Repo)) == 1
     end)
   end
 
@@ -243,8 +244,8 @@ defmodule Threadline.Query.RowKeyTypesTest do
     Repo.query!("INSERT INTO rk_t_enum_quoted (id, name) VALUES ('active', 'a')")
 
     assert_round_trip(fn ->
-      assert length(Threadline.history(RkTEnumQuoted, :active, repo: Repo)) == 1
-      assert length(Threadline.history(RkTEnumQuoted, "active", repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTEnumQuoted, :active, repo: Repo)) == 1
+      assert length(RowHistory.changes(RkTEnumQuoted, "active", repo: Repo)) == 1
     end)
   end
 end

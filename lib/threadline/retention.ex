@@ -1,10 +1,11 @@
 defmodule Threadline.Retention do
   @moduledoc """
-  Batched retention purge for `audit_changes` and empty `audit_transactions`.
+  `Threadline.Retention` batches expiry of `AuditChange` rows and optionally
+  removes empty `AuditTransaction` rows.
 
   Requires **`config :threadline, :retention`** with **`enabled: true`** before any
   destructive run (see `Threadline.Retention.Policy`). Callers must pass **`repo:`**
-  explicitly, matching `Threadline.Query` conventions.
+  explicitly, matching the `Threadline` read functions.
 
   Cutoff is derived from `Threadline.Retention.Policy.cutoff_utc_datetime_usec!/0`
   unless you pass **`cutoff:`** (UTC `DateTime`, microsecond) for a stricter window
@@ -28,28 +29,50 @@ defmodule Threadline.Retention do
           dry_run: boolean()
         }
 
+  @typedoc "An option accepted by `purge/1`."
+  @type purge_opt ::
+          Threadline.repo_opt()
+          | Threadline.storage_schema_opt()
+          | {:batch_size, pos_integer()}
+          | {:max_batches, pos_integer()}
+          | {:dry_run, boolean()}
+          | {:sleep_ms, non_neg_integer()}
+          | {:cutoff, DateTime.t()}
+
   @doc """
-  Deletes captured changes older than the retention cutoff in batches, then removes
-  orphan `audit_transactions` when `delete_empty_transactions` is true in config.
+  Returns `purge_result()` after deleting expired `AuditChange` rows, or
+  `{:error, :disabled}` when retention is disabled. Raises `ArgumentError` for
+  invalid policy or a cutoff newer than the policy cutoff; repository errors
+  are reraised.
+
+  The cutoff comes from `Threadline.Retention.Policy`; an explicit cutoff must
+  be older than or equal to that policy cutoff.
 
   ## Options
 
-  - **`:repo`** — required `Ecto.Repo`.
-  - **`:batch_size`** — max rows per delete pass (default `500`).
-  - **`:max_batches`** — max outer iterations, each consisting of one change batch
-    plus orphan draining (default `10_000`).
-  - **`:dry_run`** — when `true`, no deletes; returns counts of rows that **would**
+  - `:repo` — `Ecto.Repo` module. Required.
+  - `:storage_schema` — string. Optional. Selects the Threadline storage schema.
+  - `:batch_size` — positive integer. Defaults to `500`; maximum rows per delete pass.
+  - `:max_batches` — positive integer. Defaults to `10_000`; maximum change batches plus orphan draining.
+  - `:dry_run` — boolean. Defaults to `false`; when true, no deletes and returns counts of rows that **would**
     match delete predicates (`:deleted_changes` / `:deleted_transactions` are
     those counts, `:batches_run` is `0`). The preview assumes the run completes;
     a run cut short by `:max_batches` deletes fewer. **`:batch_size` and
     `:max_batches` are ignored in dry-run mode** — the preview is a single
     full-table count, not a batched simulation, so passing either alongside
     `dry_run: true` has no effect on the returned counts.
+  - `:sleep_ms` — non-negative integer. Defaults to `50`; delay between delete batches.
+  - `:cutoff` — UTC `DateTime`. Optional. Must be at or before the policy cutoff.
 
-  Returns `{:error, :disabled}` when `:retention` → `enabled` is not `true`.
-  Successful calls return a result map (see `purge_result/0`).
+  Other option keys are ignored.
+
+  ## Returns
+
+  - `purge_result()` — cumulative deletion counts and whether the run was a dry run.
+  - `{:error, :disabled}` — the retention policy does not have `enabled: true`.
+  - Raises `ArgumentError` for invalid policy or a cutoff newer than the policy cutoff; repository errors are reraised.
   """
-  @spec purge(keyword()) :: purge_result() | {:error, :disabled}
+  @spec purge([purge_opt()]) :: purge_result() | {:error, :disabled}
   def purge(opts) when is_list(opts) do
     repo = Keyword.fetch!(opts, :repo)
     batch_size = Keyword.get(opts, :batch_size, 500)

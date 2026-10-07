@@ -2,7 +2,8 @@
 
 ## Milestones
 
-- 🚧 **v1.44 Behavioral Depth: Properties, Twins, Telemetry** - Phases 224-230 (in progress, opened 2026-09-30)
+- 🚧 **v1.45 1.0 API Contract** - Phases 231-237 (in progress, opened 2026-10-02)
+- [x] **v1.44 Behavioral Depth: Properties, Twins, Telemetry** - Phases 224-230 (shipped 2026-10-02, released as 0.12.0). Archive: `.planning/milestones/v1.44-ROADMAP.md`
 - [x] **v1.43 Supply Chain, CI Economy and Repo Hygiene** - Phases 214-223 (shipped 2026-09-30, released as 0.11.1 and 0.11.2). Archive: `.planning/milestones/v1.43-ROADMAP.md`
 - [x] **v1.42 Capture Correctness for Real Table Shapes** - Phases 208-213 (shipped 2026-09-26, released as 0.11.0). Archive: `.planning/milestones/v1.42-ROADMAP.md`
 - [x] **v1.41 Green, Clean, and Honest** - Phases 198-207 (shipped 2026-09-24). Archive: `.planning/milestones/v1.41-ROADMAP.md`
@@ -14,310 +15,346 @@
 - [x] **v1.35 Unified Logo & Brand Book v2** - Phases 159-165 (shipped 2026-06-12). Archive: `.planning/milestones/v1.35-ROADMAP.md`
 - [x] **v1.34 Local Docker Admin UI DX** - Phases 154-158 (shipped 2026-06-07). Archive: `.planning/milestones/v1.34-ROADMAP.md`
 
-## 🚧 v1.44 Behavioral Depth: Properties, Twins, Telemetry (In Progress)
+## 🚧 v1.45 1.0 API Contract (In Progress)
 
-**Milestone Goal:** Prove Threadline's behavioral invariants with bounded property tests, make its long-running operations observable without leaking audited data, and make the test suite faster and more honest. Close the capture and CLI correctness debt carried from v1.42. Ships as a minor release (0.12.0).
+**Milestone Goal:** Lock down a public API that adopters can depend on for all of 1.x: one read facade, one obvious entry point per job, consistent return shapes, complete typespecs and docs behind a gate, a 1.x stability promise enforced by tests, and a deliberate support floor. Then declare **1.0.0** through release-please.
 
-**Granularity:** coarse config, but seven phases, the ceiling for this rung. Each boundary is an ordering constraint, not a feature split. The suite has to be partitioned before the DB-backed properties add serial time to it. The pure properties prove the mutation-control discipline cheaply before the DB-backed ones. The redaction property must exist before telemetry can attach a handler to it. The guard-test cut and the net-suite check can only be judged once every test-adding phase has landed. Merging 226 with 227 would put the cheap and the expensive properties under one budget. Merging 228 into 227 would couple a new public event surface to test-only work. 229 is independent adopter-facing API and CLI work, grouped so the release has one CHANGELOG section for it.
+**Granularity:** coarse config, but seven phases, the ceiling for this rung. Each boundary is an ordering constraint, not a feature split. The facade topology and the association edge are the one-way structural calls and touch the same files, so they go first. Consolidation and deprecation need the final topology to know which module each delegate lives on. Return shapes must settle before specs are written. Specs are written once, against the settled surface. The stability contract pins a surface that will no longer move. The partition-weight refresh waits until the test churn settles. The upgrade guide and the release come last because they must list every breaking change. Phase 233 carries a single requirement. It could fold into 232, but keeping it separate means specs in 234 are written against final lookup signatures, with a phase gate in between.
 
-**Evidence:** `.planning/research/SUMMARY.md` (Implications for Roadmap, Resolved Conflict) and `.planning/REQUIREMENTS.md`. Where they conflict, REQUIREMENTS.md wins (no `:invalid_config` finding, no `gen.backfill`, no query or Mix-task telemetry, `history/3` limit defaults to `nil`).
+**Evidence:** `.planning/research/SUMMARY.md` (Implications for Roadmap, Reconciling the Five Conflicts, Watch-Outs) and `.planning/REQUIREMENTS.md`. Where they conflict, REQUIREMENTS.md wins. The sketch's SPEC-04 is merged into API-08, and its DOCS-04/05 and CI-02 are not v1.45 requirements.
 
 ### Dependency spine
 
 ```
-224 Capture + bench fixes ─→ 225 Suite baseline + partitioned CI ─→ 226 Pure properties ─→ 227 DB-backed properties ─→ 228 Telemetry ─┐
-                                        └──────────────────────────→ 229 Adopter API + health (independent) ─────────────────────────────┼─→ 230 Rebalance, net-suite check, 0.12.0
+231 Facade topology + edge ─→ 232 Consolidation, deprecation, bounded default ─→ 233 Return shapes ─→ 234 Specs + gate ─→ 235 Contract tests + guides ─→ 236 Floor + partition weights ─→ 237 Upgrade guide + 1.0.0
 ```
 
-- **SUITE-01's baseline is pinned to the milestone base** (`dd780e68`, before any v1.44 test change). Phase 224 lands first but adds tests, so its own before/after is measured against that base rather than hiding inside the baseline.
-- **225 before 227.** Partitioning absorbs the DB-backed properties' serial time instead of compounding the unpartitioned suite. 225 also resizes Flake Detection, which 226's `THREADLINE_PROPERTY_SCALE` lane then reuses.
-- **226 before 227.** The pure properties establish the generator modules, `max_runs` tiers and mutation-control record that 227 follows.
-- **227 before 228.** TELE-03 attaches a test telemetry handler to 227's redaction property (PROP-04).
-- **229 is independent** of 226-228 and can run any time after 225. It is sequenced before 230 so the release carries its CHANGELOG entries.
-- **Known exception:** CAPT-02's rerun property in 224 is DB-backed and lands before partitioning. It is carried correctness debt, capped at `max_runs` ≤ 20 from the start (the DB tier PROP-08 later formalizes), and its cost is reported in 224.
+- **231 before 232.** Deprecated delegates and the `Page` struct live on the facade. Which modules are hidden decides where each retired name keeps its one-line delegate.
+- **233 before 234.** Specs are written against final signatures. A spec written for `audit_transaction/2` before its return shape changes would be rewritten.
+- **234 before 235.** CONTRACT-05 edits the same schema moduledocs that SPEC-01 backfills, and the stability guide cites the specced surface.
+- **235 before 236.** CI-01 refreshes the partition weights only after the last test-adding phase before the release. The missing-weight check is permanent, so the doc-contract test that 237 adds must carry its own weight entry.
+- **FLOOR before REL.** The PG 15 floor is a breaking change that the upgrade guide and the 1.0.0 CHANGELOG must list.
+- **REL-01's config flip ships in the landing change.** Nothing from this milestone reaches main before the single `feat!:` squash, so `bump-minor-pre-major` is flipped in 237, before the first breaking commit lands on main.
 
 ### Cross-cutting invariants (hold in every phase)
 
-- **Suite wall clock before and after (SUITE-06).** Every phase that adds, removes or re-schedules tests records local and CI suite wall clock before and after in its VERIFICATION.md, citing run IDs for CI figures. A net regression is caught mid-milestone, not at close.
-- **No tautological properties.** Each property's expectation is derived independently of the code under test (set equality, a hand-written fold, an independent decoder). Each carries a mutation control: the invariant broken on purpose, the property shown red, the failing seed cited in VERIFICATION.md.
-- **Honest default tests.** `mix test` still runs the full suite locally. Any tag or exclusion change updates `test/test_helper.exs` and the docs together.
-- **Same-commit roster rule.** Any change to CI jobs or the required aggregate changes `ci.yml`, CONTRIBUTING's job table, `ci-required` `needs:` and the topology contract test in one commit. Job `id:`s stay immutable; `CI required` stays fail-closed.
+- **Every breaking change is recorded when it is made.** The phase that makes a breaking change adds its CHANGELOG `Unreleased` breaking-changes entry, and its commit carries a `BREAKING CHANGE:` footer. REL-02 cross-checks both at the end and does not reconstruct either from memory.
+- **Grep before hiding.** Before any name or module becomes `@moduledoc false` / `@doc false`, guides, the README and the example app are grepped for it, and every hit is rewritten in the same change.
+- **Warnings stay errors.** `mix compile --warnings-as-errors` stays clean for `lib/`, `test/` and the example app at each phase close. Nothing internal calls a deprecated name.
+- **Operator UI stays parked.** `operator_surface` LiveView and markup change only where API-04, API-06 or API-07 forces a call-site update.
 - **No planning vocabulary in product code.** No phase or plan IDs in `lib/`, moduledocs, guides, CHANGELOG or releasable commit subjects.
-- **Zero human verification.** Every success criterion names the test, alias or run ID that proves it. `mix ci.all` is green at each phase close. The maintainer handles only push, merge, `production-hex` approval and scope decisions.
+- **Zero human verification.** Every success criterion names the test, alias or run ID that proves it. Judgment calls (spec informativeness, guide prose) go to agent review against a written rubric. `mix ci.all` is green at each phase close. The maintainer handles only push, merge, `production-hex` approval and scope decisions.
 - **Never `git add .planning/` wholesale.** Stage explicit file lists only, and keep home paths and usernames out of planning prose (the hygiene guard scans `.planning/`).
 
 ## Phases
 
-- [x] **Phase 224: Capture and Bench Fixes** - Full rollback after a `gen.triggers` rerun leaves no orphaned capture function, and the bench project compiles bare (completed 2026-09-30)
-- [x] **Phase 225: Suite Baseline and Partitioned CI** - A cited suite-time baseline, then a partitioned CI test step at least 30% faster and async operator-surface auth telemetry tests (completed 2026-10-01)
-- [x] **Phase 226: Pure Property Tests and Run Budget** - Cursor paging, ChangeDiff, redaction-policy validation and export round-trips proven by bounded, mutation-controlled pure properties (completed 2026-10-01)
-- [x] **Phase 227: DB-Backed Property Tests** - Redaction never leaks to storage, diff or export; `as_of` equals replayed history; the retention cutoff boundary holds (completed 2026-10-01)
-- [x] **Phase 228: Telemetry** - Operators can observe export and retention runs through documented events that never carry audited data (completed 2026-10-02)
-- [x] **Phase 229: Adopter API and Health Additions** - `history/3` takes a `:limit`; `health.coverage` gains `--strict`, `--all-schemas` and a legacy-keys warning (completed 2026-10-02)
-- [ ] **Phase 230: Rebalance, Net-Suite Check and 0.12.0** - Prose-only guard tests merged or cut, the net suite time proven not to regress, and 0.12.0 released
+- [x] **Phase 231: Facade Topology and the Capture/Semantics Edge** - `Threadline` is the one documented read API, and the capture schemas no longer declare an association to the semantics schema
+- [x] **Phase 232: Consolidated Reads, Deprecations and the Bounded Default** - One `row_history/3`, one `Threadline.Page`, a 200-row default with truncation telemetry, and a warning-only path off every retired name (completed 2026-10-03)
+- [x] **Phase 233: Lookup Return Shapes** - Single-subject lookups return `{:ok, _}` / `{:error, :not_found}` with raising `!` siblings (completed 2026-10-03)
+- [x] **Phase 234: Typespec and Doc Completion Gate** - Every public function has an informative `@spec` and a `@doc`, enforced by a test, and the facade page is grouped by job (completed 2026-10-06)
+- [x] **Phase 235: Stability Contract and Adopter Guides** - The 1.x promise is written down and pinned by tests, with the supported-table-shapes guide and the redaction threat model (completed 2026-10-06)
+- [x] **Phase 236: Support Floor and Partition Weights** - PostgreSQL 15 is the tested minimum, the support policy has one table, and every test file is weighted (completed 2026-10-07)
+- [ ] **Phase 237: Upgrade Guide and 1.0.0** - A 0.11/0.12 adopter can follow one guide to 1.0, and hex.pm serves threadline 1.0.0
 
 ## Phase Details
 
-### Phase 224: Capture and Bench Fixes
+### Phase 231: Facade Topology and the Capture/Semantics Edge
 
-**Goal**: An adopter can roll back every generated capture migration, including per-table reruns, and be left with a clean `pg_proc`; a contributor can compile the bench project with a bare `mix compile`
+**Goal**: An adopter reading the docs finds one read API, `Threadline`, with `Threadline.Query.timeline_query/1` as the single Ecto-composition escape hatch. The capture-layer schemas no longer declare an association to the semantics layer, and every caller that reads `transaction.action` still gets the same shape.
 **Depends on**: Nothing (first phase)
-**Requirements**: CAPT-01, CAPT-02, SUITE-05
+**Requirements**: API-04, API-07
 **Success Criteria** (what must be TRUE):
 
-  1. After `mix threadline.gen.triggers` for a table, a rerun that adds a per-table function, and `mix ecto.rollback --all`, a `pg_proc` query for `threadline_capture_%` returns zero rows. The generated `down` drops functions only through `TriggerSQL.drop_function_if_unused/2`, and a test asserts the emitted SQL contains no `CASCADE`.
-  2. A deterministic regression test pins the exact two-migration repro against real Postgres. It covers both a partial rollback (the rerun migration only) and a full-chain rollback, and shows no orphaned function and no function dropped while still in use. Reverting the fix turns it red (mutation control recorded).
-  3. A property over random rerun sequences (1-4 runs per table, applied for real, `max_runs` ≤ 20) asserts no orphaned capture function remains in `pg_proc` after a full rollback, with its own mutation control recorded.
-  4. `mix compile` in `bench/` succeeds with no `MIX_ENV` set (`preferred_envs`), an existing CI job runs that bare compile, and removing `preferred_envs` makes it fail (local mutation control).
-  5. VERIFICATION.md reports suite wall clock before and after, measured against the milestone base `dd780e68`.
+  1. `Code.fetch_docs/1` reports `Threadline.Query` and `Threadline.Investigation` as hidden. `public_surface_contract_test.exs` pins the hidden set and fails if either becomes documented again. A test asserts that the `Threadline` moduledoc links `Threadline.Query.timeline_query/1` as the escape hatch.
+  2. `guides/audit-indexing.md`, `guides/how-threadline-works.md` and `guides/code-walkthrough.md` call `Threadline.*` and never call the hidden modules, except `timeline_query/1`. A doc-contract test fails on any other `Threadline.Query.` or `Threadline.Investigation.` call in guides, the README or the example app.
+  3. A test asserts that `AuditTransaction` declares no association to `AuditAction` and that `AuditAction` declares none to `AuditTransaction`, via `__schema__(:associations)`. Re-adding `belongs_to :action` turns it red (mutation control recorded).
+  4. Every existing assertion on `transaction.action` passes unchanged through the exploration-layer hydrate helper. The `action_id` column and its foreign key are unchanged: no migration or trigger SQL in the diff touches them.
+  5. `mix compile --warnings-as-errors` is clean for `lib/`, `test/` and the example app, and `mix ci.all` is green.
 
-**Plans**: 4/4 plans complete
+**Plans**: 3/3 plans complete
 
 Plans:
 **Wave 1**
 
-- [x] 224-01-PLAN.md — First-run `down` drops the per-table function; regression test through `Ecto.Migrator` (partial + full chain); re-pinned outputs; regenerated example fixture (wave 1) — complete 2026-09-30
-- [x] 224-03-PLAN.md — Bench `preferred_envs`, `mix verify.bench_compile` in `ci.all` and the `verify-compile-no-optional` job, contract + mutation control (wave 1) — complete 2026-09-30
+- [x] 231-01-PLAN.md — API-07: drop the AuditTransaction/AuditAction associations, hidden `hydrate_actions/3` helper, rewired internal call sites, deprecated `:preload :action` shim, CHANGELOG (wave 1) — complete 2026-10-03
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 224-02-PLAN.md — DB-backed rerun-sequence property (`@max_runs 20`) and recorded CAPT-02 mutation controls (wave 2) — complete 2026-09-30
+- [x] 231-02-PLAN.md — API-04: hide `Threadline.Query`/`Threadline.Investigation`, name the `timeline_query/1` escape hatch, facade-only lib docs and guides, strict docs gate green (wave 2) — complete 2026-10-03
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [x] 224-04-PLAN.md — Upgrade-guide remediation + CHANGELOG, SUITE-06 wall clock vs `dd780e68`, `mix ci.all` gate (wave 3) — complete 2026-09-30
+- [x] 231-03-PLAN.md — facade-only doc-contract scanner, example script on the facade, mutation controls, full `mix ci.all` gate (wave 3) — complete 2026-10-03
 
-**Research**: Resolved in discuss-phase (224-CONTEXT D-01): the first-run migration's `down` unconditionally emits the idempotent, usage-checked drop for the table's deterministic per-table function name after its trigger drop; the rerun's `down` stays unchanged. The earlier two-sided/`covered_pairs/1` wiring is superseded (the first run is generated before any rerun exists, and a rerun-side drop never succeeds under reverse-order rollback). Plan-phase still checks partial and full-chain rollback orders against the regression and property tests. No catalog sweep and no CASCADE.
+### Phase 232: Consolidated Reads, Deprecations and the Bounded Default
 
-### Phase 225: Suite Baseline and Partitioned CI
-
-**Goal**: The maintainer can cite a fresh suite-time baseline, and every PR's test step finishes at least 30% sooner, with billed runner-minutes up no more than 10% and the required gate still fail-closed
-**Depends on**: Phase 224
-**Requirements**: SUITE-01, SUITE-02, SUITE-03
+**Goal**: An adopter reads a row's history through one function with keyword opts. By default it is bounded, the cursor path proves completeness, and truncation is observable. Every paged read returns one `Page` shape. Internal helpers are out of the docs. Any adopter still on a retired name gets a working call and one compiler warning naming the replacement.
+**Depends on**: Phase 231
+**Requirements**: API-01, API-02, API-03, API-05, API-08
 **Success Criteria** (what must be TRUE):
 
-  1. A baseline doc records per-module slowest times (a fresh local `mix test --slowest 50` with the DB up), sync versus async seconds, and the CI test-step duration with run IDs, all measured at the milestone base before any suite change. An automated check finds no uncited figure.
-  2. The CI test step runs the suite in N parallel partitions (`MIX_TEST_PARTITION`), each with its own database. Over cited runs, the step's wall clock is at least 30% lower than the SUITE-01 figure and billed runner-minutes rise by no more than 10%.
-  3. `CI required` fails when any single partition fails, proven by a contract-test mutation control. The contract test, CONTRIBUTING and the topology test change in the same commit, and the Flake Detection budget is resized in the same change.
-  4. The three operator-surface auth telemetry test files (`auth_test.exs`, `export_auth_plug_test.exs`, `theme_auth_plug_test.exs`) run `async: true`, isolated by the emitting process, and one cited Flake Detection run shows no new flake. The seven other telemetry or named-process files stay `async: false` because they write to the database without a sandbox or change global app env (225-CONTEXT D-15).
-  5. Local `mix test` still runs the whole suite, `mix ci.all` is green, and VERIFICATION.md reports suite wall clock before and after.
+  1. Against real Postgres with more than 200 changes on one row, `Threadline.row_history/3` with no options returns exactly 200 changes, newest first, as a bare list. `limit: n` and `limit: :infinity` override the cap. Walking `cursor:` + `page_size:` pages until `has_more: false` yields exactly the `limit: :infinity` result. Passing `:limit` with `:cursor` raises `ArgumentError`.
+  2. Hitting the cap emits `[:threadline, :row_history, :truncated]`. The event is in the telemetry registry allowlist, and the leak check proves its metadata carries no row values or actor ids. A test proves export and `as_of` stay unbounded past 200 changes. The v1.44 properties that read history pass `limit: :infinity` or walk the cursor, and they stay green.
+  3. Every paged read on the facade returns `%Threadline.Page{entries, cursor, has_more}`, and `TimelinePage` / `ActorHistoryPage` no longer exist. A facade-naming test asserts that `timeline/2` + `timeline_page/2` is the only paired-name pattern. The `actor_history/2` and `actor_window/3` docs each state their return type first and cross-link the other, pinned by a doc-contract test.
+  4. Each retired entry point (`history/3`, `row_history/4`, `row_history_page/4` and the filters-as-positional-argument shapes, on every module that exposed them) is a one-line `@deprecated` delegate. Each has a parity test against its replacement and a spec matching the replacement's. The replacements carry `@doc since: "1.0.0"`. `mix compile --warnings-as-errors` is clean for `lib/`, `test/` and the example app.
+  5. The `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and moduledoc-less modules such as `Threadline.Export.CSV` are absent from `Code.fetch_docs/1` output. A grep test finds no reference to any hidden name in guides, the README or the example app.
+
+**Plans**: 6/6 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 232-01-PLAN.md — API-03: `Threadline.Page` with exact `has_more`, `cursor: :start`/nil rules, timeline/row/investigation pagers + export walk on Page, `TimelinePage` deleted (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 232-02-PLAN.md — API-02, API-03: `actor_history/2` on Page with `cursor:`/`page_size:` and warning legacy options, actor LiveView forced edit, `ActorHistoryPage` deleted, actor read doc contract (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 232-03-PLAN.md — API-01: `row_history/3` with the 200 default, `limit:`/`cursor:` modes, cursor mode on `actor_window/3`/`correlation_bundle/3`, deprecated `row_history/4` arity split, truncation telemetry, drawer opt-out (wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 232-04-PLAN.md — API-08: every retired name a one-line `@deprecated` delegate with spec + parity test, exact deprecation inventory, `lib/` warnings-as-errors clean, CHANGELOG Deprecations (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 232-05-PLAN.md — API-08, API-01: all `test/` and example-app callers migrated off retired names (`Threadline.Test.RowHistory`, unbounded v1.44 property baseline), warnings-as-errors clean for `test/` and the example (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 232-06-PLAN.md — API-05: `emit_*`/`export_changes_query` hidden, scanners for hidden and retired names (no guide exemption), guides/README rewritten incl. upgrade guides, facade-naming contract, `mix ci.all` phase gate (wave 6)
+
+### Phase 233: Lookup Return Shapes
+
+**Goal**: An adopter handles a missing transaction the same way on every single-subject lookup: a tagged tuple by default and a raising `!` sibling when absence is a bug.
+**Depends on**: Phase 232
+**Requirements**: API-06
+**Success Criteria** (what must be TRUE):
+
+  1. `Threadline.audit_transaction/2` and `Threadline.transaction_context/2` return `{:ok, _}` for an existing id and `{:error, :not_found}` for a missing one, matching `incident_bundle/2`. Tests cover both cases for each function.
+  2. `audit_transaction!/2` and `transaction_context!/2` return the bare value for an existing id and raise for a missing one. Tests cover both cases for each.
+  3. Every internal caller in `lib/`, the operator surface, the example app and the guides uses the new shapes. The CHANGELOG `Unreleased` breaking-changes section records the change, and `mix ci.all` is green.
 
 **Plans**: 4 plans
 
 Plans:
 **Wave 1**
 
-- [x] 225-01-PLAN.md — SUITE-01 baseline: `ci-job-timing.py` (step duration, runner-minutes proxy, inclusive verdict), copied `check-citations.py`, cited 225-BASELINE.md with local slowest rankings and the D-03 N check — complete 2026-09-30
+- [x] 233-01-PLAN.md — shared scoped row fetch (`TransactionLookup`), facade `audit_transaction/2` + `!`, public `Threadline.NotFoundError` (Plug 404) (wave 1)
 
-**Wave 2**
+**Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 225-02-PLAN.md — SUITE-03: `attach_telemetry!/1` emitting-process filter with its mutation control; the three operator-surface auth test files async; CONTRIBUTING rule; 200-repeat proof — complete 2026-09-30
+- [x] 233-02-PLAN.md — `transaction_context/2` to the tuple shape and `incident_bundle/2` on the shared fetch, both `!` siblings, ≤3-query bundle, TransactionLive call site (wave 2)
 
-**Wave 3**
+**Wave 3** *(blocked on Wave 2 completion)*
 
-- [x] 225-03-PLAN.md — SUITE-02 gate commit: `bin/ci-test-partitions` (+ `--self-test`), `mix verify.test_partitioned`, per-partition DB, CI step + self-test step + D-07 fix, topology/parity contracts, Flake Detection resize, CONTRIBUTING — complete 2026-09-30
+- [x] 233-03-PLAN.md — deprecate `Threadline.Query.audit_transaction/2` with parity, lookup-family doc contract (`as_of/4` exempt), CHANGELOG and guides (wave 3)
 
-**Wave 4**
+**Wave 4** *(blocked on Wave 3 completion)*
 
-- [x] 225-04-PLAN.md — Maintainer-granted push and dispatches; cited CI after runs, SUITE-02 verdict, Flake Detection run, SUITE-06 before/after report — complete 2026-10-01
+- [x] 233-04-PLAN.md — fail-closed `Scope.apply/2` on every scoped read, example catch-all, integration-contracts guide, phase-close `mix ci.all` (wave 4)
 
-**Research**: Done (225-RESEARCH.md). Open with a fresh local `mix test --slowest 50` timing run (DB up) before choosing the partition count. Research cited 209 s / 191 s serial from older records, not a re-measurement. Check `pool_size` against the per-partition Postgres `max_connections` too (`too_many_connections` is a known local hazard).
+### Phase 234: Typespec and Doc Completion Gate
 
-### Phase 226: Pure Property Tests and Run Budget
-
-**Goal**: A reviewer can trust cursor paging, ChangeDiff, redaction-policy validation and export encoding across generated inputs, and the property suite's run time stays bounded and tunable
-**Depends on**: Phase 225
-**Requirements**: PROP-01, PROP-02, PROP-03, PROP-05, PROP-08
+**Goal**: Every public function an adopter can see has a `@doc` and an `@spec` that says something real. Coverage cannot regress, and the facade page reads by job rather than alphabetically.
+**Depends on**: Phase 233
+**Requirements**: SPEC-01, SPEC-02, SPEC-03
 **Success Criteria** (what must be TRUE):
 
-  1. For generated, tie-heavy ordered lists (deliberate duplicate timestamps, not wall-clock timing), concatenating every page of the timeline cursor and of the actor-history cursor equals the full list, with no duplicates and no gaps. The expectation is checked by set equality and an independent ordering, not the cursor's own sort.
-  2. ChangeDiff matches an independently derived expectation across the INSERT/UPDATE/DELETE × before_values matrix. Redaction-policy validation accepts every generated valid policy and rejects every generated invalid one. Export CSV and JSON round-trip generated change maps without loss, checked by an independent decoder.
-  3. Each pure property runs `async: true` with an explicit `max_runs` of 150-200. Generators live in `test/support/` modules named for the bias they encode. `THREADLINE_PROPERTY_SCALE` multiplies runs on the weekly Flake Detection lane, and a test pins that wiring.
-  4. VERIFICATION.md records a mutation control for each of the four properties: the invariant broken on purpose, the property red, and the failing seed.
-  5. VERIFICATION.md reports suite wall clock before and after.
+  1. A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` reports zero public functions missing a `@doc` or `@spec` across every documented module under `lib/`, down from a baseline of 129 of 169 missing (remeasured at the 233 close: 54 of 92 visible entries across 52 documented modules; the 129/169 figure predates phases 231–233). Adding an undocumented or unspecced public function turns it red (mutation control recorded).
+  2. No public spec uses bare `term()` or `any()` where a real shape exists, and option arguments use named `@type` option lists rather than bare `keyword()`. Agent review against a written rubric records a pass in VERIFICATION.md.
+  3. Strict Dialyzer is green with zero ignore entries.
+  4. Every `Threadline` facade function carries a `@doc group:` of Capture & Transactions, Querying & Timelines, Actions & Context, or Operations. A test fails on any facade function without a group.
 
-**Plans**: 6 plans
+**Plans**: 22/22 plans complete
 
 Plans:
 **Wave 1**
 
-- [x] 226-01-PLAN.md — Tracer: PropertyRuns + mutation-control runner on the redaction-policy property; full PROP-03; D-18 fail-loudly fixes (wave 1)
+- [x] 234-01-PLAN.md — SPEC-01/02/03 gates as exact ratchets: doc/spec coverage gate with fixture mutation control, hidden pin, option parity, M-checks, bare-type lint, facade-groups ratchet, D-27 grep contracts, frozen 234-SPEC-RUBRIC.md (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [x] 226-02-PLAN.md — PROP-01 cursor paging: Cursors.actor_history_page/4 refactor, tie-heavy property vs independent oracle, DB agreement tests, two mutation controls (wave 2)
-- [x] 226-03-PLAN.md — PROP-02 ChangeDiff fact-first oracle, structural and metamorphic properties, mutation control (wave 2)
+- [x] 234-02-PLAN.md — SPEC-02/03 facade: named option/filter/row-key types, `Threadline.Query.OptionKeys`, closed facade allowlists after moving the actor LiveView off the facade, four job groups + `## Jobs`, rubric doc rewrites, size pin, ExDoc `~> 0.40`, WR-01 test-first (wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [x] 226-04-PLAN.md — PROP-05 export round-trip: strict RFC 4180 decoder, D-17 bare-CR fix, D-19 defaults pinned, two mutation controls (wave 3)
+- [x] 234-03-PLAN.md — SPEC-01/02 Evidence: 20 gaps documented and specced, `EvidenceRecord.t`, two Proof helpers hidden with CHANGELOG record (wave 3) — completed 2026-10-04
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [x] 226-05-PLAN.md — PROP-08 wiring: fail-fast scale, Flake Detection scale 5, existing properties migrated, contract test, generator coverage floors (wave 4)
+- [x] 234-04-PLAN.md — SPEC-01/02 operations: Export closed and typed via hidden `ExportReads` (export controller + timeline count moved), ChangeDiff/Storage/Orchestrator/TaskAdapter, StorageSchema (hide 6, spec 5) and the small modules (wave 4) — completed 2026-10-04
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [x] 226-06-PLAN.md — SC-4/SC-5 evidence, local wall clock, granted CI + scale-5 Flake Detection re-derivation (wave 5, maintainer grant)
+- [x] 234-05-PLAN.md — SPEC-01/02 data types: every schema and result struct field hand-typed, `AuditAction.t`, precise `ActorRef.t`, Page cursor typedoc, `Audit.transaction/3` type variable (wave 5) — completed 2026-10-04
 
-**Research**: Not needed. Property shapes are specified per target in `research/STACK.md` §1 and mirror the two existing property files.
+**Wave 6** *(blocked on Wave 5 completion)*
 
-### Phase 227: DB-Backed Property Tests
+- [x] 234-06-PLAN.md — SPEC-02 close: five strict Dialyzer flags with every measured finding fixed and zero ignores, ratchets deleted (gates assert zero), live mutation recorded, CHANGELOG/CONTRIBUTING/baseline notes, review input, `mix ci.all` (wave 6). Tasks ran, but execution halted on unresolved D-28/D-46/security evidence; gap-closure plans below address those findings.
 
-**Goal**: A security reviewer can rely on redacted columns never reaching storage, diffs or exports, and an operator can rely on `as_of` reconstruction and retention cutoffs being exact
-**Depends on**: Phase 226
-**Requirements**: PROP-04, PROP-06, PROP-07
+**Gap closure — Wave 1**
+
+- [x] 234-07-PLAN.md — ActorRef, Subject, and Retention policy type and documentation corrections (completed 2026-10-05)
+- [x] 234-08-PLAN.md — Storage and ExportQueue callback option, error, and return contracts (completed 2026-10-05)
+- [x] 234-09-PLAN.md — Audit, Retention, Continuity, and Health return-contract documentation (completed 2026-10-05)
+- [x] 234-10-PLAN.md — Captured-data notes and facade/ChangeDiff documentation corrections (completed 2026-10-05)
+- [x] 234-11-PLAN.md — EvidenceRecord, investigation entities, LinkedChange, and Sigra module openings (completed 2026-10-05)
+- [x] 234-12-PLAN.md — Finish D-28: private raise-only helpers, compiled privacy probe, and exact-message integration coverage for all four Mix task error paths (completed 2026-10-05)
+
+**Gap closure — Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 234-14-PLAN.md — Complete remaining NotFoundError, Page, Telemetry, IncidentChange, and LinkedTransaction module openings; Telemetry M-2 entry points named (completed 2026-10-05)
+- [x] 234-16-PLAN.md — D-56 map alias/typedoc compatibility contracts and the Audit.transaction/3 opening envelope (completed 2026-10-06)
+
+**Gap closure — Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 234-17-PLAN.md — Align Subject nested-descriptor and Retention nil/false fallback types with existing behavior (completed 2026-10-06)
+
+**Gap closure — Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 234-18-PLAN.md — Document the exported StorageSchema.role/0 type's five identifier-validation roles under D-57/S-4(e) (completed 2026-10-06)
+
+**Gap closure — Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 234-13-PLAN.md — Regenerate the review input after Plan 18 and obtain a fresh evidence-validated independent D-46 verdict (completed 2026-10-06)
+
+**Gap closure — Wave 6** *(blocked on a validated PASS from 234-13)*
+
+- [x] 234-19-PLAN.md — D-58: prove example GCM-only/Binary reachability, record only two accountable Hex advisory acknowledgements, and pass dependency audit (completed 2026-10-06)
+
+**Gap closure — Wave 7** *(blocked on 234-19 evidence and a fresh full CI gate)*
+
+- [x] 234-15-PLAN.md — Reconcile security and validation evidence, then close SPEC-02 only after Plan 19 and a fresh full `mix ci.all` pass (completed 2026-10-06)
+
+**Gap closure — Wave 8** *(blocked on 234-15; opened by fresh phase verification)*
+
+- [x] 234-20-PLAN.md — Correct the record_action/2 and Job.context_opts/2 public docs, restore the D-22/231 D-05 capture type boundary with executable assertions, refresh D-46 evidence, and close SPEC-02 after all gates passed (completed 2026-10-06)
+- [x] 234-21-PLAN.md — Repair the Pixel 5 reduced-motion toast/modal test obstruction; focused mobile Playwright and canonical `mix ci.all` passed (completed 2026-10-06)
+
+**Gap closure — Wave 9** *(blocked on completed Plans 20 and 21; opened by current-source verification)*
+
+- [x] 234-22-PLAN.md — Correct Job.context_opts/2's ID and extra-option type boundary, emit exactly one eager export failure event for facade/direct validation raises, align telemetry tables, and pass canonical gates plus a fresh independent D-46 review (completed 2026-10-06; wave 9)
+
+**Execution note**: Plans 20 and 21 remain complete: Plan 20 corrected the earlier public-doc and capture-boundary findings, and Plan 21 repaired the Pixel 5 reduced-motion test and passed canonical `mix ci.all`. Plan 22 aligned job context runtime and compiled types, added exactly-once eager export validation telemetry, and aligned public telemetry docs. A fresh independent D-46 PASS is bound to the regenerated review input; final `mix ci.all` passed with 3,016 root tests, 130 example tests, Dialyzer clean, npm audit clean, and browser 318/26. Plan 22 also corrected the D-56 string-key type for ignored extra values found in independent review. Phase verification passed 12/12 must-haves on 2026-10-06; SPEC-01, SPEC-02 and SPEC-03 are Complete. The original Plan 234-06 remains recorded as halted; later plans closed its D-28 and high-severity security gaps. D-55's >=82 visible function/macro floor and D-07's eight hidden helpers remain unchanged. Security remains verified with zero open high threats, and validated Nyquist evidence in 234-VALIDATION.md is retained. Phase 234 is complete.
+
+### Phase 235: Stability Contract and Adopter Guides
+
+**Goal**: An adopter or security reviewer can read exactly what 1.x promises, which tables Threadline supports, and what redaction does and does not guarantee. Every one of those statements is held in place by a test that fails CI on drift.
+**Depends on**: Phase 234
+**Requirements**: CONTRACT-01, CONTRACT-02, CONTRACT-03, CONTRACT-04, CONTRACT-05, DOCS-01, DOCS-02
 **Success Criteria** (what must be TRUE):
 
-  1. Over generated captured values on a fixed table shape, a redacted column's plaintext never appears in the stored audit change, its ChangeDiff output, or its CSV and JSON export.
-  2. For generated row histories, `as_of` at each point equals the state reconstructed by a hand-written, in-order replay of that row's history.
-  3. With generated timestamps clustered at the cutoff, `Retention.purge(dry_run: true)` selects exactly the rows strictly older than the cutoff. Every row at or after it survives with its content unchanged, not merely its count.
-  4. Each property uses `Threadline.DataCase` (`async: false`, no Sandbox), cleans up by a per-iteration unique key, runs with `max_runs` ≤ 20, and passes under partitioned CI and a scaled Flake Detection run. VERIFICATION.md records a mutation control and failing seed for each.
-  5. VERIFICATION.md reports suite wall clock before and after, against both SUITE-01 and the partitioned figure from phase 225.
+  1. `guides/stability.md` states:
+     - the Elixir API tier, with the deprecation policy
+     - the additive-only Database Contract tier
+     - the named security/correctness exception class
+     - the explicitly-not-API operator-surface internals
+     - the 0.12.x six-month backport window
+     A doc-contract test pins each statement.
+  2. A schema-snapshot test pins column names, types and nullability for `audit_transactions`, `audit_changes` and `audit_actions`, plus the shipped indexes. A literal test pins the GUC name `threadline.actor_ref` and the trigger-function naming scheme. Renaming or dropping any of these turns CI red (mutation controls recorded).
+  3. Additive-only allowlist tests pin:
+     - the CSV and JSON export headers, with and without action metadata
+     - the `Health.Finding` code set
+     - each mix task's accepted flags
+     - the `threadline_operator_surface/2` option keys and documented mount routes
+     Removing an entry fails, and adding one requires an allowlist update.
+  4. The `AuditChange`, `AuditTransaction` and `AuditAction` moduledocs each list a stable field subset and state the additive key/shape promise for the jsonb columns. A test pins each list against `__schema__(:fields)`.
+  5. Each guide has a doc-contract test:
+     - The supported-table-shapes guide covers composite and non-`id` keys, `primary_key:`, cross-schema tables, long identifiers, `char(n)`, and partitioned/unlogged tables and views. Its test checks every cited option and name against the code.
+     - In the redaction threat model, every guarantee names its proving property test or health check, and the guide lists where plaintext can still exist. Its test rejects unscoped absolutes.
+
+**Plans**: 5/5 plans complete
+
+Plans:
+**Wave 1**
+- [x] 235-01-PLAN.md — Generated redaction-column migration guard and evidence-linked threat guide (completed 2026-10-06)
+
+**Wave 2**
+- [x] 235-02-PLAN.md — Stability policy and supported-table eligibility guides (completed 2026-10-06)
+- [x] 235-03-PLAN.md — Live storage catalog and literal public SQL contracts (completed 2026-10-07)
+- [x] 235-04-PLAN.md — Export, health, Mix-task, and router public-set contracts (completed 2026-10-07)
+- [x] 235-05-PLAN.md — Stable Ecto field subsets and additive captured-data contract (completed 2026-10-07)
+
+### Phase 236: Support Floor and Partition Weights
+
+**Goal**: An adopter sees one support-policy table that matches what CI actually tests. PostgreSQL 15 is the proven minimum, and the partitioned suite weights every test file after this milestone's churn.
+**Depends on**: Phase 235
+**Requirements**: FLOOR-01, FLOOR-02, CI-01
+**Success Criteria** (what must be TRUE):
+
+  1. The CI `min` lane in `ci.yml` runs PostgreSQL 15, pinned by the topology contract test in the same commit. The full suite passes locally against PostgreSQL 15. The CHANGELOG `Unreleased` breaking-changes section records the new floor.
+  2. `guides/upgrade-path.md` contains one support-policy table with the Elixir/OTP/PG floor and the CI lanes. A doc-contract test fails when it disagrees with `mix.exs` or the `ci.yml` `min` lane values.
+  3. `bin/ci-test-partitions --write-weights` has regenerated `test/partition_weights.txt`, so the 10 unweighted v1.44 property files and every test added in 231-235 are weighted. A permanent check fails when any test file is missing from the weights file, and a deliberately unweighted file turns it red (mutation control recorded).
+  4. `mix ci.all` is green.
+
+**Plans**: 2/2 plans complete
+
+Plans:
+**Wave 1**
+- [x] 236-01-PLAN.md — Source-checked support policy and PostgreSQL 15 floor (completed 2026-10-07)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 236-02-PLAN.md — Complete partition weights and PostgreSQL 15 gate proof
+
+### Phase 237: Upgrade Guide and 1.0.0
+
+**Goal**: A 0.11 or 0.12 adopter can follow one guide through every breaking change to 1.0. The 1.0.0 CHANGELOG is complete, and hex.pm serves threadline 1.0.0, cut by release-please from one `feat!:` squash.
+**Depends on**: Phase 236
+**Requirements**: DOCS-03, REL-01, REL-02, REL-03
+**Success Criteria** (what must be TRUE):
+
+  1. `guides/upgrading-to-1.0.md` has one numbered step for each breaking change: the facade collapse, the history default, the `Page` struct, lookup return shapes, the association, the PG floor and deprecations. It follows the `upgrading-to-0.11.md` template and states whether trigger regeneration is required. A doc-contract test cross-checks its steps against the CHANGELOG breaking-changes entries. The test's file has a partition weight, so the CI-01 check stays green.
+  2. The 1.0.0 CHANGELOG lists every breaking change and deprecation, cross-checked against `git log --grep="BREAKING CHANGE"` over the milestone range. VERIFICATION.md records the cross-check.
+  3. `release-please-config.json` has `bump-minor-pre-major` off in the landing change. `mix verify.bump_rehearsal`, run on committed HEAD, shows 1.0.0 and not 0.13.0 before merge. The squash commit carries a `Release-As: 1.0.0` footer.
+  4. The milestone lands on main as one squash with a conventional `feat!:` title. `CI required` is green, including the `min` lane on PostgreSQL 15 and the `latest` lane with re-checked pins. hex.pm serves threadline 1.0.0. Push, merge and the `production-hex` publish each run under an explicit maintainer grant.
 
 **Plans**: 5 plans
 
 Plans:
 **Wave 1**
-
-- [x] 227-01-PLAN.md — Shared DB-property harness `Threadline.Test.DbProperty` with end-to-end self-test, the DataCase => `PropertyRuns.db/1` scale-contract rule, and the hardened mutation-control runner (wave 1)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 227-02-PLAN.md — PROP-04 redaction-leak property (LeakOracle over storage, diff and every export surface), D-13 example gap, three mutation controls (wave 2)
-
-**Wave 3** *(sequential: shares the coverage-floor file and the single checkout's lib/ mutation runner)*
-
-- [x] 227-03-PLAN.md — PROP-06 `as_of` model-replay property, D-17 tie example, four mutation controls plus the recorded tiebreak survivor (wave 3)
-
-**Wave 4**
-
-- [x] 227-04-PLAN.md — PROP-07 retention cutoff property with byte-identical survivors, dry-run transaction count fix (`fix:` + CHANGELOG), D-22 examples, five mutation controls (wave 4)
-
-**Wave 5**
-
-- [x] 227-05-PLAN.md — Local acceptance, 227-EVIDENCE.md (SC4/SC5), maintainer-granted CI and scale-5 Flake Detection with Test 6 re-derivation (wave 5, checkpoint)
-
-**Research**: Not needed for the harness (`research/STACK.md` §1.2/§1.4/§1.5, PITFALLS Pitfall 1). Plan-phase should still review the retention survivor content-equality check carefully.
-
-### Phase 228: Telemetry
-
-**Goal**: An operator can observe export and retention runs through documented `[:threadline, ...]` events, and a compliance reviewer can confirm those events never carry audited data
-**Depends on**: Phase 227
-**Requirements**: TELE-01, TELE-02, TELE-03, TELE-04
-**Success Criteria** (what must be TRUE):
-
-  1. An attached handler receives `[:threadline, :export, :completed]` or `[:threadline, :export, :failed]`, with a row count, a duration and a format, after an export finishes. Tests cover both outcome branches.
-  2. An attached handler receives the `[:threadline, :retention, :purge, :start | :stop | :exception]` span and one `[:threadline, :retention, :batch_purged]` event per batch, carrying the rows deleted. A test forces the exception path.
-  3. An allowlist test pins the measurement and metadata keys of every Threadline event, existing and new, and adding an unlisted key turns it red. A handler attached during the PROP-04 redaction property never observes plaintext. A raising handler does not break export or purge.
-  4. The `Threadline.Telemetry` moduledoc event table and the new `guides/telemetry.md` list every event. The guide includes the host-repo `[:my_app, :repo, :query]` recipe. A test derives the documented list from the emitted events rather than from a hand-typed literal.
-  5. No query or Mix-task event is added. VERIFICATION.md reports suite wall clock before and after.
-
-**Plans**: 6/6 plans complete
-**Research**: Not needed. Event shapes and mitigations are in `research/FEATURES.md` §A and PITFALLS Pitfalls 5-10: emit after commit, execute events on both branches, and a span only around retention purge.
-
-Plans:
-**Wave 1**
-
-- [x] 228-01-PLAN.md — Event registry and helper-only emission; strip identity fields from the operator-surface and health-error events; runtime allowlist and static scan; CHANGELOG breaking entry (wave 1)
+- [x] 237-01-PLAN.md — Publish the complete 1.0 upgrade path and exact changelog contract (completed 2026-10-07)
+- [x] 237-02-PLAN.md — Bind the local release rehearsal to a committed 1.0.0 candidate (completed 2026-10-07)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 228-02-PLAN.md — Export `:completed`/`:failed` from the eager functions, the async orchestrator and the chunked download (wave 2)
+- [x] 237-03-PLAN.md — Audit milestone footers and prove the isolated candidate locally (completed 2026-10-07)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 228-03-PLAN.md — Retention purge span, per-batch `batch_purged`, forced exception path; all fourteen events registered (wave 3)
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 228-04-PLAN.md — PROP-04 telemetry observer, raising-handler test, two recorded mutation controls (wave 4)
-- [x] 228-05-PLAN.md — Moduledoc event table, `guides/telemetry.md` with the repo-query recipe, doc-parity and recipe tests, CHANGELOG Added (wave 4)
-
-**Wave 5** *(blocked on Wave 4 completion)*
-
-- [x] 228-06-PLAN.md — Local acceptance, SC1-SC5 evidence, wall clock before and after; CI behind a maintainer grant (wave 5)
-
-### Phase 229: Adopter API and Health Additions
-
-**Goal**: A developer can cap `history/3` results without a breaking change, and a CI pipeline can gate on capture-coverage health across every schema
-**Depends on**: Phase 225 (independent of 226-228)
-**Requirements**: QRY-01, QRY-02, HLTH-01, HLTH-02, HLTH-03, HLTH-04
-**Success Criteria** (what must be TRUE):
-
-  1. `Threadline.history/3` with `limit: n` returns at most `n` changes, newest first, with the `captured_at desc, id desc` tiebreak. `0`, negative and non-integer values raise `ArgumentError`, and the docs point to `row_history_page/4` for paging.
-  2. A test proves that `history/3` without `:limit` returns the same list as before. The CHANGELOG entry states the option is additive and the default is unchanged.
-  3. `mix threadline.health.coverage --strict` exits nonzero on any `:error`-severity finding and composes with `--json`. A severity × strict/non-strict matrix test proves the non-strict exit codes are unchanged.
-  4. `--all-schemas` produces a schema-keyed report in table and JSON output and is rejected alongside `--schema=NAME`. A pre-0.11 fixture produces an `:unresolved_legacy_keys` warning with per-table counts and a link to `guides/upgrading-to-0.11.md`, and `--strict` does not fail on it.
-  5. The docs state that malformed `:trigger_capture` config raises rather than producing a finding. VERIFICATION.md reports suite wall clock before and after.
-
-**Plans**: 4/4 plans complete
-**Research**: Not needed (`research/FEATURES.md` §B-§D). Plan-phase should confirm first that no existing test pins per-severity exit codes, so the matrix is built as the baseline rather than assumed.
-
-Plans:
-**Wave 1**
-
-- [x] 229-01-PLAN.md — Before wall clock; `history/3` `:limit` (validation, cap after scope, tie-aware tests, prefix property, docs, CHANGELOG) (wave 1)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 229-02-PLAN.md — Public `Health.legacy_key_findings/1` and `:unresolved_legacy_keys` (capped, time-limited per-table probe; 0.10.2 fixture + focused tests); `:trigger_capture` fail-fast doc (wave 2)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 229-03-PLAN.md — `health.coverage --strict` gate + 12-cell matrix baseline, legacy findings wired into the task, unknown switches raise, doc rewording (wave 3)
+- [ ] 237-04-PLAN.md — Push and land the milestone under separate grants
 
 **Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 229-04-PLAN.md — `--all-schemas` (batched catalog helpers, shared classifier, envelope JSON, SCHEMA-column table, extension-schema exclusion), after wall clock, `mix ci.all` (wave 4)
-
-### Phase 230: Rebalance, Net-Suite Check and 0.12.0
-
-**Goal**: The maintainer ships a milestone whose suite is more honest and no slower than where it started, released as 0.12.0 on hex.pm
-**Depends on**: Phases 224-229
-**Requirements**: SUITE-04, SUITE-06, REL-01
-**Success Criteria** (what must be TRUE):
-
-  1. The keep/cut rubric is recorded and applied, including the four guard-test files not yet audited. Tests that compare prose to a hand-typed literal are merged or cut. Tests that derive from a live source, or that carry a v1.43 mutation control (cross-checked against `.planning/milestones/v1.43-MILESTONE-AUDIT.md`), are kept, and no CI-topology or CONTRIBUTING contract test is cut.
-  2. A diff of `ci-required` shows the required-check count unchanged. The rebalance reports suite wall clock before and after.
-  3. A milestone suite-time table cites every phase's before/after figure and shows the net suite time does not regress against SUITE-01, locally and in CI with run IDs.
-  4. The milestone lands on main as one squash with a clean conventional `feat:` title. release-please ships 0.12.0, hex.pm serves it, and the `latest` lane pins are re-checked against builds.hex.pm and Docker Hub, with the result cited.
-  5. `mix ci.all` and `bin/verify-repo-hygiene` are green at close, and no phase or plan ID appears in `lib/`, guides or the 0.12.0 CHANGELOG.
-
-**Plans**: 4 plans
-
-Plans:
-
-**Wave 1**
-
-- [x] 230-01-PLAN.md — Rebalance: cut the two whole-file prose locks, line-item trim three mixed files, record the keep/cut rubric in CONTRIBUTING, before/after wall clock, ci-required roster unchanged (SUITE-04)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 230-02-PLAN.md — Net-suite table: prove the comparator, assemble the 224-229 suite-time table, disclose serial-equivalent work, local context; fresh-run row left for the landing PR (SUITE-06)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 230-03-PLAN.md — Pre-land gate: dated 0.12.0 CHANGELOG entry and 0.11.x → 0.12.x upgrade path, planning-ID sweep of lib/guides/CHANGELOG, `mix ci.all`, repo hygiene and privacy grep (REL-01, SC5)
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [ ] 230-04-PLAN.md — Land and release: preflight and latest-lane pin re-check, one maintainer grant, PR CI as the SUITE-06 fresh-run gate, `feat!:` squash, release-please 0.12.0, production-hex, smoke, distribution sync (REL-01, SUITE-06)
-**Research**: Apply the rubric in `research/ARCHITECTURE.md` B.1 to `operator_surface/coverage_doc_contract_test.exs`, `operator_surface/policy_show_doc_contract_test.exs`, `storage_schema_migration_contract_test.exs` and `storage_schema_prefix_contract_test.exs` before building the cut list. Landing needs a maintainer grant naming the branch, push, PR, merge and `production-hex` approval.
+- [ ] 237-05-PLAN.md — Merge the Release PR and publish Hex under separate grants
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 224. Capture and Bench Fixes | 4/4 | Complete    | 2026-09-30 |
-| 225. Suite Baseline and Partitioned CI | 4/4 | Complete    | 2026-10-01 |
-| 226. Pure Property Tests and Run Budget | 6/6 | Complete    | 2026-10-01 |
-| 227. DB-Backed Property Tests | 5/5 | Complete    | 2026-10-01 |
-| 228. Telemetry | 6/6 | Complete    | 2026-10-02 |
-| 229. Adopter API and Health Additions | 4/4 | Complete    | 2026-10-02 |
-| 230. Rebalance, Net-Suite Check and 0.12.0 | 3/4 | In Progress | - |
+| 231. Facade Topology and the Capture/Semantics Edge | 3/3 | Complete    | 2026-10-03 |
+| 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
+| 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
+| 234. Typespec and Doc Completion Gate | 22/22 | Complete    | 2026-10-06 |
+| 235. Stability Contract and Adopter Guides | 5/5 | Complete    | 2026-10-06 |
+| 236. Support Floor and Partition Weights | 2/2 | Complete    | 2026-10-07 |
+| 237. Upgrade Guide and 1.0.0 | 3/5 | In Progress | - |
 
 ## Prior Milestones
+
+<details>
+<summary>v1.44 Behavioral Depth: Properties, Twins, Telemetry (Phases 224-230) - SHIPPED 2026-10-02</summary>
+
+- [x] Phase 224: Capture and Bench Fixes (4/4 plans) — completed 2026-09-30
+- [x] Phase 225: Suite Baseline and Partitioned CI (4/4 plans) — completed 2026-10-01
+- [x] Phase 226: Pure Property Tests and Run Budget (6/6 plans) — completed 2026-10-01
+- [x] Phase 227: DB-Backed Property Tests (5/5 plans) — completed 2026-10-01
+- [x] Phase 228: Telemetry (6/6 plans) — completed 2026-10-02
+- [x] Phase 229: Adopter API and Health Additions (4/4 plans) — completed 2026-10-02
+- [x] Phase 230: Rebalance, Net-Suite Check and 0.12.0 (4/4 plans) — completed 2026-10-02
+
+Capture rollback leaves a clean `pg_proc` and the bench compiles bare. Mutation-controlled property tests cover cursor paging, ChangeDiff, redaction, export round-trip, `as_of` and the retention cutoff, and they fixed a bare-CR CSV defect and a dry-run under-count. A leak-checked 14-event `Threadline.Telemetry` registry with `guides/telemetry.md`. `history/3` `:limit` and `health.coverage --strict`/`--all-schemas`. Weighted partitioned CI cut the test step 40.1% net (507 s vs 846 s). 27/27 requirements. Released as 0.12.0 (#73, #74, #75). Archive: `.planning/milestones/v1.44-ROADMAP.md`.
+
+</details>
 
 <details>
 <summary>v1.43 Supply Chain, CI Economy and Repo Hygiene (Phases 214-223) - SHIPPED 2026-09-30</summary>

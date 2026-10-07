@@ -191,6 +191,73 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       render_hook(lv, "next-page", %{})
     end
 
+    test "Case 5: next-page loads the older page on canonical options with no deprecation warning",
+         %{conn: conn} do
+      actor_map = %{"type" => "user", "id" => "paging_51"}
+      base_time = DateTime.utc_now()
+
+      for i <- 1..51 do
+        insert_transaction(%{
+          occurred_at: DateTime.add(base_time, -i, :second),
+          actor_ref: actor_map
+        })
+      end
+
+      assert {:ok, lv, html} = live(conn, "/audit/actors/user/paging_51")
+      assert count_transaction_rows(html) == 50
+
+      ref = make_ref()
+
+      stderr =
+        ExUnit.CaptureIO.capture_io(:stderr, fn ->
+          send(self(), {ref, render_hook(lv, "next-page", %{})})
+        end)
+
+      assert_receive {^ref, html_after_next}
+      assert count_transaction_rows(html_after_next) == 51
+      assert stderr == ""
+    end
+
+    defp count_transaction_rows(html) do
+      Regex.scan(~r/data-testid="actor-transaction-row"/, html) |> length()
+    end
+
+    defp newer_button_disabled?(html) do
+      [tag] = Regex.run(~r/<button[^>]*phx-click="prev-page"[^>]*>/, html)
+      tag =~ "disabled"
+    end
+
+    test "Case 6: next-page never makes the Newer control reachable, and a stale prev-page is a no-op (CR-01 regression)",
+         %{conn: conn} do
+      actor_map = %{"type" => "user", "id" => "paging_110"}
+      base_time = DateTime.utc_now()
+
+      for i <- 1..110 do
+        insert_transaction(%{
+          occurred_at: DateTime.add(base_time, -i, :second),
+          actor_ref: actor_map
+        })
+      end
+
+      assert {:ok, lv, html} = live(conn, "/audit/actors/user/paging_110")
+      assert count_transaction_rows(html) == 50
+      assert newer_button_disabled?(html)
+
+      html_after_first_next = render_hook(lv, "next-page", %{})
+      assert count_transaction_rows(html_after_first_next) == 100
+      assert newer_button_disabled?(html_after_first_next)
+
+      html_after_second_next = render_hook(lv, "next-page", %{})
+      assert count_transaction_rows(html_after_second_next) == 110
+      assert newer_button_disabled?(html_after_second_next)
+
+      # prev_cursor must still be nil, so "prev-page" is a no-op: no rows are
+      # re-fetched/re-prepended and the row count stays exactly the same.
+      html_after_prev = render_hook(lv, "prev-page", %{})
+      assert count_transaction_rows(html_after_prev) == 110
+      assert newer_button_disabled?(html_after_prev)
+    end
+
     test "forged actor-window values are rejected without terminating the LiveView", %{conn: conn} do
       assert {:ok, lv, _html} = live(conn, "/audit/actors/user/window-validation")
 

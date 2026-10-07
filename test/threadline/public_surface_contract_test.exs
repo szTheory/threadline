@@ -10,7 +10,34 @@ defmodule Threadline.PublicSurfaceContractTest do
     Threadline.CriticTrust.KrippendorffAlpha,
     Threadline.CriticTrust.RepositoryBoundary,
     Mix.Tasks.Critic.Measure,
-    Mix.Tasks.Critic.Synth
+    Mix.Tasks.Critic.Synth,
+    Plug.Exception.Threadline.NotFoundError,
+    Threadline.Query,
+    Threadline.Investigation
+  ]
+  # D-17/D-18: internal builders hidden from ExDoc but still callable.
+  @hidden_functions [
+    {Threadline.Query, :export_changes_query, 1},
+    {Threadline.Query, :export_changes_query, 2}
+  ]
+  # D-02/API-04: the single supported Ecto-composition escape hatch, named in
+  # the Threadline moduledoc as inline code once Query/Investigation are hidden.
+  @escape_hatch_reference "Threadline.Query.timeline_query/1"
+  # D-01: ExDoc's documented mechanism for referencing a function in a hidden
+  # module without triggering an "documentation references ... hidden" warning.
+  @skip_code_autolink_to [@escape_hatch_reference]
+  # Released CHANGELOG history keeps its three historical hidden-module
+  # references; this is the only file the undefined-reference warning is
+  # suppressed for.
+  @skip_undefined_reference_warnings_on ["CHANGELOG.md"]
+  # D-08/D-09: child struct modules of the newly-hidden Query/Investigation
+  # modules stay visible and stay grouped under "Data Types" — only the two
+  # parent modules move to @moduledoc false.
+  @hidden_module_child_structs [
+    Threadline.Investigation.IncidentBundle,
+    Threadline.Investigation.IncidentChange,
+    Threadline.Investigation.LinkedChange,
+    Threadline.Investigation.LinkedTransaction
   ]
   # Released CHANGELOG entries are history and are never rewritten, so a module
   # renamed after release stays named there under its old name. Each rename is
@@ -20,7 +47,9 @@ defmodule Threadline.PublicSurfaceContractTest do
   @changelog_subject "CHANGELOG.md"
   @renamed_modules %{
     Threadline.OperatorSurface.Exports.FilterParams => Threadline.Query.FilterParams,
-    Threadline.OperatorSurface.Scope => Threadline.Query.Scope
+    Threadline.OperatorSurface.Scope => Threadline.Query.Scope,
+    Threadline.Query.TimelinePage => Threadline.Page,
+    Threadline.Query.ActorHistoryPage => Threadline.Page
   }
   # The same history rule for Mix aliases that were deleted after release: a retired
   # alias is accepted as a reference in CHANGELOG.md only, and the register is itself
@@ -64,7 +93,11 @@ defmodule Threadline.PublicSurfaceContractTest do
       "guides/production-checklist.md",
       "guides/local-docker-dx.md",
       "guides/upgrade-path.md",
-      "guides/upgrading-to-0.11.md"
+      "guides/upgrading-to-1.0.md",
+      "guides/upgrading-to-0.11.md",
+      "guides/redaction.md",
+      "guides/stability.md",
+      "guides/supported-tables.md"
     ],
     public_doc_refs_operate: [
       "guides/operator-surface.md",
@@ -227,6 +260,158 @@ defmodule Threadline.PublicSurfaceContractTest do
     end
   end
 
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "the Threadline moduledoc names Threadline.Query.timeline_query/1 as the one escape hatch" do
+    {:docs_v1, _, _, _, moduledoc, _, _} = Code.fetch_docs(Threadline)
+    text = Map.fetch!(moduledoc, "en")
+
+    assert String.contains?(text, @escape_hatch_reference),
+           "expected the Threadline moduledoc to name #{@escape_hatch_reference}"
+
+    Code.ensure_loaded!(Threadline)
+
+    refute function_exported?(Threadline, :timeline_query, 1),
+           "Threadline must not export a timeline_query/1 delegate (D-04)"
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "the docs skip lists are pinned to exactly their documented entries" do
+    docs = Threadline.MixProject.project()[:docs]
+
+    assert Keyword.fetch!(docs, :skip_code_autolink_to) == @skip_code_autolink_to
+
+    assert Keyword.fetch!(docs, :skip_undefined_reference_warnings_on) ==
+             @skip_undefined_reference_warnings_on
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "child struct modules of the newly-hidden modules stay visible" do
+    for module <- @hidden_module_child_structs do
+      assert docs_visibility(module) == :visible,
+             "expected #{inspect(module)} to stay visible, got #{inspect(docs_visibility(module))}"
+
+      assert module in grouped_modules(),
+             "expected #{inspect(module)} to stay grouped under Data Types"
+    end
+  end
+
+  test "Threadline.Page is visible, grouped, and carries since 1.0.0" do
+    assert docs_visibility(Threadline.Page) == :visible
+
+    assert Threadline.Page in grouped_modules(),
+           "expected Threadline.Page to be grouped under Data Types"
+
+    assert {:docs_v1, _, _, _, %{"en" => _}, %{since: "1.0.0"}, _} =
+             Code.fetch_docs(Threadline.Page)
+  end
+
+  test "Threadline.NotFoundError is visible, grouped, and carries since 1.0.0" do
+    assert docs_visibility(Threadline.NotFoundError) == :visible
+
+    assert Threadline.NotFoundError in grouped_modules(),
+           "expected Threadline.NotFoundError to be grouped under Core API"
+
+    assert {:docs_v1, _, _, _, %{"en" => _}, %{since: "1.0.0"}, _} =
+             Code.fetch_docs(Threadline.NotFoundError)
+
+    assert Plug.Exception.impl_for(%Threadline.NotFoundError{}) != nil
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "every Telemetry emit_* function is hidden from docs; transaction_committed stays visible" do
+    {:docs_v1, _, _, _, _, _, docs} = Code.fetch_docs(Threadline.Telemetry)
+
+    emit_fun_docs =
+      for {{:function, name, _arity}, _anno, _sig, doc, _meta} <- docs,
+          name |> Atom.to_string() |> String.starts_with?("emit_") do
+        {name, doc}
+      end
+
+    assert length(emit_fun_docs) >= 10,
+           "expected at least 10 emit_* functions, got #{length(emit_fun_docs)}"
+
+    for {name, doc} <- emit_fun_docs do
+      assert doc == :hidden,
+             "expected Threadline.Telemetry.#{name} to be @doc false, got #{inspect(doc)}"
+    end
+
+    transaction_committed_doc =
+      Enum.find_value(docs, fn
+        {{:function, :transaction_committed, 2}, _anno, _sig, doc, _meta} -> doc
+        _ -> nil
+      end)
+
+    assert match?(%{}, transaction_committed_doc) and map_size(transaction_committed_doc) > 0,
+           "expected Threadline.Telemetry.transaction_committed/2 to stay documented"
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "every Query *_query function except timeline_query/1 is hidden from docs" do
+    {:docs_v1, _, _, _, _, _, docs} = Code.fetch_docs(Threadline.Query)
+
+    query_fun_docs =
+      for {{:function, name, arity}, _anno, _sig, doc, _meta} <- docs,
+          name |> Atom.to_string() |> String.ends_with?("_query"),
+          {name, arity} != {:timeline_query, 1} do
+        {name, arity, doc}
+      end
+
+    assert length(query_fun_docs) >= 4,
+           "expected at least 4 hidden *_query functions, got #{length(query_fun_docs)}"
+
+    for {name, arity, doc} <- query_fun_docs do
+      assert doc == :hidden,
+             "expected Threadline.Query.#{name}/#{arity} to be @doc false, got #{inspect(doc)}"
+    end
+
+    timeline_query_doc =
+      Enum.find_value(docs, fn
+        {{:function, :timeline_query, 1}, _anno, _sig, doc, _meta} -> doc
+        _ -> nil
+      end)
+
+    assert match?(%{}, timeline_query_doc) and map_size(timeline_query_doc) > 0,
+           "expected Threadline.Query.timeline_query/1 to stay documented"
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "the hidden-function pins are each @doc false" do
+    for {module, name, arity} <- @hidden_functions do
+      {:docs_v1, _, _, _, _, _, docs} = Code.fetch_docs(module)
+
+      doc =
+        Enum.find_value(docs, fn
+          {{:function, ^name, ^arity}, _anno, _sig, doc, _meta} -> doc
+          _ -> nil
+        end)
+
+      assert doc == :hidden,
+             "expected #{inspect(module)}.#{name}/#{arity} to be @doc false, got #{inspect(doc)}"
+    end
+  end
+
+  @tag :module_visibility_tracer
+  @tag :phase200_red
+  test "no compiled application module has a :none moduledoc; Threadline.Export.CSV is hidden" do
+    modules = application_modules()
+
+    assert MapSet.size(modules) > 50,
+           "expected to inspect more than 50 application modules, got #{MapSet.size(modules)}"
+
+    offenders = for module <- modules, docs_visibility(module) == :undocumented, do: module
+
+    assert offenders == [],
+           "modules with no @moduledoc (give @moduledoc false or document): #{inspect(offenders)}"
+
+    assert docs_visibility(Threadline.Export.CSV) == :hidden
+  end
+
   for tag <- @module_owner_tags do
     @tag tag
     @tag :phase200_red
@@ -334,7 +519,7 @@ defmodule Threadline.PublicSurfaceContractTest do
     extras = Threadline.MixProject.project()[:docs][:extras]
     {urls, local} = Enum.split_with(extras, &url_extra?/1)
     assert MapSet.new(local) == MapSet.new(local_extra_owner_paths()), local_extra_diff(local)
-    assert length(local) == 24 and length(urls) == 2
+    assert length(local) == 28 and length(urls) == 2
 
     external_targets = Enum.map(urls, &external_extra_target/1) |> MapSet.new()
 

@@ -196,10 +196,11 @@ have already regenerated -- a table whose key type was refused in Step 2
 keeps writing unresolved keys, so backfilling it has nothing to resolve to.
 
 **Before and after, for a non-`id`-keyed table.** Before the backfill,
-`Threadline.history/3` does not return the table's pre-upgrade INSERT and
-UPDATE rows when you query by the real key, because those rows are still
-recorded as `{"id": null}`. After the backfill, the same `history/3` call
-returns them alongside the rows captured after you regenerated the trigger.
+`Threadline.row_history/3` (pass `limit: :infinity` to read the whole
+history) does not return the table's pre-upgrade INSERT and UPDATE rows when
+you query by the real key, because those rows are still recorded as
+`{"id": null}`. After the backfill, the same `row_history/3` call returns
+them alongside the rows captured after you regenerated the trigger.
 
 ## What cannot be recovered
 
@@ -223,9 +224,10 @@ with no primary key recorded until Threadline supports that type.
 by 0.11 when a key cannot be resolved) both mean "unresolved" -- match both
 if you query `audit_changes` directly.
 
-`Threadline.history/3` and `Threadline.as_of/4` now raise `ArgumentError` for
-a key that is wrong, `nil`, or cannot be cast to the key field's type, and
-take a keyword list or map for a composite key.
+The row-history read (`Threadline.row_history/3` as of 1.0) and
+`Threadline.as_of/4` now raise `ArgumentError` for a key that is wrong, `nil`,
+or cannot be cast to the key field's type, and take a keyword list or map for
+a composite key.
 
 `Threadline.Health.trigger_coverage/1` no longer counts a disabled or
 replica-only trigger as covered, so a `verify_coverage` gate that passed

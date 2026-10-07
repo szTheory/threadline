@@ -31,6 +31,15 @@ defmodule Threadline.TelemetryRegistryContractTest do
 
   @repo Threadline.Test.Repo
 
+  defmodule FakeUser do
+    use Ecto.Schema
+
+    @primary_key {:id, :string, autogenerate: false}
+    schema "users" do
+      field(:name, :string)
+    end
+  end
+
   defp mock_socket(assigns \\ %{}) do
     %Phoenix.LiveView.Socket{
       endpoint: MyApp.Endpoint,
@@ -50,6 +59,7 @@ defmodule Threadline.TelemetryRegistryContractTest do
     drive_export_completed!()
     drive_export_failed!()
     drive_retention_purge!()
+    drive_row_history_truncated!()
   end
 
   defp drive_action_recorded_and_transaction_committed! do
@@ -161,6 +171,35 @@ defmodule Threadline.TelemetryRegistryContractTest do
     end
 
     @repo.delete_all(RetentionRun, repo_opts())
+  end
+
+  defp drive_row_history_truncated! do
+    txn =
+      @repo.insert!(
+        AuditTransaction.changeset(%{
+          txid: System.unique_integer([:positive]),
+          occurred_at: DateTime.utc_now()
+        }),
+        repo_opts()
+      )
+
+    for i <- 1..201 do
+      @repo.insert!(
+        AuditChange.changeset(%{
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "telemetry-row-history"},
+          op: "insert",
+          data_after: %{"name" => "Alice"},
+          changed_fields: ["name"],
+          captured_at: DateTime.add(~U[2026-01-01 00:00:00.000000Z], i, :microsecond),
+          transaction_id: txn.id
+        }),
+        repo_opts()
+      )
+    end
+
+    Threadline.row_history(FakeUser, "telemetry-row-history", repo: @repo)
   end
 
   test "every registry event fires with exactly its registered keys" do

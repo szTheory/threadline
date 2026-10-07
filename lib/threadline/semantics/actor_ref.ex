@@ -1,6 +1,6 @@
 defmodule Threadline.Semantics.ActorRef do
   @moduledoc """
-  Value object representing the actor who performed an audited operation.
+  An actor reference identifies who performed an audited operation, including when the actor is not a user.
 
   Implements `Ecto.ParameterizedType` for use as a JSONB field in Ecto schemas.
   Stored as `%{"type" => "user", "id" => "123"}` in PostgreSQL; loaded back
@@ -14,25 +14,61 @@ defmodule Threadline.Semantics.ActorRef do
   - `:job` — background job with a non-empty id
   - `:system` — system process with a non-empty id
   - `:anonymous` — unauthenticated actor; id is nil
+
+  Use `new/2` to construct a validated reference, `from_map/1` to validate a decoded JSON map,
+  `identifiable?/1` to check whether the reference has a stable identity, and `to_map/1` to encode
+  it for JSON storage.
   """
 
   use Ecto.ParameterizedType
 
-  @typedoc "A stable reference to who performed an audited operation."
-  @type t :: %__MODULE__{}
+  @types ~w(user admin service_account job system anonymous)a
+
+  @typedoc "One of the actor categories accepted by `new/2`."
+  @type actor_type ::
+          unquote(Enum.reduce(@types, fn actor_type, acc -> {:|, [], [actor_type, acc]} end))
+
+  @typedoc "Any value accepted by `new/2`; unsupported values return `:unknown_actor_type`."
+  @type actor_type_input ::
+          atom()
+          | bitstring()
+          | number()
+          | %{optional(actor_type_input()) => actor_type_input()}
+          | tuple()
+          | list()
+          | pid()
+          | port()
+          | reference()
+          | function()
+
+  @typedoc "A stable actor reference with a supported type and an optional string identifier."
+  @type t :: %__MODULE__{type: actor_type(), id: String.t() | nil}
+
+  @typedoc ~S"""
+  A string-keyed map emitted by `to_map/1`. It always contains `"type"`; non-anonymous refs
+  also contain `"id"`, and no other keys are emitted.
+
+  `from_map/1` recognizes only string `"type"` and `"id"` keys. It ignores additional string or
+  atom keys, and recognized string keys take precedence in mixed maps. An atom-only type key is
+  not recognized and returns `{:error, :invalid_actor_ref_map}`. Anonymous refs ignore `"id"`.
+  `new/2` and `from_map/1` produce validated refs with nil id only for anonymous refs, but a
+  directly constructed non-anonymous `%ActorRef{}` with nil id emits `"id" => nil`.
+  """
+  @type actor_map :: %{required(String.t()) => String.t() | nil}
 
   @enforce_keys [:type]
   defstruct [:type, :id]
 
-  @types ~w(user admin service_account job system anonymous)a
-
   @doc """
-  Constructs a validated ActorRef.
+  Returns a validated ActorRef for a supported actor type and identifier.
 
-  Returns `{:ok, %ActorRef{}}` or `{:error, reason}` where reason is one of:
-  - `:unknown_actor_type` — type not in the supported list
-  - `:missing_actor_id` — non-anonymous actor with nil or empty id
+  The anonymous type discards its identifier. Other types require a non-empty string identifier.
+
+  Returns `{:ok, actor_ref}` or `{:error, reason}` where the reason is `:unknown_actor_type` for an
+  unsupported type or `:missing_actor_id` for a missing or empty identifier.
   """
+  @spec new(actor_type_input(), String.t() | nil) ::
+          {:ok, t()} | {:error, :unknown_actor_type | :missing_actor_id}
   def new(type, id \\ nil)
 
   def new(type, _id) when type not in @types do
@@ -60,7 +96,14 @@ defmodule Threadline.Semantics.ActorRef do
 
   def identifiable?(_actor_ref), do: false
 
-  @doc "Serializes an ActorRef to a plain map for JSONB storage."
+  @doc """
+  Returns the string-keyed JSON object used to store an ActorRef.
+
+  It always emits the string `"type"` key and no extra keys. Anonymous actors omit `"id"`; other
+  actor types include it. Validated non-anonymous refs have a non-empty string id, while a directly
+  constructed non-anonymous struct with a nil id emits `"id" => nil`.
+  """
+  @spec to_map(t()) :: actor_map()
   def to_map(%__MODULE__{type: :anonymous}) do
     %{"type" => "anonymous"}
   end
@@ -69,7 +112,23 @@ defmodule Threadline.Semantics.ActorRef do
     %{"type" => Atom.to_string(type), "id" => id}
   end
 
-  @doc "Deserializes an ActorRef from a plain map. Returns {:ok, ref} or {:error, reason}."
+  @doc """
+  Returns an ActorRef decoded from a string-keyed JSON object.
+
+  Accepts any input so callers can validate decoded JSON. An anonymous object has no `"id"` key;
+  its `"id"` value is ignored if present. Every other supported type requires a non-empty string
+  identifier.
+
+  Decoding recognizes only string `"type"` and `"id"` keys and ignores additional string or atom
+  keys. The recognized string keys take precedence over atom keys in mixed maps. An atom-only
+  `:type` key is not recognized and returns `{:error, :invalid_actor_ref_map}`. `to_map/1` emits
+  only `"type"` and, for non-anonymous actors, `"id"`.
+
+  Returns `{:ok, actor_ref}` or `{:error, reason}` for `:invalid_actor_ref_map`,
+  `:unknown_actor_type`, or `:missing_actor_id`.
+  """
+  @spec from_map(term()) ::
+          {:ok, t()} | {:error, :invalid_actor_ref_map | :unknown_actor_type | :missing_actor_id}
   def from_map(%{"type" => "anonymous"}) do
     {:ok, %__MODULE__{type: :anonymous, id: nil}}
   end

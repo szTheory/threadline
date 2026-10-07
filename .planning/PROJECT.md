@@ -10,33 +10,59 @@ Every row mutation that matters is captured durably and linked to who did it and
 
 ## Current State
 
-Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-09-30 (Phases 214–223, 52 plans, 24/24 requirements) as two patch releases, **0.11.1** and **0.11.2**, on hex.pm. The current package line is **0.11.2**, which carries the mint 1.11.0 advisory fix. Dependency advisories are gated by a required `verify-deps-audit` job. The toolchain is pinned by a committed `.tool-versions`. A required `verify-repo-hygiene` guard keeps machine-local paths and PII out of the tracked tree, `.planning/` included. CI was measured before it was cut. The v1.44 decisions it feeds are recorded in `.planning/milestones/v1.43-MILESTONE-AUDIT.md` and the phase REMEASURE files.
+Threadline shipped **v1.44 Behavioral Depth: Properties, Twins, Telemetry** on 2026-10-02 (Phases 224–230, 33 plans, 27/27 requirements) as minor release **0.12.0** on hex.pm. The current package line is **0.12.0**. The library's core contracts are now proven by bounded StreamData properties, each with a recorded mutation control. Export and retention runs emit a documented, leak-checked set of 14 `[:threadline, ...]` events. `history/3` takes a `:limit`, and `mix threadline.health.coverage` gains `--strict` and `--all-schemas`. CI runs the suite as weighted partitions. The audit is `.planning/milestones/v1.44-MILESTONE-AUDIT.md` (tech_debt, no blockers).
 
-**Open state (updated 2026-09-30):**
-- The phase-223 review fixes and this close record landed via squash PR #70 (`dd780e68`, not releasable). origin has only `main` plus release-please's own branch. Milestone tag `v1.43` is local only.
+**Open state (updated 2026-10-02):**
+- The code landed via squash PR #73 (`67090195`). Release PR #74 and distribution sync #75 are merged. `lib/` and `test/` on main match the milestone branch.
+- Local branch `milestone/v1.44` carries the post-landing planning commits and this close record, which are not on main yet. Milestone tag `v1.44` is local only.
 - The operator UI stays parked until 1.0.0.
-- v1.44 opened 2026-09-30 on local branch `milestone/v1.44`, cut from origin/main `dd780e68` (see Current Milestone below).
-- v1.44 progress (2026-10-01): Phases 224 and 225 landed on main (`fc47af60`, PR #71). Phase 226 Pure Property Tests and Run Budget complete and verified on pushed `milestone/v1.44` (PROP-01/02/03/05/08 validated; CI 36903609149 and scale-5 Flake Detection 36897742852 green), not yet landed on main. Phase 227 DB-Backed Property Tests complete and verified 5/5 on pushed `milestone/v1.44` (PROP-04/06/07 validated; fixed retention dry runs under-counting transactions a purge would empty; CI 36929234558 and scale-5 Flake Detection 36930385324 green), not yet landed on main. Phase 228 Telemetry complete and verified 7/7 on `milestone/v1.44` (TELE-01..04 validated; 14 documented events behind an internal registry with allowlist, static-scan and doc-parity tests; export and retention events added; actor ids stripped from operator-surface events and health error now carries only the exception module, listed as breaking for 0.12.0; new guides/telemetry.md; CI 37018812221 green), not yet landed on main. Phase 229 Adopter API and Health Additions complete and verified 5/5 on `milestone/v1.44` (2026-10-02; QRY-01/02 and HLTH-01..04 validated): `Threadline.history/3` takes an additive, validated `:limit`; new public `Threadline.Health.legacy_key_findings/1` reports `:unresolved_legacy_keys` warnings for pre-0.11 rows the backfill can fix; `mix threadline.health.coverage` gains `--strict` (exit 1 on in-scope `:error` findings) and `--all-schemas` (schema-keyed table and JSON envelope), and unknown switches now raise; malformed `:trigger_capture` is documented as fail-fast; local suite 2767/0 and `mix ci.all` green; not yet pushed or landed on main. Next: Phase 230 Rebalance, Net-Suite Check and 0.12.0.
 
-## Current Milestone: v1.44 Behavioral Depth: Properties, Twins, Telemetry
+## Current Milestone: v1.45 1.0 API Contract
 
-**Goal:** Prove Threadline's behavioral invariants with bounded property tests, make its long-running operations observable, and make the test suite faster and more honest. Close the capture/CLI correctness debt carried from v1.42. Ships as a minor release.
+**Goal:** Lock down a public API that adopters can depend on for all of 1.x (typespecs, docs, one obvious entry point per job, consistent return shapes, a deliberate support floor), then declare **1.0.0**.
+
+**Opened:** 2026-10-02 on local branch `milestone/v1.44` (phases continue from 231). The canonical rung scope is in `.planning/MILESTONE-GUIDE.txt` §7.
+
+**Baseline re-derived 2026-10-02:** about 129 of 169 public functions in non-hidden modules have no `@spec`, including all 17 on the `Threadline` facade. The history read paths overlap: `history/3`, `row_history/4` and `row_history_page/4`, plus `actor_history/2` and `actor_window/3`, are each exposed through `Threadline`, `Threadline.Query` and `Threadline.Investigation`. PG 14 reaches end of life on 2026-11-12. Main CI is green at 0.12.0.
 
 **Target features:**
-- Property tests where an invariant meets a large input space: cursor paging (pages joined == full list), `as_of` == replayed history, ChangeDiff, redaction never leaks, retention cutoff boundaries, export round-trips.
-- Telemetry for export, retention, query and install, consistent with the existing `[:threadline, ...]` events.
-- `history/3` gains a limit. Its deterministic tiebreak (`captured_at desc, id desc`) already exists.
-- Test rebalance toward behavior: merge or cut guard tests that no longer catch a distinct failure class, and cut the suite's serial core (about 91% serial: roughly 191 s of 209 s per pass).
-- The `gen.triggers` `down` orphan: `:down, all: true` after a per-table rerun leaves a function behind.
-- The bench project compiles with ExUnitProperties/StreamData.
-- The deferred v1.42 health and CLI items (`health --strict`, `:invalid_config`, `gen.backfill`), each included, reshaped or deferred on research.
+- Complete `@spec`/`@doc` on the public surface. Hide internal helpers. Add a gate so coverage can't regress.
+- Consolidate the overlapping entry points with deprecations, including the deferred bounded default limit for `history/3`.
+- Consistent return shapes across the public API.
+- A supported-table-shapes guide and a redaction threat model.
+- A deliberate decision on the `Capture.AuditTransaction` ↔ `Semantics.AuditAction` runtime edge.
+- The Elixir 1.15 / PostgreSQL 15 support-floor decision is closed; the minimum CI lane is the supported floor, while current/latest remain tested-on evidence.
+- Carried from v1.44: the partition-weight refresh is complete in Phase 236; async for pure-read `DataCase` tests remains deferred if cheap.
+- Declare 1.0.0 through release-please.
 
-**Baseline (re-derived 2026-09-30):**
-- main is green at `dd780e68`, Hex is 0.11.2, and there are no open PRs.
-- The only property tests are `naming_property_test` and `trigger_migration_property_test`.
-- Telemetry covers transaction, action and health only.
+## Latest Milestone Shipped: v1.44 Behavioral Depth: Properties, Twins, Telemetry (2026-10-02)
 
-## Latest Milestone Shipped: v1.43 Supply Chain, CI Economy and Repo Hygiene (2026-09-30)
+**Delivered:** behavioral proof, observability and a faster, more honest suite. Released as 0.12.0 (#73, #74, #75).
+
+- **Capture and bench (224):**
+  - A `gen.triggers` rerun chain rolls back to a clean `pg_proc`, proven by a DB-backed property.
+  - `bench/` compiles bare.
+- **Partitioned CI (225, 230):**
+  - Weighted `mix test --partitions` runs, one database per partition.
+  - The test step sum went from 846 s to 507 s (-40.1%), net of every test added.
+  - 34 prose-to-literal assertions cut under a KEEP/CUT rubric.
+- **Properties (226, 227):**
+  - Cursor paging, ChangeDiff, redaction policy and export round-trip (pure). No redaction leak, exact `as_of`, and retention cutoff/dry-run agreement (DB-backed, through `Threadline.Test.DbProperty`).
+  - Each has a mutation control. The properties found a bare-CR CSV defect, a retention dry-run under-count and silent redaction misconfiguration, and all three are fixed.
+- **Telemetry (228):**
+  - The 14-event `Threadline.Telemetry` registry: export `:completed`/`:failed`, and a retention purge span plus `batch_purged`.
+  - Actor identity and free text are stripped from emitted metadata (breaking).
+  - `guides/telemetry.md` with a doc-parity test.
+- **Adopter API and health (229):**
+  - `history/3` `:limit`.
+  - `Threadline.Health.legacy_key_findings/1`.
+  - `health.coverage --strict` / `--all-schemas`, and unknown switches raise.
+
+**Carried debt:** `.planning/milestones/v1.44-MILESTONE-AUDIT.md` `tech_debt`: stale partition weights, info-level review items, and Nyquist VALIDATION.md still draft for all 7 phases.
+
+**Decided not to build (v1.44 research):** `mix threadline.gen.backfill` (the tested SQL in the upgrade guide is right-sized; HLTH-03 detects instead), an `:invalid_config` finding (the fail-fast raise is stricter), `[:threadline, :query, ...]` telemetry (duplicates `[:repo, :query]`), and telemetry from Mix task bodies.
+
+## Prior shipped milestone: v1.43 Supply Chain, CI Economy and Repo Hygiene (2026-09-30)
 
 **Delivered:** a supply-chain gate, platform currency, a repo-hygiene guard and measured CI economy. Released as 0.11.1 (#55, #56, #59) and 0.11.2 (#66, #67, #68, #69).
 
@@ -68,10 +94,7 @@ Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-0
 
 **Carried debt:** `.planning/milestones/v1.43-MILESTONE-AUDIT.md` `tech_debt`, and the v1.43 rows in STATE.md Deferred Items (MILESTONES.md lists them).
 
-**Deferred to v1.44 (from v1.42):**
-- `gen.triggers` `down` leaves an orphaned per-table function on rerun.
-- `mix threadline.gen.backfill`.
-- health `--strict`.
+**Deferred to v1.44 (from v1.42):** all three were resolved in v1.44. The `gen.triggers` `down` orphan is fixed (224), health `--strict` shipped (229), and `mix threadline.gen.backfill` was decided against on research.
 
 ## Prior shipped milestone: v1.42 Capture Correctness for Real Table Shapes (2026-09-26)
 
@@ -572,6 +595,10 @@ Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-0
 
 ### Validated
 
+- [x] **API-04 and API-07 (Phase 231)** — `Threadline` is the one documented read API (`Threadline.Query`/`Threadline.Investigation` hidden, `Threadline.Query.timeline_query/1` the single escape hatch, facade-only doc-contract scanner); the capture schemas no longer declare an Ecto association to the semantics schema, with `transaction.action` hydrated by a hidden batched helper so every reader keeps the same shape.
+- [x] **API-01, API-02, API-03, API-05 and API-08 (Phase 232)** — `Threadline.row_history/3` is the one row-history read: keyword opts, a 200-row default (newest first) with `limit:`/`limit: :infinity` overrides, `cursor:` paging to `%Threadline.Page{}`, and `[:threadline, :row_history, :truncated]` telemetry fired only on real truncation; export, `as_of` and the operator drawer stay unbounded. `%Threadline.Page{entries, cursor, has_more}` (exact `has_more`) is the only paged shape — `TimelinePage`/`ActorHistoryPage` deleted. Every retired read (`history/3`, `row_history/4`, the `*_page` families on all three modules) is a one-line `@deprecated` delegate with a spec and a parity test; `emit_*` and raw `*_query` builders (except `timeline_query/1`) are hidden, and a scanner keeps hidden/retired names out of guides, the README and the example app.
+- [x] **API-06 (Phase 233)** — Every single-subject lookup that can be not-found returns `{:ok, _} | {:error, :not_found}` with a raising `!` sibling: `Threadline.audit_transaction/2` (new on the facade, always hydrates `.action`), `transaction_context/2` (changed in place, breaking) and `incident_bundle/2`, plus `audit_transaction!/2`, `transaction_context!/2` and `incident_bundle!/2` raising the public `Threadline.NotFoundError` (`Plug.Exception` 404, message carries only the requested id). Existence is decided once by the scoped `audit_transactions` row through a hidden shared fetch, so a zero-change transaction is found and a scope-filtered id is indistinguishable from a missing one; the three lookups accept exactly `:repo`, `:storage_schema`, `:scope`, `:scope_query_fn`; a malformed binary id is `:not_found`. `Threadline.Query.audit_transaction/2` is a parity-tested deprecation keeping 0.12 behaviour. `Scope.apply/2` now fails closed: a non-nil `:scope` without an arity-3 `scope_query_fn` raises (a nil scope stays unscoped by design for the operator surface), and the reference app's scope catch-all is deny-all. `as_of/4` is exempt by design.
+- [x] **FLOOR-01, FLOOR-02 and CI-01 (Phase 236)** — PostgreSQL 15 is the proven supported minimum in the `verify-test` minimum lane, with its topology-contract link pinned in the same commit; one source-derived table aligns Mix, OTP, PostgreSQL, and CI lanes; and measured partition weights cover all 265 discovered test files. The PostgreSQL 15.18 partitioned and aggregate gates passed.
 - [x] **SURFACE-01 through SURFACE-11 (Phase 200)** — Removed internal planning vocabulary from published module docs and the Hex archive, reconciled public/private module visibility and native ExDoc grouping, established an exact navigable guide graph with one runnable owner per adoption procedure, documented supported configuration and repair paths, and shipped recognized GitHub community/security intake. Validated in Phase 200 (2026-09-13).
 - [x] **DECOUPLE-01 through DECOUPLE-08 (Phase 199)** — Moved all five load-bearing evidence datasets to tracked `test/fixtures/`, removed dead planning/root executables with recovery receipts, proved clean-clone and formatter ownership, and made strict full-app Dialyzer a measured blocking gate with a zero ignore ceiling. The exact-HEAD aggregate passes with `.planning/` physically absent. Validated in Phase 199 (2026-09-11).
 - [x] **Automated operator-UI critique & forward-only iteration harness (Phases 194–197)** — `page × persona × lens` scorecard-cube ledger with per-lens monotonic ratchet + evidence-referenced bumps; deterministic mechanical checkers (`mix verify.mechanical`) and Tier A/B/C evidence capture inside `mix ci.all`; golden-set-validated local-only Claude-vision critic panel (`mix verify.ui_critique`, e2e devDependency only); forward-only net-positive gate with Goodhart/guard-the-guards protections; first human-ratified improvements landed; adversarial closeout + design-debt register. 28/29 requirements (LEDGER-01–05, MECH-01–05, CRITIC-01–05, RUNNER-01–05, GATE-01–05, PROOF-01/03/04; **PROOF-02 ratified shortfall** — paid loop parked on spend/value). Validated in v1.40 (2026-08-27).
@@ -672,17 +699,18 @@ Threadline shipped **v1.43 Supply Chain, CI Economy and Repo Hygiene** on 2026-0
 
 - [x] **Capture correctness for real table shapes (Phases 208–213)** — PK-agnostic, collision-free capture with exact read-side matching, trigger health findings, and a proven upgrade path. Validated in v1.42 (2026-09-26); released as 0.11.0.
 - [x] **Supply chain, CI economy and repo hygiene (Phases 214–223)** — a required Hex audit gate, a committed exact toolchain pin, a required local-path/PII guard with a forward scrub, measured CI waste removal and caching, a voting newest-toolchain lane, and legible check names. Validated in v1.43 (2026-09-30); released as 0.11.1 and 0.11.2.
+- [x] **Behavioral depth: properties, telemetry, adopter API and partitioned CI (Phases 224–230)** — CAPT-01/02, PROP-01..08, TELE-01..04, QRY-01/02, HLTH-01..04, SUITE-01..06 and REL-01. These cover mutation-controlled pure and DB-backed property tests, a leak-checked 14-event telemetry registry, `history/3` `:limit`, `health.coverage --strict`/`--all-schemas`, and weighted partitioned CI at -40.1% net test-step time. Validated in v1.44 (2026-10-02); released as 0.12.0.
 
 ### Active
 
-v1.44 Behavioral Depth: Properties, Twins, Telemetry. The scoped requirements are in `.planning/REQUIREMENTS.md`, and the target features are under Current Milestone above.
+Defined in `.planning/REQUIREMENTS.md` for v1.45 1.0 API Contract (see Current Milestone above).
 
 ### Out of Scope
 
 - **Public Storybook/component-system distribution** — PhoenixStorybook remains example/dev-only; root `threadline` keeps optional Phoenix/LiveView deps and no public UI component contract.
 - **External adopter pilot without real signal** — still signal-gated. Milestones can audit pilot readiness and docs truth, but not invent a synthetic pilot.
 - **Compliance platform expansion** — compliance packs, legal hold, immutable archive guarantees, and runtime destructive redaction remain deferred until procurement or adopter pressure justifies the support burden.
-- **CI cleverness before measurement** — no broad sharding, matrix explosion, flaky retries as a cure, or heavyweight release ceremony unless the baseline proves it reduces real risk.
+- **CI cleverness before measurement** — no matrix explosion, flaky retries as a cure, or heavyweight release ceremony unless the baseline proves it reduces real risk. In v1.44, partitioning cleared this bar: a cited baseline came first, then measured gains on every lane.
 - **SIEM / security information and event management** — different product category, different buyers, different infrastructure
 - **Full event sourcing / CQRS** — Threadline captures audit facts; it does not drive application state reconstruction
 - **pgAudit replacement** — statement-level DB auditing is a separate concern; Threadline is application-level
@@ -709,9 +737,9 @@ v1.44 Behavioral Depth: Properties, Twins, Telemetry. The scoped requirements ar
 
 **First-hour config (2026-05-28):** `config :threadline, ecto_repos: [MyApp.Repo]` documented in getting-started §2 and production-checklist; doc-contract locked (v1.27 CFG-01–03).
 
-**Hex distribution (2026-09-30):** **threadline 0.11.2** is the current in-repo and hex.pm package line. 0.11.1 (2026-09-27) shipped the toolchain pin and advisory fixes. 0.11.2 (2026-09-30) shipped the mint 1.11.0 advisory fix. 0.10.x adopters follow `guides/upgrading-to-0.11.md`. The default `storage_schema` has been `"public"` since 0.10.0.
+**Hex distribution (2026-10-02):** **threadline 0.12.0** is the current hex.pm package line (released 2026-10-02 from v1.44, with breaking telemetry-metadata changes listed in the CHANGELOG). 0.11.1 and 0.11.2 shipped the toolchain pin and advisory fixes. 0.10.x adopters follow `guides/upgrading-to-0.11.md`. The default `storage_schema` has been `"public"` since 0.10.0.
 
-**Path-to-done posture (2026-09-25, supersedes the 2026-05-29 "default hold"):** ratchet the **base library** to diminishing returns, marked by the **1.0.0** release, via the ladder v1.42 Capture Correctness for Real Table Shapes (shipped) → v1.43 Supply Chain, CI Economy and Repo Hygiene (shipped 2026-09-30) → v1.44 Behavioral Depth → v1.45 1.0 API Contract (est. 6–9 weeks, mid-Nov → early Dec 2026; re-estimated at each close). The operator/admin UI is parked until 1.0.0. Evidence-backed quality milestones need no adopter signal; new product scope still does. Guide: `.planning/MILESTONE-GUIDE.txt`; live ranking: `.planning/MILESTONE-ARC.md`.
+**Path-to-done posture (2026-09-25, supersedes the 2026-05-29 "default hold"):** ratchet the **base library** to diminishing returns, marked by the **1.0.0** release, via the ladder v1.42 Capture Correctness for Real Table Shapes (shipped) → v1.43 Supply Chain, CI Economy and Repo Hygiene (shipped 2026-09-30) → v1.44 Behavioral Depth (shipped 2026-10-02, 0.12.0) → v1.45 1.0 API Contract (est. 6–9 weeks, mid-Nov → early Dec 2026; re-estimated at each close). The operator/admin UI is parked until 1.0.0. Evidence-backed quality milestones need no adopter signal; new product scope still does. Guide: `.planning/MILESTONE-GUIDE.txt`; live ranking: `.planning/MILESTONE-ARC.md`.
 
 **Capture mechanism (closed):** Path B — custom `Threadline.Capture.TriggerSQL` with transaction-row grouping (`txid_current()`), no `SET LOCAL` in the capture path. Formal decision: `.planning/milestones/v1.0-phases/01-capture-foundation/gate-01-01.md` (archived with v1.0).
 
@@ -805,6 +833,14 @@ v1.44 Behavioral Depth: Properties, Twins, Telemetry. The scoped requirements ar
 | Change-aware lanes (SEED-006): closed, measured, not worth it (Phase 222) | 0 of 28 merged PRs strict-inert in the rolling 30 days against a ≥20% and ≥10%-of-billed-minutes gate; the latest lane stays every-run (222 D-05); see phases/222-seed-006-change-aware-lanes-conditional/222-DECISION.md | ✓ Closed: SEED-006 reopen_when (≥5 of the last 20 merged PRs strict-inert, or a new lane past the Browser E2E bound) |
 | A landing PR that carries an adopter-facing Security/Fixed entry uses a releasable squash subject or a `BEGIN_COMMIT_OVERRIDE` (223 D-06) | The mint 1.11.0 fix landed inside the `ci:` squash #60, so release-please saw nothing releasable and adopters got no release for 2 days | ✓ Shipped as 0.11.2 via override; documented in CONTRIBUTING (no CI guard, by deferral) |
 | Release checkouts are credential-free except for a reasoned push-only allowlist (223 D-07) | 216 CR-01: a persisted token sat in `.git/config` while third-party Hex code compiled | ✓ Pinned per checkout step with mutation controls; first live run was the 0.11.2 publish |
+| Every property test ships with a recorded mutation control and a bounded run budget (v1.44) | A property that never fails proves nothing. `PropertyRuns` caps runs (DB properties at 20), with scale 5 only on the weekly Flake Detection lane, so the suite stays fast | ✓ Shipped (226–227); found and fixed 3 real defects |
+| DB-backed properties isolate per iteration without the Ecto SQL Sandbox (v1.44) | Capture triggers need committed transactions; `Threadline.Test.DbProperty` truncates per iteration instead | ✓ Shipped (227) |
+| Telemetry metadata never carries audited data, actor identity or free text (v1.44) | Telemetry handlers ship to third-party sinks. A single-owner registry, a runtime allowlist and a static scan enforce it. Stripping actor ids from operator-surface events was breaking | ✓ Shipped (228, 0.12.0 BREAKING) |
+| CI test step runs as weighted `--partitions`, not more matrix lanes (v1.44) | The suite was about 91% serial. Weighted partitions with one database each cut the step 40.1% net while billed minutes fell | ✓ Shipped (225, 230); ⚠️ weights need a refresh for the new property files |
+| Guard tests are kept or cut by a written rubric (v1.44) | Prose-to-literal assertions catch no distinct failure class; tests derived from a live source or carrying a mutation control stay | ✓ Rubric in CONTRIBUTING (230) |
+| Capture/semantics edge cut with a hidden hydrate helper, not a join (Phase 231) | Dropping `belongs_to :action`/`has_many :transactions` removes the compile-time capture→semantics dependency; `Threadline.Query.ActionHydration.hydrate_actions/3` batches one `WHERE id IN` query so `.action` keeps its shape. The public `:preload` of `:action` survives as a deprecation shim | ✓ Good (verified 5/5, 2026-10-03) |
+| Facade-only docs; `timeline_query/1` is the one escape hatch (Phase 231) | One documented read API for 1.0; hidden modules keep their code but leave ExDoc, guarded by a mutation-controlled doc-contract scanner. Open review notes: the scanner misses bare module-name mentions (WR-01), and the moduledoc lists 8 of ~16 facade functions (WR-02) | ✓ Good (WR-01/WR-02 open in 231-REVIEW-DISPOSITION.md) |
+| PostgreSQL 15 is the supported minimum; CI current/latest remain tested-on lanes (Phase 236) | The minimum lane defines the support floor, its topology contract checks the exact PG15 pin, and the adopter policy table is source-derived. The measured weight inventory contains every discovered test file. | ✓ Validated (Phase 236; 6/6 truths; PostgreSQL 15.18 aggregate gate passed) |
 
 ## Evolution
 
@@ -826,4 +862,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state  
 
 ---
-*Last updated: 2026-10-02 after Phase 229 completion*
+*Last updated: 2026-10-07 after Phase 236*

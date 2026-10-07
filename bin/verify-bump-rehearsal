@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# CI / local: rehearse the NEXT MINOR release bump and run the release gates
-# against that bumped state (Phase 202 / Plan 202-10).
+# CI / local: rehearse a generic next-minor bump, or strictly rehearse a
+# committed 1.0.0 candidate's artifacts (Phase 237 / Plan 237-02).
 #
 # WHY THIS EXISTS
 #
@@ -17,7 +17,9 @@
 # hand-run rehearsal recorded in `.planning/phases/202-release-0-10-0/
 # 202-05-SUMMARY.md`, and it follows that sequence: derive the next minor, apply
 # it everywhere the release commit would apply it, run `mix release.pins`, then
-# run the named release gates against the result.
+# run the named release gates against the result. Candidate mode binds that
+# target to HEAD's validated `Release-As: 1.0.0` footer; generic mode remains the
+# routine pull-request rehearsal.
 #
 # THE EXTRA-FILES TRAP (read before editing the bump step)
 #
@@ -103,6 +105,7 @@
 #
 # Usage:
 #   bin/verify-bump-rehearsal
+#   THREADLINE_BUMP_REHEARSAL_MODE=candidate bin/verify-bump-rehearsal
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -121,6 +124,54 @@ fail() {
 }
 
 step() { printf '\n==> %s\n' "$*"; }
+
+# Validate committed candidate controls and print the sole accepted target.
+# This pure helper is also exercised by the topology contract without cloning.
+candidate_release_target() {
+  local subject="$1" message_body="$2" config="$3"
+  local candidate_message candidate_trailers candidate_lines candidate_count candidate_footer
+
+  if [[ ! "$subject" =~ ^feat(\([^()]+\))?!:\ .+ ]]; then
+    printf 'candidate subject must be a conventional feat!: commit, got %q\n' "$subject" >&2
+    return 1
+  fi
+
+  # interpret-trailers needs the complete message context: a body containing
+  # only `Release-As: 1.0.0` otherwise looks like a subject line of its own.
+  candidate_message="$(printf '%s\n\n%s\n' "$subject" "$message_body")"
+  if ! candidate_trailers="$(printf '%s\n' "$candidate_message" | git interpret-trailers --parse)"; then
+    printf 'could not parse candidate commit trailers\n' >&2
+    return 1
+  fi
+
+  candidate_lines="$(printf '%s\n' "$candidate_trailers" | grep -E '^Release-As([[:space:]]|:|$)' || true)"
+  candidate_count="$(printf '%s\n' "$candidate_lines" | sed '/^$/d' | wc -l | tr -d ' ')"
+  if [[ "$candidate_count" != "1" ]]; then
+    printf 'candidate commit must contain exactly one parsed Release-As trailer; found %s\n' \
+      "$candidate_count" >&2
+    return 1
+  fi
+
+  candidate_footer="$(printf '%s\n' "$candidate_lines" | sed -n '1p')"
+  if [[ "$candidate_footer" != 'Release-As: 1.0.0' ]]; then
+    printf 'candidate trailer must be exactly "Release-As: 1.0.0", got %q\n' \
+      "$candidate_footer" >&2
+    return 1
+  fi
+
+  if ! jq -e '."bump-minor-pre-major" == false' "$config" >/dev/null 2>&1; then
+    printf '%s must set bump-minor-pre-major to the JSON boolean false\n' "$config" >&2
+    return 1
+  fi
+
+  printf '%s\n' "${candidate_footer#Release-As: }"
+}
+
+# When sourced by the topology contract, expose the pure parser without running
+# the release simulation.
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+  return 0
+fi
 
 [[ $# -eq 0 ]] || fail "arguments" "bin/verify-bump-rehearsal accepts no arguments."
 
@@ -169,7 +220,7 @@ capture_identity() {
   done < <(tracked_blast_radius)
 }
 
-# --- Derive the current and the next minor -----------------------------------
+# --- Select the generic target or validate the committed candidate -----------
 CURRENT="$(sed -n 's/^[[:space:]]*@version "\([^"]*\)".*/\1/p' mix.exs | head -1)"
 [[ -n "$CURRENT" ]] || fail "unparseable @version" \
   "No \`@version \"x.y.z\"\` line could be read from mix.exs."
@@ -178,12 +229,35 @@ CURRENT="$(sed -n 's/^[[:space:]]*@version "\([^"]*\)".*/\1/p' mix.exs | head -1
   "The rehearsal simulates a clean next-minor bump and cannot derive one from a" \
   "pre-release or build-metadata version. Bump to a release version first."
 
-NEXT="${BASH_REMATCH[1]}.$((BASH_REMATCH[2] + 1)).0"
+MODE="${THREADLINE_BUMP_REHEARSAL_MODE:-generic}"
+case "$MODE" in
+  generic)
+    NEXT="${BASH_REMATCH[1]}.$((BASH_REMATCH[2] + 1)).0"
+    ;;
+  candidate)
+    CANDIDATE_SUBJECT="$(git show -s --format=%s HEAD)"
+    CANDIDATE_BODY="$(git show -s --format=%b HEAD)"
+    NEXT="$(candidate_release_target "$CANDIDATE_SUBJECT" "$CANDIDATE_BODY" "$CONFIG")" ||
+      fail "candidate preflight" \
+        "Strict candidate mode requires committed feat! metadata, one exact 1.0.0 footer, and the matching release-please config." \
+        "No clone was created and no release artifacts were edited."
+    [[ "$NEXT" == "1.0.0" && "$NEXT" != "0.13.0" ]] ||
+      fail "candidate target" "The committed candidate did not select exactly 1.0.0."
+    ;;
+  *)
+    fail "mode" "THREADLINE_BUMP_REHEARSAL_MODE must be generic or candidate, got $MODE."
+    ;;
+esac
 
 # --- Pre-run identity capture ------------------------------------------------
+SOURCE_SHA="$(git rev-parse HEAD)"
 BEFORE="$(capture_identity)"
 
-step "rehearsing the next minor: $CURRENT -> $NEXT"
+if [[ "$MODE" == "candidate" ]]; then
+  step "local artifact rehearsal for committed candidate $SOURCE_SHA: $CURRENT -> $NEXT"
+else
+  step "rehearsing the next minor: $CURRENT -> $NEXT"
+fi
 
 # --- Throwaway clone ---------------------------------------------------------
 TEMP_BASE="${TMPDIR:-/tmp}"
@@ -220,7 +294,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-SOURCE_SHA="$(git rev-parse HEAD)"
 step "cloning HEAD ($SOURCE_SHA) into a throwaway tree"
 # `--no-local` forces a real object transfer: no hardlinks into the source
 # repository's object store, so nothing the clone does can reach back.
@@ -253,6 +326,12 @@ step "bumping $MANIFEST to $NEXT"
 jq --arg v "$NEXT" '.["."] = $v' "$CLONE/$MANIFEST" >"$CLONE/$MANIFEST.tmp" ||
   fail "bump" "Could not rewrite $MANIFEST in the throwaway tree."
 mv "$CLONE/$MANIFEST.tmp" "$CLONE/$MANIFEST"
+[[ "$(jq -r '."."' "$CLONE/$MANIFEST")" == "$NEXT" ]] ||
+  fail "manifest assertion" "$MANIFEST in the clone does not select $NEXT."
+if [[ "$MODE" == "candidate" ]]; then
+  [[ "$NEXT" == "1.0.0" && "$NEXT" != "0.13.0" ]] ||
+    fail "candidate target" "The candidate clone must simulate 1.0.0 and must not select 0.13.0."
+fi
 
 # release-please's generic updater, simulated. Derived from the config file so a
 # newly registered extra-file is picked up without editing this script.
@@ -357,6 +436,8 @@ else
   ' "$GENERATED" ||
     fail "generated changelog" "Could not simulate the release-please entry in CHANGELOG-GENERATED.md."
 fi
+grep -qE "^## \[$(sed 's/\./\\./g' <<<"$NEXT")\]" "$GENERATED" ||
+  fail "generated changelog assertion" "$GENERATED has no generated entry for $NEXT."
 
 if [[ "$INJECT" == "hardcoded-pin" ]]; then
   step "NEGATIVE CONTROL: re-hardcoding the install pin literal (reverting Plan 202-09)"
@@ -482,7 +563,11 @@ printf '    no scratch branch and no linked worktree survived\n'
 # --- Terminal summary --------------------------------------------------------
 printf '\n'
 if [[ "$GATE_STATUS" -ne 0 ]]; then
-  printf 'Bump rehearsal FAIL: %s -> %s would release RED.\n' "$CURRENT" "$NEXT" >&2
+  if [[ "$MODE" == "candidate" ]]; then
+    printf 'Local artifact rehearsal FAIL: SOURCE_SHA=%s target=%s.\n' "$SOURCE_SHA" "$NEXT" >&2
+  else
+    printf 'Bump rehearsal FAIL: %s -> %s would release RED.\n' "$CURRENT" "$NEXT" >&2
+  fi
   printf 'The failing gate was: %s\n' "$FAILED_GATE" >&2
   printf 'Its output is above, in the throwaway tree that has since been removed. Fix the\n' >&2
   printf 'cause on this pull request — that is the whole point of running the bump here\n' >&2
@@ -490,6 +575,11 @@ if [[ "$GATE_STATUS" -ne 0 ]]; then
   exit 1
 fi
 
-printf 'Bump rehearsal OK: a %s -> %s release commit passes every doc-contract test\n' "$CURRENT" "$NEXT"
-printf '(derived by filename), the changelog contract and mix verify.release, and the\n'
-printf 'real working tree is byte-identical.\n'
+if [[ "$MODE" == "candidate" ]]; then
+  printf 'Local artifact rehearsal OK: SOURCE_SHA=%s target=%s.\n' "$SOURCE_SHA" "$NEXT"
+  printf 'This simulates local release artifacts and gates; it does not invoke live Release Please.\n'
+else
+  printf 'Bump rehearsal OK: a %s -> %s release commit passes every doc-contract test\n' "$CURRENT" "$NEXT"
+  printf '(derived by filename), the changelog contract and mix verify.release.\n'
+fi
+printf 'The real working tree is byte-identical.\n'

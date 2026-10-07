@@ -1,269 +1,233 @@
-# Pitfalls Research — v1.44 Behavioral Depth: Properties, Twins, Telemetry
+# Pitfalls Research — v1.45 "1.0 API Contract"
 
-**Domain:** Trigger-backed Postgres audit capture library (Elixir/Phoenix/Ecto), adding property tests, telemetry, a `history/3` limit, a test-suite rebalance/async cut, a `gen.triggers` down-orphan fix, and a bench compile fix, one minor release before the v1.45 API-contract milestone.
-**Researched:** 2026-09-30
-**Confidence:** HIGH for repo-specific claims (read from `lib/`, `test/`, `.planning/`); MEDIUM for ecosystem-precedent claims (StreamData/Carbonite/Oban/PaperTrail/Logidze docs and community reports, not independently re-verified against every version).
+**Domain:** declaring 1.0.0 of a pre-adoption Elixir/Ecto/Phoenix audit library (Hex package `threadline`)
+**Researched:** 2026-10-02
+**Confidence:** HIGH on Elixir/Hex ecosystem conventions and on this repo's own code/config (cited file:line); MEDIUM on cross-ecosystem (Rails/Django/Envers/PaperTrail/Logidze) specifics, which are recalled from general knowledge and not re-verified against primary sources this pass — treat those as directional, not quoted fact.
+
+## ONE-WAY Decision 1: Deprecate-vs-Remove at 1.0
+
+**Recommendation: (a) with a twist — deprecate now, in 1.45 itself, ship 1.0.0 with the deprecated aliases still present and warning, remove them in a later 1.x (not 2.0, not a prior 0.13).**
+
+This is not quite options (a), (b), or (c) as posed — it's an amended (a): don't ship a separate 0.13 deprecation release first (there's no adopter base to protect from the duplicate-surface pain of a two-step rollout, and splitting it costs a whole extra milestone), but don't keep deprecated aliases for the *entire* 1.x line either (that guarantees `row_history/4`, `actor_window/3` etc. live forever as zombie code nobody can safely delete, since 1.0 forecloses removing them without a major bump).
+
+Reasoning, by source:
+
+- **Elixir core's own policy** (hexdocs.pm/elixir/compatibility-and-deprecations): soft-deprecate (no warning) → hard-deprecate (`@deprecated`, warning text names the replacement) for **at least 3 minor versions** → remove only at a **major**. Applied here: hard-deprecate the overlapping entry points (`row_history/4`, `row_history_page/4`, `actor_window/3`, and whichever of `history`/`actor_history` loses) in 1.0.0 itself. That satisfies "at least 3 minors" trivially once 1.1/1.2/1.3 ship, and removal becomes a clean, pre-announced 2.0 decision later — not an open-ended promise.
+- **Phoenix/Ecto/Oban/LiveView precedent**: every one of these libraries hard-deprecates inside its stable major (`Ecto.Multi.run/3` arities, `Phoenix.View`, `Ecto.Adapters.SQL.query/4` variants) and only drops the deprecated shim at the next major (Ecto 2→3, Phoenix 1.6→1.7 LiveView changes bundled with a major bump of LiveView itself, Oban kept `Oban.Worker` shims across its 2.x line and dropped only at the 2.0→... boundary when the behaviour changed). None of them remove a deprecated public function **inside** a stable major. That rules out (c) (remove now, in 1.0.0, with no deprecation period) — it breaks the promise 1.0.0 is supposed to make on day one.
+- **Hex semver convention**: Hex's own ecosystem norm (elixir `Version`, the `~>` operator) treats 1.0.0→2.0.0 as the only sanctioned place to drop public functions. Removing in a 1.x minor/patch is a semver violation adopters will notice via Dialyzer/compile warnings turning into undefined-function errors.
+- **Adopter base signal** (PROJECT.md: "Hold — v1.28 External Pilot only on sustained real-adopter signal", no external pilot shipped; package is pre-adoption/pilot-stage): this is the argument *against* (b) "keep aliases through all of 1.x." With effectively zero production adopters today, there is no large installed base whose upgrade pain justifies carrying duplicate entry points for the library's entire stable lifetime. A small, deliberate deprecation window (hard-deprecate at 1.0.0, remove at a *later*, explicitly-announced major) costs little now and avoids permanent API surface debt. Conversely, this same low-adopter-count is exactly why (c) "remove now with an upgrade guide" is tempting — but 1.0.0 is a *promise* to future adopters, not just a cleanup of current ones; shipping it with functions that silently disappear undermines the promise before it's made.
+
+**Verdict:** hard-deprecate the losing entry points in 1.0.0 (not a prior 0.13 — no adopters to protect from a two-release rollout), keep them functioning and `@deprecated`-annotated for the 1.x line, and record the removal target as a 2.0 decision to make later with real usage data. Do not promise "all of 1.x" explicitly in the docs — promise "at least until 2.0, which is not currently planned."
+
+---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Properties that shrink against a live, shared, non-sandboxed database
+### Pitfall 1: `@deprecated` warnings break adopters' `--warnings-as-errors` builds
 
-**What goes wrong:**
-Threadline's suite has no `Ecto.Adapters.SQL.Sandbox` anywhere (trigger capture must see real committed transactions — `AuditTransaction`/`AuditChange` rows only exist after commit, so a rolled-back sandbox test never captures anything). 56 test files already run `async: false` for exactly this reason. StreamData's shrinker re-runs the property body dozens of times per failure, each iteration doing real INSERT/UPDATE/DELETE plus trigger execution and NOTIFY/foreign-key checks. Against a shared, non-transactional DB this means: (a) shrinking itself mutates state other properties or async processes can observe, (b) a shrink step that "fixes" a generated input by retrying can leave rows from earlier failed shrink candidates behind, corrupting the next property's row counts, and (c) two properties or `mix test` and a manually-open `psql` session touching the same tables at once produce lock contention that looks like a StreamData counter-example but is actually a schedule artifact.
+**What goes wrong:** Threadline's own CI runs `mix compile --warnings-as-errors` (CLAUDE.md). Many serious adopters copy that convention. The moment a deprecated function is called anywhere in dependency-resolved code (including Threadline's own internals, if `history/3` calls into a soon-to-be-deprecated helper, or if the example app still calls the old name), a `--warnings-as-errors` build goes red for every adopter on the old call site, with zero action from them.
 
-**Why it happens:**
-Property tests are typically written and demoed against ExUnit's default in-memory or sandboxed setup (the Elixir docs and most StreamData tutorials assume `Ecto.Adapters.SQL.Sandbox`). Threadline can't use that pattern because triggers require committed rows, so anyone porting a "normal" StreamData/Ecto property recipe in will reach for sandbox checkouts that silently no-op the capture path, or skip cleanup and get a growing, cross-run-polluted dataset.
+**Why it happens:** `@deprecated` is a compiler-level warning in Elixir, indistinguishable in severity from any other compile warning, so it's naturally caught by the same flag that's supposed to raise the bar on code quality. Maintainers test their own code warningless and assume adopters are also warningless, but the deprecation is often introduced *and* left uncalled internally while adopter code elsewhere still calls the old name.
 
 **How to avoid:**
-- Every new property test must explicitly truncate/delete its own rows in `setup`/`on_exit`, scoped by a per-test-run unique key (table name suffix, actor id, or correlation id), never relying on transaction rollback.
-- Keep every new property `async: false` (matching the existing 56-file convention) unless the property module only touches an in-memory pure function (e.g. `ChangeDiff` on structs, not DB rows) — in that case make it explicitly `async: true` and never touch `Threadline.Test.Repo`.
-- Cap `max_runs`/`:max_shrinking_steps` explicitly per property (don't take StreamData's defaults) so a shrink storm against the DB has a bounded worst case.
-- Bound generators to the domain's edges (e.g. cursor pages over 1–200 rows, not 1–100k) — see Pitfall 2.
+- Grep the full `lib/`, `test/`, example app, and every guide for every soon-to-be-deprecated call site before merging the deprecation; update all internal callers to the new name in the same phase.
+- The `@deprecated` message text must name the exact replacement function and arity, not just "use the new API" — this is what lets adopters silence warnings with a one-line sed instead of reading a guide.
+- Add a CHANGELOG "Deprecated" subsection (not just "Breaking") distinct from the breaking-changes block, so adopters scanning for breakage know this won't fail their *next* upgrade, only a future major.
 
-**Warning signs:** A property test passes solo but fails under `mix test` full-suite order; failure output shows a shrunk counter-example that doesn't reproduce when run alone; `mix verify.flake` flags a property file; CI shows different failures on reruns of the same commit.
+**Warning signs:** `mix compile --warnings-as-errors` only tested inside the Threadline repo itself (which has update all its own call sites) rather than from a fresh adopter app depending on the new version; example app or any guide code block still calling the deprecated name.
 
-**Phase to address:** The phase introducing property tests (cursor paging, `as_of`, ChangeDiff, redaction, retention, export). Acceptance check: each new property test file runs green 20x locally (`mix test --repeat-until-failure 20 path/to_test.exs` or equivalent) before merge, and is `async: false` unless proven pure.
+**Phase to address:** the consolidation phase that introduces the deprecations (verify via a doc-contract/compile check that scans `lib/`, `test/`, example app, and `guides/` for the deprecated names after the deprecation lands).
 
 ---
 
-### Pitfall 2: `captured_at`/`occurred_at` tie generators that don't match the real tiebreak
+### Pitfall 2: Deprecated delegates drift in behavior from the function they forward to
 
-**What goes wrong:**
-The keyset cursor helpers (`Threadline.Query.Cursors`) order by `(occurred_at, id)` / `(captured_at, id)` pairs via a `(?, ?) < (?, ?)` row-comparison fragment. If a property test generates change rows with `StreamData.timestamp` variants that produce *distinct* timestamps for every row, it never exercises the tie path that the deterministic tiebreak (`captured_at desc, id desc`) exists to solve. A generator that instead constant-folds timestamps (e.g. `constant(DateTime.utc_now())` reused across a batch insert) will produce real ties but only ever with a single fixed value, hiding order-dependent bugs that appear only when ties are interleaved with non-ties.
+**What goes wrong:** A deprecated function kept as a thin delegate (e.g., `row_history/4` calling into whatever `history/3` becomes) silently stops matching its own documented contract once the target function's defaults or return shape change underneath it — because nobody re-reads the deprecated function's moduledoc/spec when editing the thing it delegates to.
 
-**Why it happens:** Postgres timestamp columns have microsecond resolution; a naive generator using `DateTime.utc_now()` per row "looks" like it produces ties because rows insert faster than the clock ticks in CI, and this is invisible until it isn't (a slower CI runner spreads them out, and the "tie" property silently stops testing what it claims to).
+**Why it happens:** Deprecated code gets a pass on "revisit this" scrutiny — it's marked as going away, so changes to the surviving function don't trigger review of the alias. This is a widely observed failure mode in long-lived libraries (Rails has many) and in PaperTrail's history, where deprecated reader methods silently returned stale shapes after the main association changed.
+
+**How to avoid:** Make every deprecated function a *pure one-line delegate* (`defdelegate` or a single-expression `def` that calls the replacement with translated args) with no independent logic, so there is no behavior to drift — the delegate inherits the target's current contract by construction. Add one test per deprecated function asserting it returns byte-identical output to the replacement for the same logical inputs, so any future edit to the target that changes shape fails the delegate's test too.
+
+**Warning signs:** a deprecated function with its own `case`/`cond`/post-processing logic rather than a single forwarding call; a deprecated function's test suite that pins fixtures captured before the replacement last changed shape.
+
+**Phase to address:** the consolidation phase (implementation review checklist item: "is every deprecated path a pure delegate with a parity test?").
+
+---
+
+### Pitfall 3: `@spec` on deprecated functions is skipped, inherited stale, or lies
+
+**What goes wrong:** Either (a) the deprecated function gets no `@spec` at all because "it's going away," defeating the public-surface @spec-coverage gate this milestone is building, or (b) it keeps a stale spec from before the replacement changed shape, so Dialyzer silently stops being useful on the one code path adopters are actively being pushed off of (which is exactly when they need the most accurate type signal, mid-migration).
+
+**Why it happens:** Specs on deprecated code feel like wasted effort to the person writing the deprecation. But the coverage gate this milestone adds (PROJECT.md: "complete @spec/@doc on the public surface... add a gate so coverage can't regress") doesn't know "deprecated" means "exempt" unless that's designed in explicitly — so either the gate is accidentally satisfied by a lying spec, or the deprecated function becomes an unintended carve-out that quietly erodes the 100%-coverage story.
+
+**How to avoid:** Decide explicitly, in the gate's design, whether deprecated public functions count toward spec coverage (recommendation: yes — a function is public until it's removed, and adopters mid-migration deserve the same Dialyzer help). Write the deprecated function's spec to exactly match the replacement's spec (modulo the old arg shape being translated), not a hand-wavy `term()` escape hatch.
+
+**Warning signs:** a deprecated function typed `term() -> term()` or with no `@spec`; the coverage gate's exemption list (if one exists) growing to include every deprecated name "temporarily."
+
+**Phase to address:** the @spec/@doc completion phase, done in the same phase as (or immediately after) the consolidation/deprecation phase so the gate's rules are decided once, not retrofitted.
+
+---
+
+### Pitfall 4: Docs search and guides keep surfacing the old names
+
+**What goes wrong:** HexDocs full-text search, ExDoc's sidebar, and the guides themselves (`guides/*.md`) keep presenting `row_history/4` as a normal, first-class way to do the job, because deprecating a function in code doesn't remove it from prose written before the deprecation. New adopters land on the deprecated name via search before ever seeing the recommended one.
+
+**Why it happens:** `@deprecated` only affects the function's own doc page (ExDoc greys it out / adds a deprecation notice) and compiler warnings. It does nothing to guide prose, README snippets, or any narrative doc that references the old call by name. This repo already has 19 doc-contract tests (`test/threadline/*_doc_contract_test.exs`) proving specific guides don't drift, which is exactly the right mechanism — but it only catches what it's told to look for.
+
+**How to avoid:** Grep every file under `guides/`, `README.md`, and the example app for every soon-to-be-deprecated function name as part of the deprecation phase, and either remove the reference or explicitly caption it "deprecated, prefer X." Add (or extend) a doc-contract test asserting the deprecated names appear in guides *only* inside an explicit "migrating from older names" section, never as the primary recommended call.
+
+**Warning signs:** `grep -rn "row_history\|actor_window" guides/ README.md` returning hits outside a migration-focused guide; the moduledoc of a deprecated function not linking to the replacement.
+
+**Phase to address:** consolidation/deprecation phase, verified by extending the existing doc-contract test pattern (`test/threadline/*_doc_contract_test.exs` already in the repo — this is a proven, cheap mechanism to reuse, not invent).
+
+---
+
+### Pitfall 5: Specs that lie — too broad (`term()`) or too narrow (Dialyzer-clean but useless)
+
+**What goes wrong:** Chasing "129 of 169 public functions have no `@spec`" to zero creates pressure to write *something* fast. The two failure shapes: (a) `@spec foo(term()) :: term()` — technically present, satisfies a naive coverage gate, tells an adopter and Dialyzer nothing; (b) a spec narrower than reality (e.g. typing an options keyword list as a closed set of exactly the keys used in today's one call site) that passes Dialyzer today but means Dialyzer will flag a *future*, perfectly valid caller as a type error, training the team to ignore Dialyzer warnings on this module.
+
+**Why it happens:** Writing a precise spec for Ecto-heavy code (schemas, changesets, queries, `Ecto.Query.t()`) is genuinely harder than writing a vague one, and a line-count-driven gate rewards the vague one equally.
+
+**How to avoid:** Review specs for *informativeness*, not just presence — a lightweight rubric: does the spec name the actual union of valid shapes (e.g. `ActorRef.t() | nil`, not `term()`), does it use `Keyword.t()` + a `@type opts :: [...]` for option lists rather than a bare `keyword()`, does it reuse named `@type`s (e.g. `Threadline.Capture.AuditChange.t()`) instead of re-deriving `Ecto.Schema.t()`. Add this as an explicit agent-review checklist item (zero-human-verification per CLAUDE.md) rather than trusting a mechanical "has @spec" count.
+
+**Warning signs:** `@spec` grep showing many `term()` or `any()` return/arg types; Dialyzer passing 100% while spot-checking 5 random specs by hand finds one that's clearly wrong.
+
+**Phase to address:** the @spec/@doc completion phase; gate design must include a "no bare `term()`/`any()` on a function with >0 real argument types" rule, not just presence-or-absence.
+
+---
+
+### Pitfall 6: Specs on delegates silently duplicate (and can drift from) the target's spec
+
+**What goes wrong:** A deprecated delegate (Pitfall 2) gets its own hand-written `@spec` that's a slightly different shape than the function it forwards to — e.g. the delegate's spec allows `atom()` for a table name where the target's spec was tightened to `String.t()`. Dialyzer won't catch this because both specs are individually self-consistent; it only shows up as adopter confusion.
+
+**How to avoid:** Where Elixir's `defdelegate` is used, prefer *not* writing a separate `@spec` on the delegate at all (the delegate inherits no spec automatically, so document this as "see `Target.fun/2`" in the moduledoc instead of hand-duplicating the type); where a thin wrapper function (not `defdelegate`) is required because the arg shape differs, derive its spec mechanically from the target's spec rather than writing a parallel one by hand.
+
+**Warning signs:** two specs for logically-the-same operation that use different type names for the same argument.
+
+**Phase to address:** same phase as Pitfall 2/3 (consolidation + spec completion are tightly coupled — do them together or in strict sequence within one phase).
+
+---
+
+### Pitfall 7: Exposing Ecto schema structs makes every field public API (ONE-WAY)
+
+**What goes wrong:** `Threadline.Capture.AuditChange`, `Threadline.Capture.AuditTransaction`, and `Threadline.Semantics.AuditAction` are plain `Ecto.Schema` structs returned directly from the public API (`history/3` and friends return lists of these structs — confirmed at `lib/threadline/capture/audit_change.ex:1-40`, which documents `:table_schema`, `:table_name`, `:table_pk`, `:op`, `:data_after`, `:changed_fields`, `:changed_from`, `:captured_at`, and the `belongs_to :transaction` association). Returning the raw struct means **every field name, every association, and the presence/absence of `__meta__` is now public API** the moment 1.0.0 ships — adopters will pattern-match `%AuditChange{table_pk: pk}` in their own code, and Dialyzer-driven refactors that rename or restructure a field become a breaking change even if the *function* signature (`history/3 :: [AuditChange.t()]`) looks unchanged.
+
+**Why it happens:** It's the path of least resistance — Ecto gives you the struct for free, and wrapping it in an opaque type or a plain map means writing and maintaining a translation layer. Teams defer that decision, then discover at 1.0 that the struct's internal shape (including Ecto-internal fields like `__meta__`, `__struct__`, and any future association preload) is now frozen.
+
+**How to avoid:** This is the single highest-leverage ONE-WAY call in this milestone, on the level of the deprecation decision. Two real options, pick one explicitly and document the choice in the guide:
+  1. **Keep exposing the Ecto struct, but declare in docs exactly which fields are the stable contract** (name them individually: `table_schema`, `table_name`, `table_pk`, `op`, `data_after`, `changed_fields`, `changed_from`, `captured_at`, `inserted_at`/`id`/`transaction_id` as applicable) and explicitly disclaim `__meta__`/preload behavior as not part of the contract. This is cheapest and matches how Ecto itself documents `Ecto.Changeset` fields — accept the struct is the type, but scope the *promise* narrower than the *shape*.
+  2. **Introduce an opaque result struct per read path** (e.g. `Threadline.ChangeRecord.t()`, built via `@opaque`) that the schema struct is mapped into before returning. This is the textbook "don't leak your persistence layer" answer, used by Ash and Broadway for their public result types, but it's a larger, genuinely one-way redesign of every read-path return type — too big for a 1-2 week, 4-6 phase milestone whose scope is explicitly "consolidate, don't rewrite" (see Pitfall 13).
+  **Recommendation: option 1.** Document the stable field subset of `AuditChange`/`AuditTransaction`/`AuditAction` explicitly in the supported-table-shapes guide and in each schema's moduledoc, with an explicit "these fields are not part of the 1.0 contract" callout for `__meta__` and any association preload state. This matches the milestone's own stated scope (spec/doc/consolidate, not rearchitect) and gives adopters the clarity they need without a rewrite.
+
+**Warning signs:** a struct field documented only in a `@moduledoc` paragraph of prose rather than in a scannable field list; any association (`belongs_to :transaction`) left ambiguous about whether it's preloaded by default (changing preload defaults after 1.0 is itself a breaking behavior change even though the struct's *type* doesn't change).
+
+**Phase to address:** the @spec/@doc + supported-table-shapes guide phase. This should be decided before — or in the same phase as — the `@spec` work on the three schemas, since the spec for `history/3`'s return type depends on the answer.
+
+---
+
+### Pitfall 8: `@moduledoc false` on a module adopters (or guides) already reference is a silent breaking change
+
+**What goes wrong:** "Hide internal helpers" (an explicit v1.45 target feature) is good practice, but if any module getting `@moduledoc false` is already named in a guide, in the example app, or — worse — already called directly by an adopter who skipped the facade (common when the facade doesn't yet cover their use case), hiding it from docs doesn't remove the module, but `@moduledoc false` plus removing it from the public surface contract test's expectations is frequently *paired* with actually un-exporting/renaming functions, which does break callers with no deprecation warning at all (there's no `@deprecated`-style compiler nudge for "this module is no longer documented").
+
+**Why it happens:** `@moduledoc false` feels purely cosmetic ("just hides it from ExDoc"), so it doesn't get the same breaking-change scrutiny as removing a function. But this repo's own `test/threadline/public_surface_contract_test.exs` treats module visibility as a tracked, intentional surface (it already has a `@renamed_modules` map and `@hidden_modules` list for exactly this reason) — meaning the project has already been burned by, or anticipated, this exact class of change.
+
+**How to avoid:** Before hiding any module, grep `guides/`, `README.md`, the example app, and (if any exist) adopter-facing CHANGELOG entries for its name. If it's referenced anywhere adopter-facing, either keep it documented (even if de-emphasized) or treat the hide as a breaking change requiring a CHANGELOG entry and, ideally, a compile-time nudge (e.g., if it's a function being removed from the public call path, deprecate the function first per the ONE-WAY decision above — don't just stop documenting it while leaving it technically callable, which is the worst of both worlds: still-breakable, no warning).
+Extend `@hidden_modules` / `public_surface_contract_test.exs`'s existing rename-tracking pattern to cover this milestone's hides explicitly, the same way it already tracks `Threadline.OperatorSurface.Exports.FilterParams => Threadline.Query.FilterParams`.
+
+**Warning signs:** a module about to get `@moduledoc false` turning up in `grep -rln "ModuleName" guides/ README.md example_app/ 2>/dev/null`; a hide that isn't paired with an entry in the CHANGELOG or the `public_surface_contract_test.exs` tracking maps.
+
+**Phase to address:** the "hide internal helpers" work item, done as part of the @spec/@doc completion phase, gated by extending the existing `public_surface_contract_test.exs` mechanism (don't invent a new one).
+
+---
+
+### Pitfall 9: Bounded default limit — silent truncation is a compliance/correctness risk, not just a UX nicety
+
+**What goes wrong:** `history/3`'s `:limit` defaulted to `nil` (unbounded) in v1.44; this milestone's deferred decision is to give it a bounded default. For an *audit* library, a silently-truncated result set is categorically worse than for an ordinary pagination API: an operator or compliance reviewer who calls `history(txn, table, pk)` expecting "the complete trail" and gets the newest N rows with no visible signal has just been handed a false sense of completeness — exactly the failure mode an audit trail exists to prevent. This is compounded if `export` (a separate code path) doesn't share the same default/behavior, so "what I saw in `history/3`" and "what came out in the export" silently disagree.
+
+**Why it happens:** Bounding a default is motivated by operational safety (an unbounded query against a busy production table is a real DoS/latency risk), which is a legitimate concern — but the fix is usually applied as a plain function-default change, the same pattern used for any ordinary API, without the audit-specific requirement that truncation be *observable*, not silent.
 
 **How to avoid:**
-Generate `captured_at` explicitly as a controlled list with deliberate duplicates (e.g. `StreamData.member_of([t0, t0, t0, t1, t1, t2])` interleaved with unique ids) rather than relying on wall-clock timing. Assert the invariant against the *generated* timestamp/id pairs, not against `DateTime.utc_now()` read back out — the property must know its own ground truth, not re-derive it from the DB.
+- Whatever bound is chosen, the result must carry a machine-checkable signal that more rows exist (e.g. return a struct/tuple with `truncated?: boolean()` or reuse the existing cursor-paging contract so "there's a next page" is structurally visible, not an easy-to-miss `length(result) == limit` inference adopters have to do themselves).
+- `export` and `history`/`row_history` must use *the same* bounding semantics or an explicit, documented divergence (e.g., "export is deliberately unbounded, history defaults bounded for interactive use — use export for a complete record"). A mismatch here is the single most compliance-relevant inconsistency this milestone could ship.
+- Property tests (already a strength of this codebase per v1.44 — cursor paging, export round-trip, retention cutoff) must be updated for this: any property test that currently asserts "pages joined == full list" or treats `history/3` as unbounded needs to either explicitly test the new bounded contract or be pointed at an unbounded path (e.g. cursor paging) so the property's meaning doesn't silently change.
 
-**Warning signs:** A "duplicate captured_at" property that never fails even when the fragment ordering is deliberately reverted (mutation-test it: temporarily flip `desc, desc` to `desc, asc` and confirm the property catches it).
+**Warning signs:** a bounded default shipped as a bare integer default with no accompanying truncation signal in the return shape; `grep` showing `history/3`'s default and `export`'s default diverge with no doc explaining why; an existing property test (e.g. `cursor paging (pages joined == full list)` from v1.44) that would pass against a silently-truncated single-call `history/3` without anyone changing its assertions.
 
-**Phase to address:** The cursor-paging and `as_of`/history property-test work. Acceptance check: mutation control — temporarily break the tiebreak order in a throwaway branch and confirm the new property goes red (same discipline v1.43 applied to CI contract rules per RETROSPECTIVE.md).
-
----
-
-### Pitfall 3: Properties that restate the SQL instead of testing the invariant (tautological, Hypothesis/QuickCheck's classic trap)
-
-**What goes wrong:**
-A "property" that generates a list of changes, inserts them, calls `history/3`, and asserts the result equals `Enum.sort_by(inserted, & &1.captured_at, :desc)` computed the *same way the query does it* (same tiebreak, same ORDER BY logic reimplemented in Elixir) tests that two implementations of the same sort agree, not that the invariant (`as_of` == replayed history, `pages joined == full list`) actually holds against independent ground truth. This is the single most common QuickCheck/Hypothesis failure mode: model-based properties whose "model" is just the implementation copied into the test.
-
-**Why it happens:** It's the path of least resistance — the fastest way to get a passing property is to mirror the implementation's logic in the assertion. The MILESTONE-GUIDE.txt itself calls this out generally ("Tests are never tautological... restates the implementation"), and v1.41's retrospective explicitly names a credo-vacuous-gate regression from exactly this class of shortcut.
-
-**How to avoid:** For each invariant, write the test's ground truth using a *different* mechanism than the code under test: for cursor paging, assert `Enum.sort(joined_ids) == Enum.sort(full_list_ids)` (set equality, not an order replica) and separately assert no duplicate ids across pages and page count matches `ceil(n/limit)`; for `as_of`, replay changes with a hand-written fold over `AuditChange` structs (not by calling the same query function under test with different args) and compare final state field-by-field; for export round-trip, decode the export format with an independent decoder path (e.g. `Jason.decode!` against the raw NDJSON bytes) and compare to the source rows, not to `Export.encode/1`'s own output structure.
-
-**Warning signs:** Code review finds the property's expected-value computation imports or calls the same private helper the implementation uses; the property still passes after intentionally introducing an off-by-one in the code under test (this is the mutation-testing check — required before merge per the MILESTONE-GUIDE.txt quality bar).
-
-**Phase to address:** Every property-test requirement in this milestone. Acceptance check: each property PR includes one intentional-bug mutation run showing red, cited in the phase's VERIFICATION.md (mirrors the v1.43 pattern of "mutation controls on every contract rule").
+**Phase to address:** the consolidation phase (this is explicitly the deferred v1.44 item), with its own property-test update as an in-phase success criterion, not deferred again.
 
 ---
 
-### Pitfall 4: Property runtime creep silently eating the CI budget this milestone is trying to shrink
+### Pitfall 10: Raising the Elixir/PG support floor — minor-release footgun and CI matrix gaps
 
-**What goes wrong:** v1.44 explicitly exists partly to cut the suite's ~91% serial core (~191s of 209s per pass). Adding 6+ new property tests, each doing real DB round-trips per StreamData run (default 100 runs/property), at `async: false`, can easily add more serial wall-clock time than the async-conversion work removes — net-negative on the milestone's own goal. StreamData has no built-in per-test wall-clock budget; a generator with a wide size range (e.g. "cursor paging" testing lists up to 10,000 rows) turns a 100-run property into a multi-minute single test.
+**What goes wrong:** Two distinct mistakes: (a) bumping `mix.exs`'s `elixir: "~> 1.15"` or dropping PG 14 support in a way that reads as a minor/patch rather than being clearly flagged, which silently breaks adopters still on the old floor with no major-version signal; (b) raising the floor and leaving the CI matrix (the "current" and "latest" lanes referenced in v1.43/v1.44 work) untested against the *old* floor, so the project no longer has evidence the stated minimum actually works — the floor becomes aspirational prose, not a tested guarantee.
 
-**Why it happens:** Property-test defaults are tuned for pure, fast, in-memory code, not DB-round-tripping ones. Nobody caps `max_runs` explicitly and it silently stays at 100.
+**Why it happens:** PG 14 EOL on 2026-11-12 (confirmed in PROJECT.md) creates real pressure to bump the floor during this exact milestone window, and "bump a version requirement in mix.exs" looks like a one-line change that doesn't obviously require a semver-major conversation — but a support-floor raise is a breaking change for anyone still on the old floor, by Hex/Elixir convention (raising a dependency's minimum Elixir/OTP requirement is listed as a reason for a major bump in Elixir's own library guidelines).
 
-**How to avoid:** Set an explicit, small `max_runs` per property (e.g. 20–30 for DB-touching properties, default 100 only for pure ones like `ChangeDiff`), bound generator sizes to realistic adopter scale (tens to low hundreds of rows, matching §4's "large tables" concern being a separate perf-baseline topic, not this milestone's), and measure each new property test's wall-clock cost before merge — cite it in VERIFICATION.md the way 214/218 cited runner-minutes. Consider `ExUnitProperties`'s `:initial_size`/`:max_run_time` options if the version in use exposes them.
+**How to avoid:** Treat the floor decision explicitly as part of the 1.0.0 contract being set, not a routine bump: document the new floor in the CHANGELOG's breaking-changes section (this repo already has a convention of listing breaking changes first, per the CHANGELOG preamble), and make sure the CI matrix has a lane proving the *new* stated floor (not just "latest") so "Elixir ~> 1.16, PG 15+" (or whatever is chosen) is a tested fact, not a mix.exs string nobody runs CI against. Check whether any trigger SQL (the hand-written PL/pgSQL in `gen.triggers`) uses a PG-version-specific feature (e.g. `MERGE`, certain JSON functions) that would make the real floor higher than the stated one regardless of what mix.exs says.
 
-**Warning signs:** `mix test` total wall-clock goes up after the "rebalance toward behavior" phase; a single property test takes >5s.
+**Warning signs:** `mix.exs`'s `elixir:` constraint and the oldest CI lane's Elixir/OTP/PG version disagreeing; any SQL in trigger-generation code using a function only available from a specific PG major without a documented minimum.
 
-**Phase to address:** Both the property-test phase and the "cut the serial core" phase — they should be sequenced or measured together, not independently, since one adds serial DB tests and the other tries to remove serial time. Recommend measuring total suite wall-clock before and after each phase, not just at milestone end.
+**Phase to address:** the support-floor phase (likely combined with CI matrix review), scheduled so the CI matrix change lands in the *same* phase as the mix.exs bump — not split across phases where one could ship without the other being verified.
 
 ---
 
-### Pitfall 5: Telemetry metadata leaking PII or raw row data (redaction bypass via the side door)
+### Pitfall 11: release-please produces 0.13.0 instead of 1.0.0 (confirmed live risk in this repo)
 
-**What goes wrong:** Threadline promises redaction never leaks (`--except-columns`, redaction is a named property-test target this milestone). Telemetry events for export/retention/query/install are a second, unaudited channel for the same data to leak through: an export-telemetry event that includes `metadata: %{file_path: path, row_count: n, query: sql}` looks harmless, but if a future or adopter-side handler logs metadata wholesale (a common Oban/Telemetry.Metrics pattern — attach a handler that does `Logger.info(inspect(metadata))`), and `sql` embeds literal `WHERE actor_id = 'user@example.com'` or export metadata embeds a redacted column's post-redaction value for debugging, PII exits through a code path redaction tests never look at. This is a known Oban footgun too — Oban's own telemetry docs warn against putting `args` (which can hold PII) directly into telemetry metadata for exactly this reason, and Oban Web had to add explicit scrubbing.
+**What goes wrong:** `release-please-config.json:4` currently sets `"bump-minor-pre-major": true` — this is the release-please flag that, while a package is pre-1.0, caps every bump at minor instead of major (so a `feat!`/`BREAKING CHANGE` commit bumps 0.12.0 → 0.13.0, not 1.0.0). **If this flag is left in place, committing the 1.0.0-worthy breaking changes in this milestone will not produce a 1.0.0 release-please PR — it will produce 0.13.0**, and the maintainer will discover this only when the release PR opens with the wrong version.
 
-**Why it happens:** Telemetry metadata is typically built by whoever writes the emit call, months after the redaction contract was designed, and nobody re-runs the redaction property tests against telemetry payloads because they're a different subsystem.
+**Why it happens:** `bump-minor-pre-major` is a correct, intentional setting for a library that hasn't reached 1.0 yet (it's why 0.10→0.11→0.12 worked correctly across the last three milestones) — but it has to be *manually removed* for the release that crosses the 1.0 threshold. release-please does not know "this is the 1.0 release" on its own; it only knows commit types and this flag.
+
+**How to avoid:** Remove (or set `false`) `bump-minor-pre-major` in `release-please-config.json` as an explicit, reviewed step in the release phase — before the first `feat!`/breaking commit of this milestone lands, not after. Verify with a dry-run (release-please supports a manifest/PR preview) that the next release PR title reads `1.0.0`, not `0.13.0`, before merging the release PR. This should be a named, tested step (e.g. a one-line assertion or a documented manual-verify checklist item) rather than trusted to "someone will notice."
+
+**Warning signs:** the release-please PR title or `CHANGELOG-GENERATED.md`/manifest showing `0.13.0`; `bump-minor-pre-major: true` still present in `release-please-config.json` after the milestone's breaking commits have landed.
+
+**Phase to address:** the final "declare 1.0.0" phase, as an explicit, verifiable gate step before merging the release PR.
+
+---
+
+### Pitfall 12: BREAKING footers collapsing in generated changelogs (already happened once, in 0.12.0)
+
+**What goes wrong:** This repo's own 0.12.0 release already had a known issue (per the research-plan's question framing) with BREAKING-change commit footers collapsing/not rendering distinctly in the generated output. For a 1.0.0 release specifically — the one release where adopters most need an accurate, complete list of what changed and what breaks — a repeat of this defect would undermine exactly the trust 1.0.0 exists to establish. CLAUDE.md's own convention separates `CHANGELOG.md` (human-owned, ships to adopters) from `CHANGELOG-GENERATED.md` (bot-owned, not shipped) precisely because of this class of risk — but the human-owned file still has to be manually assembled correctly for 1.0.0, and the failure mode is a human missing a breaking change when hand-writing the curated entry, not just a bot rendering bug.
+
+**How to avoid:** For the 1.0.0 entry specifically, cross-check the hand-written `CHANGELOG.md` breaking-changes section against every `feat!`/`fix!`/`BREAKING CHANGE:` commit footer merged during the milestone (a simple `git log` grep against the milestone's commit range), not just against memory of what was planned. Given CLAUDE.md's "doc contract tests" convention, consider a one-off test (or a manual checklist item, since this is a single release-day event) asserting every deprecated/removed public name mentioned in this milestone's phase SUMMARYs also appears in the `CHANGELOG.md` 1.0.0 entry's breaking-changes list.
+
+**Warning signs:** a `git log --grep="BREAKING CHANGE" <milestone-range>` turning up a commit not represented in the hand-written CHANGELOG entry; the 1.0.0 CHANGELOG entry's breaking-changes section being shorter than the number of deprecated/removed functions this milestone actually touches.
+
+**Phase to address:** the final "declare 1.0.0" phase, same gate as Pitfall 11.
+
+---
+
+### Pitfall 13: "1.0 means done" scope creep — parked UI, polish without evidence, rewriting stable internals
+
+**What goes wrong:** Three distinct creep vectors, all plausible given this milestone's prestige ("the last rung before 1.0"): (a) pulling operator/admin UI work back in because "1.0 should look finished" — explicitly parked per PROJECT.md and MILESTONE-GUIDE.txt until after 1.0.0; (b) general polish (renaming things for taste, restructuring modules "while we're in there") that isn't load-bearing for the spec/consolidation/floor/docs scope and has no measured problem driving it; (c) rewriting genuinely stable internals (e.g. the trigger-generation SQL, the capture pipeline) under the banner of "1.0 quality" when nothing in the milestone's actual target features requires touching them — this risks reintroducing defects in code that's been hardened across v1.42-v1.44's property tests and adopter twins.
+
+**Why it happens:** "Declaring 1.0" carries psychological weight disproportionate to the actual scope (spec completion, consolidation, docs, floor) — it invites "shouldn't everything be perfect for 1.0?" thinking that the project's own stated posture (PROJECT.md: "operator/admin UI design is PARKED... New product scope... is out") explicitly forecloses.
+
+**How to avoid (keeping to ~4-6 phases, 1-2 weeks):**
+- Each phase's SUMMARY/SPEC should trace directly to one of the six explicit target-feature bullets in PROJECT.md (spec/doc completion, consolidation+deprecation, consistent return shapes, table-shapes+threat-model guides, the AuditTransaction↔AuditAction edge decision, support floor) or the release mechanics (1.0.0 declaration). Anything that doesn't trace to one of these is out of scope for this milestone by construction.
+- Treat "the operator UI is parked" and "no new product scope" as a standing halt condition for every phase's planning, the same way CLAUDE.md already treats secrets/spend/push/scope as maintainer-only — if a plan references `/audit` UI routes or LiveView templates for reasons other than "an API change forced a call-site update" (the one explicit exception in PROJECT.md), stop and flag it rather than execute it.
+- Don't let "hide internal helpers" or "consistent return shapes" become a pretext for a broader internal refactor — the scope is the *public* surface; internals that already work and aren't part of the public contract don't need touching just because someone's looking at the file anyway.
+
+**Warning signs:** a phase plan touching `lib/threadline_web` or operator-surface LiveView files without an API-change justification; a phase whose SUMMARY describes a rename/restructure with no adopter-facing or spec-coverage rationale; phase count creeping past 6 or duration estimates exceeding 2 weeks without a corresponding scope addition being explicitly re-ratified against PROJECT.md's constraints.
+
+**Phase to address:** this is a cross-phase discipline, not a single phase — enforce it at phase-planning time (gsd-discuss-phase / gsd-plan-phase) for every phase in this milestone, and re-check at milestone-audit time against the six target-feature bullets.
+
+---
+
+### Pitfall 14: Threat-model and table-shapes docs overclaim guarantees, and drift from tests
+
+**What goes wrong:** Two linked risks in the new "supported-table-shapes guide" and "redaction threat model" deliverables: (a) overclaiming — language like "redaction prevents all plaintext exposure" or "every table shape is supported" is the kind of absolute a security/compliance reviewer (one of this project's own named lenses) will immediately treat as a liability, because it's essentially never literally true (redaction, by this project's own v1.44 property-test findings, had a "silent redaction misconfiguration" bug caught by a test — meaning the honest claim is "redaction is correct *when configured and verified via `health.coverage`*," not "redaction prevents all plaintext"); (b) drift — the docs describe behavior at the moment they're written, with no mechanism tying their claims to the actual property tests/health checks that back them, so a future change to redaction or trigger behavior can falsify the guide silently (exactly the failure this repo's 19 existing doc-contract tests exist to prevent for *other* guides).
+
+**Why it happens:** Threat-model docs are typically written in prose by someone reasoning about the system, not generated from or checked against the property tests that actually prove the claims — so there's a structural gap between "what we tested" (property tests for redaction-never-leaks, retention cutoff, etc. — already built in v1.44) and "what we promise in prose" (a new document with no automated link to those tests).
 
 **How to avoid:**
-- Telemetry metadata for export/retention/query events carries **counts, durations, table names, and status atoms** — never row values, actor emails, free-text reasons, or literal SQL/WHERE fragments. Follow the existing `[:threadline, :health, :checked]` pattern (`%{covered: int, uncovered: int}` — structural counts only) as the house style; do not regress from it.
-- Add one property or example test asserting that for every new telemetry event, `metadata` values are drawn only from an allowlisted type set (integers, atoms, short enumerated strings) — this can be a simple `Enum.all?(metadata, fn {_k, v} -> is_integer(v) or is_atom(v) or v in @allowed_strings end)` check exercised against representative event calls in the export/retention/query code paths.
-- Extend redaction's "never leaks" property (already scoped this milestone) to also assert telemetry handlers attached during the test never observe a redacted value — attach a test handler in the redaction property test itself and assert on what it captured.
+- Scope every guarantee claim in both new guides to a specific, named verification mechanism: "redaction policy X is enforced and proven by the redaction-never-leaks property test (`test/...`) and surfaced by `mix threadline.health.coverage`" rather than an unscoped "redaction prevents...". Name the limits explicitly (e.g., what happens if an adopter sets up a table without running `health.coverage --strict`; what a replication slot, logical decoding consumer, or a superuser bypassing triggers can still see).
+- Add one doc-contract test per new guide, matching this repo's own established pattern (`test/threadline/*_doc_contract_test.exs`, 19 of which already exist) — at minimum, assert the guide's code examples/table names/option names match real schema/option names (compile-checked or string-checked against `mix.exs`/schema modules), and assert any claim like "supports composite keys" has a corresponding test name referenced or at least a corresponding property test file existing in the suite.
+- Have the security/compliance reviewer lens (named in PROJECT.md's lens list) read the threat-model guide specifically hunting for unscoped absolutes, as part of the phase's verification rather than general code review.
 
-**Warning signs:** Grep `Telemetry.execute` call sites this milestone adds; any metadata map literal that includes a variable sourced from row data, query params, or `reason:`/`context:` free text is a hit.
+**Warning signs:** the words "all", "never", "guarantees", "prevents" in the new guides without an adjacent "when X is true" / "except Y" qualifier; a new guide with no corresponding `*_doc_contract_test.exs` file, breaking this repo's own established pattern for every other guide.
 
-**Phase to address:** The telemetry phase (export/retention/query/install events), cross-checked against the redaction property-test phase. Acceptance check: a redaction-leak property test that also subscribes a telemetry handler and fails if it observes plaintext.
-
----
-
-### Pitfall 6: Telemetry handler crashes silently detaching the handler (adopter loses observability with no signal)
-
-**What goes wrong:** `:telemetry.execute/3` runs attached handlers synchronously in the caller's process. If an adopter's handler raises (a very common integration bug — e.g. their `Logger`/Prometheus/StatsD client isn't started yet, or their handler pattern-matches a metadata shape that changes), `:telemetry` itself catches the error, logs it, and **detaches the handler**, but Threadline's own code path continues (the transaction still commits, the export still runs). The adopter now silently stops receiving telemetry for the rest of the process/app lifetime with no restart, and nothing in Threadline surfaces that — mirroring exactly the reasoning already written into `[:threadline, :health, :checked, :error]`'s moduledoc ("lets adopters alert on transient failure") for health, but this milestone adds four more event families without that same "what if the handler itself is broken" thought applied.
-
-**Why it happens:** Library authors assume `:telemetry.execute` is fire-and-forget-safe because the *library's* code won't raise; they don't design for the handler side, which is entirely the adopter's code and out of Threadline's control.
-
-**How to avoid:** Document explicitly (in the telemetry moduledoc, following the existing docstring style) that handlers must not raise, that `:telemetry` detaches on error, and that adopters should wrap their own handler bodies. Optionally add a lightweight `Threadline.Telemetry.attach_default_logger/0` or similar safe reference handler for install/export/retention/query events (Oban and Ecto both ship a "here is a working example handler" precedent) so most adopters copy something already crash-safe rather than writing their first handler from scratch. Do not add automatic handler supervision/retry — that's out of scope and out of Threadline's control per `:telemetry`'s design.
-
-**Warning signs:** No test currently proves a raising handler doesn't break the emitting call site itself (should exist: attach a raising test handler, execute the event, assert the caller's own function still returns its normal value).
-
-**Phase to address:** The telemetry phase. Acceptance check: one test per new event family that attaches a deliberately-raising handler and asserts (a) the caller's function still completes normally and (b) the raise is at least logged, matching `:telemetry`'s documented behavior.
-
----
-
-### Pitfall 7: Cardinality explosion in telemetry metadata/measurements (StatsD/Prometheus footgun via table or actor labels)
-
-**What goes wrong:** It's tempting to add `table: table_name` or `actor_id: id` to export/retention/query telemetry metadata "for debugging." If an adopter's handler forwards telemetry straight into a metrics backend with those fields as tags/labels (the default `Telemetry.Metrics` pattern), every distinct table name or actor id becomes a new metric series. For retention (runs per table) and query (potentially per-actor) events this is an unbounded-cardinality time series that can take down a Prometheus instance — a well-documented Oban/Broadway/Ecto telemetry mistake (Ecto's own telemetry docs explicitly warn against putting `:query` string or unbounded params into `Telemetry.Metrics` tags).
-
-**Why it happens:** Table names feel "bounded" (a real schema has dozens, not millions, of tables) so it looks safe, but actor ids, correlation ids, or job ids are not bounded and are easy to add alongside table name without noticing the difference.
-
-**How to avoid:** Metadata may include `table:` (bounded, schema-fixed cardinality) but must never include `actor_id`, `correlation_id`, `job_id`, row ids, or free-text reasons as metadata keys intended for tagging. If per-actor or per-correlation detail is genuinely needed, that's a query-API concern (`Threadline.Query`), not a telemetry-metadata concern — telemetry measurements/metadata should answer "how much/how long/success or failure," not "which specific row."
-
-**Warning signs:** Any telemetry metadata key whose value space grows with the size of the audited dataset rather than the schema.
-
-**Phase to address:** The telemetry phase. Acceptance check: telemetry moduledoc's documented metadata keys per event, reviewed once for cardinality the way health's `covered`/`uncovered` counts already model correctly.
-
----
-
-### Pitfall 8: Double-emitting telemetry inside a DB transaction (event fires before commit is durable, or fires twice on retry)
-
-**What goes wrong:** Threadline already has a real instance of this shape: `emit_action_recorded/1` fires unconditionally in `Threadline.record_action/2` regardless of whether the underlying write actually committed, and the moduledoc for `transaction_committed/2` explicitly warns callers to call it manually "after a known DB transaction commit" for accuracy — i.e. the library already knows naive placement is wrong. Retention and export are both candidates for the same mistake in the new events: if `[:threadline, :retention, :purged]` or `[:threadline, :export, :completed]` is emitted *inside* an `Ecto.Multi`/`Repo.transaction` block before the outer transaction actually commits, a handler that reacts to the event (e.g. sending a notification, incrementing an external counter) can act on a purge/export that later rolls back on a downstream step or an Oban retry — and if the surrounding code retries the whole operation (Oban jobs are famously idempotent-by-retry, not exactly-once), the event fires twice for one logical purge/export.
-
-**Why it happens:** It's natural to call `:telemetry.execute` right where the "success" branch of the code is, which is often still inside the transaction function, especially in an `Ecto.Multi` step.
-
-**How to avoid:** Emit retention/export/query/install telemetry **after** the enclosing `Repo.transaction`/`Multi.transaction` returns `{:ok, _}`, never from inside the transaction function itself, matching the lesson already encoded in `transaction_committed/2`'s docstring. For retention/export specifically (both can be Oban-job-driven per the domain model), make the emit idempotent-safe or at least clearly scoped to one attempt (emit with the job/run id in the *span*, not as a side effect inside retried business logic) so a retried Oban job doesn't double-count in a naively-summing dashboard.
-
-**Warning signs:** Grep for `:telemetry.execute` calls that are lexically inside a `Repo.transaction(fn -> ... end)` block or an `Ecto.Multi.run/3` step body.
-
-**Phase to address:** The telemetry phase, specifically the export and retention sub-items (both are transactional, multi-step operations, unlike the simpler health checks that already exist). Acceptance check: a test that makes the enclosing transaction fail/rollback after the business logic "succeeds" and asserts no telemetry event fired.
-
----
-
-### Pitfall 9: `:telemetry.span/3` swallowing or mis-tagging exceptions on export/retention
-
-**What goes wrong:** If the telemetry phase reaches for `:telemetry.span/3` (the idiomatic way to get paired `:start`/`:stop`/`:exception` events, which Oban, Broadway, and Ecto all use) for export or retention, a common mistake is wrapping only the "happy path" call and letting the `:exception` event's default metadata (kind, reason, stacktrace) be the *only* signal, while the function itself still needs to re-raise or return `{:error, reason}` through its normal contract. Two failure modes: (a) `:telemetry.span/3` re-raises by design, so if the surrounding mix task or context function was written to catch and convert exceptions to `{:error, _}` tuples, wrapping it in `span/3` changes the function's public contract from "returns error tuple" to "raises" — a **breaking API change** hiding inside what looks like an observability-only addition; (b) the stacktrace or exception message captured in `:exception` metadata can itself contain interpolated row data (Postgres errors sometimes echo the offending value), reintroducing Pitfall 5 through a different door.
-
-**Why it happens:** `:telemetry.span/3`'s contract (call the function, let exceptions propagate, always emit `:stop` or `:exception`) is exactly right for functions that already raise-to-fail, but Threadline's public API style (per the domain reference and existing `Threadline.Query`/`Threadline.Health` functions) is `{:ok, _} | {:error, _}` tuples, not exceptions.
-
-**How to avoid:** Do not use `:telemetry.span/3` around functions whose public contract is `{:ok, _} | {:error, reason}`. Instead, call `:telemetry.execute/3` explicitly on both branches (success and error) after computing the result, keeping the function's return contract unchanged. Reserve `span/3` only for genuinely exception-raising internal helpers, and scrub any stacktrace/exception metadata before including it (or omit stacktraces from telemetry metadata entirely — logs are the right place for those, not `:telemetry` metadata that adopters may forward to metrics backends).
-
-**Warning signs:** A public function's `@spec` or moduledoc return shape changes from `{:ok, _} | {:error, _}` to unguarded after a telemetry change; a test that used to assert on an `{:error, reason}` tuple starts needing `assert_raise`.
-
-**Phase to address:** The telemetry phase, and cross-checked by the v1.45 API-contract milestone (this is exactly the kind of "consistent return shapes" concern v1.45 is scoped to own — flag it now, fix contract drift there if any slips through).
-
----
-
-### Pitfall 10: One-way telemetry event names and shapes (irreversible once an adopter attaches a handler)
-
-**What goes wrong:** MILESTONE-GUIDE.txt §3 states plainly: "Hex versions cannot be unpublished. Treat every public default and API shape as one-way." Telemetry event names (`[:threadline, :export, :completed]`) and their measurement/metadata key sets are exactly this kind of one-way public surface — once an adopter's `:telemetry.attach/4` pattern-matches a metadata shape, renaming a key, changing a measurement from a count to something else, or restructuring nested metadata is a breaking change with no deprecation window (unlike a function call, there's no compiler warning for a stale telemetry pattern match; it just silently stops matching or crashes the handler on the next line).
-
-**Why it happens:** Telemetry events feel like "just observability," lower-stakes than a public function signature, so less design care goes into naming/shape before shipping than into `Threadline.Query.history/3`'s signature.
-
-**How to avoid:** Name new events consistently with the existing five (`[:threadline, <subsystem>, <past-tense-verb>]`, e.g. `[:threadline, :export, :completed]`, `[:threadline, :retention, :purged]`, `[:threadline, :query, :executed]`, `[:threadline, :install, :completed]`), following the established `expected_uncovered`-is-additive precedent (new measurement/metadata keys are additive-only; never repurpose or remove an existing key without a major-version deprecation path). Document each new event's measurements/metadata in `Threadline.Telemetry`'s moduledoc with the same rigor as the existing five, since that moduledoc is effectively the contract. Treat this milestone's telemetry additions as pre-1.0 (last chance to get shapes right before the v1.45 API-contract freeze) rather than "add now, fix later."
-
-**Warning signs:** A telemetry event shipped in v1.44 needs a shape change during v1.45 — that's the signal this pitfall wasn't fully prevented; budget an explicit v1.45 telemetry-shape review line item as insurance regardless.
-
-**Phase to address:** The telemetry phase, with an explicit note carried into the v1.45 API-contract milestone's scope (MILESTONE-GUIDE.txt already tracks a similar carry-forward pattern for the AuditTransaction<->AuditAction edge).
-
----
-
-### Pitfall 11: `history/3` gaining a default limit changes today's callers' return shape before the v1.45 contract exists to govern it
-
-**What goes wrong:** `Threadline.history/3` (delegating to `Threadline.Query.history/3`) currently has no limit — it's a "return everything" call. Adding a default limit (the milestone's explicit target) is a **behavior-breaking change disguised as a feature add**: any current adopter code relying on `history/3` returning the complete history (e.g. building a full audit report, or asserting `length(history) == n` in their own tests) silently gets truncated results with no compile error and no runtime error — it just returns fewer rows. This is precisely the kind of one-way default MILESTONE-GUIDE.txt §3 flags, and it's happening *before* v1.45's "consolidate overlapping entry points... consistent return shapes" work is scoped to formalize the contract, meaning it either needs its own careful versioning now or risks a second breaking change at v1.45 if the limit's shape (a plain list vs. a paginated/cursor-shaped return) doesn't match what v1.45 standardizes on.
-
-**Why it happens:** A limit sounds like a safety/performance improvement (bounding an unbounded query), so it's easy to treat as a non-breaking hardening change rather than a return-shape change.
-
-**How to avoid:**
-- Ship the limit as an **opt-in default that changes behavior only when the caller doesn't already pass a limit-equivalent option**, and make the default generous enough not to silently truncate realistic current usage (pick the default empirically — check the retention/export property-test work in this same milestone for realistic row-count scale, and document the chosen number with rationale, not a round guess).
-- Add a CHANGELOG entry with explicit "breaking behavior change" framing (not buried as a `feat:`), since Hex/release-please's automation won't know this `feat:` is semver-sensitive beyond the normal minor bump — this crosses into "silently changes existing callers' data" territory that deserves an explicit upgrade-guide note, the same way v1.42's PK-agnostic capture change got one.
-- Decide now whether `history/3`'s return shape with a limit stays a plain list (truncated, caller has no way to know more exist) or gains a `has_more`/cursor signal — and make that decision compatible with (ideally literally reusing) the cursor-paging property-test work landing in the same milestone, so v1.45 doesn't have to reconcile two different pagination idioms.
-- Add a test asserting the *old* unlimited-call shape (no limit passed) still returns a `list()`, not a tuple or map, unless the team explicitly decides to break that now (in which case it's a deliberate, documented decision, not an accident).
-
-**Warning signs:** No upgrade-guide entry drafted alongside the `history/3` change; the default limit number has no cited rationale; existing tests that call `history/3` without a limit pass unchanged (which paradoxically is a *bad* sign if the fixture data happens to be smaller than the new default — the property tests for `as_of`/history should be the ones to catch a silent truncation, not the example-app smoke tests).
-
-**Phase to address:** The `history/3` phase, explicitly. Acceptance check: upgrade-guide/CHANGELOG note discoverable before merge, plus a property test proving pages-joined-via-the-new-limit equals the full unlimited result for realistic sizes (ties into Pitfall 3's cursor-paging invariant).
-
----
-
-### Pitfall 12: Cutting "guard tests" that are actually load-bearing CI-topology/CONTRIBUTING contracts
-
-**What goes wrong:** The milestone explicitly targets "merge or cut guard tests that no longer catch a distinct failure class." Threadline's CI-topology contract tests (the ones binding CONTRIBUTING's job roster to `ci.yml`'s `needs:` list and the required aggregate, hardened across v1.43 phases 216/218/220/221) look, superficially, like exactly the kind of "restates the implementation" tautological test this milestone is hunting for — a test that just re-lists job ids the workflow file also lists. But per v1.43's own audit and RETROSPECTIVE.md, these are the tests that were **specifically hardened this cycle** against being vacuous (moved from regex-over-YAML to parsed YAML, given named `rule=` fragments, given mutation controls) precisely because they catch a real, previously-missed failure class: a job silently dropped from the required aggregate, or CONTRIBUTING drifting from the actual roster. Cutting them now, mid-rebalance, would erase v1.43's own investment and reopen exactly the gap 220/221 closed.
-
-**Why it happens:** "Rebalance toward behavior, cut guard tests" is a blunt instruction; without cross-referencing which guard tests were *just* proven load-bearing by a mutation control, a rebalance pass can't tell a genuinely-dead guard test from a recently-hardened one that happens to look similar (both assert "list X equals list Y").
-
-**How to avoid:** Before cutting or merging any guard test, check whether it has a documented mutation control (a "this fails when X breaks" proof) from a v1.42/v1.43 phase — if it does, it's provably load-bearing and out of scope for this rebalance; if it doesn't, that's the actual candidate list. Treat the CI-topology/CONTRIBUTING contract tests and the aggregate `needs:` binding as **explicitly out of scope** for this milestone's guard-test cut unless new evidence shows the mutation control itself was wrong. Cross-reference `.planning/milestones/v1.43-MILESTONE-AUDIT.md` tech_debt and `RETROSPECTIVE.md` "Patterns established" before finalizing the cut list.
-
-**Warning signs:** A cut guard test's name or file matches anything referenced in v1.43's 220/221 phase summaries or the CI job roster; `mix ci.all`'s required aggregate composition changes as a side effect of a "test rebalance" commit.
-
-**Phase to address:** The guard-test-rebalance phase. Acceptance check: the cut/merge list is reviewed against "does this test have a v1.42/v1.43 mutation control" before any deletion, and the CI-required aggregate's job count is diffed before/after the phase and must be unchanged unless explicitly decided otherwise.
-
----
-
-### Pitfall 13: Converting serial tests to `async: true` breaks trigger-capture's real-commit dependency and the shared local PG connection limit
-
-**What goes wrong:** Threadline's capture mechanism fundamentally requires committed transactions (triggers fire on real commits; `AuditTransaction`/`AuditChange` rows are only visible after commit, and multiple related properties in this very milestone depend on that). `Ecto.Adapters.SQL.Sandbox`'s normal `async: true` mode wraps each test in a rolled-back transaction — which is exactly incompatible with observing trigger-captured rows, and is presumably *why* the suite has none today. "Cutting the serial core" therefore cannot mean "flip `async: true` broadly" for capture-adjacent tests; it can only mean (a) genuinely converting pure/non-DB tests that were serial for no reason, or (b) adopting sandbox's *non-transactional* async mode (checkout with `sandbox: false` equivalent, or per-test schema/savepoint isolation) which trades rollback-safety for real concurrent connections — and that reintroduces the second hazard: the local dev Postgres's `too_many_connections` (already a known-environmental issue per memory, seen during v1.43 landing). Naively parallelizing DB-touching tests without also raising `pool_size`/`max_connections` or partitioning by schema will produce connection-pool exhaustion failures that look like flakes but are actually a capacity ceiling.
-
-**Why it happens:** "Cut serial time" is a natural instinct to reach for `async: true`, and most Elixir/Ecto guidance defaults to recommending it without flagging that trigger-based audit capture is one of the documented exceptions (Carbonite's own docs note the audit-trigger-and-transaction coupling as a first-class design constraint, not an incidental one) where naive sandboxing breaks the thing under test.
-
-**How to avoid:**
-- Audit the ~91% serial figure by *cause*, not by blanket flag-flip: separate "serial because it does real trigger-capture and needs commit visibility" from "serial with no reason" (leftover default, copy-paste from an earlier serial test, or accidental shared global state like `Application.put_env` — see Pitfall 14).
-- For genuinely capture-dependent tests, look at test-isolation strategies that don't require sandbox rollback: unique per-test schema or table-name suffixes so concurrent tests don't collide on the same rows, keeping `async: true` viable without needing rollback. This is more work than a flag flip and should be scoped as its own explicit sub-item, not assumed free.
-- Before enabling more parallelism, check and if needed raise the local/CI Postgres `max_connections` and the test repo's `pool_size`, and re-derive whether the "shared local PG" `too_many_connections` issue (flagged as environmental in prior memory) recurs under the new concurrency — if so, that's now a real regression, not environmental noise, and needs a fix (e.g. a bounded pool_size cap in `config/test.exs`, or a CI-only higher `max_connections`).
-- Re-measure suite wall-clock time after each conversion batch, the same measure-first discipline v1.43 used for CI economy, rather than assuming async conversion helps by construction.
-
-**Warning signs:** New `too_many_connections` errors appear only after the async-conversion phase lands, on the same machine that was fine before; a converted "async" test starts asserting on `AuditChange` rows it didn't itself insert (cross-test pollution from real, uncommitted-by-sandbox concurrent writes).
-
-**Phase to address:** The "cut the suite's serial core" phase, explicitly gated on first classifying the 91% by cause. Acceptance check: a before/after wall-clock measurement (matching 214's baseline-then-measure pattern) plus zero new `too_many_connections` occurrences across 10 consecutive local/CI runs.
-
----
-
-### Pitfall 14: Global `Application.put_env`/module-attribute state races once tests parallelize
-
-**What goes wrong:** `test/test_helper.exs` already uses `Application.put_env(:threadline, :default_test_excludes, exclude)` and the `Threadline.Test.NoticeGuard` attaches a *global* (VM-wide) notice listener with an `after_suite` verification callback. Any test that reads or mutates `Application.env` for `:threadline` config (e.g. a future telemetry-config toggle, a redaction column-list override used to test the property in different configs, or an `:invalid_config` health check candidate this milestone might include) is unsafe to run `async: true` if any other concurrent test also touches that same config key — classic global-mutable-state-under-parallelism, and Threadline already has at least one VM-global piece of test infrastructure (`NoticeGuard`) that assumes a single serialized pass.
-
-**Why it happens:** Global app config is convenient for one-off test setup and works fine serially; the failure mode only appears once two tests touching the same key run concurrently, which won't happen until the async-conversion phase actually increases concurrency.
-
-**How to avoid:** Before marking any test `async: true`, grep its body and any helper it calls for `Application.put_env`/`Application.get_env` on `:threadline` keys, and for anything that depends on `Threadline.Test.NoticeGuard`'s global listener state; keep those `async: false` or refactor them to pass config explicitly as function/opts arguments instead of through global app env (the more durable fix, and one that also makes the affected code more testable under property tests that vary config per run).
-
-**Warning signs:** A newly-async test intermittently fails only when run alongside a specific other test file (order-dependent flake); `NoticeGuard`'s `after_suite` verification reports a truncated-identifier NOTICE that no single test's own migration should have produced.
-
-**Phase to address:** The async-conversion phase, as a required pre-check before flipping any given test file. Acceptance check: `mix verify.flake` (already exists per prior memory) run specifically against the newly-async set before merge.
-
----
-
-### Pitfall 15: `gen.triggers --down` orphaning the per-table capture function is a correctness bug with a security echo, not cosmetic
-
-**What goes wrong:** The deferred v1.42 item states `gen.triggers`'s `down, all: true` after a per-table rerun "leaves a function behind." Given v1.42's central fix was collision-free *per-table* capture functions (replacing one shared function specifically because a shared function let one table's trigger run another table's redaction logic — a security fix, not just a naming one), an orphaned per-table function left behind by an incomplete `down` is a smaller instance of the same class of risk: a stale function that no longer has a corresponding trigger can still exist in the catalog, potentially get reattached by a future manual `CREATE TRIGGER`, or simply pollute `pg_proc` in a way that a future `gen.triggers` name-collision check (also from v1.42) doesn't expect to see. It's also an adopter-trust issue: `mix threadline.gen.triggers --down` is the documented rollback path, and rollback that doesn't fully roll back breaks the "correct by default" and "SQL-native, no opaque state" promises in CLAUDE.md's Key Design Constraints.
-
-**Why it happens:** `down` migrations for generated trigger code are easy to write against the "normal" case (one table, one generate-then-later-remove cycle) and miss the "regenerate the same table's trigger, then remove all" sequence where an older function name/hash from the earlier generation is still on disk in `pg_proc` under a name the newest `down` logic doesn't know to look for (especially relevant given v1.42's hashed-suffix policy for long identifiers — a regenerated table can get a *different* hashed function name than the one first installed).
-
-**How to avoid:** Reproduce exactly: generate triggers for a table, regenerate them (same table, e.g. after an `--except-columns` change), then run `down, all: true`, and assert via `pg_proc` (or `information_schema.routines`) that zero `threadline_capture_*` functions remain for that table — not just that triggers are gone. Add this as a migration-property or integration test (fits naturally next to the trigger-migration property test that already exists — `trigger_migration_property_test`). Fix likely needs `down` to enumerate functions by a stable naming prefix/schema query rather than by replaying only the specific names the current migration file's `up` believes it created.
-
-**Warning signs:** `SELECT proname FROM pg_proc WHERE proname LIKE 'threadline_capture_%'` after a full `down, all: true` returns any rows.
-
-**Phase to address:** The `gen.triggers` down-orphan phase. Acceptance check: the exact regenerate-then-down-all repro above, asserted against `pg_proc`, added to the existing trigger-migration property test family (naming it consistently, e.g. `trigger_migration_property_test.exs`) rather than as an isolated one-off unit test, since it's exactly the kind of invariant ("every trigger this library ever installed for a table is fully removable") property testing suits.
-
----
-
-### Pitfall 16: Retention/backfill tasks writing to audit history undermines the "correct by default" and tamper-evidence claims
-
-**What goes wrong:** This milestone's scope brushes against `mix threadline.gen.backfill` (deferred from v1.42, "included, reshaped or deferred on research" this cycle) and ships retention property tests (cutoff boundaries) alongside retention telemetry. The structural risk both share: any code path that **mutates already-captured `AuditChange`/`AuditTransaction` rows** (as opposed to inserting new ones, or deleting whole rows under a documented retention policy) breaks the implicit tamper-evidence/integrity claim the capture layer exists to make — an audit trail where historical entries can be silently edited (not just pruned) is not an audit trail. A backfill task in particular is dangerous here: "backfill" naturally suggests filling in *missing* audit history for rows that existed before Threadline was installed, which requires synthesizing `AuditChange`/`AuditTransaction` records for events Threadline never actually observed — records that are indistinguishable, once written, from real trigger-captured ones unless deliberately marked. PaperTrail and Logidze (both prior-art audit/versioning libraries) draw a hard line here: versioning writes are additive-only by construction (new version rows), and any "backfill" or "reconcile" tooling in that ecosystem is understood as fundamentally different in trust level from trigger-captured rows, usually requiring an explicit `synthetic: true`-style marker or living in a completely separate table.
-
-**Why it happens:** "Backfill" is a familiar, low-drama word from ordinary data-migration work; it's easy to reach for the same mental model (write historical rows in) without registering that in *this specific domain*, writing plausible-looking historical audit rows is materially different from writing plausible-looking historical `orders` rows, because the whole point of `AuditChange` is "this is what the trigger actually saw."
-
-**How to avoid:**
-- If `gen.backfill` ships this milestone, any row it produces must be structurally distinguishable from trigger-captured rows — e.g. a `source: :backfill` (or similar) column/metadata value never set by the trigger path, and documentation stating plainly that backfilled rows are reconstructed, not observed, and should be excluded or clearly labeled in any export/report that claims completeness.
-- Retention's cutoff/purge logic must only ever **delete whole rows** past a cutoff, never edit surviving rows' content; the retention property test (cutoff boundaries) should assert this explicitly — generate a dataset, run purge at a cutoff, and assert every *surviving* row is byte-identical to its pre-purge self (not just "still present"), which also catches an accidental `UPDATE` sneaking into what should be a pure `DELETE` path.
-- If `gen.backfill` research this cycle concludes the honest answer is "defer again" (a legitimate outcome per MILESTONE-GUIDE.txt's "if nothing clears the bar, choose sustainment or stop"), that's preferable to shipping a backfill tool without this distinction solved.
-
-**Warning signs:** A backfill-produced row has no way to tell it apart from a real capture; the retention purge property test only asserts row *counts* before/after, not surviving-row content equality.
-
-**Phase to address:** Whichever phase resolves the deferred `gen.backfill` item, plus the retention property-test phase for the surviving-row-integrity assertion. Acceptance check: retention property test includes a content-equality check on survivors, and (if backfill ships) a test asserting backfilled rows carry a distinguishing marker absent from trigger-captured rows.
-
----
-
-### Pitfall 17: CI exit-code or required-check changes silently breaking adopters' own pipelines that shell out to `mix`
-
-**What goes wrong:** This milestone touches several CLI-adjacent surfaces that adopters' own CI could depend on: `history/3` gaining a limit (Pitfall 11, a runtime contract change, not a CI one, but adopters sometimes assert exit codes from scripts that call into Threadline's mix tasks), `mix threadline.gen.triggers` (the down-orphan fix changes its behavior), a possible `health --strict` mode (explicitly listed as a deferred candidate), and `:invalid_config` handling. If `health --strict` is added and adopters who already run `mix threadline.health` (non-strict) in their own CI pipelines see its *default* exit-code behavior change (e.g. warnings that previously exited 0 now exit non-zero because "strict" logic leaked into the default path, or vice versa a bug flips it), their pipelines go red or silently stop catching what they used to catch, with no compile-time signal — the mix-task equivalent of Pitfall 10's telemetry one-way-shape problem.
-
-**Why it happens:** CLI exit codes are even less visible as "public API" than telemetry event shapes — there's no moduledoc convention forcing a documented contract, and it's easy for a `--strict` flag's implementation to accidentally share exit-code logic with the default path during refactor.
-
-**How to avoid:** If `health --strict` ships, keep its exit-code contract strictly additive: the non-strict default's exit code for every existing condition must be provably unchanged (a targeted test comparing exit codes before/after for each health-finding severity, not just "the task runs"), and `--strict`'s new stricter behavior must be opt-in only, gated behind the explicit flag with no default-path bleed. Document exit codes per finding severity in the task's `@moduledoc`/`--help` output, the same way the telemetry moduledoc documents event shapes, since that's the artifact adopters actually read before wiring a CI step to it.
-
-**Warning signs:** No existing test asserts specific exit codes per health-finding severity today (worth checking before assuming there is one); a `--strict` implementation shares a code path with the default rather than layering on top of it.
-
-**Phase to address:** Whichever phase resolves `health --strict`/`:invalid_config` (explicitly still "on research" per PROJECT.md). Acceptance check: an exit-code-contract test matrix (severity x strict/non-strict) added alongside the feature, not just a happy-path CLI smoke test.
+**Phase to address:** the supported-table-shapes + redaction threat-model phase, with the doc-contract test as an explicit in-phase deliverable (not a follow-up), matching the existing 19-file pattern already proven in this repo.
 
 ---
 
@@ -271,83 +235,66 @@ A "property" that generates a list of changes, inserts them, calls `history/3`, 
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|--------------------|-----------------|------------------|
-| Writing a property's expected value with the same sort/order logic as the code under test | Fast to write, passes immediately | Tautological — catches nothing (Pitfall 3) | Never |
-| Leaving StreamData `max_runs` at the 100 default for DB-touching properties | No tuning effort | Suite wall-clock creep, fights this milestone's own async-cut goal (Pitfall 4) | Only for pure, non-DB properties |
-| Flipping `async: true` on a test file without checking for trigger-capture or global `Application.env` dependence | Immediate parallelism | Flaky cross-test pollution, `too_many_connections` (Pitfalls 13, 14) | Never without the dependency check first |
-| Adding telemetry metadata fields "for debugging" (raw query, actor id, reason text) | Richer local debugging today | PII/redaction leak, unbounded cardinality, one-way contract lock-in (Pitfalls 5, 7, 10) | Never in emitted metadata; put it in `Logger.debug` instead, which isn't a public contract |
-| Backfill writing rows indistinguishable from trigger-captured ones | Simpler backfill implementation | Breaks tamper-evidence claim permanently for that dataset once shipped | Never, unless explicitly marked (Pitfall 16) |
-| Cutting a guard test because it "looks tautological" without checking for a v1.43 mutation control | Faster rebalance | Reopens a gap 220/221 just closed (Pitfall 12) | Never without the cross-check |
+| Ship 1.0.0 with deprecated aliases but no removal-target version named | Avoids a hard promise under time pressure | Deprecated code lives forever by default, nobody owns killing it | Never for this milestone — name "removal no earlier than 2.0, not currently planned" explicitly |
+| Write `@spec` as `term()` to hit a coverage percentage | Fast, unblocks the gate | Dialyzer and adopters get no real signal; false sense of "done" | Never — treat as equivalent to no spec in review |
+| Leave the bounded `history/3` default unsigned (no truncation flag) | Simpler return shape, no struct change | Silent incompleteness in an audit trail — the worst possible failure mode for this domain | Never |
+| Defer the `bump-minor-pre-major` flag flip to "whenever we remember" | One less thing to think about now | Live risk of shipping 0.13.0 instead of 1.0.0, discovered only at release-PR time | Never — do it before the first `feat!` commit lands |
 
-## Performance Traps
+## Integration Gotchas
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Unbounded `history/3` before the limit ships | Slow queries on tables with long-lived rows and heavy update rates | The limit itself is the fix; see Pitfall 11 for how not to break it | Already breaking for any adopter with a hot row updated thousands of times |
-| Property `max_runs` left at default against real DB writes | CI wall-clock grows every time a new property is added | Explicit small `max_runs` per DB-touching property (Pitfall 4) | As soon as 3-4 more properties land at default settings |
-| Async conversion without raising `pool_size`/`max_connections` | `too_many_connections` under concurrency | Measure connection ceiling before enabling more parallel DB tests (Pitfall 13) | As soon as concurrency exceeds the pool size, which is exactly what this phase intends to increase |
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Telemetry metadata carrying row values, actor identifiers, or raw SQL | PII/secret leak to any attached handler, including third-party APM/metrics forwarders | Allowlist metadata value types; counts/durations/atoms only (Pitfall 5) |
-| `:telemetry.span/3` exception metadata echoing a Postgres error that contains a literal offending value | Same leak, via stacktrace/exception metadata instead of the happy path | Don't use `span/3` for tuple-returning functions; scrub exception metadata (Pitfall 9) |
-| Backfilled audit rows indistinguishable from real capture | An attacker (or a careless script) could insert synthetic "history" that reads as authoritative | Mark backfilled rows distinctly; never let backfill silently pass as capture (Pitfall 16) |
-| Orphaned per-table capture function left by an incomplete `down` | Residual trigger-adjacent function in `pg_proc`, echoing the v1.42 collision class of bug | Verify against `pg_proc`, not just trigger listings, after `down` (Pitfall 15) |
+| Integration | Common Mistake | Correct Approach |
+|-------------|------------------|-------------------|
+| release-please | Leaving `bump-minor-pre-major: true` through the 1.0 release | Flip to `false`/remove before the milestone's breaking commits land; dry-run the version bump |
+| HexDocs (multi-version) | Publishing 1.0.0 docs without checking 0.x doc retention/canonical-version settings | Verify Hex's docs page still serves 0.12.x docs for adopters pinned `~> 0.12`, and that the "latest" canonical tag correctly points to 1.0.0 only once it's out |
+| Dialyzer in CI | Adding ~129 new specs in one pass without a staged Dialyzer run locally first | Run `mix dialyzer` incrementally per module/phase, not once at the end — PLT cost and error volume both compound (per this repo's own noted "Dialyzer cost" concern and prior PLT-cache gotchas in project memory) |
+| `--warnings-as-errors` (adopter-side) | Assuming adopter CI mirrors this repo's own clean compile | Explicitly test a fresh `mix new` + `{:threadline, "~> 1.0"}` app with `--warnings-as-errors` as part of verification, not just this repo's own compile |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Property tests exist and pass:** Often missing a mutation control proving they'd fail on a real regression — verify by temporarily breaking the invariant in a throwaway commit and confirming red (Pitfall 3).
-- [ ] **Telemetry events for export/retention/query/install:** Often missing a raising-handler test and a PII-allowlist check on metadata — verify both exist per event (Pitfalls 5, 6).
-- [ ] **`history/3` limit shipped:** Often missing an upgrade-guide/CHANGELOG note and a truncation-detecting test against realistic fixture sizes — verify the note exists and the old no-limit call path is deliberately tested (Pitfall 11).
-- [ ] **Guard-test rebalance done:** Often accidentally includes CI-topology/CONTRIBUTING contract tests that have a v1.43 mutation control — verify the cut list was cross-checked against `.planning/milestones/v1.43-MILESTONE-AUDIT.md` (Pitfall 12).
-- [ ] **Serial-core cut / async conversion:** Often missing a wall-clock before/after measurement and a `too_many_connections` regression check across repeated runs — verify both (Pitfall 13).
-- [ ] **`gen.triggers` down-orphan fix:** Often verified only by "trigger is gone," not by "function is gone from `pg_proc`" — verify with a direct `pg_proc` query, not just the trigger listing (Pitfall 15).
-- [ ] **Bench ExUnitProperties compile fix:** Often fixed locally without a CI job actually exercising the bench project's compile step going forward — verify the fix is proven by a job that would have caught the original break, not just a one-time local `mix compile` run.
+- [ ] **@spec coverage:** "100% of public functions have a spec" — verify none are bare `term()`/`any()` on functions with real argument shapes (Pitfall 5).
+- [ ] **Deprecation:** "overlapping entry points consolidated" — verify the losing functions are hard-deprecated (not silently removed) and every internal/example/guide call site was updated (Pitfall 1, 4).
+- [ ] **Hidden modules:** "internal helpers hidden" — verify none of the hidden modules are referenced in guides/README/example app, or the hide is treated as a breaking change (Pitfall 8).
+- [ ] **Bounded default:** "history/3 has a sane default limit" — verify truncation is structurally observable in the return shape, not just inferable from `length(result) == limit` (Pitfall 9).
+- [ ] **Support floor:** "Elixir/PG floor raised" — verify a CI lane actually tests the new stated floor, not just documents it (Pitfall 10).
+- [ ] **1.0.0 release:** "milestone declares 1.0.0" — verify the release-please PR title is literally `1.0.0`, not `0.13.0`, before merging (Pitfall 11).
+- [ ] **New guides:** "table-shapes guide and threat model shipped" — verify each has its own doc-contract test, matching the existing 19-file pattern (Pitfall 14).
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
-|---------|----------------|-----------------|
-| Tautological property shipped and later found | LOW | Rewrite the expected-value computation with an independent method; add the mutation control retroactively; no data-shape change needed |
-| Telemetry event shape needs to change post-release | HIGH | Requires an additive-only new event or a documented deprecation window at v1.45; cannot silently rename/remove a key once adopters may have attached handlers |
-| `history/3` default limit found to be wrong (too low/high) post-release | MEDIUM | Ship a follow-up `fix:`/`feat:` adjusting the default with a CHANGELOG note; still a behavior change for callers relying on the old default, so treat with the same care as the original change |
-| Async conversion caused `too_many_connections` in CI/shared local PG | LOW-MEDIUM | Revert the specific file(s) to `async: false`, or cap `pool_size`; re-measure before re-attempting |
-| Backfilled rows shipped without a distinguishing marker | HIGH | Requires a follow-up migration to retroactively tag or separate backfilled rows from captured ones, and a public erratum since any exports/reports already taken are now known-tainted for that window |
-| Guard test cut that was load-bearing (CI topology gap reopens) | MEDIUM | Restore the specific test/mutation control from git history; re-verify against the same repro that originally proved it load-bearing |
+|---------|-----------------|-------------------|
+| release-please ships 0.13.0 instead of 1.0.0 | LOW | Catch before merging the release PR (Pitfall 11's gate); if already merged, release-please supports a manual version override in a follow-up PR — costly in confusion but not in code |
+| A deprecated function's delegate drifts from its target | MEDIUM | Add the parity test retroactively, fix behavior, ship a patch release with a CHANGELOG note; no semver violation since behavior is being *corrected* to match documented contract |
+| An Ecto struct field gets exposed, then needs restructuring in 1.x | HIGH | Can't fix within 1.x without a breaking change; must wait for 2.0, or add a *new* field/function alongside the old one and deprecate the old shape — this is exactly why Pitfall 7's decision must be made carefully now |
+| A hidden module turns out to be in active use by guides | LOW-MEDIUM | Un-hide it (restore `@moduledoc`), document it properly, and treat it as "we were wrong to park this one, not worth a major bump to revert a doc-visibility change alone" |
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
-|---------|-------------------|---------------|
-| 1. Shrinking against a live shared DB | Property-test phase | 20x local repeat run green; `async: false` unless proven pure |
-| 2. Tie generators that don't match the real tiebreak | Cursor/history property-test phase | Mutation control: flip `desc, desc` to `desc, asc`, confirm red |
-| 3. Tautological properties | Every property-test phase | Mutation control cited per property in VERIFICATION.md |
-| 4. Property runtime creep | Property-test phase + serial-core-cut phase, sequenced together | Suite wall-clock measured before/after both phases |
-| 5. PII in telemetry metadata | Telemetry phase | Metadata-type allowlist test; redaction property test also asserts on telemetry |
-| 6. Handler crash silently detaches | Telemetry phase | Raising-handler test per new event family |
-| 7. Cardinality explosion | Telemetry phase | Documented metadata keys reviewed for boundedness |
-| 8. Double-emit inside transaction | Telemetry phase (export/retention) | Rollback test: no event fires if enclosing transaction fails |
-| 9. `span/3` breaking tuple-return contracts | Telemetry phase | Return-shape test unchanged after telemetry added |
-| 10. One-way event names/shapes | Telemetry phase, carried into v1.45 | Moduledoc documents every event; v1.45 scope note added |
-| 11. `history/3` limit breaking return shape/behavior | `history/3` phase | Upgrade-guide note + truncation-detecting property test |
-| 12. Cutting load-bearing guard tests | Guard-test-rebalance phase | Cut list cross-checked against v1.43 mutation controls; required-aggregate job count diffed |
-| 13. Async conversion vs. trigger-capture/connections | Serial-core-cut phase | Wall-clock + zero new `too_many_connections` over 10 runs |
-| 14. Global config state races under async | Serial-core-cut phase | `mix verify.flake` run against newly-async set |
-| 15. `gen.triggers` down orphan | `gen.triggers` down-orphan phase | Direct `pg_proc` query after regenerate-then-down-all repro |
-| 16. Backfill/retention mutating audit history | `gen.backfill` resolution phase + retention property-test phase | Survivor content-equality test; backfill marker test if shipped |
-| 17. CI/CLI exit-code contract breaks | `health --strict`/`:invalid_config` phase | Exit-code matrix test (severity x strict/non-strict) |
+|---------|-------------------|----------------|
+| Deprecate-vs-remove ONE-WAY call | Consolidation phase | CHANGELOG + moduledoc each hard-deprecated function names the exact replacement; `mix compile --warnings-as-errors` clean on internal code |
+| `--warnings-as-errors` breaking adopters | Consolidation phase | Internal/example/guide call sites updated; fresh adopter-app smoke test with the flag on |
+| Delegate drift | Consolidation phase | Parity test per deprecated function; delegates are pure one-liners |
+| Lying/narrow specs | @spec/@doc completion phase | Agent-review rubric rejects bare `term()`/`any()` on non-trivial functions |
+| Specs on delegates | Consolidation + spec phase (same or sequential) | No duplicated hand-written spec on `defdelegate` targets |
+| Docs search surfacing old names | Consolidation phase | Doc-contract test extension; grep sweep of guides/README/example app |
+| Ecto struct field exposure (ONE-WAY) | @spec/@doc + table-shapes guide phase | Explicit stable-field list documented per schema moduledoc; decision recorded before schema specs are written |
+| Hiding referenced modules | @spec/@doc completion phase | Extend `public_surface_contract_test.exs`'s existing hide/rename tracking |
+| Bounded default truncation | Consolidation phase (deferred v1.44 item) | Property test updated for bounded contract + truncation-signal field; export/history parity documented |
+| Support floor raise | Support-floor phase | CI matrix lane actually runs the new stated floor; CHANGELOG breaking-changes entry |
+| release-please 0.13.0 vs 1.0.0 | Release/declare-1.0.0 phase | `bump-minor-pre-major` flipped before breaking commits; release PR title verified pre-merge |
+| BREAKING footer collapse | Release/declare-1.0.0 phase | `git log --grep="BREAKING CHANGE"` cross-checked against hand-written CHANGELOG entry |
+| Scope creep (parked UI, polish, internals rewrite) | Cross-phase discipline, enforced at every discuss/plan step | Every phase traces to one of PROJECT.md's six target-feature bullets; no `operator_surface`/LiveView edits without an API-forced justification |
+| Threat-model/table-shapes overclaiming + drift | Table-shapes + threat-model phase | New doc-contract test per guide; security-reviewer-lens pass hunting unscoped absolutes |
 
 ## Sources
 
-- Repo-grounded (HIGH confidence): `.planning/PROJECT.md`, `.planning/MILESTONE-GUIDE.txt`, `.planning/RETROSPECTIVE.md` (v1.41–v1.43 sections), `.planning/milestones/v1.43-MILESTONE-AUDIT.md`, `CLAUDE.md`, `lib/threadline/telemetry.ex`, `lib/threadline/query/cursors.ex`, `lib/threadline.ex`, `lib/threadline/query.ex`, `lib/mix/tasks/threadline.gen.triggers.ex`, `test/test_helper.exs`, repo `grep` for `async: false` / `Ecto.Adapters.SQL.Sandbox` usage (56 files serial, no sandbox found).
-- [StreamData / property-based testing with Ecto — Elixir Forum: "Property-based testing slow when hitting the database"](https://elixirforum.com/t/property-based-testing-slow-when-hitting-the-database/58666)
-- [stream_data — GitHub (whatyouhide/stream_data)](https://github.com/whatyouhide/stream_data)
-- [8 Common Causes of Flaky Tests in Elixir — AppSignal blog](https://blog.appsignal.com/2021/12/21/eight-common-causes-of-flaky-tests-in-elixir.html)
-- [Carbonite — Audit trails for Elixir/PostgreSQL based on triggers (GitHub, bitcrowd/carbonite)](https://github.com/bitcrowd/carbonite)
-- [Carbonite API reference / README (hexdocs.pm/carbonite)](https://hexdocs.pm/carbonite/api-reference.html)
-- MEDIUM confidence, from general ecosystem knowledge (not independently re-fetched this session): `:telemetry`'s documented handler-crash-detaches behavior; Oban's telemetry/`args`-in-metadata PII guidance and Oban Web scrubbing; Ecto's `Telemetry.Metrics` tag-cardinality guidance against unbounded `:query`/param tags; PaperTrail/Logidze's additive-only versioning-row design as prior art for audit-trail mutation discipline; Hypothesis/QuickCheck's well-known "model equals implementation" tautological-property anti-pattern.
+- This repository, verified directly (HIGH confidence): `.planning/PROJECT.md`, `.planning/MILESTONE-GUIDE.txt` §7, `release-please-config.json:4` (`bump-minor-pre-major: true`), `CHANGELOG.md` (0.12.0 entry structure, human-owned/generated split), `lib/threadline/capture/audit_change.ex:1-40`, `test/threadline/public_surface_contract_test.exs`, `test/threadline/semver_adopter_doc_contract_test.exs`, and the 19 `test/threadline/*_doc_contract_test.exs` files.
+- [Compatibility and deprecations — Elixir docs](https://hexdocs.pm/elixir/1.19.0-rc.0/compatibility-and-deprecations.html) — the 3-step soft/hard-deprecate/remove-at-major policy cited for the ONE-WAY recommendation. HIGH confidence, official source.
+- [Library Guidelines — Elixir docs](https://hexdocs.pm/elixir/main/library-guidelines.html) — general Hex library semver conventions. HIGH confidence, official source.
+- Phoenix/Ecto/Oban/LiveView major-version deprecation behavior (Ecto 2→3 adapter/type changes, Oban 2.x worker-shim retention, Phoenix 1.6/1.7 LiveView-aligned majors): MEDIUM confidence, recalled from general ecosystem knowledge, not re-verified line-by-line against each project's own changelog this pass — directionally reliable (all four projects are well known for *not* removing public functions mid-major) but specific version numbers should be spot-checked if a roadmap author wants to cite exact precedent commits.
+- Rails gems / Django / Hibernate Envers / PaperTrail / Logidze precedent on deprecated-delegate drift and long-tail deprecation debt: LOW-MEDIUM confidence, general cross-ecosystem pattern recall rather than a specific verified incident — presented as a known *class* of failure (widely discussed in the Ruby/Rails gem-maintenance community), not a cited specific commit or issue.
 
 ---
-*Pitfalls research for: Threadline v1.44 Behavioral Depth (Properties, Twins, Telemetry)*
-*Researched: 2026-09-30*
+*Pitfalls research for: Threadline v1.45 "1.0 API Contract"*
+*Researched: 2026-10-02*

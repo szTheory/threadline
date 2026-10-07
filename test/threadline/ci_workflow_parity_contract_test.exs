@@ -3345,7 +3345,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
       {row["otp"] == "26.2.5.21", "min row must pin otp: \"26.2.5.21\""},
       {row["elixir"] == "1.15.8", "min row must pin elixir: \"1.15.8\""},
       {row["runner"] == "ubuntu-24.04", "min row must run on ubuntu-24.04"},
-      {row["pg"] == "14", "min row must use pg 14"},
+      {row["pg"] == "15", "min row must use pg 15"},
       {not Map.has_key?(row, "version-file"), "min row must not set version-file"},
       {otp_major == "26", "min row OTP major must be 26, got #{inspect(otp_major)}"},
       {floor != nil and elixir_minor == floor,
@@ -5650,7 +5650,7 @@ defmodule Threadline.CIWorkflowParityContractTest do
               - lane: min
                 elixir: "1.15.8"
                 otp: "26.2.5.21"
-                pg: "14"
+                pg: "15"
                 runner: "ubuntu-24.04"
               - lane: current
                 version-file: ".tool-versions"

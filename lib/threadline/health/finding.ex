@@ -1,7 +1,6 @@
 defmodule Threadline.Health.Finding do
   @moduledoc """
-  One structured result from `Threadline.Health.trigger_findings/1` or
-  `Threadline.Health.legacy_key_findings/1`.
+  A health finding reports a detected capture issue with one host table and an actionable fix.
 
   A finding names the host table it is about, the exact PostgreSQL fix, and a
   severity so callers can decide what blocks a CI gate and what only warns.
@@ -43,8 +42,8 @@ defmodule Threadline.Health.Finding do
   - `:table` — the host table's own name.
   - `:message` — human-readable text naming the qualified table and the exact
     fix command.
-  - `:details` — a map of JSON-encodable values whose keys are documented per
-    code above and in the private TriggerFindings module.
+  - `:details` — a map of JSON-encodable values whose code-specific keys may
+    use atoms or strings. Keys are additive as findings evolve.
 
   All six keys are enforced: constructing a `Finding` without one raises.
   """
@@ -52,8 +51,10 @@ defmodule Threadline.Health.Finding do
   @enforce_keys [:code, :severity, :schema, :table, :message, :details]
   defstruct [:code, :severity, :schema, :table, :message, :details]
 
+  @typedoc "Whether a health finding blocks or warns about capture health."
   @type severity :: :error | :warning
 
+  @typedoc "A finite health-finding code; new codes may be added in a minor release."
   @type code ::
           :legacy_trigger_no_pk_args
           | :pk_drift
@@ -62,12 +63,16 @@ defmodule Threadline.Health.Finding do
           | :capture_trigger_disabled
           | :unresolved_legacy_keys
 
+  @typedoc "Code-specific JSON-encodable details, with atom or string keys."
+  @type details :: %{optional(atom() | String.t()) => Threadline.json_value()}
+
+  @typedoc "A health finding's code, severity, host table, message, and JSON details."
   @type t :: %__MODULE__{
           code: code(),
           severity: severity(),
           schema: String.t(),
           table: String.t(),
           message: String.t(),
-          details: map()
+          details: details()
         }
 end

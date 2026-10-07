@@ -11,7 +11,6 @@ defmodule Threadline.InvestigationTest do
     LinkedTransaction
   }
 
-  alias Threadline.Query.TimelinePage
   alias Threadline.Semantics.{ActorRef, AuditAction}
 
   @repo Threadline.Test.Repo
@@ -82,10 +81,10 @@ defmodule Threadline.InvestigationTest do
 
   defp support_scope_query(query, _scope, _context), do: query
 
-  defp page_entry_ids(%TimelinePage{entries: entries}),
+  defp page_entry_ids(%Threadline.Page{entries: entries}),
     do: Enum.map(entries, & &1.audit_change.id)
 
-  describe "row_history/4 and row_history_page/4" do
+  describe "row_history/3 and its cursor: paging" do
     test "constrains history to one row instead of all rows from the table" do
       txn = insert_transaction()
       older = ~U[2026-08-01 10:00:00.000000Z]
@@ -96,7 +95,7 @@ defmodule Threadline.InvestigationTest do
       insert_change(txn, %{table_name: "users", table_pk: %{"id" => "row-2"}, captured_at: newer})
       insert_change(txn, %{table_name: "posts", table_pk: %{"id" => "row-1"}, captured_at: newer})
 
-      results = Threadline.row_history(FakeUser, "row-1", [], repo: @repo)
+      results = Threadline.row_history(FakeUser, "row-1", repo: @repo)
 
       assert Enum.map(results, & &1.audit_change.table_pk["id"]) == ["row-1", "row-1"]
       assert Enum.all?(results, &match?(%LinkedChange{}, &1))
@@ -106,7 +105,7 @@ defmodule Threadline.InvestigationTest do
       assert Enum.all?(results, &is_nil(&1.action))
     end
 
-    test "paged row history concatenates back to eager order and keeps next_cursor semantics" do
+    test "paged row history concatenates back to eager order and keeps cursor/has_more semantics" do
       txn = insert_transaction()
       t1 = ~U[2026-08-01 10:00:00.000000Z]
       t2 = DateTime.add(t1, 60, :second)
@@ -119,25 +118,26 @@ defmodule Threadline.InvestigationTest do
       insert_change(txn, %{table_name: "users", table_pk: %{"id" => "row-paged"}, captured_at: t3})
 
       eager_ids =
-        Threadline.row_history(FakeUser, "row-paged", [], repo: @repo)
+        Threadline.row_history(FakeUser, "row-paged", repo: @repo)
         |> Enum.map(& &1.audit_change.id)
 
       first_page =
-        Threadline.row_history_page(FakeUser, "row-paged", [], repo: @repo, page_size: 2)
+        Threadline.row_history(FakeUser, "row-paged", repo: @repo, page_size: 2, cursor: :start)
 
       second_page =
-        Threadline.row_history_page(
+        Threadline.row_history(
           FakeUser,
           "row-paged",
-          [],
           repo: @repo,
           page_size: 2,
-          cursor: first_page.next_cursor
+          cursor: first_page.cursor
         )
 
       assert eager_ids == page_entry_ids(first_page) ++ page_entry_ids(second_page)
-      assert first_page.next_cursor != nil
-      assert second_page.next_cursor == nil
+      assert first_page.has_more == true
+      assert first_page.cursor != nil
+      assert second_page.has_more == false
+      assert second_page.cursor == nil
     end
 
     test "row_history/4 applies support scope" do
@@ -165,7 +165,7 @@ defmodule Threadline.InvestigationTest do
       })
 
       results =
-        Threadline.row_history(FakeUser, "row-scoped", [],
+        Threadline.row_history(FakeUser, "row-scoped",
           repo: @repo,
           scope: %{source: "support"},
           scope_query_fn: &support_scope_query/3
@@ -175,7 +175,7 @@ defmodule Threadline.InvestigationTest do
       assert Enum.all?(results, &(&1.transaction.source == "support"))
     end
 
-    test "row_history_page/4 applies support scope" do
+    test "row_history/3 with cursor: :start applies support scope" do
       support_time = ~U[2026-10-02 11:00:00.000000Z]
       admin_time = DateTime.add(support_time, 60, :second)
 
@@ -200,20 +200,22 @@ defmodule Threadline.InvestigationTest do
       })
 
       page =
-        Threadline.row_history_page(FakeUser, "row-scoped-page", [],
+        Threadline.row_history(FakeUser, "row-scoped-page",
           repo: @repo,
           page_size: 5,
           scope: %{source: "support"},
-          scope_query_fn: &support_scope_query/3
+          scope_query_fn: &support_scope_query/3,
+          cursor: :start
         )
 
       assert Enum.map(page.entries, & &1.audit_change.id) == [support_change.id]
-      assert page.next_cursor == nil
+      assert page.has_more == false
+      assert page.cursor == nil
       assert Enum.all?(page.entries, &(&1.transaction.source == "support"))
     end
   end
 
-  describe "actor_window/3 and actor_window_page/3" do
+  describe "actor_window/3 and its cursor: paging" do
     test "returns change rows across tables for one actor" do
       actor = actor!(:user, "actor-window")
       actor_map = ActorRef.to_map(actor)
@@ -265,24 +267,59 @@ defmodule Threadline.InvestigationTest do
       eager_ids =
         Threadline.actor_window(actor, [], repo: @repo) |> Enum.map(& &1.audit_change.id)
 
-      first_page = Threadline.actor_window_page(actor, [], repo: @repo, page_size: 2)
+      first_page =
+        Threadline.actor_window(actor, [], repo: @repo, page_size: 2, cursor: :start)
 
       second_page =
-        Threadline.actor_window_page(actor, [],
+        Threadline.actor_window(actor, [],
           repo: @repo,
           page_size: 2,
-          cursor: first_page.next_cursor
+          cursor: first_page.cursor
         )
 
       paged_ids = page_entry_ids(first_page) ++ page_entry_ids(second_page)
 
       assert eager_ids == paged_ids
       assert length(paged_ids) == length(Enum.uniq(paged_ids))
-      assert second_page.next_cursor == nil
+      assert second_page.has_more == false
+      assert second_page.cursor == nil
+    end
+
+    test "actor_window/3 with cursor: :start returns a Page whose full walk equals the eager list" do
+      actor = actor!(:user, "actor-cursor-walk")
+      txn = insert_transaction(%{actor_ref: ActorRef.to_map(actor)})
+      t1 = ~U[2026-09-01 09:00:00.000000Z]
+
+      for i <- 1..5 do
+        insert_change(txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "actor-cursor-#{i}"},
+          captured_at: DateTime.add(t1, i, :microsecond)
+        })
+      end
+
+      eager_ids =
+        Threadline.actor_window(actor, [], repo: @repo) |> Enum.map(& &1.audit_change.id)
+
+      walked_ids = walk_actor_window(actor, repo: @repo, page_size: 2)
+
+      assert eager_ids == walked_ids
     end
   end
 
-  describe "correlation_bundle/3 and correlation_bundle_page/3" do
+  defp walk_actor_window(actor, opts, acc \\ []) do
+    opts = Keyword.put_new(opts, :cursor, :start)
+    page = Threadline.actor_window(actor, [], opts)
+    acc = acc ++ Enum.map(page.entries, & &1.audit_change.id)
+
+    if page.has_more do
+      walk_actor_window(actor, Keyword.put(opts, :cursor, page.cursor), acc)
+    else
+      acc
+    end
+  end
+
+  describe "correlation_bundle/3 and its cursor: paging" do
     test "preserves strict inner-join correlation semantics" do
       matching_action = insert_action(%{correlation_id: "corr-match"})
       other_action = insert_action(%{correlation_id: "corr-other"})
@@ -320,20 +357,56 @@ defmodule Threadline.InvestigationTest do
         |> Enum.map(& &1.audit_change.id)
 
       first_page =
-        Threadline.correlation_bundle_page("corr-paged", [], repo: @repo, page_size: 2)
+        Threadline.correlation_bundle("corr-paged", [], repo: @repo, page_size: 2, cursor: :start)
 
       second_page =
-        Threadline.correlation_bundle_page(
+        Threadline.correlation_bundle(
           "corr-paged",
           [],
           repo: @repo,
           page_size: 2,
-          cursor: first_page.next_cursor
+          cursor: first_page.cursor
         )
 
       assert eager_ids == page_entry_ids(first_page) ++ page_entry_ids(second_page)
-      assert first_page.next_cursor != nil
-      assert second_page.next_cursor == nil
+      assert first_page.has_more == true
+      assert first_page.cursor != nil
+      assert second_page.has_more == false
+      assert second_page.cursor == nil
+    end
+
+    test "correlation_bundle/3 with cursor: :start returns a Page whose full walk equals the eager list" do
+      action = insert_action(%{correlation_id: "corr-cursor-walk"})
+      txn = insert_transaction(%{action_id: action.id})
+      t1 = ~U[2026-09-03 09:00:00.000000Z]
+
+      for i <- 1..5 do
+        insert_change(txn, %{
+          table_name: "users",
+          table_pk: %{"id" => "corr-cursor-#{i}"},
+          captured_at: DateTime.add(t1, i, :microsecond)
+        })
+      end
+
+      eager_ids =
+        Threadline.correlation_bundle("corr-cursor-walk", [], repo: @repo)
+        |> Enum.map(& &1.audit_change.id)
+
+      walked_ids = walk_correlation_bundle("corr-cursor-walk", repo: @repo, page_size: 2)
+
+      assert eager_ids == walked_ids
+    end
+  end
+
+  defp walk_correlation_bundle(correlation_id, opts, acc \\ []) do
+    opts = Keyword.put_new(opts, :cursor, :start)
+    page = Threadline.correlation_bundle(correlation_id, [], opts)
+    acc = acc ++ Enum.map(page.entries, & &1.audit_change.id)
+
+    if page.has_more do
+      walk_correlation_bundle(correlation_id, Keyword.put(opts, :cursor, page.cursor), acc)
+    else
+      acc
     end
   end
 
@@ -374,7 +447,8 @@ defmodule Threadline.InvestigationTest do
           "audit"
         )
 
-      result = Threadline.transaction_context(txn.id, repo: @repo, storage_schema: "audit")
+      assert {:ok, result} =
+               Threadline.transaction_context(txn.id, repo: @repo, storage_schema: "audit")
 
       assert result.transaction.id == txn.id
       assert result.action.id == action.id
@@ -383,7 +457,7 @@ defmodule Threadline.InvestigationTest do
       assert linked_change.transaction.id == txn.id
       assert linked_change.action.id == action.id
 
-      assert Threadline.transaction_context(txn.id, repo: @repo).transaction == nil
+      assert {:error, :not_found} = Threadline.transaction_context(txn.id, repo: @repo)
     end
 
     test "packages one transaction drill-down with linked change, transaction, and action context" do
@@ -398,7 +472,7 @@ defmodule Threadline.InvestigationTest do
           captured_at: captured_at
         })
 
-      result = Threadline.transaction_context(txn.id, repo: @repo)
+      assert {:ok, result} = Threadline.transaction_context(txn.id, repo: @repo)
 
       assert %LinkedTransaction{} = result
       assert result.transaction.id == txn.id
@@ -411,13 +485,9 @@ defmodule Threadline.InvestigationTest do
       refute Map.has_key?(linked_change, :change_diff)
     end
 
-    test "returns an empty linked transaction when the transaction has no captured changes" do
-      result = Threadline.transaction_context(Ecto.UUID.generate(), repo: @repo)
-
-      assert %LinkedTransaction{} = result
-      assert result.transaction == nil
-      assert result.action == nil
-      assert result.changes == []
+    test "returns {:error, :not_found} for a missing transaction" do
+      assert {:error, :not_found} =
+               Threadline.transaction_context(Ecto.UUID.generate(), repo: @repo)
     end
   end
 

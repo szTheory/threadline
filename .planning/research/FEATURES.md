@@ -1,431 +1,653 @@
-# Feature Research — v1.44 Behavioral Depth: Properties, Twins, Telemetry
+# Feature Research — v1.45 "1.0 API Contract"
 
-**Domain:** Elixir/Ecto/PostgreSQL trigger-backed audit library — API/DX decisions for
-telemetry (export, retention, query, install), `history/3` limit, deferred v1.42 health
-CLI items, and the deferred backfill generator.
-**Researched:** 2026-09-30
-**Confidence:** HIGH (code citations verified against current `milestone/v1.44` tree at
-`ca032824`; ecosystem precedent — Ecto, Oban, Phoenix, Finch, Broadway, `telemetry_metrics`,
-OpenTelemetry semantic conventions, PaperTrail/Carbonite/Logidze — is well-established public
-convention, not a single fetched source)
+**Domain:** Read/query API surface + table-stakes docs for a 1.0 Elixir audit library
+**Researched:** 2026-10-02
+**Confidence:** MEDIUM-HIGH (codebase claims are file:line-cited; cross-ecosystem precedent is WebSearch-verified for names/signatures, not hexdocs-full-text-verified for every option)
 
-This file is a decision record for four milestone areas, not a competitor feature survey —
-adapted from the standard template because the milestone question is "what exact API shape,"
-not "what does the market expect." Table-stakes/differentiator framing is folded into each
-area's verdict instead of kept as a separate section.
+All six recommendations below are designed to be mutually coherent: one naming
+scheme (`row_*` / `actor_*` / `timeline*`), one return convention (bare list
+for unpaged reads, `Page` struct for paged reads, `{:ok, _}`/`{:error, _}` only
+for operations that can legitimately not find their subject, `ArgumentError`
+for bad input), one options convention (keyword lists, not NimbleOptions, with
+tightened runtime validation).
 
 ---
 
-## A. Telemetry for export, retention, query, and install
+## 1. Read-API consolidation
 
-### What exists today
+### Current surface (evidence)
 
-`lib/threadline/telemetry.ex:1-113` documents five events, all `:telemetry.execute/3`
-(none are spans):
+Three layers expose overlapping read entry points today:
 
-| Event | Measurements | Metadata |
+| Facade (`lib/threadline.ex`) | Delegates to | Signature |
 |---|---|---|
-| `[:threadline, :transaction, :committed]` | `%{table_count}` | `%{}` |
-| `[:threadline, :action, :recorded]` | `%{status}` | `%{}` |
-| `[:threadline, :health, :checked]` | `%{covered, uncovered, expected_uncovered}` | `%{}` |
-| `[:threadline, :health, :checked, :error]` | `%{}` | `%{error}` |
-| `[:threadline, :health, :findings_checked]` | `%{errors, warnings}` | `%{}` |
+| `history/3` | `Threadline.Query.history/3` | `(schema, id, opts)` — line 103 |
+| `as_of/4` | `Threadline.Query.as_of/4` | `(schema, id, ts, opts)` — line 117 |
+| `actor_history/2` | `Threadline.Query.actor_history/2` | `(actor_ref, opts)` — line 132 |
+| `timeline/2` | `Threadline.Query.timeline/2` | `(filters, opts)` — line 155 |
+| `timeline_page/2` | `Threadline.Query.timeline_page/2` | `(filters, opts)` — line 168 |
+| `row_history/4` | `Threadline.Investigation.row_history/4` | `(schema, id, filters, opts)` — line 177 |
+| `row_history_page/4` | `Threadline.Investigation.row_history_page/4` | `(schema, id, filters, opts)` — line 183 |
+| `actor_window/3` | `Threadline.Investigation.actor_window/3` | `(actor_ref, filters, opts)` — line 189 |
+| `actor_window_page/3` | `Threadline.Investigation.actor_window_page/3` | `(actor_ref, filters, opts)` — line 195 |
 
-Naming convention: `[:threadline, noun, verb_past_tense]`, with an occasional `.error`/`.error`-
-suffixed sibling event for the failure path (`health.checked` / `health.checked.error`) rather
-than a `status` field baked into one event. `action.recorded` breaks that pattern by putting
-`status` inside `measurements` — `:telemetry`'s own convention is that measurements are numeric
-(for `telemetry_metrics` `counter()`/`sum()`/`last_value()` to consume); an atom `status` there
-is a pre-existing footgun, not something to copy into new events.
+The two JTBDs "show me this row's changes" and "page through this row's
+changes" are each served by **two unrelated functions with two unrelated
+signatures**: `history(schema, id, opts)` (`Query`, no `filters` arg, `:limit`
+caps) vs `row_history(schema, id, filters, opts)` (`Investigation`, `filters`
+restricted to `:from`/`:to`/`:repo`, no `:limit`, but returns `LinkedChange`
+structs with transaction/action preloaded — `lib/threadline/investigation.ex:33-39`).
+`actor_history/2` (cursor-paged by construction, `Query`) vs
+`actor_window/3`+`actor_window_page/3` (eager/paged pair, `Investigation`,
+cross-table not single-actor-transaction-scoped) look like near-synonyms but
+answer different questions: `actor_history` returns `AuditTransaction` rows
+for one actor; `actor_window` returns `AuditChange` rows (with linked
+transaction/action) across tables, filtered by actor implicitly. That
+difference is real and worth keeping, but the *names* don't signal it.
 
-### Recommendation: keep execute-only as the default idiom; add exactly one span
+### Job-to-be-done mapping (recommended 1.0 set)
 
-Threadline's own precedent is uniform execute-first — introducing `:telemetry.span/3`
-everywhere would fragment the library's telemetry idiom for no adopter benefit. But one
-operation in this milestone is a genuine bounded "run" with a real start/stop and a real risk
-of mid-run exceptions: retention purge. That is the one place a span earns its keep, exactly
-the way Oban reserves `[:oban, :job, :start|:stop|:exception]` for the one thing that is
-actually a supervised unit of work, while everything else in Oban (`:oban, :engine, ...`,
-`:oban, :notifier, ...`) stays plain execute events. Ecto (`[:my_app, :repo, :query]`), Phoenix
-(`[:phoenix, :endpoint, :start|:stop]` around the whole request, but `[:phoenix, :router_dispatch, :start|:stop]` per route), Finch, and Broadway all follow the same rule: span the outer
-unit of work that can fail partway through, execute everything else.
+| JTBD | 1.0 entry point | Shape |
+|---|---|---|
+| Show me this row's changes | `Threadline.row_history/3` | bare list, `AuditChange` + linked transaction/action |
+| Page through this row's changes | `Threadline.row_history/3` with `:cursor` opt → returns `Page` | same function, see §1a |
+| What did this actor do (transactions) | `Threadline.actor_history/2` | `Page` struct (already cursor-shaped; keep) |
+| What did this actor do (cross-table changes) | `Threadline.actor_window/3` | bare list / `Page` via `:cursor` |
+| Everything in a window / matching filters | `Threadline.timeline/2` | bare list / `Page` via `:cursor` |
+| What did this row look like at T | `Threadline.as_of/4` | `{:ok, map}` / `{:error, reason}` (unchanged — already idiomatic, see §3) |
+| Diff | `Threadline.change_diff/2` | map (unchanged) |
 
-**New events (all under existing `Threadline.Telemetry` naming convention):**
+#### 1a. Should `history`/`row_history` merge, and should paging be a separate function or an option?
 
-| Event | Shape | When | Measurements | Metadata |
-|---|---|---|---|---|
-| `[:threadline, :export, :completed]` | execute | after `Threadline.Export.to_csv_iodata/2`, `to_json_document/2`, `format_changes_iodata/3`, and the async governance export job succeed | `%{duration: native_time, row_count: non_neg_integer(), truncated: 0 \| 1}` | `%{format: :csv \| :json \| :ndjson, table: String.t() \| nil}` |
-| `[:threadline, :export, :failed]` | execute | export raises or the governance job records `status: "failed"` | `%{}` | `%{format: ..., reason: String.t()}` (message only, never the failing row) |
-| `[:threadline, :retention, :purge, :start\|:stop\|:exception]` | `:telemetry.span/3` | wraps the whole `Threadline.Retention.purge/1` call | span-standard (`:stop` adds `duration`) | `%{dry_run: boolean()}` (start); `:stop` adds `%{deleted_changes, deleted_transactions, batches_run}` |
-| `[:threadline, :retention, :batch_purged]` | execute | once per batch loop iteration, nested inside the span | `%{deleted_changes: n, deleted_transactions: n, duration: native}` | `%{dry_run: boolean()}` |
+**Recommendation: merge into one `row_history/3`, and make paging an option, not a separate function. ONE-WAY.**
 
-**Query events: explicitly rejected (anti-feature).** Threadline calls the *host's* configured
-`Ecto.Repo`, which already emits `[<host_app>, :repo, :query]` for every SQL statement Threadline
-issues — same duration, same query text, same row-count-adjacent info, at the same or higher
-fidelity, for zero new code. A parallel `[:threadline, :query, ...]` event would duplicate that
-signal under a second name while adding real cardinality (`history`, `as_of`, `timeline`,
-`row_history`, `actor_window`, `correlation_bundle` are all separate call sites hitting
-`audit_changes`/`audit_transactions` repeatedly) with no new information. The correct answer is
-**docs, not code**: document, in the `Threadline.Telemetry` moduledoc and the new telemetry
-guide, how to filter the host's own `[:repo, :query]` handler by
-`metadata.source in ~w(audit_changes audit_transactions audit_actions)` to get
-Threadline-specific query observability today, with nothing to maintain. **Verdict: DEFER
-(reshaped into a documentation recipe, not an event).**
-
-**Install: DEFER — mix tasks stay silent on `:telemetry`.** `gen.triggers`, `gen.migration`, and
-`gen.row_history_index` write migration *files*; the DDL itself runs later inside
-`mix ecto.migrate`, in a process with no host-attached telemetry handlers (mix tasks call
-`Application.ensure_all_started(:ecto_sql)` and start the bare repo — see
-`lib/mix/tasks/threadline.health.coverage.ex:47-56` — not the host's own `Application.start/2`,
-so handlers the host attaches in its own `start/2` are not running). This matches the ecosystem:
-`mix ecto.migrate` and `mix oban.install` emit no telemetry either; CLI output is
-`Mix.shell().info`/`Mix.raise`, which is the correct observability layer for a one-shot,
-human/CI-driven command — precedent already established by
-`lib/mix/tasks/threadline.health.coverage.ex` and `threadline.verify_coverage.ex`.
-`mix threadline.retention.purge` and a future `mix threadline.export` are thin CLI wrappers
-around the library functions above (`lib/mix/tasks/threadline.retention.purge.ex:1-50`
-delegates to `Threadline.Retention.purge/1`) — when run inside a booted host app, or scripted
-via `mix run -e`, the span/execute events fire automatically because they live in the library
-function, not the task. No task-specific telemetry code is needed or wanted.
-
-**PII / redaction interaction.** No event above carries `data_after`, `data_before`,
-`changed_fields`, `table_pk`, `actor_ref`, `correlation_id`, or filter values (`from`/`to`).
-Only counts, durations, `table` (name only — low cardinality, matches Ecto's own `:source`
-metadata), and `format`/`dry_run` flags. This is deliberate: redaction (`RedactionPolicy`)
-enforces at capture time, inside the trigger-generated SQL; a telemetry handler runs in-process
-with no policy enforcement, so any temptation to attach a "sample row" to an event for debugging
-would silently bypass redaction's guarantee. Flag this explicitly in the telemetry guide as the
-one footgun to never introduce.
-
-**Cardinality.** `table`/`format`/`dry_run` are bounded-cardinality metadata, safe for
-dashboard grouping. `actor_ref`, `correlation_id`, and any UUID (job id, transaction id) must
-never be used as a `telemetry_metrics` tag — document this the way Phoenix's own guides warn
-against tagging on `request_id`.
-
-**Docs: moduledoc table + guide.** Extend the `Threadline.Telemetry` moduledoc's "five events"
-list to the new count, in the same table shape already used above. Add a new `guides/telemetry.md`
-with the same event table, one `:telemetry.attach_many/4` example per operation, and the
-`[:repo, :query]` filtering recipe for query observability — mirroring how `Oban.Telemetry`'s
-moduledoc plus the Oban telemetry guide are the two places adopters look. Cross-link it from
-`Threadline.Telemetry`'s moduledoc and the README's guide index.
-
-**Verdict: INCLUDE** export + retention telemetry (5 new events/spans total), **DEFER** query
-events (docs-only recipe) and install/mix-task telemetry (by design, not oversight). Semver-visible
-(new public events are additive, not one-way — adopters who don't attach handlers see nothing
-different) but the *event names and metadata shapes themselves* are one-way once published (Hex
-can't unpublish); get the shapes above right before 0.12.0 ships them.
-
----
-
-## B. `history/3` gets a `:limit`
-
-### What exists today
-
-`lib/threadline/query.ex:396-415` (`Threadline.history/3`, re-exported at
-`lib/threadline.ex:95`) has no limit or paging option — it returns every matching row, ordered
-`captured_at desc, id desc` (the tiebreak already exists at `query.ex:413-414`). A row with a
-large change history returns unbounded today; that's a live correctness/ops risk (unbounded
-memory, unbounded query time) for exactly the "large tables" case the milestone guide's §4 lens
-calls out (DBA/SRE).
-
-A parallel, already-shipped path exists for the *same* underlying data:
-`Threadline.row_history_page/4` (`lib/threadline.ex:174`, `Investigation.row_history_page/4`,
-backed by `Query.row_history_query/3` at `query.ex:430-441`, which reuses `timeline_order/1` —
-the identical `captured_at desc, id desc` tiebreak) already does full keyset pagination with
-`:page_size` (default 1000, validated by `Cursors.timeline_page_size!/1`, `query.ex:121`,
-`is_integer and > 0`) and `:cursor`. `history/3` and `row_history`/`row_history_page` are two
-entry points over the same rows — exactly the overlap v1.45's "1.0 API Contract" is scoped to
-consolidate (`.planning/PROJECT.md` milestone_context; "Do not pre-empt that consolidation").
-
-### Recommendation
-
-Give `history/3` a **simple cap**, not a second pagination system. Precedent: PaperTrail's
-`versions` association is an unbounded `has_many` an adopter limits with ordinary Ecto
-(`limit: n` on the query, or `Ecto.assoc/2` composition) — PaperTrail does not ship a bespoke
-limit option, it's just an Ecto query. Ash and Ecto both treat "cap a result set" and
-"keyset-paginate a result set" as different concerns with different options
-(`Ash.Query.limit/2` vs `Ash.Query.page/2`; Ecto's `limit/2` vs `Repo.stream/2` + cursors).
-Threadline already draws that same line between `timeline/2` (eager, bounded) and
-`timeline_page/2` (keyset) — `history/3` should gain the eager-bounded half of that pair, while
-`row_history_page/4` stays the keyset half. Do not fold cursoring into `history/3`; that is
-`row_history_page/4`'s job today and will be the thing v1.45 decides whether to merge.
-
-**Exact shape:**
-
+Before (1.0-pre, two names, two shapes):
 ```elixir
+# bare AuditChange, capped by :limit, no filters, no linked context
 Threadline.history(MyApp.User, 42, repo: MyApp.Repo, limit: 20)
+
+# LinkedChange (transaction+action preloaded), :from/:to filters, no cap
+Threadline.row_history(MyApp.User, 42, [from: ~U[2026-01-01 00:00:00Z]], repo: MyApp.Repo)
+
+# separate page function, separate struct, separate call site
+Threadline.row_history_page(MyApp.User, 42, [], repo: MyApp.Repo, page_size: 500)
 ```
 
-- `:limit` — optional positive integer. **Default: `nil` (unbounded — identical to current
-  0.11.2 behavior).** Applied via `Ecto.Query.limit/2` after the existing
-  `order_by(captured_at desc) |> order_by(id desc)` in `history_query/3` (`query.ex:406-415`),
-  so the cap always lands on the deterministically-ordered result, never on an unordered one.
-- Validation mirrors the existing `Cursors.timeline_page_size!/1` pattern
-  (`query.ex:121-124`): `is_integer(limit) and limit > 0`, else `raise ArgumentError`. **Reject
-  `0` explicitly** rather than silently returning `[]` — `limit: 0` is far more likely a caller
-  mistake (e.g. a miscomputed page-size variable) than an intentional "give me nothing," and
-  Ecto's own `limit(query, 0)` would otherwise silently do exactly that with no signal.
-- Moduledoc note pointing to `row_history_page/4`: "`:limit` caps the result; it does not page.
-  For a row with more changes than you want in memory at once, use `row_history_page/4`."
+After (1.0, one name, one shape, cursor as the paging signal):
+```elixir
+# one call, bounded by default (see #2), linked context always present
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo)
 
-**Why default `nil`, not a bounded default (e.g. 500).** A bounded default is a **one-way,
-semver-visible, silently-breaking** decision: every existing caller of `history/3` — including
-production incident-response code that expects "give me everything for this row" — would start
-getting truncated results with no error, no warning, nothing in the return shape to signal
-truncation (unlike `Export`'s `truncated`/`returned_count`/`max_rows` triple at
-`lib/threadline/export.ex:31-34`, which *does* signal truncation because export was designed for
-it from day one). For a security/compliance-reviewer-facing function whose whole job is "show me
-every change," silently returning a subset is the worst kind of surprise this product can
-produce, and CLAUDE.md's "every public default is one-way" rule applies directly. Keeping the
-default unbounded costs nothing today (this is additive) and leaves the one-way call to v1.45,
-where it belongs next to the history/row_history consolidation decision — **flag explicitly for
-the roadmapper: v1.45 must decide, consciously, whether the consolidated entry point keeps an
-unbounded default or adopts a bounded one; v1.44 should not make that call implicitly by
-choosing a number now.**
+# add a time window — same function, keyword opts, no separate arg
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo, from: ~U[2026-01-01 00:00:00Z])
 
-**Verdict: INCLUDE.** Semver-visible (new public option, additive) but **not** the one-way
-decision itself — the default choice (`nil`) is what defers the one-way risk to v1.45's contract
-work, where it belongs.
+# ask for a page explicitly — same function, returns a Page struct instead of a bare list
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo, cursor: :start, page_size: 500)
+%Threadline.Page{entries: [...], cursor: next_cursor, has_more: true} =
+  Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo, cursor: next_cursor, page_size: 500)
+```
 
----
+Why one function with a `:cursor` opt rather than two functions:
+- **Pros:** one name to learn and document; `:cursor` present/absent cleanly
+  signals which return shape to expect (dispatch on presence of the opt, not
+  on function identity) without breaking Elixir's "same name, same return
+  shape" expectation in the no-cursor case, which stays a bare list; matches
+  `timeline/2` + `timeline_page/2` precedent *in spirit* but collapses them
+  into the single name adopters actually reach for first.
+- **Cons:** a function whose return type depends on an option value is less
+  type-transparent than two separately-named functions (Dialyzer sees a union
+  type); adopters skimming docs may not immediately notice `:cursor` changes
+  the shape.
+- **Verdict:** accept the Dialyzer union-type cost. It is the same shape
+  `Flop.validate_and_run/3` and `Paginator.paginate/2` already accept
+  (`Flop.Meta` vs plain list depending on call), and it keeps exactly one
+  name per JTBD, which this milestone's own guide text (§Scope) calls for
+  ("consolidate overlapping entry points with deprecations"). Keep
+  `timeline/2`/`timeline_page/2` as the one **exception** — they're already
+  two names in public use since before 1.0 and multi-table timeline paging is
+  reached for independently of the eager form often enough (operator UI,
+  export) that a visible, separately-documented page function earns its
+  keep. Do **not** add a third pattern; two patterns (cursor-opt for
+  `row_history`/`actor_window`, named `_page` pair for `timeline`) is already
+  the ceiling — see the discoverability cost called out in §6.
 
-## C. `health --strict`, `:invalid_config`, `--all-schemas`
+Deprecation path (ONE-WAY, semver-breaking at 1.0): keep `Threadline.history/3`
+and `Threadline.row_history_page/4` as `@deprecated` thin wrappers for one
+minor (1.1) emitting a compile warning, then remove in 1.2. `Query.history/3`
+stays as the low-level primitive `row_history/3` delegates to — it already
+has `:limit`; expose `:limit` as the row_history opt alias for the final cap,
+with `:cursor`/`:page_size` driving the keyset path.
 
-### What exists today
+#### 1b. Filters: separate positional arg or keyword opts?
 
-- `mix threadline.verify_coverage` (`lib/mix/tasks/threadline.verify_coverage.ex:1-40`) is
-  **already** the CI gate: exits 1 when an expected table (from a required, adopter-declared
-  `config :threadline, :verify_coverage, expected_tables: [...]` positive list) is missing,
-  uncovered, or has an `:error`-severity finding; `:warning` findings never fail it; an `:error`
-  finding for a table *not* in the positive list is printed but doesn't fail. This is the
-  established error-fails/warning-never-fails split.
-- `mix threadline.health.coverage` (`lib/mix/tasks/threadline.health.coverage.ex:1-40`) is
-  explicitly documented as a **viewer**: "ALWAYS exits 0, even when uncovered tables exist,"
-  scans every table (not a positive list), and requires no config.
-- `Threadline.Health.Finding` (`lib/threadline/health/finding.ex:1-64`) has five codes, all
-  `:error` or `:warning`, "never `:info`": `legacy_trigger_no_pk_args` (warning), `pk_drift`,
-  `shared_capture_function`, `duplicate_capture_trigger`, `capture_trigger_disabled` (all four
-  `:error`).
-- A malformed `config :threadline, :trigger_capture` **already** stops both mix tasks hard, via
-  `Mix.raise/1` wrapping `TriggerCaptureConfig.load/0`'s `ArgumentError`
-  (`threadline.health.coverage.ex:80-86`), **before** any findings are computed — not as a
-  finding, as an immediate task failure.
-- `trigger_findings/1` already scans **every** non-system schema by default when `:schema` is
-  omitted (`lib/threadline/health.ex` doc for `trigger_findings/1`); only `trigger_coverage/1`
-  (and therefore `health.coverage`'s coverage table) defaults to `"public"` alone, with
-  `--schema=NAME` selecting one schema at a time (validated against `pg_namespace` via
-  `CoverageSchemas`).
+**Recommendation: fold `filters` into `opts`. ONE-WAY, breaking.**
 
-### `--strict`: INCLUDE
+Today `history(schema, id, opts)` has no filters arg while
+`row_history(schema, id, filters, opts)` does — an adopter who learns one
+signature writes nonsense calling the other. Elixir/Ecto precedent is
+unanimous: `Ecto.Repo.all(queryable, opts)` takes one opts list; `Flop` takes
+one params map; `Req.get(url, opts)` takes one opts keyword list that mixes
+what other libraries would split into "params" and "options". There is no
+widely-idiomatic Elixir library that asks callers to thread two parallel
+keyword lists through every call.
 
-Give `mix threadline.health.coverage` a `--strict` flag: exit `1` if `trigger_findings/1`
-returns **any `:error`-severity finding** in the scanned scope (all tables, not a positive
-list); exit `0` on warning-only or clean. This is exactly `verify_coverage`'s existing
-error-fails/warning-never-fails rule, minus the positive-list requirement — a genuinely useful,
-additive shape for adopters who want "fail CI on any capture defect anywhere" without
-maintaining an `expected_tables` allowlist (the two gates serve different scopes: `verify_coverage`
-= "these specific tables must be covered"; `health.coverage --strict` = "nothing anywhere is
-broken"). Exit-code convention matches the project's own `credo --strict` /
-`mix format --check-formatted` / sobelow pattern already named in CLAUDE.md: warnings never
-gate, errors always do, `--strict` is the opt-in the *adopter's* CI chooses, not something
-Threadline's own `mix ci.all` runs against itself (Threadline's repo doesn't have arbitrary
-host-schema tables to scan). `--json --strict` stays composable — print the JSON, then exit
-nonzero, mirroring how sobelow/credo print full output before a nonzero exit.
+Before:
+```elixir
+Threadline.row_history(MyApp.User, 42, [from: ts], repo: MyApp.Repo)
+```
+After:
+```elixir
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo, from: ts)
+```
+- **Pros:** one opts list, matches `history/3`'s existing shape, removes an
+  entire class of "which list does `:from` go in" bugs, shrinks arity.
+- **Cons:** the `filters`/`opts` split existed to let `Investigation`
+  validate a *restricted* key allowlist (`@allowed_row_history_filter_keys`)
+  separately from paging/repo opts (`lib/threadline/investigation.ex:21-23`).
+  Merging means the validator must distinguish "filter keys" from "mechanism
+  keys" (`:repo`, `:cursor`, `:page_size`, `:preload`, `:scope*`) within one
+  list — a straightforward `Keyword.split/2` against a known key set, not a
+  real cost.
+- **Verdict:** merge. Keep per-function allowlists (`row_history` still only
+  accepts `:from`/`:to` as filter-shaped keys) implemented as validation
+  logic, not as a second positional argument.
 
-### `:invalid_config`: DEFER (reshape into documentation, not a new Finding code)
+#### 1c. `actor_history`/`actor_window` naming
 
-Turning the already-hard `ArgumentError`/`Mix.raise` into a soft `:invalid_config` finding would
-be a **regression**, not an enhancement: a raise stops the task immediately and loudly; a finding
-only fails the task if `--strict` happens to be passed, and is otherwise just a row in a table an
-operator could miss. The existing behavior is already the stricter, safer one. The only thing
-missing is documentation making the existing raise-fast behavior explicit and intentional (add
-one line to the `Threadline.Health.Finding` moduledoc: "a malformed
-`config :threadline, :trigger_capture` raises before any finding is computed — this is
-deliberate fail-fast behavior, not an omitted finding code"). **Do not add `:invalid_config` to
-the `Finding.code()` union.**
+**Recommendation: keep both names, but make the distinction explicit in
+`@moduledoc`/`@doc` and in the guide, because the names alone under-signal
+the difference (transactions vs cross-table changes).**
 
-### `--all-schemas`: INCLUDE (reshaped: schema-keyed output, not a flat merge)
+- `actor_history/2` → `AuditTransaction` rows for one actor (already
+  cursor-paged, keep as-is).
+- `actor_window/3` → `AuditChange` rows across tables scoped to one actor
+  (eager or paged via `:cursor`, same consolidation as §1a).
 
-`trigger_findings/1` already covers every schema by default; only the coverage table
-(`trigger_coverage/1` / `health.coverage`) is public-only. Add `--all-schemas` to
-`mix threadline.health.coverage`: enumerate every non-system schema (reuse `CoverageSchemas`'
-existing `pg_namespace` discovery/validation, the same helper `--schema=NAME` already uses) and
-render the report **per schema** rather than flattening — a `SCHEMA` column added to the default
-table output, and a schema-keyed JSON object (`{"public": {...}, "tenant_42": {...}}`) rather
-than a merged flat list, so `--json --all-schemas` output is unambiguous about which schema each
-row belongs to. `--schema=NAME` and `--all-schemas` are mutually exclusive; passing both is
-`Mix.raise`. This directly serves the milestone guide's §4 "multiple Postgres schemas" adopter
-shape (multi-tenant schema-per-tenant apps) with one command instead of a shell loop, and
-combines naturally with `--strict` for "fail CI if any tenant schema anywhere has a capture
-error."
+Precedent check: no surveyed library (PaperTrail, audited, Logidze, Envers,
+django-simple-history, Carbonite, ExAudit) has an actor-centric cross-table
+query at all — this is a Threadline differentiator, not a place to copy a
+name. Given that, optimize for internal consistency over external precedent:
+`actor_history` = transactions (matches "history of what the actor did, as
+transactions"), `actor_window` = changes ("a window of change rows touched by
+this actor"). This is already the existing naming — no rename needed, just
+documentation tightening (`@doc` cross-links one to the other, stating return
+type up front, which neither currently does as of `lib/threadline.ex:119-132`
+and `:185-195`).
 
-**Verdict: `--strict` INCLUDE, `:invalid_config` DEFER (documentation only, no new code),
-`--all-schemas` INCLUDE.** None of the three are one-way in the risky sense — `--strict` and
-`--all-schemas` are new opt-in flags (default behavior of `health.coverage` is unchanged), and
-declining to add `:invalid_config` leaves existing behavior untouched. The `Finding.code()`
-union itself, however, **is** worth flagging as a standing footgun independent of this
-milestone: any exhaustive `case f.code do ... end` a caller writes today will fail to compile —
-or silently miss cases at runtime for a non-exhaustive `case`/`cond` — against a future added
-code (this and any later milestone). Document "the code list may grow across minor releases;
-always include a catch-all clause" once, in the `Finding` moduledoc, rather than treating each
-future addition as its own one-way decision.
+#### 1d. Facade vs submodule story
 
----
+**Recommendation: `Threadline.*` is the only supported public surface.
+`Threadline.Query` and `Threadline.Investigation` become `@moduledoc false` +
+internal, keeping their functions as the implementation `Threadline.*`
+delegates to. ONE-WAY.**
 
-## D. `mix threadline.gen.backfill`
+Evidence this is already half-true: `Threadline.Query`'s own `@moduledoc`
+(`lib/threadline/query.ex:1-29`) documents itself as "the Threadline public
+API," and `Threadline.Investigation`'s `@moduledoc` (`lib/threadline/investigation.ex:1-7`)
+invites direct use ("Use these helpers when you want..."). That's two
+publicly-documented entry points into the *same* functionality the facade
+also exposes, which is the opposite of "one obvious way to do it" and is
+exactly what forces the `history` vs `row_history` arg-shape mismatch in
+§1a/§1b to leak to adopters instead of staying an internal implementation
+seam.
 
-### What exists today
+Before (today — three valid, inconsistent ways to get row history):
+```elixir
+Threadline.history(MyApp.User, 42, repo: MyApp.Repo)
+Threadline.Query.row_history(MyApp.User, 42, [], repo: MyApp.Repo)
+Threadline.Investigation.row_history(MyApp.User, 42, [], repo: MyApp.Repo)
+```
+After (1.0 — one way):
+```elixir
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo)
+```
 
-The backfill story for v1.42's `table_pk` change is **already shipped**, as a documented,
-adopter-owned SQL recipe rather than a generator:
+- **Pros:** matches Ecto (`Ecto.Repo` is the public surface;
+  `Ecto.Repo.Queryable` internals aren't advertised), Oban (`Oban` +
+  `Oban.Job`/`Oban.Config` public, but the query-building internals in
+  `Oban.Queries` are private), Req (`Req` facade; `Req.Request` is the
+  advanced/internal escape hatch, documented as such, not as a parallel
+  front door). One discoverable module beats three.
+- **Cons:** some adopters currently depend on `Threadline.Query.*` directly
+  (anyone who wants `timeline_query/1`'s raw `Ecto.Query.t()` to compose
+  further, e.g. add their own `where`). Marking the module
+  `@moduledoc false` without an escape hatch would strand them.
+- **Verdict:** keep **exactly one** documented low-level escape hatch:
+  `Threadline.Query.timeline_query/1` and `Threadline.Query.row_history_query/3`
+  (both already return `Ecto.Query.t()`, both already `@doc false` for
+  `row_history_query` — `lib/threadline/query.ex:438`, but `timeline_query/1`
+  is currently public-documented at line 240). Promote `timeline_query/1`
+  itself into `Threadline`'s moduledoc as "the composition escape hatch" and
+  hide everything else. This gives power users one supported way to drop to
+  raw Ecto composition without three parallel modules claiming to be "the"
+  public API.
 
-- `guides/upgrading-to-0.11.md:126-224` ("Step 6 (optional): Backfill unresolved primary keys")
-  has fully-written, marker-delimited (`<!-- threadline:backfill-sql:start/end -->`,
-  `...-composite:...`), parameterized `UPDATE ... WHERE id IN (SELECT ... LIMIT <batch_size>)`
-  SQL for both single-column and composite (2-column) keys, batched, idempotent (safe to rerun
-  and to run two overlapping copies), scoped to `op IN ('insert','update')` only, and explicit
-  about what it can never recover: DELETE rows (no pre-0.11 row image) and redacted key columns
-  (never written to `audit_changes` at all).
-- `test/threadline/upgrade_backfill_test.exs` and `test/threadline/upgrade_path_doc_contract_test.exs`
-  indicate this SQL is executed against real PostgreSQL and doc-contract-tested — matching
-  CLAUDE.md's "Doc contract tests" convention (README/guides stay aligned via test assertions).
-- The v1.42 audit (`.planning/milestones/v1.42-MILESTONE-AUDIT.md:22`) already flags the one real
-  gap: "3+ column composite-key backfill extension described, not shown" — the guide *describes*
-  how to extend the 2-column SQL to N columns (one more `jsonb_build_object` pair, one more `?&`
-  array entry, one more `IS NOT NULL` guard) but doesn't show a worked 3-column example.
+### Cross-ecosystem precedent (table)
 
-"Legacy rows" here means pre-0.11 `audit_changes` rows whose `table_pk` is `{"id": null}`
-(written before 0.11's PK-agnostic capture) or `{}` (written by 0.11 when a key couldn't be
-resolved at capture time) — i.e. rows a non-`id`-keyed or composite-keyed table's `history/3`
-call silently excludes today, because `where_row/2` (`query.ex:423-428`) matches `table_pk`
-exactly.
+| Library | Row-history call | Point-in-time call | Paging story | Facade story |
+|---|---|---|---|---|
+| PaperTrail (Ruby, gem) | `record.versions` (ActiveRecord association) | `record.version_at(time)` | ActiveRecord `.limit`/`.page` (via kaminari/will_paginate, bolted on) | One module, versions are AR objects |
+| paper_trail (Elixir, hex) | `PaperTrail.get_versions(model, id)` / `get_versions(record)` [verified via hexdocs 1.1.2] | `PaperTrail.get_version(model, id)` (latest only; no as-of-time built in) | none built in — caller adds `Ecto.Query` opts | One module (`PaperTrail`) is the facade |
+| audited (Ruby gem) | `record.audits` (AR association) | `record.revision(n)` (ordinal, not timestamp) | AR pagination bolted on | One module |
+| Logidze (Ruby gem, Postgres jsonb log) | `record.log_data` / `record.diff_from(version)` | `record.at(time: t)` | n/a (log capped by `logidze_version_limit` on the trigger, not query-side) | One module |
+| django-simple-history | `instance.history.all()` (QuerySet) | `instance.history.as_of(datetime)` | Django QuerySet `.filter()[:n]` / standard paginator | One manager (`.history`) |
+| Hibernate Envers (Java) | `AuditReader.createQuery().forRevisionsOfEntity(...)` | `AuditReader.find(Entity.class, id, revision)` | `AuditQuery.setFirstResult/setMaxResults` | One `AuditReader` facade, builder-pattern queries |
+| Carbonite (Elixir, hex, Postgres trigger-based — closest architectural peer to Threadline) | `Carbonite.Query.changes(record, opts)` returns `Ecto.Query.t()` [verified via hexdocs] — caller runs it | not built in | caller composes `Ecto.Query` `limit`/`where` themselves | Deliberately query-builder-only — no "run it for me" convenience layer; `Carbonite.Query` is the whole surface |
+| ExAudit (Elixir, hex) | `ExAudit.history(struct)` [verified via hexdocs] | via `history/2` + manual filter (no dedicated as-of) | not built in | `ExAudit.Repo`-wrapping facade + `history/2`/`revert/2` |
 
-### Recommendation: DEFER the generator; INCLUDE the missing health signal instead
-
-**Generator — DEFER, effectively a standing anti-feature.** Ecosystem precedent (Carbonite,
-PaperTrail, Logidze) is that backfill is documented SQL or a documented Ecto script, not a
-shipped generator — because backfill is a one-time, per-adopter, per-table operation whose
-parameters (schema, table, key columns — 1, 2, or N of them, in order — batch size, whether to
-dry-run) don't compress well into a generic Mix task without either being too rigid (breaks past
-2 columns without the very extension the v1.42 audit already flagged as unproven) or reinventing
-`mix ecto.gen.migration` badly. Oban's own precedent (`mix oban.install`) generates a fixed,
-well-known migration with no adopter-supplied parameters — a fundamentally simpler generation
-problem than "generate SQL parameterized by an arbitrary key-column list." The already-shipped
-path — `mix ecto.gen.migration backfill_<table>_pk`, paste the guide's SQL, substitute the
-documented placeholders, `mix ecto.migrate` — is two ordinary commands plus a copy-paste, is
-already host-owned (keeps the CLAUDE.md "host-owned migrations" boundary cleanly, no new
-Threadline-authored migration-generation code to maintain), and is already tested. Building a
-generator to save that one copy-paste is negative leverage for a rung the milestone guide says
-to push "until returns diminish." Only revisit if real adopter friction on 3+ column composite
-keys shows up (in which case a worked 3-column example in the guide, not a generator, is almost
-certainly still the right fix).
-
-**The health finding — INCLUDE, reshaped.** The one thing that's genuinely missing is
-*detectability*: nothing today tells an adopter, without hand-running a `count(*) ... WHERE
-table_pk = '{}'::jsonb` query, that they still have unresolved legacy rows, or for which tables.
-Add a new `Finding` code:
-
-- **`:unresolved_legacy_keys`**, severity `:warning` (this is optional cleanup, not a capture
-  defect — capture is working correctly today for these tables; it only affects reading
-  pre-upgrade history by key). Computed per `{table_schema, table_name}` as roughly
-  `SELECT table_schema, table_name, count(*) FROM audit_changes WHERE op IN ('insert','update')
-  AND (table_pk = '{"id": null}'::jsonb OR table_pk = '{}'::jsonb) GROUP BY 1, 2`, scoped by the
-  same `:schema` option other findings already take. `details` carries `%{"unresolved_count" =>
-  n}`. `message` points straight at the existing guide anchor: `"N unresolved legacy rows in
-  <schema>.<table>; see guides/upgrading-to-0.11.md#step-6-optional-backfill-unresolved-primary-keys."`
-- Because it's `:warning` severity, it does **not** fail `--strict` (area C) by default — correct,
-  since unresolved legacy rows are optional cleanup, not a live capture bug — while still
-  showing up in `mix threadline.health.coverage`'s FINDINGS section and `trigger_findings/1`'s
-  return value for adopters who want to track it.
-- This is additive to the `Finding.code()` typespec union (see the catch-all-clause footgun
-  flagged in area C) and does not touch capture, trigger generation, or any one-way default.
-
-**Verdict: generator DEFER (durable anti-feature, not just "later"); health finding INCLUDE
-(reshaped as a new warning-severity `Finding` code, not a generator, not a separate mix task).**
-Neither is one-way: the generator not existing is the status quo, and a new warning-severity
-finding is additive and silent-by-default under `--strict`.
+Takeaway: Threadline's facade-with-cursor-paging story is **already more
+complete** than every surveyed peer (Carbonite and paper_trail leave paging
+entirely to the caller; none offer a true as-of-timestamp *and* diff *and*
+actor-window in one coherent namespace). The 1.0 gap isn't missing
+capability, it's **surface area discipline** — too many names/modules for
+the same capability, which is exactly what §1a/§1b/§1d fix.
 
 ---
 
-## One coherent recommendation across A–D
+## 2. Bounded default limit for `history`/`row_history` — **ONE-WAY**
 
-All four areas converge on the same posture, consistent with the existing
-`[:threadline, noun, verb_past_tense]` telemetry naming and the v1.45 contract work ahead:
+### Current state (evidence)
 
-1. **Instrument the two genuinely long-running, genuinely failure-prone operations** (retention
-   purge as a span, export completion as execute events) and **say no to duplicating what Ecto
-   and the OS process boundary already give you for free** (query telemetry, mix-task telemetry).
-2. **Add options with `nil`/unbounded, backward-compatible defaults** (`history/3`'s `:limit`)
-   rather than take a one-way bounded-default decision this milestone doesn't need to take —
-   leave that call for v1.45's consolidation, where it belongs next to `history`/`row_history`
-   merging.
-3. **Extend the existing error/warning finding-and-gate machinery** (`--strict`, `--all-schemas`,
-   `:unresolved_legacy_keys`) rather than inventing new machinery, and **don't weaken an
-   already-stricter fail-fast behavior** into a softer, opt-in one (`:invalid_config`).
-4. **Prefer the documented, host-owned, already-tested path over a new generator** when the
-   generator would only reproduce what a copy-paste and `mix ecto.gen.migration` already do
-   cleanly — spend the generator's would-be effort on the one real gap (the health signal)
-   instead.
+`Threadline.Query.history/3` defaults `:limit` to `nil` (unbounded) —
+`lib/threadline/query.ex:98-101`, enforced by `Threadline.Query.HistoryLimit.validate!/1`
+(`lib/threadline/query/history_limit.ex`). The milestone's required reading
+confirms this was a deliberate v1.44 deferral: "v1.44 added a `limit:`
+option, default nil = unbounded; the bounded default was deferred to this
+milestone as a one-way semver decision" (common-context line 9).
+`Investigation.row_history/4` has **no** `:limit` concept at all today — it
+takes `:from`/`:to` only — so merging it into `row_history/3` (§1a) is also
+where the bounded default must land.
 
-### Requirement candidates for the roadmapper (exact names)
+### Ecosystem precedent on unbounded reads
 
-| # | Requirement | Verdict | One-way? |
+- `Ecto.Repo.all/2` is itself unbounded by design — it's the lowest-level
+  primitive and Ecto explicitly expects callers to add `limit`. That's
+  correct for a query-builder level API; it is not a template for a
+  convenience-level API like `Threadline.row_history/3`, which is one level
+  above `Repo.all` specifically to remove boilerplate.
+- Phoenix generated contexts (`mix phx.gen.context`) generate
+  `list_things/0` as `Repo.all(Thing)` — unbounded — and this is a
+  **well-known Phoenix footgun** flagged repeatedly in community posts and
+  the Phoenix guides' own pagination docs; it is not something to emulate.
+- **Flop**, **Paginator**, and **Scrivener** — the three dominant Elixir
+  pagination libraries — all require the caller to pass an explicit page
+  size, and all three default that size to a bounded number (Flop defaults
+  `default_limit: 50`; Scrivener defaults `page_size: 10`; Paginator has no
+  built-in default and requires `:cursor_fields` + an explicit limit at the
+  call site, erroring without one in practice). None of the three lets an
+  unscoped list query return an unbounded result silently.
+- **Oban Web** paginates its job list views by default (fixed page size in
+  the UI layer) — never serves an unbounded job list in one response.
+
+The unanimous ecosystem pattern for *convenience-level* read APIs (vs raw
+`Repo.all`) is: **bounded by default, unbounded only by explicit opt-in.**
+
+### Recommendation: default `:limit` to **200**, ONE-WAY, truncate silently with a signal via telemetry — not via changing the return shape
+
+```elixir
+# before 1.0 — unbounded, a 500k-row history table returns every row
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo)
+
+# at 1.0 — capped at 200 by default, same call site, same bare-list return
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo)
+# -> 200 most recent AuditChange, newest first
+
+# opt out explicitly when you want everything
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo, limit: :infinity)
+
+# or page through it properly
+Threadline.row_history(MyApp.User, 42, repo: MyApp.Repo, cursor: :start, page_size: 500)
+```
+
+Why 200, not 100 or 1000: 100 is Flop-adjacent but tight for an audit history
+view that legitimately wants "last couple hundred edits" in one shot; 1000 is
+`timeline_page/2`'s *page* size (`@default_timeline_page_size`,
+`lib/threadline/query.ex:42`) — reusing it as the **unbounded-call** cap
+would make a casual, unpaged `row_history` call return up to 1000 rows by
+accident, which is still "surprisingly large" for the common single-row
+inspection UI (most rows have single-digit-to-low-dozens of real edits; 200
+comfortably covers the long tail without being `timeline_page`'s bulk-export
+size). Pick a number clearly smaller than the page default so the two
+concepts ("history" vs "a page of timeline") stay visually distinct in docs
+and code.
+
+**Truncate silently, don't raise.** Raising on "more rows exist than your
+default" would make `row_history/3` unusable without first knowing the row's
+edit count — a correctness trap, not a safety net. Keyset `:cursor` already
+exists as the deliberate, discoverable "I want all of it" tool; use it as
+the pressure-relief valve instead of an exception.
+
+**Signal truncation via telemetry, not via changing the return type.**
+Switching the bare-list return to a tagged/wrapped shape whenever the cap
+bites would violate §3's "reads return bare values" convention and would be
+a silent breaking change for any pattern-matching caller depending on call
+site. Instead:
+- Emit (or extend) a `[:threadline, :row_history, :truncated]` telemetry
+  event carrying `limit` and `table` when `length(entries) == limit` (cannot
+  prove more rows exist without a cursor probe, but equality-with-cap is the
+  conventional signal, same heuristic `Cursors.timeline_page_next_cursor/2`
+  already uses internally for `has_more` — `lib/threadline/query.ex` via
+  `Threadline.Query.Cursors`).
+- Document in `@doc` that hitting exactly `:limit` rows does not prove
+  completeness and that `:cursor` is the only query that can.
+- This keeps `row_history/3`'s return type a single, always-bare list (no
+  union with a "maybe truncated" wrapper), which is what §3 standardizes on.
+
+**`:limit` vs `:cursor`/`page_size` relationship:** `:limit` is the *default
+unpaged cap* (replaces today's optional cap on `history/3`); `:cursor`
+switches the function into paged mode where `:page_size` (not `:limit`)
+governs page size and the cap concept doesn't apply (a cursor walk is
+definitionally unbounded across pages, bounded per page). Passing both
+`:limit` and `:cursor` together should raise `ArgumentError` — they are
+mutually exclusive modes, and letting them silently combine (e.g. does
+`:limit` cap the first page, all pages, or get ignored?) is exactly the kind
+of API ambiguity a 1.0 contract should foreclose rather than leave
+undefined.
+
+**Semver story:** this is the single largest breaking behavior change in the
+milestone for existing adopters — anyone relying on `row_history`/`history`
+returning "everything" today will silently start getting 200 rows after
+upgrading, with no exception to catch it. Required mitigations:
+1. CHANGELOG `[1.0.0]` entry under a `### BREAKING` heading, example call
+   sites before/after (as above).
+2. `guides/upgrading-to-1.0.md` (see §5) gets its own numbered step: "Audit
+   every `history`/`row_history` call site your app makes; if you depend on
+   unbounded results (exports, backfills), add `limit: :infinity` or switch
+   to `:cursor` paging explicitly."
+3. Because this is silent-truncation rather than an error, it is the single
+   highest-value target for the telemetry signal above — ops teams running
+   1.0 in production should be able to alert on
+   `[:threadline, :row_history, :truncated]` firing against a table they
+   expect to never truncate.
+
+---
+
+## 3. Return-shape consistency — **ONE-WAY**
+
+### Inventory (evidence)
+
+| Function | Current return | File:line |
+|---|---|---|
+| `record_action/2` | `{:ok, %AuditAction{}}` / `{:error, reason}` (4 distinct error shapes: changeset, `:missing_actor`, `:invalid_actor_ref`, `:missing_repo`) | `lib/threadline.ex:41-63` |
+| `history/3` | bare list, raises `ArgumentError` on bad `:limit`/`id` | `lib/threadline/query.ex:402-409` |
+| `row_history/4`, `actor_window/3`, `timeline/2` | bare list | `query.ex:66-75`, `investigation.ex:62-71`, `query.ex:661-677` |
+| `row_history_page/4`, `timeline_page/2`, `actor_window_page/3` | `%TimelinePage{entries:, next_cursor:}` struct | `query.ex:44-57`, `:99-103` |
+| `actor_history/2` | `%Threadline.Query.ActorHistoryPage{entries:, next_cursor:, prev_cursor:}` — a **different** page struct shape (has `prev_cursor`, `TimelinePage` doesn't) | `query.ex:563-567` |
+| `as_of/4` | `{:ok, map}` / `{:error, :deleted_record}` / `{:error, :before_audit_horizon}` | `query.ex:475-488` |
+| `incident_bundle/2` | `{:ok, %IncidentBundle{}}` / `{:error, :not_found}` | `investigation.ex:151-181` |
+| `transaction_context/2` | bare `%LinkedTransaction{}` struct, `nil` fields when nothing found (not an error tuple at all) | `investigation.ex:130-145` |
+| `audit_changes_for_transaction/2` | bare list, `[]` when nothing found; raises `ArgumentError` on bad UUID | `query.ex:600-624` |
+| `audit_transaction/2` | bare struct **or `nil`** (Repo.one-style) | `query.ex:117-139` |
+| `change_diff/2` | bare map (delegates to `ChangeDiff`) | `lib/threadline.ex:262-264` |
+| Filter/opt validation (`validate_timeline_filters!`, `validate_row_history_filters!`, `:preload` checks) | raises `ArgumentError`, 6+ distinct call sites | `query.ex:150-184, 136-138, 621-622` |
+
+This is already *mostly* consistent, but has three concrete inconsistencies
+worth fixing before 1.0 freezes the contract:
+
+1. **Two page struct shapes** (`TimelinePage` vs `ActorHistoryPage`) for the
+   same semantic concept (a keyset page), one with `prev_cursor` and one
+   without, under two different names. A caller writing generic pagination
+   UI against one has to special-case the other.
+2. **`transaction_context/2` is the only "may not find its subject" read
+   that doesn't return `{:ok, _}`/`{:error, :not_found}`** — it returns a
+   struct with `nil` fields instead, while its sibling `incident_bundle/2`
+   (same subject: one `transaction_id`) correctly returns
+   `{:error, :not_found}`. Two functions, same input, same "doesn't exist"
+   case, two different shapes.
+3. **`audit_transaction/2` returns a bare `nil`** (Repo.one convention) while
+   `as_of/4` and `incident_bundle/2` (same "might not exist" semantics) use
+   `{:error, _}` tuples. Elixir has no single universal convention here (this
+   is the field's one genuinely contested point, see below), so Threadline
+   must pick one and hold the line.
+
+### The actual Elixir-ecosystem convention (and where it's contested)
+
+- **Ecto.Repo**: `all/2` returns a bare list (never errors on "not found" —
+  empty list is the "not found" signal); `get/3` returns the struct or
+  `nil`; `get!/3` raises; `insert/2`/`update/2`/`delete/2` return
+  `{:ok, struct}`/`{:error, changeset}`; `insert!/2` etc. raise. The
+  pattern: **plural/collection reads are bare, singular "might not exist"
+  reads are `nil`-or-struct (with a `!` sibling that raises), write
+  operations that can produce structured validation failures use ok/error
+  tuples.**
+- **Req**: `Req.get/2` returns `{:ok, %Req.Response{}}`/`{:error, exception}`
+  by default, with `Req.get!/2` raising — Req treats *all* I/O as fallible
+  because network calls always can fail, unlike a local Ecto query.
+- **Oban**: `Oban.insert/2` mirrors `Repo.insert/2` (`{:ok, job}`/`{:error,
+  changeset}`); `Oban.cancel_job/2` returns `:ok`/`{:error, reason}`; reads
+  like job-state queries return bare structs or `nil`.
+- Threadline's own domain split maps cleanly onto this: **"did I find the
+  thing" reads** (`audit_transaction/2`, `as_of/4`, `incident_bundle/2`,
+  `transaction_context/2`) are the `nil`-or-{:ok,_} contested zone;
+  **"give me everything matching" reads** (`history`, `row_history`,
+  `timeline`, `actor_window`, `actor_history`) are correctly *already* bare
+  lists/page-structs and should stay that way — do not wrap list reads in
+  ok/error tuples, that would be un-idiomatic (no Ecto `Repo.all` caller
+  expects `{:ok, list}`).
+
+### Recommendation: four rules, ONE-WAY where they change existing behavior
+
+1. **Collection reads stay bare** (`history`→`row_history`, `timeline`,
+   `actor_window`, `actor_history`, `audit_changes_for_transaction`) — no
+   change needed, codify in a `@moduledoc` convention note on `Threadline`.
+2. **Single-subject-might-not-exist reads standardize on `{:ok, result}` /
+   `{:error, :not_found}`** (matching `incident_bundle/2`'s existing
+   contract, the strictest/most explicit of the three current shapes).
+   - `transaction_context/2` changes from a bare struct with `nil` fields to
+     `{:ok, %LinkedTransaction{}}`/`{:error, :not_found}` — **ONE-WAY,
+     breaking.** Before: `tx = Threadline.transaction_context(id, repo: Repo); tx.action`.
+     After: `{:ok, tx} = Threadline.transaction_context(id, repo: Repo); tx.action`.
+   - `audit_transaction/2` changes from bare-struct-or-`nil` to
+     `{:ok, struct}`/`{:error, :not_found}` — **ONE-WAY, breaking**, but add
+     `audit_transaction!/2` (raising) as the escape hatch for callers who
+     want the terser `Repo.get!`-style call (precedent: Ecto's own
+     `get`/`get!` pairing is exactly this fork).
+   - `as_of/4` already fits this convention (`{:error, :deleted_record}` /
+     `{:error, :before_audit_horizon}` instead of a generic `:not_found` is
+     *correct*, not an inconsistency — those are semantically distinct
+     outcomes an adopter needs to branch on differently, keep them).
+3. **Merge the two page structs into one `Threadline.Page` struct** with
+   `entries`, `cursor` (rename `next_cursor`→`cursor` for brevity — ONE-WAY),
+   and `has_more` (boolean, computed the same way `ActorHistoryPage`'s
+   implicit completeness check already works, made explicit). Drop
+   `prev_cursor` as a separate field; backward cursor walks pass `cursor:
+   {:before, token}` instead of a second field — one field, one shape, every
+   paged function returns it.
+   ```elixir
+   %Threadline.Page{entries: [...], cursor: next_token, has_more: true} =
+     Threadline.timeline(filters, repo: Repo, cursor: :start)
+   ```
+4. **Invalid *options* (wrong type, unknown key, mutually exclusive opts)
+   keep raising `ArgumentError`** at call time, not wrapped in `{:error, _}}`
+   — this is already the codebase's convention everywhere (`HistoryLimit.validate!/1`,
+   `validate_timeline_filters!/1`, `:preload` validation) and matches Ecto
+   (`Repo.all(query, bogus_opt: true)` raises, doesn't return `{:error,
+   _}}`) and Oban (bad job opts raise at `new/2`, not at insert). Options are
+   a programmer error class, not a runtime data-dependent failure — tuples
+   are for the latter.
+
+Net picture for 1.0: **lists/pages are bare, single-subject lookups are
+ok/error (with `!` siblings for the terse path), bad options raise.** This is
+exactly Ecto's own three-way split, which is the strongest precedent
+available since Threadline's whole persistence layer already speaks Ecto.
+
+---
+
+## 4. Is NimbleOptions worth it at 1.0?
+
+### What Oban/Req/Broadway do
+
+- **Oban** uses hand-rolled validation (`Oban.Validation` module, not
+  NimbleOptions) for job/queue config — predates widespread NimbleOptions
+  adoption and the project has never migrated, suggesting the payoff curve
+  is not automatically obvious even for a library of Oban's scale and
+  config-surface size.
+- **Broadway** *does* use NimbleOptions for producer/processor/batcher
+  config — but Broadway's options are deeply nested, numerous, and have
+  cross-field constraints (batch size vs batch timeout vs concurrency), the
+  exact shape NimbleOptions is built for (generated docs sections, nested
+  schemas, default propagation).
+- **Req** uses a hand-rolled options/step pipeline, not NimbleOptions, for
+  its larger-than-Threadline options surface.
+
+### Applied to Threadline
+
+Threadline's heaviest options list (`timeline/2`'s filters:
+`:table`/`:table_schema`/`:actor_ref`/`:from`/`:to`/`:correlation_id`/`:repo`/`:storage_schema`,
+plus paging opts `:cursor`/`:page_size`) is flat, not nested, and already has
+hand-written validators with excellent, specific error messages
+(`lib/threadline/query.ex:150-210` — the `:correlation_id` validator alone
+gives four distinct tailored messages for nil/wrong-type/empty/too-long).
+NimbleOptions would:
+- **Pros:** auto-generated "Options" doc sections (reduces drift between
+  `@doc` prose and actual accepted keys — a real risk given `history/3` and
+  `row_history/3` today list overlapping-but-different allowed keys in
+  prose only); typed schema as a single source of truth; a new dependency
+  signal of "serious library" to some adopters.
+- **Cons:** new runtime dependency for a library whose OSS DNA (per
+  `prompts/threadline-elixir-oss-dna.md`) favors a tight dependency
+  footprint; existing hand-written validators already produce *more*
+  specific, more human messages than NimbleOptions' generic schema-mismatch
+  errors (compare today's `:correlation_id cannot be nil — omit the key
+  entirely...` to a typical NimbleOptions `invalid value for :correlation_id
+  option: expected non-nil value`); migrating ~6 validator functions for a
+  flat, non-nested options surface is a rewrite with no capability gain,
+  only a docs-generation gain; the options surface across functions is
+  **not shared** (each function has its own allowed-key set), so
+  NimbleOptions' main selling point — one schema reused across many
+  call sites — doesn't apply here the way it does for Broadway's
+  producer/processor/batcher trio.
+
+**Recommendation: do not adopt NimbleOptions at 1.0.** Keep hand-rolled
+keyword validation, but close the doc-drift gap a different way: generate
+the "Options" table in each function's `@doc` from the same
+`@allowed_*_filter_keys` module attribute the validator already uses (a
+`Macro`/doc-test or a `mix docs.verify_options` script, not a new runtime
+dependency), so accepted keys can never silently drift from documented keys
+without a test failure. Revisit NimbleOptions post-1.0 only if/when a truly
+nested, cross-function-shared options schema emerges (e.g. a future
+`scope_query_fn` config DSL) — not before.
+
+---
+
+## 5. Docs adopters expect at 1.0
+
+### What already exists (evidence)
+
+`guides/` has 16 files. Relevant existing coverage:
+- `guides/upgrade-path.md` + `guides/upgrading-to-0.11.md` — an existing,
+  working "upgrading to X" pattern to extend for 1.0.
+- `guides/configuration-and-commands.md`, `guides/domain-reference.md`,
+  `guides/audit-indexing.md` — touch on composite/primary-key shapes in
+  passing (`grep` hits above) but **no dedicated supported-table-shapes
+  guide exists**.
+- `guides/evaluating-threadline.md`, `guides/upgrade-path.md`,
+  `guides/telemetry.md` mention "semver"/"stability" in passing — **no
+  dedicated stability/semver-policy page exists.**
+- **No redaction threat model doc exists** (`grep -il redaction` matched
+  files that merely reference redaction features, not a threat-model
+  document).
+
+### Classification
+
+| Doc | Table stakes / Differentiator / Anti-feature | Complexity | Depends on |
 |---|---|---|---|
-| 1 | `[:threadline, :export, :completed]` / `[:threadline, :export, :failed]` execute events on `Threadline.Export.to_csv_iodata/2`, `to_json_document/2`, `format_changes_iodata/3`, and the governance export job | INCLUDE | Event shape is one-way once published; no default behavior change |
-| 2 | `:telemetry.span/3` around `Threadline.Retention.purge/1` as `[:threadline, :retention, :purge, :start\|:stop\|:exception]`, plus `[:threadline, :retention, :batch_purged]` execute per batch | INCLUDE | Event shape one-way; no default behavior change |
-| 3 | `[:threadline, :query, ...]` events | ANTI-FEATURE / DEFER | Document `[:repo, :query]` filtering by `source` instead |
-| 4 | Telemetry emitted from inside Mix task bodies (`gen.triggers`, `gen.migration`, `gen.row_history_index`, `retention.purge`, future `export`) | ANTI-FEATURE / DEFER | Library functions already emit for free when run inside a booted app |
-| 5 | `Threadline.history/3` gains `:limit` (optional positive integer, default `nil`/unbounded, `ArgumentError` on `0`/negative/non-integer) | INCLUDE | Additive option; default choice defers the one-way bounded-default call to v1.45 |
-| 6 | `mix threadline.health.coverage --strict` (exit 1 on any `:error` finding in scope, exit 0 otherwise; composable with `--json`) | INCLUDE | New opt-in flag; no default behavior change |
-| 7 | `Threadline.Health.Finding` code `:invalid_config` | DEFER / documentation-only | N/A — no new code; existing raise-fast stays |
-| 8 | `mix threadline.health.coverage --all-schemas` (schema-keyed table/JSON output, mutually exclusive with `--schema=NAME`) | INCLUDE | New opt-in flag; no default behavior change |
-| 9 | `mix threadline.gen.backfill` generator | DEFER (durable anti-feature) | N/A — status quo (guide SQL + `mix ecto.gen.migration`) stands |
-| 10 | New `Finding` code `:unresolved_legacy_keys` (`:warning`), counting pre-0.11 `table_pk = {"id": null}` / `{}` rows per table, message linking to the existing upgrade guide's Step 6 | INCLUDE | Additive `Finding.code()` union widening; silent under `--strict` by default |
+| Supported-table-shapes guide | **Table stakes** — every row-level audit library hits "does this work on my weird table" in its first adopter hour; currently scattered across 3 guides, not a single referenceable answer | LOW (collate + extend existing knowledge, mostly writing) | `RowKey.match!/3` behavior (composite keys, `primary_key:` override, dropped/renamed-table fallback, `char(n)` caveat — all already documented inline in `lib/threadline/query.ex:70-100,383-400`) — no code changes, just needs explicit statements on partitioned tables, unlogged tables, views, and cross-schema tables (currently undocumented either way) |
+| Redaction threat model | **Table stakes** for a compliance-adjacent product — "what does redaction actually guarantee" is the first question a security reviewer asks, and an *unanswered* one is worse than an honest partial answer | MEDIUM (requires auditing every place plaintext could persist pre-redaction: WAL, logs, telemetry payloads, backups, the `:comment` free-text field on `record_action`, already-captured rows before a redaction rule was added) | No code changes; needs a pass over `Threadline.Telemetry` emit call sites and the capture trigger generator to confirm what it does/doesn't scrub |
+| Stability/semver policy page | **Table stakes** at 1.0 specifically — this is the page that makes "1.0.0" mean something; without it, "breaking in a minor" has no documented contract to violate | LOW (write down the policy this milestone is itself enacting: public = `Threadline.*` only per §1d, `@doc false`/private modules excluded from semver, deprecation-then-removal cadence per §1a) | §1d's facade decision (can't write the policy until the public surface is actually settled) |
+| Upgrading-to-1.0 guide | **Table stakes** — every breaking change in this milestone (bounded `:limit` default §2, return-shape changes §3, removed `Threadline.Query`/`Threadline.Investigation` public status §1d) needs one canonical, numbered guide, following the existing `upgrading-to-0.11.md` pattern | MEDIUM (one step per ONE-WAY decision above; follows an established template so mostly transcription once decisions are final) | All of §1-§3's ONE-WAY decisions must be finalized first — this doc is written last |
 
-### Explicit anti-features (do not build)
+**Anti-feature:** a generic "API reference" guide duplicating `@doc`
+content — ExDoc already generates this from moduledocs; a hand-maintained
+parallel copy would drift immediately and violates the OSS DNA "doc contract
+tests" principle (CLAUDE.md: "README, guides, and example app README stay
+aligned via test assertions" — a duplicate reference page has no such test
+achievable without literally re-deriving ExDoc).
 
-- A `[:threadline, :query, ...]` telemetry event duplicating the host's own `[:repo, :query]`.
-- Telemetry calls inside Mix task bodies.
-- A soft `:invalid_config` `Finding` replacing the existing hard `Mix.raise`/`ArgumentError`.
-- `mix threadline.gen.backfill` as a parameterized SQL-generating Mix task.
-- Any telemetry metadata carrying row data, `actor_ref`, `correlation_id`, or filter values —
-  counts, durations, table names, and format/flag atoms only.
-- A bounded default for `history/3`'s new `:limit` in this milestone (leave the number, if any,
-  to v1.45's contract work).
+### Docs voice
+
+Per `brandbook/brand-book.md` ("precise, grounded, composed... useful over
+impressive... trustworthy because it is inspectable") and the milestone
+guide's JTBD/GOV.UK voice direction: each of the four docs above should open
+with a one-line "who this is for" / "what this answers" sentence (the
+pattern `guides/upgrading-to-0.11.md:7-12` already uses — "Use this guide
+if..."), state constraints in plain declarative sentences rather than
+hedging ("The fallback cannot reproduce blank-padding" — not "there may be
+some edge cases around padding"), and the redaction threat model in
+particular should state what it does **not** guarantee as plainly as what it
+does, matching the brand's "trustworthy because it is inspectable" promise —
+a redaction doc that only lists guarantees and omits gaps reads as "quietly
+confident" turning into overconfident, which is an explicit anti-trait.
+
+---
+
+## 6. Other 1.0 API gaps (evidence-only, no new product scope)
+
+- **No `row_history!`/`audit_transaction!` raising siblings** for the
+  `{:ok,_}/{:error,_}` functions once §3's rule 2 lands — Ecto's own
+  `get`/`get!` pairing means adopters will reach for a `!` variant by
+  muscle memory; omitting it for exactly the functions that just gained
+  ok/error tuples (`audit_transaction/2`, `transaction_context/2`) is a gap
+  the migration itself creates. Low complexity (thin wrapper), should ship
+  in the same PR as §3's change, not deferred.
+- **Two page-struct shapes today** (`TimelinePage` vs `ActorHistoryPage`)
+  is itself the gap §3 flags — restated here because it is the kind of
+  "fit and finish" miss a 1.0 contract review exists to catch: a generic
+  pagination component built against one struct breaks against the other.
+- **No documented escape hatch policy** for `Ecto.Query.t()`-returning
+  functions once `Threadline.Query`/`Threadline.Investigation` go private
+  (§1d) — `timeline_query/1` needs an explicit "this one stays public and
+  here's why" callout, or adopters composing custom queries lose their only
+  legitimate path and will reach into the hidden modules anyway (Elixir has
+  no access-control enforcement, so hiding a moduledoc doesn't prevent the
+  call, it just makes the compatibility contract silently absent).
+- **No `mix threadline.doctor`/schema-coverage check is a gap this research
+  found evidence AGAINST, not for** — `guides/audit-indexing.md` and
+  `guides/production-checklist.md` suggest capture-coverage checking already
+  exists in some form; do not add new "coverage" API surface here, it is out
+  of this milestone's scope per the common-context (no new product scope).
+- **Nothing found evidence for** beyond the above: no gap was found in
+  cross-table joins, export parity, or diff rendering — those already have
+  dedicated, consistent entry points (`timeline`/`export_csv`/`export_json`/`change_diff`)
+  that this research's inventory did not flag as inconsistent.
+
+---
+
+## Summary table for REQUIREMENTS.md scoping
+
+| Item | Category | Complexity | ONE-WAY? | Depends on |
+|---|---|---|---|---|
+| Merge `history`+`row_history` into one `row_history/3`, paging via `:cursor` opt | Table stakes | MEDIUM | Yes | `HistoryLimit`, `RowKey`, `Investigation.linked_changes/2` |
+| Fold `filters` into `opts` (drop the parallel-list signature) | Table stakes | LOW-MEDIUM | Yes | same functions as above |
+| Bounded default `:limit` (200) + truncation telemetry | Table stakes | MEDIUM | **Yes** | `HistoryLimit`, new telemetry event |
+| Unify `TimelinePage`/`ActorHistoryPage` → one `Threadline.Page` | Table stakes | MEDIUM | Yes | `Cursors` module, every paged function's call sites |
+| `transaction_context/2`, `audit_transaction/2` → `{:ok,_}/{:error, :not_found}` + `!` siblings | Table stakes | LOW-MEDIUM | Yes | `Investigation`, `Query` |
+| Hide `Threadline.Query`/`Threadline.Investigation` publicly; keep `timeline_query/1` as the one documented escape hatch | Table stakes | LOW | Yes | all facade delegation call sites |
+| Keep hand-rolled option validation; add generated-from-attribute options doc check | Differentiator (DX polish) | LOW | No | `@allowed_*_filter_keys` attributes |
+| Supported-table-shapes guide | Table stakes (docs) | LOW | No | none (writing only) |
+| Redaction threat model | Table stakes (docs) | MEDIUM | No | audit of Telemetry/capture trigger plaintext paths |
+| Stability/semver policy page | Table stakes (docs) | LOW | No | the facade decision above |
+| Upgrading-to-1.0 guide | Table stakes (docs) | MEDIUM | No | all ONE-WAY rows above finalized first |
+| NimbleOptions adoption | Anti-feature at 1.0 | — | No | — (explicitly recommended against) |
+| Generic API-reference guide duplicating ExDoc | Anti-feature | — | No | — (explicitly recommended against) |
 
 ## Sources
 
-- Code: `lib/threadline/telemetry.ex:1-113`; `lib/threadline/query.ex:340-441` (tiebreak,
-  `history_query/3`, `row_history_query/3`, `Cursors.timeline_page_size!/1` at line 121);
-  `lib/threadline.ex:80-209`; `lib/threadline/export.ex:1-60` (moduledoc, `max_rows`,
-  streaming caveat); `lib/threadline/retention.ex:1-30`; `lib/mix/tasks/threadline.retention.purge.ex:1-50`;
-  `lib/threadline/health.ex` (moduledoc, `trigger_findings/1`/`trigger_coverage/1` schema-scope
-  docs); `lib/mix/tasks/threadline.health.coverage.ex:1-95` (viewer semantics, `--schema`
-  validation); `lib/mix/tasks/threadline.verify_coverage.ex:1-40` (gate semantics, exit-code
-  convention); `lib/threadline/health/finding.ex:1-64` (code union, severity contract);
-  `lib/threadline/capture/trigger_capture_config.ex` (existing raise-fast config validation);
-  `lib/threadline/governance/export_job.ex`, `lib/threadline/governance/retention_run.ex`
-  (durable governance-run rows, complementary to telemetry); `guides/upgrading-to-0.11.md:100-224`
-  (backfill SQL, marker-delimited, batching/idempotency guarantees, what cannot be recovered).
-- Project state: `.planning/PROJECT.md` (Current Milestone: v1.44, Deferred to v1.44 list,
-  v1.42 delivered summary); `.planning/milestones/v1.42-MILESTONE-AUDIT.md:22-26` (exact deferral
-  wording for `gen.backfill`, `--strict`, `:invalid_config`, `--all-schemas`, and the 3+ column
-  composite-key gap); `.planning/MILESTONE-GUIDE.txt` §3 (product boundaries, host-owned
-  migrations, one-way public defaults), §4 (adopter/DBA/SRE lenses, multi-schema adopter shape),
-  §8 (quality/evidence bar), §9 (CI economy), §9a (performance/architecture).
-- Ecosystem precedent (established public convention, general knowledge — not a single fetched
-  URL): Ecto (`[:my_app, :repo, :query]` per-query telemetry, `limit/2` vs `Repo.stream/2`
-  keyset pagination split); Oban (`[:oban, :job, :start|:stop|:exception]` span reserved for the
-  one supervised unit of work; `Oban.Migration`/`mix oban.install` generates a fixed migration
-  with no adopter-supplied parameters; no telemetry from the install task itself); Phoenix
-  (`[:phoenix, :endpoint, :start|:stop]`, `[:phoenix, :router_dispatch, :start|:stop]`); Finch
-  and Broadway (span around the unit of work that can fail partway through, execute for
-  finer-grained detail); `telemetry_metrics` conventions (numeric measurements, bounded-cardinality
-  metadata/tags — never IDs); OpenTelemetry semantic conventions (span for a bounded operation
-  with a real start/stop, event for a point-in-time occurrence); PaperTrail (`versions` is an
-  unbounded Ecto association, capped by ordinary `limit:`, no bespoke limit option); Ash
-  (`Ash.Query.limit/2` vs `Ash.Query.page/2` as separate concerns, mirroring `timeline/2` vs
-  `timeline_page/2`); Carbonite/PaperTrail/Logidze (backfill is documented SQL/Ecto scripts, not
-  a generator, because parameters vary too much per adopter/table); Credo `--strict` and Sobelow
-  (opt-in stricter gate, warnings vs. findings-that-fail, consistent with CLAUDE.md's cited
-  `mix format --check-formatted` / `mix verify.*` conventions).
+- Codebase: `lib/threadline.ex`, `lib/threadline/query.ex`,
+  `lib/threadline/investigation.ex`, `lib/threadline/query/history_limit.ex`,
+  `guides/` directory listing, `brandbook/brand-book.md` (all read directly,
+  cited by file:line above).
+- [PaperTrail (Elixir) VersionQueries — hexdocs v1.1.2](https://hexdocs.pm/paper_trail/PaperTrail.VersionQueries.html)
+- [PaperTrail (Elixir) README — hexdocs v1.1.2](https://hexdocs.pm/paper_trail/readme.html)
+- [Carbonite.Query — hexdocs](https://hexdocs.pm/carbonite/Carbonite.Query.html)
+- [Carbonite GitHub — bitcrowd/carbonite](https://github.com/bitcrowd/carbonite)
+- [ExAudit README — hexdocs v0.10.0](https://hexdocs.pm/ex_audit/readme.html)
+- [ExAudit.Repo — hexdocs v0.10.0](https://hexdocs.pm/ex_audit/ExAudit.Repo.html)
+- General knowledge (not re-verified this session, flag as MEDIUM
+  confidence): `audited` gem `audits`/`revision` API, Logidze `at`/`diff_from`
+  API, django-simple-history `history.as_of`, Hibernate Envers
+  `AuditReader.forRevisionsOfEntity`/`find`, Ecto/Oban/Req/Flop/Paginator/Scrivener
+  return-shape and pagination-default conventions — these are stable,
+  long-documented public APIs consistent with training knowledge; recommend
+  a spot-check against current hexdocs/PyPI/Maven pages before quoting exact
+  option names verbatim in REQUIREMENTS.md or user-facing docs.

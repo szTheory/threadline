@@ -41,12 +41,12 @@ Primary keys: `audit_transactions.id`, `audit_changes.id`, `audit_actions.id`. F
 
 Each subsection below uses a **“Tables & modules”** box naming the entry points that must stay aligned with physical tuning.
 
-## Timeline and Threadline.Query
+## Timeline and Threadline.timeline/2
 
 **Tables & modules**
 
 - **Tables:** `audit_changes` ⟵ **INNER JOIN** → `audit_transactions`
-- **Module:** `Threadline.Query`; public API `timeline/2`
+- **Module:** `Threadline.timeline/2` and `Threadline.timeline_page/2`
 
 **Join shape.** `timeline_base_query/1` inner-joins `AuditChange` to `AuditTransaction` on `transaction_id`. When `:correlation_id` is present (non-empty after trim), `filter_by_correlation/2` adds a further **inner** join to `AuditAction` on `at.action_id == aa.id` **and** `aa.correlation_id == ^cid`. When correlation is omitted, no action join is added for timeline rows.
 
@@ -60,7 +60,7 @@ Each subsection below uses a **“Tables & modules”** box naming the entry poi
 
 ### Row history lookups
 
-`Threadline.history/3` and `Threadline.as_of/4` match the full stored `table_pk`
+`Threadline.row_history/3` and `Threadline.as_of/4` match the full stored `table_pk`
 with `=` (never a per-key predicate), which `audit_changes_row_history_idx` on
 `(table_schema, table_name, table_pk, captured_at DESC, id DESC)` serves
 directly. Installs created before this release do not have this index; run
@@ -78,9 +78,9 @@ padding intact.
 **Tables & modules**
 
 - **Tables:** `audit_changes` ⟵ **INNER JOIN** → `audit_transactions`; optional **`AuditAction`** join depends on filters
-- **Module:** `Threadline.Export` (and `Threadline.Query.export_changes_query/1`)
+- **Module:** `Threadline.Export`, reached through `Threadline.export_csv/2` and `Threadline.export_json/2`
 
-**Join shape (verbatim semantics from code).** `export_changes_query/1` validates filters, then:
+**Join shape (verbatim semantics from code).** The export query validates filters, then:
 
 - If **`:correlation_id` is absent**, it builds `timeline_base_query/1` and adds **`join(:left, [ac, at], aa in AuditAction, on: at.action_id == aa.id)`** so export payloads can surface `aa.id` / `aa.correlation_id` without narrowing the change set.
 - If **`:correlation_id` is present**, it uses `timeline_base_query/1` followed by **`filter_by_correlation/2`**, which applies the same **inner** join to `audit_actions` as timeline.
@@ -99,7 +99,7 @@ Do **not** document export as “always inner join actions”; the **LEFT JOIN**
 **Tables & modules**
 
 - **Tables:** `audit_transactions.action_id` → `audit_actions.id`; filter on `audit_actions.correlation_id`
-- **Module:** `Threadline.Query.timeline/2` with the `:correlation_id` filter
+- **Module:** `Threadline.timeline/2` with the `:correlation_id` filter
 
 **Join shape.** With a non-empty correlation id, queries **inner** join `audit_actions` so only changes whose transaction links to an action with that `correlation_id` are returned. Index **`audit_actions(correlation_id)`** is *not* in the shipped baseline; if correlation bundles are hot, add it as **optional** DDL after measuring.
 
