@@ -275,7 +275,7 @@ Plans:
 **Wave 2**
 - [x] 235-02-PLAN.md — Stability policy and supported-table eligibility guides (completed 2026-10-06)
 - [x] 235-03-PLAN.md — Live storage catalog and literal public SQL contracts (completed 2026-10-07)
-- [ ] 235-04-PLAN.md — Export, health, Mix-task, and router public-set contracts
+- [x] 235-04-PLAN.md — Export, health, Mix-task, and router public-set contracts (completed 2026-10-07)
 - [ ] 235-05-PLAN.md — Stable Ecto field subsets and additive captured-data contract
 
 ### Phase 236: Support Floor and Partition Weights
@@ -314,7 +314,7 @@ Plans:
 | 232. Consolidated Reads, Deprecations and the Bounded Default | 6/6 | Complete    | 2026-10-03 |
 | 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
 | 234. Typespec and Doc Completion Gate | 22/22 | Complete    | 2026-10-06 |
-| 235. Stability Contract and Adopter Guides | 3/5 | In Progress | - |
+| 235. Stability Contract and Adopter Guides | 4/5 | In Progress | - |
 | 236. Support Floor and Partition Weights | 0/TBD | Not started | - |
 | 237. Upgrade Guide and 1.0.0 | 0/TBD | Not started | - |
 

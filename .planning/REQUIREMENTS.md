@@ -70,7 +70,7 @@
   - A doc-contract test pins each of these statements.
 - [x] **CONTRACT-02**: A schema-snapshot test pins the column names, types and nullability of `audit_transactions`, `audit_changes` and `audit_actions`, plus the shipped indexes. Removing or renaming any of them fails CI.
 - [x] **CONTRACT-03**: A test pins the GUC name `threadline.actor_ref` and the trigger-function naming scheme as literals. A rename anywhere in `lib/` fails CI.
-- [ ] **CONTRACT-04**: Additive-only allowlist tests, following the pattern of `telemetry_registry_contract_test.exs`, pin:
+- [x] **CONTRACT-04**: Additive-only allowlist tests, following the pattern of `telemetry_registry_contract_test.exs`, pin:
   - the CSV and JSON export headers, with and without action metadata
   - the `Health.Finding` code set
   - each mix task's accepted flags
@@ -159,7 +159,7 @@
 | CONTRACT-01 | Phase 235 | Complete |
 | CONTRACT-02 | Phase 235 | Complete |
 | CONTRACT-03 | Phase 235 | Complete |
-| CONTRACT-04 | Phase 235 | Pending |
+| CONTRACT-04 | Phase 235 | Complete |
 | CONTRACT-05 | Phase 235 | Pending |
 | DOCS-01 | Phase 235 | Complete |
 | DOCS-02 | Phase 235 | Complete |
