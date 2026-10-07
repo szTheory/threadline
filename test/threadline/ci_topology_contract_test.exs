@@ -103,6 +103,20 @@ defmodule Threadline.CiTopologyContractTest do
     assert Regex.match?(~r/^  verify-bump-rehearsal:/m, yaml)
   end
 
+  test "the verify-test minimum lane pins PostgreSQL 15 exactly (FLOOR-01)" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert minimum_postgres_errors(yaml) == []
+
+    for pg <- ["14", "16"] do
+      mutated_yaml = replace_minimum_postgres(yaml, pg)
+      refute mutated_yaml == yaml, "the min-lane PostgreSQL #{pg} mutation must change ci.yml"
+
+      assert minimum_postgres_errors(mutated_yaml) != [],
+             "changing only the min-lane PostgreSQL value to #{pg} must fail the floor contract"
+    end
+  end
+
   test "the sole required-check decision pins alls-green immutably" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
@@ -331,6 +345,54 @@ defmodule Threadline.CiTopologyContractTest do
     ]
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
+  end
+
+  defp minimum_postgres_errors(yaml) do
+    job = workflow_job(yaml, "verify-test")
+    min_headers = Regex.scan(~r/^ {10}- lane: min\s*$/m, job)
+
+    min_blocks =
+      Regex.scan(
+        ~r/^ {10}- lane: min\n((?:^ {12}[^\n]*\n)*)/m,
+        job,
+        capture: :all_but_first
+      )
+      |> List.flatten()
+
+    pg_values =
+      case min_blocks do
+        [block] ->
+          Regex.scan(~r/^ {12}pg:\s*"([^"]+)"\s*$/m, block, capture: :all_but_first)
+          |> List.flatten()
+
+        _ ->
+          []
+      end
+
+    [
+      {job != "", "verify-test job is missing"},
+      {length(min_headers) == 1, "verify-test must define exactly one min matrix row"},
+      {length(min_blocks) == 1, "verify-test min row must have one parseable matrix block"},
+      {pg_values == ["15"],
+       "verify-test min row must set pg to the exact token \"15\", found #{inspect(pg_values)}"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp replace_minimum_postgres(yaml, pg) do
+    job = workflow_job(yaml, "verify-test")
+
+    case Regex.run(~r/^ {10}- lane: min\n(?:^ {12}[^\n]*\n)*/m, job) do
+      [block] ->
+        [old_line] = Regex.run(~r/^ {12}pg:\s*"[^"]+"\s*$/m, block)
+        new_block = String.replace(block, old_line, "            pg: \"#{pg}\"")
+        new_job = String.replace(job, block, new_block, global: false)
+        String.replace(yaml, job, new_job, global: false)
+
+      _ ->
+        yaml
+    end
   end
 
   test "verify-test runs the suite in fail-closed partitions after compile (SUITE-02)" do
