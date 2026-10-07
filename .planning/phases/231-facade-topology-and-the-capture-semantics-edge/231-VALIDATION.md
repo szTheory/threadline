@@ -76,7 +76,7 @@ All phase behaviors have automated verification.
 - [x] Feedback latency < 120s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** Automated validation evidence maps all eight tasks to existing tests and phase verification records; the phase regression gate is being rerun.
+**Approval:** Automated validation evidence maps all eight tasks to existing tests and phase verification records. The canonical regression gate `mix verify.test` passed on 2026-10-07: 32 properties, 3,047 tests, 0 failures, 3 excluded.
 
 ## Validation Audit 2026-10-07
 
