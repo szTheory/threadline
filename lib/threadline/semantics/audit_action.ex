@@ -19,6 +19,14 @@ defmodule Threadline.Semantics.AuditAction do
   The `:category` and `:verb` fields store the components separately so you
   can filter by either dimension in queries.
 
+  ## Stable 1.x fields
+
+  The stable struct fields for 1.x are `id`, `name`, `actor_ref`, `status`,
+  `reason`, `correlation_id`, and `inserted_at`. The `t()` type may gain fields;
+  this list does not make every current schema field a promise. An
+  `AuditAction` remains a semantic application event, distinct from the
+  database-transaction grouping in `AuditTransaction`.
+
   ## Usage
 
   Create actions via `Threadline.record_action/2`, which inserts the semantic
