@@ -32,6 +32,9 @@ and `Threadline.incident_bundle/2`.
 
 ### Breaking changes
 
+- PostgreSQL 15 is the supported minimum. PostgreSQL 14 adopters must upgrade
+  their database before upgrading Threadline.
+
 - `Threadline.Job.context_opts/2` now rejects unsupported `extra` keys and
   malformed context IDs with `ArgumentError`; integer `:job_id` and
   `:correlation_id` values are converted to strings. Required action: remove

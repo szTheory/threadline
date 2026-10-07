@@ -99,7 +99,7 @@ from the README.
 
 ## Notes
 
-- **Supported versions:** Elixir **1.15 floor / 1.17.3 current**, OTP **26 min / 27 current**, PostgreSQL **14 min / 16 current**. The CI `min` lane runs the full suite on Elixir 1.15 / OTP 26 / PostgreSQL 14 so the published floor remains enforced. CI also runs the suite on the newest stable Elixir, OTP and PostgreSQL (the `latest` lane, pinned in `.github/workflows/ci.yml`): Threadline is **tested on** those versions, which is **not a new support floor**.
+- **Supported versions:** Elixir **1.15 floor / 1.17.3 current**, OTP **26 min / 27 current**, PostgreSQL **15 min / 16 current**. CI's `min` lane runs the full suite on Elixir 1.15 / OTP 26 / PostgreSQL 15; `current` and `latest` CI versions are in the [toolchain support policy table](guides/upgrade-path.md#toolchain-support-policy). The `latest` lane is **tested on**, not a new support floor.
 - Threadline names four support lanes — the canonical `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, and `sigra-reference` matrix — in [guides/upgrade-path.md](guides/upgrade-path.md). Phoenix auth (reference lanes, pick one): [phx.gen.auth integration](guides/integrations/phx-gen-auth.md) · [Sigra integration](guides/integrations/sigra.md); neither is required.
 - Threadline works with PgBouncer transaction pooling.
 - Redaction drift uses three states: `Config matches deployed`, `Drift detected`, and `Could not introspect`; rerun `mix threadline.gen.triggers` if the latter two appear.

@@ -216,6 +216,74 @@ defmodule Threadline.UpgradePathContractTest do
     |> Enum.map(&elem(&1, 1))
   end
 
+  defp notes_section(readme) do
+    case Regex.run(~r/^## Notes\n([\s\S]*?)(?=^## |\z)/m, readme, capture: :all_but_first) do
+      [section] -> section
+      _ -> ""
+    end
+  end
+
+  defp current_support_bullets(readme) do
+    readme
+    |> notes_section()
+    |> String.split("\n")
+    |> Enum.filter(&String.starts_with?(&1, "- **Supported versions:**"))
+  end
+
+  defp unreleased_breaking_section(changelog) do
+    unreleased =
+      case Regex.run(
+             ~r/^## Unreleased — highlights\n([\s\S]*?)(?=^## |\z)/m,
+             changelog,
+             capture: :all_but_first
+           ) do
+        [section] -> section
+        _ -> ""
+      end
+
+    case Regex.run(
+           ~r/^### Breaking changes\n([\s\S]*?)(?=^### |\z)/m,
+           unreleased,
+           capture: :all_but_first
+         ) do
+      [section] -> section
+      _ -> ""
+    end
+  end
+
+  defp current_support_errors(readme, changelog) do
+    bullets = current_support_bullets(readme)
+    bullet = List.first(bullets)
+
+    breaking_section =
+      changelog
+      |> unreleased_breaking_section()
+      |> String.replace(~r/\s+/, " ")
+
+    [
+      {length(bullets) == 1,
+       "README Notes must have exactly one current Supported versions bullet"},
+      {String.contains?(bullet || "", "PostgreSQL **15 min / 16 current**"),
+       "README current support summary must state PostgreSQL 15 as its minimum"},
+      {not String.contains?(bullet || "", "PostgreSQL **14 min"),
+       "README current support summary must not retain the PostgreSQL 14 floor"},
+      {String.contains?(bullet || "", "guides/upgrade-path.md#toolchain-support-policy"),
+       "README current support summary must link to the guide's toolchain support table"},
+      {length(Regex.scan(~r/^### Breaking changes\s*$/m, changelog)) >= 1,
+       "CHANGELOG.md must contain an Unreleased Breaking changes section"},
+      {breaking_section != "", "CHANGELOG Unreleased Breaking changes section is missing"},
+      {String.contains?(breaking_section, "PostgreSQL 15 is the supported minimum"),
+       "CHANGELOG Unreleased must state that PostgreSQL 15 is the supported minimum"},
+      {String.contains?(
+         breaking_section,
+         "PostgreSQL 14 adopters must upgrade their database before upgrading Threadline"
+       ),
+       "CHANGELOG Unreleased must tell PostgreSQL 14 adopters to upgrade their database before Threadline"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
   test "one toolchain support table matches the declared support and CI lanes (FLOOR-01/02)" do
     guide = read_rel!(["guides", "upgrade-path.md"])
     mix_exs = read_rel!(["mix.exs"])
@@ -256,6 +324,57 @@ defmodule Threadline.UpgradePathContractTest do
 
       assert policy_errors(mutated_guide, mutated_mix, mutated_yaml, mutated_tool_versions) != [],
              "#{label} mutation must make the source-derived support-policy contract fail"
+    end
+  end
+
+  test "README and Unreleased changelog state the PostgreSQL 15 floor and adopter action" do
+    readme = read_rel!(["README.md"])
+    changelog = read_rel!(["CHANGELOG.md"])
+
+    errors = current_support_errors(readme, changelog)
+
+    assert errors == [],
+           "current adopter-facing support contract failed: #{Enum.join(errors, "; ")}"
+
+    [bullet] = current_support_bullets(readme)
+
+    mutations = [
+      {"the README current floor reverted to PostgreSQL 14",
+       {String.replace(
+          bullet,
+          "PostgreSQL **15 min / 16 current**",
+          "PostgreSQL **14 min / 16 current**"
+        ), changelog}},
+      {"the README current-support bullet deleted",
+       {String.replace(readme, bullet <> "\n", ""), changelog}},
+      {"the README link to the policy table deleted",
+       {String.replace(
+          readme,
+          "[toolchain support policy table](guides/upgrade-path.md#toolchain-support-policy)",
+          "the upgrade guide"
+        ), changelog}},
+      {"the Unreleased floor changed back to PostgreSQL 14",
+       {readme,
+        String.replace(
+          changelog,
+          "PostgreSQL 15 is the supported minimum",
+          "PostgreSQL 14 is the supported minimum"
+        )}},
+      {"the Unreleased PostgreSQL 14 adopter action deleted",
+       {readme,
+        Regex.replace(
+          ~r/PostgreSQL 14 adopters must upgrade\s+their database before upgrading Threadline\./,
+          changelog,
+          ""
+        )}}
+    ]
+
+    for {label, {mutated_readme, mutated_changelog}} <- mutations do
+      refute {mutated_readme, mutated_changelog} == {readme, changelog},
+             "#{label} mutation must change its input"
+
+      assert current_support_errors(mutated_readme, mutated_changelog) != [],
+             "#{label} mutation must make the adopter support contract fail"
     end
   end
 end
