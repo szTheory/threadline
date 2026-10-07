@@ -618,7 +618,7 @@ defmodule Threadline do
   @doc """
   Returns a list of linked changes for one schema row using the retired `(filters, opts)` shape and its unbounded default.
 
-  Use `row_history/3` and pass `limit: :infinity` to keep the unbounded behavior. The `filters` argument accepts only row-history filters; options are merged after filters and take precedence for duplicate keys.
+  Use `row_history/3` and pass `limit: :infinity` to keep the unbounded behavior. The `filters` argument accepts only row-history filters. For duplicate `:repo`, `:from`, or `:to` keys, the value in `filters` takes precedence over the value in `opts`, preserving the legacy call's ordering.
 
   ## Filters
 
