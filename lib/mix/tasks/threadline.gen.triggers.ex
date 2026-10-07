@@ -536,7 +536,13 @@ defmodule Mix.Tasks.Threadline.Gen.Triggers do
   # Options PrimaryKeySQL.create_trigger_block/3 reads, carried through from
   # the table's own config entry (see build_table_capture_spec/4).
   defp trigger_block_opts(opts) do
-    [redacted_columns: redacted_columns(opts)]
+    [
+      redacted_columns: redacted_columns(opts),
+      configured_redaction_columns: [
+        exclude: Keyword.get(opts, :exclude, []),
+        mask: Keyword.get(opts, :mask, [])
+      ]
+    ]
     |> maybe_put_primary_key(Keyword.get(opts, :primary_key))
   end
 

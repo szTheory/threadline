@@ -405,6 +405,7 @@ procedure.
 - [Integration contracts](integration-contracts.md)
 - [Local Docker development](local-docker-dx.md)
 - [Upgrade and support lanes](upgrade-path.md)
+- [Redaction limits and migration rollout](redaction.md)
 - [Upgrading to 0.11](upgrading-to-0.11.md)
 - [Incident playbook](incident-playbook.md)
 - [Performance](performance.md)

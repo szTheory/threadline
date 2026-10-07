@@ -123,7 +123,11 @@ defmodule Threadline.Capture.PrimaryKeySQL do
     config_key = Naming.table_token(table_name)
     statement = create_trigger_statement(table_name, function_literal)
     redacted_columns = Keyword.get(opts, :redacted_columns, [])
-    configured_column_check = configured_column_check_sql(qualified, redacted_columns)
+    configured_redaction_columns = Keyword.get(opts, :configured_redaction_columns)
+
+    configured_column_check =
+      configured_column_check_sql(qualified, configured_redaction_columns, redacted_columns)
+
     redaction_check = redaction_check_sql(qualified, redacted_columns)
 
     """
@@ -215,7 +219,11 @@ defmodule Threadline.Capture.PrimaryKeySQL do
     host_table = StorageSchema.qualified_host_table(table_name)
     statement = create_trigger_statement(table_name, function_literal)
     redacted_columns = Keyword.get(opts, :redacted_columns, [])
-    configured_column_check = configured_column_check_sql(qualified, redacted_columns)
+    configured_redaction_columns = Keyword.get(opts, :configured_redaction_columns)
+
+    configured_column_check =
+      configured_column_check_sql(qualified, configured_redaction_columns, redacted_columns)
+
     redaction_check = redaction_check_sql(qualified, redacted_columns)
     declared_literal = text_array_sql(declared)
 
@@ -430,10 +438,29 @@ defmodule Threadline.Capture.PrimaryKeySQL do
     """
   end
 
-  defp configured_column_check_sql(_qualified, []), do: ""
+  defp configured_column_check_sql(_qualified, nil, []), do: ""
 
-  defp configured_column_check_sql(qualified, columns) do
+  defp configured_column_check_sql(qualified, nil, columns) do
+    configured_redaction_check_sql(qualified, :mask_or_exclude, columns)
+  end
+
+  defp configured_column_check_sql(qualified, options, _redacted_columns) do
+    Enum.map_join(options, "\n", fn {option, columns} ->
+      configured_redaction_check_sql(qualified, option, columns)
+    end)
+  end
+
+  defp configured_redaction_check_sql(_qualified, _option, []), do: ""
+
+  defp configured_redaction_check_sql(qualified, option, columns) do
     array_literal = text_array_sql(columns)
+
+    option_name =
+      case option do
+        :mask -> "mask"
+        :exclude -> "exclude"
+        :mask_or_exclude -> "mask or exclude"
+      end
 
     """
 
@@ -446,7 +473,7 @@ defmodule Threadline.Capture.PrimaryKeySQL do
              )
          LIMIT 1;
         IF missing_redaction_column IS NOT NULL THEN
-          RAISE EXCEPTION 'threadline: configured mask or exclude column % of #{qualified} does not exist', missing_redaction_column;
+          RAISE EXCEPTION 'threadline: configured #{option_name}: column % of #{qualified} does not exist', missing_redaction_column;
         END IF;
     """
   end
