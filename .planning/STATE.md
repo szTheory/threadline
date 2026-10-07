@@ -5,16 +5,16 @@ milestone_name: 1.0 API Contract
 current_phase: 237
 current_phase_name: Upgrade Guide and 1.0.0
 current_plan: Not started
-status: planning
-stopped_at: Phase 237 context gathered
-last_updated: "2026-10-07T19:32:25.025Z"
+status: executing
+stopped_at: Phase 237 plans verified
+last_updated: "2026-10-07T20:03:56"
 last_activity: 2026-10-07
-last_activity_desc: Phase 236 complete, transitioned to Phase 237
-state_head: f007b884edb9d2aa35585079e3a03a8bd35d5a47
+last_activity_desc: Phase 237 plans verified; ready to execute
+state_head: d7c7f3272f9a2bbe7a208760832f509e592746b4
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 42
+  total_plans: 47
   completed_plans: 42
   percent: 86
 ---
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-07 after Phase 236)
 
 ## Current Position
 
-Phase: 237 — Upgrade Guide and 1.0.0
+Phase: 237 (Upgrade Guide and 1.0.0) — READY TO EXECUTE
 Current Plan: Not started
-Total Plans in Phase: Not planned
-Status: Ready to plan
-Phase 236 is complete and verified 6/6: PostgreSQL 15.18 is the proven floor, the source-derived support table and CI min lane agree, and all 265 discovered test files have measured weights. Final `mix ci.all` passed; FLOOR-01, FLOOR-02, and CI-01 are complete. Phase 237 is ready for discussion.
+Total Plans in Phase: 5
+Status: Ready to execute
+Phase 237 has five independently verified plans in four dependency-aware waves and is ready to execute. The phase covers the adopter guide, candidate-bound local release rehearsal, milestone audit, and separately granted live release steps.
 Plan 234-18 documented StorageSchema.role/0 without changing its union or runtime behavior. Plan 234-13 recorded a fresh independent D-46 PASS with a validated input hash and complete inventory. Plan 234-19 proved the approved D-58 GCM-only/Binary reachability conditions and passed the canonical dependency audit. Plan 234-15 passed a post-Plan-19 `mix ci.all`, reconciled security and validation evidence, and marked SPEC-02 Complete; a later phase verification reopened it. Plan 234-20 corrected two public doc claims and the capture/semantics type boundary, passed focused checks, strict Dialyzer, warning-free docs build, fresh independent D-46 review and integrity check, then closed its remaining CI gate using Plan 21's evidence. Plan 21 repaired the mobile reduced-motion E2E case; canonical `mix ci.all` passed with 3,010 root tests, 130 example tests, Dialyzer clean, and browser 318 passed/26 skipped. Plan 22 resolved the current-source Job.context_opts/2 type/runtime gaps and eager export validation telemetry issue, corrected the D-56 retention string-key value type surfaced during independent review, and passed fresh D-46 integrity plus canonical `mix ci.all` (3,016 root tests, 130 example tests, Dialyzer clean, browser 318/26). Phase 234 verification passed at 12/12 must-haves on 2026-10-06; SPEC-01, SPEC-02, and SPEC-03 are Complete. D-55's >=82 visible-entry floor and D-07's eight exact hidden pins remain unchanged. Phase 235 verification passed 5/5 on 2026-10-07. Final CI passed with root 3,047/0, example 130/0, Dialyzer clean, and browser 318/26; code review is clean. Five judgment-tier prohibition groups remain flagged as unverified. Phase 235 was complete; Phase 236 was next at that point.
 235-01 added migration-time validation for configured mask/exclude columns and the redaction threat guide. The focused migration, guide-contract, and graph tests passed (41/0); format and warning-free docs passed. Commits: `57dc67f2`, `5cb3b592`, `7638817a`. DOCS-02 is Complete. Phase 235 has five reviewed plans.
 235-02 published the stability policy and supported-table matrix with claim-level contracts. The combined guide and graph contracts passed (14/0), format passed, and warning-free ExDoc passed. Commits: `922758ef`, `686afe14`. CONTRACT-01 and DOCS-01 are Complete.
