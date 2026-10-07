@@ -9,11 +9,6 @@ defmodule Threadline.Capture.PublicSQLContractTest do
   alias Threadline.Capture.Naming
 
   @actor_guc "threadline.actor_ref"
-  @actor_call_sites %{
-    "lib/threadline/audit.ex" => 1,
-    "lib/threadline/plug.ex" => 1,
-    "lib/threadline/capture/trigger_sql.ex" => 2
-  }
   @function_name_call_sites %{
     "lib/mix/tasks/threadline.gen.triggers.ex" => 4,
     "lib/threadline/capture/trigger_sql.ex" => 1
@@ -40,7 +35,7 @@ defmodule Threadline.Capture.PublicSQLContractTest do
     end
   end
 
-  test "production actor GUC reads and writes use the pinned literal" do
+  test "production actor GUC writes and generated SQL reads use the pinned literal" do
     sources = source_files()
     assert_actor_call_sites!(sources)
   end
@@ -53,7 +48,7 @@ defmodule Threadline.Capture.PublicSQLContractTest do
 
   test "renamed actor and naming source call sites are caught" do
     sources = source_files()
-    actor_path = "lib/threadline/plug.ex"
+    actor_path = "lib/threadline/audit.ex"
 
     renamed_actor =
       Map.update!(sources, actor_path, &String.replace(&1, @actor_guc, "threadline.actor_ref_v2"))
@@ -87,36 +82,72 @@ defmodule Threadline.Capture.PublicSQLContractTest do
   end
 
   defp assert_actor_call_sites!(sources) do
-    actual =
-      sources
-      |> Enum.map(fn {path, source} ->
-        matches =
-          Regex.scan(
-            ~r/(?:current_setting|set_config)\s*\(\s*['"]threadline\.actor_ref['"]/,
-            source
+    writer_sql = "SELECT set_config('#{@actor_guc}', $1::text, true)"
+    audit_queries = literal_query_arguments(sources["lib/threadline/audit.ex"])
+    plug_queries = literal_query_arguments(sources["lib/threadline/plug.ex"])
+
+    assert Enum.count(audit_queries, &(&1 == writer_sql)) == 1,
+           "Threadline.Audit must set the actor GUC once inside its transaction"
+
+    refute Enum.any?(plug_queries, &String.contains?(&1, "set_config('#{@actor_guc}'")),
+           "Threadline.Plug must not set the actor GUC outside the audited transaction"
+
+    for sql <- [
+          Threadline.Capture.TriggerSQL.install_function(),
+          Threadline.Capture.TriggerSQL.install_function_for_table("posts",
+            store_changed_from: true,
+            except_columns: []
           )
+        ] do
+      executable_sql = String.replace(sql, ~r/--[^\r\n]*/, "")
 
-        {path, length(matches)}
+      assert executable_sql =~
+               "NULLIF(current_setting('#{@actor_guc}', true), '')::jsonb",
+             "generated capture SQL must read the pinned actor GUC in the transaction insert"
+    end
+  end
+
+  defp literal_query_arguments(source) do
+    ast = Code.string_to_quoted!(source)
+
+    {_ast, queries} =
+      Macro.prewalk(ast, [], fn
+        {{:., _, [_receiver, :query!]}, _, [query | _]} = node, acc when is_binary(query) ->
+          {node, [query | acc]}
+
+        node, acc ->
+          {node, acc}
       end)
-      |> Enum.reject(fn {_path, count} -> count == 0 end)
-      |> Map.new()
 
-    assert actual == @actor_call_sites,
-           "actor GUC production call sites changed; expected=#{inspect(@actor_call_sites)} " <>
-             "actual=#{inspect(actual)}"
+    queries
   end
 
   defp assert_named_call_sites!(sources, name, expected) do
-    pattern = Regex.compile!(Regex.escape(name) <> "\\s*\\(")
-
     actual =
       sources
-      |> Enum.map(fn {path, source} -> {path, length(Regex.scan(pattern, source))} end)
+      |> Enum.map(fn {path, source} -> {path, named_call_count(source, name)} end)
       |> Enum.reject(fn {_path, count} -> count == 0 end)
       |> Map.new()
 
     assert actual == expected,
            "#{name} production call sites changed; expected=#{inspect(expected)} " <>
              "actual=#{inspect(actual)}"
+  end
+
+  defp named_call_count(source, name) do
+    ast = Code.string_to_quoted!(source)
+    function = name |> String.split(".") |> List.last() |> String.to_existing_atom()
+
+    {_ast, count} =
+      Macro.prewalk(ast, 0, fn
+        {{:., _, [{:__aliases__, _, parts}, ^function]}, _, _} = node, acc
+        when is_list(parts) ->
+          {node, if(List.last(parts) == :Naming, do: acc + 1, else: acc)}
+
+        node, acc ->
+          {node, acc}
+      end)
+
+    count
   end
 end
