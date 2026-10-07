@@ -23,6 +23,18 @@ defmodule Threadline.Capture.AuditChange do
     per-table opt-in capture function is installed; otherwise nil.
   - `:captured_at` — trigger execution timestamp (microsecond precision).
 
+  ## Stable 1.x fields
+
+  The stable struct fields for 1.x are `id`, `transaction_id`, `table_schema`,
+  `table_name`, `table_pk`, `op`, `data_after`, `changed_fields`,
+  `changed_from`, and `captured_at`. The `t()` type may gain fields; this list
+  does not make every current schema field or virtual relationship a promise.
+
+  `data_after` and `changed_from` are additive JSONB maps: keys and shapes may
+  be added in 1.x. `changed_fields` is an additive list of text column names.
+  These promises do not guarantee byte-stable JSON serialization or key order,
+  and existing rows are not rewritten when a shape grows.
+
   ## Relationships
 
   - `belongs_to :transaction, Threadline.Capture.AuditTransaction` — the DB

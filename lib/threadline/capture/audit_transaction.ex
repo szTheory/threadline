@@ -23,6 +23,13 @@ defmodule Threadline.Capture.AuditTransaction do
   - `:source` — free-form string identifying the application subsystem, for
     example `"web"` or `"oban"`.
 
+  ## Stable 1.x fields
+
+  The stable struct fields for 1.x are `id`, `txid`, `occurred_at`,
+  `actor_ref`, `action_id`, and `source`. The `t()` type may gain fields; this
+  list does not make every current schema field or virtual relationship a
+  promise.
+
   ## Relationships
 
   - `has_many :changes, Threadline.Capture.AuditChange` — the row mutations
