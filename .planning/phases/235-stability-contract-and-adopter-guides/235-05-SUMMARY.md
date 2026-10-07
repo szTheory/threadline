@@ -116,6 +116,7 @@ None - plan executed as written.
 ## Issues Encountered
 
 - The first focused test run exposed a line-wrap-sensitive phrase assertion in the new test. The assertion now normalizes whitespace; the focused suite passes.
+- The phase-level `mix ci.all` run failed at `verify.repo_hygiene` because all five existing Phase 235 plan files contain machine-local home-directory `.codex/gsd-core` references. Those plan inputs are outside this plan's implementation scope; the finding is recorded in `deferred-items.md` for phase-level resolution.
 
 ## User Setup Required
 
@@ -123,7 +124,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-The Phase 235 implementation plans are complete. The focused contract and warning-free documentation build pass; the phase is ready for phase-level verification before Phase 236.
+The Phase 235 implementation plans are complete. Focused contracts, formatting, and warning-free documentation pass. Phase verification must first clear the repository-hygiene finding in the existing plan files and rerun `mix ci.all`.
 
 ---
 *Phase: 235-stability-contract-and-adopter-guides*
@@ -135,3 +136,4 @@ The Phase 235 implementation plans are complete. The focused contract and warnin
 - Task commits `fcdd2cd2` and `6f42507c` are ancestors of HEAD and the plan evaluation scope resolves both commits.
 - Coverage classification passed for both deliverables; focused tests, formatting, and warning-free docs build passed.
 - Stub scan found no placeholder patterns in the plan's changed files.
+- The requested phase-level `mix ci.all` was run and its `verify.repo_hygiene` failure is recorded under Issues Encountered.

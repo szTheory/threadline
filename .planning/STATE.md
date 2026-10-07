@@ -7,10 +7,10 @@ current_phase_name: Stability Contract and Adopter Guides
 current_plan: 5
 status: verifying
 stopped_at: Completed 235-05-PLAN.md
-last_updated: "2026-10-07T01:04:22.986Z"
+last_updated: "2026-10-07T01:06:29.787Z"
 last_activity: 2026-10-07
-last_activity_desc: 235-05 completed; stable schema field and additive captured-data contracts passed
-state_head: 6f42507ca0a32fc1fd167ce97ecac5bb9f2f9054
+last_activity_desc: 235-05 completed; focused contracts passed, full ci.all stopped at repo hygiene
+state_head: c52f3b0d6b1abc90a9d1931cf47016cebf9c2a93
 progress:
   total_phases: 7
   completed_phases: 4
@@ -30,7 +30,7 @@ See: `.planning/PROJECT.md` (updated 2026-10-06 after Phase 234)
 
 ## Current Position
 
-Phase: 235 (Stability Contract and Adopter Guides) — implementation complete, ready for verification
+Phase: 235 (Stability Contract and Adopter Guides) — implementation complete, verification blocked on repo hygiene
 Current Plan: 5
 Total Plans in Phase: 5
 Status: Phase complete — ready for verification
@@ -39,8 +39,8 @@ Plan 234-18 documented StorageSchema.role/0 without changing its union or runtim
 235-02 published the stability policy and supported-table matrix with claim-level contracts. The combined guide and graph contracts passed (14/0), format passed, and warning-free ExDoc passed. Commits: `922758ef`, `686afe14`. CONTRACT-01 and DOCS-01 are Complete.
 235-03 added live catalog pins for audit storage columns and indexes, plus literal actor-GUC/function-name contracts and source-use mutation controls. Both focused suites and format passed. Commits: `fd99af78`, `cf9f5525`; summary `235-03-SUMMARY.md`. CONTRACT-02 and CONTRACT-03 are Complete. Continue with plan 04.
 235-04 added observed export and Finding-code pins plus literal Threadline task flags, operator options, and mount routes. Both focused suites passed (7 tests, 0 failures) and format passed. Commits: `1bfd52f0`, `ccf2e468`; summary `235-04-SUMMARY.md`. CONTRACT-04 is Complete.
-235-05 documented stable field subsets for AuditChange, AuditTransaction, and AuditAction, plus additive captured-data shapes and schema/document removal controls. Focused contracts passed (10 tests, 0 failures), format passed, and warning-free docs passed. Commits: `fcdd2cd2`, `6f42507c`; summary `235-05-SUMMARY.md`. CONTRACT-05 is Complete. All phase plans are implemented; phase verification is next.
-Last activity: 2026-10-07 — 235-05 complete; phase verification ready
+235-05 documented stable field subsets for AuditChange, AuditTransaction, and AuditAction, plus additive captured-data shapes and schema/document removal controls. Focused contracts passed (10 tests, 0 failures), format passed, and warning-free docs passed. Commits: `fcdd2cd2`, `6f42507c`; summary `235-05-SUMMARY.md`. CONTRACT-05 is Complete. Full `mix ci.all` stops at `verify.repo_hygiene` on machine-local references in existing Phase 235 plans; see the blocker above.
+Last activity: 2026-10-07 — 235-05 complete; full ci.all hygiene blocker recorded
 
 v1.45 Progress: [██████░░░░] 4 of 7 v1.45 phases complete (57%) (231-237; phase 233 COMPLETE + verified 3/3 2026-10-03, 4/4 plans, code review 0 critical/1 warning (WR-01 malformed id + missing :repo returns :not_found instead of raising)/1 info, both open — 233-01: TransactionLookup shared fetch + option allowlist; 233-02: facade audit_transaction/2, transaction_context/2, incident_bundle/2 + bangs + NotFoundError; 233-03: Query.audit_transaction/2 deprecated onto the shared fetch, lookup-family doc contract, CHANGELOG + guide rewrites; 233-04: Scope.apply/2 fail-closed (D-20) proven across every scoped read + operator surface, reference app deny-all catch-all, guide "Scope surfaces and fail-closed rules" section, CHANGELOG breaking entry, mix ci.all green (2952 tests/0 failures, Dialyzer clean, browser lane 318/26 matching baseline). API-06 Complete. phase 232 COMPLETE + verified 5/5 2026-10-03, 6/6 plans — Threadline.Page as the one paged shape, row_history/3 with a 200-row default + truncation telemetry, every retired read a one-line @deprecated delegate with parity tests, emit_*/raw *_query builders hidden, facade-only scanner over guides/README/example, mix ci.all green; code review CR-01 actor LiveView prev_cursor regression fixed. API-01/02/03/05/08 Complete; phase 231 COMPLETE + verified 5/5 2026-10-03, 3/3 plans — 231-01: API-07 association removal + hydrate_actions/3 + deprecation shim; 231-02: API-04 — Threadline.Query/Investigation hidden, timeline_query/1 named escape hatch, facade-only lib docs and five guides, strict docs gate green; 231-03: facade-only doc-contract scanner (mutation-controlled), example script onto the facade, 231-01's query.ex source-size regression split into ActionHydration, full mix ci.all green. API-04 and API-07 both marked Complete in REQUIREMENTS.md. Plan counts set at each /gsd-plan-phase)
 
@@ -1069,6 +1069,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 ### Blockers
 
 - Phase 202 Plan 01 Task 1 was a one-way checkpoint:decision (storage-schema default flip) that AUTO-SELECTED under mode:yolo + auto_advance, with no live maintainer confirmation. Its own acceptance criterion required explicit maintainer confirmation. The underlying D-01 decision is recorded in 202-CONTEXT.md, but a maintainer should re-confirm the flip before the publish gate - hex.pm has no unpublish beyond ~1 hour.
+- Phase 235 full `mix ci.all` is blocked at `verify.repo_hygiene` by machine-local home-directory `.codex/gsd-core` references in the five existing Phase 235 plan files; recorded in 235 `deferred-items.md`.
 
 ### Quick Tasks Completed
 
