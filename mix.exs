@@ -585,6 +585,7 @@ defmodule Threadline.MixProject do
         "guides/upgrade-path.md",
         "guides/redaction.md",
         "guides/stability.md",
+        "guides/supported-tables.md",
         "guides/upgrading-to-0.11.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
@@ -617,7 +618,7 @@ defmodule Threadline.MixProject do
         Evaluate:
           ~r{^guides/(evaluating-threadline|how-threadline-works|code-walkthrough|domain-reference)\.md$},
         Adopt:
-          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|redaction|stability|upgrading-to-0\.11|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
+          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|redaction|stability|supported-tables|upgrading-to-0\.11|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
         Operate:
           ~r{^guides/(operator-surface|incident-playbook|performance|audit-indexing|adoption-evidence-playbook|telemetry)\.md$},
         Contribute:

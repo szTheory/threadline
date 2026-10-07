@@ -406,6 +406,7 @@ procedure.
 - [Local Docker development](local-docker-dx.md)
 - [Upgrade and support lanes](upgrade-path.md)
 - [1.x stability policy](stability.md)
+- [Supported table shapes](supported-tables.md)
 - [Redaction limits and migration rollout](redaction.md)
 - [Upgrading to 0.11](upgrading-to-0.11.md)
 - [Incident playbook](incident-playbook.md)

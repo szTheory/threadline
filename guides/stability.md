@@ -47,5 +47,6 @@ follow [the operator guide](operator-surface.md), not depend on rendered markup.
 
 ## Next steps
 
+- [Check the supported table shapes before installation](supported-tables.md).
 - [Review the upgrade path](upgrade-path.md).
 - [Return to Getting Started](getting-started-saas.md).
