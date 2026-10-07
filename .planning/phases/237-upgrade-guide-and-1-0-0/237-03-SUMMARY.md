@@ -48,7 +48,7 @@ coverage:
     requirement: REL-02
     verification:
       - kind: other
-        ref: "git log 4ae4557ddde83d70eb1781db984cb287dfa18b1b..04a7fac979719d466c7c3f5fae4cae232d4aeeaa --grep='BREAKING CHANGE' --format='%H %B'"
+        ref: "git log 4ae4557ddde83d70eb1781db984cb287dfa18b1b..6227ad959d30b62f08b957ecc50b146ce4fdf62c --grep='BREAKING CHANGE' --format='%H %B'"
         status: pass
     human_judgment: false
   - id: D2
@@ -56,10 +56,10 @@ coverage:
     requirement: REL-01
     verification:
       - kind: other
-        ref: "THREADLINE_BUMP_REHEARSAL_MODE=candidate mix verify.bump_rehearsal at 0b2095d9d1bbce8e905bf875a9718997f4b6ab48"
+        ref: "THREADLINE_BUMP_REHEARSAL_MODE=candidate mix verify.bump_rehearsal at d7d5ec7666f5042c943cf66e1a76a65fd9bfd66a"
         status: pass
       - kind: integration
-        ref: "mix ci.all at 0b2095d9d1bbce8e905bf875a9718997f4b6ab48"
+        ref: "mix ci.all at d7d5ec7666f5042c943cf66e1a76a65fd9bfd66a"
         status: pass
     human_judgment: false
 plan_head_before: e839079c94c4a0752082594f26bfd9c1b2d9e620
@@ -71,7 +71,7 @@ status: complete
 
 # Phase 237 Plan 03: Release audit and candidate summary
 
-The complete human 1.0.0 changelog now reconciles all 11 matching commits in the exact v1.44-to-source-tip audit, and isolated candidate `0b2095d` passed strict artifact rehearsal and full local CI on the fetched GitHub main base.
+The complete human 1.0.0 changelog reconciles all 11 matching commits in the exact v1.44-to-source-tip audit. Before the Plan 237-04 grant checkpoint, the isolated candidate was refreshed to current source and canonical main, then passed strict artifact rehearsal and full local CI at `d7d5ec7`.
 
 ## Performance
 
@@ -84,9 +84,9 @@ The complete human 1.0.0 changelog now reconciles all 11 matching commits in the
 ## Accomplishments
 
 - Dated the complete human-owned 1.0.0 changelog and retained a fresh Unreleased staging heading above it; kept the 0.12 prerequisites in their existing release section.
-- Audited the immutable `v1.44` base to final committed source tip, mapping 11 matching commits and 12 footer consequences to release and guide IDs.
-- Built a persistent isolated one-squash candidate on the separately fetched current `main`, retaining its shipped 0.12.0 manifest/generated notes.
-- Passed the strict 1.0.0 artifact rehearsal and then `mix ci.all` at the same candidate SHA; exact command results, artifact checksum, browser lane, and support pins are recorded in `237-VERIFICATION.md`.
+- Audited the immutable `v1.44` base through source tip `6227ad9`, mapping 11 matching commits and 12 footer consequences to release and guide IDs.
+- Built and refreshed a persistent isolated one-squash candidate on fetched canonical `main` `0d6f36f`, retaining its shipped 0.12.0 manifest/generated notes. The current candidate is `d7d5ec7` on `candidate/threadline-1.0.0-final5`.
+- Passed the strict 1.0.0 artifact rehearsal and then `mix ci.all` at `d7d5ec7`; the artifact checksum, tree comparison, browser lane, and support pins are recorded in `237-VERIFICATION.md`.
 
 ## Task Commits
 
@@ -114,6 +114,6 @@ The first sandboxed full-CI attempts also exposed local-only cache and Chromium 
 
 ## Self-Check: PASSED
 
-- `237-VERIFICATION.md` exists and records the final audited source tip and candidate SHA.
+- `237-VERIFICATION.md` records the refreshed source tip `6227ad9`, candidate SHA `d7d5ec7`, and successful candidate-bound checks.
 - Source commits `27902915`, `e18c9a9a`, `1cef0367`, `8321d1aa`, and `04a7fac9` are ancestors of the plan head.
-- The candidate remains available at `/private/tmp/threadline-237-03-candidate-20261007/repo` on `candidate/threadline-1.0.0-final4`.
+- The candidate remains available in isolated task-local storage on `candidate/threadline-1.0.0-final5`; its clean HEAD is one `feat!` commit above the freshly fetched main base.

@@ -3,9 +3,9 @@
 ## Exact source range and breaking-footer audit
 
 - Base tag: `v1.44` at `4ae4557ddde83d70eb1781db984cb287dfa18b1b` (exclusive).
-- Inclusive committed source tip: `04a7fac979719d466c7c3f5fae4cae232d4aeeaa`.
+- Inclusive committed source tip: `6227ad959d30b62f08b957ecc50b146ce4fdf62c`.
 - Ancestry check: `git merge-base --is-ancestor v1.44 HEAD` passed.
-- Exact audit command: `git log 4ae4557ddde83d70eb1781db984cb287dfa18b1b..04a7fac979719d466c7c3f5fae4cae232d4aeeaa --grep='BREAKING CHANGE' --format='%H %B'`.
+- Exact audit command: `git log 4ae4557ddde83d70eb1781db984cb287dfa18b1b..6227ad959d30b62f08b957ecc50b146ce4fdf62c --grep='BREAKING CHANGE' --format='%H %B'`.
 - Result: 11 matching commits and 12 adopter consequences; all consequences are represented in the dated human-owned 1.0.0 breaking section and linked from the upgrade guide.
 
 | Matching commit | Footer consequence | Human changelog / guide ID |
@@ -29,21 +29,21 @@ The other 1.0 breaking entries also have guide IDs, but no matching footer in th
 ## Isolated candidate
 
 - Fetched canonical `main` SHA: `0d6f36f1a7f6d014d415518a4fa2d235b66a9cf8`.
-- Candidate checkout: `/private/tmp/threadline-237-03-candidate-20261007/repo`.
-- Candidate branch: `candidate/threadline-1.0.0-final4`.
-- Candidate commit: `0b2095d9d1bbce8e905bf875a9718997f4b6ab48`, parent `0d6f36f1a7f6d014d415518a4fa2d235b66a9cf8`.
+- Candidate checkout: isolated task-local checkout (candidate branch `candidate/threadline-1.0.0-final5`).
+- Candidate commit: `d7d5ec7666f5042c943cf66e1a76a65fd9bfd66a`, parent `0d6f36f1a7f6d014d415518a4fa2d235b66a9cf8`.
 - Candidate subject/footer: `feat!: land Threadline 1.0 API contract` / one `Release-As: 1.0.0` footer.
-- `origin` is the local source checkout at `/Users/<user>/projects/threadline`; `github-canonical` is `https://github.com/szTheory/threadline.git`. The canonical fetch was read-only; no push was performed.
-- The source range and candidate each change 346 paths relative to their respective bases; sorted path inventories are identical (0 missing, 0 extra). The candidate reconciliation intentionally keeps `main`'s shipped 0.12.0 manifest/generated changelog artifacts until release automation runs. Pin content differs from the source-side 1.0.0 tree in `README.md`, `guides/getting-started-saas.md`, `guides/operator-surface.md`, and `mix.exs` because those carry the package install version.
+- Candidate is one commit above its base and its worktree is clean. A fresh read-only fetch confirmed canonical `main` remains `0d6f36f1a7f6d014d415518a4fa2d235b66a9cf8`, the candidate parent.
+- `origin` points to the local source checkout; `github-canonical` is `https://github.com/szTheory/threadline.git`. No push or PR was performed.
+- The source range changes 349 paths and the candidate changes 346. Their sorted inventories match exactly after excluding the three local evidence artifacts `237-03-SUMMARY.md`, `237-REVIEW.md`, and `237-VERIFICATION.md` from the source range (0 missing, 0 extra). The candidate reconciliation intentionally keeps `main`'s shipped 0.12.0 manifest/generated changelog artifacts until release automation runs. Pin content differs from the source-side 1.0.0 tree in `README.md`, `guides/getting-started-saas.md`, `guides/operator-surface.md`, and `mix.exs` because those carry the package install version.
 
 ## Candidate-bound local gates
 
-At candidate SHA `0b2095d9d1bbce8e905bf875a9718997f4b6ab48`, in the order required by the plan:
+At candidate SHA `d7d5ec7666f5042c943cf66e1a76a65fd9bfd66a`, in the order required by the plan:
 
-1. `THREADLINE_BUMP_REHEARSAL_MODE=candidate mix verify.bump_rehearsal` — passed. It simulated only `0.12.0 -> 1.0.0`, kept the existing human changelog heading, generated `threadline-1.0.0.tar`, and produced checksum `6d051bd563a8a31054e85c96993f8fa9f465ac920f650ac2b3575dee9f5a4702`. Tree identity matched across 34 checksummed files; no scratch branch or linked worktree survived. The rehearsal does not invoke live Release Please.
-2. `DB_HOST=localhost DB_PORT=55432 mix ci.all` — passed on the same committed candidate SHA with task-local Hex, npm, and Playwright cache paths. CI reported 32 properties, 3,058 root tests with 0 failures and 3 exclusions; 132 example tests with 0 failures; Dialyzer 0 errors; 17 live Dialyzer-slice tests with 0 failures; and the final browser lane 318 passed / 26 skipped. The database service for this local run was PostgreSQL 16 on port 55432.
+1. `THREADLINE_BUMP_REHEARSAL_MODE=candidate mix verify.bump_rehearsal` — passed. It simulated only `0.12.0 -> 1.0.0`, kept the existing human changelog heading, generated `threadline-1.0.0.tar`, and produced checksum `cc95ce707f18f6f6bd9c1124baf2dd52349e67806e7ec8935d332f290f6c00a0`. Tree identity matched across 34 checksummed files; no scratch branch or linked worktree survived. The rehearsal does not invoke live Release Please.
+2. `mix ci.all` — passed on the same committed candidate SHA with task-local Hex, npm, and Playwright cache paths. Format, Credo, dependency audit, repository hygiene, and cycle checks passed. CI reported 32 properties, 3,058 root tests with 0 failures and 3 exclusions; 132 example tests with 0 failures; Dialyzer 0 errors; 17 live Dialyzer-slice tests with 0 failures (16 excluded); and the final browser lane 318 passed / 26 skipped. The database service for this local run was PostgreSQL 16 on port 55432.
 
-The sandboxed browser attempt could not start Chromium because macOS denied its Mach port bootstrap; the complete `mix ci.all` rerun under approved host process permissions passed. Chromium and its cache were installed only under `/private/tmp/threadline-237-03-candidate-20261007/playwright-browsers`. The isolated CI log is `/private/tmp/threadline-237-03-candidate-20261007/candidate-ci-all-final4-elevated.log`; the rehearsal log is `/private/tmp/threadline-237-03-candidate-20261007/candidate-rehearsal-final4.log`.
+The sandboxed browser attempt could not start Chromium because macOS denied its Mach port bootstrap; the complete `mix ci.all` run under host process permissions passed. Chromium and all task caches remained in temporary storage. These environment adjustments did not alter the candidate tree.
 
 ## CI support-lane pins observed
 
