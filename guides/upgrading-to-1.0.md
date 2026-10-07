@@ -32,12 +32,11 @@ option contracts. `Threadline.Job.context_opts/2` now rejects unsupported
 `extra` keys; remove them and provide string, integer, or `nil` context IDs.
 Unknown options such as `:surface` and `:params` now raise `ArgumentError` on
 the documented query, export, and transaction APIs. Remove those keys. The
-listed `Threadline.Evidence.Proof` and `Threadline.StorageSchema` functions,
-and the telemetry `emit_*` and `export_changes_query` helpers, are unsupported
-internals; migrate any direct calls to documented APIs. A non-nil `:scope`
-requires a three-argument `scope_query_fn`; pair them, or pass `scope: nil`
-for an intentionally unscoped read. End scope callbacks with a deny-all clause
-such as `where(query, false)`.
+undocumented proof-recording, SQL-construction, telemetry-emission, and export
+query helpers are unsupported internals; migrate any direct calls to documented
+APIs. A non-nil `:scope` requires a three-argument `scope_query_fn`; pair them,
+or pass `scope: nil` for an intentionally unscoped read. End scope callbacks
+with a deny-all clause such as `where(query, false)`.
 
 <!-- threadline:upgrade:1.0:job-context -->
 <!-- threadline:upgrade:1.0:hidden-apis -->
@@ -57,10 +56,9 @@ such as `where(query, false)`.
 ## Step 3: Use the shared Page shape
 
 Timeline and actor-history paging return `%Threadline.Page{entries, cursor,
-has_more}`. Replace `TimelinePage` and `ActorHistoryPage` matches with
-`Threadline.Page`; read `.cursor` and `.has_more`. A final full page has no
-cursor, and a first-page request should omit `:cursor` or use `cursor: :start`,
-not `cursor: nil`.
+has_more}`. Replace page-specific result matches with `Threadline.Page`; read
+`.cursor` and `.has_more`. A final full page has no cursor, and a first-page
+request should omit `:cursor` or use `cursor: :start`, not `cursor: nil`.
 
 <!-- threadline:upgrade:1.0:timeline-page -->
 <!-- threadline:upgrade:1.0:actor-history-page -->
@@ -111,20 +109,20 @@ earlier than 2.0. Move to the listed replacement before then:
   `Threadline.Query.audit_changes_for_transaction`; use the exploration APIs
   in Step 5 to read the action.
   <!-- threadline:upgrade:1.0:deprecated-preload-action -->
-- Replace `Threadline.row_history/4` with `row_history/3`, using one keyword
-  options list.
+- Replace the legacy positional row-history call with `row_history/3`, using
+  one keyword options list.
   <!-- threadline:upgrade:1.0:deprecated-row-history-4 -->
-- Replace `Threadline.history/3` with `row_history/3`. Pass
+- Replace the removed unbounded history call with `row_history/3`. Pass
   `limit: :infinity` for its prior unbounded behavior and map `.audit_change`
   when callers need the old `%AuditChange{}` result.
   <!-- threadline:upgrade:1.0:deprecated-history-3 -->
-- Replace `row_history_page/2,3,4` with `row_history/3`, starting with
-  `cursor: :start`.
+- Replace the legacy row-history page helpers with `row_history/3`, starting
+  with `cursor: :start`.
   <!-- threadline:upgrade:1.0:deprecated-row-history-page -->
-- Replace `actor_window_page/1,2,3` with `actor_window/3` and
+- Replace the legacy actor-window pager with `actor_window/3` and
   `cursor: :start`.
   <!-- threadline:upgrade:1.0:deprecated-actor-window-page -->
-- Replace `correlation_bundle_page/1,2,3` with `correlation_bundle/3` and
+- Replace the legacy correlation-bundle pager with `correlation_bundle/3` and
   `cursor: :start`.
   <!-- threadline:upgrade:1.0:deprecated-correlation-bundle-page -->
 - Replace the `:after`, `:before`, and `:limit` options to `actor_history/2`

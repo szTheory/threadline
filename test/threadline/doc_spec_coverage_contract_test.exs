@@ -143,10 +143,13 @@ defmodule Threadline.DocSpecCoverageContractTest do
 
       changelog = File.read!(Path.expand("../../CHANGELOG.md", __DIR__))
 
-      unreleased =
+      release_1_0 =
         changelog
-        |> String.split("## Unreleased — highlights", parts: 2)
-        |> Enum.fetch!(1)
+        |> String.split(~r/^## \[1\.0\.0\] - \d{4}-\d{2}-\d{2}\s*$/m, parts: 2)
+        |> case do
+          [_, section] -> section
+          _ -> ""
+        end
         |> String.split(~r/^## /m, parts: 2)
         |> hd()
 
@@ -165,8 +168,8 @@ defmodule Threadline.DocSpecCoverageContractTest do
                "hidden pin #{inspect(key)} is visible"
 
         if key in @newly_hidden_keys do
-          assert unreleased =~ "#{inspect(module)}.#{name}/#{arity}",
-                 "newly hidden #{inspect(module)}.#{name}/#{arity} is missing from the Unreleased changelog"
+          assert release_1_0 =~ "#{inspect(module)}.#{name}/#{arity}",
+                 "newly hidden #{inspect(module)}.#{name}/#{arity} is missing from the dated 1.0.0 changelog"
         end
       end
     end
