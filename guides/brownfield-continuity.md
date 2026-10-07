@@ -6,7 +6,7 @@ This guide describes how to adopt Threadline on **PostgreSQL tables that already
 
 **T0** means `audit_changes` stays **empty** for a table until the **first** `INSERT`, `UPDATE`, or `DELETE` that runs **after** Threadline’s capture trigger is installed. Existing rows have **no** implied history in `audit_changes`.
 
-Until that first audited write, **`Threadline.history/3`** may return **`[]`** for a primary key even when the row existed long before capture — the database cannot prove who changed what before triggers existed.
+Until that first audited write, **`Threadline.row_history/3`** may return **`[]`** for a primary key even when the row existed long before capture — the database cannot prove who changed what before triggers existed.
 
 Do **not** fabricate `AuditChange` rows to “fill in” pre-capture history; that would break honesty and the trigger-only contract documented on `Threadline.Capture.AuditChange`.
 

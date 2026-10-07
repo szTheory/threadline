@@ -1,439 +1,311 @@
-# Architecture Research — Suite Parallelism, Guard-Test Rebalance, gen.triggers Down Orphan
+# Architecture Research — Public Surface & Layering for v1.45 "1.0 API Contract"
 
-**Domain:** Elixir/Ecto/PostgreSQL trigger-backed audit library, test-suite and migration architecture
-**Milestone:** v1.44 Behavioral Depth: Properties, Twins, Telemetry
-**Researched:** 2026-09-30
-**Confidence:** HIGH (all claims are grep/read evidence from this tree; no full-suite re-run performed, per constraint — timings are cited from the existing todo/seed records, not re-measured)
-
-## Executive Summary
-
-The suite's ~91% serial wall-clock is architectural, not incidental: `Threadline.DataCase`
-(used by 57 files) sets `async: false` by default in its `__using__` macro because every
-DB-touching test shares one global, un-sandboxed table set (`threadline.audit_*`,
-`threadline.threadline_*`) cleaned between tests. There is no SQL Sandbox by design — audit
-triggers, `txid_current()`, and real transaction commit/rollback boundaries are under test,
-and Sandbox's wrapping transaction would either hide trigger effects or make `pg_stat_activity`
-introspection impossible. Given that constraint, the single fastest, lowest-risk lever is CI
-matrix partitioning (`mix test --partitions N` + `MIX_TEST_PARTITION`, one DB per partition) —
-Ecto's own and Phoenix's own precedent for exactly this shape of non-Sandbox-safe suite. It
-requires no test rewrites and no capture-semantics risk. A second, slower-payoff lever is a
-targeted async-ification of the subset of `DataCase` tests that are pure-read queries over
-private, per-test fixture rows (safe under table-sharing because they never race another test's
-writes) — this is real work per file and should be scoped, not blanket-applied.
-
-The guard-test population (24 files matched by name, several hundred more `assert
-String.contains?` calls scattered through doc-contract tests generally) splits cleanly on one
-axis: does the assertion derive from a live source of truth (`mix.exs` `@version`, `bin/*`
-script output, `Threadline.MixProject.project()[:aliases]`, `git ls-files`, a real Ecto/ExDoc
-config) or does it only assert that one static document contains a string that another static
-document also contains? The former (`version_truth_doc_contract_test.exs`,
-`ci_topology_contract_test.exs`, `ci_token_permissions_contract_test.exs`,
-`branch_protection_comparison_contract_test.exs`, `brandbook_token_parity_test.exs`,
-`optional_deps_contract_test.exs`, `removed_artifact_contract_test.exs`,
-`planning_dependency_contract_test.exs`, `public_surface_contract_test.exs`,
-`ci_all_dedup_contract_test.exs`, `ci_coverage_doc_contract_test.exs`,
-`deps_health_doc_contract_test.exs`) catch a distinct, real drift and should be kept as-is.
-The latter — pure doc-to-doc string locks with no derivation, best exemplified by
-`stg_doc_contract_test.exs` and parts of `operator_surface/theme_doc_contract_test.exs` and
-`operator_surface_doc_contract_test.exs` — catch only "someone deleted a marker string" and are
-cut/merge candidates.
-
-The `gen.triggers` down orphan is a one-clause fix. `down_body/2` filters `table_specs` to
-`first_run_specs` (tables not in `rerun_tables`) and only emits trigger-drop and function-drop
-SQL for that filtered set. For a rerun table that adds a per-table function
-(`needs_per_table: true`), the migration is right to skip the *trigger* drop (an earlier
-migration still expects a trigger on that table) but wrong to also skip the *function* drop —
-the per-table function is an artifact this migration alone created, and no other migration's
-`down` ever targets it. The fix is to compute function-downs from the full `table_specs` (not
-`first_run_specs`) for tables that are `needs_per_table: true`, reusing
-`TriggerSQL.drop_function_if_unused/2`, which is unconditionally safe to call even for a table
-that keeps a live trigger (it checks `pg_trigger` before dropping and only warns if still in
-use, never raises, never cascades).
-
-## Part A — Suite Parallelism
-
-### A.1 Why async: false — inventory and root cause
-
-Two disjoint sets contribute to the serial core:
-
-- **56 files** declare `async: false` explicitly.
-- **36 files** declare neither `async: true` nor `async: false` and get ExUnit's per-module
-  default of `false` — 35 of these `use Threadline.DataCase`, which itself defaults to
-  `async: false` (see below), so the explicit-false count undercounts the real serial
-  population.
-- **132 files** declare `async: true`.
-- Total: 222 `*_test.exs` files, matching the milestone context's cited 222 files. (The
-  cited "82 async: false files" figure is a CI-measured count from a different vantage —
-  likely files ExUnit actually schedules serially at run time, which is a slightly different
-  count than a static grep on the two literal strings; treat 56+36≈92 here as the static,
-  file-level inventory, and 82 as the CI-observed number. Both point at the same architectural
-  cause and are close enough not to change the ranking below.)
-
-Root cause, by file evidence (`test/support/data_case.ex:1-25`):
-
-```elixir
-defmodule Threadline.DataCase do
-  @moduledoc """
-  ...
-  Does NOT use Ecto sandbox — PostgreSQL triggers fire at the DB level, outside
-  sandbox awareness. Each test cleans audit tables in `setup` (FK order).
-
-  **`async: false` by default** so tests in the same module never hit the same DB concurrently.
-  """
-  defmacro __using__(opts) do
-    opts = Keyword.merge([async: false], opts)
-    ...
-```
-
-57 files `use Threadline.DataCase`. Every one of them shares the same global tables
-(`threadline.audit_transactions`, `threadline.audit_changes`, `threadline.audit_actions`,
-`threadline.threadline_evidence_records`, `threadline.threadline_export_jobs`,
-`threadline.threadline_retention_runs`, `threadline.threadline_saved_views` — the
-`@owned_tables`/`@cleanup_order` list in `test/support/storage_schema_case.ex:16-33`) with a
-per-test cleanup pass (`clean_storage_schemas!/0` in `setup`), not a rollback boundary. Two
-tests in the same module running concurrently would race each other's inserts and cleanups
-directly, hence the forced serialization at the module level.
-
-Category breakdown (grep-based, over the 92 statically-serial files; categories are
-non-exclusive — most files hit two or three):
-
-| Category | File count (of 92) | Detection signal | Why it forces serial |
-|---|---|---|---|
-| DB-writing (`DataCase`/shared tables) | 57 (`use Threadline.DataCase`); 44 also match `Repo.insert/update/delete/transaction` or raw SQL directly | `use Threadline.DataCase`, `Repo.insert!`, `Ecto.Adapters.SQL.query!` | No Sandbox; concurrent tests would race the same rows/cleanup |
-| Filesystem | 47 | `File.write/rm/mkdir/read/cp` | Migration generators, guide/README contract tests, and stress-lab writers create real files (`priv/repo/migrations`, tmp dirs) that would collide under concurrency without per-test unique paths |
-| Application env | 40 | `Application.put_env/delete_env` | Global process dictionary — mutating `:threadline` app config between tests races any concurrent reader |
-| Mix-task shell-outs | 26 | `System.cmd`, `Mix.Task.run`, `Mix.shell()` | Spawns `mix ecto.migrate`, `mix threadline.gen.triggers`, etc. against the real migrations directory / real DB; two concurrent invocations would double-apply or lock-contend |
-| `capture_log`/`CaptureIO` | 10 | `ExUnit.CaptureIO`, `capture_log` | Redirects the global `:stdio`/logger group leader — not safe under concurrent capture in the same VM |
-| Telemetry handler globals | 6 | `:telemetry.attach` | `:telemetry` handler ids and the ETS handler table are process-global; two tests attaching the same handler id concurrently overwrite each other's handler |
-| Named processes | 4 | `start_supervised`, `GenServer`, `Process.register`, `Registry` | `Threadline.ExportQueue.TaskAdapter`, `Threadline.Retention.Pruner`, the stress router, and the retention-history LiveView test start supervised/named processes that would collide on name if run twice concurrently |
-
-Interpretation for the roadmap: the two largest categories (DB-writing/`DataCase`, and
-filesystem) are structurally tied to the "no Sandbox" decision and to real-migration-file
-generation; they are not quick wins. The two smallest (telemetry, named processes) are
-narrowly scoped and are the correct target for a `async: true`-with-isolation rewrite, because
-the fix is local (unique handler ids, unique registered names) and does not touch capture
-correctness.
-
-A live `mix test --slowest N` breakdown by category was not run — the constraint here is
-read-only/no full-suite reruns, and the milestone context explicitly gates that measurement on
-local DB availability, which was not verified as part of this research pass. The 209 s/191 s
-sync split and the 2460-test, 222-file baseline are taken as given from
-`.planning/todos/pending/2026-09-28-ci-suite-sync-bound-parallelism.md` and
-`.github/workflows/flake-detection.yml:41-49` (dispatch run 36359135268, 268.3 s cold /
-206.2–213.5 s warm). Before committing to a specific partition count or async-ification list,
-re-run `mix test --slowest 50` once, locally, with the DB up, and cite that run's numbers —
-this file does not fabricate a per-category time split it cannot support with a citation.
-
-### A.2 Options, ranked
-
-| Rank | Option | Mechanism | Gain | Risk to capture semantics | Effort |
-|---|---|---|---|---|---|
-| 1 | **CI partitioning** (`mix test --partitions N`, `MIX_TEST_PARTITION`, one DB per partition) | `verify-test` matrix gets an extra axis; `MIX_TEST_PARTITION` feeds `Threadline.Test.Repo`'s database name (`threadline_test#{System.get_env("MIX_TEST_PARTITION")}`); the `postgres:` service container serves N logical DBs | Near-linear wall-clock reduction on the serial core, up to the partition count; no test file touched | **None** — every test still runs unsandboxed, un-mocked, against a real DB and real triggers; only the *which database* changes | Low–Medium: `test/test_helper.exs` DB-name derivation, `.github/workflows/ci.yml` matrix axis, `postgres:` service init for N databases, Flake Detection's `mix verify.flake` invocation (see A.3) |
-| 2 | **Async-ify telemetry/named-process files** (unique handler ids + test-pid filters, `start_supervised` with per-test names) | Give each test a unique `:telemetry.attach` id (e.g. `{__MODULE__, self()}`) and filter delivered events by `self()`; register processes under a per-test name (`:"#{__MODULE__}.#{System.unique_integer()}"`) | Small (6 + 4 = 10 files, likely a few seconds), but genuinely safe and mechanical | None — this is the ExUnit-recommended pattern for telemetry tests (Oban and Phoenix.PubSub tests both do this); does not touch DB or trigger semantics | Low: per-file, isolated diffs |
-| 3 | **Targeted async: true for pure-query `DataCase` tests over pre-seeded, private fixtures** | A read-only test that never mutates shared tables and only queries rows it inserted itself under a value it alone owns (e.g. a UUID `txid`) can be async if `clean_storage_schemas!/0` is scoped per-test-owned rows rather than a blanket table truncate | Meaningful if a sizeable minority of the 57 `DataCase` files are read-mostly, but requires auditing each file's `setup`/assertions to confirm no shared-table interaction | Low-to-medium — a wrongly-reclassified file corrupts another test's row set or races `clean_storage_schemas!/0`'s DELETE; needs a per-file audit, not a blanket flip | Medium–High: real audit work, one file at a time; not safe to batch |
-| 4 | **Per-test/per-module unique Postgres schemas or table names** | Give each test module its own schema (`threadline_test_mod_N`) or table suffix, migrate it independently, and let ExUnit run modules concurrently | Would fully unblock `async: true` even for DB-writing tests | Meaningfully changes what is under test: the whole point of the suite is exercising the real, single `threadline`/`audit` storage-schema shape (`StorageSchemaCase`, `@known_storage_schemas`), trigger names collide-checked at fixed 63-byte identifiers, and per-table capture functions are named deterministically per table — schema-per-test would either multiply migration/trigger-generation cost per test (defeating the speed goal) or require faking the storage-schema layer, which is exactly the thing this library's own correctness tests must not fake | High: touches `TriggerMigration`/`Naming`/`StorageSchema` test fixtures broadly; not a "cut a corner" change |
-| 5 | **`ExUnit` `:max_cases` tuning alone** | Raise/lower the async-case concurrency cap | No effect on the serial core — `:max_cases` only bounds how many `async: true` modules run concurrently; it does nothing for `async: false` modules, which ExUnit always runs one-at-a-time regardless of `:max_cases` | None (it's a no-op for this problem) | Trivial, but wrong tool — do not spend a phase on this |
-| 6 | **Sandbox exceptions for pure-query tests over pre-seeded data** | Wrap a narrow subset of read-only tests in `Ecto.Adapters.SQL.Sandbox` while the rest of the suite stays Sandbox-free | Not viable here: the codebase runs ONE shared `Threadline.Test.Repo` connection model with no Sandbox mode configured anywhere (`config/test.exs` was not found to set `pool: Ecto.Adapters.SQL.Sandbox`), and mixing Sandbox and non-Sandbox connections against the same physical database within one suite risks exactly the kind of visibility mismatch (Sandbox's wrapping transaction hides rows from a concurrent non-Sandbox connection, and vice versa) that this library's "no Sandbox by design" note (`test/support/data_case.ex:6-7`) already rejected once | Medium-high — reintroduces the exact hazard the architecture deliberately avoided, for tests that partitioning (option 1) already speeds up for free | Not recommended |
-
-**Recommendation: do option 1 first.** It is the only lever on this list that moves the 191 s
-serial figure without touching a single test file, and it is exactly the shape Ecto's own
-integration suite and Phoenix use for DB-heavy, Sandbox-incompatible test trees (multiple
-physical test databases selected by `MIX_TEST_PARTITION`, one per CI shard). Follow with
-option 2 (telemetry/named-process async-ification) as a small, safe, mechanical cleanup that
-also removes 10 files from any future partition's serial tail. Treat option 3 as a separate,
-audited follow-up phase, not part of this milestone's suite-rebalance work, given the
-per-file audit cost. Do not pursue options 4–6.
-
-**Precedent, for the roadmap to cite:**
-- Ecto's own test suite runs its adapter-integration tests against real Postgres/MySQL
-  connections without Sandbox, split by adapter and by `mix test --partitions`-style sharding
-  in CI, for the same reason Threadline can't Sandbox: adapter-level behavior (including
-  trigger/constraint timing) is exactly what Sandbox's transaction wrapping would hide.
-- Phoenix's LiveView/Endpoint test suites split "pure" unit tests (async: true, no DB) from
-  integration tests (DB-backed, often serialized or partitioned) rather than forcing one
-  strategy suite-wide — mirroring the two-tier split this report recommends (options 1+2 now,
-  option 3 later, audited).
-- Oban's own test conventions favor `Oban.Testing`'s `:manual` mode plus Sandbox-prefix
-  isolation *when Sandbox is available*; Threadline cannot borrow that pattern directly
-  because it has already ruled out Sandbox for correctness reasons, which is why partitioning
-  (a Sandbox-independent mechanism) is the right match here rather than a prefix-per-test
-  scheme.
-
-### A.3 Effect on the Flake Detection lane (13 passes)
-
-`flake-detection.yml` runs `mix verify.flake` = `mix test --repeat-until-failure 12` (13 total
-suite passes) inside a single job against a single `postgres:16` service container
-(`.github/workflows/flake-detection.yml:64-77`, `:39`). Partitioning the `verify-test` CI
-matrix does not by itself partition this lane — Flake Detection would need its own N-database
-service definition (or a matrix axis mirroring `verify-test`'s) to benefit, and the existing
-55-minute step budget / 3300 s classification threshold
-(`test/threadline/flake_classifier_contract_test.exs`, cited at
-`.github/workflows/flake-detection.yml:41-52`) is pinned to the *current* per-iteration
-duration. If partitioning is adopted for `verify-test`, Flake Detection should be resized in
-the same change (new measured per-iteration duration, updated budget constants, updated
-contract test), not left to silently drift stale — this is exactly the trap D-01 already hit
-once (`.github/workflows/flake-detection.yml:44-49`, the old 165 s estimate that undercounted
-the real 209 s). Recommend scoping "resize Flake Detection's budget" as an explicit line item
-in the same phase that lands partitioning, not a follow-up.
-
-## Part B — Guard-Test Rebalance
-
-### B.1 Rubric
-
-A guard/contract test earns **KEEP** when at least one of its assertions:
-
-1. Derives its expected value from a live, non-doc source of truth (`mix.exs` version,
-   `Mix.Project.config()`, a `bin/*` script's actual output, `git ls-files`, real YAML/JSON
-   parsed structurally, a module's real exported function) — so the test breaks the moment
-   that source drifts, not the moment someone edits prose.
-2. Asserts a structural invariant about the codebase or CI topology that has no other proof
-   (job `id:` immutability, `needs:` roster completeness, permission-scope minimality,
-   alias-tree dedup) — losing it would let a real regression land silently.
-3. Locks a renamed/removed artifact against reintroduction, checked against the live tracked
-   file set (`git ls-files`), not against another document's prose.
-
-A guard/contract test is a **CUT/MERGE** candidate when:
-
-1. Every assertion in the file is `String.contains?(doc_a, literal)` where `literal` is
-   hand-typed in the test (not derived), and `doc_a` is itself prose (a guide, README,
-   CONTRIBUTING section) rather than code or generated output — i.e., a doc-to-doc or
-   doc-to-hardcoded-literal lock with no behavioral binding.
-2. Its only failure mode is "someone deleted or reworded a sentence," which a normal doc
-   review would already catch, and which does not indicate a functional regression.
-3. It duplicates a check another, better-derived contract test already makes (verify one
-   isn't a strict subset of another's coverage before cutting — see `persona_routing_doc_
-   contract_test.exs`'s own moduledoc, which explicitly states it owns the "subset/label"
-   contract and defers exact-equality to `release_artifact_contract_test.exs`, an example of
-   correct non-duplicative split, not a cut candidate).
-
-### B.2 Findings, by file (24 files matched `*doc_contract*`/`*_contract_test*` by name; sizes and verdicts below; this is not exhaustive of every `assert String.contains?` in the tree, but covers the guard-shaped population the milestone context calls out)
-
-**KEEP — derives from a live source, distinct failure class:**
-
-| File | Lines | Derives from | Distinct failure class |
-|---|---|---|---|
-| `test/threadline/version_truth_doc_contract_test.exs` | 157 | `mix.exs` `@version`, `mix release.pins`, `release-please-config.json` `extra-files` | Version-pin drift across README/guides; release-please auto-bump registration gap |
-| `test/threadline/ci_topology_contract_test.exs` | 1203 | `.github/workflows/ci.yml` parsed structurally, `CONTRIBUTING.md`'s job roster | CI job roster / `needs:` / aggregate contract drift |
-| `test/threadline/ci_all_dedup_contract_test.exs` | 383 | `Threadline.MixProject.project()[:aliases]` at runtime, `:default_test_excludes` app-env | Duplicate test execution across `ci.all`, hand-listed-alias drift |
-| `test/threadline/ci_coverage_doc_contract_test.exs` | 126 | `bin/browser-full-projects --list ...` | Browser-lane coverage table silently narrowing |
-| `test/threadline/ci_token_permissions_contract_test.exs` | 478 | Every workflow's `permissions:` blocks, parsed structurally | Token over-privilege across 5 workflows |
-| `test/threadline/branch_protection_comparison_contract_test.exs` | 325 | `bin/compare-required-contexts` fixtures | Required-status-check comparison logic correctness |
-| `test/threadline/optional_deps_contract_test.exs` | 119 | `lib/` scanned for optional-Phoenix references vs `Code.ensure_loaded?` guards | Silent optional-dep compile break (already bit once, per moduledoc) |
-| `test/threadline/removed_artifact_contract_test.exs` | 190 | `git ls-files` (live tracked set) | Reintroduction of a deliberately removed file |
-| `test/threadline/planning_dependency_contract_test.exs` | 141 | Source-scanned `File.*(".planning/...")` call sites | `lib/`/product code depending on `.planning/` at runtime |
-| `test/threadline/public_surface_contract_test.exs` | 799 | Module/config introspection (`@hidden_modules`, `@runtime_keys`), CHANGELOG rename pairing | Public API surface drift, undocumented renames |
-| `test/threadline/deps_health_doc_contract_test.exs` | 291 | `.github/workflows/deps-health.yml`, `bin/deps-health-report` literals, `REQUIREMENTS.md` mandated sentences | Dependency-freshness lane structural drift |
-| `test/threadline/adoption_pilot_doc_contract_test.exs` | 107 | `Mix.Tasks.Release.Pins.target_pin_version()` | Stale install-pin version in the adoption-pilot guide |
-| `test/threadline/brandbook_token_parity_test.exs` | 128 | `Threadline.Test.StyleSource` (real shipped token values) | Brand doc / shipped CSS token value drift, either direction |
-| `test/threadline/persona_routing_doc_contract_test.exs` | 80 | ExDoc `groups_for_extras` (real config), README prose | Verb-lane label mismatch between README and ExDoc sidebar |
-| `test/threadline/getting_started_saas_doc_contract_test.exs` | 331 | `Mix.Tasks.Release.Pins`, `Threadline.GettingStartedFixtures` (live fixture module) | Quickstart guide drifting from the actual runnable walkthrough |
-| `test/threadline/storage_schema_call_site_contract_test.exs` | — | `Threadline.StorageSchemaCase.owned_schema_modules/0` (shared SSOT) | New owned-table module added without updating the shared cleanup-order list |
-| `test/threadline/upgrading_to_0_11_doc_contract_test.exs` | 229 | Regex bans on planning-vocabulary shapes (`@banned_shapes`), shared with the release-archive scan | Internal GSD vocabulary leaking into a published upgrade guide |
-
-**CUT/MERGE candidates — doc-to-doc string lock, no behavioral derivation:**
-
-| File | Lines | Why it's a cut/merge candidate | Recommended disposition |
-|---|---|---|---|
-| `test/threadline/stg_doc_contract_test.exs` | 75 | All 3 tests are `String.contains?(doc, marker)` between CONTRIBUTING.md, `production-checklist.md`, and `adoption-pilot-backlog.md` — pure prose cross-reference, no code or generated value involved. Catches only "a marker string was deleted," which normal prose review already catches | **Merge** the cross-reference check into `adoption_pilot_doc_contract_test.exs` (which already owns real derivation for that guide) as one additional assertion, or **cut** entirely and rely on doc review; do not keep as a standalone file |
-| `test/threadline/operator_surface/theme_doc_contract_test.exs` | 145 | Moduledoc self-describes as "Pure source-reading (File.read! + String.contains?)" with no derivation — a literal-pin lock on prose fragments, explicitly modeled after the same pattern as the file below | **Cut or fold** into `operator_surface_doc_contract_test.exs` as a labeled sub-block if the specific literals genuinely matter for D-04 daytime-recommendation history; otherwise cut |
-| `test/threadline/operator_surface_doc_contract_test.exs` | 261 | Mixed file: some tests derive from `Mix.Tasks.Release.Pins` (keep), but others (e.g. "README routes the operator surface mount macro to its canonical owner": `assert String.contains?(readme, "threadline_operator_surface")`) are bare literal-in-doc checks with no macro/behavior binding | **Line-item split**, not a file-level cut: keep the Pins-derived assertions, cut or merge the bare-literal ones into a single "README mentions the macro name" smoke assertion (or delete — a broken macro reference would already fail `mix docs`/ExDoc link checking elsewhere) |
-
-**Not independently audited this pass (flag for the roadmap, do not assume verdict):**
-`test/threadline/ci_all_dedup_contract_test.exs` cousins not yet checked line-by-line for
-internal tautologies (`test/threadline/operator_surface/coverage_doc_contract_test.exs`,
-`test/threadline/operator_surface/policy_show_doc_contract_test.exs`,
-`test/threadline/storage_schema_migration_contract_test.exs`,
-`test/threadline/storage_schema_prefix_contract_test.exs`) — these were seen in the async:false
-inventory (Part A) but not opened for content in this pass. Apply the B.1 rubric to each before
-cutting or keeping; do not batch-cut on the strength of this report alone.
-
-**Estimated scope for the roadmap:** roughly 2 files (150+145 lines) as clean cut/merge
-candidates, plus a line-item split inside 1 more (`operator_surface_doc_contract_test.exs`,
-~261 lines, only part of it weak), against a KEEP set of at least 17 files carrying real
-drift-detection value. This is a small, low-risk trim — not a suite-reshaping effort — sized
-at roughly one plan, not a phase.
-
-## Part C — The `gen.triggers` Down Orphan
-
-### C.1 Location
-
-- `lib/mix/tasks/threadline.gen.triggers.ex:588-606` — `down_body/2`, the function that
-  generates each trigger migration's `def down do ... end` body.
-- `lib/threadline/capture/trigger_sql.ex:108-149` — `TriggerSQL.drop_function_if_unused/2`,
-  the idempotent, usage-checked DROP the fix should reuse.
-- `lib/threadline/mix/trigger_migration.ex` — `rerun?/2`/`covered_pairs/2`, which the task
-  uses upstream to compute `rerun_tables` (not itself buggy; the bug is in how `down_body/2`
-  consumes that classification).
-
-### C.2 Root cause
-
-`down_body/2` (`lib/mix/tasks/threadline.gen.triggers.ex:588-606`):
-
-```elixir
-defp down_body(table_specs, rerun_tables) do
-  first_run_specs = Enum.reject(table_specs, fn {t, _} -> t in rerun_tables end)
-
-  trigger_downs =
-    Enum.map_join(first_run_specs, "\n\n", fn {t, _} ->
-      execute_line(TriggerSQL.drop_trigger(t))
-    end)
-
-  function_downs =
-    first_run_specs
-    |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
-    |> Enum.map_join("\n\n", fn {t, _} ->
-      execute_line(TriggerSQL.drop_function_if_unused(Naming.function_name(t)))
-    end)
-  ...
-```
-
-Both `trigger_downs` and `function_downs` are computed from the same filtered set,
-`first_run_specs` — every table this migration reruns (i.e. every table an earlier migration
-already installed a Threadline trigger for) is excluded from *both* lists.
-
-Excluding a rerun table from `trigger_downs` is correct: the comment at line 585-587 explains
-why — an earlier, still-applied migration expects a trigger to exist on that table, so this
-migration's rollback must not drop it.
-
-Excluding the same rerun table from `function_downs` is the bug. Consider the sequence the
-milestone context names: an all-0.11 chain where migration 1 is a table's first trigger
-install (default-mode, no per-table function — `needs_per_table: false`), and migration 2 is a
-later rerun for the same table that adds redaction/exclusion, which requires a per-table
-function (`needs_per_table: true`, creating `Naming.function_name(t)` fresh in migration 2's
-`up`). Migration 2's `down_body` puts `t` in `rerun_tables`, so `t` is excluded from
-`first_run_specs` entirely — meaning migration 2's `down` drops neither the trigger (correctly
-deferred to migration 1) nor the per-table function it itself created (incorrectly deferred to
-nobody). Migration 1's `down`, when it eventually runs under `:down, all: true`, does drop the
-trigger for `t` (it is in migration 1's `first_run_specs` — migration 1 was the first to cover
-`t`) — but migration 1 never created a per-table function for `t` (it was default-mode), so its
-`function_downs` for `t` is empty by construction. No migration in the chain ever targets
-migration 2's per-table function. After a full `:down, all: true`, the trigger for `t` is gone
-(capture correctly stops) but `CREATE FUNCTION`-created per-table function from migration 2
-remains in the database: orphaned, unreferenced, and undocumented by anything the rollback
-printed.
-
-### C.3 Fix shape
-
-Split the function-down computation from the trigger-down computation. Trigger-downs stay
-scoped to `first_run_specs` (unchanged — correct as-is). Function-downs should be computed
-from the *full* `table_specs`, for any table where *this migration* is the one that set
-`needs_per_table: true` (i.e., created that specific function name) — regardless of whether the
-table is a rerun for trigger-ownership purposes:
-
-```elixir
-function_downs =
-  table_specs
-  |> Enum.filter(fn {_t, %{needs_per_table: n?}} -> n? end)
-  |> Enum.map_join("\n\n", fn {t, _} ->
-    execute_line(TriggerSQL.drop_function_if_unused(Naming.function_name(t)))
-  end)
-```
-
-This is safe under partial rollback for the same reason `retire_ups/1` (the `up`-side analog,
-line 558-562) is already trusted to run unconditionally: `TriggerSQL.drop_function_if_unused/2`
-is a `DO $$ ... $$` block that resolves the function via `to_regprocedure`, checks
-`pg_trigger`/`pg_class`/`pg_namespace` for any live user, and only executes `DROP FUNCTION`
-when there is none — otherwise it emits a `RAISE WARNING` naming every table still using it and
-leaves the function alone (`lib/threadline/capture/trigger_sql.ex:130-147`). So:
-
-- Rolling back only this migration (migration 2's `down` alone, not `:down, all: true`) while
-  migration 1 (and its trigger, still pointed at migration 2's per-table function) is still
-  applied: the guard sees the live trigger reference and *keeps* the function, printing a
-  warning — no regression, no premature drop.
-- Rolling back the full chain (`:down, all: true`, migration 2's `down` then migration 1's
-  `down`): migration 1's `down` drops the trigger first... actually migrations roll back in
-  reverse-version order, so migration 2's `down` runs before migration 1's. At that point the
-  trigger (installed by migration 1, still live) still references the per-table function, so
-  the guard correctly *keeps* it during migration 2's own down. Then migration 1's `down` drops
-  the trigger. The per-table function is now unreferenced but nothing re-invokes
-  `drop_function_if_unused` for it after that point — **this specific ordering still leaves a
-  one-migration lag**: the function is orphaned one step later than the trigger, not zero
-  steps later. Given `Ecto.Migrator.run(repo, :down, all: true)` runs every `down` in one
-  transaction-or-sequence without a second pass, the guard's "check before drop" approach
-  cannot retroactively clean up a function that became unused only *after* its own down ran.
-
-  The correct resolution given that ordering constraint: emit the function-down call for a
-  rerun+`needs_per_table` table in the **first-run migration's** `down`, not (only) the
-  migration that created it — i.e., when migration 1's `down` runs (last, dropping the
-  trigger), it should also attempt `drop_function_if_unused` for every per-table function any
-  later rerun installed for that same table, since by the time migration 1's `down` executes,
-  the trigger is being dropped and any later per-table function is now provably unused. This
-  needs `down_body/2` to receive, for each first-run table, the set of "per-table function
-  names installed by any migration in the chain for this table" — which is exactly what
-  `TriggerMigration.covered_pairs/1`/`parse_triggers/1` are already built to recover by
-  scanning prior migration sources (`lib/threadline/mix/trigger_migration.ex:120-149`). The
-  practical shape: at generation time, in addition to emitting `drop_function_if_unused` for
-  *this* migration's own newly-created per-table functions (guarded, so safe if this is not
-  the last rollback step), also have the **first-run** migration's down emit
-  `drop_function_if_unused` for the per-table function name(s) any rerun scan turned up for
-  that table — both calls are individually safe (idempotent, usage-checked), so emitting the
-  drop attempt from *both* ends of the chain is not a correctness risk, only insurance against
-  the ordering gap identified above.
-
-  A simpler, equally-correct alternative that avoids reasoning about migration ordering at
-  all: a **catalog-driven drop** at rollback time is unnecessary — the migration doesn't need
-  to enumerate every possible name if it drops by regexp/catalog scan. But per this library's
-  own architectural constraint ("no CASCADE drops", explicit per-function DROP statements only,
-  documented in `CLAUDE.md`), a catalog-driven `DROP FUNCTION` sweep across
-  `pg_proc`/`information_schema.routines` by naming convention (`threadline_capture_%`) would
-  be a bigger behavior change than this bug warrants and risks dropping a function a *host*
-  application happens to have named similarly. **Recommend the two-sided idempotent-guard
-  emission described above** (both the rerun migration's own down, for the partial-rollback
-  case, and the first-run migration's down, for the full-chain case) over a catalog sweep.
-
-### C.4 The test that proves it
-
-A property test over rerun sequences, colocated with
-`test/threadline/mix/trigger_migration_property_test.exs` (the existing property test for this
-same module family) or as a new file
-`test/threadline/mix/gen_triggers_down_orphan_property_test.exs`, using `StreamData`
-(already a `mix.exs` test dep, `~> 1.4`) to generate:
-
-1. A random sequence of 1–4 "runs" against the same table: each run is either the table's
-   first trigger install (random `needs_per_table: true/false`) or a rerun (random
-   `needs_per_table` change, e.g. toggling redaction on/off).
-2. Generate each run's migration file for real via the task's own generation functions
-   (`migration_content/3`, `down_body/2`), write it to a scratch migrations directory, and run
-   `Ecto.Migrator.run(repo, :up, all: true)` then `Ecto.Migrator.run(repo, :down, all: true)`
-   against the real test database (this fits the project's existing pattern —
-   `test/threadline/capture/trigger_rerun_test.exs` already applies generated migration SQL
-   against the real DB rather than mocking it).
-3. **Invariant asserted:** after `:down, all: true`, `pg_proc` (scoped to the storage schema)
-   contains **zero** Threadline-owned capture functions for that table — i.e.,
-   `SELECT count(*) FROM pg_proc WHERE proname LIKE 'threadline_capture_%' AND ...` (or the
-   equivalent `to_regprocedure` check `drop_function_if_unused` itself uses) returns 0 for
-   every per-table function name any run in the sequence could have created, regardless of run
-   order, run count, or which run created which name. This directly encodes "no orphan
-   survives a full rollback" as a property over the input space the bug report names ("an
-   all-0.11 chain: a first run, then a rerun that adds a per-table function for the same
-   table"), rather than a single hand-picked regression case.
-4. A companion, non-property regression test should still pin the exact two-migration sequence
-   from the bug report (first run default-mode, rerun adds redaction) as a fast, deterministic
-   CI case — properties are for the input-space coverage, not a replacement for the concrete
-   repro.
-
-## Sources
-
-- `.planning/PROJECT.md` (Current Milestone: v1.44 section)
-- `.planning/MILESTONE-GUIDE.txt` §8, §9, §9a
-- `.planning/todos/pending/2026-09-28-ci-suite-sync-bound-parallelism.md`
-- `.planning/seeds/SEED-006-ci-feedback-loop-cost-and-latency.md`
-- `.planning/milestones/v1.42-MILESTONE-AUDIT.md` (gen.triggers down orphan report)
-- `test/test_helper.exs`
-- `test/support/data_case.ex`
-- `test/support/storage_schema_case.ex`
-- `.github/workflows/ci.yml`
-- `.github/workflows/flake-detection.yml`
-- `lib/mix/tasks/threadline.gen.triggers.ex`
-- `lib/threadline/mix/trigger_migration.ex`
-- `lib/threadline/capture/trigger_sql.ex`
-- `mix.exs`
-- Grep inventory of `test/**/*_test.exs` (222 files; 56 `async: false`, 36 implicit-default,
-  132 `async: true`) performed in this research pass
-- File reads of 24 `*doc_contract*`/`*_contract_test*` files for Part B classification
-- Web search on Oban testing conventions (Sandbox-prefix isolation), used only to confirm why
-  that precedent does not directly transfer here (Threadline has already ruled out Sandbox)
+**Domain:** Elixir/Phoenix/Ecto/PostgreSQL audit library (trigger-backed capture + semantics + exploration)
+**Researched:** 2026-10-02
+**Confidence:** HIGH for inventory and call-site facts (all file:line cited, direct code read). MEDIUM for the 1.0 topology/edge recommendations (design judgment, cross-checked against Ecto/Oban precedent but not externally validated against adopter telemetry — Threadline has no public usage data).
 
 ---
-*Architecture research for: Threadline v1.44 (suite parallelism, guard-test rebalance, gen.triggers down orphan)*
-*Researched: 2026-09-30*
+
+## 1. Full public-surface inventory
+
+Methodology: every `.ex` file under `lib/` without `@moduledoc false` (140 files total under `lib/`; counts below from a direct grep pass, cross-read against ~20 of the highest-traffic modules). "Public functions" counts `def`/`defdelegate` clause lines (not distinct arities collapsed) via `grep -cE "^\s*def(delegate)? [a-z_]"`; callback-only modules (`Threadline.Storage`, `Threadline.ExportQueue`) show `funcs=0` because they declare `@callback`, not `def`. Treat the numeric columns as close estimates, not compiler-verified counts — the milestone's own gate test (§6) should be the actual compiler-checked source of truth.
+
+### Capture layer
+
+| Module | Layer | Public fns | Missing @spec / @doc | Adopters call it? | Proposed 1.0 status |
+|---|---|---|---|---|---|
+| `Threadline.Capture.AuditTransaction` (`lib/threadline/capture/audit_transaction.ex:1`) | capture (schema) | 1 (`changeset/2`, itself `@doc false` at `:67`) | n/a — schema struct is the real surface | Yes — struct fields (`id`, `txid`, `occurred_at`, `actor_ref`, `action_id`, `source`, `meta`) are read directly by guides (`guides/domain-reference.md`) and the operator surface | **public-stable** (struct/fields), changeset stays hidden |
+| `Threadline.Capture.AuditChange` (`lib/threadline/capture/audit_change.ex:1`) | capture (schema) | 1 (hidden changeset) | n/a | Yes — struct is the return type of `history/3`, `timeline/2`, etc. | **public-stable** |
+| `Threadline.Capture.Migration` (`lib/threadline/capture/migration.ex`) | capture | — | `@moduledoc false` | No (invoked only by `mix threadline.install`) | already hidden — correct |
+| `Threadline.Capture.Naming`, `PrimaryKeySql`, `RedactionPolicy`, `RowHistoryIndexSql`, `TriggerCaptureConfig`, `TriggerSql` | capture | — | `@moduledoc false` | No | already hidden — correct |
+
+### Semantics layer
+
+| Module | Layer | Public fns | Missing spec/doc | Adopters call it? | Proposed 1.0 status |
+|---|---|---|---|---|---|
+| `Threadline.Semantics.AuditAction` (`lib/threadline/semantics/audit_action.ex:1`) | semantics (schema) | 1 (hidden changeset `:55`) | n/a | Yes — struct returned by `record_action/2`; fields documented in moduledoc | **public-stable** |
+| `Threadline.Semantics.ActorRef` (`lib/threadline/semantics/actor_ref.ex:1`) | semantics (value object) | 9 distinct (`new/2`, `identifiable?/1`, `to_map/1`, `from_map/1`, `init/1`, `type/1`, `cast/2`, `load/3`, `dump/3`) | `identifiable?/1` has a `@spec` (`:56`); `new/2`, `to_map/1`, `from_map/1` do not | Yes — `new/2`, `to_map/1`, `from_map/1` are called directly from guides (`guides/incident-playbook.md`, `guides/domain-reference.md`, `guides/integration-contracts.md`) and `Threadline.Job`/`Threadline.Plug` | **public-stable**; the `Ecto.ParameterizedType` callbacks (`init/1`, `type/1`, `cast/2`, `load/3`, `dump/3`) are structurally public but are Ecto-contract internals — document as "implementation detail of the Ecto type, not meant to be called directly" rather than hiding (hiding would break Ecto's own introspection) |
+| `Threadline.Semantics.AuditContext` (`lib/threadline/semantics/audit_context.ex`) | semantics (struct) | 0 (pure defstruct) | n/a | Yes — `Threadline.Plug` assigns it; `Threadline.Audit.transaction/3` reads `:audit_context` opt | **public-stable** |
+| `Threadline.Semantics.Migration` | semantics | — | `@moduledoc false` | No | already hidden |
+
+### Exploration / query layer
+
+| Module | Layer | Public fns | Missing spec/doc | Adopters call it? | Proposed 1.0 status |
+|---|---|---|---|---|---|
+| `Threadline` facade (`lib/threadline.ex:1`) | exploration (facade) | 18 (`record_action/2`, `history/3`, `as_of/4`, `actor_history/2`, `timeline/2`, `timeline_page/2`, `row_history/4`, `row_history_page/4`, `actor_window/2`, `actor_window_page/2`, `correlation_bundle/2`, `correlation_bundle_page/2`, `transaction_context/2`, `incident_bundle/2`, `audit_changes_for_transaction/2`, `export_csv/2`, `export_json/2`, `change_diff/2`) | **18 docs, 0 specs** — confirms the milestone baseline ("all 17 on the facade", now 18 after v1.44 additions) | Yes — this is *the* documented entry point in README and every guide | **public-stable** — but needs full `@spec` coverage and the overlap with `Query`/`Investigation` resolved (§2) |
+| `Threadline.Query` (`lib/threadline/query.ex:1`) | exploration (query impl) | 23 defs, 16 `@spec`, 21 `@doc`, 7 `@doc false` | Mixed — `row_history/4`, `row_history_page/4`, `audit_transaction/2`, `validate_timeline_filters!/1`, `validate_row_history_filters!/1`, `timeline_repo!/2`, `timeline_query/1`, `export_changes_query/1,2`, `timeline_page/2`, `audit_changes_for_transaction/2`, `timeline/2` are documented+specced; `history/3`, `as_of/4`, `actor_history/2` have `@doc` but **no `@spec`** (`:402`, `:475`, `:539`); `history_query/3`, `as_of_query/4`, `row_history_query/3`, `preload_investigation_context/3`, `maybe_apply_scope/2`, `storage_opts/2`, `maybe_after_timeline_cursor/2` are `@doc false` (internal helpers already correctly hidden) | Yes — guides call `Threadline.Query.timeline`, `Threadline.Query.export_changes_query` directly (`guides/audit-indexing.md`), bypassing the `Threadline` facade | **split** — see §2 recommendation: keep the low-level query primitives (`timeline/2`, `timeline_page/2`, `audit_transaction/2`, `audit_changes_for_transaction/2`, filter validators) public as `Threadline.Query`, but the internal query builders (`timeline_query/1`, `history_query/3`, `as_of_query/4`, `row_history_query/3`, `export_changes_query/1,2`) are composition primitives for `Threadline.Export` and should move to `@doc false` — adopters have no legitimate reason to call a raw `Ecto.Query.t()` builder instead of the function that executes it |
+| `Threadline.Query.TimelinePage` (`lib/threadline/query.ex:44`) | exploration (struct) | 0 | n/a (struct) | Yes — return type of `timeline_page/2`, `row_history_page/4` | **public-stable** |
+| `Threadline.Query.ActorHistoryPage` (`lib/threadline/query/actor_history_page.ex`) | exploration (struct) | 0 | n/a | Yes — return type of `actor_history/2` | **public-stable** |
+| `Threadline.Query.Cursors`, `FilterParams`, `HistoryLimit`, `RowKey`, `Scope` | exploration (internal) | — | all `@moduledoc false` | No | already hidden — correct |
+| `Threadline.Investigation` (`lib/threadline/investigation.ex:1`) | exploration (facade #2) | 8 defs, 0 `@spec`, 8 `@doc` | All 8 public functions (`row_history/4`, `row_history_page/4`, `actor_window/3`, `actor_window_page/3`, `correlation_bundle/3`, `correlation_bundle_page/3`, `transaction_context/2`, `incident_bundle/2`) are documented but **have zero `@spec`** | Yes — `guides/how-threadline-works.md` calls `Threadline.Investigation.actor_window`/`row_history` directly instead of through `Threadline`; `guides/code-walkthrough.md` calls `Threadline.Investigation.incident_bundle` directly | **this is the duplicate-entry-point problem** — `Threadline.row_history/4` (`lib/threadline.ex:176`) is a 1-line delegate to `Investigation.row_history/4`, which itself delegates to `Query.row_history/4` plus a `linked_changes` enrichment (`lib/threadline/investigation.ex:33-39`). Three public names for one capability. See §2 for the fix |
+| `Threadline.Investigation.IncidentBundle`, `IncidentChange`, `LinkedChange`, `LinkedTransaction` (`lib/threadline/investigation/incident_bundle.ex`, `linked_change.ex`) | exploration (structs) | 0 | n/a | Yes — return shapes of `incident_bundle/2`, `transaction_context/2` | **public-stable** |
+| `Threadline.Export` (`lib/threadline/export.ex:1`) | exploration | 7 defs, 7 `@spec`, 7 `@doc` — **fully specced already**, the cleanest module in the surface | None missing | Yes — `to_csv_iodata/2`, `to_json_document/2`, `stream_changes/2` called directly from guides and `Threadline.export_csv/2`/`export_json/2` delegate to it | **public-stable** — model module for what the rest of the surface should look like |
+| `Threadline.Export.CSV` | exploration (internal) | — | `@moduledoc false` missing a moduledoc at all → `NODOC` | No (only used by `Export`) | **hide** — add `@moduledoc false` (currently has no moduledoc line at all, which ExDoc treats as undocumented-but-visible, the worst of both: it shows up in docs with no content) |
+| `Threadline.Export.Orchestrator` (`lib/threadline/export/orchestrator.ex`) | exploration (async) | 1 def, 0 spec, 1 doc | `run/2` is adopter-facing per `Threadline.ExportQueue` moduledoc ("a custom queue worker should call `Threadline.Export.Orchestrator.run/2`") | Yes, but only for adopters writing a **custom** `ExportQueue` adapter — a narrow, advanced audience | **public-but-advanced** |
+| `Threadline.Export.CleanupTask` | exploration | — | `@moduledoc false` | No | already hidden |
+| `Threadline.ChangeDiff` (`lib/threadline/change_diff.ex:1`) | exploration | 1 def, 1 spec, 1 doc | None missing | Yes — `Threadline.change_diff/2` delegates here; also called directly by `Investigation.to_incident_change/1` (`lib/threadline/investigation.ex:223`) | **public-stable** |
+| `Threadline.Audit` (`lib/threadline/audit.ex:1`) | exploration/write-path (cross-cutting) | 1 def (`transaction/3`), 1 spec, 1 doc | None missing on the public fn | Yes — this is the flagship write-path helper, called from README and nearly every guide | **public-stable** |
+| `Threadline.Continuity` (`lib/threadline/continuity.ex:1`) | exploration | 2 defs, 0 spec, 2 docs | `explain_cutover/1`, `assert_capture_ready!/2` both undocumented-for-spec | Yes — `guides/brownfield-continuity.md` | **public-stable**, needs specs |
+| `Threadline.Health` (`lib/threadline/health.ex:1`) | exploration/ops | 5 defs, 4 spec, 5 doc, 2 `@doc false` | `trigger_findings/1` ✅spec, `legacy_key_findings/1` ✅spec, `trigger_coverage/1` has `@doc` but **no `@spec`** (`:135`), `classify/3` and `coverage_by_schema/1` are `@doc false` but DO have `@spec` — inconsistent (specced-but-hidden is fine, it is for internal typedoc value, but flag the asymmetry) | Yes — `trigger_coverage/1`, `trigger_findings/1`, `legacy_key_findings/1` are the most-referenced ops functions across guides | **public-stable**; `coverage_by_schema/1` is explicitly commented as "Task-only... a public multi-schema API is a future decision" (`lib/threadline/health.ex:177-180`) — **flagged: documented-but-internal**. It has a real `@doc false` (correct) but its presence next to fully-public siblings in the same module invites confusion; the 1.0 gate test must special-case it or it will fail a "every `@doc false` fn in a public module needs a reason" check |
+| `Threadline.Health.Finding` (`lib/threadline/health/finding.ex`) | exploration (struct) | 0 | n/a | Yes — struct returned by `trigger_findings/1` | **public-stable** |
+| `Threadline.Health.Policy` (`lib/threadline/health/policy.ex:1`) | exploration | 3 defs (`validate!/1` x2 clauses + helper), 0 spec, 1 doc | `validate!/1` undocumented-for-spec | Yes — `guides/operator-surface.md`, `guides/production-checklist.md` call `Threadline.Health.Policy.validate!/1` directly at boot | **public-stable** |
+| `Threadline.Health.CoverageSchemas`, `LegacyKeyFindings`, `TriggerCatalog`, `TriggerFindings` | exploration (internal) | — | all `@moduledoc false` | No | already hidden — correct |
+| `Threadline.Verify.CoveragePolicy` (`lib/threadline/verify/coverage_policy.ex:1`) | exploration/CI | 3 defs, 1 spec, 3 docs | `violations/2`, `summary_counts/2` lack `@spec`; `partition_findings/2` has one | Yes — `guides/domain-reference.md` calls `Threadline.Verify.CoveragePolicy.violations/2` directly, and it backs `mix threadline.verify_coverage` | **public-stable** |
+| `Threadline.Evidence` (`lib/threadline/evidence.ex:1`) | exploration/governance | 13 defs (6 `record_*`, `list_history/2`, `list_subject_ref_history/3,4`, `list_latest_subject_refs/2,3`, `list_overview/2`, `get_latest_subject_ref/3`), 0 spec, 11 doc | **Zero `@spec` on any of the 13 public functions** despite thorough `@doc` coverage | Partially — this is a newer governance surface; not yet referenced by top-level guides, but `mix threadline.evidence.show` is adopter-facing | **public-stable** but lowest spec coverage of any heavily-docced module — high priority for §6 |
+| `Threadline.Evidence.Proof` (`lib/threadline/evidence/proof.ex`) | exploration/governance | 6 defs, 0 spec, 4 doc | 2 of 6 public fns undocumented entirely | Unclear — no guide reference found | **public-but-advanced**, audit before 1.0 whether this needs to be public at all (candidate for `@doc false` if genuinely unused — confirm with CHANGELOG/git blame, out of this research's scope) |
+| `Threadline.Evidence.Subject` (`lib/threadline/evidence/subject.ex:1`) | exploration/governance | 3 defs, 2 spec, 3 doc | `supported_subjects/0` lacks `@spec` | Indirectly (closed enum consumers would call `supported?/1`) | **public-stable** |
+| `Threadline.Governance.EvidenceRecord` (`lib/threadline/governance/evidence_record.ex:1`) | exploration (schema) | 1 (hidden changeset) | n/a | Yes — struct is the return type of `Evidence.list_*` | **public-stable** |
+| `Threadline.Governance.ExportJob`, `RetentionRun`, `SavedView`, `Migration` | exploration (schemas) | — | all `@moduledoc false` | Returned indirectly (e.g. `RetentionRun` id surfaces in operator UI) but schema itself not meant for direct adopter queries | already hidden — **correct, but flag**: `ExportJob`/`RetentionRun` structs leak into telemetry-adjacent adopter code paths (export status polling) even though the schema module is hidden; this is fine as long as adopters go through `Threadline.ExportQueue`/`Threadline.Retention`, not raw `Repo.get(Threadline.Governance.ExportJob, id)` |
+| `Threadline.Export_queue` / `Threadline.ExportQueue` (`lib/threadline/export_queue.ex:1`) | exploration (behaviour) | 0 def / 2 `@callback` | n/a (behaviour) | Yes — `config :threadline, export_queue_adapter: MyApp.Queue` is a documented integration point | **public-stable** |
+| `Threadline.ExportQueue.TaskAdapter` (`lib/threadline/export_queue/task_adapter.ex`) | exploration | 2 defs, 0 spec, 1 doc | — | Indirectly (default adapter, adopters rarely call it directly) | **public-but-advanced** |
+| `Threadline.ExportQueue.Oban` | exploration | — | `@moduledoc false` | No — adopters select it via config, never call it | already hidden — **correct, flag the asymmetry**: `TaskAdapter` is documented, `Oban` adapter is hidden, yet both are selected the same way via `config :threadline, export_queue_adapter:`. For 1.0 consistency, either both should be `@moduledoc false` (adopters never call either directly, only configure) or both documented with a short "you select this via config, you do not call it" note |
+| `Threadline.Retention` (`lib/threadline/retention.ex:1`) | exploration/governance | 1 def, 1 spec, 1 doc | None missing | Yes — `Threadline.Retention.purge/1` is called directly by every retention guide and `mix threadline.retention.purge` | **public-stable** |
+| `Threadline.Retention.Policy` (`lib/threadline/retention/policy.ex:1`) | exploration/governance | 5 defs (2 `validate_config!/1` clauses, 2 `resolve!/1` clauses, `cutoff_utc_datetime_usec!/1`), 3 spec, 3 doc | `validate_config!/1` and `resolve!/1` each specced once (one clause only — Elixir only needs one `@spec` per name/arity, so this is correctly complete, not missing) | Yes | **public-stable** |
+| `Threadline.Retention.Pruner` | exploration | — | `@moduledoc false` | No | already hidden |
+| `Threadline.StorageSchema` (`lib/threadline/storage_schema.ex:1`) | cross-cutting (capture+exploration) | 17 defs across `get/1`, `validate!/1`, `validate_identifier!/1,3`, `quote_ident/1`, `qualify/2`, `table/2`, `repo_opts/1`, `function/2`, `parse_table_identifier/1`, `qualified_host_table/1`, `host_table_suffix/1`, `threadline_table?/1` | 1 spec (`validate_identifier!/3`), 12 doc, 1 `@doc false` (`validate_identifier!/1,3` internal variant) | Yes — `config :threadline, storage_schema: "threadline"` is a top-line adoption decision (`guides/getting-started-saas.md:55`) and `StorageSchema.get/1`/`table/2` are referenced for adapters needing schema-qualified SQL | **split**: `get/1`, `repo_opts/1`, `qualify/2`, `quote_ident/1`, `table/2`, `function/2`, `threadline_table?/1` are genuinely public (adopters writing custom SQL/migrations need them) — keep public-stable with specs added. `validate_identifier!/3`, `parse_table_identifier/1`, `qualified_host_table/1`, `host_table_suffix/1` are internal plumbing for the Mix tasks and health checks — candidates for `@doc false` unless a guide calls them directly (none currently do) |
+| `Threadline.Telemetry` (`lib/threadline/telemetry.ex:1`) | exploration/ops | 14 defs, 0 spec, 14 doc, 5 `@doc false` | **Zero `@spec`** on any of the 9 genuinely public `emit_*`/`transaction_committed` functions (`transaction_committed/2` is the only one truly meant to be called by adopters; `emit_action_recorded/1`, `emit_health_checked/3`, `emit_health_checked_error/1`, `emit_findings_checked/2`, `emit_operator_surface_authorize/3`, `emit_export_authorize_error/0`, `emit_actor_ref_mismatch/0`, `emit_export_completed/4`, `emit_export_failed/5` are all internal emitters the library calls on itself, documented only because the moduledoc table needs them cross-referenced — **flag: documented-but-internal**, same pattern as `Health.coverage_by_schema/1`) | `transaction_committed/2` yes (README/guides); the `emit_*` family — no adopter calls any `emit_*` function, they only *consume* the events via `:telemetry.attach/4` | **split**: `transaction_committed/2` is **public-stable**; the `emit_*` family should move to `@doc false` (the moduledoc's event table is the real adopter contract, not these functions) and `__events__/0` stays `@doc false` (already correct) |
+| `Threadline.Job` (`lib/threadline/job.ex:1`) | semantics-adjacent/exploration | 4 defs (`actor_ref_from_args/1` x2 clauses, `context_opts/2`) | 0 spec, 2 doc | Yes — `guides/adoption-pilot-backlog.md`, `guides/integration-contracts.md` | **public-stable** |
+| `Threadline.Plug` (`lib/threadline/plug.ex:1`) | semantics-adjacent (edge) | 2 defs (`init/1`, `call/2` — `@behaviour Plug` callbacks, `@impl Plug` not `@doc`) | 0 spec, 0 explicit `@doc` (moduledoc covers usage) | Yes — `plug Threadline.Plug` is step one of every integration guide | **public-stable** — `@impl` callbacks don't need `@doc`/`@spec` the same way (Plug's own behaviour already types them), but adding `@spec` is still good practice and costs nothing |
+| `Threadline.Integrations.Sigra` (`lib/threadline/integrations/sigra.ex:1`) | integration | 3 defs, 3 spec, 3 doc | None missing | Yes — `guides/integration-contracts.md` | **public-stable** — already fully specced, a second model module |
+| `Threadline.OperatorSurface` (`lib/threadline/operator_surface.ex:1`) | operator surface | 0 (namespace module) | n/a | N/A — namespace doc only | **public-stable** (it's the namespace anchor, correctly minimal) |
+| `Threadline.OperatorSurface.Router` (`lib/threadline/operator_surface/router.ex:1`) | operator surface | 1 macro (`threadline_operator_surface/2`) | n/a (macro, not `def`) | Yes — `use Threadline.OperatorSurface.Router` / `threadline_operator_surface "/audit"` is the entire mount API | **public-stable** — the macro + its options are the adopter contract; internals (`secure_mount_guard/4`, `validate_theme!/3`) are already `defp` |
+| `Threadline.OperatorSurface.Auth` | operator surface | 1 def (`on_mount/4`) | 0 doc | Yes — referenced directly in `guides/operator-surface.md` as a mountable `on_mount` callback for custom LiveViews | **public-but-advanced** — needs at least a `@moduledoc`/`@doc` even if terse |
+| ~75 remaining `Threadline.OperatorSurface.*` modules (`live/*`, `ui/*`, `components/*`, `mechanical_checker/*`, controllers, plugs, `coverage/*`, `exports/*`, `style.ex`, `script.ex`, `presentation.ex`, `fonts.ex`, `stress_*`, `unsupported*`) | operator surface (UI internals) | — | all `@moduledoc false` | No — mounted only via the router macro; adopters never reference these modules by name | already hidden — **correct and consistent**. This is the biggest internal subtree in the codebase (≈75 files) and it is uniformly and correctly hidden. No action needed for 1.0 beyond what the milestone already scopes out (operator UI design is parked) |
+
+### Internal/tooling modules (already correctly hidden, no action)
+
+`Threadline.Application`, `Threadline.CriticTrust.*` (5 modules — this is the design-system critique tooling, not product code, arguably should not even ship in the Hex package; out of scope for this research but worth a one-line flag for the maintainer), all `Threadline.Mix.*` helpers, `Threadline.Policy.RedactionPresenter`.
+
+### Mix tasks
+
+| Task | Public fns | @spec/@doc | Adopters call it? | Proposed 1.0 status |
+|---|---|---|---|---|
+| `Mix.Tasks.Threadline.Install` | 1 (`run/1`) | 0/0 | Yes — step 1 of every guide | **public-stable** (CLI contract, not a library function — `@spec`/`@doc` convention differs, see §5) |
+| `Mix.Tasks.Threadline.Gen.Triggers` | 3 | 0/0 | Yes | **public-stable** |
+| `Mix.Tasks.Threadline.Gen.RowHistoryIndex` | 3 | 0/0 | Yes | **public-stable** |
+| `Mix.Tasks.Threadline.VerifyCoverage` | 1 | 0/0 | Yes (CI gate) | **public-stable** |
+| `Mix.Tasks.Threadline.Export` | 1 | 0/0 | Yes | **public-stable** |
+| `Mix.Tasks.Threadline.Incident` | 1 | 0/0 | Yes (`lib/mix/tasks/threadline.incident.ex:49` calls `Threadline.incident_bundle/2` — a mix task calling the facade confirms the facade is the intended public entry point) | **public-stable** |
+| `Mix.Tasks.Threadline.Retention.Purge` | 1 | 0/0 | Yes | **public-stable** |
+| `Mix.Tasks.Threadline.Policy.Show` | 1 | 0/0 | Yes | **public-stable** |
+| `Mix.Tasks.Threadline.Continuity` | 1 | 0/0 | Yes | **public-stable** |
+| `Mix.Tasks.Threadline.Evidence.Show` | 1 | 0/0 | Yes | **public-stable** |
+| `Mix.Tasks.Threadline.Health.Coverage` | 2 | 0 spec/1 doc +1 `@doc false` | Yes | **public-stable** |
+| `Mix.Tasks.Threadline.VerifyTopology` (note: `lib/mix/tasks/threadline/verify_topology.ex`, nested path, `@moduledoc false`) | — | — | No — internal repo-structure CI check, not shipped functionality | already hidden — **correct, but flag: should this even ship in the Hex package tarball**, since it is a maintainer-only dev task (same question as `CriticTrust.*`) |
+| `Mix.Tasks.Critic.Measure`, `Critic.Synth` | — | `@moduledoc false` | No — maintainer tooling | already hidden — **flag same packaging question** |
+| `Mix.Tasks.Release.Pins` | — | `@moduledoc false` | No — maintainer release tooling | already hidden |
+
+### Summary counts
+
+- **Non-hidden modules:** ~55 (the inventory above covers every one; `@moduledoc false` covers ~85 of the 140 `lib/` files, dominated by the ~75-file operator-surface UI internals subtree).
+- **Documented-but-genuinely-internal (flagged):** `Threadline.Health.coverage_by_schema/1` (`lib/threadline/health.ex:194`, already `@doc false` — correctly flagged in its own comment), `Threadline.Telemetry`'s 9 `emit_*` functions, `Threadline.Query`'s raw query-builder functions (`timeline_query/1`, `history_query/3`, `as_of_query/4`, `row_history_query/3`, `export_changes_query/1,2` — currently fully public+specced+documented despite being composition primitives for `Export`/`Investigation`).
+- **Adopter-facing-but-currently-under-hidden-naming:** none found — the operator-surface internals are consistently and correctly hidden; no case of a guide instructing adopters to call a module marked `@moduledoc false`.
+- **No `@spec` despite `@doc`:** matches the stated baseline (~129/169). The facade (`Threadline`, 18 fns), `Threadline.Investigation` (8 fns), `Threadline.Telemetry`'s emit family (9 fns), `Threadline.Evidence` (13 fns), `Threadline.ActorRef` (most of 9 fns), `Threadline.StorageSchema` (most of 12 public fns), `Threadline.Job` (3 fns), `Threadline.Continuity` (2 fns) account for the bulk.
+
+---
+
+## 2. Facade layering recommendation
+
+### The overlap, precisely
+
+- `Threadline.history/3` (`lib/threadline.ex:103`) → `Threadline.Query.history/3` (`lib/threadline/query.ex:402`). Direct 1:1 delegate, no enrichment.
+- `Threadline.row_history/4` (`lib/threadline.ex:176`) → `Threadline.Investigation.row_history/4` (`lib/threadline/investigation.ex:33`) → `Threadline.Query.row_history/4` (`lib/threadline/query.ex:66`) **plus** `linked_changes/2` enrichment (preloads `transaction: :action` and wraps in `%LinkedChange{}`, `investigation.ex:200-206`).
+- `Threadline.actor_history/2` (`lib/threadline.ex:132`) → `Threadline.Query.actor_history/2` (`lib/threadline/query.ex:539`). Direct delegate, bare `AuditTransaction` structs, no action-linkage enrichment.
+- `Threadline.actor_window/3` (`lib/threadline.ex:188`) → `Threadline.Investigation.actor_window/3` (`lib/threadline/investigation.ex:62`) → `Threadline.Query.timeline/2` **plus** the same `linked_changes/2` enrichment.
+- `Threadline.timeline/2` (`lib/threadline.ex:155`) → `Threadline.Query.timeline/2` directly, **no** enrichment (bare `AuditChange`).
+- `Threadline.transaction_context/2`, `incident_bundle/2` → `Investigation` only, no `Query`-level sibling — these are genuinely investigation-only concepts (packaging, not raw retrieval), and correctly have one name.
+
+So the real pattern is: **two genuinely different capabilities wearing the same `Threadline.*` top-level names** —
+1. **Raw retrieval** (`Query`): bare structs, one predicate shape, matches `timeline/2`'s filter vocabulary exactly.
+2. **Enriched investigation** (`Investigation`): the same retrieval plus an eager `transaction: :action` preload and a wrapper struct (`%LinkedChange{}`) that exposes `.action` without a second query.
+
+`actor_history/2` (bare transactions, no enrichment) and `row_history/4`/`actor_window/3` (enriched changes) are **not** parallel — they return structurally different shapes (`AuditTransaction` vs `%LinkedChange{}`-wrapped `AuditChange`) for similarly-named "history" verbs, which is the actual discoverability problem, not merely "three facades expose the same thing."
+
+### Precedent
+
+- **Ecto**: `Ecto.Repo` is the single call-site facade (`Repo.all/2`, `Repo.get/2`, ...); `Ecto.Query` is a DSL for *building* query data, not a second facade with overlapping verbs. There is no `Ecto.Repo.Investigation` layer — enrichment (preloads) is a parameter to the one `Repo` call (`preload: :action`), not a second module.
+- **Oban**: `Oban` is the facade (`Oban.insert/2`, `Oban.cancel_job/2`); `Oban.Job` is a schema/struct namespace, not a parallel query API. Investigation-style helpers (e.g. querying jobs by state) go through `Oban.Repo`/raw `Ecto.Query` composed by the *adopter*, not a bundled second facade.
+- **Ash**: deliberately the counter-example — `Ash.Query`, `Ash.Changeset`, and resource-specific actions coexist, but each has one unambiguous job (build a query / build a mutation / execute a named action) and Ash is explicit that these are three different concerns, not two modules racing to answer "give me history."
+
+### Recommendation: ONE-WAY — collapse to a single facade, demote `Query` and `Investigation` to internal implementation, add preload control as a parameter
+
+1. **`Threadline` is the only public facade module.** All adopter-facing read entry points live here, each name appearing exactly once:
+   - `history/3`, `as_of/4` — row-level time-travel (current names, keep)
+   - `timeline/2`, `timeline_page/2` — cross-table slices (current names, keep)
+   - `row_history/4`, `row_history_page/4`, `actor_window/3`, `actor_window_page/3`, `correlation_bundle/3`, `correlation_bundle_page/3` — the "investigation" helpers, kept under `Threadline.*` **with their current enrichment behavior**, but implemented by calling `Threadline.Query` (made `@doc false`/internal) directly, not through a second public `Investigation` facade.
+   - `transaction_context/2`, `incident_bundle/2` — transaction-level packaging (keep).
+   - `actor_history/2` — gains an explicit decision: either (a) keep it bare (current behavior) and document clearly that it is the one "history" verb that does **not** preload action/change data, because transactions already carry `actor_ref` and `action_id` without a join, or (b) rename to signal the asymmetry (e.g. keep the name, but the doc must say up front "returns `AuditTransaction`, not `AuditChange` — see `actor_window/3` for change-level history"). Recommend (a) + stronger docs; renaming this late is a needless second breaking change.
+   - `Threadline.Query` becomes `@moduledoc false` (still a real module — it remains the shared implementation Export/Investigation-logic call into — but it stops being advertised as a second public API). Breaking: adopters currently calling `Threadline.Query.timeline/2`, `Threadline.Query.export_changes_query/1` directly (confirmed in `guides/audit-indexing.md`) must move to `Threadline.timeline/2` (identical behavior; already delegates) and `Threadline.Export`/`Threadline.export_csv/2` for the export path. **ONE-WAY.**
+   - `Threadline.Investigation` is deleted as a public module; its logic moves into `Threadline` directly (or an internal-only `Threadline.Investigation` kept but `@moduledoc false`). Adopters calling `Threadline.Investigation.row_history/4` directly (confirmed in `guides/how-threadline-works.md`, `guides/code-walkthrough.md`) must move to `Threadline.row_history/4` (already delegates, zero behavior change). **ONE-WAY.**
+
+2. **Keep genuine bounded-context submodules public** — this is where the Ecto/Oban precedent (`Ecto.Query` vs `Ecto.Repo`, `Oban` vs `Oban.Job`) actually applies, and Threadline already does it correctly for the pieces that are structurally distinct concerns rather than overlapping query APIs:
+   - `Threadline.Export` (distinct concern: serialization/streaming, not retrieval) — stays public, already the best-specced module.
+   - `Threadline.Audit` (distinct concern: the write-path transaction helper) — stays public.
+   - `Threadline.Health`, `Threadline.Retention`, `Threadline.Evidence`, `Threadline.Continuity` (distinct governance/ops concerns) — stay public as their own namespaces, the way `Oban.Job`/`Oban.Worker` are their own namespaces under the `Oban` umbrella rather than being folded into one giant `Oban` module.
+   - `Threadline.Semantics.ActorRef`, `Threadline.Semantics.AuditContext`, `Threadline.Capture.AuditTransaction`, `Threadline.Capture.AuditChange`, `Threadline.Semantics.AuditAction` — stay public as the domain-noun structs, exactly matching the "submodule per bounded context" pattern (comparable to `Oban.Job` as a schema namespace).
+   - `Threadline.OperatorSurface.Router`, `Threadline.Job`, `Threadline.Plug`, `Threadline.Integrations.Sigra`, `Threadline.ExportQueue`, `Threadline.Storage` — stay public as integration-point namespaces (these are genuinely different concerns: router macro, job-arg helpers, plug, soft-dependency adapter, behaviours).
+
+3. **Resulting topology** (read-path only; write-path/`Audit`, capture/semantics schemas, governance namespaces unchanged):
+
+   ```
+   Threadline                      <- ONE facade for all read entry points
+     ├── (internal) Query          <- @moduledoc false; shared Ecto implementation
+     ├── (internal) Investigation  <- folded into Threadline, or @moduledoc false if kept as a file
+     ├── Export                    <- public; distinct concern (serialize/stream)
+     ├── ChangeDiff                <- public; distinct concern (projection)
+     ├── Audit                     <- public; distinct concern (write path)
+     ├── Health / Retention / Evidence / Continuity  <- public; governance namespaces
+     └── Capture.*, Semantics.*    <- public; domain-noun schemas/value objects
+   ```
+
+This is coherent with CLAUDE.md's three layers: the facade sits at the top of the exploration layer, capture/semantics stay separate schema namespaces, and nothing about backend guts (query builders, internal helpers) is exposed through a second "looks public" module.
+
+**Call-site impact:** zero for anyone using only `Threadline.*` (the vast majority per the guide grep in §1 — most guide examples already call the facade). Breaking only for the guides/adopters calling `Threadline.Query.*` or `Threadline.Investigation.*` directly — three guide files need updating (`guides/audit-indexing.md`, `guides/how-threadline-works.md`, `guides/code-walkthrough.md`), which is squarely in this milestone's scope.
+
+**Semver impact:** this is a 1.0 breaking change (removing/hiding two currently-public modules), which is exactly what a major version is for — do it now, not after 1.0.0 is declared.
+
+---
+
+## 3. The `AuditTransaction` ↔ `AuditAction` runtime edge
+
+### The association, exactly
+
+- `Threadline.Capture.AuditTransaction` declares `belongs_to(:action, Threadline.Semantics.AuditAction)` (`lib/threadline/capture/audit_transaction.ex:62`), backed by `audit_transactions.action_id` (nullable FK, `lib/threadline/semantics/migration.ex:56`: `ADD COLUMN IF NOT EXISTS action_id uuid REFERENCES audit_actions(id) ON DELETE SET NULL`).
+- `Threadline.Semantics.AuditAction` declares the inverse `has_many(:transactions, Threadline.Capture.AuditTransaction, foreign_key: :action_id)` (`lib/threadline/semantics/audit_action.ex:47`).
+- This is the one place in the schema layer where a `Capture` module directly references a `Semantics` module (and vice versa) via an Ecto association, not just a bare column — crossing CLAUDE.md's capture/semantics boundary at the ORM level.
+
+### Every caller that depends on the *association* (not just the `action_id` column)
+
+| Caller | What it does | File:line |
+|---|---|---|
+| `Threadline.Query.preload_investigation_context/3` | `repo.preload(changes, [transaction: :action], ...)` — nested preload through `AuditChange.transaction` into `AuditTransaction.action` | `lib/threadline/query.ex:109` |
+| `Threadline.Investigation.transaction_context/2` | `Keyword.put(opts, :preload, transaction: :action)` passed into `Query.audit_changes_for_transaction/2` | `lib/threadline/investigation.ex:134` |
+| `Threadline.Investigation.incident_bundle/2` | `:preload, :action` on the transaction fetch, then `:preload, transaction: :action` on the changes fetch | `lib/threadline/investigation.ex:154`, `:167` |
+| `Threadline.Investigation.linked_action/1` | `Map.get(transaction, :action)` — reads the preloaded association off the struct | `lib/threadline/investigation.ex:231` |
+| `Threadline.OperatorSurface.Live.TimelineLive` | `repo.preload(entries, [transaction: :action], ...)` — same nested preload, UI path | `lib/threadline/operator_surface/live/timeline_live.ex:552` |
+| `Threadline.OperatorSurface.Live.TransactionLive` | `preload: :action` on a direct transaction fetch | `lib/threadline/operator_surface/live/transaction_live.ex:22` |
+| `Threadline.Query.export_changes_query/2` | Does **not** use the Ecto association — builds its own `LEFT JOIN audit_actions aa ON at.action_id == aa.id` by hand (`lib/threadline/query.ex:271`) and a second `INNER JOIN` variant filtering on `aa.correlation_id` (`lib/threadline/query.ex:795-797`) | `lib/threadline/query.ex:271`, `:795` |
+| `Threadline.Query.filter_by_correlation/2` | Same hand-rolled join pattern (not the association) for `timeline/2`'s strict `:correlation_id` filter | `lib/threadline/query.ex:787-798` |
+| `Threadline.Audit.link_action/3`, `record_action/3` | Write-side: `repo.update_all(... where: at.txid == fragment("txid_current()"), set: [action_id: action_id, ...])` — raw column write, no association | `lib/threadline/audit.ex:243-256` |
+| `Threadline.ChangeDiff` / `Threadline.change_diff/2` | Does **not** touch the association at all — operates purely on `AuditChange` columns | n/a (confirms the association is Investigation/operator-surface/export-join scoped, not capture-layer scoped) |
+
+**Key fact:** `Threadline.Export`'s join path (`export_changes_query/2`) and the `timeline/2` correlation filter (`filter_by_correlation/2`) **already bypass the Ecto association** and hand-write the join on `action_id`/`aa.id`. Only the **preload-based** call sites (`Investigation`, `TimelineLive`, `TransactionLive`) actually use `belongs_to(:action, ...)` / `has_many(:transactions, ...)` as Ecto associations. This matters: half the "edge" is already just a foreign key used in a manual join; only the preload call sites are exposed to Ecto's association machinery (and its attendant N+1 risk, autoload behavior, and the two-way cross-layer module reference it creates).
+
+### Options
+
+**Option A — keep as a documented contract (status quo, formalized).**
+- *Call-site impact:* none — zero code changes. `preload: :action`, `preload: [transaction: :action]` keep working exactly as today.
+- *Semver impact:* none; this is simply documenting what already ships.
+- *Layering purity:* worst of the three — `Capture.AuditTransaction` has a compile-time `belongs_to` reference to `Semantics.AuditAction`, and `Semantics.AuditAction` has a compile-time `has_many` reference back to `Capture.AuditTransaction`. This is a **real mutual compile-time dependency between the two layers CLAUDE.md says must stay separate** ("Capture... Does not own action naming... Semantics... Actions are not changes; transactions are not requests"). It is already shipped and used by three production call sites plus the operator UI, so "keep and document" has the lowest *execution* risk of the three but the worst architectural honesty.
+
+**Option B — replace with a plain foreign-key field, no association (drop both `belongs_to`/`has_many`, keep `action_id` as a bare `field`).**
+- *Call-site impact:* **breaking** for every `preload: :action` / `preload: [transaction: :action]` caller — `Threadline.Query.preload_investigation_context/3` (`query.ex:109`), both `Investigation` preload sites (`investigation.ex:134,154,167`), and both LiveViews (`timeline_live.ex:552`, `transaction_live.ex:22`) must switch to an explicit query (`from(at in AuditTransaction, where: ..., join: aa in AuditAction, on: at.action_id == aa.id, select: {at, aa})` or two separate `repo.all`/`repo.get` calls joined in Elixir). This is a non-trivial rewrite of five call sites plus `Investigation.linked_action/1`'s `Map.get(transaction, :action)` read (which only works on a *loaded* association — a bare FK field has no `.action` key at all, so every reader of the enriched struct shape changes too, which ripples into `%LinkedChange{}`/`%IncidentBundle{}`'s public struct shape).
+- *Semver impact:* **ONE-WAY, breaking** — removing an association changes what `repo.preload(x, :action)` does (it currently works; after this change it raises `Ecto.AssociationNotLoadedError`-adjacent compile/runtime errors because the association no longer exists on the schema). Any adopter who discovered and relied on the association directly (undocumented today, but discoverable via `mix docs` or REPL introspection) breaks silently until they hit a runtime error.
+- *Layering purity:* cleanest in principle (capture schema has no compile-time knowledge of the semantics module type, only an opaque `:binary_id` column) **but** Ecto's FK validation (`@foreign_key_type :binary_id`) plus the DB-level `REFERENCES audit_actions(id)` constraint (`semantics/migration.ex:56`) mean the *database* still enforces the cross-layer relationship regardless of what the Elixir struct declares — so this option buys compile-time decoupling only, not runtime/DB decoupling, which already can't be undone without a bigger redesign (the FK constraint is part of the capture→semantics linkage CLAUDE.md's domain model itself calls for: "may be linked to one or more transactions via `audit_transactions.action_id`").
+
+**Option C — move the association to the exploration layer via explicit queries (keep schemas FK-only like Option B, but add the join/preload helper as a `Threadline.Query`/`Investigation`-owned function rather than deleting the capability).**
+- *Call-site impact:* moderate — the five preload call sites change their call shape (from `repo.preload(x, [transaction: :action])` to something like `Threadline.Query.with_linked_action(changes, repo, opts)` doing the join explicitly), but the **external behavior and return shape stay identical** (`change.transaction.action` still resolves) because the exploration-layer helper can still populate a virtual/non-association field or use `Ecto.Changeset.put_assoc`-adjacent manual hydration via `Map.put(transaction, :action, action)`. This is strictly more call-site churn than Option A, strictly less than Option B's full rewrite, because only the five known call sites inside Threadline's own tree change — no public API shape (`%LinkedChange{}.action`) breaks for adopters.
+- *Semver impact:* internal refactor, **not** adopter-breaking, **if** the exploration-layer helper preserves the `.action` key shape on the returned structs. This is the only option of the three that can plausibly ship as a *non-breaking* 1.0 change.
+- *Layering purity:* best balance — `Threadline.Capture.AuditTransaction` and `Threadline.Semantics.AuditAction` schemas drop the `belongs_to`/`has_many` (no compile-time cross-layer struct knowledge), and the *only* place that knows both schemas exist and joins them is `Threadline.Query` (exploration layer, which CLAUDE.md explicitly scopes as the layer that "matures after capture + semantics prove out" and is allowed to know about both). The DB-level FK constraint still exists (as it must, for `ON DELETE SET NULL` integrity), but FK constraints are a capture-migration concern already owned by the capture layer's migrations, not an Ecto-schema concern.
+
+### Recommendation: **Option C**, with Option A as the fallback if C's engineering cost is judged too high for this milestone
+
+Rationale: Option A is the "declare status quo and move on" choice, and it is defensible given the milestone's explicit framing ("deliberately keep or break... an Ecto association edge crossing the capture/semantics layer boundary" — the guide itself treats "keep" as a legitimate deliberate outcome, not a default to avoid). But given that:
+1. Half the usage (`Export`'s joins) **already** doesn't use the association — proving the codebase itself doesn't need the Ecto-level coupling for its most performance-sensitive path (bulk export).
+2. CLAUDE.md states capture "does not own action naming" and semantics "transactions are not requests" as a *named constraint*, not a stylistic preference — a mutual `belongs_to`/`has_many` pair between the two schema modules is the most literal possible violation of that constraint that still compiles.
+3. Option C's call-site cost is bounded and entirely internal (5 known sites, all inside `lib/threadline/`), with no public struct-shape change for adopters.
+
+Option C is the one-way decision that best honors both the architecture doc and the "don't break adopters" constraint simultaneously. **Flag as ONE-WAY regardless of which option is chosen** — all three are schema/association shape decisions that are expensive to reverse once 1.0.0 ships (Option A freezes the association as supported API; B and C both change what `repo.preload(:action)` does, which cannot un-ship once adopters depend on either the old or new shape).
+
+If the team judges Option C too large for this milestone's remaining budget, Option A (declare the association an intentional, documented, exploration-layer-consumed contract, and add a one-paragraph note to `Threadline.Capture.AuditTransaction`'s moduledoc and `guides/domain-reference.md` saying so explicitly) is an acceptable, honest fallback — but it should be a conscious trade, not silence.
+
+---
+
+## 4. Return-shape and error inventory across the public surface
+
+| Function | Return kind | Notes |
+|---|---|---|
+| `Threadline.record_action/2` | ok/error tuple | `{:ok, %AuditAction{}}` / `{:error, %Ecto.Changeset{}}` / `{:error, :missing_actor}` / `{:error, :invalid_actor_ref}` / `{:error, :missing_repo}` — 4 distinct error shapes mixed (changeset vs atom reasons) |
+| `Threadline.history/3`, `Query.history/3` | bare list | `[%AuditChange{}]`; raises `ArgumentError` on bad key/limit |
+| `Threadline.as_of/4`, `Query.as_of/4` | ok/error tuple | `{:ok, map}` / `{:error, :deleted_record}` / `{:error, :before_audit_horizon}` / `{:error, {:cast_error, msg}}` when `cast: true` |
+| `Threadline.actor_history/2`, `Query.actor_history/2` | bare struct | `%Threadline.Query.ActorHistoryPage{}` (not a list, not a tuple — a struct directly) |
+| `Threadline.timeline/2`, `Query.timeline/2` | bare list | `[%AuditChange{}]` |
+| `Threadline.timeline_page/2`, `Query.timeline_page/2` | bare struct | `%Threadline.Query.TimelinePage{}` |
+| `Threadline.row_history/4` | bare list | `[%LinkedChange{}]` |
+| `Threadline.row_history_page/4` | bare struct | `%TimelinePage{}` (entries re-wrapped as `%LinkedChange{}`) |
+| `Threadline.actor_window/3`, `correlation_bundle/3` | bare list | `[%LinkedChange{}]` |
+| `Threadline.actor_window_page/3`, `correlation_bundle_page/3` | bare struct | `%TimelinePage{}` |
+| `Threadline.transaction_context/2` | bare struct | `%LinkedTransaction{}` — **no error case at all**, even though the inner `audit_changes_for_transaction/2` can return `[]` for a nonexistent transaction id (silently yields `%LinkedTransaction{transaction: nil, ...}`) |
+| `Threadline.incident_bundle/2` | ok/error tuple | `{:ok, %IncidentBundle{}}` / `{:error, :not_found}` — **inconsistent with `transaction_context/2`**, which answers the same "does this transaction exist" question with a silent `nil` instead of a tagged error |
+| `Threadline.audit_changes_for_transaction/2`, `Query.audit_changes_for_transaction/2` | bare list | `[%AuditChange{}]`; raises `ArgumentError` on invalid UUID |
+| `Threadline.export_csv/2`, `Export.to_csv_iodata/2` | ok tuple only | `{:ok, %{data:, truncated:, returned_count:, max_rows:}}` — **no error tuple variant**; database errors raise instead (`rescue`/`reraise`, `export.ex:109-112`) — so this is really "ok-tuple-or-raise," not a true `{:ok, _} \| {:error, _}` contract |
+| `Threadline.export_json/2`, `Export.to_json_document/2` | ok tuple only | Same shape/caveat as CSV |
+| `Export.count_matching/2` | ok tuple only | `{:ok, %{count: n}}` — no error variant, raises on bad filters |
+| `Export.csv_header/1` | bare list | `[binary()]` |
+| `Export.format_changes_iodata/3` | bare list | `[binary()]` |
+| `Export.stream_changes/2`, `stream_export_rows/2` | bare `Enumerable.t()` | Lazy stream, not a list/tuple — a fourth return "kind" |
+| `Threadline.change_diff/2`, `ChangeDiff.from_audit_change/2` | bare map | Plain map, no tuple |
+| `Threadline.Audit.transaction/3` | ok/error tuple | `{:ok, result}` / `{:error, reason}` where `reason` is `:missing_actor` / `:missing_audit_transaction_for_link` / an `%Ecto.Changeset{}` / a `Repo.rollback/1` passthrough — same "mixed atom-or-changeset" error shape as `record_action/2` |
+| `Threadline.Health.trigger_findings/1`, `legacy_key_findings/1` | bare list | `[%Finding{}]` |
+| `Threadline.Health.trigger_coverage/1` | bare list of tagged tuples | `[{:covered \| :uncovered \| :expected_uncovered, String.t()}]` — a list, but each element is itself a 2-tuple; a fifth distinct "shape family" |
+| `Threadline.Health.Policy.validate!/1` | raises or `:ok` | Bang-convention, no tuple at all |
+| `Threadline.Retention.purge/1` | bare map or error tuple | `purge_result()` map **or** `{:error, :disabled}` — a map is not a struct, not a list, and is returned bare (success) but tagged (failure); union of two kinds |
+| `Threadline.Retention.Policy.validate_config!/1` | `:ok` or raises | Bang convention |
+| `Threadline.Retention.Policy.cutoff_utc_datetime_usec!/1` | bare `DateTime.t()` | Bang convention but the "bang" means "raises," the bare return is just a scalar |
+| `Threadline.Evidence.record_*/3` (6 functions) | ok/error tuple | `{:ok, %EvidenceRecord{}}` / `{:error, %Ecto.Changeset{}}` / `{:error, :missing_repo}` / raises `ArgumentError` for invalid subject/subject_ref shape (a **third** failure channel — raise vs tuple — inside the same function) |
+| `Threadline.Evidence.list_history/2`, `list_subject_ref_history/3,4`, `list_latest_subject_refs/2,3`, `list_overview/2` | bare list | `[%EvidenceRecord{}]` |
+| `Threadline.Evidence.get_latest_subject_ref/3` | bare struct or nil | `%EvidenceRecord{}` or `nil` — Ecto `repo.one`-style nilable return, a sixth shape family |
+| `Threadline.Continuity.explain_cutover/1` | ok tuple only | `{:ok, iodata}` — always succeeds, tuple is vestigial |
+| `Threadline.Continuity.assert_capture_ready!/2` | `:ok` or raises | Bang convention |
+| `Threadline.Job.actor_ref_from_args/1` | ok/error tuple | `{:ok, %ActorRef{}}` / `{:error, :missing_actor_ref}` |
+| `Threadline.Job.context_opts/2` | bare keyword list | |
+| `Threadline.Semantics.ActorRef.new/2` | ok/error tuple | `{:ok, %ActorRef{}}` / `{:error, :unknown_actor_type}` / `{:error, :missing_actor_id}` |
+| `Threadline.Semantics.ActorRef.to_map/1` | bare map | |
+| `Threadline.Semantics.ActorRef.from_map/1` | ok/error tuple | |
+| `Threadline.Telemetry.transaction_committed/2` | bare `:ok`-ish | `:telemetry.execute/3` return (`:ok`), not meaningfully a "result" |
+
+### Inconsistency summary (the pattern the gate test in §6 should check for)
+
+1. **"Does this transaction exist?" answered two different ways**: `transaction_context/2` returns a struct with `nil` fields on a miss; `incident_bundle/2` returns `{:error, :not_found}` on the identical miss condition. One of these should change to match the other — recommend making `transaction_context/2` return `{:ok, bundle} | {:error, :not_found}` to match `incident_bundle/2` (breaking, ONE-WAY, but small blast radius — this helper has no guide references found in this research, so likely low adopter usage).
+2. **Error reasons mix atoms and changesets** in `record_action/2`, `Audit.transaction/3`, and `Evidence.record_*/3` — `{:error, :missing_actor}` next to `{:error, %Ecto.Changeset{}}` in the same function's documented return contract. This is idiomatic enough for Ecto-adjacent Elixir (changesets ARE the idiomatic validation-error shape) but should be called out explicitly in docs as "validation errors are changesets; precondition errors are atoms" so it reads as a deliberate two-tier contract, not an accident.
+3. **"Bang" functions used inconsistently for "raises vs returns bare"**: `validate!/1`-family functions correctly raise-or-:ok; but some non-bang functions also raise on bad input without a `!` (e.g. `history/3`, `as_of/4`, `audit_changes_for_transaction/2` all raise `ArgumentError` on bad key/UUID shapes despite no bang in the name). This is a real **naming-convention violation** against Elixir community norms (functions that can raise on *programmer error* like bad argument shape are conventionally fine without `!` — e.g. `Enum.at!/2` doesn't exist, `Enum.at/2` just works — but functions that raise on *expected failure modes* typically get the bang, or return a tuple). Recommend: document explicitly in each function's `@doc` which raises are "programmer error, by design, no bang needed" (bad filter keys, bad id shape) vs genuine candidates for a tuple return — but do not rename at this stage; renaming raises→tuples now would be a second disruptive breaking change on top of the overlap consolidation in §2.
+4. **Five distinct top-level return "kinds"** across the public surface: bare list, bare struct, ok-tuple, ok/error-tuple, raise-or-bare. This is not unusual for an Ecto-adjacent library (Ecto itself mixes `Repo.get/2` returning nil-or-struct with `Repo.insert/2` returning ok/error tuples), so full unification is not realistic or even desirable — but the **two outright contradictions** (point 1) are worth fixing, and the **:atom-vs-changeset within one function's contract** (point 2) is worth documenting as intentional rather than leaving implicit.
+
+---
+
+## 5. Non-function public contract for the 1.x stability promise
+
+| Contract surface | Specifics | In 1.x stability promise? |
+|---|---|---|
+| **`audit_transactions` table** | Columns: `id` (binary_id/uuid), `txid` (integer), `occurred_at` (utc_datetime_usec), `source` (string), `meta` (map), `actor_ref` (ActorRef/jsonb), `action_id` (binary_id FK, nullable) — `lib/threadline/capture/audit_transaction.ex:50-65` | **Yes, in the promise** — this is the capture-layer canonical table; column names/types are the SQL-native contract CLAUDE.md names as a design pillar ("operators query audit data with plain SQL") |
+| **`audit_changes` table** | Columns: `id`, `transaction_id` (FK), `table_schema`, `table_name`, `table_pk` (map), `op`, `data_after` (map), `changed_fields` ({:array, string}), `changed_from` (map), `captured_at` — `lib/threadline/capture/audit_change.ex:49-60` | **Yes, in the promise** |
+| **`audit_actions` table** | Columns: `id`, `name`, `actor_ref`, `status` (enum ok/error), `verb`, `category`, `reason`, `comment`, `correlation_id`, `request_id`, `job_id`, `inserted_at` — `lib/threadline/semantics/audit_action.ex:35-50` | **Yes, in the promise** |
+| **Governance tables** (`threadline_export_jobs`, `threadline_retention_runs`, `threadline_saved_views`, `threadline_evidence_records`) | Schemas `@moduledoc false` but tables are real, named in `StorageSchema.@threadline_tables` (`lib/threadline/storage_schema.ex:26-34`) and driven by operator UI + `Evidence`/`ExportQueue` public APIs | **Partially** — table *names* and *existence* are part of the contract (adopters query them for ops dashboards per `guides/adoption-evidence-playbook.md`), but the *schema internals* (exact column set) are explicitly excluded since the Ecto schema modules are hidden; recommend documenting column-level stability only for `threadline_evidence_records` (it has a real public schema) and `threadline_export_jobs`/`threadline_retention_runs` as "queryable, columns may evolve additively" |
+| **Trigger function name** | `threadline_capture_changes()` and per-table generated functions, referenced in `mix threadline.install` output and `Threadline.StorageSchema.function/2` (`lib/threadline/storage_schema.ex:128`) | **Yes, in the promise for the shared function name**; per-table generated function names are explicitly **excluded** (v1.42 already made per-table function names deterministic-but-internal to solve a collision bug — these are implementation detail, not adopter-facing) |
+| **Transaction-local actor GUC** | `threadline.actor_ref` — written via `set_config('threadline.actor_ref', $1::text, true)` (`lib/threadline/audit.ex:187`, `lib/threadline/plug.ex:59` doc example) and read via `current_setting('threadline.actor_ref', true)` inside the generated trigger SQL (`lib/threadline/capture/trigger_sql.ex:332`, `:549`) | **Yes, in the promise** — this is the entire capture↔semantics actor bridge; renaming it breaks every adopter who set it manually per the documented bridge pattern in `Threadline.Plug`'s moduledoc |
+| **Telemetry event names/keys** | 14 events under `[:threadline, ...]`, enumerated in full in `lib/threadline/telemetry.ex:57-152` and the moduledoc table at `:16-32`: `[:threadline, :transaction, :committed]`, `[:threadline, :action, :recorded]`, `[:threadline, :health, :checked]`, `[:threadline, :health, :checked, :error]`, `[:threadline, :health, :findings_checked]`, `[:threadline, :operator_surface, :authorize]`, `[:threadline, :operator_surface, :export_authorize]`, `[:threadline, :operator_surface, :actor_ref_mismatch]`, `[:threadline, :export, :completed]`, `[:threadline, :export, :failed]`, `[:threadline, :retention, :purge, :start]`, `[:threadline, :retention, :purge, :stop]`, `[:threadline, :retention, :purge, :exception]`, `[:threadline, :retention, :batch_purged]` | **Yes, in the promise** — v1.44 already shipped a doc-parity test (`guides/telemetry.md`) per PROJECT.md; the 1.0 gate (§6) should extend that into a hard allowlist test so a 15th event or a renamed key is a deliberate, reviewed, documented change, not a silent addition |
+| **Health finding codes** | 6 atoms in the closed `t :: code()` union (`lib/threadline/health/finding.ex:57-63`): `:legacy_trigger_no_pk_args` (warning), `:pk_drift` (error), `:shared_capture_function` (error), `:duplicate_capture_trigger` (error), `:capture_trigger_disabled` (error), `:unresolved_legacy_keys` (warning) | **Yes, but explicitly open-ended** — the moduledoc already says "The code list may grow in any minor release; match on `code` with a catch-all clause" (`finding.ex:8-9`). Recommend keeping this *additive-only* promise exactly as documented: existing codes/severities are frozen, new codes may appear in any 1.x release |
+| **Application config keys** | `:ecto_repos`, `:retention` (`enabled`, `keep_days`/`max_age_seconds`, `delete_empty_transactions`), `:trigger_capture`, `:verify_coverage`, `:storage_adapter`, `:health` (`expected_uncovered_tables`, `audit_anyway`), `:coverage_poll_ms`, `:operator_surface_embed_fonts`, `:export_status_poll_ms`, `:export_queue_adapter`, `:retention_poll_ms`, `:operator_surface_embed_scripts`, `:storage_schema` — all enumerated in `guides/configuration-and-commands.md:19-32` and cross-checked against `StorageSchema`, `Retention.Policy`, `Health.Policy` source | **Yes, in the promise** — these are the entire host-side integration surface; recommend the 1.0 gate includes a config-key allowlist test (unknown `config :threadline, key:` should at minimum be visible in a lint/doc-contract check, matching the existing "unknown keys raise" discipline already applied to `timeline/2` filters) |
+| **Mix task names and flags** | `mix threadline.install`, `gen.triggers`, `gen.row_history_index`, `verify_coverage`, `export`, `incident`, `retention.purge`, `policy.show`, `continuity` (`--dry-run`, `--table`), `evidence.show`, `health.coverage` (`--json`, `--schema=NAME`, `--strict`, `--all-schemas`) — file list in `lib/mix/tasks/` | **Yes, in the promise** — task names, and documented flags, are adopter-facing CLI contract; `health.coverage`'s `--strict`/`--all-schemas` shipped in v1.44 specifically as adopter API (PROJECT.md) |
+| **Plug integration API** | `Threadline.Plug` — `init/1` options `:actor_fn`, `:context_overrides_fn`; assigns `conn.assigns[:audit_context]` as `%AuditContext{}` (`lib/threadline/plug.ex:79-98`) | **Yes, in the promise** |
+| **Job integration API** | `Threadline.Job.actor_ref_from_args/1`, `context_opts/2` — the `"actor_ref"`/`"correlation_id"`/`"job_id"` string-keyed args-map contract (`lib/threadline/job.ex:43-67`) | **Yes, in the promise** |
+| **Operator-surface router macro and mount options** | `Threadline.OperatorSurface.Router.threadline_operator_surface/2` and its options `:exports`, `:scope_query_fn`, `:export_authorize_fn`, `:coverage_authorize_fn`, `:policy_authorize_fn`, `:evidence_authorize_fn`, `:theme` (`lib/threadline/operator_surface/router.ex:24-54`); emitted routes (`/`, `/timeline`, `/evidence`, `/coverage`, `/exports`, `/policy/redaction`, `/policy/retention`, `/rows/:table/:record_id`, `/transactions/:id`, `/transactions/:id/history/:table/:record_id`, `/actors/:kind/:id`, plus `/theme` and `/exports/*` HTTP routes) | **The macro, its options, and the route paths relative to the mount point are in the promise. The rendered HTML/CSS/LiveView markup is explicitly NOT API** — this matches the milestone's own framing ("operator/admin UI design is PARKED until after 1.0.0... UI is out of scope except where an API change forces a call-site update") and the ~75-file internal UI subtree being uniformly `@moduledoc false` (§1). Recommend stating this split explicitly in a guide: "the mount macro, its options, and route paths are 1.x-stable; page layout, markup, CSS classes, and LiveView module names are not" |
+| **Export formats (CSV/JSON columns)** | CSV: fixed column order `id, transaction_id, table_schema, table_name, op, captured_at, table_pk, data_after, changed_fields, changed_from, transaction_json`, optionally `+ correlation_id, action_id` (`lib/threadline/export.ex:54-57`, `:91`). JSON wrapped: `format_version`, `generated_at`, `changes` (each change optionally carrying a nested `"action"` object) (`export.ex:152-159`, `:470-479`). NDJSON: one `change_map/1` object per line | **Yes, in the promise** — `Threadline.Export`'s moduledoc already documents these as fixed/versioned (`"format_version" => 1`); the 1.0 gate should pin the exact header/column list the same way telemetry events get pinned |
+| **`ChangeDiff` wire format** | `"schema_version" => 1`, `"before_values"` (`"none"`/`"sparse"`), `"field_changes"` shape, `:export_compat` flat-map variant (`lib/threadline/change_diff.ex:61-128`) | **Yes, in the promise** — already versioned the same way as Export's JSON, same recommendation (pin via test) |
+
+---
+
+## 6. Suggested build order for the milestone
+
+Ordered by hard dependency — each step should not start until the prior step's decisions are locked, because later steps (specs, docs, the gate test, guides) would otherwise be written against a surface that is about to change shape.
+
+1. **Decide and execute the topology collapse first (§2) and the `AuditTransaction`↔`AuditAction` edge decision (§3).** These are the two ONE-WAY structural decisions in this milestone. Writing `@spec`/`@doc` onto `Threadline.Query`/`Threadline.Investigation` before deciding whether they stay public would be wasted work the moment they get hidden/merged; similarly, touching the association's call sites (preloads in `Query`, `Investigation`, `TimelineLive`, `TransactionLive`) is foundational plumbing that every read-path function sits on top of. Do these two first, together, since they touch overlapping files (`query.ex`, `investigation.ex`).
+2. **Hide what's left to hide.** With the topology decided, sweep the flagged "documented-but-internal" cases from §1 — `Threadline.Telemetry`'s `emit_*` family, `Threadline.Query`'s raw query-builder functions (`timeline_query/1`, `history_query/3`, `as_of_query/4`, `row_history_query/3`, `export_changes_query/1,2`) if §2's recommendation to demote `Query` to internal is accepted, `Threadline.Export.CSV` (give it a real `@moduledoc false` instead of no moduledoc at all), and resolve the `ExportQueue.TaskAdapter` vs `ExportQueue.Oban` documentation asymmetry. Do this before specs/docs so the spec-coverage gate test in step 4 is scoped to the *final* surface, not a surface with soon-to-be-hidden functions still counted.
+3. **Consolidate the overlapping entry points with deprecations (the `history/3`/`row_history/4`/`row_history_page/4`, `actor_history/2`/`actor_window/3` baseline problem), including the deferred bounded-default `:limit` for `history/3`.** This depends on step 1 (the facade topology must be settled before you know which module owns the canonical implementation to deprecate *toward*) but precedes specs/docs because a deprecated function needs a `@deprecated` attribute and pointer-doc, not a full spec investment, while its replacement needs the real spec investment — doing specs before consolidation risks specing a function that gets deprecated a day later.
+4. **Fix the return-shape inconsistencies identified in §4** that are cheap and clearly ONE-WAY-correct now (the `transaction_context/2` vs `incident_bundle/2` not-found asymmetry) — do this alongside step 3 since both touch `Investigation`/`Threadline` facade functions and both are "decide the final signature" work that must land before specs are written against it.
+5. **Add `@spec`/`@doc` to the final surface only** — per the milestone's own scope note, not to functions about to be deprecated. This is the single largest mechanical pass (closing the ~129/169 gap) and should run module-by-module using `Threadline.Export` and `Threadline.Integrations.Sigra` (both already 100% specced) as the house style reference. Priority order within this step: `Threadline` facade (18 fns, the highest-visibility gap) → `Threadline.Investigation`/consolidated read API → `Threadline.Evidence` (13 fns, currently zero specs despite full `@doc`) → `Threadline.StorageSchema`'s genuinely-public subset → `Threadline.Telemetry.transaction_committed/2` and the health/retention/continuity stragglers.
+6. **Write the regression gate** that stops the surface from drifting again: a compiler-checked (not grep-based, unlike this research's own inventory method) census of public-fn spec/doc coverage over non-hidden modules, plus the telemetry-event allowlist test and the export-column/`ChangeDiff` schema-version pin called for in §5. This must come after steps 1-5 because the gate needs to assert against the settled surface, not a moving target — writing it earlier means immediately having to loosen it as the topology/consolidation work lands.
+7. **Update the guides that call the now-internal modules directly** (`guides/audit-indexing.md`, `guides/how-threadline-works.md`, `guides/code-walkthrough.md` per §2's call-site impact list) plus the new supported-table-shapes guide and redaction threat model called for in the milestone scope, and document the operator-surface API/markup split from §5. Guides come after the gate test so they can be written against, and verified against, the final locked surface and its enforcement mechanism.
+8. **Declare the Elixir 1.15 / PG 14 support floor decision and cut the release.** This is independent of steps 1-7 in mechanism (it's a CI-matrix/mix.exs decision, not a code-shape decision) but should land last because a version-floor bump is itself a changelog-worthy breaking-adjacent decision, and 1.0.0 release notes should describe one settled set of breaking changes (topology + edge + consolidation + floor) rather than being cut mid-sequence and requiring a second "1.0.1 breaking" follow-up.
+
+**ONE-WAY decisions in this build order, consolidated:** the `Threadline.Query`/`Threadline.Investigation` publicness collapse (§2), the `AuditTransaction`<->`AuditAction` association shape (§3, whichever option is chosen), the `history/3`/`row_history/4` consolidation and `history/3`'s bounded default `:limit`, the `transaction_context/2` return-shape change, and the Elixir/PG support floor. All five should ship together in the 1.0.0 release, not trickle across multiple 1.x releases, because each is individually a "cannot cheaply undo once adopters depend on the new shape" decision and 1.0.0 is the one release boundary where bundling several such decisions is expected and budgeted for by adopters performing a major-version upgrade.

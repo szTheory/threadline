@@ -60,7 +60,7 @@ This is a viewer, not a mutator. Policy edits still happen in `config :threadlin
 
 Operators cap table growth with a **global retention window** under **`config :threadline, :retention`**, validated by `Threadline.Retention.Policy` before purge runs.
 
-- **Primary clock:** eligibility uses each row’s **`AuditChange.captured_at`** (`timestamptz`, microsecond precision), not `AuditTransaction.occurred_at`. This matches `Threadline.Query.timeline/2`, which applies **`captured_at >= :from`** (inclusive lower bound) and **`captured_at <= :to`** (inclusive upper bound) when those filters are set. Retention purge deletes changes with **`captured_at` strictly less than** the computed cutoff (`now` minus the configured window), so the boundary is **exclusive on the “keep” side** at the cutoff instant — slightly stricter than the inclusive `:to` filter in timeline queries; operators should treat the cutoff as “anything older than this instant is eligible.”
+- **Primary clock:** eligibility uses each row’s **`AuditChange.captured_at`** (`timestamptz`, microsecond precision), not `AuditTransaction.occurred_at`. This matches `Threadline.timeline/2`, which applies **`captured_at >= :from`** (inclusive lower bound) and **`captured_at <= :to`** (inclusive upper bound) when those filters are set. Retention purge deletes changes with **`captured_at` strictly less than** the computed cutoff (`now` minus the configured window), so the boundary is **exclusive on the “keep” side** at the cutoff instant — slightly stricter than the inclusive `:to` filter in timeline queries; operators should treat the cutoff as “anything older than this instant is eligible.”
 - **Global window:** v1.3 is one documented interval for all captured changes (same relation Threadline owns). Per-table retention is an extension point for later releases.
 - **Long transactions:** multiple `AuditChange` rows under one `audit_transactions` row can carry **different** `captured_at` values; retention is evaluated **per change row**, not “whole transaction expires as one timestamp.”
 - **Empty parents:** after eligible changes are removed, the default purge path deletes **`audit_transactions`** rows that have **no** remaining child changes (optional `delete_empty_transactions: false` for transitional installs). See `Threadline.Retention` / `mix threadline.retention.purge`.
@@ -69,7 +69,7 @@ Operators cap table growth with a **global retention window** under **`config :t
 
 Read-only exports for operator playbooks (“export then purge”, cross-checks, ad-hoc analysis).
 
-- **Filter vocabulary:** identical to `Threadline.Query.timeline/2` — `:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`. Bounds apply to **`AuditChange.captured_at`** (inclusive). **`AuditTransaction.occurred_at`** appears inside exported transaction context and can differ from `captured_at` on the same change row.
+- **Filter vocabulary:** identical to `Threadline.timeline/2` — `:repo`, `:table`, `:actor_ref`, `:from`, `:to`, `:correlation_id`. Bounds apply to **`AuditChange.captured_at`** (inclusive). **`AuditTransaction.occurred_at`** appears inside exported transaction context and can differ from `captured_at` on the same change row.
 - **APIs:** `Threadline.Export` (`to_csv_iodata/2`, `to_json_document/2`, `count_matching/2`, `stream_changes/2`), `Threadline.export_csv/2`, `Threadline.export_json/2`, and **`mix threadline.export`** (see task `@moduledoc`).
 - **Formats:** CSV uses a fixed hybrid column layout (JSON blobs for nested maps, single `transaction_json` column). JSON uses **`format_version: 1`** on the wrapped document; **`ndjson`** omits the outer wrapper.
 - **Safety:** default **`max_rows`** caps in-memory materialization; results report **`truncated`** when the cap is hit. Streaming ignores that cap — compose with `Stream.take/2` when needed.
@@ -148,7 +148,7 @@ v1.9 adds the **telemetry operator narrative**, the **audit table indexing cookb
 
 ## Brownfield continuity
 
-Tables with **pre-existing rows** still use **T0** semantics: `Threadline.history/3` may return `[]` until the first trigger-backed mutation after capture is installed. Operators should follow [`guides/brownfield-continuity.md`](brownfield-continuity.md) for checklists, `mix threadline.verify_coverage`, and `mix threadline.continuity` (including `--dry-run`).
+Tables with **pre-existing rows** still use **T0** semantics: `Threadline.row_history/3` may return `[]` until the first trigger-backed mutation after capture is installed. Operators should follow [`guides/brownfield-continuity.md`](brownfield-continuity.md) for checklists, `mix threadline.verify_coverage`, and `mix threadline.continuity` (including `--dry-run`).
 
 ## AuditAction
 
@@ -261,7 +261,7 @@ Each tuple names a user table the catalog query sees in the requested schema. `{
 | `:shared_capture_function` | error | A per-table capture function is referenced by triggers on more than one table. | `mix threadline.gen.triggers --tables a,b` — regenerate every affected table together, never one at a time. |
 | `:duplicate_capture_trigger` | error | More than one Threadline trigger is installed on the same table. | `DROP TRIGGER "<extra>" ON "<schema>"."<table>";`, then `mix threadline.gen.triggers --tables <schema.table>`. |
 | `:capture_trigger_disabled` | error | The trigger is disabled (`'D'`) or fires only for replica sessions (`'R'`); writes are not being captured. | `ALTER TABLE "<schema>"."<table>" ENABLE TRIGGER "<name>";` (or `ENABLE ALWAYS TRIGGER` for `'R'`). |
-| `:unresolved_legacy_keys` | warning | Audit rows were captured before the table's trigger was regenerated and still carry an unresolved primary key; `history/3` cannot find them by key. | Run the backfill in [Upgrading to 0.11.0, Step 6](upgrading-to-0.11.md#step-6-optional-backfill-unresolved-primary-keys). |
+| `:unresolved_legacy_keys` | warning | Audit rows were captured before the table's trigger was regenerated and still carry an unresolved primary key; `row_history/3` cannot find them by key. | Run the backfill in [Upgrading to 0.11.0, Step 6](upgrading-to-0.11.md#step-6-optional-backfill-unresolved-primary-keys). |
 
 A disabled or replica-only trigger is also no longer counted as covered by `trigger_coverage/1` (see the Breaking changes entry in the CHANGELOG) — the two checks agree on what "captured" means. `mix threadline.verify_coverage` fails the gate on an `:error`-severity finding for a table in its `expected_tables` list; error findings for unlisted tables print under a "not gated" heading without failing, and warnings never fail the gate.
 
@@ -289,7 +289,7 @@ Contract marker for automated doc checks: **XPLO-03-API-ROUTING**
 
 | Intent | Primary API | Notes / pointer |
 |--------|---------------|-----------------|
-| Single domain row over time | `Threadline.history/3` or `Threadline.timeline/2` | `history/3` lists changes for one PK; use `timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). **T0 / brownfield:** rows that existed before capture may look empty until the first audited write — see [`brownfield-continuity.md`](brownfield-continuity.md) and **[Brownfield continuity](#brownfield-continuity)** in this guide. |
+| Single domain row over time | `Threadline.row_history/3` or `Threadline.timeline/2` | `row_history/3` lists changes for one PK; use `timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). **T0 / brownfield:** rows that existed before capture may look empty until the first audited write — see [`brownfield-continuity.md`](brownfield-continuity.md) and **[Brownfield continuity](#brownfield-continuity)** in this guide. |
 | Incident / time window across rows | `Threadline.timeline/2` or `Threadline.timeline_page/2` | Use eager `timeline/2` for smaller bounded windows. Switch to `timeline_page/2` for large investigations where stable traversal across pages matters; bounds still apply to `AuditChange.captured_at` (see [subsection 1](#1-row-history-pk-changes-in-a-time-window)). |
 | Correlation-scoped slice | `Threadline.timeline/2`, `Threadline.timeline_page/2`, `Threadline.Export`, `mix threadline.export` | Pass **`:correlation_id`**; timeline/export return only changes whose transaction **inner-joins** an `audit_actions` row with that correlation — see [subsection 3](#3-correlation-bundle-shared-correlation_id). |
 | Everything in one DB transaction | `Threadline.incident_bundle/2` | Default transaction drill-down when you want linked transaction/action context plus ordered changes with packaged diffs. |
@@ -330,8 +330,10 @@ canonical bundled incident path on top of the table above:
 If you need a custom projection instead of the bundled default, the lower-level
 building blocks remain public: **`Threadline.audit_changes_for_transaction/2`**
 preserves the ordering contract, **`Threadline.transaction_context/2`** exposes
-the linked context directly, and **`Threadline.change_diff/2`** lets you shape
-per-row diffs yourself.
+the linked context directly (returning `{:ok, context}` or `{:error, :not_found}`,
+bang: `transaction_context!/2`), and **`Threadline.change_diff/2`** lets you shape
+per-row diffs yourself. For the bare transaction row alone, use
+**`Threadline.audit_transaction/2`**.
 
 CI covers the round-trip in **`ThreadlinePhoenixWeb.PostsIncidentJsonPathTest`**.
 The reference app requires an authenticated actor before it serves the
@@ -348,7 +350,7 @@ Contract marker for automated doc checks: **LOOP-04-SUPPORT-INCIDENT-QUERIES**
 
 | # | Question | Primary path |
 |---|----------|--------------|
-| 1 | Row history — what changed for this domain row (PK) in the last N days? | `Threadline.history/3` or `Threadline.Query.timeline/2` — SQL: [subsection 1](#1-row-history-pk-changes-in-a-time-window) |
+| 1 | Row history — what changed for this domain row (PK) in the last N days? | `Threadline.row_history/3` or `Threadline.timeline/2` — SQL: [subsection 1](#1-row-history-pk-changes-in-a-time-window) |
 | 2 | Actor window — what did this actor drive across tables in a time window? | `Threadline.actor_history/2` or `Threadline.timeline/2` / `Threadline.timeline_page/2` with `:actor_ref` — SQL: [subsection 2](#2-actor-window-one-actor-across-tables) |
 | 3 | Correlation bundle — row-level changes and semantic actions sharing a correlation id | `Threadline.timeline/2` / `Threadline.timeline_page/2` / export with `:correlation_id` — SQL: [subsection 3](#3-correlation-bundle-shared-correlation_id) |
 | 4 | Export parity — same slice for review and export | `Threadline.Export`, `mix threadline.export` — details: [subsection 4](#4-export-parity-timeline-and-export-filters-agree) |
@@ -358,7 +360,7 @@ Contract marker for automated doc checks: **LOOP-04-SUPPORT-INCIDENT-QUERIES**
 
 | Path | When to use it |
 |------|----------------|
-| **API** | `Threadline.history(MyApp.Schema, id, repo: MyApp.Repo)` returns `AuditChange` structs for one PK; use `Threadline.timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). |
+| **API** | `Threadline.row_history(MyApp.Schema, id, repo: MyApp.Repo)` returns `%Threadline.Investigation.LinkedChange{}` structs (`.audit_change` holds the `AuditChange`) for one PK; use `Threadline.timeline/2` when you need the shared filter map (`:table`, `:from`, `:to`, …). |
 | **SQL** | Ad-hoc psql / BI — join `audit_changes` to `audit_transactions`, constrain `table_name`, JSON containment on `table_pk`, and **bounded** `captured_at`. |
 
 When **`:from`** / **`:to`** are set on `timeline/2` or `timeline_page/2`, bounds apply to **`AuditChange.captured_at`** (inclusive). Prefer **`LIMIT`** in raw SQL during exploration.
@@ -440,10 +442,10 @@ LIMIT 500;
 
 | Path | When to use it |
 |------|----------------|
-| **Mix / API** | **`mix threadline.export`** (see task `@moduledoc`) and `Threadline.Export.to_csv_iodata/2`, `to_json_document/2`, `stream_changes/2` — same allowed keys as `Threadline.Query.timeline/2`. |
+| **Mix / API** | **`mix threadline.export`** (see task `@moduledoc`) and `Threadline.Export.to_csv_iodata/2`, `to_json_document/2`, `stream_changes/2` — same allowed keys as `Threadline.timeline/2`. |
 | **SQL** | Use when validating parity in the database; **replicate the same predicates** you pass to `timeline/2` (table, actor, time bounds, correlation inner join when filtering by correlation). |
 
-Unknown filter keys raise **`ArgumentError`** in both code paths — see `Threadline.Query` moduledoc.
+Unknown filter keys raise **`ArgumentError`** in both code paths — see `Threadline.timeline/2`.
 
 ### 5. Action and capture - link semantic actions to changes
 

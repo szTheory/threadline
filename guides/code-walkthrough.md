@@ -252,11 +252,11 @@ end
 
 The `count == 1` check catches a write callback that produced no capture row when correlation was promised.
 
-### 10. Associations preserve the three different facts
+### 10. Capture fields preserve the three different facts
 
 Sources: `Threadline.Semantics.AuditAction`, `Threadline.Capture.AuditTransaction`, and `Threadline.Capture.AuditChange`.
 
-The Ecto relationships mirror the database design: an optional action describes capture transactions, and every change belongs to exactly one capture transaction.
+The database keeps the optional action link as an `action_id` foreign key. The capture schema does not declare an Ecto association to the semantics schema: `AuditTransaction.action` is virtual and is populated by Threadline's read helpers. `AuditChange` still belongs to exactly one capture transaction.
 
 ```elixir
 schema "audit_actions" do
@@ -264,7 +264,6 @@ schema "audit_actions" do
   field(:actor_ref, Threadline.Semantics.ActorRef)
   field(:correlation_id, :string)
   # ...
-  has_many(:transactions, Threadline.Capture.AuditTransaction, foreign_key: :action_id)
 end
 
 # ...
@@ -274,7 +273,8 @@ schema "audit_transactions" do
   field(:occurred_at, :utc_datetime_usec)
   field(:meta, :map)
   field(:actor_ref, Threadline.Semantics.ActorRef)
-  belongs_to(:action, Threadline.Semantics.AuditAction)
+  field(:action_id, :binary_id)
+  field(:action, :any, virtual: true, default: nil)
   has_many(:changes, Threadline.Capture.AuditChange, foreign_key: :transaction_id)
 end
 
@@ -292,13 +292,15 @@ schema "audit_changes" do
 end
 ```
 
+Use `Threadline.transaction_context/2` or `Threadline.incident_bundle/2` when a read needs the linked action hydrated. An Ecto query can join `AuditAction` through `AuditTransaction.action_id`; `Repo.preload(transaction, :action)` is not supported because the capture schema declares no `:action` association.
+
 Do not flatten these into a single “audit event” mentally. Their cardinalities explain capture-only rows, multi-row domain operations, and strict semantic filters.
 
 ## The read path assembles an investigation
 
 ### 11. Timeline correlation is an inner join, not a header search
 
-Source: public query composition and its internal correlation filter in `Threadline.Query`.
+Source: public query composition and its internal correlation filter in `lib/threadline/query.ex` (internal — reached through the `Threadline` facade).
 
 Base predicates always join changes to their capture transaction. A correlation ID adds an inner join through the linked action.
 
@@ -331,7 +333,7 @@ That invariant is why `AuditContext.correlation_id` alone is insufficient. The w
 
 ### 12. Keyset pagination has a total order
 
-Source: `Threadline.Query`.
+Source: `lib/threadline/query.ex` (internal — reached through the `Threadline` facade).
 
 The timestamp is the primary sort key and the UUID is the stable tiebreaker. The cursor uses the same tuple comparison, preventing duplicate or skipped rows when timestamps tie.
 
@@ -365,34 +367,28 @@ Any change to ordering must update both halves together and retain tests with ti
 
 ### 13. An incident bundle adds linked context and deterministic diffs
 
-Source: public `Threadline.Investigation.incident_bundle/2` and its internal mapper.
+Source: public `Threadline.incident_bundle/2` and its internal mapper.
 
-The higher-level API loads the transaction header, applies host scope to both reads, loads linked actions, and packages each change with `Threadline.change_diff/1`.
+The higher-level API reads the transaction row first, under the host scope's
+`:transaction_header` surface; then its changes under `:transaction`. Both
+reads share one existence check (`TransactionLookup.fetch/2`), and each
+returned change reuses the already-hydrated row instead of a second preload,
+before each change is packaged with `Threadline.change_diff/1`.
 
 ```elixir
 def incident_bundle(transaction_id, opts \\ []) do
-  # ...
-  case Query.audit_transaction(transaction_id, transaction_opts) do
-    nil ->
+  TransactionLookup.validate_opts!(opts, "incident_bundle")
+
+  case TransactionLookup.fetch(transaction_id, opts) do
+    :not_found ->
       {:error, :not_found}
 
-    transaction ->
-      changes =
-        Query.audit_changes_for_transaction(
-          transaction_id,
-          opts
-          |> Keyword.put(:preload, transaction: :action)
-          |> Keyword.put(:surface, :transaction)
-          |> Keyword.put(:params, %{transaction_id: transaction_id})
-        )
-
-      linked_changes = to_linked_changes(changes)
-
+    {:ok, row, changes} ->
       {:ok,
        %IncidentBundle{
-         transaction: transaction,
-         action: linked_action(transaction),
-         changes: Enum.map(linked_changes, &to_incident_change/1)
+         transaction: row,
+         action: linked_action(row),
+         changes: changes |> to_linked_changes() |> Enum.map(&to_incident_change/1)
        }}
   end
 end
@@ -407,7 +403,7 @@ defp to_incident_change(%LinkedChange{} = linked_change) do
 end
 ```
 
-The public investigation layer is the better extension point for operator questions; callers do not need to reproduce preload and diff assembly.
+The public investigation layer is the better extension point for operator questions; callers do not need to reproduce the fetch and diff assembly.
 
 ## Optional surfaces compose outward
 
@@ -467,7 +463,7 @@ The default implementations are sufficient for a single-node process. Persistent
 ```elixir
 @type job_id :: String.t() | binary()
 
-@callback init(keyword()) :: :ok | {:error, term()}
+@callback init(options()) :: :ok | {:error, term()}
 @callback enqueue(job_id(), keyword()) :: :ok | {:error, term()}
 
 # ...

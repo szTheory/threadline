@@ -256,11 +256,11 @@ Reachable directly from drill-down rows, this screen shows the full mutation lif
 
 #### Row history reification (:schemas)
 
-The `:schemas` option on `threadline_operator_surface/2` maps captured table strings to Ecto schema modules so the surface can call `Threadline.history/3` and `Threadline.as_of/4` for row-history and as-of views. String keys (PostgreSQL `table_name` values from capture) are preferred; atom keys are also accepted.
+The `:schemas` option on `threadline_operator_surface/2` maps captured table strings to Ecto schema modules so the surface can call `Threadline.row_history/3` and `Threadline.as_of/4` for row-history and as-of views. String keys (PostgreSQL `table_name` values from capture) are preferred; atom keys are also accepted.
 
 Pair `:schemas` with `scope_query_fn` when support-scoped row history must respect host tenancy. Pass `%{surface: :row_history}` from `scope_query_fn` so narrowed queries apply to history and as-of reconstruction, not just the timeline.
 
-Off-mount API and IEx callers pass the schema module directly to `Threadline.history/3` and `Threadline.as_of/4`; the mount map is the UI equivalent of that registration step.
+Off-mount API and IEx callers pass the schema module directly to `Threadline.row_history/3` and `Threadline.as_of/4`; the mount map is the UI equivalent of that registration step.
 
 The guide shorthand `/audit/rows/:table/:pk` describes the operator question. The shipped drill-down path is a slide-over on the transaction page:
 
@@ -317,7 +317,7 @@ Coverage and redaction links into Timeline preserve the host-table identity as
 |------|-------|--------------------|-----------------|
 | `/audit/transactions/:id` | What changed in this one transaction? | `mix threadline.incident <transaction_id>` | Direct parity |
 | `/audit/actors/:kind/:id` | What did this actor drive recently? | `Threadline.actor_history/2` or `Threadline.timeline_page/2` | API parity |
-| `/audit/rows/:table/:pk` | How did this row change over time? | `Threadline.history/3` and `Threadline.as_of/4` | Mounted route exists; support-scoped row history / as-of is proven on the current tree |
+| `/audit/rows/:table/:pk` | How did this row change over time? | `Threadline.row_history/3` and `Threadline.as_of/4` | Mounted route exists; support-scoped row history / as-of is proven on the current tree |
 | export actions from `/audit` | Can I download the same filtered audit data? | `mix threadline.export --dry-run` plus exact `--table` / `--from` / `--to` flags when the denied route can derive them safely, or a file export run | CLI parity |
 | `/audit/coverage` | Can operators rely on audit history for the selected schema? | `mix threadline.health.coverage` | Direct parity |
 | `/audit/policy/redaction` | Does deployed redaction match config? | `mix threadline.policy.show` | Direct parity |

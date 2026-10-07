@@ -199,6 +199,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Admin Secret"
     end
 
+    test "renders all 250 change rows for a 250-change record (D-16: drawer stays unbounded)" do
+      txn = insert_transaction(%{occurred_at: ~U[2026-06-04 12:30:00Z]})
+      base = ~U[2026-01-01 00:00:00.000000Z]
+
+      for i <- 1..250 do
+        insert_change(txn, %{
+          table_pk: %{"id" => "row-drawer-250"},
+          captured_at: DateTime.add(base, i, :microsecond)
+        })
+      end
+
+      html =
+        render_component(Threadline.OperatorSurface.Live.RowHistoryComponent, %{
+          id: "test-history",
+          table: "users",
+          record_id: "row-drawer-250",
+          base_path: "/audit/transactions/#{txn.id}",
+          threadline_schemas: %{"users" => FakeUser},
+          repo: Threadline.Test.Repo,
+          as_of: nil
+        })
+
+      assert (html |> String.split(~s|class="tl-change__op"|) |> length()) - 1 == 250
+    end
+
     defp insert_transaction(attrs) do
       defaults = %{txid: System.unique_integer([:positive]), occurred_at: DateTime.utc_now()}
 

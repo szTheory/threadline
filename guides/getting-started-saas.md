@@ -277,20 +277,22 @@ drill-down from the terminal.
 
 If you need to build a custom incident view instead of using the bundled default,
 drop to `Threadline.audit_changes_for_transaction/2`, `Threadline.transaction_context/2`,
-or `Threadline.change_diff/2` as advanced building blocks.
+or `Threadline.change_diff/2` as advanced building blocks. `Threadline.transaction_context/2`
+returns `{:ok, context}` or `{:error, :not_found}` (bang: `transaction_context!/2`); reach
+for `Threadline.audit_transaction/2` when you only need the bare transaction row.
 
 That sequence gives you the first-hour operator questions and their fallback
 paths:
 
 - `Threadline.timeline/2` shows which rows moved in the request.
-- `Threadline.timeline_page/2` is the same investigation path when the window is too large to read eagerly at once; continue with `first_page.next_cursor` instead of offsets.
+- `Threadline.timeline_page/2` is the same investigation path when the window is too large to read eagerly at once; continue with `first_page.cursor` while `first_page.has_more` is true, instead of offsets.
 - `Threadline.actor_history/2` gives you the actor-scoped window when the operator question is "what did this actor drive recently?"
 - `Threadline.incident_bundle/2` gives you the default single-transaction incident view, including the linked context and packaged change diffs in `bundle`.
 - `mix threadline.incident <audit_transaction_id>` is the direct fallback for that incident drill-down.
 - `mix threadline.export --dry-run` is the direct export fallback. When the denied route can safely derive the current `table` / `from` / `to` state, it appends those exact flags instead of showing a fake example.
 - `mix threadline.health.coverage` answers the same coverage question as the mounted dashboard.
 - `mix threadline.policy.show` answers the same policy-drift question as the mounted redaction page.
-- `Threadline.history/3` and `Threadline.as_of/4` are the direct row-history and point-in-time fallbacks.
+- `Threadline.row_history/3` and `Threadline.as_of/4` are the direct row-history and point-in-time fallbacks.
 - `Threadline.as_of/4` reconstructs what the row looked like at a chosen point in time.
 
 ## 9. Mount the operator surface and open `/audit`
@@ -370,7 +372,7 @@ timeline, transaction drill-down, row history / point-in-time reconstruction,
 coverage dashboard, and read-only redaction policy view inside the host app you
 already operate. Treat row history and point-in-time reconstruction as mounted
 support-lane tools on the canonical scoped `/audit` recipe; the direct APIs
-(`Threadline.history/3` and `Threadline.as_of/4`) remain the same underlying
+(`Threadline.row_history/3` and `Threadline.as_of/4`) remain the same underlying
 fallback transport.
 
 The same policy-drift facts are available without Phoenix via
@@ -403,6 +405,9 @@ procedure.
 - [Integration contracts](integration-contracts.md)
 - [Local Docker development](local-docker-dx.md)
 - [Upgrade and support lanes](upgrade-path.md)
+- [1.x stability policy](stability.md)
+- [Supported table shapes](supported-tables.md)
+- [Redaction limits and migration rollout](redaction.md)
 - [Upgrading to 0.11](upgrading-to-0.11.md)
 - [Incident playbook](incident-playbook.md)
 - [Performance](performance.md)

@@ -326,12 +326,16 @@ test.describe("operator motion contracts with reduced motion", () => {
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
     await expect(page.getByTestId("stress-preview")).toBeVisible();
 
-    const toastStyle = await computedStyle(page.locator("#stress-toast"));
+    const toast = page.locator("#stress-toast");
+    const toastStyle = await computedStyle(toast);
     expectDurationList(toastStyle.transitionDuration, "0.001s");
     expectNoTransitionDelay(toastStyle);
     expectIdentityOrNone(toastStyle.transform);
+    await toast.getByRole("button", { name: "Close" }).click();
+    await expect(toast).toBeHidden();
 
     await page.getByRole("button", { name: "Show Modal" }).click();
+    const modalContainer = page.locator("#stress-modal");
     const modal = page.locator("#stress-modal-content");
     await expect(modal).toBeVisible();
     const modalStyle = await computedStyle(modal);
@@ -340,6 +344,7 @@ test.describe("operator motion contracts with reduced motion", () => {
     expectIdentityOrNone(modalStyle.transform);
 
     await page.getByRole("button", { name: "Confirm stress modal" }).click();
+    await expect(modalContainer).toBeHidden();
     await page.getByRole("button", { name: "Show Drawer" }).click();
     const drawer = page.locator("#stress-drawer-content");
     await expect(drawer).toBeVisible();

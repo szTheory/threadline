@@ -10,7 +10,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Ecto.Query
 
-    alias Threadline.Export
     alias Threadline.Governance.ExportJob
     alias Threadline.Governance.SavedView
     alias Threadline.OperatorSurface.Live.TimelineLive.Filters
@@ -18,6 +17,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
     alias Threadline.Query
+    alias Threadline.Query.ExportReads
     alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
@@ -145,7 +145,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       count_task =
         Task.async(fn ->
-          Export.count_matching(filters, count_opts(socket, 10_001))
+          ExportReads.count_matching(filters, count_opts(socket, 10_001))
         end)
 
       page_opts = scope_aware_opts(socket)
@@ -174,7 +174,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> assign(:shown_count, length(page.entries))
       |> assign(:filter_query, filter_query)
       |> stream(:changes, page.entries, reset: true)
-      |> assign(:cursor, page.next_cursor)
+      |> assign(:cursor, page.cursor)
     end
 
     def handle_event("save-view", %{"name" => name}, socket) do
@@ -338,7 +338,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:noreply,
          socket
-         |> assign(:cursor, page.next_cursor)
+         |> assign(:cursor, page.cursor)
          |> Phoenix.Component.update(:shown_count, &(&1 + length(page.entries)))
          |> stream(:changes, page.entries, at: -1)}
       else
@@ -549,7 +549,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp preload_visible_context(%{entries: entries} = page, repo, opts) do
       %{
         page
-        | entries: repo.preload(entries, [transaction: :action], StorageSchema.repo_opts(opts))
+        | entries:
+            entries
+            |> repo.preload([:transaction], StorageSchema.repo_opts(opts))
+            |> Threadline.Query.hydrate_actions(repo, opts)
       }
     end
 
@@ -560,7 +563,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:ok, %{count: count}} =
           filters
           |> Keyword.drop([:from, :to])
-          |> Export.count_matching(count_opts(socket, 1))
+          |> ExportReads.count_matching(count_opts(socket, 1))
 
         count > 0
       else

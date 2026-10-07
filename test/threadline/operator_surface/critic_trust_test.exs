@@ -781,6 +781,76 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end)
     end
 
+    @tag phase234_task12: true
+    test "critic.measure keeps exact errors across its four raise-only paths" do
+      project_root = project_root()
+
+      assert_measure_error(
+        ["unexpected"],
+        "command arguments are invalid: [\"unexpected\"]",
+        project_root,
+        "mix help critic.measure"
+      )
+
+      assert_measure_error(
+        ["--source", "mystery"],
+        "unknown --source \"mystery\"",
+        project_root,
+        "mix help critic.measure"
+      )
+
+      %{fixture_root: fixture_root, output_root: output_root} =
+        measurement_roots!("splice-error")
+
+      ledger_path = Path.join(fixture_root, "design-system-ledger.json")
+      ledger_text = File.read!(ledger_path)
+
+      missing_block =
+        String.replace(ledger_text, ~s("critic_trust":), ~s("removed_trust":), global: false)
+
+      refute missing_block == ledger_text
+      File.write!(ledger_path, missing_block)
+
+      assert_measure_error(
+        [
+          "--fixture-root",
+          Path.relative_to(fixture_root, project_root),
+          "--output-root",
+          Path.relative_to(output_root, project_root)
+        ],
+        "could not splice ledger block (:object_key_not_found)",
+        ledger_path,
+        "git restore -- #{Path.relative_to(ledger_path, project_root)}"
+      )
+
+      rubric_path =
+        Path.join([
+          project_root,
+          @rubrics_dir,
+          "#{Threadline.CriticTrust.Measure.lenses() |> hd()}.md"
+        ])
+
+      original_rubric = File.read!(rubric_path)
+
+      try do
+        File.write!(rubric_path, "invalid rubric\n")
+
+        assert_measure_error(
+          [
+            "--fixture-root",
+            Path.relative_to(fixture_root, project_root),
+            "--output-root",
+            Path.relative_to(output_root, project_root)
+          ],
+          "critic rubric is invalid",
+          rubric_path,
+          "git restore -- #{Path.relative_to(rubric_path, project_root)}"
+        )
+      after
+        File.write!(rubric_path, original_rubric)
+      end
+    end
+
     @tag phase199_task1: true
     test "critic.measure rejects traversal, absolute escape, prefix confusion, and symlink roots" do
       preserve_repository_ledger(fn ->
@@ -1136,6 +1206,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     # ── Helpers ──────────────────────────────────────────────────────────────────
+
+    defp assert_measure_error(argv, message, path, recovery) do
+      error =
+        assert_raise Mix.Error, fn ->
+          Measure.run(argv)
+        end
+
+      assert error.message ==
+               "critic.measure: #{message}\n" <>
+                 "resolved path: #{Path.expand(path)}\n" <>
+                 "repository-only: true\n" <>
+                 "next: #{recovery}"
+    end
 
     defp measurement_roots!(name) do
       base =

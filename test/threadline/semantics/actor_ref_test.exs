@@ -50,7 +50,8 @@ defmodule Threadline.Semantics.ActorRefTest do
   describe "to_map/1 and from_map/1 round-trip" do
     test "typed actor round-trips through map" do
       {:ok, ref} = ActorRef.new(:user, "u1")
-      assert %{"type" => "user", "id" => "u1"} = ActorRef.to_map(ref)
+      assert %{"type" => "user", "id" => "u1"} = encoded = ActorRef.to_map(ref)
+      assert Map.keys(encoded) |> Enum.sort() == ["id", "type"]
       assert {:ok, ^ref} = ActorRef.from_map(ActorRef.to_map(ref))
     end
 
@@ -60,6 +61,32 @@ defmodule Threadline.Semantics.ActorRefTest do
       assert map == %{"type" => "anonymous"}
       refute Map.has_key?(map, "id")
       assert {:ok, ^ref} = ActorRef.from_map(map)
+    end
+
+    test "decoder ignores extra string and atom keys while recognizing string keys" do
+      assert {:ok, %ActorRef{type: :user, id: "string-id"}} =
+               ActorRef.from_map(%{
+                 "type" => "user",
+                 "id" => "string-id",
+                 "extra" => :ignored,
+                 type: :system,
+                 id: "atom-id",
+                 extra_atom: true
+               })
+    end
+
+    test "atom-only type keys remain unrecognized" do
+      assert {:error, :invalid_actor_ref_map} = ActorRef.from_map(%{type: "user", id: "u1"})
+    end
+
+    test "anonymous decoder ignores an id value" do
+      assert {:ok, %ActorRef{type: :anonymous, id: nil}} =
+               ActorRef.from_map(%{"type" => "anonymous", "id" => "ignored", id: "also-ignored"})
+    end
+
+    test "direct non-anonymous structs preserve the exact emitted id key even when nil" do
+      assert %{"type" => "user", "id" => nil} =
+               ActorRef.to_map(%ActorRef{type: :user, id: nil})
     end
 
     test "all six types round-trip" do

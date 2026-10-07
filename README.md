@@ -55,7 +55,7 @@ read [guides/domain-reference.md](guides/domain-reference.md).
 
 - **Capture:** trigger-backed row-change history in PostgreSQL with `Threadline.Plug`.
 - **Semantics:** `Threadline.Audit.transaction/3` as the recommended audited write path (actor, intent, correlation, and request context); `Threadline.record_action/2` is the semantic primitive the helper wraps.
-- **Exploration:** timelines and history with `Threadline.timeline/2`, `Threadline.timeline_page/2`, and `Threadline.history/3`.
+- **Exploration:** timelines and history with `Threadline.timeline/2`, `Threadline.timeline_page/2`, and `Threadline.row_history/3`.
 - **Operations:** exports, snapshots, coverage checks, retention, redaction, and health tooling via `Threadline.export_json/2` and `Threadline.as_of/4`.
 
 The broader public surface includes `Threadline.Plug`, `Threadline.record_action/2`, and `Threadline.incident_bundle/2`; the [domain reference](guides/domain-reference.md) maps each job to the API to use first.
@@ -99,7 +99,7 @@ from the README.
 
 ## Notes
 
-- **Supported versions:** Elixir **1.15 floor / 1.17.3 current**, OTP **26 min / 27 current**, PostgreSQL **14 min / 16 current**. The CI `min` lane runs the full suite on Elixir 1.15 / OTP 26 / PostgreSQL 14 so the published floor remains enforced. CI also runs the suite on the newest stable Elixir, OTP and PostgreSQL (the `latest` lane, pinned in `.github/workflows/ci.yml`): Threadline is **tested on** those versions, which is **not a new support floor**.
+- **Supported versions:** Elixir **1.15 floor / 1.17.3 current**, OTP **26 min / 27 current**, PostgreSQL **15 min / 16 current**. CI's `min` lane runs the full suite on Elixir 1.15 / OTP 26 / PostgreSQL 15; `current` and `latest` CI versions are in the [toolchain support policy table](guides/upgrade-path.md#toolchain-support-policy). The `latest` lane is **tested on**, not a new support floor.
 - Threadline names four support lanes — the canonical `capture-only`, `phoenix-surface`, `phx-gen-auth-reference`, and `sigra-reference` matrix — in [guides/upgrade-path.md](guides/upgrade-path.md). Phoenix auth (reference lanes, pick one): [phx.gen.auth integration](guides/integrations/phx-gen-auth.md) · [Sigra integration](guides/integrations/sigra.md); neither is required.
 - Threadline works with PgBouncer transaction pooling.
 - Redaction drift uses three states: `Config matches deployed`, `Drift detected`, and `Could not introspect`; rerun `mix threadline.gen.triggers` if the latter two appear.

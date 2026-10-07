@@ -16,8 +16,10 @@ defmodule Mix.Tasks.Threadline.Incident do
 
   ## Examples
 
-      mix threadline.incident 12345
-      mix threadline.incident 12345 --json | jq .
+  ```sh
+  mix threadline.incident 12345
+  mix threadline.incident 12345 --json | jq .
+  ```
   """
 
   use Mix.Task

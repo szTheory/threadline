@@ -1,130 +1,183 @@
-# Requirements: Threadline v1.44 Behavioral Depth: Properties, Twins, Telemetry
+# Requirements: Threadline v1.45 1.0 API Contract
 
-**Defined:** 2026-09-30
+**Defined:** 2026-10-02
 **Core Value:** Every row mutation that matters is captured durably and linked to who did it and why, without the developer having to remember to opt in.
-**Research:** `.planning/research/SUMMARY.md` (with STACK, FEATURES, ARCHITECTURE and PITFALLS). The maintainer asked for research-backed recommendations to be followed without further scoping questions (2026-09-30).
+**Research:** `.planning/research/SUMMARY.md`, built on STACK, FEATURES, ARCHITECTURE, PITFALLS and CONTRACT. It reconciles five cross-file conflicts.
 
-## v1.44 Requirements
+**Maintainer decisions (2026-10-02, the one-way calls; all four research recommendations accepted):**
 
-### Capture correctness (carried from v1.42)
+1. `row_history` defaults to a 200-row cap. The return stays a bare list. The cursor path returning `Threadline.Page` is documented as the only read that proves completeness. `limit: :infinity` opts out, and a truncation telemetry event fires when the cap is hit.
+2. The PostgreSQL floor rises to 15 at the 1.0.0 cut, as a breaking change.
+3. The `AuditTransaction` ↔ `AuditAction` Ecto association is decoupled (Option C). The DB foreign key and the `.action` key shape that callers see are unchanged.
+4. `Threadline` becomes the single public read facade. `Threadline.Query` and `Threadline.Investigation` are hidden. `Threadline.Query.timeline_query/1` remains the one Ecto-composition escape hatch.
 
-- [x] **CAPT-01**: An adopter who runs `mix threadline.gen.triggers` for a table and then reruns it (adding a per-table function) can roll back with `mix ecto.rollback --all` and be left with no orphaned `threadline_capture_*` function in `pg_proc`. The down path uses the existing idempotent, usage-checked `TriggerSQL.drop_function_if_unused/2` and emits no CASCADE drop.
-- [x] **CAPT-02**: A deterministic regression test pins the exact two-migration repro. A property over random rerun sequences (1–4 runs per table, applied for real) asserts that no orphaned capture function remains in `pg_proc` after a full rollback.
+**Settled by research without escalation:**
 
-### Property tests
+- **Deprecation policy:** "Deprecated in 1.0.0. Kept as a functioning, fully-specced delegate for the rest of the 1.x line. Removed no earlier than 2.0.0, which is not currently planned."
+- **Return shapes:** collection reads return bare values. Single-subject lookups return `{:ok, _}` or `{:error, :not_found}` and have `!` siblings. Bad options raise `ArgumentError`. No NimbleOptions.
+- **Floors and support:** Elixir stays `~> 1.15` on OTP 26. 0.12.x gets a 6-month security and correctness backport window.
 
-- [x] **PROP-01**: Cursor paging is proven by a pure property. For generated, tie-heavy ordered lists, concatenating every page equals the full list, with no duplicates and no gaps, for both the timeline and actor-history cursors.
-- [x] **PROP-02**: A pure property proves ChangeDiff's documented INSERT/UPDATE/DELETE × before_values matrix against an independently derived expectation.
-- [x] **PROP-03**: A pure property proves that redaction-policy validation accepts exactly the valid policies and rejects the rest.
-- [x] **PROP-04**: A DB-backed property varies captured values on a fixed table shape and proves that a redacted column's plaintext never appears in the stored audit change, its diff or its export output.
-- [x] **PROP-05**: A pure property proves that export (CSV and JSON) round-trips generated change maps without loss.
-- [x] **PROP-06**: A DB-backed property proves that `as_of` equals the state reconstructed by replaying the row's history in order.
-- [x] **PROP-07**: A DB-backed property proves the retention cutoff boundary with `dry_run: true`: rows strictly older than the cutoff are selected and every row at or after it survives.
-- [x] **PROP-08**: Property run time is bounded and tunable.
-  - Pure properties run with an explicit `max_runs` of about 150–200.
-  - DB-backed properties run with `max_runs` of at most 20.
-  - A `THREADLINE_PROPERTY_SCALE` env var multiplies runs on the weekly Flake Detection lane.
-  - Generators live in `test/support/` modules named for the bias they encode.
-  - Every property records a mutation control (the invariant broken on purpose, the property shown red) in its phase verification.
+## v1.45 Requirements
 
-### Telemetry
+### API: one public surface
 
-- [x] **TELE-01**: An operator can attach to `[:threadline, :export, :completed]` and `[:threadline, :export, :failed]`, which carry a row count, a duration and a format. Both are emitted after the export finishes, on both outcome branches.
-- [x] **TELE-02**: An operator can observe retention purges through a `:telemetry.span/3` on `[:threadline, :retention, :purge, :start | :stop | :exception]`, plus a `[:threadline, :retention, :batch_purged]` event per batch that carries the rows deleted.
-- [x] **TELE-03**: No Threadline telemetry event carries row values, actor identifiers, correlation ids or free-text reasons.
-  - An allowlist test pins every event's measurement and metadata keys.
-  - A test handler attached during the redaction property never observes plaintext.
-  - A raising handler does not break the instrumented operation.
-- [x] **TELE-04**: An adopter can find every event in one place: an event table in the `Threadline.Telemetry` moduledoc and a new `guides/telemetry.md`. The guide includes a recipe for observing Threadline's queries through the host repo's own `[:my_app, :repo, :query]` event instead of a duplicate query event.
+- [x] **API-01**: An adopter calls one function, `Threadline.row_history/3`, to read a row's changes, with filters passed as keyword opts.
+  - Without options it returns at most 200 changes, newest first, as a bare list.
+  - `limit: n` and `limit: :infinity` override the cap.
+  - `cursor:` with `page_size:` returns a `%Threadline.Page{}`. Walking it until `has_more: false` yields exactly the full history.
+  - Passing `:limit` together with `:cursor` raises `ArgumentError`.
+  - Hitting the cap emits `[:threadline, :row_history, :truncated]`, which carries no row values or actor ids and is added to the telemetry allowlist.
+  - Export and `as_of` stay unbounded, proven by a test.
+  - v1.44 properties that read history are updated explicitly to pass `limit: :infinity` or walk the cursor.
+- [x] **API-02**: An adopter can tell `actor_history/2` (transactions) from `actor_window/3` (cross-table changes). Each `@doc` states its return type first and cross-links the other function, and a doc-contract test pins both.
+- [x] **API-03**: Every paged read returns the same `%Threadline.Page{entries, cursor, has_more}` struct, which replaces `TimelinePage` and `ActorHistoryPage`. `timeline/2` and `timeline_page/2` remain the only deliberate pair of names; no third naming pattern exists on the facade.
+- [x] **API-04**: The adopter's docs contain one read API.
+  - `Threadline.Query` and `Threadline.Investigation` are `@moduledoc false`.
+  - `Threadline.Query.timeline_query/1` is the one documented escape hatch, linked from the `Threadline` moduledoc.
+  - The three guides that call the hidden modules (`audit-indexing`, `how-threadline-works`, `code-walkthrough`) call `Threadline.*` instead.
+  - `public_surface_contract_test.exs` pins the hidden set.
+- [x] **API-05**: Internal helpers no longer appear in the adopter's docs. This covers the `Threadline.Telemetry` `emit_*` functions, the raw `*_query` builders other than `timeline_query/1`, and any module without a moduledoc, such as `Threadline.Export.CSV`. Before hiding a name, guides, the README and the example app are grepped for it, and every hit is rewritten in the same change.
+- [x] **API-06**: Single-subject lookups behave the same way everywhere. `audit_transaction/2` and `transaction_context/2` return `{:ok, _}` or `{:error, :not_found}`, matching `incident_bundle/2`. New siblings `audit_transaction!/2` and `transaction_context!/2` raise. Not-found and present cases are tested for all four.
+- [x] **API-07**: The capture layer no longer depends on the semantics layer at compile time.
+  - `AuditTransaction` drops `belongs_to :action` and `AuditAction` drops `has_many :transactions`.
+  - An exploration-layer helper hydrates `transaction.action`, so every existing call-site assertion on `.action` passes unchanged.
+  - The `action_id` column and its foreign key are untouched.
+  - A test asserts that neither schema declares an association to the other.
+- [x] **API-08**: An adopter on a retired name gets a working call and one compiler warning naming the replacement.
+  - Each retired entry point (`history/3`, `row_history/4`, `row_history_page/4`, and the filters-as-positional-argument shapes, on every module that exposed them) is a pure one-line `@deprecated` delegate.
+  - Each has a parity test against its replacement and a spec that matches the replacement's (not `term()`).
+  - `@doc since: "1.0.0"` marks the replacements.
+  - `mix compile --warnings-as-errors` is clean for `lib/`, `test/` and the example app, so nothing internal calls a deprecated name.
 
-### Query API
+### SPEC: typespecs and docs
 
-- [x] **QRY-01**: A developer can pass `limit: n` to `Threadline.history/3` to get at most `n` changes, newest first, with the existing `captured_at desc, id desc` tiebreak. The default is unbounded (`nil`). Zero, negative or non-integer values raise `ArgumentError`, and the docs point to `row_history_page/4` for paging.
-- [x] **QRY-02**: A test proves that calling `history/3` without `:limit` returns the same list as before. The CHANGELOG entry states the option is additive and that the default is unchanged.
+- [x] **SPEC-01**: Every public function in every documented module under `lib/` has a `@doc` and a `@spec`. Baseline is 129 of 169 missing (remeasured at the 233 close: 54 of 92 visible entries across 52 documented modules; the 129/169 figure predates phases 231–233). A new `async: true` test using `Code.fetch_docs/1` and `Code.Typespec.fetch_specs/1` fails on any gap, so coverage cannot regress.
+- [x] **SPEC-02**: The specs give adopters real information.
+  - No public spec uses bare `term()` or `any()` where a real shape exists.
+  - Option arguments use named `@type` option lists rather than bare `keyword()`.
+  - Reviewed in phase verification by agent review against a written rubric.
+  - Strict Dialyzer stays green with zero ignores.
+- [x] **SPEC-03**: The `Threadline` facade page in ExDoc groups functions by job using `@doc group:`: Capture & Transactions, Querying & Timelines, Actions & Context, Operations. A test asserts that every facade function has a group.
 
-### Health and CLI (carried from v1.42)
+### CONTRACT: the 1.x stability promise, enforced by tests
 
-- [x] **HLTH-01**: A CI pipeline can run `mix threadline.health.coverage --strict` and get a nonzero exit on any `:error`-severity finding. The command composes with `--json`. Without `--strict`, the exit codes are unchanged, and a severity × strict/non-strict test matrix proves both.
-- [x] **HLTH-02**: An adopter with several Postgres schemas can run `mix threadline.health.coverage --all-schemas` and get a report keyed by schema, in both table and JSON output. The option is mutually exclusive with `--schema=NAME`.
-- [x] **HLTH-03**: An adopter upgrading from before 0.11 sees an `:unresolved_legacy_keys` warning finding. It counts, per table, the rows whose `table_pk` was never resolved, and links to the backfill steps in `guides/upgrading-to-0.11.md`. It does not fail `--strict`.
-- [x] **HLTH-04**: The docs state that malformed `:trigger_capture` config fails fast (raises) rather than producing a finding.
+- [x] **CONTRACT-01**: An adopter can read `guides/stability.md` to learn what 1.x promises.
+  - **Elixir API tier:** Hex semver, with the deprecation policy above.
+  - **Database Contract tier:** additive-only for tables, columns, indexes, the trigger-function naming scheme and the GUC name.
+  - **Named exception class:** only security- or correctness-critical fixes may require trigger regeneration in a 1.x minor.
+  - **Explicitly not API:** operator-surface HTML, CSS and LiveView internals. The router macro, its options and the documented mount routes are API.
+  - **0.12.x:** the 6-month backport window.
+  - A doc-contract test pins each of these statements.
+- [x] **CONTRACT-02**: A schema-snapshot test pins the column names, types and nullability of `audit_transactions`, `audit_changes` and `audit_actions`, plus the shipped indexes. Removing or renaming any of them fails CI.
+- [x] **CONTRACT-03**: A test pins the GUC name `threadline.actor_ref` and the trigger-function naming scheme as literals. A rename anywhere in `lib/` fails CI.
+- [x] **CONTRACT-04**: Additive-only allowlist tests, following the pattern of `telemetry_registry_contract_test.exs`, pin:
+  - the CSV and JSON export headers, with and without action metadata
+  - the `Health.Finding` code set
+  - each mix task's accepted flags
+  - the `threadline_operator_surface/2` option keys and documented mount routes
+- [x] **CONTRACT-05**: Each of `AuditChange`, `AuditTransaction` and `AuditAction` documents its stable field subset in its moduledoc. The `data_after`, `changed_fields` and `changed_from` jsonb columns carry an additive key/shape promise, not a byte-stable serialization promise. A test pins the stable field lists against the schema.
 
-### Test suite economy
+### DOCS: adopter guides
 
-- [x] **SUITE-01**: A fresh suite timing baseline is recorded before any suite change: per-module slowest times, sync vs async seconds, and the CI test-step duration with run IDs.
-- [x] **SUITE-02**: The CI test step runs the suite in parallel partitions, each with its own database, and the step's wall clock drops by at least 30% against SUITE-01.
-  - Billed runner-minutes do not rise by more than 10%.
-  - The Flake Detection budget is resized in the same change.
-  - The required aggregate stays fail-closed, and its contract test, CONTRIBUTING and the topology test change together.
-- [x] **SUITE-03**: The three operator-surface auth telemetry test files (`auth_test.exs`, `export_auth_plug_test.exs`, `theme_auth_plug_test.exs`) run `async: true`, isolated by the emitting process, with no new flake over a Flake Detection run. The seven other telemetry or named-process files stay serial for database-write or app-env reasons (narrowed by 225-CONTEXT D-15).
-- [x] **SUITE-04**: Guard tests that only compare prose to a hand-typed literal are merged or cut under the recorded keep/cut rubric.
-  - Tests that derive from a live source, or that carry a v1.43 mutation control, are kept.
-  - The required-check count is unchanged, and suite wall clock is reported before and after.
-- [x] **SUITE-05**: The bench project compiles with a bare `mix compile` (via `preferred_envs`), and an existing CI lane proves it.
-- [x] **SUITE-06**: Each phase that adds or removes tests reports the suite wall clock before and after. Across the milestone, the net suite time does not regress against SUITE-01.
+- [x] **DOCS-01**: A supported-table-shapes guide lets an adopter check, before installing, whether their tables are supported.
+  - Covers composite and non-`id` keys, the `primary_key:` override, cross-schema tables, long identifiers and `char(n)`.
+  - States explicitly what happens with partitioned tables, unlogged tables and views.
+  - A doc-contract test checks the option and table names it cites against the real code.
+- [x] **DOCS-02**: A redaction threat model tells a security reviewer exactly what redaction guarantees and what it does not.
+  - Every guarantee names the property test or health check that proves it.
+  - Generated trigger migrations fail before installing a trigger when any `mask:` or `exclude:` column name is absent from the selected table; tests cover both options and preserve a valid-column control. This closes the fail-open typo path for migrations that include the validation.
+  - The guide states that already-installed triggers and previously captured rows are not changed by this validation; adopters must regenerate and run the host-owned trigger migration for the affected table.
+  - It states where plaintext can still exist: WAL and logical decoding, replication slots, backups, superuser access, rows captured before a rule changed, and host logs.
+  - A doc-contract test rejects unscoped absolutes ("all", "never", "guarantees", "prevents" with no qualifier).
+- [x] **DOCS-03**: `guides/upgrading-to-1.0.md` takes a 0.11 or 0.12 adopter to 1.0, with one numbered step per breaking change in this milestone:
+  - the facade collapse
+  - the history default
+  - the `Page` struct
+  - lookup return shapes
+  - the association
+  - the PG floor
+  - deprecations
+  It follows the `upgrading-to-0.11.md` template and voice and says whether trigger regeneration is required. A doc-contract test cross-checks its steps against the CHANGELOG breaking-changes entries.
 
-### Release
+### FLOOR: support floor
 
-- [ ] **REL-01**: The milestone lands on main as a squash with a clean conventional `feat:` title and ships as a minor release (0.12.0) through release-please. The `latest` lane's pins are re-checked against builds.hex.pm and Docker Hub at landing.
+- [x] **FLOOR-01**: PostgreSQL 15 is the supported minimum.
+  - The CI `min` lane runs on PG 15.
+  - The CHANGELOG records the change under breaking changes.
+  - The trigger SQL uses no feature newer than the floor, proven by the `min` lane passing.
+- [x] **FLOOR-02**: An adopter finds one support-policy table, the Elixir/OTP/PG floor plus the CI lanes, in `guides/upgrade-path.md`. A doc-contract test fails if it disagrees with `mix.exs` or the CI `min` lane values.
+
+### CI: carried housekeeping
+
+- [x] **CI-01**: Run `bin/ci-test-partitions --write-weights` after this milestone's test churn. A check proves that no test file is missing from `test/partition_weights.txt`. The v1.44 debt is 10 unweighted property files.
+
+### REL: declare 1.0.0
+
+- [x] **REL-01**: release-please proposes exactly 1.0.0.
+  - `bump-minor-pre-major` is flipped off in `release-please-config.json` in the landing change.
+  - A `Release-As: 1.0.0` footer goes on the squash commit.
+  - `verify.bump_rehearsal`, or an equivalent dry run, shows 1.0.0 and not 0.13.0 before merge.
+- [x] **REL-02**: The 1.0.0 CHANGELOG lists every breaking change and deprecation in the milestone. It is cross-checked against `git log --grep="BREAKING CHANGE"` for the milestone range, and the generated release notes are not trusted to carry the footers.
+- [ ] **REL-03**: The milestone lands on main as one squash with a conventional `feat!:` title and ships **1.0.0** to hex.pm through release-please. The pins on the `latest` lane are re-checked at landing. Push, merge and the production-hex publish each need an explicit maintainer grant.
 
 ## Future Requirements (deferred)
 
-- **A bounded default limit for `history/3`**: a one-way semver decision. It belongs to the v1.45 history/row_history consolidation.
-- **Async for pure-read `DataCase` tests**: needs a per-file audit and is not a mechanical sweep. It is a candidate after the partitioning data is in.
-- **A stateful (PropEr) model of the capture → history pipeline**: real value, but it needs a new dependency and a model. Revisit only if the properties above expose pipeline bugs.
-- **Growing the adopter twin with more table shapes**: only when a concrete failure mode needs it (guide §8).
+- **Opaque result structs replacing raw Ecto schemas**: a larger, separately one-way redesign. For 1.0, documenting the stable field subset (CONTRACT-05) is enough.
+- **Stateful (PropEr) model of capture → history**: carried from v1.44. A post-1.0 quality candidate.
+- **More table shapes in the adopter twin**: only when a concrete failure mode needs it.
+- **Async for pure-read `DataCase` tests**: needs a per-file audit. The only new async test here is SPEC-01's.
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| `[:threadline, :query, ...]` telemetry | It duplicates the host repo's `[:repo, :query]` event. The guide recipe covers it (TELE-04). |
-| Telemetry emitted from Mix task bodies | Tasks run outside the host's booted app, where no handlers are attached. This follows Ecto and Oban precedent. |
-| `mix threadline.gen.backfill` | A durable anti-feature. The tested, marker-delimited SQL in `guides/upgrading-to-0.11.md` is right-sized, as with Carbonite, PaperTrail and Logidze. HLTH-03 adds detection instead. |
-| An `:invalid_config` health finding | The existing fail-fast raise is stricter than a soft finding would be. HLTH-04 documents it. |
-| Ecto SQL Sandbox, schema-per-test, or tuning only `:max_cases` | Triggers need committed transactions. Schema-per-test adds migration cost, and `:max_cases` does nothing for `async: false` modules. |
-| Cutting CI-topology or CONTRIBUTING contract tests hardened in v1.43 | It would reopen gaps that phases 220 and 221 closed. |
-| Operator UI design | Parked until 1.0.0. |
+| Operator UI design and markup changes | Parked until after 1.0.0. Only call sites forced by API-04 or API-07 are touched. |
+| NimbleOptions | Options are flat and per-function, and the hand-rolled validators give more specific errors. It would add a dependency for no benefit. |
+| A hand-maintained API-reference guide | It would duplicate ExDoc and drift, and no doc-contract test could catch it. |
+| Raising the Elixir floor | Oban and LiveView keep 1.15/OTP 26, and raising it would strand adopters for no new capability. |
+| Removing deprecated functions in 1.x | That breaks semver. Removal waits for 2.0 at the earliest. |
+| Renaming `actor_history` / `actor_window` | The names reflect a real distinction (transactions vs changes). Docs fix the ambiguity. |
+| Rewriting trigger SQL or capture internals | They are stable and proven, and the 1.x DB contract freezes their names. |
+| `gen.backfill`, an `:invalid_config` finding, query telemetry, telemetry from mix tasks | Rejected in v1.44 research. Nothing here reopens them. |
+| GDPR erasure, per-table retention, partitioning/RLS, multiple repos, external pilot, compliance packs | Long horizon, gated on adopter demand. |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CAPT-01 | Phase 224 | Complete |
-| CAPT-02 | Phase 224 | Complete |
-| PROP-01 | Phase 226 | Complete |
-| PROP-02 | Phase 226 | Complete |
-| PROP-03 | Phase 226 | Complete |
-| PROP-04 | Phase 227 | Complete |
-| PROP-05 | Phase 226 | Complete |
-| PROP-06 | Phase 227 | Complete |
-| PROP-07 | Phase 227 | Complete |
-| PROP-08 | Phase 226 | Complete |
-| TELE-01 | Phase 228 | Complete |
-| TELE-02 | Phase 228 | Complete |
-| TELE-03 | Phase 228 | Complete |
-| TELE-04 | Phase 228 | Complete |
-| QRY-01 | Phase 229 | Complete |
-| QRY-02 | Phase 229 | Complete |
-| HLTH-01 | Phase 229 | Complete |
-| HLTH-02 | Phase 229 | Complete |
-| HLTH-03 | Phase 229 | Complete |
-| HLTH-04 | Phase 229 | Complete |
-| SUITE-01 | Phase 225 | Complete |
-| SUITE-02 | Phase 225 | Complete |
-| SUITE-03 | Phase 225 | Complete |
-| SUITE-04 | Phase 230 | Complete |
-| SUITE-05 | Phase 224 | Complete |
-| SUITE-06 | Phase 230 | Complete |
-| REL-01 | Phase 230 | Pending |
+| API-01 | Phase 232 | Complete |
+| API-02 | Phase 232 | Complete |
+| API-03 | Phase 232 | Complete |
+| API-04 | Phase 231 | Complete |
+| API-05 | Phase 232 | Complete |
+| API-06 | Phase 233 | Complete |
+| API-07 | Phase 231 | Complete |
+| API-08 | Phase 232 | Complete |
+| SPEC-01 | Phase 234 | Complete |
+| SPEC-02 | Phase 234 | Complete |
+| SPEC-03 | Phase 234 | Complete |
+| CONTRACT-01 | Phase 235 | Complete |
+| CONTRACT-02 | Phase 235 | Complete |
+| CONTRACT-03 | Phase 235 | Complete |
+| CONTRACT-04 | Phase 235 | Complete |
+| CONTRACT-05 | Phase 235 | Complete |
+| DOCS-01 | Phase 235 | Complete |
+| DOCS-02 | Phase 235 | Complete |
+| DOCS-03 | Phase 237 | Complete |
+| FLOOR-01 | Phase 236 | Complete |
+| FLOOR-02 | Phase 236 | Complete |
+| CI-01 | Phase 236 | Complete |
+| REL-01 | Phase 237 | Complete |
+| REL-02 | Phase 237 | Complete |
+| REL-03 | Phase 237 | Pending |
 
 **Coverage:**
 
-- v1.44 requirements: 27 total
-- Mapped to phases: 27
+- v1.45 requirements: 25 total
+- Mapped to phases: 25
 - Unmapped: 0
-- SUITE-06 is cross-cutting: it maps to Phase 230 for the milestone net check, and every phase that adds or removes tests reports suite wall clock before and after
+- Per phase: 231 (2), 232 (5), 233 (1), 234 (3), 235 (7), 236 (3), 237 (4)
 
 ---
-*Requirements defined: 2026-09-30*
-*Last updated: 2026-09-30 after roadmap creation (phases 224-230)*
+*Requirements defined: 2026-10-02*
+*Last updated: 2026-10-03 after roadmap creation (phases 231-237, 25/25 mapped)*

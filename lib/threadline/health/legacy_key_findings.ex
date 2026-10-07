@@ -76,6 +76,7 @@ defmodule Threadline.Health.LegacyKeyFindings do
     end
   end
 
+  @spec invalid_schema!(term()) :: no_return()
   defp invalid_schema!(value) do
     raise ArgumentError,
           ":schema must be a string or a non-empty list of strings, got: #{inspect(value)}"

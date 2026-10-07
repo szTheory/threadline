@@ -52,6 +52,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp validate_ledger_entries!(_session), do: invalid_ledger_session!()
 
+    @spec invalid_ledger_session!() :: no_return()
     defp invalid_ledger_session! do
       raise ArgumentError, """
       Threadline stress session ledger entries must be a non-empty list of maps.

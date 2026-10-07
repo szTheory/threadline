@@ -37,8 +37,8 @@ defmodule Threadline.MixProject do
       app: :threadline,
       version: @version,
       # Support contract: Elixir 1.15 floor / 1.17.3 current, OTP 26 min / 27 current,
-      # PostgreSQL 14 min / 16 current. The floor is honored by the CI `min` lane (full
-      # suite on 1.15/OTP26/PG14) — NOT by raising this requirement. Do not bump "~> 1.15"
+      # PostgreSQL 15 min / 16 current. The floor is honored by the CI `min` lane (full
+      # suite on 1.15/OTP26/PG15) — NOT by raising this requirement. Do not bump "~> 1.15"
       # to a newer minor: that would strand applications on the supported floor.
       # The CI `latest` lane also runs the suite on the newest stable Elixir/OTP/
       # PostgreSQL (exact pins in ci.yml). That is tested-on evidence, not a support
@@ -69,7 +69,7 @@ defmodule Threadline.MixProject do
           :req,
           :sweet_xml
         ],
-        flags: [:unmatched_returns, :extra_return],
+        flags: [:unmatched_returns, :extra_return, :missing_return, :underspecs, :error_handling],
         ignore_warnings: ".dialyzer_ignore.exs",
         list_unused_filters: true
       ]
@@ -105,7 +105,7 @@ defmodule Threadline.MixProject do
       {:sweet_xml, "~> 0.7", optional: true},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:lazy_html, "~> 0.1.0", only: :test},
       # Test-only. Powers ExUnitProperties property tests for generated
       # identifier names. Never reaches consumers of the published package.
@@ -583,7 +583,11 @@ defmodule Threadline.MixProject do
         "guides/domain-reference.md",
         "guides/operator-surface.md",
         "guides/upgrade-path.md",
+        "guides/redaction.md",
+        "guides/stability.md",
+        "guides/supported-tables.md",
         "guides/upgrading-to-0.11.md",
+        "guides/upgrading-to-1.0.md",
         "guides/brownfield-continuity.md",
         "guides/production-checklist.md",
         "guides/incident-playbook.md",
@@ -615,12 +619,21 @@ defmodule Threadline.MixProject do
         Evaluate:
           ~r{^guides/(evaluating-threadline|how-threadline-works|code-walkthrough|domain-reference)\.md$},
         Adopt:
-          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|upgrading-to-0\.11|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
+          ~r{^guides/(getting-started-saas|production-checklist|brownfield-continuity|integration-contracts|local-docker-dx|upgrade-path|redaction|stability|supported-tables|upgrading-to-0\.11|upgrading-to-1\.0|configuration-and-commands)\.md$|/examples/threadline_phoenix/README\.md$},
         Operate:
           ~r{^guides/(operator-surface|incident-playbook|performance|audit-indexing|adoption-evidence-playbook|telemetry)\.md$},
         Contribute:
           ~r{^(CONTRIBUTING|CHANGELOG)\.md$|^guides/adoption-pilot-backlog\.md$|/DESIGN-SYSTEM\.md$}
       ],
+      # ExDoc's documented mechanism for mentioning a function living in a
+      # @moduledoc false module without emitting a "documentation references a
+      # hidden module" warning. Kept to exactly this one entry — the escape
+      # hatch named in the Threadline moduledoc for composing a custom query.
+      skip_code_autolink_to: ["Threadline.Query.timeline_query/1"],
+      # Released CHANGELOG history names Threadline.Query / Threadline.Investigation
+      # directly; that history is never rewritten, so only this one extra's
+      # undefined-reference warnings are suppressed.
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"],
       groups_for_modules: [
         "Core API": [
           Threadline,
@@ -630,10 +643,9 @@ defmodule Threadline.MixProject do
           Threadline.Evidence,
           Threadline.Export,
           Threadline.Health,
-          Threadline.Investigation,
           Threadline.Job,
+          Threadline.NotFoundError,
           Threadline.Plug,
-          Threadline.Query,
           Threadline.Retention,
           Threadline.Telemetry
         ],
@@ -648,8 +660,7 @@ defmodule Threadline.MixProject do
           Threadline.Investigation.IncidentChange,
           Threadline.Investigation.LinkedChange,
           Threadline.Investigation.LinkedTransaction,
-          Threadline.Query.ActorHistoryPage,
-          Threadline.Query.TimelinePage,
+          Threadline.Page,
           Threadline.Semantics.ActorRef,
           Threadline.Semantics.AuditAction,
           Threadline.Semantics.AuditContext

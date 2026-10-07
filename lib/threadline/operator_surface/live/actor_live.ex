@@ -29,7 +29,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         from_time = DateTime.utc_now() |> DateTime.add(-24, :hour)
 
         page =
-          Threadline.actor_history(
+          Threadline.Query.actor_history(
             actor_ref,
             [
               repo: repo,
@@ -62,8 +62,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          |> assign(:time_window_hours, 24)
          |> assign(:has_ever_acted, has_ever_acted)
          |> assign(:last_activity, last_activity)
-         |> assign(:next_cursor, page.next_cursor)
-         |> assign(:prev_cursor, page.prev_cursor)
+         |> assign(:next_cursor, page.cursor)
+         |> assign(:prev_cursor, nil)
          |> assign(:shown_count, length(page.entries))
          |> stream_configure(:transactions, dom_id: fn tx -> "tx-#{tx.id}" end)
          |> stream(:transactions, page.entries)}
@@ -306,19 +306,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("next-page", _, socket) do
       if socket.assigns.next_cursor do
         page =
-          Threadline.actor_history(
+          Threadline.Query.actor_history(
             socket.assigns.actor_ref,
             [
               repo: socket.assigns.repo,
               from: socket.assigns.from_time,
-              after: socket.assigns.next_cursor,
+              cursor: socket.assigns.next_cursor,
               scope: socket.assigns[:threadline_scope],
               scope_query_fn: socket.assigns[:threadline_scope_query_fn],
               surface: :actor_history,
               params: %{
                 actor_ref: socket.assigns.actor_ref,
                 from: socket.assigns.from_time,
-                after: socket.assigns.next_cursor
+                cursor: socket.assigns.next_cursor
               }
             ] ++ storage_schema_opts(socket)
           )
@@ -337,7 +337,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:noreply,
          socket
          |> assign(:actor_summaries, actor_summaries)
-         |> assign(:next_cursor, page.next_cursor)
+         |> assign(:next_cursor, page.cursor)
          |> Phoenix.Component.update(:shown_count, &(&1 + length(page.entries)))
          |> stream(:transactions, page.entries, at: -1)}
       else
@@ -348,19 +348,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     def handle_event("prev-page", _, socket) do
       if socket.assigns.prev_cursor do
         page =
-          Threadline.actor_history(
+          Threadline.Query.actor_history(
             socket.assigns.actor_ref,
             [
               repo: socket.assigns.repo,
               from: socket.assigns.from_time,
-              before: socket.assigns.prev_cursor,
+              cursor: {:before, socket.assigns.prev_cursor},
               scope: socket.assigns[:threadline_scope],
               scope_query_fn: socket.assigns[:threadline_scope_query_fn],
               surface: :actor_history,
               params: %{
                 actor_ref: socket.assigns.actor_ref,
                 from: socket.assigns.from_time,
-                before: socket.assigns.prev_cursor
+                cursor: {:before, socket.assigns.prev_cursor}
               }
             ] ++ storage_schema_opts(socket)
           )
@@ -379,7 +379,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:noreply,
          socket
          |> assign(:actor_summaries, actor_summaries)
-         |> assign(:prev_cursor, page.prev_cursor)
+         |> assign(:prev_cursor, prev_cursor_from_page(page.cursor))
          |> Phoenix.Component.update(:shown_count, &(&1 + length(page.entries)))
          |> stream(:transactions, page.entries, at: 0)}
       else
@@ -391,7 +391,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       from_time = DateTime.utc_now() |> DateTime.add(-hours, :hour)
 
       page =
-        Threadline.actor_history(
+        Threadline.Query.actor_history(
           socket.assigns.actor_ref,
           [
             repo: socket.assigns.repo,
@@ -416,20 +416,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:time_window_hours, hours)
        |> assign(:from_time, from_time)
        |> assign(:actor_summaries, actor_summaries)
-       |> assign(:next_cursor, page.next_cursor)
-       |> assign(:prev_cursor, page.prev_cursor)
+       |> assign(:next_cursor, page.cursor)
+       |> assign(:prev_cursor, nil)
        |> assign(:shown_count, length(page.entries))
        |> stream(:transactions, page.entries, reset: true)}
     end
 
+    defp prev_cursor_from_page({:before, cursor}), do: cursor
+    defp prev_cursor_from_page(nil), do: nil
+
     # An empty window still needs to tell "never acted" apart from "acted
     # outside this window", so look up the latest activity at any time.
     defp activity_presence([], actor_ref, repo, socket) do
-      case Threadline.actor_history(
+      case Threadline.Query.actor_history(
              actor_ref,
              [
                repo: repo,
-               limit: 1,
+               page_size: 1,
                scope: socket.assigns[:threadline_scope],
                scope_query_fn: socket.assigns[:threadline_scope_query_fn],
                surface: :actor_history,

@@ -67,7 +67,7 @@ defmodule Threadline.GettingStartedSaasDocContractTest do
     assert String.contains?(doc, "appends those exact flags")
     assert String.contains?(doc, "mix threadline.policy.show")
     assert String.contains?(doc, "Threadline.actor_history/2")
-    assert String.contains?(doc, "Threadline.history/3")
+    assert String.contains?(doc, "Threadline.row_history/3")
     assert String.contains?(doc, "capture-only path for now")
     assert String.contains?(doc, "temporary branch rather than")
     assert String.contains?(doc, "the main first-hour adoption story")

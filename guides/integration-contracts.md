@@ -92,7 +92,12 @@ The job-path contract is:
 - `Threadline.Job.actor_ref_from_args/1` reads that serialized map back into an
   `ActorRef`.
 - `Threadline.Job.context_opts/2` extracts stable context keys from the args
-  map, currently `"correlation_id"` and `"job_id"`.
+  map, currently `"correlation_id"` and `"job_id"`. Integer IDs become
+  strings; existing strings and `nil` retain their values.
+- `context_opts/2` accepts only `Threadline.record_action/2` options plus
+  `:correlation_id` and `:job_id` overrides. Integer overrides are converted
+  to strings. Unsupported keys, malformed IDs, non-keyword extras, and values
+  outside the supported option types raise `ArgumentError`.
 - Any broader worker-framework integration belongs in an adapter module if the
   pattern repeats; it is not standardized in core today.
 
@@ -180,11 +185,55 @@ to record, but it does not introduce a Threadline-owned RBAC system, tenancy
 DSL, approval workflow, legal-hold flow, or vendor-reporting suite.
 
 When a host returns `{:ok, scope}` from `authorize_fn`, keep that scope
-host-owned and pair it with `scope_query_fn` if you want mounted reads to narrow
-by tenant, organization, or another local concept. `scope_query_fn` is the
-query seam for timeline, actor, transaction, export, or any future surface your
-host explicitly proves. Threadline carries the scope through; it does not
-invent a policy DSL around it.
+host-owned and pair it with `scope_query_fn` — a returned scope requires a
+`scope_query_fn`, by tenant, organization, or another local concept; without
+one, every scoped read raises `ArgumentError` rather than silently falling
+back to an unscoped result. `scope_query_fn` is the
+query seam for timeline, actor, transaction, export, or any future surface
+your host explicitly proves. Threadline carries the scope through; it does
+not invent a policy DSL around it.
+
+### Scope surfaces and fail-closed rules
+
+Every `scope_query_fn` sees a `context.surface` naming the binding shape it
+must match against:
+
+| Surface | Binding | Used by |
+|---------|---------|---------|
+| `:timeline` | `[ac, at]` | `Threadline.timeline/2`, `Threadline.timeline_page/2` |
+| `:transaction` | `[ac, at]` | `Threadline.audit_changes_for_transaction/2`, the changes read inside `transaction_context/2` and `incident_bundle/2` |
+| `:export` | `[ac, at]` | `Threadline.export_csv/2`, `Threadline.export_json/2` |
+| `:row_history` | `[ac, at]` | `Threadline.row_history/3` (bounded and the deprecated unbounded read) |
+| `:actor_history` | `[at]` | `Threadline.actor_history/2` |
+| `:transaction_header` | `[at]` | the transaction row read inside `Threadline.audit_transaction/2`, `transaction_context/2`, and `incident_bundle/2` |
+
+`:transaction_header` is easy to miss: it is a single-binding `[at]` query
+over the bare `audit_transactions` row, not the `[ac, at]` shape the other
+transaction-adjacent surfaces use. A `scope_query_fn` that only handles
+`:timeline`, `:transaction`, `:export`, and `:row_history` and falls through
+to a catch-all clause that returns the query unchanged will hand back
+**another tenant's transaction row** the moment that fn is asked to scope
+`:transaction_header`. End your `scope_query_fn` with a deny-all clause
+instead:
+
+```elixir
+def scope_operator_query(query, _scope, _context), do: where(query, false)
+```
+
+Threadline applies these fail-closed rules to every surface above:
+
+- no `:scope` and no `:scope_query_fn` stays unscoped — scoping is opt-in.
+- `:scope` set to `nil` with a `scope_query_fn` configured still stays
+  unscoped, and the function is never called. This is the host's explicit
+  unscoped authorization — for example, an `authorize_fn` that returns `:ok`
+  for admins while the mount still configures `scope_query_fn` for the
+  tenant-scoped case.
+- a non-nil `:scope` with no `scope_query_fn`, or with a `scope_query_fn`
+  that is not a 3-arity function, raises `ArgumentError`. The message never
+  echoes the scope value — it may hold tenant identifiers.
+
+The two row-history reads share `:row_history`, and a `scope_query_fn` cannot
+tell them apart.
 
 Apply that same host-owned rule to `evidence_authorize_fn`: it gates the mounted
 evidence capability, but it does not define a Threadline role model, tenant

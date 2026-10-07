@@ -13,11 +13,11 @@ defmodule Threadline.Storage.S3 do
   Module-keyed options are merged with per-call options, with per-call values
   taking precedence. Supported runtime options are:
 
-    * `:bucket` - required non-empty bucket name
-    * `:expires_in` - presigned-download lifetime in seconds; defaults to `900`
-    * `:presigned_url_opts` - options forwarded while creating the download URL
-    * `:ex_aws_request_opts` - request overrides passed to `ExAws.request/2`;
-      defaults to `[http_client: ExAws.Request.Req]`
+  - `:bucket` — required non-empty bucket name
+  - `:expires_in` — presigned-download lifetime in seconds; defaults to `900`
+  - `:presigned_url_opts` — options forwarded while creating the download URL
+  - `:ex_aws_request_opts` — request overrides passed to `ExAws.request/2`,
+    defaulting to `[http_client: ExAws.Request.Req]`
 
   `put/2` uploads the binary content it receives; it does not interpret a binary
   as a local filename. `path/1` returns `{:error, :not_local}`, so export delivery

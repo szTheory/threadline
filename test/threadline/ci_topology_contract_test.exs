@@ -16,6 +16,118 @@ defmodule Threadline.CiTopologyContractTest do
     @repo_root |> Path.join(Path.join(segments)) |> File.read!()
   end
 
+  defp enumerated_test_files! do
+    {output, status} =
+      System.cmd(
+        "find",
+        ["test", "-type", "f", "-name", "*_test.exs", "!", "-path", "*/.*"],
+        cd: @repo_root,
+        stderr_to_stdout: true
+      )
+
+    if status == 0 do
+      output |> String.split("\n", trim: true) |> Enum.sort()
+    else
+      raise "test inventory command failed with status #{status}: #{output}"
+    end
+  end
+
+  defp partition_weight_inventory_errors(inventory, weights_content) do
+    parsed_rows =
+      weights_content
+      |> String.split("\n")
+      |> Enum.with_index(1)
+      |> Enum.reject(fn {line, _line_number} ->
+        trimmed = String.trim_leading(line)
+        String.trim(line) == "" or String.starts_with?(trimmed, "#")
+      end)
+      |> Enum.map(fn {line, line_number} ->
+        case Regex.run(~r/^\s*([0-9]+)[ \t]+(test\/[^ \t]+)\s*$/, line) do
+          [_, _milliseconds, path] -> {:ok, path}
+          _ -> {:error, "malformed weight row at line #{line_number}: #{inspect(line)}"}
+        end
+      end)
+
+    row_errors = for {:error, error} <- parsed_rows, do: error
+    paths = for {:ok, path} <- parsed_rows, do: path
+    inventory_set = MapSet.new(inventory)
+    weight_set = MapSet.new(paths)
+
+    duplicate_errors =
+      paths
+      |> Enum.frequencies()
+      |> Enum.filter(fn {_path, count} -> count > 1 end)
+      |> Enum.map(fn {path, _count} -> "duplicate weight path #{path}" end)
+
+    missing_errors =
+      inventory
+      |> Enum.uniq()
+      |> Enum.reject(&MapSet.member?(weight_set, &1))
+      |> Enum.sort()
+      |> Enum.map(&"missing weight for #{&1}")
+
+    stale_errors =
+      paths
+      |> Enum.uniq()
+      |> Enum.reject(&MapSet.member?(inventory_set, &1))
+      |> Enum.sort()
+      |> Enum.map(&"weight path is not a discovered test file: #{&1}")
+
+    sorted_errors =
+      if paths == Enum.sort(paths), do: [], else: ["weight rows must be sorted by path"]
+
+    empty_errors = if paths == [], do: ["weight inventory must not be empty"], else: []
+
+    row_errors ++
+      duplicate_errors ++ sorted_errors ++ missing_errors ++ stale_errors ++ empty_errors
+  end
+
+  test "committed partition weights cover the complete test inventory" do
+    inventory = enumerated_test_files!()
+    weights_content = read_rel!(["test", "partition_weights.txt"])
+
+    errors = partition_weight_inventory_errors(inventory, weights_content)
+
+    assert errors == [],
+           "partition weight inventory is incomplete or invalid: #{Enum.join(errors, "; ")}"
+
+    omitted_path = List.first(inventory)
+    assert omitted_path, "the test inventory must not be empty"
+
+    omitted_weights =
+      weights_content
+      |> String.split("\n")
+      |> Enum.reject(fn line ->
+        case Regex.run(~r/^\s*[0-9]+[ \t]+(test\/[^ \t]+)\s*$/, line) do
+          [_, ^omitted_path] -> true
+          _ -> false
+        end
+      end)
+      |> Enum.join("\n")
+
+    omitted_errors = partition_weight_inventory_errors(inventory, omitted_weights)
+
+    assert "missing weight for #{omitted_path}" in omitted_errors,
+           "omitting a real test file must name it in the inventory error"
+
+    assert partition_weight_inventory_errors(["test/a_test.exs"], "1 test/a_test.exs\n") == []
+
+    assert "malformed weight row at line 1: \"not-a-weight test/a_test.exs\"" in partition_weight_inventory_errors(
+             ["test/a_test.exs"],
+             "not-a-weight test/a_test.exs\n"
+           )
+
+    assert "duplicate weight path test/a_test.exs" in partition_weight_inventory_errors(
+             ["test/a_test.exs"],
+             "1 test/a_test.exs\n2 test/a_test.exs\n"
+           )
+
+    assert "weight rows must be sorted by path" in partition_weight_inventory_errors(
+             ["test/a_test.exs", "test/b_test.exs"],
+             "2 test/b_test.exs\n1 test/a_test.exs\n"
+           )
+  end
+
   test "ci.yml defines PgBouncer topology job with transaction pool and mix verify.topology" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
 
@@ -101,6 +213,30 @@ defmodule Threadline.CiTopologyContractTest do
     assert Regex.match?(~r/^  verify-compile-no-optional:/m, yaml)
     assert Regex.match?(~r/^  verify-test:/m, yaml)
     assert Regex.match?(~r/^  verify-bump-rehearsal:/m, yaml)
+  end
+
+  test "the verify-test minimum lane pins PostgreSQL 15 exactly (FLOOR-01)" do
+    yaml = read_rel!([".github", "workflows", "ci.yml"])
+
+    assert minimum_postgres_errors(yaml) == []
+
+    contract_reference =
+      "# The PostgreSQL 15 support floor is pinned by " <>
+        "test/threadline/ci_topology_contract_test.exs.\n"
+
+    unlinked_yaml = String.replace(yaml, contract_reference, "")
+
+    assert "verify-test min row must identify its PostgreSQL support-floor contract" in minimum_postgres_errors(
+             unlinked_yaml
+           )
+
+    for pg <- ["14", "16"] do
+      mutated_yaml = replace_minimum_postgres(yaml, pg)
+      refute mutated_yaml == yaml, "the min-lane PostgreSQL #{pg} mutation must change ci.yml"
+
+      assert minimum_postgres_errors(mutated_yaml) != [],
+             "changing only the min-lane PostgreSQL value to #{pg} must fail the floor contract"
+    end
   end
 
   test "the sole required-check decision pins alls-green immutably" do
@@ -331,6 +467,60 @@ defmodule Threadline.CiTopologyContractTest do
     ]
     |> Enum.reject(&elem(&1, 0))
     |> Enum.map(&elem(&1, 1))
+  end
+
+  defp minimum_postgres_errors(yaml) do
+    job = workflow_job(yaml, "verify-test")
+    min_headers = Regex.scan(~r/^ {10}- lane: min\s*$/m, job)
+
+    min_blocks =
+      Regex.scan(
+        ~r/^ {10}- lane: min\n((?:^ {12}[^\n]*\n)*)/m,
+        job,
+        capture: :all_but_first
+      )
+      |> List.flatten()
+
+    pg_values =
+      case min_blocks do
+        [block] ->
+          Regex.scan(~r/^ {12}pg:\s*"([^"]+)"\s*$/m, block, capture: :all_but_first)
+          |> List.flatten()
+
+        _ ->
+          []
+      end
+
+    [
+      {job != "", "verify-test job is missing"},
+      {length(min_headers) == 1, "verify-test must define exactly one min matrix row"},
+      {length(min_blocks) == 1, "verify-test min row must have one parseable matrix block"},
+      {length(min_blocks) == 1 and
+         String.contains?(
+           List.first(min_blocks),
+           "# The PostgreSQL 15 support floor is pinned by " <>
+             "test/threadline/ci_topology_contract_test.exs."
+         ), "verify-test min row must identify its PostgreSQL support-floor contract"},
+      {pg_values == ["15"],
+       "verify-test min row must set pg to the exact token \"15\", found #{inspect(pg_values)}"}
+    ]
+    |> Enum.reject(&elem(&1, 0))
+    |> Enum.map(&elem(&1, 1))
+  end
+
+  defp replace_minimum_postgres(yaml, pg) do
+    job = workflow_job(yaml, "verify-test")
+
+    case Regex.run(~r/^ {10}- lane: min\n(?:^ {12}[^\n]*\n)*/m, job) do
+      [block] ->
+        [old_line] = Regex.run(~r/^ {12}pg:\s*"[^"]+"\s*$/m, block)
+        new_block = String.replace(block, old_line, "            pg: \"#{pg}\"")
+        new_job = String.replace(job, block, new_block, global: false)
+        String.replace(yaml, job, new_job, global: false)
+
+      _ ->
+        yaml
+    end
   end
 
   test "verify-test runs the suite in fail-closed partitions after compile (SUITE-02)" do
@@ -901,6 +1091,37 @@ defmodule Threadline.CiTopologyContractTest do
   # could weaken it.
   @bump_rehearsal_job "verify-bump-rehearsal"
 
+  defp candidate_rehearsal_result(subject, message_body, bump_minor_pre_major \\ false) do
+    config_path =
+      Path.join(
+        System.tmp_dir!(),
+        "threadline-release-config-#{System.unique_integer([:positive, :monotonic])}.json"
+      )
+
+    File.write!(
+      config_path,
+      Jason.encode!(%{"bump-minor-pre-major" => bump_minor_pre_major})
+    )
+
+    on_exit(fn -> File.rm(config_path) end)
+
+    command =
+      ~s(source "$REHEARSAL_SCRIPT"; candidate_release_target "$SUBJECT" "$MESSAGE_BODY" "$RELEASE_CONFIG")
+
+    System.cmd(
+      "bash",
+      ["-c", command],
+      env: [
+        {"REHEARSAL_SCRIPT", Path.join(@repo_root, "bin/verify-bump-rehearsal")},
+        {"SUBJECT", subject},
+        {"MESSAGE_BODY", message_body},
+        {"RELEASE_CONFIG", config_path}
+      ],
+      cd: @repo_root,
+      stderr_to_stdout: true
+    )
+  end
+
   # Collects the items of every `allowed-skips:` / `allowed-failures:` list in
   # the workflow, comments stripped so a commented-out example (the
   # `ci-required` extension-point note is exactly that) is never mistaken for a
@@ -916,6 +1137,7 @@ defmodule Threadline.CiTopologyContractTest do
   test "the bump-rehearsal gate is wired, required, and never skip-listed" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
     mix_exs = read_rel!(["mix.exs"])
+    rehearsal = read_rel!(["bin", "verify-bump-rehearsal"])
 
     job = workflow_job(yaml, @bump_rehearsal_job)
 
@@ -927,6 +1149,13 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(job, "mix verify.bump_rehearsal"),
            "#{@bump_rehearsal_job} no longer runs `mix verify.bump_rehearsal`, so the job " <>
              "can report green without rehearsing anything."
+
+    refute String.contains?(job, "THREADLINE_BUMP_REHEARSAL_MODE"),
+           "ordinary pull-request CI must leave candidate mode unset so the generic " <>
+             "next-minor rehearsal remains runnable before the 1.0 candidate exists."
+
+    assert String.contains?(rehearsal, "THREADLINE_BUMP_REHEARSAL_MODE:-generic"),
+           "the rehearsal must default to generic mode for ordinary CI invocations."
 
     refute Regex.match?(~r/^    if:/m, job),
            "#{@bump_rehearsal_job} acquired a job-level `if:`. A conditionally skipped " <>
@@ -958,6 +1187,75 @@ defmodule Threadline.CiTopologyContractTest do
     refute String.contains?(ci_all_list, "\"verify.bump_rehearsal\""),
            "verify.bump_rehearsal was folded into ci.all. It is a release-lane check and " <>
              "follows verify.release's precedent of staying out of the per-change gate."
+  end
+
+  test "strict candidate parser accepts one 1.0.0 footer only with a feat! subject and JSON false" do
+    assert {"1.0.0\n", 0} =
+             candidate_rehearsal_result(
+               "feat!: establish the 1.0 API contract",
+               "Candidate release notes.\n\nRelease-As: 1.0.0"
+             )
+
+    assert {"1.0.0\n", 0} =
+             candidate_rehearsal_result(
+               "feat!: establish the 1.0 API contract",
+               "Release-As: 1.0.0"
+             )
+
+    assert {"1.0.0\n", 0} =
+             candidate_rehearsal_result(
+               "feat(api)!: establish the 1.0 API contract",
+               "Candidate release notes.\n\nRelease-As: 1.0.0"
+             )
+
+    invalid_candidates = [
+      {"non-feat subject", "fix!: correct release metadata", "Release-As: 1.0.0", false},
+      {"missing footer", "feat!: establish the 1.0 API contract", "Candidate release notes.",
+       false},
+      {
+        "duplicate footer",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 1.0.0\nRelease-As: 1.0.0",
+        false
+      },
+      {
+        "malformed footer",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 1.0.0 extra",
+        false
+      },
+      {
+        "Release-As-looking body prose before later text",
+        "feat!: establish the 1.0 API contract",
+        "Candidate notes.\n\nRelease-As: 1.0.0\n\nThis is more body prose, not a trailer.",
+        false
+      },
+      {
+        "0.13.0 target",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 0.13.0",
+        false
+      },
+      {
+        "pre-major config still true",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 1.0.0",
+        true
+      },
+      {
+        "pre-major config is not a JSON boolean",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 1.0.0",
+        "false"
+      }
+    ]
+
+    for {case_name, subject, body, config_value} <- invalid_candidates do
+      {output, status} = candidate_rehearsal_result(subject, body, config_value)
+
+      assert status != 0,
+             "candidate parser accepted #{case_name}; expected a fail-closed result, got #{inspect(output)}"
+    end
   end
 
   # --- Plan 218-04: removed CI proofs stay justified and dominated ---------

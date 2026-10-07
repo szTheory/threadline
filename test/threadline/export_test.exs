@@ -41,6 +41,18 @@ defmodule Threadline.ExportTest do
 
   defp table_name(suffix), do: "export_test_#{suffix}_#{:erlang.unique_integer([:positive])}"
 
+  defp assert_one_failed_export(ref, format) do
+    assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
+    assert measurements.row_count == 0
+    assert is_integer(measurements.duration) and measurements.duration >= 0
+    assert metadata.format == format
+    assert metadata.error_kind == :exception
+    assert metadata.exception == ArgumentError
+
+    refute_receive {[:threadline, :export, :failed], ^ref, _measurements, _metadata}
+    refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
+  end
+
   defp stream_fixture(table_name) do
     tie_time = ~U[2026-06-01 00:00:00.000000Z]
     newer_time = DateTime.add(tie_time, 60, :second)
@@ -211,11 +223,60 @@ defmodule Threadline.ExportTest do
 
       assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
       assert measurements.row_count == 0
+      assert is_integer(measurements.duration) and measurements.duration >= 0
       assert metadata.format == :csv
       assert metadata.error_kind == :exception
       assert metadata.exception == ArgumentError
 
       refute_receive {[:threadline, :export, :completed], ^ref, _measurements, _metadata}
+    end
+  end
+
+  describe "eager facade validation telemetry (D-07)" do
+    test "facade filter and option validation raises emit one failure and preserve ArgumentError" do
+      ref =
+        attach_telemetry!([[:threadline, :export, :completed], [:threadline, :export, :failed]])
+
+      cases = [
+        {:csv, fn -> Threadline.export_csv([oops: true], repo: @repo) end},
+        {:csv, fn -> Threadline.export_csv([table: "members"], repo: @repo, oops: true) end},
+        {:json, fn -> Threadline.export_json([oops: true], repo: @repo) end},
+        {:ndjson,
+         fn ->
+           Threadline.export_json([table: "members"],
+             repo: @repo,
+             json_format: :ndjson,
+             oops: true
+           )
+         end}
+      ]
+
+      for {format, call} <- cases do
+        exception = assert_raise ArgumentError, call
+        assert exception.message =~ "unknown"
+        assert_one_failed_export(ref, format)
+      end
+    end
+
+    test "direct eager export option validation raises emit one failure" do
+      ref =
+        attach_telemetry!([[:threadline, :export, :completed], [:threadline, :export, :failed]])
+
+      exception =
+        assert_raise ArgumentError, fn ->
+          Export.to_csv_iodata([repo: @repo], oops: true)
+        end
+
+      assert exception.message =~ "unknown"
+      assert_one_failed_export(ref, :csv)
+
+      exception =
+        assert_raise ArgumentError, fn ->
+          Export.to_json_document([repo: @repo], json_format: :ndjson, oops: true)
+        end
+
+      assert exception.message =~ "unknown"
+      assert_one_failed_export(ref, :ndjson)
     end
   end
 
@@ -353,6 +414,8 @@ defmodule Threadline.ExportTest do
 
       assert_receive {[:threadline, :export, :failed], ^ref, measurements, metadata}
       assert measurements.row_count == 0
+      assert is_integer(measurements.duration) and measurements.duration >= 0
+      assert metadata.format == :json
       assert metadata.error_kind == :exception
       assert metadata.exception == ArgumentError
 

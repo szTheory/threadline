@@ -10,9 +10,9 @@ defmodule Threadline.Test.KeysetModel do
   `expected_order/1` is the test oracle. `actor_history_fetch/4` and
   `timeline_fetch/3` model the DB-side window/order/limit for each cursor;
   `walk_actor_history/2` and `walk_timeline/2` drive the real
-  `Threadline.Query.Cursors` paging functions (`actor_history_page/4`,
-  `timeline_page_next_cursor/2`) against this in-memory fetch, so the walk
-  exercises the real post-fetch code, not a copy of it.
+  `Threadline.Query.Cursors` paging functions (`actor_history_page/3`,
+  `change_page/2`) against this in-memory fetch, so the walk exercises the
+  real post-fetch code, not a copy of it.
   """
 
   alias Threadline.Query.Cursors
@@ -77,7 +77,8 @@ defmodule Threadline.Test.KeysetModel do
 
   @doc """
   Models `maybe_after_timeline_cursor/2` + `timeline_order/1` +
-  `limit(page_size)`.
+  `limit(page_size + 1)` — the D-08 extra-row fetch `Cursors.change_page/2`
+  trims.
   """
   @spec timeline_fetch([entry()], pos_integer(), map() | nil) ::
           [%{captured_at: DateTime.t(), id: String.t()}]
@@ -85,61 +86,71 @@ defmodule Threadline.Test.KeysetModel do
     entries
     |> maybe_filter_after(cursor)
     |> Enum.sort_by(&key/1, :desc)
-    |> Enum.take(page_size)
+    |> Enum.take(page_size + 1)
     |> Enum.map(&timeline_row/1)
   end
 
   @doc """
-  Walks the actor-history cursor forward (via `after:`) to exhaustion against
-  the real `Cursors.actor_history_page/4`, then walks `before:` back from the
-  last forward page's `prev_cursor`. Returns `{:ok, forward_pages,
-  backward_pages}`, each page a list of ids, or `{:error, "cursor did not
-  advance"}` if a walk exceeds `length(entries) + 2` steps without reaching a
-  `nil` continuation cursor.
+  Walks the actor-history cursor forward to exhaustion against the real
+  `Cursors.actor_history_page/3`, then walks backward via `{:before, map}`
+  starting from the first entry of the last forward page. Returns `{:ok,
+  forward_pages, backward_pages}`, each page a list of ids, or `{:error,
+  "cursor did not advance"}` if a walk exceeds `length(entries) + 2` steps
+  without reaching a `nil` continuation cursor.
   """
   @spec walk_actor_history([entry()], pos_integer()) ::
           {:ok, [[String.t()]], [[String.t()]]} | {:error, String.t()}
   def walk_actor_history(entries, limit) do
     bound = length(entries) + 2
 
-    forward_fetch = fn after_cursor ->
-      {page_entries, next_cursor, prev_cursor} =
-        actor_history_page(entries, limit, false, nil, after_cursor)
+    forward_fetch = fn cursor ->
+      page = actor_history_page(entries, limit, :forward, nil, cursor)
 
-      {%{ids: Enum.map(page_entries, & &1.id), prev_cursor: prev_cursor}, next_cursor}
+      {%{ids: Enum.map(page.entries, & &1.id), first_entry: List.first(page.entries)},
+       page.cursor}
     end
 
     with {:ok, forward_pages} <- step(bound, nil, forward_fetch) do
-      last_prev_cursor =
-        case List.last(forward_pages) do
-          nil -> nil
-          page -> page.prev_cursor
-        end
+      backward_start = actor_history_backward_start(forward_pages)
 
-      backward_fetch = fn before_cursor ->
-        {page_entries, _next_cursor, prev_cursor} =
-          actor_history_page(entries, limit, true, before_cursor, nil)
-
-        {Enum.map(page_entries, & &1.id), prev_cursor}
+      backward_fetch = fn {:before, cursor_map} ->
+        page = actor_history_page(entries, limit, :backward, cursor_map, nil)
+        {Enum.map(page.entries, & &1.id), page.cursor}
       end
 
-      case walk_backward(bound, last_prev_cursor, backward_fetch) do
+      case walk_backward(bound, backward_start, backward_fetch) do
         {:ok, backward_pages} -> {:ok, Enum.map(forward_pages, & &1.ids), backward_pages}
         {:error, _} = err -> err
       end
     end
   end
 
-  # The one call site exercising the real `Cursors.actor_history_page/4`,
+  # The one call site exercising the real `Cursors.actor_history_page/3`,
   # shared by both the forward and backward legs of `walk_actor_history/2`.
-  defp actor_history_page(entries, limit, reverse?, before, after_cursor) do
+  defp actor_history_page(entries, limit, direction, before, after_cursor) do
     {raw, _reverse?} = actor_history_fetch(entries, limit, before, after_cursor)
-    Cursors.actor_history_page(raw, limit, reverse?, after_cursor)
+    Cursors.actor_history_page(raw, limit, direction)
+  end
+
+  # Walking backward from the very first (and, here, only) forward page
+  # would re-fetch nothing older than itself — there is no earlier page to
+  # reproduce. Only start the backward leg when a second forward page proves
+  # an earlier boundary exists.
+  defp actor_history_backward_start([_single]), do: nil
+
+  defp actor_history_backward_start(forward_pages) do
+    case List.last(forward_pages) do
+      %{first_entry: %{occurred_at: occurred_at, id: id}} ->
+        {:before, %{occurred_at: occurred_at, id: id}}
+
+      _ ->
+        nil
+    end
   end
 
   @doc """
-  Walks the timeline cursor forward via `Cursors.timeline_page_next_cursor/2`
-  to exhaustion. Returns `{:ok, pages}`, each page a list of ids, or
+  Walks the timeline cursor forward via `Cursors.change_page/2` to
+  exhaustion. Returns `{:ok, pages}`, each page a list of ids, or
   `{:error, "cursor did not advance"}` past `length(entries) + 2` steps.
   """
   @spec walk_timeline([entry()], pos_integer()) :: {:ok, [[String.t()]]} | {:error, String.t()}
@@ -147,9 +158,9 @@ defmodule Threadline.Test.KeysetModel do
     bound = length(entries) + 2
 
     fetch = fn cursor ->
-      rows = timeline_fetch(entries, page_size, cursor)
-      next_cursor = Cursors.timeline_page_next_cursor(rows, page_size)
-      {Enum.map(rows, & &1.id), next_cursor}
+      raw = timeline_fetch(entries, page_size, cursor)
+      page = Cursors.change_page(raw, page_size)
+      {Enum.map(page.entries, & &1.id), page.cursor}
     end
 
     step(bound, nil, fetch)

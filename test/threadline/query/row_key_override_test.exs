@@ -1,6 +1,6 @@
 defmodule Threadline.Query.RowKeyOverrideTest do
   @moduledoc """
-  Proves the CONF-01 read half: `Threadline.history/3` reads a
+  Proves the CONF-01 read half: `Threadline.row_history/3` reads a
   `primary_key:`-override table with the same declared columns the trigger
   recorded, mapped back to schema fields through `field_source`.
   """
@@ -10,6 +10,7 @@ defmodule Threadline.Query.RowKeyOverrideTest do
   alias Threadline.Capture.TriggerSQL
   alias Threadline.Query.RowKey
   alias Threadline.Test.MigrationHarness, as: Harness
+  alias Threadline.Test.RowHistory
 
   @table "rk_posts_tags"
 
@@ -83,7 +84,7 @@ defmodule Threadline.Query.RowKeyOverrideTest do
   end
 
   describe ~s|a primary_key: override table, config key "rk_posts_tags"| do
-    test "history/3 reads through the declared columns mapped to schema fields", %{tmp: tmp} do
+    test "row_history/3 reads through the declared columns mapped to schema fields", %{tmp: tmp} do
       create_table!()
 
       Application.put_env(:threadline, :trigger_capture,
@@ -96,7 +97,7 @@ defmodule Threadline.Query.RowKeyOverrideTest do
       Repo.query!("INSERT INTO #{@table} (post_id, tag_id, note) VALUES (1, 2, 'a')")
       Repo.query!("UPDATE #{@table} SET note = 'b' WHERE post_id = 1 AND tag_id = 2")
 
-      rows = Threadline.history(RkPostTag, [post: 1, tag: 2], repo: Repo)
+      rows = RowHistory.changes(RkPostTag, [post: 1, tag: 2], repo: Repo)
       assert length(rows) == 2
       assert Enum.all?(rows, &(&1.table_pk == %{"post_id" => "1", "tag_id" => "2"}))
     end
@@ -115,7 +116,7 @@ defmodule Threadline.Query.RowKeyOverrideTest do
 
       Repo.query!("INSERT INTO #{@table} (post_id, tag_id, note) VALUES (3, 4, 'a')")
 
-      rows = Threadline.history(RkPostTag, [post: 3, tag: 4], repo: Repo)
+      rows = RowHistory.changes(RkPostTag, [post: 3, tag: 4], repo: Repo)
       assert length(rows) == 1
     end
   end

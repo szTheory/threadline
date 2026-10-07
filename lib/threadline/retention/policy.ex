@@ -10,6 +10,9 @@ defmodule Threadline.Retention.Policy do
 
   Per-table and per-tenant overrides are not supported; this module validates
   the global policy shape only.
+
+  `validate_config!/1` checks configuration, `resolve!/1` returns normalized
+  policy values, and `cutoff_utc_datetime_usec!/1` computes the expiry cutoff.
   """
 
   @typedoc "Normalized retention options as returned by `resolve/1`."
@@ -19,19 +22,55 @@ defmodule Threadline.Retention.Policy do
           window_seconds: pos_integer()
         }
 
+  @typedoc "An atom-keyed option in the retention policy configuration."
+  @type config_opt ::
+          {:enabled, boolean() | String.t()}
+          | {:delete_empty_transactions, boolean() | String.t()}
+          | {:keep_days, pos_integer() | nil | false}
+          | {:max_age_seconds, pos_integer() | nil | false}
+
+  @typedoc ~S"""
+  A retention config map. Recognized keys are atom or string spellings of `:enabled`,
+  `:delete_empty_transactions`, `:keep_days`, and `:max_age_seconds`. The boolean keys accept
+  booleans or the strings `"true"` and `"false"`; window values accept positive integers.
+  Other keys are ignored, and the string-key map arm represents extra keys and mixed atom/string
+  maps.
+
+  For boolean keys, a present atom key wins over its string spelling even when its value is
+  invalid. For window keys, `atom_value || string_value` is used, so atom nil or false falls back
+  to the matching string key while 0 or another truthy invalid atom value keeps its validation
+  error. Positive window values remain mutually exclusive; when both are absent, the test
+  environment uses a one-day default.
+  """
+  @type config_map ::
+          %{
+            optional(:enabled) => boolean() | String.t(),
+            optional(:delete_empty_transactions) => boolean() | String.t(),
+            optional(:keep_days) => pos_integer() | nil | false,
+            optional(:max_age_seconds) => pos_integer() | nil | false
+          }
+          | %{optional(String.t()) => term()}
+
+  @typedoc "The keyword-list or map form accepted by retention policy validation and resolution."
+  @type config :: [config_opt()] | config_map()
+
+  @typedoc "An option accepted by `cutoff_utc_datetime_usec!/1`."
+  @type cutoff_opt :: {:policy, t()}
+
   defstruct [:enabled, :delete_empty_transactions, :window_seconds]
 
   @doc """
-  Validates retention config from `Application.get_env(:threadline, :retention)`.
+  Returns `:ok` when retention config from `Application.get_env(:threadline, :retention)` is valid.
 
-  Raises `ArgumentError` with a message containing `"retention"` when the shape
-  is invalid, keys conflict, or the window is not positive.
+  Raises `ArgumentError` with a message containing `"retention"` when either boolean option is
+  not a boolean or its string spelling, when both window keys are set, or when a window is
+  non-positive or missing outside the test environment.
 
   In `:test`, missing `:keep_days` / `:max_age_seconds` is allowed only when the
   caller passes a non-empty map/list that still fails other checks — for empty
   config in test, hosts should set explicit values in `config/test.exs`.
   """
-  @spec validate_config!(keyword() | map()) :: :ok
+  @spec validate_config!(config()) :: :ok
   def validate_config!(opts) when is_list(opts), do: validate_config!(Map.new(opts))
 
   def validate_config!(opts) when is_map(opts) do
@@ -42,7 +81,7 @@ defmodule Threadline.Retention.Policy do
   @doc """
   Resolves config into a struct or raises like `validate_config!/1`.
   """
-  @spec resolve!(keyword() | map()) :: t()
+  @spec resolve!(config()) :: t()
   def resolve!(opts) when is_list(opts), do: resolve!(Map.new(opts))
 
   def resolve!(opts) when is_map(opts) do
@@ -114,8 +153,18 @@ defmodule Threadline.Retention.Policy do
   are considered expired for purge (i.e. delete rows with `captured_at < cutoff`).
 
   Uses `DateTime.add/3` in microsecond mode for consistency with `:utc_datetime_usec`.
+
+  ## Options
+
+  - `:policy` — normalized retention policy. Optional. Defaults to the configured policy.
+
+  ## Returns
+
+  - The UTC cutoff timestamp.
+
+  Other option keys are ignored.
   """
-  @spec cutoff_utc_datetime_usec!(keyword()) :: DateTime.t()
+  @spec cutoff_utc_datetime_usec!([cutoff_opt()]) :: DateTime.t()
   def cutoff_utc_datetime_usec!(opts \\ []) do
     policy =
       case Keyword.get(opts, :policy) do
