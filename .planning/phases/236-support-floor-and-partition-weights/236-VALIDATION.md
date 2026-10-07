@@ -38,19 +38,19 @@ created: "2026-10-07"
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 236-01-01 | 01 | 0 | FLOOR-01 | T-236-01 | Min-lane PostgreSQL value cannot drift from 15 | contract | `mix verify.test test/threadline/ci_topology_contract_test.exs` | ✅ existing; extend | ⬜ pending |
-| 236-01-02 | 01 | 0 | FLOOR-02 | T-236-02 | Published floor and tested-on lane claims match Mix and CI sources | doc contract | `mix verify.test test/threadline/guides/upgrade_path_contract_test.exs` | ❌ Wave 0 | ⬜ pending |
-| 236-01-03 | 01 | 0 | CI-01 | T-236-03 | Removing one measured test path makes the completeness contract fail | contract + mutation control | `mix verify.test test/threadline/ci_topology_contract_test.exs` | ✅ existing; extend | ⬜ pending |
-| 236-01-04 | 01 | 1 | FLOOR-01, FLOOR-02, CI-01 | T-236-01, T-236-02, T-236-03 | Measured weights cover the final test inventory and the complete verification chain passes on PostgreSQL 15 | integration | `bin/ci-test-partitions --write-weights` then `mix ci.all` | ✅ existing tooling | ⬜ pending |
+| 236-01-01 | 01 | 1 | FLOOR-01, FLOOR-02 | T-236-01, T-236-02 | Min-lane PostgreSQL is exactly 15 and the source-derived support table detects drift | topology + doc contracts | `mix verify.test test/threadline/ci_topology_contract_test.exs test/threadline/guides/upgrade_path_contract_test.exs` | ✅ topology existing; guide contract created in task | ⬜ pending |
+| 236-01-02 | 01 | 1 | FLOOR-01 | T-236-02 | README and Unreleased breaking entry agree with the guide and state the adopter action | doc contract + mutation control | `mix verify.test test/threadline/guides/upgrade_path_contract_test.exs` | ✅ created by 236-01-01 | ⬜ pending |
+| 236-02-01 | 02 | 2 | CI-01 | T-236-03 | Removing one measured test path makes the completeness contract fail; regenerated weights cover the final inventory | contract + mutation control | `mix verify.test test/threadline/ci_topology_contract_test.exs` | ✅ existing; extend | ⬜ pending |
+| 236-02-02 | 02 | 2 | FLOOR-01, FLOOR-02, CI-01 | T-236-04 | The complete verification chain passes against a recorded PostgreSQL 15 server | integration | `DB_HOST=localhost DB_PORT=55432 mix ci.all` | ✅ existing tooling | ⬜ pending |
 
-*The task map is a research-based draft; reconcile task IDs and waves with the finalized PLAN.md.*
+*Task IDs and waves match 236-01-PLAN.md and 236-02-PLAN.md. Each task's PLAN verification gives the precise failure signal.*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `test/threadline/guides/upgrade_path_contract_test.exs` — add support-table contract coverage for FLOOR-02
-- [ ] `test/threadline/ci_topology_contract_test.exs` — extend topology and weight-completeness contracts with red mutation controls
+- [ ] `test/threadline/guides/upgrade_path_contract_test.exs` — created test-first by 236-01-01, before support-table edits
+- [ ] `test/threadline/ci_topology_contract_test.exs` — topology control created by 236-01-01; weight-completeness control added by 236-02-01 before regeneration
 - [ ] Existing ExUnit and PostgreSQL fixtures cover all phase requirements; no framework installation is required
 
 ---
