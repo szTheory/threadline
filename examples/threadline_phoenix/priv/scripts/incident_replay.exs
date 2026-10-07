@@ -63,11 +63,11 @@ defmodule IncidentReplay do
 
     db_name = Repo.config()[:database]
 
-    unless String.contains?(db_name, ["test", "disposable", "dev"]) do
+    unless ThreadlinePhoenix.IncidentReplaySafety.disposable_database?(db_name) do
       IO.puts(
         format_json(
           :error,
-          "Database name must indicate it is disposable (test/dev/disposable). Current: #{db_name}"
+          "Database must be threadline_phoenix_dev or threadline_phoenix_test with an optional partition suffix. Current: #{db_name}"
         )
       )
 

@@ -252,11 +252,11 @@ end
 
 The `count == 1` check catches a write callback that produced no capture row when correlation was promised.
 
-### 10. Associations preserve the three different facts
+### 10. Capture fields preserve the three different facts
 
 Sources: `Threadline.Semantics.AuditAction`, `Threadline.Capture.AuditTransaction`, and `Threadline.Capture.AuditChange`.
 
-The Ecto relationships mirror the database design: an optional action describes capture transactions, and every change belongs to exactly one capture transaction.
+The database keeps the optional action link as an `action_id` foreign key. The capture schema does not declare an Ecto association to the semantics schema: `AuditTransaction.action` is virtual and is populated by Threadline's read helpers. `AuditChange` still belongs to exactly one capture transaction.
 
 ```elixir
 schema "audit_actions" do
@@ -264,7 +264,6 @@ schema "audit_actions" do
   field(:actor_ref, Threadline.Semantics.ActorRef)
   field(:correlation_id, :string)
   # ...
-  has_many(:transactions, Threadline.Capture.AuditTransaction, foreign_key: :action_id)
 end
 
 # ...
@@ -274,7 +273,8 @@ schema "audit_transactions" do
   field(:occurred_at, :utc_datetime_usec)
   field(:meta, :map)
   field(:actor_ref, Threadline.Semantics.ActorRef)
-  belongs_to(:action, Threadline.Semantics.AuditAction)
+  field(:action_id, :binary_id)
+  field(:action, :any, virtual: true, default: nil)
   has_many(:changes, Threadline.Capture.AuditChange, foreign_key: :transaction_id)
 end
 
@@ -291,6 +291,8 @@ schema "audit_changes" do
   field(:changed_from, :map)
 end
 ```
+
+Use `Threadline.transaction_context/2` or `Threadline.incident_bundle/2` when a read needs the linked action hydrated. An Ecto query can join `AuditAction` through `AuditTransaction.action_id`; `Repo.preload(transaction, :action)` is not supported because the capture schema declares no `:action` association.
 
 Do not flatten these into a single “audit event” mentally. Their cardinalities explain capture-only rows, multi-row domain operations, and strict semantic filters.
 
