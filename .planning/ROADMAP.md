@@ -53,7 +53,7 @@
 - [x] **Phase 233: Lookup Return Shapes** - Single-subject lookups return `{:ok, _}` / `{:error, :not_found}` with raising `!` siblings (completed 2026-10-03)
 - [x] **Phase 234: Typespec and Doc Completion Gate** - Every public function has an informative `@spec` and a `@doc`, enforced by a test, and the facade page is grouped by job (completed 2026-10-06)
 - [x] **Phase 235: Stability Contract and Adopter Guides** - The 1.x promise is written down and pinned by tests, with the supported-table-shapes guide and the redaction threat model (completed 2026-10-06)
-- [ ] **Phase 236: Support Floor and Partition Weights** - PostgreSQL 15 is the tested minimum, the support policy has one table, and every test file is weighted
+- [x] **Phase 236: Support Floor and Partition Weights** - PostgreSQL 15 is the tested minimum, the support policy has one table, and every test file is weighted (completed 2026-10-07)
 - [ ] **Phase 237: Upgrade Guide and 1.0.0** - A 0.11/0.12 adopter can follow one guide to 1.0, and hex.pm serves threadline 1.0.0
 
 ## Phase Details
@@ -290,14 +290,14 @@ Plans:
   3. `bin/ci-test-partitions --write-weights` has regenerated `test/partition_weights.txt`, so the 10 unweighted v1.44 property files and every test added in 231-235 are weighted. A permanent check fails when any test file is missing from the weights file, and a deliberately unweighted file turns it red (mutation control recorded).
   4. `mix ci.all` is green.
 
-**Plans**: 2 plans
+**Plans**: 2/2 plans complete
 
 Plans:
 **Wave 1**
-- [ ] 236-01-PLAN.md — Source-checked support policy and PostgreSQL 15 floor
+- [x] 236-01-PLAN.md — Source-checked support policy and PostgreSQL 15 floor (completed 2026-10-07)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 236-02-PLAN.md — Complete partition weights and PostgreSQL 15 gate proof
+- [x] 236-02-PLAN.md — Complete partition weights and PostgreSQL 15 gate proof
 
 ### Phase 237: Upgrade Guide and 1.0.0
 
@@ -322,7 +322,7 @@ Plans:
 | 233. Lookup Return Shapes | 4/4 | Complete    | 2026-10-03 |
 | 234. Typespec and Doc Completion Gate | 22/22 | Complete    | 2026-10-06 |
 | 235. Stability Contract and Adopter Guides | 5/5 | Complete    | 2026-10-06 |
-| 236. Support Floor and Partition Weights | 0/2 | Planned | - |
+| 236. Support Floor and Partition Weights | 2/2 | Complete    | 2026-10-07 |
 | 237. Upgrade Guide and 1.0.0 | 0/TBD | Not started | - |
 
 ## Prior Milestones

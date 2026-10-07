@@ -101,15 +101,15 @@
 
 ### FLOOR: support floor
 
-- [ ] **FLOOR-01**: PostgreSQL 15 is the supported minimum.
+- [x] **FLOOR-01**: PostgreSQL 15 is the supported minimum.
   - The CI `min` lane runs on PG 15.
   - The CHANGELOG records the change under breaking changes.
   - The trigger SQL uses no feature newer than the floor, proven by the `min` lane passing.
-- [ ] **FLOOR-02**: An adopter finds one support-policy table, the Elixir/OTP/PG floor plus the CI lanes, in `guides/upgrade-path.md`. A doc-contract test fails if it disagrees with `mix.exs` or the CI `min` lane values.
+- [x] **FLOOR-02**: An adopter finds one support-policy table, the Elixir/OTP/PG floor plus the CI lanes, in `guides/upgrade-path.md`. A doc-contract test fails if it disagrees with `mix.exs` or the CI `min` lane values.
 
 ### CI: carried housekeeping
 
-- [ ] **CI-01**: Run `bin/ci-test-partitions --write-weights` after this milestone's test churn. A check proves that no test file is missing from `test/partition_weights.txt`. The v1.44 debt is 10 unweighted property files.
+- [x] **CI-01**: Run `bin/ci-test-partitions --write-weights` after this milestone's test churn. A check proves that no test file is missing from `test/partition_weights.txt`. The v1.44 debt is 10 unweighted property files.
 
 ### REL: declare 1.0.0
 
@@ -164,9 +164,9 @@
 | DOCS-01 | Phase 235 | Complete |
 | DOCS-02 | Phase 235 | Complete |
 | DOCS-03 | Phase 237 | Pending |
-| FLOOR-01 | Phase 236 | Pending |
-| FLOOR-02 | Phase 236 | Pending |
-| CI-01 | Phase 236 | Pending |
+| FLOOR-01 | Phase 236 | Complete |
+| FLOOR-02 | Phase 236 | Complete |
+| CI-01 | Phase 236 | Complete |
 | REL-01 | Phase 237 | Pending |
 | REL-02 | Phase 237 | Pending |
 | REL-03 | Phase 237 | Pending |
