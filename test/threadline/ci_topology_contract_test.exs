@@ -1091,6 +1091,37 @@ defmodule Threadline.CiTopologyContractTest do
   # could weaken it.
   @bump_rehearsal_job "verify-bump-rehearsal"
 
+  defp candidate_rehearsal_result(subject, message_body, bump_minor_pre_major \\ false) do
+    config_path =
+      Path.join(
+        System.tmp_dir!(),
+        "threadline-release-config-#{System.unique_integer([:positive, :monotonic])}.json"
+      )
+
+    File.write!(
+      config_path,
+      Jason.encode!(%{"bump-minor-pre-major" => bump_minor_pre_major})
+    )
+
+    on_exit(fn -> File.rm(config_path) end)
+
+    command =
+      ~s(source "$REHEARSAL_SCRIPT"; candidate_release_target "$SUBJECT" "$MESSAGE_BODY" "$RELEASE_CONFIG")
+
+    System.cmd(
+      "bash",
+      ["-c", command],
+      env: [
+        {"REHEARSAL_SCRIPT", Path.join(@repo_root, "bin/verify-bump-rehearsal")},
+        {"SUBJECT", subject},
+        {"MESSAGE_BODY", message_body},
+        {"RELEASE_CONFIG", config_path}
+      ],
+      cd: @repo_root,
+      stderr_to_stdout: true
+    )
+  end
+
   # Collects the items of every `allowed-skips:` / `allowed-failures:` list in
   # the workflow, comments stripped so a commented-out example (the
   # `ci-required` extension-point note is exactly that) is never mistaken for a
@@ -1106,6 +1137,7 @@ defmodule Threadline.CiTopologyContractTest do
   test "the bump-rehearsal gate is wired, required, and never skip-listed" do
     yaml = read_rel!([".github", "workflows", "ci.yml"])
     mix_exs = read_rel!(["mix.exs"])
+    rehearsal = read_rel!(["bin", "verify-bump-rehearsal"])
 
     job = workflow_job(yaml, @bump_rehearsal_job)
 
@@ -1117,6 +1149,13 @@ defmodule Threadline.CiTopologyContractTest do
     assert String.contains?(job, "mix verify.bump_rehearsal"),
            "#{@bump_rehearsal_job} no longer runs `mix verify.bump_rehearsal`, so the job " <>
              "can report green without rehearsing anything."
+
+    refute String.contains?(job, "THREADLINE_BUMP_REHEARSAL_MODE"),
+           "ordinary pull-request CI must leave candidate mode unset so the generic " <>
+             "next-minor rehearsal remains runnable before the 1.0 candidate exists."
+
+    assert String.contains?(rehearsal, "THREADLINE_BUMP_REHEARSAL_MODE:-generic"),
+           "the rehearsal must default to generic mode for ordinary CI invocations."
 
     refute Regex.match?(~r/^    if:/m, job),
            "#{@bump_rehearsal_job} acquired a job-level `if:`. A conditionally skipped " <>
@@ -1148,6 +1187,63 @@ defmodule Threadline.CiTopologyContractTest do
     refute String.contains?(ci_all_list, "\"verify.bump_rehearsal\""),
            "verify.bump_rehearsal was folded into ci.all. It is a release-lane check and " <>
              "follows verify.release's precedent of staying out of the per-change gate."
+  end
+
+  test "strict candidate parser accepts one 1.0.0 footer only with a feat! subject and JSON false" do
+    assert {"1.0.0\n", 0} =
+             candidate_rehearsal_result(
+               "feat!: establish the 1.0 API contract",
+               "Candidate release notes.\n\nRelease-As: 1.0.0"
+             )
+
+    assert {"1.0.0\n", 0} =
+             candidate_rehearsal_result(
+               "feat(api)!: establish the 1.0 API contract",
+               "Candidate release notes.\n\nRelease-As: 1.0.0"
+             )
+
+    invalid_candidates = [
+      {"non-feat subject", "fix!: correct release metadata", "Release-As: 1.0.0", false},
+      {"missing footer", "feat!: establish the 1.0 API contract", "Candidate release notes.",
+       false},
+      {
+        "duplicate footer",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 1.0.0\nRelease-As: 1.0.0",
+        false
+      },
+      {
+        "malformed footer",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 1.0.0 extra",
+        false
+      },
+      {
+        "0.13.0 target",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 0.13.0",
+        false
+      },
+      {
+        "pre-major config still true",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 1.0.0",
+        true
+      },
+      {
+        "pre-major config is not a JSON boolean",
+        "feat!: establish the 1.0 API contract",
+        "Release-As: 1.0.0",
+        "false"
+      }
+    ]
+
+    for {case_name, subject, body, config_value} <- invalid_candidates do
+      {output, status} = candidate_rehearsal_result(subject, body, config_value)
+
+      assert status != 0,
+             "candidate parser accepted #{case_name}; expected a fail-closed result, got #{inspect(output)}"
+    end
   end
 
   # --- Plan 218-04: removed CI proofs stay justified and dominated ---------
