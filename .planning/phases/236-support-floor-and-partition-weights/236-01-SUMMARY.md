@@ -14,7 +14,7 @@ affects: [236-02, 237-upgrade-guide-and-1-0-0]
 actuals:
   tokens: 5965
   tasks: 2
-  commits: 3
+  commits: 4
 tech-stack:
   added: []
   patterns:
@@ -86,7 +86,7 @@ status: complete
 
 ## Task Commits
 
-1. **Task 1: Connect the minimum lane to the support table** — RED test commit 83302bff; GREEN implementation commit f068eea0.
+1. **Task 1: Connect the minimum lane to the support table** — RED test commit 83302bff; GREEN implementation commit f068eea0; source/test contract-link closure commit 5895d39d.
 2. **Task 2: Align README and breaking-change record** — 1c600cc9.
 
 ## Files Created/Modified
@@ -108,6 +108,7 @@ The minimum lane alone states the supported floor. The current and latest lanes 
 - The focused topology and guide contracts passed together: 26 tests, 0 failures, against PostgreSQL 15 (server_version_num 150018) at local port 55433.
 - mix verify.format passed.
 - Both TDD RED target runs failed on the intended assertions; gsd-tools check tdd-red-evidence returned RED_EVIDENCE_OK for each before implementation.
+- The phase-goal review found that the ROADMAP's same-commit CI/topology-contract criterion needed an explicit source link. A deletion mutation went red before adding the adjacent CI comment, and commit 5895d39d couples the CI lane comment with the topology contract that enforces it; the focused topology and parity contracts then passed (74 tests, 0 failures), followed by format and Credo checks.
 
 ## Deviations from Plan
 
