@@ -59,7 +59,7 @@ coverage:
         ref: "mix verify.format"
         status: pass
     human_judgment: false
-duration: 3min
+duration: 5min
 completed: 2026-10-07
 status: complete
 ---
@@ -70,9 +70,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** 3 min
+- **Duration:** 5 min
 - **Started:** 2026-10-07T20:23:05Z
-- **Completed:** 2026-10-07T20:26:08Z
+- **Completed:** 2026-10-07T20:28:29Z
 - **Tasks:** 2
 - **Files modified:** 4
 

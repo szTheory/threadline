@@ -303,7 +303,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 236 P01 | 30 min | 2 tasks | 7 files |
 | Phase 236 P02 | 62 min | 2 tasks | 7 files |
 | Phase 237 P01 | 10min | 2 tasks | 7 files |
-| Phase 237 P02 | 3min | 2 tasks | 4 files |
+| Phase 237 P02 | 5min | 2 tasks | 4 files |
 
 ## Deferred Items
 
