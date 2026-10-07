@@ -1198,6 +1198,12 @@ defmodule Threadline.CiTopologyContractTest do
 
     assert {"1.0.0\n", 0} =
              candidate_rehearsal_result(
+               "feat!: establish the 1.0 API contract",
+               "Release-As: 1.0.0"
+             )
+
+    assert {"1.0.0\n", 0} =
+             candidate_rehearsal_result(
                "feat(api)!: establish the 1.0 API contract",
                "Candidate release notes.\n\nRelease-As: 1.0.0"
              )

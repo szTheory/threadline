@@ -129,14 +129,17 @@ step() { printf '\n==> %s\n' "$*"; }
 # This pure helper is also exercised by the topology contract without cloning.
 candidate_release_target() {
   local subject="$1" message_body="$2" config="$3"
-  local candidate_trailers candidate_lines candidate_count candidate_footer
+  local candidate_message candidate_trailers candidate_lines candidate_count candidate_footer
 
   if [[ ! "$subject" =~ ^feat(\([^()]+\))?!:\ .+ ]]; then
     printf 'candidate subject must be a conventional feat!: commit, got %q\n' "$subject" >&2
     return 1
   fi
 
-  if ! candidate_trailers="$(printf '%s\n' "$message_body" | git interpret-trailers --parse)"; then
+  # interpret-trailers needs the complete message context: a body containing
+  # only `Release-As: 1.0.0` otherwise looks like a subject line of its own.
+  candidate_message="$(printf '%s\n\n%s\n' "$subject" "$message_body")"
+  if ! candidate_trailers="$(printf '%s\n' "$candidate_message" | git interpret-trailers --parse)"; then
     printf 'could not parse candidate commit trailers\n' >&2
     return 1
   fi
