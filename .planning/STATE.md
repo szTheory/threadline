@@ -6,11 +6,11 @@ current_phase: 237
 current_phase_name: Upgrade Guide and 1.0.0
 current_plan: Not started
 status: planning
-stopped_at: Phase 236 complete, ready to plan Phase 237
-last_updated: "2026-10-07T19:24:15Z"
+stopped_at: Phase 237 context gathered
+last_updated: "2026-10-07T19:32:25.025Z"
 last_activity: 2026-10-07
 last_activity_desc: Phase 236 complete, transitioned to Phase 237
-state_head: 22c8e4bd
+state_head: f007b884edb9d2aa35585079e3a03a8bd35d5a47
 progress:
   total_phases: 7
   completed_phases: 6
@@ -1082,9 +1082,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-07T19:24:15Z
-**Stopped at:** Phase 236 complete, ready to discuss Phase 237
-**Resume file:** None
+**Last session:** 2026-10-07T19:32:24.888Z
+**Stopped at:** Phase 237 context gathered
+**Resume file:** .planning/phases/237-upgrade-guide-and-1-0-0/237-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
