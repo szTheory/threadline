@@ -58,9 +58,9 @@ defmodule Threadline.GuideGraphContractTest do
   test "the Markdown resolver reports missing paths and normalized anchors" do
     files = %{
       "guides/source.md" =>
-        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[code](target.md#code-only)\n[indented](target.md#indented-code-only)\n[inline](target.md#inline-code-only)\n[multiline](target.md#multiline-code-only)\n[escaped](target.md#escaped-backtick-anchor)\n[bad](missing.md)",
+        "# Source\n[valid](target.md#target-heading)\n[explicit](target.md#breaking-changes-0-12-0)\n[code](target.md#code-only)\n[indented](target.md#indented-code-only)\n[inline](target.md#inline-code-only)\n[multiline](target.md#multiline-code-only)\n[escaped](target.md#escaped-backtick-anchor)\n[after-tab](target.md#after-tab-fence)\n[bad](missing.md)",
       "guides/target.md" =>
-        "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n```html\n<a id=\"code-only\"></a>\n```\n    <a id=\"indented-code-only\"></a>\n`<a id=\"inline-code-only\"></a>`\n`<a id=\"multiline-code-only\"></a>\ncontinued code span`\n\\`<a id=\"escaped-backtick-anchor\"></a>\n`active inline code span`\n"
+        "# Target heading\n<a id=\"breaking-changes-0-12-0\"></a>\n```html\n<a id=\"code-only\"></a>\n```\n    <a id=\"indented-code-only\"></a>\n`<a id=\"inline-code-only\"></a>`\n`<a id=\"multiline-code-only\"></a>\ncontinued code span`\n\\`<a id=\"escaped-backtick-anchor\"></a>\n`active inline code span`\n\t```html\n<a id=\"after-tab-fence\"></a>\n"
     }
 
     assert validate_links("guides/source.md", files["guides/source.md"], files) == [
@@ -386,14 +386,14 @@ defmodule Threadline.GuideGraphContractTest do
   end
 
   defp opening_fence(line) do
-    case Regex.run(~r/^\s{0,3}(`{3,}|~{3,})/, line, capture: :all_but_first) do
+    case Regex.run(~r/^ {0,3}(`{3,}|~{3,})/, line, capture: :all_but_first) do
       [opening] -> opening
       _ -> nil
     end
   end
 
   defp closing_fence?(line, opening) do
-    case Regex.run(~r/^\s{0,3}(`+|~+)\s*$/, line, capture: :all_but_first) do
+    case Regex.run(~r/^ {0,3}(`+|~+) *$/, line, capture: :all_but_first) do
       [closing] ->
         String.first(opening) == String.first(closing) and
           byte_size(closing) >= byte_size(opening)
