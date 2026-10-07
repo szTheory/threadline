@@ -3,9 +3,9 @@ phase: "232"
 slug: "consolidated-reads-deprecations-and-the-bounded-default"
 status: verified
 threats_open: 0
-threats_open_below_threshold: 1
+threats_open_below_threshold: 0
 threats_total: 19
-threats_closed: 18
+threats_closed: 19
 asvs_level: 1
 block_on: high
 register_authored_at_plan_time: true
@@ -48,7 +48,7 @@ made: the two accepted dispositions below are copied from the approved plans.
 | T-232-15 | Information disclosure | Internal helper documentation | low | mitigate | `lib/threadline/telemetry.ex:405` and `lib/threadline/query.ex:224` hide helpers; `test/threadline/public_surface_contract_test.exs:323` and line 382 pin hidden docs. | closed |
 | T-232-16 | Tampering | ExDoc warning suppression | medium | mitigate | `mix.exs:631` retains narrow skip lists; `test/threadline/public_surface_contract_test.exs:278` pins both. | closed |
 | T-232-17 | Tampering | Migrated assertions capped at 200 | medium | mitigate | `test/support/row_history.ex:10`, `test/threadline/query/as_of_property_test.exs:118` and example shape round-trip tests explicitly request infinity. | closed |
-| T-232-18 | Repudiation | Test/example deprecation warnings | low | mitigate | Strict execution was recorded in the plan summary, but `mix.exs:144` and `bin/ci-test-partitions:380` do not enforce test warnings as errors persistently. Current focused suites pass; a persistent gate remains unverified. | open — below high threshold |
+| T-232-18 | Repudiation | Test/example deprecation warnings | low | mitigate | Current `MIX_ENV=test mix compile --warnings-as-errors --force` and `mix verify.test --warnings-as-errors` passed (3,047 tests and 32 properties, zero failures); `mix verify.example` passed strict compile and 132 tests. Retired-call scans found only the scanner's own fixture strings under test, and no example callers. No compiler-option suppression was added. | closed |
 | T-232-SC | Tampering | Package installs | low | accept | The approved plans install no packages. See accepted risks. | closed |
 
 ## Accepted Risks Log
@@ -62,13 +62,28 @@ made: the two accepted dispositions below are copied from the approved plans.
 
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
-| 2026-10-07 | 19 | 18 | 1 low, 0 blocking | gsd-security-auditor; orchestrator persisted approved risk dispositions |
+| 2026-10-07 | 19 | 18 | 1 low, 0 blocking | Initial auditor result; orchestrator persisted approved risk dispositions |
+| 2026-10-07 | 19 | 19 | 0 | Current strict checks close T-232-18; auditor confirmed the approved plan requires verification runs, not a permanent CI alias change |
+
+The initial auditor interpretation of T-232-18 added an unplanned persistent-CI
+requirement. On review of the literal plan, the auditor withdrew that inference.
+The current strict full-suite run and example checks meet the actual mitigation.
+The two root scan matches (`facade_only_references_contract_test.exs:305,324`)
+are deliberately rejected fixture input and its assertion, not executable calls.
 
 ## Sign-Off
 
 - [x] All planned threats have a disposition and source evidence.
 - [x] Existing accepted risks are documented without adding new acceptances.
 - [x] `threats_open: 0` at the configured high threshold.
-- [x] `status: verified`; one non-blocking warning-gate gap remains explicit.
+- [x] `status: verified`; all 19 distinct planned threats are closed.
 
-**Approval:** verified 2026-10-07 at ASVS level 1, with T-232-18 open below threshold.
+**Approval:** verified 2026-10-07 at ASVS level 1.
+
+## Security Audit 2026-10-07
+
+| Metric | Count |
+|---|---|
+| Threats found | 19 |
+| Closed | 19 |
+| Open | 0 |
