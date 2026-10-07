@@ -37,8 +37,8 @@ defmodule Threadline.MixProject do
       app: :threadline,
       version: @version,
       # Support contract: Elixir 1.15 floor / 1.17.3 current, OTP 26 min / 27 current,
-      # PostgreSQL 14 min / 16 current. The floor is honored by the CI `min` lane (full
-      # suite on 1.15/OTP26/PG14) — NOT by raising this requirement. Do not bump "~> 1.15"
+      # PostgreSQL 15 min / 16 current. The floor is honored by the CI `min` lane (full
+      # suite on 1.15/OTP26/PG15) — NOT by raising this requirement. Do not bump "~> 1.15"
       # to a newer minor: that would strand applications on the supported floor.
       # The CI `latest` lane also runs the suite on the newest stable Elixir/OTP/
       # PostgreSQL (exact pins in ci.yml). That is tested-on evidence, not a support

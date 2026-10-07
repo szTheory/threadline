@@ -581,7 +581,7 @@ jobs:
     # (elixir/otp/pg/runner) do NOT append to that suffix, so the static
     # `name:` yields the three documented check names (D-15/D-19, RESEARCH
     # M1 construction A). Min lane = Elixir 1.15.8 / OTP 26.2.5.21 (exact
-    # floor build, strict) / pg14 on ubuntu-24.04 proving the declared floor;
+    # floor build, strict) / pg15 on ubuntu-24.04 proving the declared floor;
     # current lane = the committed .tool-versions build, the full payload.
     # Latest lane = the newest stable Elixir/OTP/PostgreSQL, exactly pinned
     # with explicit `otp`/`elixir` (no `version-file`); it runs compile
@@ -603,7 +603,7 @@ jobs:
           - lane: min
             elixir: "1.15.8"
             otp: "26.2.5.21"
-            pg: "14"
+            pg: "15"
             runner: "ubuntu-24.04"
           - lane: current
             version-file: ".tool-versions"

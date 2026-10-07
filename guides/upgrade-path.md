@@ -65,6 +65,16 @@ Support claims in this table come from current in-repo proof only:
 
 Threadline does not claim support for Phoenix, LiveView, HTML, PubSub, or Sigra combinations outside these named proofs. The `{:sigra, "~> 0.2", optional: true}` declaration is a host install shape, not a blanket promise covering every Sigra `0.2.x` host. If your lockfile resolves to different versions within the declared ranges, or your host auth/layout differs from the reference path, treat that as your responsibility to verify locally unless and until the Threadline repo updates its own declared ranges, lock resolution references, docs, and CI coverage accordingly.
 
+## Toolchain support policy
+
+The Elixir requirement in `mix.exs` is `~> 1.15`. The `min` lane is the supported floor; `current` and `latest` show versions exercised by CI and are tested-on evidence, not additional support promises.
+
+| Lane | Elixir | OTP | PostgreSQL | Meaning |
+| --- | --- | --- | --- | --- |
+| `min` | `~> 1.15` (CI pin `1.15.8`) | `26.2.5.21` | `15` | Supported floor |
+| `current` | `1.17.3-otp-27` | `27.3.4.15` | `16` | Tested-on only; not a support promise |
+| `latest` | `1.20.4` | `29.1.1` | `18.6` | Tested-on only; not a support promise |
+
 **Backport policy.** Security and critical fixes are backported as patch releases on the current minor (e.g. `0.9.1`), which any `~> 0.9.0`-style three-segment pin picks up automatically; crossing a minor stays a deliberate, changelog-reading act. This is why a tight three-segment pin never strands an install-once audit adopter on an unpatched line.
 
 ## Upgrade by Threadline minor
