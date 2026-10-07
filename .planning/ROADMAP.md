@@ -316,7 +316,7 @@ Plans:
 Plans:
 **Wave 1**
 - [x] 237-01-PLAN.md — Publish the complete 1.0 upgrade path and exact changelog contract (completed 2026-10-07)
-- [ ] 237-02-PLAN.md — Bind the local release rehearsal to a committed 1.0.0 candidate
+- [x] 237-02-PLAN.md — Bind the local release rehearsal to a committed 1.0.0 candidate (completed 2026-10-07)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 237-03-PLAN.md — Audit milestone footers and prove the isolated candidate locally
@@ -337,7 +337,7 @@ Plans:
 | 234. Typespec and Doc Completion Gate | 22/22 | Complete    | 2026-10-06 |
 | 235. Stability Contract and Adopter Guides | 5/5 | Complete    | 2026-10-06 |
 | 236. Support Floor and Partition Weights | 2/2 | Complete    | 2026-10-07 |
-| 237. Upgrade Guide and 1.0.0 | 0/5 | Planned | - |
+| 237. Upgrade Guide and 1.0.0 | 2/5 | In Progress | - |
 
 ## Prior Milestones
 
