@@ -188,6 +188,9 @@ defmodule Threadline.GuideGraphContractTest do
     assert_graph_nodes!(Map.fetch!(@lanes, lane))
   end
 
+  defp route_to_node("guides/upgrading-to-1.0.md", _landing), do: "guides/upgrade-path.md"
+  defp route_to_node(_node, landing), do: landing
+
   defp assert_graph_nodes!(nodes) do
     files = public_markdown_files()
     assert nodes != []
@@ -210,8 +213,7 @@ defmodule Threadline.GuideGraphContractTest do
       assert outbound != [], "#{node} has no outbound guide edge"
 
       if node != landing do
-        route =
-          if node == "guides/upgrading-to-1.0.md", do: "guides/upgrade-path.md", else: landing
+        route = route_to_node(node, landing)
 
         assert link_target?(route, Map.fetch!(files, route), node),
                "#{route} does not route its #{lane} lane to #{node}"
