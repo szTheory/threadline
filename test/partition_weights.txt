@@ -265,6 +265,7 @@
 1 test/threadline/upgrade_path_doc_contract_test.exs
 290 test/threadline/upgrade_rollback_test.exs
 2 test/threadline/upgrading_to_0_11_doc_contract_test.exs
+4 test/threadline/upgrading_to_1_0_doc_contract_test.exs
 1 test/threadline/verify_coverage_policy_test.exs
 3363 test/threadline/verify_coverage_task_test.exs
 13 test/threadline/version_truth_doc_contract_test.exs

@@ -60,21 +60,26 @@ defmodule Threadline.UpgradingTo100DocContractTest do
     heading_section!(content, Regex.compile!("^### #{Regex.escape(heading)}$"), source)
   end
 
+  defp extract_ids(content) do
+    Regex.scan(~r/<!-- threadline:upgrade:([^:]+):([a-z0-9-]+) -->/, content,
+      capture: :all_but_first
+    )
+    |> Enum.map(fn [scope, id] -> "#{scope}/#{id}" end)
+  end
+
   defp bullet_ids!(content, scope, source) do
     bullets = Regex.scan(~r/(?ms)^- (.*?)(?=^- |\z)/, content, capture: :all_but_first)
 
     assert bullets != [], "expected #{source} to contain scoped top-level bullets"
 
     Enum.flat_map(bullets, fn [bullet] ->
-      ids =
-        Regex.scan(~r/<!-- threadline:upgrade:#{scope}:([a-z0-9-]+) -->/, bullet,
-          capture: :all_but_first
-        )
-
-      values = Enum.map(ids, fn [id] -> "#{scope}/#{id}" end)
+      values = extract_ids(bullet)
 
       assert length(values) == 1,
-             "#{source} has a scoped bullet with #{length(values)} #{scope} IDs; expected exactly one: #{String.slice(String.trim(bullet), 0, 120)}"
+             "#{source} has a bullet with #{length(values)} upgrade IDs; expected exactly one #{scope} ID: #{String.slice(String.trim(bullet), 0, 120)}"
+
+      assert String.starts_with?(hd(values), "#{scope}/"),
+             "#{source} bullet is tagged for the wrong scope: #{inspect(hd(values))}"
 
       values
     end)
@@ -82,25 +87,44 @@ defmodule Threadline.UpgradingTo100DocContractTest do
 
   defp duplicate_values(values), do: values -- Enum.uniq(values)
 
+  defp compare_ids(source_ids, guide_ids, scope) do
+    expected_prefix = "#{scope}/"
+    source_scoped = Enum.filter(source_ids, &String.starts_with?(&1, expected_prefix))
+    guide_scoped = Enum.filter(guide_ids, &String.starts_with?(&1, expected_prefix))
+
+    source_set = MapSet.new(source_scoped)
+    guide_set = MapSet.new(guide_scoped)
+
+    %{
+      source_duplicates: duplicate_values(source_ids),
+      guide_duplicates: duplicate_values(guide_ids),
+      wrong_source_scope: Enum.reject(source_ids, &String.starts_with?(&1, expected_prefix)),
+      wrong_guide_scope: Enum.reject(guide_ids, &String.starts_with?(&1, expected_prefix)),
+      missing: MapSet.difference(source_set, guide_set) |> MapSet.to_list() |> Enum.sort(),
+      extra: MapSet.difference(guide_set, source_set) |> MapSet.to_list() |> Enum.sort()
+    }
+  end
+
   defp assert_exact_ids!(source_ids, guide_ids, scope) do
-    source_duplicates = duplicate_values(source_ids)
-    guide_duplicates = duplicate_values(guide_ids)
+    report = compare_ids(source_ids, guide_ids, scope)
 
-    assert source_duplicates == [],
-           "#{@changelog_path} duplicates #{scope} IDs: #{inspect(source_duplicates)}"
+    assert report.wrong_source_scope == [],
+           "#{@changelog_path} contains IDs outside #{scope}: #{inspect(report.wrong_source_scope)}"
 
-    assert guide_duplicates == [],
-           "#{@guide_path} duplicates #{scope} IDs: #{inspect(guide_duplicates)}"
+    assert report.wrong_guide_scope == [],
+           "#{@guide_path} contains IDs outside #{scope}: #{inspect(report.wrong_guide_scope)}"
 
-    source_set = MapSet.new(source_ids)
-    guide_set = MapSet.new(guide_ids)
-    missing = MapSet.difference(source_set, guide_set) |> MapSet.to_list() |> Enum.sort()
-    extra = MapSet.difference(guide_set, source_set) |> MapSet.to_list() |> Enum.sort()
+    assert report.source_duplicates == [],
+           "#{@changelog_path} duplicates #{scope} IDs: #{inspect(report.source_duplicates)}"
 
-    assert missing == [],
-           "#{@guide_path} is missing #{scope} change IDs from #{@changelog_path}: #{inspect(missing)}"
+    assert report.guide_duplicates == [],
+           "#{@guide_path} duplicates #{scope} IDs: #{inspect(report.guide_duplicates)}"
 
-    assert extra == [], "#{@guide_path} has unmatched #{scope} change IDs: #{inspect(extra)}"
+    assert report.missing == [],
+           "#{@guide_path} is missing #{scope} change IDs from #{@changelog_path}: #{inspect(report.missing)}"
+
+    assert report.extra == [],
+           "#{@guide_path} has unmatched #{scope} change IDs: #{inspect(report.extra)}"
   end
 
   test "the 0.11-only preflight maps the three 0.12.0 breaking changes exactly" do
@@ -114,11 +138,7 @@ defmodule Threadline.UpgradingTo100DocContractTest do
     preflight =
       heading_section!(guide_content, ~r/^## Before you upgrade from 0\.11\.x$/, @guide_path)
 
-    guide_ids =
-      Regex.scan(~r/<!-- threadline:upgrade:0\.12:([a-z0-9-]+) -->/, preflight,
-        capture: :all_but_first
-      )
-      |> Enum.map(fn [id] -> "0.12/#{id}" end)
+    guide_ids = extract_ids(preflight)
 
     assert Regex.scan(~r/## Step \d+:/, guide_content) |> length() == 7,
            "#{@guide_path} must have exactly seven numbered 1.0 steps"
@@ -126,7 +146,7 @@ defmodule Threadline.UpgradingTo100DocContractTest do
     assert String.contains?(preflight, "0.11.x")
     assert String.contains?(preflight, "upgrade-path.md")
     assert String.contains?(preflight, "CHANGELOG.md")
-    assert_exact_ids!(source_ids, guide_ids, "0.12 preflight")
+    assert_exact_ids!(source_ids, guide_ids, "0.12")
   end
 
   test "the seven ordered 1.0 steps map every breaking change and deprecation exactly" do
@@ -156,13 +176,9 @@ defmodule Threadline.UpgradingTo100DocContractTest do
     {first_step, _} = :binary.match(content, @step_headings |> List.first())
     common_steps = binary_part(content, first_step, byte_size(content) - first_step)
 
-    guide_ids =
-      Regex.scan(~r/<!-- threadline:upgrade:1\.0:([a-z0-9-]+) -->/, common_steps,
-        capture: :all_but_first
-      )
-      |> Enum.map(fn [id] -> "1.0/#{id}" end)
+    guide_ids = extract_ids(common_steps)
 
-    assert_exact_ids!(source_ids, guide_ids, "1.0 guide")
+    assert_exact_ids!(source_ids, guide_ids, "1.0")
     assert Regex.match?(~r/1\.0 changes require no\s+trigger regeneration/, content)
     assert String.contains?(content, "AuditTransaction")
     assert String.contains?(content, "AuditAction")
@@ -174,5 +190,59 @@ defmodule Threadline.UpgradingTo100DocContractTest do
     assert String.contains?(File.read!("mix.exs"), "\"guides/upgrading-to-1.0.md\"")
     graph = File.read!("test/threadline/guide_graph_contract_test.exs")
     assert String.contains?(graph, "\"guides/upgrading-to-1.0.md\"")
+  end
+
+  test "the ID extractor handles empty and single-ID regions" do
+    assert extract_ids("no upgrade markers here") == []
+
+    assert extract_ids("<!-- threadline:upgrade:1.0:single-change -->") == [
+             "1.0/single-change"
+           ]
+  end
+
+  test "the source selector accepts Unreleased staging and a dated 1.0.0 block" do
+    staged =
+      "## Unreleased — highlights\n\n### Breaking changes\n- staged\n## [0.12.0] - 2026-10-02\n"
+
+    released =
+      "## Unreleased — highlights\n\n### Breaking changes\n- future\n" <>
+        "## [1.0.0] - 2026-10-10\n\n### Breaking changes\n- released\n## [0.12.0] - 2026-10-02\n"
+
+    assert String.contains?(changelog_scope!(staged, "1.0"), "- staged")
+    assert String.contains?(changelog_scope!(released, "1.0"), "- released")
+    refute String.contains?(changelog_scope!(released, "1.0"), "- future")
+  end
+
+  test "source and guide mutations report removed, added, duplicated, wrong-set, and cross-scope IDs" do
+    assert compare_ids([], [], "1.0").missing == []
+    assert compare_ids([], [], "1.0").extra == []
+
+    source_removed = compare_ids(["1.0/a"], [], "1.0")
+    assert source_removed.extra == []
+    assert source_removed.missing == ["1.0/a"]
+
+    guide_removed = compare_ids([], ["1.0/a"], "1.0")
+    assert guide_removed.missing == []
+    assert guide_removed.extra == ["1.0/a"]
+
+    unmatched_source = compare_ids(["1.0/a", "1.0/new-source"], ["1.0/a"], "1.0")
+    assert unmatched_source.missing == ["1.0/new-source"]
+
+    unmatched_guide = compare_ids(["1.0/a"], ["1.0/a", "1.0/new-guide"], "1.0")
+    assert unmatched_guide.extra == ["1.0/new-guide"]
+
+    equal_size_wrong_set = compare_ids(["1.0/a"], ["1.0/b"], "1.0")
+    assert equal_size_wrong_set.missing == ["1.0/a"]
+    assert equal_size_wrong_set.extra == ["1.0/b"]
+
+    duplicate_source = compare_ids(["1.0/a", "1.0/a"], ["1.0/a"], "1.0")
+    assert duplicate_source.source_duplicates == ["1.0/a"]
+
+    duplicate_guide = compare_ids(["1.0/a"], ["1.0/a", "1.0/a"], "1.0")
+    assert duplicate_guide.guide_duplicates == ["1.0/a"]
+
+    moved_preflight_id = compare_ids(["1.0/a"], ["0.12/preflight-change"], "1.0")
+    assert moved_preflight_id.missing == ["1.0/a"]
+    assert moved_preflight_id.wrong_guide_scope == ["0.12/preflight-change"]
   end
 end
