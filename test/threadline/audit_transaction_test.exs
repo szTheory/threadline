@@ -9,6 +9,13 @@ defmodule Threadline.AuditTransactionTest do
   alias Threadline.Semantics.AuditAction
   alias Threadline.StorageSchema
 
+  defmodule RepoProbe do
+    def transaction(_fun) do
+      send(self(), :repo_transaction_called)
+      {:ok, :repo_transaction_result}
+    end
+  end
+
   setup_all do
     Repo.query!("""
     CREATE TABLE IF NOT EXISTS test_audit_helper_target (
@@ -122,6 +129,80 @@ defmodule Threadline.AuditTransactionTest do
                  [action: :should_fail],
                  fn -> :ok end
                )
+    end
+
+    test "malformed explicit actors are rejected before the transaction and callback" do
+      for actor_ref <- [%{}, "not-an-actor", 42, false],
+          opts <- [
+            [actor_ref: actor_ref],
+            [actor_ref: actor_ref, allow_missing_actor: true],
+            [actor_ref: actor_ref, action: :should_not_run]
+          ] do
+        assert {:error, :invalid_actor_ref} =
+                 Threadline.Audit.transaction(RepoProbe, opts, fn ->
+                   send(self(), :audit_callback_called)
+                 end)
+
+        refute_received :repo_transaction_called
+        refute_received :audit_callback_called
+      end
+    end
+
+    test "malformed context actors are rejected and explicit malformed actors override context" do
+      context = %Threadline.Semantics.AuditContext{actor_ref: "bad-context-actor"}
+
+      for opts <- [[audit_context: context], [audit_context: context, allow_missing_actor: true]] do
+        assert {:error, :invalid_actor_ref} =
+                 Threadline.Audit.transaction(RepoProbe, opts, fn ->
+                   send(self(), :audit_callback_called)
+                 end)
+
+        refute_received :repo_transaction_called
+        refute_received :audit_callback_called
+      end
+
+      {:ok, context_actor} = ActorRef.new(:user, "context-actor")
+      valid_context = %Threadline.Semantics.AuditContext{actor_ref: context_actor}
+
+      assert {:error, :invalid_actor_ref} =
+               Threadline.Audit.transaction(
+                 RepoProbe,
+                 [audit_context: valid_context, actor_ref: false, allow_missing_actor: true],
+                 fn -> send(self(), :audit_callback_called) end
+               )
+
+      refute_received :repo_transaction_called
+      refute_received :audit_callback_called
+    end
+
+    test "explicit nil actor falls back to its audit context actor" do
+      {:ok, context_actor} = ActorRef.new(:user, "context-fallback")
+      context = %Threadline.Semantics.AuditContext{actor_ref: context_actor}
+
+      assert {:ok, _} =
+               Threadline.Audit.transaction(
+                 Repo,
+                 [audit_context: context, actor_ref: nil],
+                 fn ->
+                   insert_row!("context-fallback")
+                   :ok
+                 end
+               )
+
+      assert [%AuditTransaction{actor_ref: ^context_actor}] =
+               Repo.all(AuditTransaction, repo_opts())
+    end
+
+    test "allow_missing_actor does not permit nil actor when an action is present" do
+      assert {:error, :missing_actor} =
+               Threadline.Audit.transaction(
+                 RepoProbe,
+                 [actor_ref: nil, action: :should_not_run, allow_missing_actor: true],
+                 fn -> send(self(), :audit_callback_called) end
+               )
+
+      refute_received :repo_transaction_called
+      refute_received :audit_callback_called
     end
 
     @tag :missing_actor
