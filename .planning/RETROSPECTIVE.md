@@ -1308,14 +1308,56 @@ First-class light mode for the operator surface without disturbing the dark defa
 - Timeline: 3 days (2026-09-30 → 2026-10-02) for 7 phases and 260 commits, the fastest product-code rung so far.
 - Notable: Flake Detection was sized from measured scale-5 runs: the repeat count went from 11 to 8 to fit the unchanged 55-minute budget.
 
+## Milestone: v1.45 — 1.0 API Contract
+
+**Shipped:** 2026-10-07 (released as 1.0.0; PR #80 merged after all 16 checks passed)
+
+**Phases:** 7 (231–237) | **Plans:** 47 | **Planned tasks:** 116
+
+### What was built
+
+- A deliberate 1.x facade and stable read/lookup contracts, including bounded defaults, compatible deprecations, and complete public typespecs and docs.
+- A tested PostgreSQL 15 support floor and measured partition weights for all 266 test files.
+- A seven-step 1.0 upgrade guide and candidate-bound release rehearsal; `threadline` 1.0.0 shipped with ExDoc.
+- The Phase 234 mobile browser obstruction was fixed by dismissing the reduced-motion toast and modal before the drawer interaction; focused Playwright, `mix ci.all`, and PR CI passed.
+
+### What worked
+
+- The one-squash release path kept the landing commit, green CI, merge, Hex publication, and distribution-doc sync tied to exact SHAs.
+- Refreshing verification after the mobile review fix restored current phase evidence before archiving.
+- PostgreSQL 15.18 exercised the full 3,058-test suite (0 failures, 3 excluded), and the integration audit checked all 25 seams and 8 end-to-end flows.
+
+### What was inefficient
+
+- The milestone CLI's generated history contained a stale 265-file count; the closeout review corrected it to the measured 266 before committing the archive.
+- Planning state handlers preserved historical fields and misread this repository's progress block, so ROADMAP and STATE needed a manual consistency pass.
+
+### Patterns established
+
+- Re-run phase verification after review fixes, then compare counts and status by hand before archiving.
+- Treat generated milestone prose as a draft; validate figures and exact release evidence against source records.
+- Keep release publication and planning closeout as distinct steps, with each tied to explicit evidence.
+
+### Key lessons
+
+1. A green release gate does not remove the need to refresh the phase evidence after the final fix; verify the tree that will be archived.
+2. Check generated counts against the actual inventory before making them durable history.
+3. A 1.0.0 milestone can close with disclosed advisory code-review and below-threshold security debt when the audit has no blockers or open items; record that debt plainly rather than implying every review note disappeared.
+
+### Cost observations
+
+- Timeline: five calendar days (2026-10-02 → 2026-10-07) for 7 phases, 47 plans, and 116 planned tasks.
+- The model-cost mix was not instrumented for this milestone.
+
 ## Cross-Milestone Trends
 
+- v1.45 completed the base-library ladder with 1.0.0. Exact-SHA release evidence, refreshed close-time verification, and a manual archive count check kept the shipped state and planning record aligned; no next milestone was preselected.
 - v1.44 shows property tests paying for themselves on their first milestone: three real defects were found and fixed, each guarded by a mutation control. It also shows that derived test data (partition weights) and verification digests drift silently unless the phase that invalidates them refreshes them.
 - v1.43 shows that measure-first also works as a way to decline work: the SEED-006 classifier was closed on data, and a phase that did not move the critical path took no credit for it. It also showed that release hygiene is part of shipping: a correct fix under a non-releasable squash subject never reaches adopters.
 - v1.42 shows the value of landing a milestone within days of finishing it: the release came out exactly as proposed, and PR CI (fresh database) caught what local gates could not.
 - v1.39 shows a non-feature "consolidation" milestone (quality audit → schema/docs/CI hardening → ranked residual register) can ship as a first-class milestone when surface area has outgrown its trust evidence.
 - Measure-before-optimize generalizes beyond UI: the CI baseline-first discipline mirrors the baseline-first UI lesson from v1.38.
-- Generated archive text (SUMMARY one-liners → MILESTONES accomplishments) has now needed editorial cleanup at v1.37, v1.38, and v1.39 closes — treat CLI-generated milestone prose as a draft, always review before it becomes durable history.
+- Generated archive text (SUMMARY one-liners → MILESTONES accomplishments) has needed editorial cleanup at v1.37, v1.38, v1.39, and v1.45 closes — treat CLI-generated milestone prose as a draft, always review counts and claims before it becomes durable history.
 - v1.38 confirms the v1.37 lesson that generated archive text needs editorial review before it becomes durable project history.
 - Baseline-first UI milestones reduce drift: rendered evidence, source contracts, and stale-test repair should precede visual or IA changes.
 - Example-app dev tooling is the right place for maintainer-only UI review aids when the root library has an optional-dependency promise.
