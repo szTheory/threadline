@@ -19,10 +19,26 @@
 
 ## Unreleased — highlights
 
-Highlights accumulate here as work lands, and this heading is retitled to the
-dated release heading at release time. The heading is deliberately unbracketed:
-a bracketed form collides with release automation's version-header pattern and
-would be read as a release.
+_Nothing yet for the next release._
+
+## [1.0.1] - 2026-10-08
+
+Threadline 1.0.1 hardens actor-reference validation at the audit transaction
+and job boundaries.
+
+### Breaking changes
+
+None.
+
+### Required action
+
+None.
+
+### Fixed
+
+- `Threadline.Audit.transaction/3` rejects malformed actor references before
+  opening the database transaction, and `Threadline.Job.actor_ref_from_args/1`
+  safely classifies present non-map actor data instead of raising.
 
 ## [1.0.0] - 2026-10-07
 
