@@ -35,7 +35,7 @@ auth, and screen contract.
 def deps do
   [
     # ...
-    {:threadline, "~> 0.12.0"}
+    {:threadline, "~> 1.0.0"}
   ]
 end
 ```
