@@ -63,7 +63,9 @@ defmodule Threadline.Job do
   Returns the `ActorRef` serialized in a job argument map.
 
   Looks for an `"actor_ref"` key containing a map serialized by
-  `ActorRef.to_map/1`.
+  `ActorRef.to_map/1`. A missing key returns `:missing_actor_ref`; a present
+  non-map value returns `:invalid_actor_ref_map`. Map values are decoded by
+  `ActorRef.from_map/1`, preserving its specific validation errors.
 
   ## Returns
 
@@ -74,6 +76,9 @@ defmodule Threadline.Job do
   def actor_ref_from_args(%{"actor_ref" => actor_ref_map}) when is_map(actor_ref_map) do
     ActorRef.from_map(actor_ref_map)
   end
+
+  def actor_ref_from_args(%{"actor_ref" => _actor_ref}),
+    do: {:error, :invalid_actor_ref_map}
 
   def actor_ref_from_args(_args), do: {:error, :missing_actor_ref}
 

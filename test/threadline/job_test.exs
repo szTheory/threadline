@@ -26,6 +26,32 @@ defmodule Threadline.JobTest do
     test "returns error for empty args map" do
       assert {:error, :missing_actor_ref} = Threadline.Job.actor_ref_from_args(%{})
     end
+
+    test "distinguishes present non-map actor refs from a missing key" do
+      for actor_ref <- [nil, "not-a-map", 42, false, []] do
+        assert {:error, :invalid_actor_ref_map} =
+                 Threadline.Job.actor_ref_from_args(%{"actor_ref" => actor_ref})
+      end
+
+      for args <- [nil, "not-an-args-map", []] do
+        assert {:error, :missing_actor_ref} = Threadline.Job.actor_ref_from_args(args)
+      end
+    end
+
+    test "preserves specific errors when actor_ref is a malformed map" do
+      assert {:error, :invalid_actor_ref_map} =
+               Threadline.Job.actor_ref_from_args(%{
+                 "actor_ref" => %{:type => "user", "id" => "u-1"}
+               })
+
+      assert {:error, :missing_actor_id} =
+               Threadline.Job.actor_ref_from_args(%{"actor_ref" => %{"type" => "user"}})
+
+      assert {:error, :unknown_actor_type} =
+               Threadline.Job.actor_ref_from_args(%{
+                 "actor_ref" => %{"type" => "unknown", "id" => "u-1"}
+               })
+    end
   end
 
   describe "context_opts/2" do
