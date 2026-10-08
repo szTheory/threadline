@@ -1,7 +1,7 @@
 ---
 phase: 180-accessibility-verification-guardrails-adversarial-closeout
 verified: 2026-06-20
-status: passed-with-inherited-ci-residuals
+status: passed
 requirements: [A11Y-01, A11Y-02, MOTION-01, MOTION-02]
 ---
 

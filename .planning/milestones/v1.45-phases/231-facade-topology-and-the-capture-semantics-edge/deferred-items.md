@@ -2,6 +2,8 @@
 
 ## 231-02: pre-existing release_artifact_contract_test.exs vocabulary failures
 
+- status: resolved
+
 **Found during:** Task 1 (231-02), running the full verify command
 `mix test test/threadline/public_surface_contract_test.exs test/threadline/release_artifact_contract_test.exs`.
 

@@ -105,9 +105,10 @@ case justify it. Never imply certification or compliance from a test suite.
 
 5. OPERATING POSTURE (2026-09-25)
 
-The standing mode is: RATCHET THE BASE LIBRARY TO DIMINISHING RETURNS, THEN
-1.0.0. The operator/admin UI is PARKED until 1.0.0 ships. After that, the
-maintainer returns to UI/UX feedback.
+The base-library ladder through 1.0.0 is complete. Re-derive the baseline
+before selecting further work or stopping. Operator/admin UI work is eligible
+for evaluation from maintainer feedback, but is not selected by default. The
+paid critic remains parked unless explicitly un-parked.
 
 This replaces the older "hold without adopter signal" posture in one
 respect. A quality milestone is allowed without adopter signal when it
@@ -166,15 +167,21 @@ done earlier, stop earlier.
 This section is the canonical scope sketch per rung. MILESTONE-ARC.md holds
 only the live rank order and status and points back here.
 
-Re-estimate, 2026-10-02 (v1.44 close): one rung remains. v1.43 took 4
-days and v1.44 took 3 (7 phases). v1.45 is the API-contract rung (specs,
-consolidation with deprecations, guides), so budget about 1-2 weeks. That
-puts 1.0.0 around mid-to-late October 2026.
+Actual at v1.45 close (2026-10-07, America/New_York): the 1.0.0 release and
+distribution-docs sync shipped in five calendar days, across 7 phases, 47
+plans, and 116 planned tasks. The milestone audit passed with disclosed
+review debt and no blockers. This completed the ladder ahead of the prior
+mid-to-late October estimate. No next milestone is selected; re-derive the
+baseline using §6 before choosing sustainment, another outcome, or stopping.
 
-Estimated on 2026-09-25. v1.41 was unusually heavy (153 plans in about 4
-weeks). The rungs below are narrower (about 3-5 phases, roughly 1-2 weeks
-each). The estimated arrival at diminishing returns / 1.0.0 is about 6-9
-weeks: mid-November to early December 2026.
+Prior estimate, 2026-10-02 (v1.44 close): one rung remained. v1.43 took 4
+days and v1.44 took 3 (7 phases). v1.45 was budgeted at about 1-2 weeks.
+
+Original estimate from 2026-09-25 (superseded by the actual above): v1.41
+was unusually heavy (153 plans in about 4 weeks). The rungs below were
+expected to be narrower (about 3-5 phases, roughly 1-2 weeks each), putting
+the estimated arrival at diminishing returns / 1.0.0 at 6-9 weeks: mid-
+November to early December 2026.
 
 NEAR (the ladder to 1.0.0):
 
@@ -231,6 +238,8 @@ v1.44 Behavioral Depth: Properties, Twins, Telemetry -> minor
   - history/3 gets a limit and a deterministic tiebreak.
 
 v1.45 1.0 API Contract -> 1.0.0
+  [SHIPPED 2026-10-07; closeout audit passed with review debt and no
+   blockers; 7 phases, 47 plans, 116 planned tasks]
   - Complete @spec/@doc on the public surface.
   - Consolidate overlapping entry points (history/row_history,
     actor_history/actor_window) with deprecations.
@@ -242,8 +251,9 @@ v1.45 1.0 API Contract -> 1.0.0
   - Declare 1.0.0.
 
 MID (signal-gated, after 1.0.0):
-  - The operator/admin UI returns: page-by-page UX with maintainer feedback.
-    The paid critic loop stays parked unless explicitly un-parked.
+  - Operator/admin UI work is eligible for evaluation using maintainer
+    feedback, but is not selected by default. The paid critic loop stays
+    parked unless explicitly un-parked.
   - SEED-005 reconnect banner, if it wasn't absorbed earlier.
 
 LONG (only on sustained demand, clear ownership, bounded support cost):

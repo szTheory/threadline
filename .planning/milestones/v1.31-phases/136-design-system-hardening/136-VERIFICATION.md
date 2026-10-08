@@ -1,11 +1,13 @@
 ---
 phase: 136-design-system-hardening
 verified: 2026-06-04T00:00:00Z
-status: partial
+status: passed
 score: 1/4
 ---
 
 # Phase 136 Verification Report
+
+> Compatibility note: this phase was partial at execution time; Phase 144 later closed POLISH-DS. The v1.31 milestone audit records that cross-phase closure, so this normalized status records the final milestone disposition rather than a claim that Phase 136 alone met its goal.
 
 ## Status
 
@@ -44,4 +46,3 @@ Representative screenshots reviewed after Playwright capture:
 - mobile Timeline invalid-filter state
 
 No obvious readability, nav-active, status, or form-control contrast regressions observed in the sampled screenshots.
-

@@ -1,8 +1,8 @@
 # Milestone Arc: Threadline
 
-**Updated:** 2026-09-30 (v1.43 closed; 0.11.1 and 0.11.2 released)
-**Active milestone:** v1.44 Behavioral Depth: Properties, Twins, Telemetry (phases 224-230, opened 2026-09-30)
-**Posture:** base-library ratchet to diminishing returns, marked by **1.0.0**; operator UI parked until then
+**Updated:** 2026-10-07 (v1.45 closeout passed; 1.0.0 released)
+**Active milestone:** none. v1.45 1.0 API Contract (phases 231-237) is complete; 1.0.0 and distribution-docs PR #80 are shipped.
+**Posture:** 1.0.0 marks completion of the current base-library ladder. Re-derive the project baseline before selecting more work; operator UI is eligible for consideration, not precommitted.
 
 For the lasting intent, persona lenses, selection loop, quality/CI/release bar, and near/mid/long horizons, see `.planning/MILESTONE-GUIDE.txt`. This file is the concise live ranking. Where the guide and current evidence disagree, go by current state and evidence.
 
@@ -20,9 +20,9 @@ The 2026-05-29 claim of "~92–95% done, default hold" measured the **adopter-fa
 
 These are quality defects, not new scope. Under the guide §5 they justify milestones without adopter signal. New product scope still needs signal.
 
-## Ladder to 1.0.0 (estimated 2026-09-25: 6–9 weeks, mid-Nov → early Dec 2026; re-estimated 2026-09-30)
+## Ladder to 1.0.0 (complete; original estimate was 6–9 weeks)
 
-Re-estimate, 2026-10-02: one rung remains (v1.44 took 3 days); v1.45 budgets about 1–2 weeks, so 1.0.0 lands around mid-to-late October 2026.
+Actual at v1.45 close (2026-10-07, America/New_York): 1.0.0 shipped to Hex.pm; the milestone took five calendar days, with 7 phases, 47 plans, and 116 planned tasks. The milestone audit passed with disclosed review debt and no blockers. This finished the ladder ahead of the prior mid-to-late October estimate.
 
 Re-estimate, 2026-09-30: two rungs remain. v1.42 took about 1 day and v1.43 took 4 days (10 phases). v1.44 and v1.45 carry more product-code work, so we budget about 1–2 weeks each. That puts 1.0.0 around mid-to-late October 2026, and mid-November is now the conservative upper bound.
 
@@ -31,11 +31,11 @@ Re-estimate, 2026-09-30: two rungs remain. v1.42 took about 1 day and v1.43 took
 | 1 | v1.42 | Capture Correctness for Real Table Shapes | 0.11.0 | shipped 2026-09-26 |
 | 2 | v1.43 | Supply Chain, CI Economy and Repo Hygiene | 0.11.1, 0.11.2 | shipped 2026-09-30 |
 | 3 | v1.44 | Behavioral Depth: Properties, Twins, Telemetry | 0.12.0 | shipped 2026-10-02 |
-| 4 | v1.45 | 1.0 API Contract | 1.0.0 | queued |
+| 4 | v1.45 | 1.0 API Contract | 1.0.0 | shipped; closeout passed 2026-10-07 |
 
 Scope per rung: `.planning/MILESTONE-GUIDE.txt` §7 (canonical; don't duplicate it here).
 
-After 1.0.0: operator UI returns (maintainer UI/UX feedback; paid critic stays parked unless un-parked).
+After 1.0.0: operator UI is eligible for evaluation from maintainer UI/UX feedback; it is not the next milestone by default, and the paid critic stays parked unless un-parked. No next milestone is selected yet.
 
 Signal-gated long horizon:
 - GDPR erasure of captured rows
@@ -47,11 +47,11 @@ Signal-gated long horizon:
 
 ## Activation rules
 
-- At `/gsd-new-milestone`, recommend the next unshipped ladder rung after re-deriving its evidence (guide §6). Skip or merge a rung if its evidence has evaporated.
+- At `/gsd-new-milestone`, re-derive the baseline and recommend the next evidence-backed outcome (guide §6). The 1.0.0 ladder is complete; do not infer a next milestone from the old rung order.
 - At each close, mark the rung shipped, re-estimate the 1.0.0 date, and refresh this table and guide §7.
 - **Do not** open compliance-pack / legal-hold / immutable-archive milestones without procurement pressure.
 - **Do not** open Pow/bearer auth lane or second reference app without explicit demand.
-- **Do not** start operator-UI design work before 1.0.0 unless the maintainer explicitly un-parks it.
+- **Do not** make operator-UI design the next milestone by default; first re-derive the baseline and confirm the maintainer feedback that would justify it.
 
 ## History (condensed)
 

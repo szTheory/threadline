@@ -111,7 +111,7 @@ created: "2026-10-05"
 - [x] `threats_open: 0` confirmed; only T-234-08 and T-234-13 remain open, both below the high-threat threshold
 - [x] `status: verified` set in frontmatter
 
-**Approval:** Verified — Plan 20/21 passed the final full CI and evidence gates; T-234-26 and T-234-33 are closed, and SPEC-02 is Complete.
+**Approval:** Security verification remains complete: no blocking threats are open, and the Plan 22 D-46 review plus canonical `mix ci.all` passed. SPEC-02 remains Pending until the phase verifier confirms the current source contracts.
 
 ## Security Audit 2026-10-06
 

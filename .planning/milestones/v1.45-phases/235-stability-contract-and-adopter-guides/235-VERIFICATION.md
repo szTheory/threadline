@@ -1,8 +1,8 @@
 ---
 phase: 235-stability-contract-and-adopter-guides
-verified: 2026-10-07T02:58:28Z
+verified: 2026-10-08T01:21:37Z
 status: passed
-score: 5/5 must-haves verified
+score: 15/15 must-haves verified
 covered_files:
   - .planning/phases/235-stability-contract-and-adopter-guides/235-01-PLAN.md
   - .planning/phases/235-stability-contract-and-adopter-guides/235-01-SUMMARY.md
@@ -42,21 +42,31 @@ covered_files:
   - test/threadline/public_surface_contract_test.exs
   - test/threadline/schema_fields_contract_test.exs
   - test/threadline/storage_catalog_contract_test.exs
-covered_digest: "v3:sha256:a65ccde897012bfe1d7a9fea894c18cf1dc3372e7bfc68e856d2d35f93859ea7"
+covered_digest: "v3:sha256:84ced1a5edf9cd1f3e5eb5f606c1d2d5ab86a33fc8f31ca97e0f9f36f3f34892"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
   previous_status: passed
-  previous_score: 5/5 must-haves verified
+  previous_score: 5/5 roadmap-level truths (current pass expands plan-specific coverage to 15/15)
   gaps_closed: []
   gaps_remaining: []
   regressions: []
+  freshness_refresh:
+    - "Re-ran 11 phase contract/property/migration test files: 1 property, 64 tests, 0 failures."
+    - "Ran mix verify.format and MIX_ENV=dev mix docs --warnings-as-errors; both exited 0."
   final_inputs_rechecked:
+    - "test/threadline/capture/trigger_migrate_time_errors_test.exs"
+    - "test/threadline/capture/redaction_leak_property_test.exs"
     - "test/threadline/guides/redaction_contract_test.exs"
-    - ".planning/phases/235-stability-contract-and-adopter-guides/REVIEW.md"
-    - ".planning/phases/235-stability-contract-and-adopter-guides/235-REVIEW-DISPOSITION.md"
-    - ".planning/phases/235-stability-contract-and-adopter-guides/235-VALIDATION.md"
-    - ".planning/phases/235-stability-contract-and-adopter-guides/235-05-SUMMARY.md"
+    - "test/threadline/guides/stability_contract_test.exs"
+    - "test/threadline/guides/table_shapes_contract_test.exs"
+    - "test/threadline/storage_catalog_contract_test.exs"
+    - "test/threadline/capture/public_sql_contract_test.exs"
+    - "test/threadline/export_public_contract_test.exs"
+    - "test/threadline/public_options_contract_test.exs"
+    - "test/threadline/schema_fields_contract_test.exs"
+    - "test/threadline/guide_graph_contract_test.exs"
+advisory: []
 unverified_prohibition_count: 5
 unverified_prohibition_note: "Five flagged groups summarize nine unresolved judgment-tier clauses from the five plans. Each is a non-authoritative read-only review; human review is recommended."
 unverified_prohibitions:
@@ -90,9 +100,9 @@ human_verification: []
 # Phase 235: Stability Contract and Adopter Guides Verification Report
 
 **Phase Goal:** An adopter or security reviewer can read exactly what 1.x promises, which tables Threadline supports, and what redaction does and does not guarantee. Every one of those statements is held in place by a test that fails CI on drift.
-**Verified:** 2026-10-07T02:58:28Z
+**Verified:** 2026-10-08T01:21:37Z
 **Status:** passed, with 5 flagged prohibition groups (human review recommended)
-**Re-verification:** Yes — final-input check after gap closure
+**Re-verification:** Yes — freshness refresh; prior status passed with no carried gaps
 
 ## Goal Achievement
 
@@ -100,17 +110,31 @@ human_verification: []
 
 | # | Truth | Status | Evidence |
 |---|---|---|---|
-| 1 | The stability guide states the 1.x API/database/operator/type-spec/backport promises and tests pin each statement. | ✓ VERIFIED | `guides/stability.md` states the compatibility clauses. `stability_contract_test.exs` now pins additive tables, columns, indexes, the 0.12.x line, and six months after 0.12.0; the removal mutation control remains. The focused rerun passed. |
-| 2 | Live schema and literal SQL tests pin audit tables, fields, indexes, actor GUC, and trigger-function naming. | ✓ VERIFIED | `storage_catalog_contract_test.exs` queries installed PostgreSQL `pg_catalog` and compares literal facts. `public_sql_contract_test.exs` pins literal names, generated SQL, and production call sites. Existing passing contract was regression-checked for file presence and substantive assertions; the orchestrator reports the final full CI gate passed. |
-| 3 | Additive-only contracts pin export shapes, Finding codes, Mix flags, and operator options/routes. | ✓ VERIFIED | `export_public_contract_test.exs` exercises CSV/JSON output against literals; `public_options_contract_test.exs` inventories task flags, router options, and route templates against literal sets. Both retain mutation controls. Existing passing contracts were regression-checked and are included in the reported final CI gate. |
-| 4 | The three Ecto schemas publish stable field subsets and additive JSONB shape promises guarded against schema drift. | ✓ VERIFIED | `schema_fields_contract_test.exs` compares literal subsets with `__schema__(:fields)`, checks moduledoc claims and additive JSONB limits, permits unpromised fields, and tests removed-field mutations. |
-| 5 | Supported-table and redaction guides are accurate, discoverable, and held by document contracts. | ✓ VERIFIED | `table_shapes_contract_test.exs` pins eligibility conditions and caveats to implementation; guide graph registers and links the guides. The updated redaction contract uses exact bounded-sentence allowlists, rejects broader absolute/compound forms, validates repository-local evidence links, and checks claim/evidence pairing. The focused re-run passed. |
+| 1 | A generated host migration rejects nonexistent mask/exclude columns before trigger installation on both detected-key and configured-primary-key paths; valid configured columns still redact. | ✓ VERIFIED | `PrimaryKeySQL` validates configured and redacted columns before emitting trigger-install SQL; `trigger_migrate_time_errors_test.exs` executes both failure paths and valid redaction paths against PostgreSQL. It passed in the current 64-test run. |
+| 2 | Rejected migrations leave no trigger/function/migration row and report table, option and column without values; deployment changes require regenerating/applying host migrations and prior rows are not repaired. | ✓ VERIFIED | The PostgreSQL migration regression asserts transactional rollback and names errors; `guides/redaction.md` states the host-migration rollout and prior-row boundary, pinned by the redaction contract. Current tests passed. |
+| 3 | Redaction documentation pairs each proven path with evidence and names residual plaintext/export copies and the generated per-table boundary. | ✓ VERIFIED | Guide rows pair generated-trigger, policy, migration and presenter claims with repository evidence; bounded-language checks and plaintext-residual assertions passed. |
+| 4 | The stability guide states settled 1.x Elixir, database, type-spec, operator-surface and 0.12.x backport promises, with claim-level drift detection. | ✓ VERIFIED | The guide states deprecation, additive database, typespec, operator HTML/CSS boundary, and six-month backport policy; its literal claim test and removal mutation passed. |
+| 5 | Adopters can classify required table shapes and exact conditions/caveats, including key/index types, schemas, identifiers, partitions, unlogged tables and views. | ✓ VERIFIED | The table guide contains the matrix and evidence; `table_shapes_contract_test.exs` checks required claims and source predicates and its removal mutation. Current run passed. |
+| 6 | Stability and supported-table guides are registered in ExDoc and the guide graph, with working local links and landing paths. | ✓ VERIFIED | `mix.exs` lists these guides in ExDoc extras and the adopt lane; `guide_graph_contract_test.exs` checks all local guide graph invariants. The focused test and warning-free docs build passed. |
+| 7 | Live PostgreSQL catalog pins cover storage table columns, types, nullability and shipped indexes. | ✓ VERIFIED | `storage_catalog_contract_test.exs` queries the configured schema through `Repo` and compares live catalog facts against independent literal sets, with a removal mutation; passed in the current run. |
+| 8 | Literal SQL contracts pin `threadline.actor_ref`, per-table function naming and production source call sites. | ✓ VERIFIED | `public_sql_contract_test.exs` checks literal names, generated output and production call-site inventories, with rename mutation controls; passed in the current run. |
+| 9 | Added, removed or renamed promised catalog/SQL facts fail with attributable diffs requiring an explicit pin update. | ✓ VERIFIED | Catalog and SQL contract helpers calculate missing/added entries, and mutation controls assert failures; both contracts passed. |
+| 10 | Literal contracts cover CSV/JSON output keys in metadata modes and every Health.Finding code. | ✓ VERIFIED | `export_public_contract_test.exs` invokes public export functions on named rows, checks literal output sets/codes and has mutation controls; passed. |
+| 11 | Literal per-task pins cover accepted flags, and router option keys/routes are pinned independently of route declaration order. | ✓ VERIFIED | `public_options_contract_test.exs` compares every shipped task against literal flag/alias maps and checks macro options plus documented route templates; passed. |
+| 12 | Public-set removal/rename fails, and additions require an explicit reviewed pin. | ✓ VERIFIED | Export and option contract tests compare exact sets and exercise added/removed mutation controls; passed in the current run. |
+| 13 | AuditChange, AuditTransaction and AuditAction document selected stable 1.x field subsets; promised fields cannot silently disappear while full types may grow. | ✓ VERIFIED | `schema_fields_contract_test.exs` checks literal field subsets against each live `__schema__(:fields)` and each moduledoc, permits unpromised fields, and mutates schema/docs to prove removals fail; passed. |
+| 14 | JSONB keys/shapes and `changed_fields` list are additive promises without byte-serialization, key-order or retroactive row-rewrite guarantees. | ✓ VERIFIED | The schema contract checks exact moduledoc language for additive maps/list and disclaimed serialization/order/rewrites; passed. |
+| 15 | The focused schema test catches field removal/rename with attributable failures without freezing the full current schema. | ✓ VERIFIED | Per-schema removal controls detect missing fields and doc claims; explicit non-promised fields remain allowed. Current schema contract passed. |
 
-**Score:** 5/5 truths verified (0 present, behavior-unverified)
+**Score:** 15/15 truths verified (0 present, behavior-unverified). These plan-specific truths collectively cover all five roadmap success criteria.
 
-### Re-verification
+### Freshness Re-verification
 
-The two carried gaps remain closed. The stability contract asserts the additive-only table/column/index list and the exact 0.12.x six-month period after 0.12.0. The final redaction contract tightens the prior fix with adversarial sentence variants, exact bounded claim allowlists, and repository-identity checks for evidence links. The focused stability/redaction run passed again after those changes. The supplied final `mix ci.all` evidence passed, and no regression was identified. No later phase specifically owns either former gap; both are closed here.
+This freshness pass re-established the roadmap truths from the current code and contracts rather than relying on the prior report. The focused phase-contract command passed 64 tests with 0 failures, including live catalog assertions, PostgreSQL migration/redaction behavior, public-set and guide contracts. `mix verify.format` and `MIX_ENV=dev mix docs --warnings-as-errors` also passed. No later phase is being relied on for this phase's goal.
+
+### Advisory (New Scope, Unevidenced)
+
+None. No new-scope Step 7 finding was identified during this refresh.
 
 ### Autonomous Judgment-Tier Prohibition Review
 
@@ -131,8 +155,8 @@ This phase is configured with `mode: yolo`. The five flags below summarize all n
 | `guides/stability.md` and `test/threadline/guides/stability_contract_test.exs` | 1.x compatibility policy and drift gate | ✓ VERIFIED | Substantive claims include the corrected additive database object list and exact backport window; focused contract passes. |
 | `guides/supported-tables.md` and `test/threadline/guides/table_shapes_contract_test.exs` | Pre-install table eligibility matrix | ✓ VERIFIED | Conditions, unsupported shapes, and durability caveats are asserted and connected to source predicates. |
 | `guides/redaction.md` and `test/threadline/guides/redaction_contract_test.exs` | Evidence-linked redaction threat guide | ✓ VERIFIED | Per-row guarantee/evidence checks, residual plaintext locations, rollout boundaries, absolute-term checks, and mutation checks are present. |
-| `lib/threadline/capture/primary_key_sql.ex` and migration regression | Generated migration configured-column guard | ✓ VERIFIED | Both detected-key and override branches validate configured columns before trigger DDL; PostgreSQL regression is part of the reported full CI run. |
-| Storage, public SQL, export, options, schema, and guide-graph contracts | Compatibility drift gates | ✓ VERIFIED | Tests contain literal pins, live/observed inputs where required, and named mutation controls; all are covered by the reported final CI gate. |
+| `lib/threadline/capture/primary_key_sql.ex` and migration regression | Generated migration configured-column guard | ✓ VERIFIED | Both detected-key and override branches validate configured columns before trigger DDL; the current PostgreSQL migration regression passed. |
+| Storage, public SQL, export, options, schema, and guide-graph contracts | Compatibility drift gates | ✓ VERIFIED | Tests contain literal pins, live/observed inputs where required, and named mutation controls; all passed in the current focused run. |
 
 ### Key Link Verification
 
@@ -141,7 +165,7 @@ This phase is configured with `mode: yolo`. The five flags below summarize all n
 | `primary_key_sql.ex` | `trigger_migrate_time_errors_test.exs` | Generated host migration and PostgreSQL harness | WIRED | Manually traced generator → SQL → MigrationHarness; the generic CLI heuristic cannot see this runtime harness link. |
 | `guides/redaction.md` | `redaction_leak_property_test.exs` | Claim-level evidence links | WIRED | Guide links the test and scopes it to generated per-table capture. |
 | New guides | `mix.exs` / `guide_graph_contract_test.exs` | ExDoc Adopt lane and guide graph | WIRED | ExDoc extras and guide graph/landing registration are present. |
-| `guides/stability.md` | `stability_contract_test.exs` | Required claim assertions | WIRED | Guide loaded and checked against all literal required claims; gap-closure assertions passed. |
+| `guides/stability.md` | `stability_contract_test.exs` | Required claim assertions | WIRED | Test reads the guide, compares each literal claim, and includes a removal mutation control; current test passed. |
 | `guides/supported-tables.md` | `primary_key_sql.ex` | Eligibility and type/index predicates | WIRED | Contract checks source predicates and table-shape claims. |
 | `storage_catalog_contract_test.exs` | PostgreSQL `pg_catalog` | DataCase Repo queries | WIRED | Queries actual configured storage schema, columns, types, nullability, and indexes. |
 | `public_sql_contract_test.exs` | SQL naming and GUC production sources | Literal names and source-use checks | WIRED | Calls naming functions, checks generated SQL and production call-site inventories. |
@@ -157,8 +181,8 @@ No rendered dynamic UI data is part of this documentation/contract phase. The mi
 
 | Behavior | Command | Result | Status |
 |---|---|---|---|
-| Stability and redaction gap-closure document contracts | `mix verify.test test/threadline/guides/stability_contract_test.exs test/threadline/guides/redaction_contract_test.exs` | 5 tests, 0 failures | ✓ PASS |
-| Full final phase/workspace gates | `mix ci.all` (final CI evidence supplied for this revision) | Repo hygiene 4,651 clean/8 used/0 inert; root 3,047 tests, 0 failures, 3 excluded; example 130/0; Dialyzer passed; slice 17/0/16 excluded; browser 318 passed/26 skipped | ✓ PASS |
+| Phase 235 behavioral and document contracts | `mix verify.test` with 11 Phase 235 contract/property/migration files | 1 property, 64 tests, 0 failures | ✓ PASS |
+| Formatting and docs build | `mix verify.format && MIX_ENV=dev mix docs --warnings-as-errors` | Both commands exited 0; ExDoc generated HTML, Markdown and EPUB docs | ✓ PASS |
 
 ### Probe Execution
 
@@ -182,16 +206,17 @@ No orphaned phase requirements were found. Later phase 236 and 237 goals do not 
 
 | Test File | Linked Requirement | Active | Circular | Assertion Level | Verdict |
 |---|---|---:|---|---|---|
-| `trigger_migrate_time_errors_test.exs` | DOCS-02 | Yes | No | PostgreSQL behavior and rollback | PASS |
-| `redaction_leak_property_test.exs` | DOCS-02 | Yes | No | Property/behavior across storage and exports | PASS |
-| `redaction_contract_test.exs` | DOCS-02 | Yes | No | Document value, row pairing, mutation controls | PASS |
-| `stability_contract_test.exs` | CONTRACT-01 | Yes | No | Required claims and mutation control | PASS |
-| `table_shapes_contract_test.exs` | DOCS-01 | Yes | No | Required claims, source predicates, mutation | PASS |
-| `storage_catalog_contract_test.exs` | CONTRACT-02 | Yes | No | Live catalog values and mutation control | PASS |
-| `public_sql_contract_test.exs` | CONTRACT-03 | Yes | No | Literal values and source call sites | PASS |
-| `export_public_contract_test.exs` | CONTRACT-04 | Yes | No | Observed output and literal code/key sets | PASS |
-| `public_options_contract_test.exs` | CONTRACT-04 | Yes | No | Literal sets and source inventory | PASS |
-| `schema_fields_contract_test.exs` | CONTRACT-05 | Yes | No | Schema metadata and documentation mutations | PASS |
+| `trigger_migrate_time_errors_test.exs` | DOCS-02 | Yes | No | PostgreSQL migration behavior, rollback and configured-column checks | PASS — current run |
+| `redaction_leak_property_test.exs` | DOCS-02 | Yes | No | Property behavior across storage, diffs and exports | PASS — current run |
+| `redaction_contract_test.exs` | DOCS-02 | Yes | No | Document claims, evidence pairing and adversarial variants | PASS — current run |
+| `stability_contract_test.exs` | CONTRACT-01 | Yes | No | Required claims and removal mutation control | PASS — current run |
+| `table_shapes_contract_test.exs` | DOCS-01 | Yes | No | Required claims, source predicates and removal mutation | PASS — current run |
+| `storage_catalog_contract_test.exs` | CONTRACT-02 | Yes | No | Live catalog values and mutation control | PASS — current run |
+| `public_sql_contract_test.exs` | CONTRACT-03 | Yes | No | Literal values, production call sites and mutation controls | PASS — current run |
+| `export_public_contract_test.exs` | CONTRACT-04 | Yes | No | Observed output and literal code/key sets | PASS — current run |
+| `public_options_contract_test.exs` | CONTRACT-04 | Yes | No | Literal sets and source inventory | PASS — current run |
+| `schema_fields_contract_test.exs` | CONTRACT-05 | Yes | No | Schema metadata and documentation mutations | PASS — current run |
+| `guide_graph_contract_test.exs` | DOCS-01, DOCS-02 | Yes | No | ExDoc registration, graph links, and landing paths | PASS — current run |
 
 No disabled requirement-linked tests were found. Mutation controls use in-memory altered inputs rather than writing generated expected values from the implementation under test.
 
@@ -207,7 +232,7 @@ None. This is an autonomous `yolo` run with no user-facing runtime flow requirin
 
 ### Gaps Summary
 
-No blocking gaps remain. The two prior document-contract failures are closed and the focused regression passed again against the final redaction contract. The roadmap contract is verified at 5/5. Final full CI passed on the current inputs. Five grouped judgment-tier prohibition flags remain visible (summarizing nine plan clauses), with their limits stated above; autonomous completion is therefore reported as complete with 5 flagged prohibitions.
+No blocking gaps remain. The two prior document-contract failures remain closed. The current focused contracts, format gate and warning-free docs build passed; this verification does not claim a newly rerun full `mix ci.all`. Five grouped judgment-tier prohibition flags remain visible (summarizing nine plan clauses), with their limits stated above; autonomous completion is therefore reported as complete with 5 flagged prohibitions.
 
 ### Decision Coverage
 
@@ -215,5 +240,5 @@ All 9 of 9 trackable CONTEXT.md decisions are honored by shipped artifacts; none
 
 ---
 
-_Verified: 2026-10-07T02:58:28Z_  
+_Verified: 2026-10-08T01:21:37Z_
 _Verifier: the agent (gsd-verifier)_

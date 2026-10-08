@@ -1,12 +1,14 @@
 ---
 phase: 99-contract-lock-docs-and-final-verification
 verified: 2026-05-26T14:12:32Z
-status: verified_with_followup
+status: passed
 score: 4/4 rerun bands reviewed
 authoritative_surface_drift: detected
 ---
 
 # Phase 99: Contract Lock, Docs, And Final Verification - Verification Report
+
+> Compatibility note: this report's original `verified_with_followup` state was reconciled by Phase 103; the v1.22 milestone audit records DOC-03 as satisfied.
 
 **Phase Goal:** Lock the public evidence-plane claim on the current tree through aligned docs, named doc-contract coverage, targeted behavioral proof, and one explicit rerun bundle that stays separate from broader repo-health failures.
 

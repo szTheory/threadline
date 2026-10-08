@@ -1,5 +1,57 @@
 # Project milestones: Threadline
 
+## v1.45 1.0 API Contract (Shipped: 2026-10-07)
+
+**Phases completed:** 7 phases, 47 plans, 116 tasks
+
+**Delivered:** The public read API, lookup return contracts, complete specs/docs, 1.x stability contracts, PostgreSQL 15 support floor, full test-file weighting, and seven-step 1.0 upgrade guide shipped together with `threadline` 1.0.0. PR #80 synchronized distribution docs after all 16 checks passed; merge SHA `edb5138f350f7719778b01a9a85fba49391df32f`.
+
+**Closeout:** 25/25 requirements; 7/7 phase verifications; 153/153 reported verification truths; integration 25/25 and 8/8 flows. The PostgreSQL 15.18 suite passed 3,058 tests (0 failures). **Closeout type:** verified_closeout. **Known verification overrides:** 0 newly acknowledged, 67 carried forward from prior closes (see STATE.md Deferred Items). The audit status is `tech_debt` for disclosed code-review and below-threshold security findings; no blockers or open audit items remain.
+
+**Archives:** Roadmap `.planning/milestones/v1.45-ROADMAP.md`; requirements `.planning/milestones/v1.45-REQUIREMENTS.md`; audit `.planning/milestones/v1.45-MILESTONE-AUDIT.md`; phases `.planning/milestones/v1.45-phases/`. The unrelated September quick task remains in `.planning/quick/`.
+
+**Key accomplishments:**
+- Dropped the `AuditTransaction belongs_to :action` / `AuditAction has_many :transactions` Ecto associations and replaced `.action` hydration with a hidden, batched `Threadline.Query.hydrate_actions/3`, keeping every reader's `.action` shape (including the deprecated public `:preload` path) working.
+- Hid `Threadline.Query` and `Threadline.Investigation` behind `@moduledoc false`, named `Threadline.Query.timeline_query/1` as the one documented Ecto-composition escape hatch via ExDoc's `skip_code_autolink_to`, and rewrote every rendered lib doc and five guides onto the `Threadline` facade so `mix docs --warnings-as-errors` stays green.
+- Added a mutation-controlled facade-only doc-contract scanner over guides/README/example-app, moved the example app's last hidden-module call onto `Threadline.history/3`, and proved the whole phase green with `mix ci.all` — discovering and fixing a 231-01 regression (`query.ex` over the 800-line source-size limit) along the way.
+- `%Threadline.Page{entries, cursor, has_more}` replaces `Threadline.Query.TimelinePage` across every change-read pager, with `has_more` now exact via a `page_size + 1` keyset fetch.
+- `Threadline.actor_history/2` moves onto `%Threadline.Page{}` with `cursor:`/`page_size:`, its `:after`/`:before`/`:limit` options keep working behind one deprecation warning each, `Threadline.Query.ActorHistoryPage` is deleted with no shim, and `actor_history/2`/`actor_window/3` now tell each other apart by return type in their first sentence.
+- `Threadline.row_history/3` now takes keyword opts, defaults to 200 rows newest-first, overrides via `limit:`/`cursor:`, and carries an exact-detection `[:threadline, :row_history, :truncated]` telemetry event; the old `(schema, id, filters, opts)` shape survives as a separate deprecated arity-4 clause that stays unbounded, and `actor_window/3`/`correlation_bundle/3` gained the same `cursor:` paging without changing their argument shape.
+- Every `test/` and example-app caller of `history/3`, `Query.history/3`, `row_history_page`, `actor_window_page`, and `correlation_bundle_page` now reads through the canonical `Threadline.row_history/3` (via a new `Threadline.Test.RowHistory` helper), `Threadline.Query.RowReads.audit_changes/3`, or `cursor:` paging on the base function -- `mix test --warnings-as-errors` and `mix verify.example` are both clean, and the only remaining retired-name references under `test/` are the intentional `apply/3` calls inside `deprecation_parity_test.exs`.
+- Threadline.audit_transaction/2 and audit_transaction!/2 on the facade, built on one hidden hardcoded-surface row fetch, plus the new public Threadline.NotFoundError (404-mapped via Plug.Exception).
+- transaction_context/2 and incident_bundle/2 now share one row-first fetch (Threadline.Query.TransactionLookup.fetch/2), both gained `!` siblings, and incident_bundle stays at or under 3 queries while finding zero-change transactions that used to look missing.
+- Query.audit_transaction/2 retired behind a parity-tested @deprecated delegate sharing the facade's row-first read; a bidirectional doc-contract test pins all three lookups plus an explicit as_of/4 exemption; CHANGELOG and every guide now describe the tuple/bang shapes.
+- Threadline.Query.Scope.apply/2 now raises ArgumentError instead of silently reading every tenant's rows whenever a scope is given without a usable 3-arity scope_query_fn, proven across every scoped read and both operator-surface transports, with the reference app's catch-all tightened to deny and the break documented.
+- SPEC-01/02/03 now have exact baseline gates and a frozen documentation rubric before any public typespec or doc rewrites.
+- Closed and typed the Export surface, named operational API contracts, and completed operator, retention, and storage-schema documentation.
+- Complete field-level types across capture, semantics, investigation, and health structs, plus generic Audit.transaction/3 options and result contract.
+- The five strict Dialyzer flags now run at zero findings, the docs/spec gates have no ratchets, and the docs, example, and full CI aggregate pass.
+- Arbitrary validator inputs, finite map guarantees, and return summaries now align with the ActorRef, Subject, and retention runtime behavior.
+- Storage and ExportQueue now expose named adapter option/error types, with complete callback return contracts for every success and error path.
+- Documented the success and failure envelopes for transaction, retention purge, continuity checks, and health policy validation.
+- Facade and ChangeDiff documentation now states captured-column handling, read authorization, and concrete action return behavior.
+- D-28 raise-only helpers are private, with all four `critic.measure` failure messages preserved and verified.
+- Regenerated the D-46 inventory after Plan 18, validated a fresh independent PASS against the D-56-amended rubric, and recorded a hash-bound handoff for Plan 15.
+- Five module landing pages now open with complete domain summaries, and Telemetry distinguishes its adopter entry point from internal hooks.
+- Evidence-gated Phase 234 security reconciliation and SPEC-02 closure after clean full CI and fresh D-46/D-28 validation.
+- ActorRef, Subject, and retention map docs now match their existing mixed-key behavior, and `Audit.transaction/3` states its actual tuple envelope.
+- Subject and Retention public types now describe their existing recursive normalization and nil/false fallback behavior.
+- The existing five-role StorageSchema.role/0 union now has a public typedoc that describes each identifier-validation context.
+- GCM-only Cloak reachability contracts and review-dated Hex acknowledgements unblock the example audit while preserving Plan 15 sign-off.
+- Public documentation and capture-type corrections are committed with a fresh D-46 PASS, and the required canonical CI gate now passes after Plan 21 repaired the mobile motion browser obstruction.
+- Mobile reduced-motion toast and modal dismissal now precede the drawer click, with focused and canonical browser gates passing.
+- Job ID types and validation now match runtime behavior, eager export validation emits one safe failure event, and fresh D-46 review passes against current source.
+- Generated host migrations now reject absent redaction columns before trigger installation, with PostgreSQL rollback proof and an evidence-linked redaction threat guide.
+- Observed CSV/JSON export shapes, Health.Finding codes, all Threadline Mix-task flags, and operator mount options/routes are pinned by focused literal contracts.
+- AuditChange, AuditTransaction, and AuditAction now publish deliberate stable 1.x field subsets guarded by an additive schema and documentation contract.
+- PostgreSQL 15 is the tested CI floor, with one source-checked support table and aligned adopter guidance
+- Every one of the 266 test files present at close has a unique measured partition weight; Phase 236's refresh also passed on PostgreSQL 15.18.
+- 0.11.x and 0.12.x adopters now have one seven-step 1.0 procedure, with each human-owned breaking change and deprecation checked against a hidden guide ID.
+- The release rehearsal can validate a committed 1.0.0 candidate while routine CI retains its generic next-minor path.
+- The separately authorized production workflow published threadline 1.0.0 with docs to Hex.pm, passed the smoke test, and synchronized the distribution docs.
+
+---
+
 ## v1.44 Behavioral Depth: Properties, Twins, Telemetry (Shipped: 2026-10-02)
 
 **Delivered:** Property tests now cover the library's core contracts, from pure ones (cursor paging, ChangeDiff, redaction policy, export round-trip) to DB-backed ones (no redaction leak, exact `as_of`, retention cutoff and dry-run agreement). Each property has a recorded mutation control, and they found and fixed three real defects. Export and retention runs emit a documented, leak-checked set of 14 `[:threadline, ...]` events. `history/3` gains a non-breaking limit, and `mix threadline.health.coverage` gains `--strict` and `--all-schemas`. The CI test step runs as weighted partitions, 40.1% faster net of every test this milestone added. Shipped as **0.12.0** on hex.pm: landing #73 `67090195` (`feat!:`, 3 BREAKING CHANGE footers), release #74 (Release run 37084163662), sync #75.

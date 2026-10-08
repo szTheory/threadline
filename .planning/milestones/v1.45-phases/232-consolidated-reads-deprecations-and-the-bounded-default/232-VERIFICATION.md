@@ -1,6 +1,6 @@
 ---
 phase: 232-consolidated-reads-deprecations-and-the-bounded-default
-verified: 2026-10-07T13:14:14Z
+verified: 2026-10-08T01:20:00Z
 status: passed
 score: 61/61 must-haves verified
 covered_files:
@@ -41,6 +41,7 @@ covered_files:
   - "lib/threadline.ex"
   - "lib/threadline/export.ex"
   - "lib/threadline/investigation.ex"
+  - "lib/threadline/not_found_error.ex"
   - "lib/threadline/operator_surface/live/actor_live.ex"
   - "lib/threadline/operator_surface/live/row_history_component.ex"
   - "lib/threadline/operator_surface/live/timeline_live.ex"
@@ -69,7 +70,7 @@ covered_files:
   - "test/threadline/readme_doc_contract_test.exs"
   - "test/threadline/row_history_test.exs"
   - "test/threadline/telemetry_registry_contract_test.exs"
-covered_digest: "v3:sha256:2a3afda0c4a84f26166b69db72c12dad7eda16bdb2150bcda9902f4fd32b2d91"
+covered_digest: "v3:sha256:a22528aad8c2f43d9a570421e75b6e882ca85b7833d02be4129f65343a9fec28"
 behavior_unverified: 0
 overrides_applied: 0
 ---
@@ -77,7 +78,7 @@ overrides_applied: 0
 # Phase 232: Consolidated Reads, Deprecations and the Bounded Default Verification Report
 
 **Phase Goal:** An adopter reads a row's history through one function with keyword opts. By default it is bounded, the cursor path proves completeness, and truncation is observable. Every paged read returns one `Page` shape. Internal helpers are out of the docs. Any adopter still on a retired name gets a working call and one compiler warning naming the replacement.
-**Verified:** 2026-10-07
+**Verified:** 2026-10-08
 **Status:** passed
 **Re-verification:** No — the prior report had no `gaps:` section; this is a fresh goal-backward verification with a current-source fingerprint.
 
@@ -124,7 +125,7 @@ The five roadmap success criteria are verified below and in the plan-contract ma
 | `test/support/row_history.ex` | Unbounded whole-history test helper | ✓ VERIFIED | Calls facade with `limit: :infinity` and unwraps AuditChange values. |
 | `test/threadline/facade_naming_contract_test.exs` | Single visible pairing and metadata | ✓ VERIFIED | Asserts sole `timeline` pair, `since` metadata, and non-vacuous fixture. |
 | `test/threadline/facade_only_references_contract_test.exs` | Hidden/retired-name doc scanners | ✓ VERIFIED | Real docs/example scope and fixture controls; direct probes also cover regex and formatter edge cases. |
-| `test/threadline/public_surface_contract_test.exs` | Hidden-doc visibility contract | ✓ VERIFIED | Checks emitters, query builders, hidden CSV module, and non-empty module inventory. |
+| `test/threadline/public_surface_contract_test.exs` | Hidden-doc visibility contract | ✓ VERIFIED | Checks emitters, query builders, hidden CSV module, and non-empty module inventory, including the current Plug exception implementation. |
 | `lib/threadline/investigation.ex` | Public row read, dispatch, actor-window/correlation paging | ✓ VERIFIED | Delegates to RowReads and shared Page paths; scoped query link passes. |
 | `lib/threadline.ex` | Facade APIs and deprecated delegates | ✓ VERIFIED | New API docs/types and retired-call delegates are present and exercised. |
 
@@ -206,13 +207,14 @@ None in the reviewed phase source and contract-test files. The targeted scan fou
 
 ### Validation Evidence
 
-These current-source checks were read from the phase regression log and audit artifacts; the broad suites were not rerun during this verification refresh.
+The current-source refresh reran the phase's core behavior and contract tests; the complete phase gate below is retained from the recorded phase regression evidence.
 
 | Check | Result | Status |
 |---|---|---|
-| `mix ci.all` | Exit 0: root 3,047 tests + 32 properties, 0 failures, 3 documented exclusions; example 132 tests, 0 failures; Dialyzer clean; browser 318 passed, 26 expected skips | ✓ PASS |
-| `MIX_ENV=test mix compile --warnings-as-errors --force` and `mix verify.test --warnings-as-errors` | Exit 0; 3,047 tests + 32 properties, 0 failures | ✓ PASS |
-| Focused deprecation, facade naming and public-surface tests after current prose correction | 85 tests, 0 failures | ✓ PASS |
+| `mix ci.all` (phase regression record) | Exit 0: root 3,047 tests + 32 properties, 0 failures, 3 documented exclusions; example 132 tests, 0 failures; Dialyzer clean; browser 318 passed, 26 expected skips | ✓ PASS (recorded phase gate) |
+| `mix test test/threadline/page_test.exs test/threadline/row_history_test.exs test/threadline/deprecation_parity_test.exs test/threadline/actor_reads_doc_contract_test.exs test/threadline/facade_naming_contract_test.exs test/threadline/facade_only_references_contract_test.exs test/threadline/public_surface_contract_test.exs` | 145 tests, 0 failures; includes the newly expanded hidden-moduledoc inventory | ✓ PASS (current refresh) |
+| `mix compile --warnings-as-errors` | Exit 0 | ✓ PASS (current refresh) |
+| Focused deprecation, facade naming and public-surface tests after current prose correction | 85 tests, 0 failures | ✓ PASS (recorded phase regression) |
 | `mix verify.format` | Exit 0 | ✓ PASS |
 | `MIX_ENV=dev mix docs --warnings-as-errors` | Exit 0 | ✓ PASS |
 | Independent code review | Clean after correcting `row_history/4` filter precedence prose | ✓ PASS |
@@ -228,5 +230,5 @@ No gaps. The current code satisfies all five roadmap success criteria and the me
 
 ---
 
-_Verified: 2026-10-07T13:14:14Z_
+_Verified: 2026-10-08T01:20:00Z_
 _Verifier: Codex (gsd-verifier)_
