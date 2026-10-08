@@ -61,11 +61,13 @@ defmodule Threadline.Audit do
   `:audit_transaction_id` merged when capture produced an `audit_transactions` row
   (map callback) or wrapped as `%{result: value, audit_transaction_id: id}` for
   non-map returns. On failure, `{:error, reason}` (`:missing_actor`,
-  `:missing_audit_transaction_for_link`, changesets, or rollback reasons).
+  `:invalid_actor_ref`, `:missing_audit_transaction_for_link`, changesets, or
+  rollback reasons).
 
   ## Errors
 
   - `{:error, :missing_actor}` — nil `actor_ref` when required
+  - `{:error, :invalid_actor_ref}` — a present resolved actor is not an `%ActorRef{}`
   - `{:error, :missing_audit_transaction_for_link}` — linkage `update_all` count != 1
   """
 
@@ -156,7 +158,11 @@ defmodule Threadline.Audit do
           %{actor_ref: nil, correlation_id: nil, request_id: nil, job_id: nil}
       end
 
-    actor_ref = Keyword.get(opts, :actor_ref) || ctx_fields.actor_ref
+    actor_ref =
+      case Keyword.get(opts, :actor_ref) do
+        nil -> ctx_fields.actor_ref
+        explicit_actor_ref -> explicit_actor_ref
+      end
 
     {action_name, action_extra_opts} = resolve_action(opts)
 
@@ -206,7 +212,9 @@ defmodule Threadline.Audit do
     {:error, :missing_actor}
   end
 
-  defp validate_actor(_resolved), do: :ok
+  defp validate_actor(%{actor_ref: nil, action_name: nil, allow_missing_actor: true}), do: :ok
+  defp validate_actor(%{actor_ref: %ActorRef{}}), do: :ok
+  defp validate_actor(_resolved), do: {:error, :invalid_actor_ref}
 
   defp set_actor_guc!(repo, %ActorRef{} = actor_ref) do
     json =
