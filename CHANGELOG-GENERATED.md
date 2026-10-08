@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/szTheory/threadline/compare/v1.0.0...v1.0.1) (2026-10-08)
+
+
+### Bug Fixes
+
+* handle malformed actor references safely ([#81](https://github.com/szTheory/threadline/issues/81)) ([d56e807](https://github.com/szTheory/threadline/commit/d56e807ce6176dac301de2cb29d147b821bba50e))
+
 ## [1.0.0](https://github.com/szTheory/threadline/compare/v0.12.0...v1.0.0) (2026-10-07)
 
 
