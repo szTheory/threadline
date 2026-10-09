@@ -322,6 +322,41 @@ test.describe("Phase 177 UAT #3 — overlay motion collapses under reduced motio
   });
 });
 
+test.describe("shared overlays at a short narrow viewport", () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+    await page.setViewportSize({ width: 320, height: 420 });
+  });
+
+  test("long toast and drawer content stay locally readable without page overflow", async ({
+    page,
+  }) => {
+    await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    const toast = page.locator("#stress-toast");
+    await expect(toast).toBeVisible();
+    await toast.locator(".tl-toast__body").evaluate((element) => {
+      element.textContent = "Repeated confirmation details ".repeat(24);
+    });
+    await expect(toast.getByRole("button", { name: "Close" })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    await expectBoxWithinViewport(toast, 320);
+    await toast.getByRole("button", { name: "Close" }).click();
+    await expect(toast).toBeHidden();
+
+    const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
+    await drawerTrigger.click();
+    const drawer = page.getByRole("dialog", { name: "Stress drawer" });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole("button", { name: "Close stress drawer" })).toBeVisible();
+    await drawer.evaluate((element) => {
+      const content = element.querySelector(".tl-modal__body");
+      if (content) content.textContent = "Recorded context ".repeat(36);
+    });
+    await expectNoHorizontalOverflow(page);
+    await expectBoxWithinViewport(drawer, 320);
+  });
+});
+
 // --- UAT #4: reconnect/offline CSS contract (computed in-browser) ------------
 //
 // The reconnect banner + [data-tl-mutating] disabling are pure CSS, keyed off the

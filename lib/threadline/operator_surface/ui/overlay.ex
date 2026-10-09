@@ -39,7 +39,6 @@ if Code.ensure_loaded?(Phoenix.Component) do
         <div
           id={"#{@id}-content"}
           class={["tl-modal", @class]}
-          phx-click-away={JS.exec(@on_cancel, "phx-remove") |> hide_modal(@id)}
           phx-window-keydown={JS.exec(@on_cancel, "phx-remove") |> hide_modal(@id)}
           phx-key="escape"
         >
@@ -53,6 +52,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
     @doc false
     def show_modal(js \\ %JS{}, id) do
       js
+      |> JS.add_class("tl-overlay-visible", to: "##{id}")
+      |> JS.add_class("tl-overlay-visible", to: "##{id}-content")
       |> JS.show(
         to: "##{id}",
         time: 180,
@@ -82,6 +83,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
         transition: {"tl-fade-out", "opacity-100", "opacity-0"}
       )
       |> JS.remove_class("overflow-hidden", to: "body")
+      |> JS.remove_class("tl-overlay-visible", to: "##{id}")
+      |> JS.remove_class("tl-overlay-visible", to: "##{id}-content")
       |> JS.pop_focus()
     end
 
@@ -119,7 +122,6 @@ if Code.ensure_loaded?(Phoenix.Component) do
         <div
           id={"#{@id}-content"}
           class={["tl-drawer", @class]}
-          phx-click-away={JS.exec(@on_cancel, "phx-remove") |> hide_drawer(@id)}
           phx-window-keydown={JS.exec(@on_cancel, "phx-remove") |> hide_drawer(@id)}
           phx-key="escape"
         >
@@ -133,6 +135,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
     @doc false
     def show_drawer(js \\ %JS{}, id) do
       js
+      |> JS.add_class("tl-overlay-visible", to: "##{id}")
+      |> JS.add_class("tl-overlay-visible", to: "##{id}-content")
       |> JS.show(
         to: "##{id}",
         time: 180,
@@ -162,6 +166,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
         transition: {"tl-fade-out", "opacity-100", "opacity-0"}
       )
       |> JS.remove_class("overflow-hidden", to: "body")
+      |> JS.remove_class("tl-overlay-visible", to: "##{id}")
+      |> JS.remove_class("tl-overlay-visible", to: "##{id}-content")
       |> JS.pop_focus()
     end
 
@@ -181,8 +187,6 @@ if Code.ensure_loaded?(Phoenix.Component) do
       role="alert"
       phx-mounted={show_toast(@id)}
       phx-click-away={hide_toast(@id)}
-      phx-window-keydown={hide_toast(@id)}
-      phx-key="escape"
       {@rest}
       >
       <div :if={@title} class="tl-toast__title"><%= @title %></div>
@@ -202,6 +206,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     # no auto-dismiss (out of scope).
     def show_toast(js \\ %JS{}, id) do
       js
+      |> JS.add_class("tl-overlay-visible", to: "##{id}")
       |> JS.show(
         to: "##{id}",
         time: 180,
@@ -216,6 +221,11 @@ if Code.ensure_loaded?(Phoenix.Component) do
         to: "##{id}",
         time: 180,
         transition: {"tl-fade-out", "opacity-100", "opacity-0"}
+      )
+      |> JS.remove_class("tl-overlay-visible", to: "##{id}")
+      |> JS.focus(
+        to:
+          ".tl-drawer.tl-overlay-visible [data-tl-initial-focus], .tl-modal.tl-overlay-visible [data-tl-initial-focus]"
       )
     end
 

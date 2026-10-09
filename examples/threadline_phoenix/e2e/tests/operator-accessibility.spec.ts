@@ -990,6 +990,39 @@ test.describe("operator accessibility baseline", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("keeps drawer focus stable while the toast is layered above it", async ({
+    page,
+  }) => {
+    await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.getByTestId("stress-preview")).toBeVisible();
+
+    const toast = page.locator("#stress-toast");
+    const toastClose = toast.getByRole("button", { name: "Close" });
+    await expect(toast).toBeVisible();
+    await expect(toastClose).toBeVisible();
+
+    const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
+    await focusByKeyboard(page, drawerTrigger);
+    await page.keyboard.press("Enter");
+    const drawer = page.getByRole("dialog", { name: "Stress drawer" });
+    const drawerClose = drawer.getByRole("button", { name: "Close stress drawer" });
+    await expect(drawer).toBeVisible();
+    await expect(drawerClose).toBeFocused();
+    await expectNonObscuredFocused(drawerClose, page);
+
+    // The toast has the higher stacking order and must receive this real pointer
+    // activation without dismissing the drawer underneath it.
+    await toastClose.click();
+    await expect(toast).toBeHidden();
+    await expect(drawer).toBeVisible();
+    await expect(drawerClose).toBeFocused();
+    await drawerClose.click();
+    await expect(drawer).toBeHidden();
+    await expect(drawerTrigger).toBeFocused();
+    await expect(drawerTrigger).toBeVisible();
+
+  });
+
   test("captures accessibility-tree evidence for screen-reader-ready structure", async ({
     page,
   }, testInfo) => {
