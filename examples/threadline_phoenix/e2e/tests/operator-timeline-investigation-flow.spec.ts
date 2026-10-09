@@ -553,6 +553,62 @@ async function expectReducedMotionStableRows(page: Page) {
 }
 
 test.describe("Timeline investigation flow browser proof", () => {
+  test("starts at Home, applies a Timeline query, and opens its transaction", async ({
+    page,
+  }) => {
+    await login(page);
+    const proof = await createCorrelatedPost(page);
+
+    await page.goto("/audit");
+    await expect(
+      page.getByText(
+        "Search captured changes by time, table, actor, or correlation. Open a transaction to inspect its row changes and any recorded action or context.",
+        { exact: true },
+      ),
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "Open the timeline" }).click();
+    await expect(page).toHaveURL(/\/audit\/timeline(?:\?|$)/);
+
+    const filters = page.locator("#timeline-filters");
+    await filters.getByLabel("Table", { exact: true }).fill(proof.table);
+    await filters
+      .getByLabel("Correlation id", { exact: true })
+      .fill(proof.correlation);
+    await filters.getByRole("button", { name: "Apply", exact: true }).click();
+
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("table"))
+      .toBe(proof.table);
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("correlation_id"))
+      .toBe(proof.correlation);
+    await page.reload();
+    await expect(filters.getByLabel("Table", { exact: true })).toHaveValue(
+      proof.table,
+    );
+
+    const matchingRow = page
+      .getByTestId("timeline-row")
+      .filter({
+        has: page.locator(
+          `[aria-label="Copy correlation id"][data-tl-copy="${proof.correlation}"]`,
+        ),
+      })
+      .first();
+    await expect(matchingRow).toBeVisible();
+    await matchingRow.getByTestId("transaction-link").click();
+
+    await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
+    await expect(
+      page.getByRole("heading", { name: "Transaction", exact: true }),
+    ).toBeVisible();
+    const changes = page.getByTestId("transaction-change-row");
+    await expect(changes).toHaveCount(1);
+    await expect(changes.first()).toContainText("INSERT");
+    await expect(changes.first()).toContainText(proof.table);
+  });
+
   for (const viewport of viewports) {
     test.describe(`${viewport.name}`, () => {
       test.use({
