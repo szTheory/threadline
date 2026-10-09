@@ -1,6 +1,31 @@
+# Final operator evidence custody
+
+manifest_path: /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644/manifest.json
+
+Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`. Current relevant digest: `36502f568b3e354a7859d654dafcd8ad443445f5605d447df9964611c4566a39`. Semantic fixture: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`; seed manifest: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`.
+
+Final inventory expansion is a relevant capture input, so these three bounded reruns supersede earlier accepted pointers. No UI/tooling source changed. Earlier raw bundles remain retained. All 355 generic IDs close in 238-BASELINE-FINDINGS.md with approved owner phases; earlier owner suggestions below are provisional and superseded.
+
+| Lane | Retained bundle | Output count | Manifest set SHA-256 | Output set SHA-256 |
+|---|---|---|---|---|
+| Eleven routes + degraded | `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644` | 135 | `e517fd5963d7bde68e2dc8f3c1b4420c339674318c64d7065d0ab227a4443fc8` | `d96b6fd0f00f17ab759a6d18939b462f7b8b5649ec2e2afe88ebaac6294338c3` |
+| Dark states | `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_states_1791519710` | 63 | `b2af509be7f06311fedb375b7f9de68e1cba14c36a575cfe17eb12e6ebedee54` | `2164cc4041fddd3e9f6bbb5e5e57efb2d2e46eb55580a3a05f63031c185c1777` |
+| System/light states | `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_system_1791519768` | 63 | `f25a5c8ffcff5c146d7d08b0f946624e1600d81ed85fd451c06c98c42bd99277` | `0386f6dd6578fcfd042aea9f3c6ddfd98462c9524969e11300558ddd8e0bc18a` |
+
+Main manifest SHA-256: `9fd22101966b75a04cf4522418a44c9339acf20b0494519486188e59525e5434`. All output bytes, source changes, captured ancestry prefixes, semantic fixture and served/local CSS/JS validate through explicit live ExUnit. Static mode needs no planning, live process or generated artifact.
+
+Actual browser-chrome 200% zoom remains unverified: Computer Use was not approved to use Google Chrome for Testing. Clipboard permission denial remains unverified (denied CDP probe still reported prompt and copied feedback). Neither viewport/DPR nor the retained preview upgrades these limits to passes.
+
+Runtime receipt: `238-PREVIEW-RECEIPT.json` in this isolated phase directory (local only, contains machine/process paths). The committed index is the durable pointer; raw bundles and lifecycle verifier stay generated and outside git. Parent copies the small receipt/findings/index byte-for-byte to its original planning checkout after terminal validation; executor never writes that checkout. Retain this worktree and server for future phases. Stop/reopen instructions reside in the receipt and guard PID, port and database before acting.
+
+
+Retained preview: http://127.0.0.1:4109; PID `32249`; isolated database `threadline_phoenix_testoperator_preview_reopen_1791519872`. Guarded stop completed on the original owned PID; immediate reopen refused busy port 4108, then succeeded independently on free 4109 with a new database. Both synthetic databases remain retained. Receipt SHA-256: `aed296d4759424f0977cc912261215f8b512eb6b363cbb85cf1ece53fbab5446`; lifecycle verifier SHA-256: `b88b953d9ceebe1b911708944104bf999ca707a2f579ed8b097c4eac6aaf8312`. Runtime verification checks actual PID cwd/listener/PG client ports, separate unauthenticated and seeded-authenticated contexts, deep link, resource timing and exact served/local hashes.
+
+## Historical plan 02 custody (superseded accepted pointers)
+
 # Phase 238 plan 02 evidence handoff
 
-manifest_path: /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_final_1791516878_82721/manifest.json
+historical_manifest_path: /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_final_1791516878_82721/manifest.json
 
 Accepted after the last runner/config/capture-source edit; earlier runs are superseded. This index contributes to UIB-01/UIB-02, without closing the shared requirements or claiming a live preview. Parent owns plan 03, planning-state advancement and byte-for-byte index/receipt synchronization.
 
