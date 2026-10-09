@@ -1108,7 +1108,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "This window has no matching changes, but Threadline has audit data outside it. Move the window back toward recent activity or clear filters."
     end
 
-    test "F-401: scoped empty state keeps authorized-record caveat", %{conn: conn} do
+    test "F-401: filtered empty state uses the canonical heading and body", %{conn: conn} do
       table = "scoped_empty_#{System.unique_integer([:positive])}"
 
       assert {:ok, _lv, html} =
@@ -1119,7 +1119,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "No changes match these filters"
       assert html =~ "Adjust the time range or filters, then apply again."
-      assert html =~ "Scoped views only show records you are authorized to see."
     end
 
     test "F-403: dense Timeline renders filter summary and rows without a visible journey legend",

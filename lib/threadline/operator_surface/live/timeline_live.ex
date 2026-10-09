@@ -69,6 +69,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:filters, [])
         |> assign(:filters_raw, %{})
         |> assign(:form_error, nil)
+        |> assign(:query_error, false)
         |> assign(:unknown_table_attempted, false)
         |> assign(:future_window_empty, false)
         |> assign(:base_path, nil)
@@ -121,6 +122,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       socket
       |> assign(:form_error, message)
+      |> assign(:query_error, false)
       |> assign(:filters, [])
       |> assign(:cursor, nil)
       |> assign(:future_window_empty, false)
@@ -143,38 +145,73 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Clear cursor BEFORE stream reset (Pitfall 1 + F-3 mitigation)
       socket = assign(socket, :cursor, nil)
 
-      count_task =
-        Task.async(fn ->
-          ExportReads.count_matching(filters, count_opts(socket, 10_001))
+      try do
+        count_task =
+          Task.Supervisor.async_nolink(Threadline.Export.TaskSupervisor, fn ->
+            ExportReads.count_matching(filters, count_opts(socket, 10_001))
+          end)
+
+        page_opts = scope_aware_opts(socket)
+
+        page_task =
+          Task.Supervisor.async_nolink(Threadline.Export.TaskSupervisor, fn ->
+            Query.timeline_page(filters, page_opts)
+          end)
+
+        # Two parallel queries; await with a generous timeout. A query failure must
+        # not crash the LiveView or leave partial rows attached to the new filter.
+        results = Task.yield_many([count_task, page_task], 8_000)
+
+        Enum.each(results, fn
+          {task, nil} -> Task.shutdown(task, :brutal_kill)
+          _ -> :ok
         end)
 
-      page_opts = scope_aware_opts(socket)
+        case results do
+          [
+            {_count_task, {:ok, {:ok, %{count: count}}}},
+            {_page_task, {:ok, page}}
+          ] ->
+            page = preload_visible_context(page, socket.assigns.repo, scope_aware_opts(socket))
+            filter_query = build_canonical_query(socket.assigns.filters_raw)
+            future_window_empty = future_window_empty?(filters, count, socket)
 
-      page_task = Task.async(fn -> Query.timeline_page(filters, page_opts) end)
+            socket
+            |> assign(:filters, filters)
+            |> assign(:form_error, nil)
+            |> assign(:query_error, false)
+            |> assign(:unknown_table_attempted, unknown_table_attempted)
+            |> assign(:future_window_empty, future_window_empty)
+            |> assign(:match_count, count)
+            |> assign(:shown_count, length(page.entries))
+            |> assign(:filter_query, filter_query)
+            |> stream(:changes, page.entries, reset: true)
+            |> assign(:cursor, page.cursor)
 
-      # Two parallel queries; await with a generous timeout.
-      # Default Task.await is 5_000 ms; use 8_000 to leave headroom for
-      # capped-count queries on large tables.
-      {:ok, %{count: count}} = Task.await(count_task, 8_000)
+          _failed_or_timed_out ->
+            query_error(socket)
+        end
+      rescue
+        _error -> query_error(socket)
+      catch
+        _kind, _reason -> query_error(socket)
+      end
+    end
 
-      page =
-        page_task
-        |> Task.await(8_000)
-        |> preload_visible_context(socket.assigns.repo, scope_aware_opts(socket))
-
+    defp query_error(socket) do
       filter_query = build_canonical_query(socket.assigns.filters_raw)
-      future_window_empty = future_window_empty?(filters, count, socket)
 
       socket
-      |> assign(:filters, filters)
+      |> assign(:filters, [])
       |> assign(:form_error, nil)
-      |> assign(:unknown_table_attempted, unknown_table_attempted)
-      |> assign(:future_window_empty, future_window_empty)
-      |> assign(:match_count, count)
-      |> assign(:shown_count, length(page.entries))
+      |> assign(:query_error, true)
+      |> assign(:unknown_table_attempted, false)
+      |> assign(:future_window_empty, false)
+      |> assign(:match_count, 0)
+      |> assign(:shown_count, 0)
       |> assign(:filter_query, filter_query)
-      |> stream(:changes, page.entries, reset: true)
-      |> assign(:cursor, page.cursor)
+      |> assign(:cursor, nil)
+      |> stream(:changes, [], reset: true)
     end
 
     def handle_event("save-view", %{"name" => name}, socket) do
@@ -376,6 +413,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         <% end %>
 
+        <UI.Data.error_state :if={@query_error}>
+          <:title>Timeline could not be loaded</:title>
+          Timeline could not be loaded. Check the applied filters and try again.
+          <:actions>
+            <a href={"#{@timeline_path}?#{@filter_query}"} class="tl-button tl-button--secondary">
+              Retry applied filters
+            </a>
+          </:actions>
+        </UI.Data.error_state>
+
         <%= if Enum.empty?(@streams.changes.inserts) and @unknown_table_attempted do %>
           <div class="tl-alert tl-alert--info" role="status">
             <%= Helpers.unknown_table_message(@filters_raw["table"], @audited_tables) %>
@@ -410,13 +457,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           newer_event={nil}
         />
         <UI.Data.empty_state
-          :if={@cursor == nil and Enum.empty?(@streams.changes.inserts)}
+          :if={not @query_error and @cursor == nil and Enum.empty?(@streams.changes.inserts)}
           variant={Helpers.timeline_empty_variant(@filters_raw, @future_window_empty)}
           role="status"
           icon={Helpers.timeline_empty_icon(@filters_raw, @future_window_empty)}
         >
-          <:title><%= Helpers.timeline_empty_title(@filters_raw, @future_window_empty) %></:title>
-          <%= Helpers.timeline_empty_body(@filters_raw, @future_window_empty) %>
+          <:title>
+            <%= if field_filtered_query?(@filters_raw) and not @future_window_empty, do: "No changes match these filters", else: Helpers.timeline_empty_title(@filters_raw, @future_window_empty) %>
+          </:title>
+          <%= if field_filtered_query?(@filters_raw) and not @future_window_empty do %>
+            Adjust the time range or filters, then apply again.
+            <span :if={@scope}>Scoped views only show records you are authorized to see.</span>
+          <% else %>
+            <%= Helpers.timeline_empty_body(@filters_raw, @future_window_empty) %>
+          <% end %>
           <:actions>
             <.link patch={@timeline_path} class="tl-button tl-button--secondary">
               <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
@@ -442,6 +496,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         />
       </UI.Page.shell>
       """
+    end
+
+    defp field_filtered_query?(filters_raw) do
+      Enum.any?(["table_schema", "table", "actor_kind", "actor_id", "correlation_id"], fn key ->
+        value = Map.get(filters_raw, key)
+        is_binary(value) and value != ""
+      end)
     end
 
     attr(:changes, :any, required: true)
