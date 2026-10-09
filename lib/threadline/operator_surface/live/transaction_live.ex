@@ -17,24 +17,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       repo =
         socket.assigns[:threadline_repo] || Application.get_env(:threadline, :ecto_repos) |> hd()
 
-      case Threadline.incident_bundle(id,
-             repo: repo,
-             scope: socket.assigns[:threadline_scope],
-             scope_query_fn: socket.assigns[:threadline_scope_query_fn]
-           ) do
-        {:error, :not_found} ->
-          {:ok, assign(socket, :not_found, true)}
+      try do
+        case Threadline.incident_bundle(id,
+               repo: repo,
+               scope: socket.assigns[:threadline_scope],
+               scope_query_fn: socket.assigns[:threadline_scope_query_fn]
+             ) do
+          {:error, :not_found} ->
+            {:ok, socket |> assign(:not_found, true) |> assign(:unavailable, false)}
 
-        {:ok, bundle} ->
+          {:ok, bundle} ->
+            {:ok,
+             socket
+             |> assign(:threadline_repo, repo)
+             |> assign(:not_found, false)
+             |> assign(:unavailable, false)
+             |> assign(:bundle, bundle)
+             |> stream_configure(:changes,
+               dom_id: fn change -> "change-#{change.change_diff["id"]}" end
+             )
+             |> stream(:changes, bundle.changes)}
+        end
+      rescue
+        _error in DBConnection.ConnectionError ->
           {:ok,
            socket
            |> assign(:threadline_repo, repo)
            |> assign(:not_found, false)
-           |> assign(:bundle, bundle)
-           |> stream_configure(:changes,
-             dom_id: fn change -> "change-#{change.change_diff["id"]}" end
-           )
-           |> stream(:changes, bundle.changes)}
+           |> assign(:unavailable, true)
+           |> assign(:failed_id, id)}
       end
     end
 
@@ -108,7 +119,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
             <UI.Data.error_state>
               <:title>Transaction not found</:title>
-              This database transaction may not exist, or it may have been pruned by the retention policy.
+              No transaction is available at this ID. It may not exist or may be outside the records available to your current scope.
               Return to Timeline and check the transaction id.
               <:actions>
                 <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
@@ -119,22 +130,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </UI.Data.error_state>
           </div>
         <% else %>
-          <.transaction_header bundle={@bundle} base_path={@base_path} />
+          <%= if @unavailable do %>
+            <div class="tl-transaction tl-short-content">
+              <UI.Page.page_header
+                title="Transaction"
+                breadcrumbs={[
+                  %{label: "Timeline", href: "#{surface_root(@base_path)}/timeline"},
+                  %{label: "Transaction"}
+                ]}
+              >
+                <:lede>Changes captured together in one database transaction. Open row history when you need the record state before or after this moment.</:lede>
+              </UI.Page.page_header>
 
-          <%= if Enum.empty?(@bundle.changes) do %>
-            <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
-              <:title>No row-level changes captured</:title>
-              A database transaction was found, but row-level changes were not captured.
-              Check audit readiness for this table, then return to Timeline.
-              <:actions>
-                <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
-                <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
-                  Open timeline
-                </.link>
-              </:actions>
-            </UI.Data.empty_state>
+              <UI.Data.error_state>
+                <:title>Transaction details unavailable</:title>
+                The transaction could not be loaded. Retry or return to Timeline.
+                <:actions>
+                  <.link href={"#{surface_root(@base_path)}/transactions/#{@failed_id}"} class="tl-button tl-button--secondary">
+                    Retry
+                  </.link>
+                  <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                    Open timeline
+                  </.link>
+                </:actions>
+              </UI.Data.error_state>
+            </div>
           <% else %>
-            <.change_list changes={@streams.changes} base_path={@base_path} />
+            <.transaction_header bundle={@bundle} base_path={@base_path} />
+
+            <%= if Enum.empty?(@bundle.changes) do %>
+              <UI.Data.empty_state variant="no_data" role="status" icon={:history}>
+                <:title>No row-level changes captured</:title>
+                A database transaction was found, but row-level changes were not captured.
+                Check audit readiness for this table, then return to Timeline.
+                <:actions>
+                  <.link navigate={"#{surface_root(@base_path)}/timeline"} class="tl-button tl-button--secondary">
+                    <Threadline.OperatorSurface.Components.Icon.icon name={:arrow_left} class="tl-button__icon" />
+                    Open timeline
+                  </.link>
+                </:actions>
+              </UI.Data.empty_state>
+            <% else %>
+              <.change_list changes={@streams.changes} base_path={@base_path} />
+            <% end %>
           <% end %>
         <% end %>
         <%= if @show_history do %>

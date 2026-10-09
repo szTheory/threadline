@@ -204,10 +204,8 @@ defmodule Threadline.ChangeDiff do
   end
 
   defp build_update_field(name, da, cf, before_values) do
-    base = %{
-      "name" => name,
-      "after" => map_get(da, name)
-    }
+    base = %{"name" => name}
+    base = if map_has_field?(da, name), do: Map.put(base, "after", map_get(da, name)), else: base
 
     cond do
       before_values == "none" ->

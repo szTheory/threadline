@@ -102,6 +102,25 @@ defmodule Threadline.ChangeDiffTest do
       assert Jason.encode!(map)
     end
 
+    test "UPDATE distinguishes an absent after value from a present null value" do
+      ch =
+        struct(
+          AuditChange,
+          Map.merge(base_attrs(), %{
+            op: "UPDATE",
+            data_after: %{"present_null" => nil},
+            changed_fields: ["absent_after", "present_null"],
+            changed_from: %{}
+          })
+        )
+
+      map = ChangeDiff.from_audit_change(ch, [])
+      by_name = Map.new(map["field_changes"], &{&1["name"], &1})
+
+      refute Map.has_key?(by_name["absent_after"], "after")
+      assert by_name["present_null"]["after"] == nil
+    end
+
     test "UPDATE field order is lexicographic by name" do
       ch =
         struct(
