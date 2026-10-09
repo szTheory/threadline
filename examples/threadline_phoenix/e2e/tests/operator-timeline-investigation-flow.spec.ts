@@ -14,6 +14,15 @@ const viewports = [
   { name: "desktop-1024", width: 1024, height: 900, isMobile: false },
   { name: "desktop-1440", width: 1440, height: 960, isMobile: false },
 ];
+const acceptanceViewports = [320, 375, 768, 1280].map(
+  (width) =>
+    viewports.find((viewport) => viewport.width === width) ?? {
+      name: `viewport-${width}`,
+      width,
+      height: 900,
+      isMobile: false,
+    },
+);
 
 type TimelineParams = {
   correlation?: string;
@@ -553,6 +562,59 @@ async function expectReducedMotionStableRows(page: Page) {
 }
 
 test.describe("Timeline investigation flow browser proof", () => {
+  for (const viewport of acceptanceViewports) {
+    test.describe(`long applied correlation at ${viewport.width}px`, () => {
+      test.use({
+        viewport: { width: viewport.width, height: viewport.height },
+        isMobile: viewport.isMobile,
+      });
+
+      test("keeps the complete 232-character query and its exact result within the page", async ({ page }) => {
+        await login(page);
+        const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        const prefix = `tl239-long-${suffix}-`;
+        const correlation = `${prefix}${"x".repeat(232 - prefix.length)}`;
+        expect(correlation).toHaveLength(232);
+
+        const response = await page.request.post("/api/posts", {
+          data: { post: { title: "Long correlation proof", slug: `long-correlation-${suffix}` } },
+          headers: {
+            "content-type": "application/json",
+            "x-correlation-id": correlation,
+            "x-request-id": `long-request-${suffix}`,
+          },
+        });
+        expect(response.status()).toBe(201);
+
+        await page.goto(timelineUrl({ table: "posts" }));
+        const filters = page.locator("#timeline-filters");
+        const correlationInput = filters.getByLabel("Correlation id", { exact: true });
+        await correlationInput.fill(correlation);
+        await filters.getByRole("button", { name: "Apply", exact: true }).click();
+
+        await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe(correlation);
+        await expect(correlationInput).toHaveValue(correlation);
+        const matchingRows = page.getByTestId("timeline-row").filter({
+          has: page.locator(`[aria-label="Copy correlation id"][data-tl-copy="${correlation}"]`),
+        });
+        await expect(matchingRows).toHaveCount(1);
+        await expect(matchingRows.first()).toBeVisible();
+        await expect(page.locator(".tl-pager__range")).toContainText("Showing 1 of 1 matching changes");
+        await expectNoHorizontalOverflow(page);
+
+        for (const control of [
+          filters.getByLabel("From", { exact: true }),
+          filters.getByLabel("To", { exact: true }),
+          correlationInput,
+          filters.getByRole("button", { name: "Apply", exact: true }),
+          matchingRows.first().getByTestId("transaction-link"),
+        ]) {
+          await expectBoxWithinViewport(control, viewport.width);
+        }
+      });
+    });
+  }
+
   test("starts at Home, applies a Timeline query, and opens its transaction", async ({
     page,
   }) => {
