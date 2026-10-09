@@ -147,14 +147,14 @@ function verifiedTaskCommits(root: string, acceptedHead: string): string[] {
   });
 }
 
-export function build239CandidateReceipt(root: string, explicitTaskCommits: readonly string[]): Operator239CandidateReceipt {
+export function build239CandidateReceipt(root: string, explicitTaskCommits: readonly string[], enforceApprovedBaseline = true): Operator239CandidateReceipt {
   const parentBytes = readFileSync(join(root, receiptPath));
   const parent = JSON.parse(parentBytes.toString("utf8")) as { base_sha: string; candidate_head: string; worktree: string; branch: string };
   const evidenceBytes = readFileSync(join(root, evidenceIndexPath));
   const evidenceIndex = evidenceBytes.toString("utf8");
   const acceptedEvidence = evidenceIndex.split("## Historical evidence")[0];
   const manifestSets = [...acceptedEvidence.matchAll(/\| (?:Eleven routes \+ degraded|Dark states|System\/light states) \|[^|]*\| [0-9]+ \| `([a-f0-9]{64})` \|/g)].map((match) => match[1]);
-  if (manifestSets.length !== 3 || parent.candidate_head !== "43c5bcfa960b1a10cb07ef997e2231e9615dca6f" || parent.base_sha !== "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2") throw new Error("Accepted Phase 238 custody is incomplete or not the approved baseline");
+  if (manifestSets.length !== 3 || !parent.candidate_head || !parent.base_sha || (enforceApprovedBaseline && (parent.candidate_head !== "43c5bcfa960b1a10cb07ef997e2231e9615dca6f" || parent.base_sha !== "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2"))) throw new Error("Accepted Phase 238 custody is incomplete or not the approved baseline");
   const expected = verifiedTaskCommits(root, parent.candidate_head);
   if (JSON.stringify(expected) !== JSON.stringify(explicitTaskCommits)) throw new Error("Explicit Phase 239 task commits disagree with first-parent task history");
   const candidate = candidateIdentity(root, parent.base_sha);
@@ -167,10 +167,10 @@ export function build239CandidateReceipt(root: string, explicitTaskCommits: read
   };
 }
 
-export function validate239CandidateReceipt(root: string, receipt: Operator239CandidateReceipt, expectedPath?: string): void {
+export function validate239CandidateReceipt(root: string, receipt: Operator239CandidateReceipt, expectedPath?: string, enforceApprovedBaseline = true): void {
   const keys = ["schemaVersion", "phase", "worktree", "branch", "baseSha", "acceptedHead", "acceptedReceiptSha256", "acceptedEvidenceIndexSha256", "acceptedEvidenceManifestSets", "forwardTaskCommits", "candidateHead", "candidateAncestry", "candidatePaths", "candidateChanges", "candidateDiffDigest", "planningContextSha256"];
   fields(receipt, keys, "239 candidate receipt");
-  const rebuilt = build239CandidateReceipt(root, receipt.forwardTaskCommits);
+  const rebuilt = build239CandidateReceipt(root, receipt.forwardTaskCommits, enforceApprovedBaseline);
   if (expectedPath) {
     const actualPath = resolve(root, expectedPath);
     if (!actualPath.startsWith(resolve(root, ".planning/phases/239-investigation-entry-and-transaction-composition/") + "/")) throw new Error("Candidate receipt path escapes the Phase 239 evidence directory");

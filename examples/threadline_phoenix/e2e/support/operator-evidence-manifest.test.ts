@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test, { type TestContext } from "node:test";
-import { assetRecord, writeRouteBundle, candidateIdentity, localAssetPath, semanticFixtureId, serializeManifest, writeManifest, type OperatorEvidenceManifest } from "./operator-evidence-manifest.js";
+import { assetRecord, writeRouteBundle, candidateIdentity, build239CandidateReceipt, validate239CandidateReceipt, localAssetPath, semanticFixtureId, serializeManifest, writeManifest, type OperatorEvidenceManifest } from "./operator-evidence-manifest.js";
 import { DEFAULT_OPERATOR_SURFACE_PATHS } from "./operator-surface-paths.js";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -126,6 +126,47 @@ function repository(t: TestContext) {
   git("add", source); git("commit", "-qm", "synthetic base");
   return { root, git, source, base: git("rev-parse", "HEAD") };
 }
+
+test("forward receipt chains accepted 238 evidence and rejects forged parent, changed source/context, and extra task ancestry", (t) => {
+  const { root, git, source, base } = repository(t);
+  const phase = ".planning/phases/239-investigation-entry-and-transaction-composition";
+  const parentDir = ".planning/phases/238-current-main-preview-and-acceptance-baseline";
+  mkdirSync(join(root, parentDir), { recursive: true });
+  mkdirSync(join(root, phase), { recursive: true });
+  const parentPath = join(root, parentDir, "238-ISOLATION-RECEIPT.json");
+  const indexPath = join(root, parentDir, "238-EVIDENCE-INDEX.md");
+  const receiptPath = join(root, phase, "239-CANDIDATE-RECEIPT.json");
+  const contextPaths = ["239-07-PLAN.md", "239-CONTEXT.md", "239-UI-SPEC.md", "239-RESEARCH.md", "239-PATTERNS.md", "239-VALIDATION.md"];
+  writeFileSync(parentPath, JSON.stringify({ base_sha: base, candidate_head: base }));
+  writeFileSync(indexPath, ["# Final operator evidence custody", "| Eleven routes + degraded | bundle | 135 | `" + hash("routes") + "` | output |", "| Dark states | bundle | 63 | `" + hash("dark") + "` | output |", "| System/light states | bundle | 63 | `" + hash("light") + "` | output |", "## Historical evidence"].join("\n"));
+  for (const file of contextPaths) writeFileSync(join(root, phase, file), file);
+  git("add", parentDir, phase); git("commit", "-qm", "accepted 238 evidence snapshot");
+  const acceptedHead = git("rev-parse", "HEAD");
+  writeFileSync(parentPath, JSON.stringify({ base_sha: base, candidate_head: acceptedHead }));
+  writeFileSync(join(root, source), "phase 239 candidate");
+  git("add", source); git("commit", "-qm", "test(239-01): synthetic forward task");
+  const taskCommit = git("rev-parse", "HEAD");
+  const receipt = build239CandidateReceipt(root, [taskCommit], false);
+  writeFileSync(receiptPath, JSON.stringify(receipt, null, 2) + "\n");
+  assert.doesNotThrow(() => validate239CandidateReceipt(root, receipt, receiptPath, false));
+
+  const acceptedBytes = readFileSync(parentPath), evidenceBytes = readFileSync(indexPath), contextPath = join(root, phase, "239-CONTEXT.md"), contextBytes = readFileSync(contextPath), sourceBytes = readFileSync(join(root, source));
+  writeFileSync(parentPath, JSON.stringify({ base_sha: base, candidate_head: "f".repeat(40) }));
+  assert.throws(() => validate239CandidateReceipt(root, receipt, receiptPath, false), /parent|custody|ancestry/i);
+  writeFileSync(parentPath, acceptedBytes);
+  writeFileSync(indexPath, evidenceBytes.toString("utf8").replace("bundle", "forged"));
+  assert.throws(() => validate239CandidateReceipt(root, receipt, receiptPath, false), /receipt|evidence|forged|stale/i);
+  writeFileSync(indexPath, evidenceBytes);
+  writeFileSync(contextPath, "changed approved context");
+  assert.throws(() => validate239CandidateReceipt(root, receipt, receiptPath, false), /context|stale|forged/i);
+  writeFileSync(contextPath, contextBytes);
+  writeFileSync(join(root, source), "altered candidate bytes");
+  assert.throws(() => validate239CandidateReceipt(root, receipt, receiptPath, false), /source|digest|stale|forged/i);
+  writeFileSync(join(root, source), sourceBytes);
+  writeFileSync(join(root, source), "unexpected new 239 task");
+  git("add", source); git("commit", "-qm", "feat(239-07): unexpected task ancestry");
+  assert.throws(() => validate239CandidateReceipt(root, receipt, receiptPath, false), /commits|ancestry|stale/i);
+});
 
 test("source proof includes first-time unstaged/staged edits and retains digest on commit", (t) => {
   const { root, git, source, base } = repository(t);
