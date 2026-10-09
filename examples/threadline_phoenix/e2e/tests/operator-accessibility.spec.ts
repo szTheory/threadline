@@ -147,6 +147,10 @@ async function focusByKeyboard(page: Page, target: Locator, maxTabs = 40) {
 
 async function expectNonObscuredFocused(locator: Locator, page: Page) {
   await expectFocused(locator);
+  // Overlay focus moves at open time while its entrance transition may still be
+  // running. Wait for the complete control to enter the viewport before checking
+  // the final hit target; a partial slide-in is not a stable accessibility state.
+  await expect(locator).toBeInViewport({ ratio: 1 });
   const focusVisibility = await locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
     const x = rect.left + Math.min(rect.width / 2, Math.max(1, rect.width - 1));
