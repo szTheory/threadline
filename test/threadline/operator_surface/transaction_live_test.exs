@@ -141,6 +141,83 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-tl-copy="#{txn.id}"|
     end
 
+    test "keeps transaction and linked action actors and recorded context distinct", %{conn: conn} do
+      transaction_actor = %{"type" => "admin", "id" => "transaction-admin-42"}
+      action_actor = %{"type" => "user", "id" => "action-user-19"}
+
+      action =
+        Repo.insert!(
+          AuditAction.changeset(%{
+            name: "ticket.status_changed",
+            actor_ref: action_actor,
+            status: :ok,
+            request_id: "request-context-239",
+            job_id: "job-context-239"
+          }),
+          repo_opts()
+        )
+
+      txn =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            actor_ref: transaction_actor,
+            action_id: action.id
+          }),
+          repo_opts()
+        )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+
+      assert html =~ "Actor"
+      assert html =~ "admin/transaction-admin-42"
+      assert html =~ "Action"
+      assert html =~ "ticket.status_changed"
+      assert html =~ "Action actor"
+      assert html =~ "user/action-user-19"
+      assert html =~ "Request ID"
+      assert html =~ "request-context-239"
+      assert html =~ "Job ID"
+      assert html =~ "job-context-239"
+      refute html =~ "admin/action-user-19"
+      refute html =~ "user/transaction-admin-42"
+    end
+
+    test "labels the before and after sides of each field change", %{conn: conn} do
+      txn =
+        Repo.insert!(
+          AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now()
+          }),
+          repo_opts()
+        )
+
+      Repo.insert!(
+        AuditChange.changeset(%{
+          transaction_id: txn.id,
+          table_schema: "public",
+          table_name: "users",
+          table_pk: %{"id" => "labelled-row"},
+          op: "update",
+          data_after: %{"email" => "new@example.com"},
+          changed_fields: ["email"],
+          changed_from: %{"email" => "old@example.com"},
+          captured_at: DateTime.utc_now()
+        }),
+        repo_opts()
+      )
+
+      assert {:ok, _lv, html} = live(conn, "/audit/transactions/#{txn.id}")
+      assert html =~ "Before"
+      assert html =~ "After"
+      assert html =~ "old@example.com"
+      assert html =~ "new@example.com"
+      assert html =~ "users"
+      assert html =~ "labelled-row"
+    end
+
     test "Case 3: renders no-row-change state when bundle.changes is empty", %{
       conn: conn
     } do

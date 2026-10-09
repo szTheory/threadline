@@ -188,6 +188,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <:metadata :if={transaction_action_label(@bundle.transaction)} key="Action">
                 <%= transaction_action_label(@bundle.transaction) %>
               </:metadata>
+              <:metadata :if={action_actor_label(@bundle.action)} key="Action actor">
+                <%= action_actor_label(@bundle.action) %>
+              </:metadata>
+              <:metadata :if={action_request_id(@bundle.action)} key="Request ID">
+                <UI.Display.ref value={action_request_id(@bundle.action)} kind="correlation" copy_label="Copy request id" />
+              </:metadata>
+              <:metadata :if={action_job_id(@bundle.action)} key="Job ID">
+                <UI.Display.ref value={action_job_id(@bundle.action)} kind="correlation" copy_label="Copy job id" />
+              </:metadata>
+              <:metadata :if={action_reason(@bundle.action)} key="Recorded reason">
+                <%= action_reason(@bundle.action) %>
+              </:metadata>
               <:metadata key="Tables"><%= transaction_table_count(@bundle.changes) %></:metadata>
               <:metadata key="Changes"><%= transaction_change_count(@bundle.changes) %></:metadata>
               <:metadata :if={transaction_correlation_value(@bundle.transaction)} key="Correlation">
@@ -257,6 +269,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <%= if has_before_axis?(field) do %>
                           <% before = Presentation.change_value_token(field, :before) %>
                           <span class="tl-diff__cell">
+                            <span class="tl-diff__axis-label">Before</span>
                             <span class={["tl-value", before.modifier]} title={Map.get(before, :title)}><%= before.text %></span>
                             <button :if={diff_full(before) && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={diff_full(before)} aria-label={"Copy #{field["name"]} before value"}>
                               <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
@@ -267,6 +280,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <% end %>
                         <% after_token = Presentation.change_value_token(field, :after) %>
                         <span class="tl-diff__cell">
+                          <span class="tl-diff__axis-label">After</span>
                           <span class={["tl-value", after_token.modifier]} title={Map.get(after_token, :title)}><%= after_token.text %></span>
                           <button :if={diff_full(after_token) && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={diff_full(after_token)} aria-label={"Copy #{field["name"]} after value"}>
                             <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
@@ -319,6 +333,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       do: "#{type}/#{Presentation.truncate_middle(id, 28)}"
 
     defp transaction_actor_label(_), do: "unknown"
+
+    defp action_actor_label(%{actor_ref: %{type: type, id: id}}) when not is_nil(id),
+      do: "#{type}/#{Presentation.truncate_middle(id, 28)}"
+
+    defp action_actor_label(%{actor_ref: %{"type" => type, "id" => id}}) when not is_nil(id),
+      do: "#{type}/#{Presentation.truncate_middle(id, 28)}"
+
+    defp action_actor_label(_), do: nil
+
+    defp action_request_id(%{request_id: value}) when is_binary(value) and value != "", do: value
+    defp action_request_id(_), do: nil
+
+    defp action_job_id(%{job_id: value}) when is_binary(value) and value != "", do: value
+    defp action_job_id(_), do: nil
+
+    defp action_reason(%{reason: value}) when is_binary(value) and value != "", do: value
+    defp action_reason(_), do: nil
 
     defp transaction_actor_path(base_path, %{actor_ref: %{type: type, id: id}})
          when is_binary(base_path) and not is_nil(id),
