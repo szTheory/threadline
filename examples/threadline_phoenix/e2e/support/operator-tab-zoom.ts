@@ -1,4 +1,4 @@
-import type { BrowserContext, BrowserType, Page, ServiceWorker } from "@playwright/test";
+import type { BrowserContext, BrowserType, Page, Worker } from "@playwright/test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -13,6 +13,14 @@ export type TabZoomObservation = {
   tabId: number;
   url: string;
   zoomFactor: number;
+};
+
+declare const chrome: {
+  tabs: {
+    query(query: { active: boolean; currentWindow: boolean }): Promise<Array<{ id?: number; url?: string }>>;
+    setZoom(tabId: number, factor: number): Promise<void>;
+    getZoom(tabId: number): Promise<number>;
+  };
 };
 
 export async function withIsolatedZoomContext<T>(
@@ -66,14 +74,14 @@ export async function setAndReadTabZoom(
 }
 
 async function sendZoomRequest(
-  worker: ServiceWorker,
+  worker: Worker,
   page: Page,
 ): Promise<TabZoomObservation | { error: string }> {
   const targetUrl = page.url();
   return worker.evaluate(async (url) => {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     const tab = tabs.find((candidate) => candidate.url === url);
-    if (!tab?.id) throw new Error(`Could not identify the test-owned tab at ${url}`);
+    if (!tab?.id || typeof tab.url !== "string") throw new Error(`Could not identify the test-owned tab at ${url}`);
     if (!tab.url.startsWith("http://127.0.0.1:")) {
       throw new Error("Zoom proof may target only its own loopback test tab");
     }
