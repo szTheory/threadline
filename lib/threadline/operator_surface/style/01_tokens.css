@@ -41,9 +41,9 @@
     --tl-color-graphite: #141B2D;
     --tl-color-slate-line: #23304A;
     --tl-color-fog: #D7DEEA;
-    --tl-color-paper: var(--tl-color-paper);
+    --tl-color-paper: #F7F9FC;
     --tl-color-mist: #E7ECF4;
-    --tl-color-ink: var(--tl-color-ink);
+    --tl-color-ink: #0F1728;
     --tl-color-thread-blue: #4F8CFF;
     --tl-color-stitch-blue: #4781E6;
     --tl-color-signal-cyan: #4EDFD1;
@@ -86,8 +86,6 @@
     /* Signal Cyan — correlation, live traces, positive system flow */
     --tl-color-signal-bg: rgba(78, 223, 209, 0.12);
     --tl-color-signal-border: rgba(78, 223, 209, 0.30);
-    --tl-color-ink: var(--tl-color-ink);
-    --tl-color-paper: var(--tl-color-paper);
     --tl-color-danger: #FF8585;
     --tl-color-danger-bg: rgba(240, 106, 106, 0.16);
     --tl-color-danger-border: rgba(255, 133, 133, 0.48);
@@ -212,8 +210,6 @@
     --tl-color-signal: #0F8F85;
     --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
     --tl-color-signal-border: rgba(15, 143, 133, 0.30);
-    --tl-color-ink: var(--tl-color-ink);
-    --tl-color-paper: var(--tl-color-paper);
     --tl-color-danger: #A33434;
     --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
     --tl-color-danger-border: rgba(163, 52, 52, 0.28);
@@ -264,8 +260,6 @@
       --tl-color-signal: #0F8F85;
       --tl-color-signal-bg: rgba(15, 143, 133, 0.12);
       --tl-color-signal-border: rgba(15, 143, 133, 0.30);
-      --tl-color-ink: var(--tl-color-ink);
-      --tl-color-paper: var(--tl-color-paper);
       --tl-color-danger: #A33434;
       --tl-color-danger-bg: rgba(163, 52, 52, 0.10);
       --tl-color-danger-border: rgba(163, 52, 52, 0.28);
@@ -314,4 +308,3 @@
       background: var(--tl-color-surface-hover);
     }
   }
-

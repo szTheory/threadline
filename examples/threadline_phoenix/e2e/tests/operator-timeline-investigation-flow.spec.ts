@@ -91,12 +91,26 @@ async function expectLiveViewConnected(page: Page) {
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
-  const overflow = await page.evaluate(() => {
+  const { overflow, offenders } = await page.evaluate(() => {
     const root = document.documentElement;
-    return root.scrollWidth - root.clientWidth;
+    return {
+      overflow: root.scrollWidth - root.clientWidth,
+      offenders: Array.from(document.querySelectorAll("body *"))
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            selector: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${typeof element.className === "string" && element.className ? `.${element.className.trim().replace(/\s+/g, ".")}` : ""}`,
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+          };
+        })
+        .filter((element) => element.right > root.clientWidth + 1)
+        .slice(0, 8),
+    };
   });
 
-  expect(overflow).toBeLessThanOrEqual(1);
+  expect(overflow, `horizontal overflow offenders: ${JSON.stringify(offenders)}`).toBeLessThanOrEqual(1);
 }
 
 async function expectBoxWithinViewport(locator: Locator, viewportWidth: number) {
@@ -587,9 +601,11 @@ test.describe("Timeline investigation flow browser proof", () => {
         expect(response.status()).toBe(201);
 
         await page.goto(timelineUrl({ table: "posts" }));
+        await expectLiveViewConnected(page);
         const filters = page.locator("#timeline-filters");
         const correlationInput = filters.getByLabel("Correlation id", { exact: true });
         await correlationInput.fill(correlation);
+        await expect(correlationInput).toHaveValue(correlation);
         await filters.getByRole("button", { name: "Apply", exact: true }).click();
 
         await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe(correlation);

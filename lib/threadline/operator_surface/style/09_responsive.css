@@ -147,7 +147,9 @@
 
     .tl-filter-grid {
       gap: var(--tl-space-2);
+      grid-template-columns: minmax(0, 1fr);
     }
+
   }
 
   /* Tablet enhancement layer starts at 768px: lift the phone refinements once there's room. */
