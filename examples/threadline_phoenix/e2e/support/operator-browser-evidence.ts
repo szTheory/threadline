@@ -87,7 +87,7 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
     const observation = await root.evaluate((el) => {
       const style = getComputedStyle(el);
       const names = ["--tl-color-bg", "--tl-color-text", "--tl-color-paper", "--tl-color-ink", "--tl-motion-base", "--tl-font-size-body"];
-      return { preference: (el.querySelector('input[name="theme"]:checked') as HTMLInputElement)?.value ?? "unknown", effectiveTheme: el.getAttribute("data-tl-theme") ?? "unknown", osLight: matchMedia("(prefers-color-scheme: light)").matches, reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches, dpr: devicePixelRatio, cssWidth: innerWidth, scrollWidth: document.documentElement.scrollWidth, background: style.backgroundColor, resolvedValues: Object.fromEntries(names.map((n) => [n, style.getPropertyValue(n).trim()])) };
+      return { preference: (el.querySelector('input[name="theme"]:checked') as HTMLInputElement)?.value ?? "unknown", mountedTheme: el.getAttribute("data-tl-theme") ?? "unknown", effectiveTheme: style.colorScheme, osLight: matchMedia("(prefers-color-scheme: light)").matches, reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches, dpr: devicePixelRatio, cssWidth: innerWidth, scrollWidth: document.documentElement.scrollWidth, background: style.backgroundColor, resolvedValues: Object.fromEntries(names.map((n) => [n, style.getPropertyValue(n).trim()])) };
     });
     lastAppearance = { preference: observation.preference, effectiveTheme: observation.effectiveTheme };
     lastViewport = { ...page.viewportSize()!, deviceScaleFactor: observation.dpr };

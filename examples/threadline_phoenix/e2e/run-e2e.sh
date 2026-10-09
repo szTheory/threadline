@@ -371,13 +371,18 @@ fi
 export PORT
 export E2E_BASE_URL="$BASE_URL"
 
+PROJECT_ARGS=()
+EXPLICIT_PROJECT=0
+for runner_arg in "$@"; do
+  case "$runner_arg" in --project|--project=*) EXPLICIT_PROJECT=1 ;; esac
+done
+if [[ "${THREADLINE_E2E_THEME:-}" == "system" && "$EXPLICIT_PROJECT" == "0" ]]; then
+  PROJECT_ARGS+=(--project=desktop-chromium-light)
+fi
+
 if [[ "${THREADLINE_E2E_ARGUMENTS_ONLY:-0}" == "1" ]]; then
-  if [[ "${THREADLINE_E2E_THEME:-}" == "system" ]]; then
-    printf 'npm test -- --project=desktop-chromium-light'
-  else
-    printf 'npm test --'
-  fi
-  printf ' %q' "$@"
+  printf 'npm test --'
+  printf ' %q' "${PROJECT_ARGS[@]}" "$@"
   printf '\n'
   exit 0
 fi
@@ -461,11 +466,4 @@ if ! operator_surface_ready; then
 fi
 
 cd "$E2E_DIR"
-if [ "${THREADLINE_E2E_THEME:-}" = "system" ]; then
-  # Light lane: only the light project should run — the dark projects would
-  # otherwise hit the :system mount. It is scoped to the affordance spec via
-  # testMatch in playwright.config.ts. (Phase 168, A11Y-02 part 2.)
-  npm test -- --project=desktop-chromium-light "$@"
-else
-  npm test -- "$@"
-fi
+npm test -- "${PROJECT_ARGS[@]}" "$@"
