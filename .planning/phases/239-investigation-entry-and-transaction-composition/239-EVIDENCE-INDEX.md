@@ -2,7 +2,7 @@
 
 ## Custody chain
 
-- Retained worktree: `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview`
+- Retained worktree: `.claude/worktrees/v146-operator-preview` (local checkout path recorded in the handoff)
 - Branch: `worktree-agent-v146-operator-preview`
 - Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`
 - Accepted Phase 238 head: `43c5bcfa960b1a10cb07ef997e2231e9615dca6f`
