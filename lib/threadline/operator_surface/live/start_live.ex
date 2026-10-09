@@ -229,8 +229,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <span class="tl-home__card-kicker">Timeline</span>
               <h2 class="tl-home__card-title">Find what changed</h2>
               <p class="tl-home__card-body">
-                Search captured changes by time, table, actor, or correlation id, then open
-                transactions and row history for context.
+                Start with Timeline, or jump to a known row or correlation below.
               </p>
               <a href={"#{@base_path}/timeline"} class="tl-button tl-button--primary">
                 <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
@@ -362,7 +361,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 </label>
                 <button class="tl-button tl-button--secondary" type="submit">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-                  Open timeline
+                  Open the timeline
                 </button>
               </form>
               <div :if={@correlation_lookup_error} class="tl-alert tl-alert--error" role="alert">

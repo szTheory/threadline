@@ -283,6 +283,16 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
   end
 
+  test "Home card kickers use neutral tokens and leave accent for interactive emphasis" do
+    src = StyleSource.read!()
+    kicker = selector_block!(src, ".tl-home__card-kicker")
+
+    assert String.contains?(kicker, "border: 1px solid var(--tl-color-border);")
+    assert String.contains?(kicker, "background: var(--tl-color-surface-hover);")
+    assert String.contains?(kicker, "color: var(--tl-color-muted);")
+    refute String.contains?(kicker, "--tl-color-accent")
+  end
+
   test "phase 140 home earned-flow controls stay scoped token-backed" do
     src = StyleSource.read!()
 

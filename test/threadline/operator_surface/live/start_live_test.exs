@@ -215,6 +215,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "Timeline"
       assert html =~ "Find what changed"
+      assert html =~ "Start with Timeline, or jump to a known row or correlation below."
       assert html =~ "Open the timeline"
       assert html =~ ~s|href="/audit/timeline"|
 
@@ -399,7 +400,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert has_element?(view, "#tl-record-lookup", "Open row history")
       assert has_element?(view, ~s|#tl-record-lookup [name="record_lookup[table]"]|)
       assert has_element?(view, ~s|#tl-record-lookup [name="record_lookup[record_id]"]|)
-      assert has_element?(view, "#tl-correlation-lookup", "Open timeline")
+      assert has_element?(view, "#tl-correlation-lookup", "Open the timeline")
 
       assert has_element?(
                view,
