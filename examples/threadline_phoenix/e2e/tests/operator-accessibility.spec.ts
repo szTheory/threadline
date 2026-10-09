@@ -341,7 +341,7 @@ test.describe("operator accessibility baseline", () => {
     await expect(
       page
         .locator("#tl-correlation-lookup")
-        .getByRole("button", { name: "Open Timeline" }),
+        .getByRole("button", { name: "Open the timeline" }),
     ).toBeVisible();
 
     await page.goto("/audit/timeline");
