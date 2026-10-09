@@ -182,7 +182,9 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
 
   def live_catalog!(root, manifest, findings) do
     bundles =
-      Regex.scan(~r/^bundle_path: (.+)$/m, findings, capture: :all_but_first) |> List.flatten()
+      Regex.scan(~r/^bundle_path: (.+)$/m, findings, capture: :all_but_first)
+      |> List.flatten()
+      |> Enum.map(&Path.expand(&1, root))
 
     if bundles == [] or Path.dirname(manifest) not in bundles,
       do: raise(ArgumentError, "accepted manifest bundle is missing")
