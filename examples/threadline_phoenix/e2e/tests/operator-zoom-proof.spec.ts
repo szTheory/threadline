@@ -191,6 +191,7 @@ async function observePage(
       overflow: root.scrollWidth - root.clientWidth,
     };
   }, route);
+  expect(layout.viewport.width, `${route} CSS viewport width at 200% tab zoom`).toBe(640);
   if (requireReachable) expect(layout.overflow, `${route} has whole-page horizontal overflow`).toBeLessThanOrEqual(1);
   return { ...layout, controls };
 }

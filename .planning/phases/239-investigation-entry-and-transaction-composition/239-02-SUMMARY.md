@@ -40,7 +40,7 @@ coverage:
     requirement: UIA-01
     verification:
       - kind: e2e
-        ref: "mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts (MIX_TEST_PARTITION=tl239zoom1020, THREADLINE_E2E_PORT=4178)"
+        ref: "env -u DISPLAY mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts (MIX_TEST_PARTITION=tl239hdless, THREADLINE_E2E_PORT=4181; macOS; 1 browser test passed)"
         status: pass
     human_judgment: false
   - id: D2
@@ -48,7 +48,7 @@ coverage:
     requirement: UIS-01
     verification:
       - kind: e2e
-        ref: "mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts (one desktop test passed; proof in 239-ZOOM-PROOF.md)"
+        ref: "env -u DISPLAY mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts (1 desktop test and 21 Node tests passed; proof in 239-ZOOM-PROOF.md)"
         status: pass
     human_judgment: false
 duration: 35min
@@ -72,6 +72,7 @@ status: complete
 
 - Added a minimal local Manifest V3 extension with only `tabs` permission, loaded into a newly created persistent Chromium context with a temporary profile.
 - Set zoom to `2.0` and read it back with `chrome.tabs.getZoom` on the same test-owned tab on Home, Timeline, and Transaction. No viewport, DPR, CSS, screenshot-scale, or borrowed-profile substitute was used.
+- The isolated proof context runs with Playwright Chromium's display-free headless mode and an explicit 1280 × 900 viewport; at real 200% tab zoom, each route now asserts a 640px CSS viewport width.
 - Added a reusable early probe for Home lookups, Timeline filters and theme controls, transaction evidence controls, focus/pointer reachability, whole-page width, and filter-overlay Escape dismissal.
 - Recorded the actual browser version, Playwright version, viewport, DPR, per-route readbacks, and early Transaction disclosure findings in [239-ZOOM-PROOF.md](./239-ZOOM-PROOF.md).
 
@@ -95,13 +96,16 @@ status: complete
 - `mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts`, using the fresh `tl239zoom1020` database partition and port `4178`: **exit 0**, 21 Node tests passed and 1 desktop browser test passed.
 - Strict TypeScript check of the new helper and spec: passed.
 - Real browser observation: Chrome for Testing `148.0.7778.96`, Playwright `1.60.0`, tab ID `1014977919`, `getZoom = 2.0` on all three routes. At actual zoom, all route document widths matched the 640-pixel client width. Home, Timeline, theme, and overlay controls were reachable; Escape dismissed the filter overlay and returned focus. Transaction Before/After labels and a transaction-scoped full-value disclosure were not present in this pre-Plan-03 UI and are recorded as findings.
+- Scoped CI portability correction: set the isolated browser context to `headless: true` with `channel: "chromium"`, retained the temporary profile/extension/same-tab/loopback guards, and asserted the 640px CSS viewport for each route from a 1280px viewport.
+- Display-free focused verification ran on **macOS (`Darwin`) with `DISPLAY` unset** (not Linux CI): Playwright discovered and passed 1 browser test; the runner's Node suite passed 21 tests. Chrome for Testing `148.0.7778.96`, Playwright `1.60.0`, tab ID `2042572943`, `getZoom = 2.0` for Home, Timeline, and Transaction; all three reported `innerWidth = 640`, `scrollWidth = clientWidth = 640`, and zero horizontal overflow. Focused strict TypeScript check of the touched helper and spec passed.
 - `git diff --check` and the changed-file placeholder/stub scan: passed; no introduced stubs or threat surface outside the plan's isolated test extension boundary.
 
 ## Decisions Made
 
 - The extension worker uses the browser tabs API directly in its isolated test context; the harness does not add a page-to-extension message endpoint.
 - The proof records each route's actual zoom readback and checks tab identity, keeping browser zoom evidence distinct from viewport and device-pixel-ratio observations.
-- The strict acceptance mode is implemented but remains for Plan 07 after Plan 05 corrections; the early run reports findings instead of treating them as acceptance failures.
+- The strict acceptance mode is implemented but remains for Plan 07 after Plan 05 corrections; the early run records findings without applying the final acceptance gate.
+- Use Chromium's supported headless mode for display-free CI while preserving genuine extension tab API zoom evidence; this local macOS run does not claim remote Linux CI execution.
 
 ## Deviations from Plan
 
@@ -129,7 +133,7 @@ Plan 239-02 is complete. Plan 239-03 owns the transaction evidence labels and fu
 
 - All five created/modified plan artifacts exist.
 - Task commits `b93dc985` and `a9ffa716` are ancestors of the current worktree HEAD.
-- Measured plan range: 2 commits from `15aa8313ae4e877ac49495eec3b9e0246313a3a8` through `a9ffa7168749adb6995332442ac7c01148ad28ec`.
+- The measured original plan task range was 2 commits from `15aa8313ae4e877ac49495eec3b9e0246313a3a8` through `a9ffa7168749adb6995332442ac7c01148ad28ec`; the later portability correction and refreshed proof are scoped follow-up work.
 
 ---
 *Phase: investigation-entry-and-transaction-composition*

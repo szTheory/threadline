@@ -33,7 +33,8 @@ export async function withIsolatedZoomContext<T>(
   try {
     context = await browserType.launchPersistentContext(userDataDir, {
       channel: "chromium",
-      headless: false,
+      headless: true,
+      viewport: { width: 1280, height: 900 },
       args: [
         `--disable-extensions-except=${extensionPath}`,
         `--load-extension=${extensionPath}`,
