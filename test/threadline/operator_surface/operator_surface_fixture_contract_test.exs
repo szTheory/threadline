@@ -74,6 +74,22 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
     assert validate_corpus(@repository_root, @live_corpus_root) == :ok
   end
 
+  test "generic source inventories are separate from the immutable rendered corpus", %{repo: repo} do
+    before = evidence_manifest(repo, "operator-surface")
+
+    for name <- ["route-inventory.json", "source-surface-checklist.json"] do
+      File.write!(Path.join([repo, "operator-surface", name]), "{}\n")
+      git!(repo, ["add", "operator-surface/" <> name])
+    end
+
+    assert evidence_manifest(repo, "operator-surface") == before
+    assert length(tracked_manifest(repo, "operator-surface")) == length(before) + 2
+
+    File.write!(Path.join([repo, "operator-surface", "unexpected-reference.json"]), "{}\n")
+    git!(repo, ["add", "operator-surface/unexpected-reference.json"])
+    refute evidence_manifest(repo, "operator-surface") == before
+  end
+
   test "tracked byte changes alter the manifest", %{repo: repo} do
     before = tracked_manifest(repo, "operator-surface")
     tracked = Path.join(repo, "operator-surface/design-system-ledger.json")
@@ -312,7 +328,14 @@ defmodule Threadline.OperatorSurface.FixtureContractTest do
   defp evidence_manifest(repo, corpus_root) do
     repo
     |> tracked_manifest(corpus_root)
-    |> Enum.reject(&(&1.path in ["README.md", "manifest.sha256"]))
+    |> Enum.reject(
+      &(&1.path in [
+          "README.md",
+          "manifest.sha256",
+          "route-inventory.json",
+          "source-surface-checklist.json"
+        ])
+    )
   end
 
   defp encode_manifest(manifest) do

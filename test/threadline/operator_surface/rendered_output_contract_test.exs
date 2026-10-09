@@ -478,7 +478,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.map(&to_string/1)
       |> Enum.map(&Path.relative_to(&1, @reference_corpus_root))
       |> Enum.map(&normalize_path/1)
-      |> Enum.reject(&(&1 in ["README.md", "manifest.sha256"]))
+      |> Enum.reject(
+        &(&1 in [
+            "README.md",
+            "manifest.sha256",
+            "route-inventory.json",
+            "source-surface-checklist.json"
+          ])
+      )
       |> Enum.sort()
       |> Enum.map(fn path ->
         bytes = File.read!(Path.join(@reference_corpus_root, path))
