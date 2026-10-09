@@ -3,7 +3,7 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
   @ui ~w(page actions form overlay data display)
   @router "lib/threadline/operator_surface/router.ex"
   @routes ~w(/ /timeline /transactions/:id /rows/:table/:record_id /transactions/:id/history/:table/:record_id /actors/:kind/:id /coverage /evidence /exports /policy/redaction /policy/retention)
-  @control ~r/\b(?:phx-click(?:-away)?|phx-submit|phx-change|phx-window-keydown|phx-keydown|data-tl-copy|navigate|patch|href|action)=(?:"[^"\n]*"|\{[^\n]*)/
+  @control ~r/\b(?:phx-(?!(?:debounce|key|target|update|value-[a-z-]+)=)[a-z-]+|data-tl-copy|navigate|patch|href|action)=(?:"[^"\n]*"|\{[^\n]*)/
   @probe ~r/\btest(?:\.skip|\.fixme)?\(\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)/
 
   def sources(root) do
@@ -257,6 +257,17 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
          &(&1 in ~w(schemaVersion url pid worktree branch isolationManifest partition database identity checks assets capturedAt lifecycle manifestPath inventoryPath))
        ), "allowlisted preview metadata"},
       {not secret_fields?(receipt), "sensitive preview metadata"},
+      {Enum.sort(Map.keys(identity)) ==
+         Enum.sort(~w(baseSha candidateDiffDigest fixture candidateHead candidateAncestry)),
+       "allowlisted preview identity"},
+      {Enum.all?(receipt["assets"] || [], fn a ->
+         u = URI.parse(a["url"] || "")
+
+         Enum.sort(Map.keys(a)) ==
+           Enum.sort(~w(url status contentType servedSha256 localPath localSha256)) and
+           is_nil(u.userinfo) and is_nil(u.query) and
+           (u.scheme == "inline" or (u.scheme == "http" and u.host == "127.0.0.1"))
+       end), "allowlisted local preview assets"},
       {Enum.sort(Enum.map(receipt["assets"] || [], asset_key)) ==
          Enum.sort(
            Enum.map(get_in(manifest, ["captures", Access.at(0), "assets"]) || [], asset_key)
@@ -308,15 +319,16 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
     const {candidateIdentity}=require('./examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts');
     const current=candidateIdentity(root,r.identity.baseSha);assert.equal(current.candidateDiffDigest,r.identity.candidateDiffDigest);
     const {chromium}=require('./examples/threadline_phoenix/e2e/node_modules/playwright');
-    const {login,seedPaths}=require('./examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts');
+    const {seedPaths}=require('./examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts');
+    let stage='launch';
     (async()=>{const browser=await chromium.launch({headless:true});try{
-      const context=await browser.newContext({baseURL:r.url});const response=await context.request.get('/audit',{maxRedirects:0});assert.ok([302,303].includes(response.status()));const target=new URL(response.headers()['location'],r.url);assert.equal(target.origin,r.url);assert.equal(target.pathname,'/users/log_in');
-      const page=await context.newPage();await login(page);let res=await page.goto('/audit');assert.equal(res.status(),200);await page.locator('.threadline-ui #tl-main').waitFor();const paths=await seedPaths(page);res=await page.goto(paths.transaction);assert.equal(res.status(),200);await page.locator('.threadline-ui #tl-main').waitFor();await page.getByRole('heading',{name:'Transaction',exact:true}).first().waitFor();
+      const unauth=await browser.newContext({baseURL:r.url});const response=await unauth.request.get('/audit',{maxRedirects:0});assert.ok([302,303].includes(response.status()));const target=new URL(response.headers()['location'],r.url);assert.equal(target.origin,r.url);assert.equal(target.pathname,'/users/log_in');await unauth.close();const context=await browser.newContext({baseURL:r.url});
+      stage='seeded login';const page=await context.newPage();await page.goto('/users/log_in');await page.locator('#login_form').getByLabel('Email').fill('admin@example.com');await page.locator('#login_form').getByLabel('Password').fill(process.env.DEMO_SEED_PASSWORD||'password123456');await page.locator('#login_form').getByRole('button',{name:/log in/i}).click();await page.waitForURL(r.url+'/');stage='audit/deep link';let res=await page.goto('/audit');assert.equal(res.status(),200);await page.locator('.threadline-ui #tl-main').waitFor();const paths=await seedPaths(page);res=await page.goto(paths.transaction);assert.equal(res.status(),200);await page.locator('.threadline-ui #tl-main').waitFor();await page.getByRole('heading',{name:'Transaction',exact:true}).first().waitFor();stage='served assets';
       const styles=await page.locator('style').allTextContents();
-      const external=[...new Map((await page.locator('script[src],link[rel="stylesheet"][href]').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('src')||n.getAttribute('href')))).filter(x=>x&&x.startsWith('/assets/')).map(x=>[x,x])).values()];
-      for(const a of r.assets){if(a.url.startsWith('inline:')){assert.ok(styles.some(s=>sha(s)===a.servedSha256),'served inline CSS differs');}else{const pathname=new URL(a.url).pathname;assert.ok(external.includes(pathname));const response=await context.request.get(pathname);assert.equal(response.status(),200);assert.equal(sha(await response.body()),a.servedSha256);assert.equal(sha(fs.readFileSync(path.join(root,a.localPath))),a.localSha256);}}
+      const external=await page.evaluate(()=>performance.getEntriesByType('resource').map(entry=>new URL(entry.name).pathname).filter(name=>name.startsWith('/assets/')));
+      for(const a of r.assets){if(a.url.startsWith('inline:')){stage='inline CSS hash';assert.ok(styles.some(s=>sha(s)===a.servedSha256),'served inline CSS differs');}else{const pathname=new URL(a.url).pathname;stage='asset reference '+pathname;assert.ok(external.map(x=>new URL(x,r.url).pathname).includes(pathname));stage='asset response hash '+pathname;const response=await context.request.get(pathname);assert.equal(response.status(),200);assert.equal(sha(await response.body()),a.servedSha256);stage='asset local hash '+pathname;assert.equal(sha(fs.readFileSync(path.join(root,a.localPath))),a.localSha256);}}
       assert.ok(r.assets.length>=3);process.stdout.write('preview verified');
-    }finally{await browser.close();}})().catch(()=>{process.stderr.write('Preview runtime custody check failed');process.exitCode=1;});
+    }finally{await browser.close();}})().catch(()=>{process.stderr.write('Preview runtime custody check failed at '+stage);process.exitCode=1;});
     """
 
     {output, status} =
@@ -384,6 +396,8 @@ defmodule Threadline.OperatorSurface.OperatorEvidenceContractTest do
       {"lib/threadline/operator_surface/ui/page.ex", "\n def unlisted(assigns) do\n end\n"},
       {"lib/threadline/operator_surface/live/start_live.ex",
        "\n<button phx-click=\"unlisted-control\">Open</button>\n"},
+      {"lib/threadline/operator_surface/live/transaction_live.ex",
+       "\n<div phx-viewport-bottom=\"unlisted-page\"></div>\n"},
       {"examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
        "\ntest(\"unlisted denial probe\", async () => {});\n"}
     ]

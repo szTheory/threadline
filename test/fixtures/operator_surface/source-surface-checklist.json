@@ -171,6 +171,32 @@
       "exclusion": ""
     },
     {
+      "id": "control.actor.phx-viewport-bottom.2a39161ff3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-bottom=\"next-page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.actor.phx-viewport-top.b0abed742e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/actor_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-top=\"prev-page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
       "id": "control.components.href.1129bb6fe4",
       "kind": "control",
       "anchors": [
@@ -269,6 +295,19 @@
           "path": "lib/threadline/operator_surface/live/coverage_live.ex",
           "kind": "control",
           "anchor": "phx-submit=\"select-schema\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.data.phx-mounted.c1734f2f05",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/data.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={@focus_heading && JS.focus(to: \"##{@resolved_heading_id}\")}",
           "occurrence": 1
         }
       ],
@@ -652,6 +691,19 @@
       "exclusion": ""
     },
     {
+      "id": "control.form.phx-mounted.f190da2f72",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/form.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={JS.focus(to: \"##{@id}\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
       "id": "control.overlay.href.a007f9c03c",
       "kind": "control",
       "anchors": [
@@ -802,6 +854,71 @@
           "path": "lib/threadline/operator_surface/ui/overlay.ex",
           "kind": "control",
           "anchor": "phx-click={JS.exec(@on_cancel, \"phx-remove\") |> hide_modal(@id)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-mounted.7433643221",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={@show && show_drawer(@id)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-mounted.9bc301445d",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={show_toast(@id)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-mounted.e9e1466ec6",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={@show && show_modal(@id)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-remove.fc0ac679fc",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-remove={hide_drawer(@id)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.phx-remove.fc1645f1c5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-remove={hide_modal(@id)}",
           "occurrence": 1
         }
       ],
@@ -1653,6 +1770,19 @@
       "exclusion": ""
     },
     {
+      "id": "control.timeline.phx-viewport-bottom.472e0e89e3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-bottom={@cursor && \"next-page\"}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
       "id": "control.transaction.data-tl-copy.31eb3e6f5e",
       "kind": "control",
       "anchors": [
@@ -1738,6 +1868,32 @@
           "path": "lib/threadline/operator_surface/live/transaction_live.ex",
           "kind": "control",
           "anchor": "patch={row_history_path} class=\"tl-button tl-button--compact tl-button--secondary\" title=\"Open row history\" data-testid=\"row-history-link\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.phx-viewport-bottom.2a39161ff3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-bottom=\"next-page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction.phx-viewport-top.b0abed742e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "phx-viewport-top=\"prev-page\"",
           "occurrence": 1
         }
       ],
@@ -4514,5 +4670,12 @@
       ],
       "exclusion": ""
     }
-  ]
+  ],
+  "excludedAttributeFamilies": {
+    "phx-debounce": "Timing parameter, not an event declaration",
+    "phx-key": "Key qualifier for an independently inventoried event",
+    "phx-target": "Event destination, not an independent action",
+    "phx-update": "DOM patch strategy, not an independent action",
+    "phx-value-*": "Event payload metadata, not an independent action"
+  }
 }

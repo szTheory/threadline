@@ -165,6 +165,16 @@
       "label": "actor phx-click=\"set-window\""
     },
     {
+      "id": "control.actor.phx-viewport-bottom.2a39161ff3",
+      "kind": "control",
+      "label": "actor phx-viewport-bottom=\"next-page\""
+    },
+    {
+      "id": "control.actor.phx-viewport-top.b0abed742e",
+      "kind": "control",
+      "label": "actor phx-viewport-top=\"prev-page\""
+    },
+    {
       "id": "control.components.href.1129bb6fe4",
       "kind": "control",
       "label": "components href={path} class=\"tl-link tl-link--deep\" title=\"Open actor activity\">"
@@ -203,6 +213,11 @@
       "id": "control.coverage.phx-submit.3b3e7b3381",
       "kind": "control",
       "label": "coverage phx-submit=\"select-schema\""
+    },
+    {
+      "id": "control.data.phx-mounted.c1734f2f05",
+      "kind": "control",
+      "label": "data phx-mounted={@focus_heading && JS.focus(to: \"##{@resolved_heading_id}\")}"
     },
     {
       "id": "control.display.data-tl-copy.6bc9f4aaf0",
@@ -350,6 +365,11 @@
       "label": "form phx-click={"
     },
     {
+      "id": "control.form.phx-mounted.f190da2f72",
+      "kind": "control",
+      "label": "form phx-mounted={JS.focus(to: \"##{@id}\")}"
+    },
+    {
       "id": "control.overlay.href.a007f9c03c",
       "kind": "control",
       "label": "overlay href={~p\"/...\"} data-tl-mutating aria-disabled=\"true\" tabindex=\"-1\">Re-run</a>"
@@ -408,6 +428,31 @@
       "id": "control.overlay.phx-click.eb1c158f16",
       "kind": "control",
       "label": "overlay phx-click={JS.exec(@on_cancel, \"phx-remove\") |> hide_modal(@id)}"
+    },
+    {
+      "id": "control.overlay.phx-mounted.7433643221",
+      "kind": "control",
+      "label": "overlay phx-mounted={@show && show_drawer(@id)}"
+    },
+    {
+      "id": "control.overlay.phx-mounted.9bc301445d",
+      "kind": "control",
+      "label": "overlay phx-mounted={show_toast(@id)}"
+    },
+    {
+      "id": "control.overlay.phx-mounted.e9e1466ec6",
+      "kind": "control",
+      "label": "overlay phx-mounted={@show && show_modal(@id)}"
+    },
+    {
+      "id": "control.overlay.phx-remove.fc0ac679fc",
+      "kind": "control",
+      "label": "overlay phx-remove={hide_drawer(@id)}"
+    },
+    {
+      "id": "control.overlay.phx-remove.fc1645f1c5",
+      "kind": "control",
+      "label": "overlay phx-remove={hide_modal(@id)}"
     },
     {
       "id": "control.overlay.phx-window-keydown.c6c15dc34e",
@@ -735,6 +780,11 @@
       "label": "timeline patch={@timeline_path} class=\"tl-button tl-button--secondary\">"
     },
     {
+      "id": "control.timeline.phx-viewport-bottom.472e0e89e3",
+      "kind": "control",
+      "label": "timeline phx-viewport-bottom={@cursor && \"next-page\"}"
+    },
+    {
       "id": "control.transaction.data-tl-copy.31eb3e6f5e",
       "kind": "control",
       "label": "transaction data-tl-copy={diff_full(after_token)} aria-label={\"Copy #{field[\"name\"]} after value\"}>"
@@ -768,6 +818,16 @@
       "id": "control.transaction.patch.1b9ea15fef",
       "kind": "control",
       "label": "transaction patch={row_history_path} class=\"tl-button tl-button--compact tl-button--secondary\" title=\"Open "
+    },
+    {
+      "id": "control.transaction.phx-viewport-bottom.2a39161ff3",
+      "kind": "control",
+      "label": "transaction phx-viewport-bottom=\"next-page\""
+    },
+    {
+      "id": "control.transaction.phx-viewport-top.b0abed742e",
+      "kind": "control",
+      "label": "transaction phx-viewport-top=\"prev-page\""
     },
     {
       "id": "control.unsupported-view.href.f5cf19b6bb",
