@@ -16,7 +16,8 @@ function valid(): OperatorEvidenceManifest {
   const seedManifestSha256 = hash("synthetic seed");
   const asset = { url: "http://127.0.0.1:4002/assets/app.js", status: 200, contentType: "text/javascript", servedSha256: hash("script"), localPath: "examples/threadline_phoenix/priv/static/assets/app.js", localSha256: hash("script") };
   return {
-    schemaVersion: 1, baseSha: "a".repeat(40), candidateHead: "a".repeat(40), candidateAncestry: [], candidatePaths: [], candidateChanges: [], candidateDiffDigest: hash("[]"),
+    schemaVersion: 1, baseSha: "a".repeat(40), candidateHead: "a".repeat(40), candidateAncestry: ["a".repeat(40)], candidatePaths: [], candidateChanges: [], candidateDiffDigest: hash("[]"),
+    custody: { receiptSha256: hash("receipt"), acceptedReceiptSha256: hash("accepted receipt"), acceptedEvidenceIndexSha256: hash("accepted index"), acceptedHead: "a".repeat(40), forwardTaskCommits: ["a".repeat(40)] },
     fixture: { scenario: "synthetic-demo", version: "v1", seedManifestSha256, semanticId: semanticFixtureId("synthetic-demo", "v1", seedManifestSha256) },
     route: "/audit", state: "authenticated-home", actor: { role: "seeded-admin", scope: "isolated-demo" }, appearance: { effectiveTheme: "dark", preference: "dark" },
     browser: { playwright: "1.60.0", browser: "148.0.7778.96" }, viewport: { width: 1280, height: 900, deviceScaleFactor: 1 }, input: { motion: "reduced", zoom: 1 },
@@ -34,6 +35,20 @@ test("metadata proof accepts one route without claiming eleven-route browser cov
 test("metadata proof rejects absent candidate diff identity", () => {
   for (const key of ["baseSha", "candidateHead", "candidateDiffDigest"] as const) {
     assert.throws(() => serializeManifest({ ...valid(), [key]: "" }), /source|digest|identity/i);
+  }
+});
+
+test("forward custody must bind receipt, accepted evidence and explicit task ancestry", () => {
+  const manifest = valid();
+  assert.doesNotThrow(() => serializeManifest(manifest));
+  assert.throws(() => serializeManifest({ ...manifest, candidateAncestry: [] }), /ancestry/i);
+  for (const changes of [
+    { receiptSha256: "forged" },
+    { acceptedEvidenceIndexSha256: "" },
+    { acceptedHead: "not-a-commit" },
+    { forwardTaskCommits: ["not-a-commit"] },
+  ]) {
+    assert.throws(() => serializeManifest({ ...manifest, custody: { ...manifest.custody, ...changes } }), /custody|ancestry|hash/i);
   }
 });
 
