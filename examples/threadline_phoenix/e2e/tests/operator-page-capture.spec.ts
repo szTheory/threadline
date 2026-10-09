@@ -468,13 +468,15 @@ test.describe("operator real-route deterministic capture", () => {
 
     const runId = process.env.MIX_TEST_PARTITION;
     if (!runId) throw new Error("Evidence fixture identity requires the fresh MIX_TEST_PARTITION");
-    const seedRoot = resolve(paths.repositoryRoot, "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed");
-    const seedFiles = readdirSync(seedRoot, { recursive: true }).filter((entry): entry is string => typeof entry === "string").sort();
+    const seedRoot = resolve(paths.repositoryRoot, "examples/threadline_phoenix/lib/threadline_phoenix/demo");
+    const seedFiles = ["seed.ex", "manifest.ex", ...readdirSync(join(seedRoot, "seed"), { recursive: true })
+      .filter((entry): entry is string => typeof entry === "string").map((entry) => `seed/${entry}`)].sort();
     const seedHash = createHash("sha256");
     for (const file of seedFiles) {
       const fullPath = join(seedRoot, file);
       seedHash.update(file).update("\0").update(readFileSync(fullPath));
     }
+    seedHash.update("config/test.exs\0").update(readFileSync(resolve(paths.repositoryRoot, "examples/threadline_phoenix/config/test.exs")));
     const seedManifestSha256 = seedHash.digest("hex");
     const fixture = {
       scenario: "threadline-demo-seed",

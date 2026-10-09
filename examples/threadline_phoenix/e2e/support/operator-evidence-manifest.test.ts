@@ -16,7 +16,7 @@ function valid(): OperatorEvidenceManifest {
   const seedManifestSha256 = hash("synthetic seed");
   const asset = { url: "http://127.0.0.1:4002/assets/app.js", status: 200, contentType: "text/javascript", servedSha256: hash("script"), localPath: "examples/threadline_phoenix/priv/static/assets/app.js", localSha256: hash("script") };
   return {
-    schemaVersion: 1, baseSha: "a".repeat(40), candidateHead: "a".repeat(40), candidateAncestry: [], candidatePaths: [], candidateDiffDigest: hash("[]"),
+    schemaVersion: 1, baseSha: "a".repeat(40), candidateHead: "a".repeat(40), candidateAncestry: [], candidatePaths: [], candidateChanges: [], candidateDiffDigest: hash("[]"),
     fixture: { scenario: "synthetic-demo", version: "v1", seedManifestSha256, semanticId: semanticFixtureId("synthetic-demo", "v1", seedManifestSha256) },
     route: "/audit", state: "authenticated-home", actor: { role: "seeded-admin", scope: "isolated-demo" }, appearance: { effectiveTheme: "dark", preference: "dark" },
     browser: { playwright: "1.60.0", browser: "148.0.7778.96" }, viewport: { width: 1280, height: 900, deviceScaleFactor: 1 }, input: { motion: "reduced", zoom: 1 },
@@ -32,7 +32,9 @@ test("metadata proof accepts one route without claiming eleven-route browser cov
 });
 
 test("metadata proof rejects absent candidate diff identity", () => {
-  assert.throws(() => serializeManifest({ ...valid(), candidateDiffDigest: "" }), /source|digest|identity/i);
+  for (const key of ["baseSha", "candidateHead", "candidateDiffDigest"] as const) {
+    assert.throws(() => serializeManifest({ ...valid(), [key]: "" }), /source|digest|identity/i);
+  }
 });
 
 test("metadata proof rejects missing fixture identity and forged semantic identity", () => {
@@ -125,6 +127,15 @@ test("source proof includes first-time unstaged/staged edits and retains digest 
   assert.notEqual(candidateIdentity(root, base).candidateDiffDigest, dirty.candidateDiffDigest);
   rmSync(join(root, source));
   assert.notEqual(candidateIdentity(root, base).candidateDiffDigest, dirty.candidateDiffDigest);
+  const untracked = "lib/threadline/operator_surface/style/new.css";
+  writeFileSync(join(root, untracked), "new style");
+  const identity = candidateIdentity(root, base);
+  assert.ok(identity.candidatePaths.includes(untracked));
+  writeFileSync(join(root, "README.md"), "unrelated prose");
+  assert.equal(candidateIdentity(root, base).candidateDiffDigest, identity.candidateDiffDigest);
+  rmSync(join(root, untracked));
+  symlinkSync(join(root, "README.md"), join(root, untracked));
+  assert.throws(() => candidateIdentity(root, base), /symlink/i);
 });
 
 test("output proof rejects traversal, altered output bytes and reference fixture destinations", (t) => {
@@ -149,7 +160,7 @@ function runnerFixture(t: TestContext) {
   copyFileSync(join(repositoryRoot, "examples/threadline_phoenix/e2e/run-e2e.sh"), join(e2e, "run-e2e.sh"));
   const receipt = join(root, ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json");
   mkdirSync(dirname(receipt), { recursive: true });
-  writeFileSync(receipt, JSON.stringify({ base_sha: base, expected_task_commits: [], worktree: root, branch: git("branch", "--show-current") }));
+  writeFileSync(receipt, JSON.stringify({ base_sha: base, expected_task_commits: [], worktree: root, branch: git("branch", "--show-current"), copied_context_sha256: {} }));
   const bin = join(root, "bin"); mkdirSync(bin);
   writeFileSync(join(bin, "psql"), '#!/usr/bin/env bash\nprintf "%s" "${FAKE_EXISTING_DB:-}"\n');
   writeFileSync(join(bin, "mix"), '#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$RUNNER_SENTINEL"\nexit 89\n');
@@ -167,17 +178,68 @@ test("runner proof rejects unsafe evidence/preview targets before any reset subp
     [{ MIX_TEST_PARTITION: "shared_dev" }, /fresh MIX_TEST_PARTITION/],
     [{ DB_HOST: "production.example.invalid" }, /non-loopback/],
     [{ DB_PORT: "0" }, /valid local DB_PORT/],
+    [{ PORT: "invalid" }, /valid local HTTP port/],
     [{ DATABASE_URL: "postgres://shared" }, /overrides/],
     [{ DEMO_ALLOW_RESET: "1" }, /overrides/],
     [{ FAKE_EXISTING_DB: "1" }, /existing database/],
     [{ E2E_BASE_URL: "https://external.example.invalid" }, /non-loopback|mismatched/],
   ] as const) {
-    const result = run(overrides);
-    assert.notEqual(result.status, 0, JSON.stringify(overrides));
-    assert.match(result.stderr, message);
-    assert.equal(existsSync(sentinel), false, "reset sentinel must never execute");
+    for (const args of [[], ["--preview"]]) {
+      const result = run(overrides, args);
+      assert.notEqual(result.status, 0, JSON.stringify(overrides));
+      assert.match(result.stderr, message);
+      assert.equal(existsSync(sentinel), false, "reset sentinel must never execute");
+    }
   }
   assert.notEqual(run({ THREADLINE_E2E_EVIDENCE: "0" }, ["--preview"]).status, 0);
+});
+
+test("runner proof rejects altered isolation root, branch, context and ancestry before reset", (t) => {
+  const { root, run, sentinel } = runnerFixture(t);
+  const receipt = join(root, ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json");
+  const original = JSON.parse(readFileSync(receipt, "utf8"));
+  for (const changes of [
+    { worktree: root + "-other" }, { branch: "other-candidate" },
+    { copied_context_sha256: { "examples/threadline_phoenix/config/test.exs": hash("altered context") } },
+    { expected_task_commits: ["f".repeat(40)] },
+  ]) {
+    writeFileSync(receipt, JSON.stringify({ ...original, ...changes }));
+    const result = run();
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Isolation receipt|isolation context|ancestry/i);
+    assert.equal(existsSync(sentinel), false);
+  }
+});
+
+test("ordinary runner lifecycle forwards arguments and removes only ignored export files", (t) => {
+  const { root, e2e, run, sentinel } = runnerFixture(t);
+  const bin = join(root, "bin");
+  writeFileSync(join(bin, "mix"), '#!/usr/bin/env bash\nprintf "mix %s\\n" "$*" >> "$RUNNER_SENTINEL"\nif [[ "$*" == "phx.server" ]]; then exec sleep 30; fi\n');
+  for (const name of ["npm", "npx"]) {
+    writeFileSync(join(bin, name), `#!/usr/bin/env bash\nprintf '${name} %s\\n' "$*" >> "$RUNNER_SENTINEL"\n`);
+    chmodSync(join(bin, name), 0o755);
+  }
+  writeFileSync(join(bin, "curl"), '#!/usr/bin/env bash\nif [[ "$*" == *"/audit"* ]]; then printf "HTTP/1.1 302 Found\\r\\nLocation: /users/log_in\\r\\n\\r\\n\\n__HTTP_CODE__302"; fi\n');
+  writeFileSync(join(bin, "lsof"), "#!/usr/bin/env bash\nexit 1\n");
+  chmodSync(join(bin, "curl"), 0o755); chmodSync(join(bin, "lsof"), 0o755);
+  const example = dirname(e2e);
+  mkdirSync(join(example, "lib/threadline_phoenix_web"), { recursive: true });
+  writeFileSync(join(example, "lib/threadline_phoenix_web/router.ex"), "synthetic router");
+  mkdirSync(join(example, "priv/threadline_exports"), { recursive: true });
+  const tracked = join(example, "priv/threadline_exports/tracked.txt");
+  writeFileSync(tracked, "retain tracked data");
+  execFileSync("git", ["add", "examples/threadline_phoenix/priv/threadline_exports/tracked.txt"], { cwd: root });
+  writeFileSync(join(root, ".gitignore"), "examples/threadline_phoenix/priv/threadline_exports/*\nunrelated.tmp\n");
+  writeFileSync(join(root, "unrelated.tmp"), "retain unrelated generated data");
+  for (const theme of ["", "system"]) {
+    writeFileSync(join(example, "priv/threadline_exports/generated.csv"), "generated export");
+    const result = run({ THREADLINE_E2E_EVIDENCE: "0", MIX_TEST_PARTITION: "", THREADLINE_E2E_THEME: theme, THREADLINE_E2E_EVIDENCE_PREFLIGHT_ONLY: "0" }, ["operator-shell-home.spec.ts", "--grep", "home"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(existsSync(join(example, "priv/threadline_exports/generated.csv")), false);
+    assert.equal(readFileSync(tracked, "utf8"), "retain tracked data");
+    assert.equal(readFileSync(join(root, "unrelated.tmp"), "utf8"), "retain unrelated generated data");
+    assert.ok(readFileSync(sentinel, "utf8").includes(`npm test -- ${theme === "system" ? "--project=desktop-chromium-light " : ""}operator-shell-home.spec.ts --grep home`));
+  }
 });
 
 test("runner proof registers a fresh synthetic target and refuses reused partition", (t) => {

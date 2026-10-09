@@ -6,7 +6,7 @@ import {
   statSync,
 } from "node:fs";
 import { join, relative, resolve } from "node:path";
-import { atomicWriteFile, resolveContainedPath } from "./operator-surface-paths.js";
+import { atomicWriteFile, assertSeparatedOutputRoot, DEFAULT_OPERATOR_SURFACE_PATHS, resolveContainedPath } from "./operator-surface-paths.js";
 
 export interface ServedAsset {
   readonly url: string;
@@ -33,6 +33,7 @@ export interface OperatorEvidenceManifest {
   readonly candidateHead: string;
   readonly candidateAncestry: readonly string[];
   readonly candidatePaths: readonly string[];
+  readonly candidateChanges: readonly { readonly path: string; readonly mode: string; readonly sha256: string }[];
   readonly candidateDiffDigest: string;
   readonly fixture: {
     readonly scenario: string;
@@ -70,7 +71,7 @@ export function semanticFixtureId(scenario: string, version: string, seedManifes
 }
 
 function relevant(path: string): boolean {
-  return /^(lib\/threadline\/operator_surface\/|examples\/threadline_phoenix\/(e2e\/|lib\/|assets\/|priv\/static\/))/.test(path);
+  return /^(lib\/threadline\/operator_surface(?:\/|\.ex$)|examples\/threadline_phoenix\/(e2e\/|lib\/|assets\/|priv\/static\/|config\/|mix\.(?:exs|lock)$)|mix\.(?:exs|lock)$|\.tool-versions$)/.test(path);
 }
 
 export function candidateIdentity(root: string, baseSha: string) {
@@ -87,20 +88,38 @@ export function candidateIdentity(root: string, baseSha: string) {
   const untracked = git(["ls-files", "--others", "--exclude-standard", "-z"]).split("\0");
   const paths = [...new Set([...committed, ...staged, ...unstaged, ...untracked].filter((path) => path && relevant(path)))].sort();
   const entries = paths.map((path) => {
-    const absolute = resolve(root, path);
+    const absolute = resolveContainedPath(root, path);
     if (!existsSync(absolute)) return { path, mode: "deleted", sha256: "deleted" };
     const stat = statSync(absolute);
     const mode = stat.mode & 0o111 ? "100755" : "100644";
     return { path, mode, sha256: sha256(readFileSync(absolute)) };
   });
   const ancestry = git(["rev-list", "--first-parent", "--reverse", `${baseSha}..HEAD`]).split("\n").filter(Boolean);
-  return { baseSha, candidateHead, candidateAncestry: ancestry, candidatePaths: paths, candidateDiffDigest: sha256(JSON.stringify(entries)) };
+  return { baseSha, candidateHead, candidateAncestry: ancestry, candidatePaths: paths, candidateChanges: entries, candidateDiffDigest: sha256(JSON.stringify(entries)) };
 }
 
+function fields(value: object, keys: readonly string[], name: string): void {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`Missing ${name} metadata`);
+  for (const key of Object.keys(value)) {
+    if (!keys.includes(key)) throw new Error(`Unknown metadata field: ${name}.${key}`);
+  }
+  for (const key of keys) {
+    if (!Object.hasOwn(value, key)) throw new Error(`Missing metadata field: ${name}.${key}`);
+  }
+}
+
+const nonempty = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0;
+const digest = (value: unknown): value is string => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
+const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
+
 export function validateServedAsset(asset: ServedAsset): void {
-  if (!asset.url || asset.status !== 200 || !asset.contentType || !asset.localPath) {
+  fields(asset, ["url", "status", "contentType", "servedSha256", "localPath", "localSha256"], "asset");
+  if (!nonempty(asset.url) || asset.status !== 200 || !nonempty(asset.contentType) || !nonempty(asset.localPath)) {
     throw new Error("Served asset URL, successful status, type, and local source mapping are required");
   }
+  if (!/^(?:text|application)\/(?:css|javascript)(?:;|$)/.test(asset.contentType)) throw new Error(`Invalid served asset content type: ${asset.url}`);
+  const url = new URL(asset.url);
+  if (url.username || url.password || url.search || (url.protocol !== "inline:" && (url.protocol !== "http:" || !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname)))) throw new Error("Asset URL must be local and contain no credential metadata");
   if (!/^[a-f0-9]{64}$/.test(asset.servedSha256) || !/^[a-f0-9]{64}$/.test(asset.localSha256)) {
     throw new Error(`Asset hashes are missing or invalid for ${asset.url}`);
   }
@@ -109,26 +128,60 @@ export function validateServedAsset(asset: ServedAsset): void {
 
 export function serializeManifest(manifest: OperatorEvidenceManifest): string {
   rejectSecrets(manifest);
+  fields(manifest, ["schemaVersion", "baseSha", "candidateHead", "candidateAncestry", "candidatePaths", "candidateChanges", "candidateDiffDigest", "fixture", "route", "state", "actor", "appearance", "browser", "viewport", "input", "captures"], "source");
   if (manifest.schemaVersion !== 1 || !/^[a-f0-9]{40}$/.test(manifest.baseSha) || !/^[a-f0-9]{40}$/.test(manifest.candidateHead)) {
     throw new Error("Manifest source identity is incomplete");
   }
-  if (!manifest.fixture.semanticId || !manifest.fixture.scenario || !manifest.route || !manifest.state || !manifest.captures.length) {
+  if (!digest(manifest.candidateDiffDigest) || !Array.isArray(manifest.candidateAncestry) || manifest.candidateAncestry.some((sha) => !/^[a-f0-9]{40}$/.test(sha))) throw new Error("Manifest source digest or ancestry is incomplete");
+  if (!Array.isArray(manifest.candidatePaths) || !Array.isArray(manifest.candidateChanges) || manifest.candidatePaths.length !== manifest.candidateChanges.length) throw new Error("Manifest source path identity is incomplete");
+  for (const [index, change] of manifest.candidateChanges.entries()) {
+    fields(change, ["path", "mode", "sha256"], "source change");
+    if (change.path !== manifest.candidatePaths[index] || !relevant(change.path) || change.path.split(/[\\/]/).includes("..") || (index > 0 && compare(manifest.candidatePaths[index - 1], change.path) >= 0)) throw new Error("Manifest source paths must be unique, contained and ordered");
+    if (change.mode === "deleted" ? change.sha256 !== "deleted" : !["100644", "100755"].includes(change.mode) || !digest(change.sha256)) throw new Error("Manifest source change identity is invalid");
+  }
+  if (sha256(JSON.stringify(manifest.candidateChanges)) !== manifest.candidateDiffDigest) throw new Error("Manifest source changes disagree with candidate digest");
+  fields(manifest.fixture, ["scenario", "version", "seedManifestSha256", "semanticId"], "fixture");
+  if (manifest.fixture.semanticId !== semanticFixtureId(manifest.fixture.scenario, manifest.fixture.version, manifest.fixture.seedManifestSha256)) throw new Error("Manifest fixture semantic identity disagrees with seed identity");
+  for (const [value, keys, name] of [
+    [manifest.actor, ["role", "scope"], "actor"],
+    [manifest.appearance, ["effectiveTheme", "preference"], "appearance"],
+    [manifest.browser, ["playwright", "browser"], "browser"],
+  ] as const) {
+    fields(value, keys, name);
+    if (Object.values(value).some((v) => !nonempty(v))) throw new Error(`Missing ${name} identity`);
+  }
+  fields(manifest.viewport, ["width", "height", "deviceScaleFactor"], "viewport");
+  if (Object.values(manifest.viewport).some((v) => typeof v !== "number" || !Number.isFinite(v) || v <= 0)) throw new Error("Invalid viewport condition");
+  fields(manifest.input, ["motion", "zoom"], "input");
+  if (!nonempty(manifest.input.motion) || !Number.isFinite(manifest.input.zoom) || manifest.input.zoom <= 0) throw new Error("Invalid input condition");
+  if (!nonempty(manifest.route) || !manifest.route.startsWith("/") || !nonempty(manifest.state) || !Array.isArray(manifest.captures) || !manifest.captures.length) {
     throw new Error("Manifest source, fixture, route, state, and capture identity are required");
   }
   const ids = new Set<string>();
   for (const capture of manifest.captures) {
-    if (!capture.id || ids.has(capture.id)) throw new Error(`Missing or duplicate capture ID: ${capture.id || "<empty>"}`);
+    fields(capture, ["id", "route", "state", "condition", "outputPath", "outputSha256", "assets"], "capture");
+    if (!nonempty(capture.id) || ids.has(capture.id)) throw new Error(`Missing or duplicate capture ID: ${capture.id || "<empty>"}`);
     ids.add(capture.id);
-    if (!capture.outputPath || !/^[a-f0-9]{64}$/.test(capture.outputSha256)) throw new Error(`Capture output hash is required: ${capture.id}`);
+    if (!nonempty(capture.route) || !capture.route.startsWith("/") || !nonempty(capture.state) || !nonempty(capture.condition)) throw new Error(`Capture route, state and condition are required: ${capture.id}`);
+    if (!nonempty(capture.outputPath) || !digest(capture.outputSha256)) throw new Error(`Capture output hash is required: ${capture.id}`);
+    if (!Array.isArray(capture.assets) || !capture.assets.length) throw new Error(`Capture assets are required: ${capture.id}`);
     capture.assets.forEach(validateServedAsset);
+    if (!capture.assets.some((a: ServedAsset) => a.contentType.includes("javascript")) || !capture.assets.some((a: ServedAsset) => a.contentType.includes("text/css"))) throw new Error(`Capture requires both CSS and JavaScript assets: ${capture.id}`);
   }
-  const captures = [...manifest.captures].sort((a, b) => a.route.localeCompare(b.route) || a.state.localeCompare(b.state) || a.condition.localeCompare(b.condition) || a.id.localeCompare(b.id));
+  const captures = manifest.captures.map((capture) => ({ ...capture, assets: [...capture.assets].sort((a, b) => compare(a.url, b.url)) })).sort((a, b) => compare(a.route, b.route) || compare(a.state, b.state) || compare(a.condition, b.condition) || compare(a.id, b.id));
   return `${JSON.stringify({ ...manifest, captures }, null, 2)}\n`;
 }
 
 export function writeManifest(root: string, path: string, manifest: OperatorEvidenceManifest): void {
+  assertSeparatedOutputRoot(root, [DEFAULT_OPERATOR_SURFACE_PATHS.fixtureRoot]);
   const output = resolveContainedPath(root, path);
-  atomicWriteFile(output, serializeManifest(manifest));
+  serializeManifest(manifest);
+  const captures = manifest.captures.map((capture) => {
+    const artifact = resolveContainedPath(root, capture.outputPath);
+    if (sha256(readFileSync(artifact)) !== capture.outputSha256) throw new Error(`Capture output hash disagrees with file bytes: ${capture.id}`);
+    return { ...capture, outputPath: relative(root, artifact) };
+  });
+  atomicWriteFile(output, serializeManifest({ ...manifest, captures }));
 }
 
 export function localAssetPath(root: string, responseUrl: string): string {

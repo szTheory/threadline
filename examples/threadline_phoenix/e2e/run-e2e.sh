@@ -86,6 +86,12 @@ evidence_preflight() {
     echo "Evidence mode requires a valid local DB_PORT." >&2; return 1;
   }
   [[ "$HOST" == "127.0.0.1" ]] || { echo "Evidence mode binds only to 127.0.0.1; got HOST='$HOST'." >&2; return 1; }
+  [[ "$PORT" =~ ^[0-9]+$ && "$PORT" -ge 1 && "$PORT" -le 65535 ]] || {
+    echo "Evidence mode requires a valid local HTTP port." >&2; return 1;
+  }
+  [[ -z "$BASE_URL" || "$BASE_URL" == "http://127.0.0.1:${PORT}" || "$BASE_URL" == "http://localhost:${PORT}" ]] || {
+    echo "Evidence mode refuses non-loopback or mismatched E2E_BASE_URL='$BASE_URL'." >&2; return 1;
+  }
   [[ -z "${DATABASE_URL:-}" && -z "${DEMO_ALLOW_RESET:-}" ]] || {
     echo "Evidence mode refuses DATABASE_URL and DEMO_ALLOW_RESET overrides." >&2; return 1;
   }
@@ -94,6 +100,16 @@ evidence_preflight() {
   }
   receipt="$ROOT/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json"
   [[ -f "$receipt" ]] || { echo "Evidence mode requires the orchestrator isolation receipt." >&2; return 1; }
+  node -e '
+    const fs = require("node:fs"), crypto = require("node:crypto");
+    const [path, root, branch] = process.argv.slice(1), r = JSON.parse(fs.readFileSync(path, "utf8"));
+    if (r.worktree !== root || r.branch !== branch || !r.copied_context_sha256) throw new Error("Isolation receipt root, branch or copied context does not match candidate");
+    for (const [file, copied] of Object.entries(r.copied_context_sha256)) {
+      const expected = file === ".planning/config.json" && r.isolated_config_override ? r.isolated_config_override.active_sha256 : copied;
+      const actual = crypto.createHash("sha256").update(fs.readFileSync(root + "/" + file)).digest("hex");
+      if (actual !== expected) throw new Error("Copied isolation context changed: " + file);
+    }
+  ' "$receipt" "$ROOT" "$(git -C "$ROOT" branch --show-current)" || return 1
   THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).base_sha || "")' "$receipt")"
   [[ "$THREADLINE_E2E_BASE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Isolation receipt has no valid immutable base SHA." >&2; return 1; }
   [[ "$(git -C "$ROOT" rev-parse --show-toplevel)" == "$ROOT" ]] || { echo "Evidence runner cwd is not the isolated repository root." >&2; return 1; }
