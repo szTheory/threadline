@@ -685,6 +685,26 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert posted_conn.resp_cookies["tl_theme"].value == "light"
       end
     end
+
+    test "invalid runtime theme does not persist or report a saved preference", %{conn: conn} do
+      posted_conn =
+        conn
+        |> Plug.Conn.put_req_header("referer", "/audit_system/timeline")
+        |> post("/audit_system/theme", %{"theme" => "sepia"})
+
+      redirect = redirected_to(posted_conn)
+      assert redirect == "/audit_system/timeline"
+      refute Map.has_key?(posted_conn.resp_cookies, "tl_theme")
+
+      {:error, {:live_redirect, %{to: live_path}}} =
+        posted_conn |> recycle() |> live(redirect)
+
+      {:ok, _view, html} = live(posted_conn |> recycle(), live_path)
+
+      assert html =~ ~s|data-tl-theme="system"|
+      assert html =~ ~r/name="theme" value="system" checked(="checked")?/
+      refute html =~ ~r/name="theme" value="sepia"/
+    end
   end
 
   defmodule Threadline.OperatorSurface.Live.StartLiveUnavailableHealthTest do

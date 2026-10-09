@@ -476,6 +476,99 @@ test.describe("operator accessibility baseline", () => {
     await expectNonObscuredFocused(applyTheme, page);
   });
 
+  test("keeps System selection while served colors follow OS through investigation navigation", async ({
+    page,
+  }) => {
+    await page.goto("/audit");
+
+    const themeGroup = page.getByTestId("operator-nav-group-theme");
+    await openOperatorNav(page);
+    const system = themeGroup.getByRole("radio", { name: "System" });
+    if (process.env.THREADLINE_E2E_THEME === "system") {
+      await expect(system).toBeChecked();
+      await expect(page.locator(".threadline-ui")).toHaveAttribute(
+        "data-tl-theme",
+        "system",
+      );
+    }
+    await system.check();
+    await themeGroup.getByRole("button", { name: "Apply theme" }).click();
+    await expect(page.locator(".threadline-ui")).toHaveAttribute(
+      "data-tl-theme",
+      "system",
+    );
+
+    const appearance = async () =>
+      page.locator(".threadline-ui").evaluate((root) => {
+        const card = root.querySelector(".tl-home__card");
+        if (!(card instanceof HTMLElement)) throw new Error("Home card missing");
+        const rootStyle = getComputedStyle(root);
+        const cardStyle = getComputedStyle(card);
+        return {
+          background: rootStyle.backgroundColor,
+          foreground: rootStyle.color,
+          border: cardStyle.borderTopColor,
+        };
+      });
+
+    await page.emulateMedia({ colorScheme: "light" });
+    const systemLight = await appearance();
+    expect(systemLight.background).toBe("rgb(247, 249, 252)");
+    expect(systemLight.foreground).toBe("rgb(15, 23, 40)");
+    expect(systemLight.border).toBe("rgb(167, 180, 200)");
+
+    await page.emulateMedia({ colorScheme: "dark" });
+    const systemDark = await appearance();
+    expect(systemDark.background).toBe("rgb(11, 16, 32)");
+    expect(systemDark.foreground).not.toBe(systemLight.foreground);
+    expect(systemDark.border).not.toBe(systemLight.border);
+    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+      "system",
+    );
+
+    await page.getByRole("link", { name: "Open the timeline" }).click();
+    await expect(page.locator(".threadline-ui")).toHaveAttribute(
+      "data-tl-theme",
+      "system",
+    );
+    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+      "system",
+    );
+    const { transactionHref } = await discoverTransactionAndRowHistory(page);
+    await page.goto(transactionHref);
+    await expect(page.locator(".threadline-ui")).toHaveAttribute(
+      "data-tl-theme",
+      "system",
+    );
+    await page.reload();
+    await expect(page.locator(".threadline-ui")).toHaveAttribute(
+      "data-tl-theme",
+      "system",
+    );
+    await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+      "system",
+    );
+
+    for (const theme of ["light", "dark"]) {
+      await openOperatorNav(page);
+      const group = page.getByTestId("operator-nav-group-theme");
+      await group.getByRole("radio", { name: new RegExp(theme, "i") }).check();
+      await group.getByRole("button", { name: "Apply theme" }).click();
+      await expect(page.locator(".threadline-ui")).toHaveAttribute(
+        "data-tl-theme",
+        theme,
+      );
+      await page.reload();
+      await expect(page.locator(".threadline-ui")).toHaveAttribute(
+        "data-tl-theme",
+        theme,
+      );
+      await expect(page.locator('input[name="theme"]:checked')).toHaveValue(
+        theme,
+      );
+    }
+  });
+
   test("keeps Timeline filters, Actor segments, and Retention danger action named and stateful", async ({
     page,
   }) => {
