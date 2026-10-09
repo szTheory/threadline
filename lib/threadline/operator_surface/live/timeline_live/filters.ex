@@ -100,7 +100,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <Threadline.OperatorSurface.Components.Icon.icon name={:filter_x} class="tl-button__icon" />
                   Reset to last 24h
                 </.link>
-                <button type="submit" class="tl-button tl-button--primary">
+                <button type="submit" class="tl-button tl-button--primary" phx-disable-with="Applying filters…">
                   <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
                   Apply
                 </button>
@@ -281,7 +281,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           />
         </div>
         <div class="tl-toolbar__actions tl-timeline-drawer__actions">
-          <button type="submit" form="timeline-filters" class="tl-button tl-button--primary">
+          <button type="submit" form="timeline-filters" class="tl-button tl-button--primary" phx-disable-with="Applying filters…">
             <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
             Apply filters
           </button>
