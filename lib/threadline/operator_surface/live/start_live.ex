@@ -169,8 +169,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ~H"""
           <UI.Page.page_header variant="display" title="Follow what happened.">
             <:lede>
-              Every change is connected to the action, context, and story around it.
-              Pick where you want to start.
+              Search captured changes by time, table, actor, or correlation. Open a transaction
+              to inspect its row changes and any recorded action or context.
             </:lede>
             <div :if={@health_enabled} class="tl-home__health" role="status" aria-label="System health">
               <span class="tl-home__health-label">System health</span>

@@ -571,6 +571,8 @@ test.describe("Timeline investigation flow browser proof", () => {
     await expect(page).toHaveURL(/\/audit\/timeline(?:\?|$)/);
 
     const filters = page.locator("#timeline-filters");
+    await filters.getByLabel("From", { exact: true }).fill("2020-01-01T00:00");
+    await filters.getByLabel("To", { exact: true }).fill("2099-01-01T00:00");
     await filters.getByLabel("Table", { exact: true }).fill(proof.table);
     await filters
       .getByLabel("Correlation id", { exact: true })
