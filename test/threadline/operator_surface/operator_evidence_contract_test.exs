@@ -26,43 +26,50 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
   # two identical controls in the same module; function clauses remain separate.
   def declarations(sources) do
     Enum.flat_map(sources, fn {path, text} ->
-      scans =
-        cond do
-          path == @router ->
-            [
-              {"route", ~r/^\s*live\("[^"\n]+"[^\n]*/m},
-              {"seam", ~r/^\s*(?:get|post)\("[^"\n]+"[^\n]*/m}
-            ]
-
-          String.ends_with?(path, ".spec.ts") ->
-            [{"state", @probe}]
-
-          String.ends_with?(path, ".ex") ->
-            primitive =
-              if Enum.any?(@ui, &String.ends_with?(path, "/ui/#{&1}.ex")),
-                do: [{"primitive", ~r/^\s*def [a-z_][a-z_0-9]*\([^\n]*/m}],
-                else: []
-
-            [{"control", @control} | primitive]
-
-          true ->
-            []
-        end
-
-      Enum.flat_map(scans, fn {kind, regex} ->
-        {anchors, _} =
-          Regex.scan(regex, text, capture: :first)
-          |> Enum.map_reduce(%{}, fn [match], counts ->
-            anchor = String.trim(match)
-            n = Map.get(counts, anchor, 0) + 1
-
-            {%{"path" => path, "kind" => kind, "anchor" => anchor, "occurrence" => n},
-             Map.put(counts, anchor, n)}
-          end)
-
-        anchors
-      end)
+      path
+      |> declaration_scans()
+      |> Enum.flat_map(&scan_declarations(path, text, &1))
     end)
+  end
+
+  defp declaration_scans(@router) do
+    [
+      {"route", ~r/^\s*live\("[^"\n]+"[^\n]*/m},
+      {"seam", ~r/^\s*(?:get|post)\("[^"\n]+"[^\n]*/m}
+    ]
+  end
+
+  defp declaration_scans(path) do
+    cond do
+      String.ends_with?(path, ".spec.ts") ->
+        [{"state", @probe}]
+
+      String.ends_with?(path, ".ex") ->
+        [{"control", @control} | primitive_scans(path)]
+
+      true ->
+        []
+    end
+  end
+
+  defp primitive_scans(path) do
+    if Enum.any?(@ui, &String.ends_with?(path, "/ui/#{&1}.ex")),
+      do: [{"primitive", ~r/^\s*def [a-z_][a-z_0-9]*\([^\n]*/m}],
+      else: []
+  end
+
+  defp scan_declarations(path, text, {kind, regex}) do
+    {anchors, _counts} =
+      Regex.scan(regex, text, capture: :first)
+      |> Enum.map_reduce(%{}, fn [match], counts ->
+        anchor = String.trim(match)
+        occurrence = Map.get(counts, anchor, 0) + 1
+
+        {%{"path" => path, "kind" => kind, "anchor" => anchor, "occurrence" => occurrence},
+         Map.put(counts, anchor, occurrence)}
+      end)
+
+    anchors
   end
 
   def ids(inventory),
@@ -79,33 +86,50 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
     mapped = anchors |> Enum.reject(&(&1["kind"] == "anchor")) |> Enum.map(&key/1)
     route_patterns = Enum.map(inventory["routes"], & &1["pattern"])
 
-    checks = [
-      {items != [] and inventory["items"] != [], "empty inventory"},
-      {Enum.sort(route_patterns) == Enum.sort(@routes), "exact eleven routes"},
-      {Enum.sort(ids(inventory)) == Enum.sort(Enum.map(checklist["items"], & &1["id"])),
-       "checklist inventory IDs"},
-      {length(ids(inventory)) == length(Enum.uniq(ids(inventory))), "unique inventory IDs"},
-      {length(mapped) == length(Enum.uniq(mapped)), "one owner per declaration"},
-      {MapSet.new(mapped) == expected, "independent declaration coverage"},
-      {Enum.all?(
-         items,
-         &(nonblank?(&1["id"]) and
-             (nonblank?(&1["label"]) or nonblank?(&1["seedResolution"]) or nonblank?(&1["state"])))
-       ), "blank static field"},
-      {Enum.all?(
-         checklist["items"],
-         &(nonblank?(&1["kind"]) and (&1["anchors"] != [] or nonblank?(&1["exclusion"])))
-       ), "anchor or reasoned exclusion"},
-      {Enum.all?(anchors, fn a ->
-         text = sources[a["path"]] || ""
-
-         is_integer(a["occurrence"]) and a["occurrence"] > 0 and nonblank?(a["anchor"]) and
-           length(:binary.matches(text, a["anchor"])) >= a["occurrence"]
-       end), "source anchor"}
+    [
+      error_if(items == [] or inventory["items"] == [], "empty inventory"),
+      error_if(Enum.sort(route_patterns) != Enum.sort(@routes), "exact eleven routes"),
+      error_if(
+        Enum.sort(ids(inventory)) != Enum.sort(Enum.map(checklist["items"], & &1["id"])),
+        "checklist inventory IDs"
+      ),
+      error_if(
+        length(ids(inventory)) != length(Enum.uniq(ids(inventory))),
+        "unique inventory IDs"
+      ),
+      error_if(length(mapped) != length(Enum.uniq(mapped)), "one owner per declaration"),
+      error_if(MapSet.new(mapped) != expected, "independent declaration coverage"),
+      error_if(not valid_static_items?(items), "blank static field"),
+      error_if(not valid_checklist_items?(checklist["items"]), "anchor or reasoned exclusion"),
+      error_if(not Enum.all?(anchors, &valid_source_anchor?(&1, sources)), "source anchor")
     ]
-
-    for {false, error} <- checks, do: error
+    |> Enum.reject(&is_nil/1)
   end
+
+  defp valid_static_items?(items) do
+    Enum.all?(items, fn item ->
+      nonblank?(item["id"]) and
+        (nonblank?(item["label"]) or nonblank?(item["seedResolution"]) or
+           nonblank?(item["state"]))
+    end)
+  end
+
+  defp valid_checklist_items?(items) do
+    Enum.all?(items, fn item ->
+      nonblank?(item["kind"]) and (item["anchors"] != [] or nonblank?(item["exclusion"]))
+    end)
+  end
+
+  defp valid_source_anchor?(anchor, sources) do
+    source = sources[anchor["path"]] || ""
+
+    is_integer(anchor["occurrence"]) and anchor["occurrence"] > 0 and
+      nonblank?(anchor["anchor"]) and
+      length(:binary.matches(source, anchor["anchor"])) >= anchor["occurrence"]
+  end
+
+  defp error_if(true, message), do: message
+  defp error_if(false, _message), do: nil
 
   def findings(text) do
     text
@@ -251,76 +275,132 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
   end
 
   def preview_errors(receipt, manifest, root) do
-    url = URI.parse(receipt["url"] || "")
-    identity = receipt["identity"] || %{}
-    asset_key = fn a -> {a["localPath"], a["localSha256"], a["servedSha256"]} end
-
-    checks = [
-      {receipt["schemaVersion"] == 1 and
-         typed_fields?(
-           Map.take(
-             receipt,
-             ~w(url worktree branch partition database capturedAt manifestPath inventoryPath)
-           ),
-           ~w(url worktree branch partition database capturedAt manifestPath inventoryPath)
-         ), "typed preview metadata"},
-      {typed_fields?(
-         Map.take(identity, ~w(baseSha candidateDiffDigest candidateHead)),
-         ~w(baseSha candidateDiffDigest candidateHead)
-       ) and is_list(identity["candidateAncestry"]) and
-         Enum.all?(identity["candidateAncestry"], &is_binary/1) and
-         typed_fields?(identity["fixture"], ~w(scenario version seedManifestSha256 semanticId)),
-       "typed preview identity"},
-      {typed_fields?(receipt["isolationManifest"], ~w(path sha256)),
-       "allowlisted isolation manifest"},
-      {typed_fields?(receipt["lifecycle"], ~w(script stop reopen policy sha256)),
-       "allowlisted lifecycle metadata"},
-      {Map.keys(receipt)
-       |> Enum.all?(
-         &(&1 in ~w(schemaVersion url pid worktree branch isolationManifest partition database identity checks assets capturedAt lifecycle manifestPath inventoryPath))
-       ), "allowlisted preview metadata"},
-      {not secret_fields?(receipt), "sensitive preview metadata"},
-      {Enum.sort(Map.keys(identity)) ==
-         Enum.sort(~w(baseSha candidateDiffDigest fixture candidateHead candidateAncestry)),
-       "allowlisted preview identity"},
-      {Enum.all?(receipt["assets"] || [], fn a ->
-         u = URI.parse(a["url"] || "")
-
-         Enum.sort(Map.keys(a)) ==
-           Enum.sort(~w(url status contentType servedSha256 localPath localSha256)) and
-           a["status"] == 200 and
-           typed_fields?(
-             Map.delete(a, "status"),
-             ~w(url contentType servedSha256 localPath localSha256)
-           ) and
-           is_nil(u.userinfo) and is_nil(u.query) and
-           (u.scheme == "inline" or (u.scheme == "http" and u.host == "127.0.0.1"))
-       end), "allowlisted local preview assets"},
-      {Enum.sort(Enum.map(receipt["assets"] || [], asset_key)) ==
-         Enum.sort(
-           Enum.map(get_in(manifest, ["captures", Access.at(0), "assets"]) || [], asset_key)
-         ) and (receipt["assets"] || []) != [], "preview accepted asset identity"},
-      {url.scheme == "http" and url.host == "127.0.0.1" and is_integer(url.port) and
-         url.path in [nil, "", "/"] and is_nil(url.userinfo) and is_nil(url.query),
-       "loopback preview URL"},
-      {is_integer(receipt["pid"]) and receipt["pid"] > 1, "live preview PID"},
-      {receipt["worktree"] == root and identity["baseSha"] == manifest["baseSha"] and
-         identity["candidateDiffDigest"] == manifest["candidateDiffDigest"] and
-         identity["fixture"] == manifest["fixture"], "preview source/fixture identity"},
-      {is_binary(receipt["partition"]) and
-         String.match?(receipt["partition"], ~r/^operator_[A-Za-z0-9_]+$/) and
-         receipt["database"] == "threadline_phoenix_test#{receipt["partition"]}",
-       "safe preview database"},
-      {receipt["checks"] == %{
-         "unauthenticated" => "local-login-redirect",
-         "audit" => "authenticated-shell",
-         "deepLink" => "authenticated-transaction",
-         "binding" => "127.0.0.1",
-         "database" => "verified-pid-connection"
-       }, "preview readiness proof"}
+    [
+      error_if(not typed_preview_metadata?(receipt), "typed preview metadata"),
+      error_if(not typed_preview_identity?(receipt["identity"] || %{}), "typed preview identity"),
+      error_if(
+        not typed_fields?(receipt["isolationManifest"], ~w(path sha256)),
+        "allowlisted isolation manifest"
+      ),
+      error_if(
+        not typed_fields?(receipt["lifecycle"], ~w(script stop reopen policy sha256)),
+        "allowlisted lifecycle metadata"
+      ),
+      error_if(not allowed_preview_fields?(receipt), "allowlisted preview metadata"),
+      error_if(secret_fields?(receipt), "sensitive preview metadata"),
+      error_if(
+        not allowed_identity_fields?(receipt["identity"] || %{}),
+        "allowlisted preview identity"
+      ),
+      error_if(
+        not valid_local_assets?(receipt["assets"] || []),
+        "allowlisted local preview assets"
+      ),
+      error_if(not preview_assets_match?(receipt, manifest), "preview accepted asset identity"),
+      error_if(not loopback_preview_url?(receipt["url"] || ""), "loopback preview URL"),
+      error_if(not valid_preview_pid?(receipt["pid"]), "live preview PID"),
+      error_if(
+        not preview_source_identity?(receipt, manifest, root),
+        "preview source/fixture identity"
+      ),
+      error_if(not safe_preview_database?(receipt), "safe preview database"),
+      error_if(not preview_readiness?(receipt["checks"]), "preview readiness proof")
     ]
+    |> Enum.reject(&is_nil/1)
+  end
 
-    for {false, error} <- checks, do: error
+  defp typed_preview_metadata?(receipt) do
+    receipt["schemaVersion"] == 1 and
+      typed_fields?(
+        Map.take(
+          receipt,
+          ~w(url worktree branch partition database capturedAt manifestPath inventoryPath)
+        ),
+        ~w(url worktree branch partition database capturedAt manifestPath inventoryPath)
+      )
+  end
+
+  defp typed_preview_identity?(identity) do
+    typed_fields?(
+      Map.take(identity, ~w(baseSha candidateDiffDigest candidateHead)),
+      ~w(baseSha candidateDiffDigest candidateHead)
+    ) and
+      is_list(identity["candidateAncestry"]) and
+      Enum.all?(identity["candidateAncestry"], &is_binary/1) and
+      typed_fields?(identity["fixture"], ~w(scenario version seedManifestSha256 semanticId))
+  end
+
+  defp allowed_preview_fields?(receipt) do
+    allowed =
+      ~w(schemaVersion url pid worktree branch isolationManifest partition database identity checks assets capturedAt lifecycle manifestPath inventoryPath)
+
+    Enum.all?(Map.keys(receipt), &(&1 in allowed))
+  end
+
+  defp allowed_identity_fields?(identity) do
+    Enum.sort(Map.keys(identity)) ==
+      Enum.sort(~w(baseSha candidateDiffDigest fixture candidateHead candidateAncestry))
+  end
+
+  defp valid_local_assets?(assets) do
+    Enum.all?(assets, &valid_local_asset?/1)
+  end
+
+  defp valid_local_asset?(asset) do
+    url = URI.parse(asset["url"] || "")
+    allowed = ~w(url status contentType servedSha256 localPath localSha256)
+
+    Enum.sort(Map.keys(asset)) == Enum.sort(allowed) and asset["status"] == 200 and
+      typed_fields?(
+        Map.delete(asset, "status"),
+        ~w(url contentType servedSha256 localPath localSha256)
+      ) and
+      is_nil(url.userinfo) and is_nil(url.query) and
+      (url.scheme == "inline" or (url.scheme == "http" and url.host == "127.0.0.1"))
+  end
+
+  defp preview_assets_match?(receipt, manifest) do
+    assets = receipt["assets"] || []
+    capture_assets = get_in(manifest, ["captures", Access.at(0), "assets"]) || []
+
+    Enum.sort(Enum.map(assets, &preview_asset_key/1)) ==
+      Enum.sort(Enum.map(capture_assets, &preview_asset_key/1)) and assets != []
+  end
+
+  defp preview_asset_key(asset),
+    do: {asset["localPath"], asset["localSha256"], asset["servedSha256"]}
+
+  defp loopback_preview_url?(value) do
+    url = URI.parse(value)
+
+    url.scheme == "http" and url.host == "127.0.0.1" and is_integer(url.port) and
+      url.path in [nil, "", "/"] and is_nil(url.userinfo) and is_nil(url.query)
+  end
+
+  defp valid_preview_pid?(pid), do: is_integer(pid) and pid > 1
+
+  defp preview_source_identity?(receipt, manifest, root) do
+    identity = receipt["identity"] || %{}
+
+    receipt["worktree"] == root and identity["baseSha"] == manifest["baseSha"] and
+      identity["candidateDiffDigest"] == manifest["candidateDiffDigest"] and
+      identity["fixture"] == manifest["fixture"]
+  end
+
+  defp safe_preview_database?(receipt) do
+    is_binary(receipt["partition"]) and
+      String.match?(receipt["partition"], ~r/^operator_[A-Za-z0-9_]+$/) and
+      receipt["database"] == "threadline_phoenix_test#{receipt["partition"]}"
+  end
+
+  defp preview_readiness?(checks) do
+    checks == %{
+      "unauthenticated" => "local-login-redirect",
+      "audit" => "authenticated-shell",
+      "deepLink" => "authenticated-transaction",
+      "binding" => "127.0.0.1",
+      "database" => "verified-pid-connection"
+    }
   end
 
   defp typed_fields?(value, keys) when is_map(value),

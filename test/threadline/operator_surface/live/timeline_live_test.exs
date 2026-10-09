@@ -1900,6 +1900,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Threadline.OperatorSurfaceCase,
       endpoint: Threadline.OperatorSurface.TimelineLiveTest.TransitionEndpoint
 
+    alias Threadline.Capture.{AuditChange, AuditTransaction}
+    alias Threadline.Test.Repo
+
     setup_all do
       start_endpoint!(@endpoint)
       :ok
@@ -1918,13 +1921,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp seed_transition_change!(table, organization_id) do
-      repo = Threadline.Test.Repo
+      repo = Repo
       storage_opts = repo_opts()
       actor_ref = %{"type" => "user", "id" => "operator-239"}
 
       transaction =
         repo.insert!(
-          Threadline.Capture.AuditTransaction.changeset(%{
+          AuditTransaction.changeset(%{
             txid: :rand.uniform(1_000_000_000),
             occurred_at: DateTime.utc_now(),
             actor_ref: actor_ref,
@@ -1935,7 +1938,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         )
 
       repo.insert!(
-        Threadline.Capture.AuditChange.changeset(%{
+        AuditChange.changeset(%{
           transaction_id: transaction.id,
           table_schema: "public",
           table_name: table,

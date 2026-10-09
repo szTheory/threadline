@@ -457,6 +457,32 @@
       "exclusion": ""
     },
     {
+      "id": "control.filters.239.be344aac56f3",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-disable-with=\"Applying filters…\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.filters.239.c363f049d6e7",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
+          "kind": "control",
+          "anchor": "phx-disable-with=\"Applying filters…\"",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
       "id": "control.filters.href.1f60da21e9",
       "kind": "control",
       "anchors": [
@@ -639,19 +665,6 @@
       "exclusion": ""
     },
     {
-      "id": "control.filters.phx-window-keydown.abf5ffac38",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
-          "kind": "control",
-          "anchor": "phx-window-keydown={UI.Overlay.hide_drawer(\"timeline-filters-drawer\")}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
       "id": "control.form.href.4792e163b2",
       "kind": "control",
       "anchors": [
@@ -704,6 +717,136 @@
       "exclusion": ""
     },
     {
+      "id": "control.overlay.239.0d6129dd3631",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-focus={JS.focus_first(to: \"##{@id}-content\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.27ed11aa535b",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.2baf1313506a",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-window-keydown={JS.exec(\"data-tl-dismiss\", to: \"##{@id}.tl-overlay-visible:focus-within\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.4fb0fe26cebd",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-remove={JS.exec(\"data-tl-hide\", to: \"##{@id}.tl-overlay-visible\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.bdaa036eaf17",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.e681d54e77e5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-window-keydown={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.f02edb6ea6bf",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-window-keydown={JS.exec(\"data-tl-cancel\", to: \"##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.f53dec5b4136",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-focus={JS.focus_first(to: \"##{@id}-content\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.f5dd28ae4e43",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-window-keydown={JS.exec(\"data-tl-close\", to: \"##{@id}-menu:focus-within\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.overlay.239.fb1edc61fc0e",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/overlay.ex",
+          "kind": "control",
+          "anchor": "phx-remove={JS.exec(\"data-tl-hide\", to: \"##{@id}.tl-overlay-visible\")}",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
       "id": "control.overlay.href.a007f9c03c",
       "kind": "control",
       "anchors": [
@@ -711,19 +854,6 @@
           "path": "lib/threadline/operator_surface/ui/overlay.ex",
           "kind": "control",
           "anchor": "href={~p\"/...\"} data-tl-mutating aria-disabled=\"true\" tabindex=\"-1\">Re-run</a>",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.overlay.phx-click-away.07a750efdf",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-click-away={JS.exec(@on_cancel, \"phx-remove\") |> hide_drawer(@id)}",
           "occurrence": 1
         }
       ],
@@ -743,19 +873,6 @@
       "exclusion": ""
     },
     {
-      "id": "control.overlay.phx-click-away.28994093d6",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-click-away={JS.exec(@on_cancel, \"phx-remove\") |> hide_modal(@id)}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
       "id": "control.overlay.phx-click-away.7470920894",
       "kind": "control",
       "anchors": [
@@ -763,19 +880,6 @@
           "path": "lib/threadline/operator_surface/ui/overlay.ex",
           "kind": "control",
           "anchor": "phx-click-away={",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.overlay.phx-click-away.ec0bf53fd2",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-click-away={hide_toast(@id)}",
           "occurrence": 1
         }
       ],
@@ -821,19 +925,6 @@
       "exclusion": ""
     },
     {
-      "id": "control.overlay.phx-click.c866cbd3b9",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-click={JS.exec(@on_cancel, \"phx-remove\") |> hide_drawer(@id)}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
       "id": "control.overlay.phx-click.dc303db529",
       "kind": "control",
       "anchors": [
@@ -842,19 +933,6 @@
           "kind": "control",
           "anchor": "phx-click={",
           "occurrence": 2
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.overlay.phx-click.eb1c158f16",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-click={JS.exec(@on_cancel, \"phx-remove\") |> hide_modal(@id)}",
-          "occurrence": 1
         }
       ],
       "exclusion": ""
@@ -893,71 +971,6 @@
           "path": "lib/threadline/operator_surface/ui/overlay.ex",
           "kind": "control",
           "anchor": "phx-mounted={@show && show_modal(@id)}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.overlay.phx-remove.fc0ac679fc",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-remove={hide_drawer(@id)}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.overlay.phx-remove.fc1645f1c5",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-remove={hide_modal(@id)}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.overlay.phx-window-keydown.c6c15dc34e",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-window-keydown={hide_toast(@id)}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.overlay.phx-window-keydown.f3da9eeec0",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-window-keydown={JS.exec(@on_cancel, \"phx-remove\") |> hide_drawer(@id)}",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.overlay.phx-window-keydown.fa127170ab",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/ui/overlay.ex",
-          "kind": "control",
-          "anchor": "phx-window-keydown={JS.exec(@on_cancel, \"phx-remove\") |> hide_modal(@id)}",
           "occurrence": 1
         }
       ],
@@ -1211,6 +1224,84 @@
       "exclusion": ""
     },
     {
+      "id": "control.sections.239.0167427e6e86",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "patch={Paths.story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.30ce520cf8d0",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"overlay-fixture\"",
+          "occurrence": 2
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.66dfd3818072",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"overlay-fixture\"",
+          "occurrence": 3
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.b65785e711ee",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-mounted={JS.focus(to: \"#stress-edge-content\")} data-tl-patch-focus>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.c5332f34e1c5",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"overlay-fixture\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.sections.239.edd1de874752",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
+          "kind": "control",
+          "anchor": "phx-click={JS.push_focus() |> Threadline.OperatorSurface.UI.Overlay.show_drawer(\"stress-edge\")}",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
       "id": "control.sections.href.2783eac4e8",
       "kind": "control",
       "anchors": [
@@ -1231,19 +1322,6 @@
           "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
           "kind": "control",
           "anchor": "href={Paths.clear_path(@stress_path)}>",
-          "occurrence": 1
-        }
-      ],
-      "exclusion": ""
-    },
-    {
-      "id": "control.sections.href.3fe9511484",
-      "kind": "control",
-      "anchors": [
-        {
-          "path": "lib/threadline/operator_surface/live/stress_live/sections.ex",
-          "kind": "control",
-          "anchor": "href={Paths.story_path(@stress_path, story, @filter_category, @filter_status, @selected_theme, @selected_viewport)}",
           "occurrence": 1
         }
       ],
@@ -1692,6 +1770,19 @@
       "exclusion": ""
     },
     {
+      "id": "control.timeline-live.239.51cd35c57127",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@timeline_path}?#{@filter_query}\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
       "id": "control.timeline.data-tl-copy.321f7208cf",
       "kind": "control",
       "anchors": [
@@ -1778,6 +1869,32 @@
           "kind": "control",
           "anchor": "phx-viewport-bottom={@cursor && \"next-page\"}",
           "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction-live.239.3607e2964f19",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "href={\"#{surface_root(@base_path)}/transactions/#{@failed_id}\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.transaction-live.239.982077b9d054",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/transaction_live.ex",
+          "kind": "control",
+          "anchor": "navigate={\"#{surface_root(@base_path)}/timeline\"} class=\"tl-button tl-button--secondary\">",
+          "occurrence": 3
         }
       ],
       "exclusion": ""
@@ -2073,6 +2190,32 @@
           "path": "lib/threadline/operator_surface/ui/data.ex",
           "kind": "primitive",
           "anchor": "def stale_banner(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.239.9fad0b44bf6b",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def full_value(assigns) do",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "primitive.display.239.b05346395a1c",
+      "kind": "primitive",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/ui/display.ex",
+          "kind": "primitive",
+          "anchor": "def value(assigns) do",
           "occurrence": 1
         }
       ],
@@ -2923,6 +3066,162 @@
           "path": "lib/threadline/operator_surface/live/timeline_live.ex",
           "kind": "anchor",
           "anchor": "Export Status",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.0fea5b5641bc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps System selection while served colors follow OS through investigation navigation\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.4341203b8c36",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"preserves modal and drawer Escape focus through repeated LiveView patches\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.d9ce68147284",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"closes the focused menu before its drawer and recovers from removed or disabled controls\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-accessibility.spec.239.e93a9847e7bd",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps drawer focus stable while the toast is layered above it\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-component-contracts.spec.239.09df22e28860",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-component-contracts.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"long toast and drawer content stay locally readable without page overflow\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-route-states.spec.239.008386555a22",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"Timeline keeps populated query identity while an applied replacement is pending\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.1cc6f878e92c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"starts at Home, applies a Timeline query, and opens its transaction\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.a5e8a2b4ec68",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps draft edits unapplied and drops unsupported URL parameters\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-timeline-investigation-flow.spec.239.b40c24c965c5",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"keeps the complete 232-character query and its exact result within the page\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-transaction-evidence.spec.239.0433b948ddfb",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts",
+          "kind": "state",
+          "anchor": "test(`reflows Home and complete transaction evidence at ${viewport.name}`",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-transaction-evidence.spec.239.560c2df20d4c",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"opens an authorized transaction with separate action and row evidence\"",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.operator-zoom-proof.spec.239.e6ac5a52d9bc",
+      "kind": "state",
+      "anchors": [
+        {
+          "path": "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts",
+          "kind": "state",
+          "anchor": "test(\"isolated Chromium tab reports real 200% zoom on the operator investigation journey\"",
           "occurrence": 1
         }
       ],
@@ -4645,13 +4944,13 @@
       "exclusion": ""
     },
     {
-      "id": "state.token.aliases",
+      "id": "state.token.paper",
       "kind": "state",
       "anchors": [
         {
           "path": "lib/threadline/operator_surface/style/01_tokens.css",
           "kind": "anchor",
-          "anchor": "--tl-color-paper: var(--tl-color-paper)",
+          "anchor": "--tl-color-paper: #F7F9FC;",
           "occurrence": 1
         }
       ],
