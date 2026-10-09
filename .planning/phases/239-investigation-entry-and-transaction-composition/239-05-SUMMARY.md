@@ -12,23 +12,24 @@ provides:
   - Strict actual 200% browser zoom proof across Home, Timeline, and Transaction
 affects: [239-06, 239-07, operator-preview]
 actuals:
-  tokens: 5930
+  tokens: 10825
   tasks: 2
-  commits: 3
+  commits: 4
 plan_head_before: b6e6e0366d3c481985ad9fcf0747db646bf9701e
-plan_head_after: 0bb41cdbb17628e15aab45cc4dbb3dd9ba6f75f9
+plan_head_after: d6367d33266c5654e00430745c14fdba0818f7a6
 tech-stack:
   added: []
   patterns: [native disclosure for complete values, real browser zoom readback, viewport-bound control checks]
 key-files:
-  created:
-    - examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts
+  created: []
   modified:
+    - examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts
     - examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts
     - examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts
     - lib/threadline/operator_surface/style/01_tokens.css
     - lib/threadline/operator_surface/style/04_controls.css
     - lib/threadline/operator_surface/style/07_find_detail.css
+    - lib/threadline/operator_surface/style/08_overlays_motion.css
     - lib/threadline/operator_surface/style/09_responsive.css
     - test/threadline/operator_surface/style_contract_test.exs
 key-decisions:
@@ -63,7 +64,7 @@ coverage:
         ref: "THREADLINE_ZOOM_ACCEPT=1 mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts#actual zoom journey"
         status: pass
     human_judgment: false
-duration: 72 min
+duration: 85 min
 completed: 2026-10-09
 status: complete
 ---
@@ -74,11 +75,11 @@ status: complete
 
 ## Performance
 
-- **Duration:** 72 min
-- **Started:** 2026-10-09T17:01:25Z
-- **Completed:** 2026-10-09T18:13:16Z
+- **Duration:** 85 min
+- **Started:** 2026-10-09T17:00:52Z
+- **Completed:** 2026-10-09T18:25:25Z
 - **Tasks:** 2
-- **Files modified:** 8
+- **Files modified:** 9
 
 ## Accomplishments
 
@@ -92,12 +93,14 @@ status: complete
 2. **Task 1: Apply a 232-character Timeline filter without losing the page or controls** - `649cff01` (fix)
 3. **Task 2: Reflow Home and transaction evidence with shared role floors** - `0bb41cdb` (fix)
 
+4. **Parent integration correction: prove paired updates and enforce control floors** - `d6367d33` (fix)
+
 ## Files Created/Modified
 
 - `examples/threadline_phoenix/e2e/tests/operator-transaction-evidence.spec.ts` - Responsive Home and transaction evidence proof, including exact identity controls and long Unicode text selection.
 - `examples/threadline_phoenix/e2e/tests/operator-timeline-investigation-flow.spec.ts` - Long-filter responsive regression proof.
 - `examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts` - Actual zoom journey checks for native disclosures, operation-dependent Before evidence, and interactive control reachability.
-- `lib/threadline/operator_surface/style/01_tokens.css`, `04_controls.css`, `07_find_detail.css`, and `09_responsive.css` - Token, control, detail, and responsive layout repairs.
+- `lib/threadline/operator_surface/style/01_tokens.css`, `04_controls.css`, `07_find_detail.css`, `08_overlays_motion.css`, and `09_responsive.css` - Token, control, detail, and responsive layout repairs.
 - `test/threadline/operator_surface/style_contract_test.exs` - Computed-role and responsive CSS contract assertions.
 
 ## Decisions Made
@@ -128,12 +131,25 @@ status: complete
 
 **Total deviations:** 2 auto-fixed (2 Rule 1). **Impact:** Required to make the responsive and zoom acceptance criteria reflect the rendered interface and captured operation semantics.
 
+## Parent Integration Review
+
+- The original responsive cases used INSERTs only. The parent added a captured reply UPDATE with exact original/updated body values to every responsive case and to the real-zoom proof. The initial ticket UPDATE fixture was correctly rejected because that host trigger stores no before-values; the reply trigger explicitly stores them. No capture policy or audit data was changed.
+- The new browser regression reproduced a real wide-layout omission at 768px: Before and After were 59.59375px apart vertically. Shared responsive CSS now pairs them at 768/1280 and retains stacking at 320/375, short height, and actual 2× zoom. The rule lives in the existing centralized 768px breakpoint block.
+- Actual geometry exposed a 32px row-history target and a later Copy override of 24px high / 12px text. Compact buttons and Copy now use the existing 40px hit-area token and Copy uses the 14px label token. Browser assertions check actual nonempty control sets, target dimensions and computed typography.
+- Native disclosure checks now wait for LiveView connection before interaction, removing the initial-render/connected-render race from this acceptance path. The final complete responsive suite passed; acceptance does not rely on the earlier isolated 768px rerun.
+- Historical strict-zoom corrections distinguished static labels from interactive controls. The final proof is stronger: it requires an actual UPDATE with exact Before and After evidence and verifies stacked geometry at zoomFactor 2.
+
 ## Checks Run
 
 - `mix test test/threadline/operator_surface/style_contract_test.exs` — 51/51 passed.
 - `mix verify.example_browser --project=desktop-chromium operator-timeline-investigation-flow.spec.ts` — 21/21 runner unit checks and 15/15 browser tests passed.
 - `mix verify.example_browser --project=desktop-chromium operator-transaction-evidence.spec.ts` — 21/21 runner unit checks and 6/6 browser tests passed, including all five responsive cases.
 - `THREADLINE_ZOOM_ACCEPT=1 mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts` — 21/21 runner unit checks and 1/1 strict browser proof passed; observed zoomFactor 2 on Home, Timeline, and Transaction, with 0 px overflow on each route.
+- Parent combined integration: 22/22 browser tests plus 21/21 Node contracts passed in fresh `tl239_wave3_done`, port 4505; log `/tmp/threadline-239-wave3-done.log`.
+- After placing the equivalent layout rule in the centralized breakpoint block, affected final browser rerun: 7/7 plus 21/21 Node contracts passed in `tl239_wave3_close`, port 4506; log `/tmp/threadline-239-wave3-close.log`. Chromium 148.0.7778.96 / Playwright 1.60.0; Home, Timeline, Transaction read back zoomFactor 2 with zero overflow, plus explicit paired UPDATE geometry and 40px row-history target.
+- Final style contract: 51/51 passed, seed 659153. Compile with warnings-as-errors, format and diff checks passed.
+- Schema/UI wave gates did not block; codebase drift skipped absent STRUCTURE.md. These structural gates are not visual approval.
+- No new ExUnit file was created. Original protected-edit hashes remain unchanged. Final full suite and source-bound capture remain Plan 07-owned.
 - `git diff --check` — passed.
 
 ## Issues Encountered
@@ -147,7 +163,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- Plan 05 is complete and ready for Plan 06. Parent-owned state, roadmap, and requirements tracking remain untouched.
+- Plan 05 is complete; Plan 06 was already integrated in Wave 2. Next is Plan 07 (Wave 4), then independent phase verification. Parent-owned state, roadmap, and requirements tracking remain untouched.
 - No new dependency, route, public API, or persistent schema was introduced.
 
 ---
@@ -156,6 +172,6 @@ None - no external service configuration required.
 
 ## Self-Check: PASSED
 
-- The eight source and test files listed above exist.
-- Task commits `589c4c93`, `649cff01`, and `0bb41cdb` are ancestors of the current plan head.
+- The nine source and test files listed above exist.
+- Task commits `589c4c93`, `649cff01`, `0bb41cdb`, and `d6367d33` are ancestors of the current plan head.
 - Acceptance evidence checks exact Timeline and transaction identities, boundary-specific negative controls, native complete-text disclosure, responsive widths, and a read-back 2× browser zoom.
