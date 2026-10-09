@@ -1,6 +1,56 @@
 # Final operator evidence custody
 
-manifest_path: /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644/manifest.json
+Artifact and source paths are relative to the retained worktree identified by 238-EXECUTION-POINTER.json in the original planning checkout. Machine-specific process and absolute-path receipts remain local.
+
+manifest_path: examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924/manifest.json
+
+Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`. Current relevant digest: `76768d5ddad5f7af25c9970a28a12f220a8994767ed58b5bd4672841ececc178`. Semantic fixture: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`; seed manifest: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`.
+
+These accepted lanes follow reviewed repair `a2b4f350` (selected-manifest custody, portable runner and focused capture; prior security repairs retained) and supersede all historical pointers below. Product UI bytes and generic inventory remain unchanged. All 355 IDs are classified in 238-BASELINE-FINDINGS.md; its approved phase owners override historical suggestions below.
+
+| Lane | Retained bundle | Output count | Manifest set SHA-256 | Output set SHA-256 |
+|---|---|---|---|---|
+| Eleven routes + degraded | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791521924` | 135 | `d796f34cfbe976e89b68e3d597b535e564f432cba18e55a3b76024dbc775ffb3` | `71fe864888b16030f8bd6fb5b8f4be901bcf37295348fa34eeb70609718a1028` |
+| Dark states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_dark_1791521971` | 63 | `25744cfd3e4644a33600eba7ea3edcdfdb884cbff2d25f6877b0f86ba2b32a9b` | `04dfe212581577f0496798a5208443c75370b5419aee4752753b0f5f093416cb` |
+| System/light states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_light_1791521998` | 63 | `ad53c46d449804e6bde6b5f35b5643646535ecd3c58ecc57bea30a3d321673b3` | `10a69d81e0b1f867c9350e418d37cf632a3db6f8e0a998455b582a79fd166664` |
+
+Main manifest SHA-256: `ea0cc9930f3be93b2c873565a0420c8b9d48f98034f201d15c1734473213c121`.
+
+Retained preview: http://127.0.0.1:4109. Local-only `238-PREVIEW-RECEIPT.json` SHA-256: `9d034c7b5540b8e072205bdd8db812b99374d88b215ec5facd5bd9b4c3d27a57`. PID 32249 remains the independently running preview; only tooling changed, so existing product/fixture/assets remain current. Its updated receipt passed the fresh preview-required runtime contract, including renamed selected-manifest positive and corrupt-source/output negative controls. Guarded stop/reopen commands and lifecycle script hash are in the receipt; retain the worktree, original synthetic databases and raw bundles.
+
+Exact browser-chrome 200% zoom and clipboard denial remain unverified. No physical-device, Safari/Firefox, all-animation/full-keyboard or worker-completion claim is made. This is baseline evidence, not final refinement acceptance. Parent synchronizes these small artifacts and machine-specific receipts to the original planning checkout after validation.
+
+## Historical evidence (superseded)
+
+# Final operator evidence custody
+
+Artifact and source paths are relative to the retained worktree identified by 238-EXECUTION-POINTER.json in the original planning checkout. Machine-specific process and absolute-path receipts remain local.
+
+historical_manifest_path: examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791520842/manifest.json
+
+Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`. Current relevant digest: `87bbc6478e8d7740525d57cedf5ee8bd9516b473adc8fca1820b9a0cef1156a0`. Semantic fixture: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`; seed manifest: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`.
+
+These accepted lanes follow security repair `2a1887e9` (safe public preview stop, typed nested receipt metadata) and supersede all historical pointers below. Product UI bytes and generic inventory remain unchanged. All 355 IDs are classified in 238-BASELINE-FINDINGS.md; its approved phase owners override historical suggestions below.
+
+| Lane | Retained bundle | Output count | Manifest set SHA-256 | Output set SHA-256 |
+|---|---|---|---|---|
+| Eleven routes + degraded | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_routes_1791520842` | 135 | `5db2639133be0ce13dc2103be7e733fc5f231d4dcad5e7d9fb41039058939779` | `be2dfb11492d6cae4d9c69f76c93581ca76ee71217bccb0e09eeccf5c8465589` |
+| Dark states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_dark_1791520998` | 63 | `b99f59894e77d2d37e46c551d833e62df7e94b9677584a236f6c446956a326ee` | `a3c0090d7ca6b126c0fb9b5c080c5d1abaecebfc4fb201f598185b53e78554b4` |
+| System/light states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_close_light_1791521025` | 63 | `0620a1f94d5ffaf0ce941e9db2bd0e07624ebe85ea07ca94344ccf66673a994a` | `ff673dd02315a688bd21b23e1618376af23023c24a9f4ec0baea3359177c9c5d` |
+
+Main manifest SHA-256: `ae0d09742f6328104e48a221d55fd3fe1d514a2f61943216848a2288f71a3e68`.
+
+Retained preview: http://127.0.0.1:4109. Local-only `238-PREVIEW-RECEIPT.json` SHA-256: `030b84ee6d56c633a3a00b5b89f3ced8036531db020f48e4fdce626df0f6a7f2`. PID 32249 remains the independently running preview; only tooling changed, so existing product/fixture/assets remain current. Its updated receipt passed the fresh preview-required runtime contract, including renamed selected-manifest positive and corrupt-source/output negative controls. Guarded stop/reopen commands and lifecycle script hash are in the receipt; retain the worktree, original synthetic databases and raw bundles.
+
+Exact browser-chrome 200% zoom and clipboard denial remain unverified. No physical-device, Safari/Firefox, all-animation/full-keyboard or worker-completion claim is made. This is baseline evidence, not final refinement acceptance. Parent synchronizes these small artifacts and machine-specific receipts to the original planning checkout after validation.
+
+## Historical evidence (superseded)
+
+# Final operator evidence custody
+
+Artifact and source paths are relative to the retained worktree identified by 238-EXECUTION-POINTER.json in the original planning checkout. Machine-specific process and absolute-path receipts remain local.
+
+historical_manifest_path: examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644/manifest.json
 
 Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`. Current relevant digest: `36502f568b3e354a7859d654dafcd8ad443445f5605d447df9964611c4566a39`. Semantic fixture: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`; seed manifest: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`.
 
@@ -8,9 +58,9 @@ Final inventory expansion is a relevant capture input, so these three bounded re
 
 | Lane | Retained bundle | Output count | Manifest set SHA-256 | Output set SHA-256 |
 |---|---|---|---|---|
-| Eleven routes + degraded | `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644` | 135 | `e517fd5963d7bde68e2dc8f3c1b4420c339674318c64d7065d0ab227a4443fc8` | `d96b6fd0f00f17ab759a6d18939b462f7b8b5649ec2e2afe88ebaac6294338c3` |
-| Dark states | `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_states_1791519710` | 63 | `b2af509be7f06311fedb375b7f9de68e1cba14c36a575cfe17eb12e6ebedee54` | `2164cc4041fddd3e9f6bbb5e5e57efb2d2e46eb55580a3a05f63031c185c1777` |
-| System/light states | `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_system_1791519768` | 63 | `f25a5c8ffcff5c146d7d08b0f946624e1600d81ed85fd451c06c98c42bd99277` | `0386f6dd6578fcfd042aea9f3c6ddfd98462c9524969e11300558ddd8e0bc18a` |
+| Eleven routes + degraded | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_1791519644` | 135 | `e517fd5963d7bde68e2dc8f3c1b4420c339674318c64d7065d0ab227a4443fc8` | `d96b6fd0f00f17ab759a6d18939b462f7b8b5649ec2e2afe88ebaac6294338c3` |
+| Dark states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_states_1791519710` | 63 | `b2af509be7f06311fedb375b7f9de68e1cba14c36a575cfe17eb12e6ebedee54` | `2164cc4041fddd3e9f6bbb5e5e57efb2d2e46eb55580a3a05f63031c185c1777` |
+| System/light states | `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_system_1791519768` | 63 | `f25a5c8ffcff5c146d7d08b0f946624e1600d81ed85fd451c06c98c42bd99277` | `0386f6dd6578fcfd042aea9f3c6ddfd98462c9524969e11300558ddd8e0bc18a` |
 
 Main manifest SHA-256: `9fd22101966b75a04cf4522418a44c9339acf20b0494519486188e59525e5434`. All output bytes, source changes, captured ancestry prefixes, semantic fixture and served/local CSS/JS validate through explicit live ExUnit. Static mode needs no planning, live process or generated artifact.
 
@@ -25,13 +75,13 @@ Retained preview: http://127.0.0.1:4109; PID `32249`; isolated database `threadl
 
 # Phase 238 plan 02 evidence handoff
 
-historical_manifest_path: /Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_final_1791516878_82721/manifest.json
+historical_manifest_path: examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_routes_final_1791516878_82721/manifest.json
 
 Accepted after the last runner/config/capture-source edit; earlier runs are superseded. This index contributes to UIB-01/UIB-02, without closing the shared requirements or claiming a live preview. Parent owns plan 03, planning-state advancement and byte-for-byte index/receipt synchronization.
 
 ## Custody and candidate
 
-- Retained worktree: `/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview`; branch: `worktree-agent-v146-operator-preview`.
+- Retained worktree: `.`; branch: `worktree-agent-v146-operator-preview`.
 - Immutable base: `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`.
 - Honest capture-time HEAD: `aed99dfad3efdc536f06f0c2622b1344f01ef201`. Captures include effective uncommitted task-02 bytes; committing identical bytes preserves the digest rather than rewriting capture-time HEAD.
 - Relevant candidate diff digest: `78db5478e57c8cb41ec16d673ecd360ceace786dc51a99f610440131386517b8`.

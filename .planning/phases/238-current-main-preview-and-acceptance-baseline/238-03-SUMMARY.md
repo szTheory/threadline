@@ -94,10 +94,16 @@ status: complete
 
 ## Task Commits
 
-1. Task 1 RED: `7172b71e` — require nonempty exhaustive inventory/checklist.
-2. Task 1 GREEN: `a273df11` — generic inventories, independent contract and ranked findings.
-3. Task 1 supplemental correction: `d3ebcdb6` — viewport/lifecycle declarations, refreshed findings and runtime verifier corrections.
-4. Task 2: `efef51e4` — final accepted bundle and retained-preview custody index.
+**Task 1: RED** `7172b71e` — require nonempty exhaustive inventory/checklist.
+**Task 1: GREEN** `a273df11` — generic inventories, independent contract and ranked findings.
+**Task 1: supplemental correction** `d3ebcdb6` — viewport/lifecycle declarations, refreshed findings and runtime verifier corrections.
+**Task 2: preview custody** `efef51e4` — final accepted bundle and retained-preview custody index.
+
+**Task 2: Portable evidence paths** `223caa5575355061a7d8b7e5ae1e7ae21ca3d873` — resolve committed worktree-relative bundle links while retaining strict selected-manifest checks.
+
+**Task 2: Parent code-review repair** `a2b4f350d2f150ffadd4b8fa4b7f10e2ae20523d` — selected-manifest validation, portable Bash 3/5 forwarding and explicitly partial focused capture.
+
+**Task 2: Parent security and integration repair** `2a1887e996177002f65125834b2e2f81602e4c10` — typed nested preview receipts, guarded raw stop paths, negative controls and required CI partition weight.
 
 All commits are scoped and on the retained executor branch. After each, the local isolation receipt verified the exact existing first-parent prefix, exact new file scope and absence of deletions before appending the commit. The summary commit follows these measured task commits.
 
@@ -152,4 +158,14 @@ Plan 03 is complete. The parent owns phase verification, requirement/state/roadm
 
 ## Self-Check: PASSED
 
-All key files exist. Four measured task commits are current-branch ancestors; evaluation-scope resolves all four with no unreachable commit. Both task acceptance gates and plan verification passed, real negatives rejected, final source/asset/fixture identity matches, and preservation hashes remain unchanged. Only this summary is staged for metadata close-out; STATE, ROADMAP, REQUIREMENTS and copied context stay untouched.
+All key files exist. Four measured task commits are current-branch ancestors; all four task commits are recorded; parent normalized their headings for the GSD evaluation-scope parser. Both task acceptance gates and plan verification passed, real negatives rejected, final source/asset/fixture identity matches, and preservation hashes remain unchanged. Only this summary is staged for metadata close-out; STATE, ROADMAP, REQUIREMENTS and copied context stay untouched.
+
+## Parent closeout verification
+
+Security review reproduced two tooling gaps (nested receipt metadata and unowned raw preview stop), repaired in `2a1887e9`. The nested regression executed RED before repair; 36 focused ExUnit and 20 Node contracts now pass. Mocked signals cover both public stop entrypoints; no real unrelated process was signalled. Security re-review closed all nine authored threats.
+
+The first combined run caught the missing new-test partition weight and three local permission/cache failures. After adding the weight and running with writable caches and authorized temporary-worktree access, the full gate passed: **32 properties, 3075 tests, 0 failures, 3 standard exclusions**, seed 524535, 157.4 seconds. Log: `/tmp/threadline-238-wave3-final-tests.log`. Earlier seed-dependent query-planner behavior remains in 238-INTEGRATION-NOTES.md; this pass does not erase that observation.
+
+The runner safety change affects the evidence digest; final accepted bundles and runtime custody are therefore refreshed in 238-EVIDENCE-INDEX.md. The executor's original bundles above are historical proof of its plan, not the latest candidate pointers. No product UI source changed.
+
+All four original code-review findings are fixed and independently rechecked (238-REVIEW-FIX.md); disposition has zero open findings. New tooling tests pass 23/23 under system Bash and Bash 5, focused home browser capture passes 1/1, and final fullroute/dark/System lanes pass12/11/11. Committed evidence paths are worktree-relative; absolute local runtime receipts remain untracked. The explicit live contract resolves either form and still verifies contained selected manifests.
