@@ -5,114 +5,166 @@ subsystem: testing
 tags: [playwright, operator-ui, evidence, provenance, postgres]
 requires: []
 provides:
-  - "Guarded evidence-mode runner and source-bound home capture implementation; browser acceptance remains blocked."
+  - Authenticated home shell/content captures bound to effective source, served assets, synthetic fixture and browser identity.
+  - Guarded evidence/preview fixture setup and 16 focused provenance/safety contracts.
 affects: [phase-238-preview, operator-browser-evidence]
 actuals:
-  tokens: 6444
-  tasks: 0
-  commits: 1
+  tokens: 13110
+  tasks: 2
+  commits: 5
 plan_head_before: 9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2
-plan_head_after: 19d6a45e7001ccd79eb7c9750a222d52e57dc094
+plan_head_after: 137b0870cce78b78a0299e9405ba7a095a446f6d
 tech-stack:
   added: []
-  patterns: [isolated database preflight, source and served-asset manifest, contained per-run capture output]
+  patterns: [isolated database preflight, source and served-asset manifest, contained per-run capture output, mutation-controlled integrity checks]
 key-files:
   created:
     - examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts
+    - examples/threadline_phoenix/e2e/support/operator-evidence-manifest.test.ts
   modified:
     - examples/threadline_phoenix/e2e/run-e2e.sh
     - examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts
 key-decisions:
-  - "Keep evidence mode opt-in and preserve existing default browser entrypoints."
-  - "Use writable temporary caches for Hex, npm, and Playwright in evidence mode."
-  - "Halt before Task 2 because the named browser acceptance gate could not launch Chromium under the current process permissions."
+  - Keep evidence mode opt-in; ordinary route capture skips the new home evidence test and still runs its original browser test.
+  - Request uncached browser assets and await all response-body checks before publishing capture metadata.
+  - Save screenshots and allowlisted metadata; omit the HTML dump containing a CSRF field.
+  - Keep immutable base fixed; record effective file bytes/modes and exact expected ancestry separately from candidate HEAD.
 requirements-completed: [UIB-01]
 coverage:
   - id: D1
-    description: "Guarded evidence runner and authenticated home capture path were implemented, but no capture bundle was produced."
+    description: Authenticated home shell/content capture with verified source, fixture, CSS/JavaScript and output identity.
     requirement: UIB-01
     verification:
-      - kind: integration
-        ref: "THREADLINE_E2E_EVIDENCE=1 MIX_TEST_PARTITION=operator_baseline_<unique> mix verify.example_browser --project=route-capture operator-page-capture.spec.ts --grep home"
-        status: fail
-    human_judgment: true
-    rationale: "Chromium exited before test execution because macOS denied Mach port registration (bootstrap_check_in permission denied, SIGTRAP); no screenshot or manifest exists."
-duration: 15 min
+      - kind: e2e
+        ref: "THREADLINE_E2E_EVIDENCE=1 MIX_TEST_PARTITION=operator_baseline_1791514752_53330 mix verify.example_browser --project=route-capture operator-page-capture.spec.ts --grep home"
+        status: pass
+      - kind: other
+        ref: "Strict serialization and committed-source/output hash recheck of operator_baseline_1791514752_53330/manifest.json"
+        status: pass
+    human_judgment: false
+  - id: D2
+    description: Focused negative controls reject invalid provenance, unsafe targets, secret metadata, reference writes and changed outputs while preserving ordinary runner behavior.
+    requirement: UIB-01
+    verification:
+      - kind: unit
+        ref: "examples/threadline_phoenix/e2e/node_modules/.bin/tsx --test examples/threadline_phoenix/e2e/support/operator-evidence-manifest.test.ts"
+        status: pass
+      - kind: e2e
+        ref: "THREADLINE_E2E_EVIDENCE=0 MIX_TEST_PARTITION=operator_compat_<fresh> mix verify.example_browser --project=route-capture operator-page-capture.spec.ts"
+        status: pass
+    human_judgment: false
+duration: 2h 9m
 completed: 2026-10-09
-status: halted
+status: complete
 ---
 
 # Phase 238 Plan 01: Current-main preview and acceptance baseline Summary
 
-**Evidence-mode database guards and a source-bound authenticated home capture path are committed; the required browser run halted before Chromium could start.**
+**Authenticated home shell/content captures now bind real browser-served CSS/JavaScript to an isolated source candidate and synthetic fixture; 16 negative-control contracts fail closed on invalid evidence and reset targets.**
 
 ## Performance
 
-- **Duration:** 15 min
-- **Started:** 2026-10-09T00:54:00Z (approximate; executor start was not recorded)
-- **Completed:** 2026-10-09T01:09:04Z
-- **Tasks:** 0/2 completed; Task 1 implementation committed, acceptance gate failed
-- **Files modified:** 3
+- **Duration:** Approximately 2h 9m elapsed including the interruption; previous attempt reported 15m active. Resumed proof interval: 12m 37s from the first resumed browser command to closeout checks.
+- **Started:** 2026-10-09T00:54:00Z (approximate, retained from the halted summary).
+- **First resumed browser command:** 2026-10-09T02:50:43Z.
+- **Completion checks:** 2026-10-09T03:03:20Z.
+- **Tasks:** 2/2 accepted.
+- **Source files modified/created:** 4.
+- **Actuals:** 13,110 chars/4 tokens over the scoped base-to-candidate source diff; 5 commits measured before this closing metadata commit. The measurement includes the retained partial implementation and halted-summary commits.
 
 ## Accomplishments
 
-- Added an opt-in evidence runner that requires a fresh partition, derives the test database from `config/test.exs`, rejects non-loopback or existing database targets and unsafe overrides, and uses writable temporary caches.
-- Added a separately selectable authenticated `/audit` full-shell and content capture path with candidate, fixture, browser, served stylesheet/script, and output identity validation.
-- Preserved the Playwright launch failure report and trace under `examples/threadline_phoenix/e2e/test-results/`.
+- Produced a genuine authenticated `/audit` full-shell PNG and content PNG after root/content/font and connected-LiveView readiness. Both output hashes, runtime versions, observed dark preference/theme, source identity and four asset comparisons validated.
+- Added strict, deterministic manifest validation and 16 behavioral contracts covering missing/forged metadata, altered asset/output bytes, duplicate IDs, equal-content records, ordered serialization, containment, reference separation, first-time tracked/untracked edits, executable modes/deletions, unsafe targets, copied-context/ancestry tampering, partition reuse and ordinary runner cleanup/forwarding.
+- Proved ordinary route capture still works with evidence mode off: its original browser test passed and the home evidence test skipped intentionally. Both actual named Mix aliases retained project/spec/grep forwarding.
+
+This is the accepted plan-01 contribution to shared UIB-01. It does **not** establish eleven-route completeness, expanded conditions, a durable live review preview or milestone acceptance; plans 238-02/03 still own that work. No requirement/state/roadmap files were updated.
 
 ## Task Commits
 
-1. **Task 1 implementation (acceptance incomplete):** `19d6a45e` — `feat(238-01): add guarded operator evidence capture`
+1. **Retained partial Task 1 implementation:** `19d6a45e` — `feat(238-01): add guarded operator evidence capture`.
+2. **Retained halt/recovery record:** `55c99f1d` — `docs(238-01): record halted browser acceptance`.
+3. **Task 1 acceptance fixes:** `8b8e8d9b` — `fix(238-01): verify uncached home assets and effective source identity`.
+4. **Task 2 RED:** `486134b4` — `test(238-01): expose fail-open operator evidence metadata and target guards`.
+5. **Task 2 GREEN:** `137b0870` — `feat(238-01): enforce operator evidence integrity and safe target contracts`.
 
-**Plan metadata:** not committed yet.
+**Plan metadata:** Separate summary-only closing commit after all acceptance checks. No copied planning/config/product inputs were staged.
 
 ## Files Created/Modified
 
-- `examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts` — candidate, fixture, asset, and output identity validation.
-- `examples/threadline_phoenix/e2e/run-e2e.sh` — evidence-mode target guards, temporary caches, and guarded preview lifecycle.
-- `examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts` — authenticated home shell and content capture.
+- `examples/threadline_phoenix/e2e/run-e2e.sh` — opt-in target/context/ancestry guards, temporary caches, preview lifecycle and scoped ignored-export cleanup.
+- `examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts` — separately selectable home evidence capture, uncached/awaited response hashes, actual theme preference and runtime versions, seed pipeline/manifest/config digest, screenshots without session-bearing HTML.
+- `examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts` — effective candidate path/mode/hash list, exact static asset URL mapping, allowlisted validation, stable ordering and contained output-byte verification.
+- `examples/threadline_phoenix/e2e/support/operator-evidence-manifest.test.ts` — focused metadata/source/asset/output/runner contracts using disposable synthetic roots.
+
+## Evidence and Verification
+
+Final bundle: `examples/threadline_phoenix/e2e/artifacts/operator-evidence/operator_baseline_1791514752_53330/`.
+
+- `home-shell.png`, `home-content.png`, `manifest.json`, `run.json` and `run-identity.json` remain local generated evidence. Output references in the final manifest are portable relative paths.
+- Captured HEAD: `486134b4283248cf521343c07684989061176bb4`; effective source digest: `735b22d67de3cd76e0916bba9ec7dd7389635590a92a8da411932425f672c755`.
+- Post-commit recheck proved the same effective digest at GREEN HEAD `137b0870cce78b78a0299e9405ba7a095a446f6d`. Captured HEAD remains the honest capture-time identity; committing identical bytes did not change the digest.
+- Fixture scenario/version: `threadline-demo-seed` / `seed-pipeline-v1`. Seed digest: `c657f19bedf54433ef86ff0d8698b26995046cd77c07f47a83c04dad4b053a30`; semantic ID: `86a43988888299a0981077a0950599aef52016cbf05d55c3d9350a060a264029`. Identity hashes the seed modules, pipeline, scenario manifest and deterministic test configuration; generated partition/database names do not enter it.
+- Asset proof: real `app.js`, `phoenix.mjs`, `phoenix_live_view.esm.js` HTTP bodies and the inline operator stylesheet each matched their exact local bytes.
+- Final evidence-mode browser command: **1 intended test passed**, plus **21 existing unit preflight tests passed**. Full-shell PNG was inspected; strict final manifest serialization and both PNG hashes passed.
+- Focused contract: **16 tests passed, 0 skipped, 0 failed**. Final run duration: 7.3s.
+- Legacy evidence-off route capture: **1 original browser test passed, 1 intended mode-gated home test skipped**, plus **21 existing unit tests passed**. This compatibility result is not new eleven-route evidence.
+- Actual `mix verify.example_browser` and `mix verify.example_browser_light` argument-only probes preserved project/spec/grep arguments; System/light selected `desktop-chromium-light`. This proves forwarding, not rendered light-theme acceptance.
+- Scoped strict TypeScript checking of helper/tests, Bash syntax and `git diff --check` passed.
+- No product rendering source or reference fixtures changed from the immutable base. Original initially dirty file bytes still matched the isolation receipt. Exact root, branch and expected first-parent ancestry checks passed.
+
+Runtime: Bash **5.2.37** from the installed Homebrew Bash, Node **22.14.0**, Mix/Elixir **1.17.3**, OTP **27** (ERTS **15.2.7.11**), Playwright **1.60.0**, Chromium **148.0.7778.96**. Browser commands used normal narrow escalation; no sudo, launch-flag addition or hook bypass.
+
+## TDD Gate Compliance
+
+- **RED:** Actual TAP report executed 14 tests: 8 passed, 6 failed on behavioral assertions. Target `metadata proof rejects absent candidate diff identity` failed because empty digest metadata was accepted. GSD returned `RED_EVIDENCE_OK`; no discovery, syntax or fixture failure was used as RED.
+- **GREEN:** Required-field, source-list/digest, fixture, asset, output and runner validation resolved those failures. Additional custody/ordinary-cleanup controls brought the final suite to 16 passing tests.
+- **REFACTOR:** No separate refactor was necessary.
+- Raw RED evidence: `examples/threadline_phoenix/e2e/artifacts/operator-evidence/red-evidence.json` (generated, not committed).
+- The original attempt omitted the per-plan git ledger. Continuation restored its base from the saved summary after checking immutable-base and exact ancestry agreement; measured counts use that recovered per-worktree ledger.
 
 ## Decisions Made
 
-- Kept evidence mode opt-in so existing named browser checks retain their default runner path.
-- Used per-run writable Hex/npm caches and a writable Playwright cache after the default Hex cache failed with `:eaccess`.
-- Stopped before Task 2 because the Task 1 acceptance gate requires a real browser capture.
+Keep strict fixture checks opt-in, ordinary aliases compatible, source and rendered proof separate, and reference evidence read-only. Await actual uncached response bytes; never substitute a guessed source file for an unknown URL. Preserve candidate HEAD and effective bytes as separate identities. Do not persist the session-bearing HTML dump.
 
 ## Deviations from Plan
 
 ### Auto-fixed Issues
 
-**1. [Rule 3 - Blocking] Redirect dependency caches to writable temporary directories**
-- **Found during:** Task 1 browser setup
-- **Issue:** Hex could not persist its registry under the default user cache (`:eaccess`); the default browser cache also did not complete setup in this environment.
-- **Fix:** Evidence mode now uses writable temporary Hex and npm caches and a writable Playwright browser cache.
-- **Files modified:** `examples/threadline_phoenix/e2e/run-e2e.sh`
-- **Verification:** Locked example dependencies compiled, the synthetic partition was seeded, npm installed 19 locked packages with 0 reported vulnerabilities, and Chromium downloaded to the temporary cache.
-- **Committed in:** `19d6a45e`
+**1. [Rule 3 - Blocking] Writable dependency/browser caches and permitted Chromium launch**
+- Original attempt encountered cache access failures and macOS Chromium launch denial, halted with 0/2 accepted tasks, and committed its recovery summary.
+- Parent resolved launch permissions through normal escalation. Continuation consistently used installed Bash 5 and writable temporary caches; actual browser tests ran and passed.
+- Commit: original cache setup `19d6a45e`; acceptance fixes `8b8e8d9b`.
 
-**Total deviations:** 1 auto-fixed (1 blocking environment issue). **Impact:** Cache setup progressed without sudo or hook bypass; browser execution remained blocked by process permissions.
+**2. [Rule 1 - Bug] Cached JavaScript and fail-open provenance/output checks**
+- The first permitted run failed because login cached JavaScript and `/audit` returned 304 responses that the recorder omitted. Effective source enumeration also missed first-time staged/unstaged tracked edits; unknown asset URLs could fall back to unrelated CSS.
+- Fixed cache/await/readiness handling and exact mapping, then tightened metadata/source/fixture/output checks with real RED/GREEN negative controls.
+- Commits: `8b8e8d9b`, `486134b4`, `137b0870`.
+
+**3. [Rule 2 - Missing Critical] Honest appearance, secret-free artifact selection and cleanup**
+- Read the checked preference instead of declaring System. Removed the HTML dump after observing its CSRF field. Expanded seed identity to the actual pipeline/manifest/configuration.
+- Replaced the runner's inherited `git clean` cleanup with enumeration/removal of ignored export files only, honoring the worktree prohibition. A lifecycle contract verifies tracked and unrelated generated files survive.
+- Commits: `8b8e8d9b`, `137b0870`.
+
+**Total deviations:** 3 auto-fixed issue clusters (Rules 1–3). All changes remain within plan-owned evidence/runner files; product source, public APIs, dependencies and shared orchestration artifacts were preserved.
 
 ## Issues Encountered
 
-- The named browser command’s Node preflight executed 21 tests. The final run passed all 21, then Playwright attempted the named home test and Chromium failed to launch with `bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer: Permission denied (1100)` and `SIGTRAP`.
-- No browser test body ran. No home screenshot, source/asset manifest, or valid capture bundle was produced. The retained Playwright trace records the launch failure only.
-- Task 2 and its focused negative controls were not started because Task 1’s required acceptance gate did not clear.
-- `git diff --check` and `bash -n examples/threadline_phoenix/e2e/run-e2e.sh` passed before the Task 1 implementation commit.
+The previous halted summary is preserved in `55c99f1d`; it was recovery history, not accepted browser proof. Normal Playwright runs regenerate `test-results`, so earlier failure traces are not claimed as current retained evidence. Accepted captures live separately under their unique generated run directories. No unresolved plan-01 acceptance blocker remains.
 
 ## User Setup Required
 
-None. The blocker is the current execution environment’s Chromium process permission.
+None.
 
 ## Next Phase Readiness
 
-**Halted.** Retry this plan in an environment where Playwright Chromium can start. Require the named home test to execute and pass, inspect a real screenshot and manifest, then continue to Task 2’s focused mutation-controlled negative tests. Do not treat the retained launch trace as capture evidence.
+Ready for **238-02** after the parent validates ancestry/candidate identity and synchronizes the small receipt to the original planning checkout. Local expected ancestry now includes every known scoped commit; immutable base stays fixed. The parent owns sync and STATE/ROADMAP/requirement advancement. This executor stops at plan 01; no push, publication, branch change or further plan was performed.
 
----
-*Phase: 238-current-main-preview-and-acceptance-baseline*
-*Completed: 2026-10-09 (halted)*
+## Self-Check: PASSED
 
-## Self-Check: FAILED
-
-- Task 1 acceptance failed before Chromium test execution; no evidence capture or manifest exists.
-- Task 2 remains unexecuted.
-- The partial implementation commit `19d6a45e` exists on this worktree branch.
+- Both task acceptance gates passed with nonzero intended tests and meaningful negative controls.
+- Four owned source files and both final screenshot outputs exist.
+- All five retained/production/TDD commits are reachable on this branch; evaluation scope resolved.
+- Final capture digest matches committed source; strict manifest, asset and output checks passed.
+- Product/reference diff is empty and original dirty byte hashes match.
+- Summary coverage is backed by passing automated proof; remaining eleven-route/preview work is explicitly reserved for sibling plans.
