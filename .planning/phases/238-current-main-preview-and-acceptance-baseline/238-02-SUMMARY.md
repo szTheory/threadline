@@ -105,10 +105,12 @@ The frontmatter copies this plan's required `[UIB-01, UIB-02]` IDs verbatim. Thi
 
 ## Task Commits
 
-1. **Task 1 RED:** `1ab560f63a07299e1dd7c7226b7c76da24ebd3a1` — `test(238-02): require exact independently grounded eleven-route inventory`.
-2. **Task 1 GREEN:** `322f84ee5fa4782e05d43ebb823763b461483289` — `feat(238-02): capture eleven direct operator routes with source-bound shell evidence`.
-3. **Task 2 RED:** `aed99dfad3efdc536f06f0c2622b1344f01ef201` — `test(238-02): expose System runner project-selector pollution`.
-4. **Task 2 GREEN:** `27c3b04391bd6dbdf80c8db24a76db294373d96c` — `feat(238-02): record bounded dark and System state evidence with final route custody`.
+1. **Task 1: RED** `1ab560f63a07299e1dd7c7226b7c76da24ebd3a1` — `test(238-02): require exact independently grounded eleven-route inventory`.
+2. **Task 1: GREEN** `322f84ee5fa4782e05d43ebb823763b461483289` — `feat(238-02): capture eleven direct operator routes with source-bound shell evidence`.
+3. **Task 2: RED** `aed99dfad3efdc536f06f0c2622b1344f01ef201` — `test(238-02): expose System runner project-selector pollution`.
+4. **Task 2: GREEN** `27c3b04391bd6dbdf80c8db24a76db294373d96c` — `feat(238-02): record bounded dark and System state evidence with final route custody`.
+
+5. **Task 2: Integration boundary fix** — `e36bd1f84332e7fea1145714652f272b512fbf2f` separates the two exact generic source-inventory filenames from the frozen rendered corpus. Fifteen focused tests pass, including an unknown-reference negative control. All 427 existing reference bytes and manifest entries remain unchanged.
 
 **Plan metadata:** Separate summary-only commit after these checks. Each known scoped commit was appended to the delegated local receipt only after exact prefix/scope validation. Base stayed fixed at `9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2`.
 
@@ -161,10 +163,10 @@ Other bounds are explicit in the index: Exports, not every Timeline mutation con
 
 ## TDD Gate Compliance
 
-- **Task 1 RED:** `route inventory exactly matches the independently read eleven router paths` actually executed and failed the planned equality assertion because the fixture was absent; it did not fail discovery/syntax/setup. Actual TAP and record are retained at `e2e/artifacts/operator-evidence/red-238-02-task1.json`. GSD returned `RED_EVIDENCE_OK`; semantic inspection confirmed the intended assertion failure.
-- **Task 1 GREEN:** independently grounded fixture/seed mapping and browser expansion pass exact equality and all eleven route captures. No reference fixture was overwritten.
-- **Task 2 RED:** `System runner preserves an explicit project selector without adding its default` actually executed against the real runner argument probe. Of two tests, one passed and this target failed: expected only explicit `--project=route-capture`, observed an added `--project=desktop-chromium-light`. Actual TAP record is `e2e/artifacts/operator-evidence/red-238-02-task2.json`; GSD returned `RED_EVIDENCE_OK`, with semantic assessment of the string-equality failure.
-- **Task 2 GREEN:** project forwarding contract and all existing runner contracts pass; both nonzero state lanes and final route recapture pass after the final tooling edit.
+- **Task 1: RED** `route inventory exactly matches the independently read eleven router paths` actually executed and failed the planned equality assertion because the fixture was absent; it did not fail discovery/syntax/setup. Actual TAP and record are retained at `e2e/artifacts/operator-evidence/red-238-02-task1.json`. GSD returned `RED_EVIDENCE_OK`; semantic inspection confirmed the intended assertion failure.
+- **Task 1: GREEN** independently grounded fixture/seed mapping and browser expansion pass exact equality and all eleven route captures. No reference fixture was overwritten.
+- **Task 2: RED** `System runner preserves an explicit project selector without adding its default` actually executed against the real runner argument probe. Of two tests, one passed and this target failed: expected only explicit `--project=route-capture`, observed an added `--project=desktop-chromium-light`. Actual TAP record is `e2e/artifacts/operator-evidence/red-238-02-task2.json`; GSD returned `RED_EVIDENCE_OK`, with semantic assessment of the string-equality failure.
+- **Task 2: GREEN** project forwarding contract and all existing runner contracts pass; both nonzero state lanes and final route recapture pass after the final tooling edit.
 - **REFACTOR:** no additional refactor commit was necessary. Each task has an executed RED commit followed by its verified GREEN commit.
 
 ## Decisions Made

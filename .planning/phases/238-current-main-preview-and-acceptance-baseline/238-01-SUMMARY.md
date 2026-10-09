@@ -82,11 +82,11 @@ This is the accepted plan-01 contribution to shared UIB-01. It does **not** esta
 
 ## Task Commits
 
-1. **Retained partial Task 1 implementation:** `19d6a45e` — `feat(238-01): add guarded operator evidence capture`.
+1. **Task 1: Retained partial implementation** `19d6a45e` — `feat(238-01): add guarded operator evidence capture`.
 2. **Retained halt/recovery record:** `55c99f1d` — `docs(238-01): record halted browser acceptance`.
-3. **Task 1 acceptance fixes:** `8b8e8d9b` — `fix(238-01): verify uncached home assets and effective source identity`.
-4. **Task 2 RED:** `486134b4` — `test(238-01): expose fail-open operator evidence metadata and target guards`.
-5. **Task 2 GREEN:** `137b0870` — `feat(238-01): enforce operator evidence integrity and safe target contracts`.
+3. **Task 1: Acceptance fixes** `8b8e8d9b` — `fix(238-01): verify uncached home assets and effective source identity`.
+4. **Task 2: RED** `486134b4` — `test(238-01): expose fail-open operator evidence metadata and target guards`.
+5. **Task 2: GREEN** `137b0870` — `feat(238-01): enforce operator evidence integrity and safe target contracts`.
 
 **Plan metadata:** Separate summary-only closing commit after all acceptance checks. No copied planning/config/product inputs were staged.
 
