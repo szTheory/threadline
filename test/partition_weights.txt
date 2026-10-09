@@ -163,6 +163,7 @@
 849 test/threadline/operator_surface/live/start_live_test.exs
 3770 test/threadline/operator_surface/live/timeline_live_test.exs
 310 test/threadline/operator_surface/mechanical_checker_test.exs
+200 test/threadline/operator_surface/operator_evidence_contract_test.exs
 414 test/threadline/operator_surface/operator_surface_fixture_contract_test.exs
 0 test/threadline/operator_surface/page_header_test.exs
 2 test/threadline/operator_surface/pager_test.exs

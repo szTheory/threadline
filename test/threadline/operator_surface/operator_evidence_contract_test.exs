@@ -252,6 +252,25 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
     asset_key = fn a -> {a["localPath"], a["localSha256"], a["servedSha256"]} end
 
     checks = [
+      {receipt["schemaVersion"] == 1 and
+         typed_fields?(
+           Map.take(
+             receipt,
+             ~w(url worktree branch partition database capturedAt manifestPath inventoryPath)
+           ),
+           ~w(url worktree branch partition database capturedAt manifestPath inventoryPath)
+         ), "typed preview metadata"},
+      {typed_fields?(
+         Map.take(identity, ~w(baseSha candidateDiffDigest candidateHead)),
+         ~w(baseSha candidateDiffDigest candidateHead)
+       ) and is_list(identity["candidateAncestry"]) and
+         Enum.all?(identity["candidateAncestry"], &is_binary/1) and
+         typed_fields?(identity["fixture"], ~w(scenario version seedManifestSha256 semanticId)),
+       "typed preview identity"},
+      {typed_fields?(receipt["isolationManifest"], ~w(path sha256)),
+       "allowlisted isolation manifest"},
+      {typed_fields?(receipt["lifecycle"], ~w(script stop reopen policy sha256)),
+       "allowlisted lifecycle metadata"},
       {Map.keys(receipt)
        |> Enum.all?(
          &(&1 in ~w(schemaVersion url pid worktree branch isolationManifest partition database identity checks assets capturedAt lifecycle manifestPath inventoryPath))
@@ -265,6 +284,11 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
 
          Enum.sort(Map.keys(a)) ==
            Enum.sort(~w(url status contentType servedSha256 localPath localSha256)) and
+           a["status"] == 200 and
+           typed_fields?(
+             Map.delete(a, "status"),
+             ~w(url contentType servedSha256 localPath localSha256)
+           ) and
            is_nil(u.userinfo) and is_nil(u.query) and
            (u.scheme == "inline" or (u.scheme == "http" and u.host == "127.0.0.1"))
        end), "allowlisted local preview assets"},
@@ -295,10 +319,20 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
     for {false, error} <- checks, do: error
   end
 
+  defp typed_fields?(value, keys) when is_map(value),
+    do:
+      Enum.sort(Map.keys(value)) == Enum.sort(keys) and
+        Enum.all?(Map.values(value), &(is_binary(&1) and String.trim(&1) != ""))
+
+  defp typed_fields?(_, _), do: false
+
   def secret_fields?(value) when is_map(value),
     do:
       Enum.any?(value, fn {key, v} ->
-        Regex.match?(~r/password|cookie|csrf|authorization|responseHeaders|responseBody/i, key) or
+        Regex.match?(
+          ~r/password|cookie|csrf|authorization|token|secret|credential|api[_-]?key|responseHeaders|responseBody/i,
+          key
+        ) or
           secret_fields?(v)
       end)
 
@@ -563,6 +597,91 @@ defmodule Threadline.OperatorSurface.OperatorEvidenceContractTest do
              manifest,
              @root
            )
+  end
+
+  test "valid preview receipts reject nested secrets, bodies and untyped metadata" do
+    asset = %{
+      "url" => "http://127.0.0.1:4109/assets/app.js",
+      "status" => 200,
+      "contentType" => "text/javascript",
+      "servedSha256" => "hash",
+      "localSha256" => "hash",
+      "localPath" => "app.js"
+    }
+
+    fixture = %{
+      "scenario" => "demo",
+      "version" => "1",
+      "seedManifestSha256" => "seed",
+      "semanticId" => "fixture"
+    }
+
+    manifest = %{
+      "baseSha" => "base",
+      "candidateDiffDigest" => "digest",
+      "fixture" => fixture,
+      "captures" => [%{"assets" => [asset]}]
+    }
+
+    receipt = %{
+      "schemaVersion" => 1,
+      "url" => "http://127.0.0.1:4109",
+      "pid" => 777_777,
+      "worktree" => @root,
+      "branch" => "preview",
+      "partition" => "operator_contract",
+      "database" => "threadline_phoenix_testoperator_contract",
+      "capturedAt" => "2026-10-09T00:00:00Z",
+      "manifestPath" => "manifest.json",
+      "inventoryPath" => "inventory.json",
+      "identity" => %{
+        "baseSha" => "base",
+        "candidateDiffDigest" => "digest",
+        "fixture" => fixture,
+        "candidateHead" => "head",
+        "candidateAncestry" => ["head"]
+      },
+      "isolationManifest" => %{"path" => "receipt.json", "sha256" => "hash"},
+      "lifecycle" => %{
+        "script" => "preview.py",
+        "stop" => "stop",
+        "reopen" => "reopen",
+        "policy" => "guarded",
+        "sha256" => "hash"
+      },
+      "checks" => %{
+        "unauthenticated" => "local-login-redirect",
+        "audit" => "authenticated-shell",
+        "deepLink" => "authenticated-transaction",
+        "binding" => "127.0.0.1",
+        "database" => "verified-pid-connection"
+      },
+      "assets" => [asset]
+    }
+
+    assert Contract.preview_errors(receipt, manifest, @root) == []
+
+    for field <- ["lifecycle", "isolationManifest"],
+        key <- ~w(token secret credentials api_key response responseBody responseHeaders unknown) do
+      changed = update_in(receipt[field], &Map.put(&1, key, "not allowed"))
+      refute Contract.preview_errors(changed, manifest, @root) == [], "accepted #{field}.#{key}"
+    end
+
+    for field <- ~w(branch capturedAt manifestPath inventoryPath) do
+      refute Contract.preview_errors(Map.put(receipt, field, %{"body" => "raw"}), manifest, @root) ==
+               []
+    end
+
+    refute Contract.preview_errors(
+             put_in(receipt, ["assets", Access.at(0), "status"], %{"body" => "raw"}),
+             manifest,
+             @root
+           ) == []
+
+    for [field, key] <- [["lifecycle", "stop"], ["isolationManifest", "path"]] do
+      changed = put_in(receipt, [field, key], %{"nested" => "body"})
+      refute Contract.preview_errors(changed, manifest, @root) == []
+    end
   end
 
   test "requested live evidence fails closed and validates retained custody" do

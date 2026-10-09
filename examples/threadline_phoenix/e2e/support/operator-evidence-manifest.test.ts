@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -264,5 +264,43 @@ test("runner proof forwards ordinary and System/light named arguments without a 
     assert.match(result.stdout, /operator-shell-home.spec.ts --grep home/);
     assert.equal(result.stdout.includes("--project=desktop-chromium-light"), theme === "system");
     assert.equal(existsSync(sentinel), false);
+  }
+});
+
+test("both preview stop entrypoints reject invalid or unowned processes without signalling", (t) => {
+  const { root, env, run } = runnerFixture(t);
+  const state = join(root, "preview.json");
+  const signal = join(root, "signal-called");
+  const preload = join(root, "signal-mock.cjs");
+  writeFileSync(preload, `process.kill=(pid,sig)=>{require('node:fs').writeFileSync(${JSON.stringify(signal)},JSON.stringify([pid,sig]));return true;};`);
+  const bin = join(root, "bin");
+  writeFileSync(join(bin, "lsof"), '#!/usr/bin/env bash\nexit 1\n');
+  chmodSync(join(bin, "lsof"), 0o755);
+  for (const args of [["--stop-preview"], []]) for (const pid of [0, 1, 777777]) {
+    writeFileSync(state, JSON.stringify({pid,url:"http://127.0.0.1:4109",partition:"operator_stop",database:"threadline_phoenix_testoperator_stop"}));
+    const result = run({ THREADLINE_E2E_PREVIEW_STATE:state, THREADLINE_E2E_STOP_PREVIEW:args.length ? "0":"1", NODE_OPTIONS:`--require=${preload}` }, args);
+    assert.notEqual(result.status, 0, `accepted unowned PID ${pid}`);
+    assert.ok(existsSync(state), "failed ownership check removed state");
+    assert.ok(!existsSync(signal), "failed ownership check sent signal");
+  }
+});
+
+test("owned preview stop checks cwd, loopback listener and database on both entrypoints", (t) => {
+  const {root, run} = runnerFixture(t);
+  const state=join(root,"preview.json"), signal=join(root,"signal-called"), preload=join(root,"signal-mock.cjs"), bin=join(root,"bin");
+  writeFileSync(preload, `process.kill=(pid,sig)=>{require('node:fs').writeFileSync(${JSON.stringify(signal)},JSON.stringify([pid,sig]));return true;};`);
+  writeFileSync(join(bin,"lsof"), '#!/usr/bin/env bash\ncase "$*" in\n*"-d cwd"*) printf "p777777\\nn%s\\n" "$FAKE_CWD" ;;\n*"-sTCP:LISTEN"*) printf "p777777\\nn%s\\n" "$FAKE_LISTENER" ;;\n*) printf "p777777\\nn127.0.0.1:55001->127.0.0.1:5432\\n" ;;\nesac\n');
+  chmodSync(join(bin,"lsof"),0o755);
+  const good={THREADLINE_E2E_PREVIEW_STATE:state,NODE_OPTIONS:`--require=${preload}`,FAKE_CWD:join(root,"examples/threadline_phoenix"),FAKE_LISTENER:"127.0.0.1:4109",FAKE_EXISTING_DB:"threadline_phoenix_testoperator_stop"};
+  for(const args of [["--stop-preview"],[]]) {
+    const mode={THREADLINE_E2E_STOP_PREVIEW:args.length ? "0":"1"};
+    for(const override of [{FAKE_CWD:"/unrelated"},{FAKE_LISTENER:"*:4109"},{FAKE_LISTENER:"127.0.0.1:4110"},{FAKE_EXISTING_DB:"production"},{DB_HOST:"remote.invalid"}]) {
+      writeFileSync(state,JSON.stringify({pid:777777,url:"http://127.0.0.1:4109",partition:"operator_stop",database:"threadline_phoenix_testoperator_stop"}));
+      const result=run({...good,...mode,...override},args);
+      assert.notEqual(result.status,0);assert.ok(existsSync(state));assert.ok(!existsSync(signal));
+    }
+    const result=run({...good,...mode},args);
+    assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(readFileSync(signal,"utf8")),[777777,"SIGTERM"]);assert.ok(!existsSync(state));
+    unlinkSync(signal);
   }
 });

@@ -159,14 +159,49 @@ evidence_preflight() {
 }
 
 stop_preview() {
-  local state pid
+  local state
   state="${THREADLINE_E2E_PREVIEW_STATE:-${TMPDIR:-/tmp}/threadline-e2e-preview-${MIX_TEST_PARTITION:-}.json}"
-  [[ -f "$state" ]] || { echo "No preview state found at $state." >&2; return 1; }
-  pid="$(sed -n 's/.*"pid":[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$state")"
-  [[ -n "$pid" && "$pid" != "$$" ]] || { echo "Preview state has no valid process ID." >&2; return 1; }
-  if kill -0 "$pid" 2>/dev/null; then kill "$pid"; fi
-  rm -f "$state"
-  echo "Stopped evidence preview process $pid."
+  node - "$state" "$EXAMPLE" <<'NODE'
+const fs = require('node:fs');
+const {execFileSync} = require('node:child_process');
+const assert = require('node:assert/strict');
+try {
+  const [state, example] = process.argv.slice(2);
+  assert.ok(fs.lstatSync(state).isFile(), 'Preview state must be a regular file');
+  const original = fs.readFileSync(state, 'utf8'), r = JSON.parse(original);
+  assert.deepEqual(Object.keys(r).sort(), ['database', 'partition', 'pid', 'url']);
+  assert.ok(Number.isSafeInteger(r.pid) && r.pid > 1 && r.pid !== process.pid && r.pid !== process.ppid, 'Invalid preview PID');
+  assert.ok(typeof r.partition === 'string' && /^operator_[A-Za-z0-9_]+$/.test(r.partition), 'Invalid preview partition');
+  assert.equal(r.database, 'threadline_phoenix_test' + r.partition);
+  assert.ok(r.database.length <= 63, 'Invalid preview database');
+  const url = new URL(r.url), port = Number(url.port);
+  assert.ok(url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname) && port > 0 && port <= 65535 && url.origin === r.url, 'Invalid loopback preview URL');
+  const dbHost = process.env.DB_HOST || 'localhost', dbPort = process.env.DB_PORT || '5432';
+  assert.ok(['localhost', '127.0.0.1', '::1', '[::1]'].includes(dbHost), 'Invalid local database host');
+  assert.ok(/^\d+$/.test(dbPort) && Number(dbPort) > 0 && Number(dbPort) <= 65535, 'Invalid database port');
+  const run = (command, args) => execFileSync(command, args, {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: {...process.env, PGPASSWORD: process.env.DB_PASSWORD || 'postgres'}});
+  const ownership = () => {
+    const cwd = run('lsof', ['-a', '-p', String(r.pid), '-d', 'cwd', '-Fn']);
+    assert.ok(cwd.split('\n').includes('n' + fs.realpathSync(example)), 'Preview cwd mismatch');
+    const listeners = run('lsof', ['-nP', '-a', '-p', String(r.pid), '-iTCP', '-sTCP:LISTEN', '-Fn']).split('\n').filter(line => line.startsWith('n'));
+    assert.ok(listeners.length > 0 && listeners.every(line => line === 'n127.0.0.1:' + port), 'Preview listener mismatch');
+  };
+  ownership();
+  const connections = run('lsof', ['-nP', '-a', '-p', String(r.pid), '-iTCP', '-sTCP:ESTABLISHED', '-Fn']);
+  const ports = [...connections.matchAll(/n127\.0\.0\.1:(\d+)->127\.0\.0\.1:(\d+)/g)].filter(m => Number(m[2]) === Number(dbPort)).map(m => Number(m[1]));
+  assert.ok(ports.length > 0, 'Preview has no local database connection');
+  const database = run('psql', ['-X', '-h', dbHost, '-p', dbPort, '-U', process.env.DB_USERNAME || 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-Atqc', 'SELECT DISTINCT datname FROM pg_stat_activity WHERE client_port IN (' + ports.join(',') + ')']).trim();
+  assert.equal(database, r.database, 'Preview database mismatch');
+  assert.equal(fs.readFileSync(state, 'utf8'), original, 'Preview state changed during ownership check');
+  ownership();
+  process.kill(r.pid, 'SIGTERM');
+  fs.unlinkSync(state);
+  process.stdout.write('Stopped owned loopback preview process ' + r.pid + '.\n');
+} catch {
+  process.stderr.write('Preview ownership verification failed; no unverified process was signalled and state was retained.\n');
+  process.exitCode = 1;
+}
+NODE
 }
 
 if [[ "$STOP_PREVIEW" == "1" ]]; then
