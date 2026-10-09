@@ -204,6 +204,15 @@ test.describe("operator motion contracts with default motion", () => {
     });
     await page.getByRole("button", { name: "Confirm stress modal" }).click();
 
+    // The fixture's persistent toast can overlap the drawer trigger on mobile.
+    const toast = page.locator("#stress-toast");
+    if (await toast.isVisible()) {
+      const closeToast = toast.getByRole("button", { name: "Close" });
+      await closeToast.focus();
+      await page.keyboard.press("Enter");
+      await expect(toast).toBeHidden();
+    }
+
     await page.getByRole("button", { name: "Show Drawer" }).click();
     const drawerStyle = await computedStyle(page.locator("#stress-drawer-content"));
     expectTransitionIncludes(drawerStyle, {

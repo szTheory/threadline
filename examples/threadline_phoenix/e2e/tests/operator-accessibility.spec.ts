@@ -1234,6 +1234,16 @@ test.describe("operator accessibility baseline", () => {
     });
     await page.getByRole("button", { name: "Confirm stress modal" }).click();
 
+    // The fixture includes a persistent toast that overlaps this trigger on
+    // narrow screens. Dismiss it through its keyboard-accessible control first.
+    const toast = page.locator("#stress-toast");
+    if (await toast.isVisible()) {
+      const closeToast = toast.getByRole("button", { name: "Close" });
+      await closeToast.focus();
+      await page.keyboard.press("Enter");
+      await expect(toast).toBeHidden();
+    }
+
     await page.getByRole("button", { name: "Show Drawer" }).click();
     const stressDrawerSnapshot = await expectAriaSnapshotContains(
       page.getByRole("dialog", { name: "Stress drawer" }),
