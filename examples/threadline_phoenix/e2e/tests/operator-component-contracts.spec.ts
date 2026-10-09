@@ -323,6 +323,7 @@ test.describe("Phase 177 UAT #3 — overlay motion collapses under reduced motio
 });
 
 test.describe("shared overlays at a short narrow viewport", () => {
+  test.use({ hasTouch: true });
   test.beforeEach(async ({ page }) => {
     await login(page);
     await page.setViewportSize({ width: 320, height: 420 });
@@ -332,6 +333,7 @@ test.describe("shared overlays at a short narrow viewport", () => {
     page,
   }) => {
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     const toast = page.locator("#stress-toast");
     await expect(toast).toBeVisible();
     await toast.locator(".tl-toast__body").evaluate((element) => {
@@ -340,11 +342,11 @@ test.describe("shared overlays at a short narrow viewport", () => {
     await expect(toast.getByRole("button", { name: "Close" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
     await expectBoxWithinViewport(toast, 320);
-    await toast.getByRole("button", { name: "Close" }).click();
+    await toast.getByRole("button", { name: "Close" }).tap();
     await expect(toast).toBeHidden();
 
     const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
-    await drawerTrigger.click();
+    await drawerTrigger.tap();
     const drawer = page.getByRole("dialog", { name: "Stress drawer" });
     await expect(drawer).toBeVisible();
     await expect(drawer.getByRole("button", { name: "Close stress drawer" })).toBeVisible();
@@ -354,6 +356,31 @@ test.describe("shared overlays at a short narrow viewport", () => {
     });
     await expectNoHorizontalOverflow(page);
     await expectBoxWithinViewport(drawer, 320);
+    const drawerClose = drawer.getByRole("button", { name: "Close stress drawer" });
+    await drawerClose.tap();
+    await expect(drawer).toBeHidden();
+    await expect(drawerTrigger).toBeFocused();
+
+    const modalTrigger = page.getByRole("button", { name: "Show Modal", exact: true });
+    await modalTrigger.tap();
+    const modal = page.locator("#stress-modal-focus");
+    await expect(modal).toHaveAccessibleName("Stress modal");
+    await modal.locator(".tl-modal__title").evaluate((element) => {
+      element.textContent = "LongUnbrokenOverlayLabel".repeat(8);
+    });
+    await modal.locator(".tl-modal__body").evaluate((element) => {
+      element.textContent = "Recorded context ".repeat(180);
+    });
+    const panel = page.locator("#stress-modal-content");
+    await expectBoxWithinViewport(panel, 320);
+    const dimensions = await panel.evaluate((element) => ({ height: element.getBoundingClientRect().height, scroll: element.scrollHeight, client: element.clientHeight }));
+    expect(dimensions.height).toBeLessThanOrEqual(420);
+    expect(dimensions.scroll).toBeGreaterThan(dimensions.client);
+    await expectNoHorizontalOverflow(page);
+    const confirm = page.getByRole("button", { name: "Confirm stress modal" });
+    await confirm.tap();
+    await expect(modal).toBeHidden();
+    await expect(modalTrigger).toBeFocused();
   });
 });
 

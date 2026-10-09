@@ -1000,7 +1000,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|aria-controls="timeline-filters-drawer"|
       assert html =~ ~s|id="timeline-filters-drawer"|
       assert html =~ ~s|phx-window-keydown=|
-      assert html =~ ~s|phx-key="Escape"|
+      assert html =~ ~s|phx-key="escape"|
       assert html =~ "Window: 24h"
       assert html =~ "2026-06-06 20:07 UTC to 2026-06-07 20:07 UTC"
       assert html =~ "Reset to last 24h"

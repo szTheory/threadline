@@ -653,7 +653,7 @@ test.describe("Timeline investigation flow browser proof", () => {
     await expect(
       page
         .getByRole("status")
-        .filter({ hasText: "No captured changes match this window" }),
+        .filter({ hasText: "No changes match these filters" }),
     ).toBeVisible();
   });
 

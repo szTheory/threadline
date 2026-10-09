@@ -18,7 +18,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
       <div
       id={@id}
       phx-mounted={@show && show_modal(@id)}
-      phx-remove={hide_modal(@id)}
+      phx-remove={JS.exec("data-tl-hide", to: "##{@id}.tl-overlay-visible")}
+      data-tl-hide={hide_modal(@id)}
+      data-tl-cancel={hide_modal(@on_cancel, @id)}
       class={["tl-modal-container", if(!@show, do: "hidden")]}
       {@rest}
       >
@@ -26,25 +28,27 @@ if Code.ensure_loaded?(Phoenix.Component) do
         id={"#{@id}-bg"}
         class="tl-modal-scrim"
         aria-hidden="true"
-        phx-click={JS.exec(@on_cancel, "phx-remove") |> hide_modal(@id)}
+        phx-click={JS.exec("data-tl-cancel", to: "##{@id}.tl-overlay-visible")}
       />
-      <div
+      <.focus_wrap
+        id={"#{@id}-focus"}
         class="tl-modal-wrapper"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
-        tabindex="0"
       >
         <div
           id={"#{@id}-content"}
           class={["tl-modal", @class]}
-          phx-window-keydown={JS.exec(@on_cancel, "phx-remove") |> hide_modal(@id)}
+          tabindex="-1"
+          phx-focus={JS.focus_first(to: "##{@id}-content")}
+          phx-window-keydown={JS.exec("data-tl-cancel", to: "##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))")}
           phx-key="escape"
         >
           <%= render_slot(@inner_block) %>
         </div>
-      </div>
+      </.focus_wrap>
       </div>
       """
     end
@@ -65,6 +69,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
         transition: {"tl-rise-in", "opacity-0 translate-y-4", "opacity-100 translate-y-0"}
       )
       |> JS.add_class("overflow-hidden", to: "body")
+      |> JS.focus(to: "##{id}-content")
       |> JS.focus_first(to: "##{id}-content")
       |> JS.focus(to: "##{id} [data-tl-initial-focus]")
     end
@@ -85,6 +90,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
       |> JS.remove_class("overflow-hidden", to: "body")
       |> JS.remove_class("tl-overlay-visible", to: "##{id}")
       |> JS.remove_class("tl-overlay-visible", to: "##{id}-content")
+      |> JS.focus(to: "#tl-main")
       |> JS.pop_focus()
     end
 
@@ -101,7 +107,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
       <div
       id={@id}
       phx-mounted={@show && show_drawer(@id)}
-      phx-remove={hide_drawer(@id)}
+      phx-remove={JS.exec("data-tl-hide", to: "##{@id}.tl-overlay-visible")}
+      data-tl-hide={hide_drawer(@id)}
+      data-tl-cancel={hide_drawer(@on_cancel, @id)}
       class={["tl-drawer-container", if(!@show, do: "hidden")]}
       {@rest}
       >
@@ -109,25 +117,27 @@ if Code.ensure_loaded?(Phoenix.Component) do
         id={"#{@id}-bg"}
         class="tl-drawer-scrim"
         aria-hidden="true"
-        phx-click={JS.exec(@on_cancel, "phx-remove") |> hide_drawer(@id)}
+        phx-click={JS.exec("data-tl-cancel", to: "##{@id}.tl-overlay-visible")}
       />
-      <div
+      <.focus_wrap
+        id={"#{@id}-focus"}
         class="tl-drawer-wrapper"
         role="dialog"
         aria-modal="true"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
-        tabindex="0"
       >
         <div
           id={"#{@id}-content"}
           class={["tl-drawer", @class]}
-          phx-window-keydown={JS.exec(@on_cancel, "phx-remove") |> hide_drawer(@id)}
+          tabindex="-1"
+          phx-focus={JS.focus_first(to: "##{@id}-content")}
+          phx-window-keydown={JS.exec("data-tl-cancel", to: "##{@id}.tl-overlay-visible:focus-within:not(:has([role=menu]:focus-within))")}
           phx-key="escape"
         >
           <%= render_slot(@inner_block) %>
         </div>
-      </div>
+      </.focus_wrap>
       </div>
       """
     end
@@ -148,6 +158,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
         transition: {"tl-slide-in-right", "translate-x-full", "translate-x-0"}
       )
       |> JS.add_class("overflow-hidden", to: "body")
+      |> JS.focus(to: "##{id}-content")
       |> JS.focus_first(to: "##{id}-content")
       |> JS.focus(to: "##{id} [data-tl-initial-focus]")
     end
@@ -168,6 +179,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
       |> JS.remove_class("overflow-hidden", to: "body")
       |> JS.remove_class("tl-overlay-visible", to: "##{id}")
       |> JS.remove_class("tl-overlay-visible", to: "##{id}-content")
+      |> JS.focus(to: "#tl-main")
       |> JS.pop_focus()
     end
 
@@ -186,7 +198,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
       class={["tl-toast", "tl-toast--#{@kind}", @class]}
       role="alert"
       phx-mounted={show_toast(@id)}
-      phx-click-away={hide_toast(@id)}
+      data-tl-dismiss={hide_toast(@id)}
+      phx-window-keydown={JS.exec("data-tl-dismiss", to: "##{@id}.tl-overlay-visible:focus-within")}
+      phx-key="escape"
       {@rest}
       >
       <div :if={@title} class="tl-toast__title"><%= @title %></div>
@@ -346,6 +360,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
               time: 180
             )
             |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{@id}-button")
+            |> JS.focus(to: "##{@id}-menu")
+            |> JS.focus_first(to: "##{@id}-menu")
           }
           phx-click-away={
             JS.hide(
@@ -358,7 +374,16 @@ if Code.ensure_loaded?(Phoenix.Component) do
         >
           <%= render_slot(@trigger) %>
         </button>
-        <div id={"#{@id}-menu"} class="hidden absolute tl-shadow-popover" role="menu" aria-labelledby={"#{@id}-button"}>
+        <div
+          id={"#{@id}-menu"}
+          class="hidden absolute tl-shadow-popover"
+          role="menu"
+          tabindex="-1"
+          aria-labelledby={"#{@id}-button"}
+          data-tl-close={JS.hide(to: "##{@id}-menu") |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-button") |> JS.focus(to: "##{@id}-button")}
+          phx-window-keydown={JS.exec("data-tl-close", to: "##{@id}-menu:focus-within")}
+          phx-key="escape"
+        >
           <%= render_slot(@inner_block) %>
         </div>
       </div>

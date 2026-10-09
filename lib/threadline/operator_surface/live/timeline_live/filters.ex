@@ -131,8 +131,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <UI.Overlay.drawer
         id="timeline-filters-drawer"
         class="tl-timeline-drawer"
-        phx-window-keydown={UI.Overlay.hide_drawer("timeline-filters-drawer")}
-        phx-key="Escape"
       >
         <div class="tl-timeline-drawer__header">
           <div class="tl-timeline-drawer__heading">

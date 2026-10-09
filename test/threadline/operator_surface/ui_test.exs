@@ -284,7 +284,7 @@ defmodule Threadline.OperatorSurface.UITest do
   end
 
   describe "toast" do
-    test "renders toast with phx-click-away and dismiss mechanisms" do
+    test "renders a persistent toast with explicit dismissal" do
       assigns = %{}
 
       html =
@@ -294,7 +294,8 @@ defmodule Threadline.OperatorSurface.UITest do
         </UI.Overlay.toast>
         """)
 
-      assert html =~ "phx-click-away"
+      refute html =~ "phx-click-away"
+      assert html =~ "aria-label=\"Close\""
       assert html =~ "Toast Message"
     end
   end

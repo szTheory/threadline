@@ -862,6 +862,7 @@ test.describe("operator accessibility baseline", () => {
     page,
   }) => {
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(page.getByTestId("stress-preview")).toBeVisible();
 
     const dropdownTrigger = page.locator("#stress-dropdown-button");
@@ -994,6 +995,7 @@ test.describe("operator accessibility baseline", () => {
     page,
   }) => {
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await expect(page.getByTestId("stress-preview")).toBeVisible();
 
     const toast = page.locator("#stress-toast");
@@ -1016,11 +1018,88 @@ test.describe("operator accessibility baseline", () => {
     await expect(toast).toBeHidden();
     await expect(drawer).toBeVisible();
     await expect(drawerClose).toBeFocused();
-    await drawerClose.click();
+    await page.keyboard.press("Escape");
     await expect(drawer).toBeHidden();
     await expect(drawerTrigger).toBeFocused();
     await expect(drawerTrigger).toBeVisible();
 
+  });
+
+  test("preserves modal and drawer Escape focus through repeated LiveView patches", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/audit/__stress?category=group&story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const liveId = await page.locator("[data-phx-main]").getAttribute("id");
+    await page.evaluate(() => { (window as any).__tl239PatchMarker = "same-document"; });
+    await page.locator("#stress-toast").getByRole("button", { name: "Close" }).click();
+    for (let iteration = 0; iteration < 3; iteration++) {
+      const story = page.getByTestId("stress-story-list").getByRole("link").nth(iteration % 2);
+      const target = await story.getAttribute("href");
+      await story.click();
+      await expect(page).toHaveURL(new URL(target!, page.url()).href);
+      await expect(page.locator("[data-phx-main]")).toHaveAttribute("id", liveId!);
+      expect(await page.evaluate(() => (window as any).__tl239PatchMarker)).toBe("same-document");
+      for (const kind of ["Modal", "Drawer"]) {
+        const trigger = page.getByRole("button", { name: `Show ${kind}`, exact: true });
+        await focusByKeyboard(page, trigger, 160);
+        await page.keyboard.press("Enter");
+        const dialog = page.getByRole("dialog", { name: `Stress ${kind.toLowerCase()}`, exact: true });
+        await expect(dialog).toBeVisible();
+        await expect(dialog.locator("[data-tl-initial-focus]")).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(dialog.locator("[data-tl-initial-focus]")).toBeFocused();
+        await page.keyboard.press("Escape");
+        await expect(dialog).toBeHidden();
+        await expect(trigger).toBeFocused();
+      }
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test("closes the focused menu before its drawer and recovers from removed or disabled controls", async ({ page }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    for (const [state, action] of [["empty", "Remove dialog controls"], ["disabled", "Disable dialog controls"], ["removed", "Remove opener"]]) {
+      await page.goto("/audit/__stress?story=group.modal-destructive.current");
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      const rootId = await page.locator("[data-phx-main]").getAttribute("id");
+      const opener = page.getByRole("button", { name: "Open overlay edge cases", exact: true });
+      await focusByKeyboard(page, opener);
+      await page.keyboard.press("Enter");
+      const drawer = page.getByRole("dialog", { name: "Overlay edge cases", exact: true });
+      await expect(drawer).toBeVisible();
+      const toast = page.locator("#stress-toast");
+      await toast.getByRole("button", { name: "Close" }).focus();
+      await page.keyboard.press("Escape");
+      await expect(toast).toBeHidden();
+      await expect(drawer).toBeVisible();
+      await expect(drawer.locator("[data-tl-initial-focus]")).toBeFocused();
+      const menuButton = drawer.getByRole("button", { name: "Drawer actions" });
+      await menuButton.click();
+      await expect(drawer.getByRole("menuitem", { name: "Inspect evidence" })).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(drawer.getByRole("menu")).toBeHidden();
+      await expect(drawer).toBeVisible();
+      await expect(menuButton).toBeFocused();
+      await drawer.getByRole("button", { name: action, exact: true }).click();
+      await expect(page.locator("#stress-edge-state")).toHaveText(state);
+      await expect(page.locator("[data-phx-main]")).toHaveAttribute("id", rootId!);
+      await expect(page.locator("#stress-edge-content")).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(drawer).toBeHidden();
+      await expect(state === "removed" ? page.locator("#tl-main") : opener).toBeFocused();
+      if (state !== "removed") {
+        await page.keyboard.press("Enter");
+        await expect(page.locator("#stress-edge-content")).toBeFocused();
+        await page.keyboard.press("Tab");
+        await expect(page.locator("#stress-edge-content")).toBeFocused();
+        await page.keyboard.press("Escape");
+        await expect(drawer).toBeHidden();
+        await expect(opener).toBeFocused();
+      }
+    }
+    expect(errors).toEqual([]);
   });
 
   test("captures accessibility-tree evidence for screen-reader-ready structure", async ({
@@ -1087,6 +1166,7 @@ test.describe("operator accessibility baseline", () => {
     });
 
     await page.goto("/audit/policy/retention");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await page.getByRole("button", { name: "Run retention prune" }).last().click();
     const retentionSnapshot = await expectAriaSnapshotContains(
       page.getByRole("dialog", { name: "Prune retention window permanently?" }),
@@ -1106,6 +1186,7 @@ test.describe("operator accessibility baseline", () => {
     await page.keyboard.press("Escape");
 
     await page.goto("/audit/__stress?story=group.modal-destructive.current");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     const dropdownTrigger = page.locator("#stress-dropdown-button");
     await dropdownTrigger.scrollIntoViewIfNeeded();
     await dropdownTrigger.click();
