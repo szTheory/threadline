@@ -12,11 +12,11 @@ provides:
   - Apply progress feedback that survives the LiveView request
 affects: [operator-timeline, phase-239-plan-05]
 actuals:
-  tokens: 4425
+  tokens: 7602
   tasks: 2
-  commits: 4
+  commits: 7
   plan_head_before: a6a570e032cfac5662ec5490120a77f0364a788e
-  plan_head_after: b940a131c62701e96263ca0cc6ecdb3888672dff
+  plan_head_after: f175ed18a5f60195a8143ed3e11a2d7e4f252bf9
 tech-stack:
   added: []
   patterns: [supervised parallel Timeline reads, explicit retryable query-error state]
@@ -44,28 +44,34 @@ coverage:
         status: pass
     human_judgment: false
   - id: D2
-    description: Filtered empty results use the specified copy, while failed reads show a distinct retryable error and preserve the applied query in the retry link.
+    description: Filtered empty results use the specified copy; a populated-to-B read failure clears old rows, leaves B retryable with an unknown count, and a same-scope B retry restores only authorized B rows.
     requirement: UIA-04
     verification:
       - kind: unit
         ref: "test/threadline/operator_surface/live/timeline_live_test.exs#F-401: filtered empty state uses the canonical heading and body"
         status: pass
       - kind: unit
-        ref: "test/threadline/operator_surface/live/timeline_live_test.exs#a scope query failure renders a retryable error instead of reading unscoped"
+        ref: "test/threadline/operator_surface/live/timeline_live_test.exs#query B failure clears A, retry succeeds under the same scope, and host denial stops before mount"
         status: pass
       - kind: integration
         ref: "mix test test/threadline/operator_surface/live/timeline_live_test.exs"
         status: pass
+      - kind: automated_ui
+        ref: "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts#real host denial under Acme support is distinct from busy and disabled"
+        status: pass
     human_judgment: false
   - id: D3
-    description: A 232-character correlation value remains intact through the pending and completed populated-to-empty query transition.
+    description: A 232-character correlation value remains intact through pending and completed empty results, and the populated A-to-B transition retains the full B value.
     requirement: UIS-02
     verification:
+      - kind: automated_ui
+        ref: "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts#Timeline delayed query exposes pending then real empty result with a long unbroken filter"
+        status: pass
       - kind: automated_ui
         ref: "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts#Timeline keeps populated query identity while an applied replacement is pending"
         status: pass
     human_judgment: false
-duration: not-recorded
+duration: 27 min
 completed: 2026-10-09
 status: complete
 ---
@@ -76,9 +82,9 @@ status: complete
 
 ## Performance
 
-- **Duration:** Not recorded in the inherited executor context.
-- **Started:** Not captured; no timestamp is inferred from a later artifact.
-- **Completed:** 2026-10-09T14:01:04Z
+- **Duration:** 27 min
+- **Started:** 2026-10-09T13:47:13.510Z (durable worker record)
+- **Completed:** 2026-10-09T14:15:06Z
 - **Tasks:** 2
 - **Files modified:** 4
 
@@ -94,13 +100,15 @@ status: complete
 2. **Task 1: Apply progress feedback** — `d1ae5d29` (feat)
 3. **Task 2: Recover accurately from empty, failed and denied queries** — `e945f196` (test)
 4. **Task 2: Preserve Timeline query result states** — `b940a131` (feat)
+5. **Task 2 correction: Exercise scoped failure, retry, and host denial boundaries** — `42a89560` (test)
+6. **Task 2 correction: Make query workers lifecycle-safe and failed counts unknown** — `f175ed18` (fix)
 
 ## Files Created/Modified
 
 - `lib/threadline/operator_surface/live/timeline_live.ex` — Keeps query errors separate from empty results; supervised parallel reads return a safe error state without stale rows and preserve the applied query for retry.
 - `lib/threadline/operator_surface/live/timeline_live/filters.ex` — Shows “Applying filters…” while the LiveView request is pending.
-- `test/threadline/operator_surface/live/timeline_live_test.exs` — Covers canonical filtered-empty copy and retryable failure behavior.
-- `examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts` — Holds a populated-to-empty replacement request and checks query identity, pending feedback, long value retention, and restored Apply control.
+- `test/threadline/operator_surface/live/timeline_live_test.exs` — Covers canonical filtered-empty copy; populated A to failed B; clearing A rows; same-scope B recovery; cross-tenant exclusion; and pre-mount host denial followed by allowed access.
+- `examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts` — Holds populated-to-empty replacement requests, validates long query retention, and exercises the actual unauthenticated redirect and Acme support authorization boundary in Chromium.
 
 ## Decisions Made
 
@@ -111,20 +119,22 @@ status: complete
 
 ### Auto-fixed Issues
 
-**1. [Rule 3 - Blocking] Use the application task supervisor for failure-isolated reads**
+**1. [Rule 3 - Blocking] Use supervised task streaming for query failure isolation and cleanup**
 - **Found during:** Task 2
-- **Issue:** `Task.async_nolink/1` is unavailable on the project's Elixir 1.17.3 runtime, so the initial ExUnit run could not exercise the error path.
-- **Fix:** Used the existing `Threadline.Export.TaskSupervisor` for both parallel query tasks, then handled task exits/timeouts as the retryable error state.
-- **Files modified:** `lib/threadline/operator_surface/live/timeline_live.ex`
-- **Verification:** The focused LiveView suite passed 57/57 after the change.
-- **Committed in:** `b940a131`
+- **Issue:** `Task.async_nolink/1` is unavailable on the project's Elixir 1.17.3 runtime. The first supervised implementation could also leave the first task alive if starting its sibling raised, and reported a failed query as a known count of zero.
+- **Fix:** Used `Task.Supervisor.async_stream_nolink/4` with `on_timeout: :kill_task`, wrapped read functions to normalize exceptions and exits, and set the matching count to `Unknown` when the query did not complete.
+- **Files modified:** `lib/threadline/operator_surface/live/timeline_live.ex`, `lib/threadline/operator_surface/live/timeline_live/filters.ex`
+- **Verification:** The focused LiveView suite passed 58/58, including failure and same-scope recovery.
+- **Committed in:** `f175ed18`
 
-**Total deviations:** 1 auto-fixed (1 blocking runtime compatibility issue). **Impact:** Preserved the planned supervised parallel query behavior without adding a dependency or changing the public API.
+**Total deviations:** 1 auto-fixed (1 runtime compatibility and lifecycle issue). **Impact:** Preserved parallel reads, guaranteed timeout cleanup, and avoided presenting an unknown result count as zero, without adding a dependency or changing the public API.
 
 ## Issues Encountered
 
-- The initial ExUnit run exposed the unsupported task function and an inaccurate test label that implied an unscoped route was scoped. Both were corrected before completion.
-- Existing evidence-only browser cases remained skipped in the normal focused run; the required populated-query browser regression ran and passed. The 232-character layout/overflow gate remains with Plan 05 as specified.
+- An initial browser authorization assertion expected the unfiltered Timeline URL; the host correctly canonicalized its date window. The assertion now accepts that canonical query while verifying the route remains Timeline.
+- **Authorization boundary:** the host `authorize_fn` denies before LiveView mount and redirects to `/`; it cannot produce an in-view “denied B” state. Once a host scope is authorized, a zero-row result must remain indistinguishable from an empty authorized result to protect cross-tenant record existence. The plan's request for a separate post-mount denied-query message conflicts with this host contract. This plan proves the actual pre-mount denial and later allowed access separately from mounted query failure and same-query recovery; it does not invent a backend denial signal for empty scoped results.
+- Browser failure/retry limitation: the existing browser fixture safely holds a delayed query but has no seam for raising an authorized scoped-read exception. The populated A → failed B → same-scope recovery transition is therefore proven by the mounted LiveView test; browser evidence separately proves pending replacement and the real host authorization boundary. No production fault route was added.
+- The normal focused browser mode still skips unrelated evidence-only scenarios. The plan-owned pending/empty, long-value, and host-boundary cases were explicitly enabled and observed. The separate 232-character layout/overflow gate remains with Plan 05.
 
 ## User Setup Required
 
@@ -137,17 +147,19 @@ None - no external service configuration required.
 
 ## Checks Run
 
-- Focused LiveView suite: **57/57 passed** (`mix test test/threadline/operator_surface/live/timeline_live_test.exs`).
-- Focused Chromium spec: **1/1 executed scenario passed**; 11 evidence-only scenarios were skipped by the suite gate. The populated query identity test ran on a fresh partition and unique port. Playwright 1.60.0 matched the installed Chromium revision.
-- Evaluation scope: resolved; 4 task commits found for `239-04` on this branch.
-- Actuals: 17,701 changed-diff bytes / 4 = 4,425 tokens; 2 tasks; 4 task commits.
-
-## Self-Check: PASSED
-
-- All four plan-owned source/test files exist and are included in the four task commits.
-- The task commits are ancestors of the current branch HEAD.
-- No phase tracker or parent-owned planning files are included in this plan summary commit.
+- Focused LiveView suite: **58/58 passed** (`mix test test/threadline/operator_surface/live/timeline_live_test.exs`).
+- Browser pending/empty and populated A-to-B transitions: **2/2 passed** in the focused Chromium spec; 9 unrelated evidence-only scenarios skipped.
+- Browser host authorization boundary: **1/1 passed** in a focused Chromium rerun. It observed the unauthenticated login redirect, Acme support Timeline access, and the actual 403 export authorization denial.
+- Browser unit discovery: **21/21 passed** in the runner's required E2E package check.
+- Evaluation scope: resolved; 7 plan commits found on this branch, including the prior summary metadata commit.
+- Actuals: 30,408 changed-diff bytes / 4 = 7,602 tokens; 2 tasks; 7 measured plan commits.
 
 ---
 *Phase: 239-investigation-entry-and-transaction-composition*
 *Completed: 2026-10-09*
+
+## Self-Check: PASSED
+
+- All four plan-owned source/test files exist and are included in the measured plan commits.
+- The six task commits are ancestors of the current branch HEAD.
+- No phase tracker or parent-owned planning files are included in this plan summary commit.
