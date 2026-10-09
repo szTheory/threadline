@@ -1,10 +1,21 @@
 import { expect, Page, test } from "@playwright/test";
-import { existsSync, mkdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
+import { createRequire } from "node:module";
+import { join, relative, resolve } from "node:path";
 import {
   atomicWriteFile,
   currentOperatorSurfacePaths,
   resolveContainedPath,
 } from "../support/operator-surface-paths.js";
+import {
+  assetRecord,
+  candidateIdentity,
+  outputRecord,
+  semanticFixtureId,
+  writeManifest,
+  type ServedAsset,
+} from "../support/operator-evidence-manifest.js";
 
 // Real operator-route capture lane (Phase 196) — the critic's REALISTIC-PAGE source.
 //
@@ -29,8 +40,8 @@ const paths = currentOperatorSurfacePaths();
 const routeScorecardsDir = paths.routeScorecardsDir;
 const artifactsRoot = resolveContainedPath(paths.e2eRoot, "artifacts/routes");
 
-// Pinned for cross-machine byte-stability — never `new Date()` / installed version.
-const PLAYWRIGHT_VERSION = "1.61.1";
+const require = createRequire(import.meta.url);
+const PLAYWRIGHT_VERSION: string = require("@playwright/test/package.json").version;
 const CAPTURE_SOURCE = "route";
 const SCHEMA_VERSION = 1;
 // Single desktop hero view for the Phase-196 proof; widen later if it proves out.
@@ -376,6 +387,126 @@ async function captureCell(
 }
 
 test.describe("operator real-route deterministic capture", () => {
+  test("captures authenticated home shell evidence", async ({ page, browser }, testInfo) => {
+    test.skip(testInfo.project.name !== "route-capture", "Evidence capture runs only under route-capture");
+    test.setTimeout(900_000);
+
+    const baseSha = process.env.THREADLINE_E2E_BASE_SHA;
+    if (!baseSha) throw new Error("Runner did not provide the verified immutable isolation base SHA");
+    const identity = candidateIdentity(paths.repositoryRoot, baseSha);
+    const evidenceRoot = process.env.THREADLINE_E2E_EVIDENCE_ROOT;
+    if (!evidenceRoot) throw new Error("THREADLINE_E2E_EVIDENCE_ROOT must name this run's contained output directory");
+    const runRoot = resolveContainedPath(paths.e2eRoot, relative(paths.e2eRoot, resolve(evidenceRoot)));
+    mkdirSync(runRoot, { recursive: true });
+
+    await login(page);
+    const assets = new Map<string, ServedAsset>();
+    const assetErrors: string[] = [];
+    page.on("response", async (response) => {
+      const resourceType = response.request().resourceType();
+      if (!["stylesheet", "script"].includes(resourceType) || response.status() !== 200) return;
+      const url = response.url();
+      try {
+        const record = assetRecord(
+          paths.repositoryRoot,
+          url,
+          response.status(),
+          response.headers()["content-type"] ?? "",
+          await response.body(),
+        );
+        assets.set(url, record);
+      } catch (error) {
+        assetErrors.push(`Could not verify served ${resourceType} asset ${url}: ${String(error)}`);
+      }
+    });
+
+    await page.goto("/audit", { waitUntil: "load" });
+    const root = page.locator(ROOT).first();
+    await root.waitFor({ state: "visible", timeout: 30_000 });
+    const content = page.locator(CONTENT).first();
+    await content.waitFor({ state: "visible", timeout: 30_000 });
+    await expect(root).toHaveAttribute("data-tl-theme", /.+/);
+    await expect(content.locator("h1").first()).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready);
+    await page.waitForTimeout(250);
+
+    if (assetErrors.length) throw new Error(assetErrors.join("\n"));
+    const styleText = (await page.locator("style").allTextContents()).find((text) => text.includes(".threadline-ui"));
+    if (!styleText) throw new Error("No served Threadline operator stylesheet was present in the authenticated home document");
+    const styleRoot = resolve(paths.repositoryRoot, "lib/threadline/operator_surface/style");
+    const styleFiles = [
+      "01_tokens.css", "02_base_shell.css", "03_page_home.css", "04_controls.css",
+      "05_feedback.css", "06_layout_primitives.css", "07_find_detail.css",
+      "08_overlays_motion.css", "09_responsive.css",
+    ];
+    const localStyles = styleFiles.map((file) => readFileSync(join(styleRoot, file), "utf8")).join("");
+    const cssHash = (value: string) => createHash("sha256").update(value).digest("hex");
+    const cssRecord: ServedAsset = {
+      url: "inline:/audit#threadline-operator-stylesheet",
+      status: 200,
+      contentType: "text/css; charset=utf-8",
+      servedSha256: cssHash(styleText),
+      localPath: "lib/threadline/operator_surface/style/*.css (ordered segments)",
+      localSha256: cssHash(localStyles),
+    };
+    if (cssRecord.servedSha256 !== cssRecord.localSha256) {
+      throw new Error("Served operator stylesheet bytes do not match the ordered local source segments");
+    }
+    const verifiedAssets = [...assets.values(), cssRecord].sort((a, b) => a.url.localeCompare(b.url));
+    if (!verifiedAssets.some((asset) => asset.contentType.includes("javascript"))) {
+      throw new Error("No verified browser-served JavaScript asset was captured for /audit");
+    }
+
+    const runId = process.env.MIX_TEST_PARTITION;
+    if (!runId) throw new Error("Evidence fixture identity requires the fresh MIX_TEST_PARTITION");
+    const seedRoot = resolve(paths.repositoryRoot, "examples/threadline_phoenix/lib/threadline_phoenix/demo/seed");
+    const seedFiles = readdirSync(seedRoot, { recursive: true }).filter((entry): entry is string => typeof entry === "string").sort();
+    const seedHash = createHash("sha256");
+    for (const file of seedFiles) {
+      const fullPath = join(seedRoot, file);
+      seedHash.update(file).update("\0").update(readFileSync(fullPath));
+    }
+    const seedManifestSha256 = seedHash.digest("hex");
+    const fixture = {
+      scenario: "threadline-demo-seed",
+      version: "seed-pipeline-v1",
+      seedManifestSha256,
+      semanticId: semanticFixtureId("threadline-demo-seed", "seed-pipeline-v1", seedManifestSha256),
+    };
+
+    const shellPath = resolveContainedPath(runRoot, "home-shell.png");
+    const contentPath = resolveContainedPath(runRoot, "home-content.png");
+    await page.screenshot({ path: shellPath, fullPage: true, animations: "disabled" });
+    await content.screenshot({ path: contentPath, scale: "css", mask: dynamicMasks(page), maskColor: "#0B1020" });
+    const shellDomPath = resolveContainedPath(runRoot, "home-shell.html");
+    atomicWriteFile(shellDomPath, await root.evaluate((el) => el.outerHTML));
+
+    const theme = (await root.getAttribute("data-tl-theme")) ?? "unknown";
+    const condition = `${testInfo.project.name}; reduced-motion; zoom=1`;
+    const route = "/audit";
+    const state = "authenticated-home";
+    const captures = [
+      { ...outputRecord("home-shell", route, state, condition, shellPath), assets: verifiedAssets },
+      { ...outputRecord("home-content", route, state, condition, contentPath), assets: verifiedAssets },
+    ];
+    const manifest = {
+      schemaVersion: 1 as const,
+      ...identity,
+      fixture,
+      route,
+      state,
+      actor: { role: "seeded-admin", scope: "isolated-local-demo-database" },
+      appearance: { effectiveTheme: theme, preference: "system" },
+      browser: { playwright: PLAYWRIGHT_VERSION, browser: browser.version() },
+      viewport: { width: 1280, height: 900, deviceScaleFactor: 1 },
+      input: { motion: "reduced", zoom: 1 },
+      captures,
+    };
+    writeManifest(runRoot, "manifest.json", manifest);
+    atomicWriteFile(resolveContainedPath(runRoot, "run-identity.json"), `${JSON.stringify({ runId, outputRoot: relative(paths.e2eRoot, runRoot), database: `threadline_phoenix_test${runId}` }, null, 2)}\n`);
+  });
+
   test("emits the real operator-page evidence bundle", async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name !== "route-capture",

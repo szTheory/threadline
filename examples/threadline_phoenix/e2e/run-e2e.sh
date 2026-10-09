@@ -16,6 +16,21 @@ export DB_PORT="${DB_PORT:-5432}"
 export MIX_ENV=test
 export THREADLINE_E2E=1
 
+EVIDENCE_MODE="${THREADLINE_E2E_EVIDENCE:-0}"
+PREVIEW_MODE="${THREADLINE_E2E_PREVIEW:-0}"
+STOP_PREVIEW="${THREADLINE_E2E_STOP_PREVIEW:-0}"
+EVIDENCE_ROOT=""
+EVIDENCE_DATABASE=""
+FORWARDED_ARGS=()
+for runner_arg in "$@"; do
+  case "$runner_arg" in
+    --preview) PREVIEW_MODE=1 ;;
+    --stop-preview) STOP_PREVIEW=1 ;;
+    *) FORWARDED_ARGS+=("$runner_arg") ;;
+  esac
+done
+set -- "${FORWARDED_ARGS[@]}"
+
 port_listening() {
   local port="$1"
 
@@ -51,6 +66,103 @@ fail_with_log() {
   tail -80 "$LOG_FILE" >&2 || true
   exit 1
 }
+
+loopback_host() {
+  case "${1,,}" in
+    localhost|127.0.0.1|::1|\[::1\]) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+evidence_preflight() {
+  local partition="${MIX_TEST_PARTITION:-}" db_check marker_dir marker output_parent receipt expected_commits actual_commits
+  [[ "$EVIDENCE_MODE" == "1" ]] || return 0
+  [[ -n "$partition" && "$partition" =~ ^operator_[A-Za-z0-9_]+$ ]] || {
+    echo "Evidence mode requires a fresh MIX_TEST_PARTITION matching operator_<unique-id>." >&2
+    return 1
+  }
+  loopback_host "$DB_HOST" || { echo "Evidence mode refuses non-loopback DB_HOST='$DB_HOST'." >&2; return 1; }
+  [[ "$DB_PORT" =~ ^[0-9]+$ && "$DB_PORT" -ge 1 && "$DB_PORT" -le 65535 ]] || {
+    echo "Evidence mode requires a valid local DB_PORT." >&2; return 1;
+  }
+  [[ "$HOST" == "127.0.0.1" ]] || { echo "Evidence mode binds only to 127.0.0.1; got HOST='$HOST'." >&2; return 1; }
+  [[ -z "${DATABASE_URL:-}" && -z "${DEMO_ALLOW_RESET:-}" ]] || {
+    echo "Evidence mode refuses DATABASE_URL and DEMO_ALLOW_RESET overrides." >&2; return 1;
+  }
+  grep -Fq 'database: "threadline_phoenix_test#{System.get_env("MIX_TEST_PARTITION")}"' "$EXAMPLE/config/test.exs" || {
+    echo "Evidence mode could not verify the exact test database derivation in config/test.exs." >&2; return 1;
+  }
+  receipt="$ROOT/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json"
+  [[ -f "$receipt" ]] || { echo "Evidence mode requires the orchestrator isolation receipt." >&2; return 1; }
+  THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).base_sha || "")' "$receipt")"
+  [[ "$THREADLINE_E2E_BASE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Isolation receipt has no valid immutable base SHA." >&2; return 1; }
+  [[ "$(git -C "$ROOT" rev-parse --show-toplevel)" == "$ROOT" ]] || { echo "Evidence runner cwd is not the isolated repository root." >&2; return 1; }
+  git -C "$ROOT" merge-base --is-ancestor "$THREADLINE_E2E_BASE_SHA" HEAD || {
+    echo "Evidence candidate HEAD is not descended from the isolation receipt base." >&2; return 1;
+  }
+  expected_commits="$(node -e 'const r=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); process.stdout.write((r.expected_task_commits || []).join("\n"))' "$receipt")"
+  actual_commits="$(git -C "$ROOT" rev-list --first-parent --reverse "$THREADLINE_E2E_BASE_SHA..HEAD")"
+  [[ "$actual_commits" == "$expected_commits" ]] || {
+    echo "Evidence candidate ancestry differs from the task commit sequence in the isolation receipt." >&2
+    echo "Expected: ${expected_commits:-<none>}" >&2; echo "Actual: ${actual_commits:-<none>}" >&2; return 1;
+  }
+  export THREADLINE_E2E_BASE_SHA
+  EVIDENCE_DATABASE="threadline_phoenix_test${partition}"
+  command -v psql >/dev/null 2>&1 || { echo "Evidence mode requires psql to prove target ownership before reset." >&2; return 1; }
+  db_check=$(PGPASSWORD="${DB_PASSWORD:-postgres}" psql -X -h "$DB_HOST" -p "$DB_PORT" -U "${DB_USERNAME:-postgres}" -d postgres -v ON_ERROR_STOP=1 -Atqc "SELECT 1 FROM pg_database WHERE datname = '${EVIDENCE_DATABASE}'" 2>&1) || {
+    echo "Evidence mode could not inspect the local PostgreSQL target; refusing reset: $db_check" >&2; return 1;
+  }
+  [[ -z "$db_check" ]] || { echo "Evidence mode refuses existing database '$EVIDENCE_DATABASE'; target is not owned by this run." >&2; return 1; }
+
+  marker_dir="${THREADLINE_E2E_PARTITION_REGISTRY:-${TMPDIR:-/tmp}/threadline-e2e-evidence-partitions}"
+  mkdir -p "$marker_dir"
+  marker="$marker_dir/${EVIDENCE_DATABASE}.used"
+  ( set -o noclobber; : > "$marker" ) 2>/dev/null || {
+    echo "Evidence mode refuses reused partition '$partition' (registry: $marker_dir)." >&2; return 1;
+  }
+
+  EVIDENCE_ROOT="$E2E_DIR/artifacts/operator-evidence/$partition"
+  output_parent="$(dirname "$EVIDENCE_ROOT")"
+  mkdir -p "$output_parent"
+  [[ ! -e "$EVIDENCE_ROOT" ]] || { echo "Evidence output already exists for '$partition': $EVIDENCE_ROOT" >&2; return 1; }
+  export THREADLINE_E2E_EVIDENCE_ROOT="$EVIDENCE_ROOT"
+  export npm_config_cache="${TMPDIR:-/tmp}/threadline-npm-cache-$partition"
+  export HEX_HOME="${TMPDIR:-/tmp}/threadline-hex-cache-$partition"
+  export PLAYWRIGHT_BROWSERS_PATH="${THREADLINE_E2E_PLAYWRIGHT_CACHE:-${TMPDIR:-/tmp}/threadline-playwright-cache}"
+  mkdir -p "$npm_config_cache" "$HEX_HOME" "$PLAYWRIGHT_BROWSERS_PATH"
+  [[ -w "$npm_config_cache" ]] || { echo "Evidence mode npm cache is not writable: $npm_config_cache" >&2; return 1; }
+  [[ -w "$HEX_HOME" ]] || { echo "Evidence mode Hex cache is not writable: $HEX_HOME" >&2; return 1; }
+  [[ -w "$PLAYWRIGHT_BROWSERS_PATH" ]] || { echo "Evidence mode browser cache is not writable: $PLAYWRIGHT_BROWSERS_PATH" >&2; return 1; }
+  mkdir -p "$EVIDENCE_ROOT"
+  printf '{"partition":"%s","database":"%s","host":"%s","port":%s,"mode":"evidence","base_sha":"%s","candidate_head":"%s"}\n' \
+    "$partition" "$EVIDENCE_DATABASE" "$DB_HOST" "$DB_PORT" "$THREADLINE_E2E_BASE_SHA" "$(git -C "$ROOT" rev-parse HEAD)" > "$EVIDENCE_ROOT/run.json"
+}
+
+stop_preview() {
+  local state pid
+  state="${THREADLINE_E2E_PREVIEW_STATE:-${TMPDIR:-/tmp}/threadline-e2e-preview-${MIX_TEST_PARTITION:-}.json}"
+  [[ -f "$state" ]] || { echo "No preview state found at $state." >&2; return 1; }
+  pid="$(sed -n 's/.*"pid":[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$state")"
+  [[ -n "$pid" && "$pid" != "$$" ]] || { echo "Preview state has no valid process ID." >&2; return 1; }
+  if kill -0 "$pid" 2>/dev/null; then kill "$pid"; fi
+  rm -f "$state"
+  echo "Stopped evidence preview process $pid."
+}
+
+if [[ "$STOP_PREVIEW" == "1" ]]; then
+  stop_preview
+  exit $?
+fi
+
+if [[ "$PREVIEW_MODE" == "1" && "$EVIDENCE_MODE" != "1" ]]; then
+  echo "THREADLINE_E2E_PREVIEW=1 requires THREADLINE_E2E_EVIDENCE=1." >&2
+  exit 1
+fi
+
+if [[ "$EVIDENCE_MODE" == "1" ]]; then
+  evidence_preflight || exit 1
+  if [[ "${THREADLINE_E2E_EVIDENCE_PREFLIGHT_ONLY:-0}" == "1" ]]; then exit 0; fi
+fi
 
 # Operator-surface mount preflight (Phase 198, D-18). /audit sits behind the
 # example app's :operator_auth pipeline, so an unauthenticated request is
@@ -228,8 +340,24 @@ cleanup_exports() {
 
 PORT="$(choose_free_port)"
 BASE_URL="${E2E_BASE_URL:-http://${HOST}:${PORT}}"
+if [[ "$EVIDENCE_MODE" == "1" ]]; then
+  [[ "$BASE_URL" == "http://127.0.0.1:${PORT}" || "$BASE_URL" == "http://localhost:${PORT}" ]] || {
+    echo "Evidence mode refuses non-loopback or mismatched E2E_BASE_URL='$BASE_URL'." >&2; exit 1;
+  }
+fi
 export PORT
 export E2E_BASE_URL="$BASE_URL"
+
+if [[ "${THREADLINE_E2E_ARGUMENTS_ONLY:-0}" == "1" ]]; then
+  if [[ "${THREADLINE_E2E_THEME:-}" == "system" ]]; then
+    printf 'npm test -- --project=desktop-chromium-light'
+  else
+    printf 'npm test --'
+  fi
+  printf ' %q' "$@"
+  printf '\n'
+  exit 0
+fi
 
 cleanup_exports
 
@@ -284,6 +412,15 @@ done
 
 if [[ "$ready" -ne 1 ]]; then
   fail_with_log "Timed out waiting for port ${PORT}; log follows:"
+fi
+
+if [[ "$PREVIEW_MODE" == "1" ]]; then
+  PREVIEW_STATE="${THREADLINE_E2E_PREVIEW_STATE:-${TMPDIR:-/tmp}/threadline-e2e-preview-${MIX_TEST_PARTITION}.json}"
+  printf '{"pid":%s,"url":"%s","database":"%s","partition":"%s"}\n' \
+    "$PHX_PID" "$BASE_URL" "$EVIDENCE_DATABASE" "$MIX_TEST_PARTITION" > "$PREVIEW_STATE"
+  trap - EXIT
+  echo "Evidence preview running at $BASE_URL (pid $PHX_PID; database $EVIDENCE_DATABASE). Stop with THREADLINE_E2E_STOP_PREVIEW=1 and THREADLINE_E2E_PREVIEW_STATE=$PREVIEW_STATE."
+  exit 0
 fi
 
 sleep 2
