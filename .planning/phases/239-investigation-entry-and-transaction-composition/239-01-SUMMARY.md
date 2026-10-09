@@ -145,7 +145,7 @@ Ready for 239-02. The Home entry path and existing applied-query behavior now ha
 
 ## Verification Results
 
-- `mix test test/threadline/operator_surface/live/start_live_test.exs test/threadline/operator_surface/live/timeline_live_test.exs` — 79 tests, 0 failures.
+- `mix test test/threadline/operator_surface/live/start_live_test.exs test/threadline/operator_surface/live/timeline_live_test.exs` — 79/79 tests passed.
 - `mix verify.example_browser --project=desktop-chromium operator-timeline-investigation-flow.spec.ts` — 11 browser tests passed; the command also discovered and passed 21 Node unit tests.
 - `mix format --check-formatted` on the changed Elixir source and tests — passed.
 - `git diff --check` — passed.
