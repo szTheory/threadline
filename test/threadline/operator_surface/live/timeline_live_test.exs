@@ -1048,7 +1048,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "Large export — will stream in chunks."
     end
 
-    test "F-401: empty Timeline uses locked recovery copy", %{conn: conn} do
+    test "filtered empty Timeline uses the approved recovery copy", %{conn: conn} do
       table = "empty_timeline_#{System.unique_integer([:positive])}"
 
       assert {:ok, _lv, html} =
@@ -1057,10 +1057,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}"
                )
 
-      assert html =~ "No captured changes match this window"
-
-      assert html =~
-               "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+      assert html =~ "No changes match these filters"
+      assert html =~ "Adjust the time range or filters, then apply again."
     end
 
     test "TIME-02: first-run empty and filtered no-data states keep distinct meanings",
@@ -1087,10 +1085,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                )
 
       assert filtered_html =~ ~s|tl-empty--no_data|
-      assert filtered_html =~ "No captured changes match this window"
-
-      assert filtered_html =~
-               "Widen the time range, or clear the table filter to search every audited table. Scoped views only show records you are authorized to see."
+      assert filtered_html =~ "No changes match these filters"
+      assert filtered_html =~ "Adjust the time range or filters, then apply again."
 
       refute filtered_html =~ "No captured changes in this window"
     end
@@ -1121,6 +1117,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                  "/audit/timeline?from=2020-01-01T00:00&to=2020-01-02T00:00&table=#{table}"
                )
 
+      assert html =~ "No changes match these filters"
+      assert html =~ "Adjust the time range or filters, then apply again."
       assert html =~ "Scoped views only show records you are authorized to see."
     end
 
@@ -1873,17 +1871,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: Phoenix.ConnTest.build_conn()}
     end
 
-    test "a scope without a scope_query_fn crashes the mount instead of reading unscoped", %{
+    test "a scope query failure renders a retryable error instead of reading unscoped", %{
       conn: conn
     } do
-      Process.flag(:trap_exit, true)
+      path = "/audit_scope_no_fn/timeline?table=scope_failure_probe"
+      assert {:ok, lv, html} = live(conn, path)
 
-      {:error, {:live_redirect, %{to: path}}} = live(conn, "/audit_scope_no_fn/timeline")
-
-      reason = catch_exit(live(conn, path))
-
-      assert {{%ArgumentError{message: message}, _stacktrace}, _task_info} = reason
-      assert message =~ ":scope_query_fn"
+      assert html =~ "Timeline could not be loaded. Check the applied filters and try again."
+      assert html =~ ~s|href="/audit_scope_no_fn/timeline?table=scope_failure_probe"|
+      refute has_element?(lv, "[data-testid=timeline-row]")
+      refute html =~ "No changes match these filters"
     end
   end
 

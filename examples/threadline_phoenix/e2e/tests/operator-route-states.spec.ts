@@ -146,7 +146,8 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   expect(queryARowCount).toBeGreaterThan(0);
   await expect(page.locator(".tl-filter-summary")).toContainText(queryA);
 
-  const queryB = "not-matching-timeline-query-b";
+  const queryB = "timeline-query-b-" + "x".repeat(215);
+  expect(queryB).toHaveLength(232);
   await page.locator("#filter-correlation-id").fill(queryB);
   hold = true;
   const apply = page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true });
@@ -158,13 +159,18 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   await expect(page.getByTestId("timeline-row")).toHaveCount(queryARowCount);
   await expect(page.locator(".tl-filter-summary")).toContainText(queryA);
   await expect(page.locator(".tl-filter-summary")).not.toContainText(queryB);
-  await expect(apply).toBeVisible();
+  await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
 
   hold = false;
   held!.server.send(held!.message);
   await expect(page.getByTestId("timeline-row")).toHaveCount(0);
   await expect(page.locator(".tl-filter-summary")).toContainText(queryB);
-  await expect(page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No changes match these filters", exact: true })).toBeVisible();
+  await expect(page.locator("#tl-main")).toContainText("Adjust the time range or filters, then apply again.");
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(queryB);
+  const completedApply = page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true });
+  await expect(completedApply).toBeVisible();
+  await expect(completedApply.locator("svg")).toHaveCount(1);
 });
 
 for (const input of ["pointer", "keyboard"] as const) {
