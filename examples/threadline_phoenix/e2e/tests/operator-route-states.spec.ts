@@ -5,6 +5,7 @@ import { login, seedPaths, startEvidence } from "../support/operator-browser-evi
 // product failures are recorded for the later refinement phases, not repaired here.
 test.use({ trace: "off", screenshot: "off", contextOptions: { reducedMotion: "reduce" } });
 test.beforeEach(async ({}, info) => {
+  if (info.title === "Timeline keeps populated query identity while an applied replacement is pending") return;
   test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || !["desktop-chromium", "desktop-chromium-light"].includes(info.project.name), "Bounded evidence lanes only");
 });
 
@@ -112,6 +113,7 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
   await expect.poll(() => Boolean(held)).toBe(true);
   await expect(page.locator("#timeline-filters")).toHaveClass(/phx-submit-loading/);
+  await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
   await e.capture("state.timeline.pending", "/audit/timeline", "delayed-query-pending", { requestHeld: true, longValueLength: long.length, priorDataRetained: await page.getByTestId("timeline-row").count() });
   hold = false;
   held!.server.send(held!.message);
@@ -122,6 +124,47 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   await page.setViewportSize({ width: 375, height: 900 });
   await e.capture("state.timeline.empty-long", "/audit/timeline", "empty-long-filter-narrow", { longValueLength: long.length, fullValueRetained: await filter.inputValue() === long });
   e.finish("state.timeline", "/audit/timeline", "delayed-empty-long-value");
+});
+
+test("Timeline keeps populated query identity while an applied replacement is pending", async ({ page }) => {
+  let hold = false;
+  let held: { server: WebSocketRoute; message: string | Buffer } | undefined;
+  await page.routeWebSocket(/\/live\/websocket/, (ws) => {
+    const server = ws.connectToServer();
+    ws.onMessage((message) => {
+      if (hold && String(message).includes('"event"')) held = { server, message };
+      else server.send(message);
+    });
+  });
+
+  await login(page);
+  await seedPaths(page);
+  const queryA = "walk-acme-4521-close";
+  await page.goto(`/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&correlation_id=${queryA}`);
+  await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+  const queryARowCount = await page.getByTestId("timeline-row").count();
+  expect(queryARowCount).toBeGreaterThan(0);
+  await expect(page.locator(".tl-filter-summary")).toContainText(queryA);
+
+  const queryB = "not-matching-timeline-query-b";
+  await page.locator("#filter-correlation-id").fill(queryB);
+  hold = true;
+  const apply = page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true });
+  await apply.click();
+  await expect.poll(() => Boolean(held)).toBe(true);
+
+  await expect(page.locator("#timeline-filters")).toHaveClass(/phx-submit-loading/);
+  await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
+  await expect(page.getByTestId("timeline-row")).toHaveCount(queryARowCount);
+  await expect(page.locator(".tl-filter-summary")).toContainText(queryA);
+  await expect(page.locator(".tl-filter-summary")).not.toContainText(queryB);
+  await expect(apply).toBeVisible();
+
+  hold = false;
+  held!.server.send(held!.message);
+  await expect(page.getByTestId("timeline-row")).toHaveCount(0);
+  await expect(page.locator(".tl-filter-summary")).toContainText(queryB);
+  await expect(page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true })).toBeVisible();
 });
 
 for (const input of ["pointer", "keyboard"] as const) {
