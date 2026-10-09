@@ -117,16 +117,16 @@ The frontmatter copies this plan's required `[UIB-01, UIB-02]` IDs verbatim. Thi
 ## Files Created/Modified
 
 - `test/fixtures/operator_surface/route-inventory.json` — exact router surface, deterministic seed references and distinct degraded-state metadata.
-- `e2e/support/operator-route-evidence.test.ts` — independently read router equality and real System runner argument contract.
-- `e2e/support/operator-browser-evidence.ts` — reusable login/seed resolution, uncached awaited served bytes, verified inline CSS, shell/content/allowlisted observations and contained output hashing.
-- `e2e/support/operator-evidence-manifest.ts` — includes route-inventory bytes in relevant source identity; existing strict integrity checks remain intact.
-- `e2e/tests/operator-page-capture.spec.ts` — individual direct routes, three-width cells, preserved scorecards and strict final aggregation; legacy reference writer remains available with evidence mode off.
-- `e2e/tests/operator-route-states.spec.ts` — bounded observed-state journeys with truthful failure/limitation records.
-- `e2e/playwright.config.ts` — retains existing light matches, adds state spec, sets reduced motion through supported route-project context options.
-- `e2e/run-e2e.sh` — forwards explicit selectors without injecting another light selector, retaining default System alias behavior and original guard/cleanup boundaries.
+- `examples/threadline_phoenix/e2e/support/operator-route-evidence.test.ts` — independently read router equality and real System runner argument contract.
+- `examples/threadline_phoenix/e2e/support/operator-browser-evidence.ts` — reusable login/seed resolution, uncached awaited served bytes, verified inline CSS, shell/content/allowlisted observations and contained output hashing.
+- `examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts` — includes route-inventory bytes in relevant source identity; existing strict integrity checks remain intact.
+- `examples/threadline_phoenix/e2e/tests/operator-page-capture.spec.ts` — individual direct routes, three-width cells, preserved scorecards and strict final aggregation; legacy reference writer remains available with evidence mode off.
+- `examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts` — bounded observed-state journeys with truthful failure/limitation records.
+- `examples/threadline_phoenix/e2e/playwright.config.ts` — retains existing light matches, adds state spec, sets reduced motion through supported route-project context options.
+- `examples/threadline_phoenix/e2e/run-e2e.sh` — forwards explicit selectors without injecting another light selector, retaining default System alias behavior and original guard/cleanup boundaries.
 - `238-EVIDENCE-INDEX.md` — durable small custody handoff; raw generated bundles remain in the retained isolated worktree.
 
-`e2e/` paths above are under `examples/threadline_phoenix/`; planning index/summary are under this phase directory.
+`examples/threadline_phoenix/e2e/` paths above are under `examples/threadline_phoenix/`; planning index/summary are under this phase directory.
 
 ## Evidence and Verification
 
@@ -163,9 +163,9 @@ Other bounds are explicit in the index: Exports, not every Timeline mutation con
 
 ## TDD Gate Compliance
 
-- **Task 1: RED** `route inventory exactly matches the independently read eleven router paths` actually executed and failed the planned equality assertion because the fixture was absent; it did not fail discovery/syntax/setup. Actual TAP and record are retained at `e2e/artifacts/operator-evidence/red-238-02-task1.json`. GSD returned `RED_EVIDENCE_OK`; semantic inspection confirmed the intended assertion failure.
+- **Task 1: RED** `route inventory exactly matches the independently read eleven router paths` actually executed and failed the planned equality assertion because the fixture was absent; it did not fail discovery/syntax/setup. Actual TAP and record are retained at `examples/threadline_phoenix/e2e/artifacts/operator-evidence/red-238-02-task1.json`. GSD returned `RED_EVIDENCE_OK`; semantic inspection confirmed the intended assertion failure.
 - **Task 1: GREEN** independently grounded fixture/seed mapping and browser expansion pass exact equality and all eleven route captures. No reference fixture was overwritten.
-- **Task 2: RED** `System runner preserves an explicit project selector without adding its default` actually executed against the real runner argument probe. Of two tests, one passed and this target failed: expected only explicit `--project=route-capture`, observed an added `--project=desktop-chromium-light`. Actual TAP record is `e2e/artifacts/operator-evidence/red-238-02-task2.json`; GSD returned `RED_EVIDENCE_OK`, with semantic assessment of the string-equality failure.
+- **Task 2: RED** `System runner preserves an explicit project selector without adding its default` actually executed against the real runner argument probe. Of two tests, one passed and this target failed: expected only explicit `--project=route-capture`, observed an added `--project=desktop-chromium-light`. Actual TAP record is `examples/threadline_phoenix/e2e/artifacts/operator-evidence/red-238-02-task2.json`; GSD returned `RED_EVIDENCE_OK`, with semantic assessment of the string-equality failure.
 - **Task 2: GREEN** project forwarding contract and all existing runner contracts pass; both nonzero state lanes and final route recapture pass after the final tooling edit.
 - **REFACTOR:** no additional refactor commit was necessary. Each task has an executed RED commit followed by its verified GREEN commit.
 
