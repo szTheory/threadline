@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "mount": "/audit",
+  "source": "lib/threadline/operator_surface/router.ex",
+  "routes": [
+    {"id":"route.home","pattern":"/","path":"/audit","seedResolution":"Manifest admin persona","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.timeline","pattern":"/timeline","path":"/audit/timeline","seedResolution":"Manifest synthetic activity","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.transaction","pattern":"/transactions/:id","seedResolution":"Manifest correlation_id(:acme_4521_close), timeline transaction link","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.row","pattern":"/rows/:table/:record_id","seedResolution":"AuditChange tickets row in acme_4521_close AuditTransaction, row-history link scalar PK","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.drawer","pattern":"/transactions/:id/history/:table/:record_id","seedResolution":"Same AuditTransaction and AuditChange as direct row, transaction row-history link","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.actor","pattern":"/actors/:kind/:id","path":"/audit/actors/service_account/zendesk-sync","seedResolution":"Manifest.actor_id(:zendesk_sync), ActorRef service_account","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.coverage","pattern":"/coverage","path":"/audit/coverage","seedResolution":"Demo seed trigger registration","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.evidence","pattern":"/evidence","path":"/audit/evidence","seedResolution":"Manifest evidence_subject_ref synthetic snapshots","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.exports","pattern":"/exports","path":"/audit/exports","seedResolution":"Demo.Seed.Exports completed/pending/failed/expired jobs","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.redaction","pattern":"/policy/redaction","path":"/audit/policy/redaction","seedResolution":"Demo seed redaction policy","role":"seeded-admin","scope":"isolated-local-demo-database"},
+    {"id":"route.retention","pattern":"/policy/retention","path":"/audit/policy/retention","seedResolution":"Manifest.evidence_run_id(:offboarded_retention)","role":"seeded-admin","scope":"isolated-local-demo-database"}
+  ],
+  "extraStates": [{"id":"route.timeline.degraded","routeId":"route.timeline","pattern":"/timeline","state":"degraded-ranking-twin","countsAsRoute":false}]
+}

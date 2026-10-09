@@ -1,21 +1,13 @@
 import { expect, Page, test } from "@playwright/test";
-import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join, relative, resolve } from "node:path";
+import { inventory, widths, startEvidence, seedPaths, runRoot } from "../support/operator-browser-evidence.js";
 import {
   atomicWriteFile,
   currentOperatorSurfacePaths,
   resolveContainedPath,
 } from "../support/operator-surface-paths.js";
-import {
-  assetRecord,
-  candidateIdentity,
-  outputRecord,
-  semanticFixtureId,
-  writeManifest,
-  type ServedAsset,
-} from "../support/operator-evidence-manifest.js";
+import { writeManifest } from "../support/operator-evidence-manifest.js";
 
 // Real operator-route capture lane (Phase 196) — the critic's REALISTIC-PAGE source.
 //
@@ -58,6 +50,8 @@ const CONTENT = "#tl-main";
 // Auth (reused from operator-screenshots.spec.ts): the seeded demo admin.
 const ADMIN_EMAIL = "admin@example.com";
 const ADMIN_PASSWORD = process.env.DEMO_SEED_PASSWORD ?? "password123456";
+// Evidence runs save allowlisted screenshots/metadata, never session-bearing traces.
+test.use({ trace: process.env.THREADLINE_E2E_EVIDENCE === "1" ? "off" : "retain-on-failure" });
 
 // Ranking trust-test (Phase 196): a deliberately-DEGRADED twin of the same page,
 // same data — off-brand generic font, garish clashing recolor of every accent,
@@ -387,132 +381,50 @@ async function captureCell(
 }
 
 test.describe("operator real-route deterministic capture", () => {
-  test("captures authenticated home shell evidence", async ({ page, browser }, testInfo) => {
-    test.skip(testInfo.project.name !== "route-capture", "Evidence capture runs only under route-capture");
-    test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1", "Home provenance capture requires evidence mode");
-    test.setTimeout(900_000);
-
-    const baseSha = process.env.THREADLINE_E2E_BASE_SHA;
-    if (!baseSha) throw new Error("Runner did not provide the verified immutable isolation base SHA");
-    const identity = candidateIdentity(paths.repositoryRoot, baseSha);
-    const evidenceRoot = process.env.THREADLINE_E2E_EVIDENCE_ROOT;
-    if (!evidenceRoot) throw new Error("THREADLINE_E2E_EVIDENCE_ROOT must name this run's contained output directory");
-    const runRoot = resolveContainedPath(paths.e2eRoot, relative(paths.e2eRoot, resolve(evidenceRoot)));
-    mkdirSync(runRoot, { recursive: true });
-
-    // Routing disables the HTTP cache, giving this navigation real response bytes
-    // instead of the login page's conditional 304 responses.
-    await page.route("**/assets/**", (route) => route.continue());
-    await login(page);
-    const assets = new Map<string, ServedAsset>();
-    const assetErrors: string[] = [];
-    const pendingAssets: Promise<void>[] = [];
-    page.on("response", (response) => {
-      const resourceType = response.request().resourceType();
-      if (!["stylesheet", "script"].includes(resourceType)) return;
-      const url = response.url();
-      pendingAssets.push((async () => {
-      try {
-        const record = assetRecord(
-          paths.repositoryRoot,
-          url,
-          response.status(),
-          response.headers()["content-type"] ?? "",
-          await response.body(),
-        );
-        assets.set(url, record);
-      } catch (error) {
-        assetErrors.push(`Could not verify served ${resourceType} asset ${url}: ${String(error)}`);
+  for (const route of inventory.routes) {
+    test(`direct ${route.id} ${route.pattern}: shell and content at 1280/768/375`, async ({ page, browser }, info) => {
+      test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || info.project.name !== "route-capture", "Source-bound expansion requires evidence route lane");
+      await login(page);
+      // Resolve DB-generated IDs through the deterministic Manifest correlation;
+      // navigation resolves identity only, then every width direct-enters the URL.
+      const seeds = route.path ? undefined : await seedPaths(page);
+      const path = route.path ?? seeds![route.id.slice(6) as keyof typeof seeds];
+      expect(path).toBeTruthy();
+      const evidence = await startEvidence(page, browser, info);
+      for (const width of widths) {
+        await page.setViewportSize({ width, height: 900 });
+        const response = await page.goto(path, { waitUntil: "networkidle" });
+        expect(response?.status()).toBe(200);
+        await expect(page.locator("#tl-main h1").first()).toBeVisible();
+        if (route.id === "route.drawer" || route.id === "route.row") await expect(page.getByTestId("row-history-drawer")).toBeVisible();
+        if (route.id === "route.transaction") await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
+        const id = `${route.id}__dark-${width}`;
+        const observation = await evidence.capture(id, path, "direct-entry", { pattern: route.pattern, seedResolution: route.seedResolution, httpStatus: response!.status() });
+        const raw = await rawInputs(page, CARD_SELECTOR);
+        const file = resolveContainedPath(runRoot(), `${id}-scorecard.json`);
+        writeJson(file, { schema_version: SCHEMA_VERSION, cell_id: id, ledger_id: route.id, theme: observation.effectiveTheme, breakpoint: width, capture_source: CAPTURE_SOURCE, band: 1, meta: { playwright_version: PLAYWRIGHT_VERSION, device_scale_factor: observation.dpr, viewport: { width, height: 900 }, route_path: path }, tokens: await resolvedTokens(page), ...raw, artifacts: { screenshot: `${id}-content.png`, shell: `${id}-shell.png` } });
+        evidence.recordFile(`${id}-scorecard`, path, "direct-entry", `width=${width}`, file);
       }
-      })());
+      evidence.finish(route.id, path, "direct-entry");
     });
+  }
 
-    await page.goto("/audit", { waitUntil: "load" });
-    const root = page.locator(ROOT).first();
-    await root.waitFor({ state: "visible", timeout: 30_000 });
-    const content = page.locator(CONTENT).first();
-    await content.waitFor({ state: "visible", timeout: 30_000 });
-    await expect(root).toHaveAttribute("data-tl-theme", /.+/);
-    await expect(content.locator("h1").first()).toBeVisible();
-    await page.waitForLoadState("networkidle");
-    await page.evaluate(() => (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready);
-    await expect(page.locator('[data-phx-main]')).toHaveClass(/phx-connected/);
-    await Promise.all(pendingAssets);
+  test("Timeline degraded ranking twin remains a separate state", async ({ page, browser }, info) => {
+    test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || info.project.name !== "route-capture", "Evidence route lane only");
+    await login(page);
+    const evidence = await startEvidence(page, browser, info);
+    await page.goto("/audit/timeline", { waitUntil: "networkidle" });
+    await page.addStyleTag({ content: DEGRADE_CSS });
+    await evidence.capture("route.timeline.degraded__dark-1280", "/audit/timeline", "degraded-ranking-twin", { injectedRankingStyles: true });
+    evidence.finish("route.timeline.degraded", "/audit/timeline", "degraded-ranking-twin");
+  });
 
-    if (assetErrors.length) throw new Error(assetErrors.join("\n"));
-    const styleText = (await page.locator("style").allTextContents()).find((text) => text.includes(".threadline-ui"));
-    if (!styleText) throw new Error("No served Threadline operator stylesheet was present in the authenticated home document");
-    const styleRoot = resolve(paths.repositoryRoot, "lib/threadline/operator_surface/style");
-    const styleFiles = [
-      "01_tokens.css", "02_base_shell.css", "03_page_home.css", "04_controls.css",
-      "05_feedback.css", "06_layout_primitives.css", "07_find_detail.css",
-      "08_overlays_motion.css", "09_responsive.css",
-    ];
-    const localStyles = styleFiles.map((file) => readFileSync(join(styleRoot, file), "utf8")).join("");
-    const cssHash = (value: string) => createHash("sha256").update(value).digest("hex");
-    const cssRecord: ServedAsset = {
-      url: "inline:/audit#threadline-operator-stylesheet",
-      status: 200,
-      contentType: "text/css; charset=utf-8",
-      servedSha256: cssHash(styleText),
-      localPath: "lib/threadline/operator_surface/style/*.css (ordered segments)",
-      localSha256: cssHash(localStyles),
-    };
-    if (cssRecord.servedSha256 !== cssRecord.localSha256) {
-      throw new Error("Served operator stylesheet bytes do not match the ordered local source segments");
-    }
-    const verifiedAssets = [...assets.values(), cssRecord].sort((a, b) => a.url.localeCompare(b.url));
-    if (!verifiedAssets.some((asset) => asset.contentType.includes("javascript"))) {
-      throw new Error("No verified browser-served JavaScript asset was captured for /audit");
-    }
-
-    const runId = process.env.MIX_TEST_PARTITION;
-    if (!runId) throw new Error("Evidence fixture identity requires the fresh MIX_TEST_PARTITION");
-    const seedRoot = resolve(paths.repositoryRoot, "examples/threadline_phoenix/lib/threadline_phoenix/demo");
-    const seedFiles = ["seed.ex", "manifest.ex", ...readdirSync(join(seedRoot, "seed"), { recursive: true })
-      .filter((entry): entry is string => typeof entry === "string").map((entry) => `seed/${entry}`)].sort();
-    const seedHash = createHash("sha256");
-    for (const file of seedFiles) {
-      const fullPath = join(seedRoot, file);
-      seedHash.update(file).update("\0").update(readFileSync(fullPath));
-    }
-    seedHash.update("config/test.exs\0").update(readFileSync(resolve(paths.repositoryRoot, "examples/threadline_phoenix/config/test.exs")));
-    const seedManifestSha256 = seedHash.digest("hex");
-    const fixture = {
-      scenario: "threadline-demo-seed",
-      version: "seed-pipeline-v1",
-      seedManifestSha256,
-      semanticId: semanticFixtureId("threadline-demo-seed", "seed-pipeline-v1", seedManifestSha256),
-    };
-
-    const shellPath = resolveContainedPath(runRoot, "home-shell.png");
-    const contentPath = resolveContainedPath(runRoot, "home-content.png");
-    await page.screenshot({ path: shellPath, fullPage: true, animations: "disabled" });
-    await content.screenshot({ path: contentPath, scale: "css", mask: dynamicMasks(page), maskColor: "#0B1020" });
-    const theme = (await root.getAttribute("data-tl-theme")) ?? "unknown";
-    const preference = await root.locator('input[name="theme"]:checked').inputValue();
-    const condition = `${testInfo.project.name}; reduced-motion; zoom=1`;
-    const route = "/audit";
-    const state = "authenticated-home";
-    const captures = [
-      { ...outputRecord("home-shell", route, state, condition, shellPath), assets: verifiedAssets },
-      { ...outputRecord("home-content", route, state, condition, contentPath), assets: verifiedAssets },
-    ];
-    const manifest = {
-      schemaVersion: 1 as const,
-      ...identity,
-      fixture,
-      route,
-      state,
-      actor: { role: "seeded-admin", scope: "isolated-local-demo-database" },
-      appearance: { effectiveTheme: theme, preference },
-      browser: { playwright: PLAYWRIGHT_VERSION, browser: browser.version() },
-      viewport: { width: 1280, height: 900, deviceScaleFactor: 1 },
-      input: { motion: "reduced", zoom: 1 },
-      captures,
-    };
-    writeManifest(runRoot, "manifest.json", manifest);
-    atomicWriteFile(resolveContainedPath(runRoot, "run-identity.json"), `${JSON.stringify({ runId, outputRoot: relative(paths.e2eRoot, runRoot), database: `threadline_phoenix_test${runId}` }, null, 2)}\n`);
+  test.afterAll(() => {
+    if (process.env.THREADLINE_E2E_EVIDENCE !== "1") return;
+    const manifests = [...inventory.routes.map((r) => r.id), "route.timeline.degraded"].map((id) => JSON.parse(readFileSync(resolveContainedPath(runRoot(), `${id}-manifest.json`), "utf8")));
+    const first = manifests[0];
+    for (const manifest of manifests) expect(manifest.candidateDiffDigest).toBe(first.candidateDiffDigest);
+    writeManifest(runRoot(), "manifest.json", { ...first, route: "/audit", state: "eleven-direct-routes-plus-ranking-twin", captures: manifests.flatMap((m) => m.captures) });
   });
 
   test("emits the real operator-page evidence bundle", async ({ page }, testInfo) => {
@@ -520,6 +432,7 @@ test.describe("operator real-route deterministic capture", () => {
       testInfo.project.name !== "route-capture",
       "Route capture runs only under the route-capture project",
     );
+    test.skip(process.env.THREADLINE_E2E_EVIDENCE === "1", "Legacy reference capture is read-only in evidence mode");
     test.setTimeout(900_000);
 
     await login(page);

@@ -71,7 +71,7 @@ export function semanticFixtureId(scenario: string, version: string, seedManifes
 }
 
 function relevant(path: string): boolean {
-  return /^(lib\/threadline\/operator_surface(?:\/|\.ex$)|examples\/threadline_phoenix\/(e2e\/|lib\/|assets\/|priv\/static\/|config\/|mix\.(?:exs|lock)$)|mix\.(?:exs|lock)$|\.tool-versions$)/.test(path);
+  return /^(test\/fixtures\/operator_surface\/route-inventory\.json$|lib\/threadline\/operator_surface(?:\/|\.ex$)|examples\/threadline_phoenix\/(e2e\/|lib\/|assets\/|priv\/static\/|config\/|mix\.(?:exs|lock)$)|mix\.(?:exs|lock)$|\.tool-versions$)/.test(path);
 }
 
 export function candidateIdentity(root: string, baseSha: string) {
