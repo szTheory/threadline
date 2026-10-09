@@ -628,7 +628,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert_selector_contains(base, ".tl-filter-grid", [
       "display: grid;",
-      "grid-template-columns: 1fr;",
+      "grid-template-columns: minmax(0, 1fr);",
       "align-items: start;"
     ])
 
@@ -1023,6 +1023,28 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
         "font-size: var(--tl-font-size-dense);"
       ]
     )
+  end
+
+  test "phase 239 keeps paper and ink roles concrete and high-importance controls at readable floors" do
+    src = StyleSource.read!()
+    tokens = selector_block!(src, ".threadline-ui")
+
+    assert String.contains?(tokens, "--tl-color-paper: #F7F9FC;")
+    assert String.contains?(tokens, "--tl-color-ink: #0F1728;")
+    refute String.contains?(tokens, "--tl-color-paper: var(--tl-color-paper);")
+    refute String.contains?(tokens, "--tl-color-ink: var(--tl-color-ink);")
+
+    assert String.contains?(tokens, "--tl-font-size-label: 14px;")
+    assert String.contains?(tokens, "--tl-control-height: 40px;")
+    assert_selector_contains(src, ".tl-shell-nav:has(.tl-shell-nav__disclosure[open])", [
+      "position: static;",
+      "top: auto;"
+    ])
+    assert_exact_selector_contains(src, ".tl-button", [
+      "min-height: var(--tl-hit-area);",
+      "font-size: var(--tl-font-size-label);"
+    ])
+    assert_exact_selector_contains(src, ".tl-toolbar__control", ["width: 100%;"])
   end
 
   test "phase 143 accessibility tokens meet dark-surface contrast baseline" do

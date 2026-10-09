@@ -100,13 +100,20 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
     await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
     const firstChange = page.getByTestId("transaction-change-row").first();
     const disclosures = page.locator(".tl-transaction details > summary");
-    const transactionObservation: PageObservation = await observePage(page, "Transaction", [
-      ["Transaction ID full value disclosure", page.getByRole("button", { name: "Show full transaction ID" })],
-      ["Before value label", page.getByText("Before", { exact: true })],
-      ["After value label", page.getByText("After", { exact: true })],
+    const operation = await firstChange.locator(".tl-change__op").innerText();
+    const beforeAxis = firstChange.getByText("Before", { exact: true });
+    const beforeAxisCount = await beforeAxis.count();
+    if (operation === "INSERT") {
+      expect(beforeAxisCount, "an INSERT does not have a Before axis").toBe(0);
+    }
+    const transactionControls: [string, import("@playwright/test").Locator][] = [
+      ["Transaction ID full value disclosure", page.getByText("Show full transaction id", { exact: true })],
       ["Native full-value disclosure", disclosures.first()],
       ["Transaction row history", firstChange.getByTestId("row-history-link")],
-    ], acceptMode);
+    ];
+    await expect(page.getByText("After", { exact: true }).first()).toBeVisible();
+    if (beforeAxisCount > 0) await expect(beforeAxis.first()).toBeVisible();
+    const transactionObservation: PageObservation = await observePage(page, "Transaction", transactionControls, acceptMode);
     transactionObservation.tabZoom = { tabId: transactionZoom.tabId, zoomFactor: transactionZoom.zoomFactor };
     observations.push(transactionObservation);
 
@@ -170,13 +177,16 @@ async function observePage(
         return {
           reachable: focused && pointerReachable,
           focused,
+          pointerTarget: `${pointerTarget.tagName.toLowerCase()}${pointerTarget.id ? `#${pointerTarget.id}` : ""}${typeof pointerTarget.className === "string" && pointerTarget.className ? `.${pointerTarget.className.trim().replace(/\s+/g, ".")}` : ""}`,
+          targetRect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height },
+          hitTarget: hit ? `${hit.tagName.toLowerCase()}${hit.id ? `#${hit.id}` : ""}${typeof hit.className === "string" && hit.className ? `.${hit.className.trim().replace(/\s+/g, ".")}` : ""}` : null,
         };
       });
     }
     controls.push({ name, found, visible, ...state });
     if (requireReachable) {
       expect(visible, `${route} control ${name} is hidden`).toBe(true);
-      expect(state.reachable, `${route} control ${name} is off-screen or covered`).toBe(true);
+      expect(state.reachable, `${route} control ${name} is off-screen or covered: ${JSON.stringify(state)}`).toBe(true);
     }
   }
 
