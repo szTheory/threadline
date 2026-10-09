@@ -201,7 +201,7 @@ for (const viewport of responsiveCases) {
         page.getByLabel("Record id", { exact: true }),
         page.getByRole("button", { name: "Open row history", exact: true }),
         page.getByLabel("Correlation id", { exact: true }),
-        page.getByRole("button", { name: "Open timeline", exact: true }),
+        page.getByRole("button", { name: "Open the timeline", exact: true }),
       ];
       for (const controlLocator of homeControls) {
         await controlLocator.focus();
