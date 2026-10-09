@@ -136,7 +136,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       failed_correlation =
         Application.get_env(:threadline, :test_timeline_transition_failure)
 
-      if failed_correlation == Keyword.get(filters, :table) do
+      if is_binary(failed_correlation) and failed_correlation == Keyword.get(filters, :table) do
         raise "test-only Timeline query failure"
       end
 
@@ -1953,9 +1953,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          %{
            conn: conn
          } do
-      seed_transition_change!("transition_query_a", "org-239-transition")
-      seed_transition_change!("transition_query_b", "org-239-transition")
-      seed_transition_change!("other_tenant_transition_b", "org-other-239")
+      change_a = seed_transition_change!("transition_query_a", "org-239-transition")
+      change_b = seed_transition_change!("transition_query_b", "org-239-transition")
+      other_tenant_b = seed_transition_change!("transition_query_b", "org-other-239")
 
       query = fn table ->
         URI.encode_query([
@@ -1971,7 +1971,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert {:ok, lv, html_a} = live(conn, path_a)
       assert html_a =~ "transition_query_a"
       refute html_a =~ "transition_query_b"
-      refute html_a =~ "other_tenant_transition_b"
+      assert has_element?(lv, "#change-#{change_a.id}")
+      refute has_element?(lv, "#change-#{change_b.id}")
+      refute has_element?(lv, "#change-#{other_tenant_b.id}")
 
       Application.put_env(:threadline, :test_timeline_transition_failure, "transition_query_b")
 
@@ -2003,16 +2005,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html_recovered =~ "transition_query_b"
       assert html_recovered =~ "Matching changes"
       refute html_recovered =~ "transition_query_a"
-      refute html_recovered =~ "other_tenant_transition_b"
+      assert has_element?(lv, "#change-#{change_b.id}")
+      refute has_element?(lv, "#change-#{change_a.id}")
+      refute has_element?(lv, "#change-#{other_tenant_b.id}")
 
       Application.put_env(:threadline, :test_timeline_transition_auth, :deny)
 
       assert {:error, {:redirect, %{to: "/"}}} = live(conn, path_b)
 
       Application.put_env(:threadline, :test_timeline_transition_auth, :allow)
-      assert {:ok, _recovered_lv, recovered_after_denial} = live(conn, path_b)
+      assert {:ok, recovered_lv, recovered_after_denial} = live(conn, path_b)
       assert recovered_after_denial =~ "transition_query_b"
-      refute recovered_after_denial =~ "other_tenant_transition_b"
+      assert has_element?(recovered_lv, "#change-#{change_b.id}")
+      refute has_element?(recovered_lv, "#change-#{other_tenant_b.id}")
     end
   end
 

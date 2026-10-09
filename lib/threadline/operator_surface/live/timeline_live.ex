@@ -142,8 +142,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             table not in socket.assigns.audited_tables
         end
 
-      # Clear cursor BEFORE stream reset (Pitfall 1 + F-3 mitigation)
-      socket = assign(socket, :cursor, nil)
+      # Scope callbacks must receive the query being applied, never the previous
+      # result's filters. Clear the cursor before resetting the stream.
+      socket = socket |> assign(:filters, filters) |> assign(:cursor, nil)
 
       try do
         page_opts = scope_aware_opts(socket)
@@ -214,7 +215,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       filter_query = build_canonical_query(socket.assigns.filters_raw)
 
       socket
-      |> assign(:filters, [])
       |> assign(:form_error, nil)
       |> assign(:query_error, true)
       |> assign(:unknown_table_attempted, false)

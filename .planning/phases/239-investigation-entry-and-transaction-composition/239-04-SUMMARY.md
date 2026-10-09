@@ -158,6 +158,12 @@ None - no external service configuration required.
 *Phase: 239-investigation-entry-and-transaction-composition*
 *Completed: 2026-10-09*
 
+## Parent reconciliation correction
+
+The first recovery fixture did not prove populated rows: it compared a nil fault selector to absent callback filters, and its cross-tenant record used a different table. Exact stream-row assertions now prove A is populated, B returns after recovery, A disappears, and another tenant's B record is excluded even though it matches the same table filter. The stronger regression exposed a product issue: scope callbacks received the previous query's filters. `load_filtered_page` now assigns the current validated filters before starting scoped reads, and the query-error state retains them. No public callback shape or authorization contract changed.
+
+Focused verification after this correction: `MIX_TEST_PARTITION=tl239_scopeaudit3 mix test test/threadline/operator_surface/live/timeline_live_test.exs` — 58/58 passed, seed 561477. Browser behavior is unchanged by the test strengthening; Wave 2 runs the integrated browser checks after Plan 06.
+
 ## Self-Check: PASSED
 
 - All four plan-owned source/test files exist and are included in the measured plan commits.
