@@ -473,7 +473,8 @@
   }
 
   .tl-button--compact {
-    min-height: var(--tl-control-height-compact);
+    min-height: var(--tl-hit-area);
+    min-width: var(--tl-hit-area);
     padding: var(--tl-space-1) var(--tl-space-3);
   }
 

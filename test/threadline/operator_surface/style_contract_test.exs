@@ -68,7 +68,8 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     assert_exact_selector_contains(src, ".tl-button", ["min-height: var(--tl-hit-area);"])
 
     assert_exact_selector_contains(src, ".tl-button--compact", [
-      "min-height: var(--tl-control-height-compact);"
+      "min-height: var(--tl-hit-area);",
+      "min-width: var(--tl-hit-area);"
     ])
 
     assert_exact_selector_contains(src, ".tl-button--icon", ["width: var(--tl-hit-area);"])
@@ -775,7 +776,9 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     ])
 
     assert_selector_contains(base, ".tl-copy", [
-      "min-width: var(--tl-control-height-compact);"
+      "min-width: var(--tl-hit-area);",
+      "min-height: var(--tl-hit-area);",
+      "font-size: var(--tl-font-size-label);"
     ])
 
     assert_selector_contains(base, ".tl-timeline-drawer", [
@@ -1036,14 +1039,17 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
 
     assert String.contains?(tokens, "--tl-font-size-label: 14px;")
     assert String.contains?(tokens, "--tl-control-height: 40px;")
+
     assert_selector_contains(src, ".tl-shell-nav:has(.tl-shell-nav__disclosure[open])", [
       "position: static;",
       "top: auto;"
     ])
+
     assert_exact_selector_contains(src, ".tl-button", [
       "min-height: var(--tl-hit-area);",
       "font-size: var(--tl-font-size-label);"
     ])
+
     assert_exact_selector_contains(src, ".tl-toolbar__control", ["width: 100%;"])
   end
 

@@ -362,15 +362,15 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    min-width: var(--tl-control-height-compact);
-    min-height: var(--tl-control-height-chip);
+    min-width: var(--tl-hit-area);
+    min-height: var(--tl-hit-area);
     padding: 0 var(--tl-space-2);
     border: 1px solid var(--tl-color-border);
     border-radius: var(--tl-radius-sm);
     background: transparent;
     color: var(--tl-color-muted);
     font-family: inherit;
-    font-size: var(--tl-font-size-xs);
+    font-size: var(--tl-font-size-label);
     cursor: pointer;
     transition-property: color, border-color, background-color, box-shadow;
     transition-duration: var(--tl-motion-fast);

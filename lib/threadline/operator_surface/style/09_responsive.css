@@ -161,6 +161,15 @@
 
   /* Tablet enhancement layer starts at 768px: lift the phone refinements once there's room. */
   @media (min-width: 768px) {
+    .tl-diff__row:has(> .tl-diff__arrow) {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .tl-diff__row:has(> .tl-diff__arrow) > .tl-change__field-name {
+      grid-column: 1 / -1;
+    }
+
     .threadline-ui {
       display: grid;
       grid-template-columns: minmax(196px, 232px) minmax(0, 1fr);

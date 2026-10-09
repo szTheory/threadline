@@ -79,6 +79,7 @@ test("opens an authorized transaction with separate action and row evidence", as
 
   await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
   await expect(page.getByRole("heading", { name: "Transaction", exact: true })).toBeVisible();
+  await expect(page.locator("[data-phx-main].phx-connected")).toBeVisible();
   await expect(page.getByText("Action actor", { exact: true })).toBeVisible();
   await expect(page.getByText("Request ID", { exact: true })).toBeVisible();
   await expect(
@@ -227,6 +228,7 @@ for (const viewport of responsiveCases) {
     await targetRow.getByTestId("transaction-link").click();
 
     await expect(page.getByRole("heading", { name: "Transaction", exact: true })).toBeVisible();
+    await expect(page.locator("[data-phx-main].phx-connected")).toBeVisible();
     const change = page.getByTestId("transaction-change-row");
     await expect(change).toHaveCount(1);
     await expect(change).toBeVisible();
@@ -248,6 +250,18 @@ for (const viewport of responsiveCases) {
     await fullValue.press("Enter");
     await expect(after.getByText(longTitle, { exact: true })).toBeVisible();
     await expect(change).not.toContainText(controlSlug);
+    const compactTargets = await change.locator(".tl-button--compact").evaluateAll((controls) =>
+      controls.map((control) => {
+        const { width, height } = control.getBoundingClientRect();
+        return { width, height, fontSize: parseFloat(getComputedStyle(control).fontSize) };
+      }),
+    );
+    expect(compactTargets.length).toBeGreaterThan(0);
+    for (const target of compactTargets) {
+      expect(target.width, "compact action target width").toBeGreaterThanOrEqual(40);
+      expect(target.height, "compact action target height").toBeGreaterThanOrEqual(40);
+      expect(target.fontSize, "interactive label size").toBeGreaterThanOrEqual(14);
+    }
     const axisFontSize = await after.getByText("After", { exact: true }).evaluate((label) =>
       parseFloat(getComputedStyle(label).fontSize),
     );
@@ -266,5 +280,48 @@ for (const viewport of responsiveCases) {
     expect(textSelection).toBe(longTitle);
 
     await expectInsideViewport(fullValue, viewport.width);
+
+    // The seeded reply edit captures both axes. An INSERT alone
+    // cannot establish the paired-wide / stacked-narrow layout contract.
+    const updateQuery = new URLSearchParams({
+      from: "2020-01-01T00:00",
+      to: "2099-01-01T00:00",
+      table: "ticket_replies",
+    });
+    await page.goto(`/audit/timeline?${updateQuery}`);
+    const updateRow = page.getByTestId("timeline-row").filter({
+      has: page.locator(".tl-change__op").filter({ hasText: /^UPDATE$/ }),
+    }).first();
+    await expect(updateRow).toBeVisible();
+    await expect(updateRow.locator(".tl-change__op")).toHaveText("UPDATE");
+    const updateHref = await updateRow.getByTestId("transaction-link").getAttribute("href");
+    await updateRow.getByTestId("transaction-link").click();
+    await expect(page).toHaveURL(new URL(updateHref!, page.url()).toString());
+    await expect(page.locator("[data-phx-main].phx-connected")).toBeVisible();
+    const ticketChange = page.getByTestId("transaction-change-row").filter({
+      has: page.locator(".tl-change__table").filter({ hasText: /^ticket_replies$/ }),
+    });
+    await expect(ticketChange).toHaveCount(1);
+    await expect(ticketChange.locator(".tl-change__op")).toHaveText("UPDATE");
+    const statusField = ticketChange.locator(".tl-diff__row").filter({
+      has: page.locator(".tl-change__field-name").filter({ hasText: /^body$/ }),
+    });
+    const statusCells = statusField.locator(".tl-diff__cell");
+    await expect(statusCells).toHaveCount(2);
+    const beforeCell = statusCells.nth(0);
+    const afterCell = statusCells.nth(1);
+    await expect(beforeCell.getByText("Before", { exact: true })).toBeVisible();
+    await expect(beforeCell.getByText("Original reply from Zendesk sync.", { exact: true })).toBeVisible();
+    await expect(afterCell.getByText("After", { exact: true })).toBeVisible();
+    await expect(afterCell.getByText("Updated reply — issue resolved.", { exact: true })).toBeVisible();
+    const beforeBox = (await beforeCell.boundingBox())!;
+    const afterBox = (await afterCell.boundingBox())!;
+    if (viewport.width >= 768) {
+      expect(Math.abs(beforeBox.y - afterBox.y), "wide values share one row").toBeLessThanOrEqual(1);
+      expect(afterBox.x, "After follows Before horizontally").toBeGreaterThanOrEqual(beforeBox.x + beforeBox.width);
+    } else {
+      expect(afterBox.y, "narrow values stack vertically").toBeGreaterThanOrEqual(beforeBox.y + beforeBox.height);
+    }
+    await expectNoHorizontalOverflow(page);
   });
 }

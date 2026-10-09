@@ -24,6 +24,7 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
     await expect(page).toHaveURL(new URL("/", String(baseURL)).toString(), { timeout: 30_000 });
     await page.goto(new URL("/audit", String(baseURL)).toString());
     await expect(page.locator(".threadline-ui").first()).toBeVisible();
+    await expect(page.locator("[data-phx-main].phx-connected")).toBeVisible();
 
     const zoom = await setAndReadTabZoom(context, page);
     expect(zoom.zoomFactor).toBe(2);
@@ -40,7 +41,8 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
     homeObservation.tabZoom = { tabId: zoom.tabId, zoomFactor: zoom.zoomFactor };
     observations.push(homeObservation);
 
-    await page.goto(new URL("/audit/timeline?correlation_id=walk-acme-4521-close", String(baseURL)).toString());
+    await page.goto(new URL("/audit/timeline?table=ticket_replies&from=2020-01-01T00%3A00&to=2099-01-01T00%3A00", String(baseURL)).toString());
+    await expect(page.locator("[data-phx-main].phx-connected")).toBeVisible();
     const timelineZoom = await setAndReadTabZoom(context, page);
     expect(timelineZoom.tabId).toBe(zoom.tabId);
     expect(timelineZoom.zoomFactor).toBe(2);
@@ -89,30 +91,41 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
       expect(overlay.focusReturned, "Focus did not return to Filters after dismissal").toBe(true);
     }
 
-    const transactionLink = page.getByTestId("timeline-row").first().getByTestId("transaction-link");
+    const transactionLink = page.getByTestId("timeline-row").filter({
+      has: page.locator(".tl-change__op").filter({ hasText: /^UPDATE$/ }),
+    }).first().getByTestId("transaction-link");
     await expect(transactionLink).toBeVisible();
     const transactionHref = await transactionLink.getAttribute("href");
     expect(transactionHref).toMatch(/^\/audit\/transactions\/[^/?]+$/);
     await page.goto(new URL(transactionHref!, String(baseURL)).toString());
+    await expect(page.locator("[data-phx-main].phx-connected")).toBeVisible();
     const transactionZoom = await setAndReadTabZoom(context, page);
     expect(transactionZoom.tabId).toBe(zoom.tabId);
     expect(transactionZoom.zoomFactor).toBe(2);
     await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
-    const firstChange = page.getByTestId("transaction-change-row").first();
+    const firstChange = page.getByTestId("transaction-change-row").filter({
+      has: page.locator(".tl-change__table").filter({ hasText: /^ticket_replies$/ }),
+    });
+    await expect(firstChange).toHaveCount(1);
     const disclosures = page.locator(".tl-transaction details > summary");
-    const operation = await firstChange.locator(".tl-change__op").innerText();
-    const beforeAxis = firstChange.getByText("Before", { exact: true });
-    const beforeAxisCount = await beforeAxis.count();
-    if (operation === "INSERT") {
-      expect(beforeAxisCount, "an INSERT does not have a Before axis").toBe(0);
-    }
+    await expect(firstChange.locator(".tl-change__op")).toHaveText("UPDATE");
+    const bodyField = firstChange.locator(".tl-diff__row").filter({
+      has: page.locator(".tl-change__field-name").filter({ hasText: /^body$/ }),
+    });
+    const cells = bodyField.locator(".tl-diff__cell");
+    await expect(cells).toHaveCount(2);
+    await expect(cells.nth(0).getByText("Before", { exact: true })).toBeVisible();
+    await expect(cells.nth(0).getByText("Original reply from Zendesk sync.", { exact: true })).toBeVisible();
+    await expect(cells.nth(1).getByText("After", { exact: true })).toBeVisible();
+    await expect(cells.nth(1).getByText("Updated reply — issue resolved.", { exact: true })).toBeVisible();
+    const beforeBox = (await cells.nth(0).boundingBox())!;
+    const afterBox = (await cells.nth(1).boundingBox())!;
+    expect(afterBox.y, "Before/After stack at actual 200% zoom").toBeGreaterThanOrEqual(beforeBox.y + beforeBox.height);
     const transactionControls: [string, import("@playwright/test").Locator][] = [
       ["Transaction ID full value disclosure", page.getByText("Show full transaction id", { exact: true })],
       ["Native full-value disclosure", disclosures.first()],
       ["Transaction row history", firstChange.getByTestId("row-history-link")],
     ];
-    await expect(page.getByText("After", { exact: true }).first()).toBeVisible();
-    if (beforeAxisCount > 0) await expect(beforeAxis.first()).toBeVisible();
     const transactionObservation: PageObservation = await observePage(page, "Transaction", transactionControls, acceptMode);
     transactionObservation.tabZoom = { tabId: transactionZoom.tabId, zoomFactor: transactionZoom.zoomFactor };
     observations.push(transactionObservation);
