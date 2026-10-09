@@ -47,6 +47,21 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
   const base = process.env.THREADLINE_E2E_BASE_SHA;
   if (!base) throw new Error("Missing verified isolation base");
   const identity = candidateIdentity(paths.repositoryRoot, base);
+  const receiptPath = process.env.THREADLINE_E2E_FORWARD_RECEIPT;
+  if (!receiptPath) throw new Error("Missing verified Phase 239 forward receipt");
+  const receiptBytes = readFileSync(receiptPath);
+  const receiptSha256 = sha(receiptBytes);
+  if (receiptSha256 !== process.env.THREADLINE_E2E_FORWARD_RECEIPT_SHA256) throw new Error("Phase 239 forward receipt changed after runner preflight");
+  const forwardReceipt = JSON.parse(receiptBytes.toString("utf8")) as {
+    acceptedHead: string; acceptedReceiptSha256: string; acceptedEvidenceIndexSha256: string;
+    forwardTaskCommits: string[]; candidateHead: string; candidateDiffDigest: string;
+  };
+  if (forwardReceipt.candidateHead !== identity.candidateHead || forwardReceipt.candidateDiffDigest !== identity.candidateDiffDigest) throw new Error("Phase 239 receipt does not bind the current candidate source");
+  const custody: OperatorEvidenceManifest["custody"] = {
+    receiptSha256, acceptedReceiptSha256: forwardReceipt.acceptedReceiptSha256,
+    acceptedEvidenceIndexSha256: forwardReceipt.acceptedEvidenceIndexSha256,
+    acceptedHead: forwardReceipt.acceptedHead, forwardTaskCommits: forwardReceipt.forwardTaskCommits,
+  };
   const seedRoot = join(paths.repositoryRoot, "examples/threadline_phoenix/lib/threadline_phoenix/demo");
   const seedHash = createHash("sha256");
   const seedFiles = ["seed.ex", "manifest.ex", ...readdirSync(join(seedRoot, "seed"), { recursive: true }).map((entry) => `seed/${entry}`)].sort();
@@ -104,7 +119,7 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
     return observation;
   }
   function finish(id: string, route: string, state: string) {
-    const manifest: OperatorEvidenceManifest = { schemaVersion: 1, ...identity, fixture, route, state, actor: { role, scope: "isolated-local-demo-database" }, appearance: lastAppearance, browser: { playwright: require("@playwright/test/package.json").version, browser: browser.version() }, viewport: lastViewport, input: { motion: "observed-per-capture", zoom: 1 }, captures };
+    const manifest: OperatorEvidenceManifest = { schemaVersion: 1, ...identity, custody, fixture, route, state, actor: { role, scope: "isolated-local-demo-database" }, appearance: lastAppearance, browser: { playwright: require("@playwright/test/package.json").version, browser: browser.version() }, viewport: lastViewport, input: { motion: "observed-per-capture", zoom: 1 }, captures };
     // zoom=1 is a neutral compatibility field, NOT proof of browser chrome zoom;
     // every capture's condition explicitly records browserZoom=unverified.
     writeManifest(runRoot(), `${id}-manifest.json`, manifest);

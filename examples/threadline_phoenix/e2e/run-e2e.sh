@@ -75,7 +75,7 @@ loopback_host() {
 }
 
 evidence_preflight() {
-  local partition="${MIX_TEST_PARTITION:-}" db_check marker_dir marker output_parent receipt expected_commits actual_commits
+  local partition="${MIX_TEST_PARTITION:-}" db_check marker_dir marker output_parent receipt expected_commits actual_commits forward_receipt
   [[ "$EVIDENCE_MODE" == "1" ]] || return 0
   [[ -n "$partition" && "$partition" =~ ^operator_[A-Za-z0-9_]+$ ]] || {
     echo "Evidence mode requires a fresh MIX_TEST_PARTITION matching operator_<unique-id>." >&2
@@ -98,30 +98,45 @@ evidence_preflight() {
   grep -Fq 'database: "threadline_phoenix_test#{System.get_env("MIX_TEST_PARTITION")}"' "$EXAMPLE/config/test.exs" || {
     echo "Evidence mode could not verify the exact test database derivation in config/test.exs." >&2; return 1;
   }
+  forward_receipt="${THREADLINE_E2E_FORWARD_RECEIPT:-}"
   receipt="$ROOT/.planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json"
-  [[ -f "$receipt" ]] || { echo "Evidence mode requires the orchestrator isolation receipt." >&2; return 1; }
-  node -e '
-    const fs = require("node:fs"), crypto = require("node:crypto");
-    const [path, root, branch] = process.argv.slice(1), r = JSON.parse(fs.readFileSync(path, "utf8"));
-    if (r.worktree !== root || r.branch !== branch || !r.copied_context_sha256) throw new Error("Isolation receipt root, branch or copied context does not match candidate");
-    for (const [file, copied] of Object.entries(r.copied_context_sha256)) {
-      const expected = file === ".planning/config.json" && r.isolated_config_override ? r.isolated_config_override.active_sha256 : copied;
-      const actual = crypto.createHash("sha256").update(fs.readFileSync(root + "/" + file)).digest("hex");
-      if (actual !== expected) throw new Error("Copied isolation context changed: " + file);
+  [[ -f "$receipt" ]] || { echo "Evidence mode requires the immutable Phase 238 isolation receipt." >&2; return 1; }
+  if [[ -n "$forward_receipt" ]]; then
+    [[ "$forward_receipt" == "$ROOT/.planning/phases/239-investigation-entry-and-transaction-composition/239-CANDIDATE-RECEIPT.json" ]] || {
+      echo "Forward evidence mode requires the Phase 239 candidate receipt at its owned path." >&2; return 1;
     }
-  ' "$receipt" "$ROOT" "$(git -C "$ROOT" branch --show-current)" || return 1
-  THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).base_sha || "")' "$receipt")"
+    [[ -f "$forward_receipt" ]] || { echo "Forward evidence mode requires a refreshed Phase 239 candidate receipt." >&2; return 1; }
+    "$E2E_DIR/node_modules/.bin/tsx" "$E2E_DIR/support/operator-evidence-manifest.ts" --validate-239-receipt \
+      .planning/phases/239-investigation-entry-and-transaction-composition/239-CANDIDATE-RECEIPT.json || return 1
+    THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).baseSha || "")' "$forward_receipt")"
+    export THREADLINE_E2E_FORWARD_RECEIPT="$forward_receipt"
+    export THREADLINE_E2E_FORWARD_RECEIPT_SHA256="$(shasum -a 256 "$forward_receipt" | awk '{print $1}')"
+  else
+    node -e '
+      const fs = require("node:fs"), crypto = require("node:crypto");
+      const [path, root, branch] = process.argv.slice(1), r = JSON.parse(fs.readFileSync(path, "utf8"));
+      if (r.worktree !== root || r.branch !== branch || !r.copied_context_sha256) throw new Error("Isolation receipt root, branch or copied context does not match candidate");
+      for (const [file, copied] of Object.entries(r.copied_context_sha256)) {
+        const expected = file === ".planning/config.json" && r.isolated_config_override ? r.isolated_config_override.active_sha256 : copied;
+        const actual = crypto.createHash("sha256").update(fs.readFileSync(root + "/" + file)).digest("hex");
+        if (actual !== expected) throw new Error("Copied isolation context changed: " + file);
+      }
+    ' "$receipt" "$ROOT" "$(git -C "$ROOT" branch --show-current)" || return 1
+    THREADLINE_E2E_BASE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).base_sha || "")' "$receipt")"
+  fi
   [[ "$THREADLINE_E2E_BASE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Isolation receipt has no valid immutable base SHA." >&2; return 1; }
   [[ "$(git -C "$ROOT" rev-parse --show-toplevel)" == "$ROOT" ]] || { echo "Evidence runner cwd is not the isolated repository root." >&2; return 1; }
   git -C "$ROOT" merge-base --is-ancestor "$THREADLINE_E2E_BASE_SHA" HEAD || {
     echo "Evidence candidate HEAD is not descended from the isolation receipt base." >&2; return 1;
   }
-  expected_commits="$(node -e 'const r=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); process.stdout.write((r.expected_task_commits || []).join("\n"))' "$receipt")"
-  actual_commits="$(git -C "$ROOT" rev-list --first-parent --reverse "$THREADLINE_E2E_BASE_SHA..HEAD")"
-  [[ "$actual_commits" == "$expected_commits" ]] || {
-    echo "Evidence candidate ancestry differs from the task commit sequence in the isolation receipt." >&2
-    echo "Expected: ${expected_commits:-<none>}" >&2; echo "Actual: ${actual_commits:-<none>}" >&2; return 1;
-  }
+  if [[ -z "$forward_receipt" ]]; then
+    expected_commits="$(node -e 'const r=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")); process.stdout.write((r.expected_task_commits || []).join("\n"))' "$receipt")"
+    actual_commits="$(git -C "$ROOT" rev-list --first-parent --reverse "$THREADLINE_E2E_BASE_SHA..HEAD")"
+    [[ "$actual_commits" == "$expected_commits" ]] || {
+      echo "Evidence candidate ancestry differs from the task commit sequence in the isolation receipt." >&2
+      echo "Expected: ${expected_commits:-<none>}" >&2; echo "Actual: ${actual_commits:-<none>}" >&2; return 1;
+    }
+  fi
   export THREADLINE_E2E_BASE_SHA
   EVIDENCE_DATABASE="threadline_phoenix_test${partition}"
   [[ ${#EVIDENCE_DATABASE} -le 63 ]] || { echo "Evidence database name exceeds PostgreSQL's 63-byte identifier limit." >&2; return 1; }

@@ -35,6 +35,13 @@ export interface OperatorEvidenceManifest {
   readonly candidatePaths: readonly string[];
   readonly candidateChanges: readonly { readonly path: string; readonly mode: string; readonly sha256: string }[];
   readonly candidateDiffDigest: string;
+  readonly custody: {
+    readonly receiptSha256: string;
+    readonly acceptedReceiptSha256: string;
+    readonly acceptedEvidenceIndexSha256: string;
+    readonly acceptedHead: string;
+    readonly forwardTaskCommits: readonly string[];
+  };
   readonly fixture: {
     readonly scenario: string;
     readonly version: string;
@@ -49,6 +56,24 @@ export interface OperatorEvidenceManifest {
   readonly viewport: { readonly width: number; readonly height: number; readonly deviceScaleFactor: number };
   readonly input: { readonly motion: string; readonly zoom: number };
   readonly captures: readonly OperatorCapture[];
+}
+
+export interface Operator239CandidateReceipt {
+  readonly schemaVersion: 1;
+  readonly phase: 239;
+  readonly worktree: string;
+  readonly branch: string;
+  readonly baseSha: string;
+  readonly acceptedHead: string;
+  readonly acceptedReceiptSha256: string;
+  readonly acceptedEvidenceIndexSha256: string;
+  readonly acceptedEvidenceManifestSets: readonly string[];
+  readonly forwardTaskCommits: readonly string[];
+  readonly candidateHead: string;
+  readonly candidatePaths: readonly string[];
+  readonly candidateChanges: readonly { readonly path: string; readonly mode: string; readonly sha256: string }[];
+  readonly candidateDiffDigest: string;
+  readonly planningContextSha256: Readonly<Record<string, string>>;
 }
 
 const sha256 = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
@@ -98,6 +123,80 @@ export function candidateIdentity(root: string, baseSha: string) {
   return { baseSha, candidateHead, candidateAncestry: ancestry, candidatePaths: paths, candidateChanges: entries, candidateDiffDigest: sha256(JSON.stringify(entries)) };
 }
 
+const receiptPath = ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-ISOLATION-RECEIPT.json";
+const evidenceIndexPath = ".planning/phases/238-current-main-preview-and-acceptance-baseline/238-EVIDENCE-INDEX.md";
+const contextPaths = [
+  ".planning/phases/239-investigation-entry-and-transaction-composition/239-07-PLAN.md",
+  ".planning/phases/239-investigation-entry-and-transaction-composition/239-CONTEXT.md",
+  ".planning/phases/239-investigation-entry-and-transaction-composition/239-UI-SPEC.md",
+  ".planning/phases/239-investigation-entry-and-transaction-composition/239-RESEARCH.md",
+  ".planning/phases/239-investigation-entry-and-transaction-composition/239-PATTERNS.md",
+  ".planning/phases/239-investigation-entry-and-transaction-composition/239-VALIDATION.md",
+];
+
+function firstParent(root: string, range: string): string[] {
+  const output = execFileSync("git", ["rev-list", "--first-parent", "--reverse", range], { cwd: root, encoding: "utf8" }).trim();
+  return output ? output.split("\n") : [];
+}
+
+function verifiedTaskCommits(root: string, acceptedHead: string): string[] {
+  return firstParent(root, `${acceptedHead}..HEAD`).filter((commit) => {
+    const subject = execFileSync("git", ["show", "-s", "--format=%s", commit], { cwd: root, encoding: "utf8" }).trim();
+    return /^(?:test|feat|fix|refactor|perf|chore)\(239-\d{2}\):/.test(subject);
+  });
+}
+
+export function build239CandidateReceipt(root: string, explicitTaskCommits: readonly string[]): Operator239CandidateReceipt {
+  const parentBytes = readFileSync(join(root, receiptPath));
+  const parent = JSON.parse(parentBytes.toString("utf8")) as { base_sha: string; candidate_head: string; worktree: string; branch: string };
+  const evidenceBytes = readFileSync(join(root, evidenceIndexPath));
+  const evidenceIndex = evidenceBytes.toString("utf8");
+  const manifestSets = [...evidenceIndex.matchAll(/\| (?:Eleven routes \+ degraded|Dark states|System\/light states) \|[^\n]*\| [0-9]+ \| `([a-f0-9]{64})` \|/g)].map((match) => match[1]);
+  if (manifestSets.length !== 3 || parent.candidate_head !== "43c5bcfa960b1a10cb07ef997e2231e9615dca6f" || parent.base_sha !== "9eefb75c2a45cdc93c6b3d3cac8e7850bc61d7d2") throw new Error("Accepted Phase 238 custody is incomplete or not the approved baseline");
+  const expected = verifiedTaskCommits(root, parent.candidate_head);
+  if (JSON.stringify(expected) !== JSON.stringify(explicitTaskCommits)) throw new Error("Explicit Phase 239 task commits disagree with first-parent task history");
+  const candidate = candidateIdentity(root, parent.base_sha);
+  const planningContextSha256 = Object.fromEntries(contextPaths.map((path) => [path, sha256(readFileSync(join(root, path)))]));
+  return {
+    schemaVersion: 1, phase: 239, worktree: execFileSync("git", ["rev-parse", "--show-toplevel"], { cwd: root, encoding: "utf8" }).trim(),
+    branch: execFileSync("git", ["branch", "--show-current"], { cwd: root, encoding: "utf8" }).trim(), baseSha: parent.base_sha,
+    acceptedHead: parent.candidate_head, acceptedReceiptSha256: sha256(parentBytes), acceptedEvidenceIndexSha256: sha256(evidenceBytes),
+    acceptedEvidenceManifestSets: manifestSets, forwardTaskCommits: [...explicitTaskCommits], ...candidate, planningContextSha256,
+  };
+}
+
+export function validate239CandidateReceipt(root: string, receipt: Operator239CandidateReceipt, expectedPath?: string): void {
+  const keys = ["schemaVersion", "phase", "worktree", "branch", "baseSha", "acceptedHead", "acceptedReceiptSha256", "acceptedEvidenceIndexSha256", "acceptedEvidenceManifestSets", "forwardTaskCommits", "candidateHead", "candidatePaths", "candidateChanges", "candidateDiffDigest", "planningContextSha256"];
+  fields(receipt, keys, "239 candidate receipt");
+  const rebuilt = build239CandidateReceipt(root, receipt.forwardTaskCommits);
+  if (expectedPath) {
+    const actualPath = resolve(root, expectedPath);
+    if (!actualPath.startsWith(resolve(root, ".planning/phases/239-investigation-entry-and-transaction-composition/") + "/")) throw new Error("Candidate receipt path escapes the Phase 239 evidence directory");
+  }
+  if (JSON.stringify(receipt) !== JSON.stringify(rebuilt)) throw new Error("239 candidate receipt identity, accepted evidence, planning context or changed-path digest is stale or forged");
+}
+
+export function refresh239CandidateReceipt(root: string, path: string, explicitTaskCommits: readonly string[]): Operator239CandidateReceipt {
+  const receipt = build239CandidateReceipt(root, explicitTaskCommits);
+  const output = resolve(root, path);
+  if (!output.startsWith(resolve(root, ".planning/phases/239-investigation-entry-and-transaction-composition/") + "/")) throw new Error("Candidate receipt path escapes the Phase 239 evidence directory");
+  atomicWriteFile(output, `${JSON.stringify(receipt, null, 2)}\n`);
+  return receipt;
+}
+
+if (process.argv[2] === "--refresh-239-receipt") {
+  const root = process.cwd();
+  const parent = JSON.parse(readFileSync(join(root, receiptPath), "utf8")) as { candidate_head: string };
+  const commits = verifiedTaskCommits(root, parent.candidate_head);
+  const receipt = refresh239CandidateReceipt(root, process.argv[3] ?? ".planning/phases/239-investigation-entry-and-transaction-composition/239-CANDIDATE-RECEIPT.json", commits);
+  process.stdout.write(JSON.stringify({ candidateHead: receipt.candidateHead, taskCommitCount: commits.length, receiptSha256: sha256(readFileSync(join(root, process.argv[3] ?? ".planning/phases/239-investigation-entry-and-transaction-composition/239-CANDIDATE-RECEIPT.json"))) }) + "\n");
+} else if (process.argv[2] === "--validate-239-receipt") {
+  const path = process.argv[3] ?? ".planning/phases/239-investigation-entry-and-transaction-composition/239-CANDIDATE-RECEIPT.json";
+  const receipt = JSON.parse(readFileSync(join(process.cwd(), path), "utf8")) as Operator239CandidateReceipt;
+  validate239CandidateReceipt(process.cwd(), receipt, path);
+  process.stdout.write("239 forward receipt verified\n");
+}
+
 function fields(value: object, keys: readonly string[], name: string): void {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`Missing ${name} metadata`);
   for (const key of Object.keys(value)) {
@@ -128,7 +227,7 @@ export function validateServedAsset(asset: ServedAsset): void {
 
 export function serializeManifest(manifest: OperatorEvidenceManifest): string {
   rejectSecrets(manifest);
-  fields(manifest, ["schemaVersion", "baseSha", "candidateHead", "candidateAncestry", "candidatePaths", "candidateChanges", "candidateDiffDigest", "fixture", "route", "state", "actor", "appearance", "browser", "viewport", "input", "captures"], "source");
+  fields(manifest, ["schemaVersion", "baseSha", "candidateHead", "candidateAncestry", "candidatePaths", "candidateChanges", "candidateDiffDigest", "custody", "fixture", "route", "state", "actor", "appearance", "browser", "viewport", "input", "captures"], "source");
   if (manifest.schemaVersion !== 1 || !/^[a-f0-9]{40}$/.test(manifest.baseSha) || !/^[a-f0-9]{40}$/.test(manifest.candidateHead)) {
     throw new Error("Manifest source identity is incomplete");
   }
@@ -140,6 +239,16 @@ export function serializeManifest(manifest: OperatorEvidenceManifest): string {
     if (change.mode === "deleted" ? change.sha256 !== "deleted" : !["100644", "100755"].includes(change.mode) || !digest(change.sha256)) throw new Error("Manifest source change identity is invalid");
   }
   if (sha256(JSON.stringify(manifest.candidateChanges)) !== manifest.candidateDiffDigest) throw new Error("Manifest source changes disagree with candidate digest");
+  fields(manifest.custody, ["receiptSha256", "acceptedReceiptSha256", "acceptedEvidenceIndexSha256", "acceptedHead", "forwardTaskCommits"], "custody");
+  if (![manifest.custody.receiptSha256, manifest.custody.acceptedReceiptSha256, manifest.custody.acceptedEvidenceIndexSha256].every(digest) || !/^[a-f0-9]{40}$/.test(manifest.custody.acceptedHead) || !Array.isArray(manifest.custody.forwardTaskCommits) || !manifest.custody.forwardTaskCommits.length || manifest.custody.forwardTaskCommits.some((sha) => !/^[a-f0-9]{40}$/.test(sha))) throw new Error("Manifest forward custody identity is incomplete");
+  const acceptedIndex = manifest.candidateAncestry.indexOf(manifest.custody.acceptedHead);
+  let previousCommitIndex = acceptedIndex;
+  if (acceptedIndex < 0) throw new Error("Manifest accepted 238 HEAD is absent from candidate ancestry");
+  for (const commit of manifest.custody.forwardTaskCommits) {
+    const commitIndex = manifest.candidateAncestry.indexOf(commit);
+    if (commitIndex <= previousCommitIndex) throw new Error("Manifest forward custody commit is absent, duplicated or out of ancestry order");
+    previousCommitIndex = commitIndex;
+  }
   fields(manifest.fixture, ["scenario", "version", "seedManifestSha256", "semanticId"], "fixture");
   if (manifest.fixture.semanticId !== semanticFixtureId(manifest.fixture.scenario, manifest.fixture.version, manifest.fixture.seedManifestSha256)) throw new Error("Manifest fixture semantic identity disagrees with seed identity");
   for (const [value, keys, name] of [
@@ -212,7 +321,7 @@ export function writeRouteBundle(root: string, selected: readonly string[], expe
   const first = manifests[0];
   for (const manifest of manifests) {
     serializeManifest(manifest);
-    if (manifest.candidateDiffDigest !== first.candidateDiffDigest || manifest.baseSha !== first.baseSha || manifest.fixture.semanticId !== first.fixture.semanticId) throw new Error("Route manifest identity mismatch");
+    if (manifest.candidateDiffDigest !== first.candidateDiffDigest || manifest.baseSha !== first.baseSha || manifest.fixture.semanticId !== first.fixture.semanticId || manifest.custody.receiptSha256 !== first.custody.receiptSha256 || JSON.stringify(manifest.custody.forwardTaskCommits) !== JSON.stringify(first.custody.forwardTaskCommits)) throw new Error("Route manifest identity mismatch");
   }
   writeManifest(root, "manifest.json", {...first, route:"/audit", state: selected.length === expected.length ? "eleven-direct-routes-plus-ranking-twin" : "partial-direct-route-selection", captures: manifests.flatMap(m => m.captures)});
 }
