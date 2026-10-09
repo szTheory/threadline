@@ -11,7 +11,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     attr(:filters_raw, :map, required: true)
     attr(:audited_tables, :list, required: true)
-    attr(:match_count, :integer, required: true)
+    attr(:match_count, :any, required: true)
     attr(:coverage, :map, default: nil)
     attr(:timeline_path, :string, required: true)
 
@@ -177,7 +177,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     attr(:window, :map, required: true)
-    attr(:match_count, :integer, required: true)
+    attr(:match_count, :any, required: true)
     attr(:coverage, :map, default: nil)
 
     defp command_facts(assigns) do
@@ -192,8 +192,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         </div>
         <div class="tl-status tl-timeline-fact">
           <span class="tl-timeline-fact__label">Matching changes</span>
-          <strong class="tl-timeline-fact__value"><%= Helpers.format_count(@match_count) %></strong>
-          <span class="tl-timeline-fact__detail">current result set</span>
+          <strong class="tl-timeline-fact__value"><%= if is_nil(@match_count), do: "Unknown", else: Helpers.format_count(@match_count) %></strong>
+          <span class="tl-timeline-fact__detail"><%= if is_nil(@match_count), do: "query did not complete", else: "current result set" %></span>
         </div>
         <div
           class="tl-timeline-fact"

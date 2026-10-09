@@ -146,31 +146,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket = assign(socket, :cursor, nil)
 
       try do
-        count_task =
-          Task.Supervisor.async_nolink(Threadline.Export.TaskSupervisor, fn ->
-            ExportReads.count_matching(filters, count_opts(socket, 10_001))
-          end)
-
         page_opts = scope_aware_opts(socket)
-
-        page_task =
-          Task.Supervisor.async_nolink(Threadline.Export.TaskSupervisor, fn ->
-            Query.timeline_page(filters, page_opts)
-          end)
 
         # Two parallel queries; await with a generous timeout. A query failure must
         # not crash the LiveView or leave partial rows attached to the new filter.
-        results = Task.yield_many([count_task, page_task], 8_000)
+        # async_stream owns cleanup if a query raises, times out, or the consumer exits.
+        results =
+          Task.Supervisor.async_stream_nolink(
+            Threadline.Export.TaskSupervisor,
+            [:count, :page],
+            fn
+              :count ->
+                safe_query(fn ->
+                  ExportReads.count_matching(filters, count_opts(socket, 10_001))
+                end)
 
-        Enum.each(results, fn
-          {task, nil} -> Task.shutdown(task, :brutal_kill)
-          _ -> :ok
-        end)
+              :page ->
+                safe_query(fn -> Query.timeline_page(filters, page_opts) end)
+            end,
+            max_concurrency: 2,
+            ordered: true,
+            timeout: 8_000,
+            on_timeout: :kill_task
+          )
+          |> Enum.to_list()
 
         case results do
           [
-            {_count_task, {:ok, {:ok, %{count: count}}}},
-            {_page_task, {:ok, page}}
+            {:ok, {:ok, {:ok, %{count: count}}}},
+            {:ok, {:ok, page}}
           ] ->
             page = preload_visible_context(page, socket.assigns.repo, scope_aware_opts(socket))
             filter_query = build_canonical_query(socket.assigns.filters_raw)
@@ -198,6 +202,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
+    defp safe_query(query_fn) do
+      {:ok, query_fn.()}
+    rescue
+      _error -> {:error, :query_failed}
+    catch
+      _kind, _reason -> {:error, :query_failed}
+    end
+
     defp query_error(socket) do
       filter_query = build_canonical_query(socket.assigns.filters_raw)
 
@@ -207,7 +219,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> assign(:query_error, true)
       |> assign(:unknown_table_attempted, false)
       |> assign(:future_window_empty, false)
-      |> assign(:match_count, 0)
+      |> assign(:match_count, nil)
       |> assign(:shown_count, 0)
       |> assign(:filter_query, filter_query)
       |> assign(:cursor, nil)
@@ -429,13 +441,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           </div>
         <% end %>
 
-        <%= if @match_count > 5_000 and @match_count < 10_001 do %>
+        <%= if not is_nil(@match_count) and @match_count > 5_000 and @match_count < 10_001 do %>
           <div class="tl-alert tl-alert--info" role="status">
             Large export — will stream in chunks.
           </div>
         <% end %>
 
-        <%= if @match_count >= 10_001 do %>
+        <%= if not is_nil(@match_count) and @match_count >= 10_001 do %>
           <div class="tl-alert tl-alert--warning" role="alert">
             Truncated to first 10,000 rows. Use `mix threadline.export --max-rows N` for the full window.
           </div>
