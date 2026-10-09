@@ -611,6 +611,52 @@ test.describe("Timeline investigation flow browser proof", () => {
     await expect(changes.first()).toContainText(proof.table);
   });
 
+  test("keeps draft edits unapplied and drops unsupported URL parameters", async ({
+    page,
+  }) => {
+    await login(page);
+    const proof = await createCorrelatedPost(page);
+    const appliedUrl = `${timelineUrl({ table: proof.table, correlation: proof.correlation })}&scope=forged`;
+    await page.goto(appliedUrl);
+
+    const table = page.locator("#filter-table");
+    const matchingRow = page
+      .getByTestId("timeline-row")
+      .filter({
+        has: page.locator(
+          `[aria-label="Copy correlation id"][data-tl-copy="${proof.correlation}"]`,
+        ),
+      })
+      .first();
+    await expect(matchingRow).toBeVisible();
+    await expect(page.locator(".tl-pager__range")).toContainText(
+      "Showing 1 of 1 matching changes",
+    );
+
+    await table.fill("draft_without_apply");
+    await expect(page).toHaveURL(appliedUrl);
+    await expect(matchingRow).toBeVisible();
+    await expect(page.locator(".tl-pager__range")).toContainText(
+      "Showing 1 of 1 matching changes",
+    );
+
+    await page
+      .locator("#timeline-filters")
+      .getByRole("button", { name: "Apply", exact: true })
+      .click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("table")).toBe(
+      "draft_without_apply",
+    );
+    expect(new URL(page.url()).searchParams.has("scope")).toBe(false);
+    await expect(matchingRow).toHaveCount(0);
+    await expect(page.locator(".tl-pager__range")).toHaveCount(0);
+    await expect(
+      page
+        .getByRole("status")
+        .filter({ hasText: "No captured changes match this window" }),
+    ).toBeVisible();
+  });
+
   for (const viewport of viewports) {
     test.describe(`${viewport.name}`, () => {
       test.use({

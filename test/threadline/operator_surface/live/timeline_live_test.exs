@@ -718,6 +718,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html_after_back =~ ~s|class="tl-alert tl-alert--error"|
     end
 
+    test "a changed applied query resets streamed rows and the older-page cursor", %{conn: conn} do
+      posts_table = "query_reset_posts_#{System.unique_integer([:positive])}"
+      users_table = "query_reset_users_#{System.unique_integer([:positive])}"
+      seed_changes!(51, table: posts_table)
+      seed_change!(table: users_table)
+
+      {:ok, lv, first_page} =
+        live(
+          conn,
+          "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{posts_table}"
+        )
+
+      assert first_page =~ "Showing 50 of 51 matching changes"
+      assert has_element?(lv, "button[phx-click=next-page]:not([disabled])")
+      assert length(Regex.scan(~r/data-testid="timeline-row"/, first_page)) == 50
+
+      html_after_change =
+        render_patch(
+          lv,
+          "/audit/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=#{users_table}"
+        )
+
+      assert html_after_change =~ "Showing 1 of 1 matching changes"
+      assert has_element?(lv, "button[phx-click=next-page][disabled]")
+      assert length(Regex.scan(~r/data-testid="timeline-row"/, html_after_change)) == 1
+      refute html_after_change =~ posts_table
+      assert html_after_change =~ users_table
+    end
+
     # -------------------------------------------------------------------
     # Case 15 — three download anchors render (EXPO-03)
     # Plan-supplied numbering 12-15; renumbered to 15-18 because Cases 12,
@@ -1608,6 +1637,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "support_posts"
       refute html =~ "admin_posts"
+    end
+
+    test "forged URL scope parameters cannot widen the server-owned tenant scope", %{conn: conn} do
+      seed_change!(
+        table: "tenant_scope_posts",
+        source: "support",
+        actor_ref: %{"type" => "user", "id" => "support-agent"}
+      )
+
+      seed_change!(
+        table: "tenant_scope_posts",
+        source: "admin",
+        op: "delete",
+        actor_ref: %{"type" => "user", "id" => "admin-agent"}
+      )
+
+      {:ok, _lv, html} =
+        live(
+          conn,
+          "/audit_scoped/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&scope=admin"
+        )
+
+      assert length(Regex.scan(~r/data-testid="timeline-row"/, html)) == 1
+      assert html =~ "INSERT"
+      refute html =~ "DELETE"
     end
 
     test "Case 11: Operator can save, apply, and delete a view", %{conn: conn} do
