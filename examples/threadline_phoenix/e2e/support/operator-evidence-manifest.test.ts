@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test, { type TestContext } from "node:test";
-import { assetRecord, candidateIdentity, localAssetPath, semanticFixtureId, serializeManifest, writeManifest, type OperatorEvidenceManifest } from "./operator-evidence-manifest.js";
+import { assetRecord, writeRouteBundle, candidateIdentity, localAssetPath, semanticFixtureId, serializeManifest, writeManifest, type OperatorEvidenceManifest } from "./operator-evidence-manifest.js";
 import { DEFAULT_OPERATOR_SURFACE_PATHS } from "./operator-surface-paths.js";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -303,4 +303,17 @@ test("owned preview stop checks cwd, loopback listener and database on both entr
     assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(readFileSync(signal,"utf8")),[777777,"SIGTERM"]);assert.ok(!existsSync(state));
     unlinkSync(signal);
   }
+});
+
+test("focused route aggregation is partial and still rejects missing selected captures", (t) => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), "operator-route-selection-")));
+  t.after(() => rmSync(root, {recursive:true, force:true}));
+  writeFileSync(join(root,"home.png"), "pixels");
+  writeManifest(root,"route.home-manifest.json", valid());
+  writeRouteBundle(root,["route.home"],["route.home","route.timeline"]);
+  const partial = JSON.parse(readFileSync(join(root,"manifest.json"),"utf8"));
+  assert.equal(partial.state,"partial-direct-route-selection");assert.equal(partial.captures.length,1);
+  assert.throws(() => writeRouteBundle(root,["route.home","route.timeline"],["route.home","route.timeline"]), /ENOENT/);
+  writeRouteBundle(root,[],["route.home","route.timeline"]);
+  assert.deepEqual(JSON.parse(readFileSync(join(root,"manifest.json"),"utf8")),partial);
 });

@@ -193,15 +193,17 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
     const {candidateIdentity,serializeManifest}=require('./examples/threadline_phoenix/e2e/support/operator-evidence-manifest.ts');
     const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
     const orderedCSS=['01_tokens.css','02_base_shell.css','03_page_home.css','04_controls.css','05_feedback.css','06_layout_primitives.css','07_find_detail.css','08_overlays_motion.css','09_responsive.css'].map(n=>fs.readFileSync(path.join(root,'lib/threadline/operator_surface/style',n),'utf8')).join('');
-    const catalog={}; let first;
+    const catalog={}; let first, main; const selected=fs.realpathSync(mainPath);
     for(const bundle of bundles){
       const dir=fs.realpathSync(bundle);
       assert.ok(dir.startsWith(path.join(root,'examples/threadline_phoenix/e2e/artifacts/operator-evidence/') ));
-      const names=fs.readdirSync(dir).filter(n=>n.endsWith('-manifest.json')||n==='manifest.json').sort();
+      const names=[...new Set([...fs.readdirSync(dir).filter(n=>n.endsWith('-manifest.json')||n==='manifest.json'), ...(path.dirname(selected)===dir ? [path.basename(selected)] : [])])].sort();
       assert.ok(names.length>0);
       for(const name of names){
-        const bytes=fs.readFileSync(path.join(dir,name),'utf8'),m=JSON.parse(bytes),current=candidateIdentity(root,m.baseSha);
+        const manifestFile=fs.realpathSync(path.join(dir,name));assert.equal(path.dirname(manifestFile),dir);
+        const bytes=fs.readFileSync(manifestFile,'utf8'),m=JSON.parse(bytes),current=candidateIdentity(root,m.baseSha);
         assert.equal(serializeManifest(m),bytes);
+        if(manifestFile===selected)main=m;
         assert.equal(m.candidateDiffDigest,current.candidateDiffDigest);
         assert.deepEqual(m.candidateChanges,current.candidateChanges);
         const end=current.candidateAncestry.indexOf(m.candidateHead);
@@ -225,7 +227,7 @@ defmodule Threadline.OperatorSurface.EvidenceContract do
         }
       }
     }
-    const main=JSON.parse(fs.readFileSync(mainPath,'utf8'));
+    assert.ok(main, 'Selected manifest was not validated inside an accepted bundle');
     const inventory=JSON.parse(fs.readFileSync(path.join(root,'test/fixtures/operator_surface/route-inventory.json'),'utf8'));
     for(const route of inventory.routes)for(const width of [1280,768,375])for(const kind of ['shell','content','observation','scorecard']){
       assert.ok(main.captures.some(c=>c.id===route.id+'__dark-'+width+'-'+kind), 'Missing direct route cell '+route.id+' '+width+' '+kind);
@@ -694,6 +696,37 @@ defmodule Threadline.OperatorSurface.OperatorEvidenceContractTest do
         findings_path = Contract.required_path!("THREADLINE_OPERATOR_FINDINGS")
         text = File.read!(findings_path)
         catalog = Contract.live_catalog!(@root, manifest_path, text)
+        # Exercise the selected path independently of neighboring canonical manifests.
+        scratch =
+          Path.join(
+            Path.dirname(Path.dirname(manifest_path)),
+            "contract_selected_#{System.unique_integer([:positive])}"
+          )
+
+        File.cp_r!(Path.dirname(manifest_path), scratch)
+        selected = Path.join(scratch, "selected-evidence.json")
+        bytes = File.read!(manifest_path)
+
+        try do
+          File.write!(selected, bytes)
+          assert Contract.live_catalog!(@root, selected, "bundle_path: #{scratch}") != %{}
+          original = Jason.decode!(bytes)
+
+          for bad <- [
+                Map.put(original, "baseSha", "forged"),
+                put_in(original, ["captures", Access.at(0), "outputSha256"], "forged"),
+                put_in(original, ["captures", Access.at(0), "outputPath"], "missing-output.png")
+              ] do
+            File.write!(selected, Jason.encode!(bad, pretty: true) <> "\n")
+
+            assert_raise ArgumentError, ~r/live source\/asset\/output custody failed/, fn ->
+              Contract.live_catalog!(@root, selected, "bundle_path: #{scratch}")
+            end
+          end
+        after
+          File.rm_rf!(scratch)
+        end
+
         rows = Contract.findings(text)
         assert Contract.finding_errors(rows, Contract.ids(inventory()), catalog) == []
 

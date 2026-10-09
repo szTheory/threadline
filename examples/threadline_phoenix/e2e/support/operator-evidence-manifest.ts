@@ -202,3 +202,17 @@ export function assetRecord(root: string, url: string, status: number, contentTy
 export function outputRecord(id: string, route: string, state: string, condition: string, outputPath: string): OperatorCapture {
   return { id, route, state, condition, outputPath, outputSha256: sha256(readFileSync(outputPath)), assets: [] };
 }
+
+// Aggregate only tests started by this worker. A missing selected capture fails;
+// a filtered run is explicitly partial and is never accepted as the full baseline.
+export function writeRouteBundle(root: string, selected: readonly string[], expected: readonly string[]): void {
+  if (selected.length === 0) return;
+  if (new Set(selected).size !== selected.length || selected.some(id => !expected.includes(id))) throw new Error("Invalid route selection");
+  const manifests: OperatorEvidenceManifest[] = selected.map(id => JSON.parse(readFileSync(resolveContainedPath(root, `${id}-manifest.json`), "utf8")));
+  const first = manifests[0];
+  for (const manifest of manifests) {
+    serializeManifest(manifest);
+    if (manifest.candidateDiffDigest !== first.candidateDiffDigest || manifest.baseSha !== first.baseSha || manifest.fixture.semanticId !== first.fixture.semanticId) throw new Error("Route manifest identity mismatch");
+  }
+  writeManifest(root, "manifest.json", {...first, route:"/audit", state: selected.length === expected.length ? "eleven-direct-routes-plus-ranking-twin" : "partial-direct-route-selection", captures: manifests.flatMap(m => m.captures)});
+}

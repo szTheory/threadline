@@ -29,7 +29,7 @@ for runner_arg in "$@"; do
     *) FORWARDED_ARGS+=("$runner_arg") ;;
   esac
 done
-set -- "${FORWARDED_ARGS[@]}"
+set -- ${FORWARDED_ARGS[@]+"${FORWARDED_ARGS[@]}"}
 
 port_listening() {
   local port="$1"
@@ -68,7 +68,7 @@ fail_with_log() {
 }
 
 loopback_host() {
-  case "${1,,}" in
+  case "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')" in
     localhost|127.0.0.1|::1|\[::1\]) return 0 ;;
     *) return 1 ;;
   esac
@@ -296,15 +296,15 @@ url_origin() {
   [[ "$url" != *'\\'* && "$url" != *$'\r'* && "$url" != *$'\n'* && "$url" != *$'\t'* && "$url" != *' '* ]] || return 1
   [[ "$url" =~ ^(https?)://([^/?#]+) ]] || return 1
 
-  scheme="${BASH_REMATCH[1],,}"
+  scheme="${BASH_REMATCH[1]}"
   authority="${BASH_REMATCH[2]}"
   [[ "$authority" != *'@'* ]] || return 1
 
   if [[ "$authority" =~ ^([A-Za-z0-9.-]+):([0-9]+)$ ]]; then
-    host="${BASH_REMATCH[1],,}"
+    host="$(printf '%s' "${BASH_REMATCH[1]}" | tr '[:upper:]' '[:lower:]')"
     port="${BASH_REMATCH[2]}"
   elif [[ "$authority" =~ ^[A-Za-z0-9.-]+$ ]]; then
-    host="${authority,,}"
+    host="$(printf '%s' "$authority" | tr '[:upper:]' '[:lower:]')"
     [[ "$scheme" == "https" ]] && port=443 || port=80
   else
     return 1
@@ -417,7 +417,7 @@ fi
 
 if [[ "${THREADLINE_E2E_ARGUMENTS_ONLY:-0}" == "1" ]]; then
   printf 'npm test --'
-  printf ' %q' "${PROJECT_ARGS[@]}" "$@"
+  for runner_arg in ${PROJECT_ARGS[@]+"${PROJECT_ARGS[@]}"} "$@"; do printf ' %q' "$runner_arg"; done
   printf '\n'
   exit 0
 fi
@@ -501,4 +501,4 @@ if ! operator_surface_ready; then
 fi
 
 cd "$E2E_DIR"
-npm test -- "${PROJECT_ARGS[@]}" "$@"
+npm test -- ${PROJECT_ARGS[@]+"${PROJECT_ARGS[@]}"} "$@"

@@ -7,7 +7,7 @@ import {
   currentOperatorSurfacePaths,
   resolveContainedPath,
 } from "../support/operator-surface-paths.js";
-import { writeManifest } from "../support/operator-evidence-manifest.js";
+import { writeRouteBundle } from "../support/operator-evidence-manifest.js";
 
 // Real operator-route capture lane (Phase 196) — the critic's REALISTIC-PAGE source.
 //
@@ -381,9 +381,11 @@ async function captureCell(
 }
 
 test.describe("operator real-route deterministic capture", () => {
+  const selectedEvidence = new Set<string>();
   for (const route of inventory.routes) {
     test(`direct ${route.id} ${route.pattern}: shell and content at 1280/768/375`, async ({ page, browser }, info) => {
       test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || info.project.name !== "route-capture", "Source-bound expansion requires evidence route lane");
+      selectedEvidence.add(route.id);
       await login(page);
       // Resolve DB-generated IDs through the deterministic Manifest correlation;
       // navigation resolves identity only, then every width direct-enters the URL.
@@ -411,6 +413,7 @@ test.describe("operator real-route deterministic capture", () => {
 
   test("Timeline degraded ranking twin remains a separate state", async ({ page, browser }, info) => {
     test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || info.project.name !== "route-capture", "Evidence route lane only");
+    selectedEvidence.add("route.timeline.degraded");
     await login(page);
     const evidence = await startEvidence(page, browser, info);
     await page.goto("/audit/timeline", { waitUntil: "networkidle" });
@@ -421,10 +424,7 @@ test.describe("operator real-route deterministic capture", () => {
 
   test.afterAll(() => {
     if (process.env.THREADLINE_E2E_EVIDENCE !== "1") return;
-    const manifests = [...inventory.routes.map((r) => r.id), "route.timeline.degraded"].map((id) => JSON.parse(readFileSync(resolveContainedPath(runRoot(), `${id}-manifest.json`), "utf8")));
-    const first = manifests[0];
-    for (const manifest of manifests) expect(manifest.candidateDiffDigest).toBe(first.candidateDiffDigest);
-    writeManifest(runRoot(), "manifest.json", { ...first, route: "/audit", state: "eleven-direct-routes-plus-ranking-twin", captures: manifests.flatMap((m) => m.captures) });
+    writeRouteBundle(runRoot(), [...selectedEvidence], [...inventory.routes.map(r => r.id), "route.timeline.degraded"]);
   });
 
   test("emits the real operator-page evidence bundle", async ({ page }, testInfo) => {
