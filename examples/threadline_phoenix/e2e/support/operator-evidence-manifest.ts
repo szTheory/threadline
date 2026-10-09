@@ -5,7 +5,7 @@ import {
   readFileSync,
   statSync,
 } from "node:fs";
-import { basename, join, relative, resolve, sep } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { atomicWriteFile, resolveContainedPath } from "./operator-surface-paths.js";
 
 export interface ServedAsset {
@@ -82,8 +82,10 @@ export function candidateIdentity(root: string, baseSha: string) {
     throw new Error(`Candidate HEAD ${candidateHead} is not descended from immutable base ${baseSha}`);
   }
   const committed = git(["diff", "--name-only", "-z", baseSha, "HEAD"]).split("\0");
+  const staged = git(["diff", "--cached", "--name-only", "-z"]).split("\0");
+  const unstaged = git(["diff", "--name-only", "-z"]).split("\0");
   const untracked = git(["ls-files", "--others", "--exclude-standard", "-z"]).split("\0");
-  const paths = [...new Set([...committed, ...untracked].filter((path) => path && relevant(path)))].sort();
+  const paths = [...new Set([...committed, ...staged, ...unstaged, ...untracked].filter((path) => path && relevant(path)))].sort();
   const entries = paths.map((path) => {
     const absolute = resolve(root, path);
     if (!existsSync(absolute)) return { path, mode: "deleted", sha256: "deleted" };
@@ -130,28 +132,10 @@ export function writeManifest(root: string, path: string, manifest: OperatorEvid
 }
 
 export function localAssetPath(root: string, responseUrl: string): string {
-  const pathname = new URL(responseUrl).pathname;
-  const file = basename(pathname);
-  const candidates = [
-    join(root, "examples/threadline_phoenix/priv/static/assets", file),
-    join(root, "examples/threadline_phoenix/priv/static", file),
-    join(root, "examples/threadline_phoenix/assets", file),
-    ...[
-      "lib/threadline/operator_surface/style/01_tokens.css",
-      "lib/threadline/operator_surface/style/02_base_shell.css",
-      "lib/threadline/operator_surface/style/03_page_home.css",
-      "lib/threadline/operator_surface/style/04_controls.css",
-      "lib/threadline/operator_surface/style/05_feedback.css",
-      "lib/threadline/operator_surface/style/06_layout_primitives.css",
-      "lib/threadline/operator_surface/style/07_find_detail.css",
-      "lib/threadline/operator_surface/style/08_overlays_motion.css",
-      "lib/threadline/operator_surface/style/09_responsive.css",
-    ].map((path) => join(root, path)),
-  ];
-  const found = candidates.find((candidate) => existsSync(candidate));
-  if (!found) throw new Error(`No local built asset maps to browser response ${responseUrl}`);
-  const rel = relative(resolve(root), resolve(found));
-  if (rel.startsWith(`..${sep}`)) throw new Error(`Asset mapping escaped source root: ${responseUrl}`);
+  const pathname = decodeURIComponent(new URL(responseUrl).pathname);
+  if (!pathname.startsWith("/assets/")) throw new Error(`No local built asset maps to browser response ${responseUrl}`);
+  const found = resolveContainedPath(join(root, "examples/threadline_phoenix/priv/static"), pathname.slice(1));
+  if (!existsSync(found) || !statSync(found).isFile()) throw new Error(`No local built asset maps to browser response ${responseUrl}`);
   return found;
 }
 

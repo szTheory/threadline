@@ -108,6 +108,10 @@ evidence_preflight() {
   }
   export THREADLINE_E2E_BASE_SHA
   EVIDENCE_DATABASE="threadline_phoenix_test${partition}"
+  [[ ${#EVIDENCE_DATABASE} -le 63 ]] || { echo "Evidence database name exceeds PostgreSQL's 63-byte identifier limit." >&2; return 1; }
+  [[ "${DB_USERNAME:-postgres}" == "postgres" && "${DB_PASSWORD:-postgres}" == "postgres" ]] || {
+    echo "Evidence target credentials must match config/test.exs." >&2; return 1;
+  }
   command -v psql >/dev/null 2>&1 || { echo "Evidence mode requires psql to prove target ownership before reset." >&2; return 1; }
   db_check=$(PGPASSWORD="${DB_PASSWORD:-postgres}" psql -X -h "$DB_HOST" -p "$DB_PORT" -U "${DB_USERNAME:-postgres}" -d postgres -v ON_ERROR_STOP=1 -Atqc "SELECT 1 FROM pg_database WHERE datname = '${EVIDENCE_DATABASE}'" 2>&1) || {
     echo "Evidence mode could not inspect the local PostgreSQL target; refusing reset: $db_check" >&2; return 1;
@@ -331,8 +335,11 @@ choose_free_port() {
 }
 
 cleanup_exports() {
+  local generated_file
   if command -v git >/dev/null 2>&1 && git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    git -C "$ROOT" clean -fX -- priv/threadline_exports examples/threadline_phoenix/priv/threadline_exports >/dev/null 2>&1 || true
+    while IFS= read -r -d '' generated_file; do
+      rm -f -- "$ROOT/$generated_file"
+    done < <(git -C "$ROOT" ls-files --others --ignored --exclude-standard -z -- priv/threadline_exports examples/threadline_phoenix/priv/threadline_exports)
   else
     rm -rf "$EXAMPLE/priv/threadline_exports"
   fi
@@ -370,7 +377,11 @@ mix deps.get --only test
 # reuse a stale compiled router. (Phase 168, A11Y-02 part 2.)
 touch lib/threadline_phoenix_web/router.ex
 mix compile --force
-mix ecto.create --quiet -r ThreadlinePhoenix.Repo 2>/dev/null || true
+if [[ "$EVIDENCE_MODE" == "1" ]]; then
+  mix ecto.create --quiet -r ThreadlinePhoenix.Repo
+else
+  mix ecto.create --quiet -r ThreadlinePhoenix.Repo 2>/dev/null || true
+fi
 mix ecto.migrate --quiet
 mix demo.reset
 mix demo.seed

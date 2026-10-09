@@ -389,6 +389,7 @@ async function captureCell(
 test.describe("operator real-route deterministic capture", () => {
   test("captures authenticated home shell evidence", async ({ page, browser }, testInfo) => {
     test.skip(testInfo.project.name !== "route-capture", "Evidence capture runs only under route-capture");
+    test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1", "Home provenance capture requires evidence mode");
     test.setTimeout(900_000);
 
     const baseSha = process.env.THREADLINE_E2E_BASE_SHA;
@@ -399,13 +400,18 @@ test.describe("operator real-route deterministic capture", () => {
     const runRoot = resolveContainedPath(paths.e2eRoot, relative(paths.e2eRoot, resolve(evidenceRoot)));
     mkdirSync(runRoot, { recursive: true });
 
+    // Routing disables the HTTP cache, giving this navigation real response bytes
+    // instead of the login page's conditional 304 responses.
+    await page.route("**/assets/**", (route) => route.continue());
     await login(page);
     const assets = new Map<string, ServedAsset>();
     const assetErrors: string[] = [];
-    page.on("response", async (response) => {
+    const pendingAssets: Promise<void>[] = [];
+    page.on("response", (response) => {
       const resourceType = response.request().resourceType();
-      if (!["stylesheet", "script"].includes(resourceType) || response.status() !== 200) return;
+      if (!["stylesheet", "script"].includes(resourceType)) return;
       const url = response.url();
+      pendingAssets.push((async () => {
       try {
         const record = assetRecord(
           paths.repositoryRoot,
@@ -418,6 +424,7 @@ test.describe("operator real-route deterministic capture", () => {
       } catch (error) {
         assetErrors.push(`Could not verify served ${resourceType} asset ${url}: ${String(error)}`);
       }
+      })());
     });
 
     await page.goto("/audit", { waitUntil: "load" });
@@ -429,7 +436,8 @@ test.describe("operator real-route deterministic capture", () => {
     await expect(content.locator("h1").first()).toBeVisible();
     await page.waitForLoadState("networkidle");
     await page.evaluate(() => (document as unknown as { fonts: { ready: Promise<unknown> } }).fonts.ready);
-    await page.waitForTimeout(250);
+    await expect(page.locator('[data-phx-main]')).toHaveClass(/phx-connected/);
+    await Promise.all(pendingAssets);
 
     if (assetErrors.length) throw new Error(assetErrors.join("\n"));
     const styleText = (await page.locator("style").allTextContents()).find((text) => text.includes(".threadline-ui"));
@@ -479,10 +487,8 @@ test.describe("operator real-route deterministic capture", () => {
     const contentPath = resolveContainedPath(runRoot, "home-content.png");
     await page.screenshot({ path: shellPath, fullPage: true, animations: "disabled" });
     await content.screenshot({ path: contentPath, scale: "css", mask: dynamicMasks(page), maskColor: "#0B1020" });
-    const shellDomPath = resolveContainedPath(runRoot, "home-shell.html");
-    atomicWriteFile(shellDomPath, await root.evaluate((el) => el.outerHTML));
-
     const theme = (await root.getAttribute("data-tl-theme")) ?? "unknown";
+    const preference = await root.locator('input[name="theme"]:checked').inputValue();
     const condition = `${testInfo.project.name}; reduced-motion; zoom=1`;
     const route = "/audit";
     const state = "authenticated-home";
@@ -497,7 +503,7 @@ test.describe("operator real-route deterministic capture", () => {
       route,
       state,
       actor: { role: "seeded-admin", scope: "isolated-local-demo-database" },
-      appearance: { effectiveTheme: theme, preference: "system" },
+      appearance: { effectiveTheme: theme, preference },
       browser: { playwright: PLAYWRIGHT_VERSION, browser: browser.version() },
       viewport: { width: 1280, height: 900, deviceScaleFactor: 1 },
       input: { motion: "reduced", zoom: 1 },
