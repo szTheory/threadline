@@ -215,6 +215,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 <time datetime={Presentation.exact_time(captured_at)} title={Presentation.exact_time(captured_at)}>
                   <%= Presentation.human_time(captured_at) %>
                 </time>
+                <UI.Display.full_value value={Presentation.exact_time(captured_at)} label="exact captured time" />
               </:metadata>
             </UI.Page.detail_header>
           </div>
@@ -241,6 +242,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <time class="tl-change__time" datetime={change_datetime(change.change_diff["captured_at"])} title={change_datetime(change.change_diff["captured_at"])}>
                       <%= change_time(change.change_diff["captured_at"]) %>
                     </time>
+                    <UI.Display.full_value value={change_datetime(change.change_diff["captured_at"])} label="exact change time" />
                   </div>
                   <div class="tl-meta">
                     <span>PK <code><%= pk_label(change.change_diff["table_pk"]) %></code></span>
@@ -268,25 +270,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <span class="tl-change__field-name"><%= field["name"] %></span>
                         <%= if has_before_axis?(field) do %>
                           <% before = Presentation.change_value_token(field, :before) %>
-                          <span class="tl-diff__cell">
+                          <div class="tl-diff__cell">
                             <span class="tl-diff__axis-label">Before</span>
-                            <span class={["tl-value", before.modifier]} title={Map.get(before, :title)}><%= before.text %></span>
+                            <UI.Display.value token={before} label={field["name"] <> " before value"} />
                             <button :if={diff_full(before) && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={diff_full(before)} aria-label={"Copy #{field["name"]} before value"}>
                               <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
                               Copy
                             </button>
-                          </span>
+                          </div>
                           <span class="tl-diff__arrow">-&gt;</span>
                         <% end %>
                         <% after_token = Presentation.change_value_token(field, :after) %>
-                        <span class="tl-diff__cell">
+                        <div class="tl-diff__cell">
                           <span class="tl-diff__axis-label">After</span>
-                          <span class={["tl-value", after_token.modifier]} title={Map.get(after_token, :title)}><%= after_token.text %></span>
+                          <UI.Display.value token={after_token} label={field["name"] <> " after value"} />
                           <button :if={diff_full(after_token) && Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-button tl-button--compact tl-button--secondary" data-tl-copy={diff_full(after_token)} aria-label={"Copy #{field["name"]} after value"}>
                             <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
                             Copy
                           </button>
-                        </span>
+                        </div>
                       </div>
                     <% end %>
                   <% end %>

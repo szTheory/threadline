@@ -645,6 +645,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert before_token.text != long_before
       assert html =~ before_token.text
       assert html =~ after_token.text
+      assert html =~ "<summary>Show full token before value</summary>"
+      assert html =~ "<summary>Show full token after value</summary>"
+      assert html =~ ~s|<code class="tl-value__full">#{long_before}</code>|
+      assert html =~ ~s|<code class="tl-value__full">#{long_after}</code>|
 
       # The diff cell exposes a gated copy affordance bound to the FULL value.
       assert_copy_equals_full(html, full: long_before)

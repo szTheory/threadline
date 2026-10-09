@@ -171,7 +171,13 @@ if Code.ensure_loaded?(Phoenix.Component) do
     def ref(assigns) do
       kind = Presentation.kind_from_string(assigns.kind)
       r = Presentation.ref(assigns.value, kind: kind)
-      assigns = assign(assigns, :r, r)
+
+      full_label =
+        assigns.copy_label
+        |> String.replace_prefix("Copy ", "")
+        |> String.downcase()
+
+      assigns = assign(assigns, r: r, full_label: full_label)
 
       ~H"""
       <span class={["tl-ref", @class]} {@rest}>
@@ -187,6 +193,37 @@ if Code.ensure_loaded?(Phoenix.Component) do
           Copy
         </button>
       </span>
+      <.full_value
+        :if={Script.enabled?() && @r.visible != @r.full}
+        value={@r.full}
+        label={@full_label}
+        class="tl-ref__disclosure"
+      />
+      """
+    end
+
+    @doc false
+    attr(:value, :string, required: true)
+    attr(:label, :string, required: true)
+    attr(:class, :any, default: nil)
+
+    def full_value(assigns) do
+      ~H"""
+      <details class={["tl-full-value", @class]}>
+        <summary>Show full <%= @label %></summary>
+        <code class="tl-value__full"><%= @value %></code>
+      </details>
+      """
+    end
+
+    @doc false
+    attr(:token, :map, required: true)
+    attr(:label, :string, required: true)
+
+    def value(assigns) do
+      ~H"""
+      <span class={["tl-value", @token.modifier]} title={Map.get(@token, :title)}><%= @token.text %></span>
+      <.full_value :if={Map.get(@token, :title)} value={@token.title} label={@label} />
       """
     end
 

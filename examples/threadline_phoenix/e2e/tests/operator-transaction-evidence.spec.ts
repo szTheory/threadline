@@ -17,8 +17,9 @@ test("opens an authorized transaction with separate action and row evidence", as
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const correlation = `tl239-transaction-${suffix}`;
   const slug = `transaction-proof-${suffix}`;
+  const longTitle = `Unicode café ${"complete-evidence-value-".repeat(4)}${suffix}`;
   const response = await page.request.post("/api/posts", {
-    data: { post: { title: "Transaction evidence proof", slug } },
+    data: { post: { title: longTitle, slug } },
     headers: {
       "content-type": "application/json",
       "x-correlation-id": correlation,
@@ -54,4 +55,16 @@ test("opens an authorized transaction with separate action and row evidence", as
   await expect(change).toContainText("INSERT");
   await expect(change).toContainText("After");
   await expect(change).toContainText("transaction-proof");
+
+  const fullTitle = change.getByText("Show full title after value", { exact: true });
+  await fullTitle.focus();
+  await page.keyboard.press("Enter");
+  await expect(change.getByText(longTitle, { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Show full exact captured time", { exact: true }),
+  ).toBeVisible();
+  const exactTime = page.getByText("Show full exact captured time", { exact: true });
+  await exactTime.focus();
+  await page.keyboard.press("Enter");
+  await expect(exactTime.locator("xpath=..").locator("code")).toContainText(/Z$/);
 });

@@ -720,6 +720,10 @@ defmodule Threadline.OperatorSurface.UITest do
       assert html =~ "tl-secondary-ref"
       assert html =~ ~s(data-tl-copy="#{@long_ref}")
       assert html =~ ~s(title="#{@long_ref}")
+      assert html =~ "<details"
+      assert html =~ "Show full correlation id"
+      assert html =~ "<summary>Show full correlation id</summary>"
+      assert html =~ ~s(<code class="tl-value__full">#{@long_ref}</code>)
 
       # Every data-tl-copy binding equals the full value — never the truncated visible text.
       targets = copy_targets(html)
@@ -733,6 +737,23 @@ defmodule Threadline.OperatorSurface.UITest do
       assert visible != @long_ref, "fixture must actually truncate so the test is meaningful"
       assert html =~ visible
       refute Enum.member?(targets, visible)
+    end
+
+    test "does not create a full-value disclosure for redacted tokens" do
+      canary = "synthetic-secret-canary-239-6f71"
+      assigns = %{token: %{text: "[REDACTED]", modifier: "tl-value--redacted"}}
+
+      html =
+        rendered_to_string(~H"""
+        <UI.Display.value token={@token} label="secret before value" />
+        """)
+
+      assert html =~ "[REDACTED]"
+      refute html =~ canary
+      refute html =~ "<details"
+      refute html =~ ~s(title=)
+      refute html =~ "data-tl-copy"
+      refute html =~ "aria-label"
     end
 
     test "copy_label is a required attr (omitting it warns at compile time — D-07)" do
