@@ -207,7 +207,7 @@ test.describe("operator Home orientation mobile UAT", () => {
     await expect(
       main
         .locator("#tl-correlation-lookup")
-        .getByRole("button", { name: "Open Timeline" }),
+        .getByRole("button", { name: "Open the timeline" }),
     ).toBeVisible();
 
     await expectMobileLayoutViewport(page);

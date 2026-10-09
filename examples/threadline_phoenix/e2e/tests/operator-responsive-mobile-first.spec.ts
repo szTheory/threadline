@@ -451,7 +451,7 @@ async function assertHome(page: Page) {
   const correlationLookup = page.locator("#tl-correlation-lookup");
   await expect(correlationLookup.getByLabel("Correlation id")).toBeVisible();
   await expect(
-    correlationLookup.getByRole("button", { name: "Open Timeline" }),
+    correlationLookup.getByRole("button", { name: "Open the timeline" }),
   ).toBeVisible();
 }
 

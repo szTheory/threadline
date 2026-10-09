@@ -118,7 +118,7 @@ test.describe("operator earned-flow browser UAT", () => {
     await form
       .locator('input[name="correlation[correlation_id]"]')
       .fill(closeCorrelation);
-    await form.getByRole("button", { name: "Open Timeline" }).click();
+    await form.getByRole("button", { name: "Open the timeline" }).click();
 
     await expectPath(page, "/audit/timeline");
     expect(new URL(page.url()).searchParams.get("correlation_id")).toBe(
