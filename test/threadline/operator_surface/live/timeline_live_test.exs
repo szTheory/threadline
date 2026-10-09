@@ -108,6 +108,51 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       router: Threadline.OperatorSurface.TimelineLiveTest.ScopeNoFnRouter
   end
 
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.TransitionRouter do
+    use Threadline.OperatorSurfaceTest.Router
+
+    import Ecto.Query
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_transition",
+        authorize_fn: &__MODULE__.auth/1,
+        scope_query_fn: &__MODULE__.scope_operator_query/3
+      )
+    end
+
+    def auth(_socket) do
+      case Application.get_env(:threadline, :test_timeline_transition_auth, :allow) do
+        :allow -> {:ok, %{organization_id: "org-239-transition"}}
+        :deny -> {:error, :unauthorized}
+      end
+    end
+
+    def scope_operator_query(query, %{organization_id: organization_id}, %{
+          surface: :timeline,
+          params: %{filters: filters}
+        }) do
+      failed_correlation =
+        Application.get_env(:threadline, :test_timeline_transition_failure)
+
+      if failed_correlation == Keyword.get(filters, :table) do
+        raise "test-only Timeline query failure"
+      end
+
+      where(
+        query,
+        [_change, txn],
+        fragment("?->>'organization_id' = ?", txn.meta, ^organization_id)
+      )
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.TimelineLiveTest.TransitionEndpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.TimelineLiveTest.TransitionRouter
+  end
+
   # Router/endpoint for the D-20 nil-scope matrix (233-04 Task 2) — the
   # authorize_fn returns :ok (admin, unscoped) but a scope_query_fn is still
   # configured at mount. The nil scope stays unscoped and the fn is never
@@ -1849,6 +1894,128 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 end
 
 if Code.ensure_loaded?(Phoenix.LiveView) do
+  defmodule Threadline.OperatorSurface.Live.TimelineLiveTransitionTest do
+    use Threadline.DataCase, async: false
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.TimelineLiveTest.TransitionEndpoint
+
+    setup_all do
+      start_endpoint!(@endpoint)
+      :ok
+    end
+
+    setup do
+      Application.put_env(:threadline, :test_timeline_transition_auth, :allow)
+      Application.delete_env(:threadline, :test_timeline_transition_failure)
+
+      on_exit(fn ->
+        Application.delete_env(:threadline, :test_timeline_transition_auth)
+        Application.delete_env(:threadline, :test_timeline_transition_failure)
+      end)
+
+      {:ok, conn: Phoenix.ConnTest.build_conn()}
+    end
+
+    defp seed_transition_change!(table, organization_id) do
+      repo = Threadline.Test.Repo
+      storage_opts = repo_opts()
+      actor_ref = %{"type" => "user", "id" => "operator-239"}
+
+      transaction =
+        repo.insert!(
+          Threadline.Capture.AuditTransaction.changeset(%{
+            txid: :rand.uniform(1_000_000_000),
+            occurred_at: DateTime.utc_now(),
+            actor_ref: actor_ref,
+            source: "plan-239-04-mounted-test",
+            meta: %{"organization_id" => organization_id}
+          }),
+          storage_opts
+        )
+
+      repo.insert!(
+        Threadline.Capture.AuditChange.changeset(%{
+          transaction_id: transaction.id,
+          table_schema: "public",
+          table_name: table,
+          table_pk: %{"id" => "transition-#{System.unique_integer([:positive])}"},
+          op: "insert",
+          data_after: %{"title" => "synthetic transition fixture"},
+          changed_fields: nil,
+          captured_at: DateTime.utc_now()
+        }),
+        storage_opts
+      )
+    end
+
+    test "query B failure clears A, retry succeeds under the same scope, and host denial stops before mount",
+         %{
+           conn: conn
+         } do
+      seed_transition_change!("transition_query_a", "org-239-transition")
+      seed_transition_change!("transition_query_b", "org-239-transition")
+      seed_transition_change!("other_tenant_transition_b", "org-other-239")
+
+      query = fn table ->
+        URI.encode_query([
+          {"from", "2020-01-01T00:00"},
+          {"to", "2099-01-01T00:00"},
+          {"table", table}
+        ])
+      end
+
+      path_a = "/audit_transition/timeline?#{query.("transition_query_a")}"
+      path_b = "/audit_transition/timeline?#{query.("transition_query_b")}"
+
+      assert {:ok, lv, html_a} = live(conn, path_a)
+      assert html_a =~ "transition_query_a"
+      refute html_a =~ "transition_query_b"
+      refute html_a =~ "other_tenant_transition_b"
+
+      Application.put_env(:threadline, :test_timeline_transition_failure, "transition_query_b")
+
+      lv
+      |> form("#timeline-filters",
+        filter: %{
+          from: "2020-01-01T00:00",
+          to: "2099-01-01T00:00",
+          table: "transition_query_b"
+        }
+      )
+      |> render_submit()
+
+      assert_patch(lv, path_b)
+      html_failed = render_patch(lv, path_b)
+
+      assert html_failed =~
+               "Timeline could not be loaded. Check the applied filters and try again."
+
+      assert html_failed =~ "Unknown"
+      assert html_failed =~ "query did not complete"
+      refute has_element?(lv, "[data-testid=timeline-row]")
+      assert html_failed =~ "value=\"transition_query_b\""
+      assert html_failed =~ "Retry applied filters"
+
+      Application.delete_env(:threadline, :test_timeline_transition_failure)
+      html_recovered = render_patch(lv, path_b)
+
+      assert html_recovered =~ "transition_query_b"
+      assert html_recovered =~ "Matching changes"
+      refute html_recovered =~ "transition_query_a"
+      refute html_recovered =~ "other_tenant_transition_b"
+
+      Application.put_env(:threadline, :test_timeline_transition_auth, :deny)
+
+      assert {:error, {:redirect, %{to: "/"}}} = live(conn, path_b)
+
+      Application.put_env(:threadline, :test_timeline_transition_auth, :allow)
+      assert {:ok, _recovered_lv, recovered_after_denial} = live(conn, path_b)
+      assert recovered_after_denial =~ "transition_query_b"
+      refute recovered_after_denial =~ "other_tenant_transition_b"
+    end
+  end
+
   defmodule Threadline.OperatorSurface.Live.TimelineLiveScopeFailClosedTest do
     @moduledoc """
     D-20 fail-closed matrix (233-04 Task 2): a mount whose authorize_fn

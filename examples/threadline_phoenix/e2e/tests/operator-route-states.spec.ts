@@ -5,7 +5,11 @@ import { login, seedPaths, startEvidence } from "../support/operator-browser-evi
 // product failures are recorded for the later refinement phases, not repaired here.
 test.use({ trace: "off", screenshot: "off", contextOptions: { reducedMotion: "reduce" } });
 test.beforeEach(async ({}, info) => {
-  if (info.title === "Timeline keeps populated query identity while an applied replacement is pending") return;
+  if ([
+    "Timeline delayed query exposes pending then real empty result with a long unbroken filter",
+    "Timeline keeps populated query identity while an applied replacement is pending",
+    "real host denial under Acme support is distinct from busy and disabled",
+  ].includes(info.title)) return;
   test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || !["desktop-chromium", "desktop-chromium-light"].includes(info.project.name), "Bounded evidence lanes only");
 });
 
@@ -103,7 +107,7 @@ test("Timeline delayed query exposes pending then real empty result with a long 
     });
   });
   await login(page);
-  const e = await startEvidence(page, browser, info);
+  const e = process.env.THREADLINE_E2E_EVIDENCE === "1" ? await startEvidence(page, browser, info) : undefined;
   await page.goto("/audit/timeline");
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const long = "unmatched_correlation_" + "x".repeat(210);
@@ -114,16 +118,20 @@ test("Timeline delayed query exposes pending then real empty result with a long 
   await expect.poll(() => Boolean(held)).toBe(true);
   await expect(page.locator("#timeline-filters")).toHaveClass(/phx-submit-loading/);
   await expect(page.locator("#timeline-filters").getByRole("button", { name: "Applying filters…", exact: true })).toBeVisible();
-  await e.capture("state.timeline.pending", "/audit/timeline", "delayed-query-pending", { requestHeld: true, longValueLength: long.length, priorDataRetained: await page.getByTestId("timeline-row").count() });
+  if (e) await e.capture("state.timeline.pending", "/audit/timeline", "delayed-query-pending", { requestHeld: true, longValueLength: long.length, priorDataRetained: await page.getByTestId("timeline-row").count() });
   hold = false;
   held!.server.send(held!.message);
   await expect(page.locator("#timeline-filters")).not.toHaveClass(/phx-submit-loading/);
   await expect(page.getByTestId("timeline-row")).toHaveCount(0);
-  await expect(page.locator("#tl-main")).toContainText("No captured changes");
+  await expect(page.getByRole("heading", { name: "No changes match these filters", exact: true })).toBeVisible();
+  await expect(page.locator("#tl-main")).toContainText("Adjust the time range or filters, then apply again.");
   await expect(filter).toHaveValue(long);
+  expect(long).toHaveLength(232);
   await page.setViewportSize({ width: 375, height: 900 });
-  await e.capture("state.timeline.empty-long", "/audit/timeline", "empty-long-filter-narrow", { longValueLength: long.length, fullValueRetained: await filter.inputValue() === long });
-  e.finish("state.timeline", "/audit/timeline", "delayed-empty-long-value");
+  if (e) {
+    await e.capture("state.timeline.empty-long", "/audit/timeline", "empty-long-filter-narrow", { longValueLength: long.length, fullValueRetained: await filter.inputValue() === long });
+    e.finish("state.timeline", "/audit/timeline", "delayed-empty-long-value");
+  }
 });
 
 test("Timeline keeps populated query identity while an applied replacement is pending", async ({ page }) => {
@@ -240,11 +248,25 @@ test("Retention keyboard Escape focus return and Chromium touch navigation are o
 });
 
 test("real host denial under Acme support is distinct from busy and disabled", async ({ page, browser }, info) => {
-  await login(page, "support@acme.example.com");
-  const e = await startEvidence(page, browser, info, "seeded-support-acme-read-only");
+  const unauthenticated = await page.request.get("/audit/timeline?correlation_id=walk-acme-4521-close", { maxRedirects: 0 });
+  expect(unauthenticated.status()).toBe(302);
+  expect(unauthenticated.headers().location).toContain("/users/log_in");
+
+  await page.goto("/users/log_in", { waitUntil: "domcontentloaded" });
+  await page.locator("#login_form").getByLabel("Email").fill("support@acme.example.com");
+  await page.locator("#login_form").getByLabel("Password").fill(process.env.DEMO_SEED_PASSWORD ?? "password123456");
+  await page.locator("#login_form").getByRole("button", { name: /log in/i }).click();
+  await expect(page).toHaveURL(/\/(?:audit\/timeline(?:\?[^#]*)?)?$/);
+  const e = process.env.THREADLINE_E2E_EVIDENCE === "1"
+    ? await startEvidence(page, browser, info, "seeded-support-acme-read-only")
+    : undefined;
   await page.goto("/audit/timeline");
+  await expect(page.locator("#timeline-filters")).toBeVisible();
   const denied = await page.request.get("/audit/exports/changes.csv");
   expect(denied.status()).toBe(403);
-  await e.capture("state.denied", "/audit/timeline", "real-export-http-denied", { httpStatus: denied.status(), role: "Acme support read-only", authorizationSource: "Router.my_export_authorize_fn", notPending: true });
-  e.finish("state.denied", "/audit/timeline", "real-host-denial");
+  await expect(page).toHaveURL(/\/audit\/timeline(?:\?|$)/);
+  if (e) {
+    await e.capture("state.denied", "/audit/timeline", "real-export-http-denied", { httpStatus: denied.status(), role: "Acme support read-only", authorizationSource: "Router.my_export_authorize_fn", timelineAllowed: true, unauthenticatedTimelineStatus: unauthenticated.status(), notPending: true });
+    e.finish("state.denied", "/audit/timeline", "real-host-denial");
+  }
 });
