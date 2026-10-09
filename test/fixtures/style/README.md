@@ -1,10 +1,10 @@
 # Operator stylesheet golden file
 
-`operator_surface.css` is the exact byte output of the style-owned part of `Threadline.OperatorSurface.Style.css/1`, rendered through `Phoenix.HTML.Safe.to_iodata/1` with the default configuration. It is everything after the embedded `<style>@font-face …</style>` block that `Threadline.OperatorSurface.Fonts` contributes, from `<style>` through the closing `</style>`, with no trailing newline. `test/threadline/operator_surface/style_byte_lock_test.exs` asserts that the live render equals the font-face prefix followed by this file, and pins both this file and the full render (fonts included) by sha256. Restructuring the stylesheet source must keep every pin green; a failure means the rendered bytes changed and the change should be reverted, not re-pinned.
+`operator_surface.css` is the exact byte output of the style-owned part of `Threadline.OperatorSurface.Style.css/1`, rendered through `Phoenix.HTML.Safe.to_iodata/1` with the default configuration. It is everything after the embedded `<style>@font-face …</style>` block that `Threadline.OperatorSurface.Fonts` contributes, from `<style>` through the closing `</style>`, with no trailing newline. `test/threadline/operator_surface/style_byte_lock_test.exs` asserts that the live render equals the font-face prefix followed by this file, and pins both this file and the full render (fonts included) by sha256. Restructuring the stylesheet source must keep every pin green. Intentional visual changes may update the fixture and both pins through the procedure below; record the user-visible reason in the commit message.
 
 ## Updating
 
-Only an intentional change to the rendered CSS may update this file.
+Only an intentional change to the rendered CSS may update this file. Phase 239 changed decorative Home card kickers from accent styling to neutral tokens, as required by the approved UI contract.
 
 1. Regenerate the golden file from the repository root:
 
