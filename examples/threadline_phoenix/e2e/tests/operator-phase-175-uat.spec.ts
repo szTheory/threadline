@@ -181,6 +181,6 @@ test.describe("Phase 175 UAT — sticky topbar + timeline pager", () => {
     await expect(page.locator(".tl-pager")).toHaveCount(0);
     const empty = page.locator(".tl-empty");
     await expect(empty).toBeVisible();
-    await expect(empty).toContainText("No captured changes match this window");
+    await expect(empty).toContainText("No changes match these filters");
   });
 });

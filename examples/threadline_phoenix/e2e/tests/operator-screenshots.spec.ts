@@ -196,7 +196,7 @@ test.describe("operator surface screenshots", () => {
     await login(page);
 
     await page.goto("/audit/timeline?correlation_id=no-such-correlation");
-    await expect(page.getByText("No captured changes match this window")).toBeVisible();
+    await expect(page.getByText("No changes match these filters")).toBeVisible();
     await capture(page, testInfo, "timeline-empty");
 
     await page.goto("/audit/timeline?from=not-a-date");

@@ -488,9 +488,21 @@ test.describe("Phase 178 overlay footgun sample (#2/#3/#4)", () => {
     // phx-click dismiss (Plan 05 Task 2) must close the overlay. The scrim is
     // aria-hidden (Playwright's actionability would otherwise wait on it), so force
     // the click; we are deliberately exercising the scrim's click-outside affordance.
-    await page
-      .locator(".tl-modal-scrim")
-      .click({ position: { x: 8, y: 8 }, force: true });
+    const scrim = page.locator(".tl-modal-scrim");
+    const hitPoint = await page.evaluate(() => {
+      const backdrop = document.querySelector(".tl-modal-scrim");
+      if (!backdrop) return null;
+
+      const corners = [
+        { x: innerWidth - 8, y: innerHeight - 8 },
+        { x: 8, y: innerHeight - 8 },
+        { x: innerWidth - 8, y: 8 },
+        { x: 8, y: 8 },
+      ];
+      return corners.find(({ x, y }) => document.elementFromPoint(x, y) === backdrop) ?? null;
+    });
+    expect(hitPoint, "a backdrop corner outside the dialog and sticky shell is pointer-reachable").not.toBeNull();
+    await page.mouse.click(hitPoint!.x, hitPoint!.y);
     await expect(content).toBeHidden();
   });
 });

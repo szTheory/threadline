@@ -197,7 +197,7 @@ async function expectHomeTaskHierarchy(page: Page) {
   ).toBeVisible();
   await expect(
     main.getByText(
-      "Every change is connected to the action, context, and story around it. Pick where you want to start.",
+      "Search captured changes by time, table, actor, or correlation. Open a transaction to inspect its row changes and any recorded action or context.",
     ),
   ).toBeVisible();
   await expect(main.getByRole("status", { name: "System health" })).toBeVisible();

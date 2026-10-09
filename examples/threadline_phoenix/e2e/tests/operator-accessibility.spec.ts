@@ -971,6 +971,17 @@ test.describe("operator accessibility baseline", () => {
     await expect(modal).toBeHidden();
     await expectNonObscuredFocused(modalTrigger, page);
 
+    // The fixture intentionally includes a persistent toast. Dismiss it before
+    // checking that the drawer trigger is visible, focused, and not obscured on
+    // the mobile viewport.
+    const toast = page.locator("#stress-toast");
+    if (await toast.isVisible()) {
+      const closeToast = toast.getByRole("button", { name: "Close" });
+      await closeToast.focus();
+      await page.keyboard.press("Enter");
+      await expect(toast).toBeHidden();
+    }
+
     const drawerTrigger = page.getByRole("button", { name: "Show Drawer" });
     await drawerTrigger.scrollIntoViewIfNeeded();
     await drawerTrigger.focus();
