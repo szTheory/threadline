@@ -357,17 +357,19 @@ No missing dependencies identified. Availability reflects this research worktree
 | A2 | [ASSUMED] A short transaction-scoped advisory lock around active-run lookup and insert is acceptable for race-safe cross-node coalescing while preserving the current session-scoped execution lock. | Pattern 2 | Could add brief contention; validate lock key use and transaction semantics in implementation review. |
 | A3 | [ASSUMED] Mapping database failures to a finite safe category can be implemented without changing public error behavior of `Threadline.Retention.purge/1`. | Pattern 2 / Security | If callers currently rely on exact raised exception details, internal safe tracking must preserve the documented public raising behavior. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which existing private/internal function should own the shared run lifecycle?**
+1. **(RESOLVED)** Which existing private/internal function should own the shared run lifecycle?
    - What we know: the public `Threadline.Retention.purge/1` currently creates and completes a run; the operator's supervised path calls that function only after a cast.
    - What's unclear: whether the least invasive extraction is a private runner module or a coordinator callback threaded internally.
    - Recommendation: factor a small internal runner API used by both public `purge/1` and `Pruner`, keeping the public signature, result, and error behavior unchanged; planner should make this a bounded task, not redesign retention.
+   - Resolution adopted in `242-02-PLAN.md`: keep the shared lifecycle at the existing private `Retention`/`Pruner` boundary, create or claim one `RetentionRun` before operator acknowledgment, pass its ID into execution, and route scheduled and direct purge paths through the same private tracking seam. Preserve the public `purge/1` signature, success/error results, and reraising behavior. Do not add a public option, schema, or dependency.
 
-2. **How should automatic scheduled purges appear beside an operator-accepted active run?**
+2. **(RESOLVED)** How should automatic scheduled purges appear beside an operator-accepted active run?
    - What we know: the pruner schedules itself and uses the same execution lock; policy and schema are process-level configuration.
    - What's unclear: whether a scheduled tick encountering an active operator run should simply coalesce/skip and retain the active row's progress.
    - Recommendation: have all callers pass through the same active-run check; never create a second row for a skipped/coalesced request.
+   - Resolution adopted in `242-02-PLAN.md`: operator triggers and scheduled ticks use the same active-run acceptance check. A scheduled tick encountering a queued/running run coalesces/skips without creating a second row or execution; after terminal state, a later deliberate request may create a new run. The PostgreSQL advisory lock remains the cross-node execution exclusion mechanism.
 
 ## Confidence Assessment
 
