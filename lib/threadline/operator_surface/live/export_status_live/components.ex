@@ -65,6 +65,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           <%= if Presentation.export_downloadable?(job) do %>
                             <.link
                               {download_link_attrs(%{base_path: @base_path, job: job})}
+                              target="_blank"
+                              rel="noopener"
                             >
                               <Threadline.OperatorSurface.Components.Icon.icon name={:download} class="tl-button__icon" />
                               Download export
@@ -111,7 +113,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                         <div class="tl-alert tl-alert--error" role="alert">
                           <strong>Export failed.</strong>
                           Reopen the source search, adjust filters if needed, and queue a new export.
-                          <span :if={job.error_message}><%= job.error_message %></span>
                         </div>
                       <% end %>
                     </article>
@@ -167,7 +168,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp download_link_attrs(%{base_path: base_path, job: job}) do
     defp safe_timeline_query(params) do
       with {:ok, filters} <- FilterParams.parse(params),
            :ok <- safe_validate(filters) do
@@ -193,6 +193,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       ArgumentError -> {:error, :invalid_filters}
     end
 
+    defp download_link_attrs(%{base_path: base_path, job: job}) do
       [
         href: "#{base_path}/exports/download/#{job.id}",
         class: "tl-button tl-button--primary tl-button--compact"

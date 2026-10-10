@@ -48,6 +48,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
   end
 
+  defmodule Threadline.OperatorSurface.ExportStatusLiveTest.FailingRepo do
+    def all(_query, _opts), do: raise("database unavailable")
+  end
+
   defmodule Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint do
     use Threadline.OperatorSurfaceTest.Endpoint,
       router: Threadline.OperatorSurface.ExportStatusLiveTest.Router
@@ -61,6 +65,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.Governance.ExportJob
     alias Threadline.OperatorSurface.Live.ExportStatusLive
+    alias Threadline.OperatorSurface.ExportStatusLiveTest.FailingRepo
     alias Threadline.Semantics.ActorRef
 
     setup_all do
@@ -199,16 +204,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "No downloads ready"
         refute html =~ "tl-trust-rail"
         refute html =~ "What&#39;s ready to hand off?"
-        assert html =~ "No export jobs queued"
+        assert html =~ "No export jobs"
+        assert html =~ "Start an export from Timeline to see its status here."
         assert html =~ "Open timeline"
       end
 
-      test "renders carried Timeline export context with canonical allowed filters", %{conn: conn} do
-        {:ok, view, html} =
-          live(
-            conn,
-            "/audit/exports?table=ticket_replies&correlation_id=req_ef3&from=2026-05-01T00:00&to=2026-05-06T23:59&unknown=drop_me"
-          )
       test "a failed actor-owned history read is not presented as empty", %{conn: conn} do
         original_repos = Application.get_env(:threadline, :ecto_repos)
         Application.put_env(:threadline, :ecto_repos, [FailingRepo])
@@ -294,6 +294,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "forged-cursor"
       end
 
+      test "renders carried Timeline export context with canonical allowed filters", %{conn: conn} do
+        {:ok, view, html} =
+          live(
+            conn,
+            "/audit/exports?table=ticket_replies&correlation_id=req_ef3&from=2026-05-01T00:00&to=2026-05-06T23:59&unknown=drop_me"
+          )
 
         assert has_element?(
                  view,
@@ -595,7 +601,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        refute html =~ "No export jobs queued"
+        refute html =~ "No export jobs</h2>"
         assert html =~ "Queued"
         assert html =~ "users"
         refute html =~ "Preparing download"
@@ -617,7 +623,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/exports")
 
-        assert html =~ "No export jobs queued"
+        assert html =~ "No export jobs"
       end
 
       test "shows download link when completed", %{conn: conn, actor_ref: actor_ref} do
@@ -651,6 +657,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                    html
                  )
 
+        assert download_link =~ ~s|target="_blank"|
+        assert download_link =~ ~s|rel="noopener"|
         refute download_link =~ "aria-disabled"
         refute download_link =~ ~s(tabindex="-1")
         refute download_link =~ "data-tl-mutating"
@@ -736,7 +744,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Export expired"
       end
 
-      test "shows the persisted failure reason for failed jobs", %{
+      test "shows safe failure copy for failed jobs", %{
         conn: conn,
         actor_ref: actor_ref
       } do
@@ -759,10 +767,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Needs attention"
         assert html =~ "Export failed."
         assert html =~ "Reopen source search"
-        assert html =~ "built-in export runtime is unavailable"
+        refute html =~ "built-in export runtime is unavailable"
       end
 
-      test "failed queued Timeline replay keeps source recovery and parser detail", %{
+      test "failed jobs keep safe recovery copy and reject invalid saved return filters", %{
         conn: conn,
         actor_ref: actor_ref
       } do
@@ -782,8 +790,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Export failed."
         assert html =~ "Reopen source search"
-        assert html =~ "invalid datetime: not-a-date"
-        assert html =~ ~s|href="/audit/timeline?from=not-a-date"|
+        refute html =~ "invalid datetime: not-a-date"
+        assert html =~ ~s|href="/audit/timeline"|
+        assert html =~ "Reopen source search"
       end
 
       test "groups exports by readiness in operator order with secondary refs", %{

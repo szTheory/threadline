@@ -32,6 +32,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:timeline_export_context, nil)
         |> assign(:evidence_export_context, nil)
         |> assign(:export_denied_descriptor, Unsupported.export_denied_descriptor())
+        |> assign(:jobs_state, :loading)
         |> assign_jobs(fetch_jobs(socket))
 
       socket =
@@ -131,6 +132,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     def handle_event("queue_timeline_export_context", _params, socket), do: {:noreply, socket}
 
+    def handle_event("refresh_jobs", _params, socket) do
+      {:noreply, assign_jobs(socket, fetch_jobs(socket))}
+    end
+
     def handle_info(:refresh, socket) do
       if socket.assigns[:threadline_exports_enabled] do
         socket =
@@ -171,11 +176,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </:lede>
             </UI.Page.page_header>
 
-            <.workflow_summary workflow_summary={@workflow_summary} />
-
-            <%= if @timeline_export_context do %>
-              <.timeline_context
-                timeline_export_context={@timeline_export_context}
             <div :if={Phoenix.Flash.get(@flash, :info)} class="tl-alert tl-alert--success" role="status">
               <%= Phoenix.Flash.get(@flash, :info) %>
             </div>
@@ -183,6 +183,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <%= Phoenix.Flash.get(@flash, :error) %>
             </div>
 
+            <.workflow_summary workflow_summary={@workflow_summary} />
+
+            <%= if @timeline_export_context do %>
+              <.timeline_context
+                timeline_export_context={@timeline_export_context}
                 base_path={@base_path}
                 threadline_scope={assigns[:threadline_scope]}
                 threadline_export_scope={assigns[:threadline_export_scope]}
@@ -194,10 +199,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <.evidence_context evidence_export_context={@evidence_export_context} />
             <% end %>
 
+            <%= if @jobs_state == :loading do %>
+              <p class="tl-status" role="status" aria-live="polite">Loading export jobs…</p>
+            <% else %>
+            <%= if @jobs_state == :error do %>
+              <div class="tl-alert tl-alert--error" role="alert">
+                <%= if @jobs_error == :actor_unavailable do %>
+                  Export history is unavailable because this session has no identifiable actor.
+                <% else %>
+                  Export history could not be loaded. Your saved jobs are unchanged; try refreshing this page.
+                <% end %>
+                <button type="button" class="tl-button tl-button--secondary" phx-click="refresh_jobs">
+                  Refresh export history
+                </button>
+              </div>
+            <% else %>
             <%= if not @has_jobs do %>
               <UI.Data.empty_state variant="never" role="status" icon={:history}>
-                <:title>No export jobs queued</:title>
-                Queue an export from Timeline, then return here to download the completed packet or reopen the source search.
+                <:title>No export jobs</:title>
+                Start an export from Timeline to see its status here.
                 <:actions>
                   <.link navigate={"#{@base_path}/timeline"} class="tl-button tl-button--secondary">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
@@ -212,6 +232,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 job_groups={@job_groups}
                 base_path={@base_path}
               />
+            <% end %>
+            <% end %>
             <% end %>
           <% else %>
             <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
@@ -358,18 +380,25 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         actor_ref = socket.assigns[:threadline_actor_ref]
 
         if ActorRef.identifiable?(actor_ref) do
-          from(j in ExportJob,
-            where: j.actor_ref == ^actor_ref,
-            order_by: [desc: j.inserted_at],
-            limit: @default_limit
-          )
-          |> repo.all(storage_opts(socket))
+          jobs =
+            from(j in ExportJob,
+              where: j.actor_ref == ^actor_ref,
+              order_by: [desc: j.inserted_at],
+              limit: @default_limit
+            )
+            |> repo.all(storage_opts(socket))
+
+          {:ok, jobs}
         else
-          []
+          {:error, :actor_unavailable}
         end
       else
-        []
+        {:ok, []}
       end
+    rescue
+      _error -> {:error, :read_failed}
+    catch
+      _kind, _reason -> {:error, :read_failed}
     end
 
     defp schedule_refresh(socket) do
@@ -400,14 +429,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp storage_opts(_socket), do: StorageSchema.repo_opts(storage_schema: StorageSchema.get())
 
-    defp assign_jobs(socket, jobs) do
+    defp assign_jobs(socket, {:ok, jobs}) do
       count = length(jobs)
 
       socket
+      |> assign(:jobs_state, :loaded)
+      |> assign(:jobs_error, nil)
       |> assign(:jobs, jobs)
       |> assign(:job_groups, group_jobs(jobs))
       |> assign(:has_jobs, count > 0)
       |> assign(:jobs_count, count)
+      |> assign(:default_limit, @default_limit)
+    end
+
+    defp assign_jobs(socket, {:error, reason}) do
+      socket
+      |> assign(:jobs_state, :error)
+      |> assign(:jobs_error, reason)
+      |> assign(:jobs, [])
+      |> assign(:job_groups, [])
+      |> assign(:has_jobs, false)
+      |> assign(:jobs_count, 0)
       |> assign(:default_limit, @default_limit)
     end
 
@@ -417,6 +459,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp context_workflow_summary(assigns) do
       cond do
+        assigns[:jobs_state] == :loading ->
+          %{
+            title: "Export history is loading",
+            body: "Your saved export jobs are being read for this actor.",
+            status: "Loading"
+          }
+
+        assigns[:jobs_state] == :error ->
+          %{
+            title: "Export history is unavailable",
+            body: "The saved export history could not be read. Try refreshing to check it again.",
+            status: "Read failed"
+          }
+
         match?(%{status: :invalid}, assigns[:timeline_export_context]) ->
           %{
             title: "Timeline context needs attention",
@@ -673,13 +729,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       e in ArgumentError -> {:error, e.message}
     end
 
-    defp background_export_error_message(:supervisor_not_started) do
-      "Background export could not start because the built-in export runtime is unavailable."
-    end
-
-    defp background_export_error_message(reason) do
-      "Background export could not start: #{inspect(reason)}."
-    end
+    defp background_export_error_message(_reason),
+      do: "Export could not be queued. Check the export status, then try again from Timeline."
 
     defp terminal_export_expiry do
       retention_ttl_hours =
