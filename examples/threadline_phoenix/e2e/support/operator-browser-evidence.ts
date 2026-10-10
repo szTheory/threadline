@@ -4,12 +4,13 @@ import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, relative, resolve } from "node:path";
 import { currentOperatorSurfacePaths, resolveContainedPath, atomicWriteFile } from "./operator-surface-paths.js";
-import { assetRecord, candidateIdentity, outputRecord, semanticFixtureId, writeManifest, type OperatorEvidenceManifest, type ServedAsset } from "./operator-evidence-manifest.js";
+import { assertNoCanaryLeak, assetRecord, candidateIdentity, outputRecord, semanticFixtureId, writeManifest, type OperatorEvidenceManifest, type ServedAsset } from "./operator-evidence-manifest.js";
 
 export const paths = currentOperatorSurfacePaths();
 const require = createRequire(import.meta.url);
 const sha = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
 export const widths = [1280, 768, 375] as const;
+const redactionCanary = "synthetic-secret-canary-239-6f71";
 export const inventory = JSON.parse(readFileSync(join(paths.repositoryRoot, "test/fixtures/operator_surface/route-inventory.json"), "utf8")) as {
   routes: { id: string; pattern: string; path?: string; seedResolution: string; role: string; scope: string }[];
 };
@@ -104,6 +105,14 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
       const names = ["--tl-color-bg", "--tl-color-text", "--tl-color-paper", "--tl-color-ink", "--tl-motion-base", "--tl-font-size-body"];
       return { preference: (el.querySelector('input[name="theme"]:checked') as HTMLInputElement)?.value ?? "unknown", mountedTheme: el.getAttribute("data-tl-theme") ?? "unknown", effectiveTheme: style.colorScheme, osLight: matchMedia("(prefers-color-scheme: light)").matches, reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches, dpr: devicePixelRatio, cssWidth: innerWidth, scrollWidth: document.documentElement.scrollWidth, background: style.backgroundColor, resolvedValues: Object.fromEntries(names.map((n) => [n, style.getPropertyValue(n).trim()])) };
     });
+    const renderedDom = await page.locator("body").evaluate((body) => {
+      const values = [body.textContent ?? ""];
+      for (const element of [body, ...Array.from(body.querySelectorAll("*"))]) {
+        for (const attribute of Array.from(element.attributes)) values.push(attribute.value);
+      }
+      return values.join("\n");
+    });
+    assertNoCanaryLeak(redactionCanary, `${route} rendered DOM`, renderedDom);
     lastAppearance = { preference: observation.preference, effectiveTheme: observation.effectiveTheme };
     lastViewport = { ...page.viewportSize()!, deviceScaleFactor: observation.dpr };
     const condition = JSON.stringify({ project: info.project.name, viewport: lastViewport, motion: observation.reducedMotion ? "reduced" : "default", browserZoom: "unverified", ...extra });
@@ -111,10 +120,13 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
       const file = resolveContainedPath(runRoot(), `${id}-${region}.png`);
       if (region === "shell") await root.screenshot({ path: file, scale: "css", animations: "disabled" });
       else await content.screenshot({ path: file, scale: "css", animations: "disabled", mask: [page.locator("time"), page.locator('[data-dynamic="true"]')], maskColor: observation.effectiveTheme === "light" ? "#F8FAFC" : "#0B1020" });
+      assertNoCanaryLeak(redactionCanary, file, readFileSync(file));
       captures.push({ ...outputRecord(`${id}-${region}`, route, state, condition, file), assets: verified });
     }
     const observationPath = resolveContainedPath(runRoot(), `${id}-observation.json`);
-    atomicWriteFile(observationPath, JSON.stringify({ route, state, ...observation, ...extra }, null, 2) + "\n");
+    const observationJson = JSON.stringify({ route, state, ...observation, ...extra }, null, 2) + "\n";
+    assertNoCanaryLeak(redactionCanary, observationPath, observationJson);
+    atomicWriteFile(observationPath, observationJson);
     captures.push({ ...outputRecord(`${id}-observation`, route, state, condition, observationPath), assets: verified });
     return observation;
   }
@@ -122,11 +134,13 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
     const manifest: OperatorEvidenceManifest = { schemaVersion: 1, ...identity, custody, fixture, route, state, actor: { role, scope: "isolated-local-demo-database" }, appearance: lastAppearance, browser: { playwright: require("@playwright/test/package.json").version, browser: browser.version() }, viewport: lastViewport, input: { motion: "observed-per-capture", zoom: 1 }, captures };
     // zoom=1 is a neutral compatibility field, NOT proof of browser chrome zoom;
     // every capture's condition explicitly records browserZoom=unverified.
+    assertNoCanaryLeak(redactionCanary, `${id}-manifest.json`, JSON.stringify(manifest));
     writeManifest(runRoot(), `${id}-manifest.json`, manifest);
     return manifest;
   }
   function recordFile(id: string, route: string, state: string, condition: string, file: string) {
     if (!captures.length) throw new Error("Record metadata only after verified browser capture");
+    assertNoCanaryLeak(redactionCanary, file, readFileSync(file));
     captures.push({ ...outputRecord(id, route, state, condition, file), assets: captures[0].assets });
   }
   return { capture, finish, recordFile };

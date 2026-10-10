@@ -221,9 +221,13 @@ if Code.ensure_loaded?(Phoenix.Component) do
     attr(:label, :string, required: true)
 
     def value(assigns) do
+      redacted = assigns.token.modifier == "tl-value--redacted"
+      safe_title = if redacted, do: nil, else: Map.get(assigns.token, :title)
+      assigns = assign(assigns, :safe_title, safe_title)
+
       ~H"""
-      <span class={["tl-value", @token.modifier]} title={Map.get(@token, :title)}><%= @token.text %></span>
-      <.full_value :if={Map.get(@token, :title)} value={@token.title} label={@label} />
+      <span class={["tl-value", @token.modifier]} title={@safe_title}><%= @token.text %></span>
+      <.full_value :if={@safe_title} value={@safe_title} label={@label} />
       """
     end
 

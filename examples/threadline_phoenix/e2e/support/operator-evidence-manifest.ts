@@ -89,6 +89,14 @@ function rejectSecrets(value: unknown, path = "metadata"): void {
   }
 }
 
+export function assertNoCanaryLeak(canary: string, source: string, payload: string | Uint8Array): void {
+  if (!canary) throw new Error("Evidence canary must not be empty");
+  const bytes = typeof payload === "string" ? Buffer.from(payload, "utf8") : Buffer.from(payload);
+  if (bytes.includes(Buffer.from(canary, "utf8"))) {
+    throw new Error(`Synthetic redaction canary found in evidence output: ${source}`);
+  }
+}
+
 export function semanticFixtureId(scenario: string, version: string, seedManifestSha256: string): string {
   if (!scenario.trim() || !version.trim() || !/^[a-f0-9]{64}$/.test(seedManifestSha256)) {
     throw new Error("Fixture scenario, version, and SHA-256 seed manifest identity are required");
@@ -97,7 +105,7 @@ export function semanticFixtureId(scenario: string, version: string, seedManifes
 }
 
 function relevant(path: string): boolean {
-  return /^(test\/fixtures\/operator_surface\/route-inventory\.json$|lib\/threadline\/operator_surface(?:\/|\.ex$)|examples\/threadline_phoenix\/(e2e\/|lib\/|assets\/|priv\/static\/|config\/|mix\.(?:exs|lock)$)|mix\.(?:exs|lock)$|\.tool-versions$)/.test(path);
+  return /^(test\/fixtures\/operator_surface\/route-inventory\.json$|lib\/threadline\/|examples\/threadline_phoenix\/(e2e\/|lib\/|assets\/|priv\/static\/|config\/|mix\.(?:exs|lock)$)|mix\.(?:exs|lock)$|\.tool-versions$)/.test(path);
 }
 
 export function candidateIdentity(root: string, baseSha: string) {

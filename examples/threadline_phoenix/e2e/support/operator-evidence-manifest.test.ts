@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test, { type TestContext } from "node:test";
-import { assetRecord, writeRouteBundle, candidateIdentity, build239CandidateReceipt, validate239CandidateReceipt, localAssetPath, semanticFixtureId, serializeManifest, writeManifest, type OperatorEvidenceManifest } from "./operator-evidence-manifest.js";
+import { assetRecord, writeRouteBundle, candidateIdentity, build239CandidateReceipt, validate239CandidateReceipt, assertNoCanaryLeak, localAssetPath, semanticFixtureId, serializeManifest, writeManifest, type OperatorEvidenceManifest } from "./operator-evidence-manifest.js";
 import { DEFAULT_OPERATOR_SURFACE_PATHS } from "./operator-surface-paths.js";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -91,6 +91,18 @@ test("metadata proof rejects credential fields and unknown metadata", () => {
   }
 });
 
+test("evidence canary scan rejects secret text, attributes, and output bytes", () => {
+  const canary = "synthetic-secret-canary-239-6f71";
+  for (const payload of [
+    `visible text ${canary}`,
+    `<span data-tl-copy="${canary}">[REDACTED]</span>`,
+    Buffer.from(`synthetic PNG payload ${canary}`),
+  ]) {
+    assert.throws(() => assertNoCanaryLeak(canary, "synthetic evidence output", payload), /canary/i);
+  }
+  assert.doesNotThrow(() => assertNoCanaryLeak(canary, "redacted evidence output", "[REDACTED]"));
+});
+
 test("same scenario/version/seed retains semantic fixture identity across fresh partitions", () => {
   assert.equal(semanticFixtureId("demo", "v1", hash("seed")), semanticFixtureId("demo", "v1", hash("seed")));
   assert.notEqual(semanticFixtureId("demo", "v1", hash("seed")), semanticFixtureId("demo", "v2", hash("seed")));
@@ -121,10 +133,13 @@ function repository(t: TestContext) {
   git("config", "user.email", "synthetic@example.invalid");
   git("config", "user.name", "Synthetic test");
   const source = "lib/threadline/operator_surface/style/example.css";
+  const productionSource = "lib/threadline/change_diff.ex";
   mkdirSync(dirname(join(root, source)), { recursive: true });
+  mkdirSync(dirname(join(root, productionSource)), { recursive: true });
   writeFileSync(join(root, source), "base");
-  git("add", source); git("commit", "-qm", "synthetic base");
-  return { root, git, source, base: git("rev-parse", "HEAD") };
+  writeFileSync(join(root, productionSource), "base production module");
+  git("add", source, productionSource); git("commit", "-qm", "synthetic base");
+  return { root, git, source, productionSource, base: git("rev-parse", "HEAD") };
 }
 
 test("forward receipt chains accepted 238 evidence and rejects forged parent, changed source/context, and extra task ancestry", (t) => {
@@ -192,6 +207,17 @@ test("source proof includes first-time unstaged/staged edits and retains digest 
   rmSync(join(root, untracked));
   symlinkSync(join(root, "README.md"), join(root, untracked));
   assert.throws(() => candidateIdentity(root, base), /symlink/i);
+});
+
+test("candidate source identity includes changed root-level Threadline modules", (t) => {
+  const { root, git, productionSource, base } = repository(t);
+  writeFileSync(join(root, productionSource), "candidate production module");
+  git("add", productionSource);
+  git("commit", "-qm", "fix(239-07): change a core Threadline module");
+
+  const identity = candidateIdentity(root, base);
+  assert.ok(identity.candidatePaths.includes(productionSource));
+  assert.equal(identity.candidateChanges.find((change) => change.path === productionSource)?.sha256, hash("candidate production module"));
 });
 
 test("output proof rejects traversal, altered output bytes and reference fixture destinations", (t) => {

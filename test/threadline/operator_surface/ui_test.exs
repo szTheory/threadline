@@ -742,7 +742,10 @@ defmodule Threadline.OperatorSurface.UITest do
 
     test "does not create a full-value disclosure for redacted tokens" do
       canary = "synthetic-secret-canary-239-6f71"
-      assigns = %{token: %{text: "[REDACTED]", modifier: "tl-value--redacted"}}
+
+      assigns = %{
+        token: %{text: "[REDACTED]", modifier: "tl-value--redacted", title: canary}
+      }
 
       html =
         rendered_to_string(~H"""
