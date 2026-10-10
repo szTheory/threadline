@@ -144,10 +144,16 @@ Plans:
 
 **Plans**: 4 plans
 Plans:
+**Wave 1**
 - [ ] 241-01-PLAN.md — Schema-scoped coverage and safe migration handoff
 - [ ] 241-02-PLAN.md — Evidence read states and subject-reference history
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 241-03-PLAN.md — Configured versus deployed redaction inspection
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 241-04-PLAN.md — Responsive, accessibility, motion, and zoom verification
+
 **UI hint**: yes
 
 ### Phase 242: Export and retention operations

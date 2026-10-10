@@ -4,16 +4,16 @@ milestone: v1.46
 milestone_name: Operator UI Refinement
 current_phase: 241
 current_phase_name: Operational evidence and policy inspection
-status: planning
-stopped_at: Phase 241 UI-SPEC approved
-last_updated: "2026-10-10T16:21:49.032Z"
+status: executing
+stopped_at: Phase 241 plan-check passed; ready to execute
+last_updated: "2026-10-10T16:47:31.705Z"
 last_activity: 2026-10-10
-last_activity_desc: Phase 240 complete, transitioned to Phase 241
-state_head: 7620b8df50885bb9af90acb7f73fce344d9cb9f3
+last_activity_desc: Phase 241 planned (4 plans, 3 waves); plan checker passed
+state_head: c671616ff02d1d78eefb47c774c7372f8b6fe545
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 14
+  total_plans: 18
   completed_plans: 14
   percent: 50
 ---
@@ -29,12 +29,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-10 after Phase 240 verification)
 
 ## Current Position
 
-Phase: 241 — Operational evidence and policy inspection
+Phase: 241 (Operational evidence and policy inspection) — READY TO EXECUTE
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-10 — Phase 240 complete, transitioned to Phase 241
+Status: Ready to execute
+Last activity: 2026-10-10 — Phase 241 plan-check passed; ready to execute
 
-Progress: [█████░░░░░] 50% of milestone phases — 3/6 phases complete; 14/14 currently planned plans complete; Phases 241–243 remain to plan and execute
+Progress: [█████░░░░░] 50% of milestone phases — 3/6 phases complete; 14/18 currently planned plans complete; Phase 241 ready to execute, Phases 242–243 remain to plan and execute
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -63,7 +63,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Performance Metrics
 
-- **Active Milestone**: v1.46 — Operator UI Refinement; scope, 26 requirements and roadmap approved; 6 phases, 3 complete, 17/26 requirements complete, 14/14 currently planned plans complete; Phase 241 ready to plan
+- **Active Milestone**: v1.46 — Operator UI Refinement; scope, 26 requirements and roadmap approved; 6 phases, 3 complete, 17/26 requirements complete, 14/18 currently planned plans complete; Phase 241 ready to execute
 - **Last Milestone Shipped**: v1.45 — 1.0 API Contract (2026-10-07, 7 phases, 47 plans, 25/25; integration 25/25; audit status tech_debt, no blockers)
 - **Prior Milestone Shipped**: v1.44 — Behavioral Depth: Properties, Twins, Telemetry (2026-10-02, Phases 224-230, 33 plans, 27/27, released 0.12.0)
 - **Prior Milestone Shipped**: v1.43 — Supply Chain, CI Economy and Repo Hygiene (2026-09-30, Phases 214-223, 52 plans, 24/24, released 0.11.1 + 0.11.2)
@@ -1092,9 +1092,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-10T16:21:48.549Z
-**Stopped at:** Phase 241 UI-SPEC approved
-**Resume file:** .planning/phases/241-operational-evidence-and-policy-inspection/241-UI-SPEC.md
+**Last session:** 2026-10-10T16:47:31.536Z
+**Stopped at:** Phase 241 plan-check passed; ready to execute
+**Resume file:** .planning/phases/241-operational-evidence-and-policy-inspection/241-01-PLAN.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
