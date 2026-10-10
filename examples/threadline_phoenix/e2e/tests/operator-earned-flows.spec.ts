@@ -27,8 +27,16 @@ async function expectPath(page: Page, path: string) {
   await expect.poll(() => new URL(page.url()).pathname).toBe(path);
 }
 
+async function expectLiveViewConnected(page: Page) {
+  const liveRoot = page.locator("[data-phx-main]").first();
+  if ((await liveRoot.count()) > 0) {
+    await expect(liveRoot).toHaveClass(/phx-connected/);
+  }
+}
+
 async function discoverTicketReplyRecordId(page: Page) {
   await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+  await expectLiveViewConnected(page);
   await expect(page.locator("#filter-table")).toHaveValue(rowTable);
 
   const transactionLink = page
@@ -43,6 +51,7 @@ async function discoverTicketReplyRecordId(page: Page) {
 
   await page.goto(transactionHref!);
   await expect(page).toHaveURL(/\/audit\/transactions\/[^/]+$/);
+  await expectLiveViewConnected(page);
 
   const rowHistoryLink = page
     .getByTestId("transaction-change-row")
@@ -73,6 +82,7 @@ test.describe("operator earned-flow browser UAT", () => {
     const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
 
     await page.goto("/audit");
+    await expectLiveViewConnected(page);
 
     const form = page.locator("#tl-record-lookup");
     await expect(form).toBeVisible();
@@ -99,6 +109,7 @@ test.describe("operator earned-flow browser UAT", () => {
     const ticketReplyRecordId = await discoverTicketReplyRecordId(page);
 
     await page.goto(`/audit/rows/${rowTable}/${ticketReplyRecordId}`);
+    await expectLiveViewConnected(page);
 
     await expectPath(page, `/audit/rows/${rowTable}/${ticketReplyRecordId}`);
     const drawer = page.getByTestId("row-history-drawer");
@@ -111,6 +122,7 @@ test.describe("operator earned-flow browser UAT", () => {
     page,
   }) => {
     await page.goto("/audit");
+    await expectLiveViewConnected(page);
 
     const form = page.locator("#tl-correlation-lookup");
     await expect(form).toBeVisible();
@@ -138,6 +150,7 @@ test.describe("operator earned-flow browser UAT", () => {
         closeCorrelation,
       )}`,
     );
+    await expectLiveViewConnected(page);
 
     await expect(page.locator("#filter-correlation-id")).toHaveValue(
       closeCorrelation,
@@ -177,6 +190,7 @@ test.describe("operator earned-flow browser UAT", () => {
     page,
   }) => {
     await page.goto("/audit/evidence");
+    await expectLiveViewConnected(page);
 
     const proofHistory = page
       .getByRole("link", { name: "Open proof history" })
@@ -190,6 +204,7 @@ test.describe("operator earned-flow browser UAT", () => {
     expect(proofHistoryHref).not.toBeNull();
     await page.goto(proofHistoryHref!);
     await expect(page).toHaveURL(/\/audit\/evidence\?.*mode=history/);
+    await expectLiveViewConnected(page);
 
     const carry = page
       .getByRole("link", { name: "Carry to Exports" })
