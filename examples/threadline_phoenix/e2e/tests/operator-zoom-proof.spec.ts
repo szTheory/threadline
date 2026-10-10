@@ -159,6 +159,11 @@ test("inspection routes preserve exact scope and controls at verified real 200% 
   test.skip(testInfo.project.name !== "desktop-chromium", "The extension proof runs only in desktop-chromium");
   await withIsolatedZoomContext(chromium, async (context, page) => {
     const baseURL = String(testInfo.project.use.baseURL ?? "http://127.0.0.1:4002");
+    let blockReconnect = false;
+    await page.routeWebSocket(/\/live\/websocket/, (socket) => {
+      if (blockReconnect) socket.close();
+      else socket.connectToServer();
+    });
     const visit = async (path: string) => {
       await page.goto(new URL(path, baseURL).toString());
       if (path.startsWith("/audit")) await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
@@ -206,6 +211,82 @@ test("inspection routes preserve exact scope and controls at verified real 200% 
     await page.keyboard.press("Enter");
     await expect(row).toHaveAttribute("open", "");
     await expect(row.getByRole("table")).toBeVisible();
+
+    const longCorrelation = `zoom-proof-filter-${"x".repeat(80)}`;
+    await visit(`/audit/exports?table=ticket_replies&correlation_id=${encodeURIComponent(longCorrelation)}`);
+    const exportZoom = await setAndReadTabZoom(context, page);
+    expect(exportZoom.tabId).toBe(coverageZoom.tabId);
+    expect(exportZoom.zoomFactor).toBe(2);
+    await expect(page.getByTestId("timeline-export-context")).toContainText(longCorrelation);
+    await expect(page.getByTestId("export-jobs")).toBeVisible();
+    observations.push({ ...await observePage(page, "Exports", [
+      ["Queue Timeline export", page.getByRole("button", { name: "Queue Timeline export", exact: true })],
+      ["Reopen source search", page.getByRole("link", { name: "Reopen source search" }).first()],
+    ], true), tabZoom: exportZoom });
+
+    const root = page.locator("[data-phx-main]");
+    const main = page.locator("#tl-main");
+    await main.focus();
+    blockReconnect = true;
+    await page.evaluate(() => (window as any).liveSocket.disconnect());
+    await expect(root).toHaveClass(/phx-loading/);
+    const reconnectBanner = page.locator(".tl-reconnect-banner");
+    await expect(reconnectBanner).toBeVisible();
+    await expect(reconnectBanner.locator(".tl-reconnect-banner__reconnecting")).toHaveText(
+      "Reconnecting. Actions will remain unavailable until current status is refreshed.",
+    );
+    const bannerLayout = await page.evaluate(() => ({
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+      bannerWidth: document.querySelector(".tl-reconnect-banner")!.scrollWidth,
+      bannerClientWidth: document.querySelector(".tl-reconnect-banner")!.clientWidth,
+    }));
+    expect(bannerLayout.viewportWidth).toBe(640);
+    expect(bannerLayout.documentWidth - bannerLayout.clientWidth).toBeLessThanOrEqual(1);
+    expect(bannerLayout.bannerWidth - bannerLayout.bannerClientWidth).toBeLessThanOrEqual(1);
+    await expect(main).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("tl-main");
+    observations.push({
+      route: "Reconnect status at 200%",
+      path: new URL(page.url()).pathname + new URL(page.url()).search,
+      viewport: { width: bannerLayout.viewportWidth, height: page.viewportSize()?.height },
+      documentWidth: bannerLayout.documentWidth,
+      clientWidth: bannerLayout.clientWidth,
+      overflow: bannerLayout.documentWidth - bannerLayout.clientWidth,
+      controls: [{ name: "Reconnecting status", visible: true, reachable: true, focused: false }],
+      tabZoom: exportZoom,
+    });
+    blockReconnect = false;
+    await page.evaluate(() => (window as any).liveSocket.connect());
+    await expect(root).toHaveClass(/phx-connected/);
+    await expect(reconnectBanner).toBeHidden();
+
+    await visit("/audit/policy/retention");
+    const retentionZoom = await setAndReadTabZoom(context, page);
+    expect(retentionZoom.tabId).toBe(coverageZoom.tabId);
+    expect(retentionZoom.zoomFactor).toBe(2);
+    await expect(page.locator("#retention-runs")).toBeVisible();
+    const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+    observations.push({ ...await observePage(page, "Retention history", [
+      ["Open prune confirmation", prune],
+    ], true), tabZoom: retentionZoom });
+    await page.setViewportSize({ width: 1280, height: 420 });
+    expect((await setAndReadTabZoom(context, page)).zoomFactor).toBe(2);
+    await prune.click();
+    const pruneDialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
+    await expect(pruneDialog).toBeVisible();
+    await expect(pruneDialog).toContainText("This prune applies the configured retention policy globally");
+    const keepAuditData = pruneDialog.getByRole("button", { name: "Keep audit data", exact: true });
+    await keepAuditData.scrollIntoViewIfNeeded();
+    observations.push({ ...await observePage(page, "Retention confirmation at 200%", [
+      ["Confirmation policy name", pruneDialog.getByRole("textbox", { name: "Policy name to confirm" })],
+      ["Keep audit data", keepAuditData],
+    ], true), tabZoom: retentionZoom });
+    await keepAuditData.click();
+    await expect(page.locator("#prune-confirm")).toBeHidden();
+    await expect(prune).toBeFocused();
+
     console.log(`THREADLINE_INSPECTION_ZOOM_OBSERVATION=${JSON.stringify(observations)}`);
     await testInfo.attach("inspection-real-200-percent-zoom", { body: Buffer.from(JSON.stringify(observations, null, 2)), contentType: "application/json" });
   });

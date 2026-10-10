@@ -302,7 +302,8 @@ if Code.ensure_loaded?(Phoenix.Component) do
       ~H"""
       <div class={["tl-reconnect-banner", @class]} role="status" {@rest}>
         <Icon.icon name={:refresh} class="tl-alert__icon" />
-        <span>Reconnecting…</span>
+        <span class="tl-reconnect-banner__lost">Connection lost. Read-only information may be stale; actions are paused until current status is refreshed.</span>
+        <span class="tl-reconnect-banner__reconnecting">Reconnecting. Actions will remain unavailable until current status is refreshed.</span>
       </div>
       """
     end

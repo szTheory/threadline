@@ -402,6 +402,29 @@ test.describe("operator motion contracts with reduced motion", () => {
     expect(signatureThreadStyle.animationDelay).toBe("0s");
   });
 
+  test("retention confirmation remains immediate and usable with reduced motion", async ({ page }) => {
+    await page.goto("/audit/policy/retention");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+    await prune.focus();
+    await page.keyboard.press("Enter");
+
+    const dialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
+    const modal = page.locator("#prune-confirm-content");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("textbox", { name: "Policy name to confirm" })).toBeFocused();
+    const motion = await computedStyle(modal);
+    expectDurationList(motion.transitionDuration, "0.001s");
+    expectNoTransitionDelay(motion);
+    expectIdentityOrNone(motion.transform);
+    await expect(dialog.getByRole("button", { name: "Keep audit data", exact: true })).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#prune-confirm")).toBeHidden();
+    await expect(prune).toBeFocused();
+    await expect(page.getByText("Prune request accepted", { exact: false })).toHaveCount(0);
+  });
+
   test("row-history drawer and evidence stay immediate with reduced motion", async ({
     page,
   }) => {

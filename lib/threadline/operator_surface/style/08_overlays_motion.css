@@ -285,12 +285,30 @@
    */
   .tl-reconnect-banner {
     display: none;
+    min-width: 0;
+  }
+
+  .tl-reconnect-banner__lost,
+  .tl-reconnect-banner__reconnecting {
+    display: none;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  [data-phx-main].phx-loading .threadline-ui .tl-reconnect-banner__reconnecting {
+    display: inline;
+  }
+
+  [data-phx-main].phx-error .threadline-ui .tl-reconnect-banner__lost,
+  [data-phx-main].phx-client-error .threadline-ui .tl-reconnect-banner__lost {
+    display: inline;
   }
 
   [data-phx-main].phx-loading .threadline-ui .tl-reconnect-banner,
   [data-phx-main].phx-error .threadline-ui .tl-reconnect-banner,
   [data-phx-main].phx-client-error .threadline-ui .tl-reconnect-banner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--tl-gap-inline);
     padding: var(--tl-space-2) var(--tl-space-4);

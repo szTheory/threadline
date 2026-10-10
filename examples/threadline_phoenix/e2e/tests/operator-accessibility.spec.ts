@@ -794,6 +794,106 @@ test.describe("operator accessibility baseline", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("keeps export and retention journeys readable across themes, widths, and a live reconnect", async ({ page }) => {
+    let blockReconnect = false;
+    await page.routeWebSocket(/\/live\/websocket/, (socket) => {
+      if (blockReconnect) socket.close();
+      else socket.connectToServer();
+    });
+
+    for (const theme of ["Light", "Dark", "System"] as const) {
+      await page.goto("/audit");
+      await openOperatorNav(page);
+      const themeGroup = page.getByTestId("operator-nav-group-theme");
+      const themeRadio = themeGroup.getByRole("radio", { name: theme, exact: true });
+      if (!(await themeRadio.isChecked())) await themeRadio.check();
+      await themeGroup.getByRole("button", { name: "Apply theme", exact: true }).click();
+      await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
+
+      const longCorrelation = `retention-export-filter-${"x".repeat(80)}`;
+      await page.goto(`/audit/exports?table=${rowTable}&correlation_id=${encodeURIComponent(longCorrelation)}`);
+      const root = page.locator("[data-phx-main]");
+      await expect(root).toHaveClass(/phx-connected/);
+      const exportContext = page.getByTestId("timeline-export-context");
+      await expect(exportContext).toContainText(longCorrelation);
+      await expect(page.getByTestId("export-jobs")).toBeVisible();
+      const queue = page.getByRole("button", { name: "Queue Timeline export", exact: true });
+      for (const width of [320, 375, 768, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
+        await expect(exportContext).toContainText(longCorrelation);
+        const target = await queue.boundingBox();
+        expect(target, `Queue target exists at ${width}px`).toBeTruthy();
+        expect(target!.width, `Queue target width at ${width}px`).toBeGreaterThanOrEqual(40);
+        expect(target!.height, `Queue target height at ${width}px`).toBeGreaterThanOrEqual(40);
+        await expectNoHorizontalOverflow(page);
+      }
+
+      if (theme === "System") {
+        await page.setViewportSize({ width: 320, height: 900 });
+        const main = page.locator("#tl-main");
+        await main.focus();
+        blockReconnect = true;
+        await page.evaluate(() => (window as any).liveSocket.disconnect());
+        await expect(root).toHaveClass(/phx-loading/);
+        const banner = page.locator(".tl-reconnect-banner");
+        await expect(banner).toBeVisible();
+        await expect(banner).toHaveAttribute("role", "status");
+        await expect(banner.locator(".tl-reconnect-banner__reconnecting")).toHaveText(
+          "Reconnecting. Actions will remain unavailable until current status is refreshed.",
+        );
+        await expect(queue).toBeDisabled();
+        await expect(main).toBeVisible();
+        await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("tl-main");
+        const bannerLayout = await banner.evaluate((element) => ({
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+          viewportWidth: window.innerWidth,
+        }));
+        expect(bannerLayout.scrollWidth).toBeLessThanOrEqual(bannerLayout.clientWidth + 1);
+        expect(bannerLayout.clientWidth).toBeLessThanOrEqual(bannerLayout.viewportWidth);
+        await expectNoHorizontalOverflow(page);
+        blockReconnect = false;
+        await page.evaluate(() => (window as any).liveSocket.connect());
+        await expect(root).toHaveClass(/phx-connected/);
+        await expect(banner).toBeHidden();
+      }
+
+      await page.goto("/audit/policy/retention");
+      await expect(root).toHaveClass(/phx-connected/);
+      const history = page.locator("#retention-runs");
+      await expect(history).toBeVisible();
+      await expect(history).toContainText(/Completed|Queued|No retention runs/);
+      const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
+      for (const width of [320, 375, 768, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
+        const target = await prune.boundingBox();
+        expect(target, `Prune target exists at ${width}px`).toBeTruthy();
+        expect(target!.width, `Prune target width at ${width}px`).toBeGreaterThanOrEqual(40);
+        expect(target!.height, `Prune target height at ${width}px`).toBeGreaterThanOrEqual(40);
+        await expectNoHorizontalOverflow(page);
+      }
+
+      await page.setViewportSize({ width: 320, height: 440 });
+      await prune.focus();
+      await page.keyboard.press("Enter");
+      const modal = page.locator("#prune-confirm");
+      const dialog = page.getByRole("dialog", { name: "Prune retained audit data?" });
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toContainText("This prune applies the configured retention policy globally");
+      await expect(dialog.getByRole("textbox", { name: "Policy name to confirm" })).toBeFocused();
+      const keepData = dialog.getByRole("button", { name: "Keep audit data", exact: true });
+      await keepData.scrollIntoViewIfNeeded();
+      await expect(keepData).toBeInViewport({ ratio: 1 });
+      await expectNoHorizontalOverflow(page);
+      await keepData.focus();
+      await page.keyboard.press("Enter");
+      await expect(modal).toBeHidden();
+      await expect(prune).toBeFocused();
+    }
+  });
+
   test("keeps row-history drawer dialog semantics and visible focus", async ({
     page,
   }, testInfo) => {
