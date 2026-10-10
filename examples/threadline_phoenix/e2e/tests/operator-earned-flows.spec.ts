@@ -227,6 +227,54 @@ test.describe("operator earned-flow browser UAT", () => {
     });
   });
 
+  test("transaction-origin row history returns to the same transaction", async ({
+    page,
+  }) => {
+    await page.goto(`/audit/timeline?table=${encodeURIComponent(rowTable)}`);
+    await expectLiveViewConnected(page);
+    const transactionLink = page
+      .getByTestId("timeline-row")
+      .filter({ hasText: rowTable })
+      .first()
+      .getByTestId("transaction-link");
+    await expect(transactionLink).toBeVisible();
+    const transactionHref = await transactionLink.getAttribute("href");
+    expect(transactionHref).not.toBeNull();
+    const transactionUrl = new URL(transactionHref!, page.url());
+    const transactionId = transactionUrl.pathname.split("/").at(-1)!;
+
+    await page.goto(transactionUrl.toString());
+    await expect(page).toHaveURL(transactionUrl.toString());
+    await expectLiveViewConnected(page);
+    const rowHistoryLink = page
+      .getByTestId("transaction-change-row")
+      .filter({ hasText: rowTable })
+      .first()
+      .getByTestId("row-history-link");
+    await expect(rowHistoryLink).toBeVisible();
+    const href = await rowHistoryLink.getAttribute("href");
+    expect(href).not.toBeNull();
+    const rowHistoryUrl = new URL(href!, page.url());
+    expect(rowHistoryUrl.pathname).toContain(
+      `/audit/transactions/${transactionId}/history/`,
+    );
+
+    await rowHistoryLink.click();
+    await expectPath(page, rowHistoryUrl.pathname);
+    await expectLiveViewConnected(page);
+    const drawer = page.getByTestId("row-history-drawer");
+    await expect(drawer).toBeVisible();
+    await drawer.locator('input[name="as_of"]').fill("2026-10-10T10:00");
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("as_of"))
+      .toBe("2026-10-10T10:00:00Z");
+
+    await drawer.getByRole("link", { name: "Close", exact: true }).click();
+    await expectPath(page, `/audit/transactions/${transactionId}`);
+    await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("Home correlation lookup lands on Timeline correlation filter", async ({
     page,
   }) => {
