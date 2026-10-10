@@ -4,8 +4,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     import Phoenix.LiveView
 
-    alias Threadline.OperatorSurface.Coverage.Snapshot
     alias Threadline.Health.CoverageSchemas
+    alias Threadline.OperatorSurface.Coverage.Snapshot
 
     @default_interval 30_000
     @floor_interval 5_000
