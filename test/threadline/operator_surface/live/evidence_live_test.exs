@@ -362,15 +362,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "2026-05-26T12:05:00.000000Z"
       end
 
-      test "renders the locked empty-state copy when no records exist", %{conn: conn} do
-        {:ok, _view, html} = live(conn, "/audit/evidence")
+      test "scopes a successful no-match to the selected subject reference", %{conn: conn} do
+        subject_ref_json = URI.encode_www_form(~s({"run_id":"missing-evidence-123"}))
 
-        assert html =~ "No evidence records yet"
+        {:ok, _view, html} =
+          live(
+            conn,
+            "/audit/evidence?subject=retention_run&subject_ref_json=#{subject_ref_json}"
+          )
+
+        assert html =~ "No Threadline evidence for this selection"
 
         assert html =~
-                 "Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed."
+                 "No evidence was recorded for this subject and reference. This does not establish whether other activity occurred."
 
-        refute html =~ "current proof state"
+        assert html =~ "retention_run"
+        assert html =~ "missing-evidence-123"
+        refute html =~ "Evidence is unavailable for this selection"
       end
 
       test "source contract: Evidence reads pass resolved storage schema opts" do
