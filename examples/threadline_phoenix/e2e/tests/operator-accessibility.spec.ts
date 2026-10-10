@@ -1143,6 +1143,7 @@ test.describe("operator accessibility baseline", () => {
     });
 
     await page.goto("/audit/timeline");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     await openTimelineAdvancedFilters(page);
     const timelineSnapshot = await expectAriaSnapshotContains(
       page.locator("#tl-main"),
