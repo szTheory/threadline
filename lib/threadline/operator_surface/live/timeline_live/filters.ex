@@ -9,6 +9,54 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.OperatorSurface.UI
     alias Threadline.Semantics.ActorRef
 
+    attr(:form_error, :any, required: true)
+    attr(:query_error, :boolean, required: true)
+    attr(:timeline_path, :string, required: true)
+    attr(:filter_query, :string, required: true)
+    attr(:empty_changes, :boolean, required: true)
+    attr(:unknown_table_attempted, :boolean, required: true)
+    attr(:filters_raw, :map, required: true)
+    attr(:audited_tables, :list, required: true)
+    attr(:match_count, :any, required: true)
+
+    def query_feedback(assigns) do
+      ~H"""
+      <%= if @form_error do %>
+        <div class="tl-alert tl-alert--error" role="alert">
+          <%= Helpers.invalid_filter_message(@form_error) %>
+        </div>
+      <% end %>
+
+      <UI.Data.error_state :if={@query_error}>
+        <:title>Timeline could not be loaded</:title>
+        Timeline could not be loaded. Check the applied filters and try again.
+        <:actions>
+          <a href={"#{@timeline_path}?#{@filter_query}"} class="tl-button tl-button--secondary">
+            Retry applied filters
+          </a>
+        </:actions>
+      </UI.Data.error_state>
+
+      <%= if @empty_changes and @unknown_table_attempted do %>
+        <div class="tl-alert tl-alert--info" role="status">
+          <%= Helpers.unknown_table_message(@filters_raw["table"], @audited_tables) %>
+        </div>
+      <% end %>
+
+      <%= if not is_nil(@match_count) and @match_count > 5_000 and @match_count < 10_001 do %>
+        <div class="tl-alert tl-alert--info" role="status">
+          Large export — will stream in chunks.
+        </div>
+      <% end %>
+
+      <%= if not is_nil(@match_count) and @match_count >= 10_001 do %>
+        <div class="tl-alert tl-alert--warning" role="alert">
+          Truncated to first 10,000 rows. Use `mix threadline.export --max-rows N` for the full window.
+        </div>
+      <% end %>
+      """
+    end
+
     attr(:filters_raw, :map, required: true)
     attr(:audited_tables, :list, required: true)
     attr(:match_count, :any, required: true)
@@ -180,6 +228,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
               Copy search URL
             </button>
+            <span
+              :if={Threadline.OperatorSurface.Script.enabled?()}
+              class="tl-copy-status"
+              data-tl-copy-status
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            ></span>
             <p class="tl-toolbar__hint">
               This URL shares the applied filters. Results and access are determined by the receiving host.
             </p>

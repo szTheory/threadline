@@ -319,7 +319,7 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
     refute Regex.match?(~r/#[0-9a-fA-F]{6}/, home_section)
   end
 
-  test "phase 141 motion tokens and keyframes stay locked" do
+  test "motion tokens and keyframes stay locked" do
     src = StyleSource.read!()
 
     for token <- [
@@ -341,27 +341,39 @@ defmodule Threadline.OperatorSurface.StyleContractTest do
       |> List.flatten()
       |> Enum.sort()
 
-    assert keyframes ==
-             Enum.sort(~w(tl-drawer-in tl-rise-in tl-thread-draw tl-fade-in tl-copy-pulse))
+    assert keyframes == Enum.sort(~w(tl-rise-in tl-thread-draw tl-fade-in tl-copy-pulse))
   end
 
-  test "phase 141 animation consumers remain token-backed in live source" do
+  test "remaining animation consumers stay token-backed in live source" do
     src = StyleSource.read!()
 
     for {selector, keyframe} <- [
           {".tl-home__card", "tl-rise-in"},
           {".tl-home__card--primary::before", "tl-thread-draw"},
-          {".tl-subview", "tl-drawer-in"},
           {"#retention-runs > tr", "tl-rise-in"},
-          {".tl-subview__timeline > *", "tl-rise-in"},
-          {".tl-record-list > .tl-record-card", "tl-fade-in"},
-          {"#transactions-list > .tl-change", "tl-fade-in"},
           {".tl-copy.is-copied", "tl-copy-pulse"},
           {".tl-journey-rail::before", "tl-thread-draw"},
           {".tl-policy__success::after", "tl-thread-draw"}
         ] do
       assert_selector_uses_animation(src, selector, keyframe)
     end
+  end
+
+  test "row-history evidence stays immediate and copy feedback remains in flow" do
+    src = StyleSource.read!()
+    history = selector_block!(src, ".tl-row-history-drawer")
+    row_history_items = selector_block!(src, ".tl-row-history-drawer .tl-subview__timeline > *")
+    copy_status = selector_block!(src, ".tl-copy-status")
+
+    assert String.contains?(history, "animation: none !important;")
+    assert String.contains?(history, "transition: none !important;")
+    assert String.contains?(row_history_items, "animation: none !important;")
+    assert String.contains?(row_history_items, "transition: none !important;")
+    assert String.contains?(copy_status, "display: block;")
+    assert String.contains?(copy_status, "overflow-wrap: anywhere;")
+    refute String.contains?(copy_status, "position: absolute;")
+    refute String.contains?(src, ".tl-subview__timeline > *:nth-child(")
+    refute String.contains?(src, ".tl-record-list > .tl-record-card,")
   end
 
   test "phase 141 transition families remain token-backed in live source" do

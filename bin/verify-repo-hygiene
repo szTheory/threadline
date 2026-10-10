@@ -322,11 +322,11 @@ allowlist_path="${REPO_HYGIENE_ALLOWLIST:-$root/.github/repo-hygiene-allowlist.t
 # When the allowlist lives outside the scanned root (a test-only seam), it
 # cannot be part of the tracked tree in the first place, so no exclude
 # pathspec is needed — and one would error with "outside repository".
-EXCLUDE_PATHSPEC=()
+exclude_pathspec=""
 case "$allowlist_path" in
   "$root"/*)
     allowlist_rel="${allowlist_path#"$root"/}"
-    EXCLUDE_PATHSPEC=(":(exclude)${allowlist_rel}")
+    exclude_pathspec=":(exclude)${allowlist_rel}"
     ;;
   *)
     allowlist_rel="$allowlist_path"
@@ -504,10 +504,14 @@ fi
 # --- Tree scan, excluding the allowlist file itself --------------------------
 
 coarse_pattern="(${_word_users}|${_word_home}|~/|var/folders)"
+grep_pathspec=(.)
+if [ -n "$exclude_pathspec" ]; then
+  grep_pathspec+=("$exclude_pathspec")
+fi
 
 set +e
 candidates="$(
-  git -C "$root" -c core.quotePath=false grep -z -n -I -E "$coarse_pattern" -- . "${EXCLUDE_PATHSPEC[@]}" | tr '\000' '\001'
+  git -C "$root" -c core.quotePath=false grep -z -n -I -E "$coarse_pattern" -- "${grep_pathspec[@]}" | tr '\000' '\001'
   exit "${PIPESTATUS[0]}"
 )"
 grep_status=$?

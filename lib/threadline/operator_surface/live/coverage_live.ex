@@ -251,6 +251,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                                     <button :if={Threadline.OperatorSurface.Script.enabled?()} type="button" class="tl-copy tl-copy--command" data-tl-copy={remediation.command} aria-label={"Copy #{table} capture command"}>
                                       Copy
                                     </button>
+                                    <span :if={Threadline.OperatorSurface.Script.enabled?()} class="tl-copy-status" data-tl-copy-status role="status" aria-live="polite" aria-atomic="true"></span>
                                   </div>
                                   <span class="tl-hint tl-row-action__hint"><%= remediation.follow_up %></span>
                                 </div>

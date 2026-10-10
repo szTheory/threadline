@@ -110,7 +110,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       }
     }
 
-    @phase_239_receipts %{
+    @phase_240_receipts %{
       "start.record_lookup" => %{
         elements: 20,
         sha256: "c2df4557e8cd230da5fbd64275b9753c339527ad681dd81810701d2d4e6287ce"
@@ -120,20 +120,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         sha256: "eb8c3a7ea07c63c3b386244c4f356d1820bbdd15eea970d678a2c5dbe8a4f9b8"
       },
       "exports.timeline_context" => %{
-        elements: 45,
-        sha256: "568e22a7119d9e5753bddabf42e4d92f9212f7241d4821aae9c52f8e9d84448a"
+        elements: 49,
+        sha256: "e172d6b5460e42f716101671b48cbfbb197a683bc7d07b52ddc5d1a9f7bda313"
       },
       "exports.evidence_context" => %{
-        elements: 42,
-        sha256: "7a62c0f043c5c02b160d2fd45d3facc40f06ef2e94bb3834c2de62020b29c764"
+        elements: 45,
+        sha256: "896fb7295a14dcdb6a12f04ad9ea2def3e5005cc3d0bac94e2b6ced3900f7252"
       },
       "evidence.carry_to_exports" => %{
         elements: 1,
         sha256: "16250bb948aa1f2dcb3d36d78418c9b151fcf49fa5cb438c710588f2f8859810"
       },
       "row_history.shell" => %{
-        elements: 116,
-        sha256: "7f8bb61a67127bcffbc0f8bd400a1625300b0c31c961debc391b0ecd13005e50"
+        elements: 117,
+        sha256: "7eb7f5e4b6feea0c173901e7d2e9c45e04e806e554e5935265594af6a714556d"
       },
       "timeline.carry_to_exports" => %{
         elements: 4,
@@ -296,16 +296,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                scan_planning_vocabulary("host-data-control", "Customer note for Phase 201")
     end
 
-    test "seven current structures match the reviewed Phase 239 receipts", %{conn: conn} do
+    test "seven current structures match the reviewed Phase 240 receipts", %{conn: conn} do
       receipts =
         conn
         |> representative_render_inventory()
         |> Map.new(fn {node_id, html} -> {node_id, structure_receipt(node_id, html)} end)
 
-      assert Map.keys(receipts) |> Enum.sort() == Map.keys(@phase_239_receipts) |> Enum.sort()
+      assert Map.keys(receipts) |> Enum.sort() == Map.keys(@phase_240_receipts) |> Enum.sort()
       assert Enum.all?(receipts, fn {_id, receipt} -> receipt.elements > 0 end)
 
-      assert receipts == @phase_239_receipts
+      assert receipts == @phase_240_receipts
     end
 
     test "canonical structure ignores copy and provenance but detects meaningful mutations" do

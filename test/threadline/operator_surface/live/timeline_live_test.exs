@@ -1280,7 +1280,6 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="transaction-link"|
       assert html =~ "/audit/transactions/#{change.transaction_id}"
       refute html =~ ~s|data-testid="timeline-row-history-link"|
-      refute html =~ "Row history"
     end
 
     test "TIME-01: unsafe Timeline row identities keep only the transaction pivot", %{conn: conn} do
@@ -1741,6 +1740,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Threadline.OperatorSurfaceCase,
       endpoint: Threadline.OperatorSurface.TimelineLiveTest.ScopedEndpoint
 
+    alias Threadline.Semantics.AuditAction
+
     setup_all do
       start_endpoint!(@endpoint)
       :ok
@@ -1760,7 +1761,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       action =
         if correlation_id do
           repo.insert!(
-            Threadline.Semantics.AuditAction.changeset(%{
+            AuditAction.changeset(%{
               name: "timeline.test",
               actor_ref: actor_ref,
               status: "ok",

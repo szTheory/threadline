@@ -1748,7 +1748,7 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "path": "lib/threadline/operator_surface/live/timeline_live/filters.ex",
           "kind": "control",
           "anchor": "href={\"#{@timeline_path}?#{@filter_query}\"} class=\"tl-button tl-button--secondary\">",
           "occurrence": 1
@@ -1761,7 +1761,7 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
           "kind": "control",
           "anchor": "data-tl-copy={Helpers.table_ref(change).title}",
           "occurrence": 1
@@ -1774,7 +1774,7 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
           "kind": "control",
           "anchor": "href={\"#{@base_path}/transactions/#{change.transaction_id}\"} class=\"tl-button tl-button--compact tl-button--secondary\" data-testid=\"transaction-link\">",
           "occurrence": 1
@@ -1787,7 +1787,7 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
           "kind": "control",
           "anchor": "href={Helpers.correlation_path(@timeline_path, Helpers.correlation_id(change))} class=\"tl-link tl-link--deep\" title=\"View correlated changes in Timeline\">",
           "occurrence": 1
@@ -1800,7 +1800,7 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
           "kind": "control",
           "anchor": "href={row_history_path}",
           "occurrence": 1
@@ -1813,7 +1813,7 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
           "kind": "control",
           "anchor": "href={path}",
           "occurrence": 1
@@ -1839,7 +1839,7 @@
       "kind": "control",
       "anchors": [
         {
-          "path": "lib/threadline/operator_surface/live/timeline_live.ex",
+          "path": "lib/threadline/operator_surface/live/timeline_live/changes.ex",
           "kind": "control",
           "anchor": "phx-viewport-bottom={@cursor && \"next-page\"}",
           "occurrence": 1
@@ -5173,6 +5173,58 @@
           "kind": "control",
           "occurrence": 1,
           "path": "lib/threadline/operator_surface/ui/overlay.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.056362cb4f",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Clipboard failure shows manual recovery without claiming success\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.a163a87d6c",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Clipboard fallback confirms success and restores focus and selection\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.a80c892492",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Clipboard success waits for confirmation on direct entry and after patches\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.operator_route_states.453854b3e6",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Copy feedback fits long URLs and redacted values stay non-copyable\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
         }
       ],
       "exclusion": ""

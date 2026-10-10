@@ -344,6 +344,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                               <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
                               Copy
                             </button>
+                            <span :if={diff_full(before) && Threadline.OperatorSurface.Script.enabled?()} class="tl-copy-status" data-tl-copy-status role="status" aria-live="polite" aria-atomic="true"></span>
                           </div>
                           <span class="tl-diff__arrow">-&gt;</span>
                         <% end %>
@@ -355,6 +356,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                             <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
                             Copy
                           </button>
+                          <span :if={diff_full(after_token) && Threadline.OperatorSurface.Script.enabled?()} class="tl-copy-status" data-tl-copy-status role="status" aria-live="polite" aria-atomic="true"></span>
                         </div>
                       </div>
                     <% end %>

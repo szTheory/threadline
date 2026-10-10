@@ -192,6 +192,14 @@ if Code.ensure_loaded?(Phoenix.Component) do
           <Icon.icon name={:copy} class="tl-button__icon" />
           Copy
         </button>
+        <span
+          :if={Script.enabled?()}
+          class="tl-copy-status"
+          data-tl-copy-status
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></span>
       </span>
       <.full_value
         :if={Script.enabled?() && @r.visible != @r.full}

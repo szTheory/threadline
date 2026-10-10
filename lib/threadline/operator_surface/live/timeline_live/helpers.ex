@@ -237,14 +237,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @doc false
     def active_filter_pairs(%{} = raw) do
-      raw
-      |> then(fn filters ->
-        Enum.flat_map(@active_filter_keys, fn key ->
-          case Map.get(filters, key) do
-            value when is_binary(value) and value != "" -> [{filter_label(key), value}]
-            _ -> []
-          end
-        end)
+      Enum.flat_map(@active_filter_keys, fn key ->
+        case Map.get(raw, key) do
+          value when is_binary(value) and value != "" -> [{filter_label(key), value}]
+          _ -> []
+        end
       end)
     end
 

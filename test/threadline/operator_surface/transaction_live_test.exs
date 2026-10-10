@@ -668,6 +668,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ txn_visible
       assert html =~ ~s|data-tl-copy="#{txn.id}"|
       assert html =~ ~s|class="tl-copy tl-button tl-button--compact tl-button--secondary"|
+      assert html =~ "data-tl-copy-status"
+      assert html =~ ~s|role="status" aria-live="polite" aria-atomic="true"|
       assert html =~ ~s|title="#{correlation_id}"|
       assert html =~ correlation_visible
       assert html =~ ~s|data-tl-copy="#{correlation_id}"|

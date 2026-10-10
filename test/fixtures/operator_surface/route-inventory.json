@@ -2008,6 +2008,26 @@
       "id": "control.generated.overlay.d7969d79ea",
       "kind": "control",
       "label": "overlay phx-mounted={@show && show_drawer_for_motion(@id, @motion)}"
+    },
+    {
+      "id": "state.generated.operator_route_states.056362cb4f",
+      "kind": "state",
+      "label": "Clipboard failure shows manual recovery without claiming success"
+    },
+    {
+      "id": "state.generated.operator_route_states.a163a87d6c",
+      "kind": "state",
+      "label": "Clipboard fallback confirms success and restores focus and selection"
+    },
+    {
+      "id": "state.generated.operator_route_states.a80c892492",
+      "kind": "state",
+      "label": "Clipboard success waits for confirmation on direct entry and after patches"
+    },
+    {
+      "id": "state.generated.operator_route_states.453854b3e6",
+      "kind": "state",
+      "label": "Copy feedback fits long URLs and redacted values stay non-copyable"
     }
   ]
 }

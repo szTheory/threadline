@@ -1,4 +1,4 @@
-import { chromium, expect, test, type Page, type WebSocketRoute } from "@playwright/test";
+import { chromium, expect, test, type Locator, type Page, type WebSocketRoute } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { login, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
@@ -15,6 +15,10 @@ test.beforeEach(async ({}, info) => {
     "saved search actions stay in bounds at verified 200% browser zoom",
     "actor and correlation pivots re-enter Timeline with only their supported filters",
     "Timeline pagination appends the next page without changing the applied search URL",
+    "Clipboard success waits for confirmation on direct entry and after patches",
+    "Clipboard failure shows manual recovery without claiming success",
+    "Clipboard fallback confirms success and restores focus and selection",
+    "Copy feedback fits long URLs and redacted values stay non-copyable",
   ].includes(info.title)) return;
   test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || !["desktop-chromium", "desktop-chromium-light"].includes(info.project.name), "Bounded evidence lanes only");
 });
@@ -22,6 +26,10 @@ test.beforeEach(async ({}, info) => {
 async function expectNoHorizontalOverflow(page: Page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+}
+
+function copyStatus(control: Locator) {
+  return control.locator("xpath=..").locator("[data-tl-copy-status]");
 }
 
 test("theme preference, effective cascade and reduced motion are distinct observed facts", async ({ page, browser }, info) => {
@@ -92,6 +100,217 @@ test("bound Timeline Copy observes exact completion and real denied permission s
   e.finish("state.clipboard", "/audit/timeline", "clipboard-completed-and-denial-probe");
 });
 
+test("Clipboard success waits for confirmation on direct entry and after patches", async ({ page }) => {
+  await page.addInitScript(() => {
+    const probe = {
+      calls: [] as Array<{ value: string; userActivation: boolean }>,
+      pending: [] as Array<() => void>,
+      resolveNext() {
+        this.pending.shift()?.();
+      },
+    };
+    (window as any).__threadlineCopyProbe = probe;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText(value: string) {
+          probe.calls.push({ value, userActivation: (navigator as any).userActivation?.isActive === true });
+          return new Promise<void>((resolve) => probe.pending.push(resolve));
+        },
+      },
+    });
+  });
+
+  await login(page);
+  await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+
+  const copy = page.locator("button[data-tl-copy]").first();
+  await expect(copy).toBeVisible();
+  const expected = await copy.getAttribute("data-tl-copy");
+  expect(expected).toBeTruthy();
+  await copy.click();
+
+  const status = copyStatus(copy);
+  await expect(status).toHaveText("Copying…");
+  expect(await copy.evaluate((element) => element.classList.contains("is-copied"))).toBe(false);
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.calls)).toEqual([
+    { value: expected, userActivation: true },
+  ]);
+
+  await page.evaluate(() => (window as any).__threadlineCopyProbe.resolveNext());
+  await expect(status).toHaveText("Copied.");
+  await expect(copy).toHaveClass(/is-copied/);
+
+  await page.locator("#filter-table").fill("ticket_replies");
+  await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
+  await expect(page).toHaveURL(/table=ticket_replies/);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+
+  const patchedCopy = page.locator("button[data-tl-copy]").first();
+  const patchedExpected = await patchedCopy.getAttribute("data-tl-copy");
+  await patchedCopy.click();
+  const patchedStatus = copyStatus(patchedCopy);
+  await expect(patchedStatus).toHaveText("Copying…");
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.calls)).toHaveLength(2);
+  await page.evaluate(() => (window as any).__threadlineCopyProbe.resolveNext());
+  await expect(patchedStatus).toHaveText("Copied.");
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.calls[1])).toEqual({
+    value: patchedExpected,
+    userActivation: true,
+  });
+});
+
+test("Clipboard failure shows manual recovery without claiming success", async ({ page }) => {
+  await page.addInitScript(() => {
+    const probe = { fallbackCalls: 0 };
+    (window as any).__threadlineCopyProbe = probe;
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: () => Promise.reject(new DOMException("denied", "NotAllowedError")) },
+    });
+    document.execCommand = () => {
+      probe.fallbackCalls += 1;
+      return false;
+    };
+  });
+
+  await login(page);
+  await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  const copy = page.locator("button[data-tl-copy]").first();
+  await expect(copy).toBeVisible();
+  const expected = await copy.getAttribute("data-tl-copy");
+  await copy.click();
+
+  const status = copyStatus(copy);
+  await expect(status).toHaveText("Copy failed. Select the value and copy it manually.");
+  await expect(status).toHaveAttribute("role", "status");
+  await expect(status).toHaveAttribute("aria-live", "polite");
+  await expect(copy).not.toHaveClass(/is-copied/);
+  await expect(copy).toBeFocused();
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.fallbackCalls)).toBe(1);
+  await expect(page.locator("textarea[data-tl-copy-fallback]")).toHaveCount(0);
+  await expect(status).not.toContainText(expected ?? "");
+});
+
+test("Clipboard fallback confirms success and restores focus and selection", async ({ page }) => {
+  await page.addInitScript(() => {
+    const probe = { fallbackCalls: 0 };
+    (window as any).__threadlineCopyProbe = probe;
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
+    document.execCommand = () => {
+      probe.fallbackCalls += 1;
+      return true;
+    };
+  });
+
+  await login(page);
+  await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const source = page.locator(".tl-ref .tl-secondary-ref").first();
+  await expect(source).toBeVisible();
+  const selected = await source.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+    return range.toString();
+  });
+  expect(selected).not.toBe("");
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe(selected);
+
+  const copy = source.locator("xpath=..").locator("button[data-tl-copy]").first();
+  await copy.click();
+  await expect(copyStatus(copy)).toHaveText("Copied.");
+  await expect(copy).toBeFocused();
+  await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe(selected);
+  expect(await page.evaluate(() => (window as any).__threadlineCopyProbe.fallbackCalls)).toBe(1);
+  await expect(page.locator("textarea[data-tl-copy-fallback]")).toHaveCount(0);
+});
+
+test("Copy feedback fits long URLs and redacted values stay non-copyable", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: () => Promise.resolve() },
+    });
+  });
+
+  await login(page);
+  const correlation = `copy-long-${"x".repeat(180)}`;
+  const appliedUrl = `/audit/timeline?table=ticket_replies&correlation_id=${encodeURIComponent(correlation)}`;
+  await page.goto(appliedUrl);
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+  const copySearch = drawer.getByRole("button", { name: "Copy search URL", exact: true });
+  await expect(copySearch).toHaveAttribute("data-tl-copy", appliedUrl);
+  await expect(copyStatus(copySearch)).toHaveCount(1);
+  await copySearch.click();
+  const status = copyStatus(copySearch);
+  await expect(status).toHaveText("Copied.");
+  await expectNoHorizontalOverflow(page);
+
+  const geometry = await page.evaluate(() => {
+    const button = document.querySelector('button[aria-label="Copy search URL"]')!;
+    const status = button.parentElement!.querySelector<HTMLElement>("[data-tl-copy-status]")!;
+    const buttonRect = button.getBoundingClientRect();
+    const statusRect = status.getBoundingClientRect();
+    return {
+      overlaps: buttonRect.left < statusRect.right && buttonRect.right > statusRect.left && buttonRect.top < statusRect.bottom && buttonRect.bottom > statusRect.top,
+      statusInsideViewport: statusRect.left >= 0 && statusRect.right <= document.documentElement.clientWidth + 1,
+      statusText: status.textContent,
+    };
+  });
+  expect(geometry.overlaps).toBe(false);
+  expect(geometry.statusInsideViewport).toBe(true);
+  expect(geometry.statusText).toBe("Copied.");
+
+  await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  await page.getByTestId("timeline-row").first().getByTestId("transaction-link").click();
+  const reference = page.locator(".tl-ref").filter({ has: page.locator("button[data-tl-copy]") }).first();
+  const referenceCopy = reference.locator("button[data-tl-copy]").first();
+  await expect(referenceCopy).toBeVisible();
+  await referenceCopy.click();
+  await expect(copyStatus(referenceCopy)).toHaveText("Copied.");
+  await expectNoHorizontalOverflow(page);
+  const referenceGeometry = await reference.evaluate((element) => {
+    const value = element.querySelector(".tl-secondary-ref")!;
+    const button = element.querySelector("button[data-tl-copy]")!;
+    const status = element.querySelector<HTMLElement>("[data-tl-copy-status]")!;
+    const rect = (node: Element) => node.getBoundingClientRect();
+    const valueRect = rect(value);
+    const buttonRect = rect(button);
+    const statusRect = rect(status);
+    const overlaps = (a: DOMRect, b: DOMRect) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+    return {
+      overlapsValue: overlaps(valueRect, statusRect),
+      overlapsButton: overlaps(buttonRect, statusRect),
+      statusInsideViewport: statusRect.left >= 0 && statusRect.right <= document.documentElement.clientWidth + 1,
+    };
+  });
+  expect(referenceGeometry).toEqual({ overlapsValue: false, overlapsButton: false, statusInsideViewport: true });
+
+  await page.goto("/audit/timeline?table=ticket_replies");
+  const redactedUpdate = page
+    .getByTestId("timeline-row")
+    .filter({ hasText: "UPDATE" })
+    .filter({ hasText: "ticket_replies" })
+    .first();
+  await redactedUpdate.getByTestId("transaction-link").click();
+  const redacted = page.locator(".tl-value--redacted").first();
+  await expect(redacted).toBeVisible();
+  const cell = redacted.locator("xpath=ancestor::div[contains(@class, 'tl-diff__cell')]");
+  await expect(cell.locator("[data-tl-copy]")).toHaveCount(0);
+  await expect(page.locator('button[data-tl-copy="[REDACTED]"]')).toHaveCount(0);
+  await expect(page.locator("#tl-main")).not.toContainText("Internal: route to tier-2");
+  await expect(page.locator("#tl-main")).not.toContainText("Confirmed tier-2 resolved. Closing.");
+  await expect(
+    page.locator("[data-tl-copy-status]").filter({ hasText: "Internal: route to tier-2" }),
+  ).toHaveCount(0);
+});
+
 test("Exports seeded pending, failed, completed, unavailable and invalid context stay distinct", async ({ page, browser }, info) => {
   await login(page);
   const e = await startEvidence(page, browser, info);
@@ -160,6 +379,7 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   await seedPaths(page);
   const queryA = "walk-acme-4521-close";
   await page.goto(`/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&correlation_id=${queryA}`);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   await expect(page.getByTestId("timeline-row").first()).toBeVisible();
   const queryARowCount = await page.getByTestId("timeline-row").count();
   expect(queryARowCount).toBeGreaterThan(0);

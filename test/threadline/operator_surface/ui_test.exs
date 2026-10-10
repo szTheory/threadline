@@ -729,6 +729,10 @@ defmodule Threadline.OperatorSurface.UITest do
       # Every data-tl-copy binding equals the full value — never the truncated visible text.
       targets = copy_targets(html)
       assert targets != []
+      assert html =~ "data-tl-copy-status"
+      assert html =~ ~s(role="status")
+      assert html =~ ~s(aria-live="polite")
+      assert html =~ ~s(aria-atomic="true")
 
       assert Enum.all?(targets, &(&1 == @long_ref)),
              "every data-tl-copy must equal the full value"
