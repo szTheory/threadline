@@ -8,6 +8,7 @@ import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-
 test.use({ trace: "off", screenshot: "off", contextOptions: { reducedMotion: "reduce" } });
 test.beforeEach(async ({}, info) => {
   if ([
+    "Evidence keeps selected subject/reference through latest and proof-history navigation",
     "Timeline delayed query exposes pending then real empty result with a long unbroken filter",
     "Timeline keeps populated query identity while an applied replacement is pending",
     "real host denial under Acme support is distinct from busy and disabled",
@@ -324,6 +325,89 @@ test("Exports seeded pending, failed, completed, unavailable and invalid context
   await expect(page.locator("#tl-main [role=alert]").first()).toBeVisible();
   await e.capture("state.exports.invalid", "/audit/exports?subject_type=invalid&subject_ref_json=%7B", "invalid-context-alert");
   e.finish("state.exports", "/audit/exports", "seeded-status-and-invalid-context");
+});
+
+test("Evidence keeps selected subject/reference through latest and proof-history navigation", async ({ page, browser }) => {
+  await login(page);
+  await page.goto("/audit/evidence");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+
+  const latestCard = page
+    .locator(".tl-record-card")
+    .filter({ has: page.locator('code[title*="walk-retention-offboarded-co"]') });
+  await expect(latestCard).toHaveCount(1);
+  const referenceCode = latestCard.locator("code.tl-secondary-ref");
+  const selectedReference = await referenceCode.getAttribute("data-tl-copy");
+  expect(selectedReference).not.toBeNull();
+  expect(JSON.parse(selectedReference!).run_id).toBe("walk-retention-offboarded-co");
+
+  const latestLabels = latestCard.locator(".tl-record-card__title > span");
+  await expect(latestLabels.nth(0)).toHaveText("Proven");
+  await expect(latestLabels.nth(1)).toHaveText("Completed");
+  const history = latestCard.getByRole("link", { name: "View proof history", exact: true });
+  const historyHref = await history.getAttribute("href");
+  expect(historyHref).not.toBeNull();
+  const expectedRoute = new URL(historyHref!, "http://127.0.0.1");
+  expect(expectedRoute.pathname).toBe("/audit/evidence");
+  expect(expectedRoute.searchParams.get("subject")).toBe("retention_run");
+  expect(expectedRoute.searchParams.get("subject_ref_json")).toBe(selectedReference);
+  expect(expectedRoute.searchParams.get("mode")).toBe("history");
+
+  await history.click();
+  await expect.poll(() => page.url()).toMatch(/\/audit\/evidence\?.*mode=history/);
+  await expect(page.getByText("Viewing append-only proof history for one evidence subject reference.")).toBeVisible();
+  await expect(page.locator(".tl-evidence__workflow-summary code.tl-secondary-ref")).toHaveAttribute("data-tl-copy", selectedReference!);
+  const historyLabels = await page.locator(".tl-record-card__title").allTextContents();
+  const normalizedLabels = historyLabels.map((label) => label.replace(/\s+/g, " ").trim());
+  expect(normalizedLabels).toEqual(expect.arrayContaining(["Proven Completed", "Proven Running", "Proven Queued"]));
+  await expect(page.getByTestId("evidence-claim-boundary")).toContainText("recorded snapshot");
+  await expect(page.getByTestId("evidence-claim-boundary")).toContainText("do not establish overall capture completeness");
+
+  const renderedHistory = await page.locator("#tl-main").evaluate((root) => {
+    const values = [root.textContent ?? ""];
+    for (const element of [root, ...Array.from(root.querySelectorAll("*"))]) {
+      for (const attribute of Array.from(element.attributes)) values.push(attribute.value);
+    }
+    return values.join("\n");
+  });
+  for (const unapprovedDetail of [
+    "org Y offboard",
+    "Export artifact written and checksum verified.",
+    "Destination unreachable during the demo window; delivery unverifiable.",
+  ]) {
+    expect(renderedHistory).not.toContain(unapprovedDetail);
+  }
+
+  const longReference = { run_id: `missing-evidence-${"x".repeat(140)}` };
+  const serializedLongReference = JSON.stringify(longReference);
+  await page.goto(`/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(serializedLongReference)}`);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.getByRole("heading", { name: "No Threadline evidence for this selection", exact: true })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "No evidence was recorded for this subject and reference. This does not establish whether other activity occurred." })).toBeVisible();
+  const selectedContext = page.locator(".tl-evidence__workflow-summary code.tl-secondary-ref");
+  await expect(selectedContext).toHaveAttribute("title", serializedLongReference);
+  await expect(selectedContext).toHaveAttribute("data-tl-copy", serializedLongReference);
+  await expect(page.locator(".tl-record-card")).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+
+  const supportContext = await browser.newContext({
+    baseURL: new URL(page.url()).origin,
+    viewport: page.viewportSize() ?? { width: 1280, height: 900 },
+    reducedMotion: "reduce",
+  });
+  try {
+    const support = await supportContext.newPage();
+    await login(support, "support@acme.example.com");
+    await support.goto("/audit/evidence");
+    await expect(support.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(support.getByRole("heading", { name: "Evidence unavailable", exact: true })).toBeVisible();
+    await expect(support.locator("#tl-main")).toContainText("Evidence is unavailable in this support lane");
+    await expect(support.locator("#tl-main")).toContainText("This is not a permissions issue.");
+    await expect(support.locator("#tl-main")).not.toContainText("No Threadline evidence for this selection");
+    await expect(support.locator("#tl-main")).not.toContainText("Evidence is unavailable for this selection. Retry the read");
+  } finally {
+    await supportContext.close();
+  }
 });
 
 test("Timeline delayed query exposes pending then real empty result with a long unbroken filter", async ({ page, browser }, info) => {

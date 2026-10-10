@@ -516,7 +516,7 @@ async function assertEvidence(page: Page) {
   ).toBeVisible();
   await expect(page.getByTestId("evidence-table").first()).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Open proof history" }).first(),
+    page.getByRole("link", { name: "View proof history" }).first(),
   ).toBeVisible();
 }
 

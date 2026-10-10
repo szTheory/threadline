@@ -348,7 +348,7 @@ test.describe("operator earned-flow browser UAT", () => {
     await expectLiveViewConnected(page);
 
     const proofHistory = page
-      .getByRole("link", { name: "Open proof history" })
+      .getByRole("link", { name: "View proof history" })
       .first();
     await expect(proofHistory).toBeVisible();
     await expect(proofHistory).toHaveAttribute(

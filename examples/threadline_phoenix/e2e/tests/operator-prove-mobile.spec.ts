@@ -151,7 +151,7 @@ test.describe("operator evidence and exports mobile UAT", () => {
     });
     expect(positions.verdictY).toBeLessThanOrEqual(positions.refY);
 
-    const history = await box(firstEvidenceCard.getByRole("link", { name: "Open proof history" }));
+    const history = await box(firstEvidenceCard.getByRole("link", { name: "View proof history" }));
     const firstSupport = firstEvidenceCard.getByRole("link").nth(1);
     if ((await firstSupport.count()) > 0) {
       const support = await box(firstSupport);
