@@ -1,6 +1,7 @@
 defmodule Threadline.Retention.PrunerTest do
   use Threadline.DataCase, async: false
 
+  alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Governance.RetentionRun
   alias Threadline.Retention.Pruner
 
@@ -286,7 +287,7 @@ defmodule Threadline.Retention.PrunerTest do
 
   defp insert_expired_transaction! do
     Repo.insert!(
-      Threadline.Capture.AuditTransaction.changeset(%Threadline.Capture.AuditTransaction{}, %{
+      AuditTransaction.changeset(%AuditTransaction{}, %{
         txid: System.unique_integer([:positive]),
         occurred_at: DateTime.utc_now(:microsecond)
       }),
@@ -296,7 +297,7 @@ defmodule Threadline.Retention.PrunerTest do
 
   defp insert_expired_change!(transaction) do
     Repo.insert!(
-      Threadline.Capture.AuditChange.changeset(%Threadline.Capture.AuditChange{}, %{
+      AuditChange.changeset(%AuditChange{}, %{
         transaction_id: transaction.id,
         table_schema: "public",
         table_name: "pruner_fixture",

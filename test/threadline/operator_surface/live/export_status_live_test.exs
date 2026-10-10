@@ -64,8 +64,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       endpoint: Threadline.OperatorSurface.ExportStatusLiveTest.Endpoint
 
     alias Threadline.Governance.ExportJob
-    alias Threadline.OperatorSurface.Live.ExportStatusLive
     alias Threadline.OperatorSurface.ExportStatusLiveTest.FailingRepo
+    alias Threadline.OperatorSurface.Live.ExportStatusLive
     alias Threadline.Semantics.ActorRef
 
     setup_all do

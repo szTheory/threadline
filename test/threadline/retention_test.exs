@@ -1,4 +1,6 @@
 defmodule Threadline.RetentionTest.FailOnNthDeleteRepo do
+  alias Threadline.Test.Repo
+
   @configuration_key {__MODULE__, :configuration}
 
   def configure_failure(nth_call) do
@@ -9,19 +11,19 @@ defmodule Threadline.RetentionTest.FailOnNthDeleteRepo do
     :persistent_term.erase(@configuration_key)
   end
 
-  def insert!(changeset, opts \\ []), do: Threadline.Test.Repo.insert!(changeset, opts)
-  def update!(changeset, opts \\ []), do: Threadline.Test.Repo.update!(changeset, opts)
+  def insert!(changeset, opts \\ []), do: Repo.insert!(changeset, opts)
+  def update!(changeset, opts \\ []), do: Repo.update!(changeset, opts)
 
   def update_all(query, updates, opts \\ []),
-    do: Threadline.Test.Repo.update_all(query, updates, opts)
+    do: Repo.update_all(query, updates, opts)
 
-  def get!(queryable, id, opts \\ []), do: Threadline.Test.Repo.get!(queryable, id, opts)
-  def one(query, opts \\ []), do: Threadline.Test.Repo.one(query, opts)
-  def transaction(fun, opts \\ []), do: Threadline.Test.Repo.transaction(fun, opts)
-  def checkout(fun, opts \\ []), do: Threadline.Test.Repo.checkout(fun, opts)
+  def get!(queryable, id, opts \\ []), do: Repo.get!(queryable, id, opts)
+  def one(query, opts \\ []), do: Repo.one(query, opts)
+  def transaction(fun, opts \\ []), do: Repo.transaction(fun, opts)
+  def checkout(fun, opts \\ []), do: Repo.checkout(fun, opts)
 
   def query!(query, params \\ [], opts \\ []),
-    do: Threadline.Test.Repo.query!(query, params, opts)
+    do: Repo.query!(query, params, opts)
 
   def delete_all(query, opts \\ []) do
     case :persistent_term.get(@configuration_key, nil) do
@@ -34,7 +36,7 @@ defmodule Threadline.RetentionTest.FailOnNthDeleteRepo do
         :ok
     end
 
-    Threadline.Test.Repo.delete_all(query, opts)
+    Repo.delete_all(query, opts)
   end
 end
 
@@ -46,6 +48,7 @@ defmodule Threadline.RetentionTest do
   alias Threadline.Capture.{AuditChange, AuditTransaction}
   alias Threadline.Governance.RetentionRun
   alias Threadline.Retention
+  alias Threadline.RetentionTest.FailOnNthDeleteRepo
 
   @purge_span_events [
     [:threadline, :retention, :purge, :start],
@@ -298,12 +301,12 @@ defmodule Threadline.RetentionTest do
       )
     end
 
-    Threadline.RetentionTest.FailOnNthDeleteRepo.configure_failure(2)
-    on_exit(&Threadline.RetentionTest.FailOnNthDeleteRepo.disable_failure/0)
+    FailOnNthDeleteRepo.configure_failure(2)
+    on_exit(&FailOnNthDeleteRepo.disable_failure/0)
 
     assert_raise RuntimeError, ~r/injected database detail/, fn ->
       Retention.purge(
-        repo: Threadline.RetentionTest.FailOnNthDeleteRepo,
+        repo: FailOnNthDeleteRepo,
         batch_size: 1,
         max_batches: 5,
         sleep_ms: 0
@@ -320,7 +323,7 @@ defmodule Threadline.RetentionTest do
     refute failed_run.error_message =~ "secret host"
     assert count_changes("threadline") == 2
 
-    Threadline.RetentionTest.FailOnNthDeleteRepo.disable_failure()
+    FailOnNthDeleteRepo.disable_failure()
     result = Retention.purge(repo: Repo, batch_size: 1, max_batches: 5, sleep_ms: 0)
 
     assert result.deleted_changes == 2
