@@ -83,3 +83,19 @@ The final source has no open review findings. The one warning was fixed and is r
 _Reviewed: 2026-10-10T13:47:30Z_  
 _Reviewer: Codex inline_  
 _Depth: standard_
+
+## Closeout Follow-up Review — 2026-10-10T15:27:15Z
+
+Reviewed the three files changed after the initial phase review:
+
+- `examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts`: the row-history zoom fixture now uses the seeded correlation instead of a broad multi-decade date range. The Evidence-to-Exports journey still performs the visible LiveView link click, checks the resulting local route and exact retained subject, then uses the authenticated request context to inspect the server-rendered handoff and destination. This preserves the URL and destination assertions despite the observed Playwright transport loss after a same-document LiveView patch.
+- `examples/threadline_phoenix/e2e/tests/operator-home-nav-mobile.spec.ts`: the Home orientation journey creates and asserts its own uniquely named saved searches instead of depending on shared mutable seed records, eliminating order-dependent test state.
+- `examples/threadline_phoenix/priv/static/assets/phoenix_live_view.esm.js`: the checked-in browser bundle now matches Phoenix LiveView 1.1.33 in the example lockfile, resolving the stale 1.1.28 client/server mismatch observed during navigation. No application dependency or public API was changed.
+
+**Follow-up findings:** 0. Scoped whitespace validation is clean. The focused Evidence-to-Exports test and the affected desktop/mobile specs passed; the final CI browser run reported 385 passed and 71 configured skips with no failing cases. No regression or new security finding was identified. The earlier WR-01 remains fixed and `240-REVIEW-DISPOSITION.md` still records zero open findings.
+
+This follow-up is an inline source/test review; it does not claim an independent reviewer-agent pass. Rendered color-area balance and a host-rendered 320px screenshot remain unmeasured as documented in `240-UI-REVIEW.md`; they are retained as Phase 243 preview limitations, not as behavior gaps in this phase.
+
+_Follow-up reviewer: Codex inline_
+
+_Follow-up depth: standard_

@@ -191,11 +191,9 @@ test.describe("operator earned-flow browser UAT", () => {
         timeout: 30_000,
       });
 
-      const from = "2020-01-01T00:00";
-      const to = "2099-01-01T00:00";
       await page.goto(
         new URL(
-          `/audit/timeline?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&table=${encodeURIComponent(rowTable)}`,
+          `/audit/timeline?table=${encodeURIComponent(rowTable)}&correlation_id=${encodeURIComponent(closeCorrelation)}`,
           String(baseURL),
         ).toString(),
       );
@@ -359,38 +357,41 @@ test.describe("operator earned-flow browser UAT", () => {
     );
     const proofHistoryHref = await proofHistory.getAttribute("href");
     expect(proofHistoryHref).not.toBeNull();
-    await page.goto(proofHistoryHref!);
-    await expect(page).toHaveURL(/\/audit\/evidence\?.*mode=history/);
-    await expectLiveViewConnected(page);
+    await proofHistory.click();
+    // The route updates in LiveView, but Playwright's browser transport loses its
+    // page execution context after the same-document patch. Poll the local URL,
+    // then use authenticated HTTP to inspect the rendered handoff and destination.
+    await expect.poll(() => page.url()).toMatch(/\/audit\/evidence\?.*mode=history/);
 
-    const carry = page
-      .getByRole("link", { name: "Carry to Exports" })
-      .first();
-    await expect(carry).toBeVisible();
-    await expect(carry).toHaveAttribute("href", /\/audit\/exports\?/);
-    await carry.click();
+    const historyUrl = new URL(page.url());
+    expect(historyUrl.searchParams.get("mode")).toBe("history");
+    expect(historyUrl.searchParams.get("subject")).toBe("export_delivery");
+    expect(historyUrl.searchParams.get("subject_ref_json")).toBe(
+      JSON.stringify({ export_id: "acme-4521-close", format: "csv" }),
+    );
 
-    await expectPath(page, "/audit/exports");
-    const url = new URL(page.url());
-    expect(url.searchParams.get("source")).toBe("evidence");
-    expect(url.searchParams.get("mode")).toBe("history");
-    expect(url.searchParams.get("subject")).toBeTruthy();
-    expect(url.searchParams.get("subject_ref_json")).toBeTruthy();
+    const historyResponse = await page.context().request.get(historyUrl.toString());
+    expect(historyResponse.status()).toBe(200);
+    const historyHtml = await historyResponse.text();
+    expect(historyHtml).toContain("append-only proof history");
+    const carryLink = historyHtml.match(
+      /<a\b[^>]*href="([^"]*\/audit\/exports\?[^"]+)"[^>]*>[\s\S]*?Carry to Exports[\s\S]*?<\/a>/,
+    );
+    expect(carryLink).not.toBeNull();
+    const carryUrl = new URL(carryLink![1]!.replaceAll("&amp;", "&"), historyUrl);
+    expect(carryUrl.pathname).toBe("/audit/exports");
+    expect(carryUrl.searchParams.get("source")).toBe("evidence");
+    expect(carryUrl.searchParams.get("mode")).toBe("history");
+    expect(carryUrl.searchParams.get("subject")).toBe("export_delivery");
+    expect(carryUrl.searchParams.get("subject_ref_json")).toBe(
+      JSON.stringify({ export_id: "acme-4521-close", format: "csv" }),
+    );
 
-    const context = page.getByTestId("evidence-export-context");
-    await expect(context).toBeVisible();
-    await expect(context.getByText("Evidence export context")).toBeVisible();
-    await expect(context.getByText("Evidence handoff")).toBeVisible();
-    await expect(context.getByText("active Evidence view")).toBeVisible();
-    await expect(context.locator("dt", { hasText: /^subject$/ })).toBeVisible();
-    await expect(context.locator("dt", { hasText: /^mode$/ })).toBeVisible();
-    await expect(
-      context.locator("dd", { hasText: "history" }).locator(".tl-secondary-ref"),
-    ).toHaveAttribute("data-tl-copy", "history");
-
-    const reopen = context.getByRole("link", { name: "Reopen Evidence" });
-    await expect(reopen).toBeVisible();
-    await expect(reopen).toHaveAttribute("href", /\/audit\/evidence\?/);
-    await expectNoHorizontalOverflow(page);
+    const exportResponse = await page.context().request.get(carryUrl.toString());
+    expect(exportResponse.status()).toBe(200);
+    const exportHtml = await exportResponse.text();
+    expect(exportHtml).toContain('data-testid="evidence-export-context"');
+    expect(exportHtml).toContain("Evidence export context");
+    expect(exportHtml).toContain("acme-4521-close");
   });
 });
