@@ -142,7 +142,12 @@ Plans:
 2. Operators can inspect evidence and subject proof history and distinguish host-recorded evidence from unavailable data and limited completeness.
 3. Operators can compare configured redaction policy with deployed trigger policy and understand discrepancies without seeing redacted values through the UI or its copy paths.
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 241-01-PLAN.md — Schema-scoped coverage and safe migration handoff
+- [ ] 241-02-PLAN.md — Evidence read states and subject-reference history
+- [ ] 241-03-PLAN.md — Configured versus deployed redaction inspection
+- [ ] 241-04-PLAN.md — Responsive, accessibility, motion, and zoom verification
 **UI hint**: yes
 
 ### Phase 242: Export and retention operations
@@ -178,7 +183,7 @@ Plans:
 | 238. Current-main preview and acceptance baseline | 3/3 | Complete    | 2026-10-09 |
 | 239. Investigation entry and transaction composition | 7/7 | Complete    | 2026-10-10 |
 | 240. Connected investigation and recovery | 4/4 | Complete    | 2026-10-10 |
-| 241. Operational evidence and policy inspection | 0/TBD | Not started | - |
+| 241. Operational evidence and policy inspection | 0/4 | Planned | - |
 | 242. Export and retention operations | 0/TBD | Not started | - |
 | 243. Integrated verification and review preview | 0/TBD | Not started | - |
 
