@@ -1085,7 +1085,10 @@ test.describe("operator accessibility baseline", () => {
       const drawer = page.getByRole("dialog", { name: "Overlay edge cases", exact: true });
       await expect(drawer).toBeVisible();
       const toast = page.locator("#stress-toast");
-      await toast.getByRole("button", { name: "Close" }).focus();
+      const toastClose = toast.getByRole("button", { name: "Close" });
+      await expect(toast).toHaveClass(/tl-overlay-visible/);
+      await toastClose.focus();
+      await expect(toastClose).toBeFocused();
       await page.keyboard.press("Escape");
       await expect(toast).toBeHidden();
       await expect(drawer).toBeVisible();
