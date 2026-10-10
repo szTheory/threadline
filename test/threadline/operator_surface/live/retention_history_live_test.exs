@@ -568,6 +568,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                "a forged scope must fail closed"
       end
 
+      test "an active persisted run disables and rejects a repeated prune event", %{conn: conn} do
+        now = DateTime.utc_now()
+        run = Repo.insert!(%RetentionRun{status: "running", started_at: now}, repo_opts())
+
+        {:ok, view, _html} = live_retention(conn)
+
+        assert_eventually(fn -> render(view) =~ run.id end)
+        render_click(view, "open_prune_modal", %{})
+        assert has_element?(view, "button[data-tl-mutating][disabled]", "Prune now")
+
+        before_actions = count_audit_actions()
+
+        render_submit(form(view, "form[phx-submit=prune_now]"), %{confirm: "default"})
+
+        assert render(view) =~
+                 "A retention prune is already in progress. Follow its persisted status here."
+
+        assert Repo.aggregate(RetentionRun, :count, repo_opts()) == 1
+        assert count_audit_actions() == before_actions
+      end
+
       test "prune is refused when policy authorization is absent", %{conn: conn} do
         Application.put_env(:threadline, :test_allow_policy, false)
         on_exit(fn -> Application.put_env(:threadline, :test_allow_policy, true) end)

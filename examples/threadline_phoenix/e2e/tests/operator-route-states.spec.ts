@@ -24,7 +24,9 @@ test.beforeEach(async ({}, info) => {
     "Copy feedback fits long URLs and redacted values stay non-copyable",
     "Redaction policy comparison stays safe, keyboard-operable, and responsive",
     "Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment",
+    "Retention confirmation focus and cancel preserve state; Chromium touch navigation works",
   ].includes(info.title)) return;
+  if (info.title.startsWith("offline Exports ")) return;
   test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || !["desktop-chromium", "desktop-chromium-light"].includes(info.project.name), "Bounded evidence lanes only");
 });
 
@@ -630,69 +632,125 @@ test("Timeline keeps populated query identity while an applied replacement is pe
   await expect(completedApply.locator("svg")).toHaveCount(1);
 });
 
-for (const input of ["pointer", "keyboard"] as const) {
-  test(`offline Exports ${input} activation and reconnect record actual mutation outcome`, async ({ page, browser }, info) => {
-    let block = false;
-    await page.routeWebSocket(/\/live\/websocket/, (ws) => block ? ws.close() : ws.connectToServer());
+for (const input of ["pointer", "Enter", "Space"] as const) {
+  test(`offline Exports blocks ${input} activation until fresh persisted state returns`, async ({ page }) => {
+    let blockReconnect = false;
+    let socketConnections = 0;
+    let socketClosures = 0;
+    await page.routeWebSocket(/\/live\/websocket/, (socket) => {
+      socketConnections += 1;
+      if (blockReconnect) socket.close();
+      else socket.connectToServer();
+    });
+    page.on("websocket", (socket) => socket.on("close", () => { socketClosures += 1; }));
+
     await login(page);
-    const e = await startEvidence(page, browser, info);
     const path = "/audit/exports?table=tickets";
     await page.goto(path);
     const root = page.locator("[data-phx-main]");
+    const main = page.locator("#tl-main");
     await expect(root).toHaveClass(/phx-connected/);
-    const queue = page.getByRole("button", { name: "Queue Timeline export" });
+    const queue = page.getByRole("button", { name: "Queue Timeline export", exact: true });
+    const banner = page.locator(".tl-reconnect-banner");
     await expect(queue).toBeVisible();
-    const count = await page.getByRole("link", { name: "Reopen source search" }).count();
-    block = true;
+    const revisionMarker = page.locator("[data-tl-mutation-revision]");
+    await expect(revisionMarker).toHaveAttribute("data-tl-mutation-revision", /.+/);
+    const revision = await revisionMarker.getAttribute("data-tl-mutation-revision");
+    const jobCount = () => page.getByRole("link", { name: "Reopen source search", exact: true }).count();
+    const initialCount = await jobCount();
+
+    await main.focus();
+    blockReconnect = true;
     await page.evaluate(() => (window as any).liveSocket.disconnect());
     await expect(root).toHaveClass(/phx-(loading|error|client-error)/);
-    await expect(page.locator(".tl-reconnect-banner")).toBeVisible();
-    const before = await queue.evaluate((el) => ({ disabled: (el as HTMLButtonElement).disabled, ariaDisabled: el.getAttribute("aria-disabled"), mutationMarker: el.hasAttribute("data-tl-mutating"), pointerEvents: getComputedStyle(el).pointerEvents }));
-    if (input === "pointer") await queue.click({ timeout: 3000 });
-    else { await queue.focus(); await page.keyboard.press("Enter"); }
-    await e.capture(`state.offline.${input}`, path, "offline-export-activation", { input, ...before, rank: before.disabled || before.ariaDisabled === "true" ? "covered" : "high", ownerPhase: 241 }, false);
-    block = false;
+    await expect.poll(() => socketClosures).toBeGreaterThan(0);
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveAttribute("role", "status");
+    await expect(banner).toContainText("Reconnecting");
+    await expect(queue).toBeDisabled();
+    await expect(main).toBeVisible();
+    if (page.viewportSize()!.width < 700) {
+      await expect(page.locator(".tl-shell-nav__toggle")).toBeVisible();
+    } else {
+      await expect(page.getByRole("link", { name: "Timeline", exact: true })).toBeVisible();
+    }
+
+    if (input === "pointer") {
+      const bounds = await queue.boundingBox();
+      expect(bounds).toBeTruthy();
+      await page.mouse.click(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2).catch(() => undefined);
+    } else {
+      await queue.focus();
+      await expect(queue).not.toBeFocused();
+      await page.keyboard.press(input);
+    }
+
+    await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("tl-main");
+    await expect.poll(jobCount).toBe(initialCount);
+
+    blockReconnect = false;
+    const connectionsBeforeRecovery = socketConnections;
     await page.evaluate(() => (window as any).liveSocket.connect());
     await expect(root).toHaveClass(/phx-connected/);
-    await expect(page.locator(".tl-reconnect-banner")).toBeHidden();
-    await page.waitForLoadState("networkidle");
-    const after = await page.getByRole("link", { name: "Reopen source search" }).count();
-    expect(after - count).toBeGreaterThanOrEqual(0);
-    expect(after - count, "One offline activation must not create duplicate jobs").toBeLessThanOrEqual(1);
-    await e.capture(`state.reconnect.${input}`, path, "reconnected-export-outcome", { input, jobsBefore: count, jobsAfter: after, observedAddedJobs: after - count, completionClaim: false, limitation: "A queued job is not a completed export; observe seeded completion separately." });
-    e.finish(`state.offline.${input}`, path, "offline-reconnect");
+    await expect(banner).toBeHidden();
+    await expect.poll(() => socketConnections).toBeGreaterThan(connectionsBeforeRecovery);
+    await expect.poll(async () => revisionMarker.getAttribute("data-tl-mutation-revision"))
+      .not.toBe(revision);
+    await expect(queue).toBeEnabled();
+    await expect.poll(jobCount).toBe(initialCount);
+
+    // A later, deliberate activation is the only action that should create a job.
+    await queue.click();
+    await expect(page).toHaveURL(/\/audit\/exports(?:\?|$)/);
+    await expect.poll(jobCount).toBe(initialCount + 1);
   });
 }
 
-test("Retention keyboard Escape focus return and Chromium touch navigation are observed", async ({ page, browser }, info) => {
+test("Retention confirmation focus and cancel preserve state; Chromium touch navigation works", async ({ page, browser }, info) => {
   await login(page);
-  const e = await startEvidence(page, browser, info);
   await page.goto("/audit/policy/retention");
-  const prune = page.getByRole("button", { name: "Run retention prune" }).last();
+  const prune = page.getByRole("button", { name: "Prune now", exact: true }).first();
   await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  const revisionMarker = page.locator("[data-tl-mutation-revision]");
+  await expect(revisionMarker).toHaveAttribute("data-tl-mutation-revision", /.+/);
+  const initialRows = await page.locator("#retention-runs tbody tr").count();
   await prune.focus();
   await page.keyboard.press("Enter");
-  const dialog = page.locator("#prune-confirm");
+  const dialog = page.locator("#prune-confirm-focus");
   await expect(dialog).toBeVisible();
-  const focusedInside = await dialog.evaluate((el) => el.contains(document.activeElement));
-  await e.capture("state.focus.open", "/audit/policy/retention", "keyboard-confirmation-open", { focusedInside });
+  await expect(dialog).toHaveAttribute("role", "dialog");
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+  await expect(page.locator("#prune-confirm-title")).toHaveText("Prune retained audit data?");
+  await expect(dialog).toHaveAttribute("aria-labelledby", "prune-confirm-title");
+  await expect(dialog).toHaveAttribute("aria-describedby", "prune-confirm-description");
+  const confirmation = dialog.getByRole("textbox", { name: "Policy name to confirm" });
+  await expect(confirmation).toBeFocused();
+  for (let tab = 0; tab < 4; tab += 1) {
+    await page.keyboard.press("Tab");
+    await expect.poll(() => dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+  }
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
-  const returned = await prune.evaluate((el) => el === document.activeElement);
-  await e.capture("state.focus.return", "/audit/policy/retention", "escape-focus-return", { returned, rank: returned ? "covered" : "high", ownerPhase: 242 });
-  e.finish("state.focus", "/audit/policy/retention", "keyboard-focus-return");
+  await expect(prune).toBeFocused();
+  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
+  await expect(page.getByText("Prune request accepted", { exact: false })).toHaveCount(0);
+
+  await prune.click();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Keep audit data", exact: true }).click();
+  await expect(dialog).toBeHidden();
+  await expect(prune).toBeFocused();
+  await expect(page.locator("#retention-runs tbody tr")).toHaveCount(initialRows);
+
   const touchContext = await browser.newContext({ baseURL: new URL(page.url()).origin, viewport: { width: 375, height: 900 }, hasTouch: true, reducedMotion: "reduce", colorScheme: info.project.name.endsWith("light") ? "light" : "dark" });
   try {
     const touch = await touchContext.newPage();
     await login(touch);
-    const te = await startEvidence(touch, browser, info);
     await touch.goto("/audit");
     const toggle = touch.locator(".tl-shell-nav__toggle");
     await expect(toggle).toBeVisible();
     await toggle.tap();
     await expect(touch.locator(".tl-shell-nav__panel")).toBeVisible();
-    await te.capture("state.touch.nav", "/audit", "chromium-touch-nav-open", { input: "emulated-touch", physicalDevice: false });
-    te.finish("state.touch", "/audit", "touch-navigation");
   } finally { await touchContext.close(); }
 });
 
