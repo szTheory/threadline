@@ -118,17 +118,17 @@ Plans:
 4. Operators can copy authorized complete values on fresh direct entry and after repeated LiveView patches, with truthful failure feedback and no duplicate event handling.
 5. Operators see purposeful, interruptible motion where state or spatial relationships change; frequent actions remain immediate and reduced-motion preferences are honored.
 
-**Plans**: 4/4 planned
+**Plans**: 4/4 plans complete; phase verification pending
 Plans:
 **Wave 1**
 - [x] 240-01-PLAN.md — Preserve row-history context and recover safely from unavailable evidence
 
 **Wave 2** *(depends on 240-01)*
-- [ ] 240-02-PLAN.md — Keep pivots, saved searches, and shared filters within the committed investigation
-- [ ] 240-04-PLAN.md — Keep evidence changes immediate and motion accessible
+- [x] 240-02-PLAN.md — Keep pivots, saved searches, and shared filters within the committed investigation
+- [x] 240-04-PLAN.md — Keep evidence changes immediate and motion accessible
 
 **Wave 3** *(depends on 240-02)*
-- [ ] 240-03-PLAN.md — Make clipboard outcomes truthful and recoverable
+- [x] 240-03-PLAN.md — Make clipboard outcomes truthful and recoverable
 
 **UI hint**: yes
 
@@ -177,7 +177,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 238. Current-main preview and acceptance baseline | 3/3 | Complete    | 2026-10-09 |
 | 239. Investigation entry and transaction composition | 7/7 | Complete    | 2026-10-10 |
-| 240. Connected investigation and recovery | 1/4 | In Progress | - |
+| 240. Connected investigation and recovery | 4/4 | In Progress | - |
 | 241. Operational evidence and policy inspection | 0/TBD | Not started | - |
 | 242. Export and retention operations | 0/TBD | Not started | - |
 | 243. Integrated verification and review preview | 0/TBD | Not started | - |
