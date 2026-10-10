@@ -166,14 +166,14 @@ Plans:
 2. Authorized operators can inspect retention runs and complete the existing confirmed prune action with accurate scope, consequence, outcome and failure feedback.
 3. During disconnection and reconnection, operators see accurate availability; unavailable mutations cannot be triggered by keyboard or pointer or duplicated during recovery.
 
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 **Wave 1**
 - [x] 242-01-PLAN.md — Export lifecycle, usable download, and source-search return
-- [ ] 242-02-PLAN.md — Confirmed global prune with one persisted run and safe outcomes
+- [x] 242-02-PLAN.md — Confirmed global prune with one persisted run and safe outcomes
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2**
 - [ ] 242-03-PLAN.md — Native mutation gating and durable reconnect verification
 
 **UI hint**: yes
@@ -199,9 +199,9 @@ Plans:
 | 239. Investigation entry and transaction composition | 7/7 | Complete    | 2026-10-10 |
 | 240. Connected investigation and recovery | 4/4 | Complete    | 2026-10-10 |
 | 241. Operational evidence and policy inspection | 4/4 | Complete    | 2026-10-10 |
-| 242. Export and retention operations | 1/3 | In Progress | - |
+| 242. Export and retention operations | 2/3 | In Progress | - |
 | 243. Integrated verification and review preview | 0/TBD | Not started | - |
 
 ## Next
 
-Continue executing Phase 242 — Export and retention operations — from `.claude/worktrees/v146-phase241-orchestrator` (branch `agent-241-01`). Plan 242-01 is complete; run 242-02 next, then 242-03 after the Wave 1 plans. Phase 243 remains the integrated candidate review.
+Continue executing Phase 242 — Export and retention operations — from `.claude/worktrees/v146-phase241-orchestrator` (branch `agent-241-01`). Plans 242-01 and 242-02 are complete; run 242-03 next. Phase 243 remains the integrated candidate review.
