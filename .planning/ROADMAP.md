@@ -166,7 +166,13 @@ Plans:
 2. Authorized operators can inspect retention runs and complete the existing confirmed prune action with accurate scope, consequence, outcome and failure feedback.
 3. During disconnection and reconnection, operators see accurate availability; unavailable mutations cannot be triggered by keyboard or pointer or duplicated during recovery.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 242-01-PLAN.md — Export lifecycle, usable download, and source-search return
+- [ ] 242-02-PLAN.md — Confirmed global prune with one persisted run and safe outcomes
+- [ ] 242-03-PLAN.md — Native mutation gating and durable reconnect verification
+
 **UI hint**: yes
 
 ### Phase 243: Integrated verification and review preview
