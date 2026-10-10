@@ -308,6 +308,65 @@ test.describe("operator accessibility baseline", () => {
     await login(page);
   });
 
+  for (const theme of ["Light", "Dark", "System"]) {
+    test(`inspection routes retain context and reachable controls in ${theme} at 320, 768, and 1280 CSS px`, async ({ page, isMobile }) => {
+      await page.emulateMedia({ colorScheme: "light" });
+      await page.goto("/audit/coverage");
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      await openOperatorNav(page);
+      const picker = page.getByTestId("operator-nav-group-theme");
+      await picker.getByRole("radio", { name: theme, exact: true }).check();
+      await picker.getByRole("button", { name: "Apply theme", exact: true }).click();
+
+      await page.goto("/audit/evidence");
+      await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+      const seeded = page.locator(".tl-record-card").filter({ has: page.locator('code[title*="walk-retention-offboarded-co"]') });
+      await expect(seeded).toHaveCount(1);
+      const reference = (await seeded.locator("code[data-tl-copy]").getAttribute("data-tl-copy"))!;
+      expect(JSON.parse(reference).run_id).toBe("walk-retention-offboarded-co");
+      for (const width of [320, 768, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto("/audit/coverage?schema=public");
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        await expect(page.locator(".threadline-ui").first()).toHaveAttribute("data-tl-theme", theme.toLowerCase());
+        await expect(page.getByRole("region", { name: "Selected schema readiness" })).toContainText("public");
+        const refreshCoverage = page.getByRole("button", { name: "Refresh coverage", exact: true });
+        await refreshCoverage.focus();
+        await expectNonObscuredFocused(refreshCoverage, page);
+        if (isMobile) await refreshCoverage.tap();
+        else await page.keyboard.press("Enter");
+        await expect(page.locator("#coverage-schema")).toHaveValue("public");
+        await expectNoHorizontalOverflow(page);
+
+        await page.goto(`/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(reference)}&mode=history`);
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        const scope = page.locator(".tl-evidence__workflow-summary");
+        await expect(scope.locator("code[data-tl-copy]")).toHaveAttribute("data-tl-copy", reference);
+        await expect(page.getByTestId("evidence-claim-boundary")).toContainText("recorded snapshot");
+        await expect(page.locator(".tl-record-card").first()).toBeVisible();
+        await expectNoHorizontalOverflow(page);
+
+        await page.goto("/audit/policy/redaction?schema=public");
+        await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+        const posture = page.getByRole("region", { name: "Redaction policy posture" });
+        await expect(posture).toContainText("public");
+        await expect(posture).toContainText("current deployed trigger definitions only");
+        const refreshPolicy = page.getByRole("button", { name: "Refresh policy inspection", exact: true });
+        await refreshPolicy.focus();
+        await expectNonObscuredFocused(refreshPolicy, page);
+        const row = page.locator("details.tl-policy__row").filter({ has: page.getByText("posts", { exact: true }) });
+        const disclosure = row.locator("summary");
+        await disclosure.focus();
+        await expectNonObscuredFocused(disclosure, page);
+        if (isMobile) await disclosure.tap();
+        else await page.keyboard.press("Enter");
+        await expect(row).toHaveAttribute("open", "");
+        await expect(row.getByRole("table")).toBeVisible();
+        await expect(row.getByText("Deployed matches config", { exact: true })).toBeVisible();
+        await expectNoHorizontalOverflow(page);
+      }
+    });
+  }
   test("documents every D-04 rendered-state category as covered or explicitly bounded", async () => {
     expect(d04RenderedStateCoverage).toHaveLength(13);
 

@@ -1,5 +1,6 @@
 import { chromium, expect, test, type Locator, type Page, type WebSocketRoute } from "@playwright/test";
 import { randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { login, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
 import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
 
@@ -20,6 +21,8 @@ test.beforeEach(async ({}, info) => {
     "Clipboard failure shows manual recovery without claiming success",
     "Clipboard fallback confirms success and restores focus and selection",
     "Copy feedback fits long URLs and redacted values stay non-copyable",
+    "Redaction policy comparison stays safe, keyboard-operable, and responsive",
+    "Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment",
   ].includes(info.title)) return;
   test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || !["desktop-chromium", "desktop-chromium-light"].includes(info.project.name), "Bounded evidence lanes only");
 });
@@ -32,6 +35,102 @@ async function expectNoHorizontalOverflow(page: Page) {
 function copyStatus(control: Locator) {
   return control.locator("xpath=..").locator("[data-tl-copy-status]");
 }
+
+test("Redaction policy comparison stays safe, keyboard-operable, and responsive", async ({ page }) => {
+  await login(page);
+  await page.goto("/audit/policy/redaction");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+
+  const main = page.locator("#tl-main");
+  await expect(main.getByRole("heading", { name: "Redaction policy" })).toBeVisible();
+  const refresh = main.getByRole("button", { name: "Refresh policy inspection", exact: true });
+  await expect(refresh).toBeVisible();
+  await expect(
+    main.getByRole("region", { name: "Redaction policy posture" }).getByText("Host schema", { exact: true }),
+  ).toBeVisible();
+  await expect(main.getByText("This inspection compares current deployed trigger definitions only.")).toBeVisible();
+  await expect(main.getByText(/does not establish whether historical audit rows or downstream exports were redacted/)).toBeVisible();
+
+  const drift = main.getByTestId("policy-section").filter({ has: page.getByRole("heading", { name: /^Drift detected/ }) });
+  const matches = main.getByTestId("policy-section").filter({ has: page.getByRole("heading", { name: /^Config matches deployed/ }) });
+  await expect(drift.getByText("ticket_replies", { exact: true })).toBeVisible();
+  await expect(matches.getByText("posts", { exact: true })).toBeVisible();
+
+  const posts = main.locator("details").filter({ has: page.getByText("posts", { exact: true }) });
+  const summary = posts.locator("summary");
+  await summary.focus();
+  await page.keyboard.press("Enter");
+  await expect(posts).toHaveAttribute("open", "");
+  await expect(posts.getByRole("table")).toBeVisible();
+  await expect(posts.locator('[data-label="Configured"]').first()).toBeVisible();
+  await expect(posts.locator('[data-label="Deployed"]').first()).toBeVisible();
+
+  const rendered = await main.evaluate((element) => {
+    const values = [element.textContent ?? ""];
+    for (const node of [element, ...Array.from(element.querySelectorAll("*"))]) {
+      for (const attribute of Array.from(node.attributes)) values.push(attribute.value);
+    }
+    return values.join("\n");
+  });
+  for (const canary of [
+    "CREATE OR REPLACE FUNCTION",
+    "audit_transactions",
+    "raw-trigger-sql-canary-241",
+    "sample-value-canary-241",
+    "redacted-value-canary-241",
+  ]) expect(rendered).not.toContain(canary);
+  await expect(main.locator("[data-tl-copy]")).toHaveCount(0);
+
+  await refresh.click();
+  await expect(refresh).toBeVisible();
+  await expect(posts).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment", async ({ page }) => {
+  const partition = process.env.MIX_TEST_PARTITION ?? "";
+  expect(partition, "Only the runner-owned numeric example test database may be mutated").toMatch(/^\d*$/);
+  expect(process.env.THREADLINE_E2E).toBe("1");
+  const sql = (statement: string) => execFileSync("psql", [
+    "-X", "-h", process.env.DB_HOST ?? "localhost", "-p", process.env.DB_PORT ?? "5432",
+    "-U", "postgres", "-d", `threadline_phoenix_test${partition}`, "-v", "ON_ERROR_STOP=1", "-q", "-c", statement,
+  ], { env: { ...process.env, PGPASSWORD: "postgres" }, stdio: "pipe" });
+  await login(page);
+  const inspect = async () => {
+    await page.goto("/audit/policy/redaction?schema=public");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    return page.locator("details.tl-policy__row").filter({ has: page.getByText("posts", { exact: true }) });
+  };
+  const original = await inspect();
+  await expect(original.getByText("Deployed matches config", { exact: true })).toBeVisible();
+  sql("ALTER TRIGGER threadline_audit_posts ON public.posts RENAME TO phase241_saved_posts");
+  try {
+    const missing = await inspect();
+    await expect(missing.getByText("Drift detected", { exact: true })).toBeVisible();
+    await expect(missing).toContainText("No deployed Threadline trigger found for configured table.");
+    sql(`CREATE FUNCTION public.threadline_phase241_unreadable() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN
+        -- raw-trigger-sql-canary-241 sample-value-canary-241 redacted-value-canary-241
+        RETURN NEW;
+      END;
+    $$;
+    CREATE TRIGGER threadline_audit_phase241_unreadable AFTER INSERT ON public.posts
+      FOR EACH ROW EXECUTE FUNCTION public.threadline_phase241_unreadable();`);
+    const unreadable = await inspect();
+    await expect(unreadable.getByText("Could not inspect", { exact: true })).toBeVisible();
+    await expect(page.getByText("Deployed policy could not be inspected. Retry before treating policy as matched.", { exact: true })).toBeVisible();
+    await unreadable.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(unreadable).toHaveAttribute("open", "");
+    const dom = await page.locator("#tl-main").evaluate((element) => element.outerHTML);
+    for (const canary of ["raw-trigger-sql-canary-241", "sample-value-canary-241", "redacted-value-canary-241", "RETURN NEW", "CREATE FUNCTION"]) {
+      expect(dom).not.toContain(canary);
+    }
+    await expect(page.locator("#tl-main [data-tl-copy]")).toHaveCount(0);
+  } finally {
+    sql("DROP TRIGGER IF EXISTS threadline_audit_phase241_unreadable ON public.posts; DROP FUNCTION IF EXISTS public.threadline_phase241_unreadable(); ALTER TRIGGER phase241_saved_posts ON public.posts RENAME TO threadline_audit_posts;");
+  }
+});
 
 test("theme preference, effective cascade and reduced motion are distinct observed facts", async ({ page, browser }, info) => {
   await page.emulateMedia({ reducedMotion: "reduce" });

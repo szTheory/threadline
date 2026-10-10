@@ -351,6 +351,39 @@ test.describe("operator motion contracts with reduced motion", () => {
     await login(page);
   });
 
+  test("inspection refresh and native disclosure preserve their outcomes with reduced motion", async ({ page }) => {
+    await page.goto("/audit/coverage?schema=public");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const refreshCoverage = page.getByRole("button", { name: "Refresh coverage", exact: true });
+    await refreshCoverage.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("region", { name: "Selected schema readiness" })).toContainText("public");
+    await expect(page.locator("#coverage-schema")).toHaveValue("public");
+
+    await page.goto("/audit/evidence");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const seeded = page.locator(".tl-record-card").filter({ has: page.locator('code[title*="walk-retention-offboarded-co"]') });
+    await expect(seeded).toHaveCount(1);
+    const reference = (await seeded.locator("code[data-tl-copy]").getAttribute("data-tl-copy"))!;
+    expect(JSON.parse(reference).run_id).toBe("walk-retention-offboarded-co");
+    await page.goto(`/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(reference)}&mode=history`);
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    await expect(page.locator(".tl-evidence__workflow-summary code[data-tl-copy]")).toHaveAttribute("data-tl-copy", reference);
+    const evidenceStyle = await computedStyle(page.locator(".tl-record-card").first());
+    expect(evidenceStyle.animationName).toBe("none");
+    expectDurationList(evidenceStyle.animationDuration, "0.001s");
+
+    await page.goto("/audit/policy/redaction?schema=public");
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const row = page.locator("details.tl-policy__row").filter({ has: page.getByText("posts", { exact: true }) });
+    await row.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect(row).toHaveAttribute("open", "");
+    await expect(row.getByRole("table")).toBeVisible();
+    expectDurationList((await computedStyle(row, "::details-content")).transitionDuration, "0.001s");
+    await page.getByRole("button", { name: "Refresh policy inspection", exact: true }).click();
+    await expect(row.getByText("Deployed matches config", { exact: true })).toBeVisible();
+  });
   test("Home motion collapses animation durations and signature thread delay", async ({
     page,
   }) => {

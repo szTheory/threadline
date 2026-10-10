@@ -155,6 +155,62 @@ test("isolated Chromium tab reports real 200% zoom on the operator investigation
   });
 });
 
+test("inspection routes preserve exact scope and controls at verified real 200% tab zoom", async ({}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "The extension proof runs only in desktop-chromium");
+  await withIsolatedZoomContext(chromium, async (context, page) => {
+    const baseURL = String(testInfo.project.use.baseURL ?? "http://127.0.0.1:4002");
+    const visit = async (path: string) => {
+      await page.goto(new URL(path, baseURL).toString());
+      if (path.startsWith("/audit")) await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    };
+    await visit("/users/log_in");
+    const form = page.locator("#login_form");
+    await form.getByLabel("Email").fill("admin@example.com");
+    await form.getByLabel("Password").fill(password);
+    await form.getByRole("button", { name: /log in/i }).click();
+    await expect(page).toHaveURL(new URL("/", baseURL).toString());
+    const observations: PageObservation[] = [];
+
+    await visit("/audit/coverage?schema=public");
+    const coverageZoom = await setAndReadTabZoom(context, page);
+    expect(coverageZoom.zoomFactor).toBe(2);
+    await expect(page.locator("#coverage-schema")).toHaveValue("public");
+    observations.push({ ...await observePage(page, "Coverage", [
+      ["Host schema", page.locator("#coverage-schema")],
+      ["Refresh coverage", page.getByRole("button", { name: "Refresh coverage", exact: true })],
+    ], true), tabZoom: coverageZoom });
+
+    await visit("/audit/evidence");
+    const seeded = page.locator(".tl-record-card").filter({ has: page.locator('code[title*="walk-retention-offboarded-co"]') });
+    await expect(seeded).toHaveCount(1);
+    const reference = (await seeded.locator("code[data-tl-copy]").getAttribute("data-tl-copy"))!;
+    expect(JSON.parse(reference).run_id).toBe("walk-retention-offboarded-co");
+    await visit(`/audit/evidence?subject=retention_run&subject_ref_json=${encodeURIComponent(reference)}`);
+    const evidenceZoom = await setAndReadTabZoom(context, page);
+    expect(evidenceZoom.tabId).toBe(coverageZoom.tabId);
+    await expect(page.locator(".tl-evidence__workflow-summary code[data-tl-copy]")).toHaveAttribute("data-tl-copy", reference);
+    const history = page.locator(".tl-record-card").first().getByRole("link", { name: "View proof history", exact: true });
+    observations.push({ ...await observePage(page, "Evidence", [["View proof history", history]], true), tabZoom: evidenceZoom });
+    await history.click();
+    await expect(page.locator(".tl-evidence__workflow-summary code[data-tl-copy]")).toHaveAttribute("data-tl-copy", reference);
+
+    await visit("/audit/policy/redaction?schema=public");
+    const policyZoom = await setAndReadTabZoom(context, page);
+    expect(policyZoom.tabId).toBe(coverageZoom.tabId);
+    await expect(page.getByRole("region", { name: "Redaction policy posture" })).toContainText("public");
+    const row = page.locator("details.tl-policy__row").filter({ has: page.getByText("posts", { exact: true }) });
+    observations.push({ ...await observePage(page, "Redaction policy", [
+      ["Refresh policy inspection", page.getByRole("button", { name: "Refresh policy inspection", exact: true })],
+      ["Exact posts policy disclosure", row.locator("summary")],
+    ], true), tabZoom: policyZoom });
+    await page.keyboard.press("Enter");
+    await expect(row).toHaveAttribute("open", "");
+    await expect(row.getByRole("table")).toBeVisible();
+    console.log(`THREADLINE_INSPECTION_ZOOM_OBSERVATION=${JSON.stringify(observations)}`);
+    await testInfo.attach("inspection-real-200-percent-zoom", { body: Buffer.from(JSON.stringify(observations, null, 2)), contentType: "application/json" });
+  });
+});
+
 async function observePage(
   page: import("@playwright/test").Page,
   route: string,

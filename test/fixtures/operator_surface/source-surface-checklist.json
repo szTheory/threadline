@@ -5267,6 +5267,97 @@
         }
       ],
       "exclusion": ""
+    },
+    {
+      "id": "control.generated.phase241.b25038b380",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-click=\"refresh-policy-inspection\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.generated.phase241.c05c91e406",
+      "kind": "control",
+      "anchors": [
+        {
+          "anchor": "phx-disable-with=\"Inspecting policy…\"",
+          "kind": "control",
+          "occurrence": 1,
+          "path": "lib/threadline/operator_surface/live/policy_redaction_live.ex"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.d0edf01594",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"inspection refresh and native disclosure preserve their outcomes with reduced motion\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.4f5bf72ba0",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Redaction policy comparison stays safe, keyboard-operable, and responsive\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.66ab54c1a0",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Redaction inspection distinguishes a missing empty-policy trigger from unreadable deployment\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.62aeeb3b13",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(`inspection routes retain context and reachable controls in ${theme} at 320, 768, and 1280 CSS px`",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.generated.phase241.0b14f1f8f1",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"inspection routes preserve exact scope and controls at verified real 200% tab zoom\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts"
+        }
+      ],
+      "exclusion": ""
     }
   ],
   "excludedAttributeFamilies": {
