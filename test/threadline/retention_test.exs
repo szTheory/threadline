@@ -1,3 +1,43 @@
+defmodule Threadline.RetentionTest.FailOnNthDeleteRepo do
+  @configuration_key {__MODULE__, :configuration}
+
+  def configure_failure(nth_call) do
+    :persistent_term.put(@configuration_key, %{fail_on: nth_call, calls: :atomics.new(1, [])})
+  end
+
+  def disable_failure do
+    :persistent_term.erase(@configuration_key)
+  end
+
+  def insert!(changeset, opts \\ []), do: Threadline.Test.Repo.insert!(changeset, opts)
+  def update!(changeset, opts \\ []), do: Threadline.Test.Repo.update!(changeset, opts)
+
+  def update_all(query, updates, opts \\ []),
+    do: Threadline.Test.Repo.update_all(query, updates, opts)
+
+  def get!(queryable, id, opts \\ []), do: Threadline.Test.Repo.get!(queryable, id, opts)
+  def one(query, opts \\ []), do: Threadline.Test.Repo.one(query, opts)
+  def transaction(fun, opts \\ []), do: Threadline.Test.Repo.transaction(fun, opts)
+  def checkout(fun, opts \\ []), do: Threadline.Test.Repo.checkout(fun, opts)
+
+  def query!(query, params \\ [], opts \\ []),
+    do: Threadline.Test.Repo.query!(query, params, opts)
+
+  def delete_all(query, opts \\ []) do
+    case :persistent_term.get(@configuration_key, nil) do
+      %{fail_on: fail_on, calls: calls} ->
+        if :atomics.add_get(calls, 1, 1) == fail_on do
+          raise RuntimeError, "injected database detail: secret host and query"
+        end
+
+      nil ->
+        :ok
+    end
+
+    Threadline.Test.Repo.delete_all(query, opts)
+  end
+end
+
 defmodule Threadline.RetentionTest do
   use Threadline.DataCase
 
@@ -241,6 +281,51 @@ defmodule Threadline.RetentionTest do
     assert run.duration_ms >= 0
     assert %DateTime{} = run.started_at
     assert %DateTime{} = run.completed_at
+  end
+
+  test "purge records committed batch count and safe failure before reraising" do
+    Application.put_env(:threadline, :retention,
+      enabled: true,
+      keep_days: 1,
+      delete_empty_transactions: false
+    )
+
+    for _ <- 1..3 do
+      tx = insert_transaction("threadline", occurred_at: DateTime.utc_now(:microsecond))
+
+      insert_change("threadline", tx,
+        captured_at: DateTime.add(DateTime.utc_now(:microsecond), -10, :day)
+      )
+    end
+
+    Threadline.RetentionTest.FailOnNthDeleteRepo.configure_failure(2)
+    on_exit(&Threadline.RetentionTest.FailOnNthDeleteRepo.disable_failure/0)
+
+    assert_raise RuntimeError, ~r/injected database detail/, fn ->
+      Retention.purge(
+        repo: Threadline.RetentionTest.FailOnNthDeleteRepo,
+        batch_size: 1,
+        max_batches: 5,
+        sleep_ms: 0
+      )
+    end
+
+    [failed_run] = Repo.all(RetentionRun, repo_opts())
+    assert failed_run.status == "failed"
+    assert failed_run.deleted_count == 1
+    assert is_integer(failed_run.duration_ms)
+    assert failed_run.duration_ms >= 0
+    assert %DateTime{} = failed_run.completed_at
+    assert failed_run.error_message == "prune_error"
+    refute failed_run.error_message =~ "secret host"
+    assert count_changes("threadline") == 2
+
+    Threadline.RetentionTest.FailOnNthDeleteRepo.disable_failure()
+    result = Retention.purge(repo: Repo, batch_size: 1, max_batches: 5, sleep_ms: 0)
+
+    assert result.deleted_changes == 2
+    assert count_changes("threadline") == 0
+    assert Enum.any?(Repo.all(RetentionRun, repo_opts()), &(&1.status == "completed"))
   end
 
   test "purge/1 skips orphan cleanup when delete_empty_transactions is false" do

@@ -193,6 +193,12 @@ defmodule Threadline.Retention.Pruner do
               sleep_ms: sleep_ms,
               storage_schema: storage_schema
             )
+          rescue
+            _exception ->
+              Logger.warning("threadline retention run failed")
+          catch
+            _kind, _reason ->
+              Logger.warning("threadline retention run failed")
           after
             restore_run_id(previous_run_id)
             release_lock(repo)

@@ -158,6 +158,48 @@ defmodule Threadline.Retention.PrunerTest do
     assert length(Repo.all(RetentionRun, repo_opts())) == 1
   end
 
+  test "worker failure releases its lock and accepts a later valid run" do
+    Repo.delete_all(RetentionRun, repo_opts())
+
+    Application.put_env(:threadline, :retention,
+      enabled: true,
+      keep_days: 0,
+      delete_empty_transactions: false,
+      interval_ms: :timer.hours(24),
+      sleep_ms: 0
+    )
+
+    start_application_supervisor!()
+
+    assert :ok = Pruner.trigger()
+
+    assert_eventually(
+      fn -> Enum.any?(Repo.all(RetentionRun, repo_opts()), &(&1.status == "failed")) end,
+      message: "the worker should persist a terminal failure for an invalid policy"
+    )
+
+    [failed_run] = Repo.all(RetentionRun, repo_opts())
+    assert failed_run.deleted_count == 0
+    assert failed_run.error_message == "invalid_policy"
+
+    Application.put_env(:threadline, :retention,
+      enabled: true,
+      keep_days: 1,
+      delete_empty_transactions: false,
+      interval_ms: :timer.hours(24),
+      sleep_ms: 0
+    )
+
+    assert :ok = Pruner.trigger()
+
+    assert_eventually(
+      fn -> Enum.any?(Repo.all(RetentionRun, repo_opts()), &(&1.status == "completed")) end,
+      message: "a later run should acquire the released lock and complete"
+    )
+
+    assert length(Repo.all(RetentionRun, repo_opts())) == 2
+  end
+
   test "skips purging while the advisory lock is held elsewhere, then resumes after release" do
     Repo.delete_all(RetentionRun, repo_opts())
 
