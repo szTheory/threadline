@@ -219,6 +219,7 @@ for (const viewport of responsiveCases) {
       correlation_id: correlation,
     });
     await page.goto(`/audit/timeline?${search.toString()}`);
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     const targetRow = page.getByTestId("timeline-row").filter({
       has: page.locator(`[data-tl-copy="${correlation}"]`),
     });
@@ -292,6 +293,7 @@ for (const viewport of responsiveCases) {
       table: "ticket_replies",
     });
     await page.goto(`/audit/timeline?${updateQuery}`);
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     const updateRow = page.getByTestId("timeline-row").filter({
       has: page.locator(".tl-change__op").filter({ hasText: /^UPDATE$/ }),
     }).first();

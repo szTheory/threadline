@@ -36,6 +36,7 @@ const REQUIRED_GROUP_STORY_IDS = [
 // round 4 dropped (REVIEW.md CR-04, WR-07) while keeping the runtime lookup.
 async function resolveGroupStories(page: Page): Promise<string[]> {
   await page.goto("/audit/__stress?category=group");
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
   const ids = (
     await page
       .locator('[data-testid="stress-story-list"] .tl-stress__story-id')
@@ -185,6 +186,7 @@ test.describe("Phase 177 UAT #1 — group catalog holds together at every viewpo
             await test.step(`${width}px`, async () => {
               await page.setViewportSize({ width, height: 900 });
               await page.goto(`/audit/__stress?story=${encodeURIComponent(story)}`);
+              await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
 
               const preview = page.getByTestId("stress-preview");
               await expect(preview).toBeVisible();

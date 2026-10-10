@@ -743,6 +743,7 @@ test.describe("operator accessibility baseline", () => {
     await expectNonObscuredFocused(rowHistoryLink, page);
 
     await page.goto(rowHistoryHref);
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
     const drawer = page.getByTestId("row-history-drawer");
     const dialog = drawer.getByRole("dialog", { name: /Row history/ });
     await expect(drawer).toBeVisible();
