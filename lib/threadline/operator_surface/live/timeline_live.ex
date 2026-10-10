@@ -577,6 +577,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           actor_ref={assigns[:threadline_actor_ref]}
           saved_views={@saved_views}
           search_url={@search_url}
+          form_error={@form_error}
           base_path={@base_path}
           filter_query={@filter_query}
           export_ready={is_nil(@form_error)}

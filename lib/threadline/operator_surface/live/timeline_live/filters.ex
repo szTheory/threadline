@@ -170,6 +170,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:actor_ref, :any, default: nil)
     attr(:saved_views, :list, required: true)
     attr(:search_url, :string, required: true)
+    attr(:form_error, :any, required: true)
     attr(:base_path, :string, required: true)
     attr(:filter_query, :string, required: true)
     attr(:export_ready, :boolean, required: true)
@@ -223,6 +224,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               type="button"
               class="tl-button tl-button--secondary"
               data-tl-copy={@search_url}
+              disabled={not is_nil(@form_error)}
+              aria-describedby="timeline-share-hint"
               aria-label="Copy search URL"
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
@@ -236,8 +239,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               aria-live="polite"
               aria-atomic="true"
             ></span>
-            <p class="tl-toolbar__hint">
-              This URL shares the applied filters. Results and access are determined by the receiving host.
+            <p id="timeline-share-hint" class="tl-toolbar__hint">
+              <%= if @form_error do %>
+                Fix the Timeline filters before sharing this search.
+              <% else %>
+                This URL shares the applied filters. Results and access are determined by the receiving host.
+              <% end %>
             </p>
           </section>
 

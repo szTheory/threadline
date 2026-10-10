@@ -841,6 +841,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert html =~ "invalid datetime: not-a-date"
       assert html =~ ~s|href="/audit/exports?from=not-a-date&amp;table=posts"|
+      assert has_element?(lv, ~s|button[aria-label="Copy search URL"][disabled]|)
+      assert html =~ "Fix the Timeline filters before sharing this search."
       refute html =~ "Queue export"
       refute html =~ ~r{href="/audit/exports/changes\.(csv|json|ndjson)\?}
 
