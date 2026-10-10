@@ -116,13 +116,25 @@ The canonical `mix verify.example_browser` wrapper was not invoked because it ru
 
 ## Verification
 
-- Focused ExUnit command, using the cached dependency/build paths and test partition:
-  `MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> MIX_TEST_PARTITION=operator_241_01 mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/presentation_test.exs test/threadline/operator_surface/surface_header_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs` — **81 tests, 0 failures**.
-- `MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> mix verify.format` — **passed**.
-- Mounted browser command from `examples/threadline_phoenix`:
-  `E2E_BASE_URL=http://127.0.0.1:4002 ./node_modules/.bin/playwright test --config=playwright.config.ts --project=desktop-chromium --project=mobile-chromium tests/operator-coverage-readiness.spec.ts` — **14 passed**.
-- `mix ci.all` is phase-wave verification and remains scheduled after all Phase 241 Wave 1 plans complete.
-- No dependencies were installed. The mounted browser run used the implementation and example source from this worktree.
+The original executor used existing cached dependencies and build paths:
+
+```bash
+MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> MIX_TEST_PARTITION=operator_241_01 mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/presentation_test.exs test/threadline/operator_surface/surface_header_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs
+```
+
+Result: **81 tests, 0 failures**.
+
+```bash
+MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> mix verify.format
+```
+
+Result: **passed**. Mounted browser command from the example app:
+
+```bash
+E2E_BASE_URL=http://127.0.0.1:4002 ./node_modules/.bin/playwright test --config=playwright.config.ts --project=desktop-chromium --project=mobile-chromium tests/operator-coverage-readiness.spec.ts
+```
+
+Result: **14 passed**. No dependencies were installed. Phase-wide `mix ci.all` was pending at executor completion; recovery has since passed the final canonical gate, recorded in `241-CI-RECEIPT.json` and `241-VERIFICATION.md`.
 
 ## Issues Encountered
 

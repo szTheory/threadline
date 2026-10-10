@@ -1,0 +1,223 @@
+{
+  "completedAt": "2026-10-10T20:00:18.958007+00:00",
+  "command": "mix ci.all",
+  "exitCode": 0,
+  "testedSourceCommit": "3bbe19ebf80661b20c167b06396b4584815e48d3",
+  "sourceHashes": {
+    "examples/threadline_phoenix/e2e/tests/operator-accessibility.spec.ts": "75f42db007a0b2d99eb758a392f88e63a81a893acdbd36d484d2443d39dc0109",
+    "examples/threadline_phoenix/e2e/tests/operator-coverage-readiness.spec.ts": "3a29410d98978d19de1be711fcde04735f4a1caa670620431fdf44c4aecb7efc",
+    "examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts": "88a8a0ea9d0da79264be611a5d82bc594c3699083ee99c5b95ce8a5f95dc7b18",
+    "examples/threadline_phoenix/e2e/tests/operator-motion.spec.ts": "868776279dd5881b4a5af7b533014c1a84c40c05c79501eea366eefe2576d8c8",
+    "examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts": "adb0848e6e90311342aff76e3c408fbea5d8647d9c5db964a7b01025ab8300c3",
+    "examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts": "f660a40c39d1bb4f1b92b11c7ae6d9722f9a86192cfb4ea099d87ec3ccff2b9a",
+    "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts": "15ce9eb75503faf23df1e90eb1c4f7aecfeab7b54c743fd16c6168f6232524c9",
+    "examples/threadline_phoenix/e2e/tests/operator-zoom-proof.spec.ts": "b34ca34760ebd5ca5ac5b21de5c69265143c012abff47e7515d3b2ca611e3719",
+    "lib/threadline/operator_surface/components/surface_header.ex": "69312d24690551948e85718b1669c7d8664a33fabe4865d5a5a3e7c60cfe8e9c",
+    "lib/threadline/operator_surface/coverage/on_mount.ex": "cffc5121340a4d275a03e3633da1542065a3b5236ac3b3eefe1502371367817e",
+    "lib/threadline/operator_surface/live/coverage_live.ex": "9ce4eb843c6cdbeac8b273d26f9e236d70d59c60a98b52169865e2d4ea4a6b16",
+    "lib/threadline/operator_surface/live/evidence_live.ex": "fbb986b777a506fe37fa75c4b4e7d70e9e7a1aae15f489687ee7397f16cf6c37",
+    "lib/threadline/operator_surface/live/policy_redaction_live.ex": "356d8c527c98a80ddb2738a096b5c64b84d51ca9ba4f853f1da3b73208ec09f2",
+    "lib/threadline/operator_surface/presentation.ex": "2b4d9c4f50c26db5707cc06f7f8b084b326f3e056fdd0a72d34f145b89863829",
+    "lib/threadline/policy/redaction_presenter.ex": "cdcec4c57d79798e569dc1f90c4f07c4dd6ee04129de0a694faab4c50ef7db6a",
+    "test/fixtures/operator_surface/route-inventory.json": "d7a5e4d59cc34fe57b98849106fa883a2a4af4cdca5212c3b7d24a2ceca150af",
+    "test/fixtures/operator_surface/source-surface-checklist.json": "431c5867378c2b0aa41057644e83fd484c5c80ecad575868dd04d554a321f5ba",
+    "test/threadline/operator_surface/copy_contract_test.exs": "de5fea6aca775e108c72295de0e8155d915d6e3ef697b56413de277fd15a7948",
+    "test/threadline/operator_surface/live/coverage_live_test.exs": "2e4d526946c5a0064bb00cd36af7b02c31b8227bcae0fb965be4cd5cdb1d0541",
+    "test/threadline/operator_surface/live/evidence_live_test.exs": "aaf758ec6ec1080d8fb27167433905234767ea155559ed4513152abb9a8f77ab",
+    "test/threadline/operator_surface/live/policy_redaction_live_test.exs": "094d08c9900c3b5419a78a57ceac5e57638e4a8665d60b6ffa9a914d62180c81",
+    "test/threadline/operator_surface/presentation_test.exs": "fe9783cd03bc860b560c593263a50fb33e6400b187e7fb3c1170cc3447ecda2f",
+    "test/threadline/policy/redaction_presenter_test.exs": "dd8375af9223ac9ee0961336da4c64b68105b3899a6092a2bf9fdaedb60d714a"
+  },
+  "environment": {
+    "elixir": "1.17.3",
+    "otp": "27",
+    "postgresql": "16.14",
+    "dbPort": 5433,
+    "testPartition": "24110",
+    "node": "22.14.0",
+    "browser": "148.0.7778.96",
+    "dependencyMode": "existing locked Hex/npm dependencies and cached Chromium; no installation"
+  },
+  "results": {
+    "root": {
+      "tests": 3110,
+      "properties": 32,
+      "failures": 0,
+      "excluded": 3
+    },
+    "example": {
+      "tests": 132,
+      "failures": 0
+    },
+    "dialyzer": {
+      "errors": 0
+    },
+    "dialyzerSlice": {
+      "tests": 17,
+      "failures": 0,
+      "excluded": 16
+    },
+    "node": {
+      "tests": 21,
+      "passed": 21,
+      "failures": 0
+    },
+    "browser": {
+      "passed": 400,
+      "skipped": 72,
+      "failed": 0,
+      "projects": [
+        "desktop-chromium",
+        "mobile-chromium"
+      ]
+    }
+  },
+  "realZoom": [
+    {
+      "route": "Coverage",
+      "path": "/audit/coverage?schema=public",
+      "viewport": {
+        "width": 640,
+        "height": 450
+      },
+      "documentWidth": 640,
+      "clientWidth": 640,
+      "overflow": 0,
+      "controls": [
+        {
+          "name": "Host schema",
+          "found": true,
+          "visible": true,
+          "reachable": true,
+          "focused": true,
+          "pointerTarget": "select#coverage-schema.tl-control.tl-schema-picker__control",
+          "targetRect": {
+            "left": 8,
+            "top": 197.1875,
+            "right": 296,
+            "bottom": 237.6875,
+            "width": 288,
+            "height": 40.5
+          },
+          "hitTarget": "select#coverage-schema.tl-control.tl-schema-picker__control"
+        },
+        {
+          "name": "Refresh coverage",
+          "found": true,
+          "visible": true,
+          "reachable": true,
+          "focused": true,
+          "pointerTarget": "button.tl-button.tl-button--quiet-primary",
+          "targetRect": {
+            "left": 335.2578125,
+            "top": 206.9375,
+            "right": 512.640625,
+            "bottom": 248.9375,
+            "width": 177.3828125,
+            "height": 42
+          },
+          "hitTarget": "button.tl-button.tl-button--quiet-primary"
+        }
+      ],
+      "tabZoom": {
+        "tabId": 1152131087,
+        "url": "http://127.0.0.1:4002/audit/coverage?schema=public",
+        "zoomFactor": 2
+      }
+    },
+    {
+      "route": "Evidence",
+      "path": "/audit/evidence?subject=retention_run&subject_ref_json=%7B%22org_slug%22%3A%22offboarded-co%22%2C%22organization_id%22%3A%2293cba30e-e2d5-5d95-9c50-7023f4c3eda5%22%2C%22run_id%22%3A%22walk-retention-offboarded-co%22%7D",
+      "viewport": {
+        "width": 640,
+        "height": 450
+      },
+      "documentWidth": 640,
+      "clientWidth": 640,
+      "overflow": 0,
+      "controls": [
+        {
+          "name": "View proof history",
+          "found": true,
+          "visible": true,
+          "reachable": true,
+          "focused": true,
+          "pointerTarget": "a.tl-button.tl-button--compact.tl-button--secondary",
+          "targetRect": {
+            "left": 28,
+            "top": 348.4375,
+            "right": 200.265625,
+            "bottom": 388.4375,
+            "width": 172.265625,
+            "height": 40
+          },
+          "hitTarget": "a.tl-button.tl-button--compact.tl-button--secondary"
+        }
+      ],
+      "tabZoom": {
+        "tabId": 1152131087,
+        "url": "http://127.0.0.1:4002/audit/evidence?subject=retention_run&subject_ref_json=%7B%22org_slug%22%3A%22offboarded-co%22%2C%22organization_id%22%3A%2293cba30e-e2d5-5d95-9c50-7023f4c3eda5%22%2C%22run_id%22%3A%22walk-retention-offboarded-co%22%7D",
+        "zoomFactor": 2
+      }
+    },
+    {
+      "route": "Redaction policy",
+      "path": "/audit/policy/redaction?schema=public",
+      "viewport": {
+        "width": 640,
+        "height": 450
+      },
+      "documentWidth": 640,
+      "clientWidth": 640,
+      "overflow": 0,
+      "controls": [
+        {
+          "name": "Refresh policy inspection",
+          "found": true,
+          "visible": true,
+          "reachable": true,
+          "focused": true,
+          "pointerTarget": "button.tl-button.tl-button--primary",
+          "targetRect": {
+            "left": 8,
+            "top": 226.1875,
+            "right": 217.6171875,
+            "bottom": 268.1875,
+            "width": 209.6171875,
+            "height": 42
+          },
+          "hitTarget": "button.tl-button.tl-button--primary"
+        },
+        {
+          "name": "Exact posts policy disclosure",
+          "found": true,
+          "visible": true,
+          "reachable": true,
+          "focused": true,
+          "pointerTarget": "summary.tl-policy__summary",
+          "targetRect": {
+            "left": 9,
+            "top": 158.09375,
+            "right": 631,
+            "bottom": 291.484375,
+            "width": 622,
+            "height": 133.390625
+          },
+          "hitTarget": "p.tl-policy__hint"
+        }
+      ],
+      "tabZoom": {
+        "tabId": 1152131087,
+        "url": "http://127.0.0.1:4002/audit/policy/redaction?schema=public",
+        "zoomFactor": 2
+      }
+    }
+  ],
+  "logSha256": "a11539faffed1b871e776497eafc4f3d251b50aa10d1c5eae9fd45947ef0afb7",
+  "notes": [
+    "Canonical verification aliases executed on the final source bytes. Source was committed during the run; all recorded source hashes match the final checkout.",
+    "The temporary recovery launcher reused installed dependencies and Chromium rather than running dependency/bootstrap downloads.",
+    "Configured/conditional browser skips remain explicit; this receipt does not claim universal browser or screenshot acceptance coverage.",
+    "Earlier recovery gate test stages passed, but its shell wrapper ended with a parsing error; that run is not the final successful gate."
+  ]
+}

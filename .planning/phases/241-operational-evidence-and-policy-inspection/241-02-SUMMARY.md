@@ -36,6 +36,9 @@ key-files:
     - examples/threadline_phoenix/e2e/tests/operator-earned-flows.spec.ts
     - examples/threadline_phoenix/e2e/tests/operator-prove-mobile.spec.ts
     - examples/threadline_phoenix/e2e/tests/operator-responsive-mobile-first.spec.ts
+    - test/threadline/operator_surface/copy_contract_test.exs
+    - test/fixtures/operator_surface/route-inventory.json
+    - test/fixtures/operator_surface/source-surface-checklist.json
 key-decisions:
   - "Rescue only DBConnection.ConnectionError at the evidence database-read boundary; leave unrelated errors visible for diagnosis."
   - "A successful empty lookup is scoped to the selected reference and does not imply absence of underlying activity."
@@ -86,8 +89,11 @@ Each task was committed atomically:
 
 1. **Task 1: Give evidence reads a distinct retryable unavailable state** - `4b890ca6` (test), `5f782ca2` (test), `b0dc6828` (fix)
 2. **Task 2: Prove latest evidence returns to the same subject-reference history** - `c00cb3bf` (test)
+3. **Task 2: Align evidence rendering and contracts after the Wave 1 gate** - `cc5aa141` (fix)
 
 The plan metadata commit is separate.
+
+Recovery reconciliation: the original session's Wave 1 gate follow-up extracted evidence rendering and aligned copy/control inventory contracts in `cc5aa141`. This already committed follow-up was missing from the summary's task-commit scope; it is included here so Phase 241 review covers the complete source union.
 
 ## Files Created/Modified
 
@@ -119,9 +125,23 @@ The plan's canonical `mix verify.example_browser` wrapper runs package-install c
 
 ## Verification
 
-- Focused ExUnit: `MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> mix test test/threadline/operator_surface/live/evidence_live_test.exs` — **14 tests, 0 failures**.
+Focused ExUnit:
+
+```bash
+MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> mix test test/threadline/operator_surface/live/evidence_live_test.exs
+```
+
+Result: **14 tests, 0 failures**.
+
 - `mix format --check-formatted` for `evidence_live.ex` and `evidence_live_test.exs` — **passed**.
-- E2E TypeScript: `./node_modules/.bin/tsc --noEmit --project tsconfig.json` — **passed**.
+E2E TypeScript:
+
+```bash
+./node_modules/.bin/tsc --noEmit --project tsconfig.json
+```
+
+Result: **passed**.
+
 - Mounted Playwright route journey on desktop and mobile Chromium — **2 passed**.
 - Existing affected browser checks: mobile evidence/redaction case **1 passed**, desktop export-context case **1 passed**, responsive route matrix **8 passed**.
 - RED evidence classifier — **both records passed** as expected failing tests.

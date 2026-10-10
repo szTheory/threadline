@@ -32,7 +32,7 @@
 - [x] **Phase 238: Current-main preview and acceptance baseline** - Establish source-bound rendered evidence and a ranked disposition for every route, control and material state before UI changes. (completed 2026-10-09)
 - [x] **Phase 239: Investigation entry and transaction composition** - Make home, timeline and transaction inspection readable and predictable while proving the shared presentation in one complete journey. (completed 2026-10-10; 7/7 plans; verification passed)
 - [x] **Phase 240: Connected investigation and recovery** - Preserve context through row history, actor/correlation pivots and saved searches, with reliable copy and motion behavior. (completed 2026-10-10)
-- [ ] **Phase 241: Operational evidence and policy inspection** - Make capture coverage, evidence limits and redaction drift understandable without overstating certainty.
+- [x] **Phase 241: Operational evidence and policy inspection** - Make capture coverage, evidence limits and redaction drift understandable without overstating certainty. (completed 2026-10-10)
 - [ ] **Phase 242: Export and retention operations** - Complete existing export and confirmed prune journeys with accurate asynchronous, permission and reconnect feedback.
 - [ ] **Phase 243: Integrated verification and review preview** - Prove the delivered journeys in required checks and provide source-bound review evidence and a release-ready recommendation.
 
@@ -142,17 +142,17 @@ Plans:
 2. Operators can inspect evidence and subject proof history and distinguish host-recorded evidence from unavailable data and limited completeness.
 3. Operators can compare configured redaction policy with deployed trigger policy and understand discrepancies without seeing redacted values through the UI or its copy paths.
 
-**Plans**: 2/4 plans executed
+**Plans**: 4/4 plans complete
 Plans:
 **Wave 1**
 - [x] 241-01-PLAN.md — Schema-scoped coverage and safe migration handoff
 - [x] 241-02-PLAN.md — Evidence read states and subject-reference history
 
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 241-03-PLAN.md — Configured versus deployed redaction inspection
+**Wave 2** *(complete)*
+- [x] 241-03-PLAN.md — Configured versus deployed redaction inspection
 
-**Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 241-04-PLAN.md — Responsive, accessibility, motion, and zoom verification
+**Wave 3** *(complete)*
+- [x] 241-04-PLAN.md — Responsive, accessibility, motion, and zoom verification
 
 **UI hint**: yes
 
@@ -189,10 +189,10 @@ Plans:
 | 238. Current-main preview and acceptance baseline | 3/3 | Complete    | 2026-10-09 |
 | 239. Investigation entry and transaction composition | 7/7 | Complete    | 2026-10-10 |
 | 240. Connected investigation and recovery | 4/4 | Complete    | 2026-10-10 |
-| 241. Operational evidence and policy inspection | 2/4 | In Progress | - |
+| 241. Operational evidence and policy inspection | 4/4 | Complete    | 2026-10-10 |
 | 242. Export and retention operations | 0/TBD | Not started | - |
 | 243. Integrated verification and review preview | 0/TBD | Not started | - |
 
 ## Next
 
-Run `$gsd-execute-phase 240 --auto --no-transition` — Connected investigation and recovery. The four plans are independently reviewed and arranged in three dependency waves. Keep source changes in `.claude/worktrees/v146-operator-preview` and preserve the original checkout's local edits.
+Continue with `$gsd-discuss-phase 242` — Export and retention operations — from `.claude/worktrees/v146-phase241-orchestrator` (branch `agent-241-01`). Phase 241 is verified complete; all 18 currently planned plans are done. Phase 242 requires the repository's research-first recommendation workflow before planning. Preserve the original checkout's local edits and the retained preview/evidence worktrees. Phase 243 remains the integrated candidate review.

@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-10",
+  "sourceSession": "01a11661-7527-7d81-a91e-9152783d392d",
+  "observedFailures": [
+    {
+      "command": "mix test test/threadline/operator_surface/live/policy_redaction_live_test.exs",
+      "exitCode": 2,
+      "tests": 12,
+      "failures": 1,
+      "reason": "Disabled/invalid policy refresh changed the report instead of leaving the socket unchanged.",
+      "logSha256": "5ff34f67fe9160e7e8f049950a86b50b69126867b7c233a6f81c413ce1d148d7"
+    },
+    {
+      "command": "mix test test/threadline/operator_surface/live/policy_redaction_live_test.exs",
+      "exitCode": 2,
+      "tests": 14,
+      "failures": 2,
+      "reason": "Schema inspection printed the private connection error; catalog refresh raised DBConnection.ConnectionError instead of rendering unavailable.",
+      "logSha256": "0ec6272921014f8830dc6b99f1ff94483609a0d32b0a5b8f07d3b800bcc6366d"
+    }
+  ],
+  "assessment": "Behavior regressions executed and failed before their respective fixes. No pre-restart RED commit sequence is claimed."
+}

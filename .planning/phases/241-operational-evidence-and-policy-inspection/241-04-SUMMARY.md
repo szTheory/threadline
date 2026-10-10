@@ -52,8 +52,8 @@ Coverage, evidence history and redaction preserve their exact scope and reachabl
 
 ## Task Commits
 
-1. Responsive/theme/input/motion proof: `449b4399`.
-2. Actual browser 200% zoom proof: `449b4399` (shared browser verification and inventory commit with Plan 03).
+1. **Task 1: Verify responsive/theme/input/motion outcomes** - `449b4399` (test)
+2. **Task 2: Verify actual browser 200% zoom** - `449b4399` (test; shared with Plan 03)
 
 ## Verification
 

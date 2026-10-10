@@ -60,9 +60,9 @@ Missing configured-table triggers remain actionable drift; unreadable deployment
 
 ## Task Commits
 
-1. Task 1, presenter and mounted policy behavior: `5d7c81a2`.
-2. Task 2, desktop/mobile policy proof and control inventory: `449b4399` (shared browser verification commit with Plan 04).
-3. Review correction, unavailable policy inspection and recovery: `3bbe19eb`.
+1. **Task 1: Correct presenter and mounted policy behavior** - `5d7c81a2` (fix)
+2. **Task 2: Verify desktop/mobile policy and control inventory** - `449b4399` (test; shared with Plan 04)
+3. **Task 1: Recover policy inspection outages found during review** - `3bbe19eb` (fix)
 
 ## Verification
 

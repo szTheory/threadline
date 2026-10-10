@@ -1,9 +1,9 @@
 ---
 phase: "241"
 slug: "operational-evidence-and-policy-inspection"
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-10-10"
 ---
 
@@ -38,14 +38,14 @@ created: "2026-10-10"
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 241-01-01 | 01 | 1 | UIO-02 | T-241-01, T-241-03 | A failed schema read is unavailable, stale rows retain their timestamp, and remediation commands cannot be formed from unsafe identifiers. | LiveView + presentation unit | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/presentation_test.exs` | ✅ | ⬜ pending |
-| 241-01-02 | 01 | 1 | UIO-02 | T-241-01 | Coverage remediation remains schema-qualified and scoped on desktop/mobile. | Browser | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium operator-coverage-readiness.spec.ts` | ✅ | ⬜ pending |
-| 241-02-01 | 02 | 1 | UIO-03 | T-241-02, T-241-03 | No matching evidence, disabled access, and failed reads remain distinct; arbitrary host maps and overbroad completeness claims stay out of the UI. | LiveView unit | `mix test test/threadline/operator_surface/live/evidence_live_test.exs` | ✅ | ⬜ pending |
-| 241-02-02 | 02 | 1 | UIO-03 | T-241-02 | Latest-to-history navigation retains the selected subject/reference and the rendered state remains truthful. | Browser | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium operator-route-states.spec.ts` | ✅ | ⬜ pending |
-| 241-03-01 | 03 | 1 | UIO-04 | T-241-02, T-241-03 | Missing configured-table triggers are drift even for empty policy; parser failures remain distinct and canaries do not appear in presenter or rendered output. | Presenter + LiveView unit | `mix test test/threadline/policy/redaction_presenter_test.exs test/threadline/operator_surface/live/policy_redaction_live_test.exs` | ✅ | ⬜ pending |
-| 241-03-02 | 03 | 1 | UIO-04 | T-241-02 | Deployed-policy states and safe disclosures render without raw SQL, audit samples, or redacted values. | Browser | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium operator-route-states.spec.ts` | ✅ | ⬜ pending |
-| 241-04-01 | 04 | 1 | UIO-02, UIO-03, UIO-04 | T-241-02 | Responsive, theme, keyboard, visible-focus, touch, and reduced-motion behavior remains usable on affected routes. | Browser accessibility | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium operator-accessibility.spec.ts` | ✅ | ⬜ pending |
-| 241-04-02 | 04 | 1 | UIO-02, UIO-03, UIO-04 | T-241-02 | Actual 200% zoom preserves complete values and primary controls. | Browser zoom | `mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts` | ✅ | ⬜ pending |
+| 241-01-01 | 01 | 1 | UIO-02 | T-241-01, T-241-03 | A failed schema read is unavailable, stale rows retain their timestamp, and remediation commands cannot be formed from unsafe identifiers. | LiveView + presentation unit | `mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/presentation_test.exs` | ✅ | ✅ pass |
+| 241-01-02 | 01 | 1 | UIO-02 | T-241-01 | Coverage remediation remains schema-qualified and scoped on desktop/mobile. | Browser | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium operator-coverage-readiness.spec.ts` | ✅ | ✅ pass |
+| 241-02-01 | 02 | 1 | UIO-03 | T-241-02, T-241-03 | No matching evidence, disabled access, and failed reads remain distinct; arbitrary host maps and overbroad completeness claims stay out of the UI. | LiveView unit | `mix test test/threadline/operator_surface/live/evidence_live_test.exs` | ✅ | ✅ pass |
+| 241-02-02 | 02 | 1 | UIO-03 | T-241-02 | Latest-to-history navigation retains the selected subject/reference and the rendered state remains truthful. | Browser | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium operator-route-states.spec.ts` | ✅ | ✅ pass |
+| 241-03-01 | 03 | 2 | UIO-04 | T-241-02, T-241-03 | Missing configured-table triggers are drift even for empty policy; parser failures remain distinct and canaries do not appear in presenter or rendered output. | Presenter + LiveView unit | `mix test test/threadline/policy/redaction_presenter_test.exs test/threadline/operator_surface/live/policy_redaction_live_test.exs` | ✅ | ✅ pass |
+| 241-03-02 | 03 | 2 | UIO-04 | T-241-02 | Deployed-policy states and safe disclosures render without raw SQL, audit samples, or redacted values. | Browser | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium operator-route-states.spec.ts` | ✅ | ✅ pass |
+| 241-04-01 | 04 | 3 | UIO-02, UIO-03, UIO-04 | T-241-02 | Responsive, theme, keyboard, visible-focus, touch, and reduced-motion behavior remains usable on affected routes. | Browser accessibility | `mix verify.example_browser --project=desktop-chromium --project=mobile-chromium operator-accessibility.spec.ts operator-motion.spec.ts` | ✅ | ✅ pass |
+| 241-04-02 | 04 | 3 | UIO-02, UIO-03, UIO-04 | T-241-02 | Actual 200% zoom preserves complete values and primary controls. | Browser zoom | `mix verify.example_browser --project=desktop-chromium operator-zoom-proof.spec.ts` | ✅ | ✅ pass |
 
 ---
 
@@ -67,11 +67,17 @@ All phase behaviors have automated verification. The existing desktop zoom-proof
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s for focused suites
-- [ ] `nyquist_compliant: true` set in frontmatter after validation
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120s for focused suites
+- [x] `nyquist_compliant: true` set in frontmatter after validation
 
-**Approval:** pending
+**Approval:** automated validation passed 2026-10-10
+
+## Validation Audit 2026-10-10
+
+All eight task rows have automated coverage. Final `mix ci.all` exited 0: 32 properties/3,110 root tests, 132 example tests, strict Dialyzer with zero errors, 17 slice tests, 21 Node tests, and 400 browser passes with 72 explicit configured/conditional skips. Both voting projects discover and execute the new inspection cases; the desktop zoom instrument executed at factor 2. Its mobile capability skip is intentional, not a substituted passing zoom assertion.
+
+The final focused policy suite passed 31 tests, including disabled/invalid refresh and schema/catalog outage/retry regressions. `MIX_ENV=test mix run .planning/phases/241-operational-evidence-and-policy-inspection/241-policy-cardinality-probe.exs` passed three standalone zero/one/multiple and long-value backstops; this probe is separate from default CI discovery. Light/Dark/System, keyboard/touch, visible focus, responsive widths and reduced-motion route checks passed. Six final-source visual-review captures have zero overflow. No human-only verification remains. See the CI, rendered-review and cardinality receipts for source hashes and outcomes.
