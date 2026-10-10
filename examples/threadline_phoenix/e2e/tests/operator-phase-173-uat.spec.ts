@@ -116,6 +116,9 @@ test.describe("Phase 173 UAT #2 — overlay dismissal, focus, stacking", () => {
   }) => {
     await login(page);
     await page.goto("/audit/policy/retention");
+    await expect(page.locator("[data-phx-main]").first()).toHaveClass(
+      /phx-connected/,
+    );
 
     const open = () =>
       page.getByRole("button", { name: "Run retention prune" }).last().click();
