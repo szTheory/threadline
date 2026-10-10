@@ -119,7 +119,7 @@ The plan's canonical `mix verify.example_browser` wrapper runs package-install c
 
 ## Verification
 
-- Focused ExUnit: `MIX_DEPS_PATH=/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/deps MIX_BUILD_PATH=/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/_build mix test test/threadline/operator_surface/live/evidence_live_test.exs` — **14 tests, 0 failures**.
+- Focused ExUnit: `MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> mix test test/threadline/operator_surface/live/evidence_live_test.exs` — **14 tests, 0 failures**.
 - `mix format --check-formatted` for `evidence_live.ex` and `evidence_live_test.exs` — **passed**.
 - E2E TypeScript: `./node_modules/.bin/tsc --noEmit --project tsconfig.json` — **passed**.
 - Mounted Playwright route journey on desktop and mobile Chromium — **2 passed**.

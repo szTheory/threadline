@@ -117,8 +117,8 @@ The canonical `mix verify.example_browser` wrapper was not invoked because it ru
 ## Verification
 
 - Focused ExUnit command, using the cached dependency/build paths and test partition:
-  `MIX_DEPS_PATH=/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/deps MIX_BUILD_PATH=/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/_build MIX_TEST_PARTITION=operator_241_01 mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/presentation_test.exs test/threadline/operator_surface/surface_header_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs` — **81 tests, 0 failures**.
-- `MIX_DEPS_PATH=/Users/jon/projects/threadline/.claude/worktrees/v146-operator-preview/deps MIX_BUILD_PATH=/Users/jon/projects/threadline/.claude/worktrees/v146-phase241-orchestrator/_build mix verify.format` — **passed**.
+  `MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> MIX_TEST_PARTITION=operator_241_01 mix test test/threadline/operator_surface/live/coverage_live_test.exs test/threadline/operator_surface/presentation_test.exs test/threadline/operator_surface/surface_header_test.exs test/threadline/operator_surface/coverage/on_mount_test.exs` — **81 tests, 0 failures**.
+- `MIX_DEPS_PATH=<cached-deps> MIX_BUILD_PATH=<phase-worktree-build> mix verify.format` — **passed**.
 - Mounted browser command from `examples/threadline_phoenix`:
   `E2E_BASE_URL=http://127.0.0.1:4002 ./node_modules/.bin/playwright test --config=playwright.config.ts --project=desktop-chromium --project=mobile-chromium tests/operator-coverage-readiness.spec.ts` — **14 passed**.
 - `mix ci.all` is phase-wave verification and remains scheduled after all Phase 241 Wave 1 plans complete.
