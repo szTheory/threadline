@@ -121,7 +121,7 @@ Plans:
 **Plans**: 4/4 planned
 Plans:
 **Wave 1**
-- [ ] 240-01-PLAN.md — Preserve row-history context and recover safely from unavailable evidence
+- [x] 240-01-PLAN.md — Preserve row-history context and recover safely from unavailable evidence
 
 **Wave 2** *(depends on 240-01)*
 - [ ] 240-02-PLAN.md — Keep pivots, saved searches, and shared filters within the committed investigation
@@ -129,6 +129,7 @@ Plans:
 
 **Wave 3** *(depends on 240-02)*
 - [ ] 240-03-PLAN.md — Make clipboard outcomes truthful and recoverable
+
 **UI hint**: yes
 
 ### Phase 241: Operational evidence and policy inspection
@@ -176,7 +177,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 238. Current-main preview and acceptance baseline | 3/3 | Complete    | 2026-10-09 |
 | 239. Investigation entry and transaction composition | 7/7 | Complete    | 2026-10-10 |
-| 240. Connected investigation and recovery | 0/4 | Planned     | - |
+| 240. Connected investigation and recovery | 1/4 | In Progress | - |
 | 241. Operational evidence and policy inspection | 0/TBD | Not started | - |
 | 242. Export and retention operations | 0/TBD | Not started | - |
 | 243. Integrated verification and review preview | 0/TBD | Not started | - |

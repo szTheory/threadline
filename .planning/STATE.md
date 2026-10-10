@@ -4,17 +4,17 @@ milestone: v1.46
 milestone_name: Operator UI Refinement
 current_phase: 240
 current_phase_name: Connected investigation and recovery
-status: planned
-stopped_at: Phase 240 plans approved
-last_updated: "2026-10-10T10:43:51.000Z"
+status: executing
+stopped_at: Completed 240-01-PLAN.md; ready for 240-02-PLAN.md
+last_updated: "2026-10-10T11:15:32.997Z"
 last_activity: 2026-10-10
-last_activity_desc: Phase 240 plans passed independent review; execution is next
-state_head: c5e1d06a95c7e2ee196d12c164ef29010bcea958
+last_activity_desc: Phase 240-01 completed; Plan 240-02 is next
+state_head: 56c24da4fedbf3ba1a6881a146447a43b9be0545
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 14
-  completed_plans: 10
+  completed_plans: 11
   percent: 33
 ---
 
@@ -29,12 +29,12 @@ See: `.planning/PROJECT.md` (updated 2026-10-09 after Phase 238 verification)
 
 ## Current Position
 
-Phase: 240 (Connected investigation and recovery) — PLANNED
-Plan: 4 plans across 3 waves; Phase 239 complete (7/7 plans)
-Status: Ready to execute Phase 240
-Last activity: 2026-10-10 — Phase 240 plans passed independent review
+Phase: 240 (Connected investigation and recovery) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-10-10 — Phase 240 execution started
 
-Progress: [███░░░░░░░] 33% of milestone phases — 2/6 phases complete; 10/14 currently planned plans complete; later plans TBD
+Progress: [███░░░░░░░] 33% of milestone phases — 2/6 phases complete; 11/14 currently planned plans complete; later plans TBD
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -295,6 +295,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 237 P01 | 10min | 2 tasks | 7 files |
 | Phase 237 P02 | 5min | 2 tasks | 4 files |
 | Phase 237 P03 | 1h 2m | 2 tasks | 12 files |
+| Phase 240 P01 | 29min | 3 tasks | 11 files |
 
 ## Deferred Items
 
@@ -1070,6 +1071,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 237]: Keep the complete human-authored 1.0.0 changelog dated 2026-10-07, with a fresh Unreleased staging heading above it.
 - [Phase 237]: Use v1.44 only for the milestone range audit; build the isolated candidate on the separately fetched GitHub main SHA.
 - [Phase 237]: Treat strict candidate rehearsal and ci.all as local evidence only; no external release action is granted.
+- [Phase 240]: Recognize only origin=timeline and canonical FilterParams keys when returning from direct row history; reconstruct the local path instead of trusting a URL.
+- [Phase 240]: Catch only DBConnection.ConnectionError as retryable direct row-history unavailability; keep other evidence states distinct.
+- [Phase 240]: Do not mount or query transaction row history until its parent transaction has loaded successfully.
 
 ### Blockers
 
@@ -1088,9 +1092,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-10T10:01:24.126Z
-**Stopped at:** Phase 240 UI-SPEC approved
-**Resume file:** .planning/phases/240-connected-investigation-and-recovery/240-UI-SPEC.md
+**Last session:** 2026-10-10T11:15:32.874Z
+**Stopped at:** Completed 240-01-PLAN.md; ready for 240-02-PLAN.md
+**Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
