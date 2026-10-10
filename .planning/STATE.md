@@ -5,16 +5,16 @@ milestone_name: Operator UI Refinement
 current_phase: 241
 current_phase_name: Operational evidence and policy inspection
 status: executing
-stopped_at: Completed 241-01-PLAN.md
-last_updated: "2026-10-10T17:15:44.292Z"
+stopped_at: Completed 241-02-PLAN.md
+last_updated: "2026-10-10T17:38:52.831Z"
 last_activity: 2026-10-10
-last_activity_desc: Phase 241 plan 01 completed; plan 02 ready to execute
-state_head: f03354d8595856d8f1094e1a855222dce8ce1331
+last_activity_desc: Phase 241 plan 02 completed; Wave 1 complete, phase CI gate pending before Wave 2
+state_head: c00cb3bff7f7abde8fd6d392ed7bdbf26c95c6f2
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 50
 ---
 
@@ -30,11 +30,11 @@ See: `.planning/PROJECT.md` (updated 2026-10-10 after Phase 240 verification)
 ## Current Position
 
 Phase: 241 (Operational evidence and policy inspection) — EXECUTING
-Plan: 2 of 4
-Status: Ready to execute
-Last activity: 2026-10-10 — Phase 241 plan 01 completed; plan 02 ready to execute
+Plan: 3 of 4
+Status: Waiting on Wave 1 CI gate
+Last activity: 2026-10-10 — Phase 241 plan 02 complete; both Wave 1 plans are done and phase CI is pending
 
-Progress: [█████░░░░░] 50% of milestone phases — 3/6 phases complete; 15/18 currently planned plans complete; Phase 241 plan 2 of 4 ready to execute, Phases 242–243 remain to plan and execute
+Progress: [█████░░░░░] 50% of milestone phases — 3/6 phases complete; 16/18 currently planned plans complete; Phase 241 plan 3 of 4 is next after the Wave 1 CI gate, Phases 242–243 remain to plan and execute
 
 ## PROOF-01 outcome (2026-08-26, maintainer-ratified in-session)
 
@@ -297,6 +297,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 | Phase 237 P03 | 1h 2m | 2 tasks | 12 files |
 | Phase 240 P01 | 29min | 3 tasks | 11 files |
 | Phase 241 P01 | 25 min | 2 tasks | 7 files |
+| Phase 241 P02 | 12 min | 2 tasks | 8 files |
 
 ## Deferred Items
 
@@ -1077,6 +1078,7 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 - [Phase 240]: Do not mount or query transaction row history until its parent transaction has loaded successfully.
 - [Phase 241]: Coverage read errors remain unavailable or stale rather than confirmed-empty; the topbar mirrors the selected-schema result.
 - [Phase 241]: Generate schema-qualified remediation only when both identifiers are safe; otherwise preserve exact values and show the manual host-migration path.
+- [Phase 241]: Only DBConnection.ConnectionError at the evidence read boundary becomes retryable unavailable; unrelated errors remain diagnosable.
 
 ### Blockers
 
@@ -1095,8 +1097,8 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-10T17:15:44.174Z
-**Stopped at:** Completed 241-01-PLAN.md
+**Last session:** 2026-10-10T17:38:52.657Z
+**Stopped at:** Completed 241-02-PLAN.md
 **Resume file:** None
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
