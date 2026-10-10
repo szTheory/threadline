@@ -399,7 +399,10 @@ test.describe("operator real-route deterministic capture", () => {
         expect(response?.status()).toBe(200);
         await expect(page.locator("#tl-main h1").first()).toBeVisible();
         if (route.id === "route.drawer" || route.id === "route.row") await expect(page.getByTestId("row-history-drawer")).toBeVisible();
-        if (route.id === "route.transaction") await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
+        if (route.id === "route.transaction") {
+          await expect(page.getByTestId("transaction-change-row").first()).toBeVisible();
+          await expect(page.locator("#tl-main")).toContainText("[REDACTED]");
+        }
         const id = `${route.id}__dark-${width}`;
         const observation = await evidence.capture(id, path, "direct-entry", { pattern: route.pattern, seedResolution: route.seedResolution, httpStatus: response!.status() });
         const raw = await rawInputs(page, CARD_SELECTOR);

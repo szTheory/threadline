@@ -101,7 +101,7 @@ defmodule ThreadlinePhoenix.DemoContractTest do
 
         encoded = Jason.encode!(reply_change.data_after)
         assert encoded =~ "[REDACTED]"
-        refute encoded =~ "WALKTHROUGH-INTERNAL-SECRET-4521"
+        refute encoded =~ "synthetic-secret-canary-239-6f71"
       end)
     end
   end

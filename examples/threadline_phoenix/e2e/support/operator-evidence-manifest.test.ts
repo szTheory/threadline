@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test, { type TestContext } from "node:test";
-import { assetRecord, writeRouteBundle, candidateIdentity, build239CandidateReceipt, validate239CandidateReceipt, assertNoCanaryLeak, localAssetPath, semanticFixtureId, serializeManifest, writeManifest, type OperatorEvidenceManifest } from "./operator-evidence-manifest.js";
+import { assetRecord, writeRouteBundle, candidateIdentity, build239CandidateReceipt, validate239CandidateReceipt, assertNoCanaryLeak, validateCaptureMetadata, localAssetPath, semanticFixtureId, serializeManifest, writeManifest, type OperatorEvidenceManifest } from "./operator-evidence-manifest.js";
 import { DEFAULT_OPERATOR_SURFACE_PATHS } from "./operator-surface-paths.js";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -101,6 +101,15 @@ test("evidence canary scan rejects secret text, attributes, and output bytes", (
     assert.throws(() => assertNoCanaryLeak(canary, "synthetic evidence output", payload), /canary/i);
   }
   assert.doesNotThrow(() => assertNoCanaryLeak(canary, "redacted evidence output", "[REDACTED]"));
+});
+
+test("capture metadata accepts known scalar fields and rejects unknown, nested, or canary-bearing values", () => {
+  const canary = "synthetic-secret-canary-239-6f71";
+  assert.doesNotThrow(() => validateCaptureMetadata({ httpStatus: 200, permission: "granted", limitation: "Actual denial remains unverified." }, canary, "metadata"));
+  assert.throws(() => validateCaptureMetadata({ internalToken: "must not be persisted" }, canary, "metadata"), /secret-bearing/i);
+  assert.throws(() => validateCaptureMetadata({ arbitrary: "unreviewed value" }, canary, "metadata"), /unknown capture metadata field/i);
+  assert.throws(() => validateCaptureMetadata({ limitation: { value: "nested arbitrary metadata" } }, canary, "metadata"), /invalid capture metadata value/i);
+  assert.throws(() => validateCaptureMetadata({ limitation: `leaked ${canary}` }, canary, "metadata"), /canary/i);
 });
 
 test("same scenario/version/seed retains semantic fixture identity across fresh partitions", () => {

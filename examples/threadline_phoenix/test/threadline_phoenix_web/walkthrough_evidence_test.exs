@@ -84,7 +84,7 @@ defmodule ThreadlinePhoenixWeb.WalkthroughEvidenceTest do
 
       history_html = html_response(history_conn, 200)
       assert history_html =~ "[REDACTED]"
-      refute history_html =~ "WALKTHROUGH-INTERNAL-SECRET-4521"
+      refute history_html =~ "synthetic-secret-canary-239-6f71"
     end
 
     test "WALK-04-03 trigger coverage dashboard and evidence snapshot" do

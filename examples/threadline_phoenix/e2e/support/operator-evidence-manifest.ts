@@ -79,6 +79,47 @@ export interface Operator239CandidateReceipt {
 
 const sha256 = (bytes: string | Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 const secretKey = /password|cookie|authorization|token|secret|credential|api[_-]?key/i;
+const captureMetadataFields: Readonly<Record<string, "string" | "number" | "boolean" | "nullable-string">> = {
+  pattern: "string", seedResolution: "string", httpStatus: "number", injectedRankingStyles: "boolean",
+  reducedDuration: "string", clipboardMatches: "boolean", handlerBound: "boolean", copiedFeedback: "boolean",
+  exactMatch: "boolean", rank: "string", ownerPhase: "number", deniedClipboardLimitation: "string",
+  permission: "string", limitation: "string", stateSource: "string", requestHeld: "boolean",
+  longValueLength: "number", priorDataRetained: "number", fullValueRetained: "boolean", input: "string",
+  disabled: "boolean", ariaDisabled: "nullable-string", mutationMarker: "boolean", pointerEvents: "string",
+  jobsBefore: "number", jobsAfter: "number", observedAddedJobs: "number", completionClaim: "boolean",
+  focusedInside: "boolean", returned: "boolean", physicalDevice: "boolean", role: "string",
+  authorizationSource: "string", timelineAllowed: "boolean", unauthenticatedTimelineStatus: "number",
+  notPending: "boolean",
+};
+
+export type CaptureMetadataValue = string | number | boolean | null;
+
+export function validateCaptureMetadata(
+  value: unknown,
+  canary: string,
+  source: string,
+): asserts value is Record<string, CaptureMetadataValue> {
+  if (!value || typeof value !== "object" || Array.isArray(value) || (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) {
+    throw new Error("Capture metadata must be a plain object");
+  }
+
+  for (const [key, fieldValue] of Object.entries(value)) {
+    if (secretKey.test(key)) throw new Error(`Secret-bearing capture metadata field is not allowed: ${key}`);
+    const expectedType = captureMetadataFields[key];
+    if (!expectedType) throw new Error(`Unknown capture metadata field: ${key}`);
+    const validType = expectedType === "nullable-string"
+      ? fieldValue === null || typeof fieldValue === "string"
+      : typeof fieldValue === expectedType;
+    if (!validType || (typeof fieldValue === "number" && !Number.isFinite(fieldValue))) {
+      throw new Error(`Invalid capture metadata value for ${key}`);
+    }
+    if (typeof fieldValue === "string" && (fieldValue.length > 500 || /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(fieldValue))) {
+      throw new Error(`Capture metadata string is not a bounded plain value: ${key}`);
+    }
+  }
+
+  assertNoCanaryLeak(canary, source, JSON.stringify(value));
+}
 
 function rejectSecrets(value: unknown, path = "metadata"): void {
   if (Array.isArray(value)) return value.forEach((item, index) => rejectSecrets(item, `${path}[${index}]`));

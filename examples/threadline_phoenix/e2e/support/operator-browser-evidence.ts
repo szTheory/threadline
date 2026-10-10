@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, relative, resolve } from "node:path";
 import { currentOperatorSurfacePaths, resolveContainedPath, atomicWriteFile } from "./operator-surface-paths.js";
-import { assertNoCanaryLeak, assetRecord, candidateIdentity, outputRecord, semanticFixtureId, writeManifest, type OperatorEvidenceManifest, type ServedAsset } from "./operator-evidence-manifest.js";
+import { assertNoCanaryLeak, assetRecord, candidateIdentity, outputRecord, semanticFixtureId, validateCaptureMetadata, writeManifest, type OperatorEvidenceManifest, type ServedAsset } from "./operator-evidence-manifest.js";
 
 export const paths = currentOperatorSurfacePaths();
 const require = createRequire(import.meta.url);
@@ -86,7 +86,8 @@ export async function startEvidence(page: Page, browser: Browser, info: TestInfo
   let lastAppearance = { preference: "unknown", effectiveTheme: "unknown" };
   let lastViewport = { width: 1280, height: 900, deviceScaleFactor: 1 };
 
-  async function capture(id: string, route: string, state: string, extra: Record<string, unknown> = {}, connected = true) {
+  async function capture(id: string, route: string, state: string, extra: unknown = {}, connected = true) {
+    validateCaptureMetadata(extra, redactionCanary, `${route} capture metadata`);
     const root = page.locator(".threadline-ui").first();
     const content = page.locator("#tl-main");
     await expect(root).toBeVisible();
