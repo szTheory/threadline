@@ -1464,7 +1464,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|data-testid="transaction-link"|
       assert html =~ "/audit_schema/transactions/#{change.transaction_id}"
       assert html =~ ~s|data-testid="timeline-row-history-link"|
-      assert html =~ ~s|href="/audit_schema/rows/routeable_rows/row%2Fwith%20space"|
+
+      assert html =~
+               ~s|href="/audit_schema/rows/routeable_rows/row%2Fwith%20space?origin=timeline&amp;from=2020-01-01T00%3A00&amp;to=2099-01-01T00%3A00&amp;table=routeable_rows"|
+
       assert html =~ "Row history"
       assert html =~ ~s|data-tl-copy="#{correlation_id}"|
     end
@@ -1486,7 +1489,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                )
 
       assert html =~ ~s|data-testid="timeline-row-history-link"|
-      assert html =~ ~s|href="/audit_schema/rows/support.tickets/ticket%2Fwith%20space"|
+
+      assert html =~
+               ~s|href="/audit_schema/rows/support.tickets/ticket%2Fwith%20space?origin=timeline&amp;from=2020-01-01T00%3A00&amp;to=2099-01-01T00%3A00&amp;table_schema=support&amp;table=tickets"|
+
       assert html =~ "Row history"
     end
 

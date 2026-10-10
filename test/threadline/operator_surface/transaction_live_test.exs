@@ -68,14 +68,19 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       Threadline.OperatorSurface.Router.threadline_operator_surface("/audit_failed",
         authorize_fn: &__MODULE__.auth/1,
-        scope_query_fn: &__MODULE__.fail_scope/3
+        scope_query_fn: &__MODULE__.fail_scope/3,
+        schemas: %{"users" => Threadline.OperatorSurface.TransactionLiveTest.FakeUser}
       )
     end
 
     def auth(_socket), do: {:ok, %{source: "test"}}
 
-    def fail_scope(_query, _scope, _context),
-      do: raise(DBConnection.ConnectionError, "synthetic transaction read failure")
+    def fail_scope(_query, _scope, context) do
+      if pid = Process.whereis(:threadline_scope_probe),
+        do: send(pid, {:scope_called, context.surface})
+
+      raise DBConnection.ConnectionError, "synthetic transaction read failure"
+    end
   end
 
   defmodule Threadline.OperatorSurface.TransactionLiveTest.FailedEndpoint do
@@ -822,6 +827,48 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ ~s|href="/audit_failed/timeline"|
       refute html =~ "Transaction not found"
       refute html =~ "pruned by the retention policy"
+    end
+
+    test "unavailable transaction parent does not read or render child row history" do
+      uuid = Ecto.UUID.generate()
+      Process.register(self(), :threadline_scope_probe)
+
+      try do
+        assert {:ok, _lv, html} =
+                 live(
+                   Phoenix.ConnTest.build_conn(),
+                   "/audit_failed/transactions/#{uuid}/history/users/row-1"
+                 )
+
+        assert html =~ "Transaction details unavailable"
+        refute html =~ ~s|data-testid="row-history-drawer"|
+        refute html =~ "Row history is unavailable"
+        refute_receive {:scope_called, :row_history}, 100
+      after
+        Process.unregister(:threadline_scope_probe)
+      end
+    end
+
+    test "direct row-history connection failure offers retry and a safe Timeline return" do
+      Process.register(self(), :threadline_scope_probe)
+
+      try do
+        assert {:ok, lv, html} =
+                 live(
+                   Phoenix.ConnTest.build_conn(),
+                   "/audit_failed/rows/users/row-outage"
+                 )
+
+        assert html =~ "Row history is unavailable. Retry row history or return to Timeline."
+        assert html =~ ~s|href="/audit_failed/timeline"|
+        assert html =~ ~s|phx-click="retry"|
+        refute html =~ "synthetic transaction read failure"
+
+        assert render_click(element(lv, "button[phx-click='retry']")) =~
+                 "Row history is unavailable. Retry row history or return to Timeline."
+      after
+        Process.unregister(:threadline_scope_probe)
+      end
     end
   end
 

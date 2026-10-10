@@ -3,6 +3,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @moduledoc false
 
     alias Threadline.OperatorSurface.Presentation
+    alias Threadline.Query.FilterParams
 
     @default_window_hours 24
 
@@ -70,17 +71,32 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @doc false
     def safe_row_history_path(base_path, change, schemas)
         when is_binary(base_path) and is_map(schemas) do
+      safe_row_history_path(base_path, change, schemas, %{})
+    end
+
+    def safe_row_history_path(_base_path, _change, _schemas), do: nil
+
+    def safe_row_history_path(base_path, change, schemas, filters_raw)
+        when is_binary(base_path) and is_map(schemas) and is_map(filters_raw) do
       with {table, record_id} <- routeable_row_identity(change),
            route_table when is_binary(route_table) <-
              row_history_route_table(schemas, table, host_table_schema(change)) do
-        "#{base_path}/rows/#{encode_segment(route_table)}/#{encode_segment(record_id)}"
+        path = "#{base_path}/rows/#{encode_segment(route_table)}/#{encode_segment(record_id)}"
+        query = canonical_origin_query(filters_raw)
+
+        if query == "", do: path, else: path <> "?" <> query
       else
         _ ->
           nil
       end
     end
 
-    def safe_row_history_path(_base_path, _change, _schemas), do: nil
+    def safe_row_history_path(_base_path, _change, _schemas, _filters_raw), do: nil
+
+    defp canonical_origin_query(filters_raw) do
+      filter_query = FilterParams.canonical_query(filters_raw)
+      Enum.join(Enum.reject(["origin=timeline", filter_query], &(&1 == "")), "&")
+    end
 
     defp row_history_route_table(schemas, table, table_schema) when is_map(schemas) do
       schema = normalize_host_table_schema(table_schema)

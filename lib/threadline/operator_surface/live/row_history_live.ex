@@ -11,6 +11,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
+    alias Threadline.Query.FilterParams
 
     def mount(_params, _session, socket) do
       repo =
@@ -25,6 +26,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       base_path = surface_root(path)
       table = params["table"]
       record_id = params["record_id"]
+      origin = if params["origin"] == "timeline", do: :timeline, else: :default
+      filters_raw = FilterParams.filters_raw_from_params(params)
+
+      context_query =
+        if origin == :timeline, do: FilterParams.canonical_query(filters_raw), else: ""
 
       {:noreply,
        assign(socket,
@@ -32,8 +38,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
          table: table,
          record_id: record_id,
          as_of: parse_as_of(params["as_of"]),
-         history_path: row_history_path(base_path, table, record_id),
-         close_path: "#{base_path}/timeline"
+         history_path: row_history_path(base_path, table, record_id, origin, context_query),
+         close_path: timeline_path(base_path, origin, context_query)
        )}
     end
 
@@ -81,6 +87,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             base_path={@base_path}
             close_path={@close_path}
             history_path={@history_path}
+            return_label="Timeline"
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
             scope={@threadline_scope}
@@ -109,9 +116,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    defp row_history_path(base_path, table, record_id) do
-      "#{base_path}/rows/#{encode_segment(table)}/#{encode_segment(record_id)}"
+    defp row_history_path(base_path, table, record_id, origin, context_query) do
+      path = "#{base_path}/rows/#{encode_segment(table)}/#{encode_segment(record_id)}"
+      query = origin_query(origin, context_query)
+
+      if query == "", do: path, else: path <> "?" <> query
     end
+
+    defp timeline_path(base_path, origin, context_query) do
+      path = "#{base_path}/timeline"
+      query = if origin == :timeline, do: context_query, else: ""
+
+      if query == "", do: path, else: path <> "?" <> query
+    end
+
+    defp origin_query(:timeline, context_query),
+      do: Enum.join(["origin=timeline", context_query] |> Enum.reject(&(&1 == "")), "&")
+
+    defp origin_query(_origin, _context_query), do: ""
 
     defp encode_segment(value), do: URI.encode(to_string(value), &URI.char_unreserved?/1)
 

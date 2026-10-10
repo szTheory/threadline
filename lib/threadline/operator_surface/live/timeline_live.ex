@@ -459,6 +459,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           base_path={@base_path}
           timeline_path={@timeline_path}
           schemas={assigns[:threadline_schemas]}
+          filters_raw={@filters_raw}
         />
         <UI.Page.pager
           shown={@shown_count}
@@ -522,6 +523,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:base_path, :string, required: true)
     attr(:timeline_path, :string, required: true)
     attr(:schemas, :map, default: nil)
+    attr(:filters_raw, :map, default: %{})
 
     defp change_list(assigns) do
       ~H"""
@@ -580,7 +582,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                 Open transaction
               </a>
               <a
-                :if={row_history_path = Helpers.safe_row_history_path(@base_path, change, @schemas)}
+                :if={row_history_path = Helpers.safe_row_history_path(@base_path, change, @schemas, @filters_raw)}
                 href={row_history_path}
                 class="tl-button tl-button--compact tl-button--secondary"
                 data-testid="timeline-row-history-link"

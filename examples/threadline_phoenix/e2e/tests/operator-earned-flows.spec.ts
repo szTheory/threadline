@@ -1,4 +1,8 @@
-import { expect, Page, test } from "@playwright/test";
+import { chromium, expect, Page, test } from "@playwright/test";
+import {
+  setAndReadTabZoom,
+  withIsolatedZoomContext,
+} from "../support/operator-tab-zoom.js";
 
 const password = process.env.DEMO_SEED_PASSWORD ?? "password123456";
 const adminEmail = "admin@example.com";
@@ -116,6 +120,111 @@ test.describe("operator earned-flow browser UAT", () => {
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText(`Row history: ${rowTable}`)).toBeVisible();
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("Timeline-origin row history preserves committed filters and safe return", async ({
+    page,
+  }) => {
+    const from = "2020-01-01T00:00";
+    const to = "2099-01-01T00:00";
+    await page.goto(
+      `/audit/timeline?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&table=${encodeURIComponent(rowTable)}`,
+    );
+    await expectLiveViewConnected(page);
+
+    const rowHistoryLink = page
+      .getByTestId("timeline-row")
+      .filter({ hasText: rowTable })
+      .first()
+      .getByTestId("timeline-row-history-link");
+    await expect(rowHistoryLink).toBeVisible();
+    const href = await rowHistoryLink.getAttribute("href");
+    expect(href).not.toBeNull();
+    const rowHistoryUrl = new URL(href!, page.url());
+    expect(rowHistoryUrl.searchParams.get("origin")).toBe("timeline");
+    expect(rowHistoryUrl.searchParams.get("from")).toBe(from);
+    expect(rowHistoryUrl.searchParams.get("to")).toBe(to);
+    expect(rowHistoryUrl.searchParams.get("table")).toBe(rowTable);
+
+    await rowHistoryLink.click();
+    await expectPath(page, rowHistoryUrl.pathname);
+    await expectLiveViewConnected(page);
+    const drawer = page.getByTestId("row-history-drawer");
+    await expect(drawer).toBeVisible();
+
+    const asOf = "2026-10-10T10:00";
+    await drawer.locator('input[name="as_of"]').fill(asOf);
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("as_of"))
+      .toBe("2026-10-10T10:00:00Z");
+    const selectedUrl = new URL(page.url());
+    expect(selectedUrl.searchParams.get("origin")).toBe("timeline");
+    expect(selectedUrl.searchParams.get("from")).toBe(from);
+    expect(selectedUrl.searchParams.get("to")).toBe(to);
+    expect(selectedUrl.searchParams.get("table")).toBe(rowTable);
+
+    await drawer.getByRole("link", { name: "Close", exact: true }).click();
+    await expectPath(page, "/audit/timeline");
+    const returnUrl = new URL(page.url());
+    expect(returnUrl.searchParams.get("from")).toBe(from);
+    expect(returnUrl.searchParams.get("to")).toBe(to);
+    expect(returnUrl.searchParams.get("table")).toBe(rowTable);
+    expect(returnUrl.searchParams.has("origin")).toBe(false);
+    await expect(page.locator("#filter-table")).toHaveValue(rowTable);
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("Timeline-origin row history stays reachable at actual 200% zoom", async ({}, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "desktop-chromium",
+      "The real tab-zoom extension runs only in desktop-chromium",
+    );
+
+    await withIsolatedZoomContext(chromium, async (context, page) => {
+      const baseURL = testInfo.project.use.baseURL ?? "http://127.0.0.1:4002";
+      await page.goto(new URL("/users/log_in", String(baseURL)).toString());
+      const form = page.locator("#login_form");
+      await form.getByLabel("Email").fill(adminEmail);
+      await form.getByLabel("Password").fill(password);
+      await form.getByRole("button", { name: /log in/i }).click();
+      await expect(page).toHaveURL(new URL("/", String(baseURL)).toString(), {
+        timeout: 30_000,
+      });
+
+      const from = "2020-01-01T00:00";
+      const to = "2099-01-01T00:00";
+      await page.goto(
+        new URL(
+          `/audit/timeline?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&table=${encodeURIComponent(rowTable)}`,
+          String(baseURL),
+        ).toString(),
+      );
+      await expect(page.locator("[data-phx-main].phx-connected")).toBeVisible();
+      const zoom = await setAndReadTabZoom(context, page);
+      expect(zoom.zoomFactor).toBe(2);
+
+      const rowHistoryLink = page
+        .getByTestId("timeline-row")
+        .filter({ hasText: rowTable })
+        .first()
+        .getByTestId("timeline-row-history-link");
+      await expect(rowHistoryLink).toBeVisible();
+      await rowHistoryLink.click();
+      await expect(page.getByTestId("row-history-drawer")).toBeVisible();
+      const drawerZoom = await setAndReadTabZoom(context, page);
+      expect(drawerZoom.tabId).toBe(zoom.tabId);
+      expect(drawerZoom.zoomFactor).toBe(2);
+      await expect(
+        page.getByTestId("row-history-drawer").getByRole("link", {
+          name: "Close",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(
+        page.getByTestId("row-history-drawer").locator('input[name="as_of"]'),
+      ).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+    });
   });
 
   test("Home correlation lookup lands on Timeline correlation filter", async ({

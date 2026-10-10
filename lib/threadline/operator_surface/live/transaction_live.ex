@@ -175,7 +175,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             <% end %>
           <% end %>
         <% end %>
-        <%= if @show_history do %>
+        <%= if @show_history and not @not_found and not @unavailable do %>
           <.live_component
             module={Threadline.OperatorSurface.Live.RowHistoryComponent}
             id="row-history"
@@ -184,6 +184,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             as_of={@history_as_of}
             base_path={@base_path}
             close_path={@base_path}
+            return_label="transaction"
             history_path={history_path(@base_path, @history_table, @history_record_id)}
             threadline_schemas={@threadline_schemas}
             repo={@threadline_repo}
