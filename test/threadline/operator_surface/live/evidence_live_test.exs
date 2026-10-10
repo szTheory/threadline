@@ -118,7 +118,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           recorded_at: ~U[2026-05-26 12:00:00.000000Z],
           summary_status: "completed",
           detail: %{"deleted_count" => 2, "sensitive_canary" => "private-detail-canary"},
-          provenance: %{"writer" => "threadline", "sensitive_canary" => "private-provenance-canary"}
+          provenance: %{
+            "writer" => "threadline",
+            "sensitive_canary" => "private-provenance-canary"
+          }
         )
 
         insert_evidence(
@@ -162,10 +165,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "What can Threadline prove right now?"
         refute html =~ "Proof chain"
         refute html =~ "proof state"
-        assert html =~ "Open proof history"
+        assert html =~ "View proof history"
         assert html =~ "Proven"
         assert html =~ "Inferred"
         assert html =~ "Unsupported"
+
+        assert html =~
+                 "Latest projection and append-only history describe recorded Threadline evidence"
+
         refute html =~ "private-detail-canary"
         refute html =~ "private-provenance-canary"
 
@@ -185,7 +192,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Failed export evidence"
         assert html =~ "export_delivery"
-        assert html =~ "Open proof history"
+        assert html =~ "View proof history"
 
         refute html =~
                  ">Unsupported</span>\n                          <span>Failed export evidence"
@@ -201,7 +208,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         {:ok, _view, html} = live(conn, "/audit/evidence")
 
-        assert html =~ "Open proof history"
+        assert html =~ "View proof history"
         assert html =~ "Open exports"
 
         [card_support_position | _] =
@@ -209,7 +216,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           |> :binary.matches("Open exports")
           |> Enum.reverse()
 
-        assert :binary.match(html, "Open proof history") < card_support_position
+        assert :binary.match(html, "View proof history") < card_support_position
       end
 
       test "renders carry-to-exports link for the current proof history context", %{conn: conn} do
@@ -378,6 +385,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "retention_run"
         assert html =~ "missing-evidence-123"
+        assert html =~ "evidence-claim-boundary"
         refute html =~ "Evidence is unavailable for this selection"
       end
 
@@ -387,7 +395,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert source =~ "@ui_form_policy :formless"
 
         assert source =~
-                 "fetch_records(request, resolve_repo(socket), storage_schema_opts(socket))"
+                 "read_records(request, resolve_repo(socket), storage_schema_opts(socket))"
 
         assert source =~ "Evidence.list_overview([], evidence_opts(repo, storage_schema_opts))"
 
@@ -460,9 +468,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       {:ok, conn: build_conn()}
     end
 
-    test "keeps a selected reference visible and retries a failed read without implying no match", %{
-      conn: conn
-    } do
+    test "keeps a selected reference visible and retries a failed read without implying no match",
+         %{
+           conn: conn
+         } do
       subject_ref_json = URI.encode_www_form(~s({"run_id":"read-failure-123"}))
 
       {:ok, view, html} =

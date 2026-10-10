@@ -26,6 +26,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> assign(:base_path, nil)
        |> assign(:request, %{subject: nil, subject_ref: nil, mode: :latest})
        |> assign(:groups, [])
+       |> assign(:read_unavailable, false)
        |> assign(:form_error, nil)}
     end
 
@@ -37,25 +38,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       if socket.assigns[:threadline_evidence_enabled] do
         case parse_request(params) do
           {:ok, request} ->
-            records = fetch_records(request, resolve_repo(socket), storage_schema_opts(socket))
+            socket =
+              socket
+              |> assign(:request, request)
+              |> assign(:form_error, nil)
 
-            {:noreply,
-             socket
-             |> assign(:request, request)
-             |> assign(:groups, build_groups(records))
-             |> assign(:form_error, nil)}
+            {:noreply, load_records(socket, request)}
 
           {:error, message} ->
             {:noreply,
              socket
              |> assign(:request, %{subject: nil, subject_ref: nil, mode: :latest})
              |> assign(:groups, [])
+             |> assign(:read_unavailable, false)
              |> assign(:form_error, message)}
         end
       else
         {:noreply, socket}
       end
     end
+
+    def handle_event("retry", _params, %{assigns: %{threadline_evidence_enabled: true}} = socket) do
+      {:noreply, load_records(socket, socket.assigns.request)}
+    end
+
+    def handle_event("retry", _params, socket), do: {:noreply, socket}
 
     def render(assigns) do
       ~H"""
@@ -93,14 +100,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               form_error={@form_error}
             />
 
+            <p class="tl-hint" data-testid="evidence-claim-boundary">
+              “Proven” applies only to the recorded snapshot. Latest projection and append-only history describe recorded Threadline evidence; they do not establish overall capture completeness or the absence of unrecorded activity.
+            </p>
+
             <%= if @form_error do %>
               <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
             <% else %>
-              <%= if @groups == [] do %>
-                <UI.Data.empty_state variant="no_data" role="status" icon={:funnel}>
-                  <:title>No evidence records yet</:title>
-                  Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed.
+              <%= if @read_unavailable do %>
+                <UI.Data.empty_state variant="unavailable" role="alert" icon={:cloud_off} data-testid="evidence-unavailable">
+                  <:title>Evidence unavailable</:title>
+                  Evidence is unavailable for this selection. Retry the read; no empty result is implied.
+                  <:actions>
+                    <button
+                      type="button"
+                      class="tl-button tl-button--compact tl-button--secondary"
+                      phx-click="retry"
+                    >
+                      Retry
+                    </button>
+                  </:actions>
                 </UI.Data.empty_state>
+              <% else %>
+                <%= if @groups == [] do %>
+                  <UI.Data.empty_state variant="no_data" role="status" icon={:funnel}>
+                    <:title>No Threadline evidence for this selection</:title>
+                    <%= no_match_copy(@request) %>
+                  </UI.Data.empty_state>
               <% else %>
                 <section :for={group <- @groups} class="tl-section">
                   <header class="tl-section__header">
@@ -133,7 +159,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                           class="tl-button tl-button--compact tl-button--secondary"
                         >
                           <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
-                          Open proof history
+                          View proof history
                         </.link>
                       </div>
                     </article>
@@ -142,7 +168,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <%!-- Density: groups are keyed by subject, so "Filter to subject" and the
                   support cross-link are identical for every card in the group. They render
                   once per group here instead of once per card — same targets, less chrome
-                  (signal-to-chrome). "Open proof history" stays per card because it
+                  (signal-to-chrome). "View proof history" stays per card because it
                   is row-specific (subject_ref). --%>
                   <footer
                     :if={show_subject_link?(@request) or support_action(@base_path, group.title)}
@@ -160,6 +186,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                     <% end %>
                   </footer>
                 </section>
+                <% end %>
               <% end %>
             <% end %>
           <% else %>
@@ -283,6 +310,35 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> Enum.map(fn {subject, rows} ->
         %{title: subject, rows: rows}
       end)
+    end
+
+    defp load_records(socket, request) do
+      case read_records(request, resolve_repo(socket), storage_schema_opts(socket)) do
+        {:ok, records} ->
+          socket
+          |> assign(:groups, build_groups(records))
+          |> assign(:read_unavailable, false)
+
+        {:error, :unavailable} ->
+          socket
+          |> assign(:groups, [])
+          |> assign(:read_unavailable, true)
+      end
+    end
+
+    defp read_records(request, repo, storage_schema_opts) do
+      {:ok, fetch_records(request, repo, storage_schema_opts)}
+    rescue
+      DBConnection.ConnectionError -> {:error, :unavailable}
+    end
+
+    defp no_match_copy(%{subject: subject, subject_ref: subject_ref})
+         when is_binary(subject) and is_map(subject_ref) do
+      "No evidence was recorded for this subject and reference. This does not establish whether other activity occurred."
+    end
+
+    defp no_match_copy(_request) do
+      "No evidence was recorded for this selection. This does not establish whether other activity occurred."
     end
 
     defp build_row(record) do
