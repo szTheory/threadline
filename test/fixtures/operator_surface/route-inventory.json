@@ -192,7 +192,7 @@
     {
       "id": "control.coverage.data-tl-copy.4453682638",
       "kind": "control",
-      "label": "coverage data-tl-copy={remediation.command} aria-label={\"Copy #{table} capture command\"}>"
+      "label": "coverage data-tl-copy={remediation.command} aria-label={\"Copy #{@schema_param}.#{table} capture command\"}>"
     },
     {
       "id": "control.coverage.navigate.5be8e5d6cf",
@@ -233,6 +233,11 @@
       "id": "control.evidence.href.8420c3628d",
       "kind": "control",
       "label": "evidence href={action.path} class=\"tl-link tl-link--deep\"><%= action.label %></a>"
+    },
+    {
+      "id": "control.evidence.phx-click.retry",
+      "kind": "control",
+      "label": "evidence phx-click=\"retry\""
     },
     {
       "id": "control.evidence.navigate.9b6303e2b4",
@@ -723,6 +728,11 @@
       "id": "control.surface-header.href.251f47a90c",
       "kind": "control",
       "label": "surface-header href={\"#{@base_path}/coverage\"}>"
+    },
+    {
+      "id": "control.surface-header.href.coverage-warning-second",
+      "kind": "control",
+      "label": "surface-header href={\"#{@base_path}/coverage\"}> (second warning link)"
     },
     {
       "id": "control.surface-header.href.2a0fd7ea66",
@@ -2028,6 +2038,11 @@
       "id": "state.generated.operator_route_states.453854b3e6",
       "kind": "state",
       "label": "Copy feedback fits long URLs and redacted values stay non-copyable"
+    },
+    {
+      "id": "state.evidence.history-navigation",
+      "kind": "state",
+      "label": "Evidence keeps selected subject/reference through latest and proof-history navigation"
     }
   ]
 }

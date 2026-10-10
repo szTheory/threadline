@@ -104,91 +104,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               “Proven” applies only to the recorded snapshot. Latest projection and append-only history describe recorded Threadline evidence; they do not establish overall capture completeness or the absence of unrecorded activity.
             </p>
 
-            <%= if @form_error do %>
-              <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
-            <% else %>
-              <%= if @read_unavailable do %>
-                <UI.Data.empty_state variant="unavailable" role="alert" icon={:cloud_off} data-testid="evidence-unavailable">
-                  <:title>Evidence unavailable</:title>
-                  Evidence is unavailable for this selection. Retry the read; no empty result is implied.
-                  <:actions>
-                    <button
-                      type="button"
-                      class="tl-button tl-button--compact tl-button--secondary"
-                      phx-click="retry"
-                    >
-                      Retry
-                    </button>
-                  </:actions>
-                </UI.Data.empty_state>
-              <% else %>
-                <%= if @groups == [] do %>
-                  <UI.Data.empty_state variant="no_data" role="status" icon={:funnel}>
-                    <:title>No Threadline evidence for this selection</:title>
-                    <%= no_match_copy(@request) %>
-                  </UI.Data.empty_state>
-              <% else %>
-                <section :for={group <- @groups} class="tl-section">
-                  <header class="tl-section__header">
-                    <h3 class="tl-section__title"><%= group.title %></h3>
-                  </header>
-
-                  <div class="tl-record-list" data-testid="evidence-table">
-                    <article :for={row <- group.rows} class={["tl-record-card", record_modifier(row.verdict_status)]}>
-                      <div class="tl-record-card__main">
-                        <h4 class="tl-record-card__title">
-                          <span class={["tl-chip", Presentation.status_modifier(row.verdict_status)]}>
-                            <%= Presentation.status_label(row.verdict_status) %>
-                          </span>
-                          <span><%= row.proof_label %></span>
-                        </h4>
-                        <%!-- Density: the section header already names the subject for every card in
-                        the group (groups are keyed by subject), so it is not repeated as an inline
-                        label here — each fact renders once (signal-to-chrome). --%>
-                        <div class="tl-record-card__meta">
-                          <UI.Display.ref value={row.subject_ref} copy_label="Copy subject ref" />
-                          <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
-                            <%= Presentation.human_time(row.recorded_at) %>
-                          </time>
-                        </div>
-                      </div>
-                      <div class="tl-record-card__actions">
-                        <.link
-                          :if={show_history_link?(@request)}
-                          patch={history_path(@base_path, row.subject, row.subject_ref_json)}
-                          class="tl-button tl-button--compact tl-button--secondary"
-                        >
-                          <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
-                          View proof history
-                        </.link>
-                      </div>
-                    </article>
-                  </div>
-
-                  <%!-- Density: groups are keyed by subject, so "Filter to subject" and the
-                  support cross-link are identical for every card in the group. They render
-                  once per group here instead of once per card — same targets, less chrome
-                  (signal-to-chrome). "View proof history" stays per card because it
-                  is row-specific (subject_ref). --%>
-                  <footer
-                    :if={show_subject_link?(@request) or support_action(@base_path, group.title)}
-                    class="tl-cluster tl-cluster--start"
-                  >
-                    <.link
-                      :if={show_subject_link?(@request)}
-                      patch={subject_path(@base_path, group.title)}
-                      class="tl-link tl-link--deep"
-                    >
-                      Filter to subject
-                    </.link>
-                    <%= if action = support_action(@base_path, group.title) do %>
-                      <a href={action.path} class="tl-link tl-link--deep"><%= action.label %></a>
-                    <% end %>
-                  </footer>
-                </section>
-                <% end %>
-              <% end %>
-            <% end %>
+            <.evidence_results
+              request={@request}
+              base_path={@base_path}
+              groups={@groups}
+              read_unavailable={@read_unavailable}
+              form_error={@form_error}
+            />
           <% else %>
             <Threadline.OperatorSurface.Components.UnsupportedView.unsupported_view
               descriptor={Unsupported.descriptor(:evidence_unavailable)}
@@ -196,6 +118,96 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             />
           <% end %>
       </UI.Page.shell>
+      """
+    end
+
+    defp evidence_results(assigns) do
+      ~H"""
+      <%= if @form_error do %>
+        <div class="tl-alert tl-alert--error" role="alert"><%= @form_error %></div>
+      <% else %>
+        <%= if @read_unavailable do %>
+          <UI.Data.empty_state variant="unavailable" role="alert" icon={:cloud_off} data-testid="evidence-unavailable">
+            <:title>Evidence unavailable</:title>
+            Evidence is unavailable for this selection. Retry the read; no empty result is implied.
+            <:actions>
+              <button
+                type="button"
+                class="tl-button tl-button--compact tl-button--secondary"
+                phx-click="retry"
+              >
+                Retry
+              </button>
+            </:actions>
+          </UI.Data.empty_state>
+        <% else %>
+          <%= if @groups == [] do %>
+            <UI.Data.empty_state variant="no_data" role="status" icon={:funnel}>
+              <:title>No Threadline evidence for this selection</:title>
+              <%= no_match_copy(@request) %>
+            </UI.Data.empty_state>
+          <% else %>
+            <section :for={group <- @groups} class="tl-section">
+              <header class="tl-section__header">
+                <h3 class="tl-section__title"><%= group.title %></h3>
+              </header>
+
+              <div class="tl-record-list" data-testid="evidence-table">
+                <article :for={row <- group.rows} class={["tl-record-card", record_modifier(row.verdict_status)]}>
+                  <div class="tl-record-card__main">
+                    <h4 class="tl-record-card__title">
+                      <span class={["tl-chip", Presentation.status_modifier(row.verdict_status)]}>
+                        <%= Presentation.status_label(row.verdict_status) %>
+                      </span>
+                      <span><%= row.proof_label %></span>
+                    </h4>
+                    <%!-- Density: the section header already names the subject for every card in
+                    the group (groups are keyed by subject), so it is not repeated as an inline
+                    label here — each fact renders once (signal-to-chrome). --%>
+                    <div class="tl-record-card__meta">
+                      <UI.Display.ref value={row.subject_ref} copy_label="Copy subject ref" />
+                      <time class="tl-table__date" datetime={Presentation.exact_time(row.recorded_at)} title={Presentation.exact_time(row.recorded_at)}>
+                        <%= Presentation.human_time(row.recorded_at) %>
+                      </time>
+                    </div>
+                  </div>
+                  <div class="tl-record-card__actions">
+                    <.link
+                      :if={show_history_link?(@request)}
+                      patch={history_path(@base_path, row.subject, row.subject_ref_json)}
+                      class="tl-button tl-button--compact tl-button--secondary"
+                    >
+                      <Threadline.OperatorSurface.Components.Icon.icon name={:history} class="tl-button__icon" />
+                      View proof history
+                    </.link>
+                  </div>
+                </article>
+              </div>
+
+              <%!-- Density: groups are keyed by subject, so "Filter to subject" and the
+              support cross-link are identical for every card in the group. They render
+              once per group here instead of once per card — same targets, less chrome
+              (signal-to-chrome). "View proof history" stays per card because it
+              is row-specific (subject_ref). --%>
+              <footer
+                :if={show_subject_link?(@request) or support_action(@base_path, group.title)}
+                class="tl-cluster tl-cluster--start"
+              >
+                <.link
+                  :if={show_subject_link?(@request)}
+                  patch={subject_path(@base_path, group.title)}
+                  class="tl-link tl-link--deep"
+                >
+                  Filter to subject
+                </.link>
+                <%= if action = support_action(@base_path, group.title) do %>
+                  <a href={action.path} class="tl-link tl-link--deep"><%= action.label %></a>
+                <% end %>
+              </footer>
+            </section>
+          <% end %>
+        <% end %>
+      <% end %>
       """
     end
 

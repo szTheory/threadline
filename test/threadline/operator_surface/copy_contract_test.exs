@@ -373,10 +373,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       redaction = source(@policy_redaction_live_path)
       retention = retention_source()
 
-      assert evidence =~ ~s(<:title>No evidence records yet</:title>)
+      assert evidence =~ ~s(<:title>No Threadline evidence for this selection</:title>)
 
       assert evidence =~
-               "Threadline has not recorded evidence for this selection yet. Use mix threadline.evidence.show or the Threadline.Evidence API to confirm the current evidence record, then narrow by subject if needed."
+               "No evidence was recorded for this selection. This does not establish whether other activity occurred."
+
+      assert evidence =~
+               "No evidence was recorded for this subject and reference. This does not establish whether other activity occurred."
 
       assert evidence =~ ~s(aria-label="Evidence workflow summary")
       assert evidence =~ "Carry to Exports"

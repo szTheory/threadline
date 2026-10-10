@@ -242,7 +242,7 @@
         {
           "path": "lib/threadline/operator_surface/live/coverage_live.ex",
           "kind": "control",
-          "anchor": "data-tl-copy={remediation.command} aria-label={\"Copy #{table} capture command\"}>",
+          "anchor": "data-tl-copy={remediation.command} aria-label={\"Copy #{@schema_param}.#{table} capture command\"}>",
           "occurrence": 1
         }
       ],
@@ -347,6 +347,19 @@
           "path": "lib/threadline/operator_surface/live/evidence_live.ex",
           "kind": "control",
           "anchor": "href={action.path} class=\"tl-link tl-link--deep\"><%= action.label %></a>",
+          "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.evidence.phx-click.retry",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/live/evidence_live.ex",
+          "kind": "control",
+          "anchor": "phx-click=\"retry\"",
           "occurrence": 1
         }
       ],
@@ -1622,6 +1635,19 @@
           "kind": "control",
           "anchor": "href={\"#{@base_path}/coverage\"}>",
           "occurrence": 1
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "control.surface-header.href.coverage-warning-second",
+      "kind": "control",
+      "anchors": [
+        {
+          "path": "lib/threadline/operator_surface/components/surface_header.ex",
+          "kind": "control",
+          "anchor": "href={\"#{@base_path}/coverage\"}>",
+          "occurrence": 2
         }
       ],
       "exclusion": ""
@@ -5222,6 +5248,19 @@
       "anchors": [
         {
           "anchor": "test(\"Copy feedback fits long URLs and redacted values stay non-copyable\"",
+          "kind": "state",
+          "occurrence": 1,
+          "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
+        }
+      ],
+      "exclusion": ""
+    },
+    {
+      "id": "state.evidence.history-navigation",
+      "kind": "state",
+      "anchors": [
+        {
+          "anchor": "test(\"Evidence keeps selected subject/reference through latest and proof-history navigation\"",
           "kind": "state",
           "occurrence": 1,
           "path": "examples/threadline_phoenix/e2e/tests/operator-route-states.spec.ts"
