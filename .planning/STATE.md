@@ -5,11 +5,11 @@ milestone_name: Operator UI Refinement
 current_phase: 241
 current_phase_name: Operational evidence and policy inspection
 status: planning
-stopped_at: Phase 240 complete, ready to plan Phase 241
-last_updated: "2026-10-10T15:34:16.878Z"
+stopped_at: Phase 241 context gathered
+last_updated: "2026-10-10T15:45:52.674Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 240 complete, transitioned to Phase 241
-state_head: 6aba225c967be75ebdd358b1024e67e321398370
+state_head: 1e46bdb4bfa4e158f41c3ff5f039e9023801dcd5
 progress:
   total_phases: 6
   completed_phases: 3
@@ -1092,9 +1092,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-10T15:36:22Z
-**Stopped at:** Phase 240 complete, ready to plan Phase 241
-**Resume file:** None
+**Last session:** 2026-10-10T15:45:52.104Z
+**Stopped at:** Phase 241 context gathered
+**Resume file:** .planning/phases/241-operational-evidence-and-policy-inspection/241-CONTEXT.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
