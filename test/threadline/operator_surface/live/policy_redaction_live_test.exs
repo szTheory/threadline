@@ -1,4 +1,20 @@
 if Code.ensure_loaded?(Phoenix.LiveView) do
+  defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest.UnavailableSQL do
+    def query(stage, sql, _params, _opts) do
+      cond do
+        stage == :schema_list -> unavailable()
+        String.contains?(sql, "pg_tables") -> {:ok, %{rows: [["public"]]}}
+        stage == :schema_validation -> unavailable()
+        String.contains?(sql, "pg_namespace WHERE") -> {:ok, %{rows: [[1]]}}
+        true -> unavailable()
+      end
+    end
+
+    defp unavailable do
+      {:error, %DBConnection.ConnectionError{message: "private-policy-outage-canary-241"}}
+    end
+  end
+
   defmodule Threadline.OperatorSurface.PolicyRedactionLiveTest.Router do
     use Threadline.OperatorSurfaceTest.Router
 
@@ -118,6 +134,51 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     describe "mount /audit/policy/redaction" do
+      test "schema and catalog read failures stay unavailable and retry with the selected schema",
+           %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/policy/redaction?schema=public")
+        initial = :sys.get_state(view.pid).socket
+
+        for stage <- [:schema_list, :schema_validation, :catalog] do
+          socket = Phoenix.Component.assign(initial, :threadline_repo, unavailable_adapter(stage))
+
+          assert {:noreply, failed} =
+                   PolicyRedactionLive.handle_params(
+                     %{"schema" => "public"},
+                     "http://localhost/audit/policy/redaction?schema=public",
+                     socket
+                   )
+
+          assert_policy_unavailable(failed)
+
+          assert {:noreply, still_failed} =
+                   PolicyRedactionLive.handle_event("refresh-policy-inspection", %{}, failed)
+
+          assert_policy_unavailable(still_failed)
+
+          recovered = Phoenix.Component.assign(still_failed, :threadline_repo, Repo)
+
+          assert {:noreply, recovered} =
+                   PolicyRedactionLive.handle_event("refresh-policy-inspection", %{}, recovered)
+
+          assert recovered.assigns.schema_param == "public"
+          assert recovered.assigns.report.summary.config_matches_deployed > 0
+        end
+      end
+
+      test "failed refresh clears the previous comparison rather than leaving match assurance",
+           %{conn: conn} do
+        {:ok, view, _html} = live(conn, "/audit/policy/redaction")
+        socket = :sys.get_state(view.pid).socket
+        assert socket.assigns.report.summary.config_matches_deployed > 0
+        socket = Phoenix.Component.assign(socket, :threadline_repo, unavailable_adapter(:catalog))
+
+        assert {:noreply, failed} =
+                 PolicyRedactionLive.handle_event("refresh-policy-inspection", %{}, socket)
+
+        assert_policy_unavailable(failed)
+      end
+
       test "refresh ignores disabled policy access and an invalid selected schema" do
         for {enabled, error, schema} <- [{false, nil, "public"}, {true, "invalid", "Public"}] do
           socket = %Phoenix.LiveView.Socket{
@@ -308,6 +369,33 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert row_html(refreshed_html, @delta) =~ "Drift detected"
         refute refreshed_html =~ "Configured policy matches deployed trigger policy"
       end
+    end
+
+    defp unavailable_adapter(stage) do
+      %{
+        pid: stage,
+        sql: Threadline.OperatorSurface.PolicyRedactionLiveTest.UnavailableSQL,
+        telemetry: {Repo, false, [:threadline, :test]},
+        opts: [],
+        log_stacktrace_mfa: nil
+      }
+    end
+
+    defp assert_policy_unavailable(socket) do
+      assert socket.assigns.schema_param == "public"
+      assert socket.assigns.form_error == nil
+      assert socket.assigns.report == nil
+      assert socket.assigns.sections == []
+      html = socket.assigns |> PolicyRedactionLive.render() |> rendered_to_string()
+      assert html =~ "Policy inspection unavailable"
+
+      assert html =~
+               "Deployed policy could not be inspected. Retry before treating policy as matched."
+
+      assert html =~ "Refresh policy inspection"
+      refute html =~ "private-policy-outage-canary-241"
+      refute html =~ "No configured policy to compare"
+      refute html =~ "Configured policy matches deployed trigger policy"
     end
 
     # -----------------------------------------------------------------------

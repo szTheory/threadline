@@ -49,6 +49,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
            |> assign(:form_error, nil)
            |> fetch_report_for_schema(schema)}
         else
+          {:unavailable, schemas} ->
+            {:noreply, policy_unavailable(socket, schema_param, schemas)}
+
           {:error, message, schemas} ->
             {:noreply,
              socket
@@ -82,7 +85,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           _params,
           %{assigns: %{threadline_policy_enabled: true, form_error: nil}} = socket
         ) do
-      {:noreply, fetch_report_for_schema(socket, socket.assigns.schema_param)}
+      handle_params(
+        %{"schema" => socket.assigns.schema_param},
+        "#{socket.assigns.base_path}/policy/redaction",
+        socket
+      )
     end
 
     def handle_event("refresh-policy-inspection", _params, socket), do: {:noreply, socket}
@@ -232,6 +239,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp safe_available_schemas(socket) do
       {:ok, available_schemas(socket)}
     rescue
+      DBConnection.ConnectionError -> {:unavailable, ["public"]}
       e -> {:error, Exception.message(e), ["public"]}
     end
 
@@ -241,6 +249,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {:error, message} -> {:error, message, schemas}
       end
     rescue
+      DBConnection.ConnectionError -> {:unavailable, schemas}
       e -> {:error, Exception.message(e), schemas}
     end
 
@@ -250,6 +259,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       socket
       |> assign(:report, report)
       |> assign(:sections, build_sections(report))
+    rescue
+      DBConnection.ConnectionError ->
+        policy_unavailable(socket, schema, socket.assigns.available_schemas)
+    end
+
+    defp policy_unavailable(socket, schema, schemas) do
+      socket
+      |> assign(:schema_param, schema)
+      |> assign(:available_schemas, schemas)
+      |> assign(:form_error, nil)
+      |> assign(:report, nil)
+      |> assign(:sections, [])
     end
 
     defp resolve_repo(socket) do
@@ -310,6 +331,16 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           Use public schema
         </.link>
       </div>
+      """
+    end
+
+    defp redaction_policy_summary(%{report: nil} = assigns) do
+      ~H"""
+      <section class="tl-alert tl-alert--error" role="alert" aria-label="Policy inspection unavailable">
+        <h2>Policy inspection unavailable</h2>
+        <p>Deployed policy could not be inspected. Retry before treating policy as matched.</p>
+        <p>Host schema: <code><%= @schema %></code></p>
+      </section>
       """
     end
 
