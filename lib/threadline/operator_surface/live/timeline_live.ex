@@ -80,6 +80,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:match_count, 0)
         |> assign(:shown_count, 0)
         |> assign(:filter_query, "")
+        |> assign(:mutation_revision, nil)
 
       {:ok, socket}
     end
@@ -209,6 +210,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             |> assign(:filter_query, filter_query)
             |> stream(:changes, page.entries, reset: true)
             |> assign(:cursor, page.cursor)
+            |> assign(:mutation_revision, mutation_revision())
 
           _failed_or_timed_out ->
             query_error(socket)
@@ -511,6 +513,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         script
         main_class="tl-page tl-page--intro"
       >
+          <span hidden data-tl-mutation-revision={@mutation_revision}></span>
           <Filters.timeline_command
             filters_raw={@filters_raw}
             audited_tables={@audited_tables}
@@ -631,6 +634,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       filters_raw
       |> build_canonical_query()
       |> URI.decode_query()
+    end
+
+    defp mutation_revision do
+      System.unique_integer([:positive, :monotonic])
     end
 
     defp owned_saved_view(socket, id, actor_ref) do

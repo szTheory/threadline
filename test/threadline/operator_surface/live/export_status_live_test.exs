@@ -161,6 +161,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert Process.read_timer(refreshed_ref) == false
       end
 
+      test "a successful persisted read advances the mutation freshness marker", %{conn: conn} do
+        {:ok, view, initial_html} = live(conn, "/audit/exports")
+        initial_revision = mutation_revision(initial_html)
+
+        send(view.pid, :refresh)
+
+        assert_eventually(fn ->
+          revision = mutation_revision(render(view))
+          is_binary(revision) and revision != initial_revision
+        end)
+      end
+
       test "renders a generic denied fallback when the current state is not safely exportable", %{
         conn: conn
       } do
@@ -921,6 +933,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           assert html =~ "audit_jobs"
           refute html =~ "threadline_jobs"
         end)
+      end
+    end
+
+    defp mutation_revision(html) do
+      case Regex.run(~r/data-tl-mutation-revision="([^"]+)"/, html) do
+        [_, revision] -> revision
+        _ -> nil
       end
     end
   end

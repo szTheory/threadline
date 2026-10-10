@@ -422,6 +422,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           phx-click="request_background_export"
           type="button"
           class="tl-button tl-button--quiet-primary"
+          data-tl-mutating
         >
           <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
           Queue export

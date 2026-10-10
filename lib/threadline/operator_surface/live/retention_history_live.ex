@@ -37,6 +37,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:base_path, nil)
         |> assign(:prune_modal_open, false)
         |> assign(:prune_submitting, false)
+        |> assign(:mutation_revision, nil)
         |> assign(:runs_state, :loading)
         |> assign(:runs_summary, summarize_runs([]))
         |> assign(:runs_count, 0)
@@ -83,6 +84,15 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     #   5. trigger the real backend (`Pruner.trigger/0`) once the action is on
     #      the audit trail;
     #   6. fail closed — the default path on ANY mismatch is refusal, no prune.
+    def handle_event("prune_now", _params, %{assigns: %{prune_submitting: true}} = socket) do
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         "A retention prune is already in progress. Follow its persisted status here."
+       )}
+    end
+
     def handle_event("prune_now", params, socket) do
       typed = confirm_param(params)
 
@@ -175,8 +185,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         evidence_enabled={@threadline_evidence_enabled}
         exports_enabled={@threadline_exports_enabled}
         current={:retention}
+        script
         main_class="tl-page"
       >
+          <span hidden data-tl-mutation-revision={@mutation_revision}></span>
           <%= if @threadline_policy_enabled do %>
             <UI.Page.page_header title="Retention window">
               <:lede>Review retention window pruning runs, failures, and evidence before triggering another destructive retention pass.</:lede>
@@ -391,7 +403,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                   <button type="button" class="tl-button tl-button--secondary" phx-click={JS.push("close_prune_modal")}>
                     <%= @prune_copy.cancel_label %>
                   </button>
-                  <button type="submit" class="tl-button tl-button--danger" data-tl-mutating disabled={@submitting} phx-disable-with="Starting prune…">
+                  <button type="submit" class="tl-button tl-button--danger" data-tl-mutating data-tl-server-disabled={if(@submitting, do: "true", else: "false")} disabled={@submitting} phx-disable-with="Starting prune…">
                     <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
                     <%= @prune_copy.submit_label %>
                   </button>
@@ -508,6 +520,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp assign_runs(socket, {:ok, runs}) do
       socket
       |> stream(:runs, runs, reset: true)
+      |> assign(:mutation_revision, mutation_revision())
+      |> assign(:prune_submitting, Enum.any?(runs, &(&1.status in ["queued", "running"])))
       |> assign(:runs_state, if(runs == [], do: :empty, else: :loaded))
       |> assign(:runs_summary, summarize_runs(runs))
       |> assign(:runs_count, length(runs))
@@ -516,6 +530,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp assign_runs(socket, {:error, _reason}) do
       assign(socket, :runs_state, :error)
+    end
+
+    defp mutation_revision do
+      System.unique_integer([:positive, :monotonic])
     end
 
     defp summarize_runs([run | _] = runs) do

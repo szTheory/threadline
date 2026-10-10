@@ -135,6 +135,18 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         refute html =~ "phx-submit=\"prune_now\""
       end
 
+      test "a successful persisted read advances the mutation freshness marker", %{conn: conn} do
+        {:ok, view, initial_html} = live_retention(conn)
+        initial_revision = mutation_revision(initial_html)
+
+        send(view.pid, :refresh)
+
+        assert_eventually(fn ->
+          revision = mutation_revision(render(view))
+          is_binary(revision) and revision != initial_revision
+        end)
+      end
+
       test "a failed history read stays distinct from empty and offers refresh", %{conn: conn} do
         {:ok, view, _html} = live_retention(conn)
 
@@ -708,6 +720,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert_copy_equals_full(html, full: full)
         refute_copy_truncated(html, full: full)
+      end
+    end
+
+    defp mutation_revision(html) do
+      case Regex.run(~r/data-tl-mutation-revision="([^"]+)"/, html) do
+        [_, revision] -> revision
+        _ -> nil
       end
     end
   end

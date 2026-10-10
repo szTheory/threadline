@@ -33,7 +33,90 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     defp script_body do
-      [script_open(), status_helpers(), copy_activation()] |> IO.iodata_to_binary()
+      [mutation_binding(), script_open(), status_helpers(), copy_activation()]
+      |> IO.iodata_to_binary()
+    end
+
+    defp mutation_binding do
+      """
+      (function () {
+        if (window.__tlOperatorMutationBound) return;
+        window.__tlOperatorMutationBound = true;
+
+        var main = document.querySelector("[data-phx-main]");
+        if (!main) return;
+
+        var awaitingFreshRevision = null;
+        var pendingControls = new WeakSet();
+
+        function revision() {
+          var marker = main.querySelector("[data-tl-mutation-revision]");
+          return marker ? marker.getAttribute("data-tl-mutation-revision") : null;
+        }
+
+        function buttons() {
+          return main.querySelectorAll(".threadline-ui button[data-tl-mutating]");
+        }
+
+        function disable(button) {
+          if (!button.hasAttribute("disabled") || button.dataset.tlScriptDisabled === "true") {
+            button.disabled = true;
+            button.dataset.tlScriptDisabled = "true";
+          }
+        }
+
+        function restore() {
+          buttons().forEach(function (button) {
+            if (button.dataset.tlScriptDisabled !== "true") return;
+            if (button.dataset.tlServerDisabled !== "true") button.disabled = false;
+            delete button.dataset.tlScriptDisabled;
+            pendingControls.delete(button);
+          });
+        }
+
+        function reconcile() {
+          var classes = main.classList;
+          var unavailable = classes.contains("phx-loading") ||
+            classes.contains("phx-error") || classes.contains("phx-client-error");
+          var errored = classes.contains("phx-error") || classes.contains("phx-client-error");
+          var currentRevision = revision();
+
+          if (errored && awaitingFreshRevision === null) awaitingFreshRevision = currentRevision;
+
+          if (awaitingFreshRevision !== null && !errored &&
+              currentRevision !== null && currentRevision !== awaitingFreshRevision) {
+            awaitingFreshRevision = null;
+          }
+
+          if (unavailable || awaitingFreshRevision !== null) {
+            buttons().forEach(disable);
+            return;
+          }
+
+          restore();
+        }
+
+        document.addEventListener("click", function (event) {
+          var target = event.target instanceof Element ? event.target : event.target && event.target.parentElement;
+          var button = target && target.closest(".threadline-ui button[data-tl-mutating]");
+          if (!button || button.matches(":disabled")) return;
+
+          pendingControls.add(button);
+          window.setTimeout(function () {
+            if (pendingControls.has(button)) disable(button);
+          }, 0);
+        }, true);
+
+        new MutationObserver(reconcile).observe(main, {
+          attributes: true,
+          attributeFilter: ["class", "data-tl-mutation-revision", "data-tl-server-disabled"],
+          childList: true,
+          subtree: true
+        });
+
+        reconcile();
+      })();
+      """
     end
 
     defp script_open do

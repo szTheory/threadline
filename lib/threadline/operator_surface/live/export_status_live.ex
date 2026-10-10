@@ -32,6 +32,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:timeline_export_context, nil)
         |> assign(:evidence_export_context, nil)
         |> assign(:export_denied_descriptor, Unsupported.export_denied_descriptor())
+        |> assign(:mutation_revision, nil)
         |> assign(:jobs_state, :loading)
         |> assign_jobs(fetch_jobs(socket))
 
@@ -167,8 +168,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         evidence_enabled={@threadline_evidence_enabled}
         exports_enabled={@threadline_exports_enabled}
         current={:exports}
+        script
         main_class="tl-page"
       >
+          <span hidden data-tl-mutation-revision={@mutation_revision}></span>
           <%= if @threadline_exports_enabled do %>
             <UI.Page.page_header title="Exports">
               <:lede>
@@ -297,6 +300,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                       type="button"
                       phx-click="queue_timeline_export_context"
                       class="tl-button tl-button--primary tl-button--compact"
+                      data-tl-mutating
                     >
                       <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
                       Queue Timeline export
@@ -433,6 +437,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       count = length(jobs)
 
       socket
+      |> assign(:mutation_revision, mutation_revision())
       |> assign(:jobs_state, :loaded)
       |> assign(:jobs_error, nil)
       |> assign(:jobs, jobs)
@@ -451,6 +456,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       |> assign(:has_jobs, false)
       |> assign(:jobs_count, 0)
       |> assign(:default_limit, @default_limit)
+    end
+
+    defp mutation_revision do
+      System.unique_integer([:positive, :monotonic])
     end
 
     defp export_workflow_summary(assigns) do
