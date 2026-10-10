@@ -1,5 +1,7 @@
-import { expect, test, type WebSocketRoute } from "@playwright/test";
+import { chromium, expect, test, type Page, type WebSocketRoute } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 import { login, seedPaths, startEvidence } from "../support/operator-browser-evidence.js";
+import { setAndReadTabZoom, withIsolatedZoomContext } from "../support/operator-tab-zoom.js";
 
 // Passing this suite means observed states have source-bound evidence. Existing
 // product failures are recorded for the later refinement phases, not repaired here.
@@ -9,9 +11,18 @@ test.beforeEach(async ({}, info) => {
     "Timeline delayed query exposes pending then real empty result with a long unbroken filter",
     "Timeline keeps populated query identity while an applied replacement is pending",
     "real host denial under Acme support is distinct from busy and disabled",
+    "saved searches keep canonical sharing, long summaries, and destructive actions reachable",
+    "saved search actions stay in bounds at verified 200% browser zoom",
+    "actor and correlation pivots re-enter Timeline with only their supported filters",
+    "Timeline pagination appends the next page without changing the applied search URL",
   ].includes(info.title)) return;
   test.skip(process.env.THREADLINE_E2E_EVIDENCE !== "1" || !["desktop-chromium", "desktop-chromium-light"].includes(info.project.name), "Bounded evidence lanes only");
 });
+
+async function expectNoHorizontalOverflow(page: Page) {
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+}
 
 test("theme preference, effective cascade and reduced motion are distinct observed facts", async ({ page, browser }, info) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -269,4 +280,173 @@ test("real host denial under Acme support is distinct from busy and disabled", a
     await e.capture("state.denied", "/audit/timeline", "real-export-http-denied", { httpStatus: denied.status(), role: "Acme support read-only", scopeDecision: "host callback", timelineAllowed: true, unauthenticatedTimelineStatus: unauthenticated.status(), notPending: true });
     e.finish("state.denied", "/audit/timeline", "real-host-denial");
   }
+});
+
+test("saved searches keep canonical sharing, long summaries, and destructive actions reachable", async ({ page }) => {
+  await login(page);
+  const id = randomUUID();
+  const correlation = `saved-search-${id}-` + "x".repeat(170);
+  const name = `Escalation review ${"weekly priorities ".repeat(9)}${id}`;
+  const appliedUrl = `/audit/timeline?table=ticket_replies&correlation_id=${encodeURIComponent(correlation)}`;
+
+  await page.goto(appliedUrl);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
+
+  // Edits that have not been applied remain drafts; sharing still describes the URL query.
+  await page.locator("#filter-table").fill("draft_table_should_not_be_shared");
+  await page.locator("#filter-correlation-id").fill("draft-correlation-should-not-be-shared");
+
+  const filters = page.getByRole("button", { name: "Filters", exact: true });
+  await filters.click();
+  const drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole("region", { name: "Saved searches" })).toBeVisible();
+  await expect(drawer).toContainText("This URL shares the applied filters. Results and access are determined by the receiving host.");
+
+  const copySearch = drawer.getByRole("button", { name: "Copy search URL", exact: true });
+  await expect(copySearch).toHaveAttribute("data-tl-copy", appliedUrl);
+  await drawer.locator("#save-view-form").getByLabel("Saved search name").fill(name);
+  await drawer.getByRole("button", { name: "Save search", exact: true }).click();
+
+  const applySavedSearch = drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true });
+  await expect(applySavedSearch).toBeVisible();
+  const savedItem = applySavedSearch.locator("xpath=ancestor::li");
+  await expect(savedItem.locator(".tl-saved-search__summary")).toContainText(correlation);
+  const deleteSavedSearch = savedItem.getByRole("button", { name: `Delete ${name}`, exact: true });
+  await expect(deleteSavedSearch).toBeVisible();
+
+  // Change the committed query, then resume the saved search through Timeline validation.
+  await drawer.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(drawer).toBeHidden();
+  await page.locator("#filter-correlation-id").fill("replacement-correlation");
+  await page.locator("#timeline-filters").getByRole("button", { name: "Apply", exact: true }).click();
+  await expect(page).toHaveURL(/correlation_id=replacement-correlation/);
+  await filters.click();
+  await expect(drawer).toBeVisible();
+  await drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true }).click();
+  await expect.poll(() => {
+    const current = new URL(page.url());
+    return `${current.pathname}${current.search}`;
+  }).toBe(appliedUrl);
+  await expect(page.locator("#filter-correlation-id")).toHaveValue(correlation);
+
+  await page.setViewportSize({ width: 375, height: 900 });
+  await expect(drawer).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await expect(drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true })).toBeVisible();
+  await expect(drawer.getByRole("button", { name: `Delete ${name}`, exact: true })).toBeVisible();
+
+  await drawer.getByRole("button", { name: `Delete ${name}`, exact: true }).click();
+  const confirmation = page.getByRole("dialog", { name: "Delete saved search" });
+  await expect(confirmation).toContainText(`Delete saved search “${name}”? This removes it from your saved searches.`);
+  await confirmation.getByRole("button", { name: "Keep saved search", exact: true }).click();
+  await expect(confirmation).toBeHidden();
+
+  await drawer.getByRole("button", { name: `Delete ${name}`, exact: true }).click();
+  await page.getByRole("dialog", { name: "Delete saved search" }).getByRole("button", { name: "Delete search", exact: true }).click();
+  await expect(drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true })).toHaveCount(0);
+});
+
+test("saved search actions stay in bounds at verified 200% browser zoom", async ({}, info) => {
+  test.skip(info.project.name !== "desktop-chromium", "The actual tab-zoom proof runs in desktop Chromium");
+
+  await withIsolatedZoomContext(chromium, async (context, page) => {
+    const baseURL = String(info.project.use.baseURL ?? "http://127.0.0.1:4002");
+    await page.goto(new URL("/users/log_in", baseURL).toString(), { waitUntil: "domcontentloaded" });
+    const loginForm = page.locator("#login_form");
+    await loginForm.getByLabel("Email").fill("admin@example.com");
+    await loginForm.getByLabel("Password").fill(process.env.DEMO_SEED_PASSWORD ?? "password123456");
+    await loginForm.getByRole("button", { name: /log in/i }).click();
+    await expect(page).toHaveURL(new URL("/", baseURL).toString());
+
+    const correlation = `zoom-saved-search-${randomUUID()}-` + "z".repeat(170);
+    const name = `Zoom support search ${"unusual naming ".repeat(9)}${randomUUID()}`;
+    await page.goto(new URL(`/audit/timeline?table=ticket_replies&correlation_id=${encodeURIComponent(correlation)}`, baseURL).toString());
+    await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+    const zoom = await setAndReadTabZoom(context, page);
+    expect(zoom.zoomFactor).toBe(2);
+
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "Filters and handoff" });
+    await expect(drawer).toBeVisible();
+    await drawer.locator("#save-view-form").getByLabel("Saved search name").fill(name);
+    await drawer.getByRole("button", { name: "Save search", exact: true }).click();
+    const apply = drawer.getByRole("button", { name: `Apply saved search ${name}`, exact: true });
+    const remove = drawer.getByRole("button", { name: `Delete ${name}`, exact: true });
+    await expect(apply).toBeVisible();
+    await expect(remove).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
+    const controlsInsideViewport = await Promise.all([apply, remove].map((control) => control.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= document.documentElement.clientWidth + 1;
+    })));
+    expect(controlsInsideViewport).toEqual([true, true]);
+    await expect(drawer.locator(".tl-saved-search__summary").filter({ hasText: correlation })).toBeVisible();
+  });
+});
+
+test("actor and correlation pivots re-enter Timeline with only their supported filters", async ({ page }) => {
+  await login(page);
+  await page.goto("/audit/timeline?correlation_id=walk-acme-4521-close");
+  await expect(page.getByTestId("timeline-row").first()).toBeVisible();
+
+  const row = page.getByTestId("timeline-row").first();
+  const correlationLink = row.getByTitle("View correlated changes in Timeline");
+  const actorLink = row.getByTitle("View actor activity");
+  const correlationHref = await correlationLink.getAttribute("href");
+  const actorHref = await actorLink.getAttribute("href");
+  expect(correlationHref).toMatch(/^\/audit\/timeline\?correlation_id=/);
+  expect(actorHref).toMatch(/^\/audit\/actors\/(?:user|admin|service_account|job|system)\//);
+
+  await correlationLink.click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("correlation_id")).toBe("walk-acme-4521-close");
+  await expect(page.locator("#filter-correlation-id")).toHaveValue("walk-acme-4521-close");
+  await expect(page.locator("#tl-main")).not.toContainText("incident/walk-acme-4521-close");
+
+  await page.goto(actorHref!);
+  await expect(page.getByRole("heading", { name: "Actor activity", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Open timeline", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/audit\/timeline\?actor_kind=[^&]+&actor_id=/);
+  const actorQuery = new URL(page.url()).searchParams;
+  expect(actorQuery.get("actor_kind")).toBeTruthy();
+  expect(actorQuery.get("actor_id")).toBeTruthy();
+  expect([...actorQuery.keys()].sort()).toEqual(["actor_id", "actor_kind"]);
+  await expect(page.locator("#filter-correlation-id")).toHaveValue("");
+});
+
+test("Timeline pagination appends the next page without changing the applied search URL", async ({ page }) => {
+  await login(page);
+  const appliedUrl = "/audit/timeline?from=2020-01-01T00%3A00&to=2099-01-01T00%3A00&table=tickets";
+  await page.goto(appliedUrl);
+  await expect(page.locator("[data-phx-main]")).toHaveClass(/phx-connected/);
+
+  const rows = page.getByTestId("timeline-row");
+  await expect(rows).toHaveCount(50);
+  const pager = page.getByRole("navigation", { name: "Timeline pagination" });
+  await expect(pager).toContainText(/Showing 50 of [\d,]+ matching changes/);
+  const older = pager.getByRole("button", { name: "Older", exact: true });
+  await expect(older).toBeEnabled();
+
+  const before = await rows.first().getAttribute("id");
+  await older.click();
+  await expect.poll(() => rows.count()).toBeGreaterThan(50);
+  const shownCount = await rows.count();
+  const range = (await pager.innerText()).match(/Showing ([\d,]+) of ([\d,]+) matching changes/);
+  expect(range).not.toBeNull();
+  expect(Number(range![1].replaceAll(",", ""))).toBe(shownCount);
+  expect(Number(range![2].replaceAll(",", ""))).toBeGreaterThan(shownCount);
+  await expect.poll(() => {
+    const current = new URL(page.url());
+    return `${current.pathname}${current.search}`;
+  }).toBe(appliedUrl);
+  expect(await rows.first().getAttribute("id")).toBe(before);
+
+  const rowMotion = await rows.first().evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { animationName: style.animationName, animationDuration: style.animationDuration, animationDelay: style.animationDelay };
+  });
+  expect(rowMotion.animationName).toBe("none");
+  expect(rowMotion.animationDelay.split(",").every((delay) => Number.parseFloat(delay) === 0)).toBe(true);
 });

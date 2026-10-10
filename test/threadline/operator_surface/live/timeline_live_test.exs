@@ -1579,7 +1579,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     test "default actor_fn mount path exposes actor-owned saved views", %{conn: conn} do
       {:ok, lv, _html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
 
-      assert render(lv) =~ "Save view"
+      assert render(lv) =~ "Save search"
 
       lv
       |> form("#save-view-form", %{name: "Actor View"})
@@ -1597,6 +1597,116 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert view.name == "Actor View"
       assert view.filters["table"] == "posts"
       assert view.actor_ref == %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"}
+    end
+
+    test "saved searches show the approved empty copy and share only canonical applied filters",
+         %{conn: conn} do
+      {:ok, lv, html} =
+        mount_actor_audit(
+          conn,
+          "/audit_actor/timeline?table=posts&correlation_id=committed-42&scope=tenant-secret&cursor=next&saved_id=other&draft=ignored"
+        )
+
+      assert html =~ "No saved searches"
+      assert has_element?(lv, ".tl-saved-search-empty h3", "No saved searches")
+      assert html =~ "Save the applied Timeline filters to return to this search."
+      assert html =~ "Copy search URL"
+
+      assert html =~
+               "This URL shares the applied filters. Results and access are determined by the receiving host."
+
+      assert html =~
+               ~s|data-tl-copy="/audit_actor/timeline?table=posts&amp;correlation_id=committed-42"|
+
+      lv
+      |> form("#save-view-form", %{name: "Committed filters"})
+      |> render_submit()
+
+      view =
+        Repo.get_by!(
+          Threadline.Governance.SavedView,
+          [name: "Committed filters"],
+          repo_opts()
+        )
+
+      assert view.filters == %{"table" => "posts", "correlation_id" => "committed-42"}
+      assert render(lv) =~ "Committed filters"
+    end
+
+    test "saved searches are actor-isolated and blank names produce actionable feedback", %{
+      conn: conn
+    } do
+      other_actor_view =
+        Repo.insert!(
+          %Threadline.Governance.SavedView{
+            name: "Another actor's private search",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "actor-2"},
+            filters: %{"table" => "secret_rows"}
+          },
+          repo_opts()
+        )
+
+      {:ok, lv, html} = mount_actor_audit(conn, "/audit_actor/timeline?table=posts")
+
+      refute html =~ "Another actor's private search"
+
+      render_submit(lv, "save-view", %{"name" => ""})
+      assert render(lv) =~ "Enter a name for this saved search."
+      refute Repo.get_by(Threadline.Governance.SavedView, [name: ""], repo_opts())
+
+      render_click(lv, "delete-view", %{"id" => other_actor_view.id})
+      refute render(lv) =~ "Delete saved search"
+      assert Repo.get!(Threadline.Governance.SavedView, other_actor_view.id, repo_opts())
+    end
+
+    test "saved searches persist only committed filters and revalidate stored filters on apply",
+         %{conn: conn} do
+      legacy_search =
+        Repo.insert!(
+          %Threadline.Governance.SavedView{
+            name: "Legacy search",
+            actor_ref: %Threadline.Semantics.ActorRef{type: :user, id: "actor-1"},
+            filters: %{
+              "table" => "restored_posts",
+              "correlation_id" => "restored-7",
+              "scope" => "tenant-secret",
+              "cursor" => "page-2",
+              "saved_id" => "record-id"
+            }
+          },
+          repo_opts()
+        )
+
+      {:ok, lv, _html} =
+        mount_actor_audit(
+          conn,
+          "/audit_actor/timeline?table=committed_posts&correlation_id=committed-42"
+        )
+
+      lv
+      |> form("#save-view-form", %{name: "Committed only"})
+      |> render_submit()
+
+      view =
+        Repo.get_by!(Threadline.Governance.SavedView, [name: "Committed only"], repo_opts())
+
+      assert view.filters == %{"table" => "committed_posts", "correlation_id" => "committed-42"}
+
+      render_click(lv, "apply-view", %{"id" => legacy_search.id})
+
+      assert_patch(lv, "/audit_actor/timeline?table=restored_posts&correlation_id=restored-7")
+    end
+
+    test "an invalid committed Timeline query cannot be saved as a search", %{conn: conn} do
+      {:ok, lv, html} =
+        mount_actor_audit(conn, "/audit_actor/timeline?from=not-a-date&table=posts")
+
+      assert html =~ "Timeline filters could not be applied"
+
+      render_submit(lv, "save-view", %{"name" => "Invalid query"})
+
+      assert render(lv) =~ "Fix Timeline filters before saving this search."
+      refute Repo.get_by(Threadline.Governance.SavedView, [name: "Invalid query"], repo_opts())
     end
 
     test "export-specific scope hides and rejects background exports", %{conn: conn} do
@@ -1645,6 +1755,20 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       storage_opts = repo_opts()
       occurred_at = Keyword.get(opts, :occurred_at, DateTime.utc_now())
       actor_ref = Keyword.get(opts, :actor_ref, %{"type" => "user", "id" => "u1"})
+      correlation_id = Keyword.get(opts, :correlation_id)
+
+      action =
+        if correlation_id do
+          repo.insert!(
+            Threadline.Semantics.AuditAction.changeset(%{
+              name: "timeline.test",
+              actor_ref: actor_ref,
+              status: "ok",
+              correlation_id: correlation_id
+            }),
+            storage_opts
+          )
+        end
 
       txn =
         repo.insert!(
@@ -1652,6 +1776,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             txid: :rand.uniform(1_000_000_000),
             occurred_at: occurred_at,
             actor_ref: actor_ref,
+            action_id: action && action.id,
             source: Keyword.get(opts, :source, "support")
           }),
           storage_opts
@@ -1745,8 +1870,21 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Ensure it's active
       assert render(lv) =~ "support_posts"
 
-      # Click delete
+      # Requesting deletion opens an explicit confirmation; it does not mutate yet.
       lv |> element("button[phx-click=\"delete-view\"]") |> render_click()
+
+      assert render(lv) =~
+               "Delete saved search “My Support View”? This removes it from your saved searches."
+
+      assert render(lv) =~ "Keep saved search"
+      assert render(lv) =~ "Delete search"
+      assert Repo.get_by!(Threadline.Governance.SavedView, [name: "My Support View"], repo_opts())
+
+      render_click(lv, "close-delete-view", %{})
+      refute render(lv) =~ "Delete saved search “My Support View”?"
+
+      lv |> element("button[phx-click=\"delete-view\"]") |> render_click()
+      render_click(lv, "confirm-delete-view", %{})
 
       # Ensure it's deleted
       refute render(lv) =~ "My Support View"
@@ -1756,6 +1894,27 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
                [name: "My Support View"],
                repo_opts()
              )
+    end
+
+    test "Timeline actor and correlation pivots use their supported routes and filters", %{
+      conn: conn
+    } do
+      seed_change!(
+        table: "pivot_posts",
+        actor_ref: %{"type" => "user", "id" => "pivot-actor"},
+        correlation_id: "request-pivot-42"
+      )
+
+      {:ok, _lv, html} =
+        live(
+          conn,
+          "/audit_scoped/timeline?from=2020-01-01T00:00&to=2099-01-01T00:00&table=pivot_posts"
+        )
+
+      assert html =~ ~s|href="/audit_scoped/actors/user/pivot-actor"|
+      assert html =~ ~s|title="View correlated changes in Timeline"|
+      assert html =~ ~s|href="/audit_scoped/timeline?correlation_id=request-pivot-42"|
+      refute html =~ "incident/request-pivot-42"
     end
 
     test "Case 12: scoped Timeline refuses background export and keeps scoped downloads", %{

@@ -4,9 +4,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     use Phoenix.LiveView
 
     # The timeline owns forms for its primary query controls (the filter toolbar)
-    # and for saving the current view.
+    # and for saving the current search.
     Module.register_attribute(__MODULE__, :ui_form_policy, persist: true)
-    @ui_form_policy {:has_forms, "filter toolbar and saved-view form"}
+    @ui_form_policy {:has_forms, "filter toolbar and saved-search form"}
 
     import Ecto.Query
 
@@ -65,9 +65,12 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         |> assign(:scope, scope)
         |> assign(:audited_tables, audited_tables)
         |> assign(:saved_views, saved_views)
+        |> assign(:saved_search_error, nil)
+        |> assign(:pending_delete_view, nil)
         |> assign(:cursor, nil)
         |> assign(:filters, [])
         |> assign(:filters_raw, %{})
+        |> assign(:search_url, "")
         |> assign(:form_error, nil)
         |> assign(:query_error, false)
         |> assign(:unknown_table_attempted, false)
@@ -104,9 +107,23 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             {"to", DateTime.to_iso8601(to) |> String.slice(0..15)}
           ])
 
-        {:noreply, push_patch(socket, to: "#{timeline_path}?#{query_string}", replace: true)}
+        {:noreply,
+         socket
+         |> assign(:search_url, timeline_path)
+         |> push_patch(to: "#{timeline_path}?#{query_string}", replace: true)}
       else
-        socket = assign(socket, :filters_raw, FilterParams.filters_raw_from_params(params))
+        filters_raw = FilterParams.filters_raw_from_params(params)
+        filter_query = build_canonical_query(filters_raw)
+
+        search_url =
+          if filter_query == "", do: timeline_path, else: "#{timeline_path}?#{filter_query}"
+
+        socket =
+          socket
+          |> assign(:filters_raw, filters_raw)
+          |> assign(:filter_query, filter_query)
+          |> assign(:search_url, search_url)
+          |> assign(:saved_search_error, nil)
 
         with {:ok, filters} <- FilterParams.parse(params),
              :ok <- safe_validate(filters) do
@@ -227,25 +244,49 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     end
 
     def handle_event("save-view", %{"name" => name}, socket) do
-      if ActorRef.identifiable?(socket.assigns[:threadline_actor_ref]) and name != "" do
-        attrs = %{
-          name: name,
-          actor_ref: ActorRef.to_map(socket.assigns.threadline_actor_ref),
-          filters: socket.assigns.filters_raw
-        }
+      actor_ref = socket.assigns[:threadline_actor_ref]
+      name = if is_binary(name), do: String.trim(name), else: ""
 
-        changeset = SavedView.changeset(attrs)
+      cond do
+        not ActorRef.identifiable?(actor_ref) ->
+          saved_search_error(socket, "Sign in as a recognized actor to save searches.")
 
-        case socket.assigns.repo.insert(changeset, storage_opts(socket)) do
-          {:ok, view} ->
-            saved_views = [view | socket.assigns.saved_views]
-            {:noreply, assign(socket, :saved_views, saved_views)}
+        name == "" ->
+          saved_search_error(socket, "Enter a name for this saved search.")
 
-          {:error, _} ->
-            {:noreply, socket}
-        end
-      else
-        {:noreply, socket}
+        not is_nil(socket.assigns.form_error) ->
+          saved_search_error(socket, "Fix Timeline filters before saving this search.")
+
+        true ->
+          attrs = %{
+            name: name,
+            actor_ref: ActorRef.to_map(actor_ref),
+            filters: canonical_filters(socket.assigns.filters_raw)
+          }
+
+          changeset = SavedView.changeset(attrs)
+
+          try do
+            case socket.assigns.repo.insert(changeset, storage_opts(socket)) do
+              {:ok, view} ->
+                socket =
+                  socket
+                  |> assign(:saved_views, [view | socket.assigns.saved_views])
+                  |> assign(:saved_search_error, nil)
+
+                {:noreply, socket}
+
+              {:error, _changeset} ->
+                saved_search_error(
+                  socket,
+                  "Could not save this search. Check the name and try again."
+                )
+            end
+          rescue
+            _error -> saved_search_error(socket, "Could not save this search. Try again.")
+          catch
+            _kind, _reason -> saved_search_error(socket, "Could not save this search. Try again.")
+          end
       end
     end
 
@@ -256,19 +297,78 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         view ->
           query = build_canonical_query(view.filters)
-          {:noreply, push_patch(socket, to: "#{socket.assigns.timeline_path}?#{query}")}
+
+          path =
+            if query == "",
+              do: socket.assigns.timeline_path,
+              else: "#{socket.assigns.timeline_path}?#{query}"
+
+          {:noreply,
+           socket
+           |> assign(:saved_search_error, nil)
+           |> push_patch(to: path)}
       end
     end
 
     def handle_event("delete-view", %{"id" => id}, socket) do
-      case Enum.find(socket.assigns.saved_views, &(&1.id == id)) do
-        nil ->
-          {:noreply, socket}
+      actor_ref = socket.assigns[:threadline_actor_ref]
 
-        view ->
-          socket.assigns.repo.delete!(view, storage_opts(socket))
-          saved_views = Enum.reject(socket.assigns.saved_views, &(&1.id == id))
-          {:noreply, assign(socket, :saved_views, saved_views)}
+      if ActorRef.identifiable?(actor_ref) do
+        case Enum.find(socket.assigns.saved_views, &(&1.id == id)) do
+          %SavedView{} = view ->
+            {:noreply,
+             socket
+             |> assign(:pending_delete_view, view)
+             |> assign(:saved_search_error, nil)}
+
+          _ ->
+            {:noreply, socket}
+        end
+      else
+        {:noreply, socket}
+      end
+    end
+
+    def handle_event("close-delete-view", _params, socket) do
+      {:noreply, assign(socket, :pending_delete_view, nil)}
+    end
+
+    def handle_event("confirm-delete-view", _params, socket) do
+      actor_ref = socket.assigns[:threadline_actor_ref]
+      pending = socket.assigns[:pending_delete_view]
+
+      if ActorRef.identifiable?(actor_ref) and match?(%SavedView{}, pending) do
+        try do
+          case owned_saved_view(socket, pending.id, actor_ref) do
+            nil ->
+              saved_search_error(socket, "This saved search is no longer available.")
+
+            view ->
+              case socket.assigns.repo.delete(view, storage_opts(socket)) do
+                {:ok, _deleted} ->
+                  socket =
+                    socket
+                    |> assign(
+                      :saved_views,
+                      Enum.reject(socket.assigns.saved_views, &(&1.id == view.id))
+                    )
+                    |> assign(:pending_delete_view, nil)
+                    |> assign(:saved_search_error, nil)
+
+                  {:noreply, socket}
+
+                {:error, _changeset} ->
+                  saved_search_error(socket, "Could not delete this saved search. Try again.")
+              end
+          end
+        rescue
+          _error -> saved_search_error(socket, "Could not delete this saved search. Try again.")
+        catch
+          _kind, _reason ->
+            saved_search_error(socket, "Could not delete this saved search. Try again.")
+        end
+      else
+        {:noreply, assign(socket, :pending_delete_view, nil)}
       end
     end
 
@@ -498,6 +598,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           exports_enabled={@threadline_exports_enabled}
           actor_ref={assigns[:threadline_actor_ref]}
           saved_views={@saved_views}
+          search_url={@search_url}
           base_path={@base_path}
           filter_query={@filter_query}
           export_ready={is_nil(@form_error)}
@@ -507,8 +608,58 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               ActorRef.identifiable?(assigns[:threadline_actor_ref])
           }
         />
+        <div :if={@saved_search_error && is_nil(@pending_delete_view)} class="tl-alert tl-alert--error" role="alert">
+          <%= @saved_search_error %>
+        </div>
+        <.saved_search_delete_modal
+          :if={@pending_delete_view}
+          view={@pending_delete_view}
+          error={@saved_search_error}
+        />
       </UI.Page.shell>
       """
+    end
+
+    attr(:view, :map, required: true)
+    attr(:error, :string, default: nil)
+
+    defp saved_search_delete_modal(assigns) do
+      ~H"""
+      <UI.Overlay.modal id="saved-search-delete-confirm" show={true} on_cancel={Phoenix.LiveView.JS.push("close-delete-view")}>
+        <h2 id="saved-search-delete-confirm-title" class="tl-modal__title">Delete saved search</h2>
+        <p id="saved-search-delete-confirm-description" class="tl-modal__body">
+          Delete saved search “<%= @view.name %>”? This removes it from your saved searches.
+        </p>
+        <div :if={@error} class="tl-alert tl-alert--error" role="alert"><%= @error %></div>
+        <div class="tl-modal__actions">
+          <button type="button" class="tl-button tl-button--secondary" phx-click="close-delete-view">
+            Keep saved search
+          </button>
+          <button type="button" class="tl-button tl-button--danger" phx-click="confirm-delete-view" data-tl-mutating>
+            <Threadline.OperatorSurface.Components.Icon.icon name={:trash} class="tl-button__icon" />
+            Delete search
+          </button>
+        </div>
+      </UI.Overlay.modal>
+      """
+    end
+
+    defp saved_search_error(socket, message) do
+      {:noreply, assign(socket, :saved_search_error, message)}
+    end
+
+    defp canonical_filters(filters_raw) do
+      filters_raw
+      |> build_canonical_query()
+      |> URI.decode_query()
+    end
+
+    defp owned_saved_view(socket, id, actor_ref) do
+      socket.assigns.repo.get_by(
+        SavedView,
+        [id: id, actor_ref: actor_ref],
+        storage_opts(socket)
+      )
     end
 
     defp field_filtered_query?(filters_raw) do

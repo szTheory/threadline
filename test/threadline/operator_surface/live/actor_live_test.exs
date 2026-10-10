@@ -151,7 +151,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute html =~ "No events found in the selected time window."
     end
 
-    test "Case 4: Renders transactions and deep links to incident drill-down", %{conn: conn} do
+    test "Case 4: Renders actor-linked transactions and their investigation links", %{conn: conn} do
       repo = Threadline.Test.Repo
 
       txn =
@@ -189,6 +189,24 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       # Verify dummy event handlers for pagination
       render_hook(lv, "prev-page", %{})
       render_hook(lv, "next-page", %{})
+    end
+
+    test "actor evidence opens Timeline with only the supported actor filters", %{conn: conn} do
+      txn =
+        insert_transaction(%{
+          occurred_at: DateTime.utc_now(),
+          actor_ref: %{"type" => "user", "id" => "pivot-user-42"}
+        })
+
+      insert_change(txn, %{table_schema: "public", table_name: "tickets"})
+
+      {:ok, lv, _html} = live(conn, "/audit/actors/user/pivot-user-42")
+
+      assert has_element?(
+               lv,
+               ~s|a[href="/audit/timeline?actor_kind=user&actor_id=pivot-user-42"]|,
+               "Open timeline"
+             )
     end
 
     test "Case 5: next-page loads the older page on canonical options with no deprecation warning",

@@ -14,6 +14,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Capture.AuditChange
     alias Threadline.OperatorSurface.Presentation
     alias Threadline.OperatorSurface.UI
+    alias Threadline.Query.FilterParams
     alias Threadline.Semantics.ActorRef
     alias Threadline.StorageSchema
 
@@ -471,7 +472,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     defp timeline_actor_path(base_path, actor_ref) do
       query =
-        URI.encode_query(%{
+        FilterParams.canonical_query(%{
           "actor_kind" => to_string(actor_ref.type),
           "actor_id" => to_string(actor_ref.id)
         })

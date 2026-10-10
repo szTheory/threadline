@@ -121,6 +121,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     attr(:exports_enabled, :boolean, required: true)
     attr(:actor_ref, :any, default: nil)
     attr(:saved_views, :list, required: true)
+    attr(:search_url, :string, required: true)
     attr(:base_path, :string, required: true)
     attr(:filter_query, :string, required: true)
     attr(:export_ready, :boolean, required: true)
@@ -138,7 +139,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               Filters and handoff
             </h2>
             <p id="timeline-filters-drawer-description" class="tl-modal__body">
-              Refine the current Timeline query, save reusable views, or package this result set for a handoff.
+              Refine the current Timeline query, save a reusable search, or package this result set for a handoff.
             </p>
           </div>
           <button
@@ -167,6 +168,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             export_ready={@export_ready}
             background_export_ready={@background_export_ready}
           />
+
+          <section class="tl-utility-group tl-utility-group--share" aria-label="Share search">
+            <span class="tl-utility-group__label">Share</span>
+            <button
+              type="button"
+              class="tl-button tl-button--secondary"
+              data-tl-copy={@search_url}
+              aria-label="Copy search URL"
+            >
+              <Threadline.OperatorSurface.Components.Icon.icon name={:copy} class="tl-button__icon" />
+              Copy search URL
+            </button>
+            <p class="tl-toolbar__hint">
+              This URL shares the applied filters. Results and access are determined by the receiving host.
+            </p>
+          </section>
 
           <.saved_views_group actor_ref={@actor_ref} saved_views={@saved_views} />
         </div>
@@ -385,33 +402,41 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <section
         :if={ActorRef.identifiable?(@actor_ref)}
         class="tl-utility-group tl-utility-group--views"
-        aria-label="Saved views"
+        aria-label="Saved searches"
       >
-        <span class="tl-utility-group__label">Views</span>
+        <span class="tl-utility-group__label">Saved searches</span>
         <form id="save-view-form" phx-submit="save-view" class="tl-saved-view-form">
           <input
             type="text"
             name="name"
-            placeholder="Name this view..."
-            aria-label="View name"
+            placeholder="Name this search…"
+            aria-label="Saved search name"
             required
             class="tl-control"
           />
           <button type="submit" class="tl-button tl-button--secondary" data-tl-mutating>
             <Threadline.OperatorSurface.Components.Icon.icon name={:archive} class="tl-button__icon" />
-            Save view
+            Save search
           </button>
         </form>
-        <ul :if={@saved_views != []} class="tl-toolbar__saved-list" aria-label="Saved views">
+        <div :if={@saved_views == []} class="tl-alert tl-alert--info tl-saved-search-empty" role="status">
+          <h3 class="tl-saved-search-empty__title">No saved searches</h3>
+          <p>Save the applied Timeline filters to return to this search.</p>
+        </div>
+        <ul :if={@saved_views != []} class="tl-toolbar__saved-list" aria-label="Saved searches">
           <li :for={view <- @saved_views} class="tl-toolbar__saved-item">
             <button
               phx-click="apply-view"
               phx-value-id={view.id}
               type="button"
-              class="tl-button tl-button--secondary"
+              class="tl-button tl-button--secondary tl-saved-search__apply"
+              aria-label={"Apply saved search " <> view.name}
             >
               <Threadline.OperatorSurface.Components.Icon.icon name={:search} class="tl-button__icon" />
-              <%= view.name %>
+              <span class="tl-saved-search__content">
+                <strong class="tl-saved-search__name"><%= view.name %></strong>
+                <span class="tl-saved-search__summary"><%= Helpers.saved_search_summary(view.filters) %></span>
+              </span>
             </button>
             <button
               phx-click="delete-view"

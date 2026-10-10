@@ -6,6 +6,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     alias Threadline.Query.FilterParams
 
     @default_window_hours 24
+    @active_filter_keys ~w(table_schema table actor_kind actor_id correlation_id)
 
     @doc false
     def default_window_hours, do: @default_window_hours
@@ -237,12 +238,31 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     @doc false
     def active_filter_pairs(%{} = raw) do
       raw
-      |> Map.take(["table", "table_schema", "actor_kind", "actor_id", "correlation_id"])
-      |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
-      |> Enum.map(fn {key, value} -> {filter_label(key), value} end)
+      |> then(fn filters ->
+        Enum.flat_map(@active_filter_keys, fn key ->
+          case Map.get(filters, key) do
+            value when is_binary(value) and value != "" -> [{filter_label(key), value}]
+            _ -> []
+          end
+        end)
+      end)
     end
 
     def active_filter_pairs(_), do: []
+
+    @doc false
+    def saved_search_summary(%{} = filters_raw) do
+      filters_summary =
+        filters_raw
+        |> active_filter_pairs()
+        |> Enum.map_join(" · ", fn {label, value} -> "#{label}: #{value}" end)
+
+      [filter_window_summary(filters_raw).detail, filters_summary]
+      |> Enum.reject(&(&1 in [nil, ""]))
+      |> Enum.join(" · ")
+    end
+
+    def saved_search_summary(_), do: "Timeline filters"
 
     @doc false
     def advanced_filter_count(%{} = raw) do
