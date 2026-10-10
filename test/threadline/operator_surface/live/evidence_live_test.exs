@@ -6,6 +6,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       do: Application.get_env(:threadline, :test_allow_exports, true)
   end
 
+  defmodule Threadline.OperatorSurface.EvidenceLiveTest.UnavailableRepo do
+    def all(_query, _opts \\ []),
+      do: raise(DBConnection.ConnectionError, message: "synthetic evidence read outage")
+
+    def one(_query, _opts \\ []),
+      do: raise(DBConnection.ConnectionError, message: "synthetic evidence read outage")
+  end
+
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Router do
     use Threadline.OperatorSurfaceTest.Router
 
@@ -25,6 +33,28 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
   defmodule Threadline.OperatorSurface.EvidenceLiveTest.Endpoint do
     use Threadline.OperatorSurfaceTest.Endpoint,
       router: Threadline.OperatorSurface.EvidenceLiveTest.Router
+  end
+
+  defmodule Threadline.OperatorSurface.EvidenceLiveTest.UnavailableRouter do
+    use Threadline.OperatorSurfaceTest.Router
+
+    alias Threadline.OperatorSurface.EvidenceLiveTest.Auth
+    alias Threadline.OperatorSurface.EvidenceLiveTest.UnavailableRepo
+
+    scope "/" do
+      pipe_through(:browser)
+
+      Threadline.OperatorSurface.Router.threadline_operator_surface("/audit-unavailable",
+        evidence_authorize_fn: &Auth.authorize/1,
+        export_authorize_fn: &Auth.authorize_exports/1,
+        repo: UnavailableRepo
+      )
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.EvidenceLiveTest.UnavailableEndpoint do
+    use Threadline.OperatorSurfaceTest.Endpoint,
+      router: Threadline.OperatorSurface.EvidenceLiveTest.UnavailableRouter
   end
 
   defmodule Threadline.OperatorSurface.EvidenceLiveTest do
@@ -87,7 +117,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           subject_ref: %{"run_id" => "ret-run-1"},
           recorded_at: ~U[2026-05-26 12:00:00.000000Z],
           summary_status: "completed",
-          detail: %{"deleted_count" => 2}
+          detail: %{"deleted_count" => 2, "sensitive_canary" => "private-detail-canary"},
+          provenance: %{"writer" => "threadline", "sensitive_canary" => "private-provenance-canary"}
         )
 
         insert_evidence(
@@ -135,6 +166,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         assert html =~ "Proven"
         assert html =~ "Inferred"
         assert html =~ "Unsupported"
+        refute html =~ "private-detail-canary"
+        refute html =~ "private-provenance-canary"
 
         assert html =~ "tl-secondary-ref"
         assert html =~ ~s(title="{&quot;run_id&quot;:&quot;ret-run-1&quot;}")
@@ -399,6 +432,54 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
         {index, _length} -> index
         :nomatch -> flunk("expected #{inspect(needle)} in rendered HTML")
       end
+    end
+  end
+
+  defmodule Threadline.OperatorSurface.EvidenceUnavailableLiveTest do
+    use Threadline.DataCase, async: false
+
+    use Threadline.OperatorSurfaceCase,
+      endpoint: Threadline.OperatorSurface.EvidenceLiveTest.UnavailableEndpoint
+
+    setup_all do
+      Application.put_env(:threadline, :test_allow_evidence, true)
+      Application.put_env(:threadline, :test_allow_exports, true)
+      start_endpoint!(@endpoint)
+      :ok
+    end
+
+    setup do
+      {:ok, conn: build_conn()}
+    end
+
+    test "keeps a selected reference visible and retries a failed read without implying no match", %{
+      conn: conn
+    } do
+      subject_ref_json = URI.encode_www_form(~s({"run_id":"read-failure-123"}))
+
+      {:ok, view, html} =
+        live(
+          conn,
+          "/audit-unavailable/evidence?subject=retention_run&subject_ref_json=#{subject_ref_json}"
+        )
+
+      assert html =~
+               "Evidence is unavailable for this selection. Retry the read; no empty result is implied."
+
+      assert html =~ "Retry"
+      assert html =~ "retention_run"
+      assert html =~ "read-failure-123"
+      refute html =~ "No Threadline evidence for this selection"
+      refute html =~ "No evidence was recorded for this subject and reference."
+      refute html =~ "synthetic evidence read outage"
+
+      html = view |> element("button[phx-click=retry]") |> render_click()
+
+      assert html =~
+               "Evidence is unavailable for this selection. Retry the read; no empty result is implied."
+
+      assert html =~ "read-failure-123"
+      refute html =~ "synthetic evidence read outage"
     end
   end
 end
