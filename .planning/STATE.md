@@ -5,11 +5,11 @@ milestone_name: Operator UI Refinement
 current_phase: 240
 current_phase_name: Connected investigation and recovery
 status: discussing
-stopped_at: Phase 240 context gathered
-last_updated: "2026-10-10T09:03:54.936Z"
+stopped_at: Phase 240 UI-SPEC approved
+last_updated: "2026-10-10T10:01:24.294Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 239 passed verification; Phase 240 discussion started
-state_head: 8ae6513a43e25ca22bcb450535369e179843efaa
+state_head: 61b5cc777fccbb0b38f7c8a968bbc350423de4e6
 progress:
   total_phases: 6
   completed_phases: 2
@@ -1088,9 +1088,9 @@ Addendum (2026-09-27, post-217-04, post-217-05, post-218-04, post-218-05, post-2
 
 ## Session Continuity
 
-**Last session:** 2026-10-10T09:03:54.788Z
-**Stopped at:** Phase 240 context gathered
-**Resume file:** .planning/phases/240-connected-investigation-and-recovery/240-CONTEXT.md
+**Last session:** 2026-10-10T10:01:24.126Z
+**Stopped at:** Phase 240 UI-SPEC approved
+**Resume file:** .planning/phases/240-connected-investigation-and-recovery/240-UI-SPEC.md
 
 - **Milestone closeout (2026-05-29):** v1.29 archived; tag `v1.29`; REQUIREMENTS.md removed for fresh next milestone.
 - **130.1-02 (2026-05-29):** 130-VALIDATION superseded footnote; Nyquist waivers for 128/129; 130.1-VERIFICATION passed; `mix ci.all` green (744+61 tests).
