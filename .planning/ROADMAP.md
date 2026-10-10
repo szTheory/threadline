@@ -169,8 +169,11 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 - [ ] 242-01-PLAN.md — Export lifecycle, usable download, and source-search return
 - [ ] 242-02-PLAN.md — Confirmed global prune with one persisted run and safe outcomes
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 242-03-PLAN.md — Native mutation gating and durable reconnect verification
 
 **UI hint**: yes
