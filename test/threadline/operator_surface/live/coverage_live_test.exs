@@ -426,10 +426,22 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         SQL.query!(
           Threadline.Test.Repo,
+          "CREATE TABLE IF NOT EXISTS tenant_demo.coverage_link_uncovered (id bigint PRIMARY KEY)",
+          []
+        )
+
+        SQL.query!(
+          Threadline.Test.Repo,
           TriggerSQL.create_trigger("tenant_demo.coverage_link_target")
         )
 
         on_exit(fn ->
+          SQL.query!(
+            Threadline.Test.Repo,
+            "DROP TABLE IF EXISTS tenant_demo.coverage_link_uncovered CASCADE",
+            []
+          )
+
           SQL.query!(
             Threadline.Test.Repo,
             "DROP TABLE IF EXISTS tenant_demo.coverage_link_target CASCADE",
@@ -443,8 +455,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
         assert html =~ "Schema: tenant_demo"
         assert html =~ "coverage_link_target"
+        assert html =~ "coverage_link_uncovered"
         assert html =~ "table_schema=tenant_demo"
         assert html =~ "table=coverage_link_target"
+        assert html =~ "mix threadline.gen.triggers --tables tenant_demo.coverage_link_uncovered"
+        assert html =~
+                 "Run mix threadline.verify_coverage --schema=tenant_demo after applying the migration."
+        assert html =~
+                 ~s|data-tl-copy="mix threadline.gen.triggers --tables tenant_demo.coverage_link_uncovered"|
       end
     end
 

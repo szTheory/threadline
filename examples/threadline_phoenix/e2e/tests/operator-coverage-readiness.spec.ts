@@ -152,6 +152,27 @@ for (const viewport of viewports) {
       await expect(firstUncovered.getByText("Add capture")).toBeVisible();
       await expect(firstCoveredLink).toBeVisible();
 
+      const uncoveredTable = (
+        await firstUncovered.locator('td[data-label="TABLE"] code').textContent()
+      )?.trim();
+      expect(uncoveredTable).toBeTruthy();
+      await firstUncovered.locator(".tl-row-action__summary").click();
+      const command = firstUncovered.locator(".tl-remediation__command");
+      await expect(command).toHaveText(
+        `mix threadline.gen.triggers --tables public.${uncoveredTable}`,
+      );
+      await expect(
+        firstUncovered.getByRole("button", {
+          name: `Copy ${uncoveredTable} capture command`,
+        }),
+      ).toHaveAttribute(
+        "data-tl-copy",
+        `mix threadline.gen.triggers --tables public.${uncoveredTable}`,
+      );
+      await expect(firstUncovered).toContainText(
+        "Run mix threadline.verify_coverage --schema=public after applying the migration.",
+      );
+
       await expectBoxWithinViewport(verdict, viewport.width);
       await expectBoxWithinViewport(schemaSelect, viewport.width);
       await expectBoxWithinViewport(table, viewport.width);

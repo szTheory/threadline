@@ -373,26 +373,36 @@ defmodule Threadline.OperatorSurface.PresentationTest do
     test "returns concrete remediation guidance for a table" do
       assert Presentation.coverage_remediation("tickets") == %{
                label: "Add capture",
-               command: "mix threadline.gen.triggers --tables tickets",
-               follow_up: "Run mix threadline.verify_coverage after applying the migration."
+               command: "mix threadline.gen.triggers --tables public.tickets",
+               follow_up:
+                 "Run mix threadline.verify_coverage --schema=public after applying the migration."
              }
     end
 
-    test "does not build copyable remediation commands for unsupported identifiers" do
+    test "keeps the exact table name and manual path for unsupported identifiers" do
       assert Presentation.coverage_remediation("unsafe; touch /tmp/pwned") == %{
                label: "Add capture",
                command: nil,
                follow_up:
-                 "Generate a trigger migration for public.unsafe; touch /tmp/pwned after confirming the identifier; do not paste an auto-built shell command for this table."
+                 "Create and apply a host-owned trigger migration for public.unsafe; touch /tmp/pwned, then run mix threadline.verify_coverage --schema=public. No command is generated because an identifier is not safe to copy."
              }
     end
 
-    test "does not build copyable remediation commands for non-public schemas" do
+    test "builds a schema-qualified command for a safe non-public schema" do
       assert Presentation.coverage_remediation("tickets", schema: "tenant_iso") == %{
+               label: "Add capture",
+               command: "mix threadline.gen.triggers --tables tenant_iso.tickets",
+               follow_up:
+                 "Run mix threadline.verify_coverage --schema=tenant_iso after applying the migration."
+             }
+    end
+
+    test "keeps exact identifiers and withholds the command when the schema is unsafe" do
+      assert Presentation.coverage_remediation(" tickets ", schema: "tenant iso") == %{
                label: "Add capture",
                command: nil,
                follow_up:
-                 "Generate a trigger migration for tenant_iso.tickets after confirming the identifier; do not paste an auto-built shell command for this table."
+                 "Create and apply a host-owned trigger migration for tenant iso. tickets , then run mix threadline.verify_coverage --schema=tenant iso. No command is generated because an identifier is not safe to copy."
              }
     end
   end
